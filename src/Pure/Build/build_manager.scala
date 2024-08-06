@@ -861,7 +861,7 @@ object Build_Manager {
 
       Exn.capture(repository.id(File.read(target + Mercurial.Hg_Sync.PATH_ID))) match {
         case Exn.Res(res) => res
-        case Exn.Exn(exn) => ""
+        case Exn.Exn(_) => ""
       }
     }
 
@@ -1098,8 +1098,6 @@ object Build_Manager {
   class Timer(
     ci_jobs: List[Build_CI.Job],
     store: Store,
-    isabelle_repository: Mercurial.Repository,
-    sync_dirs: List[Sync.Dir],
     progress: Progress
   ) extends Loop_Process[Date]("Timer", store, progress) {
 
@@ -1185,7 +1183,7 @@ object Build_Manager {
       case Home(state: State) extends Model
       case Overview(kind: String, state: State) extends Model
       case Details(build: Build, state: State, public: Boolean = true) extends Model
-      case Diff(build: Build, state: State) extends Model
+      case Diff(build: Build) extends Model
     }
 
     object View {
@@ -1200,12 +1198,9 @@ object Build_Manager {
       def link_build(name: String, id: Long): XML.Elem =
         page_link(Page.BUILD, "#" + id, Markup.Name(name))
 
-      private def render_page(name: String)(body: => XML.Body): XML.Body = {
-        def nav_link(path: Path, s: String): XML.Elem = page_link(Page.HOME, "Home")
-
-        More_HTML.header(List(nav(List(nav_link(Page.HOME, "home"))))) ::
+      private def render_page(name: String)(body: => XML.Body): XML.Body =
+        More_HTML.header(List(nav(List(page_link(Page.HOME, "home"))))) ::
         main(chapter(name) :: body ::: Nil) :: Nil
-      }
 
       private def summary(start: Date): XML.Body =
         text(" running since " + Build_Log.print_date(start))
@@ -1317,7 +1312,7 @@ object Build_Manager {
           }
         }
 
-      def render_diff(build: Build, state: State): XML.Body = render_page("Diff: " + build.name) {
+      def render_diff(build: Build): XML.Body = render_page("Diff: " + build.name) {
         def colored(s: String): XML.Body = {
           val Colored = "([^\u001b]*)\u001b\\[([0-9;]+)m(.*)\u001b\\[0m([^\u001b]*)".r
           val colors = List("black", "maroon", "green", "olive", "navy", "purple", "teal", "silver")
@@ -1390,9 +1385,7 @@ object Build_Manager {
 
       def get_diff(props: Properties.T): Option[Model.Diff] =
         props match {
-          case Markup.Name(name) =>
-            val state = _state
-            state.get(name).map(Model.Diff(_, state))
+          case Markup.Name(name) => _state.get(name).map(Model.Diff(_))
           case _ => None
         }
 
@@ -1420,7 +1413,7 @@ object Build_Manager {
             case Model.Home(state) => View.render_home(state)
             case Model.Overview(kind, state) => View.render_overview(kind, state)
             case Model.Details(build, state, public) => View.render_details(build, state, public)
-            case Model.Diff(build, state) => View.render_diff(build, state)
+            case Model.Diff(build) => View.render_diff(build)
             case Model.Cancelled => View.render_cancelled
           })
 
@@ -1610,7 +1603,7 @@ object Build_Manager {
     val processes = List(
       new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
       new Poller(ci_jobs, store, isabelle_repository, sync_dirs, progress),
-      new Timer(ci_jobs, store, isabelle_repository, sync_dirs, progress),
+      new Timer(ci_jobs, store, progress),
       new Web_Server(port, store, progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
