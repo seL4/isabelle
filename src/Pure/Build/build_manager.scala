@@ -1482,7 +1482,12 @@ object Build_Manager {
           HTML.title("Isabelle Build Manager"),
           Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
           HTML.style_file("https://hawkz.github.io/gdcss/gd.css"),
-          HTML.style("html { background-color: white; }"))
+          HTML.style("""
+:root { 
+  --color-secondary: var(--color-tertiary);
+  --color-secondary-hover: var(--color-tertiary-hover);
+}
+html { background-color: white; }"""))
     }
 
     def init: Unit = server.start()
