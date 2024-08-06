@@ -297,7 +297,6 @@ proof
     unfolding convex_explicit by auto
 qed (auto simp: convex_explicit assms)
 
-
 subsection \<open>Convex Functions on a Set\<close>
 
 definition\<^marker>\<open>tag important\<close> convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool"
@@ -1152,6 +1151,58 @@ proof -
     using assms concave_onD_Icc' by blast
   finally show ?thesis .
 qed
+
+subsection \<open>Convexity of the generalised binomial\<close>
+
+lemma mono_on_mul:
+  fixes f::"'a::ord \<Rightarrow> 'b::ordered_semiring"
+  assumes "mono_on S f" "mono_on S g"
+  assumes fty: "f \<in> S \<rightarrow> {0..}" and gty: "g \<in> S \<rightarrow> {0..}"
+  shows "mono_on S (\<lambda>x. f x * g x)"
+  using assms by (auto simp: Pi_iff monotone_on_def intro!: mult_mono)
+
+lemma mono_on_prod:
+  fixes f::"'i \<Rightarrow> 'a::ord \<Rightarrow> 'b::linordered_idom"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> mono_on S (f i)" 
+  assumes "\<And>i. i \<in> I \<Longrightarrow> f i \<in> S \<rightarrow> {0..}" 
+  shows "mono_on S (\<lambda>x. prod (\<lambda>i. f i x) I)"
+  using assms
+  by (induction I rule: infinite_finite_induct)
+     (auto simp: mono_on_const Pi_iff prod_nonneg mono_on_mul mono_onI)
+
+lemma convex_gchoose_aux: "convex_on {k-1..} (\<lambda>a. prod (\<lambda>i. a - of_nat i) {0..<k})"
+proof (induction k)
+  case 0
+  then show ?case 
+    by (simp add: convex_on_def)
+next
+  case (Suc k)
+  have "convex_on {real k..} (\<lambda>a. (\<Prod>i = 0..<k. a - real i) * (a - real k))"
+  proof (intro convex_on_mul convex_on_diff)
+    show "convex_on {real k..} (\<lambda>x. \<Prod>i = 0..<k. x - real i)"
+      using Suc convex_on_subset by fastforce
+    show "mono_on {real k..} (\<lambda>x. \<Prod>i = 0..<k. x - real i)"
+      by (force simp: monotone_on_def intro!: prod_mono)
+  next
+    show "(\<lambda>x. \<Prod>i = 0..<k. x - real i) \<in> {real k..} \<rightarrow> {0..}"
+      by (auto intro!: prod_nonneg)
+  qed (auto simp: convex_on_ident concave_on_const mono_onI)
+  then show ?case
+    by simp
+qed
+
+lemma convex_gchoose: "convex_on {k-1..} (\<lambda>x. x gchoose k)"
+  by (simp add: gbinomial_prod_rev convex_on_cdiv convex_gchoose_aux)
+
+lemma gbinomial_mono:
+  fixes k::nat and a::real
+  assumes "of_nat k \<le> a" "a \<le> b" shows "a gchoose k \<le> b gchoose k"
+  using assms
+  by (force simp: gbinomial_prod_rev intro!: divide_right_mono prod_mono)
+
+lemma gbinomial_is_prod: "(a gchoose k) = (\<Prod>i<k. (a - of_nat i) / (1 + of_nat i))"
+  unfolding gbinomial_prod_rev
+  by (induction k; simp add: divide_simps)
 
 subsection \<open>Some inequalities: Applications of convexity\<close>
 

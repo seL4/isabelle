@@ -2401,12 +2401,12 @@ lemma prod_powr_distrib:
   shows "(prod x I) powr r = (\<Prod>i\<in>I. x i powr r)"
   by (induction I rule: infinite_finite_induct) (auto simp add: powr_mult prod_nonneg)
 
-lemma powr_ge_pzero [simp]: "0 \<le> x powr y"
+lemma powr_ge_zero [simp]: "0 \<le> x powr y"
   for x y :: real
   by (simp add: powr_def)
 
 lemma powr_non_neg[simp]: "\<not> a powr x < 0" for a x::real
-  using powr_ge_pzero[of a x] by arith
+  using powr_ge_zero[of a x] by arith
 
 lemma inverse_powr: "\<And>y::real. inverse y powr a = inverse (y powr a)"
     by (simp add: exp_minus ln_inverse powr_def)
@@ -2978,7 +2978,7 @@ lemma powr_half_sqrt: "0 \<le> x \<Longrightarrow> x powr (1/2) = sqrt x"
   by (simp add: powr_def root_powr_inverse sqrt_def)
 
 lemma powr_half_sqrt_powr: "0 \<le> x \<Longrightarrow> x powr (a/2) = sqrt(x powr a)"
-  by (metis divide_inverse mult.left_neutral powr_ge_pzero powr_half_sqrt powr_powr)
+  by (metis divide_inverse mult.left_neutral powr_ge_zero powr_half_sqrt powr_powr)
 
 lemma square_powr_half [simp]:
   fixes x::real shows "x\<^sup>2 powr (1/2) = \<bar>x\<bar>"

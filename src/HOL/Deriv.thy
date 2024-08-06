@@ -1960,10 +1960,10 @@ proof -
 qed
 
 
-proposition  deriv_nonneg_imp_mono: (*DELETE*)
-  assumes deriv: "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
-  assumes nonneg: "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
-  assumes ab: "a \<le> b"
+proposition deriv_nonneg_imp_mono: 
+  assumes "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_real_derivative g' x) (at x)"
+  assumes "\<And>x. x \<in> {a..b} \<Longrightarrow> g' x \<ge> 0"
+  assumes "a \<le> b"
   shows "g a \<le> g b"
   by (metis DERIV_nonneg_imp_nondecreasing atLeastAtMost_iff assms)
 

@@ -2512,6 +2512,16 @@ proof -
     by (smt (verit) AE_I2 borel_measurable_count_space density_cong ennreal_neg point_measure_def)
 qed
 
+lemma integral_uniform_count_measure:
+  assumes "finite A" 
+  shows "integral\<^sup>L (uniform_count_measure A) f = sum f A / (card A)"
+proof -
+  have "integral\<^sup>L (uniform_count_measure A) f = (\<Sum>x\<in>A. f x / card A)" 
+    using assms by (simp add: uniform_count_measure_def lebesgue_integral_point_measure_finite)
+  with assms show ?thesis
+    by (simp add: sum_divide_distrib nn_integral_count_space_finite)
+qed
+
 subsection \<open>Lebesgue integration on \<^const>\<open>null_measure\<close>\<close>
 
 lemma has_bochner_integral_null_measure_iff[iff]:

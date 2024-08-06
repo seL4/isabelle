@@ -1498,6 +1498,42 @@ lemma big_sum_in_bigo:
   shows   "(\<lambda>x. sum (\<lambda>y. f y x) A) \<in> O[F](g)"
   using assms by (induction A rule: infinite_finite_induct) (auto intro: sum_in_bigo)
 
+lemma smallo_multiples:
+  assumes f: "f \<in> o(real)" and "k>0"
+  shows "(\<lambda>n. f (k * n)) \<in> o(real)"
+proof (clarsimp simp: smallo_def)
+  fix c::real
+  assume "c>0"
+  then have "c/k > 0"
+    by (simp add: assms)
+  with assms have "\<forall>\<^sub>F n in sequentially. \<bar>f n\<bar> \<le> c / real k * n"
+    by (force simp: smallo_def del: divide_const_simps)
+  then obtain N where "\<And>n. n\<ge>N \<Longrightarrow> \<bar>f n\<bar> \<le> c/k * n"
+    by (meson eventually_at_top_linorder)
+  then have "\<And>m. (k*m)\<ge>N \<Longrightarrow> \<bar>f (k*m)\<bar> \<le> c/k * (k*m)"
+    by blast
+  with \<open>k>0\<close> have "\<forall>\<^sub>F m in sequentially. \<bar>f (k*m)\<bar> \<le> c/k * (k*m)"
+    by (smt (verit, del_insts) One_nat_def Suc_leI eventually_at_top_linorderI mult_1_left mult_le_mono)
+  then show "\<forall>\<^sub>F n in sequentially. \<bar>f (k * n)\<bar> \<le> c * n"
+    by eventually_elim (use \<open>k>0\<close> in auto)
+qed
+
+lemma maxmin_in_smallo:
+  assumes "f \<in> o[F](h)" "g \<in> o[F](h)"
+  shows   "(\<lambda>k. max (f k) (g k)) \<in> o[F](h)" "(\<lambda>k. min (f k) (g k)) \<in> o[F](h)"
+proof -
+  { fix c::real
+    assume "c>0"
+    with assms smallo_def
+    have "\<forall>\<^sub>F x in F. norm (f x) \<le> c * norm(h x)" "\<forall>\<^sub>F x in F. norm(g x) \<le> c * norm(h x)"
+      by (auto simp: smallo_def)
+    then have "\<forall>\<^sub>F x in F. norm (max (f x) (g x)) \<le> c * norm(h x) \<and> norm (min (f x) (g x)) \<le> c * norm(h x)"
+      by (smt (verit) eventually_elim2 max_def min_def)
+  } with assms   
+  show "(\<lambda>x. max (f x) (g x)) \<in> o[F](h)" "(\<lambda>x. min (f x) (g x)) \<in> o[F](h)"
+    by (smt (verit) eventually_elim2 landau_o.smallI)+
+qed
+
 lemma le_imp_bigo_real:
   assumes "c \<ge> 0" "eventually (\<lambda>x. f x \<le> c * (g x :: real)) F" "eventually (\<lambda>x. 0 \<le> f x) F"
   shows   "f \<in> O[F](g)"
