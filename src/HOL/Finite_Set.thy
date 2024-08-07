@@ -199,12 +199,12 @@ let
   val Eq_TrueI = @{thm Eq_TrueI}
 
   fun is_subset A th = case Thm.prop_of th of
-        (_ $ (Const (\<^const_name>\<open>less_eq\<close>, Type (\<^type_name>\<open>fun\<close>, [Type (\<^type_name>\<open>set\<close>, _), _])) $ A' $ B))
+        (_ $ \<^Const_>\<open>less_eq \<^Type>\<open>set _\<close> for A' B\<close>)
         => if A aconv A' then SOME(B,th) else NONE
       | _ => NONE;
 
   fun is_finite th = case Thm.prop_of th of
-        (_ $ (Const (\<^const_name>\<open>finite\<close>, _) $ A)) => SOME(A,th)
+        (_ $ \<^Const_>\<open>finite _ for A\<close>) => SOME(A,th)
       |  _ => NONE;
 
   fun comb (A,sub_th) (A',fin_th) ths = if A aconv A' then (sub_th,fin_th) :: ths else ths

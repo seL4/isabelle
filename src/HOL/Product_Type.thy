@@ -1334,22 +1334,22 @@ subsection \<open>Inductively defined sets\<close>
 simproc_setup Collect_mem ("Collect t") = \<open>
   K (fn ctxt => fn ct =>
     (case Thm.term_of ct of
-      S as Const (\<^const_name>\<open>Collect\<close>, Type (\<^type_name>\<open>fun\<close>, [_, T])) $ t =>
+      S as \<^Const_>\<open>Collect A for t\<close> =>
         let val (u, _, ps) = HOLogic.strip_ptupleabs t in
           (case u of
-            (c as Const (\<^const_name>\<open>Set.member\<close>, _)) $ q $ S' =>
+            (c as \<^Const_>\<open>Set.member _ for q S'\<close>) =>
               (case try (HOLogic.strip_ptuple ps) q of
                 NONE => NONE
               | SOME ts =>
                   if not (Term.is_open S') andalso
                     ts = map Bound (length ps downto 0)
                   then
-                    let val simp =
-                      full_simp_tac (put_simpset HOL_basic_ss ctxt
-                        addsimps [@{thm split_paired_all}, @{thm case_prod_conv}]) 1
+                    let
+                      val simp =
+                        full_simp_tac (put_simpset HOL_basic_ss ctxt
+                          addsimps [@{thm split_paired_all}, @{thm case_prod_conv}]) 1
                     in
-                      SOME (Goal.prove ctxt [] []
-                        (Const (\<^const_name>\<open>Pure.eq\<close>, T --> T --> propT) $ S $ S')
+                      SOME (Goal.prove ctxt [] [] \<^Const>\<open>Pure.eq \<^Type>\<open>set A\<close> for S S'\<close>
                         (K (EVERY
                           [resolve_tac ctxt [eq_reflection] 1,
                            resolve_tac ctxt @{thms subset_antisym} 1,
