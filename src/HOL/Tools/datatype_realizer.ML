@@ -49,7 +49,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
       (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
         let
           val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr) cargs;
-          val tnames = Name.variant_list pnames (Old_Datatype_Prop.make_tnames Ts);
+          val tnames = Name.variant_list pnames (Case_Translation.make_tnames Ts);
           val recs = filter (Old_Datatype_Aux.is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
@@ -88,7 +88,7 @@ fun make_ind ({descr, rec_names, rec_rewrites, induct, ...} : Old_Datatype_Aux.i
           else if (j: int) = i then HOLogic.mk_fst t
           else mk_proj j is (HOLogic.mk_snd t);
 
-    val tnames = Old_Datatype_Prop.make_tnames recTs;
+    val tnames = Case_Translation.make_tnames recTs;
     val fTs = map fastype_of rec_fns;
     val ps = map (fn ((((i, _), T), U), s) => Abs ("x", T, make_pred i U T
       (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Bound 0) (Bound 0)))
@@ -168,7 +168,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
     fun make_casedist_prem T (cname, cargs) =
       let
         val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr) cargs;
-        val frees = Name.variant_list ["P", "y"] (Old_Datatype_Prop.make_tnames Ts) ~~ Ts;
+        val frees = Name.variant_list ["P", "y"] (Case_Translation.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
         val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
       in

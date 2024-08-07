@@ -251,7 +251,7 @@ print_translation \<open>
       else raise Match;
 
     fun tr' q = (q, fn _ =>
-      (fn [Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v, Type (\<^type_name>\<open>set\<close>, _)),
+      (fn [Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v, \<^Type>\<open>set _\<close>),
           Const (c, _) $
             (Const (d, _) $ (Const (\<^syntax_const>\<open>_bound\<close>, _) $ Free (v', T)) $ n) $ P] =>
           (case AList.lookup (=) trans (q, c, d) of

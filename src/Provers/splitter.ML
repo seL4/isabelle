@@ -428,9 +428,12 @@ fun gen_split_tac _ [] = K no_tac
 
 (* add_split / del_split *)
 
-fun string_of_typ (Type (s, Ts)) =
-      (if null Ts then "" else enclose "(" ")" (commas (map string_of_typ Ts))) ^ s
-  | string_of_typ _ = "_";
+fun string_of_typ T =
+  if is_Type T then
+    (case dest_Type_args T of
+      [] => ""
+    | Ts => enclose "(" ")" (commas (map string_of_typ Ts))) ^ dest_Type_name T
+  else "_";
 
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;

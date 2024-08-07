@@ -250,7 +250,7 @@ fun prove_strong_ind s avoids lthy =
       end) prems);
 
     val ind_vars =
-      (Old_Datatype_Prop.indexify_names (replicate (length atomTs) "pi") ~~
+      (Case_Translation.indexify_names (replicate (length atomTs) "pi") ~~
        map NominalAtoms.mk_permT atomTs) @ [("z", fsT)];
     val ind_Ts = rev (map snd ind_vars);
 

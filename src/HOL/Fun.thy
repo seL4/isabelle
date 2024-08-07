@@ -1377,32 +1377,28 @@ text \<open>Simplify terms of the form \<open>f(\<dots>,x:=y,\<dots>,x:=z,\<dots
 
 simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>
   let
-    fun gen_fun_upd NONE T _ _ = NONE
-      | gen_fun_upd (SOME f) T x y = SOME (Const (\<^const_name>\<open>fun_upd\<close>, T) $ f $ x $ y)
-    fun dest_fun_T1 (Type (_, T :: Ts)) = T
-    fun find_double (t as Const (\<^const_name>\<open>fun_upd\<close>,T) $ f $ x $ y) =
+    fun gen_fun_upd _ _ _ _ NONE = NONE
+      | gen_fun_upd A B x y (SOME f) = SOME \<^Const>\<open>fun_upd A B for f x y\<close>
+    fun find_double (t as \<^Const_>\<open>fun_upd A B for f x y\<close>) =
       let
-        fun find (Const (\<^const_name>\<open>fun_upd\<close>,T) $ g $ v $ w) =
-              if v aconv x then SOME g else gen_fun_upd (find g) T v w
+        fun find \<^Const_>\<open>fun_upd _ _ for g v w\<close> =
+              if v aconv x then SOME g
+              else gen_fun_upd A B v w (find g)
           | find t = NONE
-      in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
+      in gen_fun_upd A B x y (find f) end
 
     val ss = simpset_of \<^context>
-
-    fun proc ctxt ct =
-      let
-        val t = Thm.term_of ct
-      in
-        (case find_double t of
-          (T, NONE) => NONE
-        | (T, SOME rhs) =>
-            SOME (Goal.prove ctxt [] [] (Logic.mk_equals (t, rhs))
-              (fn _ =>
-                resolve_tac ctxt [eq_reflection] 1 THEN
-                resolve_tac ctxt @{thms ext} 1 THEN
-                simp_tac (put_simpset ss ctxt) 1)))
+  in
+    fn _ => fn ctxt => fn ct =>
+      let val t = Thm.term_of ct in
+        find_double t |> Option.map (fn rhs =>
+          Goal.prove ctxt [] [] (Logic.mk_equals (t, rhs))
+            (fn _ =>
+              resolve_tac ctxt [eq_reflection] 1 THEN
+              resolve_tac ctxt @{thms ext} 1 THEN
+              simp_tac (put_simpset ss ctxt) 1))
       end
-  in K proc end
+  end
 \<close>
 
 

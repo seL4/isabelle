@@ -63,7 +63,7 @@ let
       fun prove_take_app (con_const, args) =
         let
           val Ts = map snd args
-          val ns = Name.variant_list ["n"] (Old_Datatype_Prop.make_tnames Ts)
+          val ns = Name.variant_list ["n"] (Case_Translation.make_tnames Ts)
           val vs = map Free (ns ~~ Ts)
           val lhs = mk_capply (take_const $ n', list_ccomb (con_const, vs))
           val rhs = list_ccomb (con_const, map2 (map_of_arg thy) vs Ts)
@@ -108,8 +108,8 @@ let
   val {take_consts, take_induct_thms, ...} = take_info
 
   val newTs = map #absT iso_infos
-  val P_names = Old_Datatype_Prop.indexify_names (map (K "P") newTs)
-  val x_names = Old_Datatype_Prop.indexify_names (map (K "x") newTs)
+  val P_names = Case_Translation.indexify_names (map (K "P") newTs)
+  val x_names = Case_Translation.indexify_names (map (K "x") newTs)
   val P_types = map (fn T => T --> \<^Type>\<open>bool\<close>) newTs
   val Ps = map Free (P_names ~~ P_types)
   val xs = map Free (x_names ~~ newTs)
@@ -118,7 +118,7 @@ let
   fun con_assm defined p (con, args) =
     let
       val Ts = map snd args
-      val ns = Name.variant_list P_names (Old_Datatype_Prop.make_tnames Ts)
+      val ns = Name.variant_list P_names (Case_Translation.make_tnames Ts)
       val vs = map Free (ns ~~ Ts)
       val nonlazy = map snd (filter_out (fst o fst) (args ~~ vs))
       fun ind_hyp (v, T) t =
@@ -256,7 +256,7 @@ let
 
   val {take_consts, take_0_thms, take_lemma_thms, ...} = take_info
 
-  val R_names = Old_Datatype_Prop.indexify_names (map (K "R") newTs)
+  val R_names = Case_Translation.indexify_names (map (K "R") newTs)
   val R_types = map (fn T => T --> T --> \<^Type>\<open>bool\<close>) newTs
   val Rs = map Free (R_names ~~ R_types)
   val n = Free ("n", \<^Type>\<open>nat\<close>)
@@ -273,7 +273,7 @@ let
     fun one_con T (con, args) =
       let
         val Ts = map snd args
-        val ns1 = Name.variant_list reserved (Old_Datatype_Prop.make_tnames Ts)
+        val ns1 = Name.variant_list reserved (Case_Translation.make_tnames Ts)
         val ns2 = map (fn n => n^"'") ns1
         val vs1 = map Free (ns1 ~~ Ts)
         val vs2 = map Free (ns2 ~~ Ts)

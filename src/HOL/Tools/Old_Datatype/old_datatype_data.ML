@@ -63,19 +63,17 @@ fun info_of_constr thy (c, T) =
   let
     val tab = Symtab.lookup_list (#constrs (Data.get thy)) c;
   in
-    (case body_type T of
-      Type (tyco, _) => AList.lookup (op =) tab tyco
-    | _ => NONE)
+    try (dest_Type_name o body_type) T
+    |> Option.mapPartial (AList.lookup (op =) tab)
   end;
 
 fun info_of_constr_permissive thy (c, T) =
   let
     val tab = Symtab.lookup_list (#constrs (Data.get thy)) c;
-    val hint = (case body_type T of Type (tyco, _) => SOME tyco | _ => NONE);
     val default = if null tab then NONE else SOME (snd (List.last tab));
     (*conservative wrt. overloaded constructors*)
   in
-    (case hint of
+    (case try (dest_Type_name o body_type) T of
       NONE => default
     | SOME tyco =>
         (case AList.lookup (op =) tab tyco of
@@ -185,8 +183,9 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
 fun all_distincts thy Ts =
   let
-    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
-      | add_tycos _ = I;
+    fun add_tycos T =
+      if is_Type T
+      then insert (op =) (dest_Type_name T) #> fold add_tycos (dest_Type_args T) else I;
     val tycos = fold add_tycos Ts [];
   in map_filter (Option.map #distinct o get_info thy) tycos end;
 
@@ -221,7 +220,7 @@ fun dt_cases (descr: Old_Datatype_Aux.descr) (_, args, constrs) =
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
 fun induct_cases descr =
-  Old_Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
+  Case_Translation.indexify_names (maps (dt_cases descr) (map #2 descr));
 
 fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 

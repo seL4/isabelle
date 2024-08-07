@@ -157,7 +157,7 @@ fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = Thm.term_of cgoal;
     val params = Logic.strip_params goal;
-    val (_, Type (tname, _)) = hd (rev params);
+    val tname = dest_Type_name (#2 (hd (rev params)));
     val exhaustion = Thm.lift_rule cgoal (exh_thm_of tname);
     val prem' = hd (Thm.prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
@@ -228,25 +228,32 @@ val body_index = dest_DtRec o snd o strip_dtyp;
 fun mk_fun_dtyp [] U = U
   | mk_fun_dtyp (T :: Ts) U = DtType ("fun", [T, mk_fun_dtyp Ts U]);
 
-fun name_of_typ (Type (s, Ts)) =
-      let val s' = Long_Name.base_name s in
-        space_implode "_"
-          (filter_out (equal "") (map name_of_typ Ts) @
-            [if Symbol_Pos.is_identifier s' then s' else "x"])
-      end
-  | name_of_typ _ = "";
+fun name_of_typ ty =
+  if is_Type ty then
+    let
+      val name = Long_Name.base_name (dest_Type_name ty)
+      val Ts = dest_Type_args ty
+    in
+      space_implode "_"
+        (filter_out (equal "") (map name_of_typ Ts) @
+          [if Symbol_Pos.is_identifier name then name else "x"])
+    end
+  else "";
 
 fun dtyp_of_typ _ (TFree a) = DtTFree a
-  | dtyp_of_typ _ (TVar _) = error "Illegal schematic type variable(s)"
-  | dtyp_of_typ new_dts (Type (tname, Ts)) =
-      (case AList.lookup (op =) new_dts tname of
-        NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
-      | SOME vs =>
-          if map (try dest_TFree) Ts = map SOME vs then
-            DtRec (find_index (curry op = tname o fst) new_dts)
-          else error ("Illegal occurrence of recursive type " ^ quote tname));
+  | dtyp_of_typ new_dts T =
+      if is_TVar T then error "Illegal schematic type variable(s)"
+      else
+        let val (tname, Ts) = dest_Type T in
+          (case AList.lookup (op =) new_dts tname of
+            NONE => DtType (tname, map (dtyp_of_typ new_dts) Ts)
+          | SOME vs =>
+              if map (try dest_TFree) Ts = map SOME vs then
+                DtRec (find_index (curry op = tname o fst) new_dts)
+              else error ("Illegal occurrence of recursive type " ^ quote tname))
+        end;
 
-fun typ_of_dtyp descr (DtTFree a) = TFree a
+fun typ_of_dtyp _ (DtTFree a) = TFree a
   | typ_of_dtyp descr (DtRec i) =
       let val (s, ds, _) = the (AList.lookup (op =) descr i)
       in Type (s, map (typ_of_dtyp descr) ds) end

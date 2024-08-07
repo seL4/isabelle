@@ -731,7 +731,7 @@ fun rename_to_tnames ctxt term =
       | rename t _ = t
 
     val (fixed_def_t, _) = yield_singleton (Variable.importT_terms) term ctxt
-    val new_names = Old_Datatype_Prop.make_tnames (all_typs fixed_def_t)
+    val new_names = Case_Translation.make_tnames (all_typs fixed_def_t)
   in
     rename term new_names
   end
