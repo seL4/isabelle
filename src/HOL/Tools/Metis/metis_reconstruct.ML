@@ -58,8 +58,8 @@ fun atp_clause_of_metis _ [] = AAtom (ATerm ((tptp_false, []), []))
     lits |> map (atp_literal_of_metis type_enc) |> mk_aconns AOr
 
 fun polish_hol_terms ctxt (lifted, old_skolems) =
-  map (reveal_lam_lifted lifted #> reveal_old_skolem_terms old_skolems)
-  #> Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
+  map (reveal_lam_lifted lifted #> reveal_old_skolem_terms old_skolems) #>
+  Type_Infer_Context.infer_types_finished (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
 
 fun hol_clause_of_metis ctxt type_enc sym_tab concealed =
   Metis_Thm.clause

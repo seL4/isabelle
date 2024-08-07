@@ -11,6 +11,7 @@ sig
   val prepare_positions: Proof.context -> term list -> term list * (Position.T * typ) list
   val prepare: Proof.context -> term list -> int * term list
   val infer_types: Proof.context -> term list -> term list
+  val infer_types_finished: Proof.context -> term list -> term list
 end;
 
 structure Type_Infer_Context: TYPE_INFER_CONTEXT =
@@ -303,5 +304,8 @@ fun infer_types ctxt raw_ts =
     val (tye, _) = fold (snd oo infer ctxt) ts (Vartab.empty, idx);
     val (_, ts') = Type_Infer.finish ctxt tye ([], ts);
   in ts' end;
+
+fun infer_types_finished ctxt =
+  infer_types ctxt #> Proof_Context.standard_term_check_finish ctxt;
 
 end;
