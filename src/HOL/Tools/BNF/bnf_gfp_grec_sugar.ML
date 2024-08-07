@@ -1028,8 +1028,7 @@ fun extract_rho_from_equation
 
         val deadfixed_T =
           build_map lthy [] [] (mk_undefined o op -->) (apply2 tupleT_of_funT (param1_T, param2_T))
-          |> singleton (Type_Infer_Context.infer_types lthy)
-          |> singleton (Type_Infer.fixate lthy false)
+          |> singleton (Type_Infer_Context.infer_types_finished lthy)
           |> type_of
           |> dest_funT
           |-> generalize_types 1
