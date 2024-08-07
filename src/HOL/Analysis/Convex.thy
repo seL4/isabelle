@@ -1194,16 +1194,6 @@ qed
 lemma convex_gchoose: "convex_on {k-1..} (\<lambda>x. x gchoose k)"
   by (simp add: gbinomial_prod_rev convex_on_cdiv convex_gchoose_aux)
 
-lemma gbinomial_mono:
-  fixes k::nat and a::real
-  assumes "of_nat k \<le> a" "a \<le> b" shows "a gchoose k \<le> b gchoose k"
-  using assms
-  by (force simp: gbinomial_prod_rev intro!: divide_right_mono prod_mono)
-
-lemma gbinomial_is_prod: "(a gchoose k) = (\<Prod>i<k. (a - of_nat i) / (1 + of_nat i))"
-  unfolding gbinomial_prod_rev
-  by (induction k; simp add: divide_simps)
-
 subsection \<open>Some inequalities: Applications of convexity\<close>
 
 lemma Youngs_inequality_0:

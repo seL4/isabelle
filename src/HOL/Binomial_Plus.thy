@@ -178,6 +178,12 @@ lemma gbinomial_eq_0_int:
 corollary gbinomial_eq_0: "0 \<le> a \<Longrightarrow> a < int k \<Longrightarrow> a gchoose k = 0"
   by (metis nat_eq_iff2 nat_less_iff gbinomial_eq_0_int)
 
+lemma gbinomial_mono:
+  fixes k::nat and a::real
+  assumes "of_nat k \<le> a" "a \<le> b" shows "a gchoose k \<le> b gchoose k"
+  using assms
+  by (force simp: gbinomial_prod_rev intro!: divide_right_mono prod_mono)
+
 lemma int_binomial: "int (n choose k) = (int n) gchoose k"
 proof (cases "k \<le> n")
   case True
