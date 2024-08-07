@@ -543,9 +543,9 @@ and reg_time_func (theory: theory) (term: term list) (terms: term list) print =
     (* Print result if print *)
     val _ = if not print then () else
         let
-          val nms = map (fst o dest_Const) term
+          val nms = map dest_Const_name term
           val used = map (used_for_const orig_used) term
-          val typs = map (snd o dest_Const) term
+          val typs = map dest_Const_type term
         in
           print_timing' print_ctxt { names=nms, terms=terms, typs=typs } { names=timing_names, terms=T_terms, typs=map (fn (used, typ) => change_typ' used 0 typ) (zip used typs) }
         end
