@@ -28,17 +28,8 @@ struct
 
 type descr = Old_Datatype_Aux.descr;
 
-
 val indexify_names = Case_Translation.indexify_names;
 val make_tnames = Case_Translation.make_tnames;
-
-fun make_tnames Ts =
-  let
-    fun type_name (TFree (name, _)) = unprefix "'" name
-      | type_name (Type (name, _)) =
-          let val name' = Long_Name.base_name name
-          in if Symbol_Pos.is_identifier name' then name' else "x" end;
-  in indexify_names (map type_name Ts) end;
 
 
 (************************* injectivity of constructors ************************)
