@@ -185,8 +185,9 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
 fun all_distincts thy Ts =
   let
-    fun add_tycos (Type (tyco, Ts)) = insert (op =) tyco #> fold add_tycos Ts
-      | add_tycos _ = I;
+    fun add_tycos T =
+      if is_Type T
+      then insert (op =) (dest_Type_name T) #> fold add_tycos (dest_Type_args T) else I;
     val tycos = fold add_tycos Ts [];
   in map_filter (Option.map #distinct o get_info thy) tycos end;
 

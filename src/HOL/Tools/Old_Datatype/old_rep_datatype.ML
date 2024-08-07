@@ -40,11 +40,10 @@ fun prove_casedist_thms (config : Old_Datatype_Aux.config)
 
     fun prove_casedist_thm (i, (T, t)) =
       let
-        val dummyPs = map (fn (Var (_, Type (_, [T', T'']))) =>
-          Abs ("z", T', Const (\<^const_name>\<open>True\<close>, T''))) induct_Ps;
+        val dummyPs = map (fn Var (_, \<^Type>\<open>fun A _\<close>) => Abs ("z", A, \<^Const>\<open>True\<close>)) induct_Ps;
         val P =
           Abs ("z", T, HOLogic.imp $ HOLogic.mk_eq (Var (("a", maxidx + 1), T), Bound 0) $
-            Var (("P", 0), HOLogic.boolT));
+            Var (("P", 0), \<^Type>\<open>bool\<close>));
         val insts = take i dummyPs @ (P :: drop (i + 1) dummyPs);
       in
         Goal.prove_sorry_global thy []
@@ -102,7 +101,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
     val (rec_result_Ts, reccomb_fn_Ts) = Old_Datatype_Prop.make_primrec_Ts descr used;
 
     val rec_set_Ts =
-      map (fn (T1, T2) => (reccomb_fn_Ts @ [T1, T2]) ---> HOLogic.boolT) (recTs ~~ rec_result_Ts);
+      map (fn (T1, T2) => (reccomb_fn_Ts @ [T1, T2]) ---> \<^Type>\<open>bool\<close>) (recTs ~~ rec_result_Ts);
 
     val rec_fns =
       map (uncurry (Old_Datatype_Aux.mk_Free "f")) (reccomb_fn_Ts ~~ (1 upto length reccomb_fn_Ts));
@@ -204,8 +203,8 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
       let
         val rec_unique_ts =
           map (fn (((set_t, T1), T2), i) =>
-            Const (\<^const_name>\<open>Ex1\<close>, (T2 --> HOLogic.boolT) --> HOLogic.boolT) $
-              absfree ("y", T2) (set_t $ Old_Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2)))
+            \<^Const>\<open>Ex1 T2 for
+              \<open>absfree ("y", T2) (set_t $ Old_Datatype_Aux.mk_Free "x" T1 i $ Free ("y", T2))\<close>\<close>)
                 (rec_sets ~~ recTs ~~ rec_result_Ts ~~ (1 upto length recTs));
         val insts =
           map (fn ((i, T), t) => absfree ("x" ^ string_of_int i, T) t)
@@ -248,8 +247,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             (fn ((((name, comb), set), T), T') =>
               (Binding.name (Thm.def_name (Long_Name.base_name name)),
                 Logic.mk_equals (comb, fold_rev lambda rec_fns (absfree ("x", T)
-                 (Const (\<^const_name>\<open>The\<close>, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T')
-                   (set $ Free ("x", T) $ Free ("y", T')))))))
+                 \<^Const>\<open>The T' for \<open>absfree ("y", T') (set $ Free ("x", T) $ Free ("y", T'))\<close>\<close>))))
             (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
       ||> Sign.parent_path;
 
@@ -303,43 +301,45 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
         let
           val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs;
           val Ts' = map mk_dummyT (filter Old_Datatype_Aux.is_rec_type cargs)
-        in Const (\<^const_name>\<open>undefined\<close>, Ts @ Ts' ---> T') end) constrs) descr';
+        in \<^Const>\<open>undefined \<open>Ts @ Ts' ---> T'\<close>\<close> end) constrs) descr';
 
     val case_names0 = map (fn s => Sign.full_bname thy1 ("case_" ^ s)) new_type_names;
 
     (* define case combinators via primrec combinators *)
 
-    fun def_case ((((i, (_, _, constrs)), T as Type (Tcon, _)), name), recname) (defs, thy) =
-      if is_some (Ctr_Sugar.ctr_sugar_of ctxt Tcon) then
-        (defs, thy)
-      else
-        let
-          val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
-            let
-              val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs;
-              val Ts' = Ts @ map mk_dummyT (filter Old_Datatype_Aux.is_rec_type cargs);
-              val frees' = map2 (Old_Datatype_Aux.mk_Free "x") Ts' (1 upto length Ts');
-              val frees = take (length cargs) frees';
-              val free = Old_Datatype_Aux.mk_Free "f" (Ts ---> T') j;
-            in
-              (free, fold_rev (absfree o dest_Free) frees' (list_comb (free, frees)))
-            end) (constrs ~~ (1 upto length constrs)));
+    fun def_case ((((i, (_, _, constrs)), T), name), recname) (defs, thy) =
+      let val Tcon = dest_Type_name T in
+        if is_some (Ctr_Sugar.ctr_sugar_of ctxt Tcon) then
+          (defs, thy)
+        else
+          let
+            val (fns1, fns2) = split_list (map (fn ((_, cargs), j) =>
+              let
+                val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr') cargs;
+                val Ts' = Ts @ map mk_dummyT (filter Old_Datatype_Aux.is_rec_type cargs);
+                val frees' = map2 (Old_Datatype_Aux.mk_Free "x") Ts' (1 upto length Ts');
+                val frees = take (length cargs) frees';
+                val free = Old_Datatype_Aux.mk_Free "f" (Ts ---> T') j;
+              in
+                (free, fold_rev (absfree o dest_Free) frees' (list_comb (free, frees)))
+              end) (constrs ~~ (1 upto length constrs)));
 
-          val caseT = map (snd o dest_Free) fns1 @ [T] ---> T';
-          val fns = flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns);
-          val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
-          val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
-          val def =
-            (Binding.name (Thm.def_name (Long_Name.base_name name)),
-              Logic.mk_equals (Const (name, caseT),
-                fold_rev lambda fns1
-                  (list_comb (reccomb,
-                    flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
-          val (def_thm, thy') =
-            thy
-            |> Sign.declare_const_global decl |> snd
-            |> Global_Theory.add_def def;
-        in (defs @ [def_thm], thy') end;
+            val caseT = map (snd o dest_Free) fns1 @ [T] ---> T';
+            val fns = flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns);
+            val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
+            val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
+            val def =
+              (Binding.name (Thm.def_name (Long_Name.base_name name)),
+                Logic.mk_equals (Const (name, caseT),
+                  fold_rev lambda fns1
+                    (list_comb (reccomb,
+                      flat (take i case_dummy_fns) @ fns2 @ flat (drop (i + 1) case_dummy_fns)))));
+            val (def_thm, thy') =
+              thy
+              |> Sign.declare_const_global decl |> snd
+              |> Global_Theory.add_def def;
+          in (defs @ [def_thm], thy') end
+      end;
 
     val (case_defs, thy2) =
       fold def_case (hd descr ~~ newTs ~~ case_names0 ~~ take (length newTs) reccomb_names)
@@ -350,8 +350,8 @@ fun prove_case_thms (config : Old_Datatype_Aux.config)
         EVERY [rewrite_goals_tac ctxt (case_defs @ map mk_meta_eq primrec_thms),
           resolve_tac ctxt [refl] 1]);
 
-    fun prove_cases (Type (Tcon, _)) ts =
-      (case Ctr_Sugar.ctr_sugar_of ctxt Tcon of
+    fun prove_cases T ts =
+      (case Ctr_Sugar.ctr_sugar_of ctxt (dest_Type_name T) of
         SOME {case_thms, ...} => case_thms
       | NONE => map prove_case ts);
 
@@ -455,8 +455,8 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
   let
     fun prove_case_cong ((t, nchotomy), case_rewrites) =
       let
-        val Const (\<^const_name>\<open>Pure.imp\<close>, _) $ tm $ _ = t;
-        val Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ Ma) = tm;
+        val \<^Const_>\<open>Pure.imp for tm _\<close> = t;
+        val \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq _ for _ Ma\<close>\<close> = tm;
         val nchotomy' = nchotomy RS spec;
         val [v] = Term.add_var_names (Thm.concl_of nchotomy') [];
       in

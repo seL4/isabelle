@@ -107,9 +107,7 @@ fun make_ind descr =
       if length descr' = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr');
 
-    fun make_pred i T =
-      let val T' = T --> HOLogic.boolT
-      in Free (nth pnames i, T') end;
+    fun make_pred i T = Free (nth pnames i, T --> \<^Type>\<open>bool\<close>);
 
     fun make_ind_prem k T (cname, cargs) =
       let
@@ -161,12 +159,12 @@ fun make_casedists descr =
         fold_rev (Logic.all o Free) frees
           (Logic.mk_implies (HOLogic.mk_Trueprop
             (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
-              HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))))
+              HOLogic.mk_Trueprop (Free ("P", \<^Type>\<open>bool\<close>))))
       end;
 
     fun make_casedist ((_, (_, _, constrs))) T =
       let val prems = map (make_casedist_prem T) constrs
-      in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))) end;
+      in Logic.list_implies (prems, HOLogic.mk_Trueprop (Free ("P", \<^Type>\<open>bool\<close>))) end;
 
   in
     map2 make_casedist (hd descr)
@@ -298,7 +296,7 @@ fun make_splits case_names descr thy =
     val used' = fold Term.add_tfree_namesT recTs [];
     val newTs = take (length (hd descr)) recTs;
     val T' = TFree (singleton (Name.variant_list used') "'t", \<^sort>\<open>type\<close>);
-    val P = Free ("P", T' --> HOLogic.boolT);
+    val P = Free ("P", T' --> \<^Type>\<open>bool\<close>);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =
       let
@@ -337,7 +335,7 @@ fun make_case_cong_weaks case_names descr thy =
 
     fun mk_case_cong comb =
       let
-        val Type ("fun", [T, _]) = fastype_of comb;
+        val \<^Type>\<open>fun T _\<close> = fastype_of comb;
         val M = Free ("M", T);
         val M' = Free ("M'", T);
       in
@@ -367,7 +365,7 @@ fun make_case_congs case_names descr thy =
 
     fun mk_case_cong ((comb, comb'), (_, (_, _, constrs))) =
       let
-        val Type ("fun", [T, _]) = fastype_of comb;
+        val \<^Type>\<open>fun T _\<close> = fastype_of comb;
         val (_, fs) = strip_comb comb;
         val (_, gs) = strip_comb comb';
         val used = ["M", "M'"] @ map (fst o dest_Free) (fs @ gs);
