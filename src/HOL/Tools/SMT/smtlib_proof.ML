@@ -97,9 +97,7 @@ fun with_fresh_names f ({ctxt, id, syms, typs, funs, ...}: ('a, 'b) context) =
 
     val needs_inferT = equal Term.dummyT orf Term.is_TVar
     val needs_infer = Term.exists_type (Term.exists_subtype needs_inferT)
-    fun infer_types ctxt =
-      singleton (Type_Infer_Context.infer_types ctxt) #>
-      singleton (Proof_Context.standard_term_check_finish ctxt)
+    fun infer_types ctxt = singleton (Type_Infer_Context.infer_types_finished ctxt)
     fun infer ctxt t = if needs_infer t then infer_types ctxt t else t
 
     val (t, {ctxt = ctxt', extra = names, ...}: ((string * (string * typ)) list, 'b) context) =
