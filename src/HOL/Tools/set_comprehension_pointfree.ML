@@ -461,21 +461,16 @@ fun base_proc ctxt redex =
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
   end;
 
-fun instantiate_arg_cong ctxt pred =
-  let
-    val arg_cong = Thm.incr_indexes (maxidx_of_term pred + 1) @{thm arg_cong}
-    val (Var (f, _) $ _, _) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.concl_of arg_cong))
-  in
-    infer_instantiate ctxt [(f, Thm.cterm_of ctxt pred)] arg_cong
-  end;
-
 fun proc ctxt redex =
   let
-    val pred $ set_compr = Thm.term_of redex
-    val arg_cong' = instantiate_arg_cong ctxt pred
+    val (f, set_compr) = Thm.dest_comb redex
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm f)
+    val cong =
+      \<^instantiate>\<open>'a = A and 'b = B and f
+        in lemma (schematic) "x = y \<Longrightarrow> f x \<equiv> f y" by simp\<close>
   in
-    conv ctxt set_compr
-    |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
+    conv ctxt (Thm.term_of set_compr)
+    |> Option.map (fn thm => thm RS cong)
   end;
 
 fun code_proc ctxt redex =
