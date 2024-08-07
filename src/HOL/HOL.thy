@@ -1334,25 +1334,27 @@ lemma implies_False_swap:
   "(False \<Longrightarrow> PROP P \<Longrightarrow> PROP Q) \<equiv> (PROP P \<Longrightarrow> False \<Longrightarrow> PROP Q)"
   by (rule swap_prems_eq)
 
-ML \<open>
-fun eliminate_false_implies ct =
+simproc_setup eliminate_false_implies ("False \<Longrightarrow> PROP P") = \<open>
   let
-    val (prems, concl) = Logic.strip_horn (Thm.term_of ct)
-    fun go n =
+    fun conv n =
       if n > 1 then
         Conv.rewr_conv @{thm Pure.swap_prems_eq}
-        then_conv Conv.arg_conv (go (n - 1))
+        then_conv Conv.arg_conv (conv (n - 1))
         then_conv Conv.rewr_conv @{thm HOL.implies_True_equals}
       else
         Conv.rewr_conv @{thm HOL.False_implies_equals}
   in
-    case concl of
-      \<^Const_>\<open>Trueprop for _\<close> => SOME (go (length prems) ct)
-    | _ => NONE
+    fn _ => fn _ => fn ct =>
+      let
+        val t = Thm.term_of ct
+        val n = length (Logic.strip_imp_prems t)
+      in
+        (case Logic.strip_imp_concl t of
+          \<^Const_>\<open>Trueprop for _\<close> => SOME (conv n ct)
+        | _ => NONE)
+      end
   end
 \<close>
-
-simproc_setup eliminate_false_implies ("False \<Longrightarrow> PROP P") = \<open>K (K eliminate_false_implies)\<close>
 
 
 lemma ex_simps:
