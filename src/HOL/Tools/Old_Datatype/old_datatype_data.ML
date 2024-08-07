@@ -63,19 +63,17 @@ fun info_of_constr thy (c, T) =
   let
     val tab = Symtab.lookup_list (#constrs (Data.get thy)) c;
   in
-    (case body_type T of
-      Type (tyco, _) => AList.lookup (op =) tab tyco
-    | _ => NONE)
+    try (dest_Type_name o body_type) T
+    |> Option.mapPartial (AList.lookup (op =) tab)
   end;
 
 fun info_of_constr_permissive thy (c, T) =
   let
     val tab = Symtab.lookup_list (#constrs (Data.get thy)) c;
-    val hint = (case body_type T of Type (tyco, _) => SOME tyco | _ => NONE);
     val default = if null tab then NONE else SOME (snd (List.last tab));
     (*conservative wrt. overloaded constructors*)
   in
-    (case hint of
+    (case try (dest_Type_name o body_type) T of
       NONE => default
     | SOME tyco =>
         (case AList.lookup (op =) tab tyco of
