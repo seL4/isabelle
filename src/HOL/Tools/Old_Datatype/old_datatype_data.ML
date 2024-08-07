@@ -220,7 +220,7 @@ fun dt_cases (descr: Old_Datatype_Aux.descr) (_, args, constrs) =
   in map (fn (c, _) => space_implode "_" (Long_Name.base_name c :: bnames)) constrs end;
 
 fun induct_cases descr =
-  Old_Datatype_Prop.indexify_names (maps (dt_cases descr) (map #2 descr));
+  Case_Translation.indexify_names (maps (dt_cases descr) (map #2 descr));
 
 fun exhaust_cases descr i = dt_cases descr (the (AList.lookup (op =) descr i));
 

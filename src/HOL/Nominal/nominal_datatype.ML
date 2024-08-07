@@ -214,7 +214,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val perm_types = map (fn (i, _) =>
       let val T = nth_dtyp i
       in permT --> T --> T end) descr;
-    val perm_names' = Old_Datatype_Prop.indexify_names (map (fn (i, _) =>
+    val perm_names' = Case_Translation.indexify_names (map (fn (i, _) =>
       "perm_" ^ Old_Datatype_Aux.name_of_typ (nth_dtyp i)) descr);
     val perm_names = replicate (length new_type_names) \<^const_name>\<open>Nominal.perm\<close> @
       map (Sign.full_bname thy1) (List.drop (perm_names', length new_type_names));
@@ -226,7 +226,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
       in map (fn (cname, dts) =>
         let
           val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr) dts;
-          val names = Name.variant_list ["pi"] (Old_Datatype_Prop.make_tnames Ts);
+          val names = Name.variant_list ["pi"] (Case_Translation.make_tnames Ts);
           val args = map Free (names ~~ Ts);
           val c = Const (cname, Ts ---> T);
           fun perm_arg (dt, x) =
@@ -264,7 +264,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val _ = warning ("length descr: " ^ string_of_int (length descr));
     val _ = warning ("length new_type_names: " ^ string_of_int (length new_type_names));
 
-    val perm_indnames = Old_Datatype_Prop.make_tnames (map body_type perm_types);
+    val perm_indnames = Case_Translation.make_tnames (map body_type perm_types);
     val perm_fun_def = Simpdata.mk_eq @{thm perm_fun_def};
 
     val unfolded_perm_eq_thms =
@@ -465,10 +465,10 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val _ = warning "representing sets";
 
     val rep_set_names =
-      Old_Datatype_Prop.indexify_names
+      Case_Translation.indexify_names
         (map (fn (i, _) => Old_Datatype_Aux.name_of_typ (nth_dtyp i) ^ "_set") descr);
     val big_rep_name =
-      space_implode "_" (Old_Datatype_Prop.indexify_names (map_filter
+      space_implode "_" (Case_Translation.indexify_names (map_filter
         (fn (i, (\<^type_name>\<open>noption\<close>, _, _)) => NONE
           | (i, _) => SOME (Old_Datatype_Aux.name_of_typ (nth_dtyp i))) descr)) ^ "_set";
     val _ = warning ("big_rep_name: " ^ big_rep_name);
@@ -1084,7 +1084,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 
     val _ = warning "proving finite support for the new datatype";
 
-    val indnames = Old_Datatype_Prop.make_tnames recTs;
+    val indnames = Case_Translation.make_tnames recTs;
 
     val abs_supp = Global_Theory.get_thms thy8 "abs_supp";
     val supp_atm = Global_Theory.get_thms thy8 "supp_atm";
@@ -1147,7 +1147,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val fsT' = TFree ("'n", \<^sort>\<open>type\<close>);
 
     val fresh_fs = map (fn (s, T) => (T, Free (s, fsT' --> HOLogic.mk_setT T)))
-      (Old_Datatype_Prop.indexify_names (replicate (length dt_atomTs) "f") ~~ dt_atomTs);
+      (Case_Translation.indexify_names (replicate (length dt_atomTs) "f") ~~ dt_atomTs);
 
     fun make_pred fsT i T = Free (nth pnames i, fsT --> T --> HOLogic.boolT);
 
@@ -1168,7 +1168,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
         val recs = filter Old_Datatype_Aux.is_rec_type cargs;
         val Ts = map (Old_Datatype_Aux.typ_of_dtyp descr'') cargs;
         val recTs' = map (Old_Datatype_Aux.typ_of_dtyp descr'') recs;
-        val tnames = Name.variant_list pnames (Old_Datatype_Prop.make_tnames Ts);
+        val tnames = Name.variant_list pnames (Case_Translation.make_tnames Ts);
         val rec_tnames = map fst (filter (Old_Datatype_Aux.is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val frees' = partition_cargs idxs frees;
@@ -1202,7 +1202,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
       map (make_ind_prem fsT (fn T => fn t => fn u =>
         fresh_const T fsT $ t $ u) i T)
           (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs);
-    val tnames = Old_Datatype_Prop.make_tnames recTs;
+    val tnames = Case_Translation.make_tnames recTs;
     val zs = Name.variant_list tnames (replicate (length descr'') "z");
     val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
       (map (fn ((((i, _), T), tname), z) =>
@@ -1226,7 +1226,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val induct' = Logic.list_implies (ind_prems', ind_concl');
 
     val aux_ind_vars =
-      (Old_Datatype_Prop.indexify_names (replicate (length dt_atomTs) "pi") ~~
+      (Case_Translation.indexify_names (replicate (length dt_atomTs) "pi") ~~
        map mk_permT dt_atomTs) @ [("z", fsT')];
     val aux_ind_Ts = rev (map snd aux_ind_vars);
     val aux_ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
@@ -1679,10 +1679,10 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val fun_tuple = foldr1 HOLogic.mk_prod (rec_ctxt :: rec_fns);
     val fun_tupleT = fastype_of fun_tuple;
     val rec_unique_frees =
-      Old_Datatype_Prop.indexify_names (replicate (length recTs) "x") ~~ recTs;
+      Case_Translation.indexify_names (replicate (length recTs) "x") ~~ recTs;
     val rec_unique_frees'' = map (fn (s, T) => (s ^ "'", T)) rec_unique_frees;
     val rec_unique_frees' =
-      Old_Datatype_Prop.indexify_names (replicate (length recTs) "y") ~~ rec_result_Ts;
+      Case_Translation.indexify_names (replicate (length recTs) "y") ~~ rec_result_Ts;
     val rec_unique_concls = map (fn ((x, U), R) =>
         Const (\<^const_name>\<open>Ex1\<close>, (U --> HOLogic.boolT) --> HOLogic.boolT) $
           Abs ("y", U, R $ Free x $ Bound 0))
