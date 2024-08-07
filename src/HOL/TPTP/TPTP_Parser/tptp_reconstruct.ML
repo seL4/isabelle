@@ -417,9 +417,7 @@ fun apply_binding thy prob_name orig_parent_fmla target_fmla bindings =
     fold safe_instantiate_bound bindings' ([], HOLogic.dest_Trueprop orig_parent_fmla)
     |> snd (*discard var typing context*)
     |> close_formula
-    |> single
-    |> Type_Infer_Context.infer_types (Context.proof_of (Context.Theory thy))
-    |> the_single
+    |> singleton (Type_Infer_Context.infer_types (Context.proof_of (Context.Theory thy)))
     |> HOLogic.mk_Trueprop
     |> rpair bindings'
   end
