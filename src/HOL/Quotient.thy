@@ -268,11 +268,9 @@ lemma bex_reg_eqv_range:
   assumes a: "equivp R2"
   shows   "(Bex (Respects (R1 ===> R2)) (\<lambda>f. P (f x)) = Ex (\<lambda>f. P (f x)))"
 proof -
-  { fix f
-    assume "P (f x)"
-    have "(\<lambda>y. f x) \<in> Respects (R1 ===> R2)"
-      using a equivp_reflp_symp_transp[of "R2"]
-      by (auto simp add: Respects_def in_respects rel_fun_def elim: equivpE reflpE) }
+  have "(\<lambda>y. f x) \<in> Respects (R1 ===> R2)" for f
+    using a equivp_reflp_symp_transp[of "R2"]
+    by (auto simp add: Respects_def in_respects rel_fun_def elim: equivpE reflpE)
   then show ?thesis
     by auto
 qed
@@ -338,12 +336,13 @@ lemma babs_prs:
   and     q2: "Quotient3 R2 Abs2 Rep2"
 shows "((Rep1 ---> Abs2) (Babs (Respects R1) ((Abs1 ---> Rep2) f))) = f"
 proof -
-  { fix x
+  have "Abs2 (Babs (Respects R1) ((Abs1 ---> Rep2) f) (Rep1 x)) = f x" for x
+  proof -
     have "Rep1 x \<in> Respects R1"
       by (simp add: in_respects Quotient3_rel_rep[OF q1])
-    then have "Abs2 (Babs (Respects R1) ((Abs1 ---> Rep2) f) (Rep1 x)) = f x" 
+    then show ?thesis
       by (simp add: Babs_def Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
-  }
+  qed
   then show ?thesis
     by force
 qed
@@ -422,8 +421,7 @@ lemma ex1_prs:
   shows "((absf ---> id) ---> id) (Bex1_rel R) f = Ex1 f"
          (is "?lhs = ?rhs")
   using assms
-  apply (auto simp add: Bex1_rel_def Respects_def)
-  by (metis (full_types) Quotient3_def)+
+  by (auto simp add: Bex1_rel_def Respects_def) (metis (full_types) Quotient3_def)+
 
 lemma bex1_bexeq_reg:
   shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
@@ -440,8 +438,7 @@ subsection \<open>Various respects and preserve lemmas\<close>
 lemma quot_rel_rsp:
   assumes a: "Quotient3 R Abs Rep"
   shows "(R ===> R ===> (=)) R R"
-  apply(rule rel_funI)+
-  by (meson assms equals_rsp)
+  by (rule rel_funI)+ (meson assms equals_rsp)
 
 lemma o_prs:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
@@ -519,35 +516,33 @@ where
 lemma some_collect:
   assumes "R r r"
   shows "R (SOME x. x \<in> Collect (R r)) = R r"
-  apply simp
-  by (metis assms exE_some equivp[simplified part_equivp_def])
+  by simp (metis assms exE_some equivp[simplified part_equivp_def])
 
-lemma Quotient:
-  shows "Quotient3 R abs rep"
+lemma Quotient: "Quotient3 R abs rep"
   unfolding Quotient3_def abs_def rep_def
-  proof (intro conjI allI)
-    fix a r s
-    show x: "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)" proof -
-      obtain x where r: "R x x" and rep: "Rep a = Collect (R x)" using rep_prop[of a] by auto
-      have "R (SOME x. x \<in> Rep a) x"  using r rep some_collect by metis
-      then have "R x (SOME x. x \<in> Rep a)" using part_equivp_symp[OF equivp] by fast
-      then show "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)"
-        using part_equivp_transp[OF equivp] by (metis \<open>R (SOME x. x \<in> Rep a) x\<close>)
-    qed
-    have "Collect (R (SOME x. x \<in> Rep a)) = (Rep a)" by (metis some_collect rep_prop)
-    then show "Abs (Collect (R (SOME x. x \<in> Rep a))) = a" using rep_inverse by auto
-    have "R r r \<Longrightarrow> R s s \<Longrightarrow> Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s"
-    proof -
-      assume "R r r" and "R s s"
-      then have "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> Collect (R r) = Collect (R s)"
-        by (metis abs_inverse)
-      also have "Collect (R r) = Collect (R s) \<longleftrightarrow> (\<lambda>A x. x \<in> A) (Collect (R r)) = (\<lambda>A x. x \<in> A) (Collect (R s))"
-        by (rule iffI) simp_all
-      finally show "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s" by simp
-    qed
-    then show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (Collect (R r)) = Abs (Collect (R s)))"
-      using equivp[simplified part_equivp_def] by metis
-    qed
+proof (intro conjI allI)
+  fix a r s
+  show x: "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)" proof -
+    obtain x where r: "R x x" and rep: "Rep a = Collect (R x)" using rep_prop[of a] by auto
+    have "R (SOME x. x \<in> Rep a) x"  using r rep some_collect by metis
+    then have "R x (SOME x. x \<in> Rep a)" using part_equivp_symp[OF equivp] by fast
+    then show "R (SOME x. x \<in> Rep a) (SOME x. x \<in> Rep a)"
+      using part_equivp_transp[OF equivp] by (metis \<open>R (SOME x. x \<in> Rep a) x\<close>)
+  qed
+  have "Collect (R (SOME x. x \<in> Rep a)) = (Rep a)" by (metis some_collect rep_prop)
+  then show "Abs (Collect (R (SOME x. x \<in> Rep a))) = a" using rep_inverse by auto
+  have "R r r \<Longrightarrow> R s s \<Longrightarrow> Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s"
+  proof -
+    assume "R r r" and "R s s"
+    then have "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> Collect (R r) = Collect (R s)"
+      by (metis abs_inverse)
+    also have "Collect (R r) = Collect (R s) \<longleftrightarrow> (\<lambda>A x. x \<in> A) (Collect (R r)) = (\<lambda>A x. x \<in> A) (Collect (R s))"
+      by (rule iffI) simp_all
+    finally show "Abs (Collect (R r)) = Abs (Collect (R s)) \<longleftrightarrow> R r = R s" by simp
+  qed
+  then show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (Collect (R r)) = Abs (Collect (R s)))"
+    using equivp[simplified part_equivp_def] by metis
+qed
 
 end
 
@@ -576,9 +571,8 @@ proof -
         using r Quotient3_refl1 R1 rep_abs_rsp by fastforce
       moreover have "R2' (Rep1 (Abs1 r)) (Rep1 (Abs1 s))"
         using that
-        apply simp
-        apply (metis (full_types) Rep1 Abs1 Quotient3_rel R2 Quotient3_refl1 [OF R1] Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
-        done
+        by simp (metis (full_types) Rep1 Abs1 Quotient3_rel R2 Quotient3_refl1 [OF R1]
+            Quotient3_refl2 [OF R1] Quotient3_rel_abs [OF R1])
       moreover have "R1 (Rep1 (Abs1 s)) s"
         by (metis s Quotient3_rel R1 rep_abs_rsp_left)
       ultimately show ?thesis
@@ -616,27 +610,25 @@ by (rule OOO_quotient3) auto
 subsection \<open>Quotient3 to Quotient\<close>
 
 lemma Quotient3_to_Quotient:
-assumes "Quotient3 R Abs Rep"
-and "T \<equiv> \<lambda>x y. R x x \<and> Abs x = y"
-shows "Quotient R Abs Rep T"
-using assms unfolding Quotient3_def by (intro QuotientI) blast+
+  assumes "Quotient3 R Abs Rep"
+    and "T \<equiv> \<lambda>x y. R x x \<and> Abs x = y"
+  shows "Quotient R Abs Rep T"
+  using assms unfolding Quotient3_def by (intro QuotientI) blast+
 
 lemma Quotient3_to_Quotient_equivp:
-assumes q: "Quotient3 R Abs Rep"
-and T_def: "T \<equiv> \<lambda>x y. Abs x = y"
-and eR: "equivp R"
-shows "Quotient R Abs Rep T"
+  assumes q: "Quotient3 R Abs Rep"
+    and T_def: "T \<equiv> \<lambda>x y. Abs x = y"
+    and eR: "equivp R"
+  shows "Quotient R Abs Rep T"
 proof (intro QuotientI)
-  fix a
-  show "Abs (Rep a) = a" using q by(rule Quotient3_abs_rep)
-next
-  fix a
-  show "R (Rep a) (Rep a)" using q by(rule Quotient3_rep_reflp)
-next
-  fix r s
-  show "R r s = (R r r \<and> R s s \<and> Abs r = Abs s)" using q by(rule Quotient3_rel[symmetric])
-next
-  show "T = (\<lambda>x y. R x x \<and> Abs x = y)" using T_def equivp_reflp[OF eR] by simp
+  show "Abs (Rep a) = a" for a
+    using q by(rule Quotient3_abs_rep)
+  show "R (Rep a) (Rep a)" for a
+    using q by(rule Quotient3_rep_reflp)
+  show "R r s = (R r r \<and> R s s \<and> Abs r = Abs s)" for r s
+    using q by(rule Quotient3_rel[symmetric])
+  show "T = (\<lambda>x y. R x x \<and> Abs x = y)"
+    using T_def equivp_reflp[OF eR] by simp
 qed
 
 subsection \<open>ML setup\<close>
