@@ -7,6 +7,7 @@ General-purpose functions used by the Lifting package.
 signature LIFTING_UTIL =
 sig
   val MRSL: thm list * thm -> thm
+  val mk_Quotient: term * term * term * term -> term
   val dest_Quotient: term -> term * term * term * term
 
   val quot_thm_rel: thm -> term
@@ -40,8 +41,11 @@ infix 0 MRSL
 
 fun ants MRSL thm = fold (fn rl => fn thm => rl RS thm) ants thm
 
-fun dest_Quotient (Const (\<^const_name>\<open>Quotient\<close>, _) $ rel $ abs $ rep $ cr)
-      = (rel, abs, rep, cr)
+fun mk_Quotient (rel, abs, rep, cr) =
+  let val \<^Type>\<open>fun A B\<close> = fastype_of abs
+  in \<^Const>\<open>Quotient A B for rel abs rep cr\<close> end
+
+fun dest_Quotient \<^Const_>\<open>Quotient _ _ for rel abs rep cr\<close> = (rel, abs, rep, cr)
   | dest_Quotient t = raise TERM ("dest_Quotient", [t])
 
 (*
