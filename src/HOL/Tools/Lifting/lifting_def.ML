@@ -469,7 +469,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 
 local
   fun no_no_code ctxt (rty, qty) =
-    if same_type_constrs (rty, qty) then
+    if eq_Type_name (rty, qty) then
       forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
     else
       if Term.is_Type qty then

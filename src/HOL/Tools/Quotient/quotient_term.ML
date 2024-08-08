@@ -607,8 +607,8 @@ fun regularize_trm ctxt (rtrm, qtrm) =
   | (_, Const _) =>
       let
         val thy = Proof_Context.theory_of ctxt
-        fun same_const (Const (s, T)) (Const (s', T')) = s = s' andalso matches_typ ctxt T T'
-          | same_const _ _ = false
+        fun same_const t u =
+          eq_Const_name (t, u) andalso matches_typ ctxt (dest_Const_type t) (dest_Const_type u)
       in
         if same_const rtrm qtrm then rtrm
         else

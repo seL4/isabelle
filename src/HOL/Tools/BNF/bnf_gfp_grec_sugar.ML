@@ -998,9 +998,6 @@ fun extract_rho_from_equation
 
     val is_valid_case_argumentT = not o member (op =) [Y, ssig_T];
 
-    fun is_same_type_constr (Type (s, _)) (Type (s', _)) = (s = s')
-      | is_same_type_constr _ _ = false;
-
     exception NO_ENCAPSULATION of unit;
 
     val parametric_consts = Unsynchronized.ref [];
@@ -1064,7 +1061,7 @@ fun extract_rho_from_equation
         CLeaf $ t
       else if T = YpreT then
         it $ t
-      else if is_nested_type T andalso is_same_type_constr T U then
+      else if is_nested_type T andalso eq_Type_name (T, U) then
         explore_nested lthy encapsulate params t
       else
         raise NO_ENCAPSULATION ();

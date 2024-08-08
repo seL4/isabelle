@@ -450,9 +450,6 @@ in
       val tm = Thm.term_of ctm
       val rel = (hd o get_args 2) tm
   
-      fun same_constants (Const (n1,_)) (Const (n2,_)) = n1 = n2
-        | same_constants _ _  = false
-      
       fun prove_extra_assms ctxt ctm distr_rule =
         let
           fun prove_assm assm =
@@ -486,7 +483,7 @@ in
             let
               val (rty', qty) = (relation_types o fastype_of) trans_rel
             in
-              if same_type_constrs (rty', qty) then
+              if eq_Type_name (rty', qty) then
                 let
                   val distr_rules = get_rel_distr_rules ctxt0 (dest_Type_name rty') (head_of tm)
                   val distr_rule = get_first (prove_extra_assms ctxt0 ctm) distr_rules
@@ -502,7 +499,7 @@ in
                   val pcrel_def = get_pcrel_def quotients ctxt0 (dest_Type_name qty)
                   val pcrel_const = (head_of o fst o Logic.dest_equals o Thm.prop_of) pcrel_def
                 in
-                  if same_constants pcrel_const (head_of trans_rel) then
+                  if eq_Const_name (pcrel_const, head_of trans_rel) then
                     let
                       val unfolded_ctm = Thm.rhs_of (Conv.arg1_conv (Conv.arg_conv (Conv.rewr_conv pcrel_def)) ctm)
                       val distr_rule = rewrs_imp @{thms POS_pcr_rule NEG_pcr_rule} unfolded_ctm
@@ -540,7 +537,7 @@ fun gen_parametrize_transfer_rule quotients ctxt thm =
       let
         val (rty, qty) = (relation_types o fastype_of) (Thm.term_of ctm)
       in
-        if same_type_constrs (rty, qty) then
+        if eq_Type_name (rty, qty) then
           if forall op= (Targs rty ~~ Targs qty) then
             Conv.all_conv ctm
           else

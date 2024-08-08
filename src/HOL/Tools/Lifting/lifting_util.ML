@@ -24,7 +24,6 @@ sig
   val get_args: int -> term -> term list
   val strip_args: int -> term -> term
   val all_args_conv: conv -> conv
-  val same_type_constrs: typ * typ -> bool
   val Targs: typ -> typ list
   val Tname: typ -> string
   val is_rel_fun: term -> bool
@@ -99,9 +98,6 @@ fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
 fun strip_args n = funpow n (fst o dest_comb)
 
 fun all_args_conv conv ctm = Conv.try_conv (Conv.combination_conv (all_args_conv conv) conv) ctm
-
-fun same_type_constrs (Type (r, _), Type (q, _)) = (r = q)
-  | same_type_constrs _ = false
 
 fun Targs (Type (_, args)) = args
   | Targs _ = []
