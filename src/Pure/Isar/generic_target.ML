@@ -122,7 +122,7 @@ fun check_mixfix_global (b, no_params) mx =
 
 fun same_const (Const (c, _), Const (c', _)) = c = c'
   | same_const (t $ _, t' $ _) = same_const (t, t')
-  | same_const (_, _) = false;
+  | same_const _ = false;
 
 fun const_decl phi_pred prmode ((b, mx), rhs) = Morphism.entity (fn phi => fn context =>
   if phi_pred phi then
