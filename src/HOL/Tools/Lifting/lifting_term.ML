@@ -108,8 +108,8 @@ fun get_rel_distr_rules ctxt s tm =
   (case Lifting_Info.lookup_relator_distr_data ctxt s of
     SOME rel_distr_thm =>
       (case tm of
-        Const (\<^const_name>\<open>POS\<close>, _) => map (Thm.transfer' ctxt) (#pos_distr_rules rel_distr_thm)
-      | Const (\<^const_name>\<open>NEG\<close>, _) => map (Thm.transfer' ctxt) (#neg_distr_rules rel_distr_thm))
+        \<^Const_>\<open>POS _ _\<close> => map (Thm.transfer' ctxt) (#pos_distr_rules rel_distr_thm)
+      | \<^Const_>\<open>NEG _ _\<close> => map (Thm.transfer' ctxt) (#neg_distr_rules rel_distr_thm))
   | NONE => raise QUOT_THM_INTERNAL (Pretty.block
       [Pretty.str ("No relator distr. data for the type " ^ quote s), 
        Pretty.brk 1,
@@ -461,8 +461,8 @@ in
   
           fun is_POS_or_NEG ctm =
             case (head_of o Thm.term_of o Thm.dest_arg) ctm of
-              Const (\<^const_name>\<open>POS\<close>, _) => true
-            | Const (\<^const_name>\<open>NEG\<close>, _) => true
+              \<^Const_>\<open>POS _ _\<close> => true
+            | \<^Const_>\<open>NEG _ _\<close> => true
             | _ => false
   
           val inst_distr_rule = rewr_imp distr_rule ctm
@@ -480,8 +480,8 @@ in
   
     in
       case get_args 2 rel of
-          [Const (\<^const_name>\<open>HOL.eq\<close>, _), _] => rewrs_imp @{thms neg_eq_OO pos_eq_OO} ctm
-          | [_, Const (\<^const_name>\<open>HOL.eq\<close>, _)] => rewrs_imp @{thms neg_OO_eq pos_OO_eq} ctm
+          [\<^Const_>\<open>HOL.eq _\<close>, _] => rewrs_imp @{thms neg_eq_OO pos_eq_OO} ctm
+          | [_, \<^Const_>\<open>HOL.eq _\<close>] => rewrs_imp @{thms neg_OO_eq pos_OO_eq} ctm
           | [_, trans_rel] =>
             let
               val (rty', qty) = (relation_types o fastype_of) trans_rel

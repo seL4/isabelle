@@ -478,12 +478,9 @@ local
       val concl = perhaps (try HOLogic.dest_Trueprop) (Thm.concl_of rule);
       val (lhs, rhs) =
         (case concl of
-          Const (\<^const_name>\<open>less_eq\<close>, _) $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ rhs =>
-            (lhs, rhs)
-        | Const (\<^const_name>\<open>less_eq\<close>, _) $ rhs $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) =>
-            (lhs, rhs)
-        | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (lhs as Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ rhs =>
-            (lhs, rhs)
+          \<^Const_>\<open>less_eq _ for \<open>lhs as \<^Const_>\<open>relcompp _ _ _ for _ _\<close>\<close> rhs\<close> => (lhs, rhs)
+        | \<^Const_>\<open>less_eq _ for rhs \<open>lhs as \<^Const_>\<open>relcompp _ _ _ for _ _\<close>\<close>\<close> => (lhs, rhs)
+        | \<^Const_>\<open>HOL.eq _ for \<open>lhs as \<^Const_>\<open>relcompp _ _ _ for _ _\<close>\<close> rhs\<close> => (lhs, rhs)
         | _ => error "The rule has a wrong format.")
 
       val lhs_vars = Term.add_vars lhs []
@@ -501,10 +498,9 @@ local
       val rhs_args = (snd o strip_comb) rhs;
       fun check_comp t =
         (case t of
-          Const (\<^const_name>\<open>relcompp\<close>, _) $ Var _ $ Var _ => ()
+          \<^Const_>\<open>relcompp _ _ _ for \<open>Var _\<close> \<open>Var _\<close>\<close> => ()
         | _ => error "There is an argument on the rhs that is not a composition.")
-      val _ = map check_comp rhs_args
-    in () end
+    in List.app check_comp rhs_args end
 in
 
   fun add_distr_rule distr_rule context =
@@ -513,11 +509,11 @@ in
       val concl = perhaps (try HOLogic.dest_Trueprop) (Thm.concl_of distr_rule)
     in
       (case concl of
-        Const (\<^const_name>\<open>less_eq\<close>, _) $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ _ =>
+        \<^Const_>\<open>less_eq _ for \<^Const_>\<open>relcompp _ _ _ for _ _\<close> _\<close> =>
           add_pos_distr_rule distr_rule context
-      | Const (\<^const_name>\<open>less_eq\<close>, _) $ _ $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) =>
+      | \<^Const_>\<open>less_eq _ for _ \<^Const_>\<open>relcompp _ _ _ for _ _\<close>\<close> =>
           add_neg_distr_rule distr_rule context
-      | Const (\<^const_name>\<open>HOL.eq\<close>, _) $ (Const (\<^const_name>\<open>relcompp\<close>,_) $ _ $ _) $ _ =>
+      | \<^Const_>\<open>HOL.eq _ for \<^Const_>\<open>relcompp _ _ _ for _ _\<close> _\<close> =>
           add_eq_distr_rule distr_rule context)
     end
 end
