@@ -1697,6 +1697,34 @@ proof (rule classical)
     by simp
 qed
 
+lemma finite_countable_subset:
+  assumes "finite A" and A: "A \<subseteq> (\<Union>i::nat. B i)"
+  obtains n where "A \<subseteq> (\<Union>i<n. B i)"
+proof -
+  obtain f where f: "\<And>x. x \<in> A \<Longrightarrow> x \<in> B(f x)"
+    by (metis in_mono UN_iff A)
+  define n where "n = Suc (Max (f`A))"
+  have "finite (f ` A)"
+    by (simp add: \<open>finite A\<close>)
+  then have "A \<subseteq> (\<Union>i<n. B i)"
+    unfolding UN_iff f n_def subset_iff
+    by (meson Max_ge f imageI le_imp_less_Suc lessThan_iff)
+  then show ?thesis ..
+qed
+
+lemma finite_countable_equals:
+  assumes "finite A" "A = (\<Union>i::nat. B i)"
+  obtains n where "A = (\<Union>i<n. B i)"
+proof -
+  obtain n where "A \<subseteq> (\<Union>i<n. B i)"
+  proof (rule finite_countable_subset)
+    show "A \<subseteq> \<Union> (range B)"
+      by (force simp: assms)
+  qed (use assms in auto)
+  with that show ?thesis
+    by (force simp: assms)
+qed
+
 subsection \<open>Lemmas useful with the summation operator sum\<close>
 
 text \<open>For examples, see Algebra/poly/UnivPoly2.thy\<close>
