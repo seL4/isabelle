@@ -93,9 +93,9 @@ fun mk_readable_rsp_thm_eq tm ctxt =
     fun abs_conv2 cv = Conv.abs_conv (Conv.abs_conv (cv o #2) o #2) ctxt
     fun erase_quants ctxt' ctm' =
       case (Thm.term_of ctm') of
-        Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.all_conv ctm'
-        | _ => (Conv.binder_conv (erase_quants o #2) ctxt' then_conv
-          Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
+        \<^Const_>\<open>HOL.eq _ for _ _\<close> => Conv.all_conv ctm'
+      | _ => (Conv.binder_conv (erase_quants o #2) ctxt' then_conv
+        Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
     val norm_fun_eq = abs_conv2 erase_quants then_conv Thm.eta_conversion
 
     fun simp_arrows_conv ctm =
@@ -107,9 +107,9 @@ fun mk_readable_rsp_thm_eq tm ctxt =
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
       in
         case (Thm.term_of ctm) of
-          Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _ =>
+          \<^Const_>\<open>rel_fun _ _ _ _ for _ _\<close> =>
             (binop_conv2 left_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => Conv.all_conv ctm
+        | _ => Conv.all_conv ctm
       end
 
     val unfold_ret_val_invs = Conv.bottom_conv
@@ -159,7 +159,7 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
           |> try HOLogic.dest_Trueprop
       in
         case lhs_eq of
-          SOME (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => SOME (@{thm refl} RS thm)
+          SOME \<^Const_>\<open>HOL.eq _ for _ _\<close> => SOME (@{thm refl} RS thm)
           | SOME _ => (case body_type (fastype_of lhs) of
             Type (typ_name, _) =>
               \<^try>\<open>

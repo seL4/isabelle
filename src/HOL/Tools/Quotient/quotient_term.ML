@@ -55,10 +55,8 @@ datatype flag = AbsF | RepF
 fun negF AbsF = RepF
   | negF RepF = AbsF
 
-fun is_identity (Const (\<^const_name>\<open>id\<close>, _)) = true
+fun is_identity \<^Const_>\<open>id _\<close> = true
   | is_identity _ = false
-
-fun mk_identity ty = Const (\<^const_name>\<open>id\<close>, ty --> ty)
 
 fun mk_fun_compose flag (trm1, trm2) =
   case flag of
@@ -191,7 +189,7 @@ fun absrep_fun ctxt flag (rty, qty) =
       end
   in
     if rty = qty
-    then mk_identity rty
+    then \<^Const>\<open>id rty\<close>
     else
       case (rty, qty) of
         (Type (s, tys), Type (s', tys')) =>
@@ -235,7 +233,7 @@ fun absrep_fun ctxt flag (rty, qty) =
             end
       | (TFree x, TFree x') =>
           if x = x'
-          then mk_identity rty
+          then \<^Const>\<open>id rty\<close>
           else raise (LIFT_MATCH "absrep_fun (frees)")
       | (TVar _, TVar _) => raise (LIFT_MATCH "absrep_fun (vars)")
       | _ => raise (LIFT_MATCH "absrep_fun (default)")
@@ -264,7 +262,7 @@ fun force_typ ctxt trm ty =
     map_types (Envir.subst_type ty_inst) trm
   end
 
-fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _)) = true
+fun is_eq \<^Const_>\<open>HOL.eq _\<close> = true
   | is_eq _ = false
 
 fun mk_rel_compose (trm1, trm2) =

@@ -72,11 +72,10 @@ fun typedef_quot_type_tac ctxt equiv_thm ((_, typedef_info): Typedef.info) =
 (* proves the quot_type theorem for the new type *)
 fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
   let
-    val quot_type_const = Const (\<^const_name>\<open>quot_type\<close>,
-      fastype_of rel --> fastype_of abs --> fastype_of rep --> \<^typ>\<open>bool\<close>)
-    val goal = HOLogic.mk_Trueprop (quot_type_const $ rel $ abs $ rep)
+    val \<^Type>\<open>fun A _\<close> = fastype_of rel
+    val \<^Type>\<open>fun _ B\<close> = fastype_of abs
   in
-    Goal.prove lthy [] [] goal
+    Goal.prove lthy [] [] (HOLogic.mk_Trueprop (\<^Const>\<open>quot_type A B for rel abs rep\<close>))
       (fn {context = ctxt, ...} => typedef_quot_type_tac ctxt equiv_thm typedef_info)
   end
 
@@ -97,12 +96,12 @@ fun define_cr_rel equiv_thm abs_fun lthy =
 
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
     val abs_fun_graph = HOLogic.mk_eq(abs_fun $ Bound 1, Bound 0)
-    val Abs_body = (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
-      Const (\<^const_name>\<open>equivp\<close>, _) $ _ => abs_fun_graph
-      | Const (\<^const_name>\<open>part_equivp\<close>, _) $ rel =>
-        HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
-      | _ => error "unsupported equivalence theorem"
-      )
+    val Abs_body =
+      (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
+        \<^Const_>\<open>equivp _ for _\<close> => abs_fun_graph
+      | \<^Const_>\<open>part_equivp _ for rel\<close> =>
+          HOLogic.mk_conj (force_type_of_rel rel rty $ Bound 1 $ Bound 1, abs_fun_graph)
+      | _ => error "unsupported equivalence theorem")
     val def_term = Abs ("x", rty, Abs ("y", qty, Abs_body));
     val qty_name = Binding.name (Long_Name.base_name (dest_Type_name qty))
     val cr_rel_name = Binding.prefix_name "cr_" qty_name
@@ -122,10 +121,10 @@ fun setup_lifting_package quot3_thm equiv_thm opt_par_thm lthy =
     val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
     val (reflp_thm, quot_thm) =
       (case (HOLogic.dest_Trueprop o Thm.prop_of) equiv_thm of
-        Const (\<^const_name>\<open>equivp\<close>, _) $ _ =>
+        \<^Const_>\<open>equivp _ for _\<close> =>
           (SOME (equiv_thm RS @{thm equivp_reflp2}),
             [quot3_thm, T_def, equiv_thm] MRSL @{thm Quotient3_to_Quotient_equivp})
-      | Const (\<^const_name>\<open>part_equivp\<close>, _) $ _ =>
+      | \<^Const_>\<open>part_equivp _ for _\<close> =>
           (NONE, [quot3_thm, T_def] MRSL @{thm Quotient3_to_Quotient})
       | _ => error "unsupported equivalence theorem")
     val config = { notes = true }
@@ -177,11 +176,8 @@ fun add_quotient_type overloaded
     val Rep_const = Const (Rep_name, Abs_ty --> Rep_ty)
 
     (* more useful abs and rep definitions *)
-    val abs_const = Const (\<^const_name>\<open>quot_type.abs\<close>,
-      (rty --> rty --> \<^typ>\<open>bool\<close>) --> (Rep_ty --> Abs_ty) --> rty --> Abs_ty)
-    val rep_const = Const (\<^const_name>\<open>quot_type.rep\<close>, (Abs_ty --> Rep_ty) --> Abs_ty --> rty)
-    val abs_trm = abs_const $ rel $ Abs_const
-    val rep_trm = rep_const $ Rep_const
+    val abs_trm = \<^Const>\<open>quot_type.abs rty Abs_ty\<close> $ rel $ Abs_const
+    val rep_trm = \<^Const>\<open>quot_type.rep Abs_ty rty\<close> $ Rep_const
     val (rep_name, abs_name) =
       (case opt_morphs of
         NONE => (Binding.prefix_name "rep_" qty_name, Binding.prefix_name "abs_" qty_name)
@@ -301,16 +297,9 @@ fun quotient_type overloaded quot lthy =
     val _ = sanity_check quot
     val _ = map_check lthy quot
 
-    fun mk_goal (rty, rel, partial) =
-      let
-        val equivp_ty = ([rty, rty] ---> \<^typ>\<open>bool\<close>) --> \<^typ>\<open>bool\<close>
-        val const =
-          if partial then \<^const_name>\<open>part_equivp\<close> else \<^const_name>\<open>equivp\<close>
-      in
-        HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
-      end
-
-    val goal = (mk_goal o #2) quot
+    val (rty, rel, partial) = #2 quot
+    val const = if partial then \<^Const>\<open>part_equivp rty\<close> else \<^Const>\<open>equivp rty\<close>
+    val goal = HOLogic.mk_Trueprop (const $ rel)
 
     fun after_qed [[thm]] = (snd oo add_quotient_type overloaded) (quot, thm)
   in
