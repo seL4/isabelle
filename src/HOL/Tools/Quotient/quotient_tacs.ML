@@ -37,9 +37,6 @@ fun mk_minimal_simpset ctxt =
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps [])
 
-(* composition of two theorems, used in maps *)
-fun OF1 thm1 thm2 = thm2 RS thm1
-
 fun atomize_thm ctxt thm =
   let
     val thm' = Thm.legacy_freezeT (Thm.forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
@@ -135,13 +132,13 @@ fun ball_bex_range_simproc ctxt redex =
 *)
 
 fun reflp_get ctxt =
-  map_filter (fn th => if Thm.no_prems th then SOME (OF1 @{thm equivp_reflp} th) else NONE
+  map_filter (fn th => if Thm.no_prems th then SOME (th RS @{thm equivp_reflp}) else NONE
     handle THM _ => NONE) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
 
 val eq_imp_rel = @{lemma "equivp R \<Longrightarrow> a = b \<longrightarrow> R a b" by (simp add: equivp_reflp)}
 
 fun eq_imp_rel_get ctxt =
-  map (OF1 eq_imp_rel) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
+  map (fn th => th RS eq_imp_rel) (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_equiv\<close>))
 
 val regularize_simproc =
   \<^simproc_setup>\<open>passive regularize
