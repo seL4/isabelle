@@ -480,7 +480,7 @@ fun consistent_env env =
     val tenv = Envir.term_env env;
     val tyenv = Envir.type_env env;
   in
-    forall (fn (_, (T, t)) => Envir.norm_type tyenv T = fastype_of t) (Vartab.dest tenv)
+    Vartab.forall (fn (_, (T, t)) => Envir.norm_type tyenv T = fastype_of t) tenv
   end;
 
 fun term_eq_wrt (env1, env2) (t1, t2) =
