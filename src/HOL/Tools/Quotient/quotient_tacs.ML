@@ -251,13 +251,17 @@ val apply_rsp_tac =
    complex we rely on instantiation to tell us if it applies
 *)
 fun equals_rsp_tac R ctxt =
-  case try (Thm.cterm_of ctxt) R of (* There can be loose bounds in R *)  (* FIXME fragile *)
-    SOME ctm =>
+  case try (Thm.cterm_of ctxt) R of (* There can be loose bounds in R *)
+    SOME ct =>
       let
-        val ty = domain_type (fastype_of R)
+        val T = Thm.ctyp_of_cterm ct
+        val A = Thm.dest_ctyp0 T
+        val try_inst =
+          \<^try>\<open>
+            Thm.instantiate (TVars.make1 ((("'a", 0), \<^sort>\<open>type\<close>), A),
+              Vars.make1 ((("R", 0), Thm.typ_of T), ct)) @{thm equals_rsp}\<close>
       in
-        case try (Thm.instantiate' [SOME (Thm.ctyp_of ctxt ty)]
-            [SOME (Thm.cterm_of ctxt R)]) @{thm equals_rsp} of
+        case try_inst of
           SOME thm => resolve_tac ctxt [thm] THEN' quotient_tac ctxt
         | NONE => K no_tac
       end
