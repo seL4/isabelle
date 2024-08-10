@@ -314,7 +314,7 @@ fun quotient_type_cmd overloaded spec lthy =
         val tmp_lthy1 = Variable.declare_typ rty lthy
         val rel =
           Syntax.parse_term tmp_lthy1 rel_str
-          |> Type.constraint (rty --> rty --> \<^typ>\<open>bool\<close>)
+          |> Type.constraint \<^Type>\<open>fun rty \<^Type>\<open>fun rty \<^Type>\<open>bool\<close>\<close>\<close>
           |> Syntax.check_term tmp_lthy1
         val tmp_lthy2 = Variable.declare_term rel tmp_lthy1
         val opt_par_thm = Option.map (singleton (Attrib.eval_thms lthy)) opt_par_xthm

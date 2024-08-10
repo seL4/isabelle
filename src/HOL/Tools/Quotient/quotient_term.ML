@@ -310,7 +310,7 @@ fun equiv_relation ctxt (rty, qty) =
             val rtys' = map (Envir.subst_type qtyenv) rtys
             val args = map (equiv_relation ctxt) (tys ~~ rtys')
             val eqv_rel = get_equiv_rel ctxt s'
-            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> \<^typ>\<open>bool\<close>)
+            val eqv_rel' = force_typ ctxt eqv_rel \<^Type>\<open>fun rty \<^Type>\<open>fun rty \<^Type>\<open>bool\<close>\<close>\<close>
           in
             if forall is_eq args
             then eqv_rel'
