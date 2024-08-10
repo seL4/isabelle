@@ -69,17 +69,19 @@ fun solve_quotient_assm ctxt thm =
   | _ => error "Solve_quotient_assm failed. Possibly a quotient theorem is missing."
 
 
-fun get_match_inst thy pat trm =
-  let
-    val univ = Unify.matchers (Context.Theory thy) [(pat, trm)]
-    val SOME (env, _) = Seq.pull univ           (* raises Bind, if no unifier *) (* FIXME fragile *)
-    val tenv = Vartab.dest (Envir.term_env env)
-    val tyenv = Vartab.dest (Envir.type_env env)
-    fun prep_ty (x, (S, ty)) = ((x, S), Thm.global_ctyp_of thy ty)
-    fun prep_trm (x, (T, t)) = ((x, T), Thm.global_cterm_of thy t)
-  in
-    (TVars.make (map prep_ty tyenv), Vars.make (map prep_trm tenv))
-  end
+fun get_match_inst ctxt pat trm =
+  (case Unify.matcher (Context.Proof ctxt) [pat] [trm] of
+    SOME env =>
+      let
+        val instT =
+          TVars.build (Envir.type_env env |> Vartab.fold (fn (x, (S, T)) =>
+            TVars.add ((x, S), Thm.ctyp_of ctxt T)))
+        val inst =
+          Vars.build (Envir.term_env env |> Vartab.fold (fn (x, (T, t)) =>
+            Vars.add ((x, T), Thm.cterm_of ctxt t)))
+      in (instT, inst) end
+  | NONE => raise TERM ("Higher-order match failed", [pat, trm]));
+
 
 (* Calculates the instantiations for the lemmas:
 
@@ -91,7 +93,6 @@ fun get_match_inst thy pat trm =
 *)
 fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun get_lhs thm = fst (Logic.dest_equals (Thm.concl_of thm))
     val ty_inst = map (SOME o Thm.ctyp_of ctxt) [domain_type (fastype_of R2)]
     val trm_inst = map (SOME o Thm.cterm_of ctxt) [R2, R1]
@@ -99,7 +100,7 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
     (case try (Thm.instantiate' ty_inst trm_inst) ball_bex_thm of
       NONE => NONE
     | SOME thm' =>
-        (case try (get_match_inst thy (get_lhs thm')) (Thm.term_of redex) of
+        (case try (get_match_inst ctxt (get_lhs thm')) (Thm.term_of redex) of
           NONE => NONE
         | SOME inst2 => try (Drule.instantiate_normalize inst2) thm'))
   end
