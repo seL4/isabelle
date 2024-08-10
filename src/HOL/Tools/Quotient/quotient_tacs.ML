@@ -455,7 +455,7 @@ fun make_inst_id lhs t =
 *)
 fun lambda_prs_simple_conv ctxt ctrm =
   (case Thm.term_of ctrm of
-    (Const (\<^const_name>\<open>map_fun\<close>, _) $ r1 $ a2) $ (Abs _) =>
+     \<^Const_>\<open>map_fun _ _ _ _ for r1 a2 \<open>Abs _\<close>\<close> =>
       let
         val (ty_b, ty_a) = dest_funT (fastype_of r1)
         val (ty_c, ty_d) = dest_funT (fastype_of a2)
