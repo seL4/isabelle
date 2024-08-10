@@ -20,13 +20,11 @@ sig
 
   val undisch: thm -> thm
   val undisch_all: thm -> thm
-  val is_fun_type: typ -> bool
   val get_args: int -> term -> term list
   val strip_args: int -> term -> term
   val all_args_conv: conv -> conv
   val Targs: typ -> typ list
   val Tname: typ -> string
-  val is_rel_fun: term -> bool
   val relation_types: typ -> typ * typ
   val map_interrupt: ('a -> 'b option) -> 'a list -> 'b list option
   val conceal_naming_result: (local_theory -> 'a * local_theory) -> local_theory -> 'a * local_theory
@@ -90,9 +88,6 @@ fun undisch thm =
 
 fun undisch_all thm = funpow (Thm.nprems_of thm) undisch thm
 
-fun is_fun_type (Type (\<^type_name>\<open>fun\<close>, _)) = true
-  | is_fun_type _ = false
-
 fun get_args n = rev o fst o funpow_yield n (swap o dest_comb)
 
 fun strip_args n = funpow n (fst o dest_comb)
@@ -104,9 +99,6 @@ fun Targs (Type (_, args)) = args
 
 fun Tname (Type (name, _)) = name
   | Tname _ = ""
-
-fun is_rel_fun (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) = true
-  | is_rel_fun _ = false
 
 fun relation_types typ = 
   case strip_type typ of
