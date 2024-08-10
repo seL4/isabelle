@@ -170,7 +170,6 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
     val internal_rsp_tm = HOLogic.mk_Trueprop (Syntax.check_term lthy (rsp_rel $ rhs $ rhs))
     val readable_rsp_thm_eq = mk_readable_rsp_thm_eq internal_rsp_tm lthy
     val maybe_proven_rsp_thm = try_to_prove_refl readable_rsp_thm_eq
-    val readable_rsp_tm = #1 (Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq))
 
     fun after_qed thm_list lthy =
       let
@@ -181,14 +180,11 @@ fun gen_quotient_def prep_var parse_term (raw_var, (attr, (raw_lhs, raw_rhs))) l
               (fn _ =>
                 resolve_tac ctxt [readable_rsp_thm_eq] 1 THEN
                 Proof_Context.fact_tac ctxt [thm] 1))
-      in
-        snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy)
-      end
-  in
-    (case maybe_proven_rsp_thm of
-      SOME _ => Proof.theorem NONE after_qed [] lthy
-    | NONE => Proof.theorem NONE after_qed [[(readable_rsp_tm, [])]] lthy)
-  end
+      in snd (add_quotient_def ((var, attr), (lhs, rhs)) internal_rsp_thm lthy) end
+    val goal =
+      if is_some maybe_proven_rsp_thm then []
+      else [[(#1 (Logic.dest_implies (Thm.prop_of readable_rsp_thm_eq)), [])]]
+  in Proof.theorem NONE after_qed goal lthy end
 
 val quotient_def = gen_quotient_def Proof_Context.cert_var (K I)
 val quotient_def_cmd = gen_quotient_def Proof_Context.read_var Syntax.parse_term
