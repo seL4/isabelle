@@ -550,32 +550,9 @@ fun gen_frees_tac ctxt =
 
 (** The General Shape of the Lifting Procedure **)
 
-(* - A is the original raw theorem
-   - B is the regularized theorem
-   - C is the rep/abs injected version of B
-   - D is the lifted theorem
-
-   - 1st prem is the regularization step
-   - 2nd prem is the rep/abs injection step
-   - 3rd prem is the cleaning part
-
-   the Quot_True premise in 2nd records the lifted theorem
-*)
-val procedure_thm =
-  @{lemma  "\<lbrakk>A;
-              A \<longrightarrow> B;
-              Quot_True D \<Longrightarrow> B = C;
-              C = D\<rbrakk> \<Longrightarrow> D"
-      by (simp add: Quot_True_def)}
-
 (* in case of partial equivalence relations, this form of the 
    procedure theorem results in solvable proof obligations 
 *)
-val partiality_procedure_thm =
-  @{lemma  "[|B; 
-              Quot_True D ==> B = C;
-              C = D|] ==> D"
-      by (simp add: Quot_True_def)}
 
 fun lift_match_error ctxt msg rtrm qtrm =
   let
@@ -596,11 +573,24 @@ fun procedure_inst ctxt rtrm qtrm =
     val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
-    Thm.instantiate' []
-      [SOME (Thm.cterm_of ctxt rtrm'),
-       SOME (Thm.cterm_of ctxt reg_goal),
-       NONE,
-       SOME (Thm.cterm_of ctxt inj_goal)] procedure_thm
+    (* - A is the original raw theorem
+       - B is the regularized theorem
+       - C is the rep/abs injected version of B
+       - D is the lifted theorem
+
+       - 1st prem is the regularization step
+       - 2nd prem is the rep/abs injection step
+       - 3rd prem is the cleaning part
+
+       the Quot_True premise in 2nd records the lifted theorem
+    *)
+    \<^instantiate>\<open>
+      A = \<open>Thm.cterm_of ctxt rtrm'\<close> and
+      B = \<open>Thm.cterm_of ctxt reg_goal\<close> and
+      C = \<open>Thm.cterm_of ctxt inj_goal\<close>
+    in
+      lemma (schematic) "A \<Longrightarrow> A \<longrightarrow> B \<Longrightarrow> (Quot_True D \<Longrightarrow> B = C) \<Longrightarrow> C = D \<Longrightarrow> D"
+        by (simp add: Quot_True_def)\<close>
   end
 
 
@@ -655,10 +645,12 @@ fun partiality_procedure_inst ctxt rtrm qtrm =
     val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
       handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   in
-    Thm.instantiate' []
-      [SOME (Thm.cterm_of ctxt reg_goal),
-       NONE,
-       SOME (Thm.cterm_of ctxt inj_goal)] partiality_procedure_thm
+    \<^instantiate>\<open>
+      B = \<open>Thm.cterm_of ctxt reg_goal\<close> and
+      C = \<open>Thm.cterm_of ctxt inj_goal\<close>
+    in
+      lemma (schematic) "B \<Longrightarrow> (Quot_True D \<Longrightarrow> B = C) \<Longrightarrow> C = D \<Longrightarrow> D"
+        by (simp add: Quot_True_def)\<close>
   end
 
 
