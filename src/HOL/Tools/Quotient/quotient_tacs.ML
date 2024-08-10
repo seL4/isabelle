@@ -109,14 +109,10 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
 
 fun ball_bex_range_simproc ctxt redex =
   (case Thm.term_of redex of
-    (Const (\<^const_name>\<open>Ball\<close>, _) $ (Const (\<^const_name>\<open>Respects\<close>, _) $
-      (Const (\<^const_name>\<open>rel_fun\<close>, _) $ R1 $ R2)) $ _) =>
-        calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
-
-  | (Const (\<^const_name>\<open>Bex\<close>, _) $ (Const (\<^const_name>\<open>Respects\<close>, _) $
-      (Const (\<^const_name>\<open>rel_fun\<close>, _) $ R1 $ R2)) $ _) =>
-        calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
-
+    \<^Const_>\<open>Ball _ for \<open>\<^Const_>\<open>Respects _ for \<^Const_>\<open>rel_fun _ _ _ _ for R1 R2\<close>\<close>\<close> _\<close> =>
+      calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
+  | \<^Const_>\<open>Bex _ for \<^Const_>\<open>Respects _ for \<^Const_>\<open>rel_fun _ _ _ _ for R1 R2\<close>\<close> _\<close> =>
+      calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
   | _ => NONE)
 
 (* Regularize works as follows:
@@ -179,19 +175,17 @@ fun regularize_tac ctxt =
 *)
 fun find_qt_asm asms =
   let
-    fun find_fun trm =
-      (case trm of
-        (Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>Quot_True\<close>, _) $ _)) => true
-      | _ => false)
+    fun find_fun \<^Const_>\<open>Trueprop for \<^Const_>\<open>Quot_True _ for _\<close>\<close> = true
+      | find_fun _ = false
   in
-     (case find_first find_fun asms of
-       SOME (_ $ (_ $ (f $ a))) => SOME (f, a)
-     | _ => NONE)
+    (case find_first find_fun asms of
+      SOME (_ $ (_ $ (f $ a))) => SOME (f, a)
+    | _ => NONE)
   end
 
 fun quot_true_simple_conv ctxt fnctn ctrm =
   (case Thm.term_of ctrm of
-    (Const (\<^const_name>\<open>Quot_True\<close>, _) $ x) =>
+    \<^Const_>\<open>Quot_True _ for x\<close> =>
       let
         val fx = fnctn x;
         val cx = Thm.cterm_of ctxt x;
@@ -205,7 +199,7 @@ fun quot_true_simple_conv ctxt fnctn ctrm =
 
 fun quot_true_conv ctxt fnctn ctrm =
   (case Thm.term_of ctrm of
-    (Const (\<^const_name>\<open>Quot_True\<close>, _) $ _) =>
+    \<^Const_>\<open>Quot_True _ for _\<close> =>
       quot_true_simple_conv ctxt fnctn ctrm
   | _ $ _ => Conv.comb_conv (quot_true_conv ctxt fnctn) ctrm
   | Abs _ => Conv.abs_conv (fn (_, ctxt) => quot_true_conv ctxt fnctn) ctxt ctrm
@@ -314,54 +308,53 @@ fun rep_abs_rsp_tac ctxt =
 fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
   (case bare_concl goal of
       (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
-    (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $ (Abs _) $ (Abs _)
-        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
+    \<^Const_>\<open>rel_fun _ _ _ _ for _ _ \<open>Abs _\<close> \<open>Abs _\<close>\<close> =>
+      resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
-  | (Const (\<^const_name>\<open>HOL.eq\<close>,_) $
-      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
-      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _))
-        => resolve_tac ctxt @{thms ball_rsp} THEN' dresolve_tac ctxt @{thms QT_all}
+  | \<^Const_>\<open>HOL.eq _ for
+      \<^Const_>\<open>Ball _ for \<^Const_>\<open>Respects _ for _\<close> _\<close>\<close> $
+      \<^Const_>\<open>Ball _ for \<^Const_>\<open>Respects _ for _\<close> _\<close> =>
+      resolve_tac ctxt @{thms ball_rsp} THEN' dresolve_tac ctxt @{thms QT_all}
 
       (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
-  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
-      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
-      (Const(\<^const_name>\<open>Ball\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
-        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
+  | \<^Const_>\<open>rel_fun _ _ _ _ for _ _
+      \<^Const_>\<open>Ball _ for \<^Const_>\<open>Respects _ for _\<close> _\<close>\<close> $
+      \<^Const_>\<open>Ball _ for \<^Const_>\<open>Respects _ for _\<close> _\<close> =>
+      resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
       (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
-  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $
-      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
-      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
-        => resolve_tac ctxt @{thms bex_rsp} THEN' dresolve_tac ctxt @{thms QT_ex}
+  | \<^Const_>\<open>HOL.eq _ for
+      \<^Const_>\<open>Bex _ for \<^Const_>\<open>Respects _ for _\<close> _\<close>\<close> $
+      \<^Const_>\<open>Bex _ for \<^Const_>\<open>Respects _ for _\<close> _\<close> =>
+      resolve_tac ctxt @{thms bex_rsp} THEN' dresolve_tac ctxt @{thms QT_ex}
 
       (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
-  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
-      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
-      (Const(\<^const_name>\<open>Bex\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _)
-        => resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
+  | \<^Const_>\<open>rel_fun _ _ _ _ for _ _
+      \<^Const_>\<open>Bex _ for \<^Const_>\<open>Respects _ for _\<close> _\<close>\<close> $
+      \<^Const_>\<open>Bex _ for \<^Const_>\<open>Respects _ for _\<close> _\<close> =>
+      resolve_tac ctxt @{thms rel_funI} THEN' quot_true_tac ctxt unlam
 
-  | (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ _) $
-      (Const(\<^const_name>\<open>Bex1_rel\<close>,_) $ _) $ (Const(\<^const_name>\<open>Bex1_rel\<close>,_) $ _)
-        => resolve_tac ctxt @{thms bex1_rel_rsp} THEN' quotient_tac ctxt
+  | \<^Const_>\<open>rel_fun _ _ _ _ for _ _ \<^Const_>\<open>Bex1_rel _ for _\<close> \<^Const_>\<open>Bex1_rel _ for _\<close>\<close> =>
+      resolve_tac ctxt @{thms bex1_rel_rsp} THEN' quotient_tac ctxt
 
   | (_ $
-      (Const(\<^const_name>\<open>Babs\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _) $
-      (Const(\<^const_name>\<open>Babs\<close>,_) $ (Const (\<^const_name>\<open>Respects\<close>, _) $ _) $ _))
-        => resolve_tac ctxt @{thms babs_rsp} THEN' quotient_tac ctxt
+      \<^Const_>\<open>Babs _ _ for \<^Const_>\<open>Respects _ for _\<close> _\<close> $
+      \<^Const_>\<open>Babs _ _ for \<^Const_>\<open>Respects _ for _\<close> _\<close>) =>
+      resolve_tac ctxt @{thms babs_rsp} THEN' quotient_tac ctxt
 
-  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
-     (resolve_tac ctxt @{thms refl} ORELSE'
+  | \<^Const_>\<open>HOL.eq _ for \<open>R $ _ $ _\<close> \<open>_ $ _ $ _\<close>\<close> =>
+      (resolve_tac ctxt @{thms refl} ORELSE'
       (equals_rsp_tac R ctxt THEN' RANGE [
          quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
 
       (* reflexivity of operators arising from Cong_tac *)
-  | Const (\<^const_name>\<open>HOL.eq\<close>,_) $ _ $ _ => resolve_tac ctxt @{thms refl}
+  | \<^Const_>\<open>HOL.eq _ for _ _\<close> => resolve_tac ctxt @{thms refl}
 
      (* respectfulness of constants; in particular of a simple relation *)
-  | _ $ (Const _) $ (Const _)  (* rel_fun, list_rel, etc but not equality *)
-      => resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_respect\<close>))
-          THEN_ALL_NEW quotient_tac ctxt
+  | _ $ Const _ $ Const _ => (* rel_fun, list_rel, etc but not equality *)
+      resolve_tac ctxt (rev (Named_Theorems.get ctxt \<^named_theorems>\<open>quot_respect\<close>))
+      THEN_ALL_NEW quotient_tac ctxt
 
       (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
       (* observe map_fun *)
@@ -411,10 +404,10 @@ fun all_injection_tac ctxt =
 (* expands all map_funs, except in front of the (bound) variables listed in xs *)
 fun map_fun_simple_conv xs ctrm =
   (case Thm.term_of ctrm of
-    ((Const (\<^const_name>\<open>map_fun\<close>, _) $ _ $ _) $ h $ _) =>
-        if member (op=) xs h
-        then Conv.all_conv ctrm
-        else Conv.rewr_conv @{thm map_fun_apply [THEN eq_reflection]} ctrm
+    \<^Const_>\<open>map_fun _ _ _ _ for _ _ h _\<close> =>
+      if member (op=) xs h
+      then Conv.all_conv ctrm
+      else Conv.rewr_conv @{thm map_fun_apply [THEN eq_reflection]} ctrm
   | _ => Conv.all_conv ctrm)
 
 fun map_fun_conv xs ctxt ctrm =
@@ -439,7 +432,7 @@ fun mk_abs u i t =
 
 fun make_inst lhs t =
   let
-    val _ $ (Abs (_, _, (_ $ ((f as Var (_, Type ("fun", [T, _]))) $ u)))) = lhs;
+    val _ $ (Abs (_, _, (_ $ ((f as Var (_, \<^Type>\<open>fun T _\<close>)) $ u)))) = lhs;
     val _ $ (Abs (_, _, (_ $ g))) = t;
   in
     (f, Abs ("x", T, mk_abs u 0 g))
@@ -447,7 +440,7 @@ fun make_inst lhs t =
 
 fun make_inst_id lhs t =
   let
-    val _ $ (Abs (_, _, (f as Var (_, Type ("fun", [T, _]))) $ u)) = lhs;
+    val _ $ (Abs (_, _, (f as Var (_, \<^Type>\<open>fun T _\<close>)) $ u)) = lhs;
     val _ $ (Abs (_, _, g)) = t;
   in
     (f, Abs ("x", T, mk_abs u 0 g))
