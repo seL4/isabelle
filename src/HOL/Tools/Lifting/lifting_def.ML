@@ -145,17 +145,9 @@ fun mono_eq_prover ctxt prop =
 
 fun try_prove_refl_rel ctxt rel =
   let
-    fun mk_ge_eq x =
-      let
-        val T = fastype_of x
-      in
-        Const (\<^const_name>\<open>less_eq\<close>, T --> T --> HOLogic.boolT) $
-          (Const (\<^const_name>\<open>HOL.eq\<close>, T)) $ x
-      end;
-    val goal = HOLogic.mk_Trueprop (mk_ge_eq rel);
-  in
-     mono_eq_prover ctxt goal
-  end;
+    val T as \<^Type>\<open>fun A _\<close> = fastype_of rel
+    val ge_eq = \<^Const>\<open>less_eq T for \<^Const>\<open>HOL.eq A\<close> rel\<close>
+  in mono_eq_prover ctxt (HOLogic.mk_Trueprop ge_eq) end;
 
 fun try_prove_reflexivity ctxt prop =
   let
@@ -223,7 +215,9 @@ fun generate_parametric_transfer_rule ctxt0 transfer_rule parametric_transfer_ru
 
     fun zip_transfer_rules ctxt thm =
       let
-        fun mk_POS ty = Const (\<^const_name>\<open>POS\<close>, ty --> ty --> HOLogic.boolT)
+        fun mk_POS ty =
+          let val \<^Type>\<open>fun A \<^Type>\<open>fun B bool\<close>\<close> = ty
+          in \<^Const>\<open>POS A B\<close> end
         val rel = (Thm.dest_fun2 o Thm.dest_arg o Thm.cprop_of) thm
         val typ = Thm.typ_of_cterm rel
         val POS_const = Thm.cterm_of ctxt (mk_POS typ)
@@ -279,21 +273,21 @@ fun generate_transfer_rules lthy quot_thm rsp_thm def_thm par_thms =
 
 (* Generation of the code certificate from the rsp theorem *)
 
-fun get_body_types (Type ("fun", [_, U]), Type ("fun", [_, V])) = get_body_types (U, V)
+fun get_body_types (\<^Type>\<open>fun _ U\<close>, \<^Type>\<open>fun _ V\<close>) = get_body_types (U, V)
   | get_body_types (U, V)  = (U, V)
 
-fun get_binder_types (Type ("fun", [T, U]), Type ("fun", [V, W])) = (T, V) :: get_binder_types (U, W)
+fun get_binder_types (\<^Type>\<open>fun T U\<close>, \<^Type>\<open>fun V W\<close>) = (T, V) :: get_binder_types (U, W)
   | get_binder_types _ = []
 
-fun get_binder_types_by_rel (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ S) (Type ("fun", [T, U]), Type ("fun", [V, W])) =
+fun get_binder_types_by_rel \<^Const_>\<open>rel_fun _ _ _ _ for _ S\<close> (\<^Type>\<open>fun T U\<close>, \<^Type>\<open>fun V W\<close>) =
     (T, V) :: get_binder_types_by_rel S (U, W)
   | get_binder_types_by_rel _ _ = []
 
-fun get_body_type_by_rel (Const (\<^const_name>\<open>rel_fun\<close>, _) $ _ $ S) (Type ("fun", [_, U]), Type ("fun", [_, V])) =
+fun get_body_type_by_rel \<^Const_>\<open>rel_fun _ _ _ _ for _ S\<close> (\<^Type>\<open>fun _ U\<close>, \<^Type>\<open>fun _ V\<close>) =
     get_body_type_by_rel S (U, V)
   | get_body_type_by_rel _ (U, V)  = (U, V)
 
-fun get_binder_rels (Const (\<^const_name>\<open>rel_fun\<close>, _) $ R $ S) = R :: get_binder_rels S
+fun get_binder_rels \<^Const_>\<open>rel_fun _ _ _ _ for R S\<close> = R :: get_binder_rels S
   | get_binder_rels _ = []
 
 fun force_rty_type ctxt rty rhs =
@@ -337,7 +331,7 @@ fun unfold_fun_maps ctm =
   let
     fun unfold_conv ctm =
       case (Thm.term_of ctm) of
-        Const (\<^const_name>\<open>map_fun\<close>, _) $ _ $ _ =>
+        \<^Const_>\<open>map_fun _ _ _ _ for _ _\<close> =>
           (Conv.arg_conv unfold_conv then_conv Conv.rewr_conv map_fun_unfolded) ctm
         | _ => Conv.all_conv ctm
   in
@@ -376,9 +370,9 @@ fun simplify_code_eq ctxt def_thm =
 
 fun can_generate_code_cert quot_thm  =
   case quot_thm_rel quot_thm of
-    Const (\<^const_name>\<open>HOL.eq\<close>, _) => true
-    | Const (\<^const_name>\<open>eq_onp\<close>, _) $ _  => true
-    | _ => false
+    \<^Const_>\<open>HOL.eq _\<close> => true
+  | \<^Const_>\<open>eq_onp _ for _\<close>  => true
+  | _ => false
 
 fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
   let
@@ -475,7 +469,7 @@ fun register_code_eq_thy abs_eq_thm opt_rep_eq_thm (rty, qty) thy =
 
 local
   fun no_no_code ctxt (rty, qty) =
-    if same_type_constrs (rty, qty) then
+    if eq_Type_name (rty, qty) then
       forall (no_no_code ctxt) (Targs rty ~~ Targs qty)
     else
       if Term.is_Type qty then

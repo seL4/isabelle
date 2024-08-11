@@ -81,15 +81,11 @@ fun define_pcrel (config: config) crel lthy0 =
     val args_fixed = (map (Term_Subst.instantiate (instT, Vars.empty))) args_subst
     val param_rel_fixed = Term_Subst.instantiate (instT, Vars.empty) param_rel_subst
     val rty = (domain_type o fastype_of) param_rel_fixed
-    val relcomp_op = Const (\<^const_name>\<open>relcompp\<close>, 
-          (rty --> rty' --> HOLogic.boolT) --> 
-          (rty' --> qty --> HOLogic.boolT) --> 
-          rty --> qty --> HOLogic.boolT)
     val qty_name = dest_Type_name qty
     val pcrel_name = Binding.prefix_name "pcr_" ((Binding.name o Long_Name.base_name) qty_name)
     val relator_type = foldr1 (op -->) ((map type_of args_fixed) @ [rty, qty, HOLogic.boolT])
     val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args_fixed)
-    val rhs = relcomp_op $ param_rel_fixed $ fixed_crel
+    val rhs = \<^Const>\<open>relcompp rty rty' qty for param_rel_fixed fixed_crel\<close>
     val definition_term = Logic.mk_equals (lhs, rhs)
     fun note_def lthy =
       Specification.definition (SOME (pcrel_name, SOME relator_type, NoSyn)) [] []
@@ -151,7 +147,7 @@ in
           (Conv.bottom_rewrs_conv (Transfer.get_relator_eq args_ctxt) args_ctxt)))
   in
     case (Thm.term_of o Thm.rhs_of) pcr_cr_eq of
-      Const (\<^const_name>\<open>relcompp\<close>, _) $ Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ =>
+      \<^Const_>\<open>relcompp _ _ _ for \<^Const_>\<open>HOL.eq _\<close> _\<close> =>
         let
           val thm = 
             pcr_cr_eq
@@ -164,8 +160,8 @@ in
         in
           (thm, lthy')
         end
-      | Const (\<^const_name>\<open>relcompp\<close>, _) $ t $ _ => print_generate_pcr_cr_eq_error args_ctxt t
-      | _ => error "generate_pcr_cr_eq: implementation error"
+    | \<^Const_>\<open>relcompp _ _ _ for t _\<close> => print_generate_pcr_cr_eq_error args_ctxt t
+    | _ => error "generate_pcr_cr_eq: implementation error"
   end
 end
 
@@ -217,13 +213,12 @@ fun quot_thm_sanity_check ctxt quot_thm =
                                  Pretty.brk 1] @ 
                                  ((Pretty.commas o map (Pretty.str o quote)) extras) @
                                  [Pretty.str "."])]
-    val not_type_constr = 
-      case qty of
-         Type _ => []
-         | _ => [Pretty.block [Pretty.str "The quotient type ",
-                                Pretty.quote (Syntax.pretty_typ ctxt' qty),
-                                Pretty.brk 1,
-                                Pretty.str "is not a type constructor."]]
+    val not_type_constr =
+      if is_Type qty then []
+      else [Pretty.block [Pretty.str "The quotient type ",
+                          Pretty.quote (Syntax.pretty_typ ctxt' qty),
+                          Pretty.brk 1,
+                          Pretty.str "is not a type constructor."]]
     val errs = extra_rty_tfrees @ not_type_constr
   in
     if null errs then () else raise QUOT_ERROR errs
@@ -641,22 +636,20 @@ fun setup_by_typedef_thm config typedef_thm lthy0 =
     (**)
     val T_def = Morphism.thm (Local_Theory.target_morphism lthy1) T_def
     (**)    
-    val quot_thm = case typedef_set of
-      Const (\<^const_name>\<open>top\<close>, _) => 
-        [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
-      | Const (\<^const_name>\<open>Collect\<close>, _) $ Abs (_, _, _) => 
-        [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
-      | _ => 
-        [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
+    val quot_thm =
+      case typedef_set of
+        \<^Const_>\<open>top _\<close> => [typedef_thm, T_def] MRSL @{thm UNIV_typedef_to_Quotient}
+      | \<^Const_>\<open>Collect _ for \<open>Abs _\<close>\<close> => [typedef_thm, T_def] MRSL @{thm open_typedef_to_Quotient}
+      | _ => [typedef_thm, T_def] MRSL @{thm typedef_to_Quotient}
     val (rty, qty) = quot_thm_rty_qty quot_thm
     val qty_full_name = dest_Type_name qty
     val qty_name = Binding.name (Long_Name.base_name qty_full_name)
     val qualify = Binding.qualify_name true qty_name
     val opt_reflp_thm = 
       case typedef_set of
-        Const (\<^const_name>\<open>top\<close>, _) => 
+        \<^Const_>\<open>top _\<close> =>
           SOME ((typedef_thm RS @{thm UNIV_typedef_to_equivp}) RS @{thm equivp_reflp2})
-        | _ =>  NONE
+      | _ =>  NONE
     val dom_thm = get_Domainp_thm quot_thm
 
     fun setup_transfer_rules_nonpar notes =
@@ -789,9 +782,9 @@ fun setup_lifting_cmd xthm opt_reflp_xthm opt_par_xthm lthy =
       end
   in
     case input_term of
-      (Const (\<^const_name>\<open>Quotient\<close>, _) $ _ $ _ $ _ $ _) => setup_quotient ()
-      | (Const (\<^const_name>\<open>type_definition\<close>, _) $ _ $ _ $ _) => setup_typedef ()
-      | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
+      \<^Const_>\<open>Quotient _ _ for _ _ _ _\<close> => setup_quotient ()
+    | \<^Const_>\<open>type_definition _ _ for _ _ _\<close> => setup_typedef ()
+    | _ => error "Unsupported type of a theorem. Only Quotient or type_definition are supported."
   end
 
 val _ = 
@@ -830,7 +823,7 @@ fun lifting_restore_sanity_check ctxt (qinfo:Lifting_Info.quotient) =
                     Pretty.brk 1,
                     Thm.pretty_thm ctxt pcr_cr_eq]]
             val (pcr_const_eq, eqs) = strip_comb eq_lhs
-            fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _)) = true
+            fun is_eq \<^Const_>\<open>HOL.eq _\<close> = true
               | is_eq _ = false
             fun eq_Const (Const (name1, _)) (Const (name2, _)) = (name1 = name2)
               | eq_Const _ _ = false
@@ -929,14 +922,14 @@ val _ = Theory.setup lifting_restore_internal_attribute_setup
 
 (* lifting_forget *)
 
-val monotonicity_names = [\<^const_name>\<open>right_unique\<close>, \<^const_name>\<open>left_unique\<close>, \<^const_name>\<open>right_total\<close>,
-  \<^const_name>\<open>left_total\<close>, \<^const_name>\<open>bi_unique\<close>, \<^const_name>\<open>bi_total\<close>]
-
-fun fold_transfer_rel f (Const (\<^const_name>\<open>Transfer.Rel\<close>, _) $ rel $ _ $ _) = f rel
-  | fold_transfer_rel f (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ 
-    (Const (\<^const_name>\<open>Domainp\<close>, _) $ rel) $ _) = f rel
-  | fold_transfer_rel f (Const (name, _) $ rel) = 
-    if member op= monotonicity_names name then f rel else f \<^term>\<open>undefined\<close>
+fun fold_transfer_rel f \<^Const_>\<open>Transfer.Rel _ _ for rel _ _\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>HOL.eq _ for \<^Const_>\<open>Domainp _ _ for rel\<close> _\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>right_unique _ _ for rel\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>left_unique _ _ for rel\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>right_total _ _ for rel\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>left_total _ _ for rel\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>bi_unique _ _ for rel\<close> = f rel
+  | fold_transfer_rel f \<^Const_>\<open>bi_total _ _ for rel\<close> = f rel
   | fold_transfer_rel f _ = f \<^term>\<open>undefined\<close>
 
 fun filter_transfer_rules_by_rel transfer_rel transfer_rules =

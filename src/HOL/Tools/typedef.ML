@@ -101,7 +101,7 @@ fun interpretation f =
 val typedef_overloaded = Attrib.setup_config_bool \<^binding>\<open>typedef_overloaded\<close> (K false);
 
 fun mk_inhabited T A =
-  HOLogic.mk_Trueprop (\<^Const>\<open>Ex T for \<open>Abs ("x", T, \<^Const>\<open>Set.member T for \<open>Bound 0\<close> A\<close>)\<close>\<close>);
+  \<^instantiate>\<open>'a = T and A in prop \<open>\<exists>x::'a. x \<in> A\<close>\<close>;
 
 fun mk_typedef newT oldT RepC AbsC A =
   let val type_definition = \<^Const>\<open>type_definition newT oldT for RepC AbsC A\<close>

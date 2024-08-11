@@ -25,12 +25,13 @@ lemma map_fun_id:
 
 subsection \<open>Quotient Predicate\<close>
 
-definition
-  "Quotient R Abs Rep T \<longleftrightarrow>
-     (\<forall>a. Abs (Rep a) = a) \<and>
-     (\<forall>a. R (Rep a) (Rep a)) \<and>
-     (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s) \<and>
-     T = (\<lambda>x y. R x x \<and> Abs x = y)"
+definition Quotient :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where
+    "Quotient R Abs Rep T \<longleftrightarrow>
+      (\<forall>a. Abs (Rep a) = a) \<and>
+      (\<forall>a. R (Rep a) (Rep a)) \<and>
+      (\<forall>r s. R r s \<longleftrightarrow> R r r \<and> R s s \<and> Abs r = Abs s) \<and>
+      T = (\<lambda>x y. R x x \<and> Abs x = y)"
 
 lemma QuotientI:
   assumes "\<And>a. Abs (Rep a) = a"

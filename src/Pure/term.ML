@@ -37,6 +37,7 @@ sig
   val is_Type: typ -> bool
   val is_TFree: typ -> bool
   val is_TVar: typ -> bool
+  val eq_Type_name: typ * typ -> bool
   val dest_Type: typ -> string * typ list
   val dest_Type_name: typ -> string
   val dest_Type_args: typ -> typ list
@@ -46,6 +47,7 @@ sig
   val is_Const: term -> bool
   val is_Free: term -> bool
   val is_Var: term -> bool
+  val eq_Const_name: term * term -> bool
   val dest_Const: term -> string * typ
   val dest_Const_name: term -> string
   val dest_Const_type: term -> typ
@@ -280,6 +282,9 @@ fun is_TFree (TFree _) = true
 fun is_TVar (TVar _) = true
   | is_TVar _ = false;
 
+fun eq_Type_name (Type (a, _), Type (b, _)) = a = b
+  | eq_Type_name _ = false;
+
 
 (** Destructors **)
 
@@ -309,6 +314,9 @@ fun is_Free (Free _) = true
 
 fun is_Var (Var _) = true
   | is_Var _ = false;
+
+fun eq_Const_name (Const (a, _), Const (b, _)) = a = b
+  | eq_Const_name _ = false;
 
 
 (** Destructors **)

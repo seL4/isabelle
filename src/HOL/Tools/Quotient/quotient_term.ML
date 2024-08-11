@@ -55,10 +55,8 @@ datatype flag = AbsF | RepF
 fun negF AbsF = RepF
   | negF RepF = AbsF
 
-fun is_identity (Const (\<^const_name>\<open>id\<close>, _)) = true
+fun is_identity \<^Const_>\<open>id _\<close> = true
   | is_identity _ = false
-
-fun mk_identity ty = Const (\<^const_name>\<open>id\<close>, ty --> ty)
 
 fun mk_fun_compose flag (trm1, trm2) =
   case flag of
@@ -191,7 +189,7 @@ fun absrep_fun ctxt flag (rty, qty) =
       end
   in
     if rty = qty
-    then mk_identity rty
+    then \<^Const>\<open>id rty\<close>
     else
       case (rty, qty) of
         (Type (s, tys), Type (s', tys')) =>
@@ -235,7 +233,7 @@ fun absrep_fun ctxt flag (rty, qty) =
             end
       | (TFree x, TFree x') =>
           if x = x'
-          then mk_identity rty
+          then \<^Const>\<open>id rty\<close>
           else raise (LIFT_MATCH "absrep_fun (frees)")
       | (TVar _, TVar _) => raise (LIFT_MATCH "absrep_fun (vars)")
       | _ => raise (LIFT_MATCH "absrep_fun (default)")
@@ -264,7 +262,7 @@ fun force_typ ctxt trm ty =
     map_types (Envir.subst_type ty_inst) trm
   end
 
-fun is_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _)) = true
+fun is_eq \<^Const_>\<open>HOL.eq _\<close> = true
   | is_eq _ = false
 
 fun mk_rel_compose (trm1, trm2) =
@@ -312,7 +310,7 @@ fun equiv_relation ctxt (rty, qty) =
             val rtys' = map (Envir.subst_type qtyenv) rtys
             val args = map (equiv_relation ctxt) (tys ~~ rtys')
             val eqv_rel = get_equiv_rel ctxt s'
-            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> \<^typ>\<open>bool\<close>)
+            val eqv_rel' = force_typ ctxt eqv_rel \<^Type>\<open>fun rty \<^Type>\<open>fun rty \<^Type>\<open>bool\<close>\<close>\<close>
           in
             if forall is_eq args
             then eqv_rel'
@@ -607,8 +605,8 @@ fun regularize_trm ctxt (rtrm, qtrm) =
   | (_, Const _) =>
       let
         val thy = Proof_Context.theory_of ctxt
-        fun same_const (Const (s, T)) (Const (s', T')) = s = s' andalso matches_typ ctxt T T'
-          | same_const _ _ = false
+        fun same_const t u =
+          eq_Const_name (t, u) andalso matches_typ ctxt (dest_Const_type t) (dest_Const_type u)
       in
         if same_const rtrm qtrm then rtrm
         else
