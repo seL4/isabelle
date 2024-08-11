@@ -255,11 +255,8 @@ fun equals_rsp_tac R ctxt =
     SOME ct =>
       let
         val T = Thm.ctyp_of_cterm ct
-        val A = Thm.dest_ctyp0 T
-        val try_inst =
-          \<^try>\<open>
-            Thm.instantiate (TVars.make1 ((("'a", 0), \<^sort>\<open>type\<close>), A),
-              Vars.make1 ((("R", 0), Thm.typ_of T), ct)) @{thm equals_rsp}\<close>
+        val A = try Thm.dest_ctyp0 T
+        val try_inst = \<^try>\<open>Thm.instantiate' [SOME (the A)] [SOME ct] @{thm equals_rsp}\<close>
       in
         case try_inst of
           SOME thm => resolve_tac ctxt [thm] THEN' quotient_tac ctxt
