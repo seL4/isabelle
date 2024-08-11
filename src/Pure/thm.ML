@@ -30,8 +30,6 @@ sig
   val ctyp_of: Proof.context -> typ -> ctyp
   val dest_ctyp: ctyp -> ctyp list
   val dest_ctypN: int -> ctyp -> ctyp
-  val dest_ctyp0: ctyp -> ctyp
-  val dest_ctyp1: ctyp -> ctyp
   val make_ctyp: ctyp -> ctyp list -> ctyp
   (*certified terms*)
   val term_of: cterm -> term
@@ -225,9 +223,6 @@ fun dest_ctypN n (Ctyp {cert, T, maxidx, sorts}) =
           maxidx = maxidx, sorts = sorts}
     | _ => err ())
   end;
-
-val dest_ctyp0 = dest_ctypN 0;
-val dest_ctyp1 = dest_ctypN 1;
 
 fun join_certificate_ctyp (Ctyp {cert, ...}) cert0 = Context.join_certificate (cert0, cert);
 fun union_sorts_ctyp (Ctyp {sorts, ...}) sorts0 = Sorts.union sorts0 sorts;

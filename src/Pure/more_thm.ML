@@ -23,6 +23,8 @@ sig
   val aconvc: cterm * cterm -> bool
   val add_tvars: thm -> ctyp TVars.table -> ctyp TVars.table
   val add_vars: thm -> cterm Vars.table -> cterm Vars.table
+  val dest_ctyp0: ctyp -> ctyp
+  val dest_ctyp1: ctyp -> ctyp
   val dest_funT: ctyp -> ctyp * ctyp
   val strip_type: ctyp -> ctyp list * ctyp
   val instantiate_ctyp: ctyp TVars.table -> ctyp -> ctyp
@@ -142,6 +144,9 @@ val add_vars =
 
 
 (* ctyp operations *)
+
+val dest_ctyp0 = Thm.dest_ctypN 0;
+val dest_ctyp1 = Thm.dest_ctypN 1;
 
 fun dest_funT cT =
   (case Thm.typ_of cT of
