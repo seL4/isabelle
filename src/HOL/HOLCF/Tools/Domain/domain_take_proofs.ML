@@ -108,7 +108,7 @@ type take_induct_info =
 
 val beta_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps @{thms simp_thms} addsimprocs [\<^simproc>\<open>beta_cfun_proc\<close>])
+    addsimps @{thms simp_thms} |> Simplifier.add_proc \<^simproc>\<open>beta_cfun_proc\<close>)
 
 (******************************************************************************)
 (******************************** theory data *********************************)

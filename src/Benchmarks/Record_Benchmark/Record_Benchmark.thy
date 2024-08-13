@@ -356,12 +356,12 @@ lemma "(r\<lparr>A255:=x,A253:=y,A255:=z \<rparr>) = r\<lparr>A253:=y,A255:=z\<r
 
 lemma "(r\<lparr>A255:=x,A253:=y,A255:=z \<rparr>) = r\<lparr>A253:=y,A255:=z\<rparr>"
   apply (tactic \<open>simp_tac
-    (put_simpset HOL_basic_ss \<^context> addsimprocs [Record.upd_simproc]) 1\<close>)
+    (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_proc Record.upd_simproc) 1\<close>)
   done
 
 lemma "(\<forall>r. P (A155 r)) \<longrightarrow> (\<forall>x. P x)"
   apply (tactic \<open>simp_tac
-    (put_simpset HOL_basic_ss \<^context> addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply simp
   done
 
@@ -372,7 +372,7 @@ lemma "(\<forall>r. P (A155 r)) \<longrightarrow> (\<forall>x. P x)"
 
 lemma "(\<exists>r. P (A155 r)) \<longrightarrow> (\<exists>x. P x)"
   apply (tactic \<open>simp_tac
-    (put_simpset HOL_basic_ss \<^context> addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply simp
   done
 
@@ -383,7 +383,7 @@ lemma "(\<exists>r. P (A155 r)) \<longrightarrow> (\<exists>x. P x)"
 
 lemma "\<And>r. P (A155 r) \<Longrightarrow> (\<exists>x. P x)"
   apply (tactic \<open>simp_tac
-    (put_simpset HOL_basic_ss \<^context> addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply auto
   done
 
@@ -417,7 +417,7 @@ end
 
 lemma "\<exists>r. A155 r = x"
   apply (tactic \<open>simp_tac
-    (put_simpset HOL_basic_ss \<^context> addsimprocs [Record.ex_sel_eq_simproc]) 1\<close>)
+    (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_proc (Record.ex_sel_eq_simproc)) 1\<close>)
   done
 
 print_record many_A

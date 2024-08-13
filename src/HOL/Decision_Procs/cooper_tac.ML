@@ -53,7 +53,8 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
           div_by_1 mod_by_1 div_by_Suc_0 mod_by_Suc_0
           Suc_eq_plus1}
       addsimps @{thms ac_simps}
-      addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>]
+      |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_nat\<close>
+      |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_int\<close>
     val simpset0 =
       put_simpset HOL_basic_ss ctxt
       addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1 simp_thms}

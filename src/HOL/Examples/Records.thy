@@ -244,7 +244,7 @@ text \<open>
 
 lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
   apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
-    addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply simp
   done
 
@@ -255,7 +255,7 @@ lemma "(\<forall>r. P (xpos r)) \<longrightarrow> (\<forall>x. P x)"
 
 lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
   apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
-    addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply simp
   done
 
@@ -266,7 +266,7 @@ lemma "(\<exists>r. P (xpos r)) \<longrightarrow> (\<exists>x. P x)"
 
 lemma "\<And>r. P (xpos r) \<Longrightarrow> (\<exists>x. P x)"
   apply (tactic \<open>simp_tac (put_simpset HOL_basic_ss \<^context>
-    addsimprocs [Record.split_simproc (K ~1)]) 1\<close>)
+    |> Simplifier.add_proc (Record.split_simproc (K ~1))) 1\<close>)
   apply auto
   done
 

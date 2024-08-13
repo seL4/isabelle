@@ -280,8 +280,9 @@ fun prove_strong_ind s avoids lthy =
     fun eqvt_ss ctxt =
       put_simpset HOL_basic_ss ctxt
         addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
-        addsimprocs [mk_perm_bool_simproc [\<^const_name>\<open>Fun.id\<close>],
-          NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
+        |> Simplifier.add_proc (mk_perm_bool_simproc [\<^const_name>\<open>Fun.id\<close>])
+        |> Simplifier.add_proc NominalPermeq.perm_app_simproc
+        |> Simplifier.add_proc NominalPermeq.perm_fun_simproc;
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => Global_Theory.get_thm thy
@@ -352,8 +353,9 @@ fun prove_strong_ind s avoids lthy =
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z]))) ihyp;
                  fun mk_pi th =
-                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]
-                       addsimprocs [NominalDatatype.perm_simproc])
+                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt'
+                       addsimps [@{thm id_apply}]
+                       |> Simplifier.add_proc NominalDatatype.perm_simproc)
                      (Simplifier.simplify (eqvt_ss ctxt')
                        (fold_rev (mk_perm_bool ctxt' o Thm.cterm_of ctxt')
                          (rev pis' @ pis) th));
@@ -399,7 +401,7 @@ fun prove_strong_ind s avoids lthy =
                      REPEAT_DETERM_N (length gprems)
                        (simp_tac (put_simpset HOL_basic_ss goal_ctxt4
                           addsimps [inductive_forall_def']
-                          addsimprocs [NominalDatatype.perm_simproc]) 1 THEN
+                          |> Simplifier.add_proc NominalDatatype.perm_simproc) 1 THEN
                         resolve_tac goal_ctxt4 gprems2 1)]));
                  val final = Goal.prove ctxt' [] [] (Thm.term_of concl)
                    (fn {context = goal_ctxt5, ...} =>
@@ -468,8 +470,9 @@ fun prove_strong_ind s avoids lthy =
 
     fun cases_eqvt_simpset ctxt =
       put_simpset HOL_ss ctxt
-        addsimps eqvt_thms @ swap_simps @ perm_pi_simp
-        addsimprocs [NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
+        addsimps (eqvt_thms @ swap_simps @ perm_pi_simp)
+        |> Simplifier.add_proc NominalPermeq.perm_app_simproc
+        |> Simplifier.add_proc NominalPermeq.perm_fun_simproc;
 
     fun simp_fresh_atm ctxt =
       Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps fresh_atm);
@@ -625,10 +628,12 @@ fun prove_eqvt s xatoms lthy =
     val (([t], [pi]), ctxt1) = lthy |>
       Variable.import_terms false [Thm.concl_of raw_induct] ||>>
       Variable.variant_fixes ["pi"];
-    fun eqvt_simpset ctxt = put_simpset HOL_basic_ss ctxt addsimps
-      (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
-      [mk_perm_bool_simproc names,
-       NominalPermeq.perm_app_simproc, NominalPermeq.perm_fun_simproc];
+    fun eqvt_simpset ctxt =
+      put_simpset HOL_basic_ss ctxt
+        addsimps (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp)
+        |> Simplifier.add_proc (mk_perm_bool_simproc names)
+        |> Simplifier.add_proc NominalPermeq.perm_app_simproc
+        |> Simplifier.add_proc NominalPermeq.perm_fun_simproc;
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
     fun eqvt_tac ctxt pi (intr, vs) st =

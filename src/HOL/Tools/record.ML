@@ -1442,11 +1442,11 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
               else NONE
             end));
 
-    val simprocs = if has_rec goal then [split_simproc P] else [];
+    val add_simproc = if has_rec goal then Simplifier.add_proc (split_simproc P) else I;
     val thms' = @{thms o_apply K_record_comp} @ thms;
   in
     EVERY split_frees_tacs THEN
-    full_simp_tac (put_simpset (get_simpset thy) ctxt addsimps thms' addsimprocs simprocs) i
+    full_simp_tac (put_simpset (get_simpset thy) ctxt addsimps thms' |> add_simproc) i
   end);
 
 

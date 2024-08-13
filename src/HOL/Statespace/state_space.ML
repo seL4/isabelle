@@ -338,7 +338,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
           val tt' = tt |> fold upd all_names;
           val context' =
               Context_Position.set_visible false ctxt
-              addsimprocs [distinct_simproc]
+              |> Simplifier.add_proc distinct_simproc
               |> Context_Position.restore_visible ctxt
               |> Context.Proof
               |> map_declinfo (K declinfo)

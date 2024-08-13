@@ -80,18 +80,18 @@ fun string_eq_simp_tac ctxt =
   simp_tac (put_simpset HOL_basic_ss ctxt
     addsimps @{thms list.inject list.distinct char.inject
       cong_exp_iff_simps simp_thms}
-    addsimprocs [lazy_conj_simproc]
+    |> Simplifier.add_proc lazy_conj_simproc
     |> Simplifier.add_cong @{thm block_conj_cong});
 
 end;
 
 val lookup_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context>
+  simpset_of ((put_simpset HOL_basic_ss \<^context>
     addsimps (@{thms list.inject} @ @{thms char.inject}
       @ @{thms list.distinct} @ @{thms simp_thms}
       @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
         @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
-    addsimprocs [lazy_conj_simproc]
+    |> Simplifier.add_proc lazy_conj_simproc)
     addSolver StateSpace.distinctNameSolver
     |> fold Simplifier.add_cong @{thms block_conj_cong});
 
@@ -173,7 +173,8 @@ val ss' =
   simpset_of (put_simpset HOL_ss \<^context> addsimps
     (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
       @ @{thms list.distinct})
-    addsimprocs [lazy_conj_simproc, StateSpace.distinct_simproc]
+    |> Simplifier.add_proc lazy_conj_simproc
+    |> Simplifier.add_proc StateSpace.distinct_simproc
     |> fold Simplifier.add_cong @{thms block_conj_cong});
 
 in
@@ -395,7 +396,7 @@ val _ =
                 (simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
           val activate_simprocs =
             if simprocs_active then I
-            else Simplifier.map_ss (fn ctxt => ctxt addsimprocs [lookup_simproc, update_simproc]);
+            else Simplifier.map_ss (fold Simplifier.add_proc [lookup_simproc, update_simproc]);
         in
           context
           |> activate_simprocs

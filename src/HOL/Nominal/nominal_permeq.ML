@@ -142,7 +142,8 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     let
        val ctxt' = ctxt
          addsimps (maps (Proof_Context.get_thms ctxt) dyn_thms @ eqvt_thms)
-         addsimprocs [perm_fun_simproc, perm_app_simproc]
+         |> Simplifier.add_proc perm_fun_simproc
+         |> Simplifier.add_proc perm_app_simproc
          |> fold Simplifier.del_cong weak_congs
          |> fold Simplifier.add_cong strong_congs
     in
@@ -219,7 +220,7 @@ fun perm_compose_tac ctxt i =
   ("analysing permutation compositions on the lhs",
    fn st => EVERY
      [resolve_tac ctxt [trans] i,
-      asm_full_simp_tac (empty_simpset ctxt addsimprocs [perm_compose_simproc]) i,
+      asm_full_simp_tac (empty_simpset ctxt |> Simplifier.add_proc perm_compose_simproc) i,
       asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [perm_aux_fold]) i] st);
 
 fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);

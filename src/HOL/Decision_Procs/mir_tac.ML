@@ -68,14 +68,16 @@ fun mir_tac ctxt q =
     (* Transform the term*)
     val (t,np,nh) = prepare_for_mir q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = put_simpset HOL_basic_ss ctxt
-                        addsimps [refl, @{thm mod_add_eq}, 
-                                  @{thm mod_self},
-                                  @{thm div_0}, @{thm mod_0},
-                                  @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},
-                                  @{thm "Suc_eq_plus1"}]
-                        addsimps @{thms add.assoc add.commute add.left_commute}
-                        addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>]
+    val mod_div_simpset =
+      put_simpset HOL_basic_ss ctxt
+      addsimps [refl, @{thm mod_add_eq}, 
+                @{thm mod_self},
+                @{thm div_0}, @{thm mod_0},
+                @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},
+                @{thm "Suc_eq_plus1"}]
+      addsimps @{thms add.assoc add.commute add.left_commute}
+      |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_nat\<close>
+      |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_int\<close>
     val simpset0 = put_simpset HOL_basic_ss ctxt
       addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1}
       addsimps comp_ths
