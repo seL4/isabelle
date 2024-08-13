@@ -20,7 +20,7 @@ sig
   val mk_rrules: Proof.context -> thm list -> rrule list
   val eq_rrule: rrule * rrule -> bool
   type proc = Proof.context -> cterm -> thm option
-  type simproc0
+  type procedure
   type solver
   val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
   type simpset
@@ -210,14 +210,14 @@ fun default_reorient ctxt prems lhs rhs =
 
 type proc = Proof.context -> cterm -> thm option;
 
-datatype simproc0 =
-  Simproc0 of
+datatype procedure =
+  Procedure of
    {name: string,
     lhs: term,
     proc: proc Morphism.entity,
     id: stamp * thm list};
 
-fun eq_simproc0 (Simproc0 {id = (s1, ths1), ...}, Simproc0 {id = (s2, ths2), ...}) =
+fun eq_procedure (Procedure {id = (s1, ths1), ...}, Procedure {id = (s2, ths2), ...}) =
   s1 = s2 andalso eq_list Thm.eq_thm_prop (ths1, ths2);
 
 
@@ -260,7 +260,7 @@ datatype simpset =
     prems: thm list,
     depth: int * bool Unsynchronized.ref} *
    {congs: thm Congtab.table * cong_name list,
-    procs: simproc0 Net.net,
+    procs: procedure Net.net,
     mk_rews:
      {mk: Proof.context -> thm -> thm list,
       mk_cong: Proof.context -> thm -> thm,
@@ -291,8 +291,8 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
  {simps = Net.entries rules
     |> map (fn {name, thm, ...} => (name, thm)),
   procs = Net.entries procs
-    |> partition_eq eq_simproc0
-    |> map (fn ps as Simproc0 {name, ...} :: _ => (name, map (fn Simproc0 {lhs, ...} => lhs) ps)),
+    |> partition_eq eq_procedure
+    |> map (fn ps as Procedure {name, ...} :: _ => (name, map (fn Procedure {lhs, ...} => lhs) ps)),
   congs = congs |> fst |> Congtab.dest,
   weak_congs = congs |> snd,
   loopers = map fst loop_tacs,
@@ -338,7 +338,7 @@ fun merge_ss (ss1, ss2) =
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
       val congs' = Congtab.merge (K true) (congs1, congs2);
       val weak' = merge (op =) (weak1, weak2);
-      val procs' = Net.merge eq_simproc0 (procs1, procs2);
+      val procs' = Net.merge eq_procedure (procs1, procs2);
       val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
       val unsafe_solvers' = merge eq_solver (unsafe_solvers1, unsafe_solvers2);
       val solvers' = merge eq_solver (solvers1, solvers2);
@@ -748,28 +748,28 @@ fun trim_context_simproc (Simproc {name, lhss, proc, id = (stamp, identifier)}) 
 
 local
 
-fun add_proc (proc as Simproc0 {name, lhs, ...}) ctxt =
+fun add_proc (proc as Procedure {name, lhs, ...}) ctxt =
  (cond_tracing ctxt (fn () =>
     print_term ctxt ("Adding simplification procedure " ^ quote name ^ " for") lhs);
   ctxt |> map_simpset2
     (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
-      (congs, Net.insert_term eq_simproc0 (lhs, proc) procs,
+      (congs, Net.insert_term eq_procedure (lhs, proc) procs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.INSERT =>
     (cond_warning ctxt (fn () => "Ignoring duplicate simplification procedure " ^ quote name);
       ctxt));
 
-fun del_proc (proc as Simproc0 {name, lhs, ...}) ctxt =
+fun del_proc (proc as Procedure {name, lhs, ...}) ctxt =
   ctxt |> map_simpset2
     (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
-      (congs, Net.delete_term eq_simproc0 (lhs, proc) procs,
+      (congs, Net.delete_term eq_procedure (lhs, proc) procs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.DELETE =>
     (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
       ctxt);
 
 fun prep_procs (Simproc {name, lhss, proc, id}) =
-  lhss |> map (fn lhs => Simproc0 {name = name, lhs = lhs, proc = proc, id = id});
+  lhss |> map (fn lhs => Procedure {name = name, lhs = lhs, proc = proc, id = id});
 
 in
 
@@ -1060,7 +1060,7 @@ fun rewritec (prover, maxt) ctxt t =
       in sort rrs ([], []) end;
 
     fun proc_rews [] = NONE
-      | proc_rews (Simproc0 {name, proc, lhs, ...} :: ps) =
+      | proc_rews (Procedure {name, proc, lhs, ...} :: ps) =
           if Pattern.matches (Proof_Context.theory_of ctxt) (lhs, Thm.term_of t) then
             (cond_tracing' ctxt simp_debug (fn () =>
               print_term ctxt ("Trying procedure " ^ quote name ^ " on:") eta_t);
