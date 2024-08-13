@@ -48,6 +48,8 @@ sig
   val simproc_setup: (term, morphism -> proc, thm list) simproc_spec -> simproc
   val simproc_setup_cmd: (string, morphism -> proc, thm list) simproc_spec -> simproc
   val simproc_setup_command: (local_theory -> local_theory) parser
+  val add_proc: simproc -> Proof.context -> Proof.context
+  val del_proc: simproc -> Proof.context -> Proof.context
   val pretty_simpset: bool -> Proof.context -> Pretty.T
   val default_mk_sym: Proof.context -> thm -> thm option
   val prems_of: Proof.context -> thm list
@@ -160,7 +162,7 @@ fun define_simproc {passive, name, lhss, proc, identifier} lthy =
         in
           context
           |> Simprocs.map (#2 o Name_Space.define context true (name', simproc'))
-          |> not passive ? map_ss (fn ctxt => ctxt addsimprocs [simproc'])
+          |> not passive ? map_ss (add_proc simproc')
         end)
     |> pair simproc0
   end;
@@ -383,10 +385,10 @@ val asm_lrN = "asm_lr";
 local
 
 val add_del =
-  (Args.del -- Args.colon >> K (op delsimprocs) ||
-    Scan.option (Args.add -- Args.colon) >> K (op addsimprocs))
+  (Args.del -- Args.colon >> K del_proc ||
+    Scan.option (Args.add -- Args.colon) >> K add_proc)
   >> (fn f => fn simproc => Morphism.entity (fn phi => Thm.declaration_attribute
-      (K (Raw_Simplifier.map_ss (fn ctxt => f (ctxt, [transform_simproc phi simproc]))))));
+      (K (Raw_Simplifier.map_ss (f (transform_simproc phi simproc))))));
 
 in
 

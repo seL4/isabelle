@@ -72,6 +72,8 @@ signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm list
+  val add_proc: simproc -> Proof.context -> Proof.context
+  val del_proc: simproc -> Proof.context -> Proof.context
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory
   val subgoal_tac: Proof.context -> int -> tactic
@@ -209,14 +211,14 @@ fun default_reorient ctxt prems lhs rhs =
 
 type proc = Proof.context -> cterm -> thm option;
 
-datatype procedure =
+datatype 'lhs procedure =
   Procedure of
    {name: string,
-    lhs: term,
+    lhs: 'lhs,
     proc: proc Morphism.entity,
     id: stamp * thm list};
 
-fun eq_procedure (Procedure {id = (s1, ths1), ...}, Procedure {id = (s2, ths2), ...}) =
+fun eq_procedure_id (Procedure {id = (s1, ths1), ...}, Procedure {id = (s2, ths2), ...}) =
   s1 = s2 andalso eq_list Thm.eq_thm_prop (ths1, ths2);
 
 
@@ -259,7 +261,7 @@ datatype simpset =
     prems: thm list,
     depth: int * bool Unsynchronized.ref} *
    {congs: thm Congtab.table * cong_name list,
-    simprocs: procedure Net.net,
+    simprocs: term procedure Net.net,
     mk_rews:
      {mk: Proof.context -> thm -> thm list,
       mk_cong: Proof.context -> thm -> thm,
@@ -290,7 +292,7 @@ fun dest_ss (Simpset ({rules, ...}, {congs, simprocs, loop_tacs, solvers, ...}))
  {simps = Net.entries rules
     |> map (fn {name, thm, ...} => (name, thm)),
   simprocs = Net.entries simprocs
-    |> partition_eq eq_procedure
+    |> partition_eq eq_procedure_id
     |> map (fn ps as Procedure {name, ...} :: _ => (name, map (fn Procedure {lhs, ...} => lhs) ps)),
   congs = congs |> fst |> Congtab.dest,
   weak_congs = congs |> snd,
@@ -337,7 +339,7 @@ fun merge_ss (ss1, ss2) =
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
       val congs' = Congtab.merge (K true) (congs1, congs2);
       val weak' = merge (op =) (weak1, weak2);
-      val simprocs' = Net.merge eq_procedure (simprocs1, simprocs2);
+      val simprocs' = Net.merge eq_procedure_id (simprocs1, simprocs2);
       val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
       val unsafe_solvers' = merge eq_solver (unsafe_solvers1, unsafe_solvers2);
       val solvers' = merge eq_solver (solvers1, solvers2);
@@ -717,63 +719,61 @@ end;
 
 (* simprocs *)
 
-datatype simproc =
-  Simproc of
-    {name: string,
-     lhss: term list,
-     proc: proc Morphism.entity,
-     id: stamp * thm list};
+type simproc = term list procedure;
 
-fun cert_simproc thy {name, lhss, proc, identifier} =
-  Simproc
+fun cert_simproc thy {name, lhss, proc, identifier} : simproc =
+  Procedure
    {name = name,
-    lhss = map (Sign.cert_term thy) lhss,
+    lhs = map (Sign.cert_term thy) lhss,
     proc = proc,
     id = (stamp (), map (Thm.transfer thy) identifier)};
 
-fun transform_simproc phi (Simproc {name, lhss, proc, id = (stamp, identifier)}) =
-  Simproc
+fun transform_simproc phi (Procedure {name, lhs, proc, id = (stamp, identifier)}) : simproc =
+  Procedure
    {name = name,
-    lhss = map (Morphism.term phi) lhss,
+    lhs = map (Morphism.term phi) lhs,
     proc = Morphism.transform phi proc,
     id = (stamp, Morphism.fact phi identifier)};
 
-fun trim_context_simproc (Simproc {name, lhss, proc, id = (stamp, identifier)}) =
-  Simproc
+fun trim_context_simproc (Procedure {name, lhs, proc, id = (stamp, identifier)}) : simproc =
+  Procedure
    {name = name,
-    lhss = lhss,
+    lhs = lhs,
     proc = Morphism.entity_reset_context proc,
     id = (stamp, map Thm.trim_context identifier)};
 
 local
 
-fun add_proc (proc as Procedure {name, lhs, ...}) ctxt =
+fun add_proc1 (proc as Procedure {name, lhs, ...}) ctxt =
  (cond_tracing ctxt (fn () =>
     print_term ctxt ("Adding simplification procedure " ^ quote name ^ " for") lhs);
   ctxt |> map_simpset2
     (fn (congs, simprocs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
-      (congs, Net.insert_term eq_procedure (lhs, proc) simprocs,
+      (congs, Net.insert_term eq_procedure_id (lhs, proc) simprocs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.INSERT =>
     (cond_warning ctxt (fn () => "Ignoring duplicate simplification procedure " ^ quote name);
       ctxt));
 
-fun del_proc (proc as Procedure {name, lhs, ...}) ctxt =
+fun del_proc1 (proc as Procedure {name, lhs, ...}) ctxt =
   ctxt |> map_simpset2
     (fn (congs, simprocs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
-      (congs, Net.delete_term eq_procedure (lhs, proc) simprocs,
+      (congs, Net.delete_term eq_procedure_id (lhs, proc) simprocs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
   handle Net.DELETE =>
     (cond_warning ctxt (fn () => "Simplification procedure " ^ quote name ^ " not in simpset");
       ctxt);
 
-fun prep_simprocs (Simproc {name, lhss, proc, id}) =
+fun split_proc (Procedure {name, lhs = lhss, proc, id} : simproc) =
   lhss |> map (fn lhs => Procedure {name = name, lhs = lhs, proc = proc, id = id});
 
 in
 
-fun ctxt addsimprocs ps = fold (fold add_proc o prep_simprocs) ps ctxt;
-fun ctxt delsimprocs ps = fold (fold del_proc o prep_simprocs) ps ctxt;
+val add_proc = fold add_proc1 o split_proc;
+val del_proc = fold del_proc1 o split_proc;
+
+fun ctxt addsimprocs ps = fold add_proc ps ctxt;
+fun ctxt delsimprocs ps = fold del_proc ps ctxt;
 
 end;
 
