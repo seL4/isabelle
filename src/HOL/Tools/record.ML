@@ -1237,9 +1237,8 @@ fun upd_proc ctxt ct =
             val (fvar, skelf) =
               K_skeleton (Long_Name.base_name s) (domain_type T) (Bound (length vars)) f;
             val (isnoop, skelf') = is_upd_noop s f term;
-            val funT = domain_type T;
-            fun mk_comp_local (f, f') =
-              Const (\<^const_name>\<open>Fun.comp\<close>, funT --> funT --> funT) $ f $ f';
+            val \<^Type>\<open>fun \<^Type>\<open>fun A _\<close> _\<close> = T;
+            fun mk_comp_local (f, f') = \<^Const>\<open>Fun.comp A A A for f f'\<close>;
           in
             if isnoop then
               ((upd $ skelf', i)::lhs_upds, rhs, vars,
@@ -1409,11 +1408,12 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
     val goal = Thm.term_of cgoal;
     val frees = filter (is_recT o #2) (Term.add_frees goal []);
 
-    val has_rec = exists_Const
-      (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close> orelse s = \<^const_name>\<open>Ex\<close>)
-            andalso is_recT T
-        | _ => false);
+    val has_rec =
+      exists_subterm
+        (fn \<^Const_>\<open>Pure.all T\<close> => is_recT T
+          | \<^Const_>\<open>All T\<close> => is_recT T
+          | \<^Const_>\<open>Ex T\<close> => is_recT T
+          | _ => false);
 
     fun mk_split_free_tac free induct_thm i =
       let
@@ -1457,13 +1457,14 @@ fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = Thm.term_of cgoal;
 
-    val has_rec = exists_Const
-      (fn (s, Type (_, [Type (_, [T, _]), _])) =>
-          (s = \<^const_name>\<open>Pure.all\<close> orelse s = \<^const_name>\<open>All\<close>) andalso is_recT T
-        | _ => false);
+    val has_rec =
+      exists_subterm
+        (fn \<^Const_>\<open>Pure.all T\<close> => is_recT T
+          | \<^Const_>\<open>All T\<close> => is_recT T
+          | _ => false);
 
-    fun is_all (Const (\<^const_name>\<open>Pure.all\<close>, _) $ _) = ~1
-      | is_all (Const (\<^const_name>\<open>All\<close>, _) $ _) = ~1
+    fun is_all \<^Const_>\<open>Pure.all _ for _\<close> = ~1
+      | is_all \<^Const_>\<open>All _ for _\<close> = ~1
       | is_all _ = 0;
   in
     if has_rec goal then
