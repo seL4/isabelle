@@ -876,8 +876,9 @@ fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
         funpow n (fn thm => thm RS @{thm meta_fun_cong}) thm RS @{thm Pure.symmetric})
       ns rec_preds_defs;
     val simps = simp_thms3 @ pred_defs_sym;
-    val simprocs = [Simplifier.the_simproc ctxt "HOL.defined_All"];
-    val simplify = asm_full_simplify (Ctr_Sugar_Util.ss_only simps ctxt addsimprocs simprocs);
+    val simproc = Simplifier.the_simproc ctxt "HOL.defined_All";
+    val simplify =
+      asm_full_simplify (Ctr_Sugar_Util.ss_only simps ctxt |> Simplifier.add_proc simproc);
     val coind = (mono RS (fp_def RS @{thm def_coinduct}))
       |> infer_instantiate' ctxt [SOME (Thm.cterm_of ctxt R)]
       |> simplify;
@@ -898,7 +899,8 @@ fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
       reorder_bound_goals;
     val coinduction = Goal.prove_sorry ctxt [] prems concl (fn {context = ctxt, prems = CIH} =>
       HEADGOAL (full_simp_tac
-        (Ctr_Sugar_Util.ss_only (simps @ reorder_bound_thms) ctxt addsimprocs simprocs) THEN'
+        (Ctr_Sugar_Util.ss_only (simps @ reorder_bound_thms) ctxt
+          |> Simplifier.add_proc simproc) THEN'
         resolve_tac ctxt [coind]) THEN
       ALLGOALS (REPEAT_ALL_NEW (REPEAT_DETERM o resolve_tac ctxt [allI, impI, conjI] THEN'
         REPEAT_DETERM o eresolve_tac ctxt [exE, conjE] THEN'

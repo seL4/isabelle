@@ -346,7 +346,8 @@ ML \<open>
 val IFOL_ss =
   put_simpset FOL_basic_ss \<^context>
   addsimps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps subst_all}
-  addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>]
+  |> Simplifier.add_proc \<^simproc>\<open>defined_All\<close>
+  |> Simplifier.add_proc \<^simproc>\<open>defined_Ex\<close>
   |> Simplifier.add_cong @{thm imp_cong}
   |> simpset_of;
 

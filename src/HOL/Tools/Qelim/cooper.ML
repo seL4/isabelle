@@ -833,7 +833,8 @@ val div_mod_ss =
       div_0 mod_0 div_by_1 mod_by_1
       div_by_Suc_0 mod_by_Suc_0 Suc_eq_plus1
       ac_simps}
-   addsimprocs [\<^simproc>\<open>cancel_div_mod_nat\<close>, \<^simproc>\<open>cancel_div_mod_int\<close>])
+   |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_nat\<close>
+   |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_int\<close>)
 val splits_ss =
   simpset_of (put_simpset comp_ss \<^context>
     addsimps [@{thm minus_div_mult_eq_mod [symmetric]}]

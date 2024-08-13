@@ -541,7 +541,8 @@ fun nnf_extra_simps ({if_simps, ...} : simp_options) =
 fun nnf_ss simp_options =
   simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps (nnf_extra_simps simp_options)
-    addsimprocs [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
+    |> fold Simplifier.add_proc
+      [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
 
 val presimplified_consts =
   [\<^const_name>\<open>simp_implies\<close>, \<^const_name>\<open>False\<close>, \<^const_name>\<open>True\<close>,

@@ -1567,11 +1567,12 @@ simproc_setup passive induct_equal_conj_curry ("induct_conj P Q \<Longrightarrow
       | _ => NONE)\<close>
 
 declaration \<open>
-  K (Induct.map_simpset (fn ss => ss
-      addsimprocs [\<^simproc>\<open>swap_induct_false\<close>, \<^simproc>\<open>induct_equal_conj_curry\<close>]
-    |> Simplifier.set_mksimps (fn ctxt =>
-      Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
-      map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback})))))
+  K (Induct.map_simpset
+     (Simplifier.add_proc \<^simproc>\<open>swap_induct_false\<close> #>
+      Simplifier.add_proc \<^simproc>\<open>induct_equal_conj_curry\<close> #>
+      Simplifier.set_mksimps (fn ctxt =>
+        Simpdata.mksimps Simpdata.mksimps_pairs ctxt #>
+        map (rewrite_rule ctxt (map Thm.symmetric @{thms induct_rulify_fallback})))))
 \<close>
 
 text \<open>Pre-simplification of induction and cases rules\<close>
@@ -1942,7 +1943,7 @@ simproc_setup passive equal (HOL.eq) =
       \<^Const_>\<open>HOL.eq T\<close> => if is_Type T then SOME @{thm eq_equal} else NONE
     | _ => NONE)\<close>
 
-setup \<open>Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs [\<^simproc>\<open>equal\<close>])\<close>
+setup \<open>Code_Preproc.map_pre (Simplifier.add_proc \<^simproc>\<open>equal\<close>)\<close>
 
 
 subsubsection \<open>Generic code generator foundation\<close>

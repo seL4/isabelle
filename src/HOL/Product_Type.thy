@@ -492,7 +492,7 @@ ML \<open>
       simpset_of
        (put_simpset HOL_basic_ss \<^context>
         addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-        addsimprocs [\<^simproc>\<open>unit_eq\<close>]);
+        |> Simplifier.add_proc \<^simproc>\<open>unit_eq\<close>);
   in
     fun split_all_tac ctxt = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then safe_full_simp_tac (put_simpset ss ctxt) i else no_tac);
@@ -1313,7 +1313,7 @@ ML_file \<open>Tools/set_comprehension_pointfree.ML\<close>
 simproc_setup passive set_comprehension ("Collect P") =
   \<open>K Set_Comprehension_Pointfree.code_proc\<close>
 
-setup \<open>Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs [\<^simproc>\<open>set_comprehension\<close>])\<close>
+setup \<open>Code_Preproc.map_pre (Simplifier.add_proc \<^simproc>\<open>set_comprehension\<close>)\<close>
 
 
 subsection \<open>Lemmas about disjointness\<close>

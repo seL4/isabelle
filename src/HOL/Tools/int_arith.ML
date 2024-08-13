@@ -57,7 +57,8 @@ val conv_ss =
        @{thms of_int_add of_int_mult
          of_int_diff of_int_minus of_int_less_iff
          of_int_le_iff of_int_eq_iff}
-  |> (fn ss => ss addsimprocs [zero_to_of_int_zero_simproc, one_to_of_int_one_simproc])
+  |> Simplifier.add_proc zero_to_of_int_zero_simproc
+  |> Simplifier.add_proc one_to_of_int_one_simproc
   |> simpset_of;
 
 val zero_one_idom_simproc =

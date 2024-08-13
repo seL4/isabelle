@@ -789,7 +789,7 @@ val poly_eq_simproc =
 val poly_eq_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps @{thms simp_thms}
-    addsimprocs [poly_eq_simproc])
+    |> Simplifier.add_proc poly_eq_simproc)
 
  local
   fun is_defined v t =

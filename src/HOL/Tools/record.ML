@@ -1384,7 +1384,8 @@ fun ex_sel_eq_proc ctxt ct =
           SOME (Goal.prove_sorry_global thy [] [] prop
             (fn {context = ctxt', ...} =>
               simp_tac (put_simpset (get_simpset thy) ctxt'
-                addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
+                addsimps @{thms simp_thms}
+                |> Simplifier.add_proc (split_simproc (K ~1))) 1))
         end handle TERM _ => NONE)
     | _ => NONE)
   end;
@@ -1466,7 +1467,7 @@ fun split_tac ctxt = CSUBGOAL (fn (cgoal, i) =>
       | is_all _ = 0;
   in
     if has_rec goal then
-      full_simp_tac (put_simpset HOL_basic_ss ctxt addsimprocs [split_simproc is_all]) i
+      full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_proc (split_simproc is_all)) i
     else no_tac
   end);
 

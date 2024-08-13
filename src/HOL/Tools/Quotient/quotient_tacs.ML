@@ -149,9 +149,9 @@ val regularize_simproc =
 fun regularize_tac ctxt =
   let
     val simpset =
-      mk_minimal_simpset ctxt
-      addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
-      addsimprocs [regularize_simproc]
+      (mk_minimal_simpset ctxt
+        addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
+        |> Simplifier.add_proc regularize_simproc)
       addSolver equiv_solver addSolver quotient_solver
     val eq_eqvs = eq_imp_rel_get ctxt
   in

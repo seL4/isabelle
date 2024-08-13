@@ -719,8 +719,8 @@ val field_comp_ss =
         inverse_divide
         divide_inverse_commute [symmetric]
         simp_thms}
-      addsimprocs field_cancel_numeral_factors
-      addsimprocs [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
+      |> fold Simplifier.add_proc field_cancel_numeral_factors
+      |> fold Simplifier.add_proc [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
       |> Simplifier.add_cong @{thm if_weak_cong})
 
 in

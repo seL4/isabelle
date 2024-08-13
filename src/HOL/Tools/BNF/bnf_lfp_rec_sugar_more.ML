@@ -30,7 +30,7 @@ val nested_simps = @{thms o_def[abs_def] id_def split fst_conv snd_conv};
 fun special_endgame_tac ctxt fp_nesting_map_ident0s fp_nesting_map_comps fp_nesting_pred_maps =
   ALLGOALS (CONVERSION Thm.eta_long_conversion) THEN
   HEADGOAL (simp_tac (ss_only @{thms pred_fun_True_id} ctxt
-    addsimprocs [\<^simproc>\<open>NO_MATCH\<close>])) THEN
+    |> Simplifier.add_proc \<^simproc>\<open>NO_MATCH\<close>)) THEN
   unfold_thms_tac ctxt (nested_simps @
     map (unfold_thms ctxt @{thms id_def}) (fp_nesting_map_ident0s @ fp_nesting_map_comps @
       fp_nesting_pred_maps)) THEN

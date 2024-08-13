@@ -84,7 +84,8 @@ fun la_farkas_tac ({context = ctxt, prems, concl,  ...}: Subgoal.focus) args thm
       |> put_simpset HOL_basic_ss
        |> (fn ctxt => ctxt addsimps thms
            addsimps arith_thms
-           addsimprocs [@{simproc int_div_cancel_numeral_factors}, @{simproc int_combine_numerals},
+           |> fold Simplifier.add_proc
+            [@{simproc int_div_cancel_numeral_factors}, @{simproc int_combine_numerals},
              @{simproc divide_cancel_numeral_factor}, @{simproc intle_cancel_numerals},
              @{simproc field_combine_numerals}, @{simproc intless_cancel_numerals}])
       |> asm_full_simplify

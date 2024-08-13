@@ -242,7 +242,7 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
   in
     Simplifier.simplify
       (put_simpset HOL_basic_ss ctxt addsimps @{thms mem_Collect_eq case_prod_conv}
-        addsimprocs [\<^simproc>\<open>Collect_mem\<close>]) thm''
+        |> Simplifier.add_proc \<^simproc>\<open>Collect_mem\<close>) thm''
       |> zero_var_indexes |> eta_contract_thm ctxt (equal p)
   end;
 
@@ -349,9 +349,10 @@ fun to_pred thms context thm =
   in
     thm |>
     Thm.instantiate (TVars.empty, Vars.make insts) |>
-    Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
-      [to_pred_simproc
-        (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: map (Thm.transfer thy) to_pred_simps)]) |>
+    Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt
+      |> Simplifier.add_proc
+        (to_pred_simproc
+          (@{thm mem_Collect_eq} :: @{thm case_prod_conv} :: map (Thm.transfer thy) to_pred_simps))) |>
     eta_contract_thm ctxt (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
@@ -387,8 +388,10 @@ fun to_set thms context thm =
   in
     thm |>
     Thm.instantiate (TVars.empty, Vars.make insts) |>
-    Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
-        addsimprocs [strong_ind_simproc pred_arities, \<^simproc>\<open>Collect_mem\<close>]) |>
+    Simplifier.full_simplify
+      (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
+        |> Simplifier.add_proc (strong_ind_simproc pred_arities)
+        |> Simplifier.add_proc \<^simproc>\<open>Collect_mem\<close>) |>
     Rule_Cases.save thm
   end;
 

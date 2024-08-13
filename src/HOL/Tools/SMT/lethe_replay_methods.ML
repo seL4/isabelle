@@ -1018,7 +1018,8 @@ fun onepoint ctxt prems t = SMT_Replay_Methods.prove ctxt t (fn _ =>
   Method.insert_tac ctxt prems
   THEN' Simplifier.full_simp_tac (put_simpset HOL_basic_ss (empty_simpset ctxt)
     addsimps @{thms HOL.simp_thms HOL.all_simps}
-    addsimprocs [@{simproc HOL.defined_All}, @{simproc HOL.defined_Ex}])
+    |> Simplifier.add_proc @{simproc HOL.defined_All}
+    |> Simplifier.add_proc @{simproc HOL.defined_Ex})
   THEN' TRY' (Blast.blast_tac ctxt)
   THEN' TRY' (Metis_Tactic.metis_tac [] ATP_Problem_Generate.combsN ctxt []))
 
