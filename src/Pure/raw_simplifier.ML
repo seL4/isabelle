@@ -20,7 +20,6 @@ sig
   val mk_rrules: Proof.context -> thm list -> rrule list
   val eq_rrule: rrule * rrule -> bool
   type proc = Proof.context -> cterm -> thm option
-  type procedure
   type solver
   val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
   type simpset
