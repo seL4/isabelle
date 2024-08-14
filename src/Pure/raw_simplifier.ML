@@ -25,15 +25,6 @@ sig
   type simpset
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
-  val dest_ss: simpset ->
-   {simps: (Thm_Name.T * thm) list,
-    simprocs: (string * term list) list,
-    congs: (cong_name * thm) list,
-    weak_congs: cong_name list,
-    loopers: string list,
-    unsafe_solvers: string list,
-    safe_solvers: string list}
-  val dest_simps: simpset -> thm list
   type simproc
   val cert_simproc: theory ->
     {name: string, lhss: term list, proc: proc Morphism.entity, identifier: thm list} -> simproc
@@ -72,6 +63,16 @@ signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm list
+  val dest_simps: simpset -> (Thm_Name.T * thm) list
+  val dest_congs: simpset -> (cong_name * thm) list
+  val dest_ss: simpset ->
+   {simps: (Thm_Name.T * thm) list,
+    simprocs: (string * term list) list,
+    congs: (cong_name * thm) list,
+    weak_congs: cong_name list,
+    loopers: string list,
+    unsafe_solvers: string list,
+    safe_solvers: string list}
   val add_proc: simproc -> Proof.context -> Proof.context
   val del_proc: simproc -> Proof.context -> Proof.context
   type trace_ops
@@ -288,22 +289,25 @@ fun map_ss2 f {congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers}
 
 fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 
+fun dest_simps (Simpset ({rules, ...}, _)) =
+  Net.entries rules
+  |> map (fn {name, thm, ...} => (name, thm));
+
+fun dest_congs (Simpset (_, {congs, ...})) = Congtab.dest (#1 congs);
+
 fun dest_procs procs =
   Net.entries procs
   |> partition_eq eq_procedure_id
   |> map (fn ps as Procedure {name, ...} :: _ => (name, map (fn Procedure {lhs, ...} => lhs) ps));
 
-fun dest_ss (Simpset ({rules, ...}, {congs, procs = simprocs, loop_tacs, solvers, ...})) =
- {simps = Net.entries rules
-    |> map (fn {name, thm, ...} => (name, thm)),
+fun dest_ss (ss as Simpset (_, {congs, procs = simprocs, loop_tacs, solvers, ...})) =
+ {simps = dest_simps ss,
   simprocs = dest_procs simprocs,
-  congs = congs |> fst |> Congtab.dest,
-  weak_congs = congs |> snd,
+  congs = dest_congs ss,
+  weak_congs = #2 congs,
   loopers = map fst loop_tacs,
   unsafe_solvers = map solver_name (#1 solvers),
   safe_solvers = map solver_name (#2 solvers)};
-
-fun dest_simps (Simpset ({rules, ...}, _)) = map #thm (Net.entries rules);
 
 
 (* empty *)

@@ -28,6 +28,8 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val dest_simps: simpset -> (Thm_Name.T * thm) list
+  val dest_congs: simpset -> (cong_name * thm) list
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
   val attrib: (thm -> Proof.context -> Proof.context) -> attribute
   val simp_add: attribute

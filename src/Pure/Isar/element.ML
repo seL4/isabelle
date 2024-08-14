@@ -430,7 +430,8 @@ fun eq_morphism _ [] = NONE
   | eq_morphism ctxt0 thms =
       let
         val simpset = Raw_Simplifier.simpset_of (Raw_Simplifier.init_simpset thms ctxt0);
-        val simps = map (decomp_simp ctxt0 o Thm.full_prop_of) (Raw_Simplifier.dest_simps simpset);
+        val simps =
+          map (decomp_simp ctxt0 o Thm.full_prop_of o #2) (Raw_Simplifier.dest_simps simpset);
 
         fun rewrite_term thy = Pattern.rewrite_term thy simps [];
         val rewrite =
