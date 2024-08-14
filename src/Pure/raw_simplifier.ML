@@ -1199,29 +1199,28 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
                               SOME thm1 => SOME (Thm.combination (Thm.reflexive ct) thm1)
                             | NONE => NONE))
                       end;
+
                     val (h, ts) = strip_comb t;
+
+                    fun app_cong () =
+                      Option.mapPartial (Congtab.lookup (fst congs)) (cong_name h);
                   in
-                    (case cong_name h of
-                      SOME a =>
-                        (case Congtab.lookup (fst congs) a of
-                          NONE => appc ()
-                        | SOME cong =>
+                    (case app_cong () of
+                      NONE => appc ()
+                    | SOME cong =>
      (*post processing: some partial applications h t1 ... tj, j <= length ts,
        may be a redex. Example: map (\<lambda>x. x) = (\<lambda>xs. xs) wrt map_cong*)
-                           (let
-                              val thm = congc (prover ctxt) ctxt maxidx cong t0;
-                              val t = the_default t0 (Option.map Thm.rhs_of thm);
-                              val (cl, cr) = Thm.dest_comb t
-                              val dVar = Var(("", 0), dummyT)
-                              val skel =
-                                list_comb (h, replicate (length ts) dVar)
-                            in
-                              (case botc skel ctxt cl of
-                                NONE => thm
-                              | SOME thm' =>
-                                  transitive3 thm (Thm.combination thm' (Thm.reflexive cr)))
-                            end handle Pattern.MATCH => appc ()))
-                     | _ => appc ())
+                       (let
+                          val thm = congc (prover ctxt) ctxt maxidx cong t0;
+                          val t = the_default t0 (Option.map Thm.rhs_of thm);
+                          val (cl, cr) = Thm.dest_comb t;
+                          val dVar = Var (("", 0), dummyT);
+                          val skel = list_comb (h, replicate (length ts) dVar);
+                        in
+                          (case botc skel ctxt cl of
+                            NONE => thm
+                          | SOME thm' => transitive3 thm (Thm.combination thm' (Thm.reflexive cr)))
+                        end handle Pattern.MATCH => appc ()))
                   end)
             | _ => NONE)
         end
