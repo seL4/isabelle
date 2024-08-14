@@ -40,9 +40,10 @@ sig
   val check_simproc: Proof.context -> xstring * Position.T -> string * simproc
   val the_simproc: Proof.context -> string -> simproc
   val make_simproc: Proof.context ->
-    {name: string, lhss: term list, proc: morphism -> proc, identifier: thm list} -> simproc
+    {name: string, kind: proc_kind, lhss: term list, proc: morphism -> proc, identifier: thm list} ->
+    simproc
   type ('a, 'b, 'c) simproc_spec =
-    {passive: bool, name: binding, lhss: 'a list, proc: 'b, identifier: 'c}
+    {passive: bool, name: binding, kind: proc_kind, lhss: 'a list, proc: 'b, identifier: 'c}
   val read_simproc_spec: Proof.context ->
     (string, 'b, 'c) simproc_spec -> (term, 'b, 'c) simproc_spec
   val define_simproc: (term, morphism -> proc, thm list) simproc_spec -> local_theory ->
@@ -131,30 +132,33 @@ val _ = Theory.setup
 
 (* define simprocs *)
 
-fun make_simproc ctxt {name, lhss, proc, identifier} =
+fun make_simproc ctxt {name, lhss, kind, proc, identifier} =
   let
     val ctxt' = fold Proof_Context.augment lhss ctxt;
     val lhss' = Variable.export_terms ctxt' ctxt lhss;
   in
     cert_simproc (Proof_Context.theory_of ctxt)
-      {name = name, lhss = lhss', proc = Morphism.entity proc, identifier = identifier}
+      {name = name, kind = kind, lhss = lhss', proc = Morphism.entity proc, identifier = identifier}
   end;
 
 type ('a, 'b, 'c) simproc_spec =
-  {passive: bool, name: binding, lhss: 'a list, proc: 'b, identifier: 'c};
+  {passive: bool, name: binding, kind: proc_kind, lhss: 'a list, proc: 'b, identifier: 'c};
 
-fun read_simproc_spec ctxt {passive, name, lhss, proc, identifier} =
+fun read_simproc_spec ctxt {passive, name, kind, lhss, proc, identifier} =
   let
     val lhss' =
       Syntax.read_terms ctxt lhss handle ERROR msg =>
         error (msg ^ Position.here_list (map Syntax.read_input_pos lhss));
-  in {passive = passive, name = name, lhss = lhss', proc = proc, identifier = identifier} end;
+  in
+    {passive = passive, name = name, kind = kind, lhss = lhss', proc = proc, identifier = identifier}
+  end;
 
-fun define_simproc {passive, name, lhss, proc, identifier} lthy =
+fun define_simproc {passive, name, kind, lhss, proc, identifier} lthy =
   let
     val simproc0 =
       make_simproc lthy
-        {name = Local_Theory.full_name lthy name, lhss = lhss, proc = proc, identifier = identifier};
+        {name = Local_Theory.full_name lthy name,
+          kind = kind, lhss = lhss, proc = proc, identifier = identifier};
   in
     lthy |> Local_Theory.declaration {syntax = false, pervasive = false, pos = Binding.pos_of name}
       (fn phi => fn context =>
@@ -179,14 +183,24 @@ fun simproc_setup_cmd args =
   Named_Target.setup_result Raw_Simplifier.transform_simproc
     (fn lthy => lthy |> define_simproc (read_simproc_spec lthy args));
 
+val parse_proc_kind =
+  Parse.$$$ "congproc" >> K (Congproc false) ||
+  Parse.$$$ "weak_congproc" >> K (Congproc true) ||
+  Scan.succeed Simproc;
+
+fun print_proc_kind kind =
+  (case kind of
+    Simproc => "Simplifier.Simproc"
+  | Congproc weak => "Simplifier.Congproc " ^ Bool.toString weak);
 
 val parse_simproc_spec =
-  Scan.optional (Parse.$$$ "passive" >> K true) false --
+  Scan.optional (Parse.$$$ "passive" >> K true) false -- parse_proc_kind --
   Parse.binding --
     (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")") --
     (Parse.$$$ "=" |-- Parse.ML_source) --
     Scan.option ((Parse.position (Parse.$$$ "identifier") >> #2) -- Parse.thms1)
-  >> (fn ((((a, b), c), d), e) => {passive = a, name = b, lhss = c, proc = d, identifier = e});
+  >> (fn (((((a, b), c), d), e), f) =>
+      {passive = a, kind = b, name = c, lhss = d, proc = e, identifier = f});
 
 val _ = Theory.setup
   (ML_Context.add_antiquotation_embedded \<^binding>\<open>simproc_setup\<close>
@@ -194,7 +208,7 @@ val _ = Theory.setup
       let
         val ml = ML_Lex.tokenize_no_range;
 
-        val {passive, name, lhss, proc, identifier} = input
+        val {passive, name, kind, lhss, proc, identifier} = input
           |> Parse.read_embedded ctxt (Thy_Header.get_keywords' ctxt) parse_simproc_spec
           |> read_simproc_spec ctxt;
 
@@ -211,6 +225,7 @@ val _ = Theory.setup
             val ml_body' =
               ml "Simplifier.simproc_setup {passive = " @ ml (Bool.toString passive) @
               ml ", name = " @ ml (ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name)) @
+              ml ", kind = " @ ml (print_proc_kind kind) @
               ml ", lhss = " @ ml (ML_Syntax.print_list ML_Syntax.print_term lhss) @
               ml ", proc = (" @ ml_body1 @ ml ")" @
               ml ", identifier = (" @ ml_body2 @ ml ")}";
@@ -218,7 +233,7 @@ val _ = Theory.setup
       in (decl', ctxt2) end));
 
 val simproc_setup_command =
-  parse_simproc_spec >> (fn {passive, name, lhss, proc, identifier} =>
+  parse_simproc_spec >> (fn {passive, name, kind, lhss, proc, identifier} =>
     (case identifier of
       NONE =>
         Context.proof_map
@@ -226,6 +241,7 @@ val simproc_setup_command =
             (ML_Lex.read
               ("Simplifier.simproc_setup_cmd {passive = " ^ Bool.toString passive ^
                ", name = " ^ ML_Syntax.make_binding (Binding.name_of name, Binding.pos_of name) ^
+               ", kind = " ^ print_proc_kind kind ^
                ", lhss = " ^ ML_Syntax.print_strings lhss ^
                ", proc = (") @ ML_Lex.read_source proc @ ML_Lex.read "), identifier = []}"))
     | SOME (pos, _) =>
@@ -276,18 +292,31 @@ fun pretty_simpset verbose ctxt =
         (Pretty.mark_str name :: Pretty.str ":" :: Pretty.fbrk ::
           Pretty.fbreaks (map (Pretty.item o single o pretty_term) lhss));
 
+    fun pretty_congproc (name, {lhss, proc}) =
+      let
+        val prt_rule =
+          (case try (Morphism.form_context' ctxt proc) @{cterm dummy} of
+            SOME (SOME thm) => [Pretty.fbrk, Pretty.str "rule:", Pretty.fbrk, pretty_thm thm]
+          | NONE => []);
+      in
+        Pretty.block
+          (Pretty.mark_str name :: Pretty.str ":" :: Pretty.fbrk ::
+            Pretty.fbreaks (map (Pretty.item o single o pretty_term) lhss) @ prt_rule)
+      end;
+
     fun pretty_cong_name (const, name) =
       pretty_term ((if const then Const else Free) (name, dummyT));
     fun pretty_cong (name, thm) =
       Pretty.block [pretty_cong_name name, Pretty.str ":", Pretty.brk 1, pretty_thm thm];
 
     val ss = dest_ss (simpset_of ctxt);
-    val simprocs =
-      Name_Space.markup_entries verbose ctxt
-        (Name_Space.space_of_table (get_simprocs ctxt)) (#simprocs ss);
+    val simproc_space = Name_Space.space_of_table (get_simprocs ctxt);
+    val simprocs = Name_Space.markup_entries verbose ctxt simproc_space (#simprocs ss);
+    val congprocs = Name_Space.markup_entries verbose ctxt simproc_space (#congprocs ss);
   in
     [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) (#simps ss)),
       Pretty.big_list "simplification procedures:" (map pretty_simproc simprocs),
+      Pretty.big_list "congruence procedures:" (map pretty_congproc congprocs),
       Pretty.big_list "congruences:" (map pretty_cong (#congs ss)),
       Pretty.strs ("loopers:" :: map quote (#loopers ss)),
       Pretty.strs ("unsafe solvers:" :: map quote (#unsafe_solvers ss)),

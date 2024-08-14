@@ -7,6 +7,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+** General **
+
+* The Simplifier now supports special "congprocs", using keyword
+'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
+antiquotation of the same name).
+
+
 ** HOL **
 
 * Theory "HOL.Wellfounded":

@@ -366,6 +366,7 @@ fun distinctFieldSolver names =
 fun distinct_simproc names =
   Simplifier.make_simproc \<^context>
    {name = "DistinctTreeProver.distinct_simproc",
+    kind = Simproc,
     lhss = [\<^term>\<open>x = y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of

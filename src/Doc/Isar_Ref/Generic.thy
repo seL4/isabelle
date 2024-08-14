@@ -803,11 +803,13 @@ text \<open>
   \end{matharray}
 
   \<^rail>\<open>
-    @{syntax_def simproc_setup}: (@'passive')? @{syntax name}
+    @{syntax_def simproc_setup}: (@'passive')? proc_kind? @{syntax name}
       patterns '=' @{syntax embedded}
     ;
     @{syntax_def simproc_setup_id}:
       @{syntax simproc_setup} (@'identifier' @{syntax thms})?
+    ;
+    proc_kind: @'congproc' | @'weak_congproc'
     ;
     patterns: '(' (@{syntax term} + '|') ')'
     ;
@@ -835,6 +837,10 @@ text \<open>
   By default, the simproc is declared to the current Simplifier context and
   thus \<^emph>\<open>active\<close>. The keyword \<^theory_text>\<open>passive\<close> avoids that: it merely defines a
   simproc that can be activated in a different context later on.
+
+  Regular simprocs produce rewrite rules on the fly, but it is also possible
+  to congruence rules via the @{syntax proc_kind} keywords: \<^theory_text>\<open>congproc\<close> or
+  \<^theory_text>\<open>weak_congproc\<close>.
 
   \<^descr> ML antiquotation @{ML_antiquotation_ref simproc_setup} is like command
   @{command simproc_setup}, with slightly extended syntax following @{syntax
