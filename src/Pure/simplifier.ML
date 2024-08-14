@@ -281,18 +281,17 @@ fun pretty_simpset verbose ctxt =
     fun pretty_cong (name, thm) =
       Pretty.block [pretty_cong_name name, Pretty.str ":", Pretty.brk 1, pretty_thm thm];
 
-    val {simps, simprocs, congs, loopers, unsafe_solvers, safe_solvers, ...} =
-      dest_ss (simpset_of ctxt);
+    val ss = dest_ss (simpset_of ctxt);
     val simprocs =
       Name_Space.markup_entries verbose ctxt
-        (Name_Space.space_of_table (get_simprocs ctxt)) simprocs;
+        (Name_Space.space_of_table (get_simprocs ctxt)) (#simprocs ss);
   in
-    [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) simps),
+    [Pretty.big_list "simplification rules:" (map (pretty_thm_item o #2) (#simps ss)),
       Pretty.big_list "simplification procedures:" (map pretty_simproc simprocs),
-      Pretty.big_list "congruences:" (map pretty_cong congs),
-      Pretty.strs ("loopers:" :: map quote loopers),
-      Pretty.strs ("unsafe solvers:" :: map quote unsafe_solvers),
-      Pretty.strs ("safe solvers:" :: map quote safe_solvers)]
+      Pretty.big_list "congruences:" (map pretty_cong (#congs ss)),
+      Pretty.strs ("loopers:" :: map quote (#loopers ss)),
+      Pretty.strs ("unsafe solvers:" :: map quote (#unsafe_solvers ss)),
+      Pretty.strs ("safe solvers:" :: map quote (#safe_solvers ss))]
     |> Pretty.chunks
   end;
 
