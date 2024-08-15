@@ -532,7 +532,9 @@ session "HOL-Imperative_HOL" (timing) in Imperative_HOL = HOL +
   options [print_mode = "iff,no_brackets"]
   sessions "HOL-Library"
   directories "ex"
-  theories Imperative_HOL_ex
+  theories
+    Imperative_HOL_ex
+    "ex/Congproc_Ex"
   document_files "root.bib" "root.tex"
 
 session "HOL-Decision_Procs" (timing) in Decision_Procs = "HOL-Algebra" +

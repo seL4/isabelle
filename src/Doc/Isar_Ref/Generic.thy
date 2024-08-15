@@ -840,7 +840,8 @@ text \<open>
 
   Regular simprocs produce rewrite rules on the fly, but it is also possible
   to congruence rules via the @{syntax proc_kind} keywords: \<^theory_text>\<open>congproc\<close> or
-  \<^theory_text>\<open>weak_congproc\<close>.
+  \<^theory_text>\<open>weak_congproc\<close>. See also \<^file>\<open>~~/src/HOL/Imperative_HOL/ex/Congproc_Ex.thy\<close>
+  for further explanations and examples.
 
   \<^descr> ML antiquotation @{ML_antiquotation_ref simproc_setup} is like command
   @{command simproc_setup}, with slightly extended syntax following @{syntax

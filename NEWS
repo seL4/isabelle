@@ -11,7 +11,9 @@ New in this Isabelle version
 
 * The Simplifier now supports special "congprocs", using keyword
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
-antiquotation of the same name).
+antiquotation of the same name). See also
+~~/src/HOL/Imperative_HOL/ex/Congproc_Ex.thy for further explanations
+and examples.
 
 * The attribute "cong_format" produces the internal format of Simplifier
 "cong" rules, notably for congproc implementations.
