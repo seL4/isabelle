@@ -413,6 +413,8 @@ val clear_simpset =
   map_simpset (fn Simpset ({depth, ...}, {mk_rews, term_ord, subgoal_tac, solvers, ...}) =>
     init_ss depth mk_rews term_ord subgoal_tac solvers);
 
+val get_mk_rews = simpset_of #> (fn Simpset (_, {mk_rews, ...}) => mk_rews);
+
 
 (* accessors for tactis *)
 
@@ -554,13 +556,11 @@ fun decomp_simp' thm =
   end;
 
 fun mk_eq_True ctxt (thm, name) =
-  let val Simpset (_, {mk_rews = {mk_eq_True, ...}, ...}) = simpset_of ctxt in
-    (case mk_eq_True ctxt thm of
-      NONE => []
-    | SOME eq_True =>
-        let val (_, lhs, elhs, _, _) = decomp_simp eq_True;
-        in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end)
-  end;
+  (case #mk_eq_True (get_mk_rews ctxt) ctxt thm of
+    NONE => []
+  | SOME eq_True =>
+      let val (_, lhs, elhs, _, _) = decomp_simp eq_True;
+      in [{thm = eq_True, name = name, lhs = lhs, elhs = elhs, perm = false}] end);
 
 (*create the rewrite rule and possibly also the eq_True variant,
   in case there are extra vars on the rhs*)
@@ -586,7 +586,7 @@ fun mk_rrule ctxt (thm, name) =
 fun orient_rrule ctxt (thm, name) =
   let
     val (prems, lhs, elhs, rhs, perm) = decomp_simp thm;
-    val Simpset (_, {mk_rews = {reorient, mk_sym, ...}, ...}) = simpset_of ctxt;
+    val {reorient, mk_sym, ...} = get_mk_rews ctxt;
   in
     if perm then [{thm = thm, name = name, lhs = lhs, elhs = elhs, perm = true}]
     else if reorient ctxt prems lhs rhs then
@@ -603,12 +603,9 @@ fun orient_rrule ctxt (thm, name) =
 
 fun extract_rews ctxt sym thms =
   let
-    val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt;
-    val mk =
-      if sym then fn ctxt => fn th => (mk ctxt th) RL [Drule.symmetric_thm]
-      else mk
-  in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ctxt thm)) thms
-  end;
+    val mk = #mk (get_mk_rews ctxt);
+    val mk' = if sym then fn ctxt => fn th => mk ctxt th RL [Drule.symmetric_thm] else mk;
+  in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk' ctxt thm)) thms end;
 
 fun extract_safe_rrules ctxt thm =
   maps (orient_rrule ctxt) (extract_rews ctxt false [thm]);
@@ -617,7 +614,7 @@ fun mk_rrules ctxt thms =
   let
     val rews = extract_rews ctxt false thms
     val raw_rrules = flat (map (mk_rrule ctxt) rews)
-  in map mk_rrule2 raw_rrules end
+  in map mk_rrule2 raw_rrules end;
 
 
 (* add/del rules explicitly *)
@@ -709,9 +706,7 @@ fun is_full_cong thm =
     is_full_cong_prems prems (xs ~~ ys)
   end;
 
-fun mk_cong ctxt =
-  let val Simpset (_, {mk_rews = {mk_cong = f, ...}, ...}) = simpset_of ctxt
-  in f ctxt end;
+fun mk_cong ctxt = #mk_cong (get_mk_rews ctxt) ctxt;
 
 in
 
@@ -828,9 +823,7 @@ fun map_mk_rews f =
 
 in
 
-fun mksimps ctxt =
-  let val Simpset (_, {mk_rews = {mk, ...}, ...}) = simpset_of ctxt
-  in mk ctxt end;
+fun mksimps ctxt = #mk (get_mk_rews ctxt) ctxt;
 
 fun set_mksimps mk = map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
