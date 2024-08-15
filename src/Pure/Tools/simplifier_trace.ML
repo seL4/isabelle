@@ -87,7 +87,7 @@ fun add_term_breakpoint term =
 
 fun add_thm_breakpoint thm context =
   let
-    val rrules = mk_rrules (Context.proof_of context) [thm]
+    val rrules = mk_rrules (Context.proof_of context) thm
   in
     map_breakpoints (apsnd (fold Item_Net.update rrules)) context
   end

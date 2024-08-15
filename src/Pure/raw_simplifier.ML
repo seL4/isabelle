@@ -17,7 +17,7 @@ sig
   val simp_trace: bool Config.T
   type cong_name = bool * string
   type rrule
-  val mk_rrules: Proof.context -> thm list -> rrule list
+  val mk_rrules: Proof.context -> thm -> rrule list
   val eq_rrule: rrule * rrule -> bool
   type proc = Proof.context -> cterm -> thm option
   type solver
@@ -602,19 +602,20 @@ fun orient_rrule ctxt (thm, name) =
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
-fun extract_rews ctxt sym thms =
+fun extract_rews sym ctxt thm =
   let
     val mk = #mk (get_mk_rews ctxt);
-    val mk' = if sym then fn ctxt => fn th => mk ctxt th RL [Drule.symmetric_thm] else mk;
-  in maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk' ctxt thm)) thms end;
+    val rews = mk ctxt thm;
+    val rews' = if sym then rews RL [Drule.symmetric_thm] else rews;
+  in map (rpair (Thm.get_name_hint thm)) rews' end;
 
 fun extract_safe_rrules ctxt thm =
-  maps (orient_rrule ctxt) (extract_rews ctxt false [thm]);
+  maps (orient_rrule ctxt) (extract_rews false ctxt thm);
 
 fun mk_rrules ctxt thms =
   let
-    val rews = extract_rews ctxt false thms
-    val raw_rrules = flat (map (mk_rrule ctxt) rews)
+    val rews = extract_rews false ctxt thms;
+    val raw_rrules = maps (mk_rrule ctxt) rews;
   in map mk_rrule2 raw_rrules end;
 
 
@@ -623,7 +624,7 @@ fun mk_rrules ctxt thms =
 local
 
 fun comb_simps ctxt comb mk_rrule sym thms =
-  let val rews = extract_rews ctxt sym (map (Thm.transfer' ctxt) thms);
+  let val rews = maps (extract_rews sym ctxt o Thm.transfer' ctxt) thms;
   in fold (fold comb o mk_rrule) rews ctxt end;
 
 (*
