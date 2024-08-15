@@ -13,6 +13,9 @@ New in this Isabelle version
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
 antiquotation of the same name).
 
+* The attribute "cong_format" produces the internal format of Simplifier
+"cong" rules, notably for congproc implementations.
+
 
 ** HOL **
 

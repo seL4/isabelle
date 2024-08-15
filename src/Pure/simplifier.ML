@@ -59,6 +59,7 @@ sig
   val add_simp: thm -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
   val init_simpset: thm list -> Proof.context -> Proof.context
+  val mk_cong: Proof.context -> thm -> thm
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
   val add_cong: thm -> Proof.context -> Proof.context
@@ -453,6 +454,8 @@ end;
 
 (* setup attributes *)
 
+val cong_format = Scan.succeed (Thm.rule_attribute [] (Context.proof_of #> mk_cong));
+
 val _ = Theory.setup
  (Attrib.setup \<^binding>\<open>simp\<close> (Attrib.add_del simp_add simp_del)
     "declaration of Simplifier rewrite rule" #>
@@ -460,7 +463,8 @@ val _ = Theory.setup
     "declaration of Simplifier congruence rule" #>
   Attrib.setup \<^binding>\<open>simproc\<close> simproc_att
     "declaration of simplification procedures" #>
-  Attrib.setup \<^binding>\<open>simplified\<close> simplified "simplified rule");
+  Attrib.setup \<^binding>\<open>simplified\<close> simplified "simplified rule" #>
+  Attrib.setup \<^binding>\<open>cong_format\<close> cong_format "internal format of Simplifier cong rule");
 
 
 

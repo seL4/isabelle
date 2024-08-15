@@ -89,6 +89,7 @@ sig
   val del_simp: thm -> Proof.context -> Proof.context
   val flip_simp: thm -> Proof.context -> Proof.context
   val init_simpset: thm list -> Proof.context -> Proof.context
+  val mk_cong: Proof.context -> thm -> thm
   val add_eqcong: thm -> Proof.context -> Proof.context
   val del_eqcong: thm -> Proof.context -> Proof.context
   val add_cong: thm -> Proof.context -> Proof.context
@@ -706,9 +707,9 @@ fun is_full_cong thm =
     is_full_cong_prems prems (xs ~~ ys)
   end;
 
-fun mk_cong ctxt = #mk_cong (get_mk_rews ctxt) ctxt;
-
 in
+
+fun mk_cong ctxt = #mk_cong (get_mk_rews ctxt) ctxt;
 
 fun add_eqcong thm ctxt = ctxt |> map_simpset2
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
