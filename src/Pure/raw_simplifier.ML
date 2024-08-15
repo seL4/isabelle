@@ -95,7 +95,9 @@ sig
   val add_cong: thm -> Proof.context -> Proof.context
   val del_cong: thm -> Proof.context -> Proof.context
   val mksimps: Proof.context -> thm -> thm list
-  val set_mksimps: (Proof.context -> thm -> thm list) -> Proof.context -> Proof.context
+  val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
+  val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
+    Proof.context -> Proof.context
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
@@ -271,7 +273,7 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
       simprocs: functions that prove rewrite rules on the fly;
       congprocs: functions that prove congruence rules on the fly;
     mk_rews:
-      mk: turn simplification thms into rewrite rules;
+      mk: turn simplification thms into rewrite rules (and update context);
       mk_cong: prepare congruence rules;
       mk_sym: turn \<equiv> around;
       mk_eq_True: turn P into P \<equiv> True;
@@ -285,7 +287,7 @@ datatype simpset =
    {congs: thm Congtab.table * cong_name list,
     procs: term procedure Net.net * term procedure Net.net,
     mk_rews:
-     {mk: Proof.context -> thm -> thm list,
+     {mk: thm -> Proof.context -> thm list * Proof.context,
       mk_cong: Proof.context -> thm -> thm,
       mk_sym: Proof.context -> thm -> thm option,
       mk_eq_True: Proof.context -> thm -> thm option,
@@ -343,7 +345,7 @@ fun default_mk_sym _ th = SOME (th RS Drule.symmetric_thm);
 
 val empty_ss =
   init_ss (0, Unsynchronized.ref false)
-    {mk = fn _ => fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
+    {mk = fn th => pair (if can Logic.dest_equals (Thm.concl_of th) then [th] else []),
       mk_cong = K I,
       mk_sym = default_mk_sym,
       mk_eq_True = K (K NONE),
@@ -602,19 +604,19 @@ fun orient_rrule ctxt (thm, name) =
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
-fun extract_rews sym ctxt thm =
+fun extract_rews sym thm ctxt =
   let
     val mk = #mk (get_mk_rews ctxt);
-    val rews = mk ctxt thm;
+    val (rews, ctxt') = mk thm ctxt;
     val rews' = if sym then rews RL [Drule.symmetric_thm] else rews;
-  in map (rpair (Thm.get_name_hint thm)) rews' end;
+  in (map (rpair (Thm.get_name_hint thm)) rews', ctxt') end;
 
-fun extract_safe_rrules ctxt thm =
-  maps (orient_rrule ctxt) (extract_rews false ctxt thm);
+fun extract_safe_rrules thm ctxt =
+  extract_rews false thm ctxt |>> maps (orient_rrule ctxt);
 
-fun mk_rrules ctxt thms =
+fun mk_rrules ctxt thm =
   let
-    val rews = extract_rews false ctxt thms;
+    val rews = #1 (extract_rews false thm ctxt);
     val raw_rrules = maps (mk_rrule ctxt) rews;
   in map mk_rrule2 raw_rrules end;
 
@@ -624,7 +626,7 @@ fun mk_rrules ctxt thms =
 local
 
 fun comb_simps ctxt comb mk_rrule sym thms =
-  let val rews = maps (extract_rews sym ctxt o Thm.transfer' ctxt) thms;
+  let val rews = maps (fn thm => #1 (extract_rews sym (Thm.transfer' ctxt thm) ctxt)) thms;
   in fold (fold comb o mk_rrule) rews ctxt end;
 
 (*
@@ -825,9 +827,10 @@ fun map_mk_rews f =
 
 in
 
-fun mksimps ctxt = #mk (get_mk_rews ctxt) ctxt;
+val get_mksimps_context = #mk o get_mk_rews;
+fun mksimps ctxt thm = #1 (get_mksimps_context ctxt thm ctxt);
 
-fun set_mksimps mk = map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
+fun set_mksimps_context mk = map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
 
 fun set_mkcong mk_cong = map_mk_rews (fn (mk, _, mk_sym, mk_eq_True, reorient) =>
@@ -1330,8 +1333,10 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
             (Thm.term_of prem));
         (([], NONE), ctxt))
       else
-        let val (asm, ctxt') = Thm.assume_hyps prem ctxt
-        in ((extract_safe_rrules ctxt' asm, SOME asm), ctxt') end
+        let
+          val (asm, ctxt') = Thm.assume_hyps prem ctxt;
+          val (rews, ctxt'') = extract_safe_rrules asm ctxt';
+        in ((rews, SOME asm), ctxt'') end
 
     and add_rrules (rrss, asms) ctxt =
       (fold o fold) insert_rrule rrss ctxt |> add_prems (map_filter I asms)

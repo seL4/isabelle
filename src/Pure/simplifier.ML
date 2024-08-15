@@ -66,6 +66,9 @@ sig
   val del_cong: thm -> Proof.context -> Proof.context
   val add_prems: thm list -> Proof.context -> Proof.context
   val mksimps: Proof.context -> thm -> thm list
+  val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
+  val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
+    Proof.context -> Proof.context
   val set_mksimps: (Proof.context -> thm -> thm list) -> Proof.context -> Proof.context
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
@@ -96,6 +99,9 @@ open Raw_Simplifier;
 
 
 (** declarations **)
+
+fun set_mksimps mk = set_mksimps_context (fn thm => fn ctxt => (mk ctxt thm, ctxt));
+
 
 (* attributes *)
 
