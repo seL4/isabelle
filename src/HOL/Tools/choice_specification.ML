@@ -83,19 +83,21 @@ fun process_spec cos alt_props thy =
     val props' = rew_imps |>
       map (HOLogic.dest_Trueprop o Thm.term_of o snd o Thm.dest_equals o Thm.cprop_of)
 
-    fun proc_single prop =
+    fun close_prop prop =
       let
         val frees = Misc_Legacy.term_frees prop
-        val _ = forall (fn v => Sign.of_sort thy (type_of v, \<^sort>\<open>type\<close>)) frees
-          orelse error "Specificaton: Only free variables of sort 'type' allowed"
-        val prop_closed = close_form prop
-      in (prop_closed, frees) end
+        val _ =
+          frees |> List.app (fn x =>
+            if Sign.of_sort thy (fastype_of x, \<^sort>\<open>type\<close>) then ()
+            else
+              error ("Specification: Existential variable " ^
+                Syntax.string_of_term (Config.put show_sorts true ctxt) x ^ " has non-HOL type"));
+      in (frees, close_form prop) end
 
-    val props'' = map proc_single props'
-    val frees = map snd props''
-    val prop = foldr1 HOLogic.mk_conj (map fst props'')
+    val (all_frees, all_props) = split_list (map close_prop props')
+    val conj_prop = foldr1 HOLogic.mk_conj all_props
 
-    val (vmap, prop_thawed) = Type.varify_global TFrees.empty prop
+    val (vmap, prop_thawed) = Type.varify_global TFrees.empty conj_prop
     val thawed_prop_consts = collect_consts (prop_thawed, [])
     val (altcos, overloaded) = split_list cos
     val (names, sconsts) = split_list altcos
@@ -126,7 +128,7 @@ fun process_spec cos alt_props thy =
         val cname = Long_Name.base_name (dest_Const_name c)
         val vname = if Symbol_Pos.is_identifier cname then cname else "x"
       in HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c, prop)) end
-    val ex_prop = fold_rev mk_exist proc_consts prop
+    val ex_prop = fold_rev mk_exist proc_consts conj_prop
     val cnames = map dest_Const_name proc_consts
     fun post_process (arg as (thy,thm)) =
       let
@@ -175,7 +177,7 @@ fun process_spec cos alt_props thy =
       in
         arg
         |> apsnd (Thm.unvarify_global thy)
-        |> process_all (zip3 alt_names rew_imps frees)
+        |> process_all (zip3 alt_names rew_imps all_frees)
       end
 
     fun after_qed [[thm]] = Proof_Context.background_theory (fn thy =>
