@@ -1,3 +1,9 @@
+(*  Title:      HOL/ex/Specifications_with_bundle_mixins.thy
+    Author:     Florian Haftmann
+
+Specifications with 'bundle' mixins.
+*)
+
 theory Specifications_with_bundle_mixins
   imports "HOL-Combinatorics.Perm"
 begin
@@ -7,8 +13,7 @@ locale involutory = opening permutation_syntax +
   assumes involutory: \<open>\<And>x. f \<langle>$\<rangle> (f \<langle>$\<rangle> x) = x\<close>
 begin
 
-lemma
-  \<open>f * f = 1\<close>
+lemma \<open>f * f = 1\<close>
   using involutory
   by (simp add: perm_eq_iff apply_sequence)
 
@@ -17,7 +22,8 @@ end
 context involutory
 begin
 
-thm involutory (*syntax from permutation_syntax only present in locale specification and initial block*)
+thm involutory
+  \<comment> \<open>syntax from permutation_syntax only present in locale specification and initial block\<close>
 
 end
 
@@ -26,8 +32,7 @@ class at_most_two_elems = opening permutation_syntax +
   assumes swap_distinct: \<open>a \<noteq> b \<Longrightarrow> \<langle>a \<leftrightarrow> b\<rangle> \<langle>$\<rangle> c \<noteq> c\<close>
 begin
 
-lemma
-  \<open>card (UNIV :: 'a set) \<le> 2\<close>
+lemma \<open>card (UNIV :: 'a set) \<le> 2\<close>
 proof (rule ccontr)
   fix a :: 'a
   assume \<open>\<not> card (UNIV :: 'a set) \<le> 2\<close>
@@ -48,11 +53,12 @@ proof (rule ccontr)
   then have \<open>a \<noteq> c\<close> \<open>b \<noteq> c\<close>
     by auto
   with swap_distinct [of a b c] show False
-    by (simp add: \<open>a \<noteq> b\<close>) 
+    by (simp add: \<open>a \<noteq> b\<close>)
 qed
 
 end
 
-thm swap_distinct (*syntax from permutation_syntax only present in class specification and initial block*)
+thm swap_distinct
+  \<comment> \<open>syntax from permutation_syntax only present in class specification and initial block\<close>
 
 end
