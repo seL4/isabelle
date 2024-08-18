@@ -20,33 +20,32 @@ struct
    That is, m and n consist only of 1s combined with "+", "-" and "*".
 *)
 
-val zeroth = Thm.symmetric (mk_meta_eq @{thm of_int_0});
-
 val zero_to_of_int_zero_simproc =
   \<^simproc_setup>\<open>passive zero_to_of_int_zero ("0::'a::ring") =
     \<open>fn _ => fn _ => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
-        if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
-        else SOME (Thm.instantiate' [SOME T] [] zeroth)
+        if Thm.typ_of T = \<^Type>\<open>int\<close> then NONE
+        else SOME \<^instantiate>\<open>'a = T in lemma "0 \<equiv> of_int 0" by simp\<close>
       end\<close>\<close>;
-
-val oneth = Thm.symmetric (mk_meta_eq @{thm of_int_1});
 
 val one_to_of_int_one_simproc =
   \<^simproc_setup>\<open>passive one_to_of_int_one ("1::'a::ring_1") =
     \<open>fn _ => fn _ => fn ct =>
       let val T = Thm.ctyp_of_cterm ct in
-        if Thm.typ_of T = \<^typ>\<open>int\<close> then NONE
-        else SOME (Thm.instantiate' [SOME T] [] oneth)
+        if Thm.typ_of T = \<^Type>\<open>int\<close> then NONE
+        else SOME \<^instantiate>\<open>'a = T in lemma "1 \<equiv> of_int 1" by simp\<close>
       end\<close>\<close>;
 
-fun check (Const (\<^const_name>\<open>Groups.one\<close>, \<^typ>\<open>int\<close>)) = false
-  | check (Const (\<^const_name>\<open>Groups.one\<close>, _)) = true
-  | check (Const (s, _)) = member (op =) [\<^const_name>\<open>HOL.eq\<close>,
-      \<^const_name>\<open>Groups.times\<close>, \<^const_name>\<open>Groups.uminus\<close>,
-      \<^const_name>\<open>Groups.minus\<close>, \<^const_name>\<open>Groups.plus\<close>,
-      \<^const_name>\<open>Groups.zero\<close>,
-      \<^const_name>\<open>Orderings.less\<close>, \<^const_name>\<open>Orderings.less_eq\<close>] s
+fun check \<^Const_>\<open>Groups.one \<^Type>\<open>int\<close>\<close> = false
+  | check \<^Const_>\<open>Groups.one _\<close> = true
+  | check \<^Const_>\<open>Groups.zero _\<close> = true
+  | check \<^Const_>\<open>HOL.eq _\<close> = true
+  | check \<^Const_>\<open>times _\<close> = true
+  | check \<^Const_>\<open>uminus _\<close> = true
+  | check \<^Const_>\<open>minus _\<close> = true
+  | check \<^Const_>\<open>plus _\<close> = true
+  | check \<^Const_>\<open>less _\<close> = true
+  | check \<^Const_>\<open>less_eq _\<close> = true
   | check (a $ b) = check a andalso check b
   | check _ = false;
 
