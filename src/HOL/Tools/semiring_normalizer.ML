@@ -128,17 +128,17 @@ val field_funs =
   let
     fun numeral_is_const ct =
       case Thm.term_of ct of
-       Const (\<^const_name>\<open>Rings.divide\<close>,_) $ a $ b =>
-         can HOLogic.dest_number a andalso can HOLogic.dest_number b
-     | Const (\<^const_name>\<open>Fields.inverse\<close>,_)$t => can HOLogic.dest_number t
-     | t => can HOLogic.dest_number t
-    fun dest_const ct = ((case Thm.term_of ct of
-       Const (\<^const_name>\<open>Rings.divide\<close>,_) $ a $ b=>
-        Rat.make (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
-     | Const (\<^const_name>\<open>Fields.inverse\<close>,_)$t =>
-                   Rat.inv (Rat.of_int (snd (HOLogic.dest_number t)))
-     | t => Rat.of_int (snd (HOLogic.dest_number t)))
-       handle TERM _ => error "ring_dest_const")
+        \<^Const_>\<open>divide _ for a b\<close> =>
+          can HOLogic.dest_number a andalso can HOLogic.dest_number b
+      | \<^Const_>\<open>inverse _ for t\<close> => can HOLogic.dest_number t
+      | t => can HOLogic.dest_number t
+    fun dest_const ct =
+      (case Thm.term_of ct of
+          \<^Const_>\<open>divide _ for a b\<close> =>
+            Rat.make (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
+      | \<^Const_>\<open>inverse _ for t\<close> => Rat.inv (Rat.of_int (snd (HOLogic.dest_number t)))
+      | t => Rat.of_int (snd (HOLogic.dest_number t)))
+      handle TERM _ => error "ring_dest_const"
     fun mk_const cT x =
       let val (a, b) = Rat.dest x
       in if b = 1 then Numeral.mk_cnumber cT a
