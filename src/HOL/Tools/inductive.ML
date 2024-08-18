@@ -134,7 +134,7 @@ fun make_bool_args f g [] i = []
       (if i mod 2 = 0 then f x else g x) :: make_bool_args f g xs (i div 2);
 
 fun make_bool_args' xs =
-  make_bool_args (K \<^term>\<open>False\<close>) (K \<^term>\<open>True\<close>) xs;
+  make_bool_args (K \<^Const>\<open>False\<close>) (K \<^Const>\<open>True\<close>) xs;
 
 fun arg_types_of k c = drop k (binder_types (fastype_of c));
 
@@ -146,7 +146,7 @@ fun find_arg T x [] = raise Fail "find_arg"
       else apsnd (cons p) (find_arg T x ps);
 
 fun make_args Ts xs =
-  map (fn (T, (NONE, ())) => Const (\<^const_name>\<open>undefined\<close>, T) | (_, (SOME t, ())) => t)
+  map (fn (T, (NONE, ())) => \<^Const>\<open>undefined T\<close> | (_, (SOME t, ())) => t)
     (fold (fn (t, T) => snd o find_arg T t) xs (map (rpair (NONE, ())) Ts));
 
 fun make_args' Ts xs Us =
@@ -276,9 +276,9 @@ fun mk_mono ctxt thm =
       handle THM _ => thm RS @{thm le_boolD}
   in
     (case Thm.concl_of thm of
-      Const (\<^const_name>\<open>Pure.eq\<close>, _) $ _ $ _ => eq_to_mono (HOLogic.mk_obj_eq thm)
-    | _ $ (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _) => eq_to_mono thm
-    | _ $ (Const (\<^const_name>\<open>Orderings.less_eq\<close>, _) $ _ $ _) =>
+      \<^Const_>\<open>Pure.eq _ for _ _\<close> => eq_to_mono (HOLogic.mk_obj_eq thm)
+    | _ $ \<^Const_>\<open>HOL.eq _ for _ _\<close> => eq_to_mono thm
+    | _ $ \<^Const_>\<open>less_eq _ for _ _\<close> =>
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
         (resolve_tac ctxt [@{thm le_funI}, @{thm le_boolI'}])) thm))
     | _ => thm)
@@ -369,7 +369,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
 
     val _ =
       (case concl of
-        Const (\<^const_name>\<open>Trueprop\<close>, _) $ t =>
+        \<^Const_>\<open>Trueprop for t\<close> =>
           if member (op =) cs (head_of t) then
            (check_ind (err_in_rule ctxt binding rule') t;
             List.app check_prem (prems ~~ aprems))
@@ -510,11 +510,11 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
                   HOLogic.exists_const T $ Abs (a, T, list_ex (vars, t));
             val conjs = map2 (curry HOLogic.mk_eq) frees us @ map HOLogic.dest_Trueprop ts;
           in
-            list_ex (params', if null conjs then \<^term>\<open>True\<close> else foldr1 HOLogic.mk_conj conjs)
+            list_ex (params', if null conjs then \<^Const>\<open>True\<close> else foldr1 HOLogic.mk_conj conjs)
           end;
         val lhs = list_comb (c, params @ frees);
         val rhs =
-          if null c_intrs then \<^term>\<open>False\<close>
+          if null c_intrs then \<^Const>\<open>False\<close>
           else foldr1 HOLogic.mk_disj (map mk_intr_conj c_intrs);
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
         fun prove_intr1 (i, _) = Subgoal.FOCUS_PREMS (fn {context = ctxt'', params, prems, ...} =>
@@ -801,8 +801,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
 
 (* prove coinduction rule *)
 
-fun If_const T = Const (\<^const_name>\<open>If\<close>, HOLogic.boolT --> T --> T --> T);
-fun mk_If p t f = let val T = fastype_of t in If_const T $ p $ t $ f end;
+fun mk_If p t f = let val T = fastype_of t in \<^Const>\<open>If T\<close> $ p $ t $ f end;
 
 fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
     fp_def rec_preds_defs ctxt ctxt''' =  (* FIXME ctxt''' ?? *)
@@ -813,20 +812,21 @@ fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
       make_args' argTs xs (arg_types_of (length params) pred) |> `length) preds;
     val xTss = map (map fastype_of) xss;
     val (Rs_names, names_ctxt) = Variable.variant_fixes (mk_names "X" n) ctxt;
-    val Rs = map2 (fn name => fn Ts => Free (name, Ts ---> \<^typ>\<open>bool\<close>)) Rs_names xTss;
+    val Rs = map2 (fn name => fn Ts => Free (name, Ts ---> \<^Type>\<open>bool\<close>)) Rs_names xTss;
     val Rs_applied = map2 (curry list_comb) Rs xss;
     val preds_applied = map2 (curry list_comb) (map (fn p => list_comb (p, params)) preds) xss;
     val abstract_list = fold_rev (absfree o dest_Free);
     val bss = map (make_bool_args
-      (fn b => HOLogic.mk_eq (b, \<^term>\<open>False\<close>))
-      (fn b => HOLogic.mk_eq (b, \<^term>\<open>True\<close>)) bs) (0 upto n - 1);
+      (fn b => HOLogic.mk_eq (b, \<^Const>\<open>False\<close>))
+      (fn b => HOLogic.mk_eq (b, \<^Const>\<open>True\<close>)) bs) (0 upto n - 1);
     val eq_undefinedss = map (fn ys => map (fn x =>
-        HOLogic.mk_eq (x, Const (\<^const_name>\<open>undefined\<close>, fastype_of x)))
+        let val T = fastype_of x
+        in \<^Const>\<open>HOL.eq T for x \<^Const>\<open>undefined T\<close>\<close> end)
       (subtract (op =) ys xs)) xss;
     val R =
       @{fold 3} (fn bs => fn eqs => fn R => fn t => if null bs andalso null eqs then R else
         mk_If (Library.foldr1 HOLogic.mk_conj (bs @ eqs)) R t)
-      bss eq_undefinedss Rs_applied \<^term>\<open>False\<close>
+      bss eq_undefinedss Rs_applied \<^Const>\<open>False\<close>
       |> abstract_list (bs @ xs);
 
     fun subst t =
@@ -857,7 +857,7 @@ fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
       in
         (i, fold_rev (fn (x, T) => fn P => HOLogic.exists_const T $ Abs (x, T, P))
           (Logic.strip_params r)
-          (if null ps then \<^term>\<open>True\<close> else foldr1 HOLogic.mk_conj ps))
+          (if null ps then \<^Const>\<open>True\<close> else foldr1 HOLogic.mk_conj ps))
       end;
 
     fun mk_prem i Ps = Logic.mk_implies
@@ -920,11 +920,11 @@ fun prove_coindrule quiet_mode preds cs argTs bs xs params intr_ts mono
 
 fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cnames_syn lthy =
   let
-    val fp_name = if coind then \<^const_name>\<open>Inductive.gfp\<close> else \<^const_name>\<open>Inductive.lfp\<close>;
-
     val argTs = fold (combine (op =) o arg_types_of (length params)) cs [];
     val k = log 2 1 (length cs);
     val predT = replicate k HOLogic.boolT ---> argTs ---> HOLogic.boolT;
+    val fp_const = if coind then \<^Const>\<open>gfp predT\<close> else \<^Const>\<open>lfp predT\<close>;
+
     val p :: xs =
       map Free (Variable.variant_frees lthy intr_ts
         (("p", predT) :: (mk_names "x" (length argTs) ~~ argTs)));
@@ -966,14 +966,14 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       in
         fold_rev (fn (x, T) => fn P => HOLogic.exists_const T $ Abs (x, T, P))
           (Logic.strip_params r)
-          (if null ps then \<^term>\<open>True\<close> else foldr1 HOLogic.mk_conj ps)
+          (if null ps then \<^Const>\<open>True\<close> else foldr1 HOLogic.mk_conj ps)
       end;
 
     (* make a disjunction of all introduction rules *)
 
     val fp_fun =
       fold_rev lambda (p :: bs @ xs)
-        (if null intr_ts then \<^term>\<open>False\<close>
+        (if null intr_ts then \<^Const>\<open>False\<close>
          else foldr1 HOLogic.mk_disj (map transform_rule intr_ts));
 
     (* add definition of recursive predicates to theory *)
@@ -991,8 +991,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
       |> Local_Theory.define
         ((rec_binding, case cnames_syn of [(_, mx)] => mx | _ => NoSyn),
          ((Thm.make_def_binding internals rec_binding, @{attributes [nitpick_unfold]}),
-           fold_rev lambda params
-             (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
+           fold_rev lambda params (fp_const $ fp_fun)))
       ||> Proof_Context.restore_naming lthy;
     val fp_def' =
       Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
