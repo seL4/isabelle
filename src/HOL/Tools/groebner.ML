@@ -409,13 +409,9 @@ fun initial_conv ctxt =
 
 val specl = fold_rev (fn x => fn th => Thm.instantiate' [] [SOME x] (th RS spec));
 
-val cTrp = \<^cterm>\<open>Trueprop\<close>;
-val cConj = \<^cterm>\<open>HOL.conj\<close>;
-val (cNot,false_tm) = (\<^cterm>\<open>Not\<close>, \<^cterm>\<open>False\<close>);
-val assume_Trueprop = Thm.apply cTrp #> Thm.assume;
-val list_mk_conj = list_mk_binop cConj;
-val conjs = list_dest_binop cConj;
-val mk_neg = Thm.apply cNot;
+val list_mk_conj = list_mk_binop \<^cterm>\<open>conj\<close>;
+val conjs = list_dest_binop \<^cterm>\<open>conj\<close>;
+val mk_neg = Thm.apply \<^cterm>\<open>Not\<close>;
 
 fun striplist dest =
  let
@@ -666,9 +662,11 @@ fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
 
 fun refute ctxt tm =
- if tm aconvc false_tm then assume_Trueprop tm else
+ if Thm.term_of tm aconv \<^Const>\<open>False\<close> then Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> tm) else
  ((let
-   val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims ctxt (assume_Trueprop tm))
+   val (nths0,eths0) =
+    List.partition (is_neg o concl)
+     (HOLogic.conj_elims ctxt (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)))
    val  nths = filter (is_eq o Thm.dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
   in
@@ -680,8 +678,8 @@ fun refute ctxt tm =
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
       val conc = th2 |> concl |> Thm.dest_arg
       val (l,_) = conc |> dest_eq
-    in Thm.implies_intr (Thm.apply cTrp tm)
-                    (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
+    in Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)
+                    (Thm.equal_elim (Drule.arg_cong_rule \<^cterm>\<open>Trueprop\<close> (eqF_intr th2))
                            (HOLogic.mk_obj_eq (Thm.reflexive l)))
     end
    else
@@ -720,8 +718,8 @@ fun refute ctxt tm =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
     val (l, _) = dest_eq(Thm.dest_arg(concl th4))
-   in Thm.implies_intr (Thm.apply cTrp tm)
-                        (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
+   in Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)
+                        (Thm.equal_elim (Drule.arg_cong_rule \<^cterm>\<open>Trueprop\<close> (eqF_intr th4))
                    (HOLogic.mk_obj_eq (Thm.reflexive l)))
    end
   end) handle ERROR _ => raise CTERM ("Groebner-refute: unable to refute",[tm]))
