@@ -355,8 +355,6 @@ fun refute_disj rfn tm =
       Drule.compose (refute_disj rfn (Thm.dest_arg1 tm), 2, disjE))
   | _ => rfn tm ;
 
-fun mk_binop ct x y = Thm.apply (Thm.apply ct x) y
-
 fun is_neg t =
   case Thm.term_of t of
     \<^Const_>\<open>Not for _\<close> => true
@@ -373,7 +371,7 @@ fun end_itlist f l =
       | [x]    => x
       | (h::t) => f h (end_itlist f t);
 
-val list_mk_binop = fn b => end_itlist (mk_binop b);
+val list_mk_binop = fn b => end_itlist (Thm.mk_binop b);
 
 val list_dest_binop = fn b =>
  let fun h acc t =
@@ -572,13 +570,13 @@ let
         else raise CTERM ("field_dest_inv", [t])
     end
  val ring_dest_add = dest_binary ring_add_tm;
- val ring_mk_add = mk_binop ring_add_tm;
+ val ring_mk_add = Thm.mk_binop ring_add_tm;
  val ring_dest_sub = dest_binary ring_sub_tm;
  val ring_dest_mul = dest_binary ring_mul_tm;
- val ring_mk_mul = mk_binop ring_mul_tm;
+ val ring_mk_mul = Thm.mk_binop ring_mul_tm;
  val field_dest_div = dest_binary field_div_tm;
  val ring_dest_pow = dest_binary ring_pow_tm;
- val ring_mk_pow = mk_binop ring_pow_tm ;
+ val ring_mk_pow = Thm.mk_binop ring_pow_tm ;
  fun grobvars tm acc =
     if can dest_const tm then acc
     else if can ring_dest_neg tm then grobvars (Thm.dest_arg tm) acc
@@ -662,8 +660,7 @@ val holify_polynomial =
  end ;
 
 fun idom_rule ctxt = simplify (put_simpset HOL_basic_ss ctxt addsimps [idom_thm]);
-fun prove_nz n = eqF_elim
-                 (ring_eq_conv(mk_binop eq_tm (mk_const n) (mk_const @0)));
+fun prove_nz n = eqF_elim (ring_eq_conv (Thm.mk_binop eq_tm (mk_const n) (mk_const @0)));
 val neq_01 = prove_nz @1;
 fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
