@@ -18,9 +18,8 @@ local
 fun mk_definitional [] arg = arg
   | mk_definitional ((thname, cname, covld) :: cos) (thy, thm) =
       (case HOLogic.dest_Trueprop (Thm.concl_of thm) of
-        Const (\<^const_name>\<open>Ex\<close>, _) $ P =>
+        \<^Const_>\<open>Ex ctype for P\<close> =>
           let
-            val ctype = domain_type (type_of P)
             val cname_full = Sign.intern_const thy cname
             val cdefname =
               if thname = ""
