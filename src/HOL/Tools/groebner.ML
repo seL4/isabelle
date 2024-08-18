@@ -895,7 +895,7 @@ fun find_term tm ctxt =
   | \<^Const_>\<open>disj for _ _\<close> => find_args tm ctxt
   | \<^Const_>\<open>implies for _ _\<close> => find_args tm ctxt
   | \<^Const_>\<open>Pure.imp for _ _\<close> => find_args tm ctxt
-  | Const("(==)",_)$_$_ => find_args tm ctxt  (* FIXME proper const name *)
+  | \<^Const_>\<open>Pure.eq _ for _ _\<close> => find_args tm ctxt
   | \<^Const_>\<open>Trueprop for _\<close> => find_term (Thm.dest_arg tm) ctxt
   | _ => raise TERM ("find_term", []))
 and find_args tm ctxt =
