@@ -74,10 +74,6 @@ fun zip3 [] [] [] = []
   | zip3 (x::xs) (y::ys) (z::zs) = (x,y,z)::zip3 xs ys zs
   | zip3 _ _ _ = raise Fail "Choice_Specification.process_spec internal error"
 
-fun myfoldr f [x] = x
-  | myfoldr f (x::xs) = f (x,myfoldr f xs)
-  | myfoldr f [] = raise Fail "Choice_Specification.process_spec internal error"
-
 fun process_spec cos alt_props thy =
   let
     val ctxt = Proof_Context.init_global thy
@@ -97,7 +93,7 @@ fun process_spec cos alt_props thy =
 
     val props'' = map proc_single props'
     val frees = map snd props''
-    val prop = myfoldr HOLogic.mk_conj (map fst props'')
+    val prop = foldr1 HOLogic.mk_conj (map fst props'')
 
     val (vmap, prop_thawed) = Type.varify_global TFrees.empty prop
     val thawed_prop_consts = collect_consts (prop_thawed, [])
