@@ -49,22 +49,16 @@ fun strong_ind_simproc tab =
           in Thm.instantiate' [] (rev (map (SOME o Thm.cterm_of ctxt o Var) vs))
             (p (fold (Logic.all o Var) vs t) f)
           end;
-        fun mkop \<^const_name>\<open>HOL.conj\<close> T x =
-              SOME (Const (\<^const_name>\<open>Lattices.inf\<close>, T --> T --> T), x)
-          | mkop \<^const_name>\<open>HOL.disj\<close> T x =
-              SOME (Const (\<^const_name>\<open>Lattices.sup\<close>, T --> T --> T), x)
-          | mkop _ _ _ = NONE;
-        fun mk_collect p T t =
-          let val U = HOLogic.dest_setT T
-          in HOLogic.Collect_const U $
-            HOLogic.mk_ptupleabs (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
-          end;
-        fun decomp (Const (s, _) $ ((m as Const (\<^const_name>\<open>Set.member\<close>,
-              Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
-                mkop s T (m, p, S, mk_collect p T (head_of u))
-          | decomp (Const (s, _) $ u $ ((m as Const (\<^const_name>\<open>Set.member\<close>,
-              Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
-                mkop s T (m, p, mk_collect p T (head_of u), S)
+        fun mk_collect p A t =
+          \<^Const>\<open>Collect A for \<open>HOLogic.mk_ptupleabs (HOLogic.flat_tuple_paths p) A \<^Type>\<open>bool\<close> t\<close>\<close>;
+        fun decomp \<^Const_>\<open>conj for \<open>(m as \<^Const_>\<open>Set.member A\<close>) $ p $ S\<close> u\<close> =
+              SOME (\<^Const>\<open>inf \<^Type>\<open>set A\<close>\<close>, (m, p, S, mk_collect p A (head_of u)))
+          | decomp \<^Const_>\<open>conj for u \<open>(m as \<^Const_>\<open>Set.member A\<close>) $ p $ S\<close>\<close> =
+              SOME (\<^Const>\<open>inf \<^Type>\<open>set A\<close>\<close>, (m, p, mk_collect p A (head_of u), S))
+          | decomp \<^Const_>\<open>disj for \<open>(m as \<^Const_>\<open>Set.member A\<close>) $ p $ S\<close> u\<close> =
+              SOME (\<^Const>\<open>sup \<^Type>\<open>set A\<close>\<close>, (m, p, S, mk_collect p A (head_of u)))
+          | decomp \<^Const_>\<open>disj for u \<open>(m as \<^Const_>\<open>Set.member A\<close>) $ p $ S\<close>\<close> =
+              SOME (\<^Const>\<open>sup \<^Type>\<open>set A\<close>\<close>, (m, p, mk_collect p A (head_of u), S))
           | decomp _ = NONE;
         val simp =
           full_simp_tac
@@ -210,13 +204,12 @@ fun mk_to_pred_inst ctxt fs =
     let
       val (Ts, T) = strip_type (fastype_of x);
       val U = HOLogic.dest_setT T;
-      val x' = map_type
-        (K (Ts @ HOLogic.strip_ptupleT ps U ---> HOLogic.boolT)) x;
+      val x' = map_type (K (Ts @ HOLogic.strip_ptupleT ps U ---> \<^Type>\<open>bool\<close>)) x;
     in
       (dest_Var x,
        Thm.cterm_of ctxt (fold_rev (Term.abs o pair "x") Ts
-         (HOLogic.Collect_const U $
-            HOLogic.mk_ptupleabs ps U HOLogic.boolT
+         (\<^Const>\<open>Collect U\<close> $
+            HOLogic.mk_ptupleabs ps U \<^Type>\<open>bool\<close>
               (list_comb (x', map Bound (length Ts - 1 downto 0))))))
     end) fs;
 
@@ -236,9 +229,9 @@ fun mk_to_pred_eq ctxt p fs optfs' T thm =
               dest_comb |> snd |> strip_comb |> snd |> hd |> dest_comb;
           in
             thm' RS (infer_instantiate ctxt [(arg_cong_f,
-              Thm.cterm_of ctxt (Abs ("P", Ts ---> HOLogic.boolT,
-                HOLogic.Collect_const U $ HOLogic.mk_ptupleabs fs' U
-                  HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
+              Thm.cterm_of ctxt (Abs ("P", Ts ---> \<^Type>\<open>bool\<close>,
+                \<^Const>\<open>Collect U\<close> $ HOLogic.mk_ptupleabs fs' U
+                  \<^Type>\<open>bool\<close> (Bound 0))))] arg_cong' RS sym)
           end)
   in
     Simplifier.simplify
@@ -254,14 +247,14 @@ exception Malformed of string;
 
 fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
   (case Thm.prop_of thm of
-    Const (\<^const_name>\<open>Trueprop\<close>, _) $ (Const (\<^const_name>\<open>HOL.eq\<close>, Type (_, [T, _])) $ lhs $ rhs) =>
+    \<^Const_>\<open>Trueprop for \<^Const_>\<open>HOL.eq T for lhs rhs\<close>\<close> =>
       (case body_type T of
-         \<^typ>\<open>bool\<close> =>
+         \<^Type>\<open>bool\<close> =>
            let
              val thy = Context.theory_of context;
              val ctxt = Context.proof_of context;
              fun factors_of t fs = case strip_abs_body t of
-                 Const (\<^const_name>\<open>Set.member\<close>, _) $ u $ S =>
+                 \<^Const_>\<open>Set.member _ for u S\<close> =>
                    if is_Free S orelse is_Var S then
                      let val ps = HOLogic.flat_tuple_paths u
                      in (SOME ps, (S, ps) :: fs) end
@@ -271,7 +264,7 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
              val (pfs, fs) = fold_map factors_of ts [];
              val ((h', ts'), fs') = (case rhs of
                  Abs _ => (case strip_abs_body rhs of
-                     Const (\<^const_name>\<open>Set.member\<close>, _) $ u $ S =>
+                     \<^Const_>\<open>Set.member _ for u S\<close> =>
                        (strip_comb S, SOME (HOLogic.flat_tuple_paths u))
                    | _ => raise Malformed "member symbol on right-hand side expected")
                | _ => (strip_comb rhs, NONE))
@@ -410,7 +403,7 @@ fun add_ind_set_def
     val {set_arities, pred_arities, to_pred_simps, ...} =
       Data.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t
-      | infer (Const (\<^const_name>\<open>Set.member\<close>, _) $ t $ u) =
+      | infer \<^Const_>\<open>Set.member _ for t u\<close> =
           infer_arities thy set_arities (SOME (HOLogic.flat_tuple_paths t), u)
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;
@@ -423,11 +416,10 @@ fun add_ind_set_def
           let
             val T = HOLogic.dest_setT (fastype_of x);
             val Ts = HOLogic.strip_ptupleT fs T;
-            val x' = map_type (K (Ts ---> HOLogic.boolT)) x
+            val x' = map_type (K (Ts ---> \<^Type>\<open>bool\<close>)) x
           in
             (x, (x',
-              (HOLogic.Collect_const T $
-                 HOLogic.mk_ptupleabs fs T HOLogic.boolT x',
+              (\<^Const>\<open>Collect T\<close> $ HOLogic.mk_ptupleabs fs T \<^Type>\<open>bool\<close> x',
                fold_rev (Term.abs o pair "x") Ts
                  (HOLogic.mk_mem
                    (HOLogic.mk_ptuple fs T (map Bound (length fs downto 0)), x)))))
@@ -449,13 +441,11 @@ fun add_ind_set_def
            Pretty.block (Pretty.commas (map (Syntax.pretty_typ lthy) paramTs)),
            Pretty.str "of declared parameters"]));
         val Ts = HOLogic.strip_ptupleT fs U;
-        val c' = Free (s ^ "p",
-          map fastype_of params1 @ Ts ---> HOLogic.boolT)
+        val c' = Free (s ^ "p", map fastype_of params1 @ Ts ---> \<^Type>\<open>bool\<close>)
       in
         ((c', (fs, U, Ts)),
          (list_comb (c, params2),
-          HOLogic.Collect_const U $ HOLogic.mk_ptupleabs fs U HOLogic.boolT
-            (list_comb (c', params1))))
+          \<^Const>\<open>Collect U\<close> $ HOLogic.mk_ptupleabs fs U \<^Type>\<open>bool\<close> (list_comb (c', params1))))
       end) |> split_list |>> split_list;
     val eqns' = eqns @
       map (Thm.prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
@@ -484,8 +474,8 @@ fun add_ind_set_def
       |> fold_map Local_Theory.define
         (map (fn (((b, mx), (fs, U, _)), p) =>
           ((b, mx), ((Thm.def_binding b, []),
-            fold_rev lambda params (HOLogic.Collect_const U $
-              HOLogic.mk_ptupleabs fs U HOLogic.boolT (list_comb (p, params3))))))
+            fold_rev lambda params (\<^Const>\<open>Collect U\<close> $
+              HOLogic.mk_ptupleabs fs U \<^Type>\<open>bool\<close> (list_comb (p, params3))))))
             (cnames_syn ~~ cs_info ~~ preds));
 
     (* prove theorems for converting predicate to set notation *)
