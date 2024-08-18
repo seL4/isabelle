@@ -47,8 +47,6 @@ sig
   val store_thms : string -> string list -> thm list -> theory -> thm list * theory
 
   val split_conj_thm : thm -> thm list
-  val mk_conj : term list -> term
-  val mk_disj : term list -> term
 
   val app_bnds : term -> int -> term
 
@@ -114,9 +112,6 @@ fun store_thms name tnames = store_thms_atts name tnames (replicate (length tnam
 
 fun split_conj_thm th =
   ((th RS conjunct1) :: split_conj_thm (th RS conjunct2)) handle THM _ => [th];
-
-val mk_conj = foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>);
-val mk_disj = foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.disj\<close>);
 
 fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 

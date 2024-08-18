@@ -1043,8 +1043,8 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
 
     val indrule_lemma = Goal.prove_global_future thy8 [] []
       (Logic.mk_implies
-        (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_prems),
-         HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj indrule_lemma_concls)))
+        (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj indrule_lemma_prems),
+         HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj indrule_lemma_concls)))
          (fn {context = ctxt, ...} => EVERY
            [REPEAT (eresolve_tac ctxt [conjE] 1),
             REPEAT (EVERY

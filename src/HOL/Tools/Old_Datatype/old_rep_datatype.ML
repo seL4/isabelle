@@ -211,7 +211,7 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
             ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
       in
         Old_Datatype_Aux.split_conj_thm (Goal.prove_sorry_global thy1 [] []
-          (HOLogic.mk_Trueprop (Old_Datatype_Aux.mk_conj rec_unique_ts))
+          (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj rec_unique_ts))
           (fn {context = ctxt, ...} =>
             let
               val induct' =

@@ -44,8 +44,7 @@ fun make_injs descr =
         in
           cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
             (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
-             foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
-               (map HOLogic.mk_eq (frees ~~ frees')))))
+             foldr1 HOLogic.mk_conj (map HOLogic.mk_eq (frees ~~ frees')))))
         end;
   in
     map2 (fn d => fn T => fold_rev (make_inj T) (#3 (snd d)) [])
@@ -125,7 +124,7 @@ fun make_ind descr =
       maps (fn ((i, (_, _, constrs)), T) => map (make_ind_prem i T) constrs) (descr' ~~ recTs);
     val tnames = Case_Translation.make_tnames recTs;
     val concl =
-      HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop \<^const_name>\<open>HOL.conj\<close>)
+      HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj
         (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T))
           (descr' ~~ recTs ~~ tnames)));
 
@@ -306,8 +305,8 @@ fun make_splits case_names descr thy =
         val (t1s, t2s) = fold_rev process_constr (constrs ~~ fs) ([], []);
         val lhs = P $ (comb_t $ Free ("x", T));
       in
-        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, Old_Datatype_Aux.mk_conj t1s)),
-         HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, HOLogic.Not $ Old_Datatype_Aux.mk_disj t2s)))
+        (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, foldr1 HOLogic.mk_conj t1s)),
+         HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, HOLogic.Not $ foldr1 HOLogic.mk_disj t2s)))
       end
 
   in
@@ -406,7 +405,7 @@ fun make_nchotomys descr =
   in
     map (fn ((_, (_, _, constrs)), T) =>
         HOLogic.mk_Trueprop
-          (HOLogic.mk_all ("v", T, Old_Datatype_Aux.mk_disj (map (mk_eqn T) constrs))))
+          (HOLogic.mk_all ("v", T, foldr1 HOLogic.mk_disj (map (mk_eqn T) constrs))))
       (hd descr ~~ newTs)
   end;
 
