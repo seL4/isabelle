@@ -21,12 +21,12 @@ fun move_to_front ctxt path = Conv.every_conv
     [Conv.rewr_conv (Library.foldl (op RS) (@{thm nat_arith.rule0}, path)),
      Conv.arg_conv (Raw_Simplifier.rewrite ctxt false norm_rules)]
 
-fun add_atoms path (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ x $ y) =
+fun add_atoms path \<^Const_>\<open>plus _ for x y\<close> =
       add_atoms (@{thm nat_arith.add1}::path) x #>
       add_atoms (@{thm nat_arith.add2}::path) y
-  | add_atoms path (Const (\<^const_name>\<open>Nat.Suc\<close>, _) $ x) =
+  | add_atoms path \<^Const_>\<open>Suc for x\<close> =
       add_atoms (@{thm nat_arith.suc1}::path) x
-  | add_atoms _ (Const (\<^const_name>\<open>Groups.zero\<close>, _)) = I
+  | add_atoms _ \<^Const_>\<open>Groups.zero _\<close> = I
   | add_atoms path x = cons (x, path)
 
 fun atoms t = add_atoms [] t []

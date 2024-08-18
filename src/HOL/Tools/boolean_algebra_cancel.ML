@@ -16,19 +16,19 @@ struct
 
 fun move_to_front rule path = Conv.rewr_conv (Library.foldl (op RS) (rule, path))
 
-fun add_atoms sup pos path (t as Const (\<^const_name>\<open>Lattices.sup\<close>, _) $ x $ y) =
+fun add_atoms sup pos path (t as \<^Const_>\<open>sup _ for x y\<close>) =
     if sup then
       add_atoms sup pos (@{thm boolean_algebra_cancel.sup1}::path) x #>
       add_atoms sup pos (@{thm boolean_algebra_cancel.sup2}::path) y
     else cons ((pos, t), path)
-  | add_atoms sup pos path (t as Const (\<^const_name>\<open>Lattices.inf\<close>, _) $ x $ y) =
+  | add_atoms sup pos path (t as \<^Const_>\<open>inf _ for x y\<close>) =
     if not sup then
       add_atoms sup pos (@{thm boolean_algebra_cancel.inf1}::path) x #>
       add_atoms sup pos (@{thm boolean_algebra_cancel.inf2}::path) y
     else cons ((pos, t), path)
-  | add_atoms _ _ _ (Const (\<^const_name>\<open>Orderings.bot\<close>, _)) = I
-  | add_atoms _ _ _ (Const (\<^const_name>\<open>Orderings.top\<close>, _)) = I
-  | add_atoms _ pos path (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ x) = cons ((not pos, x), path)
+  | add_atoms _ _ _ \<^Const_>\<open>bot _\<close> = I
+  | add_atoms _ _ _ \<^Const_>\<open>top _\<close> = I
+  | add_atoms _ pos path \<^Const_>\<open>uminus _ for x\<close> = cons ((not pos, x), path)
   | add_atoms _ pos path x = cons ((pos, x), path);
 
 fun atoms sup pos t = add_atoms sup pos [] t []

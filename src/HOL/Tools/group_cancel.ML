@@ -24,15 +24,15 @@ fun move_to_front path = Conv.every_conv
     [Conv.rewr_conv (Library.foldl (op RS) (@{thm group_cancel.rule0}, path)),
      Conv.arg1_conv (Conv.repeat_conv (Conv.rewr_conv minus_minus))]
 
-fun add_atoms pos path (Const (\<^const_name>\<open>Groups.plus\<close>, _) $ x $ y) =
+fun add_atoms pos path \<^Const_>\<open>plus _ for x y\<close> =
       add_atoms pos (@{thm group_cancel.add1}::path) x #>
       add_atoms pos (@{thm group_cancel.add2}::path) y
-  | add_atoms pos path (Const (\<^const_name>\<open>Groups.minus\<close>, _) $ x $ y) =
+  | add_atoms pos path \<^Const_>\<open>minus _ for x y\<close> =
       add_atoms pos (@{thm group_cancel.sub1}::path) x #>
       add_atoms (not pos) (@{thm group_cancel.sub2}::path) y
-  | add_atoms pos path (Const (\<^const_name>\<open>Groups.uminus\<close>, _) $ x) =
+  | add_atoms pos path \<^Const_>\<open>uminus _ for x\<close> =
       add_atoms (not pos) (@{thm group_cancel.neg1}::path) x
-  | add_atoms _ _ (Const (\<^const_name>\<open>Groups.zero\<close>, _)) = I
+  | add_atoms _ _ \<^Const_>\<open>Groups.zero _\<close> = I
   | add_atoms pos path x = cons ((pos, x), path)
 
 fun atoms t = add_atoms true [] t []

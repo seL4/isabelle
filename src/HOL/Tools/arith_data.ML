@@ -57,29 +57,21 @@ val _ =
 fun mk_number T 1 = HOLogic.numeral_const T $ HOLogic.one_const
   | mk_number T n = HOLogic.mk_number T n;
 
-val mk_plus = HOLogic.mk_binop \<^const_name>\<open>Groups.plus\<close>;
-
-fun mk_minus t =
-  let val T = Term.fastype_of t
-  in Const (\<^const_name>\<open>Groups.uminus\<close>, T --> T) $ t end;
-
 (*Thus mk_sum[t] yields t+0; longer sums don't have a trailing zero*)
 fun mk_sum T [] = mk_number T 0
-  | mk_sum T [t, u] = mk_plus (t, u)
-  | mk_sum T (t :: ts) = mk_plus (t, mk_sum T ts);
+  | mk_sum T [t, u] = \<^Const>\<open>plus T for t u\<close>
+  | mk_sum T (t :: ts) = \<^Const>\<open>plus T for t \<open>mk_sum T ts\<close>\<close>;
 
 (*this version ALWAYS includes a trailing zero*)
 fun long_mk_sum T [] = mk_number T 0
-  | long_mk_sum T (t :: ts) = mk_plus (t, long_mk_sum T ts);
+  | long_mk_sum T (t :: ts) = \<^Const>\<open>plus T for t \<open>long_mk_sum T ts\<close>\<close>;
 
 (*decompose additions AND subtractions as a sum*)
-fun dest_summing (pos, Const (\<^const_name>\<open>Groups.plus\<close>, _) $ t $ u, ts) =
-      dest_summing (pos, t, dest_summing (pos, u, ts))
-  | dest_summing (pos, Const (\<^const_name>\<open>Groups.minus\<close>, _) $ t $ u, ts) =
-      dest_summing (pos, t, dest_summing (not pos, u, ts))
-  | dest_summing (pos, t, ts) = (if pos then t else mk_minus t) :: ts;
+fun dest_summing pos \<^Const_>\<open>plus _ for t u\<close> ts = dest_summing pos t (dest_summing pos u ts)
+  | dest_summing pos \<^Const_>\<open>minus _ for t u\<close> ts = dest_summing pos t (dest_summing (not pos) u ts)
+  | dest_summing pos t ts = (if pos then t else \<^Const>\<open>uminus \<open>fastype_of t\<close> for t\<close>) :: ts;
 
-fun dest_sum t = dest_summing (true, t, []);
+fun dest_sum t = dest_summing true t [];
 
 
 (* various auxiliary and legacy *)
