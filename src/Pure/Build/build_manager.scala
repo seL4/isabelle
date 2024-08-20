@@ -804,12 +804,11 @@ object Build_Manager {
 
       def running: List[String] = process_futures.keys.toList
 
-      private def do_terminate(name: String): Boolean =
-        if (cancelling_until(name) <= Time.now()) true
-        else {
-          process_futures(name).join.terminate()
-          false
-        }
+      private def do_terminate(name: String): Boolean = {
+        val is_late = cancelling_until(name) > Time.now()
+        if (is_late) process_futures(name).join.terminate()
+        is_late
+      }
 
       def update: (State, Map[String, Process_Result]) = {
         val finished =
@@ -824,28 +823,28 @@ object Build_Manager {
           copy(
             process_futures.filterNot((name, _) => finished.contains(name)),
             result_futures.filterNot((name, _) => finished.contains(name)),
-            cancelling_until.filterNot((name, _) => finished.contains(name) && !do_terminate(name)))
+            cancelling_until.filterNot((name, _) => finished.contains(name) || do_terminate(name)))
         (state1, finished)
       }
 
-      private def do_cancel(name: String): Boolean = 
-        process_futures.get(name) match {
-          case Some(process_future) =>
-            if (process_future.is_finished) {
-              process_future.join.cancel()
-              true
-            } else {
-              process_future.cancel()
-              false
-            }
-          case None => false
-        }
+      private def do_cancel(process_future: Future[Build_Process]): Boolean = {
+        val is_finished = process_future.is_finished
+        if (is_finished) process_future.join.cancel() else process_future.cancel()
+        is_finished
+      }
 
-      def cancel(cancelled: List[String]): State =
+      def cancel(cancelled: List[String]): State = {
+        val cancelling_until1 =
+          for {
+            name <- cancelled
+            process_future <- process_futures.get(name)
+            if do_cancel(process_future)
+          } yield name -> (Time.now() + cancel_timeout)
+
         copy(
           process_futures.filterNot((name, _) => cancelled.contains(name)),
-          cancelling_until = cancelling_until ++
-            cancelled.filter(do_cancel).map(_ -> (Time.now() + cancel_timeout)))
+          cancelling_until = cancelling_until ++ cancelling_until1)
+      }
     }
   }
 
