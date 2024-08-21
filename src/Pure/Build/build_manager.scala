@@ -811,7 +811,7 @@ object Build_Manager {
       }
 
       def update: (State, Map[String, Process_Result]) = {
-        val finished =
+        val finished0 =
           for ((name, future) <- result_futures if future.is_finished)
           yield name ->
             (future.join_result match {
@@ -819,11 +819,20 @@ object Build_Manager {
               case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
             })
 
+        val (terminated, cancelling_until1) =
+          cancelling_until
+            .filterNot((name, _) => finished0.contains(name))
+            .partition((name, _) => do_terminate(name))
+
+        val finished =
+          finished0 ++
+            terminated.map((name, _) => name -> Process_Result(Process_Result.RC.timeout))
+
         val state1 =
           copy(
             process_futures.filterNot((name, _) => finished.contains(name)),
             result_futures.filterNot((name, _) => finished.contains(name)),
-            cancelling_until.filterNot((name, _) => finished.contains(name) || do_terminate(name)))
+            cancelling_until1)
         (state1, finished)
       }
 
