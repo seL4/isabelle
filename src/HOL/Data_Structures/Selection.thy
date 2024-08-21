@@ -645,9 +645,7 @@ time_definition slow_select
 
 lemmas T_slow_select_def [simp del] = T_slow_select.simps
 
-
-definition T_slow_median :: "'a :: linorder list \<Rightarrow> nat" where
-  "T_slow_median xs = T_length xs + T_slow_select ((length xs - 1) div 2) xs"
+time_fun slow_median
 
 lemma T_slow_select_le:
   assumes "k < length xs"
@@ -671,7 +669,7 @@ lemma T_slow_median_le:
   shows   "T_slow_median xs \<le> length xs ^ 2 + 4 * length xs + 2"
 proof -
   have "T_slow_median xs = length xs + T_slow_select ((length xs - 1) div 2) xs + 1"
-    by (simp add: T_slow_median_def T_length_eq)
+    by (simp add: T_length_eq)
   also from assms have "length xs > 0"
     by simp
   hence "(length xs - 1) div 2 < length xs"

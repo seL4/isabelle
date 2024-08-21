@@ -12,16 +12,25 @@ time_fun "(@)"
 lemma T_append: "T_append xs ys = length xs + 1"
 by(induction xs) auto
 
-text \<open>Automatic definition of \<open>T_length\<close> is cumbersome because of the type class for \<open>size\<close>.\<close>
+class T_size =
+  fixes T_size :: "'a \<Rightarrow> nat"
 
-fun T_length :: "'a list \<Rightarrow> nat" where
-  "T_length [] = 1"
-| "T_length (x # xs) = T_length xs + 1"
+instantiation list :: (_) T_size
+begin
+
+time_fun length
+
+instance ..
+
+end
+
+abbreviation T_length :: "'a list \<Rightarrow> nat" where
+"T_length \<equiv> T_size"
 
 lemma T_length_eq: "T_length xs = length xs + 1"
   by (induction xs) auto
 
-lemmas [simp del] = T_length.simps
+lemmas [simp del] = T_size_list.simps
 
 time_fun map
 
