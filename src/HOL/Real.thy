@@ -996,23 +996,21 @@ qed
 lemma int_le_real_less: "n \<le> m \<longleftrightarrow> real_of_int n < real_of_int m + 1"
   by (meson int_less_real_le not_le)
 
-lemma real_of_int_div_aux:
-  "(real_of_int x) / (real_of_int d) =
-    real_of_int (x div d) + (real_of_int (x mod d)) / (real_of_int d)"
+lemma (in field_char_0) of_int_div_aux:
+  "(of_int x) / (of_int d) =
+    of_int (x div d) + (of_int (x mod d)) / (of_int d)"
 proof -
   have "x = (x div d) * d + x mod d"
     by auto
-  then have "real_of_int x = real_of_int (x div d) * real_of_int d + real_of_int(x mod d)"
-    by (metis of_int_add of_int_mult)
-  then have "real_of_int x / real_of_int d = \<dots> / real_of_int d"
-    by simp
+  then have "of_int x = of_int (x div d) * of_int d + of_int(x mod d)"
+    by (metis local.of_int_add local.of_int_mult)
   then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps)
+    by (simp add: divide_simps)
 qed
 
 lemma real_of_int_div:
   "d dvd n \<Longrightarrow> real_of_int (n div d) = real_of_int n / real_of_int d" for d n :: int
-  by (simp add: real_of_int_div_aux)
+  by auto
 
 lemma real_of_int_div2: "0 \<le> real_of_int n / real_of_int x - real_of_int (n div x)"
 proof (cases "x = 0")
@@ -1031,53 +1029,33 @@ lemma real_of_int_div4: "real_of_int (n div x) \<le> real_of_int n / real_of_int
 
 subsection \<open>Embedding the Naturals into the Reals\<close>
 
+lemma (in field_char_0) of_nat_of_nat_div_aux:
+  "of_nat x / of_nat d = of_nat (x div d) + of_nat (x mod d) / of_nat d"
+  by (metis add_divide_distrib diff_add_cancel of_nat_div)
+
+lemma(in field_char_0) of_nat_of_nat_div: "d dvd n \<Longrightarrow> of_nat(n div d) = of_nat n / of_nat d"
+  by auto
+
+lemma (in linordered_field) of_nat_div_le_of_nat: "of_nat (n div x) \<le> of_nat n / of_nat x"
+  by (metis le_add_same_cancel1 of_nat_0_le_iff of_nat_of_nat_div_aux zero_le_divide_iff) 
+
 lemma real_of_card: "real (card A) = sum (\<lambda>x. 1) A"
   by simp
 
 lemma nat_less_real_le: "n < m \<longleftrightarrow> real n + 1 \<le> real m"
-proof -
-  have \<open>n < m \<longleftrightarrow> Suc n \<le> m\<close>
-    by (simp add: less_eq_Suc_le)
-  also have \<open>\<dots> \<longleftrightarrow> real (Suc n) \<le> real m\<close>
-    by (simp only: of_nat_le_iff)
-  also have \<open>\<dots> \<longleftrightarrow> real n + 1 \<le> real m\<close>
-    by (simp add: ac_simps)
-  finally show ?thesis .
-qed
+  by (metis less_iff_succ_less_eq of_nat_1 of_nat_add of_nat_le_iff)
 
 lemma nat_le_real_less: "n \<le> m \<longleftrightarrow> real n < real m + 1"
   by (meson nat_less_real_le not_le)
 
-lemma real_of_nat_div_aux: "real x / real d = real (x div d) + real (x mod d) / real d"
-proof -
-  have "x = (x div d) * d + x mod d"
-    by auto
-  then have "real x = real (x div d) * real d + real(x mod d)"
-    by (metis of_nat_add of_nat_mult)
-  then have "real x / real d = \<dots> / real d"
-    by simp
-  then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps)
-qed
-
 lemma real_of_nat_div: "d dvd n \<Longrightarrow> real(n div d) = real n / real d"
-  by (subst real_of_nat_div_aux) (auto simp add: dvd_eq_mod_eq_0 [symmetric])
-
-lemma real_of_nat_div2: "0 \<le> real n / real x - real (n div x)" for n x :: nat
-  apply (simp add: algebra_simps)
-  by (metis floor_divide_of_nat_eq of_int_floor_le of_int_of_nat_eq)
-
-lemma real_of_nat_div3: "real n / real x - real (n div x) \<le> 1" for n x :: nat
-  by (metis of_int_of_nat_eq real_of_int_div3 of_nat_div)
-
-lemma real_of_nat_div4: "real (n div x) \<le> real n / real x" for n x :: nat
-  using real_of_nat_div2 [of n x] by simp
+  by auto
 
 lemma real_binomial_eq_mult_binomial_Suc:
   assumes "k \<le> n"
   shows "real(n choose k) = (n + 1 - k) / (n + 1) * (Suc n choose k)"
   using assms
-  by (simp add: of_nat_binomial_eq_mult_binomial_Suc [of k n] add.commute of_nat_diff)
+  by (simp add: of_nat_binomial_eq_mult_binomial_Suc [of k n] add.commute)
 
 
 subsection \<open>The Archimedean Property of the Reals\<close>
@@ -1311,7 +1289,6 @@ subsection \<open>Lemmas about powers\<close>
 lemma two_realpow_ge_one: "(1::real) \<le> 2 ^ n"
   by simp
 
-(* FIXME: declare this [simp] for all types, or not at all *)
 declare sum_squares_eq_zero_iff [simp] sum_power2_eq_zero_iff [simp]
 
 lemma real_minus_mult_self_le [simp]: "- (u * u) \<le> x * x"

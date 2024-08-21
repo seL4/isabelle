@@ -849,7 +849,7 @@ next
     have "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> \<le> real_of_int a / real_of_int b"
       by simp
     moreover have "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> \<noteq> real_of_int a / real_of_int b"
-      by (smt (verit) floor_divide_of_int_eq ne real_of_int_div_aux)
+      by (smt (verit) floor_divide_of_int_eq ne of_int_div_aux)
     ultimately show "real_of_int \<lfloor>real_of_int a / real_of_int b\<rfloor> < real_of_int a / real_of_int b" by arith
   qed
   then show ?thesis

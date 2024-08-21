@@ -22,7 +22,7 @@ next
   then have "real (x div b) + real (x mod b) / real b - real (x div b) < 1"
     by (simp add: field_simps)
   then show ?thesis
-    by (simp add: real_of_nat_div_aux [symmetric])
+    by (metis of_nat_of_nat_div_aux)
 qed
 
 
@@ -108,7 +108,7 @@ proof-
   also have "\<dots> = \<lfloor>log b (x / b)\<rfloor> + 1" using that by simp
   also have "\<lfloor>log b (x / b)\<rfloor> = \<lfloor>log b (x div b + (x / b - x div b))\<rfloor>" by simp
   also have "\<dots> = \<lfloor>log b (x div b)\<rfloor>"
-    using that real_of_nat_div4 divide_nat_diff_div_nat_less_one
+    using that of_nat_div_le_of_nat divide_nat_diff_div_nat_less_one
     by (intro floor_log_add_eqI) auto
   finally show ?thesis .
 qed
