@@ -648,8 +648,10 @@ fun mark_atoms is_syntax_const ctxt tm =
 
 in
 
-fun term_to_ast is_syntax_const ctxt trf tm =
+fun term_to_ast ctxt trf tm =
   let
+    val is_syntax_const = Syntax.is_const (Proof_Context.syntax_of ctxt);
+
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
 
@@ -801,12 +803,8 @@ val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast (Markup.language_t
 fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val syn = Proof_Context.syntax_of ctxt;
-  in
-    unparse_t (term_to_ast (Syntax.is_const syn))
-      (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
-      (Markup.language_term false) ctxt
-  end;
+    val curried = not (Pure_Thy.old_appl_syntax thy);
+  in unparse_t term_to_ast (Printer.pretty_term_ast curried) (Markup.language_term false) ctxt end;
 
 end;
 
