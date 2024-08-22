@@ -202,10 +202,14 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
+val pretty_type_mode = Config.declare_bool ("Syntax.pretty_type_mode", \<^here>) (K false);
+val pretty_curried = Config.declare_bool ("Syntax.pretty_curried", \<^here>) (K false);
 val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K 0);
 
-fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
+fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
   let
+    val type_mode = Config.get ctxt pretty_type_mode;
+    val curried = Config.get ctxt pretty_curried;
     val show_brackets = Config.get ctxt show_brackets;
 
     (*default applications: prefix / postfix*)
@@ -224,8 +228,10 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
           in
             if type_mode then (astT (t, p) @ Ts, args')
             else
-              (pretty true curried (Config.put pretty_priority p ctxt)
-                tabs trf markup_trans markup_extern t @ Ts, args')
+              let val ctxt' = ctxt
+                |> Config.put pretty_type_mode true
+                |> Config.put pretty_priority p
+              in (pretty ctxt' tabs trf markup_trans markup_extern t @ Ts, args') end
           end
       | synT m (String (do_mark, s) :: symbs, args) =
           let
@@ -292,13 +298,19 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
 (* pretty_term_ast *)
 
 fun pretty_term_ast curried ctxt prtabs trf markup_trans extern ast =
-  pretty false curried ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
+  let val ctxt' = ctxt
+    |> Config.put pretty_type_mode false
+    |> Config.put pretty_curried curried
+  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast end;
 
 
 (* pretty_typ_ast *)
 
 fun pretty_typ_ast ctxt prtabs trf markup_trans extern ast =
-  pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
+  let val ctxt' = ctxt
+    |> Config.put pretty_type_mode true
+    |> Config.put pretty_curried false
+  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast end;
 
 end;
 
