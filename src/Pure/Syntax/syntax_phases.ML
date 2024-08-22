@@ -468,7 +468,7 @@ fun parse_ast_pattern ctxt (root, str) =
     fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
     and decode ps (Ast.Constant c) = decode_const ps c
       | decode ps (Ast.Variable x) =
-          if is_some (Syntax.lookup_const syn x) orelse Long_Name.is_qualified x
+          if Syntax.is_const syn x orelse Long_Name.is_qualified x
           then decode_const ps x
           else decode_var ps x
       | decode ps (Ast.Appl (asts as (Ast.Constant c :: ast :: Ast.Variable x :: args))) =
@@ -803,7 +803,7 @@ fun unparse_term ctxt =
     val thy = Proof_Context.theory_of ctxt;
     val syn = Proof_Context.syntax_of ctxt;
   in
-    unparse_t (term_to_ast (is_some o Syntax.lookup_const syn))
+    unparse_t (term_to_ast (Syntax.is_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
       (Markup.language_term false) ctxt
   end;

@@ -1127,7 +1127,7 @@ end;
 (* syntax *)
 
 fun check_syntax_const ctxt (c, pos) =
-  if is_some (Syntax.lookup_const (syntax_of ctxt) c) then c
+  if Syntax.is_const (syntax_of ctxt) c then c
   else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
 
 fun syntax add mode args ctxt =

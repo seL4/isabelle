@@ -78,6 +78,7 @@ sig
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
   val get_approx: syntax -> string -> approx option
   val lookup_const: syntax -> string -> string option
+  val is_const: syntax -> string -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
   val parse: syntax -> string -> Lexicon.token list -> Parser.parsetree list
@@ -441,6 +442,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
       |> Option.map Prefix);
 
 fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
+fun is_const (Syntax ({consts, ...}, _)) = Symtab.defined consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse (Syntax ({gram, ...}, _)) = Parser.parse (cache_eval gram);
