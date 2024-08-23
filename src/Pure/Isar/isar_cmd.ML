@@ -15,8 +15,10 @@ sig
   val print_ast_translation: Input.source -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
-  val syntax_consts: ((string * Position.T) * (xstring * Position.T) list) list -> theory -> theory
-  val syntax_types: ((string * Position.T) * (xstring * Position.T) list) list -> theory -> theory
+  val syntax_consts: ((string * Position.T) list * (xstring * Position.T) list) list ->
+    theory -> theory
+  val syntax_types: ((string * Position.T) list * (xstring * Position.T) list) list ->
+    theory -> theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
@@ -117,13 +119,20 @@ local
 fun syntax_deps_cmd f args thy =
   let
     val ctxt = Proof_Context.init_global thy;
+
+    val check_lhs = Proof_Context.check_syntax_const ctxt;
     fun check_rhs (b: xstring, pos: Position.T) =
       let
-        val (c, reports) = f ctxt (b, pos);
+        val (c: string, reports) = f ctxt (b, pos);
         val _ = Context_Position.reports ctxt reports;
       in c end;
-    fun check_arg (a, bs) = (Proof_Context.check_syntax_const ctxt a, map check_rhs bs);
-  in Sign.syntax_deps (map check_arg args) thy end;
+
+    fun check (raw_lhs, raw_rhs) =
+      let
+        val lhs = map check_lhs raw_lhs;
+        val rhs = map check_rhs raw_rhs;
+      in map (fn l => (l, rhs)) lhs end;
+  in Sign.syntax_deps (maps check args) thy end;
 
 fun check_const ctxt (s, pos) =
   Proof_Context.check_const {proper = false, strict = true} ctxt (s, [pos])
