@@ -731,7 +731,7 @@ fun var_or_skolem s =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-fun unparse_t t_to_ast prt_t outer_markup ctxt t =
+fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
@@ -740,6 +740,7 @@ fun unparse_t t_to_ast prt_t outer_markup ctxt t =
     val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.prtabs syn;
     val trf = Syntax.print_ast_translation syn;
+    val markup_extern = (markup_entity ctxt, extern ctxt);
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
@@ -776,16 +777,16 @@ fun unparse_t t_to_ast prt_t outer_markup ctxt t =
       else NONE
 
     and pretty_typ_ast m ast = ast
-      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans (markup_entity ctxt, extern ctxt)
+      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
       |> Pretty.markup m
 
     and pretty_ast m ast = ast
-      |> prt_t ctxt prtabs trf markup_trans (markup_entity ctxt, extern ctxt)
+      |> prt_t ctxt prtabs trf markup_trans markup_extern
       |> Pretty.markup m;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> pretty_ast outer_markup
+    |> pretty_ast markup
   end;
 
 in
