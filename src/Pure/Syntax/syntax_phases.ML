@@ -620,7 +620,7 @@ fun prune_types tm =
           in (t1' $ t2', seen'') end;
   in #1 (prune (tm, [])) end;
 
-fun mark_atoms is_syntax_const ctxt tm =
+fun mark_atoms ctxt tm =
   let
     val {structs, fixes} = Syntax_Trans.get_idents ctxt;
     val show_structs = Config.get ctxt show_structs;
@@ -631,7 +631,7 @@ fun mark_atoms is_syntax_const ctxt tm =
       | mark (t $ u) = mark t $ mark u
       | mark (Abs (x, T, t)) = Abs (x, T, mark t)
       | mark (t as Const (c, T)) =
-          if is_syntax_const c then t
+          if Proof_Context.is_syntax_const ctxt c then t
           else Const (Lexicon.mark_const c, T)
       | mark (t as Free (x, T)) =
           let val i = find_index (fn s => s = x) structs + 1 in
@@ -651,8 +651,6 @@ in
 
 fun term_to_ast ctxt trf tm =
   let
-    val is_syntax_const = Syntax.is_const (Proof_Context.syntax_of ctxt);
-
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
 
@@ -694,7 +692,7 @@ fun term_to_ast ctxt trf tm =
     |> mark_aprop
     |> show_types ? prune_types
     |> Variable.revert_bounds ctxt
-    |> mark_atoms is_syntax_const ctxt
+    |> mark_atoms ctxt
     |> ast_of
   end;
 

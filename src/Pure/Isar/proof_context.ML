@@ -155,6 +155,7 @@ sig
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
   val check_case: Proof.context -> bool ->
     string * Position.T -> binding option list -> Rule_Cases.T
+  val is_syntax_const: Proof.context -> string -> bool
   val check_syntax_const: Proof.context -> string * Position.T -> string
   val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
     Proof.context -> Proof.context
@@ -1125,8 +1126,10 @@ end;
 
 (* syntax *)
 
+val is_syntax_const = Syntax.is_const o syntax_of;
+
 fun check_syntax_const ctxt (c, pos) =
-  if Syntax.is_const (syntax_of ctxt) c then c
+  if is_syntax_const ctxt c then c
   else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
 
 fun syntax add mode args ctxt =
