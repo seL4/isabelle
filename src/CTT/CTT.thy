@@ -61,6 +61,9 @@ syntax
 translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
+syntax_consts
+  "_PROD" \<rightleftharpoons> Prod and
+  "_SUM" \<rightleftharpoons> Sum
 
 abbreviation Arrow :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30)
   where "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"

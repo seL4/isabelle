@@ -43,11 +43,12 @@ definition
 syntax
   "_JOIN1"  :: "[pttrns, i] \<Rightarrow> i"     (\<open>(3\<Squnion>_./ _)\<close> 10)
   "_JOIN"   :: "[pttrn, i, i] \<Rightarrow> i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
-
 translations
   "\<Squnion>x \<in> A. B" == "CONST JOIN(A, (\<lambda>x. B))"
   "\<Squnion>x y. B"   == "\<Squnion>x. \<Squnion>y. B"
   "\<Squnion>x. B"     == "CONST JOIN(CONST state, (\<lambda>x. B))"
+syntax_consts
+  "_JOIN1" "_JOIN" == JOIN
 
 
 subsection\<open>SKIP\<close>
