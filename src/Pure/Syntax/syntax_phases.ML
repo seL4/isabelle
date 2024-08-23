@@ -703,16 +703,36 @@ end;
 
 local
 
-fun free_or_skolem ctxt x =
+fun markup_fixed ctxt x =
   let
-    val m =
+    val m1 =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
       then Markup.fixed x else Markup.intensify;
-  in
-    if Name.is_skolem x
-    then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
-    else ([m, Markup.free], x)
-  end;
+    val m2 = if Name.is_skolem x then Markup.skolem else Markup.free;
+  in [m1, m2] end;
+
+fun markup ctxt c =
+  Syntax.get_const (Proof_Context.syntax_of ctxt) c
+  |> Lexicon.unmark
+     {case_class = markup_class ctxt,
+      case_type = markup_type ctxt,
+      case_const = markup_const ctxt,
+      case_fixed = markup_fixed ctxt,
+      case_default = K []};
+
+fun extern_fixed ctxt x =
+  if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
+
+fun extern ctxt c =
+  Syntax.get_const (Proof_Context.syntax_of ctxt) c
+  |> Lexicon.unmark
+     {case_class = Proof_Context.extern_class ctxt,
+      case_type = Proof_Context.extern_type ctxt,
+      case_const = Proof_Context.extern_const ctxt,
+      case_fixed = extern_fixed ctxt,
+      case_default = I};
+
+fun free_or_skolem ctxt x = (markup_fixed ctxt x, extern_fixed ctxt x);
 
 fun var_or_skolem s =
   (case Lexicon.read_variable s of
@@ -725,7 +745,7 @@ fun var_or_skolem s =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-fun unparse_t t_to_ast prt_t markup ctxt t =
+fun unparse_t t_to_ast prt_t outer_markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
@@ -734,15 +754,6 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.prtabs syn;
     val trf = Syntax.print_ast_translation syn;
-
-    fun markup_extern c =
-      Syntax.get_const syn c
-      |> Lexicon.unmark
-         {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
-          case_type = fn x => (markup_type ctxt x, Proof_Context.extern_type ctxt x),
-          case_const = fn x => (markup_const ctxt x, Proof_Context.extern_const ctxt x),
-          case_fixed = fn x => free_or_skolem ctxt x,
-          case_default = fn x => ([], x)};
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
@@ -779,16 +790,16 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       else NONE
 
     and pretty_typ_ast m ast = ast
-      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
+      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans (markup ctxt, extern ctxt)
       |> Pretty.markup m
 
     and pretty_ast m ast = ast
-      |> prt_t ctxt prtabs trf markup_trans markup_extern
+      |> prt_t ctxt prtabs trf markup_trans (markup ctxt, extern ctxt)
       |> Pretty.markup m;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> pretty_ast markup
+    |> pretty_ast outer_markup
   end;
 
 in
