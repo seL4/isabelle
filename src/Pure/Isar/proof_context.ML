@@ -570,8 +570,7 @@ fun check_const {proper, strict} ctxt (c, ps) =
           let
             val reports = ps
               |> filter (Context_Position.is_reported ctxt)
-              |> map (fn pos =>
-                (pos, Markup.name x (if Name.is_skolem x then Markup.skolem else Markup.free)));
+              |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
           in (Free (x, infer_type ctxt (x, dummyT)), reports) end
       | (_, SOME d) =>
           let

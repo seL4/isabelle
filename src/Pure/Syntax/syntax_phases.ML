@@ -708,7 +708,7 @@ fun markup_fixed ctxt x =
     val m1 =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
       then Markup.fixed x else Markup.intensify;
-    val m2 = if Name.is_skolem x then Markup.skolem else Markup.free;
+    val m2 = Variable.markup ctxt x;
   in [m1, m2] end;
 
 fun markup ctxt c =
