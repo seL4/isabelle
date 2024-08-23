@@ -33,12 +33,13 @@ sig
   val pretty_term_ast: bool -> Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> Ast.ast list -> Pretty.T option) ->
-    (string -> Markup.T list * string) ->
+    ((string -> Markup.T list) * (string -> string)) ->
     Ast.ast -> Pretty.T list
   val pretty_typ_ast: Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> Ast.ast list -> Pretty.T option) ->
-    (string -> Markup.T list * string) -> Ast.ast -> Pretty.T list
+    ((string -> Markup.T list) * (string -> string)) ->
+    Ast.ast -> Pretty.T list
 end;
 
 structure Printer: PRINTER =
@@ -202,10 +203,14 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
+val pretty_type_mode = Config.declare_bool ("Syntax.pretty_type_mode", \<^here>) (K false);
+val pretty_curried = Config.declare_bool ("Syntax.pretty_curried", \<^here>) (K false);
 val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K 0);
 
-fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
+fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
   let
+    val type_mode = Config.get ctxt pretty_type_mode;
+    val curried = Config.get ctxt pretty_curried;
     val show_brackets = Config.get ctxt show_brackets;
 
     (*default applications: prefix / postfix*)
@@ -224,8 +229,10 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
           in
             if type_mode then (astT (t, p) @ Ts, args')
             else
-              (pretty true curried (Config.put pretty_priority p ctxt)
-                tabs trf markup_trans markup_extern t @ Ts, args')
+              let val ctxt' = ctxt
+                |> Config.put pretty_type_mode true
+                |> Config.put pretty_priority p
+              in (pretty ctxt' tabs trf markup_trans markup_extern t @ Ts, args') end
           end
       | synT m (String (do_mark, s) :: symbs, args) =
           let
@@ -254,7 +261,7 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
             [Block (Syntax_Ext.block_indent 1, String (false, "(") :: pr @ [String (false, ")")])]
            else pr, args))
 
-    and atomT a = Pretty.marks_str (markup_extern a)
+    and atomT a = Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)
 
     and prefixT (_, a, [], _) = [atomT a]
       | prefixT (c, _, args, p) = astT (appT (c, args), p)
@@ -271,7 +278,7 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
         fun prnt ([], []) = prefixT tup
           | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
           | prnt ((pr, n, p') :: prnps, tbs) =
-              if nargs = n then parT (#1 (markup_extern a)) (pr, args, p, p')
+              if nargs = n then parT (#1 markup_extern a) (pr, args, p, p')
               else if nargs > n andalso not type_mode then
                 astT (appT (splitT n ([c], args)), p)
               else prnt (prnps, tbs);
@@ -291,14 +298,20 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast curried ctxt prtabs trf markup_trans extern ast =
-  pretty false curried ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
+fun pretty_term_ast curried ctxt prtabs trf markup_trans markup_extern ast =
+  let val ctxt' = ctxt
+    |> Config.put pretty_type_mode false
+    |> Config.put pretty_curried curried
+  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans markup_extern ast end;
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast ctxt prtabs trf markup_trans extern ast =
-  pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
+fun pretty_typ_ast ctxt prtabs trf markup_trans markup_extern ast =
+  let val ctxt' = ctxt
+    |> Config.put pretty_type_mode true
+    |> Config.put pretty_curried false
+  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans markup_extern ast end;
 
 end;
 

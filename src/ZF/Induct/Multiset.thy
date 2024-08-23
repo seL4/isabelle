@@ -77,6 +77,7 @@ syntax
   "_MColl" :: "[pttrn, i, o] \<Rightarrow> i" (\<open>(1{# _ \<in> _./ _#})\<close>)
 translations
   "{#x \<in> M. P#}" == "CONST MCollect(M, \<lambda>x. P)"
+syntax_consts "_MColl" \<rightleftharpoons> MCollect
 
   (* multiset orderings *)
 

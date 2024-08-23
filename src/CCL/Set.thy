@@ -21,6 +21,8 @@ syntax
   "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  ("(1{_./ _})")
 translations
   "{x. P}" == "CONST Collect(\<lambda>x. P)"
+syntax_consts
+  "_Coll" == Collect
 
 lemma CollectI: "P(a) \<Longrightarrow> a : {x. P(x)}"
   apply (rule mem_Collect_iff [THEN iffD2])
@@ -53,6 +55,9 @@ syntax
 translations
   "ALL x:A. P"  == "CONST Ball(A, \<lambda>x. P)"
   "EX x:A. P"   == "CONST Bex(A, \<lambda>x. P)"
+syntax_consts
+  "_Ball" == Ball and
+  "_Bex" == Bex
 
 lemma ballI: "(\<And>x. x:A \<Longrightarrow> P(x)) \<Longrightarrow> ALL x:A. P(x)"
   by (simp add: Ball_def)
@@ -127,6 +132,9 @@ syntax
 translations
   "INT x:A. B" == "CONST INTER(A, \<lambda>x. B)"
   "UN x:A. B" == "CONST UNION(A, \<lambda>x. B)"
+syntax_consts
+  "_INTER" == INTER and
+  "_UNION" == UNION
 
 definition Inter :: "(('a set)set) \<Rightarrow> 'a set"
   where "Inter(S) == (INT x:S. x)"

@@ -52,6 +52,13 @@ print_translation \<open>
   [(\<^const_syntax>\<open>Prod\<close>,
     fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Pi\<close>, \<^syntax_const>\<open>_arrow\<close>))]
 \<close>
+syntax_consts
+  "_Trueprop" \<rightleftharpoons> Trueprop and
+  "_MT_context" \<rightleftharpoons> MT_context and
+  "_Context" \<rightleftharpoons> Context and
+  "_Has_type" \<rightleftharpoons> Has_type and
+  "_Lam" \<rightleftharpoons> Abs and
+  "_Pi" "_arrow" \<rightleftharpoons> Prod
 
 axiomatization where
   s_b: "*: \<box>"  and

@@ -119,6 +119,8 @@ syntax
 
 ML_file \<open>Tools/numeral_syntax.ML\<close>
 
+syntax_consts
+  "_Int0" "_Int1" "_Int2" "_Int" "_Neg_Int1" "_Neg_Int2" "_Neg_Int" \<rightleftharpoons> integ_of
 
 declare bin.intros [simp,TC]
 

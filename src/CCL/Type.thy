@@ -16,6 +16,8 @@ syntax
   "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  ("(1{_: _ ./ _})")
 translations
   "{x: A. B}" == "CONST Subtype(A, \<lambda>x. B)"
+syntax_consts
+  "_Subtype" == Subtype
 
 definition Unit :: "i set"
   where "Unit == {x. x=one}"
@@ -48,6 +50,9 @@ print_translation \<open>
   (\<^const_syntax>\<open>Sigma\<close>,
     fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Sigma\<close>, \<^syntax_const>\<open>_star\<close>))]
 \<close>
+syntax_consts
+  "_Pi" "_arrow" \<rightleftharpoons> Pi and
+  "_Sigma" "_star" \<rightleftharpoons> Sigma
 
 definition Nat :: "i set"
   where "Nat == lfp(\<lambda>X. Unit + X)"

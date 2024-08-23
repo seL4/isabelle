@@ -53,10 +53,13 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  Variable.markup ctxt x ::
-  (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
-   then [Variable.markup_fixed ctxt x]
-   else []);
+  let
+    val m1 =
+      if Variable.is_fixed ctxt x then Variable.markup_fixed ctxt x
+      else if not (Variable.is_body ctxt) orelse Syntax.is_pretty_global ctxt then Markup.fixed x
+      else Markup.intensify;
+    val m2 = Variable.markup ctxt x;
+  in [m1, m2] end;
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
@@ -64,10 +67,8 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
-  (case Syntax.lookup_const (Proof_Context.syntax_of ctxt) c of
-    SOME "" => []
-  | SOME b => markup_entity ctxt b
-  | NONE => c |> Lexicon.unmark
+  Syntax.get_consts (Proof_Context.syntax_of ctxt) c
+  |> maps (Lexicon.unmark
      {case_class = markup_class ctxt,
       case_type = markup_type ctxt,
       case_const = markup_const ctxt,
@@ -468,7 +469,7 @@ fun parse_ast_pattern ctxt (root, str) =
     fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
     and decode ps (Ast.Constant c) = decode_const ps c
       | decode ps (Ast.Variable x) =
-          if is_some (Syntax.lookup_const syn x) orelse Long_Name.is_qualified x
+          if Syntax.is_const syn x orelse Long_Name.is_qualified x
           then decode_const ps x
           else decode_var ps x
       | decode ps (Ast.Appl (asts as (Ast.Constant c :: ast :: Ast.Variable x :: args))) =
@@ -619,7 +620,7 @@ fun prune_types tm =
           in (t1' $ t2', seen'') end;
   in #1 (prune (tm, [])) end;
 
-fun mark_atoms is_syntax_const ctxt tm =
+fun mark_atoms ctxt tm =
   let
     val {structs, fixes} = Syntax_Trans.get_idents ctxt;
     val show_structs = Config.get ctxt show_structs;
@@ -630,7 +631,7 @@ fun mark_atoms is_syntax_const ctxt tm =
       | mark (t $ u) = mark t $ mark u
       | mark (Abs (x, T, t)) = Abs (x, T, mark t)
       | mark (t as Const (c, T)) =
-          if is_syntax_const c then t
+          if Proof_Context.is_syntax_const ctxt c then t
           else Const (Lexicon.mark_const c, T)
       | mark (t as Free (x, T)) =
           let val i = find_index (fn s => s = x) structs + 1 in
@@ -648,7 +649,7 @@ fun mark_atoms is_syntax_const ctxt tm =
 
 in
 
-fun term_to_ast is_syntax_const ctxt trf tm =
+fun term_to_ast ctxt trf tm =
   let
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
@@ -691,7 +692,7 @@ fun term_to_ast is_syntax_const ctxt trf tm =
     |> mark_aprop
     |> show_types ? prune_types
     |> Variable.revert_bounds ctxt
-    |> mark_atoms is_syntax_const ctxt
+    |> mark_atoms ctxt
     |> ast_of
   end;
 
@@ -703,23 +704,32 @@ end;
 
 local
 
-fun free_or_skolem ctxt x =
-  let
-    val m =
-      if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
-      then Markup.fixed x else Markup.intensify;
-  in
-    if Name.is_skolem x
-    then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
-    else ([m, Markup.free], x)
-  end;
+fun extern_fixed ctxt x =
+  if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
+
+fun extern ctxt c =
+  (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
+    [b] => b
+  | bs =>
+      (case filter Lexicon.is_marked bs of
+        [] => c
+      | [b] => b
+      | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
+  |> Lexicon.unmark
+     {case_class = Proof_Context.extern_class ctxt,
+      case_type = Proof_Context.extern_type ctxt,
+      case_const = Proof_Context.extern_const ctxt,
+      case_fixed = extern_fixed ctxt,
+      case_default = I};
+
+fun free_or_skolem ctxt x = (markup_free ctxt x, extern_fixed ctxt x);
 
 fun var_or_skolem s =
   (case Lexicon.read_variable s of
     SOME (x, i) =>
       (case try Name.dest_skolem x of
-        NONE => (Markup.var, s)
-      | SOME x' => (Markup.skolem, Term.string_of_vname (x', i)))
+        SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
+      | NONE => (Markup.var, s))
   | NONE => (Markup.var, s));
 
 val typing_elem = YXML.output_markup_elem Markup.typing;
@@ -734,17 +744,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.prtabs syn;
     val trf = Syntax.print_ast_translation syn;
-
-    fun markup_extern c =
-      (case Syntax.lookup_const syn c of
-        SOME "" => ([], c)
-      | SOME b => markup_extern b
-      | NONE => c |> Lexicon.unmark
-         {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
-          case_type = fn x => (markup_type ctxt x, Proof_Context.extern_type ctxt x),
-          case_const = fn x => (markup_const ctxt x, Proof_Context.extern_const ctxt x),
-          case_fixed = fn x => free_or_skolem ctxt x,
-          case_default = fn x => ([], x)});
+    val markup_extern = (markup_entity ctxt, extern ctxt);
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
@@ -801,12 +801,8 @@ val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast (Markup.language_t
 fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val syn = Proof_Context.syntax_of ctxt;
-  in
-    unparse_t (term_to_ast (is_some o Syntax.lookup_const syn))
-      (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
-      (Markup.language_term false) ctxt
-  end;
+    val curried = not (Pure_Thy.old_appl_syntax thy);
+  in unparse_t term_to_ast (Printer.pretty_term_ast curried) (Markup.language_term false) ctxt end;
 
 end;
 

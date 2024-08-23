@@ -30,6 +30,10 @@ translations
   "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
   "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
   "\<Union>x<a. B" \<rightleftharpoons> "CONST OUnion(a, \<lambda>x. B)"
+syntax_consts
+  "_oall" \<rightleftharpoons> oall and
+  "_oex" \<rightleftharpoons> oex and
+  "_OUNION" \<rightleftharpoons> OUnion
 
 
 subsubsection \<open>simplification of the new quantifiers\<close>
@@ -197,6 +201,9 @@ syntax
 translations
   "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
   "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
+syntax_consts
+  "_rall" \<rightleftharpoons> rall and
+  "_rex" \<rightleftharpoons> rex
 
 
 subsubsection\<open>Relativized universal quantifier\<close>

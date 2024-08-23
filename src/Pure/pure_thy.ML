@@ -220,6 +220,8 @@ val _ = Theory.setup
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
+  #> Sign.syntax_deps
+   [("_bracket", ["\<^type>fun"]), ("_bigimpl", ["\<^const>Pure.imp"])]
   #> Sign.add_consts
    [(qualify (Binding.make ("term", \<^here>)), typ "'a \<Rightarrow> prop", NoSyn),
     (qualify (Binding.make ("sort_constraint", \<^here>)), typ "'a itself \<Rightarrow> prop", NoSyn),
