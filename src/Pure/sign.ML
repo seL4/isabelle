@@ -78,6 +78,7 @@ sig
   val add_type_abbrev: Proof.context -> binding * string list * typ -> theory -> theory
   val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val syntax_cmd: bool -> Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val syntax_deps: (string * string list) list -> theory -> theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: Proof.context -> (binding * typ) * mixfix -> theory -> term * theory
@@ -391,6 +392,8 @@ fun gen_syntax parse_typ add mode args thy =
 
 val syntax = gen_syntax (K I);
 val syntax_cmd = gen_syntax Syntax.read_typ;
+
+val syntax_deps = map_syn o Syntax.update_consts;
 
 fun type_notation add mode args =
   let

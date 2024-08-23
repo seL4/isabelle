@@ -67,13 +67,13 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
-  Syntax.get_const (Proof_Context.syntax_of ctxt) c
-  |> Lexicon.unmark
+  Syntax.get_consts (Proof_Context.syntax_of ctxt) c
+  |> maps (Lexicon.unmark
      {case_class = markup_class ctxt,
       case_type = markup_type ctxt,
       case_const = markup_const ctxt,
       case_fixed = markup_free ctxt,
-      case_default = K []};
+      case_default = K []});
 
 
 
@@ -710,7 +710,13 @@ fun extern_fixed ctxt x =
   if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
 
 fun extern ctxt c =
-  Syntax.get_const (Proof_Context.syntax_of ctxt) c
+  (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
+    [b] => b
+  | bs =>
+      (case filter Lexicon.is_marked bs of
+        [] => c
+      | [b] => b
+      | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
   |> Lexicon.unmark
      {case_class = Proof_Context.extern_class ctxt,
       case_type = Proof_Context.extern_type ctxt,

@@ -77,7 +77,7 @@ sig
   val eq_syntax: syntax * syntax -> bool
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
   val get_approx: syntax -> string -> approx option
-  val get_const: syntax -> string -> string
+  val get_consts: syntax -> string -> string list
   val is_const: syntax -> string -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
@@ -112,6 +112,7 @@ sig
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_const_gram: bool -> string list ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_consts: (string * string list) list -> syntax -> syntax
   val update_trrules: Ast.ast trrule list -> syntax -> syntax
   val remove_trrules: Ast.ast trrule list -> syntax -> syntax
   val const: string -> term
@@ -412,7 +413,7 @@ datatype syntax =
     input: Syntax_Ext.xprod list,
     lexicon: Scan.lexicon,
     gram: Parser.gram Synchronized.cache,
-    consts: string Symtab.table,
+    consts: unit Graph.T,
     prmodes: string list,
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
@@ -441,7 +442,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
       | NONE => Printer.get_binder prtabs c)
       |> Option.map Prefix);
 
-fun is_const (Syntax ({consts, ...}, _)) = Symtab.defined consts;
+fun is_const (Syntax ({consts, ...}, _)) = Graph.defined consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse (Syntax ({gram, ...}, _)) = Parser.parse (cache_eval gram);
@@ -469,19 +470,21 @@ fun new_gram new_xprods =
 
 (* syntax consts *)
 
-fun get_const (Syntax ({consts, ...}, _)) =
-  let
-    fun get c =
-      (case Symtab.lookup consts c of
-        NONE => c
-      | SOME "" => c
-      | SOME b => get b);
-  in get end;
+fun err_cyclic_consts css =
+  error (cat_lines (map (fn cs =>
+    "Cycle in syntax consts: " ^ (space_implode " \<leadsto> " (map quote cs))) css));
 
-fun update_const (c, b) tab =
-  if c = "" orelse (b = "" andalso (Lexicon.is_marked c orelse Symtab.defined tab c))
-  then tab
-  else Symtab.update (c, b) tab;
+fun get_consts (Syntax ({consts, ...}, _)) c =
+  if Graph.defined consts c then Graph.all_preds consts [c] else [c];
+
+fun update_consts (c, bs) consts =
+  if c = "" orelse (null bs andalso (Lexicon.is_marked c orelse Graph.defined consts c))
+  then consts
+  else
+    consts
+    |> fold (fn a => Graph.default_node (a, ())) (c :: bs)
+    |> Graph.add_deps_acyclic (c, bs)
+    handle Graph.CYCLES css => err_cyclic_consts css;
 
 
 (* empty_syntax *)
@@ -490,7 +493,7 @@ val empty_syntax = Syntax
   ({input = [],
     lexicon = Scan.empty_lexicon,
     gram = Synchronized.cache (fn () => Parser.empty_gram),
-    consts = Symtab.empty,
+    consts = Graph.empty,
     prmodes = [],
     parse_ast_trtab = Symtab.empty,
     parse_ruletab = Symtab.empty,
@@ -518,7 +521,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
       gram = if null new_xprods then gram else extend_gram new_xprods input gram,
-      consts = fold update_const consts2 consts1,
+      consts = fold update_consts consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
@@ -590,7 +593,9 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
     ({input = input',
       lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
       gram = gram',
-      consts = Symtab.merge (K true) (consts1, consts2),
+      consts =
+        Graph.merge_acyclic (op =) (consts1, consts2)
+          handle Graph.CYCLES css => err_cyclic_consts css,
       prmodes = Library.merge (op =) (prmodes1, prmodes2),
       parse_ast_trtab =
         merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,
@@ -633,7 +638,7 @@ fun pretty_trans (Syntax (tabs, _)) =
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, ...} = tabs;
   in
-   [pretty_tab "consts:" consts,
+   [pretty_strs_qs "consts:" (sort_strings (Graph.keys consts)),
     pretty_tab "parse_ast_translation:" parse_ast_trtab,
     pretty_ruletab "parse_rules:" parse_ruletab,
     pretty_tab "parse_translation:" parse_trtab,
@@ -704,6 +709,8 @@ fun update_type_gram add prmode decls =
 
 fun update_const_gram add logical_types prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts logical_types decls);
+
+val update_consts = update_syntax mode_default o Syntax_Ext.syn_ext_consts;
 
 val update_trrules = update_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
 val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
