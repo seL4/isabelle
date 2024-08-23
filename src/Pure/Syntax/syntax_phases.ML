@@ -53,10 +53,13 @@ fun markup_const ctxt c =
   [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
-  Variable.markup ctxt x ::
-  (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
-   then [Variable.markup_fixed ctxt x]
-   else []);
+  let
+    val m1 =
+      if Variable.is_fixed ctxt x then Variable.markup_fixed ctxt x
+      else if not (Variable.is_body ctxt) orelse Syntax.is_pretty_global ctxt then Markup.fixed x
+      else Markup.intensify;
+    val m2 = Variable.markup ctxt x;
+  in [m1, m2] end;
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
@@ -703,23 +706,6 @@ end;
 
 local
 
-fun markup_fixed ctxt x =
-  let
-    val m1 =
-      if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
-      then Markup.fixed x else Markup.intensify;
-    val m2 = Variable.markup ctxt x;
-  in [m1, m2] end;
-
-fun markup ctxt c =
-  Syntax.get_const (Proof_Context.syntax_of ctxt) c
-  |> Lexicon.unmark
-     {case_class = markup_class ctxt,
-      case_type = markup_type ctxt,
-      case_const = markup_const ctxt,
-      case_fixed = markup_fixed ctxt,
-      case_default = K []};
-
 fun extern_fixed ctxt x =
   if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
 
@@ -732,7 +718,7 @@ fun extern ctxt c =
       case_fixed = extern_fixed ctxt,
       case_default = I};
 
-fun free_or_skolem ctxt x = (markup_fixed ctxt x, extern_fixed ctxt x);
+fun free_or_skolem ctxt x = (markup_free ctxt x, extern_fixed ctxt x);
 
 fun var_or_skolem s =
   (case Lexicon.read_variable s of
@@ -790,11 +776,11 @@ fun unparse_t t_to_ast prt_t outer_markup ctxt t =
       else NONE
 
     and pretty_typ_ast m ast = ast
-      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans (markup ctxt, extern ctxt)
+      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans (markup_entity ctxt, extern ctxt)
       |> Pretty.markup m
 
     and pretty_ast m ast = ast
-      |> prt_t ctxt prtabs trf markup_trans (markup ctxt, extern ctxt)
+      |> prt_t ctxt prtabs trf markup_trans (markup_entity ctxt, extern ctxt)
       |> Pretty.markup m;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
