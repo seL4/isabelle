@@ -15,9 +15,10 @@ keywords
   and "text" "txt" :: document_body
   and "text_raw" :: document_raw
   and "default_sort" :: thy_decl
-  and "typedecl" "nonterminal" "judgment" "consts" "syntax" "no_syntax" "translations"
-    "no_translations" "type_notation" "no_type_notation" "notation" "no_notation" "alias"
-    "type_alias" "declare" "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
+  and "typedecl" "nonterminal" "judgment" "consts" "syntax" "no_syntax" "syntax_consts"
+    "syntax_types" "translations" "no_translations" "type_notation" "no_type_notation" "notation"
+    "no_notation" "alias" "type_alias" "declare" "hide_class" "hide_type" "hide_const"
+    "hide_fact" :: thy_decl
   and "type_synonym" "definition" "abbreviation" "lemmas" :: thy_defn
   and "axiomatization" :: thy_stmt
   and "external_file" "bibtex_file" "ROOTS_file" :: thy_load
@@ -400,6 +401,19 @@ val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_syntax\<close> "delete raw syntax clauses"
     (Parse.syntax_mode -- Scan.repeat1 Parse.const_decl
       >> uncurry (Local_Theory.syntax_cmd false));
+
+val syntax_consts =
+  Parse.and_list1
+    ((Parse.name_position --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) --
+      Parse.!!! (Scan.repeat1 Parse.name_position));
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>syntax_consts\<close> "declare syntax const dependencies"
+    (syntax_consts >> (Toplevel.theory o Isar_Cmd.syntax_consts));
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>syntax_types\<close> "declare syntax const dependencies (type names)"
+    (syntax_consts >> (Toplevel.theory o Isar_Cmd.syntax_types));
 
 val trans_pat =
   Scan.optional

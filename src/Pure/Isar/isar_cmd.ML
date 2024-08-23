@@ -1,5 +1,5 @@
 (*  Title:      Pure/Isar/isar_cmd.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
 Miscellaneous Isar commands.
 *)
@@ -15,6 +15,8 @@ sig
   val print_ast_translation: Input.source -> theory -> theory
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
+  val syntax_consts: ((string * Position.T) * (xstring * Position.T) list) list -> theory -> theory
+  val syntax_types: ((string * Position.T) * (xstring * Position.T) list) list -> theory -> theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
@@ -106,6 +108,37 @@ fun read_trrules thy raw_rules =
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
 fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
+
+
+(* syntax consts/types (after translation) *)
+
+local
+
+fun syntax_deps_cmd f args thy =
+  let
+    val ctxt = Proof_Context.init_global thy;
+    fun check_rhs (b: xstring, pos: Position.T) =
+      let
+        val (c, reports) = f ctxt (b, pos);
+        val _ = Context_Position.reports ctxt reports;
+      in c end;
+    fun check_arg (a, bs) = (Proof_Context.check_syntax_const ctxt a, map check_rhs bs);
+  in Sign.syntax_deps (map check_arg args) thy end;
+
+fun check_const ctxt (s, pos) =
+  Proof_Context.check_const {proper = false, strict = true} ctxt (s, [pos])
+  |>> (Term.dest_Const_name #> Lexicon.mark_const);
+
+fun check_type_name ctxt arg =
+  Proof_Context.check_type_name {proper = false, strict = true} ctxt arg
+  |>> (Term.dest_Type_name #> Lexicon.mark_type);
+
+in
+
+val syntax_consts = syntax_deps_cmd check_const;
+val syntax_types = syntax_deps_cmd check_type_name;
+
+end;
 
 
 (* oracles *)
