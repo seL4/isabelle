@@ -237,6 +237,10 @@ object Rendering {
   val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements = Markup.Elements(Markup.ERROR)
 
+  val comment_elements =
+    Markup.Elements(Markup.ML_COMMENT, Markup.COMMENT, Markup.COMMENT1, Markup.COMMENT2,
+      Markup.COMMENT3)
+
   val entity_elements = Markup.Elements(Markup.ENTITY)
 
   val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
@@ -708,6 +712,12 @@ class Rendering(
 
   def errors(range: Text.Range): List[Text.Markup] =
     snapshot.select(range, Rendering.error_elements, _ => Some(_)).map(_.info)
+
+
+  /* comments */
+
+  def comments(range: Text.Range): List[Text.Markup] =
+    snapshot.select(range, Rendering.comment_elements, _ => Some(_)).map(_.info)
 
 
   /* command status overview */
