@@ -64,15 +64,13 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
-  (case Syntax.lookup_const (Proof_Context.syntax_of ctxt) c of
-    SOME "" => []
-  | SOME b => markup_entity ctxt b
-  | NONE => c |> Lexicon.unmark
+  Syntax.get_const (Proof_Context.syntax_of ctxt) c
+  |> Lexicon.unmark
      {case_class = markup_class ctxt,
       case_type = markup_type ctxt,
       case_const = markup_const ctxt,
       case_fixed = markup_free ctxt,
-      case_default = K []});
+      case_default = K []};
 
 
 
@@ -738,15 +736,13 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val trf = Syntax.print_ast_translation syn;
 
     fun markup_extern c =
-      (case Syntax.lookup_const syn c of
-        SOME "" => ([], c)
-      | SOME b => markup_extern b
-      | NONE => c |> Lexicon.unmark
+      Syntax.get_const syn c
+      |> Lexicon.unmark
          {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
           case_type = fn x => (markup_type ctxt x, Proof_Context.extern_type ctxt x),
           case_const = fn x => (markup_const ctxt x, Proof_Context.extern_const ctxt x),
           case_fixed = fn x => free_or_skolem ctxt x,
-          case_default = fn x => ([], x)});
+          case_default = fn x => ([], x)};
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))

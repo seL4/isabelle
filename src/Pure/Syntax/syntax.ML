@@ -77,7 +77,7 @@ sig
   val eq_syntax: syntax * syntax -> bool
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
   val get_approx: syntax -> string -> approx option
-  val lookup_const: syntax -> string -> string option
+  val get_const: syntax -> string -> string
   val is_const: syntax -> string -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
@@ -441,7 +441,6 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
       | NONE => Printer.get_binder prtabs c)
       |> Option.map Prefix);
 
-fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_const (Syntax ({consts, ...}, _)) = Symtab.defined consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
@@ -468,6 +467,23 @@ fun new_gram new_xprods =
   Synchronized.cache (fn () => Parser.make_gram new_xprods [] NONE);
 
 
+(* syntax consts *)
+
+fun get_const (Syntax ({consts, ...}, _)) =
+  let
+    fun get c =
+      (case Symtab.lookup consts c of
+        NONE => c
+      | SOME "" => c
+      | SOME b => get b);
+  in get end;
+
+fun update_const (c, b) tab =
+  if c = "" orelse (b = "" andalso (Lexicon.is_marked c orelse Symtab.defined tab c))
+  then tab
+  else Symtab.update (c, b) tab;
+
+
 (* empty_syntax *)
 
 val empty_syntax = Syntax
@@ -486,11 +502,6 @@ val empty_syntax = Syntax
 
 
 (* update_syntax *)
-
-fun update_const (c, b) tab =
-  if c = "" orelse (b = "" andalso (Lexicon.is_marked c orelse Symtab.defined tab c))
-  then tab
-  else Symtab.update (c, b) tab;
 
 fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
