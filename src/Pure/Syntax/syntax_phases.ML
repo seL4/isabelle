@@ -738,8 +738,8 @@ fun var_or_skolem s =
   (case Lexicon.read_variable s of
     SOME (x, i) =>
       (case try Name.dest_skolem x of
-        NONE => (Markup.var, s)
-      | SOME x' => (Markup.skolem, Term.string_of_vname (x', i)))
+        SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
+      | NONE => (Markup.var, s))
   | NONE => (Markup.var, s));
 
 val typing_elem = YXML.output_markup_elem Markup.typing;
