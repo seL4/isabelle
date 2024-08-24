@@ -1,5 +1,5 @@
 (*  Title:      HOL/Matrix_LP/SparseMatrix.thy
-    Author:     Steven Obua
+    Author:     Steven Obua; updated to Isar by LCP
 *)
 
 theory SparseMatrix
@@ -291,7 +291,7 @@ proof -
         using sorted_sparse_row_matrix_zero apply fastforce
         apply (subst Rep_matrix_zero_imp_mult_zero)
          apply (metis Rep_move_matrix comp_1 nrows_le nrows_spvec sorted_sparse_row_vector_zero verit_comp_simplify1(3))
-        apply (simp add: )
+        apply simp
         done
     next
       case greater
@@ -434,9 +434,7 @@ next
 qed
 
 lemma sorted_spmat_add_spmat[rule_format]: "sorted_spmat A \<Longrightarrow> sorted_spmat B \<Longrightarrow> sorted_spmat (add_spmat A B)"
-  apply (induct A B rule: add_spmat.induct)
-  apply (simp_all add: sorted_spvec_add_spvec)
-  done
+  by (induct A B rule: add_spmat.induct) (simp_all add: sorted_spvec_add_spvec)
 
 fun le_spvec :: "('a::lattice_ab_group_add) spvec \<Rightarrow> 'a spvec \<Rightarrow> bool"
 where
@@ -464,8 +462,6 @@ definition disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightar
   "disj_matrices A B \<longleftrightarrow>
     (\<forall>j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (\<forall>j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
-declare [[simp_depth_limit = 6]]
-
 lemma disj_matrices_contr1: "disj_matrices A B \<Longrightarrow> Rep_matrix A j i \<noteq> 0 \<Longrightarrow> Rep_matrix B j i = 0"
    by (simp add: disj_matrices_def)
 
@@ -473,73 +469,47 @@ lemma disj_matrices_contr2: "disj_matrices A B \<Longrightarrow> Rep_matrix B j 
    by (simp add: disj_matrices_def)
 
 
-lemma disj_matrices_add: "disj_matrices A B \<Longrightarrow> disj_matrices C D \<Longrightarrow> disj_matrices A D \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
-  (A + B \<le> C + D) = (A \<le> C & B \<le> (D::('a::lattice_ab_group_add) matrix))"
-  apply (auto)
-  apply (simp (no_asm_use) only: le_matrix_def disj_matrices_def)
-  apply (intro strip)
-  apply (erule conjE)+
-  apply (drule_tac j=j and i=i in spec2)+
-  apply (case_tac "Rep_matrix B j i = 0")
-  apply (case_tac "Rep_matrix D j i = 0")
-  apply (simp_all)
-  apply (simp (no_asm_use) only: le_matrix_def disj_matrices_def)
-  apply (intro strip)
-  apply (erule conjE)+
-  apply (drule_tac j=j and i=i in spec2)+
-  apply (case_tac "Rep_matrix A j i = 0")
-  apply (case_tac "Rep_matrix C j i = 0")
-  apply (simp_all)
-  apply (erule add_mono)
-  apply (assumption)
-  done
+lemma disj_matrices_add:
+  fixes A :: "('a::lattice_ab_group_add) matrix"
+  shows  "disj_matrices A B \<Longrightarrow> disj_matrices C D \<Longrightarrow> disj_matrices A D 
+       \<Longrightarrow> disj_matrices B C \<Longrightarrow> (A + B \<le> C + D) = (A \<le> C \<and> B \<le> D)"
+  apply (intro iffI conjI)
+  unfolding le_matrix_def disj_matrices_def
+  apply (metis Rep_matrix_add group_cancel.rule0 order_refl)
+  apply (metis (no_types, lifting) Rep_matrix_add add_cancel_right_left dual_order.refl)
+  by (meson add_mono le_matrix_def)
 
 lemma disj_matrices_zero1[simp]: "disj_matrices 0 B"
-by (simp add: disj_matrices_def)
+  by (simp add: disj_matrices_def)
 
 lemma disj_matrices_zero2[simp]: "disj_matrices A 0"
-by (simp add: disj_matrices_def)
+  by (simp add: disj_matrices_def)
 
 lemma disj_matrices_commute: "disj_matrices A B = disj_matrices B A"
-by (auto simp: disj_matrices_def)
+  by (auto simp: disj_matrices_def)
 
 lemma disj_matrices_add_le_zero: "disj_matrices A B \<Longrightarrow>
   (A + B \<le> 0) = (A \<le> 0 & (B::('a::lattice_ab_group_add) matrix) \<le> 0)"
-by (rule disj_matrices_add[of A B 0 0, simplified])
- 
+  by (rule disj_matrices_add[of A B 0 0, simplified])
+
 lemma disj_matrices_add_zero_le: "disj_matrices A B \<Longrightarrow>
   (0 \<le> A + B) = (0 \<le> A & 0 \<le> (B::('a::lattice_ab_group_add) matrix))"
-by (rule disj_matrices_add[of 0 0 A B, simplified])
+  by (rule disj_matrices_add[of 0 0 A B, simplified])
 
 lemma disj_matrices_add_x_le: "disj_matrices A B \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
   (A \<le> B + C) = (A \<le> C & 0 \<le> (B::('a::lattice_ab_group_add) matrix))"
-by (auto simp: disj_matrices_add[of 0 A B C, simplified])
+  by (auto simp: disj_matrices_add[of 0 A B C, simplified])
 
 lemma disj_matrices_add_le_x: "disj_matrices A B \<Longrightarrow> disj_matrices B C \<Longrightarrow> 
   (B + A \<le> C) = (A \<le> C &  (B::('a::lattice_ab_group_add) matrix) \<le> 0)"
-by (auto simp: disj_matrices_add[of B A 0 C,simplified] disj_matrices_commute)
+  by (auto simp: disj_matrices_add[of B A 0 C,simplified] disj_matrices_commute)
 
 lemma disj_sparse_row_singleton: "i \<le> j \<Longrightarrow> sorted_spvec((j,y)#v) \<Longrightarrow> disj_matrices (sparse_row_vector v) (singleton_matrix 0 i x)"
   apply (simp add: disj_matrices_def)
-  apply (rule conjI)
-  apply (rule neg_imp)
-  apply (simp)
-  apply (intro strip)
-  apply (rule sorted_sparse_row_vector_zero)
-  apply (simp_all)
-  apply (intro strip)
-  apply (rule sorted_sparse_row_vector_zero)
-  apply (simp_all)
-  done 
+  using sorted_sparse_row_vector_zero by blast
 
 lemma disj_matrices_x_add: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (A::('a::lattice_ab_group_add) matrix) (B+C)"
-  apply (simp add: disj_matrices_def)
-  apply (auto)
-  apply (drule_tac j=j and i=i in spec2)+
-  apply (case_tac "Rep_matrix B j i = 0")
-  apply (case_tac "Rep_matrix C j i = 0")
-  apply (simp_all)
-  done
+  by (smt (verit, ccfv_SIG) Rep_matrix_add add_0 disj_matrices_def)
 
 lemma disj_matrices_add_x: "disj_matrices A B \<Longrightarrow> disj_matrices A C \<Longrightarrow> disj_matrices (B+C) (A::('a::lattice_ab_group_add) matrix)" 
   by (simp add: disj_matrices_x_add disj_matrices_commute)
@@ -547,97 +517,106 @@ lemma disj_matrices_add_x: "disj_matrices A B \<Longrightarrow> disj_matrices A 
 lemma disj_singleton_matrices[simp]: "disj_matrices (singleton_matrix j i x) (singleton_matrix u v y) = (j \<noteq> u | i \<noteq> v | x = 0 | y = 0)" 
   by (auto simp: disj_matrices_def)
 
-lemma disj_move_sparse_vec_mat[simplified disj_matrices_commute]: 
-  "j \<le> a \<Longrightarrow> sorted_spvec((a,c)#as) \<Longrightarrow> disj_matrices (move_matrix (sparse_row_vector b) (int j) i) (sparse_row_matrix as)"
-  apply (auto simp: disj_matrices_def)
-  apply (drule nrows_notzero)
-  apply (drule less_le_trans[OF _ nrows_spvec])
-  apply (subgoal_tac "ja = j")
-  apply (simp add: sorted_sparse_row_matrix_zero)
-  apply (arith)
-  apply (rule nrows)
-  apply (rule order_trans[of _ 1 _])
-  apply (simp)
-  apply (case_tac "nat (int ja - int j) = 0")
-  apply (case_tac "ja = j")
-  apply (simp add: sorted_sparse_row_matrix_zero)
-  apply arith+
-  done
+lemma disj_move_sparse_vec_mat:
+  assumes "j \<le> a" and "sorted_spvec ((a, c) # as)"
+  shows "disj_matrices (sparse_row_matrix as) (move_matrix (sparse_row_vector b) (int j) i)"
+proof -
+  have "Rep_matrix (sparse_row_vector b) (n-j) (nat (int m - i)) = 0"
+    if "\<not> n<j" and nz: "Rep_matrix (sparse_row_matrix as) n m \<noteq> 0"
+    for n m
+  proof -
+    have "n \<noteq> j"
+      using assms sorted_sparse_row_matrix_zero nz by blast
+    with that have "j < n"  by auto
+    then show ?thesis
+      by (metis One_nat_def Suc_diff_Suc nrows nrows_spvec plus_1_eq_Suc trans_le_add1)
+  qed
+  then show ?thesis
+    by (auto simp: disj_matrices_def nat_minus_as_int)
+qed
 
 lemma disj_move_sparse_row_vector_twice:
   "j \<noteq> u \<Longrightarrow> disj_matrices (move_matrix (sparse_row_vector a) j i) (move_matrix (sparse_row_vector b) u v)"
-  apply (auto simp: disj_matrices_def)
-  apply (rule nrows, rule order_trans[of _ 1], simp, drule nrows_notzero, drule less_le_trans[OF _ nrows_spvec], arith)+
-  done
+  unfolding disj_matrices_def
+  by (smt (verit, ccfv_SIG) One_nat_def Rep_move_matrix of_nat_1 le_nat_iff nrows nrows_spvec of_nat_le_iff)
 
-lemma le_spvec_iff_sparse_row_le[rule_format]: "(sorted_spvec a) \<longrightarrow> (sorted_spvec b) \<longrightarrow> (le_spvec a b) = (sparse_row_vector a \<le> sparse_row_vector b)"
-  apply (induct a b rule: le_spvec.induct)
-  apply (simp_all add: sorted_spvec_cons1 disj_matrices_add_le_zero disj_matrices_add_zero_le 
-    disj_sparse_row_singleton[OF order_refl] disj_matrices_commute)
-  apply (rule conjI, intro strip)
-  apply (simp add: sorted_spvec_cons1)
-  apply (subst disj_matrices_add_x_le)
-  apply (simp add: disj_sparse_row_singleton[OF less_imp_le] disj_matrices_x_add disj_matrices_commute)
-  apply (simp add: disj_sparse_row_singleton[OF order_refl] disj_matrices_commute)
-  apply (simp, blast)
-  apply (intro strip, rule conjI, intro strip)
-  apply (simp add: sorted_spvec_cons1)
-  apply (subst disj_matrices_add_le_x)
-  apply (simp_all add: disj_sparse_row_singleton[OF order_refl] disj_sparse_row_singleton[OF less_imp_le] disj_matrices_commute disj_matrices_x_add)
-  apply (blast)
-  apply (intro strip)
-  apply (simp add: sorted_spvec_cons1)
-  apply (case_tac "a=b", simp_all)
-  apply (subst disj_matrices_add)
-  apply (simp_all add: disj_sparse_row_singleton[OF order_refl] disj_matrices_commute)
-  done
+lemma le_spvec_iff_sparse_row_le:
+  "sorted_spvec a \<Longrightarrow> sorted_spvec b \<Longrightarrow> (le_spvec a b) \<longleftrightarrow> (sparse_row_vector a \<le> sparse_row_vector b)"
+proof (induct a b rule: le_spvec.induct)
+  case 1
+  then show ?case
+    by auto
+next
+  case (2 uu a as)
+  then have "sorted_spvec as"
+    by (metis sorted_spvec_cons1)
+  with 2 show ?case
+    apply (simp add: add.commute)
+    by (metis disj_matrices_add_le_zero disj_sparse_row_singleton le_refl singleton_le_zero)
+next
+  case (3 uv b bs)
+  then have "sorted_spvec bs"
+    by (metis sorted_spvec_cons1)
+  with 3 show ?case
+    apply (simp add: add.commute)
+    by (metis disj_matrices_add_zero_le disj_sparse_row_singleton le_refl singleton_ge_zero)
+next
+  case (4 i a as j b bs)
+  then obtain \<section>: "sorted_spvec as" "sorted_spvec bs"
+    by (metis sorted_spvec_cons1)
+  show ?case
+  proof (cases i j rule: linorder_cases)
+    case less
+    with 4 \<section> show ?thesis
+      apply (simp add: )
+      by (metis disj_matrices_add_le_x disj_matrices_add_x disj_matrices_commute disj_singleton_matrices disj_sparse_row_singleton less_imp_le_nat singleton_le_zero not_le)
+  next
+    case equal
+    with 4 \<section> show ?thesis
+      apply (simp add: )
+      by (metis disj_matrices_add disj_matrices_commute disj_sparse_row_singleton order_refl singleton_matrix_le)
+  next
+    case greater
+    with 4 \<section> show ?thesis
+      apply (simp add: )
+      by (metis disj_matrices_add_x disj_matrices_add_x_le disj_matrices_commute disj_singleton_matrices disj_sparse_row_singleton le_refl order_less_le singleton_ge_zero)
+  qed
+qed
 
-lemma le_spvec_empty2_sparse_row[rule_format]: "sorted_spvec b \<longrightarrow> le_spvec b [] = (sparse_row_vector b \<le> 0)"
-  apply (induct b)
-  apply (simp_all add: sorted_spvec_cons1)
-  apply (intro strip)
-  apply (subst disj_matrices_add_le_zero)
-  apply (auto simp: disj_matrices_commute disj_sparse_row_singleton[OF order_refl] sorted_spvec_cons1)
-  done
+lemma le_spvec_empty2_sparse_row: 
+  "sorted_spvec b \<Longrightarrow> le_spvec b [] = (sparse_row_vector b \<le> 0)"
+  by (simp add: le_spvec_iff_sparse_row_le)
 
-lemma le_spvec_empty1_sparse_row[rule_format]: "(sorted_spvec b) \<longrightarrow> (le_spvec [] b = (0 \<le> sparse_row_vector b))"
-  apply (induct b)
-  apply (simp_all add: sorted_spvec_cons1)
-  apply (intro strip)
-  apply (subst disj_matrices_add_zero_le)
-  apply (auto simp: disj_matrices_commute disj_sparse_row_singleton[OF order_refl] sorted_spvec_cons1)
-  done
+lemma le_spvec_empty1_sparse_row: 
+  "(sorted_spvec b) \<Longrightarrow> (le_spvec [] b = (0 \<le> sparse_row_vector b))"
+  by (simp add: le_spvec_iff_sparse_row_le)
 
-lemma le_spmat_iff_sparse_row_le[rule_format]: "(sorted_spvec A) \<longrightarrow> (sorted_spmat A) \<longrightarrow> (sorted_spvec B) \<longrightarrow> (sorted_spmat B) \<longrightarrow> 
+lemma le_spmat_iff_sparse_row_le:
+  "\<lbrakk>sorted_spvec A; sorted_spmat A; sorted_spvec B; sorted_spmat B\<rbrakk> \<Longrightarrow> 
   le_spmat A B = (sparse_row_matrix A \<le> sparse_row_matrix B)"
-  apply (induct A B rule: le_spmat.induct)
-  apply (simp add: sparse_row_matrix_cons disj_matrices_add_le_zero disj_matrices_add_zero_le disj_move_sparse_vec_mat[OF order_refl] 
-    disj_matrices_commute sorted_spvec_cons1 le_spvec_empty2_sparse_row le_spvec_empty1_sparse_row)+ 
-  apply (rule conjI, intro strip)
-  apply (simp add: sorted_spvec_cons1)
-  apply (subst disj_matrices_add_x_le)
-  apply (rule disj_matrices_add_x)
-  apply (simp add: disj_move_sparse_row_vector_twice)
-  apply (simp add: disj_move_sparse_vec_mat[OF less_imp_le] disj_matrices_commute)
-  apply (simp add: disj_move_sparse_vec_mat[OF order_refl] disj_matrices_commute)
-  apply (simp, blast)
-  apply (intro strip, rule conjI, intro strip)
-  apply (simp add: sorted_spvec_cons1)
-  apply (subst disj_matrices_add_le_x)
-  apply (simp add: disj_move_sparse_vec_mat[OF order_refl])
-  apply (rule disj_matrices_x_add)
-  apply (simp add: disj_move_sparse_row_vector_twice)
-  apply (simp add: disj_move_sparse_vec_mat[OF less_imp_le] disj_matrices_commute)
-  apply (simp, blast)
-  apply (intro strip)
-  apply (case_tac "i=j")
-  apply (simp_all)
-  apply (subst disj_matrices_add)
-  apply (simp_all add: disj_matrices_commute disj_move_sparse_vec_mat[OF order_refl])
-  apply (simp add: sorted_spvec_cons1 le_spvec_iff_sparse_row_le)
-  done
+proof (induct A B rule: le_spmat.induct)
+  case (4 i a as j b bs)
+  then obtain \<section>: "sorted_spvec as" "sorted_spvec bs"
+    by (metis sorted_spvec_cons1)
+  show ?case
+  proof (cases i j rule: linorder_cases)
+    case less
+    with 4 \<section> show ?thesis
+      apply (simp add: sparse_row_matrix_cons le_spvec_empty2_sparse_row)
+      by (metis disj_matrices_add_le_x disj_matrices_add_x disj_matrices_commute disj_move_sparse_row_vector_twice disj_move_sparse_vec_mat int_eq_iff less_not_refl move_matrix_le_zero order_le_less)
+  next
+    case equal
+    with 4 \<section> show ?thesis
+      by (simp add: sparse_row_matrix_cons le_spvec_iff_sparse_row_le disj_matrices_commute disj_move_sparse_vec_mat[OF order_refl] disj_matrices_add)
+  next
+    case greater
+    with 4 \<section> show ?thesis
+      apply (simp add: sparse_row_matrix_cons le_spvec_empty1_sparse_row)
+      by (metis disj_matrices_add_x disj_matrices_add_x_le disj_matrices_commute disj_move_sparse_row_vector_twice disj_move_sparse_vec_mat move_matrix_zero_le nat_int nat_less_le of_nat_0_le_iff order_refl)
+  qed
+qed (auto simp add: sparse_row_matrix_cons disj_matrices_add_le_zero disj_matrices_add_zero_le disj_move_sparse_vec_mat[OF order_refl] 
+    disj_matrices_commute sorted_spvec_cons1 le_spvec_empty2_sparse_row le_spvec_empty1_sparse_row)
 
-declare [[simp_depth_limit = 999]]
 
 primrec abs_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat"
 where
@@ -792,7 +771,7 @@ lemma sparse_row_vector_pprt:
 proof (induct v rule: sorted_spvec.induct)
   case (3 m x n y bs)
   then show ?case
-    apply (simp add: )
+    apply simp
     apply (subst pprt_add)
      apply (metis disj_matrices_commute disj_sparse_row_singleton order.refl fst_conv prod.sel(2) sparse_row_vector_cons)
     by (metis pprt_singleton sorted_spvec_cons1)
@@ -804,7 +783,7 @@ lemma sparse_row_vector_nprt:
 proof (induct v rule: sorted_spvec.induct)
   case (3 m x n y bs)
   then show ?case
-    apply (simp add: )
+    apply simp
     apply (subst nprt_add)
     apply (metis disj_matrices_commute disj_sparse_row_singleton dual_order.refl fst_conv prod.sel(2) sparse_row_vector_cons)
     using sorted_spvec_cons1 by force
@@ -868,10 +847,10 @@ next
 qed
 
 lemma sorted_nprt_spvec: "sorted_spvec v \<Longrightarrow> sorted_spvec (nprt_spvec v)"
-by (induct v rule: sorted_spvec.induct) (simp_all add: sorted_spvec.simps split:list.split_asm)
+  by (induct v rule: sorted_spvec.induct) (simp_all add: sorted_spvec.simps split:list.split_asm)
 
 lemma sorted_spvec_pprt_spmat: "sorted_spvec m \<Longrightarrow> sorted_spvec (pprt_spmat m)"
-by (induct m rule: sorted_spvec.induct) (simp_all add: sorted_spvec.simps split:list.split_asm)
+  by (induct m rule: sorted_spvec.induct) (simp_all add: sorted_spvec.simps split:list.split_asm)
 
 lemma sorted_spvec_nprt_spmat: "sorted_spvec m \<Longrightarrow> sorted_spvec (nprt_spmat m)"
 by (induct m rule: sorted_spvec.induct) (simp_all add: sorted_spvec.simps split:list.split_asm)
