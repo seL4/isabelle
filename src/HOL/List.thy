@@ -3359,12 +3359,7 @@ lemma map_upt_Suc: "map f [0 ..< Suc n] = f 0 # map (\<lambda>i. f (Suc i)) [0 .
 lemma nth_take_lemma:
   "k \<le> length xs \<Longrightarrow> k \<le> length ys \<Longrightarrow>
      (\<And>i. i < k \<longrightarrow> xs!i = ys!i) \<Longrightarrow> take k xs = take k ys"
-proof (induct k arbitrary: xs ys)
-  case (Suc k)
-  then show ?case
-    apply (simp add: less_Suc_eq_0_disj)
-    by (simp add: Suc.prems(3) take_Suc_conv_app_nth)
-qed simp
+  by (induct k arbitrary: xs ys) (simp_all add: take_Suc_conv_app_nth)
 
 lemma nth_equalityI:
   "\<lbrakk>length xs = length ys; \<And>i. i < length xs \<Longrightarrow> xs!i = ys!i\<rbrakk> \<Longrightarrow> xs = ys"
@@ -3712,7 +3707,7 @@ qed auto
 
 lemma nth_eq_iff_index_eq:
   "\<lbrakk> distinct xs; i < length xs; j < length xs \<rbrakk> \<Longrightarrow> (xs!i = xs!j) = (i = j)"
-by(auto simp: distinct_conv_nth)
+  by(auto simp: distinct_conv_nth)
 
 lemma distinct_Ex1:
   "distinct xs \<Longrightarrow> x \<in> set xs \<Longrightarrow> (\<exists>!i. i < length xs \<and> xs ! i = x)"
@@ -3733,9 +3728,7 @@ by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
 
 lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs\<rbrakk> \<Longrightarrow>
   distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
-  apply (simp add: distinct_conv_nth nth_list_update)
-  apply (safe; metis)
-  done
+  by (smt (verit, del_insts) distinct_conv_nth length_list_update nth_list_update)
 
 lemma set_swap[simp]:
   "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow> set(xs[i := xs!j, j := xs!i]) = set xs"
@@ -4320,7 +4313,7 @@ proof (induction xs)
 next
   case (Cons x xs) thus ?case
     apply(auto simp: nth_Cons' split: if_splits)
-    using diff_Suc_1[unfolded One_nat_def] less_Suc_eq_0_disj by fastforce
+    using diff_Suc_1 less_Suc_eq_0_disj by fastforce
 qed
 
 lemmas find_Some_iff2 = find_Some_iff[THEN eq_iff_swap]
@@ -4514,9 +4507,16 @@ lemma distinct_concat_iff: "distinct (concat xs) \<longleftrightarrow>
   distinct (removeAll [] xs) \<and>
   (\<forall>ys. ys \<in> set xs \<longrightarrow> distinct ys) \<and>
   (\<forall>ys zs. ys \<in> set xs \<and> zs \<in> set xs \<and> ys \<noteq> zs \<longrightarrow> set ys \<inter> set zs = {})"
-apply (induct xs)
- apply(simp_all, safe, auto)
-by (metis Int_iff UN_I empty_iff equals0I set_empty)
+proof (induct xs)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons a xs)
+  have "\<lbrakk>set a \<inter> \<Union> (set ` set xs) = {}; a \<in> set xs\<rbrakk> \<Longrightarrow> a=[]"
+    by (metis Int_iff UN_I empty_iff equals0I set_empty)
+  then show ?case
+    by (auto simp: Cons)
+qed
 
 
 subsubsection \<open>\<^const>\<open>replicate\<close>\<close>
@@ -4535,24 +4535,24 @@ next
 qed
 
 lemma Ex_list_of_length: "\<exists>xs. length xs = n"
-by (rule exI[of _ "replicate n undefined"]) simp
+  by (rule exI[of _ "replicate n undefined"]) simp
 
 lemma map_replicate [simp]: "map f (replicate n x) = replicate n (f x)"
-by (induct n) auto
+  by (induct n) auto
 
 lemma map_replicate_const:
   "map (\<lambda> x. k) lst = replicate (length lst) k"
-by (induct lst) auto
+  by (induct lst) auto
 
 lemma replicate_app_Cons_same:
-"(replicate n x) @ (x # xs) = x # replicate n x @ xs"
-by (induct n) auto
+  "(replicate n x) @ (x # xs) = x # replicate n x @ xs"
+  by (induct n) auto
 
 lemma rev_replicate [simp]: "rev (replicate n x) = replicate n x"
-by (induct n) (auto simp: replicate_app_Cons_same)
+  by (metis length_rev map_replicate map_replicate_const rev_map)
 
 lemma replicate_add: "replicate (n + m) x = replicate n x @ replicate m x"
-by (induct n) auto
+  by (induct n) auto
 
 text\<open>Courtesy of Matthias Daum:\<close>
 lemma append_replicate_commute:
@@ -4899,10 +4899,7 @@ lemma rotate_append: "rotate (length l) (l @ q) = q @ l"
 
 lemma nth_rotate:
   \<open>rotate m xs ! n = xs ! ((m + n) mod length xs)\<close> if \<open>n < length xs\<close>
-  using that apply (auto simp add: rotate_drop_take nth_append not_less less_diff_conv ac_simps dest!: le_Suc_ex)
-   apply (metis add.commute mod_add_right_eq mod_less)
-  apply (metis (no_types, lifting) Nat.diff_diff_right add.commute add_diff_cancel_right' diff_le_self dual_order.strict_trans2 length_greater_0_conv less_nat_zero_code list.size(3) mod_add_right_eq mod_add_self2 mod_le_divisor mod_less)
-  done
+  by (smt (verit) add.commute hd_rotate_conv_nth length_rotate not_less0 list.size(3) mod_less rotate_rotate that)
 
 lemma nth_rotate1:
   \<open>rotate1 xs ! n = xs ! (Suc n mod length xs)\<close> if \<open>n < length xs\<close>
@@ -4944,10 +4941,8 @@ lemma nths_nil [simp]: "nths [] A = []"
   by (auto simp add: nths_def)
 
 lemma nths_all: "\<forall>i < length xs. i \<in> I \<Longrightarrow> nths xs I = xs"
-apply (simp add: nths_def)
-apply (subst filter_True)
- apply (auto simp: in_set_zip subset_iff)
-done
+  unfolding nths_def
+  by (metis add_0 diff_zero filter_True in_set_zip length_upt nth_upt zip_eq_conv)
 
 lemma length_nths:
   "length (nths xs I) = card{i. i < length xs \<and> i \<in> I}"
@@ -5343,8 +5338,7 @@ using assms proof (induct arbitrary: i rule: transpose.induct)
 
     show ?thesis
       unfolding transpose.simps \<open>i = Suc j\<close> nth_Cons_Suc "3.hyps"[OF j_less]
-      apply (auto simp: transpose_aux_filter_tail filter_map comp_def length_transpose * ** *** XS_def[symmetric])
-      by (simp add: nth_tl)
+      by (auto simp: nth_tl transpose_aux_filter_tail filter_map comp_def length_transpose * ** *** XS_def[symmetric])
   qed
 qed simp_all
 
@@ -6644,14 +6638,9 @@ proof (induction n)
   have "(xs,ys) \<in> ?L (Suc n)" if r: "(xs,ys) \<in> ?R (Suc n)" for xs ys
   proof -
     from r obtain xys where r': "?len (Suc n) xs" "?len (Suc n) ys" "?P xs ys xys" by auto
-    then show ?thesis
-    proof (cases xys)
-      case Nil
-      thus ?thesis using r' by (auto simp: image_Collect lex_prod_def)
-    next
-      case Cons
-      thus ?thesis using r' Suc by (fastforce simp: image_Collect lex_prod_def)
-    qed
+    then show ?thesis 
+      using r' Suc
+      by (cases xys; fastforce simp: image_Collect lex_prod_def)
   qed
   moreover have "(xs,ys) \<in> ?L (Suc n) \<Longrightarrow> (xs,ys) \<in> ?R (Suc n)" for xs ys
     using Suc by (auto simp add: image_Collect lex_prod_def)(blast, meson Cons_eq_appendI)
@@ -6867,25 +6856,25 @@ lemmas lexord_simps = lexord_Nil_left lexord_Nil_right lexord_cons_cons
 
 lemma lexord_same_pref_iff:
   "(xs @ ys, xs @ zs) \<in> lexord r \<longleftrightarrow> (\<exists>x \<in> set xs. (x,x) \<in> r) \<or> (ys, zs) \<in> lexord r"
-by(induction xs) auto
+  by(induction xs) auto
 
 lemma lexord_same_pref_if_irrefl[simp]:
   "irrefl r \<Longrightarrow> (xs @ ys, xs @ zs) \<in> lexord r \<longleftrightarrow> (ys, zs) \<in> lexord r"
-by (simp add: irrefl_def lexord_same_pref_iff)
+  by (simp add: irrefl_def lexord_same_pref_iff)
 
 lemma lexord_append_rightI: "\<exists> b z. y = b # z \<Longrightarrow> (x, x @ y) \<in> lexord r"
-by (metis append_Nil2 lexord_Nil_left lexord_same_pref_iff)
+  by (metis append_Nil2 lexord_Nil_left lexord_same_pref_iff)
 
 lemma lexord_append_left_rightI:
   "(a,b) \<in> r \<Longrightarrow> (u @ a # x, u @ b # y) \<in> lexord r"
-by (simp add: lexord_same_pref_iff)
+  by (simp add: lexord_same_pref_iff)
 
 lemma lexord_append_leftI: "(u,v) \<in> lexord r \<Longrightarrow> (x @ u, x @ v) \<in> lexord r"
-by (simp add: lexord_same_pref_iff)
+  by (simp add: lexord_same_pref_iff)
 
 lemma lexord_append_leftD:
   "\<lbrakk>(x @ u, x @ v) \<in> lexord r; (\<forall>a. (a,a) \<notin> r) \<rbrakk> \<Longrightarrow> (u,v) \<in> lexord r"
-by (simp add: lexord_same_pref_iff)
+  by (simp add: lexord_same_pref_iff)
 
 lemma lexord_take_index_conv:
    "((x,y) \<in> lexord r) =
@@ -6897,9 +6886,13 @@ proof -
   moreover
   have "(\<exists>u a b. (a, b) \<in> r \<and> (\<exists>v. x = u @ a # v) \<and> (\<exists>w. y = u @ b # w)) =
         (\<exists>i<length x. i < length y \<and> take i x = take i y \<and> (x ! i, y ! i) \<in> r)"
-    apply safe
-    using less_iff_Suc_add apply auto[1]
-    by (metis id_take_nth_drop)
+        (is "?L=?R")
+  proof
+    show "?L\<Longrightarrow>?R"
+      by (metis append_eq_conv_conj drop_all leI list.simps(3) nth_append_length)
+    show "?R\<Longrightarrow>?L"
+      by (metis id_take_nth_drop)
+  qed
   ultimately show ?thesis
     by (auto simp: lexord_def Let_def)
 qed
@@ -7118,19 +7111,19 @@ lemma lexordp_eq_simps [simp, code]:
 by(subst lexordp_eq.simps, fastforce)+
 
 lemma lexordp_append_rightI: "ys \<noteq> Nil \<Longrightarrow> lexordp xs (xs @ ys)"
-by(induct xs)(auto simp add: neq_Nil_conv)
+  by(induct xs)(auto simp add: neq_Nil_conv)
 
 lemma lexordp_append_left_rightI: "x < y \<Longrightarrow> lexordp (us @ x # xs) (us @ y # ys)"
-by(induct us) auto
+  by(induct us) auto
 
 lemma lexordp_eq_refl: "lexordp_eq xs xs"
-by(induct xs) simp_all
+  by(induct xs) simp_all
 
 lemma lexordp_append_leftI: "lexordp us vs \<Longrightarrow> lexordp (xs @ us) (xs @ vs)"
-by(induct xs) auto
+  by(induct xs) auto
 
 lemma lexordp_append_leftD: "\<lbrakk> lexordp (xs @ us) (xs @ vs); \<forall>a. \<not> a < a \<rbrakk> \<Longrightarrow> lexordp us vs"
-by(induct xs) auto
+  by(induct xs) auto
 
 lemma lexordp_irreflexive:
   assumes irrefl: "\<forall>x. \<not> x < x"
@@ -7251,21 +7244,21 @@ text \<open>These are useful for termination proofs\<close>
 definition "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
 
 lemma wf_measures[simp]: "wf (measures fs)"
-unfolding measures_def
-by blast
+  unfolding measures_def
+  by blast
 
 lemma in_measures[simp]:
   "(x, y) \<in> measures [] = False"
   "(x, y) \<in> measures (f # fs)
          = (f x < f y \<or> (f x = f y \<and> (x, y) \<in> measures fs))"
-unfolding measures_def
-by auto
+  unfolding measures_def
+  by auto
 
 lemma measures_less: "f x < f y \<Longrightarrow> (x, y) \<in> measures (f#fs)"
-by simp
+  by simp
 
 lemma measures_lesseq: "f x \<le> f y \<Longrightarrow> (x, y) \<in> measures fs \<Longrightarrow> (x, y) \<in> measures (f#fs)"
-by auto
+  by auto
 
 
 subsubsection \<open>Lifting Relations to Lists: one element\<close>
@@ -7286,27 +7279,27 @@ lemma listrel1E:
 unfolding listrel1_def by auto
 
 lemma not_Nil_listrel1 [iff]: "([], xs) \<notin> listrel1 r"
-unfolding listrel1_def by blast
+  unfolding listrel1_def by blast
 
 lemma not_listrel1_Nil [iff]: "(xs, []) \<notin> listrel1 r"
-unfolding listrel1_def by blast
+  unfolding listrel1_def by blast
 
 lemma Cons_listrel1_Cons [iff]:
   "(x # xs, y # ys) \<in> listrel1 r \<longleftrightarrow>
    (x,y) \<in> r \<and> xs = ys \<or> x = y \<and> (xs, ys) \<in> listrel1 r"
-by (simp add: listrel1_def Cons_eq_append_conv) (blast)
+  by (simp add: listrel1_def Cons_eq_append_conv) (blast)
 
 lemma listrel1I1: "(x,y) \<in> r \<Longrightarrow> (x # xs, y # xs) \<in> listrel1 r"
-by fast
+  by fast
 
 lemma listrel1I2: "(xs, ys) \<in> listrel1 r \<Longrightarrow> (x # xs, x # ys) \<in> listrel1 r"
-by fast
+  by fast
 
 lemma append_listrel1I:
   "(xs, ys) \<in> listrel1 r \<and> us = vs \<or> xs = ys \<and> (us, vs) \<in> listrel1 r
     \<Longrightarrow> (xs @ us, ys @ vs) \<in> listrel1 r"
-unfolding listrel1_def
-by auto (blast intro: append_eq_appendI)+
+  unfolding listrel1_def
+  by auto (blast intro: append_eq_appendI)+
 
 lemma Cons_listrel1E1[elim!]:
   assumes "(x # xs, ys) \<in> listrel1 r"
@@ -7333,19 +7326,19 @@ next
 qed
 
 lemma listrel1_eq_len: "(xs,ys) \<in> listrel1 r \<Longrightarrow> length xs = length ys"
-unfolding listrel1_def by auto
+  unfolding listrel1_def by auto
 
 lemma listrel1_mono:
   "r \<subseteq> s \<Longrightarrow> listrel1 r \<subseteq> listrel1 s"
-unfolding listrel1_def by blast
+  unfolding listrel1_def by blast
 
 
 lemma listrel1_converse: "listrel1 (r\<inverse>) = (listrel1 r)\<inverse>"
-unfolding listrel1_def by blast
+  unfolding listrel1_def by blast
 
 lemma in_listrel1_converse:
   "(x,y) \<in> listrel1 (r\<inverse>) \<longleftrightarrow> (x,y) \<in> (listrel1 r)\<inverse>"
-unfolding listrel1_def by blast
+  unfolding listrel1_def by blast
 
 lemma listrel1_iff_update:
   "(xs,ys) \<in> (listrel1 r)
@@ -7618,19 +7611,19 @@ text\<open>Optional tail recursive version of \<^const>\<open>map\<close>. Can a
 stack overflow in some target languages.\<close>
 
 fun map_tailrec_rev ::  "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-"map_tailrec_rev f [] bs = bs" |
-"map_tailrec_rev f (a#as) bs = map_tailrec_rev f as (f a # bs)"
+  "map_tailrec_rev f [] bs = bs" |
+  "map_tailrec_rev f (a#as) bs = map_tailrec_rev f as (f a # bs)"
 
 lemma map_tailrec_rev:
   "map_tailrec_rev f as bs = rev(map f as) @ bs"
-by(induction as arbitrary: bs) simp_all
+  by(induction as arbitrary: bs) simp_all
 
 definition map_tailrec :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-"map_tailrec f as = rev (map_tailrec_rev f as [])"
+  "map_tailrec f as = rev (map_tailrec_rev f as [])"
 
 text\<open>Code equation:\<close>
 lemma map_eq_map_tailrec: "map = map_tailrec"
-by(simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
+  by(simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
 
 
 subsubsection \<open>Counterparts for set-related operations\<close>
@@ -8375,7 +8368,7 @@ lemma null_transfer [transfer_rule]:
 
 lemma list_all_transfer [transfer_rule]:
   "((A ===> (=)) ===> list_all2 A ===> (=)) list_all list_all"
-  unfolding list_all_iff [abs_def] by transfer_prover
+  using list.pred_transfer by blast
 
 lemma list_ex_transfer [transfer_rule]:
   "((A ===> (=)) ===> list_all2 A ===> (=)) list_ex list_ex"
