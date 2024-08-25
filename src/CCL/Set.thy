@@ -19,10 +19,10 @@ where mem_Collect_iff: "(a : Collect(P)) \<longleftrightarrow> P(a)"
 
 syntax
   "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  ("(1{_./ _})")
-translations
-  "{x. P}" == "CONST Collect(\<lambda>x. P)"
 syntax_consts
   "_Coll" == Collect
+translations
+  "{x. P}" == "CONST Collect(\<lambda>x. P)"
 
 lemma CollectI: "P(a) \<Longrightarrow> a : {x. P(x)}"
   apply (rule mem_Collect_iff [THEN iffD2])
@@ -52,12 +52,12 @@ definition Bex :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"
 syntax
   "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(ALL _:_./ _)" [0, 0, 0] 10)
   "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(EX _:_./ _)" [0, 0, 0] 10)
-translations
-  "ALL x:A. P"  == "CONST Ball(A, \<lambda>x. P)"
-  "EX x:A. P"   == "CONST Bex(A, \<lambda>x. P)"
 syntax_consts
   "_Ball" == Ball and
   "_Bex" == Bex
+translations
+  "ALL x:A. P"  == "CONST Ball(A, \<lambda>x. P)"
+  "EX x:A. P"   == "CONST Bex(A, \<lambda>x. P)"
 
 lemma ballI: "(\<And>x. x:A \<Longrightarrow> P(x)) \<Longrightarrow> ALL x:A. P(x)"
   by (simp add: Ball_def)
@@ -129,12 +129,12 @@ definition UNION :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"
 syntax
   "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(INT _:_./ _)" [0, 0, 0] 10)
   "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(UN _:_./ _)" [0, 0, 0] 10)
-translations
-  "INT x:A. B" == "CONST INTER(A, \<lambda>x. B)"
-  "UN x:A. B" == "CONST UNION(A, \<lambda>x. B)"
 syntax_consts
   "_INTER" == INTER and
   "_UNION" == UNION
+translations
+  "INT x:A. B" == "CONST INTER(A, \<lambda>x. B)"
+  "UN x:A. B" == "CONST UNION(A, \<lambda>x. B)"
 
 definition Inter :: "(('a set)set) \<Rightarrow> 'a set"
   where "Inter(S) == (INT x:S. x)"

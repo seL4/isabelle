@@ -58,12 +58,12 @@ text \<open>Some inexplicable syntactic dependencies; in particular, "0"
 syntax
   "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Prod>_:_./ _)" 10)
   "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Sum>_:_./ _)" 10)
-translations
-  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
-  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
 syntax_consts
   "_PROD" \<rightleftharpoons> Prod and
   "_SUM" \<rightleftharpoons> Sum
+translations
+  "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
+  "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
 
 abbreviation Arrow :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30)
   where "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"

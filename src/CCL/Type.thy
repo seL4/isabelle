@@ -14,10 +14,10 @@ definition Subtype :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
 
 syntax
   "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  ("(1{_: _ ./ _})")
-translations
-  "{x: A. B}" == "CONST Subtype(A, \<lambda>x. B)"
 syntax_consts
   "_Subtype" == Subtype
+translations
+  "{x: A. B}" == "CONST Subtype(A, \<lambda>x. B)"
 
 definition Unit :: "i set"
   where "Unit == {x. x=one}"
@@ -39,6 +39,9 @@ syntax
   "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  ("(3SUM _:_./ _)" [0,0,60] 60)
   "_arrow" :: "[i set, i set] \<Rightarrow> i set"  ("(_ ->/ _)"  [54, 53] 53)
   "_star"  :: "[i set, i set] \<Rightarrow> i set"  ("(_ */ _)" [56, 55] 55)
+syntax_consts
+  "_Pi" "_arrow" \<rightleftharpoons> Pi and
+  "_Sigma" "_star" \<rightleftharpoons> Sigma
 translations
   "PROD x:A. B" \<rightharpoonup> "CONST Pi(A, \<lambda>x. B)"
   "A -> B" \<rightharpoonup> "CONST Pi(A, \<lambda>_. B)"
@@ -50,9 +53,6 @@ print_translation \<open>
   (\<^const_syntax>\<open>Sigma\<close>,
     fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Sigma\<close>, \<^syntax_const>\<open>_star\<close>))]
 \<close>
-syntax_consts
-  "_Pi" "_arrow" \<rightleftharpoons> Pi and
-  "_Sigma" "_star" \<rightleftharpoons> Sigma
 
 definition Nat :: "i set"
   where "Nat == lfp(\<lambda>X. Unit + X)"

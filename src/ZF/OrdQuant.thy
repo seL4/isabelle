@@ -26,14 +26,14 @@ syntax
   "_oall"     :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
   "_oex"      :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<exists>_<_./ _)\<close> 10)
   "_OUNION"   :: "[idt, i, i] \<Rightarrow> i"        (\<open>(3\<Union>_<_./ _)\<close> 10)
-translations
-  "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
-  "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
-  "\<Union>x<a. B" \<rightleftharpoons> "CONST OUnion(a, \<lambda>x. B)"
 syntax_consts
   "_oall" \<rightleftharpoons> oall and
   "_oex" \<rightleftharpoons> oex and
   "_OUNION" \<rightleftharpoons> OUnion
+translations
+  "\<forall>x<a. P" \<rightleftharpoons> "CONST oall(a, \<lambda>x. P)"
+  "\<exists>x<a. P" \<rightleftharpoons> "CONST oex(a, \<lambda>x. P)"
+  "\<Union>x<a. B" \<rightleftharpoons> "CONST OUnion(a, \<lambda>x. B)"
 
 
 subsubsection \<open>simplification of the new quantifiers\<close>
@@ -198,12 +198,12 @@ definition
 syntax
   "_rall"     :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
   "_rex"      :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<exists>_[_]./ _)\<close> 10)
-translations
-  "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
-  "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
 syntax_consts
   "_rall" \<rightleftharpoons> rall and
   "_rex" \<rightleftharpoons> rex
+translations
+  "\<forall>x[M]. P" \<rightleftharpoons> "CONST rall(M, \<lambda>x. P)"
+  "\<exists>x[M]. P" \<rightleftharpoons> "CONST rex(M, \<lambda>x. P)"
 
 
 subsubsection\<open>Relativized universal quantifier\<close>

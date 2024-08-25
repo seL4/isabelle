@@ -117,10 +117,11 @@ syntax
   "_Int" :: "num_token \<Rightarrow> i"  (\<open>#_\<close> 1000)
   "_Neg_Int" :: "num_token \<Rightarrow> i"  (\<open>#-_\<close> 1000)
 
-ML_file \<open>Tools/numeral_syntax.ML\<close>
-
 syntax_consts
   "_Int0" "_Int1" "_Int2" "_Int" "_Neg_Int1" "_Neg_Int2" "_Neg_Int" \<rightleftharpoons> integ_of
+
+ML_file \<open>Tools/numeral_syntax.ML\<close>
+
 
 declare bin.intros [simp,TC]
 

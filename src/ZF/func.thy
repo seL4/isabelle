@@ -452,10 +452,10 @@ syntax
   ""            :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
   "_updbinds"   :: "[updbind, updbinds] \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
   "_Update"     :: "[i, updbinds] \<Rightarrow> i"              (\<open>_/'((_)')\<close> [900,0] 900)
+syntax_consts "_Update" "_updbind" \<rightleftharpoons> update
 translations
   "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"
   "f(x:=y)"                       == "CONST update(f,x,y)"
-syntax_consts "_Update" "_updbind" \<rightleftharpoons> update
 
 lemma update_apply [simp]: "f(x:=y) ` z = (if z=x then y else f`z)"
 apply (simp add: update_def)

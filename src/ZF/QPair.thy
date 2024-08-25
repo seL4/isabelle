@@ -46,10 +46,10 @@ definition
 
 syntax
   "_QSUM"   :: "[idt, i, i] \<Rightarrow> i"               (\<open>(3QSUM _ \<in> _./ _)\<close> 10)
-translations
-  "QSUM x \<in> A. B" => "CONST QSigma(A, \<lambda>x. B)"
 syntax_consts
   "_QSUM" \<rightleftharpoons> QSigma
+translations
+  "QSUM x \<in> A. B" => "CONST QSigma(A, \<lambda>x. B)"
 
 abbreviation
   qprod  (infixr \<open><*>\<close> 80) where

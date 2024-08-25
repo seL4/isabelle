@@ -39,6 +39,13 @@ syntax
   "_Lam" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<^bold>\<lambda>_:_./ _)" [0, 0, 0] 10)
   "_Pi" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Prod>_:_./ _)" [0, 0] 10)
   "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr "\<rightarrow>" 10)
+syntax_consts
+  "_Trueprop" \<rightleftharpoons> Trueprop and
+  "_MT_context" \<rightleftharpoons> MT_context and
+  "_Context" \<rightleftharpoons> Context and
+  "_Has_type" \<rightleftharpoons> Has_type and
+  "_Lam" \<rightleftharpoons> Abs and
+  "_Pi" "_arrow" \<rightleftharpoons> Prod
 translations
   "_Trueprop(G, t)" \<rightleftharpoons> "CONST Trueprop(G, t)"
   ("prop") "x:X" \<rightleftharpoons> ("prop") "\<turnstile> x:X"
@@ -52,13 +59,6 @@ print_translation \<open>
   [(\<^const_syntax>\<open>Prod\<close>,
     fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Pi\<close>, \<^syntax_const>\<open>_arrow\<close>))]
 \<close>
-syntax_consts
-  "_Trueprop" \<rightleftharpoons> Trueprop and
-  "_MT_context" \<rightleftharpoons> MT_context and
-  "_Context" \<rightleftharpoons> Context and
-  "_Has_type" \<rightleftharpoons> Has_type and
-  "_Lam" \<rightleftharpoons> Abs and
-  "_Pi" "_arrow" \<rightleftharpoons> Prod
 
 axiomatization where
   s_b: "*: \<box>"  and
