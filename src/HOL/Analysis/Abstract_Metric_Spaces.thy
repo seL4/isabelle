@@ -1588,7 +1588,7 @@ lemma MCauchy_iff_Cauchy [iff]: "Met_TC.MCauchy = Cauchy"
   by (force simp: Cauchy_def Met_TC.MCauchy_def)
 
 lemma mcomplete_iff_complete [iff]:
-  "Met_TC.mcomplete (Pure.type ::'a::metric_space itself) \<longleftrightarrow> complete (UNIV::'a set)"
+  "Met_TC.mcomplete TYPE('a::metric_space) \<longleftrightarrow> complete (UNIV::'a set)"
   by (auto simp: Met_TC.mcomplete_def complete_def)
 
 context Submetric

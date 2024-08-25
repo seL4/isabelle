@@ -2856,7 +2856,7 @@ begin
 
 context
   fixes CHAR :: nat
-  defines "CHAR \<equiv> semiring_char (Pure.type :: 'a itself)"
+  defines "CHAR \<equiv> semiring_char TYPE('a)"
 begin
 
 lemma of_nat_CHAR [simp]: "of_nat CHAR = (0 :: 'a)"
@@ -2929,7 +2929,7 @@ qed
 end
 end
 
-lemma (in semiring_char_0) CHAR_eq_0 [simp]: "semiring_char (Pure.type :: 'a itself) = 0"
+lemma (in semiring_char_0) CHAR_eq_0 [simp]: "semiring_char TYPE('a) = 0"
   by (simp add: CHAR_eq0_iff)
 
 
