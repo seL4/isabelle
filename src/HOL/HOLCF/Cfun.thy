@@ -52,6 +52,9 @@ syntax (ASCII)
 syntax
   "_Lambda" :: "[cargs, logic] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
+syntax_consts
+  "_Lambda" \<rightleftharpoons> Abs_cfun
+
 parse_ast_translation \<open>
 (* rewrite (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)
 (* cf. Syntax.lambda_ast_tr from src/Pure/Syntax/syn_trans.ML *)

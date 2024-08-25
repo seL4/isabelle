@@ -1006,6 +1006,9 @@ abbreviation almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bo
 syntax
   "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool" ("AE _ in _. _" [0,0,10] 10)
 
+syntax_consts
+  "_almost_everywhere" \<rightleftharpoons> almost_everywhere
+
 translations
   "AE x in M. P" \<rightleftharpoons> "CONST almost_everywhere M (\<lambda>x. P)"
 
@@ -1015,6 +1018,9 @@ abbreviation
 syntax
   "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
   ("AE _\<in>_ in _./ _" [0,0,0,10] 10)
+
+syntax_consts
+  "_set_almost_everywhere" \<rightleftharpoons> set_almost_everywhere
 
 translations
   "AE x\<in>A in M. P" \<rightleftharpoons> "CONST set_almost_everywhere A M (\<lambda>x. P)"

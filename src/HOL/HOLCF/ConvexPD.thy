@@ -181,6 +181,9 @@ abbreviation
 syntax
   "_convex_pd" :: "args \<Rightarrow> logic" ("{_}\<natural>")
 
+syntax_consts
+  "_convex_pd" == convex_add
+
 translations
   "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"
   "{x}\<natural>" == "CONST convex_unit\<cdot>x"
@@ -347,6 +350,9 @@ definition
 syntax
   "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
     ("(3\<Union>\<natural>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax_consts
+  "_convex_bind" == convex_bind
 
 translations
   "\<Union>\<natural>x\<in>xs. e" == "CONST convex_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

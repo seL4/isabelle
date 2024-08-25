@@ -170,6 +170,8 @@ abbreviation
 
 syntax
   "_PiM" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>M _\<in>_./ _)"  10)
+syntax_consts
+  "_PiM" == PiM
 translations
   "\<Pi>\<^sub>M x\<in>I. M" == "CONST PiM I (%x. M)"
 

@@ -135,6 +135,10 @@ syntax
   Heap  :: "loc   \<Rightarrow> oref"
   Stat  :: "qtname \<Rightarrow> oref"
 
+syntax_consts
+  Heap == Inl and
+  Stat == Inr
+
 translations
   "Heap" => "CONST Inl"
   "Stat" => "CONST Inr"

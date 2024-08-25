@@ -291,6 +291,9 @@ quotient_definition
 syntax
   "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
 
+syntax_consts
+  "_insert_fset" == insert_fset
+
 translations
   "{|x, xs|}" == "CONST insert_fset x {|xs|}"
   "{|x|}"     == "CONST insert_fset x {||}"

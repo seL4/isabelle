@@ -40,6 +40,7 @@ datatype 'a llist
   | LCons (lhd: 'a) (ltl: "'a llist") (infixr "###" 65)
 
 syntax "_llist" :: "args => 'a list"    ("\<^bold>\<lbrakk>(_)\<^bold>\<rbrakk>")
+syntax_consts "_llist" == LCons
 translations
   "\<^bold>\<lbrakk>x, xs\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>xs\<^bold>\<rbrakk>"
   "\<^bold>\<lbrakk>x\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>\<^bold>\<rbrakk>"

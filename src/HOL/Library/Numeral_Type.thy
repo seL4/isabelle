@@ -540,6 +540,10 @@ syntax
   "_NumeralType0" :: type ("0")
   "_NumeralType1" :: type ("1")
 
+syntax_types
+  "_NumeralType0" == num0 and
+  "_NumeralType1" == num1
+
 translations
   (type) "1" == (type) "num1"
   (type) "0" == (type) "num0"

@@ -136,6 +136,9 @@ abbreviation
 syntax
   "_lower_pd" :: "args \<Rightarrow> logic" ("{_}\<flat>")
 
+syntax_consts
+  "_lower_pd" == lower_add
+
 translations
   "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"
   "{x}\<flat>" == "CONST lower_unit\<cdot>x"
@@ -341,6 +344,9 @@ definition
 syntax
   "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
     ("(3\<Union>\<flat>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax_consts
+  "_lower_bind" == lower_bind
 
 translations
   "\<Union>\<flat>x\<in>xs. e" == "CONST lower_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

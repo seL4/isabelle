@@ -32,6 +32,7 @@ class predomain = predomain_syn +
   assumes cast_liftdefl: "cast\<cdot>(liftdefl TYPE('a)) = liftemb oo liftprj"
 
 syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
+syntax_consts "_LIFTDEFL" \<rightleftharpoons> liftdefl
 translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 
 definition liftdefl_of :: "udom defl \<rightarrow> udom u defl"
@@ -51,6 +52,7 @@ class "domain" = predomain_syn + pcpo +
   assumes liftdefl_eq: "liftdefl TYPE('a) = liftdefl_of\<cdot>(defl TYPE('a))"
 
 syntax "_DEFL" :: "type \<Rightarrow> logic"  ("(1DEFL/(1'(_')))")
+syntax_consts "_DEFL" \<rightleftharpoons> defl
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
 
 instance "domain" \<subseteq> predomain

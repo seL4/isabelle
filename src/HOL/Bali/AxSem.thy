@@ -205,6 +205,8 @@ definition
 
 syntax
   "_peek_res" :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_:. _" [0,3] 3)
+syntax_consts
+  "_peek_res" == peek_res
 translations
   "\<lambda>w:. P"   == "CONST peek_res (\<lambda>w. P)"
 
@@ -266,6 +268,8 @@ definition
 
 syntax
   "_peek_st"   :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_.. _" [0,3] 3)
+syntax_consts
+  "_peek_st" == peek_st
 translations
   "\<lambda>s.. P"   == "CONST peek_st (\<lambda>s. P)"
 

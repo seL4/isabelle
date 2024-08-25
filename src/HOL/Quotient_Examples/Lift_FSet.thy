@@ -98,6 +98,9 @@ end
 syntax
   "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
 
+syntax_consts
+  "_insert_fset" == fcons
+
 translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"

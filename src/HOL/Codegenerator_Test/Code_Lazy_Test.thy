@@ -24,6 +24,7 @@ code_lazy_type llist
 
 no_notation lazy_llist ("_")
 syntax "_llist" :: "args => 'a list"    ("\<^bold>[(_)\<^bold>]")
+syntax_consts "_llist" == lazy_llist
 translations
   "\<^bold>[x, xs\<^bold>]" == "x\<^bold>#\<^bold>[xs\<^bold>]"
   "\<^bold>[x\<^bold>]" == "x\<^bold>#\<^bold>[\<^bold>]"

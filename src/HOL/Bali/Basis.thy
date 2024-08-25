@@ -195,6 +195,10 @@ syntax (symbols)
   "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3\<forall>_\<in>_:/ _)"  [0,0,10] 10)
   "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
 
+syntax_consts
+  "_Oall" \<rightleftharpoons> Ball and
+  "_Oex" \<rightleftharpoons> Bex
+
 translations
   "\<forall>x\<in>A: P" \<rightleftharpoons> "\<forall>x\<in>CONST set_option A. P"
   "\<exists>x\<in>A: P" \<rightleftharpoons> "\<exists>x\<in>CONST set_option A. P"
@@ -257,6 +261,8 @@ definition lsplit :: "[['a, 'a list] \<Rightarrow> 'b, 'a list] \<Rightarrow> 'b
 text \<open>list patterns -- extends pre-defined type "pttrn" used in abstractions\<close>
 syntax
   "_lpttrn" :: "[pttrn, pttrn] \<Rightarrow> pttrn"    ("_#/_" [901,900] 900)
+syntax_consts
+  "_lpttrn" \<rightleftharpoons> lsplit
 translations
   "\<lambda>y # x # xs. b" \<rightleftharpoons> "CONST lsplit (\<lambda>y x # xs. b)"
   "\<lambda>x # xs. b" \<rightleftharpoons> "CONST lsplit (\<lambda>x xs. b)"

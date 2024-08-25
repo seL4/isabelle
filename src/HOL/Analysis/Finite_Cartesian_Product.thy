@@ -40,6 +40,7 @@ text \<open>
     \<^item> \<open>'a^'b::_\<close> becomes \<open>('a, 'b) vec\<close> without extra sort-constraint
 \<close>
 syntax "_vec_type" :: "type \<Rightarrow> type \<Rightarrow> type" (infixl "^" 15)
+syntax_types "_vec_type" \<rightleftharpoons> vec
 parse_translation \<open>
   let
     fun vec t u = Syntax.const \<^type_syntax>\<open>vec\<close> $ t $ u;

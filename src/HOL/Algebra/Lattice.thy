@@ -36,6 +36,10 @@ syntax
   "_sup1"     :: "('a, 'b) gorder_scheme \<Rightarrow> pttrns \<Rightarrow> 'a \<Rightarrow> 'a" ("(3SSUP\<index> _./ _)" [0, 10] 10)
   "_sup"      :: "('a, 'b) gorder_scheme \<Rightarrow> pttrn \<Rightarrow> 'c set \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SSUP\<index> _:_./ _)" [0, 0, 10] 10)
 
+syntax_consts
+  "_inf1" "_inf" == infi and
+  "_sup1" "_sup" == supr
+
 translations
   "IINF\<^bsub>L\<^esub> x. B"     == "CONST infi L CONST UNIV (%x. B)"
   "IINF\<^bsub>L\<^esub> x:A. B"   == "CONST infi L A (%x. B)"

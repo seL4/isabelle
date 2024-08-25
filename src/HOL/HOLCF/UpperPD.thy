@@ -134,6 +134,9 @@ abbreviation
 syntax
   "_upper_pd" :: "args \<Rightarrow> logic" ("{_}\<sharp>")
 
+syntax_consts
+  "_upper_pd" == upper_add
+
 translations
   "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
   "{x}\<sharp>" == "CONST upper_unit\<cdot>x"
@@ -334,6 +337,9 @@ definition
 syntax
   "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
     ("(3\<Union>\<sharp>_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax_consts
+  "_upper_bind" == upper_bind
 
 translations
   "\<Union>\<sharp>x\<in>xs. e" == "CONST upper_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

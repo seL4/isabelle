@@ -41,6 +41,7 @@ definition ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a *
   where "ssplit = (\<Lambda> f p. seq\<cdot>p\<cdot>(f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
 syntax "_stuple" :: "[logic, args] \<Rightarrow> logic"  ("(1'(:_,/ _:'))")
+syntax_consts "_stuple" \<rightleftharpoons> spair
 translations
   "(:x, y, z:)" \<rightleftharpoons> "(:x, (:y, z:):)"
   "(:x, y:)" \<rightleftharpoons> "CONST spair\<cdot>x\<cdot>y"

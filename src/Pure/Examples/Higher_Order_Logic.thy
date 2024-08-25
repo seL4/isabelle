@@ -402,6 +402,7 @@ axiomatization Eps :: "('a \<Rightarrow> o) \<Rightarrow> 'a"
   where someI: "P x \<Longrightarrow> P (Eps P)"
 
 syntax "_Eps" :: "pttrn \<Rightarrow> o \<Rightarrow> 'a"  ("(3SOME _./ _)" [0, 10] 10)
+syntax_consts "_Eps" \<rightleftharpoons> Eps
 translations "SOME x. P" \<rightleftharpoons> "CONST Eps (\<lambda>x. P)"
 
 text \<open>

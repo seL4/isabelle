@@ -72,6 +72,8 @@ subsection \<open>List enumeration\<close>
 syntax
   "_totlist" :: "args \<Rightarrow> 'a Seq"  ("[(_)!]")
   "_partlist" :: "args \<Rightarrow> 'a Seq"  ("[(_)?]")
+syntax_consts
+  "_totlist" "_partlist" \<rightleftharpoons> Consq
 translations
   "[x, xs!]" \<rightleftharpoons> "x \<leadsto> [xs!]"
   "[x!]" \<rightleftharpoons> "x\<leadsto>nil"

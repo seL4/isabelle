@@ -32,6 +32,8 @@ subsection \<open>Cardinalities of types\<close>
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
+syntax_consts "_type_card" == card
+
 translations "CARD('t)" => "CONST card (CONST UNIV :: 't set)"
 
 print_translation \<open>

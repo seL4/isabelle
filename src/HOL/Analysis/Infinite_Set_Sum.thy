@@ -100,6 +100,8 @@ syntax (ASCII)
 syntax
   "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_\<in>_./ _)" [0, 51, 10] 10)
+syntax_consts
+  "_infsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>ai\<in>A. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) A"
 
@@ -109,6 +111,8 @@ syntax (ASCII)
 syntax
   "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_./ _)" [0, 10] 10)
+syntax_consts
+  "_uinfsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>ai. b" \<rightleftharpoons> "CONST infsetsum (\<lambda>i. b) (CONST UNIV)"
 
@@ -118,6 +122,8 @@ syntax (ASCII)
 syntax
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
   ("(2\<Sum>\<^sub>a_ | (_)./ _)" [0, 0, 10] 10)
+syntax_consts
+  "_qinfsetsum" \<rightleftharpoons> infsetsum
 translations
   "\<Sum>\<^sub>ax|P. t" => "CONST infsetsum (\<lambda>x. t) {x. P}"
 

@@ -16,6 +16,8 @@ definition PLam :: "[nat set, nat => ('b * ((nat=>'b) * 'c)) program]
 
 syntax
   "_PLam" :: "[pttrn, nat set, 'b set] => (nat => 'b) set"  ("(3plam _:_./ _)" 10)
+syntax_consts
+  "_PLam" == PLam
 translations
   "plam x : A. B" == "CONST PLam A (%x. B)"
 

@@ -19,6 +19,9 @@ class len0 =
 
 syntax "_type_length" :: "type \<Rightarrow> nat" (\<open>(1LENGTH/(1'(_')))\<close>)
 
+syntax_consts
+  "_type_length" \<rightleftharpoons> len_of
+
 translations "LENGTH('a)" \<rightharpoonup>
   "CONST len_of (CONST Pure.type :: 'a itself)"
 

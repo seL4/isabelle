@@ -46,6 +46,11 @@ syntax (ASCII)
   "_do_bind" :: "[pttrn, 'a] \<Rightarrow> do_bind" ("(2_ <-/ _)" 13)
   "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl ">>" 54)
 
+syntax_consts
+  "_do_block" "_do_cons" \<rightleftharpoons> bind_do and
+  "_do_bind" "_thenM" \<rightleftharpoons> bind and
+  "_do_let" \<rightleftharpoons> Let
+
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
     \<rightleftharpoons> "CONST bind_do t (\<lambda>_. e)"

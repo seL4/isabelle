@@ -90,6 +90,8 @@ definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> 
 
 syntax
   "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>'' _\<in>_./ _)"   10)
+syntax_consts
+  "_Pi'" == Pi'
 translations
   "\<Pi>' x\<in>A. B" == "CONST Pi' A (\<lambda>x. B)"
 
@@ -635,6 +637,8 @@ abbreviation
 
 syntax
   "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
+syntax_consts
+  "_PiF" == PiF
 translations
   "\<Pi>\<^sub>F x\<in>I. M" == "CONST PiF I (%x. M)"
 

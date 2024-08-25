@@ -153,6 +153,7 @@ end
 text \<open>Old "UU" syntax:\<close>
 
 syntax UU :: logic
+syntax_consts UU \<rightleftharpoons> bottom
 translations "UU" \<rightharpoonup> "CONST bottom"
 
 text \<open>Simproc to rewrite \<^term>\<open>\<bottom> = x\<close> to \<^term>\<open>x = \<bottom>\<close>.\<close>

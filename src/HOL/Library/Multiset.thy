@@ -93,6 +93,8 @@ by (rule add_mset_in_multiset)
 
 syntax
   "_multiset" :: "args \<Rightarrow> 'a multiset"    ("{#(_)#}")
+syntax_consts
+  "_multiset" == add_mset
 translations
   "{#x, xs#}" == "CONST add_mset x {#xs#}"
   "{#x#}" == "CONST add_mset x {#}"
@@ -168,6 +170,10 @@ syntax
 syntax  (ASCII)
   "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>_:#_./ _)" [0, 0, 10] 10)
   "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>_:#_./ _)" [0, 0, 10] 10)
+
+syntax_consts
+  "_MBall" \<rightleftharpoons> Multiset.Ball and
+  "_MBex" \<rightleftharpoons> Multiset.Bex
 
 translations
   "\<forall>x\<in>#A. P" \<rightleftharpoons> "CONST Multiset.Ball A (\<lambda>x. P)"
@@ -1248,6 +1254,8 @@ syntax (ASCII)
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ :# _./ _#})")
 syntax
   "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ \<in># _./ _#})")
+syntax_consts
+  "_MCollect" == filter_mset
 translations
   "{#x \<in># M. P#}" == "CONST filter_mset (\<lambda>x. P) M"
 
@@ -1821,6 +1829,8 @@ syntax (ASCII)
   "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
 syntax
   "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ \<in># _#})")
+syntax_consts
+  "_comprehension_mset" \<rightleftharpoons> image_mset
 translations
   "{#e. x \<in># M#}" \<rightleftharpoons> "CONST image_mset (\<lambda>x. e) M"
 
@@ -1828,6 +1838,8 @@ syntax (ASCII)
   "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ :# _./ _#})")
 syntax
   "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ \<in># _./ _#})")
+syntax_consts
+  "_comprehension_mset'" \<rightleftharpoons> image_mset
 translations
   "{#e | x\<in>#M. P#}" \<rightharpoonup> "{#e. x \<in># {# x\<in>#M. P#}#}"
 
@@ -2675,6 +2687,8 @@ syntax (ASCII)
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
 syntax
   "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+syntax_consts
+  "_sum_mset_image" \<rightleftharpoons> sum_mset
 translations
   "\<Sum>i \<in># A. b" \<rightleftharpoons> "CONST sum_mset (CONST image_mset (\<lambda>i. b) A)"
 
@@ -2854,6 +2868,8 @@ syntax (ASCII)
   "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
 syntax
   "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+syntax_consts
+  "_prod_mset_image" \<rightleftharpoons> prod_mset
 translations
   "\<Prod>i \<in># A. b" \<rightleftharpoons> "CONST prod_mset (CONST image_mset (\<lambda>i. b) A)"
 

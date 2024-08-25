@@ -81,6 +81,8 @@ checksum, so that garbage can be detected.
 text\<open>Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...\<close>
 syntax
   "_MTuple"      :: "['a, args] \<Rightarrow> 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+syntax_consts
+  "_MTuple"     == MPair
 translations
   "\<lbrace>x, y, z\<rbrace>"   == "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
   "\<lbrace>x, y\<rbrace>"      == "CONST MPair x y"

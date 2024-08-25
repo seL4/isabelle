@@ -41,6 +41,8 @@ definition
 syntax
   "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion>_./ _)" 10)
   "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion>_\<in>_./ _)" 10)
+syntax_consts
+  "_JOIN1" "_JOIN" == JOIN
 translations
   "\<Squnion>x \<in> A. B" == "CONST JOIN A (\<lambda>x. B)"
   "\<Squnion>x y. B" == "\<Squnion>x. \<Squnion>y. B"

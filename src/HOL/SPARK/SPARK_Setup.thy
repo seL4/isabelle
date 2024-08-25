@@ -57,6 +57,9 @@ definition fun_upds :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow>
 syntax
   "_updsbind" :: "['a, 'a] => updbind"             ("(2_ [:=]/ _)")
 
+syntax_consts
+  "_updsbind" == fun_upds
+
 translations
   "f(xs[:=]y)" == "CONST fun_upds f xs y"
 

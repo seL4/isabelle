@@ -308,6 +308,8 @@ definition
 syntax
   "_finprod" :: "index \<Rightarrow> idt \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"
       ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
+syntax_consts
+  "_finprod" \<rightleftharpoons> finprod
 translations
   "\<Otimes>\<^bsub>G\<^esub>i\<in>A. b" \<rightleftharpoons> "CONST finprod G (%i. b) A"
   \<comment> \<open>Beware of argument permutation!\<close>

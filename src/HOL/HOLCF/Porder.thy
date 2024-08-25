@@ -118,6 +118,9 @@ syntax (ASCII)
 syntax
   "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3\<Squnion>_\<in>_./ _)" [0,0, 10] 10)
 
+syntax_consts
+  "_BLub" \<rightleftharpoons> lub
+
 translations
   "LUB x:A. t" \<rightleftharpoons> "CONST lub ((\<lambda>x. t) ` A)"
 

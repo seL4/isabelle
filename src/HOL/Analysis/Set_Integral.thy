@@ -26,6 +26,9 @@ syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   ("(4LINT (_):(_)/|(_)./ _)" [0,0,0,10] 10)
 
+syntax_consts
+  "_ascii_set_lebesgue_integral" == set_lebesgue_integral
+
 translations
   "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
 
@@ -576,12 +579,18 @@ syntax
   "_complex_lebesgue_integral" :: "pttrn \<Rightarrow> complex \<Rightarrow> 'a measure \<Rightarrow> complex"
  ("\<integral>\<^sup>C _. _ \<partial>_" [0,0] 110)
 
+syntax_consts
+  "_complex_lebesgue_integral" == complex_lebesgue_integral
+
 translations
   "\<integral>\<^sup>Cx. f \<partial>M" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
 
 syntax
   "_ascii_complex_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   ("(3CLINT _|_. _)" [0,0,10] 10)
+
+syntax_consts
+  "_ascii_complex_lebesgue_integral" == complex_lebesgue_integral
 
 translations
   "CLINT x|M. f" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
@@ -617,6 +626,9 @@ syntax
   "_ascii_complex_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   ("(4CLINT _:_|_. _)" [0,0,0,10] 10)
 
+syntax_consts
+  "_ascii_complex_set_lebesgue_integral" == complex_set_lebesgue_integral
+
 translations
   "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
 
@@ -639,6 +651,10 @@ syntax
 
 "_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
 ("(\<integral>((_)\<in>(_)./ _)/\<partial>_)" [0,0,0,110] 10)
+
+syntax_consts
+"_set_nn_integral" == set_nn_integral and
+"_set_lebesgue_integral" == set_lebesgue_integral
 
 translations
 "\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
