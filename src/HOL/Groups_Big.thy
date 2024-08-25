@@ -1445,6 +1445,22 @@ syntax_consts
 translations
   "\<Prod>x|P. t" => "CONST prod (\<lambda>x. t) {x. P}"
 
+print_translation \<open>
+  let
+    fun prod_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
+          if x <> y then raise Match
+          else
+            let
+              val x' = Syntax_Trans.mark_bound_body (x, Tx);
+              val t' = subst_bound (x', t);
+              val P' = subst_bound (x', P);
+            in
+              Syntax.const \<^syntax_const>\<open>_qprod\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
+            end
+      | prod_tr' _ = raise Match;
+  in [(\<^const_syntax>\<open>prod\<close>, K prod_tr')] end
+\<close>
+
 context comm_monoid_mult
 begin
 
