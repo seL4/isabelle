@@ -442,7 +442,9 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
       | NONE => Printer.get_binder prtabs c)
       |> Option.map Prefix);
 
-fun is_const (Syntax ({consts, ...}, _)) = Graph.defined consts;
+fun is_const (Syntax ({consts, ...}, _)) c =
+  Graph.defined consts c andalso not (Lexicon.is_marked c);
+
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse (Syntax ({gram, ...}, _)) = Parser.parse (cache_eval gram);
