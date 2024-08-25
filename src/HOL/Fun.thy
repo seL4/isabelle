@@ -846,6 +846,9 @@ syntax
   "_updbinds":: "updbind \<Rightarrow> updbinds \<Rightarrow> updbinds" ("_,/ _")
   "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"            ("_/'((_)')" [1000, 0] 900)
 
+syntax_consts
+  "_updbind" "_updbinds" "_Update" \<rightleftharpoons> fun_upd
+
 translations
   "_Update f (_updbinds b bs)" \<rightleftharpoons> "_Update (_Update f b) bs"
   "f(x:=y)" \<rightleftharpoons> "CONST fun_upd f x y"

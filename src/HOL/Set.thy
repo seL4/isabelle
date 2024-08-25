@@ -40,6 +40,8 @@ text \<open>Set comprehensions\<close>
 
 syntax
   "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    ("(1{_./ _})")
+syntax_consts
+  "_Coll" \<rightleftharpoons> Collect
 translations
   "{x. P}" \<rightleftharpoons> "CONST Collect (\<lambda>x. P)"
 
@@ -47,6 +49,8 @@ syntax (ASCII)
   "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  ("(1{(_/: _)./ _})")
 syntax
   "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  ("(1{(_/ \<in> _)./ _})")
+syntax_consts
+  "_Collect" \<rightleftharpoons> Collect
 translations
   "{p:A. P}" \<rightharpoonup> "CONST Collect (\<lambda>p. p \<in> A \<and> P)"
 
@@ -141,6 +145,8 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
 
 syntax
   "_Finset" :: "args \<Rightarrow> 'a set"    ("{(_)}")
+syntax_consts
+  "_Finset" \<rightleftharpoons> insert
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"
@@ -203,6 +209,12 @@ syntax
   "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>!(_/\<in>_)./ _)" [0, 0, 10] 10)
   "_Bleast"     :: "id \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a"           ("(3LEAST(_/\<in>_)./ _)" [0, 0, 10] 10)
 
+syntax_consts
+  "_Ball" \<rightleftharpoons> Ball and
+  "_Bex" \<rightleftharpoons> Bex and
+  "_Bex1" \<rightleftharpoons> Ex1 and
+  "_Bleast" \<rightleftharpoons> Least
+
 translations
   "\<forall>x\<in>A. P" \<rightleftharpoons> "CONST Ball A (\<lambda>x. P)"
   "\<exists>x\<in>A. P" \<rightleftharpoons> "CONST Bex A (\<lambda>x. P)"
@@ -222,6 +234,11 @@ syntax
   "_setleAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
   "_setleEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
   "_setleEx1"   :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
+
+syntax_consts
+  "_setlessAll" "_setleAll" \<rightleftharpoons> All and
+  "_setlessEx" "_setleEx" \<rightleftharpoons> Ex and
+  "_setleEx1" \<rightleftharpoons> Ex1
 
 translations
  "\<forall>A\<subset>B. P" \<rightharpoonup> "\<forall>A. A \<subset> B \<longrightarrow> P"
@@ -272,6 +289,8 @@ text \<open>
 
 syntax
   "_Setcompr" :: "'a \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a set"    ("(1{_ |/_./ _})")
+syntax_consts
+  "_Setcompr" \<rightleftharpoons> Collect
 
 parse_translation \<open>
   let

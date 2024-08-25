@@ -19,6 +19,8 @@ end
 
 syntax
   "_TYPEREP" :: "type => logic"  ("(1TYPEREP/(1'(_')))")
+syntax_consts
+  "_TYPEREP" \<rightleftharpoons> typerep
 
 parse_translation \<open>
   let

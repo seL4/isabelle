@@ -41,6 +41,8 @@ definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
 
 syntax
   "_eventually" :: "pttrn => 'a filter => bool => bool"  ("(3\<forall>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+syntax_consts
+  "_eventually" == eventually
 translations
   "\<forall>\<^sub>Fx in F. P" == "CONST eventually (\<lambda>x. P) F"
 
@@ -159,6 +161,8 @@ definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
 
 syntax
   "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+syntax_consts
+  "_frequently" == frequently
 translations
   "\<exists>\<^sub>Fx in F. P" == "CONST frequently (\<lambda>x. P) F"
 
@@ -1304,6 +1308,9 @@ definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightar
 
 syntax
   "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(3LIM (_)/ (_)./ (_) :> (_))" [1000, 10, 0, 10] 10)
+
+syntax_consts
+  "_LIM" == filterlim
 
 translations
   "LIM x F1. f :> F2" == "CONST filterlim (\<lambda>x. f) F2 F1"

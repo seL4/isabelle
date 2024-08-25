@@ -218,6 +218,8 @@ lemma size'_char_eq_0 [simp, code]:
 syntax
   "_Char" :: "str_position \<Rightarrow> char"    ("CHR _")
   "_Char_ord" :: "num_const \<Rightarrow> char"   ("CHR _")
+syntax_consts
+  "_Char" "_Char_ord" \<rightleftharpoons> Char
 
 type_synonym string = "char list"
 
@@ -522,6 +524,8 @@ code_datatype "0 :: String.literal" String.Literal
 syntax
   "_Literal" :: "str_position \<Rightarrow> String.literal"   ("STR _")
   "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("STR _")
+syntax_consts
+  "_Literal" "_Ascii" \<rightleftharpoons> String.Literal
 
 ML_file \<open>Tools/literal.ML\<close>
 

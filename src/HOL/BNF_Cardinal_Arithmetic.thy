@@ -275,6 +275,9 @@ syntax "_Csum" ::
   "pttrn => ('a * 'a) set => 'b * 'b set => (('a * 'b) * ('a * 'b)) set"
   ("(3CSUM _:_. _)" [0, 51, 10] 10)
 
+syntax_consts
+  "_Csum" == Csum
+
 translations
   "CSUM i:r. rs" == "CONST Csum r (%i. rs)"
 

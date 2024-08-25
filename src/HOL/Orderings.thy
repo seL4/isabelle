@@ -745,6 +745,10 @@ syntax (input)
   "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3! _~=_./ _)"  [0, 0, 10] 10)
   "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3? _~=_./ _)"  [0, 0, 10] 10)
 
+syntax_consts
+  "_All_less" "_All_less_eq" "_All_greater" "_All_greater_eq" "_All_neq" \<rightleftharpoons> All and
+  "_Ex_less" "_Ex_less_eq" "_Ex_greater" "_Ex_greater_eq" "_Ex_neq" \<rightleftharpoons> Ex
+
 translations
   "\<forall>x<y. P" \<rightharpoonup> "\<forall>x. x < y \<longrightarrow> P"
   "\<exists>x<y. P" \<rightharpoonup> "\<exists>x. x < y \<and> P"

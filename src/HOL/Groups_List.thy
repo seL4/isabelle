@@ -101,6 +101,8 @@ syntax (ASCII)
   "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
 syntax
   "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+syntax_consts
+  "_sum_list" == sum_list
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>x\<leftarrow>xs. b" == "CONST sum_list (CONST map (\<lambda>x. b) xs)"
 
@@ -598,6 +600,8 @@ syntax (ASCII)
   "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
 syntax
   "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
+syntax_consts
+  "_prod_list" \<rightleftharpoons> prod_list
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST prod_list (CONST map (\<lambda>x. b) xs)"
 

@@ -129,6 +129,9 @@ subsubsection \<open>Additional concrete syntax\<close>
 
 syntax (ASCII) "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(4?< _./ _)" [0, 10] 10)
 syntax "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)" [0, 10] 10)
+
+syntax_consts "_Uniq" \<rightleftharpoons> Uniq
+
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
 
 print_translation \<open>
@@ -141,6 +144,9 @@ syntax (ASCII)
 syntax (input)
   "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3?! _./ _)" [0, 10] 10)
 syntax "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>!_./ _)" [0, 10] 10)
+
+syntax_consts "_Ex1" \<rightleftharpoons> Ex1
+
 translations "\<exists>!x. P" \<rightleftharpoons> "CONST Ex1 (\<lambda>x. P)"
 
 print_translation \<open>
@@ -151,6 +157,9 @@ print_translation \<open>
 syntax
   "_Not_Ex" :: "idts \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>_./ _)" [0, 10] 10)
   "_Not_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>!_./ _)" [0, 10] 10)
+syntax_consts
+  "_Not_Ex" \<rightleftharpoons> Ex and
+  "_Not_Ex1" \<rightleftharpoons> Ex1
 translations
   "\<nexists>x. P" \<rightleftharpoons> "\<not> (\<exists>x. P)"
   "\<nexists>!x. P" \<rightleftharpoons> "\<not> (\<exists>!x. P)"
@@ -171,6 +180,7 @@ abbreviation (iff)
   where "A \<longleftrightarrow> B \<equiv> A = B"
 
 syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  ("(3THE _./ _)" [0, 10] 10)
+syntax_consts "_The" \<rightleftharpoons> The
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"
 print_translation \<open>
   [(\<^const_syntax>\<open>The\<close>, fn _ => fn [Abs abs] =>
@@ -227,6 +237,8 @@ definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if
 definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
   where "Let s f \<equiv> f s"
 
+syntax_consts
+  "_bind" "_binds" "_Let" \<rightleftharpoons> Let
 translations
   "_Let (_binds b bs) e"  \<rightleftharpoons> "_Let b (_Let bs e)"
   "let x = a in e"        \<rightleftharpoons> "CONST Let a (\<lambda>x. e)"

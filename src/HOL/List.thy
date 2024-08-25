@@ -46,6 +46,9 @@ syntax
   \<comment> \<open>list Enumeration\<close>
   "_list" :: "args => 'a list"    ("[(_)]")
 
+syntax_consts
+  "_list" == Cons
+
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
@@ -83,6 +86,8 @@ syntax (ASCII)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_<-_./ _])")
 syntax
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_\<leftarrow>_ ./ _])")
+syntax_consts
+  "_filter" \<rightleftharpoons> filter
 translations
   "[x<-xs . P]" \<rightharpoonup> "CONST filter (\<lambda>x. P) xs"
 
@@ -131,6 +136,9 @@ syntax
   "" :: "lupdbind => lupdbinds"    ("_")
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
   "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [1000,0] 900)
+
+syntax_consts
+  "_lupdbind" "_lupdbinds" "_LUpdate" == list_update
 
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"

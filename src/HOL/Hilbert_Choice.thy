@@ -22,6 +22,9 @@ syntax (input)
   "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  ("(3@ _./ _)" [0, 10] 10)
 syntax
   "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  ("(3SOME _./ _)" [0, 10] 10)
+
+syntax_consts "_Eps" \<rightleftharpoons> Eps
+
 translations
   "SOME x. P" \<rightleftharpoons> "CONST Eps (\<lambda>x. P)"
 

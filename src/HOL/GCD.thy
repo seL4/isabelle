@@ -153,6 +153,10 @@ syntax
   "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3LCM _./ _)" [0, 10] 10)
   "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3LCM _\<in>_./ _)" [0, 0, 10] 10)
 
+syntax_consts
+  "_GCD1" "_GCD" \<rightleftharpoons> Gcd and
+  "_LCM1" "_LCM" \<rightleftharpoons> Lcm
+
 translations
   "GCD x y. f"   \<rightleftharpoons> "GCD x. GCD y. f"
   "GCD x. f"     \<rightleftharpoons> "CONST Gcd (CONST range (\<lambda>x. f))"
@@ -2932,6 +2936,8 @@ lemma (in semiring_char_0) CHAR_eq_0 [simp]: "semiring_char (Pure.type :: 'a its
 (* nicer notation *)
 
 syntax "_type_char" :: "type => nat" ("(1CHAR/(1'(_')))")
+
+syntax_consts "_type_char" == semiring_char
 
 translations "CHAR('t)" => "CONST semiring_char (CONST Pure.type :: 't itself)"
 

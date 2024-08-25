@@ -470,6 +470,10 @@ syntax
   "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MAX _./ _)" [0, 10] 10)
   "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MAX _\<in>_./ _)" [0, 0, 10] 10)
 
+syntax_consts
+  "_MIN1" "_MIN" \<rightleftharpoons> Min and
+  "_MAX1" "_MAX" \<rightleftharpoons> Max
+
 translations
   "MIN x y. f"   \<rightleftharpoons> "MIN x. MIN y. f"
   "MIN x. f"     \<rightleftharpoons> "CONST Min (CONST range (\<lambda>x. f))"
@@ -477,6 +481,7 @@ translations
   "MAX x y. f"   \<rightleftharpoons> "MAX x. MAX y. f"
   "MAX x. f"     \<rightleftharpoons> "CONST Max (CONST range (\<lambda>x. f))"
   "MAX x\<in>A. f"   \<rightleftharpoons> "CONST Max ((\<lambda>x. f) ` A)"
+
 
 text \<open>An aside: \<^const>\<open>Min\<close>/\<^const>\<open>Max\<close> on linear orders as special case of \<^const>\<open>Inf_fin\<close>/\<^const>\<open>Sup_fin\<close>\<close>
 
@@ -919,6 +924,8 @@ end
 syntax
   "_arg_min" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'b"
     ("(3ARG'_MIN _ _./ _)" [1000, 0, 10] 10)
+syntax_consts
+  "_arg_min" \<rightleftharpoons> arg_min
 translations
   "ARG_MIN f x. P" \<rightleftharpoons> "CONST arg_min f (\<lambda>x. P)"
 
@@ -1036,6 +1043,8 @@ end
 syntax
   "_arg_max" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
     ("(3ARG'_MAX _ _./ _)" [1000, 0, 10] 10)
+syntax_consts
+  "_arg_max" \<rightleftharpoons> arg_max
 translations
   "ARG_MAX f x. P" \<rightleftharpoons> "CONST arg_max f (\<lambda>x. P)"
 

@@ -84,6 +84,10 @@ syntax
   "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_\<le>_./ _)" [0, 0, 10] 10)
   "_INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter>_<_./ _)" [0, 0, 10] 10)
 
+syntax_consts
+  "_UNION_le" "_UNION_less" \<rightleftharpoons> Union and
+  "_INTER_le" "_INTER_less" \<rightleftharpoons> Inter
+
 translations
   "\<Union>i\<le>n. A" \<rightleftharpoons> "\<Union>i\<in>{..n}. A"
   "\<Union>i<n. A" \<rightleftharpoons> "\<Union>i\<in>{..<n}. A"
@@ -2005,6 +2009,9 @@ syntax
   "_upt_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_<_./ _)" [0,0,10] 10)
   "_upto_sum" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sum>_\<le>_./ _)" [0,0,10] 10)
 
+syntax_consts
+  "_from_to_sum" "_from_upto_sum" "_upt_sum" "_upto_sum" == sum
+
 translations
   "\<Sum>x=a..b. t" == "CONST sum (\<lambda>x. t) {a..b}"
   "\<Sum>x=a..<b. t" == "CONST sum (\<lambda>x. t) {a..<b}"
@@ -2694,6 +2701,9 @@ syntax
   "_from_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
   "_upt_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_<_./ _)" [0,0,10] 10)
   "_upto_prod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+
+syntax_consts
+  "_from_to_prod" "_from_upto_prod" "_upt_prod" "_upto_prod" \<rightleftharpoons> prod
 
 translations
   "\<Prod>x=a..b. t" \<rightleftharpoons> "CONST prod (\<lambda>x. t) {a..b}"

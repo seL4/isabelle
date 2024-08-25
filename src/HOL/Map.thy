@@ -67,6 +67,9 @@ syntax
 syntax (ASCII)
   "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /|->/ _")
 
+syntax_consts
+  "_maplet" "_Maplets" "_Map" \<rightleftharpoons> fun_upd
+
 translations
   "_Update f (_maplet x y)" \<rightleftharpoons> "f(x := CONST Some y)"
   "_Maplets m ms" \<rightharpoonup> "_updbinds m ms"
@@ -75,6 +78,7 @@ translations
 (* Printing must create \<open>_Map\<close> only for \<open>_maplet\<close> *)
   "_Map (_maplet x y)"  \<leftharpoondown> "_Update (\<lambda>u. CONST None) (_maplet x y)"
   "_Map (_updbinds m (_maplet x y))"  \<leftharpoondown> "_Update (_Map m) (_maplet x y)"
+
 
 text \<open>Updating with lists:\<close>
 
@@ -97,6 +101,9 @@ syntax
 
 syntax (ASCII)
   "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[|->]/ _")
+
+syntax_consts
+  "_maplets" \<rightleftharpoons> map_upds
 
 translations
   "_Update m (_maplets xs ys)" \<rightleftharpoons> "CONST map_upds m xs ys"

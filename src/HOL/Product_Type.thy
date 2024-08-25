@@ -293,6 +293,10 @@ syntax
   ""            :: "pttrn \<Rightarrow> patterns"                  ("_")
   "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      ("_,/ _")
   "_unit"       :: pttrn                                ("'(')")
+syntax_consts
+  "_tuple" "_tuple_arg" "_tuple_args" \<rightleftharpoons> Pair and
+  "_pattern" "_patterns" \<rightleftharpoons> case_prod and
+  "_unit" \<rightleftharpoons> case_unit
 translations
   "(x, y)" \<rightleftharpoons> "CONST Pair x y"
   "_pattern x y" \<rightleftharpoons> "CONST Pair x y"
@@ -1010,6 +1014,8 @@ end
 
 syntax
   "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
+syntax_consts
+  "_Sigma" \<rightleftharpoons> Sigma
 translations
   "SIGMA x:A. B" \<rightleftharpoons> "CONST Sigma A (\<lambda>x. B)"
 
