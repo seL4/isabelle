@@ -654,10 +654,13 @@ syntax (ASCII)
   "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM (_/:_)./ _)" [0, 51, 10] 10)
 syntax
   "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>(_/\<in>_)./ _)" [0, 51, 10] 10)
+
 syntax_consts
   "_sum" \<rightleftharpoons> sum
+
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>i\<in>A. b" \<rightleftharpoons> "CONST sum (\<lambda>i. b) A"
+
 
 text \<open>Instead of \<^term>\<open>\<Sum>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
@@ -665,6 +668,7 @@ syntax (ASCII)
   "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
 syntax
   "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>_ | (_)./ _)" [0, 0, 10] 10)
+
 syntax_consts
   "_qsum" == sum
 
@@ -672,19 +676,19 @@ translations
   "\<Sum>x|P. t" => "CONST sum (\<lambda>x. t) {x. P}"
 
 print_translation \<open>
-let
-  fun sum_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
-        if x <> y then raise Match
-        else
-          let
-            val x' = Syntax_Trans.mark_bound_body (x, Tx);
-            val t' = subst_bound (x', t);
-            val P' = subst_bound (x', P);
-          in
-            Syntax.const \<^syntax_const>\<open>_qsum\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
-          end
-    | sum_tr' _ = raise Match;
-in [(\<^const_syntax>\<open>sum\<close>, K sum_tr')] end
+  let
+    fun sum_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
+          if x <> y then raise Match
+          else
+            let
+              val x' = Syntax_Trans.mark_bound_body (x, Tx);
+              val t' = subst_bound (x', t);
+              val P' = subst_bound (x', P);
+            in
+              Syntax.const \<^syntax_const>\<open>_qsum\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
+            end
+      | sum_tr' _ = raise Match;
+  in [(\<^const_syntax>\<open>sum\<close>, K sum_tr')] end
 \<close>
 
 
@@ -1420,10 +1424,13 @@ syntax (ASCII)
   "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD (_/:_)./ _)" [0, 51, 10] 10)
 syntax
   "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>(_/\<in>_)./ _)" [0, 51, 10] 10)
+
 syntax_consts
   "_prod" == prod
+
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>i\<in>A. b" == "CONST prod (\<lambda>i. b) A"
+
 
 text \<open>Instead of \<^term>\<open>\<Prod>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
@@ -1431,8 +1438,10 @@ syntax (ASCII)
   "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)
 syntax
   "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Prod>_ | (_)./ _)" [0, 0, 10] 10)
+
 syntax_consts
   "_qprod" == prod
+
 translations
   "\<Prod>x|P. t" => "CONST prod (\<lambda>x. t) {x. P}"
 
