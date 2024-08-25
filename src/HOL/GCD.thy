@@ -2851,18 +2851,23 @@ subsection \<open>Characteristic of a semiring\<close>
 definition (in semiring_1) semiring_char :: "'a itself \<Rightarrow> nat" 
   where "semiring_char _ = Gcd {n. of_nat n = (0 :: 'a)}"
 
+syntax "_type_char" :: "type => nat" ("(1CHAR/(1'(_')))")
+syntax_consts "_type_char" \<rightleftharpoons> semiring_char
+translations "CHAR('t)" \<rightharpoonup> "CONST semiring_char (CONST Pure.type :: 't itself)"
+print_translation \<open>
+  let
+    fun char_type_tr' ctxt [Const (\<^const_syntax>\<open>Pure.type\<close>, Type (_, [T]))] =
+      Syntax.const \<^syntax_const>\<open>_type_char\<close> $ Syntax_Phases.term_of_typ ctxt T
+  in [(\<^const_syntax>\<open>semiring_char\<close>, char_type_tr')] end
+\<close>
+
 context semiring_1
 begin
 
-context
-  fixes CHAR :: nat
-  defines "CHAR \<equiv> semiring_char TYPE('a)"
-begin
-
-lemma of_nat_CHAR [simp]: "of_nat CHAR = (0 :: 'a)"
+lemma of_nat_CHAR [simp]: "of_nat CHAR('a) = (0 :: 'a)"
 proof -
-  have "CHAR \<in> {n. of_nat n = (0::'a)}"
-    unfolding CHAR_def semiring_char_def
+  have "CHAR('a) \<in> {n. of_nat n = (0::'a)}"
+    unfolding semiring_char_def
   proof (rule Gcd_in, clarify)
     fix a b :: nat
     assume *: "of_nat a = (0 :: 'a)" "of_nat b = (0 :: 'a)"
@@ -2886,14 +2891,14 @@ proof -
     by simp
 qed
 
-lemma of_nat_eq_0_iff_char_dvd: "of_nat n = (0 :: 'a) \<longleftrightarrow> CHAR dvd n"
+lemma of_nat_eq_0_iff_char_dvd: "of_nat n = (0 :: 'a) \<longleftrightarrow> CHAR('a) dvd n"
 proof
   assume "of_nat n = (0 :: 'a)"
-  thus "CHAR dvd n"
-    unfolding CHAR_def semiring_char_def by (intro Gcd_dvd) auto
+  thus "CHAR('a) dvd n"
+    unfolding semiring_char_def by (intro Gcd_dvd) auto
 next
-  assume "CHAR dvd n"
-  then obtain m where "n = CHAR * m"
+  assume "CHAR('a) dvd n"
+  then obtain m where "n = CHAR('a) * m"
     by auto
   thus "of_nat n = (0 :: 'a)"
     by simp
@@ -2902,51 +2907,34 @@ qed
 lemma CHAR_eqI:
   assumes "of_nat c = (0 :: 'a)"
   assumes "\<And>x. of_nat x = (0 :: 'a) \<Longrightarrow> c dvd x"
-  shows   "CHAR = c"
+  shows   "CHAR('a) = c"
   using assms by (intro dvd_antisym) (auto simp: of_nat_eq_0_iff_char_dvd)
 
-lemma CHAR_eq0_iff: "CHAR = 0 \<longleftrightarrow> (\<forall>n>0. of_nat n \<noteq> (0::'a))"
+lemma CHAR_eq0_iff: "CHAR('a) = 0 \<longleftrightarrow> (\<forall>n>0. of_nat n \<noteq> (0::'a))"
   by (auto simp: of_nat_eq_0_iff_char_dvd)
 
-lemma CHAR_pos_iff: "CHAR > 0 \<longleftrightarrow> (\<exists>n>0. of_nat n = (0::'a))"
+lemma CHAR_pos_iff: "CHAR('a) > 0 \<longleftrightarrow> (\<exists>n>0. of_nat n = (0::'a))"
   using CHAR_eq0_iff neq0_conv by blast
 
 lemma CHAR_eq_posI:
   assumes "c > 0" "of_nat c = (0 :: 'a)" "\<And>x. x > 0 \<Longrightarrow> x < c \<Longrightarrow> of_nat x \<noteq> (0 :: 'a)"
-  shows   "CHAR = c"
+  shows   "CHAR('a) = c"
 proof (rule antisym)
-  from assms have "CHAR > 0"
+  from assms have "CHAR('a) > 0"
     by (auto simp: CHAR_pos_iff)
-  from assms(3)[OF this] show "CHAR \<ge> c"
+  from assms(3)[OF this] show "CHAR('a) \<ge> c"
     by force
 next
-  have "CHAR dvd c"
+  have "CHAR('a) dvd c"
     using assms by (auto simp: of_nat_eq_0_iff_char_dvd)
-  thus "CHAR \<le> c"
+  thus "CHAR('a) \<le> c"
     using \<open>c > 0\<close> by (intro dvd_imp_le) auto
 qed
 
 end
-end
 
 lemma (in semiring_char_0) CHAR_eq_0 [simp]: "semiring_char TYPE('a) = 0"
   by (simp add: CHAR_eq0_iff)
-
-
-(* nicer notation *)
-
-syntax "_type_char" :: "type => nat" ("(1CHAR/(1'(_')))")
-
-syntax_consts "_type_char" == semiring_char
-
-translations "CHAR('t)" => "CONST semiring_char (CONST Pure.type :: 't itself)"
-
-print_translation \<open>
-  let
-    fun char_type_tr' ctxt [Const (\<^const_syntax>\<open>Pure.type\<close>, Type (_, [T]))] =
-      Syntax.const \<^syntax_const>\<open>_type_char\<close> $ Syntax_Phases.term_of_typ ctxt T
-  in [(\<^const_syntax>\<open>semiring_char\<close>, char_type_tr')] end
-\<close>
 
 
 lemma CHAR_not_1 [simp]: "CHAR('a :: {semiring_1, zero_neq_one}) \<noteq> Suc 0"
