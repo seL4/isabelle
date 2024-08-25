@@ -135,11 +135,11 @@ fun syntax_deps_cmd f args thy =
   in Sign.syntax_deps (maps check args) thy end;
 
 fun check_const ctxt (s, pos) =
-  Proof_Context.check_const {proper = false, strict = true} ctxt (s, [pos])
+  Proof_Context.check_const {proper = true, strict = false} ctxt (s, [pos])
   |>> (Term.dest_Const_name #> Lexicon.mark_const);
 
 fun check_type_name ctxt arg =
-  Proof_Context.check_type_name {proper = false, strict = true} ctxt arg
+  Proof_Context.check_type_name {proper = true, strict = false} ctxt arg
   |>> (Term.dest_Type_name #> Lexicon.mark_type);
 
 in
