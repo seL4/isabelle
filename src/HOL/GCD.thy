@@ -2933,7 +2933,7 @@ qed
 
 end
 
-lemma (in semiring_char_0) CHAR_eq_0 [simp]: "semiring_char TYPE('a) = 0"
+lemma (in semiring_char_0) CHAR_eq_0 [simp]: "CHAR('a) = 0"
   by (simp add: CHAR_eq0_iff)
 
 
