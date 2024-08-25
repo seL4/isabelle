@@ -188,13 +188,6 @@ print_translation \<open>
       in Syntax.const \<^syntax_const>\<open>_The\<close> $ x $ t end)]
 \<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 
-nonterminal letbinds and letbind
-syntax
-  "_bind"       :: "[pttrn, 'a] \<Rightarrow> letbind"              ("(2_ =/ _)" 10)
-  ""            :: "letbind \<Rightarrow> letbinds"                 ("_")
-  "_binds"      :: "[letbind, letbinds] \<Rightarrow> letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] \<Rightarrow> 'a"                ("(let (_)/ in (_))" [0, 10] 10)
-
 nonterminal case_syn and cases_syn
 syntax
   "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  ("(case _ of/ _)" 10)
@@ -237,6 +230,12 @@ definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if
 definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
   where "Let s f \<equiv> f s"
 
+nonterminal letbinds and letbind
+syntax
+  "_bind"       :: "[pttrn, 'a] \<Rightarrow> letbind"              ("(2_ =/ _)" 10)
+  ""            :: "letbind \<Rightarrow> letbinds"                 ("_")
+  "_binds"      :: "[letbind, letbinds] \<Rightarrow> letbinds"     ("_;/ _")
+  "_Let"        :: "[letbinds, 'a] \<Rightarrow> 'a"                ("(let (_)/ in (_))" [0, 10] 10)
 syntax_consts
   "_bind" "_binds" "_Let" \<rightleftharpoons> Let
 translations
