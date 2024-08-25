@@ -341,9 +341,7 @@ proof -
     show "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> x \<longrightarrow>
                 ((\<lambda>u. sin (u + 1/2 * real m * pi)) has_real_derivative
                  sin (t + 1/2 * real (Suc m) * pi)) (at t)"
-      apply (simp add: sin_expansion_lemma del: of_nat_Suc)
-      apply (force intro!: derivative_eq_intros)
-      done
+      using DERIV_shift sin_expansion_lemma by fastforce
   qed (use assms in auto)
   then show ?thesis
     apply (rule ex_forward, simp)
@@ -362,9 +360,7 @@ proof -
     show "\<forall>m t. m < n \<and> 0 \<le> t \<and> t \<le> x \<longrightarrow>
                 ((\<lambda>u. sin (u + 1/2 * real m * pi)) has_real_derivative
                  sin (t + 1/2 * real (Suc m) * pi)) (at t)"
-      apply (simp add: sin_expansion_lemma del: of_nat_Suc)
-      apply (force intro!: derivative_eq_intros)
-      done
+      using DERIV_shift sin_expansion_lemma by fastforce
   qed (use assms in auto)
   then show ?thesis
     apply (rule ex_forward, simp)
@@ -477,8 +473,7 @@ proof -
     apply (subst t2)
     apply (rule sin_bound_lemma)
      apply (rule sum.cong[OF refl])
-    unfolding sin_coeff_def
-     apply (subst diff_m_0, simp)
+    apply (simp add: diff_m_0 sin_coeff_def)
     using est
     apply (auto intro: mult_right_mono [where b=1, simplified] mult_right_mono
         simp: ac_simps divide_inverse power_abs [symmetric] abs_mult)
