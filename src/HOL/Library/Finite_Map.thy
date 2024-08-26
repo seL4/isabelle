@@ -500,7 +500,7 @@ by (rule fmap_ext) auto
 lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" (infixl "++\<^sub>f" 100)
   is map_add
   parametric map_add_transfer
-by simp
+  by simp
 
 lemma fmlookup_add[simp]:
   "fmlookup (m ++\<^sub>f n) x = (if x |\<in>| fmdom n then fmlookup n x else fmlookup m x)"
@@ -510,67 +510,63 @@ lemma fmdom_add[simp]: "fmdom (m ++\<^sub>f n) = fmdom m |\<union>| fmdom n" by 
 lemma fmdom'_add[simp]: "fmdom' (m ++\<^sub>f n) = fmdom' m \<union> fmdom' n" by transfer' auto
 
 lemma fmadd_drop_left_dom: "fmdrop_fset (fmdom n) m ++\<^sub>f n = m ++\<^sub>f n"
-by (rule fmap_ext) auto
+  by (rule fmap_ext) auto
 
 lemma fmadd_restrict_right_dom: "fmrestrict_fset (fmdom n) (m ++\<^sub>f n) = n"
-by (rule fmap_ext) auto
+  by (rule fmap_ext) auto
 
 lemma fmfilter_add_distrib[simp]: "fmfilter P (m ++\<^sub>f n) = fmfilter P m ++\<^sub>f fmfilter P n"
-by transfer' (auto simp: map_filter_def map_add_def)
+  by transfer' (auto simp: map_filter_def map_add_def)
 
 lemma fmdrop_add_distrib[simp]: "fmdrop a (m ++\<^sub>f n) = fmdrop a m ++\<^sub>f fmdrop a n"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmdrop_set_add_distrib[simp]: "fmdrop_set A (m ++\<^sub>f n) = fmdrop_set A m ++\<^sub>f fmdrop_set A n"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmdrop_fset_add_distrib[simp]: "fmdrop_fset A (m ++\<^sub>f n) = fmdrop_fset A m ++\<^sub>f fmdrop_fset A n"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmrestrict_set_add_distrib[simp]:
   "fmrestrict_set A (m ++\<^sub>f n) = fmrestrict_set A m ++\<^sub>f fmrestrict_set A n"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmrestrict_fset_add_distrib[simp]:
   "fmrestrict_fset A (m ++\<^sub>f n) = fmrestrict_fset A m ++\<^sub>f fmrestrict_fset A n"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmadd_empty[simp]: "fmempty ++\<^sub>f m = m" "m ++\<^sub>f fmempty = m"
-by (transfer'; auto)+
+  by (transfer'; auto)+
 
 lemma fmadd_idempotent[simp]: "m ++\<^sub>f m = m"
-by transfer' (auto simp: map_add_def split: option.splits)
+  by transfer' (auto simp: map_add_def split: option.splits)
 
 lemma fmadd_assoc[simp]: "m ++\<^sub>f (n ++\<^sub>f p) = m ++\<^sub>f n ++\<^sub>f p"
-by transfer' simp
+  by transfer' simp
 
 lemma fmadd_fmupd[simp]: "m ++\<^sub>f fmupd a b n = fmupd a b (m ++\<^sub>f n)"
-by (rule fmap_ext) simp
+  by (rule fmap_ext) simp
 
 lift_definition fmpred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool"
   is map_pred
   parametric map_pred_transfer
-.
+  .
 
 lemma fmpredI[intro]:
   assumes "\<And>x y. fmlookup m x = Some y \<Longrightarrow> P x y"
   shows "fmpred P m"
-using assms
-by transfer' (auto simp: map_pred_def split: option.splits)
+  using assms
+  by transfer' (auto simp: map_pred_def split: option.splits)
 
 lemma fmpredD[dest]: "fmpred P m \<Longrightarrow> fmlookup m x = Some y \<Longrightarrow> P x y"
-by transfer' (auto simp: map_pred_def split: option.split_asm)
+  by transfer' (auto simp: map_pred_def split: option.split_asm)
 
 lemma fmpred_iff: "fmpred P m \<longleftrightarrow> (\<forall>x y. fmlookup m x = Some y \<longrightarrow> P x y)"
-by auto
+  by auto
 
 lemma fmpred_alt_def: "fmpred P m \<longleftrightarrow> fBall (fmdom m) (\<lambda>x. P x (the (fmlookup m x)))"
-unfolding fmpred_iff
-apply auto
-apply (rename_tac x y)
-apply (erule_tac x = x in fBallE)
-apply simp
-by (simp add: fmlookup_dom_iff)
+  unfolding fmpred_iff
+  using fmdomI by fastforce
 
 lemma fmpred_mono_strong:
   assumes "\<And>x y. fmlookup m x = Some y \<Longrightarrow> P x y \<Longrightarrow> Q x y"
@@ -578,40 +574,37 @@ lemma fmpred_mono_strong:
 using assms unfolding fmpred_iff by auto
 
 lemma fmpred_mono[mono]: "P \<le> Q \<Longrightarrow> fmpred P \<le> fmpred Q"
-apply rule
-apply (rule fmpred_mono_strong[where P = P and Q = Q])
-apply auto
-done
+  by auto
 
 lemma fmpred_empty[intro!, simp]: "fmpred P fmempty"
-by auto
+  by auto
 
 lemma fmpred_upd[intro]: "fmpred P m \<Longrightarrow> P x y \<Longrightarrow> fmpred P (fmupd x y m)"
-by transfer' (auto simp: map_pred_def map_upd_def)
+  by transfer' (auto simp: map_pred_def map_upd_def)
 
 lemma fmpred_updD[dest]: "fmpred P (fmupd x y m) \<Longrightarrow> P x y"
-by auto
+  by auto
 
 lemma fmpred_add[intro]: "fmpred P m \<Longrightarrow> fmpred P n \<Longrightarrow> fmpred P (m ++\<^sub>f n)"
-by transfer' (auto simp: map_pred_def map_add_def split: option.splits)
+  by transfer' (auto simp: map_pred_def map_add_def split: option.splits)
 
 lemma fmpred_filter[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmfilter Q m)"
-by transfer' (auto simp: map_pred_def map_filter_def)
+  by transfer' (auto simp: map_pred_def map_filter_def)
 
 lemma fmpred_drop[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmdrop a m)"
-by (auto simp: fmfilter_alt_defs)
+  by (auto simp: fmfilter_alt_defs)
 
 lemma fmpred_drop_set[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmdrop_set A m)"
-by (auto simp: fmfilter_alt_defs)
+  by (auto simp: fmfilter_alt_defs)
 
 lemma fmpred_drop_fset[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmdrop_fset A m)"
-by (auto simp: fmfilter_alt_defs)
+  by (auto simp: fmfilter_alt_defs)
 
 lemma fmpred_restrict_set[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmrestrict_set A m)"
-by (auto simp: fmfilter_alt_defs)
+  by (auto simp: fmfilter_alt_defs)
 
 lemma fmpred_restrict_fset[intro]: "fmpred P m \<Longrightarrow> fmpred P (fmrestrict_fset A m)"
-by (auto simp: fmfilter_alt_defs)
+  by (auto simp: fmfilter_alt_defs)
 
 lemma fmpred_cases[consumes 1]:
   assumes "fmpred P m"
@@ -667,18 +660,18 @@ lemma fmsubset_restrict_fset[simp]: "fmrestrict_fset S m \<subseteq>\<^sub>f m"
 unfolding fmfilter_alt_defs by (rule fmfilter_subset)
 
 lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is set_of_map
-by (rule set_of_map_finite)
+  by (rule set_of_map_finite)
 
 lemma fset_of_fmap_inj[intro, simp]: "inj fset_of_fmap"
-apply rule
-apply transfer'
-using set_of_map_inj unfolding inj_def by auto
+  apply rule
+  apply transfer'
+  using set_of_map_inj unfolding inj_def by auto
 
 lemma fset_of_fmap_iff[simp]: "(a, b) |\<in>| fset_of_fmap m \<longleftrightarrow> fmlookup m a = Some b"
 by transfer' (auto simp: set_of_map_def)
 
-lemma fset_of_fmap_iff'[simp]: "(a, b) \<in> fset (fset_of_fmap m) \<longleftrightarrow> fmlookup m a = Some b"
-by transfer' (auto simp: set_of_map_def)
+lemma fset_of_fmap_iff': "(a, b) \<in> fset (fset_of_fmap m) \<longleftrightarrow> fmlookup m a = Some b"
+  by simp
 
 lift_definition fmap_of_list :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) fmap"
   is map_of
@@ -688,28 +681,25 @@ by (rule finite_dom_map_of)
 lemma fmap_of_list_simps[simp]:
   "fmap_of_list [] = fmempty"
   "fmap_of_list ((k, v) # kvs) = fmupd k v (fmap_of_list kvs)"
-by (transfer, simp add: map_upd_def)+
+  by (transfer, simp add: map_upd_def)+
 
 lemma fmap_of_list_app[simp]: "fmap_of_list (xs @ ys) = fmap_of_list ys ++\<^sub>f fmap_of_list xs"
-by transfer' simp
+  by transfer' simp
 
 lemma fmupd_alt_def: "fmupd k v m = m ++\<^sub>f fmap_of_list [(k, v)]"
-by transfer' (auto simp: map_upd_def)
+  by simp
 
 lemma fmpred_of_list[intro]:
   assumes "\<And>k v. (k, v) \<in> set xs \<Longrightarrow> P k v"
   shows "fmpred P (fmap_of_list xs)"
-using assms
-by (induction xs) (transfer'; auto simp: map_pred_def)+
+  using assms
+  by (induction xs) (transfer'; auto simp: map_pred_def)+
 
 lemma fmap_of_list_SomeD: "fmlookup (fmap_of_list xs) k = Some v \<Longrightarrow> (k, v) \<in> set xs"
-by transfer' (auto dest: map_of_SomeD)
+  by transfer' (auto dest: map_of_SomeD)
 
 lemma fmdom_fmap_of_list[simp]: "fmdom (fmap_of_list xs) = fset_of_list (map fst xs)"
-apply transfer'
-apply (subst dom_map_of_conv_image_fst)
-apply auto
-done
+  by transfer' (simp add: dom_map_of_conv_image_fst)
 
 lift_definition fmrel_on_fset :: "'a fset \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap \<Rightarrow> bool"
   is rel_map_on_set
@@ -721,109 +711,103 @@ by transfer' (auto simp: rel_map_on_set_def eq_onp_def rel_fun_def)
 lemma fmrel_on_fsetI[intro]:
   assumes "\<And>x. x |\<in>| S \<Longrightarrow> rel_option P (fmlookup m x) (fmlookup n x)"
   shows "fmrel_on_fset S P m n"
-using assms
-unfolding fmrel_on_fset_alt_def by auto
+  by (simp add: assms fmrel_on_fset_alt_def)
 
 lemma fmrel_on_fset_mono[mono]: "R \<le> Q \<Longrightarrow> fmrel_on_fset S R \<le> fmrel_on_fset S Q"
-unfolding fmrel_on_fset_alt_def[abs_def]
-apply (intro le_funI fBall_mono)
-using option.rel_mono by auto
+  unfolding fmrel_on_fset_alt_def[abs_def]
+  using option.rel_mono by blast
 
 lemma fmrel_on_fsetD: "x |\<in>| S \<Longrightarrow> fmrel_on_fset S P m n \<Longrightarrow> rel_option P (fmlookup m x) (fmlookup n x)"
-unfolding fmrel_on_fset_alt_def
-by auto
+  unfolding fmrel_on_fset_alt_def
+  by auto
 
 lemma fmrel_on_fsubset: "fmrel_on_fset S R m n \<Longrightarrow> T |\<subseteq>| S \<Longrightarrow> fmrel_on_fset T R m n"
-unfolding fmrel_on_fset_alt_def
-by auto
+  unfolding fmrel_on_fset_alt_def
+  by auto
 
 lemma fmrel_on_fset_unionI:
   "fmrel_on_fset A R m n \<Longrightarrow> fmrel_on_fset B R m n \<Longrightarrow> fmrel_on_fset (A |\<union>| B) R m n"
-unfolding fmrel_on_fset_alt_def
-by auto
+  unfolding fmrel_on_fset_alt_def
+  by auto
 
 lemma fmrel_on_fset_updateI:
   assumes "fmrel_on_fset S P m n" "P v\<^sub>1 v\<^sub>2"
   shows "fmrel_on_fset (finsert k S) P (fmupd k v\<^sub>1 m) (fmupd k v\<^sub>2 n)"
-using assms
-unfolding fmrel_on_fset_alt_def
-by auto
+  using assms
+  unfolding fmrel_on_fset_alt_def
+  by auto
 
 lift_definition fmimage :: "('a, 'b) fmap \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is "\<lambda>m S. {b|a b. m a = Some b \<and> a \<in> S}"
-subgoal for m S
-  apply (rule finite_subset[where B = "ran m"])
-  apply (auto simp: ran_def)[]
-  by (rule finite_ran)
-done
+  by (smt (verit, del_insts) Collect_mono_iff finite_surj ran_alt_def ran_def)
 
 lemma fmimage_alt_def: "fmimage m S = fmran (fmrestrict_fset S m)"
-by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
+  by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
 
 lemma fmimage_empty[simp]: "fmimage m fempty = fempty"
-by transfer' auto
+  by transfer' auto
 
 lemma fmimage_subset_ran[simp]: "fmimage m S |\<subseteq>| fmran m"
-by transfer' (auto simp: ran_def)
+  by transfer' (auto simp: ran_def)
 
 lemma fmimage_dom[simp]: "fmimage m (fmdom m) = fmran m"
-by transfer' (auto simp: ran_def)
+  by transfer' (auto simp: ran_def)
 
 lemma fmimage_inter: "fmimage m (A |\<inter>| B) |\<subseteq>| fmimage m A |\<inter>| fmimage m B"
-by transfer' auto
+  by transfer' auto
 
 lemma fimage_inter_dom[simp]:
   "fmimage m (fmdom m |\<inter>| A) = fmimage m A"
   "fmimage m (A |\<inter>| fmdom m) = fmimage m A"
-by (transfer'; auto)+
+  by (transfer'; auto)+
 
 lemma fmimage_union[simp]: "fmimage m (A |\<union>| B) = fmimage m A |\<union>| fmimage m B"
-by transfer' auto
+  by transfer' auto
 
 lemma fmimage_Union[simp]: "fmimage m (ffUnion A) = ffUnion (fmimage m |`| A)"
-by transfer' auto
+  by transfer' auto
 
 lemma fmimage_filter[simp]: "fmimage (fmfilter P m) A = fmimage m (ffilter P A)"
-by transfer' (auto simp: map_filter_def)
+  by transfer' (auto simp: map_filter_def)
 
 lemma fmimage_drop[simp]: "fmimage (fmdrop a m) A = fmimage m (A - {|a|})"
-by transfer' (auto simp: map_filter_def map_drop_def)
+  by (simp add: fmimage_alt_def)
 
 lemma fmimage_drop_fset[simp]: "fmimage (fmdrop_fset B m) A = fmimage m (A - B)"
-by transfer' (auto simp: map_filter_def map_drop_set_def)
+  by transfer' (auto simp: map_filter_def map_drop_set_def)
 
 lemma fmimage_restrict_fset[simp]: "fmimage (fmrestrict_fset B m) A = fmimage m (A |\<inter>| B)"
-by transfer' (auto simp: map_filter_def map_restrict_set_def)
+  by transfer' (auto simp: map_filter_def map_restrict_set_def)
 
 lemma fmfilter_ran[simp]: "fmran (fmfilter P m) = fmimage m (ffilter P (fmdom m))"
-by transfer' (auto simp: ran_def map_filter_def)
+  by transfer' (auto simp: ran_def map_filter_def)
 
 lemma fmran_drop[simp]: "fmran (fmdrop a m) = fmimage m (fmdom m - {|a|})"
-by transfer' (auto simp: ran_def map_drop_def map_filter_def)
+  by transfer' (auto simp: ran_def map_drop_def map_filter_def)
 
 lemma fmran_drop_fset[simp]: "fmran (fmdrop_fset A m) = fmimage m (fmdom m - A)"
-by transfer' (auto simp: ran_def map_drop_set_def map_filter_def)
+  by transfer' (auto simp: ran_def map_drop_set_def map_filter_def)
 
 lemma fmran_restrict_fset: "fmran (fmrestrict_fset A m) = fmimage m (fmdom m |\<inter>| A)"
-by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
+  by transfer' (auto simp: ran_def map_restrict_set_def map_filter_def)
 
 lemma fmlookup_image_iff: "y |\<in>| fmimage m A \<longleftrightarrow> (\<exists>x. fmlookup m x = Some y \<and> x |\<in>| A)"
-by transfer' (auto simp: ran_def)
+  by transfer' (auto simp: ran_def)
 
 lemma fmimageI: "fmlookup m x = Some y \<Longrightarrow> x |\<in>| A \<Longrightarrow> y |\<in>| fmimage m A"
-by (auto simp: fmlookup_image_iff)
+  by (auto simp: fmlookup_image_iff)
 
 lemma fmimageE[elim]:
   assumes "y |\<in>| fmimage m A"
   obtains x where "fmlookup m x = Some y" "x |\<in>| A"
-using assms by (auto simp: fmlookup_image_iff)
+  using assms by (auto simp: fmlookup_image_iff)
 
 lift_definition fmcomp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap" (infixl "\<circ>\<^sub>f" 55)
   is map_comp
   parametric map_comp_transfer
-by (rule dom_comp_finite)
+  by (rule dom_comp_finite)
 
 lemma fmlookup_comp[simp]: "fmlookup (m \<circ>\<^sub>f n) x = Option.bind (fmlookup n x) (fmlookup m)"
-by transfer' (auto simp: map_comp_def split: option.splits)
+  by transfer' (auto simp: map_comp_def split: option.splits)
 
 end
 
@@ -839,13 +823,14 @@ declare fmap.pred_mono[mono]
 
 
 lemma fmran'_alt_def: "fmran' m = fset (fmran m)"
-including fset.lifting
-by transfer' (auto simp: ran_def fun_eq_iff)
+  including fset.lifting
+  by transfer' (auto simp: ran_def fun_eq_iff)
 
 lemma fmlookup_ran'_iff: "y \<in> fmran' m \<longleftrightarrow> (\<exists>x. fmlookup m x = Some y)"
-by transfer' (auto simp: ran_def)
+  by transfer' (auto simp: ran_def)
 
-lemma fmran'I: "fmlookup m x = Some y \<Longrightarrow> y \<in> fmran' m" by (auto simp: fmlookup_ran'_iff)
+lemma fmran'I: "fmlookup m x = Some y \<Longrightarrow> y \<in> fmran' m" 
+  by (auto simp: fmlookup_ran'_iff)
 
 lemma fmran'E[elim]:
   assumes "y \<in> fmran' m"
@@ -858,22 +843,19 @@ by transfer' (auto simp: rel_fun_def)
 lemma fmrelI[intro]:
   assumes "\<And>x. rel_option R (fmlookup m x) (fmlookup n x)"
   shows "fmrel R m n"
-using assms
-by transfer' auto
+  using assms
+  by transfer' auto
 
 lemma fmrel_upd[intro]: "fmrel P m n \<Longrightarrow> P x y \<Longrightarrow> fmrel P (fmupd k x m) (fmupd k y n)"
-by transfer' (auto simp: map_upd_def rel_fun_def)
+  by transfer' (auto simp: map_upd_def rel_fun_def)
 
 lemma fmrelD[dest]: "fmrel P m n \<Longrightarrow> rel_option P (fmlookup m x) (fmlookup n x)"
-by transfer' (auto simp: rel_fun_def)
+  by transfer' (auto simp: rel_fun_def)
 
 lemma fmrel_addI[intro]:
   assumes "fmrel P m n" "fmrel P a b"
   shows "fmrel P (m ++\<^sub>f a) (n ++\<^sub>f b)"
-using assms
-apply transfer'
-apply (auto simp: rel_fun_def map_add_def)
-by (metis option.case_eq_if option.collapse option.rel_sel)
+  by (smt (verit, del_insts) assms domIff fmdom.rep_eq fmlookup_add fmrel_iff option.rel_sel)
 
 lemma fmrel_cases[consumes 1]:
   assumes "fmrel P m n"
@@ -974,72 +956,77 @@ proof -
 qed
 
 lemma fmrel_rel_fmran': "fmrel P x y \<Longrightarrow> rel_set P (fmran' x) (fmran' y)"
-unfolding fmran'_alt_def
-by (metis fmrel_rel_fmran rel_fset_fset)
+  unfolding fmran'_alt_def
+  by (metis fmrel_rel_fmran rel_fset_fset)
 
 lemma pred_fmap_fmpred[simp]: "pred_fmap P = fmpred (\<lambda>_. P)"
-unfolding fmap.pred_set fmran'_alt_def
-including fset.lifting
-apply transfer'
-apply (rule ext)
-apply (auto simp: map_pred_def ran_def split: option.splits dest: )
-done
+  unfolding fmap.pred_set fmran'_alt_def
+  using fmranI by fastforce
 
 lemma pred_fmap_id[simp]: "pred_fmap id (fmmap f m) \<longleftrightarrow> pred_fmap f m"
-unfolding fmap.pred_set fmap.set_map
-by simp
+  unfolding fmap.pred_set fmap.set_map
+  by simp
 
 lemma pred_fmapD: "pred_fmap P m \<Longrightarrow> x |\<in>| fmran m \<Longrightarrow> P x"
-by auto
+  by auto
 
 lemma fmlookup_map[simp]: "fmlookup (fmmap f m) x = map_option f (fmlookup m x)"
-by transfer' auto
+  by transfer' auto
 
 lemma fmpred_map[simp]: "fmpred P (fmmap f m) \<longleftrightarrow> fmpred (\<lambda>k v. P k (f v)) m"
-unfolding fmpred_iff pred_fmap_def fmap.set_map
-by auto
+  unfolding fmpred_iff pred_fmap_def fmap.set_map
+  by auto
 
 lemma fmpred_id[simp]: "fmpred (\<lambda>_. id) (fmmap f m) \<longleftrightarrow> fmpred (\<lambda>_. f) m"
-by simp
+  by simp
 
 lemma fmmap_add[simp]: "fmmap f (m ++\<^sub>f n) = fmmap f m ++\<^sub>f fmmap f n"
-by transfer' (auto simp: map_add_def fun_eq_iff split: option.splits)
+  by transfer' (auto simp: map_add_def fun_eq_iff split: option.splits)
 
 lemma fmmap_empty[simp]: "fmmap f fmempty = fmempty"
-by transfer auto
+  by transfer auto
 
 lemma fmdom_map[simp]: "fmdom (fmmap f m) = fmdom m"
-including fset.lifting
-by transfer' simp
+  including fset.lifting
+  by transfer' simp
 
 lemma fmdom'_map[simp]: "fmdom' (fmmap f m) = fmdom' m"
-by transfer' simp
+  by transfer' simp
 
 lemma fmran_fmmap[simp]: "fmran (fmmap f m) = f |`| fmran m"
-including fset.lifting
-by transfer' (auto simp: ran_def)
+  including fset.lifting
+  by transfer' (auto simp: ran_def)
 
 lemma fmran'_fmmap[simp]: "fmran' (fmmap f m) = f ` fmran' m"
-by transfer' (auto simp: ran_def)
+  by transfer' (auto simp: ran_def)
 
 lemma fmfilter_fmmap[simp]: "fmfilter P (fmmap f m) = fmmap f (fmfilter P m)"
-by transfer' (auto simp: map_filter_def)
+  by transfer' (auto simp: map_filter_def)
 
-lemma fmdrop_fmmap[simp]: "fmdrop a (fmmap f m) = fmmap f (fmdrop a m)" unfolding fmfilter_alt_defs by simp
-lemma fmdrop_set_fmmap[simp]: "fmdrop_set A (fmmap f m) = fmmap f (fmdrop_set A m)" unfolding fmfilter_alt_defs by simp
-lemma fmdrop_fset_fmmap[simp]: "fmdrop_fset A (fmmap f m) = fmmap f (fmdrop_fset A m)" unfolding fmfilter_alt_defs by simp
-lemma fmrestrict_set_fmmap[simp]: "fmrestrict_set A (fmmap f m) = fmmap f (fmrestrict_set A m)" unfolding fmfilter_alt_defs by simp
-lemma fmrestrict_fset_fmmap[simp]: "fmrestrict_fset A (fmmap f m) = fmmap f (fmrestrict_fset A m)" unfolding fmfilter_alt_defs by simp
+lemma fmdrop_fmmap[simp]: "fmdrop a (fmmap f m) = fmmap f (fmdrop a m)" 
+  unfolding fmfilter_alt_defs by simp
+
+lemma fmdrop_set_fmmap[simp]: "fmdrop_set A (fmmap f m) = fmmap f (fmdrop_set A m)"
+  unfolding fmfilter_alt_defs by simp
+
+lemma fmdrop_fset_fmmap[simp]: "fmdrop_fset A (fmmap f m) = fmmap f (fmdrop_fset A m)"
+  unfolding fmfilter_alt_defs by simp
+
+lemma fmrestrict_set_fmmap[simp]: "fmrestrict_set A (fmmap f m) = fmmap f (fmrestrict_set A m)"
+  unfolding fmfilter_alt_defs by simp
+
+lemma fmrestrict_fset_fmmap[simp]: "fmrestrict_fset A (fmmap f m) = fmmap f (fmrestrict_fset A m)"
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmmap_subset[intro]: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmmap f m \<subseteq>\<^sub>f fmmap f n"
-by transfer' (auto simp: map_le_def)
+  by transfer' (auto simp: map_le_def)
 
 lemma fmmap_fset_of_fmap: "fset_of_fmap (fmmap f m) = (\<lambda>(k, v). (k, f v)) |`| fset_of_fmap m"
-including fset.lifting
-by transfer' (auto simp: set_of_map_def)
+  including fset.lifting
+  by transfer' (auto simp: set_of_map_def)
 
 lemma fmmap_fmupd: "fmmap f (fmupd x y m) = fmupd x (f y) (fmmap f m)"
-by transfer' (auto simp: fun_eq_iff map_upd_def)
+  by transfer' (auto simp: fun_eq_iff map_upd_def)
 
 subsection \<open>\<^const>\<open>size\<close> setup\<close>
 
@@ -1056,20 +1043,18 @@ instance ..
 end
 
 lemma size_fmap_overloaded_simps[simp]: "size x = size (fset_of_fmap x)"
-unfolding size_fmap_overloaded_def
-by simp
+  unfolding size_fmap_overloaded_def
+  by simp
 
-lemma fmap_size_o_map: "inj h \<Longrightarrow> size_fmap f g \<circ> fmmap h = size_fmap f (g \<circ> h)"
+lemma fmap_size_o_map: "size_fmap f g \<circ> fmmap h = size_fmap f (g \<circ> h)"
+proof -
+  have inj: "inj_on (\<lambda>(k, v). (k, h v)) (fset (fset_of_fmap m))" for m
+    using inj_on_def by force
+  show ?thesis
   unfolding size_fmap_def
-  apply (auto simp: fun_eq_iff fmmap_fset_of_fmap)
-  apply (subst sum.reindex)
-  subgoal for m
-    using prod.inj_map[unfolded map_prod_def, of "\<lambda>x. x" h]
-    unfolding inj_on_def
-    by auto
-  subgoal
-    by (rule sum.cong) (auto split: prod.splits)
-  done
+  apply (clarsimp simp: fun_eq_iff fmmap_fset_of_fmap sum.reindex [OF inj])
+  by (rule sum.cong) (auto split: prod.splits)
+qed
 
 setup \<open>
 BNF_LFP_Size.register_size_global \<^type_name>\<open>fmap\<close> \<^const_name>\<open>size_fmap\<close>
@@ -1082,53 +1067,51 @@ subsection \<open>Additional operations\<close>
 
 lift_definition fmmap_keys :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap" is
   "\<lambda>f m a. map_option (f a) (m a)"
-unfolding dom_def
-by simp
+  unfolding dom_def
+  by simp
 
 lemma fmpred_fmmap_keys[simp]: "fmpred P (fmmap_keys f m) = fmpred (\<lambda>a b. P a (f a b)) m"
-by transfer' (auto simp: map_pred_def split: option.splits)
+  by transfer' (auto simp: map_pred_def split: option.splits)
 
 lemma fmdom_fmmap_keys[simp]: "fmdom (fmmap_keys f m) = fmdom m"
-including fset.lifting
-by transfer' auto
+  including fset.lifting
+  by transfer' auto
 
 lemma fmlookup_fmmap_keys[simp]: "fmlookup (fmmap_keys f m) x = map_option (f x) (fmlookup m x)"
-by transfer' simp
+  by transfer' simp
 
 lemma fmfilter_fmmap_keys[simp]: "fmfilter P (fmmap_keys f m) = fmmap_keys f (fmfilter P m)"
-by transfer' (auto simp: map_filter_def)
+  by transfer' (auto simp: map_filter_def)
 
 lemma fmdrop_fmmap_keys[simp]: "fmdrop a (fmmap_keys f m) = fmmap_keys f (fmdrop a m)"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmdrop_set_fmmap_keys[simp]: "fmdrop_set A (fmmap_keys f m) = fmmap_keys f (fmdrop_set A m)"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmdrop_fset_fmmap_keys[simp]: "fmdrop_fset A (fmmap_keys f m) = fmmap_keys f (fmdrop_fset A m)"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmrestrict_set_fmmap_keys[simp]: "fmrestrict_set A (fmmap_keys f m) = fmmap_keys f (fmrestrict_set A m)"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmrestrict_fset_fmmap_keys[simp]: "fmrestrict_fset A (fmmap_keys f m) = fmmap_keys f (fmrestrict_fset A m)"
-unfolding fmfilter_alt_defs by simp
+  unfolding fmfilter_alt_defs by simp
 
 lemma fmmap_keys_subset[intro]: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmmap_keys f m \<subseteq>\<^sub>f fmmap_keys f n"
-by transfer' (auto simp: map_le_def dom_def)
+  by transfer' (auto simp: map_le_def dom_def)
 
 definition sorted_list_of_fmap :: "('a::linorder, 'b) fmap \<Rightarrow> ('a \<times> 'b) list" where
-"sorted_list_of_fmap m = map (\<lambda>k. (k, the (fmlookup m k))) (sorted_list_of_fset (fmdom m))"
+  "sorted_list_of_fmap m = map (\<lambda>k. (k, the (fmlookup m k))) (sorted_list_of_fset (fmdom m))"
 
 lemma list_all_sorted_list[simp]: "list_all P (sorted_list_of_fmap m) = fmpred (curry P) m"
 unfolding sorted_list_of_fmap_def curry_def list.pred_map
-apply (auto simp: list_all_iff)
-including fset.lifting
-by (transfer; auto simp: dom_def map_pred_def split: option.splits)+
+  by (smt (verit, best) Ball_set comp_def fmpred_alt_def sorted_list_of_fset_simps(1))
 
 lemma map_of_sorted_list[simp]: "map_of (sorted_list_of_fmap m) = fmlookup m"
-unfolding sorted_list_of_fmap_def
-including fset.lifting
-by transfer (simp add: map_of_map_keys)
+  unfolding sorted_list_of_fmap_def
+  including fset.lifting
+  by transfer (simp add: map_of_map_keys)
 
 
 subsection \<open>Additional properties\<close>
@@ -1138,7 +1121,7 @@ lemma fmchoice':
   shows "\<exists>m. fmdom' m = S \<and> fmpred Q m"
 proof -
   obtain f where f: "Q x (f x)" if "x \<in> S" for x
-    using assms by (metis bchoice)
+    using assms by metis
   define f' where "f' x = (if x \<in> S then Some (f x) else None)" for x
 
   have "eq_onp (\<lambda>m. finite (dom m)) f' f'"
@@ -1157,15 +1140,15 @@ subsection \<open>Lifting/transfer setup\<close>
 context includes lifting_syntax begin
 
 lemma fmempty_transfer[simp, intro, transfer_rule]: "fmrel P fmempty fmempty"
-by transfer auto
+  by transfer auto
 
 lemma fmadd_transfer[transfer_rule]:
   "(fmrel P ===> fmrel P ===> fmrel P) fmadd fmadd"
-by (intro fmrel_addI rel_funI)
+  by (intro fmrel_addI rel_funI)
 
 lemma fmupd_transfer[transfer_rule]:
   "((=) ===> P ===> fmrel P ===> fmrel P) fmupd fmupd"
-by auto
+  by auto
 
 end
 
@@ -1176,21 +1159,18 @@ unfolding Quotient_alt_def4 proof safe
   fix m n
   assume "fmrel T m n"
   then have "fmlookup (fmmap Abs m) x = fmlookup n x" for x
-    apply (cases rule: fmrel_cases[where x = x])
-    using assms unfolding Quotient_alt_def by auto
+    using assms unfolding Quotient_alt_def 
+      by (cases rule: fmrel_cases[where x = x]) auto
   then show "fmmap Abs m = n"
     by (rule fmap_ext)
 next
   fix m
   show "fmrel T (fmmap Rep m) m"
     unfolding fmap.rel_map
-    apply (rule fmap.rel_refl)
-    using assms unfolding Quotient_alt_def
-    by auto
+    by (metis (mono_tags) Quotient_alt_def assms fmap.rel_refl)
 next
   from assms have "R = T OO T\<inverse>\<inverse>"
     unfolding Quotient_alt_def4 by simp
-
   then show "fmrel R = fmrel T OO (fmrel T)\<inverse>\<inverse>"
     by (simp add: fmap.rel_compp fmap.rel_conversep)
 qed
@@ -1201,7 +1181,7 @@ subsection \<open>View as datatype\<close>
 lemma fmap_distinct[simp]:
   "fmempty \<noteq> fmupd k v m"
   "fmupd k v m \<noteq> fmempty"
-by (transfer'; auto simp: map_upd_def fun_eq_iff)+
+  by (transfer'; auto simp: map_upd_def fun_eq_iff)+
 
 lifting_update fmap.lifting
 
@@ -1259,20 +1239,13 @@ next
     by auto
   with insert have "P (fmdrop x m)"
     by auto
-
-  have "x |\<in>| fmdom m"
-    using insert by auto
-  then obtain y where "fmlookup m x = Some y"
-    by auto
+  moreover
+  obtain y where "fmlookup m x = Some y"
+    using insert.hyps by force
   hence "m = fmupd x y (fmdrop x m)"
     by (auto intro: fmap_ext)
-
-  show ?case
-    apply (subst \<open>m = _\<close>)
-    apply (rule assms)
-    apply fact
-    apply simp
-    done
+  ultimately show ?case
+    by (metis assms(2) fmdrop_lookup)
 qed
 
 
@@ -1339,32 +1312,27 @@ lemma fmadd_of_list[code]: "fmap_of_list m ++\<^sub>f fmap_of_list n = fmap_of_l
 by transfer (simp add: merge_conv')
 
 lemma fmmap_of_list[code]: "fmmap f (fmap_of_list m) = fmap_of_list (map (apsnd f) m)"
-apply transfer
-apply (subst map_of_map[symmetric])
-apply (auto simp: apsnd_def map_prod_def)
-done
+  apply transfer
+  by (metis (no_types, lifting) apsnd_conv map_eq_conv map_of_map old.prod.case old.prod.exhaust)
 
 lemma fmmap_keys_of_list[code]:
   "fmmap_keys f (fmap_of_list m) = fmap_of_list (map (\<lambda>(a, b). (a, f a b)) m)"
-apply transfer
-subgoal for f m by (induction m) (auto simp: apsnd_def map_prod_def fun_eq_iff)
-done
+  apply transfer
+  subgoal for f m by (induction m) (auto simp: apsnd_def map_prod_def fun_eq_iff)
+  done
 
 lemma fmimage_of_list[code]:
   "fmimage (fmap_of_list m) A = fset_of_list (map snd (filter (\<lambda>(k, _). k |\<in>| A) (AList.clearjunk m)))"
-apply (subst fmimage_alt_def)
-apply (subst fmfilter_alt_defs)
-apply (subst fmfilter_of_list)
-apply (subst fmran_of_list)
-apply transfer'
-apply (subst AList.restrict_eq[symmetric])
-apply (subst clearjunk_restrict)
-apply (subst AList.restrict_eq)
-by auto
+  apply (subst fmimage_alt_def)
+  apply (subst fmfilter_alt_defs)
+  apply (subst fmfilter_of_list)
+  apply (subst fmran_of_list)
+  apply transfer'
+  by (metis AList.restrict_eq clearjunk_restrict list.set_map)
 
 lemma fmcomp_list[code]:
   "fmap_of_list m \<circ>\<^sub>f fmap_of_list n = fmap_of_list (AList.compose n m)"
-by (rule fmap_ext) (simp add: fmlookup_of_list compose_conv map_comp_def split: option.splits)
+  by (rule fmap_ext) (simp add: fmlookup_of_list compose_conv map_comp_def split: option.splits)
 
 end
 

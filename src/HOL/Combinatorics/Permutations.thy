@@ -377,13 +377,10 @@ subsection \<open>The number of permutations on a finite set\<close>
 lemma permutes_insert_lemma:
   assumes "p permutes (insert a S)"
   shows "transpose a (p a) \<circ> p permutes S"
-  apply (rule permutes_superset[where S = "insert a S"])
-  apply (rule permutes_compose[OF assms])
-  apply (rule permutes_swap_id, simp)
-  using permutes_in_image[OF assms, of a]
-  apply simp
-  apply (auto simp add: Ball_def)
-  done
+proof (rule permutes_superset[where S = "insert a S"])
+  show "Transposition.transpose a (p a) \<circ> p permutes insert a S"
+    by (meson assms insertI1 permutes_compose permutes_in_image permutes_swap_id)
+qed auto
 
 lemma permutes_insert: "{p. p permutes (insert a S)} =
   (\<lambda>(b, p). transpose a b \<circ> p) ` {(b, p). b \<in> insert a S \<and> p \<in> {p. p permutes S}}"
@@ -444,11 +441,7 @@ next
     then have "finite ?pF"
       by (auto intro: card_ge_0_finite)
     with \<open>finite F\<close> card.insert_remove have pF'f: "finite ?pF'"
-      apply (simp only: Collect_case_prod Collect_mem_eq)
-      apply (rule finite_cartesian_product)
-      apply simp_all
-      done
-
+      by simp
     have ginj: "inj_on ?g ?pF'"
     proof -
       {
@@ -593,21 +586,10 @@ lemma permutation_id[simp]: "permutation id"
 declare permutation_id[unfolded id_def, simp]
 
 lemma swapidseq_swap: "swapidseq (if a = b then 0 else 1) (transpose a b)"
-  apply clarsimp
-  using comp_Suc[of 0 id a b]
-  apply simp
-  done
+  using swapidseq.simps by fastforce
 
 lemma permutation_swap_id: "permutation (transpose a b)"
-proof (cases "a = b")
-  case True
-  then show ?thesis by simp
-next
-  case False
-  then show ?thesis
-    unfolding permutation_def
-    using swapidseq_swap[of a b] by blast
-qed
+  by (meson permutation_def swapidseq_swap)
 
 
 lemma swapidseq_comp_add: "swapidseq n p \<Longrightarrow> swapidseq m q \<Longrightarrow> swapidseq (n + m) (p \<circ> q)"
@@ -616,14 +598,8 @@ proof (induct n p arbitrary: m q rule: swapidseq.induct)
   then show ?case by simp
 next
   case (comp_Suc n p a b m q)
-  have eq: "Suc n + m = Suc (n + m)"
-    by arith
-  show ?case
-    apply (simp only: eq comp_assoc)
-    apply (rule swapidseq.comp_Suc)
-    using comp_Suc.hyps(2)[OF comp_Suc.prems] comp_Suc.hyps(3)
-     apply blast+
-    done
+  then show ?case
+    by (metis add_Suc comp_assoc swapidseq.comp_Suc)
 qed
 
 lemma permutation_compose: "permutation p \<Longrightarrow> permutation q \<Longrightarrow> permutation (p \<circ> q)"
@@ -696,40 +672,19 @@ lemma symmetry_lemma:
   shows "\<And>a b c d. a \<noteq> b \<longrightarrow> c \<noteq> d \<longrightarrow>  P a b c d"
   using assms by metis
 
-lemma swap_general: "a \<noteq> b \<Longrightarrow> c \<noteq> d \<Longrightarrow>
-  transpose a b \<circ> transpose c d = id \<or>
+lemma swap_general:
+  assumes "a \<noteq> b" "c \<noteq> d"
+  shows "transpose a b \<circ> transpose c d = id \<or>
   (\<exists>x y z. x \<noteq> a \<and> y \<noteq> a \<and> z \<noteq> a \<and> x \<noteq> y \<and>
     transpose a b \<circ> transpose c d = transpose x y \<circ> transpose a z)"
-proof -
-  assume neq: "a \<noteq> b" "c \<noteq> d"
-  have "a \<noteq> b \<longrightarrow> c \<noteq> d \<longrightarrow>
-    (transpose a b \<circ> transpose c d = id \<or>
-      (\<exists>x y z. x \<noteq> a \<and> y \<noteq> a \<and> z \<noteq> a \<and> x \<noteq> y \<and>
-        transpose a b \<circ> transpose c d = transpose x y \<circ> transpose a z))"
-    apply (rule symmetry_lemma[where a=a and b=b and c=c and d=d])
-     apply (simp_all only: ac_simps)
-    apply (metis id_comp swap_id_common swap_id_common' swap_id_independent transpose_comp_involutory)
-    done
-  with neq show ?thesis by metis
-qed
+  by (metis assms swap_id_common' swap_id_independent transpose_commute transpose_comp_involutory)
 
 lemma swapidseq_id_iff[simp]: "swapidseq 0 p \<longleftrightarrow> p = id"
   using swapidseq.cases[of 0 p "p = id"] by auto
 
 lemma swapidseq_cases: "swapidseq n p \<longleftrightarrow>
     n = 0 \<and> p = id \<or> (\<exists>a b q m. n = Suc m \<and> p = transpose a b \<circ> q \<and> swapidseq m q \<and> a \<noteq> b)"
-  apply (rule iffI)
-   apply (erule swapidseq.cases[of n p])
-    apply simp
-   apply (rule disjI2)
-   apply (rule_tac x= "a" in exI)
-   apply (rule_tac x= "b" in exI)
-   apply (rule_tac x= "pa" in exI)
-   apply (rule_tac x= "na" in exI)
-   apply simp
-  apply auto
-  apply (rule comp_Suc, simp_all)
-  done
+  by (meson comp_Suc id swapidseq.cases)
 
 lemma fixing_swapidseq_decrease:
   assumes "swapidseq n p"
@@ -757,33 +712,21 @@ next
     then show ?thesis
       by (simp only: cdqm o_assoc) (simp add: cdqm)
   next
-    case prems: 2
+    case 2
     then have az: "a \<noteq> z"
       by simp
-    from prems have *: "(transpose x y \<circ> h) a = a \<longleftrightarrow> h a = a" for h
+    from 2 have *: "(transpose x y \<circ> h) a = a \<longleftrightarrow> h a = a" for h
       by (simp add: transpose_def)
     from cdqm(2) have "transpose a b \<circ> p = transpose a b \<circ> (transpose c d \<circ> q)"
       by simp
-    then have "transpose a b \<circ> p = transpose x y \<circ> (transpose a z \<circ> q)"
-      by (simp add: o_assoc prems)
-    then have "(transpose a b \<circ> p) a = (transpose x y \<circ> (transpose a z \<circ> q)) a"
-      by simp
-    then have "(transpose x y \<circ> (transpose a z \<circ> q)) a = a"
-      unfolding Suc by metis
-    then have "(transpose a z \<circ> q) a = a"
-      by (simp only: *)
-    from Suc.hyps[OF cdqm(3)[ unfolded cdqm(5)[symmetric]] az this]
-    have **: "swapidseq (n - 1) (transpose a z \<circ> q)" "n \<noteq> 0"
-      by blast+
-    from \<open>n \<noteq> 0\<close> have ***: "Suc n - 1 = Suc (n - 1)"
+    then have \<section>: "transpose a b \<circ> p = transpose x y \<circ> (transpose a z \<circ> q)"
+      by (simp add: o_assoc 2)
+    obtain **: "swapidseq (n - 1) (transpose a z \<circ> q)" and "n\<noteq>0"
+      by (metis "*" "\<section>" Suc.hyps Suc.prems(3) az cdqm(3,5))
+    then have "Suc n - 1 = Suc (n - 1)"
       by auto
-    show ?thesis
-      apply (simp only: cdqm(2) prems o_assoc ***)
-      apply (simp only: Suc_not_Zero simp_thms comp_assoc)
-      apply (rule comp_Suc)
-      using ** prems
-       apply blast+
-      done
+    with 2 show ?thesis
+      using "**" \<section> swapidseq.simps by blast
   qed
 qed
 
@@ -829,15 +772,9 @@ proof -
 qed
 
 lemma evenperm_unique:
-  assumes p: "swapidseq n p"
-    and n:"even n = b"
+  assumes "swapidseq n p" and"even n = b"
   shows "evenperm p = b"
-  unfolding n[symmetric] evenperm_def
-  apply (rule swapidseq_even_even[where p = p])
-   apply (rule someI[where x = n])
-  using p
-   apply blast+
-  done
+  by (metis evenperm_def assms someI swapidseq_even_even)
 
 
 subsection \<open>And it has the expected composition properties\<close>
@@ -881,17 +818,7 @@ subsection \<open>A more abstract characterization of permutations\<close>
 lemma permutation_bijective:
   assumes "permutation p"
   shows "bij p"
-proof -
-  from assms obtain n where n: "swapidseq n p"
-    unfolding permutation_def by blast
-  from swapidseq_inverse_exists[OF n] obtain q where q: "swapidseq n q" "p \<circ> q = id" "q \<circ> p = id"
-    by blast
-  then show ?thesis
-    unfolding bij_iff
-    apply (auto simp add: fun_eq_iff)
-    apply metis
-    done
-qed
+  by (meson assms o_bij permutation_def swapidseq_inverse_exists)
 
 lemma permutation_finite_support:
   assumes "permutation p"
@@ -944,17 +871,7 @@ next
 qed
 
 lemma permutation: "permutation p \<longleftrightarrow> bij p \<and> finite {x. p x \<noteq> x}"
-  (is "?lhs \<longleftrightarrow> ?b \<and> ?f")
-proof
-  assume ?lhs
-  with permutation_bijective permutation_finite_support show "?b \<and> ?f"
-    by auto
-next
-  assume "?b \<and> ?f"
-  then have "?f" "?b" by blast+
-  from permutation_lemma[OF this] show ?lhs
-    by blast
-qed
+  using permutation_bijective permutation_finite_support permutation_lemma by auto
 
 lemma permutation_inverse_works:
   assumes "permutation p"
@@ -966,22 +883,7 @@ lemma permutation_inverse_compose:
   assumes p: "permutation p"
     and q: "permutation q"
   shows "inv (p \<circ> q) = inv q \<circ> inv p"
-proof -
-  note ps = permutation_inverse_works[OF p]
-  note qs = permutation_inverse_works[OF q]
-  have "p \<circ> q \<circ> (inv q \<circ> inv p) = p \<circ> (q \<circ> inv q) \<circ> inv p"
-    by (simp add: o_assoc)
-  also have "\<dots> = id"
-    by (simp add: ps qs)
-  finally have *: "p \<circ> q \<circ> (inv q \<circ> inv p) = id" .
-  have "inv q \<circ> inv p \<circ> (p \<circ> q) = inv q \<circ> (inv p \<circ> p) \<circ> q"
-    by (simp add: o_assoc)
-  also have "\<dots> = id"
-    by (simp add: ps qs)
-  finally have **: "inv q \<circ> inv p \<circ> (p \<circ> q) = id" .
-  show ?thesis
-    by (rule inv_unique_comp[OF * **])
-qed
+  by (simp add: o_inv_distrib p permutation_bijective q)
 
 
 subsection \<open>Relation to \<open>permutes\<close>\<close>
@@ -1365,44 +1267,28 @@ proof -
   from permutes_natset_le[OF permutes_inv[OF p] this] have "inv p = inv id"
     by simp
   then show ?thesis
-    apply (subst permutes_inv_inv[OF p, symmetric])
-    apply (rule inv_unique_comp)
-     apply simp_all
-    done
+    using p permutes_inv_inv by fastforce
 qed
 
 lemma image_inverse_permutations: "{inv p |p. p permutes S} = {p. p permutes S}"
-  apply (rule set_eqI)
-  apply auto
-  using permutes_inv_inv permutes_inv
-   apply auto
-  apply (rule_tac x="inv x" in exI)
-  apply auto
-  done
+  using permutes_inv permutes_inv_inv by force
 
 lemma image_compose_permutations_left:
   assumes "q permutes S"
   shows "{q \<circ> p |p. p permutes S} = {p. p permutes S}"
-  apply (rule set_eqI)
-  apply auto
-   apply (rule permutes_compose)
-  using assms
-    apply auto
-  apply (rule_tac x = "inv q \<circ> x" in exI)
-  apply (simp add: o_assoc permutes_inv permutes_compose permutes_inv_o)
-  done
+proof -
+  have "\<And>p. p permutes S \<Longrightarrow> q \<circ> p permutes S"
+    by (simp add: assms permutes_compose)
+  moreover have "\<And>x. x permutes S \<Longrightarrow> \<exists>p. x = q \<circ> p \<and> p permutes S"
+    by (metis assms id_comp o_assoc permutes_compose permutes_inv permutes_inv_o(1))
+  ultimately show ?thesis
+    by auto
+qed
 
 lemma image_compose_permutations_right:
   assumes "q permutes S"
   shows "{p \<circ> q | p. p permutes S} = {p . p permutes S}"
-  apply (rule set_eqI)
-  apply auto
-   apply (rule permutes_compose)
-  using assms
-    apply auto
-  apply (rule_tac x = "x \<circ> inv q" in exI)
-  apply (simp add: o_assoc permutes_inv permutes_compose permutes_inv_o comp_assoc)
-  done
+  by (metis (no_types, opaque_lifting) assms comp_id fun.map_comp permutes_compose permutes_inv permutes_inv_o(2))
 
 lemma permutes_in_seg: "p permutes {1 ..n} \<Longrightarrow> i \<in> {1..n} \<Longrightarrow> 1 \<le> p i \<and> p i \<le> n"
   by (simp add: permutes_def) metis
