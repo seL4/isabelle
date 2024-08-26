@@ -633,9 +633,7 @@ lemma mom_select_correct: "k < length xs \<Longrightarrow> mom_select k xs = sel
 
 subsection \<open>Running time analysis\<close>
 
-fun T_partition3 :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_partition3 x [] = 1"
-| "T_partition3 x (y # ys) = T_partition3 x ys + 1"
+time_fun partition3 equations partition3_code
 
 lemma T_partition3_eq: "T_partition3 x xs = length xs + 1"
   by (induction x xs rule: T_partition3.induct) auto
