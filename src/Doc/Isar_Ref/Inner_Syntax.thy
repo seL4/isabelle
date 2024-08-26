@@ -1078,6 +1078,8 @@ text \<open>
     @{command_def "nonterminal"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "syntax"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "no_syntax"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "syntax_types"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "syntax_consts"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "no_translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{attribute_def syntax_ast_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
@@ -1089,14 +1091,17 @@ text \<open>
   raw syntax declarations provide full access to the priority grammar of the
   inner syntax, without any sanity checks. This includes additional syntactic
   categories (via @{command nonterminal}) and free-form grammar productions
-  (via @{command syntax}). Additional syntax translations (or macros, via
-  @{command translations}) are required to turn resulting parse trees into
+  (via @{command syntax} with formal dependencies via @{command syntax_types}
+  and @{command syntax_consts}). Additional syntax translations (or macros,
+  via @{command translations}) are required to turn resulting parse trees into
   proper representations of formal entities again.
 
   \<^rail>\<open>
     @@{command nonterminal} (@{syntax name} + @'and')
     ;
     (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (constdecl +)
+    ;
+    (@@{command syntax_types} | @@{command syntax_consts}) (syntaxdeps + @'and')
     ;
     (@@{command translations} | @@{command no_translations})
       (transpat ('==' | '=>' | '<=' | '\<rightleftharpoons>' | '\<rightharpoonup>' | '\<leftharpoondown>') transpat +)
@@ -1105,6 +1110,8 @@ text \<open>
     constdecl: @{syntax name} '::' @{syntax type} @{syntax mixfix}?
     ;
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
+    ;
+    syntaxdeps: (@{syntax name}+) ('==' | '\<rightleftharpoons>') (@{syntax name}+)
     ;
     transpat: ('(' @{syntax name} ')')? @{syntax string}
   \<close>
@@ -1156,6 +1163,14 @@ text \<open>
   \<^descr> @{command "no_syntax"}~\<open>(mode) decls\<close> removes grammar declarations (and
   translations) resulting from \<open>decls\<close>, which are interpreted in the same
   manner as for @{command "syntax"} above.
+
+  \<^descr> @{command "syntax_types"}~\<open>syntax \<rightleftharpoons> types\<close> and @{command
+  "syntax_consts"}~\<open>syntax \<rightleftharpoons> consts\<close> declare dependencies of syntax constants
+  wrt.\ formal entities of the logic: multiple names may be given on both
+  sides. This tells the inner-syntax engine how to markup concrete syntax, to
+  support hyperlinks in the browser or editor. It is essentially an abstract
+  specification of the effect of translation rules (see below) or translation
+  functions (see \secref{sec:tr-funs}).
 
   \<^descr> @{command "translations"}~\<open>rules\<close> specifies syntactic translation rules
   (i.e.\ macros) as first-order rewrite rules on ASTs (\secref{sec:ast}). The

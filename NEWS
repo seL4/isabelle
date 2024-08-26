@@ -9,6 +9,13 @@ New in this Isabelle version
 
 ** General **
 
+* Inner syntax translations now support formal dependencies via commands
+'syntax_types' or 'syntax_consts'. This is essentially an abstract
+specification of the effect of 'translations' (or translation functions
+in ML). Most Isabelle theories have been adapted accordingly, such that
+hyperlinks work properly e.g. for "['a, 'b] \<Rightarrow> 'c" or "\<lbrakk>A; B\<rbrakk> \<Longrightarrow> C" in
+Pure, and "\<forall>x\<in>A. B x" or "\<exists>x\<in>A. B x" in HOL.
+
 * The Simplifier now supports special "congprocs", using keyword
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
 antiquotation of the same name). See also
