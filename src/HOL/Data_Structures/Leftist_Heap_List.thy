@@ -155,7 +155,7 @@ next
 qed
 
 lemma T_lheap_list: assumes "length xs = 2 ^ k"
-shows "T_lheap_list xs \<le> 5 * length xs"
+shows "T_lheap_list xs \<le> 5 * length xs - 2 * log 2 (length xs)"
 proof -
   let ?ts = "map (\<lambda>x. Node Leaf (x,1) Leaf) xs"
   have "T_lheap_list xs = T_merge_all ?ts" by simp
@@ -172,10 +172,8 @@ proof -
     by (simp add:log_nat_power algebra_simps)
   also have "\<dots> = 5*(2::real)^k - (2::real)*k - 5"
     using summation by (simp)
-  also have "\<dots> \<le> 5*(2::real)^k"
-    by linarith
   finally show ?thesis
-    using assms of_nat_le_iff by fastforce
+    using assms of_nat_le_iff by simp
 qed
 
 end
