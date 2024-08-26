@@ -11,7 +11,7 @@ which is FOL/ex/LocaleTest.thy
 section \<open>Test of Locale Interpretation\<close>
 
 theory LocaleTest2
-imports Main
+imports Main 
 begin
 
 section \<open>Interpretation of Defined Concepts\<close>
@@ -482,33 +482,31 @@ qed
 
 thm int.circular
 lemma "\<lbrakk> (x::int) \<le> y; y \<le> z; z \<le> x\<rbrakk> \<Longrightarrow> x = y \<and> y = z"
-  apply (rule int.circular) apply assumption apply assumption apply assumption done
+  by simp
+
 thm int.abs_test
 lemma "((<) :: [int, int] => bool) = (<)"
-  apply (rule int.abs_test) done
+  by (rule int.abs_test)
 
 interpretation int: dlat "(<=) :: [int, int] => bool"
   rewrites meet_eq: "dlat.meet (<=) (x::int) y = min x y"
     and join_eq: "dlat.join (<=) (x::int) y = max x y"
 proof -
   show "dlat ((<=) :: [int, int] => bool)"
-    apply unfold_locales
-    apply (unfold int.is_inf_def int.is_sup_def)
-    apply arith+
-    done
+  proof unfold_locales
+    fix x y :: int
+    show "\<exists>inf. int.is_inf x y inf"
+      using int.is_inf_def by fastforce
+    show "\<exists>sup. int.is_sup x y sup"
+      using int.is_sup_def by fastforce
+  qed
   then interpret int: dlat "(<=) :: [int, int] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (<=) (x::int) y = min x y"
-    apply (unfold int.meet_def)
-    apply (rule the_equality)
-    apply (unfold int.is_inf_def)
-    by auto
+    by (smt (verit, best) int.meet_related int.meet_related2)
   show "dlat.join (<=) (x::int) y = max x y"
-    apply (unfold int.join_def)
-    apply (rule the_equality)
-    apply (unfold int.is_sup_def)
-    by auto
+    by (smt (verit, best) int.join_related int.join_related2)
 qed
 
 interpretation int: dlo "(<=) :: [int, int] => bool"
@@ -533,9 +531,7 @@ proof -
   then interpret nat: dpo "(<=) :: [nat, nat] => bool" .
     txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
   show "dpo.less (<=) (x::nat) y = (x < y)"
-    apply (unfold nat.less_def)
-    apply auto
-    done
+    by (simp add: nat.less_def nat_less_le)
 qed
 
 interpretation nat: dlat "(<=) :: [nat, nat] => bool"
@@ -543,23 +539,20 @@ interpretation nat: dlat "(<=) :: [nat, nat] => bool"
     and "dlat.join (<=) (x::nat) y = max x y"
 proof -
   show "dlat ((<=) :: [nat, nat] => bool)"
-    apply unfold_locales
-    apply (unfold nat.is_inf_def nat.is_sup_def)
-    apply arith+
-    done
+  proof
+    fix x y :: nat
+    show "\<exists>inf. nat.is_inf x y inf"
+      by (metis nat.is_inf_def nle_le)
+    show "\<exists>sup. nat.is_sup x y sup"
+      by (metis nat.is_sup_def nle_le)
+  qed
   then interpret nat: dlat "(<=) :: [nat, nat] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (<=) (x::nat) y = min x y"
-    apply (unfold nat.meet_def)
-    apply (rule the_equality)
-    apply (unfold nat.is_inf_def)
-    by auto
+    by (metis min_def nat.meet_connection nat.meet_connection2 nle_le)
   show "dlat.join (<=) (x::nat) y = max x y"
-    apply (unfold nat.join_def)
-    apply (rule the_equality)
-    apply (unfold nat.is_sup_def)
-    by auto
+    by (metis max_def nat.join_connection2 nat.join_related2 nle_le)
 qed
 
 interpretation nat: dlo "(<=) :: [nat, nat] => bool"
@@ -584,9 +577,8 @@ proof -
   then interpret nat_dvd: dpo "(dvd) :: [nat, nat] => bool" .
     txt \<open>Gives interpreted version of \<open>less_def\<close> (without condition).\<close>
   show "dpo.less (dvd) (x::nat) y = (x dvd y & x ~= y)"
-    apply (unfold nat_dvd.less_def)
-    apply auto
-    done
+    unfolding nat_dvd.less_def
+    by auto
 qed
 
 interpretation nat_dvd: dlat "(dvd) :: [nat, nat] => bool"
@@ -594,36 +586,33 @@ interpretation nat_dvd: dlat "(dvd) :: [nat, nat] => bool"
     and "dlat.join (dvd) (x::nat) y = lcm x y"
 proof -
   show "dlat ((dvd) :: [nat, nat] => bool)"
-    apply unfold_locales
-    apply (unfold nat_dvd.is_inf_def nat_dvd.is_sup_def)
-    apply (rule_tac x = "gcd x y" in exI)
-    apply auto [1]
-    apply (rule_tac x = "lcm x y" in exI)
-    apply (auto intro: dvd_lcm1 dvd_lcm2 lcm_least)
-    done
+  proof
+    fix x y :: nat
+    show "\<exists>inf. nat_dvd.is_inf x y inf"
+      unfolding nat_dvd.is_inf_def
+      by (force simp: intro: exI [where x = "gcd x y"])
+    show "\<exists>sup. nat_dvd.is_sup x y sup"
+      unfolding nat_dvd.is_sup_def
+      by (force simp: intro: exI [where x = "lcm x y"])
+  qed
   then interpret nat_dvd: dlat "(dvd) :: [nat, nat] => bool" .
   txt \<open>Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation.\<close>
   show "dlat.meet (dvd) (x::nat) y = gcd x y"
-    apply (unfold nat_dvd.meet_def)
-    apply (rule the_equality)
-    apply (unfold nat_dvd.is_inf_def)
-    by auto
+    by (meson gcd_unique_nat nat_dvd.meetI)
   show "dlat.join (dvd) (x::nat) y = lcm x y"
-    apply (unfold nat_dvd.join_def)
-    apply (rule the_equality)
-    apply (unfold nat_dvd.is_sup_def)
-    by (auto intro: dvd_lcm1 dvd_lcm2 lcm_least)
+    by (simp add: nat_dvd.joinI)
 qed
 
 text \<open>Interpreted theorems from the locales, involving defined terms.\<close>
 
 thm nat_dvd.less_def text \<open>from dpo\<close>
-lemma "((x::nat) dvd y & x ~= y) = (x dvd y & x ~= y)"
-  apply (rule nat_dvd.less_def) done
+lemma "((x::nat) dvd y \<and> x \<noteq> y) = (x dvd y \<and> x \<noteq> y)"
+  by simp
+
 thm nat_dvd.meet_left text \<open>from dlat\<close>
 lemma "gcd x y dvd (x::nat)"
-  apply (rule nat_dvd.meet_left) done
+  by blast
 
 
 subsection \<open>Group example with defined operations \<open>inv\<close> and \<open>unit\<close>\<close>
@@ -670,19 +659,11 @@ lemma unit_r_inv_ex:
 
 lemma unit_l_inv:
   "unit x ==> inv x ** x = one"
-  apply (simp add: unit_def inv_def) apply (erule exE)
-  apply (rule theI2, fast)
-  apply (rule inv_unique)
-  apply fast+
-  done
+  by (smt (verit, ccfv_threshold) inv_unique local.inv_def theI' unit_def)
 
 lemma unit_r_inv:
   "unit x ==> x ** inv x = one"
-  apply (simp add: unit_def inv_def) apply (erule exE)
-  apply (rule theI2, fast)
-  apply (rule inv_unique)
-  apply fast+
-  done
+  by (metis inv_unique unit_l_inv unit_r_inv_ex)
 
 lemma unit_inv_unit [intro, simp]:
   "unit x ==> unit (inv x)"
@@ -801,15 +782,10 @@ qed
 
 lemma inv_comm:
   "x ** y = one ==> y ** x = one"
-  by (rule unit_inv_comm) auto
+  using unit unit_inv_comm by blast
 
-lemma inv_equality:
-     "y ** x = one ==> inv x = y"
-  apply (simp add: inv_def)
-  apply (rule the_equality)
-   apply (simp add: inv_comm [of y x])
-  apply (rule r_cancel [THEN iffD1], auto)
-  done
+lemma inv_equality: "y ** x = one \<Longrightarrow> inv x = y"
+  by (metis assoc r_inv r_one)
 
 end
 
@@ -843,45 +819,20 @@ proof -
 (*
   from this interpret Dmonoid "(o)" "id :: 'a => 'a" .
 *)
+  have "\<And>y. \<lbrakk>f \<circ> y = id; y \<circ> f = id\<rbrakk> \<Longrightarrow> bij f"
+    using o_bij by auto
+  moreover have "bij f \<Longrightarrow> \<exists>y. f \<circ> y = id \<and> y \<circ> f = id"
+    by (meson bij_betw_def inv_o_cancel surj_iff)
+    ultimately
   show "Dmonoid.unit (o) (id :: 'a => 'a) f = bij f"
-    apply (unfold Dmonoid.unit_def [OF Dmonoid])
-    apply rule apply clarify
-  proof -
-    fix f g
-    assume id1: "f o g = id" and id2: "g o f = id"
-    show "bij f"
-    proof (rule bijI)
-      show "inj f"
-      proof (rule inj_onI)
-        fix x y
-        assume "f x = f y"
-        then have "(g o f) x = (g o f) y" by simp
-        with id2 show "x = y" by simp
-      qed
-    next
-      show "surj f"
-      proof (rule surjI)
-        fix x
-        from id1 have "(f o g) x = x" by simp
-        then show "f (g x) = x" by simp
-      qed
-    qed
-  next
-    fix f
-    assume bij: "bij f"
-    then
-    have inv: "f o Hilbert_Choice.inv f = id & Hilbert_Choice.inv f o f = id"
-      by (simp add: bij_def surj_iff inj_iff)
-    show "\<exists>g. f \<circ> g = id \<and> g \<circ> f = id" by rule (rule inv)
-  qed
+    by (metis Dmonoid Dmonoid.unit_def)
 qed
 
 thm Dmonoid.unit_def Dfun.unit_def
 
 thm Dmonoid.inv_inj_on_unit Dfun.inv_inj_on_unit
 
-lemma unit_id:
-  "(f :: unit => unit) = id"
+lemma unit_id: "(f :: unit => unit) = id"
   by rule simp
 
 interpretation Dfun: Dgrp "(o)" "id :: unit => unit"
@@ -891,20 +842,14 @@ proof -
   note Dmonoid = this
 
   show "Dgrp (o) (id :: unit => unit)"
-apply unfold_locales
-apply (unfold Dmonoid.unit_def [OF Dmonoid])
-apply (insert unit_id)
-apply simp
-done
+  proof
+    fix x :: "unit \<Rightarrow> unit"
+    show "Dmonoid.unit (\<circ>) id x"
+      by (simp add: Dmonoid Dmonoid.unit_def unit_id)
+  qed
   show "Dmonoid.inv (o) id f = inv (f :: unit \<Rightarrow> unit)"
-apply (unfold Dmonoid.inv_def [OF Dmonoid])
-apply (insert unit_id)
-apply simp
-apply (rule the_equality)
-apply rule
-apply rule
-apply simp
-done
+    unfolding Dmonoid.inv_def [OF Dmonoid]
+    by force
 qed
 
 thm Dfun.unit_l_inv Dfun.l_inv

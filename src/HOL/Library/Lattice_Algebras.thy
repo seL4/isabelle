@@ -9,34 +9,25 @@ begin
 class semilattice_inf_ab_group_add = ordered_ab_group_add + semilattice_inf
 begin
 
-lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)"
-  apply (rule order.antisym)
-   apply (simp_all add: le_infI)
-  apply (rule add_le_imp_le_left [of "uminus a"])
-  apply (simp only: add.assoc [symmetric], simp add: diff_le_eq add.commute)
-  done
+lemma add_inf_distrib_left: "a + inf b c = inf (a + b) (a + c)" (is "?L=?R")
+proof (intro order.antisym)
+  show "?R \<le> ?L"
+  by (metis add_commute diff_le_eq inf_greatest inf_le1 inf_le2)
+qed simp
 
 lemma add_inf_distrib_right: "inf a b + c = inf (a + c) (b + c)"
-proof -
-  have "c + inf a b = inf (c + a) (c + b)"
-    by (simp add: add_inf_distrib_left)
-  then show ?thesis
-    by (simp add: add.commute)
-qed
+  using add_commute add_inf_distrib_left by presburger
 
 end
 
 class semilattice_sup_ab_group_add = ordered_ab_group_add + semilattice_sup
 begin
 
-lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)"
-  apply (rule order.antisym)
-   apply (rule add_le_imp_le_left [of "uminus a"])
-   apply (simp only: add.assoc [symmetric], simp)
-   apply (simp add: le_diff_eq add.commute)
-  apply (rule le_supI)
-   apply (rule add_le_imp_le_left [of "a"], simp only: add.assoc[symmetric], simp)+
-  done
+lemma add_sup_distrib_left: "a + sup b c = sup (a + b) (a + c)" (is "?L = ?R")
+proof (rule order.antisym)
+  show "?L \<le> ?R"
+    by (metis add_commute le_diff_eq sup.bounded_iff sup_ge1 sup_ge2)
+qed simp
 
 lemma add_sup_distrib_right: "sup a b + c = sup (a + c) (b + c)"
 proof -
@@ -193,22 +184,13 @@ proof -
 qed
 
 lemma inf_0_imp_0: "inf a (- a) = 0 \<Longrightarrow> a = 0"
-  apply (simp add: inf_eq_neg_sup)
-  apply (simp add: sup_commute)
-  apply (erule sup_0_imp_0)
-  done
+  by (metis local.neg_0_equal_iff_equal neg_inf_eq_sup sup_0_imp_0)
 
-lemma inf_0_eq_0 [simp, no_atp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
-  apply (rule iffI)
-   apply (erule inf_0_imp_0)
-  apply simp
-  done
+lemma inf_0_eq_0 [simp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
+  by (metis inf_0_imp_0 inf.idem minus_zero)
 
-lemma sup_0_eq_0 [simp, no_atp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
-  apply (rule iffI)
-   apply (erule sup_0_imp_0)
-  apply simp
-  done
+lemma sup_0_eq_0 [simp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
+  by (metis minus_zero sup.idem sup_0_imp_0)
 
 lemma zero_le_double_add_iff_zero_le_single_add [simp]: "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
   (is "?lhs \<longleftrightarrow> ?rhs")
@@ -361,11 +343,7 @@ proof
     have e: "- a - b = - (a + b)"
       by simp
     from a d e have "\<bar>a + b\<bar> \<le> sup ?m ?n"
-      apply -
-      apply (drule abs_leI)
-       apply (simp_all only: algebra_simps minus_add)
-      apply (metis add_uminus_conv_diff d sup_commute uminus_add_conv_diff)
-      done
+      by (metis abs_leI)
     with g[symmetric] show ?thesis by simp
   qed
 qed
@@ -418,31 +396,21 @@ proof -
   have bh: "u = a \<Longrightarrow> v = b \<Longrightarrow>
             u * v = pprt a * pprt b + pprt a * nprt b +
                     nprt a * pprt b + nprt a * nprt b" for u v :: 'a
-    apply (subst prts[of u], subst prts[of v])
-    apply (simp add: algebra_simps)
-    done
+    by (metis add.commute combine_common_factor distrib_left prts)
   note b = this[OF refl[of a] refl[of b]]
   have xy: "- ?x \<le> ?y"
     apply simp
-    apply (metis (full_types) add_increasing add_uminus_conv_diff
-      lattice_ab_group_add_class.minus_le_self_iff minus_add_distrib mult_nonneg_nonneg
-      mult_nonpos_nonpos nprt_le_zero zero_le_pprt)
-    done
+    by (meson add_increasing2 diff_le_eq neg_le_0_iff_le nprt_le_zero order.trans split_mult_pos_le zero_le_pprt)
   have yx: "?y \<le> ?x"
     apply simp
-    apply (metis (full_types) add_nonpos_nonpos add_uminus_conv_diff
-      lattice_ab_group_add_class.le_minus_self_iff minus_add_distrib mult_nonneg_nonpos
-      mult_nonpos_nonneg nprt_le_zero zero_le_pprt)
-    done
-  have i1: "a * b \<le> \<bar>a\<bar> * \<bar>b\<bar>"
-    by (simp only: a b yx)
-  have i2: "- (\<bar>a\<bar> * \<bar>b\<bar>) \<le> a * b"
-    by (simp only: a b xy)
+    by (metis add_decreasing2 diff_0 diff_mono diff_zero mult_nonpos_nonneg mult_right_mono_neg mult_zero_left nprt_le_zero zero_le_pprt)
   show ?thesis
-    apply (rule abs_leI)
-    apply (simp add: i1)
-    apply (simp add: i2[simplified minus_le_iff])
-    done
+  proof (rule abs_leI)
+    show "a * b \<le> \<bar>a\<bar> * \<bar>b\<bar>"
+      by (simp only: a b yx)
+    show "- (a * b) \<le> \<bar>a\<bar> * \<bar>b\<bar>"
+      by (metis a bh minus_le_iff xy)
+  qed
 qed
 
 instance lattice_ring \<subseteq> ordered_ring_abs
@@ -452,40 +420,20 @@ proof
   show "\<bar>a * b\<bar> = \<bar>a\<bar> * \<bar>b\<bar>"
   proof -
     have s: "(0 \<le> a * b) \<or> (a * b \<le> 0)"
-      apply auto
-      apply (rule_tac split_mult_pos_le)
-      apply (rule_tac contrapos_np[of "a * b \<le> 0"])
-      apply simp
-      apply (rule_tac split_mult_neg_le)
-      using a
-      apply blast
-      done
+      by (metis a split_mult_neg_le split_mult_pos_le)
     have mulprts: "a * b = (pprt a + nprt a) * (pprt b + nprt b)"
       by (simp flip: prts)
     show ?thesis
     proof (cases "0 \<le> a * b")
       case True
       then show ?thesis
-        apply (simp_all add: mulprts abs_prts)
-        using a
-        apply (auto simp add:
-          algebra_simps
-          iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_zero_pprt]
-          iffD1[OF le_zero_iff_pprt_id] iffD1[OF zero_le_iff_nprt_id])
-        apply(drule (1) mult_nonneg_nonpos[of a b], simp)
-        apply(drule (1) mult_nonneg_nonpos2[of b a], simp)
-        done
+        using a split_mult_neg_le by fastforce
     next
       case False
       with s have "a * b \<le> 0"
         by simp
       then show ?thesis
-        apply (simp_all add: mulprts abs_prts)
-        apply (insert a)
-        apply (auto simp add: algebra_simps)
-        apply(drule (1) mult_nonneg_nonneg[of a b],simp)
-        apply(drule (1) mult_nonpos_nonpos[of a b],simp)
-        done
+        using a split_mult_pos_le by fastforce
     qed
   qed
 qed

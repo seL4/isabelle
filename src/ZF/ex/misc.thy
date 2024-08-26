@@ -9,7 +9,6 @@ section\<open>Miscellaneous ZF Examples\<close>
 
 theory misc imports ZF begin
 
-
 subsection\<open>Various Small Problems\<close>
 
 text\<open>The singleton problems are much harder in HOL.\<close>

@@ -326,13 +326,13 @@ lemma ereal_ennreal_cases:
 
 lemma rel_fun_liminf[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal liminf liminf"
 proof -
-  have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. sup 0 (liminf x)) liminf"
+  have "\<forall>x y. rel_fun (=) pcr_ennreal x y \<longrightarrow> pcr_ennreal (sup 0 (liminf x)) (liminf y) \<Longrightarrow>
+        \<forall>x y. rel_fun (=) pcr_ennreal x y \<longrightarrow> pcr_ennreal (liminf x) (liminf y)"
+    by (auto simp: comp_def Liminf_bounded rel_fun_eq_pcr_ennreal)
+  moreover have "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal (\<lambda>x. sup 0 (liminf x)) liminf"
     unfolding liminf_SUP_INF[abs_def] by (transfer_prover_start, transfer_step+; simp)
-  then show ?thesis
-    apply (subst (asm) (2) rel_fun_def)
-    apply (subst (2) rel_fun_def)
-    apply (auto simp: comp_def max.absorb2 Liminf_bounded rel_fun_eq_pcr_ennreal)
-    done
+  ultimately show ?thesis
+    by (simp add: rel_fun_def)
 qed
 
 lemma rel_fun_limsup[transfer_rule]: "rel_fun (rel_fun (=) pcr_ennreal) pcr_ennreal limsup limsup"
@@ -633,9 +633,7 @@ lemma divide_mult_eq: "a \<noteq> 0 \<Longrightarrow> a \<noteq> \<infinity> \<L
   unfolding divide_ennreal_def infinity_ennreal_def
   apply transfer
   subgoal for a b c
-    apply (cases a b c rule: ereal3_cases)
-    apply (auto simp: top_ereal_def)
-    done
+    by (cases a b c rule: ereal3_cases) (auto simp: top_ereal_def)
   done
 
 lemma ennreal_mult_divide_eq:
@@ -798,7 +796,7 @@ lemma ennreal_cases[cases type: ennreal]:
   obtains (real) r :: real where "0 \<le> r" "x = ennreal r" | (top) "x = top"
   apply transfer
   subgoal for x thesis
-    by (cases x) (auto simp: max.absorb2 top_ereal_def)
+    by (cases x) (auto simp: top_ereal_def)
   done
 
 lemmas ennreal2_cases = ennreal_cases[case_product ennreal_cases]
@@ -1152,10 +1150,11 @@ lemma ennreal_of_enat_eSuc[simp]: "ennreal_of_enat (eSuc x) = 1 + ennreal_of_ena
 
 (* Contributed by Dominique Unruh *)
 lemma ennreal_of_enat_plus[simp]: \<open>ennreal_of_enat (a+b) = ennreal_of_enat a + ennreal_of_enat b\<close>
-  apply (induct a)
-   apply (metis enat.exhaust ennreal_add_eq_top ennreal_of_enat_enat ennreal_of_enat_infty infinity_ennreal_def of_nat_add plus_enat_simps(1) plus_eq_infty_iff_enat)
-  apply simp
-  done
+proof (induct a)
+  case (enat nat)
+  with enat.simps show ?case
+    by (smt (verit, del_insts) add.commute add_top_left_ennreal enat.exhaust enat_defs(4) ennreal_of_enat_def of_nat_add)
+qed auto
 
 (* Contributed by Dominique Unruh *)
 lemma sum_ennreal_of_enat[simp]: "(\<Sum>i\<in>I. ennreal_of_enat (f i)) = ennreal_of_enat (sum f I)"
@@ -1553,7 +1552,7 @@ proof -
   have *: "e2ennreal (max x 0) = e2ennreal x" for x
     by (simp add: e2ennreal_def max.commute)
   have "((\<lambda>i. max (f i) 0) \<longlongrightarrow> max l 0) F"
-    apply (intro tendsto_intros) using assms by auto
+    using assms by (intro tendsto_intros) auto
   then have "((\<lambda>i. enn2ereal(e2ennreal (max (f i) 0))) \<longlongrightarrow> enn2ereal (e2ennreal (max l 0))) F"
     by (subst enn2ereal_e2ennreal, auto)+
   then have "((\<lambda>i. e2ennreal (max (f i) 0)) \<longlongrightarrow> e2ennreal (max l 0)) F"
@@ -1574,7 +1573,7 @@ lemma ennreal_Sup_countable_SUP:
   apply transfer
   subgoal for A
     using Sup_countable_SUP[of A]
-    by (force simp add: incseq_def[symmetric] SUP_upper2 max.absorb2 image_subset_iff Sup_upper2 cong: conj_cong)
+    by (force simp add: incseq_def[symmetric] SUP_upper2 image_subset_iff Sup_upper2 cong: conj_cong)
   done
 
 lemma ennreal_Inf_countable_INF:
@@ -1582,11 +1581,7 @@ lemma ennreal_Inf_countable_INF:
   unfolding decseq_def
   apply transfer
   subgoal for A
-    using Inf_countable_INF[of A]
-    apply (clarsimp simp flip: decseq_def)
-    subgoal for f
-      by (intro exI[of _ f]) auto
-    done
+    using Inf_countable_INF[of A] by (simp flip: decseq_def) blast
   done
 
 lemma ennreal_SUP_countable_SUP:
@@ -1617,10 +1612,7 @@ qed
 lemma ennreal_suminf_SUP_eq:
   fixes f :: "nat \<Rightarrow> nat \<Rightarrow> ennreal"
   shows "(\<And>i. incseq (\<lambda>n. f n i)) \<Longrightarrow> (\<Sum>i. SUP n. f n i) = (SUP n. \<Sum>i. f n i)"
-  apply (rule ennreal_suminf_SUP_eq_directed)
-  subgoal for N n j
-    by (auto simp: incseq_def intro!:exI[of _ "max n j"])
-  done
+  by (metis ennreal_suminf_SUP_eq_directed incseqD nat_le_linear)
 
 lemma ennreal_SUP_add_left:
   fixes c :: ennreal
@@ -1792,6 +1784,7 @@ lemma tendsto_top_iff_ennreal:
 lemma ennreal_tendsto_top_eq_at_top:
   "((\<lambda>z. ennreal (f z)) \<longlongrightarrow> top) F \<longleftrightarrow> (LIM z F. f z :> at_top)"
   unfolding filterlim_at_top_dense tendsto_top_iff_ennreal
+  using ennreal_less_iff eventually_mono
   apply (auto simp: ennreal_less_iff)
   subgoal for y
     by (auto elim!: eventually_mono allE[of _ "max 0 y"])
