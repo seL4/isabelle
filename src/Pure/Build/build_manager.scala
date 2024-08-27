@@ -1019,7 +1019,20 @@ object Build_Manager {
 
     override def stopped(state: Runner.State): Boolean = progress.stopped && state.is_empty
 
-    def init: Runner.State = Runner.State.init(store.options)
+    def init: Runner.State = synchronized_database("init") {
+      for ((name, job) <- _state.running) {
+        echo("Cleaned up job " + job.uuid)
+
+        val report = store.report(job.kind, job.id)
+
+        _state = _state
+          .remove_running(job.name)
+          .add_finished(report.result(Some(job.uuid), job.user))
+      }
+
+      Runner.State.init(store.options)
+    }
+
     def loop_body(state: Runner.State): Runner.State = {
       val state1 =
         if (progress.stopped) state
