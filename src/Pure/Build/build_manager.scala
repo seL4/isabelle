@@ -802,10 +802,10 @@ object Build_Manager {
           result_futures + (context.name -> result_future))
       }
 
-      def running: List[String] = process_futures.keys.toList
+      def running: List[String] = process_futures.keys.toList.filterNot(cancelling_until.contains)
 
       private def do_terminate(name: String): Boolean = {
-        val is_late = cancelling_until(name) > Time.now()
+        val is_late = Time.now() > cancelling_until(name)
         if (is_late) process_futures(name).join.terminate()
         is_late
       }
@@ -850,9 +850,7 @@ object Build_Manager {
             if do_cancel(process_future)
           } yield name -> (Time.now() + cancel_timeout)
 
-        copy(
-          process_futures.filterNot((name, _) => cancelled.contains(name)),
-          cancelling_until = cancelling_until ++ cancelling_until1)
+        copy(cancelling_until = cancelling_until ++ cancelling_until1)
       }
     }
   }
