@@ -1515,11 +1515,14 @@ object Build_Manager {
 html { background-color: white; }"""))
     }
 
-    def init: Unit = server.start()
-    def loop_body(u: Unit): Unit = {
-      if (progress.stopped) server.stop()
-      else synchronized_database("iterate") { cache.update() }
+    override def close(): Unit = {
+      server.stop()
+      super.close()
     }
+
+    def init: Unit = server.start()
+    def loop_body(u: Unit): Unit =
+      if (!progress.stopped) synchronized_database("iterate") { cache.update() }
   }
 
 
