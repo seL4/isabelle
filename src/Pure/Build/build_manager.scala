@@ -804,6 +804,13 @@ object Build_Manager {
 
       def running: List[String] = process_futures.keys.toList.filterNot(cancelling_until.contains)
 
+      private def maybe_result(name: String): Option[Process_Result] =
+        for (future <- result_futures.get(name) if future.is_finished) yield
+          future.join_result match {
+            case Exn.Res(result) => result
+            case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
+          }
+
       private def do_terminate(name: String): Boolean = {
         val is_late = Time.now() > cancelling_until(name)
         if (is_late) process_futures(name).join.terminate()
@@ -812,12 +819,10 @@ object Build_Manager {
 
       def update: (State, Map[String, Process_Result]) = {
         val finished0 =
-          for ((name, future) <- result_futures if future.is_finished)
-          yield name ->
-            (future.join_result match {
-              case Exn.Res(result) => result
-              case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
-            })
+          for {
+            (name, _) <- result_futures
+            result <- maybe_result(name)
+          } yield name -> result
 
         val (terminated, cancelling_until1) =
           cancelling_until
@@ -826,7 +831,8 @@ object Build_Manager {
 
         val finished =
           finished0 ++
-            terminated.map((name, _) => name -> Process_Result(Process_Result.RC.timeout))
+            terminated.map((name, _) =>
+              name -> maybe_result(name).getOrElse(Process_Result(Process_Result.RC.timeout)))
 
         val state1 =
           copy(
