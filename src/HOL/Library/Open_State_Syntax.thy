@@ -119,8 +119,7 @@ subsection \<open>Do-syntax\<close>
 
 nonterminal sdo_binds and sdo_bind
 
-definition sdo_syntax :: 'a
-  where "sdo_syntax = undefined"
+definition "sdo_syntax = ()"
 
 syntax
   "_sdo_block" :: "sdo_binds \<Rightarrow> 'a" ("exec {//(2  _)//}" [12] 62)
