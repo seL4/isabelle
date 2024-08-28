@@ -130,6 +130,11 @@ syntax
 syntax (ASCII)
   "_sdo_bind" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(_ <-/ _)" 13)
 
+syntax_consts
+  "_sdo_bind" == scomp and
+  "_sdo_then" == fcomp and
+  "_sdo_let" == Let
+
 translations
   "_sdo_block (_sdo_cons (_sdo_bind p t) (_sdo_final e))"
     == "CONST scomp t (\<lambda>p. e)"
