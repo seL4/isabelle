@@ -453,7 +453,7 @@ text \<open>
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
 
-    syntax "_list" :: "args \<Rightarrow> 'a list" ("[(_)]")
+    syntax "_list" :: "list_args \<Rightarrow> 'a list" ("[(_)]")
 
 text \<open>\blankline\<close>
 

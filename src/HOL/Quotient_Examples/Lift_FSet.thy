@@ -95,12 +95,13 @@ by transfer_prover
 
 end
 
+nonterminal fset_args
 syntax
-  "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
-
+  "" :: "'a \<Rightarrow> fset_args"  ("_")
+  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  ("_,/ _")
+  "_fset" :: "fset_args => 'a fset"  ("{|(_)|}")
 syntax_consts
-  "_insert_fset" == fcons
-
+  "_fset_args" "_fset" == fcons
 translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"

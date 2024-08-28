@@ -143,10 +143,13 @@ abbreviation empty :: "'a set" ("{}")
 definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
   where insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
 
+nonterminal finset_args
 syntax
-  "_Finset" :: "args \<Rightarrow> 'a set"    ("{(_)}")
+  "" :: "'a \<Rightarrow> finset_args"  ("_")
+  "_Finset_args" :: "'a \<Rightarrow> finset_args \<Rightarrow> finset_args"  ("_,/ _")
+  "_Finset" :: "finset_args \<Rightarrow> 'a set"    ("{(_)}")
 syntax_consts
-  "_Finset" \<rightleftharpoons> insert
+  "_Finset_args" "_Finset" \<rightleftharpoons> insert
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"

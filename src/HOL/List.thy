@@ -42,13 +42,16 @@ setup \<open>Sign.parent_path\<close>
 
 lemmas set_simps = list.set (* legacy *)
 
+
+text \<open>List enumeration\<close>
+
+nonterminal list_args
 syntax
-  \<comment> \<open>list Enumeration\<close>
-  "_list" :: "args => 'a list"    ("[(_)]")
-
+  "" :: "'a \<Rightarrow> list_args"  ("_")
+  "_list_args" :: "'a \<Rightarrow> list_args \<Rightarrow> list_args"  ("_,/ _")
+  "_list" :: "list_args => 'a list"    ("[(_)]")
 syntax_consts
-  "_list" == Cons
-
+  "_list_args" "_list" == Cons
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"

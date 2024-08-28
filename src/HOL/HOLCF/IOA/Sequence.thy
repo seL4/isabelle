@@ -69,9 +69,12 @@ abbreviation Consq_syn  ("(_/\<leadsto>_)" [66, 65] 65)
 
 subsection \<open>List enumeration\<close>
 
+nonterminal llist_args
 syntax
-  "_totlist" :: "args \<Rightarrow> 'a Seq"  ("[(_)!]")
-  "_partlist" :: "args \<Rightarrow> 'a Seq"  ("[(_)?]")
+  "" :: "'a \<Rightarrow> llist_args"  ("_")
+  "_list_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
+  "_totlist" :: "llist_args \<Rightarrow> 'a Seq"  ("[(_)!]")
+  "_partlist" :: "llist_args \<Rightarrow> 'a Seq"  ("[(_)?]")
 syntax_consts
   "_totlist" "_partlist" \<rightleftharpoons> Consq
 translations

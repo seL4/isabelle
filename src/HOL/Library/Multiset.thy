@@ -91,10 +91,13 @@ lift_definition add_mset :: "'a \<Rightarrow> 'a multiset \<Rightarrow> 'a multi
   "\<lambda>a M b. if b = a then Suc (M b) else M b"
 by (rule add_mset_in_multiset)
 
+nonterminal multiset_args
 syntax
-  "_multiset" :: "args \<Rightarrow> 'a multiset"    ("{#(_)#}")
+  "" :: "'a \<Rightarrow> multiset_args"  ("_")
+  "_multiset_args" :: "'a \<Rightarrow> multiset_args \<Rightarrow> multiset_args"  ("_,/ _")
+  "_multiset" :: "multiset_args \<Rightarrow> 'a multiset"    ("{#(_)#}")
 syntax_consts
-  "_multiset" == add_mset
+  "_multiset_args" "_multiset" == add_mset
 translations
   "{#x, xs#}" == "CONST add_mset x {#xs#}"
   "{#x#}" == "CONST add_mset x {#}"

@@ -39,8 +39,13 @@ datatype 'a llist
   = LNil ("\<^bold>\<lbrakk>\<^bold>\<rbrakk>") 
   | LCons (lhd: 'a) (ltl: "'a llist") (infixr "###" 65)
 
-syntax "_llist" :: "args => 'a list"    ("\<^bold>\<lbrakk>(_)\<^bold>\<rbrakk>")
-syntax_consts "_llist" == LCons
+nonterminal llist_args
+syntax
+  "" :: "'a \<Rightarrow> llist_args"  ("_")
+  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
+  "_llist" :: "llist_args => 'a list"    ("\<^bold>\<lbrakk>(_)\<^bold>\<rbrakk>")
+syntax_consts
+  "_llist_args" "_llist" == LCons
 translations
   "\<^bold>\<lbrakk>x, xs\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>xs\<^bold>\<rbrakk>"
   "\<^bold>\<lbrakk>x\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>\<^bold>\<rbrakk>"

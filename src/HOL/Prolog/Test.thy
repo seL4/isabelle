@@ -16,13 +16,18 @@ consts
   Nil   :: "'a list"                                  ("[]")
   Cons  :: "'a => 'a list => 'a list"                 (infixr "#"  65)
 
-syntax
-  (* list Enumeration *)
-  "_list"     :: "args => 'a list"                          ("[(_)]")
+text \<open>List enumeration\<close>
 
+nonterminal list_args
+syntax
+  "" :: "'a \<Rightarrow> list_args"  ("_")
+  "_list_args" :: "'a \<Rightarrow> list_args \<Rightarrow> list_args"  ("_,/ _")
+  "_list" :: "list_args => 'a list"    ("[(_)]")
+syntax_consts
+  "_list_args" "_list" == Cons
 translations
-  "[x, xs]"     == "x#[xs]"
-  "[x]"         == "x#[]"
+  "[x, xs]" == "x#[xs]"
+  "[x]" == "x#[]"
 
 typedecl person
 

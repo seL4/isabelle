@@ -288,12 +288,13 @@ quotient_definition
   "insert_fset :: 'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
   is "Cons" by auto
 
+nonterminal fset_args
 syntax
-  "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
-
+  "" :: "'a \<Rightarrow> fset_args"  ("_")
+  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  ("_,/ _")
+  "_fset" :: "fset_args => 'a fset"  ("{|(_)|}")
 syntax_consts
-  "_insert_fset" == insert_fset
-
+  "_fset_args" "_fset" == insert_fset
 translations
   "{|x, xs|}" == "CONST insert_fset x {|xs|}"
   "{|x|}"     == "CONST insert_fset x {||}"

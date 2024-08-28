@@ -68,10 +68,13 @@ datatype
 
 
 (*Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...*)
+nonterminal mtuple_args
 syntax
-  "_MTuple"      :: "['a, args] \<Rightarrow> 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+  "" :: "'a \<Rightarrow> mtuple_args"  ("_")
+  "_MTuple_args" :: "'a \<Rightarrow> mtuple_args \<Rightarrow> mtuple_args"  ("_,/ _")
+  "_MTuple" :: "['a, mtuple_args] \<Rightarrow> 'a * 'b"  ("(2\<lbrace>_,/ _\<rbrace>)")
 syntax_consts
-  "_MTuple"     == MPair
+  "_MTuple_args" "_MTuple" \<rightleftharpoons> MPair
 translations
   "\<lbrace>x, y, z\<rbrace>"   == "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
   "\<lbrace>x, y\<rbrace>"      == "CONST MPair x y"

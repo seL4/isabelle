@@ -23,8 +23,13 @@ subsection \<open>Finite lazy lists\<close>
 code_lazy_type llist
 
 no_notation lazy_llist ("_")
-syntax "_llist" :: "args => 'a list"    ("\<^bold>[(_)\<^bold>]")
-syntax_consts "_llist" == lazy_llist
+nonterminal llist_args
+syntax
+  "" :: "'a \<Rightarrow> llist_args"  ("_")
+  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
+  "_llist" :: "llist_args => 'a list"    ("\<^bold>[(_)\<^bold>]")
+syntax_consts
+  "_llist_args" "_llist" == lazy_llist
 translations
   "\<^bold>[x, xs\<^bold>]" == "x\<^bold>#\<^bold>[xs\<^bold>]"
   "\<^bold>[x\<^bold>]" == "x\<^bold>#\<^bold>[\<^bold>]"
