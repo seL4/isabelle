@@ -47,8 +47,7 @@ syntax (ASCII)
   "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl ">>" 54)
 
 syntax_consts
-  "_do_block" "_do_cons" \<rightleftharpoons> bind_do and
-  "_do_bind" "_thenM" \<rightleftharpoons> bind and
+  "_do_block" "_do_cons" "_do_bind" "_do_then" \<rightleftharpoons> bind and
   "_do_let" \<rightleftharpoons> Let
 
 translations
