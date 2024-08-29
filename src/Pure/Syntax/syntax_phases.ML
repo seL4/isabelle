@@ -766,7 +766,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       if show_markup andalso not show_types then
         let
           val ((bg1, bg2), en) = typing_elem;
-          val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
+          val bg = implode (bg1 :: Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) @ [bg2]);
           val info = {markup = (bg, en), consistent = false, indent = 0};
         in SOME (Pretty.make_block info [pretty_ast Markup.empty t]) end
       else NONE
@@ -775,7 +775,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       if show_markup andalso not show_sorts then
         let
           val ((bg1, bg2), en) = sorting_elem;
-          val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty s) ^ bg2;
+          val bg = implode (bg1 :: Pretty.symbolic_output (pretty_typ_ast Markup.empty s) @ [bg2]);
           val info = {markup = (bg, en), consistent = false, indent = 0};
         in SOME (Pretty.make_block info [pretty_typ_ast Markup.empty ty]) end
       else NONE

@@ -864,8 +864,8 @@ fun output m = if is_empty m then no_output else #output (get_mode ()) m;
 val enclose = output #-> Library.enclose;
 
 fun markup m =
-  let val (bg, en) = output m
-  in Library.enclose (Output.escape bg) (Output.escape en) end;
+  let val (bg, en) = output m |> apply2 (single #> Output.escape #> implode);
+  in Library.enclose bg en end;
 
 val markups = fold_rev markup;
 

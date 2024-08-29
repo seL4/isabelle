@@ -251,7 +251,9 @@ fun latex_markup (s, _: Properties.T) =
   else if s = Markup.keyword2N then keyword_markup
   else Markup.no_output;
 
-val _ = Output.add_mode latexN latex_output (prefix Symbol.latex o cartouche);
+fun latex_escape ss = Symbol.latex :: Symbol.open_ :: ss @ [Symbol.close];
+
+val _ = Output.add_mode latexN latex_output latex_escape;
 val _ = Markup.add_mode latexN latex_markup;
 
 val _ = Pretty.add_mode latexN

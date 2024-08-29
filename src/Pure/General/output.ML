@@ -17,11 +17,11 @@ sig
   include BASIC_OUTPUT
   type output = string
   val default_output: string -> output * int
-  val default_escape: output -> string
-  val add_mode: string -> (string -> output * int) -> (output -> string) -> unit
+  val default_escape: output list -> string list
+  val add_mode: string -> (string -> output * int) -> (output list -> string list) -> unit
   val output_width: string -> output * int
   val output: string -> output
-  val escape: output -> string
+  val escape: output list -> string list
   val physical_stdout: output -> unit
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
@@ -66,7 +66,7 @@ struct
 type output = string;  (*raw system output*)
 
 fun default_output s = (s, size s);
-fun default_escape (s: output) = s;
+fun default_escape (ss: output list) = ss;
 
 local
   val default = {output = default_output, escape = default_escape};

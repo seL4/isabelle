@@ -65,11 +65,11 @@ sig
   val regularN: string
   val symbolicN: string
   val output_buffer: int option -> T -> Buffer.T
-  val output: int option -> T -> Output.output
+  val output: int option -> T -> Output.output list
   val string_of_margin: int -> T -> string
   val string_of: T -> string
   val writeln: T -> unit
-  val symbolic_output: T -> Output.output
+  val symbolic_output: T -> Output.output list
   val symbolic_string_of: T -> string
   val unformatted_string_of: T -> string
   val markup_chunks: Markup.T -> T list -> T
@@ -359,15 +359,15 @@ fun output_buffer margin prt =
   then symbolic prt
   else formatted (the_default (! margin_default) margin) prt;
 
-val output = Buffer.content oo output_buffer;
-fun string_of_margin margin = Output.escape o output (SOME margin);
-val string_of = Output.escape o output NONE;
-val writeln = Output.writeln o string_of;
+val output = Buffer.contents oo output_buffer;
+fun string_of_margin margin = implode o Output.escape o output (SOME margin);
+val string_of = implode o Output.escape o output NONE;
+val writeln = Output.writelns o Output.escape o output NONE;
 
-val symbolic_output = Buffer.content o symbolic;
-val symbolic_string_of = Output.escape o symbolic_output;
+val symbolic_output = Buffer.contents o symbolic;
+val symbolic_string_of = implode o Output.escape o symbolic_output;
 
-val unformatted_string_of = Output.escape o Buffer.content o unformatted;
+val unformatted_string_of = implode o Output.escape o Buffer.contents o unformatted;
 
 
 (* chunks *)
