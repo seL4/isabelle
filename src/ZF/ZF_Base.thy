@@ -129,13 +129,13 @@ definition cons :: "[i, i] \<Rightarrow> i"
 definition succ :: "i \<Rightarrow> i"
   where "succ(i) \<equiv> cons(i, i)"
 
-nonterminal "is"
+nonterminal "finset_args"
 syntax
-  "" :: "i \<Rightarrow> is"  (\<open>_\<close>)
-  "_Enum" :: "[i, is] \<Rightarrow> is"  (\<open>_,/ _\<close>)
-  "_Finset" :: "is \<Rightarrow> i"  (\<open>{(_)}\<close>)
+  "" :: "i \<Rightarrow> finset_args"  (\<open>_\<close>)
+  "_Finset_args" :: "[i, finset_args] \<Rightarrow> finset_args"  (\<open>_,/ _\<close>)
+  "_Finset" :: "finset_args \<Rightarrow> i"  (\<open>{(_)}\<close>)
 syntax_consts
-  "_Finset" == cons
+  "_Finset_args" "_Finset" == cons
 translations
   "{x, xs}" == "CONST cons(x, {xs})"
   "{x}" == "CONST cons(x, 0)"
@@ -192,19 +192,26 @@ definition snd :: "i \<Rightarrow> i"
 definition split :: "[[i, i] \<Rightarrow> 'a, i] \<Rightarrow> 'a::{}"  \<comment> \<open>for pattern-matching\<close>
   where "split(c) \<equiv> \<lambda>p. c(fst(p), snd(p))"
 
+nonterminal "tuple_args"
+syntax
+  "" :: "i \<Rightarrow> tuple_args"  (\<open>_\<close>)
+  "_Tuple_args" :: "[i, tuple_args] \<Rightarrow> tuple_args"  (\<open>_,/ _\<close>)
+  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"              (\<open>\<langle>(_,/ _)\<rangle>\<close>)
+syntax_consts
+  "_Tuple_args" "_Tuple" == Pair
+translations
+  "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
+  "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"
+
 (* Patterns -- extends pre-defined type "pttrn" used in abstractions *)
 nonterminal patterns
 syntax
   "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open>\<langle>_\<rangle>\<close>)
   ""          :: "pttrn \<Rightarrow> patterns"         (\<open>_\<close>)
   "_patterns" :: "[pttrn, patterns] \<Rightarrow> patterns"  (\<open>_,/_\<close>)
-  "_Tuple"    :: "[i, is] \<Rightarrow> i"              (\<open>\<langle>(_,/ _)\<rangle>\<close>)
 syntax_consts
-  "_pattern" "_patterns" == split and
-  "_Tuple" == Pair
+  "_pattern" "_patterns" == split
 translations
-  "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
-  "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"
   "\<lambda>\<langle>x,y,zs\<rangle>.b" == "CONST split(\<lambda>x \<langle>y,zs\<rangle>.b)"
   "\<lambda>\<langle>x,y\<rangle>.b"    == "CONST split(\<lambda>x y. b)"
 
@@ -300,7 +307,7 @@ syntax (ASCII)
   "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3PROD _:_./ _)\<close> 10)
   "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3SUM _:_./ _)\<close> 10)
   "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3lam _:_./ _)\<close> 10)
-  "_Tuple"    :: "[i, is] \<Rightarrow> i"              (\<open><(_,/ _)>\<close>)
+  "_Tuple"    :: "[i, tuple_args] \<Rightarrow> i"      (\<open><(_,/ _)>\<close>)
   "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open><_>\<close>)
 
 
