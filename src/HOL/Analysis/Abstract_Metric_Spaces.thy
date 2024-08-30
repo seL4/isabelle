@@ -266,9 +266,7 @@ proof -
   have "\<And>x B. S \<subseteq> mcball x B \<Longrightarrow> \<forall>x\<in>S. \<forall>y\<in>S. d x y \<le> 2 * B"
     by (smt (verit, best) commute in_mcball subsetD triangle)
   then show ?thesis
-    apply (auto simp: mbounded_def subset_iff)
-     apply blast+
-    done
+    unfolding mbounded_def by (metis in_mcball in_mono subsetI)
 qed
 
 
@@ -659,7 +657,7 @@ qed
 
 lemma metrizable_imp_first_countable:
    "metrizable_space X \<Longrightarrow> first_countable X"
-  by (force simp add: metrizable_space_def Metric_space.first_countable_mtopology)
+  by (force simp: metrizable_space_def Metric_space.first_countable_mtopology)
 
 lemma openin_mtopology_eq_open [simp]: "openin Met_TC.mtopology = open"
   by (simp add: Met_TC.mtopology_def)
@@ -819,9 +817,8 @@ proof -
         by (metis \<section> that not0_implies_Suc order_less_le order_less_le_trans real_arch_inverse)
       have "closedin M.mtopology S"
         using S by (simp add: Xeq)
-      then show ?thesis
-        apply (simp add: M.closedin_metric)
-        by (metis * \<open>x \<in> M\<close> M.in_mball disjnt_insert1 insert_absorb subsetD)
+      with * \<open>x \<in> M\<close> show ?thesis
+        by (force simp: M.closedin_metric disjnt_iff)
     qed
     ultimately have Seq: "S = \<Inter>(range (\<lambda>n. {x\<in>M. \<exists>y\<in>S. d x y < inverse(Suc n)}))"
       using \<open>S \<subseteq> M\<close> by force
@@ -834,10 +831,10 @@ proof -
       with dxy show "\<exists>r>0. M.mball x r \<subseteq> {z \<in> M. \<exists>y\<in>S. d z y < inverse (1 + real n)}"
         by (rule_tac x="inverse(Suc n) - d x y" in exI) auto
     qed
-    then show ?thesis
-      apply (subst Seq)
-      apply (force simp: Xeq intro: gdelta_in_Inter open_imp_gdelta_in)
-      done
+    then have "gdelta_in X (\<Inter>(range (\<lambda>n. {x\<in>M. \<exists>y\<in>S. d x y < inverse(Suc n)})))"
+      by (force simp: Xeq intro: gdelta_in_Inter open_imp_gdelta_in)
+    with Seq show ?thesis
+      by presburger
   qed
 qed
 
@@ -1145,8 +1142,7 @@ next
     using cau \<open>\<epsilon> > 0\<close> by (fastforce simp: MCauchy_def)
   then show "\<exists>N. \<forall>n n'. N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> d (\<sigma> n) (\<sigma> n') < \<epsilon>"
     unfolding o_def
-    apply (rule_tac x="k+N" in exI)
-    by (smt (verit, del_insts) add.assoc le_add1 less_eqE)
+    by (intro exI [where x="k+N"]) (smt (verit, del_insts) add.assoc le_add1 less_eqE)
 qed
 
 lemma MCauchy_convergent_subsequence:
@@ -1715,9 +1711,8 @@ proof -
     then obtain x where x: "limitin SA.sub.mtopology \<sigma> x sequentially"
       by (metis A SA.sub.MCauchy_def SA.sub.mcomplete_alt MCauchy_def \<open>range \<sigma> \<subseteq> A\<close>)
     show "\<exists>x. limitin MS.sub.mtopology \<sigma> x sequentially"
-      apply (rule_tac x="x" in exI)
       unfolding MS.limitin_submetric_iff
-    proof (intro conjI)
+    proof (intro exI conjI)
       show "x \<in> \<Inter> \<S>"
       proof clarsimp
         fix U
@@ -2740,8 +2735,8 @@ proof -
       fix U
       assume "openin M'.mtopology U"
       then show "openin mtopology {x \<in> topspace mtopology. f x \<in> U}"
-        apply (simp add: continuous_map_def openin_mtopology M'.openin_mtopology subset_iff)
-        by (metis R image_subset_iff)
+        using R
+        by (force simp: continuous_map_def openin_mtopology M'.openin_mtopology subset_iff)
     qed (use R in auto)
   qed
 qed
@@ -2882,7 +2877,7 @@ proof -
       with x have "limitin MY.mtopology (f \<circ> (g \<circ> \<sigma>)) (f x) sequentially"
         by (metis Xeq Yeq continuous_map_limit hmf homeomorphic_imp_continuous_map)
       moreover have "f \<circ> (g \<circ> \<sigma>) = \<sigma>"
-        using \<open>MY.MCauchy \<sigma>\<close>  by (force simp add: fg MY.MCauchy_def subset_iff)
+        using \<open>MY.MCauchy \<sigma>\<close>  by (force simp: fg MY.MCauchy_def subset_iff)
       ultimately have "limitin MY.mtopology \<sigma> (f x) sequentially" by simp
       then show "\<exists>y. limitin MY.mtopology \<sigma> y sequentially"
         by blast 
@@ -2951,7 +2946,7 @@ sublocale Metric_space12 \<subseteq> Prod_metric: Metric_space "M1\<times>M2" "p
 text \<open>For easy reference to theorems outside of the locale\<close>
 lemma Metric_space12_mspace_mdist:
   "Metric_space12 (mspace m1) (mdist m1) (mspace m2) (mdist m2)"
-  by (simp add: Metric_space12_def Metric_space_mspace_mdist)
+  by (simp add: Metric_space12_def)
 
 definition prod_metric where
  "prod_metric \<equiv> \<lambda>m1 m2. metric (mspace m1 \<times> mspace m2, prod_dist (mdist m1) (mdist m2))"
@@ -2959,7 +2954,7 @@ definition prod_metric where
 lemma submetric_prod_metric:
    "submetric (prod_metric m1 m2) (S \<times> T) = prod_metric (submetric m1 S) (submetric m2 T)"
   apply (simp add: prod_metric_def)
-  by (simp add: submetric_def Metric_space.mspace_metric Metric_space.mdist_metric Metric_space12.prod_metric Metric_space12_def Metric_space_mspace_mdist Times_Int_Times)
+  by (simp add: submetric_def Metric_space.mspace_metric Metric_space.mdist_metric Metric_space12.prod_metric Metric_space12_def Times_Int_Times)
 
 lemma mspace_prod_metric [simp]:"
   mspace (prod_metric m1 m2) = mspace m1 \<times> mspace m2"
@@ -3054,7 +3049,7 @@ next
   moreover have "(x,y) \<in> B1 \<times> B2"
     using \<open>r > 0\<close> by (simp add: \<open>x \<in> M1\<close> \<open>y \<in> M2\<close> B1_def B2_def)
   moreover have "B1 \<times> B2 \<subseteq> U"
-    using r prod_metric_le_components by (force simp add: B1_def B2_def)
+    using r prod_metric_le_components by (force simp: B1_def B2_def)
   ultimately show "\<exists>B. B \<in> {S \<times> T |S T. openin M1.mtopology S \<and> openin M2.mtopology T} \<and> z \<in> B \<and> B \<subseteq> U"
     by (auto simp: zeq)
 qed
@@ -3213,7 +3208,7 @@ proof (cases "S = {} \<or> T = {}")
     then have "M1.MCauchy (fst \<circ> (\<lambda>n. (\<sigma> n,y)) \<circ> r)"
       by (simp add: MCauchy_prod_metric o_def)
     with \<open>strict_mono r\<close> show "\<exists>r. strict_mono r \<and> M1.MCauchy (\<sigma> \<circ> r)"
-      by (auto simp add: o_def)
+      by (auto simp: o_def)
   qed
   moreover
   have "M2.mtotally_bounded T" if L: ?lhs
@@ -3229,7 +3224,7 @@ proof (cases "S = {} \<or> T = {}")
     then have "M2.MCauchy (snd \<circ> (\<lambda>n. (x,\<sigma> n)) \<circ> r)"
       by (simp add: MCauchy_prod_metric o_def)
     with \<open>strict_mono r\<close> show "\<exists>r. strict_mono r \<and> M2.MCauchy (\<sigma> \<circ> r)"
-      by (auto simp add: o_def)
+      by (auto simp: o_def)
   qed
   moreover have ?lhs if 1: "M1.mtotally_bounded S" and 2: "M2.mtotally_bounded T"
     unfolding Prod_metric.mtotally_bounded_sequentially
@@ -3240,8 +3235,7 @@ proof (cases "S = {} \<or> T = {}")
     fix \<sigma> :: "nat \<Rightarrow> 'a \<times> 'b"
     assume \<sigma>: "range \<sigma> \<subseteq> S \<times> T"
     with 1 obtain r1 where r1: "strict_mono r1" "M1.MCauchy (fst \<circ> \<sigma> \<circ> r1)"
-      apply (clarsimp simp: M1.mtotally_bounded_sequentially image_subset_iff)
-      by (metis SigmaE comp_eq_dest_lhs fst_conv)
+      by (metis M1.mtotally_bounded_sequentially comp_apply image_subset_iff mem_Sigma_iff prod.collapse)
     from \<sigma> 2 obtain r2 where r2: "strict_mono r2" "M2.MCauchy (snd \<circ> \<sigma> \<circ> r1 \<circ> r2)"
       apply (clarsimp simp: M2.mtotally_bounded_sequentially image_subset_iff)
       by (smt (verit, best) comp_apply mem_Sigma_iff prod.collapse)
@@ -3738,7 +3732,7 @@ lemma Lipschitz_continuous_map_pos:
         (\<exists>B>0. \<forall>x \<in> mspace m1. \<forall>y \<in> mspace m1. mdist m2 (f x) (f y) \<le> B * mdist m1 x y)"
 proof -
   have "B * mdist m1 x y \<le> (\<bar>B\<bar> + 1) * mdist m1 x y" "\<bar>B\<bar> + 1 > 0" for x y B
-    by (auto simp add: mult_right_mono)
+    by (auto simp: mult_right_mono)
   then show ?thesis
     unfolding Lipschitz_continuous_map_def by (meson dual_order.trans)
 qed
@@ -3818,7 +3812,7 @@ lemma ucmap_A:
   and "(\<lambda>n. mdist m1 (\<rho> n) (\<sigma> n)) \<longlonglongrightarrow> 0"
     and "range \<rho> \<subseteq> mspace m1" "range \<sigma> \<subseteq> mspace m1"
   shows "(\<lambda>n. mdist m2 (f (\<rho> n)) (f (\<sigma> n))) \<longlonglongrightarrow> 0"
-  using assms
+  using assms 
   unfolding uniformly_continuous_map_def image_subset_iff tendsto_iff
   apply clarsimp
   by (metis (mono_tags, lifting) eventually_sequentially)
@@ -3936,7 +3930,7 @@ text \<open>Equivalence between "abstract" and "type class" notions\<close>
 lemma uniformly_continuous_map_euclidean [simp]:
   "uniformly_continuous_map (submetric euclidean_metric S) euclidean_metric f
      = uniformly_continuous_on S f"
-  by (auto simp add: uniformly_continuous_map_def uniformly_continuous_on_def)
+  by (auto simp: uniformly_continuous_map_def uniformly_continuous_on_def)
 
 subsubsection \<open>Cauchy continuity\<close>
 
@@ -3948,7 +3942,7 @@ definition Cauchy_continuous_map where
 lemma Cauchy_continuous_map_euclidean [simp]:
   "Cauchy_continuous_map (submetric euclidean_metric S) euclidean_metric f
      = Cauchy_continuous_on S f"
-  by (auto simp add: Cauchy_continuous_map_def Cauchy_continuous_on_def Cauchy_def Met_TC.subspace Metric_space.MCauchy_def)
+  by (auto simp: Cauchy_continuous_map_def Cauchy_continuous_on_def Cauchy_def Met_TC.subspace Metric_space.MCauchy_def)
 
 lemma Cauchy_continuous_map_funspace:
   assumes "Cauchy_continuous_map m1 m2 f"
@@ -4024,7 +4018,7 @@ lemma Lipschitz_imp_uniformly_continuous_map:
   proof -
     obtain B where "\<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m2 (f x) (f y) \<le> B * mdist m1 x y"
              and "B>0"
-      using that assms by (force simp add: Lipschitz_continuous_map_pos)
+      using that assms by (force simp: Lipschitz_continuous_map_pos)
     then have "\<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m1 y x < \<epsilon>/B \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>"
       by (smt (verit, ccfv_SIG) less_divide_eq mdist_nonneg mult.commute that zero_less_divide_iff)
     with \<open>B>0\<close> show ?thesis
@@ -4099,7 +4093,7 @@ proof (clarsimp simp: continuous_map_atin)
     fix \<sigma>
     assume "range \<sigma> \<subseteq> M1 - {x} \<and> limitin M1.mtopology \<sigma> x sequentially"
     then have "M1.MCauchy (\<lambda>n. if even n then \<sigma> (n div 2) else x)"
-      by (force simp add: M1.MCauchy_interleaving)
+      by (force simp: M1.MCauchy_interleaving)
     then have "M2.MCauchy (f \<circ> (\<lambda>n. if even n then \<sigma> (n div 2) else x))"
       using assms by (simp add: Cauchy_continuous_map_def)
     then show "limitin M2.mtopology (f \<circ> \<sigma>) (f x) sequentially"
@@ -4132,14 +4126,14 @@ lemma Cauchy_continuous_imp_continuous_map:
   assumes "Cauchy_continuous_map m1 m2 f"
   shows "continuous_map (mtopology_of m1) (mtopology_of m2) f"
   using assms Metric_space12.Cauchy_continuous_imp_continuous_map [OF Metric_space12_mspace_mdist]
-  by (auto simp add: mtopology_of_def)
+  by (auto simp: mtopology_of_def)
 
 lemma continuous_imp_Cauchy_continuous_map:
   assumes "Metric_space.mcomplete (mspace m1) (mdist m1)"
     and "continuous_map (mtopology_of m1) (mtopology_of m2) f"
   shows "Cauchy_continuous_map m1 m2 f"
   using assms Metric_space12.continuous_imp_Cauchy_continuous_map [OF Metric_space12_mspace_mdist]
-  by (auto simp add: mtopology_of_def)
+  by (auto simp: mtopology_of_def)
 
 lemma uniformly_continuous_imp_continuous_map:
    "uniformly_continuous_map m1 m2 f
@@ -4402,7 +4396,7 @@ proof -
        \<Longrightarrow> \<bar>mdist m x y - mdist m x' y'\<bar> \<le> 2 * sqrt ((mdist m x x')\<^sup>2 + (mdist m y y')\<^sup>2)"
     by (smt (verit, del_insts) mdist_commute mdist_triangle real_sqrt_sum_squares_ge2)
   then show ?thesis
-    by (fastforce simp add: Lipschitz_continuous_map_def prod_dist_def dist_real_def)
+    by (fastforce simp: Lipschitz_continuous_map_def prod_dist_def dist_real_def)
 qed
 
 lemma Lipschitz_continuous_map_mdist:
@@ -4574,13 +4568,12 @@ qed
 
 lemma capped_metric_mspace [simp]:
   "mspace (capped_metric \<delta> m) = mspace m"
-  apply (simp add: capped_metric not_le)
-  by (smt (verit, ccfv_threshold) Metric_space.mspace_metric Metric_space_def Metric_space_mspace_mdist)
+  by (simp add: Metric_space.capped_dist Metric_space.mspace_metric capped_metric_def)
 
 lemma capped_metric_mdist:
   "mdist (capped_metric \<delta> m) = (\<lambda>x y. if \<delta> \<le> 0 then mdist m x y else min \<delta> (mdist m x y))"
-  apply (simp add: capped_metric not_le)
-  by (smt (verit, del_insts) Metric_space.mdist_metric Metric_space_def Metric_space_mspace_mdist)
+  by (metis Metric_space.capped_dist Metric_space.capped_dist_def Metric_space.mdist_metric 
+      Metric_space_mspace_mdist capped_metric capped_metric_def leI)
 
 lemma mdist_capped_le: "mdist (capped_metric \<delta> m) x y \<le> mdist m x y"
   by (simp add: capped_metric_mdist)
@@ -4593,7 +4586,7 @@ lemma mball_of_capped_metric [simp]:
   shows "mball_of (capped_metric \<delta> m) x r = mspace m"
 proof -
   interpret Metric_space "mspace m" "mdist m"
-    by (simp add: Metric_space_mspace_mdist)
+    by auto
   have "Metric_space.mball (mspace m) (mdist (capped_metric \<delta> m)) x r \<subseteq> mspace m"
     by (metis Metric_space.mball_subset_mspace Metric_space_mspace_mdist capped_metric_mspace)
   moreover have "mspace m \<subseteq> Metric_space.mball (mspace m) (mdist (capped_metric \<delta> m)) x r"
@@ -4710,9 +4703,8 @@ proof -
   proof
     fix x y
     show D0: "0 \<le> D x y"
-      using bdd  
-      apply (simp add: D_def)
-      by (meson \<open>I \<noteq> {}\<close> cSUP_upper dual_order.trans ex_in_conv mdist_nonneg)
+      using bdd \<open>I \<noteq> {}\<close>
+      by (metis D_def D_iff Orderings.order_eq_iff dual_order.trans ex_in_conv mdist_nonneg) 
     show "D x y = D y x"
       by (simp add: D_def mdist_commute)
     assume "x \<in> S" and "y \<in> S"
