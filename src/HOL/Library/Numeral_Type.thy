@@ -135,53 +135,50 @@ locale mod_type =
 begin
 
 lemma size0: "0 < n"
-using size1 by simp
+  using size1 by simp
 
 lemmas definitions =
   zero_def one_def add_def mult_def minus_def diff_def
 
 lemma Rep_less_n: "Rep x < n"
-by (rule type_definition.Rep [OF type, simplified, THEN conjunct2])
+  by (rule type_definition.Rep [OF type, simplified, THEN conjunct2])
 
 lemma Rep_le_n: "Rep x \<le> n"
-by (rule Rep_less_n [THEN order_less_imp_le])
+  by (rule Rep_less_n [THEN order_less_imp_le])
 
 lemma Rep_inject_sym: "x = y \<longleftrightarrow> Rep x = Rep y"
-by (rule type_definition.Rep_inject [OF type, symmetric])
+  by (rule type_definition.Rep_inject [OF type, symmetric])
 
 lemma Rep_inverse: "Abs (Rep x) = x"
-by (rule type_definition.Rep_inverse [OF type])
+  by (rule type_definition.Rep_inverse [OF type])
 
 lemma Abs_inverse: "m \<in> {0..<n} \<Longrightarrow> Rep (Abs m) = m"
-by (rule type_definition.Abs_inverse [OF type])
+  by (rule type_definition.Abs_inverse [OF type])
 
 lemma Rep_Abs_mod: "Rep (Abs (m mod n)) = m mod n"
   using size0 by (simp add: Abs_inverse)
 
 lemma Rep_Abs_0: "Rep (Abs 0) = 0"
-by (simp add: Abs_inverse size0)
+  by (simp add: Abs_inverse size0)
 
 lemma Rep_0: "Rep 0 = 0"
-by (simp add: zero_def Rep_Abs_0)
+  by (simp add: zero_def Rep_Abs_0)
 
 lemma Rep_Abs_1: "Rep (Abs 1) = 1"
-by (simp add: Abs_inverse size1)
+  by (simp add: Abs_inverse size1)
 
 lemma Rep_1: "Rep 1 = 1"
-by (simp add: one_def Rep_Abs_1)
+  by (simp add: one_def Rep_Abs_1)
 
 lemma Rep_mod: "Rep x mod n = Rep x"
-apply (rule_tac x=x in type_definition.Abs_cases [OF type])
-apply (simp add: type_definition.Abs_inverse [OF type])
-done
+  using type_definition.Abs_cases [OF type]
+  by (metis Abs_inverse atLeastLessThan_iff mod_pos_pos_trivial)
 
 lemmas Rep_simps =
   Rep_inject_sym Rep_inverse Rep_Abs_mod Rep_mod Rep_Abs_0 Rep_Abs_1
 
 lemma comm_ring_1: "OFCLASS('a, comm_ring_1_class)"
-apply (intro_classes, unfold definitions)
-apply (simp_all add: Rep_simps mod_simps field_simps)
-done
+  by intro_classes (auto simp: Rep_simps mod_simps field_simps definitions)
 
 end
 
@@ -192,20 +189,13 @@ locale mod_ring = mod_type n Rep Abs
 begin
 
 lemma of_nat_eq: "of_nat k = Abs (int k mod n)"
-apply (induct k)
-apply (simp add: zero_def)
-apply (simp add: Rep_simps add_def one_def mod_simps ac_simps)
-done
+  by  (induct k) (simp_all add: zero_def Rep_simps add_def one_def mod_simps ac_simps)
 
 lemma of_int_eq: "of_int z = Abs (z mod n)"
-apply (cases z rule: int_diff_cases)
-apply (simp add: Rep_simps of_nat_eq diff_def mod_simps)
-done
+  by (cases z rule: int_diff_cases) (simp add: Rep_simps of_nat_eq diff_def mod_simps)
 
-lemma Rep_numeral:
-  "Rep (numeral w) = numeral w mod n"
-using of_int_eq [of "numeral w"]
-by (simp add: Rep_inject_sym Rep_Abs_mod)
+lemma Rep_numeral: "Rep (numeral w) = numeral w mod n"
+  by (metis Rep_Abs_mod of_int_eq of_int_numeral)
 
 lemma iszero_numeral:
   "iszero (numeral w::'a) \<longleftrightarrow> numeral w mod n = 0"
@@ -214,14 +204,11 @@ by (simp add: Rep_inject_sym Rep_numeral Rep_0 iszero_def)
 lemma cases:
   assumes 1: "\<And>z. \<lbrakk>(x::'a) = of_int z; 0 \<le> z; z < n\<rbrakk> \<Longrightarrow> P"
   shows "P"
-apply (cases x rule: type_definition.Abs_cases [OF type])
-apply (rule_tac z="y" in 1)
-apply (simp_all add: of_int_eq)
-done
+  by (metis Rep_inverse Rep_less_n Rep_mod assms of_int_eq pos_mod_sign size0)
 
 lemma induct:
   "(\<And>z. \<lbrakk>0 \<le> z; z < n\<rbrakk> \<Longrightarrow> P (of_int z)) \<Longrightarrow> P (x::'a)"
-by (cases x rule: cases) simp
+  by (cases x rule: cases) simp
 
 lemma UNIV_eq: "(UNIV :: 'a set) = Abs ` {0..<n}"
   using type type_definition.univ by blast
@@ -304,7 +291,7 @@ interpretation bit1:
   mod_type "int CARD('a::finite bit1)"
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
-apply (rule mod_type.intro)
+  apply (rule mod_type.intro)
 apply (simp add: type_definition_bit1)
 apply (rule one_less_int_card)
 apply (rule zero_bit1_def)

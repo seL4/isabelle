@@ -1174,15 +1174,13 @@ by auto
 
 lemma atomize_fBall:
     "(\<And>x. x |\<in>| A ==> P x) == Trueprop (fBall A (\<lambda>x. P x))"
-apply (simp only: atomize_all atomize_imp)
-apply (rule equal_intr_rule)
-  by (transfer, simp)+
+  by (simp add: Set.atomize_ball)
 
 lemma fBall_mono[mono]: "P \<le> Q \<Longrightarrow> fBall S P \<le> fBall S Q"
-by auto
+  by auto
 
 lemma fBex_mono[mono]: "P \<le> Q \<Longrightarrow> fBex S P \<le> fBex S Q"
-by auto
+  by auto
 
 end
 
@@ -1551,7 +1549,7 @@ qed
 lemma fset_strong_cases:
   obtains "xs = {||}"
     | ys x where "x |\<notin>| ys" and "xs = finsert x ys"
-by transfer blast
+  by auto
 
 lemma fset_induct2:
   "P {||} {||} \<Longrightarrow>
@@ -1559,12 +1557,7 @@ lemma fset_induct2:
   (\<And>y ys. y |\<notin>| ys \<Longrightarrow> P {||} (finsert y ys)) \<Longrightarrow>
   (\<And>x xs y ys. \<lbrakk>P xs ys; x |\<notin>| xs; y |\<notin>| ys\<rbrakk> \<Longrightarrow> P (finsert x xs) (finsert y ys)) \<Longrightarrow>
   P xsa ysa"
-  apply (induct xsa arbitrary: ysa)
-  apply (induct_tac x rule: fset_induct_stronger)
-  apply simp_all
-  apply (induct_tac xa rule: fset_induct_stronger)
-  apply simp_all
-  done
+by (induct xsa arbitrary: ysa; metis fset_induct_stronger)
 
 
 subsection \<open>Lemmas depending on induction\<close>
@@ -1582,25 +1575,16 @@ parametric rel_set_transfer .
 
 lemma rel_fset_alt_def: "rel_fset R = (\<lambda>A B. (\<forall>x.\<exists>y. x|\<in>|A \<longrightarrow> y|\<in>|B \<and> R x y)
   \<and> (\<forall>y. \<exists>x. y|\<in>|B \<longrightarrow> x|\<in>|A \<and> R x y))"
-apply (rule ext)+
-apply transfer'
-apply (subst rel_set_def[unfolded fun_eq_iff])
-by blast
+  by transfer' (metis (no_types, opaque_lifting) rel_set_def)
 
 lemma finite_rel_set:
   assumes fin: "finite X" "finite Z"
   assumes R_S: "rel_set (R OO S) X Z"
   shows "\<exists>Y. finite Y \<and> rel_set R X Y \<and> rel_set S Y Z"
 proof -
-  obtain f where f: "\<forall>x\<in>X. R x (f x) \<and> (\<exists>z\<in>Z. S (f x) z)"
-  apply atomize_elim
-  apply (subst bchoice_iff[symmetric])
-  using R_S[unfolded rel_set_def OO_def] by blast
-
-  obtain g where g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R x (g z))"
-  apply atomize_elim
-  apply (subst bchoice_iff[symmetric])
-  using R_S[unfolded rel_set_def OO_def] by blast
+  obtain f g where f: "\<forall>x\<in>X. R x (f x) \<and> (\<exists>z\<in>Z. S (f x) z)"
+               and g: "\<forall>z\<in>Z. S (g z) z \<and> (\<exists>x\<in>X. R x (g z))"
+    using R_S[unfolded rel_set_def OO_def] by metis
 
   let ?Y = "f ` X \<union> g ` Z"
   have "finite ?Y" by (simp add: fin)
@@ -1712,13 +1696,13 @@ lemma fInf_transfer [transfer_rule]:
 lemma ffilter_transfer [transfer_rule]:
   assumes "bi_unique A"
   shows "((A ===> (=)) ===> rel_fset A ===> rel_fset A) ffilter ffilter"
-  using assms unfolding rel_fun_def
-  using Lifting_Set.filter_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
+  using assms Lifting_Set.filter_transfer
+  unfolding rel_fun_def by (metis ffilter.rep_eq rel_fset.rep_eq)
 
 lemma card_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_fset A ===> (=)) fcard fcard"
-  unfolding rel_fun_def
-  using card_transfer[unfolded rel_fun_def, rule_format, Transfer.transferred] by blast
+  using card_transfer unfolding rel_fun_def
+  by (metis fcard.rep_eq rel_fset.rep_eq)
 
 end
 
@@ -1734,13 +1718,10 @@ begin
 
 lemma rel_fset_alt:
   "rel_fset R a b \<longleftrightarrow> (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
-by transfer (simp add: rel_set_def)
+  by transfer (simp add: rel_set_def)
 
 lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
-apply (rule f_the_inv_into_f[unfolded inj_on_def])
-apply (simp add: fset_inject)
-apply (rule range_eqI Abs_fset_inverse[symmetric] CollectI)+
-.
+  by (metis CollectI f_the_inv_into_f fset_cases fset_cong inj_onI rangeI)
 
 lemma rel_fset_aux:
 "(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
@@ -1761,10 +1742,7 @@ proof
   qed (auto simp add: *)
 next
   assume ?R thus ?L unfolding Grp_def relcompp.simps conversep.simps
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (transfer, clarsimp, metis snd_conv)
-  by (transfer, clarsimp, metis fst_conv)
+    using Product_Type.Collect_case_prodD by blast
 qed
 
 bnf "'a fset"
@@ -1789,7 +1767,7 @@ apply transfer apply simp
 done
 
 lemma rel_fset_fset: "rel_set \<chi> (fset A1) (fset A2) = rel_fset \<chi> A1 A2"
-  by transfer (rule refl)
+  by (simp add: rel_fset.rep_eq)
 
 end
 
@@ -1801,11 +1779,13 @@ declare
 
 subsection \<open>Size setup\<close>
 
-context includes fset.lifting begin
+context includes fset.lifting 
+begin
 lift_definition size_fset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a fset \<Rightarrow> nat" is "\<lambda>f. sum (Suc \<circ> f)" .
 end
 
-instantiation fset :: (type) size begin
+instantiation fset :: (type) size 
+begin
 definition size_fset where
   size_fset_overloaded_def: "size_fset = FSet.size_fset (\<lambda>_. 0)"
 instance ..
@@ -1820,8 +1800,8 @@ lemma size_fset_overloaded_simps[simp]: "size X = (\<Sum>x \<in> fset X. Suc 0)"
     folded size_fset_overloaded_def])
 
 lemma fset_size_o_map: "inj f \<Longrightarrow> size_fset g \<circ> fimage f = size_fset (g \<circ> f)"
-  apply (subst fun_eq_iff)
-  including fset.lifting by transfer (auto intro: sum.reindex_cong subset_inj_on)
+  unfolding fun_eq_iff
+  by (simp add: inj_def inj_onI sum.reindex)
 
 setup \<open>
 BNF_LFP_Size.register_size_global \<^type_name>\<open>fset\<close> \<^const_name>\<open>size_fset\<close>
@@ -1901,16 +1881,11 @@ qed
 subsubsection \<open>Countability\<close>
 
 lemma exists_fset_of_list: "\<exists>xs. fset_of_list xs = S"
-including fset.lifting
-by transfer (rule finite_list)
+  including fset.lifting
+  by transfer (rule finite_list)
 
 lemma fset_of_list_surj[simp, intro]: "surj fset_of_list"
-proof -
-  have "x \<in> range fset_of_list" for x :: "'a fset"
-    unfolding image_iff
-    using exists_fset_of_list by fastforce
-  thus ?thesis by auto
-qed
+  by (metis exists_fset_of_list surj_def)
 
 instance fset :: (countable) countable
 proof
