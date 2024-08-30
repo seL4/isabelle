@@ -259,9 +259,7 @@ lemma inj_on_compose: "bij_betw f A B \<Longrightarrow> inj_on g B \<Longrightar
   by (auto simp add: bij_betw_def inj_on_def compose_eq)
 
 lemma bij_betw_compose: "bij_betw f A B \<Longrightarrow> bij_betw g B C \<Longrightarrow> bij_betw (compose A g f) A C"
-  apply (simp add: bij_betw_def compose_eq inj_on_compose)
-  apply (auto simp add: compose_def image_def)
-  done
+  by (simp add: bij_betw_def inj_on_compose surj_compose)
 
 lemma bij_betw_restrict_eq [simp]: "bij_betw (restrict f A) A B = bij_betw f A B"
   by (simp add: bij_betw_def)
@@ -298,15 +296,10 @@ lemma inv_into_funcset: "f ` A = B \<Longrightarrow> (\<lambda>x\<in>B. inv_into
   by (unfold inv_into_def) (fast intro: someI2)
 
 lemma compose_inv_into_id: "bij_betw f A B \<Longrightarrow> compose A (\<lambda>y\<in>B. inv_into A f y) f = (\<lambda>x\<in>A. x)"
-  apply (simp add: bij_betw_def compose_def)
-  apply (rule restrict_ext, auto)
-  done
+  by (smt (verit, best) bij_betwE bij_betw_inv_into_left compose_def restrict_apply' restrict_ext)
 
 lemma compose_id_inv_into: "f ` A = B \<Longrightarrow> compose B f (\<lambda>y\<in>B. inv_into A f y) = (\<lambda>x\<in>B. x)"
-  apply (simp add: compose_def)
-  apply (rule restrict_ext)
-  apply (simp add: f_inv_into_f)
-  done
+  by (smt (verit, best) compose_def f_inv_into_f restrict_apply' restrict_ext)
 
 lemma extensional_insert[intro, simp]:
   assumes "a \<in> extensional (insert i I)"
@@ -538,12 +531,15 @@ lemma image_projection_PiE:
   "(\<lambda>f. f i) ` (PiE I S) = (if PiE I S = {} then {} else if i \<in> I then S i else {undefined})"
 proof -
   have "(\<lambda>f. f i) ` Pi\<^sub>E I S = S i" if "i \<in> I" "f \<in> PiE I S" for f
-    using that apply auto
-    by (rule_tac x="(\<lambda>k. if k=i then x else f k)" in image_eqI) auto
-  moreover have "(\<lambda>f. f i) ` Pi\<^sub>E I S = {undefined}" if "f \<in> PiE I S" "i \<notin> I" for f
-    using that by (blast intro: PiE_arb [OF that, symmetric])
-  ultimately show ?thesis
-    by auto
+  proof -
+    have "x \<in> S i \<Longrightarrow> \<exists>f\<in>Pi\<^sub>E I S. x = f i" for x
+      using that
+      by (force intro: bexI [where x="\<lambda>k. if k=i then x else f k"]) 
+    then show ?thesis
+      using that by force
+  qed
+  then show ?thesis
+    by (smt (verit) PiE_arb equals0I image_cong image_constant image_empty)
 qed
 
 lemma PiE_singleton:
@@ -563,9 +559,12 @@ lemma PiE_eq_singleton: "(\<Pi>\<^sub>E i\<in>I. S i) = {\<lambda>i\<in>I. f i} 
   by (metis (mono_tags, lifting) PiE_eq PiE_singleton insert_not_empty restrict_apply' restrict_extensional)
 
 lemma PiE_over_singleton_iff: "(\<Pi>\<^sub>E x\<in>{a}. B x) = (\<Union>b \<in> B a. {\<lambda>x \<in> {a}. b})"
-  apply (auto simp: PiE_iff split: if_split_asm)
-  apply (metis (no_types, lifting) extensionalityI restrict_apply' restrict_extensional singletonD)
-  done
+proof -
+  have "\<And>x. \<lbrakk>x a \<in> B a; x \<in> extensional {a}\<rbrakk> \<Longrightarrow> \<exists>xa\<in>B a. x = (\<lambda>x\<in>{a}. xa)"
+    using PiE_singleton by fastforce
+  then show ?thesis
+    by (auto simp: PiE_iff split: if_split_asm)
+qed
 
 lemma all_PiE_elements:
    "(\<forall>z \<in> PiE I S. \<forall>i \<in> I. P i (z i)) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. \<forall>x \<in> S i. P i x)" (is "?lhs = ?rhs")
@@ -582,7 +581,7 @@ proof (cases "PiE I S = {}")
       have "(\<lambda>j \<in> I. if j=i then x else f j) \<in> PiE I S"
         by (simp add: f that(2))
       then have "P i ((\<lambda>j \<in> I. if j=i then x else f j) i)"
-        using L that(1) by blast
+        using L that by blast
       with that show ?thesis
         by simp
     qed
@@ -608,26 +607,30 @@ lemma extensional_funcset_extend_domain_inj_on_eq:
   assumes "x \<notin> S"
   shows "{f. f \<in> (insert x S) \<rightarrow>\<^sub>E T \<and> inj_on f (insert x S)} =
     (\<lambda>(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
-  using assms
-  apply (auto del: PiE_I PiE_E)
-  apply (auto intro: extensional_funcset_fun_upd_inj_onI
-    extensional_funcset_fun_upd_extends_rangeI del: PiE_I PiE_E)
-  apply (auto simp add: image_iff inj_on_def)
-  apply (rule_tac x="xa x" in exI)
-  apply (auto intro: PiE_mem del: PiE_I PiE_E)
-  apply (rule_tac x="xa(x := undefined)" in exI)
-  apply (auto intro!: extensional_funcset_fun_upd_restricts_rangeI)
-  apply (auto dest!: PiE_mem split: if_split_asm)
-  done
+proof -
+  have "\<And>a f y. \<lbrakk>f \<in> S \<rightarrow>\<^sub>E T - {a}; a = (if y = x then a else f y); y \<in> S\<rbrakk>
+       \<Longrightarrow> False"
+    using assms by (auto dest!: PiE_mem split: if_split_asm)
+  moreover
+  have "\<And>f. \<lbrakk> f \<in> insert x S \<rightarrow>\<^sub>E T; inj_on f S; \<forall>xb\<in>S. f x \<noteq> f xb\<rbrakk>
+          \<Longrightarrow> \<exists>b. b \<in> S \<rightarrow>\<^sub>E T - {f x} \<and> inj_on b S \<and> f = b(x := f x)"
+    unfolding inj_on_def
+    by (smt (verit, ccfv_threshold) PiE_restrict fun_upd_apply fun_upd_triv insert_Diff insert_iff
+        restrict_PiE_iff restrict_upd)
+  ultimately show ?thesis
+    using assms
+    apply (auto simp: image_iff  intro: extensional_funcset_fun_upd_inj_onI
+        extensional_funcset_fun_upd_extends_rangeI del: PiE_I PiE_E)
+    apply (smt (verit, best) PiE_cong PiE_mem inj_on_def insertCI)
+    by blast
+qed
 
 lemma extensional_funcset_extend_domain_inj_onI:
   assumes "x \<notin> S"
   shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
   using assms
-  apply (auto intro!: inj_onI)
-  apply (metis fun_upd_same)
-  apply (metis assms PiE_arb fun_upd_triv fun_upd_upd)
-  done
+  apply (simp add: inj_on_def)
+  by (metis PiE_restrict fun_upd_apply restrict_fupd)
 
 
 subsubsection \<open>Misc properties of functions, composition and restriction from HOL Light\<close>

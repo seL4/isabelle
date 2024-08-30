@@ -313,9 +313,7 @@ qed
 
 lemma insert_eqpoll_cong:
      "\<lbrakk>A \<approx> B; a \<notin> A; b \<notin> B\<rbrakk> \<Longrightarrow> insert a A \<approx> insert b B"
-  apply (rule lepoll_antisym)
-  apply (simp add: eqpoll_imp_lepoll insert_lepoll_cong)+
-  by (meson eqpoll_imp_lepoll eqpoll_sym insert_lepoll_cong)
+  by (meson eqpoll_imp_lepoll eqpoll_sym insert_lepoll_cong lepoll_antisym)
 
 lemma insert_eqpoll_insert_iff:
      "\<lbrakk>a \<notin> A; b \<notin> B\<rbrakk> \<Longrightarrow> insert a A \<approx> insert b B  \<longleftrightarrow>  A \<approx> B"
@@ -346,8 +344,7 @@ lemma finite_insert_lepoll: "finite A \<Longrightarrow> (insert a A \<lesssim> A
 proof (induction A rule: finite_induct)
   case (insert x A)
   then show ?case
-    apply (auto simp: insert_absorb)
-    by (metis insert_commute insert_iff insert_lepoll_insertD)
+    by (metis insertI2 insert_lepoll_insert_iff insert_subsetI lepoll_trans subsetI subset_imp_lepoll)
 qed auto
 
 
@@ -489,9 +486,7 @@ proof (rule lepoll_antisym)
     define \<chi> where "\<chi> \<equiv> \<lambda>z. THE x. x \<in> A \<and> z \<in> F x"
     have \<chi>: "\<chi> z = x" if "x \<in> A" "z \<in> F x" for x z
       unfolding \<chi>_def
-      apply (rule the_equality)
-      apply (simp add: that)
-      by (metis disj disjnt_iff pairwiseD that)
+      by (smt (verit, best) disj disjnt_iff pairwiseD that(1,2) theI_unique)
     let ?f = "\<lambda>z. (\<chi> z, b (\<chi> z) z)"
     show "inj_on ?f (\<Union>(F ` A))"
       unfolding inj_on_def
@@ -562,12 +557,18 @@ proof -
 qed
 
 lemma lepoll_funcset_right:
-   "B \<lesssim> B' \<Longrightarrow> A \<rightarrow>\<^sub>E B \<lesssim> A \<rightarrow>\<^sub>E B'"
-  apply (auto simp: lepoll_def inj_on_def)
-  apply (rule_tac x = "\<lambda>g. \<lambda>z \<in> A. f(g z)" in exI)
-  apply (auto simp: fun_eq_iff)
-  apply (metis PiE_E)
-  by blast
+  assumes "B \<lesssim> B'" shows "A \<rightarrow>\<^sub>E B \<lesssim> A \<rightarrow>\<^sub>E B'"
+proof -
+  obtain f where f: "inj_on f B" "f ` B \<subseteq> B'"
+    by (meson assms lepoll_def)
+  let ?G = "\<lambda>g. \<lambda>z \<in> A. f(g z)"
+  have "inj_on ?G (A \<rightarrow>\<^sub>E B)"
+    using f by (smt (verit, best) PiE_ext PiE_mem inj_on_def restrict_apply')
+  moreover have "?G ` (A \<rightarrow>\<^sub>E B) \<subseteq> (A \<rightarrow>\<^sub>E B')"
+    using f by fastforce
+  ultimately show ?thesis
+    by (meson lepoll_def)
+qed
 
 lemma lepoll_funcset_left:
   assumes "B \<noteq> {}" "A \<lesssim> A'"
@@ -588,10 +589,7 @@ proof -
     then have "?F k (f x) = ?F l (f x)"
       by simp
     then show "k x = l x"
-      apply (auto simp: h split: if_split_asm)
-      apply (metis PiE_arb h k l)
-      apply (metis (full_types) PiE_E h k l)
-      using fim k l by fastforce
+      by (smt (verit, best) PiE_arb fim h image_subset_iff k l restrict_apply')
   next
     show "?F ` (A \<rightarrow>\<^sub>E B) \<subseteq> A' \<rightarrow>\<^sub>E B"
       using \<open>b \<in> B\<close> by force
@@ -608,13 +606,13 @@ lemma lepoll_PiE:
 proof -
   obtain f where f: "\<And>i. i \<in> A \<Longrightarrow> inj_on (f i) (B i) \<and> (f i) ` B i \<subseteq> C i"
     using assms unfolding lepoll_def by metis
-  then show ?thesis
-    unfolding lepoll_def
-    apply (rule_tac x = "\<lambda>g. \<lambda>i \<in> A. f i (g i)" in exI)
-    apply (auto simp: inj_on_def)
-     apply (rule PiE_ext, auto)
-     apply (metis (full_types) PiE_mem restrict_apply')
-    by blast
+  let ?G = "\<lambda>g. \<lambda>i \<in> A. f i (g i)"
+  have "inj_on ?G (PiE A B)"
+    by (smt (verit, ccfv_SIG) PiE_ext PiE_iff f inj_on_def restrict_apply')
+  moreover have "?G ` (PiE A B) \<subseteq> (PiE A C)"
+    using f by fastforce
+  ultimately show ?thesis
+    by (meson lepoll_def)
 qed
 
 
@@ -678,18 +676,15 @@ proof (cases "PiE I S = {}")
       also have "\<dots> = (UNIV::nat set) \<rightarrow>\<^sub>E (UNIV::bool set)"
         by auto
       also have "\<dots> \<lesssim> J \<rightarrow>\<^sub>E (UNIV::bool set)"
-        apply (rule lepoll_funcset_left)
-        using infinite_le_lepoll that by auto
+        by (metis empty_not_UNIV infinite_le_lepoll lepoll_funcset_left that)
       also have "\<dots> \<lesssim> Pi\<^sub>E J S"
       proof -
-        have *: "(UNIV::bool set) \<lesssim> S i" if "i \<in> I" and "\<forall>a. \<not> S i \<subseteq> {a}" for i
+        have *: "(UNIV::bool set) \<lesssim> S i" if "i \<in> I" and \<section>: "\<forall>a. \<not> S i \<subseteq> {a}" for i
         proof -
           obtain a b where "{a,b} \<subseteq> S i" "a \<noteq> b"
-            by (metis \<open>\<forall>a. \<not> S i \<subseteq> {a}\<close> all_not_in_conv empty_subsetI insertCI insert_subset set_eq_subset subsetI)
+            by (metis \<section> empty_subsetI insert_subset subsetI)
           then show ?thesis
-            apply (clarsimp simp: lepoll_def inj_on_def)
-            apply (rule_tac x="\<lambda>x. if x then a else b" in exI, auto)
-            done
+            by (metis Set.set_insert UNIV_bool insert_iff insert_lepoll_cong insert_subset singleton_lepoll)
         qed
         show ?thesis
           by (auto simp: * J_def intro: lepoll_PiE)
@@ -727,10 +722,12 @@ proof (cases "PiE I S = {}")
     have *: "finite (Pi\<^sub>E I S)"
       if "finite J" and "\<forall>i\<in>I. finite (S i)"
     proof (rule finite_subset)
-      show "Pi\<^sub>E I S \<subseteq> ?F"
-        apply safe
-        using J_def apply blast
+      have "\<And>f j. \<lbrakk>f \<in> Pi\<^sub>E I S; j \<in> J\<rbrakk> \<Longrightarrow> f j \<in> \<Union> (S ` J)"
+        using J_def by blast
+      moreover
+      have "\<And>f j. \<lbrakk>f \<in> Pi\<^sub>E I S; f j \<noteq> (if j \<in> I then a j else undefined)\<rbrakk> \<Longrightarrow> j \<in> J"
         by (metis DiffI PiE_E a singletonD)
+      ultimately show "Pi\<^sub>E I S \<subseteq> ?F" by force
       show "finite ?F"
       proof (rule finite_restricted_funspace [OF \<open>finite J\<close>])
         show "finite (\<Union> (S ` J))"

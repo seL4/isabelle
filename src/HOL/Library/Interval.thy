@@ -564,16 +564,7 @@ lemma set_of_mul_inc_right:
   using that
   apply transfer
   apply (clarsimp simp add: Let_def)
-  apply (intro conjI)
-         apply (metis linear min.coboundedI1 min.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-        apply (metis linear min.coboundedI1 min.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-       apply (metis linear min.coboundedI1 min.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-      apply (metis linear min.coboundedI1 min.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-     apply (metis linear max.coboundedI1 max.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-    apply (metis linear max.coboundedI1 max.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-   apply (metis linear max.coboundedI1 max.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-  apply (metis linear max.coboundedI1 max.coboundedI2 mult_left_mono mult_left_mono_neg order_trans)
-  done
+  by (smt (verit, best) linorder_le_cases max.coboundedI1 max.coboundedI2 min.absorb1 min.coboundedI2 mult_left_mono mult_left_mono_neg)
 
 lemma set_of_distrib_left:
   "set_of (B * (A1 + A2)) \<subseteq> set_of (B * A1 + B * A2)"
@@ -595,19 +586,7 @@ lemma set_of_distrib_right:
   "set_of ((A1 + A2) * B) \<subseteq> set_of (A1 * B + A2 * B)"
   for A1 A2 B :: "'a::{linordered_ring, real_normed_algebra, linear_continuum_topology} interval"
   unfolding set_of_times set_of_plus set_plus_def
-  apply clarsimp
-  subgoal for b a1 a2
-    apply (rule exI[where x="a1 * b"])
-    apply (rule conjI)
-    subgoal by force
-    subgoal
-      apply (rule exI[where x="a2 * b"])
-      apply (rule conjI)
-      subgoal by force
-      subgoal by (simp add: algebra_simps)
-      done
-    done
-  done
+  using distrib_right by blast
 
 lemma set_of_mul_inc_left:
   "set_of (A * B) \<subseteq> set_of (A' * B)"
@@ -671,10 +650,7 @@ lemma set_of_mul_contains_zero:
       mult_bounds_enclose_zero1 mult_bounds_enclose_zero2)
 
 instance "interval" :: ("{linordered_semiring, zero, times}") mult_zero
-  apply standard
-  subgoal by transfer auto
-  subgoal by transfer auto
-  done
+  by (standard; transfer; auto)
 
 lift_definition min_interval::"'a::linorder interval \<Rightarrow> 'a interval \<Rightarrow> 'a interval" is
   "\<lambda>(l1, u1). \<lambda>(l2, u2). (min l1 l2, min u1 u2)"
