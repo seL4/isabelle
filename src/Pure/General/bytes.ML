@@ -65,7 +65,7 @@ fun eq (Bytes {buffer, chunks, m, n}, Bytes {buffer = buffer', chunks = chunks',
 fun contents (Bytes {buffer, chunks, ...}) =
   rev (chunks |> not (null buffer) ? cons (compact buffer));
 
-val contents_blob = contents #> XML.blob;
+val contents_blob = contents #> map XML.Text;
 
 val content = implode o contents;
 
