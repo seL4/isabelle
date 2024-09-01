@@ -28,6 +28,14 @@ and examples.
 
 ** HOL **
 
+* Enumerations for tuples, sets, lists etc. now use specific grammar
+productions and separate syntax constants: this allows PIDE markup
+(hyperlinks) for the separators (commas). For example, instead of
+generic nonterminal "args" and syntax constant "_args" from Pure, HOL
+lists now use nonterminal "list_args" and syntax constant "_list_args".
+Rare INCOMPATIBILITY for ambitious syntax translations and grammar
+modifications (e.g. via 'no_syntax').
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITIES.
