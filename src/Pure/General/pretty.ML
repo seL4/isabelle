@@ -108,7 +108,7 @@ end;
 fun mode_indent x y = #indent (get_mode ()) x y;
 
 val output_spaces = Output.output_width o Symbol.spaces;
-val add_spaces = Buffer.add o #1 o output_spaces;
+val buffer_output_spaces = Buffer.add o #1 o output_spaces;
 
 
 
@@ -295,8 +295,8 @@ fun formatted margin input =
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
                 val block' =
-                  if pos' < emergencypos then (ind |> add_spaces indent, pos')
-                  else (add_spaces pos'' Buffer.empty, pos'');
+                  if pos' < emergencypos then (ind |> buffer_output_spaces indent, pos')
+                  else (buffer_output_spaces pos'' Buffer.empty, pos'');
                 val d = break_dist (es, after)
                 val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
                 val btext: text = text
@@ -332,7 +332,7 @@ val symbolic =
           Buffer.add bg #>
           Buffer.markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (Break (false, wd, ind)) = Buffer.markup (Markup.break wd ind) (add_spaces wd)
+      | out (Break (false, wd, ind)) = Buffer.markup (Markup.break wd ind) (buffer_output_spaces wd)
       | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
       | out (Str (s, _)) = Buffer.add s;
   in Buffer.build o out end;
@@ -341,7 +341,7 @@ val symbolic =
 val unformatted =
   let
     fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
-      | out (Break (_, wd, _)) = add_spaces wd
+      | out (Break (_, wd, _)) = buffer_output_spaces wd
       | out (Str (s, _)) = Buffer.add s;
   in Buffer.build o out end;
 
