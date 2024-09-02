@@ -8,6 +8,15 @@ structure ML_PP: sig end =
 struct
 
 val _ =
+  ML_system_pp (fn _ => fn _ => fn bytes =>
+    PolyML.PrettyString
+     (if Bytes.is_empty bytes then "Bytes.empty"
+      else "Bytes {size = " ^ string_of_int (Bytes.size bytes) ^ "}"));
+
+val _ =
+  ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.mark_str o Path.print_markup);
+
+val _ =
   ML_system_pp (fn _ => fn _ => fn t =>
     PolyML.PrettyString ("<thread " ^ quote (Isabelle_Thread.print t) ^
       (if Isabelle_Thread.is_active t then "" else " (inactive)") ^ ">"));

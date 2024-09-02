@@ -26,7 +26,7 @@ sig
   val explode: string -> T
   val explode_pos: string * Position.T -> T * Position.T
   val split: string -> T list
-  val pretty: T -> Pretty.T
+  val print_markup: T -> Markup.T * string
   val print: T -> string
   val dir: T -> T
   val base: T -> T
@@ -188,13 +188,11 @@ fun split str =
 
 (* print *)
 
-fun pretty path =
+fun print_markup path =
   let val s = implode_path path
-  in Pretty.mark (Markup.path s) (Pretty.str (quote s)) end;
+  in (Markup.path s, quote s) end;
 
-val print = Pretty.unformatted_string_of o pretty;
-
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
+val print = print_markup #-> Markup.markup;
 
 
 (* base element *)

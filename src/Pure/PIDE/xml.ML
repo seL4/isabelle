@@ -37,13 +37,7 @@ sig
   val is_empty_body: body -> bool
   val string: string -> body
   val enclose: string -> string -> body -> body
-  val xml_elemN: string
-  val xml_nameN: string
-  val xml_bodyN: string
-  val wrap_elem: ((string * attributes) * tree list) * tree list -> tree
-  val unwrap_elem: tree -> (((string * attributes) * tree list) * tree list) option
   val add_content: tree -> Buffer.T -> Buffer.T
-  val content_of: body -> string
   val trim_blanks: body -> body
   val header: string
   val text: string -> string
@@ -98,21 +92,6 @@ fun string "" = []
 fun enclose bg en body = string bg @ body @ string en;
 
 
-(* wrapped elements *)
-
-val xml_elemN = "xml_elem";
-val xml_nameN = "xml_name";
-val xml_bodyN = "xml_body";
-
-fun wrap_elem (((a, atts), body1), body2) =
-  Elem ((xml_elemN, (xml_nameN, a) :: atts), Elem ((xml_bodyN, []), body1) :: body2);
-
-fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', atts'), body1) :: body2)) =
-      if name = xml_elemN andalso n = xml_nameN andalso name' = xml_bodyN andalso null atts'
-      then SOME (((a, atts), body1), body2) else NONE
-  | unwrap_elem _ = NONE;
-
-
 (* text content *)
 
 fun add_content tree =
@@ -122,8 +101,6 @@ fun add_content tree =
       (case tree of
         Elem (_, ts) => fold add_content ts
       | Text s => Buffer.add s));
-
-val content_of = Buffer.build_content o fold add_content;
 
 
 (* trim blanks *)
