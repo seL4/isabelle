@@ -384,7 +384,7 @@ fun string_of_isar_proof ctxt0 i n proof =
 
     fun add_str s' = apfst (suffix s')
 
-    fun of_indent ind = replicate_string (ind * indent_size) " "
+    fun of_indent ind = Symbol.spaces (ind * indent_size)
     fun of_moreover ind = of_indent ind ^ "moreover\n"
     fun of_label l = if l = no_label then "" else string_of_label l ^ ": "
 
@@ -443,7 +443,7 @@ fun string_of_isar_proof ctxt0 i n proof =
         val prefix = "{ "
         val suffix = " }"
       in
-        replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
+        Symbol.spaces (ind * indent_size - size prefix) ^ prefix ^
         String.substring (s, ind * indent_size, size s - ind * indent_size - 1) ^
         suffix ^ "\n"
       end

@@ -160,10 +160,10 @@ fun binary_minimize test timeout result xs =
         let
           val (l0, r0) = chop (length xs div 2) xs
 (*
-          val _ = warning (replicate_string depth " " ^ "{ " ^ "sup: " ^ n_facts (map fst sup))
-          val _ = warning (replicate_string depth " " ^ " " ^ "xs: " ^ n_facts (map fst xs))
-          val _ = warning (replicate_string depth " " ^ " " ^ "l0: " ^ n_facts (map fst l0))
-          val _ = warning (replicate_string depth " " ^ " " ^ "r0: " ^ n_facts (map fst r0))
+          val _ = warning (Symbol.spaces depth ^ "{ " ^ "sup: " ^ n_facts (map fst sup))
+          val _ = warning (Symbol.spaces depth ^ " " ^ "xs: " ^ n_facts (map fst xs))
+          val _ = warning (Symbol.spaces depth ^ " " ^ "l0: " ^ n_facts (map fst l0))
+          val _ = warning (Symbol.spaces depth ^ " " ^ "r0: " ^ n_facts (map fst r0))
 *)
           val depth = depth + 1
           val timeout = new_timeout timeout run_time
@@ -186,7 +186,7 @@ fun binary_minimize test timeout result xs =
               in (sup, (l @ r, result)) end))
         end
 (*
-        |> tap (fn _ => warning (replicate_string depth " " ^ "}"))
+        |> tap (fn _ => warning (Symbol.spaces depth ^ "}"))
 *)
       | min _ result sup xs = (sup, (xs, result))
   in

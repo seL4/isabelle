@@ -121,7 +121,7 @@ fun mk_node id rule prems concl bounds =
 fun string_of_node ctxt =
   let
     fun str depth (Z3_Node {id, rule, prems, concl, bounds}) =
-      replicate_string depth "  " ^
+      Symbol.spaces (2 * depth) ^
       enclose "{" "}" (commas
         [string_of_int id,
          string_of_rule rule,

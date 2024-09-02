@@ -41,7 +41,7 @@ fun eigen_context_for_statement (params, assms, concl) ctxt =
 fun print_isar_skeleton ctxt indent keyword stmt =
   let
     val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
-    val prefix = replicate_string indent " ";
+    val prefix = Symbol.spaces indent;
     val prefix_sep = "\n" ^ prefix ^ "    and ";
     val show_s = prefix ^ keyword ^ " " ^ print_term ctxt' concl;
     val if_s = if null assms then NONE
@@ -59,7 +59,7 @@ fun print_isar_skeleton ctxt indent keyword stmt =
 fun print_skeleton ctxt indent keyword stmt =
   let
     val ((fixes, assms, concl), ctxt') = eigen_context_for_statement stmt ctxt;
-    val prefix = replicate_string indent " ";
+    val prefix = Symbol.spaces indent;
     val prefix_sep = "\n" ^ prefix ^ "  and ";
     val show_s = prefix ^ keyword ^ " " ^ print_term ctxt' concl;
     val assumes_s = if null assms then NONE
@@ -87,7 +87,7 @@ fun print_exploration ctxt method_text [clause] =
 fun print_subgoal apply_line_opt (is_prems, is_for, is_sh) ctxt indent stmt =
   let
     val ((fixes, _, _), ctxt') = eigen_context_for_statement stmt ctxt;
-    val prefix = replicate_string indent " ";
+    val prefix = Symbol.spaces indent;
     val fixes_s =
       if not is_for orelse null fixes then NONE
       else SOME ("for " ^ space_implode " "
