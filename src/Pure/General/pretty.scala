@@ -62,7 +62,11 @@ object Pretty {
   private sealed abstract class Tree { def length: Double }
   private case class Block(
     markup: Option[(Markup, Option[XML.Body])],
-    consistent: Boolean, indent: Int, body: List[Tree], length: Double) extends Tree
+    consistent: Boolean,
+    indent: Int,
+    body: List[Tree],
+    length: Double
+  ) extends Tree
   private case class Break(force: Boolean, width: Int, indent: Int) extends Tree {
     def length: Double = width.toDouble
   }
