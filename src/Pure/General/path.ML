@@ -25,7 +25,6 @@ sig
   val implode: T -> string
   val explode: string -> T
   val explode_pos: string * Position.T -> T * Position.T
-  val decode: T XML.Decode.T
   val split: string -> T list
   val pretty: T -> Pretty.T
   val print: T -> string
@@ -185,8 +184,6 @@ fun explode_pos (s, pos) =
 fun split str =
   space_explode ":" str
   |> map_filter (fn s => if s = "" then NONE else SOME (explode_path s));
-
-val decode = XML.Decode.string #> explode_path;
 
 
 (* print *)
