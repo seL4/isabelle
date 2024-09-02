@@ -15,8 +15,8 @@ sig
   val int_atom: int A
   val bool_atom: bool A
   val unit_atom: unit A
-  val self: Output_Primitives.XML.body T
-  val tree: Output_Primitives.XML.tree T
+  val self: XML.body T
+  val tree: XML.tree T
   val properties: Properties.T T
   val string: string T
   val int: int T
@@ -31,11 +31,7 @@ end;
 
 signature XML =
 sig
-  type attributes = (string * string) list
-  datatype tree =
-      Elem of (string * attributes) * tree list
-    | Text of string
-  type body = tree list
+  include XML
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
@@ -71,7 +67,7 @@ struct
 
 (** XML trees **)
 
-open Output_Primitives.XML;
+open XML;
 
 val blob =
   let

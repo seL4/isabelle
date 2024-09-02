@@ -6,14 +6,6 @@ Primitives for Isabelle output channels.
 
 signature OUTPUT_PRIMITIVES =
 sig
-  structure XML:
-  sig
-    type attributes = (string * string) list
-    datatype tree =
-        Elem of (string * attributes) * tree list
-      | Text of string
-    type body = tree list
-  end
   type output = string
   type serial = int
   type properties = (string * string) list
@@ -36,22 +28,6 @@ end;
 
 structure Output_Primitives: OUTPUT_PRIMITIVES =
 struct
-
-(** XML trees **)
-
-structure XML =
-struct
-
-type attributes = (string * string) list;
-
-datatype tree =
-    Elem of (string * attributes) * tree list
-  | Text of string;
-
-type body = tree list;
-
-end;
-
 
 (* output *)
 
