@@ -61,7 +61,8 @@ object Pretty {
 
   private sealed abstract class Tree { def length: Double }
   private case class Block(
-    markup: Option[(Markup, Option[XML.Body])],
+    markup: Markup,
+    markup_body: Option[XML.Body],
     consistent: Boolean,
     indent: Int,
     body: List[Tree],
@@ -75,7 +76,8 @@ object Pretty {
   private val FBreak = Break(true, 1, 0)
 
   private def make_block(
-    markup: Option[(Markup, Option[XML.Body])],
+    markup: Markup,
+    markup_body: Option[XML.Body],
     consistent: Boolean,
     indent: Int,
     body: List[Tree]
@@ -92,7 +94,7 @@ object Pretty {
         case Nil => len1
       }
     }
-    Block(markup, consistent, indent1, body, body_length(body, 0.0))
+    Block(markup, markup_body, consistent, indent1, body, body_length(body, 0.0))
   }
 
 
@@ -154,18 +156,18 @@ object Pretty {
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
-          List(make_block(Some(markup, Some(body1)), false, 0, make_tree(body2)))
+          List(make_block(markup, Some(body1), false, 0, make_tree(body2)))
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
-              List(make_block(None, consistent, indent, make_tree(body)))
+              List(make_block(Markup.Empty, None, consistent, indent, make_tree(body)))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
-              List(make_block(None, false, 2,
+              List(make_block(Markup.Empty, None, false, 2,
                 make_tree(XML.elem(Markup.BULLET, space) :: space ::: body)))
             case _ =>
-              List(make_block(Some((markup, None)), false, 0, make_tree(body)))
+              List(make_block(markup, None, false, 0, make_tree(body)))
           }
         case XML.Text(text) =>
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
@@ -175,23 +177,22 @@ object Pretty {
       trees match {
         case Nil => text
 
-        case Block(markup, consistent, indent, body, blen) :: ts =>
+        case Block(markup, markup_body, consistent, indent, body, blen) :: ts =>
           val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 = if (pos1 < emergencypos) pos1 else pos2
           val d = break_dist(ts, after)
           val body1 = if (consistent && text.pos + blen > margin - d) force_all(body) else body
           val btext =
-            markup match {
-              case None => format(body1, blockin1, d, text)
-              case Some((m, markup_body)) =>
-                val btext0 = format(body1, blockin1, d, text.copy(tx = Nil))
-                val elem =
-                  markup_body match {
-                    case None => XML.Elem(m, btext0.content)
-                    case Some(b) => XML.Wrapped_Elem(m, b, btext0.content)
-                  }
-                btext0.copy(tx = elem :: text.tx)
+            if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, d, text)
+            else {
+              val btext0 = format(body1, blockin1, d, text.copy(tx = Nil))
+              val elem =
+                markup_body match {
+                  case None => XML.Elem(markup, btext0.content)
+                  case Some(body1) => XML.Wrapped_Elem(markup, body1, btext0.content)
+                }
+              btext0.copy(tx = elem :: text.tx)
             }
           val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
           format(ts1, blockin, after, btext)
