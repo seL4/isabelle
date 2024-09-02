@@ -505,13 +505,9 @@ fun surround s (x :: xs) = s :: x :: surround s xs
   | surround s [] = [s];
 
 (*make the list [x, x, ..., x] of length n*)
-fun replicate (n: int) x =
-  let fun rep (0, xs) = xs
-        | rep (n, xs) = rep (n - 1, x :: xs)
-  in
-    if n < 0 then raise Subscript
-    else rep (n, [])
-  end;
+fun replicate n x =
+  if n < 0 then raise Subscript
+  else build (funpow n (cons x));
 
 
 (* direct product *)

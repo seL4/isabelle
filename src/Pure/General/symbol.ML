@@ -114,7 +114,7 @@ local
 in
   fun spaces n =
     if n < 64 then Vector.nth spaces0 n
-    else replicate_string (n div 64) (Vector.nth spaces0 64) ^ Vector.nth spaces0 (n mod 64);
+    else implode (Vector.nth spaces0 (n mod 64) :: replicate (n div 64) (Vector.nth spaces0 64));
 end;
 
 val comment = "\<comment>";
