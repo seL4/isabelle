@@ -51,7 +51,7 @@ object Pretty {
 
   object Default_Metric extends Metric {
     val unit = 1.0
-    def apply(s: String): Double = s.length.toDouble
+    def apply(s: String): Double = Codepoint.length(s).toDouble
   }
 
 
