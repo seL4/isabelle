@@ -26,23 +26,23 @@ val _ =
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm Theory.get_pure);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm Theory.get_pure);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp Theory.get_pure);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ Theory.get_pure);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ);
 
 val _ =
   ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ztyp Theory.get_pure);
+    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ztyp);
 
 
 local

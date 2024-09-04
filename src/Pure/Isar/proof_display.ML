@@ -7,12 +7,13 @@ Printing of theorems, goals, results etc.
 signature PROOF_DISPLAY =
 sig
   val pp_context: Proof.context -> Pretty.T
-  val pp_thm: (unit -> theory) -> thm -> Pretty.T
-  val pp_typ: (unit -> theory) -> typ -> Pretty.T
-  val pp_term: (unit -> theory) -> term -> Pretty.T
-  val pp_ctyp: (unit -> theory) -> ctyp -> Pretty.T
-  val pp_cterm: (unit -> theory) -> cterm -> Pretty.T
-  val pp_ztyp: (unit -> theory) -> ztyp -> Pretty.T
+  val guess_context: unit -> Proof.context
+  val pp_thm: thm -> Pretty.T
+  val pp_typ: typ -> Pretty.T
+  val pp_term: term -> Pretty.T
+  val pp_ctyp: ctyp -> Pretty.T
+  val pp_cterm: cterm -> Pretty.T
+  val pp_ztyp: ztyp -> Pretty.T
   val pretty_theory: bool -> Proof.context -> Pretty.T
   val pretty_definitions: bool -> Proof.context -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> Proof.context -> Pretty.T list
@@ -45,10 +46,10 @@ fun pp_context ctxt =
     Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
-fun default_context mk_thy =
+fun guess_context () =
   let
     fun global_context () =
-      Config.put_global Name_Space.names_long true (mk_thy ());
+      Config.put_global Name_Space.names_long true (Theory.get_pure ());
   in
     (case Context.get_generic_context () of
       SOME (Context.Proof ctxt) => ctxt
@@ -58,16 +59,15 @@ fun default_context mk_thy =
     | NONE => Syntax.init_pretty_global (global_context ()))
   end;
 
-fun pp_thm mk_thy th =
-  Thm.pretty_thm_raw (default_context mk_thy) {quote = true, show_hyps = false} th;
+fun pp_thm th = Thm.pretty_thm_raw (guess_context ()) {quote = true, show_hyps = false} th;
 
-fun pp_typ mk_thy T = Pretty.quote (Syntax.pretty_typ (default_context mk_thy) T);
-fun pp_term mk_thy t = Pretty.quote (Syntax.pretty_term (default_context mk_thy) t);
+fun pp_typ T = Pretty.quote (Syntax.pretty_typ (guess_context ()) T);
+fun pp_term t = Pretty.quote (Syntax.pretty_term (guess_context ()) t);
 
-fun pp_ctyp mk_thy cT = pp_typ mk_thy (Thm.typ_of cT);
-fun pp_cterm mk_thy ct = pp_term mk_thy (Thm.term_of ct);
+val pp_ctyp = pp_typ o Thm.typ_of;
+val pp_cterm = pp_term o Thm.term_of;
 
-fun pp_ztyp mk_thy T = Pretty.quote (Syntax.pretty_typ (default_context mk_thy) (ZTerm.typ_of T));
+fun pp_ztyp T = Pretty.quote (Syntax.pretty_typ (guess_context ()) (ZTerm.typ_of T));
 
 
 
