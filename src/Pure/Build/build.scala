@@ -837,7 +837,7 @@ Usage: isabelle build_worker [OPTIONS]
                           margin = margin, breakgain = breakgain, metric = metric)
                       val ok =
                         check(message_head, Protocol.message_heading(elem, pos)) &&
-                        check(message_body, XML.content(Pretty.unformatted(List(elem))))
+                        check(message_body, Pretty.unformatted_string_of(List(elem)))
                       if (ok) buffer += message_text
                     }
                     if (buffer.nonEmpty) {

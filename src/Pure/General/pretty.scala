@@ -100,19 +100,17 @@ object Pretty {
 
   /* unformatted output */
 
-  def unformatted(input: XML.Body): XML.Body = {
+  def unbreakable(input: XML.Body): XML.Body =
     input flatMap {
       case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, unformatted(body2)))
-      case XML.Elem(markup, body) =>
-        markup match {
-          case Markup.Block(_, _) => unformatted(body)
-          case Markup.Break(width, _) => XML.string(Symbol.spaces(width))
-          case _ => List(XML.Elem(markup, unformatted(body)))
-        }
+        List(XML.Wrapped_Elem(markup, body1, unbreakable(body2)))
+      case XML.Elem(Markup.Break(width, _), _) => spaces(width)
+      case XML.Elem(markup, body) => List(XML.Elem(markup, unbreakable(body)))
       case XML.Text(text) => XML.string(split_lines(text).mkString(Symbol.space))
     }
-  }
+
+  def unformatted_string_of(input: XML.Body): String =
+    XML.content(unbreakable(input))
 
 
   /* formatted output */
