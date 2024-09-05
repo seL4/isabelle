@@ -15,6 +15,7 @@ sig
     ('a * 'b) * FixedInt.int -> pretty
   val enum: string -> string -> string -> ('a * FixedInt.int -> pretty) ->
     'a list * FixedInt.int -> pretty
+  val prune: FixedInt.int -> pretty -> pretty
   val format: int -> pretty -> string
   val default_margin: int
   val string_of: pretty -> string
@@ -43,6 +44,14 @@ fun enum sep lpar rpar pretty (args, depth: FixedInt.int) =
       | elems d [x] = [pretty (x, d)]
       | elems d (x :: xs) = pretty (x, d) :: str sep :: brk 1 :: elems (d - 1) xs;
   in block (str lpar :: (elems (FixedInt.max (depth, 0)) args @ [str rpar])) end;
+
+
+(* prune *)
+
+fun prune (0: FixedInt.int) (PrettyBlock _) = str "..."
+  | prune depth (PrettyBlock (ind, consistent, context, body)) =
+      PrettyBlock (ind, consistent, context, map (prune (depth - 1)) body)
+  | prune _ prt = prt;
 
 
 (* format *)

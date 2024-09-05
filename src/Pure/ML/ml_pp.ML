@@ -25,19 +25,19 @@ val _ =
   ML_system_pp (fn _ => fn _ => Pretty.to_ML o Proof_Display.pp_context);
 
 val _ =
-  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_thm);
+  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_thm);
 
 val _ =
-  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_cterm);
+  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_cterm);
 
 val _ =
-  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_ctyp);
+  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_ctyp);
 
 val _ =
-  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_typ);
+  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_typ);
 
 val _ =
-  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_ztyp);
+  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_ztyp);
 
 
 local

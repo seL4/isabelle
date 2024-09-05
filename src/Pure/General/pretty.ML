@@ -23,6 +23,8 @@ sig
   val default_indent: string -> int -> Output.output
   val add_mode: string -> (string -> int -> Output.output) -> unit
   type T
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   val make_block: {markup: Markup.output, consistent: bool, indent: int} ->
     T list -> T
   val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
@@ -78,9 +80,6 @@ sig
   val block_enclose: T * T -> T list -> T
   val writeln_chunks: T list -> unit
   val writeln_chunks2: T list -> unit
-  val prune_ML: FixedInt.int -> T -> ML_Pretty.pretty
-  val to_ML: T -> ML_Pretty.pretty
-  val from_ML: ML_Pretty.pretty -> T
 end;
 
 structure Pretty: PRETTY =
@@ -114,45 +113,45 @@ val buffer_output_spaces = Buffer.add o #1 o output_spaces;
 (** printing items: compound phrases, strings, and breaks **)
 
 val force_nat = Integer.max 0;
+val short_nat = FixedInt.fromInt o force_nat;
+val long_nat = force_nat o FixedInt.toInt;
 
-abstype T =
-    Block of Markup.output * bool * int * T list * int
+datatype tree =
+    Block of Markup.output * bool * int * tree list * int
       (*markup output, consistent, indentation, body, length*)
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
-  | Str of Output.output * int  (*text, length*)
+  | Str of Output.output * int;  (*string output, length*)
+
+fun tree_length (Block (_, _, _, _, len)) = len
+  | tree_length (Break (_, wd, _)) = wd
+  | tree_length (Str (_, len)) = len;
+
+abstype T = T of ML_Pretty.pretty
 with
 
-fun length (Block (_, _, _, _, len)) = len
-  | length (Break (_, wd, _)) = wd
-  | length (Str (_, len)) = len;
+fun to_ML (T prt) = prt;
+val from_ML = T;
 
-fun make_block {markup, consistent, indent} body =
+fun make_block {markup = (bg, en), consistent, indent} body =
   let
-    val indent' = force_nat indent;
-    fun body_length prts len =
-      let
-        val (line, rest) = chop_prefix (fn Break (true, _, _) => false | _ => true) prts;
-        val len' = Int.max (fold (Integer.add o length) line 0, len);
-      in
-        (case rest of
-          Break (true, _, ind) :: rest' =>
-            body_length (Break (false, indent' + ind, 0) :: rest') len'
-        | [] => len')
-      end;
-  in Block (markup, consistent, indent', body, body_length body 0) end;
+    val context =
+      (if bg = "" then [] else [ML_Pretty.ContextProperty ("begin", bg)]) @
+      (if en = "" then [] else [ML_Pretty.ContextProperty ("end", en)]);
+    val ind = short_nat indent;
+  in T (ML_Pretty.PrettyBlock (ind, consistent, context, map to_ML body)) end;
 
-fun markup_block {markup, consistent, indent} es =
-  make_block {markup = Markup.output markup, consistent = consistent, indent = indent} es;
+fun markup_block {markup, consistent, indent} body =
+  make_block {markup = Markup.output markup, consistent = consistent, indent = indent} body;
 
 
 
 (** derived operations to create formatting expressions **)
 
-val str = Output.output_width ##> force_nat #> Str;
+val str = T o ML_Pretty.str;
 
-fun brk wd = Break (false, force_nat wd, 0);
-fun brk_indent wd ind = Break (false, force_nat wd, ind);
-val fbrk = Break (true, 1, 0);
+fun brk_indent wd ind = T (ML_Pretty.PrettyBreak (short_nat wd, short_nat ind));
+fun brk wd = brk_indent wd 0;
+val fbrk = T ML_Pretty.PrettyLineBreak;
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
@@ -213,10 +212,14 @@ fun big_list name prts = block (fbreaks (str name :: prts));
 fun indent 0 prt = prt
   | indent n prt = block0 [str (Symbol.spaces n), prt];
 
-fun unbreakable (Block (m, consistent, indent, es, len)) =
-      Block (m, consistent, indent, map unbreakable es, len)
-  | unbreakable (Break (_, wd, _)) = Str (output_spaces wd)
-  | unbreakable (e as Str _) = e;
+val unbreakable =
+  let
+    fun unbreak (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
+          ML_Pretty.PrettyBlock (ind, consistent, context, map unbreak body)
+      | unbreak (ML_Pretty.PrettyBreak (wd, _)) =
+          ML_Pretty.str (Symbol.spaces (long_nat wd))
+      | unbreak prt = prt;
+  in to_ML #> unbreak #> from_ML end;
 
 
 
@@ -265,8 +268,10 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
 fun break_dist (Break _ :: _, _) = 0
-  | break_dist (e :: es, after) = length e + break_dist (es, after)
+  | break_dist (e :: es, after) = tree_length e + break_dist (es, after)
   | break_dist ([], after) = after;
+
+val fbreak = Break (true, 1, 0);
 
 val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | e => e;
 val force_all = map force_break;
@@ -276,9 +281,45 @@ fun force_next [] = []
   | force_next ((e as Break _) :: es) = force_break e :: es
   | force_next (e :: es) = e :: force_next es;
 
+fun block_length indent =
+  let
+    fun block_len len prts =
+      let
+        val (line, rest) = chop_prefix (fn Break (true, _, _) => false | _ => true) prts;
+        val len' = Int.max (fold (Integer.add o tree_length) line 0, len);
+      in
+        (case rest of
+          Break (true, _, ind) :: rest' =>
+            block_len len' (Break (false, indent + ind, 0) :: rest')
+        | [] => len')
+      end;
+  in block_len 0 end;
+
+fun property context name =
+  let
+    fun get (ML_Pretty.ContextProperty (a, b)) = if name = a then SOME b else NONE
+      | get _ = NONE;
+  in the_default "" (get_first get context) end;
+
 in
 
-fun formatted margin input =
+fun output_tree make_length =
+  let
+    fun out (T (ML_Pretty.PrettyBlock (ind, consistent, context, body))) =
+          let
+            val bg = property context "begin";
+            val en = property context "end";
+            val indent = long_nat ind;
+            val body' = map (out o T) body;
+            val len = if make_length then block_length indent body' else ~1;
+          in Block ((bg, en), consistent, indent, body', len) end
+      | out (T (ML_Pretty.PrettyBreak (wd, ind))) = Break (false, long_nat wd, long_nat ind)
+      | out (T ML_Pretty.PrettyLineBreak) = fbreak
+      | out (T (ML_Pretty.PrettyString s)) = Str (Output.output_width s ||> force_nat)
+      | out (T (ML_Pretty.PrettyStringWithWidth (s, n))) = Str (s, long_nat n);
+  in out end;
+
+fun format_tree margin input =
   let
     val breakgain = margin div 20;     (*minimum added space required of a break*)
     val emergencypos = margin div 2;   (*position too far to right*)
@@ -315,7 +356,7 @@ fun formatted margin input =
                  else text |> newline |> indentation block |> blanks ind)
           | Str str => format (es, block, after) (string str text));
   in
-    #tx (format ([input], (Buffer.empty, 0), 0) empty)
+    #tx (format ([output_tree true input], (Buffer.empty, 0), 0) empty)
   end;
 
 end;
@@ -334,7 +375,7 @@ val symbolic =
       | out (Break (false, wd, ind)) = Buffer.markup (Markup.break wd ind) (buffer_output_spaces wd)
       | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out end;
+  in Buffer.build o out o output_tree false end;
 
 (*unformatted output*)
 val unformatted =
@@ -342,7 +383,7 @@ val unformatted =
     fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
       | out (Break (_, wd, _)) = buffer_output_spaces wd
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out end;
+  in Buffer.build o out o output_tree false end;
 
 
 (* output interfaces *)
@@ -355,7 +396,7 @@ val symbolicN = "pretty_symbolic";
 fun output_buffer margin prt =
   if print_mode_active symbolicN andalso not (print_mode_active regularN)
   then symbolic prt
-  else formatted (the_default (! margin_default) margin) prt;
+  else format_tree (the_default (! margin_default) margin) prt;
 
 val output = Buffer.contents oo output_buffer;
 fun string_of_margin margin = implode o Output.escape o output (SOME margin);
@@ -394,46 +435,12 @@ fun writeln_chunks2 prts =
         [string_of_text_fold last])
       |> Output.writelns);
 
+end;
 
 
 (** toplevel pretty printing **)
 
-val short_nat = FixedInt.fromInt o force_nat;
-val long_nat = force_nat o FixedInt.toInt;
-
-fun prune_ML 0 (Block _) = ML_Pretty.str "..."
-  | prune_ML depth (Block ((bg, en), consistent, indent, prts, _)) =
-      let
-        val context =
-          (if bg = "" then [] else [ML_Pretty.ContextProperty ("begin", bg)]) @
-          (if en = "" then [] else [ML_Pretty.ContextProperty ("end", en)]);
-        val ind = short_nat indent;
-      in ML_Pretty.PrettyBlock (ind, consistent, context, map (prune_ML (depth - 1)) prts) end
-  | prune_ML _ (Break (true, _, _)) = ML_Pretty.PrettyLineBreak
-  | prune_ML _ (Break (false, wd, ind)) = ML_Pretty.PrettyBreak (short_nat wd, short_nat ind)
-  | prune_ML _ (Str (s, n)) =
-      if size s = n then ML_Pretty.PrettyString s
-      else ML_Pretty.PrettyStringWithWidth (s, short_nat n);
-
-val to_ML = prune_ML ~1;
-
-fun from_ML (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
-      let
-        fun prop name (ML_Pretty.ContextProperty (a, b)) = if name = a then SOME b else NONE
-          | prop _ _ = NONE;
-        fun property name = the_default "" (get_first (prop name) context);
-        val m = (property "begin", property "end");
-      in
-        make_block {markup = m, consistent = consistent, indent = long_nat ind} (map from_ML body)
-      end
-  | from_ML (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
-  | from_ML ML_Pretty.PrettyLineBreak = fbrk
-  | from_ML (ML_Pretty.PrettyString s) = str s
-  | from_ML (ML_Pretty.PrettyStringWithWidth (s, n)) = Str (s, long_nat n);
-
-end;
-
-val _ = ML_system_pp (fn d => fn _ => prune_ML (d + 1) o quote);
+val _ = ML_system_pp (fn d => fn _ => ML_Pretty.prune (d + 1) o to_ML o quote);
 val _ = ML_system_pp (fn _ => fn _ => to_ML o position);
 
 end;
