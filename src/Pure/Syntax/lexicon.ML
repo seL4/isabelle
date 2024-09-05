@@ -491,6 +491,6 @@ val fun_type = Syntax.const (mark_type "fun");
 
 val _ =
   ML_system_pp (fn _ => fn _ =>
-    Pretty.to_polyml o Pretty.str_list "{" "}" o map quote o Scan.dest_lexicon);
+    Pretty.to_ML o Pretty.str_list "{" "}" o map quote o Scan.dest_lexicon);
 
 end;

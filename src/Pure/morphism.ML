@@ -140,7 +140,7 @@ fun is_empty phi = is_none (#context (rep phi)) andalso is_identity phi;
 
 fun pretty phi = Pretty.enum ";" "{" "}" (map Pretty.str (rev (#names (rep phi))));
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty);
 
 val binding = apply #binding;
 fun binding_prefix morph = Binding.name "x" |> binding morph |> Binding.prefix_of;

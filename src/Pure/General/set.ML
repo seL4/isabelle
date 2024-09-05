@@ -501,8 +501,7 @@ fun union set1 set2 = merge (set2, set1);
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn set =>
-    ML_Pretty.to_polyml
-      (ML_Pretty.enum "," "{" "}" (ML_Pretty.from_polyml o ML_system_pretty) (dest set, depth)));
+    ML_Pretty.enum "," "{" "}" ML_system_pretty (dest set, depth));
 
 (*final declarations of this structure!*)
 val fold = fold_set;

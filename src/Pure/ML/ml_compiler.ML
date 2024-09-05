@@ -66,7 +66,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
           let
             val xml =
               PolyML.NameSpace.Values.printType (types, depth, SOME name_space)
-              |> Pretty.from_polyml |> Pretty.string_of
+              |> Pretty.from_ML |> Pretty.string_of
               |> Output.output |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
       end;
@@ -215,7 +215,7 @@ fun eval (flags: flags) pos toks =
     fun message {message = msg, hard, location = loc, context = _} =
       let
         val pos = Exn_Properties.position_of_polyml_location loc;
-        val s = Pretty.string_of (Pretty.from_polyml msg);
+        val s = Pretty.string_of (Pretty.from_ML msg);
         val catch_all =
           #catch_all flags orelse
             (case opt_context of
@@ -237,7 +237,7 @@ fun eval (flags: flags) pos toks =
       let
         fun display disp x =
           if depth > 0 then
-            (write (disp x |> Pretty.from_polyml |> Pretty.string_of); write "\n")
+            (write (disp x |> Pretty.from_ML |> Pretty.string_of); write "\n")
           else ();
 
         fun apply_fix (a, b) =

@@ -104,4 +104,4 @@ ML_system_overload (fn (a, b) => Rat.le b a) ">=";
 ML_system_overload Rat.neg "~";
 ML_system_overload Rat.abs "abs";
 
-ML_system_pp (fn _ => fn _ => fn x => Pretty.to_polyml (Pretty.str ("@" ^ Rat.string_of_rat x)));
+ML_system_pp (fn _ => fn _ => fn x => ML_Pretty.str ("@" ^ Rat.string_of_rat x));

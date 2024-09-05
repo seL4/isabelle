@@ -171,7 +171,7 @@ val string_of = content_depth ~1;
 
 fun pretty depth tree = Pretty.str (content_depth (Int.max (0, depth)) tree);
 
-val _ = ML_system_pp (fn depth => fn _ => Pretty.to_polyml o pretty (FixedInt.toInt depth));
+val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o pretty (FixedInt.toInt depth));
 
 
 

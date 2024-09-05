@@ -430,7 +430,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs, urgent, total}) =
 
 (* toplevel pretty printing *)
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.str o str_of_task);
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.str o str_of_group);
+val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o str_of_task);
+val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o str_of_group);
 
 end;

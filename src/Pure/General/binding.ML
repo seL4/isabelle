@@ -178,7 +178,7 @@ fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
 
 val print = Pretty.unformatted_string_of o pretty;
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty o reset_pos);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty o reset_pos);
 
 
 (* check *)

@@ -137,12 +137,7 @@ fun delete_after hook set = set |> map_set (fn (start, entries) =>
 
 val _ =
   ML_system_pp (fn depth => fn pretty => fn set =>
-    ML_Pretty.to_polyml
-      (ML_Pretty.enum "," "{" "}"
-        (ML_Pretty.pair
-          (ML_Pretty.from_polyml o ML_system_pretty)
-          (ML_Pretty.from_polyml o pretty))
-        (dest set, depth)));
+    ML_Pretty.enum "," "{" "}" (ML_Pretty.pair ML_system_pretty pretty) (dest set, depth));
 
 end;
 

@@ -9,40 +9,35 @@ struct
 
 val _ =
   ML_system_pp (fn _ => fn _ => fn bytes =>
-    PolyML.PrettyString
+    ML_Pretty.str
      (if Bytes.is_empty bytes then "Bytes.empty"
       else "Bytes {size = " ^ string_of_int (Bytes.size bytes) ^ "}"));
 
 val _ =
-  ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.mark_str o Path.print_markup);
+  ML_system_pp (fn _ => fn _ => Pretty.to_ML o Pretty.mark_str o Path.print_markup);
 
 val _ =
   ML_system_pp (fn _ => fn _ => fn t =>
-    PolyML.PrettyString ("<thread " ^ quote (Isabelle_Thread.print t) ^
+    ML_Pretty.str ("<thread " ^ quote (Isabelle_Thread.print t) ^
       (if Isabelle_Thread.is_active t then "" else " (inactive)") ^ ">"));
 
 val _ =
-  ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Proof_Display.pp_context);
+  ML_system_pp (fn _ => fn _ => Pretty.to_ML o Proof_Display.pp_context);
 
 val _ =
-  ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_thm);
+  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_thm);
 
 val _ =
-  ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_cterm);
+  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_cterm);
 
 val _ =
-  ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ctyp);
+  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_ctyp);
 
 val _ =
-  ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_typ);
+  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_typ);
 
 val _ =
-  ML_system_pp (fn depth => fn _ =>
-    ML_Pretty.to_polyml o Pretty.to_ML depth o Proof_Display.pp_ztyp);
+  ML_system_pp (fn depth => fn _ => Pretty.prune_ML depth o Proof_Display.pp_ztyp);
 
 
 local
@@ -61,17 +56,17 @@ fun prt_term parens (dp: FixedInt.int) t =
         |> (if parens then Pretty.enclose "(" ")" else Pretty.block)
     | Abs (a, T, b) =>
         prt_apps "Abs"
-         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
-          Pretty.from_polyml (ML_system_pretty (T, dp - 2)),
+         [Pretty.from_ML (ML_system_pretty (a, dp - 1)),
+          Pretty.from_ML (ML_system_pretty (T, dp - 2)),
           prt_term false (dp - 3) b]
-    | Const a => prt_app "Const" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | Free a => prt_app "Free" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | Var a => prt_app "Var" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | Bound a => prt_app "Bound" (Pretty.from_polyml (ML_system_pretty (a, dp - 1))));
+    | Const a => prt_app "Const" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | Free a => prt_app "Free" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | Var a => prt_app "Var" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | Bound a => prt_app "Bound" (Pretty.from_ML (ML_system_pretty (a, dp - 1))));
 
 in
 
-val _ = ML_system_pp (fn depth => fn _ => Pretty.to_polyml o prt_term false depth);
+val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o prt_term false depth);
 
 
 local
@@ -84,21 +79,21 @@ fun prt_proof parens dp prf =
     | _ %% _ => prt_proofs parens dp prf
     | Abst (a, T, b) =>
         prt_apps "Abst"
-         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
-          Pretty.from_polyml (ML_system_pretty (T, dp - 2)),
+         [Pretty.from_ML (ML_system_pretty (a, dp - 1)),
+          Pretty.from_ML (ML_system_pretty (T, dp - 2)),
           prt_proof false (dp - 3) b]
     | AbsP (a, t, b) =>
         prt_apps "AbsP"
-         [Pretty.from_polyml (ML_system_pretty (a, dp - 1)),
-          Pretty.from_polyml (ML_system_pretty (t, dp - 2)),
+         [Pretty.from_ML (ML_system_pretty (a, dp - 1)),
+          Pretty.from_ML (ML_system_pretty (t, dp - 2)),
           prt_proof false (dp - 3) b]
     | Hyp t => prt_app "Hyp" (prt_term true (dp - 1) t)
     | MinProof => Pretty.str "MinProof"
-    | PBound a => prt_app "PBound" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | PAxm a => prt_app "PAxm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | PClass a => prt_app "PClass" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | Oracle a => prt_app "Oracle" (Pretty.from_polyml (ML_system_pretty (a, dp - 1)))
-    | PThm a => prt_app "PThm" (Pretty.from_polyml (ML_system_pretty (a, dp - 1))))
+    | PBound a => prt_app "PBound" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | PAxm a => prt_app "PAxm" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | PClass a => prt_app "PClass" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | Oracle a => prt_app "Oracle" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
+    | PThm a => prt_app "PThm" (Pretty.from_ML (ML_system_pretty (a, dp - 1))))
 
 and prt_proofs parens dp prf =
   let
@@ -111,7 +106,7 @@ and strip_proof (p % t) res =
       strip_proof p
         ((fn d =>
           [Pretty.str " %", Pretty.brk 1,
-            Pretty.from_polyml (ML_system_pretty (t, d))]) :: res)
+            Pretty.from_ML (ML_system_pretty (t, d))]) :: res)
   | strip_proof (p %% q) res =
       strip_proof p ((fn d => [Pretty.str " %%", Pretty.brk 1, prt_proof true d q]) :: res)
   | strip_proof p res = (fn d => prt_proof true d p, res);
@@ -119,8 +114,7 @@ and strip_proof (p % t) res =
 in
 
 val _ =
-  ML_system_pp (fn depth => fn _ => fn prf =>
-    ML_Pretty.to_polyml (Pretty.to_ML ~1 (prt_proof false depth prf)));
+  ML_system_pp (fn depth => fn _ => fn prf => Pretty.to_ML (prt_proof false depth prf));
 
 end;
 

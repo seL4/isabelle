@@ -617,12 +617,7 @@ fun unsynchronized_cache f =
 
 val _ =
   ML_system_pp (fn depth => fn pretty => fn tab =>
-    ML_Pretty.to_polyml
-      (ML_Pretty.enum "," "{" "}"
-        (ML_Pretty.pair
-          (ML_Pretty.from_polyml o ML_system_pretty)
-          (ML_Pretty.from_polyml o pretty))
-        (dest tab, depth)));
+    ML_Pretty.enum "," "{" "}" (ML_Pretty.pair ML_system_pretty pretty) (dest tab, depth));
 
 
 (*final declarations of this structure!*)

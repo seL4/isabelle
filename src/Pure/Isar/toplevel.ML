@@ -247,7 +247,7 @@ val string_of_state = pretty_state #> Pretty.chunks #> Pretty.string_of;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_abstract);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_abstract);
 
 
 

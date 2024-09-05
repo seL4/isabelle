@@ -183,7 +183,7 @@ fun print_vals thread_name index SML txt =
     val space = PolyML.DebuggerInterface.debugNameSpace (the_debug_state thread_name index);
 
     fun print x =
-      Pretty.from_polyml
+      Pretty.from_ML
         (PolyML.NameSpace.Values.printWithType
           (x, FixedInt.fromInt (ML_Print_Depth.get_print_depth ()), SOME space));
     fun print_all () =

@@ -147,10 +147,10 @@ fun pretty_string' depth = pretty_string (FixedInt.toInt (depth * 100));
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn str =>
-    Pretty.to_polyml (pretty_string' depth str));
+    Pretty.to_ML (pretty_string' depth str));
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn chunks =>
-    Pretty.to_polyml (pretty_string' depth (Long_Name.implode_chunks chunks)));
+    Pretty.to_ML (pretty_string' depth (Long_Name.implode_chunks chunks)));
 
 end;

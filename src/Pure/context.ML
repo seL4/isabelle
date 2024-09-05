@@ -336,7 +336,7 @@ fun display_names thy =
 
 val pretty_thy = Pretty.str_list "{" "}" o display_names;
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o pretty_thy);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_thy);
 
 fun pretty_abbrev_thy thy =
   let

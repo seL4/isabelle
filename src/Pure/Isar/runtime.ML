@@ -41,9 +41,7 @@ exception TOPLEVEL_ERROR;
 (* pretty *)
 
 fun pretty_exn (exn: exn) =
-  Pretty.from_ML
-    (ML_Pretty.from_polyml
-      (ML_system_pretty (exn, FixedInt.fromInt (ML_Print_Depth.get_print_depth ()))));
+  Pretty.from_ML (ML_system_pretty (exn, FixedInt.fromInt (ML_Print_Depth.get_print_depth ())));
 
 
 (* exn_context *)

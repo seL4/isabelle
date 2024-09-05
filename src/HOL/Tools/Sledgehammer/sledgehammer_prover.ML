@@ -165,7 +165,7 @@ type params =
    expect : string}
 
 fun string_of_params (params : params) =
-  YXML.content_of (ML_Pretty.string_of_polyml (ML_system_pretty (params, 100)))
+  YXML.content_of (ML_Pretty.string_of (ML_system_pretty (params, 100)))
 
 fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
   induction_rules = Exclude ?

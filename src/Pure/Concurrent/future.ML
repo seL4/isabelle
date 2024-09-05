@@ -111,8 +111,8 @@ fun is_finished x = is_some (peek x);
 val _ =
   ML_system_pp (fn depth => fn pretty => fn x =>
     (case peek x of
-      NONE => PolyML.PrettyString "<future>"
-    | SOME (Exn.Exn _) => PolyML.PrettyString "<failed>"
+      NONE => ML_Pretty.str "<future>"
+    | SOME (Exn.Exn _) => ML_Pretty.str "<failed>"
     | SOME (Exn.Res y) => pretty (y, depth)));
 
 

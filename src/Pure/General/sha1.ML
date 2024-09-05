@@ -188,7 +188,7 @@ datatype digest = Digest of string;
 fun rep (Digest s) = s;
 val fake = Digest;
 
-val _ = ML_system_pp (fn _ => fn _ => Pretty.to_polyml o Pretty.str o quote o rep);
+val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o rep);
 
 fun digest_string str = digest_string_external str
   handle Foreign.Foreign msg =>

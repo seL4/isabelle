@@ -78,10 +78,9 @@ sig
   val block_enclose: T * T -> T list -> T
   val writeln_chunks: T list -> unit
   val writeln_chunks2: T list -> unit
-  val to_ML: FixedInt.int -> T -> ML_Pretty.pretty
+  val prune_ML: FixedInt.int -> T -> ML_Pretty.pretty
+  val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
-  val to_polyml: T -> PolyML.pretty
-  val from_polyml: PolyML.pretty -> T
 end;
 
 structure Pretty: PRETTY =
@@ -399,32 +398,48 @@ fun writeln_chunks2 prts =
 
 (** toplevel pretty printing **)
 
-fun to_ML 0 (Block _) = ML_Pretty.str "..."
-  | to_ML depth (Block (m, consistent, indent, prts, _)) =
-      ML_Pretty.Block (m, consistent, FixedInt.fromInt indent, map (to_ML (depth - 1)) prts)
-  | to_ML _ (Break (force, wd, ind)) =
-      ML_Pretty.Break (force, FixedInt.fromInt wd, FixedInt.fromInt ind)
-  | to_ML _ (Str (s, len)) = ML_Pretty.String (s, FixedInt.fromInt len);
+val short_nat = FixedInt.fromInt o force_nat;
+val long_nat = force_nat o FixedInt.toInt;
 
-fun from_ML (ML_Pretty.Block (m, consistent, indent, prts)) =
-      make_block {markup = m, consistent = consistent, indent = FixedInt.toInt indent}
-        (map from_ML prts)
-  | from_ML (ML_Pretty.Break (force, wd, ind)) =
-      Break (force, FixedInt.toInt wd, FixedInt.toInt ind)
-  | from_ML (ML_Pretty.String (s, len)) = Str (s, force_nat (FixedInt.toInt len));
+fun prune_ML 0 (Block _) = ML_Pretty.str "..."
+  | prune_ML depth (Block ((bg, en), consistent, indent, prts, _)) =
+      let
+        val context =
+          (if bg = "" then [] else [ML_Pretty.ContextProperty ("begin", bg)]) @
+          (if en = "" then [] else [ML_Pretty.ContextProperty ("end", en)]);
+        val ind = short_nat indent;
+      in ML_Pretty.PrettyBlock (ind, consistent, context, map (prune_ML (depth - 1)) prts) end
+  | prune_ML _ (Break (true, _, _)) = ML_Pretty.PrettyLineBreak
+  | prune_ML _ (Break (false, wd, ind)) = ML_Pretty.PrettyBreak (short_nat wd, short_nat ind)
+  | prune_ML _ (Str (s, n)) =
+      if size s = n then ML_Pretty.PrettyString s
+      else ML_Pretty.PrettyStringWithWidth (s, short_nat n);
 
-val to_polyml = to_ML ~1 #> ML_Pretty.to_polyml;
-val from_polyml = ML_Pretty.from_polyml #> from_ML;
+val to_ML = prune_ML ~1;
+
+fun from_ML (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
+      let
+        fun prop name (ML_Pretty.ContextProperty (a, b)) = if name = a then SOME b else NONE
+          | prop _ _ = NONE;
+        fun property name = the_default "" (get_first (prop name) context);
+        val m = (property "begin", property "end");
+      in
+        make_block {markup = m, consistent = consistent, indent = long_nat ind} (map from_ML body)
+      end
+  | from_ML (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
+  | from_ML ML_Pretty.PrettyLineBreak = fbrk
+  | from_ML (ML_Pretty.PrettyString s) = str s
+  | from_ML (ML_Pretty.PrettyStringWithWidth (s, n)) = Str (s, long_nat n);
 
 end;
 
-val _ = ML_system_pp (fn d => fn _ => ML_Pretty.to_polyml o to_ML (d + 1) o quote);
-val _ = ML_system_pp (fn _ => fn _ => to_polyml o position);
+val _ = ML_system_pp (fn d => fn _ => prune_ML (d + 1) o quote);
+val _ = ML_system_pp (fn _ => fn _ => to_ML o position);
 
 end;
 
-structure ML_Pretty =
+structure ML_Pretty: ML_PRETTY =
 struct
   open ML_Pretty;
-  val string_of_polyml = Pretty.string_of o Pretty.from_polyml;
+  val string_of = Pretty.string_of o Pretty.from_ML;
 end;
