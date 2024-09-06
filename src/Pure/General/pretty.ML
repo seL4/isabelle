@@ -437,12 +437,6 @@ fun writeln_chunks2 prts =
 
 end;
 
-
-(** toplevel pretty printing **)
-
-val _ = ML_system_pp (fn d => fn _ => ML_Pretty.prune (d + 1) o to_ML o quote);
-val _ = ML_system_pp (fn _ => fn _ => to_ML o position);
-
 end;
 
 structure ML_Pretty: ML_PRETTY =
@@ -450,3 +444,22 @@ struct
   open ML_Pretty;
   val string_of = Pretty.string_of o Pretty.from_ML;
 end;
+
+
+
+(** toplevel pretty printing **)
+
+val _ = ML_system_pp (fn d => fn _ => ML_Pretty.prune (d + 1) o Pretty.to_ML o Pretty.quote);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o Pretty.position);
+val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o Pretty.mark_str o Path.print_markup);
+
+val _ =
+  ML_system_pp (fn _ => fn _ => fn t =>
+    ML_Pretty.str ("<thread " ^ quote (Isabelle_Thread.print t) ^
+      (if Isabelle_Thread.is_active t then "" else " (inactive)") ^ ">"));
+
+val _ =
+  ML_system_pp (fn _ => fn _ => fn bytes =>
+    ML_Pretty.str
+     (if Bytes.is_empty bytes then "Bytes.empty"
+      else "Bytes {size = " ^ string_of_int (Bytes.size bytes) ^ "}"));

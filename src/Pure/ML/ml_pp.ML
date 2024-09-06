@@ -4,41 +4,74 @@
 ML toplevel pretty-printing for logical entities.
 *)
 
+signature ML_PP =
+sig
+  val toplevel_context: unit -> Proof.context
+  val pp_context: Proof.context -> Pretty.T
+  val pp_typ: Proof.context -> typ -> Pretty.T
+  val pp_term: Proof.context -> term -> Pretty.T
+  val pp_thm: Proof.context -> thm -> Pretty.T
+end;
+
 structure ML_PP: sig end =
 struct
 
-val _ =
-  ML_system_pp (fn _ => fn _ => fn bytes =>
-    ML_Pretty.str
-     (if Bytes.is_empty bytes then "Bytes.empty"
-      else "Bytes {size = " ^ string_of_int (Bytes.size bytes) ^ "}"));
+(* logical context *)
+
+(*ML compiler toplevel context: fallback on theory Pure for regular runtime*)
+fun toplevel_context () =
+  let
+    fun global_context () =
+      Theory.get_pure ()
+      |> Config.put_global Name_Space.names_long true
+      |> Syntax.init_pretty_global;
+  in
+    (case Context.get_generic_context () of
+      SOME (Context.Proof ctxt) => ctxt
+    | SOME (Context.Theory thy) =>
+        (case try Syntax.init_pretty_global thy of
+          SOME ctxt => ctxt
+        | NONE => global_context ())
+    | NONE => global_context ())
+  end;
+
+fun pp_context ctxt =
+ (if Config.get ctxt Proof_Context.debug then
+    Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
+  else Pretty.str "<context>");
+
+
+(* logical entities (with syntax) *)
+
+fun pp_typ ctxt T = Pretty.quote (Syntax.pretty_typ ctxt T);
+fun pp_term ctxt t = Pretty.quote (Syntax.pretty_term ctxt t);
+fun pp_thm ctxt th = Thm.pretty_thm_raw ctxt {quote = true, show_hyps = false} th;
 
 val _ =
-  ML_system_pp (fn _ => fn _ => Pretty.to_ML o Pretty.mark_str o Path.print_markup);
+  ML_system_pp (fn _ => fn _ => Pretty.to_ML o pp_context);
 
 val _ =
-  ML_system_pp (fn _ => fn _ => fn t =>
-    ML_Pretty.str ("<thread " ^ quote (Isabelle_Thread.print t) ^
-      (if Isabelle_Thread.is_active t then "" else " (inactive)") ^ ">"));
+  ML_system_pp (fn depth => fn _ => fn th =>
+    ML_Pretty.prune depth (Pretty.to_ML (pp_thm (toplevel_context ()) th)));
 
 val _ =
-  ML_system_pp (fn _ => fn _ => Pretty.to_ML o Proof_Display.pp_context);
+  ML_system_pp (fn depth => fn _ => fn ct =>
+    ML_Pretty.prune depth (Pretty.to_ML (pp_term (toplevel_context ()) (Thm.term_of ct))));
 
 val _ =
-  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_thm);
+  ML_system_pp (fn depth => fn _ => fn cT =>
+    ML_Pretty.prune depth (Pretty.to_ML (pp_typ (toplevel_context ()) (Thm.typ_of cT))));
 
 val _ =
-  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_cterm);
+  ML_system_pp (fn depth => fn _ => fn T =>
+    ML_Pretty.prune depth (Pretty.to_ML (pp_typ (toplevel_context ()) T)));
 
 val _ =
-  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_ctyp);
+  ML_system_pp (fn depth => fn _ => fn T =>
+    ML_Pretty.prune depth (Pretty.to_ML (pp_typ (toplevel_context ()) (ZTerm.typ_of T))));
 
-val _ =
-  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_typ);
 
-val _ =
-  ML_system_pp (fn depth => fn _ => ML_Pretty.prune depth o Pretty.to_ML o Proof_Display.pp_ztyp);
-
+(* ML term and proofterm *)
 
 local
 
@@ -63,13 +96,6 @@ fun prt_term parens (dp: FixedInt.int) t =
     | Free a => prt_app "Free" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
     | Var a => prt_app "Var" (Pretty.from_ML (ML_system_pretty (a, dp - 1)))
     | Bound a => prt_app "Bound" (Pretty.from_ML (ML_system_pretty (a, dp - 1))));
-
-in
-
-val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o prt_term false depth);
-
-
-local
 
 fun prt_proof parens dp prf =
   if dp <= 0 then Pretty.str "..."
@@ -113,10 +139,8 @@ and strip_proof (p % t) res =
 
 in
 
-val _ =
-  ML_system_pp (fn depth => fn _ => fn prf => Pretty.to_ML (prt_proof false depth prf));
-
-end;
+val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o prt_term false depth);
+val _ = ML_system_pp (fn depth => fn _ => fn prf => Pretty.to_ML (prt_proof false depth prf));
 
 end;
 

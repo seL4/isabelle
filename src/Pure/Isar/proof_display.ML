@@ -6,14 +6,6 @@ Printing of theorems, goals, results etc.
 
 signature PROOF_DISPLAY =
 sig
-  val pp_context: Proof.context -> Pretty.T
-  val guess_context: unit -> Proof.context
-  val pp_thm: thm -> Pretty.T
-  val pp_typ: typ -> Pretty.T
-  val pp_term: term -> Pretty.T
-  val pp_ctyp: ctyp -> Pretty.T
-  val pp_cterm: cterm -> Pretty.T
-  val pp_ztyp: ztyp -> Pretty.T
   val pretty_theory: bool -> Proof.context -> Pretty.T
   val pretty_definitions: bool -> Proof.context -> Pretty.T
   val pretty_theorems_diff: bool -> theory list -> Proof.context -> Pretty.T list
@@ -38,41 +30,6 @@ end
 
 structure Proof_Display: PROOF_DISPLAY =
 struct
-
-(** toplevel pretty printing **)
-
-fun pp_context ctxt =
- (if Config.get ctxt Proof_Context.debug then
-    Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
-  else Pretty.str "<context>");
-
-fun guess_context () =
-  let
-    fun global_context () =
-      Theory.get_pure ()
-      |> Config.put_global Name_Space.names_long true
-      |> Syntax.init_pretty_global;
-  in
-    (case Context.get_generic_context () of
-      SOME (Context.Proof ctxt) => ctxt
-    | SOME (Context.Theory thy) =>
-        (case try Syntax.init_pretty_global thy of
-          SOME ctxt => ctxt
-        | NONE => global_context ())
-    | NONE => global_context ())
-  end;
-
-fun pp_thm th = Thm.pretty_thm_raw (guess_context ()) {quote = true, show_hyps = false} th;
-
-fun pp_typ T = Pretty.quote (Syntax.pretty_typ (guess_context ()) T);
-fun pp_term t = Pretty.quote (Syntax.pretty_term (guess_context ()) t);
-
-val pp_ctyp = pp_typ o Thm.typ_of;
-val pp_cterm = pp_term o Thm.term_of;
-
-fun pp_ztyp T = Pretty.quote (Syntax.pretty_typ (guess_context ()) (ZTerm.typ_of T));
-
-
 
 (** theory content **)
 
