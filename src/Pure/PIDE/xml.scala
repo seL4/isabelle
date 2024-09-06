@@ -139,22 +139,25 @@ object XML {
   }
 
 
-  /* clean markup elements */
+  /* filter markup elements */
 
-  def clean_elements(elements: Markup.Elements, xml: XML.Body, full: Boolean = false): XML.Body = {
-    def clean(ts: XML.Body): XML.Body =
+  def filter_elements(xml: XML.Body,
+    remove: Markup.Elements = Markup.Elements.empty,
+    expose: Markup.Elements = Markup.Elements.empty
+  ): XML.Body = {
+    def filter(ts: XML.Body): XML.Body =
       ts flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
-          if (!elements(markup.name)) Some(XML.Wrapped_Elem(markup, body1, clean(body2)))
-          else if (!full) clean(body2)
-          else Nil
+          if (remove(markup.name)) Nil
+          else if (expose(markup.name)) filter(body2)
+          else List(XML.Wrapped_Elem(markup, body1, filter(body2)))
         case XML.Elem(markup, body) =>
-          if (!elements(markup.name)) Some(XML.Elem(markup, clean(body)))
-          else if (!full) clean(body)
-          else Nil
+          if (remove(markup.name)) Nil
+          else if (expose(markup.name)) filter(body)
+          else List(XML.Elem(markup, filter(body)))
         case t => List(t)
       }
-    clean(xml)
+    filter(xml)
   }
 
 

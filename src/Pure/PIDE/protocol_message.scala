@@ -40,10 +40,10 @@ object Protocol_Message {
   private val no_report_elements = Markup.Elements(Markup.NO_REPORT)
 
   def clean_reports(body: XML.Body): XML.Body =
-    XML.clean_elements(report_elements, body, full = true)
+    XML.filter_elements(body, remove = report_elements)
 
   def expose_no_reports(body: XML.Body): XML.Body =
-    XML.clean_elements(no_report_elements, body)
+    XML.filter_elements(body, expose = no_report_elements)
 
   def reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
