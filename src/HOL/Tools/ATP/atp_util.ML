@@ -143,7 +143,7 @@ val unquery_var = perhaps (try (unprefix "?"))
 val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
 fun maybe_quote ctxt y =
   let
-    val s = YXML.content_of y
+    val s = Protocol_Message.clean_output y
     val is_literal = Keyword.is_literal (Thy_Header.get_keywords' ctxt)
     val q = if Config.get ctxt proof_cartouches then cartouche else quote
   in

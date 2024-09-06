@@ -162,7 +162,7 @@ fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
 
     fun nth_name j =
       (case xref of
-        Facts.Fact s => cartouche (simplify_spaces (YXML.content_of s)) ^ bracket
+        Facts.Fact s => cartouche (simplify_spaces (Protocol_Message.clean_output s)) ^ bracket
       | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
       | Facts.Named ((name, _), NONE) => make_name keywords (length ths > 1) (j + 1) name ^ bracket
       | Facts.Named ((name, _), SOME intervals) =>

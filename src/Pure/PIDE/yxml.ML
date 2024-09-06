@@ -33,7 +33,6 @@ sig
   val parse_body_bytes: Bytes.T -> XML.body
   val parse: string -> XML.tree
   val parse_bytes: Bytes.T -> XML.tree
-  val content_of: string -> string
   val is_wellformed: string -> bool
 end;
 
@@ -169,8 +168,6 @@ val parse = parse' o split_string;
 val parse_bytes = parse' o split_bytes;
 
 end;
-
-val content_of = parse_body #> XML.content_of;
 
 fun is_wellformed s = string_of_body (parse_body s) = s
   handle Fail _ => false;

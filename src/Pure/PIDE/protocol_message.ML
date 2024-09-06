@@ -10,6 +10,7 @@ sig
   val marker: string -> Properties.T -> unit
   val command_positions: string -> XML.body -> XML.body
   val command_positions_yxml: string -> string -> string
+  val clean_output: string -> string
 end;
 
 structure Protocol_Message: PROTOCOL_MESSAGE =
@@ -36,5 +37,17 @@ fun command_positions id =
 
 fun command_positions_yxml id =
   YXML.string_of_body o command_positions id o YXML.parse_body;
+
+
+(* clean output *)
+
+fun clean_output msg =
+  (case try YXML.parse_body msg of
+    SOME xml =>
+      xml |> XML.filter_elements
+        {remove = fn a => a = Markup.reportN,
+         expose = fn a => a = Markup.no_reportN}
+      |> XML.content_of
+  | NONE => msg);
 
 end;

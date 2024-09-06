@@ -422,7 +422,7 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
       (*^ "\n" ^ string_of_reports reports*)
   in
     "mutant of " ^ Thm_Name.short thm_name ^ ":\n" ^
-      YXML.content_of (Syntax.string_of_term_global thy t) ^ "\n" ^
+      Protocol_Message.clean_output (Syntax.string_of_term_global thy t) ^ "\n" ^
       space_implode "; " (map string_of_mtd_result results)
   end
 

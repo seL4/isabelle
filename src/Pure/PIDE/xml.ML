@@ -39,6 +39,7 @@ sig
   val enclose: string -> string -> body -> body
   val add_content: tree -> Buffer.T -> Buffer.T
   val trim_blanks: body -> body
+  val filter_elements: {remove: string -> bool, expose: string -> bool} -> body -> body
   val header: string
   val text: string -> string
   val element: string -> attributes -> string list -> string
@@ -110,6 +111,26 @@ fun trim_blanks trees =
     (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
       | Text s => s |> raw_explode |> trim Symbol.is_blank |> implode |> string);
 
+
+(* filter markup elements *)
+
+fun filter_elements {remove, expose} =
+  let
+    fun filter ts =
+      ts |> maps (fn t =>
+        (case XML.unwrap_elem t of
+          SOME ((markup, body1), body2) =>
+            if remove (#1 markup) then []
+            else if expose (#1 markup) then filter body2
+            else [XML.wrap_elem ((markup, body1), filter body2)]
+        | NONE =>
+            (case t of
+              XML.Elem (markup, body) =>
+                if remove (#1 markup) then []
+                else if expose (#1 markup) then filter body
+                else [XML.Elem (markup, filter body)]
+            | _ => [t])));
+  in filter end;
 
 
 (** string representation **)

@@ -200,7 +200,7 @@ let
     @{thm test_2.simps(1)}
     |> Thm.prop_of
     |> Syntax.string_of_term \<^context>
-    |> YXML.content_of
+    |> Protocol_Message.clean_output
   val expected = "test_2 (?y # (?y' # ?ys =: x') =: x) = x @ x' @ x'"
 in \<^assert> (actual = expected) end
 \<close>

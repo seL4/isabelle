@@ -303,7 +303,7 @@ fun bounds_and_axioms_for_built_in_rels_in_formulas debug univ_card nat_card
 
 fun bound_comment ctxt debug nick T R =
   short_name nick ^
-  (if debug then " :: " ^ YXML.content_of (Syntax.string_of_typ ctxt T) else "") ^
+  (if debug then " :: " ^ Protocol_Message.clean_output (Syntax.string_of_typ ctxt T) else "") ^
   " : " ^ string_for_rep R
 
 fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
