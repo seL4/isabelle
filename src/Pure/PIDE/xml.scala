@@ -139,6 +139,25 @@ object XML {
   }
 
 
+  /* clean markup elements */
+
+  def clean_elements(elements: Markup.Elements, xml: XML.Body, full: Boolean = false): XML.Body = {
+    def clean(ts: XML.Body): XML.Body =
+      ts flatMap {
+        case XML.Wrapped_Elem(markup, body1, body2) =>
+          if (!elements(markup.name)) Some(XML.Wrapped_Elem(markup, body1, clean(body2)))
+          else if (!full) clean(body2)
+          else Nil
+        case XML.Elem(markup, body) =>
+          if (!elements(markup.name)) Some(XML.Elem(markup, clean(body)))
+          else if (!full) clean(body)
+          else Nil
+        case t => List(t)
+      }
+    clean(xml)
+  }
+
+
   /* traverse text */
 
   def traverse_text[A](body: Body, a: A, op: (A, String) => A): A = {

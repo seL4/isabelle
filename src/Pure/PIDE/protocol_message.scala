@@ -36,27 +36,14 @@ object Protocol_Message {
 
   /* inlined reports */
 
-  private val report_elements =
-    Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
+  private val report_elements = Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
+  private val no_report_elements = Markup.Elements(Markup.NO_REPORT)
 
   def clean_reports(body: XML.Body): XML.Body =
-    body filter {
-      case XML.Wrapped_Elem(Markup(name, _), _, _) => !report_elements(name)
-      case XML.Elem(Markup(name, _), _) => !report_elements(name)
-      case _ => true
-    } map {
-      case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_reports(ts))
-      case XML.Elem(markup, ts) => XML.Elem(markup, clean_reports(ts))
-      case t => t
-    }
+    XML.clean_elements(report_elements, body, full = true)
 
   def expose_no_reports(body: XML.Body): XML.Body =
-    body flatMap {
-      case XML.Wrapped_Elem(markup, body, ts) => List(XML.Wrapped_Elem(markup, body, expose_no_reports(ts)))
-      case XML.Elem(Markup(Markup.NO_REPORT, _), ts) => ts
-      case XML.Elem(markup, ts) => List(XML.Elem(markup, expose_no_reports(ts)))
-      case t => List(t)
-    }
+    XML.clean_elements(no_report_elements, body)
 
   def reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
