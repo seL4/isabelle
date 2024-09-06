@@ -327,7 +327,7 @@ object Dump {
         val bad_theories = Consumer.shutdown()
         val bad_msgs =
           bad_theories.map(bad =>
-            Output.clean_yxml(
+            Protocol_Message.clean_output(
               "FAILED theory " + bad.name +
                 (if (bad.status.consolidated) "" else ": " + bad.status.percentage + "% finished") +
                 if_proper(bad.errors, bad.errors.mkString("\n", "\n", ""))))

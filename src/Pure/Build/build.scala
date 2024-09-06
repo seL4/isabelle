@@ -793,8 +793,8 @@ Usage: isabelle build_worker [OPTIONS]
 
     def check(filter: List[Regex], make_string: => String): Boolean =
       filter.isEmpty || {
-        val s = Output.clean_yxml(make_string)
-        filter.forall(r => r.findFirstIn(Output.clean_yxml(s)).nonEmpty)
+        val s = Protocol_Message.clean_output(make_string)
+        filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
       }
 
     def print(session_name: String): Unit = {

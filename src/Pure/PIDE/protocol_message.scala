@@ -55,4 +55,11 @@ object Protocol_Message {
       case XML.Elem(_, ts) => reports(props, ts)
       case XML.Text(_) => Nil
     }
+
+
+  /* clean output */
+
+  def clean_output(msg: String): String =
+    try { XML.content(clean_reports(YXML.parse_body(YXML.Source(msg)))) }
+    catch { case ERROR(_) => msg }
 }

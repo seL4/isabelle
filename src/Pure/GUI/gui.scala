@@ -72,7 +72,7 @@ object GUI {
     height: Int = 20,
     editable: Boolean = false
   ) : ScrollPane = {
-    val txt = Output.clean_yxml(raw_txt)
+    val txt = Protocol_Message.clean_output(raw_txt)
     val text = new TextArea(txt)
     if (width > 0) text.columns = width
     if (height > 0 && split_lines(txt).length > height) text.rows = height

@@ -342,7 +342,7 @@ object Build_History {
             else Nil
           for (msg <- errors)
           yield {
-            val content = Library.encode_lines(Output.clean_yxml(msg))
+            val content = Library.encode_lines(Protocol_Message.clean_output(msg))
             List(Build_Log.SESSION_NAME -> session_name, Markup.CONTENT -> content)
           }
         }

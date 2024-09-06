@@ -8,17 +8,14 @@ package isabelle
 
 
 object Output {
-  def clean_yxml(msg: String): String =
-    try { XML.content(Protocol_Message.clean_reports(YXML.parse_body(YXML.Source(msg)))) }
-    catch { case ERROR(_) => msg }
-
-  def writeln_text(msg: String): String = clean_yxml(msg)
+  def writeln_text(msg: String): String = Protocol_Message.clean_output(msg)
 
   def warning_prefix(s: String): String = Library.prefix_lines("### ", s)
-  def warning_text(msg: String): String = warning_prefix(clean_yxml(msg))
+  def warning_text(msg: String): String = warning_prefix(Protocol_Message.clean_output(msg))
 
   def error_message_prefix(s: String): String = Library.prefix_lines("*** ", s)
-  def error_message_text(msg: String): String = error_message_prefix(clean_yxml(msg))
+  def error_message_text(msg: String): String =
+    error_message_prefix(Protocol_Message.clean_output(msg))
 
   def output(s: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
     if (s.nonEmpty || include_empty) {
