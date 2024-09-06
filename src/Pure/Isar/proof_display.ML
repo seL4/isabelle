@@ -49,14 +49,17 @@ fun pp_context ctxt =
 fun guess_context () =
   let
     fun global_context () =
-      Config.put_global Name_Space.names_long true (Theory.get_pure ());
+      Theory.get_pure ()
+      |> Config.put_global Name_Space.names_long true
+      |> Syntax.init_pretty_global;
   in
     (case Context.get_generic_context () of
       SOME (Context.Proof ctxt) => ctxt
     | SOME (Context.Theory thy) =>
-        try Syntax.init_pretty_global thy
-        |> \<^if_none>\<open>Syntax.init_pretty_global (global_context ())\<close>
-    | NONE => Syntax.init_pretty_global (global_context ()))
+        (case try Syntax.init_pretty_global thy of
+          SOME ctxt => ctxt
+        | NONE => global_context ())
+    | NONE => global_context ())
   end;
 
 fun pp_thm th = Thm.pretty_thm_raw (guess_context ()) {quote = true, show_hyps = false} th;
