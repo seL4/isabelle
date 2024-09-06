@@ -38,15 +38,18 @@ fun brk width = PrettyBreak (width, 0);
 val dots = str "...";
 
 fun pair pretty1 pretty2 ((x, y), depth: FixedInt.int) =
-  block [str "(", pretty1 (x, depth), str ",", brk 1, pretty2 (y, depth - 1), str ")"];
+  if depth = 0 then dots
+  else block [str "(", pretty1 (x, depth), str ",", brk 1, pretty2 (y, depth - 1), str ")"];
 
 fun enum sep lpar rpar pretty (args, depth: FixedInt.int) =
-  let
-    fun elems _ [] = []
-      | elems 0 _ = [dots]
-      | elems d [x] = [pretty (x, d)]
-      | elems d (x :: xs) = pretty (x, d) :: str sep :: brk 1 :: elems (d - 1) xs;
-  in block (str lpar :: (elems (FixedInt.max (depth, 0)) args @ [str rpar])) end;
+  if depth = 0 then dots
+  else
+    let
+      fun elems _ [] = []
+        | elems 0 _ = [dots]
+        | elems d [x] = [pretty (x, d)]
+        | elems d (x :: xs) = pretty (x, d) :: str sep :: brk 1 :: elems (d - 1) xs;
+    in block (str lpar :: (elems (FixedInt.max (depth, 0)) args @ [str rpar])) end;
 
 
 (* prune *)
