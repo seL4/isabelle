@@ -29,6 +29,7 @@ sig
     T list -> T
   val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
   val str: string -> T
+  val dots: T
   val brk: int -> T
   val brk_indent: int -> int -> T
   val fbrk: T
@@ -148,6 +149,7 @@ fun markup_block {markup, consistent, indent} body =
 (** derived operations to create formatting expressions **)
 
 val str = T o ML_Pretty.str;
+val dots = T ML_Pretty.dots;
 
 fun brk_indent wd ind = T (ML_Pretty.PrettyBreak (short_nat wd, short_nat ind));
 fun brk wd = brk_indent wd 0;

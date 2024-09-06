@@ -11,6 +11,7 @@ sig
   val block: pretty list -> pretty
   val str: string -> pretty
   val brk: FixedInt.int -> pretty
+  val dots: pretty
   val pair: ('a * FixedInt.int -> pretty) -> ('b * FixedInt.int -> pretty) ->
     ('a * 'b) * FixedInt.int -> pretty
   val enum: string -> string -> string -> ('a * FixedInt.int -> pretty) ->
@@ -34,13 +35,15 @@ fun block prts = PrettyBlock (2, false, [], prts);
 val str = PrettyString;
 fun brk width = PrettyBreak (width, 0);
 
+val dots = str "...";
+
 fun pair pretty1 pretty2 ((x, y), depth: FixedInt.int) =
   block [str "(", pretty1 (x, depth), str ",", brk 1, pretty2 (y, depth - 1), str ")"];
 
 fun enum sep lpar rpar pretty (args, depth: FixedInt.int) =
   let
     fun elems _ [] = []
-      | elems 0 _ = [str "..."]
+      | elems 0 _ = [dots]
       | elems d [x] = [pretty (x, d)]
       | elems d (x :: xs) = pretty (x, d) :: str sep :: brk 1 :: elems (d - 1) xs;
   in block (str lpar :: (elems (FixedInt.max (depth, 0)) args @ [str rpar])) end;
@@ -48,7 +51,7 @@ fun enum sep lpar rpar pretty (args, depth: FixedInt.int) =
 
 (* prune *)
 
-fun prune (0: FixedInt.int) (PrettyBlock _) = str "..."
+fun prune (0: FixedInt.int) (PrettyBlock _) = dots
   | prune depth (PrettyBlock (ind, consistent, context, body)) =
       PrettyBlock (ind, consistent, context, map (prune (depth - 1)) body)
   | prune _ prt = prt;

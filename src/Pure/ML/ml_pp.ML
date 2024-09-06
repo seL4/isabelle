@@ -79,7 +79,7 @@ fun prt_app name prt = Pretty.block [Pretty.str (name ^ " "), prt];
 fun prt_apps name = Pretty.enum "," (name ^ " (") ")";
 
 fun prt_term parens (dp: FixedInt.int) t =
-  if dp <= 0 then Pretty.str "..."
+  if dp <= 0 then Pretty.dots
   else
     (case t of
       _ $ _ =>
@@ -98,7 +98,7 @@ fun prt_term parens (dp: FixedInt.int) t =
     | Bound a => prt_app "Bound" (Pretty.from_ML (ML_system_pretty (a, dp - 1))));
 
 fun prt_proof parens dp prf =
-  if dp <= 0 then Pretty.str "..."
+  if dp <= 0 then Pretty.dots
   else
     (case prf of
       _ % _ => prt_proofs parens dp prf
