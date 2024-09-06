@@ -13,7 +13,7 @@ sig
   val pp_thm: Proof.context -> thm -> Pretty.T
 end;
 
-structure ML_PP: sig end =
+structure ML_PP: ML_PP =
 struct
 
 (* logical context *)
