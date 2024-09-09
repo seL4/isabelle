@@ -40,8 +40,8 @@ val xml_bodyN = "xml_body";
 fun wrap_elem (((a, atts), body1), body2) =
   Elem ((xml_elemN, (xml_nameN, a) :: atts), Elem ((xml_bodyN, []), body1) :: body2);
 
-fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', atts'), body1) :: body2)) =
-      if name = xml_elemN andalso n = xml_nameN andalso name' = xml_bodyN andalso null atts'
+fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', []), body1) :: body2)) =
+      if name = xml_elemN andalso n = xml_nameN andalso name' = xml_bodyN
       then SOME (((a, atts), body1), body2) else NONE
   | unwrap_elem _ = NONE;
 
