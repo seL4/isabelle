@@ -7,7 +7,7 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
-** General **
+*** General ***
 
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
@@ -26,7 +26,7 @@ and examples.
 "cong" rules, notably for congproc implementations.
 
 
-** HOL **
+*** HOL ***
 
 * Enumerations for tuples, sets, lists etc. now use specific grammar
 productions and separate syntax constants: this allows PIDE markup
@@ -81,6 +81,7 @@ ease transition.
 ln(0) = x and ln(-x) = ln(x). Many related theorems are now
 unconditional, with ln_mult_pos and ln_divide_pos introduced for legacy
 purposes.
+
 
 *** System ***
 
