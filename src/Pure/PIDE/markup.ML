@@ -282,7 +282,6 @@ sig
   val add_mode: string -> ops -> unit
   val get_mode: unit -> ops
   val output: T -> output
-  val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
   val markups: T list -> string -> string
   val markup_report: string -> string
@@ -864,8 +863,6 @@ in
 end;
 
 fun output m = if is_empty m then no_output else #output (get_mode ()) m;
-
-val enclose = output #-> Library.enclose;
 
 fun markup m =
   let val (bg, en) = output m |> apply2 (single #> Output.escape #> implode);
