@@ -115,8 +115,6 @@ fun eqn_error thy (SOME thm) s =
 
 val code_presentationN = "code_presentation";
 val stmt_nameN = "stmt_name";
-val _ = Markup.add_mode code_presentationN YXML.markup_ops;
-val _ = Pretty.add_mode code_presentationN Pretty.markup_ops;
 
 
 (** assembling and printing text pieces **)
@@ -125,23 +123,20 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-fun with_no_print_mode f = Print_Mode.setmp [] f;
-val str = with_no_print_mode Pretty.str;
+val str = Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
-val commas = with_no_print_mode Pretty.commas;
-fun enclose l r = with_no_print_mode (Pretty.enclose l r);
+val commas = Pretty.commas;
+val enclose = Pretty.enclose;
 val brackets = enclose "(" ")" o Pretty.breaks;
-fun enum sep l r = with_no_print_mode (Pretty.enum sep l r);
+val enum = Pretty.enum;
 fun enum_default default sep l r [] = str default
   | enum_default default sep l r xs = enum sep l r xs;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
-fun indent i = with_no_print_mode (Pretty.indent i);
+val indent = Pretty.indent;
 
-fun with_presentation_marker f = Print_Mode.setmp [code_presentationN] f;
-
-fun markup_stmt sym = with_presentation_marker
-  (Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]));
+fun markup_stmt sym =
+  Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]);
 
 fun filter_presentation [] xml =
       Buffer.build (fold XML.add_content xml)
@@ -162,7 +157,8 @@ fun filter_presentation [] xml =
       in snd (fold filter xml (true, Buffer.empty)) end;
 
 fun format presentation_names width =
-  with_presentation_marker (Pretty.string_of_margin width)
+  Pretty.output_buffer (Pretty.markup_output_ops (SOME width))
+  #> Buffer.content
   #> YXML.parse_body
   #> filter_presentation presentation_names
   #> Buffer.add "\n"
