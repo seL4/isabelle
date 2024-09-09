@@ -213,14 +213,14 @@ fun report_indent tr st =
             NONE => ()
           | SOME 0 => ()
           | SOME n =>
-              let val report = Markup.markup_only (Markup.command_indent (n - 1));
+              let val report = YXML.output_markup_only (Markup.command_indent (n - 1));
               in Toplevel.setmp_thread_position tr (fn () => Output.report [report]) () end)
         else ()
       end
   | NONE => ());
 
 fun status tr m =
-  Toplevel.setmp_thread_position tr (fn () => Output.status [Markup.markup_only m]) ();
+  Toplevel.setmp_thread_position tr (fn () => Output.status [YXML.output_markup_only m]) ();
 
 fun eval_state keywords span tr ({state, ...}: eval_state) =
   let

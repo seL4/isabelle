@@ -22,7 +22,7 @@ fun register {name, pri} f =
         print_fn = fn _ => Thread_Attributes.uninterruptible (fn run => fn state =>
           let
             fun output_result s = Output.result [(Markup.instanceN, instance)] [s];
-            fun status m = output_result (Markup.markup_only m);
+            fun status m = output_result (YXML.output_markup_only m);
             fun writeln_result s = output_result (Markup.markup Markup.writeln s);
             fun toplevel_error exn =
               output_result (Markup.markup Markup.error (Runtime.exn_message exn));

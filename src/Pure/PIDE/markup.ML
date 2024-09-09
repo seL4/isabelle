@@ -285,7 +285,6 @@ sig
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
   val markups: T list -> string -> string
-  val markup_only: T -> string
   val markup_report: string -> string
 end;
 
@@ -873,8 +872,6 @@ fun markup m =
   in Library.enclose bg en end;
 
 val markups = fold_rev markup;
-
-fun markup_only m = markup m "";
 
 fun markup_report "" = ""
   | markup_report txt = markup report txt;

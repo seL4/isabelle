@@ -141,7 +141,7 @@ fun status task markups =
     val props =
       if ! Multithreading.trace >= 2
       then [(Markup.taskN, Task_Queue.str_of_task task)] else [];
-  in Output.status (map (Markup.markup_only o Markup.properties props) markups) end;
+  in Output.status (map (YXML.output_markup_only o Markup.properties props) markups) end;
 
 type params = {name: string, pos: Position.T, pri: int};
 

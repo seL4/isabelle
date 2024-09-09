@@ -635,7 +635,7 @@ fun init_theory deps node span =
     val _ = List.app (fn (thy, r) => Context_Position.reports_global thy [r]) parents_reports;
 
     val thy = Resources.begin_theory master_dir header parents;
-    val _ = Output.status [Markup.markup_only Markup.initialized];
+    val _ = Output.status [YXML.output_markup_only Markup.initialized];
   in thy end;
 
 fun get_special_parent node =
@@ -785,10 +785,10 @@ fun print_consolidation options the_command_span node_name (assign_update, node)
             val consolidate =
               Command.print0 {pri = Task_Queue.urgent_pri + 1, print_fn = fn _ => fn _ =>
                 let
-                  val _ = Output.status [Markup.markup_only Markup.consolidating];
+                  val _ = Output.status [YXML.output_markup_only Markup.consolidating];
                   val result = Exn.capture (Thy_Info.apply_presentation context) thy;
                   val _ = Lazy.force (get_consolidated node);
-                  val _ = Output.status [Markup.markup_only Markup.consolidated];
+                  val _ = Output.status [YXML.output_markup_only Markup.consolidated];
                 in Exn.release result end};
             val result_entry =
               (case lookup_entry node id of
