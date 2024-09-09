@@ -15,7 +15,6 @@ sig
   val content: T -> string
   val build: (T -> T) -> T
   val build_content: (T -> T) -> string
-  val markup: Markup.T -> (T -> T) -> T -> T
 end;
 
 structure Buffer: BUFFER =
@@ -40,9 +39,5 @@ fun build (f: T -> T) = f empty;
 fun build_content f = build f |> content;
 
 end;
-
-fun markup m body =
-  let val (bg, en) = Markup.output m
-  in add bg #> body #> add en end;
 
 end;

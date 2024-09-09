@@ -368,15 +368,19 @@ end;
 
 (* special output *)
 
+fun buffer_markup m body =
+  let val (bg, en) = Markup.output m
+  in Buffer.add bg #> body #> Buffer.add en end;
+
 (*symbolic markup -- no formatting*)
 val symbolic =
   let
     fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
       | out (Block ((bg, en), consistent, indent, prts, _)) =
           Buffer.add bg #>
-          Buffer.markup (Markup.block consistent indent) (fold out prts) #>
+          buffer_markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (Break (false, wd, ind)) = Buffer.markup (Markup.break wd ind) (buffer_output_spaces wd)
+      | out (Break (false, wd, ind)) = buffer_markup (Markup.break wd ind) (buffer_output_spaces wd)
       | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
       | out (Str (s, _)) = Buffer.add s;
   in Buffer.build o out o output_tree false end;
