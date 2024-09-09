@@ -74,6 +74,7 @@ sig
     indent: string -> int -> Output.output,
     margin: int}
   val output_ops: int option -> output_ops
+  val markup_output_ops: int option -> output_ops
   val regularN: string
   val symbolicN: string
   val output_buffer: output_ops -> T -> Buffer.T
@@ -249,12 +250,12 @@ fun output_ops opt_margin : output_ops =
     val margin = the_default ML_Pretty.default_margin opt_margin;
   in {output = output, escape = escape, markup = markup, indent = indent, margin = margin} end;
 
-val markup_output_ops: output_ops =
+fun markup_output_ops opt_margin : output_ops =
  {output = #output Output.default_ops,
   escape = #escape Output.default_ops,
   markup = #markup markup_ops,
   indent = #indent markup_ops,
-  margin = ML_Pretty.default_margin};
+  margin = the_default ML_Pretty.default_margin opt_margin};
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
@@ -406,7 +407,7 @@ end;
 (*symbolic markup -- no formatting*)
 val symbolic =
   let
-    val ops = markup_output_ops;
+    val ops = markup_output_ops NONE;
 
     fun buffer_markup m body =
       let val (bg, en) = #markup ops (YXML.output_markup m)
