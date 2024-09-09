@@ -19,6 +19,7 @@ sig
   type ops = {output: string -> output * int, escape: output list -> string list}
   val default_ops: ops
   val add_mode: string -> ops -> unit
+  val get_mode: unit -> ops
   val output_width: string -> output * int
   val output: string -> output
   val escape: output list -> string list

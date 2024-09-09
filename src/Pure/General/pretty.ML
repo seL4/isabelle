@@ -23,6 +23,7 @@ sig
   type ops = {indent: string -> int -> Output.output}
   val default_ops: ops
   val add_mode: string -> ops -> unit
+  val get_mode: unit -> ops
   type T
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T

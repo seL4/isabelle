@@ -280,6 +280,7 @@ sig
   type ops = {output: T -> output}
   val no_output: output
   val add_mode: string -> ops -> unit
+  val get_mode: unit -> ops
   val output: T -> output
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
