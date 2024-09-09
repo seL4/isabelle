@@ -66,10 +66,17 @@ sig
   val big_list: string -> T list -> T
   val indent: int -> T -> T
   val unbreakable: T -> T
+  type output_ops =
+   {output: string -> Output.output * int,
+    escape: Output.output list -> string list,
+    markup: Markup.T -> Markup.output,
+    indent: string -> int -> Output.output,
+    margin: int}
+  val output_ops: int option -> output_ops
   val regularN: string
   val symbolicN: string
-  val output_buffer: int option -> T -> Buffer.T
-  val output: int option -> T -> Output.output list
+  val output_buffer: output_ops -> T -> Buffer.T
+  val output: output_ops -> T -> Output.output list
   val string_of_margin: int -> T -> string
   val string_of: T -> string
   val writeln: T -> unit
@@ -105,11 +112,6 @@ in
     the_default default_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
-
-fun mode_indent x y = #indent (get_mode ()) x y;
-
-val output_spaces = Output.output_width o Symbol.spaces;
-val buffer_output_spaces = Buffer.add o #1 o output_spaces;
 
 
 
@@ -229,6 +231,29 @@ val unbreakable =
 
 (** formatting **)
 
+(* output operations: default via print_mode *)
+
+type output_ops =
+ {output: string -> Output.output * int,
+  escape: Output.output list -> string list,
+  markup: Markup.T -> Markup.output,
+  indent: string -> int -> Output.output,
+  margin: int};
+
+fun output_ops opt_margin : output_ops =
+  let
+    val {output, escape} = Output.get_mode ();
+    val {output = markup} = Markup.get_mode ();
+    val {indent} = get_mode ();
+    val margin = the_default ML_Pretty.default_margin opt_margin;
+  in {output = output, escape = escape, markup = markup, indent = indent, margin = margin} end;
+
+fun output_newline (ops: output_ops) = #1 (#output ops "\n");
+
+fun output_spaces (ops: output_ops) = #output ops o Symbol.spaces;
+fun output_spaces' ops = Buffer.add o #1 o output_spaces ops;
+
+
 (* formatted output *)
 
 local
@@ -241,8 +266,8 @@ val empty: text =
   pos = 0,
   nl = 0};
 
-fun newline {tx, ind = _, pos = _, nl} : text =
- {tx = Buffer.add (Output.output "\n") tx,
+fun newline s {tx, ind = _, pos = _, nl} : text =
+ {tx = Buffer.add s tx,
   ind = Buffer.empty,
   pos = 0,
   nl = nl + 1};
@@ -258,16 +283,6 @@ fun string (s, len) {tx, ind, pos: int, nl} : text =
   ind = Buffer.add s ind,
   pos = pos + len,
   nl = nl};
-
-val blanks = string o output_spaces;
-
-fun indentation (buf, len) {tx, ind, pos, nl} : text =
-  let val s = Buffer.content buf in
-   {tx = Buffer.add (mode_indent s len) tx,
-    ind = Buffer.add s ind,
-    pos = pos + len,
-    nl = nl}
-  end;
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
@@ -307,7 +322,7 @@ fun property context name =
 
 in
 
-fun output_tree make_length =
+fun output_tree (ops: output_ops) make_length =
   let
     fun out (T (ML_Pretty.PrettyBlock (ind, consistent, context, body))) =
           let
@@ -319,14 +334,27 @@ fun output_tree make_length =
           in Block ((bg, en), consistent, indent, body', len) end
       | out (T (ML_Pretty.PrettyBreak (wd, ind))) = Break (false, long_nat wd, long_nat ind)
       | out (T ML_Pretty.PrettyLineBreak) = fbreak
-      | out (T (ML_Pretty.PrettyString s)) = Str (Output.output_width s ||> force_nat)
+      | out (T (ML_Pretty.PrettyString s)) = Str (#output ops s ||> force_nat)
       | out (T (ML_Pretty.PrettyStringWithWidth (s, n))) = Str (s, long_nat n);
   in out end;
 
-fun format_tree margin input =
+fun format_tree (ops: output_ops) input =
   let
+    val margin = #margin ops;
     val breakgain = margin div 20;     (*minimum added space required of a break*)
     val emergencypos = margin div 2;   (*position too far to right*)
+
+    val linebreak = newline (output_newline ops);
+    val blanks = string o output_spaces ops;
+    val blanks' = output_spaces' ops;
+
+    fun indentation (buf, len) {tx, ind, pos, nl} : text =
+      let val s = Buffer.content buf in
+       {tx = Buffer.add (#indent ops s len) tx,
+        ind = Buffer.add s ind,
+        pos = pos + len,
+        nl = nl}
+      end;
 
     (*es is list of expressions to print;
       blockin is the indentation of the current block;
@@ -339,8 +367,8 @@ fun format_tree margin input =
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
                 val block' =
-                  if pos' < emergencypos then (ind |> buffer_output_spaces indent, pos')
-                  else (buffer_output_spaces pos'' Buffer.empty, pos'');
+                  if pos' < emergencypos then (ind |> blanks' indent, pos')
+                  else (blanks' pos'' Buffer.empty, pos'');
                 val d = break_dist (es, after)
                 val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
                 val btext: text = text
@@ -357,10 +385,10 @@ fun format_tree margin input =
                 (if not force andalso
                     pos + wd <= Int.max (margin - break_dist (es, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
-                 else text |> newline |> indentation block |> blanks ind)
+                 else text |> linebreak |> indentation block |> blanks ind)
           | Str str => format (es, block, after) (string str text));
   in
-    #tx (format ([output_tree true input], (Buffer.empty, 0), 0) empty)
+    #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
   end;
 
 end;
@@ -368,30 +396,30 @@ end;
 
 (* special output *)
 
-fun buffer_markup m body =
-  let val (bg, en) = Markup.output m
-  in Buffer.add bg #> body #> Buffer.add en end;
-
 (*symbolic markup -- no formatting*)
-val symbolic =
+fun symbolic ops prt =
   let
+    fun buffer_markup m body =
+      let val (bg, en) = #markup ops m
+      in Buffer.add bg #> body #> Buffer.add en end;
+
     fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
       | out (Block ((bg, en), consistent, indent, prts, _)) =
           Buffer.add bg #>
           buffer_markup (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (Break (false, wd, ind)) = buffer_markup (Markup.break wd ind) (buffer_output_spaces wd)
-      | out (Break (true, _, _)) = Buffer.add (Output.output "\n")
+      | out (Break (false, wd, ind)) = buffer_markup (Markup.break wd ind) (output_spaces' ops wd)
+      | out (Break (true, _, _)) = Buffer.add (output_newline ops)
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out o output_tree false end;
+  in Buffer.build (out (output_tree ops false prt)) end;
 
 (*unformatted output*)
-val unformatted =
+fun unformatted ops prt =
   let
     fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
-      | out (Break (_, wd, _)) = buffer_output_spaces wd
+      | out (Break (_, wd, _)) = output_spaces' ops wd
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out o output_tree false end;
+  in Buffer.build (out (output_tree ops false prt)) end;
 
 
 (* output interfaces *)
@@ -399,20 +427,34 @@ val unformatted =
 val regularN = "pretty_regular";
 val symbolicN = "pretty_symbolic";
 
-fun output_buffer margin prt =
+fun output_buffer ops prt =
   if print_mode_active symbolicN andalso not (print_mode_active regularN)
-  then symbolic prt
-  else format_tree (the_default ML_Pretty.default_margin margin) prt;
+  then symbolic ops prt
+  else format_tree ops prt;
 
 val output = Buffer.contents oo output_buffer;
-fun string_of_margin margin = implode o Output.escape o output (SOME margin);
-val string_of = implode o Output.escape o output NONE;
-val writeln = Output.writelns o Output.escape o output NONE;
 
-val symbolic_output = Buffer.contents o symbolic;
-val symbolic_string_of = implode o Output.escape o symbolic_output;
+fun string_of_margin margin prt =
+  let val ops = output_ops (SOME margin)
+  in implode (#escape ops (output ops prt)) end;
 
-val unformatted_string_of = implode o Output.escape o Buffer.contents o unformatted;
+fun string_of prt =
+  let val ops = output_ops NONE
+  in implode (#escape ops (output ops prt)) end;
+
+fun writeln prt =
+  let val ops = output_ops NONE
+  in Output.writelns (#escape ops (output ops prt)) end;
+
+fun symbolic_output prt = Buffer.contents (symbolic (output_ops NONE) prt);
+
+fun symbolic_string_of prt =
+  let val ops = output_ops NONE
+  in implode (#escape ops (Buffer.contents (symbolic ops prt))) end;
+
+fun unformatted_string_of prt =
+  let val ops = output_ops NONE
+  in implode (#escape ops (Buffer.contents (unformatted ops prt))) end;
 
 
 (* chunks *)
