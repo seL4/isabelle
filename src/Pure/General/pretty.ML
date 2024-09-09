@@ -20,8 +20,9 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  val default_indent: string -> int -> Output.output
-  val add_mode: string -> (string -> int -> Output.output) -> unit
+  type ops = {indent: string -> int -> Output.output}
+  val default_ops: ops
+  val add_mode: string -> ops -> unit
   type T
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
@@ -88,19 +89,20 @@ struct
 
 (** print mode operations **)
 
-fun default_indent (_: string) = Symbol.spaces;
+type ops = {indent: string -> int -> string};
+
+val default_ops: ops = {indent = K Symbol.spaces};
 
 local
-  val default = {indent = default_indent};
-  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", default_ops)]);
 in
-  fun add_mode name indent =
+  fun add_mode name ops =
     Synchronized.change modes (fn tab =>
       (if not (Symtab.defined tab name) then ()
        else warning ("Redefining pretty mode " ^ quote name);
-       Symtab.update (name, {indent = indent}) tab));
+       Symtab.update (name, ops) tab));
   fun get_mode () =
-    the_default default
+    the_default default_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 

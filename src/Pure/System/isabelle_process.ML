@@ -24,8 +24,8 @@ val isabelle_processN = "isabelle_process";
 
 fun is_active () = Print_Mode.print_mode_active isabelle_processN;
 
-val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
-val _ = Markup.add_mode isabelle_processN YXML.output_markup;
+val _ = Output.add_mode isabelle_processN Output.default_ops;
+val _ = Markup.add_mode isabelle_processN YXML.markup_ops;
 
 val protocol_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
 val protocol_modes2 = [isabelle_processN, Pretty.symbolicN];

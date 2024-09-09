@@ -277,8 +277,9 @@ sig
   val simp_trace_ignoreN: string
   val simp_trace_cancel: serial -> Properties.T
   type output = Output.output * Output.output
+  type ops = {output: T -> output}
   val no_output: output
-  val add_mode: string -> (T -> output) -> unit
+  val add_mode: string -> ops -> unit
   val output: T -> output
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
@@ -843,19 +844,22 @@ fun simp_trace_cancel i = [function "simp_trace_cancel", (serialN, Value.print_i
 
 type output = Output.output * Output.output;
 
+type ops = {output: T -> output};
+
+val default_ops: ops = {output = Output_Primitives.markup_fn};
+
 val no_output = ("", "");
 
 local
-  val default = {output = Output_Primitives.markup_fn};
-  val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default_ops)]);
 in
-  fun add_mode name output =
+  fun add_mode name ops =
     Synchronized.change modes (fn tab =>
       (if not (Symtab.defined tab name) then ()
        else Output.warning ("Redefining markup mode " ^ quote name);
-       Symtab.update (name, {output = output}) tab));
+       Symtab.update (name, ops) tab));
   fun get_mode () =
-    the_default default
+    the_default default_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 

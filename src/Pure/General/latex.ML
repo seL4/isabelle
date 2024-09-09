@@ -253,11 +253,11 @@ fun latex_markup (s, _: Properties.T) =
 
 fun latex_escape ss = Symbol.latex :: Symbol.open_ :: ss @ [Symbol.close];
 
-val _ = Output.add_mode latexN latex_output latex_escape;
-val _ = Markup.add_mode latexN latex_markup;
+val _ = Output.add_mode latexN {output = latex_output, escape = latex_escape};
+val _ = Markup.add_mode latexN {output = latex_markup};
 
 val _ = Pretty.add_mode latexN
-  (fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s);
+  {indent = fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s};
 
 end;
 

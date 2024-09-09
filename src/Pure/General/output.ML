@@ -16,9 +16,9 @@ signature OUTPUT =
 sig
   include BASIC_OUTPUT
   type output = string
-  val default_output: string -> output * int
-  val default_escape: output list -> string list
-  val add_mode: string -> (string -> output * int) -> (output list -> string list) -> unit
+  type ops = {output: string -> output * int, escape: output list -> string list}
+  val default_ops: ops
+  val add_mode: string -> ops -> unit
   val output_width: string -> output * int
   val output: string -> output
   val escape: output list -> string list
@@ -65,18 +65,18 @@ struct
 
 type output = string;  (*raw system output*)
 
-fun default_output s = (s, size s);
-fun default_escape (ss: output list) = ss;
+type ops = {output: string -> output * int, escape: output list -> string list};
+
+val default_ops: ops = {output = fn s => (s, size s), escape = I};
 
 local
-  val default = {output = default_output, escape = default_escape};
-  val modes = Synchronized.var "Output.modes" (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Output.modes" (Symtab.make [("", default_ops)]);
 in
-  fun add_mode name output escape =
+  fun add_mode name ops =
     if Thread_Data.is_virtual then ()
-    else Synchronized.change modes (Symtab.update_new (name, {output = output, escape = escape}));
+    else Synchronized.change modes (Symtab.update_new (name, ops));
   fun get_mode () =
-    the_default default
+    the_default default_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 

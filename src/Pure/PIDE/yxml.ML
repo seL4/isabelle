@@ -29,6 +29,7 @@ sig
   val write_body: Path.T -> XML.body -> unit
   val output_markup: Markup.T -> string * string
   val output_markup_elem: Markup.T -> (string * string) * string
+  val markup_ops: Markup.ops
   val parse_body: string -> XML.body
   val parse_body_bytes: Bytes.T -> XML.body
   val parse: string -> XML.tree
@@ -98,6 +99,7 @@ fun output_markup_elem markup =
   let val [bg1, bg2, en] = space_explode Z (string_of (XML.wrap_elem ((markup, Z_text), Z_text)))
   in ((bg1, bg2), en) end;
 
+val markup_ops: Markup.ops = {output = output_markup};
 
 
 (** efficient YXML parsing **)
