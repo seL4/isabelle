@@ -14,8 +14,8 @@ sig
   val xml_elemN: string
   val xml_nameN: string
   val xml_bodyN: string
-  val wrap_elem: ((string * attributes) * tree list) * tree list -> tree
-  val unwrap_elem: tree -> (((string * attributes) * tree list) * tree list) option
+  val wrap_elem: ((string * attributes) * body) * body -> tree
+  val unwrap_elem: tree -> (((string * attributes) * body) * body) option
   val content_of: body -> string
 end
 
