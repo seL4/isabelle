@@ -424,12 +424,12 @@ val symbolic =
   in Buffer.build o out o output_tree ops false end;
 
 (*unformatted output*)
-fun unformatted ops prt =
+fun unformatted ops =
   let
     fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
       | out (Break (_, wd, _)) = output_spaces' ops wd
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build (out (output_tree ops false prt)) end;
+  in Buffer.build o out o output_tree ops false end;
 
 
 (* output interfaces *)
