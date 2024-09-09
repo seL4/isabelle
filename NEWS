@@ -83,6 +83,15 @@ unconditional, with ln_mult_pos and ln_divide_pos introduced for legacy
 purposes.
 
 
+*** ML ***
+
+* Constructors for type Pretty.T (such as Pretty.str, Pretty.mark_str,
+Pretty.markup_block) are now value-oriented. Use of the global
+print_mode is restricted to ultimate Pretty.string_of (and some
+variants), while the underlying Pretty.output operation supports an
+explicit Pretty.output_ops argument for alternative applications.
+
+
 *** System ***
 
 * The Build_Manager module has replaced previous glue-code for Jenkins
