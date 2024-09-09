@@ -94,7 +94,11 @@ val Z_text = [XML.Text Z];
 
 fun output_markup (markup as (name, atts)) =
   if Markup.is_empty markup then Markup.no_output
-  else (XY ^ name ^ implode (map (fn p => Y ^ Properties.print_eq p) atts) ^ X, XYX);
+  else
+    let
+      val bgs = XY :: name :: fold_rev (fn p => cons Y o cons (Properties.print_eq p)) atts [X];
+      val en = XYX;
+    in (implode bgs, en) end;
 
 val output_markup_only = op ^ o output_markup;
 
