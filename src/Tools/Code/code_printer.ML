@@ -158,8 +158,8 @@ fun filter_presentation [] xml =
 
 fun format presentation_names width =
   Pretty.output_buffer (Pretty.markup_output_ops (SOME width))
-  #> Buffer.content
-  #> YXML.parse_body
+  #> Bytes.buffer
+  #> YXML.parse_body_bytes
   #> filter_presentation presentation_names
   #> Buffer.add "\n"
   #> Bytes.buffer;
