@@ -257,7 +257,11 @@ val _ = Output.add_mode latexN {output = latex_output, escape = latex_escape};
 val _ = Markup.add_mode latexN {output = latex_markup};
 
 val _ = Pretty.add_mode latexN
-  {indent = fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s};
+ {markup = fn (bg, en) =>
+   (case try YXML.parse (bg ^ en) of
+     SOME (XML.Elem (m, _)) => latex_markup m
+   | _ => Markup.no_output),
+  indent = fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s};
 
 end;
 

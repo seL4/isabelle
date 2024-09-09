@@ -20,8 +20,9 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  type ops = {indent: string -> int -> Output.output}
-  val default_ops: ops
+  type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> Output.output}
+  val markup_ops: ops
+  val no_markup_ops: ops
   val add_mode: string -> ops -> unit
   val get_mode: unit -> ops
   type T
@@ -69,7 +70,7 @@ sig
   type output_ops =
    {output: string -> Output.output * int,
     escape: Output.output list -> string list,
-    markup: Markup.T -> Markup.output,
+    markup: Markup.output -> Markup.output,
     indent: string -> int -> Output.output,
     margin: int}
   val output_ops: int option -> output_ops
@@ -96,12 +97,13 @@ struct
 
 (** print mode operations **)
 
-type ops = {indent: string -> int -> string};
+type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> string};
 
-val default_ops: ops = {indent = K Symbol.spaces};
+val markup_ops : ops = {markup = I, indent = K Symbol.spaces};
+val no_markup_ops : ops = {markup = K Markup.no_output, indent = #indent markup_ops};
 
 local
-  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", default_ops)]);
+  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", no_markup_ops)]);
 in
   fun add_mode name ops =
     Synchronized.change modes (fn tab =>
@@ -109,7 +111,7 @@ in
        else warning ("Redefining pretty mode " ^ quote name);
        Symtab.update (name, ops) tab));
   fun get_mode () =
-    the_default default_ops
+    the_default no_markup_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 
@@ -146,7 +148,7 @@ fun make_block {markup = (bg, en), consistent, indent} body =
   in T (ML_Pretty.PrettyBlock (ind, consistent, context, map to_ML body)) end;
 
 fun markup_block {markup, consistent, indent} body =
-  make_block {markup = Markup.output markup, consistent = consistent, indent = indent} body;
+  make_block {markup = YXML.output_markup markup, consistent = consistent, indent = indent} body;
 
 
 
@@ -236,17 +238,23 @@ val unbreakable =
 type output_ops =
  {output: string -> Output.output * int,
   escape: Output.output list -> string list,
-  markup: Markup.T -> Markup.output,
+  markup: Markup.output -> Markup.output,
   indent: string -> int -> Output.output,
   margin: int};
 
 fun output_ops opt_margin : output_ops =
   let
     val {output, escape} = Output.get_mode ();
-    val {output = markup} = Markup.get_mode ();
-    val {indent} = get_mode ();
+    val {markup, indent} = get_mode ();
     val margin = the_default ML_Pretty.default_margin opt_margin;
   in {output = output, escape = escape, markup = markup, indent = indent, margin = margin} end;
+
+val markup_output_ops: output_ops =
+ {output = #output Output.default_ops,
+  escape = #escape Output.default_ops,
+  markup = #markup markup_ops,
+  indent = #indent markup_ops,
+  margin = ML_Pretty.default_margin};
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
@@ -328,10 +336,11 @@ fun output_tree (ops: output_ops) make_length =
           let
             val bg = property context "begin";
             val en = property context "end";
+            val m = #markup ops (bg, en);
             val indent = long_nat ind;
             val body' = map (out o T) body;
             val len = if make_length then block_length indent body' else ~1;
-          in Block ((bg, en), consistent, indent, body', len) end
+          in Block (m, consistent, indent, body', len) end
       | out (T (ML_Pretty.PrettyBreak (wd, ind))) = Break (false, long_nat wd, long_nat ind)
       | out (T ML_Pretty.PrettyLineBreak) = fbreak
       | out (T (ML_Pretty.PrettyString s)) = Str (#output ops s ||> force_nat)
@@ -394,13 +403,13 @@ fun format_tree (ops: output_ops) input =
 end;
 
 
-(* special output *)
-
 (*symbolic markup -- no formatting*)
-fun symbolic ops prt =
+val symbolic =
   let
+    val ops = markup_output_ops;
+
     fun buffer_markup m body =
-      let val (bg, en) = #markup ops m
+      let val (bg, en) = #markup ops (YXML.output_markup m)
       in Buffer.add bg #> body #> Buffer.add en end;
 
     fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
@@ -411,7 +420,7 @@ fun symbolic ops prt =
       | out (Break (false, wd, ind)) = buffer_markup (Markup.break wd ind) (output_spaces' ops wd)
       | out (Break (true, _, _)) = Buffer.add (output_newline ops)
       | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build (out (output_tree ops false prt)) end;
+  in Buffer.build o out o output_tree ops false end;
 
 (*unformatted output*)
 fun unformatted ops prt =
@@ -429,7 +438,7 @@ val symbolicN = "pretty_symbolic";
 
 fun output_buffer ops prt =
   if print_mode_active symbolicN andalso not (print_mode_active regularN)
-  then symbolic ops prt
+  then symbolic prt
   else format_tree ops prt;
 
 val output = Buffer.contents oo output_buffer;
@@ -446,11 +455,8 @@ fun writeln prt =
   let val ops = output_ops NONE
   in Output.writelns (#escape ops (output ops prt)) end;
 
-fun symbolic_output prt = Buffer.contents (symbolic (output_ops NONE) prt);
-
-fun symbolic_string_of prt =
-  let val ops = output_ops NONE
-  in implode (#escape ops (Buffer.contents (symbolic ops prt))) end;
+val symbolic_output = Buffer.contents o symbolic;
+val symbolic_string_of = implode o symbolic_output;
 
 fun unformatted_string_of prt =
   let val ops = output_ops NONE

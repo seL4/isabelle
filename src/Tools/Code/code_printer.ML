@@ -116,6 +116,7 @@ fun eqn_error thy (SOME thm) s =
 val code_presentationN = "code_presentation";
 val stmt_nameN = "stmt_name";
 val _ = Markup.add_mode code_presentationN YXML.markup_ops;
+val _ = Pretty.add_mode code_presentationN Pretty.markup_ops;
 
 
 (** assembling and printing text pieces **)
