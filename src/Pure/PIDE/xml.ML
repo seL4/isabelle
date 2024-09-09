@@ -96,8 +96,8 @@ fun enclose bg en body = string bg @ body @ string en;
 (* text content *)
 
 fun add_content tree =
-  (case unwrap_elem tree of
-    SOME (_, ts) => fold add_content ts
+  (case unwrap_elem_body tree of
+    SOME ts => fold add_content ts
   | NONE =>
       (case tree of
         Elem (_, ts) => fold add_content ts

@@ -16,6 +16,7 @@ sig
   val xml_bodyN: string
   val wrap_elem: ((string * attributes) * body) * body -> tree
   val unwrap_elem: tree -> (((string * attributes) * body) * body) option
+  val unwrap_elem_body: tree -> body option
   val content_of: body -> string
 end
 
@@ -45,14 +46,19 @@ fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', []), body1) :: body
       then SOME (((a, atts), body1), body2) else NONE
   | unwrap_elem _ = NONE;
 
+fun unwrap_elem_body (Elem ((name, (n, _) :: _), Elem ((name', []), _) :: body)) =
+      if name = xml_elemN andalso n = xml_nameN andalso name' = xml_bodyN
+      then SOME body else NONE
+  | unwrap_elem_body _ = NONE;
+
 
 (* text content *)
 
 fun add_contents [] res = res
   | add_contents (t :: ts) res = add_contents ts (add_content t res)
 and add_content tree res =
-  (case unwrap_elem tree of
-    SOME (_, ts) => add_contents ts res
+  (case unwrap_elem_body tree of
+    SOME ts => add_contents ts res
   | NONE =>
       (case tree of
         Elem (_, ts) => add_contents ts res
