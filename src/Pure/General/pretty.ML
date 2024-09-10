@@ -73,13 +73,12 @@ sig
     margin: int}
   val output_ops: int option -> output_ops
   val markup_output_ops: int option -> output_ops
-  val symbolic_output: T -> Output.output list
+  val symbolic_output: T -> Bytes.T
   val symbolic_string_of: T -> string
   val unformatted_string_of: T -> string
   val regularN: string
   val symbolicN: string
-  val output_buffer: output_ops -> T -> Buffer.T
-  val output: output_ops -> T -> Output.output list
+  val output: output_ops -> T -> Bytes.T
   val string_of_ops: output_ops -> T -> string
   val string_of: T -> string
   val writeln: T -> unit
@@ -251,6 +250,7 @@ fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
 fun output_spaces (ops: output_ops) = #output ops o Symbol.spaces;
 fun output_spaces_buffer ops = Buffer.add o #1 o output_spaces ops;
+fun output_spaces_bytes ops = Bytes.add o #1 o output_spaces ops;
 
 
 (* output tree *)
@@ -315,28 +315,28 @@ end;
 
 local
 
-type text = {tx: Buffer.T, ind: Buffer.T, pos: int, nl: int};
+type text = {tx: Bytes.T, ind: Buffer.T, pos: int, nl: int};
 
 val empty: text =
- {tx = Buffer.empty,
+ {tx = Bytes.empty,
   ind = Buffer.empty,
   pos = 0,
   nl = 0};
 
 fun newline s {tx, ind = _, pos = _, nl} : text =
- {tx = Buffer.add s tx,
+ {tx = Bytes.add s tx,
   ind = Buffer.empty,
   pos = 0,
   nl = nl + 1};
 
 fun control s {tx, ind, pos: int, nl} : text =
- {tx = Buffer.add s tx,
+ {tx = Bytes.add s tx,
   ind = ind,
   pos = pos,
   nl = nl};
 
 fun string (s, len) {tx, ind, pos: int, nl} : text =
- {tx = Buffer.add s tx,
+ {tx = Bytes.add s tx,
   ind = Buffer.add s ind,
   pos = pos + len,
   nl = nl};
@@ -369,7 +369,7 @@ fun format_tree (ops: output_ops) input =
 
     fun indentation (buf, len) {tx, ind, pos, nl} : text =
       let val s = Buffer.content buf in
-       {tx = Buffer.add (#indent ops s len) tx,
+       {tx = Bytes.add (#indent ops s len) tx,
         ind = Buffer.add s ind,
         pos = pos + len,
         nl = nl}
@@ -418,40 +418,39 @@ end;
 
 (* symbolic output: XML markup for blocks/breaks + other markup *)
 
-val symbolic =
+val symbolic_output =
   let
     val ops = markup_output_ops NONE;
 
-    fun markup_buffer m body =
+    fun markup_bytes m body =
       let val (bg, en) = #markup ops (YXML.output_markup m)
-      in Buffer.add bg #> body #> Buffer.add en end;
+      in Bytes.add bg #> body #> Bytes.add en end;
 
-    fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
+    fun out (Block ((bg, en), _, _, [], _)) = Bytes.add bg #> Bytes.add en
       | out (Block ((bg, en), consistent, indent, prts, _)) =
-          Buffer.add bg #>
-          markup_buffer (Markup.block consistent indent) (fold out prts) #>
-          Buffer.add en
+          Bytes.add bg #>
+          markup_bytes (Markup.block consistent indent) (fold out prts) #>
+          Bytes.add en
       | out (Break (false, wd, ind)) =
-          markup_buffer (Markup.break wd ind) (output_spaces_buffer ops wd)
-      | out (Break (true, _, _)) = Buffer.add (output_newline ops)
-      | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out o output_tree ops false end;
+          markup_bytes (Markup.break wd ind) (output_spaces_bytes ops wd)
+      | out (Break (true, _, _)) = Bytes.add (output_newline ops)
+      | out (Str (s, _)) = Bytes.add s;
+  in Bytes.build o out o output_tree ops false end;
 
-val symbolic_output = Buffer.contents o symbolic;
-val symbolic_string_of = implode o symbolic_output;
+val symbolic_string_of = Bytes.content o symbolic_output;
 
 
 (* unformatted output: other markup only *)
 
 fun unformatted ops =
   let
-    fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
-      | out (Break (_, wd, _)) = output_spaces_buffer ops wd
-      | out (Str (s, _)) = Buffer.add s;
-  in Buffer.build o out o output_tree ops false end;
+    fun out (Block ((bg, en), _, _, prts, _)) = Bytes.add bg #> fold out prts #> Bytes.add en
+      | out (Break (_, wd, _)) = output_spaces_bytes ops wd
+      | out (Str (s, _)) = Bytes.add s;
+  in Bytes.build o out o output_tree ops false end;
 
 fun unformatted_string_of prt =
-  Buffer.content (unformatted (output_ops NONE) prt);
+  Bytes.content (unformatted (output_ops NONE) prt);
 
 
 (* output interfaces *)
@@ -459,19 +458,16 @@ fun unformatted_string_of prt =
 val regularN = "pretty_regular";
 val symbolicN = "pretty_symbolic";
 
-fun output_buffer ops prt =
+fun output ops prt =
   if print_mode_active symbolicN andalso not (print_mode_active regularN)
-  then symbolic prt
+  then symbolic_output prt
   else format_tree ops prt;
 
-val output = Buffer.contents oo output_buffer;
-
-fun string_of_ops ops = implode o output ops;
+fun string_of_ops ops = Bytes.content o output ops;
 fun string_of prt = string_of_ops (output_ops NONE) prt;
 
 fun writeln prt =
-  let val ops = output_ops NONE
-  in Output.writelns (output ops prt) end;
+  Output.writelns (Bytes.contents (output (output_ops NONE) prt));
 
 
 (* chunks *)

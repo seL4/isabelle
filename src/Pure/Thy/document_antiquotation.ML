@@ -86,7 +86,7 @@ fun format ctxt =
   let
     val breakable = Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break;
     val ops = Latex.output_ops (SOME (Config.get ctxt thy_output_margin));
-  in not breakable ? Pretty.unbreakable #> Pretty.output ops #> implode #> Latex.escape end;
+  in not breakable ? Pretty.unbreakable #> Pretty.output ops #> Bytes.content #> Latex.escape end;
 
 fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Latex.output_;
 
