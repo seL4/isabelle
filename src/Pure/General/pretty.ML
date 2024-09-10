@@ -79,7 +79,7 @@ sig
   val symbolicN: string
   val output_buffer: output_ops -> T -> Buffer.T
   val output: output_ops -> T -> Output.output list
-  val string_of_margin: int -> T -> string
+  val string_of_ops: output_ops -> T -> string
   val string_of: T -> string
   val writeln: T -> unit
   val symbolic_output: T -> Output.output list
@@ -444,13 +444,8 @@ fun output_buffer ops prt =
 
 val output = Buffer.contents oo output_buffer;
 
-fun string_of_margin margin prt =
-  let val ops = output_ops (SOME margin)
-  in implode (#escape ops (output ops prt)) end;
-
-fun string_of prt =
-  let val ops = output_ops NONE
-  in implode (#escape ops (output ops prt)) end;
+fun string_of_ops ops = implode o #escape ops o output ops;
+fun string_of prt = string_of_ops (output_ops NONE) prt;
 
 fun writeln prt =
   let val ops = output_ops NONE

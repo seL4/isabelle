@@ -84,7 +84,7 @@ fun indent ctxt =
 
 fun format ctxt =
   if Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break
-  then Pretty.string_of_margin (Config.get ctxt thy_output_margin)
+  then Pretty.string_of_ops (Pretty.output_ops (SOME (Config.get ctxt thy_output_margin)))
   else Pretty.unformatted_string_of;
 
 fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Output.output;
