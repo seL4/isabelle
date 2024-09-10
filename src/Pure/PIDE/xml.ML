@@ -37,7 +37,7 @@ sig
   val is_empty_body: body -> bool
   val string: string -> body
   val enclose: string -> string -> body -> body
-  val add_content: tree -> Buffer.T -> Buffer.T
+  val traverse_text: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
   val trim_blanks: body -> body
   val filter_elements: {remove: string -> bool, expose: string -> bool} -> body -> body
   val header: string
@@ -93,15 +93,15 @@ fun string "" = []
 fun enclose bg en body = string bg @ body @ string en;
 
 
-(* text content *)
+(* traverse text *)
 
-fun add_content tree =
+fun traverse_text f tree =
   (case unwrap_elem_body tree of
-    SOME ts => fold add_content ts
+    SOME ts => fold (traverse_text f) ts
   | NONE =>
       (case tree of
-        Elem (_, ts) => fold add_content ts
-      | Text s => Buffer.add s));
+        Elem (_, ts) => fold (traverse_text f) ts
+      | Text s => f s));
 
 
 (* trim blanks *)
