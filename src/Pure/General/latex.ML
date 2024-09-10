@@ -29,7 +29,6 @@ sig
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
-  val latex_markup: string * Properties.T -> Markup.output
 end;
 
 structure Latex: LATEX =
@@ -236,32 +235,34 @@ val latexN = "latex";
 
 local
 
-fun latex_output str =
-  let val syms = Symbol.explode str
-  in (output_symbols syms, length_symbols syms) end;
-
 val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
 val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
 val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
 
-in
+fun latex_output str =
+  let val syms = Symbol.explode str
+  in (output_symbols syms, length_symbols syms) end;
+
+fun latex_escape ss = Symbol.latex :: Symbol.open_ :: ss @ [Symbol.close];
 
 fun latex_markup (s, _: Properties.T) =
   if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
   else if s = Markup.keyword2N then keyword_markup
   else Markup.no_output;
 
-fun latex_escape ss = Symbol.latex :: Symbol.open_ :: ss @ [Symbol.close];
+fun latex_markup_output (bg, en) =
+  (case try YXML.parse (bg ^ en) of
+    SOME (XML.Elem (m, _)) => latex_markup m
+  | _ => Markup.no_output);
+
+fun latex_indent s (_: int) =
+  if s = "" then s else uncurry enclose indent_markup s;
+
+in
 
 val _ = Output.add_mode latexN {output = latex_output, escape = latex_escape};
 val _ = Markup.add_mode latexN {output = latex_markup};
-
-val _ = Pretty.add_mode latexN
- {markup = fn (bg, en) =>
-   (case try YXML.parse (bg ^ en) of
-     SOME (XML.Elem (m, _)) => latex_markup m
-   | _ => Markup.no_output),
-  indent = fn s => fn _ => if s = "" then s else uncurry enclose indent_markup s};
+val _ = Pretty.add_mode latexN {markup = latex_markup_output, indent = latex_indent};
 
 end;
 
