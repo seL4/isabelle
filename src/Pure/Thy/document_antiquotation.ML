@@ -83,9 +83,10 @@ fun indent ctxt =
   Config.get ctxt thy_output_display ? Pretty.indent (Config.get ctxt thy_output_indent);
 
 fun format ctxt =
-  if Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break
-  then Pretty.string_of_ops (Pretty.output_ops (SOME (Config.get ctxt thy_output_margin)))
-  else Pretty.unformatted_string_of;
+  let
+    val breakable = Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break;
+    val ops = Pretty.output_ops (SOME (Config.get ctxt thy_output_margin));
+  in not breakable ? Pretty.unbreakable #> Pretty.string_of_ops ops end;
 
 fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Output.output;
 
