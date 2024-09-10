@@ -260,7 +260,7 @@ fun markup_output_ops opt_margin : output_ops =
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
 fun output_spaces (ops: output_ops) = #output ops o Symbol.spaces;
-fun output_spaces' ops = Buffer.add o #1 o output_spaces ops;
+fun output_spaces_buffer ops = Buffer.add o #1 o output_spaces ops;
 
 
 (* formatted output *)
@@ -356,7 +356,7 @@ fun format_tree (ops: output_ops) input =
 
     val linebreak = newline (output_newline ops);
     val blanks = string o output_spaces ops;
-    val blanks' = output_spaces' ops;
+    val blanks_buffer = output_spaces_buffer ops;
 
     fun indentation (buf, len) {tx, ind, pos, nl} : text =
       let val s = Buffer.content buf in
@@ -377,8 +377,8 @@ fun format_tree (ops: output_ops) input =
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
                 val block' =
-                  if pos' < emergencypos then (ind |> blanks' indent, pos')
-                  else (blanks' pos'' Buffer.empty, pos'');
+                  if pos' < emergencypos then (ind |> blanks_buffer indent, pos')
+                  else (blanks_buffer pos'' Buffer.empty, pos'');
                 val d = break_dist (es, after)
                 val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
                 val btext: text = text
@@ -409,16 +409,17 @@ val symbolic =
   let
     val ops = markup_output_ops NONE;
 
-    fun buffer_markup m body =
+    fun markup_buffer m body =
       let val (bg, en) = #markup ops (YXML.output_markup m)
       in Buffer.add bg #> body #> Buffer.add en end;
 
     fun out (Block ((bg, en), _, _, [], _)) = Buffer.add bg #> Buffer.add en
       | out (Block ((bg, en), consistent, indent, prts, _)) =
           Buffer.add bg #>
-          buffer_markup (Markup.block consistent indent) (fold out prts) #>
+          markup_buffer (Markup.block consistent indent) (fold out prts) #>
           Buffer.add en
-      | out (Break (false, wd, ind)) = buffer_markup (Markup.break wd ind) (output_spaces' ops wd)
+      | out (Break (false, wd, ind)) =
+          markup_buffer (Markup.break wd ind) (output_spaces_buffer ops wd)
       | out (Break (true, _, _)) = Buffer.add (output_newline ops)
       | out (Str (s, _)) = Buffer.add s;
   in Buffer.build o out o output_tree ops false end;
@@ -427,7 +428,7 @@ val symbolic =
 fun unformatted ops =
   let
     fun out (Block ((bg, en), _, _, prts, _)) = Buffer.add bg #> fold out prts #> Buffer.add en
-      | out (Break (_, wd, _)) = output_spaces' ops wd
+      | out (Break (_, wd, _)) = output_spaces_buffer ops wd
       | out (Str (s, _)) = Buffer.add s;
   in Buffer.build o out o output_tree ops false end;
 
