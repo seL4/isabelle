@@ -19,6 +19,7 @@ sig
   val prune: FixedInt.int -> pretty -> pretty
   val format: int -> pretty -> string
   val default_margin: int
+  val get_margin: int option -> int
   val string_of: pretty -> string
   val make_string_fn: string
 end;
@@ -69,6 +70,8 @@ fun format margin prt =
   in implode (rev (! result)) end;
 
 val default_margin = 76;
+
+val get_margin = the_default default_margin;
 
 
 (* make string *)

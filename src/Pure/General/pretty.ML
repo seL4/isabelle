@@ -247,7 +247,7 @@ fun output_ops opt_margin : output_ops =
   let
     val {output, escape} = Output.get_mode ();
     val {markup, indent} = get_mode ();
-    val margin = the_default ML_Pretty.default_margin opt_margin;
+    val margin = ML_Pretty.get_margin opt_margin;
   in {output = output, escape = escape, markup = markup, indent = indent, margin = margin} end;
 
 fun markup_output_ops opt_margin : output_ops =
@@ -255,7 +255,7 @@ fun markup_output_ops opt_margin : output_ops =
   escape = #escape Output.default_ops,
   markup = #markup markup_ops,
   indent = #indent markup_ops,
-  margin = the_default ML_Pretty.default_margin opt_margin};
+  margin = ML_Pretty.get_margin opt_margin};
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
