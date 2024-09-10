@@ -98,7 +98,7 @@ object Pretty {
   }
 
 
-  /* unformatted output */
+  /* no formatting */
 
   def unbreakable(input: XML.Body): XML.Body =
     input flatMap {
@@ -113,7 +113,7 @@ object Pretty {
     XML.content(unbreakable(input))
 
 
-  /* formatted output */
+  /* formatting */
 
   private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0) {
     def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
