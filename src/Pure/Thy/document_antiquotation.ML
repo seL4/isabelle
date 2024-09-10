@@ -85,10 +85,10 @@ fun indent ctxt =
 fun format ctxt =
   let
     val breakable = Config.get ctxt thy_output_display orelse Config.get ctxt thy_output_break;
-    val ops = Pretty.output_ops (SOME (Config.get ctxt thy_output_margin));
-  in not breakable ? Pretty.unbreakable #> Pretty.string_of_ops ops end;
+    val ops = Latex.output_ops (SOME (Config.get ctxt thy_output_margin));
+  in not breakable ? Pretty.unbreakable #> Pretty.output ops #> implode #> Latex.escape end;
 
-fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Output.output;
+fun output ctxt = delimit ctxt #> indent ctxt #> format ctxt #> Latex.output_;
 
 
 (* theory data *)

@@ -434,7 +434,7 @@ fun entity_antiquotation name check macro =
   Document_Output.antiquotation_raw name (Scan.lift Args.name_position)
     (fn ctxt => fn (name, pos) =>
       let val _ = check ctxt (name, pos)
-      in Latex.macro macro (Latex.string (Output.output name)) end);
+      in Latex.macro macro (Latex.string (Latex.output_ name)) end);
 
 val _ =
   Theory.setup

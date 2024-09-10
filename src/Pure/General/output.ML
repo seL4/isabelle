@@ -16,13 +16,12 @@ signature OUTPUT =
 sig
   include BASIC_OUTPUT
   type output = string
-  type ops = {output: string -> output * int, escape: output list -> string list}
+  type ops = {output: string -> output * int}
   val default_ops: ops
   val add_mode: string -> ops -> unit
   val get_mode: unit -> ops
   val output_width: string -> output * int
-  val output: string -> output
-  val escape: output list -> string list
+  val output_: string -> output
   val physical_stdout: output -> unit
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
@@ -66,9 +65,9 @@ struct
 
 type output = string;  (*raw system output*)
 
-type ops = {output: string -> output * int, escape: output list -> string list};
+type ops = {output: string -> output * int};
 
-val default_ops: ops = {output = fn s => (s, size s), escape = I};
+val default_ops: ops = {output = fn s => (s, size s)};
 
 local
   val modes = Synchronized.var "Output.modes" (Symtab.make [("", default_ops)]);
@@ -82,9 +81,7 @@ in
 end;
 
 fun output_width x = #output (get_mode ()) x;
-val output = #1 o output_width;
-
-fun escape x = #escape (get_mode ()) x;
+val output_ = #1 o output_width;
 
 
 
@@ -140,19 +137,19 @@ fun init_channels () =
 
 val _ = if Thread_Data.is_virtual then () else init_channels ();
 
-fun writelns ss = ! writeln_fn (map output ss);
+fun writelns ss = ! writeln_fn (map output_ ss);
 fun writeln s = writelns [s];
-fun state s = ! state_fn [output s];
-fun information s = ! information_fn [output s];
-fun tracing s = ! tracing_fn [output s];
-fun warning s = ! warning_fn [output s];
-fun legacy_feature s = ! legacy_fn [output ("Legacy feature! " ^ s)];
-fun error_message' (i, s) = ! error_message_fn (i, [output s]);
+fun state s = ! state_fn [output_ s];
+fun information s = ! information_fn [output_ s];
+fun tracing s = ! tracing_fn [output_ s];
+fun warning s = ! warning_fn [output_ s];
+fun legacy_feature s = ! legacy_fn [output_ ("Legacy feature! " ^ s)];
+fun error_message' (i, s) = ! error_message_fn (i, [output_ s]);
 fun error_message s = error_message' (serial (), s);
-fun system_message s = ! system_message_fn [output s];
-fun status ss = ! status_fn (map output ss);
-fun report ss = ! report_fn (map output ss);
-fun result props ss = ! result_fn props (map output ss);
+fun system_message s = ! system_message_fn [output_ s];
+fun status ss = ! status_fn (map output_ ss);
+fun report ss = ! report_fn (map output_ ss);
+fun result props ss = ! result_fn props (map output_ ss);
 fun protocol_message props body = ! protocol_message_fn props body;
 fun try_protocol_message props body = protocol_message props body handle Protocol_Message _ => ();
 

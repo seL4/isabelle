@@ -67,7 +67,7 @@ fun report_parse_tree redirect depth name_space parse_tree =
             val xml =
               PolyML.NameSpace.Values.printType (types, depth, SOME name_space)
               |> Pretty.from_ML |> Pretty.string_of
-              |> Output.output |> YXML.parse_body;
+              |> Output.output_ |> YXML.parse_body;
           in cons (pos, fn () => Markup.ML_typing, fn () => YXML.string_of_body xml) end
       end;
 

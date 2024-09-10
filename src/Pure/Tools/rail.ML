@@ -332,7 +332,7 @@ fun output_rules ctxt rules =
       Antiquote.Antiq #>
       Document_Antiquotation.evaluate Latex.symbols ctxt;
     fun output_text b s =
-      Latex.string (Output.output s)
+      Latex.string (Latex.output_ s)
       |> b ? Latex.macro "isakeyword"
       |> Latex.macro "isa";
 

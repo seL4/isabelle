@@ -29,6 +29,10 @@ sig
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
   val latexN: string
+  val output_: string -> Output.output
+  val output_width: string -> Output.output * int
+  val escape: Output.output -> string
+  val output_ops: int option -> Pretty.output_ops
 end;
 
 structure Latex: LATEX =
@@ -233,17 +237,22 @@ fun index_variants setup binding =
 
 val latexN = "latex";
 
+
+(* markup and formatting *)
+
+val output_ = output_symbols o Symbol.explode;
+
+fun output_width str =
+  let val syms = Symbol.explode str
+  in (output_symbols syms, length_symbols syms) end;
+
+val escape = enclose (Symbol.latex ^ Symbol.open_) Symbol.close;
+
 local
 
 val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
 val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
 val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
-
-fun latex_output str =
-  let val syms = Symbol.explode str
-  in (output_symbols syms, length_symbols syms) end;
-
-fun latex_escape ss = Symbol.latex :: Symbol.open_ :: ss @ [Symbol.close];
 
 fun latex_markup (s, _: Properties.T) =
   if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
@@ -260,9 +269,11 @@ fun latex_indent s (_: int) =
 
 in
 
-val _ = Output.add_mode latexN {output = latex_output, escape = latex_escape};
-val _ = Markup.add_mode latexN {output = latex_markup};
-val _ = Pretty.add_mode latexN {markup = latex_markup_output, indent = latex_indent};
+fun output_ops opt_margin : Pretty.output_ops =
+ {output = output_width,
+  markup = latex_markup_output,
+  indent = latex_indent,
+  margin = ML_Pretty.get_margin opt_margin};
 
 end;
 

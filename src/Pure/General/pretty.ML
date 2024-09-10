@@ -68,7 +68,6 @@ sig
   val unbreakable: T -> T
   type output_ops =
    {output: string -> Output.output * int,
-    escape: Output.output list -> string list,
     markup: Markup.output -> Markup.output,
     indent: string -> int -> Output.output,
     margin: int}
@@ -231,21 +230,19 @@ val unbreakable =
 
 type output_ops =
  {output: string -> Output.output * int,
-  escape: Output.output list -> string list,
   markup: Markup.output -> Markup.output,
   indent: string -> int -> Output.output,
   margin: int};
 
 fun output_ops opt_margin : output_ops =
   let
-    val {output, escape} = Output.get_mode ();
+    val {output} = Output.get_mode ();
     val {markup, indent} = get_mode ();
     val margin = ML_Pretty.get_margin opt_margin;
-  in {output = output, escape = escape, markup = markup, indent = indent, margin = margin} end;
+  in {output = output, markup = markup, indent = indent, margin = margin} end;
 
 fun markup_output_ops opt_margin : output_ops =
  {output = #output Output.default_ops,
-  escape = #escape Output.default_ops,
   markup = #markup markup_ops,
   indent = #indent markup_ops,
   margin = ML_Pretty.get_margin opt_margin};
@@ -454,8 +451,7 @@ fun unformatted ops =
   in Buffer.build o out o output_tree ops false end;
 
 fun unformatted_string_of prt =
-  let val ops = output_ops NONE
-  in implode (#escape ops (Buffer.contents (unformatted ops prt))) end;
+  Buffer.content (unformatted (output_ops NONE) prt);
 
 
 (* output interfaces *)
@@ -470,12 +466,12 @@ fun output_buffer ops prt =
 
 val output = Buffer.contents oo output_buffer;
 
-fun string_of_ops ops = implode o #escape ops o output ops;
+fun string_of_ops ops = implode o output ops;
 fun string_of prt = string_of_ops (output_ops NONE) prt;
 
 fun writeln prt =
   let val ops = output_ops NONE
-  in Output.writelns (#escape ops (output ops prt)) end;
+  in Output.writelns (output ops prt) end;
 
 
 (* chunks *)
