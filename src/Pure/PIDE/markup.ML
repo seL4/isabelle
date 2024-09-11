@@ -276,6 +276,8 @@ sig
   val simp_trace_hintN: string
   val simp_trace_ignoreN: string
   val simp_trace_cancel: serial -> Properties.T
+  val code_presentationN: string
+  val stmt_nameN: string
   type output = Output.output * Output.output
   type ops = {output: T -> output}
   val no_output: output
@@ -836,6 +838,12 @@ val simp_trace_hintN = "simp_trace_hint";
 val simp_trace_ignoreN = "simp_trace_ignore";
 
 fun simp_trace_cancel i = [function "simp_trace_cancel", (serialN, Value.print_int i)];
+
+
+(* code generator *)
+
+val code_presentationN = "code_presentation";
+val stmt_nameN = "stmt_name";
 
 
 

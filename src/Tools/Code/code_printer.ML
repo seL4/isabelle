@@ -113,9 +113,6 @@ fun eqn_error thy (SOME thm) s =
       error (s ^ ",\nin equation " ^ Thm.string_of_thm_global thy thm)
   | eqn_error _ NONE s = error s;
 
-val code_presentationN = "code_presentation";
-val stmt_nameN = "stmt_name";
-
 
 (** assembling and printing text pieces **)
 
@@ -136,7 +133,7 @@ fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 val indent = Pretty.indent;
 
 fun markup_stmt sym =
-  Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]);
+  Pretty.mark (Markup.code_presentationN, [(Markup.stmt_nameN, Code_Symbol.marker sym)]);
 
 fun filter_presentation [] xml =
       Bytes.build (XML.traverse_texts Bytes.add xml)
@@ -144,8 +141,8 @@ fun filter_presentation [] xml =
       let
         val presentation_idents = map Code_Symbol.marker presentation_syms
         fun is_selected (name, attrs) =
-          name = code_presentationN
-          andalso member (op =) presentation_idents (the (Properties.get attrs stmt_nameN));
+          name = Markup.code_presentationN
+          andalso member (op =) presentation_idents (the (Properties.get attrs Markup.stmt_nameN));
         fun add_content_with_space tree (is_first, buf) =
           buf
           |> not is_first ? Bytes.add "\n\n"
