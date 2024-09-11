@@ -63,23 +63,7 @@ struct
 
 open XML;
 
-val blob =
-  let
-    val limit = 8000;
-
-    val buffer = fn "" => I | s => cons s;
-    val output1 = fn "" => I | s => cons (Text s);
-    val output = fn [] => I | ss => cons (Text (implode ss));
-
-    fun make [] _ buf result = output buf result
-      | make (x :: xs) m buf result =
-          let val l = size x in
-            if l + m < limit then make xs (l + m) (buffer x buf) result
-            else if l + m = limit then make xs 0 [] (output (buffer x buf) result)
-            else if l >= limit then make xs 0 [] (output1 x (output buf result))
-            else make xs l [x] (output buf result)
-          end;
-  in fn xs => make (rev xs) 0 [] [] end
+val blob = map Text;
 
 fun is_empty (Text "") = true
   | is_empty _ = false;
