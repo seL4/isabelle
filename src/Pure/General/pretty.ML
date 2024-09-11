@@ -143,11 +143,9 @@ val long_nat = force_nat o FixedInt.toInt;
 
 (* primitives *)
 
-fun make_block {markup = (bg, en), consistent, indent} body =
+fun make_block {markup, consistent, indent} body =
   let
-    val context =
-      (if bg = "" then [] else [ML_Pretty.ContextProperty ("begin", bg)]) @
-      (if en = "" then [] else [ML_Pretty.ContextProperty ("end", en)]);
+    val context = ML_Pretty.markup_context markup;
     val ind = short_nat indent;
   in from_ML (ML_Pretty.PrettyBlock (ind, consistent, context, map to_ML body)) end;
 
@@ -278,12 +276,6 @@ fun tree_length (Block (_, _, _, _, len)) = len
 
 local
 
-fun context_property context name =
-  let
-    fun get (ML_Pretty.ContextProperty (a, b)) = if name = a then SOME b else NONE
-      | get _ = NONE;
-  in the_default "" (get_first get context) end;
-
 fun block_length indent =
   let
     fun block_len len prts =
@@ -306,13 +298,11 @@ fun output_tree (ops: output_ops) make_length =
   let
     fun out (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
           let
-            val bg = context_property context "begin";
-            val en = context_property context "end";
-            val m = #markup ops (bg, en);
+            val markup = #markup ops (ML_Pretty.context_markup context);
             val indent = long_nat ind;
             val body' = map out body;
             val len = if make_length then block_length indent body' else ~1;
-          in Block (m, consistent, indent, body', len) end
+          in Block (markup, consistent, indent, body', len) end
       | out (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
       | out ML_Pretty.PrettyLineBreak = fbreak
       | out (ML_Pretty.PrettyString s) = Str (#output ops s ||> force_nat)
