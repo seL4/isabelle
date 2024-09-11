@@ -34,4 +34,15 @@ structure Substring =
 struct
   open Substring;
   val empty = full "";
+
+local
+  val chars = Vector.tabulate (Char.maxOrd, Substring.full o String.str o Char.chr);
+in
+  fun full str =
+    (case String.size str of
+      0 => empty
+    | 1 => Vector.sub (chars, Char.ord (String.sub (str, 0)))
+    | _ => Substring.full str);
+end;
+
 end;
