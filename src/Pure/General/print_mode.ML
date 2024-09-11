@@ -24,7 +24,6 @@ sig
   val latex: string
   val setmp: string list -> ('a -> 'b) -> 'a -> 'b
   val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
-  val closure: ('a -> 'b) -> 'a -> 'b
   val add_modes: string list -> unit
 end;
 
@@ -52,7 +51,6 @@ fun print_mode_active mode = member (op =) (print_mode_value ()) mode;
 fun setmp modes f x = Thread_Data.setmp print_mode_var (SOME modes) f x;
 
 fun with_modes modes f x = setmp (modes @ print_mode_value ()) f x;
-fun closure f = with_modes [] f;
 
 fun add_modes modes = Unsynchronized.change print_mode (append modes);
 
