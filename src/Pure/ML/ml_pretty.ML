@@ -38,8 +38,8 @@ fun context_property context name =
     SOME (ContextProperty (_, b)) => b
   | _ => "");
 
-val markup_bg = "begin";
-val markup_en = "end";
+val markup_bg = "markup_bg";
+val markup_en = "markup_en";
 
 fun context_markup context =
   let
