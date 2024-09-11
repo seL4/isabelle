@@ -148,8 +148,8 @@ fun filter_presentation [] xml =
           |> not is_first ? Bytes.add "\n\n"
           |> XML.traverse_text Bytes.add tree
           |> pair false;
-        fun filter (XML.Elem (name_attrs, xs)) =
-              fold (if is_selected name_attrs then add_content_with_space else filter) xs
+        fun filter (XML.Elem (elem, body)) =
+              fold (if is_selected elem then add_content_with_space else filter) body
           | filter (XML.Text _) = I;
       in snd (fold filter xml (true, Bytes.empty)) end;
 
