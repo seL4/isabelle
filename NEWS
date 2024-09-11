@@ -93,7 +93,8 @@ explicit Pretty.output_ops argument for alternative applications.
 
 * Pretty.pure_output_ops and Pretty.pure_string_of support
 pretty-printed output without PIDE markup. This is occasionally useful
-for special tools, in contrast to regular user output.
+for special tools, in contrast to regular user output. Manipulation of
+the print_mode via (Print_Mode.setmp []) is no longer required.
 
 * The print_mode "latex" only affects inner syntax variants, while its
 impact on Output/Markup/Pretty operations has been removed. Thus the

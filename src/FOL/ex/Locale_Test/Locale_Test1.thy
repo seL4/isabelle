@@ -132,7 +132,7 @@ ML \<open>
   fun check_syntax ctxt thm expected =
     let
       val obtained =
-        Print_Mode.setmp [] (Thm.string_of_thm (Config.put show_markup false ctxt)) thm;
+        Pretty.pure_string_of (Thm.pretty_thm (Config.put show_markup false ctxt) thm);
     in
       if obtained <> expected
       then error ("Theorem syntax '" ^ obtained ^ "' obtained, but '" ^ expected ^ "' expected.")

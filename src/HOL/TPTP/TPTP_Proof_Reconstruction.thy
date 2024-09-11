@@ -421,8 +421,7 @@ fun bind_tac ctxt prob_name ordered_binds =
   let
     val thy = Proof_Context.theory_of ctxt
     fun term_to_string t =
-        Print_Mode.with_modes [""]
-          (fn () => Syntax.string_of_term ctxt t) ()
+      Pretty.pure_string_of (Syntax.pretty_term ctxt t)
     val ordered_instances =
       TPTP_Reconstruct.interpret_bindings prob_name thy ordered_binds []
       |> map (snd #> term_to_string)
