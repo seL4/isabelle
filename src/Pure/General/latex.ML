@@ -270,7 +270,8 @@ fun latex_indent s (_: int) =
 in
 
 fun output_ops opt_margin : Pretty.output_ops =
- {output = output_width,
+ {symbolic = false,
+  output = output_width,
   markup = latex_markup_output,
   indent = latex_indent,
   margin = ML_Pretty.get_margin opt_margin};
