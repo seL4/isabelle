@@ -92,22 +92,12 @@ variants), while the underlying Pretty.output operation supports an
 explicit Pretty.output_ops argument for alternative applications.
 
 * The print_mode "latex" only affects inner syntax variants, while its
-impact on Output/Markup/Pretty operations has been removed. Instead,
-there are explicit operations Latex.output_, Latex.escape, and
-Latex.output_ops. Output.output has been renamed to Output.output_ to
-indicate statically where Isabelle/ML implementations may have to be
-changed. Rare INCOMPATIBILITY for ambitious document antiquotations that
-generate LaTeX source on their own account, instead of using regular
-Pretty.T interfaces. The following operations need to be adjusted as
-follows:
-
-  Output.output
-    becomes Output.output_ or Latex.output_
-  Output.escape
-    is omitted or becomes Latex.escape
-  Pretty.string_of with implicit "latex" print_mode
-    becomes Pretty.string_of_ops with explicit Latex.output_ops
-
+impact on Output/Markup/Pretty operations has been removed. Thus the
+print_mode operations Output.output and Output.escape have become
+obsolete: superseded by Latex.output_ and Latex.escape specifically for
+LaTeX. Rare INCOMPATIBILITY for ambitious document antiquotations that
+generate Latex source on their own account, instead of using regular
+Pretty.T interfaces (that are based on Latex.output_ops internally).
 Note that basic Markup.markup cannot be used for Latex output: proper
 Pretty.T operations are required (e.g. Pretty.mark_str).
 

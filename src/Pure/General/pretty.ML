@@ -20,7 +20,7 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> Output.output}
+  type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> Output.output};
   val markup_ops: ops
   val no_markup_ops: ops
   val add_mode: string -> ops -> unit
@@ -71,6 +71,7 @@ sig
     markup: Markup.output -> Markup.output,
     indent: string -> int -> Output.output,
     margin: int}
+  val output_width: string -> Output.output * int
   val output_ops: int option -> output_ops
   val markup_output_ops: int option -> output_ops
   val symbolic_output: T -> Bytes.T
@@ -233,15 +234,16 @@ type output_ops =
   indent: string -> int -> Output.output,
   margin: int};
 
+fun output_width s = (s, size s);
+
 fun output_ops opt_margin : output_ops =
   let
-    val {output} = Output.get_mode ();
     val {markup, indent} = get_mode ();
     val margin = ML_Pretty.get_margin opt_margin;
-  in {output = output, markup = markup, indent = indent, margin = margin} end;
+  in {output = output_width, markup = markup, indent = indent, margin = margin} end;
 
 fun markup_output_ops opt_margin : output_ops =
- {output = #output Output.default_ops,
+ {output = output_width,
   markup = #markup markup_ops,
   indent = #indent markup_ops,
   margin = ML_Pretty.get_margin opt_margin};
