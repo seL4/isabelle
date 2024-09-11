@@ -16,9 +16,7 @@ Markup <elem att="val" ...>...body...</elem> is encoded as:
 
 signature YXML =
 sig
-  val X: Symbol.symbol
-  val Y: Symbol.symbol
-  val detect: string -> bool
+  include YXML
   val traverse: (string -> 'a -> 'a) -> XML.tree -> 'a -> 'a
   val tree_size: XML.tree -> int
   val body_size: XML.body -> int
@@ -27,7 +25,6 @@ sig
   val bytes_of_body: XML.body -> Bytes.T
   val bytes_of: XML.tree -> Bytes.T
   val write_body: Path.T -> XML.body -> unit
-  val output_markup: Markup.T -> string * string
   val output_markup_only: Markup.T -> string
   val output_markup_elem: Markup.T -> (string * string) * string
   val markup_ops: Markup.ops
@@ -41,20 +38,10 @@ end;
 structure YXML: YXML =
 struct
 
+open YXML;
+
+
 (** string representation **)
-
-(* markers *)
-
-val X_char = Char.chr 5;
-val Y_char = Char.chr 6;
-
-val X = String.str X_char;
-val Y = String.str Y_char;
-val XY = X ^ Y;
-val XYX = XY ^ X;
-
-fun detect s = Char.contains s X_char orelse Char.contains s Y_char;
-
 
 (* traverse *)
 
@@ -92,14 +79,6 @@ fun write_body path body =
 val Z = chr 0;
 val Z_text = [XML.Text Z];
 
-fun output_markup (markup as (name, atts)) =
-  if Markup.is_empty markup then Markup.no_output
-  else
-    let
-      val bgs = XY :: name :: fold_rev (fn p => cons Y o cons (Properties.print_eq p)) atts [X];
-      val en = XYX;
-    in (implode bgs, en) end;
-
 val output_markup_only = op ^ o output_markup;
 
 fun output_markup_elem markup =
@@ -107,6 +86,7 @@ fun output_markup_elem markup =
   in ((bg1, bg2), en) end;
 
 val markup_ops: Markup.ops = {output = output_markup};
+
 
 
 (** efficient YXML parsing **)
