@@ -21,6 +21,7 @@ sig
   val internal: string
   val ASCII: string
   val PIDE: string
+  val latex: string
   val setmp: string list -> ('a -> 'b) -> 'a -> 'b
   val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
   val closure: ('a -> 'b) -> 'a -> 'b
@@ -34,6 +35,7 @@ val input = "input";
 val internal = "internal";
 val ASCII = "ASCII";
 val PIDE = "PIDE";
+val latex = "latex";
 
 val print_mode = Unsynchronized.ref ([]: string list);
 val print_mode_var = Thread_Data.var () : string list Thread_Data.var;

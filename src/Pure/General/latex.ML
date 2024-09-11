@@ -28,7 +28,6 @@ sig
   type index_entry = {items: index_item list, def: bool}
   val index_entry: index_entry -> text
   val index_variants: (binding -> bool option -> 'a -> 'a) -> binding -> 'a -> 'a
-  val latexN: string
   val output_: string -> Output.output
   val output_width: string -> Output.output * int
   val escape: Output.output -> string
@@ -231,11 +230,6 @@ fun index_binding NONE = I
 
 fun index_variants setup binding =
   fold (fn index => setup (index_binding index binding) index) [NONE, SOME true, SOME false];
-
-
-(* print mode *)
-
-val latexN = "latex";
 
 
 (* markup and formatting *)

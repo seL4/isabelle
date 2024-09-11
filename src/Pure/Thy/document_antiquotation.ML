@@ -182,7 +182,8 @@ fun eval ctxt pos (opts, src) =
     val _ = command pos (opts, src) preview_ctxt;
 
     val print_ctxt = Context_Position.set_visible false preview_ctxt;
-    val print_modes = space_explode "," (Config.get print_ctxt thy_output_modes) @ [Latex.latexN];
+    val print_modes =
+      space_explode "," (Config.get print_ctxt thy_output_modes) @ [Print_Mode.latex];
   in Print_Mode.with_modes print_modes (fn () => command pos (opts, src) print_ctxt) () end;
 
 in
