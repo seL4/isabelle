@@ -6,7 +6,6 @@ Isabelle process wrapper.
 
 signature ISABELLE_PROCESS =
 sig
-  val is_active: unit -> bool
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
   val init_options: unit -> unit
@@ -18,17 +17,10 @@ end;
 structure Isabelle_Process: ISABELLE_PROCESS =
 struct
 
-(* print mode *)
-
-val isabelle_processN = "isabelle_process";
-
-fun is_active () = Print_Mode.print_mode_active isabelle_processN;
-
-val _ = Markup.add_mode isabelle_processN YXML.markup_ops;
-val _ = Pretty.add_mode isabelle_processN Pretty.symbolic_ops;
+(* print modes *)
 
 val protocol_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
-val protocol_modes2 = [isabelle_processN];
+val protocol_modes2 = [Print_Mode.PIDE];
 
 
 (* restricted tracing messages *)

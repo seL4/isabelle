@@ -20,15 +20,6 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  type ops =
-   {symbolic: bool,
-    markup: Markup.output -> Markup.output,
-    indent: string -> int -> Output.output};
-  val pure_ops: ops
-  val markup_ops: ops
-  val symbolic_ops: ops
-  val add_mode: string -> ops -> unit
-  val get_mode: unit -> ops
   type T
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
@@ -97,34 +88,6 @@ end;
 
 structure Pretty: PRETTY =
 struct
-
-(** print mode operations **)
-
-type ops =
- {symbolic: bool,
-  markup: Markup.output -> Markup.output,
-  indent: string -> int -> string};
-
-fun default_indent (_: string) = Symbol.spaces;
-
-val pure_ops: ops = {symbolic = false, markup = K Markup.no_output, indent = default_indent};
-val markup_ops: ops = {symbolic = false, markup = I, indent = default_indent};
-val symbolic_ops: ops = {symbolic = true, markup = I, indent = default_indent};
-
-local
-  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", pure_ops)]);
-in
-  fun add_mode name ops =
-    Synchronized.change modes (fn tab =>
-      (if not (Symtab.defined tab name) then ()
-       else warning ("Redefining pretty mode " ^ quote name);
-       Symtab.update (name, ops) tab));
-  fun get_mode () =
-    the_default pure_ops
-      (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
-end;
-
-
 
 (** Pretty.T **)
 
@@ -234,7 +197,7 @@ val unbreakable =
 
 (** formatting **)
 
-(* output operations: default via print_mode *)
+(* output operations *)
 
 type output_ops =
  {symbolic: bool,
@@ -243,17 +206,21 @@ type output_ops =
   indent: string -> int -> Output.output,
   margin: int};
 
-fun make_output_ops ({symbolic, markup, indent}: ops) opt_margin : output_ops =
+fun make_output_ops {symbolic, markup} opt_margin : output_ops =
  {symbolic = symbolic,
   output = fn s => (s, size s),
   markup = markup,
-  indent = indent,
+  indent = fn _ => Symbol.spaces,
   margin = ML_Pretty.get_margin opt_margin};
 
-fun output_ops opt_margin = make_output_ops (get_mode ()) opt_margin;
-val pure_output_ops = make_output_ops pure_ops;
-val markup_output_ops = make_output_ops markup_ops;
-val symbolic_output_ops = make_output_ops symbolic_ops NONE;
+val pure_output_ops = make_output_ops {symbolic = false, markup = K Markup.no_output};
+val markup_output_ops = make_output_ops {symbolic = false, markup = I};
+val symbolic_output_ops = make_output_ops {symbolic = true, markup = I} NONE;
+
+(*default via print_mode*)
+fun output_ops opt_margin =
+  if print_mode_active Print_Mode.PIDE then symbolic_output_ops
+  else pure_output_ops opt_margin;
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 

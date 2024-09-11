@@ -279,10 +279,7 @@ sig
   val code_presentationN: string
   val stmt_nameN: string
   type output = Output.output * Output.output
-  type ops = {output: T -> output}
   val no_output: output
-  val add_mode: string -> ops -> unit
-  val get_mode: unit -> ops
   val output: T -> output
   val markup: T -> string -> string
   val markups: T list -> string -> string
@@ -847,30 +844,15 @@ val stmt_nameN = "stmt_name";
 
 
 
-(** print mode operations **)
+(** output depending on print_mode **)
 
 type output = Output.output * Output.output;
 
-type ops = {output: T -> output};
-
-val default_ops: ops = {output = Output_Primitives.markup_fn};
-
 val no_output = ("", "");
 
-local
-  val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default_ops)]);
-in
-  fun add_mode name ops =
-    Synchronized.change modes (fn tab =>
-      (if not (Symtab.defined tab name) then ()
-       else Output.warning ("Redefining markup mode " ^ quote name);
-       Symtab.update (name, ops) tab));
-  fun get_mode () =
-    the_default default_ops
-      (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
-end;
-
-fun output m = if is_empty m then no_output else #output (get_mode ()) m;
+fun output m =
+  if not (is_empty m) andalso print_mode_active Print_Mode.PIDE
+  then YXML.output_markup m else no_output;
 
 fun markup m = output m |-> Library.enclose;
 

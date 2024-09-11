@@ -18,8 +18,9 @@ signature PRINT_MODE =
 sig
   include BASIC_PRINT_MODE
   val input: string
-  val ASCII: string
   val internal: string
+  val ASCII: string
+  val PIDE: string
   val setmp: string list -> ('a -> 'b) -> 'a -> 'b
   val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
   val closure: ('a -> 'b) -> 'a -> 'b
@@ -30,8 +31,9 @@ structure Print_Mode: PRINT_MODE =
 struct
 
 val input = "input";
-val ASCII = "ASCII";
 val internal = "internal";
+val ASCII = "ASCII";
+val PIDE = "PIDE";
 
 val print_mode = Unsynchronized.ref ([]: string list);
 val print_mode_var = Thread_Data.var () : string list Thread_Data.var;
