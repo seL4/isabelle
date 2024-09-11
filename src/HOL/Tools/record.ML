@@ -46,10 +46,8 @@ sig
   val split_tac: Proof.context -> int -> tactic
   val split_simp_tac: Proof.context -> thm list -> (term -> int) -> int -> tactic
   val split_wrapper: string * (Proof.context -> wrapper)
-
-  val pretty_recT: Proof.context -> typ -> Pretty.T
-  val string_of_record: Proof.context -> string -> string
-
+  val pretty_record: Proof.context -> typ -> Pretty.T
+  val pretty_record_cmd: Proof.context -> string -> Pretty.T
   val codegen: bool Config.T
   val sort_updates: bool Config.T
   val updateN: string
@@ -2378,52 +2376,44 @@ end;
 
 local
 
-fun the_parent_recT (Type (parent, [Type (_, [unit as Type (_,[])])])) = Type (parent, [unit])
-  | the_parent_recT (Type (extT, [T])) = Type (extT, [the_parent_recT T])
-  | the_parent_recT T = raise TYPE ("Not a unit record scheme with parent: ", [T], [])
+fun the_parent_record (Type (parent, [Type (_, [unit as Type (_,[])])])) = Type (parent, [unit])
+  | the_parent_record (Type (extT, [T])) = Type (extT, [the_parent_record T])
+  | the_parent_record T = raise TYPE ("Not a unit record scheme with parent: ", [T], [])
 
 in
 
-fun pretty_recT ctxt typ =
+fun pretty_record ctxt typ =
   let
     val thy = Proof_Context.theory_of ctxt
     val (fs, (_, moreT)) = get_recT_fields thy typ
-    val _ = if moreT = HOLogic.unitT then () else raise TYPE ("Not a unit record scheme: ", [typ], [])
-    val parent = if length (dest_recTs typ) >= 2 then SOME (the_parent_recT typ) else NONE
+    val _ =
+      if moreT = HOLogic.unitT then ()
+      else raise TYPE ("Not a unit record scheme: ", [typ], [])
+    val parent = if length (dest_recTs typ) >= 2 then SOME (the_parent_record typ) else NONE
     val pfs = case parent of SOME p => fst (get_recT_fields thy p) | NONE => []
     val fs' = drop (length pfs) fs
-    fun pretty_field (name, typ) = Pretty.block [
-          Syntax.pretty_term ctxt (Const (name, typ)),
-          Pretty.brk 1,
-          Pretty.str "::",
-          Pretty.brk 1,
-          Syntax.pretty_typ ctxt typ
-        ]
+    fun pretty_field (name, typ) =
+      Pretty.block [
+        Syntax.pretty_term ctxt (Const (name, typ)),
+        Pretty.brk 1, Pretty.str "::", Pretty.brk 1,
+        Syntax.pretty_typ ctxt typ]
   in
-    Pretty.block (Library.separate (Pretty.brk 1)
+    Pretty.block (Pretty.breaks
       ([Pretty.keyword1 "record", Syntax.pretty_typ ctxt typ, Pretty.str "="] @
         (case parent of
           SOME p => [Syntax.pretty_typ ctxt p, Pretty.str "+"]
         | NONE => [])) @
       Pretty.fbrk ::
       Pretty.fbreaks (map pretty_field fs'))
-  end
+  end;
 
 end
 
-fun string_of_record ctxt s =
-  let
-    val T = Syntax.read_typ ctxt s
-  in
-    Pretty.string_of (pretty_recT ctxt T)
-      handle TYPE _ => error ("Unknown record: " ^ Syntax.string_of_typ ctxt T)
-  end
-
-val print_record =
-  let
-    fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
-         Print_Mode.with_modes modes (fn () => Output.writeln (string_of state arg)) ());
-  in print_item (string_of_record o Toplevel.context_of) end
+fun pretty_record_cmd ctxt s =
+  let val T = Syntax.read_typ ctxt s in
+    pretty_record ctxt T handle TYPE _ =>
+      error ("Unknown record type: " ^ Syntax.string_of_typ ctxt T)
+  end;
 
 
 (* outer syntax *)
@@ -2441,6 +2431,11 @@ val opt_modes =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_record\<close> "print record definiton"
-    (opt_modes -- Parse.typ >> print_record);
+    (opt_modes -- Parse.typ >> (fn (modes, arg) =>
+      Toplevel.keep (fn state =>
+        let val ctxt = Toplevel.context_of state in
+          Print_Mode.with_modes modes (fn () =>
+            Pretty.writeln (pretty_record_cmd ctxt arg)) ()
+        end)));
 
 end

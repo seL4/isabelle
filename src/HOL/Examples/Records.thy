@@ -374,7 +374,7 @@ record ('a, 'b, 'c) bar = bar1 :: 'a
   bar32 :: "'c \<times> 'b"
   bar31 :: "'c \<times> 'a"
 
-print_record "('a,'b,'c) bar"
+print_record "('a, 'b, 'c) bar"
 
 
 subsection \<open>Some code generation\<close>
