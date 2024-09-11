@@ -1,7 +1,7 @@
-(*  Title:      Pure/PIDE/xml_type.ML
+(*  Title:      Pure/PIDE/xml0.ML
     Author:     Makarius
 
-Untyped XML trees: minimal type definitions.
+Untyped XML trees (bootstrap).
 *)
 
 signature XML =

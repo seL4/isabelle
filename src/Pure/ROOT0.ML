@@ -2,8 +2,9 @@
 
 ML_file "ML/ml_statistics.ML";
 
+ML_file "PIDE/xml0.ML";
+
 ML_file "General/exn.ML";
-ML_file "PIDE/xml_type.ML";
 ML_file "General/output_primitives.ML";
 
 ML_file "Concurrent/thread_attributes.ML";
