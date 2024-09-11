@@ -20,9 +20,11 @@ a unit for breaking).
 
 signature PRETTY =
 sig
-  type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> Output.output};
+  type ops =
+   {markup: Markup.output -> Markup.output,
+    indent: string -> int -> Output.output};
+  val pure_ops: ops
   val markup_ops: ops
-  val no_markup_ops: ops
   val add_mode: string -> ops -> unit
   val get_mode: unit -> ops
   type T
@@ -71,8 +73,8 @@ sig
     markup: Markup.output -> Markup.output,
     indent: string -> int -> Output.output,
     margin: int}
-  val output_width: string -> Output.output * int
   val output_ops: int option -> output_ops
+  val pure_output_ops: int option -> output_ops
   val markup_output_ops: int option -> output_ops
   val symbolic_output: T -> Bytes.T
   val symbolic_string_of: T -> string
@@ -96,13 +98,17 @@ struct
 
 (** print mode operations **)
 
-type ops = {markup: Markup.output -> Markup.output, indent: string -> int -> string};
+type ops =
+ {markup: Markup.output -> Markup.output,
+  indent: string -> int -> string};
 
-val markup_ops: ops = {markup = I, indent = K Symbol.spaces};
-val no_markup_ops: ops = {markup = K Markup.no_output, indent = #indent markup_ops};
+fun default_indent (_: string) = Symbol.spaces;
+
+val pure_ops: ops = {markup = K Markup.no_output, indent = default_indent};
+val markup_ops: ops = {markup = I, indent = default_indent};
 
 local
-  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", no_markup_ops)]);
+  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", pure_ops)]);
 in
   fun add_mode name ops =
     Synchronized.change modes (fn tab =>
@@ -110,7 +116,7 @@ in
        else warning ("Redefining pretty mode " ^ quote name);
        Symtab.update (name, ops) tab));
   fun get_mode () =
-    the_default no_markup_ops
+    the_default pure_ops
       (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 
@@ -234,19 +240,15 @@ type output_ops =
   indent: string -> int -> Output.output,
   margin: int};
 
-fun output_width s = (s, size s);
-
-fun output_ops opt_margin : output_ops =
-  let
-    val {markup, indent} = get_mode ();
-    val margin = ML_Pretty.get_margin opt_margin;
-  in {output = output_width, markup = markup, indent = indent, margin = margin} end;
-
-fun markup_output_ops opt_margin : output_ops =
- {output = output_width,
-  markup = #markup markup_ops,
-  indent = #indent markup_ops,
+fun make_output_ops ({markup, indent}: ops) opt_margin : output_ops =
+ {output = fn s => (s, size s),
+  markup = markup,
+  indent = indent,
   margin = ML_Pretty.get_margin opt_margin};
+
+fun output_ops opt_margin = make_output_ops (get_mode ()) opt_margin;
+val pure_output_ops = make_output_ops pure_ops;
+val markup_output_ops = make_output_ops markup_ops;
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
