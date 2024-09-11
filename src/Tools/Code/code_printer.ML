@@ -138,10 +138,8 @@ val indent = Pretty.indent;
 fun markup_stmt sym =
   Pretty.mark (code_presentationN, [(stmt_nameN, Code_Symbol.marker sym)]);
 
-val add_text = XML.traverse_text Bytes.add;
-
 fun filter_presentation [] xml =
-      Bytes.build (fold add_text xml)
+      Bytes.build (XML.traverse_texts Bytes.add xml)
   | filter_presentation presentation_syms xml =
       let
         val presentation_idents = map Code_Symbol.marker presentation_syms
@@ -151,7 +149,7 @@ fun filter_presentation [] xml =
         fun add_content_with_space tree (is_first, buf) =
           buf
           |> not is_first ? Bytes.add "\n\n"
-          |> add_text tree
+          |> XML.traverse_text Bytes.add tree
           |> pair false;
         fun filter (XML.Elem (name_attrs, xs)) =
               fold (if is_selected name_attrs then add_content_with_space else filter) xs

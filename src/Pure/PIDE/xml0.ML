@@ -17,6 +17,8 @@ sig
   val wrap_elem: ((string * attributes) * body) * body -> tree
   val unwrap_elem: tree -> (((string * attributes) * body) * body) option
   val unwrap_elem_body: tree -> body option
+  val traverse_text: (string -> 'a -> 'a) -> tree -> 'a -> 'a
+  val traverse_texts: (string -> 'a -> 'a) -> body -> 'a -> 'a
   val content_of: body -> string
 end
 
@@ -52,19 +54,19 @@ fun unwrap_elem_body (Elem ((name, (n, _) :: _), Elem ((name', []), _) :: body))
   | unwrap_elem_body _ = NONE;
 
 
-(* text content *)
+(* traverse text content *)
 
-fun add_contents [] res = res
-  | add_contents (t :: ts) res = add_contents ts (add_content t res)
-and add_content tree res =
+fun traverse_text f tree =
   (case unwrap_elem_body tree of
-    SOME ts => add_contents ts res
+    SOME ts => traverse_texts f ts
   | NONE =>
       (case tree of
-        Elem (_, ts) => add_contents ts res
-      | Text s => s :: res));
+        Elem (_, ts) => traverse_texts f ts
+      | Text s => f s))
+and traverse_texts _ [] res = res
+  | traverse_texts f (t :: ts) res = traverse_texts f ts (traverse_text f t res);
 
 fun content_of body =
-  String.concat (rev (add_contents body []));
+  String.concat (rev (traverse_texts (fn x => fn xs => x :: xs) body []));
 
 end;
