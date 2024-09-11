@@ -91,6 +91,10 @@ print_mode is restricted to ultimate Pretty.string_of (and some
 variants), while the underlying Pretty.output operation supports an
 explicit Pretty.output_ops argument for alternative applications.
 
+* Pretty.pure_output_ops and Pretty.pure_string_of support
+pretty-printed output without PIDE markup. This is occasionally useful
+for special tools, in contrast to regular user output.
+
 * The print_mode "latex" only affects inner syntax variants, while its
 impact on Output/Markup/Pretty operations has been removed. Thus the
 print_mode operations Output.output and Output.escape have become

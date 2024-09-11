@@ -77,6 +77,7 @@ sig
   val output: output_ops -> T -> Bytes.T
   val string_of_ops: output_ops -> T -> string
   val string_of: T -> string
+  val pure_string_of: T -> string
   val writeln: T -> unit
   val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
@@ -427,6 +428,8 @@ fun output ops = if #symbolic ops then symbolic_output else format_tree ops;
 
 fun string_of_ops ops = Bytes.content o output ops;
 fun string_of prt = string_of_ops (output_ops NONE) prt;
+
+val pure_string_of = string_of_ops (pure_output_ops NONE);
 
 fun writeln prt =
   Output.writelns (Bytes.contents (output (output_ops NONE) prt));
