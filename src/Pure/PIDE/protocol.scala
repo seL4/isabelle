@@ -189,8 +189,8 @@ object Protocol {
     val text1 = if (heading) "\n" + message_heading(elem, pos) + ":\n" else ""
 
     val body =
-      Pretty.string_of(Protocol_Message.expose_no_reports(List(elem)),
-        margin = margin, breakgain = breakgain, metric = metric)
+      Pretty.string_of(List(elem), margin = margin, breakgain = breakgain,
+        metric = metric, pure = true)
 
     val text2 =
       if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(body)

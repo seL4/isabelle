@@ -233,8 +233,7 @@ object Build_Job {
                     }
                     val errors =
                       for (err <- errs) yield {
-                        val prt = Protocol_Message.expose_no_reports(err)
-                        Pretty.string_of(prt, metric = Symbol.Metric)
+                        Pretty.string_of(err, metric = Symbol.Metric, pure = true)
                       }
                     (rc, errors)
                   }

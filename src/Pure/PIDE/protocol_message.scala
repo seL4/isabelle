@@ -43,9 +43,6 @@ object Protocol_Message {
   def clean_reports(body: XML.Body): XML.Body =
     XML.filter_elements(body, remove = any_report_elements)
 
-  def expose_no_reports(body: XML.Body): XML.Body =
-    XML.filter_elements(body, expose = no_report_elements)
-
   def reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
       case XML.Wrapped_Elem(Markup(Markup.REPORT, ps), body, ts) =>
