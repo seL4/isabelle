@@ -220,7 +220,7 @@ val symbolic_output_ops = make_output_ops {symbolic = true, markup = I} NONE;
 
 (*default via print_mode*)
 fun output_ops opt_margin =
-  if print_mode_active Print_Mode.PIDE then symbolic_output_ops
+  if Print_Mode.PIDE_enabled () then symbolic_output_ops
   else pure_output_ops opt_margin;
 
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");

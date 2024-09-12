@@ -25,6 +25,7 @@ sig
   val setmp: string list -> ('a -> 'b) -> 'a -> 'b
   val with_modes: string list -> ('a -> 'b) -> 'a -> 'b
   val add_modes: string list -> unit
+  val PIDE_enabled: unit -> bool
 end;
 
 structure Print_Mode: PRINT_MODE =
@@ -53,6 +54,8 @@ fun setmp modes f x = Thread_Data.setmp print_mode_var (SOME modes) f x;
 fun with_modes modes f x = setmp (modes @ print_mode_value ()) f x;
 
 fun add_modes modes = Unsynchronized.change print_mode (append modes);
+
+fun PIDE_enabled () = print_mode_active PIDE;
 
 end;
 

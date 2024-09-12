@@ -851,7 +851,7 @@ type output = Output.output * Output.output;
 val no_output = ("", "");
 
 fun output m =
-  if not (is_empty m) andalso print_mode_active Print_Mode.PIDE
+  if not (is_empty m) andalso Print_Mode.PIDE_enabled ()
   then YXML.output_markup m else no_output;
 
 fun markup m = output m |-> Library.enclose;
