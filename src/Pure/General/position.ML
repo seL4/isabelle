@@ -43,8 +43,8 @@ sig
   val def_properties_of: T -> Properties.T
   val entity_markup: string -> string * T -> Markup.T
   val make_entity_markup: {def: bool} -> serial -> string -> string * T -> Markup.T
-  val markup: T -> Markup.T -> Markup.T
-  val markup_position: T -> Markup.T
+  val markup_properties: T -> Markup.T -> Markup.T
+  val markup: T -> Markup.T
   val is_reported: T -> bool
   val is_reported_range: T -> bool
   val reported_text: T -> Markup.T -> string -> string
@@ -242,8 +242,8 @@ fun make_entity_markup {def} serial kind (name, pos) =
       else (Markup.refN, Value.print_int serial) :: def_properties_of pos;
   in Markup.entity kind name |> Markup.properties props end;
 
-val markup = Markup.properties o properties_of;
-fun markup_position pos = markup pos Markup.position;
+val markup_properties = Markup.properties o properties_of;
+fun markup pos = markup_properties pos Markup.position;
 
 
 (* reports *)
@@ -252,7 +252,7 @@ fun is_reported pos = is_some (offset_of pos) andalso is_some (id_of pos);
 fun is_reported_range pos = is_reported pos andalso is_some (end_offset_of pos);
 
 fun reported_text pos m txt =
-  if is_reported pos then Markup.markup (markup pos m) txt else "";
+  if is_reported pos then Markup.markup (markup_properties pos m) txt else "";
 
 fun report_text pos markup txt =
   if Print_Mode.PIDE_enabled () then Output.report [reported_text pos markup txt] else ();
@@ -265,7 +265,7 @@ type report_text = report * string;
 fun reports_text args =
   if Print_Mode.PIDE_enabled () then
     Output.report (args |> map (fn ((pos, m), txt) =>
-      if is_reported pos then Markup.markup (markup pos m) txt else ""))
+      if is_reported pos then Markup.markup (markup_properties pos m) txt else ""))
   else ();
 
 val reports = map (rpair "") #> reports_text;
@@ -290,7 +290,7 @@ fun here_strs pos =
 
 fun here pos =
   let val (s1, s2) = here_strs pos
-  in if s2 = "" then "" else s1 ^ Markup.markup (markup_position pos) s2 end;
+  in if s2 = "" then "" else s1 ^ Markup.markup (markup pos) s2 end;
 
 val here_list = map here #> distinct (op =) #> implode;
 

@@ -61,7 +61,7 @@ fun encode completion =
 fun markup_element completion =
   let val {pos, names, ...} = dest completion in
     if Position.is_reported pos andalso not (null names) then
-      SOME (Position.markup pos Markup.completion, encode completion)
+      SOME (Position.markup_properties pos Markup.completion, encode completion)
     else NONE
   end;
 

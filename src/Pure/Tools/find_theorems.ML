@@ -481,7 +481,7 @@ fun pretty_theorems state opt_limit rem_dups raw_criteria =
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
-    val position_markup = Position.markup_position (Position.thread_data ());
+    val position_markup = Position.markup (Position.thread_data ());
   in
     Pretty.block
       (Pretty.fbreaks

@@ -115,7 +115,7 @@ fun pretty_consts ctxt raw_criteria =
       |> sort (prod_ord (rev_order o int_ord) (string_ord o apply2 fst))
       |> map (apsnd fst o snd);
 
-    val position_markup = Position.markup_position (Position.thread_data ());
+    val position_markup = Position.markup (Position.thread_data ());
   in
     Pretty.block
       (Pretty.fbreaks

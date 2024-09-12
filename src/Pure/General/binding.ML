@@ -172,7 +172,7 @@ val concealed =
 fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
   if name = "" then Pretty.str "\"\""
   else
-    Pretty.markup (Position.markup pos Markup.binding)
+    Pretty.markup (Position.markup_properties pos Markup.binding)
       [Pretty.str (Long_Name.implode (map #1 (prefix @ qualifier) @ [name]))]
     |> Pretty.quote;
 

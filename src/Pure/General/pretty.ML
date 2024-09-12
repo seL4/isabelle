@@ -145,8 +145,8 @@ fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
 
-val mark_position = mark o Position.markup_position;
-fun mark_str_position (pos, s) = mark_str (Position.markup_position pos, s);
+val mark_position = mark o Position.markup;
+fun mark_str_position (pos, s) = mark_str (Position.markup pos, s);
 
 val item = markup Markup.item;
 val text_fold = markup Markup.text_fold;

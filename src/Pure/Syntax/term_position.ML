@@ -29,7 +29,7 @@ val position_text = XML.Text position_dummy;
 fun pretty pos = Pretty.mark_str_position (pos, position_dummy);
 
 fun encode pos =
-  YXML.string_of (XML.Elem (Position.markup_position pos, [position_text]));
+  YXML.string_of (XML.Elem (Position.markup pos, [position_text]));
 
 fun decode str =
   (case YXML.parse_body str handle Fail msg => error msg of
