@@ -293,8 +293,6 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 (* results *)
 
-fun position_markup pos = Pretty.mark (Position.markup pos Markup.position);
-
 val interactive =
   Config.declare_bool ("interactive", \<^here>) (K false);
 
@@ -308,9 +306,9 @@ fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_r
 
 local
 
-fun pretty_fact_name pos (kind, "") = position_markup pos (Pretty.keyword1 kind)
+fun pretty_fact_name pos (kind, "") = Pretty.mark_position pos (Pretty.keyword1 kind)
   | pretty_fact_name pos (kind, name) =
-      Pretty.block [position_markup pos (Pretty.keyword1 kind), Pretty.brk 1,
+      Pretty.block [Pretty.mark_position pos (Pretty.keyword1 kind), Pretty.brk 1,
         Pretty.str (Long_Name.base_name name), Pretty.str ":"];
 
 fun pretty_facts ctxt =
@@ -324,7 +322,7 @@ fun print_results {interactive, pos, proof_state} ctxt ((kind, name), facts) =
     if kind = "" orelse no_print interactive ctxt then ()
     else if name = "" then
       print
-        (Pretty.block (position_markup pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
+        (Pretty.block (Pretty.mark_position pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
           pretty_facts ctxt facts))
     else
       print
@@ -352,7 +350,7 @@ fun pretty_var ctxt (x, T) =
 
 fun pretty_vars pos ctxt kind vs =
   Pretty.block
-    (Pretty.fbreaks (position_markup pos (Pretty.mark_str kind) :: map (pretty_var ctxt) vs));
+    (Pretty.fbreaks (Pretty.mark_position pos (Pretty.mark_str kind) :: map (pretty_var ctxt) vs));
 
 val fixes = (Markup.keyword2, "fixes");
 val consts = (Markup.keyword1, "consts");

@@ -26,11 +26,10 @@ struct
 val position_dummy = "<position>";
 val position_text = XML.Text position_dummy;
 
-fun pretty pos =
-  Pretty.markup (Position.markup pos Markup.position) [Pretty.str position_dummy];
+fun pretty pos = Pretty.mark_str_position (pos, position_dummy);
 
 fun encode pos =
-  YXML.string_of (XML.Elem (Position.markup pos Markup.position, [position_text]));
+  YXML.string_of (XML.Elem (Position.markup_position pos, [position_text]));
 
 fun decode str =
   (case YXML.parse_body str handle Fail msg => error msg of

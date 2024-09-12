@@ -44,6 +44,7 @@ sig
   val entity_markup: string -> string * T -> Markup.T
   val make_entity_markup: {def: bool} -> serial -> string -> string * T -> Markup.T
   val markup: T -> Markup.T -> Markup.T
+  val markup_position: T -> Markup.T
   val is_reported: T -> bool
   val is_reported_range: T -> bool
   val reported_text: T -> Markup.T -> string -> string
@@ -242,6 +243,7 @@ fun make_entity_markup {def} serial kind (name, pos) =
   in Markup.entity kind name |> Markup.properties props end;
 
 val markup = Markup.properties o properties_of;
+fun markup_position pos = markup pos Markup.position;
 
 
 (* reports *)
@@ -287,13 +289,8 @@ fun here_strs pos =
   | _ => if is_reported pos then ("", "\092<^here>") else ("", ""));
 
 fun here pos =
-  let
-    val props = properties_of pos;
-    val (s1, s2) = here_strs pos;
-  in
-    if s2 = "" then ""
-    else s1 ^ Markup.markup (Markup.properties props Markup.position) s2
-  end;
+  let val (s1, s2) = here_strs pos
+  in if s2 = "" then "" else s1 ^ Markup.markup (markup_position pos) s2 end;
 
 val here_list = map here #> distinct (op =) #> implode;
 

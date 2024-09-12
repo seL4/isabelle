@@ -394,7 +394,7 @@ fun pretty_state state =
       else if mode = Backward then Proof_Context.pretty_ctxt ctxt
       else [];
 
-    val position_markup = Position.markup (Position.thread_data ()) Markup.position;
+    val position_markup = Position.markup_position (Position.thread_data ());
   in
     [Pretty.block
       [Pretty.mark_str (position_markup, "proof"), Pretty.str (" (" ^ mode_name mode ^ ")")]] @

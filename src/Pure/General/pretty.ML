@@ -41,6 +41,8 @@ sig
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
+  val mark_position: Position.T -> T -> T
+  val mark_str_position: Position.T * string -> T
   val item: T list -> T
   val text_fold: T list -> T
   val keyword1: string -> T
@@ -139,8 +141,12 @@ val strs = block o breaks o map str;
 
 fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
+
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
+
+val mark_position = mark o Position.markup_position;
+fun mark_str_position (pos, s) = mark_str (Position.markup_position pos, s);
 
 val item = markup Markup.item;
 val text_fold = markup Markup.text_fold;
@@ -169,13 +175,8 @@ val position =
   enum "," "{" "}" o map (str o Properties.print_eq) o Position.properties_of;
 
 fun here pos =
-  let
-    val props = Position.properties_of pos;
-    val (s1, s2) = Position.here_strs pos;
-  in
-    if s2 = "" then []
-    else [str s1, mark_str (Markup.properties props Markup.position, s2)]
-  end;
+  let val (s1, s2) = Position.here_strs pos
+  in if s2 = "" then [] else [str s1, mark_str_position (pos, s2)] end;
 
 val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
