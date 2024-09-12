@@ -38,6 +38,7 @@ sig
   val prefix: bool -> string -> binding -> binding
   val restricted: (bool * scope) option -> binding -> binding
   val concealed: binding -> binding
+  val long_name_of: binding -> string
   val pretty: binding -> Pretty.T
   val print: binding -> string
   val bad: binding -> string
@@ -169,11 +170,14 @@ val concealed =
 
 (* print *)
 
-fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
-  if name = "" then Pretty.str "\"\""
+fun long_name_of (b as Binding {prefix, qualifier, name, ...}) =
+  if is_empty b then ""
+  else Long_Name.implode (map #1 (prefix @ qualifier) @ [name]);
+
+fun pretty b =
+  if is_empty b then Pretty.str "\"\""
   else
-    Pretty.markup (Position.markup_properties pos Markup.binding)
-      [Pretty.str (Long_Name.implode (map #1 (prefix @ qualifier) @ [name]))]
+    Pretty.mark (Position.markup_properties (pos_of b) Markup.binding) (Pretty.str (long_name_of b))
     |> Pretty.quote;
 
 val print = Pretty.unformatted_string_of o pretty;
