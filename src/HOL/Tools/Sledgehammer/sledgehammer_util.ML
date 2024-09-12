@@ -133,7 +133,6 @@ fun hackish_string_of_term ctxt =
   (* FIXME: map_aterms (fn Free (s, T) => Free (if Name.is_internal s then "_" else s, T) | t => t)
   #> *) Syntax.pretty_term ctxt
   #> Pretty.pure_string_of
-  #> Protocol_Message.clean_output
   #> simplify_spaces
 
 val spying_version = "d"

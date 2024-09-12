@@ -199,8 +199,8 @@ let
   val actual =
     @{thm test_2.simps(1)}
     |> Thm.prop_of
-    |> Syntax.string_of_term \<^context>
-    |> Protocol_Message.clean_output
+    |> Syntax.pretty_term \<^context>
+    |> Pretty.pure_string_of
   val expected = "test_2 (?y # (?y' # ?ys =: x') =: x) = x @ x' @ x'"
 in \<^assert> (actual = expected) end
 \<close>

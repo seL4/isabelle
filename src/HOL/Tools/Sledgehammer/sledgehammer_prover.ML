@@ -165,7 +165,7 @@ type params =
    expect : string}
 
 fun string_of_params (params : params) =
-  Protocol_Message.clean_output (ML_Pretty.string_of (ML_system_pretty (params, 100)))
+  Pretty.pure_string_of (Pretty.from_ML (ML_system_pretty (params, 100)))
 
 fun maybe_filter_out_induction_rules induction_rules : fact list -> fact list =
   induction_rules = Exclude ?
