@@ -36,11 +36,12 @@ object Protocol_Message {
 
   /* inlined reports */
 
-  private val report_elements = Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
-  private val no_report_elements = Markup.Elements(Markup.NO_REPORT)
+  val report_elements: Markup.Elements = Markup.Elements(Markup.REPORT)
+  val no_report_elements: Markup.Elements = Markup.Elements(Markup.NO_REPORT)
+  val any_report_elements: Markup.Elements = Markup.Elements(Markup.REPORT, Markup.NO_REPORT)
 
   def clean_reports(body: XML.Body): XML.Body =
-    XML.filter_elements(body, remove = report_elements)
+    XML.filter_elements(body, remove = any_report_elements)
 
   def expose_no_reports(body: XML.Body): XML.Body =
     XML.filter_elements(body, expose = no_report_elements)
@@ -63,7 +64,7 @@ object Protocol_Message {
     try {
       XML.content(
         XML.filter_elements(YXML.parse_body(YXML.Source(msg)),
-          remove = Markup.Elements(Markup.REPORT),
+          remove = report_elements,
           expose = no_report_elements))
     }
     catch { case ERROR(_) => msg }
