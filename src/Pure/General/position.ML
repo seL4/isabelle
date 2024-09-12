@@ -249,16 +249,22 @@ val markup = Markup.properties o properties_of;
 fun is_reported pos = is_some (offset_of pos) andalso is_some (id_of pos);
 fun is_reported_range pos = is_reported pos andalso is_some (end_offset_of pos);
 
-fun reported_text pos m txt = if is_reported pos then Markup.markup (markup pos m) txt else "";
-fun report_text pos markup txt = Output.report [reported_text pos markup txt];
+fun reported_text pos m txt =
+  if is_reported pos then Markup.markup (markup pos m) txt else "";
+
+fun report_text pos markup txt =
+  if Print_Mode.PIDE_enabled () then Output.report [reported_text pos markup txt] else ();
+
 fun report pos markup = report_text pos markup "";
 
 type report = T * Markup.T;
 type report_text = report * string;
 
-val reports_text =
-  map (fn ((pos, m), txt) => if is_reported pos then Markup.markup (markup pos m) txt else "")
-  #> Output.report;
+fun reports_text args =
+  if Print_Mode.PIDE_enabled () then
+    Output.report (args |> map (fn ((pos, m), txt) =>
+      if is_reported pos then Markup.markup (markup pos m) txt else ""))
+  else ();
 
 val reports = map (rpair "") #> reports_text;
 

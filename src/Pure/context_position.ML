@@ -64,7 +64,7 @@ val restore_visible_global = Context.theory_map o restore_visible_generic o Cont
 
 (* PIDE reports *)
 
-fun reports_enabled0 () = Options.default_bool "pide_reports";
+fun reports_enabled0 () = Options.default_bool "pide_reports" andalso Print_Mode.PIDE_enabled ();
 fun reports_enabled_generic context = reports_enabled0 () andalso is_visible_generic context;
 val reports_enabled = reports_enabled_generic o Context.Proof;
 val reports_enabled_global = reports_enabled_generic o Context.Theory;
