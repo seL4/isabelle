@@ -55,7 +55,8 @@ fun with_modes modes f x = setmp (modes @ print_mode_value ()) f x;
 
 fun add_modes modes = Unsynchronized.change print_mode (append modes);
 
-fun PIDE_enabled () = print_mode_active PIDE;
+fun PIDE_enabled () =
+  find_first (fn mode => mode = PIDE orelse mode = "") (print_mode_value ()) = SOME PIDE;
 
 end;
 
