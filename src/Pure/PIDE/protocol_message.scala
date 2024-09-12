@@ -60,12 +60,10 @@ object Protocol_Message {
 
   /* clean output */
 
+  def clean_output(xml: XML.Body): XML.Body =
+    XML.filter_elements(xml, remove = report_elements, expose = no_report_elements)
+
   def clean_output(msg: String): String =
-    try {
-      XML.content(
-        XML.filter_elements(YXML.parse_body(YXML.Source(msg)),
-          remove = report_elements,
-          expose = no_report_elements))
-    }
+    try { XML.content(clean_output(YXML.parse_body(YXML.Source(msg)))) }
     catch { case ERROR(_) => msg }
 }

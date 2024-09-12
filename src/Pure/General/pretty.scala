@@ -100,6 +100,9 @@ object Pretty {
 
   /* no formatting */
 
+  def output_content(pure: Boolean, output: XML.Body): String =
+    XML.content(if (pure) Protocol_Message.clean_output(output) else output)
+
   def unbreakable(input: XML.Body): XML.Body =
     input flatMap {
       case XML.Wrapped_Elem(markup, body1, body2) =>
@@ -109,8 +112,8 @@ object Pretty {
       case XML.Text(text) => XML.string(split_lines(text).mkString(Symbol.space))
     }
 
-  def unformatted_string_of(input: XML.Body): String =
-    XML.content(unbreakable(input))
+  def unformatted_string_of(input: XML.Body, pure: Boolean = false): String =
+    output_content(pure, unbreakable(input))
 
 
   /* formatting */
@@ -207,8 +210,11 @@ object Pretty {
   }
 
   def string_of(input: XML.Body,
-      margin: Double = default_margin,
-      breakgain: Double = default_breakgain,
-      metric: Metric = Default_Metric): String =
-    XML.content(formatted(input, margin = margin, breakgain = breakgain, metric = metric))
+    margin: Double = default_margin,
+    breakgain: Double = default_breakgain,
+    metric: Metric = Default_Metric,
+    pure: Boolean = false
+  ): String = {
+    output_content(pure, formatted(input, margin = margin, breakgain = breakgain, metric = metric))
+  }
 }
