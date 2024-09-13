@@ -48,7 +48,7 @@ struct
 
 (* primitive operations *)
 
-val chunk_size = 65000;
+val chunk_size = 16384;
 
 abstype T = Bytes of
   {buffer: string list, chunks: string list, m: int (*buffer size*), n: int (*chunks size*)}
