@@ -746,6 +746,9 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val trf = Syntax.print_ast_translation syn;
     val markup_extern = (markup_entity ctxt, extern ctxt);
 
+    val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
+    val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
+
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
       | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
@@ -779,12 +782,21 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       |> Pretty.markup m
 
     and markup_ast is_typing a A =
-      let
-        val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
-        val b = (if is_typing then pretty_ast else pretty_typ_ast) Markup.empty a;
-        val B = Pretty.symbolic_output (pretty_typ_ast Markup.empty A);
-        val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
-      in Pretty.make_block {markup = (bg, en), consistent = false, indent = 0} [b] end;
+      Pretty.make_block (markup_block is_typing A)
+        [(if is_typing then pretty_ast else pretty_typ_ast) Markup.empty a]
+
+    and markup_block is_typing A =
+      let val cache = if is_typing then cache1 else cache2 in
+        (case Ast.Table.lookup (! cache) A of
+          SOME block => block
+        | NONE =>
+            let
+              val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
+              val B = Pretty.symbolic_output (pretty_typ_ast Markup.empty A);
+              val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
+              val block = {markup = (bg, en), consistent = false, indent = 0};
+            in Unsynchronized.change cache (Ast.Table.update (A, block)); block end)
+      end;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
