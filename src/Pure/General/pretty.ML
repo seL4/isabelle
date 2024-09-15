@@ -23,8 +23,14 @@ sig
   type T
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
-  val make_block: {markup: Markup.output, consistent: bool, indent: int} -> T list -> T
-  val markup_block: {markup: Markup.T, consistent: bool, indent: int} -> T list -> T
+  type 'a block = {markup: 'a, consistent: bool, indent: int}
+  val make_block: Markup.output block -> T list -> T
+  val markup_block: Markup.T block -> T list -> T
+  val markup: Markup.T -> T list -> T
+  val blk: int * T list -> T
+  val block0: T list -> T
+  val block1: T list -> T
+  val block: T list -> T
   val str: string -> T
   val dots: T
   val brk: int -> T
@@ -32,12 +38,7 @@ sig
   val fbrk: T
   val breaks: T list -> T list
   val fbreaks: T list -> T list
-  val blk: int * T list -> T
-  val block0: T list -> T
-  val block1: T list -> T
-  val block: T list -> T
   val strs: string list -> T
-  val markup: Markup.T -> T list -> T
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
@@ -107,29 +108,21 @@ val short_nat = FixedInt.fromInt o force_nat;
 val long_nat = force_nat o FixedInt.toInt;
 
 
-(* primitives *)
+(* blocks *)
 
-fun make_block {markup, consistent, indent} body =
+type 'a block = {markup: 'a, consistent: bool, indent: int}
+
+fun make_block ({markup, consistent, indent}: Markup.output block) body =
   let
     val context = ML_Pretty.markup_context markup;
     val ind = short_nat indent;
   in from_ML (ML_Pretty.PrettyBlock (ind, consistent, context, map to_ML body)) end;
 
-fun markup_block {markup, consistent, indent} body =
+fun markup_block ({markup, consistent, indent}: Markup.T block) body =
   make_block {markup = YXML.output_markup markup, consistent = consistent, indent = indent} body;
 
-val str = from_ML o ML_Pretty.str;
-val dots = from_ML ML_Pretty.dots;
-
-fun brk_indent wd ind = from_ML (ML_Pretty.PrettyBreak (short_nat wd, short_nat ind));
-fun brk wd = brk_indent wd 0;
-val fbrk = from_ML ML_Pretty.PrettyLineBreak;
-
-
-(* derived operations to create formatting expressions *)
-
-fun breaks prts = Library.separate (brk 1) prts;
-fun fbreaks prts = Library.separate fbrk prts;
+fun markup m =
+  markup_block {markup = m, consistent = false, indent = 0};
 
 fun blk (indent, es) =
   markup_block {markup = Markup.empty, consistent = false, indent = indent} es;
@@ -137,9 +130,25 @@ fun blk (indent, es) =
 fun block0 prts = blk (0, prts);
 fun block1 prts = blk (1, prts);
 fun block prts = blk (2, prts);
+
+
+(* breaks *)
+
+fun brk_indent wd ind = from_ML (ML_Pretty.PrettyBreak (short_nat wd, short_nat ind));
+fun brk wd = brk_indent wd 0;
+val fbrk = from_ML ML_Pretty.PrettyLineBreak;
+
+fun breaks prts = Library.separate (brk 1) prts;
+fun fbreaks prts = Library.separate fbrk prts;
+
+
+(* derived operations to create formatting expressions *)
+
+val str = from_ML o ML_Pretty.str;
+val dots = from_ML ML_Pretty.dots;
+
 val strs = block o breaks o map str;
 
-fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 
 fun mark_str (m, s) = mark m (str s);
@@ -219,7 +228,6 @@ val pure_output_ops = make_output_ops {symbolic = false, markup = K Markup.no_ou
 val markup_output_ops = make_output_ops {symbolic = false, markup = I};
 val symbolic_output_ops = make_output_ops {symbolic = true, markup = I} NONE;
 
-(*default via print_mode*)
 fun output_ops opt_margin =
   if Print_Mode.PIDE_enabled () then symbolic_output_ops
   else pure_output_ops opt_margin;
