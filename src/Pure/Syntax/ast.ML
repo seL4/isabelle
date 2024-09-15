@@ -12,6 +12,9 @@ sig
     Appl of ast list
   val mk_appl: ast -> ast list -> ast
   exception AST of string * ast list
+  val ast_ord: ast ord
+  structure Table: TABLE
+  structure Set: SET
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val strip_positions: ast -> ast
@@ -49,6 +52,31 @@ fun mk_appl f [] = f
 
 (*exception for system errors involving asts*)
 exception AST of string * ast list;
+
+
+(* order *)
+
+local
+
+fun cons_nr (Constant _) = 0
+  | cons_nr (Variable _) = 1
+  | cons_nr (Appl _) = 2;
+
+in
+
+fun ast_ord asts =
+  if pointer_eq asts then EQUAL
+  else
+    (case asts of
+      (Constant a, Constant b) => fast_string_ord (a, b)
+    | (Variable a, Variable b) => fast_string_ord (a, b)
+    | (Appl a, Appl b) => list_ord ast_ord (a, b)
+    | _ => int_ord (apply2 cons_nr asts));
+
+end;
+
+structure Table = Table(type key = ast val ord = ast_ord);
+structure Set = Set(Table.Key);
 
 
 
