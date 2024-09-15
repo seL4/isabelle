@@ -764,11 +764,11 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
 
     and constrain_trans t ty =
       if show_markup andalso not show_types
-      then SOME (markup_ast typing_elem (pretty_ast Markup.empty t) ty) else NONE
+      then SOME (markup_ast true t ty) else NONE
 
     and ofsort_trans ty s =
       if show_markup andalso not show_sorts
-      then SOME (markup_ast sorting_elem (pretty_typ_ast Markup.empty ty) s) else NONE
+      then SOME (markup_ast false ty s) else NONE
 
     and pretty_typ_ast m ast = ast
       |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
@@ -778,11 +778,13 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       |> prt_t ctxt prtabs trf markup_trans markup_extern
       |> Pretty.markup m
 
-    and markup_ast ((bg1, bg2), en) a A =
+    and markup_ast is_typing a A =
       let
+        val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
+        val b = (if is_typing then pretty_ast else pretty_typ_ast) Markup.empty a;
         val B = Pretty.symbolic_output (pretty_typ_ast Markup.empty A);
         val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
-      in Pretty.make_block {markup = (bg, en), consistent = false, indent = 0} [a] end;
+      in Pretty.make_block {markup = (bg, en), consistent = false, indent = 0} [b] end;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
