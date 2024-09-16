@@ -20,7 +20,7 @@ object Check_Keywords {
       private val other = token("token", _ => true)
       private val item = conflict ^^ (x => Some(x)) | other ^^ (_ => None)
 
-      val result =
+      val result: List[(Token, Position.T)] =
         parse_all(rep(item), Token.reader(Token.explode(keywords, input), start)) match {
           case Success(res, _) => for (case Some(x) <- res) yield x
           case bad => error(bad.toString)
