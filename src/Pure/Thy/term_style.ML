@@ -25,7 +25,8 @@ structure Data = Theory_Data
 val get_data = Data.get o Proof_Context.theory_of;
 
 fun setup binding style thy =
-  Data.map (#2 o Name_Space.define (Context.Theory thy) true (binding, style)) thy;
+  let val context = Name_Space.map_naming (K Name_Space.global_naming) (Context.Theory thy)
+  in Data.map (#2 o Name_Space.define context true (binding, style)) thy end;
 
 
 (* style parsing *)
