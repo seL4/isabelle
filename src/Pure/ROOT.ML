@@ -114,6 +114,9 @@ ML_file "term.ML";
 ML_file "context.ML";
 ML_file "config.ML";
 ML_file "context_position.ML";
+ML_file "General/completion.ML";
+ML_file "General/name_space.ML";
+ML_file "PIDE/markup_expression.ML";
 ML_file "soft_type_system.ML";
 
 
@@ -158,8 +161,6 @@ subsection "Core of tactical proof system";
 ML_file "term_ord.ML";
 ML_file "term_items.ML";
 ML_file "term_subst.ML";
-ML_file "General/completion.ML";
-ML_file "General/name_space.ML";
 ML_file "sorts.ML";
 ML_file "type.ML";
 ML_file "logic.ML";

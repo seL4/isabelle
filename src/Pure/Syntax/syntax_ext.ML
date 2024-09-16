@@ -188,6 +188,13 @@ end;
 
 local
 
+val markup_block_begin = Markup_Expression.setup (Binding.make ("mixfix_block_begin", \<^here>));
+val markup_block_end = Markup_Expression.setup (Binding.make ("mixfix_block_end", \<^here>));
+val markup_delimiter = Markup_Expression.setup (Binding.make ("mixfix_delimiter", \<^here>));
+val markup_argument = Markup_Expression.setup (Binding.make ("mixfix_argument", \<^here>));
+val markup_space = Markup_Expression.setup (Binding.make ("mixfix_space", \<^here>));
+val markup_break = Markup_Expression.setup (Binding.make ("mixfix_break", \<^here>));
+
 open Basic_Symbol_Pos;
 
 val err_prefix = "Error in mixfix annotation: ";
@@ -196,17 +203,16 @@ fun scan_one pred = Scan.one (pred o Symbol_Pos.symbol);
 fun scan_many pred = Scan.many (pred o Symbol_Pos.symbol);
 fun scan_many1 pred = Scan.many1 (pred o Symbol_Pos.symbol);
 
-fun reports_of_block pos =
-  [(pos, Markup.expression "mixfix block begin"), (pos, Markup.keyword3)];
+fun reports_of_block pos = [(pos, markup_block_begin), (pos, Markup.keyword3)];
 
 fun reports_of (xsym, pos) =
   (case xsym of
-    Delim _ => [(pos, Markup.expression "mixfix delimiter"), (pos, Markup.literal)]
-  | Argument _ => [(pos, Markup.expression "mixfix argument")]
-  | Space _ => [(pos, Markup.expression "mixfix space")]
+    Delim _ => [(pos, markup_delimiter), (pos, Markup.literal)]
+  | Argument _ => [(pos, markup_argument)]
+  | Space _ => [(pos, markup_space)]
   | Bg _ => reports_of_block pos
-  | Brk _ => [(pos, Markup.expression "mixfix break"), (pos, Markup.keyword3)]
-  | En => [(pos, Markup.expression "mixfix block end"), (pos, Markup.keyword3)]);
+  | Brk _ => [(pos, markup_break), (pos, Markup.keyword3)]
+  | En => [(pos, markup_block_end), (pos, Markup.keyword3)]);
 
 fun reports_text_of (xsym, pos) =
   (case xsym of

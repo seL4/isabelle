@@ -664,8 +664,10 @@ class Rendering(
             Some(info + (r0, true, XML.Text("language: " + lang.description)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
-            val descr = if (kind == "") "expression" else "expression: " + kind
-            Some(info + (r0, true, XML.Text(descr)))
+            val description =
+              if (kind.isEmpty) "expression"
+              else "expression: " + Word.implode(Word.explode('_', kind))
+            Some(info + (r0, true, XML.Text(description)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(info + (r0, true, XML.Text("Markdown: paragraph")))
