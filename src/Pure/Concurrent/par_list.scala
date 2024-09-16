@@ -46,12 +46,17 @@ object Par_List {
     }
   }
 
-  def map[A, B](f: A => B, xs: List[A],
+  def map[A, B](f: A => B, list: List[A],
     sequential: Boolean = false,
     thread: Boolean = false
   ): List[B] = {
-    Exn.release_first(managed_results(f, xs, sequential = sequential, thread = thread))
+    Exn.release_first(managed_results(f, list, sequential = sequential, thread = thread))
   }
+
+  def maps[A, B](f: A => Iterable[B], list: List[A],
+    sequential: Boolean = false,
+    thread: Boolean = false
+  ): List[B] = map(f, list, sequential = sequential, thread = thread).flatten
 
   private class Found(val res: Any) extends Exception
 

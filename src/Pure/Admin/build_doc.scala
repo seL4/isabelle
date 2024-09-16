@@ -46,7 +46,7 @@ object Build_Doc {
     val deps = Sessions.load_structure(options + "document").selection_deps(selection)
 
     val errs =
-      Par_List.map[(String, String), Option[String]](
+      Par_List.maps[(String, String), String](
       {
         case (doc, session) =>
           try {
@@ -66,7 +66,7 @@ object Build_Doc {
               val sep = if (msg.contains('\n')) "\n" else " "
               Some("Documentation " + quote(doc) + " failed:" + sep + msg)
           }
-      }, selected, sequential = sequential).flatten
+      }, selected, sequential = sequential)
 
     if (errs.nonEmpty) error(cat_lines(errs))
 
