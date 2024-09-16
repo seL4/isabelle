@@ -44,11 +44,10 @@ object Sessions {
   def deps(sessions_structure: Structure,
     progress: Progress = new Progress,
     inlined_files: Boolean = false,
-    list_files: Boolean = false,
-    check_keywords: Set[String] = Set.empty
+    list_files: Boolean = false
   ): Deps = {
     Deps.load(sessions_structure, progress = progress, inlined_files = inlined_files,
-      list_files = list_files, check_keywords = check_keywords)
+      list_files = list_files)
   }
 
 
@@ -252,8 +251,7 @@ object Sessions {
     def load(sessions_structure: Structure,
       progress: Progress = new Progress,
       inlined_files: Boolean = false,
-      list_files: Boolean = false,
-      check_keywords: Set[String] = Set.empty
+      list_files: Boolean = false
     ): Deps = {
       var cache_sources = Map.empty[JFile, SHA1.Digest]
       def check_sources(paths: List[Path]): List[(Path, SHA1.Digest)] = {
@@ -292,8 +290,6 @@ object Sessions {
 
               val dependencies = resources.session_dependencies(info)
 
-              val overall_syntax = dependencies.overall_syntax
-
               val proper_session_theories =
                 dependencies.theories.filter(name =>
                   sessions_structure.theory_qualifier(name) == session_name)
@@ -324,11 +320,6 @@ object Sessions {
 
               if (list_files) {
                 progress.echo(cat_lines(session_files.map(_.implode).sorted.map("  " + _)))
-              }
-
-              if (check_keywords.nonEmpty) {
-                Check_Keywords.check_keywords(
-                  progress, overall_syntax.keywords, check_keywords, theory_files)
               }
 
               val session_graph_display: Graph_Display.Graph = {
@@ -471,7 +462,7 @@ object Sessions {
                   theory_load_commands = theory_load_commands,
                   known_theories = known_theories,
                   known_loaded_files = known_loaded_files,
-                  overall_syntax = overall_syntax,
+                  overall_syntax = dependencies.overall_syntax,
                   imported_sources = check_sources(imported_files),
                   session_sources = check_sources(session_files),
                   session_graph_display = session_graph_display,

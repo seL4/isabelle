@@ -378,7 +378,6 @@ text \<open>
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs
                  (default: 1 for local build, 0 for build cluster)
-    -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
     -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -506,12 +505,6 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> lists the source files that contribute to a session.
-
-  \<^medskip>
-  Option \<^verbatim>\<open>-k\<close> specifies a newly proposed keyword for outer syntax. It is
-  possible to use option \<^verbatim>\<open>-k\<close> repeatedly to check multiple keywords. The
-  theory sources are checked for conflicts wrt.\ this hypothetical change of
-  syntax, e.g.\ to reveal occurrences of identifiers that need to be quoted.
 
   \<^medskip>
   Option \<^verbatim>\<open>-H\<close> augments the cluster hosts to be used in this build process.

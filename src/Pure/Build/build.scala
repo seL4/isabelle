@@ -175,7 +175,6 @@ object Build {
     numa_shuffling: Boolean = false,
     max_jobs: Option[Int] = None,
     list_files: Boolean = false,
-    check_keywords: Set[String] = Set.empty,
     fresh_build: Boolean = false,
     no_build: Boolean = false,
     soft_build: Boolean = false,
@@ -200,8 +199,7 @@ object Build {
       val build_deps = {
         val deps0 =
           Sessions.deps(full_sessions.selection(selection), progress = progress,
-            inlined_files = true, list_files = list_files, check_keywords = check_keywords
-          ).check_errors
+            inlined_files = true, list_files = list_files).check_errors
 
         if (soft_build && !fresh_build) {
           val outdated =
@@ -336,7 +334,6 @@ object Build {
       var fresh_build = false
       val session_groups = new mutable.ListBuffer[String]
       var max_jobs: Option[Int] = None
-      var check_keywords: Set[String] = Set.empty
       var list_files = false
       var no_build = false
       var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
@@ -400,7 +397,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
         "f" -> (_ => fresh_build = true),
         "g:" -> (arg => session_groups += arg),
         "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
-        "k:" -> (arg => check_keywords = check_keywords + arg),
         "l" -> (_ => list_files = true),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
@@ -439,7 +435,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
             numa_shuffling = Host.numa_check(progress, numa_shuffling),
             max_jobs = max_jobs,
             list_files = list_files,
-            check_keywords = check_keywords,
             fresh_build = fresh_build,
             no_build = no_build,
             soft_build = soft_build,
