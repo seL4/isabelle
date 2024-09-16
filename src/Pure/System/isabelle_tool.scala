@@ -157,7 +157,6 @@ class Tools extends Isabelle_Scala_Tools(
   Sync.isabelle_tool,
   Update_Cartouches.isabelle_tool,
   Update_Comments.isabelle_tool,
-  Update_Header.isabelle_tool,
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
   Update_Tool.isabelle_tool,

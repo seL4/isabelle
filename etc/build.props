@@ -233,7 +233,6 @@ sources = \
   src/Pure/Tools/task_statistics.scala \
   src/Pure/Tools/update_cartouches.scala \
   src/Pure/Tools/update_comments.scala \
-  src/Pure/Tools/update_header.scala \
   src/Pure/Tools/update_then.scala \
   src/Pure/Tools/update_theorems.scala \
   src/Pure/Tools/update_tool.scala \
