@@ -179,21 +179,40 @@ and tree =
   TERMINAL of (bool * string) * Position.range |
   ANTIQUOTE of (bool * Antiquote.antiq) * Position.range;
 
+fun null_trees (CAT ([], _)) = true
+  | null_trees _ = false;
+
+val markup_concat = Markup_Expression.setup \<^binding>\<open>rail_concat\<close>;
+val markup_union = Markup_Expression.setup \<^binding>\<open>rail_union\<close>;
+val markup_repeat = Markup_Expression.setup \<^binding>\<open>rail_repeat\<close>;
+val markup_repeat1 = Markup_Expression.setup \<^binding>\<open>rail_repeat1\<close>;
+val markup_enum = Markup_Expression.setup \<^binding>\<open>rail_enum\<close>;
+val markup_enum1 = Markup_Expression.setup \<^binding>\<open>rail_enum1\<close>;
+val markup_maybe = Markup_Expression.setup \<^binding>\<open>rail_maybe\<close>;
+val markup_newline = Markup_Expression.setup \<^binding>\<open>rail_newline\<close>;
+val markup_nonterminal = Markup_Expression.setup \<^binding>\<open>rail_nonterminal\<close>;
+val markup_terminal = Markup_Expression.setup \<^binding>\<open>rail_terminal\<close>;
+val markup_antiquote = Markup_Expression.setup \<^binding>\<open>rail_antiquote\<close>;
+
 fun reports_of_tree ctxt =
   if Context_Position.reports_enabled ctxt then
     let
-      fun reports r =
+      fun reports m r =
         if r = Position.no_range then []
-        else [(Position.range_position r, Markup.expression "")];
-      fun trees (CAT (ts, r)) = reports r @ maps tree ts
-      and tree (BAR (Ts, r)) = reports r @ maps trees Ts
-        | tree (STAR ((T1, T2), r)) = reports r @ trees T1 @ trees T2
-        | tree (PLUS ((T1, T2), r)) = reports r @ trees T1 @ trees T2
-        | tree (MAYBE (t, r)) = reports r @ tree t
-        | tree (NEWLINE r) = reports r
-        | tree (NONTERMINAL (_, r)) = reports r
-        | tree (TERMINAL (_, r)) = reports r
-        | tree (ANTIQUOTE (_, r)) = reports r;
+        else [(Position.range_position r, m)];
+      fun trees (CAT (ts, r)) =
+        (if length ts <= 1 then [] else reports markup_concat r) @ maps tree ts
+      and tree (BAR (Ts, r)) =
+        (if length Ts <= 1 then [] else reports markup_union r) @ maps trees Ts
+        | tree (STAR ((T1, T2), r)) =
+            reports (if null_trees T2 then markup_repeat else markup_enum) r @ trees T1 @ trees T2
+        | tree (PLUS ((T1, T2), r)) =
+            reports (if null_trees T2 then markup_repeat1 else markup_enum1) r @ trees T1 @ trees T2
+        | tree (MAYBE (t, r)) = reports markup_maybe r @ tree t
+        | tree (NEWLINE r) = reports markup_newline r
+        | tree (NONTERMINAL (_, r)) = reports markup_nonterminal r
+        | tree (TERMINAL (_, r)) = reports markup_terminal r
+        | tree (ANTIQUOTE (_, r)) = reports markup_antiquote r;
     in distinct (op =) o tree end
   else K [];
 
