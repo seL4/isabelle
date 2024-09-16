@@ -794,7 +794,7 @@ fun assumes_to_notes (Assumes asms) axms =
 fun defines_to_notes ctxt (Defines defs) =
       Notes ("", map (fn (a, (def, _)) =>
         (a, [([Assumption.assume ctxt (Thm.cterm_of ctxt def)],
-          [Attrib.internal @{here} (K Locale.witness_add)])])) defs)
+          [Attrib.internal \<^here> (K Locale.witness_add)])])) defs)
   | defines_to_notes _ e = e;
 
 val is_hyp = fn Assumes _ => true | Defines _ => true | _ => false;
@@ -846,7 +846,7 @@ fun gen_add_locale prep_include prep_decl
       if is_some asm then
         [("", [((Binding.suffix_name ("_" ^ axiomsN) binding, []),
           [([Assumption.assume pred_ctxt (Thm.cterm_of pred_ctxt (the asm))],
-            [Attrib.internal @{here} (K Locale.witness_add)])])])]
+            [Attrib.internal \<^here> (K Locale.witness_add)])])])]
       else [];
 
     val notes' =
