@@ -1,21 +1,25 @@
 (*  Title:      Pure/General/pretty.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Author:     Markus Wenzel, TU Munich
+    Author:     Makarius
 
-Generic pretty printing module.
+Generic pretty printing.
 
-Loosely based on
-  D. C. Oppen, "Pretty Printing",
-  ACM Transactions on Programming Languages and Systems (1980), 465-483.
+The object to be printed is given as a tree with blocks and breaks. A block
+causes alignment and may specify additional indentation and markup. A break
+inserts a newline if the text until the next break is too long to fit on the
+current line. After the newline, text is indented to the level of the
+enclosing block. Normally, if a block is broken then all enclosing blocks will
+also be broken.
 
-The object to be printed is given as a tree with indentation and line
-breaking information.  A "break" inserts a newline if the text until
-the next break is too long to fit on the current line.  After the newline,
-text is indented to the level of the enclosing block.  Normally, if a block
-is broken then all enclosing blocks will also be broken.
+References:
 
-The stored length of a block is used in break_dist (to treat each inner block as
-a unit for breaking).
+  * L. C. Paulson, "ML for the Working Programmer" (1996),
+    2nd edition, Cambridge University Press.
+    Section 8.10 "A pretty printer"
+    https://www.cl.cam.ac.uk/~lp15/MLbook/PDF/chapter8.pdf
+
+  * D. C. Oppen, "Pretty Printing",
+    ACM Transactions on Programming Languages and Systems (1980), 465-483.
 *)
 
 signature PRETTY =
