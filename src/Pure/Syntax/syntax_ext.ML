@@ -7,7 +7,6 @@ Syntax extension as internal record.
 signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
-  val typ_to_nonterm: typ -> string
   type block = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
   val block_indent: int -> block
   datatype xsymb =
