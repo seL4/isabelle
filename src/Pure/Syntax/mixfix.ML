@@ -26,12 +26,13 @@ sig
   val pos_of: mixfix -> Position.T
   val reset_pos: mixfix -> mixfix
   val pretty_mixfix: mixfix -> Pretty.T
-  val mixfix_args: mixfix -> int
-  val default_constraint: mixfix -> typ
+  val mixfix_args: Proof.context -> mixfix -> int
+  val default_constraint: Proof.context -> mixfix -> typ
   val make_type: int -> typ
   val binder_name: string -> string
-  val syn_ext_types: (string * typ * mixfix) list -> Syntax_Ext.syn_ext
-  val syn_ext_consts: string list -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
+  val syn_ext_types: Proof.context -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
+  val syn_ext_consts: Proof.context -> string list -> (string * typ * mixfix) list ->
+    Syntax_Ext.syn_ext
 end;
 
 structure Mixfix: MIXFIX =
@@ -117,19 +118,20 @@ end;
 
 (* syntax specifications *)
 
-fun mixfix_args NoSyn = 0
-  | mixfix_args (Mixfix (sy, _, _, _)) = Syntax_Ext.mixfix_args sy
-  | mixfix_args (Infix (sy, _, _)) = 2 + Syntax_Ext.mixfix_args sy
-  | mixfix_args (Infixl (sy, _, _)) = 2 + Syntax_Ext.mixfix_args sy
-  | mixfix_args (Infixr (sy, _, _)) = 2 + Syntax_Ext.mixfix_args sy
-  | mixfix_args (Binder _) = 1
-  | mixfix_args (Structure _) = 0;
+fun mixfix_args ctxt =
+  fn NoSyn => 0
+   | Mixfix (sy, _, _, _) => Syntax_Ext.mixfix_args ctxt sy
+   | Infix (sy, _, _) => 2 + Syntax_Ext.mixfix_args ctxt sy
+   | Infixl (sy, _, _) => 2 + Syntax_Ext.mixfix_args ctxt sy
+   | Infixr (sy, _, _) => 2 + Syntax_Ext.mixfix_args ctxt sy
+   | Binder _ => 1
+   | Structure _ => 0;
 
 
 (* default type constraint *)
 
-fun default_constraint (Binder _) = (dummyT --> dummyT) --> dummyT
-  | default_constraint mx = replicate (mixfix_args mx) dummyT ---> dummyT;
+fun default_constraint _ (Binder _) = (dummyT --> dummyT) --> dummyT
+  | default_constraint ctxt mx = replicate (mixfix_args ctxt mx) dummyT ---> dummyT;
 
 
 (* mixfix template *)
@@ -154,7 +156,7 @@ fun mixfix_template_reports mx =
 val typeT = Type ("type", []);
 fun make_type n = replicate n typeT ---> typeT;
 
-fun syn_ext_types type_decls =
+fun syn_ext_types ctxt type_decls =
   let
     fun mk_infix sy ty t p1 p2 p3 pos =
       Syntax_Ext.Mfix
@@ -172,7 +174,7 @@ fun syn_ext_types type_decls =
       | (t, _, _) => error ("Bad mixfix declaration for " ^ quote t ^ Position.here (pos_of mx)));
 
     fun check_args (_, ty, mx) (SOME (Syntax_Ext.Mfix (sy, _, _, _, _, _))) =
-          if length (Term.binder_types ty) = Syntax_Ext.mfix_args sy then ()
+          if length (Term.binder_types ty) = Syntax_Ext.mfix_args ctxt sy then ()
           else
             error ("Bad number of type constructor arguments in mixfix annotation" ^
               Position.here (pos_of mx))
@@ -183,7 +185,7 @@ fun syn_ext_types type_decls =
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
     val consts = map (fn (t, _, _) => (t, [])) type_decls;
-  in Syntax_Ext.syn_ext [] (map_filter I mfix) consts ([], [], [], []) ([], []) end;
+  in Syntax_Ext.syn_ext ctxt [] (map_filter I mfix) consts ([], [], [], []) ([], []) end;
 
 
 (* syn_ext_consts *)
@@ -195,7 +197,7 @@ fun mk_prefix sy =
   let val sy' = Input.source_explode (Input.reset_pos sy); 
   in Symbol_Pos.explode0 "'(" @ sy' @ Symbol_Pos.explode0 "')" end
 
-fun syn_ext_consts logical_types const_decls =
+fun syn_ext_consts ctxt logical_types const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 pos =
       [Syntax_Ext.Mfix (mk_prefix sy, ty, c, [], 1000, Position.none),
@@ -238,7 +240,9 @@ fun syn_ext_consts logical_types const_decls =
     val consts =
       map (fn (c, b) => (c, [b])) binders @
       map (fn (c, _, _) => (c, [])) const_decls;
-  in Syntax_Ext.syn_ext logical_types mfix consts ([], binder_trs, binder_trs', []) ([], []) end;
+  in
+    Syntax_Ext.syn_ext ctxt logical_types mfix consts ([], binder_trs, binder_trs', []) ([], [])
+  end;
 
 end;
 

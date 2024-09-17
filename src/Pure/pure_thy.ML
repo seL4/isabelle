@@ -55,8 +55,8 @@ val old_appl_syntax = Old_Appl_Syntax.get;
 
 val old_appl_syntax_setup =
   Old_Appl_Syntax.put true #>
-  Sign.syntax false Syntax.mode_default applC_syntax #>
-  Sign.syntax true Syntax.mode_default appl_syntax;
+  Sign.syntax_global false Syntax.mode_default applC_syntax #>
+  Sign.syntax_global true Syntax.mode_default appl_syntax;
 
 
 (* main content *)
@@ -87,8 +87,8 @@ val _ = Theory.setup
         "tvar_position", "id_position", "longid_position", "var_position",
         "str_position", "string_position", "cartouche_position", "type_name",
         "class_name"]))
-  #> Sign.syntax true Syntax.mode_default (map (fn x => (x, typ "'a", NoSyn)) token_markers)
-  #> Sign.syntax true Syntax.mode_default
+  #> Sign.syntax_global true Syntax.mode_default (map (fn x => (x, typ "'a", NoSyn)) token_markers)
+  #> Sign.syntax_global true Syntax.mode_default
    [("",            typ "prop' \<Rightarrow> prop",               Mixfix.mixfix "_"),
     ("",            typ "logic \<Rightarrow> any",                Mixfix.mixfix "_"),
     ("",            typ "prop' \<Rightarrow> any",                Mixfix.mixfix "_"),
@@ -184,8 +184,8 @@ val _ = Theory.setup
     ("_sort_constraint", typ "type \<Rightarrow> prop",           Mixfix.mixfix "(1SORT'_CONSTRAINT/(1'(_')))"),
     (const "Pure.term", typ "logic \<Rightarrow> prop",           Mixfix.mixfix "TERM _"),
     (const "Pure.conjunction", typ "prop \<Rightarrow> prop \<Rightarrow> prop", infixr_ ("&&&", 2))]
-  #> Sign.syntax true Syntax.mode_default applC_syntax
-  #> Sign.syntax true (Print_Mode.ASCII, true)
+  #> Sign.syntax_global true Syntax.mode_default applC_syntax
+  #> Sign.syntax_global true (Print_Mode.ASCII, true)
    [(tycon "fun",         typ "type \<Rightarrow> type \<Rightarrow> type",   mixfix ("(_/ => _)", [1, 0], 0)),
     ("_bracket",          typ "types \<Rightarrow> type \<Rightarrow> type",  mixfix ("([_]/ => _)", [0, 0], 0)),
     ("_lambda",           typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",  mixfix ("(3%_./ _)", [0, 3], 3)),
@@ -195,7 +195,7 @@ val _ = Theory.setup
     ("_DDDOT",            typ "aprop",                  Mixfix.mixfix "..."),
     ("_bigimpl",          typ "asms \<Rightarrow> prop \<Rightarrow> prop",   mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Mixfix.mixfix "...")]
-  #> Sign.syntax true ("", false)
+  #> Sign.syntax_global true ("", false)
    [(const "Pure.prop", typ "prop \<Rightarrow> prop", mixfix ("_", [0], 0))]
   #> Sign.add_consts
    [(qualify (Binding.make ("eq", \<^here>)), typ "'a \<Rightarrow> 'a \<Rightarrow> prop", infix_ ("\<equiv>", 2)),

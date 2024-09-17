@@ -377,18 +377,25 @@ fun pretty_const ctxt c = Name_Space.markup_extern ctxt (const_space ctxt) c |> 
 
 (* theory transfer *)
 
-fun transfer_syntax thy ctxt = ctxt |>
-  map_syntax (Local_Syntax.rebuild thy) |>
-  map_tsig (fn tsig as (local_tsig, global_tsig) =>
-    let val thy_tsig = Sign.tsig_of thy in
-      if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig (Context.Proof ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
-    end) |>
-  map_consts (fn consts as (local_consts, global_consts) =>
-    let val thy_consts = Sign.consts_of thy in
-      if Consts.eq_consts (thy_consts, global_consts) then consts
-      else (Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
-    end);
+fun transfer_syntax thy ctxt =
+  let
+    val thy_ctxt =
+      Proof_Context.init_global thy
+      |> Context_Position.restore_visible ctxt;
+  in
+    ctxt |>
+    map_syntax (Local_Syntax.rebuild thy_ctxt) |>
+    map_tsig (fn tsig as (local_tsig, global_tsig) =>
+      let val thy_tsig = Sign.tsig_of thy in
+        if Type.eq_tsig (thy_tsig, global_tsig) then tsig
+        else (Type.merge_tsig (Context.Proof ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
+      end) |>
+    map_consts (fn consts as (local_consts, global_consts) =>
+      let val thy_consts = Sign.consts_of thy in
+        if Consts.eq_consts (thy_consts, global_consts) then consts
+        else (Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
+      end)
+  end;
 
 fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
 
@@ -1081,7 +1088,7 @@ fun alias_fact b c ctxt = map_facts (Facts.alias (naming_of ctxt) b c) ctxt;
 (* variables *)
 
 fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => Mixfix.default_constraint mx)
+  let val T = (case opt_T of SOME T => T | NONE => Mixfix.default_constraint ctxt mx)
   in (T, ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 fun add_syntax vars ctxt =
@@ -1137,7 +1144,7 @@ fun syntax add mode args ctxt =
   in ctxt |> map_syntax (#2 o Local_Syntax.update_modesyntax ctxt add mode args') end;
 
 fun generic_syntax add mode args =
-  Context.mapping (Sign.syntax add mode args) (syntax add mode args);
+  Context.mapping (Sign.syntax_global add mode args) (syntax add mode args);
 
 
 (* notation *)
@@ -1171,14 +1178,14 @@ fun generic_type_notation add mode args phi =
         val T' = Morphism.typ phi T;
         val similar = (case (T, T') of (Type (c, _), Type (c', _)) => c = c' | _ => false);
       in if similar then SOME (T', mx) else NONE end);
-  in Context.mapping (Sign.type_notation add mode args') (type_notation add mode args') end;
+  in Context.mapping (Sign.type_notation_global add mode args') (type_notation add mode args') end;
 
 fun generic_notation add mode args phi =
   let
     val args' = args |> map_filter (fn (t, mx) =>
       let val t' = Morphism.term phi t
       in if Term.aconv_untyped (t, t') then SOME (t', mx) else NONE end);
-  in Context.mapping (Sign.notation add mode args') (notation add mode args') end;
+  in Context.mapping (Sign.notation_global add mode args') (notation add mode args') end;
 
 end;
 

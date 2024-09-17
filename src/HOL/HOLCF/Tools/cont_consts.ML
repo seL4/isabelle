@@ -47,10 +47,11 @@ fun trans_rules name2 name1 n mx =
 *)
 fun transform thy (c, T, mx) =
   let
+    val thy_ctxt = Proof_Context.init_global thy
     fun syntax b = Lexicon.mark_const (Sign.full_bname thy b)
     val c1 = Binding.name_of c
     val c2 = c1 ^ "_cont_syntax"
-    val n = Mixfix.mixfix_args mx
+    val n = Mixfix.mixfix_args thy_ctxt mx
   in
     ((c, T, NoSyn),
       (Binding.name c2, change_arrow n T, mx),
@@ -60,11 +61,12 @@ fun transform thy (c, T, mx) =
 fun cfun_arity (Type (n, [_, T])) = if n = \<^type_name>\<open>cfun\<close> then 1 + cfun_arity T else 0
   | cfun_arity _ = 0
 
-fun is_contconst (_, _, NoSyn) = false
-  | is_contconst (_, _, Binder _) = false    (* FIXME ? *)
-  | is_contconst (c, T, mx) =
+fun is_contconst _ (_, _, NoSyn) = false
+  | is_contconst _ (_, _, Binder _) = false    (* FIXME ? *)
+  | is_contconst thy (c, T, mx) =
       let
-        val n = Mixfix.mixfix_args mx handle ERROR msg =>
+        val thy_ctxt = Proof_Context.init_global thy
+        val n = Mixfix.mixfix_args thy_ctxt mx handle ERROR msg =>
           cat_error msg ("in mixfix annotation for " ^ Binding.print c)
       in cfun_arity T >= n end
 
@@ -76,7 +78,7 @@ local
 fun gen_add_consts prep_typ raw_decls thy =
   let
     val decls = map (fn (c, T, mx) => (c, prep_typ thy T, mx)) raw_decls
-    val (contconst_decls, normal_decls) = List.partition is_contconst decls
+    val (contconst_decls, normal_decls) = List.partition (is_contconst thy) decls
     val transformed_decls = map (transform thy) contconst_decls
   in
     thy

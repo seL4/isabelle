@@ -104,17 +104,18 @@ sig
     Print_Rule of 'a * 'a |
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
-  val update_trfuns:
+  val update_trfuns: Proof.context ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
-  val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_const_gram: bool -> string list ->
+  val update_type_gram: Proof.context -> bool -> mode -> (string * typ * mixfix) list ->
+    syntax -> syntax
+  val update_const_gram: Proof.context -> bool -> string list ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_consts: (string * string list) list -> syntax -> syntax
-  val update_trrules: Ast.ast trrule list -> syntax -> syntax
-  val remove_trrules: Ast.ast trrule list -> syntax -> syntax
+  val update_consts: Proof.context -> (string * string list) list -> syntax -> syntax
+  val update_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
+  val remove_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -707,18 +708,19 @@ end;
 
 (** modify syntax **)
 
-val update_trfuns = update_syntax mode_default o Syntax_Ext.syn_ext_trfuns;
+fun update_trfuns ctxt = update_syntax mode_default o Syntax_Ext.syn_ext_trfuns ctxt;
 
-fun update_type_gram add prmode decls =
-  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
+fun update_type_gram ctxt add prmode decls =
+  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types ctxt decls);
 
-fun update_const_gram add logical_types prmode decls =
-  (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts logical_types decls);
+fun update_const_gram ctxt add logical_types prmode decls =
+  (if add then update_syntax else remove_syntax) prmode
+    (Mixfix.syn_ext_consts ctxt logical_types decls);
 
-val update_consts = update_syntax mode_default o Syntax_Ext.syn_ext_consts;
+val update_consts = update_syntax mode_default oo Syntax_Ext.syn_ext_consts;
 
-val update_trrules = update_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
-val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
+fun update_trrules ctxt = update_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
+fun remove_trrules ctxt = remove_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
 
 
 open Lexicon.Syntax;

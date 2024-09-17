@@ -412,7 +412,7 @@ fun theory_target_abbrev prmode (b, mx) global_rhs params =
   Local_Theory.background_theory_result
     (Sign.add_abbrev (#1 prmode) (b, global_rhs) #->
       (fn (lhs, _) =>  (* FIXME type_params!? *)
-        Sign.notation true prmode
+        Sign.notation_global true prmode
           [(lhs, check_mixfix_global (b, null (snd params)) mx)] #> pair lhs))
   #-> (fn lhs =>
         standard_const (op <>) prmode

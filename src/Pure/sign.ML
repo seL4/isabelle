@@ -76,10 +76,12 @@ sig
   val add_nonterminals: Proof.context -> binding list -> theory -> theory
   val add_nonterminals_global: binding list -> theory -> theory
   val add_type_abbrev: Proof.context -> binding * string list * typ -> theory -> theory
-  val syntax: bool -> Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val syntax: Proof.context -> bool -> Syntax.mode -> (string * typ * mixfix) list ->
+    theory -> theory
+  val syntax_global: bool -> Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val syntax_deps: (string * string list) list -> theory -> theory
-  val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
-  val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
+  val type_notation_global: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
+  val notation_global: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: Proof.context -> (binding * typ) * mixfix -> theory -> term * theory
   val declare_const_global: (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (binding * typ * mixfix) list -> theory -> theory
@@ -156,6 +158,8 @@ fun map_sign f = Data.map (fn Sign {syn, tsig, consts} => make_sign (f (syn, tsi
 fun map_syn f = map_sign (fn (syn, tsig, consts) => (f syn, tsig, consts));
 fun map_tsig f = map_sign (fn (syn, tsig, consts) => (syn, f tsig, consts));
 fun map_consts f = map_sign (fn (syn, tsig, consts) => (syn, tsig, f consts));
+
+fun update_syn_global f args thy = map_syn (f (Proof_Context.init_global thy) args) thy;
 
 
 (* linear change discipline *)
@@ -357,7 +361,7 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 fun add_type ctxt (b, n, mx) thy = thy |> map_sign (fn (syn, tsig, consts) =>
   let
     val type_syntax = (Lexicon.mark_type (full_name thy b), Mixfix.make_type n, mx);
-    val syn' = Syntax.update_type_gram true Syntax.mode_default [type_syntax] syn;
+    val syn' = Syntax.update_type_gram ctxt true Syntax.mode_default [type_syntax] syn;
     val tsig' = Type.add_type (inherit_naming thy ctxt) (b, n) tsig;
   in (syn', tsig', consts) end);
 
@@ -382,29 +386,34 @@ fun add_type_abbrev ctxt abbr thy = thy |> map_sign (fn (syn, tsig, consts) =>
 
 (* modify syntax *)
 
-fun syntax add mode args thy =
+fun syntax ctxt add mode args thy =
   let
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy T, mx)
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
-  in thy |> map_syn (Syntax.update_const_gram add (logical_types thy) mode (map prep args)) end;
+  in thy |> map_syn (Syntax.update_const_gram ctxt add (logical_types thy) mode (map prep args)) end;
 
-val syntax_deps = map_syn o Syntax.update_consts;
+fun syntax_global add mode args thy =
+  syntax (Proof_Context.init_global thy) add mode args thy;
 
-fun type_notation add mode args =
+val syntax_deps = update_syn_global Syntax.update_consts;
+
+fun type_notation_global add mode args thy =
   let
+    val thy_ctxt = Proof_Context.init_global thy;
     fun type_syntax (Type (c, args), mx) =
           SOME (Lexicon.mark_type c, Mixfix.make_type (length args), mx)
       | type_syntax _ = NONE;
-  in map_syn (Syntax.update_type_gram add mode (map_filter type_syntax args)) end;
+  in map_syn (Syntax.update_type_gram thy_ctxt add mode (map_filter type_syntax args)) thy end;
 
-fun notation add mode args thy =
+fun notation_global add mode args thy =
   let
+    val thy_ctxt = Proof_Context.init_global thy;
     fun const_syntax (Const (c, _), mx) =
           (case try (Consts.type_scheme (consts_of thy)) c of
             SOME T => SOME (Lexicon.mark_const c, T, mx)
           | NONE => NONE)
       | const_syntax _ = NONE;
-  in syntax add mode (map_filter const_syntax args) thy end;
+  in syntax thy_ctxt add mode (map_filter const_syntax args) thy end;
 
 
 (* add constants *)
@@ -425,7 +434,7 @@ fun gen_add_consts prep_typ ctxt raw_args thy =
   in
     thy
     |> map_consts (fold (Consts.declare (inherit_naming thy ctxt) o #1) args)
-    |> syntax true Syntax.mode_default (map #2 args)
+    |> syntax ctxt true Syntax.mode_default (map #2 args)
     |> pair (map #3 args)
   end;
 
@@ -493,20 +502,20 @@ fun mk trs = map Syntax_Ext.mk_trfun trs;
 
 in
 
-fun parse_ast_translation atrs = map_syn (Syntax.update_trfuns (mk atrs, [], [], []));
-fun parse_translation trs = map_syn (Syntax.update_trfuns ([], mk trs, [], []));
+fun parse_ast_translation atrs = update_syn_global Syntax.update_trfuns (mk atrs, [], [], []);
+fun parse_translation trs = update_syn_global Syntax.update_trfuns ([], mk trs, [], []);
 fun print_translation tr's =
-  map_syn (Syntax.update_trfuns ([], [], mk (map (apsnd Syntax_Trans.non_typed_tr') tr's), []));
-fun typed_print_translation tr's = map_syn (Syntax.update_trfuns ([], [], mk tr's, []));
-fun print_ast_translation atr's = map_syn (Syntax.update_trfuns ([], [], [], mk atr's));
+  update_syn_global Syntax.update_trfuns ([], [], mk (map (apsnd Syntax_Trans.non_typed_tr') tr's), []);
+fun typed_print_translation tr's = update_syn_global Syntax.update_trfuns ([], [], mk tr's, []);
+fun print_ast_translation atr's = update_syn_global Syntax.update_trfuns ([], [], [], mk atr's);
 
 end;
 
 
 (* translation rules *)
 
-val add_trrules = map_syn o Syntax.update_trrules;
-val del_trrules = map_syn o Syntax.remove_trrules;
+val add_trrules = update_syn_global Syntax.update_trrules;
+val del_trrules = update_syn_global Syntax.remove_trrules;
 
 
 (* naming *)

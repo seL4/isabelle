@@ -29,18 +29,18 @@ sig
       print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
-  val mfix_args: Symbol_Pos.T list -> int
-  val mixfix_args: Input.source -> int
+  val mfix_args: Proof.context -> Symbol_Pos.T list -> int
+  val mixfix_args: Proof.context -> Input.source -> int
   val escape: string -> string
-  val syn_ext: string list -> mfix list ->
+  val syn_ext: Proof.context -> string list -> mfix list ->
     (string * string list) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
     (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext_consts: (string * string list) list -> syn_ext
-  val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext_trfuns:
+  val syn_ext_consts: Proof.context -> (string * string list) list -> syn_ext
+  val syn_ext_rules: Proof.context -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+  val syn_ext_trfuns: Proof.context ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
@@ -263,18 +263,21 @@ val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
 
 in
 
-fun read_mfix ss =
+fun read_mfix ctxt ss =
   let
     val xsymbs =
       (case Scan.error (Scan.finite Symbol_Pos.stopper scan_symbs) ss of
         (res, []) => map_filter I res
       | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
-    val _ = Position.reports (maps reports_of xsymbs);
-    val _ = Position.reports_text (maps reports_text_of xsymbs);
+    val _ = Context_Position.reports ctxt (maps reports_of xsymbs);
+    val _ = Context_Position.reports_text ctxt (maps reports_text_of xsymbs);
   in xsymbs end;
 
-val mfix_args = length o filter (is_argument o #1) o read_mfix o map (apsnd (K Position.none));
-val mixfix_args = mfix_args o Input.source_explode;
+fun mfix_args ctxt =
+  let val ctxt' = Context_Position.set_visible false ctxt
+  in length o filter (is_argument o #1) o read_mfix ctxt' o map (apsnd (K Position.none)) end;
+
+fun mixfix_args ctxt = mfix_args ctxt o Input.source_explode;
 
 val escape = implode o map (fn s => if is_meta s then "'" ^ s else s) o Symbol.explode;
 
@@ -283,13 +286,13 @@ end;
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
+fun mfix_to_xprod ctxt logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
     val nonterm_for_lhs = the_default "logic" o try dest_Type_name;
     val nonterm_for_rhs = the_default "any" o try dest_Type_name;
 
     val _ = Position.report pos Markup.language_mixfix;
-    val symbs0 = read_mfix sy;
+    val symbs0 = read_mfix ctxt sy;
 
     fun err_in_mixfix msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
 
@@ -396,12 +399,12 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext logical_types mfixes consts trfuns (parse_rules, print_rules) =
+fun syn_ext ctxt logical_types mfixes consts trfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
 
-    val xprod_results = map (mfix_to_xprod logical_types) mfixes;
+    val xprod_results = map (mfix_to_xprod ctxt logical_types) mfixes;
     val xprods = map #1 xprod_results;
     val consts' = map_filter #2 xprod_results;
     val parse_rules' = rev (map_filter #3 xprod_results);
@@ -419,9 +422,9 @@ fun syn_ext logical_types mfixes consts trfuns (parse_rules, print_rules) =
   end;
 
 
-fun syn_ext_consts consts = syn_ext [] [] consts ([], [], [], []) ([], []);
-fun syn_ext_rules rules = syn_ext [] [] [] ([], [], [], []) rules;
-fun syn_ext_trfuns trfuns = syn_ext [] [] [] trfuns ([], []);
+fun syn_ext_consts ctxt consts = syn_ext ctxt [] [] consts ([], [], [], []) ([], []);
+fun syn_ext_rules ctxt rules = syn_ext ctxt [] [] [] ([], [], [], []) rules;
+fun syn_ext_trfuns ctxt trfuns = syn_ext ctxt [] [] [] trfuns ([], []);
 
 fun stamp_trfun s (c, f) = (c, (f, s));
 fun mk_trfun tr = stamp_trfun (stamp ()) tr;

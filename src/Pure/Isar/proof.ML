@@ -604,7 +604,7 @@ fun read_arg (c, mx) ctxt =
       let
         val ctxt' =
           ctxt |> is_none (Variable.default_type ctxt x) ?
-            Variable.declare_constraints (Free (x, Mixfix.default_constraint mx));
+            Variable.declare_constraints (Free (x, Mixfix.default_constraint ctxt mx));
         val t = Free (#1 (Proof_Context.inferred_param x ctxt'));
       in ((t, mx), ctxt') end
   | t => ((t, mx), ctxt));

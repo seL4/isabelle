@@ -438,7 +438,7 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
     thy
     |> Sign.add_abbrev (#1 prmode) (b, Logic.varify_types_global rhs')
     |> snd
-    |> with_syntax ? Sign.notation true prmode [(Const (c, fastype_of rhs), mx)]
+    |> with_syntax ? Sign.notation_global true prmode [(Const (c, fastype_of rhs), mx)]
     |> with_syntax ? register_operation class (c, rhs)
         (#1 prmode = Print_Mode.input)
     |> Sign.add_const_constraint (c, SOME (fastype_of rhs'))
