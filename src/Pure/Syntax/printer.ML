@@ -70,7 +70,7 @@ datatype symb =
   TypArg of int |
   String of bool * string |
   Break of int |
-  Block of Syntax_Ext.block_info * symb list;
+  Block of Syntax_Ext.block * symb list;
 
 type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
 

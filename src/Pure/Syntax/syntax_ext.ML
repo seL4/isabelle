@@ -1,20 +1,20 @@
 (*  Title:      Pure/Syntax/syntax_ext.ML
-    Author:     Markus Wenzel and Carsten Clasohm, TU Muenchen
+    Author:     Makarius
 
-Syntax extension.
+Syntax extension as internal record.
 *)
 
 signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
   val typ_to_nonterm: typ -> string
-  type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
-  val block_indent: int -> block_info
+  type block = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
+  val block_indent: int -> block
   datatype xsymb =
     Delim of string |
     Argument of string * int |
     Space of string |
-    Bg of block_info |
+    Bg of block |
     Brk of int |
     En
   datatype xprod = XProd of string * xsymb list * string * int
@@ -61,16 +61,16 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
-type block_info = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int};
+type block = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int};
 
-fun block_indent indent : block_info =
+fun block_indent indent : block =
   {markup = Markup.empty, consistent = false, unbreakable = false, indent = indent};
 
 datatype xsymb =
   Delim of string |
   Argument of string * int |
   Space of string |
-  Bg of block_info |
+  Bg of block |
   Brk of int |
   En;
 
