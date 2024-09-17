@@ -160,7 +160,8 @@ fun get_property default parse name props =
   (case AList.lookup (op =) props name of
     NONE => default
   | SOME (s, pos) =>
-      (parse s handle Fail msg => error (msg ^ " for property " ^ quote name ^ Position.here pos)));
+      (parse s handle Fail msg =>
+        error (msg ^ " for property " ^ quote name ^ Position.here pos)));
 
 in
 
@@ -214,14 +215,12 @@ fun reports_of (xsym, pos) =
   | Brk _ => [(pos, markup_break), (pos, Markup.keyword3)]
   | En => [(pos, markup_block_end), (pos, Markup.keyword3)]);
 
-fun reports_text_of (xsym, pos) =
-  (case xsym of
-    Delim s =>
+fun reports_text_of (Delim s, pos) =
       if Position.is_reported pos andalso exists Symbol.is_utf8 (Symbol.explode s) then
         [((pos, Markup.bad ()),
           "Mixfix delimiter contains raw Unicode -- this is non-portable and unreliable")]
       else []
-  | _ => []);
+  | reports_text_of _ = [];
 
 fun read_block_properties ss =
   let
