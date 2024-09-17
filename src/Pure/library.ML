@@ -165,6 +165,7 @@ sig
   val match_string: string -> string -> bool
 
   (*reals*)
+  val eq_real: real * real -> bool
   val string_of_real: real -> string
   val signed_string_of_real: real -> string
 
@@ -812,6 +813,8 @@ fun match_string pat str =
 
 
 (** reals **)
+
+fun eq_real (a, b) = Real.isNan a andalso Real.isNan b orelse Real.== (a, b);
 
 val string_of_real = Real.fmt (StringCvt.GEN NONE);
 
