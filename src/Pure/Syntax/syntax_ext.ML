@@ -119,18 +119,6 @@ fun delims_of xprods =
 datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T;
 
 
-(* typ_to_nonterm *)
-
-fun typ_to_nt _ (Type (c, _)) = c
-  | typ_to_nt default _ = default;
-
-(*get nonterminal for rhs*)
-val typ_to_nonterm = typ_to_nt "any";
-
-(*get nonterminal for lhs*)
-val typ_to_nonterm1 = typ_to_nt "logic";
-
-
 (* properties *)
 
 local
@@ -297,6 +285,9 @@ end;
 
 fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
   let
+    val nonterm_for_lhs = the_default "logic" o try dest_Type_name;
+    val nonterm_for_rhs = the_default "any" o try dest_Type_name;
+
     val _ = Position.report pos Markup.language_mixfix;
     val symbs0 = read_mfix sy;
 
@@ -308,14 +299,14 @@ fun mfix_to_xprod logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
       | check_blocks ((En, _) :: rest) (_ :: pending) bad = check_blocks rest pending bad
       | check_blocks (_ :: rest) pending bad = check_blocks rest pending bad;
 
-    fun add_args [] ty [] = ([], typ_to_nonterm1 ty)
+    fun add_args [] ty [] = ([], nonterm_for_lhs ty)
       | add_args [] _ _ = err_in_mixfix "Too many precedences"
       | add_args ((sym as (Argument ("index", _), _)) :: syms) ty ps =
           add_args syms ty ps |>> cons sym
       | add_args ((Argument _, pos) :: syms) (Type ("fun", [ty, tys])) [] =
-          add_args syms tys [] |>> cons (Argument (typ_to_nonterm ty, 0), pos)
+          add_args syms tys [] |>> cons (Argument (nonterm_for_rhs ty, 0), pos)
       | add_args ((Argument _, pos) :: syms) (Type ("fun", [ty, tys])) (p :: ps) =
-          add_args syms tys ps |>> cons (Argument (typ_to_nonterm ty, p), pos)
+          add_args syms tys ps |>> cons (Argument (nonterm_for_rhs ty, p), pos)
       | add_args ((Argument _, _) :: _) _ _ =
           err_in_mixfix "More arguments than in corresponding type"
       | add_args (sym :: syms) ty ps = add_args syms ty ps |>> cons sym;
