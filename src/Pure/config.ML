@@ -7,6 +7,7 @@ Configuration options as values within the local context.
 signature CONFIG =
 sig
   datatype value = Bool of bool | Int of int | Real of real | String of string
+  val eq_value: value * value -> bool
   val print_value: value -> string
   val print_type: value -> string
   type 'a T
@@ -57,6 +58,12 @@ datatype value =
   Int of int |
   Real of real |
   String of string;
+
+fun eq_value (Bool a, Bool b) = a = b
+  | eq_value (Int a, Int b) = a = b
+  | eq_value (Real a, Real b) = eq_real (a, b)
+  | eq_value (String a, String b) = a = b
+  | eq_value _ = false;
 
 fun print_value (Bool true) = "true"
   | print_value (Bool false) = "false"
@@ -143,13 +150,23 @@ fun declare (name, pos) default =
   let
     val id = serial ();
 
+    val lookup_value = Inttab.lookup o Data.get;
+
+    fun the_default_value _ (SOME value) = value
+      | the_default_value context NONE = default context;
+
     fun get_value context =
-      (case Inttab.lookup (Data.get context) id of
-        SOME value => value
-      | NONE => default context);
+      the_default_value context (lookup_value context id);
 
     fun map_value f context =
-      Data.map (Inttab.update (id, type_check (name, pos) f (get_value context))) context;
+      let
+        val old = lookup_value context id;
+        val old_value = the_default_value context old;
+        val new_value = type_check (name, pos) f old_value;
+      in
+        if eq_option eq_value (old, SOME new_value) then context
+        else Data.map (Inttab.update (id, new_value)) context
+      end;
   in
     Config {name = name, pos = pos, get_value = get_value, map_value = map_value}
   end;
