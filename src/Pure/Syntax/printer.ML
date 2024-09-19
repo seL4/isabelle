@@ -145,12 +145,12 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Syntax_Ext.Space s :: xsyms) =
               apfst (cons (String (false, s))) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Bg info :: xsyms) =
+          | xsyms_to_syms (Syntax_Ext.Bg block :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
                 val (syms, xsyms'') = xsyms_to_syms xsyms';
               in
-                (Block (info, bsyms) :: syms, xsyms'')
+                (Block (block, bsyms) :: syms, xsyms'')
               end
           | xsyms_to_syms (Syntax_Ext.Brk i :: xsyms) =
               apfst (cons (Break i)) (xsyms_to_syms xsyms)
