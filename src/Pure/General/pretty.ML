@@ -30,6 +30,7 @@ sig
   type 'a block = {markup: 'a, consistent: bool, indent: int}
   val make_block: Markup.output block -> T list -> T
   val markup_block: Markup.T block -> T list -> T
+  val markup_blocks: Markup.T list block -> T list -> T
   val markup: Markup.T -> T list -> T
   val blk: int * T list -> T
   val block0: T list -> T
@@ -160,6 +161,12 @@ fun marks_str (ms, s) = fold_rev mark ms (str s);
 
 val mark_position = mark o Position.markup;
 fun mark_str_position (pos, s) = mark_str (Position.markup pos, s);
+
+fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
+  let
+    val markups = filter_out Markup.is_empty markup;
+    val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
+  in fold_rev mark ms (markup_block {markup = m, consistent = consistent, indent = indent} body) end;
 
 val item = markup Markup.item;
 val text_fold = markup Markup.text_fold;
