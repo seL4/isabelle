@@ -121,6 +121,9 @@ datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Posi
 
 (* properties *)
 
+fun show_names names =
+  commas_quote (map (fn (name, pos) => Markup.markup (Position.markup pos) name) names);
+
 local
 
 open Basic_Symbol_Pos;
@@ -139,16 +142,15 @@ val scan_item =
   scan_blanks |-- scan_atom --| scan_blanks
     >> (fn ss => (Symbol_Pos.content ss, #1 (Symbol_Pos.range ss)));
 
-val scan_prop =
-  scan_item -- Scan.optional ($$ "=" |-- !!! scan_item >> #1) "true"
-    >> (fn ((x, pos), y) => (x, (y, pos)));
+val scan_prop = scan_item -- Scan.option ($$ "=" |-- !!! scan_item);
 
-fun get_property default parse name props =
-  (case AList.lookup (op =) props name of
-    NONE => default
-  | SOME (s, pos) =>
-      (parse s handle Fail msg =>
-        error (msg ^ " for property " ^ quote name ^ Position.here pos)));
+fun get_property default0 default1 parse name props =
+  (case find_first (fn ((a, _), _) => a = name) props of
+    NONE => default0
+  | SOME (_, NONE) => default1
+  | SOME ((_, pos1), SOME (b, pos2)) =>
+      (parse (b, pos2) handle Fail msg =>
+        error (msg ^ " for property " ^ quote name ^ Position.here_list [pos1, pos2])));
 
 in
 
@@ -158,16 +160,16 @@ fun read_properties ss =
       (case Scan.error (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_prop)) ss of
         (props, []) => props
       | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
+    fun ok (_, bs) = length bs <= 1;
     val _ =
-      (case AList.group (op =) props |> filter (fn (_, [_]) => false | _ => true) of
+      (case AList.group (eq_fst op =) props |> filter_out ok of
         [] => ()
-      | dups => error ("Duplicate properties: " ^ commas_quote (map #1 dups) ^
-          Position.here_list (map #2 (maps #2 dups))));
+      | dups => error ("Duplicate properties: " ^ show_names (map #1 dups)));
   in props end;
 
-val get_string = get_property "" I;
-val get_bool = get_property false Value.parse_bool;
-val get_nat = get_property 0 Value.parse_nat;
+val get_string = get_property "" "" #1;
+val get_bool = get_property false true (Value.parse_bool o #1);
+val get_nat = get_property 0 1 (Value.parse_nat o #1);
 
 end;
 
@@ -214,12 +216,13 @@ fun read_block_properties ss =
     val props = read_properties ss;
 
     val markup_name = get_string Markup.markupN props;
-    val markup_props = fold (AList.delete (op =)) Markup.block_properties props;
-    val markup = (markup_name, map (apsnd #1) markup_props);
+    val markup_props = props |> map_filter (fn (a, opt_b) =>
+      if member (op =) Markup.block_properties (#1 a) then NONE
+      else SOME (a, the_default ("", Position.none) opt_b));
+    val markup = (markup_name, map (apply2 #1) markup_props);
     val _ =
       if markup_name = "" andalso not (null markup_props) then
-        error ("Markup name required for block properties: " ^
-          commas_quote (map #1 markup_props) ^ Position.here_list (map (#2 o #2) markup_props))
+        error ("Markup name required for block properties: " ^ show_names (map #1 markup_props))
       else ();
 
     val consistent = get_bool Markup.consistentN props;

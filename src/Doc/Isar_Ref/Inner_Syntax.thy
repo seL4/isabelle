@@ -391,9 +391,10 @@ text \<open>
     atom: @{syntax short_ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
   \<close>
 
-  Each @{syntax entry} is a name-value pair: if the value is omitted, it
-  defaults to \<^verbatim>\<open>true\<close> (intended for Boolean properties). The following
-  standard block properties are supported:
+  Each @{syntax entry} is a name-value pair, but the latter is optional. If
+  the value is omitted, the default depends on its type (Boolean: \<^verbatim>\<open>true\<close>,
+  number: \<^verbatim>\<open>1\<close>, otherwise the empty string). The following standard block
+  properties are supported:
 
     \<^item> \<open>indent\<close> (natural number): the block indentation --- the same as for the
     simple syntax without block properties.
