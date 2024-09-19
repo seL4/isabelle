@@ -7,7 +7,7 @@ Syntax extension as internal record.
 signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
-  type block = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int}
+  type block = {markup: Markup.T list, consistent: bool, unbreakable: bool, indent: int}
   val block_indent: int -> block
   datatype xsymb =
     Delim of string |
@@ -60,10 +60,10 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
-type block = {markup: Markup.T, consistent: bool, unbreakable: bool, indent: int};
+type block = {markup: Markup.T list, consistent: bool, unbreakable: bool, indent: int};
 
 fun block_indent indent : block =
-  {markup = Markup.empty, consistent = false, unbreakable = false, indent = indent};
+  {markup = [], consistent = false, unbreakable = false, indent = indent};
 
 datatype xsymb =
   Delim of string |
@@ -171,6 +171,10 @@ val get_string = get_property "" "" #1;
 val get_bool = get_property false true (Value.parse_bool o #1);
 val get_nat = get_property 0 1 (Value.parse_nat o #1);
 
+fun get_expression_markup ctxt =
+  get_property NONE (SOME (Markup.expression "")) (SOME o Markup_Expression.check ctxt)
+    Markup.expressionN;
+
 end;
 
 
@@ -211,24 +215,27 @@ fun reports_text_of (Delim s, pos) =
       else []
   | reports_text_of _ = [];
 
-fun read_block_properties ss =
+fun read_block_properties ctxt ss =
   let
     val props = read_properties ss;
+
+    val more_markups = the_list (get_expression_markup ctxt props);
 
     val markup_name = get_string Markup.markupN props;
     val markup_props = props |> map_filter (fn (a, opt_b) =>
       if member (op =) Markup.block_properties (#1 a) then NONE
-      else SOME (a, the_default ("", Position.none) opt_b));
-    val markup = (markup_name, map (apply2 #1) markup_props);
-    val _ =
-      if markup_name = "" andalso not (null markup_props) then
-        error ("Markup name required for block properties: " ^ show_names (map #1 markup_props))
-      else ();
+      else SOME (a, the_default ("true", Position.none) opt_b));
+    val markups =
+      if markup_name <> "" then [(markup_name, map (apply2 #1) markup_props)]
+      else if null markup_props then []
+      else error ("Markup name required for block properties: " ^ show_names (map #1 markup_props));
 
-    val consistent = get_bool Markup.consistentN props;
-    val unbreakable = get_bool Markup.unbreakableN props;
-    val indent = get_nat Markup.indentN props;
-  in Bg {markup = markup, consistent = consistent, unbreakable = unbreakable, indent = indent} end
+    val block: block =
+     {markup = more_markups @ markups,
+      consistent = get_bool Markup.consistentN props,
+      unbreakable = get_bool Markup.unbreakableN props,
+      indent = get_nat Markup.indentN props};
+  in Bg block end
   handle ERROR msg =>
     let
       val reported_texts =
@@ -246,30 +253,31 @@ val scan_delim =
   $$ "'" |-- scan_one ((not o Symbol.is_blank) andf Symbol.not_eof) >> single ||
   scan_one ((not o is_meta) andf (not o Symbol.is_blank) andf Symbol.not_eof) >> single;
 
-val scan_sym =
-  $$ "_" >> K (Argument ("", 0)) ||
-  $$ "\<index>" >> K index ||
-  $$ "(" |--
-   (Symbol_Pos.scan_cartouche_content err_prefix >> read_block_properties ||
-    scan_many Symbol.is_digit >> read_block_indent) ||
-  $$ ")" >> K En ||
-  $$ "/" -- $$ "/" >> K (Brk ~1) ||
-  $$ "/" |-- scan_many Symbol.is_space >> (Brk o length) ||
-  scan_many1 Symbol.is_space >> (Space o Symbol_Pos.content) ||
-  Scan.repeat1 scan_delim >> (Delim o Symbol_Pos.content o flat);
+fun scan_symbs ctxt =
+  let
+    val scan_sym =
+      $$ "_" >> K (Argument ("", 0)) ||
+      $$ "\<index>" >> K index ||
+      $$ "(" |--
+       (Symbol_Pos.scan_cartouche_content err_prefix >> read_block_properties ctxt ||
+        scan_many Symbol.is_digit >> read_block_indent) ||
+      $$ ")" >> K En ||
+      $$ "/" -- $$ "/" >> K (Brk ~1) ||
+      $$ "/" |-- scan_many Symbol.is_space >> (Brk o length) ||
+      scan_many1 Symbol.is_space >> (Space o Symbol_Pos.content) ||
+      Scan.repeat1 scan_delim >> (Delim o Symbol_Pos.content o flat);
 
-val scan_symb =
-  Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||
-  $$ "'" -- scan_one Symbol.is_space >> K NONE;
-
-val scan_symbs = Scan.repeat scan_symb --| Scan.ahead (~$$ "'");
+    val scan_symb =
+      Scan.trace scan_sym >> (fn (syms, trace) => SOME (syms, #1 (Symbol_Pos.range trace))) ||
+      $$ "'" -- scan_one Symbol.is_space >> K NONE;
+  in Scan.repeat scan_symb --| Scan.ahead (~$$ "'") end;
 
 in
 
 fun read_mfix ctxt ss =
   let
     val xsymbs =
-      (case Scan.error (Scan.finite Symbol_Pos.stopper scan_symbs) ss of
+      (case Scan.error (Scan.finite Symbol_Pos.stopper (scan_symbs ctxt)) ss of
         (res, []) => map_filter I res
       | (_, (_, pos) :: _) => error (err_prefix ^ "bad input" ^ Position.here pos));
     val _ = Context_Position.reports ctxt (maps reports_of xsymbs);

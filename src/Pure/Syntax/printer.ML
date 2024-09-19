@@ -247,7 +247,7 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
             val (bTs, args') = synT m (bsymbs, args);
             val (Ts, args'') = synT m (symbs, args');
             val T =
-              Pretty.markup_block {markup = markup, consistent = consistent, indent = indent} bTs
+              Pretty.markup_blocks {markup = markup, consistent = consistent, indent = indent} bTs
               |> unbreakable ? Pretty.unbreakable;
           in (T :: Ts, args'') end
       | synT m (Break i :: symbs, args) =

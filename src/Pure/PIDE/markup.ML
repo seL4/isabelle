@@ -460,7 +460,7 @@ val consistentN = "consistent";
 val unbreakableN = "unbreakable";
 val indentN = "indent";
 
-val block_properties = [markupN, consistentN, unbreakableN, indentN];
+val block_properties = [expressionN, markupN, consistentN, unbreakableN, indentN];
 
 val widthN = "width";
 
