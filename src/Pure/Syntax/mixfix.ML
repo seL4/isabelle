@@ -180,7 +180,7 @@ fun syn_ext_types ctxt type_decls =
               Position.here (pos_of mx))
       | check_args _ NONE = ();
 
-    val _ = Position.reports_text (maps (mixfix_template_reports o #3) type_decls);
+    val _ = Context_Position.reports_text ctxt (maps (mixfix_template_reports o #3) type_decls);
 
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
@@ -227,7 +227,7 @@ fun syn_ext_consts ctxt logical_types const_decls =
     fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;
 
-    val _ = Position.reports_text (maps (mixfix_template_reports o #3) const_decls);
+    val _ = Context_Position.reports_text ctxt (maps (mixfix_template_reports o #3) const_decls);
 
     val mfix = maps mfix_of const_decls;
     val binders = map_filter binder const_decls;

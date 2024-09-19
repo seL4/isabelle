@@ -291,7 +291,7 @@ fun mfix_to_xprod ctxt logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
     val nonterm_for_lhs = the_default "logic" o try dest_Type_name;
     val nonterm_for_rhs = the_default "any" o try dest_Type_name;
 
-    val _ = Position.report pos Markup.language_mixfix;
+    val _ = Context_Position.report ctxt pos Markup.language_mixfix;
     val symbs0 = read_mfix ctxt sy;
 
     fun err_in_mixfix msg = error (msg ^ " in mixfix annotation" ^ Position.here pos);
