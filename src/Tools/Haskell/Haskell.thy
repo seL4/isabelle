@@ -244,8 +244,8 @@ module Isabelle.Library (
   StringLike, STRING (..), TEXT (..), BYTES (..),
   show_bytes, show_text,
 
-  proper_string, enclose, quote, space_implode, commas, commas_quote, cat_lines,
-  space_explode, split_lines, trim_line, trim_split_lines,
+  proper_string, enclose, quote, space_implode, implode_space, commas, commas_quote,
+  cat_lines, space_explode, split_lines, trim_line, trim_split_lines,
 
   getenv, getenv_strict)
 where
@@ -415,6 +415,9 @@ quote = enclose "\"" "\""
 
 space_implode :: StringLike a => a -> [a] -> a
 space_implode s = mconcat . separate s
+
+implode_space :: StringLike a => [a] -> a
+implode_space = space_implode " "
 
 commas, commas_quote :: StringLike a => [a] -> a
 commas = space_implode ", "
