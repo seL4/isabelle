@@ -68,6 +68,7 @@ sig
   val position_property: Properties.entry -> bool
   val def_name: string -> string
   val expressionN: string val expression: string -> T
+  val expression0: T
   val citationN: string val citation: string -> T
   val pathN: string val path: string -> T
   val export_pathN: string val export_path: string -> T
@@ -437,6 +438,8 @@ fun def_name a =
 
 val expressionN = "expression";
 fun expression kind = (expressionN, kind_proper kind);
+
+val expression0 = (expressionN, []);
 
 
 (* citation *)

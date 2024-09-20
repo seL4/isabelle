@@ -172,7 +172,7 @@ val get_bool = get_property false true (Value.parse_bool o #1);
 val get_nat = get_property 0 1 (Value.parse_nat o #1);
 
 fun get_expression_markup ctxt =
-  get_property NONE (SOME (Markup.expression "")) (SOME o Markup_Expression.check ctxt)
+  get_property NONE (SOME Markup.expression0) (SOME o Markup_Expression.check ctxt)
     Markup.expressionN;
 
 end;
