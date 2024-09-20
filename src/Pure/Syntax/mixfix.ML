@@ -163,15 +163,15 @@ fun syn_ext_types ctxt type_decls =
         (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
           ty, t, [p1, p2], p3, pos);
 
-    fun mfix_of (mfix as (_, _, mx)) =
-      (case mfix of
-        (_, _, NoSyn) => NONE
-      | (t, ty, Mixfix (sy, ps, p, _)) =>
+    fun mfix_of (t, ty, mx) =
+      (case mx of
+        NoSyn => NONE
+      | Mixfix (sy, ps, p, _) =>
           SOME (Syntax_Ext.Mfix (Input.source_explode sy, ty, t, ps, p, pos_of mx))
-      | (t, ty, Infix (sy, p, _)) => SOME (mk_infix sy ty t (p + 1) (p + 1) p (pos_of mx))
-      | (t, ty, Infixl (sy, p, _)) => SOME (mk_infix sy ty t p (p + 1) p (pos_of mx))
-      | (t, ty, Infixr (sy, p, _)) => SOME (mk_infix sy ty t (p + 1) p p (pos_of mx))
-      | (t, _, _) => error ("Bad mixfix declaration for " ^ quote t ^ Position.here (pos_of mx)));
+      | Infix (sy, p, _) => SOME (mk_infix sy ty t (p + 1) (p + 1) p (pos_of mx))
+      | Infixl (sy, p, _) => SOME (mk_infix sy ty t p (p + 1) p (pos_of mx))
+      | Infixr (sy, p, _) => SOME (mk_infix sy ty t (p + 1) p p (pos_of mx))
+      | _ => error ("Bad mixfix declaration for " ^ quote t ^ Position.here (pos_of mx)));
 
     fun check_args (_, ty, mx) (SOME (Syntax_Ext.Mfix (sy, _, _, _, _, _))) =
           if length (Term.binder_types ty) = Syntax_Ext.mfix_args ctxt sy then ()
@@ -209,20 +209,19 @@ fun syn_ext_consts ctxt logical_types const_decls =
           [Type ("idts", []), ty2] ---> ty3
       | binder_typ c _ = error ("Bad type of binder: " ^ quote c);
 
-    fun mfix_of (mfix as (_, _, mx)) =
-      (case mfix of
-        (_, _, NoSyn) => []
-      | (c, ty, Mixfix (sy, ps, p, _)) =>
+    fun mfix_of (c, ty, mx) =
+      (case mx of
+        NoSyn => []
+      | Mixfix (sy, ps, p, _) =>
           [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, ps, p, pos_of mx)]
-      | (c, ty, Infix (sy, p, _)) => mk_infix sy ty c (p + 1) (p + 1) p (pos_of mx)
-      | (c, ty, Infixl (sy, p, _)) => mk_infix sy ty c p (p + 1) p (pos_of mx)
-      | (c, ty, Infixr (sy, p, _)) => mk_infix sy ty c (p + 1) p p (pos_of mx)
-      | (c, ty, Binder (sy, p, q, _)) =>
+      | Infix (sy, p, _) => mk_infix sy ty c (p + 1) (p + 1) p (pos_of mx)
+      | Infixl (sy, p, _) => mk_infix sy ty c p (p + 1) p (pos_of mx)
+      | Infixr (sy, p, _) => mk_infix sy ty c (p + 1) p p (pos_of mx)
+      | Binder (sy, p, q, _) =>
           [Syntax_Ext.Mfix
             (Symbol_Pos.explode0 "(3" @ Input.source_explode sy @ Symbol_Pos.explode0 "_./ _)",
               binder_typ c ty, (binder_name c), [0, p], q, pos_of mx)]
-      | (c, _, mx) =>
-          error ("Bad mixfix declaration for " ^ quote c ^ Position.here (pos_of mx)));
+      | _ => error ("Bad mixfix declaration for " ^ quote c ^ Position.here (pos_of mx)));
 
     fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;
