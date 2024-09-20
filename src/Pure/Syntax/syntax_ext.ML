@@ -284,9 +284,10 @@ fun read_mfix ctxt ss =
     val _ = Context_Position.reports_text ctxt (maps reports_text_of xsymbs);
   in xsymbs end;
 
-fun mfix_args ctxt =
-  let val ctxt' = Context_Position.set_visible false ctxt
-  in length o filter (is_argument o #1) o read_mfix ctxt' end;
+val read_mfix0 = read_mfix o Context_Position.set_visible false;
+
+fun mfix_args ctxt ss =
+  Integer.build (read_mfix0 ctxt ss |> fold (fn (xsymb, _) => is_argument xsymb ? Integer.add 1));
 
 fun mixfix_args ctxt = mfix_args ctxt o Input.source_explode;
 
