@@ -257,7 +257,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size))
         val executable = in_path + Path.basic "isabelle_quickcheck_narrowing"
         val cmd =
           "exec \"$ISABELLE_GHC\" " ^ Code_Haskell.language_params ^ " " ^ ghc_options ^ " " ^
-            (space_implode " "
+            (implode_space
               (map File.bash_platform_path
                 (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ File.bash_platform_path executable ^ ";"

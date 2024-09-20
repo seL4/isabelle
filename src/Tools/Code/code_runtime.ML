@@ -97,7 +97,7 @@ fun build_compilation_text ctxt some_target program consts =
 fun run_compilation_text cookie ctxt comp vs_t args =
   let
     val (program_code, value_name) = comp vs_t;
-    val value_code = space_implode " "
+    val value_code = implode_space
       (value_name :: "()" :: map (enclose "(" ")") args);
   in Exn.result (value ctxt cookie) (program_code, value_code) end;
 
@@ -582,7 +582,7 @@ fun print_code ctxt const =
 
 fun print_computation kind ctxt T =
   print (fn { of_term_for_typ, ... } => fn prfx =>
-    enclose "(" ")" (space_implode " " [
+    enclose "(" ")" (implode_space [
       kind,
       "(Context.proof_of (Context.the_generic_context ()))",
       Long_Name.implode [prfx, generated_computationN, covered_constsN],
@@ -592,7 +592,7 @@ fun print_computation kind ctxt T =
 
 fun print_computation_check ctxt =
   print (fn { of_term_for_typ, ... } => fn prfx =>
-    enclose "(" ")" (space_implode " " [
+    enclose "(" ")" (implode_space [
       mount_computation_checkN,
       "(Context.proof_of (Context.the_generic_context ()))",
       Long_Name.implode [prfx, generated_computationN, covered_constsN],

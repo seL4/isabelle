@@ -43,7 +43,7 @@ fun in_range (from, to) j =
 fun encode_feature (names, weight) =
   encode_str names ^ (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
 
-val encode_features = map encode_feature #> space_implode " "
+val encode_features = map encode_feature #> implode_space
 
 (* The suggested weights do not make much sense. *)
 fun extract_suggestion sugg =

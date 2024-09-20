@@ -36,7 +36,7 @@ fun string_of_term ctxt env binders t =
   Syntax.string_of_term ctxt (Envir.norm_term env (subst_bounds (map Free binders, t)));
 
 fun bname binders i = fst (nth binders i);
-fun bnames binders is = space_implode " " (map (bname binders) is);
+fun bnames binders is = implode_space (map (bname binders) is);
 
 fun typ_clash context (tye,T,U) =
   if Config.get_generic context unify_trace_failure then

@@ -154,7 +154,7 @@ fun normalize_raw_param ctxt =
 
 (* Ensures that type encodings such as "mono_native?" and "poly_guards!!" are
    read correctly. *)
-val implode_param = strip_spaces_except_between_idents o space_implode " "
+val implode_param = strip_spaces_except_between_idents o implode_space
 
 (* FIXME: use "Generic_Data" *)
 structure Data = Theory_Data

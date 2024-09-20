@@ -597,7 +597,7 @@ fun amend_registration {mixin = NONE, ...} context = context
             NONE =>
               error ("No interpretation of locale " ^ quote (markup_name ctxt name) ^
                 " with\nparameter instantiation " ^
-                space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
+                implode_space (map (quote o Syntax.string_of_term_global thy) base) ^
                 " available")
           | SOME {serial = serial', ...} => serial');
       in

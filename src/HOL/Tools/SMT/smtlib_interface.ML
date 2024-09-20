@@ -131,10 +131,10 @@ fun tree_of_sterm l (SMT_Translate.SVar (i, [])) = SMTLIB.Sym (var (l - i - 1))
 
 
 fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
-fun sctr (name, args) = enclose "(" ")" (space_implode " " (name :: map sctrarg args))
-fun sdatatype (name, ctrs) = enclose "(" ")" (space_implode " " (name :: map sctr ctrs))
+fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
+fun sdatatype (name, ctrs) = enclose "(" ")" (implode_space (name :: map sctr ctrs))
 
-fun string_of_fun (f, (ss, s)) = f ^ " (" ^ space_implode " " ss ^ ") " ^ s
+fun string_of_fun (f, (ss, s)) = f ^ " (" ^ implode_space ss ^ ") " ^ s
 
 fun named_sterm s t = SMTLIB.S [SMTLIB.Sym "!", t, SMTLIB.Key "named", SMTLIB.Sym s]
 

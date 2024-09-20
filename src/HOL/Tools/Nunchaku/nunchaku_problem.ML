@@ -660,7 +660,7 @@ val (str_of_tmty, str_of_tm) =
         | (NConst (id, _, _), NAbs _) =>
           if is_nun_const_quantifier id then
             let val (vars, body) = strip_nun_binders id app in
-              id ^ " " ^ space_implode " " (map (nun_parens o str_of_tmty) vars) ^ nun_dot ^ " " ^
+              id ^ " " ^ implode_space (map (nun_parens o str_of_tmty) vars) ^ nun_dot ^ " " ^
               str_of NONE body
             end
           else

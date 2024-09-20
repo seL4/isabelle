@@ -55,7 +55,7 @@ fun apply_named_method_on_first_goal ctxt =
 fun add_attr_text (NONE, _) s = s
   | add_attr_text (_, []) s = s
   | add_attr_text (SOME x, fs) s =
-    s ^ " " ^ (if x = "" then "" else x ^ ": ") ^ space_implode " " fs;
+    s ^ " " ^ (if x = "" then "" else x ^ ": ") ^ implode_space fs;
 
 fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
   "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es), (dx, ds)];
@@ -131,7 +131,7 @@ fun generic_try0 mode timeout_opt quad st =
       else Par_List.get_some try_method #> the_list;
   in
     if mode = Normal then
-      "Trying " ^ space_implode " " (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
+      "Trying " ^ implode_space (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
       "..."
       |> writeln
     else

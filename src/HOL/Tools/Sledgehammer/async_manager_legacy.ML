@@ -19,7 +19,7 @@ structure Async_Manager_Legacy : ASYNC_MANAGER_LEGACY =
 struct
 
 fun implode_message (workers, work) =
-  space_implode " " (Try.serial_commas "and" workers) ^ work
+  implode_space (Try.serial_commas "and" workers) ^ work
 
 structure Thread_Heap = Heap
 (

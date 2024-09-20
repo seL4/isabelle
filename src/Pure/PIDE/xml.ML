@@ -132,7 +132,7 @@ val text = translate_string encode;
 (* elements *)
 
 fun elem name atts =
-  space_implode " " (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
+  implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
 
 fun element name atts body =
   let val b = implode body in

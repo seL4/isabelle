@@ -139,7 +139,7 @@ in
 fun invoke name command options smt_options ithms ctxt =
   let
     val options = options @ SMT_Config.solver_options_of ctxt
-    val comments = [space_implode " " options]
+    val comments = [implode_space options]
 
     val (str, replay_data as {context = ctxt', ...}) =
       ithms

@@ -204,7 +204,7 @@ fun run_atp mode name
              string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
         val args = arguments abduce full_proofs extra run_timeout prob_path
-        val command = space_implode " " (File.bash_path executable :: args)
+        val command = implode_space (File.bash_path executable :: args)
 
         fun run_command () =
           if exec = isabelle_scala_function then
@@ -290,7 +290,7 @@ fun run_atp mode name
             if mode = Normal andalso not (is_conjecture_used_in_proof atp_proof)
                andalso not (Logic.get_goal (Thm.prop_of goal) subgoal aconv @{prop False}) then
               warning ("Derived \"False\" from these facts alone: " ^
-                space_implode " " (map fst used_facts))
+                implode_space (map fst used_facts))
             else
               ()
 

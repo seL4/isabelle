@@ -125,7 +125,7 @@ fun string_of_node ctxt =
       enclose "{" "}" (commas
         [string_of_int id,
          string_of_rule rule,
-         enclose "[" "]" (space_implode " " bounds),
+         enclose "[" "]" (implode_space bounds),
          Syntax.string_of_term ctxt concl] ^
         cat_lines (map (prefix "\n" o str (depth + 1)) prems))
   in str 0 end

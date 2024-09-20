@@ -440,7 +440,7 @@ fun intermediate logic dtyps builtin ctxt ts trx =
             SOME (n, []) => pair n
           | SOME (n, Ts) =>
             fold_map transT Ts
-            #>> (fn ns => enclose "(" ")" (space_implode " " (n :: ns)))
+            #>> (fn ns => enclose "(" ")" (implode_space (n :: ns)))
           | NONE => add_typ T true)
 
     fun trans t =

@@ -23,7 +23,7 @@ val indent_size = 2;
 val pretty_indent = Pretty.indent indent_size;
 
 fun sorting_str_of_typ (TFree (s, _)) = "a" ^ s
-  | sorting_str_of_typ (Type (s, Ts)) = "b" ^ s ^ space_implode " " (map sorting_str_of_typ Ts)
+  | sorting_str_of_typ (Type (s, Ts)) = "b" ^ s ^ implode_space (map sorting_str_of_typ Ts)
   | sorting_str_of_typ (TVar _) = "X";
 
 fun sorting_str_of_term (Const (s, T)) = "b" ^ s ^ sorting_str_of_typ T

@@ -64,7 +64,7 @@ struct
 fun beginning n cs =
   let val dots = if length cs > n then " ..." else "";
   in
-    space_implode " " (take n cs) ^ dots
+    implode_space (take n cs) ^ dots
   end;
 
 fun !!! scan =

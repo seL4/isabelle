@@ -55,7 +55,7 @@ fun try_tools state =
   else
     get_tools (Proof.theory_of state)
     |> tap (fn tools =>
-               "Trying " ^ space_implode " "
+               "Trying " ^ implode_space
                     (serial_commas "and" (map (quote o #name) tools)) ^ "..."
                |> writeln)
     |> Par_List.get_some

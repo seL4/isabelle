@@ -530,7 +530,7 @@ fun is_source ctxt =
 fun source ctxt embedded =
   Token.args_of_src
   #> map (token_source ctxt embedded #> Document_Antiquotation.prepare_lines ctxt)
-  #> space_implode " "
+  #> implode_space
   #> output_source ctxt
   #> isabelle ctxt;
 

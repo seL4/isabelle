@@ -47,7 +47,7 @@ fun eliminate_term ctxt xs tm =
       if member (op =) vs v then insert (op aconv) t else I | _ => I) tm [];
     val _ = null bads orelse
       error ("Result contains obtained parameters: " ^
-        space_implode " " (map (Syntax.string_of_term ctxt) bads));
+        implode_space (map (Syntax.string_of_term ctxt) bads));
   in tm end;
 
 fun eliminate ctxt rule xs As thm =

@@ -634,7 +634,7 @@ fun trace_step ctxt proof_id rule proofs = with_full_tracing ctxt (fn ctxt' =>
     val id = Argo_Proof.string_of_proof_id proof_id
     val ids = map (Argo_Proof.string_of_proof_id o Argo_Proof.id_of) proofs
     val rule_string = Argo_Proof.string_of_rule rule
-  in full_tracing ctxt' ("  " ^ id ^ " <- " ^ space_implode " " ids ^ " . " ^ rule_string) end)
+  in full_tracing ctxt' ("  " ^ id ^ " <- " ^ implode_space ids ^ " . " ^ rule_string) end)
 
 fun replay_bottom_up (env as (ctxt, _, _)) proof thm_cache =
   let

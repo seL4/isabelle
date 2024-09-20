@@ -262,7 +262,7 @@ fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...
           | facts => "The goal is falsified by these facts: " ^ commas facts)
         else
           "Derived \"False\" from these facts alone: " ^
-          space_implode " " (map fst used_facts)))
+          implode_space (map fst used_facts)))
 
 fun check_expected_outcome ctxt prover_name expect outcome =
   let
@@ -351,7 +351,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
 
 fun string_of_facts filter facts =
   "Selected " ^ string_of_int (length facts) ^ " " ^ (if filter = "" then "" else filter ^ " ") ^
-  "fact" ^ plural_s (length facts) ^ ": " ^ (space_implode " " (map (fst o fst) facts))
+  "fact" ^ plural_s (length facts) ^ ": " ^ (implode_space (map (fst o fst) facts))
 
 fun string_of_factss factss =
   if forall (null o snd) factss then

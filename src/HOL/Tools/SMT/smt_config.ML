@@ -279,7 +279,7 @@ fun print_setup ctxt =
   in
     Pretty.writeln (Pretty.big_list "SMT setup:" [
       Pretty.str ("Current SMT solver: " ^ n),
-      Pretty.str ("Current SMT solver options: " ^ space_implode " " opts),
+      Pretty.str ("Current SMT solver options: " ^ implode_space opts),
       Pretty.str_list "Available SMT solvers: "  "" ns,
       Pretty.str ("Current timeout: " ^ t ^ " seconds"),
       Pretty.str ("With proofs: " ^

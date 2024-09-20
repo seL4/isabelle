@@ -23,7 +23,7 @@ val language_pragma =
   "{-# LANGUAGE " ^ commas language_extensions ^ " #-}";
 
 val language_params =
-  space_implode " " (map (prefix "-X") language_extensions);
+  implode_space (map (prefix "-X") language_extensions);
 
 open Basic_Code_Symbol;
 open Basic_Code_Thingol;

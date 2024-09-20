@@ -75,7 +75,7 @@ fun get_slices ctxt name =
 fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
-    (if n > 0 then ": " ^ (names |> map fst |> sort string_ord |> space_implode " ") else "")
+    (if n > 0 then ": " ^ (names |> map fst |> sort string_ord |> implode_space) else "")
   end
 
 fun print silent f = if silent then () else writeln (f ())

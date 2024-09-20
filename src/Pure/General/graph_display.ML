@@ -85,7 +85,7 @@ val encode_browser =
   sort_graph
   #> map (fn ((key, Node {name, unfold, content = _, directory, path}), parents) =>
     "\"" ^ name ^ "\" \"" ^ key ^ "\" \"" ^ directory ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;")
+    path ^ "\" > " ^ implode_space (map quote parents) ^ " ;")
   #> cat_lines;
 
 in

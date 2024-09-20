@@ -51,7 +51,7 @@ fun parse_bool_option option name s =
   handle Option.Option =>
     let val ss = map quote ((option ? cons "smart") ["true", "false"]) in
       error ("Parameter " ^ quote name ^ " must be assigned " ^
-       space_implode " " (serial_commas "or" ss))
+       implode_space (serial_commas "or" ss))
     end
 
 val has_junk =

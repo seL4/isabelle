@@ -61,7 +61,7 @@ fun trim_blanks ctxt =
 
 fun trim_lines ctxt =
   if not (Config.get ctxt thy_output_display) then
-    split_lines #> map Symbol.trim_blanks #> space_implode " "
+    split_lines #> map Symbol.trim_blanks #> implode_space
   else I;
 
 fun indent_lines ctxt =

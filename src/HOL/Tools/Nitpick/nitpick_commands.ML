@@ -291,7 +291,7 @@ fun default_params thy =
   extract_params (Proof_Context.init_global thy) Normal (default_raw_params thy)
   o map (apsnd single)
 
-val parse_key = Scan.repeat1 Parse.embedded >> space_implode " "
+val parse_key = Scan.repeat1 Parse.embedded >> implode_space
 val parse_value =
   Scan.repeats1 (Parse.minus >> single
                 || Scan.repeat1 (Scan.unless Parse.minus

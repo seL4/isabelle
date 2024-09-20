@@ -162,7 +162,7 @@ fun short_output verbose output =
     ""
 
 fun from_lemmas [] = ""
-  | from_lemmas ss = " from " ^ space_implode " " (Try.serial_commas "and" (map quote ss))
+  | from_lemmas ss = " from " ^ implode_space (Try.serial_commas "and" (map quote ss))
 
 fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
   | string_of_atp_failure Unprovable = "Problem unprovable"

@@ -49,7 +49,7 @@ fun string "" = "\"\""
               else "\\" ^ ch)
         end);
 
-val strings = space_implode " " o map string;
+val strings = implode_space o map string;
 
 
 (* server parameters *)

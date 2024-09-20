@@ -70,7 +70,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
            (used_facts |> map (with_index facts o fst)
                        |> sort (int_ord o apply2 fst)
                        |> map index_str
-                       |> space_implode " ") ^
+                       |> implode_space) ^
            (if length facts < the max_facts then
               " (of " ^ string_of_int (length facts) ^ ")"
             else
@@ -79,7 +79,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
            "Failure: " ^
            (facts |> take (the max_facts) |> tag_list 1
                   |> map index_str
-                  |> space_implode " "))
+                  |> implode_space))
       end
 
     fun solve_goal (j, lines) =

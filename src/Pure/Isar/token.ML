@@ -833,7 +833,7 @@ fun syntax_generic scan src0 context =
                   val (markup, xname) = print ctxt';
                 in plain_words kind ^ " " ^ quote (Markup.markup markup xname) end);
           val print_args =
-            if null args2 then "" else ":\n  " ^ space_implode " " (map print args2);
+            if null args2 then "" else ":\n  " ^ implode_space (map print args2);
         in
           error ("Bad arguments for " ^ print_name ^ Position.here pos ^ print_args ^
             Markup.markup_report (implode (reported_text ())))

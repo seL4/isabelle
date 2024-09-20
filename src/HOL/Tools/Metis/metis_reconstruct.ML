@@ -322,7 +322,7 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
     fun path_finder_fail tm ps t =
       raise METIS_RECONSTRUCT ("equality_inference (path_finder)",
-                "path = " ^ space_implode " " (map string_of_int ps) ^
+                "path = " ^ implode_space (map string_of_int ps) ^
                 " isa-term: " ^ Syntax.string_of_term ctxt tm ^
                 (case t of
                   SOME t => " fol-term: " ^ Metis_Term.toString t

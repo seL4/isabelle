@@ -143,6 +143,7 @@ sig
   val quote: string -> string
   val cartouche: string -> string
   val space_implode: string -> string list -> string
+  val implode_space: string list -> string
   val commas: string list -> string
   val commas_quote: string list -> string
   val cat_lines: string list -> string
@@ -740,6 +741,7 @@ val quote = enclose "\"" "\"";
 val cartouche = enclose "\<open>" "\<close>";
 
 val space_implode = String.concatWith;
+val implode_space = space_implode " ";
 
 val commas = space_implode ", ";
 val commas_quote = commas o map quote;
@@ -752,7 +754,7 @@ fun space_explode _ "" = []
 
 val split_lines = space_explode "\n";
 
-fun plain_words s = space_explode "_" s |> space_implode " ";
+val plain_words = implode_space o space_explode "_";
 
 fun prefix_lines "" txt = txt
   | prefix_lines prfx txt = txt |> split_lines |> map (fn s => prfx ^ s) |> cat_lines;

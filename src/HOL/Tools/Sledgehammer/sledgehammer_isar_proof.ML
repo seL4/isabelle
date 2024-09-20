@@ -412,7 +412,7 @@ fun string_of_isar_proof ctxt0 i n proof =
        ctxt |> perhaps (try (Proof_Context.augment term)))
 
     fun using_facts [] [] = ""
-      | using_facts ls ss = enclose "using " " " (space_implode " " (map string_of_label ls @ ss))
+      | using_facts ls ss = enclose "using " " " (implode_space (map string_of_label ls @ ss))
 
     (* Local facts are always passed via "using", which affects "meson" and "metis". This is
        arguably stylistically superior, because it emphasises the structure of the proof. It is also

@@ -116,7 +116,7 @@ fun absrep_match_err ctxt ty_pat ty =
     val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
     val ty_str = Syntax.string_of_typ ctxt ty
   in
-    raise LIFT_MATCH (space_implode " "
+    raise LIFT_MATCH (implode_space
       ["absrep_fun (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
   end
 
@@ -283,7 +283,7 @@ fun equiv_match_err ctxt ty_pat ty =
     val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
     val ty_str = Syntax.string_of_typ ctxt ty
   in
-    raise LIFT_MATCH (space_implode " "
+    raise LIFT_MATCH (implode_space
       ["equiv_relation (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
   end
 
@@ -689,7 +689,7 @@ fun inj_repabs_err ctxt msg rtrm qtrm =
     val rtrm_str = Syntax.string_of_term ctxt rtrm
     val qtrm_str = Syntax.string_of_term ctxt qtrm
   in
-    raise LIFT_MATCH (space_implode " " [msg, quote rtrm_str, "and", quote qtrm_str])
+    raise LIFT_MATCH (implode_space [msg, quote rtrm_str, "and", quote qtrm_str])
   end
 
 

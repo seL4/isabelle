@@ -283,7 +283,7 @@ fun sdpa_of_vector (v: vector) =
     val n = dim v
     val strs =
       map (decimalize 20 o (fn i => FuncUtil.Intfunc.tryapplyd (snd v) i @0)) (1 upto n)
-  in space_implode " " strs ^ "\n" end;
+  in implode_space strs ^ "\n" end;
 
 fun triple_int_ord ((a, b, c), (a', b', c')) =
   prod_ord int_ord (prod_ord int_ord int_ord) ((a, (b, c)), (a', (b', c')));
@@ -559,7 +559,7 @@ fun sdpa_of_blockproblem nblocks blocksizes obj mats =
   in
     string_of_int m ^ "\n" ^
     string_of_int nblocks ^ "\n" ^
-    (space_implode " " (map string_of_int blocksizes)) ^
+    (implode_space (map string_of_int blocksizes)) ^
     "\n" ^
     sdpa_of_vector obj ^
     fold_rev (fn (k, m) => fn a => sdpa_of_blockdiagonal (k - 1) m ^ a)

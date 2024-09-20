@@ -145,7 +145,7 @@ fun string_of_proof_method ss meth =
       | Algebra_Method => "algebra"
       | Order_Method => "order")
   in
-    maybe_paren (space_implode " " (meth_s :: merge_indexed_facts ss))
+    maybe_paren (implode_space (meth_s :: merge_indexed_facts ss))
   end
 
 fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
@@ -211,7 +211,7 @@ fun proof_method_command meth i n used_chaineds _(*num_chained*) extras =
       if is_proof_method_direct meth then ([], extras) else (extras, [])
   in
     (if null indirect_ss then ""
-     else "using " ^ space_implode " " (merge_indexed_facts indirect_ss) ^ " ") ^
+     else "using " ^ implode_space (merge_indexed_facts indirect_ss) ^ " ") ^
     apply_on_subgoal i n ^ string_of_proof_method direct_ss meth ^
     (if is_proof_method_multi_goal meth andalso n <> 1 then "[1]" else "")
   end

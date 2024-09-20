@@ -91,12 +91,12 @@ fun print_subgoal apply_line_opt (is_prems, is_for, is_sh) ctxt indent stmt =
     val prefix = Symbol.spaces indent;
     val fixes_s =
       if not is_for orelse null fixes then NONE
-      else SOME ("for " ^ space_implode " "
+      else SOME ("for " ^ implode_space
         (map (fn (v, _) => Thy_Header.print_name' ctxt' v) fixes));
     val premises_s = if is_prems then SOME "premises prems" else NONE;
     val sh_s = if is_sh then SOME "sledgehammer" else NONE;
     val subgoal_s = map_filter I [SOME "subgoal", premises_s, fixes_s]
-      |> space_implode " ";
+      |> implode_space;
     val using_s = if is_prems then SOME "using prems" else NONE;
     val s = cat_lines (
       [subgoal_s]

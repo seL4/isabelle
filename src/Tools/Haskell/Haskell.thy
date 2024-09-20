@@ -1564,7 +1564,7 @@ instance Show Tree where
       show_tree (Text s) = Buffer.add (encode_text s)
 
       show_elem name atts =
-        space_implode " " (name : map (\(a, x) -> a <> "=\"" <> encode_text x <> "\"") atts)
+        implode_space (name : map (\(a, x) -> a <> "=\"" <> encode_text x <> "\"") atts)
 \<close>
 
 generate_file "Isabelle/XML/Encode.hs" = \<open>
@@ -3473,7 +3473,7 @@ string str =
             else "\\" <> Bytes.singleton b
 
 strings :: [Bytes] -> Bytes
-strings = space_implode " " . map string
+strings = implode_space . map string
 
 
 {- server parameters -}

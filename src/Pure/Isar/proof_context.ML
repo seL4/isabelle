@@ -1564,7 +1564,7 @@ fun print_cases_proof ctxt0 ctxt =
     fun print_case name xs =
       (case trim_names xs of
         [] => print_name name
-      | xs' => enclose "(" ")" (space_implode " " (map print_name (name :: xs'))));
+      | xs' => enclose "(" ")" (implode_space (map print_name (name :: xs'))));
 
     fun is_case x t =
       x = Rule_Cases.case_conclN andalso not (Term.exists_subterm Term.is_Var t);

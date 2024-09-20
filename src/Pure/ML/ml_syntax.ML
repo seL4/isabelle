@@ -98,7 +98,7 @@ val print_properties = print_list (print_pair print_string print_string);
 
 fun print_position pos =
   let val {line, offset, end_offset, props = {label, file, id}} = Position.dest pos in
-    space_implode " "
+    implode_space
       ["Position.make0", print_int line, print_int offset, print_int end_offset,
         print_string label, print_string file, print_string id]
   end;

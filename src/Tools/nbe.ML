@@ -203,7 +203,7 @@ fun same (Const (k, xs), Const (l, ys)) = k = l andalso eq_list same (xs, ys)
 infix 9 `$` `$$`;
 fun e1 `$` e2 = "(" ^ e1 ^ " " ^ e2 ^ ")";
 fun e `$$` [] = e
-  | e `$$` es = "(" ^ e ^ " " ^ space_implode " " es ^ ")";
+  | e `$$` es = "(" ^ e ^ " " ^ implode_space es ^ ")";
 fun ml_abs v e = "(fn " ^ v ^ " => " ^ e ^ ")";
 
 fun ml_cases t cs =
@@ -224,7 +224,7 @@ fun ml_fundefs ([(name, [([], e)])]) =
       let
         fun fundef (name, eqs) =
           let
-            fun eqn (es, e) = name ^ " " ^ space_implode " " es ^ " = " ^ e
+            fun eqn (es, e) = name ^ " " ^ implode_space es ^ " = " ^ e
           in space_implode "\n  | " (map eqn eqs) end;
       in
         (prefix "fun " o fundef) eqs :: map (prefix "and " o fundef) eqss

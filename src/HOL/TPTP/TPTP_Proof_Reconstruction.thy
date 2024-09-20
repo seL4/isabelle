@@ -664,7 +664,7 @@ fun forall_neg_tac candidate_consts ctxt i = fn st =>
         |> (fn l =>
               if null l then ""
               else
-                space_implode " " l
+                implode_space l
                 |> pair " "
                 |> (op ^))
 
