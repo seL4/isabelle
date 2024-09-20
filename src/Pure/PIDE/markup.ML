@@ -68,6 +68,8 @@ sig
   val position_property: Properties.entry -> bool
   val def_name: string -> string
   val notation_mixfixN: string
+  val notation_prefixN: string
+  val notation_postfixN: string
   val notation_infixN: string
   val notation_binderN: string
   val notations: string list
@@ -443,9 +445,12 @@ fun def_name a =
 (* notation: mixfix annotations *)
 
 val notation_mixfixN = "mixfix";
+val notation_prefixN = "prefix";
+val notation_postfixN = "postfix";
 val notation_infixN = "infix";
 val notation_binderN = "binder";
-val notations = [notation_mixfixN, notation_infixN, notation_binderN];
+val notations =
+  [notation_mixfixN, notation_prefixN, notation_postfixN, notation_infixN, notation_binderN];
 
 val notationN = "notation";
 fun notation {kind, name} = (notationN, kind_proper kind @ name_proper name);

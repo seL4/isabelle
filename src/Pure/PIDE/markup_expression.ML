@@ -10,6 +10,12 @@ sig
   val setup_kind: binding -> theory -> string * theory
   val check: Proof.context -> xstring * Position.T -> Markup.T
   val setup: binding -> Markup.T
+  val markup_type: Markup.T
+  val markup_type_application: Markup.T
+  val markup_term: Markup.T
+  val markup_term_application: Markup.T
+  val markup_prop: Markup.T
+  val markup_prop_application: Markup.T
 end;
 
 structure Markup_Expression: MARKUP_EXPRESSION =
@@ -43,5 +49,17 @@ fun check ctxt = check_kind ctxt #> Markup.expression;
 
 fun setup binding =
   Context.>>> (Context.map_theory_result (setup_kind binding #>> Markup.expression));
+
+
+(* concrete markup *)
+
+val markup_type = setup (Binding.make ("type", \<^here>));
+val markup_type_application = setup (Binding.make ("type_application", \<^here>));
+
+val markup_term = setup (Binding.make ("term", \<^here>));
+val markup_term_application = setup (Binding.make ("term_application", \<^here>));
+
+val markup_prop = setup (Binding.make ("prop", \<^here>));
+val markup_prop_application = setup (Binding.make ("prop_application", \<^here>));
 
 end;
