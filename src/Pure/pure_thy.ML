@@ -33,14 +33,18 @@ fun binder (sy, p, q) = Binder (Input.string sy, p, q, Position.no_range);
 (* application syntax variants *)
 
 val appl_syntax =
- [("_appl", typ "('b \<Rightarrow> 'a) \<Rightarrow> args \<Rightarrow> logic", mixfix ("(1_/(1'(_')))", [1000, 0], 1000)),
-  ("_appl", typ "('b \<Rightarrow> 'a) \<Rightarrow> args \<Rightarrow> aprop", mixfix ("(1_/(1'(_')))", [1000, 0], 1000))];
+ [("_appl", typ "('b \<Rightarrow> 'a) \<Rightarrow> args \<Rightarrow> logic",
+     mixfix ("(\<open>indent=1 expression=term_application\<close>_/(1'(_')))", [1000, 0], 1000)),
+  ("_appl", typ "('b \<Rightarrow> 'a) \<Rightarrow> args \<Rightarrow> aprop",
+    mixfix ("(\<open>indent=1 expression=term_application\<close>_/(1'(_')))", [1000, 0], 1000))];
 
 val applC_syntax =
  [("",       typ "'a \<Rightarrow> cargs",                  Mixfix.mixfix "_"),
   ("_cargs", typ "'a \<Rightarrow> cargs \<Rightarrow> cargs",         mixfix ("_/ _", [1000, 1000], 1000)),
-  ("_applC", typ "('b \<Rightarrow> 'a) \<Rightarrow> cargs \<Rightarrow> logic", mixfix ("(1_/ _)", [1000, 1000], 999)),
-  ("_applC", typ "('b \<Rightarrow> 'a) \<Rightarrow> cargs \<Rightarrow> aprop", mixfix ("(1_/ _)", [1000, 1000], 999))];
+  ("_applC", typ "('b \<Rightarrow> 'a) \<Rightarrow> cargs \<Rightarrow> logic",
+    mixfix ("(\<open>indent=1 expression=term_application\<close>_/ _)", [1000, 1000], 999)),
+  ("_applC", typ "('b \<Rightarrow> 'a) \<Rightarrow> cargs \<Rightarrow> aprop",
+    mixfix ("(\<open>indent=1 expression=term_application\<close>_/ _)", [1000, 1000], 999))];
 
 structure Old_Appl_Syntax = Theory_Data
 (
@@ -114,15 +118,19 @@ val _ = Theory.setup
     ("",            typ "class_name \<Rightarrow> classes",       Mixfix.mixfix "_"),
     ("_classes",    typ "class_name \<Rightarrow> classes \<Rightarrow> classes", Mixfix.mixfix "_,_"),
     ("_tapp",       typ "type \<Rightarrow> type_name \<Rightarrow> type",   mixfix ("_ _", [1000, 0], 1000)),
-    ("_tappl",      typ "type \<Rightarrow> types \<Rightarrow> type_name \<Rightarrow> type", Mixfix.mixfix "((1'(_,/ _')) _)"),
+    ("_tappl",      typ "type \<Rightarrow> types \<Rightarrow> type_name \<Rightarrow> type",
+      Mixfix.mixfix "(\<open>expression=type_application\<close>(1'(_,/ _')) _)"),
     ("",            typ "type \<Rightarrow> types",               Mixfix.mixfix "_"),
     ("_types",      typ "type \<Rightarrow> types \<Rightarrow> types",      Mixfix.mixfix "_,/ _"),
-    ("\<^type>fun", typ "type \<Rightarrow> type \<Rightarrow> type",        mixfix ("(_/ \<Rightarrow> _)", [1, 0], 0)),
-    ("_bracket",    typ "types \<Rightarrow> type \<Rightarrow> type",       mixfix ("([_]/ \<Rightarrow> _)", [0, 0], 0)),
+    ("\<^type>fun", typ "type \<Rightarrow> type \<Rightarrow> type",
+      mixfix ("(\<open>notation=\<open>infix \<Rightarrow>\<close>\<close>_/ \<Rightarrow> _)", [1, 0], 0)),
+    ("_bracket",    typ "types \<Rightarrow> type \<Rightarrow> type",
+      mixfix ("(\<open>notation=\<open>infix \<Rightarrow>\<close>\<close>[_]/ \<Rightarrow> _)", [0, 0], 0)),
     ("",            typ "type \<Rightarrow> type",                Mixfix.mixfix "'(_')"),
     ("\<^type>dummy", typ "type",                      Mixfix.mixfix "'_"),
     ("_type_prop",  typ "'a",                          NoSyn),
-    ("_lambda",     typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",       mixfix ("(3\<lambda>_./ _)", [0, 3], 3)),
+    ("_lambda",     typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",
+      mixfix ("(\<open>indent=3 expression=term_abstraction\<close>\<lambda>_./ _)", [0, 3], 3)),
     ("_abs",        typ "'a",                          NoSyn),
     ("",            typ "'a \<Rightarrow> args",                  Mixfix.mixfix "_"),
     ("_args",       typ "'a \<Rightarrow> args \<Rightarrow> args",          Mixfix.mixfix "_,/ _"),
@@ -144,7 +152,8 @@ val _ = Theory.setup
     ("_aprop",      typ "aprop \<Rightarrow> prop",               Mixfix.mixfix "PROP _"),
     ("_asm",        typ "prop \<Rightarrow> asms",                Mixfix.mixfix "_"),
     ("_asms",       typ "prop \<Rightarrow> asms \<Rightarrow> asms",        Mixfix.mixfix "_;/ _"),
-    ("_bigimpl",    typ "asms \<Rightarrow> prop \<Rightarrow> prop",        mixfix ("((1\<lbrakk>_\<rbrakk>)/ \<Longrightarrow> _)", [0, 1], 1)),
+    ("_bigimpl",    typ "asms \<Rightarrow> prop \<Rightarrow> prop",
+      mixfix ("(\<open>notation=\<open>infix \<Longrightarrow>\<close>\<close>(1\<lbrakk>_\<rbrakk>)/ \<Longrightarrow> _)", [0, 1], 1)),
     ("_ofclass",    typ "type \<Rightarrow> logic \<Rightarrow> prop",       Mixfix.mixfix "(1OFCLASS/(1'(_,/ _')))"),
     ("_mk_ofclass", typ "dummy",                       NoSyn),
     ("_TYPE",       typ "type \<Rightarrow> logic",               Mixfix.mixfix "(1TYPE/(1'(_')))"),
@@ -186,14 +195,19 @@ val _ = Theory.setup
     (const "Pure.conjunction", typ "prop \<Rightarrow> prop \<Rightarrow> prop", infixr_ ("&&&", 2))]
   #> Sign.syntax_global true Syntax.mode_default applC_syntax
   #> Sign.syntax_global true (Print_Mode.ASCII, true)
-   [(tycon "fun",         typ "type \<Rightarrow> type \<Rightarrow> type",   mixfix ("(_/ => _)", [1, 0], 0)),
-    ("_bracket",          typ "types \<Rightarrow> type \<Rightarrow> type",  mixfix ("([_]/ => _)", [0, 0], 0)),
-    ("_lambda",           typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",  mixfix ("(3%_./ _)", [0, 3], 3)),
+   [(tycon "fun",         typ "type \<Rightarrow> type \<Rightarrow> type",
+      mixfix ("(\<open>notation=\<open>infix =>\<close>\<close>_/ => _)", [1, 0], 0)),
+    ("_bracket",          typ "types \<Rightarrow> type \<Rightarrow> type",
+      mixfix ("(\<open>notation=\<open>infix =>\<close>\<close>[_]/ => _)", [0, 0], 0)),
+    ("_lambda",           typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",
+      mixfix ("(\<open>indent=3 expression=term_abstraction\<close>%_./ _)", [0, 3], 3)),
     (const "Pure.eq",     typ "'a \<Rightarrow> 'a \<Rightarrow> prop",       infix_ ("==", 2)),
-    (const "Pure.all_binder", typ "idts \<Rightarrow> prop \<Rightarrow> prop", mixfix ("(3!!_./ _)", [0, 0], 0)),
+    (const "Pure.all_binder", typ "idts \<Rightarrow> prop \<Rightarrow> prop",
+      mixfix ("(\<open>indent=3 notation=\<open>binder !!\<close>\<close>!!_./ _)", [0, 0], 0)),
     (const "Pure.imp",    typ "prop \<Rightarrow> prop \<Rightarrow> prop",   infixr_ ("==>", 1)),
     ("_DDDOT",            typ "aprop",                  Mixfix.mixfix "..."),
-    ("_bigimpl",          typ "asms \<Rightarrow> prop \<Rightarrow> prop",   mixfix ("((3[| _ |])/ ==> _)", [0, 1], 1)),
+    ("_bigimpl",          typ "asms \<Rightarrow> prop \<Rightarrow> prop",
+      mixfix ("(\<open>notation=\<open>infix \<Longrightarrow>\<close>\<close>(3[| _ |])/ ==> _)", [0, 1], 1)),
     ("_DDDOT",            typ "logic",                  Mixfix.mixfix "...")]
   #> Sign.syntax_global true ("", false)
    [(const "Pure.prop", typ "prop \<Rightarrow> prop", mixfix ("_", [0], 0))]
