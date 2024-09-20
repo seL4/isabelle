@@ -10,7 +10,7 @@ begin
 
 default_sort pcpo
 
-domain (unsafe) 'a seq = nil  ("nil") | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr "##" 65)
+domain (unsafe) 'a seq = nil  (\<open>nil\<close>) | cons (HD :: 'a) (lazy TL :: "'a seq")  (infixr \<open>##\<close> 65)
 
 inductive Finite :: "'a seq \<Rightarrow> bool"
 where
@@ -108,7 +108,7 @@ where
   sconc_nil: "sconc \<cdot> nil \<cdot> y = y"
 | sconc_cons': "x \<noteq> UU \<Longrightarrow> sconc \<cdot> (x ## xs) \<cdot> y = x ## (sconc \<cdot> xs \<cdot> y)"
 
-abbreviation sconc_syn :: "'a seq \<Rightarrow> 'a seq \<Rightarrow> 'a seq"  (infixr "@@" 65)
+abbreviation sconc_syn :: "'a seq \<Rightarrow> 'a seq \<Rightarrow> 'a seq"  (infixr \<open>@@\<close> 65)
   where "xs @@ ys \<equiv> sconc \<cdot> xs \<cdot> ys"
 
 lemma sconc_UU [simp]: "UU @@ y = UU"

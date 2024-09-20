@@ -20,11 +20,11 @@ inductive_set
   ann_transition :: "(('a ann_com_op \<times> 'a) \<times> ('a ann_com_op \<times> 'a)) set"
   and transition :: "(('a com \<times> 'a) \<times> ('a com \<times> 'a)) set"
   and ann_transition' :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
-    ("_ -1\<rightarrow> _"[81,81] 100)
+    (\<open>_ -1\<rightarrow> _\<close>[81,81] 100)
   and transition' :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
-    ("_ -P1\<rightarrow> _"[81,81] 100)
+    (\<open>_ -P1\<rightarrow> _\<close>[81,81] 100)
   and transitions :: "('a com \<times> 'a) \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
-    ("_ -P*\<rightarrow> _"[81,81] 100)
+    (\<open>_ -P*\<rightarrow> _\<close>[81,81] 100)
 where
   "con_0 -1\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition"
 | "con_0 -P1\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition"
@@ -70,17 +70,17 @@ text \<open>The corresponding abbreviations are:\<close>
 
 abbreviation
   ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a)
-                           \<Rightarrow> bool"  ("_ -_\<rightarrow> _"[81,81] 100)  where
+                           \<Rightarrow> bool"  (\<open>_ -_\<rightarrow> _\<close>[81,81] 100)  where
   "con_0 -n\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition ^^ n"
 
 abbreviation
   ann_transitions :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
-                           ("_ -*\<rightarrow> _"[81,81] 100)  where
+                           (\<open>_ -*\<rightarrow> _\<close>[81,81] 100)  where
   "con_0 -*\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition\<^sup>*"
 
 abbreviation
   transition_n :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"
-                          ("_ -P_\<rightarrow> _"[81,81,81] 100)  where
+                          (\<open>_ -P_\<rightarrow> _\<close>[81,81,81] 100)  where
   "con_0 -Pn\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition ^^ n"
 
 subsection \<open>Definition of Semantics\<close>
@@ -97,7 +97,7 @@ definition sem :: "'a com \<Rightarrow> 'a \<Rightarrow> 'a set" where
 definition SEM :: "'a com \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "SEM c S \<equiv> \<Union>(sem c ` S)"
 
-abbreviation Omega :: "'a com"    ("\<Omega>" 63)
+abbreviation Omega :: "'a com"    (\<open>\<Omega>\<close> 63)
   where "\<Omega> \<equiv> While UNIV UNIV (Basic id)"
 
 primrec fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 'a com" where
@@ -294,10 +294,10 @@ done
 
 section \<open>Validity of Correctness Formulas\<close>
 
-definition com_validity :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool" ("(3\<parallel>= _// _//_)" [90,55,90] 50) where
+definition com_validity :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool" (\<open>(3\<parallel>= _// _//_)\<close> [90,55,90] 50) where
   "\<parallel>= p c q \<equiv> SEM c p \<subseteq> q"
 
-definition ann_com_validity :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool" ("\<Turnstile> _ _" [60,90] 45) where
+definition ann_com_validity :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool" (\<open>\<Turnstile> _ _\<close> [60,90] 45) where
   "\<Turnstile> c q \<equiv> ann_SEM c (pre c) \<subseteq> q"
 
 end

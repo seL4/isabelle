@@ -28,7 +28,7 @@ definition\<^marker>\<open>tag important\<close> reversepath :: "(real \<Rightar
   where "reversepath g \<equiv> (\<lambda>x. g(1 - x))"
 
 definition\<^marker>\<open>tag important\<close> joinpaths :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> real \<Rightarrow> 'a"
-    (infixr "+++" 75)
+    (infixr \<open>+++\<close> 75)
   where "g1 +++ g2 \<equiv> (\<lambda>x. if x \<le> 1/2 then g1 (2 * x) else g2 (2 * x - 1))"
 
 definition\<^marker>\<open>tag important\<close> loop_free :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"

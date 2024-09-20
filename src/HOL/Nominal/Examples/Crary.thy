@@ -16,13 +16,13 @@ atom_decl name
 nominal_datatype ty = 
     TBase 
   | TUnit 
-  | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
+  | Arrow "ty" "ty" (\<open>_\<rightarrow>_\<close> [100,100] 100)
 
 nominal_datatype trm = 
     Unit
-  | Var "name" ("Var _" [100] 100)
-  | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
-  | App "trm" "trm" ("App _ _" [110,110] 100)
+  | Var "name" (\<open>Var _\<close> [100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>trm" (\<open>Lam [_]._\<close> [100,100] 100)
+  | App "trm" "trm" (\<open>App _ _\<close> [110,110] 100)
   | Const "nat"
 
 type_synonym Ctxt  = "(name\<times>ty) list"
@@ -94,7 +94,7 @@ by (induct rule: lookup.induct)
    (auto simp: fresh_list_cons fresh_prod fresh_atm)
  
 nominal_primrec
-  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [100,100] 130)
+  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  (\<open>_<_>\<close> [100,100] 130)
 where
   "\<theta><(Var x)> = (lookup \<theta> x)"
 | "\<theta><(App t\<^sub>1 t\<^sub>2)> = App \<theta><t\<^sub>1> \<theta><t\<^sub>2>"
@@ -104,7 +104,7 @@ where
   by(finite_guess | simp add: abs_fresh | fresh_guess)+
 
 abbreviation 
- subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" ("_[_::=_]" [100,100,100] 100)
+ subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" (\<open>_[_::=_]\<close> [100,100,100] 100)
 where
   "t[x::=t']  \<equiv> ([(x,t')])<t>" 
 
@@ -268,7 +268,7 @@ inductive_cases
   valid_cons_elim_auto[elim]:"valid ((x,T)#\<Gamma>)"
 
 abbreviation
-  "sub_context" :: "Ctxt \<Rightarrow> Ctxt \<Rightarrow> bool" (" _ \<subseteq> _ " [55,55] 55)
+  "sub_context" :: "Ctxt \<Rightarrow> Ctxt \<Rightarrow> bool" (\<open> _ \<subseteq> _ \<close> [55,55] 55)
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>a T. (a,T)\<in>set \<Gamma>\<^sub>1 \<longrightarrow> (a,T)\<in>set \<Gamma>\<^sub>2"
 
@@ -298,7 +298,7 @@ by (induct \<Gamma>)
    (auto dest!: fresh_context)
 
 inductive
-  typing :: "Ctxt\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
+  typing :: "Ctxt\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (\<open> _ \<turnstile> _ : _ \<close> [60,60,60] 60) 
 where
   T_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | T_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> e\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App e\<^sub>1 e\<^sub>2 : T\<^sub>2"
@@ -334,7 +334,7 @@ declare ty.inject [simp del]
 section \<open>Definitional Equivalence\<close>
 
 inductive
-  def_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<equiv> _ : _" [60,60] 60) 
+  def_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ \<equiv> _ : _\<close> [60,60] 60) 
 where
   Q_Refl[intro]:  "\<Gamma> \<turnstile> t : T \<Longrightarrow> \<Gamma> \<turnstile> t \<equiv> t : T"
 | Q_Symm[intro]:  "\<Gamma> \<turnstile> t \<equiv> s : T \<Longrightarrow> \<Gamma> \<turnstile> s \<equiv> t : T"
@@ -360,7 +360,7 @@ using a by (induct) (auto elim: typing_implies_valid)
 section \<open>Weak Head Reduction\<close>
 
 inductive
-  whr_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<leadsto> _" [80,80] 80) 
+  whr_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" (\<open>_ \<leadsto> _\<close> [80,80] 80) 
 where
   QAR_Beta[intro]: "App (Lam [x]. t\<^sub>1) t\<^sub>2 \<leadsto> t\<^sub>1[x::=t\<^sub>2]"
 | QAR_App[intro]:  "t\<^sub>1 \<leadsto> t\<^sub>1' \<Longrightarrow> App t\<^sub>1 t\<^sub>2 \<leadsto> App t\<^sub>1' t\<^sub>2"
@@ -387,12 +387,12 @@ equivariance whr_def
 section \<open>Weak Head Normalisation\<close>
 
 abbreviation 
- nf :: "trm \<Rightarrow> bool" ("_ \<leadsto>|" [100] 100)
+ nf :: "trm \<Rightarrow> bool" (\<open>_ \<leadsto>|\<close> [100] 100)
 where
   "t\<leadsto>|  \<equiv> \<not>(\<exists> u. t \<leadsto> u)" 
 
 inductive
-  whn_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
+  whn_def :: "trm\<Rightarrow>trm\<Rightarrow>bool" (\<open>_ \<Down> _\<close> [80,80] 80) 
 where
   QAN_Reduce[intro]: "\<lbrakk>s \<leadsto> t; t \<Down> u\<rbrakk> \<Longrightarrow> s \<Down> u"
 | QAN_Normal[intro]: "t\<leadsto>|  \<Longrightarrow> t \<Down> t"
@@ -429,9 +429,9 @@ qed (auto)
 section \<open>Algorithmic Term Equivalence and Algorithmic Path Equivalence\<close>
 
 inductive
-  alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<Leftrightarrow> _ : _" [60,60,60,60] 60) 
+  alg_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ \<Leftrightarrow> _ : _\<close> [60,60,60,60] 60) 
 and
-  alg_path_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ \<leftrightarrow> _ : _" [60,60,60,60] 60) 
+  alg_path_equiv :: "Ctxt\<Rightarrow>trm\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ \<leftrightarrow> _ : _\<close> [60,60,60,60] 60) 
 where
   QAT_Base[intro]:  "\<lbrakk>s \<Down> p; t \<Down> q; \<Gamma> \<turnstile> p \<leftrightarrow> q : TBase\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> s \<Leftrightarrow> t : TBase"
 | QAT_Arrow[intro]: "\<lbrakk>x\<sharp>(\<Gamma>,s,t); (x,T\<^sub>1)#\<Gamma> \<turnstile> App s (Var x) \<Leftrightarrow> App t (Var x) : T\<^sub>2\<rbrakk> 
@@ -592,7 +592,7 @@ by (induct rule: alg_equiv_alg_path_equiv.inducts(2)) (simp, auto)
 
 section \<open>Logical Equivalence\<close>
 
-function log_equiv :: "(Ctxt \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool)" ("_ \<turnstile> _ is _ : _" [60,60,60,60] 60) 
+function log_equiv :: "(Ctxt \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool)" (\<open>_ \<turnstile> _ is _ : _\<close> [60,60,60,60] 60) 
 where    
    "\<Gamma> \<turnstile> s is t : TUnit = True"
  | "\<Gamma> \<turnstile> s is t : TBase = \<Gamma> \<turnstile> s \<Leftrightarrow> t : TBase"
@@ -744,7 +744,7 @@ next
 qed 
 
 abbreviation 
- log_equiv_for_psubsts :: "Ctxt \<Rightarrow> Subst \<Rightarrow> Subst \<Rightarrow> Ctxt \<Rightarrow> bool"  ("_ \<turnstile> _ is _ over _" [60,60] 60) 
+ log_equiv_for_psubsts :: "Ctxt \<Rightarrow> Subst \<Rightarrow> Subst \<Rightarrow> Ctxt \<Rightarrow> bool"  (\<open>_ \<turnstile> _ is _ over _\<close> [60,60] 60) 
 where
   "\<Gamma>' \<turnstile> \<theta> is \<theta>' over \<Gamma> \<equiv> \<forall>x T. (x,T) \<in> set \<Gamma> \<longrightarrow> \<Gamma>' \<turnstile> \<theta><Var x> is  \<theta>'<Var x> : T"
 

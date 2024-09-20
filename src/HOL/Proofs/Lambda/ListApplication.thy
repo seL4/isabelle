@@ -8,7 +8,7 @@ section \<open>Application of a term to a list of terms\<close>
 theory ListApplication imports Lambda begin
 
 abbreviation
-  list_application :: "dB => dB list => dB"  (infixl "\<degree>\<degree>" 150) where
+  list_application :: "dB => dB list => dB"  (infixl \<open>\<degree>\<degree>\<close> 150) where
   "t \<degree>\<degree> ts == foldl (\<degree>) t ts"
 
 lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> ts) = (r = s)"

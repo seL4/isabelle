@@ -9,21 +9,21 @@ text\<open>Everything else remains the same.\<close>
 type_synonym tyenv = "vname \<Rightarrow> ty"
 
 inductive atyping :: "tyenv \<Rightarrow> aexp \<Rightarrow> ty \<Rightarrow> bool"
-  ("(1_/ \<turnstile>p/ (_ :/ _))" [50,0,50] 50)
+  (\<open>(1_/ \<turnstile>p/ (_ :/ _))\<close> [50,0,50] 50)
 where
 "\<Gamma> \<turnstile>p Ic i : Ity" |
 "\<Gamma> \<turnstile>p Rc r : Rty" |
 "\<Gamma> \<turnstile>p V x : \<Gamma> x" |
 "\<Gamma> \<turnstile>p a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p a2 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p Plus a1 a2 : \<tau>"
 
-inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix "\<turnstile>p" 50)
+inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix \<open>\<turnstile>p\<close> 50)
 where
 "\<Gamma> \<turnstile>p Bc v" |
 "\<Gamma> \<turnstile>p b \<Longrightarrow> \<Gamma> \<turnstile>p Not b" |
 "\<Gamma> \<turnstile>p b1 \<Longrightarrow> \<Gamma> \<turnstile>p b2 \<Longrightarrow> \<Gamma> \<turnstile>p And b1 b2" |
 "\<Gamma> \<turnstile>p a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p a2 : \<tau> \<Longrightarrow> \<Gamma> \<turnstile>p Less a1 a2"
 
-inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix "\<turnstile>p" 50) where
+inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix \<open>\<turnstile>p\<close> 50) where
 "\<Gamma> \<turnstile>p SKIP" |
 "\<Gamma> \<turnstile>p a : \<Gamma>(x) \<Longrightarrow> \<Gamma> \<turnstile>p x ::= a" |
 "\<Gamma> \<turnstile>p c1 \<Longrightarrow> \<Gamma> \<turnstile>p c2 \<Longrightarrow> \<Gamma> \<turnstile>p c1;;c2" |
@@ -34,7 +34,7 @@ fun type :: "val \<Rightarrow> ty" where
 "type (Iv i) = Ity" |
 "type (Rv r) = Rty"
 
-definition styping :: "tyenv \<Rightarrow> state \<Rightarrow> bool" (infix "\<turnstile>p" 50)
+definition styping :: "tyenv \<Rightarrow> state \<Rightarrow> bool" (infix \<open>\<turnstile>p\<close> 50)
 where "\<Gamma> \<turnstile>p s  \<longleftrightarrow>  (\<forall>x. type (s x) = \<Gamma> x)"
 
 fun tsubst :: "(nat \<Rightarrow> ty) \<Rightarrow> ty \<Rightarrow> ty" where

@@ -10,7 +10,7 @@ begin
 
 default_sort pcpo
 
-domain (unsafe) 'a stream = scons (ft::'a) (lazy rt::"'a stream") (infixr "&&" 65)
+domain (unsafe) 'a stream = scons (ft::'a) (lazy rt::"'a stream") (infixr \<open>&&\<close> 65)
 
 definition
   smap :: "('a \<rightarrow> 'b) \<rightarrow> 'a stream \<rightarrow> 'b stream" where
@@ -22,7 +22,7 @@ definition
                                      If p\<cdot>x then x && h\<cdot>p\<cdot>xs else h\<cdot>p\<cdot>xs)"
 
 definition
-  slen :: "'a stream \<Rightarrow> enat"  ("#_" [1000] 1000) where
+  slen :: "'a stream \<Rightarrow> enat"  (\<open>#_\<close> [1000] 1000) where
   "#s = (if stream_finite s then enat (LEAST n. stream_take n\<cdot>s = s) else \<infinity>)"
 
 
@@ -37,7 +37,7 @@ definition
   "i_th = (\<lambda>i s. ft\<cdot>(i_rt i s))"
 
 definition
-  sconc :: "'a stream \<Rightarrow> 'a stream \<Rightarrow> 'a stream"  (infixr "ooo" 65) where
+  sconc :: "'a stream \<Rightarrow> 'a stream \<Rightarrow> 'a stream"  (infixr \<open>ooo\<close> 65) where
   "s1 ooo s2 = (case #s1 of
                   enat n \<Rightarrow> (SOME s. (stream_take n\<cdot>s = s1) \<and> (i_rt n s = s2))
                | \<infinity>     \<Rightarrow> s1)"

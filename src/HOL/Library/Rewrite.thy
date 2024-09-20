@@ -10,7 +10,7 @@ theory Rewrite
 imports Main
 begin
 
-consts rewrite_HOLE :: "'a::{}"  ("\<hole>")
+consts rewrite_HOLE :: "'a::{}"  (\<open>\<hole>\<close>)
 
 lemma eta_expand:
   fixes f :: "'a::{} \<Rightarrow> 'b::{}"

@@ -13,7 +13,7 @@ typedecl nat
 instance nat :: "term" ..
 
 axiomatization
-  Zero :: nat    ("0") and
+  Zero :: nat    (\<open>0\<close>) and
   Suc :: "nat => nat" and
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a" and
 
@@ -34,7 +34,7 @@ where
   nrecB0:     "b: A ==> nrec(0,b,c) = b : A" and
   nrecBSuc:   "c(n,nrec(n,b,c)) : A ==> nrec(Suc(n),b,c) = c(n,nrec(n,b,c)) : A"
 
-definition add :: "[nat, nat] => nat"    (infixl "+" 60)
+definition add :: "[nat, nat] => nat"    (infixl \<open>+\<close> 60)
   where "m + n == rec(m, n, %x y. Suc(y))"
 
 

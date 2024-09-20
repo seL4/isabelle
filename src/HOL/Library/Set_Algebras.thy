@@ -54,13 +54,13 @@ instance ..
 
 end
 
-definition elt_set_plus :: "'a::plus \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "+o" 70)
+definition elt_set_plus :: "'a::plus \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl \<open>+o\<close> 70)
   where "a +o B = {c. \<exists>b\<in>B. c = a + b}"
 
-definition elt_set_times :: "'a::times \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "*o" 80)
+definition elt_set_times :: "'a::times \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl \<open>*o\<close> 80)
   where "a *o B = {c. \<exists>b\<in>B. c = a * b}"
 
-abbreviation (input) elt_set_eq :: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infix "=o" 50)
+abbreviation (input) elt_set_eq :: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infix \<open>=o\<close> 50)
   where "x =o A \<equiv> x \<in> A"
 
 instance set :: (semigroup_add) semigroup_add

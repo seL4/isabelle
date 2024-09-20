@@ -19,11 +19,11 @@ atom_decl name
 text \<open>types and terms\<close>
 nominal_datatype ty = 
     TVar "nat"
-  | Arrow "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
+  | Arrow "ty" "ty" (\<open>_\<rightarrow>_\<close> [100,100] 100)
 
 nominal_datatype trm = 
     Var "name"
-  | Lam "\<guillemotleft>name\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>trm" (\<open>Lam [_]._\<close> [100,100] 100)
   | App "trm" "trm"
 
 lemma fresh_ty:
@@ -62,7 +62,7 @@ by (induct rule: lookup.induct)
 (* parallel substitution *)
 
 nominal_primrec
-  psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [95,95] 105)
+  psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  (\<open>_<_>\<close> [95,95] 105)
 where
   "\<theta><(Var x)> = (lookup \<theta> x)"
 | "\<theta><(App e\<^sub>1 e\<^sub>2)> = App (\<theta><e\<^sub>1>) (\<theta><e\<^sub>2>)"
@@ -92,7 +92,7 @@ lemma psubst_empty[simp]:
 
 text \<open>Single substitution\<close>
 abbreviation 
-  subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" ("_[_::=_]" [100,100,100] 100)
+  subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" (\<open>_[_::=_]\<close> [100,100,100] 100)
 where 
   "t[x::=t']  \<equiv> ([(x,t')])<t>" 
 
@@ -157,7 +157,7 @@ by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 text \<open>Typing Relation\<close>
 
 inductive
-  typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
+  typing :: "(name\<times>ty) list\<Rightarrow>trm\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ : _\<close> [60,60,60] 60) 
 where
   t_Var[intro]:   "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | t_App[intro]:   "\<lbrakk>\<Gamma> \<turnstile> e\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> e\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App e\<^sub>1 e\<^sub>2 : T\<^sub>2"
@@ -188,7 +188,7 @@ by (cases rule: typing.strong_cases [where x="x"])
    (auto simp add: abs_fresh fresh_ty alpha trm.inject)
 
 abbreviation
-  "sub_context" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [55,55] 55)
+  "sub_context" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (\<open>_ \<subseteq> _\<close> [55,55] 55)
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>\<^sub>1 \<longrightarrow> (x,T)\<in>set \<Gamma>\<^sub>2"
 
@@ -257,7 +257,7 @@ lemma not_val_App[simp]:
 text \<open>Big-Step Evaluation\<close>
 
 inductive
-  big :: "trm\<Rightarrow>trm\<Rightarrow>bool" ("_ \<Down> _" [80,80] 80) 
+  big :: "trm\<Rightarrow>trm\<Rightarrow>bool" (\<open>_ \<Down> _\<close> [80,80] 80) 
 where
   b_Lam[intro]:   "Lam [x].e \<Down> Lam [x].e"
 | b_App[intro]:   "\<lbrakk>x\<sharp>(e\<^sub>1,e\<^sub>2,e'); e\<^sub>1\<Down>Lam [x].e; e\<^sub>2\<Down>e\<^sub>2'; e[x::=e\<^sub>2']\<Down>e'\<rbrakk> \<Longrightarrow> App e\<^sub>1 e\<^sub>2 \<Down> e'"
@@ -427,12 +427,12 @@ using a by (simp add: values_reduce_to_themselves Vs_are_values)
 
 text \<open>'\<theta> maps x to e' asserts that \<theta> substitutes x with e\<close>
 abbreviation 
-  mapsto :: "(name\<times>trm) list \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
+  mapsto :: "(name\<times>trm) list \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ maps _ to _\<close> [55,55,55] 55) 
 where
  "\<theta> maps x to e \<equiv> (lookup \<theta> x) = e"
 
 abbreviation 
-  v_closes :: "(name\<times>trm) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ Vcloses _" [55,55] 55) 
+  v_closes :: "(name\<times>trm) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (\<open>_ Vcloses _\<close> [55,55] 55) 
 where
   "\<theta> Vcloses \<Gamma> \<equiv> \<forall>x T. (x,T) \<in> set \<Gamma> \<longrightarrow> (\<exists>v. \<theta> maps x to v \<and> v \<in> V T)"
 

@@ -49,11 +49,11 @@ definition  Ge :: "(nat*nat) set" where
     "Ge == {(x,y). y <= x}"
 
 abbreviation
-  pfixLe :: "[nat list, nat list] => bool"  (infixl "pfixLe" 50)  where
+  pfixLe :: "[nat list, nat list] => bool"  (infixl \<open>pfixLe\<close> 50)  where
   "xs pfixLe ys == (xs,ys) \<in> genPrefix Le"
 
 abbreviation
-  pfixGe :: "[nat list, nat list] => bool"  (infixl "pfixGe" 50)  where
+  pfixGe :: "[nat list, nat list] => bool"  (infixl \<open>pfixGe\<close> 50)  where
   "xs pfixGe ys == (xs,ys) \<in> genPrefix Ge"
 
 

@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  convex_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<natural>" 50) where
+  convex_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<natural>\<close> 50) where
   "convex_le = (\<lambda>u v. u \<le>\<sharp> v \<and> u \<le>\<flat> v)"
 
 lemma convex_le_refl [simp]: "t \<le>\<natural> t"
@@ -119,7 +119,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a convex_pd  ("('(_')\<natural>)") =
+typedef 'a convex_pd  (\<open>('(_')\<natural>)\<close>) =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 
@@ -175,14 +175,14 @@ definition
 
 abbreviation
   convex_add :: "'a convex_pd \<Rightarrow> 'a convex_pd \<Rightarrow> 'a convex_pd"
-    (infixl "\<union>\<natural>" 65) where
+    (infixl \<open>\<union>\<natural>\<close> 65) where
   "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
 nonterminal convex_pd_args
 syntax
-  "" :: "logic \<Rightarrow> convex_pd_args"  ("_")
-  "_convex_pd_args" :: "logic \<Rightarrow> convex_pd_args \<Rightarrow> convex_pd_args"  ("_,/ _")
-  "_convex_pd" :: "convex_pd_args \<Rightarrow> logic"  ("{_}\<natural>")
+  "" :: "logic \<Rightarrow> convex_pd_args"  (\<open>_\<close>)
+  "_convex_pd_args" :: "logic \<Rightarrow> convex_pd_args \<Rightarrow> convex_pd_args"  (\<open>_,/ _\<close>)
+  "_convex_pd" :: "convex_pd_args \<Rightarrow> logic"  (\<open>{_}\<natural>\<close>)
 syntax_consts
   "_convex_pd_args" "_convex_pd" == convex_add
 translations
@@ -350,7 +350,7 @@ definition
 
 syntax
   "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    ("(3\<Union>\<natural>_\<in>_./ _)" [0, 0, 10] 10)
+    (\<open>(3\<Union>\<natural>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_convex_bind" == convex_bind

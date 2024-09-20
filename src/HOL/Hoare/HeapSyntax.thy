@@ -13,11 +13,11 @@ subsection "Field access and update"
 
 syntax
   "_refupdate" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a ref \<Rightarrow> 'b \<Rightarrow> ('a \<Rightarrow> 'b)"
-   ("_/'((_ \<rightarrow> _)')" [1000,0] 900)
+   (\<open>_/'((_ \<rightarrow> _)')\<close> [1000,0] 900)
   "_fassign"  :: "'a ref => id => 'v => 's com"
-   ("(2_^._ :=/ _)" [70,1000,65] 61)
+   (\<open>(2_^._ :=/ _)\<close> [70,1000,65] 61)
   "_faccess"  :: "'a ref => ('a ref \<Rightarrow> 'v) => 'v"
-   ("_^._" [65,1000] 65)
+   (\<open>_^._\<close> [65,1000] 65)
 translations
   "f(r \<rightarrow> v)" == "f(CONST addr r := v)"
   "p^.f := e" => "f := f(p \<rightarrow> e)"

@@ -159,7 +159,7 @@ lemma Lim_null_comparison_Re:
 subsection\<open>Holomorphic functions\<close>
 
 definition\<^marker>\<open>tag important\<close> holomorphic_on :: "[complex \<Rightarrow> complex, complex set] \<Rightarrow> bool"
-           (infixl "(holomorphic'_on)" 50)
+           (infixl \<open>(holomorphic'_on)\<close> 50)
   where "f holomorphic_on s \<equiv> \<forall>x\<in>s. f field_differentiable (at x within s)"
 
 named_theorems\<^marker>\<open>tag important\<close> holomorphic_intros "structural introduction rules for holomorphic_on"
@@ -375,7 +375,7 @@ lemma holomorphic_nonconstant:
 
 subsection\<open>Analyticity on a set\<close>
 
-definition\<^marker>\<open>tag important\<close> analytic_on (infixl "(analytic'_on)" 50)
+definition\<^marker>\<open>tag important\<close> analytic_on (infixl \<open>(analytic'_on)\<close> 50)
   where "f analytic_on S \<equiv> \<forall>x \<in> S. \<exists>\<epsilon>. 0 < \<epsilon> \<and> f holomorphic_on (ball x \<epsilon>)"
 
 named_theorems\<^marker>\<open>tag important\<close> analytic_intros "introduction rules for proving analyticity"

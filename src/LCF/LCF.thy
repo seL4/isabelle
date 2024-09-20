@@ -18,8 +18,8 @@ default_sort cpo
 
 typedecl tr
 typedecl void
-typedecl ('a,'b) prod  (infixl "*" 6)
-typedecl ('a,'b) sum  (infixl "+" 5)
+typedecl ('a,'b) prod  (infixl \<open>*\<close> 6)
+typedecl ('a,'b) sum  (infixl \<open>+\<close> 5)
 
 instance "fun" :: (cpo, cpo) cpo ..
 instance prod :: (cpo, cpo) cpo ..
@@ -38,10 +38,10 @@ consts
  INR    :: "'b \<Rightarrow> 'a+'b"
  WHEN   :: "['a\<Rightarrow>'c, 'b\<Rightarrow>'c, 'a+'b] \<Rightarrow> 'c"
  adm    :: "('a \<Rightarrow> o) \<Rightarrow> o"
- VOID   :: "void"               ("'(')")
- PAIR   :: "['a,'b] \<Rightarrow> 'a*'b"   ("(1<_,/_>)" [0,0] 100)
- COND   :: "[tr,'a,'a] \<Rightarrow> 'a"   ("(_ \<Rightarrow>/ (_ |/ _))" [60,60,60] 60)
- less   :: "['a,'a] \<Rightarrow> o"       (infixl "<<" 50)
+ VOID   :: "void"               (\<open>'(')\<close>)
+ PAIR   :: "['a,'b] \<Rightarrow> 'a*'b"   (\<open>(1<_,/_>)\<close> [0,0] 100)
+ COND   :: "[tr,'a,'a] \<Rightarrow> 'a"   (\<open>(_ \<Rightarrow>/ (_ |/ _))\<close> [60,60,60] 60)
+ less   :: "['a,'a] \<Rightarrow> o"       (infixl \<open><<\<close> 50)
 
 axiomatization where
   (** DOMAIN THEORY **)

@@ -323,7 +323,7 @@ A class declaration is wellformed if:
 \<close>
 (* to Table *)
 definition
-  entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" ("_ entails _" 20)
+  entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" (\<open>_ entails _\<close> 20)
   where "(t entails P) = (\<forall>k. \<forall> x \<in> t k: P x)"
 
 lemma entailsD:
@@ -2093,7 +2093,7 @@ non private fields. Then we would get the following column:
  Array    Object
 \<close>
 primrec valid_lookup_cls:: "prog \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> bool \<Rightarrow> bool"
-                        ("_,_ \<turnstile> _ valid'_lookup'_cls'_for _" [61,61,61,61] 60)
+                        (\<open>_,_ \<turnstile> _ valid'_lookup'_cls'_for _\<close> [61,61,61,61] 60)
 where
   "G,NullT    \<turnstile> dynC valid_lookup_cls_for static_membr = False"
 | "G,IfaceT I \<turnstile> dynC valid_lookup_cls_for static_membr 

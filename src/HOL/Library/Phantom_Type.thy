@@ -17,7 +17,7 @@ lemma phantom_comp_of_phantom [simp]: "phantom \<circ> of_phantom = id"
   and of_phantom_comp_phantom [simp]: "of_phantom \<circ> phantom = id"
 by(simp_all add: o_def id_def)
 
-syntax "_Phantom" :: "type \<Rightarrow> logic" ("(1Phantom/(1'(_')))")
+syntax "_Phantom" :: "type \<Rightarrow> logic" (\<open>(1Phantom/(1'(_')))\<close>)
 syntax_consts "_Phantom" == phantom
 translations
   "Phantom('t)" => "CONST phantom :: _ \<Rightarrow> ('t, _) phantom"

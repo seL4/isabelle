@@ -5,19 +5,19 @@ begin
 text\<open>Syntax for commands and for assertions and boolean expressions in
  commands \<open>com\<close> and annotated commands \<open>ann_com\<close>.\<close>
 
-abbreviation Skip :: "'a com"  ("SKIP" 63)
+abbreviation Skip :: "'a com"  (\<open>SKIP\<close> 63)
   where "SKIP \<equiv> Basic id"
 
-abbreviation AnnSkip :: "'a assn \<Rightarrow> 'a ann_com"  ("_//SKIP" [90] 63)
+abbreviation AnnSkip :: "'a assn \<Rightarrow> 'a ann_com"  (\<open>_//SKIP\<close> [90] 63)
   where "r SKIP \<equiv> AnnBasic r id"
 
 notation
-  Seq  ("_,,/ _" [55, 56] 55) and
-  AnnSeq  ("_;;/ _" [60,61] 60)
+  Seq  (\<open>_,,/ _\<close> [55, 56] 55) and
+  AnnSeq  (\<open>_;;/ _\<close> [60,61] 60)
 
 syntax
-  "_Assign"      :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"    ("(\<acute>_ :=/ _)" [70, 65] 61)
-  "_AnnAssign"   :: "'a assn \<Rightarrow> idt \<Rightarrow> 'b \<Rightarrow> 'a com"    ("(_ \<acute>_ :=/ _)" [90,70,65] 61)
+  "_Assign"      :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"    (\<open>(\<acute>_ :=/ _)\<close> [70, 65] 61)
+  "_AnnAssign"   :: "'a assn \<Rightarrow> idt \<Rightarrow> 'b \<Rightarrow> 'a com"    (\<open>(_ \<acute>_ :=/ _)\<close> [90,70,65] 61)
 
 translations
   "\<acute>x := a" \<rightharpoonup> "CONST Basic \<guillemotleft>\<acute>(_update_name x (\<lambda>_. a))\<guillemotright>"
@@ -25,23 +25,23 @@ translations
 
 syntax
   "_AnnCond1"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a ann_com  \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com"
-                    ("_ //IF _ /THEN _ /ELSE _ /FI"  [90,0,0,0] 61)
+                    (\<open>_ //IF _ /THEN _ /ELSE _ /FI\<close>  [90,0,0,0] 61)
   "_AnnCond2"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com"
-                    ("_ //IF _ /THEN _ /FI"  [90,0,0] 61)
+                    (\<open>_ //IF _ /THEN _ /FI\<close>  [90,0,0] 61)
   "_AnnWhile"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a assn \<Rightarrow> 'a ann_com \<Rightarrow> 'a ann_com"
-                    ("_ //WHILE _ /INV _ //DO _//OD"  [90,0,0,0] 61)
+                    (\<open>_ //WHILE _ /INV _ //DO _//OD\<close>  [90,0,0,0] 61)
   "_AnnAwait"    :: "'a assn \<Rightarrow> 'a bexp  \<Rightarrow> 'a com \<Rightarrow> 'a ann_com"
-                    ("_ //AWAIT _ /THEN /_ /END"  [90,0,0] 61)
-  "_AnnAtom"     :: "'a assn  \<Rightarrow> 'a com \<Rightarrow> 'a ann_com"   ("_//\<langle>_\<rangle>" [90,0] 61)
-  "_AnnWait"     :: "'a assn \<Rightarrow> 'a bexp \<Rightarrow> 'a ann_com"   ("_//WAIT _ END" [90,0] 61)
+                    (\<open>_ //AWAIT _ /THEN /_ /END\<close>  [90,0,0] 61)
+  "_AnnAtom"     :: "'a assn  \<Rightarrow> 'a com \<Rightarrow> 'a ann_com"   (\<open>_//\<langle>_\<rangle>\<close> [90,0] 61)
+  "_AnnWait"     :: "'a assn \<Rightarrow> 'a bexp \<Rightarrow> 'a ann_com"   (\<open>_//WAIT _ END\<close> [90,0] 61)
 
   "_Cond"        :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"
-                                  ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
-  "_Cond2"       :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"   ("IF _ THEN _ FI" [0,0] 56)
+                                  (\<open>(0IF _/ THEN _/ ELSE _/ FI)\<close> [0, 0, 0] 61)
+  "_Cond2"       :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"   (\<open>IF _ THEN _ FI\<close> [0,0] 56)
   "_While_inv"   :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"
-                    ("(0WHILE _/ INV _ //DO _ /OD)"  [0, 0, 0] 61)
+                    (\<open>(0WHILE _/ INV _ //DO _ /OD)\<close>  [0, 0, 0] 61)
   "_While"       :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"
-                    ("(0WHILE _ //DO _ /OD)"  [0, 0] 61)
+                    (\<open>(0WHILE _ //DO _ /OD)\<close>  [0, 0] 61)
 
 translations
   "IF b THEN c1 ELSE c2 FI" \<rightharpoonup> "CONST Cond \<lbrace>b\<rbrace> c1 c2"
@@ -59,12 +59,12 @@ translations
 nonterminal prgs
 
 syntax
-  "_PAR" :: "prgs \<Rightarrow> 'a"              ("COBEGIN//_//COEND" [57] 56)
-  "_prg" :: "['a, 'a] \<Rightarrow> prgs"        ("_//_" [60, 90] 57)
-  "_prgs" :: "['a, 'a, prgs] \<Rightarrow> prgs"  ("_//_//\<parallel>//_" [60,90,57] 57)
+  "_PAR" :: "prgs \<Rightarrow> 'a"              (\<open>COBEGIN//_//COEND\<close> [57] 56)
+  "_prg" :: "['a, 'a] \<Rightarrow> prgs"        (\<open>_//_\<close> [60, 90] 57)
+  "_prgs" :: "['a, 'a, prgs] \<Rightarrow> prgs"  (\<open>_//_//\<parallel>//_\<close> [60,90,57] 57)
 
   "_prg_scheme" :: "['a, 'a, 'a, 'a, 'a] \<Rightarrow> prgs"
-                  ("SCHEME [_ \<le> _ < _] _// _" [0,0,0,60, 90] 57)
+                  (\<open>SCHEME [_ \<le> _ < _] _// _\<close> [0,0,0,60, 90] 57)
 
 translations
   "_prg c q" \<rightleftharpoons> "[(CONST Some c, q)]"

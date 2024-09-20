@@ -13,11 +13,11 @@ begin
 subsection\<open>Idioms for being a suitable union/intersection of something\<close>
 
 definition union_of :: "('a set set \<Rightarrow> bool) \<Rightarrow> ('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
-  (infixr "union'_of" 60)
+  (infixr \<open>union'_of\<close> 60)
   where "P union_of Q \<equiv> \<lambda>S. \<exists>\<U>. P \<U> \<and> \<U> \<subseteq> Collect Q \<and> \<Union>\<U> = S"
 
 definition intersection_of :: "('a set set \<Rightarrow> bool) \<Rightarrow> ('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
-  (infixr "intersection'_of" 60)
+  (infixr \<open>intersection'_of\<close> 60)
   where "P intersection_of Q \<equiv> \<lambda>S. \<exists>\<U>. P \<U> \<and> \<U> \<subseteq> Collect Q \<and> \<Inter>\<U> = S"
 
 definition arbitrary:: "'a set set \<Rightarrow> bool" where "arbitrary \<U> \<equiv> True"
@@ -310,7 +310,7 @@ subsection \<open>The ``Relative to'' operator\<close>
 text\<open>A somewhat cheap but handy way of getting localized forms of various topological concepts
 (open, closed, borel, fsigma, gdelta etc.)\<close>
 
-definition relative_to :: "['a set \<Rightarrow> bool, 'a set, 'a set] \<Rightarrow> bool" (infixl "relative'_to" 55)
+definition relative_to :: "['a set \<Rightarrow> bool, 'a set, 'a set] \<Rightarrow> bool" (infixl \<open>relative'_to\<close> 55)
   where "P relative_to S \<equiv> \<lambda>T. \<exists>U. P U \<and> S \<inter> U = T"
 
 lemma relative_to_UNIV [simp]: "(P relative_to UNIV) S \<longleftrightarrow> P S"

@@ -47,10 +47,10 @@ locale euclidean_domain =
   " \<lbrakk> a \<in> carrier R - { \<zero> }; b \<in> carrier R - { \<zero> } \<rbrakk> \<Longrightarrow>
    \<exists>q r. q \<in> carrier R \<and> r \<in> carrier R \<and> a = (b \<otimes> q) \<oplus> r \<and> ((r = \<zero>) \<or> (\<phi> r < \<phi> b))"
 
-definition ring_irreducible :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> bool" ("ring'_irreducible\<index>")
+definition ring_irreducible :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> bool" (\<open>ring'_irreducible\<index>\<close>)
   where "ring_irreducible\<^bsub>R\<^esub> a \<longleftrightarrow> (a \<noteq> \<zero>\<^bsub>R\<^esub>) \<and> (irreducible R a)"
 
-definition ring_prime :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> bool" ("ring'_prime\<index>")
+definition ring_prime :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> bool" (\<open>ring'_prime\<index>\<close>)
   where "ring_prime\<^bsub>R\<^esub> a \<longleftrightarrow> (a \<noteq> \<zero>\<^bsub>R\<^esub>) \<and> (prime R a)"
 
 

@@ -9,12 +9,12 @@ begin
 
 (* type constraints with spacing *)
 no_syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
 
 syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
 (*>*)
 
 text \<open>

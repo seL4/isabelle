@@ -13,7 +13,7 @@ begin
 text \<open>Nonstandard Definitions.\<close>
 
 definition NSLIM :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-    ("((_)/ \<midarrow>(_)/\<rightarrow>\<^sub>N\<^sub>S (_))" [60, 0, 60] 60)
+    (\<open>((_)/ \<midarrow>(_)/\<rightarrow>\<^sub>N\<^sub>S (_))\<close> [60, 0, 60] 60)
   where "f \<midarrow>a\<rightarrow>\<^sub>N\<^sub>S L \<longleftrightarrow> (\<forall>x. x \<noteq> star_of a \<and> x \<approx> star_of a \<longrightarrow> ( *f* f) x \<approx> star_of L)"
 
 definition isNSCont :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"

@@ -8,10 +8,10 @@ atom_decl var mvar
 
 nominal_datatype trm = 
     Var   "var" 
-  | Lam  "\<guillemotleft>var\<guillemotright>trm"   ("Lam [_]._" [100,100] 100)
+  | Lam  "\<guillemotleft>var\<guillemotright>trm"   (\<open>Lam [_]._\<close> [100,100] 100)
   | App  "trm" "trm" 
   | Pss  "mvar" "trm"                                   (* passivate *)
-  | Act  "\<guillemotleft>mvar\<guillemotright>trm"  ("Act [_]._" [100,100] 100)       (* activate  *)
+  | Act  "\<guillemotleft>mvar\<guillemotright>trm"  (\<open>Act [_]._\<close> [100,100] 100)       (* activate  *)
 
 
 end

@@ -13,7 +13,7 @@ typedecl
 
 consts
 
-  emptym :: "'a multiset"                        ("{|}")
+  emptym :: "'a multiset"                        (\<open>{|}\<close>)
   addm   :: "['a multiset, 'a] => 'a multiset"
   delm   :: "['a multiset, 'a] => 'a multiset"
   countm :: "['a multiset, 'a => bool] => nat"

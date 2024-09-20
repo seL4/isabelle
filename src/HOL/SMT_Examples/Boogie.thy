@@ -38,8 +38,8 @@ proper axiomatization.
 \<close>
 
 axiomatization
-  boogie_div :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "div'_b" 70) and
-  boogie_mod :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "mod'_b" 70)
+  boogie_div :: "int \<Rightarrow> int \<Rightarrow> int" (infixl \<open>div'_b\<close> 70) and
+  boogie_mod :: "int \<Rightarrow> int \<Rightarrow> int" (infixl \<open>mod'_b\<close> 70)
 
 
 

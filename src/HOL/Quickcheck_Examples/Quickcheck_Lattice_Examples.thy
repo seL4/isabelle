@@ -13,12 +13,12 @@ text \<open>We show how other default types help to find counterexamples to prop
   the standard default type \<^typ>\<open>int\<close> is insufficient.\<close>
 
 notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less  (infix "\<sqsubset>" 50) and
-  top ("\<top>") and
-  bot ("\<bottom>") and
-  inf (infixl "\<sqinter>" 70) and
-  sup (infixl "\<squnion>" 65)
+  less_eq  (infix \<open>\<sqsubseteq>\<close> 50) and
+  less  (infix \<open>\<sqsubset>\<close> 50) and
+  top (\<open>\<top>\<close>) and
+  bot (\<open>\<bottom>\<close>) and
+  inf (infixl \<open>\<sqinter>\<close> 70) and
+  sup (infixl \<open>\<squnion>\<close> 65)
 
 declare [[quickcheck_narrowing_active = false, quickcheck_timeout = 3600]]
 
@@ -133,11 +133,11 @@ lemma inf_eq_top_iff [simp]:
 
 
 no_notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
-  top ("\<top>") and
-  bot ("\<bottom>")
+  less_eq  (infix \<open>\<sqsubseteq>\<close> 50) and
+  less (infix \<open>\<sqsubset>\<close> 50) and
+  inf  (infixl \<open>\<sqinter>\<close> 70) and
+  sup  (infixl \<open>\<squnion>\<close> 65) and
+  top (\<open>\<top>\<close>) and
+  bot (\<open>\<bottom>\<close>)
 
 end

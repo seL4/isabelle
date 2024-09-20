@@ -24,7 +24,7 @@ where
 
 
 definition exec_all :: "[jvm_prog,jvm_state,jvm_state] => bool"
-              ("_ \<turnstile> _ \<midarrow>jvm\<rightarrow> _" [61,61,61]60) where
+              (\<open>_ \<turnstile> _ \<midarrow>jvm\<rightarrow> _\<close> [61,61,61]60) where
   "G \<turnstile> s \<midarrow>jvm\<rightarrow> t == (s,t) \<in> {(s,t). exec(G,s) = Some t}\<^sup>*"
 
 

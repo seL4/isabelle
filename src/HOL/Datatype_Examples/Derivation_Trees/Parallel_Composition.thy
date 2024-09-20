@@ -11,9 +11,9 @@ theory Parallel_Composition
 imports DTree
 begin
 
-no_notation plus_class.plus (infixl "+" 65)
+no_notation plus_class.plus (infixl \<open>+\<close> 65)
 
-consts Nplus :: "N \<Rightarrow> N \<Rightarrow> N" (infixl "+" 60)
+consts Nplus :: "N \<Rightarrow> N \<Rightarrow> N" (infixl \<open>+\<close> 60)
 
 axiomatization where
     Nplus_comm: "(a::N) + b = b + (a::N)"
@@ -32,7 +32,7 @@ declare par_r.simps[simp del]  declare par_c.simps[simp del]
 definition par :: "dtree \<times> dtree \<Rightarrow> dtree" where
 "par \<equiv> unfold par_r par_c"
 
-abbreviation par_abbr (infixr "\<parallel>" 80) where "tr1 \<parallel> tr2 \<equiv> par (tr1, tr2)"
+abbreviation par_abbr (infixr \<open>\<parallel>\<close> 80) where "tr1 \<parallel> tr2 \<equiv> par (tr1, tr2)"
 
 lemma finite_par_c: "finite (par_c (tr1, tr2))"
 unfolding par_c.simps apply(rule finite_UnI)

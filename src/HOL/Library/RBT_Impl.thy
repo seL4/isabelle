@@ -74,10 +74,10 @@ definition rbt_less :: "'a \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool"
 where
   rbt_less_prop: "rbt_less k t \<longleftrightarrow> (\<forall>x\<in>set (keys t). x < k)"
 
-abbreviation rbt_less_symbol (infix "|\<guillemotleft>" 50)
+abbreviation rbt_less_symbol (infix \<open>|\<guillemotleft>\<close> 50)
 where "t |\<guillemotleft> x \<equiv> rbt_less x t"
 
-definition rbt_greater :: "'a \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool" (infix "\<guillemotleft>|" 50) 
+definition rbt_greater :: "'a \<Rightarrow> ('a, 'b) rbt \<Rightarrow> bool" (infix \<open>\<guillemotleft>|\<close> 50) 
 where
   rbt_greater_prop: "rbt_greater k t = (\<forall>x\<in>set (keys t). k < x)"
 

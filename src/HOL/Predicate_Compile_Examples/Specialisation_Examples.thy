@@ -95,24 +95,24 @@ thm sorted.equation
 section \<open>Specialisation in POPLmark theory\<close>
 
 notation
-  Some ("\<lfloor>_\<rfloor>")
+  Some (\<open>\<lfloor>_\<rfloor>\<close>)
 
 notation
-  None ("\<bottom>")
+  None (\<open>\<bottom>\<close>)
 
 notation
-  length ("\<parallel>_\<parallel>")
+  length (\<open>\<parallel>_\<parallel>\<close>)
 
 notation
-  Cons ("_ \<Colon>/ _" [66, 65] 65)
+  Cons (\<open>_ \<Colon>/ _\<close> [66, 65] 65)
 
 primrec
-  nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" ("_\<langle>_\<rangle>" [90, 0] 91)
+  nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" (\<open>_\<langle>_\<rangle>\<close> [90, 0] 91)
 where
   "[]\<langle>i\<rangle> = \<bottom>"
 | "(x # xs)\<langle>i\<rangle> = (case i of 0 \<Rightarrow> \<lfloor>x\<rfloor> | Suc j \<Rightarrow> xs \<langle>j\<rangle>)"
 
-primrec assoc :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" ("_\<langle>_\<rangle>\<^sub>?" [90, 0] 91)
+primrec assoc :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" (\<open>_\<langle>_\<rangle>\<^sub>?\<close> [90, 0] 91)
 where
   "[]\<langle>a\<rangle>\<^sub>? = \<bottom>"
 | "(x # xs)\<langle>a\<rangle>\<^sub>? = (if fst x = a then \<lfloor>snd x\<rfloor> else xs\<langle>a\<rangle>\<^sub>?)"
@@ -125,8 +125,8 @@ where
 datatype type =
     TVar nat
   | Top
-  | Fun type type    (infixr "\<rightarrow>" 200)
-  | TyAll type type  ("(3\<forall><:_./ _)" [0, 10] 10)
+  | Fun type type    (infixr \<open>\<rightarrow>\<close> 200)
+  | TyAll type type  (\<open>(3\<forall><:_./ _)\<close> [0, 10] 10)
 
 datatype binding = VarB type | TVarB type
 type_synonym env = "binding list"
@@ -148,19 +148,19 @@ where
 
 datatype trm =
     Var nat
-  | Abs type trm   ("(3\<lambda>:_./ _)" [0, 10] 10)
-  | TAbs type trm  ("(3\<lambda><:_./ _)" [0, 10] 10)
-  | App trm trm    (infixl "\<bullet>" 200)
-  | TApp trm type  (infixl "\<bullet>\<^sub>\<tau>" 200)
+  | Abs type trm   (\<open>(3\<lambda>:_./ _)\<close> [0, 10] 10)
+  | TAbs type trm  (\<open>(3\<lambda><:_./ _)\<close> [0, 10] 10)
+  | App trm trm    (infixl \<open>\<bullet>\<close> 200)
+  | TApp trm type  (infixl \<open>\<bullet>\<^sub>\<tau>\<close> 200)
 
-primrec liftT :: "nat \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type" ("\<up>\<^sub>\<tau>")
+primrec liftT :: "nat \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type" (\<open>\<up>\<^sub>\<tau>\<close>)
 where
   "\<up>\<^sub>\<tau> n k (TVar i) = (if i < k then TVar i else TVar (i + n))"
 | "\<up>\<^sub>\<tau> n k Top = Top"
 | "\<up>\<^sub>\<tau> n k (T \<rightarrow> U) = \<up>\<^sub>\<tau> n k T \<rightarrow> \<up>\<^sub>\<tau> n k U"
 | "\<up>\<^sub>\<tau> n k (\<forall><:T. U) = (\<forall><:\<up>\<^sub>\<tau> n k T. \<up>\<^sub>\<tau> n (k + 1) U)"
 
-primrec lift :: "nat \<Rightarrow> nat \<Rightarrow> trm \<Rightarrow> trm" ("\<up>")
+primrec lift :: "nat \<Rightarrow> nat \<Rightarrow> trm \<Rightarrow> trm" (\<open>\<up>\<close>)
 where
   "\<up> n k (Var i) = (if i < k then Var i else Var (i + n))"
 | "\<up> n k (\<lambda>:T. t) = (\<lambda>:\<up>\<^sub>\<tau> n k T. \<up> n (k + 1) t)"
@@ -168,7 +168,7 @@ where
 | "\<up> n k (s \<bullet> t) = \<up> n k s \<bullet> \<up> n k t"
 | "\<up> n k (t \<bullet>\<^sub>\<tau> T) = \<up> n k t \<bullet>\<^sub>\<tau> \<up>\<^sub>\<tau> n k T"
 
-primrec substTT :: "type \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type"  ("_[_ \<mapsto>\<^sub>\<tau> _]\<^sub>\<tau>" [300, 0, 0] 300)
+primrec substTT :: "type \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type"  (\<open>_[_ \<mapsto>\<^sub>\<tau> _]\<^sub>\<tau>\<close> [300, 0, 0] 300)
 where
   "(TVar i)[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau> =
      (if k < i then TVar (i - 1) else if i = k then \<up>\<^sub>\<tau> k 0 S else TVar i)"
@@ -176,12 +176,12 @@ where
 | "(T \<rightarrow> U)[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau> = T[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau> \<rightarrow> U[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau>"
 | "(\<forall><:T. U)[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau> = (\<forall><:T[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau>. U[k+1 \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau>)"
 
-primrec decT :: "nat \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type"  ("\<down>\<^sub>\<tau>")
+primrec decT :: "nat \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> type"  (\<open>\<down>\<^sub>\<tau>\<close>)
 where
   "\<down>\<^sub>\<tau> 0 k T = T"
 | "\<down>\<^sub>\<tau> (Suc n) k T = \<down>\<^sub>\<tau> n k (T[k \<mapsto>\<^sub>\<tau> Top]\<^sub>\<tau>)"
 
-primrec subst :: "trm \<Rightarrow> nat \<Rightarrow> trm \<Rightarrow> trm"  ("_[_ \<mapsto> _]" [300, 0, 0] 300)
+primrec subst :: "trm \<Rightarrow> nat \<Rightarrow> trm \<Rightarrow> trm"  (\<open>_[_ \<mapsto> _]\<close> [300, 0, 0] 300)
 where
   "(Var i)[k \<mapsto> s] = (if k < i then Var (i - 1) else if i = k then \<up> k 0 s else Var i)"
 | "(t \<bullet> u)[k \<mapsto> s] = t[k \<mapsto> s] \<bullet> u[k \<mapsto> s]"
@@ -189,7 +189,7 @@ where
 | "(\<lambda>:T. t)[k \<mapsto> s] = (\<lambda>:\<down>\<^sub>\<tau> 1 k T. t[k+1 \<mapsto> s])"
 | "(\<lambda><:T. t)[k \<mapsto> s] = (\<lambda><:\<down>\<^sub>\<tau> 1 k T. t[k+1 \<mapsto> s])"
 
-primrec substT :: "trm \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> trm"    ("_[_ \<mapsto>\<^sub>\<tau> _]" [300, 0, 0] 300)
+primrec substT :: "trm \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> trm"    (\<open>_[_ \<mapsto>\<^sub>\<tau> _]\<close> [300, 0, 0] 300)
 where
   "(Var i)[k \<mapsto>\<^sub>\<tau> S] = (if k < i then Var (i - 1) else Var i)"
 | "(t \<bullet> u)[k \<mapsto>\<^sub>\<tau> S] = t[k \<mapsto>\<^sub>\<tau> S] \<bullet> u[k \<mapsto>\<^sub>\<tau> S]"
@@ -197,23 +197,23 @@ where
 | "(\<lambda>:T. t)[k \<mapsto>\<^sub>\<tau> S] = (\<lambda>:T[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau>. t[k+1 \<mapsto>\<^sub>\<tau> S])"
 | "(\<lambda><:T. t)[k \<mapsto>\<^sub>\<tau> S] = (\<lambda><:T[k \<mapsto>\<^sub>\<tau> S]\<^sub>\<tau>. t[k+1 \<mapsto>\<^sub>\<tau> S])"
 
-primrec liftE :: "nat \<Rightarrow> nat \<Rightarrow> env \<Rightarrow> env" ("\<up>\<^sub>e")
+primrec liftE :: "nat \<Rightarrow> nat \<Rightarrow> env \<Rightarrow> env" (\<open>\<up>\<^sub>e\<close>)
 where
   "\<up>\<^sub>e n k [] = []"
 | "\<up>\<^sub>e n k (B \<Colon> \<Gamma>) = mapB (\<up>\<^sub>\<tau> n (k + \<parallel>\<Gamma>\<parallel>)) B \<Colon> \<up>\<^sub>e n k \<Gamma>"
 
-primrec substE :: "env \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> env"  ("_[_ \<mapsto>\<^sub>\<tau> _]\<^sub>e" [300, 0, 0] 300)
+primrec substE :: "env \<Rightarrow> nat \<Rightarrow> type \<Rightarrow> env"  (\<open>_[_ \<mapsto>\<^sub>\<tau> _]\<^sub>e\<close> [300, 0, 0] 300)
 where
   "[][k \<mapsto>\<^sub>\<tau> T]\<^sub>e = []"
 | "(B \<Colon> \<Gamma>)[k \<mapsto>\<^sub>\<tau> T]\<^sub>e = mapB (\<lambda>U. U[k + \<parallel>\<Gamma>\<parallel> \<mapsto>\<^sub>\<tau> T]\<^sub>\<tau>) B \<Colon> \<Gamma>[k \<mapsto>\<^sub>\<tau> T]\<^sub>e"
 
-primrec decE :: "nat \<Rightarrow> nat \<Rightarrow> env \<Rightarrow> env"  ("\<down>\<^sub>e")
+primrec decE :: "nat \<Rightarrow> nat \<Rightarrow> env \<Rightarrow> env"  (\<open>\<down>\<^sub>e\<close>)
 where
   "\<down>\<^sub>e 0 k \<Gamma> = \<Gamma>"
 | "\<down>\<^sub>e (Suc n) k \<Gamma> = \<down>\<^sub>e n k (\<Gamma>[k \<mapsto>\<^sub>\<tau> Top]\<^sub>e)"
 
 inductive
-  well_formed :: "env \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>w\<^sub>f _" [50, 50] 50)
+  well_formed :: "env \<Rightarrow> type \<Rightarrow> bool"  (\<open>_ \<turnstile>\<^sub>w\<^sub>f _\<close> [50, 50] 50)
 where
   wf_TVar: "\<Gamma>\<langle>i\<rangle> = \<lfloor>TVarB T\<rfloor> \<Longrightarrow> \<Gamma> \<turnstile>\<^sub>w\<^sub>f TVar i"
 | wf_Top: "\<Gamma> \<turnstile>\<^sub>w\<^sub>f Top"
@@ -221,8 +221,8 @@ where
 | wf_all: "\<Gamma> \<turnstile>\<^sub>w\<^sub>f T \<Longrightarrow> TVarB T \<Colon> \<Gamma> \<turnstile>\<^sub>w\<^sub>f U \<Longrightarrow> \<Gamma> \<turnstile>\<^sub>w\<^sub>f (\<forall><:T. U)"
 
 inductive
-  well_formedE :: "env \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>w\<^sub>f" [50] 50)
-  and well_formedB :: "env \<Rightarrow> binding \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>w\<^sub>f\<^sub>B _" [50, 50] 50)
+  well_formedE :: "env \<Rightarrow> bool"  (\<open>_ \<turnstile>\<^sub>w\<^sub>f\<close> [50] 50)
+  and well_formedB :: "env \<Rightarrow> binding \<Rightarrow> bool"  (\<open>_ \<turnstile>\<^sub>w\<^sub>f\<^sub>B _\<close> [50, 50] 50)
 where
   "\<Gamma> \<turnstile>\<^sub>w\<^sub>f\<^sub>B B \<equiv> \<Gamma> \<turnstile>\<^sub>w\<^sub>f type_ofB B"
 | wf_Nil: "[] \<turnstile>\<^sub>w\<^sub>f"
@@ -238,7 +238,7 @@ inductive_cases well_formedE_cases:
   "B \<Colon> \<Gamma> \<turnstile>\<^sub>w\<^sub>f"
 
 inductive
-  subtyping :: "env \<Rightarrow> type \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ <: _" [50, 50, 50] 50)
+  subtyping :: "env \<Rightarrow> type \<Rightarrow> type \<Rightarrow> bool"  (\<open>_ \<turnstile> _ <: _\<close> [50, 50, 50] 50)
 where
   SA_Top: "\<Gamma> \<turnstile>\<^sub>w\<^sub>f \<Longrightarrow> \<Gamma> \<turnstile>\<^sub>w\<^sub>f S \<Longrightarrow> \<Gamma> \<turnstile> S <: Top"
 | SA_refl_TVar: "\<Gamma> \<turnstile>\<^sub>w\<^sub>f \<Longrightarrow> \<Gamma> \<turnstile>\<^sub>w\<^sub>f TVar i \<Longrightarrow> \<Gamma> \<turnstile> TVar i <: TVar i"
@@ -249,7 +249,7 @@ where
     \<Gamma> \<turnstile> (\<forall><:S\<^sub>1. S\<^sub>2) <: (\<forall><:T\<^sub>1. T\<^sub>2)"
 
 inductive
-  typing :: "env \<Rightarrow> trm \<Rightarrow> type \<Rightarrow> bool"    ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+  typing :: "env \<Rightarrow> trm \<Rightarrow> type \<Rightarrow> bool"    (\<open>_ \<turnstile> _ : _\<close> [50, 50, 50] 50)
 where
   T_Var: "\<Gamma> \<turnstile>\<^sub>w\<^sub>f \<Longrightarrow> \<Gamma>\<langle>i\<rangle> = \<lfloor>VarB U\<rfloor> \<Longrightarrow> T = \<up>\<^sub>\<tau> (Suc i) 0 U \<Longrightarrow> \<Gamma> \<turnstile> Var i : T"
 | T_Abs: "VarB T\<^sub>1 \<Colon> \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>2 \<Longrightarrow> \<Gamma> \<turnstile> (\<lambda>:T\<^sub>1. t\<^sub>2) : T\<^sub>1 \<rightarrow> \<down>\<^sub>\<tau> 1 0 T\<^sub>2"

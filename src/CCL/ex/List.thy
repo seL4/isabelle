@@ -12,13 +12,13 @@ begin
 definition map :: "[i\<Rightarrow>i,i]\<Rightarrow>i"
   where "map(f,l) == lrec(l, [], \<lambda>x xs g. f(x)$g)"
 
-definition comp :: "[i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i\<Rightarrow>i"  (infixr "\<circ>" 55)
+definition comp :: "[i\<Rightarrow>i,i\<Rightarrow>i]\<Rightarrow>i\<Rightarrow>i"  (infixr \<open>\<circ>\<close> 55)
   where "f \<circ> g == (\<lambda>x. f(g(x)))"
 
-definition append :: "[i,i]\<Rightarrow>i"  (infixr "@" 55)
+definition append :: "[i,i]\<Rightarrow>i"  (infixr \<open>@\<close> 55)
   where "l @ m == lrec(l, m, \<lambda>x xs g. x$g)"
 
-axiomatization member :: "[i,i]\<Rightarrow>i"  (infixr "mem" 55)  (* FIXME dangling eq *)
+axiomatization member :: "[i,i]\<Rightarrow>i"  (infixr \<open>mem\<close> 55)  (* FIXME dangling eq *)
   where member_ax: "a mem l == lrec(l, false, \<lambda>h t g. if eq(a,h) then true else g)"
 
 definition filter :: "[i,i]\<Rightarrow>i"

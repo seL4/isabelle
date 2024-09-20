@@ -7,11 +7,11 @@ imports Coset
 begin
 
 definition
-  LCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("lcosets\<index> _" [81] 80)
+  LCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   (\<open>lcosets\<index> _\<close> [81] 80)
   where "lcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {a <#\<^bsub>G\<^esub> H})"
 
 definition
-  LFactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "LMod" 65)
+  LFactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl \<open>LMod\<close> 65)
     \<comment> \<open>Actually defined for groups rather than monoids\<close>
    where "LFactGroup G H = \<lparr>carrier = lcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 

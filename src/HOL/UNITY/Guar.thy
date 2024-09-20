@@ -38,7 +38,7 @@ definition strict_uv_prop  :: "'a program set => bool" where
 
 text\<open>Guarantees properties\<close>
 
-definition guar :: "['a program set, 'a program set] => 'a program set" (infixl "guarantees" 55) where
+definition guar :: "['a program set, 'a program set] => 'a program set" (infixl \<open>guarantees\<close> 55) where
           (*higher than membership, lower than Co*)
    "X guarantees Y == {F. \<forall>G. F ok G --> F\<squnion>G \<in> X --> F\<squnion>G \<in> Y}"
   
@@ -56,13 +56,13 @@ definition welldef :: "'a program set" where
   "welldef == {F. Init F \<noteq> {}}"
   
 definition refines :: "['a program, 'a program, 'a program set] => bool"
-                        ("(3_ refines _ wrt _)" [10,10,10] 10) where
+                        (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10) where
   "G refines F wrt X ==
      \<forall>H. (F ok H & G ok H & F\<squnion>H \<in> welldef \<inter> X) --> 
          (G\<squnion>H \<in> welldef \<inter> X)"
 
 definition iso_refines :: "['a program, 'a program, 'a program set] => bool"
-                              ("(3_ iso'_refines _ wrt _)" [10,10,10] 10) where
+                              (\<open>(3_ iso'_refines _ wrt _)\<close> [10,10,10] 10) where
   "G iso_refines F wrt X ==
    F \<in> welldef \<inter> X --> G \<in> welldef \<inter> X"
 

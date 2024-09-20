@@ -11,7 +11,7 @@ theory Ordinal_Arithmetic
   imports Wellorder_Constructions
 begin
 
-definition osum :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a + 'b) rel"  (infixr "+o" 70)
+definition osum :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a + 'b) rel"  (infixr \<open>+o\<close> 70)
   where
     "r +o r' = map_prod Inl Inl ` r \<union> map_prod Inr Inr ` r' \<union>
      {(Inl a, Inr a') | a a' . a \<in> Field r \<and> a' \<in> Field r'}"
@@ -161,7 +161,7 @@ lemma dir_image_alt: "dir_image r f = map_prod f f ` r"
 lemma map_prod_ordIso: "\<lbrakk>Well_order r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> map_prod f f ` r =o r"
   by (metis dir_image_alt dir_image_ordIso ordIso_symmetric)
 
-definition oprod :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a \<times> 'b) rel"  (infixr "*o" 80)
+definition oprod :: "'a rel \<Rightarrow> 'b rel \<Rightarrow> ('a \<times> 'b) rel"  (infixr \<open>*o\<close> 80)
   where "r *o r' = {((x1, y1), (x2, y2)).
   (((y1, y2) \<in> r' - Id \<and> x1 \<in> Field r \<and> x2 \<in> Field r) \<or>
    ((y1, y2) \<in> Restr Id (Field r') \<and> (x1, x2) \<in> r))}"
@@ -846,7 +846,7 @@ lemma zero_oexp: "Field r \<noteq> {} \<Longrightarrow> o.zero = const"
 
 end
 
-notation wo_rel2.oexp (infixl "^o" 90)
+notation wo_rel2.oexp (infixl \<open>^o\<close> 90)
 lemmas oexp_def = wo_rel2.oexp_def[unfolded wo_rel2_def, OF conjI]
 lemmas oexp_Well_order = wo_rel2.oexp_Well_order[unfolded wo_rel2_def, OF conjI]
 lemmas Field_oexp = wo_rel2.Field_oexp[unfolded wo_rel2_def, OF conjI]

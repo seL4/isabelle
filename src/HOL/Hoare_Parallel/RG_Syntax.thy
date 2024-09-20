@@ -4,19 +4,19 @@ theory RG_Syntax
 imports RG_Hoare Quote_Antiquote
 begin
 
-abbreviation Skip :: "'a com"  ("SKIP")
+abbreviation Skip :: "'a com"  (\<open>SKIP\<close>)
   where "SKIP \<equiv> Basic id"
 
-notation Seq  ("(_;;/ _)" [60,61] 60)
+notation Seq  (\<open>(_;;/ _)\<close> [60,61] 60)
 
 syntax
-  "_Assign"    :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"                     ("(\<acute>_ :=/ _)" [70, 65] 61)
-  "_Cond"      :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"   ("(0IF _/ THEN _/ ELSE _/FI)" [0, 0, 0] 61)
-  "_Cond2"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             ("(0IF _ THEN _ FI)" [0,0] 56)
-  "_While"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             ("(0WHILE _ /DO _ /OD)"  [0, 0] 61)
-  "_Await"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             ("(0AWAIT _ /THEN /_ /END)"  [0,0] 61)
-  "_Atom"      :: "'a com \<Rightarrow> 'a com"                        ("(\<langle>_\<rangle>)" 61)
-  "_Wait"      :: "'a bexp \<Rightarrow> 'a com"                       ("(0WAIT _ END)" 61)
+  "_Assign"    :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"                     (\<open>(\<acute>_ :=/ _)\<close> [70, 65] 61)
+  "_Cond"      :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"   (\<open>(0IF _/ THEN _/ ELSE _/FI)\<close> [0, 0, 0] 61)
+  "_Cond2"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             (\<open>(0IF _ THEN _ FI)\<close> [0,0] 56)
+  "_While"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             (\<open>(0WHILE _ /DO _ /OD)\<close>  [0, 0] 61)
+  "_Await"     :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"             (\<open>(0AWAIT _ /THEN /_ /END)\<close>  [0,0] 61)
+  "_Atom"      :: "'a com \<Rightarrow> 'a com"                        (\<open>(\<langle>_\<rangle>)\<close> 61)
+  "_Wait"      :: "'a bexp \<Rightarrow> 'a com"                       (\<open>(0WAIT _ END)\<close> 61)
 
 translations
   "\<acute>x := a" \<rightharpoonup> "CONST Basic \<guillemotleft>\<acute>(_update_name x (\<lambda>_. a))\<guillemotright>"
@@ -30,9 +30,9 @@ translations
 nonterminal prgs
 
 syntax
-  "_PAR"        :: "prgs \<Rightarrow> 'a"              ("COBEGIN//_//COEND" 60)
-  "_prg"        :: "'a \<Rightarrow> prgs"              ("_" 57)
-  "_prgs"       :: "['a, prgs] \<Rightarrow> prgs"      ("_//\<parallel>//_" [60,57] 57)
+  "_PAR"        :: "prgs \<Rightarrow> 'a"              (\<open>COBEGIN//_//COEND\<close> 60)
+  "_prg"        :: "'a \<Rightarrow> prgs"              (\<open>_\<close> 57)
+  "_prgs"       :: "['a, prgs] \<Rightarrow> prgs"      (\<open>_//\<parallel>//_\<close> [60,57] 57)
 
 translations
   "_prg a" \<rightharpoonup> "[a]"
@@ -40,7 +40,7 @@ translations
   "_PAR ps" \<rightharpoonup> "ps"
 
 syntax
-  "_prg_scheme" :: "['a, 'a, 'a, 'a] \<Rightarrow> prgs"  ("SCHEME [_ \<le> _ < _] _" [0,0,0,60] 57)
+  "_prg_scheme" :: "['a, 'a, 'a, 'a] \<Rightarrow> prgs"  (\<open>SCHEME [_ \<le> _ < _] _\<close> [0,0,0,60] 57)
 
 translations
   "_prg_scheme j i k c" \<rightleftharpoons> "(CONST map (\<lambda>i. c) [j..<k])"
@@ -48,8 +48,8 @@ translations
 text \<open>Translations for variables before and after a transition:\<close>
 
 syntax
-  "_before" :: "id \<Rightarrow> 'a" ("\<ordmasculine>_")
-  "_after"  :: "id \<Rightarrow> 'a" ("\<ordfeminine>_")
+  "_before" :: "id \<Rightarrow> 'a" (\<open>\<ordmasculine>_\<close>)
+  "_after"  :: "id \<Rightarrow> 'a" (\<open>\<ordfeminine>_\<close>)
 
 translations
   "\<ordmasculine>x" \<rightleftharpoons> "x \<acute>CONST fst"

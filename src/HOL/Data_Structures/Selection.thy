@@ -397,7 +397,7 @@ context
 begin
 
 lemma size_median_of_medians_aux:
-  fixes R :: "'a :: linorder \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
+  fixes R :: "'a :: linorder \<Rightarrow> 'a \<Rightarrow> bool" (infix \<open>\<prec>\<close> 50)
   assumes R: "R \<in> {(<), (>)}"
   shows "size {#y \<in># mset xs. y \<prec> M#} \<le> nat \<lceil>0.7 * length xs + 3\<rceil>"
 proof -
@@ -406,8 +406,8 @@ proof -
 
   text \<open>We then split that multiset into those groups whose medians is less than @{term M}
         and the rest.\<close>
-  define Y_small ("Y\<^sub>\<prec>") where "Y\<^sub>\<prec> = filter_mset (\<lambda>ys. median ys \<prec> M) (mset (chop 5 xs))"
-  define Y_big ("Y\<^sub>\<succeq>") where "Y\<^sub>\<succeq> = filter_mset (\<lambda>ys. \<not>(median ys \<prec> M)) (mset (chop 5 xs))"
+  define Y_small (\<open>Y\<^sub>\<prec>\<close>) where "Y\<^sub>\<prec> = filter_mset (\<lambda>ys. median ys \<prec> M) (mset (chop 5 xs))"
+  define Y_big (\<open>Y\<^sub>\<succeq>\<close>) where "Y\<^sub>\<succeq> = filter_mset (\<lambda>ys. \<not>(median ys \<prec> M)) (mset (chop 5 xs))"
   have "m = size (mset (chop 5 xs))" by (simp add: m_def)
   also have "mset (chop 5 xs) = Y\<^sub>\<prec> + Y\<^sub>\<succeq>" unfolding Y_small_def Y_big_def
     by (rule multiset_partition)

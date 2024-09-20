@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  lower_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<flat>" 50) where
+  lower_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<flat>\<close> 50) where
   "lower_le = (\<lambda>u v. \<forall>x\<in>Rep_pd_basis u. \<exists>y\<in>Rep_pd_basis v. x \<sqsubseteq> y)"
 
 lemma lower_le_refl [simp]: "t \<le>\<flat> t"
@@ -74,7 +74,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a lower_pd  ("('(_')\<flat>)") =
+typedef 'a lower_pd  (\<open>('(_')\<flat>)\<close>) =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 
@@ -130,14 +130,14 @@ definition
 
 abbreviation
   lower_add :: "'a lower_pd \<Rightarrow> 'a lower_pd \<Rightarrow> 'a lower_pd"
-    (infixl "\<union>\<flat>" 65) where
+    (infixl \<open>\<union>\<flat>\<close> 65) where
   "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
 nonterminal lower_pd_args
 syntax
-  "" :: "logic \<Rightarrow> lower_pd_args"  ("_")
-  "_lower_pd_args" :: "logic \<Rightarrow> lower_pd_args \<Rightarrow> lower_pd_args"  ("_,/ _")
-  "_lower_pd" :: "lower_pd_args \<Rightarrow> logic" ("{_}\<flat>")
+  "" :: "logic \<Rightarrow> lower_pd_args"  (\<open>_\<close>)
+  "_lower_pd_args" :: "logic \<Rightarrow> lower_pd_args \<Rightarrow> lower_pd_args"  (\<open>_,/ _\<close>)
+  "_lower_pd" :: "lower_pd_args \<Rightarrow> logic" (\<open>{_}\<flat>\<close>)
 syntax_consts
   "_lower_pd_args" "_lower_pd" == lower_add
 translations
@@ -344,7 +344,7 @@ definition
 
 syntax
   "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    ("(3\<Union>\<flat>_\<in>_./ _)" [0, 0, 10] 10)
+    (\<open>(3\<Union>\<flat>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_lower_bind" == lower_bind

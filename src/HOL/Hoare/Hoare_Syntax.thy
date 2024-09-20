@@ -10,10 +10,10 @@ theory Hoare_Syntax
 begin
 
 syntax
-  "_assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'com"  ("(2_ :=/ _)" [70, 65] 61)
-  "_Seq" :: "'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(_;/ _)" [61,60] 60)
-  "_Cond" :: "'bexp \<Rightarrow> 'com \<Rightarrow> 'com \<Rightarrow> 'com"  ("(IF _/ THEN _ / ELSE _/ FI)" [0,0,0] 61)
-  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  ("(WHILE _/ INV {(_)} / VAR {(_)} //DO _ /OD)" [0,0,0,0] 61)
+  "_assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'com"  (\<open>(2_ :=/ _)\<close> [70, 65] 61)
+  "_Seq" :: "'com \<Rightarrow> 'com \<Rightarrow> 'com"  (\<open>(_;/ _)\<close> [61,60] 60)
+  "_Cond" :: "'bexp \<Rightarrow> 'com \<Rightarrow> 'com \<Rightarrow> 'com"  (\<open>(IF _/ THEN _ / ELSE _/ FI)\<close> [0,0,0] 61)
+  "_While" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'var \<Rightarrow> 'com \<Rightarrow> 'com"  (\<open>(WHILE _/ INV {(_)} / VAR {(_)} //DO _ /OD)\<close> [0,0,0,0] 61)
 
 text \<open>The \<open>VAR {_}\<close> syntax supports two variants:
 \<^item> \<open>VAR {x = t}\<close> where \<open>t::nat\<close> is the decreasing expression,
@@ -23,17 +23,17 @@ text \<open>The \<open>VAR {_}\<close> syntax supports two variants:
 \<close>
 
 syntax
-  "_While0" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'com \<Rightarrow> 'com"  ("(1WHILE _/ INV {_} //DO _ /OD)" [0,0,0] 61)
+  "_While0" :: "'bexp \<Rightarrow> 'assn \<Rightarrow> 'com \<Rightarrow> 'com"  (\<open>(1WHILE _/ INV {_} //DO _ /OD)\<close> [0,0,0] 61)
 
 text \<open>The \<open>_While0\<close> syntax is translated into the \<open>_While\<close> syntax with the trivial variant 0.
 This is ok because partial correctness proofs do not make use of the variant.\<close>
 
 syntax
- "_hoare_vars" :: "[idts, 'assn,'com, 'assn] \<Rightarrow> bool"  ("VARS _// {_} // _ // {_}" [0,0,55,0] 50)
- "_hoare_vars_tc" :: "[idts, 'assn, 'com, 'assn] \<Rightarrow> bool"  ("VARS _// [_] // _ // [_]" [0,0,55,0] 50)
+ "_hoare_vars" :: "[idts, 'assn,'com, 'assn] \<Rightarrow> bool"  (\<open>VARS _// {_} // _ // {_}\<close> [0,0,55,0] 50)
+ "_hoare_vars_tc" :: "[idts, 'assn, 'com, 'assn] \<Rightarrow> bool"  (\<open>VARS _// [_] // _ // [_]\<close> [0,0,55,0] 50)
 syntax (output)
- "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("({_}//_//{_})" [0,55,0] 50)
- "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  ("([_]//_//[_])" [0,55,0] 50)
+ "_hoare" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  (\<open>({_}//_//{_})\<close> [0,55,0] 50)
+ "_hoare_tc" :: "['assn, 'com, 'assn] \<Rightarrow> bool"  (\<open>([_]//_//[_])\<close> [0,55,0] 50)
 
 text \<open>Completeness requires(?) the ability to refer to an outer variant in an inner invariant.
 Thus we need to abstract over a variable equated with the variant, the \<open>x\<close> in \<open>VAR {x = t}\<close>.

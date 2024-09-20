@@ -9,27 +9,27 @@ theory Conform imports State WellType Exceptions begin
 
 type_synonym 'c env' = "'c prog \<times> (vname \<rightharpoonup> ty)"  \<comment> \<open>same as \<open>env\<close> of \<open>WellType.thy\<close>\<close>
 
-definition hext :: "aheap => aheap => bool" ("_ \<le>| _" [51,51] 50) where
+definition hext :: "aheap => aheap => bool" (\<open>_ \<le>| _\<close> [51,51] 50) where
  "h\<le>|h' == \<forall>a C fs. h a = Some(C,fs) --> (\<exists>fs'. h' a = Some(C,fs'))"
 
 definition conf :: "'c prog => aheap => val => ty => bool" 
-                                   ("_,_ \<turnstile> _ ::\<preceq> _"  [51,51,51,51] 50) where
+                                   (\<open>_,_ \<turnstile> _ ::\<preceq> _\<close>  [51,51,51,51] 50) where
  "G,h\<turnstile>v::\<preceq>T == \<exists>T'. typeof (map_option obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
 
 definition lconf :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
-                                   ("_,_ \<turnstile> _ [::\<preceq>] _" [51,51,51,51] 50) where
+                                   (\<open>_,_ \<turnstile> _ [::\<preceq>] _\<close> [51,51,51,51] 50) where
  "G,h\<turnstile>vs[::\<preceq>]Ts == \<forall>n T. Ts n = Some T --> (\<exists>v. vs n = Some v \<and> G,h\<turnstile>v::\<preceq>T)"
 
-definition oconf :: "'c prog => aheap => obj => bool" ("_,_ \<turnstile> _ \<surd>" [51,51,51] 50) where
+definition oconf :: "'c prog => aheap => obj => bool" (\<open>_,_ \<turnstile> _ \<surd>\<close> [51,51,51] 50) where
  "G,h\<turnstile>obj \<surd> == G,h\<turnstile>snd obj[::\<preceq>]map_of (fields (G,fst obj))"
 
-definition hconf :: "'c prog => aheap => bool" ("_ \<turnstile>h _ \<surd>" [51,51] 50) where
+definition hconf :: "'c prog => aheap => bool" (\<open>_ \<turnstile>h _ \<surd>\<close> [51,51] 50) where
  "G\<turnstile>h h \<surd>    == \<forall>a obj. h a = Some obj --> G,h\<turnstile>obj \<surd>"
  
 definition xconf :: "aheap \<Rightarrow> val option \<Rightarrow> bool" where
   "xconf hp vo  == preallocated hp \<and> (\<forall> v. (vo = Some v) \<longrightarrow> (\<exists> xc. v = (Addr (XcptRef xc))))"
 
-definition conforms :: "xstate => java_mb env' => bool" ("_ ::\<preceq> _" [51,51] 50) where
+definition conforms :: "xstate => java_mb env' => bool" (\<open>_ ::\<preceq> _\<close> [51,51] 50) where
  "s::\<preceq>E == prg E\<turnstile>h heap (store s) \<surd> \<and> 
             prg E,heap (store s)\<turnstile>locals (store s)[::\<preceq>]localT E \<and> 
             xconf (heap (store s)) (abrupt s)"

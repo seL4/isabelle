@@ -214,7 +214,7 @@ where
 text \<open>The accessible part of a relation is defined as follows:\<close>
 
 inductive acc :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
-  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<prec>" 50)
+  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<prec>\<close> 50)
 where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> acc r x"
 (*<*)end(*>*)
 

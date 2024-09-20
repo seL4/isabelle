@@ -15,10 +15,10 @@ where
   "subcls1 \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c. class C = Some c \<and> super c=D)}"
 
 abbreviation
-  subcls1_syntax :: "[cname, cname] => bool"  ("_ \<prec>C1 _" [71,71] 70)
+  subcls1_syntax :: "[cname, cname] => bool"  (\<open>_ \<prec>C1 _\<close> [71,71] 70)
   where "C \<prec>C1 D == (C,D) \<in> subcls1"
 abbreviation
-  subcls_syntax  :: "[cname, cname] => bool" ("_ \<preceq>C _"  [71,71] 70)
+  subcls_syntax  :: "[cname, cname] => bool" (\<open>_ \<preceq>C _\<close>  [71,71] 70)
   where "C \<preceq>C D \<equiv> (C,D) \<in> subcls1\<^sup>*"
 
 
@@ -26,7 +26,7 @@ subsection "Declarations and properties not used in the meta theory"
 
 text\<open>Widening, viz. method invocation conversion\<close>
 inductive
-  widen :: "ty => ty => bool"  ("_ \<preceq> _" [71,71] 70)
+  widen :: "ty => ty => bool"  (\<open>_ \<preceq> _\<close> [71,71] 70)
 where
   refl [intro!, simp]: "T \<preceq> T"
 | subcls: "C\<preceq>C D \<Longrightarrow> Class C \<preceq> Class D"

@@ -27,10 +27,10 @@ value "aval (Plus (V ''x'') (N 5)) ((\<lambda>x. 0) (''x'':= 7))"
 
 text \<open>A little syntax magic to write larger states compactly:\<close>
 
-definition null_state ("<>") where
+definition null_state (\<open><>\<close>) where
   "null_state \<equiv> \<lambda>x. 0"
 syntax 
-  "_State" :: "updbinds => 'a" ("<_>")
+  "_State" :: "updbinds => 'a" (\<open><_>\<close>)
 translations
   "_State ms" == "_Update <> ms"
   "_State (_updbinds b bs)" <= "_Update (_State b) bs"

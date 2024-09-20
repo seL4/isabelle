@@ -15,7 +15,7 @@ definition PLam :: "[nat set, nat => ('b * ((nat=>'b) * 'c)) program]
     "PLam I F == \<Squnion>i \<in> I. lift i (F i)"
 
 syntax
-  "_PLam" :: "[pttrn, nat set, 'b set] => (nat => 'b) set"  ("(3plam _:_./ _)" 10)
+  "_PLam" :: "[pttrn, nat set, 'b set] => (nat => 'b) set"  (\<open>(3plam _:_./ _)\<close> 10)
 syntax_consts
   "_PLam" == PLam
 translations

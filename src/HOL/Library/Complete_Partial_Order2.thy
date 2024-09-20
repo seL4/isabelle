@@ -72,7 +72,7 @@ proof (rule order.antisym)
 qed
 
 lemma mono_lub:
-  fixes le_b (infix "\<sqsubseteq>" 60)
+  fixes le_b (infix \<open>\<sqsubseteq>\<close> 60)
   assumes chain: "Complete_Partial_Order.chain (fun_ord (\<le>)) Y"
   and mono: "\<And>f. f \<in> Y \<Longrightarrow> monotone le_b (\<le>) f"
   shows "monotone (\<sqsubseteq>) (\<le>) (fun_lub Sup Y)"
@@ -96,7 +96,7 @@ proof(rule monotoneI)
 qed
 
 context
-  fixes le_b (infix "\<sqsubseteq>" 60) and Y f
+  fixes le_b (infix \<open>\<sqsubseteq>\<close> 60) and Y f
   assumes chain: "Complete_Partial_Order.chain le_b Y" 
   and mono1: "\<And>y. y \<in> Y \<Longrightarrow> monotone le_b (\<le>) (\<lambda>x. f x y)"
   and mono2: "\<And>x a b. \<lbrakk> x \<in> Y; a \<sqsubseteq> b; a \<in> Y; b \<in> Y \<rbrakk> \<Longrightarrow> f x a \<le> f x b"
@@ -163,7 +163,7 @@ qed
 end
 
 lemma Sup_image_mono_le:
-  fixes le_b (infix "\<sqsubseteq>" 60) and Sup_b ("\<Or>")
+  fixes le_b (infix \<open>\<sqsubseteq>\<close> 60) and Sup_b (\<open>\<Or>\<close>)
   assumes ccpo: "class.ccpo Sup_b (\<sqsubseteq>) lt_b"
   assumes chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
   and mono: "\<And>x y. \<lbrakk> x \<sqsubseteq> y; x \<in> Y \<rbrakk> \<Longrightarrow> f x \<le> f y"
@@ -181,7 +181,7 @@ proof(rule ccpo_Sup_least)
 qed
 
 lemma swap_Sup:
-  fixes le_b (infix "\<sqsubseteq>" 60)
+  fixes le_b (infix \<open>\<sqsubseteq>\<close> 60)
   assumes Y: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
   and Z: "Complete_Partial_Order.chain (fun_ord (\<le>)) Z"
   and mono: "\<And>f. f \<in> Z \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) f"
@@ -289,7 +289,7 @@ proof(rule ccpo_Sup_least)
   qed(blast intro: ccpo_Sup_least)
 qed(rule chain_iterates[OF f])
 
-context fixes ordb :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix "\<sqsubseteq>" 60) begin
+context fixes ordb :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix \<open>\<sqsubseteq>\<close> 60) begin
 
 lemma iterates_mono:
   assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
@@ -569,8 +569,8 @@ lemma mcont2mcont:
 by(rule mcont2mcont'[OF _ mcont_const]) 
 
 context
-  fixes ord :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix "\<sqsubseteq>" 60) 
-  and lub :: "'b set \<Rightarrow> 'b" ("\<Or>")
+  fixes ord :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix \<open>\<sqsubseteq>\<close> 60) 
+  and lub :: "'b set \<Rightarrow> 'b" (\<open>\<Or>\<close>)
 begin
 
 lemma cont_fun_lub_Sup:
@@ -691,7 +691,7 @@ lemma (in preorder) monotone_if_bot:
 by(rule monotoneI)(auto intro: bot intro: mono order_trans)
 
 lemma (in ccpo) mcont_if_bot:
-  fixes bot and lub ("\<Or>") and ord (infix "\<sqsubseteq>" 60)
+  fixes bot and lub (\<open>\<Or>\<close>) and ord (infix \<open>\<sqsubseteq>\<close> 60)
   assumes ccpo: "class.ccpo lub (\<sqsubseteq>) lt"
   and mono: "\<And>x y. \<lbrakk> x \<le> y; \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
   and cont: "\<And>Y. \<lbrakk> Complete_Partial_Order.chain (\<le>) Y; Y \<noteq> {}; \<And>x. x \<in> Y \<Longrightarrow> \<not> x \<le> bound \<rbrakk> \<Longrightarrow> f (\<Squnion>Y) = \<Or>(f ` Y)"
@@ -891,7 +891,7 @@ qed
 end
 
 lemma admissible_leI:
-  fixes ord (infix "\<sqsubseteq>" 60) and lub ("\<Or>")
+  fixes ord (infix \<open>\<sqsubseteq>\<close> 60) and lub (\<open>\<Or>\<close>)
   assumes "class.ccpo lub (\<sqsubseteq>) (mk_less (\<sqsubseteq>))"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. f x)"
   and "mcont luba orda lub (\<sqsubseteq>) (\<lambda>x. g x)"

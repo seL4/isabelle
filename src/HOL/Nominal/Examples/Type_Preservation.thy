@@ -15,12 +15,12 @@ atom_decl name
 nominal_datatype lam =
   Var "name"
 | App "lam" "lam" 
-| Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._")
+| Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close>)
 
 text \<open>Capture-Avoiding Substitution\<close>
 
 nominal_primrec
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]")
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_[_::=_]\<close>)
 where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
 | "(App t\<^sub>1 t\<^sub>2)[y::=s] = App (t\<^sub>1[y::=s]) (t\<^sub>2[y::=s])"
@@ -47,7 +47,7 @@ text \<open>Types\<close>
 
 nominal_datatype ty =
     TVar "string"
-  | TArr "ty" "ty" ("_ \<rightarrow> _")
+  | TArr "ty" "ty" (\<open>_ \<rightarrow> _\<close>)
 
 lemma ty_fresh:
   fixes x::"name"
@@ -61,7 +61,7 @@ text \<open>Typing Contexts\<close>
 type_synonym ctx = "(name\<times>ty) list"
 
 abbreviation
-  "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" ("_ \<subseteq> _") 
+  "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" (\<open>_ \<subseteq> _\<close>) 
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
@@ -102,7 +102,7 @@ by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 text \<open>Typing Relation\<close>
 
 inductive
-  typing :: "ctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
+  typing :: "ctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" (\<open>_ \<turnstile> _ : _\<close>) 
 where
   t_Var[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t\<^sub>1 t\<^sub>2 : T\<^sub>2"
@@ -169,7 +169,7 @@ by (auto intro: type_substitution_aux[where \<Delta>="[]",simplified])
 text \<open>Beta Reduction\<close>
 
 inductive 
-  "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _")
+  "beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta> _\<close>)
 where
   b1[intro]: "t1 \<longrightarrow>\<^sub>\<beta> t2 \<Longrightarrow> App t1 s \<longrightarrow>\<^sub>\<beta> App t2 s"
 | b2[intro]: "s1 \<longrightarrow>\<^sub>\<beta> s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^sub>\<beta> App t s2"

@@ -21,7 +21,7 @@ definition HFinite :: "('a::real_normed_vector) star set"
 definition HInfinite :: "('a::real_normed_vector) star set"
   where "HInfinite = {x. \<forall>r \<in> Reals. r < hnorm x}"
 
-definition approx :: "'a::real_normed_vector star \<Rightarrow> 'a star \<Rightarrow> bool"  (infixl "\<approx>" 50)
+definition approx :: "'a::real_normed_vector star \<Rightarrow> 'a star \<Rightarrow> bool"  (infixl \<open>\<approx>\<close> 50)
   where "x \<approx> y \<longleftrightarrow> x - y \<in> Infinitesimal"
     \<comment> \<open>the ``infinitely close'' relation\<close>
 

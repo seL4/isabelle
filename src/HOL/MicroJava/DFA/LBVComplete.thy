@@ -24,7 +24,7 @@ by (force simp: list_ex_iff member_def is_target_def)
 
 
 locale lbvc = lbv + 
-  fixes phi :: "'a list" ("\<phi>")
+  fixes phi :: "'a list" (\<open>\<phi>\<close>)
   fixes c   :: "'a list" 
   defines cert_def: "c \<equiv> make_cert step \<phi> \<bottom>"
 

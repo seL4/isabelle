@@ -33,7 +33,7 @@ begin
   term "?f ?f"
 
   txt \<open>Notation:\<close>
-  write x  ("***")
+  write x  (\<open>***\<close>)
 end
 
 
@@ -562,7 +562,7 @@ text \<open>
 
 notepad
 begin
-  write Trueprop  ("Tr")
+  write Trueprop  (\<open>Tr\<close>)
 
   thm conjI
   thm impI

@@ -17,7 +17,7 @@ fun distribute where
 | "distribute t (Conc r s) = Conc (distribute s r) t"
 | "distribute t r = Conc r t"
 
-inductive ACIDZ (infix "~" 64) where
+inductive ACIDZ (infix \<open>~\<close> 64) where
   a1: "Alt (Alt r s) t ~ Alt r (Alt s t)"
 | a2: "Alt r (Alt s t) ~ Alt (Alt r s) t"
 | c: "Alt r s ~ Alt s r"
@@ -34,7 +34,7 @@ inductive_cases ACIDZ_StarE[elim]: "Star r ~ t"
 
 declare ACIDZ.intros[intro]
 
-abbreviation ACIDZcl (infix "~~" 64) where "(~~) \<equiv> equivclp (~)"
+abbreviation ACIDZcl (infix \<open>~~\<close> 64) where "(~~) \<equiv> equivclp (~)"
 
 lemma map_rexp_distribute[simp]: "map_rexp f (distribute t r) = distribute (map_rexp f t) (map_rexp f r)"
   by (induct r arbitrary: t) auto
@@ -399,7 +399,7 @@ lemma wide_intersection_finite_ACIDZ: "wide_intersection_finite (~~) map_rexp se
   by unfold_locales
     (auto intro: ACIDZcl_map_respects rexp.map_cong simp: rexp.map_id rexp.set_map finite_set_rexp)
 
-inductive ACIDZEQ (infix "\<approx>" 64) where
+inductive ACIDZEQ (infix \<open>\<approx>\<close> 64) where
   a: "Alt (Alt r s) t \<approx> Alt r (Alt s t)"
 | c: "Alt r s \<approx> Alt s r"
 | i: "Alt r r \<approx> r"

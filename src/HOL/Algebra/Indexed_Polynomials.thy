@@ -23,13 +23,13 @@ text \<open>We formalize indexed monomials as multisets with its support a subse
 definition (in ring) indexed_const :: "'a \<Rightarrow> ('c multiset \<Rightarrow> 'a)" 
   where "indexed_const k = (\<lambda>m. if m = {#} then k else \<zero>)"
 
-definition (in ring) indexed_pmult :: "('c multiset \<Rightarrow> 'a) \<Rightarrow> 'c \<Rightarrow> ('c multiset \<Rightarrow> 'a)" (infixl "\<Otimes>" 65)
+definition (in ring) indexed_pmult :: "('c multiset \<Rightarrow> 'a) \<Rightarrow> 'c \<Rightarrow> ('c multiset \<Rightarrow> 'a)" (infixl \<open>\<Otimes>\<close> 65)
   where "indexed_pmult P i = (\<lambda>m. if i \<in># m then P (m - {# i #}) else \<zero>)"
 
-definition (in ring) indexed_padd :: "_ \<Rightarrow> _ \<Rightarrow> ('c multiset \<Rightarrow> 'a)" (infixl "\<Oplus>" 65)
+definition (in ring) indexed_padd :: "_ \<Rightarrow> _ \<Rightarrow> ('c multiset \<Rightarrow> 'a)" (infixl \<open>\<Oplus>\<close> 65)
   where "indexed_padd P Q = (\<lambda>m. (P m) \<oplus> (Q m))"
 
-definition (in ring) indexed_var :: "'c \<Rightarrow> ('c multiset \<Rightarrow> 'a)" ("\<X>\<index>")
+definition (in ring) indexed_var :: "'c \<Rightarrow> ('c multiset \<Rightarrow> 'a)" (\<open>\<X>\<index>\<close>)
   where "indexed_var i = (indexed_const \<one>) \<Otimes> i"
 
 definition (in ring) index_free :: "('c multiset \<Rightarrow> 'a) \<Rightarrow> 'c \<Rightarrow> bool"
@@ -38,7 +38,7 @@ definition (in ring) index_free :: "('c multiset \<Rightarrow> 'a) \<Rightarrow>
 definition (in ring) carrier_coeff :: "('c multiset \<Rightarrow> 'a) \<Rightarrow> bool"
   where "carrier_coeff P \<longleftrightarrow> (\<forall>m. P m \<in> carrier R)"
 
-inductive_set (in ring) indexed_pset :: "'c set \<Rightarrow> 'a set \<Rightarrow> ('c multiset \<Rightarrow> 'a) set" ("_ [\<X>\<index>]" 80)
+inductive_set (in ring) indexed_pset :: "'c set \<Rightarrow> 'a set \<Rightarrow> ('c multiset \<Rightarrow> 'a) set" (\<open>_ [\<X>\<index>]\<close> 80)
   for I and K where
     indexed_const:  "k \<in> K \<Longrightarrow> indexed_const k \<in> (K[\<X>\<^bsub>I\<^esub>])"
   | indexed_padd:  "\<lbrakk> P \<in> (K[\<X>\<^bsub>I\<^esub>]); Q \<in> (K[\<X>\<^bsub>I\<^esub>]) \<rbrakk> \<Longrightarrow> P \<Oplus> Q \<in> (K[\<X>\<^bsub>I\<^esub>])"

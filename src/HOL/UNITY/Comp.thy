@@ -25,10 +25,10 @@ instance ..
 
 end
 
-definition component_of :: "'a program =>'a program=> bool" (infixl "component'_of" 50)
+definition component_of :: "'a program =>'a program=> bool" (infixl \<open>component'_of\<close> 50)
   where "F component_of H == \<exists>G. F ok G & F\<squnion>G = H"
 
-definition strict_component_of :: "'a program\<Rightarrow>'a program=> bool" (infixl "strict'_component'_of" 50)
+definition strict_component_of :: "'a program\<Rightarrow>'a program=> bool" (infixl \<open>strict'_component'_of\<close> 50)
   where "F strict_component_of H == F component_of H & F\<noteq>H"
 
 definition preserves :: "('a=>'b) => 'a program set"

@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  upper_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix "\<le>\<sharp>" 50) where
+  upper_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<sharp>\<close> 50) where
   "upper_le = (\<lambda>u v. \<forall>y\<in>Rep_pd_basis v. \<exists>x\<in>Rep_pd_basis u. x \<sqsubseteq> y)"
 
 lemma upper_le_refl [simp]: "t \<le>\<sharp> t"
@@ -72,7 +72,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a upper_pd  ("('(_')\<sharp>)") =
+typedef 'a upper_pd  (\<open>('(_')\<sharp>)\<close>) =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
 
@@ -128,14 +128,14 @@ definition
 
 abbreviation
   upper_add :: "'a upper_pd \<Rightarrow> 'a upper_pd \<Rightarrow> 'a upper_pd"
-    (infixl "\<union>\<sharp>" 65) where
+    (infixl \<open>\<union>\<sharp>\<close> 65) where
   "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
 nonterminal upper_pd_args
 syntax
-  "" :: "logic \<Rightarrow> upper_pd_args"  ("_")
-  "_upper_pd_args" :: "logic \<Rightarrow> upper_pd_args \<Rightarrow> upper_pd_args"  ("_,/ _")
-  "_upper_pd" :: "upper_pd_args \<Rightarrow> logic"  ("{_}\<sharp>")
+  "" :: "logic \<Rightarrow> upper_pd_args"  (\<open>_\<close>)
+  "_upper_pd_args" :: "logic \<Rightarrow> upper_pd_args \<Rightarrow> upper_pd_args"  (\<open>_,/ _\<close>)
+  "_upper_pd" :: "upper_pd_args \<Rightarrow> logic"  (\<open>{_}\<sharp>\<close>)
 syntax_consts
   "_upper_pd_args" "_upper_pd" == upper_add
 translations
@@ -337,7 +337,7 @@ definition
 
 syntax
   "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    ("(3\<Union>\<sharp>_\<in>_./ _)" [0, 0, 10] 10)
+    (\<open>(3\<Union>\<sharp>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_upper_bind" == upper_bind

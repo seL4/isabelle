@@ -16,7 +16,7 @@ lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if
 
 subsection "Binary products"
 
-definition\<^marker>\<open>tag important\<close> pair_measure (infixr "\<Otimes>\<^sub>M" 80) where
+definition\<^marker>\<open>tag important\<close> pair_measure (infixr \<open>\<Otimes>\<^sub>M\<close> 80) where
   "A \<Otimes>\<^sub>M B = measure_of (space A \<times> space B)
       {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}
       (\<lambda>X. \<integral>\<^sup>+x. (\<integral>\<^sup>+y. indicator X (x,y) \<partial>B) \<partial>A)"

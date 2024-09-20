@@ -29,15 +29,15 @@ for welltyped, and definitely assigned terms.
 
 inductive
   evaln :: "[prog, state, term, nat, vals, state] \<Rightarrow> bool"
-    ("_\<turnstile>_ \<midarrow>_\<succ>\<midarrow>_\<rightarrow> '(_, _')" [61,61,80,61,0,0] 60)
+    (\<open>_\<turnstile>_ \<midarrow>_\<succ>\<midarrow>_\<rightarrow> '(_, _')\<close> [61,61,80,61,0,0] 60)
   and evarn :: "[prog, state, var, vvar, nat, state] \<Rightarrow> bool"
-    ("_\<turnstile>_ \<midarrow>_=\<succ>_\<midarrow>_\<rightarrow> _" [61,61,90,61,61,61] 60)
+    (\<open>_\<turnstile>_ \<midarrow>_=\<succ>_\<midarrow>_\<rightarrow> _\<close> [61,61,90,61,61,61] 60)
   and eval_n:: "[prog, state, expr, val, nat, state] \<Rightarrow> bool"
-    ("_\<turnstile>_ \<midarrow>_-\<succ>_\<midarrow>_\<rightarrow> _" [61,61,80,61,61,61] 60)
+    (\<open>_\<turnstile>_ \<midarrow>_-\<succ>_\<midarrow>_\<rightarrow> _\<close> [61,61,80,61,61,61] 60)
   and evalsn :: "[prog, state, expr list, val  list, nat, state] \<Rightarrow> bool"
-    ("_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<midarrow>_\<rightarrow> _" [61,61,61,61,61,61] 60)
+    (\<open>_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<midarrow>_\<rightarrow> _\<close> [61,61,61,61,61,61] 60)
   and execn     :: "[prog, state, stmt, nat, state] \<Rightarrow> bool"
-    ("_\<turnstile>_ \<midarrow>_\<midarrow>_\<rightarrow> _"     [61,61,65,   61,61] 60)
+    (\<open>_\<turnstile>_ \<midarrow>_\<midarrow>_\<rightarrow> _\<close>     [61,61,65,   61,61] 60)
   for G :: prog
 where
 

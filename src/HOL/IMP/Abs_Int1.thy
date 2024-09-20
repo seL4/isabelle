@@ -105,19 +105,19 @@ fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
 
-definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>s") where
+definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" (\<open>m\<^sub>s\<close>) where
 "m_s S X = (\<Sum> x \<in> X. m(fun S x))"
 
 lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
 by(simp add: m_s_def) (metis mult.commute of_nat_id sum_bounded_above[OF h])
 
-definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>o") where
+definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" (\<open>m\<^sub>o\<close>) where
 "m_o opt X = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s S X)"
 
 lemma m_o_h: "finite X \<Longrightarrow> m_o opt X \<le> (h*card X + 1)"
 by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
 
-definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
+definition m_c :: "'av st option acom \<Rightarrow> nat" (\<open>m\<^sub>c\<close>) where
 "m_c C = sum_list (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
 text\<open>Upper complexity bound:\<close>
@@ -134,14 +134,14 @@ qed
 
 end
 
-fun top_on_st :: "'a::order_top st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>s") where
+fun top_on_st :: "'a::order_top st \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>s\<close>) where
 "top_on_st S X = (\<forall>x\<in>X. fun S x = \<top>)"
 
-fun top_on_opt :: "'a::order_top st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>o") where
+fun top_on_opt :: "'a::order_top st option \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>o\<close>) where
 "top_on_opt (Some S)  X = top_on_st S X" |
 "top_on_opt None X = True"
 
-definition top_on_acom :: "'a::order_top st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>c") where
+definition top_on_acom :: "'a::order_top st option acom \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>c\<close>) where
 "top_on_acom C X = (\<forall>a \<in> set(annos C). top_on_opt a X)"
 
 lemma top_on_top: "top_on_opt (\<top>::_ st option) X"

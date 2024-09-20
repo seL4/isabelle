@@ -5,14 +5,14 @@ imports "HOL-Nominal.Nominal"
 begin
 
 no_syntax
-  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  ("(1[_])")
+  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  (\<open>(1[_])\<close>)
 
 atom_decl name
 
 nominal_datatype ty =
     Atom nat
-  | Arrow ty ty  (infixr "\<rightarrow>" 200)
-  | TupleT ty ty  (infixr "\<otimes>" 210)
+  | Arrow ty ty  (infixr \<open>\<rightarrow>\<close> 200)
+  | TupleT ty ty  (infixr \<open>\<otimes>\<close> 210)
 
 lemma fresh_type [simp]: "(a::name) \<sharp> (T::ty)"
   by (induct T rule: ty.induct) (simp_all add: fresh_nat)
@@ -25,22 +25,22 @@ lemma perm_type: "(pi::name prm) \<bullet> (T::ty) = T"
 
 nominal_datatype trm =
     Var name
-  | Tuple trm trm  ("(1'\<langle>_,/ _'\<rangle>)")
+  | Tuple trm trm  (\<open>(1'\<langle>_,/ _'\<rangle>)\<close>)
   | Abs ty "\<guillemotleft>name\<guillemotright>trm"
-  | App trm trm  (infixl "\<cdot>" 200)
+  | App trm trm  (infixl \<open>\<cdot>\<close> 200)
   | Let ty trm btrm
 and btrm =
     Base trm
   | Bind ty "\<guillemotleft>name\<guillemotright>btrm"
 
 abbreviation
-  Abs_syn :: "name \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm"  ("(3\<lambda>_:_./ _)" [0, 0, 10] 10) 
+  Abs_syn :: "name \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm"  (\<open>(3\<lambda>_:_./ _)\<close> [0, 0, 10] 10) 
 where
   "\<lambda>x:T. t \<equiv> Abs T x t"
 
 datatype pat =
     PVar name ty
-  | PTuple pat pat  ("(1'\<langle>\<langle>_,/ _'\<rangle>\<rangle>)")
+  | PTuple pat pat  (\<open>(1'\<langle>\<langle>_,/ _'\<rangle>\<rangle>)\<close>)
 
 (* FIXME: The following should be done automatically by the nominal package *)
 overloading pat_perm \<equiv> "perm :: name prm \<Rightarrow> pat \<Rightarrow> pat" (unchecked)
@@ -83,7 +83,7 @@ qed
 
 (* the following function cannot be defined using nominal_primrec, *)
 (* since variable parameters are currently not allowed.            *)
-primrec abs_pat :: "pat \<Rightarrow> btrm \<Rightarrow> btrm" ("(3\<lambda>[_]./ _)" [0, 10] 10)
+primrec abs_pat :: "pat \<Rightarrow> btrm \<Rightarrow> btrm" (\<open>(3\<lambda>[_]./ _)\<close> [0, 10] 10)
 where
   "(\<lambda>[PVar x T]. t) = Bind T x t"
 | "(\<lambda>[\<langle>\<langle>p, q\<rangle>\<rangle>]. t) = (\<lambda>[p]. \<lambda>[q]. t)"
@@ -143,7 +143,7 @@ lemma pat_type_perm_eq: "pat_type ((pi :: name prm) \<bullet> p) = pat_type p"
 type_synonym ctx = "(name \<times> ty) list"
 
 inductive
-  ptyping :: "pat \<Rightarrow> ty \<Rightarrow> ctx \<Rightarrow> bool"  ("\<turnstile> _ : _ \<Rightarrow> _" [60, 60, 60] 60)
+  ptyping :: "pat \<Rightarrow> ty \<Rightarrow> ctx \<Rightarrow> bool"  (\<open>\<turnstile> _ : _ \<Rightarrow> _\<close> [60, 60, 60] 60)
 where
   PVar: "\<turnstile> PVar x T : T \<Rightarrow> [(x, T)]"
 | PTuple: "\<turnstile> p : T \<Rightarrow> \<Delta>\<^sub>1 \<Longrightarrow> \<turnstile> q : U \<Rightarrow> \<Delta>\<^sub>2 \<Longrightarrow> \<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> : T \<otimes> U \<Rightarrow> \<Delta>\<^sub>2 @ \<Delta>\<^sub>1"
@@ -168,16 +168,16 @@ lemma valid_distinct: "valid \<Gamma> = distinct (map fst \<Gamma>)"
   by (induct \<Gamma>) (auto simp add: fresh_ctxt_set_eq [symmetric])
 
 abbreviation
-  "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" ("_ \<sqsubseteq> _") 
+  "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" (\<open>_ \<sqsubseteq> _\<close>) 
 where
   "\<Gamma>\<^sub>1 \<sqsubseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
 abbreviation
-  Let_syn :: "pat \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> trm"  ("(LET (_ =/ _)/ IN (_))" 10)
+  Let_syn :: "pat \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> trm"  (\<open>(LET (_ =/ _)/ IN (_))\<close> 10)
 where
   "LET p = t IN u \<equiv> Let (pat_type p) t (\<lambda>[p]. Base u)"
 
-inductive typing :: "ctx \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _" [60, 60, 60] 60)
+inductive typing :: "ctx \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (\<open>_ \<turnstile> _ : _\<close> [60, 60, 60] 60)
 where
   Var [intro]: "valid \<Gamma> \<Longrightarrow> (x, T) \<in> set \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | Tuple [intro]: "\<Gamma> \<turnstile> t : T \<Longrightarrow> \<Gamma> \<turnstile> u : U \<Longrightarrow> \<Gamma> \<turnstile> \<langle>t, u\<rangle> : T \<otimes> U"
@@ -268,7 +268,7 @@ next
 qed auto
 
 inductive
-  match :: "pat \<Rightarrow> trm \<Rightarrow> (name \<times> trm) list \<Rightarrow> bool"  ("\<turnstile> _ \<rhd> _ \<Rightarrow> _" [50, 50, 50] 50)
+  match :: "pat \<Rightarrow> trm \<Rightarrow> (name \<times> trm) list \<Rightarrow> bool"  (\<open>\<turnstile> _ \<rhd> _ \<Rightarrow> _\<close> [50, 50, 50] 50)
 where
   PVar: "\<turnstile> PVar x T \<rhd> t \<Rightarrow> [(x, t)]"
 | PProd: "\<turnstile> p \<rhd> t \<Rightarrow> \<theta> \<Longrightarrow> \<turnstile> q \<rhd> u \<Rightarrow> \<theta>' \<Longrightarrow> \<turnstile> \<langle>\<langle>p, q\<rangle>\<rangle> \<rhd> \<langle>t, u\<rangle> \<Rightarrow> \<theta> @ \<theta>'"
@@ -287,8 +287,8 @@ lemma lookup_eqvt[eqvt]:
   by (induct \<theta>) (auto simp add: eqvts)
  
 nominal_primrec
-  psubst :: "(name \<times> trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_\<lparr>_\<rparr>" [95,0] 210)
-  and psubstb :: "(name \<times> trm) list \<Rightarrow> btrm \<Rightarrow> btrm"  ("_\<lparr>_\<rparr>\<^sub>b" [95,0] 210)
+  psubst :: "(name \<times> trm) list \<Rightarrow> trm \<Rightarrow> trm"  (\<open>_\<lparr>_\<rparr>\<close> [95,0] 210)
+  and psubstb :: "(name \<times> trm) list \<Rightarrow> btrm \<Rightarrow> btrm"  (\<open>_\<lparr>_\<rparr>\<^sub>b\<close> [95,0] 210)
 where
   "\<theta>\<lparr>Var x\<rparr> = (lookup \<theta> x)"
 | "\<theta>\<lparr>t \<cdot> u\<rparr> = \<theta>\<lparr>t\<rparr> \<cdot> \<theta>\<lparr>u\<rparr>"
@@ -320,12 +320,12 @@ lemma psubst_eqvt[eqvt]:
     (simp_all add: eqvts fresh_bij)
 
 abbreviation 
-  subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" ("_[_\<mapsto>_]" [100,0,0] 100)
+  subst :: "trm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> trm" (\<open>_[_\<mapsto>_]\<close> [100,0,0] 100)
 where 
   "t[x\<mapsto>t'] \<equiv> [(x,t')]\<lparr>t\<rparr>"
 
 abbreviation 
-  substb :: "btrm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> btrm" ("_[_\<mapsto>_]\<^sub>b" [100,0,0] 100)
+  substb :: "btrm \<Rightarrow> name \<Rightarrow> trm \<Rightarrow> btrm" (\<open>_[_\<mapsto>_]\<^sub>b\<close> [100,0,0] 100)
 where 
   "t[x\<mapsto>t']\<^sub>b \<equiv> [(x,t')]\<lparr>t\<rparr>\<^sub>b"
 
@@ -525,7 +525,7 @@ qed
 
 lemmas match_type = match_type_aux [where \<Gamma>\<^sub>1="[]", simplified]
 
-inductive eval :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longmapsto> _" [60,60] 60)
+inductive eval :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longmapsto> _\<close> [60,60] 60)
 where
   TupleL: "t \<longmapsto> t' \<Longrightarrow> \<langle>t, u\<rangle> \<longmapsto> \<langle>t', u\<rangle>"
 | TupleR: "u \<longmapsto> u' \<Longrightarrow> \<langle>t, u\<rangle> \<longmapsto> \<langle>t, u'\<rangle>"

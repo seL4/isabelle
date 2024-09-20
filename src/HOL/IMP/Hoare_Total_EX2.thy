@@ -17,11 +17,11 @@ type_synonym lvname = string
 type_synonym assn2 = "(lvname \<Rightarrow> nat) \<Rightarrow> state \<Rightarrow> bool"
 
 definition hoare_tvalid :: "assn2 \<Rightarrow> com \<Rightarrow> assn2 \<Rightarrow> bool"
-  ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
+  (\<open>\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}\<close> 50) where
 "\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>l s. P l s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q l t))"
 
 inductive
-  hoaret :: "assn2 \<Rightarrow> com \<Rightarrow> assn2 \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
+  hoaret :: "assn2 \<Rightarrow> com \<Rightarrow> assn2 \<Rightarrow> bool" (\<open>\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})\<close> 50)
 where
 
 Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}"  |
@@ -75,7 +75,7 @@ next
 qed fastforce+
 
 
-definition wpt :: "com \<Rightarrow> assn2 \<Rightarrow> assn2" ("wp\<^sub>t") where
+definition wpt :: "com \<Rightarrow> assn2 \<Rightarrow> assn2" (\<open>wp\<^sub>t\<close>) where
 "wp\<^sub>t c Q  =  (\<lambda>l s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q l t)"
 
 lemma [simp]: "wp\<^sub>t SKIP Q = Q"

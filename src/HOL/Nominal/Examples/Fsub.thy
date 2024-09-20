@@ -17,7 +17,7 @@ text\<open>Authors: Christian Urban,
 section \<open>Types for Names, Nominal Datatype Declaration for Types and Terms\<close>
 
 no_syntax
-  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  ("(1[_])")
+  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  (\<open>(1[_])\<close>)
 
 text \<open>The main point of this solution is to use names everywhere (be they bound, 
   binding or free). In System \FSUB{} there are two kinds of names corresponding to 
@@ -36,15 +36,15 @@ text\<open>The constructors for types and terms in System \FSUB{} contain abstra
 nominal_datatype ty = 
     Tvar   "tyvrs"
   | Top
-  | Arrow  "ty" "ty"         (infixr "\<rightarrow>" 200)
+  | Arrow  "ty" "ty"         (infixr \<open>\<rightarrow>\<close> 200)
   | Forall "\<guillemotleft>tyvrs\<guillemotright>ty" "ty" 
 
 nominal_datatype trm = 
     Var   "vrs"
   | Abs   "\<guillemotleft>vrs\<guillemotright>trm" "ty" 
   | TAbs  "\<guillemotleft>tyvrs\<guillemotright>trm" "ty"
-  | App   "trm" "trm" (infixl "\<cdot>" 200)
-  | TApp  "trm" "ty"  (infixl "\<cdot>\<^sub>\<tau>" 200)
+  | App   "trm" "trm" (infixl \<open>\<cdot>\<close> 200)
+  | TApp  "trm" "ty"  (infixl \<open>\<cdot>\<^sub>\<tau>\<close> 200)
 
 text \<open>To be polite to the eye, some more familiar notation is introduced. 
   Because of the change in the order of arguments, one needs to use 
@@ -52,17 +52,17 @@ text \<open>To be polite to the eye, some more familiar notation is introduced.
   as given above for \<^term>\<open>Arrow\<close>.\<close>
 
 abbreviation
-  Forall_syn :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"  ("(3\<forall>_<:_./ _)" [0, 0, 10] 10) 
+  Forall_syn :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"  (\<open>(3\<forall>_<:_./ _)\<close> [0, 0, 10] 10) 
 where
   "\<forall>X<:T\<^sub>1. T\<^sub>2 \<equiv> ty.Forall X T\<^sub>2 T\<^sub>1"
 
 abbreviation
-  Abs_syn    :: "vrs \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm"  ("(3\<lambda>_:_./ _)" [0, 0, 10] 10) 
+  Abs_syn    :: "vrs \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm"  (\<open>(3\<lambda>_:_./ _)\<close> [0, 0, 10] 10) 
 where
   "\<lambda>x:T. t \<equiv> trm.Abs x t T"
 
 abbreviation
-  TAbs_syn   :: "tyvrs \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm" ("(3\<lambda>_<:_./ _)" [0, 0, 10] 10) 
+  TAbs_syn   :: "tyvrs \<Rightarrow> ty \<Rightarrow> trm \<Rightarrow> trm" (\<open>(3\<lambda>_<:_./ _)\<close> [0, 0, 10] 10) 
 where
   "\<lambda>X<:T. t \<equiv> trm.TAbs X t T"
 
@@ -223,7 +223,7 @@ text \<open>Not all lists of type \<^typ>\<open>env\<close> are well-formed. One
   in \<^term>\<open>\<Gamma>\<close>. The set of free variables of \<^term>\<open>S\<close> is the 
   \<open>support\<close> of \<^term>\<open>S\<close>.\<close>
 
-definition "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" ("_ closed'_in _" [100,100] 100) where
+definition "closed_in" :: "ty \<Rightarrow> env \<Rightarrow> bool" (\<open>_ closed'_in _\<close> [100,100] 100) where
   "S closed_in \<Gamma> \<equiv> (supp S)\<subseteq>(ty_dom \<Gamma>)"
 
 lemma closed_in_eqvt[eqvt]:
@@ -279,7 +279,7 @@ lemma closed_in_fresh: "(X::tyvrs) \<sharp> ty_dom \<Gamma> \<Longrightarrow> T 
 text \<open>Now validity of a context is a straightforward inductive definition.\<close>
   
 inductive
-  valid_rel :: "env \<Rightarrow> bool" ("\<turnstile> _ ok" [100] 100)
+  valid_rel :: "env \<Rightarrow> bool" (\<open>\<turnstile> _ ok\<close> [100] 100)
 where
   valid_nil[simp]:   "\<turnstile> [] ok"
 | valid_consT[simp]: "\<lbrakk>\<turnstile> \<Gamma> ok; X\<sharp>(ty_dom  \<Gamma>); T closed_in \<Gamma>\<rbrakk>  \<Longrightarrow>  \<turnstile> (TVarB X T#\<Gamma>) ok"
@@ -386,7 +386,7 @@ where
   by (finite_guess | fresh_guess | simp)+
 
 nominal_primrec
-  subst_ty :: "ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty" ("_[_ \<mapsto> _]\<^sub>\<tau>" [300, 0, 0] 300)
+  subst_ty :: "ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty" (\<open>_[_ \<mapsto> _]\<^sub>\<tau>\<close> [300, 0, 0] 300)
 where
   "(Tvar X)[Y \<mapsto> T]\<^sub>\<tau> = (if X=Y then T else Tvar X)"
 | "(Top)[Y \<mapsto> T]\<^sub>\<tau> = Top"
@@ -439,7 +439,7 @@ lemma type_subst_rename:
     (simp_all add: fresh_atm calc_atm abs_fresh fresh_aux)
 
 nominal_primrec
-  subst_tyb :: "binding \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> binding" ("_[_ \<mapsto> _]\<^sub>b" [100,100,100] 100)
+  subst_tyb :: "binding \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> binding" (\<open>_[_ \<mapsto> _]\<^sub>b\<close> [100,100,100] 100)
 where
   "(TVarB X U)[Y \<mapsto> T]\<^sub>b = TVarB X (U[Y \<mapsto> T]\<^sub>\<tau>)"
 | "(VarB  X U)[Y \<mapsto> T]\<^sub>b =  VarB X (U[Y \<mapsto> T]\<^sub>\<tau>)"
@@ -459,7 +459,7 @@ lemma binding_subst_identity:
 by (induct B rule: binding.induct)
    (simp_all add: fresh_atm type_subst_identity)
 
-primrec subst_tyc :: "env \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> env" ("_[_ \<mapsto> _]\<^sub>e" [100,100,100] 100) where
+primrec subst_tyc :: "env \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> env" (\<open>_[_ \<mapsto> _]\<^sub>e\<close> [100,100,100] 100) where
   "([])[Y \<mapsto> T]\<^sub>e= []"
 | "(B#\<Gamma>)[Y \<mapsto> T]\<^sub>e = (B[Y \<mapsto> T]\<^sub>b)#(\<Gamma>[Y \<mapsto> T]\<^sub>e)"
 
@@ -485,7 +485,7 @@ lemma ctxt_subst_append: "(\<Delta> @ \<Gamma>)[X \<mapsto> T]\<^sub>e = \<Delta
   by (induct \<Delta>) simp_all
 
 nominal_primrec
-   subst_trm :: "trm \<Rightarrow> vrs \<Rightarrow> trm \<Rightarrow> trm"  ("_[_ \<mapsto> _]" [300, 0, 0] 300)
+   subst_trm :: "trm \<Rightarrow> vrs \<Rightarrow> trm \<Rightarrow> trm"  (\<open>_[_ \<mapsto> _]\<close> [300, 0, 0] 300)
 where
   "(Var x)[y \<mapsto> t'] = (if x=y then t' else (Var x))"
 | "(t1 \<cdot> t2)[y \<mapsto> t'] = t1[y \<mapsto> t'] \<cdot> t2[y \<mapsto> t']"
@@ -525,7 +525,7 @@ lemma subst_trm_rename:
     (simp_all add: fresh_atm calc_atm abs_fresh fresh_aux ty_vrs_fresh perm_fresh_fresh)
 
 nominal_primrec (freshness_context: "T2::ty")
-  subst_trm_ty :: "trm \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> trm"  ("_[_ \<mapsto>\<^sub>\<tau> _]" [300, 0, 0] 300)
+  subst_trm_ty :: "trm \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> trm"  (\<open>_[_ \<mapsto>\<^sub>\<tau> _]\<close> [300, 0, 0] 300)
 where
   "(Var x)[Y \<mapsto>\<^sub>\<tau> T2] = Var x"
 | "(t1 \<cdot> t2)[Y \<mapsto>\<^sub>\<tau> T2] = t1[Y \<mapsto>\<^sub>\<tau> T2] \<cdot> t2[Y \<mapsto>\<^sub>\<tau> T2]"
@@ -576,7 +576,7 @@ text \<open>The definition for the subtyping-relation follows quite closely what
   $\alpha$-equivalence classes.)\<close>
 
 inductive 
-  subtype_of :: "env \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"   ("_\<turnstile>_<:_" [100,100,100] 100)
+  subtype_of :: "env \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"   (\<open>_\<turnstile>_<:_\<close> [100,100,100] 100)
 where
   SA_Top[intro]:    "\<lbrakk>\<turnstile> \<Gamma> ok; S closed_in \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> S <: Top"
 | SA_refl_TVar[intro]:   "\<lbrakk>\<turnstile> \<Gamma> ok; X \<in> ty_dom \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Tvar X <: Tvar X"
@@ -698,7 +698,7 @@ text \<open>In order to prove weakening we introduce the notion of a type-contex
   another. This generalization seems to make the proof for weakening to be
   smoother than if we had strictly adhered to the version in the POPLmark-paper.\<close>
 
-definition extends :: "env \<Rightarrow> env \<Rightarrow> bool" ("_ extends _" [100,100] 100) where
+definition extends :: "env \<Rightarrow> env \<Rightarrow> bool" (\<open>_ extends _\<close> [100,100] 100) where
   "\<Delta> extends \<Gamma> \<equiv> \<forall>X Q. (TVarB X Q)\<in>set \<Gamma> \<longrightarrow> (TVarB X Q)\<in>set \<Delta>"
 
 lemma extends_ty_dom:
@@ -1017,7 +1017,7 @@ qed
 section \<open>Typing\<close>
 
 inductive
-  typing :: "env \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
+  typing :: "env \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (\<open>_ \<turnstile> _ : _\<close> [60,60,60] 60) 
 where
   T_Var[intro]: "\<lbrakk> VarB x T \<in> set \<Gamma>; \<turnstile> \<Gamma> ok \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | T_App[intro]: "\<lbrakk> \<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1 \<rightarrow> T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1 \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> t\<^sub>1 \<cdot> t\<^sub>2 : T\<^sub>2"
@@ -1145,7 +1145,7 @@ inductive_cases val_inv_auto[elim]:
   "val (t1 \<cdot>\<^sub>\<tau> t2)"
 
 inductive 
-  eval :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longmapsto> _" [60,60] 60)
+  eval :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longmapsto> _\<close> [60,60] 60)
 where
   E_Abs         : "\<lbrakk> x \<sharp> v\<^sub>2; val v\<^sub>2 \<rbrakk> \<Longrightarrow> (\<lambda>x:T\<^sub>11. t\<^sub>12) \<cdot> v\<^sub>2 \<longmapsto> t\<^sub>12[x \<mapsto> v\<^sub>2]"
 | E_App1 [intro]: "t \<longmapsto> t' \<Longrightarrow> t \<cdot> u \<longmapsto> t' \<cdot> u"

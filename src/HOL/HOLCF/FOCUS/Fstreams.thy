@@ -15,7 +15,7 @@ default_sort type
 type_synonym 'a fstream = "('a lift) stream"
 
 definition
-  fsingleton    :: "'a => 'a fstream"  ("<_>" [1000] 999) where
+  fsingleton    :: "'a => 'a fstream"  (\<open><_>\<close> [1000] 999) where
   fsingleton_def2: "fsingleton = (%a. Def a && UU)"
 
 definition
@@ -40,15 +40,15 @@ definition
 
 
 abbreviation
-  emptystream :: "'a fstream"  ("<>") where
+  emptystream :: "'a fstream"  (\<open><>\<close>) where
   "<> == \<bottom>"
 
 abbreviation
-  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_\<copyright>_)" [64,63] 63) where
+  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       (\<open>(_\<copyright>_)\<close> [64,63] 63) where
   "A\<copyright>s == fsfilter A\<cdot>s"
 
 notation (ASCII)
-  fsfilter'  ("(_'(C')_)" [64,63] 63)
+  fsfilter'  (\<open>(_'(C')_)\<close> [64,63] 63)
 
 
 lemma ft_fsingleton[simp]: "ft\<cdot>(<a>) = Def a"

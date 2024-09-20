@@ -269,7 +269,7 @@ text \<open>Case distinction to define it first on compact intervals first, then
 much later unified. In Fremlin: Measure Theory, Volume 4I this is generalized using residual sets.\<close>
 
 definition has_integral :: "('n::euclidean_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> 'n set \<Rightarrow> bool"
-  (infixr "has'_integral" 46)
+  (infixr \<open>has'_integral\<close> 46)
   where "(f has_integral I) s \<longleftrightarrow>
     (if \<exists>a b. s = cbox a b
       then ((\<lambda>p. \<Sum>(x,k)\<in>p. content k *\<^sub>R f x) \<longlongrightarrow> I) (division_filter s)
@@ -321,7 +321,7 @@ lemma has_integral_altD:
       (\<exists>z. ((\<lambda>x. if x \<in> i then f(x) else 0) has_integral z) (cbox a b) \<and> norm(z - y) < e)"
   using assms has_integral_alt[of f y i] by auto
 
-definition integrable_on (infixr "integrable'_on" 46)
+definition integrable_on (infixr \<open>integrable'_on\<close> 46)
   where "f integrable_on i \<longleftrightarrow> (\<exists>y. (f has_integral y) i)"
 
 definition "integral i f = (SOME y. (f has_integral y) i \<or> \<not> f integrable_on i \<and> y=0)"

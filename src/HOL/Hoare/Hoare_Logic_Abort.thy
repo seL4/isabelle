@@ -21,7 +21,7 @@ datatype 'a com =
 | Cond "'a bexp" "'a com" "'a com"
 | While "'a bexp" "'a com"
 
-abbreviation annskip ("SKIP") where "SKIP == Basic id"
+abbreviation annskip (\<open>SKIP\<close>) where "SKIP == Basic id"
 
 type_synonym 'a sem = "'a option => 'a option => bool"
 
@@ -187,8 +187,8 @@ setup \<open>
 
 \<comment> \<open>Special syntax for guarded statements and guarded array updates:\<close>
 syntax
-  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(2_ \<rightarrow>/ _)" 71)
-  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  ("(2_[_] :=/ _)" [70, 65] 61)
+  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  (\<open>(2_ \<rightarrow>/ _)\<close> 71)
+  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  (\<open>(2_[_] :=/ _)\<close> [70, 65] 61)
 translations
   "P \<rightarrow> c" \<rightleftharpoons> "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" \<rightharpoonup> "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"

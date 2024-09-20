@@ -38,21 +38,21 @@ definition
 
 
 abbreviation
-  subint1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<prec>I1_"  [71,71,71] 70)
+  subint1_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<prec>I1_\<close>  [71,71,71] 70)
   where "G\<turnstile>I \<prec>I1 J == (I,J) \<in> subint1 G"
 
 abbreviation
-  subint_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>I _"  [71,71,71] 70)
+  subint_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<preceq>I _\<close>  [71,71,71] 70)
   where "G\<turnstile>I \<preceq>I J == (I,J) \<in>(subint1 G)\<^sup>*" \<comment> \<open>cf. 9.1.3\<close>
 
 abbreviation
-  implmt1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<leadsto>1_"  [71,71,71] 70)
+  implmt1_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<leadsto>1_\<close>  [71,71,71] 70)
   where "G\<turnstile>C \<leadsto>1 I == (C,I) \<in> implmt1 G"
 
 notation (ASCII)
-  subint1_syntax  ("_|-_<:I1_" [71,71,71] 70) and
-  subint_syntax  ("_|-_<=:I _"[71,71,71] 70) and
-  implmt1_syntax   ("_|-_~>1_"  [71,71,71] 70)
+  subint1_syntax  (\<open>_|-_<:I1_\<close> [71,71,71] 70) and
+  subint_syntax  (\<open>_|-_<=:I _\<close>[71,71,71] 70) and
+  implmt1_syntax   (\<open>_|-_~>1_\<close>  [71,71,71] 70)
 
 
 subsubsection "subclass and subinterface relations"
@@ -335,7 +335,7 @@ apply auto
 done
 
 inductive \<comment> \<open>implementation, cf. 8.1.4\<close>
-  implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
+  implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" (\<open>_\<turnstile>_\<leadsto>_\<close> [71,71,71] 70)
   for G :: prog
 where
   direct: "G\<turnstile>C\<leadsto>1J \<Longrightarrow> G\<turnstile>C\<leadsto>J"
@@ -371,7 +371,7 @@ subsubsection "widening relation"
 inductive
  \<comment> \<open>widening, viz. method invocation conversion, cf. 5.3
                             i.e. kind of syntactic subtyping\<close>
-  widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>_" [71,71,71] 70)
+  widen :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" (\<open>_\<turnstile>_\<preceq>_\<close> [71,71,71] 70)
   for G :: prog
 where
   refl:    "G\<turnstile>T\<preceq>T" \<comment> \<open>identity conversion, cf. 5.1.1\<close>
@@ -569,7 +569,7 @@ apply (fast dest: widen_Class_Class widen_Class_Iface)
 done
 
 definition
-  widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" ("_\<turnstile>_[\<preceq>]_" [71,71,71] 70)
+  widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" (\<open>_\<turnstile>_[\<preceq>]_\<close> [71,71,71] 70)
   where "G\<turnstile>Ts[\<preceq>]Ts' = list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts'"
 
 lemma widens_Nil [simp]: "G\<turnstile>[][\<preceq>][]"
@@ -595,7 +595,7 @@ rules
 
 (* more detailed than necessary for type-safety, see above rules. *)
 inductive \<comment> \<open>narrowing reference conversion, cf. 5.1.5\<close>
-  narrow :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<succ>_" [71,71,71] 70)
+  narrow :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" (\<open>_\<turnstile>_\<succ>_\<close> [71,71,71] 70)
   for G :: prog
 where
   subcls:  "G\<turnstile>C\<preceq>\<^sub>C D \<Longrightarrow> G\<turnstile>     Class D\<succ>Class C"
@@ -646,7 +646,7 @@ by (ind_cases "G\<turnstile>S\<succ>PrimT Boolean")
 subsubsection "casting relation"
 
 inductive \<comment> \<open>casting conversion, cf. 5.5\<close>
-  cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" ("_\<turnstile>_\<preceq>? _" [71,71,71] 70)
+  cast :: "prog \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool" (\<open>_\<turnstile>_\<preceq>? _\<close> [71,71,71] 70)
   for G :: prog
 where
   widen:   "G\<turnstile>S\<preceq>T \<Longrightarrow> G\<turnstile>S\<preceq>? T"

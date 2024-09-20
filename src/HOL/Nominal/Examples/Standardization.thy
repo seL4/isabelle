@@ -20,8 +20,8 @@ atom_decl name
 
 nominal_datatype lam =
   Var "name"
-| App "lam" "lam" (infixl "\<degree>" 200)
-| Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [0, 10] 10)
+| App "lam" "lam" (infixl \<open>\<degree>\<close> 200)
+| Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [0, 10] 10)
 
 instantiation lam :: size
 begin
@@ -38,7 +38,7 @@ instance ..
 end
 
 nominal_primrec
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [300, 0, 0] 300)
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_[_::=_]\<close> [300, 0, 0] 300)
 where
   subst_Var: "(Var x)[y::=s] = (if x=y then s else (Var x))"
 | subst_App: "(t\<^sub>1 \<degree> t\<^sub>2)[y::=s] = t\<^sub>1[y::=s] \<degree> t\<^sub>2[y::=s]"
@@ -82,7 +82,7 @@ lemma subst_eq [simp]: "(Var x)[x::=u] = u"
 lemma subst_neq [simp]: "x \<noteq> y \<Longrightarrow> (Var x)[y::=u] = Var x"
   by (simp add: subst_Var)
 
-inductive beta :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+inductive beta :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<close> 50)
   where
     beta: "x \<sharp> t \<Longrightarrow> (Lam [x].s) \<degree> t \<rightarrow>\<^sub>\<beta> s[x::=t]"
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
@@ -106,14 +106,14 @@ proof -
 qed
 
 abbreviation
-  beta_reds :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50) where
+  beta_reds :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<^sup>*\<close> 50) where
   "s \<rightarrow>\<^sub>\<beta>\<^sup>* t \<equiv> beta\<^sup>*\<^sup>* s t"
 
 
 subsection \<open>Application of a term to a list of terms\<close>
 
 abbreviation
-  list_application :: "lam \<Rightarrow> lam list \<Rightarrow> lam"  (infixl "\<degree>\<degree>" 150) where
+  list_application :: "lam \<Rightarrow> lam list \<Rightarrow> lam"  (infixl \<open>\<degree>\<degree>\<close> 150) where
   "t \<degree>\<degree> ts \<equiv> foldl (\<degree>) t ts"
 
 lemma apps_eq_tail_conv [iff]: "(r \<degree>\<degree> ts = s \<degree>\<degree> ts) = (r = s)"
@@ -318,7 +318,7 @@ lemma Snoc_step1_SnocD:
 subsection \<open>Lifting beta-reduction to lists\<close>
 
 abbreviation
-  list_beta :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>\<beta>]\<^sub>1" 50) where
+  list_beta :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl \<open>[\<rightarrow>\<^sub>\<beta>]\<^sub>1\<close> 50) where
   "rs [\<rightarrow>\<^sub>\<beta>]\<^sub>1 ss \<equiv> step1 beta rs ss"
 
 lemma head_Var_reduction:
@@ -400,8 +400,8 @@ lemma listrelp_eqvt [eqvt]:
   by induct (simp_all add: listrelp.intros perm_app [symmetric])
 
 inductive
-  sred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>s" 50)
-  and sredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>s]" 50)
+  sred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>s\<close> 50)
+  and sredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl \<open>[\<rightarrow>\<^sub>s]\<close> 50)
 where
   "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp (\<rightarrow>\<^sub>s) s t"
 | Var: "rs [\<rightarrow>\<^sub>s] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>s Var x \<degree>\<degree> rs'"
@@ -697,8 +697,8 @@ qed
 subsection \<open>Leftmost reduction and weakly normalizing terms\<close>
 
 inductive
-  lred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
-  and lredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>l]" 50)
+  lred :: "lam \<Rightarrow> lam \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>l\<close> 50)
+  and lredlist :: "lam list \<Rightarrow> lam list \<Rightarrow> bool"  (infixl \<open>[\<rightarrow>\<^sub>l]\<close> 50)
 where
   "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp (\<rightarrow>\<^sub>l) s t"
 | Var: "rs [\<rightarrow>\<^sub>l] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>l Var x \<degree>\<degree> rs'"

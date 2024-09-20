@@ -402,13 +402,13 @@ sublocale dining_cryptographers_space \<subseteq> information_space "uniform_cou
   by standard auto
 
 notation (in dining_cryptographers_space)
-  mutual_information_Pow ("\<I>'( _ ; _ ')")
+  mutual_information_Pow (\<open>\<I>'( _ ; _ ')\<close>)
 
 notation (in dining_cryptographers_space)
-  entropy_Pow ("\<H>'( _ ')")
+  entropy_Pow (\<open>\<H>'( _ ')\<close>)
 
 notation (in dining_cryptographers_space)
-  conditional_entropy_Pow ("\<H>'( _ | _ ')")
+  conditional_entropy_Pow (\<open>\<H>'( _ | _ ')\<close>)
 
 theorem (in dining_cryptographers_space)
   "\<I>( inversion ; payer ) = 0"

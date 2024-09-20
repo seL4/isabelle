@@ -669,7 +669,7 @@ text \<open>
 \<close>
 
 experiment
-  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infix "\<bullet>" 60)
+  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infix \<open>\<bullet>\<close> 60)
   assumes assoc: "(x \<bullet> y) \<bullet> z = x \<bullet> (y \<bullet> z)"
   assumes commute: "x \<bullet> y = y \<bullet> x"
 begin

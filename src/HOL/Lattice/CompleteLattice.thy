@@ -31,10 +31,10 @@ text \<open>
 \<close>
 
 definition
-  Meet :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Sqinter>_" [90] 90) where
+  Meet :: "'a::complete_lattice set \<Rightarrow> 'a"  (\<open>\<Sqinter>_\<close> [90] 90) where
   "\<Sqinter>A = (THE inf. is_Inf A inf)"
 definition
-  Join :: "'a::complete_lattice set \<Rightarrow> 'a"  ("\<Squnion>_" [90] 90) where
+  Join :: "'a::complete_lattice set \<Rightarrow> 'a"  (\<open>\<Squnion>_\<close> [90] 90) where
   "\<Squnion>A = (THE sup. is_Sup A sup)"
 
 text \<open>
@@ -184,11 +184,11 @@ text \<open>
 \<close>
 
 definition
-  bottom :: "'a::complete_lattice"  ("\<bottom>") where
+  bottom :: "'a::complete_lattice"  (\<open>\<bottom>\<close>) where
   "\<bottom> = \<Sqinter>UNIV"
 
 definition
-  top :: "'a::complete_lattice"  ("\<top>") where
+  top :: "'a::complete_lattice"  (\<open>\<top>\<close>) where
   "\<top> = \<Squnion>UNIV"
 
 lemma bottom_least [intro?]: "\<bottom> \<sqsubseteq> x"

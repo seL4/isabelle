@@ -34,14 +34,14 @@ lemma "y \<noteq> \<bottom> \<Longrightarrow> d4b_left\<cdot>(d4b\<cdot>x\<cdot>
 
 text \<open>Mixfix declarations can be given for data constructors.\<close>
 
-domain d5 = d5a | d5b (lazy "d5") "d5" (infixl ":#:" 70)
+domain d5 = d5a | d5b (lazy "d5") "d5" (infixl \<open>:#:\<close> 70)
 
 lemma "d5a \<noteq> x :#: y :#: z" by simp
 
 text \<open>Mixfix declarations can also be given for type constructors.\<close>
 
-domain ('a, 'b) lazypair (infixl ":*:" 25) =
-  lpair (lazy lfst :: 'a) (lazy lsnd :: 'b) (infixl ":*:" 75)
+domain ('a, 'b) lazypair (infixl \<open>:*:\<close> 25) =
+  lpair (lazy lfst :: 'a) (lazy lsnd :: 'b) (infixl \<open>:*:\<close> 75)
 
 lemma "\<forall>p::('a :*: 'b). p \<sqsubseteq> lfst\<cdot>p :*: lsnd\<cdot>p"
 by (rule allI, case_tac p, simp_all)

@@ -10,10 +10,10 @@ imports Typing_Framework Product
 begin
 
 definition lesubstep_type :: "(nat \<times> 's) list \<Rightarrow> 's ord \<Rightarrow> (nat \<times> 's) list \<Rightarrow> bool"
-                    ("(_ /\<le>|_| _)" [50, 0, 51] 50) where
+                    (\<open>(_ /\<le>|_| _)\<close> [50, 0, 51] 50) where
   "x \<le>|r| y \<equiv> \<forall>(p,s) \<in> set x. \<exists>s'. (p,s') \<in> set y \<and> s <=_r s'"
 
-primrec plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" ("(_ /++'__ _)" [65, 1000, 66] 65) where
+primrec plusplussub :: "'a list \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" (\<open>(_ /++'__ _)\<close> [65, 1000, 66] 65) where
   "[] ++_f y = y"
 | "(x#xs) ++_f y = xs ++_f (x +_f y)"
 

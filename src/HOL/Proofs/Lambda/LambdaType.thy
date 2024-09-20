@@ -11,7 +11,7 @@ theory LambdaType imports ListApplication begin
 subsection \<open>Environments\<close>
 
 definition
-  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  ("_\<langle>_:_\<rangle>" [90, 0, 0] 91) where
+  shift :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"  (\<open>_\<langle>_:_\<rangle>\<close> [90, 0, 0] 91) where
   "e\<langle>i:a\<rangle> = (\<lambda>j. if j < i then e j else if j = i then a else e (j - 1))"
 
 lemma shift_eq [simp]: "i = j \<Longrightarrow> (e\<langle>i:T\<rangle>) j = T"
@@ -31,9 +31,9 @@ subsection \<open>Types and typing rules\<close>
 
 datatype type =
     Atom nat
-  | Fun type type    (infixr "\<Rightarrow>" 200)
+  | Fun type type    (infixr \<open>\<Rightarrow>\<close> 200)
 
-inductive typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+inductive typing :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  (\<open>_ \<turnstile> _ : _\<close> [50, 50, 50] 50)
   where
     Var [intro!]: "env x = T \<Longrightarrow> env \<turnstile> Var x : T"
   | Abs [intro!]: "env\<langle>0:T\<rangle> \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs t : (T \<Rightarrow> U)"
@@ -55,11 +55,11 @@ where
 
 abbreviation
   typings_rel :: "(nat \<Rightarrow> type) \<Rightarrow> dB list \<Rightarrow> type list \<Rightarrow> bool"
-    ("_ \<tturnstile> _ : _" [50, 50, 50] 50) where
+    (\<open>_ \<tturnstile> _ : _\<close> [50, 50, 50] 50) where
   "env \<tturnstile> ts : Ts == typings env ts Ts"
 
 abbreviation
-  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr "\<Rrightarrow>" 200) where
+  funs :: "type list \<Rightarrow> type \<Rightarrow> type"  (infixr \<open>\<Rrightarrow>\<close> 200) where
   "Ts \<Rrightarrow> T == foldr Fun Ts T"
 
 

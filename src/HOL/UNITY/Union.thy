@@ -11,7 +11,7 @@ theory Union imports SubstAx FP begin
 
   (*FIXME: conjoin Init F \<inter> Init G \<noteq> {} *) 
 definition
-  ok :: "['a program, 'a program] => bool"      (infixl "ok" 65)
+  ok :: "['a program, 'a program] => bool"      (infixl \<open>ok\<close> 65)
   where "F ok G == Acts F \<subseteq> AllowedActs G &
                Acts G \<subseteq> AllowedActs F"
 
@@ -26,11 +26,11 @@ definition
                              \<Inter>i \<in> I. AllowedActs (F i))"
 
 definition
-  Join :: "['a program, 'a program] => 'a program"      (infixl "\<squnion>" 65)
+  Join :: "['a program, 'a program] => 'a program"      (infixl \<open>\<squnion>\<close> 65)
   where "F \<squnion> G = mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
                              AllowedActs F \<inter> AllowedActs G)"
 
-definition SKIP :: "'a program"  ("\<bottom>")
+definition SKIP :: "'a program"  (\<open>\<bottom>\<close>)
   where "\<bottom> = mk_program (UNIV, {}, UNIV)"
 
   (*Characterizes safety properties.  Used with specifying Allowed*)
@@ -39,8 +39,8 @@ definition
   where "safety_prop X \<longleftrightarrow> SKIP \<in> X \<and> (\<forall>G. Acts G \<subseteq> \<Union>(Acts ` X) \<longrightarrow> G \<in> X)"
 
 syntax
-  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              ("(3\<Squnion>_./ _)" 10)
-  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       ("(3\<Squnion>_\<in>_./ _)" 10)
+  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              (\<open>(3\<Squnion>_./ _)\<close> 10)
+  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       (\<open>(3\<Squnion>_\<in>_./ _)\<close> 10)
 syntax_consts
   "_JOIN1" "_JOIN" == JOIN
 translations

@@ -9,10 +9,10 @@ section\<open>The Detects Relation\<close>
 
 theory Detects imports FP SubstAx begin
 
-definition Detects :: "['a set, 'a set] => 'a program set"  (infixl "Detects" 60)
+definition Detects :: "['a set, 'a set] => 'a program set"  (infixl \<open>Detects\<close> 60)
   where "A Detects B = (Always (-A \<union> B)) \<inter> (B LeadsTo A)"
 
-definition Equality :: "['a set, 'a set] => 'a set"  (infixl "<==>" 60)
+definition Equality :: "['a set, 'a set] => 'a set"  (infixl \<open><==>\<close> 60)
   where "A <==> B = (-A \<union> B) \<inter> (A \<union> -B)"
 
 

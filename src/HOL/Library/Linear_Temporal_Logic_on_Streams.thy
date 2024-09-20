@@ -30,13 +30,13 @@ section\<open>Linear temporal logic\<close>
 
 text \<open>Propositional connectives:\<close>
 
-abbreviation (input) IMPL (infix "impl" 60)
+abbreviation (input) IMPL (infix \<open>impl\<close> 60)
 where "\<phi> impl \<psi> \<equiv> \<lambda> xs. \<phi> xs \<longrightarrow> \<psi> xs"
 
-abbreviation (input) OR (infix "or" 60)
+abbreviation (input) OR (infix \<open>or\<close> 60)
 where "\<phi> or \<psi> \<equiv> \<lambda> xs. \<phi> xs \<or> \<psi> xs"
 
-abbreviation (input) AND (infix "aand" 60)
+abbreviation (input) AND (infix \<open>aand\<close> 60)
 where "\<phi> aand \<psi> \<equiv> \<lambda> xs. \<phi> xs \<and> \<psi> xs"
 
 abbreviation (input) not where "not \<phi> \<equiv> \<lambda> xs. \<not> \<phi> xs"
@@ -63,7 +63,7 @@ fun nxt where "nxt \<phi> xs = \<phi> (stl xs)"
 
 definition "HLD s = holds (\<lambda>x. x \<in> s)"
 
-abbreviation HLD_nxt (infixr "\<cdot>" 65) where
+abbreviation HLD_nxt (infixr \<open>\<cdot>\<close> 65) where
   "s \<cdot> P \<equiv> HLD s aand nxt P"
 
 context
@@ -79,7 +79,7 @@ coinductive alw for \<phi> where
 alw: "\<lbrakk>\<phi> xs; alw \<phi> (stl xs)\<rbrakk> \<Longrightarrow> alw \<phi> xs"
 
 \<comment> \<open>weak until:\<close>
-coinductive UNTIL (infix "until" 60) for \<phi> \<psi> where
+coinductive UNTIL (infix \<open>until\<close> 60) for \<phi> \<psi> where
 base: "\<psi> xs \<Longrightarrow> (\<phi> until \<psi>) xs"
 |
 step: "\<lbrakk>\<phi> xs; (\<phi> until \<psi>) (stl xs)\<rbrakk> \<Longrightarrow> (\<phi> until \<psi>) xs"
@@ -599,7 +599,7 @@ context
   notes [[inductive_internals]]
 begin
 
-inductive suntil (infix "suntil" 60) for \<phi> \<psi> where
+inductive suntil (infix \<open>suntil\<close> 60) for \<phi> \<psi> where
   base: "\<psi> \<omega> \<Longrightarrow> (\<phi> suntil \<psi>) \<omega>"
 | step: "\<phi> \<omega> \<Longrightarrow> (\<phi> suntil \<psi>) (stl \<omega>) \<Longrightarrow> (\<phi> suntil \<psi>) \<omega>"
 

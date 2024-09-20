@@ -373,8 +373,8 @@ subsection \<open>Some interesting theorems and interpretations\<close>
 locale linear_first_finite_dimensional_vector_space =
   l?: Vector_Spaces.linear scaleB scaleC f +
   B?: finite_dimensional_vector_space scaleB BasisB
-  for scaleB :: "('a::field => 'b::ab_group_add => 'b)" (infixr "*b" 75)
-  and scaleC :: "('a => 'c::ab_group_add => 'c)" (infixr "*c" 75)
+  for scaleB :: "('a::field => 'b::ab_group_add => 'b)" (infixr \<open>*b\<close> 75)
+  and scaleC :: "('a => 'c::ab_group_add => 'c)" (infixr \<open>*c\<close> 75)
   and BasisB :: "('b set)"
   and f :: "('b=>'c)"
 

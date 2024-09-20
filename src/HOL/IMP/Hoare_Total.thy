@@ -12,7 +12,7 @@ text\<open>Note that this definition of total validity \<open>\<Turnstile>\<^sub
 works if execution is deterministic (which it is in our case).\<close>
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
-  ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
+  (\<open>\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}\<close> 50) where
 "\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t))"
 
 text\<open>Provability of Hoare triples in the proof system for total
@@ -22,7 +22,7 @@ inductively. The rules for \<open>\<turnstile>\<^sub>t\<close> differ from those
 \<^term>\<open>While\<close>-rule.\<close>
 
 inductive
-  hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
+  hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" (\<open>\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})\<close> 50)
 where
 
 Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}"  |
@@ -136,7 +136,7 @@ The completeness proof proceeds along the same lines as the one for partial
 correctness. First we have to strengthen our notion of weakest precondition
 to take termination into account:\<close>
 
-definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" ("wp\<^sub>t") where
+definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" (\<open>wp\<^sub>t\<close>) where
 "wp\<^sub>t c Q  =  (\<lambda>s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
 
 lemma [simp]: "wp\<^sub>t SKIP Q = Q"

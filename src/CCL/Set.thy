@@ -13,12 +13,12 @@ instance set :: ("term") "term" ..
 subsection \<open>Set comprehension and membership\<close>
 
 axiomatization Collect :: "['a \<Rightarrow> o] \<Rightarrow> 'a set"
-  and mem :: "['a, 'a set] \<Rightarrow> o"  (infixl ":" 50)
+  and mem :: "['a, 'a set] \<Rightarrow> o"  (infixl \<open>:\<close> 50)
 where mem_Collect_iff: "(a : Collect(P)) \<longleftrightarrow> P(a)"
   and set_extension: "A = B \<longleftrightarrow> (ALL x. x:A \<longleftrightarrow> x:B)"
 
 syntax
-  "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  ("(1{_./ _})")
+  "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  (\<open>(1{_./ _})\<close>)
 syntax_consts
   "_Coll" == Collect
 translations
@@ -50,8 +50,8 @@ definition Bex :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"
   where "Bex(A, P) == EX x. x:A \<and> P(x)"
 
 syntax
-  "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(ALL _:_./ _)" [0, 0, 0] 10)
-  "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  ("(EX _:_./ _)" [0, 0, 0] 10)
+  "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(ALL _:_./ _)\<close> [0, 0, 0] 10)
+  "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(EX _:_./ _)\<close> [0, 0, 0] 10)
 syntax_consts
   "_Ball" == Ball and
   "_Bex" == Bex
@@ -96,22 +96,22 @@ lemma bex_cong:
 
 subsection \<open>Further operations\<close>
 
-definition subset :: "['a set, 'a set] \<Rightarrow> o"  (infixl "<=" 50)
+definition subset :: "['a set, 'a set] \<Rightarrow> o"  (infixl \<open><=\<close> 50)
   where "A <= B == ALL x:A. x:B"
 
 definition mono :: "['a set \<Rightarrow> 'b set] \<Rightarrow> o"
   where "mono(f) == (ALL A B. A <= B \<longrightarrow> f(A) <= f(B))"
 
-definition singleton :: "'a \<Rightarrow> 'a set"  ("{_}")
+definition singleton :: "'a \<Rightarrow> 'a set"  (\<open>{_}\<close>)
   where "{a} == {x. x=a}"
 
-definition empty :: "'a set"  ("{}")
+definition empty :: "'a set"  (\<open>{}\<close>)
   where "{} == {x. False}"
 
-definition Un :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl "Un" 65)
+definition Un :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl \<open>Un\<close> 65)
   where "A Un B == {x. x:A | x:B}"
 
-definition Int :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl "Int" 70)
+definition Int :: "['a set, 'a set] \<Rightarrow> 'a set"  (infixl \<open>Int\<close> 70)
   where "A Int B == {x. x:A \<and> x:B}"
 
 definition Compl :: "('a set) \<Rightarrow> 'a set"
@@ -127,8 +127,8 @@ definition UNION :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"
   where "UNION(A, B) == {y. EX x:A. y: B(x)}"
 
 syntax
-  "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(INT _:_./ _)" [0, 0, 0] 10)
-  "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  ("(UN _:_./ _)" [0, 0, 0] 10)
+  "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(INT _:_./ _)\<close> [0, 0, 0] 10)
+  "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(UN _:_./ _)\<close> [0, 0, 0] 10)
 syntax_consts
   "_INTER" == INTER and
   "_UNION" == UNION

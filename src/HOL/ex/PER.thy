@@ -32,7 +32,7 @@ text \<open>
 \<close>
 
 class partial_equiv =
-  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<sim>" 50)
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl \<open>\<sim>\<close> 50)
   assumes partial_equiv_sym [elim?]: "x \<sim> y \<Longrightarrow> y \<sim> x"
   assumes partial_equiv_trans [trans]: "x \<sim> y \<Longrightarrow> y \<sim> z \<Longrightarrow> x \<sim> z"
 
@@ -168,7 +168,7 @@ text \<open>
   representation of elements of a quotient type.
 \<close>
 
-definition eqv_class :: "('a::partial_equiv) \<Rightarrow> 'a quot"  ("\<lfloor>_\<rfloor>")
+definition eqv_class :: "('a::partial_equiv) \<Rightarrow> 'a quot"  (\<open>\<lfloor>_\<rfloor>\<close>)
   where "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_rep: "\<exists>a. A = \<lfloor>a\<rfloor>"

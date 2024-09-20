@@ -26,7 +26,7 @@ qed
 setup_lifting type_definition_fls
 
 unbundle fps_notation
-notation fls_nth (infixl "$$" 75)
+notation fls_nth (infixl \<open>$$\<close> 75)
 
 lemmas fls_eqI = iffD1[OF fls_nth_inject, OF iffD2, OF fun_eq_iff, OF allI]
 
@@ -4601,11 +4601,11 @@ lemma open_fls_def:
 
 subsection \<open>Notation\<close>
 
-no_notation fls_nth (infixl "$$" 75)
+no_notation fls_nth (infixl \<open>$$\<close> 75)
 
 bundle fls_notation
 begin
-notation fls_nth (infixl "$$" 75)
+notation fls_nth (infixl \<open>$$\<close> 75)
 end
 
 end

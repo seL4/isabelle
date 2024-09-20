@@ -37,7 +37,7 @@ text \<open>
   operation on boolean values illustrates typical infix declarations.
 \<close>
 
-definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]" 60)
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl \<open>[+]\<close> 60)
 where "A [+] B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 text \<open>
@@ -138,7 +138,7 @@ text \<open>
 hide_const xor
 setup \<open>Sign.add_path "version1"\<close>
 (*>*)
-definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl \<open>\<oplus>\<close> 60)
 where "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 (*<*)
 setup \<open>Sign.local_path\<close>
@@ -156,10 +156,10 @@ text \<open>
 hide_const xor
 setup \<open>Sign.add_path "version2"\<close>
 (*>*)
-definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "[+]\<ignore>" 60)
+definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl \<open>[+]\<ignore>\<close> 60)
 where "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
-notation (xsymbols) xor (infixl "\<oplus>\<ignore>" 60)
+notation (xsymbols) xor (infixl \<open>\<oplus>\<ignore>\<close> 60)
 (*<*)
 setup \<open>Sign.local_path\<close>
 (*>*)
@@ -186,10 +186,10 @@ text \<open>
 \<close>
 
 datatype currency =
-    Euro nat    ("\<euro>")
-  | Pounds nat  ("\<pounds>")
-  | Yen nat     ("\<yen>")
-  | Dollar nat  ("$")
+    Euro nat    (\<open>\<euro>\<close>)
+  | Pounds nat  (\<open>\<pounds>\<close>)
+  | Yen nat     (\<open>\<yen>\<close>)
+  | Dollar nat  (\<open>$\<close>)
 
 text \<open>
   \noindent Here the mixfix annotations on the rightmost column happen
@@ -223,7 +223,7 @@ membership in a set of pairs, replacing \<open>(x, y) \<in> sim\<close> by
 \<open>x \<approx> y\<close>. We assume that a constant \<open>sim\<close> of type
 \<^typ>\<open>('a \<times> 'a) set\<close> has been introduced at this point.\<close>
 (*<*)consts sim :: "('a \<times> 'a) set"(*>*)
-abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix "\<approx>" 50)
+abbreviation sim2 :: "'a \<Rightarrow> 'a \<Rightarrow> bool"   (infix \<open>\<approx>\<close> 50)
 where "x \<approx> y  \<equiv>  (x, y) \<in> sim"
 
 text \<open>\noindent The given meta-equality is used as a rewrite rule
@@ -238,10 +238,10 @@ as \<open>\<noteq>\<close> for negated equalities.  The following declaration
 stems from Isabelle/HOL itself:
 \<close>
 
-abbreviation not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "~=\<ignore>" 50)
+abbreviation not_equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl \<open>~=\<ignore>\<close> 50)
 where "x ~=\<ignore> y  \<equiv>  \<not> (x = y)"
 
-notation (xsymbols) not_equal (infix "\<noteq>\<ignore>" 50)
+notation (xsymbols) not_equal (infix \<open>\<noteq>\<ignore>\<close> 50)
 
 text \<open>\noindent The notation \<open>\<noteq>\<close> is introduced separately to restrict it
 to the \emph{xsymbols} mode.

@@ -16,7 +16,7 @@ begin
 
 subsection \<open>Definitions\<close>
 
-definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set" ("(1O'(_'))") where
+definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set" (\<open>(1O'(_'))\<close>) where
   "O(f::('a => 'b)) == {h. \<exists>c. \<forall>x. \<bar>h x\<bar> <= c * \<bar>f x\<bar>}"
 
 lemma bigo_pos_const:
@@ -610,7 +610,7 @@ done
 
 subsection \<open>Less than or equal to\<close>
 
-definition lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl "<o" 70) where
+definition lesso :: "('a => 'b::linordered_idom) => ('a => 'b) => ('a => 'b)" (infixl \<open><o\<close> 70) where
   "f <o g == (\<lambda>x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. \<bar>g x\<bar> <= \<bar>f x\<bar> \<Longrightarrow>

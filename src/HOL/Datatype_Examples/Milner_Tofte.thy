@@ -27,16 +27,16 @@ typedecl TyConst
 datatype Ex =
   e_const (e_const_fst: Const)
 | e_var ExVar
-| e_fn ExVar Ex ("fn _ => _" [0,51] 1000)
-| e_fix ExVar ExVar Ex ("fix _ ( _ ) = _" [0,51,51] 1000)
-| e_app Ex Ex ("_ @@ _" [51,51] 1000)
+| e_fn ExVar Ex (\<open>fn _ => _\<close> [0,51] 1000)
+| e_fix ExVar ExVar Ex (\<open>fix _ ( _ ) = _\<close> [0,51,51] 1000)
+| e_app Ex Ex (\<open>_ @@ _\<close> [51,51] 1000)
 
 datatype Ty =
   t_const TyConst
-| t_fun Ty Ty ("_ -> _" [51,51] 1000)
+| t_fun Ty Ty (\<open>_ -> _\<close> [51,51] 1000)
 
 datatype 'a genClos =
-  clos_mk ExVar Ex "ExVar \<rightharpoonup> 'a" ("\<langle>_ , _ , _\<rangle>" [0,0,0] 1000)
+  clos_mk ExVar Ex "ExVar \<rightharpoonup> 'a" (\<open>\<langle>_ , _ , _\<rangle>\<close> [0,0,0] 1000)
 
 codatatype Val =
   v_const Const
@@ -48,7 +48,7 @@ type_synonym TyEnv = "ExVar \<rightharpoonup> Ty"
 
 axiomatization 
   c_app :: "[Const, Const] => Const" and
-  isof :: "[Const, Ty] => bool" ("_ isof _" [36,36] 50) where
+  isof :: "[Const, Ty] => bool" (\<open>_ isof _\<close> [36,36] 50) where
   isof_app: "\<lbrakk>c1 isof t1 -> t2; c2 isof t1\<rbrakk> \<Longrightarrow> c_app c1 c2 isof t2"
 
 text \<open>The dynamic semantics is defined inductively by a set of inference
@@ -58,7 +58,7 @@ environment ve.  Therefore the relation _ |- _ ---> _ is defined in Isabelle
 as the least fixpoint of the functor eval_fun below.  From this definition
 introduction rules and a strong elimination (induction) rule can be derived.\<close>
 
-inductive eval :: "[ValEnv, Ex, Val] => bool" ("_ \<turnstile> _ ---> _" [36,0,36] 50) where
+inductive eval :: "[ValEnv, Ex, Val] => bool" (\<open>_ \<turnstile> _ ---> _\<close> [36,0,36] 50) where
   eval_const: "ve \<turnstile> e_const c ---> v_const c"
 | eval_var2:  "ev \<in> dom ve  \<Longrightarrow> ve \<turnstile> e_var ev ---> the (ve ev)"
 | eval_fn:    "ve \<turnstile> fn ev => e ---> v_clos \<langle>ev, e, ve\<rangle>"
@@ -74,7 +74,7 @@ text \<open>The static semantics is defined in the same way as the dynamic
 semantics.  The relation te |- e ===> t express the expression e has the
 type t in the type environment te.\<close>
 
-inductive elab :: "[TyEnv, Ex, Ty] => bool" ("_ \<turnstile> _ ===> _" [36,0,36] 50) where
+inductive elab :: "[TyEnv, Ex, Ty] => bool" (\<open>_ \<turnstile> _ ===> _\<close> [36,0,36] 50) where
   elab_const: "c isof ty \<Longrightarrow> te \<turnstile> e_const c ===> ty"
 | elab_var:   "x \<in> dom te \<Longrightarrow> te \<turnstile> e_var x ===> the (te x)"
 | elab_fn:    "te(x \<mapsto> ty1) \<turnstile> e ===> ty2 \<Longrightarrow> te \<turnstile> fn x => e ===> ty1 -> ty2"
@@ -91,11 +91,11 @@ inductive_cases elabE[elim!]:
 
 (* The original correspondence relation *)
 
-abbreviation isof_env :: "[ValEnv,TyEnv] => bool" ("_ isofenv _") where
+abbreviation isof_env :: "[ValEnv,TyEnv] => bool" (\<open>_ isofenv _\<close>) where
   "ve isofenv te \<equiv> (dom(ve) = dom(te) \<and>
      (\<forall>x. x \<in> dom ve \<longrightarrow> (\<exists>c. the (ve x) = v_const(c) \<and> c isof the (te x))))"
 
-coinductive hasty :: "[Val, Ty] => bool" ("_ hasty _" [36,36] 50) where
+coinductive hasty :: "[Val, Ty] => bool" (\<open>_ hasty _\<close> [36,36] 50) where
   hasty_const: "c isof t \<Longrightarrow> v_const c hasty t"
 | hasty_clos:  "\<lbrakk>te \<turnstile> fn ev => e ===> t; dom(ve) = dom(te) \<and>
    (\<forall>x. x \<in> dom ve --> the (ve x) hasty the (te x)); cl = \<langle>ev,e,ve\<rangle>\<rbrakk> \<Longrightarrow> v_clos cl hasty t"
@@ -105,7 +105,7 @@ inductive_cases hastyE[elim!]:
   "v_const c hasty t"
   "v_clos \<langle>xm , em , evm\<rangle> hasty u -> t"
 
-definition hasty_env :: "[ValEnv, TyEnv] => bool" ("_ hastyenv _ " [36,36] 35) where
+definition hasty_env :: "[ValEnv, TyEnv] => bool" (\<open>_ hastyenv _ \<close> [36,36] 35) where
   [simp]: "ve hastyenv te \<equiv> (dom(ve) = dom(te) \<and>
      (\<forall>x. x \<in> dom ve --> the (ve x) hasty the (te x)))"
 

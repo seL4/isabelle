@@ -85,7 +85,7 @@ definition progression :: "jvm_prog \<Rightarrow> cname \<Rightarrow> sig \<Righ
                  bytecode \<Rightarrow>
                  aheap \<Rightarrow> opstack \<Rightarrow> locvars \<Rightarrow> 
                  bool"
-  ("{_,_,_} \<turnstile> {_, _, _} >- _ \<rightarrow> {_, _, _}" [61,61,61,61,61,61,90,61,61,61]60) where
+  (\<open>{_,_,_} \<turnstile> {_, _, _} >- _ \<rightarrow> {_, _, _}\<close> [61,61,61,61,61,61,90,61,61,61]60) where
   "{G,C,S} \<turnstile> {hp0, os0, lvars0} >- instrs \<rightarrow> {hp1, os1, lvars1} ==
   \<forall>pre post frs.
   (gis (gmb G C S) = pre @ instrs @ post) \<longrightarrow>

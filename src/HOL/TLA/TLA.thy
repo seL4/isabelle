@@ -19,20 +19,20 @@ consts
   SF         :: "[action, 'a stfun] \<Rightarrow> temporal"
 
   (* Quantification over (flexible) state variables *)
-  EEx        :: "('a stfun \<Rightarrow> temporal) \<Rightarrow> temporal"       (binder "Eex " 10)
-  AAll       :: "('a stfun \<Rightarrow> temporal) \<Rightarrow> temporal"       (binder "Aall " 10)
+  EEx        :: "('a stfun \<Rightarrow> temporal) \<Rightarrow> temporal"       (binder \<open>Eex \<close> 10)
+  AAll       :: "('a stfun \<Rightarrow> temporal) \<Rightarrow> temporal"       (binder \<open>Aall \<close> 10)
 
   (** concrete syntax **)
 syntax
-  "_Box"     :: "lift \<Rightarrow> lift"                        ("(\<box>_)" [40] 40)
-  "_Dmd"     :: "lift \<Rightarrow> lift"                        ("(\<diamond>_)" [40] 40)
-  "_leadsto" :: "[lift,lift] \<Rightarrow> lift"                 ("(_ \<leadsto> _)" [23,22] 22)
-  "_stable"  :: "lift \<Rightarrow> lift"                        ("(stable/ _)")
-  "_WF"      :: "[lift,lift] \<Rightarrow> lift"                 ("(WF'(_')'_(_))" [0,60] 55)
-  "_SF"      :: "[lift,lift] \<Rightarrow> lift"                 ("(SF'(_')'_(_))" [0,60] 55)
+  "_Box"     :: "lift \<Rightarrow> lift"                        (\<open>(\<box>_)\<close> [40] 40)
+  "_Dmd"     :: "lift \<Rightarrow> lift"                        (\<open>(\<diamond>_)\<close> [40] 40)
+  "_leadsto" :: "[lift,lift] \<Rightarrow> lift"                 (\<open>(_ \<leadsto> _)\<close> [23,22] 22)
+  "_stable"  :: "lift \<Rightarrow> lift"                        (\<open>(stable/ _)\<close>)
+  "_WF"      :: "[lift,lift] \<Rightarrow> lift"                 (\<open>(WF'(_')'_(_))\<close> [0,60] 55)
+  "_SF"      :: "[lift,lift] \<Rightarrow> lift"                 (\<open>(SF'(_')'_(_))\<close> [0,60] 55)
 
-  "_EEx"     :: "[idts, lift] \<Rightarrow> lift"                ("(3\<exists>\<exists> _./ _)" [0,10] 10)
-  "_AAll"    :: "[idts, lift] \<Rightarrow> lift"                ("(3\<forall>\<forall> _./ _)" [0,10] 10)
+  "_EEx"     :: "[idts, lift] \<Rightarrow> lift"                (\<open>(3\<exists>\<exists> _./ _)\<close> [0,10] 10)
+  "_AAll"    :: "[idts, lift] \<Rightarrow> lift"                (\<open>(3\<forall>\<forall> _./ _)\<close> [0,10] 10)
 
 translations
   "_Box"      ==   "CONST Box"

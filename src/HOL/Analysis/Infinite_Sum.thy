@@ -34,40 +34,40 @@ subsection \<open>Definition and syntax\<close>
 definition HAS_SUM :: \<open>('a \<Rightarrow> 'b :: {comm_monoid_add, topological_space}) \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool\<close> 
     where has_sum_def: \<open>HAS_SUM f A x \<equiv> (sum f \<longlongrightarrow> x) (finite_subsets_at_top A)\<close>
 
-abbreviation has_sum (infixr "has'_sum" 46) where
+abbreviation has_sum (infixr \<open>has'_sum\<close> 46) where
   "(f has_sum S) A \<equiv> HAS_SUM f A S"
 
-definition summable_on :: "('a \<Rightarrow> 'b::{comm_monoid_add, topological_space}) \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "summable'_on" 46) where
+definition summable_on :: "('a \<Rightarrow> 'b::{comm_monoid_add, topological_space}) \<Rightarrow> 'a set \<Rightarrow> bool" (infixr \<open>summable'_on\<close> 46) where
   "f summable_on A \<equiv> (\<exists>x. (f has_sum x) A)"
 
 definition infsum :: "('a \<Rightarrow> 'b::{comm_monoid_add,t2_space}) \<Rightarrow> 'a set \<Rightarrow> 'b" where
   "infsum f A = (if f summable_on A then Lim (finite_subsets_at_top A) (sum f) else 0)"
 
-abbreviation abs_summable_on :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "abs'_summable'_on" 46) where
+abbreviation abs_summable_on :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool" (infixr \<open>abs'_summable'_on\<close> 46) where
   "f abs_summable_on A \<equiv> (\<lambda>x. norm (f x)) summable_on A"
 
 syntax (ASCII)
-  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  ("(3INFSUM (_/:_)./ _)" [0, 51, 10] 10)
+  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  (\<open>(3INFSUM (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  ("(2\<Sum>\<^sub>\<infinity>(_/\<in>_)./ _)" [0, 51, 10] 10)
+  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  (\<open>(2\<Sum>\<^sub>\<infinity>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_infsum" \<rightleftharpoons> infsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>\<infinity>i\<in>A. b" \<rightleftharpoons> "CONST infsum (\<lambda>i. b) A"
 
 syntax (ASCII)
-  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3INFSUM _./ _)" [0, 10] 10)
+  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3INFSUM _./ _)\<close> [0, 10] 10)
 syntax
-  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>\<^sub>\<infinity>_./ _)" [0, 10] 10)
+  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>\<^sub>\<infinity>_./ _)\<close> [0, 10] 10)
 syntax_consts
   "_univinfsum" \<rightleftharpoons> infsum
 translations
   "\<Sum>\<^sub>\<infinity>x. t" \<rightleftharpoons> "CONST infsum (\<lambda>x. t) (CONST UNIV)"
 
 syntax (ASCII)
-  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3INFSUM _ |/ _./ _)" [0, 0, 10] 10)
+  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3INFSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>\<^sub>\<infinity>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>\<^sub>\<infinity>_ | (_)./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_qinfsum" \<rightleftharpoons> infsum
 translations

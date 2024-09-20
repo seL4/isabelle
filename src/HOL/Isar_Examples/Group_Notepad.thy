@@ -12,7 +12,7 @@ notepad
 begin
   txt \<open>hypothetical group axiomatization\<close>
 
-  fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<odot>" 70)
+  fix prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>\<odot>\<close> 70)
     and one :: "'a"
     and inverse :: "'a \<Rightarrow> 'a"
   assume assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"

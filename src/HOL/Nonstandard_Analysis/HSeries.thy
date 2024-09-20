@@ -14,7 +14,7 @@ begin
 definition sumhr :: "hypnat \<times> hypnat \<times> (nat \<Rightarrow> real) \<Rightarrow> hypreal"
   where "sumhr = (\<lambda>(M,N,f). starfun2 (\<lambda>m n. sum f {m..<n}) M N)"
 
-definition NSsums :: "(nat \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> bool"  (infixr "NSsums" 80)
+definition NSsums :: "(nat \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> bool"  (infixr \<open>NSsums\<close> 80)
   where "f NSsums s = (\<lambda>n. sum f {..<n}) \<longlonglongrightarrow>\<^sub>N\<^sub>S s"
 
 definition NSsummable :: "(nat \<Rightarrow> real) \<Rightarrow> bool"

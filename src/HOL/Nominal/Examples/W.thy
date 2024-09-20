@@ -7,7 +7,7 @@ text \<open>Example for strong induction rules avoiding sets of atoms.\<close>
 atom_decl tvar var 
 
 abbreviation
-  "difference_list" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" ("_ - _" [60,60] 60) 
+  "difference_list" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (\<open>_ - _\<close> [60,60] 60) 
 where
   "xs - ys \<equiv> [x \<leftarrow> xs. x\<notin>set ys]"
 
@@ -34,20 +34,20 @@ by (induct xs) (auto)
 
 nominal_datatype ty = 
     TVar "tvar"
-  | Fun "ty" "ty" ("_\<rightarrow>_" [100,100] 100)
+  | Fun "ty" "ty" (\<open>_\<rightarrow>_\<close> [100,100] 100)
 
 nominal_datatype tyS = 
     Ty  "ty"
-  | ALL "\<guillemotleft>tvar\<guillemotright>tyS" ("\<forall>[_]._" [100,100] 100)
+  | ALL "\<guillemotleft>tvar\<guillemotright>tyS" (\<open>\<forall>[_]._\<close> [100,100] 100)
 
 nominal_datatype trm = 
     Var "var"
   | App "trm" "trm" 
-  | Lam "\<guillemotleft>var\<guillemotright>trm" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>var\<guillemotright>trm" (\<open>Lam [_]._\<close> [100,100] 100)
   | Let "\<guillemotleft>var\<guillemotright>trm" "trm"
 
 abbreviation
-  LetBe :: "var \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> trm" ("Let _ be _ in _" [100,100,100] 100)
+  LetBe :: "var \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> trm" (\<open>Let _ be _ in _\<close> [100,100,100] 100)
 where
  "Let x be t1 in t2 \<equiv> trm.Let x t2 t1"
 
@@ -175,10 +175,10 @@ text \<open>Substitution\<close>
 type_synonym Subst = "(tvar\<times>ty) list"
 
 consts
-  psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)
+  psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       (\<open>_<_>\<close> [100,60] 120)
 
 abbreviation 
-  subst :: "'a \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "'a \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  (\<open>_[_::=_]\<close> [100,100,100] 100)
 where
   "smth[X::=T] \<equiv> ([(X,T)])<smth>" 
 
@@ -299,7 +299,7 @@ by (nominal_induct T rule: ty.strong_induct)
 
 text \<open>instance of a type scheme\<close>
 inductive
-  inst :: "ty \<Rightarrow> tyS \<Rightarrow> bool"("_ \<prec> _" [50,51] 50)  
+  inst :: "ty \<Rightarrow> tyS \<Rightarrow> bool"(\<open>_ \<prec> _\<close> [50,51] 50)  
 where
   I_Ty[intro]:  "T \<prec> (Ty T)" 
 | I_All[intro]: "\<lbrakk>X\<sharp>T'; T \<prec> S\<rbrakk> \<Longrightarrow> T[X::=T'] \<prec> \<forall>[X].S"
@@ -350,7 +350,7 @@ qed
 
 text\<open>typing judgements\<close>
 inductive
-  typing :: "Ctxt \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (" _ \<turnstile> _ : _ " [60,60,60] 60) 
+  typing :: "Ctxt \<Rightarrow> trm \<Rightarrow> ty \<Rightarrow> bool" (\<open> _ \<turnstile> _ : _ \<close> [60,60,60] 60) 
 where
   T_VAR[intro]: "\<lbrakk>valid \<Gamma>; (x,S)\<in>set \<Gamma>; T \<prec> S\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
 | T_APP[intro]: "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> App t\<^sub>1 t\<^sub>2 : T\<^sub>2" 

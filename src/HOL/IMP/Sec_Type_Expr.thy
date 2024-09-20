@@ -50,11 +50,11 @@ end
 
 
 abbreviation eq_le :: "state \<Rightarrow> state \<Rightarrow> level \<Rightarrow> bool"
-  ("(_ = _ '(\<le> _'))" [51,51,0] 50) where
+  (\<open>(_ = _ '(\<le> _'))\<close> [51,51,0] 50) where
 "s = s' (\<le> l) == (\<forall> x. sec x \<le> l \<longrightarrow> s x = s' x)"
 
 abbreviation eq_less :: "state \<Rightarrow> state \<Rightarrow> level \<Rightarrow> bool"
-  ("(_ = _ '(< _'))" [51,51,0] 50) where
+  (\<open>(_ = _ '(< _'))\<close> [51,51,0] 50) where
 "s = s' (< l) == (\<forall> x. sec x < l \<longrightarrow> s x = s' x)"
 
 lemma aval_eq_if_eq_le:

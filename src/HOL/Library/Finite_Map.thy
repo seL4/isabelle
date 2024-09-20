@@ -497,7 +497,7 @@ by (rule fmap_ext) auto
 lemma fmdrop_fset_fmdrop[simp]: "fmdrop_fset S (fmdrop b m) = fmdrop_fset (finsert b S) m"
 by (rule fmap_ext) auto
 
-lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" (infixl "++\<^sub>f" 100)
+lift_definition fmadd :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap" (infixl \<open>++\<^sub>f\<close> 100)
   is map_add
   parametric map_add_transfer
   by simp
@@ -611,7 +611,7 @@ lemma fmpred_cases[consumes 1]:
   obtains (none) "fmlookup m x = None" | (some) y where "fmlookup m x = Some y" "P x y"
 using assms by auto
 
-lift_definition fmsubset :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" (infix "\<subseteq>\<^sub>f" 50)
+lift_definition fmsubset :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> bool" (infix \<open>\<subseteq>\<^sub>f\<close> 50)
   is map_le
 .
 
@@ -801,7 +801,7 @@ lemma fmimageE[elim]:
   obtains x where "fmlookup m x = Some y" "x |\<in>| A"
   using assms by (auto simp: fmlookup_image_iff)
 
-lift_definition fmcomp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap" (infixl "\<circ>\<^sub>f" 55)
+lift_definition fmcomp :: "('b, 'c) fmap \<Rightarrow> ('a, 'b) fmap \<Rightarrow> ('a, 'c) fmap" (infixl \<open>\<circ>\<^sub>f\<close> 55)
   is map_comp
   parametric map_comp_transfer
   by (rule dom_comp_finite)

@@ -16,7 +16,7 @@ begin
 *)
 
 text \<open>Conflicting notation from \<^theory>\<open>HOL-Analysis.Infinite_Sum\<close>\<close>
-no_notation Infinite_Sum.abs_summable_on (infixr "abs'_summable'_on" 46)
+no_notation Infinite_Sum.abs_summable_on (infixr \<open>abs'_summable'_on\<close> 46)
 
 (* TODO Move *)
 lemma sets_eq_countable:
@@ -84,7 +84,7 @@ qed (simp_all add: countable_PiE assms)
 
 definition\<^marker>\<open>tag important\<close> abs_summable_on ::
     "('a \<Rightarrow> 'b :: {banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
-    (infix "abs'_summable'_on" 50)
+    (infix \<open>abs'_summable'_on\<close> 50)
  where
    "f abs_summable_on A \<longleftrightarrow> integrable (count_space A) f"
 
@@ -96,10 +96,10 @@ definition\<^marker>\<open>tag important\<close> infsetsum ::
 
 syntax (ASCII)
   "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  ("(3INFSETSUM _:_./ _)" [0, 51, 10] 10)
+  (\<open>(3INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
 syntax
   "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  ("(2\<Sum>\<^sub>a_\<in>_./ _)" [0, 51, 10] 10)
+  (\<open>(2\<Sum>\<^sub>a_\<in>_./ _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_infsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
@@ -107,10 +107,10 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 
 syntax (ASCII)
   "_uinfsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  ("(3INFSETSUM _:_./ _)" [0, 51, 10] 10)
+  (\<open>(3INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
 syntax
   "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  ("(2\<Sum>\<^sub>a_./ _)" [0, 10] 10)
+  (\<open>(2\<Sum>\<^sub>a_./ _)\<close> [0, 10] 10)
 syntax_consts
   "_uinfsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
@@ -118,10 +118,10 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 
 syntax (ASCII)
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
-  ("(3INFSETSUM _ |/ _./ _)" [0, 0, 10] 10)
+  (\<open>(3INFSETSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
-  ("(2\<Sum>\<^sub>a_ | (_)./ _)" [0, 0, 10] 10)
+  (\<open>(2\<Sum>\<^sub>a_ | (_)./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_qinfsetsum" \<rightleftharpoons> infsetsum
 translations

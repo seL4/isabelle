@@ -60,14 +60,14 @@ definition\<^marker>\<open>tag important\<close> raw_has_prod :: "[nat \<Rightar
 text\<open>The nonzero and zero cases, as in \emph{Complex Analysis} by Joseph Bak and Donald J.Newman, page 241\<close>
 text\<^marker>\<open>tag important\<close> \<open>%whitespace\<close>
 definition\<^marker>\<open>tag important\<close>
-  has_prod :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a \<Rightarrow> bool" (infixr "has'_prod" 80)
+  has_prod :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a \<Rightarrow> bool" (infixr \<open>has'_prod\<close> 80)
   where "f has_prod p \<equiv> raw_has_prod f 0 p \<or> (\<exists>i q. p = 0 \<and> f i = 0 \<and> raw_has_prod f (Suc i) q)"
 
 definition\<^marker>\<open>tag important\<close> convergent_prod :: "(nat \<Rightarrow> 'a :: {t2_space,comm_semiring_1}) \<Rightarrow> bool" where
   "convergent_prod f \<equiv> \<exists>M p. raw_has_prod f M p"
 
 definition\<^marker>\<open>tag important\<close> prodinf :: "(nat \<Rightarrow> 'a::{t2_space, comm_semiring_1}) \<Rightarrow> 'a"
-    (binder "\<Prod>" 10)
+    (binder \<open>\<Prod>\<close> 10)
   where "prodinf f = (THE p. f has_prod p)"
 
 lemmas prod_defs = raw_has_prod_def has_prod_def convergent_prod_def prodinf_def

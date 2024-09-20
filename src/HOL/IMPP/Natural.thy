@@ -14,14 +14,14 @@ consts
   newlocs :: locals
   setlocs :: "state => locals => state"
   getlocs :: "state => locals"
-  update  :: "state => vname => val => state"     ("_/[_/::=/_]" [900,0,0] 900)
+  update  :: "state => vname => val => state"     (\<open>_/[_/::=/_]\<close> [900,0,0] 900)
 
 abbreviation
-  loc :: "state => locals"  ("_<_>" [75,0] 75) where
+  loc :: "state => locals"  (\<open>_<_>\<close> [75,0] 75) where
   "s<X> == getlocs s X"
 
 inductive
-  evalc :: "[com,state,    state] => bool"  ("<_,_>/ -c-> _" [0,0,  51] 51)
+  evalc :: "[com,state,    state] => bool"  (\<open><_,_>/ -c-> _\<close> [0,0,  51] 51)
   where
     Skip:    "<SKIP,s> -c-> s"
 
@@ -52,7 +52,7 @@ inductive
                                           [X::=s1<Res>]"
 
 inductive
-  evaln :: "[com,state,nat,state] => bool"  ("<_,_>/ -_-> _" [0,0,0,51] 51)
+  evaln :: "[com,state,nat,state] => bool"  (\<open><_,_>/ -_-> _\<close> [0,0,0,51] 51)
   where
     Skip:    "<SKIP,s> -n-> s"
 

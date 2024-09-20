@@ -13,11 +13,11 @@ every iteration. The completeness proof is easier but the rule is harder
 to apply in program proofs.\<close>
 
 definition hoare_tvalid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool"
-  ("\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}" 50) where
+  (\<open>\<Turnstile>\<^sub>t {(1_)}/ (_)/ {(1_)}\<close> 50) where
 "\<Turnstile>\<^sub>t {P}c{Q}  \<longleftrightarrow>  (\<forall>s. P s \<longrightarrow> (\<exists>t. (c,s) \<Rightarrow> t \<and> Q t))"
 
 inductive
-  hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})" 50)
+  hoaret :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" (\<open>\<turnstile>\<^sub>t ({(1_)}/ (_)/ {(1_)})\<close> 50)
 where
 
 Skip:  "\<turnstile>\<^sub>t {P} SKIP {P}"  |
@@ -68,7 +68,7 @@ next
 qed fastforce+
 
 
-definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" ("wp\<^sub>t") where
+definition wpt :: "com \<Rightarrow> assn \<Rightarrow> assn" (\<open>wp\<^sub>t\<close>) where
 "wp\<^sub>t c Q  =  (\<lambda>s. \<exists>t. (c,s) \<Rightarrow> t \<and> Q t)"
 
 lemma [simp]: "wp\<^sub>t SKIP Q = Q"

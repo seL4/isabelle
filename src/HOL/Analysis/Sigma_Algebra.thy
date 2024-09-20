@@ -1759,7 +1759,7 @@ lemma sigma_eqI:
 subsubsection \<open>Measurable functions\<close>
 
 definition\<^marker>\<open>tag important\<close> measurable :: "'a measure \<Rightarrow> 'b measure \<Rightarrow> ('a \<Rightarrow> 'b) set"
-  (infixr "\<rightarrow>\<^sub>M" 60) where
+  (infixr \<open>\<rightarrow>\<^sub>M\<close> 60) where
 "measurable A B = {f \<in> space A \<rightarrow> space B. \<forall>y \<in> sets B. f -` y \<inter> space A \<in> sets A}"
 
 lemma measurableI:

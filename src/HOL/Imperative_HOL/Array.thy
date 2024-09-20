@@ -32,7 +32,7 @@ definition length :: "heap \<Rightarrow> 'a::heap array \<Rightarrow> nat" where
 definition update :: "'a::heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
   "update a i x h = set a ((get h a)[i:=x]) h"
 
-definition noteq :: "'a::heap array \<Rightarrow> 'b::heap array \<Rightarrow> bool" (infix "=!!=" 70) where
+definition noteq :: "'a::heap array \<Rightarrow> 'b::heap array \<Rightarrow> bool" (infix \<open>=!!=\<close> 70) where
   "r =!!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_array r \<noteq> addr_of_array s"
 
 

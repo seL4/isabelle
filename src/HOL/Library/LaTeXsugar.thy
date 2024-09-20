@@ -16,28 +16,28 @@ definition mbox :: "'a \<Rightarrow> 'a" where
 definition mbox0 :: "'a \<Rightarrow> 'a" where
 "mbox0 x = x"
 
-notation (latex) mbox ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>" [999] 999)
+notation (latex) mbox (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\<close>\<close> [999] 999)
 
-notation (latex) mbox0 ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>" [0] 999)
+notation (latex) mbox0 (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\<close>\<close> [0] 999)
 
 (* LOGIC *)
 notation (latex output)
-  If  ("(\<^latex>\<open>\\textsf{\<close>if\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>then\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>else\<^latex>\<open>}\<close> (_))" 10)
+  If  (\<open>(\<^latex>\<open>\textsf{\<close>if\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\textsf{\<close>then\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\textsf{\<close>else\<^latex>\<open>}\<close> (_))\<close> 10)
 
 syntax (latex output)
 
   "_Let"        :: "[letbinds, 'a] => 'a"
-  ("(\<^latex>\<open>\\textsf{\<close>let\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\\textsf{\<close>in\<^latex>\<open>}\<close> (_))" 10)
+  (\<open>(\<^latex>\<open>\textsf{\<close>let\<^latex>\<open>}\<close> (_)/ \<^latex>\<open>\textsf{\<close>in\<^latex>\<open>}\<close> (_))\<close> 10)
 
   "_case_syntax":: "['a, cases_syn] => 'b"
-  ("(\<^latex>\<open>\\textsf{\<close>case\<^latex>\<open>}\<close> _ \<^latex>\<open>\\textsf{\<close>of\<^latex>\<open>}\<close>/ _)" 10)
+  (\<open>(\<^latex>\<open>\textsf{\<close>case\<^latex>\<open>}\<close> _ \<^latex>\<open>\textsf{\<close>of\<^latex>\<open>}\<close>/ _)\<close> 10)
 
 
 (* SETS *)
 
 (* empty set *)
 notation (latex)
-  "Set.empty" ("\<emptyset>")
+  "Set.empty" (\<open>\<emptyset>\<close>)
 
 (* insert *)
 translations 
@@ -48,8 +48,8 @@ translations
 
 (* set comprehension *)
 syntax (latex output)
-  "_Collect" :: "pttrn => bool => 'a set"              ("(1{_ | _})")
-  "_CollectIn" :: "pttrn => 'a set => bool => 'a set"   ("(1{_ \<in> _ | _})")
+  "_Collect" :: "pttrn => bool => 'a set"              (\<open>(1{_ | _})\<close>)
+  "_CollectIn" :: "pttrn => 'a set => bool => 'a set"   (\<open>(1{_ \<in> _ | _})\<close>)
 translations
   "_Collect p P"      <= "{p. P}"
   "_Collect p P"      <= "{p|xs. P}"
@@ -57,56 +57,56 @@ translations
 
 (* card *)
 notation (latex output)
-  card  ("|_|")
+  card  (\<open>|_|\<close>)
 
 (* LISTS *)
 
 (* Cons *)
 notation (latex)
-  Cons  ("_ \<cdot>/ _" [66,65] 65)
+  Cons  (\<open>_ \<cdot>/ _\<close> [66,65] 65)
 
 (* length *)
 notation (latex output)
-  length  ("|_|")
+  length  (\<open>|_|\<close>)
 
 (* nth *)
 notation (latex output)
-  nth  ("_\<^latex>\<open>\\ensuremath{_{[\\mathit{\<close>_\<^latex>\<open>}]}}\<close>" [1000,0] 1000)
+  nth  (\<open>_\<^latex>\<open>\ensuremath{_{[\mathit{\<close>_\<^latex>\<open>}]}}\<close>\<close> [1000,0] 1000)
 
 (* DUMMY *)
-consts DUMMY :: 'a ("\<^latex>\<open>\\_\<close>")
+consts DUMMY :: 'a (\<open>\<^latex>\<open>\_\<close>\<close>)
 
 (* THEOREMS *)
 notation (Rule output)
-  Pure.imp  ("\<^latex>\<open>\\mbox{}\\inferrule{\\mbox{\<close>_\<^latex>\<open>}}\<close>\<^latex>\<open>{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
+  Pure.imp  (\<open>\<^latex>\<open>\mbox{}\inferrule{\mbox{\<close>_\<^latex>\<open>}}\<close>\<^latex>\<open>{\mbox{\<close>_\<^latex>\<open>}}\<close>\<close>)
 
 syntax (Rule output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^latex>\<open>\\mbox{}\\inferrule{\<close>_\<^latex>\<open>}\<close>\<^latex>\<open>{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
+  (\<open>\<^latex>\<open>\mbox{}\inferrule{\<close>_\<^latex>\<open>}\<close>\<^latex>\<open>{\mbox{\<close>_\<^latex>\<open>}}\<close>\<close>)
 
   "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" 
-  ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\\\\\<close>/ _")
+  (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\\\<close>/ _\<close>)
 
-  "_asm" :: "prop \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>")
+  "_asm" :: "prop \<Rightarrow> asms" (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\<close>\<close>)
 
 notation (Axiom output)
-  "Trueprop"  ("\<^latex>\<open>\\mbox{}\\inferrule{\\mbox{}}{\\mbox{\<close>_\<^latex>\<open>}}\<close>")
+  "Trueprop"  (\<open>\<^latex>\<open>\mbox{}\inferrule{\mbox{}}{\mbox{\<close>_\<^latex>\<open>}}\<close>\<close>)
 
 notation (IfThen output)
-  Pure.imp  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _/ \<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
+  Pure.imp  (\<open>\<^latex>\<open>{\normalsize{}\<close>If\<^latex>\<open>\,}\<close> _/ \<^latex>\<open>{\normalsize \,\<close>then\<^latex>\<open>\,}\<close>/ _.\<close>)
 syntax (IfThen output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _ /\<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
-  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close> /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
-  "_asm" :: "prop \<Rightarrow> asms" ("\<^latex>\<open>\\mbox{\<close>_\<^latex>\<open>}\<close>")
+  (\<open>\<^latex>\<open>{\normalsize{}\<close>If\<^latex>\<open>\,}\<close> _ /\<^latex>\<open>{\normalsize \,\<close>then\<^latex>\<open>\,}\<close>/ _.\<close>)
+  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\<close> /\<^latex>\<open>{\normalsize \,\<close>and\<^latex>\<open>\,}\<close>/ _\<close>)
+  "_asm" :: "prop \<Rightarrow> asms" (\<open>\<^latex>\<open>\mbox{\<close>_\<^latex>\<open>}\<close>\<close>)
 
 notation (IfThenNoBox output)
-  Pure.imp  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _/ \<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
+  Pure.imp  (\<open>\<^latex>\<open>{\normalsize{}\<close>If\<^latex>\<open>\,}\<close> _/ \<^latex>\<open>{\normalsize \,\<close>then\<^latex>\<open>\,}\<close>/ _.\<close>)
 syntax (IfThenNoBox output)
   "_bigimpl" :: "asms \<Rightarrow> prop \<Rightarrow> prop"
-  ("\<^latex>\<open>{\\normalsize{}\<close>If\<^latex>\<open>\\,}\<close> _ /\<^latex>\<open>{\\normalsize \\,\<close>then\<^latex>\<open>\\,}\<close>/ _.")
-  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" ("_ /\<^latex>\<open>{\\normalsize \\,\<close>and\<^latex>\<open>\\,}\<close>/ _")
-  "_asm" :: "prop \<Rightarrow> asms" ("_")
+  (\<open>\<^latex>\<open>{\normalsize{}\<close>If\<^latex>\<open>\,}\<close> _ /\<^latex>\<open>{\normalsize \,\<close>then\<^latex>\<open>\,}\<close>/ _.\<close>)
+  "_asms" :: "prop \<Rightarrow> asms \<Rightarrow> asms" (\<open>_ /\<^latex>\<open>{\normalsize \,\<close>and\<^latex>\<open>\,}\<close>/ _\<close>)
+  "_asm" :: "prop \<Rightarrow> asms" (\<open>_\<close>)
 
 setup \<open>
   Document_Output.antiquotation_pretty_source_embedded \<^binding>\<open>const_typ\<close>

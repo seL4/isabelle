@@ -4,7 +4,7 @@ begin
 
 datatype 'a rexp = Zero | Eps | Atom 'a | Alt "'a rexp" "'a rexp" | Conc "'a rexp" "'a rexp" | Star "'a rexp"
 
-inductive ACI (infix "~" 64) where
+inductive ACI (infix \<open>~\<close> 64) where
   a1: "Alt (Alt r s) t ~ Alt r (Alt s t)"
 | a2: "Alt r (Alt s t) ~ Alt (Alt r s) t"
 | c: "Alt r s ~ Alt s r"
@@ -16,7 +16,7 @@ inductive ACI (infix "~" 64) where
 
 declare ACI.intros[intro]
 
-abbreviation ACIcl (infix "~~" 64) where "(~~) \<equiv> equivclp (~)"
+abbreviation ACIcl (infix \<open>~~\<close> 64) where "(~~) \<equiv> equivclp (~)"
 
 lemma eq_set_preserves_inter:
   fixes eq set
@@ -305,7 +305,7 @@ lemma confluent_quotient_ACI:
       intro: equivpI reflpI sympI transpI
       strong_confluentp_imp_confluentp[OF strong_confluentp_ACI])
 
-inductive ACIEQ (infix "\<approx>" 64) where
+inductive ACIEQ (infix \<open>\<approx>\<close> 64) where
   a: "Alt (Alt r s) t \<approx> Alt r (Alt s t)"
 | c: "Alt r s \<approx> Alt s r"
 | i: "Alt r r \<approx> r"

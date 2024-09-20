@@ -267,25 +267,25 @@ definition Un_tables :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
   where "Un_tables ts = (\<lambda>k. \<Union>t\<in>ts. t k)"
 
 definition overrides_t :: "('a, 'b) tables \<Rightarrow> ('a, 'b) tables \<Rightarrow> ('a, 'b) tables"
-    (infixl "\<oplus>\<oplus>" 100)
+    (infixl \<open>\<oplus>\<oplus>\<close> 100)
   where "s \<oplus>\<oplus> t = (\<lambda>k. if t k = {} then s k else t k)"
 
 definition
   hidings_entails :: "('a, 'b) tables \<Rightarrow> ('a, 'c) tables \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"
-    ("_ hidings _ entails _" 20)
+    (\<open>_ hidings _ entails _\<close> 20)
   where "(t hidings s entails R) = (\<forall>k. \<forall>x\<in>t k. \<forall>y\<in>s k. R x y)"
 
 definition
   \<comment> \<open>variant for unique table:\<close>
   hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"
-    ("_ hiding _ entails _"  20)
+    (\<open>_ hiding _ entails _\<close>  20)
   where "(t hiding  s entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: R x y)"
 
 definition
   \<comment> \<open>variant for a unique table and conditional overriding:\<close>
   cond_hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  
                           \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"  
-                          ("_ hiding _ under _ entails _"  20)
+                          (\<open>_ hiding _ under _ entails _\<close>  20)
   where "(t hiding  s under C entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: C x y \<longrightarrow> R x y)"
 
 

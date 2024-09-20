@@ -119,7 +119,7 @@ definition exec_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> 
 
 definition
   exec_all_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ \<midarrow>jvmd\<rightarrow> _" [61,61,61]60) where
+                   (\<open>_ \<turnstile> _ \<midarrow>jvmd\<rightarrow> _\<close> [61,61,61]60) where
   "G \<turnstile> s \<midarrow>jvmd\<rightarrow> t \<longleftrightarrow>
          (s,t) \<in> ({(s,t). exec_d G s = TypeError \<and> t = TypeError} \<union>
                   {(s,t). \<exists>t'. exec_d G s = Normal (Some t') \<and> t = Normal t'})\<^sup>*"

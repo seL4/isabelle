@@ -3340,7 +3340,7 @@ subsection\<open>Homotopy equivalence\<close>
 subsection\<open>Homotopy equivalence of topological spaces.\<close>
 
 definition\<^marker>\<open>tag important\<close> homotopy_equivalent_space
-             (infix "homotopy'_equivalent'_space" 50)
+             (infix \<open>homotopy'_equivalent'_space\<close> 50)
   where "X homotopy_equivalent_space Y \<equiv>
         (\<exists>f g. continuous_map X Y f \<and>
               continuous_map Y X g \<and>
@@ -3781,7 +3781,7 @@ qed
 
 
 abbreviation\<^marker>\<open>tag important\<close> homotopy_eqv :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
-             (infix "homotopy'_eqv" 50)
+             (infix \<open>homotopy'_eqv\<close> 50)
   where "S homotopy_eqv T \<equiv> top_of_set S homotopy_equivalent_space top_of_set T"
 
 lemma homeomorphic_imp_homotopy_eqv: "S homeomorphic T \<Longrightarrow> S homotopy_eqv T"

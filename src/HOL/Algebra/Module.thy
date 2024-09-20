@@ -12,7 +12,7 @@ section \<open>Modules over an Abelian Group\<close>
 subsection \<open>Definitions\<close>
 
 record ('a, 'b) module = "'b ring" +
-  smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)
+  smult :: "['a, 'b] => 'b" (infixl \<open>\<odot>\<index>\<close> 70)
 
 locale module = R?: cring + M?: abelian_group M for M (structure) +
   assumes smult_closed [simp, intro]:

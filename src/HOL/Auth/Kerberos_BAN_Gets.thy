@@ -54,12 +54,12 @@ abbreviation
 
 definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
-  before :: "[event, event list] \<Rightarrow> event list" ("before _ on _")
+  before :: "[event, event list] \<Rightarrow> event list" (\<open>before _ on _\<close>)
   where "before ev on evs = takeWhile (\<lambda>z. z \<noteq> ev) (rev evs)"
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] \<Rightarrow> bool" ("Unique _ on _")
+  Unique :: "[event, event list] \<Rightarrow> bool" (\<open>Unique _ on _\<close>)
   where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (\<lambda>z. z \<noteq> ev) evs)))"
 
 

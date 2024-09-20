@@ -19,7 +19,7 @@ begin
 
 text\<open>The semantic definition of a few connectives:\<close>
 
-definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55)
+definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix \<open>\<bottom>\<close> 55)
   where "h1 \<bottom> h2 \<longleftrightarrow> dom h1 \<inter> dom h2 = {}"
 
 definition is_empty :: "heap \<Rightarrow> bool"
@@ -51,10 +51,10 @@ program variable H, and assertions should not contain any locally
 bound Hs - otherwise they may bind the implicit H.\<close>
 
 syntax
- "_emp" :: "bool" ("emp")
- "_singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" ("[_ \<mapsto> _]")
- "_star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "**" 60)
- "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl "-*" 60)
+ "_emp" :: "bool" (\<open>emp\<close>)
+ "_singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" (\<open>[_ \<mapsto> _]\<close>)
+ "_star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl \<open>**\<close> 60)
+ "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl \<open>-*\<close> 60)
 
 (* FIXME does not handle "_idtdummy" *)
 ML \<open>

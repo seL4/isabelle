@@ -50,9 +50,9 @@ datatype
 text\<open>Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...\<close>
 nonterminal mtuple_args
 syntax
-  "" :: "'a \<Rightarrow> mtuple_args"  ("_")
-  "_MTuple_args" :: "'a \<Rightarrow> mtuple_args \<Rightarrow> mtuple_args"  ("_,/ _")
-  "_MTuple" :: "['a, mtuple_args] \<Rightarrow> 'a * 'b"  ("(2\<lbrace>_,/ _\<rbrace>)")
+  "" :: "'a \<Rightarrow> mtuple_args"  (\<open>_\<close>)
+  "_MTuple_args" :: "'a \<Rightarrow> mtuple_args \<Rightarrow> mtuple_args"  (\<open>_,/ _\<close>)
+  "_MTuple" :: "['a, mtuple_args] \<Rightarrow> 'a * 'b"  (\<open>(2\<lbrace>_,/ _\<rbrace>)\<close>)
 syntax_consts
   "_MTuple_args" "_MTuple" \<rightleftharpoons> MPair
 translations
@@ -60,7 +60,7 @@ translations
   "\<lbrace>x, y\<rbrace>" \<rightleftharpoons> "CONST MPair x y"
 
 
-definition HPair :: "[msg,msg] => msg" ("(4Hash[_] /_)" [0, 1000]) where
+definition HPair :: "[msg,msg] => msg" (\<open>(4Hash[_] /_)\<close> [0, 1000]) where
     \<comment> \<open>Message Y paired with a MAC computed with the help of X\<close>
     "Hash[X] Y == \<lbrace> Hash\<lbrace>X,Y\<rbrace>, Y\<rbrace>"
 

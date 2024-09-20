@@ -38,7 +38,7 @@ quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
 
 subsection \<open>Lifted constant definitions\<close>
 
-lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric list.ctr_transfer(1) .
+lift_definition fnil :: "'a fset" (\<open>{||}\<close>) is "[]" parametric list.ctr_transfer(1) .
 
 lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric list.ctr_transfer(2)
   by simp
@@ -97,19 +97,19 @@ end
 
 nonterminal fset_args
 syntax
-  "" :: "'a \<Rightarrow> fset_args"  ("_")
-  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  ("_,/ _")
-  "_fset" :: "fset_args => 'a fset"  ("{|(_)|}")
+  "" :: "'a \<Rightarrow> fset_args"  (\<open>_\<close>)
+  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  (\<open>_,/ _\<close>)
+  "_fset" :: "fset_args => 'a fset"  (\<open>{|(_)|}\<close>)
 syntax_consts
   "_fset_args" "_fset" == fcons
 translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"
 
-lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is "\<lambda>x xs. x \<in> set xs"
+lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<in>|\<close> 50) is "\<lambda>x xs. x \<in> set xs"
    parametric member_transfer by simp
 
-abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
+abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<notin>|\<close> 50) where
   "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
 lemma fmember_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> a = f b)"

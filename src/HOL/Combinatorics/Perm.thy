@@ -27,7 +27,7 @@ qed
 
 setup_lifting type_definition_perm
 
-notation "apply" (infixl "\<langle>$\<rangle>" 999)
+notation "apply" (infixl \<open>\<langle>$\<rangle>\<close> 999)
 
 lemma bij_apply [simp]:
   "bij (apply f)"
@@ -731,7 +731,7 @@ qed
 
 subsection \<open>Swaps\<close>
 
-lift_definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a perm"  ("\<langle>_ \<leftrightarrow> _\<rangle>")
+lift_definition swap :: "'a \<Rightarrow> 'a \<Rightarrow> 'a perm"  (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
   is "\<lambda>a b. transpose a b"
 proof
   fix a b :: 'a
@@ -778,7 +778,7 @@ lemma inverse_swap [simp]:
 
 subsection \<open>Permutations specified by cycles\<close>
 
-fun cycle :: "'a list \<Rightarrow> 'a perm"  ("\<langle>_\<rangle>")
+fun cycle :: "'a list \<Rightarrow> 'a perm"  (\<open>\<langle>_\<rangle>\<close>)
 where
   "\<langle>[]\<rangle> = 1"
 | "\<langle>[a]\<rangle> = 1"
@@ -794,16 +794,16 @@ subsection \<open>Syntax\<close>
 
 bundle no_permutation_syntax
 begin
-  no_notation swap    ("\<langle>_ \<leftrightarrow> _\<rangle>")
-  no_notation cycle   ("\<langle>_\<rangle>")
-  no_notation "apply" (infixl "\<langle>$\<rangle>" 999)
+  no_notation swap    (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
+  no_notation cycle   (\<open>\<langle>_\<rangle>\<close>)
+  no_notation "apply" (infixl \<open>\<langle>$\<rangle>\<close> 999)
 end
 
 bundle permutation_syntax
 begin
-  notation swap       ("\<langle>_ \<leftrightarrow> _\<rangle>")
-  notation cycle      ("\<langle>_\<rangle>")
-  notation "apply"    (infixl "\<langle>$\<rangle>" 999)
+  notation swap       (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
+  notation cycle      (\<open>\<langle>_\<rangle>\<close>)
+  notation "apply"    (infixl \<open>\<langle>$\<rangle>\<close> 999)
 end
 
 unbundle no_permutation_syntax

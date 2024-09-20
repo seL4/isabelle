@@ -11,12 +11,12 @@ ML_file \<open>../antiquote_setup.ML\<close>
 ML_file \<open>../more_antiquote.ML\<close>
 
 no_syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
 
 syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
 
 declare [[default_code_width = 74]]
 

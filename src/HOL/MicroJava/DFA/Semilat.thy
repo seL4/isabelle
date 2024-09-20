@@ -25,26 +25,26 @@ definition plussub :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \
   where "plussub x f y = f x y"
 
 notation (ASCII)
-  "lesub"  ("(_ /<='__ _)" [50, 1000, 51] 50) and
-  "lesssub"  ("(_ /<'__ _)" [50, 1000, 51] 50) and
-  "plussub"  ("(_ /+'__ _)" [65, 1000, 66] 65)
+  "lesub"  (\<open>(_ /<='__ _)\<close> [50, 1000, 51] 50) and
+  "lesssub"  (\<open>(_ /<'__ _)\<close> [50, 1000, 51] 50) and
+  "plussub"  (\<open>(_ /+'__ _)\<close> [65, 1000, 66] 65)
 
 notation
-  "lesub"  ("(_ /\<sqsubseteq>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
-  "lesssub"  ("(_ /\<sqsubset>\<^bsub>_\<^esub> _)" [50, 0, 51] 50) and
-  "plussub"  ("(_ /\<squnion>\<^bsub>_\<^esub> _)" [65, 0, 66] 65)
+  "lesub"  (\<open>(_ /\<sqsubseteq>\<^bsub>_\<^esub> _)\<close> [50, 0, 51] 50) and
+  "lesssub"  (\<open>(_ /\<sqsubset>\<^bsub>_\<^esub> _)\<close> [50, 0, 51] 50) and
+  "plussub"  (\<open>(_ /\<squnion>\<^bsub>_\<^esub> _)\<close> [65, 0, 66] 65)
 
 (* allow \<sub> instead of \<bsub>..\<esub> *)
 abbreviation (input)
-  lesub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubseteq>\<^sub>_ _)" [50, 1000, 51] 50)
+  lesub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(_ /\<sqsubseteq>\<^sub>_ _)\<close> [50, 1000, 51] 50)
   where "x \<sqsubseteq>\<^sub>r y == x \<sqsubseteq>\<^bsub>r\<^esub> y"
 
 abbreviation (input)
-  lesssub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" ("(_ /\<sqsubset>\<^sub>_ _)" [50, 1000, 51] 50)
+  lesssub1 :: "'a \<Rightarrow> 'a ord \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(_ /\<sqsubset>\<^sub>_ _)\<close> [50, 1000, 51] 50)
   where "x \<sqsubset>\<^sub>r y == x \<sqsubset>\<^bsub>r\<^esub> y"
 
 abbreviation (input)
-  plussub1 :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" ("(_ /\<squnion>\<^sub>_ _)" [65, 1000, 66] 65)
+  plussub1 :: "'a \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'c" (\<open>(_ /\<squnion>\<^sub>_ _)\<close> [65, 1000, 66] 65)
   where "x \<squnion>\<^sub>f y == x \<squnion>\<^bsub>f\<^esub> y"
 
 definition ord :: "('a \<times> 'a) set \<Rightarrow> 'a ord" where

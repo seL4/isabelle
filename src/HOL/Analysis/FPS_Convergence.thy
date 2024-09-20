@@ -618,7 +618,7 @@ text \<open>
 \<close>
 definition\<^marker>\<open>tag important\<close>
   has_fps_expansion :: "('a :: {banach,real_normed_div_algebra} \<Rightarrow> 'a) \<Rightarrow> 'a fps \<Rightarrow> bool"
-  (infixl "has'_fps'_expansion" 60) 
+  (infixl \<open>has'_fps'_expansion\<close> 60) 
   where "(f has_fps_expansion F) \<longleftrightarrow> 
             fps_conv_radius F > 0 \<and> eventually (\<lambda>z. eval_fps F z = f z) (nhds 0)"
 

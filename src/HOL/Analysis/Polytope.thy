@@ -8,7 +8,7 @@ begin
 
 subsection \<open>Faces of a (usually convex) set\<close>
 
-definition\<^marker>\<open>tag important\<close> face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr "(face'_of)" 50)
+definition\<^marker>\<open>tag important\<close> face_of :: "['a::real_vector set, 'a set] \<Rightarrow> bool" (infixr \<open>(face'_of)\<close> 50)
   where
   "T face_of S \<longleftrightarrow>
         T \<subseteq> S \<and> convex T \<and>
@@ -654,7 +654,7 @@ subsection\<open>Exposed faces\<close>
 text\<open>That is, faces that are intersection with supporting hyperplane\<close>
 
 definition\<^marker>\<open>tag important\<close> exposed_face_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
-                               (infixr "(exposed'_face'_of)" 50)
+                               (infixr \<open>(exposed'_face'_of)\<close> 50)
   where "T exposed_face_of S \<longleftrightarrow>
          T face_of S \<and> (\<exists>a b. S \<subseteq> {x. a \<bullet> x \<le> b} \<and> T = S \<inter> {x. a \<bullet> x = b})"
 
@@ -873,7 +873,7 @@ qed
 subsection\<open>Extreme points of a set: its singleton faces\<close>
 
 definition\<^marker>\<open>tag important\<close> extreme_point_of :: "['a::real_vector, 'a set] \<Rightarrow> bool"
-                               (infixr "(extreme'_point'_of)" 50)
+                               (infixr \<open>(extreme'_point'_of)\<close> 50)
   where "x extreme_point_of S \<longleftrightarrow>
          x \<in> S \<and> (\<forall>a \<in> S. \<forall>b \<in> S. x \<notin> open_segment a b)"
 
@@ -979,7 +979,7 @@ qed
 subsection\<open>Facets\<close>
 
 definition\<^marker>\<open>tag important\<close> facet_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"
-                    (infixr "(facet'_of)" 50)
+                    (infixr \<open>(facet'_of)\<close> 50)
   where "F facet_of S \<longleftrightarrow> F face_of S \<and> F \<noteq> {} \<and> aff_dim F = aff_dim S - 1"
 
 lemma facet_of_empty [simp]: "\<not> S facet_of {}"
@@ -1024,7 +1024,7 @@ lemma facet_of_halfspace_ge:
 
 subsection \<open>Edges: faces of affine dimension 1\<close> (*FIXME too small subsection, rearrange? *)
 
-definition\<^marker>\<open>tag important\<close> edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr "(edge'_of)" 50)
+definition\<^marker>\<open>tag important\<close> edge_of :: "['a::euclidean_space set, 'a set] \<Rightarrow> bool"  (infixr \<open>(edge'_of)\<close> 50)
   where "e edge_of S \<longleftrightarrow> e face_of S \<and> aff_dim e = 1"
 
 lemma edge_of_imp_subset:
@@ -2984,7 +2984,7 @@ subsection\<open>Simplexes\<close>
 
 text\<open>The notion of n-simplex for integer \<^term>\<open>n \<ge> -1\<close>\<close>
 
-definition\<^marker>\<open>tag important\<close> simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix "simplex" 50)
+definition\<^marker>\<open>tag important\<close> simplex :: "int \<Rightarrow> 'a::euclidean_space set \<Rightarrow> bool" (infix \<open>simplex\<close> 50)
   where "n simplex S \<equiv> \<exists>C. \<not> affine_dependent C \<and> int(card C) = n + 1 \<and> S = convex hull C"
 
 lemma simplex:

@@ -10,10 +10,10 @@ theory Order_Union
   imports Main
 begin
 
-definition Osum :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel"  (infix "Osum" 60) where
+definition Osum :: "'a rel \<Rightarrow> 'a rel \<Rightarrow> 'a rel"  (infix \<open>Osum\<close> 60) where
   "r Osum r' = r \<union> r' \<union> {(a, a'). a \<in> Field r \<and> a' \<in> Field r'}"
 
-notation Osum  (infix "\<union>o" 60)
+notation Osum  (infix \<open>\<union>o\<close> 60)
 
 lemma Field_Osum: "Field (r \<union>o r') = Field r \<union> Field r'"
   unfolding Osum_def Field_def by blast

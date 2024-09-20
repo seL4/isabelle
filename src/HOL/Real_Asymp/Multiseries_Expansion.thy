@@ -2802,7 +2802,7 @@ qed
 
 
 inductive expands_to :: "(real \<Rightarrow> real) \<Rightarrow> 'a :: multiseries \<Rightarrow> basis \<Rightarrow> bool" 
-    (infix "(expands'_to)" 50) where
+    (infix \<open>(expands'_to)\<close> 50) where
   "is_expansion F basis \<Longrightarrow> eventually (\<lambda>x. eval F x = f x) at_top \<Longrightarrow> (f expands_to F) basis"
 
 lemma dominant_term_expands_to:
@@ -5375,7 +5375,7 @@ lemmas [simp del] = ms.map inverse_ms_aux.simps divide_ms.simps
 definition expansion_with_remainder_term :: "(real \<Rightarrow> real) \<Rightarrow> (real \<Rightarrow> real) set \<Rightarrow> bool" where
   "expansion_with_remainder_term _ _ = True"
 
-notation (output) expansion_with_remainder_term (infixl "+" 10)
+notation (output) expansion_with_remainder_term (infixl \<open>+\<close> 10)
 
 ML_file \<open>asymptotic_basis.ML\<close>
 ML_file \<open>exp_log_expression.ML\<close>

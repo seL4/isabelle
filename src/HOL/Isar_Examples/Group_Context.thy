@@ -11,7 +11,7 @@ begin
 text \<open>hypothetical group axiomatization\<close>
 
 context
-  fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<odot>" 70)
+  fixes prod :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>\<odot>\<close> 70)
     and one :: "'a"
     and inverse :: "'a \<Rightarrow> 'a"
   assumes assoc: "(x \<odot> y) \<odot> z = x \<odot> (y \<odot> z)"

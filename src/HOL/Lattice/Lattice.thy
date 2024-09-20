@@ -24,10 +24,10 @@ text \<open>
 \<close>
 
 definition
-  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<sqinter>" 70) where
+  meet :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>\<sqinter>\<close> 70) where
   "x \<sqinter> y = (THE inf. is_inf x y inf)"
 definition
-  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<squnion>" 65) where
+  join :: "'a::lattice \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>\<squnion>\<close> 65) where
   "x \<squnion> y = (THE sup. is_sup x y sup)"
 
 text \<open>

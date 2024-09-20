@@ -22,7 +22,7 @@ inductive_simps exact_seq_cons_iff [simp]: "exact_seq ((G # K # H # l), (g # h #
 
 abbreviation exact_seq_arrow ::
   "('a \<Rightarrow> 'a) \<Rightarrow> 'a monoid list \<times> ('a \<Rightarrow> 'a) list \<Rightarrow>  'a monoid \<Rightarrow> 'a monoid list \<times> ('a \<Rightarrow> 'a) list"
-  ("(3_ / \<longlongrightarrow>\<index> _)" [1000, 60])
+  (\<open>(3_ / \<longlongrightarrow>\<index> _)\<close> [1000, 60])
   where "exact_seq_arrow  f t G \<equiv> (G # (fst t), f # (snd t))"
 
 

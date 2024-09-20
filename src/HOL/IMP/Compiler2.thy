@@ -16,7 +16,7 @@ subsection \<open>Definitions\<close>
 text \<open>Execution in \<^term>\<open>n\<close> steps for simpler induction\<close>
 primrec 
   exec_n :: "instr list \<Rightarrow> config \<Rightarrow> nat \<Rightarrow> config \<Rightarrow> bool" 
-  ("_/ \<turnstile> (_ \<rightarrow>^_/ _)" [65,0,1000,55] 55)
+  (\<open>_/ \<turnstile> (_ \<rightarrow>^_/ _)\<close> [65,0,1000,55] 55)
 where 
   "P \<turnstile> c \<rightarrow>^0 c' = (c'=c)" |
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"

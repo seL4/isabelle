@@ -17,9 +17,9 @@ text \<open>
   \<open>nitpick\<close>, which is used below.)
 \<close>
 
-no_notation Groups.one_class.one ("1")
+no_notation Groups.one_class.one (\<open>1\<close>)
 
-datatype digit = A ("1") | B ("2") | C ("3") | D ("4") | E ("5") | F ("6") | G ("7") | H ("8") | I ("9")
+datatype digit = A (\<open>1\<close>) | B (\<open>2\<close>) | C (\<open>3\<close>) | D (\<open>4\<close>) | E (\<open>5\<close>) | F (\<open>6\<close>) | G (\<open>7\<close>) | H (\<open>8\<close>) | I (\<open>9\<close>)
 
 definition valid :: "digit => digit => digit => digit => digit => digit => digit => digit => digit => bool" where
 

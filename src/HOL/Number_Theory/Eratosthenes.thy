@@ -14,7 +14,7 @@ subsection \<open>Preliminary: strict divisibility\<close>
 context dvd
 begin
 
-abbreviation dvd_strict :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd'_strict" 50)
+abbreviation dvd_strict :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>dvd'_strict\<close> 50)
 where
   "b dvd_strict a \<equiv> b dvd a \<and> \<not> a dvd b"
 

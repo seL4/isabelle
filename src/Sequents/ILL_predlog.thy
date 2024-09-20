@@ -5,16 +5,16 @@ begin
 typedecl plf
 
 consts
-  conj :: "[plf,plf] \<Rightarrow> plf"   (infixr "&" 35)
-  disj :: "[plf,plf] \<Rightarrow> plf"   (infixr "|" 35)
-  impl :: "[plf,plf] \<Rightarrow> plf"   (infixr ">" 35)
-  eq :: "[plf,plf] \<Rightarrow> plf"   (infixr "=" 35)
-  ff :: "plf"    ("ff")
+  conj :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>&\<close> 35)
+  disj :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>|\<close> 35)
+  impl :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>>\<close> 35)
+  eq :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>=\<close> 35)
+  ff :: "plf"    (\<open>ff\<close>)
 
-  PL    :: "plf \<Rightarrow> o"      ("[* / _ / *]" [] 100)
+  PL    :: "plf \<Rightarrow> o"      (\<open>[* / _ / *]\<close> [] 100)
 
 syntax
-  "_NG" :: "plf \<Rightarrow> plf"   ("- _ " [50] 55)
+  "_NG" :: "plf \<Rightarrow> plf"   (\<open>- _ \<close> [50] 55)
 
 translations
   "[* A & B *]" \<rightleftharpoons> "[*A*] && [*B*]"

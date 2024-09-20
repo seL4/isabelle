@@ -6,7 +6,7 @@ subsubsection "Static Scoping of Procedures, Dynamic of Variables"
 type_synonym penv = "(pname \<times> com) list"
 
 inductive
-  big_step :: "penv \<Rightarrow> com \<times> state \<Rightarrow> state \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow> _" [60,0,60] 55)
+  big_step :: "penv \<Rightarrow> com \<times> state \<Rightarrow> state \<Rightarrow> bool" (\<open>_ \<turnstile> _ \<Rightarrow> _\<close> [60,0,60] 55)
 where
 Skip:    "pe \<turnstile> (SKIP,s) \<Rightarrow> s" |
 Assign:  "pe \<turnstile> (x ::= a,s) \<Rightarrow> s(x := aval a s)" |

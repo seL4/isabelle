@@ -28,42 +28,42 @@ lemma funcset_carrier':
 subsection \<open>Structure with Carrier and Equivalence Relation \<open>eq\<close>\<close>
 
 record 'a eq_object = "'a partial_object" +
-  eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".=\<index>" 50)
+  eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>.=\<index>\<close> 50)
 
 definition
-  elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<in>\<index>" 50)
+  elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl \<open>.\<in>\<index>\<close> 50)
   where "x .\<in>\<^bsub>S\<^esub> A \<longleftrightarrow> (\<exists>y \<in> A. x .=\<^bsub>S\<^esub> y)"
 
 definition
-  set_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.=}\<index>" 50)
+  set_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl \<open>{.=}\<index>\<close> 50)
   where "A {.=}\<^bsub>S\<^esub> B \<longleftrightarrow> ((\<forall>x \<in> A. x .\<in>\<^bsub>S\<^esub> B) \<and> (\<forall>x \<in> B. x .\<in>\<^bsub>S\<^esub> A))"
 
 definition
-  eq_class_of :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set" ("class'_of\<index>")
+  eq_class_of :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set" (\<open>class'_of\<index>\<close>)
   where "class_of\<^bsub>S\<^esub> x = {y \<in> carrier S. x .=\<^bsub>S\<^esub> y}"
 
 definition
-  eq_classes :: "_ \<Rightarrow> ('a set) set" ("classes\<index>")
+  eq_classes :: "_ \<Rightarrow> ('a set) set" (\<open>classes\<index>\<close>)
   where "classes\<^bsub>S\<^esub> = {class_of\<^bsub>S\<^esub> x | x. x \<in> carrier S}"
 
 definition
-  eq_closure_of :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set" ("closure'_of\<index>")
+  eq_closure_of :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set" (\<open>closure'_of\<index>\<close>)
   where "closure_of\<^bsub>S\<^esub> A = {y \<in> carrier S. y .\<in>\<^bsub>S\<^esub> A}"
 
 definition
-  eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" ("is'_closed\<index>")
+  eq_is_closed :: "_ \<Rightarrow> 'a set \<Rightarrow> bool" (\<open>is'_closed\<index>\<close>)
   where "is_closed\<^bsub>S\<^esub> A \<longleftrightarrow> A \<subseteq> carrier S \<and> closure_of\<^bsub>S\<^esub> A = A"
 
 abbreviation
-  not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl ".\<noteq>\<index>" 50)
+  not_eq :: "_ \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>.\<noteq>\<index>\<close> 50)
   where "x .\<noteq>\<^bsub>S\<^esub> y \<equiv> \<not>(x .=\<^bsub>S\<^esub> y)"
 
 abbreviation
-  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl ".\<notin>\<index>" 50)
+  not_elem :: "_ \<Rightarrow> 'a \<Rightarrow> 'a set \<Rightarrow> bool" (infixl \<open>.\<notin>\<index>\<close> 50)
   where "x .\<notin>\<^bsub>S\<^esub> A \<equiv> \<not>(x .\<in>\<^bsub>S\<^esub> A)"
 
 abbreviation
-  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl "{.\<noteq>}\<index>" 50)
+  set_not_eq :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a set \<Rightarrow> bool" (infixl \<open>{.\<noteq>}\<index>\<close> 50)
   where "A {.\<noteq>}\<^bsub>S\<^esub> B \<equiv> \<not>(A {.=}\<^bsub>S\<^esub> B)"
 
 locale equivalence =

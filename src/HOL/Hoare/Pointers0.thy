@@ -24,9 +24,9 @@ subsection "Field access and update"
 
 syntax
   "_fassign"  :: "'a::ref => id => 'v => 's com"
-   ("(2_^._ :=/ _)" [70,1000,65] 61)
+   (\<open>(2_^._ :=/ _)\<close> [70,1000,65] 61)
   "_faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
-   ("_^._" [65,1000] 65)
+   (\<open>_^._\<close> [65,1000] 65)
 translations
   "p^.f := e"  =>  "f := CONST fun_upd f p e"
   "p^.f"       =>  "f p"

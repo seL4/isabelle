@@ -992,7 +992,7 @@ abbreviation ord_spmf :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow>
   where "ord_spmf ord \<equiv> rel_pmf (ord_option ord)"
 
 locale ord_spmf_syntax begin
-notation ord_spmf (infix "\<sqsubseteq>\<index>" 60)
+notation ord_spmf (infix \<open>\<sqsubseteq>\<index>\<close> 60)
 end
 
 lemma ord_spmf_map_spmf1: "ord_spmf R (map_spmf f p) = ord_spmf (\<lambda>x. R (f x)) p"
@@ -1805,7 +1805,7 @@ end
 
 subsection \<open>Restrictions on spmfs\<close>
 
-definition restrict_spmf :: "'a spmf \<Rightarrow> 'a set \<Rightarrow> 'a spmf" (infixl "\<upharpoonleft>" 110)
+definition restrict_spmf :: "'a spmf \<Rightarrow> 'a set \<Rightarrow> 'a spmf" (infixl \<open>\<upharpoonleft>\<close> 110)
   where "p \<upharpoonleft> A = map_pmf (\<lambda>x. x \<bind> (\<lambda>y. if y \<in> A then Some y else None)) p"
 
 lemma set_restrict_spmf [simp]: "set_spmf (p \<upharpoonleft> A) = set_spmf p \<inter> A"
@@ -2621,7 +2621,7 @@ lemma lossless_assert_spmf [iff]: "lossless_spmf (assert_spmf b) \<longleftright
 
 subsection \<open>Try\<close>
 
-definition try_spmf :: "'a spmf \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf" ("TRY _ ELSE _" [0,60] 59)
+definition try_spmf :: "'a spmf \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf" (\<open>TRY _ ELSE _\<close> [0,60] 59)
 where "try_spmf p q = bind_pmf p (\<lambda>x. case x of None \<Rightarrow> q | Some y \<Rightarrow> return_spmf y)"
 
 lemma try_spmf_lossless [simp]:

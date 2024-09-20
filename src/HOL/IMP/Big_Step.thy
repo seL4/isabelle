@@ -12,7 +12,7 @@ so the syntax becomes \<open>(c,s) \<Rightarrow> s'\<close>.
 
 text_raw\<open>\snip{BigStepdef}{0}{1}{%\<close>
 inductive
-  big_step :: "com \<times> state \<Rightarrow> state \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
+  big_step :: "com \<times> state \<Rightarrow> state \<Rightarrow> bool" (infix \<open>\<Rightarrow>\<close> 55)
 where
 Skip: "(SKIP,s) \<Rightarrow> s" |
 Assign: "(x ::= a,s) \<Rightarrow> s(x := aval a s)" |
@@ -163,7 +163,7 @@ text \<open>
 \<close>
 text_raw\<open>\snip{BigStepEquiv}{0}{1}{%\<close>
 abbreviation
-  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix "\<sim>" 50) where
+  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" (infix \<open>\<sim>\<close> 50) where
   "c \<sim> c' \<equiv> (\<forall>s t. (c,s) \<Rightarrow> t  =  (c',s) \<Rightarrow> t)"
 text_raw\<open>}%endsnip\<close>
 

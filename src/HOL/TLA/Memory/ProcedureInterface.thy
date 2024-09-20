@@ -41,7 +41,7 @@ definition slice :: "('a \<Rightarrow> 'b) stfun \<Rightarrow> 'a \<Rightarrow> 
   where "slice x i s \<equiv> x s i"
 
 syntax
-  "_slice" :: "[lift, 'a] \<Rightarrow> lift"  ("(_!_)" [70,70] 70)
+  "_slice" :: "[lift, 'a] \<Rightarrow> lift"  (\<open>(_!_)\<close> [70,70] 70)
 translations
   "_slice" \<rightleftharpoons> "CONST slice"
 
@@ -67,8 +67,8 @@ definition AReturn :: "('a,'r) channel \<Rightarrow> PrIds \<Rightarrow> 'r stfu
     \<and> (res<ch!p>$ = $v)"
 
 syntax
-  "_Call" :: "['a, 'b, lift] \<Rightarrow> lift"  ("(Call _ _ _)" [90,90,90] 90)
-  "_Return" :: "['a, 'b, lift] \<Rightarrow> lift"  ("(Return _ _ _)" [90,90,90] 90)
+  "_Call" :: "['a, 'b, lift] \<Rightarrow> lift"  (\<open>(Call _ _ _)\<close> [90,90,90] 90)
+  "_Return" :: "['a, 'b, lift] \<Rightarrow> lift"  (\<open>(Return _ _ _)\<close> [90,90,90] 90)
 translations
   "_Call" \<rightleftharpoons> "CONST ACall"
   "_Return" \<rightleftharpoons> "CONST AReturn"

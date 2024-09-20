@@ -14,7 +14,7 @@ text \<open>
   integers \<^term>\<open>\<nat>\<close>) This is useful e.g. for the Gamma function.
 \<close>
 
-definition nonpos_Ints ("\<int>\<^sub>\<le>\<^sub>0") where "\<int>\<^sub>\<le>\<^sub>0 = {of_int n |n. n \<le> 0}"
+definition nonpos_Ints (\<open>\<int>\<^sub>\<le>\<^sub>0\<close>) where "\<int>\<^sub>\<le>\<^sub>0 = {of_int n |n. n \<le> 0}"
 
 lemma zero_in_nonpos_Ints [simp,intro]: "0 \<in> \<int>\<^sub>\<le>\<^sub>0"
   unfolding nonpos_Ints_def by (auto intro!: exI[of _ "0::int"])
@@ -143,7 +143,7 @@ qed
 
 subsection\<open>Non-negative reals\<close>
 
-definition nonneg_Reals :: "'a::real_algebra_1 set"  ("\<real>\<^sub>\<ge>\<^sub>0")
+definition nonneg_Reals :: "'a::real_algebra_1 set"  (\<open>\<real>\<^sub>\<ge>\<^sub>0\<close>)
   where "\<real>\<^sub>\<ge>\<^sub>0 = {of_real r | r. r \<ge> 0}"
 
 lemma nonneg_Reals_of_real_iff [simp]: "of_real r \<in> \<real>\<^sub>\<ge>\<^sub>0 \<longleftrightarrow> r \<ge> 0"
@@ -210,7 +210,7 @@ lemma ii_not_nonneg_Reals [iff]: "\<i> \<notin> \<real>\<^sub>\<ge>\<^sub>0"
 
 subsection\<open>Non-positive reals\<close>
 
-definition nonpos_Reals :: "'a::real_algebra_1 set"  ("\<real>\<^sub>\<le>\<^sub>0")
+definition nonpos_Reals :: "'a::real_algebra_1 set"  (\<open>\<real>\<^sub>\<le>\<^sub>0\<close>)
   where "\<real>\<^sub>\<le>\<^sub>0 = {of_real r | r. r \<le> 0}"
 
 lemma nonpos_Reals_of_real_iff [simp]: "of_real r \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> r \<le> 0"

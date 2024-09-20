@@ -146,7 +146,7 @@ by (nominal_induct M avoiding: x y N L rule: lam.strong_induct)
 section \<open>Beta Reduction\<close>
 
 inductive
-  "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
+  "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta> _\<close> [80,80] 80)
 where
     b1[intro]: "s1\<longrightarrow>\<^sub>\<beta>s2 \<Longrightarrow> (App s1 t)\<longrightarrow>\<^sub>\<beta>(App s2 t)"
   | b2[intro]: "s1\<longrightarrow>\<^sub>\<beta>s2 \<Longrightarrow> (App t s1)\<longrightarrow>\<^sub>\<beta>(App t s2)"
@@ -159,7 +159,7 @@ nominal_inductive Beta
   by (simp_all add: abs_fresh fresh_fact')
 
 inductive
-  "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta>\<^sup>* _" [80,80] 80)
+  "Beta_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta>\<^sup>* _\<close> [80,80] 80)
 where
     bs1[intro, simp]: "M \<longrightarrow>\<^sub>\<beta>\<^sup>* M"
   | bs2[intro]: "\<lbrakk>M1\<longrightarrow>\<^sub>\<beta>\<^sup>* M2; M2 \<longrightarrow>\<^sub>\<beta> M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^sub>\<beta>\<^sup>* M3"
@@ -176,7 +176,7 @@ by (induct) (auto)
 section \<open>One-Reduction\<close>
 
 inductive
-  One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1 _" [80,80] 80)
+  One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>1 _\<close> [80,80] 80)
 where
     o1[intro!]:      "M\<longrightarrow>\<^sub>1M"
   | o2[simp,intro!]: "\<lbrakk>t1\<longrightarrow>\<^sub>1t2;s1\<longrightarrow>\<^sub>1s2\<rbrakk> \<Longrightarrow> (App t1 s1)\<longrightarrow>\<^sub>1(App t2 s2)"
@@ -189,7 +189,7 @@ nominal_inductive One
   by (simp_all add: abs_fresh fresh_fact')
 
 inductive
-  "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1\<^sup>* _" [80,80] 80)
+  "One_star"  :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>1\<^sup>* _\<close> [80,80] 80)
 where
     os1[intro, simp]: "M \<longrightarrow>\<^sub>1\<^sup>* M"
   | os2[intro]: "\<lbrakk>M1\<longrightarrow>\<^sub>1\<^sup>* M2; M2 \<longrightarrow>\<^sub>1 M3\<rbrakk> \<Longrightarrow> M1 \<longrightarrow>\<^sub>1\<^sup>* M3"

@@ -12,7 +12,7 @@ section \<open>Quotient Rings\<close>
 subsection \<open>Multiplication on Cosets\<close>
 
 definition rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"
-    ("[mod _:] _ \<Otimes>\<index> _" [81,81,81] 80)
+    (\<open>[mod _:] _ \<Otimes>\<index> _\<close> [81,81,81] 80)
   where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 
@@ -47,7 +47,7 @@ qed
 subsection \<open>Quotient Ring Definition\<close>
 
 definition FactRing :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) ring"
-    (infixl "Quot" 65)
+    (infixl \<open>Quot\<close> 65)
   where "FactRing R I =
     \<lparr>carrier = a_rcosets\<^bsub>R\<^esub> I, mult = rcoset_mult R I,
       one = (I +>\<^bsub>R\<^esub> \<one>\<^bsub>R\<^esub>), zero = I, add = set_add R\<rparr>"
@@ -539,7 +539,7 @@ definition
   where "ring_iso R S = { h. h \<in> ring_hom R S \<and> bij_betw h (carrier R) (carrier S) }"
 
 definition
-  is_ring_iso :: "_ \<Rightarrow> _ \<Rightarrow> bool" (infixr "\<simeq>" 60)
+  is_ring_iso :: "_ \<Rightarrow> _ \<Rightarrow> bool" (infixr \<open>\<simeq>\<close> 60)
   where "R \<simeq> S = (ring_iso R S \<noteq> {})"
 
 definition

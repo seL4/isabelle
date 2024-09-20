@@ -12,7 +12,7 @@ definition combine_per :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarro
   where "combine_per P R = (\<lambda>x y. P x \<and> P y) \<sqinter> R"
 
 lemma combine_per_simp [simp]:
-  "combine_per P R x y \<longleftrightarrow> P x \<and> P y \<and> x \<approx> y" for R (infixl "\<approx>" 50)
+  "combine_per P R x y \<longleftrightarrow> P x \<and> P y \<and> x \<approx> y" for R (infixl \<open>\<approx>\<close> 50)
   by (simp add: combine_per_def)
 
 lemma combine_per_top [simp]: "combine_per \<top> R = R"
@@ -27,7 +27,7 @@ lemma symp_combine_per: "symp R \<Longrightarrow> symp (combine_per P R)"
 lemma transp_combine_per: "transp R \<Longrightarrow> transp (combine_per P R)"
   by (auto simp add: transp_def trans_def combine_per_def)
 
-lemma combine_perI: "P x \<Longrightarrow> P y \<Longrightarrow> x \<approx> y \<Longrightarrow> combine_per P R x y" for R (infixl "\<approx>" 50)
+lemma combine_perI: "P x \<Longrightarrow> P y \<Longrightarrow> x \<approx> y \<Longrightarrow> combine_per P R x y" for R (infixl \<open>\<approx>\<close> 50)
   by (simp add: combine_per_def)
 
 lemma symp_combine_per_symp: "symp R \<Longrightarrow> symp (combine_per P R)"
@@ -37,7 +37,7 @@ lemma transp_combine_per_transp: "transp R \<Longrightarrow> transp (combine_per
   by (auto intro!: transpI elim: transpE)
 
 lemma equivp_combine_per_part_equivp [intro?]:
-  fixes R (infixl "\<approx>" 50)
+  fixes R (infixl \<open>\<approx>\<close> 50)
   assumes "\<exists>x. P x" and "equivp R"
   shows "part_equivp (combine_per P R)"
 proof -

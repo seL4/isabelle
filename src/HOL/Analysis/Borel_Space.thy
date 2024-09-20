@@ -859,7 +859,7 @@ lemma borel_measurable_inner[measurable (raw)]:
   by (rule borel_measurable_continuous_Pair) (intro continuous_intros)
 
 notation
-  eucl_less (infix "<e" 50)
+  eucl_less (infix \<open><e\<close> 50)
 
 lemma box_oc: "{x. a <e x \<and> x \<le> b} = {x. a <e x} \<inter> {..b}"
   and box_co: "{x. a \<le> x \<and> x <e b} = {a..} \<inter> {x. x <e b}"
@@ -1854,7 +1854,7 @@ lemma borel_measurable_pred_less[measurable (raw)]:
   unfolding Measurable.pred_def by (rule borel_measurable_less)
 
 no_notation
-  eucl_less (infix "<e" 50)
+  eucl_less (infix \<open><e\<close> 50)
 
 lemma borel_measurable_Max2[measurable (raw)]:
   fixes f::"_ \<Rightarrow> _ \<Rightarrow> 'a::{second_countable_topology, dense_linorder, linorder_topology}"

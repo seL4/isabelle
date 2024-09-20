@@ -18,11 +18,11 @@ abbreviation hypreal_of_real :: "real \<Rightarrow> real star"
 abbreviation hypreal_of_hypnat :: "hypnat \<Rightarrow> hypreal"
   where "hypreal_of_hypnat \<equiv> of_hypnat"
 
-definition omega :: hypreal  ("\<omega>")
+definition omega :: hypreal  (\<open>\<omega>\<close>)
   where "\<omega> = star_n (\<lambda>n. real (Suc n))"
     \<comment> \<open>an infinite number \<open>= [<1, 2, 3, \<dots>>]\<close>\<close>
 
-definition epsilon :: hypreal  ("\<epsilon>")
+definition epsilon :: hypreal  (\<open>\<epsilon>\<close>)
   where "\<epsilon> = star_n (\<lambda>n. inverse (real (Suc n)))"
     \<comment> \<open>an infinitesimal number \<open>= [<1, 1/2, 1/3, \<dots>>]\<close>\<close>
 
@@ -301,7 +301,7 @@ declare power_hypreal_of_real_neg_numeral [of _ "numeral w", simp] for w
 subsection \<open>Powers with Hypernatural Exponents\<close>
 
 text \<open>Hypernatural powers of hyperreals.\<close>
-definition pow :: "'a::power star \<Rightarrow> nat star \<Rightarrow> 'a star"  (infixr "pow" 80)
+definition pow :: "'a::power star \<Rightarrow> nat star \<Rightarrow> 'a star"  (infixr \<open>pow\<close> 80)
   where hyperpow_def [transfer_unfold]: "R pow N = ( *f2* (^)) R N"
 
 lemma Standard_hyperpow [simp]: "r \<in> Standard \<Longrightarrow> n \<in> Standard \<Longrightarrow> r pow n \<in> Standard"

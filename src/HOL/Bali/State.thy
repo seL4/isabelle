@@ -183,7 +183,7 @@ apply simp
 done
 
 definition
-  in_bounds :: "int \<Rightarrow> int \<Rightarrow> bool" ("(_/ in'_bounds _)" [50, 51] 50)
+  in_bounds :: "int \<Rightarrow> int \<Rightarrow> bool" (\<open>(_/ in'_bounds _)\<close> [50, 51] 50)
   where "i in_bounds k = (0 \<le> i \<and> i < k)"
 
 definition
@@ -306,11 +306,11 @@ done
 subsection "update"
 
 definition
-  gupd :: "oref  \<Rightarrow> obj \<Rightarrow> st \<Rightarrow> st" ("gupd'(_\<mapsto>_')" [10, 10] 1000)
+  gupd :: "oref  \<Rightarrow> obj \<Rightarrow> st \<Rightarrow> st" (\<open>gupd'(_\<mapsto>_')\<close> [10, 10] 1000)
   where "gupd r obj = case_st (\<lambda>g l. st (g(r\<mapsto>obj)) l)"
 
 definition
-  lupd :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" ("lupd'(_\<mapsto>_')" [10, 10] 1000)
+  lupd :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" (\<open>lupd'(_\<mapsto>_')\<close> [10, 10] 1000)
   where "lupd vn v = case_st (\<lambda>g l. st g (l(vn\<mapsto>v)))"
 
 definition

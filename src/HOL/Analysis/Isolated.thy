@@ -5,7 +5,7 @@ begin
 
 subsection \<open>Isolate and discrete\<close>
 
-definition (in topological_space) isolated_in:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "isolated'_in" 60)
+definition (in topological_space) isolated_in:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr \<open>isolated'_in\<close> 60)
   where "x isolated_in S \<longleftrightarrow> (x\<in>S \<and> (\<exists>T. open T \<and> T \<inter> S = {x}))"
 
 definition (in topological_space) discrete:: "'a set \<Rightarrow> bool"

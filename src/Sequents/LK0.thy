@@ -23,24 +23,24 @@ consts
 
   True         :: o
   False        :: o
-  equal        :: "['a,'a] \<Rightarrow> o"     (infixl "=" 50)
-  Not          :: "o \<Rightarrow> o"           ("\<not> _" [40] 40)
-  conj         :: "[o,o] \<Rightarrow> o"       (infixr "\<and>" 35)
-  disj         :: "[o,o] \<Rightarrow> o"       (infixr "\<or>" 30)
-  imp          :: "[o,o] \<Rightarrow> o"       (infixr "\<longrightarrow>" 25)
-  iff          :: "[o,o] \<Rightarrow> o"       (infixr "\<longleftrightarrow>" 25)
-  The          :: "('a \<Rightarrow> o) \<Rightarrow> 'a"  (binder "THE " 10)
-  All          :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder "\<forall>" 10)
-  Ex           :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder "\<exists>" 10)
+  equal        :: "['a,'a] \<Rightarrow> o"     (infixl \<open>=\<close> 50)
+  Not          :: "o \<Rightarrow> o"           (\<open>\<not> _\<close> [40] 40)
+  conj         :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<and>\<close> 35)
+  disj         :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<or>\<close> 30)
+  imp          :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<longrightarrow>\<close> 25)
+  iff          :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<longleftrightarrow>\<close> 25)
+  The          :: "('a \<Rightarrow> o) \<Rightarrow> 'a"  (binder \<open>THE \<close> 10)
+  All          :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder \<open>\<forall>\<close> 10)
+  Ex           :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder \<open>\<exists>\<close> 10)
 
 syntax
- "_Trueprop"    :: "two_seqe" ("((_)/ \<turnstile> (_))" [6,6] 5)
+ "_Trueprop"    :: "two_seqe" (\<open>((_)/ \<turnstile> (_))\<close> [6,6] 5)
 
 parse_translation \<open>[(\<^syntax_const>\<open>_Trueprop\<close>, K (two_seq_tr \<^const_syntax>\<open>Trueprop\<close>))]\<close>
 print_translation \<open>[(\<^const_syntax>\<open>Trueprop\<close>, K (two_seq_tr' \<^syntax_const>\<open>_Trueprop\<close>))]\<close>
 
 abbreviation
-  not_equal  (infixl "\<noteq>" 50) where
+  not_equal  (infixl \<open>\<noteq>\<close> 50) where
   "x \<noteq> y \<equiv> \<not> (x = y)"
 
 axiomatization where
@@ -104,7 +104,7 @@ axiomatization where
   The: "\<lbrakk>$H \<turnstile> $E, P(a), $F;  \<And>x.$H, P(x) \<turnstile> $E, x=a, $F\<rbrakk> \<Longrightarrow>
          $H \<turnstile> $E, P(THE x. P(x)), $F"
 
-definition If :: "[o, 'a, 'a] \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" 10)
+definition If :: "[o, 'a, 'a] \<Rightarrow> 'a" (\<open>(if (_)/ then (_)/ else (_))\<close> 10)
   where "If(P,x,y) \<equiv> THE z::'a. (P \<longrightarrow> z = x) \<and> (\<not> P \<longrightarrow> z = y)"
 
 

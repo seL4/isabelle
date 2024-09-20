@@ -11,7 +11,7 @@ definition stable :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bo
 
 inductive
   rghoare :: "['a com, 'a set, ('a \<times> 'a) set, ('a \<times> 'a) set, 'a set] \<Rightarrow> bool"
-    ("\<turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45)
+    (\<open>\<turnstile> _ sat [_, _, _, _]\<close> [60,0,0,0,0] 45)
 where
   Basic: "\<lbrakk> pre \<subseteq> {s. f s \<in> post}; {(s,t). s \<in> pre \<and> (t=f s \<or> t=s)} \<subseteq> guar;
             stable pre rely; stable post rely \<rbrakk>
@@ -59,7 +59,7 @@ type_synonym 'a par_rgformula =
 
 inductive
   par_rghoare :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool"
-    ("\<turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45)
+    (\<open>\<turnstile> _ SAT [_, _, _, _]\<close> [60,0,0,0,0] 45)
 where
   Parallel:
   "\<lbrakk> \<forall>i<length xs. rely \<union> (\<Union>j\<in>{j. j<length xs \<and> j\<noteq>i}. Guar(xs!j)) \<subseteq> Rely(xs!i);

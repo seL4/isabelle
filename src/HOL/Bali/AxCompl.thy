@@ -96,7 +96,7 @@ done
 subsubsection "init-le"
 
 definition
-  init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" ("_\<turnstile>init\<le>_"  [51,51] 50)
+  init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" (\<open>_\<turnstile>init\<le>_\<close>  [51,51] 50)
   where "G\<turnstile>init\<le>n = (\<lambda>s. card (nyinitcls G s) \<le> n)"
   
 lemma init_le_def2 [simp]: "(G\<turnstile>init\<le>n) s = (card (nyinitcls G s)\<le>n)"
@@ -116,7 +116,7 @@ done
 subsubsection "Most General Triples and Formulas"
 
 definition
-  remember_init_state :: "state assn" ("\<doteq>")
+  remember_init_state :: "state assn" (\<open>\<doteq>\<close>)
   where "\<doteq> \<equiv> \<lambda>Y s Z. s = Z"
 
 lemma remember_init_state_def2 [simp]: "\<doteq> Y = (=)"
@@ -125,11 +125,11 @@ apply (simp (no_asm))
 done
 
 definition
-  MGF ::"[state assn, term, prog] \<Rightarrow> state triple"   ("{_} _\<succ> {_\<rightarrow>}"[3,65,3]62)
+  MGF ::"[state assn, term, prog] \<Rightarrow> state triple"   (\<open>{_} _\<succ> {_\<rightarrow>}\<close>[3,65,3]62)
   where "{P} t\<succ> {G\<rightarrow>} = {P} t\<succ> {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')}"
 
 definition
-  MGFn :: "[nat, term, prog] \<Rightarrow> state triple" ("{=:_} _\<succ> {_\<rightarrow>}"[3,65,3]62)
+  MGFn :: "[nat, term, prog] \<Rightarrow> state triple" (\<open>{=:_} _\<succ> {_\<rightarrow>}\<close>[3,65,3]62)
   where "{=:n} t\<succ> {G\<rightarrow>} = {\<doteq> \<and>. G\<turnstile>init\<le>n} t\<succ> {G\<rightarrow>}"
 
 (* unused *)

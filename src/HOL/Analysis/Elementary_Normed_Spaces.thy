@@ -466,7 +466,7 @@ qed
 
 subsection \<open>Filters\<close>
 
-definition indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"  (infixr "indirection" 70)
+definition indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"  (infixr \<open>indirection\<close> 70)
   where "a indirection v = at a within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
 
 

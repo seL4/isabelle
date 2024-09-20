@@ -46,12 +46,12 @@ definition
 definition
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
-                                        ("(3_/ leadsTo[_]/ _)" [80,0,80] 80)
+                                        (\<open>(3_/ leadsTo[_]/ _)\<close> [80,0,80] 80)
   where "leadsETo A CC B = {F. (A,B) \<in> elt CC F}"
 
 definition
   LeadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
-                                        ("(3_/ LeadsTo[_]/ _)" [80,0,80] 80)
+                                        (\<open>(3_/ LeadsTo[_]/ _)\<close> [80,0,80] 80)
   where "LeadsETo A CC B =
       {F. F \<in> (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] B}"
 

@@ -23,7 +23,7 @@ where
     between each agent and his smartcard*)
    shouprubin_assumes_securemeans [iff]: "evs \<in> sr \<Longrightarrow> secureM"
 
-definition Unique :: "[event, event list] => bool" ("Unique _ on _") where
+definition Unique :: "[event, event list] => bool" (\<open>Unique _ on _\<close>) where
    "Unique ev on evs == 
       ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
 

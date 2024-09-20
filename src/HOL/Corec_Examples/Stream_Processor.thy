@@ -61,7 +61,7 @@ by(subst run.code; simp; fail)+
 lemma copy_sel[simp]: "out copy = Get (\<lambda>a. Put a copy)"
   by (subst copy.code; simp)
 
-corecursive sp_comp (infixl "oo" 65) where
+corecursive sp_comp (infixl \<open>oo\<close> 65) where
   "sp oo sp' = (case (out sp, out sp') of
       (Put b sp, _) \<Rightarrow> In (Put b (sp oo sp'))
     | (Get f, Put b sp) \<Rightarrow> In (f b) oo sp

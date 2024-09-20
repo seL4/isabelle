@@ -13,7 +13,7 @@ typedecl nat
 instance nat :: "term" ..
 
 axiomatization
-  Zero :: nat      ("0") and
+  Zero :: nat      (\<open>0\<close>) and
   Suc :: "nat \<Rightarrow> nat" and
   rec :: "[nat, 'a, [nat,'a] \<Rightarrow> 'a] \<Rightarrow> 'a"
 where
@@ -25,7 +25,7 @@ where
   rec_0:       "\<turnstile> rec(0,a,f) = a" and
   rec_Suc:     "\<turnstile> rec(Suc(m), a, f) = f(m, rec(m,a,f))"
 
-definition add :: "[nat, nat] \<Rightarrow> nat"  (infixl "+" 60)
+definition add :: "[nat, nat] \<Rightarrow> nat"  (infixl \<open>+\<close> 60)
   where "m + n == rec(m, n, \<lambda>x y. Suc(y))"
 
 

@@ -945,7 +945,7 @@ subsection \<open>Dimension of a topological space\<close>
 
 text\<open>Basic definition of the small inductive dimension relation. Works in any topological space.\<close>
 
-inductive dimension_le :: "['a topology, int] \<Rightarrow> bool" (infix "dim'_le" 50) 
+inductive dimension_le :: "['a topology, int] \<Rightarrow> bool" (infix \<open>dim'_le\<close> 50) 
   where "\<lbrakk>-1 \<le> n;
         \<And>V a. \<lbrakk>openin X V; a \<in> V\<rbrakk> \<Longrightarrow> \<exists>U. a \<in> U \<and> U \<subseteq> V \<and> openin X U \<and> (subtopology X (X frontier_of U)) dim_le (n-1)\<rbrakk>
               \<Longrightarrow> X dim_le (n::int)"

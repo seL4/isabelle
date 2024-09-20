@@ -7,7 +7,7 @@ begin
 subsection "Initialization-Sensitive Small Step Semantics"
 
 inductive
-  small_step :: "(com \<times> state) \<Rightarrow> (com \<times> state) \<Rightarrow> bool" (infix "\<rightarrow>" 55)
+  small_step :: "(com \<times> state) \<Rightarrow> (com \<times> state) \<Rightarrow> bool" (infix \<open>\<rightarrow>\<close> 55)
 where
 Assign:  "aval a s = Some i \<Longrightarrow> (x ::= a, s) \<rightarrow> (SKIP, s(x := Some i))" |
 
@@ -21,7 +21,7 @@ While:   "(WHILE b DO c,s) \<rightarrow> (IF b THEN c;; WHILE b DO c ELSE SKIP,s
 
 lemmas small_step_induct = small_step.induct[split_format(complete)]
 
-abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
+abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix \<open>\<rightarrow>*\<close> 55)
 where "x \<rightarrow>* y == star small_step x y"
 
 

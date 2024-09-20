@@ -17,7 +17,7 @@ datatype
         | DECRYPT  nat freemsg
 
 inductive
-  msgrel::"freemsg \<Rightarrow> freemsg \<Rightarrow> bool" (infixl "\<sim>" 50)
+  msgrel::"freemsg \<Rightarrow> freemsg \<Rightarrow> bool" (infixl \<open>\<sim>\<close> 50)
 where
   CD:    "CRYPT K (DECRYPT K X) \<sim> X"
 | DC:    "DECRYPT K (CRYPT K X) \<sim> X"

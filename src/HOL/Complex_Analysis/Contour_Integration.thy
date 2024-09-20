@@ -28,13 +28,13 @@ text\<open>
 \<close>
 
 definition\<^marker>\<open>tag important\<close> has_contour_integral :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> (real \<Rightarrow> complex) \<Rightarrow> bool"
-           (infixr "has'_contour'_integral" 50)
+           (infixr \<open>has'_contour'_integral\<close> 50)
   where "(f has_contour_integral i) g \<equiv>
            ((\<lambda>x. f(g x) * vector_derivative g (at x within {0..1}))
             has_integral i) {0..1}"
 
 definition\<^marker>\<open>tag important\<close> contour_integrable_on
-           (infixr "contour'_integrable'_on" 50)
+           (infixr \<open>contour'_integrable'_on\<close> 50)
   where "f contour_integrable_on g \<equiv> \<exists>i. (f has_contour_integral i) g"
 
 definition\<^marker>\<open>tag important\<close> contour_integral

@@ -964,7 +964,7 @@ lemma lmeasurable_iff_has_integral:
 
 abbreviation
   absolutely_integrable_on :: "('a::euclidean_space \<Rightarrow> 'b::{banach, second_countable_topology}) \<Rightarrow> 'a set \<Rightarrow> bool"
-  (infixr "absolutely'_integrable'_on" 46)
+  (infixr \<open>absolutely'_integrable'_on\<close> 46)
   where "f absolutely_integrable_on s \<equiv> set_integrable lebesgue s f"
 
 

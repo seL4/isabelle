@@ -40,7 +40,7 @@ text \<open>
 
 subsection \<open>The \<open>\<lesssim>\<close> relation\<close>
 
-definition less_eq_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<lesssim>" 50)
+definition less_eq_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix \<open>\<lesssim>\<close> 50)
 where
   "f \<lesssim> g \<longleftrightarrow> (\<exists>c>0. \<exists>n. \<forall>m>n. f m \<le> c * g m)"
 
@@ -73,7 +73,7 @@ lemma not_less_eq_funE:
 
 subsection \<open>The \<open>\<approx>\<close> relation, the equivalence relation induced by \<open>\<lesssim>\<close>\<close>
 
-definition equiv_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<cong>" 50)
+definition equiv_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix \<open>\<cong>\<close> 50)
 where
   "f \<cong> g \<longleftrightarrow>
     (\<exists>c\<^sub>1>0. \<exists>c\<^sub>2>0. \<exists>n. \<forall>m>n. f m \<le> c\<^sub>1 * g m \<and> g m \<le> c\<^sub>2 * f m)"
@@ -110,7 +110,7 @@ lemma not_equiv_funE:
 
 subsection \<open>The \<open>\<prec>\<close> relation, the strict part of \<open>\<lesssim>\<close>\<close>
 
-definition less_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix "\<prec>" 50)
+definition less_fun :: "(nat \<Rightarrow> nat) \<Rightarrow> (nat \<Rightarrow> nat) \<Rightarrow> bool" (infix \<open>\<prec>\<close> 50)
 where
   "f \<prec> g \<longleftrightarrow> f \<lesssim> g \<and> \<not> g \<lesssim> f"
 

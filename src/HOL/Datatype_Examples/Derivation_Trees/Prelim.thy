@@ -11,14 +11,14 @@ theory Prelim
 imports "HOL-Library.FSet"
 begin
 
-notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
+notation BNF_Def.convol (\<open>\<langle>(_,/ _)\<rangle>\<close>)
 
 declare fset_to_fset[simp]
 
 lemma fst_snd_convol_o[simp]: "\<langle>fst o s, snd o s\<rangle> = s"
 apply(rule ext) by (simp add: convol_def)
 
-abbreviation sm_abbrev (infix "\<oplus>" 60)
+abbreviation sm_abbrev (infix \<open>\<oplus>\<close> 60)
 where "f \<oplus> g \<equiv> Sum_Type.map_sum f g"
 
 lemma map_sum_InlD: "(f \<oplus> g) z = Inl x \<Longrightarrow> \<exists>y. z = Inl y \<and> f y = x"
@@ -27,7 +27,7 @@ by (cases z) auto
 lemma map_sum_InrD: "(f \<oplus> g) z = Inr x \<Longrightarrow> \<exists>y. z = Inr y \<and> g y = x"
 by (cases z) auto
 
-abbreviation case_sum_abbrev ("[[_,_]]" 800)
+abbreviation case_sum_abbrev (\<open>[[_,_]]\<close> 800)
 where "[[f,g]] \<equiv> Sum_Type.case_sum f g"
 
 lemma Inl_oplus_elim:

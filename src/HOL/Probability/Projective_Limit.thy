@@ -106,7 +106,7 @@ lemma emeasure_lim_emb:
   assumes X: "J \<subseteq> I" "finite J" "X \<in> sets (\<Pi>\<^sub>M i\<in>J. borel)"
   shows "lim (emb I J X) = P J X"
 proof (rule emeasure_lim)
-  write mu_G ("\<mu>G")
+  write mu_G (\<open>\<mu>G\<close>)
   interpret generator: algebra "space (PiM I (\<lambda>i. borel))" generator
     by (rule algebra_generator)
 

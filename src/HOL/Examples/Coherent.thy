@@ -12,8 +12,8 @@ begin
 subsection \<open>Equivalence of two versions of Pappus' Axiom\<close>
 
 no_notation
-  comp (infixl "o" 55) and
-  relcomp (infixr "O" 75)
+  comp (infixl \<open>o\<close> 55) and
+  relcomp (infixr \<open>O\<close> 75)
 
 lemma p1p2:
   assumes "col a b c l \<and> col d e f m"

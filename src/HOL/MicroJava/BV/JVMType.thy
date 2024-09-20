@@ -38,19 +38,19 @@ definition  sup :: "'c prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> st
   "sup S maxs maxr == snd(snd(sl S maxs maxr))"
 
 definition sup_ty_opt :: "['code prog,ty err,ty err] \<Rightarrow> bool"
-                 ("_ \<turnstile> _ <=o _" [71,71] 70) where 
+                 (\<open>_ \<turnstile> _ <=o _\<close> [71,71] 70) where 
   "sup_ty_opt G == Err.le (subtype G)"
 
 definition sup_loc :: "['code prog,locvars_type,locvars_type] \<Rightarrow> bool" 
-              ("_ \<turnstile> _ <=l _"  [71,71] 70) where
+              (\<open>_ \<turnstile> _ <=l _\<close>  [71,71] 70) where
   "sup_loc G == Listn.le (sup_ty_opt G)"
 
 definition sup_state :: "['code prog,state_type,state_type] \<Rightarrow> bool"   
-               ("_ \<turnstile> _ <=s _"  [71,71] 70) where
+               (\<open>_ \<turnstile> _ <=s _\<close>  [71,71] 70) where
   "sup_state G == Product.le (Listn.le (subtype G)) (sup_loc G)"
 
 definition sup_state_opt :: "['code prog,state_type option,state_type option] \<Rightarrow> bool" 
-                   ("_ \<turnstile> _ <='' _"  [71,71] 70) where
+                   (\<open>_ \<turnstile> _ <='' _\<close>  [71,71] 70) where
   "sup_state_opt G == Opt.le (sup_state G)"
 
 

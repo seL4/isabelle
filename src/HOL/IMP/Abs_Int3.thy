@@ -7,10 +7,10 @@ imports Abs_Int2_ivl
 begin
 
 class widen =
-fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<nabla>" 65)
+fixes widen :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix \<open>\<nabla>\<close> 65)
 
 class narrow =
-fixes narrow :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix "\<triangle>" 65)
+fixes narrow :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infix \<open>\<triangle>\<close> 65)
 
 class wn = widen + narrow + order +
 assumes widen1: "x \<le> x \<nabla> y"
@@ -398,7 +398,7 @@ apply(rule_tac x=p in bexI)
 done
 
 
-definition n_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^sub>s") where
+definition n_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" (\<open>n\<^sub>s\<close>) where
 "n\<^sub>s S X = (\<Sum>x\<in>X. n(fun S x))"
 
 lemma n_s_narrow_rep:
@@ -422,7 +422,7 @@ apply (transfer fixing: n)
 apply(auto simp add: less_eq_st_rep_iff eq_st_def fun_eq_iff n_s_narrow_rep)
 done
 
-definition n_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^sub>o") where
+definition n_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" (\<open>n\<^sub>o\<close>) where
 "n\<^sub>o opt X = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^sub>s S X + 1)"
 
 lemma n_o_narrow:
@@ -433,7 +433,7 @@ apply(auto simp: n_o_def n_s_narrow)
 done
 
 
-definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^sub>c") where
+definition n_c :: "'av st option acom \<Rightarrow> nat" (\<open>n\<^sub>c\<close>) where
 "n\<^sub>c C = sum_list (map (\<lambda>a. n\<^sub>o a (vars C)) (annos C))"
 
 lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>

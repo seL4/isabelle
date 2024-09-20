@@ -122,15 +122,15 @@ nonterminal sdo_binds and sdo_bind
 definition "sdo_syntax = ()"
 
 syntax
-  "_sdo_block" :: "sdo_binds \<Rightarrow> 'a" ("exec {//(2  _)//}" [12] 62)
-  "_sdo_bind"  :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(_ \<leftarrow>/ _)" 13)
-  "_sdo_let" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(2let _ =/ _)" [1000, 13] 13)
-  "_sdo_then" :: "'a \<Rightarrow> sdo_bind" ("_" [14] 13)
-  "_sdo_final" :: "'a \<Rightarrow> sdo_binds" ("_")
-  "_sdo_cons" :: "[sdo_bind, sdo_binds] \<Rightarrow> sdo_binds" ("_;//_" [13, 12] 12)
+  "_sdo_block" :: "sdo_binds \<Rightarrow> 'a" (\<open>exec {//(2  _)//}\<close> [12] 62)
+  "_sdo_bind"  :: "[pttrn, 'a] \<Rightarrow> sdo_bind" (\<open>(_ \<leftarrow>/ _)\<close> 13)
+  "_sdo_let" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" (\<open>(2let _ =/ _)\<close> [1000, 13] 13)
+  "_sdo_then" :: "'a \<Rightarrow> sdo_bind" (\<open>_\<close> [14] 13)
+  "_sdo_final" :: "'a \<Rightarrow> sdo_binds" (\<open>_\<close>)
+  "_sdo_cons" :: "[sdo_bind, sdo_binds] \<Rightarrow> sdo_binds" (\<open>_;//_\<close> [13, 12] 12)
 
 syntax (ASCII)
-  "_sdo_bind" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(_ <-/ _)" 13)
+  "_sdo_bind" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" (\<open>(_ <-/ _)\<close> 13)
 
 syntax_consts
   "_sdo_block" "_sdo_cons" == sdo_syntax and

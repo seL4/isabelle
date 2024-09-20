@@ -16,17 +16,17 @@ subsection \<open>Definition of continuous function type\<close>
 
 definition "cfun = {f::'a \<Rightarrow> 'b. cont f}"
 
-cpodef ('a, 'b) cfun ("(_ \<rightarrow>/ _)" [1, 0] 0) = "cfun :: ('a \<Rightarrow> 'b) set"
+cpodef ('a, 'b) cfun (\<open>(_ \<rightarrow>/ _)\<close> [1, 0] 0) = "cfun :: ('a \<Rightarrow> 'b) set"
   by (auto simp: cfun_def intro: cont_const adm_cont)
 
 type_notation (ASCII)
-  cfun  (infixr "->" 0)
+  cfun  (infixr \<open>->\<close> 0)
 
 notation (ASCII)
-  Rep_cfun  ("(_$/_)" [999,1000] 999)
+  Rep_cfun  (\<open>(_$/_)\<close> [999,1000] 999)
 
 notation
-  Rep_cfun  ("(_\<cdot>/_)" [999,1000] 999)
+  Rep_cfun  (\<open>(_\<cdot>/_)\<close> [999,1000] 999)
 
 
 subsection \<open>Syntax for continuous lambda abstraction\<close>
@@ -47,10 +47,10 @@ print_translation \<open>
 text \<open>Syntax for nested abstractions\<close>
 
 syntax (ASCII)
-  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
+  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic"  (\<open>(3LAM _./ _)\<close> [1000, 10] 10)
 
 syntax
-  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
+  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic" (\<open>(3\<Lambda> _./ _)\<close> [1000, 10] 10)
 
 syntax_consts
   "_Lambda" \<rightleftharpoons> Abs_cfun
@@ -417,7 +417,7 @@ definition ID :: "'a \<rightarrow> 'a"
 definition cfcomp  :: "('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"
   where oo_def: "cfcomp = (\<Lambda> f g x. f\<cdot>(g\<cdot>x))"
 
-abbreviation cfcomp_syn :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c"  (infixr "oo" 100)
+abbreviation cfcomp_syn :: "['b \<rightarrow> 'c, 'a \<rightarrow> 'b] \<Rightarrow> 'a \<rightarrow> 'c"  (infixr \<open>oo\<close> 100)
   where "f oo g == cfcomp\<cdot>f\<cdot>g"
 
 lemma ID1 [simp]: "ID\<cdot>x = x"

@@ -23,18 +23,18 @@ typedecl o
 consts
       (*** Judgements ***)
  Proof          ::   "[o,p]=>prop"
- EqProof        ::   "[p,p,o]=>prop"    ("(3_ /= _ :/ _)" [10,10,10] 5)
+ EqProof        ::   "[p,p,o]=>prop"    (\<open>(3_ /= _ :/ _)\<close> [10,10,10] 5)
 
       (*** Logical Connectives -- Type Formers ***)
- eq             ::      "['a,'a] => o"  (infixl "=" 50)
+ eq             ::      "['a,'a] => o"  (infixl \<open>=\<close> 50)
  True           ::      "o"
  False          ::      "o"
- conj           ::      "[o,o] => o"    (infixr "&" 35)
- disj           ::      "[o,o] => o"    (infixr "|" 30)
- imp            ::      "[o,o] => o"    (infixr "-->" 25)
+ conj           ::      "[o,o] => o"    (infixr \<open>&\<close> 35)
+ disj           ::      "[o,o] => o"    (infixr \<open>|\<close> 30)
+ imp            ::      "[o,o] => o"    (infixr \<open>-->\<close> 25)
       (*Quantifiers*)
- All            ::      "('a => o) => o"        (binder "ALL " 10)
- Ex             ::      "('a => o) => o"        (binder "EX " 10)
+ All            ::      "('a => o) => o"        (binder \<open>ALL \<close> 10)
+ Ex             ::      "('a => o) => o"        (binder \<open>EX \<close> 10)
       (*Rewriting gadgets*)
  NORM           ::      "o => o"
  norm           ::      "'a => 'a"
@@ -44,23 +44,23 @@ consts
  contr          :: "p=>p"
  fst            :: "p=>p"
  snd            :: "p=>p"
- pair           :: "[p,p]=>p"           ("(1<_,/_>)")
+ pair           :: "[p,p]=>p"           (\<open>(1<_,/_>)\<close>)
  split          :: "[p, [p,p]=>p] =>p"
  inl            :: "p=>p"
  inr            :: "p=>p"
  "when"         :: "[p, p=>p, p=>p]=>p"
- lambda         :: "(p => p) => p"      (binder "lam " 55)
- App            :: "[p,p]=>p"           (infixl "`" 60)
- alll           :: "['a=>p]=>p"         (binder "all " 55)
- app            :: "[p,'a]=>p"          (infixl "^" 55)
- exists         :: "['a,p]=>p"          ("(1[_,/_])")
+ lambda         :: "(p => p) => p"      (binder \<open>lam \<close> 55)
+ App            :: "[p,p]=>p"           (infixl \<open>`\<close> 60)
+ alll           :: "['a=>p]=>p"         (binder \<open>all \<close> 55)
+ app            :: "[p,'a]=>p"          (infixl \<open>^\<close> 55)
+ exists         :: "['a,p]=>p"          (\<open>(1[_,/_])\<close>)
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
  idpeel         :: "[p,'a=>p]=>p"
  nrm            :: p
  NRM            :: p
 
-syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
+syntax "_Proof" :: "[p,o]=>prop"    (\<open>(_ /: _)\<close> [51, 10] 5)
 
 parse_translation \<open>
   let fun proof_tr [p, P] = Syntax.const \<^const_syntax>\<open>Proof\<close> $ P $ p
@@ -155,14 +155,14 @@ specB:      "[| !!x. f(x) : P(x) |] ==> (all x. f(x)) ^ a = f(a) : P(a)"
 
 (**** Definitions ****)
 
-definition Not :: "o => o"  ("~ _" [40] 40)
+definition Not :: "o => o"  (\<open>~ _\<close> [40] 40)
   where not_def: "~P == P-->False"
 
-definition iff :: "[o,o] => o"  (infixr "<->" 25)
+definition iff :: "[o,o] => o"  (infixr \<open><->\<close> 25)
   where "P<->Q == (P-->Q) & (Q-->P)"
 
 (*Unique existence*)
-definition Ex1 :: "('a => o) => o"  (binder "EX! " 10)
+definition Ex1 :: "('a => o) => o"  (binder \<open>EX! \<close> 10)
   where ex1_def: "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
 (*Rewriting -- special constants to flag normalized terms and formulae*)

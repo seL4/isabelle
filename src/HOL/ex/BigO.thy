@@ -35,7 +35,7 @@ text \<open>
 
 subsection \<open>Definitions\<close>
 
-definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(1O'(_'))")
+definition bigo :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(1O'(_'))\<close>)
   where "O(f:: 'a \<Rightarrow> 'b) = {h. \<exists>c. \<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>}"
 
 lemma bigo_pos_const:
@@ -407,7 +407,7 @@ lemma bigo_fix2:
 
 subsection \<open>Less than or equal to\<close>
 
-definition lesso :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"  (infixl "<o" 70)
+definition lesso :: "('a \<Rightarrow> 'b::linordered_idom) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"  (infixl \<open><o\<close> 70)
   where "f <o g = (\<lambda>x. max (f x - g x) 0)"
 
 lemma bigo_lesseq1: "f =o O(h) \<Longrightarrow> \<forall>x. \<bar>g x\<bar> \<le> \<bar>f x\<bar> \<Longrightarrow> g =o O(h)"

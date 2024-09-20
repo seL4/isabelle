@@ -16,7 +16,7 @@ atom_decl name
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
-  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [100,100] 100)
 
 text \<open>
   The inductive relation 'unbind' unbinds the top-most  
@@ -27,7 +27,7 @@ text \<open>
   of the algorithm W.\<close>
 
 inductive
-  unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" ("_ \<mapsto> _,_" [60,60,60] 60)
+  unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" (\<open>_ \<mapsto> _,_\<close> [60,60,60] 60)
 where
   u_var: "(Var a) \<mapsto> [],(Var a)"
 | u_app: "(App t1 t2) \<mapsto> [],(App t1 t2)"
@@ -143,7 +143,7 @@ text \<open>
   strips off the top-most binders from lambdas.\<close>
 
 inductive
-  strip :: "lam \<Rightarrow> lam \<Rightarrow> bool" ("_ \<rightarrow> _" [60,60] 60)
+  strip :: "lam \<Rightarrow> lam \<Rightarrow> bool" (\<open>_ \<rightarrow> _\<close> [60,60] 60)
 where
   s_var: "(Var a) \<rightarrow> (Var a)"
 | s_app: "(App t1 t2) \<rightarrow> (App t1 t2)"

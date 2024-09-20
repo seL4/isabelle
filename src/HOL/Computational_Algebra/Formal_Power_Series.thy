@@ -20,7 +20,7 @@ typedef 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
   morphisms fps_nth Abs_fps
   by simp
 
-notation fps_nth (infixl "$" 75)
+notation fps_nth (infixl \<open>$\<close> 75)
 
 lemma expand_fps_eq: "p = q \<longleftrightarrow> (\<forall>n. p $ n = q $ n)"
   by (simp add: fps_nth_inject [symmetric] fun_eq_iff)
@@ -3633,7 +3633,7 @@ qed
 
 subsection \<open>Composition\<close>
 
-definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps"  (infixl "oo" 55)
+definition fps_compose :: "'a::semiring_1 fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps"  (infixl \<open>oo\<close> 55)
   where "a oo b = Abs_fps (\<lambda>n. sum (\<lambda>i. a$i * (b^i$n)) {0..n})"
 
 lemma fps_compose_nth: "(a oo b)$n = sum (\<lambda>i. a$i * (b^i$n)) {0..n}"
@@ -6191,11 +6191,11 @@ proof
 qed
 
 (* TODO: Figure out better notation for this thing *)
-no_notation fps_nth (infixl "$" 75)
+no_notation fps_nth (infixl \<open>$\<close> 75)
 
 bundle fps_notation
 begin
-notation fps_nth (infixl "$" 75)
+notation fps_nth (infixl \<open>$\<close> 75)
 end
 
 end

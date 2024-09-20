@@ -22,7 +22,7 @@ type_synonym env' = "prog \<times> (lname, ty) table" (* same as env of WellType
 subsubsection "extension of global store"
 
 
-definition gext :: "st \<Rightarrow> st \<Rightarrow> bool" ("_\<le>|_"       [71,71]   70) where
+definition gext :: "st \<Rightarrow> st \<Rightarrow> bool" (\<open>_\<le>|_\<close>       [71,71]   70) where
    "s\<le>|s' \<equiv> \<forall>r. \<forall>obj\<in>globs s r: \<exists>obj'\<in>globs s' r: tag obj'= tag obj"
 
 text \<open>For the the proof of type soundness we will need the 
@@ -96,7 +96,7 @@ done
 
 subsubsection "value conformance"
 
-definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
+definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" (\<open>_,_\<turnstile>_\<Colon>\<preceq>_\<close>   [71,71,71,71] 70)
   where "G,s\<turnstile>v\<Colon>\<preceq>T = (\<exists>T'\<in>typeof (\<lambda>a. map_option obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T)"
 
 lemma conf_cong [simp]: "G,set_locals l s\<turnstile>v\<Colon>\<preceq>T = G,s\<turnstile>v\<Colon>\<preceq>T"
@@ -178,7 +178,7 @@ done
 subsubsection "value list conformance"
 
 definition
-  lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70)
+  lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" (\<open>_,_\<turnstile>_[\<Colon>\<preceq>]_\<close> [71,71,71,71] 70)
   where "G,s\<turnstile>vs[\<Colon>\<preceq>]Ts = (\<forall>n. \<forall>T\<in>Ts n: \<exists>v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T)"
 
 lemma lconfD: "\<lbrakk>G,s\<turnstile>vs[\<Colon>\<preceq>]Ts; Ts n = Some T\<rbrakk> \<Longrightarrow> G,s\<turnstile>(the (vs n))\<Colon>\<preceq>T"
@@ -262,7 +262,7 @@ text \<open>Only if the value is defined it has to conform to its type.
 
   
 definition
-  wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70)
+  wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" (\<open>_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_\<close> [71,71,71,71] 70)
   where "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts = (\<forall>n. \<forall>T\<in>Ts n: \<forall> v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T)"
 
 lemma wlconfD: "\<lbrakk>G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts; Ts n = Some T; vs n = Some v\<rbrakk> \<Longrightarrow> G,s\<turnstile>v\<Colon>\<preceq>T"
@@ -341,7 +341,7 @@ by (force simp add: lconf_def wlconf_def)
 subsubsection "object conformance"
 
 definition
-  oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>\<surd>_"  [71,71,71,71] 70) where
+  oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool" (\<open>_,_\<turnstile>_\<Colon>\<preceq>\<surd>_\<close>  [71,71,71,71] 70) where
   "(G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r) = (G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
                            (case r of 
                               Heap a \<Rightarrow> is_type G (obj_ty obj) 
@@ -376,7 +376,7 @@ done
 subsubsection "state conformance"
 
 definition
-  conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"  ("_\<Colon>\<preceq>_" [71,71] 70)  where
+  conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"  (\<open>_\<Colon>\<preceq>_\<close> [71,71] 70)  where
    "xs\<Colon>\<preceq>E =
       (let (G, L) = E; s = snd xs; l = locals s in
         (\<forall>r. \<forall>obj\<in>globs s r: G,s\<turnstile>obj \<Colon>\<preceq>\<surd>r) \<and> G,s\<turnstile>l [\<sim>\<Colon>\<preceq>]L \<and>

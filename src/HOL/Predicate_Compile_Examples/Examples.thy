@@ -166,15 +166,15 @@ subsection \<open>Lambda\<close>
 
 datatype type =
     Atom nat
-  | Fun type type    (infixr "\<Rightarrow>" 200)
+  | Fun type type    (infixr \<open>\<Rightarrow>\<close> 200)
 
 datatype dB =
     Var nat
-  | App dB dB (infixl "\<degree>" 200)
+  | App dB dB (infixl \<open>\<degree>\<close> 200)
   | Abs type dB
 
 primrec
-  nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" ("_\<langle>_\<rangle>" [90, 0] 91)
+  nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" (\<open>_\<langle>_\<rangle>\<close> [90, 0] 91)
 where
   "[]\<langle>i\<rangle> = None"
 | "(x # xs)\<langle>i\<rangle> = (case i of 0 \<Rightarrow> Some x | Suc j \<Rightarrow> xs \<langle>j\<rangle>)"
@@ -184,7 +184,7 @@ where
   "nth_el' (x # xs) 0 x"
 | "nth_el' xs i y \<Longrightarrow> nth_el' (x # xs) (Suc i) y"
 
-inductive typing :: "type list \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile> _ : _" [50, 50, 50] 50)
+inductive typing :: "type list \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  (\<open>_ \<turnstile> _ : _\<close> [50, 50, 50] 50)
   where
     Var [intro!]: "nth_el' env x T \<Longrightarrow> env \<turnstile> Var x : T"
   | Abs [intro!]: "T # env \<turnstile> t : U \<Longrightarrow> env \<turnstile> Abs T t : (T \<Rightarrow> U)"
@@ -198,14 +198,14 @@ where
   | "lift (Abs T s) k = Abs T (lift s (k + 1))"
 
 primrec
-  subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
+  subst :: "[dB, dB, nat] => dB"  (\<open>_[_'/_]\<close> [300, 0, 0] 300)
 where
     subst_Var: "(Var i)[s/k] =
       (if k < i then Var (i - 1) else if i = k then s else Var i)"
   | subst_App: "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
   | subst_Abs: "(Abs T t)[s/k] = Abs T (t[lift s 0 / k+1])"
 
-inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+inductive beta :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<close> 50)
   where
     beta [simp, intro!]: "Abs T s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
@@ -284,13 +284,13 @@ primrec bval :: "bexp \<Rightarrow> state' \<Rightarrow> bool" where
 
 datatype
   com' = SKIP 
-      | Assign name aexp         ("_ ::= _" [1000, 61] 61)
-      | Semi   com'  com'          ("_; _"  [60, 61] 60)
-      | If     bexp com' com'     ("IF _ THEN _ ELSE _"  [0, 0, 61] 61)
-      | While  bexp com'         ("WHILE _ DO _"  [0, 61] 61)
+      | Assign name aexp         (\<open>_ ::= _\<close> [1000, 61] 61)
+      | Semi   com'  com'          (\<open>_; _\<close>  [60, 61] 60)
+      | If     bexp com' com'     (\<open>IF _ THEN _ ELSE _\<close>  [0, 0, 61] 61)
+      | While  bexp com'         (\<open>WHILE _ DO _\<close>  [0, 61] 61)
 
 inductive
-  big_step :: "com' * state' \<Rightarrow> state' \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
+  big_step :: "com' * state' \<Rightarrow> state' \<Rightarrow> bool" (infix \<open>\<Rightarrow>\<close> 55)
 where
   Skip:    "(SKIP,s) \<Rightarrow> s"
 | Assign:  "(x ::= a,s) \<Rightarrow> s(x := aval a s)"

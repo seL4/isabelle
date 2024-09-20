@@ -9,15 +9,15 @@ theory Hoare imports Big_Step begin
 type_synonym assn = "state \<Rightarrow> bool"
 
 definition
-hoare_valid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" 50) where
+hoare_valid :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" (\<open>\<Turnstile> {(1_)}/ (_)/ {(1_)}\<close> 50) where
 "\<Turnstile> {P}c{Q} = (\<forall>s t. P s \<and> (c,s) \<Rightarrow> t  \<longrightarrow>  Q t)"
 
 abbreviation state_subst :: "state \<Rightarrow> aexp \<Rightarrow> vname \<Rightarrow> state"
-  ("_[_'/_]" [1000,0,0] 999)
+  (\<open>_[_'/_]\<close> [1000,0,0] 999)
 where "s[a/x] == s(x := aval a s)"
 
 inductive
-  hoare :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" ("\<turnstile> ({(1_)}/ (_)/ {(1_)})" 50)
+  hoare :: "assn \<Rightarrow> com \<Rightarrow> assn \<Rightarrow> bool" (\<open>\<turnstile> ({(1_)}/ (_)/ {(1_)})\<close> 50)
 where
 Skip: "\<turnstile> {P} SKIP {P}"  |
 

@@ -30,14 +30,14 @@ subsection \<open>Concrete syntax\<close>
 nonterminal seq and seqobj and seqcont
 
 syntax
- "_SeqEmp"         :: seq                                  ("")
- "_SeqApp"         :: "[seqobj,seqcont] \<Rightarrow> seq"            ("__")
+ "_SeqEmp"         :: seq                                  (\<open>\<close>)
+ "_SeqApp"         :: "[seqobj,seqcont] \<Rightarrow> seq"            (\<open>__\<close>)
 
- "_SeqContEmp"     :: seqcont                              ("")
- "_SeqContApp"     :: "[seqobj,seqcont] \<Rightarrow> seqcont"        (",/ __")
+ "_SeqContEmp"     :: seqcont                              (\<open>\<close>)
+ "_SeqContApp"     :: "[seqobj,seqcont] \<Rightarrow> seqcont"        (\<open>,/ __\<close>)
 
- "_SeqO"           :: "o \<Rightarrow> seqobj"                        ("_")
- "_SeqId"          :: "'a \<Rightarrow> seqobj"                       ("$_")
+ "_SeqO"           :: "o \<Rightarrow> seqobj"                        (\<open>_\<close>)
+ "_SeqId"          :: "'a \<Rightarrow> seqobj"                       (\<open>$_\<close>)
 
 type_synonym single_seqe = "[seq,seqobj] \<Rightarrow> prop"
 type_synonym single_seqi = "[seq'\<Rightarrow>seq',seq'\<Rightarrow>seq'] \<Rightarrow> prop"
@@ -52,7 +52,7 @@ type_synonym sequence_name = "seq'\<Rightarrow>seq'"
 
 syntax
   (*Constant to allow definitions of SEQUENCES of formulas*)
-  "_Side"        :: "seq\<Rightarrow>(seq'\<Rightarrow>seq')"     ("<<(_)>>")
+  "_Side"        :: "seq\<Rightarrow>(seq'\<Rightarrow>seq')"     (\<open><<(_)>>\<close>)
 
 ML \<open>
 

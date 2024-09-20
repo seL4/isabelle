@@ -1004,7 +1004,7 @@ abbreviation almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bo
   "almost_everywhere M P \<equiv> eventually P (ae_filter M)"
 
 syntax
-  "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool" ("AE _ in _. _" [0,0,10] 10)
+  "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool" (\<open>AE _ in _. _\<close> [0,0,10] 10)
 
 syntax_consts
   "_almost_everywhere" \<rightleftharpoons> almost_everywhere
@@ -1017,7 +1017,7 @@ abbreviation
 
 syntax
   "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
-  ("AE _\<in>_ in _./ _" [0,0,0,10] 10)
+  (\<open>AE _\<in>_ in _./ _\<close> [0,0,0,10] 10)
 
 syntax_consts
   "_set_almost_everywhere" \<rightleftharpoons> set_almost_everywhere

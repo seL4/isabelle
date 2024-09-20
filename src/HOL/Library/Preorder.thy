@@ -13,8 +13,8 @@ definition equiv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   where "equiv x y \<longleftrightarrow> x \<le> y \<and> y \<le> x"
 
 notation
-  equiv ("'(\<approx>')") and
-  equiv ("(_/ \<approx> _)"  [51, 51] 50)
+  equiv (\<open>'(\<approx>')\<close>) and
+  equiv (\<open>(_/ \<approx> _)\<close>  [51, 51] 50)
 
 lemma equivD1: "x \<le> y" if "x \<approx> y"
   using that by (simp add: equiv_def)

@@ -25,11 +25,11 @@ type_synonym 'a var = "'a \<Rightarrow> nat"
 
 datatype 'a com =
     Basic "'a \<Rightarrow> 'a"
-  | Seq "'a com" "'a com"    ("(_;/ _)" [60, 61] 60)
+  | Seq "'a com" "'a com"    (\<open>(_;/ _)\<close> [60, 61] 60)
   | Cond "'a bexp" "'a com" "'a com"
   | While "'a bexp" "'a assn" "'a var" "'a com"
 
-abbreviation Skip  ("SKIP")
+abbreviation Skip  (\<open>SKIP\<close>)
   where "SKIP \<equiv> Basic id"
 
 type_synonym 'a sem = "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -46,7 +46,7 @@ primrec Sem :: "'a com \<Rightarrow> 'a sem"
   | "Sem (Cond b c1 c2) s s' \<longleftrightarrow> (if s \<in> b then Sem c1 s s' else Sem c2 s s')"
   | "Sem (While b x y c) s s' \<longleftrightarrow> (\<exists>n. iter n b (Sem c) s s')"
 
-definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"  ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"  (\<open>(3\<turnstile> _/ (2_)/ _)\<close> [100, 55, 100] 50)
   where "\<turnstile> P c Q \<longleftrightarrow> (\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> P \<longrightarrow> s' \<in> Q)"
 
 lemma ValidI [intro?]: "(\<And>s s'. Sem c s s' \<Longrightarrow> s \<in> P \<Longrightarrow> s' \<in> Q) \<Longrightarrow> \<turnstile> P c Q"
@@ -193,15 +193,15 @@ text \<open>
 
 syntax
   "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"
-  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"  ("\<acute>_" [1000] 1000)
-  "_Subst" :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"  ("_[_'/\<acute>_]" [1000] 999)
-  "_Assert" :: "'a \<Rightarrow> 'a set"  ("(\<lbrace>_\<rbrace>)" [0] 1000)
-  "_Assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"  ("(\<acute>_ :=/ _)" [70, 65] 61)
+  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"  (\<open>\<acute>_\<close> [1000] 1000)
+  "_Subst" :: "'a bexp \<Rightarrow> 'b \<Rightarrow> idt \<Rightarrow> 'a bexp"  (\<open>_[_'/\<acute>_]\<close> [1000] 999)
+  "_Assert" :: "'a \<Rightarrow> 'a set"  (\<open>(\<lbrace>_\<rbrace>)\<close> [0] 1000)
+  "_Assign" :: "idt \<Rightarrow> 'b \<Rightarrow> 'a com"  (\<open>(\<acute>_ :=/ _)\<close> [70, 65] 61)
   "_Cond" :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com \<Rightarrow> 'a com"
-    ("(0IF _/ THEN _/ ELSE _/ FI)" [0, 0, 0] 61)
+    (\<open>(0IF _/ THEN _/ ELSE _/ FI)\<close> [0, 0, 0] 61)
   "_While_inv" :: "'a bexp \<Rightarrow> 'a assn \<Rightarrow> 'a com \<Rightarrow> 'a com"
-    ("(0WHILE _/ INV _ //DO _ /OD)"  [0, 0, 0] 61)
-  "_While" :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"  ("(0WHILE _ //DO _ /OD)"  [0, 0] 61)
+    (\<open>(0WHILE _/ INV _ //DO _ /OD)\<close>  [0, 0, 0] 61)
+  "_While" :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a com"  (\<open>(0WHILE _ //DO _ /OD)\<close>  [0, 0] 61)
 
 translations
   "\<lbrace>b\<rbrace>" \<rightharpoonup> "CONST Collect (_quote b)"

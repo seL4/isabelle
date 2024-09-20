@@ -9,10 +9,10 @@ imports LBVSpec Typing_Framework
 begin
 
 locale lbvs = lbv +
-  fixes s0  :: 'a ("s\<^sub>0")
+  fixes s0  :: 'a (\<open>s\<^sub>0\<close>)
   fixes c   :: "'a list"
   fixes ins :: "'b list"
-  fixes phi :: "'a list" ("\<phi>")
+  fixes phi :: "'a list" (\<open>\<phi>\<close>)
   defines phi_def:
   "\<phi> \<equiv> map (\<lambda>pc. if c!pc = \<bottom> then wtl (take pc ins) c 0 s0 else c!pc) 
        [0..<length ins]"

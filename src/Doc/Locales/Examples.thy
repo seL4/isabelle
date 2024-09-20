@@ -50,7 +50,7 @@ text \<open>
 \<close>
 
   locale partial_order =
-    fixes le :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubseteq>" 50)
+    fixes le :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>\<sqsubseteq>\<close> 50)
     assumes refl [intro, simp]: "x \<sqsubseteq> x"
       and anti_sym [intro]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> x \<rbrakk> \<Longrightarrow> x = y"
       and trans [trans]: "\<lbrakk> x \<sqsubseteq> y; y \<sqsubseteq> z \<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
@@ -141,7 +141,7 @@ text \<open>
 \<close>
 
   definition (in partial_order)
-    less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "\<sqsubset>" 50)
+    less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl \<open>\<sqsubset>\<close> 50)
     where "(x \<sqsubset> y) = (x \<sqsubseteq> y \<and> x \<noteq> y)"
 
 text (in partial_order) \<open>The strict order \<open>less\<close> with infix
@@ -321,9 +321,9 @@ text \<open>These assumptions refer to the predicates for infimum
   together with an example theorem.\<close>
 
   definition
-    meet (infixl "\<sqinter>" 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"
+    meet (infixl \<open>\<sqinter>\<close> 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"
   definition
-    join (infixl "\<squnion>" 65) where "x \<squnion> y = (THE sup. is_sup x y sup)"
+    join (infixl \<open>\<squnion>\<close> 65) where "x \<squnion> y = (THE sup. is_sup x y sup)"
 
   lemma %invisible meet_equality [elim?]: "is_inf x y i \<Longrightarrow> x \<sqinter> y = i"
   proof (unfold meet_def)

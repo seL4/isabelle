@@ -30,7 +30,7 @@ definition
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] \<Rightarrow> bool" ("Unique _ on _" [0, 50] 50)
+  Unique :: "[event, event list] \<Rightarrow> bool" (\<open>Unique _ on _\<close> [0, 50] 50)
   where "(Unique ev on evs) = (ev \<notin> set (tl (dropWhile (\<lambda>z. z \<noteq> ev) evs)))"
 
 
@@ -81,7 +81,7 @@ abbreviation
   "expiredA T evs == authlife + T < CT evs"
 
 abbreviation
-  valid :: "[nat, nat] \<Rightarrow> bool" ("valid _ wrt _" [0, 50] 50) where
+  valid :: "[nat, nat] \<Rightarrow> bool" (\<open>valid _ wrt _\<close> [0, 50] 50) where
   "valid T1 wrt T2 == T1 \<le> replylife + T2"
 
 (*---------------------------------------------------------------------*)

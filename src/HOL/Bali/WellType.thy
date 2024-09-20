@@ -249,12 +249,12 @@ translations
   (type) "tys" <= (type) "ty + ty list"
 
 
-inductive wt :: "env \<Rightarrow> dyn_ty \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>_"  [51,51,51,51] 50)
-  and wt_stmt :: "env \<Rightarrow> dyn_ty \<Rightarrow>  stmt       \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>\<surd>"  [51,51,51] 50)
-  and ty_expr :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>-_" [51,51,51,51] 50)
-  and ty_var :: "env \<Rightarrow> dyn_ty \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>=_" [51,51,51,51] 50)
+inductive wt :: "env \<Rightarrow> dyn_ty \<Rightarrow> [term,tys] \<Rightarrow> bool" (\<open>_,_\<Turnstile>_\<Colon>_\<close>  [51,51,51,51] 50)
+  and wt_stmt :: "env \<Rightarrow> dyn_ty \<Rightarrow>  stmt       \<Rightarrow> bool" (\<open>_,_\<Turnstile>_\<Colon>\<surd>\<close>  [51,51,51] 50)
+  and ty_expr :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" (\<open>_,_\<Turnstile>_\<Colon>-_\<close> [51,51,51,51] 50)
+  and ty_var :: "env \<Rightarrow> dyn_ty \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" (\<open>_,_\<Turnstile>_\<Colon>=_\<close> [51,51,51,51] 50)
   and ty_exprs :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr list, ty   list] \<Rightarrow> bool"
-    ("_,_\<Turnstile>_\<Colon>\<doteq>_" [51,51,51,51] 50)
+    (\<open>_,_\<Turnstile>_\<Colon>\<doteq>_\<close> [51,51,51,51] 50)
 where
 
   "E,dt\<Turnstile>s\<Colon>\<surd> \<equiv> E,dt\<Turnstile>In1r s\<Colon>Inl (PrimT Void)"
@@ -426,31 +426,31 @@ where
 
 (* for purely static typing *)
 abbreviation
-  wt_syntax :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>_"  [51,51,51] 50)
+  wt_syntax :: "env \<Rightarrow> [term,tys] \<Rightarrow> bool" (\<open>_\<turnstile>_\<Colon>_\<close>  [51,51,51] 50)
   where "E\<turnstile>t\<Colon>T == E,empty_dt\<Turnstile>t\<Colon> T"
 
 abbreviation
-  wt_stmt_syntax :: "env \<Rightarrow> stmt \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<surd>"  [51,51   ] 50)
+  wt_stmt_syntax :: "env \<Rightarrow> stmt \<Rightarrow> bool" (\<open>_\<turnstile>_\<Colon>\<surd>\<close>  [51,51   ] 50)
   where "E\<turnstile>s\<Colon>\<surd> == E\<turnstile>In1r s \<Colon> Inl (PrimT Void)"
 
 abbreviation
-  ty_expr_syntax :: "env \<Rightarrow> [expr, ty] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>-_" [51,51,51] 50) 
+  ty_expr_syntax :: "env \<Rightarrow> [expr, ty] \<Rightarrow> bool" (\<open>_\<turnstile>_\<Colon>-_\<close> [51,51,51] 50) 
   where "E\<turnstile>e\<Colon>-T == E\<turnstile>In1l e \<Colon> Inl T"
 
 abbreviation
-  ty_var_syntax :: "env \<Rightarrow> [var, ty] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>=_" [51,51,51] 50)
+  ty_var_syntax :: "env \<Rightarrow> [var, ty] \<Rightarrow> bool" (\<open>_\<turnstile>_\<Colon>=_\<close> [51,51,51] 50)
   where "E\<turnstile>e\<Colon>=T == E\<turnstile>In2 e \<Colon> Inl T"
 
 abbreviation
-  ty_exprs_syntax :: "env \<Rightarrow> [expr list, ty list] \<Rightarrow> bool" ("_\<turnstile>_\<Colon>\<doteq>_" [51,51,51] 50)
+  ty_exprs_syntax :: "env \<Rightarrow> [expr list, ty list] \<Rightarrow> bool" (\<open>_\<turnstile>_\<Colon>\<doteq>_\<close> [51,51,51] 50)
   where "E\<turnstile>e\<Colon>\<doteq>T == E\<turnstile>In3 e \<Colon> Inr T"
 
 notation (ASCII)
-  wt_syntax  ("_|-_::_" [51,51,51] 50) and
-  wt_stmt_syntax  ("_|-_:<>" [51,51   ] 50) and
-  ty_expr_syntax  ("_|-_:-_" [51,51,51] 50) and
-  ty_var_syntax  ("_|-_:=_" [51,51,51] 50) and
-  ty_exprs_syntax  ("_|-_:#_" [51,51,51] 50)
+  wt_syntax  (\<open>_|-_::_\<close> [51,51,51] 50) and
+  wt_stmt_syntax  (\<open>_|-_:<>\<close> [51,51   ] 50) and
+  ty_expr_syntax  (\<open>_|-_:-_\<close> [51,51,51] 50) and
+  ty_var_syntax  (\<open>_|-_:=_\<close> [51,51,51] 50) and
+  ty_exprs_syntax  (\<open>_|-_:#_\<close> [51,51,51] 50)
 
 declare not_None_eq [simp del] 
 declare if_split [split del] if_split_asm [split del]

@@ -16,14 +16,14 @@ subsection \<open>Definition of strict product type\<close>
 
 definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 
-pcpodef ('a, 'b) sprod  ("(_ \<otimes>/ _)" [21,20] 20) = "sprod :: ('a \<times> 'b) set"
+pcpodef ('a, 'b) sprod  (\<open>(_ \<otimes>/ _)\<close> [21,20] 20) = "sprod :: ('a \<times> 'b) set"
   by (simp_all add: sprod_def)
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
   by (rule typedef_chfin [OF type_definition_sprod below_sprod_def])
 
 type_notation (ASCII)
-  sprod  (infixr "**" 20)
+  sprod  (infixr \<open>**\<close> 20)
 
 
 subsection \<open>Definitions of constants\<close>
@@ -42,9 +42,9 @@ definition ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a *
 
 nonterminal stuple_args
 syntax
-  "" :: "logic \<Rightarrow> stuple_args"  ("_")
-  "_stuple_args" :: "logic \<Rightarrow> stuple_args \<Rightarrow> stuple_args"  ("_,/ _")
-  "_stuple" :: "[logic, stuple_args] \<Rightarrow> logic"  ("(1'(:_,/ _:'))")
+  "" :: "logic \<Rightarrow> stuple_args"  (\<open>_\<close>)
+  "_stuple_args" :: "logic \<Rightarrow> stuple_args \<Rightarrow> stuple_args"  (\<open>_,/ _\<close>)
+  "_stuple" :: "[logic, stuple_args] \<Rightarrow> logic"  (\<open>(1'(:_,/ _:'))\<close>)
 syntax_consts
   "_stuple_args" "_stuple" \<rightleftharpoons> spair
 translations

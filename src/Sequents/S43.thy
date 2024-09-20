@@ -14,7 +14,7 @@ consts
              seq'\<Rightarrow>seq', seq'\<Rightarrow>seq', seq'\<Rightarrow>seq'] \<Rightarrow> prop"
 syntax
   "_S43pi" :: "[seq, seq, seq, seq, seq, seq] \<Rightarrow> prop"
-                         ("S43pi((_);(_);(_);(_);(_);(_))" [] 5)
+                         (\<open>S43pi((_);(_);(_);(_);(_);(_))\<close> [] 5)
 
 parse_translation \<open>
   let

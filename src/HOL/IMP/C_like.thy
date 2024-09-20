@@ -4,7 +4,7 @@ subsection "A C-like Language"
 
 type_synonym state = "nat \<Rightarrow> nat"
 
-datatype aexp = N nat | Deref aexp ("!") | Plus aexp aexp
+datatype aexp = N nat | Deref aexp (\<open>!\<close>) | Plus aexp aexp
 
 fun aval :: "aexp \<Rightarrow> state \<Rightarrow> nat" where
 "aval (N n) s = n" |
@@ -22,14 +22,14 @@ primrec bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
 
 datatype
   com = SKIP 
-      | Assign aexp aexp         ("_ ::= _" [61, 61] 61)
+      | Assign aexp aexp         (\<open>_ ::= _\<close> [61, 61] 61)
       | New    aexp aexp
-      | Seq    com  com          ("_;/ _"  [60, 61] 60)
-      | If     bexp com com     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61)
-      | While  bexp com         ("(WHILE _/ DO _)"  [0, 61] 61)
+      | Seq    com  com          (\<open>_;/ _\<close>  [60, 61] 60)
+      | If     bexp com com     (\<open>(IF _/ THEN _/ ELSE _)\<close>  [0, 0, 61] 61)
+      | While  bexp com         (\<open>(WHILE _/ DO _)\<close>  [0, 61] 61)
 
 inductive
-  big_step :: "com \<times> state \<times> nat \<Rightarrow> state \<times> nat \<Rightarrow> bool"  (infix "\<Rightarrow>" 55)
+  big_step :: "com \<times> state \<times> nat \<Rightarrow> state \<times> nat \<Rightarrow> bool"  (infix \<open>\<Rightarrow>\<close> 55)
 where
 Skip:    "(SKIP,sn) \<Rightarrow> sn" |
 Assign:  "(lhs ::= a,s,n) \<Rightarrow> (s(aval lhs s := aval a s),n)" |

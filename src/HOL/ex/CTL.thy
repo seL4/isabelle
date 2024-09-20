@@ -24,7 +24,7 @@ lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
 
 type_synonym 'a ctl = "'a set"
 
-definition imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"  (infixr "\<rightarrow>" 75)
+definition imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"  (infixr \<open>\<rightarrow>\<close> 75)
   where "p \<rightarrow> q = - p \<union> q"
 
 lemma [intro!]: "p \<inter> p \<rightarrow> q \<subseteq> q" unfolding imp_def by auto
@@ -53,13 +53,13 @@ text \<open>
   \<^cite>\<open>"McMillan-PhDThesis"\<close>.
 \<close>
 
-definition EX  ("\<^bold>E\<^bold>X _" [80] 90)
+definition EX  (\<open>\<^bold>E\<^bold>X _\<close> [80] 90)
   where [simp]: "\<^bold>E\<^bold>X p = {s. \<exists>s'. (s, s') \<in> \<M> \<and> s' \<in> p}"
 
-definition EF ("\<^bold>E\<^bold>F _" [80] 90)
+definition EF (\<open>\<^bold>E\<^bold>F _\<close> [80] 90)
   where [simp]: "\<^bold>E\<^bold>F p = lfp (\<lambda>s. p \<union> \<^bold>E\<^bold>X s)"
 
-definition EG ("\<^bold>E\<^bold>G _" [80] 90)
+definition EG (\<open>\<^bold>E\<^bold>G _\<close> [80] 90)
   where [simp]: "\<^bold>E\<^bold>G p = gfp (\<lambda>s. p \<inter> \<^bold>E\<^bold>X s)"
 
 text \<open>
@@ -67,11 +67,11 @@ text \<open>
   \<open>\<^bold>E\<^bold>F\<close> and \<open>\<^bold>E\<^bold>G\<close>.
 \<close>
 
-definition AX  ("\<^bold>A\<^bold>X _" [80] 90)
+definition AX  (\<open>\<^bold>A\<^bold>X _\<close> [80] 90)
   where [simp]: "\<^bold>A\<^bold>X p = - \<^bold>E\<^bold>X - p"
-definition AF  ("\<^bold>A\<^bold>F _" [80] 90)
+definition AF  (\<open>\<^bold>A\<^bold>F _\<close> [80] 90)
   where [simp]: "\<^bold>A\<^bold>F p = - \<^bold>E\<^bold>G - p"
-definition AG  ("\<^bold>A\<^bold>G _" [80] 90)
+definition AG  (\<open>\<^bold>A\<^bold>G _\<close> [80] 90)
   where [simp]: "\<^bold>A\<^bold>G p = - \<^bold>E\<^bold>F - p"
 
 

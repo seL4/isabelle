@@ -31,7 +31,7 @@ abbreviation (input) iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarr
 definition OpLim :: "(nat \<Rightarrow> (ordinal \<Rightarrow> ordinal)) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"
   where "OpLim F a = Limit (\<lambda>n. F n a)"
 
-definition OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  ("\<Squnion>")
+definition OpItw :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  (\<open>\<Squnion>\<close>)
   where "\<Squnion>f = OpLim (iter f)"
 
 primrec cantor :: "ordinal \<Rightarrow> ordinal \<Rightarrow> ordinal"
@@ -40,7 +40,7 @@ where
 | "cantor a (Succ b) = \<Squnion>(\<lambda>x. cantor x b) a"
 | "cantor a (Limit f) = Limit (\<lambda>n. cantor a (f n))"
 
-primrec Nabla :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  ("\<nabla>")
+primrec Nabla :: "(ordinal \<Rightarrow> ordinal) \<Rightarrow> (ordinal \<Rightarrow> ordinal)"  (\<open>\<nabla>\<close>)
 where
   "\<nabla>f Zero = f Zero"
 | "\<nabla>f (Succ a) = f (Succ (\<nabla>f a))"

@@ -9,7 +9,7 @@ theory Follows
 imports SubstAx ListOrder "HOL-Library.Multiset"
 begin
 
-definition Follows :: "['a => 'b::{order}, 'a => 'b::{order}] => 'a program set" (infixl "Fols" 65) where
+definition Follows :: "['a => 'b::{order}, 'a => 'b::{order}] => 'a program set" (infixl \<open>Fols\<close> 65) where
    "f Fols g == Increasing g \<inter> Increasing f Int
                 Always {s. f s \<le> g s} Int
                 (\<Inter>k. {s. k \<le> g s} LeadsTo {s. k \<le> f s})"

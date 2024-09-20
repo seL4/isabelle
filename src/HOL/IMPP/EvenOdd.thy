@@ -35,7 +35,7 @@ begin
 end
 
 definition
-  Z_eq_Arg_plus :: "nat => nat assn" ("Z=Arg+_" [50]50) where
+  Z_eq_Arg_plus :: "nat => nat assn" (\<open>Z=Arg+_\<close> [50]50) where
   "Z=Arg+n = (%Z s.      Z =  s<Arg>+n)"
 
 definition

@@ -12,19 +12,19 @@ section \<open>Galois connections\<close>
 subsection \<open>Definition and basic properties\<close>
 
 record ('a, 'b, 'c, 'd) galcon =
-  orderA :: "('a, 'c) gorder_scheme" ("\<X>\<index>")
-  orderB :: "('b, 'd) gorder_scheme" ("\<Y>\<index>")
-  lower  :: "'a \<Rightarrow> 'b" ("\<pi>\<^sup>*\<index>")
-  upper  :: "'b \<Rightarrow> 'a" ("\<pi>\<^sub>*\<index>")
+  orderA :: "('a, 'c) gorder_scheme" (\<open>\<X>\<index>\<close>)
+  orderB :: "('b, 'd) gorder_scheme" (\<open>\<Y>\<index>\<close>)
+  lower  :: "'a \<Rightarrow> 'b" (\<open>\<pi>\<^sup>*\<index>\<close>)
+  upper  :: "'b \<Rightarrow> 'a" (\<open>\<pi>\<^sub>*\<index>\<close>)
 
 type_synonym ('a, 'b) galois = "('a, 'b, unit, unit) galcon"
 
 abbreviation "inv_galcon G \<equiv> \<lparr> orderA = inv_gorder \<Y>\<^bsub>G\<^esub>, orderB = inv_gorder \<X>\<^bsub>G\<^esub>, lower = upper G, upper = lower G \<rparr>"
 
-definition comp_galcon :: "('b, 'c) galois \<Rightarrow> ('a, 'b) galois \<Rightarrow> ('a, 'c) galois" (infixr "\<circ>\<^sub>g" 85)
+definition comp_galcon :: "('b, 'c) galois \<Rightarrow> ('a, 'b) galois \<Rightarrow> ('a, 'c) galois" (infixr \<open>\<circ>\<^sub>g\<close> 85)
   where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lower = lower G \<circ> lower F, upper = upper F \<circ> upper G \<rparr>"
 
-definition id_galcon :: "'a gorder \<Rightarrow> ('a, 'a) galois" ("I\<^sub>g") where
+definition id_galcon :: "'a gorder \<Rightarrow> ('a, 'a) galois" (\<open>I\<^sub>g\<close>) where
 "I\<^sub>g(A) = \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
 
 

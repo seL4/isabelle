@@ -28,7 +28,7 @@ definition
   "fatbar = (\<Lambda> a b x. a\<cdot>x +++ b\<cdot>x)"
 
 abbreviation
-  fatbar_syn :: "['a \<rightarrow> 'b match, 'a \<rightarrow> 'b match] \<Rightarrow> 'a \<rightarrow> 'b match" (infixr "\<parallel>" 60)  where
+  fatbar_syn :: "['a \<rightarrow> 'b match, 'a \<rightarrow> 'b match] \<Rightarrow> 'a \<rightarrow> 'b match" (infixr \<open>\<parallel>\<close> 60)  where
   "m1 \<parallel> m2 == fatbar\<cdot>m1\<cdot>m2"
 
 lemma fatbar1: "m\<cdot>x = \<bottom> \<Longrightarrow> (m \<parallel> ms)\<cdot>x = \<bottom>"
@@ -103,14 +103,14 @@ subsection \<open>Case syntax\<close>
 nonterminal Case_pat and Case_syn and Cases_syn
 
 syntax
-  "_Case_syntax":: "['a, Cases_syn] => 'b"               ("(Case _ of/ _)" 10)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ \<Rightarrow>/ _)" 10)
-  ""            :: "Case_syn => Cases_syn"               ("_")
-  "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  ("_/ | _")
-  "_strip_positions" :: "'a => Case_pat"                 ("_")
+  "_Case_syntax":: "['a, Cases_syn] => 'b"               (\<open>(Case _ of/ _)\<close> 10)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(2_ \<Rightarrow>/ _)\<close> 10)
+  ""            :: "Case_syn => Cases_syn"               (\<open>_\<close>)
+  "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  (\<open>_/ | _\<close>)
+  "_strip_positions" :: "'a => Case_pat"                 (\<open>_\<close>)
 
 syntax (ASCII)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          ("(2_ =>/ _)" 10)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(2_ =>/ _)\<close> 10)
 
 translations
   "_Case_syntax x ms" == "CONST cases\<cdot>(ms\<cdot>x)"

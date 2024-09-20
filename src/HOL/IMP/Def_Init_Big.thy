@@ -7,7 +7,7 @@ begin
 subsection "Initialization-Sensitive Big Step Semantics"
 
 inductive
-  big_step :: "(com \<times> state option) \<Rightarrow> state option \<Rightarrow> bool" (infix "\<Rightarrow>" 55)
+  big_step :: "(com \<times> state option) \<Rightarrow> state option \<Rightarrow> bool" (infix \<open>\<Rightarrow>\<close> 55)
 where
 None: "(c,None) \<Rightarrow> None" |
 Skip: "(SKIP,s) \<Rightarrow> s" |

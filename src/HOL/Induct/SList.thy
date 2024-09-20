@@ -84,15 +84,15 @@ no_translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
 no_notation
-  Nil  ("[]") and
-  Cons (infixr "#" 65)
+  Nil  (\<open>[]\<close>) and
+  Cons (infixr \<open>#\<close> 65)
 
 definition
-  Nil       :: "'a list"                               ("[]") where
+  Nil       :: "'a list"                               (\<open>[]\<close>) where
    "Nil  = Abs_List(NIL)"
 
 definition
-  "Cons"       :: "['a, 'a list] => 'a list"           (infixr "#" 65) where
+  "Cons"       :: "['a, 'a list] => 'a list"           (infixr \<open>#\<close> 65) where
    "x#xs = Abs_List(CONS (Leaf x)(Rep_List xs))"
 
 definition

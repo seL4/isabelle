@@ -6,10 +6,10 @@ begin
 
 subsection\<open>Eqpoll\<close>
 
-definition eqpoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl "\<approx>" 50)
+definition eqpoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl \<open>\<approx>\<close> 50)
   where "eqpoll A B \<equiv> \<exists>f. bij_betw f A B"
 
-definition lepoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl "\<lesssim>" 50)
+definition lepoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl \<open>\<lesssim>\<close> 50)
   where "lepoll A B \<equiv> \<exists>f. inj_on f A \<and> f ` A \<subseteq> B"
 
 definition lesspoll :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infixl \<open>\<prec>\<close> 50)

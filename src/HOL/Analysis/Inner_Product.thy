@@ -393,7 +393,7 @@ subsection \<open>Gradient derivative\<close>
 definition\<^marker>\<open>tag important\<close>
   gderiv ::
     "['a::real_inner \<Rightarrow> real, 'a, 'a] \<Rightarrow> bool"
-          ("(GDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+          (\<open>(GDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
 where
   "GDERIV f x :> D \<longleftrightarrow> FDERIV f x :> (\<lambda>h. inner h D)"
 
@@ -463,11 +463,11 @@ lemma GDERIV_norm:
 lemmas has_derivative_norm = GDERIV_norm [unfolded gderiv_def]
 
 bundle inner_syntax begin
-notation inner (infix "\<bullet>" 70)
+notation inner (infix \<open>\<bullet>\<close> 70)
 end
 
 bundle no_inner_syntax begin
-no_notation inner (infix "\<bullet>" 70)
+no_notation inner (infix \<open>\<bullet>\<close> 70)
 end
 
 end

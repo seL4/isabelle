@@ -23,7 +23,7 @@ locale subspace =
     and mult_closed [iff]: "x \<in> U \<Longrightarrow> a \<cdot> x \<in> U"
 
 notation (symbols)
-  subspace  (infix "\<unlhd>" 50)
+  subspace  (infix \<open>\<unlhd>\<close> 50)
 
 declare vectorspace.intro [intro?] subspace.intro [intro?]
 

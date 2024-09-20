@@ -205,7 +205,7 @@ lemma interfree_Map:
   \<Longrightarrow> interfree (map (\<lambda>k. (c k, Q k)) [a..<b])"
 by(force simp add: interfree_def less_diff_conv)
 
-definition map_ann_hoare :: "(('a ann_com_op * 'a assn) list) \<Rightarrow> bool " ("[\<turnstile>] _" [0] 45) where
+definition map_ann_hoare :: "(('a ann_com_op * 'a assn) list) \<Rightarrow> bool " (\<open>[\<turnstile>] _\<close> [0] 45) where
   "[\<turnstile>] Ts == (\<forall>i<length Ts. \<exists>c q. Ts!i=(Some c, q) \<and> \<turnstile> c q)"
 
 lemma MapAnnEmpty: "[\<turnstile>] []"

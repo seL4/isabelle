@@ -11,7 +11,7 @@ imports "HOL-Library.Quotient_Product"
 begin
 
 fun
-  intrel :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool" (infix "\<approx>" 50)
+  intrel :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool" (infix \<open>\<approx>\<close> 50)
 where
   "intrel (x, y) (u, v) = (x + v = u + y)"
 

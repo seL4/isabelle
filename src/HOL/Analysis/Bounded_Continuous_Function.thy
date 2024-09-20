@@ -10,7 +10,7 @@ subsection \<open>Definition\<close>
 
 definition\<^marker>\<open>tag important\<close> "bcontfun = {f. continuous_on UNIV f \<and> bounded (range f)}"
 
-typedef (overloaded) ('a, 'b) bcontfun ("(_ \<Rightarrow>\<^sub>C /_)" [22, 21] 21) =
+typedef (overloaded) ('a, 'b) bcontfun (\<open>(_ \<Rightarrow>\<^sub>C /_)\<close> [22, 21] 21) =
   "bcontfun::('a::topological_space \<Rightarrow> 'b::metric_space) set"
   morphisms apply_bcontfun Bcontfun
   by (auto intro: continuous_intros simp: bounded_def bcontfun_def)

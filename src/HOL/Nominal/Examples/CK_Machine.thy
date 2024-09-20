@@ -25,21 +25,21 @@ atom_decl name
 nominal_datatype lam =
   VAR "name"
 | APP "lam" "lam" 
-| LAM "\<guillemotleft>name\<guillemotright>lam" ("LAM [_]._")
+| LAM "\<guillemotleft>name\<guillemotright>lam" (\<open>LAM [_]._\<close>)
 | NUM "nat"
-| DIFF "lam" "lam" ("_ -- _")    (* subtraction *) 
-| PLUS "lam" "lam" ("_ ++ _")    (* addition *)
+| DIFF "lam" "lam" (\<open>_ -- _\<close>)    (* subtraction *) 
+| PLUS "lam" "lam" (\<open>_ ++ _\<close>)    (* addition *)
 | TRUE
 | FALSE
 | IF "lam" "lam" "lam"
-| FIX "\<guillemotleft>name\<guillemotright>lam" ("FIX [_]._")  (* recursion *)
+| FIX "\<guillemotleft>name\<guillemotright>lam" (\<open>FIX [_]._\<close>)  (* recursion *)
 | ZET "lam"                      (* zero test *)
 | EQI "lam" "lam"                (* equality test on numbers *)
 
 section \<open>Capture-Avoiding Substitution\<close>
 
 nominal_primrec
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_[_::=_]\<close> [100,100,100] 100)
 where
   "(VAR x)[y::=s] = (if x=y then s else (VAR x))"
 | "(APP t\<^sub>1 t\<^sub>2)[y::=s] = APP (t\<^sub>1[y::=s]) (t\<^sub>2[y::=s])"
@@ -81,7 +81,7 @@ by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
 section \<open>Evaluation Contexts\<close>
 
 datatype ctx = 
-    Hole ("\<box>")  
+    Hole (\<open>\<box>\<close>)  
   | CAPPL "ctx" "lam"
   | CAPPR "lam" "ctx"
   | CDIFFL "ctx" "lam"
@@ -96,7 +96,7 @@ datatype ctx =
 text \<open>The operation of filling a term into a context:\<close> 
 
 fun
-  filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>")
+  filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" (\<open>_\<lbrakk>_\<rbrakk>\<close>)
 where
   "\<box>\<lbrakk>t\<rbrakk> = t"
 | "(CAPPL E t')\<lbrakk>t\<rbrakk> = APP (E\<lbrakk>t\<rbrakk>) t'"
@@ -113,7 +113,7 @@ where
 text \<open>The operation of composing two contexts:\<close>
 
 fun 
- ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _")
+ ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" (\<open>_ \<circ> _\<close>)
 where
   "\<box> \<circ> E' = E'"
 | "(CAPPL E t') \<circ> E' = CAPPL (E \<circ> E') t'"
@@ -134,7 +134,7 @@ by (induct E1 rule: ctx.induct) (auto)
 text \<open>Composing a list (stack) of contexts.\<close>
 
 fun
-  ctx_composes :: "ctx list \<Rightarrow> ctx" ("_\<down>")
+  ctx_composes :: "ctx list \<Rightarrow> ctx" (\<open>_\<down>\<close>)
 where
     "[]\<down> = \<box>"
   | "(E#Es)\<down> = (Es\<down>) \<circ> E"
@@ -152,7 +152,7 @@ where
 equivariance val 
 
 inductive
-  machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" ("<_,_> \<mapsto> <_,_>")
+  machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<mapsto> <_,_>\<close>)
 where
   m1[intro]: "<APP e1 e2,Es> \<mapsto> <e1,(CAPPL \<box> e2)#Es>"
 | m2[intro]: "val v \<Longrightarrow> <v,(CAPPL \<box> e2)#Es> \<mapsto> <e2,(CAPPR v \<box>)#Es>"
@@ -176,7 +176,7 @@ where
 | mH[intro]: "n1\<noteq>n2 \<Longrightarrow> <NUM n1,(CEQIR (NUM n2) \<box>)#Es> \<mapsto> <FALSE,Es>"
 
 inductive 
-  "machine_star" :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" ("<_,_> \<mapsto>* <_,_>")
+  "machine_star" :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<mapsto>* <_,_>\<close>)
 where
   ms1[intro]: "<e,Es> \<mapsto>* <e,Es>"
 | ms2[intro]: "\<lbrakk><e1,Es1> \<mapsto> <e2,Es2>; <e2,Es2> \<mapsto>* <e3,Es3>\<rbrakk> \<Longrightarrow> <e1,Es1> \<mapsto>* <e3,Es3>"
@@ -194,7 +194,7 @@ using a by (rule ms2) (rule ms1)
 section \<open>The Evaluation Relation (Big-Step Semantics)\<close>
 
 inductive
-  eval :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<Down> _") 
+  eval :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open>_ \<Down> _\<close>) 
 where
   eval_NUM[intro]:  "NUM n \<Down> NUM n" 
 | eval_DIFF[intro]: "\<lbrakk>t1 \<Down> (NUM n1); t2 \<Down> (NUM n2)\<rbrakk> \<Longrightarrow> t1 -- t2 \<Down> NUM (n1 - n2)"
@@ -257,7 +257,7 @@ lemma less_eqvt[eqvt]:
 by (simp add: perm_nat_def perm_bool)
 
 inductive
-  cbv :: "lam\<Rightarrow>lam\<Rightarrow>bool" ("_ \<longrightarrow>cbv _") 
+  cbv :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open>_ \<longrightarrow>cbv _\<close>) 
 where
   cbv1: "\<lbrakk>val v; x\<sharp>v\<rbrakk> \<Longrightarrow> APP (LAM [x].t) v \<longrightarrow>cbv t[x::=v]"
 | cbv2[intro]: "t \<longrightarrow>cbv t' \<Longrightarrow> APP t t2 \<longrightarrow>cbv APP t' t2"
@@ -297,7 +297,7 @@ proof -
 qed
 
 inductive 
-  "cbv_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>cbv* _")
+  "cbv_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>cbv* _\<close>)
 where
   cbvs1[intro]: "e \<longrightarrow>cbv* e"
 | cbvs2[intro]: "\<lbrakk>e1\<longrightarrow>cbv e2; e2 \<longrightarrow>cbv* e3\<rbrakk> \<Longrightarrow> e1 \<longrightarrow>cbv* e3"
@@ -366,7 +366,7 @@ nominal_datatype ty =
   tVAR "string"
 | tBOOL 
 | tINT
-| tARR "ty" "ty" ("_ \<rightarrow> _")
+| tARR "ty" "ty" (\<open>_ \<rightarrow> _\<close>)
 
 declare ty.inject[simp]
 
@@ -384,7 +384,7 @@ type_synonym tctx = "(name\<times>ty) list"
 text \<open>Sub-Typing Contexts\<close>
 
 abbreviation
-  "sub_tctx" :: "tctx \<Rightarrow> tctx \<Rightarrow> bool" ("_ \<subseteq> _") 
+  "sub_tctx" :: "tctx \<Rightarrow> tctx \<Rightarrow> bool" (\<open>_ \<subseteq> _\<close>) 
 where
   "\<Gamma>\<^sub>1 \<subseteq> \<Gamma>\<^sub>2 \<equiv> \<forall>x. x \<in> set \<Gamma>\<^sub>1 \<longrightarrow> x \<in> set \<Gamma>\<^sub>2"
 
@@ -425,7 +425,7 @@ by (induct) (auto simp add: fresh_set fresh_prod fresh_atm)
 section \<open>The Typing Relation\<close>
 
 inductive
-  typing :: "tctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" ("_ \<turnstile> _ : _") 
+  typing :: "tctx \<Rightarrow> lam \<Rightarrow> ty \<Rightarrow> bool" (\<open>_ \<turnstile> _ : _\<close>) 
 where
   t_VAR[intro]:  "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> VAR x : T"
 | t_APP[intro]:  "\<lbrakk>\<Gamma> \<turnstile> t\<^sub>1 : T\<^sub>1\<rightarrow>T\<^sub>2; \<Gamma> \<turnstile> t\<^sub>2 : T\<^sub>1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> APP t\<^sub>1 t\<^sub>2 : T\<^sub>2"

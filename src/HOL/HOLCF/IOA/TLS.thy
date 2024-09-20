@@ -42,7 +42,7 @@ definition ex2seqC :: "('a, 's) pairs \<rightarrow> ('s \<Rightarrow> ('a option
 definition ex2seq :: "('a, 's) execution \<Rightarrow> ('a option, 's) transition Seq"
   where "ex2seq ex = (ex2seqC \<cdot> (mkfin (snd ex))) (fst ex)"
 
-definition temp_sat :: "('a, 's) execution \<Rightarrow> ('a, 's) ioa_temp \<Rightarrow> bool"  (infixr "\<TTurnstile>" 22)
+definition temp_sat :: "('a, 's) execution \<Rightarrow> ('a, 's) ioa_temp \<Rightarrow> bool"  (infixr \<open>\<TTurnstile>\<close> 22)
   where "(ex \<TTurnstile> P) \<longleftrightarrow> ((ex2seq ex) \<Turnstile> P)"
 
 definition validTE :: "('a, 's) ioa_temp \<Rightarrow> bool"

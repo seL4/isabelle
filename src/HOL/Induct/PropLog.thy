@@ -22,13 +22,13 @@ subsection \<open>The datatype of propositions\<close>
 
 datatype 'a pl =
     false 
-  | var 'a ("#_" [1000]) 
-  | imp "'a pl" "'a pl" (infixr "\<rightharpoonup>" 90)
+  | var 'a (\<open>#_\<close> [1000]) 
+  | imp "'a pl" "'a pl" (infixr \<open>\<rightharpoonup>\<close> 90)
 
 
 subsection \<open>The proof system\<close>
 
-inductive thms :: "['a pl set, 'a pl] \<Rightarrow> bool"  (infixl "\<turnstile>" 50)
+inductive thms :: "['a pl set, 'a pl] \<Rightarrow> bool"  (infixl \<open>\<turnstile>\<close> 50)
   for H :: "'a pl set"
   where
     H: "p \<in> H \<Longrightarrow> H \<turnstile> p"
@@ -42,7 +42,7 @@ subsection \<open>The semantics\<close>
 
 subsubsection \<open>Semantics of propositional logic.\<close>
 
-primrec eval :: "['a set, 'a pl] => bool"  ("_[[_]]" [100,0] 100)
+primrec eval :: "['a set, 'a pl] => bool"  (\<open>_[[_]]\<close> [100,0] 100)
   where
     "tt[[false]] = False"
   | "tt[[#v]] = (v \<in> tt)"
@@ -67,7 +67,7 @@ text \<open>
   is \<open>p\<close>.
 \<close>
 
-definition sat :: "['a pl set, 'a pl] => bool"  (infixl "\<Turnstile>" 50)
+definition sat :: "['a pl set, 'a pl] => bool"  (infixl \<open>\<Turnstile>\<close> 50)
   where "H \<Turnstile> p = (\<forall>tt. (\<forall>q\<in>H. tt[[q]]) \<longrightarrow> tt[[p]])"
 
 

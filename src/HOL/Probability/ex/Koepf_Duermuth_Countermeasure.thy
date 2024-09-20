@@ -213,25 +213,25 @@ abbreviation
 abbreviation
   "\<mu> \<equiv> point_measure msgs P"
 
-abbreviation probability ("\<P>'(_') _") where
+abbreviation probability (\<open>\<P>'(_') _\<close>) where
   "\<P>(X) x \<equiv> measure \<mu> (X -` x \<inter> msgs)"
 
-abbreviation joint_probability ("\<P>'(_ ; _') _") where
+abbreviation joint_probability (\<open>\<P>'(_ ; _') _\<close>) where
   "\<P>(X ; Y) x \<equiv> \<P>(\<lambda>x. (X x, Y x)) x"
 
-no_notation disj (infixr "|" 30)
+no_notation disj (infixr \<open>|\<close> 30)
 
-abbreviation conditional_probability ("\<P>'(_ | _') _") where
+abbreviation conditional_probability (\<open>\<P>'(_ | _') _\<close>) where
   "\<P>(X | Y) x \<equiv> (\<P>(X ; Y) x) / \<P>(Y) (snd`x)"
 
 notation
-  entropy_Pow ("\<H>'( _ ')")
+  entropy_Pow (\<open>\<H>'( _ ')\<close>)
 
 notation
-  conditional_entropy_Pow ("\<H>'( _ | _ ')")
+  conditional_entropy_Pow (\<open>\<H>'( _ | _ ')\<close>)
 
 notation
-  mutual_information_Pow ("\<I>'( _ ; _ ')")
+  mutual_information_Pow (\<open>\<I>'( _ ; _ ')\<close>)
 
 lemma t_eq_imp_bij_func:
   assumes "t xs = t ys"

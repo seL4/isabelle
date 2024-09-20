@@ -10,7 +10,7 @@ imports Main Countable Order_Continuity
 begin
 
 class infinity =
-  fixes infinity :: "'a"  ("\<infinity>")
+  fixes infinity :: "'a"  (\<open>\<infinity>\<close>)
 
 context
   fixes f :: "nat \<Rightarrow> 'a::{canonically_ordered_monoid_add, linorder_topology, complete_linorder}"

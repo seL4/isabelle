@@ -22,23 +22,23 @@ axiomatization
   Trueprop :: "[context, typing] \<Rightarrow> prop" and
   MT_context :: "context" and
   Context :: "[typing, context] \<Rightarrow> context" and
-  star :: "term"  ("*") and
-  box :: "term"  ("\<box>") and
-  app :: "[term, term] \<Rightarrow> term"  (infixl "\<cdot>" 20) and
+  star :: "term"  (\<open>*\<close>) and
+  box :: "term"  (\<open>\<box>\<close>) and
+  app :: "[term, term] \<Rightarrow> term"  (infixl \<open>\<cdot>\<close> 20) and
   Has_type :: "[term, term] \<Rightarrow> typing"
 
 nonterminal context' and typing'
 syntax
-  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  ("(_/ \<turnstile> _)")
-  "_Trueprop1" :: "typing' \<Rightarrow> prop"  ("(_)")
-  "" :: "id \<Rightarrow> context'"  ("_")
-  "" :: "var \<Rightarrow> context'"  ("_")
-  "_MT_context" :: "context'"  ("")
-  "_Context" :: "[typing', context'] \<Rightarrow> context'"  ("_ _")
-  "_Has_type" :: "[term, term] \<Rightarrow> typing'"  ("(_:/ _)" [0, 0] 5)
-  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<^bold>\<lambda>_:_./ _)" [0, 0, 0] 10)
-  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  ("(3\<Prod>_:_./ _)" [0, 0] 10)
-  "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr "\<rightarrow>" 10)
+  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  (\<open>(_/ \<turnstile> _)\<close>)
+  "_Trueprop1" :: "typing' \<Rightarrow> prop"  (\<open>(_)\<close>)
+  "" :: "id \<Rightarrow> context'"  (\<open>_\<close>)
+  "" :: "var \<Rightarrow> context'"  (\<open>_\<close>)
+  "_MT_context" :: "context'"  (\<open>\<close>)
+  "_Context" :: "[typing', context'] \<Rightarrow> context'"  (\<open>_ _\<close>)
+  "_Has_type" :: "[term, term] \<Rightarrow> typing'"  (\<open>(_:/ _)\<close> [0, 0] 5)
+  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(3\<^bold>\<lambda>_:_./ _)\<close> [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(3\<Prod>_:_./ _)\<close> [0, 0] 10)
+  "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr \<open>\<rightarrow>\<close> 10)
 syntax_consts
   "_Trueprop" \<rightleftharpoons> Trueprop and
   "_MT_context" \<rightleftharpoons> MT_context and

@@ -14,7 +14,7 @@ begin
 
 section \<open>Examples from the introduction\<close>
 
-codatatype 'a stream = SCons (shd: 'a) (stl: "'a stream") (infixr "\<lhd>" 65)
+codatatype 'a stream = SCons (shd: 'a) (stl: "'a stream") (infixr \<open>\<lhd>\<close> 65)
 
 corec "natsFrom" :: "nat \<Rightarrow> nat stream" where
   "natsFrom n = n \<lhd> natsFrom (n + 1)"
@@ -29,7 +29,7 @@ section \<open>Examples from section 3\<close>
 
 text \<open>We curry the example functions in this section because infix syntax works only for curried functions.\<close>
 
-corec (friend) Plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix "\<oplus>" 67) where
+corec (friend) Plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix \<open>\<oplus>\<close> 67) where
   "x\<^sub>1 \<oplus> x\<^sub>2 = (shd x\<^sub>1 + shd x\<^sub>2) \<lhd> (stl x\<^sub>1 \<oplus> stl x\<^sub>2)"
 
 section \<open>Examples from section 4\<close>
@@ -43,7 +43,7 @@ corec collatz :: "nat \<Rightarrow> nat llist" where
 
 datatype 'a nelist = NEList (hd:'a) (tl:"'a list")
 
-primrec (transfer) snoc :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a nelist" (infix "\<rhd>" 64) where
+primrec (transfer) snoc :: "'a list \<Rightarrow> 'a \<Rightarrow> 'a nelist" (infix \<open>\<rhd>\<close> 64) where
  "[] \<rhd> a = NEList a []"
 |"(b # bs) \<rhd> a = NEList b (bs @ [a])"
 
@@ -68,7 +68,7 @@ where "fibA = 0 \<lhd> (1 \<lhd> fibA \<oplus> fibA)"
 corec fibB :: "nat stream"
 where "fibB = (0 \<lhd> 1 \<lhd> fibB) \<oplus> (0 \<lhd> fibB)"
 
-corec (friend) times :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix "\<otimes>" 69)
+corec (friend) times :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix \<open>\<otimes>\<close> 69)
 where "xs \<otimes> ys = (shd xs * shd ys) \<lhd> xs \<otimes> stl ys \<oplus> stl xs \<otimes> ys"
 
 corec (friend) exp :: "nat stream \<Rightarrow> nat stream"
@@ -106,7 +106,7 @@ where "facC n a i = (if i = 0 then a \<lhd> facC (n + 1) 1 (n + 1) else facC n (
 corec catalan :: "nat \<Rightarrow> nat stream"
 where "catalan n = (if n > 0 then catalan (n - 1) \<oplus> (0 \<lhd> catalan (n + 1)) else 1 \<lhd> catalan 1)"
 
-corec (friend) heart :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix "\<heartsuit>" 65)
+corec (friend) heart :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infix \<open>\<heartsuit>\<close> 65)
 where "xs \<heartsuit> ys = SCons (shd xs * shd ys) ((((xs \<heartsuit> stl ys) \<oplus> (stl xs \<otimes> ys)) \<heartsuit> ys) \<otimes> ys)"
 
 corec (friend) g :: "'a stream \<Rightarrow> 'a stream"

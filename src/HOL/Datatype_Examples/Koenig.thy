@@ -90,11 +90,11 @@ qed
 
 (* some more stream theorems *)
 
-primcorec plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
+primcorec plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr \<open>\<oplus>\<close> 66) where
   "shd (plus xs ys) = shd xs + shd ys"
 | "stl (plus xs ys) = plus (stl xs) (stl ys)"
 
-definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<cdot>" 68) where
+definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr \<open>\<cdot>\<close> 68) where
   [simp]: "scalar n = smap (\<lambda>x. n * x)"
 
 primcorec ones :: "nat stream" where "ones = 1 ## ones"

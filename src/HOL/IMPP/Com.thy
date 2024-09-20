@@ -33,13 +33,13 @@ typedecl pname
 
 datatype com
       = SKIP
-      | Ass   vname aexp        ("_:==_"                [65, 65    ] 60)
-      | Local loc aexp com      ("LOCAL _:=_ IN _"      [65,  0, 61] 60)
-      | Semi  com  com          ("_;; _"                [59, 60    ] 59)
-      | Cond  bexp com com      ("IF _ THEN _ ELSE _"   [65, 60, 61] 60)
-      | While bexp com          ("WHILE _ DO _"         [65,     61] 60)
+      | Ass   vname aexp        (\<open>_:==_\<close>                [65, 65    ] 60)
+      | Local loc aexp com      (\<open>LOCAL _:=_ IN _\<close>      [65,  0, 61] 60)
+      | Semi  com  com          (\<open>_;; _\<close>                [59, 60    ] 59)
+      | Cond  bexp com com      (\<open>IF _ THEN _ ELSE _\<close>   [65, 60, 61] 60)
+      | While bexp com          (\<open>WHILE _ DO _\<close>         [65,     61] 60)
       | BODY  pname
-      | Call  vname pname aexp  ("_:=CALL _'(_')"       [65, 65,  0] 60)
+      | Call  vname pname aexp  (\<open>_:=CALL _'(_')\<close>       [65, 65,  0] 60)
 
 consts bodies :: "(pname  *  com) list"(* finitely many procedure definitions *)
 definition

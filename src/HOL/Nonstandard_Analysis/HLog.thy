@@ -9,7 +9,7 @@ theory HLog
   imports HTranscendental
 begin
 
-definition powhr :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"  (infixr "powhr" 80)
+definition powhr :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"  (infixr \<open>powhr\<close> 80)
   where [transfer_unfold]: "x powhr a = starfun2 (powr) x a"
 
 definition hlog :: "hypreal \<Rightarrow> hypreal \<Rightarrow> hypreal"

@@ -71,7 +71,7 @@ by (nominal_induct t avoiding: \<theta> c s rule: lam.strong_induct)
    (auto simp add: fresh_list_cons fresh_atm forget lookup_fresh lookup_fresh')
  
 inductive 
-  Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
+  Beta :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta> _\<close> [80,80] 80)
 where
   b1[intro!]: "s1 \<longrightarrow>\<^sub>\<beta> s2 \<Longrightarrow> App s1 t \<longrightarrow>\<^sub>\<beta> App s2 t"
 | b2[intro!]: "s1\<longrightarrow>\<^sub>\<beta>s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^sub>\<beta> App t s2"
@@ -113,7 +113,7 @@ section \<open>types\<close>
 
 nominal_datatype ty =
     TVar "nat"
-  | TArr "ty" "ty" (infix "\<rightarrow>" 200)
+  | TArr "ty" "ty" (infix \<open>\<rightarrow>\<close> 200)
 
 lemma fresh_ty:
   fixes a ::"name"
@@ -144,7 +144,7 @@ by (induct \<Gamma>)
    (auto simp add: fresh_prod fresh_list_cons fresh_atm)
 
 inductive 
-  typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60)
+  typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ : _\<close> [60,60,60] 60)
 where
   t1[intro]: "\<lbrakk>valid \<Gamma>; (a,\<tau>)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var a : \<tau>"
 | t2[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : \<tau>\<rightarrow>\<sigma>; \<Gamma> \<turnstile> t2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : \<sigma>"
@@ -230,7 +230,7 @@ definition NEUT :: "lam \<Rightarrow> bool" where
 (* a slight hack to get the first element of applications *)
 (* this is needed to get (SN t) from SN (App t s)         *) 
 inductive 
-  FST :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<guillemotright> _" [80,80] 80)
+  FST :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<guillemotright> _\<close> [80,80] 80)
 where
   fst[intro!]:  "(App t s) \<guillemotright> t"
 
@@ -455,12 +455,12 @@ qed
 qed
 
 abbreviation 
- mapsto :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> bool" ("_ maps _ to _" [55,55,55] 55) 
+ mapsto :: "(name\<times>lam) list \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> bool" (\<open>_ maps _ to _\<close> [55,55,55] 55) 
 where
  "\<theta> maps x to e \<equiv> (lookup \<theta> x) = e"
 
 abbreviation 
-  closes :: "(name\<times>lam) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ closes _" [55,55] 55) 
+  closes :: "(name\<times>lam) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (\<open>_ closes _\<close> [55,55] 55) 
 where
   "\<theta> closes \<Gamma> \<equiv> \<forall>x T. ((x,T) \<in> set \<Gamma> \<longrightarrow> (\<exists>t. \<theta> maps x to t \<and> t \<in> RED T))"
 

@@ -123,11 +123,11 @@ text \<open>
 \<close>
 
 class %quote semigroup =
-  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
+  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl \<open>\<otimes>\<close> 70)
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 class %quote monoid = semigroup +
-  fixes neutral :: 'a ("\<one>")
+  fixes neutral :: 'a (\<open>\<one>\<close>)
   assumes neutl: "\<one> \<otimes> x = x"
     and neutr: "x \<otimes> \<one> = x"
 

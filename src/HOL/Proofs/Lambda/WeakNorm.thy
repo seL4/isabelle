@@ -201,7 +201,7 @@ qed
 
 
 \<comment> \<open>A computationally relevant copy of @{term "e \<turnstile> t : T"}\<close>
-inductive rtyping :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  ("_ \<turnstile>\<^sub>R _ : _" [50, 50, 50] 50)
+inductive rtyping :: "(nat \<Rightarrow> type) \<Rightarrow> dB \<Rightarrow> type \<Rightarrow> bool"  (\<open>_ \<turnstile>\<^sub>R _ : _\<close> [50, 50, 50] 50)
   where
     Var: "e x = T \<Longrightarrow> e \<turnstile>\<^sub>R Var x : T"
   | Abs: "e\<langle>0:T\<rangle> \<turnstile>\<^sub>R t : U \<Longrightarrow> e \<turnstile>\<^sub>R Abs t : (T \<Rightarrow> U)"

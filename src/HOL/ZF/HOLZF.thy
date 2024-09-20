@@ -188,7 +188,7 @@ theorem union: "Elem x (union A B) = (Elem x A | Elem x B)"
 definition Field :: "ZF \<Rightarrow> ZF" where
   "Field A == union (Domain A) (Range A)"
 
-definition app :: "ZF \<Rightarrow> ZF => ZF" (infixl "\<acute>" 90) \<comment> \<open>function application\<close> where
+definition app :: "ZF \<Rightarrow> ZF => ZF" (infixl \<open>\<acute>\<close> 90) \<comment> \<open>function application\<close> where
   "f \<acute> x == (THE y. Elem (Opair x y) f)"
 
 definition isFun :: "ZF \<Rightarrow> bool" where

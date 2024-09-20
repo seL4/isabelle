@@ -16,7 +16,7 @@ text \<open>
 type_synonym assn = "state \<Rightarrow> bool"
 
 definition
-  hoare_valid :: "[assn, com, assn] \<Rightarrow> bool"  ("|= {(1_)}/ (_)/ {(1_)}" 50) where
+  hoare_valid :: "[assn, com, assn] \<Rightarrow> bool"  (\<open>|= {(1_)}/ (_)/ {(1_)}\<close> 50) where
   "|= {P} c {Q} = (\<forall>s t. P s \<and> D c\<cdot>(Discr s) = Def t \<longrightarrow> Q t)"
 
 lemma WHILE_rule_sound:

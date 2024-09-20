@@ -31,7 +31,7 @@ class predomain = predomain_syn +
   assumes predomain_ep: "ep_pair liftemb liftprj"
   assumes cast_liftdefl: "cast\<cdot>(liftdefl TYPE('a)) = liftemb oo liftprj"
 
-syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
+syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  (\<open>(1LIFTDEFL/(1'(_')))\<close>)
 syntax_consts "_LIFTDEFL" \<rightleftharpoons> liftdefl
 translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 
@@ -51,7 +51,7 @@ class "domain" = predomain_syn + pcpo +
   assumes liftprj_eq: "liftprj = u_map\<cdot>prj"
   assumes liftdefl_eq: "liftdefl TYPE('a) = liftdefl_of\<cdot>(defl TYPE('a))"
 
-syntax "_DEFL" :: "type \<Rightarrow> logic"  ("(1DEFL/(1'(_')))")
+syntax "_DEFL" :: "type \<Rightarrow> logic"  (\<open>(1DEFL/(1'(_')))\<close>)
 syntax_consts "_DEFL" \<rightleftharpoons> defl
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
 

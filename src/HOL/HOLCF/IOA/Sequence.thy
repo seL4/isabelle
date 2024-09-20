@@ -63,7 +63,7 @@ definition Filter2 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow
               UU \<Rightarrow> UU
             | Def y \<Rightarrow> (if P y then x ## (h \<cdot> xs) else h \<cdot> xs))))"
 
-abbreviation Consq_syn  ("(_/\<leadsto>_)" [66, 65] 65)
+abbreviation Consq_syn  (\<open>(_/\<leadsto>_)\<close> [66, 65] 65)
   where "a \<leadsto> s \<equiv> Consq a \<cdot> s"
 
 
@@ -71,10 +71,10 @@ subsection \<open>List enumeration\<close>
 
 nonterminal llist_args
 syntax
-  "" :: "'a \<Rightarrow> llist_args"  ("_")
-  "_list_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
-  "_totlist" :: "llist_args \<Rightarrow> 'a Seq"  ("[(_)!]")
-  "_partlist" :: "llist_args \<Rightarrow> 'a Seq"  ("[(_)?]")
+  "" :: "'a \<Rightarrow> llist_args"  (\<open>_\<close>)
+  "_list_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  (\<open>_,/ _\<close>)
+  "_totlist" :: "llist_args \<Rightarrow> 'a Seq"  (\<open>[(_)!]\<close>)
+  "_partlist" :: "llist_args \<Rightarrow> 'a Seq"  (\<open>[(_)?]\<close>)
 syntax_consts
   "_totlist" "_partlist" \<rightleftharpoons> Consq
 translations

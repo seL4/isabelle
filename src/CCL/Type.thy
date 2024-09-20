@@ -13,7 +13,7 @@ definition Subtype :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
   where "Subtype(A, P) == {x. x:A \<and> P(x)}"
 
 syntax
-  "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  ("(1{_: _ ./ _})")
+  "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  (\<open>(1{_: _ ./ _})\<close>)
 syntax_consts
   "_Subtype" == Subtype
 translations
@@ -25,7 +25,7 @@ definition Unit :: "i set"
 definition Bool :: "i set"
   where "Bool == {x. x=true | x=false}"
 
-definition Plus :: "[i set, i set] \<Rightarrow> i set"  (infixr "+" 55)
+definition Plus :: "[i set, i set] \<Rightarrow> i set"  (infixr \<open>+\<close> 55)
   where "A+B == {x. (EX a:A. x=inl(a)) | (EX b:B. x=inr(b))}"
 
 definition Pi :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
@@ -35,10 +35,10 @@ definition Sigma :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
   where "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
 
 syntax
-  "_Pi" :: "[idt, i set, i set] \<Rightarrow> i set"  ("(3PROD _:_./ _)" [0,0,60] 60)
-  "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  ("(3SUM _:_./ _)" [0,0,60] 60)
-  "_arrow" :: "[i set, i set] \<Rightarrow> i set"  ("(_ ->/ _)"  [54, 53] 53)
-  "_star"  :: "[i set, i set] \<Rightarrow> i set"  ("(_ */ _)" [56, 55] 55)
+  "_Pi" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(3PROD _:_./ _)\<close> [0,0,60] 60)
+  "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(3SUM _:_./ _)\<close> [0,0,60] 60)
+  "_arrow" :: "[i set, i set] \<Rightarrow> i set"  (\<open>(_ ->/ _)\<close>  [54, 53] 53)
+  "_star"  :: "[i set, i set] \<Rightarrow> i set"  (\<open>(_ */ _)\<close> [56, 55] 55)
 syntax_consts
   "_Pi" "_arrow" \<rightleftharpoons> Pi and
   "_Sigma" "_star" \<rightleftharpoons> Sigma
@@ -67,13 +67,13 @@ definition ILists :: "i set \<Rightarrow> i set"
   where "ILists(A) == gfp(\<lambda>X.{} + A*X)"
 
 
-definition TAll :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder "TALL " 55)
+definition TAll :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder \<open>TALL \<close> 55)
   where "TALL X. B(X) == Inter({X. EX Y. X=B(Y)})"
 
-definition TEx :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder "TEX " 55)
+definition TEx :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder \<open>TEX \<close> 55)
   where "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
 
-definition Lift :: "i set \<Rightarrow> i set"  ("(3[_])")
+definition Lift :: "i set \<Rightarrow> i set"  (\<open>(3[_])\<close>)
   where "[A] == A Un {bot}"
 
 definition SPLIT :: "[i, [i, i] \<Rightarrow> i set] \<Rightarrow> i set"

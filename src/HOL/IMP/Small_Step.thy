@@ -5,7 +5,7 @@ theory Small_Step imports Star Big_Step begin
 subsection "The transition relation"
 
 inductive
-  small_step :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>" 55)
+  small_step :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix \<open>\<rightarrow>\<close> 55)
 where
 Assign:  "(x ::= a, s) \<rightarrow> (SKIP, s(x := aval a s))" |
 
@@ -20,7 +20,7 @@ While:   "(WHILE b DO c,s) \<rightarrow>
 
 
 abbreviation
-  small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
+  small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix \<open>\<rightarrow>*\<close> 55)
 where "x \<rightarrow>* y == star small_step x y"
 
 subsection\<open>Executability\<close>

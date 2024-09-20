@@ -480,7 +480,7 @@ qed
 subsection\<open>HOL Light measurability\<close>
 
 definition measurable_on :: "('a::euclidean_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool"
-  (infixr "measurable'_on" 46)
+  (infixr \<open>measurable'_on\<close> 46)
   where "f measurable_on S \<equiv>
         \<exists>N g. negligible N \<and>
               (\<forall>n. continuous_on UNIV (g n)) \<and>

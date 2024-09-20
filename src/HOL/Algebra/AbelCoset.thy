@@ -13,34 +13,34 @@ subsubsection \<open>Definitions\<close>
 text \<open>Hiding \<open><+>\<close> from \<^theory>\<open>HOL.Sum_Type\<close> until I come
   up with better syntax here\<close>
 
-no_notation Sum_Type.Plus (infixr "<+>" 65)
+no_notation Sum_Type.Plus (infixr \<open><+>\<close> 65)
 
 definition
-  a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "+>\<index>" 60)
+  a_r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl \<open>+>\<index>\<close> 60)
   where "a_r_coset G = r_coset (add_monoid G)"
 
 definition
-  a_l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<+\<index>" 60)
+  a_l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl \<open><+\<index>\<close> 60)
   where "a_l_coset G = l_coset (add_monoid G)"
 
 definition
-  A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("a'_rcosets\<index> _" [81] 80)
+  A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   (\<open>a'_rcosets\<index> _\<close> [81] 80)
   where "A_RCOSETS G H = RCOSETS (add_monoid G) H"
 
 definition
-  set_add  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<+>\<index>" 60)
+  set_add  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl \<open><+>\<index>\<close> 60)
   where "set_add G = set_mult (add_monoid G)"
 
 definition
-  A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("a'_set'_inv\<index> _" [81] 80)
+  A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  (\<open>a'_set'_inv\<index> _\<close> [81] 80)
   where "A_SET_INV G H = SET_INV (add_monoid G) H"
 
 definition
-  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("racong\<index>")
+  a_r_congruent :: "[('a,'b)ring_scheme, 'a set] \<Rightarrow> ('a*'a)set"  (\<open>racong\<index>\<close>)
   where "a_r_congruent G = r_congruent (add_monoid G)"
 
 definition
-  A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "A'_Mod" 65)
+  A_FactGroup :: "[('a,'b) ring_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl \<open>A'_Mod\<close> 65)
     \<comment> \<open>Actually defined for groups rather than monoids\<close>
   where "A_FactGroup G H = FactGroup (add_monoid G) H"
 

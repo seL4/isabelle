@@ -35,7 +35,7 @@ text \<open>Binary trees with leaves that are constants or variables.\<close>
 datatype 'a trm = 
   Var 'a 
   | Const 'a
-  | Comb "'a trm" "'a trm" (infix "\<cdot>" 60)
+  | Comb "'a trm" "'a trm" (infix \<open>\<cdot>\<close> 60)
 
 primrec vars_of :: "'a trm \<Rightarrow> 'a set"
 where
@@ -43,7 +43,7 @@ where
 | "vars_of (Const c) = {}"
 | "vars_of (M \<cdot> N) = vars_of M \<union> vars_of N"
 
-fun occs :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" (infixl "\<prec>" 54) 
+fun occs :: "'a trm \<Rightarrow> 'a trm \<Rightarrow> bool" (infixl \<open>\<prec>\<close> 54) 
 where
   "u \<prec> Var v \<longleftrightarrow> False"
 | "u \<prec> Const c \<longleftrightarrow> False"
@@ -77,17 +77,17 @@ where
   "assoc x d [] = d"
 | "assoc x d ((p,q)#t) = (if x = p then q else assoc x d t)"
 
-primrec subst :: "'a trm \<Rightarrow> 'a subst \<Rightarrow> 'a trm" (infixl "\<lhd>" 55)
+primrec subst :: "'a trm \<Rightarrow> 'a subst \<Rightarrow> 'a trm" (infixl \<open>\<lhd>\<close> 55)
 where
   "(Var v) \<lhd> s = assoc v (Var v) s"
 | "(Const c) \<lhd> s = (Const c)"
 | "(M \<cdot> N) \<lhd> s = (M \<lhd> s) \<cdot> (N \<lhd> s)"
 
-definition subst_eq (infixr "\<doteq>" 52)
+definition subst_eq (infixr \<open>\<doteq>\<close> 52)
 where
   "s1 \<doteq> s2 \<longleftrightarrow> (\<forall>t. t \<lhd> s1 = t \<lhd> s2)" 
 
-fun comp :: "'a subst \<Rightarrow> 'a subst \<Rightarrow> 'a subst" (infixl "\<lozenge>" 56)
+fun comp :: "'a subst \<Rightarrow> 'a subst \<Rightarrow> 'a subst" (infixl \<open>\<lozenge>\<close> 56)
 where
   "[] \<lozenge> bl = bl"
 | "((a,b) # al) \<lozenge> bl = (a, b \<lhd> bl) # (al \<lozenge> bl)"

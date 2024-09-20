@@ -48,11 +48,11 @@ definition "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
 
 text \<open>Binder syntax for \<^term>\<open>fix\<close>\<close>
 
-abbreviation fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder "\<mu> " 10)
+abbreviation fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder \<open>\<mu> \<close> 10)
   where "fix_syn (\<lambda>x. f x) \<equiv> fix\<cdot>(\<Lambda> x. f x)"
 
 notation (ASCII)
-  fix_syn  (binder "FIX " 10)
+  fix_syn  (binder \<open>FIX \<close> 10)
 
 text \<open>Properties of \<^term>\<open>fix\<close>\<close>
 

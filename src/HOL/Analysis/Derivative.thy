@@ -100,7 +100,7 @@ subsection \<open>Differentiability\<close>
 
 definition\<^marker>\<open>tag important\<close>
   differentiable_on :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a set \<Rightarrow> bool"
-    (infix "differentiable'_on" 50)
+    (infix \<open>differentiable'_on\<close> 50)
   where "f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable (at x within s))"
 
 lemma differentiableI: "(f has_derivative f') net \<Longrightarrow> f differentiable net"
@@ -2008,7 +2008,7 @@ lemma vector_derivative_chain_within:
 subsection \<open>Field differentiability\<close>
 
 definition\<^marker>\<open>tag important\<close> field_differentiable :: "['a \<Rightarrow> 'a::real_normed_field, 'a filter] \<Rightarrow> bool"
-           (infixr "(field'_differentiable)" 50)
+           (infixr \<open>(field'_differentiable)\<close> 50)
   where "f field_differentiable F \<equiv> \<exists>f'. (f has_field_derivative f') F"
 
 lemma field_differentiable_imp_differentiable:
@@ -3089,7 +3089,7 @@ qed
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Piecewise differentiable functions\<close>
 
 definition piecewise_differentiable_on
-           (infixr "piecewise'_differentiable'_on" 50)
+           (infixr \<open>piecewise'_differentiable'_on\<close> 50)
   where "f piecewise_differentiable_on i  \<equiv>
            continuous_on i f \<and>
            (\<exists>S. finite S \<and> (\<forall>x \<in> i - S. f differentiable (at x within i)))"
@@ -3244,7 +3244,7 @@ difficult proofs concerning winding numbers. We need a self-contained and straig
 asserting that all derivatives can be integrated before we can adopt Harrison's choice.\<close>
 
 definition\<^marker>\<open>tag important\<close> C1_differentiable_on :: "(real \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> real set \<Rightarrow> bool"
-           (infix "C1'_differentiable'_on" 50)
+           (infix \<open>C1'_differentiable'_on\<close> 50)
   where
   "f C1_differentiable_on S \<longleftrightarrow>
    (\<exists>D. (\<forall>x \<in> S. (f has_vector_derivative (D x)) (at x)) \<and> continuous_on S D)"
@@ -3336,7 +3336,7 @@ lemma C1_differentiable_on_translation_eq:
 
 
 definition\<^marker>\<open>tag important\<close> piecewise_C1_differentiable_on
-           (infixr "piecewise'_C1'_differentiable'_on" 50)
+           (infixr \<open>piecewise'_C1'_differentiable'_on\<close> 50)
   where "f piecewise_C1_differentiable_on i  \<equiv>
            continuous_on i f \<and>
            (\<exists>S. finite S \<and> (f C1_differentiable_on (i - S)))"

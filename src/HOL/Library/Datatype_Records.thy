@@ -27,32 +27,32 @@ text \<open>
 \<close>
 
 no_syntax
-  "_constify"           :: "id => ident"                        ("_")
-  "_constify"           :: "longid => ident"                    ("_")
+  "_constify"           :: "id => ident"                        (\<open>_\<close>)
+  "_constify"           :: "longid => ident"                    (\<open>_\<close>)
 
-  "_field_type"         :: "ident => type => field_type"        ("(2_ ::/ _)")
-  ""                    :: "field_type => field_types"          ("_")
-  "_field_types"        :: "field_type => field_types => field_types"    ("_,/ _")
-  "_record_type"        :: "field_types => type"                ("(3\<lparr>_\<rparr>)")
-  "_record_type_scheme" :: "field_types => type => type"        ("(3\<lparr>_,/ (2\<dots> ::/ _)\<rparr>)")
+  "_field_type"         :: "ident => type => field_type"        (\<open>(2_ ::/ _)\<close>)
+  ""                    :: "field_type => field_types"          (\<open>_\<close>)
+  "_field_types"        :: "field_type => field_types => field_types"    (\<open>_,/ _\<close>)
+  "_record_type"        :: "field_types => type"                (\<open>(3\<lparr>_\<rparr>)\<close>)
+  "_record_type_scheme" :: "field_types => type => type"        (\<open>(3\<lparr>_,/ (2\<dots> ::/ _)\<rparr>)\<close>)
 
-  "_field"              :: "ident => 'a => field"               ("(2_ =/ _)")
-  ""                    :: "field => fields"                    ("_")
-  "_fields"             :: "field => fields => fields"          ("_,/ _")
-  "_record"             :: "fields => 'a"                       ("(3\<lparr>_\<rparr>)")
-  "_record_scheme"      :: "fields => 'a => 'a"                 ("(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)")
+  "_field"              :: "ident => 'a => field"               (\<open>(2_ =/ _)\<close>)
+  ""                    :: "field => fields"                    (\<open>_\<close>)
+  "_fields"             :: "field => fields => fields"          (\<open>_,/ _\<close>)
+  "_record"             :: "fields => 'a"                       (\<open>(3\<lparr>_\<rparr>)\<close>)
+  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(3\<lparr>_,/ (2\<dots> =/ _)\<rparr>)\<close>)
 
-  "_field_update"       :: "ident => 'a => field_update"        ("(2_ :=/ _)")
-  ""                    :: "field_update => field_updates"      ("_")
-  "_field_updates"      :: "field_update => field_updates => field_updates"  ("_,/ _")
-  "_record_update"      :: "'a => field_updates => 'b"          ("_/(3\<lparr>_\<rparr>)" [900, 0] 900)
+  "_field_update"       :: "ident => 'a => field_update"        (\<open>(2_ :=/ _)\<close>)
+  ""                    :: "field_update => field_updates"      (\<open>_\<close>)
+  "_field_updates"      :: "field_update => field_updates => field_updates"  (\<open>_,/ _\<close>)
+  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(3\<lparr>_\<rparr>)\<close> [900, 0] 900)
 
 no_syntax (ASCII)
-  "_record_type"        :: "field_types => type"                ("(3'(| _ |'))")
-  "_record_type_scheme" :: "field_types => type => type"        ("(3'(| _,/ (2... ::/ _) |'))")
-  "_record"             :: "fields => 'a"                       ("(3'(| _ |'))")
-  "_record_scheme"      :: "fields => 'a => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
-  "_record_update"      :: "'a => field_updates => 'b"          ("_/(3'(| _ |'))" [900, 0] 900)
+  "_record_type"        :: "field_types => type"                (\<open>(3'(| _ |'))\<close>)
+  "_record_type_scheme" :: "field_types => type => type"        (\<open>(3'(| _,/ (2... ::/ _) |'))\<close>)
+  "_record"             :: "fields => 'a"                       (\<open>(3'(| _ |'))\<close>)
+  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(3'(| _,/ (2... =/ _) |'))\<close>)
+  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(3'(| _ |'))\<close> [900, 0] 900)
 
 (* copied and adapted from Record.thy *)
 
@@ -63,22 +63,22 @@ nonterminal
   field_updates
 
 syntax
-  "_constify"               :: "id => ident"                        ("_")
-  "_constify"               :: "longid => ident"                    ("_")
+  "_constify"               :: "id => ident"                        (\<open>_\<close>)
+  "_constify"               :: "longid => ident"                    (\<open>_\<close>)
 
-  "_datatype_field"         :: "ident => 'a => field"               ("(2_ =/ _)")
-  ""                        :: "field => fields"                    ("_")
-  "_datatype_fields"        :: "field => fields => fields"          ("_,/ _")
-  "_datatype_record"        :: "fields => 'a"                       ("(3\<lparr>_\<rparr>)")
-  "_datatype_field_update"  :: "ident => 'a => field_update"        ("(2_ :=/ _)")
-  ""                        :: "field_update => field_updates"      ("_")
-  "_datatype_field_updates" :: "field_update => field_updates => field_updates"  ("_,/ _")
-  "_datatype_record_update" :: "'a => field_updates => 'b"          ("_/(3\<lparr>_\<rparr>)" [900, 0] 900)
+  "_datatype_field"         :: "ident => 'a => field"               (\<open>(2_ =/ _)\<close>)
+  ""                        :: "field => fields"                    (\<open>_\<close>)
+  "_datatype_fields"        :: "field => fields => fields"          (\<open>_,/ _\<close>)
+  "_datatype_record"        :: "fields => 'a"                       (\<open>(3\<lparr>_\<rparr>)\<close>)
+  "_datatype_field_update"  :: "ident => 'a => field_update"        (\<open>(2_ :=/ _)\<close>)
+  ""                        :: "field_update => field_updates"      (\<open>_\<close>)
+  "_datatype_field_updates" :: "field_update => field_updates => field_updates"  (\<open>_,/ _\<close>)
+  "_datatype_record_update" :: "'a => field_updates => 'b"          (\<open>_/(3\<lparr>_\<rparr>)\<close> [900, 0] 900)
 
 syntax (ASCII)
-  "_datatype_record"        :: "fields => 'a"                       ("(3'(| _ |'))")
-  "_datatype_record_scheme" :: "fields => 'a => 'a"                 ("(3'(| _,/ (2... =/ _) |'))")
-  "_datatype_record_update" :: "'a => field_updates => 'b"          ("_/(3'(| _ |'))" [900, 0] 900)
+  "_datatype_record"        :: "fields => 'a"                       (\<open>(3'(| _ |'))\<close>)
+  "_datatype_record_scheme" :: "fields => 'a => 'a"                 (\<open>(3'(| _,/ (2... =/ _) |'))\<close>)
+  "_datatype_record_update" :: "'a => field_updates => 'b"          (\<open>_/(3'(| _ |'))\<close> [900, 0] 900)
 
 named_theorems datatype_record_update
 

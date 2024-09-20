@@ -13,7 +13,7 @@ typedecl ty
 axiomatization
   bool    :: ty and
   nat     :: ty and
-  arrow   :: "ty \<Rightarrow> ty \<Rightarrow> ty"       (infixr "->" 20) and
+  arrow   :: "ty \<Rightarrow> ty \<Rightarrow> ty"       (infixr \<open>->\<close> 20) and
   typeof  :: "[tm, ty] \<Rightarrow> bool" and
   anyterm :: tm
 where common_typeof:   "

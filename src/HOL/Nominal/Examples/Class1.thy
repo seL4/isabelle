@@ -8,14 +8,14 @@ atom_decl name coname
 
 text \<open>types\<close>
 
-no_notation not  ("NOT")
+no_notation not  (\<open>NOT\<close>)
 
 nominal_datatype ty =
     PR "string"
   | NOT  "ty"
-  | AND  "ty" "ty"   ("_ AND _" [100,100] 100)
-  | OR   "ty" "ty"   ("_ OR _"  [100,100] 100)
-  | IMP  "ty" "ty"   ("_ IMP _" [100,100] 100)
+  | AND  "ty" "ty"   (\<open>_ AND _\<close> [100,100] 100)
+  | OR   "ty" "ty"   (\<open>_ OR _\<close>  [100,100] 100)
+  | IMP  "ty" "ty"   (\<open>_ IMP _\<close> [100,100] 100)
 
 instantiation ty :: size
 begin
@@ -50,30 +50,30 @@ text \<open>terms\<close>
 
 nominal_datatype trm = 
     Ax   "name" "coname"
-  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            ("Cut <_>._ ('(_'))._" [0,0,0,100] 101)
-  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 ("NotR ('(_'))._ _" [0,100,100] 101)
-  | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 ("NotL <_>._ _" [0,100,100] 101)
-  | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" ("AndR <_>._ <_>._ _" [0,100,0,100,100] 101)
-  | AndL1 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL1 (_)._ _" [100,100,100] 101)
-  | AndL2 "\<guillemotleft>name\<guillemotright>trm" "name"                  ("AndL2 (_)._ _" [100,100,100] 101)
-  | OrR1 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR1 <_>._ _" [100,100,100] 101)
-  | OrR2 "\<guillemotleft>coname\<guillemotright>trm" "coname"               ("OrR2 <_>._ _" [100,100,100] 101)
-  | OrL "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"        ("OrL (_)._ (_)._ _" [100,100,100,100,100] 101)
-  | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       ("ImpR (_).<_>._ _" [100,100,100,100] 101)
-  | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     ("ImpL <_>._ (_)._ _" [100,100,100,100,100] 101)
+  | Cut  "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm"            (\<open>Cut <_>._ ('(_'))._\<close> [0,0,0,100] 101)
+  | NotR "\<guillemotleft>name\<guillemotright>trm" "coname"                 (\<open>NotR ('(_'))._ _\<close> [0,100,100] 101)
+  | NotL "\<guillemotleft>coname\<guillemotright>trm" "name"                 (\<open>NotL <_>._ _\<close> [0,100,100] 101)
+  | AndR "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>coname\<guillemotright>trm" "coname" (\<open>AndR <_>._ <_>._ _\<close> [0,100,0,100,100] 101)
+  | AndL1 "\<guillemotleft>name\<guillemotright>trm" "name"                  (\<open>AndL1 (_)._ _\<close> [100,100,100] 101)
+  | AndL2 "\<guillemotleft>name\<guillemotright>trm" "name"                  (\<open>AndL2 (_)._ _\<close> [100,100,100] 101)
+  | OrR1 "\<guillemotleft>coname\<guillemotright>trm" "coname"               (\<open>OrR1 <_>._ _\<close> [100,100,100] 101)
+  | OrR2 "\<guillemotleft>coname\<guillemotright>trm" "coname"               (\<open>OrR2 <_>._ _\<close> [100,100,100] 101)
+  | OrL "\<guillemotleft>name\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"        (\<open>OrL (_)._ (_)._ _\<close> [100,100,100,100,100] 101)
+  | ImpR "\<guillemotleft>name\<guillemotright>(\<guillemotleft>coname\<guillemotright>trm)" "coname"       (\<open>ImpR (_).<_>._ _\<close> [100,100,100,100] 101)
+  | ImpL "\<guillemotleft>coname\<guillemotright>trm" "\<guillemotleft>name\<guillemotright>trm" "name"     (\<open>ImpL <_>._ (_)._ _\<close> [100,100,100,100,100] 101)
 
 text \<open>named terms\<close>
 
-nominal_datatype ntrm = Na "\<guillemotleft>name\<guillemotright>trm" ("((_):_)" [100,100] 100)
+nominal_datatype ntrm = Na "\<guillemotleft>name\<guillemotright>trm" (\<open>((_):_)\<close> [100,100] 100)
 
 text \<open>conamed terms\<close>
 
-nominal_datatype ctrm = Co "\<guillemotleft>coname\<guillemotright>trm" ("(<_>:_)" [100,100] 100)
+nominal_datatype ctrm = Co "\<guillemotleft>coname\<guillemotright>trm" (\<open>(<_>:_)\<close> [100,100] 100)
 
 text \<open>renaming functions\<close>
 
 nominal_primrec (freshness_context: "(d::coname,e::coname)") 
-  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,0,0] 100) 
+  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  (\<open>_[_\<turnstile>c>_]\<close> [100,0,0] 100) 
 where
   "(Ax x a)[d\<turnstile>c>e] = (if a=d then Ax x e else Ax x a)" 
 | "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>M\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[d\<turnstile>c>e] = Cut <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e])" 
@@ -92,7 +92,7 @@ where
   by(finite_guess | simp add: abs_fresh abs_supp fin_supp | fresh_guess)+
 
 nominal_primrec (freshness_context: "(u::name,v::name)") 
-  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      ("_[_\<turnstile>n>_]" [100,0,0] 100) 
+  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      (\<open>_[_\<turnstile>n>_]\<close> [100,0,0] 100) 
 where
   "(Ax x a)[u\<turnstile>n>v] = (if x=u then Ax v a else Ax x a)" 
 | "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[u\<turnstile>n>v] = Cut <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v])" 
@@ -610,7 +610,7 @@ proof -
 qed
 
 nominal_primrec (freshness_context: "(y::name,c::coname,P::trm)")
-  substn :: "trm \<Rightarrow> name   \<Rightarrow> coname \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=<_>._}" [100,100,100,100] 100) 
+  substn :: "trm \<Rightarrow> name   \<Rightarrow> coname \<Rightarrow> trm \<Rightarrow> trm" (\<open>_{_:=<_>._}\<close> [100,100,100,100] 100) 
 where
   "(Ax x a){y:=<c>.P} = (if x=y then Cut <c>.P (y).Ax y a else Ax x a)" 
 | "\<lbrakk>a\<sharp>(c,P,N);x\<sharp>(y,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){y:=<c>.P} = 
@@ -673,7 +673,7 @@ apply(fresh_guess)+
 done
 
 nominal_primrec (freshness_context: "(d::name,z::coname,P::trm)")
-  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=('(_'))._}" [100,0,0,100] 100)
+  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" (\<open>_{_:=('(_'))._}\<close> [100,0,0,100] 100)
 where
   "(Ax x a){d:=(z).P} = (if d=a then Cut <a>.(Ax x a) (z).P else Ax x a)" 
 | "\<lbrakk>a\<sharp>(d,P,N);x\<sharp>(z,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){d:=(z).P} = 
@@ -2423,7 +2423,7 @@ next
 qed (use fic_rest_elims in force)+
 
 inductive
-  l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>l _" [100,100] 100)
+  l_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longrightarrow>\<^sub>l _\<close> [100,100] 100)
 where
   LAxR:  "\<lbrakk>x\<sharp>M; a\<sharp>b; fic M a\<rbrakk> \<Longrightarrow> Cut <a>.M (x).(Ax x b) \<longrightarrow>\<^sub>l M[a\<turnstile>c>b]"
 | LAxL:  "\<lbrakk>a\<sharp>M; x\<sharp>y; fin M x\<rbrakk> \<Longrightarrow> Cut <a>.(Ax y a) (x).M \<longrightarrow>\<^sub>l M[x\<turnstile>n>y]"
@@ -3044,7 +3044,7 @@ qed
 
 
 inductive
-  c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>c _" [100,100] 100)
+  c_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longrightarrow>\<^sub>c _\<close> [100,100] 100)
 where
   left[intro]:  "\<lbrakk>\<not>fic M a; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c M{a:=(x).N}"
 | right[intro]: "\<lbrakk>\<not>fin N x; a\<sharp>N; x\<sharp>M\<rbrakk> \<Longrightarrow> Cut <a>.M (x).N \<longrightarrow>\<^sub>c N{x:=<a>.M}"
@@ -3098,7 +3098,7 @@ lemma fresh_c_redu:
   by (induct rule: c_redu.induct) (auto simp: abs_fresh rename_fresh subst_fresh)+
 
 inductive
-  a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a _" [100,100] 100)
+  a_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longrightarrow>\<^sub>a _\<close> [100,100] 100)
 where
   al_redu[intro]: "M\<longrightarrow>\<^sub>l M' \<Longrightarrow> M \<longrightarrow>\<^sub>a M'"
 | ac_redu[intro]: "M\<longrightarrow>\<^sub>c M' \<Longrightarrow> M \<longrightarrow>\<^sub>a M'"
@@ -3477,7 +3477,7 @@ by(simp add: fresh_left alpha a_redu.eqvt calc_atm fresh_a_redu perm_swap perm_c
 text \<open>Transitive Closure\<close>
 
 abbreviation
- a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>\<^sub>a* _" [80,80] 80)
+ a_star_redu :: "trm \<Rightarrow> trm \<Rightarrow> bool" (\<open>_ \<longrightarrow>\<^sub>a* _\<close> [80,80] 80)
 where
   "M \<longrightarrow>\<^sub>a* M' \<equiv> (a_redu)\<^sup>*\<^sup>* M M'"
 

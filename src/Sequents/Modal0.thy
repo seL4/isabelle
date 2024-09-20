@@ -10,14 +10,14 @@ begin
 ML_file \<open>modal.ML\<close>
 
 consts
-  box           :: "o\<Rightarrow>o"       ("[]_" [50] 50)
-  dia           :: "o\<Rightarrow>o"       ("<>_" [50] 50)
+  box           :: "o\<Rightarrow>o"       (\<open>[]_\<close> [50] 50)
+  dia           :: "o\<Rightarrow>o"       (\<open><>_\<close> [50] 50)
   Lstar         :: "two_seqi"
   Rstar         :: "two_seqi"
 
 syntax
-  "_Lstar"      :: "two_seqe"   ("(_)|L>(_)" [6,6] 5)
-  "_Rstar"      :: "two_seqe"   ("(_)|R>(_)" [6,6] 5)
+  "_Lstar"      :: "two_seqe"   (\<open>(_)|L>(_)\<close> [6,6] 5)
+  "_Rstar"      :: "two_seqe"   (\<open>(_)|R>(_)\<close> [6,6] 5)
 
 ML \<open>
   fun star_tr c [s1, s2] = Syntax.const c $ seq_tr s1 $ seq_tr s2;
@@ -34,10 +34,10 @@ print_translation \<open>
   (\<^const_syntax>\<open>Rstar\<close>, K (star_tr' \<^syntax_const>\<open>_Rstar\<close>))]
 \<close>
 
-definition strimp :: "[o,o]\<Rightarrow>o"   (infixr "--<" 25)
+definition strimp :: "[o,o]\<Rightarrow>o"   (infixr \<open>--<\<close> 25)
   where "P --< Q == [](P \<longrightarrow> Q)"
 
-definition streqv :: "[o,o]\<Rightarrow>o"   (infixr ">-<" 25)
+definition streqv :: "[o,o]\<Rightarrow>o"   (infixr \<open>>-<\<close> 25)
   where "P >-< Q == (P --< Q) \<and> (Q --< P)"
 
 

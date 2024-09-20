@@ -27,18 +27,18 @@ instance i :: prog ..
 
 consts
   (*** Evaluation Judgement ***)
-  Eval      ::       "[i,i]\<Rightarrow>prop"          (infixl "\<longlongrightarrow>" 20)
+  Eval      ::       "[i,i]\<Rightarrow>prop"          (infixl \<open>\<longlongrightarrow>\<close> 20)
 
   (*** Bisimulations for pre-order and equality ***)
-  po          ::       "['a,'a]\<Rightarrow>o"           (infixl "[=" 50)
+  po          ::       "['a,'a]\<Rightarrow>o"           (infixl \<open>[=\<close> 50)
 
   (*** Term Formers ***)
   true        ::       "i"
   false       ::       "i"
-  pair        ::       "[i,i]\<Rightarrow>i"             ("(1<_,/_>)")
-  lambda      ::       "(i\<Rightarrow>i)\<Rightarrow>i"            (binder "lam " 55)
+  pair        ::       "[i,i]\<Rightarrow>i"             (\<open>(1<_,/_>)\<close>)
+  lambda      ::       "(i\<Rightarrow>i)\<Rightarrow>i"            (binder \<open>lam \<close> 55)
   "case"      ::       "[i,i,i,[i,i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
-  "apply"     ::       "[i,i]\<Rightarrow>i"             (infixl "`" 56)
+  "apply"     ::       "[i,i]\<Rightarrow>i"             (infixl \<open>`\<close> 56)
   bot         ::       "i"
 
   (******* EVALUATION SEMANTICS *******)

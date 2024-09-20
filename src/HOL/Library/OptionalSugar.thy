@@ -27,7 +27,7 @@ translations
 
 (* append *)
 syntax (latex output)
-  "_appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "\<^latex>\<open>\\isacharat\<close>" 65)
+  "_appendL" :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl \<open>\<^latex>\<open>\isacharat\<close>\<close> 65)
 translations
   "_appendL xs ys" <= "xs @ ys" 
   "_appendL (_appendL xs ys) zs" <= "_appendL xs (_appendL ys zs)"
@@ -36,8 +36,8 @@ translations
 (* deprecated, use thm with style instead, will be removed *)
 (* aligning equations *)
 notation (tab output)
-  "HOL.eq"  ("(_) \<^latex>\<open>}\\putisatab\\isa{\\ \<close>=\<^latex>\<open>}\\putisatab\\isa{\<close> (_)" [50,49] 50) and
-  "Pure.eq"  ("(_) \<^latex>\<open>}\\putisatab\\isa{\\ \<close>\<equiv>\<^latex>\<open>}\\putisatab\\isa{\<close> (_)")
+  "HOL.eq"  (\<open>(_) \<^latex>\<open>}\putisatab\isa{\ \<close>=\<^latex>\<open>}\putisatab\isa{\<close> (_)\<close> [50,49] 50) and
+  "Pure.eq"  (\<open>(_) \<^latex>\<open>}\putisatab\isa{\ \<close>\<equiv>\<^latex>\<open>}\putisatab\isa{\<close> (_)\<close>)
 
 (* Let *)
 translations 
@@ -53,21 +53,21 @@ translations
 
 (* type constraints with spacing *)
 no_syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_::_" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_::_" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
 
 syntax (output)
-  "_constrain" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
+  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
 
 
 (* sorts as intersections *)
 
 syntax (output)
-  "_topsort" :: "sort"  ("\<top>" 1000)
-  "_sort" :: "classes => sort"  ("'(_')" 1000)
-  "_classes" :: "id => classes => classes"  ("_ \<inter> _" 1000)
-  "_classes" :: "longid => classes => classes"  ("_ \<inter> _" 1000)
+  "_topsort" :: "sort"  (\<open>\<top>\<close> 1000)
+  "_sort" :: "classes => sort"  (\<open>'(_')\<close> 1000)
+  "_classes" :: "id => classes => classes"  (\<open>_ \<inter> _\<close> 1000)
+  "_classes" :: "longid => classes => classes"  (\<open>_ \<inter> _\<close> 1000)
 
 end
 (*>*)

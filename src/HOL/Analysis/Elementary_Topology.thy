@@ -563,7 +563,7 @@ class polish_space = complete_space + second_countable_topology
 
 subsection \<open>Limit Points\<close>
 
-definition\<^marker>\<open>tag important\<close> (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr "islimpt" 60)
+definition\<^marker>\<open>tag important\<close> (in topological_space) islimpt:: "'a \<Rightarrow> 'a set \<Rightarrow> bool"  (infixr \<open>islimpt\<close> 60)
   where "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
 lemma islimptI:
@@ -2221,7 +2221,7 @@ proof -
 qed
 
 definition\<^marker>\<open>tag important\<close> homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
-    (infixr "homeomorphic" 60)
+    (infixr \<open>homeomorphic\<close> 60)
   where "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
 lemma homeomorphic_empty [iff]:

@@ -106,7 +106,7 @@ definition mkPX :: "pol \<Rightarrow> nat \<Rightarrow> pol \<Rightarrow> pol"
 
 text \<open>Defining the basic ring operations on normalized polynomials\<close>
 
-function add :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>+\<rangle>" 65)
+function add :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl \<open>\<langle>+\<rangle>\<close> 65)
   where
     "Pc a \<langle>+\<rangle> Pc b = Pc (a + b)"
   | "Pc c \<langle>+\<rangle> Pinj i P = Pinj i (P \<langle>+\<rangle> Pc c)"
@@ -132,7 +132,7 @@ function add :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>+\<
   by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)") auto
 
-function mul :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>*\<rangle>" 70)
+function mul :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl \<open>\<langle>*\<rangle>\<close> 70)
   where
     "Pc a \<langle>*\<rangle> Pc b = Pc (a * b)"
   | "Pc c \<langle>*\<rangle> Pinj i P =
@@ -174,7 +174,7 @@ primrec neg :: "pol \<Rightarrow> pol"
   | "neg (PX P x Q) = PX (neg P) x (neg Q)"
 
 text \<open>Subtraction\<close>
-definition sub :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl "\<langle>-\<rangle>" 65)
+definition sub :: "pol \<Rightarrow> pol \<Rightarrow> pol"  (infixl \<open>\<langle>-\<rangle>\<close> 65)
   where "sub P Q = P \<langle>+\<rangle> neg Q"
 
 text \<open>Square for Fast Exponentiation\<close>

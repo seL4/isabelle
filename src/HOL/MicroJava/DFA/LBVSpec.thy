@@ -44,8 +44,8 @@ definition bottom :: "'a ord \<Rightarrow> 'a \<Rightarrow> bool" where
   "bottom r B \<equiv> \<forall>x. B <=_r x"
 
 locale lbv = Semilat +
-  fixes T :: "'a" ("\<top>") 
-  fixes B :: "'a" ("\<bottom>") 
+  fixes T :: "'a" (\<open>\<top>\<close>) 
+  fixes B :: "'a" (\<open>\<bottom>\<close>) 
   fixes step :: "'a step_type" 
   assumes top: "top r \<top>"
   assumes T_A: "\<top> \<in> A"

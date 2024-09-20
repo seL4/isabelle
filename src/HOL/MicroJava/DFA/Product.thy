@@ -20,7 +20,7 @@ definition esl :: "'a esl \<Rightarrow> 'b esl \<Rightarrow> ('a * 'b ) esl" whe
 
 abbreviation
   lesubprod_sntax :: "'a * 'b \<Rightarrow> 'a ord \<Rightarrow> 'b ord \<Rightarrow> 'a * 'b \<Rightarrow> bool"
-       ("(_ /<='(_,_') _)" [50, 0, 0, 51] 50)
+       (\<open>(_ /<='(_,_') _)\<close> [50, 0, 0, 51] 50)
   where "p <=(rA,rB) q == p <=_(le rA rB) q"
 
 lemma unfold_lesub_prod:

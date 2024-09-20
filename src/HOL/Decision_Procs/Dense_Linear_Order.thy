@@ -438,10 +438,10 @@ locale linorder_stupid_syntax = linorder
 begin
 
 notation
-  less_eq  ("'(\<sqsubseteq>')") and
-  less_eq  ("(_/ \<sqsubseteq> _)" [51, 51] 50) and
-  less  ("'(\<sqsubset>')") and
-  less  ("(_/ \<sqsubset> _)"  [51, 51] 50)
+  less_eq  (\<open>'(\<sqsubseteq>')\<close>) and
+  less_eq  (\<open>(_/ \<sqsubseteq> _)\<close> [51, 51] 50) and
+  less  (\<open>'(\<sqsubset>')\<close>) and
+  less  (\<open>(_/ \<sqsubset> _)\<close>  [51, 51] 50)
 
 end
 

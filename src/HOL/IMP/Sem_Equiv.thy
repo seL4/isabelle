@@ -9,12 +9,12 @@ subsection "Semantic Equivalence up to a Condition"
 type_synonym assn = "state \<Rightarrow> bool"
 
 definition
-  equiv_up_to :: "assn \<Rightarrow> com \<Rightarrow> com \<Rightarrow> bool" ("_ \<Turnstile> _ \<sim> _" [50,0,10] 50)
+  equiv_up_to :: "assn \<Rightarrow> com \<Rightarrow> com \<Rightarrow> bool" (\<open>_ \<Turnstile> _ \<sim> _\<close> [50,0,10] 50)
 where
   "(P \<Turnstile> c \<sim> c') = (\<forall>s s'. P s \<longrightarrow> (c,s) \<Rightarrow> s' \<longleftrightarrow> (c',s) \<Rightarrow> s')"
 
 definition
-  bequiv_up_to :: "assn \<Rightarrow> bexp \<Rightarrow> bexp \<Rightarrow> bool" ("_ \<Turnstile> _ <\<sim>> _" [50,0,10] 50)
+  bequiv_up_to :: "assn \<Rightarrow> bexp \<Rightarrow> bexp \<Rightarrow> bool" (\<open>_ \<Turnstile> _ <\<sim>> _\<close> [50,0,10] 50)
 where
   "(P \<Turnstile> b <\<sim>> b') = (\<forall>s. P s \<longrightarrow> bval b s = bval b' s)"
 

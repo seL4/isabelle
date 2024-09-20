@@ -125,19 +125,19 @@ text \<open>To avoid redundancy and to reduce the number of rules, there is only
 \<close>
 
 abbreviation
-  dummy_res :: "vals" ("\<diamondsuit>")
+  dummy_res :: "vals" (\<open>\<diamondsuit>\<close>)
   where "\<diamondsuit> == In1 Unit"
 
 abbreviation (input)
-  val_inj_vals ("\<lfloor>_\<rfloor>\<^sub>e" 1000)
+  val_inj_vals (\<open>\<lfloor>_\<rfloor>\<^sub>e\<close> 1000)
   where "\<lfloor>e\<rfloor>\<^sub>e == In1 e"
 
 abbreviation (input)
-  var_inj_vals  ("\<lfloor>_\<rfloor>\<^sub>v" 1000)
+  var_inj_vals  (\<open>\<lfloor>_\<rfloor>\<^sub>v\<close> 1000)
   where "\<lfloor>v\<rfloor>\<^sub>v == In2 v"
 
 abbreviation (input)
-  lst_inj_vals  ("\<lfloor>_\<rfloor>\<^sub>l" 1000)
+  lst_inj_vals  (\<open>\<lfloor>_\<rfloor>\<^sub>l\<close> 1000)
   where "\<lfloor>es\<rfloor>\<^sub>l == In3 es"
 
 definition undefined3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals" where
@@ -170,7 +170,7 @@ apply (simp (no_asm))
 done
 
 definition
-  fits :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60)
+  fits :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" (\<open>_,_\<turnstile>_ fits _\<close>[61,61,61,61]60)
   where "G,s\<turnstile>a' fits T = ((\<exists>rt. T=RefT rt) \<longrightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T)"
 
 lemma fits_Null [simp]: "G,s\<turnstile>Null fits T"
@@ -194,7 +194,7 @@ apply  simp_all
 done
 
 definition
-  catch :: "prog \<Rightarrow> state \<Rightarrow> qtname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60) where
+  catch :: "prog \<Rightarrow> state \<Rightarrow> qtname \<Rightarrow> bool" (\<open>_,_\<turnstile>catch _\<close>[61,61,61]60) where
   "G,s\<turnstile>catch C = (\<exists>xc. abrupt s=Some (Xcpt xc) \<and> 
                         G,store s\<turnstile>Addr (the_Loc xc) fits Class C)"
 
@@ -469,7 +469,7 @@ definition
 subsubsection "evaluation judgments"
 
 inductive
-  halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _"[61,61,61,61,61]60) for G::prog
+  halloc :: "[prog,state,obj_tag,loc,state]\<Rightarrow>bool" (\<open>_\<turnstile>_ \<midarrow>halloc _\<succ>_\<rightarrow> _\<close>[61,61,61,61,61]60) for G::prog
 where \<comment> \<open>allocating objects on the heap, cf. 12.5\<close>
 
   Abrupt: 
@@ -481,7 +481,7 @@ where \<comment> \<open>allocating objects on the heap, cf. 12.5\<close>
             \<Longrightarrow>
             G\<turnstile>Norm s \<midarrow>halloc oi\<succ>a\<rightarrow> (x,init_obj G oi' (Heap a) s)"
 
-inductive sxalloc :: "[prog,state,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _"[61,61,61]60) for G::prog
+inductive sxalloc :: "[prog,state,state]\<Rightarrow>bool" (\<open>_\<turnstile>_ \<midarrow>sxalloc\<rightarrow> _\<close>[61,61,61]60) for G::prog
 where \<comment> \<open>allocating exception objects for
   standard exceptions (other than OutOfMemory)\<close>
 
@@ -498,12 +498,12 @@ where \<comment> \<open>allocating exception objects for
 
 
 inductive
-  eval :: "[prog,state,term,vals,state]\<Rightarrow>bool" ("_\<turnstile>_ \<midarrow>_\<succ>\<rightarrow> '(_, _')"  [61,61,80,0,0]60)
-  and exec ::"[prog,state,stmt      ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<rightarrow> _"   [61,61,65,   61]60)
-  and evar ::"[prog,state,var  ,vvar,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_=\<succ>_\<rightarrow> _"[61,61,90,61,61]60)
-  and eval'::"[prog,state,expr ,val ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_-\<succ>_\<rightarrow> _"[61,61,80,61,61]60)
+  eval :: "[prog,state,term,vals,state]\<Rightarrow>bool" (\<open>_\<turnstile>_ \<midarrow>_\<succ>\<rightarrow> '(_, _')\<close>  [61,61,80,0,0]60)
+  and exec ::"[prog,state,stmt      ,state]\<Rightarrow>bool"(\<open>_\<turnstile>_ \<midarrow>_\<rightarrow> _\<close>   [61,61,65,   61]60)
+  and evar ::"[prog,state,var  ,vvar,state]\<Rightarrow>bool"(\<open>_\<turnstile>_ \<midarrow>_=\<succ>_\<rightarrow> _\<close>[61,61,90,61,61]60)
+  and eval'::"[prog,state,expr ,val ,state]\<Rightarrow>bool"(\<open>_\<turnstile>_ \<midarrow>_-\<succ>_\<rightarrow> _\<close>[61,61,80,61,61]60)
   and evals::"[prog,state,expr list ,
-                    val  list ,state]\<Rightarrow>bool"("_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<rightarrow> _"[61,61,61,61,61]60)
+                    val  list ,state]\<Rightarrow>bool"(\<open>_\<turnstile>_ \<midarrow>_\<doteq>\<succ>_\<rightarrow> _\<close>[61,61,61,61,61]60)
   for G::prog
 where
 

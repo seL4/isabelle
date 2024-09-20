@@ -48,9 +48,9 @@ abbreviation (input)
   Vals where "Vals x == In3 x"
 
 syntax
-  "_Val"    :: "[pttrn] => pttrn"     ("Val:_"  [951] 950)
-  "_Var"    :: "[pttrn] => pttrn"     ("Var:_"  [951] 950)
-  "_Vals"   :: "[pttrn] => pttrn"     ("Vals:_" [951] 950)
+  "_Val"    :: "[pttrn] => pttrn"     (\<open>Val:_\<close>  [951] 950)
+  "_Var"    :: "[pttrn] => pttrn"     (\<open>Var:_\<close>  [951] 950)
+  "_Vals"   :: "[pttrn] => pttrn"     (\<open>Vals:_\<close> [951] 950)
 
 translations
   "\<lambda>Val:v . b"  == "(\<lambda>v. b) \<circ> CONST the_In1"
@@ -63,7 +63,7 @@ translations
   (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 
 definition
-  assn_imp :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> bool" (infixr "\<Rightarrow>" 25)
+  assn_imp :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> bool" (infixr \<open>\<Rightarrow>\<close> 25)
   where "(P \<Rightarrow> Q) = (\<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z)"
   
 lemma assn_imp_def2 [iff]: "(P \<Rightarrow> Q) = (\<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z)"
@@ -77,7 +77,7 @@ subsubsection "assertion transformers"
 subsection "peek-and"
 
 definition
-  peek_and :: "'a assn \<Rightarrow> (state \<Rightarrow>  bool) \<Rightarrow> 'a assn" (infixl "\<and>." 13)
+  peek_and :: "'a assn \<Rightarrow> (state \<Rightarrow>  bool) \<Rightarrow> 'a assn" (infixl \<open>\<and>.\<close> 13)
   where "(P \<and>. p) = (\<lambda>Y s Z. P Y s Z \<and> p s)"
 
 lemma peek_and_def2 [simp]: "peek_and P p Y s = (\<lambda>Z. (P Y s Z \<and> p s))"
@@ -117,7 +117,7 @@ done
 subsection "assn-supd"
 
 definition
-  assn_supd :: "'a assn \<Rightarrow> (state \<Rightarrow> state) \<Rightarrow> 'a assn" (infixl ";." 13)
+  assn_supd :: "'a assn \<Rightarrow> (state \<Rightarrow> state) \<Rightarrow> 'a assn" (infixl \<open>;.\<close> 13)
   where "(P ;. f) = (\<lambda>Y s' Z. \<exists>s. P Y s Z \<and> s' = f s)"
 
 lemma assn_supd_def2 [simp]: "assn_supd P f Y s' Z = (\<exists>s. P Y s Z \<and> s' = f s)"
@@ -128,7 +128,7 @@ done
 subsection "supd-assn"
 
 definition
-  supd_assn :: "(state \<Rightarrow> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr ".;" 13)
+  supd_assn :: "(state \<Rightarrow> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr \<open>.;\<close> 13)
   where "(f .; P) = (\<lambda>Y s. P Y (f s))"
 
 
@@ -148,7 +148,7 @@ done
 subsection "subst-res"
 
 definition
-  subst_res :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<leftarrow>_"  [60,61] 60)
+  subst_res :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" (\<open>_\<leftarrow>_\<close>  [60,61] 60)
   where "P\<leftarrow>w = (\<lambda>Y. P w)"
 
 lemma subst_res_def2 [simp]: "(P\<leftarrow>w) Y = P w"
@@ -184,7 +184,7 @@ by simp
 subsection "subst-Bool"
 
 definition
-  subst_Bool :: "'a assn \<Rightarrow> bool \<Rightarrow> 'a assn" ("_\<leftarrow>=_" [60,61] 60)
+  subst_Bool :: "'a assn \<Rightarrow> bool \<Rightarrow> 'a assn" (\<open>_\<leftarrow>=_\<close> [60,61] 60)
   where "P\<leftarrow>=b = (\<lambda>Y s Z. \<exists>v. P (Val v) s Z \<and> (normal s \<longrightarrow> the_Bool v=b))"
 
 lemma subst_Bool_def2 [simp]: 
@@ -204,7 +204,7 @@ definition
   where "peek_res Pf = (\<lambda>Y. Pf Y Y)"
 
 syntax
-  "_peek_res" :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_:. _" [0,3] 3)
+  "_peek_res" :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            (\<open>\<lambda>_:. _\<close> [0,3] 3)
 syntax_consts
   "_peek_res" == peek_res
 translations
@@ -231,7 +231,7 @@ done
 subsection "ign-res"
 
 definition
-  ign_res :: "'a assn \<Rightarrow> 'a assn" ("_\<down>" [1000] 1000)
+  ign_res :: "'a assn \<Rightarrow> 'a assn" (\<open>_\<down>\<close> [1000] 1000)
   where "P\<down> = (\<lambda>Y s Z. \<exists>Y. P Y s Z)"
 
 lemma ign_res_def2 [simp]: "P\<down> Y s Z = (\<exists>Y. P Y s Z)"
@@ -267,7 +267,7 @@ definition
   where "peek_st P = (\<lambda>Y s. P (store s) Y s)"
 
 syntax
-  "_peek_st"   :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_.. _" [0,3] 3)
+  "_peek_st"   :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            (\<open>\<lambda>_.. _\<close> [0,3] 3)
 syntax_consts
   "_peek_st" == peek_st
 translations
@@ -310,7 +310,7 @@ done
 subsection "ign-res-eq"
 
 definition
-  ign_res_eq :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<down>=_"  [60,61] 60)
+  ign_res_eq :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" (\<open>_\<down>=_\<close>  [60,61] 60)
   where "P\<down>=w \<equiv> (\<lambda>Y:. P\<down> \<and>. (\<lambda>s. Y=w))"
 
 lemma ign_res_eq_def2 [simp]: "(P\<down>=w) Y s Z = ((\<exists>Y. P Y s Z) \<and> Y=w)"
@@ -341,7 +341,7 @@ done
 subsection "RefVar"
 
 definition
-  RefVar :: "(state \<Rightarrow> vvar \<times> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr "..;" 13)
+  RefVar :: "(state \<Rightarrow> vvar \<times> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr \<open>..;\<close> 13)
   where "(vf ..; P) = (\<lambda>Y s. let (v,s') = vf s in P (Var v) s')"
  
 lemma RefVar_def2 [simp]: "(vf ..; P) Y s =  
@@ -384,34 +384,34 @@ definition
 
 datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
-                                        ("{(1_)}/ _\<succ>/ {(1_)}"     [3,65,3] 75)
+                                        (\<open>{(1_)}/ _\<succ>/ {(1_)}\<close>     [3,65,3] 75)
 type_synonym 'a triples = "'a triple set"
 
 abbreviation
   var_triple   :: "['a assn, var         ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _=\<succ>/ {(1_)}"    [3,80,3] 75)
+                                         (\<open>{(1_)}/ _=\<succ>/ {(1_)}\<close>    [3,80,3] 75)
   where "{P} e=\<succ> {Q} == {P} In2 e\<succ> {Q}"
 
 abbreviation
   expr_triple  :: "['a assn, expr        ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _-\<succ>/ {(1_)}"    [3,80,3] 75)
+                                         (\<open>{(1_)}/ _-\<succ>/ {(1_)}\<close>    [3,80,3] 75)
   where "{P} e-\<succ> {Q} == {P} In1l e\<succ> {Q}"
 
 abbreviation
   exprs_triple :: "['a assn, expr list   ,'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ _\<doteq>\<succ>/ {(1_)}"    [3,65,3] 75)
+                                         (\<open>{(1_)}/ _\<doteq>\<succ>/ {(1_)}\<close>    [3,65,3] 75)
   where "{P} e\<doteq>\<succ> {Q} == {P} In3 e\<succ> {Q}"
 
 abbreviation
   stmt_triple  :: "['a assn, stmt,        'a assn] \<Rightarrow> 'a triple"
-                                         ("{(1_)}/ ._./ {(1_)}"     [3,65,3] 75)
+                                         (\<open>{(1_)}/ ._./ {(1_)}\<close>     [3,65,3] 75)
   where "{P} .c. {Q} == {P} In1r c\<succ> {Q}"
 
 notation (ASCII)
-  triple  ("{(1_)}/ _>/ {(1_)}"      [3,65,3]75) and
-  var_triple  ("{(1_)}/ _=>/ {(1_)}"    [3,80,3] 75) and
-  expr_triple  ("{(1_)}/ _->/ {(1_)}"    [3,80,3] 75) and
-  exprs_triple  ("{(1_)}/ _#>/ {(1_)}"    [3,65,3] 75)
+  triple  (\<open>{(1_)}/ _>/ {(1_)}\<close>      [3,65,3]75) and
+  var_triple  (\<open>{(1_)}/ _=>/ {(1_)}\<close>    [3,80,3] 75) and
+  expr_triple  (\<open>{(1_)}/ _->/ {(1_)}\<close>    [3,80,3] 75) and
+  exprs_triple  (\<open>{(1_)}/ _#>/ {(1_)}\<close>    [3,65,3] 75)
 
 lemma inj_triple: "inj (\<lambda>(P,t,Q). {P} t\<succ> {Q})"
 apply (rule inj_onI)
@@ -423,11 +423,11 @@ apply auto
 done
 
 definition mtriples :: "('c \<Rightarrow> 'sig \<Rightarrow> 'a assn) \<Rightarrow> ('c \<Rightarrow> 'sig \<Rightarrow> expr) \<Rightarrow> 
-                ('c \<Rightarrow> 'sig \<Rightarrow> 'a assn) \<Rightarrow> ('c \<times>  'sig) set \<Rightarrow> 'a triples" ("{{(1_)}/ _-\<succ>/ {(1_)} | _}"[3,65,3,65]75) where
+                ('c \<Rightarrow> 'sig \<Rightarrow> 'a assn) \<Rightarrow> ('c \<times>  'sig) set \<Rightarrow> 'a triples" (\<open>{{(1_)}/ _-\<succ>/ {(1_)} | _}\<close>[3,65,3,65]75) where
  "{{P} tf-\<succ> {Q} | ms} = (\<lambda>(C,sig). {Normal(P C sig)} tf C sig-\<succ> {Q C sig})`ms"
   
 definition
-  triple_valid :: "prog \<Rightarrow> nat \<Rightarrow> 'a triple  \<Rightarrow> bool"  ("_\<Turnstile>_:_" [61,0, 58] 57)
+  triple_valid :: "prog \<Rightarrow> nat \<Rightarrow> 'a triple  \<Rightarrow> bool"  (\<open>_\<Turnstile>_:_\<close> [61,0, 58] 57)
   where
     "G\<Turnstile>n:t =
       (case t of {P} t\<succ> {Q} \<Rightarrow>
@@ -435,23 +435,23 @@ definition
         (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z))"
 
 abbreviation
-  triples_valid:: "prog \<Rightarrow> nat \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_|\<Turnstile>_:_" [61,0, 58] 57)
+  triples_valid:: "prog \<Rightarrow> nat \<Rightarrow> 'a triples \<Rightarrow> bool"  (\<open>_|\<Turnstile>_:_\<close> [61,0, 58] 57)
   where "G|\<Turnstile>n:ts == Ball ts (triple_valid G n)"
 
 notation (ASCII)
-  triples_valid  (  "_||=_:_" [61,0, 58] 57)
+  triples_valid  (  \<open>_||=_:_\<close> [61,0, 58] 57)
 
 
 definition
-  ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_,_|\<Turnstile>_" [61,58,58] 57)
+  ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"  (\<open>_,_|\<Turnstile>_\<close> [61,58,58] 57)
   where "(G,A|\<Turnstile>ts) = (\<forall>n. G|\<Turnstile>n:A \<longrightarrow> G|\<Turnstile>n:ts)"
 
 abbreviation
-  ax_valid :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triple \<Rightarrow> bool"  ("_,_\<Turnstile>_" [61,58,58] 57)
+  ax_valid :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triple \<Rightarrow> bool"  (\<open>_,_\<Turnstile>_\<close> [61,58,58] 57)
   where "G,A \<Turnstile>t == G,A|\<Turnstile>{t}"
 
 notation (ASCII)
-  ax_valid  ( "_,_|=_"   [61,58,58] 57)
+  ax_valid  ( \<open>_,_|=_\<close>   [61,58,58] 57)
 
 
 lemma triple_valid_def2: "G\<Turnstile>n:{P} t\<succ> {Q} =  
@@ -472,8 +472,8 @@ setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 inductive
-  ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)
-  and ax_deriv :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triple  \<Rightarrow> bool" ("_,_\<turnstile>_" [61,58,58] 57)
+  ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" (\<open>_,_|\<turnstile>_\<close> [61,58,58] 57)
+  and ax_deriv :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triple  \<Rightarrow> bool" (\<open>_,_\<turnstile>_\<close> [61,58,58] 57)
   for G :: prog
 where
 

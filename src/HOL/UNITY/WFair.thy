@@ -42,7 +42,7 @@ definition
     "transient A == {F. \<exists>act\<in>Acts F. act``A \<subseteq> -A}"
 
 definition
-  ensures :: "['a set, 'a set] => 'a program set"       (infixl "ensures" 60) where
+  ensures :: "['a set, 'a set] => 'a program set"       (infixl \<open>ensures\<close> 60) where
     "A ensures B == (A-B co A \<union> B) \<inter> transient (A-B)"
 
 
@@ -59,7 +59,7 @@ inductive_set
   | Union:  "\<forall>A \<in> S. (A,B) \<in> leads F ==> (Union S, B) \<in> leads F"
 
 
-definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl "leadsTo" 60) where
+definition leadsTo :: "['a set, 'a set] => 'a program set" (infixl \<open>leadsTo\<close> 60) where
      \<comment> \<open>visible version of the LEADS-TO relation\<close>
     "A leadsTo B == {F. (A,B) \<in> leads F}"
   
@@ -67,7 +67,7 @@ definition wlt :: "['a program, 'a set] => 'a set" where
      \<comment> \<open>predicate transformer: the largest set that leads to \<^term>\<open>B\<close>\<close>
     "wlt F B == \<Union>{A. F \<in> A leadsTo B}"
 
-notation leadsTo  (infixl "\<longmapsto>" 60)
+notation leadsTo  (infixl \<open>\<longmapsto>\<close> 60)
 
 
 subsection\<open>transient\<close>

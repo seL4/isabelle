@@ -17,7 +17,7 @@ text \<open>
 \<close>
 
 class leq =
-  fixes leq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sqsubseteq>" 50)
+  fixes leq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl \<open>\<sqsubseteq>\<close> 50)
 
 class quasi_order = leq +
   assumes leq_refl [intro?]: "x \<sqsubseteq> x"

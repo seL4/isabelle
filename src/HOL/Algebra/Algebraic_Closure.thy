@@ -13,7 +13,7 @@ section \<open>Algebraic Closure\<close>
 
 subsection \<open>Definitions\<close>
 
-inductive iso_incl :: "'a ring \<Rightarrow> 'a ring \<Rightarrow> bool" (infixl "\<lesssim>" 65) for A B
+inductive iso_incl :: "'a ring \<Rightarrow> 'a ring \<Rightarrow> bool" (infixl \<open>\<lesssim>\<close> 65) for A B
   where iso_inclI [intro]: "id \<in> ring_hom A B \<Longrightarrow> iso_incl A B"
 
 definition law_restrict :: "('a, 'b) ring_scheme \<Rightarrow> 'a ring"
@@ -33,7 +33,7 @@ definition (in ring) extensions :: "((('a list \<times> nat) multiset) \<Rightar
                        \<not> index_free \<P> (P, i) \<longrightarrow>
                          \<X>\<^bsub>(P, i)\<^esub> \<in> carrier L \<and> (ring.eval L) (\<sigma> P) \<X>\<^bsub>(P, i)\<^esub> = \<zero>\<^bsub>L\<^esub>) }"
 
-abbreviation (in ring) restrict_extensions :: "((('a list \<times> nat) multiset) \<Rightarrow> 'a) ring set" ("\<S>")
+abbreviation (in ring) restrict_extensions :: "((('a list \<times> nat) multiset) \<Rightarrow> 'a) ring set" (\<open>\<S>\<close>)
   where "\<S> \<equiv> law_restrict ` extensions"
 
 

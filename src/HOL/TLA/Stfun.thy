@@ -33,8 +33,8 @@ consts
   stvars    :: "'a stfun \<Rightarrow> bool"
 
 syntax
-  "_PRED"   :: "lift \<Rightarrow> 'a"                          ("PRED _")
-  "_stvars" :: "lift \<Rightarrow> bool"                        ("basevars _")
+  "_PRED"   :: "lift \<Rightarrow> 'a"                          (\<open>PRED _\<close>)
+  "_stvars" :: "lift \<Rightarrow> bool"                        (\<open>basevars _\<close>)
 
 translations
   "PRED P"   =>  "(P::state \<Rightarrow> _)"

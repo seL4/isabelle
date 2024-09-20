@@ -18,7 +18,7 @@ text \<open>Type class \<open>equiv\<close> models equivalence relations
   \<open>\<sim> :: 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>.\<close>
 
 class eqv =
-  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl "\<sim>" 50)
+  fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infixl \<open>\<sim>\<close> 50)
 
 class equiv = eqv +
   assumes equiv_refl [intro]: "x \<sim> x"
@@ -76,7 +76,7 @@ lemma quotE [elim]:
 text \<open>Abstracted equivalence classes are the canonical representation of
   elements of a quotient type.\<close>
 
-definition "class" :: "'a::equiv \<Rightarrow> 'a quot"  ("\<lfloor>_\<rfloor>")
+definition "class" :: "'a::equiv \<Rightarrow> 'a quot"  (\<open>\<lfloor>_\<rfloor>\<close>)
   where "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"

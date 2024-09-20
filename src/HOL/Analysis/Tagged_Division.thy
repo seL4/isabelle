@@ -203,7 +203,7 @@ lemma gauge_modify:
 
 subsection \<open>Divisions\<close>
 
-definition\<^marker>\<open>tag important\<close> division_of (infixl "division'_of" 40)
+definition\<^marker>\<open>tag important\<close> division_of (infixl \<open>division'_of\<close> 40)
 where
   "s division_of i \<longleftrightarrow>
     finite s \<and>
@@ -820,7 +820,7 @@ qed
 
 subsection \<open>Tagged (partial) divisions\<close>
 
-definition\<^marker>\<open>tag important\<close> tagged_partial_division_of (infixr "tagged'_partial'_division'_of" 40)
+definition\<^marker>\<open>tag important\<close> tagged_partial_division_of (infixr \<open>tagged'_partial'_division'_of\<close> 40)
   where "s tagged_partial_division_of i \<longleftrightarrow>
     finite s \<and>
     (\<forall>x K. (x, K) \<in> s \<longrightarrow> x \<in> K \<and> K \<subseteq> i \<and> (\<exists>a b. K = cbox a b)) \<and>
@@ -837,7 +837,7 @@ lemma tagged_partial_division_ofD:
       (x2, K2) \<in> s \<Longrightarrow> (x1, K1) \<noteq> (x2, K2) \<Longrightarrow> interior K1 \<inter> interior K2 = {}"
   using assms unfolding tagged_partial_division_of_def by blast+
 
-definition\<^marker>\<open>tag important\<close> tagged_division_of (infixr "tagged'_division'_of" 40)
+definition\<^marker>\<open>tag important\<close> tagged_division_of (infixr \<open>tagged'_division'_of\<close> 40)
   where "s tagged_division_of i \<longleftrightarrow> s tagged_partial_division_of i \<and> (\<Union>{K. \<exists>x. (x,K) \<in> s} = i)"
 
 lemma tagged_division_of_finite: "s tagged_division_of i \<Longrightarrow> finite s"
@@ -1593,7 +1593,7 @@ qed
 
 subsection \<open>Fine-ness of a partition w.r.t. a gauge\<close>
 
-definition\<^marker>\<open>tag important\<close> fine  (infixr "fine" 46)
+definition\<^marker>\<open>tag important\<close> fine  (infixr \<open>fine\<close> 46)
   where "d fine s \<longleftrightarrow> (\<forall>(x,k) \<in> s. k \<subseteq> d x)"
 
 lemma fineI:

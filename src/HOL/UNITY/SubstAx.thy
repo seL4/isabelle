@@ -9,13 +9,13 @@ section\<open>Weak Progress\<close>
 
 theory SubstAx imports WFair Constrains begin
 
-definition Ensures :: "['a set, 'a set] => 'a program set" (infixl "Ensures" 60) where
+definition Ensures :: "['a set, 'a set] => 'a program set" (infixl \<open>Ensures\<close> 60) where
     "A Ensures B == {F. F \<in> (reachable F \<inter> A) ensures B}"
 
-definition LeadsTo :: "['a set, 'a set] => 'a program set" (infixl "LeadsTo" 60) where
+definition LeadsTo :: "['a set, 'a set] => 'a program set" (infixl \<open>LeadsTo\<close> 60) where
     "A LeadsTo B == {F. F \<in> (reachable F \<inter> A) leadsTo B}"
 
-notation LeadsTo  (infixl "\<longmapsto>w" 60)
+notation LeadsTo  (infixl \<open>\<longmapsto>w\<close> 60)
 
 
 text\<open>Resembles the previous definition of LeadsTo\<close>

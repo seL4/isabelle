@@ -56,7 +56,7 @@ abbreviation
   where "SKIP == Lit Unit"
 
 inductive
-  step :: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>1 _"[61,82,82] 81)
+  step :: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" (\<open>_\<turnstile>_ \<mapsto>1 _\<close>[61,82,82] 81)
   for G :: prog
 where
 
@@ -344,11 +344,11 @@ cases of \<open>New\<close>  or \<open>NewC\<close>. Instead we just return the 
     "G\<turnstile>(\<langle>InsInitE Skip SKIP\<rangle>,Norm s) \<mapsto>1 (\<langle>SKIP\<rangle>,Norm s)"
 
 abbreviation
-  stepn:: "[prog, term \<times> state,nat,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>_ _"[61,82,82] 81)
+  stepn:: "[prog, term \<times> state,nat,term \<times> state] \<Rightarrow> bool" (\<open>_\<turnstile>_ \<mapsto>_ _\<close>[61,82,82] 81)
   where "G\<turnstile>p \<mapsto>n p' \<equiv> (p,p') \<in> {(x, y). step G x y}^^n"
 
 abbreviation
-  steptr:: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>* _"[61,82,82] 81)
+  steptr:: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" (\<open>_\<turnstile>_ \<mapsto>* _\<close>[61,82,82] 81)
   where "G\<turnstile>p \<mapsto>* p' \<equiv> (p,p') \<in> {(x, y). step G x y}\<^sup>*"
          
 (* Equivalenzen:

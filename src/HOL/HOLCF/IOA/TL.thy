@@ -12,17 +12,17 @@ default_sort type
 
 type_synonym 'a temporal = "'a Seq predicate"
 
-definition validT :: "'a Seq predicate \<Rightarrow> bool"    ("\<^bold>\<TTurnstile> _" [9] 8)
+definition validT :: "'a Seq predicate \<Rightarrow> bool"    (\<open>\<^bold>\<TTurnstile> _\<close> [9] 8)
   where "(\<^bold>\<TTurnstile> P) \<longleftrightarrow> (\<forall>s. s \<noteq> UU \<and> s \<noteq> nil \<longrightarrow> (s \<Turnstile> P))"
 
 definition unlift :: "'a lift \<Rightarrow> 'a"
   where "unlift x = (case x of Def y \<Rightarrow> y)"
 
-definition Init :: "'a predicate \<Rightarrow> 'a temporal"  ("\<langle>_\<rangle>" [0] 1000)
+definition Init :: "'a predicate \<Rightarrow> 'a temporal"  (\<open>\<langle>_\<rangle>\<close> [0] 1000)
   where "Init P s = P (unlift (HD \<cdot> s))"
     \<comment> \<open>this means that for \<open>nil\<close> and \<open>UU\<close> the effect is unpredictable\<close>
 
-definition Next :: "'a temporal \<Rightarrow> 'a temporal"  ("\<circle>(_)" [80] 80)
+definition Next :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<circle>(_)\<close> [80] 80)
   where "(\<circle>P) s \<longleftrightarrow> (if TL \<cdot> s = UU \<or> TL \<cdot> s = nil then P s else P (TL \<cdot> s))"
 
 definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
@@ -31,13 +31,13 @@ definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
 definition tsuffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
   where "tsuffix s2 s \<longleftrightarrow> s2 \<noteq> nil \<and> s2 \<noteq> UU \<and> suffix s2 s"
 
-definition Box :: "'a temporal \<Rightarrow> 'a temporal"  ("\<box>(_)" [80] 80)
+definition Box :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<box>(_)\<close> [80] 80)
   where "(\<box>P) s \<longleftrightarrow> (\<forall>s2. tsuffix s2 s \<longrightarrow> P s2)"
 
-definition Diamond :: "'a temporal \<Rightarrow> 'a temporal"  ("\<diamond>(_)" [80] 80)
+definition Diamond :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<diamond>(_)\<close> [80] 80)
   where "\<diamond>P = (\<^bold>\<not> (\<box>(\<^bold>\<not> P)))"
 
-definition Leadsto :: "'a temporal \<Rightarrow> 'a temporal \<Rightarrow> 'a temporal"  (infixr "\<leadsto>" 22)
+definition Leadsto :: "'a temporal \<Rightarrow> 'a temporal \<Rightarrow> 'a temporal"  (infixr \<open>\<leadsto>\<close> 22)
   where "(P \<leadsto> Q) = (\<box>(P \<^bold>\<longrightarrow> (\<diamond>Q)))"
 
 

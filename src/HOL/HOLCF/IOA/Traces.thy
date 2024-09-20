@@ -129,7 +129,7 @@ subsection \<open>Implementation\<close>
 
 subsubsection \<open>Notions of implementation\<close>
 
-definition ioa_implements :: "('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"  (infixr "=<|" 12)
+definition ioa_implements :: "('a, 's1) ioa \<Rightarrow> ('a, 's2) ioa \<Rightarrow> bool"  (infixr \<open>=<|\<close> 12)
   where "(ioa1 =<| ioa2) \<longleftrightarrow>
     (inputs (asig_of ioa1) = inputs (asig_of ioa2) \<and>
      outputs (asig_of ioa1) = outputs (asig_of ioa2)) \<and>

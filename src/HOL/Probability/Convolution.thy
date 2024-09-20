@@ -11,7 +11,7 @@ begin
 lemma (in finite_measure) sigma_finite_measure: "sigma_finite_measure M"
   ..
 
-definition convolution :: "('a :: ordered_euclidean_space) measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure" (infix "\<star>" 50) where
+definition convolution :: "('a :: ordered_euclidean_space) measure \<Rightarrow> 'a measure \<Rightarrow> 'a measure" (infix \<open>\<star>\<close> 50) where
   "convolution M N = distr (M \<Otimes>\<^sub>M N) borel (\<lambda>(x, y). x + y)"
 
 lemma

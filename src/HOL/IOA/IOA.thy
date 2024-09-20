@@ -85,7 +85,7 @@ definition asig_comp :: "['action signature, 'action signature] \<Rightarrow> 'a
         (outputs(a1) \<union> outputs(a2)),
         (internals(a1) \<union> internals(a2))))"
 
-definition par :: "[('a,'s)ioa, ('a,'t)ioa] \<Rightarrow> ('a,'s*'t)ioa"  (infixr "||" 10)
+definition par :: "[('a,'s)ioa, ('a,'t)ioa] \<Rightarrow> ('a,'s*'t)ioa"  (infixr \<open>||\<close> 10)
   where "(ioa1 || ioa2) \<equiv>
      (asig_comp (asig_of ioa1) (asig_of ioa2),
       {pr. fst(pr) \<in> starts_of(ioa1) \<and> snd(pr) \<in> starts_of(ioa2)},

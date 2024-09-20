@@ -13,12 +13,12 @@ begin
 text \<open>Nonstandard Definitions.\<close>
 
 definition nsderiv :: "['a::real_normed_field \<Rightarrow> 'a, 'a, 'a] \<Rightarrow> bool"
-    ("(NSDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+    (\<open>(NSDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
   where "NSDERIV f x :> D \<longleftrightarrow>
     (\<forall>h \<in> Infinitesimal - {0}. (( *f* f)(star_of x + h) - star_of (f x)) / h \<approx> star_of D)"
 
 definition NSdifferentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
-    (infixl "NSdifferentiable" 60)
+    (infixl \<open>NSdifferentiable\<close> 60)
   where "f NSdifferentiable x \<longleftrightarrow> (\<exists>D. NSDERIV f x :> D)"
 
 definition increment :: "(real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> hypreal \<Rightarrow> hypreal"

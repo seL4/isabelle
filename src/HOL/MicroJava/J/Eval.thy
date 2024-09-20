@@ -10,13 +10,13 @@ theory Eval imports State WellType begin
 
   \<comment> \<open>Auxiliary notions\<close>
 
-definition fits :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60) where
+definition fits :: "java_mb prog \<Rightarrow> state \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" (\<open>_,_\<turnstile>_ fits _\<close>[61,61,61,61]60) where
  "G,s\<turnstile>a' fits T  \<equiv> case T of PrimT T' \<Rightarrow> False | RefT T' \<Rightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T"
 
-definition catch :: "java_mb prog \<Rightarrow> xstate \<Rightarrow> cname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60) where
+definition catch :: "java_mb prog \<Rightarrow> xstate \<Rightarrow> cname \<Rightarrow> bool" (\<open>_,_\<turnstile>catch _\<close>[61,61,61]60) where
  "G,s\<turnstile>catch C\<equiv>  case abrupt s of None \<Rightarrow> False | Some a \<Rightarrow> G,store s\<turnstile> a fits Class C"
 
-definition lupd :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" ("lupd'(_\<mapsto>_')"[10,10]1000) where
+definition lupd :: "vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" (\<open>lupd'(_\<mapsto>_')\<close>[10,10]1000) where
  "lupd vn v   \<equiv> \<lambda> (hp,loc). (hp, (loc(vn\<mapsto>v)))"
 
 definition new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate" where
@@ -27,12 +27,12 @@ definition new_xcpt_var :: "vname \<Rightarrow> xstate \<Rightarrow> xstate" whe
 
 inductive
   eval :: "[java_mb prog,xstate,expr,val,xstate] => bool "
-          ("_ \<turnstile> _ -_\<succ>_-> _" [51,82,60,82,82] 81)
+          (\<open>_ \<turnstile> _ -_\<succ>_-> _\<close> [51,82,60,82,82] 81)
   and evals :: "[java_mb prog,xstate,expr list,
                         val list,xstate] => bool "
-          ("_ \<turnstile> _ -_[\<succ>]_-> _" [51,82,60,51,82] 81)
+          (\<open>_ \<turnstile> _ -_[\<succ>]_-> _\<close> [51,82,60,51,82] 81)
   and exec :: "[java_mb prog,xstate,stmt,    xstate] => bool "
-          ("_ \<turnstile> _ -_-> _" [51,82,60,82] 81)
+          (\<open>_ \<turnstile> _ -_-> _\<close> [51,82,60,82] 81)
   for G :: "java_mb prog"
 where
 

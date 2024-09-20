@@ -15,7 +15,7 @@ definition reachable :: "com \<Rightarrow> com set" where
 text\<open>Proofs need induction on the length of a small-step reduction sequence.\<close>
 
 fun small_stepsn :: "com * state \<Rightarrow> nat \<Rightarrow> com * state \<Rightarrow> bool"
-    ("_ \<rightarrow>'(_') _" [55,0,55] 55) where
+    (\<open>_ \<rightarrow>'(_') _\<close> [55,0,55] 55) where
 "(cs \<rightarrow>(0) cs') = (cs' = cs)" |
 "cs \<rightarrow>(Suc n) cs'' = (\<exists>cs'. cs \<rightarrow> cs' \<and> cs' \<rightarrow>(n) cs'')"
 

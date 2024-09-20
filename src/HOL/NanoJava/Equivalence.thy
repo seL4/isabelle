@@ -9,25 +9,25 @@ theory Equivalence imports OpSem AxSem begin
 
 subsection "Validity"
 
-definition valid :: "[assn,stmt, assn] => bool" ("\<Turnstile> {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
+definition valid :: "[assn,stmt, assn] => bool" (\<open>\<Turnstile> {(1_)}/ (_)/ {(1_)}\<close> [3,90,3] 60) where
  "\<Turnstile>  {P} c {Q} \<equiv> \<forall>s   t. P s --> (\<exists>n. s -c  -n\<rightarrow> t) --> Q   t"
 
-definition evalid   :: "[assn,expr,vassn] => bool" ("\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}" [3,90,3] 60) where
+definition evalid   :: "[assn,expr,vassn] => bool" (\<open>\<Turnstile>\<^sub>e {(1_)}/ (_)/ {(1_)}\<close> [3,90,3] 60) where
  "\<Turnstile>\<^sub>e {P} e {Q} \<equiv> \<forall>s v t. P s --> (\<exists>n. s -e\<succ>v-n\<rightarrow> t) --> Q v t"
 
-definition nvalid   :: "[nat, triple    ] => bool" ("\<Turnstile>_: _" [61,61] 60) where
+definition nvalid   :: "[nat, triple    ] => bool" (\<open>\<Turnstile>_: _\<close> [61,61] 60) where
  "\<Turnstile>n:  t \<equiv> let (P,c,Q) = t in \<forall>s   t. s -c  -n\<rightarrow> t --> P s --> Q   t"
 
-definition envalid   :: "[nat,etriple    ] => bool" ("\<Turnstile>_:\<^sub>e _" [61,61] 60) where
+definition envalid   :: "[nat,etriple    ] => bool" (\<open>\<Turnstile>_:\<^sub>e _\<close> [61,61] 60) where
  "\<Turnstile>n:\<^sub>e t \<equiv> let (P,e,Q) = t in \<forall>s v t. s -e\<succ>v-n\<rightarrow> t --> P s --> Q v t"
 
-definition nvalids :: "[nat,       triple set] => bool" ("|\<Turnstile>_: _" [61,61] 60) where
+definition nvalids :: "[nat,       triple set] => bool" (\<open>|\<Turnstile>_: _\<close> [61,61] 60) where
  "|\<Turnstile>n: T \<equiv> \<forall>t\<in>T. \<Turnstile>n: t"
 
-definition cnvalids :: "[triple set,triple set] => bool" ("_ |\<Turnstile>/ _" [61,61] 60) where
+definition cnvalids :: "[triple set,triple set] => bool" (\<open>_ |\<Turnstile>/ _\<close> [61,61] 60) where
  "A |\<Turnstile>  C \<equiv> \<forall>n. |\<Turnstile>n: A --> |\<Turnstile>n: C"
 
-definition cenvalid  :: "[triple set,etriple   ] => bool" ("_ |\<Turnstile>\<^sub>e/ _"[61,61] 60) where
+definition cenvalid  :: "[triple set,etriple   ] => bool" (\<open>_ |\<Turnstile>\<^sub>e/ _\<close>[61,61] 60) where
  "A |\<Turnstile>\<^sub>e t \<equiv> \<forall>n. |\<Turnstile>n: A --> \<Turnstile>n:\<^sub>e t"
 
 lemma nvalid_def2: "\<Turnstile>n: (P,c,Q) \<equiv> \<forall>s t. s -c-n\<rightarrow> t \<longrightarrow> P s \<longrightarrow> Q t"

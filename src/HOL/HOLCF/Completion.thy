@@ -11,7 +11,7 @@ begin
 subsection \<open>Ideals over a preorder\<close>
 
 locale preorder =
-  fixes r :: "'a::type \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
+  fixes r :: "'a::type \<Rightarrow> 'a \<Rightarrow> bool" (infix \<open>\<preceq>\<close> 50)
   assumes r_refl: "x \<preceq> x"
   assumes r_trans: "\<lbrakk>x \<preceq> y; y \<preceq> z\<rbrakk> \<Longrightarrow> x \<preceq> z"
 begin

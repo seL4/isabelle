@@ -289,7 +289,7 @@ lemma compact_interval [simp]:
   by (metis compact_cbox interval_cbox)
 
 no_notation
-  eucl_less (infix "<e" 50)
+  eucl_less (infix \<open><e\<close> 50)
 
 lemma One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
   by (auto intro: sum_nonneg)

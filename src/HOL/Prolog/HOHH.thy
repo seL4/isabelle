@@ -21,13 +21,13 @@ method_setup prolog =
 consts
 
 (* D-formulas (programs):  D ::= !x. D | D .. D | D :- G | A            *)
-  Dand        :: "[bool, bool] => bool"         (infixr ".." 28)
-  Dif        :: "[bool, bool] => bool"         (infixl ":-" 29)
+  Dand        :: "[bool, bool] => bool"         (infixr \<open>..\<close> 28)
+  Dif        :: "[bool, bool] => bool"         (infixl \<open>:-\<close> 29)
 
 (* G-formulas (goals):     G ::= A | G & G | G | G | ? x. G
                                | True | !x. G | D => G                  *)
 (*Dand'         :: "[bool, bool] => bool"         (infixr "," 35)*)
-  Dimp          :: "[bool, bool] => bool"         (infixr "=>" 27)
+  Dimp          :: "[bool, bool] => bool"         (infixr \<open>=>\<close> 27)
 
 translations
 

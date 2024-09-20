@@ -37,7 +37,7 @@ lemma ab_group_add_on_with[implicit_ab_group_add]:
 subsection \<open>Definitions \<^emph>\<open>on\<close> carrier set\<close>
 
 locale module_on =
-  fixes S and scale :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
+  fixes S and scale :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*s\<close> 75)
   assumes scale_right_distrib_on [algebra_simps]: "x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> a *s (x + y) = a *s x + a *s y"
     and scale_left_distrib_on [algebra_simps]: "x \<in> S \<Longrightarrow> (a + b) *s x = a *s x + b *s x"
     and scale_scale_on [simp]: "x \<in> S \<Longrightarrow> a *s (b *s x) = (a * b) *s x"
@@ -96,8 +96,8 @@ lemma implicit_module_pair_on_with[implicit_ab_group_add]:
 
 locale module_hom_on = m1: module_on S1 s1 + m2: module_on S2 s2
   for S1 :: "'b::ab_group_add set" and S2 :: "'c::ab_group_add set"
-    and s1 :: "'a::comm_ring_1 \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "*a" 75)
-    and s2 :: "'a::comm_ring_1 \<Rightarrow> 'c \<Rightarrow> 'c" (infixr "*b" 75) +
+    and s1 :: "'a::comm_ring_1 \<Rightarrow> 'b \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
+    and s2 :: "'a::comm_ring_1 \<Rightarrow> 'c \<Rightarrow> 'c" (infixr \<open>*b\<close> 75) +
   fixes f :: "'b \<Rightarrow> 'c"
   assumes add: "\<And>b1 b2. b1 \<in> S1 \<Longrightarrow> b2 \<in> S1 \<Longrightarrow> f (b1 + b2) = f b1 + f b2"
     and scale: "\<And>b. b \<in> S1 \<Longrightarrow> f (r *a b) = r *b f b"
@@ -109,7 +109,7 @@ lemma implicit_module_hom_on_with[implicit_ab_group_add]:
   by (auto intro!: ext)
 
 locale vector_space_on = module_on S scale
-  for S and scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
+  for S and scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*s\<close> 75)
 begin
 
 definition dim :: "'b set \<Rightarrow> nat"

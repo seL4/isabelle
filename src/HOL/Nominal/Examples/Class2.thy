@@ -2949,12 +2949,12 @@ apply(simp add: perm_bool)
 done
 
 abbreviation
-  CANDn::"ty \<Rightarrow> ntrm set"  ("\<parallel>'(_')\<parallel>" [60] 60) 
+  CANDn::"ty \<Rightarrow> ntrm set"  (\<open>\<parallel>'(_')\<parallel>\<close> [60] 60) 
 where
   "\<parallel>(B)\<parallel> \<equiv> lfp (NEGn B \<circ> NEGc B)" 
 
 abbreviation
-  CANDc::"ty \<Rightarrow> ctrm set"  ("\<parallel><_>\<parallel>" [60] 60)
+  CANDc::"ty \<Rightarrow> ctrm set"  (\<open>\<parallel><_>\<parallel>\<close> [60] 60)
 where
   "\<parallel><B>\<parallel> \<equiv> NEGc B (\<parallel>(B)\<parallel>)"
 

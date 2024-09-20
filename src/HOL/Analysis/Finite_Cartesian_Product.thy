@@ -22,14 +22,14 @@ declare vec_lambda_inject [simplified, simp]
 
 bundle vec_syntax begin
 notation
-  vec_nth (infixl "$" 90) and
-  vec_lambda (binder "\<chi>" 10)
+  vec_nth (infixl \<open>$\<close> 90) and
+  vec_lambda (binder \<open>\<chi>\<close> 10)
 end
 
 bundle no_vec_syntax begin
 no_notation
-  vec_nth (infixl "$" 90) and
-  vec_lambda (binder "\<chi>" 10)
+  vec_nth (infixl \<open>$\<close> 90) and
+  vec_lambda (binder \<open>\<chi>\<close> 10)
 end
 
 unbundle vec_syntax
@@ -39,7 +39,7 @@ text \<open>
     \<^item> \<open>'a^'b\<close> becomes \<open>('a, 'b::finite) vec\<close>
     \<^item> \<open>'a^'b::_\<close> becomes \<open>('a, 'b) vec\<close> without extra sort-constraint
 \<close>
-syntax "_vec_type" :: "type \<Rightarrow> type \<Rightarrow> type" (infixl "^" 15)
+syntax "_vec_type" :: "type \<Rightarrow> type \<Rightarrow> type" (infixl \<open>^\<close> 15)
 syntax_types "_vec_type" \<rightleftharpoons> vec
 parse_translation \<open>
   let
@@ -283,7 +283,7 @@ definition "vec x = (\<chi> i. x)"
 
 text\<open>Also the scalar-vector multiplication.\<close>
 
-definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a ^ 'n" (infixl "*s" 70)
+definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^ 'n \<Rightarrow> 'a ^ 'n" (infixl \<open>*s\<close> 70)
   where "c *s x = (\<chi> i. c * (x$i))"
 
 text \<open>scalar product\<close>
@@ -986,15 +986,15 @@ lemma nth_map_matrix[simp]: "map_matrix f x $ i $ j = f (x $ i $ j)"
   by (simp add: map_matrix_def)
 
 definition\<^marker>\<open>tag important\<close> matrix_matrix_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'p^'n \<Rightarrow> 'a ^ 'p ^'m"
-    (infixl "**" 70)
+    (infixl \<open>**\<close> 70)
   where "m ** m' == (\<chi> i j. sum (\<lambda>k. ((m$i)$k) * ((m'$k)$j)) (UNIV :: 'n set)) ::'a ^ 'p ^'m"
 
 definition\<^marker>\<open>tag important\<close> matrix_vector_mult :: "('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'm"
-    (infixl "*v" 70)
+    (infixl \<open>*v\<close> 70)
   where "m *v x \<equiv> (\<chi> i. sum (\<lambda>j. ((m$i)$j) * (x$j)) (UNIV ::'n set)) :: 'a^'m"
 
 definition\<^marker>\<open>tag important\<close> vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
-    (infixl "v*" 70)
+    (infixl \<open>v*\<close> 70)
   where "v v* m == (\<chi> j. sum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition\<^marker>\<open>tag unimportant\<close> "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"

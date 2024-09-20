@@ -78,7 +78,7 @@ ML \<open>
   end;
 \<close>
 
-syntax "_cartouche_string" :: \<open>cartouche_position \<Rightarrow> string\<close>  ("_")
+syntax "_cartouche_string" :: \<open>cartouche_position \<Rightarrow> string\<close>  (\<open>_\<close>)
 
 parse_translation \<open>
   [(\<^syntax_const>\<open>_cartouche_string\<close>,
@@ -95,7 +95,7 @@ subsection \<open>Alternate outer and inner syntax: string literals\<close>
 
 subsubsection \<open>Nested quotes\<close>
 
-syntax "_string_string" :: \<open>string_position \<Rightarrow> string\<close>  ("_")
+syntax "_string_string" :: \<open>string_position \<Rightarrow> string\<close>  (\<open>_\<close>)
 
 parse_translation \<open>
   [(\<^syntax_const>\<open>_string_string\<close>, K (string_tr Lexicon.explode_string))]

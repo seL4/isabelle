@@ -18,16 +18,16 @@ class below =
 begin
 
 notation (ASCII)
-  below (infix "<<" 50)
+  below (infix \<open><<\<close> 50)
 
 notation
-  below (infix "\<sqsubseteq>" 50)
+  below (infix \<open>\<sqsubseteq>\<close> 50)
 
-abbreviation not_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<notsqsubseteq>" 50)
+abbreviation not_below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<notsqsubseteq>\<close> 50)
   where "not_below x y \<equiv> \<not> below x y"
 
 notation (ASCII)
-  not_below  (infix "~<<" 50)
+  not_below  (infix \<open>~<<\<close> 50)
 
 lemma below_eq_trans: "a \<sqsubseteq> b \<Longrightarrow> b = c \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
@@ -71,7 +71,7 @@ begin
 
 subsection \<open>Upper bounds\<close>
 
-definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<|" 55)
+definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix \<open><|\<close> 55)
   where "S <| x \<longleftrightarrow> (\<forall>y\<in>S. y \<sqsubseteq> x)"
 
 lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
@@ -104,7 +104,7 @@ lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarro
 
 subsection \<open>Least upper bounds\<close>
 
-definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix "<<|" 55)
+definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infix \<open><<|\<close> 55)
   where "S <<| x \<longleftrightarrow> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
 
 definition lub :: "'a set \<Rightarrow> 'a"
@@ -113,10 +113,10 @@ definition lub :: "'a set \<Rightarrow> 'a"
 end
 
 syntax (ASCII)
-  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3LUB _:_./ _)" [0,0, 10] 10)
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(3LUB _:_./ _)\<close> [0,0, 10] 10)
 
 syntax
-  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3\<Squnion>_\<in>_./ _)" [0,0, 10] 10)
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(3\<Squnion>_\<in>_./ _)\<close> [0,0, 10] 10)
 
 syntax_consts
   "_BLub" \<rightleftharpoons> lub
@@ -127,11 +127,11 @@ translations
 context po
 begin
 
-abbreviation Lub  (binder "\<Squnion>" 10)
+abbreviation Lub  (binder \<open>\<Squnion>\<close> 10)
   where "\<Squnion>n. t n \<equiv> lub (range t)"
 
 notation (ASCII)
-  Lub  (binder "LUB " 10)
+  Lub  (binder \<open>LUB \<close> 10)
 
 text \<open>access to some definition as inference rule\<close>
 

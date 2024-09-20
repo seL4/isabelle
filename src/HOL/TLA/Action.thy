@@ -25,16 +25,16 @@ consts
 
 syntax
   (* Syntax for writing action expressions in arbitrary contexts *)
-  "_ACT"        :: "lift \<Rightarrow> 'a"                      ("(ACT _)")
+  "_ACT"        :: "lift \<Rightarrow> 'a"                      (\<open>(ACT _)\<close>)
 
-  "_before"     :: "lift \<Rightarrow> lift"                    ("($_)"  [100] 99)
-  "_after"      :: "lift \<Rightarrow> lift"                    ("(_$)"  [100] 99)
-  "_unchanged"  :: "lift \<Rightarrow> lift"                    ("(unchanged _)" [100] 99)
+  "_before"     :: "lift \<Rightarrow> lift"                    (\<open>($_)\<close>  [100] 99)
+  "_after"      :: "lift \<Rightarrow> lift"                    (\<open>(_$)\<close>  [100] 99)
+  "_unchanged"  :: "lift \<Rightarrow> lift"                    (\<open>(unchanged _)\<close> [100] 99)
 
   (*** Priming: same as "after" ***)
-  "_prime"      :: "lift \<Rightarrow> lift"                    ("(_`)" [100] 99)
+  "_prime"      :: "lift \<Rightarrow> lift"                    (\<open>(_`)\<close> [100] 99)
 
-  "_Enabled"    :: "lift \<Rightarrow> lift"                    ("(Enabled _)" [100] 100)
+  "_Enabled"    :: "lift \<Rightarrow> lift"                    (\<open>(Enabled _)\<close> [100] 100)
 
 translations
   "ACT A"            =>   "(A::state*state \<Rightarrow> _)"
@@ -59,8 +59,8 @@ definition AnAct :: "[action, 'a stfun] \<Rightarrow> action"
   where angle_def: "AnAct A v \<equiv> ACT (A \<and> \<not> unchanged v)"
 
 syntax
-  "_SqAct" :: "[lift, lift] \<Rightarrow> lift"  ("([_]'_(_))" [0, 1000] 99)
-  "_AnAct" :: "[lift, lift] \<Rightarrow> lift"  ("(<_>'_(_))" [0, 1000] 99)
+  "_SqAct" :: "[lift, lift] \<Rightarrow> lift"  (\<open>([_]'_(_))\<close> [0, 1000] 99)
+  "_AnAct" :: "[lift, lift] \<Rightarrow> lift"  (\<open>(<_>'_(_))\<close> [0, 1000] 99)
 translations
   "_SqAct" == "CONST SqAct"
   "_AnAct" == "CONST AnAct"

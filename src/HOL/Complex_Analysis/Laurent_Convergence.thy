@@ -102,7 +102,7 @@ definition%important eval_fls :: "complex fls \<Rightarrow> complex \<Rightarrow
 
 definition\<^marker>\<open>tag important\<close>
   has_laurent_expansion :: "(complex \<Rightarrow> complex) \<Rightarrow> complex fls \<Rightarrow> bool"
-  (infixl "has'_laurent'_expansion" 60)
+  (infixl \<open>has'_laurent'_expansion\<close> 60)
   where "(f has_laurent_expansion F) \<longleftrightarrow>
             fls_conv_radius F > 0 \<and> eventually (\<lambda>z. eval_fls F z = f z) (at 0)"
 

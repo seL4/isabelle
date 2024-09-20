@@ -9,8 +9,8 @@ imports Main
 begin
 
 notation
-  rel_conj (infixr "OOO" 75) and
-  map_fun (infixr "--->" 55) and
-  rel_fun (infixr "===>" 55)
+  rel_conj (infixr \<open>OOO\<close> 75) and
+  map_fun (infixr \<open>--->\<close> 55) and
+  rel_fun (infixr \<open>===>\<close> 55)
 
 end

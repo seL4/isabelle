@@ -886,11 +886,11 @@ inductive integrable for M f where
 
 end
 
-definition\<^marker>\<open>tag important\<close> lebesgue_integral ("integral\<^sup>L") where
+definition\<^marker>\<open>tag important\<close> lebesgue_integral (\<open>integral\<^sup>L\<close>) where
   "integral\<^sup>L M f = (if \<exists>x. has_bochner_integral M f x then THE x. has_bochner_integral M f x else 0)"
 
 syntax
-  "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" ("\<integral>((2 _./ _)/ \<partial>_)" [60,61] 110)
+  "_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> 'a measure \<Rightarrow> real" (\<open>\<integral>((2 _./ _)/ \<partial>_)\<close> [60,61] 110)
 
 syntax_consts
   "_lebesgue_integral" == lebesgue_integral
@@ -899,7 +899,7 @@ translations
   "\<integral> x. f \<partial>M" == "CONST lebesgue_integral M (\<lambda>x. f)"
 
 syntax
-  "_ascii_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real" ("(3LINT (1_)/|(_)./ _)" [0,110,60] 60)
+  "_ascii_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real" (\<open>(3LINT (1_)/|(_)./ _)\<close> [0,110,60] 60)
 
 syntax_consts
   "_ascii_lebesgue_integral" == lebesgue_integral

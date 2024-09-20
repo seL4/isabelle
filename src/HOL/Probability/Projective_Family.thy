@@ -116,7 +116,7 @@ proof (intro antisym sets.sigma_sets_subset)
   qed
 qed (auto elim!: generator.cases)
 
-definition mu_G ("\<mu>G") where
+definition mu_G (\<open>\<mu>G\<close>) where
   "\<mu>G A = (THE x. \<forall>J\<subseteq>I. finite J \<longrightarrow> (\<forall>X\<in>sets (Pi\<^sub>M J M). A = emb I J X \<longrightarrow> x = emeasure (P J) X))"
 
 definition lim :: "('i \<Rightarrow> 'a) measure" where

@@ -12,7 +12,7 @@ atom_decl name
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
-  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [100,100] 100)
 
 text \<open>Definition of the height-function on lambda-terms.\<close> 
 
@@ -31,7 +31,7 @@ where
 text \<open>Definition of capture-avoiding substitution.\<close>
 
 nominal_primrec
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_[_::=_]\<close> [100,100,100] 100)
 where
   "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
 | "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"

@@ -66,7 +66,7 @@ subsubsection \<open>Left-Commutative Operations\<close>
 locale LCD =
   fixes B :: "'b set"
   and D :: "'a set"
-  and f :: "'b \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<cdot>" 70)
+  and f :: "'b \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl \<open>\<cdot>\<close> 70)
   assumes left_commute:
     "\<lbrakk>x \<in> B; y \<in> B; z \<in> D\<rbrakk> \<Longrightarrow> x \<cdot> (y \<cdot> z) = y \<cdot> (x \<cdot> z)"
   and f_closed [simp, intro!]: "!!x y. \<lbrakk>x \<in> B; y \<in> D\<rbrakk> \<Longrightarrow> f x y \<in> D"
@@ -246,7 +246,7 @@ text \<open>
 
 locale ACeD =
   fixes D :: "'a set"
-    and f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl "\<cdot>" 70)
+    and f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"    (infixl \<open>\<cdot>\<close> 70)
     and e :: 'a
   assumes ident [simp]: "x \<in> D \<Longrightarrow> x \<cdot> e = x"
     and commute: "\<lbrakk>x \<in> D; y \<in> D\<rbrakk> \<Longrightarrow> x \<cdot> y = y \<cdot> x"
@@ -307,7 +307,7 @@ definition
 
 syntax
   "_finprod" :: "index \<Rightarrow> idt \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"
-      ("(3\<Otimes>__\<in>_. _)" [1000, 0, 51, 10] 10)
+      (\<open>(3\<Otimes>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
 syntax_consts
   "_finprod" \<rightleftharpoons> finprod
 translations

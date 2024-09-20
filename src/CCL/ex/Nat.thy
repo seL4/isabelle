@@ -12,28 +12,28 @@ begin
 definition not :: "i\<Rightarrow>i"
   where "not(b) == if b then false else true"
 
-definition add :: "[i,i]\<Rightarrow>i"  (infixr "#+" 60)
+definition add :: "[i,i]\<Rightarrow>i"  (infixr \<open>#+\<close> 60)
   where "a #+ b == nrec(a, b, \<lambda>x g. succ(g))"
 
-definition mult :: "[i,i]\<Rightarrow>i"  (infixr "#*" 60)
+definition mult :: "[i,i]\<Rightarrow>i"  (infixr \<open>#*\<close> 60)
   where "a #* b == nrec(a, zero, \<lambda>x g. b #+ g)"
 
-definition sub :: "[i,i]\<Rightarrow>i"  (infixr "#-" 60)
+definition sub :: "[i,i]\<Rightarrow>i"  (infixr \<open>#-\<close> 60)
   where
     "a #- b ==
       letrec sub x y be ncase(y, x, \<lambda>yy. ncase(x, zero, \<lambda>xx. sub(xx,yy)))
       in sub(a,b)"
 
-definition le :: "[i,i]\<Rightarrow>i"  (infixr "#<=" 60)
+definition le :: "[i,i]\<Rightarrow>i"  (infixr \<open>#<=\<close> 60)
   where
     "a #<= b ==
       letrec le x y be ncase(x, true, \<lambda>xx. ncase(y, false, \<lambda>yy. le(xx,yy)))
       in le(a,b)"
 
-definition lt :: "[i,i]\<Rightarrow>i"  (infixr "#<" 60)
+definition lt :: "[i,i]\<Rightarrow>i"  (infixr \<open>#<\<close> 60)
   where "a #< b == not(b #<= a)"
 
-definition div :: "[i,i]\<Rightarrow>i"  (infixr "##" 60)
+definition div :: "[i,i]\<Rightarrow>i"  (infixr \<open>##\<close> 60)
   where
     "a ## b ==
       letrec div x y be if x #< y then zero else succ(div(x#-y,y))

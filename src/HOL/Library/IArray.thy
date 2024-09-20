@@ -28,7 +28,7 @@ qualified primrec list_of :: "'a iarray \<Rightarrow> 'a list" where
 qualified definition of_fun :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a iarray" where
 [simp]: "of_fun f n = IArray (map f [0..<n])"
 
-qualified definition sub :: "'a iarray \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
+qualified definition sub :: "'a iarray \<Rightarrow> nat \<Rightarrow> 'a" (infixl \<open>!!\<close> 100) where
 [simp]: "as !! n = IArray.list_of as ! n"
 
 qualified definition length :: "'a iarray \<Rightarrow> nat" where

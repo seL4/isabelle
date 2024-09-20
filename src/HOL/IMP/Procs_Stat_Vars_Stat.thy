@@ -13,7 +13,7 @@ fun venv :: "penv \<times> venv \<times> nat \<Rightarrow> venv" where
 
 inductive
   big_step :: "penv \<times> venv \<times> nat \<Rightarrow> com \<times> store \<Rightarrow> store \<Rightarrow> bool"
-  ("_ \<turnstile> _ \<Rightarrow> _" [60,0,60] 55)
+  (\<open>_ \<turnstile> _ \<Rightarrow> _\<close> [60,0,60] 55)
 where
 Skip:    "e \<turnstile> (SKIP,s) \<Rightarrow> s" |
 Assign:  "(pe,ve,f) \<turnstile> (x ::= a,s) \<Rightarrow> s(ve x := aval a (s o ve))" |

@@ -9,10 +9,10 @@ begin
 subsubsection "The generic Step function"
 
 notation
-  sup (infixl "\<squnion>" 65) and
-  inf (infixl "\<sqinter>" 70) and
-  bot ("\<bottom>") and
-  top ("\<top>")
+  sup (infixl \<open>\<squnion>\<close> 65) and
+  inf (infixl \<open>\<sqinter>\<close> 70) and
+  bot (\<open>\<bottom>\<close>) and
+  top (\<open>\<top>\<close>)
 
 context
   fixes f :: "vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"

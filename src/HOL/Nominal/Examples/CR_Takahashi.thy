@@ -16,10 +16,10 @@ atom_decl name
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
-  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [100,100] 100)
 
 nominal_primrec
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_[_::=_]\<close> [100,100,100] 100)
 where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
 | "(App t\<^sub>1 t\<^sub>2)[y::=s] = App (t\<^sub>1[y::=s]) (t\<^sub>2[y::=s])"
@@ -66,7 +66,7 @@ by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
 section \<open>Beta-Reduction\<close>
 
 inductive 
-  "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta> _" [80,80] 80)
+  "Beta" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta> _\<close> [80,80] 80)
 where
   b1[intro]: "t1 \<longrightarrow>\<^sub>\<beta> t2 \<Longrightarrow> App t1 s \<longrightarrow>\<^sub>\<beta> App t2 s"
 | b2[intro]: "s1 \<longrightarrow>\<^sub>\<beta> s2 \<Longrightarrow> App t s1 \<longrightarrow>\<^sub>\<beta> App t s2"
@@ -76,7 +76,7 @@ where
 section \<open>Transitive Closure of Beta\<close>
 
 inductive 
-  "Beta_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>\<beta>\<^sup>* _" [80,80] 80)
+  "Beta_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>\<beta>\<^sup>* _\<close> [80,80] 80)
 where
   bs1[intro]: "t \<longrightarrow>\<^sub>\<beta>\<^sup>* t"
 | bs2[intro]: "t \<longrightarrow>\<^sub>\<beta> s \<Longrightarrow> t \<longrightarrow>\<^sub>\<beta>\<^sup>* s"
@@ -85,7 +85,7 @@ where
 section \<open>One-Reduction\<close>
 
 inductive 
-  One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1 _" [80,80] 80)
+  One :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>1 _\<close> [80,80] 80)
 where
   o1[intro]: "Var x\<longrightarrow>\<^sub>1 Var x"
 | o2[intro]: "\<lbrakk>t1\<longrightarrow>\<^sub>1t2; s1\<longrightarrow>\<^sub>1s2\<rbrakk> \<Longrightarrow> App t1 s1 \<longrightarrow>\<^sub>1 App t2 s2"
@@ -148,7 +148,7 @@ by (cases rule: One.strong_cases)
 section \<open>Transitive Closure of One\<close>
 
 inductive 
-  "One_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (" _ \<longrightarrow>\<^sub>1\<^sup>* _" [80,80] 80)
+  "One_star" :: "lam\<Rightarrow>lam\<Rightarrow>bool" (\<open> _ \<longrightarrow>\<^sub>1\<^sup>* _\<close> [80,80] 80)
 where
   os1[intro]: "t \<longrightarrow>\<^sub>1\<^sup>* t"
 | os2[intro]: "t \<longrightarrow>\<^sub>1 s \<Longrightarrow> t \<longrightarrow>\<^sub>1\<^sup>* s"
@@ -157,7 +157,7 @@ where
 section \<open>Complete Development Reduction\<close>
 
 inductive 
-  Dev :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ \<longrightarrow>\<^sub>d _" [80,80]80)
+  Dev :: "lam \<Rightarrow> lam \<Rightarrow> bool" (\<open> _ \<longrightarrow>\<^sub>d _\<close> [80,80]80)
 where
   d1[intro]: "Var x \<longrightarrow>\<^sub>d Var x"
 | d2[intro]: "t \<longrightarrow>\<^sub>d s \<Longrightarrow> Lam [x].t \<longrightarrow>\<^sub>d Lam[x].s"

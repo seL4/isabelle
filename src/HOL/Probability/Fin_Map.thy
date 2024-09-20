@@ -13,7 +13,7 @@ text \<open>The \<^type>\<open>fmap\<close> type can be instantiated to \<^class
   stay close to the developments of (finite) products \<^const>\<open>Pi\<^sub>E\<close> and their sigma-algebra
   \<^const>\<open>Pi\<^sub>M\<close>.\<close>
 
-type_notation fmap ("(_ \<Rightarrow>\<^sub>F /_)" [22, 21] 21)
+type_notation fmap (\<open>(_ \<Rightarrow>\<^sub>F /_)\<close> [22, 21] 21)
 
 unbundle fmap.lifting
 
@@ -25,7 +25,7 @@ lift_definition domain::"('i \<Rightarrow>\<^sub>F 'a) \<Rightarrow> 'i set" is 
 lemma finite_domain[simp, intro]: "finite (domain P)"
   by transfer simp
 
-lift_definition proj :: "('i \<Rightarrow>\<^sub>F 'a) \<Rightarrow> 'i \<Rightarrow> 'a" ("'((_)')\<^sub>F" [0] 1000) is
+lift_definition proj :: "('i \<Rightarrow>\<^sub>F 'a) \<Rightarrow> 'i \<Rightarrow> 'a" (\<open>'((_)')\<^sub>F\<close> [0] 1000) is
   "\<lambda>f x. if x \<in> dom f then the (f x) else undefined" .
 
 declare [[coercion proj]]
@@ -89,7 +89,7 @@ definition Pi' :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a set) \<Rightarrow> 
   "Pi' I A = { P. domain P = I \<and> (\<forall>i. i \<in> I \<longrightarrow> (P)\<^sub>F i \<in> A i) } "
 
 syntax
-  "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>'' _\<in>_./ _)"   10)
+  "_Pi'" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  (\<open>(3\<Pi>'' _\<in>_./ _)\<close>   10)
 syntax_consts
   "_Pi'" == Pi'
 translations
@@ -636,7 +636,7 @@ abbreviation
   "Pi\<^sub>F I M \<equiv> PiF I M"
 
 syntax
-  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  ("(3\<Pi>\<^sub>F _\<in>_./ _)"  10)
+  "_PiF" :: "pttrn \<Rightarrow> 'i set \<Rightarrow> 'a measure \<Rightarrow> ('i => 'a) measure"  (\<open>(3\<Pi>\<^sub>F _\<in>_./ _)\<close>  10)
 syntax_consts
   "_PiF" == PiF
 translations

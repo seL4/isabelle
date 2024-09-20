@@ -9,7 +9,7 @@ begin
 
 (* MOVED TO HOL-Library ON 20.03.2024 *)
 
-definition rmod :: "real \<Rightarrow> real \<Rightarrow> real" (infixl "rmod" 70) where
+definition rmod :: "real \<Rightarrow> real \<Rightarrow> real" (infixl \<open>rmod\<close> 70) where
   "x rmod y = x - \<bar>y\<bar> * of_int \<lfloor>x / \<bar>y\<bar>\<rfloor>"
 
 lemma rmod_conv_frac: "y \<noteq> 0 \<Longrightarrow> x rmod y = frac (x / \<bar>y\<bar>) * \<bar>y\<bar>"

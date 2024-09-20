@@ -89,7 +89,7 @@ qed
 context zero
 begin
 
-definition "when" :: "'a \<Rightarrow> bool \<Rightarrow> 'a" (infixl "when" 20)
+definition "when" :: "'a \<Rightarrow> bool \<Rightarrow> 'a" (infixl \<open>when\<close> 20)
 where
   "(a when P) = (if P then a else 0)"
 
@@ -224,7 +224,7 @@ text \<open>
   The following type is of central importance:
 \<close>
 
-typedef (overloaded) ('a, 'b) poly_mapping ("(_ \<Rightarrow>\<^sub>0 /_)" [1, 0] 0) =
+typedef (overloaded) ('a, 'b) poly_mapping (\<open>(_ \<Rightarrow>\<^sub>0 /_)\<close> [1, 0] 0) =
   "{f :: 'a \<Rightarrow> 'b::zero. finite {x. f x \<noteq> 0}}"
   morphisms lookup Abs_poly_mapping
 proof -

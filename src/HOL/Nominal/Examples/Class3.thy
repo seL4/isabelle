@@ -3143,12 +3143,12 @@ lemma findc_fresh:
   done
 
 abbreviation 
-  nmaps :: "(name\<times>coname\<times>trm) list \<Rightarrow> name \<Rightarrow> (coname\<times>trm) option \<Rightarrow> bool" ("_ nmaps _ to _" [55,55,55] 55) 
+  nmaps :: "(name\<times>coname\<times>trm) list \<Rightarrow> name \<Rightarrow> (coname\<times>trm) option \<Rightarrow> bool" (\<open>_ nmaps _ to _\<close> [55,55,55] 55) 
   where
     "\<theta>_n nmaps x to P \<equiv> (findn \<theta>_n x) = P"
 
 abbreviation 
-  cmaps :: "(coname\<times>name\<times>trm) list \<Rightarrow> coname \<Rightarrow> (name\<times>trm) option \<Rightarrow> bool" ("_ cmaps _ to _" [55,55,55] 55) 
+  cmaps :: "(coname\<times>name\<times>trm) list \<Rightarrow> coname \<Rightarrow> (name\<times>trm) option \<Rightarrow> bool" (\<open>_ cmaps _ to _\<close> [55,55,55] 55) 
   where
     "\<theta>_c cmaps a to P \<equiv> (findc \<theta>_c a) = P"
 
@@ -3662,7 +3662,7 @@ lemma case_option_eqvt2[eqvt_force]:
   done
 
 nominal_primrec (freshness_context: "(\<theta>_n::(name\<times>coname\<times>trm) list,\<theta>_c::(coname\<times>name\<times>trm) list)")
-  psubst :: "(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm\<Rightarrow>trm" ("_,_<_>" [100,100,100] 100) 
+  psubst :: "(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm\<Rightarrow>trm" (\<open>_,_<_>\<close> [100,100,100] 100) 
   where
     "\<theta>_n,\<theta>_c<Ax x a> = lookup x a \<theta>_n \<theta>_c" 
   | "\<lbrakk>a\<sharp>(N,\<theta>_n,\<theta>_c);x\<sharp>(M,\<theta>_n,\<theta>_c)\<rbrakk> \<Longrightarrow> \<theta>_n,\<theta>_c<Cut <a>.M (x).N> = 
@@ -4863,12 +4863,12 @@ lemma psubst_nsubst:
   done
 
 definition 
-  ncloses :: "(name\<times>coname\<times>trm) list\<Rightarrow>(name\<times>ty) list \<Rightarrow> bool" ("_ ncloses _" [55,55] 55) 
+  ncloses :: "(name\<times>coname\<times>trm) list\<Rightarrow>(name\<times>ty) list \<Rightarrow> bool" (\<open>_ ncloses _\<close> [55,55] 55) 
   where
     "\<theta>_n ncloses \<Gamma> \<equiv> \<forall>x B. ((x,B) \<in> set \<Gamma> \<longrightarrow> (\<exists>c P. \<theta>_n nmaps x to Some (c,P) \<and> <c>:P \<in> (\<parallel><B>\<parallel>)))"
 
 definition 
-  ccloses :: "(coname\<times>name\<times>trm) list\<Rightarrow>(coname\<times>ty) list \<Rightarrow> bool" ("_ ccloses _" [55,55] 55) 
+  ccloses :: "(coname\<times>name\<times>trm) list\<Rightarrow>(coname\<times>ty) list \<Rightarrow> bool" (\<open>_ ccloses _\<close> [55,55] 55) 
   where
     "\<theta>_c ccloses \<Delta> \<equiv> \<forall>a B. ((a,B) \<in> set \<Delta> \<longrightarrow> (\<exists>x P. \<theta>_c cmaps a to Some (x,P) \<and> (x):P \<in> (\<parallel>(B)\<parallel>)))"
 
@@ -4938,7 +4938,7 @@ lemma ncloses_extend:
 text \<open>typing relation\<close>
 
 inductive
-  typing :: "ctxtn \<Rightarrow> trm \<Rightarrow> ctxtc \<Rightarrow> bool" ("_ \<turnstile> _ \<turnstile> _" [100,100,100] 100)
+  typing :: "ctxtn \<Rightarrow> trm \<Rightarrow> ctxtc \<Rightarrow> bool" (\<open>_ \<turnstile> _ \<turnstile> _\<close> [100,100,100] 100)
   where
     TAx:    "\<lbrakk>validn \<Gamma>;validc \<Delta>; (x,B)\<in>set \<Gamma>; (a,B)\<in>set \<Delta>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Ax x a \<turnstile> \<Delta>"
   | TNotR:  "\<lbrakk>x\<sharp>\<Gamma>; ((x,B)#\<Gamma>) \<turnstile> M \<turnstile> \<Delta>; set \<Delta>' = {(a,NOT B)}\<union>set \<Delta>; validc \<Delta>'\<rbrakk> 

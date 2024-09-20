@@ -12,7 +12,7 @@ atom_decl name
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
-  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [100,100] 100)
 
 text \<open>The depth of a lambda-term.\<close>
 
@@ -68,7 +68,7 @@ lemma lookup_eqvt[eqvt]:
 by (induct \<theta>) (auto simp add: eqvts)
  
 nominal_primrec
-  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam"  ("_<_>" [95,95] 105)
+  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam"  (\<open>_<_>\<close> [95,95] 105)
 where
   "\<theta><(Var x)> = (lookup \<theta> x)"
 | "\<theta><(App e\<^sub>1 e\<^sub>2)> = App (\<theta><e\<^sub>1>) (\<theta><e\<^sub>2>)"
@@ -83,7 +83,7 @@ by (nominal_induct t avoiding: \<theta> rule: lam.strong_induct)
    (simp_all add: eqvts fresh_bij)
 
 abbreviation 
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" ("_[_::=_]" [100,100,100] 100)
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam" (\<open>_[_::=_]\<close> [100,100,100] 100)
 where 
   "t[x::=t']  \<equiv> ([(x,t')])<t>" 
 
@@ -115,15 +115,15 @@ text \<open>
   name, even if we introduce the notation [_]._ for CLam.
 \<close>
 nominal_datatype clam = 
-    Hole ("\<box>" 1000)  
+    Hole (\<open>\<box>\<close> 1000)  
   | CAppL "clam" "lam"
   | CAppR "lam" "clam" 
-  | CLam "name" "clam"  ("CLam [_]._" [100,100] 100) 
+  | CLam "name" "clam"  (\<open>CLam [_]._\<close> [100,100] 100) 
 
 text \<open>Filling a lambda-term into a context.\<close>
 
 nominal_primrec
-  filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
+  filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" (\<open>_\<lbrakk>_\<rbrakk>\<close> [100,100] 100)
 where
   "\<box>\<lbrakk>t\<rbrakk> = t"
 | "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
@@ -134,7 +134,7 @@ by (rule TrueI)+
 text \<open>Composition od two contexts\<close>
 
 nominal_primrec
- clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" ("_ \<circ> _" [100,100] 100)
+ clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" (\<open>_ \<circ> _\<close> [100,100] 100)
 where
   "\<box> \<circ> E' = E'"
 | "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"

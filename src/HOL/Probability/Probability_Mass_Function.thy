@@ -13,7 +13,7 @@ imports
 begin
 
 text \<open>Conflicting notation from \<^theory>\<open>HOL-Analysis.Infinite_Sum\<close>\<close>
-no_notation Infinite_Sum.abs_summable_on (infixr "abs'_summable'_on" 46)
+no_notation Infinite_Sum.abs_summable_on (infixr \<open>abs'_summable'_on\<close> 46)
 
 lemma AE_emeasure_singleton:
   assumes x: "emeasure M {x} \<noteq> 0" and ae: "AE x in M. P x" shows "P x"

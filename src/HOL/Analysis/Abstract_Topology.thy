@@ -607,7 +607,7 @@ lemma openin_open_eq: "open s \<Longrightarrow> (openin (top_of_set s) t \<longl
 
 subsection\<open>Derived set (set of limit points)\<close>
 
-definition derived_set_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "derived'_set'_of" 80)
+definition derived_set_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl \<open>derived'_set'_of\<close> 80)
   where "X derived_set_of S \<equiv>
          {x \<in> topspace X.
                 (\<forall>T. x \<in> T \<and> openin X T \<longrightarrow> (\<exists>y\<noteq>x. y \<in> S \<and> y \<in> T))}"
@@ -715,7 +715,7 @@ qed
 
 subsection\<open> Closure with respect to a topological space\<close>
 
-definition closure_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr "closure'_of" 80)
+definition closure_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr \<open>closure'_of\<close> 80)
   where "X closure_of S \<equiv> {x \<in> topspace X. \<forall>T. x \<in> T \<and> openin X T \<longrightarrow> (\<exists>y \<in> S. y \<in> T)}"
 
 lemma closure_of_restrict: "X closure_of S = X closure_of (topspace X \<inter> S)"
@@ -947,7 +947,7 @@ lemma discrete_topology_closure_of:
 
 text\<open> Interior with respect to a topological space.                             \<close>
 
-definition interior_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr "interior'_of" 80)
+definition interior_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr \<open>interior'_of\<close> 80)
   where "X interior_of S \<equiv> {x. \<exists>T. openin X T \<and> x \<in> T \<and> T \<subseteq> S}"
 
 lemma interior_of_restrict:
@@ -1113,7 +1113,7 @@ lemma discrete_topology_interior_of [simp]:
 
 subsection \<open>Frontier with respect to topological space \<close>
 
-definition frontier_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr "frontier'_of" 80)
+definition frontier_of :: "'a topology \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixr \<open>frontier'_of\<close> 80)
   where "X frontier_of S \<equiv> X closure_of S - X interior_of S"
 
 lemma frontier_of_closures:
@@ -3048,7 +3048,7 @@ qed
 
 subsection\<open>Relation of homeomorphism between topological spaces\<close>
 
-definition homeomorphic_space (infixr "homeomorphic'_space" 50)
+definition homeomorphic_space (infixr \<open>homeomorphic'_space\<close> 50)
   where "X homeomorphic_space Y \<equiv> \<exists>f g. homeomorphic_maps X Y f g"
 
 lemma homeomorphic_space_refl [iff]: "X homeomorphic_space X"

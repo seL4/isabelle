@@ -15,7 +15,7 @@ available. But now they are:
 \<close>
 
 inductive_set
-  rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   ("_*" [1000] 999)
+  rtc :: "('a \<times> 'a)set \<Rightarrow> ('a \<times> 'a)set"   (\<open>_*\<close> [1000] 999)
   for r :: "('a \<times> 'a)set"
 where
   rtc_refl[iff]:  "(x,x) \<in> r*"

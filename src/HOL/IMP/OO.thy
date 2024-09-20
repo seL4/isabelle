@@ -4,7 +4,7 @@ subsection "Towards an OO Language: A Language of Records"
 
 (* FIXME: move to HOL/Fun *)
 abbreviation fun_upd2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
-  ("_/'((2_,_ :=/ _)')" [1000,0,0,0] 900)
+  (\<open>_/'((2_,_ :=/ _)')\<close> [1000,0,0,0] 900)
 where "f(x,y := z) == f(x := (f x)(y := z))"
 
 type_synonym addr = nat
@@ -18,12 +18,12 @@ datatype exp =
   Null |
   New |
   V string |
-  Faccess exp string       ("_\<bullet>/_" [63,1000] 63) |
-  Vassign string exp       ("(_ ::=/ _)" [1000,61] 62) |
-  Fassign exp string exp   ("(_\<bullet>_ ::=/ _)" [63,0,62] 62) |
-  Mcall exp string exp     ("(_\<bullet>/_<_>)" [63,0,0] 63) |
-  Seq exp exp              ("_;/ _" [61,60] 60) |
-  If bexp exp exp          ("IF _/ THEN (2_)/ ELSE (2_)" [0,0,61] 61)
+  Faccess exp string       (\<open>_\<bullet>/_\<close> [63,1000] 63) |
+  Vassign string exp       (\<open>(_ ::=/ _)\<close> [1000,61] 62) |
+  Fassign exp string exp   (\<open>(_\<bullet>_ ::=/ _)\<close> [63,0,62] 62) |
+  Mcall exp string exp     (\<open>(_\<bullet>/_<_>)\<close> [63,0,0] 63) |
+  Seq exp exp              (\<open>_;/ _\<close> [61,60] 60) |
+  If bexp exp exp          (\<open>IF _/ THEN (2_)/ ELSE (2_)\<close> [0,0,61] 61)
 and bexp = B bool | Not bexp | And bexp bexp | Eq exp exp
 
 type_synonym menv = "string \<Rightarrow> exp"
@@ -31,9 +31,9 @@ type_synonym config = "venv \<times> store \<times> addr"
 
 inductive
   big_step :: "menv \<Rightarrow> exp \<times> config \<Rightarrow> ref \<times> config \<Rightarrow> bool"
-    ("(_ \<turnstile>/ (_/ \<Rightarrow> _))" [60,0,60] 55) and
+    (\<open>(_ \<turnstile>/ (_/ \<Rightarrow> _))\<close> [60,0,60] 55) and
   bval ::  "menv \<Rightarrow> bexp \<times> config \<Rightarrow> bool \<times> config \<Rightarrow> bool"
-    ("_ \<turnstile> _ \<rightarrow> _" [60,0,60] 55)
+    (\<open>_ \<turnstile> _ \<rightarrow> _\<close> [60,0,60] 55)
 where
 Null:
 "me \<turnstile> (Null,c) \<Rightarrow> (null,c)" |

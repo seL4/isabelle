@@ -1553,7 +1553,7 @@ qed
 
 lemma compact_lemma_general:
   fixes f :: "nat \<Rightarrow> 'a"
-  fixes proj::"'a \<Rightarrow> 'b \<Rightarrow> 'c::heine_borel" (infixl "proj" 60)
+  fixes proj::"'a \<Rightarrow> 'b \<Rightarrow> 'c::heine_borel" (infixl \<open>proj\<close> 60)
   fixes unproj:: "('b \<Rightarrow> 'c) \<Rightarrow> 'a"
   assumes finite_basis: "finite basis"
   assumes bounded_proj: "\<And>k. k \<in> basis \<Longrightarrow> bounded ((\<lambda>x. x proj k) ` range f)"

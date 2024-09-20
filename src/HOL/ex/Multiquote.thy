@@ -14,8 +14,8 @@ text \<open>
 \<close>
 
 syntax
-  "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"    ("\<guillemotleft>_\<guillemotright>" [0] 1000)
-  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"    ("\<acute>_" [1000] 1000)
+  "_quote" :: "'b \<Rightarrow> ('a \<Rightarrow> 'b)"    (\<open>\<guillemotleft>_\<guillemotright>\<close> [0] 1000)
+  "_antiquote" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b"    (\<open>\<acute>_\<close> [1000] 1000)
 
 parse_translation \<open>
   let

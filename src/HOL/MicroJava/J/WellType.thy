@@ -100,9 +100,9 @@ type_synonym
 \<comment> \<open>local variables might include This, which is hidden anyway\<close>
   
 inductive
-  ty_expr :: "'c env => expr => ty => bool" ("_ \<turnstile> _ :: _" [51, 51, 51] 50)
-  and ty_exprs :: "'c env => expr list => ty list => bool" ("_ \<turnstile> _ [::] _" [51, 51, 51] 50)
-  and wt_stmt :: "'c env => stmt => bool" ("_ \<turnstile> _ \<surd>" [51, 51] 50)
+  ty_expr :: "'c env => expr => ty => bool" (\<open>_ \<turnstile> _ :: _\<close> [51, 51, 51] 50)
+  and ty_exprs :: "'c env => expr list => ty list => bool" (\<open>_ \<turnstile> _ [::] _\<close> [51, 51, 51] 50)
+  and wt_stmt :: "'c env => stmt => bool" (\<open>_ \<turnstile> _ \<surd>\<close> [51, 51] 50)
 where
   
   NewC: "[| is_class (prg E) C |] ==>

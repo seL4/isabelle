@@ -311,7 +311,7 @@ lemma continuous_image_closure_subset:
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>A function constant on a set\<close>
 
-definition constant_on  (infixl "(constant'_on)" 50)
+definition constant_on  (infixl \<open>(constant'_on)\<close> 50)
   where "f constant_on A \<equiv> \<exists>y. \<forall>x\<in>A. f x = y"
 
 lemma constant_on_subset: "\<lbrakk>f constant_on A; B \<subseteq> A\<rbrakk> \<Longrightarrow> f constant_on B"
@@ -892,7 +892,7 @@ definition\<^marker>\<open>tag important\<close> retraction :: "('a::topological
 where "retraction S T r \<longleftrightarrow>
   T \<subseteq> S \<and> continuous_on S r \<and> r \<in> S \<rightarrow> T \<and> (\<forall>x\<in>T. r x = x)"
 
-definition\<^marker>\<open>tag important\<close> retract_of (infixl "retract'_of" 50) where
+definition\<^marker>\<open>tag important\<close> retract_of (infixl \<open>retract'_of\<close> 50) where
 "T retract_of S  \<longleftrightarrow>  (\<exists>r. retraction S T r)"
 
 lemma retraction_idempotent: "retraction S T r \<Longrightarrow> x \<in> S \<Longrightarrow>  r (r x) = r x"
@@ -1111,7 +1111,7 @@ done
 
 subsection\<open>Retractions on a topological space\<close>
 
-definition retract_of_space :: "'a set \<Rightarrow> 'a topology \<Rightarrow> bool" (infix "retract'_of'_space" 50)
+definition retract_of_space :: "'a set \<Rightarrow> 'a topology \<Rightarrow> bool" (infix \<open>retract'_of'_space\<close> 50)
   where "S retract_of_space X
          \<equiv> S \<subseteq> topspace X \<and> (\<exists>r. continuous_map X (subtopology X S) r \<and> (\<forall>x \<in> S. r x = x))"
 

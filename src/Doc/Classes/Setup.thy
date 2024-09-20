@@ -8,10 +8,10 @@ ML_file \<open>../more_antiquote.ML\<close>
 declare [[default_code_width = 74]]
 
 syntax
-  "_alpha" :: "type"  ("\<alpha>")
-  "_alpha_ofsort" :: "sort \<Rightarrow> type"  ("\<alpha>' ::_" [0] 1000)
-  "_beta" :: "type"  ("\<beta>")
-  "_beta_ofsort" :: "sort \<Rightarrow> type"  ("\<beta>' ::_" [0] 1000)
+  "_alpha" :: "type"  (\<open>\<alpha>\<close>)
+  "_alpha_ofsort" :: "sort \<Rightarrow> type"  (\<open>\<alpha>' ::_\<close> [0] 1000)
+  "_beta" :: "type"  (\<open>\<beta>\<close>)
+  "_beta_ofsort" :: "sort \<Rightarrow> type"  (\<open>\<beta>' ::_\<close> [0] 1000)
 
 parse_ast_translation \<open>
   let

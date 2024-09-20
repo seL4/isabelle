@@ -10,14 +10,14 @@ begin
 consts
   Trueprop       :: "two_seqi"
 
-  tens :: "[o, o] \<Rightarrow> o"        (infixr "><" 35)
-  limp :: "[o, o] \<Rightarrow> o"        (infixr "-o" 45)
-  FShriek :: "o \<Rightarrow> o"          ("! _" [100] 1000)
-  lconj :: "[o, o] \<Rightarrow> o"       (infixr "&&" 35)
-  ldisj :: "[o, o] \<Rightarrow> o"       (infixr "++" 35)
-  zero :: "o"                  ("0")
-  top :: "o"                   ("1")
-  eye :: "o"                   ("I")
+  tens :: "[o, o] \<Rightarrow> o"        (infixr \<open>><\<close> 35)
+  limp :: "[o, o] \<Rightarrow> o"        (infixr \<open>-o\<close> 45)
+  FShriek :: "o \<Rightarrow> o"          (\<open>! _\<close> [100] 1000)
+  lconj :: "[o, o] \<Rightarrow> o"       (infixr \<open>&&\<close> 35)
+  ldisj :: "[o, o] \<Rightarrow> o"       (infixr \<open>++\<close> 35)
+  zero :: "o"                  (\<open>0\<close>)
+  top :: "o"                   (\<open>1\<close>)
+  eye :: "o"                   (\<open>I\<close>)
 
 
   (* context manipulation *)
@@ -29,9 +29,9 @@ consts
   PromAux :: "three_seqi"
 
 syntax
-  "_Trueprop" :: "single_seqe" ("((_)/ \<turnstile> (_))" [6,6] 5)
-  "_Context"  :: "two_seqe"   ("((_)/ :=: (_))" [6,6] 5)
-  "_PromAux"  :: "three_seqe" ("promaux {_||_||_}")
+  "_Trueprop" :: "single_seqe" (\<open>((_)/ \<turnstile> (_))\<close> [6,6] 5)
+  "_Context"  :: "two_seqe"   (\<open>((_)/ :=: (_))\<close> [6,6] 5)
+  "_PromAux"  :: "three_seqe" (\<open>promaux {_||_||_}\<close>)
 
 parse_translation \<open>
   [(\<^syntax_const>\<open>_Trueprop\<close>, K (single_tr \<^const_syntax>\<open>Trueprop\<close>)),
@@ -45,10 +45,10 @@ print_translation \<open>
    (\<^const_syntax>\<open>PromAux\<close>, K (three_seq_tr' \<^syntax_const>\<open>_PromAux\<close>))]
 \<close>
 
-definition liff :: "[o, o] \<Rightarrow> o"  (infixr "o-o" 45)
+definition liff :: "[o, o] \<Rightarrow> o"  (infixr \<open>o-o\<close> 45)
   where "P o-o Q == (P -o Q) >< (Q -o P)"
 
-definition aneg :: "o\<Rightarrow>o"  ("~_")
+definition aneg :: "o\<Rightarrow>o"  (\<open>~_\<close>)
   where "~A == A -o 0"
 
 

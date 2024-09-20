@@ -8,10 +8,10 @@ theory Algebra_Aux
   imports "HOL-Algebra.Ring"
 begin
 
-definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>")
+definition of_natural :: "('a, 'm) ring_scheme \<Rightarrow> nat \<Rightarrow> 'a" (\<open>\<guillemotleft>_\<guillemotright>\<^sub>\<nat>\<index>\<close>)
   where "\<guillemotleft>n\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> = ((\<oplus>\<^bsub>R\<^esub>) \<one>\<^bsub>R\<^esub> ^^ n) \<zero>\<^bsub>R\<^esub>"
 
-definition of_integer :: "('a, 'm) ring_scheme \<Rightarrow> int \<Rightarrow> 'a" ("\<guillemotleft>_\<guillemotright>\<index>")
+definition of_integer :: "('a, 'm) ring_scheme \<Rightarrow> int \<Rightarrow> 'a" (\<open>\<guillemotleft>_\<guillemotright>\<index>\<close>)
   where "\<guillemotleft>i\<guillemotright>\<^bsub>R\<^esub> = (if 0 \<le> i then \<guillemotleft>nat i\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub> else \<ominus>\<^bsub>R\<^esub> \<guillemotleft>nat (- i)\<guillemotright>\<^sub>\<nat>\<^bsub>R\<^esub>)"
 
 context ring
@@ -313,7 +313,7 @@ next
     by (auto simp add: l_minus r_minus)
 qed
 
-definition m_div :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<oslash>\<index>" 70)
+definition m_div :: "('a, 'b) ring_scheme \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl \<open>\<oslash>\<index>\<close> 70)
   where "x \<oslash>\<^bsub>G\<^esub> y = (if y = \<zero>\<^bsub>G\<^esub> then \<zero>\<^bsub>G\<^esub> else x \<otimes>\<^bsub>G\<^esub> inv\<^bsub>G\<^esub> y)"
 
 context field

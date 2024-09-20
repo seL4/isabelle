@@ -25,20 +25,20 @@ where
 
 datatype stmt
   = Skip                   \<comment> \<open>empty statement\<close>
-  | Comp       stmt stmt   ("_;; _"             [91,90   ] 90)
-  | Cond expr  stmt stmt   ("If '(_') _ Else _" [ 3,91,91] 91)
-  | Loop vname stmt        ("While '(_') _"     [ 3,91   ] 91)
-  | LAss vname expr        ("_ :== _"           [99,   95] 94) \<comment> \<open>local assignment\<close>
-  | FAss expr  fname expr  ("_.._:==_"          [95,99,95] 94) \<comment> \<open>field assignment\<close>
+  | Comp       stmt stmt   (\<open>_;; _\<close>             [91,90   ] 90)
+  | Cond expr  stmt stmt   (\<open>If '(_') _ Else _\<close> [ 3,91,91] 91)
+  | Loop vname stmt        (\<open>While '(_') _\<close>     [ 3,91   ] 91)
+  | LAss vname expr        (\<open>_ :== _\<close>           [99,   95] 94) \<comment> \<open>local assignment\<close>
+  | FAss expr  fname expr  (\<open>_.._:==_\<close>          [95,99,95] 94) \<comment> \<open>field assignment\<close>
   | Meth "cname \<times> mname"   \<comment> \<open>virtual method\<close>
   | Impl "cname \<times> mname"   \<comment> \<open>method implementation\<close>
 and expr
-  = NewC cname       ("new _"        [   99] 95) \<comment> \<open>object creation\<close>
+  = NewC cname       (\<open>new _\<close>        [   99] 95) \<comment> \<open>object creation\<close>
   | Cast cname expr                              \<comment> \<open>type cast\<close>
   | LAcc vname                                   \<comment> \<open>local access\<close>
-  | FAcc expr  fname ("_.._"         [95,99] 95) \<comment> \<open>field access\<close>
+  | FAcc expr  fname (\<open>_.._\<close>         [95,99] 95) \<comment> \<open>field access\<close>
   | Call cname expr mname expr                   
-                     ("{_}_.._'(_')" [99,95,99,95] 95) \<comment> \<open>method call\<close>
+                     (\<open>{_}_.._'(_')\<close> [99,95,99,95] 95) \<comment> \<open>method call\<close>
 
 end
 

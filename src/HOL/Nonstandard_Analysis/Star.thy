@@ -11,7 +11,7 @@ theory Star
 begin
 
 definition  \<comment> \<open>internal sets\<close>
-  starset_n :: "(nat \<Rightarrow> 'a set) \<Rightarrow> 'a star set"  ("*sn* _" [80] 80)
+  starset_n :: "(nat \<Rightarrow> 'a set) \<Rightarrow> 'a star set"  (\<open>*sn* _\<close> [80] 80)
   where "*sn* As = Iset (star_n As)"
 
 definition InternalSets :: "'a star set set"
@@ -23,7 +23,7 @@ definition  \<comment> \<open>nonstandard extension of function\<close>
     (\<forall>x y. \<exists>X \<in> Rep_star x. \<exists>Y \<in> Rep_star y. y = F x \<longleftrightarrow> eventually (\<lambda>n. Y n = f(X n)) \<U>)"
 
 definition  \<comment> \<open>internal functions\<close>
-  starfun_n :: "(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"  ("*fn* _" [80] 80)
+  starfun_n :: "(nat \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"  (\<open>*fn* _\<close> [80] 80)
   where "*fn* F = Ifun (star_n F)"
 
 definition InternalFuns :: "('a star => 'b star) set"

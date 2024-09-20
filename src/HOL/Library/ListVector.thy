@@ -12,7 +12,7 @@ Is only a vector space if restricted to lists of the same length.\<close>
 
 text\<open>Multiplication with a scalar:\<close>
 
-abbreviation scale :: "('a::times) \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "*\<^sub>s" 70)
+abbreviation scale :: "('a::times) \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix \<open>*\<^sub>s\<close> 70)
 where "x *\<^sub>s xs \<equiv> map ((*) x) xs"
 
 lemma scale1[simp]: "(1::'a::monoid_mult) *\<^sub>s xs = xs"
@@ -99,7 +99,7 @@ done
 
 subsection "Inner product"
 
-definition iprod :: "'a::ring list \<Rightarrow> 'a list \<Rightarrow> 'a" ("\<langle>_,_\<rangle>") where
+definition iprod :: "'a::ring list \<Rightarrow> 'a list \<Rightarrow> 'a" (\<open>\<langle>_,_\<rangle>\<close>) where
 "\<langle>xs,ys\<rangle> = (\<Sum>(x,y) \<leftarrow> zip xs ys. x*y)"
 
 lemma iprod_Nil[simp]: "\<langle>[],ys\<rangle> = 0"

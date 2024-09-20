@@ -33,7 +33,7 @@ and ty                  \<comment> \<open>any type, cf. 4.1\<close>
 abbreviation "NT == RefT NullT"
 abbreviation "Iface I == RefT (IfaceT I)"
 abbreviation "Class C == RefT (ClassT C)"
-abbreviation Array :: "ty \<Rightarrow> ty"  ("_.[]" [90] 90)
+abbreviation Array :: "ty \<Rightarrow> ty"  (\<open>_.[]\<close> [90] 90)
   where "T.[] == RefT (ArrayT T)"
 
 definition

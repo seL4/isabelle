@@ -21,7 +21,7 @@ by(auto simp: eq_ivl_def)
 quotient_type ivl = eint2 / eq_ivl
 by(rule equivpI)(auto simp: reflp_def symp_def transp_def eq_ivl_def)
 
-abbreviation ivl_abbr :: "eint \<Rightarrow> eint \<Rightarrow> ivl" ("[_, _]") where
+abbreviation ivl_abbr :: "eint \<Rightarrow> eint \<Rightarrow> ivl" (\<open>[_, _]\<close>) where
 "[l,h] == abs_ivl(l,h)"
 
 lift_definition \<gamma>_ivl :: "ivl \<Rightarrow> int set" is \<gamma>_rep

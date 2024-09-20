@@ -27,7 +27,7 @@ text \<open>Much of the lattice proofs are from HOL/Lattice.\<close>
 subsubsection \<open>Definitions\<close>
 
 locale dpo =
-  fixes le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>" 50)
+  fixes le :: "['a, 'a] => bool" (infixl \<open>\<sqsubseteq>\<close> 50)
   assumes refl [intro, simp]: "x \<sqsubseteq> x"
     and antisym [intro]: "[| x \<sqsubseteq> y; y \<sqsubseteq> x |] ==> x = y"
     and trans [trans]: "[| x \<sqsubseteq> y; y \<sqsubseteq> z |] ==> x \<sqsubseteq> z"
@@ -39,7 +39,7 @@ theorem circular:
   by (blast intro: trans)
 
 definition
-  less :: "['a, 'a] => bool" (infixl "\<sqsubset>" 50)
+  less :: "['a, 'a] => bool" (infixl \<open>\<sqsubset>\<close> 50)
   where "(x \<sqsubset> y) = (x \<sqsubseteq> y & x ~= y)"
 
 theorem abs_test:
@@ -63,11 +63,11 @@ locale dlat = dpo +
 begin
 
 definition
-  meet :: "['a, 'a] => 'a" (infixl "\<sqinter>" 70)
+  meet :: "['a, 'a] => 'a" (infixl \<open>\<sqinter>\<close> 70)
   where "x \<sqinter> y = (THE inf. is_inf x y inf)"
 
 definition
-  join :: "['a, 'a] => 'a" (infixl "\<squnion>" 65)
+  join :: "['a, 'a] => 'a" (infixl \<open>\<squnion>\<close> 65)
   where "x \<squnion> y = (THE sup. is_sup x y sup)"
 
 lemma is_infI [intro?]: "i \<sqsubseteq> x \<Longrightarrow> i \<sqsubseteq> y \<Longrightarrow>
@@ -620,7 +620,7 @@ subsection \<open>Group example with defined operations \<open>inv\<close> and \
 subsubsection \<open>Locale declarations and lemmas\<close>
 
 locale Dsemi =
-  fixes prod (infixl "**" 65)
+  fixes prod (infixl \<open>**\<close> 65)
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
 
 locale Dmonoid = Dsemi +
@@ -791,7 +791,7 @@ end
 
 
 locale Dhom = prod: Dgrp prod one + sum: Dgrp sum zero
-    for prod (infixl "**" 65) and one and sum (infixl "+++" 60) and zero +
+    for prod (infixl \<open>**\<close> 65) and one and sum (infixl \<open>+++\<close> 60) and zero +
   fixes hom
   assumes hom_mult [simp]: "hom (x ** y) = hom x +++ hom y"
 

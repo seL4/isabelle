@@ -27,7 +27,7 @@ datatype 'a com =
 | Cond "'a bexp" "'a com" "'a com"
 | While "'a bexp" "'a com"
 
-abbreviation annskip ("SKIP") where "SKIP == Basic id"
+abbreviation annskip (\<open>SKIP\<close>) where "SKIP == Basic id"
 
 type_synonym 'a sem = "'a => 'a => bool"
 

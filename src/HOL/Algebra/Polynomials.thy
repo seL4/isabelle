@@ -17,7 +17,7 @@ abbreviation lead_coeff :: "'a list \<Rightarrow> 'a"
 abbreviation degree :: "'a list \<Rightarrow> nat"
   where "degree p \<equiv> length p - 1"
 
-definition polynomial :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" ("polynomial\<index>")
+definition polynomial :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" (\<open>polynomial\<index>\<close>)
   where "polynomial\<^bsub>R\<^esub> K p \<longleftrightarrow> p = [] \<or> (set p \<subseteq> K \<and> lead_coeff p \<noteq> \<zero>\<^bsub>R\<^esub>)"
 
 definition (in ring) monom :: "'a \<Rightarrow> nat \<Rightarrow> 'a list"
@@ -1359,7 +1359,7 @@ end (* of domain context. *)
 
 subsection \<open>Algebraic Structure of Polynomials\<close>
 
-definition univ_poly :: "('a, 'b) ring_scheme \<Rightarrow>'a set \<Rightarrow> ('a list) ring" ("_ [X]\<index>" 80)
+definition univ_poly :: "('a, 'b) ring_scheme \<Rightarrow>'a set \<Rightarrow> ('a list) ring" (\<open>_ [X]\<index>\<close> 80)
   where "univ_poly R K =
            \<lparr> carrier = { p. polynomial\<^bsub>R\<^esub> K p },
                 mult = ring.poly_mult R,
@@ -2111,7 +2111,7 @@ qed
 
 subsection \<open>The X Variable\<close>
 
-definition var :: "_ \<Rightarrow> 'a list" ("X\<index>")
+definition var :: "_ \<Rightarrow> 'a list" (\<open>X\<index>\<close>)
   where "X\<^bsub>R\<^esub> = [ \<one>\<^bsub>R\<^esub>, \<zero>\<^bsub>R\<^esub> ]"
 
 lemma (in ring) eval_var:

@@ -20,7 +20,7 @@ text \<open>
   Similarly, we will want to access the ith element of a list, 
   where \<^term>\<open>i\<close> is an \<^typ>\<open>int\<close>.
 \<close>
-fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
+fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl \<open>!!\<close> 100) where
 "(x # xs) !! i = (if i = 0 then x else xs !! (i - 1))"
 
 text \<open>
@@ -37,7 +37,7 @@ text\<open>We hide coercion \<^const>\<open>int\<close> applied to \<^const>\<op
 abbreviation (output)
   "isize xs == int (length xs)"
 
-notation isize ("size")
+notation isize (\<open>size\<close>)
 
 
 subsection "Instructions and Stack Machine"
@@ -66,7 +66,7 @@ fun iexec :: "instr \<Rightarrow> config \<Rightarrow> config" where
 
 definition
   exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
-     ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [59,0,59] 60) 
+     (\<open>(_/ \<turnstile> (_ \<rightarrow>/ _))\<close> [59,0,59] 60) 
 where
   "P \<turnstile> c \<rightarrow> c' = 
   (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < size P)"
@@ -77,7 +77,7 @@ lemma exec1I [intro, code_pred_intro]:
 by (simp add: exec1_def)
 
 abbreviation 
-  exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("(_/ \<turnstile> (_ \<rightarrow>*/ _))" 50)
+  exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" (\<open>(_/ \<turnstile> (_ \<rightarrow>*/ _))\<close> 50)
 where
   "exec P \<equiv> star (exec1 P)"
 

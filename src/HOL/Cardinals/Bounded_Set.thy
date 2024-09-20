@@ -11,7 +11,7 @@ theory Bounded_Set
 imports Cardinals
 begin
 
-typedef ('a, 'k) bset ("_ set[_]" [22, 21] 21) =
+typedef ('a, 'k) bset (\<open>_ set[_]\<close> [22, 21] 21) =
   "{A :: 'a set. |A| <o natLeq +c |UNIV :: 'k set|}"
   morphisms set_bset Abs_bset
   by (rule exI[of _ "{}"]) (auto simp: card_of_empty4 csum_def)

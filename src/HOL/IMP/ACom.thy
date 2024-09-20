@@ -7,15 +7,15 @@ imports Com
 begin
 
 datatype 'a acom =
-  SKIP 'a                           ("SKIP {_}" 61) |
-  Assign vname aexp 'a              ("(_ ::= _/ {_})" [1000, 61, 0] 61) |
-  Seq "('a acom)" "('a acom)"       ("_;;//_"  [60, 61] 60) |
+  SKIP 'a                           (\<open>SKIP {_}\<close> 61) |
+  Assign vname aexp 'a              (\<open>(_ ::= _/ {_})\<close> [1000, 61, 0] 61) |
+  Seq "('a acom)" "('a acom)"       (\<open>_;;//_\<close>  [60, 61] 60) |
   If bexp 'a "('a acom)" 'a "('a acom)" 'a
-    ("(IF _/ THEN ({_}/ _)/ ELSE ({_}/ _)//{_})"  [0, 0, 0, 61, 0, 0] 61) |
+    (\<open>(IF _/ THEN ({_}/ _)/ ELSE ({_}/ _)//{_})\<close>  [0, 0, 0, 61, 0, 0] 61) |
   While 'a bexp 'a "('a acom)" 'a
-    ("({_}//WHILE _//DO ({_}//_)//{_})"  [0, 0, 0, 61, 0] 61)
+    (\<open>({_}//WHILE _//DO ({_}//_)//{_})\<close>  [0, 0, 0, 61, 0] 61)
 
-notation com.SKIP ("SKIP")
+notation com.SKIP (\<open>SKIP\<close>)
 
 text_raw\<open>\snip{stripdef}{1}{1}{%\<close>
 fun strip :: "'a acom \<Rightarrow> com" where

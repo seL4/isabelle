@@ -20,12 +20,12 @@ translations
 subsection "Hoare Logic Rules"
 
 inductive
- hoare :: "[triple set, triple set] => bool"  ("_ |\<turnstile>/ _" [61, 61] 60)
- and ehoare :: "[triple set, etriple] => bool"  ("_ |\<turnstile>\<^sub>e/ _" [61, 61] 60)
+ hoare :: "[triple set, triple set] => bool"  (\<open>_ |\<turnstile>/ _\<close> [61, 61] 60)
+ and ehoare :: "[triple set, etriple] => bool"  (\<open>_ |\<turnstile>\<^sub>e/ _\<close> [61, 61] 60)
  and hoare1 :: "[triple set, assn,stmt,assn] => bool" 
-   ("_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})" [61, 3, 90, 3] 60)
+   (\<open>_ \<turnstile>/ ({(1_)}/ (_)/ {(1_)})\<close> [61, 3, 90, 3] 60)
  and ehoare1 :: "[triple set, assn,expr,vassn]=> bool"
-   ("_ \<turnstile>\<^sub>e/ ({(1_)}/ (_)/ {(1_)})" [61, 3, 90, 3] 60)
+   (\<open>_ \<turnstile>\<^sub>e/ ({(1_)}/ (_)/ {(1_)})\<close> [61, 3, 90, 3] 60)
 where
 
   "A  \<turnstile> {P}c{Q} \<equiv> A |\<turnstile> {(P,c,Q)}"

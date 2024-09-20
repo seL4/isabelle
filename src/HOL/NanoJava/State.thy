@@ -56,7 +56,7 @@ text \<open>The first parameter of \<^term>\<open>set_locs\<close> is of type \<
 definition set_locs :: "state => state => state" where
  "set_locs s s' \<equiv> s' (| locals := locals s |)"
 
-definition get_local     :: "state => vname => val" ("_<_>" [99,0] 99) where
+definition get_local     :: "state => vname => val" (\<open>_<_>\<close> [99,0] 99) where
  "get_local s x  \<equiv> the (locals s x)"
 
 \<comment> \<open>local function:\<close>
@@ -70,10 +70,10 @@ definition get_field     :: "state => loc => fname => val" where
  "get_field s a f \<equiv> the (snd (get_obj s a) f)"
 
 \<comment> \<open>local function:\<close>
-definition hupd       :: "loc => obj => state => state"   ("hupd'(_\<mapsto>_')" [10,10] 1000) where
+definition hupd       :: "loc => obj => state => state"   (\<open>hupd'(_\<mapsto>_')\<close> [10,10] 1000) where
  "hupd a obj s \<equiv> s (| heap   := ((heap   s)(a\<mapsto>obj))|)"
 
-definition lupd       :: "vname => val => state => state" ("lupd'(_\<mapsto>_')" [10,10] 1000) where
+definition lupd       :: "vname => val => state => state" (\<open>lupd'(_\<mapsto>_')\<close> [10,10] 1000) where
  "lupd x v s   \<equiv> s (| locals := ((locals s)(x\<mapsto>v  ))|)"
 
 definition new_obj :: "loc => cname => state => state" where

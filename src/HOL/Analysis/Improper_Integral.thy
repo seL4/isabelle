@@ -13,7 +13,7 @@ subsection \<open>Equiintegrability\<close>
 text\<open>The definition here only really makes sense for an elementary set.
      We just use compact intervals in applications below.\<close>
 
-definition\<^marker>\<open>tag important\<close> equiintegrable_on (infixr "equiintegrable'_on" 46)
+definition\<^marker>\<open>tag important\<close> equiintegrable_on (infixr \<open>equiintegrable'_on\<close> 46)
   where "F equiintegrable_on I \<equiv>
          (\<forall>f \<in> F. f integrable_on I) \<and>
          (\<forall>e > 0. \<exists>\<gamma>. gauge \<gamma> \<and>

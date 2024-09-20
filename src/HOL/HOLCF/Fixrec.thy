@@ -73,7 +73,7 @@ definition
   "mplus = (\<Lambda> m1 m2. sscase\<cdot>(\<Lambda> _. m2)\<cdot>(\<Lambda> _. m1)\<cdot>(Rep_match m1))"
 
 abbreviation
-  mplus_syn :: "['a match, 'a match] \<Rightarrow> 'a match"  (infixr "+++" 65)  where
+  mplus_syn :: "['a match, 'a match] \<Rightarrow> 'a match"  (infixr \<open>+++\<close> 65)  where
   "m1 +++ m2 == mplus\<cdot>m1\<cdot>m2"
 
 text \<open>rewrite rules for mplus\<close>

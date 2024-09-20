@@ -317,20 +317,20 @@ fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
 
-definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>s") where
+definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" (\<open>m\<^sub>s\<close>) where
 "m_s S X = (\<Sum> x \<in> X. m(S x))"
 
 lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
 by(simp add: m_s_def) (metis mult.commute of_nat_id sum_bounded_above[OF h])
 
-fun m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^sub>o") where
+fun m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" (\<open>m\<^sub>o\<close>) where
 "m_o (Some S) X = m_s S X" |
 "m_o None X = h * card X + 1"
 
 lemma m_o_h: "finite X \<Longrightarrow> m_o opt X \<le> (h*card X + 1)"
 by(cases opt)(auto simp add: m_s_h le_SucI dest: m_s_h)
 
-definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^sub>c") where
+definition m_c :: "'av st option acom \<Rightarrow> nat" (\<open>m\<^sub>c\<close>) where
 "m_c C = sum_list (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
 text\<open>Upper complexity bound:\<close>
@@ -359,14 +359,14 @@ This is an important invariant for the termination proof where we argue that onl
 the finitely many variables in the program change. That the others do not change
 follows because they remain \<^term>\<open>\<top>\<close>.\<close>
 
-fun top_on_st :: "'av st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>s") where
+fun top_on_st :: "'av st \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>s\<close>) where
 "top_on_st S X = (\<forall>x\<in>X. S x = \<top>)"
 
-fun top_on_opt :: "'av st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>o") where
+fun top_on_opt :: "'av st option \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>o\<close>) where
 "top_on_opt (Some S) X = top_on_st S X" |
 "top_on_opt None X = True"
 
-definition top_on_acom :: "'av st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^sub>c") where
+definition top_on_acom :: "'av st option acom \<Rightarrow> vname set \<Rightarrow> bool" (\<open>top'_on\<^sub>c\<close>) where
 "top_on_acom C X = (\<forall>a \<in> set(annos C). top_on_opt a X)"
 
 lemma top_on_top: "top_on_opt \<top> X"

@@ -10,14 +10,14 @@ begin
 
 text \<open>A simple example on quote / antiquote in higher-order abstract syntax.\<close>
 
-definition var :: "'a \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"  ("VAR _" [1000] 999)
+definition var :: "'a \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"  (\<open>VAR _\<close> [1000] 999)
   where "var x env = env x"
 
 definition Expr :: "(('a \<Rightarrow> nat) \<Rightarrow> nat) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"
   where "Expr exp env = exp env"
 
 syntax
-  "_Expr" :: "'a \<Rightarrow> 'a"  ("EXPR _" [1000] 999)
+  "_Expr" :: "'a \<Rightarrow> 'a"  (\<open>EXPR _\<close> [1000] 999)
 
 parse_translation
   \<open>[Syntax_Trans.quote_antiquote_tr

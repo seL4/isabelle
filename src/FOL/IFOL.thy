@@ -101,7 +101,7 @@ axiomatization where  \<comment> \<open>Reflection, admissible\<close>
 abbreviation not_equal :: \<open>['a, 'a] \<Rightarrow> o\<close>  (infixl \<open>\<noteq>\<close> 50)
   where \<open>x \<noteq> y \<equiv> \<not> (x = y)\<close>
 
-syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  ("(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)" [0, 10] 10)
+syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  (\<open>(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)\<close> [0, 10] 10)
 syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
 

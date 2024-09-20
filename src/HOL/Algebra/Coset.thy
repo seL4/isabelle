@@ -11,23 +11,23 @@ begin
 section \<open>Cosets and Quotient Groups\<close>
 
 definition
-  r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl "#>\<index>" 60)
+  r_coset    :: "[_, 'a set, 'a] \<Rightarrow> 'a set"    (infixl \<open>#>\<index>\<close> 60)
   where "H #>\<^bsub>G\<^esub> a = (\<Union>h\<in>H. {h \<otimes>\<^bsub>G\<^esub> a})"
 
 definition
-  l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl "<#\<index>" 60)
+  l_coset    :: "[_, 'a, 'a set] \<Rightarrow> 'a set"    (infixl \<open><#\<index>\<close> 60)
   where "a <#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
 
 definition
-  RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   ("rcosets\<index> _" [81] 80)
+  RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   (\<open>rcosets\<index> _\<close> [81] 80)
   where "rcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a})"
 
 definition
-  set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl "<#>\<index>" 60)
+  set_mult  :: "[_, 'a set ,'a set] \<Rightarrow> 'a set" (infixl \<open><#>\<index>\<close> 60)
   where "H <#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
 
 definition
-  SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  ("set'_inv\<index> _" [81] 80)
+  SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  (\<open>set'_inv\<index> _\<close> [81] 80)
   where "set_inv\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {inv\<^bsub>G\<^esub> h})"
 
 
@@ -35,7 +35,7 @@ locale normal = subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier G. H #> x = x <# H)"
 
 abbreviation
-  normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl "\<lhd>" 60) where
+  normal_rel :: "['a set, ('a, 'b) monoid_scheme] \<Rightarrow> bool"  (infixl \<open>\<lhd>\<close> 60) where
   "H \<lhd> G \<equiv> normal H G"
 
 lemma (in comm_group) subgroup_imp_normal: "subgroup A G \<Longrightarrow> A \<lhd> G"
@@ -659,7 +659,7 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 subsubsection\<open>An Equivalence Relation\<close>
 
 definition
-  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  ("rcong\<index> _")
+  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  (\<open>rcong\<index> _\<close>)
   where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G \<and> y \<in> carrier G \<and> inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 
@@ -961,7 +961,7 @@ corollary (in group) card_rcosets_triv:
 subsection \<open>Quotient Groups: Factorization of a Group\<close>
 
 definition
-  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl "Mod" 65)
+  FactGroup :: "[('a,'b) monoid_scheme, 'a set] \<Rightarrow> ('a set) monoid" (infixl \<open>Mod\<close> 65)
     \<comment> \<open>Actually defined for groups rather than monoids\<close>
    where "FactGroup G H = \<lparr>carrier = rcosets\<^bsub>G\<^esub> H, mult = set_mult G, one = H\<rparr>"
 

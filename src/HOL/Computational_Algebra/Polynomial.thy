@@ -26,7 +26,7 @@ end
 
 subsection \<open>Auxiliary: operations for lists (later) representing coefficients\<close>
 
-definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "##" 65)
+definition cCons :: "'a::zero \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr \<open>##\<close> 65)
   where "x ## xs = (if xs = [] \<and> x = 0 then [] else x # xs)"
 
 lemma cCons_0_Nil_eq [simp]: "0 ## [] = []"
@@ -350,9 +350,9 @@ subsection \<open>List-style syntax for polynomials\<close>
 
 nonterminal poly_args
 syntax
-  "" :: "'a \<Rightarrow> poly_args"  ("_")
-  "_poly_args" :: "'a \<Rightarrow> poly_args \<Rightarrow> poly_args"  ("_,/ _")
-  "_poly" :: "poly_args \<Rightarrow> 'a poly"  ("[:(_):]")
+  "" :: "'a \<Rightarrow> poly_args"  (\<open>_\<close>)
+  "_poly_args" :: "'a \<Rightarrow> poly_args \<Rightarrow> poly_args"  (\<open>_,/ _\<close>)
+  "_poly" :: "poly_args \<Rightarrow> 'a poly"  (\<open>[:(_):]\<close>)
 syntax_consts
   "_poly_args" "_poly" \<rightleftharpoons> pCons
 translations
@@ -2338,7 +2338,7 @@ subsection \<open>Composition of polynomials\<close>
 definition pcompose :: "'a::comm_semiring_0 poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
   where "pcompose p q = fold_coeffs (\<lambda>a c. [:a:] + q * c) p 0"
 
-notation pcompose (infixl "\<circ>\<^sub>p" 71)
+notation pcompose (infixl \<open>\<circ>\<^sub>p\<close> 71)
 
 lemma pcompose_0 [simp]: "pcompose 0 q = 0"
   by (simp add: pcompose_def)
@@ -6241,6 +6241,6 @@ proof -
   qed (use \<open>n > 0\<close> in \<open>simp_all add: p_eq degree_power_eq\<close>)
 qed
 
-no_notation cCons (infixr "##" 65)
+no_notation cCons (infixr \<open>##\<close> 65)
 
 end

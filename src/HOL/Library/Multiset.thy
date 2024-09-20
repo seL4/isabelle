@@ -93,9 +93,9 @@ by (rule add_mset_in_multiset)
 
 nonterminal multiset_args
 syntax
-  "" :: "'a \<Rightarrow> multiset_args"  ("_")
-  "_multiset_args" :: "'a \<Rightarrow> multiset_args \<Rightarrow> multiset_args"  ("_,/ _")
-  "_multiset" :: "multiset_args \<Rightarrow> 'a multiset"    ("{#(_)#}")
+  "" :: "'a \<Rightarrow> multiset_args"  (\<open>_\<close>)
+  "_multiset_args" :: "'a \<Rightarrow> multiset_args \<Rightarrow> multiset_args"  (\<open>_,/ _\<close>)
+  "_multiset" :: "multiset_args \<Rightarrow> 'a multiset"    (\<open>{#(_)#}\<close>)
 syntax_consts
   "_multiset_args" "_multiset" == add_mset
 translations
@@ -167,12 +167,12 @@ qualified abbreviation Bex :: "'a multiset \<Rightarrow> ('a \<Rightarrow> bool)
 end
 
 syntax
-  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>_\<in>#_./ _)" [0, 0, 10] 10)
-  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>_\<in>#_./ _)" [0, 0, 10] 10)
+  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>_\<in>#_./ _)\<close> [0, 0, 10] 10)
+  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>_\<in>#_./ _)\<close> [0, 0, 10] 10)
 
 syntax  (ASCII)
-  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>_:#_./ _)" [0, 0, 10] 10)
-  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>_:#_./ _)" [0, 0, 10] 10)
+  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>_:#_./ _)\<close> [0, 0, 10] 10)
+  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>_:#_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_MBall" \<rightleftharpoons> Multiset.Ball and
@@ -526,27 +526,27 @@ lemma add_mset_eq_singleton_iff[iff]:
 
 subsubsection \<open>Pointwise ordering induced by count\<close>
 
-definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<subseteq>#" 50)
+definition subseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix \<open>\<subseteq>#\<close> 50)
   where "A \<subseteq># B \<longleftrightarrow> (\<forall>a. count A a \<le> count B a)"
 
-definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix "\<subset>#" 50)
+definition subset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool" (infix \<open>\<subset>#\<close> 50)
   where "A \<subset># B \<longleftrightarrow> A \<subseteq># B \<and> A \<noteq> B"
 
-abbreviation (input) supseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<supseteq>#" 50)
+abbreviation (input) supseteq_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix \<open>\<supseteq>#\<close> 50)
   where "supseteq_mset A B \<equiv> B \<subseteq># A"
 
-abbreviation (input) supset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix "\<supset>#" 50)
+abbreviation (input) supset_mset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> bool"  (infix \<open>\<supset>#\<close> 50)
   where "supset_mset A B \<equiv> B \<subset># A"
 
 notation (input)
-  subseteq_mset  (infix "\<le>#" 50) and
-  supseteq_mset  (infix "\<ge>#" 50)
+  subseteq_mset  (infix \<open>\<le>#\<close> 50) and
+  supseteq_mset  (infix \<open>\<ge>#\<close> 50)
 
 notation (ASCII)
-  subseteq_mset  (infix "<=#" 50) and
-  subset_mset  (infix "<#" 50) and
-  supseteq_mset  (infix ">=#" 50) and
-  supset_mset  (infix ">#" 50)
+  subseteq_mset  (infix \<open><=#\<close> 50) and
+  subset_mset  (infix \<open><#\<close> 50) and
+  supseteq_mset  (infix \<open>>=#\<close> 50) and
+  supset_mset  (infix \<open>>#\<close> 50)
 
 global_interpretation subset_mset: ordering \<open>(\<subseteq>#)\<close> \<open>(\<subset>#)\<close>
   by standard (auto simp add: subset_mset_def subseteq_mset_def multiset_eq_iff intro: order.trans order.antisym)
@@ -1254,9 +1254,9 @@ is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
 by (rule filter_preserves_multiset)
 
 syntax (ASCII)
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ :# _./ _#})")
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    (\<open>(1{#_ :# _./ _#})\<close>)
 syntax
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    ("(1{#_ \<in># _./ _#})")
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    (\<open>(1{#_ \<in># _./ _#})\<close>)
 syntax_consts
   "_MCollect" == filter_mset
 translations
@@ -1829,18 +1829,18 @@ lemma image_mset_subset_mono: "M \<subset># N \<Longrightarrow> image_mset f M \
     image_mset_subseteq_mono subset_mset.less_le_not_le)
 
 syntax (ASCII)
-  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ :# _#})")
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  (\<open>({#_/. _ :# _#})\<close>)
 syntax
-  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  ("({#_/. _ \<in># _#})")
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  (\<open>({#_/. _ \<in># _#})\<close>)
 syntax_consts
   "_comprehension_mset" \<rightleftharpoons> image_mset
 translations
   "{#e. x \<in># M#}" \<rightleftharpoons> "CONST image_mset (\<lambda>x. e) M"
 
 syntax (ASCII)
-  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ :# _./ _#})")
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  (\<open>({#_/ | _ :# _./ _#})\<close>)
 syntax
-  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  ("({#_/ | _ \<in># _./ _#})")
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  (\<open>({#_/ | _ \<in># _./ _#})\<close>)
 syntax_consts
   "_comprehension_mset'" \<rightleftharpoons> image_mset
 translations
@@ -2684,12 +2684,12 @@ lemma sum_unfold_sum_mset:
 
 end
 
-notation sum_mset ("\<Sum>\<^sub>#")
+notation sum_mset (\<open>\<Sum>\<^sub>#\<close>)
 
 syntax (ASCII)
-  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3SUM _:#_. _)" [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  (\<open>(3SUM _:#_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  (\<open>(3\<Sum>_\<in>#_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_sum_mset_image" \<rightleftharpoons> sum_mset
 translations
@@ -2865,12 +2865,12 @@ lemma dvd_prod_mset:
 
 end
 
-notation prod_mset ("\<Prod>\<^sub>#")
+notation prod_mset (\<open>\<Prod>\<^sub>#\<close>)
 
 syntax (ASCII)
-  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3PROD _:#_. _)" [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3PROD _:#_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3\<Prod>_\<in>#_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_prod_mset_image" \<rightleftharpoons> prod_mset
 translations

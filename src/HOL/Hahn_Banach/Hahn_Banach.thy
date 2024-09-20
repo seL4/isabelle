@@ -338,9 +338,9 @@ text \<open>
 \<close>
 
 theorem norm_Hahn_Banach:
-  fixes V and norm ("\<parallel>_\<parallel>")
+  fixes V and norm (\<open>\<parallel>_\<parallel>\<close>)
   fixes B defines "\<And>V f. B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
-  fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
+  fixes fn_norm (\<open>\<parallel>_\<parallel>\<hyphen>_\<close> [0, 1000] 999)
   defines "\<And>V f. \<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
   assumes E_norm: "normed_vectorspace E norm" and FE: "subspace F E"
     and linearform: "linearform F f" and "continuous F f norm"

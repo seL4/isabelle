@@ -22,7 +22,7 @@ text \<open>
 \<close>
 
 definition
-  list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
+  list_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix \<open>\<approx>\<close> 50)
 where
   [simp]: "xs \<approx> ys \<longleftrightarrow> set xs = set ys"
 
@@ -199,7 +199,7 @@ quotient_definition
   is "Nil :: 'a list" done
 
 abbreviation
-  empty_fset  ("{||}")
+  empty_fset  (\<open>{||}\<close>)
 where
   "{||} \<equiv> bot :: 'a fset"
 
@@ -208,7 +208,7 @@ quotient_definition
   is "sub_list :: ('a list \<Rightarrow> 'a list \<Rightarrow> bool)" by simp
 
 abbreviation
-  subset_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subseteq>|" 50)
+  subset_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<subseteq>|\<close> 50)
 where
   "xs |\<subseteq>| ys \<equiv> xs \<le> ys"
 
@@ -218,7 +218,7 @@ where
   "xs < ys \<equiv> xs \<le> ys \<and> xs \<noteq> (ys::'a fset)"
 
 abbreviation
-  psubset_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subset>|" 50)
+  psubset_fset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<subset>|\<close> 50)
 where
   "xs |\<subset>| ys \<equiv> xs < ys"
 
@@ -227,7 +227,7 @@ quotient_definition
   is "append :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" by simp
 
 abbreviation
-  union_fset (infixl "|\<union>|" 65)
+  union_fset (infixl \<open>|\<union>|\<close> 65)
 where
   "xs |\<union>| ys \<equiv> sup xs (ys::'a fset)"
 
@@ -236,7 +236,7 @@ quotient_definition
   is "inter_list :: 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" by simp
 
 abbreviation
-  inter_fset (infixl "|\<inter>|" 65)
+  inter_fset (infixl \<open>|\<inter>|\<close> 65)
 where
   "xs |\<inter>| ys \<equiv> inf xs (ys::'a fset)"
 
@@ -290,9 +290,9 @@ quotient_definition
 
 nonterminal fset_args
 syntax
-  "" :: "'a \<Rightarrow> fset_args"  ("_")
-  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  ("_,/ _")
-  "_fset" :: "fset_args => 'a fset"  ("{|(_)|}")
+  "" :: "'a \<Rightarrow> fset_args"  (\<open>_\<close>)
+  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  (\<open>_,/ _\<close>)
+  "_fset" :: "fset_args => 'a fset"  (\<open>{|(_)|}\<close>)
 syntax_consts
   "_fset_args" "_fset" == insert_fset
 translations
@@ -305,12 +305,12 @@ where
   "fset_member :: 'a fset \<Rightarrow> 'a \<Rightarrow> bool" is "List.member" by fastforce
 
 abbreviation
-  in_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50)
+  in_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<in>|\<close> 50)
 where
   "x |\<in>| S \<equiv> fset_member S x"
 
 abbreviation
-  notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50)
+  notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<notin>|\<close> 50)
 where
   "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
@@ -1048,7 +1048,7 @@ subsection \<open>alternate formulation with a different decomposition principle
   and a proof of equivalence\<close>
 
 inductive
-  list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" ("_ \<approx>2 _")
+  list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (\<open>_ \<approx>2 _\<close>)
 where
   "(a # b # xs) \<approx>2 (b # a # xs)"
 | "[] \<approx>2 []"
@@ -1156,7 +1156,7 @@ fun dest_fsetT \<^Type>\<open>fset T\<close> = T
 \<close>
 
 no_notation
-  list_eq (infix "\<approx>" 50) and 
-  list_eq2 (infix "\<approx>2" 50)
+  list_eq (infix \<open>\<approx>\<close> 50) and 
+  list_eq2 (infix \<open>\<approx>2\<close> 50)
 
 end

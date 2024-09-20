@@ -261,7 +261,7 @@ text \<open>
   We will prove all of this below.
 \<close>
 definition%important meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarrow> complex set \<Rightarrow> bool"
-  (infixl "(meromorphic'_on)" 50) where
+  (infixl \<open>(meromorphic'_on)\<close> 50) where
   "f meromorphic_on A \<longleftrightarrow> (\<forall>z\<in>A. \<exists>F. (\<lambda>w. f (z + w)) has_laurent_expansion F)"
 
 lemma meromorphic_at_iff: "f meromorphic_on {z} \<longleftrightarrow> isolated_singularity_at f z \<and> not_essential f z"
@@ -588,7 +588,7 @@ text \<open>
   poles. We furthermore require that the function return 0 at any pole, for convenience.
 \<close>
 definition nicely_meromorphic_on :: "(complex \<Rightarrow> complex) \<Rightarrow> complex set \<Rightarrow> bool"
-    (infixl "(nicely'_meromorphic'_on)" 50)
+    (infixl \<open>(nicely'_meromorphic'_on)\<close> 50)
     where "f nicely_meromorphic_on A \<longleftrightarrow> f meromorphic_on A 
         \<and> (\<forall>z\<in>A. (is_pole f z \<and> f z=0) \<or> f \<midarrow>z\<rightarrow> f z)"
 

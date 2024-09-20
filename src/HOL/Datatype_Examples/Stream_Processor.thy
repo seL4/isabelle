@@ -61,7 +61,7 @@ lemma neq_Get [simp]: "f b \<noteq> Get f"
 
 function
   sp\<^sub>\<mu>_comp :: "('a, 'b, 'c) sp\<^sub>\<mu> \<Rightarrow> ('d, 'a, ('d, 'a) sp\<^sub>\<nu>) sp\<^sub>\<mu> \<Rightarrow> ('d, 'b, 'c \<times> ('d, 'a) sp\<^sub>\<nu>) sp\<^sub>\<mu>"
-  (infixl "o\<^sub>\<mu>" 65)
+  (infixl \<open>o\<^sub>\<mu>\<close> 65)
 where
   "Put b sp o\<^sub>\<mu> fsp = Put b (sp, In fsp)"
 | "Get f o\<^sub>\<mu> Put b sp = f b o\<^sub>\<mu> out sp"
@@ -70,7 +70,7 @@ by pat_completeness auto
 termination
   by (relation "lex_prod sub sub") auto
 
-primcorec sp\<^sub>\<nu>_comp (infixl "o\<^sub>\<nu>" 65) where
+primcorec sp\<^sub>\<nu>_comp (infixl \<open>o\<^sub>\<nu>\<close> 65) where
   "out (sp o\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sub>\<nu> sp') (out sp o\<^sub>\<mu> out sp')"
 
 lemma run\<^sub>\<nu>_sp\<^sub>\<nu>_comp: "run\<^sub>\<nu> (sp o\<^sub>\<nu> sp') = run\<^sub>\<nu> sp o run\<^sub>\<nu> sp'"
@@ -99,11 +99,11 @@ primrec sp\<^sub>\<mu>_comp2R  where
   "sp\<^sub>\<mu>_comp2R f (Put b sp) = f b (out sp)"
 | "sp\<^sub>\<mu>_comp2R f (Get h) = Get (sp\<^sub>\<mu>_comp2R f o h)"
 
-primrec sp\<^sub>\<mu>_comp2 (infixl "o\<^sup>*\<^sub>\<mu>" 65) where
+primrec sp\<^sub>\<mu>_comp2 (infixl \<open>o\<^sup>*\<^sub>\<mu>\<close> 65) where
   "Put b sp o\<^sup>*\<^sub>\<mu> fsp = Put b (sp, In fsp)"
 | "Get f o\<^sup>*\<^sub>\<mu> fsp = sp\<^sub>\<mu>_comp2R ((o\<^sup>*\<^sub>\<mu>) o f) fsp"
 
-primcorec sp\<^sub>\<nu>_comp2 (infixl "o\<^sup>*\<^sub>\<nu>" 65) where
+primcorec sp\<^sub>\<nu>_comp2 (infixl \<open>o\<^sup>*\<^sub>\<nu>\<close> 65) where
   "out (sp o\<^sup>*\<^sub>\<nu> sp') = map_sp\<^sub>\<mu> id (\<lambda>(sp, sp'). sp o\<^sup>*\<^sub>\<nu> sp') (out sp o\<^sup>*\<^sub>\<mu> out sp')"
 
 lemma run\<^sub>\<nu>_sp\<^sub>\<nu>_comp2: "run\<^sub>\<nu> (sp o\<^sup>*\<^sub>\<nu> sp') = run\<^sub>\<nu> sp o run\<^sub>\<nu> sp'"
@@ -175,7 +175,7 @@ section \<open>Generalization to an Arbitrary BNF as Codomain\<close>
 
 bnf_axiomatization ('a, 'b) F for map: F
 
-notation BNF_Def.convol ("\<langle>(_,/ _)\<rangle>")
+notation BNF_Def.convol (\<open>\<langle>(_,/ _)\<rangle>\<close>)
 
 definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
   "\<theta> xb = F id \<langle>id, \<lambda> a. (snd xb)\<rangle> (fst xb)"

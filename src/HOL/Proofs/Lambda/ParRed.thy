@@ -13,7 +13,7 @@ theory ParRed imports Lambda Commutation begin
 
 subsection \<open>Parallel reduction\<close>
 
-inductive par_beta :: "[dB, dB] => bool"  (infixl "=>" 50)
+inductive par_beta :: "[dB, dB] => bool"  (infixl \<open>=>\<close> 50)
   where
     var [simp, intro!]: "Var n => Var n"
   | abs [simp, intro!]: "s => t ==> Abs s => Abs t"

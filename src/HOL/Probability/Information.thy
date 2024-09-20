@@ -446,7 +446,7 @@ proof safe
 qed
 
 abbreviation (in information_space)
-  mutual_information_Pow ("\<I>'(_ ; _')") where
+  mutual_information_Pow (\<open>\<I>'(_ ; _')\<close>) where
   "\<I>(X ; Y) \<equiv> mutual_information b (count_space (X`space M)) (count_space (Y`space M)) X Y"
 
 lemma (in information_space)
@@ -723,7 +723,7 @@ definition (in prob_space) entropy :: "real \<Rightarrow> 'b measure \<Rightarro
   "entropy b S X = - KL_divergence b S (distr M S X)"
 
 abbreviation (in information_space)
-  entropy_Pow ("\<H>'(_')") where
+  entropy_Pow (\<open>\<H>'(_')\<close>) where
   "\<H>(X) \<equiv> entropy b (count_space (X`space M)) X"
 
 lemma (in prob_space) distributed_RN_deriv:
@@ -888,7 +888,7 @@ definition (in prob_space)
     mutual_information b MX MZ X Z"
 
 abbreviation (in information_space)
-  conditional_mutual_information_Pow ("\<I>'( _ ; _ | _ ')") where
+  conditional_mutual_information_Pow (\<open>\<I>'( _ ; _ | _ ')\<close>) where
   "\<I>(X ; Y | Z) \<equiv> conditional_mutual_information b
     (count_space (X ` space M)) (count_space (Y ` space M)) (count_space (Z ` space M)) X Y Z"
 
@@ -1420,7 +1420,7 @@ definition (in prob_space)
     enn2real (RN_deriv T (distr M T Y) y)) \<partial>distr M (S \<Otimes>\<^sub>M T) (\<lambda>x. (X x, Y x)))"
 
 abbreviation (in information_space)
-  conditional_entropy_Pow ("\<H>'(_ | _')") where
+  conditional_entropy_Pow (\<open>\<H>'(_ | _')\<close>) where
   "\<H>(X | Y) \<equiv> conditional_entropy b (count_space (X`space M)) (count_space (Y`space M)) X Y"
 
 lemma (in information_space) conditional_entropy_generic_eq:

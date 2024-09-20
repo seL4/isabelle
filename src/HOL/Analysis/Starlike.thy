@@ -6414,7 +6414,7 @@ qed
 
 subsection\<open>Orthogonal complement\<close>
 
-definition\<^marker>\<open>tag important\<close> orthogonal_comp ("_\<^sup>\<bottom>" [80] 80)
+definition\<^marker>\<open>tag important\<close> orthogonal_comp (\<open>_\<^sup>\<bottom>\<close> [80] 80)
   where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"
 
 proposition subspace_orthogonal_comp: "subspace (W\<^sup>\<bottom>)"

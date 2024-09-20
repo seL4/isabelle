@@ -70,7 +70,7 @@ text \<open>types\<close>
 
 nominal_datatype ty =
     TVar "nat"
-  | TArr "ty" "ty" (infix "\<rightarrow>" 200)
+  | TArr "ty" "ty" (infix \<open>\<rightarrow>\<close> 200)
 
 lemma ty_fresh[simp]:
   fixes x::"name"
@@ -99,7 +99,7 @@ using a by (cases) (auto)
 text \<open>"weak" typing relation\<close>
 
 inductive
-  typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (" _ \<turnstile> _ : _ " [60,60,60] 60)
+  typing :: "cxt\<Rightarrow>llam\<Rightarrow>ty\<Rightarrow>bool" (\<open> _ \<turnstile> _ : _ \<close> [60,60,60] 60)
 where
   t_lPar[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lPar x : T"
 | t_lApp[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk>\<Longrightarrow> \<Gamma> \<turnstile> lApp t1 t2 : T2"
@@ -126,7 +126,7 @@ thm typing.strong_induct
 text \<open>sub-contexts\<close>
 
 abbreviation
-  "sub_context" :: "cxt \<Rightarrow> cxt \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
+  "sub_context" :: "cxt \<Rightarrow> cxt \<Rightarrow> bool" (\<open>_ \<subseteq> _\<close> [60,60] 60) 
 where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 

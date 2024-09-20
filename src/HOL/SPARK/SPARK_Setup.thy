@@ -21,7 +21,7 @@ text \<open>
 SPARK version of div, see section 4.4.1.1 of SPARK Proof Manual
 \<close>
 
-definition sdiv :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "sdiv" 70) where
+definition sdiv :: "int \<Rightarrow> int \<Rightarrow> int" (infixl \<open>sdiv\<close> 70) where
   "a sdiv b = sgn a * sgn b * (\<bar>a\<bar> div \<bar>b\<bar>)"
 
 lemma sdiv_minus_dividend: "- a sdiv b = - (a sdiv b)"
@@ -55,7 +55,7 @@ definition fun_upds :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow>
   "fun_upds f xs y z = (if z \<in> xs then y else f z)"
 
 syntax
-  "_updsbind" :: "['a, 'a] => updbind"             ("(2_ [:=]/ _)")
+  "_updsbind" :: "['a, 'a] => updbind"             (\<open>(2_ [:=]/ _)\<close>)
 
 syntax_consts
   "_updsbind" == fun_upds

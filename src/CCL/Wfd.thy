@@ -18,7 +18,7 @@ definition wf :: "[i set] \<Rightarrow> i set"
 definition wmap :: "[i\<Rightarrow>i,i set] \<Rightarrow> i set"
   where "wmap(f,R) == {p. EX x y. p=<x,y> \<and> <f(x),f(y)> : R}"
 
-definition lex :: "[i set,i set] => i set"      (infixl "**" 70)
+definition lex :: "[i set,i set] => i set"      (infixl \<open>**\<close> 70)
   where "ra**rb == {p. EX a a' b b'. p = <<a,b>,<a',b'>> \<and> (<a,a'> : ra | (a=a' \<and> <b,b'> : rb))}"
 
 definition NatPR :: "i set"

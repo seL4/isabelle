@@ -46,16 +46,16 @@ subsection "Syntax of Commands"
 
 datatype
   com = SKIP 
-      | Assign vname aexp       ("_ ::= _" [1000, 61] 61)
-      | Seq    com  com         ("_;; _"  [60, 61] 60)
-      | If     bexp com com     ("IF _ THEN _ ELSE _"  [0, 0, 61] 61)
-      | While  bexp com         ("WHILE _ DO _"  [0, 61] 61)
+      | Assign vname aexp       (\<open>_ ::= _\<close> [1000, 61] 61)
+      | Seq    com  com         (\<open>_;; _\<close>  [60, 61] 60)
+      | If     bexp com com     (\<open>IF _ THEN _ ELSE _\<close>  [0, 0, 61] 61)
+      | While  bexp com         (\<open>WHILE _ DO _\<close>  [0, 61] 61)
 
 
 subsection "Small-Step Semantics of Commands"
 
 inductive
-  small_step :: "(com \<times> state) \<Rightarrow> (com \<times> state) \<Rightarrow> bool" (infix "\<rightarrow>" 55)
+  small_step :: "(com \<times> state) \<Rightarrow> (com \<times> state) \<Rightarrow> bool" (infix \<open>\<rightarrow>\<close> 55)
 where
 Assign:  "taval a s v \<Longrightarrow> (x ::= a, s) \<rightarrow> (SKIP, s(x := v))" |
 
@@ -76,7 +76,7 @@ datatype ty = Ity | Rty
 type_synonym tyenv = "vname \<Rightarrow> ty"
 
 inductive atyping :: "tyenv \<Rightarrow> aexp \<Rightarrow> ty \<Rightarrow> bool"
-  ("(1_/ \<turnstile>/ (_ :/ _))" [50,0,50] 50)
+  (\<open>(1_/ \<turnstile>/ (_ :/ _))\<close> [50,0,50] 50)
 where
 Ic_ty: "\<Gamma> \<turnstile> Ic i : Ity" |
 Rc_ty: "\<Gamma> \<turnstile> Rc r : Rty" |
@@ -92,7 +92,7 @@ i.e. multiple parse trees, because ``:'' also stands for set membership.
 In most situations Isabelle's type system will reject all but one parse tree,
 but will still inform you of the potential ambiguity.\<close>
 
-inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix "\<turnstile>" 50)
+inductive btyping :: "tyenv \<Rightarrow> bexp \<Rightarrow> bool" (infix \<open>\<turnstile>\<close> 50)
 where
 B_ty: "\<Gamma> \<turnstile> Bc v" |
 Not_ty: "\<Gamma> \<turnstile> b \<Longrightarrow> \<Gamma> \<turnstile> Not b" |
@@ -102,7 +102,7 @@ Less_ty: "\<Gamma> \<turnstile> a1 : \<tau> \<Longrightarrow> \<Gamma> \<turnsti
 declare btyping.intros [intro!]
 inductive_cases [elim!]: "\<Gamma> \<turnstile> Not b" "\<Gamma> \<turnstile> And b1 b2" "\<Gamma> \<turnstile> Less a1 a2"
 
-inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix "\<turnstile>" 50) where
+inductive ctyping :: "tyenv \<Rightarrow> com \<Rightarrow> bool" (infix \<open>\<turnstile>\<close> 50) where
 Skip_ty: "\<Gamma> \<turnstile> SKIP" |
 Assign_ty: "\<Gamma> \<turnstile> a : \<Gamma>(x) \<Longrightarrow> \<Gamma> \<turnstile> x ::= a" |
 Seq_ty: "\<Gamma> \<turnstile> c1 \<Longrightarrow> \<Gamma> \<turnstile> c2 \<Longrightarrow> \<Gamma> \<turnstile> c1;;c2" |
@@ -127,7 +127,7 @@ by (cases v) simp_all
 lemma type_eq_Rty[simp]: "type v = Rty \<longleftrightarrow> (\<exists>r. v = Rv r)"
 by (cases v) simp_all
 
-definition styping :: "tyenv \<Rightarrow> state \<Rightarrow> bool" (infix "\<turnstile>" 50)
+definition styping :: "tyenv \<Rightarrow> state \<Rightarrow> bool" (infix \<open>\<turnstile>\<close> 50)
 where "\<Gamma> \<turnstile> s  \<longleftrightarrow>  (\<forall>x. type (s x) = \<Gamma> x)"
 
 lemma apreservation:
@@ -204,7 +204,7 @@ theorem ctyping_preservation:
   "(c,s) \<rightarrow> (c',s') \<Longrightarrow> \<Gamma> \<turnstile> c \<Longrightarrow> \<Gamma> \<turnstile> c'"
 by (induct rule: small_step_induct) (auto simp: ctyping.intros)
 
-abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
+abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix \<open>\<rightarrow>*\<close> 55)
 where "x \<rightarrow>* y == star small_step x y"
 
 theorem type_sound:

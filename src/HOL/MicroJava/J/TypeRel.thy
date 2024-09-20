@@ -12,14 +12,14 @@ begin
 
 inductive_set
   subcls1 :: "'c prog => (cname \<times> cname) set"
-  and subcls1' :: "'c prog => cname \<Rightarrow> cname => bool" ("_ \<turnstile> _ \<prec>C1 _" [71,71,71] 70)
+  and subcls1' :: "'c prog => cname \<Rightarrow> cname => bool" (\<open>_ \<turnstile> _ \<prec>C1 _\<close> [71,71,71] 70)
   for G :: "'c prog"
 where
   "G \<turnstile> C \<prec>C1 D \<equiv> (C, D) \<in> subcls1 G"
   | subcls1I: "\<lbrakk>class G C = Some (D,rest); C \<noteq> Object\<rbrakk> \<Longrightarrow> G \<turnstile> C \<prec>C1 D"
 
 abbreviation
-  subcls  :: "'c prog => cname \<Rightarrow> cname => bool" ("_ \<turnstile> _ \<preceq>C _"  [71,71,71] 70)
+  subcls  :: "'c prog => cname \<Rightarrow> cname => bool" (\<open>_ \<turnstile> _ \<preceq>C _\<close>  [71,71,71] 70)
   where "G \<turnstile> C \<preceq>C D \<equiv> (C, D) \<in> (subcls1 G)\<^sup>*"
 
 lemma subcls1D: 
@@ -217,7 +217,7 @@ done
 
 \<comment> \<open>widening, viz. method invocation conversion,cf. 5.3 i.e. sort of syntactic subtyping\<close>
 inductive
-  widen   :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq> _"   [71,71,71] 70)
+  widen   :: "'c prog => [ty   , ty   ] => bool" (\<open>_ \<turnstile> _ \<preceq> _\<close>   [71,71,71] 70)
   for G :: "'c prog"
 where
   refl   [intro!, simp]:       "G\<turnstile>      T \<preceq> T"   \<comment> \<open>identity conv., cf. 5.1.1\<close>
@@ -231,7 +231,7 @@ lemmas refl = HOL.refl
 \<comment> \<open>casting conversion, cf. 5.5 / 5.1.5\<close>
 \<comment> \<open>left out casts on primitve types\<close>
 inductive
-  cast    :: "'c prog => [ty   , ty   ] => bool" ("_ \<turnstile> _ \<preceq>? _"  [71,71,71] 70)
+  cast    :: "'c prog => [ty   , ty   ] => bool" (\<open>_ \<turnstile> _ \<preceq>? _\<close>  [71,71,71] 70)
   for G :: "'c prog"
 where
   widen:  "G\<turnstile> C\<preceq> D ==> G\<turnstile>C \<preceq>? D"

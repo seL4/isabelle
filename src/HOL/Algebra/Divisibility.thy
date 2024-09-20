@@ -131,10 +131,10 @@ subsection \<open>Divisibility and Association\<close>
 
 subsubsection \<open>Function definitions\<close>
 
-definition factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "divides\<index>" 65)
+definition factor :: "[_, 'a, 'a] \<Rightarrow> bool" (infix \<open>divides\<index>\<close> 65)
   where "a divides\<^bsub>G\<^esub> b \<longleftrightarrow> (\<exists>c\<in>carrier G. b = a \<otimes>\<^bsub>G\<^esub> c)"
 
-definition associated :: "[_, 'a, 'a] \<Rightarrow> bool" (infix "\<sim>\<index>" 55)
+definition associated :: "[_, 'a, 'a] \<Rightarrow> bool" (infix \<open>\<sim>\<index>\<close> 55)
   where "a \<sim>\<^bsub>G\<^esub> b \<longleftrightarrow> a divides\<^bsub>G\<^esub> b \<and> b divides\<^bsub>G\<^esub> a"
 
 abbreviation "division_rel G \<equiv> \<lparr>carrier = carrier G, eq = (\<sim>\<^bsub>G\<^esub>), le = (divides\<^bsub>G\<^esub>)\<rparr>"
@@ -821,7 +821,7 @@ definition factors :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow>
 definition wfactors ::"('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
   where "wfactors G fs a \<longleftrightarrow> (\<forall>x \<in> (set fs). irreducible G x) \<and> foldr (\<otimes>\<^bsub>G\<^esub>) fs \<one>\<^bsub>G\<^esub> \<sim>\<^bsub>G\<^esub> a"
 
-abbreviation list_assoc :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "[\<sim>]\<index>" 44)
+abbreviation list_assoc :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix \<open>[\<sim>]\<index>\<close> 44)
   where "list_assoc G \<equiv> list_all2 (\<sim>\<^bsub>G\<^esub>)"
 
 definition essentially_equal :: "('a, _) monoid_scheme \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -1993,11 +1993,11 @@ subsection \<open>Greatest Common Divisors and Lowest Common Multiples\<close>
 
 subsubsection \<open>Definitions\<close>
 
-definition isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ gcdof\<index> _ _)" [81,81,81] 80)
+definition isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  (\<open>(_ gcdof\<index> _ _)\<close> [81,81,81] 80)
   where "x gcdof\<^bsub>G\<^esub> a b \<longleftrightarrow> x divides\<^bsub>G\<^esub> a \<and> x divides\<^bsub>G\<^esub> b \<and>
     (\<forall>y\<in>carrier G. (y divides\<^bsub>G\<^esub> a \<and> y divides\<^bsub>G\<^esub> b \<longrightarrow> y divides\<^bsub>G\<^esub> x))"
 
-definition islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"  ("(_ lcmof\<index> _ _)" [81,81,81] 80)
+definition islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"  (\<open>(_ lcmof\<index> _ _)\<close> [81,81,81] 80)
   where "x lcmof\<^bsub>G\<^esub> a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> x \<and> b divides\<^bsub>G\<^esub> x \<and>
     (\<forall>y\<in>carrier G. (a divides\<^bsub>G\<^esub> y \<and> b divides\<^bsub>G\<^esub> y \<longrightarrow> x divides\<^bsub>G\<^esub> y))"
 

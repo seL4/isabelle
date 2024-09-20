@@ -142,7 +142,7 @@ e.g.: {\tt false \&\& e} e is not evaluated;
 
 datatype var
         = LVar lname \<comment> \<open>local variable (incl. parameters)\<close>
-        | FVar qtname qtname bool expr vname ("{_,_,_}_.._"[10,10,10,85,99]90)
+        | FVar qtname qtname bool expr vname (\<open>{_,_,_}_.._\<close>[10,10,10,85,99]90)
                      \<comment> \<open>class field\<close>
                      \<comment> \<open>\<^term>\<open>{accC,statDeclC,stat}e..fn\<close>\<close>
                      \<comment> \<open>\<open>accC\<close>: accessing class (static class were\<close>
@@ -152,7 +152,7 @@ datatype var
                      \<comment> \<open>\<open>stat\<close>: static or instance field?\<close>
                      \<comment> \<open>\<open>e\<close>: reference to object\<close>
                      \<comment> \<open>\<open>fn\<close>: field name\<close>
-        | AVar expr expr ("_.[_]"[90,10   ]90)
+        | AVar expr expr (\<open>_.[_]\<close>[90,10   ]90)
                      \<comment> \<open>array component\<close>
                      \<comment> \<open>\<^term>\<open>e1.[e2]\<close>: e1 array reference; e2 index\<close>
         | InsInitV stmt var 
@@ -161,10 +161,10 @@ datatype var
 
 and expr
         = NewC qtname         \<comment> \<open>class instance creation\<close>
-        | NewA ty expr ("New _[_]"[99,10   ]85) 
+        | NewA ty expr (\<open>New _[_]\<close>[99,10   ]85) 
                               \<comment> \<open>array creation\<close> 
         | Cast ty expr        \<comment> \<open>type cast\<close>
-        | Inst expr ref_ty ("_ InstOf _"[85,99] 85)   
+        | Inst expr ref_ty (\<open>_ InstOf _\<close>[85,99] 85)   
                               \<comment> \<open>instanceof\<close>     
         | Lit  val              \<comment> \<open>literal value, references not allowed\<close>
         | UnOp unop expr        \<comment> \<open>unary operation\<close>
@@ -172,11 +172,11 @@ and expr
         
         | Super               \<comment> \<open>special Super keyword\<close>
         | Acc  var            \<comment> \<open>variable access\<close>
-        | Ass  var expr       ("_:=_"   [90,85   ]85)
+        | Ass  var expr       (\<open>_:=_\<close>   [90,85   ]85)
                               \<comment> \<open>variable assign\<close> 
-        | Cond expr expr expr ("_ ? _ : _" [85,85,80]80) \<comment> \<open>conditional\<close>  
+        | Cond expr expr expr (\<open>_ ? _ : _\<close> [85,85,80]80) \<comment> \<open>conditional\<close>  
         | Call qtname ref_ty inv_mode expr mname "(ty list)" "(expr list)"  
-            ("{_,_,_}_\<cdot>_'( {_}_')"[10,10,10,85,99,10,10]85) 
+            (\<open>{_,_,_}_\<cdot>_'( {_}_')\<close>[10,10,10,85,99,10,10]85) 
                     \<comment> \<open>method call\<close> 
                     \<comment> \<open>\<^term>\<open>{accC,statT,mode}e\<cdot>mn({pTs}args)\<close> "\<close>
                     \<comment> \<open>\<open>accC\<close>: accessing class (static class were\<close>
@@ -199,20 +199,20 @@ and expr
 and  stmt
         = Skip                  \<comment> \<open>empty      statement\<close>
         | Expr  expr            \<comment> \<open>expression statement\<close>
-        | Lab   jump stmt       ("_\<bullet> _" [      99,66]66)
+        | Lab   jump stmt       (\<open>_\<bullet> _\<close> [      99,66]66)
                                 \<comment> \<open>labeled statement; handles break\<close>
-        | Comp  stmt stmt       ("_;; _"                  [      66,65]65)
-        | If'   expr stmt stmt  ("If'(_') _ Else _"       [   80,79,79]70)
-        | Loop  label expr stmt ("_\<bullet> While'(_') _"        [   99,80,79]70)
+        | Comp  stmt stmt       (\<open>_;; _\<close>                  [      66,65]65)
+        | If'   expr stmt stmt  (\<open>If'(_') _ Else _\<close>       [   80,79,79]70)
+        | Loop  label expr stmt (\<open>_\<bullet> While'(_') _\<close>        [   99,80,79]70)
         | Jmp jump              \<comment> \<open>break, continue, return\<close>
         | Throw expr
-        | TryC  stmt qtname vname stmt ("Try _ Catch'(_ _') _"  [79,99,80,79]70)
+        | TryC  stmt qtname vname stmt (\<open>Try _ Catch'(_ _') _\<close>  [79,99,80,79]70)
              \<comment> \<open>\<^term>\<open>Try c1 Catch(C vn) c2\<close>\<close> 
              \<comment> \<open>\<open>c1\<close>: block were exception may be thrown\<close>
              \<comment> \<open>\<open>C\<close>:  execption class to catch\<close>
              \<comment> \<open>\<open>vn\<close>: local name for exception used in \<open>c2\<close>\<close>
              \<comment> \<open>\<open>c2\<close>: block to execute when exception is cateched\<close>
-        | Fin  stmt  stmt        ("_ Finally _"               [      79,79]70)
+        | Fin  stmt  stmt        (\<open>_ Finally _\<close>               [      79,79]70)
         | FinA abopt stmt       \<comment> \<open>Save abruption of first statement\<close> 
                                 \<comment> \<open>technical term  for smallstep sem.)\<close>
         | Init  qtname          \<comment> \<open>class initialization\<close>
@@ -245,11 +245,11 @@ translations
 abbreviation this :: expr
   where "this == Acc (LVar This)"
 
-abbreviation LAcc :: "vname \<Rightarrow> expr" ("!!")
+abbreviation LAcc :: "vname \<Rightarrow> expr" (\<open>!!\<close>)
   where "!!v == Acc (LVar (EName (VNam v)))"
 
 abbreviation
-  LAss :: "vname \<Rightarrow> expr \<Rightarrow>stmt" ("_:==_" [90,85] 85)
+  LAss :: "vname \<Rightarrow> expr \<Rightarrow>stmt" (\<open>_:==_\<close> [90,85] 85)
   where "v:==e == Expr (Ass (LVar (EName (VNam  v))) e)"
 
 abbreviation
@@ -274,19 +274,19 @@ text \<open>
 \<close>
 
 abbreviation (input)
-  expr_inj_term :: "expr \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>e" 1000)
+  expr_inj_term :: "expr \<Rightarrow> term" (\<open>\<langle>_\<rangle>\<^sub>e\<close> 1000)
   where "\<langle>e\<rangle>\<^sub>e == In1l e"
 
 abbreviation (input)
-  stmt_inj_term :: "stmt \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>s" 1000)
+  stmt_inj_term :: "stmt \<Rightarrow> term" (\<open>\<langle>_\<rangle>\<^sub>s\<close> 1000)
   where "\<langle>c\<rangle>\<^sub>s == In1r c"
 
 abbreviation (input)
-  var_inj_term :: "var \<Rightarrow> term"  ("\<langle>_\<rangle>\<^sub>v" 1000)
+  var_inj_term :: "var \<Rightarrow> term"  (\<open>\<langle>_\<rangle>\<^sub>v\<close> 1000)
   where "\<langle>v\<rangle>\<^sub>v == In2 v"
 
 abbreviation (input)
-  lst_inj_term :: "expr list \<Rightarrow> term" ("\<langle>_\<rangle>\<^sub>l" 1000)
+  lst_inj_term :: "expr list \<Rightarrow> term" (\<open>\<langle>_\<rangle>\<^sub>l\<close> 1000)
   where "\<langle>es\<rangle>\<^sub>l == In3 es"
 
 text \<open>It seems to be more elegant to have an overloaded injection like the
@@ -294,7 +294,7 @@ following.
 \<close>
 
 class inj_term =
-  fixes inj_term:: "'a \<Rightarrow> term" ("\<langle>_\<rangle>" 1000)
+  fixes inj_term:: "'a \<Rightarrow> term" (\<open>\<langle>_\<rangle>\<close> 1000)
 
 text \<open>How this overloaded injections work can be seen in the theory 
 \<open>DefiniteAssignment\<close>. Other big inductive relations on

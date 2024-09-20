@@ -32,10 +32,10 @@ inductive_set
   | Acts:  "[| act \<in> Acts F;  s \<in> reachable F;  (s,s') \<in> act |]
             ==> s' \<in> reachable F"
 
-definition Constrains :: "['a set, 'a set] => 'a program set" (infixl "Co" 60) where
+definition Constrains :: "['a set, 'a set] => 'a program set" (infixl \<open>Co\<close> 60) where
     "A Co B == {F. F \<in> (reachable F \<inter> A)  co  B}"
 
-definition Unless  :: "['a set, 'a set] => 'a program set" (infixl "Unless" 60) where
+definition Unless  :: "['a set, 'a set] => 'a program set" (infixl \<open>Unless\<close> 60) where
     "A Unless B == (A-B) Co (A \<union> B)"
 
 definition Stable     :: "'a set => 'a program set" where

@@ -32,7 +32,7 @@ definition alloc :: "'a \<Rightarrow> heap \<Rightarrow> 'a::heap ref \<times> h
      r = Ref l
    in (r, set r x (h\<lparr>lim := l + 1\<rparr>)))"
 
-definition noteq :: "'a::heap ref \<Rightarrow> 'b::heap ref \<Rightarrow> bool" (infix "=!=" 70) where
+definition noteq :: "'a::heap ref \<Rightarrow> 'b::heap ref \<Rightarrow> bool" (infix \<open>=!=\<close> 70) where
   "r =!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
 
 
@@ -41,10 +41,10 @@ subsection \<open>Monad operations\<close>
 definition ref :: "'a::heap \<Rightarrow> 'a ref Heap" where
   [code del]: "ref v = Heap_Monad.heap (alloc v)"
 
-definition lookup :: "'a::heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
+definition lookup :: "'a::heap ref \<Rightarrow> 'a Heap" (\<open>!_\<close> 61) where
   [code del]: "lookup r = Heap_Monad.tap (\<lambda>h. get h r)"
 
-definition update :: "'a ref \<Rightarrow> 'a::heap \<Rightarrow> unit Heap" ("_ := _" 62) where
+definition update :: "'a ref \<Rightarrow> 'a::heap \<Rightarrow> unit Heap" (\<open>_ := _\<close> 62) where
   [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
 
 definition change :: "('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where

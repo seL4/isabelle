@@ -8,8 +8,8 @@ section "Operational Evaluation Semantics"
 theory OpSem imports State begin
 
 inductive
-  exec :: "[state,stmt,    nat,state] => bool" ("_ -_-_\<rightarrow> _"  [98,90,   65,98] 89)
-  and eval :: "[state,expr,val,nat,state] => bool" ("_ -_\<succ>_-_\<rightarrow> _"[98,95,99,65,98] 89)
+  exec :: "[state,stmt,    nat,state] => bool" (\<open>_ -_-_\<rightarrow> _\<close>  [98,90,   65,98] 89)
+  and eval :: "[state,expr,val,nat,state] => bool" (\<open>_ -_\<succ>_-_\<rightarrow> _\<close>[98,95,99,65,98] 89)
 where
   Skip: "   s -Skip-n\<rightarrow> s"
 

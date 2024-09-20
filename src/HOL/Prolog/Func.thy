@@ -19,15 +19,15 @@ axiomatization
 
   true    :: tm and
   false   :: tm and
-  "and"   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr "and" 999) and
-  eq      :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr "eq" 999) and
+  "and"   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr \<open>and\<close> 999) and
+  eq      :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixr \<open>eq\<close> 999) and
 
-  Z       :: tm                     ("Z") and
+  Z       :: tm                     (\<open>Z\<close>) and
   S       :: "tm \<Rightarrow> tm" and
 
-  plus    :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "+" 65) and
-  minus   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "-" 65) and
-  times   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl "*" 70) and
+  plus    :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl \<open>+\<close> 65) and
+  minus   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl \<open>-\<close> 65) and
+  times   :: "tm \<Rightarrow> tm \<Rightarrow> tm"       (infixl \<open>*\<close> 70) and
 
   eval    :: "tm \<Rightarrow> tm \<Rightarrow> bool" where
 

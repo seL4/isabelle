@@ -7,7 +7,7 @@ begin
 
 subsubsection "Syntax Directed Typing"
 
-inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile> _)" [0,0] 50) where
+inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" (\<open>(_/ \<turnstile> _)\<close> [0,0] 50) where
 Skip:
   "l \<turnstile> SKIP" |
 Assign:
@@ -183,7 +183,7 @@ standard formulation, however, is slightly different, replacing the maximum
 computation by an antimonotonicity rule. We introduce the standard system now
 and show the equivalence with our formulation.\<close>
 
-inductive sec_type' :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile>'' _)" [0,0] 50) where
+inductive sec_type' :: "nat \<Rightarrow> com \<Rightarrow> bool" (\<open>(_/ \<turnstile>'' _)\<close> [0,0] 50) where
 Skip':
   "l \<turnstile>' SKIP" |
 Assign':
@@ -217,7 +217,7 @@ by (metis anti_mono)
 
 subsubsection "A Bottom-Up Typing System"
 
-inductive sec_type2 :: "com \<Rightarrow> level \<Rightarrow> bool" ("(\<turnstile> _ : _)" [0,0] 50) where
+inductive sec_type2 :: "com \<Rightarrow> level \<Rightarrow> bool" (\<open>(\<turnstile> _ : _)\<close> [0,0] 50) where
 Skip2:
   "\<turnstile> SKIP : l" |
 Assign2:

@@ -9,7 +9,7 @@ theory Quotient_Rat imports HOL.Archimedean_Field
 begin
 
 definition
-  ratrel :: "(int \<times> int) \<Rightarrow> (int \<times> int) \<Rightarrow> bool" (infix "\<approx>" 50)
+  ratrel :: "(int \<times> int) \<Rightarrow> (int \<times> int) \<Rightarrow> bool" (infix \<open>\<approx>\<close> 50)
 where
   [simp]: "x \<approx> y \<longleftrightarrow> snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x"
 

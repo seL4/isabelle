@@ -24,10 +24,10 @@ typedef 'a program = "Program :: ('a set * ('a * 'a) set set * ('a * 'a) set set
 definition Acts :: "'a program => ('a * 'a)set set" where
     "Acts F == (%(init, acts, allowed). acts) (Rep_Program F)"
 
-definition "constrains" :: "['a set, 'a set] => 'a program set"  (infixl "co"     60) where
+definition "constrains" :: "['a set, 'a set] => 'a program set"  (infixl \<open>co\<close>     60) where
     "A co B == {F. \<forall>act \<in> Acts F. act``A \<subseteq> B}"
 
-definition unless  :: "['a set, 'a set] => 'a program set"  (infixl "unless" 60)  where
+definition unless  :: "['a set, 'a set] => 'a program set"  (infixl \<open>unless\<close> 60)  where
     "A unless B == (A-B) co (A \<union> B)"
 
 definition mk_program :: "('a set * ('a * 'a)set set * ('a * 'a)set set)

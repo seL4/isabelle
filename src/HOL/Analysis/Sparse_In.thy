@@ -10,7 +10,7 @@ begin
 subsection \<open>A set of points sparse in another set\<close>
 
 definition sparse_in:: "'a :: topological_space set \<Rightarrow> 'a set \<Rightarrow> bool"
-    (infixl "(sparse'_in)" 50)
+    (infixl \<open>(sparse'_in)\<close> 50)
   where
   "pts sparse_in A = (\<forall>x\<in>A. \<exists>B. x\<in>B \<and> open B \<and> (\<forall>y\<in>B. \<not> y islimpt pts))"
 
@@ -165,14 +165,14 @@ definition cosparse :: "'a set \<Rightarrow> 'a :: topological_space filter" whe
  "cosparse A = Abs_filter (\<lambda>P. {x. \<not>P x} sparse_in A)"
 
 syntax
-  "_eventually_cosparse" :: "pttrn => 'a set => bool => bool"  ("(3\<forall>\<^sub>\<approx>_\<in>_./ _)" [0, 0, 10] 10)
+  "_eventually_cosparse" :: "pttrn => 'a set => bool => bool"  (\<open>(3\<forall>\<^sub>\<approx>_\<in>_./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_eventually_cosparse" == eventually
 translations
   "\<forall>\<^sub>\<approx>x\<in>A. P" == "CONST eventually (\<lambda>x. P) (CONST cosparse A)"
 
 syntax
-  "_qeventually_cosparse" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3\<forall>\<^sub>\<approx>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qeventually_cosparse" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3\<forall>\<^sub>\<approx>_ | (_)./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_qeventually_cosparse" == eventually
 translations

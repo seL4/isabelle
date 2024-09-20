@@ -163,7 +163,7 @@ text \<open>
 
   @{prop [display] "P n"} 
 \<close>
-definition intervall :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" ("_ \<in> [_, _')") where
+definition intervall :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" (\<open>_ \<in> [_, _')\<close>) where
   "x \<in> [a, b) \<equiv> a \<le> x \<and> x < b"
 
 lemma pc_0: "x < n \<Longrightarrow> (x \<in> [0, n) \<Longrightarrow> P x) \<Longrightarrow> P x"
@@ -233,7 +233,7 @@ text \<open>
 lemmas eff_simps [simp] = eff_def norm_eff_def xcpt_eff_def
 declare appInvoke [simp del]
 
-definition phi_append :: method_type ("\<phi>\<^sub>a") where
+definition phi_append :: method_type (\<open>\<phi>\<^sub>a\<close>) where
   "\<phi>\<^sub>a \<equiv> map (\<lambda>(x,y). Some (x, map OK y)) [ 
    (                                    [], [Class list_name, Class list_name]),
    (                     [Class list_name], [Class list_name, Class list_name]),
@@ -295,7 +295,7 @@ abbreviation Clist :: ty
 abbreviation Ctest :: ty
   where "Ctest == Class test_name"
 
-definition phi_makelist :: method_type ("\<phi>\<^sub>m") where
+definition phi_makelist :: method_type (\<open>\<phi>\<^sub>m\<close>) where
   "\<phi>\<^sub>m \<equiv> map (\<lambda>(x,y). Some (x, y)) [ 
     (                                   [], [OK Ctest, Err     , Err     ]),
     (                              [Clist], [OK Ctest, Err     , Err     ]),
@@ -369,7 +369,7 @@ lemma wt_makelist [simp]:
   done
 
 text \<open>The whole program is welltyped:\<close>
-definition Phi :: prog_type ("\<Phi>") where
+definition Phi :: prog_type (\<open>\<Phi>\<close>) where
   "\<Phi> C sg \<equiv> if C = test_name \<and> sg = (makelist_name, []) then \<phi>\<^sub>m else          
              if C = list_name \<and> sg = (append_name, [Class list_name]) then \<phi>\<^sub>a else []"
 

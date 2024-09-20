@@ -14,16 +14,16 @@ subsection \<open>Definitions\<close>
 abbreviation poly_ring :: "_ \<Rightarrow> ('a  list) ring"
   where "poly_ring R \<equiv> univ_poly R (carrier R)"
 
-abbreviation pirreducible :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" ("pirreducible\<index>")
+abbreviation pirreducible :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" (\<open>pirreducible\<index>\<close>)
   where "pirreducible\<^bsub>R\<^esub> K p \<equiv> ring_irreducible\<^bsub>(univ_poly R K)\<^esub> p"
 
-abbreviation pprime :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" ("pprime\<index>")
+abbreviation pprime :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" (\<open>pprime\<index>\<close>)
   where "pprime\<^bsub>R\<^esub> K p \<equiv> ring_prime\<^bsub>(univ_poly R K)\<^esub> p"
 
-definition pdivides :: "_ \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "pdivides\<index>" 65)
+definition pdivides :: "_ \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix \<open>pdivides\<index>\<close> 65)
   where "p pdivides\<^bsub>R\<^esub> q = p divides\<^bsub>(univ_poly R (carrier R))\<^esub> q"
 
-definition rupture :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> (('a list) set) ring" ("Rupt\<index>")
+definition rupture :: "_ \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> (('a list) set) ring" (\<open>Rupt\<index>\<close>)
   where "Rupt\<^bsub>R\<^esub> K p = (K[X]\<^bsub>R\<^esub>) Quot (PIdl\<^bsub>K[X]\<^bsub>R\<^esub>\<^esub> p)"
 
 abbreviation (in ring) rupture_surj :: "'a set \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> ('a list) set"
@@ -309,10 +309,10 @@ definition (in ring) long_divides :: "'a list \<Rightarrow> 'a list \<Rightarrow
 definition (in ring) long_division :: "'a list \<Rightarrow> 'a list \<Rightarrow> ('a list \<times> 'a list)"
   where "long_division p q = (THE t. long_divides p q t)"
 
-definition (in ring) pdiv :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "pdiv" 65)
+definition (in ring) pdiv :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl \<open>pdiv\<close> 65)
   where "p pdiv q = (if q = [] then [] else fst (long_division p q))"
 
-definition (in ring) pmod :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl "pmod" 65)
+definition (in ring) pmod :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixl \<open>pmod\<close> 65)
   where "p pmod q = (if q = [] then p else snd (long_division p q))"
 
 

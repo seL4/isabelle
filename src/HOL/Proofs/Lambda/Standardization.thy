@@ -20,8 +20,8 @@ subsection \<open>Standard reduction relation\<close>
 declare listrel_mono [mono_set]
 
 inductive
-  sred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>s" 50)
-  and sredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>s]" 50)
+  sred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>s\<close> 50)
+  and sredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl \<open>[\<rightarrow>\<^sub>s]\<close> 50)
 where
   "s [\<rightarrow>\<^sub>s] t \<equiv> listrelp (\<rightarrow>\<^sub>s) s t"
 | Var: "rs [\<rightarrow>\<^sub>s] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>s Var x \<degree>\<degree> rs'"
@@ -243,8 +243,8 @@ lemma rtrancl_beta_sred:
 subsection \<open>Leftmost reduction and weakly normalizing terms\<close>
 
 inductive
-  lred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>l" 50)
-  and lredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl "[\<rightarrow>\<^sub>l]" 50)
+  lred :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sub>l\<close> 50)
+  and lredlist :: "dB list \<Rightarrow> dB list \<Rightarrow> bool"  (infixl \<open>[\<rightarrow>\<^sub>l]\<close> 50)
 where
   "s [\<rightarrow>\<^sub>l] t \<equiv> listrelp (\<rightarrow>\<^sub>l) s t"
 | Var: "rs [\<rightarrow>\<^sub>l] rs' \<Longrightarrow> Var x \<degree>\<degree> rs \<rightarrow>\<^sub>l Var x \<degree>\<degree> rs'"

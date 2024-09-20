@@ -11,7 +11,7 @@ text \<open>We can introduce a binary infix addition operator \<open>\<oplus>\<c
 for arbitrary types by means of a type class:\<close>
 
 class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<oplus>" 70)
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl \<open>\<oplus>\<close> 70)
 
 text \<open>\noindent This introduces a new class @{class [source] plus},
 along with a constant @{const [source] plus} with nice infix syntax.

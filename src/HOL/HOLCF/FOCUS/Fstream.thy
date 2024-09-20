@@ -25,20 +25,20 @@ definition
   "fsfilter A = (sfilter\<cdot>(flift2 (\<lambda>x. x\<in>A)))"
 
 abbreviation
-  emptystream   :: "'a fstream"                          ("<>") where
+  emptystream   :: "'a fstream"                          (\<open><>\<close>) where
   "<> == \<bottom>"
 
 abbreviation
-  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       ("(_\<leadsto>_)" [66,65] 65) where
+  fscons'       :: "'a \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       (\<open>(_\<leadsto>_)\<close> [66,65] 65) where
   "a\<leadsto>s == fscons a\<cdot>s"
 
 abbreviation
-  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   ("(_\<copyright>_)" [64,63] 63) where
+  fsfilter'     :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"   (\<open>(_\<copyright>_)\<close> [64,63] 63) where
   "A\<copyright>s == fsfilter A\<cdot>s"
 
 notation (ASCII)
-  fscons'  ("(_~>_)" [66,65] 65) and
-  fsfilter'  ("(_'(C')_)" [64,63] 63)
+  fscons'  (\<open>(_~>_)\<close> [66,65] 65) and
+  fsfilter'  (\<open>(_'(C')_)\<close> [64,63] 63)
 
 
 lemma Def_maximal: "a = Def d \<Longrightarrow> a\<sqsubseteq>b \<Longrightarrow> b = Def d"

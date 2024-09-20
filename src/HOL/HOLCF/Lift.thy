@@ -85,7 +85,7 @@ unfolding case_lift_eq by (simp add: cont_Rep_lift)
 subsection \<open>Further operations\<close>
 
 definition
-  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder "FLIFT " 10)  where
+  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder \<open>FLIFT \<close> 10)  where
   "flift1 = (\<lambda>f. (\<Lambda> x. case_lift \<bottom> f x))"
 
 translations

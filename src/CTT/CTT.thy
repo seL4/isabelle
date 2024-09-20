@@ -18,11 +18,11 @@ typedecl o
 
 consts
   \<comment> \<open>Judgments\<close>
-  Type      :: "t \<Rightarrow> prop"          ("(_ type)" [10] 5)
-  Eqtype    :: "[t,t]\<Rightarrow>prop"        ("(_ =/ _)" [10,10] 5)
-  Elem      :: "[i, t]\<Rightarrow>prop"       ("(_ /: _)" [10,10] 5)
-  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      ("(_ =/ _ :/ _)" [10,10,10] 5)
-  Reduce    :: "[i,i]\<Rightarrow>prop"        ("Reduce[_,_]")
+  Type      :: "t \<Rightarrow> prop"          (\<open>(_ type)\<close> [10] 5)
+  Eqtype    :: "[t,t]\<Rightarrow>prop"        (\<open>(_ =/ _)\<close> [10,10] 5)
+  Elem      :: "[i, t]\<Rightarrow>prop"       (\<open>(_ /: _)\<close> [10,10] 5)
+  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      (\<open>(_ =/ _ :/ _)\<close> [10,10,10] 5)
+  Reduce    :: "[i,i]\<Rightarrow>prop"        (\<open>Reduce[_,_]\<close>)
   \<comment> \<open>Types for truth values\<close>
   F         :: "t"
   T         :: "t"          \<comment> \<open>\<open>F\<close> is empty, \<open>T\<close> contains one element\<close>
@@ -30,24 +30,24 @@ consts
   tt        :: "i"
   \<comment> \<open>Natural numbers\<close>
   N         :: "t"
-  Zero      :: "i"                  ("0")
+  Zero      :: "i"                  (\<open>0\<close>)
   succ      :: "i\<Rightarrow>i"
   rec       :: "[i, i, [i,i]\<Rightarrow>i] \<Rightarrow> i"
   \<comment> \<open>Binary sum\<close>
-  Plus      :: "[t,t]\<Rightarrow>t"           (infixr "+" 40)
+  Plus      :: "[t,t]\<Rightarrow>t"           (infixr \<open>+\<close> 40)
   inl       :: "i\<Rightarrow>i"
   inr       :: "i\<Rightarrow>i"
   "when"    :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
   \<comment> \<open>General sum and binary product\<close>
   Sum       :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
-  pair      :: "[i,i]\<Rightarrow>i"           ("(1<_,/_>)")
+  pair      :: "[i,i]\<Rightarrow>i"           (\<open>(1<_,/_>)\<close>)
   fst       :: "i\<Rightarrow>i"
   snd       :: "i\<Rightarrow>i"
   split     :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"
   \<comment> \<open>General product and function space\<close>
   Prod      :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
-  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder "\<^bold>\<lambda>" 10)
-  app       :: "[i,i]\<Rightarrow>i"           (infixl "`" 60)
+  lambda    :: "(i \<Rightarrow> i) \<Rightarrow> i"      (binder \<open>\<^bold>\<lambda>\<close> 10)
+  app       :: "[i,i]\<Rightarrow>i"           (infixl \<open>`\<close> 60)
   \<comment> \<open>Equality type\<close>
   Eq        :: "[t,i,i]\<Rightarrow>t"
   eq        :: "i"
@@ -56,8 +56,8 @@ text \<open>Some inexplicable syntactic dependencies; in particular, "0"
  must be introduced after the judgment forms.\<close>
 
 syntax
-  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Prod>_:_./ _)" 10)
-  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       ("(3\<Sum>_:_./ _)" 10)
+  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       (\<open>(3\<Prod>_:_./ _)\<close> 10)
+  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       (\<open>(3\<Sum>_:_./ _)\<close> 10)
 syntax_consts
   "_PROD" \<rightleftharpoons> Prod and
   "_SUM" \<rightleftharpoons> Sum
@@ -65,10 +65,10 @@ translations
   "\<Prod>x:A. B" \<rightleftharpoons> "CONST Prod(A, \<lambda>x. B)"
   "\<Sum>x:A. B" \<rightleftharpoons> "CONST Sum(A, \<lambda>x. B)"
 
-abbreviation Arrow :: "[t,t]\<Rightarrow>t"  (infixr "\<longrightarrow>" 30)
+abbreviation Arrow :: "[t,t]\<Rightarrow>t"  (infixr \<open>\<longrightarrow>\<close> 30)
   where "A \<longrightarrow> B \<equiv> \<Prod>_:A. B"
 
-abbreviation Times :: "[t,t]\<Rightarrow>t"  (infixr "\<times>" 50)
+abbreviation Times :: "[t,t]\<Rightarrow>t"  (infixr \<open>\<times>\<close> 50)
   where "A \<times> B \<equiv> \<Sum>_:A. B"
 
 text \<open>
@@ -547,22 +547,22 @@ section \<open>Elementary arithmetic\<close>
 
 subsection \<open>Arithmetic operators and their definitions\<close>
 
-definition add :: "[i,i]\<Rightarrow>i"   (infixr "#+" 65)
+definition add :: "[i,i]\<Rightarrow>i"   (infixr \<open>#+\<close> 65)
   where "a#+b \<equiv> rec(a, b, \<lambda>u v. succ(v))"
 
-definition diff :: "[i,i]\<Rightarrow>i"   (infixr "-" 65)
+definition diff :: "[i,i]\<Rightarrow>i"   (infixr \<open>-\<close> 65)
   where "a-b \<equiv> rec(b, a, \<lambda>u v. rec(v, 0, \<lambda>x y. x))"
 
-definition absdiff :: "[i,i]\<Rightarrow>i"   (infixr "|-|" 65)
+definition absdiff :: "[i,i]\<Rightarrow>i"   (infixr \<open>|-|\<close> 65)
   where "a|-|b \<equiv> (a-b) #+ (b-a)"
 
-definition mult :: "[i,i]\<Rightarrow>i"   (infixr "#*" 70)
+definition mult :: "[i,i]\<Rightarrow>i"   (infixr \<open>#*\<close> 70)
   where "a#*b \<equiv> rec(a, 0, \<lambda>u v. b #+ v)"
 
-definition mod :: "[i,i]\<Rightarrow>i"   (infixr "mod" 70)
+definition mod :: "[i,i]\<Rightarrow>i"   (infixr \<open>mod\<close> 70)
   where "a mod b \<equiv> rec(a, 0, \<lambda>u v. rec(succ(v) |-| b, 0, \<lambda>x y. succ(v)))"
 
-definition div :: "[i,i]\<Rightarrow>i"   (infixr "div" 70)
+definition div :: "[i,i]\<Rightarrow>i"   (infixr \<open>div\<close> 70)
   where "a div b \<equiv> rec(a, 0, \<lambda>u v. rec(succ(u) mod b, succ(v), \<lambda>x y. v))"
 
 lemmas arith_defs = add_def diff_def absdiff_def mult_def mod_def div_def

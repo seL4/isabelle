@@ -8,11 +8,11 @@ theory Sfun
   imports Cfun
 begin
 
-pcpodef ('a, 'b) sfun (infixr "\<rightarrow>!" 0) = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
+pcpodef ('a, 'b) sfun (infixr \<open>\<rightarrow>!\<close> 0) = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
   by simp_all
 
 type_notation (ASCII)
-  sfun  (infixr "->!" 0)
+  sfun  (infixr \<open>->!\<close> 0)
 
 text \<open>TODO: Define nice syntax for abstraction, application.\<close>
 

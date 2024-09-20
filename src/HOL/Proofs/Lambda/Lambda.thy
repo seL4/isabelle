@@ -16,7 +16,7 @@ subsection \<open>Lambda-terms in de Bruijn notation and substitution\<close>
 
 datatype dB =
     Var nat
-  | App dB dB (infixl "\<degree>" 200)
+  | App dB dB (infixl \<open>\<degree>\<close> 200)
   | Abs dB
 
 primrec
@@ -27,7 +27,7 @@ where
   | "lift (Abs s) k = Abs (lift s (k + 1))"
 
 primrec
-  subst :: "[dB, dB, nat] => dB"  ("_[_'/_]" [300, 0, 0] 300)
+  subst :: "[dB, dB, nat] => dB"  (\<open>_[_'/_]\<close> [300, 0, 0] 300)
 where (* FIXME base names *)
     subst_Var: "(Var i)[s/k] =
       (if k < i then Var (i - 1) else if i = k then s else Var i)"
@@ -56,7 +56,7 @@ where
 
 subsection \<open>Beta-reduction\<close>
 
-inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+inductive beta :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<close> 50)
   where
     beta [simp, intro!]: "Abs s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
   | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
@@ -64,7 +64,7 @@ inductive beta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
   | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs s \<rightarrow>\<^sub>\<beta> Abs t"
 
 abbreviation
-  beta_reds :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<beta>\<^sup>*" 50) where
+  beta_reds :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<^sup>*\<close> 50) where
   "s \<rightarrow>\<^sub>\<beta>\<^sup>* t == beta\<^sup>*\<^sup>* s t"
 
 inductive_cases beta_cases [elim!]:

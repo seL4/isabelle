@@ -12,7 +12,7 @@ type_synonym 'a conf = "(('a com) option) \<times> 'a"
 
 inductive_set
   etran :: "('a conf \<times> 'a conf) set" 
-  and etran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"  ("_ -e\<rightarrow> _" [81,81] 80)
+  and etran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"  (\<open>_ -e\<rightarrow> _\<close> [81,81] 80)
 where
   "P -e\<rightarrow> Q \<equiv> (P,Q) \<in> etran"
 | Env: "(P, s) -e\<rightarrow> (P, t)"
@@ -24,8 +24,8 @@ subsubsection \<open>Component transitions\<close>
 
 inductive_set
   ctran :: "('a conf \<times> 'a conf) set"
-  and ctran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c\<rightarrow> _" [81,81] 80)
-  and ctrans :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   ("_ -c*\<rightarrow> _" [81,81] 80)
+  and ctran' :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   (\<open>_ -c\<rightarrow> _\<close> [81,81] 80)
+  and ctrans :: "'a conf \<Rightarrow> 'a conf \<Rightarrow> bool"   (\<open>_ -c*\<rightarrow> _\<close> [81,81] 80)
 where
   "P -c\<rightarrow> Q \<equiv> (P,Q) \<in> ctran"
 | "P -c*\<rightarrow> Q \<equiv> (P,Q) \<in> ctran\<^sup>*"
@@ -52,14 +52,14 @@ type_synonym 'a par_conf = "('a par_com) \<times> 'a"
 
 inductive_set
   par_etran :: "('a par_conf \<times> 'a par_conf) set"
-  and par_etran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pe\<rightarrow> _" [81,81] 80)
+  and par_etran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" (\<open>_ -pe\<rightarrow> _\<close> [81,81] 80)
 where
   "P -pe\<rightarrow> Q \<equiv> (P,Q) \<in> par_etran"
 | ParEnv:  "(Ps, s) -pe\<rightarrow> (Ps, t)"
 
 inductive_set
   par_ctran :: "('a par_conf \<times> 'a par_conf) set"
-  and par_ctran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" ("_ -pc\<rightarrow> _" [81,81] 80)
+  and par_ctran' :: "['a par_conf,'a par_conf] \<Rightarrow> bool" (\<open>_ -pc\<rightarrow> _\<close> [81,81] 80)
 where
   "P -pc\<rightarrow> Q \<equiv> (P,Q) \<in> par_ctran"
 | ParComp: "\<lbrakk>i<length Ps; (Ps!i, s) -c\<rightarrow> (r, t)\<rbrakk> \<Longrightarrow> (Ps, s) -pc\<rightarrow> (Ps[i:=r], t)"
@@ -367,7 +367,7 @@ definition comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a con
                (fst (last c) = None \<longrightarrow> snd (last c) \<in> post)}"
 
 definition com_validity :: "'a com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool" 
-                 ("\<Turnstile> _ sat [_, _, _, _]" [60,0,0,0,0] 45) where
+                 (\<open>\<Turnstile> _ sat [_, _, _, _]\<close> [60,0,0,0,0] 45) where
   "\<Turnstile> P sat [pre, rely, guar, post] \<equiv> 
    \<forall>s. cp (Some P) s \<inter> assum(pre, rely) \<subseteq> comm(guar, post)"
 
@@ -386,7 +386,7 @@ definition par_comm :: "(('a \<times> 'a) set \<times> 'a set) \<Rightarrow> ('a
          (All_None (fst (last c)) \<longrightarrow> snd( last c) \<in> post)}"
 
 definition par_com_validity :: "'a  par_com \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set 
-\<Rightarrow> 'a set \<Rightarrow> bool"  ("\<Turnstile> _ SAT [_, _, _, _]" [60,0,0,0,0] 45) where
+\<Rightarrow> 'a set \<Rightarrow> bool"  (\<open>\<Turnstile> _ SAT [_, _, _, _]\<close> [60,0,0,0,0] 45) where
   "\<Turnstile> Ps SAT [pre, rely, guar, post] \<equiv> 
    \<forall>s. par_cp Ps s \<inter> par_assum(pre, rely) \<subseteq> par_comm(guar, post)"
 
@@ -409,7 +409,7 @@ definition compat_label :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightar
                        (\<forall>l<length clist. l\<noteq>i \<longrightarrow> (clist!l)!j -e\<rightarrow> (clist!l)! Suc j))) \<or> 
          (c!j -pe\<rightarrow> c!Suc j \<and> (\<forall>i<length clist. (clist!i)!j -e\<rightarrow> (clist!i)! Suc j)))"
 
-definition conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  ("_ \<propto> _" [65,65] 64) where
+definition conjoin :: "'a par_confs \<Rightarrow> ('a confs) list \<Rightarrow> bool"  (\<open>_ \<propto> _\<close> [65,65] 64) where
   "c \<propto> clist \<equiv> (same_length c clist) \<and> (same_state c clist) \<and> (same_program c clist) \<and> (compat_label c clist)"
 
 subsubsection \<open>Some previous lemmas\<close>

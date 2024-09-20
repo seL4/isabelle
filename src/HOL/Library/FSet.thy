@@ -58,12 +58,12 @@ instance
 
 end
 
-abbreviation fempty :: "'a fset" ("{||}") where "{||} \<equiv> bot"
-abbreviation fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subseteq>|" 50) where "xs |\<subseteq>| ys \<equiv> xs \<le> ys"
-abbreviation fsubset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<subset>|" 50) where "xs |\<subset>| ys \<equiv> xs < ys"
-abbreviation funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "|\<union>|" 65) where "xs |\<union>| ys \<equiv> sup xs ys"
-abbreviation finter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "|\<inter>|" 65) where "xs |\<inter>| ys \<equiv> inf xs ys"
-abbreviation fminus :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl "|-|" 65) where "xs |-| ys \<equiv> minus xs ys"
+abbreviation fempty :: "'a fset" (\<open>{||}\<close>) where "{||} \<equiv> bot"
+abbreviation fsubset_eq :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<subseteq>|\<close> 50) where "xs |\<subseteq>| ys \<equiv> xs \<le> ys"
+abbreviation fsubset :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<subset>|\<close> 50) where "xs |\<subset>| ys \<equiv> xs < ys"
+abbreviation funion :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl \<open>|\<union>|\<close> 65) where "xs |\<union>| ys \<equiv> sup xs ys"
+abbreviation finter :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl \<open>|\<inter>|\<close> 65) where "xs |\<inter>| ys \<equiv> inf xs ys"
+abbreviation fminus :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" (infixl \<open>|-|\<close> 65) where "xs |-| ys \<equiv> minus xs ys"
 
 instantiation fset :: (equal) equal
 begin
@@ -154,7 +154,7 @@ instance
 end
 
 abbreviation fUNIV :: "'a::finite fset" where "fUNIV \<equiv> top"
-abbreviation fuminus :: "'a::finite fset \<Rightarrow> 'a fset" ("|-| _" [81] 80) where "|-| x \<equiv> uminus x"
+abbreviation fuminus :: "'a::finite fset \<Rightarrow> 'a fset" (\<open>|-| _\<close> [81] 80) where "|-| x \<equiv> uminus x"
 
 declare top_fset.rep_eq[simp]
 
@@ -166,19 +166,19 @@ lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is i
 
 nonterminal fset_args
 syntax
-  "" :: "'a \<Rightarrow> fset_args"  ("_")
-  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  ("_,/ _")
-  "_fset" :: "fset_args => 'a fset"  ("{|(_)|}")
+  "" :: "'a \<Rightarrow> fset_args"  (\<open>_\<close>)
+  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  (\<open>_,/ _\<close>)
+  "_fset" :: "fset_args => 'a fset"  (\<open>{|(_)|}\<close>)
 syntax_consts
   "_fset_args" "_fset" == finsert
 translations
   "{|x, xs|}" == "CONST finsert x {|xs|}"
   "{|x|}"     == "CONST finsert x {||}"
 
-abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) where
+abbreviation fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<in>|\<close> 50) where
   "x |\<in>| X \<equiv> x \<in> fset X"
 
-abbreviation not_fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
+abbreviation not_fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix \<open>|\<notin>|\<close> 50) where
   "x |\<notin>| X \<equiv> x \<notin> fset X"
 
 context
@@ -197,12 +197,12 @@ alias fBex = FSet.Bex
 end
 
 syntax (input)
-  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3! (_/|:|_)./ _)" [0, 0, 10] 10)
-  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3? (_/|:|_)./ _)" [0, 0, 10] 10)
+  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3! (_/|:|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3? (_/|:|_)./ _)\<close> [0, 0, 10] 10)
 
 syntax
-  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>(_/|\<in>|_)./ _)" [0, 0, 10] 10)
-  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>(_/|\<in>|_)./ _)" [0, 0, 10] 10)
+  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_fBall" \<rightleftharpoons> FSet.Ball and
@@ -243,7 +243,7 @@ by (simp add: finite_subset)
 
 lift_definition fcard :: "'a fset \<Rightarrow> nat" is card parametric card_transfer .
 
-lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" (infixr "|`|" 90) is image
+lift_definition fimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" (infixr \<open>|`|\<close> 90) is image
   parametric image_transfer by simp
 
 lift_definition fthe_elem :: "'a fset \<Rightarrow> 'a" is the_elem .
@@ -1905,7 +1905,7 @@ subsection \<open>Quickcheck setup\<close>
 
 text \<open>Setup adapted from sets.\<close>
 
-notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
+notation Quickcheck_Exhaustive.orelse (infixr \<open>orelse\<close> 55)
 
 context
   includes term_syntax
@@ -1939,7 +1939,7 @@ instance ..
 
 end
 
-no_notation Quickcheck_Exhaustive.orelse (infixr "orelse" 55)
+no_notation Quickcheck_Exhaustive.orelse (infixr \<open>orelse\<close> 55)
 
 instantiation fset :: (random) random
 begin

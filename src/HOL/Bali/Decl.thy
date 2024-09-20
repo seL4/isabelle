@@ -456,21 +456,21 @@ definition
   where "subcls1 G = {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
 abbreviation
-  subcls1_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<prec>\<^sub>C1_"  [71,71,71] 70)
+  subcls1_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<prec>\<^sub>C1_\<close>  [71,71,71] 70)
   where "G\<turnstile>C \<prec>\<^sub>C1 D == (C,D) \<in> subcls1 G"
 
 abbreviation
-  subclseq_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<preceq>\<^sub>C _"  [71,71,71] 70) 
+  subclseq_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<preceq>\<^sub>C _\<close>  [71,71,71] 70) 
   where "G\<turnstile>C \<preceq>\<^sub>C D == (C,D) \<in>(subcls1 G)\<^sup>*" (* cf. 8.1.3 *)
 
 abbreviation
-  subcls_syntax :: "prog => [qtname, qtname] => bool" ("_\<turnstile>_\<prec>\<^sub>C _"  [71,71,71] 70)
+  subcls_syntax :: "prog => [qtname, qtname] => bool" (\<open>_\<turnstile>_\<prec>\<^sub>C _\<close>  [71,71,71] 70)
   where "G\<turnstile>C \<prec>\<^sub>C D == (C,D) \<in>(subcls1 G)\<^sup>+"
 
 notation (ASCII)
-  subcls1_syntax  ("_|-_<:C1_" [71,71,71] 70) and
-  subclseq_syntax  ("_|-_<=:C _"[71,71,71] 70) and
-  subcls_syntax  ("_|-_<:C _"[71,71,71] 70)
+  subcls1_syntax  (\<open>_|-_<:C1_\<close> [71,71,71] 70) and
+  subclseq_syntax  (\<open>_|-_<=:C _\<close>[71,71,71] 70) and
+  subcls_syntax  (\<open>_|-_<:C _\<close>[71,71,71] 70)
 
 lemma subint1I: "\<lbrakk>iface G I = Some i; J \<in> set (isuperIfs i)\<rbrakk> 
                  \<Longrightarrow> (I,J) \<in> subint1 G" 

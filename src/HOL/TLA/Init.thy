@@ -25,8 +25,8 @@ definition Initial :: "('w::world \<Rightarrow> bool) \<Rightarrow> temporal"
   where Init_def: "Initial F sigma = F (first_world sigma)"
 
 syntax
-  "_TEMP"    :: "lift \<Rightarrow> 'a"                          ("(TEMP _)")
-  "_Init"    :: "lift \<Rightarrow> lift"                        ("(Init _)"[40] 50)
+  "_TEMP"    :: "lift \<Rightarrow> 'a"                          (\<open>(TEMP _)\<close>)
+  "_Init"    :: "lift \<Rightarrow> lift"                        (\<open>(Init _)\<close>[40] 50)
 translations
   "TEMP F"   => "(F::behavior \<Rightarrow> _)"
   "_Init"    == "CONST Initial"

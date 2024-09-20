@@ -473,7 +473,7 @@ by(induction xs ys arbitrary: ps rule: longest_common_prefix.induct)
 
 subsection \<open>Parallel lists\<close>
 
-definition parallel :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl "\<parallel>" 50)
+definition parallel :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infixl \<open>\<parallel>\<close> 50)
   where "(xs \<parallel> ys) = (\<not> prefix xs ys \<and> \<not> prefix ys xs)"
 
 lemma parallelI [intro]: "\<not> prefix xs ys \<Longrightarrow> \<not> prefix ys xs \<Longrightarrow> xs \<parallel> ys"

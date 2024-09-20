@@ -26,8 +26,8 @@ lemma subset_insertD: "A \<subseteq> insert x B \<Longrightarrow> A \<subseteq> 
    apply fast+
   done
 
-abbreviation nat3 :: nat  ("3") where "3 \<equiv> Suc 2"
-abbreviation nat4 :: nat  ("4") where "4 \<equiv> Suc 3"
+abbreviation nat3 :: nat  (\<open>3\<close>) where "3 \<equiv> Suc 2"
+abbreviation nat4 :: nat  (\<open>4\<close>) where "4 \<equiv> Suc 3"
 
 (* irrefl_tranclI in Transitive_Closure.thy is more general *)
 lemma irrefl_tranclI': "r\<inverse> \<inter> r\<^sup>+ = {} \<Longrightarrow> \<forall>x. (x, x) \<notin> r\<^sup>+"
@@ -144,7 +144,7 @@ lemma All_Ex_refl_eq1 [simp]: "(\<forall>x. (\<exists>b. x = f b) \<longrightarr
 
 subsubsection "sums"
 
-notation case_sum  (infixr "'(+')" 80)
+notation case_sum  (infixr \<open>'(+')\<close> 80)
 
 primrec the_Inl :: "'a + 'b \<Rightarrow> 'a"
   where "the_Inl (Inl a) = a"
@@ -188,12 +188,12 @@ fun sum3_instantiate ctxt thm =
 subsubsection "quantifiers for option type"
 
 syntax
-  "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3! _:_:/ _)" [0,0,10] 10)
-  "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3? _:_:/ _)" [0,0,10] 10)
+  "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   (\<open>(3! _:_:/ _)\<close> [0,0,10] 10)
+  "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   (\<open>(3? _:_:/ _)\<close> [0,0,10] 10)
 
 syntax (symbols)
-  "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3\<forall>_\<in>_:/ _)"  [0,0,10] 10)
-  "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
+  "_Oall" :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   (\<open>(3\<forall>_\<in>_:/ _)\<close>  [0,0,10] 10)
+  "_Oex"  :: "[pttrn, 'a option, bool] \<Rightarrow> bool"   (\<open>(3\<exists>_\<in>_:/ _)\<close>  [0,0,10] 10)
 
 syntax_consts
   "_Oall" \<rightleftharpoons> Ball and
@@ -260,7 +260,7 @@ definition lsplit :: "[['a, 'a list] \<Rightarrow> 'b, 'a list] \<Rightarrow> 'b
 
 text \<open>list patterns -- extends pre-defined type "pttrn" used in abstractions\<close>
 syntax
-  "_lpttrn" :: "[pttrn, pttrn] \<Rightarrow> pttrn"    ("_#/_" [901,900] 900)
+  "_lpttrn" :: "[pttrn, pttrn] \<Rightarrow> pttrn"    (\<open>_#/_\<close> [901,900] 900)
 syntax_consts
   "_lpttrn" \<rightleftharpoons> lsplit
 translations

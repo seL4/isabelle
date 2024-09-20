@@ -683,8 +683,8 @@ context
   fixes piecewise_C1 :: "('real :: {one,zero,ord} \<Rightarrow> 'a :: {one,zero,ord}) \<Rightarrow> 'real set \<Rightarrow> bool"  and
      joinpaths :: "('real \<Rightarrow> 'a) \<Rightarrow> ('real \<Rightarrow> 'a) \<Rightarrow> 'real \<Rightarrow> 'a"
 begin
-notation piecewise_C1 (infixr "piecewise'_C1'_differentiable'_on" 50)
-notation joinpaths (infixr "+++" 75)
+notation piecewise_C1 (infixr \<open>piecewise'_C1'_differentiable'_on\<close> 50)
+notation joinpaths (infixr \<open>+++\<close> 75)
 
 lemma
    \<open>(\<And>v1. \<forall>v0. (rec_join v0 = v1 \<and>
@@ -823,7 +823,7 @@ context
     ground_resolution :: "'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" and
     is_least_false_clause :: "'afset \<Rightarrow> 'a \<Rightarrow> bool" and
     fset :: "'afset \<Rightarrow> 'a set" and
-    union_fset :: "'afset \<Rightarrow> 'afset \<Rightarrow> 'afset" (infixr "|\<union>|" 50)
+    union_fset :: "'afset \<Rightarrow> 'afset \<Rightarrow> 'afset" (infixr \<open>|\<union>|\<close> 50)
 begin
 term "a |\<union>| b"
 

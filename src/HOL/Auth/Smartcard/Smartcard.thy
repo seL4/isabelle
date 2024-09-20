@@ -42,7 +42,7 @@ where
   shrK_disj_pin [iff]:  "shrK P \<noteq> pin Q" and
   crdK_disj_pin [iff]:   "crdK C \<noteq> pin P"
 
-definition legalUse :: "card => bool" ("legalUse (_)") where
+definition legalUse :: "card => bool" (\<open>legalUse (_)\<close>) where
   "legalUse C == C \<notin> stolen"
 
 primrec illegalUse :: "card  => bool" where

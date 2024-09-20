@@ -16,13 +16,13 @@ datatype
   exp = N nat
       | X loc
       | Op "nat => nat => nat" exp exp
-      | valOf com exp          ("VALOF _ RESULTIS _"  60)
+      | valOf com exp          (\<open>VALOF _ RESULTIS _\<close>  60)
 and
   com = SKIP
-      | Assign loc exp         (infixl ":=" 60)
-      | Semi com com           ("_;;_"  [60, 60] 60)
-      | Cond exp com com       ("IF _ THEN _ ELSE _"  60)
-      | While exp com          ("WHILE _ DO _"  60)
+      | Assign loc exp         (infixl \<open>:=\<close> 60)
+      | Semi com com           (\<open>_;;_\<close>  [60, 60] 60)
+      | Cond exp com com       (\<open>IF _ THEN _ ELSE _\<close>  60)
+      | While exp com          (\<open>WHILE _ DO _\<close>  60)
 
 
 subsection \<open>Commands\<close>
@@ -30,7 +30,7 @@ subsection \<open>Commands\<close>
 text\<open>Execution of commands\<close>
 
 abbreviation (input)
-  generic_rel  ("_/ -|[_]-> _" [50,0,50] 50)  where
+  generic_rel  (\<open>_/ -|[_]-> _\<close> [50,0,50] 50)  where
   "esig -|[eval]-> ns == (esig,ns) \<in> eval"
 
 text\<open>Command execution.  Natural numbers represent Booleans: 0=True, 1=False\<close>
@@ -38,7 +38,7 @@ text\<open>Command execution.  Natural numbers represent Booleans: 0=True, 1=Fal
 inductive_set
   exec :: "((exp*state) * (nat*state)) set => ((com*state)*state)set"
   and exec_rel :: "com * state => ((exp*state) * (nat*state)) set => state => bool"
-    ("_/ -[_]-> _" [50,0,50] 50)
+    (\<open>_/ -[_]-> _\<close> [50,0,50] 50)
   for eval :: "((exp*state) * (nat*state)) set"
   where
     "csig -[eval]-> s == (csig,s) \<in> exec eval"
@@ -108,7 +108,7 @@ text\<open>Evaluation of arithmetic expressions\<close>
 
 inductive_set
   eval    :: "((exp*state) * (nat*state)) set"
-  and eval_rel :: "[exp*state,nat*state] => bool"  (infixl "-|->" 50)
+  and eval_rel :: "[exp*state,nat*state] => bool"  (infixl \<open>-|->\<close> 50)
   where
     "esig -|-> ns == (esig, ns) \<in> eval"
 

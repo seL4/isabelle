@@ -92,7 +92,7 @@ lemma in_intervalI:
   "x \<in>\<^sub>i X" if "lower X \<le> x" "x \<le> upper X"
   using that by (auto simp: set_of_eq)
 
-abbreviation in_real_interval ("(_/ \<in>\<^sub>r _)" [51, 51] 50) where
+abbreviation in_real_interval (\<open>(_/ \<in>\<^sub>r _)\<close> [51, 51] 50) where
   "x \<in>\<^sub>r X \<equiv> x \<in>\<^sub>i real_interval X"
 
 lemma in_real_intervalI:
@@ -149,15 +149,15 @@ lemma lower_Interval: "lower (Interval x) = fst x"
   by (auto simp: lower_def upper_def Interval_inverse split_beta')
 
 definition all_in_i :: "'a::preorder list \<Rightarrow> 'a interval list \<Rightarrow> bool"
-  (infix "(all'_in\<^sub>i)" 50)
+  (infix \<open>(all'_in\<^sub>i)\<close> 50)
   where "x all_in\<^sub>i I = (length x = length I \<and> (\<forall>i < length I. x ! i \<in>\<^sub>i I ! i))"
 
 definition all_in :: "real list \<Rightarrow> float interval list \<Rightarrow> bool"
-  (infix "(all'_in)" 50)
+  (infix \<open>(all'_in)\<close> 50)
   where "x all_in I = (length x = length I \<and> (\<forall>i < length I. x ! i \<in>\<^sub>r I ! i))"
 
 definition all_subset :: "'a::order interval list \<Rightarrow> 'a interval list \<Rightarrow> bool"
-  (infix "(all'_subset)" 50)
+  (infix \<open>(all'_subset)\<close> 50)
   where "I all_subset J = (length I = length J \<and> (\<forall>i < length I. set_of (I!i) \<subseteq> set_of (J!i)))"
 
 lemmas [simp] = all_in_def all_subset_def

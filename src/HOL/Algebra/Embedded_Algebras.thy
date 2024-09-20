@@ -38,7 +38,7 @@ subsubsection \<open>Syntactic Definitions\<close>
 abbreviation (in ring) dependent ::  "'a set \<Rightarrow> 'a list \<Rightarrow> bool"
   where "dependent K U \<equiv> \<not> independent K U"
 
-definition over :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixl "over" 65)
+definition over :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" (infixl \<open>over\<close> 65)
   where "f over a = f a"
 
 

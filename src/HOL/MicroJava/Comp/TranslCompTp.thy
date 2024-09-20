@@ -9,7 +9,7 @@ begin
 (**********************************************************************)
 
 definition comb :: "['a \<Rightarrow> 'b list \<times> 'c, 'c \<Rightarrow> 'b list \<times> 'd, 'a] \<Rightarrow> 'b list \<times> 'd"
-  (infixr "\<box>" 55)
+  (infixr \<open>\<box>\<close> 55)
 where 
   "comb == (\<lambda> f1 f2 x0. let (xs1, x1) = f1 x0; 
                             (xs2, x2) = f2 x1 

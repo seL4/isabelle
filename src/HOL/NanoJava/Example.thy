@@ -49,13 +49,13 @@ axiomatization where
 subsection "Program representation"
 
 axiomatization 
-  N    :: cname ("Nat") (* with mixfix because of clash with NatDef.Nat *)
+  N    :: cname (\<open>Nat\<close>) (* with mixfix because of clash with NatDef.Nat *)
   and pred :: fname
   and suc add :: mname
   and any  :: vname
 
 abbreviation
-  dummy :: expr ("<>")
+  dummy :: expr (\<open><>\<close>)
   where "<> == LAcc any"
 
 abbreviation
@@ -92,7 +92,7 @@ by (simp add: new_obj_def init_vars_def upd_obj_def Let_def)
 
 subsection "``atleast'' relation for interpretation of Nat ``values''"
 
-primrec Nat_atleast :: "state \<Rightarrow> val \<Rightarrow> nat \<Rightarrow> bool" ("_:_ \<ge> _" [51, 51, 51] 50) where
+primrec Nat_atleast :: "state \<Rightarrow> val \<Rightarrow> nat \<Rightarrow> bool" (\<open>_:_ \<ge> _\<close> [51, 51, 51] 50) where
   "s:x\<ge>0     = (x\<noteq>Null)"
 | "s:x\<ge>Suc n = (\<exists>a. x=Addr a \<and> heap s a \<noteq> None \<and> s:get_field s a pred\<ge>n)"
 

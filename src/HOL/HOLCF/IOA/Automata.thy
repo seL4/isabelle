@@ -26,7 +26,7 @@ definition starts_of :: "('a, 's) ioa \<Rightarrow> 's set"
 definition trans_of :: "('a, 's) ioa \<Rightarrow> ('a, 's) transition set"
   where "trans_of = fst \<circ> snd \<circ> snd"
 
-abbreviation trans_of_syn  ("_ \<midarrow>_\<midarrow>_\<rightarrow> _" [81, 81, 81, 81] 100)
+abbreviation trans_of_syn  (\<open>_ \<midarrow>_\<midarrow>_\<rightarrow> _\<close> [81, 81, 81, 81] 100)
   where "s \<midarrow>a\<midarrow>A\<rightarrow> t \<equiv> (s, a, t) \<in> trans_of A"
 
 definition wfair_of :: "('a, 's) ioa \<Rightarrow> 'a set set"
@@ -91,7 +91,7 @@ definition asig_comp :: "'a signature \<Rightarrow> 'a signature \<Rightarrow> '
        (outputs a1 \<union> outputs a2),
        (internals a1 \<union> internals a2)))"
 
-definition par :: "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> ('a, 's * 't) ioa"  (infixr "\<parallel>" 10)
+definition par :: "('a, 's) ioa \<Rightarrow> ('a, 't) ioa \<Rightarrow> ('a, 's * 't) ioa"  (infixr \<open>\<parallel>\<close> 10)
   where "(A \<parallel> B) =
     (asig_comp (asig_of A) (asig_of B),
      {pr. fst pr \<in> starts_of A \<and> snd pr \<in> starts_of B},

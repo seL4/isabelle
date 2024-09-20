@@ -14,7 +14,7 @@ default_sort cpo
 
 subsection \<open>Definition of new type for lifting\<close>
 
-datatype 'a u  ("(_\<^sub>\<bottom>)" [1000] 999) = Ibottom | Iup 'a
+datatype 'a u  (\<open>(_\<^sub>\<bottom>)\<close> [1000] 999) = Ibottom | Iup 'a
 
 primrec Ifup :: "('a \<rightarrow> 'b::pcpo) \<Rightarrow> 'a u \<Rightarrow> 'b"
   where

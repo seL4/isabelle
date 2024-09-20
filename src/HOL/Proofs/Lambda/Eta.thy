@@ -18,7 +18,7 @@ where
   | "free (Abs s) i = free s (i + 1)"
 
 inductive
-  eta :: "[dB, dB] => bool"  (infixl "\<rightarrow>\<^sub>\<eta>" 50)
+  eta :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<eta>\<close> 50)
 where
     eta [simp, intro]: "\<not> free s 0 ==> Abs (s \<degree> Var 0) \<rightarrow>\<^sub>\<eta> s[dummy/0]"
   | appL [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> s \<degree> u \<rightarrow>\<^sub>\<eta> t \<degree> u"
@@ -26,11 +26,11 @@ where
   | abs [simp, intro]: "s \<rightarrow>\<^sub>\<eta> t ==> Abs s \<rightarrow>\<^sub>\<eta> Abs t"
 
 abbreviation
-  eta_reds :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>*" 50) where
+  eta_reds :: "[dB, dB] => bool"   (infixl \<open>\<rightarrow>\<^sub>\<eta>\<^sup>*\<close> 50) where
   "s \<rightarrow>\<^sub>\<eta>\<^sup>* t == eta\<^sup>*\<^sup>* s t"
 
 abbreviation
-  eta_red0 :: "[dB, dB] => bool"   (infixl "\<rightarrow>\<^sub>\<eta>\<^sup>=" 50) where
+  eta_red0 :: "[dB, dB] => bool"   (infixl \<open>\<rightarrow>\<^sub>\<eta>\<^sup>=\<close> 50) where
   "s \<rightarrow>\<^sub>\<eta>\<^sup>= t == eta\<^sup>=\<^sup>= s t"
 
 inductive_cases eta_cases [elim!]:

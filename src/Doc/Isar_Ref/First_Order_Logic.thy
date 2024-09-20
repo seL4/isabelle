@@ -16,7 +16,7 @@ text \<open>
 typedecl i
 typedecl o
 
-judgment Trueprop :: "o \<Rightarrow> prop"    ("_" 5)
+judgment Trueprop :: "o \<Rightarrow> prop"    (\<open>_\<close> 5)
 
 text \<open>
   Note that the object-logic judgment is implicit in the syntax: writing
@@ -35,7 +35,7 @@ text \<open>
   \<open>B x\<close> against expressions containing occurrences of \<open>x\<close>.
 \<close>
 
-axiomatization equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix "=" 50)
+axiomatization equal :: "i \<Rightarrow> i \<Rightarrow> o"  (infix \<open>=\<close> 50)
   where refl [intro]: "x = x"
     and subst [elim]: "x = y \<Longrightarrow> B x \<Longrightarrow> B y"
 
@@ -87,9 +87,9 @@ text \<open>
 \<close>
 
 locale group =
-  fixes prod :: "i \<Rightarrow> i \<Rightarrow> i"  (infix "\<circ>" 70)
-    and inv :: "i \<Rightarrow> i"  ("(_\<inverse>)" [1000] 999)
-    and unit :: i  ("1")
+  fixes prod :: "i \<Rightarrow> i \<Rightarrow> i"  (infix \<open>\<circ>\<close> 70)
+    and inv :: "i \<Rightarrow> i"  (\<open>(_\<inverse>)\<close> [1000] 999)
+    and unit :: i  (\<open>1\<close>)
   assumes assoc: "(x \<circ> y) \<circ> z = x \<circ> (y \<circ> z)"
     and left_unit:  "1 \<circ> x = x"
     and left_inv: "x\<inverse> \<circ> x = 1"
@@ -167,16 +167,16 @@ text \<open>
   Gentzen's system of Natural Deduction \<^cite>\<open>"Gentzen:1935"\<close>.
 \<close>
 
-axiomatization imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<longrightarrow>" 25)
+axiomatization imp :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr \<open>\<longrightarrow>\<close> 25)
   where impI [intro]: "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"
     and impD [dest]: "(A \<longrightarrow> B) \<Longrightarrow> A \<Longrightarrow> B"
 
-axiomatization disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30)
+axiomatization disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr \<open>\<or>\<close> 30)
   where disjI\<^sub>1 [intro]: "A \<Longrightarrow> A \<or> B"
     and disjI\<^sub>2 [intro]: "B \<Longrightarrow> A \<or> B"
     and disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
 
-axiomatization conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35)
+axiomatization conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr \<open>\<and>\<close> 35)
   where conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B"
     and conjD\<^sub>1: "A \<and> B \<Longrightarrow> A"
     and conjD\<^sub>2: "A \<and> B \<Longrightarrow> B"
@@ -223,10 +223,10 @@ text \<open>
   that is trivially true.
 \<close>
 
-axiomatization false :: o  ("\<bottom>")
+axiomatization false :: o  (\<open>\<bottom>\<close>)
   where falseE [elim]: "\<bottom> \<Longrightarrow> A"
 
-definition true :: o  ("\<top>")
+definition true :: o  (\<open>\<top>\<close>)
   where "\<top> \<equiv> \<bottom> \<longrightarrow> \<bottom>"
 
 theorem trueI [intro]: \<top>
@@ -237,7 +237,7 @@ text \<open>
   Now negation represents an implication towards absurdity:
 \<close>
 
-definition not :: "o \<Rightarrow> o"  ("\<not> _" [40] 40)
+definition not :: "o \<Rightarrow> o"  (\<open>\<not> _\<close> [40] 40)
   where "\<not> A \<equiv> A \<longrightarrow> \<bottom>"
 
 theorem notI [intro]:
@@ -320,11 +320,11 @@ text \<open>
   notation turns \<open>All (\<lambda>x. B x)\<close> into \<open>\<forall>x. B x\<close> etc.
 \<close>
 
-axiomatization All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<forall>" 10)
+axiomatization All :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder \<open>\<forall>\<close> 10)
   where allI [intro]: "(\<And>x. B x) \<Longrightarrow> \<forall>x. B x"
     and allD [dest]: "(\<forall>x. B x) \<Longrightarrow> B a"
 
-axiomatization Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder "\<exists>" 10)
+axiomatization Ex :: "(i \<Rightarrow> o) \<Rightarrow> o"  (binder \<open>\<exists>\<close> 10)
   where exI [intro]: "B a \<Longrightarrow> (\<exists>x. B x)"
     and exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 

@@ -14,11 +14,11 @@ text \<open>Terms and Types\<close>
 nominal_datatype lam = 
     Var "name"
   | App "lam" "lam"
-  | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
+  | Lam "\<guillemotleft>name\<guillemotright>lam" (\<open>Lam [_]._\<close> [100,100] 100)
 
 nominal_datatype ty =
     TVar "string"
-  | TArr "ty" "ty" ("_ \<rightarrow> _" [100,100] 100)
+  | TArr "ty" "ty" (\<open>_ \<rightarrow> _\<close> [100,100] 100)
 
 lemma ty_fresh:
   fixes x::"name"
@@ -42,7 +42,7 @@ equivariance valid
 text\<open>Typing judgements\<close>
 
 inductive
-  typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" ("_ \<turnstile> _ : _" [60,60,60] 60) 
+  typing :: "(name\<times>ty) list\<Rightarrow>lam\<Rightarrow>ty\<Rightarrow>bool" (\<open>_ \<turnstile> _ : _\<close> [60,60,60] 60) 
 where
     t_Var[intro]: "\<lbrakk>valid \<Gamma>; (x,T)\<in>set \<Gamma>\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : T"
   | t_App[intro]: "\<lbrakk>\<Gamma> \<turnstile> t1 : T1\<rightarrow>T2; \<Gamma> \<turnstile> t2 : T1\<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : T2"
@@ -60,7 +60,7 @@ nominal_inductive typing
 text \<open>Abbreviation for the notion of subcontexts.\<close>
 
 abbreviation
-  "sub_context" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" ("_ \<subseteq> _" [60,60] 60) 
+  "sub_context" :: "(name\<times>ty) list \<Rightarrow> (name\<times>ty) list \<Rightarrow> bool" (\<open>_ \<subseteq> _\<close> [60,60] 60) 
 where
   "\<Gamma>1 \<subseteq> \<Gamma>2 \<equiv> \<forall>x T. (x,T)\<in>set \<Gamma>1 \<longrightarrow> (x,T)\<in>set \<Gamma>2"
 

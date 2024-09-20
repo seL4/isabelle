@@ -19,7 +19,7 @@ text \<open>'a is a contravariant type variable and we are able to map over this
   in the following four definitions. This example is based on HOL/Fun.thy.\<close>
 
 quotient_type
-('a, 'b) fun' (infixr "\<rightarrow>" 55) = "'a \<Rightarrow> 'b" / "(=)" 
+('a, 'b) fun' (infixr \<open>\<rightarrow>\<close> 55) = "'a \<Rightarrow> 'b" / "(=)" 
   by (simp add: identity_equivp)
 
 quotient_definition "comp' :: ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'c"  is

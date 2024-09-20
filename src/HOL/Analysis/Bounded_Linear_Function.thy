@@ -116,7 +116,7 @@ attribute_setup bounded_bilinear =
 
 subsection \<open>Type of bounded linear functions\<close>
 
-typedef\<^marker>\<open>tag important\<close> (overloaded) ('a, 'b) blinfun ("(_ \<Rightarrow>\<^sub>L /_)" [22, 21] 21) =
+typedef\<^marker>\<open>tag important\<close> (overloaded) ('a, 'b) blinfun (\<open>(_ \<Rightarrow>\<^sub>L /_)\<close> [22, 21] 21) =
   "{f::'a::real_normed_vector\<Rightarrow>'b::real_normed_vector. bounded_linear f}"
   morphisms blinfun_apply Blinfun
   by (blast intro: bounded_linear_intros)
@@ -663,7 +663,7 @@ lemma blinfun_apply_snd_blinfun[simp]: "blinfun_apply snd_blinfun = snd"
 lift_definition blinfun_compose::
   "'a::real_normed_vector \<Rightarrow>\<^sub>L 'b::real_normed_vector \<Rightarrow>
     'c::real_normed_vector \<Rightarrow>\<^sub>L 'a \<Rightarrow>
-    'c \<Rightarrow>\<^sub>L 'b" (infixl "o\<^sub>L" 55) is "(o)"
+    'c \<Rightarrow>\<^sub>L 'b" (infixl \<open>o\<^sub>L\<close> 55) is "(o)"
   parametric comp_transfer
   unfolding o_def
   by (rule bounded_linear_compose)

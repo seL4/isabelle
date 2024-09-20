@@ -320,7 +320,7 @@ corollary\<^marker>\<open>tag unimportant\<close> One_neq_0[iff]: "One \<noteq> 
 corollary\<^marker>\<open>tag unimportant\<close> Zero_neq_One[iff]: "0 \<noteq> One"
   by (metis One_non_0)
 
-definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix "<e" 50) where 
+definition\<^marker>\<open>tag important\<close> (in euclidean_space) eucl_less (infix \<open><e\<close> 50) where 
 "eucl_less a b \<longleftrightarrow> (\<forall>i\<in>Basis. a \<bullet> i < b \<bullet> i)"
 
 definition\<^marker>\<open>tag important\<close> box_eucl_less: "box a b = {x. a <e x \<and> x <e b}"
@@ -2485,6 +2485,6 @@ proof (cases "A = {}")
 qed auto
 
 no_notation
-  eucl_less (infix "<e" 50)
+  eucl_less (infix \<open><e\<close> 50)
 
 end

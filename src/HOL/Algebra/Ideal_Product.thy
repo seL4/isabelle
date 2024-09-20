@@ -11,7 +11,7 @@ section \<open>Product of Ideals\<close>
 text \<open>In this section, we study the structure of the set of ideals of a given ring.\<close>
 
 inductive_set
-  ideal_prod :: "[ ('a, 'b) ring_scheme, 'a set, 'a set ] \<Rightarrow> 'a set" (infixl "\<cdot>\<index>" 80)
+  ideal_prod :: "[ ('a, 'b) ring_scheme, 'a set, 'a set ] \<Rightarrow> 'a set" (infixl \<open>\<cdot>\<index>\<close> 80)
   for R and I and J (* both I and J are supposed ideals *) where
     prod: "\<lbrakk> i \<in> I; j \<in> J \<rbrakk> \<Longrightarrow> i \<otimes>\<^bsub>R\<^esub> j \<in> ideal_prod R I J"
   |  sum: "\<lbrakk> s1 \<in> ideal_prod R I J; s2 \<in> ideal_prod R I J \<rbrakk> \<Longrightarrow> s1 \<oplus>\<^bsub>R\<^esub> s2 \<in> ideal_prod R I J"

@@ -34,8 +34,8 @@ definition interfree :: "(('a ann_triple_op) list) \<Rightarrow> bool" where
                          interfree_aux (com (Ts!i), post (Ts!i), com (Ts!j)) "
 
 inductive
-  oghoare :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(3\<parallel>- _//_//_)" [90,55,90] 50)
-  and ann_hoare :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool"  ("(2\<turnstile> _// _)" [60,90] 45)
+  oghoare :: "'a assn \<Rightarrow> 'a com \<Rightarrow> 'a assn \<Rightarrow> bool"  (\<open>(3\<parallel>- _//_//_)\<close> [90,55,90] 50)
+  and ann_hoare :: "'a ann_com \<Rightarrow> 'a assn \<Rightarrow> bool"  (\<open>(2\<turnstile> _// _)\<close> [60,90] 45)
 where
   AnnBasic: "r \<subseteq> {s. f s \<in> q} \<Longrightarrow> \<turnstile> (AnnBasic r f) q"
 

@@ -20,14 +20,14 @@ text \<open>Datatype definition of combinators \<open>S\<close> and \<open>K\<cl
 
 datatype comb = K
               | S
-              | Ap comb comb (infixl "\<bullet>" 90)
+              | Ap comb comb (infixl \<open>\<bullet>\<close> 90)
 
 text \<open>
   Inductive definition of contractions, \<open>\<rightarrow>\<^sup>1\<close> and
   (multi-step) reductions, \<open>\<rightarrow>\<close>.
 \<close>
 
-inductive contract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sup>1" 50)
+inductive contract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl \<open>\<rightarrow>\<^sup>1\<close> 50)
   where
     K:     "K\<bullet>x\<bullet>y \<rightarrow>\<^sup>1 x"
   | S:     "S\<bullet>x\<bullet>y\<bullet>z \<rightarrow>\<^sup>1 (x\<bullet>z)\<bullet>(y\<bullet>z)"
@@ -35,7 +35,7 @@ inductive contract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<rightarrow>\
   | Ap2:   "x \<rightarrow>\<^sup>1 y \<Longrightarrow> z\<bullet>x \<rightarrow>\<^sup>1 z\<bullet>y"
 
 abbreviation
-  contract :: "[comb,comb] \<Rightarrow> bool"   (infixl "\<rightarrow>" 50) where
+  contract :: "[comb,comb] \<Rightarrow> bool"   (infixl \<open>\<rightarrow>\<close> 50) where
   "contract \<equiv> contract1\<^sup>*\<^sup>*"
 
 text \<open>
@@ -43,7 +43,7 @@ text \<open>
   (multi-step) parallel reductions, \<open>\<Rrightarrow>\<close>.
 \<close>
 
-inductive parcontract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<Rrightarrow>\<^sup>1" 50)
+inductive parcontract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl \<open>\<Rrightarrow>\<^sup>1\<close> 50)
   where
     refl:  "x \<Rrightarrow>\<^sup>1 x"
   | K:     "K\<bullet>x\<bullet>y \<Rrightarrow>\<^sup>1 x"
@@ -51,7 +51,7 @@ inductive parcontract1 :: "[comb,comb] \<Rightarrow> bool"  (infixl "\<Rrightarr
   | Ap:    "\<lbrakk>x \<Rrightarrow>\<^sup>1 y; z \<Rrightarrow>\<^sup>1 w\<rbrakk> \<Longrightarrow> x\<bullet>z \<Rrightarrow>\<^sup>1 y\<bullet>w"
 
 abbreviation
-  parcontract :: "[comb,comb] \<Rightarrow> bool"   (infixl "\<Rrightarrow>" 50) where
+  parcontract :: "[comb,comb] \<Rightarrow> bool"   (infixl \<open>\<Rrightarrow>\<close> 50) where
   "parcontract \<equiv> parcontract1\<^sup>*\<^sup>*"
 
 text \<open>

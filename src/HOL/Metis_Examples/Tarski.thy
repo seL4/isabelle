@@ -78,7 +78,7 @@ definition sublattice :: "('a potype * 'a set)set" where
            \<lparr>pset = S, order = induced S (order cl)\<rparr> \<in> CompleteLattice}"
 
 abbreviation
-  sublattice_syntax :: "['a set, 'a potype] => bool" ("_ <<= _" [51, 50] 50)
+  sublattice_syntax :: "['a set, 'a potype] => bool" (\<open>_ <<= _\<close> [51, 50] 50)
   where "S <<= cl \<equiv> S \<in> sublattice `` {cl}"
 
 definition dual :: "'a potype => 'a potype" where

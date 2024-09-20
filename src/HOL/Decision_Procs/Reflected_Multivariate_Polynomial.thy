@@ -13,8 +13,8 @@ subsection \<open>Datatype of polynomial expressions\<close>
 datatype poly = C Num | Bound nat | Add poly poly | Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
 
-abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub>N)"
-abbreviation poly_p :: "int \<Rightarrow> poly" ("'((_)')\<^sub>p") where "(i)\<^sub>p \<equiv> C (i)\<^sub>N"
+abbreviation poly_0 :: "poly" (\<open>0\<^sub>p\<close>) where "0\<^sub>p \<equiv> C (0\<^sub>N)"
+abbreviation poly_p :: "int \<Rightarrow> poly" (\<open>'((_)')\<^sub>p\<close>) where "(i)\<^sub>p \<equiv> C (i)\<^sub>N"
 
 
 subsection\<open>Boundedness, substitution and all that\<close>
@@ -116,7 +116,7 @@ subsection \<open>Operations for normalization\<close>
 declare if_cong[fundef_cong del]
 declare let_cong[fundef_cong del]
 
-fun polyadd :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl "+\<^sub>p" 60)
+fun polyadd :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl \<open>+\<^sub>p\<close> 60)
   where
     "polyadd (C c) (C c') = C (c +\<^sub>N c')"
   | "polyadd (C c) (CN c' n' p') = CN (polyadd (C c) c') n' p'"
@@ -131,16 +131,16 @@ fun polyadd :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl "+\<^sub>p"
         in if pp' = 0\<^sub>p then cc' else CN cc' n pp')"
   | "polyadd a b = Add a b"
 
-fun polyneg :: "poly \<Rightarrow> poly" ("~\<^sub>p")
+fun polyneg :: "poly \<Rightarrow> poly" (\<open>~\<^sub>p\<close>)
   where
     "polyneg (C c) = C (~\<^sub>N c)"
   | "polyneg (CN c n p) = CN (polyneg c) n (polyneg p)"
   | "polyneg a = Neg a"
 
-definition polysub :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl "-\<^sub>p" 60)
+definition polysub :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl \<open>-\<^sub>p\<close> 60)
   where "p -\<^sub>p q = polyadd p (polyneg q)"
 
-fun polymul :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl "*\<^sub>p" 60)
+fun polymul :: "poly \<Rightarrow> poly \<Rightarrow> poly"  (infixl \<open>*\<^sub>p\<close> 60)
   where
     "polymul (C c) (C c') = C (c *\<^sub>N c')"
   | "polymul (C c) (CN c' n' p') =
@@ -166,7 +166,7 @@ fun polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
           d = polymul q q
         in if even n then d else polymul p d)"
 
-abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly"  (infixl "^\<^sub>p" 60)
+abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly"  (infixl \<open>^\<^sub>p\<close> 60)
   where "a ^\<^sub>p k \<equiv> polypow k a"
 
 function polynate :: "poly \<Rightarrow> poly"
@@ -245,7 +245,7 @@ primrec Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0,pow
   | "Ipoly bs (Pw t n) = Ipoly bs t ^ n"
   | "Ipoly bs (CN c n p) = Ipoly bs c + (bs!n) * Ipoly bs p"
 
-abbreviation Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{field_char_0,power}"  ("\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>")
+abbreviation Ipoly_syntax :: "poly \<Rightarrow> 'a list \<Rightarrow>'a::{field_char_0,power}"  (\<open>\<lparr>_\<rparr>\<^sub>p\<^bsup>_\<^esup>\<close>)
   where "\<lparr>p\<rparr>\<^sub>p\<^bsup>bs\<^esup> \<equiv> Ipoly bs p"
 
 lemma Ipoly_CInt: "Ipoly bs (C (i, 1)) = of_int i"

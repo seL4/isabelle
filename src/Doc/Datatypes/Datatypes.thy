@@ -361,8 +361,8 @@ default names \<open>is_Nil\<close>, \<open>un_Cons1\<close>, \<open>un_Cons2\<c
       "[x]" == "x # []"
 
     no_notation
-      Nil ("[]") and
-      Cons (infixr "#" 65)
+      Nil (\<open>[]\<close>) and
+      Cons (infixr \<open>#\<close> 65)
 
     hide_type list
     hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list list_all
@@ -436,13 +436,13 @@ constructors. For example:
 (*<*)
     end
 (*>*)
-    datatype ('a, 'b) prod (infixr "*" 20) = Pair 'a 'b
+    datatype ('a, 'b) prod (infixr \<open>*\<close> 20) = Pair 'a 'b
 
 text \<open>\blankline\<close>
 
     datatype (set: 'a) list =
-      null: Nil ("[]")
-    | Cons (hd: 'a) (tl: "'a list") (infixr "#" 65)
+      null: Nil (\<open>[]\<close>)
+    | Cons (hd: 'a) (tl: "'a list") (infixr \<open>#\<close> 65)
     for
       map: map
       rel: list_all2
@@ -453,7 +453,7 @@ text \<open>
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
 
-    syntax "_list" :: "list_args \<Rightarrow> 'a list" ("[(_)]")
+    syntax "_list" :: "list_args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
 
 text \<open>\blankline\<close>
 

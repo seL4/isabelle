@@ -49,7 +49,7 @@ value "vars (Less (Plus (V ''z'') (V ''y'')) (V ''x''))"
 
 abbreviation
   eq_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool"
- ("(_ =/ _/ on _)" [50,0,50] 50) where
+ (\<open>(_ =/ _/ on _)\<close> [50,0,50] 50) where
 "f = g on X == \<forall> x \<in> X. f x = g x"
 
 lemma aval_eq_if_eq_on_vars[simp]:

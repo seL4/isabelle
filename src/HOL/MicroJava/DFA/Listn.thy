@@ -17,12 +17,12 @@ definition le :: "'a ord \<Rightarrow> ('a list)ord" where
 
 abbreviation
   lesublist_syntax :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
-       ("(_ /<=[_] _)" [50, 0, 51] 50)
+       (\<open>(_ /<=[_] _)\<close> [50, 0, 51] 50)
   where "x <=[r] y == x <=_(le r) y"
 
 abbreviation
   lesssublist_syntax :: "'a list \<Rightarrow> 'a ord \<Rightarrow> 'a list \<Rightarrow> bool"
-       ("(_ /<[_] _)" [50, 0, 51] 50)
+       (\<open>(_ /<[_] _)\<close> [50, 0, 51] 50)
   where "x <[r] y == x <_(le r) y"
 
 definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
@@ -30,7 +30,7 @@ definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list
 
 abbreviation
   plussublist_syntax :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b list \<Rightarrow> 'c list"
-       ("(_ /+[_] _)" [65, 0, 66] 65)
+       (\<open>(_ /+[_] _)\<close> [65, 0, 66] 65)
   where "x +[f] y == x +_(map2 f) y"
 
 primrec coalesce :: "'a err list \<Rightarrow> 'a list err" where

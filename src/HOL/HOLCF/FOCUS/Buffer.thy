@@ -26,10 +26,10 @@ begin
 typedecl D
 
 datatype
-  M     = Md D | Mreq ("\<bullet>")
+  M     = Md D | Mreq (\<open>\<bullet>\<close>)
 
 datatype
-  State = Sd D | Snil ("\<currency>")
+  State = Sd D | Snil (\<open>\<currency>\<close>)
 
 type_synonym
   SPF11         = "M fstream \<rightarrow> D fstream"

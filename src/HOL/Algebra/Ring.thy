@@ -13,8 +13,8 @@ section \<open>The Algebraic Hierarchy of Rings\<close>
 subsection \<open>Abelian Groups\<close>
 
 record 'a ring = "'a monoid" +
-  zero :: 'a ("\<zero>\<index>")
-  add :: "['a, 'a] \<Rightarrow> 'a" (infixl "\<oplus>\<index>" 65)
+  zero :: 'a (\<open>\<zero>\<index>\<close>)
+  add :: "['a, 'a] \<Rightarrow> 'a" (infixl \<open>\<oplus>\<index>\<close> 65)
 
 abbreviation
   add_monoid :: "('a, 'm) ring_scheme \<Rightarrow> ('a, 'm) monoid_scheme"
@@ -23,15 +23,15 @@ abbreviation
 text \<open>Derived operations.\<close>
 
 definition
-  a_inv :: "[('a, 'm) ring_scheme, 'a ] \<Rightarrow> 'a" ("\<ominus>\<index> _" [81] 80)
+  a_inv :: "[('a, 'm) ring_scheme, 'a ] \<Rightarrow> 'a" (\<open>\<ominus>\<index> _\<close> [81] 80)
   where "a_inv R = m_inv (add_monoid R)"
 
 definition
-  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" ("(_ \<ominus>\<index> _)" [65,66] 65)
+  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (\<open>(_ \<ominus>\<index> _)\<close> [65,66] 65)
   where "x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 definition
-  add_pow :: "[_, ('b :: semiring_1), 'a] \<Rightarrow> 'a" ("[_] \<cdot>\<index> _" [81, 81] 80)
+  add_pow :: "[_, ('b :: semiring_1), 'a] \<Rightarrow> 'a" (\<open>[_] \<cdot>\<index> _\<close> [81, 81] 80)
   where "add_pow R k a = pow (add_monoid R) a k"
 
 locale abelian_monoid =
@@ -45,7 +45,7 @@ definition
 
 syntax
   "_finsum" :: "index \<Rightarrow> idt \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"
-      ("(3\<Oplus>__\<in>_. _)" [1000, 0, 51, 10] 10)
+      (\<open>(3\<Oplus>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
 syntax_consts
   "_finsum" \<rightleftharpoons> finsum
 translations

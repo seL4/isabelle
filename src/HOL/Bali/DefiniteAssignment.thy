@@ -428,15 +428,15 @@ qed
 subsection \<open>Lifting set operations to range of tables (map to a set)\<close>
 
 definition
-  union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<union> _" [67,67] 65)
+  union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" (\<open>_ \<Rightarrow>\<union> _\<close> [67,67] 65)
   where "A \<Rightarrow>\<union> B = (\<lambda> k. A k \<union> B k)"
 
 definition
-  intersect_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<inter>  _" [72,72] 71)
+  intersect_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" (\<open>_ \<Rightarrow>\<inter>  _\<close> [72,72] 71)
   where "A \<Rightarrow>\<inter>  B = (\<lambda>k. A k \<inter> B k)"
 
 definition
-  all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40)
+  all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl \<open>\<Rightarrow>\<union>\<^sub>\<forall>\<close> 40)
   where "(A \<Rightarrow>\<union>\<^sub>\<forall> B) = (\<lambda> k. A k \<union> B)"
   
 subsubsection \<open>Binary union of tables\<close>
@@ -519,7 +519,7 @@ definition
 *)
 
 definition
-  range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80)
+  range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" (\<open>\<Rightarrow>\<Inter>_\<close> 80)
   where "\<Rightarrow>\<Inter>A = {x |x. \<forall> k. x \<in> A k}"
 
 text \<open>
@@ -532,7 +532,7 @@ distinguish boolean and other expressions.
 \<close>
 
 inductive
-  da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" ("_\<turnstile> _ \<guillemotright>_\<guillemotright> _" [65,65,65,65] 71)
+  da :: "env \<Rightarrow> lname set \<Rightarrow> term \<Rightarrow> assigned \<Rightarrow> bool" (\<open>_\<turnstile> _ \<guillemotright>_\<guillemotright> _\<close> [65,65,65,65] 71)
 where
   Skip: "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> \<lparr>nrm=B,brk=\<lambda> l. UNIV\<rparr>"
 

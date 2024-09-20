@@ -8,7 +8,7 @@ theory Extended
   imports Simps_Case_Conv
 begin
 
-datatype 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
+datatype 'a extended = Fin 'a | Pinf (\<open>\<infinity>\<close>) | Minf (\<open>-\<infinity>\<close>)
 
 
 instantiation extended :: (order)order

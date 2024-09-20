@@ -80,7 +80,7 @@ definition sublattice :: "('a potype \<times> 'a set) set"
     (SIGMA cl : CompleteLattice.
       {S. S \<subseteq> pset cl \<and> \<lparr>pset = S, order = induced S (order cl)\<rparr> \<in> CompleteLattice})"
 
-abbreviation sublat :: "['a set, 'a potype] \<Rightarrow> bool"  ("_ <<= _" [51, 50] 50)
+abbreviation sublat :: "['a set, 'a potype] \<Rightarrow> bool"  (\<open>_ <<= _\<close> [51, 50] 50)
   where "S <<= cl \<equiv> S \<in> sublattice `` {cl}"
 
 definition dual :: "'a potype \<Rightarrow> 'a potype"

@@ -13,7 +13,7 @@ section \<open>Streams\<close>
 text \<open>Lazy evaluation for streams\<close>
 
 codatatype 'a stream = 
-  SCons (shd: 'a) (stl: "'a stream") (infixr "##" 65)
+  SCons (shd: 'a) (stl: "'a stream") (infixr \<open>##\<close> 65)
 
 primcorec up :: "nat \<Rightarrow> nat stream" where
   "up n = n ## up (n + 1)"
@@ -36,14 +36,14 @@ section \<open>Finite lazy lists\<close>
 text \<open>Lazy types need not be infinite. We can also have lazy types that are finite.\<close>
 
 datatype 'a llist
-  = LNil ("\<^bold>\<lbrakk>\<^bold>\<rbrakk>") 
-  | LCons (lhd: 'a) (ltl: "'a llist") (infixr "###" 65)
+  = LNil (\<open>\<^bold>\<lbrakk>\<^bold>\<rbrakk>\<close>) 
+  | LCons (lhd: 'a) (ltl: "'a llist") (infixr \<open>###\<close> 65)
 
 nonterminal llist_args
 syntax
-  "" :: "'a \<Rightarrow> llist_args"  ("_")
-  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
-  "_llist" :: "llist_args => 'a list"    ("\<^bold>\<lbrakk>(_)\<^bold>\<rbrakk>")
+  "" :: "'a \<Rightarrow> llist_args"  (\<open>_\<close>)
+  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  (\<open>_,/ _\<close>)
+  "_llist" :: "llist_args => 'a list"    (\<open>\<^bold>\<lbrakk>(_)\<^bold>\<rbrakk>\<close>)
 syntax_consts
   "_llist_args" "_llist" == LCons
 translations
@@ -81,7 +81,7 @@ text \<open>Thanks to laziness, we do not need to program a complicated iterator
   A conversion function to lazy lists is enough.\<close>
 
 primrec lappend :: "'a llist \<Rightarrow> 'a llist \<Rightarrow> 'a llist"
-  (infixr "@@" 65) where
+  (infixr \<open>@@\<close> 65) where
   "\<^bold>\<lbrakk>\<^bold>\<rbrakk> @@ ys = ys"
 | "(x ### xs) @@ ys = x ### (xs @@ ys)"
 
@@ -113,10 +113,10 @@ activate_lazy_type llist
 section \<open>Branching datatypes\<close>
 
 datatype tree
-  = L              ("\<spadesuit>") 
-  | Node tree tree (infix "\<triangle>" 900)
+  = L              (\<open>\<spadesuit>\<close>) 
+  | Node tree tree (infix \<open>\<triangle>\<close> 900)
 
-notation (output) Node ("\<triangle>(//\<^bold>l: _//\<^bold>r: _)")
+notation (output) Node (\<open>\<triangle>(//\<^bold>l: _//\<^bold>r: _)\<close>)
 
 code_lazy_type tree
 

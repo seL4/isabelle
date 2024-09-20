@@ -176,7 +176,7 @@ text \<open>We want to be able to apply permutations to arbitrary types. To
 this end we introduce a constant \<open>PERMUTE\<close> together with
 convenient infix syntax.\<close>
 
-consts PERMUTE :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b" (infixr "\<bullet>" 75)
+consts PERMUTE :: "'a perm \<Rightarrow> 'b \<Rightarrow> 'b" (infixr \<open>\<bullet>\<close> 75)
 
 text \<open>Then we add a locale for types \<^typ>\<open>'b\<close> that support
 appliciation of permutations.\<close>

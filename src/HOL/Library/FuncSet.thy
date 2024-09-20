@@ -19,12 +19,12 @@ definition extensional :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) set"
 definition "restrict" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
   where "restrict f A = (\<lambda>x. if x \<in> A then f x else undefined)"
 
-abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr "\<rightarrow>" 60)
+abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr \<open>\<rightarrow>\<close> 60)
   where "A \<rightarrow> B \<equiv> Pi A (\<lambda>_. B)"
 
 syntax
-  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi> _\<in>_./ _)"   10)
-  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  ("(3\<lambda>_\<in>_./ _)" [0,0,3] 3)
+  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(3\<Pi> _\<in>_./ _)\<close>   10)
+  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  (\<open>(3\<lambda>_\<in>_./ _)\<close> [0,0,3] 3)
 syntax_consts
   "_Pi" \<rightleftharpoons> Pi and
   "_lam" \<rightleftharpoons> restrict
@@ -345,13 +345,13 @@ definition PiE :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 
 abbreviation "Pi\<^sub>E A B \<equiv> PiE A B"
 
 syntax
-  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  ("(3\<Pi>\<^sub>E _\<in>_./ _)" 10)
+  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(3\<Pi>\<^sub>E _\<in>_./ _)\<close> 10)
 syntax_consts
   "_PiE" \<rightleftharpoons> Pi\<^sub>E
 translations
   "\<Pi>\<^sub>E x\<in>A. B" \<rightleftharpoons> "CONST Pi\<^sub>E A (\<lambda>x. B)"
 
-abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "\<rightarrow>\<^sub>E" 60)
+abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr \<open>\<rightarrow>\<^sub>E\<close> 60)
   where "A \<rightarrow>\<^sub>E B \<equiv> (\<Pi>\<^sub>E i\<in>A. B)"
 
 lemma extensional_funcset_def: "extensional_funcset S T = (S \<rightarrow> T) \<inter> extensional S"

@@ -523,9 +523,9 @@ end
 subsection \<open>Syntax\<close>
 
 syntax
-  "_NumeralType" :: "num_token => type"  ("_")
-  "_NumeralType0" :: type ("0")
-  "_NumeralType1" :: type ("1")
+  "_NumeralType" :: "num_token => type"  (\<open>_\<close>)
+  "_NumeralType0" :: type (\<open>0\<close>)
+  "_NumeralType1" :: type (\<open>1\<close>)
 
 syntax_types
   "_NumeralType0" == num0 and

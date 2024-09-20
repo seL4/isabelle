@@ -1319,7 +1319,7 @@ apply (simp add: correct_state_def correct_frame_def split_def
 done
 
 lemma 
-  fixes G :: jvm_prog ("\<Gamma>")
+  fixes G :: jvm_prog (\<open>\<Gamma>\<close>)
   assumes wf: "wf_prog wf_mb \<Gamma>"
   shows hconf_start: "\<Gamma> \<turnstile>h (start_heap \<Gamma>) \<surd>"
   apply (unfold hconf_def start_heap_def)
@@ -1330,7 +1330,7 @@ lemma
   done
     
 lemma 
-  fixes G :: jvm_prog ("\<Gamma>") and Phi :: prog_type ("\<Phi>")
+  fixes G :: jvm_prog (\<open>\<Gamma>\<close>) and Phi :: prog_type (\<open>\<Phi>\<close>)
   shows BV_correct_initial: 
   "wt_jvm_prog \<Gamma> \<Phi> \<Longrightarrow> is_class \<Gamma> C \<Longrightarrow> method (\<Gamma>,C) (m,[]) = Some (C, b)
   \<Longrightarrow> \<Gamma>,\<Phi> \<turnstile>JVM start_state G C m \<surd>"
@@ -1347,8 +1347,8 @@ lemma
   done  
 
 theorem typesafe:
-  fixes G :: jvm_prog ("\<Gamma>")
-    and Phi :: prog_type ("\<Phi>")
+  fixes G :: jvm_prog (\<open>\<Gamma>\<close>)
+    and Phi :: prog_type (\<open>\<Phi>\<close>)
   assumes welltyped:   "wt_jvm_prog \<Gamma> \<Phi>"
     and main_method: "is_class \<Gamma> C" "method (\<Gamma>,C) (m,[]) = Some (C, b)"
     and exec_all: "G \<turnstile> start_state \<Gamma> C m \<midarrow>jvm\<rightarrow> s"

@@ -144,7 +144,7 @@ definition phi' :: "nat => nat"
   where "phi' m = card {x. 1 \<le> x \<and> x \<le> m \<and> coprime x m}"
 
 notation (latex output)
-  phi' ("\<phi> _")
+  phi' (\<open>\<phi> _\<close>)
 
 lemma phi'_nonzero:
   assumes "m > 0"

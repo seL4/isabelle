@@ -25,35 +25,35 @@ definition
   "state_not_singleton = (\<exists>s t::state. s ~= t)" (* at least two elements *)
 
 definition
-  peek_and :: "'a assn => (state => bool) => 'a assn" (infixr "&>" 35) where
+  peek_and :: "'a assn => (state => bool) => 'a assn" (infixr \<open>&>\<close> 35) where
   "peek_and P p = (%Z s. P Z s & p s)"
 
 datatype 'a triple =
-  triple "'a assn"  com  "'a assn"       ("{(1_)}./ (_)/ .{(1_)}" [3,60,3] 58)
+  triple "'a assn"  com  "'a assn"       (\<open>{(1_)}./ (_)/ .{(1_)}\<close> [3,60,3] 58)
 
 definition
-  triple_valid :: "nat => 'a triple     => bool" ( "|=_:_" [0 , 58] 57) where
+  triple_valid :: "nat => 'a triple     => bool" ( \<open>|=_:_\<close> [0 , 58] 57) where
   "|=n:t = (case t of {P}.c.{Q} =>
              \<forall>Z s. P Z s \<longrightarrow> (\<forall>s'. <c,s> -n-> s' \<longrightarrow> Q Z s'))"
 abbreviation
-  triples_valid :: "nat => 'a triple set => bool" ("||=_:_" [0 , 58] 57) where
+  triples_valid :: "nat => 'a triple set => bool" (\<open>||=_:_\<close> [0 , 58] 57) where
   "||=n:G == Ball G (triple_valid n)"
 
 definition
-  hoare_valids :: "'a triple set => 'a triple set => bool" ("_||=_"  [58, 58] 57) where
+  hoare_valids :: "'a triple set => 'a triple set => bool" (\<open>_||=_\<close>  [58, 58] 57) where
   "G||=ts = (\<forall>n. ||=n:G --> ||=n:ts)"
 abbreviation
-  hoare_valid :: "'a triple set => 'a triple     => bool" ("_|=_"   [58, 58] 57) where
+  hoare_valid :: "'a triple set => 'a triple     => bool" (\<open>_|=_\<close>   [58, 58] 57) where
   "G |=t == G||={t}"
 
 (* Most General Triples *)
 definition
-  MGT :: "com => state triple"            ("{=}._.{->}" [60] 58) where
+  MGT :: "com => state triple"            (\<open>{=}._.{->}\<close> [60] 58) where
   "{=}.c.{->} = {%Z s0. Z = s0}. c .{%Z s1. <c,Z> -c-> s1}"
 
 inductive
-  hoare_derivs :: "'a triple set => 'a triple set => bool" ("_||-_"  [58, 58] 57) and
-  hoare_deriv :: "'a triple set => 'a triple     => bool" ("_|-_"   [58, 58] 57)
+  hoare_derivs :: "'a triple set => 'a triple set => bool" (\<open>_||-_\<close>  [58, 58] 57) and
+  hoare_deriv :: "'a triple set => 'a triple     => bool" (\<open>_|-_\<close>   [58, 58] 57)
 where
   "G |-t == G||-{t}"
 

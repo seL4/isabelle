@@ -93,7 +93,7 @@ by (cases s) (simp add: throw_def)
 subsubsection "result conformance"
 
 definition
-  assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool" ("_\<le>|_\<preceq>_\<Colon>\<preceq>_" [71,71,71,71] 70)
+  assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool" (\<open>_\<le>|_\<preceq>_\<Colon>\<preceq>_\<close> [71,71,71,71] 70)
 where
   "s\<le>|f\<preceq>T\<Colon>\<preceq>E =
    ((\<forall>s' w. Norm s'\<Colon>\<preceq>E \<longrightarrow> fst E,s'\<turnstile>w\<Colon>\<preceq>T \<longrightarrow> s\<le>|s' \<longrightarrow> assign f w (Norm s')\<Colon>\<preceq>E) \<and>
@@ -101,7 +101,7 @@ where
 
 
 definition
-  rconf :: "prog \<Rightarrow> lenv \<Rightarrow> st \<Rightarrow> term \<Rightarrow> vals \<Rightarrow> tys \<Rightarrow> bool" ("_,_,_\<turnstile>_\<succ>_\<Colon>\<preceq>_" [71,71,71,71,71,71] 70)
+  rconf :: "prog \<Rightarrow> lenv \<Rightarrow> st \<Rightarrow> term \<Rightarrow> vals \<Rightarrow> tys \<Rightarrow> bool" (\<open>_,_,_\<turnstile>_\<succ>_\<Colon>\<preceq>_\<close> [71,71,71,71,71,71] 70)
 where
   "G,L,s\<turnstile>t\<succ>v\<Colon>\<preceq>T =
     (case T of
@@ -328,7 +328,7 @@ declare fun_upd_same [simp]
 declare fun_upd_apply [simp del]
 
 definition
-  DynT_prop :: "[prog,inv_mode,qtname,ref_ty] \<Rightarrow> bool" ("_\<turnstile>_\<rightarrow>_\<preceq>_"[71,71,71,71]70)
+  DynT_prop :: "[prog,inv_mode,qtname,ref_ty] \<Rightarrow> bool" (\<open>_\<turnstile>_\<rightarrow>_\<preceq>_\<close>[71,71,71,71]70)
 where
   "G\<turnstile>mode\<rightarrow>D\<preceq>t = (mode = IntVir \<longrightarrow> is_class G D \<and> 
                      (if (\<exists>T. t=ArrayT T) then D=Object else G\<turnstile>Class D\<preceq>RefT t))"

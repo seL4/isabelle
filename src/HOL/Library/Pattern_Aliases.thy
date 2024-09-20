@@ -160,7 +160,7 @@ end
 
 bundle pattern_aliases begin
 
-  notation as (infixr "=:" 1)
+  notation as (infixr \<open>=:\<close> 1)
 
   declaration \<open>K (Syntax_Phases.term_check 98 "pattern_syntax" (K (map check_pattern_syntax)))\<close>
   declaration \<open>K (Syntax_Phases.term_uncheck 98 "pattern_syntax" (map o uncheck_pattern_syntax))\<close>

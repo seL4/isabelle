@@ -17,18 +17,18 @@ text\<open>数学家能把咖啡变成理论,如今中国的数学家也可
 \<close>
 
 datatype shuzi =
-    One   ("一")
-  | Two   ("二")
-  | Three ("三") 
-  | Four  ("四")
-  | Five  ("五")
-  | Six   ("六")
-  | Seven ("七")
-  | Eight ("八")
-  | Nine  ("九")
-  | Ten   ("十")
+    One   (\<open>一\<close>)
+  | Two   (\<open>二\<close>)
+  | Three (\<open>三\<close>) 
+  | Four  (\<open>四\<close>)
+  | Five  (\<open>五\<close>)
+  | Six   (\<open>六\<close>)
+  | Seven (\<open>七\<close>)
+  | Eight (\<open>八\<close>)
+  | Nine  (\<open>九\<close>)
+  | Ten   (\<open>十\<close>)
 
-primrec translate :: "shuzi \<Rightarrow> nat" ("|_|" [100] 100) where
+primrec translate :: "shuzi \<Rightarrow> nat" (\<open>|_|\<close> [100] 100) where
  "|一| = 1"
 |"|二| = 2"
 |"|三| = 3"

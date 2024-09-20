@@ -204,7 +204,7 @@ text \<open>
 
   locale order_preserving =
     le: partial_order le + le': partial_order le'
-      for le (infixl "\<sqsubseteq>" 50) and le' (infixl "\<preceq>" 50) +
+      for le (infixl \<open>\<sqsubseteq>\<close> 50) and le' (infixl \<open>\<preceq>\<close> 50) +
     fixes \<phi>
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
@@ -222,7 +222,7 @@ text (in order_preserving) \<open>Here are examples of theorems that are
   available for the original instance it was declared for.  We may
   introduce infix syntax for \<open>le'.less\<close> with the following declaration:\<close>
 
-  notation (in order_preserving) le'.less (infixl "\<prec>" 50)
+  notation (in order_preserving) le'.less (infixl \<open>\<prec>\<close> 50)
 
 text (in order_preserving) \<open>Now the theorem is displayed nicely as
   @{thm [source]  le'.less_le_trans}:
@@ -279,7 +279,7 @@ text\<open>
   join.\<close>
 
   locale lattice_hom =
-    le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
+    le: lattice + le': lattice le' for le' (infixl \<open>\<preceq>\<close> 50) +
     fixes \<phi>
     assumes hom_meet: "\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
       and hom_join: "\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
@@ -295,8 +295,8 @@ text \<open>The parameter instantiation in the first instance of \<^term>\<open>
 
   context lattice_hom
   begin
-  notation le'.meet (infixl "\<sqinter>''" 50)
-  notation le'.join (infixl "\<squnion>''" 50)
+  notation le'.meet (infixl \<open>\<sqinter>''\<close> 50)
+  notation le'.join (infixl \<open>\<squnion>''\<close> 50)
   end
 
 text \<open>The next example makes radical use of the short hand

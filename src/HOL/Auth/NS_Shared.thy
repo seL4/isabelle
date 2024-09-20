@@ -17,7 +17,7 @@ definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
   Issues :: "[agent, agent, msg, event list] \<Rightarrow> bool"
-             ("_ Issues _ with _ on _") where
+             (\<open>_ Issues _ with _ on _\<close>) where
    "A Issues B with X on evs =
       (\<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
         X \<notin> parts (spies (takeWhile (\<lambda>z. z  \<noteq> Says A B Y) (rev evs))))"

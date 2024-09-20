@@ -31,7 +31,7 @@ lemma myless:
 lemmas dvd_period = zdvd_period
 
 (* The Divisibility relation between reals *)
-definition rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl "rdvd" 50)
+definition rdvd:: "real \<Rightarrow> real \<Rightarrow> bool" (infixl \<open>rdvd\<close> 50)
   where "x rdvd y \<longleftrightarrow> (\<exists>k::int. y = x * real_of_int k)"
 
 lemma int_rdvd_real:

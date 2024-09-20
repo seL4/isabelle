@@ -16,18 +16,18 @@ code_lazy_type stream
 value [code] "cycle ''ab''"
 value [code] "let x = cycle ''ab''; y = snth x 10 in x"
 
-datatype 'a llist = LNil ("\<^bold>[\<^bold>]") | LCons (lhd: 'a) (ltl: "'a llist") (infixr "\<^bold>#" 65)
+datatype 'a llist = LNil (\<open>\<^bold>[\<^bold>]\<close>) | LCons (lhd: 'a) (ltl: "'a llist") (infixr \<open>\<^bold>#\<close> 65)
 
 subsection \<open>Finite lazy lists\<close>
 
 code_lazy_type llist
 
-no_notation lazy_llist ("_")
+no_notation lazy_llist (\<open>_\<close>)
 nonterminal llist_args
 syntax
-  "" :: "'a \<Rightarrow> llist_args"  ("_")
-  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  ("_,/ _")
-  "_llist" :: "llist_args => 'a list"    ("\<^bold>[(_)\<^bold>]")
+  "" :: "'a \<Rightarrow> llist_args"  (\<open>_\<close>)
+  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  (\<open>_,/ _\<close>)
+  "_llist" :: "llist_args => 'a list"    (\<open>\<^bold>[(_)\<^bold>]\<close>)
 syntax_consts
   "_llist_args" "_llist" == lazy_llist
 translations
@@ -77,7 +77,7 @@ value [code] "rec_test2"
 
 subsection \<open>Branching codatatypes\<close>
 
-codatatype tree = L | Node tree tree (infix "\<triangle>" 900)
+codatatype tree = L | Node tree tree (infix \<open>\<triangle>\<close> 900)
 
 code_lazy_type tree
 

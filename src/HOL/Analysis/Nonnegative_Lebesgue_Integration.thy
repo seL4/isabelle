@@ -580,11 +580,11 @@ qed
 
 subsection "Simple integral"
 
-definition\<^marker>\<open>tag important\<close> simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>S") where
+definition\<^marker>\<open>tag important\<close> simple_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" (\<open>integral\<^sup>S\<close>) where
   "integral\<^sup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
 
 syntax
-  "_simple_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" ("\<integral>\<^sup>S _. _ \<partial>_" [60,61] 110)
+  "_simple_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>\<integral>\<^sup>S _. _ \<partial>_\<close> [60,61] 110)
 
 syntax_consts
   "_simple_integral" == simple_integral
@@ -816,11 +816,11 @@ qed
 
 subsection \<open>Integral on nonnegative functions\<close>
 
-definition\<^marker>\<open>tag important\<close> nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" ("integral\<^sup>N") where
+definition\<^marker>\<open>tag important\<close> nn_integral :: "'a measure \<Rightarrow> ('a \<Rightarrow> ennreal) \<Rightarrow> ennreal" (\<open>integral\<^sup>N\<close>) where
   "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f}. integral\<^sup>S M g)"
 
 syntax
-  "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" ("\<integral>\<^sup>+((2 _./ _)/ \<partial>_)" [60,61] 110)
+  "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>\<integral>\<^sup>+((2 _./ _)/ \<partial>_)\<close> [60,61] 110)
 
 syntax_consts
   "_nn_integral" == nn_integral

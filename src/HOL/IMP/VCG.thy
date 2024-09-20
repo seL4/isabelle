@@ -9,13 +9,13 @@ subsubsection "Annotated Commands"
 text\<open>Commands where loops are annotated with invariants.\<close>
 
 datatype acom =
-  Askip                  ("SKIP") |
-  Aassign vname aexp     ("(_ ::= _)" [1000, 61] 61) |
-  Aseq   acom acom       ("_;;/ _"  [60, 61] 60) |
-  Aif bexp acom acom     ("(IF _/ THEN _/ ELSE _)"  [0, 0, 61] 61) |
-  Awhile assn bexp acom  ("({_}/ WHILE _/ DO _)"  [0, 0, 61] 61)
+  Askip                  (\<open>SKIP\<close>) |
+  Aassign vname aexp     (\<open>(_ ::= _)\<close> [1000, 61] 61) |
+  Aseq   acom acom       (\<open>_;;/ _\<close>  [60, 61] 60) |
+  Aif bexp acom acom     (\<open>(IF _/ THEN _/ ELSE _)\<close>  [0, 0, 61] 61) |
+  Awhile assn bexp acom  (\<open>({_}/ WHILE _/ DO _)\<close>  [0, 0, 61] 61)
 
-notation com.SKIP ("SKIP")
+notation com.SKIP (\<open>SKIP\<close>)
 
 text\<open>Strip annotations:\<close>
 

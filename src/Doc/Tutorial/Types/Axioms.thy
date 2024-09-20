@@ -84,7 +84,7 @@ left-hand neutral) by extending \<^class>\<open>semigroup\<close> with one addit
 parameter \<open>neutral\<close> together with its property:\<close>
 
 class monoidl = semigroup +
-  fixes neutral :: "'a" ("\<zero>")
+  fixes neutral :: "'a" (\<open>\<zero>\<close>)
   assumes neutl: "\<zero> \<oplus> x = x"
 
 text \<open>\noindent Again, we prove some instances, by providing
@@ -140,7 +140,7 @@ subsubsection \<open>Groups\<close>
 text \<open>\noindent To finish our small algebra example, we add a \<open>group\<close> class:\<close>
 
 class group = monoidl +
-  fixes inv :: "'a \<Rightarrow> 'a" ("\<div> _" [81] 80)
+  fixes inv :: "'a \<Rightarrow> 'a" (\<open>\<div> _\<close> [81] 80)
   assumes invl: "\<div> x \<oplus> x = \<zero>"
 
 text \<open>\noindent We continue with a further example for abstract

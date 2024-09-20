@@ -21,13 +21,13 @@ text \<open>
 \<close>
 
 locale continuous = linearform +
-  fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
+  fixes norm :: "_ \<Rightarrow> real"    (\<open>\<parallel>_\<parallel>\<close>)
   assumes bounded: "\<exists>c. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
 
 declare continuous.intro [intro?] continuous_axioms.intro [intro?]
 
 lemma continuousI [intro]:
-  fixes norm :: "_ \<Rightarrow> real"  ("\<parallel>_\<parallel>")
+  fixes norm :: "_ \<Rightarrow> real"  (\<open>\<parallel>_\<parallel>\<close>)
   assumes "linearform V f"
   assumes r: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
   shows "continuous V f norm"
@@ -69,9 +69,9 @@ text \<open>
 \<close>
 
 locale fn_norm =
-  fixes norm :: "_ \<Rightarrow> real"    ("\<parallel>_\<parallel>")
+  fixes norm :: "_ \<Rightarrow> real"    (\<open>\<parallel>_\<parallel>\<close>)
   fixes B defines "B V f \<equiv> {0} \<union> {\<bar>f x\<bar> / \<parallel>x\<parallel> | x. x \<noteq> 0 \<and> x \<in> V}"
-  fixes fn_norm ("\<parallel>_\<parallel>\<hyphen>_" [0, 1000] 999)
+  fixes fn_norm (\<open>\<parallel>_\<parallel>\<hyphen>_\<close> [0, 1000] 999)
   defines "\<parallel>f\<parallel>\<hyphen>V \<equiv> \<Squnion>(B V f)"
 
 locale normed_vectorspace_with_fn_norm = normed_vectorspace + fn_norm

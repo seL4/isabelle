@@ -426,7 +426,7 @@ theorem no_type_errors:
   done
 
 corollary no_type_errors_initial:
-  fixes G ("\<Gamma>") and Phi ("\<Phi>")
+  fixes G (\<open>\<Gamma>\<close>) and Phi (\<open>\<Phi>\<close>)
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
   assumes is_class: "is_class \<Gamma> C"
     and "method": "method (\<Gamma>,C) (m,[]) = Some (C, b)"
@@ -447,7 +447,7 @@ text \<open>
   state or in the canonical start state)
 \<close> 
 corollary welltyped_commutes:
-  fixes G ("\<Gamma>") and Phi ("\<Phi>")
+  fixes G (\<open>\<Gamma>\<close>) and Phi (\<open>\<Phi>\<close>)
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>" and *: "\<Gamma>,\<Phi> \<turnstile>JVM s \<surd>" 
   shows "\<Gamma> \<turnstile> (Normal s) \<midarrow>jvmd\<rightarrow> (Normal t) = \<Gamma> \<turnstile> s \<midarrow>jvm\<rightarrow> t"
   apply rule
@@ -458,7 +458,7 @@ corollary welltyped_commutes:
   done
 
 corollary welltyped_initial_commutes:
-  fixes G ("\<Gamma>") and Phi ("\<Phi>")
+  fixes G (\<open>\<Gamma>\<close>) and Phi (\<open>\<Phi>\<close>)
   assumes wt: "wt_jvm_prog \<Gamma> \<Phi>"  
   assumes is_class: "is_class \<Gamma> C"
     and "method": "method (\<Gamma>,C) (m,[]) = Some (C, b)"
