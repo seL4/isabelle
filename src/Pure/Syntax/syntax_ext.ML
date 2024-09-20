@@ -286,7 +286,7 @@ fun read_mfix ctxt ss =
 
 fun mfix_args ctxt =
   let val ctxt' = Context_Position.set_visible false ctxt
-  in length o filter (is_argument o #1) o read_mfix ctxt' o map (apsnd (K Position.none)) end;
+  in length o filter (is_argument o #1) o read_mfix ctxt' end;
 
 fun mixfix_args ctxt = mfix_args ctxt o Input.source_explode;
 
