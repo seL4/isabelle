@@ -448,7 +448,7 @@ definition
 nonterminal updbinds and updbind
 
 syntax
-  "_updbind"    :: "[i, i] \<Rightarrow> updbind"               (\<open>(2_ :=/ _)\<close>)
+  "_updbind"    :: "[i, i] \<Rightarrow> updbind"               (\<open>(\<open>indent=2 notation=\<open>infix update\<close>\<close>_ :=/ _)\<close>)
   ""            :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
   "_updbinds"   :: "[updbind, updbinds] \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
   "_Update"     :: "[i, updbinds] \<Rightarrow> i"              (\<open>_/'((_)')\<close> [900,0] 900)

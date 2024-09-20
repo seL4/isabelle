@@ -39,7 +39,7 @@ abbreviation
 
 abbreviation
   Follows' :: "[i\<Rightarrow>i, i\<Rightarrow>i, i, i] \<Rightarrow> i"
-        (\<open>(_ /Fols _ /Wrt (_ /'/ _))\<close> [60, 0, 0, 60] 60)  where
+        (\<open>(\<open>notation=\<open>mixfix Fols Wrt\<close>\<close>_ /Fols _ /Wrt (_ /'/ _))\<close> [60, 0, 0, 60] 60)  where
   "f Fols g Wrt r/A \<equiv> Follows(A,r,f,g)"
 
 

@@ -39,8 +39,8 @@ consts
  WHEN   :: "['a\<Rightarrow>'c, 'b\<Rightarrow>'c, 'a+'b] \<Rightarrow> 'c"
  adm    :: "('a \<Rightarrow> o) \<Rightarrow> o"
  VOID   :: "void"               (\<open>'(')\<close>)
- PAIR   :: "['a,'b] \<Rightarrow> 'a*'b"   (\<open>(1<_,/_>)\<close> [0,0] 100)
- COND   :: "[tr,'a,'a] \<Rightarrow> 'a"   (\<open>(_ \<Rightarrow>/ (_ |/ _))\<close> [60,60,60] 60)
+ PAIR   :: "['a,'b] \<Rightarrow> 'a*'b"   (\<open>(\<open>indent=1 notation=\<open>mixfix PAIR\<close>\<close><_,/_>)\<close> [0,0] 100)
+ COND   :: "[tr,'a,'a] \<Rightarrow> 'a"   (\<open>(\<open>notation=\<open>mixfix COND\<close>\<close>_ \<Rightarrow>/ (_ |/ _))\<close> [60,60,60] 60)
  less   :: "['a,'a] \<Rightarrow> o"       (infixl \<open><<\<close> 50)
 
 axiomatization where

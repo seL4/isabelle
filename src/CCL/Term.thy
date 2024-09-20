@@ -12,7 +12,8 @@ begin
 definition one :: "i"
   where "one == true"
 
-definition "if" :: "[i,i,i]\<Rightarrow>i"  (\<open>(3if _/ then _/ else _)\<close> [0,0,60] 60)
+definition "if" :: "[i,i,i]\<Rightarrow>i"
+    (\<open>(\<open>indent=3 notation=\<open>mixfix if then else\<close>\<close>if _/ then _/ else _)\<close> [0,0,60] 60)
   where "if b then t else u  == case(b, t, u, \<lambda> x y. bot, \<lambda>v. bot)"
 
 definition inl :: "i\<Rightarrow>i"
@@ -48,7 +49,8 @@ definition ncase :: "[i,i,i\<Rightarrow>i]\<Rightarrow>i"
 definition "let1" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
   where let_def: "let1(t, f) == case(t,f(true),f(false), \<lambda>x y. f(<x,y>), \<lambda>u. f(lam x. u(x)))"
 
-syntax "_let1" :: "[idt,i,i]\<Rightarrow>i"  (\<open>(3let _ be _/ in _)\<close> [0,0,60] 60)
+syntax "_let1" :: "[idt,i,i]\<Rightarrow>i"
+  (\<open>(\<open>indent=3 notation=\<open>mixfix let be in\<close>\<close>let _ be _/ in _)\<close> [0,0,60] 60)
 syntax_consts "_let1" == let1
 translations "let x be a in e" == "CONST let1(a, \<lambda>x. e)"
 
@@ -65,9 +67,12 @@ definition letrec3 :: "[[i,i,i,i\<Rightarrow>i\<Rightarrow>i\<Rightarrow>i]\<Rig
       \<lambda>g'. f(\<lambda>x y z. g'(<x,<y,z>>)))"
 
 syntax
-  "_letrec" :: "[idt,idt,i,i]\<Rightarrow>i"  (\<open>(3letrec _ _ be _/ in _)\<close> [0,0,0,60] 60)
-  "_letrec2" :: "[idt,idt,idt,i,i]\<Rightarrow>i"  (\<open>(3letrec _ _ _ be _/ in _)\<close> [0,0,0,0,60] 60)
-  "_letrec3" :: "[idt,idt,idt,idt,i,i]\<Rightarrow>i"  (\<open>(3letrec _ _ _ _ be _/ in _)\<close> [0,0,0,0,0,60] 60)
+  "_letrec" :: "[idt,idt,i,i]\<Rightarrow>i"
+    (\<open>(\<open>indent=3 notation=\<open>mixfix letrec be in\<close>\<close>letrec _ _ be _/ in _)\<close> [0,0,0,60] 60)
+  "_letrec2" :: "[idt,idt,idt,i,i]\<Rightarrow>i"
+    (\<open>(\<open>indent=3 notation=\<open>mixfix letrec be in\<close>\<close>letrec _ _ _ be _/ in _)\<close> [0,0,0,0,60] 60)
+  "_letrec3" :: "[idt,idt,idt,idt,i,i]\<Rightarrow>i"
+    (\<open>(\<open>indent=3 notation=\<open>mixfix letrec be in\<close>\<close>letrec _ _ _ _ be _/ in _)\<close> [0,0,0,0,0,60] 60)
 syntax_consts
   "_letrec" == letrec and
   "_letrec2" == letrec2 and
@@ -143,7 +148,7 @@ definition lcase :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
 definition lrec :: "[i,i,[i,i,i]\<Rightarrow>i]\<Rightarrow>i"
   where "lrec(l,b,c) == letrec g x be lcase(x, b, \<lambda>h t. c(h,t,g(t))) in g(l)"
 
-definition napply :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"  (\<open>(_ ^ _ ` _)\<close> [56,56,56] 56)
+definition napply :: "[i\<Rightarrow>i,i,i]\<Rightarrow>i"  (\<open>(\<open>notation=\<open>mixfix napply\<close>\<close>_ ^ _ ` _)\<close> [56,56,56] 56)
   where "f ^n` a == nrec(n,a,\<lambda>x g. f(g))"
 
 lemmas simp_can_defs = one_def inl_def inr_def

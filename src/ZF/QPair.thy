@@ -45,7 +45,7 @@ definition
     "QSigma(A,B)  \<equiv>  \<Union>x\<in>A. \<Union>y\<in>B(x). {<x;y>}"
 
 syntax
-  "_QSUM"   :: "[idt, i, i] \<Rightarrow> i"               (\<open>(3QSUM _ \<in> _./ _)\<close> 10)
+  "_QSUM"   :: "[idt, i, i] \<Rightarrow> i"  (\<open>(\<open>indent=3 notation=\<open>binder QSUM\<in>\<close>\<close>QSUM _ \<in> _./ _)\<close> 10)
 syntax_consts
   "_QSUM" \<rightleftharpoons> QSigma
 translations

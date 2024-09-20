@@ -37,11 +37,11 @@ definition
                           \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,z\<rangle>: r \<longrightarrow> \<langle>x,z\<rangle>: r"
 
 definition
-  rtrancl :: "i\<Rightarrow>i"  (\<open>(_^*)\<close> [100] 100)  (*refl/transitive closure*)  where
+  rtrancl :: "i\<Rightarrow>i"  (\<open>(\<open>notation=\<open>postfix ^*\<close>\<close>_^*)\<close> [100] 100)  (*refl/transitive closure*)  where
     "r^* \<equiv> lfp(field(r)*field(r), \<lambda>s. id(field(r)) \<union> (r O s))"
 
 definition
-  trancl  :: "i\<Rightarrow>i"  (\<open>(_^+)\<close> [100] 100)  (*transitive closure*)  where
+  trancl  :: "i\<Rightarrow>i"  (\<open>(\<open>notation=\<open>postfix ^+\<close>\<close>_^+)\<close> [100] 100)  (*transitive closure*)  where
     "r^+ \<equiv> r O r^*"
 
 definition

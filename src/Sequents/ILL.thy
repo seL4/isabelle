@@ -29,8 +29,8 @@ consts
   PromAux :: "three_seqi"
 
 syntax
-  "_Trueprop" :: "single_seqe" (\<open>((_)/ \<turnstile> (_))\<close> [6,6] 5)
-  "_Context"  :: "two_seqe"   (\<open>((_)/ :=: (_))\<close> [6,6] 5)
+  "_Trueprop" :: "single_seqe" (\<open>(\<open>notation=\<open>infix Trueprop\<close>\<close>(_)/ \<turnstile> (_))\<close> [6,6] 5)
+  "_Context"  :: "two_seqe"   (\<open>(\<open>notation=\<open>infix Context\<close>\<close>(_)/ :=: (_))\<close> [6,6] 5)
   "_PromAux"  :: "three_seqe" (\<open>promaux {_||_||_}\<close>)
 
 parse_translation \<open>

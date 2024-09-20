@@ -36,8 +36,8 @@ definition Bex :: "[i, i \<Rightarrow> o] \<Rightarrow> o"
   where "Bex(A, P) \<equiv> \<exists>x. x\<in>A \<and> P(x)"
 
 syntax
-  "_Ball" :: "[pttrn, i, o] \<Rightarrow> o"  (\<open>(3\<forall>_\<in>_./ _)\<close> 10)
-  "_Bex" :: "[pttrn, i, o] \<Rightarrow> o"  (\<open>(3\<exists>_\<in>_./ _)\<close> 10)
+  "_Ball" :: "[pttrn, i, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<in>\<close>\<close>\<forall>_\<in>_./ _)\<close> 10)
+  "_Bex" :: "[pttrn, i, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<in>\<close>\<close>\<exists>_\<in>_./ _)\<close> 10)
 syntax_consts
   "_Ball" \<rightleftharpoons> Ball and
   "_Bex" \<rightleftharpoons> Bex
@@ -55,7 +55,7 @@ definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
   where "Replace(A,P) \<equiv> PrimReplace(A, \<lambda>x y. (\<exists>!z. P(x,z)) \<and> P(x,y))"
 
 syntax
-  "_Replace" :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(1{_ ./ _ \<in> _, _})\<close>)
+  "_Replace" :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix Replace\<close>\<close>{_ ./ _ \<in> _, _})\<close>)
 syntax_consts
   "_Replace" \<rightleftharpoons> Replace
 translations
@@ -68,7 +68,7 @@ definition RepFun :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
   where "RepFun(A,f) \<equiv> {y . x\<in>A, y=f(x)}"
 
 syntax
-  "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(1{_ ./ _ \<in> _})\<close> [51,0,51])
+  "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix RepFun\<close>\<close>{_ ./ _ \<in> _})\<close> [51,0,51])
 syntax_consts
   "_RepFun" \<rightleftharpoons> RepFun
 translations
@@ -80,7 +80,7 @@ definition Collect :: "[i, i \<Rightarrow> o] \<Rightarrow> i"
   where "Collect(A,P) \<equiv> {y . x\<in>A, x=y \<and> P(x)}"
 
 syntax
-  "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(1{_ \<in> _ ./ _})\<close>)
+  "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_ \<in> _ ./ _})\<close>)
 syntax_consts
   "_Collect" \<rightleftharpoons> Collect
 translations
@@ -93,8 +93,8 @@ definition Inter :: "i \<Rightarrow> i"  (\<open>\<Inter>_\<close> [90] 90)
   where "\<Inter>(A) \<equiv> { x\<in>\<Union>(A) . \<forall>y\<in>A. x\<in>y}"
 
 syntax
-  "_UNION" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(3\<Union>_\<in>_./ _)\<close> 10)
-  "_INTER" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(3\<Inter>_\<in>_./ _)\<close> 10)
+  "_UNION" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(\<open>indent=3 notation=\<open>binder \<Union>\<in>\<close>\<close>\<Union>_\<in>_./ _)\<close> 10)
+  "_INTER" :: "[pttrn, i, i] \<Rightarrow> i"  (\<open>(\<open>indent=3 notation=\<open>binder \<Inter>\<in>\<close>\<close>\<Inter>_\<in>_./ _)\<close> 10)
 syntax_consts
   "_UNION" == Union and
   "_INTER" == Inter
@@ -169,7 +169,7 @@ subsection \<open>Definite descriptions -- via Replace over the set "1"\<close>
 definition The :: "(i \<Rightarrow> o) \<Rightarrow> i"  (binder \<open>THE \<close> 10)
   where the_def: "The(P)    \<equiv> \<Union>({y . x \<in> {0}, P(y)})"
 
-definition If :: "[o, i, i] \<Rightarrow> i"  (\<open>(if (_)/ then (_)/ else (_))\<close> [10] 10)
+definition If :: "[o, i, i] \<Rightarrow> i"  (\<open>(\<open>notation=\<open>mixfix if then else\<close>\<close>if (_)/ then (_)/ else (_))\<close> [10] 10)
   where if_def: "if P then a else b \<equiv> THE z. P \<and> z=a | \<not>P \<and> z=b"
 
 abbreviation (input)
@@ -272,9 +272,9 @@ abbreviation function_space :: "[i, i] \<Rightarrow> i"  (infixr \<open>\<righta
 (* binder syntax *)
 
 syntax
-  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<Prod>_\<in>_./ _)\<close> 10)
-  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<Sum>_\<in>_./ _)\<close> 10)
-  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3\<lambda>_\<in>_./ _)\<close> 10)
+  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>mixfix \<Prod>\<in>\<close>\<close>\<Prod>_\<in>_./ _)\<close> 10)
+  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>mixfix \<Sum>\<in>\<close>\<close>\<Sum>_\<in>_./ _)\<close> 10)
+  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>mixfix \<lambda>\<in>\<close>\<close>\<lambda>_\<in>_./ _)\<close> 10)
 syntax_consts
   "_PROD" == Pi and
   "_SUM" == Sigma and
@@ -297,16 +297,16 @@ notation (ASCII)
   not_mem         (infixl \<open>\<not>:\<close> 50)
 
 syntax (ASCII)
-  "_Ball"     :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(3ALL _:_./ _)\<close> 10)
-  "_Bex"      :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(3EX _:_./ _)\<close> 10)
-  "_Collect"  :: "[pttrn, i, o] \<Rightarrow> i"        (\<open>(1{_: _ ./ _})\<close>)
-  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i" (\<open>(1{_ ./ _: _, _})\<close>)
-  "_RepFun"   :: "[i, pttrn, i] \<Rightarrow> i"        (\<open>(1{_ ./ _: _})\<close> [51,0,51])
-  "_UNION"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3UN _:_./ _)\<close> 10)
-  "_INTER"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3INT _:_./ _)\<close> 10)
-  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3PROD _:_./ _)\<close> 10)
-  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3SUM _:_./ _)\<close> 10)
-  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(3lam _:_./ _)\<close> 10)
+  "_Ball"     :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(\<open>indent=3 notation=\<open>binder ALL:\<close>\<close>ALL _:_./ _)\<close> 10)
+  "_Bex"      :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(\<open>indent=3 notation=\<open>binder EX:\<close>\<close>EX _:_./ _)\<close> 10)
+  "_Collect"  :: "[pttrn, i, o] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_: _ ./ _})\<close>)
+  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i" (\<open>(\<open>indent=1 notation=\<open>mixfix Replace\<close>\<close>{_ ./ _: _, _})\<close>)
+  "_RepFun"   :: "[i, pttrn, i] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix RepFun\<close>\<close>{_ ./ _: _})\<close> [51,0,51])
+  "_UNION"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder UN:\<close>\<close>UN _:_./ _)\<close> 10)
+  "_INTER"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder INT:\<close>\<close>INT _:_./ _)\<close> 10)
+  "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder PROD:\<close>\<close>PROD _:_./ _)\<close> 10)
+  "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder SUM:\<close>\<close>SUM _:_./ _)\<close> 10)
+  "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder lam:\<close>\<close>lam _:_./ _)\<close> 10)
   "_Tuple"    :: "[i, tuple_args] \<Rightarrow> i"      (\<open><(_,/ _)>\<close>)
   "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open><_>\<close>)
 

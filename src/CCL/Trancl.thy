@@ -18,10 +18,10 @@ definition id :: "i set"  (*the identity relation*)
 definition relcomp :: "[i set,i set] \<Rightarrow> i set"  (infixr \<open>O\<close> 60)  (*composition of relations*)
   where "r O s == {xz. EX x y z. xz = <x,z> \<and> <x,y>:s \<and> <y,z>:r}"
 
-definition rtrancl :: "i set \<Rightarrow> i set"  (\<open>(_^*)\<close> [100] 100)
+definition rtrancl :: "i set \<Rightarrow> i set"  (\<open>(\<open>notation=\<open>postfix ^*\<close>\<close>_^*)\<close> [100] 100)
   where "r^* == lfp(\<lambda>s. id Un (r O s))"
 
-definition trancl :: "i set \<Rightarrow> i set"  (\<open>(_^+)\<close> [100] 100)
+definition trancl :: "i set \<Rightarrow> i set"  (\<open>(\<open>notation=\<open>postfix ^+\<close>\<close>_^+)\<close> [100] 100)
   where "r^+ == r O rtrancl(r)"
 
 

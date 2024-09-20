@@ -35,7 +35,7 @@ consts
   (*** Term Formers ***)
   true        ::       "i"
   false       ::       "i"
-  pair        ::       "[i,i]\<Rightarrow>i"             (\<open>(1<_,/_>)\<close>)
+  pair        ::       "[i,i]\<Rightarrow>i"             (\<open>(\<open>indent=1 notation=\<open>mixfix pair\<close>\<close><_,/_>)\<close>)
   lambda      ::       "(i\<Rightarrow>i)\<Rightarrow>i"            (binder \<open>lam \<close> 55)
   "case"      ::       "[i,i,i,[i,i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
   "apply"     ::       "[i,i]\<Rightarrow>i"             (infixl \<open>`\<close> 56)

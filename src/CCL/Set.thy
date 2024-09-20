@@ -18,7 +18,7 @@ where mem_Collect_iff: "(a : Collect(P)) \<longleftrightarrow> P(a)"
   and set_extension: "A = B \<longleftrightarrow> (ALL x. x:A \<longleftrightarrow> x:B)"
 
 syntax
-  "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  (\<open>(1{_./ _})\<close>)
+  "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_./ _})\<close>)
 syntax_consts
   "_Coll" == Collect
 translations
@@ -50,8 +50,8 @@ definition Bex :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> o"
   where "Bex(A, P) == EX x. x:A \<and> P(x)"
 
 syntax
-  "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(ALL _:_./ _)\<close> [0, 0, 0] 10)
-  "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(EX _:_./ _)\<close> [0, 0, 0] 10)
+  "_Ball" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(\<open>notation=\<open>binder ALL:\<close>\<close>ALL _:_./ _)\<close> [0, 0, 0] 10)
+  "_Bex" :: "[idt, 'a set, o] \<Rightarrow> o"  (\<open>(\<open>notation=\<open>binder EX:\<close>\<close>EX _:_./ _)\<close> [0, 0, 0] 10)
 syntax_consts
   "_Ball" == Ball and
   "_Bex" == Bex
@@ -127,8 +127,8 @@ definition UNION :: "['a set, 'a \<Rightarrow> 'b set] \<Rightarrow> 'b set"
   where "UNION(A, B) == {y. EX x:A. y: B(x)}"
 
 syntax
-  "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(INT _:_./ _)\<close> [0, 0, 0] 10)
-  "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(UN _:_./ _)\<close> [0, 0, 0] 10)
+  "_INTER" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(\<open>notation=\<open>binder INT:\<close>\<close>INT _:_./ _)\<close> [0, 0, 0] 10)
+  "_UNION" :: "[idt, 'a set, 'b set] \<Rightarrow> 'b set"  (\<open>(\<open>notation=\<open>binder UN:\<close>\<close>UN _:_./ _)\<close> [0, 0, 0] 10)
 syntax_consts
   "_INTER" == INTER and
   "_UNION" == UNION

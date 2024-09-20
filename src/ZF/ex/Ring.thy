@@ -46,7 +46,7 @@ definition
   "a_inv(R) \<equiv> m_inv (<carrier(R), add_field(R), zero(R), 0>)"
 
 definition
-  minus :: "[i,i,i] \<Rightarrow> i" (\<open>(_ \<ominus>\<index> _)\<close> [65,66] 65) where
+  minus :: "[i,i,i] \<Rightarrow> i" (\<open>(\<open>notation=\<open>infix \<ominus>\<close>\<close>_ \<ominus>\<index> _)\<close> [65,66] 65) where
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 locale abelian_monoid = fixes G (structure)

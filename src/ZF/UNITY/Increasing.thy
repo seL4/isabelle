@@ -23,7 +23,7 @@ definition
                 (\<forall>x \<in> state. f(x):A)}"
 
 abbreviation (input)
-  IncWrt ::  "[i\<Rightarrow>i, i, i] \<Rightarrow> i" (\<open>(_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
+  IncWrt ::  "[i\<Rightarrow>i, i, i] \<Rightarrow> i" (\<open>(\<open>notation=\<open>mixfix IncreasingWrt\<close>\<close>_ IncreasingWrt _ '/ _)\<close> [60, 0, 60] 60)  where
   "f IncreasingWrt r/A \<equiv> Increasing[A](r,f)"
 
 

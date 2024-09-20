@@ -23,7 +23,7 @@ typedecl o
 consts
       (*** Judgements ***)
  Proof          ::   "[o,p]=>prop"
- EqProof        ::   "[p,p,o]=>prop"    (\<open>(3_ /= _ :/ _)\<close> [10,10,10] 5)
+ EqProof        ::   "[p,p,o]=>prop"  (\<open>(\<open>indent=3 notation=\<open>mixfix EqProof\<close>\<close>_ /= _ :/ _)\<close> [10,10,10] 5)
 
       (*** Logical Connectives -- Type Formers ***)
  eq             ::      "['a,'a] => o"  (infixl \<open>=\<close> 50)
@@ -44,7 +44,7 @@ consts
  contr          :: "p=>p"
  fst            :: "p=>p"
  snd            :: "p=>p"
- pair           :: "[p,p]=>p"           (\<open>(1<_,/_>)\<close>)
+ pair           :: "[p,p]=>p"           (\<open>(\<open>indent=1 notation=\<open>mixfix pair\<close>\<close><_,/_>)\<close>)
  split          :: "[p, [p,p]=>p] =>p"
  inl            :: "p=>p"
  inr            :: "p=>p"
@@ -53,14 +53,14 @@ consts
  App            :: "[p,p]=>p"           (infixl \<open>`\<close> 60)
  alll           :: "['a=>p]=>p"         (binder \<open>all \<close> 55)
  app            :: "[p,'a]=>p"          (infixl \<open>^\<close> 55)
- exists         :: "['a,p]=>p"          (\<open>(1[_,/_])\<close>)
+ exists         :: "['a,p]=>p"          (\<open>(\<open>indent=1 notation=\<open>mixfix exists\<close>\<close>[_,/_])\<close>)
  xsplit         :: "[p,['a,p]=>p]=>p"
  ideq           :: "'a=>p"
  idpeel         :: "[p,'a=>p]=>p"
  nrm            :: p
  NRM            :: p
 
-syntax "_Proof" :: "[p,o]=>prop"    (\<open>(_ /: _)\<close> [51, 10] 5)
+syntax "_Proof" :: "[p,o]=>prop"    (\<open>(\<open>notation=\<open>infix Proof\<close>\<close>_ /: _)\<close> [51, 10] 5)
 
 parse_translation \<open>
   let fun proof_tr [p, P] = Syntax.const \<^const_syntax>\<open>Proof\<close> $ P $ p

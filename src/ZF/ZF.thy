@@ -7,14 +7,14 @@ theory ZF imports List IntDiv CardinalArith begin
 
 subsection\<open>Iteration of the function \<^term>\<open>F\<close>\<close>
 
-consts  iterates :: "[i\<Rightarrow>i,i,i] \<Rightarrow> i"   (\<open>(_^_ '(_'))\<close> [60,1000,1000] 60)
+consts  iterates :: "[i\<Rightarrow>i,i,i] \<Rightarrow> i"  (\<open>(\<open>notation=\<open>mixfix iterates\<close>\<close>_^_ '(_'))\<close> [60,1000,1000] 60)
 
 primrec
     "F^0 (x) = x"
     "F^(succ(n)) (x) = F(F^n (x))"
 
 definition
-  iterates_omega :: "[i\<Rightarrow>i,i] \<Rightarrow> i" (\<open>(_^\<omega> '(_'))\<close> [60,1000] 60) where
+  iterates_omega :: "[i\<Rightarrow>i,i] \<Rightarrow> i" (\<open>(\<open>notation=\<open>mixfix iterates_omega\<close>\<close>_^\<omega> '(_'))\<close> [60,1000] 60) where
     "F^\<omega> (x) \<equiv> \<Union>n\<in>nat. F^n (x)"
 
 lemma iterates_triv:

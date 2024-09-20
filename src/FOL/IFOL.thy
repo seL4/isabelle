@@ -101,7 +101,7 @@ axiomatization where  \<comment> \<open>Reflection, admissible\<close>
 abbreviation not_equal :: \<open>['a, 'a] \<Rightarrow> o\<close>  (infixl \<open>\<noteq>\<close> 50)
   where \<open>x \<noteq> y \<equiv> \<not> (x = y)\<close>
 
-syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  (\<open>(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)\<close> [0, 10] 10)
+syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  (\<open>(\<open>indent=2 notation=\<open>binder \<exists>\<^sub>\<le>\<^sub>1\<close>\<close>\<exists>\<^sub>\<le>\<^sub>1 _./ _)\<close> [0, 10] 10)
 syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
 
@@ -743,10 +743,10 @@ definition Let :: \<open>['a::{}, 'a => 'b] \<Rightarrow> ('b::{})\<close>
   where \<open>Let(s, f) \<equiv> f(s)\<close>
 
 syntax
-  "_bind"       :: \<open>[pttrn, 'a] => letbind\<close>           (\<open>(2_ =/ _)\<close> 10)
+  "_bind"       :: \<open>[pttrn, 'a] => letbind\<close>  (\<open>(\<open>indent=2 notation=\<open>infix letbind\<close>\<close>_ =/ _)\<close> 10)
   ""            :: \<open>letbind => letbinds\<close>              (\<open>_\<close>)
   "_binds"      :: \<open>[letbind, letbinds] => letbinds\<close>  (\<open>_;/ _\<close>)
-  "_Let"        :: \<open>[letbinds, 'a] => 'a\<close>             (\<open>(let (_)/ in (_))\<close> 10)
+  "_Let"        :: \<open>[letbinds, 'a] => 'a\<close>  (\<open>(\<open>notation=\<open>mixfix let in\<close>\<close>let (_)/ in (_))\<close> 10)
 syntax_consts "_Let" \<rightleftharpoons> Let
 translations
   "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"

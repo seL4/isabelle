@@ -29,15 +29,15 @@ axiomatization
 
 nonterminal context' and typing'
 syntax
-  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  (\<open>(_/ \<turnstile> _)\<close>)
-  "_Trueprop1" :: "typing' \<Rightarrow> prop"  (\<open>(_)\<close>)
+  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  (\<open>(\<open>notation=\<open>infix Trueprop\<close>\<close>_/ \<turnstile> _)\<close>)
+  "_Trueprop1" :: "typing' \<Rightarrow> prop"  (\<open>(\<open>notation=\<open>prefix Trueprop\<close>\<close>_)\<close>)
   "" :: "id \<Rightarrow> context'"  (\<open>_\<close>)
   "" :: "var \<Rightarrow> context'"  (\<open>_\<close>)
   "_MT_context" :: "context'"  (\<open>\<close>)
   "_Context" :: "[typing', context'] \<Rightarrow> context'"  (\<open>_ _\<close>)
-  "_Has_type" :: "[term, term] \<Rightarrow> typing'"  (\<open>(_:/ _)\<close> [0, 0] 5)
-  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(3\<^bold>\<lambda>_:_./ _)\<close> [0, 0, 0] 10)
-  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(3\<Prod>_:_./ _)\<close> [0, 0] 10)
+  "_Has_type" :: "[term, term] \<Rightarrow> typing'"  (\<open>(\<open>notation=\<open>infix Has_Type\<close>\<close>_:/ _)\<close> [0, 0] 5)
+  "_Lam" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(\<open>indent=3 notation=\<open>binder \<^bold>\<lambda>\<close>\<close>\<^bold>\<lambda>_:_./ _)\<close> [0, 0, 0] 10)
+  "_Pi" :: "[idt, term, term] \<Rightarrow> term"  (\<open>(\<open>indent=3 notation=\<open>binder \<Prod>\<close>\<close>\<Prod>_:_./ _)\<close> [0, 0] 10)
   "_arrow" :: "[term, term] \<Rightarrow> term"  (infixr \<open>\<rightarrow>\<close> 10)
 syntax_consts
   "_Trueprop" \<rightleftharpoons> Trueprop and

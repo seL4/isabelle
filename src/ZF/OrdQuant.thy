@@ -23,9 +23,9 @@ definition
     "OUnion(i,B) \<equiv> {z: \<Union>x\<in>i. B(x). Ord(i)}"
 
 syntax
-  "_oall"     :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<forall>_<_./ _)\<close> 10)
-  "_oex"      :: "[idt, i, o] \<Rightarrow> o"        (\<open>(3\<exists>_<_./ _)\<close> 10)
-  "_OUNION"   :: "[idt, i, i] \<Rightarrow> i"        (\<open>(3\<Union>_<_./ _)\<close> 10)
+  "_oall"     :: "[idt, i, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall><\<close>\<close>\<forall>_<_./ _)\<close> 10)
+  "_oex"      :: "[idt, i, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<exists><\<close>\<close>\<exists>_<_./ _)\<close> 10)
+  "_OUNION"   :: "[idt, i, i] \<Rightarrow> i"  (\<open>(\<open>indent=3 notation=\<open>binder \<Union><\<close>\<close>\<Union>_<_./ _)\<close> 10)
 syntax_consts
   "_oall" \<rightleftharpoons> oall and
   "_oex" \<rightleftharpoons> oex and
@@ -196,8 +196,8 @@ definition
     "rex(M, P) \<equiv> \<exists>x. M(x) \<and> P(x)"
 
 syntax
-  "_rall"     :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<forall>_[_]./ _)\<close> 10)
-  "_rex"      :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"        (\<open>(3\<exists>_[_]./ _)\<close> 10)
+  "_rall"     :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall>[]\<close>\<close>\<forall>_[_]./ _)\<close> 10)
+  "_rex"      :: "[pttrn, i\<Rightarrow>o, o] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>binder \<exists>[]\<close>\<close>\<exists>_[_]./ _)\<close> 10)
 syntax_consts
   "_rall" \<rightleftharpoons> rall and
   "_rex" \<rightleftharpoons> rex

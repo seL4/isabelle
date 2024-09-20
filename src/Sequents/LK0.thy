@@ -34,7 +34,7 @@ consts
   Ex           :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder \<open>\<exists>\<close> 10)
 
 syntax
- "_Trueprop"    :: "two_seqe" (\<open>((_)/ \<turnstile> (_))\<close> [6,6] 5)
+ "_Trueprop"    :: "two_seqe" (\<open>(\<open>notation=\<open>infix Trueprop\<close>\<close>(_)/ \<turnstile> (_))\<close> [6,6] 5)
 
 parse_translation \<open>[(\<^syntax_const>\<open>_Trueprop\<close>, K (two_seq_tr \<^const_syntax>\<open>Trueprop\<close>))]\<close>
 print_translation \<open>[(\<^const_syntax>\<open>Trueprop\<close>, K (two_seq_tr' \<^syntax_const>\<open>_Trueprop\<close>))]\<close>
@@ -104,7 +104,7 @@ axiomatization where
   The: "\<lbrakk>$H \<turnstile> $E, P(a), $F;  \<And>x.$H, P(x) \<turnstile> $E, x=a, $F\<rbrakk> \<Longrightarrow>
          $H \<turnstile> $E, P(THE x. P(x)), $F"
 
-definition If :: "[o, 'a, 'a] \<Rightarrow> 'a" (\<open>(if (_)/ then (_)/ else (_))\<close> 10)
+definition If :: "[o, 'a, 'a] \<Rightarrow> 'a" (\<open>(\<open>notation=\<open>mixfix if then else\<close>\<close>if (_)/ then (_)/ else (_))\<close> 10)
   where "If(P,x,y) \<equiv> THE z::'a. (P \<longrightarrow> z = x) \<and> (\<not> P \<longrightarrow> z = y)"
 
 

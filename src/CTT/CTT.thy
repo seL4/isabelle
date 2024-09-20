@@ -18,10 +18,10 @@ typedecl o
 
 consts
   \<comment> \<open>Judgments\<close>
-  Type      :: "t \<Rightarrow> prop"          (\<open>(_ type)\<close> [10] 5)
-  Eqtype    :: "[t,t]\<Rightarrow>prop"        (\<open>(_ =/ _)\<close> [10,10] 5)
-  Elem      :: "[i, t]\<Rightarrow>prop"       (\<open>(_ /: _)\<close> [10,10] 5)
-  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      (\<open>(_ =/ _ :/ _)\<close> [10,10,10] 5)
+  Type      :: "t \<Rightarrow> prop"          (\<open>(\<open>notation=\<open>postfix Type\<close>\<close>_ type)\<close> [10] 5)
+  Eqtype    :: "[t,t]\<Rightarrow>prop"        (\<open>(\<open>notation=\<open>infix Eqtype\<close>\<close>_ =/ _)\<close> [10,10] 5)
+  Elem      :: "[i, t]\<Rightarrow>prop"       (\<open>(\<open>notation=\<open>infix Elem\<close>\<close>_ /: _)\<close> [10,10] 5)
+  Eqelem    :: "[i,i,t]\<Rightarrow>prop"      (\<open>(\<open>notation=\<open>mixfix Eqelem\<close>\<close>_ =/ _ :/ _)\<close> [10,10,10] 5)
   Reduce    :: "[i,i]\<Rightarrow>prop"        (\<open>Reduce[_,_]\<close>)
   \<comment> \<open>Types for truth values\<close>
   F         :: "t"
@@ -40,7 +40,7 @@ consts
   "when"    :: "[i, i\<Rightarrow>i, i\<Rightarrow>i]\<Rightarrow>i"
   \<comment> \<open>General sum and binary product\<close>
   Sum       :: "[t, i\<Rightarrow>t]\<Rightarrow>t"
-  pair      :: "[i,i]\<Rightarrow>i"           (\<open>(1<_,/_>)\<close>)
+  pair      :: "[i,i]\<Rightarrow>i"           (\<open>(\<open>indent=1 notation=\<open>mixfix pair\<close>\<close><_,/_>)\<close>)
   fst       :: "i\<Rightarrow>i"
   snd       :: "i\<Rightarrow>i"
   split     :: "[i, [i,i]\<Rightarrow>i] \<Rightarrow>i"
@@ -56,8 +56,8 @@ text \<open>Some inexplicable syntactic dependencies; in particular, "0"
  must be introduced after the judgment forms.\<close>
 
 syntax
-  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       (\<open>(3\<Prod>_:_./ _)\<close> 10)
-  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       (\<open>(3\<Sum>_:_./ _)\<close> 10)
+  "_PROD"   :: "[idt,t,t]\<Rightarrow>t"       (\<open>(\<open>indent=3 notation=\<open>binder \<Prod>\<close>\<close>\<Prod>_:_./ _)\<close> 10)
+  "_SUM"    :: "[idt,t,t]\<Rightarrow>t"       (\<open>(\<open>indent=3 notation=\<open>binder \<Sum>\<close>\<close>\<Sum>_:_./ _)\<close> 10)
 syntax_consts
   "_PROD" \<rightleftharpoons> Prod and
   "_SUM" \<rightleftharpoons> Sum

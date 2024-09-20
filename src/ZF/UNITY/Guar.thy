@@ -77,13 +77,13 @@ definition
   "welldef \<equiv> {F \<in> program. Init(F) \<noteq> 0}"
   
 definition
-  refines :: "[i, i, i] \<Rightarrow> o" (\<open>(3_ refines _ wrt _)\<close> [10,10,10] 10)  where
+  refines :: "[i, i, i] \<Rightarrow> o" (\<open>(\<open>indent=3 notation=\<open>mixfix refines wrt\<close>\<close>_ refines _ wrt _)\<close> [10,10,10] 10)  where
   "G refines F wrt X \<equiv>
    \<forall>H \<in> program. (F ok H  \<and> G ok H \<and> F \<squnion> H \<in> welldef \<inter> X)
     \<longrightarrow> (G \<squnion> H \<in> welldef \<inter> X)"
 
 definition
-  iso_refines :: "[i,i, i] \<Rightarrow> o"  (\<open>(3_ iso'_refines _ wrt _)\<close> [10,10,10] 10)  where
+  iso_refines :: "[i,i, i] \<Rightarrow> o"  (\<open>(\<open>indent=3 notation=\<open>mixfix iso_refines wrt\<close>\<close>_ iso'_refines _ wrt _)\<close> [10,10,10] 10)  where
   "G iso_refines F wrt X \<equiv>  F \<in> welldef \<inter> X \<longrightarrow> G \<in> welldef \<inter> X"
 
 

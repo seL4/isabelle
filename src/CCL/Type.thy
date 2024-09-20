@@ -13,7 +13,7 @@ definition Subtype :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
   where "Subtype(A, P) == {x. x:A \<and> P(x)}"
 
 syntax
-  "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  (\<open>(1{_: _ ./ _})\<close>)
+  "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Subtype\<close>\<close>{_: _ ./ _})\<close>)
 syntax_consts
   "_Subtype" == Subtype
 translations
@@ -35,10 +35,10 @@ definition Sigma :: "[i set, i \<Rightarrow> i set] \<Rightarrow> i set"
   where "Sigma(A,B) == {x. EX a:A. EX b:B(a).x=<a,b>}"
 
 syntax
-  "_Pi" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(3PROD _:_./ _)\<close> [0,0,60] 60)
-  "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(3SUM _:_./ _)\<close> [0,0,60] 60)
-  "_arrow" :: "[i set, i set] \<Rightarrow> i set"  (\<open>(_ ->/ _)\<close>  [54, 53] 53)
-  "_star"  :: "[i set, i set] \<Rightarrow> i set"  (\<open>(_ */ _)\<close> [56, 55] 55)
+  "_Pi" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(\<open>indent=3 notation=\<open>binder PROD:\<close>\<close>PROD _:_./ _)\<close> [0,0,60] 60)
+  "_Sigma" :: "[idt, i set, i set] \<Rightarrow> i set"  (\<open>(\<open>indent=3 notation=\<open>binder SUM:\<close>\<close>SUM _:_./ _)\<close> [0,0,60] 60)
+  "_arrow" :: "[i set, i set] \<Rightarrow> i set"  (\<open>(\<open>notation=\<open>infix ->\<close>\<close>_ ->/ _)\<close>  [54, 53] 53)
+  "_star"  :: "[i set, i set] \<Rightarrow> i set"  (\<open>(\<open>notation=\<open>infix *\<close>\<close>_ */ _)\<close> [56, 55] 55)
 syntax_consts
   "_Pi" "_arrow" \<rightleftharpoons> Pi and
   "_Sigma" "_star" \<rightleftharpoons> Sigma
@@ -73,7 +73,7 @@ definition TAll :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder \<
 definition TEx :: "(i set \<Rightarrow> i set) \<Rightarrow> i set"  (binder \<open>TEX \<close> 55)
   where "TEX X. B(X) == Union({X. EX Y. X=B(Y)})"
 
-definition Lift :: "i set \<Rightarrow> i set"  (\<open>(3[_])\<close>)
+definition Lift :: "i set \<Rightarrow> i set"  (\<open>(\<open>indent=3 notation=\<open>mixfix Lift\<close>\<close>[_])\<close>)
   where "[A] == A Un {bot}"
 
 definition SPLIT :: "[i, [i, i] \<Rightarrow> i set] \<Rightarrow> i set"

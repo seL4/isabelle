@@ -41,8 +41,8 @@ definition
       SKIP \<in> X \<and> (\<forall>G \<in> program. Acts(G) \<subseteq> (\<Union>F \<in> X. Acts(F)) \<longrightarrow> G \<in> X)"
 
 syntax
-  "_JOIN1"  :: "[pttrns, i] \<Rightarrow> i"     (\<open>(3\<Squnion>_./ _)\<close> 10)
-  "_JOIN"   :: "[pttrn, i, i] \<Rightarrow> i"   (\<open>(3\<Squnion>_ \<in> _./ _)\<close> 10)
+  "_JOIN1"  :: "[pttrns, i] \<Rightarrow> i"     (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_./ _)\<close> 10)
+  "_JOIN"   :: "[pttrn, i, i] \<Rightarrow> i"   (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<in>\<close>\<close>\<Squnion>_ \<in> _./ _)\<close> 10)
 syntax_consts
   "_JOIN1" "_JOIN" == JOIN
 translations
