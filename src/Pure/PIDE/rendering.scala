@@ -223,8 +223,8 @@ object Rendering {
   val text_color_elements = Markup.Elements(text_color.keySet)
 
   val tooltip_elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.EXPRESSION, Markup.TIMING, Markup.ENTITY,
-      Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
+    Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION, Markup.TIMING,
+      Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
       Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
       Markup.Elements(tooltip_descriptions.keySet)
@@ -662,6 +662,14 @@ class Rendering(
               Some(info + (r0, true, XML.Text(text)))
           case (info, Text.Info(r0, XML.Elem(Markup.Language(lang), _))) =>
             Some(info + (r0, true, XML.Text("language: " + lang.description)))
+
+          case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
+            val a = kind.nonEmpty
+            val b = name.nonEmpty
+            val description =
+              if (!a && !b) "notation"
+              else "notation: " + kind + if_proper(a && b, " ") + if_proper(b, quote(name))
+            Some(info + (r0, true, XML.Text(description)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
             val description =

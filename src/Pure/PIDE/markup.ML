@@ -67,6 +67,12 @@ sig
   val position_properties: string list
   val position_property: Properties.entry -> bool
   val def_name: string -> string
+  val notation_mixfixN: string
+  val notation_infixN: string
+  val notation_binderN: string
+  val notations: string list
+  val notationN: string val notation: {kind: string, name: string} -> T
+  val notation0: T
   val expressionN: string val expression: string -> T
   val expression0: T
   val citationN: string val citation: string -> T
@@ -434,6 +440,19 @@ fun def_name a =
   | NONE => make_def a);
 
 
+(* notation: mixfix annotations *)
+
+val notation_mixfixN = "mixfix";
+val notation_infixN = "infix";
+val notation_binderN = "binder";
+val notations = [notation_mixfixN, notation_infixN, notation_binderN];
+
+val notationN = "notation";
+fun notation {kind, name} = (notationN, kind_proper kind @ name_proper name);
+
+val notation0 = (notationN, []);
+
+
 (* expression *)
 
 val expressionN = "expression";
@@ -463,7 +482,7 @@ val consistentN = "consistent";
 val unbreakableN = "unbreakable";
 val indentN = "indent";
 
-val block_properties = [expressionN, markupN, consistentN, unbreakableN, indentN];
+val block_properties = [notationN, expressionN, markupN, consistentN, unbreakableN, indentN];
 
 val widthN = "width";
 

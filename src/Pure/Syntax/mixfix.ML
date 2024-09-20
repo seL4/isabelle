@@ -151,6 +151,47 @@ fun mixfix_template_reports mx =
   else [];
 
 
+(* infix notation *)
+
+val prefix_bg = Symbol_Pos.explode0 "'(";
+val prefix_en = Symbol_Pos.explode0 "')";
+
+val infix_bg = Symbol_Pos.explode0 "(";
+val infix_arg1 = Symbol_Pos.explode0 "_ ";
+val infix_arg2 = Symbol_Pos.explode0 "/ _)";
+
+fun infix_block ctxt ss =
+  Syntax_Ext.make_notation
+   {kind = Markup.notation_infixN,
+    name = Syntax_Ext.mfix_name ctxt ss}
+  |> cartouche
+  |> Symbol_Pos.explode0
+  |> append infix_bg;
+
+
+(* binder notation *)
+
+val binder_stamp = stamp ();
+val binder_name = suffix "_binder";
+
+val binder_bg = Symbol_Pos.explode0 "(";
+val binder_en = Symbol_Pos.explode0 "_./ _)";
+
+fun binder_block ctxt ss =
+  implode_space
+   ["indent=3",
+    Syntax_Ext.make_notation
+     {kind = Markup.notation_binderN,
+      name = Syntax_Ext.mfix_name ctxt ss}]
+  |> cartouche
+  |> Symbol_Pos.explode0
+  |> append binder_bg;
+
+fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
+      [Type ("idts", []), ty2] ---> ty3
+  | binder_typ c _ = error ("Bad type of binder: " ^ quote c);
+
+
 (* syn_ext_types *)
 
 val typeT = Type ("type", []);
@@ -159,9 +200,10 @@ fun make_type n = replicate n typeT ---> typeT;
 fun syn_ext_types ctxt type_decls =
   let
     fun mk_infix sy ty t p1 p2 p3 pos =
-      Syntax_Ext.Mfix
-        (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
-          ty, t, [p1, p2], p3, pos);
+      let
+        val ss = Input.source_explode sy;
+        val syms = infix_block ctxt ss @ infix_arg1 @ ss @ infix_arg2;
+      in Syntax_Ext.Mfix (syms, ty, t, [p1, p2], p3, pos) end;
 
     fun mfix_of (t, ty, mx) =
       (case mx of
@@ -190,37 +232,30 @@ fun syn_ext_types ctxt type_decls =
 
 (* syn_ext_consts *)
 
-val binder_stamp = stamp ();
-val binder_name = suffix "_binder";
-
-fun mk_prefix sy =
-  let val sy' = Input.source_explode (Input.reset_pos sy); 
-  in Symbol_Pos.explode0 "'(" @ sy' @ Symbol_Pos.explode0 "')" end
-
 fun syn_ext_consts ctxt logical_types const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 pos =
-      [Syntax_Ext.Mfix (mk_prefix sy, ty, c, [], 1000, Position.none),
-       Syntax_Ext.Mfix
-        (Symbol_Pos.explode0 "(_ " @ Input.source_explode sy @ Symbol_Pos.explode0 "/ _)",
-          ty, c, [p1, p2], p3, pos)];
-
-    fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
-          [Type ("idts", []), ty2] ---> ty3
-      | binder_typ c _ = error ("Bad type of binder: " ^ quote c);
+      let
+        val ss0 = Input.source_explode (Input.reset_pos sy);
+        val ss = Input.source_explode sy;
+        val syms = infix_block ctxt ss @ infix_arg1 @ ss @ infix_arg2;
+      in
+        [Syntax_Ext.Mfix (prefix_bg @ ss0 @ prefix_en, ty, c, [], 1000, Position.none),
+         Syntax_Ext.Mfix (syms, ty, c, [p1, p2], p3, pos)]
+      end;
 
     fun mfix_of (c, ty, mx) =
       (case mx of
         NoSyn => []
-      | Mixfix (sy, ps, p, _) =>
-          [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, ps, p, pos_of mx)]
+      | Mixfix (sy, ps, p, _) => [Syntax_Ext.Mfix (Input.source_explode sy, ty, c, ps, p, pos_of mx)]
       | Infix (sy, p, _) => mk_infix sy ty c (p + 1) (p + 1) p (pos_of mx)
       | Infixl (sy, p, _) => mk_infix sy ty c p (p + 1) p (pos_of mx)
       | Infixr (sy, p, _) => mk_infix sy ty c (p + 1) p p (pos_of mx)
       | Binder (sy, p, q, _) =>
-          [Syntax_Ext.Mfix
-            (Symbol_Pos.explode0 "(3" @ Input.source_explode sy @ Symbol_Pos.explode0 "_./ _)",
-              binder_typ c ty, (binder_name c), [0, p], q, pos_of mx)]
+          let
+            val ss = Input.source_explode sy;
+            val syms = binder_block ctxt ss @ ss @ binder_en;
+          in [Syntax_Ext.Mfix (syms, binder_typ c ty, binder_name c, [0, p], q, pos_of mx)] end
       | _ => error ("Bad mixfix declaration for " ^ quote c ^ Position.here (pos_of mx)));
 
     fun binder (c, _, Binder _) = SOME (binder_name c, c)

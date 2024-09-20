@@ -163,6 +163,18 @@ object Markup {
   def def_name(a: String): String = def_names.getOrElse(a, a + "def_")
 
 
+  /* notation */
+
+  val NOTATION = "notation"
+  object Notation {
+    def unapply(markup: Markup): Option[(String, String)] =
+      markup match {
+        case Markup(NOTATION, props) => Some((Kind.get(props), Name.get(props)))
+        case _ => None
+      }
+  }
+
+
   /* expression */
 
   val EXPRESSION = "expression"
