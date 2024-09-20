@@ -14,8 +14,10 @@ sig
   val markup_type_application: Markup.T
   val markup_term: Markup.T
   val markup_term_application: Markup.T
+  val markup_term_abstraction: Markup.T
   val markup_prop: Markup.T
   val markup_prop_application: Markup.T
+  val markup_prop_abstraction: Markup.T
 end;
 
 structure Markup_Expression: MARKUP_EXPRESSION =
@@ -58,8 +60,10 @@ val markup_type_application = setup (Binding.make ("type_application", \<^here>)
 
 val markup_term = setup (Binding.make ("term", \<^here>));
 val markup_term_application = setup (Binding.make ("term_application", \<^here>));
+val markup_term_abstraction = setup (Binding.make ("term_abstraction", \<^here>));
 
 val markup_prop = setup (Binding.make ("prop", \<^here>));
 val markup_prop_application = setup (Binding.make ("prop_application", \<^here>));
+val markup_prop_abstraction = setup (Binding.make ("prop_abstraction", \<^here>));
 
 end;
