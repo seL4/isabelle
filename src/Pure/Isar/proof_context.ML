@@ -463,7 +463,7 @@ fun pretty_fact ctxt =
      | (a, [th]) =>
         Pretty.block [pretty_fact_name ctxt a, Pretty.str ":", Pretty.brk 1, pretty_thm th]
      | (a, ths) =>
-        Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: Pretty.str ":" :: pretty_thms ths))
+        Pretty.block (pretty_fact_name ctxt a :: Pretty.fbreaks (Pretty.str ":" :: pretty_thms ths))
   end;
 
 
