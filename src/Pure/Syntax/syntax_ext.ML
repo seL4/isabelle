@@ -202,10 +202,6 @@ val get_nat = get_property 0 1 (Value.parse_nat o #1);
 fun get_notation_markup ctxt =
   get_property NONE (SOME Markup.notation0) (SOME o parse_notation ctxt) Markup.notationN;
 
-fun get_expression_markup ctxt =
-  get_property NONE (SOME Markup.expression0) (SOME o Markup_Kind.check_expression ctxt)
-    Markup.expressionN;
-
 end;
 
 
@@ -250,9 +246,7 @@ fun read_block_properties ctxt ss =
   let
     val props = read_properties ss;
 
-    val more_markups =
-      the_list (get_notation_markup ctxt props) @
-      the_list (get_expression_markup ctxt props);
+    val more_markups = the_list (get_notation_markup ctxt props);
 
     val markup_name = get_string Markup.markupN props;
     val markup_props = props |> map_filter (fn (a, opt_b) =>

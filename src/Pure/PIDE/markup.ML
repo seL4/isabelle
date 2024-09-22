@@ -473,7 +473,7 @@ val consistentN = "consistent";
 val unbreakableN = "unbreakable";
 val indentN = "indent";
 
-val block_properties = [notationN, expressionN, markupN, consistentN, unbreakableN, indentN];
+val block_properties = [notationN, markupN, consistentN, unbreakableN, indentN];
 
 val widthN = "width";
 
