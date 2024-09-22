@@ -182,17 +182,17 @@ and tree =
 fun null_trees (CAT ([], _)) = true
   | null_trees _ = false;
 
-val markup_concat = Markup_Expression.setup \<^binding>\<open>rail_concat\<close>;
-val markup_union = Markup_Expression.setup \<^binding>\<open>rail_union\<close>;
-val markup_repeat = Markup_Expression.setup \<^binding>\<open>rail_repeat\<close>;
-val markup_repeat1 = Markup_Expression.setup \<^binding>\<open>rail_repeat1\<close>;
-val markup_enum = Markup_Expression.setup \<^binding>\<open>rail_enum\<close>;
-val markup_enum1 = Markup_Expression.setup \<^binding>\<open>rail_enum1\<close>;
-val markup_maybe = Markup_Expression.setup \<^binding>\<open>rail_maybe\<close>;
-val markup_newline = Markup_Expression.setup \<^binding>\<open>rail_newline\<close>;
-val markup_nonterminal = Markup_Expression.setup \<^binding>\<open>rail_nonterminal\<close>;
-val markup_terminal = Markup_Expression.setup \<^binding>\<open>rail_terminal\<close>;
-val markup_antiquote = Markup_Expression.setup \<^binding>\<open>rail_antiquote\<close>;
+val markup_concat = Markup_Kind.setup_expression \<^binding>\<open>rail_concat\<close>;
+val markup_union = Markup_Kind.setup_expression \<^binding>\<open>rail_union\<close>;
+val markup_repeat = Markup_Kind.setup_expression \<^binding>\<open>rail_repeat\<close>;
+val markup_repeat1 = Markup_Kind.setup_expression \<^binding>\<open>rail_repeat1\<close>;
+val markup_enum = Markup_Kind.setup_expression \<^binding>\<open>rail_enum\<close>;
+val markup_enum1 = Markup_Kind.setup_expression \<^binding>\<open>rail_enum1\<close>;
+val markup_maybe = Markup_Kind.setup_expression \<^binding>\<open>rail_maybe\<close>;
+val markup_newline = Markup_Kind.setup_expression \<^binding>\<open>rail_newline\<close>;
+val markup_nonterminal = Markup_Kind.setup_expression \<^binding>\<open>rail_nonterminal\<close>;
+val markup_terminal = Markup_Kind.setup_expression \<^binding>\<open>rail_terminal\<close>;
+val markup_antiquote = Markup_Kind.setup_expression \<^binding>\<open>rail_antiquote\<close>;
 
 fun reports_of_tree ctxt =
   if Context_Position.reports_enabled ctxt then

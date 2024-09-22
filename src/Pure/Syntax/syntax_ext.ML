@@ -194,7 +194,7 @@ val get_notation_markup =
   get_property NONE (SOME Markup.notation0) (SOME o parse_notation) Markup.notationN;
 
 fun get_expression_markup ctxt =
-  get_property NONE (SOME Markup.expression0) (SOME o Markup_Expression.check ctxt)
+  get_property NONE (SOME Markup.expression0) (SOME o Markup_Kind.check_expression ctxt)
     Markup.expressionN;
 
 end;
@@ -204,12 +204,12 @@ end;
 
 local
 
-val markup_block_begin = Markup_Expression.setup (Binding.make ("mixfix_block_begin", \<^here>));
-val markup_block_end = Markup_Expression.setup (Binding.make ("mixfix_block_end", \<^here>));
-val markup_delimiter = Markup_Expression.setup (Binding.make ("mixfix_delimiter", \<^here>));
-val markup_argument = Markup_Expression.setup (Binding.make ("mixfix_argument", \<^here>));
-val markup_space = Markup_Expression.setup (Binding.make ("mixfix_space", \<^here>));
-val markup_break = Markup_Expression.setup (Binding.make ("mixfix_break", \<^here>));
+val markup_block_begin = Markup_Kind.setup_expression (Binding.make ("mixfix_block_begin", \<^here>));
+val markup_block_end = Markup_Kind.setup_expression (Binding.make ("mixfix_block_end", \<^here>));
+val markup_delimiter = Markup_Kind.setup_expression (Binding.make ("mixfix_delimiter", \<^here>));
+val markup_argument = Markup_Kind.setup_expression (Binding.make ("mixfix_argument", \<^here>));
+val markup_space = Markup_Kind.setup_expression (Binding.make ("mixfix_space", \<^here>));
+val markup_break = Markup_Kind.setup_expression (Binding.make ("mixfix_break", \<^here>));
 
 open Basic_Symbol_Pos;
 

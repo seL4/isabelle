@@ -116,7 +116,7 @@ ML_file "config.ML";
 ML_file "context_position.ML";
 ML_file "General/completion.ML";
 ML_file "General/name_space.ML";
-ML_file "PIDE/markup_expression.ML";
+ML_file "PIDE/markup_kind.ML";
 ML_file "soft_type_system.ML";
 
 
