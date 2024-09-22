@@ -160,13 +160,11 @@ val infix_bg = Symbol_Pos.explode0 "(";
 val infix_arg1 = Symbol_Pos.explode0 "_ ";
 val infix_arg2 = Symbol_Pos.explode0 "/ _)";
 
-fun infix_block ctxt ss =
-  Syntax_Ext.make_notation
-   {kind = Markup.notation_infixN,
-    name = Syntax_Ext.mfix_name ctxt ss}
-  |> cartouche
-  |> Symbol_Pos.explode0
-  |> append infix_bg;
+fun infix_block ctxt =
+  Syntax_Ext.mfix_name ctxt #>
+  Syntax_Ext.block_annotation 0 Markup_Kind.markup_infix #>
+  Symbol_Pos.explode0 #>
+  append infix_bg;
 
 
 (* binder notation *)
@@ -177,15 +175,11 @@ val binder_name = suffix "_binder";
 val binder_bg = Symbol_Pos.explode0 "(";
 val binder_en = Symbol_Pos.explode0 "_./ _)";
 
-fun binder_block ctxt ss =
-  implode_space
-   ["indent=3",
-    Syntax_Ext.make_notation
-     {kind = Markup.notation_binderN,
-      name = Syntax_Ext.mfix_name ctxt ss}]
-  |> cartouche
-  |> Symbol_Pos.explode0
-  |> append binder_bg;
+fun binder_block ctxt =
+  Syntax_Ext.mfix_name ctxt #>
+  Syntax_Ext.block_annotation 3 Markup_Kind.markup_binder #>
+  Symbol_Pos.explode0 #>
+  append binder_bg;
 
 fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
       [Type ("idts", []), ty2] ---> ty3

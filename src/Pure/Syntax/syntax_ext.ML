@@ -29,7 +29,7 @@ sig
       print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
-  val make_notation: {kind: string, name: string} -> string
+  val block_annotation: int -> Markup.T -> string -> string
   val mfix_name: Proof.context -> Symbol_Pos.T list -> string
   val mfix_args: Proof.context -> Symbol_Pos.T list -> int
   val mixfix_args: Proof.context -> Input.source -> int
@@ -123,8 +123,17 @@ datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Posi
 
 (* properties *)
 
-fun make_notation {kind, name} =
-  Properties.print_eq (Markup.notationN, cartouche (implode_space (remove (op =) "" [kind, name])));
+fun block_annotation indent notation_markup notation_name =
+  let
+    val (elem, props) = notation_markup |> notation_name <> "" ? Markup.name notation_name;
+    val kind = Properties.get props Markup.kindN;
+    val name = Properties.get props Markup.nameN;
+    val s1 = if indent = 0 then [] else ["indent=" ^ Value.print_int indent];
+    val s2 =
+      if elem = Markup.notationN then
+        [Properties.print_eq (elem, cartouche (implode_space (the_list kind @ the_list name)))]
+      else raise Fail ("Bad markup element for notatio: " ^ quote elem)
+  in cartouche (implode_space (s1 @ s2)) end;
 
 fun show_names names =
   commas_quote (map (fn (name, pos) => Markup.markup (Position.markup pos) name) names);
@@ -157,19 +166,19 @@ fun get_property default0 default1 parse name props =
       (parse (b, pos2) handle Fail msg =>
         error (msg ^ " for property " ^ quote name ^ Position.here_list [pos1, pos2])));
 
-fun parse_notation (s, pos) =
+fun parse_notation ctxt (s, pos) =
   let
     val (kind, name) =
       (case Symbol.explode_words s of
         [] => ("", "")
       | a :: bs => (a, space_implode " " bs));
-  in
-    if kind = "" orelse member (op =) Markup.notations kind then
-      Markup.notation {kind = kind, name = name}
-    else
-      error ("Bad notation kind " ^ quote kind ^ Position.here pos ^
-        ", expected: " ^ commas_quote Markup.notations)
-  end;
+    val markup =
+      (case try (fn () => Markup_Kind.check_notation ctxt (kind, Position.none)) () of
+        SOME m => m
+      | NONE =>
+          error ("Bad notation kind " ^ quote kind ^ Position.here pos ^
+            ", expected: " ^ commas_quote (Markup_Kind.get_notation_kinds ctxt)));
+  in markup |> Markup.properties (Markup.name_proper name) end;
 
 in
 
@@ -190,8 +199,8 @@ val get_string = get_property "" "" #1;
 val get_bool = get_property false true (Value.parse_bool o #1);
 val get_nat = get_property 0 1 (Value.parse_nat o #1);
 
-val get_notation_markup =
-  get_property NONE (SOME Markup.notation0) (SOME o parse_notation) Markup.notationN;
+fun get_notation_markup ctxt =
+  get_property NONE (SOME Markup.notation0) (SOME o parse_notation ctxt) Markup.notationN;
 
 fun get_expression_markup ctxt =
   get_property NONE (SOME Markup.expression0) (SOME o Markup_Kind.check_expression ctxt)
@@ -242,7 +251,7 @@ fun read_block_properties ctxt ss =
     val props = read_properties ss;
 
     val more_markups =
-      the_list (get_notation_markup props) @
+      the_list (get_notation_markup ctxt props) @
       the_list (get_expression_markup ctxt props);
 
     val markup_name = get_string Markup.markupN props;
