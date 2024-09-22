@@ -4,7 +4,7 @@
 
 Instantiation of the generic simplifier for LK.
 
-Borrows from the DC simplifier of Soren Heilmann.
+Borrows from the DC simplifier of Søren Heilmann (see http://www.sth.dk/sth).
 *)
 
 

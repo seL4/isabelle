@@ -45,7 +45,7 @@ abbreviation
 
 axiomatization where
 
-  (*Structural rules: contraction, thinning, exchange [Soren Heilmann] *)
+  (*Structural rules: contraction, thinning, exchange [Søren Heilmann] *)
 
   contRS: "$H \<turnstile> $E, $S, $S, $F \<Longrightarrow> $H \<turnstile> $E, $S, $F" and
   contLS: "$H, $S, $S, $G \<turnstile> $E \<Longrightarrow> $H, $S, $G \<turnstile> $E" and
