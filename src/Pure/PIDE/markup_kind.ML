@@ -21,14 +21,9 @@ sig
   val markup_postfix: Markup.T
   val markup_infix: Markup.T
   val markup_binder: Markup.T
-  val markup_type: Markup.T
   val markup_type_application: Markup.T
-  val markup_term: Markup.T
-  val markup_term_application: Markup.T
-  val markup_term_abstraction: Markup.T
-  val markup_prop: Markup.T
-  val markup_prop_application: Markup.T
-  val markup_prop_abstraction: Markup.T
+  val markup_application: Markup.T
+  val markup_abstraction: Markup.T
 end;
 
 structure Markup_Kind: MARKUP_KIND =
@@ -102,15 +97,8 @@ val markup_postfix = setup_notation (Binding.make ("postfix", \<^here>));
 val markup_infix = setup_notation (Binding.make ("infix", \<^here>));
 val markup_binder = setup_notation (Binding.make ("binder", \<^here>));
 
-val markup_type = setup_expression (Binding.make ("type", \<^here>));
-val markup_type_application = setup_expression (Binding.make ("type_application", \<^here>));
-
-val markup_term = setup_expression (Binding.make ("term", \<^here>));
-val markup_term_application = setup_expression (Binding.make ("term_application", \<^here>));
-val markup_term_abstraction = setup_expression (Binding.make ("term_abstraction", \<^here>));
-
-val markup_prop = setup_expression (Binding.make ("prop", \<^here>));
-val markup_prop_application = setup_expression (Binding.make ("prop_application", \<^here>));
-val markup_prop_abstraction = setup_expression (Binding.make ("prop_abstraction", \<^here>));
+val markup_type_application = setup_notation (Binding.make ("type_application", \<^here>));
+val markup_application = setup_notation (Binding.make ("application", \<^here>));
+val markup_abstraction = setup_notation (Binding.make ("abstraction", \<^here>));
 
 end;
