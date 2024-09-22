@@ -24,6 +24,7 @@ sig
   val markup_type_application: Markup.T
   val markup_application: Markup.T
   val markup_abstraction: Markup.T
+  val markup_judgment: Markup.T
 end;
 
 structure Markup_Kind: MARKUP_KIND =
@@ -100,5 +101,7 @@ val markup_binder = setup_notation (Binding.make ("binder", \<^here>));
 val markup_type_application = setup_notation (Binding.make ("type_application", \<^here>));
 val markup_application = setup_notation (Binding.make ("application", \<^here>));
 val markup_abstraction = setup_notation (Binding.make ("abstraction", \<^here>));
+
+val markup_judgment = setup_notation (Binding.make ("judgment", \<^here>));
 
 end;

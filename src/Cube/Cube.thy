@@ -29,8 +29,8 @@ axiomatization
 
 nonterminal context' and typing'
 syntax
-  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  (\<open>(\<open>notation=\<open>infix Trueprop\<close>\<close>_/ \<turnstile> _)\<close>)
-  "_Trueprop1" :: "typing' \<Rightarrow> prop"  (\<open>(\<open>notation=\<open>prefix Trueprop\<close>\<close>_)\<close>)
+  "_Trueprop" :: "[context', typing'] \<Rightarrow> prop"  (\<open>(\<open>notation=judgment\<close>_/ \<turnstile> _)\<close>)
+  "_Trueprop1" :: "typing' \<Rightarrow> prop"  (\<open>(\<open>notation=judgment\<close>_)\<close>)
   "" :: "id \<Rightarrow> context'"  (\<open>_\<close>)
   "" :: "var \<Rightarrow> context'"  (\<open>_\<close>)
   "_MT_context" :: "context'"  (\<open>\<close>)

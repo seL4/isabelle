@@ -32,7 +32,7 @@ default_sort \<open>term\<close>
 typedecl o
 
 judgment
-  Trueprop :: \<open>o \<Rightarrow> prop\<close>  (\<open>(_)\<close> 5)
+  Trueprop :: \<open>o \<Rightarrow> prop\<close>  (\<open>(\<open>notation=judgment\<close>_)\<close> 5)
 
 
 subsubsection \<open>Equality\<close>

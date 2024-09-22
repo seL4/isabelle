@@ -34,7 +34,7 @@ consts
   Ex           :: "('a \<Rightarrow> o) \<Rightarrow> o"   (binder \<open>\<exists>\<close> 10)
 
 syntax
- "_Trueprop"    :: "two_seqe" (\<open>(\<open>notation=\<open>infix Trueprop\<close>\<close>(_)/ \<turnstile> (_))\<close> [6,6] 5)
+ "_Trueprop"    :: "two_seqe" (\<open>(\<open>notation=judgment\<close>(_)/ \<turnstile> (_))\<close> [6,6] 5)
 
 parse_translation \<open>[(\<^syntax_const>\<open>_Trueprop\<close>, K (two_seq_tr \<^const_syntax>\<open>Trueprop\<close>))]\<close>
 print_translation \<open>[(\<^const_syntax>\<open>Trueprop\<close>, K (two_seq_tr' \<^syntax_const>\<open>_Trueprop\<close>))]\<close>
