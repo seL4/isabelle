@@ -1074,15 +1074,15 @@ lemma OO_eq: "R OO (=) = R"
 
 subsubsection \<open>Converse\<close>
 
-inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  (\<open>(_\<inverse>)\<close> [1000] 999)
+inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  (\<open>(\<open>notation=\<open>postfix -1\<close>\<close>_\<inverse>)\<close> [1000] 999)
   for r :: "('a \<times> 'b) set"
   where "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"
 
-notation conversep  (\<open>(_\<inverse>\<inverse>)\<close> [1000] 1000)
+notation conversep  (\<open>(\<open>notation=\<open>postfix -1-1\<close>\<close>_\<inverse>\<inverse>)\<close> [1000] 1000)
 
 notation (ASCII)
-  converse  (\<open>(_^-1)\<close> [1000] 999) and
-  conversep (\<open>(_^--1)\<close> [1000] 1000)
+  converse  (\<open>(\<open>notation=\<open>postfix -1\<close>\<close>_^-1)\<close> [1000] 999) and
+  conversep (\<open>(\<open>notation=\<open>postfix -1-1\<close>\<close>_^--1)\<close> [1000] 1000)
 
 lemma converseI [sym]: "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"
   by (fact converse.intros)

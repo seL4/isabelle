@@ -23,7 +23,7 @@ notation (latex output)
   power (\<open>(_\<^bsup>_\<^esup>)\<close> [1000] 1000)
 
 text \<open>Special syntax for squares.\<close>
-abbreviation power2 :: "'a \<Rightarrow> 'a"  (\<open>(_\<^sup>2)\<close> [1000] 999)
+abbreviation power2 :: "'a \<Rightarrow> 'a"  (\<open>(\<open>notation=\<open>postfix 2\<close>\<close>_\<^sup>2)\<close> [1000] 999)
   where "x\<^sup>2 \<equiv> x ^ 2"
 
 end

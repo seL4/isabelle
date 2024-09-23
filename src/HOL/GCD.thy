@@ -148,10 +148,10 @@ class Gcd = gcd +
     and Lcm :: "'a set \<Rightarrow> 'a"
 
 syntax
-  "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3GCD _./ _)\<close> [0, 10] 10)
-  "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3GCD _\<in>_./ _)\<close> [0, 0, 10] 10)
-  "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3LCM _./ _)\<close> [0, 10] 10)
-  "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3LCM _\<in>_./ _)\<close> [0, 0, 10] 10)
+  "_GCD1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder GCD\<close>\<close>GCD _./ _)\<close> [0, 10] 10)
+  "_GCD"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder GCD\<close>\<close>GCD _\<in>_./ _)\<close> [0, 0, 10] 10)
+  "_LCM1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder LCM\<close>\<close>LCM _./ _)\<close> [0, 10] 10)
+  "_LCM"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder LCM\<close>\<close>LCM _\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_GCD1" "_GCD" \<rightleftharpoons> Gcd and
@@ -2851,7 +2851,7 @@ subsection \<open>Characteristic of a semiring\<close>
 definition (in semiring_1) semiring_char :: "'a itself \<Rightarrow> nat" 
   where "semiring_char _ = Gcd {n. of_nat n = (0 :: 'a)}"
 
-syntax "_type_char" :: "type => nat" (\<open>(1CHAR/(1'(_')))\<close>)
+syntax "_type_char" :: "type => nat" (\<open>(\<open>indent=1 notation=\<open>prefix CHAR\<close>\<close>CHAR/(1'(_')))\<close>)
 syntax_consts "_type_char" \<rightleftharpoons> semiring_char
 translations "CHAR('t)" \<rightharpoonup> "CONST semiring_char (CONST Pure.type :: 't itself)"
 print_translation \<open>

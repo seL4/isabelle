@@ -1191,7 +1191,7 @@ lemma tendsto_at_within_iff_tendsto_nhds:
 subsection \<open>Limits on sequences\<close>
 
 abbreviation (in topological_space)
-  LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"  (\<open>((_)/ \<longlonglongrightarrow> (_))\<close> [60, 60] 60)
+  LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"  (\<open>(\<open>notation=\<open>infix LIMSEQ\<close>\<close>(_)/ \<longlonglongrightarrow> (_))\<close> [60, 60] 60)
   where "X \<longlonglongrightarrow> L \<equiv> (X \<longlongrightarrow> L) sequentially"
 
 abbreviation (in t2_space) lim :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a"
@@ -1760,7 +1760,7 @@ qed
 subsection \<open>Function limit at a point\<close>
 
 abbreviation LIM :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-    (\<open>((_)/ \<midarrow>(_)/\<rightarrow> (_))\<close> [60, 0, 60] 60)
+    (\<open>(\<open>notation=\<open>infix LIM\<close>\<close>(_)/ \<midarrow>(_)/\<rightarrow> (_))\<close> [60, 0, 60] 60)
   where "f \<midarrow>a\<rightarrow> L \<equiv> (f \<longlongrightarrow> L) (at a)"
 
 lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f \<midarrow>a\<rightarrow> l)"

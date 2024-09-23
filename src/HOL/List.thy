@@ -86,9 +86,9 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 
 text \<open>Special input syntax for filter:\<close>
 syntax (ASCII)
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(1[_<-_./ _])\<close>)
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix filter\<close>\<close>[_<-_./ _])\<close>)
 syntax
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(1[_\<leftarrow>_ ./ _])\<close>)
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix filter\<close>\<close>[_\<leftarrow>_ ./ _])\<close>)
 syntax_consts
   "_filter" \<rightleftharpoons> filter
 translations
@@ -135,7 +135,7 @@ primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow>
 nonterminal lupdbinds and lupdbind
 
 syntax
-  "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(2_ :=/ _)\<close>)
+  "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(\<open>indent=2 notation=\<open>mixfix list update\<close>\<close>_ :=/ _)\<close>)
   "" :: "lupdbind => lupdbinds"    (\<open>_\<close>)
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    (\<open>_,/ _\<close>)
   "_LUpdate" :: "['a, lupdbinds] => 'a"    (\<open>_/[(_)]\<close> [1000,0] 900)
@@ -175,7 +175,7 @@ primrec product_lists :: "'a list list \<Rightarrow> 'a list list" where
 "product_lists [] = [[]]" |
 "product_lists (xs # xss) = concat (map (\<lambda>x. map (Cons x) (product_lists xss)) xs)"
 
-primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" (\<open>(1[_..</_'])\<close>) where
+primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" (\<open>(\<open>indent=1 notation=\<open>mixfix list interval\<close>\<close>[_..</_'])\<close>) where
 upt_0: "[i..<0] = []" |
 upt_Suc: "[i..<(Suc j)] = (if i \<le> j then [i..<j] @ [j] else [])"
 
@@ -3432,7 +3432,7 @@ qed
 
 subsubsection \<open>\<open>upto\<close>: interval-list on \<^typ>\<open>int\<close>\<close>
 
-function upto :: "int \<Rightarrow> int \<Rightarrow> int list" (\<open>(1[_../_])\<close>) where
+function upto :: "int \<Rightarrow> int \<Rightarrow> int list" (\<open>(\<open>indent=1 notation=\<open>mixfix list interval\<close>\<close>[_../_])\<close>) where
   "upto i j = (if i \<le> j then i # [i+1..j] else [])"
 by auto
 termination

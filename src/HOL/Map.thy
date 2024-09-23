@@ -61,7 +61,7 @@ syntax
   ""         :: "maplet \<Rightarrow> updbind"              (\<open>_\<close>)
   ""         :: "maplet \<Rightarrow> maplets"             (\<open>_\<close>)
   "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" (\<open>_,/ _\<close>)
-  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           (\<open>(1[_])\<close>)
+  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           (\<open>(\<open>indent=1 notation=\<open>mixfix maplets\<close>\<close>[_])\<close>)
 (* Syntax forbids \<open>[\<dots>, x := y, \<dots>]\<close> by introducing \<open>maplets\<close> in addition to \<open>updbinds\<close> *)
 
 syntax (ASCII)

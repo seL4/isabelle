@@ -651,9 +651,9 @@ end
 text \<open>Now: lots of fancy syntax. First, \<^term>\<open>sum (\<lambda>x. e) A\<close> is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax (ASCII)
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(3SUM (_/:_)./ _)\<close> [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(\<open>indent=3 notation=\<open>binder SUM\<close>\<close>SUM (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(2\<Sum>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<close>\<close>\<Sum>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_sum" \<rightleftharpoons> sum
@@ -665,9 +665,9 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 text \<open>Instead of \<^term>\<open>\<Sum>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3SUM _ |/ _./ _)\<close> [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=3 notation=\<open>binder SUM Collect\<close>\<close>SUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>_ | (_)./ _)\<close> [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum> Collect\<close>\<close>\<Sum>_ | (_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_qsum" == sum
@@ -1421,9 +1421,9 @@ abbreviation Prod (\<open>\<Prod>_\<close> [1000] 999)
 end
 
 syntax (ASCII)
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(4PROD (_/:_)./ _)\<close> [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(\<open>indent=4 notation=\<open>binder PROD\<close>\<close>PROD (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(2\<Prod>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(\<open>indent=2 notation=\<open>binder \<Prod>\<close>\<close>\<Prod>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_prod" == prod
@@ -1435,9 +1435,9 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 text \<open>Instead of \<^term>\<open>\<Prod>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(4PROD _ |/ _./ _)\<close> [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=4 notation=\<open>binder PROD Collect\<close>\<close>PROD _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Prod>_ | (_)./ _)\<close> [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=2 notation=\<open>binder \<Prod> Collect\<close>\<close>\<Prod>_ | (_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_qprod" == prod

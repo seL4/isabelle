@@ -40,7 +40,7 @@ definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
 syntax
-  "_eventually" :: "pttrn => 'a filter => bool => bool"  (\<open>(3\<forall>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
+  "_eventually" :: "pttrn => 'a filter => bool => bool"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<^sub>F\<close>\<close>\<forall>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_eventually" == eventually
 translations
@@ -160,7 +160,7 @@ definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
   where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
 
 syntax
-  "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3\<exists>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
+  "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<^sub>F\<close>\<close>\<exists>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_frequently" == frequently
 translations
@@ -1307,7 +1307,7 @@ definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightar
   "filterlim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
 
 syntax
-  "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(3LIM (_)/ (_)./ (_) :> (_))\<close> [1000, 10, 0, 10] 10)
+  "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(\<open>indent=3 notation=\<open>binder LIM\<close>\<close>LIM (_)/ (_)./ (_) :> (_))\<close> [1000, 10, 0, 10] 10)
 
 syntax_consts
   "_LIM" == filterlim

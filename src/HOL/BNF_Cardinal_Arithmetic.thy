@@ -273,7 +273,7 @@ definition Csum where
 (* Similar setup to the one for SIGMA from theory Big_Operators: *)
 syntax "_Csum" ::
   "pttrn => ('a * 'a) set => 'b * 'b set => (('a * 'b) * ('a * 'b)) set"
-  (\<open>(3CSUM _:_. _)\<close> [0, 51, 10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder CSUM\<close>\<close>CSUM _:_. _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_Csum" == Csum

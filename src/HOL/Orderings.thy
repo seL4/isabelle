@@ -179,9 +179,9 @@ begin
 
 notation
   less_eq  (\<open>'(\<le>')\<close>) and
-  less_eq  (\<open>(_/ \<le> _)\<close>  [51, 51] 50) and
+  less_eq  (\<open>(\<open>notation=\<open>infix \<le>\<close>\<close>_/ \<le> _)\<close>  [51, 51] 50) and
   less  (\<open>'(<')\<close>) and
-  less  (\<open>(_/ < _)\<close>  [51, 51] 50)
+  less  (\<open>(\<open>notation=\<open>infix <\<close>\<close>_/ < _)\<close>  [51, 51] 50)
 
 abbreviation (input)
   greater_eq  (infix \<open>\<ge>\<close> 50)
@@ -193,7 +193,7 @@ abbreviation (input)
 
 notation (ASCII)
   less_eq  (\<open>'(<=')\<close>) and
-  less_eq  (\<open>(_/ <= _)\<close> [51, 51] 50)
+  less_eq  (\<open>(\<open>notation=\<open>infix <=\<close>\<close>_/ <= _)\<close> [51, 51] 50)
 
 notation (input)
   greater_eq  (infix \<open>>=\<close> 50)
@@ -710,40 +710,40 @@ simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_si
 subsection \<open>Bounded quantifiers\<close>
 
 syntax (ASCII)
-  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _<_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _<_./ _)\<close>  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _<=_./ _)\<close> [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _<=_./ _)\<close> [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ALL\<close>\<close>ALL _<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder EX\<close>\<close>EX _<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ALL\<close>\<close>ALL _<=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder EX\<close>\<close>EX _<=_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _>_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _>_./ _)\<close>  [0, 0, 10] 10)
-  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _>=_./ _)\<close> [0, 0, 10] 10)
-  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _>=_./ _)\<close> [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ALL\<close>\<close>ALL _>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder EX\<close>\<close>EX _>_./ _)\<close>  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ALL\<close>\<close>ALL _>=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder EX\<close>\<close>EX _>=_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _~=_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ALL\<close>\<close>ALL _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder EX\<close>\<close>EX _~=_./ _)\<close>  [0, 0, 10] 10)
 
 syntax
-  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_<_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_<_./ _)\<close>  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<le>_./ _)\<close> [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<le>_./ _)\<close> [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_\<le>_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_\<le>_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_>_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_>_./ _)\<close>  [0, 0, 10] 10)
-  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<ge>_./ _)\<close> [0, 0, 10] 10)
-  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<ge>_./ _)\<close> [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_>_./ _)\<close>  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_\<ge>_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_\<ge>_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
 
 syntax (input)
-  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3! _<_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3? _<_./ _)\<close>  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3! _<=_./ _)\<close> [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3? _<=_./ _)\<close> [0, 0, 10] 10)
-  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3! _~=_./ _)\<close>  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3? _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder !\<close>\<close>! _<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ?\<close>\<close>? _<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder !\<close>\<close>! _<=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ?\<close>\<close>? _<=_./ _)\<close> [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder !\<close>\<close>! _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(\<open>indent=3 notation=\<open>binder ?\<close>\<close>? _~=_./ _)\<close>  [0, 0, 10] 10)
 
 syntax_consts
   "_All_less" "_All_less_eq" "_All_greater" "_All_greater_eq" "_All_neq" \<rightleftharpoons> All and

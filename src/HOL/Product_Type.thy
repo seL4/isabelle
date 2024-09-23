@@ -214,7 +214,7 @@ definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<
 
 definition "prod = {f. \<exists>a b. f = Pair_Rep (a::'a) (b::'b)}"
 
-typedef ('a, 'b) prod (\<open>(_ \<times>/ _)\<close> [21, 20] 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+typedef ('a, 'b) prod (\<open>(\<open>notation=\<open>infix \<times>\<close>\<close>_ \<times>/ _)\<close> [21, 20] 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
   unfolding prod_def by auto
 
 type_notation (ASCII)
@@ -286,7 +286,7 @@ text \<open>
 
 nonterminal tuple_args and patterns
 syntax
-  "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        (\<open>(1'(_,/ _'))\<close>)
+  "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        (\<open>(\<open>indent=1 notation=\<open>mixfix tuple\<close>\<close>'(_,/ _'))\<close>)
   "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   (\<open>_\<close>)
   "_tuple_args" :: "'a \<Rightarrow> tuple_args \<Rightarrow> tuple_args"     (\<open>_,/ _\<close>)
   "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         (\<open>'(_,/ _')\<close>)
@@ -1013,7 +1013,8 @@ notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 
 syntax
-  "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (\<open>(3SIGMA _:_./ _)\<close> [0, 0, 10] 10)
+  "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"
+    (\<open>(\<open>indent=3 notation=\<open>binder SIGMA\<close>\<close>SIGMA _:_./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_Sigma" \<rightleftharpoons> Sigma
 translations

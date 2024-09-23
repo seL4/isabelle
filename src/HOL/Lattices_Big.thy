@@ -465,10 +465,10 @@ defines
 end
 
 syntax
-  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3MIN _./ _)\<close> [0, 10] 10)
-  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3MIN _\<in>_./ _)\<close> [0, 0, 10] 10)
-  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3MAX _./ _)\<close> [0, 10] 10)
-  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3MAX _\<in>_./ _)\<close> [0, 0, 10] 10)
+  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder MIN\<close>\<close>MIN _./ _)\<close> [0, 10] 10)
+  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder MIN\<close>\<close>MIN _\<in>_./ _)\<close> [0, 0, 10] 10)
+  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder MAX\<close>\<close>MAX _./ _)\<close> [0, 10] 10)
+  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder MAX\<close>\<close>MAX _\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_MIN1" "_MIN" \<rightleftharpoons> Min and
@@ -923,7 +923,7 @@ end
 
 syntax
   "_arg_min" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'b"
-    (\<open>(3ARG'_MIN _ _./ _)\<close> [1000, 0, 10] 10)
+    (\<open>(\<open>indent=3 notation=\<open>binder ARG_MIN\<close>\<close>ARG'_MIN _ _./ _)\<close> [1000, 0, 10] 10)
 syntax_consts
   "_arg_min" \<rightleftharpoons> arg_min
 translations
@@ -1034,7 +1034,7 @@ end
 
 syntax
   "_arg_max" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
-    (\<open>(3ARG'_MAX _ _./ _)\<close> [1000, 0, 10] 10)
+    (\<open>(\<open>indent=3 notation=\<open>binder ARG_MAX\<close>\<close>ARG'_MAX _ _./ _)\<close> [1000, 0, 10] 10)
 syntax_consts
   "_arg_max" \<rightleftharpoons> arg_max
 translations

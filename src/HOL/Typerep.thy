@@ -18,7 +18,7 @@ definition typerep_of :: "'a \<Rightarrow> typerep" where
 end
 
 syntax
-  "_TYPEREP" :: "type => logic"  (\<open>(1TYPEREP/(1'(_')))\<close>)
+  "_TYPEREP" :: "type => logic"  (\<open>(\<open>indent=1 notation=\<open>prefix TYPEREP\<close>\<close>TYPEREP/(1'(_')))\<close>)
 syntax_consts
   "_TYPEREP" \<rightleftharpoons> typerep
 

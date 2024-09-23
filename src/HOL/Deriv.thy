@@ -70,7 +70,7 @@ text \<open>
 \<close>
 abbreviation (input)
   FDERIV :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  (\<open>(FDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
+  (\<open>(\<open>notation=\<open>mixfix FDERIV\<close>\<close>FDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
   where "FDERIV f x :> f' \<equiv> (f has_derivative f') (at x)"
 
 lemma has_derivative_bounded_linear: "(f has_derivative f') F \<Longrightarrow> bounded_linear f'"
@@ -782,7 +782,7 @@ lemma has_field_derivative_at_within:
 
 abbreviation (input)
   DERIV :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-    (\<open>(DERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
+    (\<open>(\<open>notation=\<open>mixfix DERIV\<close>\<close>DERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
   where "DERIV f x :> D \<equiv> (f has_field_derivative D) (at x)"
 
 abbreviation has_real_derivative :: "(real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> real filter \<Rightarrow> bool"
