@@ -5,7 +5,7 @@ imports "HOL-Nominal.Nominal"
 begin
 
 no_syntax
-  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  (\<open>(1[_])\<close>)
+  "_Map" :: "maplets => 'a \<rightharpoonup> 'b"  (\<open>(\<open>indent=1 notation=\<open>mixfix maplets\<close>\<close>[_])\<close>)
 
 atom_decl name
 
