@@ -553,20 +553,18 @@ fun update_trees (A, t) used =
 fun update_prec (A, prec) =
   Inttab.map_entry A (fn (_, ts) => (prec, ts));
 
-fun getS A max_prec NONE Si : state list =
-      filter
-        (fn (_, _, Nonterminal (B, prec) :: _) => A = B andalso prec <= max_prec
-          | _ => false) Si
-  | getS A max_prec (SOME min_prec) Si =
-      filter
-        (fn (_, _, Nonterminal (B, prec) :: _) =>
-            A = B andalso prec > min_prec andalso prec <= max_prec
-          | _ => false) Si;
+fun get_states_lambda A max opt_min Si : state list =
+  let
+    val prec =
+      (case opt_min of
+        NONE => (fn p => p <= max)
+      | SOME min => (fn p => p <= max andalso p > min));
+  in filter (fn (_, _, Nonterminal (B, p) :: _) => A = B andalso prec p | _ => false) Si end;
 
-fun get_states Estate j A max_prec : state list =
+fun get_states stateset j A max_prec : state list =
   filter
     (fn (_, _, Nonterminal (B, prec) :: _) => A = B andalso prec <= max_prec | _ => false)
-    (Array.nth Estate j);
+    (Array.nth stateset j);
 
 
 fun movedot_nonterm tt (info, ts, Nonterminal _ :: sa) : state = (info, tt @ ts, sa);
@@ -582,19 +580,21 @@ val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K
 
 (*get all productions of a NT and NTs chained to it which can
   be started by specified token*)
-fun prods_for (Gram {prods, chains, ...}) tk nt =
+fun prods_for (Gram {prods, chains, ...}) tok nt =
   let
     fun token_prods prods =
-      fold cons (prods_lookup prods tk) #>
+      fold cons (prods_lookup prods tok) #>
       fold cons (prods_lookup prods Lexicon.dummy);
     fun nt_prods nt = #2 (Vector.nth prods nt);
   in fold (token_prods o nt_prods) (chains_all_preds chains [nt]) [] end;
 
 
-fun PROCESSS gram Estate i c states =
+local
+
+fun process_states gram stateset i c states =
   let
-    fun processS _ [] (Si, Sii) = (Si, Sii)
-      | processS used (S :: States) (Si, Sii) =
+    fun process _ [] (Si, Sii) = (Si, Sii)
+      | process used (S :: States) (Si, Sii) =
           (case S of
             (_, _, Nonterminal (nt, min_prec) :: _) =>
               let (*predictor operation*)
@@ -616,7 +616,7 @@ fun PROCESSS gram Estate i c states =
                         val States' = mk_states i nt (get_RHS min_prec tk_prods);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in
-                processS used' (new_states @ States) (S :: Si, Sii)
+                process used' (new_states @ States) (S :: Si, Sii)
               end
           | (info as (_, _, id, _), ts, Terminal a :: sa) => (*scanner operation*)
               let
@@ -625,7 +625,7 @@ fun PROCESSS gram Estate i c states =
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
                     in (info, ts', sa) :: Sii end;
-              in processS used States (S :: Si, Sii') end
+              in process used States (S :: Si, Sii') end
           | (info, ts, []) => (*completer operation*)
               let
                 val (A, prec, id, j) = info
@@ -633,18 +633,17 @@ fun PROCESSS gram Estate i c states =
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
                     let val (prec', used') = update_trees (A, (tt, prec)) used
-                    in (used', getS A prec prec' Si) end
-                  else (used, get_states Estate j A prec);
+                    in (used', get_states_lambda A prec prec' Si) end
+                  else (used, get_states stateset j A prec);
                 val States' = map (movedot_nonterm tt) Slist;
-              in processS used' (States' @ States) (S :: Si, Sii) end)
-  in processS Inttab.empty states ([], []) end;
+              in process used' (States' @ States) (S :: Si, Sii) end)
+  in process Inttab.empty states ([], []) end;
 
-
-fun produce gram stateset i indata prev_token =
+fun produce gram stateset i input prev_token =
   (case Array.nth stateset i of
     [] =>
       let
-        val toks = if Lexicon.is_eof prev_token then indata else prev_token :: indata;
+        val toks = if Lexicon.is_eof prev_token then input else prev_token :: input;
         val pos = Position.here (Lexicon.pos_of_token prev_token);
       in
         if null toks then
@@ -661,40 +660,39 @@ fun produce gram stateset i indata prev_token =
                     [Pretty.str "\""])])))
       end
   | states =>
-      (case indata of
+      (case input of
         [] => states
-      | c :: cs =>
+      | c :: rest =>
           let
-            val (Si, Sii) = PROCESSS gram stateset i c states;
+            val (Si, Sii) = process_states gram stateset i c states;
             val _ = Array.upd stateset i Si;
             val _ = Array.upd stateset (i + 1) Sii;
-          in produce gram stateset (i + 1) cs c end));
+          in produce gram stateset (i + 1) rest c end));
 
+in
 
-fun earley (gram as Gram {tags, ...}) startsymbol indata =
+fun parse (gram as Gram {tags, ...}) start toks =
   let
     val start_tag =
-      (case tags_lookup tags startsymbol of
+      (case tags_lookup tags start of
         SOME tag => tag
-      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote startsymbol));
-    val S0: state = ((~1, 0, "", 0), [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof]);
-    val s = length indata + 1;
-    val Estate = Array.array (s, []);
-    val _ = Array.upd Estate 0 [S0];
-    val states = produce gram Estate 0 indata Lexicon.eof;
-  in map_filter (fn (_, [pt], _) => SOME pt | _ => NONE) states end;
+      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote start));
 
-
-fun parse gram start toks =
-  let
     val end_pos =
       (case try List.last toks of
         NONE => Position.none
       | SOME tok => Lexicon.end_pos_of_token tok);
-    val r =
-      (case earley gram start (toks @ [Lexicon.mk_eof end_pos]) of
-        [] => raise Fail "Inner syntax: no parse trees"
-      | pts => pts);
-  in r end;
+    val input = toks @ [Lexicon.mk_eof end_pos];
+
+    val S0: state = ((~1, 0, "", 0), [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof]);
+    val stateset = Array.array (length input + 1, []);
+    val _ = Array.upd stateset 0 [S0];
+
+    val pts =
+      produce gram stateset 0 input Lexicon.eof
+      |> map_filter (fn (_, [pt], _) => SOME pt | _ => NONE);
+  in if null pts then raise Fail "Inner syntax: no parse trees" else pts end;
+
+end;
 
 end;
