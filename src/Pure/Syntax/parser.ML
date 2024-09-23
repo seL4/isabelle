@@ -638,8 +638,10 @@ fun PROCESSS gram Estate i c states =
                     val States' = map (movedot_nonterm tt) Slist;
                   in processS used' (States' @ States) (S :: Si, Sii) end
                 else
-                  let val Slist = get_states Estate j A prec
-                  in processS used (map (movedot_nonterm tt) Slist @ States) (S :: Si, Sii) end
+                  let
+                    val Slist = get_states Estate j A prec;
+                    val States' = map (movedot_nonterm tt) Slist;
+                  in processS used (States' @ States) (S :: Si, Sii) end
               end)
   in processS Inttab.empty states ([], []) end;
 
