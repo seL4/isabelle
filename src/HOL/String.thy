@@ -216,15 +216,15 @@ lemma size'_char_eq_0 [simp, code]:
   by (cases c) simp
 
 syntax
-  "_Char" :: "str_position \<Rightarrow> char"    ("CHR _")
-  "_Char_ord" :: "num_const \<Rightarrow> char"   ("CHR _")
+  "_Char" :: "str_position \<Rightarrow> char"    (\<open>CHR _\<close>)
+  "_Char_ord" :: "num_const \<Rightarrow> char"   (\<open>CHR _\<close>)
 syntax_consts
   "_Char" "_Char_ord" \<rightleftharpoons> Char
 
 type_synonym string = "char list"
 
 syntax
-  "_String" :: "str_position \<Rightarrow> string"    ("_")
+  "_String" :: "str_position \<Rightarrow> string"    (\<open>_\<close>)
 
 ML_file \<open>Tools/string_syntax.ML\<close>
 
@@ -522,8 +522,8 @@ end
 code_datatype "0 :: String.literal" String.Literal
 
 syntax
-  "_Literal" :: "str_position \<Rightarrow> String.literal"   ("STR _")
-  "_Ascii" :: "num_const \<Rightarrow> String.literal"        ("STR _")
+  "_Literal" :: "str_position \<Rightarrow> String.literal"   (\<open>STR _\<close>)
+  "_Ascii" :: "num_const \<Rightarrow> String.literal"        (\<open>STR _\<close>)
 syntax_consts
   "_Literal" "_Ascii" \<rightleftharpoons> String.Literal
 

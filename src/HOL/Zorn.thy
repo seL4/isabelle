@@ -19,10 +19,10 @@ subsubsection \<open>Results that do not require an order\<close>
 text \<open>Let \<open>P\<close> be a binary predicate on the set \<open>A\<close>.\<close>
 locale pred_on =
   fixes A :: "'a set"
-    and P :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubset>" 50)
+    and P :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<sqsubset>\<close> 50)
 begin
 
-abbreviation Peq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50)
+abbreviation Peq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<sqsubseteq>\<close> 50)
   where "x \<sqsubseteq> y \<equiv> P\<^sup>=\<^sup>= x y"
 
 text \<open>A chain is a totally ordered subset of \<open>A\<close>.\<close>
@@ -33,7 +33,7 @@ text \<open>
   We call a chain that is a proper superset of some set \<open>X\<close>,
   but not necessarily a chain itself, a superchain of \<open>X\<close>.
 \<close>
-abbreviation superchain :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infix "<c" 50)
+abbreviation superchain :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"  (infix \<open><c\<close> 50)
   where "X <c C \<equiv> chain C \<and> X \<subset> C"
 
 text \<open>A maximal chain is a chain that does not have a superchain.\<close>
@@ -80,7 +80,7 @@ text \<open>
   We build a set \<^term>\<open>\<C>\<close> that is closed under applications
   of \<^term>\<open>suc\<close> and contains the union of all its subsets.
 \<close>
-inductive_set suc_Union_closed ("\<C>")
+inductive_set suc_Union_closed (\<open>\<C>\<close>)
   where
     suc: "X \<in> \<C> \<Longrightarrow> suc X \<in> \<C>"
   | Union [unfolded Pow_iff]: "X \<in> Pow \<C> \<Longrightarrow> \<Union>X \<in> \<C>"
@@ -315,7 +315,7 @@ proof -
 qed
 
 text \<open>Make notation \<^term>\<open>\<C>\<close> available again.\<close>
-no_notation suc_Union_closed  ("\<C>")
+no_notation suc_Union_closed  (\<open>\<C>\<close>)
 
 lemma chain_extend: "chain C \<Longrightarrow> z \<in> A \<Longrightarrow> \<forall>x\<in>C. x \<sqsubseteq> z \<Longrightarrow> chain ({z} \<union> C)"
   unfolding chain_def by blast
@@ -421,7 +421,7 @@ subsection \<open>Zorn's Lemma for Partial Orders\<close>
 
 text \<open>Relate old to new definitions.\<close>
 
-definition chain_subset :: "'a set set \<Rightarrow> bool"  ("chain\<^sub>\<subseteq>")  (* Define globally? In Set.thy? *)
+definition chain_subset :: "'a set set \<Rightarrow> bool"  (\<open>chain\<^sub>\<subseteq>\<close>)  (* Define globally? In Set.thy? *)
   where "chain\<^sub>\<subseteq> C \<longleftrightarrow> (\<forall>A\<in>C. \<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A)"
 
 definition chains :: "'a set set \<Rightarrow> 'a set set set"
@@ -621,7 +621,7 @@ definition init_seg_of :: "(('a \<times> 'a) set \<times> ('a \<times> 'a) set) 
   where "init_seg_of = {(r, s). r \<subseteq> s \<and> (\<forall>a b c. (a, b) \<in> s \<and> (b, c) \<in> r \<longrightarrow> (a, b) \<in> r)}"
 
 abbreviation initial_segment_of_syntax :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"
-    (infix "initial'_segment'_of" 55)
+    (infix \<open>initial'_segment'_of\<close> 55)
   where "r initial_segment_of s \<equiv> (r, s) \<in> init_seg_of"
 
 lemma refl_on_init_seg_of [simp]: "r initial_segment_of r"

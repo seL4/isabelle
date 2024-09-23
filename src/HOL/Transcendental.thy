@@ -1564,7 +1564,7 @@ class ln = real_normed_algebra_1 + banach +
   fixes ln :: "'a \<Rightarrow> 'a"
   assumes ln_one [simp]: "ln 1 = 0"
 
-definition powr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a::ln"  (infixr "powr" 80)
+definition powr :: "'a \<Rightarrow> 'a \<Rightarrow> 'a::ln"  (infixr \<open>powr\<close> 80)
   \<comment> \<open>exponentation via ln and exp\<close>
   where "x powr a \<equiv> if x = 0 then 0 else exp (a * ln x)"
 

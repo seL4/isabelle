@@ -12,10 +12,10 @@ begin
 subsection \<open>Real vector spaces\<close>
 
 class scaleR =
-  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "*\<^sub>R" 75)
+  fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr \<open>*\<^sub>R\<close> 75)
 begin
 
-abbreviation divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a"  (infixl "'/\<^sub>R" 70)
+abbreviation divideR :: "'a \<Rightarrow> real \<Rightarrow> 'a"  (infixl \<open>'/\<^sub>R\<close> 70)
   where "x /\<^sub>R r \<equiv> inverse r *\<^sub>R x"
 
 end
@@ -409,7 +409,7 @@ instance real_field < field_char_0 ..
 
 subsection \<open>The Set of Real Numbers\<close>
 
-definition Reals :: "'a::real_algebra_1 set"  ("\<real>")
+definition Reals :: "'a::real_algebra_1 set"  (\<open>\<real>\<close>)
   where "\<real> = range of_real"
 
 lemma Reals_of_real [simp]: "of_real r \<in> \<real>"
@@ -1535,7 +1535,7 @@ lemma bounded_linear_intro:
 
 locale bounded_bilinear =
   fixes prod :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector \<Rightarrow> 'c::real_normed_vector"
-    (infixl "**" 70)
+    (infixl \<open>**\<close> 70)
   assumes add_left: "prod (a + a') b = prod a b + prod a' b"
     and add_right: "prod a (b + b') = prod a b + prod a b'"
     and scaleR_left: "prod (scaleR r a) b = scaleR r (prod a b)"

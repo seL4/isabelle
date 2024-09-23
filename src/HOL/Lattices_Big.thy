@@ -309,7 +309,7 @@ begin
 
 sublocale Inf_fin: semilattice_order_set inf less_eq less
 defines
-  Inf_fin ("\<Sqinter>\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Inf_fin.F ..
+  Inf_fin (\<open>\<Sqinter>\<^sub>f\<^sub>i\<^sub>n _\<close> [900] 900) = Inf_fin.F ..
 
 end
 
@@ -318,7 +318,7 @@ begin
 
 sublocale Sup_fin: semilattice_order_set sup greater_eq greater
 defines
-  Sup_fin ("\<Squnion>\<^sub>f\<^sub>i\<^sub>n _" [900] 900) = Sup_fin.F ..
+  Sup_fin (\<open>\<Squnion>\<^sub>f\<^sub>i\<^sub>n _\<close> [900] 900) = Sup_fin.F ..
 
 end
 
@@ -465,10 +465,10 @@ defines
 end
 
 syntax
-  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MIN _./ _)" [0, 10] 10)
-  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MIN _\<in>_./ _)" [0, 0, 10] 10)
-  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3MAX _./ _)" [0, 10] 10)
-  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3MAX _\<in>_./ _)" [0, 0, 10] 10)
+  "_MIN1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3MIN _./ _)\<close> [0, 10] 10)
+  "_MIN"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3MIN _\<in>_./ _)\<close> [0, 0, 10] 10)
+  "_MAX1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(3MAX _./ _)\<close> [0, 10] 10)
+  "_MAX"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(3MAX _\<in>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_MIN1" "_MIN" \<rightleftharpoons> Min and
@@ -923,7 +923,7 @@ end
 
 syntax
   "_arg_min" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'b"
-    ("(3ARG'_MIN _ _./ _)" [1000, 0, 10] 10)
+    (\<open>(3ARG'_MIN _ _./ _)\<close> [1000, 0, 10] 10)
 syntax_consts
   "_arg_min" \<rightleftharpoons> arg_min
 translations
@@ -1034,7 +1034,7 @@ end
 
 syntax
   "_arg_max" :: "('b \<Rightarrow> 'a) \<Rightarrow> pttrn \<Rightarrow> bool \<Rightarrow> 'a"
-    ("(3ARG'_MAX _ _./ _)" [1000, 0, 10] 10)
+    (\<open>(3ARG'_MAX _ _./ _)\<close> [1000, 0, 10] 10)
 syntax_consts
   "_arg_max" \<rightleftharpoons> arg_max
 translations

@@ -45,11 +45,11 @@ code_printing
 
 subsection \<open>The Composition Operator \<open>f \<circ> g\<close>\<close>
 
-definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl "\<circ>" 55)
+definition comp :: "('b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl \<open>\<circ>\<close> 55)
   where "f \<circ> g = (\<lambda>x. f (g x))"
 
 notation (ASCII)
-  comp  (infixl "o" 55)
+  comp  (infixl \<open>o\<close> 55)
 
 lemma comp_apply [simp]: "(f \<circ> g) x = f (g x)"
   by (simp add: comp_def)
@@ -102,7 +102,7 @@ code_printing
 
 subsection \<open>The Forward Composition Operator \<open>fcomp\<close>\<close>
 
-definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl "\<circ>>" 60)
+definition fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c"  (infixl \<open>\<circ>>\<close> 60)
   where "f \<circ>> g = (\<lambda>x. g (f x))"
 
 lemma fcomp_apply [simp]:  "(f \<circ>> g) x = g (f x)"
@@ -123,7 +123,7 @@ lemma fcomp_comp: "fcomp f g = comp g f"
 code_printing
   constant fcomp \<rightharpoonup> (Eval) infixl 1 "#>"
 
-no_notation fcomp (infixl "\<circ>>" 60)
+no_notation fcomp (infixl \<open>\<circ>>\<close> 60)
 
 
 subsection \<open>Mapping functions\<close>
@@ -841,10 +841,10 @@ definition fun_upd :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \
 nonterminal updbinds and updbind
 
 syntax
-  "_updbind" :: "'a \<Rightarrow> 'a \<Rightarrow> updbind"             ("(2_ :=/ _)")
-  ""         :: "updbind \<Rightarrow> updbinds"             ("_")
-  "_updbinds":: "updbind \<Rightarrow> updbinds \<Rightarrow> updbinds" ("_,/ _")
-  "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"            ("_/'((_)')" [1000, 0] 900)
+  "_updbind" :: "'a \<Rightarrow> 'a \<Rightarrow> updbind"             (\<open>(2_ :=/ _)\<close>)
+  ""         :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
+  "_updbinds":: "updbind \<Rightarrow> updbinds \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
+  "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"            (\<open>_/'((_)')\<close> [1000, 0] 900)
 
 syntax_consts
   "_updbind" "_updbinds" "_Update" \<rightleftharpoons> fun_upd

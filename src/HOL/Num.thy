@@ -302,7 +302,7 @@ end
 text \<open>Numeral syntax.\<close>
 
 syntax
-  "_Numeral" :: "num_const \<Rightarrow> 'a"    ("_")
+  "_Numeral" :: "num_const \<Rightarrow> 'a"    (\<open>_\<close>)
 
 ML_file \<open>Tools/numeral.ML\<close>
 

@@ -18,7 +18,7 @@ text \<open>This development is based on the work of Andy Gordon and Florian Kam
 
 text \<open>Combinatorial definition\<close>
 
-definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infix "choose" 64)
+definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infix \<open>choose\<close> 64)
   where "n choose k = card {K\<in>Pow {0..<n}. card K = k}"
 
 lemma binomial_right_mono:
@@ -362,7 +362,7 @@ qed
 
 subsection \<open>Generalized binomial coefficients\<close>
 
-definition gbinomial :: "'a::{semidom_divide,semiring_char_0} \<Rightarrow> nat \<Rightarrow> 'a"  (infix "gchoose" 64)
+definition gbinomial :: "'a::{semidom_divide,semiring_char_0} \<Rightarrow> nat \<Rightarrow> 'a"  (infix \<open>gchoose\<close> 64)
   where gbinomial_prod_rev: "a gchoose k = prod (\<lambda>i. a - of_nat i) {0..<k} div fact k"
 
 lemma gbinomial_0 [simp]:

@@ -525,9 +525,9 @@ ML_file \<open>Tools/BNF/bnf_lfp_rec_sugar.ML\<close>
 
 text \<open>Lambda-abstractions with pattern matching:\<close>
 syntax (ASCII)
-  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  ("(%_)" 10)
+  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  (\<open>(%_)\<close> 10)
 syntax
-  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  ("(\<lambda>_)" 10)
+  "_lam_pats_syntax" :: "cases_syn \<Rightarrow> 'a \<Rightarrow> 'b"  (\<open>(\<lambda>_)\<close> 10)
 parse_translation \<open>
   let
     fun fun_tr ctxt [cs] =

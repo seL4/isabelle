@@ -12,26 +12,26 @@ theory Map
   abbrevs "(=" = "\<subseteq>\<^sub>m"
 begin
 
-type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr "\<rightharpoonup>" 0)
+type_synonym ('a, 'b) "map" = "'a \<Rightarrow> 'b option" (infixr \<open>\<rightharpoonup>\<close> 0)
 
 abbreviation (input)
   empty :: "'a \<rightharpoonup> 'b" where
   "empty \<equiv> \<lambda>x. None"
 
 definition
-  map_comp :: "('b \<rightharpoonup> 'c) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c)"  (infixl "\<circ>\<^sub>m" 55) where
+  map_comp :: "('b \<rightharpoonup> 'c) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c)"  (infixl \<open>\<circ>\<^sub>m\<close> 55) where
   "f \<circ>\<^sub>m g = (\<lambda>k. case g k of None \<Rightarrow> None | Some v \<Rightarrow> f v)"
 
 definition
-  map_add :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"  (infixl "++" 100) where
+  map_add :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)"  (infixl \<open>++\<close> 100) where
   "m1 ++ m2 = (\<lambda>x. case m2 x of None \<Rightarrow> m1 x | Some y \<Rightarrow> Some y)"
 
 definition
-  restrict_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a set \<Rightarrow> ('a \<rightharpoonup> 'b)"  (infixl "|`"  110) where
+  restrict_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a set \<Rightarrow> ('a \<rightharpoonup> 'b)"  (infixl \<open>|`\<close>  110) where
   "m|`A = (\<lambda>x. if x \<in> A then m x else None)"
 
 notation (latex output)
-  restrict_map  ("_\<restriction>\<^bsub>_\<^esub>" [111,110] 110)
+  restrict_map  (\<open>_\<restriction>\<^bsub>_\<^esub>\<close> [111,110] 110)
 
 definition
   dom :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a set" where
@@ -46,7 +46,7 @@ definition
   "graph m = {(a, b) | a b. m a = Some b}"
 
 definition
-  map_le :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool"  (infix "\<subseteq>\<^sub>m" 50) where
+  map_le :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool"  (infix \<open>\<subseteq>\<^sub>m\<close> 50) where
   "(m\<^sub>1 \<subseteq>\<^sub>m m\<^sub>2) \<longleftrightarrow> (\<forall>a \<in> dom m\<^sub>1. m\<^sub>1 a = m\<^sub>2 a)"
 
 text \<open>Function update syntax \<open>f(x := y, \<dots>)\<close> is extended with \<open>x \<mapsto> y\<close>, which is short for
@@ -57,15 +57,15 @@ but must only contain \<open>\<mapsto>\<close>, not \<open>:=\<close>, because \
 nonterminal maplet and maplets
 
 syntax
-  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /\<mapsto>/ _")
-  ""         :: "maplet \<Rightarrow> updbind"              ("_")
-  ""         :: "maplet \<Rightarrow> maplets"             ("_")
-  "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" ("_,/ _")
-  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           ("(1[_])")
+  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /\<mapsto>/ _\<close>)
+  ""         :: "maplet \<Rightarrow> updbind"              (\<open>_\<close>)
+  ""         :: "maplet \<Rightarrow> maplets"             (\<open>_\<close>)
+  "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" (\<open>_,/ _\<close>)
+  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           (\<open>(1[_])\<close>)
 (* Syntax forbids \<open>[\<dots>, x := y, \<dots>]\<close> by introducing \<open>maplets\<close> in addition to \<open>updbinds\<close> *)
 
 syntax (ASCII)
-  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /|->/ _")
+  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /|->/ _\<close>)
 
 syntax_consts
   "_maplet" "_Maplets" "_Map" \<rightleftharpoons> fun_upd
@@ -97,10 +97,10 @@ definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Righta
 text \<open>There is also the more specialized update syntax \<open>xs [\<mapsto>] ys\<close> for lists \<open>xs\<close> and \<open>ys\<close>.\<close>
 
 syntax
-  "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[\<mapsto>]/ _")
+  "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /[\<mapsto>]/ _\<close>)
 
 syntax (ASCII)
-  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             ("_ /[|->]/ _")
+  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /[|->]/ _\<close>)
 
 syntax_consts
   "_maplets" \<rightleftharpoons> map_upds

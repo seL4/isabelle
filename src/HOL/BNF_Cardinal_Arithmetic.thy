@@ -139,7 +139,7 @@ corollary card_of_UNION_ordLess_infinite_Field_regularCard:
 
 subsection \<open>Binary sum\<close>
 
-definition csum (infixr "+c" 65) 
+definition csum (infixr \<open>+c\<close> 65) 
     where "r1 +c r2 \<equiv> |Field r1 <+> Field r2|"
 
 lemma Field_csum: "Field (r +c s) = Inl ` Field r \<union> Inr ` Field s"
@@ -273,7 +273,7 @@ definition Csum where
 (* Similar setup to the one for SIGMA from theory Big_Operators: *)
 syntax "_Csum" ::
   "pttrn => ('a * 'a) set => 'b * 'b set => (('a * 'b) * ('a * 'b)) set"
-  ("(3CSUM _:_. _)" [0, 51, 10] 10)
+  (\<open>(3CSUM _:_. _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_Csum" == Csum
@@ -291,7 +291,7 @@ This should make cardinal reasoning more direct and natural.  *)
 
 subsection \<open>Product\<close>
 
-definition cprod (infixr "*c" 80) where
+definition cprod (infixr \<open>*c\<close> 80) where
   "r1 *c r2 = |Field r1 \<times> Field r2|"
 
 lemma card_order_cprod:
@@ -450,7 +450,7 @@ qed
 
 subsection \<open>Exponentiation\<close>
 
-definition cexp (infixr "^c" 90) where
+definition cexp (infixr \<open>^c\<close> 90) where
   "r1 ^c r2 \<equiv> |Func (Field r2) (Field r1)|"
 
 lemma Card_order_cexp: "Card_order (r1 ^c r2)"

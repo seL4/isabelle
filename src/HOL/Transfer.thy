@@ -13,8 +13,8 @@ subsection \<open>Relator for function space\<close>
 
 bundle lifting_syntax
 begin
-  notation rel_fun  (infixr "===>" 55)
-  notation map_fun  (infixr "--->" 55)
+  notation rel_fun  (infixr \<open>===>\<close> 55)
+  notation map_fun  (infixr \<open>--->\<close> 55)
 end
 
 context includes lifting_syntax

@@ -9,8 +9,8 @@ imports Sledgehammer Lifting_Set
 begin
 
 datatype (set: 'a) list =
-    Nil  ("[]")
-  | Cons (hd: 'a) (tl: "'a list")  (infixr "#" 65)
+    Nil  (\<open>[]\<close>)
+  | Cons (hd: 'a) (tl: "'a list")  (infixr \<open>#\<close> 65)
 for
   map: map
   rel: list_all2
@@ -47,9 +47,9 @@ text \<open>List enumeration\<close>
 
 nonterminal list_args
 syntax
-  "" :: "'a \<Rightarrow> list_args"  ("_")
-  "_list_args" :: "'a \<Rightarrow> list_args \<Rightarrow> list_args"  ("_,/ _")
-  "_list" :: "list_args => 'a list"    ("[(_)]")
+  "" :: "'a \<Rightarrow> list_args"  (\<open>_\<close>)
+  "_list_args" :: "'a \<Rightarrow> list_args \<Rightarrow> list_args"  (\<open>_,/ _\<close>)
+  "_list" :: "list_args => 'a list"    (\<open>[(_)]\<close>)
 syntax_consts
   "_list_args" "_list" == Cons
 translations
@@ -72,7 +72,7 @@ lemma set_rec: "set xs = rec_list {} (\<lambda>x _. insert x) xs"
 definition coset :: "'a list \<Rightarrow> 'a set" where
 [simp]: "coset xs = - set xs"
 
-primrec append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
+primrec append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr \<open>@\<close> 65) where
 append_Nil: "[] @ ys = ys" |
 append_Cons: "(x#xs) @ ys = x # xs @ ys"
 
@@ -86,9 +86,9 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 
 text \<open>Special input syntax for filter:\<close>
 syntax (ASCII)
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_<-_./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(1[_<-_./ _])\<close>)
 syntax
-  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  ("(1[_\<leftarrow>_ ./ _])")
+  "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(1[_\<leftarrow>_ ./ _])\<close>)
 syntax_consts
   "_filter" \<rightleftharpoons> filter
 translations
@@ -122,7 +122,7 @@ take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow
   \<comment> \<open>Warning: simpset does not contain this definition, but separate
        theorems for \<open>n = 0\<close> and \<open>n = Suc k\<close>\<close>
 
-primrec (nonexhaustive) nth :: "'a list => nat => 'a" (infixl "!" 100) where
+primrec (nonexhaustive) nth :: "'a list => nat => 'a" (infixl \<open>!\<close> 100) where
 nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
   \<comment> \<open>Warning: simpset does not contain this definition, but separate
        theorems for \<open>n = 0\<close> and \<open>n = Suc k\<close>\<close>
@@ -135,10 +135,10 @@ primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow>
 nonterminal lupdbinds and lupdbind
 
 syntax
-  "_lupdbind":: "['a, 'a] => lupdbind"    ("(2_ :=/ _)")
-  "" :: "lupdbind => lupdbinds"    ("_")
-  "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    ("_,/ _")
-  "_LUpdate" :: "['a, lupdbinds] => 'a"    ("_/[(_)]" [1000,0] 900)
+  "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(2_ :=/ _)\<close>)
+  "" :: "lupdbind => lupdbinds"    (\<open>_\<close>)
+  "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    (\<open>_,/ _\<close>)
+  "_LUpdate" :: "['a, lupdbinds] => 'a"    (\<open>_/[(_)]\<close> [1000,0] 900)
 
 syntax_consts
   "_lupdbind" "_lupdbinds" "_LUpdate" == list_update
@@ -175,7 +175,7 @@ primrec product_lists :: "'a list list \<Rightarrow> 'a list list" where
 "product_lists [] = [[]]" |
 "product_lists (xs # xss) = concat (map (\<lambda>x. map (Cons x) (product_lists xss)) xs)"
 
-primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
+primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" (\<open>(1[_..</_'])\<close>) where
 upt_0: "[i..<0] = []" |
 upt_Suc: "[i..<(Suc j)] = (if i \<le> j then [i..<j] @ [j] else [])"
 
@@ -449,15 +449,15 @@ definitions for the list comprehensions in question.\<close>
 nonterminal lc_qual and lc_quals
 
 syntax
-  "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ \<leftarrow> _")
-  "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
+  "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  (\<open>[_ . __\<close>)
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ \<leftarrow> _\<close>)
+  "_lc_test" :: "bool \<Rightarrow> lc_qual" (\<open>_\<close>)
   (*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
-  "_lc_end" :: "lc_quals" ("]")
-  "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals"  (", __")
+  "_lc_end" :: "lc_quals" (\<open>]\<close>)
+  "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals"  (\<open>, __\<close>)
 
 syntax (ASCII)
-  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  ("_ <- _")
+  "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ <- _\<close>)
 
 parse_translation \<open>
 let
@@ -2811,7 +2811,7 @@ qed
 
 lemma semilattice_map2:
   "semilattice (map2 (\<^bold>*))" if "semilattice (\<^bold>*)"
-    for f (infixl "\<^bold>*" 70)
+    for f (infixl \<open>\<^bold>*\<close> 70)
 proof -
   from that interpret semilattice f .
   show ?thesis
@@ -3432,7 +3432,7 @@ qed
 
 subsubsection \<open>\<open>upto\<close>: interval-list on \<^typ>\<open>int\<close>\<close>
 
-function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
+function upto :: "int \<Rightarrow> int \<Rightarrow> int list" (\<open>(1[_../_])\<close>) where
   "upto i j = (if i \<le> j then i # [i+1..j] else [])"
 by auto
 termination
@@ -6219,7 +6219,7 @@ definition (in linorder) sorted_key_list_of_set :: "('b \<Rightarrow> 'a) \<Righ
   where "sorted_key_list_of_set f \<equiv> folding_on.F (insort_key f) []"
 
 locale folding_insort_key = lo?: linorder "less_eq :: 'a \<Rightarrow> 'a \<Rightarrow> bool" less
-  for less_eq (infix "\<preceq>" 50) and less (infix "\<prec>" 50) +
+  for less_eq (infix \<open>\<preceq>\<close> 50) and less (infix \<open>\<prec>\<close> 50) +
   fixes S
   fixes f :: "'b \<Rightarrow> 'a"
   assumes inj_on: "inj_on f S"

@@ -16,14 +16,14 @@ begin
 subsection \<open>Definition of infinite summability\<close>
 
 definition sums :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a \<Rightarrow> bool"
-    (infixr "sums" 80)
+    (infixr \<open>sums\<close> 80)
   where "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i<n. f i) \<longlonglongrightarrow> s"
 
 definition summable :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> bool"
   where "summable f \<longleftrightarrow> (\<exists>s. f sums s)"
 
 definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add}) \<Rightarrow> 'a"
-    (binder "\<Sum>" 10)
+    (binder \<open>\<Sum>\<close> 10)
   where "suminf f = (THE s. f sums s)"
 
 text\<open>Variants of the definition\<close>

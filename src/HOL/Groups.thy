@@ -50,7 +50,7 @@ text \<open>
 \<close>
 
 locale semigroup =
-  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "\<^bold>*" 70)
+  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>\<^bold>*\<close> 70)
   assumes assoc [ac_simps]: "a \<^bold>* b \<^bold>* c = a \<^bold>* (b \<^bold>* c)"
 
 locale abel_semigroup = semigroup +
@@ -68,12 +68,12 @@ qed
 end
 
 locale monoid = semigroup +
-  fixes z :: 'a ("\<^bold>1")
+  fixes z :: 'a (\<open>\<^bold>1\<close>)
   assumes left_neutral [simp]: "\<^bold>1 \<^bold>* a = a"
   assumes right_neutral [simp]: "a \<^bold>* \<^bold>1 = a"
 
 locale comm_monoid = abel_semigroup +
-  fixes z :: 'a ("\<^bold>1")
+  fixes z :: 'a (\<open>\<^bold>1\<close>)
   assumes comm_neutral: "a \<^bold>* \<^bold>1 = a"
 begin
 
@@ -83,7 +83,7 @@ sublocale monoid
 end
 
 locale group = semigroup +
-  fixes z :: 'a ("\<^bold>1")
+  fixes z :: 'a (\<open>\<^bold>1\<close>)
   fixes inverse :: "'a \<Rightarrow> 'a"
   assumes group_left_neutral: "\<^bold>1 \<^bold>* a = a"
   assumes left_inverse [simp]:  "inverse a \<^bold>* a = \<^bold>1"
@@ -158,10 +158,10 @@ end
 subsection \<open>Generic operations\<close>
 
 class zero =
-  fixes zero :: 'a  ("0")
+  fixes zero :: 'a  (\<open>0\<close>)
 
 class one =
-  fixes one  :: 'a  ("1")
+  fixes one  :: 'a  (\<open>1\<close>)
 
 hide_const (open) zero one
 
@@ -192,16 +192,16 @@ typed_print_translation \<open>
 \<close> \<comment> \<open>show types that are presumably too general\<close>
 
 class plus =
-  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
+  fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>+\<close> 65)
 
 class minus =
-  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
+  fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>-\<close> 65)
 
 class uminus =
-  fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
+  fixes uminus :: "'a \<Rightarrow> 'a"  (\<open>- _\<close> [81] 80)
 
 class times =
-  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
+  fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>*\<close> 70)
 
 
 subsection \<open>Semigroups and Monoids\<close>
@@ -1164,7 +1164,7 @@ lemma minus_min_eq_max: "- min x y = max (- x) (- y)"
 end
 
 class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"  ("\<bar>_\<bar>")
+  fixes abs :: "'a \<Rightarrow> 'a"  (\<open>\<bar>_\<bar>\<close>)
 
 class sgn =
   fixes sgn :: "'a \<Rightarrow> 'a"

@@ -1463,11 +1463,11 @@ text \<open>
 
 consts compow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a"
 
-abbreviation compower :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr "^^" 80)
+abbreviation compower :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr \<open>^^\<close> 80)
   where "f ^^ n \<equiv> compow n f"
 
 notation (latex output)
-  compower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+  compower (\<open>(_\<^bsup>_\<^esup>)\<close> [1000] 1000)
 
 text \<open>\<open>f ^^ n = f \<circ> \<dots> \<circ> f\<close>, the \<open>n\<close>-fold composition of \<open>f\<close>\<close>
 
@@ -1891,7 +1891,7 @@ subsection \<open>The set of natural numbers\<close>
 context semiring_1
 begin
 
-definition Nats :: "'a set"  ("\<nat>")
+definition Nats :: "'a set"  (\<open>\<nat>\<close>)
   where "\<nat> = range of_nat"
 
 lemma of_nat_in_Nats [simp]: "of_nat n \<in> \<nat>"

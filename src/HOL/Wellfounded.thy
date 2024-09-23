@@ -1121,7 +1121,7 @@ lemma wf_if_measure: "(\<And>x. P x \<Longrightarrow> f(g x) < f x) \<Longrighta
 subsubsection \<open>Lexicographic combinations\<close>
 
 definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set"
-    (infixr "<*lex*>" 80)
+    (infixr \<open><*lex*>\<close> 80)
     where "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
 lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
@@ -1200,7 +1200,7 @@ lemma total_lex_prod[simp]: "total r\<^sub>A \<Longrightarrow> total r\<^sub>B \
 
 text \<open>lexicographic combinations with measure functions\<close>
 
-definition mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr "<*mlex*>" 80)
+definition mlex_prod :: "('a \<Rightarrow> nat) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" (infixr \<open><*mlex*>\<close> 80)
   where "f <*mlex*> R = inv_image (less_than <*lex*> R) (\<lambda>x. (f x, x))"
 
 lemma

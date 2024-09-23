@@ -643,7 +643,7 @@ begin
 sublocale sum: comm_monoid_set plus 0
   defines sum = sum.F and sum' = sum.G ..
 
-abbreviation Sum ("\<Sum>")
+abbreviation Sum (\<open>\<Sum>\<close>)
   where "\<Sum> \<equiv> sum (\<lambda>x. x)"
 
 end
@@ -651,9 +651,9 @@ end
 text \<open>Now: lots of fancy syntax. First, \<^term>\<open>sum (\<lambda>x. e) A\<close> is written \<open>\<Sum>x\<in>A. e\<close>.\<close>
 
 syntax (ASCII)
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(3SUM (_/:_)./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(3SUM (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  ("(2\<Sum>(_/\<in>_)./ _)" [0, 51, 10] 10)
+  "_sum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::comm_monoid_add"  (\<open>(2\<Sum>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_sum" \<rightleftharpoons> sum
@@ -665,9 +665,9 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 text \<open>Instead of \<^term>\<open>\<Sum>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Sum>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SUM _ |/ _./ _)" [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3SUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Sum>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>_ | (_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_qsum" == sum
@@ -1415,15 +1415,15 @@ begin
 sublocale prod: comm_monoid_set times 1
   defines prod = prod.F and prod' = prod.G ..
 
-abbreviation Prod ("\<Prod>_" [1000] 999)
+abbreviation Prod (\<open>\<Prod>_\<close> [1000] 999)
   where "\<Prod>A \<equiv> prod (\<lambda>x. x) A"
 
 end
 
 syntax (ASCII)
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(4PROD (_/:_)./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(4PROD (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(2\<Prod>(_/\<in>_)./ _)" [0, 51, 10] 10)
+  "_prod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  (\<open>(2\<Prod>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 
 syntax_consts
   "_prod" == prod
@@ -1435,9 +1435,9 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 text \<open>Instead of \<^term>\<open>\<Prod>x\<in>{x. P}. e\<close> we introduce the shorter \<open>\<Prod>x|P. e\<close>.\<close>
 
 syntax (ASCII)
-  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(4PROD _ |/ _./ _)" [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(4PROD _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  ("(2\<Prod>_ | (_)./ _)" [0, 0, 10] 10)
+  "_qprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Prod>_ | (_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_qprod" == prod

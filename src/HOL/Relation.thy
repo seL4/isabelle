@@ -969,11 +969,11 @@ lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
 
 subsubsection \<open>Composition\<close>
 
-inductive_set relcomp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) set \<Rightarrow> ('a \<times> 'c) set"  (infixr "O" 75)
+inductive_set relcomp  :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'c) set \<Rightarrow> ('a \<times> 'c) set"  (infixr \<open>O\<close> 75)
   for r :: "('a \<times> 'b) set" and s :: "('b \<times> 'c) set"
   where relcompI [intro]: "(a, b) \<in> r \<Longrightarrow> (b, c) \<in> s \<Longrightarrow> (a, c) \<in> r O s"
 
-notation relcompp (infixr "OO" 75)
+notation relcompp (infixr \<open>OO\<close> 75)
 
 lemmas relcomppI = relcompp.intros
 
@@ -1074,15 +1074,15 @@ lemma OO_eq: "R OO (=) = R"
 
 subsubsection \<open>Converse\<close>
 
-inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  ("(_\<inverse>)" [1000] 999)
+inductive_set converse :: "('a \<times> 'b) set \<Rightarrow> ('b \<times> 'a) set"  (\<open>(_\<inverse>)\<close> [1000] 999)
   for r :: "('a \<times> 'b) set"
   where "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"
 
-notation conversep  ("(_\<inverse>\<inverse>)" [1000] 1000)
+notation conversep  (\<open>(_\<inverse>\<inverse>)\<close> [1000] 1000)
 
 notation (ASCII)
-  converse  ("(_^-1)" [1000] 999) and
-  conversep ("(_^--1)" [1000] 1000)
+  converse  (\<open>(_^-1)\<close> [1000] 999) and
+  conversep (\<open>(_^--1)\<close> [1000] 1000)
 
 lemma converseI [sym]: "(a, b) \<in> r \<Longrightarrow> (b, a) \<in> r\<inverse>"
   by (fact converse.intros)
@@ -1386,7 +1386,7 @@ lemma Field_square [simp]: "Field (x \<times> x) = x"
 
 subsubsection \<open>Image of a set under a relation\<close>
 
-definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b set"  (infixr "``" 90)
+definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b set"  (infixr \<open>``\<close> 90)
   where "r `` s = {y. \<exists>x\<in>s. (x, y) \<in> r}"
 
 lemma Image_iff: "b \<in> r``A \<longleftrightarrow> (\<exists>x\<in>A. (x, b) \<in> r)"

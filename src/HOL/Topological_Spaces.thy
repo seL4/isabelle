@@ -462,10 +462,10 @@ definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
   where "nhds a = (INF S\<in>{S. open S \<and> a \<in> S}. principal S)"
 
 definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter"
-    ("at (_)/ within (_)" [1000, 60] 60)
+    (\<open>at (_)/ within (_)\<close> [1000, 60] 60)
   where "at a within s = inf (nhds a) (principal (s - {a}))"
 
-abbreviation (in topological_space) at :: "'a \<Rightarrow> 'a filter"  ("at")
+abbreviation (in topological_space) at :: "'a \<Rightarrow> 'a filter"  (\<open>at\<close>)
   where "at x \<equiv> at x within (CONST UNIV)"
 
 abbreviation (in order_topology) at_right :: "'a \<Rightarrow> 'a filter"
@@ -746,7 +746,7 @@ qed
 subsubsection \<open>Tendsto\<close>
 
 abbreviation (in topological_space)
-  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool"  (infixr "\<longlongrightarrow>" 55)
+  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool"  (infixr \<open>\<longlongrightarrow>\<close> 55)
   where "(f \<longlongrightarrow> l) F \<equiv> filterlim f (nhds l) F"
 
 definition (in t2_space) Lim :: "'f filter \<Rightarrow> ('f \<Rightarrow> 'a) \<Rightarrow> 'a"
@@ -1191,7 +1191,7 @@ lemma tendsto_at_within_iff_tendsto_nhds:
 subsection \<open>Limits on sequences\<close>
 
 abbreviation (in topological_space)
-  LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"  ("((_)/ \<longlonglongrightarrow> (_))" [60, 60] 60)
+  LIMSEQ :: "[nat \<Rightarrow> 'a, 'a] \<Rightarrow> bool"  (\<open>((_)/ \<longlonglongrightarrow> (_))\<close> [60, 60] 60)
   where "X \<longlonglongrightarrow> L \<equiv> (X \<longlongrightarrow> L) sequentially"
 
 abbreviation (in t2_space) lim :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a"
@@ -1760,7 +1760,7 @@ qed
 subsection \<open>Function limit at a point\<close>
 
 abbreviation LIM :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-    ("((_)/ \<midarrow>(_)/\<rightarrow> (_))" [60, 0, 60] 60)
+    (\<open>((_)/ \<midarrow>(_)/\<rightarrow> (_))\<close> [60, 0, 60] 60)
   where "f \<midarrow>a\<rightarrow> L \<equiv> (f \<longlongrightarrow> L) (at a)"
 
 lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow> (f \<midarrow>a\<rightarrow> l)"

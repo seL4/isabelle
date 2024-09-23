@@ -98,9 +98,9 @@ end
 
 text \<open>Some syntactic sugar for summing a function over a list:\<close>
 syntax (ASCII)
-  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
+  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(3SUM _<-_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+  "_sum_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(3\<Sum>_\<leftarrow>_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_sum_list" == sum_list
 translations \<comment> \<open>Beware of argument permutation!\<close>
@@ -597,9 +597,9 @@ end
 text \<open>Some syntactic sugar:\<close>
 
 syntax (ASCII)
-  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3PROD _<-_. _)" [0, 51, 10] 10)
+  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(3PROD _<-_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Prod>_\<leftarrow>_. _)" [0, 51, 10] 10)
+  "_prod_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(3\<Prod>_\<leftarrow>_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_prod_list" \<rightleftharpoons> prod_list
 translations \<comment> \<open>Beware of argument permutation!\<close>

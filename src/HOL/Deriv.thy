@@ -14,7 +14,7 @@ begin
 subsection \<open>Frechet derivative\<close>
 
 definition has_derivative :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow>
-    ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> bool"  (infix "(has'_derivative)" 50)
+    ('a \<Rightarrow> 'b) \<Rightarrow> 'a filter \<Rightarrow> bool"  (infix \<open>(has'_derivative)\<close> 50)
   where "(f has_derivative f') F \<longleftrightarrow>
     bounded_linear f' \<and>
     ((\<lambda>y. ((f y - f (Lim F (\<lambda>x. x))) - f' (y - Lim F (\<lambda>x. x))) /\<^sub>R norm (y - Lim F (\<lambda>x. x))) \<longlongrightarrow> 0) F"
@@ -37,14 +37,14 @@ lemma has_derivative_eq_rhs: "(f has_derivative f') F \<Longrightarrow> f' = g' 
   by simp
 
 definition has_field_derivative :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a filter \<Rightarrow> bool"
-    (infix "(has'_field'_derivative)" 50)
+    (infix \<open>(has'_field'_derivative)\<close> 50)
   where "(f has_field_derivative D) F \<longleftrightarrow> (f has_derivative (*) D) F"
 
 lemma DERIV_cong: "(f has_field_derivative X) F \<Longrightarrow> X = Y \<Longrightarrow> (f has_field_derivative Y) F"
   by simp
 
 definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> real filter \<Rightarrow> bool"
-    (infix "has'_vector'_derivative" 50)
+    (infix \<open>has'_vector'_derivative\<close> 50)
   where "(f has_vector_derivative f') net \<longleftrightarrow> (f has_derivative (\<lambda>x. x *\<^sub>R f')) net"
 
 lemma has_vector_derivative_eq_rhs:
@@ -70,7 +70,7 @@ text \<open>
 \<close>
 abbreviation (input)
   FDERIV :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow>  ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  ("(FDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+  (\<open>(FDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
   where "FDERIV f x :> f' \<equiv> (f has_derivative f') (at x)"
 
 lemma has_derivative_bounded_linear: "(f has_derivative f') F \<Longrightarrow> bounded_linear f'"
@@ -665,7 +665,7 @@ lemma has_derivative_Uniq: "\<exists>\<^sub>\<le>\<^sub>1F. (f has_derivative F)
 subsection \<open>Differentiability predicate\<close>
 
 definition differentiable :: "('a::real_normed_vector \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
-    (infix "differentiable" 50)
+    (infix \<open>differentiable\<close> 50)
   where "f differentiable F \<longleftrightarrow> (\<exists>D. (f has_derivative D) F)"
 
 lemma differentiable_subset:
@@ -782,11 +782,11 @@ lemma has_field_derivative_at_within:
 
 abbreviation (input)
   DERIV :: "('a::real_normed_field \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"
-    ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
+    (\<open>(DERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
   where "DERIV f x :> D \<equiv> (f has_field_derivative D) (at x)"
 
 abbreviation has_real_derivative :: "(real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> real filter \<Rightarrow> bool"
-    (infix "(has'_real'_derivative)" 50)
+    (infix \<open>(has'_real'_derivative)\<close> 50)
   where "(f has_real_derivative D) F \<equiv> (f has_field_derivative D) F"
 
 lemma real_differentiable_def:

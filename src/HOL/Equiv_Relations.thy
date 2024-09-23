@@ -88,7 +88,7 @@ lemma disjnt_equiv_class: "equiv A r \<Longrightarrow> disjnt (r``{a}) (r``{b}) 
 
 subsection \<open>Quotients\<close>
 
-definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl "'/'/" 90)
+definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl \<open>'/'/\<close> 90)
   where "A//r = (\<Union>x \<in> A. {r``{x}})"  \<comment> \<open>set of equiv classes\<close>
 
 lemma quotientI: "x \<in> A \<Longrightarrow> r``{x} \<in> A//r"
@@ -180,7 +180,7 @@ lemma congruentI: "(\<And>y z. (y, z) \<in> r \<Longrightarrow> f y = f z) \<Lon
 lemma congruentD: "congruent r f \<Longrightarrow> (y, z) \<in> r \<Longrightarrow> f y = f z"
   by (auto simp add: congruent_def)
 
-abbreviation RESPECTS :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  (infixr "respects" 80)
+abbreviation RESPECTS :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  (infixr \<open>respects\<close> 80)
   where "f respects r \<equiv> congruent r f"
 
 
@@ -247,7 +247,7 @@ lemma congruent2D: "congruent2 r1 r2 f \<Longrightarrow> (y1, z1) \<in> r1 \<Lon
   by (auto simp add: congruent2_def)
 
 text \<open>Abbreviation for the common case where the relations are identical.\<close>
-abbreviation RESPECTS2:: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  (infixr "respects2" 80)
+abbreviation RESPECTS2:: "('a \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"  (infixr \<open>respects2\<close> 80)
   where "f respects2 r \<equiv> congruent2 r r f"
 
 

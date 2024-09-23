@@ -238,7 +238,7 @@ qed auto
 
 subsection \<open>The Complex Number $i$\<close>
 
-primcorec imaginary_unit :: complex  ("\<i>")
+primcorec imaginary_unit :: complex  (\<open>\<i>\<close>)
   where
     "Re \<i> = 0"
   | "Im \<i> = 1"

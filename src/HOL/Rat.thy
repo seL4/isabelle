@@ -800,7 +800,7 @@ subsection \<open>The Set of Rational Numbers\<close>
 context field_char_0
 begin
 
-definition Rats :: "'a set" ("\<rat>")
+definition Rats :: "'a set" (\<open>\<rat>\<close>)
   where "\<rat> = range of_rat"
 
 end
@@ -1155,7 +1155,7 @@ lemmas [nitpick_unfold] =
 
 subsection \<open>Float syntax\<close>
 
-syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
+syntax "_Float" :: "float_const \<Rightarrow> 'a"    (\<open>_\<close>)
 
 parse_translation \<open>
   let

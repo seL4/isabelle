@@ -147,7 +147,7 @@ subsection \<open>Abstract divisibility\<close>
 class dvd = times
 begin
 
-definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "dvd" 50)
+definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix \<open>dvd\<close> 50)
   where "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
 
 lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
@@ -680,7 +680,7 @@ end
 subsection \<open>(Partial) Division\<close>
 
 class divide =
-  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "div" 70)
+  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>div\<close> 70)
 
 setup \<open>Sign.add_const_constraint (\<^const_name>\<open>divide\<close>, SOME \<^typ>\<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>)\<close>
 
@@ -1722,7 +1722,7 @@ end
 text \<open>Syntactic division remainder operator\<close>
 
 class modulo = dvd + divide +
-  fixes modulo :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "mod" 70)
+  fixes modulo :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>mod\<close> 70)
 
 text \<open>Arbitrary quotient and remainder partitions\<close>
 

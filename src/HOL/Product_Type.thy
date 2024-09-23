@@ -61,7 +61,7 @@ subsection \<open>The \<open>unit\<close> type\<close>
 typedef unit = "{True}"
   by auto
 
-definition Unity :: unit  ("'(')")
+definition Unity :: unit  (\<open>'(')\<close>)
   where "() = Abs_unit True"
 
 lemma unit_eq [no_atp]: "u = ()"
@@ -214,11 +214,11 @@ definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<
 
 definition "prod = {f. \<exists>a b. f = Pair_Rep (a::'a) (b::'b)}"
 
-typedef ('a, 'b) prod ("(_ \<times>/ _)" [21, 20] 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+typedef ('a, 'b) prod (\<open>(_ \<times>/ _)\<close> [21, 20] 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
   unfolding prod_def by auto
 
 type_notation (ASCII)
-  prod  (infixr "*" 20)
+  prod  (infixr \<open>*\<close> 20)
 
 definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
   where "Pair a b = Abs_prod (Pair_Rep a b)"
@@ -286,13 +286,13 @@ text \<open>
 
 nonterminal tuple_args and patterns
 syntax
-  "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        ("(1'(_,/ _'))")
-  "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   ("_")
-  "_tuple_args" :: "'a \<Rightarrow> tuple_args \<Rightarrow> tuple_args"     ("_,/ _")
-  "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         ("'(_,/ _')")
-  ""            :: "pttrn \<Rightarrow> patterns"                  ("_")
-  "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      ("_,/ _")
-  "_unit"       :: pttrn                                ("'(')")
+  "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        (\<open>(1'(_,/ _'))\<close>)
+  "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   (\<open>_\<close>)
+  "_tuple_args" :: "'a \<Rightarrow> tuple_args \<Rightarrow> tuple_args"     (\<open>_,/ _\<close>)
+  "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         (\<open>'(_,/ _')\<close>)
+  ""            :: "pttrn \<Rightarrow> patterns"                  (\<open>_\<close>)
+  "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      (\<open>_,/ _\<close>)
+  "_unit"       :: pttrn                                (\<open>'(')\<close>)
 syntax_consts
   "_tuple" "_tuple_arg" "_tuple_args" \<rightleftharpoons> Pair and
   "_pattern" "_patterns" \<rightleftharpoons> case_prod and
@@ -797,16 +797,16 @@ lemma curry_K: "curry (\<lambda>x. c) = (\<lambda>x y. c)"
 
 text \<open>The composition-uncurry combinator.\<close>
 
-definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"  (infixl "\<circ>\<rightarrow>" 60)
+definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd"  (infixl \<open>\<circ>\<rightarrow>\<close> 60)
   where "f \<circ>\<rightarrow> g = (\<lambda>x. case_prod g (f x))"
 
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+no_notation scomp (infixl \<open>\<circ>\<rightarrow>\<close> 60)
 
 bundle state_combinator_syntax
 begin
 
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
+notation fcomp (infixl \<open>\<circ>>\<close> 60)
+notation scomp (infixl \<open>\<circ>\<rightarrow>\<close> 60)
 
 end
 
@@ -1000,20 +1000,20 @@ text \<open>Disjoint union of a family of sets -- Sigma.\<close>
 definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set"
   where "Sigma A B \<equiv> \<Union>x\<in>A. \<Union>y\<in>B x. {Pair x y}"
 
-abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr "\<times>" 80)
+abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr \<open>\<times>\<close> 80)
   where "A \<times> B \<equiv> Sigma A (\<lambda>_. B)"
 
 hide_const (open) Times
 
 bundle no_Set_Product_syntax begin
-no_notation Product_Type.Times (infixr "\<times>" 80)
+no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 bundle Set_Product_syntax begin
-notation Product_Type.Times (infixr "\<times>" 80)
+notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 
 syntax
-  "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  ("(3SIGMA _:_./ _)" [0, 0, 10] 10)
+  "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (\<open>(3SIGMA _:_./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_Sigma" \<rightleftharpoons> Sigma
 translations

@@ -31,8 +31,8 @@ end
 locale semilattice_neutr = semilattice + comm_monoid
 
 locale semilattice_order = semilattice +
-  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<^bold>\<le>" 50)
-    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<^bold><" 50)
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<^bold>\<le>\<close> 50)
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix \<open>\<^bold><\<close> 50)
   assumes order_iff: "a \<^bold>\<le> b \<longleftrightarrow> a = a \<^bold>* b"
     and strict_order_iff: "a \<^bold>< b \<longleftrightarrow> a = a \<^bold>* b \<and> a \<noteq> b"
 begin
@@ -165,10 +165,10 @@ declare conj_assoc [ac_simps del] disj_assoc [ac_simps del] \<comment> \<open>al
 subsection \<open>Syntactic infimum and supremum operations\<close>
 
 class inf =
-  fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 70)
+  fixes inf :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl \<open>\<sqinter>\<close> 70)
 
 class sup =
-  fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
+  fixes sup :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl \<open>\<squnion>\<close> 65)
 
 
 subsection \<open>Concrete lattices\<close>
@@ -616,7 +616,7 @@ lemma sup_max: "sup = (max :: 'a::{semilattice_sup,linorder} \<Rightarrow> 'a \<
 subsection \<open>Uniqueness of inf and sup\<close>
 
 lemma (in semilattice_inf) inf_unique:
-  fixes f  (infixl "\<triangle>" 70)
+  fixes f  (infixl \<open>\<triangle>\<close> 70)
   assumes le1: "\<And>x y. x \<triangle> y \<le> x"
     and le2: "\<And>x y. x \<triangle> y \<le> y"
     and greatest: "\<And>x y z. x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<triangle> z"
@@ -631,7 +631,7 @@ proof (rule order.antisym)
 qed
 
 lemma (in semilattice_sup) sup_unique:
-  fixes f  (infixl "\<nabla>" 70)
+  fixes f  (infixl \<open>\<nabla>\<close> 70)
   assumes ge1 [simp]: "\<And>x y. x \<le> x \<nabla> y"
     and ge2: "\<And>x y. y \<le> x \<nabla> y"
     and least: "\<And>x y z. y \<le> x \<Longrightarrow> z \<le> x \<Longrightarrow> y \<nabla> z \<le> x"

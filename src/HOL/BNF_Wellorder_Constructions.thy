@@ -334,24 +334,24 @@ definition ordLeq :: "('a rel * 'a' rel) set"
   where
     "ordLeq = {(r,r'). Well_order r \<and> Well_order r' \<and> (\<exists>f. embed r r' f)}"
 
-abbreviation ordLeq2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "<=o" 50)
+abbreviation ordLeq2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix \<open><=o\<close> 50)
   where "r <=o r' \<equiv> (r,r') \<in> ordLeq"
 
-abbreviation ordLeq3 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "\<le>o" 50)
+abbreviation ordLeq3 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix \<open>\<le>o\<close> 50)
   where "r \<le>o r' \<equiv> r <=o r'"
 
 definition ordLess :: "('a rel * 'a' rel) set"
   where
     "ordLess = {(r,r'). Well_order r \<and> Well_order r' \<and> (\<exists>f. embedS r r' f)}"
 
-abbreviation ordLess2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "<o" 50)
+abbreviation ordLess2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix \<open><o\<close> 50)
   where "r <o r' \<equiv> (r,r') \<in> ordLess"
 
 definition ordIso :: "('a rel * 'a' rel) set"
   where
     "ordIso = {(r,r'). Well_order r \<and> Well_order r' \<and> (\<exists>f. iso r r' f)}"
 
-abbreviation ordIso2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix "=o" 50)
+abbreviation ordIso2 :: "'a rel \<Rightarrow> 'a' rel \<Rightarrow> bool" (infix \<open>=o\<close> 50)
   where "r =o r' \<equiv> (r,r') \<in> ordIso"
 
 lemmas ordRels_def = ordLeq_def ordLess_def ordIso_def

@@ -911,7 +911,7 @@ subsection \<open>The Set of Integers\<close>
 context ring_1
 begin
 
-definition Ints :: "'a set"  ("\<int>")
+definition Ints :: "'a set"  (\<open>\<int>\<close>)
   where "\<int> = range of_int"
 
 lemma Ints_of_int [simp]: "of_int z \<in> \<int>"
@@ -1743,7 +1743,7 @@ text \<open>
 
   The notation `powi' is inspired by the `powr' notation for real/complex exponentiation.
 \<close>
-definition power_int :: "'a :: {inverse, power} \<Rightarrow> int \<Rightarrow> 'a" (infixr "powi" 80) where
+definition power_int :: "'a :: {inverse, power} \<Rightarrow> int \<Rightarrow> 'a" (infixr \<open>powi\<close> 80) where
   "power_int x n = (if n \<ge> 0 then x ^ nat n else inverse x ^ (nat (-n)))"
 
 lemma power_int_0_right [simp]: "power_int x 0 = 1"

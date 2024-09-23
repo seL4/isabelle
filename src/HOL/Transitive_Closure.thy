@@ -26,21 +26,21 @@ text \<open>
 context notes [[inductive_internals]]
 begin
 
-inductive_set rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>*)" [1000] 999)
+inductive_set rtrancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  (\<open>(_\<^sup>*)\<close> [1000] 999)
   for r :: "('a \<times> 'a) set"
   where
     rtrancl_refl [intro!, Pure.intro!, simp]: "(a, a) \<in> r\<^sup>*"
   | rtrancl_into_rtrancl [Pure.intro]: "(a, b) \<in> r\<^sup>* \<Longrightarrow> (b, c) \<in> r \<Longrightarrow> (a, c) \<in> r\<^sup>*"
 
-inductive_set trancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>+)" [1000] 999)
+inductive_set trancl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  (\<open>(_\<^sup>+)\<close> [1000] 999)
   for r :: "('a \<times> 'a) set"
   where
     r_into_trancl [intro, Pure.intro]: "(a, b) \<in> r \<Longrightarrow> (a, b) \<in> r\<^sup>+"
   | trancl_into_trancl [Pure.intro]: "(a, b) \<in> r\<^sup>+ \<Longrightarrow> (b, c) \<in> r \<Longrightarrow> (a, c) \<in> r\<^sup>+"
 
 notation
-  rtranclp  ("(_\<^sup>*\<^sup>*)" [1000] 1000) and
-  tranclp  ("(_\<^sup>+\<^sup>+)" [1000] 1000)
+  rtranclp  (\<open>(_\<^sup>*\<^sup>*)\<close> [1000] 1000) and
+  tranclp  (\<open>(_\<^sup>+\<^sup>+)\<close> [1000] 1000)
 
 declare
   rtrancl_def [nitpick_unfold del]
@@ -50,19 +50,19 @@ declare
 
 end
 
-abbreviation reflcl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  ("(_\<^sup>=)" [1000] 999)
+abbreviation reflcl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  (\<open>(_\<^sup>=)\<close> [1000] 999)
   where "r\<^sup>= \<equiv> r \<union> Id"
 
-abbreviation reflclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  ("(_\<^sup>=\<^sup>=)" [1000] 1000)
+abbreviation reflclp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool"  (\<open>(_\<^sup>=\<^sup>=)\<close> [1000] 1000)
   where "r\<^sup>=\<^sup>= \<equiv> sup r (=)"
 
 notation (ASCII)
-  rtrancl  ("(_^*)" [1000] 999) and
-  trancl  ("(_^+)" [1000] 999) and
-  reflcl  ("(_^=)" [1000] 999) and
-  rtranclp  ("(_^**)" [1000] 1000) and
-  tranclp  ("(_^++)" [1000] 1000) and
-  reflclp  ("(_^==)" [1000] 1000)
+  rtrancl  (\<open>(_^*)\<close> [1000] 999) and
+  trancl  (\<open>(_^+)\<close> [1000] 999) and
+  reflcl  (\<open>(_^=)\<close> [1000] 999) and
+  rtranclp  (\<open>(_^**)\<close> [1000] 1000) and
+  tranclp  (\<open>(_^++)\<close> [1000] 1000) and
+  reflclp  (\<open>(_^==)\<close> [1000] 1000)
 
 
 subsection \<open>Reflexive closure\<close>

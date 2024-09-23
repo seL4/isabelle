@@ -23,7 +23,7 @@ class inverse = divide +
   fixes inverse :: "'a \<Rightarrow> 'a"
 begin
   
-abbreviation inverse_divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
+abbreviation inverse_divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>'/\<close> 70)
 where
   "inverse_divide \<equiv> divide"
 

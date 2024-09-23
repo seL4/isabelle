@@ -55,8 +55,8 @@ abbreviation valtermify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> ter
 bundle term_syntax
 begin
 
-notation App (infixl "<\<cdot>>" 70)
-  and valapp (infixl "{\<cdot>}" 70)
+notation App (infixl \<open><\<cdot>>\<close> 70)
+  and valapp (infixl \<open>{\<cdot>}\<close> 70)
 
 end
 

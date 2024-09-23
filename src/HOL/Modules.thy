@@ -47,7 +47,7 @@ end
 text \<open>Modules form the central spaces in linear algebra. They are a generalization from vector
 spaces by replacing the scalar field by a scalar ring.\<close>
 locale module =
-  fixes scale :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
+  fixes scale :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*s\<close> 75)
   assumes scale_right_distrib [algebra_simps, algebra_split_simps]:
       "a *s (x + y) = a *s x + a *s y"
     and scale_left_distrib [algebra_simps, algebra_split_simps]:
@@ -718,8 +718,8 @@ end
 text \<open>A linear function is a mapping between two modules over the same ring.\<close>
 
 locale module_hom = m1: module s1 + m2: module s2
-    for s1 :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
-    and s2 :: "'a::comm_ring_1 \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75) +
+    for s1 :: "'a::comm_ring_1 \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
+    and s2 :: "'a::comm_ring_1 \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr \<open>*b\<close> 75) +
   fixes f :: "'b \<Rightarrow> 'c"
   assumes add: "f (b1 + b2) = f b1 + f b2"
     and scale: "f (r *a b) = r *b f b"

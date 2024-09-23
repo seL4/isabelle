@@ -126,7 +126,7 @@ lemma eval_single [simp]:
   "eval (single x) = (=) x"
   by (simp add: single_def)
 
-definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl "\<bind>" 70) where
+definition bind :: "'a pred \<Rightarrow> ('a \<Rightarrow> 'b pred) \<Rightarrow> 'b pred" (infixl \<open>\<bind>\<close> 70) where
   "P \<bind> f = (\<Squnion>(f ` {x. eval P x}))"
 
 lemma eval_bind [simp]:
@@ -728,7 +728,7 @@ lemma pred_of_set_set_foldr_sup [code]:
   by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
 
 no_notation
-  bind (infixl "\<bind>" 70)
+  bind (infixl \<open>\<bind>\<close> 70)
 
 hide_type (open) pred seq
 hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds

@@ -19,7 +19,7 @@ definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \
 
 definition "sum = {f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
 
-typedef ('a, 'b) sum (infixr "+" 10) = "sum :: ('a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool) set"
+typedef ('a, 'b) sum (infixr \<open>+\<close> 10) = "sum :: ('a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool) set"
   unfolding sum_def by auto
 
 lemma Inl_RepI: "Inl_Rep a \<in> sum"
@@ -209,7 +209,7 @@ qed
 
 subsection \<open>The Disjoint Sum of Sets\<close>
 
-definition Plus :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a + 'b) set"  (infixr "<+>" 65)
+definition Plus :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a + 'b) set"  (infixr \<open><+>\<close> 65)
   where "A <+> B = Inl ` A \<union> Inr ` B"
 
 hide_const (open) Plus \<comment> \<open>Valuable identifier\<close>

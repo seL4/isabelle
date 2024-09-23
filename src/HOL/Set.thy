@@ -20,35 +20,35 @@ axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comme
     and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
 
 notation
-  member  ("'(\<in>')") and
-  member  ("(_/ \<in> _)" [51, 51] 50)
+  member  (\<open>'(\<in>')\<close>) and
+  member  (\<open>(_/ \<in> _)\<close> [51, 51] 50)
 
 abbreviation not_member
   where "not_member x A \<equiv> \<not> (x \<in> A)" \<comment> \<open>non-membership\<close>
 notation
-  not_member  ("'(\<notin>')") and
-  not_member  ("(_/ \<notin> _)" [51, 51] 50)
+  not_member  (\<open>'(\<notin>')\<close>) and
+  not_member  (\<open>(_/ \<notin> _)\<close> [51, 51] 50)
 
 notation (ASCII)
-  member  ("'(:')") and
-  member  ("(_/ : _)" [51, 51] 50) and
-  not_member  ("'(~:')") and
-  not_member  ("(_/ ~: _)" [51, 51] 50)
+  member  (\<open>'(:')\<close>) and
+  member  (\<open>(_/ : _)\<close> [51, 51] 50) and
+  not_member  (\<open>'(~:')\<close>) and
+  not_member  (\<open>(_/ ~: _)\<close> [51, 51] 50)
 
 
 text \<open>Set comprehensions\<close>
 
 syntax
-  "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    ("(1{_./ _})")
+  "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    (\<open>(1{_./ _})\<close>)
 syntax_consts
   "_Coll" \<rightleftharpoons> Collect
 translations
   "{x. P}" \<rightleftharpoons> "CONST Collect (\<lambda>x. P)"
 
 syntax (ASCII)
-  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  ("(1{(_/: _)./ _})")
+  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(1{(_/: _)./ _})\<close>)
 syntax
-  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  ("(1{(_/ \<in> _)./ _})")
+  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(1{(_/ \<in> _)./ _})\<close>)
 syntax_consts
   "_Collect" \<rightleftharpoons> Collect
 translations
@@ -137,7 +137,7 @@ end
 
 text \<open>Set enumerations\<close>
 
-abbreviation empty :: "'a set" ("{}")
+abbreviation empty :: "'a set" (\<open>{}\<close>)
   where "{} \<equiv> bot"
 
 definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
@@ -145,9 +145,9 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
 
 nonterminal finset_args
 syntax
-  "" :: "'a \<Rightarrow> finset_args"  ("_")
-  "_Finset_args" :: "'a \<Rightarrow> finset_args \<Rightarrow> finset_args"  ("_,/ _")
-  "_Finset" :: "finset_args \<Rightarrow> 'a set"    ("{(_)}")
+  "" :: "'a \<Rightarrow> finset_args"  (\<open>_\<close>)
+  "_Finset_args" :: "'a \<Rightarrow> finset_args \<Rightarrow> finset_args"  (\<open>_,/ _\<close>)
+  "_Finset" :: "finset_args \<Rightarrow> 'a set"    (\<open>{(_)}\<close>)
 syntax_consts
   "_Finset_args" "_Finset" \<rightleftharpoons> insert
 translations
@@ -164,10 +164,10 @@ abbreviation subset_eq :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
   where "subset_eq \<equiv> less_eq"
 
 notation
-  subset  ("'(\<subset>')") and
-  subset  ("(_/ \<subset> _)" [51, 51] 50) and
-  subset_eq  ("'(\<subseteq>')") and
-  subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
+  subset  (\<open>'(\<subset>')\<close>) and
+  subset  (\<open>(_/ \<subset> _)\<close> [51, 51] 50) and
+  subset_eq  (\<open>'(\<subseteq>')\<close>) and
+  subset_eq  (\<open>(_/ \<subseteq> _)\<close> [51, 51] 50)
 
 abbreviation (input)
   supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -178,16 +178,16 @@ abbreviation (input)
   "supset_eq \<equiv> greater_eq"
 
 notation
-  supset  ("'(\<supset>')") and
-  supset  ("(_/ \<supset> _)" [51, 51] 50) and
-  supset_eq  ("'(\<supseteq>')") and
-  supset_eq  ("(_/ \<supseteq> _)" [51, 51] 50)
+  supset  (\<open>'(\<supset>')\<close>) and
+  supset  (\<open>(_/ \<supset> _)\<close> [51, 51] 50) and
+  supset_eq  (\<open>'(\<supseteq>')\<close>) and
+  supset_eq  (\<open>(_/ \<supseteq> _)\<close> [51, 51] 50)
 
 notation (ASCII output)
-  subset  ("'(<')") and
-  subset  ("(_/ < _)" [51, 51] 50) and
-  subset_eq  ("'(<=')") and
-  subset_eq  ("(_/ <= _)" [51, 51] 50)
+  subset  (\<open>'(<')\<close>) and
+  subset  (\<open>(_/ < _)\<close> [51, 51] 50) and
+  subset_eq  (\<open>'(<=')\<close>) and
+  subset_eq  (\<open>(_/ <= _)\<close> [51, 51] 50)
 
 definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool"
   where "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   \<comment> \<open>bounded universal quantifiers\<close>
@@ -196,21 +196,21 @@ definition Bex :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bo
   where "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   \<comment> \<open>bounded existential quantifiers\<close>
 
 syntax (ASCII)
-  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3ALL (_/:_)./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3EX (_/:_)./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3EX! (_/:_)./ _)" [0, 0, 10] 10)
-  "_Bleast"     :: "id \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a"           ("(3LEAST (_/:_)./ _)" [0, 0, 10] 10)
+  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3ALL (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3EX (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3EX! (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_Bleast"     :: "id \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a"           (\<open>(3LEAST (_/:_)./ _)\<close> [0, 0, 10] 10)
 
 syntax (input)
-  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3! (_/:_)./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3? (_/:_)./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3?! (_/:_)./ _)" [0, 0, 10] 10)
+  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3! (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3? (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3?! (_/:_)./ _)\<close> [0, 0, 10] 10)
 
 syntax
-  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<forall>(_/\<in>_)./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>(_/\<in>_)./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      ("(3\<exists>!(_/\<in>_)./ _)" [0, 0, 10] 10)
-  "_Bleast"     :: "id \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a"           ("(3LEAST(_/\<in>_)./ _)" [0, 0, 10] 10)
+  "_Ball"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>(_/\<in>_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>(_/\<in>_)./ _)\<close> [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>!(_/\<in>_)./ _)\<close> [0, 0, 10] 10)
+  "_Bleast"     :: "id \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a"           (\<open>(3LEAST(_/\<in>_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_Ball" \<rightleftharpoons> Ball and
@@ -225,18 +225,18 @@ translations
   "LEAST x:A. P" \<rightharpoonup> "LEAST x. x \<in> A \<and> P"
 
 syntax (ASCII output)
-  "_setlessAll" :: "[idt, 'a, bool] \<Rightarrow> bool"  ("(3ALL _<_./ _)"  [0, 0, 10] 10)
-  "_setlessEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"  ("(3EX _<_./ _)"  [0, 0, 10] 10)
-  "_setleAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"  ("(3ALL _<=_./ _)" [0, 0, 10] 10)
-  "_setleEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"  ("(3EX _<=_./ _)" [0, 0, 10] 10)
-  "_setleEx1"   :: "[idt, 'a, bool] \<Rightarrow> bool"  ("(3EX! _<=_./ _)" [0, 0, 10] 10)
+  "_setlessAll" :: "[idt, 'a, bool] \<Rightarrow> bool"  (\<open>(3ALL _<_./ _)\<close>  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"  (\<open>(3EX _<_./ _)\<close>  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"  (\<open>(3ALL _<=_./ _)\<close> [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"  (\<open>(3EX _<=_./ _)\<close> [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] \<Rightarrow> bool"  (\<open>(3EX! _<=_./ _)\<close> [0, 0, 10] 10)
 
 syntax
-  "_setlessAll" :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<forall>_\<subset>_./ _)"  [0, 0, 10] 10)
-  "_setlessEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<exists>_\<subset>_./ _)"  [0, 0, 10] 10)
-  "_setleAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<forall>_\<subseteq>_./ _)" [0, 0, 10] 10)
-  "_setleEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<exists>_\<subseteq>_./ _)" [0, 0, 10] 10)
-  "_setleEx1"   :: "[idt, 'a, bool] \<Rightarrow> bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
+  "_setlessAll" :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<forall>_\<subset>_./ _)\<close>  [0, 0, 10] 10)
+  "_setlessEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<exists>_\<subset>_./ _)\<close>  [0, 0, 10] 10)
+  "_setleAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<forall>_\<subseteq>_./ _)\<close> [0, 0, 10] 10)
+  "_setleEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<exists>_\<subseteq>_./ _)\<close> [0, 0, 10] 10)
+  "_setleEx1"   :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<exists>!_\<subseteq>_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_setlessAll" "_setleAll" \<rightleftharpoons> All and
@@ -291,7 +291,7 @@ text \<open>
 \<close>
 
 syntax
-  "_Setcompr" :: "'a \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a set"    ("(1{_ |/_./ _})")
+  "_Setcompr" :: "'a \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a set"    (\<open>(1{_ |/_./ _})\<close>)
 syntax_consts
   "_Setcompr" \<rightleftharpoons> Collect
 
@@ -662,11 +662,11 @@ lemma Compl_eq: "- A = {x. \<not> x \<in> A}"
 
 subsubsection \<open>Binary intersection\<close>
 
-abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "\<inter>" 70)
+abbreviation inter :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl \<open>\<inter>\<close> 70)
   where "(\<inter>) \<equiv> inf"
 
 notation (ASCII)
-  inter  (infixl "Int" 70)
+  inter  (infixl \<open>Int\<close> 70)
 
 lemma Int_def: "A \<inter> B = {x. x \<in> A \<and> x \<in> B}"
   by (simp add: inf_set_def inf_fun_def)
@@ -689,11 +689,11 @@ lemma IntE [elim!]: "c \<in> A \<inter> B \<Longrightarrow> (c \<in> A \<Longrig
 
 subsubsection \<open>Binary union\<close>
 
-abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "\<union>" 65)
+abbreviation union :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl \<open>\<union>\<close> 65)
   where "union \<equiv> sup"
 
 notation (ASCII)
-  union  (infixl "Un" 65)
+  union  (infixl \<open>Un\<close> 65)
 
 lemma Un_def: "A \<union> B = {x. x \<in> A \<or> x \<in> B}"
   by (simp add: sup_set_def sup_fun_def)
@@ -861,7 +861,7 @@ subsubsection \<open>Image of a set under a function\<close>
 
 text \<open>Frequently \<open>b\<close> does not have the syntactic form of \<open>f x\<close>.\<close>
 
-definition image :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set"    (infixr "`" 90)
+definition image :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set"    (infixr \<open>`\<close> 90)
   where "f ` A = {y. \<exists>x\<in>A. y = f x}"
 
 lemma image_eqI [simp, intro]: "b = f x \<Longrightarrow> x \<in> A \<Longrightarrow> b \<in> f ` A"
@@ -1712,7 +1712,7 @@ lemma eq_to_mono: "a = b \<Longrightarrow> c = d \<Longrightarrow> b \<longright
 
 subsubsection \<open>Inverse image of a function\<close>
 
-definition vimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a set"  (infixr "-`" 90)
+definition vimage :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a set"  (infixr \<open>-`\<close> 90)
   where "f -` B \<equiv> {x. f x \<in> B}"
 
 lemma vimage_eq [simp]: "a \<in> f -` B \<longleftrightarrow> f a \<in> B"

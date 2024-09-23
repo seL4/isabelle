@@ -11,7 +11,7 @@ begin
 
 subsection \<open>A generic notion of the convex, affine, conic hull, or closed "hull".\<close>
 
-definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl "hull" 75)
+definition hull :: "('a set \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"  (infixl \<open>hull\<close> 75)
   where "S hull s = \<Inter>{t. S t \<and> s \<subseteq> t}"
 
 lemma hull_same: "S s \<Longrightarrow> S hull s = s"

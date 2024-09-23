@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Basic operations for exhaustive generators\<close>
 
-definition orelse :: "'a option \<Rightarrow> 'a option \<Rightarrow> 'a option"  (infixr "orelse" 55)
+definition orelse :: "'a option \<Rightarrow> 'a option \<Rightarrow> 'a option"  (infixr \<open>orelse\<close> 55)
   where [code_unfold]: "x orelse y = (case x of Some x' \<Rightarrow> Some x' | None \<Rightarrow> y)"
 
 
@@ -738,7 +738,7 @@ subsection \<open>Defining generators for any first-order data type\<close>
 
 axiomatization unknown :: 'a
 
-notation (output) unknown  ("?")
+notation (output) unknown  (\<open>?\<close>)
 
 ML_file \<open>Tools/Quickcheck/exhaustive_generators.ML\<close>
 
@@ -750,7 +750,7 @@ subsection \<open>Defining generators for abstract types\<close>
 ML_file \<open>Tools/Quickcheck/abstract_generators.ML\<close>
 
 hide_fact (open) orelse_def
-no_notation orelse  (infixr "orelse" 55)
+no_notation orelse  (infixr \<open>orelse\<close> 55)
 
 hide_const valtermify_absdummy valtermify_fun_upd
   valterm_emptyset valtermify_insert

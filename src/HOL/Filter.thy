@@ -40,7 +40,7 @@ definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
   where "eventually P F \<longleftrightarrow> Rep_filter F P"
 
 syntax
-  "_eventually" :: "pttrn => 'a filter => bool => bool"  ("(3\<forall>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+  "_eventually" :: "pttrn => 'a filter => bool => bool"  (\<open>(3\<forall>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_eventually" == eventually
 translations
@@ -160,7 +160,7 @@ definition frequently :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Righ
   where "frequently P F \<longleftrightarrow> \<not> eventually (\<lambda>x. \<not> P x) F"
 
 syntax
-  "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>\<^sub>F _ in _./ _)" [0, 0, 10] 10)
+  "_frequently" :: "pttrn \<Rightarrow> 'a filter \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3\<exists>\<^sub>F _ in _./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_frequently" == frequently
 translations
@@ -1033,15 +1033,15 @@ subsection \<open>The cofinite filter\<close>
 
 definition "cofinite = Abs_filter (\<lambda>P. finite {x. \<not> P x})"
 
-abbreviation Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>\<^sub>\<infinity>" 10)
+abbreviation Inf_many :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder \<open>\<exists>\<^sub>\<infinity>\<close> 10)
   where "Inf_many P \<equiv> frequently P cofinite"
 
-abbreviation Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<forall>\<^sub>\<infinity>" 10)
+abbreviation Alm_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder \<open>\<forall>\<^sub>\<infinity>\<close> 10)
   where "Alm_all P \<equiv> eventually P cofinite"
 
 notation (ASCII)
-  Inf_many  (binder "INFM " 10) and
-  Alm_all  (binder "MOST " 10)
+  Inf_many  (binder \<open>INFM \<close> 10) and
+  Alm_all  (binder \<open>MOST \<close> 10)
 
 lemma eventually_cofinite: "eventually P cofinite \<longleftrightarrow> finite {x. \<not> P x}"
   unfolding cofinite_def
@@ -1080,7 +1080,7 @@ qed
 
 subsubsection \<open>Product of filters\<close>
 
-definition prod_filter :: "'a filter \<Rightarrow> 'b filter \<Rightarrow> ('a \<times> 'b) filter" (infixr "\<times>\<^sub>F" 80) where
+definition prod_filter :: "'a filter \<Rightarrow> 'b filter \<Rightarrow> ('a \<times> 'b) filter" (infixr \<open>\<times>\<^sub>F\<close> 80) where
   "prod_filter F G =
     (\<Sqinter>(P, Q)\<in>{(P, Q). eventually P F \<and> eventually Q G}. principal {(x, y). P x \<and> Q y})"
 
@@ -1307,7 +1307,7 @@ definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightar
   "filterlim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
 
 syntax
-  "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(3LIM (_)/ (_)./ (_) :> (_))" [1000, 10, 0, 10] 10)
+  "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(3LIM (_)/ (_)./ (_) :> (_))\<close> [1000, 10, 0, 10] 10)
 
 syntax_consts
   "_LIM" == filterlim

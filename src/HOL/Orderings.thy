@@ -178,25 +178,25 @@ class ord =
 begin
 
 notation
-  less_eq  ("'(\<le>')") and
-  less_eq  ("(_/ \<le> _)"  [51, 51] 50) and
-  less  ("'(<')") and
-  less  ("(_/ < _)"  [51, 51] 50)
+  less_eq  (\<open>'(\<le>')\<close>) and
+  less_eq  (\<open>(_/ \<le> _)\<close>  [51, 51] 50) and
+  less  (\<open>'(<')\<close>) and
+  less  (\<open>(_/ < _)\<close>  [51, 51] 50)
 
 abbreviation (input)
-  greater_eq  (infix "\<ge>" 50)
+  greater_eq  (infix \<open>\<ge>\<close> 50)
   where "x \<ge> y \<equiv> y \<le> x"
 
 abbreviation (input)
-  greater  (infix ">" 50)
+  greater  (infix \<open>>\<close> 50)
   where "x > y \<equiv> y < x"
 
 notation (ASCII)
-  less_eq  ("'(<=')") and
-  less_eq  ("(_/ <= _)" [51, 51] 50)
+  less_eq  (\<open>'(<=')\<close>) and
+  less_eq  (\<open>(_/ <= _)\<close> [51, 51] 50)
 
 notation (input)
-  greater_eq  (infix ">=" 50)
+  greater_eq  (infix \<open>>=\<close> 50)
 
 end
 
@@ -357,7 +357,7 @@ lemma leD: "y \<le> x \<Longrightarrow> \<not> x < y"
 text \<open>Least value operator\<close>
 
 definition (in ord)
-  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "LEAST " 10) where
+  Least :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder \<open>LEAST \<close> 10) where
   "Least P = (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<le> y))"
 
 lemma Least_equality:
@@ -384,7 +384,7 @@ lemma Least_ex1:
 
 text \<open>Greatest value operator\<close>
 
-definition Greatest :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder "GREATEST " 10) where
+definition Greatest :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" (binder \<open>GREATEST \<close> 10) where
 "Greatest P = (THE x. P x \<and> (\<forall>y. P y \<longrightarrow> x \<ge> y))"
 
 lemma GreatestI2_order:
@@ -403,8 +403,8 @@ by (rule the_equality) (blast intro: order.antisym)+
 end
 
 lemma ordering_orderI:
-  fixes less_eq (infix "\<^bold>\<le>" 50)
-    and less (infix "\<^bold><" 50)
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
   assumes "ordering less_eq less"
   shows "class.order less_eq less"
 proof -
@@ -414,8 +414,8 @@ proof -
 qed
 
 lemma order_strictI:
-  fixes less (infix "\<^bold><" 50)
-    and less_eq (infix "\<^bold>\<le>" 50)
+  fixes less (infix \<open>\<^bold><\<close> 50)
+    and less_eq (infix \<open>\<^bold>\<le>\<close> 50)
   assumes "\<And>a b. a \<^bold>\<le> b \<longleftrightarrow> a \<^bold>< b \<or> a = b"
     assumes "\<And>a b. a \<^bold>< b \<Longrightarrow> \<not> b \<^bold>< a"
   assumes "\<And>a. \<not> a \<^bold>< a"
@@ -506,8 +506,8 @@ end
 text \<open>Alternative introduction rule with bias towards strict order\<close>
 
 lemma linorder_strictI:
-  fixes less_eq (infix "\<^bold>\<le>" 50)
-    and less (infix "\<^bold><" 50)
+  fixes less_eq (infix \<open>\<^bold>\<le>\<close> 50)
+    and less (infix \<open>\<^bold><\<close> 50)
   assumes "class.order less_eq less"
   assumes trichotomy: "\<And>a b. a \<^bold>< b \<or> a = b \<or> b \<^bold>< a"
   shows "class.linorder less_eq less"
@@ -710,40 +710,40 @@ simproc_setup antisym_less ("\<not> (x::'a::linorder) < y") = "K antisym_less_si
 subsection \<open>Bounded quantifiers\<close>
 
 syntax (ASCII)
-  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3ALL _<_./ _)"  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3EX _<_./ _)"  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _<=_./ _)" [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _<=_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _<=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _<=_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_greater" :: "[idt, 'a, bool] => bool"    ("(3ALL _>_./ _)"  [0, 0, 10] 10)
-  "_Ex_greater" :: "[idt, 'a, bool] => bool"    ("(3EX _>_./ _)"  [0, 0, 10] 10)
-  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3ALL _>=_./ _)" [0, 0, 10] 10)
-  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3EX _>=_./ _)" [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _>_./ _)\<close>  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _>=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _>=_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3ALL _~=_./ _)"  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3EX _~=_./ _)"  [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3ALL _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3EX _~=_./ _)\<close>  [0, 0, 10] 10)
 
 syntax
-  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_<_./ _)"  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_<_./ _)"  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<le>_./ _)" [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<le>_./ _)" [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<le>_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<le>_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_greater" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_>_./ _)"  [0, 0, 10] 10)
-  "_Ex_greater" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_>_./ _)"  [0, 0, 10] 10)
-  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<ge>_./ _)" [0, 0, 10] 10)
-  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<ge>_./ _)" [0, 0, 10] 10)
+  "_All_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_greater" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_>_./ _)\<close>  [0, 0, 10] 10)
+  "_All_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<ge>_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_greater_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<ge>_./ _)\<close> [0, 0, 10] 10)
 
-  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3\<forall>_\<noteq>_./ _)"  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3\<exists>_\<noteq>_./ _)"  [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<forall>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3\<exists>_\<noteq>_./ _)\<close>  [0, 0, 10] 10)
 
 syntax (input)
-  "_All_less" :: "[idt, 'a, bool] => bool"    ("(3! _<_./ _)"  [0, 0, 10] 10)
-  "_Ex_less" :: "[idt, 'a, bool] => bool"    ("(3? _<_./ _)"  [0, 0, 10] 10)
-  "_All_less_eq" :: "[idt, 'a, bool] => bool"    ("(3! _<=_./ _)" [0, 0, 10] 10)
-  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    ("(3? _<=_./ _)" [0, 0, 10] 10)
-  "_All_neq" :: "[idt, 'a, bool] => bool"    ("(3! _~=_./ _)"  [0, 0, 10] 10)
-  "_Ex_neq" :: "[idt, 'a, bool] => bool"    ("(3? _~=_./ _)"  [0, 0, 10] 10)
+  "_All_less" :: "[idt, 'a, bool] => bool"    (\<open>(3! _<_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_less" :: "[idt, 'a, bool] => bool"    (\<open>(3? _<_./ _)\<close>  [0, 0, 10] 10)
+  "_All_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3! _<=_./ _)\<close> [0, 0, 10] 10)
+  "_Ex_less_eq" :: "[idt, 'a, bool] => bool"    (\<open>(3? _<=_./ _)\<close> [0, 0, 10] 10)
+  "_All_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3! _~=_./ _)\<close>  [0, 0, 10] 10)
+  "_Ex_neq" :: "[idt, 'a, bool] => bool"    (\<open>(3? _~=_./ _)\<close>  [0, 0, 10] 10)
 
 syntax_consts
   "_All_less" "_All_less_eq" "_All_greater" "_All_greater_eq" "_All_neq" \<rightleftharpoons> All and
@@ -1141,7 +1141,7 @@ by(auto simp add: max_def min_def)
 subsection \<open>(Unique) top and bottom elements\<close>
 
 class bot =
-  fixes bot :: 'a ("\<bottom>")
+  fixes bot :: 'a (\<open>\<bottom>\<close>)
 
 class order_bot = order + bot +
   assumes bot_least: "\<bottom> \<le> a"
@@ -1181,7 +1181,7 @@ by(simp add: min_def bot_unique)
 end
 
 class top =
-  fixes top :: 'a ("\<top>")
+  fixes top :: 'a (\<open>\<top>\<close>)
 
 class order_top = order + top +
   assumes top_greatest: "a \<le> \<top>"

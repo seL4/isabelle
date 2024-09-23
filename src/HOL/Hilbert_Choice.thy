@@ -17,11 +17,11 @@ axiomatization Eps :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
   where someI: "P x \<Longrightarrow> P (Eps P)"
 
 syntax (epsilon)
-  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  ("(3\<some>_./ _)" [0, 10] 10)
+  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  (\<open>(3\<some>_./ _)\<close> [0, 10] 10)
 syntax (input)
-  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  ("(3@ _./ _)" [0, 10] 10)
+  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  (\<open>(3@ _./ _)\<close> [0, 10] 10)
 syntax
-  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  ("(3SOME _./ _)" [0, 10] 10)
+  "_Eps" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a"  (\<open>(3SOME _./ _)\<close> [0, 10] 10)
 
 syntax_consts "_Eps" \<rightleftharpoons> Eps
 

@@ -81,16 +81,16 @@ instance itself :: (type) type by (rule itself_arity)
 
 typedecl bool
 
-judgment Trueprop :: "bool \<Rightarrow> prop"  ("(_)" 5)
+judgment Trueprop :: "bool \<Rightarrow> prop"  (\<open>(_)\<close> 5)
 
-axiomatization implies :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longrightarrow>" 25)
+axiomatization implies :: "[bool, bool] \<Rightarrow> bool"  (infixr \<open>\<longrightarrow>\<close> 25)
   and eq :: "['a, 'a] \<Rightarrow> bool"
   and The :: "('a \<Rightarrow> bool) \<Rightarrow> 'a"
 
 notation (input)
-  eq  (infixl "=" 50)
+  eq  (infixl \<open>=\<close> 50)
 notation (output)
-  eq  (infix "=" 50)
+  eq  (infix \<open>=\<close> 50)
 
 text \<open>The input syntax for \<open>eq\<close> is more permissive than the output syntax
 because of the large amount of material that relies on infixl.\<close>
@@ -100,22 +100,22 @@ subsubsection \<open>Defined connectives and quantifiers\<close>
 definition True :: bool
   where "True \<equiv> ((\<lambda>x::bool. x) = (\<lambda>x. x))"
 
-definition All :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<forall>" 10)
+definition All :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder \<open>\<forall>\<close> 10)
   where "All P \<equiv> (P = (\<lambda>x. True))"
 
-definition Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder "\<exists>" 10)
+definition Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder \<open>\<exists>\<close> 10)
   where "Ex P \<equiv> \<forall>Q. (\<forall>x. P x \<longrightarrow> Q) \<longrightarrow> Q"
 
 definition False :: bool
   where "False \<equiv> (\<forall>P. P)"
 
-definition Not :: "bool \<Rightarrow> bool"  ("\<not> _" [40] 40)
+definition Not :: "bool \<Rightarrow> bool"  (\<open>\<not> _\<close> [40] 40)
   where not_def: "\<not> P \<equiv> P \<longrightarrow> False"
 
-definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<and>" 35)
+definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr \<open>\<and>\<close> 35)
   where and_def: "P \<and> Q \<equiv> \<forall>R. (P \<longrightarrow> Q \<longrightarrow> R) \<longrightarrow> R"
 
-definition disj :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<or>" 30)
+definition disj :: "[bool, bool] \<Rightarrow> bool"  (infixr \<open>\<or>\<close> 30)
   where or_def: "P \<or> Q \<equiv> \<forall>R. (P \<longrightarrow> R) \<longrightarrow> (Q \<longrightarrow> R) \<longrightarrow> R"
 
 definition Uniq :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
@@ -127,8 +127,8 @@ definition Ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
 
 subsubsection \<open>Additional concrete syntax\<close>
 
-syntax (ASCII) "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(4?< _./ _)" [0, 10] 10)
-syntax "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)" [0, 10] 10)
+syntax (ASCII) "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(4?< _./ _)\<close> [0, 10] 10)
+syntax "_Uniq" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(2\<exists>\<^sub>\<le>\<^sub>1 _./ _)\<close> [0, 10] 10)
 
 syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 
@@ -140,10 +140,10 @@ print_translation \<open>
 
 
 syntax (ASCII)
-  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3EX! _./ _)" [0, 10] 10)
+  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3EX! _./ _)\<close> [0, 10] 10)
 syntax (input)
-  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3?! _./ _)" [0, 10] 10)
-syntax "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<exists>!_./ _)" [0, 10] 10)
+  "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3?! _./ _)\<close> [0, 10] 10)
+syntax "_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3\<exists>!_./ _)\<close> [0, 10] 10)
 
 syntax_consts "_Ex1" \<rightleftharpoons> Ex1
 
@@ -155,8 +155,8 @@ print_translation \<open>
 
 
 syntax
-  "_Not_Ex" :: "idts \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>_./ _)" [0, 10] 10)
-  "_Not_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  ("(3\<nexists>!_./ _)" [0, 10] 10)
+  "_Not_Ex" :: "idts \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3\<nexists>_./ _)\<close> [0, 10] 10)
+  "_Not_Ex1" :: "pttrn \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(3\<nexists>!_./ _)\<close> [0, 10] 10)
 syntax_consts
   "_Not_Ex" \<rightleftharpoons> Ex and
   "_Not_Ex1" \<rightleftharpoons> Ex1
@@ -165,21 +165,21 @@ translations
   "\<nexists>!x. P" \<rightleftharpoons> "\<not> (\<exists>!x. P)"
 
 
-abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infix "\<noteq>" 50)
+abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infix \<open>\<noteq>\<close> 50)
   where "x \<noteq> y \<equiv> \<not> (x = y)"
 
 notation (ASCII)
-  Not  ("~ _" [40] 40) and
-  conj  (infixr "&" 35) and
-  disj  (infixr "|" 30) and
-  implies  (infixr "-->" 25) and
-  not_equal  (infix "~=" 50)
+  Not  (\<open>~ _\<close> [40] 40) and
+  conj  (infixr \<open>&\<close> 35) and
+  disj  (infixr \<open>|\<close> 30) and
+  implies  (infixr \<open>-->\<close> 25) and
+  not_equal  (infix \<open>~=\<close> 50)
 
 abbreviation (iff)
-  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr "\<longleftrightarrow>" 25)
+  iff :: "[bool, bool] \<Rightarrow> bool"  (infixr \<open>\<longleftrightarrow>\<close> 25)
   where "A \<longleftrightarrow> B \<equiv> A = B"
 
-syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  ("(3THE _./ _)" [0, 10] 10)
+syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  (\<open>(3THE _./ _)\<close> [0, 10] 10)
 syntax_consts "_The" \<rightleftharpoons> The
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"
 print_translation \<open>
@@ -190,20 +190,20 @@ print_translation \<open>
 
 nonterminal case_syn and cases_syn
 syntax
-  "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  ("(case _ of/ _)" 10)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ \<Rightarrow>/ _)" 10)
-  "" :: "case_syn \<Rightarrow> cases_syn"  ("_")
-  "_case2" :: "[case_syn, cases_syn] \<Rightarrow> cases_syn"  ("_/ | _")
+  "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  (\<open>(case _ of/ _)\<close> 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(2_ \<Rightarrow>/ _)\<close> 10)
+  "" :: "case_syn \<Rightarrow> cases_syn"  (\<open>_\<close>)
+  "_case2" :: "[case_syn, cases_syn] \<Rightarrow> cases_syn"  (\<open>_/ | _\<close>)
 syntax (ASCII)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  ("(2_ =>/ _)" 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(2_ =>/ _)\<close> 10)
 
 notation (ASCII)
-  All  (binder "ALL " 10) and
-  Ex  (binder "EX " 10)
+  All  (binder \<open>ALL \<close> 10) and
+  Ex  (binder \<open>EX \<close> 10)
 
 notation (input)
-  All  (binder "! " 10) and
-  Ex  (binder "? " 10)
+  All  (binder \<open>! \<close> 10) and
+  Ex  (binder \<open>? \<close> 10)
 
 
 subsubsection \<open>Axioms and basic definitions\<close>
@@ -224,7 +224,7 @@ axiomatization where
 
   True_or_False: "(P = True) \<or> (P = False)"
 
-definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
+definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (\<open>(if (_)/ then (_)/ else (_))\<close> [0, 0, 10] 10)
   where "If P x y \<equiv> (THE z::'a. (P = True \<longrightarrow> z = x) \<and> (P = False \<longrightarrow> z = y))"
 
 definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
@@ -232,10 +232,10 @@ definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
 
 nonterminal letbinds and letbind
 syntax
-  "_bind"       :: "[pttrn, 'a] \<Rightarrow> letbind"              ("(2_ =/ _)" 10)
-  ""            :: "letbind \<Rightarrow> letbinds"                 ("_")
-  "_binds"      :: "[letbind, letbinds] \<Rightarrow> letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] \<Rightarrow> 'a"                ("(let (_)/ in (_))" [0, 10] 10)
+  "_bind"       :: "[pttrn, 'a] \<Rightarrow> letbind"              (\<open>(2_ =/ _)\<close> 10)
+  ""            :: "letbind \<Rightarrow> letbinds"                 (\<open>_\<close>)
+  "_binds"      :: "[letbind, letbinds] \<Rightarrow> letbinds"     (\<open>_;/ _\<close>)
+  "_Let"        :: "[letbinds, 'a] \<Rightarrow> 'a"                (\<open>(let (_)/ in (_))\<close> [0, 10] 10)
 syntax_consts
   "_bind" "_binds" "_Let" \<rightleftharpoons> Let
 translations
@@ -1177,7 +1177,7 @@ text \<open>
   its premise.
 \<close>
 
-definition simp_implies :: "prop \<Rightarrow> prop \<Rightarrow> prop"  (infixr "=simp=>" 1)
+definition simp_implies :: "prop \<Rightarrow> prop \<Rightarrow> prop"  (infixr \<open>=simp=>\<close> 1)
   where "simp_implies \<equiv> (\<Longrightarrow>)"
 
 lemma simp_impliesI:

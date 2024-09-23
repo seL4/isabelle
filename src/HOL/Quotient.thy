@@ -22,7 +22,7 @@ text \<open>
 text \<open>Composition of Relations\<close>
 
 abbreviation
-  rel_conj :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" (infixr "OOO" 75)
+  rel_conj :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" (infixr \<open>OOO\<close> 75)
 where
   "r1 OOO r2 \<equiv> r1 OO r2 OO r1"
 
@@ -746,7 +746,7 @@ attribute_setup quot_lifted =
   \<open>lift theorems to quotient types\<close>
 
 no_notation
-  rel_conj (infixr "OOO" 75)
+  rel_conj (infixr \<open>OOO\<close> 75)
 
 section \<open>Lifting of BNFs\<close>
 

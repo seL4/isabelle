@@ -40,7 +40,7 @@ proof -
 qed
 
 locale vector_space =
-  fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*s" 75)
+  fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*s\<close> 75)
   assumes vector_space_assms:\<comment> \<open>re-stating the assumptions of \<open>module\<close> instead of extending \<open>module\<close>
    allows us to rewrite in the sublocale.\<close>
     "a *s (x + y) = a *s x + a *s y"
@@ -52,8 +52,8 @@ lemma module_iff_vector_space: "module s \<longleftrightarrow> vector_space s"
   unfolding module_def vector_space_def ..
 
 locale linear = vs1: vector_space s1 + vs2: vector_space s2 + module_hom s1 s2 f
-  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
-  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75)
+  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
+  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr \<open>*b\<close> 75)
   and f :: "'b \<Rightarrow> 'c"
 
 lemma module_hom_iff_linear: "module_hom s1 s2 f \<longleftrightarrow> linear s1 s2 f"
@@ -593,8 +593,8 @@ qualified lemma linear_compose: "linear s1 s2 f \<Longrightarrow> linear s2 s3 g
 end
 
 locale vector_space_pair = vs1: vector_space s1 + vs2: vector_space s2
-  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
-  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75)
+  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
+  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr \<open>*b\<close> 75)
 begin
 
 context fixes f assumes "linear s1 s2 f" begin
@@ -1357,9 +1357,9 @@ end
 
 locale finite_dimensional_vector_space_pair_1 =
   vs1: finite_dimensional_vector_space s1 B1 + vs2: vector_space s2
-  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
+  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
   and B1 :: "'b set"
-  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75)
+  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr \<open>*b\<close> 75)
 begin
 
 sublocale vector_space_pair s1 s2 by unfold_locales
@@ -1405,9 +1405,9 @@ end
 
 locale finite_dimensional_vector_space_pair =
   vs1: finite_dimensional_vector_space s1 B1 + vs2: finite_dimensional_vector_space s2 B2
-  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr "*a" 75)
+  for s1 :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b" (infixr \<open>*a\<close> 75)
   and B1 :: "'b set"
-  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr "*b" 75)
+  and s2 :: "'a::field \<Rightarrow> 'c::ab_group_add \<Rightarrow> 'c" (infixr \<open>*b\<close> 75)
   and B2 :: "'c set"
 begin
 
