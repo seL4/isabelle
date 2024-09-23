@@ -660,18 +660,16 @@ fun produce gram stateset i indata prev_token =
                     Pretty.breaks (map (Pretty.str o Lexicon.str_of_token) (#1 (split_last toks))) @
                     [Pretty.str "\""])])))
       end
-  | s =>
+  | states =>
       (case indata of
-        [] => s
+        [] => states
       | c :: cs =>
           let
-            val (si, sii) = PROCESSS gram stateset i c s;
-            val _ = Array.upd stateset i si;
-            val _ = Array.upd stateset (i + 1) sii;
+            val (Si, Sii) = PROCESSS gram stateset i c states;
+            val _ = Array.upd stateset i Si;
+            val _ = Array.upd stateset (i + 1) Sii;
           in produce gram stateset (i + 1) cs c end));
 
-
-fun get_trees states = map_filter (fn (_, [pt], _) => SOME pt | _ => NONE) states;
 
 fun earley (gram as Gram {tags, ...}) startsymbol indata =
   let
@@ -683,9 +681,8 @@ fun earley (gram as Gram {tags, ...}) startsymbol indata =
     val s = length indata + 1;
     val Estate = Array.array (s, []);
     val _ = Array.upd Estate 0 [S0];
-  in
-    get_trees (produce gram Estate 0 indata Lexicon.eof)
-  end;
+    val states = produce gram Estate 0 indata Lexicon.eof;
+  in map_filter (fn (_, [pt], _) => SOME pt | _ => NONE) states end;
 
 
 fun parse gram start toks =
