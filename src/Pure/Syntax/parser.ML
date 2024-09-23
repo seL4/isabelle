@@ -570,11 +570,6 @@ fun get_states Estate j A max_prec =
     (Array.nth Estate j);
 
 
-fun movedot_term c (A, j, ts, Terminal a :: sa, id, i) =
-  if Lexicon.valued_token c orelse id <> ""
-  then (A, j, Tip c :: ts, sa, id, i)
-  else (A, j, ts, sa, id, i);
-
 fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
   (A, j, tt @ ts, sa, id, i);
 
@@ -625,10 +620,14 @@ fun PROCESSS gram Estate i c states =
               in
                 processS used' (new_states @ States) (S :: Si, Sii)
               end
-          | (_, _, _, Terminal a :: _, _, _) => (*scanner operation*)
-              processS used States
-                (S :: Si,
-                  if Lexicon.tokens_match_ord (a, c) = EQUAL then movedot_term c S :: Sii else Sii)
+          | (A, prec, ts, Terminal a :: sa, id, j) => (*scanner operation*)
+              let
+                val Sii' =
+                  if Lexicon.tokens_match_ord (a, c) <> EQUAL then Sii
+                  else (*move dot*)
+                    let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
+                    in (A, prec, ts', sa, id, j) :: Sii end;
+              in processS used States (S :: Si, Sii') end
           | (A, prec, ts, [], id, j) => (*completer operation*)
               let
                 val tt = if id = "" then ts else [Node (id, rev ts)];
