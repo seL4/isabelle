@@ -511,11 +511,11 @@ fun pretty_parsetree parsetree =
 (* parser state *)
 
 type state =
-  nt * int *    (*identification and production precedence*)
+  (nt * int *       (*identification and production precedence*)
+   string *         (*name of production*)
+   int) *           (*index for previous state list*)
   parsetree list *  (*already parsed nonterminals on rhs*)
-  symb list *       (*rest of rhs*)
-  string *          (*name of production*)
-  int;              (*index for previous state list*)
+  symb list;        (*rest of rhs*)
 
 
 (*Get all rhss with precedence >= min_prec*)
@@ -527,7 +527,7 @@ fun get_RHS' min_prec max_prec =
 
 (*Make states using a list of rhss*)
 fun mk_states i lhs_ID rhss =
-  let fun mk_state (rhs, id, prod_prec) = (lhs_ID, prod_prec, [], rhs, id, i);
+  let fun mk_state (rhs, id, prod_prec) = ((lhs_ID, prod_prec, id, i), [], rhs);
   in map mk_state rhss end;
 
 (*Add parse tree to list and eliminate duplicates
@@ -553,29 +553,27 @@ fun update_trees (A, t) used =
 fun update_prec (A, prec) =
   Inttab.map_entry A (fn (_, ts) => (prec, ts));
 
-fun getS A max_prec NONE Si =
+fun getS A max_prec NONE Si : state list =
       filter
-        (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
+        (fn (_, _, Nonterminal (B, prec) :: _) => A = B andalso prec <= max_prec
           | _ => false) Si
   | getS A max_prec (SOME min_prec) Si =
       filter
-        (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) =>
+        (fn (_, _, Nonterminal (B, prec) :: _) =>
             A = B andalso prec > min_prec andalso prec <= max_prec
           | _ => false) Si;
 
-fun get_states Estate j A max_prec =
+fun get_states Estate j A max_prec : state list =
   filter
-    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
-      | _ => false)
+    (fn (_, _, Nonterminal (B, prec) :: _) => A = B andalso prec <= max_prec | _ => false)
     (Array.nth Estate j);
 
 
-fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
-  (A, j, tt @ ts, sa, id, i);
+fun movedot_nonterm tt (info, ts, Nonterminal _ :: sa) : state = (info, tt @ ts, sa);
 
 fun movedot_lambda [] _ = []
-  | movedot_lambda ((t, ki) :: ts) (state as (B, j, tss, Nonterminal (A, k) :: sa, id, i)) =
-      if k <= ki then (B, j, t @ tss, sa, id, i) :: movedot_lambda ts state
+  | movedot_lambda ((t, ki) :: ts) (state as (info, tss, Nonterminal (A, k) :: sa)) =
+      if k <= ki then (info, t @ tss, sa) :: movedot_lambda ts state
       else movedot_lambda ts state;
 
 
@@ -598,7 +596,7 @@ fun PROCESSS gram Estate i c states =
     fun processS _ [] (Si, Sii) = (Si, Sii)
       | processS used (S :: States) (Si, Sii) =
           (case S of
-            (_, _, _, Nonterminal (nt, min_prec) :: _, _, _) =>
+            (_, _, Nonterminal (nt, min_prec) :: _) =>
               let (*predictor operation*)
                 val (used', new_states) =
                   (case Inttab.lookup used nt of
@@ -620,16 +618,17 @@ fun PROCESSS gram Estate i c states =
               in
                 processS used' (new_states @ States) (S :: Si, Sii)
               end
-          | (A, prec, ts, Terminal a :: sa, id, j) => (*scanner operation*)
+          | (info as (_, _, id, _), ts, Terminal a :: sa) => (*scanner operation*)
               let
                 val Sii' =
                   if Lexicon.tokens_match_ord (a, c) <> EQUAL then Sii
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
-                    in (A, prec, ts', sa, id, j) :: Sii end;
+                    in (info, ts', sa) :: Sii end;
               in processS used States (S :: Si, Sii') end
-          | (A, prec, ts, [], id, j) => (*completer operation*)
+          | (info, ts, []) => (*completer operation*)
               let
+                val (A, prec, id, j) = info
                 val tt = if id = "" then ts else [Node (id, rev ts)];
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
@@ -672,7 +671,7 @@ fun produce gram stateset i indata prev_token =
           in produce gram stateset (i + 1) cs c end));
 
 
-fun get_trees states = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) states;
+fun get_trees states = map_filter (fn (_, [pt], _) => SOME pt | _ => NONE) states;
 
 fun earley (gram as Gram {tags, ...}) startsymbol indata =
   let
@@ -680,10 +679,10 @@ fun earley (gram as Gram {tags, ...}) startsymbol indata =
       (case tags_lookup tags startsymbol of
         SOME tag => tag
       | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote startsymbol));
-    val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof], "", 0)];
+    val S0: state = ((~1, 0, "", 0), [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof]);
     val s = length indata + 1;
     val Estate = Array.array (s, []);
-    val _ = Array.upd Estate 0 S0;
+    val _ = Array.upd Estate 0 [S0];
   in
     get_trees (produce gram Estate 0 indata Lexicon.eof)
   end;
