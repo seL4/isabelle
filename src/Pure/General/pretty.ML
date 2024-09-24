@@ -118,10 +118,8 @@ val long_nat = force_nat o FixedInt.toInt;
 type 'a block = {markup: 'a, consistent: bool, indent: int}
 
 fun make_block ({markup, consistent, indent}: Markup.output block) body =
-  let
-    val context = ML_Pretty.markup_context markup;
-    val ind = short_nat indent;
-  in from_ML (ML_Pretty.PrettyBlock (ind, consistent, context, map to_ML body)) end;
+  let val context = ML_Pretty.markup_context markup
+  in from_ML (ML_Pretty.PrettyBlock (short_nat indent, consistent, context, map to_ML body)) end;
 
 fun markup_block ({markup, consistent, indent}: Markup.T block) body =
   make_block {markup = YXML.output_markup markup, consistent = consistent, indent = indent} body;
@@ -129,6 +127,12 @@ fun markup_block ({markup, consistent, indent}: Markup.T block) body =
 fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
+
+fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
+  let
+    val markups = filter_out Markup.is_empty markup;
+    val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
+  in fold_rev mark ms (markup_block {markup = m, consistent = consistent, indent = indent} body) end;
 
 fun blk (indent, body) =
   markup_block {markup = Markup.empty, consistent = false, indent = indent} body;
@@ -160,12 +164,6 @@ fun marks_str (ms, s) = fold_rev mark ms (str s);
 
 val mark_position = mark o Position.markup;
 fun mark_str_position (pos, s) = mark_str (Position.markup pos, s);
-
-fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
-  let
-    val markups = filter_out Markup.is_empty markup;
-    val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
-  in fold_rev mark ms (markup_block {markup = m, consistent = consistent, indent = indent} body) end;
 
 val item = markup Markup.item;
 val text_fold = markup Markup.text_fold;
