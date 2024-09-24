@@ -166,7 +166,8 @@ object Pretty {
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
-              List(make_block(make_tree(bullet ::: body), indent = 2))
+              List(make_block(make_tree(bullet ::: body),
+                markup = Markup.Expression.item, indent = 2))
             case _ =>
               List(make_block(make_tree(body), markup = markup))
           }

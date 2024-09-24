@@ -184,6 +184,8 @@ object Markup {
         case Markup(EXPRESSION, props) => Some(Kind.get(props))
         case _ => None
       }
+
+    val item: Markup = Markup(EXPRESSION, Kind(ITEM))
   }
 
 

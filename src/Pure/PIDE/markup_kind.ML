@@ -16,6 +16,7 @@ sig
   val setup_expression_kind: binding -> theory -> string * theory
   val check_expression: Proof.context -> xstring * Position.T -> Markup.T
   val setup_expression: binding -> Markup.T
+  val markup_item: Markup.T
   val markup_mixfix: Markup.T
   val markup_prefix: Markup.T
   val markup_postfix: Markup.T
@@ -91,6 +92,8 @@ fun setup_expression binding =
 
 
 (* concrete markup *)
+
+val markup_item = setup_expression (Binding.make ("item", \<^here>));
 
 val markup_mixfix = setup_notation (Binding.make ("mixfix", \<^here>));
 val markup_prefix = setup_notation (Binding.make ("prefix", \<^here>));
