@@ -27,16 +27,16 @@ sig
   type T
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
-  type 'a block = {markup: 'a, consistent: bool, indent: int}
-  val make_block: Markup.output block -> T list -> T
-  val markup_block: Markup.T block -> T list -> T
-  val markup_blocks: Markup.T list block -> T list -> T
-  val markup: Markup.T -> T list -> T
-  val mark: Markup.T -> T -> T
   val blk: int * T list -> T
   val block0: T list -> T
   val block1: T list -> T
   val block: T list -> T
+  type 'a block = {markup: 'a, consistent: bool, indent: int}
+  val make_block: Markup.output block -> T list -> T
+  val markup_block: Markup.T block -> T list -> T
+  val markup: Markup.T -> T list -> T
+  val mark: Markup.T -> T -> T
+  val markup_blocks: Markup.T list block -> T list -> T
   val str: string -> T
   val dots: T
   val brk: int -> T
@@ -115,6 +115,16 @@ val long_nat = force_nat o FixedInt.toInt;
 
 (* blocks *)
 
+fun blk (indent, body) =
+  from_ML (ML_Pretty.PrettyBlock (short_nat indent, false, [], map to_ML body));
+
+fun block0 body = blk (0, body);
+fun block1 body = blk (1, body);
+fun block body = blk (2, body);
+
+
+(* blocks with markup *)
+
 type 'a block = {markup: 'a, consistent: bool, indent: int}
 
 fun make_block ({markup, consistent, indent}: Markup.output block) body =
@@ -133,13 +143,6 @@ fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
     val markups = filter_out Markup.is_empty markup;
     val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
   in fold_rev mark ms (markup_block {markup = m, consistent = consistent, indent = indent} body) end;
-
-fun blk (indent, body) =
-  markup_block {markup = Markup.empty, consistent = false, indent = indent} body;
-
-fun block0 body = blk (0, body);
-fun block1 body = blk (1, body);
-fun block body = blk (2, body);
 
 
 (* breaks *)
