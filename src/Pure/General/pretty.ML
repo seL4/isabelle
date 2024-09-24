@@ -139,10 +139,15 @@ fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 
 fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
-  let
-    val markups = filter_out Markup.is_empty markup;
-    val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
-  in fold_rev mark ms (markup_block {markup = m, consistent = consistent, indent = indent} body) end;
+  if forall Markup.is_empty markup andalso not consistent then blk (indent, body)
+  else
+    let
+      val markups = filter_out Markup.is_empty markup;
+      val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
+    in
+      fold_rev mark ms
+        (markup_block {markup = m, consistent = consistent, indent = indent} body)
+    end;
 
 
 (* breaks *)
