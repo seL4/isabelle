@@ -585,9 +585,9 @@ local
 fun process_states gram stateset i c states =
   let
     fun process _ [] (Si, Sii) = (Si, Sii)
-      | process used (S :: States) (Si, Sii) =
-          (case S of
-            (info, Nonterminal (nt, min_prec) :: sa, ts) =>
+      | process used ((S as (info, symbs, ts)) :: States) (Si, Sii) =
+          (case symbs of
+            Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
                 fun mk_state (rhs, id, prod_prec) = ((nt, prod_prec, id, i), rhs, []);
                 fun movedot_lambda (t, k) = if min_prec <= k then SOME (info, sa, t @ ts) else NONE;
@@ -609,16 +609,18 @@ fun process_states gram stateset i c states =
                         val States' = map mk_state (get_RHS min_prec tk_prods);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in process used' (new_states @ States) (S :: Si, Sii) end
-          | (info as (_, _, id, _), Terminal a :: sa, ts) => (*scanner operation*)
+          | Terminal a :: sa => (*scanner operation*)
               let
+                val (_, _, id, _) = info;
                 val Sii' =
                   if Lexicon.tokens_match_ord (a, c) <> EQUAL then Sii
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
                     in (info, sa, ts') :: Sii end;
               in process used States (S :: Si, Sii') end
-          | ((A, prec, id, j), [], ts) => (*completer operation*)
+          | [] => (*completer operation*)
               let
+                val (A, prec, id, j) = info;
                 val tt = if id = "" then ts else [Node (id, rev ts)];
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
