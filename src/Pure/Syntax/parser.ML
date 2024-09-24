@@ -514,8 +514,8 @@ type state =
   (nt * int *       (*identification and production precedence*)
    string *         (*name of production*)
    int) *           (*index for previous state list*)
-  parsetree list *  (*already parsed nonterminals on rhs*)
-  symb list;        (*rest of rhs*)
+  symb list *       (*input: rest of rhs*)
+  parsetree list;   (*output (reversed): already parsed nonterminals on rhs*)
 
 
 (*Get all rhss with precedence >= min_prec*)
@@ -526,9 +526,8 @@ fun get_RHS' min_prec max_prec =
   filter (fn (_, _, prec: int) => prec >= min_prec andalso prec < max_prec);
 
 (*Make states using a list of rhss*)
-fun mk_states i lhs_ID rhss =
-  let fun mk_state (rhs, id, prod_prec) = ((lhs_ID, prod_prec, id, i), [], rhs);
-  in map mk_state rhss end;
+fun mk_states i lhs_ID =
+  map (fn (rhs, id, prod_prec) => ((lhs_ID, prod_prec, id, i), rhs, []));
 
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
@@ -559,20 +558,20 @@ fun get_states_lambda A max opt_min Si : state list =
       (case opt_min of
         NONE => (fn p => p <= max)
       | SOME min => (fn p => p <= max andalso p > min));
-  in filter (fn (_, _, Nonterminal (B, p) :: _) => A = B andalso prec p | _ => false) Si end;
+  in filter (fn (_, Nonterminal (B, p) :: _, _) => A = B andalso prec p | _ => false) Si end;
 
 fun get_states stateset j A max_prec : state list =
   filter
-    (fn (_, _, Nonterminal (B, prec) :: _) => A = B andalso prec <= max_prec | _ => false)
+    (fn (_, Nonterminal (B, prec) :: _, _) => A = B andalso prec <= max_prec | _ => false)
     (Array.nth stateset j);
 
 
-fun movedot_nonterm tt (info, ts, Nonterminal _ :: sa) : state = (info, tt @ ts, sa);
+fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
-fun movedot_lambda [] _ = []
-  | movedot_lambda ((t, ki) :: ts) (state as (info, tss, Nonterminal (A, k) :: sa)) =
-      if k <= ki then (info, t @ tss, sa) :: movedot_lambda ts state
-      else movedot_lambda ts state;
+fun movedot_lambda [] (_: state) : state list = []
+  | movedot_lambda ((t, k) :: rest) (state as (info, Nonterminal (_, p) :: sa, ts)) =
+      if p <= k then (info, sa, t @ ts) :: movedot_lambda rest state
+      else movedot_lambda rest state;
 
 
 (*trigger value for warnings*)
@@ -596,7 +595,7 @@ fun process_states gram stateset i c states =
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used (S :: States) (Si, Sii) =
           (case S of
-            (_, _, Nonterminal (nt, min_prec) :: _) =>
+            (_, Nonterminal (nt, min_prec) :: _, _) =>
               let (*predictor operation*)
                 val (used', new_states) =
                   (case Inttab.lookup used nt of
@@ -618,17 +617,16 @@ fun process_states gram stateset i c states =
               in
                 process used' (new_states @ States) (S :: Si, Sii)
               end
-          | (info as (_, _, id, _), ts, Terminal a :: sa) => (*scanner operation*)
+          | (info as (_, _, id, _), Terminal a :: sa, ts) => (*scanner operation*)
               let
                 val Sii' =
                   if Lexicon.tokens_match_ord (a, c) <> EQUAL then Sii
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
-                    in (info, ts', sa) :: Sii end;
+                    in (info, sa, ts') :: Sii end;
               in process used States (S :: Si, Sii') end
-          | (info, ts, []) => (*completer operation*)
+          | ((A, prec, id, j), [], ts) => (*completer operation*)
               let
-                val (A, prec, id, j) = info
                 val tt = if id = "" then ts else [Node (id, rev ts)];
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
@@ -684,13 +682,13 @@ fun parse (gram as Gram {tags, ...}) start toks =
       | SOME tok => Lexicon.end_pos_of_token tok);
     val input = toks @ [Lexicon.mk_eof end_pos];
 
-    val S0: state = ((~1, 0, "", 0), [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof]);
+    val S0: state = ((~1, 0, "", 0), [Nonterminal (start_tag, 0), Terminal Lexicon.eof], []);
     val stateset = Array.array (length input + 1, []);
     val _ = Array.upd stateset 0 [S0];
 
     val pts =
       produce gram stateset 0 input Lexicon.eof
-      |> map_filter (fn (_, [pt], _) => SOME pt | _ => NONE);
+      |> map_filter (fn (_, _, [pt]) => SOME pt | _ => NONE);
   in if null pts then raise Fail "Inner syntax: no parse trees" else pts end;
 
 end;
