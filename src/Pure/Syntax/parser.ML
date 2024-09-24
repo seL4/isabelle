@@ -525,10 +525,6 @@ fun get_RHS min_prec = filter (fn (_, _, prec: int) => prec >= min_prec);
 fun get_RHS' min_prec max_prec =
   filter (fn (_, _, prec: int) => prec >= min_prec andalso prec < max_prec);
 
-(*Make states using a list of rhss*)
-fun mk_states i lhs_ID =
-  map (fn (rhs, id, prod_prec) => ((lhs_ID, prod_prec, id, i), rhs, []));
-
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
 fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
@@ -593,26 +589,26 @@ fun process_states gram stateset i c states =
           (case S of
             (info, Nonterminal (nt, min_prec) :: sa, ts) =>
               let (*predictor operation*)
+                fun mk_state (rhs, id, prod_prec) = ((nt, prod_prec, id, i), rhs, []);
+                fun movedot_lambda (t, k) = if min_prec <= k then SOME (info, sa, t @ ts) else NONE;
                 val (used', new_states) =
                   (case Inttab.lookup used nt of
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, movedot_lambda min_prec (info, sa, ts) l)
+                        (used, map_filter movedot_lambda l)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val tk_prods = prods_for gram c nt;
-                          val States2 = mk_states i nt (get_RHS' min_prec used_prec tk_prods);
-                          val States1 = movedot_lambda min_prec (info, sa, ts) l;
+                          val States2 = map mk_state (get_RHS' min_prec used_prec tk_prods);
+                          val States1 = map_filter movedot_lambda l;
                         in (update_prec (nt, min_prec) used, States1 @ States2) end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
                         val tk_prods = prods_for gram c nt;
-                        val States' = mk_states i nt (get_RHS min_prec tk_prods);
+                        val States' = map mk_state (get_RHS min_prec tk_prods);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
-              in
-                process used' (new_states @ States) (S :: Si, Sii)
-              end
+              in process used' (new_states @ States) (S :: Si, Sii) end
           | (info as (_, _, id, _), Terminal a :: sa, ts) => (*scanner operation*)
               let
                 val Sii' =
