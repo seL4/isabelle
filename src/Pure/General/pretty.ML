@@ -32,6 +32,7 @@ sig
   val markup_block: Markup.T block -> T list -> T
   val markup_blocks: Markup.T list block -> T list -> T
   val markup: Markup.T -> T list -> T
+  val mark: Markup.T -> T -> T
   val blk: int * T list -> T
   val block0: T list -> T
   val block1: T list -> T
@@ -44,7 +45,6 @@ sig
   val breaks: T list -> T list
   val fbreaks: T list -> T list
   val strs: string list -> T
-  val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
   val mark_position: Position.T -> T -> T
@@ -126,15 +126,16 @@ fun make_block ({markup, consistent, indent}: Markup.output block) body =
 fun markup_block ({markup, consistent, indent}: Markup.T block) body =
   make_block {markup = YXML.output_markup markup, consistent = consistent, indent = indent} body;
 
-fun markup m =
-  markup_block {markup = m, consistent = false, indent = 0};
+fun markup m = markup_block {markup = m, consistent = false, indent = 0};
 
-fun blk (indent, es) =
-  markup_block {markup = Markup.empty, consistent = false, indent = indent} es;
+fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 
-fun block0 prts = blk (0, prts);
-fun block1 prts = blk (1, prts);
-fun block prts = blk (2, prts);
+fun blk (indent, body) =
+  markup_block {markup = Markup.empty, consistent = false, indent = indent} body;
+
+fun block0 body = blk (0, body);
+fun block1 body = blk (1, body);
+fun block body = blk (2, body);
 
 
 (* breaks *)
@@ -153,8 +154,6 @@ val str = from_ML o ML_Pretty.str;
 val dots = from_ML ML_Pretty.dots;
 
 val strs = block o breaks o map str;
-
-fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
@@ -266,9 +265,9 @@ local
 
 fun block_length indent =
   let
-    fun block_len len prts =
+    fun block_len len body =
       let
-        val (line, rest) = chop_prefix (fn Break (true, _, _) => false | _ => true) prts;
+        val (line, rest) = chop_prefix (fn Break (true, _, _) => false | _ => true) body;
         val len' = Int.max (fold (Integer.add o tree_length) line 0, len);
       in
         (case rest of
@@ -333,16 +332,16 @@ fun string (s, len) {tx, ind, pos: int, nl} : text =
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
 fun break_dist (Break _ :: _, _) = 0
-  | break_dist (e :: es, after) = tree_length e + break_dist (es, after)
+  | break_dist (prt :: prts, after) = tree_length prt + break_dist (prts, after)
   | break_dist ([], after) = after;
 
-val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | e => e;
+val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | prt => prt;
 val force_all = map force_break;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
 fun force_next [] = []
-  | force_next ((e as Break _) :: es) = force_break e :: es
-  | force_next (e :: es) = e :: force_next es;
+  | force_next ((prt as Break _) :: prts) = force_break prt :: prts
+  | force_next (prt :: prts) = prt :: force_next prts;
 
 in
 
@@ -364,12 +363,11 @@ fun format_tree (ops: output_ops) input =
         nl = nl}
       end;
 
-    (*es is list of expressions to print;
-      blockin is the indentation of the current block;
+    (*blockin is the indentation of the current block;
       after is the width of the following context until next break.*)
     fun format ([], _, _) text = text
-      | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
-          (case e of
+      | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
+          (case prt of
             Block ((bg, en), consistent, indent, bes, blen) =>
               let
                 val pos' = pos + indent;
@@ -377,24 +375,24 @@ fun format_tree (ops: output_ops) input =
                 val block' =
                   if pos' < emergencypos then (ind |> blanks_buffer indent, pos')
                   else (blanks_buffer pos'' Buffer.empty, pos'');
-                val d = break_dist (es, after)
+                val d = break_dist (prts, after)
                 val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
                 val btext: text = text
                   |> control bg
                   |> format (bes', block', d)
                   |> control en;
                 (*if this block was broken then force the next break*)
-                val es' = if nl < #nl btext then force_next es else es;
-              in format (es', block, after) btext end
+                val prts' = if nl < #nl btext then force_next prts else prts;
+              in format (prts', block, after) btext end
           | Break (force, wd, ind) =>
               (*no break if text to next break fits on this line
                 or if breaking would add only breakgain to space*)
-              format (es, block, after)
+              format (prts, block, after)
                 (if not force andalso
-                    pos + wd <= Int.max (margin - break_dist (es, after), blockin + breakgain)
+                    pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
                  else text |> linebreak |> indentation block |> blanks ind)
-          | Str str => format (es, block, after) (string str text));
+          | Str str => format (prts, block, after) (string str text));
   in
     #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
   end;
