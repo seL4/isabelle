@@ -177,7 +177,7 @@ fun long_name_of (b as Binding {prefix, qualifier, name, ...}) =
 fun pretty b =
   if is_empty b then Pretty.str "\"\""
   else
-    Pretty.mark (Position.markup_properties (pos_of b) Markup.binding) (Pretty.str (long_name_of b))
+    Pretty.mark_str (Position.markup_properties (pos_of b) Markup.binding, long_name_of b)
     |> Pretty.quote;
 
 val print = Pretty.unformatted_string_of o pretty;

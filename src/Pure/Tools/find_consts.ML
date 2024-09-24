@@ -65,7 +65,7 @@ fun pretty_const ctxt (c, ty) =
     val markup = Name_Space.markup (Proof_Context.const_space ctxt) c;
   in
     Pretty.block
-     [Pretty.mark markup (Pretty.str c), Pretty.str " ::", Pretty.brk 1,
+     [Pretty.mark_str (markup, c), Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Syntax.pretty_typ ctxt ty')]
   end;
 
