@@ -569,21 +569,21 @@ fun movedot_lambda p ((info, sa, ts): state) =
 (*trigger value for warnings*)
 val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K 600);
 
-(*get all productions of a NT and NTs chained to it which can
-  be started by specified token*)
-fun prods_for (Gram {prods, chains, ...}) tok nt =
-  let
-    fun token_prods prods =
-      fold cons (prods_lookup prods tok) #>
-      fold cons (prods_lookup prods Lexicon.dummy);
-    fun nt_prods nt = #2 (Vector.nth prods nt);
-  in fold (token_prods o nt_prods) (chains_all_preds chains [nt]) [] end;
-
 
 local
 
-fun process_states gram stateset i c states =
+fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states =
   let
+    (*get all productions of a NT and NTs chained to it which can
+      be started by specified token*)
+    fun prods_for tok nt =
+      let
+        fun token_prods prods =
+          fold cons (prods_lookup prods tok) #>
+          fold cons (prods_lookup prods Lexicon.dummy);
+        val nt_prods = #2 o Vector.nth gram_prods;
+      in fold (token_prods o nt_prods) (chains_all_preds gram_chains [nt]) [] end;
+
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used ((S as (info, symbs, ts)) :: States) (Si, Sii) =
           (case symbs of
@@ -599,14 +599,11 @@ fun process_states gram stateset i c states =
                         (used, map_filter movedot_lambda l)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val tk_prods = prods_for gram c nt;
-                          val States2 = map mk_state (get_RHS' min_prec used_prec tk_prods);
+                          val States2 = map mk_state (get_RHS' min_prec used_prec (prods_for c nt));
                           val States1 = map_filter movedot_lambda l;
                         in (update_prec (nt, min_prec) used, States1 @ States2) end
                   | NONE => (*nonterminal is parsed for the first time*)
-                      let
-                        val tk_prods = prods_for gram c nt;
-                        val States' = map mk_state (get_RHS min_prec tk_prods);
+                      let val States' = map mk_state (get_RHS min_prec (prods_for c nt))
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in process used' (new_states @ States) (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
