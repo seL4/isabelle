@@ -18,6 +18,8 @@ object Pretty {
     else if (n == 1) space
     else List(XML.Text(Symbol.spaces(n)))
 
+  val bullet: XML.Body = XML.elem(Markup.BULLET, space) :: space
+
   def block(body: XML.Body, consistent: Boolean = false, indent: Int = 2): XML.Tree =
     XML.Elem(Markup.Block(consistent, indent), body)
 
@@ -75,12 +77,11 @@ object Pretty {
 
   private val FBreak = Break(true, 1, 0)
 
-  private def make_block(
-    markup: Markup,
-    markup_body: Option[XML.Body],
-    consistent: Boolean,
-    indent: Int,
-    body: List[Tree]
+  private def make_block(body: List[Tree],
+    markup: Markup = Markup.Empty,
+    markup_body: Option[XML.Body] = None,
+    consistent: Boolean = false,
+    indent: Int = 0
   ): Tree = {
     val indent1 = force_nat(indent)
 
@@ -157,18 +158,17 @@ object Pretty {
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {
         case XML.Wrapped_Elem(markup, body1, body2) =>
-          List(make_block(markup, Some(body1), false, 0, make_tree(body2)))
+          List(make_block(make_tree(body2), markup = markup, markup_body = Some(body1)))
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
-              List(make_block(Markup.Empty, None, consistent, indent, make_tree(body)))
+              List(make_block(make_tree(body), consistent = consistent, indent = indent))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
-              List(make_block(Markup.Empty, None, false, 2,
-                make_tree(XML.elem(Markup.BULLET, space) :: space ::: body)))
+              List(make_block(make_tree(bullet ::: body), indent = 2))
             case _ =>
-              List(make_block(markup, None, false, 0, make_tree(body)))
+              List(make_block(make_tree(body), markup = markup))
           }
         case XML.Text(text) =>
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
