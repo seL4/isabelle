@@ -560,18 +560,14 @@ fun get_states_lambda A max opt_min Si : state list =
       | SOME min => (fn p => p <= max andalso p > min));
   in filter (fn (_, Nonterminal (B, p) :: _, _) => A = B andalso prec p | _ => false) Si end;
 
-fun get_states stateset j A max_prec : state list =
-  filter
-    (fn (_, Nonterminal (B, prec) :: _, _) => A = B andalso prec <= max_prec | _ => false)
-    (Array.nth stateset j);
+fun get_states A max_prec =
+  filter (fn (_, Nonterminal (B, prec) :: _, _) => A = B andalso prec <= max_prec | _ => false);
 
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
-fun movedot_lambda [] (_: state) : state list = []
-  | movedot_lambda ((t, k) :: rest) (state as (info, Nonterminal (_, p) :: sa, ts)) =
-      if p <= k then (info, sa, t @ ts) :: movedot_lambda rest state
-      else movedot_lambda rest state;
+fun movedot_lambda p ((info, sa, ts): state) =
+  map_filter (fn (t, k) => if p <= k then SOME (info, sa, t @ ts) else NONE);
 
 
 (*trigger value for warnings*)
@@ -595,20 +591,20 @@ fun process_states gram stateset i c states =
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used (S :: States) (Si, Sii) =
           (case S of
-            (_, Nonterminal (nt, min_prec) :: _, _) =>
+            (info, Nonterminal (nt, min_prec) :: sa, ts) =>
               let (*predictor operation*)
                 val (used', new_states) =
                   (case Inttab.lookup used nt of
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, movedot_lambda l S)
+                        (used, movedot_lambda min_prec (info, sa, ts) l)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val tk_prods = prods_for gram c nt;
-                          val States' =
-                            mk_states i nt (get_RHS' min_prec used_prec tk_prods);
-                        in (update_prec (nt, min_prec) used, movedot_lambda l S @ States') end
+                          val States2 = mk_states i nt (get_RHS' min_prec used_prec tk_prods);
+                          val States1 = movedot_lambda min_prec (info, sa, ts) l;
+                        in (update_prec (nt, min_prec) used, States1 @ States2) end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
                         val tk_prods = prods_for gram c nt;
@@ -632,7 +628,7 @@ fun process_states gram stateset i c states =
                   if j = i then (*lambda production?*)
                     let val (prec', used') = update_trees (A, (tt, prec)) used
                     in (used', get_states_lambda A prec prec' Si) end
-                  else (used, get_states stateset j A prec);
+                  else (used, get_states A prec (Array.nth stateset j));
                 val States' = map (movedot_nonterm tt) Slist;
               in process used' (States' @ States) (S :: Si, Sii) end)
   in process Inttab.empty states ([], []) end;
