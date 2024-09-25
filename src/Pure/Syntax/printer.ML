@@ -137,10 +137,10 @@ fun make_arg (s, p) =
   (if s = "type" then TypArg else Arg)
   (if Lexicon.is_terminal s then 1000 else p);
 
+in
+
 fun make_string s = String ([], s);
 fun make_literal s = String (Lexicon.literal_markup s, s);
-
-in
 
 fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (Syntax_Ext.XProd (_, xsymbs, const, pri)) =
@@ -209,6 +209,14 @@ val pretty_type_mode = Config.declare_bool ("Syntax.pretty_type_mode", \<^here>)
 val pretty_curried = Config.declare_bool ("Syntax.pretty_curried", \<^here>) (K false);
 val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K 0);
 
+local
+
+val par_block = Syntax_Ext.block_indent 1;
+val par_bg = make_string "(";
+val par_en = make_string ")";
+
+in
+
 fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
   let
     val type_mode = Config.get ctxt pretty_type_mode;
@@ -255,10 +263,9 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
 
-    and parT m (pr, args, p, p': int) = #1 (synT m
-          (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr)) then
-            [Block (Syntax_Ext.block_indent 1, String ([], "(") :: pr @ [String ([], ")")])]
-           else pr, args))
+    and parT m (pr, args, p, p') = #1 (synT m
+          (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr))
+           then [Block (par_block, par_bg :: pr @ [par_en])] else pr, args))
 
     and atomT a = Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)
 
@@ -293,6 +300,8 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
   in astT (ast0, Config.get ctxt pretty_priority) end;
+
+end;
 
 
 (* pretty_term_ast *)
