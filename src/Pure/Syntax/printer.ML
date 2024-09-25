@@ -212,8 +212,8 @@ val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K
 local
 
 val par_block = Syntax_Ext.block_indent 1;
-val par_bg = make_string "(";
-val par_en = make_string ")";
+val par_bg = make_literal "(";
+val par_en = make_literal ")";
 
 in
 
