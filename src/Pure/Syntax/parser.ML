@@ -616,7 +616,12 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   else (used, get_states A prec (Array.nth stateset j));
                 val States' = map (movedot_nonterm tt) Slist;
               in process used' (States' @ States) (S :: Si, Sii) end)
-  in process Inttab.empty states ([], []) end;
+
+    val (Si, Sii) = process Inttab.empty states ([], []);
+  in
+    Array.upd stateset i Si;
+    Array.upd stateset (i + 1) Sii
+  end;
 
 fun produce gram stateset i input prev_token =
   (case Array.nth stateset i of
@@ -641,12 +646,7 @@ fun produce gram stateset i input prev_token =
   | states =>
       (case input of
         [] => states
-      | c :: rest =>
-          let
-            val (Si, Sii) = process_states gram stateset i c states;
-            val _ = Array.upd stateset i Si;
-            val _ = Array.upd stateset (i + 1) Sii;
-          in produce gram stateset (i + 1) rest c end));
+      | c :: cs => (process_states gram stateset i c states; produce gram stateset (i + 1) cs c)));
 
 in
 
