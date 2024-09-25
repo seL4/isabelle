@@ -138,24 +138,24 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           (if s = "type" then TypArg else Arg)
           (if Lexicon.is_terminal s then 1000 else p);
 
-        fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
+        fun make_symbs (Syntax_Ext.Delim s :: xsyms) =
               apfst (cons (String (not (Lexicon.suppress_literal_markup s), s)))
-                (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Argument s_p :: xsyms) =
-              apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Space s :: xsyms) =
-              apfst (cons (String (false, s))) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Bg block :: xsyms) =
+                (make_symbs xsyms)
+          | make_symbs (Syntax_Ext.Argument s_p :: xsyms) =
+              apfst (cons (arg s_p)) (make_symbs xsyms)
+          | make_symbs (Syntax_Ext.Space s :: xsyms) =
+              apfst (cons (String (false, s))) (make_symbs xsyms)
+          | make_symbs (Syntax_Ext.Bg block :: xsyms) =
               let
-                val (bsyms, xsyms') = xsyms_to_syms xsyms;
-                val (syms, xsyms'') = xsyms_to_syms xsyms';
+                val (bsyms, xsyms') = make_symbs xsyms;
+                val (syms, xsyms'') = make_symbs xsyms';
               in
                 (Block (block, bsyms) :: syms, xsyms'')
               end
-          | xsyms_to_syms (Syntax_Ext.Brk i :: xsyms) =
-              apfst (cons (Break i)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.En :: xsyms) = ([], xsyms)
-          | xsyms_to_syms [] = ([], []);
+          | make_symbs (Syntax_Ext.Brk i :: xsyms) =
+              apfst (cons (Break i)) (make_symbs xsyms)
+          | make_symbs (Syntax_Ext.En :: xsyms) = ([], xsyms)
+          | make_symbs [] = ([], []);
 
         fun nargs (Arg _ :: syms) = nargs syms + 1
           | nargs (TypArg _ :: syms) = nargs syms + 1
@@ -164,7 +164,7 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
           | nargs [] = 0;
       in
-        (case xsyms_to_syms xsymbs of
+        (case make_symbs xsymbs of
           (symbs, []) => SOME (const, (symbs, nargs symbs, pri))
         | _ => raise Fail "Unbalanced pretty-printing blocks")
       end;
