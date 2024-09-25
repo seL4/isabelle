@@ -131,42 +131,45 @@ end;
 
 (* xprod_to_fmt *)
 
+local
+
+fun make_arg (s, p) =
+  (if s = "type" then TypArg else Arg)
+  (if Lexicon.is_terminal s then 1000 else p);
+
+fun make_string s = String ([], s);
+fun make_literal s = String (Lexicon.literal_markup s, s);
+
+in
+
 fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (Syntax_Ext.XProd (_, xsymbs, const, pri)) =
       let
-        fun arg (s, p) =
-          (if s = "type" then TypArg else Arg)
-          (if Lexicon.is_terminal s then 1000 else p);
-
-        fun make_symbs (Syntax_Ext.Delim s :: xsyms) =
-              apfst (cons (String (Lexicon.literal_markup s, s))) (make_symbs xsyms)
-          | make_symbs (Syntax_Ext.Argument s_p :: xsyms) =
-              apfst (cons (arg s_p)) (make_symbs xsyms)
-          | make_symbs (Syntax_Ext.Space s :: xsyms) =
-              apfst (cons (String ([], s))) (make_symbs xsyms)
+        fun make_symbs (Syntax_Ext.Delim s :: xsyms) = make_symbs xsyms |>> cons (make_literal s)
+          | make_symbs (Syntax_Ext.Argument a :: xsyms) = make_symbs xsyms |>> cons (make_arg a)
+          | make_symbs (Syntax_Ext.Space s :: xsyms) = make_symbs xsyms |>> cons (make_string s)
           | make_symbs (Syntax_Ext.Bg block :: xsyms) =
               let
                 val (bsyms, xsyms') = make_symbs xsyms;
                 val (syms, xsyms'') = make_symbs xsyms';
-              in
-                (Block (block, bsyms) :: syms, xsyms'')
-              end
-          | make_symbs (Syntax_Ext.Brk i :: xsyms) =
-              apfst (cons (Break i)) (make_symbs xsyms)
+              in (Block (block, bsyms) :: syms, xsyms'') end
+          | make_symbs (Syntax_Ext.Brk i :: xsyms) = make_symbs xsyms |>> cons (Break i)
           | make_symbs (Syntax_Ext.En :: xsyms) = ([], xsyms)
           | make_symbs [] = ([], []);
 
-        fun nargs (Arg _ :: syms) = nargs syms + 1
-          | nargs (TypArg _ :: syms) = nargs syms + 1
-          | nargs (String _ :: syms) = nargs syms
-          | nargs (Break _ :: syms) = nargs syms
-          | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
-          | nargs [] = 0;
+        fun count_args (Arg _ :: syms) = Integer.add 1 #> count_args syms
+          | count_args (TypArg _ :: syms) = Integer.add 1 #> count_args syms
+          | count_args (String _ :: syms) = count_args syms
+          | count_args (Break _ :: syms) = count_args syms
+          | count_args (Block (_, bsyms) :: syms) = count_args syms #> count_args bsyms
+          | count_args [] = I;
       in
         (case make_symbs xsymbs of
-          (symbs, []) => SOME (const, (symbs, nargs symbs, pri))
+          (symbs, []) => SOME (const, (symbs, count_args symbs 0, pri))
         | _ => raise Fail "Unbalanced pretty-printing blocks")
       end;
+
+end;
 
 
 (* empty, extend, merge prtabs *)
