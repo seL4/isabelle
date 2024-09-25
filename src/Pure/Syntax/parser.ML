@@ -88,7 +88,6 @@ fun chains_insert (from, to) =
 datatype gram =
   Gram of
    {nt_count: int,
-    prod_count: int,
     tags: tags,
     chains: chains,
     lambdas: nts,
@@ -417,13 +416,12 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 val empty_gram =
   Gram
    {nt_count = 0,
-    prod_count = 0,
     tags = tags_empty,
     chains = chains_empty,
     lambdas = nts_empty,
     prods = Vector.fromList [nt_gram_empty]};
 
-fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
+fun extend_gram xprods (Gram {nt_count, tags, chains, lambdas, prods}) =
   let
     (*Get tag for existing nonterminal or create a new one*)
     fun get_tag (context as (nt_count, tags)) nt =
@@ -449,16 +447,13 @@ fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods
       | make_symbs (_ :: ss) context result = make_symbs ss context result;
 
     fun make_prods [] context result = (context, result)
-      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) context result =
+      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) (nt_count, tags) result =
           let
-            val (nt_count, prod_count, tags) = context;
             val (context', tag) = get_tag (nt_count, tags) lhs;
-            val ((nt_count'', tags''), symbs) = make_symbs xsymbs context' [];
-            val context'' = (nt_count'', prod_count + 1, tags'');
+            val (context'', symbs) = make_symbs xsymbs context' [];
           in make_prods ps context'' ((tag, (symbs, const, pri)) :: result) end;
 
-    val ((nt_count', prod_count', tags'), new_prods) =
-      make_prods xprods (nt_count, prod_count, tags) [];
+    val ((nt_count', tags'), new_prods) = make_prods xprods (nt_count, tags) [];
 
     val array_prods' =
       Array.tabulate (nt_count', fn i =>
@@ -470,7 +465,6 @@ fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods
   in
     Gram
      {nt_count = nt_count',
-      prod_count = prod_count',
       tags = tags',
       chains = chains',
       lambdas = lambdas',
