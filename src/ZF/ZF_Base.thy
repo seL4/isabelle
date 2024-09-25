@@ -196,7 +196,7 @@ nonterminal "tuple_args"
 syntax
   "" :: "i \<Rightarrow> tuple_args"  (\<open>_\<close>)
   "_Tuple_args" :: "[i, tuple_args] \<Rightarrow> tuple_args"  (\<open>_,/ _\<close>)
-  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"              (\<open>\<langle>(_,/ _)\<rangle>\<close>)
+  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"              (\<open>\<langle>(\<open>notation=\<open>mixfix tuple\<close>\<close>_,/ _)\<rangle>\<close>)
 syntax_consts
   "_Tuple_args" "_Tuple" == Pair
 translations
