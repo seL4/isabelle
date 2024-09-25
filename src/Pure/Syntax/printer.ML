@@ -68,7 +68,7 @@ fun type_emphasis ctxt T =
 datatype symb =
   Arg of int |
   TypArg of int |
-  String of bool * string |
+  String of Markup.T list * string |
   Break of int |
   Block of Syntax_Ext.block * symb list;
 
@@ -139,12 +139,11 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           (if Lexicon.is_terminal s then 1000 else p);
 
         fun make_symbs (Syntax_Ext.Delim s :: xsyms) =
-              apfst (cons (String (not (Lexicon.suppress_literal_markup s), s)))
-                (make_symbs xsyms)
+              apfst (cons (String (Lexicon.literal_markup s, s))) (make_symbs xsyms)
           | make_symbs (Syntax_Ext.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (make_symbs xsyms)
           | make_symbs (Syntax_Ext.Space s :: xsyms) =
-              apfst (cons (String (false, s))) (make_symbs xsyms)
+              apfst (cons (String ([], s))) (make_symbs xsyms)
           | make_symbs (Syntax_Ext.Bg block :: xsyms) =
               let
                 val (bsyms, xsyms') = make_symbs xsyms;
@@ -234,13 +233,10 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
                 |> Config.put pretty_priority p
               in (pretty ctxt' tabs trf markup_trans markup_extern t @ Ts, args') end
           end
-      | synT m (String (do_mark, s) :: symbs, args) =
+      | synT m (String (literal_markup, s) :: symbs, args) =
           let
             val (Ts, args') = synT m (symbs, args);
-            val T =
-              if do_mark
-              then Pretty.marks_str (m @ Lexicon.literal_markup s, s)
-              else Pretty.str s;
+            val T = Pretty.marks_str (if null literal_markup then [] else m @ literal_markup, s);
           in (T :: Ts, args') end
       | synT m (Block ({markup, consistent, unbreakable, indent}, bsymbs) :: symbs, args) =
           let
@@ -258,7 +254,7 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
 
     and parT m (pr, args, p, p': int) = #1 (synT m
           (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr)) then
-            [Block (Syntax_Ext.block_indent 1, String (false, "(") :: pr @ [String (false, ")")])]
+            [Block (Syntax_Ext.block_indent 1, String ([], "(") :: pr @ [String ([], ")")])]
            else pr, args))
 
     and atomT a = Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)

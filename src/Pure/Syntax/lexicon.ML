@@ -40,8 +40,6 @@ sig
   val terminals: string list
   val is_terminal: string -> bool
   val get_terminal: string -> token option
-  val suppress_literal_markup: string -> bool
-  val suppress_markup: token -> bool
   val literal_markup: string -> Markup.T list
   val reports_of_token: token -> Position.report list
   val reported_token_range: Proof.context -> token -> string
@@ -198,9 +196,6 @@ fun get_terminal s =
 
 
 (* markup *)
-
-val suppress_literal_markup = Symbol.has_control_block o Symbol.explode;
-fun suppress_markup tok = is_literal tok andalso suppress_literal_markup (str_of_token tok);
 
 fun literal_markup s =
   let val syms = Symbol.explode s in

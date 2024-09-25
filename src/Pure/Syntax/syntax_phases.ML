@@ -158,8 +158,8 @@ fun parsetree_to_ast ctxt trf parsetree =
     val append_reports = Position.append_reports reports;
 
     fun report_pos tok =
-      if Lexicon.suppress_markup tok then Position.none
-      else Lexicon.pos_of_token tok;
+      if Lexicon.is_literal tok andalso null (Lexicon.literal_markup (Lexicon.str_of_token tok))
+      then Position.none else Lexicon.pos_of_token tok;
 
     fun trans a args =
       (case trf a of
