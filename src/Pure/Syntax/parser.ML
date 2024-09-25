@@ -426,43 +426,39 @@ val empty_gram =
 fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
   let
     (*Get tag for existing nonterminal or create a new one*)
-    fun get_tag nt_count tags nt =
+    fun get_tag (context as (nt_count, tags)) nt =
       (case tags_lookup tags nt of
-        SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count + 1, tags_insert (nt, nt_count) tags, nt_count));
+        SOME tag => (context, tag)
+      | NONE => ((nt_count + 1, tags_insert (nt, nt_count) tags), nt_count));
 
     (*Convert symbols to the form used by the parser;
       delimiters and predefined terms are stored as terminals,
       nonterminals are converted to integer tags*)
-    fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
-      | symb_of (Syntax_Ext.Delim s :: ss) nt_count tags result =
-          symb_of ss nt_count tags (Terminal (Lexicon.literal s) :: result)
-      | symb_of (Syntax_Ext.Argument (s, p) :: ss) nt_count tags result =
+    fun make_symbs [] context result = (context, rev result)
+      | make_symbs (Syntax_Ext.Delim s :: ss) context result =
+          make_symbs ss context (Terminal (Lexicon.literal s) :: result)
+      | make_symbs (Syntax_Ext.Argument (s, p) :: ss) context result =
           let
-            val (nt_count', tags', new_symb) =
+            val (context', new_symb) =
               (case Lexicon.get_terminal s of
                 NONE =>
-                  let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
-                  in (nt_count', tags', Nonterminal (s_tag, p)) end
-              | SOME tk => (nt_count, tags, Terminal tk));
-          in symb_of ss nt_count' tags' (new_symb :: result) end
-      | symb_of (_ :: ss) nt_count tags result = symb_of ss nt_count tags result;
+                  let val (context', tag) = get_tag context s;
+                  in (context', Nonterminal (tag, p)) end
+              | SOME tk => (context, Terminal tk));
+          in make_symbs ss context' (new_symb :: result) end
+      | make_symbs (_ :: ss) context result = make_symbs ss context result;
 
-    (*Convert list of productions by invoking symb_of for each of them*)
-    fun prod_of [] nt_count prod_count tags result =
-          (nt_count, prod_count, tags, result)
-      | prod_of (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps)
-            nt_count prod_count tags result =
+    fun make_prods [] context result = (context, result)
+      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) context result =
           let
-            val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;
-            val (nt_count'', tags'', prods) = symb_of xsymbs nt_count' tags' [];
-          in
-            prod_of ps nt_count'' (prod_count + 1) tags''
-              ((lhs_tag, (prods, const, pri)) :: result)
-          end;
+            val (nt_count, prod_count, tags) = context;
+            val (context', tag) = get_tag (nt_count, tags) lhs;
+            val ((nt_count'', tags''), symbs) = make_symbs xsymbs context' [];
+            val context'' = (nt_count'', prod_count + 1, tags'');
+          in make_prods ps context'' ((tag, (symbs, const, pri)) :: result) end;
 
-    val (nt_count', prod_count', tags', xprods') =
-      prod_of xprods nt_count prod_count tags [];
+    val ((nt_count', prod_count', tags'), new_prods) =
+      make_prods xprods (nt_count, prod_count, tags) [];
 
     val array_prods' =
       Array.tabulate (nt_count', fn i =>
@@ -470,7 +466,7 @@ fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods
         else nt_gram_empty);
 
     val (chains', lambdas') =
-      (chains, lambdas) |> fold (add_production array_prods') xprods';
+      (chains, lambdas) |> fold (add_production array_prods') new_prods;
   in
     Gram
      {nt_count = nt_count',
