@@ -420,44 +420,42 @@ val empty_gram =
     lambdas = nts_empty,
     prods = Vector.fromList [nt_gram_empty]};
 
+local
+
+fun make_tag s tags =
+  (case tags_lookup tags s of
+    SOME tag => (tag, tags)
+  | NONE =>
+      let val tag = tags_size tags
+      in (tag, tags_insert (s, tag) tags) end);
+
+fun make_arg (s, p) tags =
+  (case Lexicon.get_terminal s of
+    NONE =>
+      let val (tag, tags') = make_tag s tags;
+      in (Nonterminal (tag, p), tags') end
+  | SOME tok => (Terminal tok, tags));
+
 fun extend_gram xprods gram =
   let
-    (*Get tag for existing nonterminal or create a new one*)
-    fun make_tag nt tags =
-      (case tags_lookup tags nt of
-        SOME tag => (tag, tags)
-      | NONE =>
-          let val tag = tags_size tags
-          in (tag, tags_insert (nt, tag) tags) end);
+    fun make_symbs (Syntax_Ext.Delim s :: xsyms) result tags =
+          make_symbs xsyms (Terminal (Lexicon.literal s) :: result) tags
+      | make_symbs (Syntax_Ext.Argument a :: xsyms) result tags =
+          let val (new_symb, tags') = make_arg a tags
+          in make_symbs xsyms (new_symb :: result) tags' end
+      | make_symbs (_ :: xsyms) result tags = make_symbs xsyms result tags
+      | make_symbs [] result tags = (rev result, tags);
 
-    (*Convert symbols to the form used by the parser;
-      delimiters and predefined terms are stored as terminals,
-      nonterminals are converted to integer tags*)
-    fun make_symbs [] result tags = (rev result, tags)
-      | make_symbs (Syntax_Ext.Delim s :: ss) result tags =
-          make_symbs ss (Terminal (Lexicon.literal s) :: result) tags
-      | make_symbs (Syntax_Ext.Argument (s, p) :: ss) result tags =
-          let
-            val (new_symb, tags') =
-              (case Lexicon.get_terminal s of
-                NONE =>
-                  let val (tag, tags') = make_tag s tags;
-                  in (Nonterminal (tag, p), tags') end
-              | SOME tk => (Terminal tk, tags));
-          in make_symbs ss (new_symb :: result) tags' end
-      | make_symbs (_ :: ss) result tags = make_symbs ss result tags;
-
-    fun make_prods [] result tags = (result, tags)
-      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) result tags =
-          let
-            val (tag, tags') = make_tag lhs tags;
-            val (symbs, tags'') = make_symbs xsymbs [] tags';
-          in make_prods ps ((tag, (symbs, const, pri)) :: result) tags'' end;
+    fun make_prod (Syntax_Ext.XProd (lhs, xsymbs, const, pri)) (result, tags) =
+      let
+        val (tag, tags') = make_tag lhs tags;
+        val (symbs, tags'') = make_symbs xsymbs [] tags';
+      in ((tag, (symbs, const, pri)) :: result, tags'') end;
 
 
     val Gram {tags, chains, lambdas, prods} = gram;
 
-    val (new_prods, tags') = make_prods xprods [] tags;
+    val (new_prods, tags') = fold make_prod xprods ([], tags);
 
     val array_prods' =
       Array.tabulate (tags_size tags', fn i =>
@@ -474,10 +472,14 @@ fun extend_gram xprods gram =
       prods = Array.vector array_prods'}
   end;
 
+in
+
 fun make_gram [] _ (SOME gram) = gram
   | make_gram new_xprods _ (SOME gram) = extend_gram new_xprods gram
   | make_gram [] [] NONE = empty_gram
   | make_gram new_xprods old_xprods NONE = extend_gram (new_xprods @ old_xprods) empty_gram;
+
+end;
 
 
 
