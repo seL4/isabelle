@@ -31,6 +31,7 @@ type nt = int;
 
 type tags = nt Symtab.table;
 val tags_empty: tags = Symtab.empty;
+fun tags_size (tags: tags) = Symtab.size tags;
 fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
 fun tags_lookup (tags: tags) = Symtab.lookup tags;
 fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
@@ -87,8 +88,7 @@ fun chains_insert (from, to) =
 
 datatype gram =
   Gram of
-   {nt_count: int,
-    tags: tags,
+   {tags: tags,
     chains: chains,
     lambdas: nts,
     prods: nt_gram Vector.vector};
@@ -415,57 +415,60 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 val empty_gram =
   Gram
-   {nt_count = 0,
-    tags = tags_empty,
+   {tags = tags_empty,
     chains = chains_empty,
     lambdas = nts_empty,
     prods = Vector.fromList [nt_gram_empty]};
 
-fun extend_gram xprods (Gram {nt_count, tags, chains, lambdas, prods}) =
+fun extend_gram xprods gram =
   let
     (*Get tag for existing nonterminal or create a new one*)
-    fun get_tag (context as (nt_count, tags)) nt =
+    fun make_tag nt tags =
       (case tags_lookup tags nt of
-        SOME tag => (context, tag)
-      | NONE => ((nt_count + 1, tags_insert (nt, nt_count) tags), nt_count));
+        SOME tag => (tag, tags)
+      | NONE =>
+          let val tag = tags_size tags
+          in (tag, tags_insert (nt, tag) tags) end);
 
     (*Convert symbols to the form used by the parser;
       delimiters and predefined terms are stored as terminals,
       nonterminals are converted to integer tags*)
-    fun make_symbs [] context result = (context, rev result)
-      | make_symbs (Syntax_Ext.Delim s :: ss) context result =
-          make_symbs ss context (Terminal (Lexicon.literal s) :: result)
-      | make_symbs (Syntax_Ext.Argument (s, p) :: ss) context result =
+    fun make_symbs [] result tags = (rev result, tags)
+      | make_symbs (Syntax_Ext.Delim s :: ss) result tags =
+          make_symbs ss (Terminal (Lexicon.literal s) :: result) tags
+      | make_symbs (Syntax_Ext.Argument (s, p) :: ss) result tags =
           let
-            val (context', new_symb) =
+            val (new_symb, tags') =
               (case Lexicon.get_terminal s of
                 NONE =>
-                  let val (context', tag) = get_tag context s;
-                  in (context', Nonterminal (tag, p)) end
-              | SOME tk => (context, Terminal tk));
-          in make_symbs ss context' (new_symb :: result) end
-      | make_symbs (_ :: ss) context result = make_symbs ss context result;
+                  let val (tag, tags') = make_tag s tags;
+                  in (Nonterminal (tag, p), tags') end
+              | SOME tk => (Terminal tk, tags));
+          in make_symbs ss (new_symb :: result) tags' end
+      | make_symbs (_ :: ss) result tags = make_symbs ss result tags;
 
-    fun make_prods [] context result = (context, result)
-      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) (nt_count, tags) result =
+    fun make_prods [] result tags = (result, tags)
+      | make_prods (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps) result tags =
           let
-            val (context', tag) = get_tag (nt_count, tags) lhs;
-            val (context'', symbs) = make_symbs xsymbs context' [];
-          in make_prods ps context'' ((tag, (symbs, const, pri)) :: result) end;
+            val (tag, tags') = make_tag lhs tags;
+            val (symbs, tags'') = make_symbs xsymbs [] tags';
+          in make_prods ps ((tag, (symbs, const, pri)) :: result) tags'' end;
 
-    val ((nt_count', tags'), new_prods) = make_prods xprods (nt_count, tags) [];
+
+    val Gram {tags, chains, lambdas, prods} = gram;
+
+    val (new_prods, tags') = make_prods xprods [] tags;
 
     val array_prods' =
-      Array.tabulate (nt_count', fn i =>
-        if i < nt_count then Vector.nth prods i
+      Array.tabulate (tags_size tags', fn i =>
+        if i < Vector.length prods then Vector.nth prods i
         else nt_gram_empty);
 
     val (chains', lambdas') =
       (chains, lambdas) |> fold (add_production array_prods') new_prods;
   in
     Gram
-     {nt_count = nt_count',
-      tags = tags',
+     {tags = tags',
       chains = chains',
       lambdas = lambdas',
       prods = Array.vector array_prods'}
