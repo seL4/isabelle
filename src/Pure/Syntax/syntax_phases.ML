@@ -358,8 +358,7 @@ fun parse_asts ctxt raw root (syms, pos) =
           (("Ambiguous input" ^ Position.here (Position.no_range_position pos) ^
             " produces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)
-              (take limit pts))];
+            map (Pretty.string_of o Pretty.item o Parser.pretty_parsetree) (take limit pts))];
 
   in (ambig_msgs, map (parsetree_to_ast ctxt ast_tr) pts) end;
 

@@ -14,8 +14,7 @@ sig
   datatype parsetree =
     Node of string * parsetree list |
     Tip of Lexicon.token
-  exception PARSETREE of parsetree
-  val pretty_parsetree: parsetree -> Pretty.T
+  val pretty_parsetree: parsetree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> parsetree list
   val branching_level: int Config.T
 end;
@@ -497,15 +496,11 @@ datatype parsetree =
   Node of string * parsetree list |
   Tip of Lexicon.token;
 
-exception PARSETREE of parsetree;
-
-fun pretty_parsetree parsetree =
-  let
-    fun pretty (Node (c, pts)) =
-          [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty pts))]
-      | pretty (Tip tok) =
-          if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
-  in (case pretty parsetree of [prt] => prt | _ => raise PARSETREE parsetree) end;
+fun pretty_parsetree (Node (c, pts)) =
+      [Pretty.enclose "(" ")"
+        (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_parsetree pts))]
+  | pretty_parsetree (Tip tok) =
+      if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
 
 
 (* parser state *)
