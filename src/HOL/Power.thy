@@ -348,6 +348,10 @@ proof -
     by (simp add: power_add)
 qed
 
+lemma power_diff_if:
+  "a ^ (m - n) = (if n \<le> m then (a ^ m) div (a ^ n) else 1)" if "a \<noteq> 0"
+  by (simp add: power_diff that) 
+
 end
 
 context algebraic_semidom

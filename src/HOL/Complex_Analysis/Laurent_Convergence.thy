@@ -598,7 +598,7 @@ proof (rule asymp_equiv_tendsto_transfer)
     by (rule asymp_equiv_symI, rule has_laurent_expansion_imp_asymp_equiv_0) fact
   show "(\<lambda>z. fls_nth F (fls_subdegree F) * z powi fls_subdegree F) \<midarrow>0\<rightarrow> fls_nth F 0"
     by (rule tendsto_eq_intros refl | use assms(2) in simp)+
-       (use assms(2) in \<open>auto simp: power_int_0_left_If\<close>)
+       (use assms(2) in \<open>auto simp: power_int_0_left_if\<close>)
 qed
 
 lemma has_laurent_expansion_imp_tendsto:

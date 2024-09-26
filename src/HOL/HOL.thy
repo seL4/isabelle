@@ -633,6 +633,11 @@ lemma impCE':
   shows R
   using assms by (elim impCE)
 
+text \<open>The analogous introduction rule for conjunction, above, is even constructive\<close>
+lemma context_disjE:
+  assumes major: "P \<or> Q" and minor: "P \<Longrightarrow> R" "\<not>P \<Longrightarrow> Q \<Longrightarrow> R"
+  shows R
+  by (iprover intro: disjE [OF major] disjE [OF excluded_middle] assms)
 
 text \<open>Classical \<open>\<longleftrightarrow>\<close> elimination.\<close>
 lemma iffCE:

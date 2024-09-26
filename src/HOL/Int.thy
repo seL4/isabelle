@@ -1790,11 +1790,11 @@ lemma power_int_minus_divide: "power_int (x::'a) (-n) = 1 / (power_int x n)"
 lemma power_int_eq_0_iff [simp]: "power_int (x::'a) n = 0 \<longleftrightarrow> x = 0 \<and> n \<noteq> 0"
   by (auto simp: power_int_def)
 
-lemma power_int_0_left_If: "power_int (0 :: 'a) m = (if m = 0 then 1 else 0)"
+lemma power_int_0_left_if: "power_int (0 :: 'a) m = (if m = 0 then 1 else 0)"
   by (auto simp: power_int_def)
 
 lemma power_int_0_left [simp]: "m \<noteq> 0 \<Longrightarrow> power_int (0 :: 'a) m = 0"
-  by (simp add: power_int_0_left_If)
+  by (simp add: power_int_0_left_if)
 
 lemma power_int_1_left [simp]: "power_int 1 n = (1 :: 'a :: division_ring)"
   by (auto simp: power_int_def) 
@@ -1836,7 +1836,7 @@ lemma power_int_add:
   shows   "power_int (x::'a) (m + n) = power_int x m * power_int x n"
 proof (cases "x = 0")
   case True
-  thus ?thesis using assms by (auto simp: power_int_0_left_If)
+  thus ?thesis using assms by (auto simp: power_int_0_left_if)
 next
   case [simp]: False
   show ?thesis
@@ -2050,7 +2050,7 @@ proof (cases "a = 0")
   also have "\<dots> \<le> power_int a n * 1"
     using assms * by (intro mult_left_mono) (auto simp: power_int_def)
   finally show ?thesis by simp
-qed (use assms in \<open>auto simp: power_int_0_left_If\<close>)
+qed (use assms in \<open>auto simp: power_int_0_left_if\<close>)
 
 lemma one_less_power_int: "1 < (a :: 'a) \<Longrightarrow> 0 < n \<Longrightarrow> 1 < power_int a n"
   using power_int_strict_increasing[of 0 n a] by simp
