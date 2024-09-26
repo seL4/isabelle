@@ -438,18 +438,21 @@ fun make_arg (s, p) tags =
 
 fun extend_gram xprods gram =
   let
-    fun make_symbs (Syntax_Ext.Delim s :: xsyms) result tags =
-          make_symbs xsyms (Terminal (Lexicon.literal s) :: result) tags
-      | make_symbs (Syntax_Ext.Argument a :: xsyms) result tags =
-          let val (new_symb, tags') = make_arg a tags
-          in make_symbs xsyms (new_symb :: result) tags' end
-      | make_symbs (_ :: xsyms) result tags = make_symbs xsyms result tags
-      | make_symbs [] result tags = (rev result, tags);
+    fun make_symbs (Syntax_Ext.Delim s :: xsyms) tags =
+          let val (syms, tags') = make_symbs xsyms tags
+          in (Terminal (Lexicon.literal s) :: syms, tags') end
+      | make_symbs (Syntax_Ext.Argument a :: xsyms) tags =
+          let
+            val (arg, tags') = make_arg a tags;
+            val (syms, tags'') = make_symbs xsyms tags';
+          in (arg :: syms, tags'') end
+      | make_symbs (_ :: xsyms) tags = make_symbs xsyms tags
+      | make_symbs [] tags = ([], tags);
 
     fun make_prod (Syntax_Ext.XProd (lhs, xsymbs, const, pri)) (result, tags) =
       let
         val (tag, tags') = make_tag lhs tags;
-        val (symbs, tags'') = make_symbs xsymbs [] tags';
+        val (symbs, tags'') = make_symbs xsymbs tags';
       in ((tag, (symbs, const, pri)) :: result, tags'') end;
 
 
