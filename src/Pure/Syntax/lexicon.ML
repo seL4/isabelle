@@ -30,6 +30,7 @@ sig
   val end_pos_of_token: token -> Position.T
   val is_proper: token -> bool
   val dummy: token
+  val is_dummy: token -> bool
   val literal: string -> token
   val is_literal: token -> bool
   val tokens_match_ord: token ord
@@ -144,7 +145,9 @@ fun end_pos_of_token (Token (_, _, (_, end_pos))) = end_pos;
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 
-val dummy = Token (token_kind_index Dummy, "", Position.no_range);
+val dummy_index = token_kind_index Dummy;
+val dummy = Token (dummy_index, "", Position.no_range);
+fun is_dummy tok = index_of_token tok = dummy_index;
 
 
 (* literals *)

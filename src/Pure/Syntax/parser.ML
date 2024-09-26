@@ -620,14 +620,14 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
     Array.upd stateset (i + 1) Sii
   end;
 
-fun produce gram stateset i input prev_token =
+fun produce gram stateset i prev rest =
   (case Array.nth stateset i of
     [] =>
       let
-        val toks = if Lexicon.is_eof prev_token then input else prev_token :: input;
-        val pos = Position.here (Lexicon.pos_of_token prev_token);
+        val inp = if Lexicon.is_dummy prev then rest else prev :: rest;
+        val pos = Position.here (Lexicon.pos_of_token prev);
       in
-        if null toks then
+        if null inp then
           error ("Inner syntax error: unexpected end of input" ^ pos)
         else
           error ("Inner syntax error" ^ pos ^
@@ -637,13 +637,13 @@ fun produce gram stateset i input prev_token =
                   Pretty.str "at", Pretty.brk 1,
                   Pretty.block
                    (Pretty.str "\"" ::
-                    Pretty.breaks (map (Pretty.str o Lexicon.str_of_token) (#1 (split_last toks))) @
+                    Pretty.breaks (map (Pretty.str o Lexicon.str_of_token) (#1 (split_last inp))) @
                     [Pretty.str "\""])])))
       end
   | states =>
-      (case input of
+      (case rest of
         [] => states
-      | c :: cs => (process_states gram stateset i c states; produce gram stateset (i + 1) cs c)));
+      | c :: cs => (process_states gram stateset i c states; produce gram stateset (i + 1) c cs)));
 
 in
 
@@ -665,7 +665,7 @@ fun parse (gram as Gram {tags, ...}) start toks =
     val _ = Array.upd stateset 0 [S0];
 
     val pts =
-      produce gram stateset 0 input Lexicon.eof
+      produce gram stateset 0 Lexicon.dummy input
       |> map_filter (fn (_, _, [pt]) => SOME pt | _ => NONE);
   in if null pts then raise Fail "Inner syntax: no parse trees" else pts end;
 
