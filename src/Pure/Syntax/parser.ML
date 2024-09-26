@@ -552,9 +552,6 @@ fun get_states A max_prec =
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
-fun movedot_lambda p ((info, sa, ts): state) =
-  map_filter (fn (t, k) => if p <= k then SOME (info, sa, t @ ts) else NONE);
-
 
 (*trigger value for warnings*)
 val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K 600);
