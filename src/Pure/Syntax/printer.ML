@@ -131,16 +131,12 @@ end;
 
 (* xprod_to_fmt *)
 
-local
+fun make_string s = String ([], s);
+fun make_literal s = String (Lexicon.literal_markup s, s);
 
 fun make_arg (s, p) =
   (if s = "type" then TypArg else Arg)
   (if Lexicon.is_terminal s then 1000 else p);
-
-in
-
-fun make_string s = String ([], s);
-fun make_literal s = String (Lexicon.literal_markup s, s);
 
 fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (Syntax_Ext.XProd (_, xsymbs, const, pri)) =
@@ -168,8 +164,6 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           (symbs, []) => SOME (const, (symbs, count_args symbs 0, pri))
         | _ => raise Fail "Unbalanced pretty-printing blocks")
       end;
-
-end;
 
 
 (* empty, extend, merge prtabs *)
