@@ -14,8 +14,7 @@ sig
   datatype parsetree =
     Node of string * parsetree list |
     Tip of Lexicon.token
-  exception PARSETREE of parsetree
-  val pretty_parsetree: parsetree -> Pretty.T
+  val pretty_parsetree: parsetree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> parsetree list
   val branching_level: int Config.T
 end;
@@ -32,6 +31,7 @@ type nt = int;
 
 type tags = nt Symtab.table;
 val tags_empty: tags = Symtab.empty;
+fun tags_size (tags: tags) = Symtab.size tags;
 fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
 fun tags_lookup (tags: tags) = Symtab.lookup tags;
 fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
@@ -88,9 +88,7 @@ fun chains_insert (from, to) =
 
 datatype gram =
   Gram of
-   {nt_count: int,
-    prod_count: int,
-    tags: tags,
+   {tags: tags,
     chains: chains,
     lambdas: nts,
     prods: nt_gram Vector.vector};
@@ -417,75 +415,74 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 val empty_gram =
   Gram
-   {nt_count = 0,
-    prod_count = 0,
-    tags = tags_empty,
+   {tags = tags_empty,
     chains = chains_empty,
     lambdas = nts_empty,
     prods = Vector.fromList [nt_gram_empty]};
 
-fun extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
+local
+
+fun make_tag s tags =
+  (case tags_lookup tags s of
+    SOME tag => (tag, tags)
+  | NONE =>
+      let val tag = tags_size tags
+      in (tag, tags_insert (s, tag) tags) end);
+
+fun make_arg (s, p) tags =
+  (case Lexicon.get_terminal s of
+    NONE =>
+      let val (tag, tags') = make_tag s tags;
+      in (Nonterminal (tag, p), tags') end
+  | SOME tok => (Terminal tok, tags));
+
+fun extend_gram xprods gram =
   let
-    (*Get tag for existing nonterminal or create a new one*)
-    fun get_tag nt_count tags nt =
-      (case tags_lookup tags nt of
-        SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count + 1, tags_insert (nt, nt_count) tags, nt_count));
-
-    (*Convert symbols to the form used by the parser;
-      delimiters and predefined terms are stored as terminals,
-      nonterminals are converted to integer tags*)
-    fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
-      | symb_of (Syntax_Ext.Delim s :: ss) nt_count tags result =
-          symb_of ss nt_count tags (Terminal (Lexicon.literal s) :: result)
-      | symb_of (Syntax_Ext.Argument (s, p) :: ss) nt_count tags result =
+    fun make_symbs (Syntax_Ext.Delim s :: xsyms) tags =
+          let val (syms, tags') = make_symbs xsyms tags
+          in (Terminal (Lexicon.literal s) :: syms, tags') end
+      | make_symbs (Syntax_Ext.Argument a :: xsyms) tags =
           let
-            val (nt_count', tags', new_symb) =
-              (case Lexicon.get_terminal s of
-                NONE =>
-                  let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
-                  in (nt_count', tags', Nonterminal (s_tag, p)) end
-              | SOME tk => (nt_count, tags, Terminal tk));
-          in symb_of ss nt_count' tags' (new_symb :: result) end
-      | symb_of (_ :: ss) nt_count tags result = symb_of ss nt_count tags result;
+            val (arg, tags') = make_arg a tags;
+            val (syms, tags'') = make_symbs xsyms tags';
+          in (arg :: syms, tags'') end
+      | make_symbs (_ :: xsyms) tags = make_symbs xsyms tags
+      | make_symbs [] tags = ([], tags);
 
-    (*Convert list of productions by invoking symb_of for each of them*)
-    fun prod_of [] nt_count prod_count tags result =
-          (nt_count, prod_count, tags, result)
-      | prod_of (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps)
-            nt_count prod_count tags result =
-          let
-            val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;
-            val (nt_count'', tags'', prods) = symb_of xsymbs nt_count' tags' [];
-          in
-            prod_of ps nt_count'' (prod_count + 1) tags''
-              ((lhs_tag, (prods, const, pri)) :: result)
-          end;
+    fun make_prod (Syntax_Ext.XProd (lhs, xsymbs, const, pri)) (result, tags) =
+      let
+        val (tag, tags') = make_tag lhs tags;
+        val (symbs, tags'') = make_symbs xsymbs tags';
+      in ((tag, (symbs, const, pri)) :: result, tags'') end;
 
-    val (nt_count', prod_count', tags', xprods') =
-      prod_of xprods nt_count prod_count tags [];
+
+    val Gram {tags, chains, lambdas, prods} = gram;
+
+    val (new_prods, tags') = fold make_prod xprods ([], tags);
 
     val array_prods' =
-      Array.tabulate (nt_count', fn i =>
-        if i < nt_count then Vector.nth prods i
+      Array.tabulate (tags_size tags', fn i =>
+        if i < Vector.length prods then Vector.nth prods i
         else nt_gram_empty);
 
     val (chains', lambdas') =
-      (chains, lambdas) |> fold (add_production array_prods') xprods';
+      (chains, lambdas) |> fold (add_production array_prods') new_prods;
   in
     Gram
-     {nt_count = nt_count',
-      prod_count = prod_count',
-      tags = tags',
+     {tags = tags',
       chains = chains',
       lambdas = lambdas',
       prods = Array.vector array_prods'}
   end;
 
+in
+
 fun make_gram [] _ (SOME gram) = gram
   | make_gram new_xprods _ (SOME gram) = extend_gram new_xprods gram
   | make_gram [] [] NONE = empty_gram
   | make_gram new_xprods old_xprods NONE = extend_gram (new_xprods @ old_xprods) empty_gram;
+
+end;
 
 
 
@@ -497,15 +494,11 @@ datatype parsetree =
   Node of string * parsetree list |
   Tip of Lexicon.token;
 
-exception PARSETREE of parsetree;
-
-fun pretty_parsetree parsetree =
-  let
-    fun pretty (Node (c, pts)) =
-          [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty pts))]
-      | pretty (Tip tok) =
-          if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
-  in (case pretty parsetree of [prt] => prt | _ => raise PARSETREE parsetree) end;
+fun pretty_parsetree (Node (c, pts)) =
+      [Pretty.enclose "(" ")"
+        (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_parsetree pts))]
+  | pretty_parsetree (Tip tok) =
+      if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
 
 
 (* parser state *)
@@ -561,9 +554,6 @@ fun get_states A max_prec =
 
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
-
-fun movedot_lambda p ((info, sa, ts): state) =
-  map_filter (fn (t, k) => if p <= k then SOME (info, sa, t @ ts) else NONE);
 
 
 (*trigger value for warnings*)
@@ -626,16 +616,21 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   else (used, get_states A prec (Array.nth stateset j));
                 val States' = map (movedot_nonterm tt) Slist;
               in process used' (States' @ States) (S :: Si, Sii) end)
-  in process Inttab.empty states ([], []) end;
 
-fun produce gram stateset i input prev_token =
+    val (Si, Sii) = process Inttab.empty states ([], []);
+  in
+    Array.upd stateset i Si;
+    Array.upd stateset (i + 1) Sii
+  end;
+
+fun produce gram stateset i prev rest =
   (case Array.nth stateset i of
     [] =>
       let
-        val toks = if Lexicon.is_eof prev_token then input else prev_token :: input;
-        val pos = Position.here (Lexicon.pos_of_token prev_token);
+        val inp = if Lexicon.is_dummy prev then rest else prev :: rest;
+        val pos = Position.here (Lexicon.pos_of_token prev);
       in
-        if null toks then
+        if null inp then
           error ("Inner syntax error: unexpected end of input" ^ pos)
         else
           error ("Inner syntax error" ^ pos ^
@@ -645,18 +640,13 @@ fun produce gram stateset i input prev_token =
                   Pretty.str "at", Pretty.brk 1,
                   Pretty.block
                    (Pretty.str "\"" ::
-                    Pretty.breaks (map (Pretty.str o Lexicon.str_of_token) (#1 (split_last toks))) @
+                    Pretty.breaks (map (Pretty.str o Lexicon.str_of_token) (#1 (split_last inp))) @
                     [Pretty.str "\""])])))
       end
   | states =>
-      (case input of
+      (case rest of
         [] => states
-      | c :: rest =>
-          let
-            val (Si, Sii) = process_states gram stateset i c states;
-            val _ = Array.upd stateset i Si;
-            val _ = Array.upd stateset (i + 1) Sii;
-          in produce gram stateset (i + 1) rest c end));
+      | c :: cs => (process_states gram stateset i c states; produce gram stateset (i + 1) c cs)));
 
 in
 
@@ -678,7 +668,7 @@ fun parse (gram as Gram {tags, ...}) start toks =
     val _ = Array.upd stateset 0 [S0];
 
     val pts =
-      produce gram stateset 0 input Lexicon.eof
+      produce gram stateset 0 Lexicon.dummy input
       |> map_filter (fn (_, _, [pt]) => SOME pt | _ => NONE);
   in if null pts then raise Fail "Inner syntax: no parse trees" else pts end;
 

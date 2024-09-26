@@ -68,7 +68,7 @@ fun type_emphasis ctxt T =
 datatype symb =
   Arg of int |
   TypArg of int |
-  String of bool * string |
+  String of Markup.T list * string |
   Break of int |
   Block of Syntax_Ext.block * symb list;
 
@@ -131,41 +131,37 @@ end;
 
 (* xprod_to_fmt *)
 
+fun make_string s = String ([], s);
+fun make_literal s = String (Lexicon.literal_markup s, s);
+
+fun make_arg (s, p) =
+  (if s = "type" then TypArg else Arg)
+  (if Lexicon.is_terminal s then 1000 else p);
+
 fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
   | xprod_to_fmt (Syntax_Ext.XProd (_, xsymbs, const, pri)) =
       let
-        fun arg (s, p) =
-          (if s = "type" then TypArg else Arg)
-          (if Lexicon.is_terminal s then 1000 else p);
-
-        fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
-              apfst (cons (String (not (Lexicon.suppress_literal_markup s), s)))
-                (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Argument s_p :: xsyms) =
-              apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Space s :: xsyms) =
-              apfst (cons (String (false, s))) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.Bg block :: xsyms) =
+        fun make_symbs (Syntax_Ext.Delim s :: xsyms) = make_symbs xsyms |>> cons (make_literal s)
+          | make_symbs (Syntax_Ext.Argument a :: xsyms) = make_symbs xsyms |>> cons (make_arg a)
+          | make_symbs (Syntax_Ext.Space s :: xsyms) = make_symbs xsyms |>> cons (make_string s)
+          | make_symbs (Syntax_Ext.Bg block :: xsyms) =
               let
-                val (bsyms, xsyms') = xsyms_to_syms xsyms;
-                val (syms, xsyms'') = xsyms_to_syms xsyms';
-              in
-                (Block (block, bsyms) :: syms, xsyms'')
-              end
-          | xsyms_to_syms (Syntax_Ext.Brk i :: xsyms) =
-              apfst (cons (Break i)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syntax_Ext.En :: xsyms) = ([], xsyms)
-          | xsyms_to_syms [] = ([], []);
+                val (bsyms, xsyms') = make_symbs xsyms;
+                val (syms, xsyms'') = make_symbs xsyms';
+              in (Block (block, bsyms) :: syms, xsyms'') end
+          | make_symbs (Syntax_Ext.Brk i :: xsyms) = make_symbs xsyms |>> cons (Break i)
+          | make_symbs (Syntax_Ext.En :: xsyms) = ([], xsyms)
+          | make_symbs [] = ([], []);
 
-        fun nargs (Arg _ :: syms) = nargs syms + 1
-          | nargs (TypArg _ :: syms) = nargs syms + 1
-          | nargs (String _ :: syms) = nargs syms
-          | nargs (Break _ :: syms) = nargs syms
-          | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
-          | nargs [] = 0;
+        fun count_args (Arg _ :: syms) = Integer.add 1 #> count_args syms
+          | count_args (TypArg _ :: syms) = Integer.add 1 #> count_args syms
+          | count_args (String _ :: syms) = count_args syms
+          | count_args (Break _ :: syms) = count_args syms
+          | count_args (Block (_, bsyms) :: syms) = count_args syms #> count_args bsyms
+          | count_args [] = I;
       in
-        (case xsyms_to_syms xsymbs of
-          (symbs, []) => SOME (const, (symbs, nargs symbs, pri))
+        (case make_symbs xsymbs of
+          (symbs, []) => SOME (const, (symbs, count_args symbs 0, pri))
         | _ => raise Fail "Unbalanced pretty-printing blocks")
       end;
 
@@ -207,6 +203,14 @@ val pretty_type_mode = Config.declare_bool ("Syntax.pretty_type_mode", \<^here>)
 val pretty_curried = Config.declare_bool ("Syntax.pretty_curried", \<^here>) (K false);
 val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K 0);
 
+local
+
+val par_block = Syntax_Ext.block_indent 1;
+val par_bg = make_literal "(";
+val par_en = make_literal ")";
+
+in
+
 fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
   let
     val type_mode = Config.get ctxt pretty_type_mode;
@@ -234,13 +238,10 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
                 |> Config.put pretty_priority p
               in (pretty ctxt' tabs trf markup_trans markup_extern t @ Ts, args') end
           end
-      | synT m (String (do_mark, s) :: symbs, args) =
+      | synT m (String (literal_markup, s) :: symbs, args) =
           let
             val (Ts, args') = synT m (symbs, args);
-            val T =
-              if do_mark
-              then Pretty.marks_str (m @ Lexicon.literal_markup s, s)
-              else Pretty.str s;
+            val T = Pretty.marks_str (if null literal_markup then [] else m @ literal_markup, s);
           in (T :: Ts, args') end
       | synT m (Block ({markup, consistent, unbreakable, indent}, bsymbs) :: symbs, args) =
           let
@@ -256,10 +257,9 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
 
-    and parT m (pr, args, p, p': int) = #1 (synT m
-          (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr)) then
-            [Block (Syntax_Ext.block_indent 1, String (false, "(") :: pr @ [String (false, ")")])]
-           else pr, args))
+    and parT m (pr, args, p, p') = #1 (synT m
+          (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr))
+           then [Block (par_block, par_bg :: pr @ [par_en])] else pr, args))
 
     and atomT a = Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)
 
@@ -294,6 +294,8 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
   in astT (ast0, Config.get ctxt pretty_priority) end;
+
+end;
 
 
 (* pretty_term_ast *)

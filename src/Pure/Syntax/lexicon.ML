@@ -30,6 +30,7 @@ sig
   val end_pos_of_token: token -> Position.T
   val is_proper: token -> bool
   val dummy: token
+  val is_dummy: token -> bool
   val literal: string -> token
   val is_literal: token -> bool
   val tokens_match_ord: token ord
@@ -40,8 +41,6 @@ sig
   val terminals: string list
   val is_terminal: string -> bool
   val get_terminal: string -> token option
-  val suppress_literal_markup: string -> bool
-  val suppress_markup: token -> bool
   val literal_markup: string -> Markup.T list
   val reports_of_token: token -> Position.report list
   val reported_token_range: Proof.context -> token -> string
@@ -146,7 +145,9 @@ fun end_pos_of_token (Token (_, _, (_, end_pos))) = end_pos;
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 
-val dummy = Token (token_kind_index Dummy, "", Position.no_range);
+val dummy_index = token_kind_index Dummy;
+val dummy = Token (dummy_index, "", Position.no_range);
+fun is_dummy tok = index_of_token tok = dummy_index;
 
 
 (* literals *)
@@ -198,9 +199,6 @@ fun get_terminal s =
 
 
 (* markup *)
-
-val suppress_literal_markup = Symbol.has_control_block o Symbol.explode;
-fun suppress_markup tok = is_literal tok andalso suppress_literal_markup (str_of_token tok);
 
 fun literal_markup s =
   let val syms = Symbol.explode s in

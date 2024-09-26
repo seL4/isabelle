@@ -158,8 +158,8 @@ fun parsetree_to_ast ctxt trf parsetree =
     val append_reports = Position.append_reports reports;
 
     fun report_pos tok =
-      if Lexicon.suppress_markup tok then Position.none
-      else Lexicon.pos_of_token tok;
+      if Lexicon.is_literal tok andalso null (Lexicon.literal_markup (Lexicon.str_of_token tok))
+      then Position.none else Lexicon.pos_of_token tok;
 
     fun trans a args =
       (case trf a of
@@ -358,8 +358,7 @@ fun parse_asts ctxt raw root (syms, pos) =
           (("Ambiguous input" ^ Position.here (Position.no_range_position pos) ^
             " produces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Pretty.item o single o Parser.pretty_parsetree)
-              (take limit pts))];
+            map (Pretty.string_of o Pretty.item o Parser.pretty_parsetree) (take limit pts))];
 
   in (ambig_msgs, map (parsetree_to_ast ctxt ast_tr) pts) end;
 
