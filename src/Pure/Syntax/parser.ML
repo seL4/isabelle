@@ -614,23 +614,26 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
             Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: States) (Si, Sii)
           | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
-                fun mk_state (rhs, id, prod_prec) = ((nt, prod_prec, id, i), rhs, []);
-                fun movedot_lambda (t, k) = if min_prec <= k then SOME (info, sa, t @ ts) else NONE;
-                val (used', new_states) =
+                fun add_state (rhs, id, prod_prec) = cons ((nt, prod_prec, id, i), rhs, []);
+                fun movedot_lambda (t, k) = min_prec <= k ? cons (info, sa, t @ ts)
+                val (used', States') =
                   (case Inttab.lookup used nt of
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, map_filter movedot_lambda l)
+                        (used, fold_rev movedot_lambda l States)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val States2 = map mk_state (prods_for c nt (until_prec min_prec used_prec));
-                          val States1 = map_filter movedot_lambda l;
-                        in (update_prec (nt, min_prec) used, States1 @ States2) end
+                          val States' = States
+                            |> fold_rev add_state (prods_for c nt (until_prec min_prec used_prec))
+                            |> fold_rev movedot_lambda l;
+                        in (update_prec (nt, min_prec) used, States') end
                   | NONE => (*nonterminal is parsed for the first time*)
-                      let val States' = map mk_state (prods_for c nt (until_prec min_prec no_prec))
+                      let
+                        val States' = States
+                          |> fold_rev add_state (prods_for c nt (until_prec min_prec no_prec));
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
-              in process used' (new_states @ States) (S :: Si, Sii) end
+              in process used' States' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
                 val (_, _, id, _) = info;
