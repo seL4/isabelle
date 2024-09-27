@@ -599,14 +599,15 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
   let
     (*get all productions of a NT and NTs chained to it which can
       be started by specified token*)
-    fun prods_for tok nt ok =
+    fun add_prods i tok nt ok =
       let
-        fun add prod = ok prod ? cons prod;
+        fun add (prod as (rhs, id, prod_prec)) =
+          if ok prod then cons ((nt, prod_prec, id, i), rhs, []) else I;
         fun token_prods prods =
           fold add (prods_lookup prods tok) #>
           fold add (prods_lookup prods Lexicon.dummy);
         val nt_prods = #2 o Vector.nth gram_prods;
-      in fold (token_prods o nt_prods) (chains_all_preds gram_chains [nt]) [] end;
+      in fold (token_prods o nt_prods) (chains_all_preds gram_chains [nt]) end;
 
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used ((S as (info, symbs, ts)) :: States) (Si, Sii) =
@@ -614,7 +615,6 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
             Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: States) (Si, Sii)
           | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
-                fun add_state (rhs, id, prod_prec) = cons ((nt, prod_prec, id, i), rhs, []);
                 fun movedot_lambda (t, k) = min_prec <= k ? cons (info, sa, t @ ts)
                 val (used', States') =
                   (case Inttab.lookup used nt of
@@ -624,14 +624,11 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                         (used, fold_rev movedot_lambda l States)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val States' = States
-                            |> fold_rev add_state (prods_for c nt (until_prec min_prec used_prec))
-                            |> fold_rev movedot_lambda l;
+                          val States' = States |> add_prods i c nt (until_prec min_prec used_prec)
+                            |> fold movedot_lambda l;
                         in (update_prec (nt, min_prec) used, States') end
                   | NONE => (*nonterminal is parsed for the first time*)
-                      let
-                        val States' = States
-                          |> fold_rev add_state (prods_for c nt (until_prec min_prec no_prec));
+                      let val States' = States |> add_prods i c nt (until_prec min_prec no_prec);
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in process used' States' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
