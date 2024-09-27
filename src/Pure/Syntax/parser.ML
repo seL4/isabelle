@@ -64,8 +64,15 @@ datatype symb =
   Nonterminal of nt * int |  (*(tag, prio)*)
   Markup of Markup.T list * symb list;
 
+type prod = symb list * string * int;  (*rhs, name, prio*)
+
+fun make_chain_prod from : prod = ([Nonterminal (from, ~1)], "", ~1);
+
+fun dest_chain_prod (([Nonterminal (from, ~1)], _, ~1): prod) = SOME from
+  | dest_chain_prod _ = NONE;
+
 structure Prods = Table(Tokens.Key);
-type prods = (symb list * string * int) list Prods.table;  (*start_token ~> [(rhs, name, prio)]*)
+type prods = prod list Prods.table;
 
 val prods_empty: prods = Prods.empty;
 fun prods_lookup (prods: prods) = Prods.lookup_list prods;
@@ -113,15 +120,16 @@ fun get_start tks =
     SOME tk => tk
   | NONE => unknown_start);
 
-fun add_production array_prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
+fun add_production array_prods (lhs, new_prod as (rhs, _, _) : prod) (chains, lambdas) =
   let
-    val (chain, new_chain, chains') =
-      (case (pri, rhs) of
-        (~1, [Nonterminal (from, ~1)]) =>
+    val chain = dest_chain_prod new_prod;
+    val (new_chain, chains') =
+      (case chain of
+        SOME from =>
           if chains_member chains (from, lhs)
-          then (SOME from, false, chains)
-          else (SOME from, true, chains_insert (from, lhs) chains)
-      | _ => (NONE, false, chains |> chains_declare lhs |> fold chains_declares rhs));
+          then (false, chains)
+          else (true, chains_insert (from, lhs) chains)
+      | NONE => (false, chains |> chains_declare lhs |> fold chains_declares rhs));
 
     (*propagate new chain in lookahead and lambdas;
       added_starts is used later to associate existing
@@ -404,10 +412,8 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
     fun pretty_const "" = []
       | pretty_const c = [Pretty.str ("\<^bold>\<Rightarrow> " ^ quote c)];
 
-    fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
-
     fun pretty_prod (name, tag) =
-      (prods_content (#2 (Vector.nth prods tag)) @ map prod_of_chain (chains_preds chains tag))
+      (prods_content (#2 (Vector.nth prods tag)) @ map make_chain_prod (chains_preds chains tag))
       |> map (fn (symbs, const, p) =>
           Pretty.block (Pretty.breaks
             (Pretty.str (name ^ print_pri p ^ " =") :: maps pretty_symb symbs @ pretty_const const)));
