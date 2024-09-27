@@ -61,7 +61,8 @@ fun tokens_add (nt: nt, tokens) = if Tokens.is_empty tokens then I else cons (nt
 
 datatype symb =
   Terminal of Lexicon.token |
-  Nonterminal of nt * int;  (*(tag, prio)*)
+  Nonterminal of nt * int |  (*(tag, prio)*)
+  Markup of Markup.T list * symb list;
 
 structure Prods = Table(Tokens.Key);
 type prods = (symb list * string * int) list Prods.table;  (*start_token ~> [(rhs, name, prio)]*)
@@ -86,6 +87,7 @@ fun chains_declare nt : chains -> chains = Int_Graph.default_node (nt, ());
 
 fun chains_declares (Terminal _) = I
   | chains_declares (Nonterminal (nt, _)) = chains_declare nt
+  | chains_declares (Markup (_, body)) = fold chains_declares body;
 
 fun chains_insert (from, to) =
   chains_declare from #> chains_declare to #> Int_Graph.add_edge (from, to);
@@ -148,10 +150,11 @@ fun add_production array_prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas
 
     (*test if new production can produce lambda
       (rhs must either be empty or only consist of lambda NTs)*)
+    fun lambda_symb (Nonterminal (id, _)) = nts_member lambdas' id
+      | lambda_symb (Terminal _) = false
+      | lambda_symb (Markup (_, body)) = forall lambda_symb body;
     val new_lambdas =
-      if forall
-        (fn Nonterminal (id, _) => nts_member lambdas' id
-          | Terminal _ => false) rhs
+      if forall lambda_symb rhs
       then SOME (filter_out (nts_member lambdas') (chains_all_succs chains' [lhs]))
       else NONE;
     val lambdas'' = fold nts_insert (these new_lambdas) lambdas';
@@ -163,7 +166,9 @@ fun add_production array_prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas
       | lookahead_dependency lambdas (Nonterminal (nt, _) :: symbs) nts =
           if nts_member lambdas nt then
             lookahead_dependency lambdas symbs (nts_insert nt nts)
-          else (NONE, nts_insert nt nts);
+          else (NONE, nts_insert nt nts)
+      | lookahead_dependency lambdas (Markup (_, body) :: symbs) nts =
+          lookahead_dependency lambdas (body @ symbs) nts;
 
     (*get all known starting tokens for a nonterminal*)
     fun starts_for_nt nt = snd (fst (Array.nth array_prods nt));
@@ -391,9 +396,10 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     fun pretty_symb (Terminal tok) =
           if Lexicon.is_literal tok
-          then Pretty.quote (Pretty.keyword1 (Lexicon.str_of_token tok))
-          else Pretty.str (Lexicon.str_of_token tok)
-      | pretty_symb (Nonterminal (tag, p)) = Pretty.str (print_nt tag ^ print_pri p);
+          then [Pretty.quote (Pretty.keyword1 (Lexicon.str_of_token tok))]
+          else [Pretty.str (Lexicon.str_of_token tok)]
+      | pretty_symb (Nonterminal (tag, p)) = [Pretty.str (print_nt tag ^ print_pri p)]
+      | pretty_symb (Markup (_, body)) = maps pretty_symb body;
 
     fun pretty_const "" = []
       | pretty_const c = [Pretty.str ("\<^bold>\<Rightarrow> " ^ quote c)];
@@ -404,7 +410,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
       (prods_content (#2 (Vector.nth prods tag)) @ map prod_of_chain (chains_preds chains tag))
       |> map (fn (symbs, const, p) =>
           Pretty.block (Pretty.breaks
-            (Pretty.str (name ^ print_pri p ^ " =") :: map pretty_symb symbs @ pretty_const const)));
+            (Pretty.str (name ^ print_pri p ^ " =") :: maps pretty_symb symbs @ pretty_const const)));
   in maps pretty_prod (tags_content tags) end;
 
 
@@ -437,20 +443,29 @@ fun make_arg (s, p) tags =
 fun extend_gram xprods gram =
   let
     fun make_symbs (Syntax_Ext.Delim s :: xsyms) tags =
-          let val (syms, tags') = make_symbs xsyms tags
-          in (Terminal (Lexicon.literal s) :: syms, tags') end
+          let val (syms, xsyms', tags') = make_symbs xsyms tags
+          in (Terminal (Lexicon.literal s) :: syms, xsyms', tags') end
       | make_symbs (Syntax_Ext.Argument a :: xsyms) tags =
           let
             val (arg, tags') = make_arg a tags;
-            val (syms, tags'') = make_symbs xsyms tags';
-          in (arg :: syms, tags'') end
-      | make_symbs (_ :: xsyms) tags = make_symbs xsyms tags
-      | make_symbs [] tags = ([], tags);
+            val (syms, xsyms', tags'') = make_symbs xsyms tags';
+          in (arg :: syms, xsyms', tags'') end
+      | make_symbs (Syntax_Ext.Bg {markup, ...} :: xsyms) tags =
+          let
+            val (bsyms, xsyms', tags') = make_symbs xsyms tags;
+            val (syms, xsyms'', tags'') = make_symbs xsyms' tags';
+            val syms' = if null markup then bsyms @ syms else Markup (markup, bsyms) :: syms;
+          in (syms', xsyms'', tags'') end
+      | make_symbs (Syntax_Ext.En :: xsyms) tags = ([], xsyms, tags)
+      | make_symbs (Syntax_Ext.Space _ :: xsyms) tags = make_symbs xsyms tags
+      | make_symbs (Syntax_Ext.Brk _ :: xsyms) tags = make_symbs xsyms tags
+      | make_symbs [] tags = ([], [], tags);
 
     fun make_prod (Syntax_Ext.XProd (lhs, xsymbs, const, pri)) (result, tags) =
       let
         val (tag, tags') = make_tag lhs tags;
-        val (symbs, tags'') = make_symbs xsymbs tags';
+        val (symbs, xsymbs', tags'') = make_symbs xsymbs tags';
+        val _ = if null xsymbs' then () else raise Fail "Unbalanced blocks in grammar production";
       in ((tag, (symbs, const, pri)) :: result, tags'') end;
 
 
@@ -539,16 +554,24 @@ fun update_trees (A, t) used =
 fun update_prec (A, prec) =
   Inttab.map_entry A (fn (_, ts) => (prec, ts));
 
-fun get_states_lambda A max opt_min Si : state list =
+fun head_nonterm pred : state -> bool =
   let
-    val prec =
+    fun check (Nonterminal a :: _) = pred a
+      | check (Markup (_, []) :: rest) = check rest
+      | check (Markup (_, body) :: _) = check body
+      | check _ = false;
+  in check o #2 end;
+
+fun get_states_lambda A max opt_min =
+  let
+    val pred =
       (case opt_min of
-        NONE => (fn p => p <= max)
-      | SOME min => (fn p => p <= max andalso p > min));
-  in filter (fn (_, Nonterminal (B, p) :: _, _) => A = B andalso prec p | _ => false) Si end;
+        NONE => (fn (B, p) => A = B andalso p <= max)
+      | SOME min => (fn (B, p) => A = B andalso p <= max andalso p > min));
+  in filter (head_nonterm pred) end;
 
 fun get_states A max_prec =
-  filter (fn (_, Nonterminal (B, prec) :: _, _) => A = B andalso prec <= max_prec | _ => false);
+  filter (head_nonterm (fn (B, p) => A = B andalso p <= max_prec));
 
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
@@ -575,7 +598,8 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used ((S as (info, symbs, ts)) :: States) (Si, Sii) =
           (case symbs of
-            Nonterminal (nt, min_prec) :: sa =>
+            Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: States) (Si, Sii)
+          | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
                 fun mk_state (rhs, id, prod_prec) = ((nt, prod_prec, id, i), rhs, []);
                 fun movedot_lambda (t, k) = if min_prec <= k then SOME (info, sa, t @ ts) else NONE;
