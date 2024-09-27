@@ -586,8 +586,8 @@ fun head_nonterm pred : state -> bool =
 fun get_states_lambda A min max =
   filter (head_nonterm (fn (B, p) => A = B andalso upto_prec min max p));
 
-fun get_states A max_prec =
-  filter (head_nonterm (fn (B, p) => A = B andalso p <= max_prec));
+fun get_states A max =
+  filter (head_nonterm (fn (B, p) => A = B andalso p <= max));
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
