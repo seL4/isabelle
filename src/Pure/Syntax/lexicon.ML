@@ -33,6 +33,7 @@ sig
   val is_dummy: token -> bool
   val literal: string -> token
   val is_literal: token -> bool
+  val token_ord: token ord
   val tokens_match_ord: token ord
   val mk_eof: Position.T -> token
   val eof: token
@@ -155,6 +156,17 @@ fun is_dummy tok = index_of_token tok = dummy_index;
 val literal_index = token_kind_index Literal;
 fun literal s = Token (literal_index, s, Position.no_range);
 fun is_literal tok = index_of_token tok = literal_index;
+
+
+(* order *)
+
+fun token_ord (Token (i, s, r), Token (i', s', r')) =
+  (case int_ord (i, i') of
+    EQUAL =>
+      (case fast_string_ord (s, s') of
+        EQUAL => Position.range_ord (r, r')
+      | ord => ord)
+  | ord => ord);
 
 fun tokens_match_ord toks =
   let val is = apply2 index_of_token toks in

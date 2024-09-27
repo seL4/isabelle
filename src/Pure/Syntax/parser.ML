@@ -14,6 +14,7 @@ sig
   datatype parsetree =
     Node of string * parsetree list |
     Tip of Lexicon.token
+  val parsetree_ord: parsetree ord
   val pretty_parsetree: parsetree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> parsetree list
 end;
@@ -72,7 +73,10 @@ fun dest_chain_prod (([Nonterminal (from, ~1)], _, ~1): prod) = SOME from
 
 val no_prec = ~1;
 
-fun until_prec min max ((_, _, p): prod) =
+fun upto_prec min max p =
+  (min = no_prec orelse p >= min) andalso (max = no_prec orelse p <= max);
+
+fun until_prec min max p =
   (min = no_prec orelse p >= min) andalso (max = no_prec orelse p < max);
 
 
@@ -518,6 +522,28 @@ datatype parsetree =
   Node of string * parsetree list |
   Tip of Lexicon.token;
 
+local
+
+fun cons_nr (Node _) = 0
+  | cons_nr (Tip _) = 1;
+
+in
+
+fun parsetree_ord pts =
+  if pointer_eq pts then EQUAL
+  else
+    (case pts of
+      (Node (s, ts), Node (s', ts')) =>
+        (case fast_string_ord (s, s') of
+          EQUAL => list_ord parsetree_ord (ts, ts')
+        | ord => ord)
+    | (Tip t, Tip t') => Lexicon.token_ord (t, t')
+    | _ => int_ord (apply2 cons_nr pts));
+
+structure Parsetrees = Table(type key = parsetree list val ord = list_ord parsetree_ord);
+
+end;
+
 fun pretty_parsetree (Node (c, pts)) =
       [Pretty.enclose "(" ")"
         (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_parsetree pts))]
@@ -536,28 +562,18 @@ type state =
 
 local
 
-(*Add parse tree to list and eliminate duplicates
-  saving the maximum precedence*)
-fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
-  | conc (t, prec) ((t', prec') :: ts) =
-      if t = t' then
-        (SOME prec',
-          if prec' >= prec then (t', prec') :: ts
-          else (t, prec) :: ts)
-      else
-        let val (n, ts') = conc (t, prec) ts
-        in (n, (t', prec') :: ts') end;
-
-(*Update entry in used*)
-fun update_trees (A, t) used =
+fun update_trees (A, (t, p)) used =
   let
-    val (i, ts) = the (Inttab.lookup used A);
-    val (n, ts') = conc t ts;
-  in (n, Inttab.update (A, (i, ts')) used) end;
+    val (i: int, ts) = the (Inttab.lookup used A);
+    fun update ts' = Inttab.update (A, (i, ts'));
+  in
+    (case Parsetrees.lookup ts t of
+      NONE => (no_prec, update (Parsetrees.make [(t, p)]) used)
+    | SOME q => (q, if p > q then update (Parsetrees.update (t, p) ts) used else used))
+  end;
 
-(*Replace entry in used*)
-fun update_prec (A, prec) =
-  Inttab.map_entry A (fn (_, ts) => (prec, ts));
+fun update_prec (A, p) used =
+  Inttab.map_entry A (fn (_, ts) => (p, ts)) used;
 
 fun head_nonterm pred : state -> bool =
   let
@@ -567,13 +583,8 @@ fun head_nonterm pred : state -> bool =
       | check _ = false;
   in check o #2 end;
 
-fun get_states_lambda A max opt_min =
-  let
-    val pred =
-      (case opt_min of
-        NONE => (fn (B, p) => A = B andalso p <= max)
-      | SOME min => (fn (B, p) => A = B andalso p <= max andalso p > min));
-  in filter (head_nonterm pred) end;
+fun get_states_lambda A min max =
+  filter (head_nonterm (fn (B, p) => A = B andalso upto_prec min max p));
 
 fun get_states A max_prec =
   filter (head_nonterm (fn (B, p) => A = B andalso p <= max_prec));
@@ -586,8 +597,8 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
       be started by specified token*)
     fun add_prods i tok nt ok =
       let
-        fun add (prod as (rhs, id, prod_prec)) =
-          if ok prod then cons ((nt, prod_prec, id, i), rhs, []) else I;
+        fun add (rhs, id, prod_prec) =
+          if ok prod_prec then cons ((nt, prod_prec, id, i), rhs, []) else I;
         fun token_prods prods =
           fold add (prods_lookup prods tok) #>
           fold add (prods_lookup prods Lexicon.dummy);
@@ -606,15 +617,15 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, fold_rev movedot_lambda l States)
+                        (used, Parsetrees.fold movedot_lambda l States)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val States' = States |> add_prods i c nt (until_prec min_prec used_prec)
-                            |> fold movedot_lambda l;
+                            |> Parsetrees.fold movedot_lambda l;
                         in (update_prec (nt, min_prec) used, States') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let val States' = States |> add_prods i c nt (until_prec min_prec no_prec);
-                      in (Inttab.update (nt, (min_prec, [])) used, States') end);
+                      in (Inttab.update (nt, (min_prec, Parsetrees.empty)) used, States') end);
               in process used' States' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
@@ -627,13 +638,13 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
               in process used States (S :: Si, Sii') end
           | [] => (*completer operation*)
               let
-                val (A, prec, id, j) = info;
+                val (A, p, id, j) = info;
                 val tt = if id = "" then ts else [Node (id, rev ts)];
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
-                    let val (prec', used') = update_trees (A, (tt, prec)) used
-                    in (used', get_states_lambda A prec prec' Si) end
-                  else (used, get_states A prec (Array.nth stateset j));
+                    let val (q, used') = update_trees (A, (tt, p)) used
+                    in (used', get_states_lambda A q p Si) end
+                  else (used, get_states A p (Array.nth stateset j));
                 val States' = map (movedot_nonterm tt) Slist;
               in process used' (States' @ States) (S :: Si, Sii) end)
 

@@ -61,6 +61,7 @@ sig
   val here: T -> string
   val here_list: T list -> string
   type range = T * T
+  val range_ord: range ord
   val no_range: range
   val no_range_position: T -> T
   val range_position: range -> T
@@ -298,6 +299,8 @@ val here_list = map here #> distinct (op =) #> implode;
 (* range *)
 
 type range = T * T;
+
+val range_ord = prod_ord ord ord;
 
 val no_range = (none, none);
 
