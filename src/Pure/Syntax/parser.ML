@@ -614,14 +614,14 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                 fun movedot_lambda (t, k) = min_prec <= k ? cons (info, sa, t @ ts)
                 val (used', States') =
                   (case Inttab.lookup used nt of
-                    SOME (used_prec, l) => (*nonterminal has been processed*)
+                    SOME (used_prec, used_trees) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, Parsetrees.fold movedot_lambda l States)
+                        (used, Parsetrees.fold movedot_lambda used_trees States)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val States' = States |> add_prods i c nt (until_prec min_prec used_prec)
-                            |> Parsetrees.fold movedot_lambda l;
+                            |> Parsetrees.fold movedot_lambda used_trees;
                         in (update_prec (nt, min_prec) used, States') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let val States' = States |> add_prods i c nt (until_prec min_prec no_prec);
