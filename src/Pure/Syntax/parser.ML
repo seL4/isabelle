@@ -591,7 +591,7 @@ fun get_states A max_prec =
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
-fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states =
+fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states0 =
   let
     (*get all productions of a NT and NTs chained to it which can
       be started by specified token*)
@@ -606,27 +606,27 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
       in fold (token_prods o nt_prods) (chains_all_preds gram_chains [nt]) end;
 
     fun process _ [] (Si, Sii) = (Si, Sii)
-      | process used ((S as (info, symbs, ts)) :: States) (Si, Sii) =
+      | process used ((S as (info, symbs, ts)) :: states) (Si, Sii) =
           (case symbs of
-            Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: States) (Si, Sii)
+            Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: states) (Si, Sii)
           | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
                 fun movedot_lambda (t, k) = min_prec <= k ? cons (info, sa, t @ ts)
-                val (used', States') =
+                val (used', states') =
                   (case Inttab.lookup used nt of
                     SOME (used_prec, used_trees) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, Parsetrees.fold movedot_lambda used_trees States)
+                        (used, Parsetrees.fold movedot_lambda used_trees states)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val States' = States |> add_prods i c nt (until_prec min_prec used_prec)
+                          val states' = states |> add_prods i c nt (until_prec min_prec used_prec)
                             |> Parsetrees.fold movedot_lambda used_trees;
-                        in (update_prec (nt, min_prec) used, States') end
+                        in (update_prec (nt, min_prec) used, states') end
                   | NONE => (*nonterminal is parsed for the first time*)
-                      let val States' = States |> add_prods i c nt (until_prec min_prec no_prec);
-                      in (Inttab.update (nt, (min_prec, Parsetrees.empty)) used, States') end);
-              in process used' States' (S :: Si, Sii) end
+                      let val states' = states |> add_prods i c nt (until_prec min_prec no_prec);
+                      in (Inttab.update (nt, (min_prec, Parsetrees.empty)) used, states') end);
+              in process used' states' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
                 val (_, _, id, _) = info;
@@ -635,7 +635,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
                     in (info, sa, ts') :: Sii end;
-              in process used States (S :: Si, Sii') end
+              in process used states (S :: Si, Sii') end
           | [] => (*completer operation*)
               let
                 val (A, p, id, j) = info;
@@ -645,10 +645,10 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                     let val (q, used') = update_trees (A, (tt, p)) used
                     in (used', get_states_lambda A q p Si) end
                   else (used, get_states A p (Array.nth stateset j));
-                val States' = map (movedot_nonterm tt) Slist;
-              in process used' (States' @ States) (S :: Si, Sii) end)
+                val states' = map (movedot_nonterm tt) Slist;
+              in process used' (states' @ states) (S :: Si, Sii) end)
 
-    val (Si, Sii) = process Inttab.empty states ([], []);
+    val (Si, Sii) = process Inttab.empty states0 ([], []);
   in
     Array.upd stateset i Si;
     Array.upd stateset (i + 1) Sii
