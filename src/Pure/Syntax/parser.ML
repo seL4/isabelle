@@ -83,6 +83,10 @@ fun chains_all_succs (chains: chains) = Int_Graph.all_succs chains;
 val chains_empty: chains = Int_Graph.empty;
 fun chains_member (chains: chains) = Int_Graph.is_edge chains;
 fun chains_declare nt : chains -> chains = Int_Graph.default_node (nt, ());
+
+fun chains_declares (Terminal _) = I
+  | chains_declares (Nonterminal (nt, _)) = chains_declare nt
+
 fun chains_insert (from, to) =
   chains_declare from #> chains_declare to #> Int_Graph.add_edge (from, to);
 
@@ -109,19 +113,13 @@ fun get_start tks =
 
 fun add_production array_prods (lhs, new_prod as (rhs, _, pri)) (chains, lambdas) =
   let
-    (*store chain if it does not already exist*)
     val (chain, new_chain, chains') =
       (case (pri, rhs) of
         (~1, [Nonterminal (from, ~1)]) =>
           if chains_member chains (from, lhs)
           then (SOME from, false, chains)
           else (SOME from, true, chains_insert (from, lhs) chains)
-      | _ =>
-        let
-          val chains' = chains
-            |> chains_declare lhs
-            |> fold (fn Nonterminal (nt, _) => chains_declare nt | _ => I) rhs;
-        in (NONE, false, chains') end);
+      | _ => (NONE, false, chains |> chains_declare lhs |> fold chains_declares rhs));
 
     (*propagate new chain in lookahead and lambdas;
       added_starts is used later to associate existing
