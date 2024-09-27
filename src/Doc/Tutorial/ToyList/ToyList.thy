@@ -9,12 +9,12 @@ To avoid some ambiguities caused by defining lists twice, we manipulate
 the concrete syntax and name space of theory \<^theory>\<open>Main\<close> as follows.
 \<close>
 
-no_notation Nil (\<open>[]\<close>) and Cons (infixr \<open>#\<close> 65) and append (infixr \<open>@\<close> 65)
+no_notation Nil ("[]") and Cons (infixr "#" 65) and append (infixr "@" 65)
 hide_type list
 hide_const rev
 
-datatype 'a list = Nil                          (\<open>[]\<close>)
-                 | Cons 'a "'a list"            (infixr \<open>#\<close> 65)
+datatype 'a list = Nil                          ("[]")
+                 | Cons 'a "'a list"            (infixr "#" 65)
 
 text\<open>\noindent
 The datatype\index{datatype@\isacommand {datatype} (command)}
@@ -47,7 +47,7 @@ Next, two functions \<open>app\<close> and \cdx{rev} are defined recursively,
 in this order, because Isabelle insists on definition before use:
 \<close>
 
-primrec app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr \<open>@\<close> 65) where
+primrec app :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
 "[] @ ys       = ys" |
 "(x # xs) @ ys = x # (xs @ ys)"
 

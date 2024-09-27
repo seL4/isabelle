@@ -26,7 +26,7 @@ The syntax annotation allows us to write \<open>s \<Turnstile> f\<close> instead
 \hbox{\<open>valid s f\<close>}. The definition is by recursion over the syntax:
 \<close>
 
-primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   (\<open>(_ \<Turnstile> _)\<close> [80,80] 80)
+primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool"   ("(_ \<Turnstile> _)" [80,80] 80)
 where
 "s \<Turnstile> Atom a  = (a \<in> L s)" |
 "s \<Turnstile> Neg f   = (\<not>(s \<Turnstile> f))" |

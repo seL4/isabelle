@@ -35,7 +35,7 @@ presentation (see \S\ref{sec:doc-prep-suppress}). In reality one has to define
 a new datatype and a new function.}
 \<close>
 (*<*)
-primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" (\<open>(_ \<Turnstile> _)\<close> [80,80] 80) where
+primrec valid :: "state \<Rightarrow> formula \<Rightarrow> bool" ("(_ \<Turnstile> _)" [80,80] 80) where
 "s \<Turnstile> Atom a  =  (a \<in> L s)" |
 "s \<Turnstile> Neg f   = (~(s \<Turnstile> f))" |
 "s \<Turnstile> And f g = (s \<Turnstile> f \<and> s \<Turnstile> g)" |
