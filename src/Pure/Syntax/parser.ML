@@ -61,15 +61,21 @@ fun tokens_add (nt: nt, tokens) = if Tokens.is_empty tokens then I else cons (nt
 
 datatype symb =
   Terminal of Lexicon.token |
-  Nonterminal of nt * int |  (*(tag, prio)*)
+  Nonterminal of nt * int |  (*(tag, precedence)*)
   Markup of Markup.T list * symb list;
 
-type prod = symb list * string * int;  (*rhs, name, prio*)
+type prod = symb list * string * int;  (*rhs, name, precedence*)
 
 fun make_chain_prod from : prod = ([Nonterminal (from, ~1)], "", ~1);
 
 fun dest_chain_prod (([Nonterminal (from, ~1)], _, ~1): prod) = SOME from
   | dest_chain_prod _ = NONE;
+
+val no_prec = ~1;
+
+fun until_prec min max ((_, _, p): prod) =
+  (min = no_prec orelse p >= min) andalso (max = no_prec orelse p < max);
+
 
 structure Prods = Table(Tokens.Key);
 type prods = prod list Prods.table;
@@ -593,11 +599,12 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
   let
     (*get all productions of a NT and NTs chained to it which can
       be started by specified token*)
-    fun prods_for tok nt =
+    fun prods_for tok nt ok =
       let
+        fun add prod = ok prod ? cons prod;
         fun token_prods prods =
-          fold cons (prods_lookup prods tok) #>
-          fold cons (prods_lookup prods Lexicon.dummy);
+          fold add (prods_lookup prods tok) #>
+          fold add (prods_lookup prods Lexicon.dummy);
         val nt_prods = #2 o Vector.nth gram_prods;
       in fold (token_prods o nt_prods) (chains_all_preds gram_chains [nt]) [] end;
 
@@ -617,11 +624,11 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                         (used, map_filter movedot_lambda l)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
-                          val States2 = map mk_state (get_RHS' min_prec used_prec (prods_for c nt));
+                          val States2 = map mk_state (prods_for c nt (until_prec min_prec used_prec));
                           val States1 = map_filter movedot_lambda l;
                         in (update_prec (nt, min_prec) used, States1 @ States2) end
                   | NONE => (*nonterminal is parsed for the first time*)
-                      let val States' = map mk_state (get_RHS min_prec (prods_for c nt))
+                      let val States' = map mk_state (prods_for c nt (until_prec min_prec no_prec))
                       in (Inttab.update (nt, (min_prec, [])) used, States') end);
               in process used' (new_states @ States) (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
