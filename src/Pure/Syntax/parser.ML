@@ -536,6 +536,12 @@ type state =
   parsetree list;   (*output (reversed): already parsed nonterminals on rhs*)
 
 
+(*trigger value for warnings*)
+val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K 600);
+
+
+local
+
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
 fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
@@ -578,15 +584,7 @@ fun get_states_lambda A max opt_min =
 fun get_states A max_prec =
   filter (head_nonterm (fn (B, p) => A = B andalso p <= max_prec));
 
-
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
-
-
-(*trigger value for warnings*)
-val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K 600);
-
-
-local
 
 fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states =
   let
