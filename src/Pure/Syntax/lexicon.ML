@@ -34,7 +34,7 @@ sig
   val literal: string -> token
   val is_literal: token -> bool
   val token_ord: token ord
-  val tokens_match_ord: token ord
+  val token_type_ord: token ord
   val mk_eof: Position.T -> token
   val eof: token
   val is_eof: token -> bool
@@ -168,7 +168,7 @@ fun token_ord (Token (i, s, r), Token (i', s', r')) =
       | ord => ord)
   | ord => ord);
 
-fun tokens_match_ord toks =
+fun token_type_ord toks =
   let val is = apply2 index_of_token toks in
     (case int_ord is of
       EQUAL => if #1 is = literal_index then fast_string_ord (apply2 str_of_token toks) else EQUAL

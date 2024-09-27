@@ -51,7 +51,7 @@ fun nts_is_unique (nts: nts) = Bitset.is_unique nts;
 
 (* tokens *)
 
-structure Tokens = Set(type key = Lexicon.token val ord = Lexicon.tokens_match_ord);
+structure Tokens = Set(type key = Lexicon.token val ord = Lexicon.token_type_ord);
 
 fun tokens_find P tokens = Tokens.get_first (fn tok => if P tok then SOME tok else NONE) tokens;
 fun tokens_add (nt: nt, tokens) = if Tokens.is_empty tokens then I else cons (nt, tokens);
@@ -631,7 +631,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
               let
                 val (_, _, id, _) = info;
                 val Sii' =
-                  if Lexicon.tokens_match_ord (a, c) <> EQUAL then Sii
+                  if Lexicon.token_type_ord (a, c) <> EQUAL then Sii
                   else (*move dot*)
                     let val ts' = if Lexicon.valued_token c orelse id <> "" then Tip c :: ts else ts
                     in (info, sa, ts') :: Sii end;
