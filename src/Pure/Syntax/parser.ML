@@ -536,13 +536,6 @@ type state =
   parsetree list;   (*output (reversed): already parsed nonterminals on rhs*)
 
 
-(*Get all rhss with precedence >= min_prec*)
-fun get_RHS min_prec = filter (fn (_, _, prec: int) => prec >= min_prec);
-
-(*Get all rhss with precedence >= min_prec and < max_prec*)
-fun get_RHS' min_prec max_prec =
-  filter (fn (_, _, prec: int) => prec >= min_prec andalso prec < max_prec);
-
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
 fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
