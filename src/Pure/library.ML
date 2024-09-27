@@ -626,11 +626,11 @@ fun suffixes xs = [] :: suffixes1 xs;
 
 (* lists of integers *)
 
-(*make the list [from, from + 1, ..., to]*)
+(*make the list [i, i + 1, ..., j]*)
 fun ((i: int) upto j) =
   if i > j then [] else i :: (i + 1 upto j);
 
-(*make the list [from, from - 1, ..., to]*)
+(*make the list [i, i - 1, ..., j]*)
 fun ((i: int) downto j) =
   if i < j then [] else i :: (i - 1 downto j);
 
