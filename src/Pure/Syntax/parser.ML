@@ -16,7 +16,6 @@ sig
     Tip of Lexicon.token
   val pretty_parsetree: parsetree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> parsetree list
-  val branching_level: int Config.T
 end;
 
 structure Parser: PARSER =
@@ -534,11 +533,6 @@ type state =
    int) *           (*index for previous state list*)
   symb list *       (*input: rest of rhs*)
   parsetree list;   (*output (reversed): already parsed nonterminals on rhs*)
-
-
-(*trigger value for warnings*)
-val branching_level = Config.declare_int ("syntax_branching_level", \<^here>) (K 600);
-
 
 local
 
