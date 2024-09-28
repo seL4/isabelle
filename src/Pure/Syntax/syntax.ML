@@ -81,7 +81,7 @@ sig
   val is_const: syntax -> string -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
-  val parse: syntax -> string -> Lexicon.token list -> Parser.parsetree list
+  val parse: syntax -> string -> Lexicon.token list -> Parser.tree list
   val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
   val parse_rules: syntax -> string -> (Ast.ast * Ast.ast) list
   val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option

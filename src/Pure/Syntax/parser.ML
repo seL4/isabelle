@@ -11,12 +11,12 @@ sig
   val empty_gram: gram
   val make_gram: Syntax_Ext.xprod list -> Syntax_Ext.xprod list -> gram option -> gram
   val pretty_gram: gram -> Pretty.T list
-  datatype parsetree =
-    Node of string * parsetree list |
+  datatype tree =
+    Node of string * tree list |
     Tip of Lexicon.token
-  val parsetree_ord: parsetree ord
-  val pretty_parsetree: parsetree -> Pretty.T list
-  val parse: gram -> string -> Lexicon.token list -> parsetree list
+  val tree_ord: tree ord
+  val pretty_tree: tree -> Pretty.T list
+  val parse: gram -> string -> Lexicon.token list -> tree list
 end;
 
 structure Parser: PARSER =
@@ -516,10 +516,10 @@ end;
 
 (** parser **)
 
-(* parsetree *)
+(* output tree *)
 
-datatype parsetree =
-  Node of string * parsetree list |
+datatype tree =
+  Node of string * tree list |
   Tip of Lexicon.token;
 
 local
@@ -529,26 +529,24 @@ fun cons_nr (Node _) = 0
 
 in
 
-fun parsetree_ord pts =
-  if pointer_eq pts then EQUAL
+fun tree_ord trees =
+  if pointer_eq trees then EQUAL
   else
-    (case pts of
+    (case trees of
       (Node (s, ts), Node (s', ts')) =>
         (case fast_string_ord (s, s') of
-          EQUAL => list_ord parsetree_ord (ts, ts')
+          EQUAL => list_ord tree_ord (ts, ts')
         | ord => ord)
     | (Tip t, Tip t') => Lexicon.token_ord (t, t')
-    | _ => int_ord (apply2 cons_nr pts));
+    | _ => int_ord (apply2 cons_nr trees));
 
-structure Parsetrees =
-  Table(type key = parsetree list val ord = pointer_eq_ord (list_ord parsetree_ord));
+structure Trees = Table(type key = tree list val ord = pointer_eq_ord (list_ord tree_ord));
 
 end;
 
-fun pretty_parsetree (Node (c, pts)) =
-      [Pretty.enclose "(" ")"
-        (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_parsetree pts))]
-  | pretty_parsetree (Tip tok) =
+fun pretty_tree (Node (c, ts)) =
+      [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
+  | pretty_tree (Tip tok) =
       if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
 
 
@@ -559,7 +557,7 @@ type state =
    string *         (*name of production*)
    int) *           (*index for previous state list*)
   symb list *       (*input: rest of rhs*)
-  parsetree list;   (*output (reversed): already parsed nonterminals on rhs*)
+  tree list;        (*output (reversed): already parsed nonterminals on rhs*)
 
 local
 
@@ -568,12 +566,12 @@ fun update_trees (A, (t, p)) used =
     val (i: int, ts) = the (Inttab.lookup used A);
     fun update ts' = Inttab.update (A, (i, ts'));
   in
-    (case Parsetrees.lookup ts t of
-      NONE => (no_prec, update (Parsetrees.make [(t, p)]) used)
-    | SOME q => (q, if p > q then update (Parsetrees.update (t, p) ts) used else used))
+    (case Trees.lookup ts t of
+      NONE => (no_prec, update (Trees.make [(t, p)]) used)
+    | SOME q => (q, if p > q then update (Trees.update (t, p) ts) used else used))
   end;
 
-val init_prec = (no_prec, Parsetrees.empty);
+val init_prec = (no_prec, Trees.empty);
 fun update_prec (A, p) used = Inttab.map_default (A, init_prec) (fn (_, ts) => (p, ts)) used;
 
 fun get_states A min max =
@@ -621,8 +619,8 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                       let
                         val used' = update_prec (nt, min_prec) used;
                         val states' = states |> add_prods nt min_prec no_prec;
-                      in (used', states', Parsetrees.empty) end);
-                val states'' = states' |> Parsetrees.fold movedot_lambda used_trees;
+                      in (used', states', Trees.empty) end);
+                val states'' = states' |> Trees.fold movedot_lambda used_trees;
               in process used' states'' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
@@ -692,10 +690,10 @@ fun parse (gram as Gram {tags, ...}) start toks =
     val stateset = Array.array (length input + 1, []);
     val _ = Array.upd stateset 0 [S0];
 
-    val pts =
+    val output =
       produce gram stateset 0 Lexicon.dummy input
-      |> map_filter (fn (_, _, [pt]) => SOME pt | _ => NONE);
-  in if null pts then raise Fail "Inner syntax: no parse trees" else pts end;
+      |> map_filter (fn (_, _, [t]) => SOME t | _ => NONE);
+  in if null output then raise Fail "Inner syntax: no parse trees" else output end;
 
 end;
 
