@@ -523,23 +523,19 @@ datatype tree =
   Tip of Lexicon.token;
 
 local
-
-fun cons_nr (Node _) = 0
-  | cons_nr (Tip _) = 1;
-
+  fun cons_nr (Node _) = 0
+    | cons_nr (Tip _) = 1;
 in
-
-fun tree_ord trees =
-  if pointer_eq trees then EQUAL
-  else
-    (case trees of
-      (Node (s, ts), Node (s', ts')) =>
-        (case fast_string_ord (s, s') of
-          EQUAL => list_ord tree_ord (ts, ts')
-        | ord => ord)
-    | (Tip t, Tip t') => Lexicon.token_ord (t, t')
-    | _ => int_ord (apply2 cons_nr trees));
-
+  fun tree_ord trees =
+    if pointer_eq trees then EQUAL
+    else
+      (case trees of
+        (Node (s, ts), Node (s', ts')) =>
+          (case fast_string_ord (s, s') of
+            EQUAL => list_ord tree_ord (ts, ts')
+          | ord => ord)
+      | (Tip t, Tip t') => Lexicon.token_ord (t, t')
+      | _ => int_ord (apply2 cons_nr trees));
 end;
 
 fun pretty_tree (Node (c, ts)) =
