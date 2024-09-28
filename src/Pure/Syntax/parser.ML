@@ -573,8 +573,8 @@ fun update_trees (A, (t, p)) used =
     | SOME q => (q, if p > q then update (Parsetrees.update (t, p) ts) used else used))
   end;
 
-fun update_prec (A, p) used =
-  Inttab.map_entry A (fn (_, ts) => (p, ts)) used;
+val init_prec = (no_prec, Parsetrees.empty);
+fun update_prec (A, p) used = Inttab.map_default (A, init_prec) (fn (_, ts) => (p, ts)) used;
 
 fun get_states A min max =
   let
@@ -621,7 +621,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                         in (update_prec (nt, min_prec) used, states') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let val states' = states |> add_prods nt min_prec no_prec;
-                      in (Inttab.update (nt, (min_prec, Parsetrees.empty)) used, states') end);
+                      in (update_prec (nt, min_prec) used, states') end);
               in process used' states' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
