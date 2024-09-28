@@ -576,19 +576,13 @@ fun update_trees (A, (t, p)) used =
 fun update_prec (A, p) used =
   Inttab.map_entry A (fn (_, ts) => (p, ts)) used;
 
-fun head_nonterm pred : state -> bool =
+fun get_states A min max =
   let
-    fun check (Nonterminal a :: _) = pred a
-      | check (Markup (_, []) :: rest) = check rest
-      | check (Markup (_, body) :: _) = check body
-      | check _ = false;
-  in check o #2 end;
-
-fun get_states_lambda A min max =
-  filter (head_nonterm (fn (B, p) => A = B andalso upto_prec min max p));
-
-fun get_states A max =
-  filter (head_nonterm (fn (B, p) => A = B andalso p <= max));
+    fun head_nonterm (Nonterminal (B, p) :: _) = A = B andalso upto_prec min max p
+      | head_nonterm (Markup (_, []) :: rest) = head_nonterm rest
+      | head_nonterm (Markup (_, body) :: _) = head_nonterm body
+      | head_nonterm _ = false;
+  in filter (fn (_, ss, _): state => head_nonterm ss) end;
 
 fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @ ts);
 
@@ -644,8 +638,8 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
                     let val (q, used') = update_trees (A, (tt, p)) used
-                    in (used', get_states_lambda A q p Si) end
-                  else (used, get_states A p (Array.nth stateset j));
+                    in (used', get_states A q p Si) end
+                  else (used, get_states A no_prec p (Array.nth stateset j));
                 val states' = map (movedot_nonterm tt) Slist;
               in process used' (states' @ states) (S :: Si, Sii) end)
 
