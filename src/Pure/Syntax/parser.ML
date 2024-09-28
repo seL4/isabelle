@@ -588,6 +588,9 @@ fun movedot_nonterm tt (info, Nonterminal _ :: sa, ts) : state = (info, sa, tt @
 
 fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states0 =
   let
+    val get = Array.nth stateset;
+    val set = Array.upd stateset;
+
     fun add_prods nt min max =
       let
         fun add (rhs, id, prod_prec) =
@@ -637,15 +640,12 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   if j = i then (*lambda production?*)
                     let val (q, used') = update_trees (A, (tt, p)) used
                     in (used', get_states A q p Si) end
-                  else (used, get_states A no_prec p (Array.nth stateset j));
+                  else (used, get_states A no_prec p (get j));
                 val states' = map (movedot_nonterm tt) Slist;
               in process used' (states' @ states) (S :: Si, Sii) end)
 
     val (Si, Sii) = process Inttab.empty states0 ([], []);
-  in
-    Array.upd stateset i Si;
-    Array.upd stateset (i + 1) Sii
-  end;
+  in set i Si; set (i + 1) Sii end;
 
 fun produce gram stateset i prev rest =
   (case Array.nth stateset i of
