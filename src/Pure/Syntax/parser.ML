@@ -604,7 +604,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
             Markup (_, body) :: sa => process used ((info, body @ sa, ts) :: states) (Si, Sii)
           | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
-                fun movedot_lambda (t, k) = min_prec <= k ? cons (info, sa, t @ ts)
+                fun movedot_lambda (t, k) = if min_prec <= k then cons (info, sa, t @ ts) else I;
                 val (used', states') =
                   (case Inttab.lookup used nt of
                     SOME (used_prec, used_trees) => (*nonterminal has been processed*)
