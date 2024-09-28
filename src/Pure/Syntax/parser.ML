@@ -608,21 +608,22 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
           | Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
                 fun movedot_lambda (t, k) = if min_prec <= k then cons (info, sa, t @ ts) else I;
-                val (used', states') =
+                val (used', states', used_trees) =
                   (case Inttab.lookup used nt of
-                    SOME (used_prec, used_trees) => (*nonterminal has been processed*)
-                      if used_prec <= min_prec then
-                        (*wanted precedence has been processed*)
-                        (used, Parsetrees.fold movedot_lambda used_trees states)
-                      else (*wanted precedence hasn't been parsed yet*)
+                    SOME (used_prec, used_trees) =>
+                      if used_prec <= min_prec then (used, states, used_trees)
+                      else
                         let
-                          val states' = states |> add_prods nt min_prec used_prec
-                            |> Parsetrees.fold movedot_lambda used_trees;
-                        in (update_prec (nt, min_prec) used, states') end
-                  | NONE => (*nonterminal is parsed for the first time*)
-                      let val states' = states |> add_prods nt min_prec no_prec;
-                      in (update_prec (nt, min_prec) used, states') end);
-              in process used' states' (S :: Si, Sii) end
+                          val used' = update_prec (nt, min_prec) used;
+                          val states' = states |> add_prods nt min_prec used_prec;
+                        in (used', states', used_trees) end
+                  | NONE =>
+                      let
+                        val used' = update_prec (nt, min_prec) used;
+                        val states' = states |> add_prods nt min_prec no_prec;
+                      in (used', states', Parsetrees.empty) end);
+                val states'' = states' |> Parsetrees.fold movedot_lambda used_trees;
+              in process used' states'' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
                 val (_, _, id, _) = info;
