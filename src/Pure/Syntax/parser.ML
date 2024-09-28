@@ -540,7 +540,8 @@ fun parsetree_ord pts =
     | (Tip t, Tip t') => Lexicon.token_ord (t, t')
     | _ => int_ord (apply2 cons_nr pts));
 
-structure Parsetrees = Table(type key = parsetree list val ord = list_ord parsetree_ord);
+structure Parsetrees =
+  Table(type key = parsetree list val ord = pointer_eq_ord (list_ord parsetree_ord));
 
 end;
 
