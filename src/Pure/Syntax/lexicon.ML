@@ -26,6 +26,7 @@ sig
   eqtype token
   val kind_of_token: token -> token_kind
   val str_of_token: token -> string
+  val range_of_token: token -> Position.range
   val pos_of_token: token -> Position.T
   val end_pos_of_token: token -> Position.T
   val is_proper: token -> bool
@@ -34,6 +35,7 @@ sig
   val literal: string -> token
   val is_literal: token -> bool
   val token_ord: token ord
+  val token_content_ord: token ord
   val token_type_ord: token ord
   val mk_eof: Position.T -> token
   val eof: token
@@ -141,8 +143,9 @@ datatype token = Token of int * string * Position.range;
 fun index_of_token (Token (i, _, _)) = i;
 val kind_of_token = index_of_token #> token_kind;
 fun str_of_token (Token (_, s, _)) = s;
-fun pos_of_token (Token (_, _, (pos, _))) = pos;
-fun end_pos_of_token (Token (_, _, (_, end_pos))) = end_pos;
+fun range_of_token (Token (_, _, r)) = r;
+val pos_of_token = #1 o range_of_token;
+val end_pos_of_token = #1 o range_of_token;
 
 val is_proper = kind_of_token #> (fn Space => false | Comment _ => false | _ => true);
 
@@ -166,6 +169,11 @@ fun token_ord (Token (i, s, r), Token (i', s', r')) =
       (case fast_string_ord (s, s') of
         EQUAL => Position.range_ord (r, r')
       | ord => ord)
+  | ord => ord);
+
+fun token_content_ord (Token (i, s, _), Token (i', s', _)) =
+  (case int_ord (i, i') of
+    EQUAL => fast_string_ord (s, s')
   | ord => ord);
 
 fun token_type_ord toks =
