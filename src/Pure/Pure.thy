@@ -404,7 +404,7 @@ val _ =
 
 val syntax_consts =
   Parse.and_list1
-    ((Scan.repeat1 Parse.name_position --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) --
+    (Scan.optional (Scan.repeat1 Parse.name_position --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) [] --
       Parse.!!! (Scan.repeat1 Parse.name_position));
 
 val _ =
