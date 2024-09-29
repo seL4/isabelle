@@ -399,7 +399,7 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syntax_Ext.eq_trfun (tab1, tab2)
 
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
-fun dest_ruletab tab = maps snd (Symtab.dest tab);
+fun dest_ruletab tab = Symtab.dest tab |> sort_by #1 |> maps #2;
 
 val update_ruletab = fold_rev (fn r => Symtab.update_list (op =) (Ast.head_of_rule r, r));
 val remove_ruletab = fold (fn r => Symtab.remove_list (op =) (Ast.head_of_rule r, r));
