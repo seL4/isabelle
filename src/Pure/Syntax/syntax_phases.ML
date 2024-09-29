@@ -189,9 +189,10 @@ fun parsetree_to_ast ctxt trf parsetree =
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val pos = report_pos tok;
-            val (Type (c, _), rs) =
+            val (c, rs) =
               Proof_Context.check_type_name {proper = true, strict = false} ctxt
-                (Lexicon.str_of_token tok, pos);
+                (Lexicon.str_of_token tok, pos)
+              |>> dest_Type_name;
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
@@ -242,10 +243,8 @@ fun ast_to_term ctxt trf =
 (* decode_term -- transform parse tree into raw term *)
 
 fun decode_const ctxt (c, ps) =
-  let
-    val (Const (c', _), reports) =
-      Proof_Context.check_const {proper = true, strict = false} ctxt (c, ps);
-  in (c', reports) end;
+  Proof_Context.check_const {proper = true, strict = false} ctxt (c, ps)
+  |>> dest_Const_name;
 
 local
 
