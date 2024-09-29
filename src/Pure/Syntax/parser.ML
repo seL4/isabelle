@@ -12,9 +12,9 @@ sig
   val make_gram: Syntax_Ext.xprod list -> Syntax_Ext.xprod list -> gram option -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype tree =
+    Markup of Markup.T list * tree list |
     Node of string * tree list |
     Tip of Lexicon.token
-  val tree_ord: tree ord
   val pretty_tree: tree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> tree list
 end;
@@ -62,7 +62,7 @@ fun tokens_add (nt: nt, tokens) = if Tokens.is_empty tokens then I else cons (nt
 datatype symb =
   Terminal of Lexicon.token |
   Nonterminal of nt * int |  (*(tag, precedence)*)
-  Markup of Markup.T list * symb list;
+  Bg of Markup.T list | En;  (*markup block*)
 
 type prod = symb list * string * int;  (*rhs, name, precedence*)
 
@@ -101,9 +101,8 @@ val chains_empty: chains = Int_Graph.empty;
 fun chains_member (chains: chains) = Int_Graph.is_edge chains;
 fun chains_declare nt : chains -> chains = Int_Graph.default_node (nt, ());
 
-fun chains_declares (Terminal _) = I
-  | chains_declares (Nonterminal (nt, _)) = chains_declare nt
-  | chains_declares (Markup (_, body)) = fold chains_declares body;
+fun chains_declares (Nonterminal (nt, _)) = chains_declare nt
+  | chains_declares _ = I;
 
 fun chains_insert (from, to) =
   chains_declare from #> chains_declare to #> Int_Graph.add_edge (from, to);
@@ -169,7 +168,7 @@ fun add_production array_prods (lhs, new_prod as (rhs, _, _) : prod) (chains, la
       (rhs must either be empty or only consist of lambda NTs)*)
     fun lambda_symb (Nonterminal (id, _)) = nts_member lambdas' id
       | lambda_symb (Terminal _) = false
-      | lambda_symb (Markup (_, body)) = forall lambda_symb body;
+      | lambda_symb _ = true;
     val new_lambdas =
       if forall lambda_symb rhs
       then SOME (filter_out (nts_member lambdas') (chains_all_succs chains' [lhs]))
@@ -184,8 +183,7 @@ fun add_production array_prods (lhs, new_prod as (rhs, _, _) : prod) (chains, la
           if nts_member lambdas nt then
             lookahead_dependency lambdas symbs (nts_insert nt nts)
           else (NONE, nts_insert nt nts)
-      | lookahead_dependency lambdas (Markup (_, body) :: symbs) nts =
-          lookahead_dependency lambdas (body @ symbs) nts;
+      | lookahead_dependency lambdas (_ :: symbs) nts = lookahead_dependency lambdas symbs nts;
 
     (*get all known starting tokens for a nonterminal*)
     fun starts_for_nt nt = snd (fst (Array.nth array_prods nt));
@@ -416,7 +414,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
           then [Pretty.quote (Pretty.keyword1 (Lexicon.str_of_token tok))]
           else [Pretty.str (Lexicon.str_of_token tok)]
       | pretty_symb (Nonterminal (tag, p)) = [Pretty.str (print_nt tag ^ print_pri p)]
-      | pretty_symb (Markup (_, body)) = maps pretty_symb body;
+      | pretty_symb _ = [];
 
     fun pretty_const "" = []
       | pretty_const c = [Pretty.str ("\<^bold>\<Rightarrow> " ^ quote c)];
@@ -457,31 +455,20 @@ fun make_arg (s, p) tags =
 
 fun extend_gram xprods gram =
   let
-    fun make_symbs (Syntax_Ext.Delim s :: xsyms) tags =
-          let val (syms, xsyms', tags') = make_symbs xsyms tags
-          in (Terminal (Lexicon.literal s) :: syms, xsyms', tags') end
-      | make_symbs (Syntax_Ext.Argument a :: xsyms) tags =
-          let
-            val (arg, tags') = make_arg a tags;
-            val (syms, xsyms', tags'') = make_symbs xsyms tags';
-          in (arg :: syms, xsyms', tags'') end
-      | make_symbs (Syntax_Ext.Bg {markup, ...} :: xsyms) tags =
-          let
-            val (bsyms, xsyms', tags') = make_symbs xsyms tags;
-            val (syms, xsyms'', tags'') = make_symbs xsyms' tags';
-            val syms' = if null markup then bsyms @ syms else Markup (markup, bsyms) :: syms;
-          in (syms', xsyms'', tags'') end
-      | make_symbs (Syntax_Ext.En :: xsyms) tags = ([], xsyms, tags)
-      | make_symbs (Syntax_Ext.Space _ :: xsyms) tags = make_symbs xsyms tags
-      | make_symbs (Syntax_Ext.Brk _ :: xsyms) tags = make_symbs xsyms tags
-      | make_symbs [] tags = ([], [], tags);
+    fun make_symb (Syntax_Ext.Delim s) (syms, tags) =
+          (Terminal (Lexicon.literal s) :: syms, tags)
+      | make_symb (Syntax_Ext.Argument a) (syms, tags) =
+          let val (arg, tags') = make_arg a tags
+          in (arg :: syms, tags') end
+      | make_symb (Syntax_Ext.Bg {markup, ...}) (syms, tags) = (Bg markup :: syms, tags)
+      | make_symb (Syntax_Ext.En) (syms, tags) = (En :: syms, tags)
+      | make_symb _ res = res;
 
     fun make_prod (Syntax_Ext.XProd (lhs, xsymbs, const, pri)) (result, tags) =
       let
         val (tag, tags') = make_tag lhs tags;
-        val (symbs, xsymbs', tags'') = make_symbs xsymbs tags';
-        val _ = if null xsymbs' then () else raise Fail "Unbalanced blocks in grammar production";
-      in ((tag, (symbs, const, pri)) :: result, tags'') end;
+        val (rev_symbs, tags'') = fold make_symb xsymbs ([], tags');
+      in ((tag, (rev rev_symbs, const, pri)) :: result, tags'') end;
 
 
     val Gram {tags, chains, lambdas, prods} = gram;
@@ -519,26 +506,63 @@ end;
 (* parse tree *)
 
 datatype tree =
+  Markup of Markup.T list * tree list |
   Node of string * tree list |
   Tip of Lexicon.token;
 
+datatype tree_op =
+  Markup_Push |
+  Markup_Pop of Markup.T list |
+  Node_Op of string * tree_op list |
+  Tip_Op of Lexicon.token;
+
 local
-  fun cons_nr (Node _) = 0
-    | cons_nr (Tip _) = 1;
+  fun drop_markup (Markup_Push :: ts) = drop_markup ts
+    | drop_markup (Markup_Pop _ :: ts) = drop_markup ts
+    | drop_markup ts = ts;
 in
-  fun tree_ord trees =
-    if pointer_eq trees then EQUAL
+  fun tree_ops_ord arg =
+    if pointer_eq arg then EQUAL
     else
-      (case trees of
-        (Node (s, ts), Node (s', ts')) =>
+      (case apply2 drop_markup arg of
+        (Node_Op (s, ts) :: rest, Node_Op (s', ts') :: rest') =>
           (case fast_string_ord (s, s') of
-            EQUAL => list_ord tree_ord (ts, ts')
+            EQUAL =>
+              (case tree_ops_ord (ts, ts') of
+                EQUAL => tree_ops_ord (rest, rest')
+              | ord => ord)
           | ord => ord)
-      | (Tip t, Tip t') => Lexicon.token_ord (t, t')
-      | _ => int_ord (apply2 cons_nr trees));
+      | (Tip_Op t :: rest, Tip_Op t' :: rest') =>
+          (case Lexicon.token_ord (t, t') of
+            EQUAL => tree_ops_ord (rest, rest')
+          | ord => ord)
+      | (Node_Op _ :: _, Tip_Op _ :: _) => LESS
+      | (Tip_Op _ :: _, Node_Op _ :: _) => GREATER
+      | ([], []) => EQUAL
+      | ([], _ :: _) => LESS
+      | (_ :: _, []) => GREATER
+      | _ => raise Match);
 end;
 
-fun pretty_tree (Node (c, ts)) =
+fun make_tree tree_ops =
+  let
+    fun top [] = []
+      | top (xs :: _) = xs;
+
+    fun pop [] = []
+      | pop (_ :: xs) = xs;
+
+    fun make body stack ops =
+      (case ops of
+        Markup_Push :: rest => make [] (body :: stack) rest
+      | Markup_Pop markup :: rest => make (Markup (markup, body) :: top stack) (pop stack) rest
+      | Node_Op (id, ts) :: rest => make (Node (id, make [] [] ts) :: body) stack rest
+      | Tip_Op tok :: rest => make (Tip tok :: body) stack rest
+      | [] => if null stack then body else raise Fail "Pending markup blocks");
+ in (case make [] [] tree_ops of [t] => SOME t | _ => NONE) end;
+
+fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
+  | pretty_tree (Node (c, ts)) =
       [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
   | pretty_tree (Tip tok) =
       if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
@@ -546,24 +570,24 @@ fun pretty_tree (Node (c, ts)) =
 
 (* output *)
 
-abstype output = Output of int * tree list
+abstype output = Output of int * tree_op list
 with
 
 val empty_output = Output (0, []);
 
-fun token_output tok (Output (n, ts)) = Output (n + 1, Tip tok :: ts);
+fun token_output tok (Output (n, ts)) = Output (n + 1, Tip_Op tok :: ts);
 
-fun node_output id (Output (n, ts)) = Output (n, [Node (id, rev ts)]);
+fun node_output id (Output (n, ts)) = Output (n, [Node_Op (id, ts)]);
+
+fun push_output (Output (n, ts)) = Output (n, Markup_Push :: ts);
+fun pop_output markup (Output (n, ts)) = Output (n, Markup_Pop markup :: ts);
 
 fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 
 val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
-  (case int_ord (m, n) of
-    EQUAL => dict_ord tree_ord (ss, tt)
-  | ord => ord));
+  (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
 
-fun output_result (Output (_, [t])) = SOME t
-  | output_result _ = NONE;
+fun output_tree (Output (_, ts)) = make_tree ts;
 
 end;
 
@@ -599,11 +623,9 @@ fun update_prec (A, p) used =
 
 fun get_states A min max =
   let
-    fun head_nonterm (Nonterminal (B, p) :: _) = A = B andalso upto_prec min max p
-      | head_nonterm (Markup (_, []) :: rest) = head_nonterm rest
-      | head_nonterm (Markup (_, body) :: _) = head_nonterm body
-      | head_nonterm _ = false;
-  in filter (fn (_, ss, _): state => head_nonterm ss) end;
+    fun ok (Nonterminal (B, p) :: _) = A = B andalso upto_prec min max p
+      | ok _ = false;
+  in filter (fn (_, ss, _): state => ok ss) end;
 
 fun movedot_nonterm out' (info, Nonterminal _ :: sa, out) : state =
   (info, sa, append_output out' out);
@@ -628,8 +650,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
     fun process _ [] (Si, Sii) = (Si, Sii)
       | process used ((S as (info, symbs, out)) :: states) (Si, Sii) =
           (case symbs of
-            Markup (_, body) :: sa => process used ((info, body @ sa, out) :: states) (Si, Sii)
-          | Nonterminal (nt, min_prec) :: sa =>
+            Nonterminal (nt, min_prec) :: sa =>
               let (*predictor operation*)
                 fun movedot_lambda (out', k) =
                   if min_prec <= k then cons (info, sa, append_output out' out) else I;
@@ -657,10 +678,12 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   else (*move dot*)
                     let
                       val out' =
-                        if Lexicon.valued_token c orelse id <> "" then token_output c out
-                        else out;
+                        if Lexicon.valued_token c orelse id <> ""
+                        then token_output c out else out;
                     in (info, sa, out') :: Sii end;
               in process used states (S :: Si, Sii') end
+          | Bg markup :: sa => process used ((info, sa, pop_output markup out) :: states) (Si, Sii)
+          | En :: sa => process used ((info, sa, push_output out) :: states) (Si, Sii)
           | [] => (*completer operation*)
               let
                 val (A, p, id, j) = info;
@@ -723,7 +746,7 @@ fun parse (gram as Gram {tags, ...}) start toks =
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map_filter (fn (_, _, out) => output_result out);
+      |> map_filter (output_tree o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;

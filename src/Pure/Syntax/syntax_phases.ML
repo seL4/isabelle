@@ -185,7 +185,8 @@ fun parsetree_to_ast ctxt trf parsetree =
     fun asts_of_position c tok =
       [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
-    and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
+    and asts_of (Parser.Markup (markup, pts)) = maps asts_of pts
+      | asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val pos = report_pos tok;
             val (c, rs) = Proof_Context.check_class ctxt (Lexicon.str_of_token tok, pos);
