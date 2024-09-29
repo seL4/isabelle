@@ -55,7 +55,7 @@ definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
   where "Replace(A,P) \<equiv> PrimReplace(A, \<lambda>x y. (\<exists>!z. P(x,z)) \<and> P(x,y))"
 
 syntax
-  "_Replace" :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix Replace\<close>\<close>{_ ./ _ \<in> _, _})\<close>)
+  "_Replace" :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix relational replacement\<close>\<close>{_ ./ _ \<in> _, _})\<close>)
 syntax_consts
   Replace
 translations
@@ -68,7 +68,7 @@ definition RepFun :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
   where "RepFun(A,f) \<equiv> {y . x\<in>A, y=f(x)}"
 
 syntax
-  "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix RepFun\<close>\<close>{_ ./ _ \<in> _})\<close> [51,0,51])
+  "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix functional replacement\<close>\<close>{_ ./ _ \<in> _})\<close> [51,0,51])
 syntax_consts
   RepFun
 translations
@@ -80,7 +80,7 @@ definition Collect :: "[i, i \<Rightarrow> o] \<Rightarrow> i"
   where "Collect(A,P) \<equiv> {y . x\<in>A, x=y \<and> P(x)}"
 
 syntax
-  "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_ \<in> _ ./ _})\<close>)
+  "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{_ \<in> _ ./ _})\<close>)
 syntax_consts
   Collect
 translations
@@ -299,9 +299,9 @@ notation (ASCII)
 syntax (ASCII)
   "_Ball"     :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(\<open>indent=3 notation=\<open>binder ALL:\<close>\<close>ALL _:_./ _)\<close> 10)
   "_Bex"      :: "[pttrn, i, o] \<Rightarrow> o"        (\<open>(\<open>indent=3 notation=\<open>binder EX:\<close>\<close>EX _:_./ _)\<close> 10)
-  "_Collect"  :: "[pttrn, i, o] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_: _ ./ _})\<close>)
-  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i" (\<open>(\<open>indent=1 notation=\<open>mixfix Replace\<close>\<close>{_ ./ _: _, _})\<close>)
-  "_RepFun"   :: "[i, pttrn, i] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix RepFun\<close>\<close>{_ ./ _: _})\<close> [51,0,51])
+  "_Collect"  :: "[pttrn, i, o] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{_: _ ./ _})\<close>)
+  "_Replace"  :: "[pttrn, pttrn, i, o] \<Rightarrow> i" (\<open>(\<open>indent=1 notation=\<open>mixfix relational replacement\<close>\<close>{_ ./ _: _, _})\<close>)
+  "_RepFun"   :: "[i, pttrn, i] \<Rightarrow> i"        (\<open>(\<open>indent=1 notation=\<open>mixfix functional replacement\<close>\<close>{_ ./ _: _})\<close> [51,0,51])
   "_UNION"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder UN:\<close>\<close>UN _:_./ _)\<close> 10)
   "_INTER"    :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder INT:\<close>\<close>INT _:_./ _)\<close> 10)
   "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder PROD:\<close>\<close>PROD _:_./ _)\<close> 10)
