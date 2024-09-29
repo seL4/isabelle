@@ -551,9 +551,9 @@ with
 
 val empty_output = Output (0, []);
 
-fun init_output t = Output (1, [t]);
+fun token_output tok (Output (n, ts)) = Output (n + 1, Tip tok :: ts);
 
-fun add_output t (Output (n, ts)) = Output (n + 1, t :: ts);
+fun node_output id (Output (_, ts)) = Output (1, [Node (id, rev ts)]);
 
 fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 
@@ -561,8 +561,6 @@ val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
   (case int_ord (m, n) of
     EQUAL => dict_ord tree_ord (ss, tt)
   | ord => ord));
-
-fun output_content (Output (_, ts)) = rev ts;
 
 fun output_result (Output (_, [t])) = SOME t
   | output_result _ = NONE;
@@ -659,14 +657,14 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
                   else (*move dot*)
                     let
                       val out' =
-                        if Lexicon.valued_token c orelse id <> "" then add_output (Tip c) out
+                        if Lexicon.valued_token c orelse id <> "" then token_output c out
                         else out;
                     in (info, sa, out') :: Sii end;
               in process used states (S :: Si, Sii') end
           | [] => (*completer operation*)
               let
                 val (A, p, id, j) = info;
-                val out' = if id = "" then out else init_output (Node (id, output_content out));
+                val out' = if id = "" then out else node_output id out;
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
                     let val (q, used') = update_output (A, (out', p)) used
