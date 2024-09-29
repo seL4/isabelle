@@ -188,7 +188,8 @@ fun parsetree_to_ast ctxt trf parsetree =
     fun asts_of_position c tok =
       [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
-    and asts_of (Parser.Markup (markup, pts)) = maps asts_of pts
+    and asts_of (Parser.Markup ({markup, range = (pos, _), ...}, pts)) =
+          (append_reports (map (pair pos) markup); maps asts_of pts)
       | asts_of (Parser.Node ({const = "", ...}, pts)) = maps asts_of pts
       | asts_of (Parser.Node ({const = "_class_name", ...}, [Parser.Tip tok])) =
           let
