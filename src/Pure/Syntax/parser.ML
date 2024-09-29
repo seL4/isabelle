@@ -12,8 +12,8 @@ sig
   val make_gram: Syntax_Ext.xprod list -> Syntax_Ext.xprod list -> gram option -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype tree =
-    Markup of Markup.T list * tree list |
-    Node of {nonterm: string, const: string} * tree list |
+    Markup of {markup: Markup.T list, range: Position.range} * tree list |
+    Node of {nonterm: string, const: string, range: Position.range} * tree list |
     Tip of Lexicon.token
   val pretty_tree: tree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> tree list
@@ -512,9 +512,35 @@ end;
 (* parse tree *)
 
 datatype tree =
-  Markup of Markup.T list * tree list |
-  Node of {nonterm: string, const: string} * tree list |
+  Markup of {markup: Markup.T list, range: Position.range} * tree list |
+  Node of {nonterm: string, const: string, range: Position.range} * tree list |
   Tip of Lexicon.token;
+
+fun tree_range (Markup ({range, ...}, _)) = range
+  | tree_range (Node ({range, ...}, _)) = range
+  | tree_range (Tip tok) = Lexicon.range_of_token tok;
+
+fun trees_range trees =
+  let
+    fun first_pos [] = NONE
+      | first_pos (t :: rest) =
+          let val pos = #1 (tree_range t)
+          in if pos = Position.none then first_pos rest else SOME pos end;
+
+    fun last_pos [] res = res
+      | last_pos (t :: rest) res =
+          let
+            val end_pos = #2 (tree_range t);
+            val res' = if end_pos = Position.none then res else SOME end_pos;
+          in last_pos rest res' end;
+  in
+    (case first_pos trees of
+      NONE => Position.no_range
+    | SOME pos =>
+        (case last_pos trees NONE of
+          NONE => Position.no_range
+        | SOME end_pos => Position.range (pos, end_pos)))
+  end;
 
 datatype tree_op =
   Markup_Push |
@@ -550,7 +576,7 @@ in
       | _ => raise Match);
 end;
 
-fun make_tree names start tree_ops =
+fun make_tree names start_tag tree_ops =
   let
     fun top [] = []
       | top (xs :: _) = xs;
@@ -558,22 +584,23 @@ fun make_tree names start tree_ops =
     fun pop [] = []
       | pop (_ :: xs) = xs;
 
-    val start_name = {nonterm = start, const = ""};
+    fun make_markup markup ts =
+      Markup ({markup = markup, range = trees_range ts}, ts);
 
-    fun make_name {nonterm = nt, const} =
-      {nonterm = the_name names nt, const = const};
+    fun make_node {nonterm = nt, const} ts =
+      Node ({nonterm = the_name names nt, const = const, range = trees_range ts}, ts);
 
     fun make body stack ops =
       (case ops of
         Markup_Push :: rest => make [] (body :: stack) rest
-      | Markup_Pop markup :: rest => make (Markup (markup, body) :: top stack) (pop stack) rest
-      | Node_Op (name, ts) :: rest => make (Node (make_name name, make [] [] ts) :: body) stack rest
+      | Markup_Pop markup :: rest => make (make_markup markup body :: top stack) (pop stack) rest
+      | Node_Op (name, ts) :: rest => make (make_node name (make [] [] ts) :: body) stack rest
       | Tip_Op tok :: rest => make (Tip tok :: body) stack rest
       | [] => if null stack then body else raise Fail "Pending markup blocks");
   in
     (case make [] [] tree_ops of
       [t] => t
-    | ts => Node (start_name, ts))
+    | ts => make_node {nonterm = start_tag, const = ""} ts)
   end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
@@ -755,7 +782,7 @@ fun parse (gram as Gram {tags, names, ...}) start toks =
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map (output_tree names start o #3);
+      |> map (output_tree names start_tag o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;
