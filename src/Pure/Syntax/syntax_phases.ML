@@ -165,7 +165,7 @@ fun parsetree_to_ast ctxt trf parsetree =
     and report_literal a t =
       (case t of
         Parser.Markup (_, ts) => report_literals a ts
-      | Parser.Node ({const, ...}, ts) => if const = "" then report_literals a ts else ()
+      | Parser.Node _ => ()
       | Parser.Tip tok =>
           if Lexicon.is_literal tok then report (report_pos tok) (markup_entity ctxt) a else ());
 
