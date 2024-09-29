@@ -35,8 +35,11 @@ fun tags_size (tags: tags) = Symtab.size tags;
 fun tags_content (tags: tags) = sort_by #1 (Symtab.dest tags);
 fun tags_lookup (tags: tags) = Symtab.lookup tags;
 fun tags_insert tag (tags: tags) = Symtab.update_new tag tags;
-fun tags_name (tags: tags) =
-  the o Inttab.lookup (Inttab.build (Symtab.fold (Inttab.update_new o swap) tags));
+
+type names = string Inttab.table;
+val names_empty: names = Inttab.empty;
+fun make_names (tags: tags): names = Inttab.build (Symtab.fold (Inttab.update_new o swap) tags);
+fun the_name (names: names) = the o Inttab.lookup names;
 
 type nts = Bitset.T;
 val nts_empty: nts = Bitset.empty;
@@ -110,6 +113,7 @@ fun chains_insert (from, to) =
 datatype gram =
   Gram of
    {tags: tags,
+    names: names,
     chains: chains,
     lambdas: nts,
     prods: nt_gram Vector.vector};
@@ -404,9 +408,9 @@ fun add_production array_prods (lhs, new_prod as (rhs, _, _) : prod) (chains, la
 
 (* pretty_gram *)
 
-fun pretty_gram (Gram {tags, prods, chains, ...}) =
+fun pretty_gram (Gram {tags, names, prods, chains, ...}) =
   let
-    val print_nt = tags_name tags;
+    val print_nt = the_name names;
     fun print_pri p = if p < 0 then "" else Symbol.make_sup ("(" ^ string_of_int p ^ ")");
 
     fun pretty_symb (Terminal tok) =
@@ -433,6 +437,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 val empty_gram =
   Gram
    {tags = tags_empty,
+    names = names_empty,
     chains = chains_empty,
     lambdas = nts_empty,
     prods = Vector.fromList [nt_gram_empty]};
@@ -471,7 +476,7 @@ fun extend_gram xprods gram =
       in ((tag, (rev rev_symbs, const, pri)) :: result, tags'') end;
 
 
-    val Gram {tags, chains, lambdas, prods} = gram;
+    val Gram {tags, names = _, chains, lambdas, prods} = gram;
 
     val (new_prods, tags') = fold make_prod xprods ([], tags);
 
@@ -485,6 +490,7 @@ fun extend_gram xprods gram =
   in
     Gram
      {tags = tags',
+      names = make_names tags',
       chains = chains',
       lambdas = lambdas',
       prods = Array.vector array_prods'}
