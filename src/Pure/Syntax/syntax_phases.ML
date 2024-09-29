@@ -186,13 +186,14 @@ fun parsetree_to_ast ctxt trf parsetree =
       [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
 
     and asts_of (Parser.Markup (markup, pts)) = maps asts_of pts
-      | asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
+      | asts_of (Parser.Node ({const = "", ...}, pts)) = maps asts_of pts
+      | asts_of (Parser.Node ({const = "_class_name", ...}, [Parser.Tip tok])) =
           let
             val pos = report_pos tok;
             val (c, rs) = Proof_Context.check_class ctxt (Lexicon.str_of_token tok, pos);
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_class c)] end
-      | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
+      | asts_of (Parser.Node ({const = "_type_name", ...}, [Parser.Tip tok])) =
           let
             val pos = report_pos tok;
             val (c, rs) =
@@ -201,15 +202,17 @@ fun parsetree_to_ast ctxt trf parsetree =
               |>> dest_Type_name;
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
-      | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
-      | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
-      | asts_of (Parser.Node (a as "\<^const>Pure.dummy_pattern", [Parser.Tip tok])) =
+      | asts_of (Parser.Node ({const = "_position", ...}, [Parser.Tip tok])) =
+          asts_of_position "_constrain" tok
+      | asts_of (Parser.Node ({const = "_position_sort", ...}, [Parser.Tip tok])) =
+          asts_of_position "_ofsort" tok
+      | asts_of (Parser.Node ({const = a as "\<^const>Pure.dummy_pattern", ...}, [Parser.Tip tok])) =
           [ast_of_dummy a tok]
-      | asts_of (Parser.Node (a as "_idtdummy", [Parser.Tip tok])) =
+      | asts_of (Parser.Node ({const = a as "_idtdummy", ...}, [Parser.Tip tok])) =
           [ast_of_dummy a tok]
-      | asts_of (Parser.Node ("_idtypdummy", pts as [Parser.Tip tok, _, _])) =
+      | asts_of (Parser.Node ({const = "_idtypdummy", ...}, pts as [Parser.Tip tok, _, _])) =
           [Ast.Appl (Ast.Constant "_constrain" :: ast_of_dummy "_idtdummy" tok :: maps asts_of pts)]
-      | asts_of (Parser.Node (a, pts)) =
+      | asts_of (Parser.Node ({const = a, ...}, pts)) =
           let val _ = List.app (report_token a) pts;
           in [trans a (maps asts_of pts)] end
       | asts_of (Parser.Tip tok) = asts_of_token tok

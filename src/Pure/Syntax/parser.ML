@@ -13,7 +13,7 @@ sig
   val pretty_gram: gram -> Pretty.T list
   datatype tree =
     Markup of Markup.T list * tree list |
-    Node of string * tree list |
+    Node of {nonterm: string, const: string} * tree list |
     Tip of Lexicon.token
   val pretty_tree: tree -> Pretty.T list
   val parse: gram -> string -> Lexicon.token list -> tree list
@@ -513,13 +513,13 @@ end;
 
 datatype tree =
   Markup of Markup.T list * tree list |
-  Node of string * tree list |
+  Node of {nonterm: string, const: string} * tree list |
   Tip of Lexicon.token;
 
 datatype tree_op =
   Markup_Push |
   Markup_Pop of Markup.T list |
-  Node_Op of string * tree_op list |
+  Node_Op of {nonterm: int, const: string} * tree_op list |
   Tip_Op of Lexicon.token;
 
 local
@@ -531,7 +531,7 @@ in
     if pointer_eq arg then EQUAL
     else
       (case apply2 drop_markup arg of
-        (Node_Op (s, ts) :: rest, Node_Op (s', ts') :: rest') =>
+        (Node_Op ({const = s, ...}, ts) :: rest, Node_Op ({const = s', ...}, ts') :: rest') =>
           (case fast_string_ord (s, s') of
             EQUAL =>
               (case tree_ops_ord (ts, ts') of
@@ -550,7 +550,7 @@ in
       | _ => raise Match);
 end;
 
-fun make_tree tree_ops =
+fun make_tree names tree_ops =
   let
     fun top [] = []
       | top (xs :: _) = xs;
@@ -558,17 +558,20 @@ fun make_tree tree_ops =
     fun pop [] = []
       | pop (_ :: xs) = xs;
 
+    fun make_name {nonterm = nt, const} =
+      {nonterm = the_name names nt, const = const};
+
     fun make body stack ops =
       (case ops of
         Markup_Push :: rest => make [] (body :: stack) rest
       | Markup_Pop markup :: rest => make (Markup (markup, body) :: top stack) (pop stack) rest
-      | Node_Op (id, ts) :: rest => make (Node (id, make [] [] ts) :: body) stack rest
+      | Node_Op (name, ts) :: rest => make (Node (make_name name, make [] [] ts) :: body) stack rest
       | Tip_Op tok :: rest => make (Tip tok :: body) stack rest
       | [] => if null stack then body else raise Fail "Pending markup blocks");
  in (case make [] [] tree_ops of [t] => SOME t | _ => NONE) end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
-  | pretty_tree (Node (c, ts)) =
+  | pretty_tree (Node ({const = c, ...}, ts)) =
       [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
   | pretty_tree (Tip tok) =
       if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
@@ -593,7 +596,7 @@ fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
   (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
 
-fun output_tree (Output (_, ts)) = make_tree ts;
+fun output_tree names (Output (_, ts)) = make_tree names ts;
 
 end;
 
@@ -693,7 +696,7 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
           | [] => (*completer operation*)
               let
                 val (A, p, id, j) = info;
-                val out' = if id = "" then out else node_output id out;
+                val out' = node_output {nonterm = A, const = id} out;
                 val (used', Slist) =
                   if j = i then (*lambda production?*)
                     let val (q, used') = update_output (A, (out', p)) used
@@ -732,7 +735,7 @@ fun produce gram stateset i prev rest =
 
 in
 
-fun parse (gram as Gram {tags, ...}) start toks =
+fun parse (gram as Gram {tags, names, ...}) start toks =
   let
     val start_tag =
       (case tags_lookup tags start of
@@ -752,7 +755,7 @@ fun parse (gram as Gram {tags, ...}) start toks =
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map_filter (output_tree o #3);
+      |> map_filter (output_tree names o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;
