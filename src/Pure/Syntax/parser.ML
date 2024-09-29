@@ -553,7 +553,7 @@ val empty_output = Output (0, []);
 
 fun token_output tok (Output (n, ts)) = Output (n + 1, Tip tok :: ts);
 
-fun node_output id (Output (_, ts)) = Output (1, [Node (id, rev ts)]);
+fun node_output id (Output (n, ts)) = Output (n, [Node (id, rev ts)]);
 
 fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 
