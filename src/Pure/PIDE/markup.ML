@@ -7,6 +7,7 @@ Quasi-abstract markup elements.
 signature MARKUP =
 sig
   type T = string * Properties.T
+  val ord: T ord
   val empty: T
   val is_empty: T -> bool
   val properties: Properties.T -> T -> T
@@ -297,6 +298,8 @@ struct
 (* basic markup *)
 
 type T = string * Properties.T;
+
+val ord = prod_ord string_ord Properties.ord;
 
 val empty = ("", []);
 
