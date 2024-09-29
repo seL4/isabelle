@@ -161,6 +161,11 @@ fun parsetree_to_ast ctxt trf parsetree =
       if Lexicon.is_literal tok andalso null (Lexicon.literal_markup (Lexicon.str_of_token tok))
       then Position.none else Lexicon.pos_of_token tok;
 
+    fun report_token a (Parser.Tip tok) =
+          if Lexicon.valued_token tok then ()
+          else report (report_pos tok) (markup_entity ctxt) a
+      | report_token _ _ = ();
+
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
@@ -204,11 +209,7 @@ fun parsetree_to_ast ctxt trf parsetree =
       | asts_of (Parser.Node ("_idtypdummy", pts as [Parser.Tip tok, _, _])) =
           [Ast.Appl (Ast.Constant "_constrain" :: ast_of_dummy "_idtdummy" tok :: maps asts_of pts)]
       | asts_of (Parser.Node (a, pts)) =
-          let
-            val _ = pts |> List.app
-              (fn Parser.Node _ => () | Parser.Tip tok =>
-                if Lexicon.valued_token tok then ()
-                else report (report_pos tok) (markup_entity ctxt) a);
+          let val _ = List.app (report_token a) pts;
           in [trans a (maps asts_of pts)] end
       | asts_of (Parser.Tip tok) = asts_of_token tok
 
