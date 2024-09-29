@@ -550,13 +550,15 @@ in
       | _ => raise Match);
 end;
 
-fun make_tree names tree_ops =
+fun make_tree names start tree_ops =
   let
     fun top [] = []
       | top (xs :: _) = xs;
 
     fun pop [] = []
       | pop (_ :: xs) = xs;
+
+    val start_name = {nonterm = start, const = ""};
 
     fun make_name {nonterm = nt, const} =
       {nonterm = the_name names nt, const = const};
@@ -568,7 +570,11 @@ fun make_tree names tree_ops =
       | Node_Op (name, ts) :: rest => make (Node (make_name name, make [] [] ts) :: body) stack rest
       | Tip_Op tok :: rest => make (Tip tok :: body) stack rest
       | [] => if null stack then body else raise Fail "Pending markup blocks");
- in (case make [] [] tree_ops of [t] => SOME t | _ => NONE) end;
+  in
+    (case make [] [] tree_ops of
+      [t] => t
+    | ts => Node (start_name, ts))
+  end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
   | pretty_tree (Node ({const = c, ...}, ts)) =
@@ -596,7 +602,7 @@ fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
   (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
 
-fun output_tree names (Output (_, ts)) = make_tree names ts;
+fun output_tree names start (Output (_, ts)) = make_tree names start ts;
 
 end;
 
@@ -681,15 +687,9 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
               in process used' states'' (S :: Si, Sii) end
           | Terminal a :: sa => (*scanner operation*)
               let
-                val (_, _, id, _) = info;
                 val Sii' =
-                  if Lexicon.token_type_ord (a, c) <> EQUAL then Sii
-                  else (*move dot*)
-                    let
-                      val out' =
-                        if Lexicon.valued_token c orelse id <> ""
-                        then token_output c out else out;
-                    in (info, sa, out') :: Sii end;
+                  if is_equal (Lexicon.token_type_ord (a, c))
+                  then (*move dot*) (info, sa, token_output c out) :: Sii else Sii;
               in process used states (S :: Si, Sii') end
           | Bg markup :: sa => process used ((info, sa, pop_output markup out) :: states) (Si, Sii)
           | En :: sa => process used ((info, sa, push_output out) :: states) (Si, Sii)
@@ -755,7 +755,7 @@ fun parse (gram as Gram {tags, names, ...}) start toks =
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map_filter (output_tree names o #3);
+      |> map (output_tree names start o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;
