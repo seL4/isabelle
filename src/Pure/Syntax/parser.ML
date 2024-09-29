@@ -531,8 +531,8 @@ in
     if pointer_eq arg then EQUAL
     else
       (case apply2 drop_markup arg of
-        (Node_Op ({const = s, ...}, ts) :: rest, Node_Op ({const = s', ...}, ts') :: rest') =>
-          (case fast_string_ord (s, s') of
+        (Node_Op ({nonterm = nt, ...}, ts) :: rest, Node_Op ({nonterm = nt', ...}, ts') :: rest') =>
+          (case int_ord (nt, nt') of
             EQUAL =>
               (case tree_ops_ord (ts, ts') of
                 EQUAL => tree_ops_ord (rest, rest')
