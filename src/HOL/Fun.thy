@@ -844,10 +844,10 @@ syntax
   "_updbind" :: "'a \<Rightarrow> 'a \<Rightarrow> updbind"             (\<open>(\<open>indent=2 notation=\<open>mixfix update\<close>\<close>_ :=/ _)\<close>)
   ""         :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
   "_updbinds":: "updbind \<Rightarrow> updbinds \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
-  "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"            (\<open>_/'((\<open>indent=2 notation=\<open>mixfix updates\<close>\<close>_)')\<close> [1000, 0] 900)
+  "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"            (\<open>_/'((2_)')\<close> [1000, 0] 900)
 
 syntax_consts
-  "_updbind" "_updbinds" "_Update" \<rightleftharpoons> fun_upd
+  fun_upd
 
 translations
   "_Update f (_updbinds b bs)" \<rightleftharpoons> "_Update (_Update f b) bs"

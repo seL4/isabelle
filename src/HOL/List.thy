@@ -141,7 +141,7 @@ syntax
   "_LUpdate" :: "['a, lupdbinds] => 'a"    (\<open>_/[(_)]\<close> [1000,0] 900)
 
 syntax_consts
-  "_lupdbind" "_lupdbinds" "_LUpdate" == list_update
+  list_update
 
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
