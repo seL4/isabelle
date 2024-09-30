@@ -131,13 +131,10 @@ abbreviation
     (infixl \<open>\<union>\<sharp>\<close> 65) where
   "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
-nonterminal upper_pd_args
 syntax
-  "" :: "logic \<Rightarrow> upper_pd_args"  (\<open>_\<close>)
-  "_upper_pd_args" :: "logic \<Rightarrow> upper_pd_args \<Rightarrow> upper_pd_args"  (\<open>_,/ _\<close>)
-  "_upper_pd" :: "upper_pd_args \<Rightarrow> logic"  (\<open>{_}\<sharp>\<close>)
+  "_upper_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix upper_pd enumeration\<close>\<close>{_}\<sharp>)\<close>)
 syntax_consts
-  "_upper_pd_args" "_upper_pd" == upper_add
+  upper_add
 translations
   "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
   "{x}\<sharp>" == "CONST upper_unit\<cdot>x"

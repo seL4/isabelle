@@ -133,13 +133,10 @@ abbreviation
     (infixl \<open>\<union>\<flat>\<close> 65) where
   "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
-nonterminal lower_pd_args
 syntax
-  "" :: "logic \<Rightarrow> lower_pd_args"  (\<open>_\<close>)
-  "_lower_pd_args" :: "logic \<Rightarrow> lower_pd_args \<Rightarrow> lower_pd_args"  (\<open>_,/ _\<close>)
-  "_lower_pd" :: "lower_pd_args \<Rightarrow> logic" (\<open>{_}\<flat>\<close>)
+  "_lower_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix lower_pd enumeration\<close>\<close>{_}\<flat>)\<close>)
 syntax_consts
-  "_lower_pd_args" "_lower_pd" == lower_add
+  lower_add
 translations
   "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"
   "{x}\<flat>" == "CONST lower_unit\<cdot>x"

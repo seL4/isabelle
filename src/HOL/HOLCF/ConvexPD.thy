@@ -178,13 +178,10 @@ abbreviation
     (infixl \<open>\<union>\<natural>\<close> 65) where
   "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
-nonterminal convex_pd_args
 syntax
-  "" :: "logic \<Rightarrow> convex_pd_args"  (\<open>_\<close>)
-  "_convex_pd_args" :: "logic \<Rightarrow> convex_pd_args \<Rightarrow> convex_pd_args"  (\<open>_,/ _\<close>)
-  "_convex_pd" :: "convex_pd_args \<Rightarrow> logic"  (\<open>{_}\<natural>\<close>)
+  "_convex_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix convex_pd enumeration\<close>\<close>{_}\<natural>)\<close>)
 syntax_consts
-  "_convex_pd_args" "_convex_pd" == convex_add
+  convex_add
 translations
   "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"
   "{x}\<natural>" == "CONST convex_unit\<cdot>x"
