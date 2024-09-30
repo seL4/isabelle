@@ -542,6 +542,15 @@ fun trees_range trees =
         | SOME end_pos => Position.range (pos, end_pos)))
   end;
 
+fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
+  | pretty_tree (Node ({const = c, ...}, ts)) =
+      [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
+  | pretty_tree (Tip tok) =
+      if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
+
+
+(* tree_op: bottom-up construction of markup *)
+
 datatype tree_op =
   Markup_Push |
   Markup_Pop of Markup.T list |
@@ -599,12 +608,6 @@ fun make_tree names root tree_ops =
       | [] => if null stack then body else raise Fail "Pending markup blocks");
   in make_node {nonterm = root, const = ""} (make [] [] tree_ops) end;
 
-fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
-  | pretty_tree (Node ({const = c, ...}, ts)) =
-      [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
-  | pretty_tree (Tip tok) =
-      if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
-
 
 (* output *)
 
@@ -614,7 +617,6 @@ with
 val empty_output = Output (0, []);
 
 fun token_output tok (Output (n, ts)) = Output (n + 1, Tip_Op tok :: ts);
-
 fun node_output id (Output (n, ts)) = Output (n, [Node_Op (id, ts)]);
 
 fun push_output (Output (n, ts)) = Output (n, Markup_Push :: ts);
@@ -622,8 +624,9 @@ fun pop_output markup (Output (n, ts)) = Output (n, Markup_Pop markup :: ts);
 
 fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 
-val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
-  (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
+val output_ord =
+  pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
+    (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
 
 fun output_tree names root (Output (_, ts)) = make_tree names root ts;
 
@@ -632,8 +635,7 @@ end;
 structure Output = Table(type key = output val ord = output_ord);
 
 
-
-(* parser state *)
+(* parse *)
 
 type state =
   (nt * int *       (*identification and production precedence*)
@@ -758,12 +760,12 @@ fun produce gram stateset i prev rest =
 
 in
 
-fun parse (gram as Gram {tags, names, ...}) root toks =
+fun parse (gram as Gram {tags, names, ...}) root_name toks =
   let
-    val root_tag =
-      (case tags_lookup tags root of
+    val root =
+      (case tags_lookup tags root_name of
         SOME tag => tag
-      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote root));
+      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote root_name));
 
     val end_pos =
       (case try List.last toks of
@@ -771,14 +773,13 @@ fun parse (gram as Gram {tags, names, ...}) root toks =
       | SOME tok => Lexicon.end_pos_of_token tok);
     val input = toks @ [Lexicon.mk_eof end_pos];
 
-    val S0: state =
-      ((~1, 0, "", 0), [Nonterminal (root_tag, 0), Terminal Lexicon.eof], empty_output);
+    val S0: state = ((~1, 0, "", 0), [Nonterminal (root, 0), Terminal Lexicon.eof], empty_output);
     val stateset = Array.array (length input + 1, []);
     val _ = Array.upd stateset 0 [S0];
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map (output_tree names root_tag o #3);
+      |> map (output_tree names root o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;
