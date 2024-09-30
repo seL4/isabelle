@@ -452,8 +452,11 @@ text \<open>
 \noindent
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
-
-    syntax "_list" :: "list_args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
+(*<*)
+no_syntax
+  "_list" :: "args => 'a list"    (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
+(*>*)
+    syntax "_list" :: "args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
 
 text \<open>\blankline\<close>
 

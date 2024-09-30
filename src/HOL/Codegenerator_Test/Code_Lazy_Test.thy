@@ -23,13 +23,10 @@ subsection \<open>Finite lazy lists\<close>
 code_lazy_type llist
 
 no_notation lazy_llist (\<open>_\<close>)
-nonterminal llist_args
 syntax
-  "" :: "'a \<Rightarrow> llist_args"  (\<open>_\<close>)
-  "_llist_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  (\<open>_,/ _\<close>)
-  "_llist" :: "llist_args => 'a list"    (\<open>\<^bold>[(_)\<^bold>]\<close>)
+  "_llist" :: "args => 'a list"    (\<open>\<^bold>[(\<open>notation=\<open>mixfix lazy list enumeration\<close>\<close>_)\<^bold>]\<close>)
 syntax_consts
-  "_llist_args" "_llist" == lazy_llist
+  lazy_llist
 translations
   "\<^bold>[x, xs\<^bold>]" == "x\<^bold>#\<^bold>[xs\<^bold>]"
   "\<^bold>[x\<^bold>]" == "x\<^bold>#\<^bold>[\<^bold>]"

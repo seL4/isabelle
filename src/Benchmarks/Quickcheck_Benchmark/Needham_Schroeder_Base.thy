@@ -27,12 +27,12 @@ datatype
          | Crypt  key msg
 
 syntax
-  "_MTuple"      :: "['a, args] => 'a * 'b"       ("(2\<lbrace>_,/ _\<rbrace>)")
+  "_MTuple" :: "['a, args] \<Rightarrow> 'a * 'b"  (\<open>(\<open>indent=2 notation=\<open>mixfix message tuple\<close>\<close>\<lbrace>_,/ _\<rbrace>)\<close>)
 syntax_consts
-  "_MTuple"     == MPair
+  MPair
 translations
-  "\<lbrace>x, y, z\<rbrace>"   == "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
-  "\<lbrace>x, y\<rbrace>"      == "CONST MPair x y"
+  "\<lbrace>x, y, z\<rbrace>" \<rightleftharpoons> "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
+  "\<lbrace>x, y\<rbrace>" \<rightleftharpoons> "CONST MPair x y"
 
 inductive_set
   parts :: "msg set => msg set"

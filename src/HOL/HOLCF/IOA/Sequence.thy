@@ -69,14 +69,11 @@ abbreviation Consq_syn  (\<open>(_/\<leadsto>_)\<close> [66, 65] 65)
 
 subsection \<open>List enumeration\<close>
 
-nonterminal llist_args
 syntax
-  "" :: "'a \<Rightarrow> llist_args"  (\<open>_\<close>)
-  "_list_args" :: "'a \<Rightarrow> llist_args \<Rightarrow> llist_args"  (\<open>_,/ _\<close>)
-  "_totlist" :: "llist_args \<Rightarrow> 'a Seq"  (\<open>[(_)!]\<close>)
-  "_partlist" :: "llist_args \<Rightarrow> 'a Seq"  (\<open>[(_)?]\<close>)
+  "_totlist" :: "args \<Rightarrow> 'a Seq"  (\<open>[(\<open>notation=\<open>mixfix total list enumeration\<close>\<close>_)!]\<close>)
+  "_partlist" :: "args \<Rightarrow> 'a Seq"  (\<open>[(\<open>notation=\<open>mixfix partial list enumeration\<close>\<close>_)?]\<close>)
 syntax_consts
-  "_totlist" "_partlist" \<rightleftharpoons> Consq
+  Consq
 translations
   "[x, xs!]" \<rightleftharpoons> "x \<leadsto> [xs!]"
   "[x!]" \<rightleftharpoons> "x\<leadsto>nil"

@@ -48,13 +48,10 @@ datatype
 
 
 text\<open>Concrete syntax: messages appear as \<open>\<lbrace>A,B,NA\<rbrace>\<close>, etc...\<close>
-nonterminal mtuple_args
 syntax
-  "" :: "'a \<Rightarrow> mtuple_args"  (\<open>_\<close>)
-  "_MTuple_args" :: "'a \<Rightarrow> mtuple_args \<Rightarrow> mtuple_args"  (\<open>_,/ _\<close>)
-  "_MTuple" :: "['a, mtuple_args] \<Rightarrow> 'a * 'b"  (\<open>(2\<lbrace>_,/ _\<rbrace>)\<close>)
+  "_MTuple" :: "['a, args] \<Rightarrow> 'a * 'b"  (\<open>(\<open>indent=2 notation=\<open>mixfix message tuple\<close>\<close>\<lbrace>_,/ _\<rbrace>)\<close>)
 syntax_consts
-  "_MTuple_args" "_MTuple" \<rightleftharpoons> MPair
+  MPair
 translations
   "\<lbrace>x, y, z\<rbrace>" \<rightleftharpoons> "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
   "\<lbrace>x, y\<rbrace>" \<rightleftharpoons> "CONST MPair x y"

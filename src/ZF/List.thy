@@ -15,11 +15,8 @@ datatype
 
 notation Nil (\<open>[]\<close>)
 
-nonterminal list_args
 syntax
-  "" :: "i \<Rightarrow> list_args"  (\<open>_\<close>)
-  "_List_args" :: "[i, list_args] \<Rightarrow> list_args"  (\<open>_,/ _\<close>)
-  "_List" :: "list_args \<Rightarrow> i"  (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
+  "_List" :: "is \<Rightarrow> i"  (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
 syntax_consts
   Cons
 translations

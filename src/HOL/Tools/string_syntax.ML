@@ -123,7 +123,7 @@ fun string_tr [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ t $
 
 fun list_ast_tr' [args] =
       Ast.Appl [Ast.Constant \<^syntax_const>\<open>_String\<close>,
-        (mk_string_ast o maps dest_char_ast o Ast.unfold_ast \<^syntax_const>\<open>_list_args\<close>) args]
+        (mk_string_ast o maps dest_char_ast o Ast.unfold_ast \<^syntax_const>\<open>_args\<close>) args]
   | list_ast_tr' _ = raise Match;
 
 

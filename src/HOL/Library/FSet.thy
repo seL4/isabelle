@@ -164,13 +164,10 @@ subsection \<open>Other operations\<close>
 lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is insert parametric Lifting_Set.insert_transfer
   by simp
 
-nonterminal fset_args
 syntax
-  "" :: "'a \<Rightarrow> fset_args"  (\<open>_\<close>)
-  "_fset_args" :: "'a \<Rightarrow> fset_args \<Rightarrow> fset_args"  (\<open>_,/ _\<close>)
-  "_fset" :: "fset_args => 'a fset"  (\<open>{|(_)|}\<close>)
+  "_fset" :: "args => 'a fset"  (\<open>{|(\<open>notation=\<open>mixfix finite set enumeration\<close>\<close>_)|}\<close>)
 syntax_consts
-  "_fset_args" "_fset" == finsert
+  finsert
 translations
   "{|x, xs|}" == "CONST finsert x {|xs|}"
   "{|x|}"     == "CONST finsert x {||}"

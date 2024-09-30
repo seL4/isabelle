@@ -45,13 +45,10 @@ lemmas set_simps = list.set (* legacy *)
 
 text \<open>List enumeration\<close>
 
-nonterminal list_args
 syntax
-  "" :: "'a \<Rightarrow> list_args"  (\<open>_\<close>)
-  "_list_args" :: "'a \<Rightarrow> list_args \<Rightarrow> list_args"  (\<open>_,/ _\<close>)
-  "_list" :: "list_args => 'a list"    (\<open>[(_)]\<close>)
+  "_list" :: "args => 'a list"    (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
 syntax_consts
-  "_list_args" "_list" == Cons
+  Cons
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"

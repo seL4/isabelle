@@ -348,13 +348,10 @@ quickcheck_generator poly constructors: "0 :: _ poly", pCons
 
 subsection \<open>List-style syntax for polynomials\<close>
 
-nonterminal poly_args
 syntax
-  "" :: "'a \<Rightarrow> poly_args"  (\<open>_\<close>)
-  "_poly_args" :: "'a \<Rightarrow> poly_args \<Rightarrow> poly_args"  (\<open>_,/ _\<close>)
-  "_poly" :: "poly_args \<Rightarrow> 'a poly"  (\<open>[:(_):]\<close>)
+  "_poly" :: "args \<Rightarrow> 'a poly"  (\<open>[:(\<open>notation=\<open>mixfix polynomial enumeration\<close>\<close>_):]\<close>)
 syntax_consts
-  "_poly_args" "_poly" \<rightleftharpoons> pCons
+  pCons
 translations
   "[:x, xs:]" \<rightleftharpoons> "CONST pCons x [:xs:]"
   "[:x:]" \<rightleftharpoons> "CONST pCons x 0"

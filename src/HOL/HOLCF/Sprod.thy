@@ -40,13 +40,10 @@ definition spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)"
 definition ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c"
   where "ssplit = (\<Lambda> f p. seq\<cdot>p\<cdot>(f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
-nonterminal stuple_args
 syntax
-  "" :: "logic \<Rightarrow> stuple_args"  (\<open>_\<close>)
-  "_stuple_args" :: "logic \<Rightarrow> stuple_args \<Rightarrow> stuple_args"  (\<open>_,/ _\<close>)
-  "_stuple" :: "[logic, stuple_args] \<Rightarrow> logic"  (\<open>(1'(:_,/ _:'))\<close>)
+  "_stuple" :: "[logic, args] \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix strict tuple\<close>\<close>'(:_,/ _:'))\<close>)
 syntax_consts
-  "_stuple_args" "_stuple" \<rightleftharpoons> spair
+  spair
 translations
   "(:x, y, z:)" \<rightleftharpoons> "(:x, (:y, z:):)"
   "(:x, y:)" \<rightleftharpoons> "CONST spair\<cdot>x\<cdot>y"

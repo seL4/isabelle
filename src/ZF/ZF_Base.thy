@@ -129,11 +129,11 @@ definition cons :: "[i, i] \<Rightarrow> i"
 definition succ :: "i \<Rightarrow> i"
   where "succ(i) \<equiv> cons(i, i)"
 
-nonterminal "finset_args"
+nonterminal "is"
 syntax
-  "" :: "i \<Rightarrow> finset_args"  (\<open>_\<close>)
-  "_Finset_args" :: "[i, finset_args] \<Rightarrow> finset_args"  (\<open>_,/ _\<close>)
-  "_Finset" :: "finset_args \<Rightarrow> i"  (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
+  "" :: "i \<Rightarrow> is"  (\<open>_\<close>)
+  "_Enum" :: "[i, is] \<Rightarrow> is"  (\<open>_,/ _\<close>)
+  "_Finset" :: "is \<Rightarrow> i"  (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
 syntax_consts
   cons
 translations
