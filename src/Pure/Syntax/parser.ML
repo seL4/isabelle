@@ -597,11 +597,7 @@ fun make_tree names root tree_ops =
       | Node_Op (name, ts) :: rest => make (make_node name (make [] [] ts) :: body) stack rest
       | Tip_Op tok :: rest => make (Tip tok :: body) stack rest
       | [] => if null stack then body else raise Fail "Pending markup blocks");
-  in
-    (case make [] [] tree_ops of
-      [t] => t
-    | ts => make_node {nonterm = root, const = ""} ts)
-  end;
+  in make_node {nonterm = root, const = ""} (make [] [] tree_ops) end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
   | pretty_tree (Node ({const = c, ...}, ts)) =
