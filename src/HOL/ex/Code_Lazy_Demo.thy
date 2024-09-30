@@ -40,7 +40,7 @@ datatype 'a llist
   | LCons (lhd: 'a) (ltl: "'a llist") (infixr \<open>###\<close> 65)
 
 syntax
-  "_llist" :: "args => 'a list"    (\<open>\<^bold>\<lbrakk>(\<open>notation=\<open>mixfix lazy list enumeration\<close>\<close>_)\<^bold>\<rbrakk>\<close>)
+  "_llist" :: "args => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix lazy list enumeration\<close>\<close>\<^bold>\<lbrakk>_\<^bold>\<rbrakk>)\<close>)
 syntax_consts
   LCons
 translations

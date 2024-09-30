@@ -165,7 +165,7 @@ lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is i
   by simp
 
 syntax
-  "_fset" :: "args => 'a fset"  (\<open>{|(\<open>notation=\<open>mixfix finite set enumeration\<close>\<close>_)|}\<close>)
+  "_fset" :: "args => 'a fset"  (\<open>(\<open>indent=2 notation=\<open>mixfix finite set enumeration\<close>\<close>{|_|})\<close>)
 syntax_consts
   finsert
 translations

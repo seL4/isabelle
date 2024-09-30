@@ -289,7 +289,7 @@ quotient_definition
   is "Cons" by auto
 
 syntax
-  "_fset" :: "args => 'a fset"  (\<open>{|(\<open>notation=\<open>mixfix finite set enumeration\<close>\<close>_)|}\<close>)
+  "_fset" :: "args => 'a fset"  (\<open>(\<open>indent=2 notation=\<open>mixfix finite set enumeration\<close>\<close>{|_|})\<close>)
 syntax_consts
   insert_fset
 translations

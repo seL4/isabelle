@@ -16,7 +16,7 @@ datatype
 notation Nil (\<open>[]\<close>)
 
 syntax
-  "_List" :: "is \<Rightarrow> i"  (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
+  "_List" :: "is \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 syntax_consts
   Cons
 translations

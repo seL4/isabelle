@@ -19,7 +19,7 @@ consts
 text \<open>List enumeration\<close>
 
 syntax
-  "_list" :: "args => 'a list"    (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
+  "_list" :: "args => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 syntax_consts
   Cons
 translations

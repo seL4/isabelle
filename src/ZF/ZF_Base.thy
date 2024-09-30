@@ -133,7 +133,7 @@ nonterminal "is"
 syntax
   "" :: "i \<Rightarrow> is"  (\<open>_\<close>)
   "_Enum" :: "[i, is] \<Rightarrow> is"  (\<open>_,/ _\<close>)
-  "_Finset" :: "is \<Rightarrow> i"  (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
+  "_Finset" :: "is \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
 syntax_consts
   cons
 translations
@@ -196,7 +196,7 @@ nonterminal "tuple_args"
 syntax
   "" :: "i \<Rightarrow> tuple_args"  (\<open>_\<close>)
   "_Tuple_args" :: "[i, tuple_args] \<Rightarrow> tuple_args"  (\<open>_,/ _\<close>)
-  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"              (\<open>\<langle>(\<open>notation=\<open>mixfix tuple enumeration\<close>\<close>_,/ _)\<rangle>\<close>)
+  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix tuple enumeration\<close>\<close>\<langle>_,/ _\<rangle>)\<close>)
 syntax_consts
   Pair
 translations

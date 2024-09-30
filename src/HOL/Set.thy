@@ -144,7 +144,7 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
   where insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
 
 syntax
-  "_Finset" :: "args \<Rightarrow> 'a set"    (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
+  "_Finset" :: "args \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
 syntax_consts
   insert
 translations
