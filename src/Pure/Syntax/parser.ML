@@ -576,7 +576,7 @@ in
       | _ => raise Match);
 end;
 
-fun make_tree names start_tag tree_ops =
+fun make_tree names root tree_ops =
   let
     fun top [] = []
       | top (xs :: _) = xs;
@@ -600,7 +600,7 @@ fun make_tree names start_tag tree_ops =
   in
     (case make [] [] tree_ops of
       [t] => t
-    | ts => make_node {nonterm = start_tag, const = ""} ts)
+    | ts => make_node {nonterm = root, const = ""} ts)
   end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
@@ -629,7 +629,7 @@ fun append_output (Output (m, ss)) (Output (n, ts)) = Output (m + n, ss @ ts);
 val output_ord = pointer_eq_ord (fn (Output (m, ss), Output (n, tt)) =>
   (case int_ord (m, n) of EQUAL => tree_ops_ord (ss, tt) | ord => ord));
 
-fun output_tree names start (Output (_, ts)) = make_tree names start ts;
+fun output_tree names root (Output (_, ts)) = make_tree names root ts;
 
 end;
 
@@ -762,12 +762,12 @@ fun produce gram stateset i prev rest =
 
 in
 
-fun parse (gram as Gram {tags, names, ...}) start toks =
+fun parse (gram as Gram {tags, names, ...}) root toks =
   let
-    val start_tag =
-      (case tags_lookup tags start of
+    val root_tag =
+      (case tags_lookup tags root of
         SOME tag => tag
-      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote start));
+      | NONE => error ("Inner syntax: bad grammar root symbol " ^ quote root));
 
     val end_pos =
       (case try List.last toks of
@@ -776,13 +776,13 @@ fun parse (gram as Gram {tags, names, ...}) start toks =
     val input = toks @ [Lexicon.mk_eof end_pos];
 
     val S0: state =
-      ((~1, 0, "", 0), [Nonterminal (start_tag, 0), Terminal Lexicon.eof], empty_output);
+      ((~1, 0, "", 0), [Nonterminal (root_tag, 0), Terminal Lexicon.eof], empty_output);
     val stateset = Array.array (length input + 1, []);
     val _ = Array.upd stateset 0 [S0];
 
     val result =
       produce gram stateset 0 Lexicon.dummy input
-      |> map (output_tree names start_tag o #3);
+      |> map (output_tree names root_tag o #3);
   in if null result then raise Fail "Inner syntax: no parse trees" else result end;
 
 end;
