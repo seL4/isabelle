@@ -574,7 +574,7 @@ in
               | ord => ord)
           | ord => ord)
       | (Tip_Op t :: rest, Tip_Op t' :: rest') =>
-          (case Lexicon.token_ord (t, t') of
+          (case Lexicon.token_content_ord (t, t') of
             EQUAL => tree_ops_ord (rest, rest')
           | ord => ord)
       | (Node_Op _ :: _, Tip_Op _ :: _) => LESS
