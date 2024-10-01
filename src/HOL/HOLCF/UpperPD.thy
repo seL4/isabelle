@@ -133,8 +133,6 @@ abbreviation
 
 syntax
   "_upper_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix upper_pd enumeration\<close>\<close>{_}\<sharp>)\<close>)
-syntax_consts
-  upper_add
 translations
   "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
   "{x}\<sharp>" == "CONST upper_unit\<cdot>x"

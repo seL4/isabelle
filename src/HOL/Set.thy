@@ -145,8 +145,6 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
 
 syntax
   "_Finset" :: "args \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
-syntax_consts
-  insert
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"

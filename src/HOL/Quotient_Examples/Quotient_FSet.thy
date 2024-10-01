@@ -290,8 +290,6 @@ quotient_definition
 
 syntax
   "_fset" :: "args => 'a fset"  (\<open>(\<open>indent=2 notation=\<open>mixfix finite set enumeration\<close>\<close>{|_|})\<close>)
-syntax_consts
-  insert_fset
 translations
   "{|x, xs|}" == "CONST insert_fset x {|xs|}"
   "{|x|}"     == "CONST insert_fset x {||}"

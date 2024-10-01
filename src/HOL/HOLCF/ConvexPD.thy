@@ -180,8 +180,6 @@ abbreviation
 
 syntax
   "_convex_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix convex_pd enumeration\<close>\<close>{_}\<natural>)\<close>)
-syntax_consts
-  convex_add
 translations
   "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"
   "{x}\<natural>" == "CONST convex_unit\<cdot>x"

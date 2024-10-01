@@ -452,8 +452,6 @@ syntax
   ""            :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
   "_updbinds"   :: "[updbind, updbinds] \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
   "_Update"     :: "[i, updbinds] \<Rightarrow> i"              (\<open>_/'((_)')\<close> [900,0] 900)
-syntax_consts
-  update
 translations
   "_Update (f, _updbinds(b,bs))"  == "_Update (_Update(f,b), bs)"
   "f(x:=y)"                       == "CONST update(f,x,y)"

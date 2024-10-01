@@ -97,8 +97,6 @@ end
 
 syntax
   "_fset" :: "args => 'a fset"  (\<open>(\<open>indent=2 notation=\<open>mixfix finite set enumeration\<close>\<close>{|_|})\<close>)
-syntax_consts
-  fcons
 translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"

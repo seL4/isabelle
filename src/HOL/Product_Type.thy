@@ -294,7 +294,6 @@ syntax
   "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      (\<open>_,/ _\<close>)
   "_unit"       :: pttrn                                (\<open>'(')\<close>)
 syntax_consts
-  Pair and
   "_pattern" "_patterns" \<rightleftharpoons> case_prod and
   "_unit" \<rightleftharpoons> case_unit
 translations

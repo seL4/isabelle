@@ -166,8 +166,6 @@ lift_definition finsert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is i
 
 syntax
   "_fset" :: "args => 'a fset"  (\<open>(\<open>indent=2 notation=\<open>mixfix finite set enumeration\<close>\<close>{|_|})\<close>)
-syntax_consts
-  finsert
 translations
   "{|x, xs|}" == "CONST finsert x {|xs|}"
   "{|x|}"     == "CONST finsert x {||}"

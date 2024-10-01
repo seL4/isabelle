@@ -350,8 +350,6 @@ subsection \<open>List-style syntax for polynomials\<close>
 
 syntax
   "_poly" :: "args \<Rightarrow> 'a poly"  (\<open>(\<open>indent=2 notation=\<open>mixfix polynomial enumeration\<close>\<close>[:_:])\<close>)
-syntax_consts
-  pCons
 translations
   "[:x, xs:]" \<rightleftharpoons> "CONST pCons x [:xs:]"
   "[:x:]" \<rightleftharpoons> "CONST pCons x 0"

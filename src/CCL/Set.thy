@@ -19,8 +19,6 @@ where mem_Collect_iff: "(a : Collect(P)) \<longleftrightarrow> P(a)"
 
 syntax
   "_Coll" :: "[idt, o] \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_./ _})\<close>)
-syntax_consts
-  Collect
 translations
   "{x. P}" == "CONST Collect(\<lambda>x. P)"
 

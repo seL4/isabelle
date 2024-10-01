@@ -135,8 +135,6 @@ abbreviation
 
 syntax
   "_lower_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix lower_pd enumeration\<close>\<close>{_}\<flat>)\<close>)
-syntax_consts
-  lower_add
 translations
   "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"
   "{x}\<flat>" == "CONST lower_unit\<cdot>x"

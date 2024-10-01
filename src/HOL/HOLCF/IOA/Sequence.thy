@@ -72,8 +72,6 @@ subsection \<open>List enumeration\<close>
 syntax
   "_totlist" :: "args \<Rightarrow> 'a Seq"  (\<open>(\<open>indent=1 notation=\<open>mixfix total list enumeration\<close>\<close>[_!])\<close>)
   "_partlist" :: "args \<Rightarrow> 'a Seq"  (\<open>(\<open>indent=1 notation=\<open>mixfix partial list enumeration\<close>\<close>[_?])\<close>)
-syntax_consts
-  Consq
 translations
   "[x, xs!]" \<rightleftharpoons> "x \<leadsto> [xs!]"
   "[x!]" \<rightleftharpoons> "x\<leadsto>nil"

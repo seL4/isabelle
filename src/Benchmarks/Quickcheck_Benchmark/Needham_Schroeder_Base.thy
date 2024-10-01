@@ -28,8 +28,6 @@ datatype
 
 syntax
   "_MTuple" :: "['a, args] \<Rightarrow> 'a * 'b"  (\<open>(\<open>indent=2 notation=\<open>mixfix message tuple\<close>\<close>\<lbrace>_,/ _\<rbrace>)\<close>)
-syntax_consts
-  MPair
 translations
   "\<lbrace>x, y, z\<rbrace>" \<rightleftharpoons> "\<lbrace>x, \<lbrace>y, z\<rbrace>\<rbrace>"
   "\<lbrace>x, y\<rbrace>" \<rightleftharpoons> "CONST MPair x y"
