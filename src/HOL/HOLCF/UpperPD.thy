@@ -72,7 +72,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a upper_pd  (\<open>('(_')\<sharp>)\<close>) =
+typedef 'a upper_pd  (\<open>(\<open>notation=\<open>postfix upper_pd\<close>\<close>'(_')\<sharp>)\<close>) =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
 
@@ -332,10 +332,7 @@ definition
 
 syntax
   "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<sharp>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_upper_bind" == upper_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder upper_bind\<close>\<close>\<Union>\<sharp>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<sharp>x\<in>xs. e" == "CONST upper_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

@@ -119,7 +119,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a convex_pd  (\<open>('(_')\<natural>)\<close>) =
+typedef 'a convex_pd  (\<open>(\<open>notation=\<open>postfix convex_pd\<close>\<close>'(_')\<natural>)\<close>) =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 
@@ -345,10 +345,7 @@ definition
 
 syntax
   "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<natural>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_convex_bind" == convex_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder convex_bind\<close>\<close>\<Union>\<natural>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<natural>x\<in>xs. e" == "CONST convex_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

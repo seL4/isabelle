@@ -63,7 +63,7 @@ definition Filter2 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow
               UU \<Rightarrow> UU
             | Def y \<Rightarrow> (if P y then x ## (h \<cdot> xs) else h \<cdot> xs))))"
 
-abbreviation Consq_syn  (\<open>(_/\<leadsto>_)\<close> [66, 65] 65)
+abbreviation Consq_syn  (\<open>(\<open>notation=\<open>infix \<leadsto>\<close>\<close>_/\<leadsto>_)\<close> [66, 65] 65)
   where "a \<leadsto> s \<equiv> Consq a \<cdot> s"
 
 

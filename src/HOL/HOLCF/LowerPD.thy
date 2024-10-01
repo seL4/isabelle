@@ -74,7 +74,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a lower_pd  (\<open>('(_')\<flat>)\<close>) =
+typedef 'a lower_pd  (\<open>(\<open>notation=\<open>postfix lower_pd\<close>\<close>'(_')\<flat>)\<close>) =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 
@@ -339,10 +339,7 @@ definition
 
 syntax
   "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<flat>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_lower_bind" == lower_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder lower_bind\<close>\<close>\<Union>\<flat>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<flat>x\<in>xs. e" == "CONST lower_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

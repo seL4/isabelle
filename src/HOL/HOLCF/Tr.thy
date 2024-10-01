@@ -63,7 +63,7 @@ default_sort pcpo
 definition tr_case :: "'a \<rightarrow> 'a \<rightarrow> tr \<rightarrow> 'a"
   where "tr_case = (\<Lambda> t e (Def b). if b then t else e)"
 
-abbreviation cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  (\<open>(If (_)/ then (_)/ else (_))\<close> [0, 0, 60] 60)
+abbreviation cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  (\<open>(\<open>notation=\<open>mixfix If expression\<close>\<close>If (_)/ then (_)/ else (_))\<close> [0, 0, 60] 60)
   where "If b then e1 else e2 \<equiv> tr_case\<cdot>e1\<cdot>e2\<cdot>b"
 
 translations
