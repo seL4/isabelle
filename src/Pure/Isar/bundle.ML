@@ -13,11 +13,6 @@ sig
   val read: Proof.context -> xstring * Position.T -> Attrib.thms
   val extern: Proof.context -> string -> xstring
   val print_bundles: bool -> Proof.context -> unit
-  val bundle: binding * Attrib.thms ->
-    (binding * typ option * mixfix) list -> local_theory -> local_theory
-  val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
-    (binding * string option * mixfix) list -> local_theory -> local_theory
-  val init: binding -> theory -> local_theory
   val unbundle: name list -> local_theory -> local_theory
   val unbundle_cmd: (xstring * Position.T) list -> local_theory -> local_theory
   val includes: name list -> Proof.context -> Proof.context
@@ -26,6 +21,11 @@ sig
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val including: name list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
+  val bundle: binding * Attrib.thms ->
+    (binding * typ option * mixfix) list -> local_theory -> local_theory
+  val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
+    (binding * string option * mixfix) list -> local_theory -> local_theory
+  val init: binding -> theory -> local_theory
 end;
 
 structure Bundle: BUNDLE =
@@ -58,6 +58,19 @@ val get = Name_Space.get o get_all_generic o Context.Proof;
 fun read ctxt = get ctxt o check ctxt;
 
 fun extern ctxt = Name_Space.extern ctxt (Name_Space.space_of_table (get_all ctxt));
+
+
+(* context and morphisms *)
+
+val trim_context_bundle =
+  map (fn (fact, atts) => (map Thm.trim_context fact, (map o map) Token.trim_context atts));
+
+fun transfer_bundle thy =
+  map (fn (fact, atts) => (map (Thm.transfer thy) fact, (map o map) (Token.transfer thy) atts));
+
+fun transform_bundle phi =
+  map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
+
 
 
 (* target -- bundle under construction *)
@@ -93,25 +106,7 @@ fun print_bundles verbose ctxt =
 
 
 
-(** define bundle **)
-
-(* context and morphisms *)
-
-val trim_context_bundle =
-  map (fn (fact, atts) => (map Thm.trim_context fact, (map o map) Token.trim_context atts));
-
-fun transfer_bundle thy =
-  map (fn (fact, atts) => (map (Thm.transfer thy) fact, (map o map) (Token.transfer thy) atts));
-
-fun transform_bundle phi =
-  map (fn (fact, atts) => (Morphism.fact phi fact, (map o map) (Token.transform phi) atts));
-
-fun define_bundle (b, bundle) context =
-  let
-    val (name, bundles') = get_all_generic context
-      |> Name_Space.define context true (b, trim_context_bundle bundle);
-    val context' = (Data.map o apfst o K) bundles' context;
-  in (name, context') end;
+(** open bundles **)
 
 fun apply_bundle loc bundle ctxt =
   let val notes = if loc then Local_Theory.notes else Attrib.local_notes "" in
@@ -120,6 +115,49 @@ fun apply_bundle loc bundle ctxt =
     |> notes [(Binding.empty_atts, bundle)] |> snd
     |> Context_Position.restore_visible ctxt
   end;
+
+local
+
+fun gen_unbundle loc prep args ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val bundle = maps (prep ctxt) args |> transfer_bundle thy;
+  in apply_bundle loc bundle ctxt end;
+
+fun gen_includes prep = gen_unbundle false prep;
+
+fun gen_include prep bs =
+  Proof.assert_forward #> Proof.map_context (gen_includes prep bs) #> Proof.reset_facts;
+
+fun gen_including prep bs =
+  Proof.assert_backward #> Proof.map_context (gen_includes prep bs);
+
+in
+
+val unbundle = gen_unbundle true get;
+val unbundle_cmd = gen_unbundle true read;
+
+val includes = gen_includes get;
+val includes_cmd = gen_includes read;
+
+val include_ = gen_include get;
+val include_cmd = gen_include read;
+
+val including = gen_including get;
+val including_cmd = gen_including read;
+
+end;
+
+
+
+(** define bundle **)
+
+fun define_bundle (b, bundle) context =
+  let
+    val (name, bundles') = get_all_generic context
+      |> Name_Space.define context true (b, trim_context_bundle bundle);
+    val context' = (Data.map o apfst o K) bundles' context;
+  in (name, context') end;
 
 
 (* command *)
@@ -210,42 +248,6 @@ fun init binding thy =
       theory_registration = bad_operation,
       locale_dependency = bad_operation,
       pretty = pretty binding};
-
-end;
-
-
-
-(** open bundles **)
-
-local
-
-fun gen_unbundle loc prep args ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val bundle = maps (prep ctxt) args |> transfer_bundle thy;
-  in apply_bundle loc bundle ctxt end;
-
-fun gen_includes prep = gen_unbundle false prep;
-
-fun gen_include prep bs =
-  Proof.assert_forward #> Proof.map_context (gen_includes prep bs) #> Proof.reset_facts;
-
-fun gen_including prep bs =
-  Proof.assert_backward #> Proof.map_context (gen_includes prep bs);
-
-in
-
-val unbundle = gen_unbundle true get;
-val unbundle_cmd = gen_unbundle true read;
-
-val includes = gen_includes get;
-val includes_cmd = gen_includes read;
-
-val include_ = gen_include get;
-val include_cmd = gen_include read;
-
-val including = gen_including get;
-val including_cmd = gen_including read;
 
 end;
 
