@@ -999,10 +999,11 @@ text \<open>Disjoint union of a family of sets -- Sigma.\<close>
 definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set"
   where "Sigma A B \<equiv> \<Union>x\<in>A. \<Union>y\<in>B x. {Pair x y}"
 
-abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr \<open>\<times>\<close> 80)
+context
+begin
+qualified abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr \<open>\<times>\<close> 80)
   where "A \<times> B \<equiv> Sigma A (\<lambda>_. B)"
-
-hide_const (open) Times
+end
 
 bundle no_Set_Product_syntax begin
 no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
