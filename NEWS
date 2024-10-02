@@ -28,6 +28,19 @@ and examples.
 
 *** HOL ***
 
+* Various declaration bundles support adhoc modification of notation,
+notably like this:
+
+  unbundle no_list_syntax
+  unbundle no_listcompr_syntax
+  unbundle no_rtrancl_syntax
+  unbundle no_trancl_syntax
+  unbundle no_reflcl_syntax
+
+This is more robust than individual 'no_syntax' / 'no_notation'
+commands, which need to copy mixfix declarations from elsewhere and thus
+break after changes in the library.
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITIES.
