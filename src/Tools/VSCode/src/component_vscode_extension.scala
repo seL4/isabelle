@@ -150,7 +150,7 @@ object Component_VSCode {
 
     (for {
       opt <- options.iterator
-      if opt.for_tag(Options.TAG_VSCODE) || opt.for_content || relevant_options.contains(opt.name)
+      if opt.for_vscode || opt.for_content || relevant_options.contains(opt.name)
     } yield {
       val (enum_values, enum_descriptions) = opt.typ match {
         case Options.Bool => (

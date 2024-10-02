@@ -157,6 +157,7 @@ object Options {
     def for_document: Boolean = for_tag(TAG_DOCUMENT)
     def for_color_dialog: Boolean = for_tag(TAG_COLOR_DIALOG)
     def for_build_sync: Boolean = for_tag(TAG_BUILD_SYNC)
+    def for_vscode: Boolean = for_tag(TAG_VSCODE)
 
     def session_content: Boolean = for_content || for_document
   }
