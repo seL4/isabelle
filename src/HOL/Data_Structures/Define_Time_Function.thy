@@ -10,8 +10,8 @@ See https://functional-algorithms-verified.org
 theory Define_Time_Function
   imports Main
   keywords "time_fun" :: thy_decl
-    and    "time_function" :: thy_goal
-    and    "time_definition" :: thy_goal
+    and    "time_function" :: thy_decl
+    and    "time_definition" :: thy_decl
     and    "equations"
     and    "time_fun_0" :: thy_decl
 begin
