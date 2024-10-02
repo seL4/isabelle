@@ -113,6 +113,14 @@ fun define_bundle (b, bundle) context =
     val context' = (Data.map o apfst o K) bundles' context;
   in (name, context') end;
 
+fun apply_bundle loc bundle ctxt =
+  let val notes = if loc then Local_Theory.notes else Attrib.local_notes "" in
+    ctxt
+    |> Context_Position.set_visible false
+    |> notes [(Binding.empty_atts, bundle)] |> snd
+    |> Context_Position.restore_visible ctxt
+  end;
+
 
 (* command *)
 
@@ -207,35 +215,28 @@ end;
 
 
 
-(** activate bundles **)
+(** open bundles **)
 
 local
 
-fun gen_activate notes prep_bundle args ctxt =
+fun gen_unbundle loc prep args ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val decls = maps (prep_bundle ctxt) args |> transfer_bundle thy;
-  in
-    ctxt
-    |> Context_Position.set_visible false
-    |> notes [(Binding.empty_atts, decls)] |> #2
-    |> Context_Position.restore_visible ctxt
-  end;
+    val bundle = maps (prep ctxt) args |> transfer_bundle thy;
+  in apply_bundle loc bundle ctxt end;
 
-fun gen_unbundle prep_bundle = gen_activate Local_Theory.notes prep_bundle;
+fun gen_includes prep = gen_unbundle false prep;
 
-fun gen_includes prep_bundle = gen_activate (Attrib.local_notes "") prep_bundle;
+fun gen_include prep bs =
+  Proof.assert_forward #> Proof.map_context (gen_includes prep bs) #> Proof.reset_facts;
 
-fun gen_include prep_bundle bs =
-  Proof.assert_forward #> Proof.map_context (gen_includes prep_bundle bs) #> Proof.reset_facts;
-
-fun gen_including prep_bundle bs =
-  Proof.assert_backward #> Proof.map_context (gen_includes prep_bundle bs)
+fun gen_including prep bs =
+  Proof.assert_backward #> Proof.map_context (gen_includes prep bs);
 
 in
 
-val unbundle = gen_unbundle get;
-val unbundle_cmd = gen_unbundle read;
+val unbundle = gen_unbundle true get;
+val unbundle_cmd = gen_unbundle true read;
 
 val includes = gen_includes get;
 val includes_cmd = gen_includes read;
