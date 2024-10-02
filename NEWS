@@ -26,6 +26,21 @@ and examples.
 "cong" rules, notably for congproc implementations.
 
 
+*** Isabelle/VSCode Prover IDE ***
+
+* General improvements: Persistent decorations for PIDE markup, correct
+  font and formatting in panels, and proper completions.
+  Moreover, the PIDE extension of the LSP now features additional
+  protocol messages (e.g. to obtain the set of Isabelle symbols) and
+  more fine-grained control for unicode symbols.
+
+* Active "sendback" markup can now be used via LSP code actions, e.g.
+  to insert proof methods from Sledgehammer output.
+
+* Relevant Isabelle options can now be overriden from the
+  Isabelle/VSCode extension settings.
+
+
 *** HOL ***
 
 * Theory "HOL.Wellfounded":

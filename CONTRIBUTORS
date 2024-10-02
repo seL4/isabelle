@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* April - October 2024: Thomas Lindae and Fabian Huch, TU München
+  Improvements to the language server for Isabelle/VSCode.
+
 * June - July 2024: Fabian Huch
   New Build_Manager module to coordinate CI and user builds, replacing
   the previous Jenkins integration.
