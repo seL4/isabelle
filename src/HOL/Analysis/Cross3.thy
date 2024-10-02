@@ -21,12 +21,14 @@ definition\<^marker>\<open>tag important\<close> cross3 :: "[real^3, real^3] \<R
 
 end
 
-bundle cross3_syntax begin
+bundle cross3_syntax
+begin
 notation cross3 (infixr \<open>\<times>\<close> 80)
 no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 
-bundle no_cross3_syntax begin
+bundle no_cross3_syntax
+begin
 no_notation cross3 (infixr \<open>\<times>\<close> 80)
 notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end

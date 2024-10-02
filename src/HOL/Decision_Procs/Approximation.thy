@@ -1143,7 +1143,8 @@ setup "Approximation_Generator.setup"
 
 section "Avoid pollution of name space"
 
-bundle floatarith_notation begin
+bundle floatarith_notation
+begin
 
 notation Add (\<open>Add\<close>)
 notation Minus (\<open>Minus\<close>)
@@ -1166,7 +1167,8 @@ notation Num (\<open>Num\<close>)
 
 end
 
-bundle no_floatarith_notation begin
+bundle no_floatarith_notation
+begin
 
 no_notation Add (\<open>Add\<close>)
 no_notation Minus (\<open>Minus\<close>)
