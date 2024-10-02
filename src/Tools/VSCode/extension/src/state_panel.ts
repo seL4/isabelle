@@ -62,7 +62,8 @@ class Panel
           open_webview_link(message.link)
           break
         case "resize":
-          language_client.sendNotification(lsp.state_set_margin_type, { id: this.state_id, margin: message.margin })
+          language_client.sendNotification(
+            lsp.state_set_margin_type, { id: this.state_id, margin: message.margin })
           break
         default:
           break

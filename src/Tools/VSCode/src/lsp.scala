@@ -109,7 +109,10 @@ object LSP {
 
     def strict(id: Id, result: Option[JSON.T] = None, error: String = ""): JSON.T =
       if (error == "") apply(id, result = result)
-      else apply(id, error = Some(ResponseError(code = ErrorCodes.jsonrpcReservedErrorRangeEnd, message = error)))
+      else {
+        apply(id, error =
+          Some(ResponseError(code = ErrorCodes.jsonrpcReservedErrorRangeEnd, message = error)))
+      }
 
     def is_empty(json: JSON.T): Boolean =
       JSON.string(json, "id") == Some("") && JSON.value(json, "result").isDefined
@@ -401,7 +404,7 @@ object LSP {
       JSON.optional("detail" -> detail) ++
       JSON.optional("documentation" -> documentation) ++
       JSON.optional("filterText" -> filter_text) ++
-      JSON.optional("textEdit" -> range.map(r => TextEdit(range = r, new_text = text.getOrElse(label)).json)) ++
+      JSON.optional("textEdit" -> range.map(TextEdit(_, text.getOrElse(label)).json)) ++
       JSON.optional("commitCharacters" -> commit_characters) ++
       JSON.optional("command" -> command.map(_.json))
   }
@@ -552,16 +555,13 @@ object LSP {
     def json_entries: JSON.T =
       decorations.map(decoration => JSON.Object(
         "type" -> decoration._1,
-        "content" -> decoration._2.map(_.json))
-      )
+        "content" -> decoration._2.map(_.json)))
 
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
         JSON.Object(
           "uri" -> Url.print_file(file),
-          "entries" -> json_entries
-        )
-      )
+          "entries" -> json_entries))
   }
   
   object Decoration_Request {
@@ -609,8 +609,7 @@ object LSP {
     def apply(content: String, decoration: Option[Decoration] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
-        JSON.optional("decorations" -> decoration.map(_.json_entries))
-      )
+        JSON.optional("decorations" -> decoration.map(_.json_entries)))
   }
 
   object Output_Set_Margin {
@@ -634,8 +633,7 @@ object LSP {
     ): JSON.T =
       Notification("PIDE/state_output",
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
-        JSON.optional("decorations" -> decorations.map(_.json_entries))
-      )
+        JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
   class State_Id_Notification(name: String) {
@@ -688,14 +686,12 @@ object LSP {
         JSON.Object(
           "symbol" -> symbol.symbol,
           "name" -> symbol.name,
-          "argument" -> symbol.argument.toString,
-        ) ++
-          JSON.optional("code", symbol.code) ++
-          JSON.optional("font", symbol.font) ++
-          JSON.Object(
-            "groups" -> symbol.groups,
-            "abbrevs" -> symbol.abbrevs,
-          )
+          "argument" -> symbol.argument.toString) ++ 
+        JSON.optional("code", symbol.code) ++
+        JSON.optional("font", symbol.font) ++
+        JSON.Object(
+          "groups" -> symbol.groups,
+          "abbrevs" -> symbol.abbrevs)
 
       ResponseMessage(id, Some(symbols.entries.map(s => json(s))))
     }

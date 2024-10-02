@@ -279,7 +279,7 @@ extends Resources(session_background, log = log) {
             model.flush_edits(st.document_blobs, file, st.get_caret(file))
         } yield (edits, (file, model1))).toList
 
-      session.update(st.document_blobs, changed_models.flatMap(res => res._1))
+      session.update(st.document_blobs, changed_models.flatMap(_._1))
 
       st.copy(
         models = st.models ++ changed_models.iterator.map(_._2),
@@ -331,13 +331,10 @@ extends Resources(session_background, log = log) {
 
   /* output text */
 
-  def output_text(content: String): String =
-    Symbol.output(unicode_symbols_output, content)
-  def output_edit(content: String): String =
-    Symbol.output(unicode_symbols_edits, content)
+  def output_text(content: String): String = Symbol.output(unicode_symbols_output, content)
+  def output_edit(content: String): String = Symbol.output(unicode_symbols_edits, content)
 
-  def output_xml_text(body: XML.Tree): String =
-    output_text(XML.content(body))
+  def output_xml_text(body: XML.Tree): String = output_text(XML.content(body))
 
   def output_pretty(body: XML.Body, margin: Double): String =
     output_text(Pretty.string_of(body, margin = margin, metric = Symbol.Metric))
@@ -371,7 +368,6 @@ extends Resources(session_background, log = log) {
       channel.write(rendering1.decoration_output(decos).json(file))
     }
   }
-
 
 
   /* spell checker */

@@ -22,10 +22,10 @@ option vscode_pide_extensions : bool = false for vscode
   -- "use PIDE extensions for Language Server Protocol"
 
 option vscode_unicode_symbols_output : bool = false for vscode
-  -- "output Isabelle symbols via Unicode in Output (e.g. tooltips and panels) (according to etc/symbols)"
+  -- "output Isabelle symbols via Unicode in Output (according to etc/symbols)"
 
 option vscode_unicode_symbols_edits : bool = false for vscode
-  -- "output Isabelle symbols via Unicode in Edits (e.g. completions and code actions) (according to etc/symbols)"
+  -- "output Isabelle symbols via Unicode in Edits (according to etc/symbols)"
 
 option vscode_caret_perspective : int = 50 for vscode
   -- "number of visible lines above and below the caret (0: unrestricted)"

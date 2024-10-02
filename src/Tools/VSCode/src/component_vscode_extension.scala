@@ -135,27 +135,27 @@ object Component_VSCode {
   
 
   private def options_json(options: Options): String = {
-    val relevant_options = Set(
-      "editor_output_state",
-      "auto_time_start",
-      "auto_time_limit",
-      "auto_nitpick",
-      "auto_sledgehammer",
-      "auto_methods",
-      "auto_quickcheck",
-      "auto_solve_direct",
-      "sledgehammer_provers",
-      "sledgehammer_timeout",
-    )
-    
-    options.iterator.filter(
-      opt => opt.for_tag(Options.TAG_VSCODE) || opt.for_content || relevant_options.contains(opt.name)
-    ).map(opt => {
+    val relevant_options =
+      Set(
+        "editor_output_state",
+        "auto_time_start",
+        "auto_time_limit",
+        "auto_nitpick",
+        "auto_sledgehammer",
+        "auto_methods",
+        "auto_quickcheck",
+        "auto_solve_direct",
+        "sledgehammer_provers",
+        "sledgehammer_timeout")
+
+    (for {
+      opt <- options.iterator
+      if opt.for_tag(Options.TAG_VSCODE) || opt.for_content || relevant_options.contains(opt.name)
+    } yield {
       val (enum_values, enum_descriptions) = opt.typ match {
         case Options.Bool => (
           Some(List("", "true", "false")),
-          Some(List("Use System Preference.", "Enable.", "Disable."))
-        )
+          Some(List("Use System Preference.", "Enable.", "Disable.")))
         case _ => (None, None)
       }
 
@@ -167,13 +167,14 @@ object Component_VSCode {
         case _ => ""
       }
 
-      quote("isabelle.options." + opt.name) + ": " + JSON.Format(
-        JSON.Object(
-          "type" -> "string",
-          "default" -> default,
-          "description" -> opt.description,
-        ) ++ JSON.optional("enum" -> enum_values) ++ JSON.optional("enumDescriptions" -> enum_descriptions)
-      ) + ","
+      quote("isabelle.options." + opt.name) + ": " +
+        JSON.Format(
+          JSON.Object(
+            "type" -> "string",
+            "default" -> default,
+            "description" -> opt.description) ++
+          JSON.optional("enum" -> enum_values) ++
+          JSON.optional("enumDescriptions" -> enum_descriptions)) + ","
     }).mkString
   }
 
@@ -210,9 +211,8 @@ object Component_VSCode {
             Isabelle_System.make_directory(build_dir + path.dir))
         }
 
-        for (entry <- Isabelle_Fonts.fonts()) {
-          Isabelle_System.copy_file(entry.path, Isabelle_System.make_directory(build_dir + Path.basic("fonts")))
-        }
+        val fonts_dir = Isabelle_System.make_directory(build_dir + Path.basic("fonts"))
+        for (entry <- Isabelle_Fonts.fonts()) { Isabelle_System.copy_file(entry.path, fonts_dir) }
         val manifest_text2 =
           manifest_text + cat_lines(Isabelle_Fonts.fonts().map(e => "fonts/" + e.path.file_name))
         val manifest_entries2 = split_lines(manifest_text2).filter(_.nonEmpty)

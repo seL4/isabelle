@@ -183,8 +183,7 @@ sealed case class VSCode_Model(
     val (reparse, perspective) = node_perspective(doc_blobs, caret)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
       val prover_edits = node_edits(node_header, pending_edits, perspective)
-      val edits = (prover_edits)
-      Some(edits, copy(pending_edits = Nil, last_perspective = perspective))
+      Some(prover_edits, copy(pending_edits = Nil, last_perspective = perspective))
     }
     else None
   }

@@ -6,7 +6,9 @@ Pretty-printed text or HTML with decorations.
 
 package isabelle.vscode
 
+
 import isabelle._
+
 
 object Pretty_Text_Panel {
   def apply(

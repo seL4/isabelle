@@ -16,7 +16,8 @@ object Dynamic_Output {
 
 class Dynamic_Output private(server: Language_Server) {
   private val pretty_panel_ = Synchronized(None: Option[Pretty_Text_Panel])
-  def pretty_panel: Pretty_Text_Panel = pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
+  def pretty_panel: Pretty_Text_Panel =
+    pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
 
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
     val output =
@@ -55,11 +56,11 @@ class Dynamic_Output private(server: Language_Server) {
   def init(): Unit = {
     server.session.commands_changed += main
     server.session.caret_focus += main
-    pretty_panel_.change(p => Some(Pretty_Text_Panel(
-      server.resources,
-      server.channel,
-      LSP.Dynamic_Output.apply,
-    )))
+    pretty_panel_.change(_ =>
+      Some(Pretty_Text_Panel(
+        server.resources,
+        server.channel,
+        LSP.Dynamic_Output.apply)))
     handle_update(None)
   }
 

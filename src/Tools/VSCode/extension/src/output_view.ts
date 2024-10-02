@@ -22,7 +22,10 @@ class Output_View_Provider implements WebviewViewProvider
   private _view?: WebviewView
   private content: string = ''
 
-  constructor(private readonly _extension_uri: Uri, private readonly _language_client: LanguageClient) { }
+  constructor(
+    private readonly _extension_uri: Uri,
+    private readonly _language_client: LanguageClient
+  ) { }
 
   public resolveWebviewView(
     view: WebviewView,
@@ -48,7 +51,8 @@ class Output_View_Provider implements WebviewViewProvider
           open_webview_link(message.link)
           break
         case "resize":
-          this._language_client.sendNotification(lsp.output_set_margin_type, { margin: message.margin })
+          this._language_client.sendNotification(
+            lsp.output_set_margin_type, { margin: message.margin })
           break
       }
     })
@@ -85,7 +89,8 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
 {
   const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'main.js')))
   const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'vscode.css')))
-  const font_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'fonts', 'IsabelleDejaVuSansMono.ttf')))
+  const font_uri =
+    webview.asWebviewUri(Uri.file(path.join(extension_path, 'fonts', 'IsabelleDejaVuSansMono.ttf')))
 
   return `<!DOCTYPE html>
     <html lang='en'>

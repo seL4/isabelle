@@ -424,9 +424,10 @@ class Language_Server(
   def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit = {
     def extract_sendbacks(body: XML.Body): List[(String, Properties.T)] = {
       body match {
-        case (XML.Elem(Markup(Markup.SENDBACK, p), b) :: rest) => (XML.content(b), p) :: extract_sendbacks(rest)
-        case (XML.Elem(m, b) :: rest) => extract_sendbacks(b ++ rest)
-        case (e :: rest) => extract_sendbacks(rest)
+        case XML.Elem(Markup(Markup.SENDBACK, p), b) :: rest =>
+          (XML.content(b), p) :: extract_sendbacks(rest)
+        case XML.Elem(m, b) :: rest => extract_sendbacks(b ++ rest)
+        case e :: rest => extract_sendbacks(rest)
         case Nil => Nil
       }
     }
@@ -443,8 +444,7 @@ class Language_Server(
         .select(
           text_range2,
           Markup.Elements.full,
-          command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList))
-        )
+          command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList)))
         .flatMap(info => extract_sendbacks(info.info).flatMap {
           (s, p) =>
             for {
@@ -452,7 +452,7 @@ class Language_Server(
               (node, command) <- snapshot.find_command(id)
               start <- node.command_start(command)
               range = command.core_range + start
-              current_text <- doc.get_text(range)
+              current_text <- model.get_text(range)
               line_range = doc.range(range)
 
               whole_line = doc.lines(line_range.start.line)
@@ -528,10 +528,12 @@ class Language_Server(
           case LSP.State_Exit(state_id) => State_Panel.exit(state_id)
           case LSP.State_Locate(state_id) => State_Panel.locate(state_id)
           case LSP.State_Update(state_id) => State_Panel.update(state_id)
-          case LSP.State_Auto_Update(state_id, enabled) => State_Panel.auto_update(state_id, enabled)
+          case LSP.State_Auto_Update(state_id, enabled) =>
+            State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
           case LSP.Symbols_Request(id) => symbols_request(id)
-          case LSP.Symbols_Convert_Request(id, text, boolean) => symbols_convert_request(id, text, boolean)
+          case LSP.Symbols_Convert_Request(id, text, boolean) =>
+            symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
