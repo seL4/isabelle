@@ -192,15 +192,15 @@ alias fBex = FSet.Bex
 end
 
 syntax (input)
-  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3! (_/|:|_)./ _)\<close> [0, 0, 10] 10)
-  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3? (_/|:|_)./ _)\<close> [0, 0, 10] 10)
-  "_fBex1"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3?! (_/:_)./ _)\<close> [0, 0, 10] 10)
+  "_fBall" :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite !\<close>\<close>! (_/|:|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex"  :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite ?\<close>\<close>? (_/|:|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex1" :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite ?!\<close>\<close>?! (_/:_)./ _)\<close> [0, 0, 10] 10)
 
 syntax
-  "_fBall"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
-  "_fBex"        :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
-  "_fBnex"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<nexists>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
-  "_fBex1"       :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>!(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBall" :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite \<forall>\<close>\<close>\<forall>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex"  :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite \<exists>\<close>\<close>\<exists>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBnex" :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite \<nexists>\<close>\<close>\<nexists>(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
+  "_fBex1" :: "pttrn \<Rightarrow> 'a fset \<Rightarrow> bool \<Rightarrow> bool"  (\<open>(\<open>indent=3 notation=\<open>binder finite \<exists>!\<close>\<close>\<exists>!(_/|\<in>|_)./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_fBall" "_fBnex" \<rightleftharpoons> fBall and
@@ -219,10 +219,10 @@ print_translation \<open>
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 syntax
-  "_setlessfAll" :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<forall>_|\<subset>|_./ _)\<close>  [0, 0, 10] 10)
-  "_setlessfEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<exists>_|\<subset>|_./ _)\<close>  [0, 0, 10] 10)
-  "_setlefAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<forall>_|\<subseteq>|_./ _)\<close> [0, 0, 10] 10)
-  "_setlefEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(3\<exists>_|\<subseteq>|_./ _)\<close> [0, 0, 10] 10)
+  "_setlessfAll" :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(\<open>indent=3 notation=\<open>binder finite \<forall>\<close>\<close>\<forall>_|\<subset>|_./ _)\<close>  [0, 0, 10] 10)
+  "_setlessfEx"  :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(\<open>indent=3 notation=\<open>binder finite \<exists>\<close>\<close>\<exists>_|\<subset>|_./ _)\<close>  [0, 0, 10] 10)
+  "_setlefAll"   :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(\<open>indent=3 notation=\<open>binder finite \<forall>\<close>\<close>\<forall>_|\<subseteq>|_./ _)\<close> [0, 0, 10] 10)
+  "_setlefEx"    :: "[idt, 'a, bool] \<Rightarrow> bool"   (\<open>(\<open>indent=3 notation=\<open>binder finite \<exists>\<close>\<close>\<exists>_|\<subseteq>|_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_setlessfAll" "_setlefAll" \<rightleftharpoons> All and
