@@ -21,11 +21,11 @@ sig
   val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
   val including: name list -> Proof.state -> Proof.state
   val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
-  val bundle: binding * Attrib.thms ->
+  val bundle: {open_bundle: bool} -> binding * Attrib.thms ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
-  val bundle_cmd: binding * (Facts.ref * Token.src list) list ->
+  val bundle_cmd: {open_bundle: bool} -> binding * (Facts.ref * Token.src list) list ->
     (binding * string option * mixfix) list -> local_theory -> local_theory
-  val init: binding -> theory -> local_theory
+  val init: {open_bundle: bool} -> binding -> theory -> local_theory
 end;
 
 structure Bundle: BUNDLE =
@@ -53,6 +53,7 @@ val bundle_space = Name_Space.space_of_table o #1 o Data.get;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 
+val get_global = Name_Space.get o get_all_generic o Context.Theory;
 val get = Name_Space.get o get_all_generic o Context.Proof;
 
 fun read ctxt = get ctxt o check ctxt;
@@ -164,7 +165,7 @@ fun define_bundle (b, bundle) context =
 
 local
 
-fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy =
+fun gen_bundle prep_fact prep_att add_fixes {open_bundle} (binding, raw_bundle) raw_fixes lthy =
   let
     val (_, ctxt') = add_fixes raw_fixes lthy;
     val bundle0 = raw_bundle
@@ -179,6 +180,7 @@ fun gen_bundle prep_fact prep_att add_fixes (binding, raw_bundle) raw_fixes lthy
       (fn phi => fn context =>
         let val psi = Morphism.set_trim_context'' context phi
         in #2 (define_bundle (Morphism.binding psi binding, transform_bundle psi bundle) context) end)
+    |> open_bundle ? apply_bundle true bundle
   end;
 
 in
@@ -195,22 +197,29 @@ local
 
 fun bad_operation _ = error "Not possible in bundle target";
 
-fun conclude invisible binding =
+fun conclude {open_bundle, invisible} binding =
   Local_Theory.background_theory_result (fn thy =>
-    thy
-    |> invisible ? Context_Position.set_visible_global false
-    |> Context.Theory
-    |> define_bundle (binding, the_target thy)
-    ||> (Context.the_theory
-      #> invisible ? Context_Position.restore_visible_global thy
-      #> reset_target));
+    let
+      val (name, thy') = thy
+        |> invisible ? Context_Position.set_visible_global false
+        |> Context.Theory
+        |> define_bundle (binding, the_target thy)
+        ||> Context.the_theory;
+      val bundle = get_global thy' name;
+      val thy'' = thy'
+        |> open_bundle ?
+          (Context_Position.set_visible_global false #>
+            Attrib.global_notes "" [(Binding.empty_atts, bundle)] #> snd)
+        |> Context_Position.restore_visible_global thy
+        |> reset_target;
+    in (name, thy'') end);
 
 fun pretty binding lthy =
   let
     val bundle = the_target (Proof_Context.theory_of lthy);
     val (name, lthy') = lthy
       |> Local_Theory.raw_theory (Context_Position.set_visible_global false)
-      |> conclude true binding;
+      |> conclude {open_bundle = false, invisible = true} binding;
     val thy_ctxt' = Proof_Context.init_global (Proof_Context.theory_of lthy');
     val markup_name =
       Name_Space.markup_extern thy_ctxt' (Name_Space.space_of_table (get_all thy_ctxt')) name;
@@ -235,12 +244,12 @@ fun bundle_declaration pos decl lthy =
 
 in
 
-fun init binding thy =
+fun init {open_bundle} binding thy =
   thy
   |> Local_Theory.init
      {background_naming = Sign.naming_of thy,
       setup = set_target [] #> Proof_Context.init_global,
-      conclude = conclude false binding #> #2}
+      conclude = conclude {open_bundle = open_bundle, invisible = false} binding #> #2}
      {define = bad_operation,
       notes = bundle_notes,
       abbrev = bad_operation,

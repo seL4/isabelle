@@ -9,6 +9,10 @@ New in this Isabelle version
 
 *** General ***
 
+* Command "open_bundle b" is like "bundle b" followed by "unbundle b",
+so its declarations are applied immediately, but also named for later
+re-use.
+
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
 specification of the effect of 'translations' (or translation functions

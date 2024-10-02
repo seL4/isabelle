@@ -37,7 +37,7 @@ keywords
     "declaration" "syntax_declaration"
     "parse_ast_translation" "parse_translation" "print_translation"
     "typed_print_translation" "print_ast_translation" "oracle" :: thy_decl % "ML"
-  and "bundle" :: thy_decl_block
+  and "bundle" "open_bundle" :: thy_decl_block
   and "unbundle" :: thy_decl
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
@@ -637,26 +637,34 @@ subsection \<open>Bundled declarations\<close>
 ML \<open>
 local
 
+fun bundle_cmd open_bundle =
+  (Parse.binding --| \<^keyword>\<open>=\<close>) -- Parse.thms1 -- Parse.for_fixes
+    >> (uncurry (Bundle.bundle_cmd {open_bundle = open_bundle}));
+
+fun bundle_begin open_bundle =
+  Parse.binding --| Parse.begin >> Bundle.init {open_bundle = open_bundle};
+
 val _ =
   Outer_Syntax.maybe_begin_local_theory \<^command_keyword>\<open>bundle\<close>
-    "define bundle of declarations"
-    ((Parse.binding --| \<^keyword>\<open>=\<close>) -- Parse.thms1 -- Parse.for_fixes
-      >> (uncurry Bundle.bundle_cmd))
-    (Parse.binding --| Parse.begin >> Bundle.init);
+    "define bundle of declarations" (bundle_cmd false) (bundle_begin false);
+
+val _ =
+  Outer_Syntax.maybe_begin_local_theory \<^command_keyword>\<open>open_bundle\<close>
+    "define and open bundle of declarations" (bundle_cmd true) (bundle_begin true);
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>unbundle\<close>
-    "activate declarations from bundle in local theory"
+    "open bundle in local theory"
     (Scan.repeat1 Parse.name_position >> Bundle.unbundle_cmd);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>include\<close>
-    "activate declarations from bundle in proof body"
+    "open bundle in proof body"
     (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>including\<close>
-    "activate declarations from bundle in goal refinement"
+    "open bundle in goal refinement"
     (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =

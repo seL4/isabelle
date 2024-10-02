@@ -20,7 +20,7 @@ typedef ('a, 'b) vec = "UNIV :: ('b::finite \<Rightarrow> 'a) set"
 
 declare vec_lambda_inject [simplified, simp]
 
-bundle vec_syntax
+open_bundle vec_syntax
 begin
 notation vec_nth (infixl \<open>$\<close> 90) and vec_lambda (binder \<open>\<chi>\<close> 10)
 end
@@ -29,8 +29,6 @@ bundle no_vec_syntax
 begin
 no_notation vec_nth (infixl \<open>$\<close> 90) and vec_lambda (binder \<open>\<chi>\<close> 10)
 end
-
-unbundle vec_syntax
 
 text \<open>
   Concrete syntax for \<open>('a, 'b) vec\<close>:
