@@ -151,10 +151,7 @@ lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
 end
 
 text \<open>Old "UU" syntax:\<close>
-
-syntax UU :: logic
-syntax_consts UU \<rightleftharpoons> bottom
-translations "UU" \<rightharpoonup> "CONST bottom"
+abbreviation (input) "UU \<equiv> bottom"
 
 text \<open>Simproc to rewrite \<^term>\<open>\<bottom> = x\<close> to \<^term>\<open>x = \<bottom>\<close>.\<close>
 setup \<open>Reorient_Proc.add (fn \<^Const_>\<open>bottom _\<close> => true | _ => false)\<close>
