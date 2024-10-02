@@ -6193,7 +6193,7 @@ qed
 (* TODO: Figure out better notation for this thing *)
 no_notation fps_nth (infixl \<open>$\<close> 75)
 
-bundle fps_notation
+bundle fps_syntax
 begin
 notation fps_nth (infixl \<open>$\<close> 75)
 end

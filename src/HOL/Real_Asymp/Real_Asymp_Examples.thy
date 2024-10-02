@@ -4,7 +4,7 @@ theory Real_Asymp_Examples
 begin
 
 context
-  includes asymp_equiv_notation
+  includes asymp_equiv_syntax
 begin
 
 subsection \<open>Dominik Gruntz's examples\<close>

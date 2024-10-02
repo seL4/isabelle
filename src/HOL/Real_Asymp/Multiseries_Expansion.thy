@@ -1716,7 +1716,7 @@ lemma dominant_term_ms_aux:
   shows   "f \<sim>[at_top] eval_monom (dominant_term_ms_aux xs) basis" (is ?thesis1)
     and   "eventually (\<lambda>x. sgn (f x) = sgn (fst (dominant_term_ms_aux xs))) at_top" (is ?thesis2)
 proof -
-  include asymp_equiv_notation
+  include asymp_equiv_syntax
   from xs(2,1) obtain xs' C b e basis' where xs':
     "trimmed C" "xs = MSLCons (C, e) xs'" "basis = b # basis'"
     "is_expansion_aux xs' (\<lambda>x. f x - eval C x * b x powr e) (b # basis')"

@@ -9,7 +9,7 @@ theory Polynomial_FPS
 begin
 
 context
-  includes fps_notation
+  includes fps_syntax
 begin
 
 definition fps_of_poly where
