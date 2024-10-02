@@ -47,27 +47,29 @@ abbreviation abs_summable_on :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rig
   "f abs_summable_on A \<equiv> (\<lambda>x. norm (f x)) summable_on A"
 
 syntax (ASCII)
-  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  (\<open>(3INFSUM (_/:_)./ _)\<close> [0, 51, 10] 10)
+  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"
+    (\<open>(\<open>indent=3 notation=\<open>binder INFSUM\<close>\<close>INFSUM (_/:_)./ _)\<close> [0, 51, 10] 10)
 syntax
-  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"  (\<open>(2\<Sum>\<^sub>\<infinity>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
+  "_infsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::topological_comm_monoid_add"
+    (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>\<infinity>\<close>\<close>\<Sum>\<^sub>\<infinity>(_/\<in>_)./ _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_infsum" \<rightleftharpoons> infsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>\<^sub>\<infinity>i\<in>A. b" \<rightleftharpoons> "CONST infsum (\<lambda>i. b) A"
 
 syntax (ASCII)
-  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3INFSUM _./ _)\<close> [0, 10] 10)
+  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=3 notation=\<open>binder INFSUM\<close>\<close>INFSUM _./ _)\<close> [0, 10] 10)
 syntax
-  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>\<^sub>\<infinity>_./ _)\<close> [0, 10] 10)
+  "_univinfsum" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>\<infinity>\<close>\<close>\<Sum>\<^sub>\<infinity>_./ _)\<close> [0, 10] 10)
 syntax_consts
   "_univinfsum" \<rightleftharpoons> infsum
 translations
   "\<Sum>\<^sub>\<infinity>x. t" \<rightleftharpoons> "CONST infsum (\<lambda>x. t) (CONST UNIV)"
 
 syntax (ASCII)
-  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(3INFSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
+  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=3 notation=\<open>binder INFSUM\<close>\<close>INFSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
-  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(2\<Sum>\<^sub>\<infinity>_ | (_)./ _)\<close> [0, 0, 10] 10)
+  "_qinfsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>\<infinity>\<close>\<close>\<Sum>\<^sub>\<infinity>_ | (_)./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_qinfsum" \<rightleftharpoons> infsum
 translations

@@ -391,9 +391,8 @@ qed (auto intro: summable_of_real)
 subsection \<open>Gradient derivative\<close>
 
 definition\<^marker>\<open>tag important\<close>
-  gderiv ::
-    "['a::real_inner \<Rightarrow> real, 'a, 'a] \<Rightarrow> bool"
-          (\<open>(GDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
+  gderiv :: "['a::real_inner \<Rightarrow> real, 'a, 'a] \<Rightarrow> bool"
+    (\<open>(\<open>notation=\<open>mixfix GDERIV\<close>\<close>GDERIV (_)/ (_)/ :> (_))\<close> [1000, 1000, 60] 60)
 where
   "GDERIV f x :> D \<longleftrightarrow> FDERIV f x :> (\<lambda>h. inner h D)"
 
