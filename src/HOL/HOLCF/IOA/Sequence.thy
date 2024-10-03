@@ -63,17 +63,15 @@ definition Filter2 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a Seq \<rightarrow
               UU \<Rightarrow> UU
             | Def y \<Rightarrow> (if P y then x ## (h \<cdot> xs) else h \<cdot> xs))))"
 
-abbreviation Consq_syn  (\<open>(_/\<leadsto>_)\<close> [66, 65] 65)
+abbreviation Consq_syn  (\<open>(\<open>notation=\<open>infix \<leadsto>\<close>\<close>_/\<leadsto>_)\<close> [66, 65] 65)
   where "a \<leadsto> s \<equiv> Consq a \<cdot> s"
 
 
 subsection \<open>List enumeration\<close>
 
 syntax
-  "_totlist" :: "args \<Rightarrow> 'a Seq"  (\<open>[(\<open>notation=\<open>mixfix total list enumeration\<close>\<close>_)!]\<close>)
-  "_partlist" :: "args \<Rightarrow> 'a Seq"  (\<open>[(\<open>notation=\<open>mixfix partial list enumeration\<close>\<close>_)?]\<close>)
-syntax_consts
-  Consq
+  "_totlist" :: "args \<Rightarrow> 'a Seq"  (\<open>(\<open>indent=1 notation=\<open>mixfix total list enumeration\<close>\<close>[_!])\<close>)
+  "_partlist" :: "args \<Rightarrow> 'a Seq"  (\<open>(\<open>indent=1 notation=\<open>mixfix partial list enumeration\<close>\<close>[_?])\<close>)
 translations
   "[x, xs!]" \<rightleftharpoons> "x \<leadsto> [xs!]"
   "[x!]" \<rightleftharpoons> "x\<leadsto>nil"

@@ -92,9 +92,7 @@ lift_definition add_mset :: "'a \<Rightarrow> 'a multiset \<Rightarrow> 'a multi
 by (rule add_mset_in_multiset)
 
 syntax
-  "_multiset" :: "args \<Rightarrow> 'a multiset"    (\<open>{#(\<open>notation=\<open>mixfix multiset enumeration\<close>\<close>_)#}\<close>)
-syntax_consts
-  add_mset
+  "_multiset" :: "args \<Rightarrow> 'a multiset"  (\<open>(\<open>indent=2 notation=\<open>mixfix multiset enumeration\<close>\<close>{#_#})\<close>)
 translations
   "{#x, xs#}" == "CONST add_mset x {#xs#}"
   "{#x#}" == "CONST add_mset x {#}"

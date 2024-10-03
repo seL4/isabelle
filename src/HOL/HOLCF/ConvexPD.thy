@@ -119,7 +119,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a convex_pd  (\<open>('(_')\<natural>)\<close>) =
+typedef 'a convex_pd  (\<open>(\<open>notation=\<open>postfix convex_pd\<close>\<close>'(_')\<natural>)\<close>) =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 
@@ -178,13 +178,8 @@ abbreviation
     (infixl \<open>\<union>\<natural>\<close> 65) where
   "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
-nonterminal convex_pd_args
 syntax
-  "" :: "logic \<Rightarrow> convex_pd_args"  (\<open>_\<close>)
-  "_convex_pd_args" :: "logic \<Rightarrow> convex_pd_args \<Rightarrow> convex_pd_args"  (\<open>_,/ _\<close>)
-  "_convex_pd" :: "convex_pd_args \<Rightarrow> logic"  (\<open>{_}\<natural>\<close>)
-syntax_consts
-  "_convex_pd_args" "_convex_pd" == convex_add
+  "_convex_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix convex_pd enumeration\<close>\<close>{_}\<natural>)\<close>)
 translations
   "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"
   "{x}\<natural>" == "CONST convex_unit\<cdot>x"
@@ -350,10 +345,7 @@ definition
 
 syntax
   "_convex_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<natural>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_convex_bind" == convex_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder convex_bind\<close>\<close>\<Union>\<natural>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<natural>x\<in>xs. e" == "CONST convex_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

@@ -1741,7 +1741,7 @@ definition asymp_equiv :: "('a \<Rightarrow> ('b :: real_normed_field)) \<Righta
 abbreviation (input) asymp_equiv_at_top where
   "asymp_equiv_at_top f g \<equiv> f \<sim>[at_top] g"
 
-bundle asymp_equiv_notation
+bundle asymp_equiv_syntax
 begin
 notation asymp_equiv_at_top (infix \<open>\<sim>\<close> 50)
 end

@@ -113,10 +113,10 @@ definition lub :: "'a set \<Rightarrow> 'a"
 end
 
 syntax (ASCII)
-  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(3LUB _:_./ _)\<close> [0,0, 10] 10)
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(\<open>indent=3 notation=\<open>binder LUB\<close>\<close>LUB _:_./ _)\<close> [0,0, 10] 10)
 
 syntax
-  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(3\<Squnion>_\<in>_./ _)\<close> [0,0, 10] 10)
+  "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_\<in>_./ _)\<close> [0,0, 10] 10)
 
 syntax_consts
   "_BLub" \<rightleftharpoons> lub

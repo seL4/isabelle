@@ -294,7 +294,6 @@ syntax
   "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      (\<open>_,/ _\<close>)
   "_unit"       :: pttrn                                (\<open>'(')\<close>)
 syntax_consts
-  Pair and
   "_pattern" "_patterns" \<rightleftharpoons> case_prod and
   "_unit" \<rightleftharpoons> case_unit
 translations
@@ -804,10 +803,8 @@ no_notation scomp (infixl \<open>\<circ>\<rightarrow>\<close> 60)
 
 bundle state_combinator_syntax
 begin
-
 notation fcomp (infixl \<open>\<circ>>\<close> 60)
 notation scomp (infixl \<open>\<circ>\<rightarrow>\<close> 60)
-
 end
 
 context
@@ -1000,15 +997,19 @@ text \<open>Disjoint union of a family of sets -- Sigma.\<close>
 definition Sigma :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<times> 'b) set"
   where "Sigma A B \<equiv> \<Union>x\<in>A. \<Union>y\<in>B x. {Pair x y}"
 
-abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr \<open>\<times>\<close> 80)
+context
+begin
+qualified abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"  (infixr \<open>\<times>\<close> 80)
   where "A \<times> B \<equiv> Sigma A (\<lambda>_. B)"
+end
 
-hide_const (open) Times
-
-bundle no_Set_Product_syntax begin
+bundle no_Set_Product_syntax
+begin
 no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
-bundle Set_Product_syntax begin
+
+bundle Set_Product_syntax
+begin
 notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 

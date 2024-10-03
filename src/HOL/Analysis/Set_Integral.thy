@@ -24,7 +24,7 @@ definition\<^marker>\<open>tag important\<close>  "set_lebesgue_integral M A f \
 
 syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(4LINT (_):(_)/|(_)./ _)\<close> [0,0,0,10] 10)
+  (\<open>(\<open>indent=4 notation=\<open>binder LINT\<close>\<close>LINT (_):(_)/|(_)./ _)\<close> [0,0,0,10] 10)
 
 syntax_consts
   "_ascii_set_lebesgue_integral" == set_lebesgue_integral
@@ -43,11 +43,11 @@ translations
 
 syntax
   "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(2LBINT _./ _)\<close> [0,10] 10)
+  (\<open>(\<open>indent=2 notation=\<open>binder LBINT\<close>\<close>LBINT _./ _)\<close> [0,10] 10)
 
 syntax
   "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(3LBINT _:_./ _)\<close> [0,0,10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder LBINT\<close>\<close>LBINT _:_./ _)\<close> [0,0,10] 10)
 
 section \<open>Basic properties\<close>
 
@@ -587,7 +587,7 @@ translations
 
 syntax
   "_ascii_complex_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(3CLINT _|_. _)\<close> [0,0,10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder CLINT\<close>\<close>CLINT _|_. _)\<close> [0,0,10] 10)
 
 syntax_consts
   "_ascii_complex_lebesgue_integral" == complex_lebesgue_integral
@@ -624,7 +624,7 @@ abbreviation complex_set_lebesgue_integral :: "'a measure \<Rightarrow> 'a set \
 
 syntax
   "_ascii_complex_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(4CLINT _:_|_. _)\<close> [0,0,0,10] 10)
+  (\<open>(\<open>indent=4 notation=\<open>binder CLINT\<close>\<close>CLINT _:_|_. _)\<close> [0,0,0,10] 10)
 
 syntax_consts
   "_ascii_complex_set_lebesgue_integral" == complex_set_lebesgue_integral
@@ -647,10 +647,10 @@ abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * in
 
 syntax
 "_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-(\<open>(\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
+(\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
 
 "_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-(\<open>(\<integral>((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
+(\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
 
 syntax_consts
 "_set_nn_integral" == set_nn_integral and

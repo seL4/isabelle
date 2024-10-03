@@ -39,18 +39,14 @@ notation (ASCII)
 text \<open>Set comprehensions\<close>
 
 syntax
-  "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{_./ _})\<close>)
-syntax_consts
-  "_Coll" \<rightleftharpoons> Collect
+  "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{_./ _})\<close>)
 translations
   "{x. P}" \<rightleftharpoons> "CONST Collect (\<lambda>x. P)"
 
 syntax (ASCII)
-  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{(_/: _)./ _})\<close>)
+  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{(_/: _)./ _})\<close>)
 syntax
-  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Collect\<close>\<close>{(_/ \<in> _)./ _})\<close>)
-syntax_consts
-  "_Collect" \<rightleftharpoons> Collect
+  "_Collect" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{(_/ \<in> _)./ _})\<close>)
 translations
   "{p:A. P}" \<rightharpoonup> "CONST Collect (\<lambda>p. p \<in> A \<and> P)"
 
@@ -144,9 +140,7 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
   where insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
 
 syntax
-  "_Finset" :: "args \<Rightarrow> 'a set"    (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
-syntax_consts
-  insert
+  "_Finset" :: "args \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"

@@ -56,8 +56,6 @@ definition Replace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
 
 syntax
   "_Replace" :: "[pttrn, pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix relational replacement\<close>\<close>{_ ./ _ \<in> _, _})\<close>)
-syntax_consts
-  Replace
 translations
   "{y. x\<in>A, Q}" \<rightleftharpoons> "CONST Replace(A, \<lambda>x y. Q)"
 
@@ -69,8 +67,6 @@ definition RepFun :: "[i, i \<Rightarrow> i] \<Rightarrow> i"
 
 syntax
   "_RepFun" :: "[i, pttrn, i] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix functional replacement\<close>\<close>{_ ./ _ \<in> _})\<close> [51,0,51])
-syntax_consts
-  RepFun
 translations
   "{b. x\<in>A}" \<rightleftharpoons> "CONST RepFun(A, \<lambda>x. b)"
 
@@ -81,8 +77,6 @@ definition Collect :: "[i, i \<Rightarrow> o] \<Rightarrow> i"
 
 syntax
   "_Collect" :: "[pttrn, i, o] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{_ \<in> _ ./ _})\<close>)
-syntax_consts
-  Collect
 translations
   "{x\<in>A. P}" \<rightleftharpoons> "CONST Collect(A, \<lambda>x. P)"
 
@@ -133,9 +127,7 @@ nonterminal "is"
 syntax
   "" :: "i \<Rightarrow> is"  (\<open>_\<close>)
   "_Enum" :: "[i, is] \<Rightarrow> is"  (\<open>_,/ _\<close>)
-  "_Finset" :: "is \<Rightarrow> i"  (\<open>{(\<open>notation=\<open>mixfix set enumeration\<close>\<close>_)}\<close>)
-syntax_consts
-  cons
+  "_Finset" :: "is \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
 translations
   "{x, xs}" == "CONST cons(x, {xs})"
   "{x}" == "CONST cons(x, 0)"
@@ -196,9 +188,7 @@ nonterminal "tuple_args"
 syntax
   "" :: "i \<Rightarrow> tuple_args"  (\<open>_\<close>)
   "_Tuple_args" :: "[i, tuple_args] \<Rightarrow> tuple_args"  (\<open>_,/ _\<close>)
-  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"              (\<open>\<langle>(\<open>notation=\<open>mixfix tuple enumeration\<close>\<close>_,/ _)\<rangle>\<close>)
-syntax_consts
-  Pair
+  "_Tuple" :: "[i, tuple_args] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix tuple enumeration\<close>\<close>\<langle>_,/ _\<rangle>)\<close>)
 translations
   "\<langle>x, y, z\<rangle>"   == "\<langle>x, \<langle>y, z\<rangle>\<rangle>"
   "\<langle>x, y\<rangle>"      == "CONST Pair(x, y)"

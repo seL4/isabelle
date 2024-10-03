@@ -22,7 +22,7 @@ definition Init :: "'a predicate \<Rightarrow> 'a temporal"  (\<open>\<langle>_\
   where "Init P s = P (unlift (HD \<cdot> s))"
     \<comment> \<open>this means that for \<open>nil\<close> and \<open>UU\<close> the effect is unpredictable\<close>
 
-definition Next :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<circle>(_)\<close> [80] 80)
+definition Next :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>(\<open>indent=1 notation=\<open>prefix Next\<close>\<close>\<circle>_)\<close> [80] 80)
   where "(\<circle>P) s \<longleftrightarrow> (if TL \<cdot> s = UU \<or> TL \<cdot> s = nil then P s else P (TL \<cdot> s))"
 
 definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
@@ -31,10 +31,10 @@ definition suffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
 definition tsuffix :: "'a Seq \<Rightarrow> 'a Seq \<Rightarrow> bool"
   where "tsuffix s2 s \<longleftrightarrow> s2 \<noteq> nil \<and> s2 \<noteq> UU \<and> suffix s2 s"
 
-definition Box :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<box>(_)\<close> [80] 80)
+definition Box :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>(\<open>indent=1 notation=\<open>prefix Box\<close>\<close>\<box>_)\<close> [80] 80)
   where "(\<box>P) s \<longleftrightarrow> (\<forall>s2. tsuffix s2 s \<longrightarrow> P s2)"
 
-definition Diamond :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>\<diamond>(_)\<close> [80] 80)
+definition Diamond :: "'a temporal \<Rightarrow> 'a temporal"  (\<open>(\<open>indent=1 notation=\<open>prefix Diamond\<close>\<close>\<diamond>_)\<close> [80] 80)
   where "\<diamond>P = (\<^bold>\<not> (\<box>(\<^bold>\<not> P)))"
 
 definition Leadsto :: "'a temporal \<Rightarrow> 'a temporal \<Rightarrow> 'a temporal"  (infixr \<open>\<leadsto>\<close> 22)

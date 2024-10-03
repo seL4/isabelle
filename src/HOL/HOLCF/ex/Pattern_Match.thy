@@ -103,14 +103,14 @@ subsection \<open>Case syntax\<close>
 nonterminal Case_pat and Case_syn and Cases_syn
 
 syntax
-  "_Case_syntax":: "['a, Cases_syn] => 'b"               (\<open>(Case _ of/ _)\<close> 10)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(2_ \<Rightarrow>/ _)\<close> 10)
+  "_Case_syntax":: "['a, Cases_syn] => 'b"               (\<open>(\<open>notation=\<open>mixfix Case expression\<close>\<close>Case _ of/ _)\<close> 10)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(\<open>indent=2 notation=\<open>mixfix Case clause\<close>\<close>_ \<Rightarrow>/ _)\<close> 10)
   ""            :: "Case_syn => Cases_syn"               (\<open>_\<close>)
   "_Case2"      :: "[Case_syn, Cases_syn] => Cases_syn"  (\<open>_/ | _\<close>)
   "_strip_positions" :: "'a => Case_pat"                 (\<open>_\<close>)
 
 syntax (ASCII)
-  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(2_ =>/ _)\<close> 10)
+  "_Case1"      :: "[Case_pat, 'b] => Case_syn"          (\<open>(\<open>indent=2 notation=\<open>mixfix Case clause\<close>\<close>_ =>/ _)\<close> 10)
 
 translations
   "_Case_syntax x ms" == "CONST cases\<cdot>(ms\<cdot>x)"

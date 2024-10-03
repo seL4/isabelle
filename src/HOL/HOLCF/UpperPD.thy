@@ -72,7 +72,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a upper_pd  (\<open>('(_')\<sharp>)\<close>) =
+typedef 'a upper_pd  (\<open>(\<open>notation=\<open>postfix upper_pd\<close>\<close>'(_')\<sharp>)\<close>) =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
 
@@ -131,13 +131,8 @@ abbreviation
     (infixl \<open>\<union>\<sharp>\<close> 65) where
   "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
-nonterminal upper_pd_args
 syntax
-  "" :: "logic \<Rightarrow> upper_pd_args"  (\<open>_\<close>)
-  "_upper_pd_args" :: "logic \<Rightarrow> upper_pd_args \<Rightarrow> upper_pd_args"  (\<open>_,/ _\<close>)
-  "_upper_pd" :: "upper_pd_args \<Rightarrow> logic"  (\<open>{_}\<sharp>\<close>)
-syntax_consts
-  "_upper_pd_args" "_upper_pd" == upper_add
+  "_upper_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix upper_pd enumeration\<close>\<close>{_}\<sharp>)\<close>)
 translations
   "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
   "{x}\<sharp>" == "CONST upper_unit\<cdot>x"
@@ -337,10 +332,7 @@ definition
 
 syntax
   "_upper_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<sharp>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_upper_bind" == upper_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder upper_bind\<close>\<close>\<Union>\<sharp>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<sharp>x\<in>xs. e" == "CONST upper_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

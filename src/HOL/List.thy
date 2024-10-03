@@ -46,12 +46,16 @@ lemmas set_simps = list.set (* legacy *)
 text \<open>List enumeration\<close>
 
 syntax
-  "_list" :: "args => 'a list"    (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
-syntax_consts
-  Cons
+  "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 translations
-  "[x, xs]" == "x#[xs]"
-  "[x]" == "x#[]"
+  "[x, xs]" \<rightleftharpoons> "x#[xs]"
+  "[x]" \<rightleftharpoons> "x#[]"
+
+bundle no_list_syntax
+begin
+no_syntax
+  "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
+end
 
 
 subsection \<open>Basic list processing functions\<close>
@@ -136,9 +140,6 @@ syntax
   "" :: "lupdbind => lupdbinds"    (\<open>_\<close>)
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    (\<open>_,/ _\<close>)
   "_LUpdate" :: "['a, lupdbinds] => 'a"    (\<open>_/[(_)]\<close> [1000,0] 900)
-
-syntax_consts
-  list_update
 
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
@@ -455,6 +456,13 @@ syntax
 
 syntax (ASCII)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ <- _\<close>)
+
+bundle no_listcompr_syntax
+begin
+no_syntax
+  "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  (\<open>[_ . __\<close>)
+  "_lc_end" :: "lc_quals" (\<open>]\<close>)
+end
 
 parse_translation \<open>
 let

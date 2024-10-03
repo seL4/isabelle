@@ -12,14 +12,15 @@ begin
 definition\<^marker>\<open>tag important\<close> lipschitz_on
   where "lipschitz_on C U f \<longleftrightarrow> (0 \<le> C \<and> (\<forall>x \<in> U. \<forall>y\<in>U. dist (f x) (f y) \<le> C * dist x y))"
 
-bundle lipschitz_syntax begin
+open_bundle lipschitz_syntax
+begin
 notation\<^marker>\<open>tag important\<close> lipschitz_on (\<open>_-lipschitz'_on\<close> [1000])
 end
-bundle no_lipschitz_syntax begin
+
+bundle no_lipschitz_syntax
+begin
 no_notation lipschitz_on (\<open>_-lipschitz'_on\<close> [1000])
 end
-
-unbundle lipschitz_syntax
 
 lemma lipschitz_onI: "L-lipschitz_on X f"
   if "\<And>x y. x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> dist (f x) (f y) \<le> L * dist x y" "0 \<le> L"

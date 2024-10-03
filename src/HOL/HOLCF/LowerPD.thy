@@ -74,7 +74,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a lower_pd  (\<open>('(_')\<flat>)\<close>) =
+typedef 'a lower_pd  (\<open>(\<open>notation=\<open>postfix lower_pd\<close>\<close>'(_')\<flat>)\<close>) =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 
@@ -133,13 +133,8 @@ abbreviation
     (infixl \<open>\<union>\<flat>\<close> 65) where
   "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
-nonterminal lower_pd_args
 syntax
-  "" :: "logic \<Rightarrow> lower_pd_args"  (\<open>_\<close>)
-  "_lower_pd_args" :: "logic \<Rightarrow> lower_pd_args \<Rightarrow> lower_pd_args"  (\<open>_,/ _\<close>)
-  "_lower_pd" :: "lower_pd_args \<Rightarrow> logic" (\<open>{_}\<flat>\<close>)
-syntax_consts
-  "_lower_pd_args" "_lower_pd" == lower_add
+  "_lower_pd" :: "args \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix lower_pd enumeration\<close>\<close>{_}\<flat>)\<close>)
 translations
   "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"
   "{x}\<flat>" == "CONST lower_unit\<cdot>x"
@@ -344,10 +339,7 @@ definition
 
 syntax
   "_lower_bind" :: "[logic, logic, logic] \<Rightarrow> logic"
-    (\<open>(3\<Union>\<flat>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-syntax_consts
-  "_lower_bind" == lower_bind
+    (\<open>(\<open>indent=3 notation=\<open>binder lower_bind\<close>\<close>\<Union>\<flat>_\<in>_./ _)\<close> [0, 0, 10] 10)
 
 translations
   "\<Union>\<flat>x\<in>xs. e" == "CONST lower_bind\<cdot>xs\<cdot>(\<Lambda> x. e)"

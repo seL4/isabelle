@@ -24,9 +24,7 @@ code_lazy_type llist
 
 no_notation lazy_llist (\<open>_\<close>)
 syntax
-  "_llist" :: "args => 'a list"    (\<open>\<^bold>[(\<open>notation=\<open>mixfix lazy list enumeration\<close>\<close>_)\<^bold>]\<close>)
-syntax_consts
-  lazy_llist
+  "_llist" :: "args => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix lazy list enumeration\<close>\<close>\<^bold>[_\<^bold>])\<close>)
 translations
   "\<^bold>[x, xs\<^bold>]" == "x\<^bold>#\<^bold>[xs\<^bold>]"
   "\<^bold>[x\<^bold>]" == "x\<^bold>#\<^bold>[\<^bold>]"

@@ -116,7 +116,7 @@ attribute_setup bounded_bilinear =
 
 subsection \<open>Type of bounded linear functions\<close>
 
-typedef\<^marker>\<open>tag important\<close> (overloaded) ('a, 'b) blinfun (\<open>(_ \<Rightarrow>\<^sub>L /_)\<close> [22, 21] 21) =
+typedef\<^marker>\<open>tag important\<close> (overloaded) ('a, 'b) blinfun (\<open>(\<open>notation=\<open>infix \<Rightarrow>\<^sub>L\<close>\<close>_ \<Rightarrow>\<^sub>L /_)\<close> [22, 21] 21) =
   "{f::'a::real_normed_vector\<Rightarrow>'b::real_normed_vector. bounded_linear f}"
   morphisms blinfun_apply Blinfun
   by (blast intro: bounded_linear_intros)

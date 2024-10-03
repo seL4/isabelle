@@ -245,7 +245,7 @@ fun lifting_bundle qty_full_name qinfo lthy =
     lthy
     |> Local_Theory.declaration {syntax = false, pervasive = true, pos = \<^here>}
         (fn phi => Lifting_Info.init_restore_data bundle_name (phi_qinfo phi))
-    |> Bundle.bundle ((binding, [restore_lifting_att])) []
+    |> Bundle.bundle {open_bundle = false} ((binding, [restore_lifting_att])) []
     |> pair binding
   end
 

@@ -191,11 +191,11 @@ print_translation \<open>
 nonterminal case_syn and cases_syn
 syntax
   "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  (\<open>(\<open>notation=\<open>mixfix case expression\<close>\<close>case _ of/ _)\<close> 10)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case pattern\<close>\<close>_ \<Rightarrow>/ _)\<close> 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>_ \<Rightarrow>/ _)\<close> 10)
   "" :: "case_syn \<Rightarrow> cases_syn"  (\<open>_\<close>)
   "_case2" :: "[case_syn, cases_syn] \<Rightarrow> cases_syn"  (\<open>_/ | _\<close>)
 syntax (ASCII)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case pattern\<close>\<close>_ =>/ _)\<close> 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>_ =>/ _)\<close> 10)
 
 notation (ASCII)
   All  (binder \<open>ALL \<close> 10) and

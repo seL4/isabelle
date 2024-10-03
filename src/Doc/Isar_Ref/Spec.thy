@@ -231,7 +231,7 @@ text \<open>
   (\secref{sec:locale}).
 
   \<^rail>\<open>
-    @@{command bundle} @{syntax name}
+    (@@{command bundle} | @@{command open_bundle}) @{syntax name} \<newline>
       ( '=' @{syntax thms} @{syntax for_fixes} | @'begin')
     ;
     @@{command print_bundles} ('!'?)
@@ -257,6 +257,9 @@ text \<open>
   \<^theory_text>\<open>notation\<close>, for example. Named fact declarations like ``\<^theory_text>\<open>lemmas a [simp] =
   b\<close>'' or ``\<^theory_text>\<open>lemma a [simp]: B \<proof>\<close>'' are also admitted, but the name
   bindings are not recorded in the bundle.
+
+  \<^descr> \<^theory_text>\<open>open_bundle b\<close> is like \<^theory_text>\<open>bundle b\<close> followed by \<^theory_text>\<open>unbundle b\<close>, so its
+  declarations are applied immediately, but also named for later re-use.
 
   \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
   current context; the ``\<open>!\<close>'' option indicates extra verbosity.

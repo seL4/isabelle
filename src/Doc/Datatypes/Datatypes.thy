@@ -453,8 +453,7 @@ text \<open>
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
 (*<*)
-no_syntax
-  "_list" :: "args => 'a list"    (\<open>[(\<open>notation=\<open>mixfix list enumeration\<close>\<close>_)]\<close>)
+unbundle no_list_syntax
 (*>*)
     syntax "_list" :: "args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
 

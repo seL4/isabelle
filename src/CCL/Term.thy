@@ -51,7 +51,6 @@ definition "let1" :: "[i,i\<Rightarrow>i]\<Rightarrow>i"
 
 syntax "_let1" :: "[idt,i,i]\<Rightarrow>i"
   (\<open>(\<open>indent=3 notation=\<open>mixfix let be in\<close>\<close>let _ be _/ in _)\<close> [0,0,60] 60)
-syntax_consts let1
 translations "let x be a in e" == "CONST let1(a, \<lambda>x. e)"
 
 definition letrec :: "[[i,i\<Rightarrow>i]\<Rightarrow>i,(i\<Rightarrow>i)\<Rightarrow>i]\<Rightarrow>i"
@@ -73,7 +72,6 @@ syntax
     (\<open>(\<open>indent=3 notation=\<open>mixfix letrec be in\<close>\<close>letrec _ _ _ be _/ in _)\<close> [0,0,0,0,60] 60)
   "_letrec3" :: "[idt,idt,idt,idt,i,i]\<Rightarrow>i"
     (\<open>(\<open>indent=3 notation=\<open>mixfix letrec be in\<close>\<close>letrec _ _ _ _ be _/ in _)\<close> [0,0,0,0,0,60] 60)
-syntax_consts letrec letrec2 letrec3
 parse_translation \<open>
   let
     fun abs_tr t u = Syntax_Trans.abs_tr [t, u];

@@ -96,10 +96,10 @@ definition\<^marker>\<open>tag important\<close> infsetsum ::
 
 syntax (ASCII)
   "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  (\<open>(3INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder INFSETSUM\<close>\<close>INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
 syntax
   "_infsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  (\<open>(2\<Sum>\<^sub>a_\<in>_./ _)\<close> [0, 51, 10] 10)
+  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>a\<close>\<close>\<Sum>\<^sub>a_\<in>_./ _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_infsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
@@ -107,10 +107,10 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 
 syntax (ASCII)
   "_uinfsetsum" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  (\<open>(3INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder INFSETSUM\<close>\<close>INFSETSUM _:_./ _)\<close> [0, 51, 10] 10)
 syntax
   "_uinfsetsum" :: "pttrn \<Rightarrow> 'b \<Rightarrow> 'b::{banach, second_countable_topology}"
-  (\<open>(2\<Sum>\<^sub>a_./ _)\<close> [0, 10] 10)
+  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>a\<close>\<close>\<Sum>\<^sub>a_./ _)\<close> [0, 10] 10)
 syntax_consts
   "_uinfsetsum" \<rightleftharpoons> infsetsum
 translations \<comment> \<open>Beware of argument permutation!\<close>
@@ -118,10 +118,10 @@ translations \<comment> \<open>Beware of argument permutation!\<close>
 
 syntax (ASCII)
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
-  (\<open>(3INFSETSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
+  (\<open>(\<open>indent=3 notation=\<open>binder INFSETSUM\<close>\<close>INFSETSUM _ |/ _./ _)\<close> [0, 0, 10] 10)
 syntax
   "_qinfsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a::{banach, second_countable_topology}"
-  (\<open>(2\<Sum>\<^sub>a_ | (_)./ _)\<close> [0, 0, 10] 10)
+  (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<^sub>a\<close>\<close>\<Sum>\<^sub>a_ | (_)./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_qinfsetsum" \<rightleftharpoons> infsetsum
 translations

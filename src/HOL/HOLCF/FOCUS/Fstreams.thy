@@ -44,11 +44,11 @@ abbreviation
   "<> == \<bottom>"
 
 abbreviation
-  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       (\<open>(_\<copyright>_)\<close> [64,63] 63) where
+  fsfilter' :: "'a set \<Rightarrow> 'a fstream \<Rightarrow> 'a fstream"       (\<open>(\<open>notation=\<open>infix \<copyright>\<close>\<close>_\<copyright>_)\<close> [64,63] 63) where
   "A\<copyright>s == fsfilter A\<cdot>s"
 
 notation (ASCII)
-  fsfilter'  (\<open>(_'(C')_)\<close> [64,63] 63)
+  fsfilter'  (\<open>(\<open>notation=\<open>infix (C)\<close>\<close>_'(C')_)\<close> [64,63] 63)
 
 
 lemma ft_fsingleton[simp]: "ft\<cdot>(<a>) = Def a"
