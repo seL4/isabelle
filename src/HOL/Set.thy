@@ -29,11 +29,23 @@ notation
   not_member  (\<open>'(\<notin>')\<close>) and
   not_member  (\<open>(\<open>notation=\<open>infix \<notin>\<close>\<close>_/ \<notin> _)\<close> [51, 51] 50)
 
+open_bundle member_ASCII_syntax
+begin
 notation (ASCII)
   member  (\<open>'(:')\<close>) and
   member  (\<open>(\<open>notation=\<open>infix :\<close>\<close>_/ : _)\<close> [51, 51] 50) and
   not_member  (\<open>'(~:')\<close>) and
   not_member  (\<open>(\<open>notation=\<open>infix ~:\<close>\<close>_/ ~: _)\<close> [51, 51] 50)
+end
+
+bundle no_member_ASCII_syntax
+begin
+no_notation (ASCII)
+  member  (\<open>'(:')\<close>) and
+  member  (\<open>(\<open>notation=\<open>infix :\<close>\<close>_/ : _)\<close> [51, 51] 50) and
+  not_member  (\<open>'(~:')\<close>) and
+  not_member  (\<open>(\<open>notation=\<open>infix ~:\<close>\<close>_/ ~: _)\<close> [51, 51] 50)
+end
 
 
 text \<open>Set comprehensions\<close>
