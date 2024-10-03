@@ -127,7 +127,7 @@ The following portable system tools can be taken for granted:
   format, not the underlying platform! There are special tricks to get
   underlying platform details, depending on OS versions: Isabelle/Scala and
   the Isabelle settings environment provide sanitized versions of that.
-  Isabelle tools should not attempt anything their own account.
+  Isabelle tools should not attempt anything on their own account.
 
 * Common Unix tools like `/bin/sh`, `/bin/kill`, `sed`, `ulimit` are
   notoriously non-portable an should be avoided.
@@ -220,7 +220,7 @@ for multiplatform application bundling).
 
 ### Repeatable component builds ###
 
-Historically, Isabelle components have often been assembled manually, packaged
+Historically, Isabelle components have often been assembled by hand, packaged
 as `.tar.gz` and uploaded to the administrative directory. This model no
 longer fits the typical complexity of multi-platform tools.
 
