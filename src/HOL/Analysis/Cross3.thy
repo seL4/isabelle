@@ -10,7 +10,7 @@ theory "Cross3"
   imports Determinants Cartesian_Euclidean_Space
 begin
 
-context includes no_Set_Product_syntax 
+context includes no_set_product_syntax
 begin \<comment>\<open>locally disable syntax for set product, to avoid warnings\<close>
 
 definition\<^marker>\<open>tag important\<close> cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr \<open>\<times>\<close> 80)
@@ -21,19 +21,17 @@ definition\<^marker>\<open>tag important\<close> cross3 :: "[real^3, real^3] \<R
 
 end
 
-bundle cross3_syntax
+open_bundle cross3_syntax
 begin
 notation cross3 (infixr \<open>\<times>\<close> 80)
-no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
+unbundle no_set_product_syntax
 end
 
 bundle no_cross3_syntax
 begin
 no_notation cross3 (infixr \<open>\<times>\<close> 80)
-notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
+unbundle set_product_syntax
 end
-
-unbundle cross3_syntax
 
 subsection\<open> Basic lemmas\<close>
 

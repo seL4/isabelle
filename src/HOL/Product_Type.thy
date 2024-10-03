@@ -1003,14 +1003,14 @@ qualified abbreviation Times :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \
   where "A \<times> B \<equiv> Sigma A (\<lambda>_. B)"
 end
 
-bundle no_Set_Product_syntax
-begin
-no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
-end
-
-bundle Set_Product_syntax
+bundle set_product_syntax
 begin
 notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
+end
+
+bundle no_set_product_syntax
+begin
+no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 
 syntax
