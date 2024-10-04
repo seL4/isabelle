@@ -119,7 +119,8 @@ val _ =
     entity_antiqs no_check "isasystem" \<^binding>\<open>executable\<close> #>
     entity_antiqs Isabelle_Tool.check "isatool" \<^binding>\<open>tool\<close> #>
     entity_antiqs ML_Context.check_antiquotation "" \<^binding>\<open>ML_antiquotation\<close> #>
-    entity_antiqs (K JEdit.check_action) "isasystem" \<^binding>\<open>action\<close>);
+    entity_antiqs (K JEdit.check_action) "isasystem" \<^binding>\<open>action\<close> #>
+    entity_antiqs Markup_Kind.check_notation_kind "" \<^binding>\<open>notation_kind\<close>);
 
 end;
 

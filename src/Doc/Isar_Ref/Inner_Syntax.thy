@@ -410,13 +410,48 @@ text \<open>
     This allows to specify free-form PIDE markup, e.g.\ for specialized
     output.
 
+    \<^item> \<open>notation\<close> (cartouche): a semi-formal description of the notation that
+    is surrounded by the block parentheses. The cartouche consists of multiple
+    words (separated by white-space). The first word specifies the \<^emph>\<open>kind\<close> of
+    notation as follows:
+
+      \<^item> @{notation_kind_def mixfix}: general mixfix notation, with delimiters
+      surrounding its arguments.
+
+      \<^item> @{notation_kind_def prefix}: notation with delimiters before its
+      arguments.
+
+      \<^item> @{notation_kind_def postfix}: notation with delimiters after its
+      arguments.
+
+      \<^item> @{notation_kind_def "infix"}: notation with delimiters between its
+      arguments (automatically inserted for @{keyword "infix"} annotations,
+      see \secref{sec:infixes}).
+
+      \<^item> @{notation_kind_def "binder"}: notation that binds variables within
+      its body argument (automatically inserted for @{keyword "binder"}
+      annotations, see \secref{sec:binders}).
+
+      \<^item> @{notation_kind_def type_application}: application of a type
+      constructor to its arguments.
+
+      \<^item> @{notation_kind_def application}: \<open>\<lambda>\<close>-term application.
+
+      \<^item> @{notation_kind_def abstraction}: \<open>\<lambda>\<close>-term abstraction.
+
+      \<^item> @{notation_kind_def judgment}: judgment form of the object-logic
+      (usually without delimiters).
+
+    Plenty of examples may be found in the Isabelle sources by searching for
+    ``\<^verbatim>\<open>notation=\<close>''.
+
   \<^medskip>
   Note that the general idea of pretty printing with blocks and breaks is
   described in \<^cite>\<open>"paulson-ml2"\<close>; it goes back to \<^cite>\<open>"Oppen:1980"\<close>.
 \<close>
 
 
-subsection \<open>Infixes\<close>
+subsection \<open>Infixes \label{sec:infixes}\<close>
 
 text \<open>
   Infix operators are specified by convenient short forms that abbreviate
@@ -448,7 +483,7 @@ text \<open>
 \<close>
 
 
-subsection \<open>Binders\<close>
+subsection \<open>Binders \label{sec:binders}\<close>
 
 text \<open>
   A \<^emph>\<open>binder\<close> is a variable-binding construct such as a quantifier. The idea
