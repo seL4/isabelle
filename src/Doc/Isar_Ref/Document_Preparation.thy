@@ -358,7 +358,7 @@ text \<open>
   The argument syntax is uniform for all variants and is usually presented in
   control-symbol-cartouche form: \<open>\<^cite>\<open>arg\<close>\<close>. The formal syntax of the
   nested argument language is defined as follows: \<^rail>\<open>arg: (embedded
-  @'in')? (name + 'and') \<newline> (@'using' name)?\<close>
+  @'in')? (name + @'and') \<newline> (@'using' name)?\<close>
 
   Here the embedded text is free-form {\LaTeX}, which becomes the optional
   argument of the \<^verbatim>\<open>\cite\<close> macro. The named items are Bib{\TeX} database
