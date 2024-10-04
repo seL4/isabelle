@@ -62,7 +62,7 @@ end
 (* FIXME should be provable without lifting *)
 lemma fmadd_disjnt: "fdisjnt (fmdom m) (fmdom n) \<Longrightarrow> m ++\<^sub>f n = n ++\<^sub>f m"
 unfolding fdisjnt_alt_def
-including fset.lifting fmap.lifting
+including fset.lifting and fmap.lifting
 apply transfer
 apply (rule ext)
 apply (auto simp: map_add_def split: option.splits)

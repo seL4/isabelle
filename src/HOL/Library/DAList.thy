@@ -129,7 +129,7 @@ end
 subsection \<open>Quickcheck generators\<close>
 
 context
-  includes state_combinator_syntax term_syntax
+  includes state_combinator_syntax and term_syntax
 begin
 
 definition

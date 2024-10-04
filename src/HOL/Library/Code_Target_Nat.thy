@@ -11,7 +11,7 @@ begin
 subsection \<open>Implementation for \<^typ>\<open>nat\<close>\<close>
 
 context
-includes natural.lifting integer.lifting
+includes natural.lifting and integer.lifting
 begin
 
 lift_definition Nat :: "integer \<Rightarrow> nat"

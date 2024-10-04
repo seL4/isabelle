@@ -654,18 +654,15 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>unbundle\<close>
-    "open bundle in local theory"
-    (Scan.repeat1 Parse.name_position >> Bundle.unbundle_cmd);
+    "open bundle in local theory" (Parse_Spec.bundles >> Bundle.unbundle_cmd);
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>include\<close>
-    "open bundle in proof body"
-    (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.include_cmd));
+    "open bundle in proof body" (Parse_Spec.bundles >> (Toplevel.proof o Bundle.include_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>including\<close>
-    "open bundle in goal refinement"
-    (Scan.repeat1 Parse.name_position >> (Toplevel.proof o Bundle.including_cmd));
+    "open bundle in goal refinement" (Parse_Spec.bundles >> (Toplevel.proof o Bundle.including_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_bundles\<close>

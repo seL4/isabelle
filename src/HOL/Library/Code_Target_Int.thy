@@ -160,7 +160,7 @@ lemma [code]:
   by transfer (simp add: fun_eq_iff)
 
 context
-  includes integer.lifting bit_operations_syntax
+  includes integer.lifting and bit_operations_syntax
 begin
 
 declare [[code drop: \<open>bit :: int \<Rightarrow> _\<close> \<open>not :: int \<Rightarrow> _\<close>

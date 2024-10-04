@@ -180,7 +180,7 @@ lemma card_UNIV_char:
   by (auto simp add: UNIV_char_of_nat card_image)
 
 context
-  includes lifting_syntax integer.lifting natural.lifting
+  includes lifting_syntax and integer.lifting and natural.lifting
 begin
 
 lemma [transfer_rule]:

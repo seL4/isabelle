@@ -13,6 +13,9 @@ New in this Isabelle version
 so its declarations are applied immediately, but also named for later
 re-use.
 
+* The syntax of opnening bundles has changed slightly: multiple bundles
+need to be separated by the keyword 'and'. Minor INCOMPATIBILITY.
+
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
 specification of the effect of 'translations' (or translation functions

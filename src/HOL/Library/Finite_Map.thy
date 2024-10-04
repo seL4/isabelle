@@ -1188,7 +1188,7 @@ lifting_update fmap.lifting
 lemma fmap_exhaust[cases type: fmap]:
   obtains (fmempty) "m = fmempty"
         | (fmupd) x y m' where "m = fmupd x y m'" "x |\<notin>| fmdom m'"
-using that including fmap.lifting fset.lifting
+using that including fmap.lifting and fset.lifting
 proof transfer
   fix m P
   assume "finite (dom m)"

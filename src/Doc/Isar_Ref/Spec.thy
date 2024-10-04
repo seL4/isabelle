@@ -211,10 +211,12 @@ text \<open>
   \begin{matharray}{rcl}
     @{command_def "bundle"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command "bundle"} & : & \<open>theory \<rightarrow> local_theory\<close> \\
+    @{command_def "unbundle"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "print_bundles"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
     @{command_def "include"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "including"} & : & \<open>proof(prove) \<rightarrow> proof(prove)\<close> \\
     @{keyword_def "includes"} & : & syntax \\
+    @{keyword_def "opening"} & : & syntax \\
   \end{matharray}
 
   The outer syntax of fact expressions (\secref{sec:syn-att}) involves
@@ -234,15 +236,17 @@ text \<open>
     (@@{command bundle} | @@{command open_bundle}) @{syntax name} \<newline>
       ( '=' @{syntax thms} @{syntax for_fixes} | @'begin')
     ;
+    @@{command unbundle} @{syntax bundles}
+    ;
     @@{command print_bundles} ('!'?)
     ;
-    (@@{command include} | @@{command including}) (@{syntax name}+)
+    (@@{command include} | @@{command including}) @{syntax bundles}
     ;
-    @{syntax_def "includes"}: @'includes' (@{syntax name}+)
+    @{syntax_def "includes"}: @'includes' @{syntax bundles}
     ;
-    @{syntax_def "opening"}: @'opening' (@{syntax name}+)
+    @{syntax_def "opening"}: @'opening' @{syntax bundles}
     ;
-    @@{command unbundle} (@{syntax name}+)
+    @{syntax bundles}: @{syntax name} + @'and'
   \<close>
 
   \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
@@ -259,32 +263,31 @@ text \<open>
   bindings are not recorded in the bundle.
 
   \<^descr> \<^theory_text>\<open>open_bundle b\<close> is like \<^theory_text>\<open>bundle b\<close> followed by \<^theory_text>\<open>unbundle b\<close>, so its
-  declarations are applied immediately, but also named for later re-use.
+  declarations are activated immediately, but also named for later re-use.
+
+  \<^descr> \<^theory_text>\<open>unbundle \<^vec>b\<close> activates the declarations from the given bundles in
+  the current local theory context. This is analogous to \<^theory_text>\<open>lemmas\<close>
+  (\secref{sec:theorems}) with the expanded bundles.
 
   \<^descr> \<^theory_text>\<open>print_bundles\<close> prints the named bundles that are available in the
   current context; the ``\<open>!\<close>'' option indicates extra verbosity.
 
-  \<^descr> \<^theory_text>\<open>include b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles
-  in a proof body (forward mode). This is analogous to \<^theory_text>\<open>note\<close>
+  \<^descr> \<^theory_text>\<open>include \<^vec>b\<close> activates the declarations from the given bundles in a
+  proof body (forward mode). This is analogous to \<^theory_text>\<open>note\<close>
   (\secref{sec:proof-facts}) with the expanded bundles.
 
-  \<^descr> \<^theory_text>\<open>including b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof refinement
-  (backward mode). This is analogous to \<^theory_text>\<open>using\<close> (\secref{sec:proof-facts})
-  with the expanded bundles.
+  \<^descr> \<^theory_text>\<open>including \<^vec>b\<close> is similar to \<^theory_text>\<open>include\<close>, but works in proof
+  refinement (backward mode). This is analogous to \<^theory_text>\<open>using\<close>
+  (\secref{sec:proof-facts}) with the expanded bundles.
 
-  \<^descr> \<^theory_text>\<open>includes b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>include\<close>, but applies to a
-  confined specification context: unnamed \<^theory_text>\<open>context\<close>s and
-  long statements of \<^theory_text>\<open>theorem\<close>.
+  \<^descr> \<^theory_text>\<open>includes \<^vec>b\<close> is similar to \<^theory_text>\<open>include\<close>, but applies to a confined
+  specification context: unnamed \<^theory_text>\<open>context\<close>s and long statements of
+  \<^theory_text>\<open>theorem\<close>.
 
-  \<^descr> \<^theory_text>\<open>opening b\<^sub>1 \<dots> b\<^sub>n\<close> is similar to \<^theory_text>\<open>includes\<close>, but applies to
-  a named specification context: \<^theory_text>\<open>locale\<close>s, \<^theory_text>\<open>class\<close>es and
-  named \<^theory_text>\<open>context\<close>s. The effect is confined to the surface context within the
-  specification block itself and the corresponding \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.
-
-  \<^descr> \<^theory_text>\<open>unbundle b\<^sub>1 \<dots> b\<^sub>n\<close> activates the declarations from the given bundles in
-  the current local theory context. This is analogous to \<^theory_text>\<open>lemmas\<close>
-  (\secref{sec:theorems}) with the expanded bundles.
-
+  \<^descr> \<^theory_text>\<open>opening \<^vec>b\<close> is similar to \<^theory_text>\<open>includes\<close>, but applies to a named
+  specification context: \<^theory_text>\<open>locale\<close>s, \<^theory_text>\<open>class\<close>es and named \<^theory_text>\<open>context\<close>s. The
+  effect is confined to the surface context within the specification block
+  itself and the corresponding \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.
 
   Here is an artificial example of bundling various configuration options:
 \<close>
