@@ -36,16 +36,16 @@ and examples.
 *** Isabelle/VSCode Prover IDE ***
 
 * General improvements: Persistent decorations for PIDE markup, correct
-  font and formatting in panels, and proper completions.
-  Moreover, the PIDE extension of the LSP now features additional
-  protocol messages (e.g. to obtain the set of Isabelle symbols) and
-  more fine-grained control for unicode symbols.
+font and formatting in panels, and proper completions. Moreover, the
+PIDE extension of the LSP now features additional protocol messages
+(e.g. to obtain the set of Isabelle symbols) and more fine-grained
+control for recoding of Unicode symbols.
 
-* Active "sendback" markup can now be used via LSP code actions, e.g.
-  to insert proof methods from Sledgehammer output.
+* Active "sendback" markup can now be used via LSP code actions, e.g. to
+insert proof methods from Sledgehammer output.
 
 * Relevant Isabelle options can now be overriden from the
-  Isabelle/VSCode extension settings.
+Isabelle/VSCode extension settings.
 
 
 *** HOL ***
@@ -65,7 +65,7 @@ break after changes in the library.
 
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
-    Minor INCOMPATIBILITIES.
+    Minor INCOMPATIBILITY.
   - Renamed lemmas. Minor INCOMPATIBILITY.
       accp_wfPD ~> accp_wfpD
       accp_wfPI ~> accp_wfpI
@@ -99,13 +99,13 @@ break after changes in the library.
       image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
-* Transitioinal theory "Divides" moved to "HOL-Library.Divides" and supposed to
-be removed in a furure release.  Minor INCOMPATIBILITY.  Import
-"HOL-Library.Divides" and keep an eye on theorems prefixed with "Divides." to
-ease transition.
+* Transitioinal theory "Divides" moved to "HOL-Library.Divides" and
+supposed to be removed in a furure release. Minor INCOMPATIBILITY.
+Import "HOL-Library.Divides" and keep an eye on theorems prefixed with
+"Divides." to ease transition.
 
 * The real-valued versions of ln, log, powr have been totalised by
-ln(0) = x and ln(-x) = ln(x). Many related theorems are now
+"ln(0) = x" and "ln(-x) = ln(x)". Many related theorems are now
 unconditional, with ln_mult_pos and ln_divide_pos introduced for legacy
 purposes.
 
