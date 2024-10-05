@@ -139,6 +139,8 @@ Pretty.T interfaces (that are based on Latex.output_ops internally).
 Note that basic Markup.markup cannot be used for Latex output: proper
 Pretty.T operations are required (e.g. Pretty.mark_str).
 
+* Antiquotation \<^bundle>\<open>name\<close> inlines a formally checked bundle name.
+
 
 *** System ***
 

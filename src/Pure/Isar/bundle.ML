@@ -55,6 +55,11 @@ val bundle_space = Name_Space.space_of_table o #1 o Data.get;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 
+val _ = Theory.setup
+  (ML_Antiquotation.inline_embedded \<^binding>\<open>bundle\<close>
+    (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>
+      ML_Syntax.print_string (check ctxt (name, pos)))));
+
 fun check_name ctxt ((b: bool, pos), arg) =
   (Context_Position.report ctxt pos Markup.quasi_keyword; (b, check ctxt arg));
 
