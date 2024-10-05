@@ -432,6 +432,9 @@ text \<open>
       its body argument (automatically inserted for @{keyword "binder"}
       annotations, see \secref{sec:binders}).
 
+      \<^item> @{notation_kind_def literal}: notation for literal values, such as
+      string or number.
+
       \<^item> @{notation_kind_def type_application}: application of a type
       constructor to its arguments.
 

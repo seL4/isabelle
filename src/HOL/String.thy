@@ -224,7 +224,7 @@ syntax_consts
 type_synonym string = "char list"
 
 syntax
-  "_String" :: "str_position \<Rightarrow> string"    (\<open>_\<close>)
+  "_String" :: "str_position \<Rightarrow> string"    (\<open>(\<open>notation=\<open>literal string\<close>\<close>_)\<close>)
 
 ML_file \<open>Tools/string_syntax.ML\<close>
 
