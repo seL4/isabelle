@@ -661,14 +661,11 @@ val init_prec = (no_prec, Output.empty);
 fun update_prec (A, p) used =
   Inttab.map_default (A, init_prec) (fn (_, output) => (p, output)) used;
 
-fun get_states A min max =
-  let
-    fun ok (Nonterminal (B, p) :: _) = A = B andalso upto_prec min max p
-      | ok _ = false;
-  in filter (fn (_, ss, _): state => ok ss) end;
-
-fun movedot_nonterm out' (info, Nonterminal _ :: sa, out) : state =
-  (info, sa, append_output out' out);
+fun movedot_states out' A min max = map_filter
+  (fn ((info, Nonterminal (B, p) :: sa, out): state) =>
+      if A = B andalso upto_prec min max p then SOME (info, sa, append_output out' out)
+      else NONE
+    | _ => NONE);
 
 fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states0 =
   let
@@ -722,12 +719,11 @@ fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) states
               let
                 val (A, p, id, j) = info;
                 val out' = node_output {nonterm = A, const = id} out;
-                val (used', Slist) =
+                val (used', states') =
                   if j = i then (*lambda production?*)
                     let val (q, used') = update_output (A, (out', p)) used
-                    in (used', get_states A q p Si) end
-                  else (used, get_states A no_prec p (get j));
-                val states' = map (movedot_nonterm out') Slist;
+                    in (used', movedot_states out' A q p Si) end
+                  else (used, movedot_states out' A no_prec p (get j));
               in process used' (states' @ states) (S :: Si, Sii) end)
 
     val (Si, Sii) = process Inttab.empty states0 ([], []);
