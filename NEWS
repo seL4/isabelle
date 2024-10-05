@@ -9,12 +9,18 @@ New in this Isabelle version
 
 *** General ***
 
+* Command "unbundle b" and its variants like "context includes b" allow
+an optional name prefix with the reserved word "no": "unbundle no b"
+etc. This inverts the polarity of bundled declarations like 'notation'
+vs. 'no_notation', and thus avoids redundant bundle definitions like
+"foobar_syntax" vs. "no_foobar_syntax", because "no foobar_syntax" may
+be used instead. Consequently, the syntax for multiple bundle names has
+been changed slightly, demanding an explicit 'and' keyword. Minor
+INCOMPATIBILITY.
+
 * Command "open_bundle b" is like "bundle b" followed by "unbundle b",
 so its declarations are applied immediately, but also named for later
-re-use.
-
-* The syntax of opnening bundles has changed slightly: multiple bundles
-need to be separated by the keyword 'and'. Minor INCOMPATIBILITY.
+re-use: "unbundle no b" etc.
 
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
@@ -53,11 +59,11 @@ Isabelle/VSCode extension settings.
 * Various declaration bundles support adhoc modification of notation,
 notably like this:
 
-  unbundle no_list_syntax
-  unbundle no_listcompr_syntax
-  unbundle no_rtrancl_syntax
-  unbundle no_trancl_syntax
-  unbundle no_reflcl_syntax
+  unbundle no list_syntax
+  unbundle no listcompr_syntax
+  unbundle no rtrancl_syntax
+  unbundle no trancl_syntax
+  unbundle no reflcl_syntax
 
 This is more robust than individual 'no_syntax' / 'no_notation'
 commands, which need to copy mixfix declarations from elsewhere and thus

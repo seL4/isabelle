@@ -91,7 +91,7 @@ text \<open>
 text %mlref \<open>
   \begin{mldecls}
   @{define_ML_type local_theory = Proof.context} \\
-  @{define_ML Named_Target.init: "string list -> string -> theory -> local_theory"} \\[1ex]
+  @{define_ML Named_Target.init: "Bundle.name list -> string -> theory -> local_theory"} \\[1ex]
   @{define_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory"} \\
   @{define_ML Local_Theory.note: "Attrib.binding * thm list ->

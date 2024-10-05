@@ -51,9 +51,9 @@ translations
   "[x, xs]" \<rightleftharpoons> "x#[xs]"
   "[x]" \<rightleftharpoons> "x#[]"
 
-bundle no_list_syntax
+bundle list_syntax
 begin
-no_syntax
+syntax
   "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 end
 
@@ -457,9 +457,9 @@ syntax
 syntax (ASCII)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ <- _\<close>)
 
-bundle no_listcompr_syntax
+bundle listcompr_syntax
 begin
-no_syntax
+syntax
   "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  (\<open>[_ . __\<close>)
   "_lc_end" :: "lc_quals" (\<open>]\<close>)
 end

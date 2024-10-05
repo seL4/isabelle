@@ -466,9 +466,4 @@ begin
 notation inner (infix \<open>\<bullet>\<close> 70)
 end
 
-bundle no_inner_syntax
-begin
-no_notation inner (infix \<open>\<bullet>\<close> 70)
-end
-
 end

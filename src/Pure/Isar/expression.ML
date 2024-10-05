@@ -34,7 +34,7 @@ sig
       * Element.context_i list * Proof.context) * ((string * typ) list * Proof.context)
   val add_locale: binding -> binding -> Bundle.name list ->
     expression_i -> Element.context_i list -> theory -> string * local_theory
-  val add_locale_cmd: binding -> binding -> (xstring * Position.T) list ->
+  val add_locale_cmd: binding -> binding -> Bundle.xname list ->
     expression -> Element.context list -> theory -> string * local_theory
 
   (* Processing of locale expressions *)
@@ -874,7 +874,7 @@ fun gen_add_locale prep_include prep_decl
 in
 
 val add_locale = gen_add_locale (K I) cert_declaration;
-val add_locale_cmd = gen_add_locale Bundle.check read_declaration;
+val add_locale_cmd = gen_add_locale Bundle.check_name read_declaration;
 
 end;
 

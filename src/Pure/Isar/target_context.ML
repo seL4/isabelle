@@ -6,12 +6,12 @@ Handling of named and nested targets at the Isar toplevel via context begin / en
 
 signature TARGET_CONTEXT =
 sig
-  val context_begin_named_cmd: (xstring * Position.T) list -> xstring * Position.T ->
+  val context_begin_named_cmd: Bundle.xname list -> xstring * Position.T ->
     theory -> local_theory
   val end_named_cmd: local_theory -> Context.generic
   val switch_named_cmd: (xstring * Position.T) option -> Context.generic ->
     (local_theory -> Context.generic) * local_theory
-  val context_begin_nested_cmd: (xstring * Position.T) list -> Element.context list ->
+  val context_begin_nested_cmd: Bundle.xname list -> Element.context list ->
     Context.generic -> local_theory
   val end_nested_cmd: local_theory -> Context.generic
 end;
@@ -20,7 +20,7 @@ structure Target_Context: TARGET_CONTEXT =
 struct
 
 fun prep_includes thy =
-  map (Bundle.check (Proof_Context.init_global thy));
+  map (Bundle.check_name (Proof_Context.init_global thy));
 
 fun context_begin_named_cmd raw_includes ("-", _) thy =
       Named_Target.init (prep_includes thy raw_includes) "" thy
@@ -44,7 +44,7 @@ fun switch_named_cmd NONE (Context.Theory thy) =
       end;
 
 fun includes raw_includes lthy =
-  Bundle.includes (map (Bundle.check lthy) raw_includes) lthy;
+  Bundle.includes (map (Bundle.check_name lthy) raw_includes) lthy;
 
 fun context_begin_nested_cmd raw_includes raw_elems gthy =
   gthy

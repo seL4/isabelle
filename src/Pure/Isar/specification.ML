@@ -56,19 +56,19 @@ sig
     bool -> local_theory -> (string * thm list) list * local_theory
   val theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    string list -> Element.context_i list -> Element.statement_i ->
+    Bundle.name list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    (xstring * Position.T) list -> Element.context list -> Element.statement ->
+    Bundle.xname list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
   val schematic_theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    string list -> Element.context_i list -> Element.statement_i ->
+    Bundle.name list -> Element.context_i list -> Element.statement_i ->
     bool -> local_theory -> Proof.state
   val schematic_theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
-    (xstring * Position.T) list -> Element.context list -> Element.statement ->
+    Bundle.xname list -> Element.context list -> Element.statement ->
     bool -> local_theory -> Proof.state
 end;
 

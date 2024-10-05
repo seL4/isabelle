@@ -1145,7 +1145,6 @@ section "Avoid pollution of name space"
 
 bundle floatarith_syntax
 begin
-
 notation Add (\<open>Add\<close>)
 notation Minus (\<open>Minus\<close>)
 notation Mult (\<open>Mult\<close>)
@@ -1164,31 +1163,6 @@ notation Power (\<open>Power\<close>)
 notation Floor (\<open>Floor\<close>)
 notation Var (\<open>Var\<close>)
 notation Num (\<open>Num\<close>)
-
-end
-
-bundle no_floatarith_syntax
-begin
-
-no_notation Add (\<open>Add\<close>)
-no_notation Minus (\<open>Minus\<close>)
-no_notation Mult (\<open>Mult\<close>)
-no_notation Inverse (\<open>Inverse\<close>)
-no_notation Cos (\<open>Cos\<close>)
-no_notation Arctan (\<open>Arctan\<close>)
-no_notation Abs (\<open>Abs\<close>)
-no_notation Max (\<open>Max\<close>)
-no_notation Min (\<open>Min\<close>)
-no_notation Pi (\<open>Pi\<close>)
-no_notation Sqrt (\<open>Sqrt\<close>)
-no_notation Exp (\<open>Exp\<close>)
-no_notation Powr (\<open>Powr\<close>)
-no_notation Ln (\<open>Ln\<close>)
-no_notation Power (\<open>Power\<close>)
-no_notation Floor (\<open>Floor\<close>)
-no_notation Var (\<open>Var\<close>)
-no_notation Num (\<open>Num\<close>)
-
 end
 
 hide_const (open)

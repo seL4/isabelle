@@ -17,11 +17,6 @@ begin
 notation\<^marker>\<open>tag important\<close> lipschitz_on (\<open>_-lipschitz'_on\<close> [1000])
 end
 
-bundle no_lipschitz_syntax
-begin
-no_notation lipschitz_on (\<open>_-lipschitz'_on\<close> [1000])
-end
-
 lemma lipschitz_onI: "L-lipschitz_on X f"
   if "\<And>x y. x \<in> X \<Longrightarrow> y \<in> X \<Longrightarrow> dist (f x) (f y) \<le> L * dist x y" "0 \<le> L"
   using that by (auto simp: lipschitz_on_def)

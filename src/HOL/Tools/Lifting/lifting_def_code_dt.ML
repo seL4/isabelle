@@ -272,7 +272,9 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
               |> Lifting_Info.lookup_quot_thm_quotients lthy2 |> is_some
             val qty_code_dt_bundle_name = bundle_name_of_rep_isom_data rep_isom_data
             val rep_isom = mk_rep_isom_of_code_dt qty_ret code_dt |> the
-            val lthy3 = if quot_active then lthy2 else Bundle.includes [qty_code_dt_bundle_name] lthy2
+            val lthy3 =
+              if quot_active then lthy2
+              else Bundle.includes [(true, qty_code_dt_bundle_name)] lthy2
             fun qty_isom_of_rep_isom rep = domain_type (dest_Const_type rep)
             val qty_isom = qty_isom_of_rep_isom rep_isom
             val f'_var = (Binding.suffix_name "_aux" (fst var), NoSyn);

@@ -64,32 +64,32 @@ notation (ASCII)
   tranclp  (\<open>(\<open>notation=\<open>postfix ++\<close>\<close>_^++)\<close> [1000] 1000) and
   reflclp  (\<open>(\<open>notation=\<open>postfix ==\<close>\<close>_^==)\<close> [1000] 1000)
 
-bundle no_rtrancl_syntax
+bundle rtrancl_syntax
 begin
-no_notation
+notation
   rtrancl  (\<open>(\<open>notation=\<open>postfix *\<close>\<close>_\<^sup>*)\<close> [1000] 999) and
   rtranclp  (\<open>(\<open>notation=\<open>postfix **\<close>\<close>_\<^sup>*\<^sup>*)\<close> [1000] 1000)
-no_notation (ASCII)
+notation (ASCII)
   rtrancl  (\<open>(\<open>notation=\<open>postfix *\<close>\<close>_^*)\<close> [1000] 999) and
   rtranclp  (\<open>(\<open>notation=\<open>postfix **\<close>\<close>_^**)\<close> [1000] 1000)
 end
 
-bundle no_trancl_syntax
+bundle trancl_syntax
 begin
-no_notation
+notation
   trancl  (\<open>(\<open>notation=\<open>postfix +\<close>\<close>_\<^sup>+)\<close> [1000] 999) and
   tranclp  (\<open>(\<open>notation=\<open>postfix ++\<close>\<close>_\<^sup>+\<^sup>+)\<close> [1000] 1000)
-no_notation (ASCII)
+notation (ASCII)
   trancl  (\<open>(\<open>notation=\<open>postfix +\<close>\<close>_^+)\<close> [1000] 999) and
   tranclp  (\<open>(\<open>notation=\<open>postfix ++\<close>\<close>_^++)\<close> [1000] 1000)
 end
 
-bundle no_reflcl_syntax
+bundle reflcl_syntax
 begin
-no_notation
+notation
   reflcl  (\<open>(\<open>notation=\<open>postfix =\<close>\<close>_\<^sup>=)\<close> [1000] 999) and
   reflclp  (\<open>(\<open>notation=\<open>postfix ==\<close>\<close>_\<^sup>=\<^sup>=)\<close> [1000] 1000)
-no_notation (ASCII)
+notation (ASCII)
   reflcl  (\<open>(\<open>notation=\<open>postfix =\<close>\<close>_^=)\<close> [1000] 999) and
   reflclp  (\<open>(\<open>notation=\<open>postfix ==\<close>\<close>_^==)\<close> [1000] 1000)
 end

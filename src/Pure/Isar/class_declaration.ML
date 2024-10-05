@@ -8,7 +8,7 @@ signature CLASS_DECLARATION =
 sig
   val class: binding -> Bundle.name list -> class list ->
     Element.context_i list -> theory -> string * local_theory
-  val class_cmd: binding -> (xstring * Position.T) list -> xstring list ->
+  val class_cmd: binding -> Bundle.xname list -> xstring list ->
     Element.context list -> theory -> string * local_theory
   val prove_subclass: tactic -> class ->
     local_theory -> local_theory
@@ -263,7 +263,7 @@ fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses
   in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (includes, elems, global_syntax)) end;
 
 val cert_class_spec = prep_class_spec (K I) (K I) cert_class_elems;
-val read_class_spec = prep_class_spec Proof_Context.read_class Bundle.check read_class_elems;
+val read_class_spec = prep_class_spec Proof_Context.read_class Bundle.check_name read_class_elems;
 
 
 (* class establishment *)

@@ -17,9 +17,9 @@ sig
   val specification:
     ((binding * string option * mixfix) list * Specification.multi_specs_cmd) parser
   val constdecl: (binding * string option * mixfix) parser
-  val bundles: (xstring * Position.T) list parser
-  val includes: (xstring * Position.T) list parser
-  val opening: (xstring * Position.T) list parser
+  val bundles: Bundle.xname list parser
+  val includes: Bundle.xname list parser
+  val opening: Bundle.xname list parser
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expression: string list parser
@@ -84,7 +84,11 @@ val constdecl =
 
 (* bundles *)
 
-val bundles = Parse.and_list1 Parse.name_position;
+val bundle_polarity =
+  Scan.optional (Parse.position (Parse.reserved "no") >> (pair false o snd))
+    (true, Position.none);
+
+val bundles = Parse.and_list1 (bundle_polarity -- Parse.name_position);
 
 val includes = Parse.$$$ "includes" |-- Parse.!!! bundles;
 

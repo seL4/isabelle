@@ -6,21 +6,22 @@ Bundled declarations (notes etc.).
 
 signature BUNDLE =
 sig
-  type name = string
+  type name = bool * string
+  type xname = (bool * Position.T) * (xstring * Position.T)
   val bundle_space: Context.generic -> Name_Space.T
   val check: Proof.context -> xstring * Position.T -> string
-  val get: Proof.context -> name -> Attrib.thms
-  val read: Proof.context -> xstring * Position.T -> Attrib.thms
+  val check_name: Proof.context -> xname -> name
+  val get: Proof.context -> string -> Attrib.thms
   val extern: Proof.context -> string -> xstring
   val print_bundles: bool -> Proof.context -> unit
   val unbundle: name list -> local_theory -> local_theory
-  val unbundle_cmd: (xstring * Position.T) list -> local_theory -> local_theory
+  val unbundle_cmd: xname list -> local_theory -> local_theory
   val includes: name list -> Proof.context -> Proof.context
-  val includes_cmd: (xstring * Position.T) list -> Proof.context -> Proof.context
+  val includes_cmd: xname list -> Proof.context -> Proof.context
   val include_: name list -> Proof.state -> Proof.state
-  val include_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
+  val include_cmd: xname list -> Proof.state -> Proof.state
   val including: name list -> Proof.state -> Proof.state
-  val including_cmd: (xstring * Position.T) list -> Proof.state -> Proof.state
+  val including_cmd: xname list -> Proof.state -> Proof.state
   val bundle: {open_bundle: bool} -> binding * Attrib.thms ->
     (binding * typ option * mixfix) list -> local_theory -> local_theory
   val bundle_cmd: {open_bundle: bool} -> binding * (Facts.ref * Token.src list) list ->
@@ -44,7 +45,8 @@ structure Data = Generic_Data
 
 (* bundles *)
 
-type name = string
+type name = bool * string;
+type xname = (bool * Position.T) * (xstring * Position.T);
 
 val get_all_generic = #1 o Data.get;
 val get_all = get_all_generic o Context.Proof;
@@ -53,10 +55,11 @@ val bundle_space = Name_Space.space_of_table o #1 o Data.get;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (get_all ctxt);
 
+fun check_name ctxt ((b: bool, pos), arg) =
+  (Context_Position.report ctxt pos Markup.quasi_keyword; (b, check ctxt arg));
+
 val get_global = Name_Space.get o get_all_generic o Context.Theory;
 val get = Name_Space.get o get_all_generic o Context.Proof;
-
-fun read ctxt = get ctxt o check ctxt;
 
 fun extern ctxt = Name_Space.extern ctxt (Name_Space.space_of_table (get_all ctxt));
 
@@ -109,11 +112,19 @@ fun print_bundles verbose ctxt =
 
 (** open bundles **)
 
-fun apply_bundle loc bundle ctxt =
-  let val notes = if loc then Local_Theory.notes else Attrib.local_notes "" in
+fun polarity_decls b =
+  [([Drule.dummy_thm],
+    [Attrib.internal \<^here> (K (Thm.declaration_attribute (K (Syntax.set_polarity_generic b))))])];
+
+fun apply_bundle loc (add, bundle) ctxt =
+  let
+    val notes = if loc then Local_Theory.notes else Attrib.local_notes "";
+    val add0 = Syntax.get_polarity ctxt;
+    val add1 = Syntax.effective_polarity ctxt add;
+  in
     ctxt
     |> Context_Position.set_visible false
-    |> notes [(Binding.empty_atts, bundle)] |> snd
+    |> notes [(Binding.empty_atts, polarity_decls add1 @ bundle @ polarity_decls add0)] |> snd
     |> Context_Position.restore_visible ctxt
   end;
 
@@ -122,8 +133,8 @@ local
 fun gen_unbundle loc prep args ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val bundle = maps (prep ctxt) args |> transfer_bundle thy;
-  in apply_bundle loc bundle ctxt end;
+    val bundles = map (prep ctxt #> apsnd (get ctxt #> transfer_bundle thy)) args;
+  in fold (apply_bundle loc) bundles ctxt end;
 
 fun gen_includes prep = gen_unbundle false prep;
 
@@ -135,17 +146,17 @@ fun gen_including prep bs =
 
 in
 
-val unbundle = gen_unbundle true get;
-val unbundle_cmd = gen_unbundle true read;
+val unbundle = gen_unbundle true (K I);
+val unbundle_cmd = gen_unbundle true check_name;
 
-val includes = gen_includes get;
-val includes_cmd = gen_includes read;
+val includes = gen_includes (K I);
+val includes_cmd = gen_includes check_name;
 
-val include_ = gen_include get;
-val include_cmd = gen_include read;
+val include_ = gen_include (K I);
+val include_cmd = gen_include check_name;
 
-val including = gen_including get;
-val including_cmd = gen_including read;
+val including = gen_including (K I);
+val including_cmd = gen_including check_name;
 
 end;
 
@@ -180,7 +191,7 @@ fun gen_bundle prep_fact prep_att add_fixes {open_bundle} (binding, raw_bundle) 
       (fn phi => fn context =>
         let val psi = Morphism.set_trim_context'' context phi
         in #2 (define_bundle (Morphism.binding psi binding, transform_bundle psi bundle) context) end)
-    |> open_bundle ? apply_bundle true bundle
+    |> open_bundle ? apply_bundle true (true, bundle)
   end;
 
 in

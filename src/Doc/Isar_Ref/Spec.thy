@@ -246,7 +246,7 @@ text \<open>
     ;
     @{syntax_def "opening"}: @'opening' @{syntax bundles}
     ;
-    @{syntax bundles}: @{syntax name} + @'and'
+    @{syntax bundles}: ('no')? @{syntax name} + @'and'
   \<close>
 
   \<^descr> \<^theory_text>\<open>bundle b = decls\<close> defines a bundle of declarations in the current
@@ -288,6 +288,17 @@ text \<open>
   specification context: \<^theory_text>\<open>locale\<close>s, \<^theory_text>\<open>class\<close>es and named \<^theory_text>\<open>context\<close>s. The
   effect is confined to the surface context within the specification block
   itself and the corresponding \<^theory_text>\<open>begin\<close> / \<^theory_text>\<open>end\<close> block.
+
+  \<^descr> Bundle names may be prefixed by the reserved word \<^verbatim>\<open>no\<close> to indicate that
+  the polarity of certain declaration commands should be inverted, notably:
+
+    \<^item> @{command syntax} versus @{command no_syntax}
+    \<^item> @{command notation} versus @{command no_notation}
+    \<^item> @{command type_notation} versus @{command no_type_notation}
+
+  This also works recursively for the @{command unbundle} command as
+  declaration inside a @{command bundle} definition.
+
 
   Here is an artificial example of bundling various configuration options:
 \<close>

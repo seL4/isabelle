@@ -116,6 +116,10 @@ sig
   val update_consts: Proof.context -> (string * string list) list -> syntax -> syntax
   val update_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
   val remove_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
+  val get_polarity: Proof.context -> bool
+  val set_polarity: bool -> Proof.context -> Proof.context
+  val set_polarity_generic: bool -> Context.generic -> Context.generic
+  val effective_polarity: Proof.context -> bool -> bool
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -708,6 +712,8 @@ end;
 
 (** modify syntax **)
 
+(* updates *)
+
 fun update_trfuns ctxt = update_syntax mode_default o Syntax_Ext.syn_ext_trfuns ctxt;
 
 fun update_type_gram ctxt add prmode decls =
@@ -721,6 +727,17 @@ val update_consts = update_syntax mode_default oo Syntax_Ext.syn_ext_consts;
 
 fun update_trrules ctxt = update_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
 fun remove_trrules ctxt = remove_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
+
+
+(* polarity of declarations: true = add, false = del *)
+
+val polarity = Config.declare_bool ("polarity", Position.none) (K true);
+
+fun get_polarity ctxt = Config.get ctxt polarity;
+val set_polarity = Config.put polarity;
+val set_polarity_generic = Config.put_generic polarity;
+
+fun effective_polarity ctxt add = get_polarity ctxt = add;
 
 
 open Lexicon.Syntax;

@@ -453,7 +453,7 @@ text \<open>
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
 (*<*)
-unbundle no_list_syntax
+unbundle no list_syntax
 (*>*)
     syntax "_list" :: "args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
 

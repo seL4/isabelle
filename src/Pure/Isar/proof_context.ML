@@ -1140,8 +1140,10 @@ fun check_syntax_const ctxt (c, pos) =
   else error ("Unknown syntax const: " ^ quote c ^ Position.here pos);
 
 fun syntax add mode args ctxt =
-  let val args' = map (pair Local_Syntax.Const) args
-  in ctxt |> map_syntax (#2 o Local_Syntax.update_modesyntax ctxt add mode args') end;
+  let
+    val add' = Syntax.effective_polarity ctxt add;
+    val args' = map (pair Local_Syntax.Const) args;
+  in ctxt |> map_syntax (#2 o Local_Syntax.update_modesyntax ctxt add' mode args') end;
 
 fun generic_syntax add mode args =
   Context.mapping (Sign.syntax_global add mode args) (syntax add mode args);
@@ -1163,8 +1165,10 @@ fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax _ _ = NONE;
 
 fun gen_notation make_syntax add mode args ctxt =
-  ctxt |> map_syntax_idents
-    (Local_Syntax.update_modesyntax ctxt add mode (map_filter (make_syntax ctxt) args));
+  let
+    val add' = Syntax.effective_polarity ctxt add;
+    val args' = map_filter (make_syntax ctxt) args;
+  in ctxt |> map_syntax_idents (Local_Syntax.update_modesyntax ctxt add' mode args') end;
 
 in
 

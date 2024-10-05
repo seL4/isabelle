@@ -10,7 +10,7 @@ theory "Cross3"
   imports Determinants Cartesian_Euclidean_Space
 begin
 
-context includes no_set_product_syntax
+context includes no set_product_syntax
 begin \<comment>\<open>locally disable syntax for set product, to avoid warnings\<close>
 
 definition\<^marker>\<open>tag important\<close> cross3 :: "[real^3, real^3] \<Rightarrow> real^3"  (infixr \<open>\<times>\<close> 80)
@@ -24,14 +24,9 @@ end
 open_bundle cross3_syntax
 begin
 notation cross3 (infixr \<open>\<times>\<close> 80)
-unbundle no_set_product_syntax
+unbundle no set_product_syntax
 end
 
-bundle no_cross3_syntax
-begin
-no_notation cross3 (infixr \<open>\<times>\<close> 80)
-unbundle set_product_syntax
-end
 
 subsection\<open> Basic lemmas\<close>
 
@@ -221,7 +216,7 @@ lemma  continuous_on_cross:
   shows "\<lbrakk>continuous_on S f; continuous_on S g\<rbrakk> \<Longrightarrow> continuous_on S (\<lambda>x. (f x) \<times> (g x))"
   by (simp add: continuous_on_eq_continuous_within continuous_cross)
 
-unbundle no_cross3_syntax
+unbundle no cross3_syntax
 
 end
 

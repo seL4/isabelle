@@ -38,15 +38,6 @@ notation (ASCII)
   not_member  (\<open>(\<open>notation=\<open>infix ~:\<close>\<close>_/ ~: _)\<close> [51, 51] 50)
 end
 
-bundle no_member_ASCII_syntax
-begin
-no_notation (ASCII)
-  member  (\<open>'(:')\<close>) and
-  member  (\<open>(\<open>notation=\<open>infix :\<close>\<close>_/ : _)\<close> [51, 51] 50) and
-  not_member  (\<open>'(~:')\<close>) and
-  not_member  (\<open>(\<open>notation=\<open>infix ~:\<close>\<close>_/ ~: _)\<close> [51, 51] 50)
-end
-
 
 text \<open>Set comprehensions\<close>
 

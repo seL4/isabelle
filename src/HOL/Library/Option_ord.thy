@@ -449,6 +449,6 @@ instance option :: (complete_distrib_lattice) complete_distrib_lattice
 
 instance option :: (complete_linorder) complete_linorder ..
 
-unbundle no_lattice_syntax
+unbundle no lattice_syntax
 
 end

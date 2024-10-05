@@ -792,18 +792,13 @@ text \<open>
 
 subsection \<open>Syntax\<close>
 
-open_bundle no_permutation_syntax
-begin
-no_notation swap    (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
-no_notation cycle   (\<open>\<langle>_\<rangle>\<close>)
-no_notation "apply" (infixl \<open>\<langle>$\<rangle>\<close> 999)
-end
-
 bundle permutation_syntax
 begin
-notation swap       (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
-notation cycle      (\<open>\<langle>_\<rangle>\<close>)
-notation "apply"    (infixl \<open>\<langle>$\<rangle>\<close> 999)
+notation swap    (\<open>\<langle>_ \<leftrightarrow> _\<rangle>\<close>)
+notation cycle   (\<open>\<langle>_\<rangle>\<close>)
+notation "apply" (infixl \<open>\<langle>$\<rangle>\<close> 999)
 end
+
+unbundle no permutation_syntax
 
 end

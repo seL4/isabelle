@@ -69,8 +69,8 @@ bundle lattice_syntax
 begin
 
 notation
-  bot (\<open>\<bottom>\<close>) and
-  top (\<open>\<top>\<close>) and
+  bot  (\<open>\<bottom>\<close>) and
+  top  (\<open>\<top>\<close>) and
   inf  (infixl \<open>\<sqinter>\<close> 70) and
   sup  (infixl \<open>\<squnion>\<close> 65) and
   Inf  (\<open>\<Sqinter> _\<close> [900] 900) and
@@ -84,25 +84,6 @@ syntax
 
 end
 
-bundle no_lattice_syntax
-begin
-
-no_notation
-  bot (\<open>\<bottom>\<close>) and
-  top (\<open>\<top>\<close>) and
-  inf  (infixl \<open>\<sqinter>\<close> 70) and
-  sup  (infixl \<open>\<squnion>\<close> 65) and
-  Inf  (\<open>\<Sqinter> _\<close> [900] 900) and
-  Sup  (\<open>\<Squnion> _\<close> [900] 900)
-
-no_syntax
-  "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder \<Sqinter>\<close>\<close>\<Sqinter>_./ _)\<close> [0, 10] 10)
-  "_INF"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder \<Sqinter>\<close>\<close>\<Sqinter>_\<in>_./ _)\<close> [0, 0, 10] 10)
-  "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_./ _)\<close> [0, 10] 10)
-  "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_\<in>_./ _)\<close> [0, 0, 10] 10)
-
-end
-
-unbundle no_lattice_syntax
+unbundle no lattice_syntax
 
 end

@@ -1008,11 +1008,6 @@ begin
 notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
 end
 
-bundle no_set_product_syntax
-begin
-no_notation Product_Type.Times (infixr \<open>\<times>\<close> 80)
-end
-
 syntax
   "_Sigma" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<times> 'b) set"
     (\<open>(\<open>indent=3 notation=\<open>binder SIGMA\<close>\<close>SIGMA _:_./ _)\<close> [0, 0, 10] 10)

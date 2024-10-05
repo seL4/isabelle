@@ -25,11 +25,6 @@ begin
 notation vec_nth (infixl \<open>$\<close> 90) and vec_lambda (binder \<open>\<chi>\<close> 10)
 end
 
-bundle no_vec_syntax
-begin
-no_notation vec_nth (infixl \<open>$\<close> 90) and vec_lambda (binder \<open>\<chi>\<close> 10)
-end
-
 text \<open>
   Concrete syntax for \<open>('a, 'b) vec\<close>:
     \<^item> \<open>'a^'b\<close> becomes \<open>('a, 'b::finite) vec\<close>

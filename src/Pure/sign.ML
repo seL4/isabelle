@@ -393,27 +393,32 @@ fun syntax ctxt add mode args thy =
   in thy |> map_syn (Syntax.update_const_gram ctxt add (logical_types thy) mode (map prep args)) end;
 
 fun syntax_global add mode args thy =
-  syntax (Proof_Context.init_global thy) add mode args thy;
+  let
+    val thy_ctxt = Proof_Context.init_global thy;
+    val add' = Syntax.effective_polarity thy_ctxt add;
+  in syntax thy_ctxt add' mode args thy end;
 
 val syntax_deps = update_syn_global Syntax.update_consts;
 
 fun type_notation_global add mode args thy =
   let
     val thy_ctxt = Proof_Context.init_global thy;
+    val add' = Syntax.effective_polarity thy_ctxt add;
     fun type_syntax (Type (c, args), mx) =
           SOME (Lexicon.mark_type c, Mixfix.make_type (length args), mx)
       | type_syntax _ = NONE;
-  in map_syn (Syntax.update_type_gram thy_ctxt add mode (map_filter type_syntax args)) thy end;
+  in map_syn (Syntax.update_type_gram thy_ctxt add' mode (map_filter type_syntax args)) thy end;
 
 fun notation_global add mode args thy =
   let
     val thy_ctxt = Proof_Context.init_global thy;
+    val add' = Syntax.effective_polarity thy_ctxt add;
     fun const_syntax (Const (c, _), mx) =
           (case try (Consts.type_scheme (consts_of thy)) c of
             SOME T => SOME (Lexicon.mark_const c, T, mx)
           | NONE => NONE)
       | const_syntax _ = NONE;
-  in syntax thy_ctxt add mode (map_filter const_syntax args) thy end;
+  in syntax thy_ctxt add' mode (map_filter const_syntax args) thy end;
 
 
 (* add constants *)
