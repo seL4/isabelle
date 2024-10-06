@@ -6,39 +6,37 @@ Examples of performing binary arithmetic by simplification.
 *)
 
 theory BinEx imports ZF begin
-(*All runtimes below are on a 300MHz Pentium*)
 
 lemma "#13  $+  #19 = #32"
-by simp (*0 secs*)
+by simp
 
 lemma "#1234  $+  #5678 = #6912"
-by simp (*190 msec*)
+by simp
 
 lemma "#1359  $+  #-2468 = #-1109"
-by simp (*160 msec*)
+by simp
 
 lemma "#93746  $+  #-46375 = #47371"
-by simp (*300 msec*)
+by simp
 
 lemma "$- #65745 = #-65745"
-by simp (*80 msec*)
+by simp
 
-(* negation of \<not>54321 *)
 lemma "$- #-54321 = #54321"
-by simp (*90 msec*)
+by simp
 
 lemma "#13  $*  #19 = #247"
-by simp (*110 msec*)
+by simp
 
 lemma "#-84  $*  #51 = #-4284"
-by simp (*210 msec*)
+by simp
 
 (*The worst case for 8-bit operands *)
 lemma "#255  $*  #255 = #65025"
-by simp (*730 msec*)
+by simp
 
 lemma "#1359  $*  #-2468 = #-3354012"
-by simp (*1.04 secs*)
+by simp
 
 
 (** Comparisons **)
@@ -62,7 +60,7 @@ lemma "(#1234567) $\<le> #1234567"
 by simp
 
 
-(*** Quotient and remainder\<And>[they could be faster] ***)
+(*** Quotient and remainder [they could be faster] ***)
 
 lemma "#23 zdiv #3 = #7"
 by simp
@@ -86,7 +84,7 @@ by simp
 lemma "#23 zmod #-3 = #-1"
 by simp
 
-(** Negative dividend and divisor **)
+(** negative dividend and divisor **)
 
 lemma "#-23 zdiv #-3 = #7"
 by simp
@@ -95,4 +93,3 @@ lemma "#-23 zmod #-3 = #-2"
 by simp
 
 end
-
