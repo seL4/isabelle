@@ -670,9 +670,10 @@ class Rendering(
           case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
             val a = kind.nonEmpty
             val b = name.nonEmpty
+            val k = Word.implode(Word.explode('_', kind))
             val description =
               if (!a && !b) "notation"
-              else "notation: " + kind + if_proper(a && b, " ") + if_proper(b, quote(name))
+              else "notation: " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
             Some(info + (r0, true, XML.Text(description)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
