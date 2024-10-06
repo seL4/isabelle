@@ -422,10 +422,10 @@ val symbolic_output =
     fun out (Block ((bg, en), _, _, [], _)) = Bytes.add bg #> Bytes.add en
       | out (Block ((bg, en), consistent, indent, prts, _)) =
           Bytes.add bg #>
-          markup_bytes (Markup.block consistent indent) (fold out prts) #>
+          markup_bytes (Markup.block {consistent = consistent, indent = indent}) (fold out prts) #>
           Bytes.add en
       | out (Break (false, wd, ind)) =
-          markup_bytes (Markup.break wd ind) (output_spaces_bytes ops wd)
+          markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)
       | out (Break (true, _, _)) = Bytes.add (output_newline ops)
       | out (Str (s, _)) = Bytes.add s;
   in Bytes.build o out o output_tree ops false end;

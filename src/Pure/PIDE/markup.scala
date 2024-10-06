@@ -265,30 +265,30 @@ object Markup {
 
   object Block {
     val name = "block"
-    def apply(c: Boolean, i: Int): Markup =
+    def apply(consistent: Boolean = false, indent: Int = 0): Markup =
       Markup(name,
-        (if (c) Consistent(c) else Nil) :::
-        (if (i != 0) Indent(i) else Nil))
+        (if (consistent) Consistent(consistent) else Nil) :::
+        (if (indent != 0) Indent(indent) else Nil))
     def unapply(markup: Markup): Option[(Boolean, Int)] =
       if (markup.name == name) {
-        val c = Consistent.get(markup.properties)
-        val i = Indent.get(markup.properties)
-        Some((c, i))
+        val consistent = Consistent.get(markup.properties)
+        val indent = Indent.get(markup.properties)
+        Some((consistent, indent))
       }
       else None
   }
 
   object Break {
     val name = "break"
-    def apply(w: Int, i: Int): Markup =
+    def apply(width: Int = 0, indent: Int = 0): Markup =
       Markup(name,
-        (if (w != 0) Width(w) else Nil) :::
-        (if (i != 0) Indent(i) else Nil))
+        (if (width != 0) Width(width) else Nil) :::
+        (if (indent != 0) Indent(indent) else Nil))
     def unapply(markup: Markup): Option[(Int, Int)] =
       if (markup.name == name) {
-        val w = Width.get(markup.properties)
-        val i = Indent.get(markup.properties)
-        Some((w, i))
+        val width = Width.get(markup.properties)
+        val indent = Indent.get(markup.properties)
+        Some((width, indent))
       }
       else None
   }

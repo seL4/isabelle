@@ -21,10 +21,10 @@ object Pretty {
   val bullet: XML.Body = XML.elem(Markup.BULLET, space) :: space
 
   def block(body: XML.Body, consistent: Boolean = false, indent: Int = 2): XML.Tree =
-    XML.Elem(Markup.Block(consistent, indent), body)
+    XML.Elem(Markup.Block(consistent = consistent, indent = indent), body)
 
   def brk(width: Int, indent: Int = 0): XML.Tree =
-    XML.Elem(Markup.Break(width, indent), spaces(width))
+    XML.Elem(Markup.Break(width = width, indent = indent), spaces(width))
 
   val fbrk: XML.Tree = XML.newline
   def fbreaks(ts: List[XML.Tree]): XML.Body = Library.separate(fbrk, ts)
