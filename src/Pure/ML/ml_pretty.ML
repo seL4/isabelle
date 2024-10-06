@@ -9,6 +9,8 @@ sig
   datatype context = datatype PolyML.context
   val context_markup: PolyML.context list -> string * string
   val markup_context: string * string -> PolyML.context list
+  val context_open_block: PolyML.context list -> bool
+  val open_block_context: bool -> PolyML.context list
   datatype pretty = datatype PolyML.pretty
   val block: pretty list -> pretty
   val str: string -> pretty
@@ -29,7 +31,9 @@ end;
 structure ML_Pretty: ML_PRETTY =
 struct
 
-(* context and markup *)
+(** context **)
+
+(* properties *)
 
 datatype context = datatype PolyML.context;
 
@@ -37,6 +41,9 @@ fun context_property context name =
   (case List.find (fn ContextProperty (a, _) => name = a | _ => false) context of
     SOME (ContextProperty (_, b)) => b
   | _ => "");
+
+
+(* markup *)
 
 val markup_bg = "markup_bg";
 val markup_en = "markup_en";
@@ -51,6 +58,19 @@ fun markup_context (bg, en) =
   (if bg = "" then [] else [ContextProperty (markup_bg, bg)]) @
   (if en = "" then [] else [ContextProperty (markup_en, en)]);
 
+
+(* open_block flag *)
+
+val open_block = ContextProperty ("open_block", "true");
+
+val context_open_block = List.exists (fn c => c = open_block);
+
+fun open_block_context false = []
+  | open_block_context true = [open_block];
+
+
+
+(** pretty printing **)
 
 (* datatype pretty with derived operations *)
 

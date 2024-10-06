@@ -7,7 +7,8 @@ Syntax extension as internal record.
 signature SYNTAX_EXT =
 sig
   datatype mfix = Mfix of Symbol_Pos.T list * typ * string * int list * int * Position.T
-  type block = {markup: Markup.T list, consistent: bool, unbreakable: bool, indent: int}
+  type block =
+    {markup: Markup.T list, open_block: bool, consistent: bool, unbreakable: bool, indent: int}
   val block_indent: int -> block
   datatype xsymb =
     Delim of string |
@@ -62,10 +63,11 @@ struct
   Space s: some white space for printing
   Bg, Brk, En: blocks and breaks for pretty printing*)
 
-type block = {markup: Markup.T list, consistent: bool, unbreakable: bool, indent: int};
+type block =
+  {markup: Markup.T list, open_block: bool, consistent: bool, unbreakable: bool, indent: int};
 
 fun block_indent indent : block =
-  {markup = [], consistent = false, unbreakable = false, indent = indent};
+  {markup = [], open_block = false, consistent = false, unbreakable = false, indent = indent};
 
 datatype xsymb =
   Delim of string |
@@ -259,6 +261,7 @@ fun read_block_properties ctxt ss =
 
     val block: block =
      {markup = more_markups @ markups,
+      open_block = get_bool Markup.open_blockN props,
       consistent = get_bool Markup.consistentN props,
       unbreakable = get_bool Markup.unbreakableN props,
       indent = get_nat Markup.indentN props};

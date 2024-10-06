@@ -79,12 +79,13 @@ sig
   val docN: string val doc: string -> T
   val toolN: string val tool: string -> T
   val markupN: string
+  val open_blockN: string
   val consistentN: string
   val unbreakableN: string
   val block_properties: string list
   val indentN: string
   val widthN: string
-  val blockN: string val block: {consistent: bool, indent: int} -> T
+  val blockN: string val block: {open_block: bool, consistent: bool, indent: int} -> T
   val breakN: string val break: {width: int, indent: int} -> T
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
@@ -472,17 +473,19 @@ val (toolN, tool) = markup_string "tool" nameN;
 (* pretty printing *)
 
 val markupN = "markup";
+val open_blockN = "open_block";
 val consistentN = "consistent";
 val unbreakableN = "unbreakable";
 val indentN = "indent";
 
-val block_properties = [notationN, markupN, consistentN, unbreakableN, indentN];
+val block_properties = [notationN, markupN, open_blockN, consistentN, unbreakableN, indentN];
 
 val widthN = "width";
 
 val blockN = "block";
-fun block {consistent, indent} =
+fun block {open_block, consistent, indent} =
   (blockN,
+    (if open_block then [(open_blockN, Value.print_bool open_block)] else []) @
     (if consistent then [(consistentN, Value.print_bool consistent)] else []) @
     (if indent <> 0 then [(indentN, Value.print_int indent)] else []));
 

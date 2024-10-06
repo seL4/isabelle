@@ -22,6 +22,11 @@ INCOMPATIBILITY.
 so its declarations are applied immediately, but also named for later
 re-use: "unbundle no b" etc.
 
+* Blocks for pretty-printing (of types, terms, props etc.) now support
+the option "open_block". Thus the block has no impact on formatting, but
+it may carry markup information, which is relevant both for input and
+output of inner syntax.
+
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
 specification of the effect of 'translations' (or translation functions

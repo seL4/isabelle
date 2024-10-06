@@ -20,8 +20,14 @@ object Pretty {
 
   val bullet: XML.Body = XML.elem(Markup.BULLET, space) :: space
 
-  def block(body: XML.Body, consistent: Boolean = false, indent: Int = 2): XML.Tree =
-    XML.Elem(Markup.Block(consistent = consistent, indent = indent), body)
+  def block(body: XML.Body,
+    open_block: Boolean = false,
+    consistent: Boolean = false,
+    indent: Int = 2
+  ): XML.Tree = {
+    val markup = Markup.Block(open_block = open_block, consistent = consistent, indent = indent)
+    XML.Elem(markup, body)
+  }
 
   def brk(width: Int, indent: Int = 0): XML.Tree =
     XML.Elem(Markup.Break(width = width, indent = indent), spaces(width))
@@ -65,6 +71,7 @@ object Pretty {
   private case class Block(
     markup: Markup,
     markup_body: Option[XML.Body],
+    open_block: Boolean,
     consistent: Boolean,
     indent: Int,
     body: List[Tree],
@@ -80,6 +87,7 @@ object Pretty {
   private def make_block(body: List[Tree],
     markup: Markup = Markup.Empty,
     markup_body: Option[XML.Body] = None,
+    open_block: Boolean = false,
     consistent: Boolean = false,
     indent: Int = 0
   ): Tree = {
@@ -95,7 +103,7 @@ object Pretty {
         case Nil => len1
       }
     }
-    Block(markup, markup_body, consistent, indent1, body, body_length(body, 0.0))
+    Block(markup, markup_body, open_block, consistent, indent1, body, body_length(body, 0.0))
   }
 
 
@@ -161,15 +169,17 @@ object Pretty {
           List(make_block(make_tree(body2), markup = markup, markup_body = Some(body1)))
         case XML.Elem(markup, body) =>
           markup match {
-            case Markup.Block(consistent, indent) =>
-              List(make_block(make_tree(body), consistent = consistent, indent = indent))
+            case Markup.Block(open_block, consistent, indent) =>
+              List(
+                make_block(make_tree(body),
+                  open_block = open_block, consistent = consistent, indent = indent))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
               List(make_block(make_tree(bullet ::: body),
                 markup = Markup.Expression.item, indent = 2))
             case _ =>
-              List(make_block(make_tree(body), markup = markup))
+              List(make_block(make_tree(body), markup = markup, open_block = true))
           }
         case XML.Text(text) =>
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
@@ -179,7 +189,13 @@ object Pretty {
       trees match {
         case Nil => text
 
-        case Block(markup, markup_body, consistent, indent, body, blen) :: ts =>
+        case (block: Block) :: ts if block.open_block =>
+          val btext = format(block.body, blockin, break_dist(ts, after), text.copy(tx = Nil))
+          val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
+          val btext1 = btext.copy(tx = XML.Elem(block.markup, btext.content) :: text.tx)
+          format(ts1, blockin, after, btext1)
+
+        case Block(markup, markup_body, _, consistent, indent, body, blen) :: ts =>
           val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 = if (pos1 < emergencypos) pos1 else pos2

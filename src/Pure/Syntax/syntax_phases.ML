@@ -803,7 +803,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
               val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
               val B = Pretty.symbolic_output (pretty_typ_ast Markup.empty A);
               val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
-              val block = {markup = (bg, en), consistent = false, indent = 0};
+              val block = {markup = (bg, en), open_block = false, consistent = false, indent = 0};
             in Unsynchronized.change cache (Ast.Table.update (A, block)); block end)
       end;
   in

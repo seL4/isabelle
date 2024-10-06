@@ -259,21 +259,24 @@ object Markup {
 
   /* pretty printing */
 
+  val Open_Block = new Properties.Boolean("open_block")
   val Consistent = new Properties.Boolean("consistent")
   val Indent = new Properties.Int("indent")
   val Width = new Properties.Int("width")
 
   object Block {
     val name = "block"
-    def apply(consistent: Boolean = false, indent: Int = 0): Markup =
+    def apply(open_block: Boolean = false, consistent: Boolean = false, indent: Int = 0): Markup =
       Markup(name,
+        (if (open_block) Open_Block(open_block) else Nil) :::
         (if (consistent) Consistent(consistent) else Nil) :::
         (if (indent != 0) Indent(indent) else Nil))
-    def unapply(markup: Markup): Option[(Boolean, Int)] =
+    def unapply(markup: Markup): Option[(Boolean, Boolean, Int)] =
       if (markup.name == name) {
+        val open_block = Open_Block.get(markup.properties)
         val consistent = Consistent.get(markup.properties)
         val indent = Indent.get(markup.properties)
-        Some((consistent, indent))
+        Some((open_block, consistent, indent))
       }
       else None
   }

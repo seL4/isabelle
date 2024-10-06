@@ -31,11 +31,13 @@ sig
   val block0: T list -> T
   val block1: T list -> T
   val block: T list -> T
-  type 'a block = {markup: 'a, consistent: bool, indent: int}
+  type 'a block = {markup: 'a, open_block: bool, consistent: bool, indent: int}
   val make_block: Markup.output block -> T list -> T
   val markup_block: Markup.T block -> T list -> T
   val markup: Markup.T -> T list -> T
+  val markup_open: Markup.T -> T list -> T
   val mark: Markup.T -> T -> T
+  val mark_open: Markup.T -> T -> T
   val markup_blocks: Markup.T list block -> T list -> T
   val str: string -> T
   val dots: T
@@ -125,28 +127,39 @@ fun block body = blk (2, body);
 
 (* blocks with markup *)
 
-type 'a block = {markup: 'a, consistent: bool, indent: int}
+type 'a block = {markup: 'a, open_block: bool, consistent: bool, indent: int}
 
-fun make_block ({markup, consistent, indent}: Markup.output block) body =
-  let val context = ML_Pretty.markup_context markup
+fun make_block ({markup, open_block, consistent, indent}: Markup.output block) body =
+  let
+    val context =
+      ML_Pretty.markup_context markup @
+      ML_Pretty.open_block_context open_block;
   in from_ML (ML_Pretty.PrettyBlock (short_nat indent, consistent, context, map to_ML body)) end;
 
-fun markup_block ({markup, consistent, indent}: Markup.T block) body =
-  make_block {markup = YXML.output_markup markup, consistent = consistent, indent = indent} body;
+fun markup_block ({markup, open_block, consistent, indent}: Markup.T block) body =
+  make_block
+   {markup = YXML.output_markup markup,
+    open_block = open_block,
+    consistent = consistent,
+    indent = indent} body;
 
-fun markup m = markup_block {markup = m, consistent = false, indent = 0};
+fun markup m = markup_block {markup = m, open_block = false, consistent = false, indent = 0};
+fun markup_open m = markup_block {markup = m, open_block = true, consistent = false, indent = 0};
 
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
+fun mark_open m prt = if m = Markup.empty then prt else markup_open m [prt];
 
-fun markup_blocks ({markup, consistent, indent}: Markup.T list block) body =
-  if forall Markup.is_empty markup andalso not consistent then blk (indent, body)
+fun markup_blocks ({markup, open_block, consistent, indent}: Markup.T list block) body =
+  if forall Markup.is_empty markup andalso not open_block andalso not consistent
+  then blk (indent, body)
   else
     let
       val markups = filter_out Markup.is_empty markup;
       val (ms, m) = if null markups then ([], Markup.empty) else split_last markups;
     in
-      fold_rev mark ms
-        (markup_block {markup = m, consistent = consistent, indent = indent} body)
+      fold_rev mark_open ms
+        (markup_block
+          {markup = m, open_block = open_block, consistent = consistent, indent = indent} body)
     end;
 
 
@@ -167,8 +180,8 @@ val dots = from_ML ML_Pretty.dots;
 
 val strs = block o breaks o map str;
 
-fun mark_str (m, s) = mark m (str s);
-fun marks_str (ms, s) = fold_rev mark ms (str s);
+fun mark_str (m, s) = mark_open m (str s);
+fun marks_str (ms, s) = fold_rev mark_open ms (str s);
 
 val mark_position = mark o Position.markup;
 fun mark_str_position (pos, s) = mark_str (Position.markup pos, s);
@@ -258,14 +271,21 @@ fun output_spaces_bytes ops = Bytes.add o #1 o output_spaces ops;
 (* output tree *)
 
 datatype tree =
-    Block of Markup.output * bool * int * tree list * int
-      (*markup output, consistent, indentation, body, length*)
+    Block of
+     {markup: Markup.output,
+      open_block: bool,
+      consistent: bool,
+      indent: int,
+      body: tree list,
+      length: int}
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
-  | Str of Output.output * int;  (*string output, length*)
+  | Str of Output.output * int  (*string output, length*)
+  | Out of Output.output;  (*immediate output*)
 
-fun tree_length (Block (_, _, _, _, len)) = len
+fun tree_length (Block {length = len, ...}) = len
   | tree_length (Break (_, wd, _)) = wd
-  | tree_length (Str (_, len)) = len;
+  | tree_length (Str (_, len)) = len
+  | tree_length (Out _) = 0;
 
 local
 
@@ -291,11 +311,17 @@ fun output_tree (ops: output_ops) make_length =
   let
     fun out (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
           let
-            val markup = #markup ops (ML_Pretty.context_markup context);
             val indent = long_nat ind;
             val body' = map out body;
-            val len = if make_length then block_length indent body' else ~1;
-          in Block (markup, consistent, indent, body', len) end
+          in
+            Block
+             {markup = #markup ops (ML_Pretty.context_markup context),
+              open_block = ML_Pretty.context_open_block context,
+              consistent = consistent,
+              indent = indent,
+              body = body',
+              length = if make_length then block_length indent body' else ~1}
+          end
       | out (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
       | out ML_Pretty.PrettyLineBreak = fbreak
       | out (ML_Pretty.PrettyString s) = Str (#output ops s ||> force_nat)
@@ -374,7 +400,9 @@ fun format_tree (ops: output_ops) input =
     fun format ([], _, _) text = text
       | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case prt of
-            Block ((bg, en), consistent, indent, bes, blen) =>
+            Block {markup = (bg, en), open_block = true, body = bes, ...} =>
+              format (Out bg :: bes @ Out en :: prts, block, after) text
+          | Block {markup = (bg, en), consistent, indent, body = bes, length = blen, ...} =>
               let
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
@@ -398,7 +426,8 @@ fun format_tree (ops: output_ops) input =
                     pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
                  else text |> linebreak |> indentation block |> blanks ind)
-          | Str str => format (prts, block, after) (string str text));
+          | Str str => format (prts, block, after) (string str text)
+          | Out s => format (prts, block, after) (control s text));
   in
     #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
   end;
@@ -419,15 +448,17 @@ val symbolic_output =
       let val (bg, en) = #markup ops (YXML.output_markup m)
       in Bytes.add bg #> body #> Bytes.add en end;
 
-    fun out (Block ((bg, en), _, _, [], _)) = Bytes.add bg #> Bytes.add en
-      | out (Block ((bg, en), consistent, indent, prts, _)) =
-          Bytes.add bg #>
-          markup_bytes (Markup.block {consistent = consistent, indent = indent}) (fold out prts) #>
-          Bytes.add en
+    fun out (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
+      | out (Block {markup = (bg, en), open_block, consistent, indent, body = prts, ...}) =
+          let
+            val block_markup =
+              Markup.block {open_block = open_block, consistent = consistent, indent = indent};
+          in Bytes.add bg #> markup_bytes block_markup (fold out prts) #> Bytes.add en end
       | out (Break (false, wd, ind)) =
           markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)
       | out (Break (true, _, _)) = Bytes.add (output_newline ops)
-      | out (Str (s, _)) = Bytes.add s;
+      | out (Str (s, _)) = Bytes.add s
+      | out (Out s) = Bytes.add s;
   in Bytes.build o out o output_tree ops false end;
 
 val symbolic_string_of = Bytes.content o symbolic_output;
@@ -437,9 +468,11 @@ val symbolic_string_of = Bytes.content o symbolic_output;
 
 fun unformatted ops =
   let
-    fun out (Block ((bg, en), _, _, prts, _)) = Bytes.add bg #> fold out prts #> Bytes.add en
+    fun out (Block ({markup = (bg, en), body = prts, ...})) =
+          Bytes.add bg #> fold out prts #> Bytes.add en
       | out (Break (_, wd, _)) = output_spaces_bytes ops wd
-      | out (Str (s, _)) = Bytes.add s;
+      | out (Str (s, _)) = Bytes.add s
+      | out (Out s) = Bytes.add s;
   in Bytes.build o out o output_tree ops false end;
 
 fun unformatted_string_of prt =

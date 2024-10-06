@@ -399,6 +399,9 @@ text \<open>
     \<^item> \<open>indent\<close> (natural number): the block indentation --- the same as for the
     simple syntax without block properties.
 
+    \<^item> \<open>open_block\<close> (Boolean): this block has no impact on formatting, but it
+    may carry markup information.
+
     \<^item> \<open>consistent\<close> (Boolean): this block has consistent breaks (if one break
     is taken, all breaks are taken).
 
