@@ -1155,7 +1155,7 @@ lemmas [nitpick_unfold] =
 
 subsection \<open>Float syntax\<close>
 
-syntax "_Float" :: "float_const \<Rightarrow> 'a"    (\<open>_\<close>)
+syntax "_Float" :: "float_const \<Rightarrow> 'a"    (\<open>(\<open>open_block notation=\<open>literal number\<close>\<close>_)\<close>)
 
 parse_translation \<open>
   let

@@ -523,13 +523,9 @@ end
 subsection \<open>Syntax\<close>
 
 syntax
-  "_NumeralType" :: "num_token => type"  (\<open>_\<close>)
-  "_NumeralType0" :: type (\<open>0\<close>)
-  "_NumeralType1" :: type (\<open>1\<close>)
-
-syntax_types
-  "_NumeralType0" == num0 and
-  "_NumeralType1" == num1
+  "_NumeralType" :: "num_token => type"  (\<open>(\<open>open_block notation=\<open>type_literal number\<close>\<close>_)\<close>)
+  "_NumeralType0" :: type (\<open>(\<open>open_block notation=\<open>type_literal number\<close>\<close>0)\<close>)
+  "_NumeralType1" :: type (\<open>(\<open>open_block notation=\<open>type_literal number\<close>\<close>1)\<close>)
 
 translations
   (type) "1" == (type) "num1"
