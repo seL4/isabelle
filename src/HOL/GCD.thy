@@ -2851,7 +2851,7 @@ subsection \<open>Characteristic of a semiring\<close>
 definition (in semiring_1) semiring_char :: "'a itself \<Rightarrow> nat" 
   where "semiring_char _ = Gcd {n. of_nat n = (0 :: 'a)}"
 
-syntax "_type_char" :: "type => nat" (\<open>(\<open>indent=1 notation=\<open>prefix CHAR\<close>\<close>CHAR/(1'(_')))\<close>)
+syntax "_type_char" :: "type => nat" (\<open>(\<open>indent=1 notation=\<open>mixfix CHAR\<close>\<close>CHAR/(1'(_')))\<close>)
 syntax_consts "_type_char" \<rightleftharpoons> semiring_char
 translations "CHAR('t)" \<rightharpoonup> "CONST semiring_char (CONST Pure.type :: 't itself)"
 print_translation \<open>

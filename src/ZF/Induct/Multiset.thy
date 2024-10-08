@@ -53,7 +53,7 @@ definition
 
 definition
   (* set of elements of a multiset *)
-  msingle :: "i \<Rightarrow> i"    (\<open>{#_#}\<close>)  where
+  msingle :: "i \<Rightarrow> i"    (\<open>(\<open>open_block notation=\<open>mixfix multiset\<close>\<close>{#_#})\<close>)  where
   "{#a#} \<equiv> {\<langle>a, 1\<rangle>}"
 
 definition

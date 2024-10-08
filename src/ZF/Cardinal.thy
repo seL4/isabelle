@@ -25,8 +25,8 @@ definition
     "A \<prec> B \<equiv> A \<lesssim> B \<and> \<not>(A \<approx> B)"
 
 definition
-  cardinal :: "i\<Rightarrow>i"           (\<open>|_|\<close>)  where
-    "|A| \<equiv> (\<mu> i. i \<approx> A)"
+  cardinal :: "i\<Rightarrow>i"  (\<open>(\<open>open_block notation=\<open>mixfix cardinal\<close>\<close>|_|)\<close>)
+  where "|A| \<equiv> (\<mu> i. i \<approx> A)"
 
 definition
   Finite   :: "i\<Rightarrow>o"  where

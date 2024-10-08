@@ -21,8 +21,8 @@ W. V. Quine, On Ordered Pairs and Relations, in Selected Logic Papers,
 \<close>
 
 definition
-  QPair     :: "[i, i] \<Rightarrow> i"                      (\<open><(_;/ _)>\<close>)  where
-    "<a;b> \<equiv> a+b"
+  QPair     :: "[i, i] \<Rightarrow> i"  (\<open>(\<open>indent=1 notation=\<open>mixfix Quine pair\<close>\<close><_;/ _>)\<close>)
+  where "<a;b> \<equiv> a+b"
 
 definition
   qfst :: "i \<Rightarrow> i"  where

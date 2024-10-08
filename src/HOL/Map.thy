@@ -57,15 +57,15 @@ but must only contain \<open>\<mapsto>\<close>, not \<open>:=\<close>, because \
 nonterminal maplet and maplets
 
 syntax
-  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /\<mapsto>/ _\<close>)
-  ""         :: "maplet \<Rightarrow> updbind"              (\<open>_\<close>)
-  ""         :: "maplet \<Rightarrow> maplets"             (\<open>_\<close>)
-  "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets" (\<open>_,/ _\<close>)
-  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"           (\<open>(\<open>indent=1 notation=\<open>mixfix maplets\<close>\<close>[_])\<close>)
+  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /\<mapsto>/ _)\<close>)
+  ""         :: "maplet \<Rightarrow> updbind"  (\<open>_\<close>)
+  ""         :: "maplet \<Rightarrow> maplets"  (\<open>_\<close>)
+  "_Maplets" :: "[maplet, maplets] \<Rightarrow> maplets"  (\<open>_,/ _\<close>)
+  "_Map"     :: "maplets \<Rightarrow> 'a \<rightharpoonup> 'b"  (\<open>(\<open>indent=1 notation=\<open>mixfix map\<close>\<close>[_])\<close>)
 (* Syntax forbids \<open>[\<dots>, x := y, \<dots>]\<close> by introducing \<open>maplets\<close> in addition to \<open>updbinds\<close> *)
 
 syntax (ASCII)
-  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /|->/ _\<close>)
+  "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /|->/ _)\<close>)
 
 syntax_consts
   "_maplet" "_Maplets" "_Map" \<rightleftharpoons> fun_upd
@@ -97,10 +97,10 @@ definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Righta
 text \<open>There is also the more specialized update syntax \<open>xs [\<mapsto>] ys\<close> for lists \<open>xs\<close> and \<open>ys\<close>.\<close>
 
 syntax
-  "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /[\<mapsto>]/ _\<close>)
+  "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /[\<mapsto>]/ _)\<close>)
 
 syntax (ASCII)
-  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"             (\<open>_ /[|->]/ _\<close>)
+  "_maplets" :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /[|->]/ _)\<close>)
 
 syntax_consts
   "_maplets" \<rightleftharpoons> map_upds

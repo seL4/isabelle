@@ -32,7 +32,7 @@ definition
     "trans(r) \<equiv> \<forall>x y z. \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,z\<rangle>: r \<longrightarrow> \<langle>x,z\<rangle>: r"
 
 definition
-  trans_on :: "[i,i]\<Rightarrow>o"  (\<open>trans[_]'(_')\<close>)  where
+  trans_on :: "[i,i]\<Rightarrow>o"  (\<open>(\<open>open_block notation=\<open>mixfix trans_on\<close>\<close>trans[_]'(_'))\<close>)  where
     "trans[A](r) \<equiv> \<forall>x\<in>A. \<forall>y\<in>A. \<forall>z\<in>A.
                           \<langle>x,y\<rangle>: r \<longrightarrow> \<langle>y,z\<rangle>: r \<longrightarrow> \<langle>x,z\<rangle>: r"
 

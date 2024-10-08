@@ -82,7 +82,7 @@ subsubsection \<open>Definitions\<close>
 
 definition \<open>True \<equiv> False \<longrightarrow> False\<close>
 
-definition Not (\<open>\<not> _\<close> [40] 40)
+definition Not (\<open>(\<open>open_block notation=\<open>prefix \<not>\<close>\<close>\<not> _)\<close> [40] 40)
   where not_def: \<open>\<not> P \<equiv> P \<longrightarrow> False\<close>
 
 definition iff  (infixr \<open>\<longleftrightarrow>\<close> 25)

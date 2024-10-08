@@ -155,7 +155,7 @@ specB:      "[| !!x. f(x) : P(x) |] ==> (all x. f(x)) ^ a = f(a) : P(a)"
 
 (**** Definitions ****)
 
-definition Not :: "o => o"  (\<open>~ _\<close> [40] 40)
+definition Not :: "o => o"  (\<open>(\<open>open_block notation=\<open>prefix ~\<close>\<close>~ _)\<close> [40] 40)
   where not_def: "~P == P-->False"
 
 definition iff :: "[o,o] => o"  (infixr \<open><->\<close> 25)

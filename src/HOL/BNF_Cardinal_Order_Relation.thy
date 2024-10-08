@@ -117,7 +117,7 @@ text\<open>We define the cardinal of set to be {\em some} cardinal order on that
 We shall prove that this notion is unique up to order isomorphism, meaning
 that order isomorphism shall be the true identity of cardinals.\<close>
 
-definition card_of :: "'a set \<Rightarrow> 'a rel" (\<open>|_|\<close> )
+definition card_of :: "'a set \<Rightarrow> 'a rel" (\<open>(\<open>open_block notation=\<open>mixfix card_of\<close>\<close>|_|)\<close>)
   where "card_of A = (SOME r. card_order_on A r)"
 
 lemma card_of_card_order_on: "card_order_on A |A|"

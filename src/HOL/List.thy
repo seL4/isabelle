@@ -136,10 +136,11 @@ primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow>
 nonterminal lupdbinds and lupdbind
 
 syntax
-  "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(\<open>indent=2 notation=\<open>mixfix list update\<close>\<close>_ :=/ _)\<close>)
+  "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(\<open>indent=2 notation=\<open>mixfix update\<close>\<close>_ :=/ _)\<close>)
   "" :: "lupdbind => lupdbinds"    (\<open>_\<close>)
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    (\<open>_,/ _\<close>)
-  "_LUpdate" :: "['a, lupdbinds] => 'a"    (\<open>_/[(_)]\<close> [1000,0] 900)
+  "_LUpdate" :: "['a, lupdbinds] => 'a"
+    (\<open>(\<open>open_block notation=\<open>mixfix list update\<close>\<close>_/[(_)])\<close> [1000,0] 900)
 
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"

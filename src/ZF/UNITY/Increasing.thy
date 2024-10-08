@@ -11,13 +11,15 @@ section\<open>Charpentier's "Increasing" Relation\<close>
 theory Increasing imports Constrains Monotonicity begin
 
 definition
-  increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i" (\<open>increasing[_]'(_, _')\<close>)  where
+  increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i"  (\<open>(\<open>open_block notation=\<open>mixfix increasing\<close>\<close>increasing[_]'(_, _'))\<close>)
+  where
   "increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"
   
 definition
-  Increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i" (\<open>Increasing[_]'(_, _')\<close>)  where
+  Increasing :: "[i, i, i\<Rightarrow>i] \<Rightarrow> i" (\<open>(\<open>open_block notation=\<open>mixfix Increasing\<close>\<close>Increasing[_]'(_, _'))\<close>)
+  where
   "Increasing[A](r, f) \<equiv>
     {F \<in> program. (\<forall>k \<in> A. F \<in> Stable({s \<in> state. <k, f(s)> \<in> r})) \<and>
                 (\<forall>x \<in> state. f(x):A)}"

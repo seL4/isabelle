@@ -109,7 +109,7 @@ definition Ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"  (binder \<open>\<
 definition False :: bool
   where "False \<equiv> (\<forall>P. P)"
 
-definition Not :: "bool \<Rightarrow> bool"  (\<open>\<not> _\<close> [40] 40)
+definition Not :: "bool \<Rightarrow> bool"  (\<open>(\<open>open_block notation=\<open>prefix \<not>\<close>\<close>\<not> _)\<close> [40] 40)
   where not_def: "\<not> P \<equiv> P \<longrightarrow> False"
 
 definition conj :: "[bool, bool] \<Rightarrow> bool"  (infixr \<open>\<and>\<close> 35)
@@ -169,7 +169,7 @@ abbreviation not_equal :: "['a, 'a] \<Rightarrow> bool"  (infix \<open>\<noteq>\
   where "x \<noteq> y \<equiv> \<not> (x = y)"
 
 notation (ASCII)
-  Not  (\<open>~ _\<close> [40] 40) and
+  Not  (\<open>(\<open>open_block notation=\<open>prefix ~\<close>\<close>~ _)\<close> [40] 40) and
   conj  (infixr \<open>&\<close> 35) and
   disj  (infixr \<open>|\<close> 30) and
   implies  (infixr \<open>-->\<close> 25) and
@@ -191,11 +191,13 @@ print_translation \<open>
 nonterminal case_syn and cases_syn
 syntax
   "_case_syntax" :: "['a, cases_syn] \<Rightarrow> 'b"  (\<open>(\<open>notation=\<open>mixfix case expression\<close>\<close>case _ of/ _)\<close> 10)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>_ \<Rightarrow>/ _)\<close> 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"
+    (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>(\<open>open_block notation=\<open>pattern case\<close>\<close>_) \<Rightarrow>/ _)\<close> 10)
   "" :: "case_syn \<Rightarrow> cases_syn"  (\<open>_\<close>)
   "_case2" :: "[case_syn, cases_syn] \<Rightarrow> cases_syn"  (\<open>_/ | _\<close>)
 syntax (ASCII)
-  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"  (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>_ =>/ _)\<close> 10)
+  "_case1" :: "['a, 'b] \<Rightarrow> case_syn"
+    (\<open>(\<open>indent=2 notation=\<open>mixfix case clause\<close>\<close>(\<open>open_block notation=\<open>pattern case\<close>\<close>_) =>/ _)\<close> 10)
 
 notation (ASCII)
   All  (binder \<open>ALL \<close> 10) and

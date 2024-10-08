@@ -69,6 +69,9 @@ notably like this:
   unbundle no rtrancl_syntax
   unbundle no trancl_syntax
   unbundle no reflcl_syntax
+  unbundle no abs_syntax
+  unbundle no floor_ceiling_syntax
+  unbundle no uminus_syntax
 
 This is more robust than individual 'no_syntax' / 'no_notation'
 commands, which need to copy mixfix declarations from elsewhere and thus

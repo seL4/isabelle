@@ -22,6 +22,7 @@ sig
   val markup_postfix: Markup.T
   val markup_infix: Markup.T
   val markup_binder: Markup.T
+  val markup_pattern: Markup.T
   val markup_type_literal: Markup.T
   val markup_literal: Markup.T
   val markup_type_application: Markup.T
@@ -102,6 +103,7 @@ val markup_prefix = setup_notation (Binding.make ("prefix", \<^here>));
 val markup_postfix = setup_notation (Binding.make ("postfix", \<^here>));
 val markup_infix = setup_notation (Binding.make ("infix", \<^here>));
 val markup_binder = setup_notation (Binding.make ("binder", \<^here>));
+val markup_pattern = setup_notation (Binding.make ("pattern", \<^here>));
 val markup_type_literal = setup_notation (Binding.make ("type_literal", \<^here>));
 val markup_literal = setup_notation (Binding.make ("literal", \<^here>));
 

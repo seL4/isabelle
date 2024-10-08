@@ -430,25 +430,25 @@ syntax
   ""                    :: "field_type => field_types"          (\<open>_\<close>)
   "_field_types"        :: "field_type => field_types => field_types"    (\<open>_,/ _\<close>)
   "_record_type"        :: "field_types => type"                (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>\<lparr>_\<rparr>)\<close>)
-  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>\<lparr>_,/ (2\<dots> ::/ _)\<rparr>)\<close>)
+  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>\<lparr>_,/ (\<open>indent=2 notation=\<open>infix more type\<close>\<close>\<dots> ::/ _)\<rparr>)\<close>)
 
   "_field"              :: "ident => 'a => field"               (\<open>(\<open>indent=2 notation=\<open>infix field value\<close>\<close>_ =/ _)\<close>)
   ""                    :: "field => fields"                    (\<open>_\<close>)
   "_fields"             :: "field => fields => fields"          (\<open>_,/ _\<close>)
   "_record"             :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>\<lparr>_\<rparr>)\<close>)
-  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>\<lparr>_,/ (2\<dots> =/ _)\<rparr>)\<close>)
+  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>\<lparr>_,/ (\<open>indent=2 notation=\<open>infix more value\<close>\<close>\<dots> =/ _)\<rparr>)\<close>)
 
   "_field_update"       :: "ident => 'a => field_update"        (\<open>(\<open>indent=2 notation=\<open>infix field update\<close>\<close>_ :=/ _)\<close>)
   ""                    :: "field_update => field_updates"      (\<open>_\<close>)
   "_field_updates"      :: "field_update => field_updates => field_updates"  (\<open>_,/ _\<close>)
-  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(\<open>indent=3 notation=\<open>mixfix record update\<close>\<close>\<lparr>_\<rparr>)\<close> [900, 0] 900)
+  "_record_update"      :: "'a => field_updates => 'b"          (\<open>(\<open>open_block notation=\<open>mixfix record update\<close>\<close>_/(3\<lparr>_\<rparr>))\<close> [900, 0] 900)
 
 syntax (ASCII)
   "_record_type"        :: "field_types => type"                (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>'(| _ |'))\<close>)
-  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>'(| _,/ (2... ::/ _) |'))\<close>)
+  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>'(| _,/ (\<open>indent=2 notation=\<open>infix more type\<close>\<close>... ::/ _) |'))\<close>)
   "_record"             :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _ |'))\<close>)
-  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _,/ (2... =/ _) |'))\<close>)
-  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(\<open>indent=3 notation=\<open>mixfix record update\<close>\<close>'(| _ |'))\<close> [900, 0] 900)
+  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _,/ (\<open>indent=2 notation=\<open>infix more value\<close>\<close>... =/ _) |'))\<close>)
+  "_record_update"      :: "'a => field_updates => 'b"          (\<open>(\<open>open_block notation=\<open>mixfix record update\<close>\<close>_/(3'(| _ |')))\<close> [900, 0] 900)
 
 
 subsection \<open>Record package\<close>

@@ -205,7 +205,7 @@ qed
 subsection \<open>Floor function\<close>
 
 class floor_ceiling = archimedean_field +
-  fixes floor :: "'a \<Rightarrow> int"  (\<open>\<lfloor>_\<rfloor>\<close>)
+  fixes floor :: "'a \<Rightarrow> int"  (\<open>(\<open>open_block notation=\<open>mixfix floor\<close>\<close>\<lfloor>_\<rfloor>)\<close>)
   assumes floor_correct: "of_int \<lfloor>x\<rfloor> \<le> x \<and> x < of_int (\<lfloor>x\<rfloor> + 1)"
 
 lemma floor_unique: "of_int z \<le> x \<Longrightarrow> x < of_int z + 1 \<Longrightarrow> \<lfloor>x\<rfloor> = z"
@@ -427,7 +427,7 @@ lemma floor_divide_upper:
 
 subsection \<open>Ceiling function\<close>
 
-definition ceiling :: "'a::floor_ceiling \<Rightarrow> int"  (\<open>\<lceil>_\<rceil>\<close>)
+definition ceiling :: "'a::floor_ceiling \<Rightarrow> int"  (\<open>(\<open>open_block notation=\<open>mixfix ceiling\<close>\<close>\<lceil>_\<rceil>)\<close>)
   where "\<lceil>x\<rceil> = - \<lfloor>- x\<rfloor>"
 
 lemma ceiling_correct: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> of_int \<lceil>x\<rceil>"
@@ -860,5 +860,11 @@ next
     by (simp add: le_floor_iff)
   finally show ?thesis .
 qed
+
+bundle floor_ceiling_syntax
+begin
+notation floor  (\<open>(\<open>open_block notation=\<open>mixfix floor\<close>\<close>\<lfloor>_\<rfloor>)\<close>)
+  and ceiling  (\<open>(\<open>open_block notation=\<open>mixfix ceiling\<close>\<close>\<lceil>_\<rceil>)\<close>)
+end
 
 end

@@ -48,7 +48,7 @@ print_translation \<open>
 definition liff :: "[o, o] \<Rightarrow> o"  (infixr \<open>o-o\<close> 45)
   where "P o-o Q == (P -o Q) >< (Q -o P)"
 
-definition aneg :: "o\<Rightarrow>o"  (\<open>~_\<close>)
+definition aneg :: "o\<Rightarrow>o"  (\<open>(\<open>open_block notation=\<open>prefix ~\<close>\<close>~_)\<close>)
   where "~A == A -o 0"
 
 

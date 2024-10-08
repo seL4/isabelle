@@ -14,7 +14,7 @@ subsection \<open>Abstract boolean algebra\<close>
 locale abstract_boolean_algebra = conj: abel_semigroup \<open>(\<^bold>\<sqinter>)\<close> + disj: abel_semigroup \<open>(\<^bold>\<squnion>)\<close>
   for conj :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>\<^bold>\<sqinter>\<close> 70)
     and disj :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>  (infixr \<open>\<^bold>\<squnion>\<close> 65) +
-  fixes compl :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>\<^bold>- _\<close> [81] 80)
+  fixes compl :: \<open>'a \<Rightarrow> 'a\<close>  (\<open>(\<open>open_block notation=\<open>prefix \<^bold>-\<close>\<close>\<^bold>- _)\<close> [81] 80)
     and zero :: \<open>'a\<close>  (\<open>\<^bold>0\<close>)
     and one  :: \<open>'a\<close>  (\<open>\<^bold>1\<close>)
   assumes conj_disj_distrib: \<open>x \<^bold>\<sqinter> (y \<^bold>\<squnion> z) = (x \<^bold>\<sqinter> y) \<^bold>\<squnion> (x \<^bold>\<sqinter> z)\<close>

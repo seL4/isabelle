@@ -330,7 +330,7 @@ by blast
 subsubsection\<open>Sets as Classes\<close>
 
 definition
-  setclass :: "[i,i] \<Rightarrow> o"       (\<open>##_\<close> [40] 40)  where
+  setclass :: "[i,i] \<Rightarrow> o"  (\<open>(\<open>open_block notation=\<open>prefix setclass\<close>\<close>##_)\<close> [40] 40)  where
    "setclass(A) \<equiv> \<lambda>x. x \<in> A"
 
 lemma setclass_iff [simp]: "setclass(A,x) <-> x \<in> A"

@@ -24,7 +24,7 @@ definition
     "wf(r) \<equiv> \<forall>Z. Z=0 | (\<exists>x\<in>Z. \<forall>y. \<langle>y,x\<rangle>:r \<longrightarrow> \<not> y \<in> Z)"
 
 definition
-  wf_on        :: "[i,i]\<Rightarrow>o"                      (\<open>wf[_]'(_')\<close>)  where
+  wf_on :: "[i,i]\<Rightarrow>o"  (\<open>(\<open>open_block notation=\<open>mixfix wf_on\<close>\<close>wf[_]'(_'))\<close>)  where
     (*r is well-founded on A*)
     "wf_on(A,r) \<equiv> wf(r \<inter> A*A)"
 
@@ -46,8 +46,8 @@ definition
     "wfrec(r,a,H) \<equiv> wftrec(r^+, a, \<lambda>x f. H(x, restrict(f,r-``{x})))"
 
 definition
-  wfrec_on     :: "[i, i, i, [i,i]\<Rightarrow>i] \<Rightarrow>i"       (\<open>wfrec[_]'(_,_,_')\<close>)  where
-    "wfrec[A](r,a,H) \<equiv> wfrec(r \<inter> A*A, a, H)"
+  wfrec_on :: "[i, i, i, [i,i]\<Rightarrow>i] \<Rightarrow>i"  (\<open>(\<open>open_block notation=\<open>mixfix wfrec_on\<close>\<close>wfrec[_]'(_,_,_'))\<close>)
+  where "wfrec[A](r,a,H) \<equiv> wfrec(r \<inter> A*A, a, H)"
 
 
 subsection\<open>Well-Founded Relations\<close>

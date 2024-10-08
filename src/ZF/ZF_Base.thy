@@ -20,7 +20,7 @@ axiomatization mem :: "[i, i] \<Rightarrow> o"  (infixl \<open>\<in>\<close> 50)
   and zero :: "i"  (\<open>0\<close>)  \<comment> \<open>the empty set\<close>
   and Pow :: "i \<Rightarrow> i"  \<comment> \<open>power sets\<close>
   and Inf :: "i"  \<comment> \<open>infinite set\<close>
-  and Union :: "i \<Rightarrow> i"  (\<open>\<Union>_\<close> [90] 90)
+  and Union :: "i \<Rightarrow> i"  (\<open>(\<open>open_block notation=\<open>prefix \<Union>\<close>\<close>\<Union>_)\<close> [90] 90)
   and PrimReplace :: "[i, [i, i] \<Rightarrow> o] \<Rightarrow> i"
 
 abbreviation not_mem :: "[i, i] \<Rightarrow> o"  (infixl \<open>\<notin>\<close> 50)  \<comment> \<open>negated membership relation\<close>
@@ -83,7 +83,7 @@ translations
 
 subsection \<open>General union and intersection\<close>
 
-definition Inter :: "i \<Rightarrow> i"  (\<open>\<Inter>_\<close> [90] 90)
+definition Inter :: "i \<Rightarrow> i"  (\<open>(\<open>open_block notation=\<open>prefix \<Inter>\<close>\<close>\<Inter>_)\<close> [90] 90)
   where "\<Inter>(A) \<equiv> { x\<in>\<Union>(A) . \<forall>y\<in>A. x\<in>y}"
 
 syntax
@@ -196,8 +196,8 @@ translations
 (* Patterns -- extends pre-defined type "pttrn" used in abstractions *)
 nonterminal patterns
 syntax
-  "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open>\<langle>_\<rangle>\<close>)
-  ""          :: "pttrn \<Rightarrow> patterns"         (\<open>_\<close>)
+  "_pattern"  :: "patterns \<Rightarrow> pttrn"  (\<open>(\<open>open_block notation=\<open>pattern tuple\<close>\<close>\<langle>_\<rangle>)\<close>)
+  ""          :: "pttrn \<Rightarrow> patterns"  (\<open>_\<close>)
   "_patterns" :: "[pttrn, patterns] \<Rightarrow> patterns"  (\<open>_,/_\<close>)
 syntax_consts
   "_pattern" "_patterns" == split
@@ -297,7 +297,7 @@ syntax (ASCII)
   "_PROD"     :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder PROD:\<close>\<close>PROD _:_./ _)\<close> 10)
   "_SUM"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder SUM:\<close>\<close>SUM _:_./ _)\<close> 10)
   "_lam"      :: "[pttrn, i, i] \<Rightarrow> i"        (\<open>(\<open>indent=3 notation=\<open>binder lam:\<close>\<close>lam _:_./ _)\<close> 10)
-  "_Tuple"    :: "[i, tuple_args] \<Rightarrow> i"      (\<open><(_,/ _)>\<close>)
+  "_Tuple"    :: "[i, tuple_args] \<Rightarrow> i"      (\<open>(\<open>indent=1 notation=\<open>mixfix tuple enumeration\<close>\<close><_,/ _>)\<close>)
   "_pattern"  :: "patterns \<Rightarrow> pttrn"         (\<open><_>\<close>)
 
 

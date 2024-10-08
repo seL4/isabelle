@@ -36,11 +36,11 @@ no_notation
   ordLeq3 (infix \<open>\<le>o\<close> 50) and
   ordLess2 (infix \<open><o\<close> 50) and
   ordIso2 (infix \<open>=o\<close> 50) and
-  card_of (\<open>|_|\<close>) and
+  card_of (\<open>(\<open>open_block notation=\<open>mixfix card_of\<close>\<close>|_|)\<close>) and
   BNF_Cardinal_Arithmetic.csum (infixr \<open>+c\<close> 65) and
   BNF_Cardinal_Arithmetic.cprod (infixr \<open>*c\<close> 80) and
   BNF_Cardinal_Arithmetic.cexp (infixr \<open>^c\<close> 90) and
-  BNF_Def.convol (\<open>\<langle>(_,/ _)\<rangle>\<close>)
+  BNF_Def.convol (\<open>(\<open>indent=1 notation=\<open>mixfix convol\<close>\<close>\<langle>_,/ _\<rangle>)\<close>)
 
 bundle cardinal_syntax
 begin
@@ -50,7 +50,7 @@ notation
   ordLeq3 (infix \<open>\<le>o\<close> 50) and
   ordLess2 (infix \<open><o\<close> 50) and
   ordIso2 (infix \<open>=o\<close> 50) and
-  card_of (\<open>|_|\<close>) and
+  card_of (\<open>(\<open>open_block notation=\<open>mixfix card_of\<close>\<close>|_|)\<close>) and
   BNF_Cardinal_Arithmetic.csum (infixr \<open>+c\<close> 65) and
   BNF_Cardinal_Arithmetic.cprod (infixr \<open>*c\<close> 80) and
   BNF_Cardinal_Arithmetic.cexp (infixr \<open>^c\<close> 90)
@@ -73,8 +73,8 @@ notation
   top  (\<open>\<top>\<close>) and
   inf  (infixl \<open>\<sqinter>\<close> 70) and
   sup  (infixl \<open>\<squnion>\<close> 65) and
-  Inf  (\<open>\<Sqinter> _\<close> [900] 900) and
-  Sup  (\<open>\<Squnion> _\<close> [900] 900)
+  Inf  (\<open>(\<open>open_block notation=\<open>prefix \<Sqinter>\<close>\<close>\<Sqinter> _)\<close> [900] 900) and
+  Sup  (\<open>(\<open>open_block notation=\<open>prefix \<Squnion>\<close>\<close>\<Squnion> _)\<close> [900] 900)
 
 syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           (\<open>(\<open>indent=3 notation=\<open>binder \<Sqinter>\<close>\<close>\<Sqinter>_./ _)\<close> [0, 10] 10)

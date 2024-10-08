@@ -84,7 +84,7 @@ definition vimage2p where
 lemma collect_comp: "collect F \<circ> g = collect ((\<lambda>f. f \<circ> g) ` F)"
   by (rule ext) (simp add: collect_def)
 
-definition convol (\<open>\<langle>(_,/ _)\<rangle>\<close>) where
+definition convol (\<open>(\<open>indent=1 notation=\<open>mixfix convol\<close>\<close>\<langle>_,/ _\<rangle>)\<close>) where
   "\<langle>f, g\<rangle> \<equiv> \<lambda>a. (f a, g a)"
 
 lemma fst_convol: "fst \<circ> \<langle>f, g\<rangle> = f"

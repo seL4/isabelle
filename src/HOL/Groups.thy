@@ -198,10 +198,15 @@ class minus =
   fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>-\<close> 65)
 
 class uminus =
-  fixes uminus :: "'a \<Rightarrow> 'a"  (\<open>- _\<close> [81] 80)
+  fixes uminus :: "'a \<Rightarrow> 'a"  (\<open>(\<open>open_block notation=\<open>prefix -\<close>\<close>- _)\<close> [81] 80)
 
 class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl \<open>*\<close> 70)
+
+bundle uminus_syntax
+begin
+notation uminus  (\<open>(\<open>open_block notation=\<open>prefix -\<close>\<close>- _)\<close> [81] 80)
+end
 
 
 subsection \<open>Semigroups and Monoids\<close>
@@ -1164,7 +1169,12 @@ lemma minus_min_eq_max: "- min x y = max (- x) (- y)"
 end
 
 class abs =
-  fixes abs :: "'a \<Rightarrow> 'a"  (\<open>\<bar>_\<bar>\<close>)
+  fixes abs :: "'a \<Rightarrow> 'a"  (\<open>(\<open>open_block notation=\<open>mixfix abs\<close>\<close>\<bar>_\<bar>)\<close>)
+
+bundle abs_syntax
+begin
+notation abs  (\<open>(\<open>open_block notation=\<open>mixfix abs\<close>\<close>\<bar>_\<bar>)\<close>)
+end
 
 class sgn =
   fixes sgn :: "'a \<Rightarrow> 'a"

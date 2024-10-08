@@ -17,8 +17,8 @@ definition
     "int \<equiv> (nat*nat)//intrel"
 
 definition
-  int_of :: "i\<Rightarrow>i" \<comment> \<open>coercion from nat to int\<close>    (\<open>$# _\<close> [80] 80)  where
-    "$# m \<equiv> intrel `` {<natify(m), 0>}"
+  int_of :: "i\<Rightarrow>i" \<comment> \<open>coercion from nat to int\<close>  (\<open>(\<open>open_block notation=\<open>prefix $#\<close>\<close>$# _)\<close> [80] 80)
+  where "$# m \<equiv> intrel `` {<natify(m), 0>}"
 
 definition
   intify :: "i\<Rightarrow>i" \<comment> \<open>coercion from ANYTHING to int\<close>  where
@@ -29,8 +29,8 @@ definition
     "raw_zminus(z) \<equiv> \<Union>\<langle>x,y\<rangle>\<in>z. intrel``{\<langle>y,x\<rangle>}"
 
 definition
-  zminus :: "i\<Rightarrow>i"                                 (\<open>$- _\<close> [80] 80)  where
-    "$- z \<equiv> raw_zminus (intify(z))"
+  zminus :: "i\<Rightarrow>i"  (\<open>(\<open>open_block notation=\<open>prefix $-\<close>\<close>$- _)\<close> [80] 80)
+  where "$- z \<equiv> raw_zminus (intify(z))"
 
 definition
   znegative   ::      "i\<Rightarrow>o"  where

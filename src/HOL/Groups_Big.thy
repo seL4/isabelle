@@ -1415,7 +1415,7 @@ begin
 sublocale prod: comm_monoid_set times 1
   defines prod = prod.F and prod' = prod.G ..
 
-abbreviation Prod (\<open>\<Prod>_\<close> [1000] 999)
+abbreviation Prod (\<open>(\<open>open_block notation=\<open>prefix \<Prod>\<close>\<close>\<Prod>_)\<close> [1000] 999)
   where "\<Prod>A \<equiv> prod (\<lambda>x. x) A"
 
 end

@@ -289,10 +289,10 @@ syntax
   "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        (\<open>(\<open>indent=1 notation=\<open>mixfix tuple\<close>\<close>'(_,/ _'))\<close>)
   "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   (\<open>_\<close>)
   "_tuple_args" :: "'a \<Rightarrow> tuple_args \<Rightarrow> tuple_args"     (\<open>_,/ _\<close>)
-  "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         (\<open>'(_,/ _')\<close>)
+  "_pattern"    :: "pttrn \<Rightarrow> patterns \<Rightarrow> pttrn"         (\<open>(\<open>open_block notation=\<open>pattern tuple\<close>\<close>'(_,/ _'))\<close>)
   ""            :: "pttrn \<Rightarrow> patterns"                  (\<open>_\<close>)
   "_patterns"   :: "pttrn \<Rightarrow> patterns \<Rightarrow> patterns"      (\<open>_,/ _\<close>)
-  "_unit"       :: pttrn                                (\<open>'(')\<close>)
+  "_unit"       :: pttrn                                (\<open>(\<open>open_block notation=\<open>pattern unit\<close>\<close>'('))\<close>)
 syntax_consts
   "_pattern" "_patterns" \<rightleftharpoons> case_prod and
   "_unit" \<rightleftharpoons> case_unit

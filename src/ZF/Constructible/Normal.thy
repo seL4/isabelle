@@ -463,7 +463,7 @@ text \<open>This is the well-known transfinite enumeration of the cardinal
 numbers.\<close>
 
 definition
-  Aleph :: "i \<Rightarrow> i"  (\<open>\<aleph>_\<close> [90] 90) where
+  Aleph :: "i \<Rightarrow> i"  (\<open>(\<open>open_block notation=\<open>prefix \<aleph>\<close>\<close>\<aleph>_)\<close> [90] 90) where
     "Aleph(a) \<equiv> transrec2(a, nat, \<lambda>x r. csucc(r))"
 
 lemma Card_Aleph [simp, intro]:

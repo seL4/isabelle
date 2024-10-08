@@ -24,7 +24,7 @@ consts
   True         :: o
   False        :: o
   equal        :: "['a,'a] \<Rightarrow> o"     (infixl \<open>=\<close> 50)
-  Not          :: "o \<Rightarrow> o"           (\<open>\<not> _\<close> [40] 40)
+  Not          :: "o \<Rightarrow> o"           (\<open>(\<open>open_block notation=\<open>prefix \<not>\<close>\<close>\<not> _)\<close> [40] 40)
   conj         :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<and>\<close> 35)
   disj         :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<or>\<close> 30)
   imp          :: "[o,o] \<Rightarrow> o"       (infixr \<open>\<longrightarrow>\<close> 25)
