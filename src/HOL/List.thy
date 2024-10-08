@@ -18,6 +18,12 @@ for
 where
   "tl [] = []"
 
+bundle list_syntax
+begin
+notation Nil  (\<open>[]\<close>)
+  and Cons  (infixr \<open>#\<close> 65)
+end
+
 datatype_compat list
 
 lemma [case_names Nil Cons, cases type: list]:
@@ -45,17 +51,14 @@ lemmas set_simps = list.set (* legacy *)
 
 text \<open>List enumeration\<close>
 
-syntax
-  "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
-translations
-  "[x, xs]" \<rightleftharpoons> "x#[xs]"
-  "[x]" \<rightleftharpoons> "x#[]"
-
-bundle list_syntax
+open_bundle list_enumeration_syntax
 begin
 syntax
   "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 end
+translations
+  "[x, xs]" \<rightleftharpoons> "x#[xs]"
+  "[x]" \<rightleftharpoons> "x#[]"
 
 
 subsection \<open>Basic list processing functions\<close>
@@ -447,6 +450,8 @@ definitions for the list comprehensions in question.\<close>
 
 nonterminal lc_qual and lc_quals
 
+open_bundle list_comprehension_syntax
+begin
 syntax
   "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  (\<open>[_ . __\<close>)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ \<leftarrow> _\<close>)
@@ -457,12 +462,6 @@ syntax
 
 syntax (ASCII)
   "_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual"  (\<open>_ <- _\<close>)
-
-bundle listcompr_syntax
-begin
-syntax
-  "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  (\<open>[_ . __\<close>)
-  "_lc_end" :: "lc_quals" (\<open>]\<close>)
 end
 
 parse_translation \<open>

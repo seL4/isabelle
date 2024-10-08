@@ -65,7 +65,8 @@ Isabelle/VSCode extension settings.
 notably like this:
 
   unbundle no list_syntax
-  unbundle no listcompr_syntax
+  unbundle no list_enumeration_syntax
+  unbundle no list_comprehension_syntax
   unbundle no rtrancl_syntax
   unbundle no trancl_syntax
   unbundle no reflcl_syntax

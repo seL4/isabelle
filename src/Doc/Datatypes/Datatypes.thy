@@ -360,8 +360,7 @@ default names \<open>is_Nil\<close>, \<open>un_Cons1\<close>, \<open>un_Cons2\<c
       "[x, xs]" == "x # [xs]"
       "[x]" == "x # []"
 
-    no_notation Nil  (\<open>[]\<close>) and Cons  (infixr \<open>#\<close> 65)
-
+    unbundle no list_syntax
     hide_type list
     hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list list_all
 
@@ -451,7 +450,7 @@ text \<open>
 Incidentally, this is how the traditional syntax can be set up:
 \<close>
 (*<*)
-unbundle no list_syntax
+unbundle no list_enumeration_syntax
 (*>*)
     syntax "_list" :: "args \<Rightarrow> 'a list" (\<open>[(_)]\<close>)
 
