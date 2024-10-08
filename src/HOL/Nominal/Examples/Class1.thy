@@ -8,7 +8,7 @@ atom_decl name coname
 
 text \<open>types\<close>
 
-no_notation not  (\<open>NOT\<close>)
+unbundle no bit_operations_syntax
 
 nominal_datatype ty =
     PR "string"

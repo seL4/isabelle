@@ -6191,11 +6191,11 @@ proof
 qed
 
 (* TODO: Figure out better notation for this thing *)
-no_notation fps_nth (infixl \<open>$\<close> 75)
-
 bundle fps_syntax
 begin
 notation fps_nth (infixl \<open>$\<close> 75)
 end
+
+unbundle no fps_syntax
 
 end

@@ -4601,11 +4601,11 @@ lemma open_fls_def:
 
 subsection \<open>Notation\<close>
 
-no_notation fls_nth (infixl \<open>$$\<close> 75)
-
 bundle fps_syntax
 begin
 notation fls_nth (infixl \<open>$$\<close> 75)
 end
+
+unbundle no fps_syntax
 
 end

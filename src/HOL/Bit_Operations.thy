@@ -3986,21 +3986,15 @@ lemma bit_push_bit_iff_int:
   \<open>bit (push_bit m k) n \<longleftrightarrow> m \<le> n \<and> bit k (n - m)\<close> for k :: int
   by (fact bit_push_bit_iff')
 
-no_notation
-  not  (\<open>NOT\<close>)
-    and "and"  (infixr \<open>AND\<close> 64)
-    and or  (infixr \<open>OR\<close>  59)
-    and xor  (infixr \<open>XOR\<close> 59)
-
 bundle bit_operations_syntax
 begin
-
 notation
   not  (\<open>NOT\<close>)
     and "and"  (infixr \<open>AND\<close> 64)
     and or  (infixr \<open>OR\<close>  59)
     and xor  (infixr \<open>XOR\<close> 59)
-
 end
+
+unbundle no bit_operations_syntax
 
 end
