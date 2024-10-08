@@ -152,43 +152,43 @@ where
 equivariance val 
 
 inductive
-  machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<mapsto> <_,_>\<close>)
+  machine :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<leadsto> <_,_>\<close>)
 where
-  m1[intro]: "<APP e1 e2,Es> \<mapsto> <e1,(CAPPL \<box> e2)#Es>"
-| m2[intro]: "val v \<Longrightarrow> <v,(CAPPL \<box> e2)#Es> \<mapsto> <e2,(CAPPR v \<box>)#Es>"
-| m3[intro]: "val v \<Longrightarrow> <v,(CAPPR (LAM [y].e) \<box>)#Es> \<mapsto> <e[y::=v],Es>"
-| m4[intro]: "<e1 -- e2, Es> \<mapsto> <e1,(CDIFFL \<box> e2)#Es>"
-| m5[intro]: "<NUM n1,(CDIFFL \<box> e2)#Es> \<mapsto> <e2,(CDIFFR (NUM n1) \<box>)#Es>"
-| m6[intro]: "<NUM n2,(CDIFFR (NUM n1) \<box>)#Es> \<mapsto> <NUM (n1 - n2),Es>"
-| m4'[intro]:"<e1 ++ e2, Es> \<mapsto> <e1,(CPLUSL \<box> e2)#Es>"
-| m5'[intro]:"<NUM n1,(CPLUSL \<box> e2)#Es> \<mapsto> <e2,(CPLUSR (NUM n1) \<box>)#Es>"
-| m6'[intro]:"<NUM n2,(CPLUSR (NUM n1) \<box>)#Es> \<mapsto> <NUM (n1+n2),Es>"
-| m7[intro]: "<IF e1 e2 e3,Es> \<mapsto> <e1,(CIF \<box> e2 e3)#Es>"
-| m8[intro]: "<TRUE,(CIF \<box> e1 e2)#Es> \<mapsto> <e1,Es>"
-| m9[intro]: "<FALSE,(CIF \<box> e1 e2)#Es> \<mapsto> <e2,Es>"
-| mA[intro]: "<FIX [x].t,Es> \<mapsto> <t[x::=FIX [x].t],Es>"
-| mB[intro]: "<ZET e,Es> \<mapsto> <e,(CZET \<box>)#Es>"
-| mC[intro]: "<NUM 0,(CZET \<box>)#Es> \<mapsto> <TRUE,Es>"
-| mD[intro]: "0 < n \<Longrightarrow> <NUM n,(CZET \<box>)#Es> \<mapsto> <FALSE,Es>"
-| mE[intro]: "<EQI e1 e2,Es> \<mapsto> <e1,(CEQIL \<box> e2)#Es>"
-| mF[intro]: "<NUM n1,(CEQIL \<box> e2)#Es> \<mapsto> <e2,(CEQIR (NUM n1) \<box>)#Es>"
-| mG[intro]: "<NUM n,(CEQIR (NUM n) \<box>)#Es> \<mapsto> <TRUE,Es>"
-| mH[intro]: "n1\<noteq>n2 \<Longrightarrow> <NUM n1,(CEQIR (NUM n2) \<box>)#Es> \<mapsto> <FALSE,Es>"
+  m1[intro]: "<APP e1 e2,Es> \<leadsto> <e1,(CAPPL \<box> e2)#Es>"
+| m2[intro]: "val v \<Longrightarrow> <v,(CAPPL \<box> e2)#Es> \<leadsto> <e2,(CAPPR v \<box>)#Es>"
+| m3[intro]: "val v \<Longrightarrow> <v,(CAPPR (LAM [y].e) \<box>)#Es> \<leadsto> <e[y::=v],Es>"
+| m4[intro]: "<e1 -- e2, Es> \<leadsto> <e1,(CDIFFL \<box> e2)#Es>"
+| m5[intro]: "<NUM n1,(CDIFFL \<box> e2)#Es> \<leadsto> <e2,(CDIFFR (NUM n1) \<box>)#Es>"
+| m6[intro]: "<NUM n2,(CDIFFR (NUM n1) \<box>)#Es> \<leadsto> <NUM (n1 - n2),Es>"
+| m4'[intro]:"<e1 ++ e2, Es> \<leadsto> <e1,(CPLUSL \<box> e2)#Es>"
+| m5'[intro]:"<NUM n1,(CPLUSL \<box> e2)#Es> \<leadsto> <e2,(CPLUSR (NUM n1) \<box>)#Es>"
+| m6'[intro]:"<NUM n2,(CPLUSR (NUM n1) \<box>)#Es> \<leadsto> <NUM (n1+n2),Es>"
+| m7[intro]: "<IF e1 e2 e3,Es> \<leadsto> <e1,(CIF \<box> e2 e3)#Es>"
+| m8[intro]: "<TRUE,(CIF \<box> e1 e2)#Es> \<leadsto> <e1,Es>"
+| m9[intro]: "<FALSE,(CIF \<box> e1 e2)#Es> \<leadsto> <e2,Es>"
+| mA[intro]: "<FIX [x].t,Es> \<leadsto> <t[x::=FIX [x].t],Es>"
+| mB[intro]: "<ZET e,Es> \<leadsto> <e,(CZET \<box>)#Es>"
+| mC[intro]: "<NUM 0,(CZET \<box>)#Es> \<leadsto> <TRUE,Es>"
+| mD[intro]: "0 < n \<Longrightarrow> <NUM n,(CZET \<box>)#Es> \<leadsto> <FALSE,Es>"
+| mE[intro]: "<EQI e1 e2,Es> \<leadsto> <e1,(CEQIL \<box> e2)#Es>"
+| mF[intro]: "<NUM n1,(CEQIL \<box> e2)#Es> \<leadsto> <e2,(CEQIR (NUM n1) \<box>)#Es>"
+| mG[intro]: "<NUM n,(CEQIR (NUM n) \<box>)#Es> \<leadsto> <TRUE,Es>"
+| mH[intro]: "n1\<noteq>n2 \<Longrightarrow> <NUM n1,(CEQIR (NUM n2) \<box>)#Es> \<leadsto> <FALSE,Es>"
 
 inductive 
-  "machine_star" :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<mapsto>* <_,_>\<close>)
+  "machine_star" :: "lam\<Rightarrow>ctx list\<Rightarrow>lam\<Rightarrow>ctx list\<Rightarrow>bool" (\<open><_,_> \<leadsto>* <_,_>\<close>)
 where
-  ms1[intro]: "<e,Es> \<mapsto>* <e,Es>"
-| ms2[intro]: "\<lbrakk><e1,Es1> \<mapsto> <e2,Es2>; <e2,Es2> \<mapsto>* <e3,Es3>\<rbrakk> \<Longrightarrow> <e1,Es1> \<mapsto>* <e3,Es3>"
+  ms1[intro]: "<e,Es> \<leadsto>* <e,Es>"
+| ms2[intro]: "\<lbrakk><e1,Es1> \<leadsto> <e2,Es2>; <e2,Es2> \<leadsto>* <e3,Es3>\<rbrakk> \<Longrightarrow> <e1,Es1> \<leadsto>* <e3,Es3>"
 
 lemma ms3[intro,trans]:
-  assumes a: "<e1,Es1> \<mapsto>* <e2,Es2>" "<e2,Es2> \<mapsto>* <e3,Es3>"
-  shows "<e1,Es1> \<mapsto>* <e3,Es3>"
+  assumes a: "<e1,Es1> \<leadsto>* <e2,Es2>" "<e2,Es2> \<leadsto>* <e3,Es3>"
+  shows "<e1,Es1> \<leadsto>* <e3,Es3>"
 using a by (induct) (auto) 
 
 lemma ms4[intro]:
-  assumes a: "<e1,Es1> \<mapsto> <e2,Es2>" 
-  shows "<e1,Es1> \<mapsto>* <e2,Es2>"
+  assumes a: "<e1,Es1> \<leadsto> <e2,Es2>" 
+  shows "<e1,Es1> \<leadsto>* <e2,Es2>"
 using a by (rule ms2) (rule ms1)
 
 section \<open>The Evaluation Relation (Big-Step Semantics)\<close>
@@ -238,14 +238,14 @@ text \<open>The Completeness Property:\<close>
 
 theorem eval_implies_machine_star_ctx:
   assumes a: "t \<Down> t'"
-  shows "<t,Es> \<mapsto>* <t',Es>"
+  shows "<t,Es> \<leadsto>* <t',Es>"
 using a
 by (induct arbitrary: Es)
    (metis eval_to machine.intros ms1 ms2 ms3 ms4 v_LAM)+
 
 corollary eval_implies_machine_star:
   assumes a: "t \<Down> t'"
-  shows "<t,[]> \<mapsto>* <t',[]>"
+  shows "<t,[]> \<leadsto>* <t',[]>"
 using a by (auto dest: eval_implies_machine_star_ctx)
 
 section \<open>The CBV Reduction Relation (Small-Step Semantics)\<close>
@@ -313,18 +313,18 @@ lemma cbv_in_ctx:
 using a by (induct E) (auto)
 
 lemma machine_implies_cbv_star_ctx:
-  assumes a: "<e,Es> \<mapsto> <e',Es'>"
+  assumes a: "<e,Es> \<leadsto> <e',Es'>"
   shows "(Es\<down>)\<lbrakk>e\<rbrakk> \<longrightarrow>cbv* (Es'\<down>)\<lbrakk>e'\<rbrakk>"
 using a by (induct) (auto simp add: ctx_compose intro: cbv_in_ctx)
 
 lemma machine_star_implies_cbv_star_ctx:
-  assumes a: "<e,Es> \<mapsto>* <e',Es'>"
+  assumes a: "<e,Es> \<leadsto>* <e',Es'>"
   shows "(Es\<down>)\<lbrakk>e\<rbrakk> \<longrightarrow>cbv* (Es'\<down>)\<lbrakk>e'\<rbrakk>"
 using a 
 by (induct) (auto dest: machine_implies_cbv_star_ctx)
 
 lemma machine_star_implies_cbv_star:
-  assumes a: "<e,[]> \<mapsto>* <e',[]>"
+  assumes a: "<e,[]> \<leadsto>* <e',[]>"
   shows "e \<longrightarrow>cbv* e'"
 using a by (auto dest: machine_star_implies_cbv_star_ctx)
 
@@ -350,7 +350,7 @@ by (induct)
 text \<open>The Soundness Property\<close>
 
 theorem machine_star_implies_eval:
-  assumes a: "<t1,[]> \<mapsto>* <t2,[]>" 
+  assumes a: "<t1,[]> \<leadsto>* <t2,[]>" 
   and     b: "val t2" 
   shows "t1 \<Down> t2"
 proof -
@@ -536,7 +536,7 @@ by (induct) (auto intro: cbv_type_preservation)
 section \<open>The Type-Preservation Property for the Machine and Evaluation Relation\<close>
 
 theorem machine_type_preservation:
-  assumes a: "<t,[]> \<mapsto>* <t',[]>"
+  assumes a: "<t,[]> \<leadsto>* <t',[]>"
   and     b: "\<Gamma> \<turnstile> t : T" 
   shows "\<Gamma> \<turnstile> t' : T"
 proof -
@@ -549,7 +549,7 @@ theorem eval_type_preservation:
   and     b: "\<Gamma> \<turnstile> t : T" 
   shows "\<Gamma> \<turnstile> t' : T"
 proof -
-  from a have "<t,[]> \<mapsto>* <t',[]>" by (simp add: eval_implies_machine_star)
+  from a have "<t,[]> \<leadsto>* <t',[]>" by (simp add: eval_implies_machine_star)
   then show "\<Gamma> \<turnstile> t' : T" using b by (simp add: machine_type_preservation)
 qed
 

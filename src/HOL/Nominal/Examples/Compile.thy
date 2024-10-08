@@ -41,7 +41,7 @@ nominal_datatype trmI =
   | IUnit
   | INat "nat"
   | ISucc "trmI"
-  | IAss "trmI" "trmI" (\<open>_\<mapsto>_\<close> [100,100] 100)
+  | IAss "trmI" "trmI" (\<open>_\<leadsto>_\<close> [100,100] 100)
   | IRef "trmI" 
   | ISeq "trmI" "trmI" (\<open>_;;_\<close> [100,100] 100)
   | Iif "trmI" "trmI" "trmI"
@@ -84,7 +84,7 @@ where
 | t4[intro]: "valid \<Gamma> \<Longrightarrow> \<Gamma> I\<turnstile> INat(n) : DataI(NatI)"
 | t5[intro]: "\<Gamma> I\<turnstile> e : DataI(NatI) \<Longrightarrow> \<Gamma> I\<turnstile> ISucc(e) : DataI(NatI)"
 | t6[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> IRef e : DataI (NatI)"
-| t7[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1\<mapsto>e2 : DataI(OneI)"
+| t7[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : DataI(NatI)\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1\<leadsto>e2 : DataI(OneI)"
 | t8[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e1 : DataI(NatI); \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> e1;;e2 : \<tau>"
 | t9[intro]: "\<lbrakk>\<Gamma> I\<turnstile> e: DataI(NatI); \<Gamma> I\<turnstile> e1 : \<tau>; \<Gamma> I\<turnstile> e2 : \<tau>\<rbrakk> \<Longrightarrow> \<Gamma> I\<turnstile> Iif e e1 e2 : \<tau>"
 
@@ -192,7 +192,7 @@ where
 | m3[intro]: "(m,INat(n))I\<Down>(m,INat(n))"
 | m4[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,ISucc(e))I\<Down>(m',INat(n+1))"
 | m5[intro]: "(m,e)I\<Down>(m',INat(n)) \<Longrightarrow> (m,IRef(e))I\<Down>(m',INat(m' n))"
-| m6[intro]: "\<lbrakk>(m,e1)I\<Down>(m',INat(n1)); (m',e2)I\<Down>(m'',INat(n2))\<rbrakk> \<Longrightarrow> (m,e1\<mapsto>e2)I\<Down>(m''(n1:=n2),IUnit)"
+| m6[intro]: "\<lbrakk>(m,e1)I\<Down>(m',INat(n1)); (m',e2)I\<Down>(m'',INat(n2))\<rbrakk> \<Longrightarrow> (m,e1\<leadsto>e2)I\<Down>(m''(n1:=n2),IUnit)"
 | m7[intro]: "\<lbrakk>(m,e1)I\<Down>(m',IUnit); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,e1;;e2)I\<Down>(m'',e)"
 | m8[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(n)); n\<noteq>0; (m',e1)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
 | m9[intro]: "\<lbrakk>(m,e)I\<Down>(m',INat(0)); (m',e2)I\<Down>(m'',e)\<rbrakk> \<Longrightarrow> (m,Iif e e1 e2)I\<Down>(m'',e)"
@@ -210,17 +210,17 @@ where
        (let limit = IRef(INat 0) in 
         let v1 = (trans e1) in 
         let v2 = (trans e2) in 
-        (((ISucc limit)\<mapsto>v1);;(ISucc(ISucc limit)\<mapsto>v2));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
+        (((ISucc limit)\<leadsto>v1);;(ISucc(ISucc limit)\<leadsto>v2));;(INat 0 \<leadsto> ISucc(ISucc(limit))))"
 | "trans (Fst e) = IRef (ISucc (trans e))"
 | "trans (Snd e) = IRef (ISucc (ISucc (trans e)))"
 | "trans (InL e) = 
         (let limit = IRef(INat 0) in 
          let v = (trans e) in 
-         (((ISucc limit)\<mapsto>INat(0));;(ISucc(ISucc limit)\<mapsto>v));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
+         (((ISucc limit)\<leadsto>INat(0));;(ISucc(ISucc limit)\<leadsto>v));;(INat 0 \<leadsto> ISucc(ISucc(limit))))"
 | "trans (InR e) = 
         (let limit = IRef(INat 0) in 
          let v = (trans e) in 
-         (((ISucc limit)\<mapsto>INat(1));;(ISucc(ISucc limit)\<mapsto>v));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
+         (((ISucc limit)\<leadsto>INat(1));;(ISucc(ISucc limit)\<leadsto>v));;(INat 0 \<leadsto> ISucc(ISucc(limit))))"
 | "\<lbrakk>x2\<noteq>x1; x1\<sharp>e; x1\<sharp>e2; x2\<sharp>e; x2\<sharp>e1\<rbrakk> \<Longrightarrow> 
    trans (Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2) =
        (let v = (trans e) in

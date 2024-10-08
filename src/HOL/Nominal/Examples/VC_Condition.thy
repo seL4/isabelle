@@ -27,11 +27,11 @@ text \<open>
   of the algorithm W.\<close>
 
 inductive
-  unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" (\<open>_ \<mapsto> _,_\<close> [60,60,60] 60)
+  unbind :: "lam \<Rightarrow> name list \<Rightarrow> lam \<Rightarrow> bool" (\<open>_ \<leadsto> _,_\<close> [60,60,60] 60)
 where
-  u_var: "(Var a) \<mapsto> [],(Var a)"
-| u_app: "(App t1 t2) \<mapsto> [],(App t1 t2)"
-| u_lam: "t\<mapsto>xs,t' \<Longrightarrow> (Lam [x].t) \<mapsto> (x#xs),t'"
+  u_var: "(Var a) \<leadsto> [],(Var a)"
+| u_app: "(App t1 t2) \<leadsto> [],(App t1 t2)"
+| u_lam: "t\<leadsto>xs,t' \<Longrightarrow> (Lam [x].t) \<leadsto> (x#xs),t'"
 
 text \<open>
   We can show that Lam [x].Lam [x].Var x unbinds to [x,x],Var x 
@@ -39,19 +39,19 @@ text \<open>
   bit clumsy).\<close> 
 
 lemma unbind_lambda_lambda1: 
-  shows "Lam [x].Lam [x].(Var x)\<mapsto>[x,x],(Var x)"
+  shows "Lam [x].Lam [x].(Var x)\<leadsto>[x,x],(Var x)"
 by (auto intro: unbind.intros)
 
 lemma unbind_lambda_lambda2: 
-  shows "Lam [x].Lam [x].(Var x)\<mapsto>[y,z],(Var z)"
+  shows "Lam [x].Lam [x].(Var x)\<leadsto>[y,z],(Var z)"
 proof -
   have "Lam [x].Lam [x].(Var x) = Lam [y].Lam [z].(Var z)" 
     by (auto simp add: lam.inject alpha calc_atm abs_fresh fresh_atm)
   moreover
-  have "Lam [y].Lam [z].(Var z) \<mapsto> [y,z],(Var z)"
+  have "Lam [y].Lam [z].(Var z) \<leadsto> [y,z],(Var z)"
     by (auto intro: unbind.intros)
   ultimately 
-  show "Lam [x].Lam [x].(Var x)\<mapsto>[y,z],(Var z)" by simp
+  show "Lam [x].Lam [x].(Var x)\<leadsto>[y,z],(Var z)" by simp
 qed
 
 text \<open>Unbind is equivariant ...\<close>
@@ -86,7 +86,7 @@ text \<open>
   easily prove that bind undoes the unbinding.\<close>
 
 lemma bind_unbind:
-  assumes a: "t \<mapsto> xs,t'"
+  assumes a: "t \<leadsto> xs,t'"
   shows "t = bind xs t'"
 using a by (induct) (auto)
 
@@ -113,7 +113,7 @@ text \<open>
   the binder x is fresh w.r.t. to the xs unbound previously.\<close>   
 
 lemma faulty1:
-  assumes a: "t\<mapsto>(x#xs),t'"
+  assumes a: "t\<leadsto>(x#xs),t'"
   shows "\<not>(x\<sharp>t') \<Longrightarrow> \<not>(x\<sharp>bind xs t')"
 using a
 by (nominal_induct t xs'\<equiv>"x#xs" t' avoiding: xs rule: unbind.strong_induct)
@@ -121,14 +121,14 @@ by (nominal_induct t xs'\<equiv>"x#xs" t' avoiding: xs rule: unbind.strong_induc
 
 text \<open>
   Obviously this lemma is bogus. For example, in 
-  case Lam [x].Lam [x].(Var x) \<mapsto> [x,x],(Var x). 
+  case Lam [x].Lam [x].(Var x) \<leadsto> [x,x],(Var x). 
   As a result, we can prove False.\<close>
 
 lemma false1:
   shows "False"
 proof -
   fix x
-  have "Lam [x].Lam [x].(Var x)\<mapsto>[x,x],(Var x)" 
+  have "Lam [x].Lam [x].(Var x)\<leadsto>[x,x],(Var x)" 
   and  "\<not>(x\<sharp>Var x)" by (simp_all add: unbind_lambda_lambda1 fresh_atm)
   then have "\<not>(x\<sharp>(bind [x] (Var x)))" by (rule faulty1)
   moreover 
