@@ -19,8 +19,13 @@ definition extensional :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) set"
 definition "restrict" :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'b"
   where "restrict f A = (\<lambda>x. if x \<in> A then f x else undefined)"
 
-abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (infixr \<open>\<rightarrow>\<close> 60)
-  where "A \<rightarrow> B \<equiv> Pi A (\<lambda>_. B)"
+abbreviation funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"
+  where "funcset A B \<equiv> Pi A (\<lambda>_. B)"
+
+open_bundle funcset_syntax
+begin
+notation funcset  (infixr \<open>\<rightarrow>\<close> 60)
+end
 
 syntax
   "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(3\<Pi> _\<in>_./ _)\<close>   10)
