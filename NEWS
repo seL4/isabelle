@@ -67,6 +67,8 @@ notably like this:
   unbundle no list_syntax
   unbundle no list_enumeration_syntax
   unbundle no list_comprehension_syntax
+  unbundle no relcomp_syntax
+  unbundle no converse_syntax
   unbundle no rtrancl_syntax
   unbundle no trancl_syntax
   unbundle no reflcl_syntax
