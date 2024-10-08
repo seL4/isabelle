@@ -1043,7 +1043,7 @@ subsection \<open>alternate formulation with a different decomposition principle
   and a proof of equivalence\<close>
 
 inductive
-  list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (\<open>_ \<approx>2 _\<close>)
+  list_eq2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"  (infix \<open>\<approx>2\<close> 50)
 where
   "(a # b # xs) \<approx>2 (b # a # xs)"
 | "[] \<approx>2 []"
@@ -1077,45 +1077,35 @@ lemma member_delete_list_eq2:
   using a cons_delete_list_eq2[of e r]
   by simp
 
-lemma list_eq2_equiv:
-  "(l \<approx> r) \<longleftrightarrow> (list_eq2 l r)"
+lemma list_eq2_equiv: "l \<approx> r \<longleftrightarrow> l \<approx>2 r"
 proof
-  show "list_eq2 l r \<Longrightarrow> l \<approx> r" by (induct rule: list_eq2.induct) auto
-next
-  {
-    fix n
-    assume a: "card_list l = n" and b: "l \<approx> r"
-    have "l \<approx>2 r"
-      using a b
-    proof (induct n arbitrary: l r)
-      case 0
-      have "card_list l = 0" by fact
-      then have "\<forall>x. \<not> List.member l x" by auto
-      then have z: "l = []" by auto
-      then have "r = []" using \<open>l \<approx> r\<close> by simp
-      then show ?case using z list_eq2_refl by simp
-    next
-      case (Suc m)
-      have b: "l \<approx> r" by fact
-      have d: "card_list l = Suc m" by fact
-      then have "\<exists>a. List.member l a" 
-        apply(simp)
-        apply(drule card_eq_SucD)
-        apply(blast)
-        done
-      then obtain a where e: "List.member l a" by auto
-      then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
-        by auto
-      have f: "card_list (removeAll a l) = m" using e d by (simp)
-      have g: "removeAll a l \<approx> removeAll a r" using remove_fset.rsp b by simp
-      have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
-      then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
-      have i: "l \<approx>2 (a # removeAll a l)"
-        by (rule list_eq2.intros(3)[OF member_delete_list_eq2[OF e]])
-      have "l \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(6)[OF i h])
-      then show ?case using list_eq2.intros(6)[OF _ member_delete_list_eq2[OF e']] by simp
-    qed
-    }
+  show "l \<approx>2 r \<Longrightarrow> l \<approx> r"
+    by (induct rule: list_eq2.induct) auto
+  have "card_list l = n \<Longrightarrow> l \<approx> r \<Longrightarrow> l \<approx>2 r" for n
+  proof (induct n arbitrary: l r)
+    case 0
+    have "card_list l = 0" by fact
+    then have "\<forall>x. \<not> List.member l x" by auto
+    then have z: "l = []" by auto
+    then have "r = []" using \<open>l \<approx> r\<close> by simp
+    then show ?case using z list_eq2_refl by simp
+  next
+    case (Suc m)
+    have b: "l \<approx> r" by fact
+    have d: "card_list l = Suc m" by fact
+    then have "\<exists>a. List.member l a" by (auto dest: card_eq_SucD)
+    then obtain a where e: "List.member l a" by auto
+    then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
+      by auto
+    have f: "card_list (removeAll a l) = m" using e d by (simp)
+    have g: "removeAll a l \<approx> removeAll a r" using remove_fset.rsp b by simp
+    have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])
+    then have h: "(a # removeAll a l) \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(5))
+    have i: "l \<approx>2 (a # removeAll a l)"
+      by (rule list_eq2.intros(3)[OF member_delete_list_eq2[OF e]])
+    have "l \<approx>2 (a # removeAll a r)" by (rule list_eq2.intros(6)[OF i h])
+    then show ?case using list_eq2.intros(6)[OF _ member_delete_list_eq2[OF e']] by simp
+  qed
   then show "l \<approx> r \<Longrightarrow> l \<approx>2 r" by blast
 qed
 
@@ -1145,13 +1135,6 @@ lemma fset_eq_induct:
   using assms
   by (lifting list_eq2.induct[simplified list_eq2_equiv[symmetric]])
 
-ML \<open>
-fun dest_fsetT \<^Type>\<open>fset T\<close> = T
-  | dest_fsetT T = raise TYPE ("dest_fsetT: fset type expected", [T], []);
-\<close>
-
-no_notation
-  list_eq (infix \<open>\<approx>\<close> 50) and 
-  list_eq2 (infix \<open>\<approx>2\<close> 50)
+no_notation list_eq  (infix \<open>\<approx>\<close> 50) and list_eq2  (infix \<open>\<approx>2\<close> 50)
 
 end
