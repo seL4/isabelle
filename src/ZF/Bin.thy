@@ -101,11 +101,11 @@ primrec
                                  NCons(bin_mult(v,w),0))"
 
 syntax
-  "_Int0" :: i  (\<open>#' 0\<close>)
-  "_Int1" :: i  (\<open>#' 1\<close>)
-  "_Int2" :: i  (\<open>#' 2\<close>)
-  "_Neg_Int1" :: i  (\<open>#-' 1\<close>)
-  "_Neg_Int2" :: i  (\<open>#-' 2\<close>)
+  "_Int0" :: i  (\<open>#()0\<close>)
+  "_Int1" :: i  (\<open>#()1\<close>)
+  "_Int2" :: i  (\<open>#()2\<close>)
+  "_Neg_Int1" :: i  (\<open>#-()1\<close>)
+  "_Neg_Int2" :: i  (\<open>#-()2\<close>)
 translations
   "#0" \<rightleftharpoons> "CONST integ_of(CONST Pls)"
   "#1" \<rightleftharpoons> "CONST integ_of(CONST Pls BIT 1)"
