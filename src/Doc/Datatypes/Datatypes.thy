@@ -360,9 +360,7 @@ default names \<open>is_Nil\<close>, \<open>un_Cons1\<close>, \<open>un_Cons2\<c
       "[x, xs]" == "x # [xs]"
       "[x]" == "x # []"
 
-    no_notation
-      Nil (\<open>[]\<close>) and
-      Cons (infixr \<open>#\<close> 65)
+    no_notation Nil  (\<open>[]\<close>) and Cons  (infixr \<open>#\<close> 65)
 
     hide_type list
     hide_const Nil Cons case_list hd tl set map list_all2 rec_list size_list list_all

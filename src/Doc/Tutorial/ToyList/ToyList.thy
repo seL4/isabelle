@@ -9,7 +9,7 @@ To avoid some ambiguities caused by defining lists twice, we manipulate
 the concrete syntax and name space of theory \<^theory>\<open>Main\<close> as follows.
 \<close>
 
-no_notation Nil ("[]") and Cons (infixr "#" 65) and append (infixr "@" 65)
+no_notation Nil  ("[]") and Cons  (infixr "#" 65) and append  (infixr "@" 65)
 hide_type list
 hide_const rev
 

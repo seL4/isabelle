@@ -1957,7 +1957,7 @@ instance ..
 
 end
 
-no_notation Quickcheck_Exhaustive.orelse (infixr \<open>orelse\<close> 55)
+no_notation Quickcheck_Exhaustive.orelse  (infixr \<open>orelse\<close> 55)
 
 instantiation fset :: (random) random
 begin

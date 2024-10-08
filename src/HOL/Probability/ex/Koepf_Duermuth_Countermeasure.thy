@@ -219,7 +219,7 @@ abbreviation probability (\<open>\<P>'(_') _\<close>) where
 abbreviation joint_probability (\<open>\<P>'(_ ; _') _\<close>) where
   "\<P>(X ; Y) x \<equiv> \<P>(\<lambda>x. (X x, Y x)) x"
 
-no_notation disj (infixr \<open>|\<close> 30)
+no_notation disj  (infixr \<open>|\<close> 30)
 
 abbreviation conditional_probability (\<open>\<P>'(_ | _') _\<close>) where
   "\<P>(X | Y) x \<equiv> (\<P>(X ; Y) x) / \<P>(Y) (snd`x)"

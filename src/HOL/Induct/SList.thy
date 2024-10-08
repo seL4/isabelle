@@ -83,9 +83,7 @@ definition
 no_translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
-no_notation
-  Nil  (\<open>[]\<close>) and
-  Cons (infixr \<open>#\<close> 65)
+no_notation Nil  (\<open>[]\<close>) and Cons  (infixr \<open>#\<close> 65)
 
 definition
   Nil       :: "'a list"                               (\<open>[]\<close>) where

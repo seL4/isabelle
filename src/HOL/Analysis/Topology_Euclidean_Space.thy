@@ -2484,7 +2484,6 @@ proof (cases "A = {}")
   qed
 qed auto
 
-no_notation
-  eucl_less (infix \<open><e\<close> 50)
+no_notation eucl_less  (infix \<open><e\<close> 50)
 
 end

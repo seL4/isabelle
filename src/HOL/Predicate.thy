@@ -727,8 +727,7 @@ lemma pred_of_set_set_foldr_sup [code]:
   "pred_of_set (set xs) = foldr sup (List.map Predicate.single xs) bot"
   by (simp add: pred_of_set_set_fold_sup ac_simps foldr_fold fun_eq_iff)
 
-no_notation
-  bind (infixl \<open>\<bind>\<close> 70)
+no_notation bind  (infixl \<open>\<bind>\<close> 70)
 
 hide_type (open) pred seq
 hide_const (open) Pred eval single bind is_empty singleton if_pred not_pred holds

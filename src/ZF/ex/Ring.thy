@@ -6,9 +6,7 @@ section \<open>Rings\<close>
 
 theory Ring imports Group begin
 
-no_notation
-  cadd  (infixl \<open>\<oplus>\<close> 65) and
-  cmult  (infixl \<open>\<otimes>\<close> 70)
+no_notation cadd  (infixl \<open>\<oplus>\<close> 65) and cmult  (infixl \<open>\<otimes>\<close> 70)
 
 (*First, we must simulate a record declaration:
 record ring = monoid +

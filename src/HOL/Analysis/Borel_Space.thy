@@ -1853,8 +1853,7 @@ lemma borel_measurable_pred_less[measurable (raw)]:
   shows "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> Measurable.pred M (\<lambda>w. f w < g w)"
   unfolding Measurable.pred_def by (rule borel_measurable_less)
 
-no_notation
-  eucl_less (infix \<open><e\<close> 50)
+no_notation eucl_less  (infix \<open><e\<close> 50)
 
 lemma borel_measurable_Max2[measurable (raw)]:
   fixes f::"_ \<Rightarrow> _ \<Rightarrow> 'a::{second_countable_topology, dense_linorder, linorder_topology}"

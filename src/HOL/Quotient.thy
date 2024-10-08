@@ -745,8 +745,7 @@ attribute_setup quot_lifted =
   \<open>Scan.succeed Quotient_Tacs.lifted_attrib\<close>
   \<open>lift theorems to quotient types\<close>
 
-no_notation
-  rel_conj (infixr \<open>OOO\<close> 75)
+no_notation rel_conj  (infixr \<open>OOO\<close> 75)
 
 section \<open>Lifting of BNFs\<close>
 

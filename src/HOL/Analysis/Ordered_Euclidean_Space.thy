@@ -288,8 +288,7 @@ lemma compact_interval [simp]:
   shows "compact {a .. b}"
   by (metis compact_cbox interval_cbox)
 
-no_notation
-  eucl_less (infix \<open><e\<close> 50)
+no_notation eucl_less  (infix \<open><e\<close> 50)
 
 lemma One_nonneg: "0 \<le> (\<Sum>Basis::'a::ordered_euclidean_space)"
   by (auto intro: sum_nonneg)
