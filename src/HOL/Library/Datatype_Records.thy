@@ -26,6 +26,15 @@ text \<open>
   \<^item> extensible records are not supported
 \<close>
 
+nonterminal
+  ident and
+  field_type and
+  field_types and
+  field and
+  fields and
+  field_update and
+  field_updates
+
 open_bundle datatype_record_syntax
 begin
 
@@ -38,14 +47,14 @@ syntax
   "_datatype_field"         :: "ident => 'a => field"               (\<open>(\<open>indent=2 notation=\<open>infix field value\<close>\<close>_ =/ _)\<close>)
   ""                        :: "field => fields"                    (\<open>_\<close>)
   "_datatype_fields"        :: "field => fields => fields"          (\<open>_,/ _\<close>)
-  "_datatype_record"        :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix datatype record type\<close>\<close>\<lparr>_\<rparr>)\<close>)
+  "_datatype_record"        :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix datatype record value\<close>\<close>\<lparr>_\<rparr>)\<close>)
   "_datatype_field_update"  :: "ident => 'a => field_update"        (\<open>(\<open>indent=2 notation=\<open>infix field update\<close>\<close>_ :=/ _)\<close>)
   ""                        :: "field_update => field_updates"      (\<open>_\<close>)
   "_datatype_field_updates" :: "field_update => field_updates => field_updates"  (\<open>_,/ _\<close>)
   "_datatype_record_update" :: "'a => field_updates => 'b"          (\<open>(\<open>open_block notation=\<open>mixfix datatype record update\<close>\<close>_/(3\<lparr>_\<rparr>))\<close> [900, 0] 900)
 
 syntax (ASCII)
-  "_datatype_record"        :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix datatype record type\<close>\<close>'(| _ |'))\<close>)
+  "_datatype_record"        :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix datatype record value\<close>\<close>'(| _ |'))\<close>)
   "_datatype_record_update" :: "'a => field_updates => 'b"          (\<open>(\<open>open_block notation=\<open>mixfix datatype record update\<close>\<close>_/(3'(| _ |')))\<close> [900, 0] 900)
 
 end
