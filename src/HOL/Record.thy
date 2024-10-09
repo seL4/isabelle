@@ -422,6 +422,9 @@ nonterminal
   field_update and
   field_updates
 
+open_bundle record_syntax
+begin
+
 syntax
   "_constify"           :: "id => ident"                        (\<open>_\<close>)
   "_constify"           :: "longid => ident"                    (\<open>_\<close>)
@@ -449,6 +452,8 @@ syntax (ASCII)
   "_record"             :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _ |'))\<close>)
   "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _,/ (\<open>indent=2 notation=\<open>infix more value\<close>\<close>... =/ _) |'))\<close>)
   "_record_update"      :: "'a => field_updates => 'b"          (\<open>(\<open>open_block notation=\<open>mixfix record update\<close>\<close>_/(3'(| _ |')))\<close> [900, 0] 900)
+
+end
 
 
 subsection \<open>Record package\<close>

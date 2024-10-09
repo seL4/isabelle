@@ -26,41 +26,10 @@ text \<open>
   \<^item> extensible records are not supported
 \<close>
 
-no_syntax
-  "_constify"           :: "id => ident"                        (\<open>_\<close>)
-  "_constify"           :: "longid => ident"                    (\<open>_\<close>)
+open_bundle datatype_record_syntax
+begin
 
-  "_field_type"         :: "ident => type => field_type"        (\<open>(\<open>indent=2 notation=\<open>infix field type\<close>\<close>_ ::/ _)\<close>)
-  ""                    :: "field_type => field_types"          (\<open>_\<close>)
-  "_field_types"        :: "field_type => field_types => field_types"    (\<open>_,/ _\<close>)
-  "_record_type"        :: "field_types => type"                (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>\<lparr>_\<rparr>)\<close>)
-  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>\<lparr>_,/ (\<open>indent=2 notation=\<open>infix more type\<close>\<close>\<dots> ::/ _)\<rparr>)\<close>)
-
-  "_field"              :: "ident => 'a => field"               (\<open>(\<open>indent=2 notation=\<open>infix field value\<close>\<close>_ =/ _)\<close>)
-  ""                    :: "field => fields"                    (\<open>_\<close>)
-  "_fields"             :: "field => fields => fields"          (\<open>_,/ _\<close>)
-  "_record"             :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>\<lparr>_\<rparr>)\<close>)
-  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>\<lparr>_,/ (\<open>indent=2 notation=\<open>infix more value\<close>\<close>\<dots> =/ _)\<rparr>)\<close>)
-
-  "_field_update"       :: "ident => 'a => field_update"        (\<open>(\<open>indent=2 notation=\<open>infix field update\<close>\<close>_ :=/ _)\<close>)
-  ""                    :: "field_update => field_updates"      (\<open>_\<close>)
-  "_field_updates"      :: "field_update => field_updates => field_updates"  (\<open>_,/ _\<close>)
-  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(\<open>indent=3 notation=\<open>mixfix record update\<close>\<close>\<lparr>_\<rparr>)\<close> [900, 0] 900)
-
-no_syntax (ASCII)
-  "_record_type"        :: "field_types => type"                (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>'(| _ |'))\<close>)
-  "_record_type_scheme" :: "field_types => type => type"        (\<open>(\<open>indent=3 notation=\<open>mixfix record type\<close>\<close>'(| _,/ (\<open>indent=2 notation=\<open>infix more type\<close>\<close>... ::/ _) |'))\<close>)
-  "_record"             :: "fields => 'a"                       (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _ |'))\<close>)
-  "_record_scheme"      :: "fields => 'a => 'a"                 (\<open>(\<open>indent=3 notation=\<open>mixfix record value\<close>\<close>'(| _,/ (\<open>indent=2 notation=\<open>infix more value\<close>\<close>... =/ _) |'))\<close>)
-  "_record_update"      :: "'a => field_updates => 'b"          (\<open>_/(\<open>indent=3 notation=\<open>mixfix record update\<close>\<close>'(| _ |'))\<close> [900, 0] 900)
-
-(* copied and adapted from Record.thy *)
-
-nonterminal
-  field and
-  fields and
-  field_update and
-  field_updates
+unbundle no record_syntax
 
 syntax
   "_constify"               :: "id => ident"                        (\<open>_\<close>)
@@ -79,6 +48,8 @@ syntax (ASCII)
   "_datatype_record"        :: "fields => 'a"                       (\<open>(3'(| _ |'))\<close>)
   "_datatype_record_scheme" :: "fields => 'a => 'a"                 (\<open>(3'(| _,/ (2... =/ _) |'))\<close>)
   "_datatype_record_update" :: "'a => field_updates => 'b"          (\<open>_/(3'(| _ |'))\<close> [900, 0] 900)
+
+end
 
 named_theorems datatype_record_update
 
