@@ -15,7 +15,7 @@ abbreviation strict_sorted :: "'a::linorder list \<Rightarrow> bool" where
 
 subsubsection \<open>The $n$-element subsets of a set $A$\<close>
 
-definition nsets :: "['a set, nat] \<Rightarrow> 'a set set" (\<open>([_]\<^bsup>_\<^esup>)\<close> [0,999] 999)
+definition nsets :: "['a set, nat] \<Rightarrow> 'a set set" (\<open>(\<open>notation=\<open>mixfix nsets\<close>\<close>[_]\<^bsup>_\<^esup>)\<close> [0,999] 999)
   where "nsets A n \<equiv> {N. N \<subseteq> A \<and> finite N \<and> card N = n}"
 
 lemma finite_imp_finite_nsets: "finite A \<Longrightarrow> finite ([A]\<^bsup>k\<^esup>)"

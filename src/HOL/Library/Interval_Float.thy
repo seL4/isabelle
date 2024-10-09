@@ -92,8 +92,8 @@ lemma in_intervalI:
   "x \<in>\<^sub>i X" if "lower X \<le> x" "x \<le> upper X"
   using that by (auto simp: set_of_eq)
 
-abbreviation in_real_interval (\<open>(_/ \<in>\<^sub>r _)\<close> [51, 51] 50) where
-  "x \<in>\<^sub>r X \<equiv> x \<in>\<^sub>i real_interval X"
+abbreviation in_real_interval (\<open>(\<open>notation=\<open>infix \<in>\<^sub>r\<close>\<close>_/ \<in>\<^sub>r _)\<close> [51, 51] 50)
+  where "x \<in>\<^sub>r X \<equiv> x \<in>\<^sub>i real_interval X"
 
 lemma in_real_intervalI:
   "x \<in>\<^sub>r X" if "lower X \<le> x" "x \<le> upper X" for x::real and X::"float interval"

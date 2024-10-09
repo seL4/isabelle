@@ -133,22 +133,22 @@ abbreviation member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bo
 
 notation
   member_mset  (\<open>'(\<in>#')\<close>) and
-  member_mset  (\<open>(_/ \<in># _)\<close> [50, 51] 50)
+  member_mset  (\<open>(\<open>notation=\<open>infix \<in>#\<close>\<close>_/ \<in># _)\<close> [50, 51] 50)
 
 notation  (ASCII)
   member_mset  (\<open>'(:#')\<close>) and
-  member_mset  (\<open>(_/ :# _)\<close> [50, 51] 50)
+  member_mset  (\<open>(\<open>notation=\<open>infix :#\<close>\<close>_/ :# _)\<close> [50, 51] 50)
 
 abbreviation not_member_mset :: \<open>'a \<Rightarrow> 'a multiset \<Rightarrow> bool\<close>
   where \<open>not_member_mset a M \<equiv> a \<notin> set_mset M\<close>
 
 notation
   not_member_mset  (\<open>'(\<notin>#')\<close>) and
-  not_member_mset  (\<open>(_/ \<notin># _)\<close> [50, 51] 50)
+  not_member_mset  (\<open>(\<open>notation=\<open>infix \<notin>#\<close>\<close>_/ \<notin># _)\<close> [50, 51] 50)
 
 notation  (ASCII)
   not_member_mset  (\<open>'(~:#')\<close>) and
-  not_member_mset  (\<open>(_/ ~:# _)\<close> [50, 51] 50)
+  not_member_mset  (\<open>(\<open>notation=\<open>infix ~:#\<close>\<close>_/ ~:# _)\<close> [50, 51] 50)
 
 context
 begin
@@ -162,17 +162,18 @@ qualified abbreviation Bex :: "'a multiset \<Rightarrow> ('a \<Rightarrow> bool)
 end
 
 syntax
-  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>_\<in>#_./ _)\<close> [0, 0, 10] 10)
-  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>_\<in>#_./ _)\<close> [0, 0, 10] 10)
-
+  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_\<in>#_./ _)\<close> [0, 0, 10] 10)
+  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_\<in>#_./ _)\<close> [0, 0, 10] 10)
 syntax  (ASCII)
-  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<forall>_:#_./ _)\<close> [0, 0, 10] 10)
-  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"      (\<open>(3\<exists>_:#_./ _)\<close> [0, 0, 10] 10)
-
+  "_MBall"       :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<close>\<close>\<forall>_:#_./ _)\<close> [0, 0, 10] 10)
+  "_MBex"        :: "pttrn \<Rightarrow> 'a set \<Rightarrow> bool \<Rightarrow> bool"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<exists>\<close>\<close>\<exists>_:#_./ _)\<close> [0, 0, 10] 10)
 syntax_consts
   "_MBall" \<rightleftharpoons> Multiset.Ball and
   "_MBex" \<rightleftharpoons> Multiset.Bex
-
 translations
   "\<forall>x\<in>#A. P" \<rightleftharpoons> "CONST Multiset.Ball A (\<lambda>x. P)"
   "\<exists>x\<in>#A. P" \<rightleftharpoons> "CONST Multiset.Bex A (\<lambda>x. P)"
@@ -1249,9 +1250,11 @@ is "\<lambda>P M. \<lambda>x. if P x then M x else 0"
 by (rule filter_preserves_multiset)
 
 syntax (ASCII)
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    (\<open>(1{#_ :# _./ _#})\<close>)
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+    (\<open>(\<open>indent=1 notation=\<open>mixfix multiset comprehension\<close>\<close>{#_ :# _./ _#})\<close>)
 syntax
-  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"    (\<open>(1{#_ \<in># _./ _#})\<close>)
+  "_MCollect" :: "pttrn \<Rightarrow> 'a multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+    (\<open>(\<open>indent=1 notation=\<open>mixfix multiset comprehension\<close>\<close>{#_ \<in># _./ _#})\<close>)
 syntax_consts
   "_MCollect" == filter_mset
 translations
@@ -1824,18 +1827,22 @@ lemma image_mset_subset_mono: "M \<subset># N \<Longrightarrow> image_mset f M \
     image_mset_subseteq_mono subset_mset.less_le_not_le)
 
 syntax (ASCII)
-  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  (\<open>({#_/. _ :# _#})\<close>)
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
+    (\<open>(\<open>notation=\<open>mixfix multiset comprehension\<close>\<close>{#_/. _ :# _#})\<close>)
 syntax
-  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"  (\<open>({#_/. _ \<in># _#})\<close>)
+  "_comprehension_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
+    (\<open>(\<open>notation=\<open>mixfix multiset comprehension\<close>\<close>{#_/. _ \<in># _#})\<close>)
 syntax_consts
   "_comprehension_mset" \<rightleftharpoons> image_mset
 translations
   "{#e. x \<in># M#}" \<rightleftharpoons> "CONST image_mset (\<lambda>x. e) M"
 
 syntax (ASCII)
-  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  (\<open>({#_/ | _ :# _./ _#})\<close>)
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+    (\<open>(\<open>notation=\<open>mixfix multiset comprehension\<close>\<close>{#_/ | _ :# _./ _#})\<close>)
 syntax
-  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"  (\<open>({#_/ | _ \<in># _./ _#})\<close>)
+  "_comprehension_mset'" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> bool \<Rightarrow> 'a multiset"
+    (\<open>(\<open>notation=\<open>mixfix multiset comprehension\<close>\<close>{#_/ | _ \<in># _./ _#})\<close>)
 syntax_consts
   "_comprehension_mset'" \<rightleftharpoons> image_mset
 translations
@@ -2682,9 +2689,11 @@ end
 notation sum_mset (\<open>\<Sum>\<^sub>#\<close>)
 
 syntax (ASCII)
-  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  (\<open>(3SUM _:#_. _)\<close> [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
+    (\<open>(\<open>indent=3 notation=\<open>binder SUM\<close>\<close>SUM _:#_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"  (\<open>(3\<Sum>_\<in>#_. _)\<close> [0, 51, 10] 10)
+  "_sum_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Sum>\<close>\<close>\<Sum>_\<in>#_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_sum_mset_image" \<rightleftharpoons> sum_mset
 translations
@@ -2863,9 +2872,11 @@ end
 notation prod_mset (\<open>\<Prod>\<^sub>#\<close>)
 
 syntax (ASCII)
-  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3PROD _:#_. _)\<close> [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
+    (\<open>(\<open>indent=3 notation=\<open>binder PROD\<close>\<close>PROD _:#_. _)\<close> [0, 51, 10] 10)
 syntax
-  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3\<Prod>_\<in>#_. _)\<close> [0, 51, 10] 10)
+  "_prod_mset_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Prod>\<close>\<close>\<Prod>_\<in>#_. _)\<close> [0, 51, 10] 10)
 syntax_consts
   "_prod_mset_image" \<rightleftharpoons> prod_mset
 translations

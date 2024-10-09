@@ -24,7 +24,8 @@ definition
   where "a_l_coset G = l_coset (add_monoid G)"
 
 definition
-  A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   (\<open>a'_rcosets\<index> _\<close> [81] 80)
+  A_RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"
+    (\<open>(\<open>open_block notation=\<open>prefix a_rcosets\<close>\<close>a'_rcosets\<index> _)\<close> [81] 80)
   where "A_RCOSETS G H = RCOSETS (add_monoid G) H"
 
 definition
@@ -32,7 +33,8 @@ definition
   where "set_add G = set_mult (add_monoid G)"
 
 definition
-  A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  (\<open>a'_set'_inv\<index> _\<close> [81] 80)
+  A_SET_INV :: "[_,'a set] \<Rightarrow> 'a set"
+    (\<open>(\<open>open_block notation=\<open>prefix a_set_inv\<close>\<close>a'_set'_inv\<index> _)\<close> [81] 80)
   where "A_SET_INV G H = SET_INV (add_monoid G) H"
 
 definition

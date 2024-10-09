@@ -99,8 +99,8 @@ done
 
 subsection "Inner product"
 
-definition iprod :: "'a::ring list \<Rightarrow> 'a list \<Rightarrow> 'a" (\<open>\<langle>_,_\<rangle>\<close>) where
-"\<langle>xs,ys\<rangle> = (\<Sum>(x,y) \<leftarrow> zip xs ys. x*y)"
+definition iprod :: "'a::ring list \<Rightarrow> 'a list \<Rightarrow> 'a" (\<open>(\<open>open_block notation=\<open>mixfix iprod\<close>\<close>\<langle>_,_\<rangle>)\<close>)
+  where "\<langle>xs,ys\<rangle> = (\<Sum>(x,y) \<leftarrow> zip xs ys. x*y)"
 
 lemma iprod_Nil[simp]: "\<langle>[],ys\<rangle> = 0"
 by(simp add: iprod_def)

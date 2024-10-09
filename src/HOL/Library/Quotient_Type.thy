@@ -76,7 +76,7 @@ lemma quotE [elim]:
 text \<open>Abstracted equivalence classes are the canonical representation of
   elements of a quotient type.\<close>
 
-definition "class" :: "'a::equiv \<Rightarrow> 'a quot"  (\<open>\<lfloor>_\<rfloor>\<close>)
+definition "class" :: "'a::equiv \<Rightarrow> 'a quot"  (\<open>(\<open>open_block notation=\<open>mixfix class\<close>\<close>\<lfloor>_\<rfloor>)\<close>)
   where "\<lfloor>a\<rfloor> = Abs_quot {x. a \<sim> x}"
 
 theorem quot_exhaust: "\<exists>a. A = \<lfloor>a\<rfloor>"

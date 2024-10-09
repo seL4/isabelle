@@ -9,7 +9,7 @@ begin
 
 datatype 'a tree =
   Leaf (\<open>\<langle>\<rangle>\<close>) |
-  Node "'a tree" ("value": 'a) "'a tree" (\<open>(1\<langle>_,/ _,/ _\<rangle>)\<close>)
+  Node "'a tree" ("value": 'a) "'a tree" (\<open>(\<open>indent=1 notation=\<open>mixfix Node\<close>\<close>\<langle>_,/ _,/ _\<rangle>)\<close>)
 datatype_compat tree
 
 primrec left :: "'a tree \<Rightarrow> 'a tree" where

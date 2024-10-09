@@ -33,7 +33,7 @@ class euclidean_space = real_inner +
   assumes euclidean_all_zero_iff:
     "(\<forall>u\<in>Basis. inner x u = 0) \<longleftrightarrow> (x = 0)"
 
-syntax "_type_dimension" :: "type \<Rightarrow> nat"  (\<open>(1DIM/(1'(_')))\<close>)
+syntax "_type_dimension" :: "type \<Rightarrow> nat"  (\<open>(\<open>indent=1 notation=\<open>mixfix type dimension\<close>\<close>DIM/(1'(_')))\<close>)
 syntax_consts "_type_dimension" \<rightleftharpoons> card
 translations "DIM('a)" \<rightharpoonup> "CONST card (CONST Basis :: 'a set)"
 typed_print_translation \<open>

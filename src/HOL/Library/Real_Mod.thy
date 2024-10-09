@@ -106,8 +106,9 @@ lemma rmod_idem [simp]: "x \<in> {0..<\<bar>y\<bar>} \<Longrightarrow> x rmod y 
 
 
 
-definition rcong :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> bool" (\<open>(1[_ = _] '(' rmod _'))\<close>) where
-  "[x = y] (rmod m) \<longleftrightarrow> x rmod m = y rmod m"
+definition rcong :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> bool"
+    (\<open>(\<open>indent=1 notation=\<open>mixfix rcong\<close>\<close>[_ = _] '(' rmod _'))\<close>)
+  where "[x = y] (rmod m) \<longleftrightarrow> x rmod m = y rmod m"
 
 named_theorems rcong_intros
 

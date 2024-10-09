@@ -577,21 +577,17 @@ abbreviation complex_lebesgue_integral :: "'a measure \<Rightarrow> ('a \<Righta
 
 syntax
   "_complex_lebesgue_integral" :: "pttrn \<Rightarrow> complex \<Rightarrow> 'a measure \<Rightarrow> complex"
- (\<open>\<integral>\<^sup>C _. _ \<partial>_\<close> [0,0] 110)
-
+ (\<open>(\<open>open_block notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>C _. _ \<partial>_)\<close> [0,0] 110)
 syntax_consts
   "_complex_lebesgue_integral" == complex_lebesgue_integral
-
 translations
   "\<integral>\<^sup>Cx. f \<partial>M" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
 
 syntax
   "_ascii_complex_lebesgue_integral" :: "pttrn \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   (\<open>(\<open>indent=3 notation=\<open>binder CLINT\<close>\<close>CLINT _|_. _)\<close> [0,0,10] 10)
-
 syntax_consts
   "_ascii_complex_lebesgue_integral" == complex_lebesgue_integral
-
 translations
   "CLINT x|M. f" == "CONST complex_lebesgue_integral M (\<lambda>x. f)"
 
@@ -646,19 +642,16 @@ notations in this file, they are more in line with sum, and more readable he thi
 abbreviation "set_nn_integral M A f \<equiv> nn_integral M (\<lambda>x. f x * indicator A x)"
 
 syntax
-"_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-(\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
-
-"_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
-(\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
-
+  "_set_nn_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
+    (\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
+  "_set_lebesgue_integral" :: "pttrn => 'a set => 'a measure => ereal => ereal"
+    (\<open>(\<open>notation=\<open>binder integral\<close>\<close>\<integral>((_)\<in>(_)./ _)/\<partial>_)\<close> [0,0,0,110] 10)
 syntax_consts
-"_set_nn_integral" == set_nn_integral and
-"_set_lebesgue_integral" == set_lebesgue_integral
-
+  "_set_nn_integral" == set_nn_integral and
+  "_set_lebesgue_integral" == set_lebesgue_integral
 translations
-"\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
-"\<integral>x \<in> A. f \<partial>M" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
+  "\<integral>\<^sup>+x \<in> A. f \<partial>M" == "CONST set_nn_integral M A (\<lambda>x. f)"
+  "\<integral>x \<in> A. f \<partial>M" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
 
 lemma set_nn_integral_cong:
   assumes "M = M'" "A = B" "\<And>x. x \<in> space M \<inter> A \<Longrightarrow> f x = g x"

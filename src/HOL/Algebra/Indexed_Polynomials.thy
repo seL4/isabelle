@@ -38,7 +38,8 @@ definition (in ring) index_free :: "('c multiset \<Rightarrow> 'a) \<Rightarrow>
 definition (in ring) carrier_coeff :: "('c multiset \<Rightarrow> 'a) \<Rightarrow> bool"
   where "carrier_coeff P \<longleftrightarrow> (\<forall>m. P m \<in> carrier R)"
 
-inductive_set (in ring) indexed_pset :: "'c set \<Rightarrow> 'a set \<Rightarrow> ('c multiset \<Rightarrow> 'a) set" (\<open>_ [\<X>\<index>]\<close> 80)
+inductive_set (in ring) indexed_pset :: "'c set \<Rightarrow> 'a set \<Rightarrow> ('c multiset \<Rightarrow> 'a) set"
+  (\<open>(\<open>open_block notation=\<open>postfix \<X>\<close>\<close>_ [\<X>\<index>])\<close> 80)
   for I and K where
     indexed_const:  "k \<in> K \<Longrightarrow> indexed_const k \<in> (K[\<X>\<^bsub>I\<^esub>])"
   | indexed_padd:  "\<lbrakk> P \<in> (K[\<X>\<^bsub>I\<^esub>]); Q \<in> (K[\<X>\<^bsub>I\<^esub>]) \<rbrakk> \<Longrightarrow> P \<Oplus> Q \<in> (K[\<X>\<^bsub>I\<^esub>])"

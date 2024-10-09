@@ -12,8 +12,8 @@ theory Going_To_Filter
 begin
 
 definition going_to_within :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a set \<Rightarrow> 'a filter"
-  (\<open>(_)/ going'_to (_)/ within (_)\<close> [1000,60,60] 60) where
-  "f going_to F within A = inf (filtercomap f F) (principal A)"
+    (\<open>(\<open>open_block notation=\<open>mixfix going_to_within\<close>\<close>(_)/ going'_to (_)/ within (_))\<close> [1000,60,60] 60)
+  where "f going_to F within A = inf (filtercomap f F) (principal A)"
 
 abbreviation going_to :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter"
     (infix \<open>going'_to\<close> 60)

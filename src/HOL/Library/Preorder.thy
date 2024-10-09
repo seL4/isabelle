@@ -14,7 +14,7 @@ definition equiv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 notation
   equiv (\<open>'(\<approx>')\<close>) and
-  equiv (\<open>(_/ \<approx> _)\<close>  [51, 51] 50)
+  equiv (\<open>(\<open>notation=\<open>infix \<approx>\<close>\<close>_/ \<approx> _)\<close>  [51, 51] 50)
 
 lemma equivD1: "x \<le> y" if "x \<approx> y"
   using that by (simp add: equiv_def)

@@ -12,7 +12,7 @@ section \<open>Quotient Rings\<close>
 subsection \<open>Multiplication on Cosets\<close>
 
 definition rcoset_mult :: "[('a, _) ring_scheme, 'a set, 'a set, 'a set] \<Rightarrow> 'a set"
-    (\<open>[mod _:] _ \<Otimes>\<index> _\<close> [81,81,81] 80)
+    (\<open>(\<open>open_block notation=\<open>mixfix rcoset_mult\<close>\<close>[mod _:] _ \<Otimes>\<index> _)\<close> [81,81,81] 80)
   where "rcoset_mult R I A B = (\<Union>a\<in>A. \<Union>b\<in>B. I +>\<^bsub>R\<^esub> (a \<otimes>\<^bsub>R\<^esub> b))"
 
 

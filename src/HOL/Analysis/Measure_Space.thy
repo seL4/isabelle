@@ -1004,11 +1004,10 @@ abbreviation almost_everywhere :: "'a measure \<Rightarrow> ('a \<Rightarrow> bo
   "almost_everywhere M P \<equiv> eventually P (ae_filter M)"
 
 syntax
-  "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool" (\<open>AE _ in _. _\<close> [0,0,10] 10)
-
+  "_almost_everywhere" :: "pttrn \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>binder AE\<close>\<close>AE _ in _. _)\<close> [0,0,10] 10)
 syntax_consts
   "_almost_everywhere" \<rightleftharpoons> almost_everywhere
-
 translations
   "AE x in M. P" \<rightleftharpoons> "CONST almost_everywhere M (\<lambda>x. P)"
 
@@ -1017,11 +1016,9 @@ abbreviation
 
 syntax
   "_set_almost_everywhere" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool \<Rightarrow> bool"
-  (\<open>AE _\<in>_ in _./ _\<close> [0,0,0,10] 10)
-
+    (\<open>(\<open>open_block notation=\<open>binder AE\<close>\<close>AE _\<in>_ in _./ _)\<close> [0,0,0,10] 10)
 syntax_consts
   "_set_almost_everywhere" \<rightleftharpoons> set_almost_everywhere
-
 translations
   "AE x\<in>A in M. P" \<rightleftharpoons> "CONST set_almost_everywhere A M (\<lambda>x. P)"
 

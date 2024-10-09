@@ -26,39 +26,39 @@ text \<open>
 \<close>
 
 definition bigo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
-    (\<open>(1O[_]'(_'))\<close>)
+    (\<open>(\<open>indent=1 notation=\<open>mixfix bigo\<close>\<close>O[_]'(_'))\<close>)
   where "bigo F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F)}"
 
 definition smallo :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
-    (\<open>(1o[_]'(_'))\<close>)
+    (\<open>(\<open>indent=1 notation=\<open>mixfix smallo\<close>\<close>o[_]'(_'))\<close>)
   where "smallo F g = {f. (\<forall>c>0. eventually (\<lambda>x. norm (f x) \<le> c * norm (g x)) F)}"
 
 definition bigomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
-    (\<open>(1\<Omega>[_]'(_'))\<close>)
+    (\<open>(\<open>indent=1 notation=\<open>mixfix bigomega\<close>\<close>\<Omega>[_]'(_'))\<close>)
   where "bigomega F g = {f. (\<exists>c>0. eventually (\<lambda>x. norm (f x) \<ge> c * norm (g x)) F)}"
 
 definition smallomega :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
-    (\<open>(1\<omega>[_]'(_'))\<close>)
+    (\<open>(\<open>indent=1 notation=\<open>mixfix smallomega\<close>\<close>\<omega>[_]'(_'))\<close>)
   where "smallomega F g = {f. (\<forall>c>0. eventually (\<lambda>x. norm (f x) \<ge> c * norm (g x)) F)}"
 
 definition bigtheta :: "'a filter \<Rightarrow> ('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> ('a \<Rightarrow> 'b) set"
-    (\<open>(1\<Theta>[_]'(_'))\<close>)
+    (\<open>(\<open>indent=1 notation=\<open>mixfix bigtheta\<close>\<close>\<Theta>[_]'(_'))\<close>)
   where "bigtheta F g = bigo F g \<inter> bigomega F g"
 
-abbreviation bigo_at_top (\<open>(2O'(_'))\<close>) where
-  "O(g) \<equiv> bigo at_top g"
+abbreviation bigo_at_top (\<open>(\<open>indent=2 notation=\<open>mixfix bigo\<close>\<close>O'(_'))\<close>)
+  where "O(g) \<equiv> bigo at_top g"
 
-abbreviation smallo_at_top (\<open>(2o'(_'))\<close>) where
-  "o(g) \<equiv> smallo at_top g"
+abbreviation smallo_at_top (\<open>(\<open>indent=2 notation=\<open>mixfix smallo\<close>\<close>o'(_'))\<close>)
+  where "o(g) \<equiv> smallo at_top g"
 
-abbreviation bigomega_at_top (\<open>(2\<Omega>'(_'))\<close>) where
-  "\<Omega>(g) \<equiv> bigomega at_top g"
+abbreviation bigomega_at_top (\<open>(\<open>indent=2 notation=\<open>mixfix bigomega\<close>\<close>\<Omega>'(_'))\<close>)
+  where "\<Omega>(g) \<equiv> bigomega at_top g"
 
-abbreviation smallomega_at_top (\<open>(2\<omega>'(_'))\<close>) where
-  "\<omega>(g) \<equiv> smallomega at_top g"
+abbreviation smallomega_at_top (\<open>(\<open>indent=2 notation=\<open>mixfix smallomega\<close>\<close>\<omega>'(_'))\<close>)
+  where "\<omega>(g) \<equiv> smallomega at_top g"
 
-abbreviation bigtheta_at_top (\<open>(2\<Theta>'(_'))\<close>) where
-  "\<Theta>(g) \<equiv> bigtheta at_top g"
+abbreviation bigtheta_at_top (\<open>(\<open>indent=2 notation=\<open>mixfix bigtheta\<close>\<close>\<Theta>'(_'))\<close>)
+  where "\<Theta>(g) \<equiv> bigtheta at_top g"
 
 
 text \<open>The following is a set of properties that all Landau symbols satisfy.\<close>
@@ -1735,7 +1735,7 @@ named_theorems asymp_equiv_intros
 named_theorems asymp_equiv_simps
 
 definition asymp_equiv :: "('a \<Rightarrow> ('b :: real_normed_field)) \<Rightarrow> 'a filter \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
-  (\<open>_ \<sim>[_] _\<close> [51, 10, 51] 50)
+  (\<open>(\<open>open_block notation=\<open>mixfix asymp_equiv\<close>\<close>_ \<sim>[_] _)\<close> [51, 10, 51] 50)
   where "f \<sim>[F] g \<longleftrightarrow> ((\<lambda>x. if f x = 0 \<and> g x = 0 then 1 else f x / g x) \<longlongrightarrow> 1) F"
 
 abbreviation (input) asymp_equiv_at_top where

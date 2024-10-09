@@ -16,7 +16,7 @@ theory HSEQ
 begin
 
 definition NSLIMSEQ :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool"
-    (\<open>((_)/ \<longlonglongrightarrow>\<^sub>N\<^sub>S (_))\<close> [60, 60] 60) where
+    (\<open>(\<open>notation=\<open>mixfix NSLIMSEQ\<close>\<close>(_)/ \<longlonglongrightarrow>\<^sub>N\<^sub>S (_))\<close> [60, 60] 60) where
     \<comment> \<open>Nonstandard definition of convergence of sequence\<close>
   "X \<longlonglongrightarrow>\<^sub>N\<^sub>S L \<longleftrightarrow> (\<forall>N \<in> HNatInfinite. ( *f* X) N \<approx> star_of L)"
 

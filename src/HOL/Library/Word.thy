@@ -1685,12 +1685,12 @@ lift_definition word_sless :: \<open>'a::len word \<Rightarrow> 'a word \<Righta
 
 notation
   word_sle    (\<open>'(\<le>s')\<close>) and
-  word_sle    (\<open>(_/ \<le>s _)\<close>  [51, 51] 50) and
+  word_sle    (\<open>(\<open>notation=\<open>infix \<le>s\<close>\<close>_/ \<le>s _)\<close>  [51, 51] 50) and
   word_sless  (\<open>'(<s')\<close>) and
-  word_sless  (\<open>(_/ <s _)\<close>  [51, 51] 50)
+  word_sless  (\<open>(\<open>notation=\<open>infix <s\<close>\<close>_/ <s _)\<close>  [51, 51] 50)
 
 notation (input)
-  word_sle    (\<open>(_/ <=s _)\<close>  [51, 51] 50)
+  word_sle    (\<open>(\<open>notation=\<open>infix <=s\<close>\<close>_/ <=s _)\<close>  [51, 51] 50)
 
 lemma word_sle_eq [code]:
   \<open>a <=s b \<longleftrightarrow> sint a \<le> sint b\<close>

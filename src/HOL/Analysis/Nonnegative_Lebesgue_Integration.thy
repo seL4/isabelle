@@ -584,11 +584,10 @@ definition\<^marker>\<open>tag important\<close> simple_integral :: "'a measure 
   "integral\<^sup>S M f = (\<Sum>x \<in> f ` space M. x * emeasure M (f -` {x} \<inter> space M))"
 
 syntax
-  "_simple_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>\<integral>\<^sup>S _. _ \<partial>_\<close> [60,61] 110)
-
+  "_simple_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal"
+    (\<open>(\<open>open_block notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>S _. _ \<partial>_)\<close> [60,61] 110)
 syntax_consts
   "_simple_integral" == simple_integral
-
 translations
   "\<integral>\<^sup>S x. f \<partial>M" == "CONST simple_integral M (%x. f)"
 

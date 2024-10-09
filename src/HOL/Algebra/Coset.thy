@@ -19,7 +19,8 @@ definition
   where "a <#\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {a \<otimes>\<^bsub>G\<^esub> h})"
 
 definition
-  RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"   (\<open>rcosets\<index> _\<close> [81] 80)
+  RCOSETS  :: "[_, 'a set] \<Rightarrow> ('a set)set"
+    (\<open>(\<open>open_block notation=\<open>prefix rcosets\<close>\<close>rcosets\<index> _)\<close> [81] 80)
   where "rcosets\<^bsub>G\<^esub> H = (\<Union>a\<in>carrier G. {H #>\<^bsub>G\<^esub> a})"
 
 definition
@@ -27,7 +28,8 @@ definition
   where "H <#>\<^bsub>G\<^esub> K = (\<Union>h\<in>H. \<Union>k\<in>K. {h \<otimes>\<^bsub>G\<^esub> k})"
 
 definition
-  SET_INV :: "[_,'a set] \<Rightarrow> 'a set"  (\<open>set'_inv\<index> _\<close> [81] 80)
+  SET_INV :: "[_,'a set] \<Rightarrow> 'a set"
+    (\<open>(\<open>open_block notation=\<open>prefix set_inv\<close>\<close>set'_inv\<index> _)\<close> [81] 80)
   where "set_inv\<^bsub>G\<^esub> H = (\<Union>h\<in>H. {inv\<^bsub>G\<^esub> h})"
 
 
@@ -659,7 +661,8 @@ lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M 
 subsubsection\<open>An Equivalence Relation\<close>
 
 definition
-  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"  (\<open>rcong\<index> _\<close>)
+  r_congruent :: "[('a,'b)monoid_scheme, 'a set] \<Rightarrow> ('a*'a)set"
+    (\<open>(\<open>open_block notation=\<open>prefix rcong\<close>\<close>rcong\<index> _)\<close>)
   where "rcong\<^bsub>G\<^esub> H = {(x,y). x \<in> carrier G \<and> y \<in> carrier G \<and> inv\<^bsub>G\<^esub> x \<otimes>\<^bsub>G\<^esub> y \<in> H}"
 
 

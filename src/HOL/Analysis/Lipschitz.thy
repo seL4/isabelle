@@ -14,7 +14,8 @@ definition\<^marker>\<open>tag important\<close> lipschitz_on
 
 open_bundle lipschitz_syntax
 begin
-notation\<^marker>\<open>tag important\<close> lipschitz_on (\<open>_-lipschitz'_on\<close> [1000])
+notation\<^marker>\<open>tag important\<close>
+  lipschitz_on (\<open>(\<open>open_block notation=\<open>postfix lipschitz_on\<close>\<close>_-lipschitz'_on)\<close> [1000])
 end
 
 lemma lipschitz_onI: "L-lipschitz_on X f"

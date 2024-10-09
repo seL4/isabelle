@@ -336,7 +336,7 @@ text \<open>
 \<close>
 
 inductive transition :: "file \<Rightarrow> operation \<Rightarrow> file \<Rightarrow> bool"
-  (\<open>_ \<midarrow>_\<rightarrow> _\<close> [90, 1000, 90] 100)
+  (\<open>(\<open>open_block notation=\<open>mixfix transition\<close>\<close>_ \<midarrow>_\<rightarrow> _)\<close> [90, 1000, 90] 100)
   where
     read:
       "root \<midarrow>(Read uid text path)\<rightarrow> root"
@@ -475,7 +475,8 @@ text \<open>
   running processes over a finite amount of time.
 \<close>
 
-inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"  (\<open>_ \<Midarrow>_\<Rightarrow> _\<close> [90, 1000, 90] 100)
+inductive transitions :: "file \<Rightarrow> operation list \<Rightarrow> file \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>mixfix transitions\<close>\<close>_ \<Midarrow>_\<Rightarrow> _)\<close> [90, 1000, 90] 100)
   where
     nil: "root \<Midarrow>[]\<Rightarrow> root"
   | cons: "root \<Midarrow>(x # xs)\<Rightarrow> root''" if "root \<midarrow>x\<rightarrow> root'" and "root' \<Midarrow>xs\<Rightarrow> root''"

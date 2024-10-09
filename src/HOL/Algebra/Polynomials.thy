@@ -1359,7 +1359,8 @@ end (* of domain context. *)
 
 subsection \<open>Algebraic Structure of Polynomials\<close>
 
-definition univ_poly :: "('a, 'b) ring_scheme \<Rightarrow>'a set \<Rightarrow> ('a list) ring" (\<open>_ [X]\<index>\<close> 80)
+definition univ_poly :: "('a, 'b) ring_scheme \<Rightarrow>'a set \<Rightarrow> ('a list) ring"
+    (\<open>(\<open>open_block notation=\<open>postfix X\<close>\<close>_ [X]\<index>)\<close> 80)
   where "univ_poly R K =
            \<lparr> carrier = { p. polynomial\<^bsub>R\<^esub> K p },
                 mult = ring.poly_mult R,

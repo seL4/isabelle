@@ -72,7 +72,8 @@ lemma transfer_start: "P \<equiv> eventually (\<lambda>n. Q) \<U> \<Longrightarr
   by (simp add: FreeUltrafilterNat.proper)
 
 text \<open>Standard principles that play a central role in the transfer tactic.\<close>
-definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star" (\<open>(_ \<star>/ _)\<close> [300, 301] 300)
+definition Ifun :: "('a \<Rightarrow> 'b) star \<Rightarrow> 'a star \<Rightarrow> 'b star"
+    (\<open>(\<open>notation=\<open>infix \<star>\<close>\<close>_ \<star>/ _)\<close> [300, 301] 300)
   where "Ifun f \<equiv>
     \<lambda>x. Abs_star (\<Union>F\<in>Rep_star f. \<Union>X\<in>Rep_star x. starrel``{\<lambda>n. F n (X n)})"
 
@@ -183,10 +184,12 @@ lemma Standard_Ifun [simp]: "f \<in> Standard \<Longrightarrow> x \<in> Standard
 
 text \<open>Nonstandard extensions of functions.\<close>
 
-definition starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"  (\<open>*f* _\<close> [80] 80)
+definition starfun :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a star \<Rightarrow> 'b star"
+    (\<open>(\<open>open_block notation=\<open>prefix starfun\<close>\<close>*f* _)\<close> [80] 80)
   where "starfun f \<equiv> \<lambda>x. star_of f \<star> x"
 
-definition starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> 'c star"  (\<open>*f2* _\<close> [80] 80)
+definition starfun2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> 'c star"
+    (\<open>(\<open>open_block notation=\<open>prefix starfun2\<close>\<close>*f2* _)\<close> [80] 80)
   where "starfun2 f \<equiv> \<lambda>x y. star_of f \<star> x \<star> y"
 
 declare starfun_def [transfer_unfold]
@@ -270,10 +273,12 @@ setup \<open>Transfer_Principle.add_const \<^const_name>\<open>unstar\<close>\<c
 lemma transfer_unstar [transfer_intro]: "p \<equiv> star_n P \<Longrightarrow> unstar p \<equiv> eventually P \<U>"
   by (simp only: unstar_star_n)
 
-definition starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"  (\<open>*p* _\<close> [80] 80)
+definition starP :: "('a \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>prefix starP\<close>\<close>*p* _)\<close> [80] 80)
   where "*p* P = (\<lambda>x. unstar (star_of P \<star> x))"
 
-definition starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"  (\<open>*p2* _\<close> [80] 80)
+definition starP2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a star \<Rightarrow> 'b star \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>prefix starP2\<close>\<close>*p2* _)\<close> [80] 80)
   where "*p2* P = (\<lambda>x y. unstar (star_of P \<star> x \<star> y))"
 
 declare starP_def [transfer_unfold]
@@ -332,7 +337,8 @@ lemma transfer_Iset [transfer_intro]: "a \<equiv> star_n A \<Longrightarrow> Ise
 
 text \<open>Nonstandard extensions of sets.\<close>
 
-definition starset :: "'a set \<Rightarrow> 'a star set" (\<open>*s* _\<close> [80] 80)
+definition starset :: "'a set \<Rightarrow> 'a star set"
+    (\<open>(\<open>open_block notation=\<open>prefix starset\<close>\<close>*s* _)\<close> [80] 80)
   where "starset A = Iset (star_of A)"
 
 declare starset_def [transfer_unfold]

@@ -2621,8 +2621,9 @@ lemma lossless_assert_spmf [iff]: "lossless_spmf (assert_spmf b) \<longleftright
 
 subsection \<open>Try\<close>
 
-definition try_spmf :: "'a spmf \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf" (\<open>TRY _ ELSE _\<close> [0,60] 59)
-where "try_spmf p q = bind_pmf p (\<lambda>x. case x of None \<Rightarrow> q | Some y \<Rightarrow> return_spmf y)"
+definition try_spmf :: "'a spmf \<Rightarrow> 'a spmf \<Rightarrow> 'a spmf"
+  (\<open>(\<open>open_block notation=\<open>mixfix try_spmf\<close>\<close>TRY _ ELSE _)\<close> [0,60] 59)
+where "TRY p ELSE q = bind_pmf p (\<lambda>x. case x of None \<Rightarrow> q | Some y \<Rightarrow> return_spmf y)"
 
 lemma try_spmf_lossless [simp]:
   assumes "lossless_spmf p"

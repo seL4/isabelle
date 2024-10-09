@@ -204,7 +204,7 @@ lemma interval_eq_set_of_iff: "X = Y \<longleftrightarrow> set_of X = set_of Y" 
 
 subsection \<open>Membership\<close>
 
-abbreviation (in preorder) in_interval (\<open>(_/ \<in>\<^sub>i _)\<close> [51, 51] 50)
+abbreviation (in preorder) in_interval (\<open>(\<open>notation=\<open>infix \<in>\<^sub>i\<close>\<close>_/ \<in>\<^sub>i _)\<close> [51, 51] 50)
   where "in_interval x X \<equiv> x \<in> set_of X"
 
 lemma in_interval_to_interval[intro!]: "a \<in>\<^sub>i interval_of a"

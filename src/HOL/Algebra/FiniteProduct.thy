@@ -307,7 +307,7 @@ definition
 
 syntax
   "_finprod" :: "index \<Rightarrow> idt \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"
-      (\<open>(3\<Otimes>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Otimes>\<close>\<close>\<Otimes>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
 syntax_consts
   "_finprod" \<rightleftharpoons> finprod
 translations

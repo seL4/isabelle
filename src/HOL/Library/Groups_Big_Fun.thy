@@ -199,9 +199,9 @@ qed
 end
 
 syntax (ASCII)
-  "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    (\<open>(3SUM _. _)\<close> [0, 10] 10)
+  "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    (\<open>(\<open>indent=3 notation=\<open>binder SUM\<close>\<close>SUM _. _)\<close> [0, 10] 10)
 syntax
-  "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    (\<open>(3\<Sum>_. _)\<close> [0, 10] 10)
+  "_Sum_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add"    (\<open>(\<open>indent=2 notation=\<open>binder \<Sum>\<close>\<close>\<Sum>_. _)\<close> [0, 10] 10)
 syntax_consts
   "_Sum_any" \<rightleftharpoons> Sum_any
 translations
@@ -254,9 +254,9 @@ qed
 end
 
 syntax (ASCII)
-  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3PROD _. _)\<close> [0, 10] 10)
+  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(\<open>indent=4 notation=\<open>binder PROD\<close>\<close>PROD _. _)\<close> [0, 10] 10)
 syntax
-  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(3\<Prod>_. _)\<close> [0, 10] 10)
+  "_Prod_any" :: "pttrn \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult"  (\<open>(\<open>indent=2 notation=\<open>binder \<Prod>\<close>\<close>\<Prod>_. _)\<close> [0, 10] 10)
 syntax_consts
   "_Prod_any" == Prod_any
 translations

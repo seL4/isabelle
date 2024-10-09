@@ -48,7 +48,7 @@ definition
   where "w \<frown> x == \<lambda>n. if n < length w then w!n else x (n - length w)"
 
 definition
-  iter :: "'a list \<Rightarrow> 'a word"  (\<open>(_\<^sup>\<omega>)\<close> [1000])
+  iter :: "'a list \<Rightarrow> 'a word"  (\<open>(\<open>notation=\<open>postfix \<omega>\<close>\<close>_\<^sup>\<omega>)\<close> [1000])
   where "iter w == if w = [] then undefined else (\<lambda>n. w!(n mod (length w)))"
 
 lemma conc_empty[simp]: "[] \<frown> w = w"
@@ -116,7 +116,8 @@ subsection \<open>Subsequence, Prefix, and Suffix\<close>
 definition suffix :: "[nat, 'a word] \<Rightarrow> 'a word"
   where "suffix k x \<equiv> \<lambda>n. x (k+n)"
 
-definition subsequence :: "'a word \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a list"  (\<open>_ [_ \<rightarrow> _]\<close> 900)
+definition subsequence :: "'a word \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 'a list"
+    (\<open>(\<open>open_block notation=\<open>mixfix subsequence\<close>\<close>_ [_ \<rightarrow> _])\<close> 900)
   where "subsequence w i j \<equiv> map w [i..<j]"
 
 abbreviation prefix :: "nat \<Rightarrow> 'a word \<Rightarrow> 'a list"

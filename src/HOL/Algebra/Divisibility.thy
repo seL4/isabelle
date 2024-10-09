@@ -1993,11 +1993,13 @@ subsection \<open>Greatest Common Divisors and Lowest Common Multiples\<close>
 
 subsubsection \<open>Definitions\<close>
 
-definition isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"  (\<open>(_ gcdof\<index> _ _)\<close> [81,81,81] 80)
+definition isgcd :: "[('a,_) monoid_scheme, 'a, 'a, 'a] \<Rightarrow> bool"
+    (\<open>(\<open>notation=\<open>mixfix gcdof\<close>\<close>_ gcdof\<index> _ _)\<close> [81,81,81] 80)
   where "x gcdof\<^bsub>G\<^esub> a b \<longleftrightarrow> x divides\<^bsub>G\<^esub> a \<and> x divides\<^bsub>G\<^esub> b \<and>
     (\<forall>y\<in>carrier G. (y divides\<^bsub>G\<^esub> a \<and> y divides\<^bsub>G\<^esub> b \<longrightarrow> y divides\<^bsub>G\<^esub> x))"
 
-definition islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"  (\<open>(_ lcmof\<index> _ _)\<close> [81,81,81] 80)
+definition islcm :: "[_, 'a, 'a, 'a] \<Rightarrow> bool"
+    (\<open>(\<open>notation=\<open>mixfix lcmof\<close>\<close>_ lcmof\<index> _ _)\<close> [81,81,81] 80)
   where "x lcmof\<^bsub>G\<^esub> a b \<longleftrightarrow> a divides\<^bsub>G\<^esub> x \<and> b divides\<^bsub>G\<^esub> x \<and>
     (\<forall>y\<in>carrier G. (a divides\<^bsub>G\<^esub> y \<and> b divides\<^bsub>G\<^esub> y \<longrightarrow> x divides\<^bsub>G\<^esub> y))"
 

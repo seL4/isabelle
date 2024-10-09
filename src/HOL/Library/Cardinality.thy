@@ -30,7 +30,7 @@ lemma (in type_definition) card: "card (UNIV :: 'b set) = card A"
 
 subsection \<open>Cardinalities of types\<close>
 
-syntax "_type_card" :: "type => nat" (\<open>(1CARD/(1'(_')))\<close>)
+syntax "_type_card" :: "type => nat"  (\<open>(\<open>indent=1 notation=\<open>mixfix CARD\<close>\<close>CARD/(1'(_')))\<close>)
 
 syntax_consts "_type_card" == card
 

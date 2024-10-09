@@ -411,7 +411,8 @@ lemma greatest_Lower_below:
 subsubsection \<open>Intervals\<close>
 
 definition
-  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" (\<open>(1\<lbrace>_.._\<rbrace>\<index>)\<close>)
+  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set"
+    (\<open>(\<open>indent=1 notation=\<open>mixfix interval\<close>\<close>\<lbrace>_.._\<rbrace>\<index>)\<close>)
   where "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
 
 context weak_partial_order
@@ -452,8 +453,9 @@ lemma isotoneI [intro?]:
   shows "isotone L1 L2 f"
   using assms by (auto simp add:isotone_def)
 
-abbreviation Monotone :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" (\<open>Mono\<index>\<close>)
-  where "Monotone L f \<equiv> isotone L L f"
+abbreviation Monotone :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>prefix Mono\<close>\<close>Mono\<index>)\<close>)
+  where "Mono\<^bsub>L\<^esub> f \<equiv> isotone L L f"
 
 lemma use_iso1:
   "\<lbrakk>isotone A A f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow>
@@ -478,8 +480,9 @@ lemma (in weak_partial_order) inv_isotone [simp]:
 subsubsection \<open>Idempotent functions\<close>
 
 definition idempotent :: 
-  "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" (\<open>Idem\<index>\<close>) where
-  "idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
+  "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool"
+    (\<open>(\<open>open_block notation=\<open>prefix Idem\<close>\<close>Idem\<index>)\<close>)
+  where "Idem\<^bsub>L\<^esub> f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
 
 lemma (in weak_partial_order) idempotent:
   "\<lbrakk>Idem f; x \<in> carrier L\<rbrakk> \<Longrightarrow> f (f x) .= f x"

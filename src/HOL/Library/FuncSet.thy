@@ -28,8 +28,10 @@ notation funcset  (infixr \<open>\<rightarrow>\<close> 60)
 end
 
 syntax
-  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(3\<Pi> _\<in>_./ _)\<close>   10)
-  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"  (\<open>(3\<lambda>_\<in>_./ _)\<close> [0,0,3] 3)
+  "_Pi" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Pi>\<in>\<close>\<close>\<Pi> _\<in>_./ _)\<close> 10)
+  "_lam" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<lambda>\<in>\<close>\<close>\<lambda>_\<in>_./ _)\<close> [0, 0, 3] 3)
 syntax_consts
   "_Pi" \<rightleftharpoons> Pi and
   "_lam" \<rightleftharpoons> restrict
@@ -350,7 +352,8 @@ definition PiE :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 
 abbreviation "Pi\<^sub>E A B \<equiv> PiE A B"
 
 syntax
-  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"  (\<open>(3\<Pi>\<^sub>E _\<in>_./ _)\<close> 10)
+  "_PiE" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set"
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Pi>\<^sub>E\<in>\<close>\<close>\<Pi>\<^sub>E _\<in>_./ _)\<close> 10)
 syntax_consts
   "_PiE" \<rightleftharpoons> Pi\<^sub>E
 translations

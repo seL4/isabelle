@@ -23,16 +23,17 @@ abbreviation
 text \<open>Derived operations.\<close>
 
 definition
-  a_inv :: "[('a, 'm) ring_scheme, 'a ] \<Rightarrow> 'a" (\<open>\<ominus>\<index> _\<close> [81] 80)
+  a_inv :: "[('a, 'm) ring_scheme, 'a ] \<Rightarrow> 'a" (\<open>(\<open>open_block notation=\<open>prefix \<ominus>\<close>\<close>\<ominus>\<index> _)\<close> [81] 80)
   where "a_inv R = m_inv (add_monoid R)"
 
 definition
-  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (\<open>(_ \<ominus>\<index> _)\<close> [65,66] 65)
+  a_minus :: "[('a, 'm) ring_scheme, 'a, 'a] => 'a" (\<open>(\<open>notation=\<open>infix \<ominus>\<close>\<close>_ \<ominus>\<index> _)\<close> [65,66] 65)
   where "x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
 definition
-  add_pow :: "[_, ('b :: semiring_1), 'a] \<Rightarrow> 'a" (\<open>[_] \<cdot>\<index> _\<close> [81, 81] 80)
-  where "add_pow R k a = pow (add_monoid R) a k"
+  add_pow :: "[_, ('b :: semiring_1), 'a] \<Rightarrow> 'a"
+    (\<open>(\<open>open_block notation=\<open>mixfix \<cdot>\<close>\<close>[_] \<cdot>\<index> _)\<close> [81, 81] 80)
+  where "[k] \<cdot>\<^bsub>R\<^esub> a = pow (add_monoid R) a k"
 
 locale abelian_monoid =
   fixes G (structure)
@@ -45,7 +46,7 @@ definition
 
 syntax
   "_finsum" :: "index \<Rightarrow> idt \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"
-      (\<open>(3\<Oplus>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
+    (\<open>(\<open>indent=3 notation=\<open>binder \<Oplus>\<close>\<close>\<Oplus>__\<in>_. _)\<close> [1000, 0, 51, 10] 10)
 syntax_consts
   "_finsum" \<rightleftharpoons> finsum
 translations
