@@ -1575,6 +1575,20 @@ next
   qed
 qed
 
+
+section \<open>Misc\<close>
+
+bundle constrain_space_syntax  \<comment> \<open>type constraints with spacing\<close>
+begin
+no_syntax (output)
+  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
+syntax (output)
+  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
+end
+
+
 declare [[ML_write_global = false]]
 
 ML_command \<open>\<^assert> (not (can ML_command \<open>() handle _ => ()\<close>))\<close>

@@ -51,14 +51,7 @@ translations
   "_bind (p # CONST DUMMY) e" <= "_bind p (CONST hd e)"
   "_bind (CONST DUMMY # p) e" <= "_bind p (CONST tl e)"
 
-(* type constraints with spacing *)
-no_syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
-
-syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
+unbundle constrain_space_syntax
 
 
 (* sorts as intersections *)

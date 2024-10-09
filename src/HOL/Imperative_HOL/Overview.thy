@@ -7,14 +7,7 @@ theory Overview
 imports Imperative_HOL "HOL-Library.LaTeXsugar"
 begin
 
-(* type constraints with spacing *)
-no_syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
-
-syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
+unbundle constrain_space_syntax
 (*>*)
 
 text \<open>
