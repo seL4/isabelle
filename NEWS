@@ -81,6 +81,13 @@ This is more robust than individual 'no_syntax' / 'no_notation'
 commands, which need to copy mixfix declarations from elsewhere and thus
 break after changes in the library.
 
+* Theory "HOL-Library.Datatype_Records" provides bundle
+"datatype_record_syntax" to exchange its alternative notation versus
+regular "record_syntax". This also allows to swap record syntax later
+on, notably like this:
+
+  unbundle no datatype_record_syntax
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITY.
