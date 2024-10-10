@@ -33,7 +33,11 @@ as usual (or programmatically by Isabelle/Scala tools). Markup for
 "infix" and "binder" declarations are automatic, but general mixfix
 forms require manual annotations in the theory library. Plenty of
 existing examples may be found in the Isabelle sources by searching for
-"notation=" (without quotes and no extra space).
+"notation=" (without quotes and no extra space). Occasional
+INCOMPATIBILITY for 'no_syntax' or 'no_notation' declarations in user
+applications: the mixfix template needs to be adapted accordingly, but
+it is often better to use "unbundle no foobar_syntax", as explained for
+HOL libraries below.
 
 * Inner syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
