@@ -131,7 +131,7 @@ print_translation \<open>
 definition nrec :: "[i,i,[i,i]\<Rightarrow>i]\<Rightarrow>i"
   where "nrec(n,b,c) == letrec g x be ncase(x, b, \<lambda>y. c(y,g(y))) in g(n)"
 
-definition nil :: "i"  (\<open>([])\<close>)
+definition nil :: "i"  (\<open>[]\<close>)
   where "[] == inl(one)"
 
 definition cons :: "[i,i]\<Rightarrow>i"  (infixr \<open>$\<close> 80)

@@ -100,7 +100,7 @@ definition subset :: "['a set, 'a set] \<Rightarrow> o"  (infixl \<open><=\<clos
 definition mono :: "['a set \<Rightarrow> 'b set] \<Rightarrow> o"
   where "mono(f) == (ALL A B. A <= B \<longrightarrow> f(A) <= f(B))"
 
-definition singleton :: "'a \<Rightarrow> 'a set"  (\<open>{_}\<close>)
+definition singleton :: "'a \<Rightarrow> 'a set"  (\<open>(\<open>open_block notation=\<open>mixfix singleton\<close>\<close>{_})\<close>)
   where "{a} == {x. x=a}"
 
 definition empty :: "'a set"  (\<open>{}\<close>)

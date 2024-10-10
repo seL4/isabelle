@@ -114,7 +114,7 @@ subsubsection \<open>Old-style ASCII syntax\<close>
 
 notation (ASCII)
   not_equal  (infixl \<open>~=\<close> 50) and
-  Not  (\<open>~ _\<close> [40] 40) and
+  Not  (\<open>(\<open>open_block notation=\<open>prefix ~\<close>\<close>~ _)\<close> [40] 40) and
   conj  (infixr \<open>&\<close> 35) and
   disj  (infixr \<open>|\<close> 30) and
   All  (binder \<open>ALL \<close> 10) and
@@ -743,10 +743,10 @@ definition Let :: \<open>['a::{}, 'a => 'b] \<Rightarrow> ('b::{})\<close>
   where \<open>Let(s, f) \<equiv> f(s)\<close>
 
 syntax
-  "_bind"       :: \<open>[pttrn, 'a] => letbind\<close>  (\<open>(\<open>indent=2 notation=\<open>infix letbind\<close>\<close>_ =/ _)\<close> 10)
+  "_bind"       :: \<open>[pttrn, 'a] => letbind\<close>  (\<open>(\<open>indent=2 notation=\<open>infix let binding\<close>\<close>_ =/ _)\<close> 10)
   ""            :: \<open>letbind => letbinds\<close>              (\<open>_\<close>)
   "_binds"      :: \<open>[letbind, letbinds] => letbinds\<close>  (\<open>_;/ _\<close>)
-  "_Let"        :: \<open>[letbinds, 'a] => 'a\<close>  (\<open>(\<open>notation=\<open>mixfix let in\<close>\<close>let (_)/ in (_))\<close> 10)
+  "_Let"        :: \<open>[letbinds, 'a] => 'a\<close>  (\<open>(\<open>notation=\<open>mixfix let expression\<close>\<close>let (_)/ in (_))\<close> 10)
 translations
   "_Let(_binds(b, bs), e)"  == "_Let(b, _Let(bs, e))"
   "let x = a in e"          == "CONST Let(a, \<lambda>x. e)"
