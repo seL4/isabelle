@@ -21,10 +21,13 @@ record 'a monoid =  "'a partial_object" +
   mult    :: "['a, 'a] \<Rightarrow> 'a" (infixl \<open>\<otimes>\<index>\<close> 70)
   one     :: 'a (\<open>\<one>\<index>\<close>)
 
-definition
-  m_inv :: "('a, 'b) monoid_scheme => 'a => 'a"
-    (\<open>(\<open>open_block notation=\<open>prefix inv\<close>\<close>inv\<index> _)\<close> [81] 80)
-  where "inv\<^bsub>G\<^esub> x = (THE y. y \<in> carrier G \<and> x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
+definition m_inv :: "('a, 'b) monoid_scheme => 'a => 'a"
+  where "m_inv G x = (THE y. y \<in> carrier G \<and> x \<otimes>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub> \<and> y \<otimes>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub>)"
+
+open_bundle m_inv_syntax
+begin
+notation m_inv  (\<open>(\<open>open_block notation=\<open>prefix inv\<close>\<close>inv\<index> _)\<close> [81] 80)
+end
 
 definition
   Units :: "_ => 'a set"
