@@ -1581,11 +1581,11 @@ section \<open>Misc\<close>
 bundle constrain_space_syntax  \<comment> \<open>type constraints with spacing\<close>
 begin
 no_syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_::_\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "logic \<Rightarrow> type \<Rightarrow> logic"  (\<open>_::_\<close> [4, 0] 3)
+  "_constrain" :: "prop' \<Rightarrow> type \<Rightarrow> prop'"  (\<open>_::_\<close> [4, 0] 3)
 syntax (output)
-  "_constrain" :: "logic => type => logic"  (\<open>_ :: _\<close> [4, 0] 3)
-  "_constrain" :: "prop' => type => prop'"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "logic \<Rightarrow> type \<Rightarrow> logic"  (\<open>_ :: _\<close> [4, 0] 3)
+  "_constrain" :: "prop' \<Rightarrow> type \<Rightarrow> prop'"  (\<open>_ :: _\<close> [4, 0] 3)
 end
 
 
