@@ -74,21 +74,8 @@ syntax_consts
   "_qinfsum" \<rightleftharpoons> infsum
 translations
   "\<Sum>\<^sub>\<infinity>x|P. t" => "CONST infsum (\<lambda>x. t) {x. P}"
-
 print_translation \<open>
-let
-  fun sum_tr' [Abs (x, Tx, t), Const (@{const_syntax Collect}, _) $ Abs (y, Ty, P)] =
-        if x <> y then raise Match
-        else
-          let
-            val x' = Syntax_Trans.mark_bound_body (x, Tx);
-            val t' = subst_bound (x', t);
-            val P' = subst_bound (x', P);
-          in
-            Syntax.const @{syntax_const "_qinfsum"} $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
-          end
-    | sum_tr' _ = raise Match;
-in [(@{const_syntax infsum}, K sum_tr')] end
+  [(\<^const_syntax>\<open>infsum\<close>, K (Collect_binder_tr' \<^syntax_const>\<open>_qinfsum\<close>))]
 \<close>
 
 subsection \<open>General properties\<close>

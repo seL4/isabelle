@@ -53,6 +53,18 @@ syntax
 translations
   "{p:A. P}" \<rightharpoonup> "CONST Collect (\<lambda>p. p \<in> A \<and> P)"
 
+ML \<open>
+  fun Collect_binder_tr' c [Abs (x, T, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, _, P)] =
+        if x = y then
+          let
+            val x' = Syntax_Trans.mark_bound_body (x, T);
+            val t' = subst_bound (x', t);
+            val P' = subst_bound (x', P);
+          in Syntax.const c $ Syntax_Trans.mark_bound_abs (x, T) $ P' $ t' end
+        else raise Match
+    | Collect_binder_tr' _ _ = raise Match
+\<close>
+
 lemma CollectI: "P a \<Longrightarrow> a \<in> {x. P x}"
   by simp
 
