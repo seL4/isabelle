@@ -277,20 +277,22 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
       (case transT a args p of
         SOME res => res
       | NONE =>
+          (*find matching table entry, or print as prefix / postfix*)
           let
             val nargs = length args;
-
-            (*find matching table entry, or print as prefix / postfix*)
-            fun prnt ([], []) =
-                  if nargs = 0 then [atomT a]
-                  else astT (appT (c, args), p)
-              | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
-              | prnt ((pr, n, p') :: prnps, tbs) =
-                  if nargs = n then parT (#1 markup_extern a) (pr, args, p, p')
-                  else if nargs > n andalso not type_mode then
-                    astT (appT (splitT n ([c], args)), p)
-                  else prnt (prnps, tbs);
-          in prnt ([], tabs) end)
+            val entry =
+              tabs |> get_first (fn tab =>
+                Symtab.lookup_list tab a |> find_first (fn (_, n, _) =>
+                  nargs = n orelse nargs > n andalso not type_mode));
+          in
+            (case entry of
+              NONE =>
+                if nargs = 0 then [atomT a]
+                else astT (appT (c, args), p)
+            | SOME (pr, n, p') =>
+                if nargs = n then parT (#1 markup_extern a) (pr, args, p, p')
+                else astT (appT (splitT n ([c], args)), p))
+          end)
 
     and astT (Ast.Variable x, _) = [Ast.pretty_var x]
       | astT (c as Ast.Constant a, p) = combT c a [] p
