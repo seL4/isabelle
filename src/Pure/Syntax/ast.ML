@@ -18,7 +18,7 @@ sig
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val strip_positions: ast -> ast
-  val head_of_rule: ast * ast -> string
+  val rule_index: ast * ast -> string
   val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
@@ -79,8 +79,7 @@ structure Table = Table(type key = ast val ord = ast_ord);
 structure Set = Set(Table.Key);
 
 
-
-(** print asts in a LISP-like style **)
+(* print asts in a LISP-like style *)
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) =
@@ -105,17 +104,11 @@ fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts))
   | strip_positions ast = ast;
 
 
-(* head_of_ast and head_of_rule *)
+(* translation rules *)
 
-fun head_of_ast (Constant a) = a
-  | head_of_ast (Appl (Constant a :: _)) = a
-  | head_of_ast _ = "";
-
-fun head_of_rule (lhs, _) = head_of_ast lhs;
-
-
-
-(** check translation rules **)
+fun rule_index (Constant a, _: ast) = a
+  | rule_index (Appl (Constant a :: _), _) = a
+  | rule_index _ = "";
 
 fun rule_error (lhs, rhs) =
   let
@@ -132,10 +125,7 @@ fun rule_error (lhs, rhs) =
   end;
 
 
-
-(** ast translation utilities **)
-
-(* fold asts *)
+(* ast translation utilities *)
 
 fun fold_ast _ [] = raise Match
   | fold_ast _ [y] = y
@@ -143,8 +133,6 @@ fun fold_ast _ [] = raise Match
 
 fun fold_ast_p c = uncurry (fold_rev (fn x => fn xs => Appl [Constant c, x, xs]));
 
-
-(* unfold asts *)
 
 fun unfold_ast c (y as Appl [Constant c', x, xs]) =
       if c = c' then x :: unfold_ast c xs else [y]

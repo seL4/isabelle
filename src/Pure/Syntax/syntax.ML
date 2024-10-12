@@ -405,8 +405,8 @@ type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
 fun dest_ruletab tab = Symtab.dest tab |> sort_by #1 |> maps #2;
 
-val update_ruletab = fold_rev (fn r => Symtab.update_list (op =) (Ast.head_of_rule r, r));
-val remove_ruletab = fold (fn r => Symtab.remove_list (op =) (Ast.head_of_rule r, r));
+val update_ruletab = fold_rev (fn r => Symtab.update_list (op =) (Ast.rule_index r, r));
+val remove_ruletab = fold (fn r => Symtab.remove_list (op =) (Ast.rule_index r, r));
 fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 
 
