@@ -289,8 +289,8 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
         | NONE => astT (trf a ctxt args, p) handle Match => prnt ([], tabs))
       end
 
-    and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
-      | astT (ast as Ast.Variable _, _) = [Ast.pretty_ast ast]
+    and astT (Ast.Variable x, _) = [Ast.pretty_var x]
+      | astT (c as Ast.Constant a, p) = combT (c, a, [], p)
       | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);

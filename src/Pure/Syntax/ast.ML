@@ -15,6 +15,7 @@ sig
   val ast_ord: ast ord
   structure Table: TABLE
   structure Set: SET
+  val pretty_var: string -> Pretty.T
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val strip_positions: ast -> ast
@@ -81,11 +82,13 @@ structure Set = Set(Table.Key);
 
 (* print asts in a LISP-like style *)
 
+fun pretty_var x =
+  (case Term_Position.decode x of
+    SOME pos => Term_Position.pretty pos
+  | NONE => Pretty.str x);
+
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
-  | pretty_ast (Variable x) =
-      (case Term_Position.decode x of
-        SOME pos => Term_Position.pretty pos
-      | NONE => Pretty.str x)
+  | pretty_ast (Variable x) = pretty_var x
   | pretty_ast (Appl asts) = Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 fun pretty_rule (lhs, rhs) =
