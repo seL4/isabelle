@@ -211,7 +211,7 @@ val par_en = make_literal ")";
 
 in
 
-fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
+fun pretty ctxt tabs trf markup_trans (markup, extern) ast0 =
   let
     val type_mode = Config.get ctxt pretty_type_mode;
     val curried = Config.get ctxt pretty_curried;
@@ -235,7 +235,7 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
               let val ctxt' = ctxt
                 |> Config.put pretty_type_mode true
                 |> Config.put pretty_priority p
-              in (pretty ctxt' tabs trf markup_trans markup_extern t @ Ts, args') end
+              in (pretty ctxt' tabs trf markup_trans (markup, extern) t @ Ts, args') end
           end
       | syntax m (String (literal_markup, s) :: symbs, args) =
           let
@@ -284,10 +284,10 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
           in
             (case entry of
               NONE =>
-                if nargs = 0 then [Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)]
+                if nargs = 0 then [Pretty.marks_str (markup a, extern a)]
                 else main (application (c, args), p)
             | SOME (pr, n, p') =>
-                if nargs = n then parens (#1 markup_extern a) (pr, args, p, p')
+                if nargs = n then parens (markup a) (pr, args, p, p')
                 else main (application (split_args n ([c], args)), p))
           end)
 
