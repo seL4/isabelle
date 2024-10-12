@@ -152,27 +152,31 @@ fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
 
 (* match *)
 
-local exception NO_MATCH in
+local
 
-fun match obj pat =
+exception NO_MATCH;
+
+fun match1 (Constant a) (Constant b) env = if a = b then env else raise NO_MATCH
+  | match1 (Variable a) (Constant b) env = if a = b then env else raise NO_MATCH
+  | match1 ast (Variable x) env = Symtab.update (x, ast) env
+  | match1 (Appl asts) (Appl pats) env = match2 asts pats env
+  | match1 _ _ _ = raise NO_MATCH
+and match2 (ast :: asts) (pat :: pats) env = match1 ast pat env |> match2 asts pats
+  | match2 [] [] env = env
+  | match2 _ _ _ = raise NO_MATCH;
+
+in
+
+fun match ast pat =
   let
-    fun match1 (Constant a) (Constant b) env = if a = b then env else raise NO_MATCH
-      | match1 (Variable a) (Constant b) env = if a = b then env else raise NO_MATCH
-      | match1 ast (Variable x) env = Symtab.update (x, ast) env
-      | match1 (Appl asts) (Appl pats) env = match2 asts pats env
-      | match1 _ _ _ = raise NO_MATCH
-    and match2 (ast :: asts) (pat :: pats) env = match1 ast pat env |> match2 asts pats
-      | match2 [] [] env = env
-      | match2 _ _ _ = raise NO_MATCH;
-
     val (head, args) =
-      (case (obj, pat) of
+      (case (ast, pat) of
         (Appl asts, Appl pats) =>
           let val a = length asts and p = length pats in
             if a > p then (Appl (take p asts), drop p asts)
-            else (obj, [])
+            else (ast, [])
           end
-      | _ => (obj, []));
+      | _ => (ast, []));
   in SOME (Symtab.build (match1 head pat), args) handle NO_MATCH => NONE end;
 
 end;
