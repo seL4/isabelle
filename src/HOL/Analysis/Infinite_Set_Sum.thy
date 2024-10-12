@@ -126,23 +126,9 @@ syntax_consts
   "_qinfsetsum" \<rightleftharpoons> infsetsum
 translations
   "\<Sum>\<^sub>ax|P. t" => "CONST infsetsum (\<lambda>x. t) {x. P}"
-
 print_translation \<open>
-let
-  fun sum_tr' [Abs (x, Tx, t), Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P)] =
-        if x <> y then raise Match
-        else
-          let
-            val x' = Syntax_Trans.mark_bound_body (x, Tx);
-            val t' = subst_bound (x', t);
-            val P' = subst_bound (x', P);
-          in
-            Syntax.const \<^syntax_const>\<open>_qinfsetsum\<close> $ Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
-          end
-    | sum_tr' _ = raise Match;
-in [(\<^const_syntax>\<open>infsetsum\<close>, K sum_tr')] end
+  [(\<^const_syntax>\<open>infsetsum\<close>, K (Collect_binder_tr' \<^syntax_const>\<open>_qinfsetsum\<close>))]
 \<close>
-
 
 lemma restrict_count_space_subset:
   "A \<subseteq> B \<Longrightarrow> restrict_space (count_space B) A = count_space A"

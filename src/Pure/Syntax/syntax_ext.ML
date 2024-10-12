@@ -10,6 +10,7 @@ sig
   type block =
     {markup: Markup.T list, open_block: bool, consistent: bool, unbreakable: bool, indent: int}
   val block_indent: int -> block
+  val pretty_block: block -> Pretty.T list -> Pretty.T
   datatype xsymb =
     Delim of string |
     Argument of string * int |
@@ -68,6 +69,11 @@ type block =
 
 fun block_indent indent : block =
   {markup = [], open_block = false, consistent = false, unbreakable = false, indent = indent};
+
+fun pretty_block {markup, open_block, consistent, indent, unbreakable} body =
+  Pretty.markup_blocks
+    {markup = markup, open_block = open_block, consistent = consistent, indent = indent} body
+  |> unbreakable ? Pretty.unbreakable;
 
 datatype xsymb =
   Delim of string |

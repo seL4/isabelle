@@ -27,8 +27,8 @@ struct
 (* datatype T *)
 
 type local_mixfix =
-  (string * bool) *  (*name, fixed?*)
-  ((bool * bool * Syntax.mode) * (string * typ * mixfix));  (*type?, add?, mode, declaration*)
+  {name: string, is_fixed: bool} *
+  ({is_type: bool, add: bool, mode: Syntax.mode} * (string * typ * mixfix));
 
 datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
@@ -54,9 +54,10 @@ fun build_syntax ctxt mode mixfixes =
   let
     val thy = Proof_Context.theory_of ctxt;
     val thy_syntax = Sign.syntax_of thy;
-    fun update_gram ((true, add, m), decls) = Syntax.update_type_gram ctxt add m decls
-      | update_gram ((false, add, m), decls) =
-          Syntax.update_const_gram ctxt add (Sign.logical_types thy) m decls;
+    fun update_gram ({is_type = true, add, mode}, decls) =
+          Syntax.update_type_gram ctxt add mode decls
+      | update_gram ({is_type = false, add, mode}, decls) =
+          Syntax.update_const_gram ctxt add (Sign.logical_types thy) mode decls;
 
     val local_syntax = thy_syntax
       |> fold update_gram (AList.coalesce (op =) (rev (map snd mixfixes)));
@@ -77,11 +78,14 @@ datatype kind = Type | Const | Fixed;
 
 local
 
-fun prep_mixfix _ _ (_, (_, _, Structure _)) = NONE
-  | prep_mixfix add mode (Type, decl as (x, _, _)) = SOME ((x, false), ((true, add, mode), decl))
-  | prep_mixfix add mode (Const, decl as (x, _, _)) = SOME ((x, false), ((false, add, mode), decl))
+fun prep_mixfix _ _ (_, (_, _, Structure _)) = (NONE: local_mixfix option)
+  | prep_mixfix add mode (Type, decl as (x, _, _)) =
+      SOME ({name = x, is_fixed = false}, ({is_type = true, add = add, mode = mode}, decl))
+  | prep_mixfix add mode (Const, decl as (x, _, _)) =
+      SOME ({name = x, is_fixed = false}, ({is_type = false, add = add, mode = mode}, decl))
   | prep_mixfix add mode (Fixed, (x, T, mx)) =
-      SOME ((x, true), ((false, add, mode), (Lexicon.mark_fixed x, T, mx)));
+      SOME (({name = x, is_fixed = true},
+        ({is_type = false, add = add, mode = mode}, (Lexicon.mark_fixed x, T, mx))));
 
 fun prep_struct (Fixed, (c, _, Structure _)) = SOME c
   | prep_struct (_, (c, _, Structure _)) = error ("Bad structure mixfix declaration for " ^ quote c)
@@ -103,7 +107,7 @@ fun update_syntax ctxt add raw_decls (syntax as (Syntax {mode, mixfixes, ...})) 
           {structs =
             if add then #structs idents @ new_structs
             else subtract (op =) new_structs (#structs idents),
-           fixes = fold (fn ((x, true), _) => cons x | _ => I) mixfixes' []};
+           fixes = fold (fn ({name = x, is_fixed = true}, _) => cons x | _ => I) mixfixes' []};
 
         val syntax' = build_syntax ctxt mode mixfixes';
       in (if idents = idents' then NONE else SOME idents', syntax') end);

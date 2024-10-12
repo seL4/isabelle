@@ -15,10 +15,11 @@ sig
   val ast_ord: ast ord
   structure Table: TABLE
   structure Set: SET
+  val pretty_var: string -> Pretty.T
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val strip_positions: ast -> ast
-  val head_of_rule: ast * ast -> string
+  val rule_index: ast * ast -> string
   val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
@@ -79,14 +80,15 @@ structure Table = Table(type key = ast val ord = ast_ord);
 structure Set = Set(Table.Key);
 
 
+(* print asts in a LISP-like style *)
 
-(** print asts in a LISP-like style **)
+fun pretty_var x =
+  (case Term_Position.decode x of
+    SOME pos => Term_Position.pretty pos
+  | NONE => Pretty.str x);
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
-  | pretty_ast (Variable x) =
-      (case Term_Position.decode x of
-        SOME pos => Term_Position.pretty pos
-      | NONE => Pretty.str x)
+  | pretty_ast (Variable x) = pretty_var x
   | pretty_ast (Appl asts) = Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 fun pretty_rule (lhs, rhs) =
@@ -105,17 +107,11 @@ fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts))
   | strip_positions ast = ast;
 
 
-(* head_of_ast and head_of_rule *)
+(* translation rules *)
 
-fun head_of_ast (Constant a) = a
-  | head_of_ast (Appl (Constant a :: _)) = a
-  | head_of_ast _ = "";
-
-fun head_of_rule (lhs, _) = head_of_ast lhs;
-
-
-
-(** check translation rules **)
+fun rule_index (Constant a, _: ast) = a
+  | rule_index (Appl (Constant a :: _), _) = a
+  | rule_index _ = "";
 
 fun rule_error (lhs, rhs) =
   let
@@ -132,10 +128,7 @@ fun rule_error (lhs, rhs) =
   end;
 
 
-
-(** ast translation utilities **)
-
-(* fold asts *)
+(* ast translation utilities *)
 
 fun fold_ast _ [] = raise Match
   | fold_ast _ [y] = y
@@ -143,8 +136,6 @@ fun fold_ast _ [] = raise Match
 
 fun fold_ast_p c = uncurry (fold_rev (fn x => fn xs => Appl [Constant c, x, xs]));
 
-
-(* unfold asts *)
 
 fun unfold_ast c (y as Appl [Constant c', x, xs]) =
       if c = c' then x :: unfold_ast c xs else [y]
@@ -161,22 +152,23 @@ fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
 
 (* match *)
 
+local
+
+exception NO_MATCH;
+
+fun match1 (Constant a) (Constant b) env = if a = b then env else raise NO_MATCH
+  | match1 (Variable a) (Constant b) env = if a = b then env else raise NO_MATCH
+  | match1 ast (Variable x) env = Symtab.update (x, ast) env
+  | match1 (Appl asts) (Appl pats) env = match2 asts pats env
+  | match1 _ _ _ = raise NO_MATCH
+and match2 (ast :: asts) (pat :: pats) env = match1 ast pat env |> match2 asts pats
+  | match2 [] [] env = env
+  | match2 _ _ _ = raise NO_MATCH;
+
+in
+
 fun match ast pat =
   let
-    exception NO_MATCH;
-
-    fun mtch (Constant a) (Constant b) env =
-          if a = b then env else raise NO_MATCH
-      | mtch (Variable a) (Constant b) env =
-          if a = b then env else raise NO_MATCH
-      | mtch ast (Variable x) env = Symtab.update (x, ast) env
-      | mtch (Appl asts) (Appl pats) env = mtch_lst asts pats env
-      | mtch _ _ _ = raise NO_MATCH
-    and mtch_lst (ast :: asts) (pat :: pats) env =
-          mtch_lst asts pats (mtch ast pat env)
-      | mtch_lst [] [] env = env
-      | mtch_lst _ _ _ = raise NO_MATCH;
-
     val (head, args) =
       (case (ast, pat) of
         (Appl asts, Appl pats) =>
@@ -185,9 +177,9 @@ fun match ast pat =
             else (ast, [])
           end
       | _ => (ast, []));
-  in
-    SOME (Symtab.build (mtch head pat), args) handle NO_MATCH => NONE
-  end;
+  in SOME (Symtab.build (match1 head pat), args) handle NO_MATCH => NONE end;
+
+end;
 
 
 (* normalize *)
@@ -195,8 +187,22 @@ fun match ast pat =
 val trace = Config.declare_bool ("syntax_ast_trace", \<^here>) (K false);
 val stats = Config.declare_bool ("syntax_ast_stats", \<^here>) (K false);
 
+local
+
+fun subst _ (ast as Constant _) = ast
+  | subst env (Variable x) = the (Symtab.lookup env x)
+  | subst env (Appl asts) = Appl (map (subst env) asts);
+
+fun head_name (Constant a) = SOME a
+  | head_name (Variable a) = SOME a
+  | head_name (Appl (Constant a :: _)) = SOME a
+  | head_name (Appl (Variable a :: _)) = SOME a
+  | head_name _ = NONE;
+
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
+
+in
 
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
 fun normalize ctxt get_rules pre_ast =
@@ -208,61 +214,53 @@ fun normalize ctxt get_rules pre_ast =
     val failed_matches = Unsynchronized.ref 0;
     val changes = Unsynchronized.ref 0;
 
-    fun subst _ (ast as Constant _) = ast
-      | subst env (Variable x) = the (Symtab.lookup env x)
-      | subst env (Appl asts) = Appl (map (subst env) asts);
-
-    fun try_rules ((lhs, rhs) :: pats) ast =
+    fun rewrite1 ((lhs, rhs) :: pats) ast =
           (case match ast lhs of
             SOME (env, args) =>
               (Unsynchronized.inc changes; SOME (mk_appl (subst env rhs) args))
-          | NONE => (Unsynchronized.inc failed_matches; try_rules pats ast))
-      | try_rules [] _ = NONE;
-    val try_headless_rules = try_rules (get_rules "");
+          | NONE => (Unsynchronized.inc failed_matches; rewrite1 pats ast))
+      | rewrite1 [] _ = NONE;
 
-    fun try ast a =
-      (case try_rules (get_rules a) ast of
-        NONE => try_headless_rules ast
-      | some => some);
+    fun rewrite2 (SOME a) ast =
+          (case rewrite1 (get_rules a) ast of
+            NONE => rewrite2 NONE ast
+          | some => some)
+      | rewrite2 NONE ast = rewrite1 (get_rules "") ast;
 
-    fun rewrite (ast as Constant a) = try ast a
-      | rewrite (ast as Variable a) = try ast a
-      | rewrite (ast as Appl (Constant a :: _)) = try ast a
-      | rewrite (ast as Appl (Variable a :: _)) = try ast a
-      | rewrite ast = try_headless_rules ast;
+    fun rewrite ast = rewrite2 (head_name ast) ast;
 
     fun rewrote old_ast new_ast =
       if trace then tracing (message "rewrote:" (pretty_rule (old_ast, new_ast)))
       else ();
 
-    fun norm_root ast =
+    fun norm1 ast =
       (case rewrite ast of
-        SOME new_ast => (rewrote ast new_ast; norm_root new_ast)
+        SOME new_ast => (rewrote ast new_ast; norm1 new_ast)
       | NONE => ast);
 
-    fun norm ast =
-      (case norm_root ast of
+    fun norm2 ast =
+      (case norm1 ast of
         Appl sub_asts =>
           let
             val old_changes = ! changes;
-            val new_ast = Appl (map norm sub_asts);
+            val new_ast = Appl (map norm2 sub_asts);
           in
-            if old_changes = ! changes then new_ast else norm_root new_ast
+            if old_changes = ! changes then new_ast else norm1 new_ast
           end
       | atomic_ast => atomic_ast);
 
-    fun normal ast =
+    fun norm ast =
       let
         val old_changes = ! changes;
-        val new_ast = norm ast;
+        val new_ast = norm2 ast;
       in
         Unsynchronized.inc passes;
-        if old_changes = ! changes then new_ast else normal new_ast
+        if old_changes = ! changes then new_ast else norm new_ast
       end;
 
 
     val _ = if trace then tracing (message "pre:" (pretty_ast pre_ast)) else ();
-    val post_ast = normal pre_ast;
+    val post_ast = norm pre_ast;
     val _ =
       if trace orelse stats then
         tracing (message "post:" (pretty_ast post_ast) ^ "\nnormalize: " ^
@@ -271,5 +269,7 @@ fun normalize ctxt get_rules pre_ast =
           string_of_int (! failed_matches) ^ " matches failed")
       else ();
   in post_ast end;
+
+end;
 
 end;

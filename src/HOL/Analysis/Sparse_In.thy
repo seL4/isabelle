@@ -177,23 +177,8 @@ syntax_consts
   "_qeventually_cosparse" == eventually
 translations
   "\<forall>\<^sub>\<approx>x|P. t" => "CONST eventually (\<lambda>x. t) (CONST cosparse {x. P})"
-
 print_translation \<open>
-let
-  fun ev_cosparse_tr' [Abs (x, Tx, t), 
-        Const (\<^const_syntax>\<open>cosparse\<close>, _) $ (Const (\<^const_syntax>\<open>Collect\<close>, _) $ Abs (y, Ty, P))] =
-        if x <> y then raise Match
-        else
-          let
-            val x' = Syntax_Trans.mark_bound_body (x, Tx);
-            val t' = subst_bound (x', t);
-            val P' = subst_bound (x', P);
-          in
-            Syntax.const \<^syntax_const>\<open>_qeventually_cosparse\<close> $
-              Syntax_Trans.mark_bound_abs (x, Tx) $ P' $ t'
-          end
-    | ev_cosparse_tr' _ = raise Match;
-in [(\<^const_syntax>\<open>eventually\<close>, K ev_cosparse_tr')] end
+  [(\<^const_syntax>\<open>eventually\<close>, K (Collect_binder_tr' \<^syntax_const>\<open>_qeventually_cosparse\<close>))]
 \<close>
 
 lemma eventually_cosparse: "eventually P (cosparse A) \<longleftrightarrow> {x. \<not>P x} sparse_in A"
