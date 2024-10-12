@@ -264,34 +264,37 @@ fun pretty ctxt tabs trf markup_trans markup_extern ast0 =
 
     and atomT a = Pretty.marks_str (#1 markup_extern a, #2 markup_extern a)
 
-    and prefixT (_, a, [], _) = [atomT a]
-      | prefixT (c, _, args, p) = astT (appT (c, args), p)
-
     and splitT 0 ([x], ys) = (x, ys)
       | splitT 0 (rev_xs, ys) = (Ast.Appl (rev rev_xs), ys)
       | splitT n (rev_xs, y :: ys) = splitT (n - 1) (y :: rev_xs, ys)
 
-    and combT (tup as (c, a, args, p)) =
-      let
-        val nargs = length args;
+    and transT a args p =
+      (case markup_trans a args of
+        SOME prt => SOME [prt]
+      | NONE => Option.map astT (SOME (trf a ctxt args, p) handle Match => NONE))
 
-        (*find matching table entry, or print as prefix / postfix*)
-        fun prnt ([], []) = prefixT tup
-          | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
-          | prnt ((pr, n, p') :: prnps, tbs) =
-              if nargs = n then parT (#1 markup_extern a) (pr, args, p, p')
-              else if nargs > n andalso not type_mode then
-                astT (appT (splitT n ([c], args)), p)
-              else prnt (prnps, tbs);
-      in
-        (case markup_trans a args of
-          SOME prt => [prt]
-        | NONE => astT (trf a ctxt args, p) handle Match => prnt ([], tabs))
-      end
+    and combT c a args p =
+      (case transT a args p of
+        SOME res => res
+      | NONE =>
+          let
+            val nargs = length args;
+
+            (*find matching table entry, or print as prefix / postfix*)
+            fun prnt ([], []) =
+                  if nargs = 0 then [atomT a]
+                  else astT (appT (c, args), p)
+              | prnt ([], tb :: tbs) = prnt (Symtab.lookup_list tb a, tbs)
+              | prnt ((pr, n, p') :: prnps, tbs) =
+                  if nargs = n then parT (#1 markup_extern a) (pr, args, p, p')
+                  else if nargs > n andalso not type_mode then
+                    astT (appT (splitT n ([c], args)), p)
+                  else prnt (prnps, tbs);
+          in prnt ([], tabs) end)
 
     and astT (Ast.Variable x, _) = [Ast.pretty_var x]
-      | astT (c as Ast.Constant a, p) = combT (c, a, [], p)
-      | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
+      | astT (c as Ast.Constant a, p) = combT c a [] p
+      | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT c a args p
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);
   in astT (ast0, Config.get ctxt pretty_priority) end;
