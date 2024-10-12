@@ -34,20 +34,25 @@ lemmas [simp del] = T_size_list.simps
 
 time_fun map
 
+lemma T_map_simps [simp,code]:
+  "T_map T_f [] = 1"
+  "T_map T_f (x # xs) = T_f x + T_map T_f xs + 1"
+by (simp_all add: T_map_def)
+
 lemma T_map_eq: "T_map T_f xs = (\<Sum>x\<leftarrow>xs. T_f x) + length xs + 1"
   by (induction xs) auto
 
-lemmas [simp del] = T_map.simps
+lemmas [simp del] = T_map_simps
 
+time_fun filter
 
-fun T_filter  :: "('a \<Rightarrow> nat) \<Rightarrow> 'a list \<Rightarrow> nat" where
-  "T_filter T_p [] = 1"
-| "T_filter T_p (x # xs) = T_p x + T_filter T_p xs + 1"
+lemma T_filter_simps [code]:
+  "T_filter T_P [] = 1"
+  "T_filter T_P (x # xs) = T_P x + T_filter T_P xs + 1"
+by (simp_all add: T_filter_def)
 
-lemma T_filter_eq: "T_filter T_p xs = (\<Sum>x\<leftarrow>xs. T_p x) + length xs + 1"
-  by (induction xs) auto
-
-lemmas [simp del] = T_filter.simps
+lemma T_filter_eq: "T_filter T_P xs = (\<Sum>x\<leftarrow>xs. T_P x) + length xs + 1"
+by (induction xs) (auto simp: T_filter_simps)
 
 time_fun nth
 
