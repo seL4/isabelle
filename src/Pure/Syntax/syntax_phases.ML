@@ -663,39 +663,39 @@ fun term_to_ast ctxt trf tm =
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
 
+    fun constrain_ast T ast =
+      Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt T)];
+
     fun ast_of tm =
       (case strip_comb tm of
         (t as Abs _, ts) => Ast.mk_appl (ast_of (Syntax_Trans.abs_tr' ctxt t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
+          Ast.mk_appl (var_ast (c $ Syntax.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Syntax.var xi) T) (map ast_of ts)
+          Ast.mk_appl (var_ast (c $ Syntax.var xi) T) (map ast_of ts)
       | ((c as Const ("_bound", B)), Free (x, T) :: ts) =>
           let
             val X =
               if show_markup andalso not show_types orelse B <> dummyT then T
               else dummyT;
-          in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
+          in Ast.mk_appl (var_ast (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
-          Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
+          Ast.mk_appl (var_ast (Syntax.const "_idtdummy") T) (map ast_of ts)
       | (Const (c, T), ts) => trans c (Type_Annotation.smash T) ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args = ast_of (trf a ctxt T args)
       handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
-    and constrain t T0 =
-      let
-        val T =
-          if show_markup andalso not show_types
-          then Type_Annotation.clean T0
-          else Type_Annotation.smash T0;
-      in
-        if (show_types orelse show_markup) andalso T <> dummyT then
-          Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
-            ast_of_termT ctxt trf (term_of_typ ctxt T)]
-        else simple_ast_of ctxt t
-      end;
+    and var_ast v T =
+      if (show_types orelse show_markup) andalso T <> dummyT then
+        let
+          val T' =
+            if show_markup andalso not show_types
+            then Type_Annotation.clean T
+            else Type_Annotation.smash T;
+        in simple_ast_of ctxt v |> constrain_ast T' end
+      else simple_ast_of ctxt v;
   in
     tm
     |> mark_aprop
