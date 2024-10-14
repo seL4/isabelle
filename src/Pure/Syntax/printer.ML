@@ -205,6 +205,10 @@ val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K
 
 local
 
+fun split_args 0 [x] ys = (x, ys)
+  | split_args 0 rev_xs ys = (Ast.Appl (rev rev_xs), ys)
+  | split_args n rev_xs (y :: ys) = split_args (n - 1) (y :: rev_xs) ys;
+
 val par_block = Syntax_Ext.block_indent 1;
 val par_bg = make_literal "(";
 val par_en = make_literal ")";
@@ -222,11 +226,54 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
       else if curried then Syntax_Trans.applC_ast_tr'
       else Syntax_Trans.appl_ast_tr';
 
-    fun split_args 0 [x] ys = (x, ys)
-      | split_args 0 rev_xs ys = (Ast.Appl (rev rev_xs), ys)
-      | split_args n rev_xs (y :: ys) = split_args (n - 1) (y :: rev_xs) ys;
+    fun main _ (Ast.Variable x) = [Ast.pretty_var x]
+      | main p (c as Ast.Constant a) = combination p c a []
+      | main p (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _))) = combination p c a args
+      | main p (Ast.Appl (f :: (args as _ :: _))) = main p (application (f, args))
+      | main _ (ast as Ast.Appl _) = raise Ast.AST ("pretty: malformed ast", [ast])
 
-    fun syntax _ ([], args) = ([], args)
+    and main_type p ast =
+      if type_mode then main p ast
+      else
+        (ctxt
+          |> Config.put pretty_type_mode true
+          |> Config.put pretty_priority p
+          |> pretty) tabs trf markup_trans (markup, extern) ast
+
+    and combination p c a args =
+      (case translation p a args of
+        SOME prts => prts
+      | NONE =>
+          (*find matching table entry, or print as prefix / postfix*)
+          let
+            val nargs = length args;
+            val entry =
+              tabs |> get_first (fn tab =>
+                Symtab.lookup_list tab a |> find_first (fn (_, n, _) =>
+                  nargs = n orelse nargs > n andalso not type_mode));
+          in
+            (case entry of
+              NONE =>
+                if nargs = 0 then [Pretty.marks_str (markup a, extern a)]
+                else main p (application (c, args))
+            | SOME (symbs, n, q) =>
+                if nargs = n then parens p q a (symbs, args)
+                else main p (application (split_args n [c] args)))
+          end)
+
+    and translation p a args =
+      (case markup_trans a args of
+        SOME prt => SOME [prt]
+      | NONE => Option.map (main p) (SOME (trf a ctxt args) handle Match => NONE))
+
+    and parens p q a (symbs, args) =
+      let
+        val symbs' =
+          if p > q orelse (show_brackets andalso q <> 1000 andalso not (is_chain symbs))
+          then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
+      in #1 (syntax (markup a) (symbs', args)) end
+
+    and syntax _ ([], args) = ([], args)
       | syntax m (Arg p :: symbs, arg :: args) =
           let val (prts, args') = syntax m (symbs, args);
           in (main p arg @ prts, args') end
@@ -248,54 +295,7 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
           let
             val (prts, args') = syntax m (symbs, args);
             val prt = if i < 0 then Pretty.fbrk else Pretty.brk i;
-          in (prt :: prts, args') end
-
-    and parens p q a (symbs, args) =
-      let
-        val symbs' =
-          if p > q orelse (show_brackets andalso q <> 1000 andalso not (is_chain symbs))
-          then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
-      in #1 (syntax (markup a) (symbs', args)) end
-
-    and translation p a args =
-      (case markup_trans a args of
-        SOME prt => SOME [prt]
-      | NONE => Option.map (main p) (SOME (trf a ctxt args) handle Match => NONE))
-
-    and combination p c a args =
-      (case translation p a args of
-        SOME res => res
-      | NONE =>
-          (*find matching table entry, or print as prefix / postfix*)
-          let
-            val nargs = length args;
-            val entry =
-              tabs |> get_first (fn tab =>
-                Symtab.lookup_list tab a |> find_first (fn (_, n, _) =>
-                  nargs = n orelse nargs > n andalso not type_mode));
-          in
-            (case entry of
-              NONE =>
-                if nargs = 0 then [Pretty.marks_str (markup a, extern a)]
-                else main p (application (c, args))
-            | SOME (symbs, n, q) =>
-                if nargs = n then parens p q a (symbs, args)
-                else main p (application (split_args n [c] args)))
-          end)
-
-    and main _ (Ast.Variable x) = [Ast.pretty_var x]
-      | main p (c as Ast.Constant a) = combination p c a []
-      | main p (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _))) = combination p c a args
-      | main p (Ast.Appl (f :: (args as _ :: _))) = main p (application (f, args))
-      | main _ (ast as Ast.Appl _) = raise Ast.AST ("pretty: malformed ast", [ast])
-
-    and main_type p ast =
-      if type_mode then main p ast
-      else
-        (ctxt
-          |> Config.put pretty_type_mode true
-          |> Config.put pretty_priority p
-          |> pretty) tabs trf markup_trans (markup, extern) ast;
+          in (prt :: prts, args') end;
 
   in main (Config.get ctxt pretty_priority) end;
 
