@@ -283,19 +283,16 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
       | syntax m (String (literal_markup, s) :: symbs, args) =
           let
             val (prts, args') = syntax m (symbs, args);
-            val prt = Pretty.marks_str (if null literal_markup then [] else m @ literal_markup, s);
-          in (prt :: prts, args') end
+            val m' = if null literal_markup then [] else m @ literal_markup
+          in (Pretty.marks_str (m', s) :: prts, args') end
       | syntax m (Block (block, bsymbs) :: symbs, args) =
           let
             val (body, args') = syntax m (bsymbs, args);
             val (prts, args'') = syntax m (symbs, args');
-            val prt = Syntax_Ext.pretty_block block body;
-          in (prt :: prts, args'') end
+          in (Syntax_Ext.pretty_block block body :: prts, args'') end
       | syntax m (Break i :: symbs, args) =
-          let
-            val (prts, args') = syntax m (symbs, args);
-            val prt = if i < 0 then Pretty.fbrk else Pretty.brk i;
-          in (prt :: prts, args') end;
+          let val (prts, args') = syntax m (symbs, args)
+          in ((if i < 0 then Pretty.fbrk else Pretty.brk i) :: prts, args') end;
 
   in main (Config.get ctxt pretty_priority) end;
 
