@@ -482,9 +482,8 @@ fun err_cyclic_consts css =
     "Cycle in syntax consts: " ^ (space_implode " \<leadsto> " (map quote cs))) css));
 
 fun get_consts (Syntax ({consts, ...}, _)) c =
-  if Graph.defined consts c then
-    Graph.all_preds consts [c]
-    |> filter (Graph.Keys.is_empty o Graph.imm_preds consts)
+  if Graph.defined consts c
+  then filter (Graph.is_minimal consts) (Graph.all_preds consts [c])
   else [c];
 
 fun update_consts (c, bs) consts =
