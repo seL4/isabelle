@@ -664,6 +664,10 @@ fun term_to_ast ctxt trf term =
     val show_markup = Config.get ctxt show_markup;
     val show_consts_markup = Config.get ctxt show_consts_markup;
 
+    val show_const_types = show_markup andalso show_consts_markup;
+    val show_var_types = show_types orelse show_markup;
+    val clean_var_types = show_markup andalso not show_types;
+
     fun constrain_ast clean T ast =
       let val U = Type_Annotation.print clean T
       in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
@@ -690,16 +694,12 @@ fun term_to_ast ctxt trf term =
       (case SOME (trf a ctxt (Type_Annotation.smash T) args) handle Match => NONE of
         SOME t => ast_of t
       | NONE =>
-          let
-            val c =
-              Ast.Constant a
-              |> (show_markup andalso show_consts_markup) ? constrain_ast {clean = true} T;
+          let val c = Ast.Constant a |> show_const_types ? constrain_ast {clean = true} T
           in Ast.mk_appl c (map ast_of args) end)
 
     and var_ast v T =
       simple_ast_of ctxt v
-      |> (show_types orelse show_markup) ?
-          constrain_ast {clean = show_markup andalso not show_types} T;
+      |> show_var_types ? constrain_ast {clean = clean_var_types} T;
   in
     term
     |> mark_aprop
