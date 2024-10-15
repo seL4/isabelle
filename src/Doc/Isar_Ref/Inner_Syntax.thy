@@ -1153,7 +1153,7 @@ text \<open>
     ;
     mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
-    syntaxdeps: (((@{syntax name}+) ('==' | '\<rightleftharpoons>'))?) (@{syntax name}+)
+    syntaxdeps: (@{syntax name}+) ('==' | '\<rightleftharpoons>') (@{syntax name}+)
     ;
     transpat: ('(' @{syntax name} ')')? @{syntax string}
   \<close>
@@ -1213,10 +1213,6 @@ text \<open>
   support hyperlinks in the browser or editor. It is essentially an abstract
   specification of the effect of translation rules (see below) or translation
   functions (see \secref{sec:tr-funs}).
-
-  @{command "syntax_types"}~\<open>types\<close> and @{command "syntax_consts"}~\<open>consts\<close>
-  merely declare formal entities to the inner-syntax engine, without any
-  dependencies yet.
 
   \<^descr> @{command "translations"}~\<open>rules\<close> specifies syntactic translation rules
   (i.e.\ macros) as first-order rewrite rules on ASTs (\secref{sec:ast}). The
