@@ -658,7 +658,7 @@ fun mark_atoms ctxt tm =
 
 in
 
-fun term_to_ast ctxt trf term =
+fun term_to_ast ctxt trf =
   let
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
@@ -668,45 +668,44 @@ fun term_to_ast ctxt trf term =
     val show_var_types = show_types orelse show_markup;
     val clean_var_types = show_markup andalso not show_types;
 
-    fun constrain_ast clean T ast =
+    fun constrain clean T ast =
       let val U = Type_Annotation.print clean T
       in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
 
-    fun ast_of tm =
+    fun main tm =
       (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syntax_Trans.abs_tr' ctxt t)) (map ast_of ts)
+        (t as Abs _, ts) => Ast.mk_appl (main (Syntax_Trans.abs_tr' ctxt t)) (map main ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (var_ast (c $ Syntax.free x) T) (map ast_of ts)
+          Ast.mk_appl (variable (c $ Syntax.free x) T) (map main ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
-          Ast.mk_appl (var_ast (c $ Syntax.var xi) T) (map ast_of ts)
+          Ast.mk_appl (variable (c $ Syntax.var xi) T) (map main ts)
       | ((c as Const ("_bound", B)), Free (x, T) :: ts) =>
           let
             val X =
               if show_markup andalso not show_types orelse B <> dummyT then T
               else dummyT;
-          in Ast.mk_appl (var_ast (c $ Syntax.free x) X) (map ast_of ts) end
+          in Ast.mk_appl (variable (c $ Syntax.free x) X) (map main ts) end
       | (Const ("_idtdummy", T), ts) =>
-          Ast.mk_appl (var_ast (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (Const (c, T), ts) => const_ast c T ts
-      | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
+          Ast.mk_appl (variable (Syntax.const "_idtdummy") T) (map main ts)
+      | (Const (c, T), ts) => constant c T ts
+      | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map main ts))
 
-    and const_ast a T args =
+    and constant a T args =
       (case SOME (trf a ctxt (Type_Annotation.smash T) args) handle Match => NONE of
-        SOME t => ast_of t
+        SOME t => main t
       | NONE =>
-          let val c = Ast.Constant a |> show_const_types ? constrain_ast {clean = true} T
-          in Ast.mk_appl c (map ast_of args) end)
+          let val c = Ast.Constant a |> show_const_types ? constrain {clean = true} T
+          in Ast.mk_appl c (map main args) end)
 
-    and var_ast v T =
+    and variable v T =
       simple_ast_of ctxt v
-      |> show_var_types ? constrain_ast {clean = clean_var_types} T;
+      |> show_var_types ? constrain {clean = clean_var_types} T;
   in
-    term
-    |> mark_aprop
-    |> show_types ? prune_types
-    |> Variable.revert_bounds ctxt
-    |> mark_atoms ctxt
-    |> ast_of
+    mark_aprop
+    #> show_types ? prune_types
+    #> Variable.revert_bounds ctxt
+    #> mark_atoms ctxt
+    #> main
   end;
 
 end;
