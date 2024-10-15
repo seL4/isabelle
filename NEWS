@@ -46,6 +46,14 @@ in ML). Most Isabelle theories have been adapted accordingly, such that
 hyperlinks work properly e.g. for "['a, 'b] \<Rightarrow> 'c" or "\<lbrakk>A; B\<rbrakk> \<Longrightarrow> C" in
 Pure, and "\<forall>x\<in>A. B x" or "\<exists>x\<in>A. B x" in HOL.
 
+* Inner syntax printing now supports type constraints for constants:
+this is guarded by the configuration option "show_consts_markup". Ast
+translation rules (command 'translations') and mixfix notation work with
+or without such extra constraints, but ML translation functions (command
+'print_ast_translation') need may need to be changed slightly. Rare
+INCOMPATIBILITY. The Prover IDE displays type constraints for constants
+as for variables, e.g. via C-mouse hovering.
+
 * The Simplifier now supports special "congprocs", using keyword
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
 antiquotation of the same name). See also

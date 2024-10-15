@@ -10,6 +10,7 @@ sig
   val show_types: bool Config.T
   val show_sorts: bool Config.T
   val show_markup: bool Config.T
+  val show_consts_markup: bool Config.T
   val show_structs: bool Config.T
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
@@ -52,6 +53,7 @@ val show_types = Config.declare_option_bool ("show_types", \<^here>);
 val show_sorts = Config.declare_option_bool ("show_sorts", \<^here>);
 val show_markup_default = Unsynchronized.ref false;
 val show_markup = Config.declare_bool ("show_markup", \<^here>) (fn _ => ! show_markup_default);
+val show_consts_markup = Config.declare_bool ("show_consts_markup", \<^here>) (K false);
 val show_structs = Config.declare_bool ("show_structs", \<^here>) (K false);
 val show_question_marks = Config.declare_option_bool ("show_question_marks", \<^here>);
 val show_type_emphasis = Config.declare_bool ("show_type_emphasis", \<^here>) (K true);
@@ -226,9 +228,21 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
       else if curried then Syntax_Trans.applC_ast_tr'
       else Syntax_Trans.appl_ast_tr';
 
+    fun constrain_trans (Ast.Appl [Ast.Constant (a as "_constrain"), ast, ty]) =
+          markup_trans a [ast, ty]
+      | constrain_trans _ = NONE;
+
     fun main _ (Ast.Variable x) = [Ast.pretty_var x]
-      | main p (c as Ast.Constant a) = combination p c a []
-      | main p (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _))) = combination p c a args
+      | main p (cc as Ast.Appl [Ast.Constant "_constrain", c as Ast.Constant a, _]) =
+          combination p c a [] (SOME cc)
+      | main p (c as Ast.Constant a) =
+          combination p c a [] NONE
+      | main p
+          (Ast.Appl ((cc as Ast.Appl [Ast.Constant "_constrain", c as Ast.Constant a, _]) ::
+            (args as _ :: _))) =
+          combination p c a args (SOME cc)
+      | main p (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _))) =
+          combination p c a args NONE
       | main p (Ast.Appl (f :: (args as _ :: _))) = main p (application (f, args))
       | main _ (ast as Ast.Appl _) = raise Ast.AST ("pretty: malformed ast", [ast])
 
@@ -240,7 +254,7 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
           |> Config.put pretty_priority p
           |> pretty) tabs trf markup_trans (markup, extern) ast
 
-    and combination p c a args =
+    and combination p c a args constraint =
       (case translation p a args of
         SOME prts => prts
       | NONE =>
@@ -254,8 +268,11 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
           in
             (case entry of
               NONE =>
-                if nargs = 0 then [Pretty.marks_str (markup a, extern a)]
-                else main p (application (c, args))
+                if nargs = 0 then
+                  (case Option.mapPartial constrain_trans constraint of
+                    SOME prt => [prt]
+                  | NONE => [Pretty.marks_str (markup a, extern a)])
+                else main p (application (the_default c constraint, args))
             | SOME (symbs, n, q) =>
                 if nargs = n then parens p q a (symbs, args)
                 else main p (application (split_args n [c] args)))

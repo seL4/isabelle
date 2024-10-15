@@ -662,6 +662,7 @@ fun term_to_ast ctxt trf term =
   let
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
+    val show_consts_markup = Config.get ctxt show_consts_markup;
 
     fun constrain_ast clean T ast =
       if T = dummyT then ast
@@ -684,11 +685,18 @@ fun term_to_ast ctxt trf term =
           in Ast.mk_appl (var_ast (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (var_ast (Syntax.const "_idtdummy") T) (map ast_of ts)
-      | (Const (c, T), ts) => trans c (Type_Annotation.smash T) ts
+      | (Const (c, T), ts) => const_ast c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
-    and trans a T args = ast_of (trf a ctxt T args)
-      handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
+    and const_ast a T args =
+      (case SOME (trf a ctxt (Type_Annotation.smash T) args) handle Match => NONE of
+        SOME t => ast_of t
+      | NONE =>
+          let
+            val c =
+              Ast.Constant a
+              |> (show_markup andalso show_consts_markup) ? constrain_ast {clean = true} T;
+          in Ast.mk_appl c (map ast_of args) end)
 
     and var_ast v T =
       simple_ast_of ctxt v

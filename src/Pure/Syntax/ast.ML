@@ -137,13 +137,16 @@ fun fold_ast _ [] = raise Match
 fun fold_ast_p c = uncurry (fold_rev (fn x => fn xs => Appl [Constant c, x, xs]));
 
 
-fun unfold_ast c (y as Appl [Constant c', x, xs]) =
+fun unfold_ast c (y as Appl [Appl [Constant "_constrain", Constant c', _], x, xs]) =
+      if c = c' then x :: unfold_ast c xs else [y]
+  | unfold_ast c (y as Appl [Constant c', x, xs]) =
       if c = c' then x :: unfold_ast c xs else [y]
   | unfold_ast _ y = [y];
 
-fun unfold_ast_p c (y as Appl [Constant c', x, xs]) =
-      if c = c' then apfst (cons x) (unfold_ast_p c xs)
-      else ([], y)
+fun unfold_ast_p c (y as Appl [Appl [Constant "_constrain", Constant c', _], x, xs]) =
+      if c = c' then apfst (cons x) (unfold_ast_p c xs) else ([], y)
+  | unfold_ast_p c (y as Appl [Constant c', x, xs]) =
+      if c = c' then apfst (cons x) (unfold_ast_p c xs) else ([], y)
   | unfold_ast_p _ y = ([], y);
 
 
@@ -156,8 +159,12 @@ local
 
 exception NO_MATCH;
 
-fun match1 (Constant a) (Constant b) env = if a = b then env else raise NO_MATCH
-  | match1 (Variable a) (Constant b) env = if a = b then env else raise NO_MATCH
+fun const_match (Constant a) b = a = b
+  | const_match (Variable a) b = a = b
+  | const_match (Appl [Constant "_constrain", ast, _]) b = const_match ast b
+  | const_match _ _ = false;
+
+fun match1 ast (Constant b) env = if const_match ast b then env else raise NO_MATCH
   | match1 ast (Variable x) env = Symtab.update (x, ast) env
   | match1 (Appl asts) (Appl pats) env = match2 asts pats env
   | match1 _ _ _ = raise NO_MATCH
@@ -195,6 +202,8 @@ fun subst _ (ast as Constant _) = ast
 
 fun head_name (Constant a) = SOME a
   | head_name (Variable a) = SOME a
+  | head_name (Appl [Constant "_constrain", Constant a, _]) = SOME a
+  | head_name (Appl (Appl [Constant "_constrain", Constant a, _] :: _)) = SOME a
   | head_name (Appl (Constant a :: _)) = SOME a
   | head_name (Appl (Variable a :: _)) = SOME a
   | head_name _ = NONE;
