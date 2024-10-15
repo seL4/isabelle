@@ -200,13 +200,13 @@ fun subst _ (ast as Constant _) = ast
   | subst env (Variable x) = the (Symtab.lookup env x)
   | subst env (Appl asts) = Appl (map (subst env) asts);
 
-fun head_name (Constant a) = SOME a
-  | head_name (Variable a) = SOME a
-  | head_name (Appl [Constant "_constrain", Constant a, _]) = SOME a
-  | head_name (Appl (Appl [Constant "_constrain", Constant a, _] :: _)) = SOME a
-  | head_name (Appl (Constant a :: _)) = SOME a
-  | head_name (Appl (Variable a :: _)) = SOME a
-  | head_name _ = NONE;
+fun head_name (Constant a) = a
+  | head_name (Variable a) = a
+  | head_name (Appl [Constant "_constrain", Constant a, _]) = a
+  | head_name (Appl (Appl [Constant "_constrain", Constant a, _] :: _)) = a
+  | head_name (Appl (Constant a :: _)) = a
+  | head_name (Appl (Variable a :: _)) = a
+  | head_name _ = "";
 
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
@@ -230,11 +230,10 @@ fun normalize ctxt get_rules pre_ast =
           | NONE => (Unsynchronized.inc failed_matches; rewrite1 pats ast))
       | rewrite1 [] _ = NONE;
 
-    fun rewrite2 (SOME a) ast =
-          (case rewrite1 (get_rules a) ast of
-            NONE => rewrite2 NONE ast
-          | some => some)
-      | rewrite2 NONE ast = rewrite1 (get_rules "") ast;
+    fun rewrite2 a ast =
+      (case rewrite1 (get_rules a) ast of
+        NONE => if a = "" then NONE else rewrite2 "" ast
+      | some => some);
 
     fun rewrite ast = rewrite2 (head_name ast) ast;
 
