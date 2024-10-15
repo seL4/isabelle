@@ -665,10 +665,8 @@ fun term_to_ast ctxt trf term =
     val show_consts_markup = Config.get ctxt show_consts_markup;
 
     fun constrain_ast clean T ast =
-      if T = dummyT then ast
-      else
-        let val U = Type_Annotation.print clean T
-        in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
+      let val U = Type_Annotation.print clean T
+      in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
 
     fun ast_of tm =
       (case strip_comb tm of
