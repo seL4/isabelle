@@ -658,13 +658,16 @@ fun mark_atoms ctxt tm =
 
 in
 
-fun term_to_ast ctxt trf tm =
+fun term_to_ast ctxt trf term =
   let
     val show_types = Config.get ctxt show_types orelse Config.get ctxt show_sorts;
     val show_markup = Config.get ctxt show_markup;
 
-    fun constrain_ast T ast =
-      Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt T)];
+    fun constrain_ast clean T ast =
+      if T = dummyT then ast
+      else
+        let val U = Type_Annotation.print clean T
+        in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
 
     fun ast_of tm =
       (case strip_comb tm of
@@ -688,16 +691,11 @@ fun term_to_ast ctxt trf tm =
       handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and var_ast v T =
-      if (show_types orelse show_markup) andalso T <> dummyT then
-        let
-          val T' =
-            if show_markup andalso not show_types
-            then Type_Annotation.clean T
-            else Type_Annotation.smash T;
-        in simple_ast_of ctxt v |> constrain_ast T' end
-      else simple_ast_of ctxt v;
+      simple_ast_of ctxt v
+      |> (show_types orelse show_markup) ?
+          constrain_ast {clean = show_markup andalso not show_types} T;
   in
-    tm
+    term
     |> mark_aprop
     |> show_types ? prune_types
     |> Variable.revert_bounds ctxt

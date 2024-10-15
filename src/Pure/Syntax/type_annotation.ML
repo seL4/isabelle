@@ -12,6 +12,7 @@ sig
   val is_omitted: typ -> bool
   val clean: typ -> typ
   val smash: typ -> typ
+  val print: {clean: bool} -> typ -> typ
   val fastype_of: typ list -> term -> typ
 end;
 
@@ -36,6 +37,9 @@ fun clean (Type ("_ignore_type", [T])) = clean T
 fun smash (Type ("_ignore_type", [_])) = dummyT
   | smash (Type (a, Ts)) = Type (a, map smash Ts)
   | smash T = T;
+
+fun print {clean = true} = clean
+  | print {clean = false} = smash;
 
 
 (* determine type -- propagate annotations *)
