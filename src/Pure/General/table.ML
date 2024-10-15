@@ -518,9 +518,7 @@ end;
 (* membership operations *)
 
 fun member eq tab (key, x) =
-  (case lookup tab key of
-    NONE => false
-  | SOME y => eq (x, y));
+  retrieve {result = fn (_, y) => eq (x, y), no_result = false} tab key;
 
 fun insert eq (key, x) =
   modify key (fn NONE => x | SOME y => if eq (x, y) then raise SAME else raise DUP key);
@@ -554,7 +552,7 @@ fun merges eq tabs = Library.foldl (merge eq) (empty, tabs);
 
 (* list tables *)
 
-fun lookup_list tab key = these (lookup tab key);
+fun lookup_list tab key = retrieve {result = #2, no_result = []} tab key;
 
 fun cons_list (key, x) tab = modify key (fn NONE => [x] | SOME xs => x :: xs) tab;
 
