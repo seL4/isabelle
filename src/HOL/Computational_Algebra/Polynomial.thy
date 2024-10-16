@@ -353,7 +353,6 @@ syntax
 translations
   "[:x, xs:]" \<rightleftharpoons> "CONST pCons x [:xs:]"
   "[:x:]" \<rightleftharpoons> "CONST pCons x 0"
-  "[:x:]" \<leftharpoondown> "CONST pCons x (_constrain 0 t)"
 
 
 subsection \<open>Representation of polynomials by lists of coefficients\<close>
