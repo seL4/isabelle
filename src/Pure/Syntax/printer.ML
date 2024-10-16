@@ -69,7 +69,7 @@ fun type_emphasis ctxt T =
 
 datatype symb =
   Arg of int |
-  TypArg of int |
+  Arg_Type of int |
   String of Markup.T list * string |
   Break of int |
   Block of Syntax_Ext.block * symb list;
@@ -89,7 +89,7 @@ datatype assoc = No_Assoc | Left_Assoc | Right_Assoc;
 local
 
 fun is_arg (Arg _) = true
-  | is_arg (TypArg _) = true
+  | is_arg (Arg_Type _) = true
   | is_arg _ = false;
 
 fun is_space str = forall_string (fn s => s = " ") str;
@@ -120,7 +120,7 @@ fun get_infix prtabs c =
   |> map_filter (fn (symbs, _, p) =>
       (case clean symbs of
         [Arg p1, String (_, d), Arg p2] => SOME (p1, p2, d, p)
-      | [TypArg p1, String (_, d), TypArg p2] => SOME (p1, p2, d, p)
+      | [Arg_Type p1, String (_, d), Arg_Type p2] => SOME (p1, p2, d, p)
       | _ => NONE))
   |> get_first (fn (p1, p2, d, p) =>
       if p1 = p + 1 andalso p2 = p + 1 then SOME {assoc = No_Assoc, delim = d, pri = p}
@@ -137,7 +137,7 @@ fun make_string s = String ([], s);
 fun make_literal s = String (Lexicon.literal_markup s, s);
 
 fun make_arg (s, p) =
-  (if s = "type" then TypArg else Arg)
+  (if s = "type" then Arg_Type else Arg)
   (if Lexicon.is_terminal s then 1000 else p);
 
 fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
@@ -156,7 +156,7 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           | make_symbs [] = ([], []);
 
         fun count_args (Arg _ :: syms) = Integer.add 1 #> count_args syms
-          | count_args (TypArg _ :: syms) = Integer.add 1 #> count_args syms
+          | count_args (Arg_Type _ :: syms) = Integer.add 1 #> count_args syms
           | count_args (String _ :: syms) = count_args syms
           | count_args (Break _ :: syms) = count_args syms
           | count_args (Block (_, bsyms) :: syms) = count_args syms #> count_args bsyms
@@ -294,7 +294,7 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
       | syntax m (Arg p :: symbs, arg :: args) =
           let val (prts, args') = syntax m (symbs, args);
           in (main p arg @ prts, args') end
-      | syntax m (TypArg p :: symbs, arg :: args) =
+      | syntax m (Arg_Type p :: symbs, arg :: args) =
           let val (prts, args') = syntax m (symbs, args);
           in (main_type p arg @ prts, args') end
       | syntax m (String (literal_markup, s) :: symbs, args) =
