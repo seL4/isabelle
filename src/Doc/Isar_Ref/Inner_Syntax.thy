@@ -112,6 +112,7 @@ subsection \<open>Details of printed content\<close>
 text \<open>
   \begin{tabular}{rcll}
     @{attribute_def show_markup} & : & \<open>attribute\<close> \\
+    @{attribute_def show_consts_markup} & : & \<open>attribute\<close> & default \<open>true\<close> \\
     @{attribute_def show_types} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def show_sorts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def show_consts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
@@ -138,6 +139,9 @@ text \<open>
   constraints. This enables Prover IDE users to retrieve that information via
   tooltips or popups while hovering with the mouse over the output window, for
   example. Consequently, this option is enabled by default for Isabelle/jEdit.
+
+  \<^descr> @{attribute show_consts_markup} controls printing of type constrains for
+  term constants; this requires @{attribute show_markup}.
 
   \<^descr> @{attribute show_types} and @{attribute show_sorts} control printing of
   type constraints for term variables, and sort constraints for type
