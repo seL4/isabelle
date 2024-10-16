@@ -22,7 +22,9 @@ sig
   val show_markup_default: bool Unsynchronized.ref
   val show_type_emphasis: bool Config.T
   val type_emphasis: Proof.context -> typ -> bool
+  type prtab
   type prtabs
+  val print_mode_tabs: prtabs -> prtab list
   datatype assoc = No_Assoc | Left_Assoc | Right_Assoc
   val get_prefix: prtabs -> Symtab.key -> string option
   val get_binder: prtabs -> Symtab.key -> string option
@@ -30,13 +32,13 @@ sig
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
-  val merge_prtabs: prtabs -> prtabs -> prtabs
-  val pretty_term_ast: bool -> Proof.context -> prtabs ->
+  val merge_prtabs: prtabs * prtabs -> prtabs
+  val pretty_term_ast: bool -> Proof.context -> prtab list ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> Ast.ast list -> Pretty.T option) ->
     ((string -> Markup.T list) * (string -> string)) ->
     Ast.ast -> Pretty.T list
-  val pretty_typ_ast: Proof.context -> prtabs ->
+  val pretty_typ_ast: Proof.context -> prtab list ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> Ast.ast list -> Pretty.T option) ->
     ((string -> Markup.T list) * (string -> string)) ->
@@ -74,12 +76,21 @@ datatype symb =
   Break of int |
   Block of Syntax_Ext.block * symb list;
 
-type prtabs = (string * ((symb list * int * int) list) Symtab.table) list;
+datatype prtab = Prtab of ((symb list * int * int) list) Symtab.table;
 
-fun mode_tab (prtabs: prtabs) mode = the_default Symtab.empty (AList.lookup (op =) prtabs mode);
-fun mode_tabs (prtabs: prtabs) modes = map_filter (AList.lookup (op =) prtabs) (modes @ [""]);
+val empty_prtab = Prtab Symtab.empty;
+fun lookup_prtab (Prtab tab) = Symtab.lookup_list tab;
+fun update_prtab arg (Prtab tab) = Prtab (Symtab.update_list (op =) arg tab);
+fun remove_prtab arg (Prtab tab) = Prtab (Symtab.remove_list (op =) arg tab);
+fun merge_prtab (Prtab tab1, Prtab tab2) = Prtab (Symtab.merge_list (op =) (tab1, tab2));
 
-fun lookup_default prtabs = Symtab.lookup_list (mode_tab prtabs "");
+datatype prtabs = Prtabs of prtab Symtab.table;
+
+fun mode_tab (Prtabs prtabs) mode = the_default empty_prtab (Symtab.lookup prtabs mode);
+fun mode_tabs (Prtabs prtabs) modes = map_filter (Symtab.lookup prtabs) (modes @ [""]);
+fun print_mode_tabs prtabs = mode_tabs prtabs (print_mode_value ());
+
+fun lookup_default prtabs = lookup_prtab (mode_tab prtabs "");
 
 
 (* approximative syntax *)
@@ -170,28 +181,25 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
 
 (* empty, extend, merge prtabs *)
 
-val empty_prtabs = [];
+val empty_prtabs = Prtabs Symtab.empty;
 
-fun update_prtabs mode xprods prtabs =
+fun update_prtabs mode xprods (prtabs as Prtabs tabs) =
   let
     val fmts = map_filter xprod_to_fmt xprods;
-    val tab' = fold (Symtab.update_list (op =)) fmts (mode_tab prtabs mode);
-  in AList.update (op =) (mode, tab') prtabs end;
+    val prtab' = fold update_prtab fmts (mode_tab prtabs mode);
+  in Prtabs (Symtab.update (mode, prtab') tabs) end;
 
-fun remove_prtabs mode xprods prtabs =
+fun remove_prtabs mode xprods (prtabs as Prtabs tabs) =
   let
-    val tab = mode_tab prtabs mode;
+    val prtab = mode_tab prtabs mode;
     val fmts = map_filter (fn xprod as Syntax_Ext.XProd (_, _, c, _) =>
-      if null (Symtab.lookup_list tab c) then NONE
+      if null (lookup_prtab prtab c) then NONE
       else xprod_to_fmt xprod) xprods;
-    val tab' = fold (Symtab.remove_list (op =)) fmts tab;
-  in AList.update (op =) (mode, tab') prtabs end;
+    val prtab' = fold remove_prtab fmts prtab;
+  in Prtabs (Symtab.update (mode, prtab') tabs) end;
 
-fun merge_prtabs prtabs1 prtabs2 =
-  let
-    val modes = distinct (op =) (map fst (prtabs1 @ prtabs2));
-    fun merge m = (m, Symtab.merge_list (op =) (mode_tab prtabs1 m, mode_tab prtabs2 m));
-  in map merge modes end;
+fun merge_prtabs (Prtabs tabs1, Prtabs tabs2) =
+  Prtabs (Symtab.join (K merge_prtab) (tabs1, tabs2));
 
 
 
@@ -217,7 +225,7 @@ val par_en = make_literal ")";
 
 in
 
-fun pretty ctxt tabs trf markup_trans (markup, extern) =
+fun pretty ctxt prtabs trf markup_trans (markup, extern) =
   let
     val type_mode = Config.get ctxt pretty_type_mode;
     val curried = Config.get ctxt pretty_curried;
@@ -252,7 +260,7 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
         (ctxt
           |> Config.put pretty_type_mode true
           |> Config.put pretty_priority p
-          |> pretty) tabs trf markup_trans (markup, extern) ast
+          |> pretty) prtabs trf markup_trans (markup, extern) ast
 
     and combination p c a args constraint =
       (case translation p a args of
@@ -262,8 +270,8 @@ fun pretty ctxt tabs trf markup_trans (markup, extern) =
           let
             val nargs = length args;
             val entry =
-              tabs |> get_first (fn tab =>
-                Symtab.lookup_list tab a |> find_first (fn (_, n, _) =>
+              prtabs |> get_first (fn prtab =>
+                lookup_prtab prtab a |> find_first (fn (_, n, _) =>
                   nargs = n orelse nargs > n andalso not type_mode));
           in
             (case entry of
@@ -322,7 +330,7 @@ fun pretty_term_ast curried ctxt prtabs trf markup_trans markup_extern ast =
   let val ctxt' = ctxt
     |> Config.put pretty_type_mode false
     |> Config.put pretty_curried curried
-  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans markup_extern ast end;
+  in pretty ctxt' prtabs trf markup_trans markup_extern ast end;
 
 
 (* pretty_typ_ast *)
@@ -331,10 +339,9 @@ fun pretty_typ_ast ctxt prtabs trf markup_trans markup_extern ast =
   let val ctxt' = ctxt
     |> Config.put pretty_type_mode true
     |> Config.put pretty_curried false
-  in pretty ctxt' (mode_tabs prtabs (print_mode_value ())) trf markup_trans markup_extern ast end;
+  in pretty ctxt' prtabs trf markup_trans markup_extern ast end;
 
 end;
 
 structure Basic_Printer: BASIC_PRINTER = Printer;
 open Basic_Printer;
-

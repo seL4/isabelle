@@ -769,7 +769,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val show_types = Config.get ctxt show_types orelse show_sorts;
 
     val syn = Proof_Context.syntax_of ctxt;
-    val prtabs = Syntax.prtabs syn;
+    val prtabs = Syntax.print_mode_tabs syn;
     val trf = Syntax.print_ast_translation syn;
     val markup_extern = (markup_entity_cache ctxt, extern_cache ctxt);
 

@@ -91,6 +91,7 @@ sig
   val print_ast_translation: syntax -> string ->
     Proof.context -> Ast.ast list -> Ast.ast  (*exception Match*)
   val prtabs: syntax -> Printer.prtabs
+  val print_mode_tabs: syntax -> Printer.prtab list
   type mode
   val mode_default: mode
   val mode_input: mode
@@ -462,6 +463,7 @@ fun print_rules (Syntax ({print_ruletab, ...}, _)) = Symtab.lookup_list print_ru
 fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = apply_ast_tr' print_ast_trtab;
 
 fun prtabs (Syntax ({prtabs, ...}, _)) = prtabs;
+val print_mode_tabs = Printer.print_mode_tabs o prtabs;
 
 type mode = string * bool;
 val mode_default = ("", true);
@@ -613,7 +615,7 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
       print_trtab = merge_tr'tabs print_trtab1 print_trtab2,
       print_ruletab = merge_ruletabs print_ruletab1 print_ruletab2,
       print_ast_trtab = merge_tr'tabs print_ast_trtab1 print_ast_trtab2,
-      prtabs = Printer.merge_prtabs prtabs1 prtabs2}, stamp ())
+      prtabs = Printer.merge_prtabs (prtabs1, prtabs2)}, stamp ())
   end;
 
 
