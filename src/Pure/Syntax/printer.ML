@@ -33,16 +33,12 @@ sig
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs * prtabs -> prtabs
-  val pretty_term_ast: bool -> Proof.context -> prtab list ->
+  val pretty: {type_mode: bool, curried: bool} -> Proof.context -> prtab list ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> Ast.ast list -> Pretty.T option) ->
     ((string -> Markup.T list) * (string -> string)) ->
     Ast.ast -> Pretty.T list
-  val pretty_typ_ast: Proof.context -> prtab list ->
-    (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
-    (string -> Ast.ast list -> Pretty.T option) ->
-    ((string -> Markup.T list) * (string -> string)) ->
-    Ast.ast -> Pretty.T list
+  val type_mode_flags: {type_mode: bool, curried: bool}
 end;
 
 structure Printer: PRINTER =
@@ -225,10 +221,10 @@ val par_en = make_literal ")";
 
 in
 
-fun pretty ctxt prtabs trf markup_trans (markup, extern) =
+val type_mode_flags = {type_mode = true, curried = false};
+
+fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
   let
-    val type_mode = Config.get ctxt pretty_type_mode;
-    val curried = Config.get ctxt pretty_curried;
     val show_brackets = Config.get ctxt show_brackets;
 
     val application =
@@ -257,10 +253,8 @@ fun pretty ctxt prtabs trf markup_trans (markup, extern) =
     and main_type p ast =
       if type_mode then main p ast
       else
-        (ctxt
-          |> Config.put pretty_type_mode true
-          |> Config.put pretty_priority p
-          |> pretty) prtabs trf markup_trans (markup, extern) ast
+        pretty type_mode_flags (Config.put pretty_priority p ctxt)
+          prtabs trf markup_trans (markup, extern) ast
 
     and combination p c a args constraint =
       (case translation p a args of
@@ -322,24 +316,6 @@ fun pretty ctxt prtabs trf markup_trans (markup, extern) =
   in main (Config.get ctxt pretty_priority) end;
 
 end;
-
-
-(* pretty_term_ast *)
-
-fun pretty_term_ast curried ctxt prtabs trf markup_trans markup_extern ast =
-  let val ctxt' = ctxt
-    |> Config.put pretty_type_mode false
-    |> Config.put pretty_curried curried
-  in pretty ctxt' prtabs trf markup_trans markup_extern ast end;
-
-
-(* pretty_typ_ast *)
-
-fun pretty_typ_ast ctxt prtabs trf markup_trans markup_extern ast =
-  let val ctxt' = ctxt
-    |> Config.put pretty_type_mode true
-    |> Config.put pretty_curried false
-  in pretty ctxt' prtabs trf markup_trans markup_extern ast end;
 
 end;
 

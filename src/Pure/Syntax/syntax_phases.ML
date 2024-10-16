@@ -762,6 +762,8 @@ val var_or_skolem_cache =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
+val pretty_type_mode = Printer.pretty Printer.type_mode_flags;
+
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
@@ -804,7 +806,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       then SOME (markup_ast false ty s) else NONE
 
     and pretty_typ_ast m ast = ast
-      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
+      |> pretty_type_mode ctxt prtabs trf markup_trans markup_extern
       |> Pretty.markup m
 
     and pretty_ast m ast = ast
@@ -835,14 +837,14 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
 
 in
 
-val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast (Markup.language_sort false);
-val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast (Markup.language_type false);
+val unparse_sort = unparse_t sort_to_ast pretty_type_mode (Markup.language_sort false);
+val unparse_typ = unparse_t typ_to_ast pretty_type_mode (Markup.language_type false);
 
 fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val curried = not (Pure_Thy.old_appl_syntax thy);
-  in unparse_t term_to_ast (Printer.pretty_term_ast curried) (Markup.language_term false) ctxt end;
+    val term_mode = {type_mode = false, curried = not (Pure_Thy.old_appl_syntax thy)};
+  in unparse_t term_to_ast (Printer.pretty term_mode) (Markup.language_term false) ctxt end;
 
 end;
 
