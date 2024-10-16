@@ -66,14 +66,16 @@ fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
-fun markup_entity ctxt c =
-  Syntax.get_consts (Proof_Context.syntax_of ctxt) c
-  |> maps (Lexicon.unmark
-     {case_class = markup_class ctxt,
-      case_type = markup_type ctxt,
-      case_const = markup_const ctxt,
-      case_fixed = markup_free ctxt,
-      case_default = K []});
+fun markup_entity_cache ctxt =
+  Symtab.unsynchronized_cache (fn c =>
+    Syntax.get_consts (Proof_Context.syntax_of ctxt) c
+    |> maps (Lexicon.unmark
+       {case_class = markup_class ctxt,
+        case_type = markup_type ctxt,
+        case_const = markup_const ctxt,
+        case_fixed = markup_free ctxt,
+        case_default = K []}))
+  |> #apply;
 
 
 
@@ -161,13 +163,15 @@ fun parsetree_to_ast ctxt trf parsetree =
       if Lexicon.is_literal tok andalso null (Lexicon.literal_markup (Lexicon.str_of_token tok))
       then Position.none else Lexicon.pos_of_token tok;
 
+    val markup_cache = markup_entity_cache ctxt;
+
     fun report_literals a ts = List.app (report_literal a) ts
     and report_literal a t =
       (case t of
         Parser.Markup (_, ts) => report_literals a ts
       | Parser.Node _ => ()
       | Parser.Tip tok =>
-          if Lexicon.is_literal tok then report (report_pos tok) (markup_entity ctxt) a else ());
+          if Lexicon.is_literal tok then report (report_pos tok) markup_cache a else ());
 
     fun trans a args =
       (case trf a of
@@ -273,56 +277,63 @@ fun get_free ctxt x =
 
 in
 
-fun decode_term _ (result as (_: Position.report_text list, Exn.Exn _)) = result
-  | decode_term ctxt (reports0, Exn.Res tm) =
-      let
-        val reports = Unsynchronized.ref reports0;
-        fun report ps = Position.store_reports reports ps;
-        val append_reports = Position.append_reports reports;
+fun decode_term ctxt =
+  let
+    val markup_free_cache = #apply (Symtab.unsynchronized_cache (markup_free ctxt));
+    val markup_const_cache = #apply (Symtab.unsynchronized_cache (markup_const ctxt));
 
-        fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
-              (case Term_Position.decode_position typ of
-                SOME (p, T) => Type.constraint T (decode (p :: ps) qs bs t)
-              | NONE => Type.constraint (decode_typ typ) (decode ps qs bs t))
-          | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
-              (case Term_Position.decode_position typ of
-                SOME (q, T) => Type.constraint (T --> dummyT) (decode ps (q :: qs) bs t)
-              | NONE => Type.constraint (decode_typ typ --> dummyT) (decode ps qs bs t))
-          | decode _ qs bs (Abs (x, T, t)) =
-              let
-                val id = serial ();
-                val _ = report qs (markup_bound {def = true} qs) (x, id);
-              in Abs (x, T, decode [] [] ((qs, (x, id)) :: bs) t) end
-          | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
-          | decode ps _ _ (Const (a, T)) =
-              (case try Lexicon.unmark_fixed a of
-                SOME x => (report ps (markup_free ctxt) x; Free (x, T))
-              | NONE =>
+    fun decode (result as (_: Position.report_text list, Exn.Exn _)) = result
+      | decode (reports0, Exn.Res tm) =
+          let
+            val reports = Unsynchronized.ref reports0;
+            fun report ps = Position.store_reports reports ps;
+            val append_reports = Position.append_reports reports;
+
+            fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
+                  (case Term_Position.decode_position typ of
+                    SOME (p, T) => Type.constraint T (decode (p :: ps) qs bs t)
+                  | NONE => Type.constraint (decode_typ typ) (decode ps qs bs t))
+              | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
+                  (case Term_Position.decode_position typ of
+                    SOME (q, T) => Type.constraint (T --> dummyT) (decode ps (q :: qs) bs t)
+                  | NONE => Type.constraint (decode_typ typ --> dummyT) (decode ps qs bs t))
+              | decode _ qs bs (Abs (x, T, t)) =
                   let
-                    val c =
-                      (case try Lexicon.unmark_const a of
-                        SOME c => c
-                      | NONE => #1 (decode_const ctxt (a, [])));
-                    val _ = report ps (markup_const ctxt) c;
-                  in Const (c, T) end)
-          | decode ps _ _ (Free (a, T)) =
-              ((Name.reject_internal (a, ps) handle ERROR msg =>
-                  error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
-                (case get_free ctxt a of
-                  SOME x => (report ps (markup_free ctxt) x; Free (x, T))
-                | NONE =>
-                    let
-                      val (c, rs) = decode_const ctxt (a, ps);
-                      val _ = append_reports rs;
-                    in Const (c, T) end))
-          | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
-          | decode ps _ bs (t as Bound i) =
-              (case try (nth bs) i of
-                SOME (qs, (x, id)) => (report ps (markup_bound {def = false} qs) (x, id); t)
-              | NONE => t);
+                    val id = serial ();
+                    val _ = report qs (markup_bound {def = true} qs) (x, id);
+                  in Abs (x, T, decode [] [] ((qs, (x, id)) :: bs) t) end
+              | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
+              | decode ps _ _ (Const (a, T)) =
+                  (case try Lexicon.unmark_fixed a of
+                    SOME x => (report ps markup_free_cache x; Free (x, T))
+                  | NONE =>
+                      let
+                        val c =
+                          (case try Lexicon.unmark_const a of
+                            SOME c => c
+                          | NONE => #1 (decode_const ctxt (a, [])));
+                        val _ = report ps markup_const_cache c;
+                      in Const (c, T) end)
+              | decode ps _ _ (Free (a, T)) =
+                  ((Name.reject_internal (a, ps) handle ERROR msg =>
+                      error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
+                    (case get_free ctxt a of
+                      SOME x => (report ps markup_free_cache x; Free (x, T))
+                    | NONE =>
+                        let
+                          val (c, rs) = decode_const ctxt (a, ps);
+                          val _ = append_reports rs;
+                        in Const (c, T) end))
+              | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
+              | decode ps _ bs (t as Bound i) =
+                  (case try (nth bs) i of
+                    SOME (qs, (x, id)) => (report ps (markup_bound {def = false} qs) (x, id); t)
+                  | NONE => t);
 
-        val tm' = Exn.result (fn () => decode [] [] [] tm) ();
-      in (! reports, tm') end;
+            val tm' = Exn.result (fn () => decode [] [] [] tm) ();
+          in (! reports, tm') end;
+
+  in decode end;
 
 end;
 
@@ -473,7 +484,9 @@ fun parse_ast_pattern ctxt (root, str) =
     val reports = Unsynchronized.ref ([]: Position.report_text list);
     fun report ps = Position.store_reports reports ps;
 
-    fun decode_const ps c = (report ps (markup_entity ctxt) c; Ast.Constant c);
+    val markup_cache = markup_entity_cache ctxt;
+
+    fun decode_const ps c = (report ps markup_cache c; Ast.Constant c);
     fun decode_var ps x = (report ps (fn () => [Markup.name x Markup.free]) (); Ast.Variable x);
     fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
     and decode ps (Ast.Constant c) = decode_const ps c
@@ -719,30 +732,32 @@ local
 fun extern_fixed ctxt x =
   if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
 
-fun extern ctxt c =
-  (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
-    [b] => b
-  | bs =>
-      (case filter Lexicon.is_marked bs of
-        [] => c
-      | [b] => b
-      | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
-  |> Lexicon.unmark
-     {case_class = Proof_Context.extern_class ctxt,
-      case_type = Proof_Context.extern_type ctxt,
-      case_const = Proof_Context.extern_const ctxt,
-      case_fixed = extern_fixed ctxt,
-      case_default = I};
+fun extern_cache ctxt =
+  Symtab.unsynchronized_cache (fn c =>
+    (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
+      [b] => b
+    | bs =>
+        (case filter Lexicon.is_marked bs of
+          [] => c
+        | [b] => b
+        | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
+    |> Lexicon.unmark
+       {case_class = Proof_Context.extern_class ctxt,
+        case_type = Proof_Context.extern_type ctxt,
+        case_const = Proof_Context.extern_const ctxt,
+        case_fixed = extern_fixed ctxt,
+        case_default = I})
+  |> #apply;
 
-fun free_or_skolem ctxt x = (markup_free ctxt x, extern_fixed ctxt x);
-
-fun var_or_skolem s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
-      | NONE => (Markup.var, s))
-  | NONE => (Markup.var, s));
+val var_or_skolem_cache =
+  Symtab.unsynchronized_cache (fn s =>
+    (case Lexicon.read_variable s of
+      SOME (x, i) =>
+        (case try Name.dest_skolem x of
+          SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
+        | NONE => (Markup.var, s))
+    | NONE => (Markup.var, s)))
+  |> #apply;
 
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
@@ -756,17 +771,20 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.prtabs syn;
     val trf = Syntax.print_ast_translation syn;
-    val markup_extern = (markup_entity ctxt, extern ctxt);
+    val markup_extern = (markup_entity_cache ctxt, extern_cache ctxt);
+
+    val free_or_skolem_cache =
+      #apply (Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, extern_fixed ctxt x)));
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
-      | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
+      | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem_cache x))
       | token_trans "_bound" x = SOME (Pretty.mark_str (Markup.bound, x))
       | token_trans "_loose" x = SOME (Pretty.mark_str (Markup.bad (), x))
-      | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem x))
+      | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem_cache x))
       | token_trans "_numeral" x = SOME (Pretty.mark_str (Markup.numeral, x))
       | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))
       | token_trans _ _ = NONE;
