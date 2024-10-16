@@ -69,12 +69,12 @@ using \<open>finite A\<close> proof induct
     with \<open>f \<noteq> g\<close> eq show False unfolding fun_upd_eq_iff[of _ _ b _ _ d]
       by (auto simp: fun_upd_idem fun_upd_eq_iff)
   next
-    { fix f assume "f \<in> extensionalD d A \<inter> (A \<rightarrow> B)"
-      have "card (fun_upd f a ` B) = card B"
-      proof (auto intro!: card_image inj_onI)
-        fix b b' assume "f(a := b) = f(a := b')"
-        from fun_upd_eq_iff[THEN iffD1, OF this] show "b = b'" by simp
-      qed }
+    have "card (fun_upd f a ` B) = card B"
+      if "f \<in> extensionalD d A \<inter> (A \<rightarrow> B)" for f
+    proof (auto intro!: card_image inj_onI)
+      fix b b' assume "f(a := b) = f(a := b')"
+      from fun_upd_eq_iff[THEN iffD1, OF this] show "b = b'" by simp
+    qed
     then show "(\<Sum>i\<in>extensionalD d A \<inter> (A \<rightarrow> B). card (fun_upd i a ` B)) = card B * card B ^ card A"
       using insert by simp
   qed
@@ -170,9 +170,9 @@ proof
   qed
   then show "sum P msgs = 1"
     unfolding msgs_def P_def by simp
-  fix x
-  have "\<And> A f. 0 \<le> (\<Prod>x\<in>A. M (f x))" by (auto simp: prod_nonneg)
-  then show "0 \<le> P x"
+  have "0 \<le> (\<Prod>x\<in>A. M (f x))" for A f
+    by (auto simp: prod_nonneg)
+  then show "0 \<le> P x" for x
     unfolding P_def by (auto split: prod.split simp: zero_le_mult_iff)
 qed auto
 
@@ -333,40 +333,45 @@ lemma ce_OB_eq_ce_t: "\<I>(fst ; OB) = \<I>(fst ; t\<circ>OB)"
 proof -
   txt \<open>Lemma 2\<close>
 
-  { fix k obs obs'
-    assume "k \<in> keys" "K k \<noteq> 0" and obs': "obs' \<in> OB ` msgs" and obs: "obs \<in> OB ` msgs"
-    assume "t obs = t obs'"
-    from t_eq_imp_bij_func[OF this]
+  have t_eq_imp: "(\<P>(OB ; fst) {(obs, k)}) = (\<P>(OB ; fst) {(obs', k)})"
+    if "k \<in> keys" "K k \<noteq> 0" and obs': "obs' \<in> OB ` msgs" and obs: "obs \<in> OB ` msgs"
+      and eq: "t obs = t obs'"
+    for k obs obs'
+  proof -
+    from t_eq_imp_bij_func[OF eq]
     obtain t_f where "bij_betw t_f {..<n} {..<n}" and
       obs_t_f: "\<And>i. i<n \<Longrightarrow> obs!i = obs' ! t_f i"
       using obs obs' unfolding OB_def msgs_def by auto
     then have t_f: "inj_on t_f {..<n}" "{..<n} = t_f`{..<n}" unfolding bij_betw_def by auto
 
-    { fix obs assume "obs \<in> OB`msgs"
-      then have **: "\<And>ms. length ms = n \<Longrightarrow> OB (k, ms) = obs \<longleftrightarrow> (\<forall>i<n. observe k (ms!i) = obs ! i)"
+    have *: "(\<P>(OB ; fst) {(obs, k)}) / K k =
+            (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
+      if "obs \<in> OB`msgs" for obs
+    proof -
+      from that have **: "length ms = n \<Longrightarrow> OB (k, ms) = obs \<longleftrightarrow> (\<forall>i<n. observe k (ms!i) = obs ! i)"
+        for ms
         unfolding OB_def msgs_def by (simp add: image_iff list_eq_iff_nth_eq)
-
       have "(\<P>(OB ; fst) {(obs, k)}) / K k =
           p ({k}\<times>{ms. (k,ms) \<in> msgs \<and> OB (k,ms) = obs}) / K k"
-        apply (simp add: \<mu>'_eq) by (auto intro!: arg_cong[where f=p])
-      also have "\<dots> =
-          (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
+        by (simp add: \<mu>'_eq) (auto intro!: arg_cong[where f=p])
+      also have "\<dots> = (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using \<open>K k \<noteq> 0\<close> \<open>k \<in> keys\<close>
         apply (simp add: sum.cartesian_product' sum_divide_distrib msgs_def ** cong: conj_cong)
         apply (subst prod_sum_distrib_lists[OF M.finite_space]) ..
-      finally have "(\<P>(OB ; fst) {(obs, k)}) / K k =
-            (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)" . }
-    note * = this
+      finally show ?thesis .
+    qed
 
     have "(\<P>(OB ; fst) {(obs, k)}) / K k = (\<P>(OB ; fst) {(obs', k)}) / K k"
       unfolding *[OF obs] *[OF obs']
       using t_f(1) obs_t_f by (subst (2) t_f(2)) (simp add: prod.reindex)
-    then have "(\<P>(OB ; fst) {(obs, k)}) = (\<P>(OB ; fst) {(obs', k)})"
-      using \<open>K k \<noteq> 0\<close> by auto }
-  note t_eq_imp = this
+    then show ?thesis using \<open>K k \<noteq> 0\<close> by auto
+  qed
 
   let ?S = "\<lambda>obs. t -`{t obs} \<inter> OB`msgs"
-  { fix k obs assume "k \<in> keys" "K k \<noteq> 0" and obs: "obs \<in> OB`msgs"
+  have P_t_eq_P_OB: "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
+    if "k \<in> keys" "K k \<noteq> 0" and obs: "obs \<in> OB`msgs"
+    for k obs
+  proof -
     have *: "((\<lambda>x. (t (OB x), fst x)) -` {(t obs, k)} \<inter> msgs) =
       (\<Union>obs'\<in>?S obs. ((\<lambda>x. (OB x, fst x)) -` {(obs', k)} \<inter> msgs))" by auto
     have df: "disjoint_family_on (\<lambda>obs'. (\<lambda>x. (OB x, fst x)) -` {(obs', k)} \<inter> msgs) (?S obs)"
@@ -377,17 +382,18 @@ proof -
       by (auto simp add: * intro!: sum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB ; fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}"
       by (simp add: t_eq_imp[OF \<open>k \<in> keys\<close> \<open>K k \<noteq> 0\<close> obs])
-    finally have "\<P>(t\<circ>OB ; fst) {(t obs, k)} = real (card (?S obs)) * \<P>(OB ; fst) {(obs, k)}" .}
-  note P_t_eq_P_OB = this
+    finally show ?thesis .
+  qed
 
-  { fix k obs assume "k \<in> keys" and obs: "obs \<in> OB`msgs"
-    have "\<P>(t\<circ>OB | fst) {(t obs, k)} =
-      real (card (t -` {t obs} \<inter> OB ` msgs)) * \<P>(OB | fst) {(obs, k)}"
-      using \<P>_k[OF \<open>k \<in> keys\<close>] P_t_eq_P_OB[OF \<open>k \<in> keys\<close> _ obs] by auto }
-  note CP_t_K = this
+  have CP_t_K: "\<P>(t\<circ>OB | fst) {(t obs, k)} =
+    real (card (t -` {t obs} \<inter> OB ` msgs)) * \<P>(OB | fst) {(obs, k)}"
+    if k: "k \<in> keys" and obs: "obs \<in> OB`msgs" for k obs
+    using \<P>_k[OF k] P_t_eq_P_OB[OF k _ obs] by auto
 
-  { fix k obs assume "k \<in> keys" and obs: "obs \<in> OB`msgs"
-    then have "t -`{t obs} \<inter> OB`msgs \<noteq> {}" (is "?S \<noteq> {}") by auto
+  have CP_T_eq_CP_O: "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}"
+    if "k \<in> keys" and obs: "obs \<in> OB`msgs" for k obs
+  proof -
+    from that have "t -`{t obs} \<inter> OB`msgs \<noteq> {}" (is "?S \<noteq> {}") by auto
     then have "real (card ?S) \<noteq> 0" by auto
 
     have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / \<P>(t\<circ>OB) {t obs}"
@@ -411,31 +417,33 @@ proof -
       by (auto intro!: sum.cong simp: prob_conj_imp1 vimage_def)
     also have "\<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / \<P>(OB) {obs} = \<P>(fst | OB) {(k, obs)}"
       by (auto simp: vimage_def conj_commute prob_conj_imp2)
-    finally have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}" . }
-  note CP_T_eq_CP_O = this
+    finally show ?thesis .
+  qed
 
   let ?H = "\<lambda>obs. (\<Sum>k\<in>keys. \<P>(fst|OB) {(k, obs)} * log b (\<P>(fst|OB) {(k, obs)})) :: real"
   let ?Ht = "\<lambda>obs. (\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, obs)} * log b (\<P>(fst|t\<circ>OB) {(k, obs)})) :: real"
 
-  { fix obs assume obs: "obs \<in> OB`msgs"
+  have *: "?H obs = ?Ht (t obs)" if obs: "obs \<in> OB`msgs" for obs
+  proof -
     have "?H obs = (\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, t obs)} * log b (\<P>(fst|t\<circ>OB) {(k, t obs)}))"
       using CP_T_eq_CP_O[OF _ obs]
       by simp
-    then have "?H obs = ?Ht (t obs)" . }
-  note * = this
+    then show ?thesis .
+  qed
 
   have **: "\<And>x f A. (\<Sum>y\<in>t-`{x}\<inter>A. f y (t y)) = (\<Sum>y\<in>t-`{x}\<inter>A. f y x)" by auto
 
-  { fix x
+  have P_t_sum_P_O: "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})" for x
+  proof -
     have *: "(\<lambda>x. t (OB x)) -` {t (OB x)} \<inter> msgs =
       (\<Union>obs\<in>?S (OB x). OB -` {obs} \<inter> msgs)" by auto
     have df: "disjoint_family_on (\<lambda>obs. OB -` {obs} \<inter> msgs) (?S (OB x))"
       unfolding disjoint_family_on_def by auto
-    have "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})"
+    show ?thesis
       unfolding comp_def
       using finite_measure_finite_Union[OF _ _ df]
-      by (force simp add: * intro!: sum_nonneg) }
-  note P_t_sum_P_O = this
+      by (force simp add: * intro!: sum_nonneg)
+  qed
 
   txt \<open>Lemma 3\<close>
   have "\<H>(fst | OB) = -(\<Sum>obs\<in>OB`msgs. \<P>(OB) {obs} * ?Ht (t obs))"

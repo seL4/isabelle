@@ -44,28 +44,30 @@ proof
   proof induction
     case (Union F)
     moreover
-    { fix i assume "countable (UNIV - F i)"
-      then have "countable (UNIV - (\<Union>i. F i))"
-        by (rule countable_subset[rotated]) auto }
+    have "countable (UNIV - (\<Union>i. F i))" if "countable (UNIV - F i)" for i
+      using that by (rule countable_subset[rotated]) auto
     ultimately show "countable (\<Union>i. F i) \<or> countable (UNIV - (\<Union>i. F i))"
       by blast
   qed (auto simp: Diff_Diff_Int)
 next
   assume "countable A \<or> countable (UNIV - A)"
   moreover
-  { fix A :: "real set" assume A: "countable A"
+  have A: "A \<in> COCOUNT" if "countable A" for A :: "real set"
+  proof -
     have "A = (\<Union>a\<in>A. {a})"
       by auto
     also have "\<dots> \<in> COCOUNT"
-      by (intro sets.countable_UN' A) (auto simp: COCOUNT_def) 
-    finally have "A \<in> COCOUNT" . }
-  note A = this
+      by (intro sets.countable_UN' that) (auto simp: COCOUNT_def) 
+    finally show ?thesis .
+  qed
   note A[of A]
   moreover
-  { assume "countable (UNIV - A)"
-    with A have "space COCOUNT - (UNIV - A) \<in> COCOUNT" by simp
-    then have "A \<in> COCOUNT"
-      by (auto simp: COCOUNT_def Diff_Diff_Int) }
+  have "A \<in> COCOUNT" if "countable (UNIV - A)"
+  proof -
+    from A that have "space COCOUNT - (UNIV - A) \<in> COCOUNT" by simp
+    then show ?thesis
+      by (auto simp: COCOUNT_def Diff_Diff_Int)
+  qed
   ultimately show "A \<in> COCOUNT" 
     by blast
 qed
@@ -121,12 +123,14 @@ begin
 
 lemma space_EXP: "space EXP = measurable COCOUNT BOOL"
 proof -
-  { fix f 
+  have "f \<in> space EXP \<longleftrightarrow> f \<in> measurable COCOUNT BOOL" for f
+  proof -
     have "f \<in> space EXP \<longleftrightarrow> (\<lambda>(a, b). f b) \<in> measurable (POW \<Otimes>\<^sub>M COCOUNT) BOOL"
       using eq[of "\<lambda>x. f"] by (simp add: measurable_const_iff)
     also have "\<dots> \<longleftrightarrow> f \<in> measurable COCOUNT BOOL"
       by auto
-    finally have "f \<in> space EXP \<longleftrightarrow> f \<in> measurable COCOUNT BOOL" . }
+    finally show ?thesis .
+  qed
   then show ?thesis by auto
 qed
 

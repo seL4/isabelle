@@ -124,32 +124,31 @@ proof -
   hence "length ys = n" by (simp add: dc_crypto)
   have [simp]: "length xs = n" using xs_inv[symmetric] by (simp add: inversion_def)
 
-  { fix b
-    have "inj_on (\<lambda>x. inversion (Some i, x)) {ys. ys ! 0 = b \<and> length ys = length xs}"
-    proof (rule inj_onI)
-      fix x y
-      assume "x \<in> {ys. ys ! 0 = b \<and> length ys = length xs}"
-        and "y \<in> {ys. ys ! 0 = b \<and> length ys = length xs}"
-        and inv: "inversion (Some i, x) = inversion (Some i, y)"
-      hence [simp]: "x ! 0 = y ! 0" "length y = n" "length x = n"
-        using \<open>length xs = n\<close> by simp_all
-      have *: "\<And>j. j < n \<Longrightarrow>
-        (x ! j = x ! (Suc j mod n)) = (y ! j = y ! (Suc j mod n))"
-        using inv unfolding inversion_def map_eq_conv payer_def coin_def
-        by fastforce
-      show "x = y"
-      proof (rule nth_equalityI, simp)
-        fix j assume "j < length x" hence "j < n" using \<open>length xs = n\<close> by simp
-        thus "x ! j = y ! j"
-        proof (induct j)
-          case (Suc j)
-          hence "j < n" by simp
-          with Suc show ?case using *[OF \<open>j < n\<close>]
-            by (cases "y ! j") simp_all
-        qed simp
-      qed
-    qed }
-  note inj_inv = this
+  have inj_inv: "inj_on (\<lambda>x. inversion (Some i, x)) {ys. ys ! 0 = b \<and> length ys = length xs}"
+    for b
+  proof (rule inj_onI)
+    fix x y
+    assume "x \<in> {ys. ys ! 0 = b \<and> length ys = length xs}"
+      and "y \<in> {ys. ys ! 0 = b \<and> length ys = length xs}"
+      and inv: "inversion (Some i, x) = inversion (Some i, y)"
+    hence [simp]: "x ! 0 = y ! 0" "length y = n" "length x = n"
+      using \<open>length xs = n\<close> by simp_all
+    have *: "\<And>j. j < n \<Longrightarrow>
+      (x ! j = x ! (Suc j mod n)) = (y ! j = y ! (Suc j mod n))"
+      using inv unfolding inversion_def map_eq_conv payer_def coin_def
+      by fastforce
+    show "x = y"
+    proof (rule nth_equalityI, simp)
+      fix j assume "j < length x" hence "j < n" using \<open>length xs = n\<close> by simp
+      thus "x ! j = y ! j"
+      proof (induct j)
+        case (Suc j)
+        hence "j < n" by simp
+        with Suc show ?case using *[OF \<open>j < n\<close>]
+          by (cases "y ! j") simp_all
+      qed simp
+    qed
+  qed
 
   txt \<open>
     We now construct the possible inversions for \<^term>\<open>xs\<close> when the payer is
@@ -162,16 +161,20 @@ proof -
 
   have "\<And>l. l < max i j \<Longrightarrow> Suc l mod n = Suc l"
     using \<open>i < n\<close> \<open>j < n\<close> by auto
-  { fix l assume "l < n"
-    hence "(((l < min i j \<or> l = min i j) \<or> (min i j < l \<and> l < max i j)) \<or> l = max i j) \<or> max i j < l" by auto
-    hence "((i = l) = (zs ! l = zs ! (Suc l mod n))) = ((j = l) = (ys ! l = ys ! (Suc l mod n)))"
-    apply - proof ((erule disjE)+)
-      assume "l < min i j"
+  have "((i = l) = (zs ! l = zs ! (Suc l mod n))) = ((j = l) = (ys ! l = ys ! (Suc l mod n)))"
+    if "l < n" for l
+  proof -
+    from that consider "l < min i j" | "l = min i j" | "min i j < l" "l < max i j"
+      | "l = max i j" | "max i j < l"
+      by linarith
+    thus ?thesis
+    proof cases
+      case 1
       hence "l \<noteq> i" and "l \<noteq> j" and "zs ! l = ys ! l" and
         "zs ! (Suc l mod n) = ys ! (Suc l mod n)" using \<open>i < n\<close> \<open>j < n\<close> unfolding zs_def by auto
       thus ?thesis by simp
     next
-      assume "l = min i j"
+      case 2
       show ?thesis
       proof (cases rule: linorder_cases)
         assume "i < j"
@@ -192,13 +195,13 @@ proof -
         thus ?thesis by simp
       qed
     next
-      assume "min i j < l \<and> l < max i j"
+      case 3
       hence "i \<noteq> l" and "j \<noteq> l" and "zs ! l = (\<not> ys ! l)"
         "zs ! (Suc l mod n) = (\<not> ys ! (Suc l mod n))"
         using \<open>i < n\<close> \<open>j < n\<close> by (auto simp: zs_def)
       thus ?thesis by simp
     next
-      assume "l = max i j"
+      case 4
       show ?thesis
       proof (cases rule: linorder_cases)
         assume "i < j"
@@ -223,14 +226,15 @@ proof -
         thus ?thesis by simp
       qed
     next
-      assume "max i j < l"
+      case 5
       hence "j \<noteq> l" and "i \<noteq> l" by simp_all
       have "zs ! (Suc l mod n) = ys ! (Suc l mod n)"
         using \<open>l < n\<close> \<open>max i j < l\<close> by (cases "Suc l = n") (auto simp add: zs_def)
       moreover have "zs ! l = ys ! l"
         using \<open>l < n\<close> \<open>max i j < l\<close> by (auto simp add: zs_def)
       ultimately show ?thesis using \<open>j \<noteq> l\<close> \<open>i \<noteq> l\<close> by auto
-    qed }
+    qed
+  qed
   hence zs: "inversion (Some i, zs) = xs"
     by (simp add: xs_inv[symmetric] inversion_def coin_def payer_def)
   moreover
@@ -297,15 +301,12 @@ proof -
   have card_double: "2 * card ?sets = card (\<Union>?sets)"
   proof (rule card_partition)
     show "finite ?sets" by simp
-    { fix i assume "i < n"
-      have "?set i \<subseteq> dc_crypto" by auto
-      have "finite (?set i)" using finite_dc_crypto by auto }
+    have "finite (?set i)" for i
+      using finite_dc_crypto by auto
     thus "finite (\<Union>?sets)" by auto
-
   next
     fix c assume "c \<in> ?sets"
     thus "card c = 2" using card_payer_and_inversion[OF assms] by auto
-
   next
     fix x y assume "x \<in> ?sets" and "y \<in> ?sets" "x \<noteq> y"
     then obtain i j where xy: "x = ?set i" "y = ?set j" by auto
@@ -315,17 +316,20 @@ proof -
 
   have sets: "?sets = ?set ` {..< n}"
     unfolding image_def by auto
-  { fix i j :: nat assume asm: "i \<noteq> j" "i < n" "j < n"
-    { assume iasm: "?set i = {}"
+  have "?set i \<noteq> ?set j" if asm: "i \<noteq> j" "i < n" "j < n" for i j
+  proof -
+    have False if iasm: "?set i = {}"
+    proof -
       have "card (?set i) = 2"
         using card_payer_and_inversion[OF assms \<open>i < n\<close>] by auto
-      hence "False"
-        using iasm by auto }
+      thus ?thesis using iasm by auto
+    qed
     then obtain c where ci: "c \<in> ?set i" by blast
     hence cj: "c \<notin> ?set j" using asm by auto
-    { assume "?set i = ?set j"
-      hence "False" using ci cj by auto }
-    hence "?set i \<noteq> ?set j" by auto }
+    have False if "?set i = ?set j"
+      using that ci cj by auto
+    thus ?thesis by auto
+  qed
   hence "inj_on ?set {..< n}" unfolding inj_on_def by auto
   from card_image[OF this]
   have "card (?set ` {..< n}) = n" by auto
@@ -345,16 +349,13 @@ proof -
   let ?P = "{inversion -` {x} \<inter> dc_crypto |x. x \<in> inversion ` dc_crypto}"
   have "\<Union>?P = dc_crypto" by auto
 
-  { fix a b assume *: "(a, b) \<in> dc_crypto"
-    have inv_SOME: "inversion (SOME x. inversion x = inversion (a, b) \<and> x \<in> dc_crypto) = inversion (a, b)"
-      apply (rule someI2)
-      by (auto simp: *) }
-  note inv_SOME = this
+  have inv_SOME: "inversion (SOME x. inversion x = inversion (a, b) \<and> x \<in> dc_crypto) = inversion (a, b)"
+    if "(a, b) \<in> dc_crypto" for a b
+    by (rule someI2) (auto simp: that)
 
-  { fix a b assume *: "(a, b) \<in> dc_crypto"
-    have "(SOME x. inversion x = inversion (a, b) \<and> x \<in> dc_crypto) \<in> dc_crypto"
-      by (rule someI2) (auto simp: *) }
-  note SOME_inv_dc = this
+  have SOME_inv_dc: "(SOME x. inversion x = inversion (a, b) \<and> x \<in> dc_crypto) \<in> dc_crypto"
+    if "(a, b) \<in> dc_crypto" for a b
+    by (rule someI2) (auto simp: that)
 
   have "bij_betw (\<lambda>s. inversion (SOME x. x \<in> s \<and> x \<in> dc_crypto))
     {inversion -` {x} \<inter> dc_crypto |x. x \<in> inversion ` dc_crypto}
@@ -373,13 +374,11 @@ proof -
     have "?P = (\<lambda>x. inversion -` {x} \<inter> dc_crypto) ` (inversion ` dc_crypto)"
       by auto
     thus "finite ?P" using finite_dc_crypto by auto
-
   next
     fix c assume "c \<in> {inversion -` {x} \<inter> dc_crypto |x. x \<in> inversion ` dc_crypto}"
     then obtain x where "c = inversion -` {x} \<inter> dc_crypto" and x: "x \<in> inversion ` dc_crypto" by auto
     hence "c = {dc \<in> dc_crypto. inversion dc = x}" by auto
     thus "card c = 2 * n" using card_inversion[OF x] by simp
-
   next
     fix x y assume "x \<in> ?P" "y \<in> ?P" and "x \<noteq> y"
     then obtain i j where
