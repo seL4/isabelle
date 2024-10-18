@@ -140,33 +140,30 @@ lemma WhileRuleTC:
       and "i \<inter> uminus b \<subseteq> q"
     shows "ValidTC p (While b c) (Awhile i v A) q"
 proof -
-  {
-    fix s n
-    have "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
-    proof (induction "n" arbitrary: s rule: less_induct)
-      fix n :: nat
-      fix s :: 'a
-      assume 1: "\<And>(m::nat) s::'a . m < n \<Longrightarrow> s \<in> i \<and> v s = m \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
-      show "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
-      proof (rule impI, cases "s \<in> b")
-        assume 2: "s \<in> b" and "s \<in> i \<and> v s = n"
-        hence "s \<in> i \<inter> b \<inter> {s . v s = n}"
-          using assms(1) by auto
-        hence "\<exists>t . Sem c (Some s) (Some t) \<and> t \<in> i \<inter> {s . v s < n}"
-          by (metis assms(2) ValidTC_def)
-        from this obtain t where 3: "Sem c (Some s) (Some t) \<and> t \<in> i \<inter> {s . v s < n}"
-          by auto
-        hence "\<exists>u . Sem (While b c) (Some t) (Some u) \<and> u \<in> q"
-          using 1 by auto
-        thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
-          using 2 3 Sem.intros(10) by force
-      next
-        assume "s \<notin> b" and "s \<in> i \<and> v s = n"
-        thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
-          using Sem.intros(9) assms(3) by fastforce
-      qed
+  have "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)" for s n
+  proof (induction "n" arbitrary: s rule: less_induct)
+    fix n :: nat
+    fix s :: 'a
+    assume 1: "\<And>(m::nat) s::'a . m < n \<Longrightarrow> s \<in> i \<and> v s = m \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
+    show "s \<in> i \<and> v s = n \<longrightarrow> (\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q)"
+    proof (rule impI, cases "s \<in> b")
+      assume 2: "s \<in> b" and "s \<in> i \<and> v s = n"
+      hence "s \<in> i \<inter> b \<inter> {s . v s = n}"
+        using assms(1) by auto
+      hence "\<exists>t . Sem c (Some s) (Some t) \<and> t \<in> i \<inter> {s . v s < n}"
+        by (metis assms(2) ValidTC_def)
+      from this obtain t where 3: "Sem c (Some s) (Some t) \<and> t \<in> i \<inter> {s . v s < n}"
+        by auto
+      hence "\<exists>u . Sem (While b c) (Some t) (Some u) \<and> u \<in> q"
+        using 1 by auto
+      thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
+        using 2 3 Sem.intros(10) by force
+    next
+      assume "s \<notin> b" and "s \<in> i \<and> v s = n"
+      thus "\<exists>t . Sem (While b c) (Some s) (Some t) \<and> t \<in> q"
+        using Sem.intros(9) assms(3) by fastforce
     qed
-  }
+  qed
   thus ?thesis
     using assms(1) ValidTC_def by force
 qed
