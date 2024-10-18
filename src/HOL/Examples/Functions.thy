@@ -333,7 +333,7 @@ where
     (if n \<le> 1 then Some [n]
      else if even n
        then do { ns \<leftarrow> collatz (n div 2); Some (n # ns) }
-       else do { ns \<leftarrow> collatz (3 * n + 1);  Some (n # ns)})"
+       else do { ns \<leftarrow> collatz (3 * n + 1); Some (n # ns)})"
 
 declare collatz.simps[code]
 value "collatz 23"
