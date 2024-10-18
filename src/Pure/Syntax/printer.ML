@@ -205,8 +205,6 @@ fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
 
-val pretty_type_mode = Config.declare_bool ("Syntax.pretty_type_mode", \<^here>) (K false);
-val pretty_curried = Config.declare_bool ("Syntax.pretty_curried", \<^here>) (K false);
 val pretty_priority = Config.declare_int ("Syntax.pretty_priority", \<^here>) (K 0);
 
 local
