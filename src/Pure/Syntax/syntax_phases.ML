@@ -682,8 +682,10 @@ fun term_to_ast ctxt trf =
     val clean_var_types = show_markup andalso not show_types;
 
     fun constrain clean T ast =
-      let val U = Type_Annotation.print clean T
-      in Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)] end;
+      let val U = Type_Annotation.print clean T in
+        if U = dummyT then ast
+        else Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)]
+      end;
 
     fun main tm =
       (case strip_comb tm of
