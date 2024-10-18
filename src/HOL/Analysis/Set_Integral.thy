@@ -30,22 +30,6 @@ syntax_consts
 translations
   "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
 
-(*
-    Notation for integration wrt lebesgue measure on the reals:
-
-      LBINT x. f
-      LBINT x : A. f
-
-    TODO: keep all these? Need unicode.
-*)
-
-syntax
-  "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(\<open>indent=2 notation=\<open>binder LBINT\<close>\<close>LBINT _./ _)\<close> [0,10] 10)
-
-syntax
-  "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
-  (\<open>(\<open>indent=3 notation=\<open>binder LBINT\<close>\<close>LBINT _:_./ _)\<close> [0,0,10] 10)
 
 section \<open>Basic properties\<close>
 

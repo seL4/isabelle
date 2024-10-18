@@ -882,11 +882,17 @@ end
 
 subsection \<open>Absolute integrability (this is the same as Lebesgue integrability)\<close>
 
+syntax
+  "_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real"
+    (\<open>(\<open>indent=2 notation=\<open>binder LBINT\<close>\<close>LBINT _./ _)\<close> [0,10] 10)
+  "_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> real"
+    (\<open>(\<open>indent=3 notation=\<open>binder LBINT\<close>\<close>LBINT _:_./ _)\<close> [0,0,10] 10)
+syntax_consts
+  "_lebesgue_borel_integral" \<rightleftharpoons> lebesgue_integral and
+  "_set_lebesgue_borel_integral" \<rightleftharpoons> set_lebesgue_integral
 translations
-"LBINT x. f" == "CONST lebesgue_integral CONST lborel (\<lambda>x. f)"
-
-translations
-"LBINT x:A. f" == "CONST set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
+  "LBINT x. f" == "CONST lebesgue_integral CONST lborel (\<lambda>x. f)"
+  "LBINT x:A. f" == "CONST set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
 
 lemma set_integral_reflect:
   fixes S and f :: "real \<Rightarrow> 'a :: {banach, second_countable_topology}"
