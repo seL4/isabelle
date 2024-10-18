@@ -34,17 +34,22 @@ notation (ASCII output)
 
 nonterminal do_binds and do_bind
 syntax
-  "_do_block" :: "do_binds \<Rightarrow> 'a" (\<open>do {//(2  _)//}\<close> [12] 62)
-  "_do_bind"  :: "[pttrn, 'a] \<Rightarrow> do_bind" (\<open>(2_ \<leftarrow>/ _)\<close> 13)
-  "_do_let" :: "[pttrn, 'a] \<Rightarrow> do_bind" (\<open>(2let _ =/ _)\<close> [1000, 13] 13)
-  "_do_then" :: "'a \<Rightarrow> do_bind" (\<open>_\<close> [14] 13)
-  "_do_final" :: "'a \<Rightarrow> do_binds" (\<open>_\<close>)
-  "_do_cons" :: "[do_bind, do_binds] \<Rightarrow> do_binds" (\<open>_;//_\<close> [13, 12] 12)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl \<open>\<then>\<close> 54)
+  "_do_block" :: "do_binds \<Rightarrow> 'a"
+    (\<open>(\<open>open_block notation=\<open>mixfix do block\<close>\<close>do {//(2  _)//})\<close> [12] 62)
+  "_do_bind"  :: "[pttrn, 'a] \<Rightarrow> do_bind"
+    (\<open>(\<open>indent=2 notation=\<open>infix do bind\<close>\<close>_ \<leftarrow>/ _)\<close> 13)
+  "_do_let" :: "[pttrn, 'a] \<Rightarrow> do_bind"
+    (\<open>(\<open>indent=2 notation=\<open>infix do let\<close>\<close>let _ =/ _)\<close> [1000, 13] 13)
+  "_do_then" :: "'a \<Rightarrow> do_bind"  (\<open>_\<close> [14] 13)
+  "_do_final" :: "'a \<Rightarrow> do_binds"  (\<open>_\<close>)
+  "_do_cons" :: "[do_bind, do_binds] \<Rightarrow> do_binds"
+    (\<open>(\<open>open_block notation=\<open>infix do next\<close>\<close>_;//_)\<close> [13, 12] 12)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c"  (infixl \<open>\<then>\<close> 54)
 
 syntax (ASCII)
-  "_do_bind" :: "[pttrn, 'a] \<Rightarrow> do_bind" (\<open>(2_ <-/ _)\<close> 13)
-  "_thenM" :: "['a, 'b] \<Rightarrow> 'c" (infixl \<open>>>\<close> 54)
+  "_do_bind" :: "[pttrn, 'a] \<Rightarrow> do_bind"
+    (\<open>(\<open>indent=2 notation=\<open>infix do bind\<close>\<close>_ <-/ _)\<close> 13)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'c"  (infixl \<open>>>\<close> 54)
 
 syntax_consts
   "_do_block" "_do_cons" "_do_bind" "_do_then" \<rightleftharpoons> bind and
