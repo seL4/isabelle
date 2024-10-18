@@ -315,35 +315,36 @@ text \<open>
   Ambiguity warnings of parser are due to \<open>:=\<close> being used
   both for assignment and list update.
 \<close>
-lemma lem: "m - Suc 0 < n ==> m < Suc n"
-by arith
-
-
 lemma Partition:
-"[| leq == \<lambda>A i. \<forall>k. k<i \<longrightarrow> A!k \<le> pivot;
-    geq == \<lambda>A i. \<forall>k. i<k \<and> k<length A \<longrightarrow> pivot \<le> A!k |] ==>
- VARS A u l
- {0 < length(A::('a::order)list)}
- l := 0; u := length A - Suc 0;
- WHILE l \<le> u
-  INV {leq A l \<and> geq A u \<and> u<length A \<and> l\<le>length A}
-  DO WHILE l < length A \<and> A!l \<le> pivot
-     INV {leq A l & geq A u \<and> u<length A \<and> l\<le>length A}
-     DO l := l+1 OD;
-     WHILE 0 < u & pivot \<le> A!u
-     INV {leq A l & geq A u  \<and> u<length A \<and> l\<le>length A}
-     DO u := u - 1 OD;
-     IF l \<le> u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI
-  OD
- {leq A u & (\<forall>k. u<k \<and> k<l --> A!k = pivot) \<and> geq A l}"
-\<comment> \<open>expand and delete abbreviations first\<close>
-apply (simp)
-apply (erule thin_rl)+
-apply vcg_simp
-   apply (force simp: neq_Nil_conv)
-  apply (blast elim!: less_SucE intro: Suc_leI)
- apply (blast elim!: less_SucE intro: less_imp_diff_less dest: lem)
-apply (force simp: nth_list_update)
-done
+  fixes pivot
+  defines "leq \<equiv> \<lambda>A i. \<forall>k. k<i \<longrightarrow> A!k \<le> pivot"
+    and "geq \<equiv> \<lambda>A i. \<forall>k. i<k \<and> k<length A \<longrightarrow> pivot \<le> A!k"
+  shows
+    "VARS A u l
+     {0 < length(A::('a::order)list)}
+     l := 0; u := length A - Suc 0;
+     WHILE l \<le> u
+      INV {leq A l \<and> geq A u \<and> u<length A \<and> l\<le>length A}
+      DO WHILE l < length A \<and> A!l \<le> pivot
+         INV {leq A l & geq A u \<and> u<length A \<and> l\<le>length A}
+         DO l := l+1 OD;
+         WHILE 0 < u & pivot \<le> A!u
+         INV {leq A l & geq A u  \<and> u<length A \<and> l\<le>length A}
+         DO u := u - 1 OD;
+         IF l \<le> u THEN A := A[l := A!u, u := A!l] ELSE SKIP FI
+      OD
+     {leq A u & (\<forall>k. u<k \<and> k<l --> A!k = pivot) \<and> geq A l}"
+proof -
+  have eq: "m - Suc 0 < n \<Longrightarrow> m < Suc n" for m n
+    by arith
+  show ?thesis
+    apply (simp add: assms)
+    apply vcg_simp
+       apply (force simp: neq_Nil_conv)
+      apply (blast elim!: less_SucE intro: Suc_leI)
+     apply (blast elim!: less_SucE intro: less_imp_diff_less dest: eq)
+    apply (force simp: nth_list_update)
+    done
+qed
 
 end
