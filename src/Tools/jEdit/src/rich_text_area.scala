@@ -148,9 +148,13 @@ class Rich_Text_Area(
   private class Active_Area[A](
     render: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
     val require_control: Boolean = false,
+    val ignore_control: Boolean = false,
     cursor: Int = -1
   ) {
     private var the_text_info: Option[(String, Text.Info[A])] = None
+
+    def check_control(control: Boolean): Boolean =
+      control == require_control || ignore_control
 
     def is_active: Boolean = the_text_info.isDefined
     def text_info: Option[(String, Text.Info[A])] = the_text_info
@@ -188,7 +192,7 @@ class Rich_Text_Area(
   // owned by GUI thread
 
   private val highlight_area =
-    new Active_Area[Color](_.highlight, require_control = true)
+    new Active_Area[Color](_.highlight, ignore_control = true)
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
@@ -268,7 +272,7 @@ class Rich_Text_Area(
               case Some(range) =>
                 val rendering = get_rendering()
                 for (area <- active_areas) {
-                  if (control == area.require_control && !rendering.snapshot.is_outdated) {
+                  if (area.check_control(control) && !rendering.snapshot.is_outdated) {
                     area.update_rendering(rendering, range)
                   }
                   else area.reset()
