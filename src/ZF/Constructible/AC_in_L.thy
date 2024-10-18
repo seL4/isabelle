@@ -46,28 +46,24 @@ by (simp add: shorterI)
 lemma linear_rlist:
   assumes r: "linear(A,r)" shows "linear(list(A),rlist(A,r))"
 proof -
-  { fix xs ys
-    have "xs \<in> list(A) \<Longrightarrow> ys \<in> list(A) \<Longrightarrow> \<langle>xs,ys\<rangle> \<in> rlist(A,r) \<or> xs = ys \<or> \<langle>ys,xs\<rangle> \<in> rlist(A, r) "
-    proof (induct xs arbitrary: ys rule: list.induct)
-      case Nil 
-      thus ?case by (induct ys rule: list.induct) (auto simp add: shorterI)
-    next
-      case (Cons x xs)
-      { fix y ys
-        assume "y \<in> A" and "ys \<in> list(A)"
-        with Cons
-        have "\<langle>Cons(x,xs),Cons(y,ys)\<rangle> \<in> rlist(A,r) \<or> x=y \<and> xs = ys \<or> \<langle>Cons(y,ys), Cons(x,xs)\<rangle> \<in> rlist(A,r)" 
-          apply (rule_tac i = "length(xs)" and j = "length(ys)" in Ord_linear_lt)
-          apply (simp_all add: shorterI)
-          apply (rule linearE [OF r, of x y]) 
-          apply (auto simp add: diffI intro: sameI) 
-          done
-      }
-      note yConsCase = this
-      show ?case using \<open>ys \<in> list(A)\<close>
-        by (cases rule: list.cases) (simp_all add: Cons rlist_Nil_Cons yConsCase) 
-    qed
-  }
+  have "xs \<in> list(A) \<Longrightarrow> ys \<in> list(A) \<Longrightarrow> \<langle>xs,ys\<rangle> \<in> rlist(A,r) \<or> xs = ys \<or> \<langle>ys,xs\<rangle> \<in> rlist(A, r)"
+    for xs ys
+  proof (induct xs arbitrary: ys rule: list.induct)
+    case Nil 
+    thus ?case by (induct ys rule: list.induct) (auto simp add: shorterI)
+  next
+    case (Cons x xs)
+    then have yConsCase: "\<langle>Cons(x,xs),Cons(y,ys)\<rangle> \<in> rlist(A,r) \<or> x=y \<and> xs = ys \<or> \<langle>Cons(y,ys), Cons(x,xs)\<rangle> \<in> rlist(A,r)" 
+      if "y \<in> A" and "ys \<in> list(A)" for y ys
+      using that
+      apply (rule_tac i = "length(xs)" and j = "length(ys)" in Ord_linear_lt)
+      apply (simp_all add: shorterI)
+      apply (rule linearE [OF r, of x y]) 
+      apply (auto simp add: diffI intro: sameI) 
+      done
+    from \<open>ys \<in> list(A)\<close> show ?case
+      by (cases rule: list.cases) (simp_all add: Cons rlist_Nil_Cons yConsCase)
+  qed
   thus ?thesis by (simp add: linear_def) 
 qed
 

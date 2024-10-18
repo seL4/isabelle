@@ -409,27 +409,26 @@ lemma normalize_increasing:
   assumes ab: "a < b" and F: "\<And>x. Ord(x) \<Longrightarrow> Ord(F(x))"
   shows "normalize(F,a) < normalize(F,b)"
 proof -
-  { fix x
-    have "Ord(b)" using ab by (blast intro: lt_Ord2) 
-    hence "x < b \<Longrightarrow> normalize(F,x) < normalize(F,b)"
-    proof (induct b arbitrary: x rule: trans_induct3)
-      case 0 thus ?case by simp
-    next
-      case (succ b)
-      thus ?case
-        by (auto simp add: le_iff def_transrec2 [OF normalize_def] intro: Un_upper2_lt F)
-    next
-      case (limit l)
-      hence sc: "succ(x) < l" 
-        by (blast intro: Limit_has_succ) 
-      hence "normalize(F,x) < normalize(F,succ(x))" 
-        by (blast intro: limit elim: ltE) 
-      hence "normalize(F,x) < (\<Union>j<l. normalize(F,j))"
-        by (blast intro: OUN_upper_lt lt_Ord F sc) 
-      thus ?case using limit
-        by (simp add: def_transrec2 [OF normalize_def])
-    qed
-  } thus ?thesis using ab .
+  have "Ord(b)" using ab by (blast intro: lt_Ord2) 
+  hence "x < b \<Longrightarrow> normalize(F,x) < normalize(F,b)" for x
+  proof (induct b arbitrary: x rule: trans_induct3)
+    case 0 thus ?case by simp
+  next
+    case (succ b)
+    thus ?case
+      by (auto simp add: le_iff def_transrec2 [OF normalize_def] intro: Un_upper2_lt F)
+  next
+    case (limit l)
+    hence sc: "succ(x) < l" 
+      by (blast intro: Limit_has_succ) 
+    hence "normalize(F,x) < normalize(F,succ(x))" 
+      by (blast intro: limit elim: ltE) 
+    hence "normalize(F,x) < (\<Union>j<l. normalize(F,j))"
+      by (blast intro: OUN_upper_lt lt_Ord F sc) 
+    thus ?case using limit
+      by (simp add: def_transrec2 [OF normalize_def])
+  qed
+  thus ?thesis using ab .
 qed
 
 theorem Normal_normalize:
@@ -464,7 +463,7 @@ numbers.\<close>
 
 definition
   Aleph :: "i \<Rightarrow> i"  (\<open>(\<open>open_block notation=\<open>prefix \<aleph>\<close>\<close>\<aleph>_)\<close> [90] 90) where
-    "Aleph(a) \<equiv> transrec2(a, nat, \<lambda>x r. csucc(r))"
+    "\<aleph>a \<equiv> transrec2(a, nat, \<lambda>x r. csucc(r))"
 
 lemma Card_Aleph [simp, intro]:
   "Ord(a) \<Longrightarrow> Card(Aleph(a))"
@@ -476,33 +475,32 @@ lemma Card_Aleph [simp, intro]:
 lemma Aleph_increasing:
   assumes ab: "a < b" shows "Aleph(a) < Aleph(b)"
 proof -
-  { fix x
-    have "Ord(b)" using ab by (blast intro: lt_Ord2) 
-    hence "x < b \<Longrightarrow> Aleph(x) < Aleph(b)"
-    proof (induct b arbitrary: x rule: trans_induct3)
-      case 0 thus ?case by simp
-    next
-      case (succ b)
-      thus ?case
-        by (force simp add: le_iff def_transrec2 [OF Aleph_def] 
-                  intro: lt_trans lt_csucc Card_is_Ord)
-    next
-      case (limit l)
-      hence sc: "succ(x) < l" 
-        by (blast intro: Limit_has_succ) 
-      hence "\<aleph> x < (\<Union>j<l. \<aleph>j)" using limit
-        by (blast intro: OUN_upper_lt Card_is_Ord ltD lt_Ord)
-      thus ?case using limit
-        by (simp add: def_transrec2 [OF Aleph_def])
-    qed
-  } thus ?thesis using ab .
+  have "Ord(b)" using ab by (blast intro: lt_Ord2) 
+  hence "x < b \<Longrightarrow> Aleph(x) < Aleph(b)" for x
+  proof (induct b arbitrary: x rule: trans_induct3)
+    case 0 thus ?case by simp
+  next
+    case (succ b)
+    thus ?case
+      by (force simp add: le_iff def_transrec2 [OF Aleph_def] 
+                intro: lt_trans lt_csucc Card_is_Ord)
+  next
+    case (limit l)
+    hence sc: "succ(x) < l" 
+      by (blast intro: Limit_has_succ) 
+    hence "\<aleph>x < (\<Union>j<l. \<aleph>j)" using limit
+      by (blast intro: OUN_upper_lt Card_is_Ord ltD lt_Ord)
+    thus ?case using limit
+      by (simp add: def_transrec2 [OF Aleph_def])
+  qed
+  thus ?thesis using ab .
 qed
 
 theorem Normal_Aleph: "Normal(Aleph)"
 proof (rule NormalI) 
-  show "\<And>i j. i < j \<Longrightarrow> \<aleph>i < \<aleph>j"
+  show "i < j \<Longrightarrow> \<aleph>i < \<aleph>j" for i j
     by (blast intro!: Aleph_increasing)
-  show "\<And>l. Limit(l) \<Longrightarrow> \<aleph>l = (\<Union>i<l. \<aleph>i)"
+  show "Limit(l) \<Longrightarrow> \<aleph>l = (\<Union>i<l. \<aleph>i)" for l
     by (simp add: def_transrec2 [OF Aleph_def])
 qed
 
