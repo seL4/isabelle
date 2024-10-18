@@ -17,14 +17,9 @@ text \<open>
 class len0 =
   fixes len_of :: "'a itself \<Rightarrow> nat"
 
-syntax "_type_length" :: "type \<Rightarrow> nat" (\<open>(1LENGTH/(1'(_')))\<close>)
-
-syntax_consts
-  "_type_length" \<rightleftharpoons> len_of
-
-translations "LENGTH('a)" \<rightharpoonup>
-  "CONST len_of (CONST Pure.type :: 'a itself)"
-
+syntax "_type_length" :: "type \<Rightarrow> nat"  (\<open>(1LENGTH/(1'(_')))\<close>)
+syntax_consts "_type_length" \<rightleftharpoons> len_of
+translations "LENGTH('a)" \<rightharpoonup> "CONST len_of TYPE('a)"
 print_translation \<open>
   let
     fun len_of_itself_tr' ctxt [Const (\<^const_syntax>\<open>Pure.type\<close>, Type (_, [T]))] =
