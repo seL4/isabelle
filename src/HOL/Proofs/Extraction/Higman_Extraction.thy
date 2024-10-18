@@ -51,11 +51,11 @@ where
   "mk_word_aux k = exec {
      i \<leftarrow> Random.range 10;
      (if i > 7 \<and> k > 2 \<or> k > 1000 then Pair []
-     else exec {
-       let l = (if i mod 2 = 0 then A else B);
-       ls \<leftarrow> mk_word_aux (Suc k);
-       Pair (l # ls)
-     })}"
+      else exec {
+        let l = (if i mod 2 = 0 then A else B);
+        ls \<leftarrow> mk_word_aux (Suc k);
+        Pair (l # ls)
+      })}"
   by pat_completeness auto
 termination
   by (relation "measure ((-) 1001)") auto
