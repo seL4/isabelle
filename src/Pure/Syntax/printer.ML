@@ -1,5 +1,6 @@
 (*  Title:      Pure/Syntax/printer.ML
-    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow, TU Muenchen
+    Author:     Makarius
 
 Pretty printing of asts, terms, types and print (ast) translation.
 *)
