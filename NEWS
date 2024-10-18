@@ -46,14 +46,16 @@ in ML). Most Isabelle theories have been adapted accordingly, such that
 hyperlinks work properly e.g. for "['a, 'b] \<Rightarrow> 'c" or "\<lbrakk>A; B\<rbrakk> \<Longrightarrow> C" in
 Pure, and "\<forall>x\<in>A. B x" or "\<exists>x\<in>A. B x" in HOL.
 
-* Inner syntax printing now supports type constraints for constants:
-this is guarded by the configuration options "show_consts_markup"
-(default true) and "show_markup" (default true for PIDE interaction).
-Ast translation rules (command 'translations') and mixfix notation work
-with or without such extra constraints, but ML translation functions
-(command 'print_ast_translation') need may need to be changed slightly.
-Rare INCOMPATIBILITY. The Prover IDE displays type constraints for
-constants as for variables, e.g. via C-mouse hovering.
+* Inner syntax printing now supports type constraints for constants,
+optionally with mixfix syntax (infix, binder etc.). This is guarded by
+the configuration options "show_consts_markup" (default true) and
+"show_markup" (default true for PIDE interaction). The Prover IDE
+displays type constraints as usual via C-mouse hovering. Ast translation
+rules (command 'translations') already work with extra type constraints,
+but the result omits the type of a matched constant. ML translation
+functions (command 'print_ast_translation') based on Ast.unfold_ast etc.
+work in the same manner, but more complex translations may require
+manual changes: rare INCOMPATIBILITY.
 
 * The Simplifier now supports special "congprocs", using keyword
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML

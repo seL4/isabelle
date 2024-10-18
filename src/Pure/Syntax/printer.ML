@@ -36,6 +36,7 @@ sig
   val merge_prtabs: prtabs * prtabs -> prtabs
   val pretty: {type_mode: bool, curried: bool} -> Proof.context -> prtab list ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
+    (Ast.ast -> Pretty.T -> Pretty.T) ->
     (string -> Ast.ast list -> Pretty.T option) ->
     ((string -> Markup.T list) * (string -> string)) ->
     Ast.ast -> Pretty.T list
@@ -222,7 +223,7 @@ in
 
 val type_mode_flags = {type_mode = true, curried = false};
 
-fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
+fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (markup, extern) =
   let
     val show_brackets = Config.get ctxt show_brackets;
 
@@ -253,7 +254,7 @@ fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
       if type_mode then main p ast
       else
         pretty type_mode_flags (Config.put pretty_priority p ctxt)
-          prtabs trf markup_trans (markup, extern) ast
+          prtabs trf constrain_output markup_trans (markup, extern) ast
 
     and combination p c a args constraint =
       (case translation p a args of
@@ -261,6 +262,7 @@ fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
       | NONE =>
           (*find matching table entry, or print as prefix / postfix*)
           let
+            val cc = the_default c constraint;
             val nargs = length args;
             val entry =
               prtabs |> get_first (fn prtab =>
@@ -273,10 +275,10 @@ fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
                   (case Option.mapPartial constrain_trans constraint of
                     SOME prt => [prt]
                   | NONE => [Pretty.marks_str (markup a, extern a)])
-                else main p (application (the_default c constraint, args))
+                else main p (application (cc, args))
             | SOME (symbs, n, q) =>
-                if nargs = n then parens p q a (symbs, args)
-                else main p (application (split_args n [c] args)))
+                if nargs = n then parens p q a (symbs, args) constraint
+                else main p (application (split_args n [cc] args)))
           end)
 
     and translation p a args =
@@ -284,12 +286,16 @@ fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
         SOME prt => SOME [prt]
       | NONE => Option.map (main p) (SOME (trf a ctxt args) handle Match => NONE))
 
-    and parens p q a (symbs, args) =
+    and parens p q a (symbs, args) constraint =
       let
         val symbs' =
           if p > q orelse (show_brackets andalso q <> 1000 andalso not (is_chain symbs))
           then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
-      in #1 (syntax (markup a) (symbs', args)) end
+        val output =
+          (case constraint of
+            SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) => constrain_output ty
+          | _ => I);
+      in #1 (syntax (markup a, output) (symbs', args)) end
 
     and syntax _ ([], args) = ([], args)
       | syntax m (Arg p :: symbs, arg :: args) =
@@ -298,11 +304,13 @@ fun pretty {type_mode, curried} ctxt prtabs trf markup_trans (markup, extern) =
       | syntax m (Arg_Type p :: symbs, arg :: args) =
           let val (prts, args') = syntax m (symbs, args);
           in (main_type p arg @ prts, args') end
-      | syntax m (String (literal_markup, s) :: symbs, args) =
+      | syntax (m as (ms, output)) (String (literal_markup, s) :: symbs, args) =
           let
             val (prts, args') = syntax m (symbs, args);
-            val m' = if null literal_markup then [] else m @ literal_markup
-          in (Pretty.marks_str (m', s) :: prts, args') end
+            val prt =
+              if null literal_markup then Pretty.str s
+              else output (Pretty.marks_str (ms @ literal_markup, s));
+          in (prt :: prts, args') end
       | syntax m (Block (block, bsymbs) :: symbs, args) =
           let
             val (body, args') = syntax m (bsymbs, args);
