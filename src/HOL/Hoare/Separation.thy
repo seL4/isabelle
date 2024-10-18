@@ -52,9 +52,15 @@ bound Hs - otherwise they may bind the implicit H.\<close>
 
 syntax
  "_emp" :: "bool" (\<open>emp\<close>)
- "_singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool" (\<open>[_ \<mapsto> _]\<close>)
- "_star" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl \<open>**\<close> 60)
- "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infixl \<open>-*\<close> 60)
+ "_singl" :: "nat \<Rightarrow> nat \<Rightarrow> bool"  (\<open>(\<open>open_block notation=\<open>mixfix singl\<close>\<close>[_ \<mapsto> _])\<close>)
+ "_star" :: "bool \<Rightarrow> bool \<Rightarrow> bool"  (infixl \<open>**\<close> 60)
+ "_wand" :: "bool \<Rightarrow> bool \<Rightarrow> bool"  (infixl \<open>-*\<close> 60)
+
+syntax_consts
+  "_emp" \<rightleftharpoons> is_empty and
+  "_singl" \<rightleftharpoons> singl and
+  "_star" \<rightleftharpoons> star and
+  "_wand" \<rightleftharpoons> wand
 
 (* FIXME does not handle "_idtdummy" *)
 ML \<open>

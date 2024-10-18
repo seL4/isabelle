@@ -187,8 +187,10 @@ setup \<open>
 
 \<comment> \<open>Special syntax for guarded statements and guarded array updates:\<close>
 syntax
-  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"  (\<open>(2_ \<rightarrow>/ _)\<close> 71)
-  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"  (\<open>(2_[_] :=/ _)\<close> [70, 65] 61)
+  "_guarded_com" :: "bool \<Rightarrow> 'a com \<Rightarrow> 'a com"
+    (\<open>(\<open>indent=2 notation=\<open>mixfix Hoare guarded statement\<close>\<close>_ \<rightarrow>/ _)\<close> 71)
+  "_array_update" :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a com"
+    (\<open>(\<open>indent=2 notation=\<open>mixfix Hoare array update\<close>\<close>_[_] :=/ _)\<close> [70, 65] 61)
 translations
   "P \<rightarrow> c" \<rightleftharpoons> "IF P THEN c ELSE CONST Abort FI"
   "a[i] := v" \<rightharpoonup> "(i < CONST length a) \<rightarrow> (a := CONST list_update a i v)"

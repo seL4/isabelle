@@ -24,9 +24,9 @@ subsection "Field access and update"
 
 syntax
   "_fassign"  :: "'a::ref => id => 'v => 's com"
-   (\<open>(2_^._ :=/ _)\<close> [70,1000,65] 61)
+    (\<open>(\<open>indent=2 notation=\<open>mixfix Hoare field assignment\<close>\<close>_^._ :=/ _)\<close> [70,1000,65] 61)
   "_faccess"  :: "'a::ref => ('a::ref \<Rightarrow> 'v) => 'v"
-   (\<open>_^._\<close> [65,1000] 65)
+    (\<open>(\<open>open_block notation=\<open>mixfix Hoare field access\<close>\<close>_^._)\<close> [65,1000] 65)
 translations
   "p^.f := e"  =>  "f := CONST fun_upd f p e"
   "p^.f"       =>  "f p"

@@ -85,7 +85,8 @@ done
 
 definition
   \<comment> \<open>Restriction of a relation\<close>
-  restr ::"('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set"       (\<open>(_/ | _)\<close> [50, 51] 50)
+  restr ::"('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set"
+    (\<open>(\<open>notation=\<open>mixfix relation restriction\<close>\<close>_/ | _)\<close> [50, 51] 50)
   where "restr r m = {(x,y). (x,y) \<in> r \<and> \<not> m x}"
 
 text \<open>Rewrite rules for the restriction of a relation\<close>
