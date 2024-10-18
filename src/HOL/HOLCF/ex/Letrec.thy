@@ -22,6 +22,9 @@ syntax
   "_recbinds" :: "[recbindt, recbinds] \<Rightarrow> recbinds"  (\<open>_;/ _\<close>)
   "_Letrec"   :: "[recbinds, logic] \<Rightarrow> logic"        (\<open>(\<open>notation=\<open>mixfix Letrec expression\<close>\<close>Letrec (_)/ in (_))\<close> 10)
 
+syntax_consts
+  "_Letrec" \<rightleftharpoons> CLetrec
+
 translations
   (recbindt) "x = a, (y,ys) = (b,bs)" == (recbindt) "(x,y,ys) = (a,b,bs)"
   (recbindt) "x = a, y = b"          == (recbindt) "(x,y) = (a,b)"

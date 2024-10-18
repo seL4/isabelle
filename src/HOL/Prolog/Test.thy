@@ -20,6 +20,8 @@ text \<open>List enumeration\<close>
 
 syntax
   "_list" :: "args => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
+syntax_consts
+  "_list" \<rightleftharpoons> Cons
 translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"

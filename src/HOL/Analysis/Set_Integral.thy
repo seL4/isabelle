@@ -25,10 +25,8 @@ definition\<^marker>\<open>tag important\<close>  "set_lebesgue_integral M A f \
 syntax
   "_ascii_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   (\<open>(\<open>indent=4 notation=\<open>binder LINT\<close>\<close>LINT (_):(_)/|(_)./ _)\<close> [0,0,0,10] 10)
-
 syntax_consts
   "_ascii_set_lebesgue_integral" == set_lebesgue_integral
-
 translations
   "LINT x:A|M. f" == "CONST set_lebesgue_integral M A (\<lambda>x. f)"
 
@@ -621,10 +619,8 @@ abbreviation complex_set_lebesgue_integral :: "'a measure \<Rightarrow> 'a set \
 syntax
   "_ascii_complex_set_lebesgue_integral" :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'a measure \<Rightarrow> real \<Rightarrow> real"
   (\<open>(\<open>indent=4 notation=\<open>binder CLINT\<close>\<close>CLINT _:_|_. _)\<close> [0,0,0,10] 10)
-
 syntax_consts
   "_ascii_complex_set_lebesgue_integral" == complex_set_lebesgue_integral
-
 translations
   "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
 

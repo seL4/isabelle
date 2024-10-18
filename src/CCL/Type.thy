@@ -14,6 +14,8 @@ definition Subtype :: "['a set, 'a \<Rightarrow> o] \<Rightarrow> 'a set"
 
 syntax
   "_Subtype" :: "[idt, 'a set, o] \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix Subtype\<close>\<close>{_: _ ./ _})\<close>)
+syntax_consts
+  "_Subtype" == Subtype
 translations
   "{x: A. B}" == "CONST Subtype(A, \<lambda>x. B)"
 

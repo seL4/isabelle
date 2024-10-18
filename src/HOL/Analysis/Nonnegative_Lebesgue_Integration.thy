@@ -820,10 +820,8 @@ definition\<^marker>\<open>tag important\<close> nn_integral :: "'a measure \<Ri
 
 syntax
   "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>(\<open>indent=2 notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+(2 _./ _)/ \<partial>_)\<close> [60,61] 110)
-
 syntax_consts
   "_nn_integral" == nn_integral
-
 translations
   "\<integral>\<^sup>+x. f \<partial>M" == "CONST nn_integral M (\<lambda>x. f)"
 

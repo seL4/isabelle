@@ -401,7 +401,7 @@ section \<open>Hilbert's choice operator (axiomatization)\<close>
 axiomatization Eps :: "('a \<Rightarrow> o) \<Rightarrow> 'a"
   where someI: "P x \<Longrightarrow> P (Eps P)"
 
-syntax "_Eps" :: "pttrn \<Rightarrow> o \<Rightarrow> 'a"  (\<open>(3SOME _./ _)\<close> [0, 10] 10)
+syntax "_Eps" :: "pttrn \<Rightarrow> o \<Rightarrow> 'a"  (\<open>(\<open>indent=3 notation=\<open>binder SOME\<close>\<close>SOME _./ _)\<close> [0, 10] 10)
 syntax_consts "_Eps" \<rightleftharpoons> Eps
 translations "SOME x. P" \<rightleftharpoons> "CONST Eps (\<lambda>x. P)"
 

@@ -56,6 +56,8 @@ begin
 syntax
   "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
 end
+syntax_consts
+  "_list" \<rightleftharpoons> Cons
 translations
   "[x, xs]" \<rightleftharpoons> "x#[xs]"
   "[x]" \<rightleftharpoons> "x#[]"
@@ -144,7 +146,8 @@ syntax
   "_lupdbinds" :: "[lupdbind, lupdbinds] => lupdbinds"    (\<open>_,/ _\<close>)
   "_LUpdate" :: "['a, lupdbinds] => 'a"
     (\<open>(\<open>open_block notation=\<open>mixfix list update\<close>\<close>_/[(_)])\<close> [1000,0] 900)
-
+syntax_consts
+  "_LUpdate" \<rightleftharpoons> list_update
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "CONST list_update xs i x"

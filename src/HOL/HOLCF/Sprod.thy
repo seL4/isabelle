@@ -42,6 +42,8 @@ definition ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a *
 
 syntax
   "_stuple" :: "[logic, args] \<Rightarrow> logic"  (\<open>(\<open>indent=1 notation=\<open>mixfix strict tuple\<close>\<close>'(:_,/ _:'))\<close>)
+syntax_consts
+  "_stuple" \<rightleftharpoons> spair
 translations
   "(:x, y, z:)" \<rightleftharpoons> "(:x, (:y, z:):)"
   "(:x, y:)" \<rightleftharpoons> "CONST spair\<cdot>x\<cdot>y"

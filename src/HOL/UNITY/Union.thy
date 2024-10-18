@@ -39,8 +39,8 @@ definition
   where "safety_prop X \<longleftrightarrow> SKIP \<in> X \<and> (\<forall>G. Acts G \<subseteq> \<Union>(Acts ` X) \<longrightarrow> G \<in> X)"
 
 syntax
-  "_JOIN1" :: "[pttrns, 'b set] => 'b set"              (\<open>(3\<Squnion>_./ _)\<close> 10)
-  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"       (\<open>(3\<Squnion>_\<in>_./ _)\<close> 10)
+  "_JOIN1" :: "[pttrns, 'b set] => 'b set"  (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_./ _)\<close> 10)
+  "_JOIN"  :: "[pttrn, 'a set, 'b set] => 'b set"  (\<open>(\<open>indent=3 notation=\<open>binder \<Squnion>\<close>\<close>\<Squnion>_\<in>_./ _)\<close> 10)
 syntax_consts
   "_JOIN1" "_JOIN" == JOIN
 translations

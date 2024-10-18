@@ -43,6 +43,8 @@ text \<open>Set comprehensions\<close>
 
 syntax
   "_Coll" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set comprehension\<close>\<close>{_./ _})\<close>)
+syntax_consts
+  "_Coll" \<rightleftharpoons> Collect
 translations
   "{x. P}" \<rightleftharpoons> "CONST Collect (\<lambda>x. P)"
 
@@ -156,6 +158,8 @@ definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
 
 syntax
   "_Finset" :: "args \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
+syntax_consts
+  "_Finset" \<rightleftharpoons> insert
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"

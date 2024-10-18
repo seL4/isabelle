@@ -75,6 +75,8 @@ abbreviation
 
 syntax
   "_MColl" :: "[pttrn, i, o] \<Rightarrow> i" (\<open>(\<open>indent=1 notation=\<open>mixfix multiset comprehension\<close>\<close>{# _ \<in> _./ _#})\<close>)
+syntax_consts
+  "_MColl" \<rightleftharpoons> MCollect
 translations
   "{#x \<in> M. P#}" == "CONST MCollect(M, \<lambda>x. P)"
 

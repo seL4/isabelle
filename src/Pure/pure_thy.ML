@@ -172,7 +172,8 @@ val _ = Theory.setup
     ("_position",   typ "float_token \<Rightarrow> float_position", Mixfix.mixfix "_"),
     ("_constify",   typ "num_position \<Rightarrow> num_const",   Mixfix.mixfix "_"),
     ("_constify",   typ "float_position \<Rightarrow> float_const", Mixfix.mixfix "_"),
-    ("_index",      typ "logic \<Rightarrow> index",              Mixfix.mixfix "(\<open>unbreakable\<close>\<^bsub>_\<^esub>)"),
+    ("_index",      typ "logic \<Rightarrow> index",
+      Mixfix.mixfix "(\<open>unbreakable notation=\<open>mixfix index\<close>\<close>\<^bsub>_\<^esub>)"),
     ("_indexdefault", typ "index",                     Mixfix.mixfix ""),
     ("_indexvar",   typ "index",                       Mixfix.mixfix "'\<index>"),
     ("_struct",     typ "index \<Rightarrow> logic",              NoSyn),
@@ -251,7 +252,10 @@ val _ = Theory.setup
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
   #> Sign.syntax_deps
-   [("_bracket", ["\<^type>fun"]), ("_bigimpl", ["\<^const>Pure.imp"])]
+   [("_bracket", ["\<^type>fun"]),
+    ("_bigimpl", ["\<^const>Pure.imp"]),
+    ("_TYPE", ["\<^const>Pure.type"]),
+    ("_TERM", ["\<^const>Pure.term"])]
   #> Sign.add_consts
    [(qualify (Binding.make ("term", \<^here>)), typ "'a \<Rightarrow> prop", NoSyn),
     (qualify (Binding.make ("sort_constraint", \<^here>)), typ "'a itself \<Rightarrow> prop", NoSyn),

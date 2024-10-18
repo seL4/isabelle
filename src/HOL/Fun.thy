@@ -846,7 +846,8 @@ syntax
   "_updbinds":: "updbind \<Rightarrow> updbinds \<Rightarrow> updbinds" (\<open>_,/ _\<close>)
   "_Update"  :: "'a \<Rightarrow> updbinds \<Rightarrow> 'a"
     (\<open>(\<open>open_block notation=\<open>mixfix function update\<close>\<close>_/'((2_)'))\<close> [1000, 0] 900)
-
+syntax_consts
+  "_Update" \<rightleftharpoons> fun_upd
 translations
   "_Update f (_updbinds b bs)" \<rightleftharpoons> "_Update (_Update f b) bs"
   "f(x:=y)" \<rightleftharpoons> "CONST fun_upd f x y"

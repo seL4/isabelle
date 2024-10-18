@@ -41,6 +41,8 @@ datatype 'a llist
 
 syntax
   "_llist" :: "args => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix lazy list enumeration\<close>\<close>\<^bold>\<lbrakk>_\<^bold>\<rbrakk>)\<close>)
+syntax_consts
+  "_llist" == LCons
 translations
   "\<^bold>\<lbrakk>x, xs\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>xs\<^bold>\<rbrakk>"
   "\<^bold>\<lbrakk>x\<^bold>\<rbrakk>" == "x###\<^bold>\<lbrakk>\<^bold>\<rbrakk>"

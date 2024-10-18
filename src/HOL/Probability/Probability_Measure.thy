@@ -249,10 +249,8 @@ subsection  \<open>Introduce binder for probability\<close>
 
 syntax
   "_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (\<open>('\<P>'((/_ in _./ _)'))\<close>)
-
 syntax_consts
   "_prob" == measure
-
 translations
   "\<P>(x in M. P)" => "CONST measure M {x \<in> CONST space M. P}"
 
@@ -324,10 +322,8 @@ definition
 
 syntax
   "_conditional_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (\<open>('\<P>'(_ in _. _ \<bar>/ _'))\<close>)
-
 syntax_consts
   "_conditional_prob" == cond_prob
-
 translations
   "\<P>(x in M. P \<bar> Q)" => "CONST cond_prob M (\<lambda>x. P) (\<lambda>x. Q)"
 

@@ -55,11 +55,9 @@ definition fun_upds :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow>
   "fun_upds f xs y z = (if z \<in> xs then y else f z)"
 
 syntax
-  "_updsbind" :: "['a, 'a] => updbind"             (\<open>(2_ [:=]/ _)\<close>)
-
+  "_updsbind" :: "['a, 'a] => updbind"  (\<open>(\<open>indent=2 notation=\<open>infix update set\<close>\<close>_ [:=]/ _)\<close>)
 syntax_consts
   "_updsbind" == fun_upds
-
 translations
   "f(xs[:=]y)" == "CONST fun_upds f xs y"
 

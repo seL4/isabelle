@@ -1308,10 +1308,8 @@ definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightar
 
 syntax
   "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" (\<open>(\<open>indent=3 notation=\<open>binder LIM\<close>\<close>LIM (_)/ (_)./ (_) :> (_))\<close> [1000, 10, 0, 10] 10)
-
 syntax_consts
   "_LIM" == filterlim
-
 translations
   "LIM x F1. f :> F2" == "CONST filterlim (\<lambda>x. f) F2 F1"
 

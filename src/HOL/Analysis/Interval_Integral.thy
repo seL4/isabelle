@@ -147,10 +147,8 @@ definition\<^marker>\<open>tag important\<close> interval_lebesgue_integral :: "
 syntax
   "_ascii_interval_lebesgue_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real measure \<Rightarrow> real \<Rightarrow> real"
   (\<open>(\<open>indent=5 notation=\<open>binder LINT\<close>\<close>LINT _=_.._|_. _)\<close> [0,60,60,61,100] 60)
-
 syntax_consts
   "_ascii_interval_lebesgue_integral" == interval_lebesgue_integral
-
 translations
   "LINT x=a..b|M. f" == "CONST interval_lebesgue_integral M a b (\<lambda>x. f)"
 
@@ -161,10 +159,8 @@ definition\<^marker>\<open>tag important\<close> interval_lebesgue_integrable ::
 syntax
   "_ascii_interval_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real"
   (\<open>(\<open>indent=4 notation=\<open>binder LBINT\<close>\<close>LBINT _=_.._. _)\<close> [0,60,60,61] 60)
-
 syntax_consts
   "_ascii_interval_lebesgue_borel_integral" == interval_lebesgue_integral
-
 translations
   "LBINT x=a..b. f" == "CONST interval_lebesgue_integral CONST lborel a b (\<lambda>x. f)"
 
@@ -1050,18 +1046,14 @@ qed
 
 syntax "_complex_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real \<Rightarrow> complex"
   (\<open>(\<open>indent=2 notation=\<open>binder CLBINT\<close>\<close>CLBINT _. _)\<close> [0,60] 60)
-
 syntax_consts
   "_complex_lebesgue_borel_integral" == complex_lebesgue_integral
-
 translations "CLBINT x. f" == "CONST complex_lebesgue_integral CONST lborel (\<lambda>x. f)"
 
 syntax "_complex_set_lebesgue_borel_integral" :: "pttrn \<Rightarrow> real set \<Rightarrow> real \<Rightarrow> complex"
   (\<open>(\<open>indent=3 notation=\<open>binder CLBINT\<close>\<close>CLBINT _:_. _)\<close> [0,60,61] 60)
-
 syntax_consts
   "_complex_set_lebesgue_borel_integral" == complex_set_lebesgue_integral
-
 translations
   "CLBINT x:A. f" == "CONST complex_set_lebesgue_integral CONST lborel A (\<lambda>x. f)"
 
@@ -1076,10 +1068,8 @@ abbreviation complex_interval_lebesgue_integrable ::
 syntax
   "_ascii_complex_interval_lebesgue_borel_integral" :: "pttrn \<Rightarrow> ereal \<Rightarrow> ereal \<Rightarrow> real \<Rightarrow> complex"
   (\<open>(\<open>indent=4 notation=\<open>binder CLBINT\<close>\<close>CLBINT _=_.._. _)\<close> [0,60,60,61] 60)
-
 syntax_consts
   "_ascii_complex_interval_lebesgue_borel_integral" == complex_interval_lebesgue_integral
-
 translations
   "CLBINT x=a..b. f" == "CONST complex_interval_lebesgue_integral CONST lborel a b (\<lambda>x. f)"
 
