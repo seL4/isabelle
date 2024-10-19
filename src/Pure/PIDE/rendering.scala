@@ -580,7 +580,7 @@ class Rendering(
     range: Text.Range,
     timing: Timing = Timing.zero,
     messages: List[(Long, XML.Tree)] = Nil,
-    rev_infos: List[(Boolean, XML.Tree)] = Nil
+    rev_infos: List[(Boolean, Int, XML.Tree)] = Nil
   ) {
     def add_timing(t: Timing): Tooltip_Info = copy(timing = timing + t)
     def add_message(r0: Text.Range, serial: Long, tree: XML.Tree): Tooltip_Info = {
@@ -588,10 +588,11 @@ class Rendering(
       if (range == r) copy(messages = (serial -> tree) :: messages)
       else copy(range = r, messages = List(serial -> tree))
     }
-    def add_info(r0: Text.Range, tree: XML.Tree, important: Boolean = true): Tooltip_Info = {
+    def add_info(r0: Text.Range, tree: XML.Tree, important: Boolean = true, ord: Int = 0): Tooltip_Info = {
       val r = snapshot.convert(r0)
-      if (range == r) copy(rev_infos = (important -> tree) :: rev_infos)
-      else copy (range = r, rev_infos = List(important -> tree))
+      val entry = (important, ord, tree)
+      if (range == r) copy(rev_infos = entry :: rev_infos)
+      else copy (range = r, rev_infos = List(entry))
     }
 
     def timing_info(tree: XML.Tree): Option[XML.Tree] =
@@ -602,7 +603,7 @@ class Rendering(
       }
     def infos(important: Boolean = true): List[XML.Tree] =
       for {
-        (is_important, tree) <- rev_infos.reverse if is_important == important
+        (is_important, _, tree) <- rev_infos.reverse.sortBy(_._2) if is_important == important
         tree1 <- timing_info(tree)
       } yield tree1
   }
@@ -632,7 +633,7 @@ class Rendering(
               if (name == "") kind1
               else if (kind1 == "") quote(name)
               else kind1 + " " + quote(name)
-            val info1 = info.add_info(r0, XML.Text(txt1))
+            val info1 = info.add_info(r0, XML.Text(txt1), ord = 2)
             Some(if (kind == Markup.COMMAND) info1.add_info(r0, XML.elem(Markup.TIMING)) else info1)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
@@ -651,7 +652,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
-            Some(info.add_info(r0, Pretty.block(XML.Text("::") :: Pretty.brk(1) :: body)))
+            Some(info.add_info(r0, Pretty.block(XML.Text("::") :: Pretty.brk(1) :: body), ord = 3))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.CLASS_PARAMETER, _), body))) =>
             Some(info.add_info(r0, Pretty.block(body, indent = 0)))
@@ -675,13 +676,13 @@ class Rendering(
             val description =
               if (!a && !b) "notation"
               else "notation: " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
-            Some(info.add_info(r0, XML.Text(description)))
+            Some(info.add_info(r0, XML.Text(description), ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
             val description =
               if (kind.isEmpty) "expression"
               else "expression: " + Word.implode(Word.explode('_', kind))
-            Some(info.add_info(r0, XML.Text(description)))
+            Some(info.add_info(r0, XML.Text(description), ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(info.add_info(r0, XML.Text("Markdown: paragraph")))
