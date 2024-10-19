@@ -862,8 +862,8 @@ fun type_prop_tr' ctxt T [Const ("\<^const>Pure.sort_constraint", _)] =
 
 (* type reflection *)
 
-fun type_tr' ctxt (Type ("itself", [T])) ts =
-      Term.list_comb (Syntax.const "_TYPE" $ term_of_typ ctxt T, ts)
+fun type_tr' ctxt (ty as Type ("itself", [T])) ts =
+      Term.list_comb (Const ("_TYPE", ty) $ term_of_typ ctxt T, ts)
   | type_tr' _ _ _ = raise Match;
 
 
