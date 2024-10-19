@@ -36,7 +36,7 @@ sig
   val merge_prtabs: prtabs * prtabs -> prtabs
   type pretty_ops =
    {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
-    constrain_output: Ast.ast -> Pretty.T -> Pretty.T,
+    constrain_block: Ast.ast -> Markup.output Pretty.block,
     markup_trans: string -> Ast.ast list -> Pretty.T option,
     markup: string -> Markup.T list,
     extern: string -> xstring}
@@ -227,7 +227,7 @@ val type_mode_flags = {type_mode = true, curried = false};
 
 type pretty_ops =
  {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
-  constrain_output: Ast.ast -> Pretty.T -> Pretty.T,
+  constrain_block: Ast.ast -> Markup.output Pretty.block,
   markup_trans: string -> Ast.ast list -> Pretty.T option,
   markup: string -> Markup.T list,
   extern: string -> xstring};
@@ -300,7 +300,8 @@ fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
           then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
         val output =
           (case constraint of
-            SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) => #constrain_output ops ty
+            SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) =>
+              Pretty.make_block (#constrain_block ops ty) o single
           | _ => I);
       in #1 (syntax (#markup ops a, output) (symbs', args)) end
 

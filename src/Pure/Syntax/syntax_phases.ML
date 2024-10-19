@@ -808,28 +808,26 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
 
     and pretty_ast flags m =
       Printer.pretty flags ctxt prtabs
-        {trf = trf, constrain_output = make_block true, markup_trans = markup_trans,
+        {trf = trf, constrain_block = constrain_block true, markup_trans = markup_trans,
           markup = markup, extern = extern}
       #> Pretty.markup m
 
     and markup_ast is_typing a A =
-      pretty_ast (if is_typing then pretty_flags else Printer.type_mode_flags) Markup.empty a
-      |> make_block is_typing A
+      Pretty.make_block (constrain_block is_typing A)
+        [pretty_ast (if is_typing then pretty_flags else Printer.type_mode_flags) Markup.empty a]
 
-    and make_block is_typing A =
-      let
-        val cache = if is_typing then cache1 else cache2;
-        val block =
-          (case Ast.Table.lookup (! cache) A of
-            SOME block => block
-          | NONE =>
-              let
-                val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
-                val B = Pretty.symbolic_output (pretty_ast Printer.type_mode_flags Markup.empty A);
-                val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
-                val block = {markup = (bg, en), open_block = false, consistent = false, indent = 0};
-              in Unsynchronized.change cache (Ast.Table.update (A, block)); block end);
-      in Pretty.make_block block o single end;
+    and constrain_block is_typing A =
+      let val cache = if is_typing then cache1 else cache2 in
+        (case Ast.Table.lookup (! cache) A of
+          SOME block => block
+        | NONE =>
+            let
+              val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
+              val B = Pretty.symbolic_output (pretty_ast Printer.type_mode_flags Markup.empty A);
+              val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
+              val block = {markup = (bg, en), open_block = false, consistent = false, indent = 0};
+            in Unsynchronized.change cache (Ast.Table.update (A, block)); block end)
+      end;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
