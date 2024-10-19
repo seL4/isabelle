@@ -2557,37 +2557,30 @@ lemma size_filter_ne_elem: "x \<in># M \<Longrightarrow> size {#y \<in># M. y \<
   by (simp add: size_filter_unsat_elem[of x M "\<lambda>y. y \<noteq> x"])
 
 lemma size_eq_ex_count_lt:
-  assumes
-    sz_m_eq_n: "size M = size N" and
-    m_eq_n: "M \<noteq> N"
+  assumes "size M = size N" and "M \<noteq> N"
   shows "\<exists>x. count M x < count N x"
 proof -
-  obtain x where "count M x \<noteq> count N x"
-    using m_eq_n by (meson multiset_eqI)
-  moreover
-  {
-    assume "count M x < count N x"
-    hence ?thesis
-      by blast
-  }
-  moreover
-  {
-    assume cnt_x: "count M x > count N x"
-
-    have "size {#y \<in># M. y = x#} + size {#y \<in># M. y \<noteq> x#} =
+  from \<open>M \<noteq> N\<close> obtain x where "count M x \<noteq> count N x"
+    using count_inject by blast
+  then consider (lt) "count M x < count N x" | (gt) "count M x > count N x"
+    by linarith
+  then show ?thesis
+  proof cases
+    case lt
+    then show ?thesis ..
+  next
+    case gt
+    from \<open>size M = size N\<close> have "size {#y \<in># M. y = x#} + size {#y \<in># M. y \<noteq> x#} =
       size {#y \<in># N. y = x#} + size {#y \<in># N. y \<noteq> x#}"
-      using sz_m_eq_n multiset_partition by (metis size_union)
-    hence sz_m_minus_x: "size {#y \<in># M. y \<noteq> x#} < size {#y \<in># N. y \<noteq> x#}"
-      using cnt_x by (simp add: filter_eq_replicate_mset)
+      using multiset_partition by (metis size_union)
+    with gt have *: "size {#y \<in># M. y \<noteq> x#} < size {#y \<in># N. y \<noteq> x#}"
+      by (simp add: filter_eq_replicate_mset)
     then obtain y where "count {#y \<in># M. y \<noteq> x#} y < count {#y \<in># N. y \<noteq> x#} y"
-      using size_lt_imp_ex_count_lt[OF sz_m_minus_x] by blast
-    hence "count M y < count N y"
+      using size_lt_imp_ex_count_lt[OF *] by blast
+    then have "count M y < count N y"
       by (metis count_filter_mset less_asym)
-    hence ?thesis
-      by blast
-  }
-  ultimately show ?thesis
-    by fastforce
+    then show ?thesis ..
+  qed
 qed
 
 
