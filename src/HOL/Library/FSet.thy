@@ -215,9 +215,9 @@ translations
   "\<nexists>x|\<in>|A. P" \<rightleftharpoons> "CONST fBall A (\<lambda>x. \<not> P)"
   "\<exists>!x|\<in>|A. P" \<rightharpoonup> "\<exists>!x. x |\<in>| A \<and> P"
 
-print_translation \<open>
- [Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>fBall\<close> \<^syntax_const>\<open>_fBall\<close>,
-  Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>fBex\<close> \<^syntax_const>\<open>_fBex\<close>]
+typed_print_translation \<open>
+ [(\<^const_syntax>\<open>fBall\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBall\<close>),
+  (\<^const_syntax>\<open>fBex\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBex\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 syntax

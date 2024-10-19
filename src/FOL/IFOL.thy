@@ -104,9 +104,8 @@ abbreviation not_equal :: \<open>['a, 'a] \<Rightarrow> o\<close>  (infixl \<ope
 syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  (\<open>(\<open>indent=2 notation=\<open>binder \<exists>\<^sub>\<le>\<^sub>1\<close>\<close>\<exists>\<^sub>\<le>\<^sub>1 _./ _)\<close> [0, 10] 10)
 syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
-
-print_translation \<open>
- [Syntax_Trans.preserve_binder_abs_tr' \<^const_syntax>\<open>Uniq\<close> \<^syntax_const>\<open>_Uniq\<close>]
+typed_print_translation \<open>
+  [(\<^const_syntax>\<open>Uniq\<close>, fn _ => Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Uniq\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 

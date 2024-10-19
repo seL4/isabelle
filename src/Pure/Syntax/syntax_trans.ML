@@ -36,8 +36,8 @@ sig
   val atomic_abs_tr': string * typ * term -> term * term
   val const_abs_tr': term -> term
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
-  val preserve_binder_abs_tr': string -> string -> string * (Proof.context -> term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (Proof.context -> term list -> term)
+  val preserve_binder_abs_tr': string -> typ -> term list -> term
+  val preserve_binder_abs2_tr': string -> typ -> term list -> term
   val print_abs: string * typ * term -> string * term
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
@@ -355,13 +355,13 @@ fun mk_binder_tr' (name, syn) =
       | binder_tr' [] = raise Match;
   in (name, fn _ => binder_tr') end;
 
-fun preserve_binder_abs_tr' name syn = (name, fn _ => fn Abs abs :: ts =>
+fun preserve_binder_abs_tr' syn ty (Abs abs :: ts) =
   let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Syntax.const syn $ x $ t, ts) end);
+  in list_comb (Const (syn, ty) $ x $ t, ts) end;
 
-fun preserve_binder_abs2_tr' name syn = (name, fn _ => fn A :: Abs abs :: ts =>
+fun preserve_binder_abs2_tr' syn ty (A :: Abs abs :: ts) =
   let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Syntax.const syn $ x $ A $ t, ts) end);
+  in list_comb (Const (syn, ty) $ x $ A $ t, ts) end;
 
 
 (* idtyp constraints *)

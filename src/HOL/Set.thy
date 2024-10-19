@@ -323,9 +323,9 @@ parse_translation \<open>
   in [(\<^syntax_const>\<open>_Setcompr\<close>, setcompr_tr)] end
 \<close>
 
-print_translation \<open>
- [Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>Ball\<close> \<^syntax_const>\<open>_Ball\<close>,
-  Syntax_Trans.preserve_binder_abs2_tr' \<^const_syntax>\<open>Bex\<close> \<^syntax_const>\<open>_Bex\<close>]
+typed_print_translation \<open>
+ [(\<^const_syntax>\<open>Ball\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Ball\<close>),
+  (\<^const_syntax>\<open>Bex\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Bex\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 print_translation \<open>
