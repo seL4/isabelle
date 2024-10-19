@@ -808,8 +808,8 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
 
     and pretty_ast flags m =
       Printer.pretty flags ctxt prtabs
-        {trf = trf, constrain_block = constrain_block true, markup_trans = markup_trans,
-          markup = markup, extern = extern}
+        {trf = trf, constrain_block = constrain_block true, constrain_trans = constrain_trans,
+          markup_trans = markup_trans, markup = markup, extern = extern}
       #> Pretty.markup m
 
     and markup_ast is_typing a A =

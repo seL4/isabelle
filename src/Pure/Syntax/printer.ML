@@ -37,6 +37,7 @@ sig
   type pretty_ops =
    {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
     constrain_block: Ast.ast -> Markup.output Pretty.block,
+    constrain_trans: Ast.ast -> Ast.ast -> Pretty.T option,
     markup_trans: string -> Ast.ast list -> Pretty.T option,
     markup: string -> Markup.T list,
     extern: string -> xstring}
@@ -228,6 +229,7 @@ val type_mode_flags = {type_mode = true, curried = false};
 type pretty_ops =
  {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
   constrain_block: Ast.ast -> Markup.output Pretty.block,
+  constrain_trans: Ast.ast -> Ast.ast -> Pretty.T option,
   markup_trans: string -> Ast.ast list -> Pretty.T option,
   markup: string -> Markup.T list,
   extern: string -> xstring};
@@ -241,8 +243,8 @@ fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
       else if curried then Syntax_Trans.applC_ast_tr'
       else Syntax_Trans.appl_ast_tr';
 
-    fun constrain_trans (Ast.Appl [Ast.Constant (a as "_constrain"), ast, ty]) =
-          #markup_trans ops a [ast, ty]
+    fun constrain_trans (Ast.Appl [Ast.Constant "_constrain", ast, ty]) =
+          #constrain_trans ops ast ty
       | constrain_trans _ = NONE;
 
     fun main _ (Ast.Variable x) = [Ast.pretty_var x]
