@@ -764,9 +764,7 @@ val var_or_skolem_cache =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-val pretty_type_mode = Printer.pretty Printer.type_mode_flags;
-
-fun unparse_t t_to_ast prt_t language_markup ctxt t =
+fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
@@ -808,21 +806,15 @@ fun unparse_t t_to_ast prt_t language_markup ctxt t =
       if show_markup andalso not show_sorts
       then SOME (markup_ast false ty s) else NONE
 
-    and pretty_typ_ast m ast = ast
-      |> pretty_type_mode ctxt prtabs
-        {trf = trf, constrain_output = constrain_output, markup_trans = markup_trans,
+    and pretty_ast flags m =
+      Printer.pretty flags ctxt prtabs
+        {trf = trf, constrain_output = make_block true, markup_trans = markup_trans,
           markup = markup, extern = extern}
-      |> Pretty.markup m
-
-    and pretty_ast m ast = ast
-      |> prt_t ctxt prtabs
-        {trf = trf, constrain_output = constrain_output, markup_trans = markup_trans,
-          markup = markup, extern = extern}
-      |> Pretty.markup m
+      #> Pretty.markup m
 
     and markup_ast is_typing a A =
-      make_block is_typing A
-        ((if is_typing then pretty_ast else pretty_typ_ast) Markup.empty a)
+      pretty_ast (if is_typing then pretty_flags else Printer.type_mode_flags) Markup.empty a
+      |> make_block is_typing A
 
     and make_block is_typing A =
       let
@@ -833,29 +825,27 @@ fun unparse_t t_to_ast prt_t language_markup ctxt t =
           | NONE =>
               let
                 val ((bg1, bg2), en) = if is_typing then typing_elem else sorting_elem;
-                val B = Pretty.symbolic_output (pretty_typ_ast Markup.empty A);
+                val B = Pretty.symbolic_output (pretty_ast Printer.type_mode_flags Markup.empty A);
                 val bg = implode (bg1 :: Bytes.contents B @ [bg2]);
                 val block = {markup = (bg, en), open_block = false, consistent = false, indent = 0};
               in Unsynchronized.change cache (Ast.Table.update (A, block)); block end);
-      in Pretty.make_block block o single end
-
-    and constrain_output A prt = make_block true A prt;
+      in Pretty.make_block block o single end;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> pretty_ast language_markup
+    |> pretty_ast pretty_flags language_markup
   end;
 
 in
 
-val unparse_sort = unparse_t sort_to_ast pretty_type_mode (Markup.language_sort false);
-val unparse_typ = unparse_t typ_to_ast pretty_type_mode (Markup.language_type false);
+val unparse_sort = unparse_t sort_to_ast Printer.type_mode_flags (Markup.language_sort false);
+val unparse_typ = unparse_t typ_to_ast Printer.type_mode_flags (Markup.language_type false);
 
 fun unparse_term ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val term_mode = {type_mode = false, curried = not (Pure_Thy.old_appl_syntax thy)};
-  in unparse_t term_to_ast (Printer.pretty term_mode) (Markup.language_term false) ctxt end;
+    val pretty_flags = {type_mode = false, curried = not (Pure_Thy.old_appl_syntax thy)};
+  in unparse_t term_to_ast pretty_flags (Markup.language_term false) ctxt end;
 
 end;
 
