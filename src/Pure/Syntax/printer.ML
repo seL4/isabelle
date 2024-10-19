@@ -34,12 +34,14 @@ sig
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs * prtabs -> prtabs
+  type pretty_ops =
+   {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
+    constrain_output: Ast.ast -> Pretty.T -> Pretty.T,
+    markup_trans: string -> Ast.ast list -> Pretty.T option,
+    markup: string -> Markup.T list,
+    extern: string -> xstring}
   val pretty: {type_mode: bool, curried: bool} -> Proof.context -> prtab list ->
-    (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
-    (Ast.ast -> Pretty.T -> Pretty.T) ->
-    (string -> Ast.ast list -> Pretty.T option) ->
-    ((string -> Markup.T list) * (string -> string)) ->
-    Ast.ast -> Pretty.T list
+    pretty_ops -> Ast.ast -> Pretty.T list
   val type_mode_flags: {type_mode: bool, curried: bool}
 end;
 
@@ -223,7 +225,14 @@ in
 
 val type_mode_flags = {type_mode = true, curried = false};
 
-fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (markup, extern) =
+type pretty_ops =
+ {trf: string -> Proof.context -> Ast.ast list -> Ast.ast,
+  constrain_output: Ast.ast -> Pretty.T -> Pretty.T,
+  markup_trans: string -> Ast.ast list -> Pretty.T option,
+  markup: string -> Markup.T list,
+  extern: string -> xstring};
+
+fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
   let
     val show_brackets = Config.get ctxt show_brackets;
 
@@ -233,7 +242,7 @@ fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (m
       else Syntax_Trans.appl_ast_tr';
 
     fun constrain_trans (Ast.Appl [Ast.Constant (a as "_constrain"), ast, ty]) =
-          markup_trans a [ast, ty]
+          #markup_trans ops a [ast, ty]
       | constrain_trans _ = NONE;
 
     fun main _ (Ast.Variable x) = [Ast.pretty_var x]
@@ -252,9 +261,7 @@ fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (m
 
     and main_type p ast =
       if type_mode then main p ast
-      else
-        pretty type_mode_flags (Config.put pretty_priority p ctxt)
-          prtabs trf constrain_output markup_trans (markup, extern) ast
+      else pretty type_mode_flags (Config.put pretty_priority p ctxt) prtabs ops ast
 
     and combination p c a args constraint =
       (case translation p a args of
@@ -274,7 +281,7 @@ fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (m
                 if nargs = 0 then
                   (case Option.mapPartial constrain_trans constraint of
                     SOME prt => [prt]
-                  | NONE => [Pretty.marks_str (markup a, extern a)])
+                  | NONE => [Pretty.marks_str (#markup ops a, #extern ops a)])
                 else main p (application (cc, args))
             | SOME (symbs, n, q) =>
                 if nargs = n then parens p q a (symbs, args) constraint
@@ -282,9 +289,9 @@ fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (m
           end)
 
     and translation p a args =
-      (case markup_trans a args of
+      (case #markup_trans ops a args of
         SOME prt => SOME [prt]
-      | NONE => Option.map (main p) (SOME (trf a ctxt args) handle Match => NONE))
+      | NONE => Option.map (main p) (SOME (#trf ops a ctxt args) handle Match => NONE))
 
     and parens p q a (symbs, args) constraint =
       let
@@ -293,9 +300,9 @@ fun pretty {type_mode, curried} ctxt prtabs trf constrain_output markup_trans (m
           then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
         val output =
           (case constraint of
-            SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) => constrain_output ty
+            SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) => #constrain_output ops ty
           | _ => I);
-      in #1 (syntax (markup a, output) (symbs', args)) end
+      in #1 (syntax (#markup ops a, output) (symbs', args)) end
 
     and syntax _ ([], args) = ([], args)
       | syntax m (Arg p :: symbs, arg :: args) =

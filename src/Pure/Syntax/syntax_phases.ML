@@ -766,7 +766,7 @@ val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
 val pretty_type_mode = Printer.pretty Printer.type_mode_flags;
 
-fun unparse_t t_to_ast prt_t markup ctxt t =
+fun unparse_t t_to_ast prt_t language_markup ctxt t =
   let
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
@@ -775,7 +775,8 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     val syn = Proof_Context.syntax_of ctxt;
     val prtabs = Syntax.print_mode_tabs syn;
     val trf = Syntax.print_ast_translation syn;
-    val markup_extern = (markup_entity_cache ctxt, extern_cache ctxt);
+    val markup = markup_entity_cache ctxt;
+    val extern = extern_cache ctxt;
 
     val free_or_skolem_cache =
       #apply (Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, extern_fixed ctxt x)));
@@ -808,11 +809,15 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       then SOME (markup_ast false ty s) else NONE
 
     and pretty_typ_ast m ast = ast
-      |> pretty_type_mode ctxt prtabs trf constrain_output markup_trans markup_extern
+      |> pretty_type_mode ctxt prtabs
+        {trf = trf, constrain_output = constrain_output, markup_trans = markup_trans,
+          markup = markup, extern = extern}
       |> Pretty.markup m
 
     and pretty_ast m ast = ast
-      |> prt_t ctxt prtabs trf constrain_output markup_trans markup_extern
+      |> prt_t ctxt prtabs
+        {trf = trf, constrain_output = constrain_output, markup_trans = markup_trans,
+          markup = markup, extern = extern}
       |> Pretty.markup m
 
     and markup_ast is_typing a A =
@@ -838,7 +843,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> pretty_ast markup
+    |> pretty_ast language_markup
   end;
 
 in
