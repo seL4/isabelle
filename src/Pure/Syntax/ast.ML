@@ -27,7 +27,8 @@ sig
   val unfold_ast_p: string -> ast -> ast list * ast
   val trace: bool Config.T
   val stats: bool Config.T
-  val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
+  val normalize: Proof.context -> {permissive_constraints: bool} ->
+    (string -> (ast * ast) list) -> ast -> ast
 end;
 
 structure Ast: AST =
@@ -159,22 +160,22 @@ local
 
 exception NO_MATCH;
 
-fun const_match (Constant a) b = a = b
-  | const_match (Variable a) b = a = b
-  | const_match (Appl [Constant "_constrain", ast, _]) b = const_match ast b
-  | const_match _ _ = false;
+fun const_match _ (Constant a) b = a = b
+  | const_match _ (Variable a) b = a = b
+  | const_match true (Appl [Constant "_constrain", ast, _]) b = const_match false ast b
+  | const_match _ _ _ = false;
 
-fun match1 ast (Constant b) env = if const_match ast b then env else raise NO_MATCH
-  | match1 ast (Variable x) env = Symtab.update (x, ast) env
-  | match1 (Appl asts) (Appl pats) env = match2 asts pats env
-  | match1 _ _ _ = raise NO_MATCH
-and match2 (ast :: asts) (pat :: pats) env = match1 ast pat env |> match2 asts pats
-  | match2 [] [] env = env
-  | match2 _ _ _ = raise NO_MATCH;
+fun match1 p ast (Constant b) env = if const_match p ast b then env else raise NO_MATCH
+  | match1 p ast (Variable x) env = Symtab.update (x, ast) env
+  | match1 p (Appl asts) (Appl pats) env = match2 p asts pats env
+  | match1 p _ _ _ = raise NO_MATCH
+and match2 p (ast :: asts) (pat :: pats) env = match1 p ast pat env |> match2 p asts pats
+  | match2 _ [] [] env = env
+  | match2 _ _ _ _ = raise NO_MATCH;
 
 in
 
-fun match ast pat =
+fun match p ast pat =
   let
     val (head, args) =
       (case (ast, pat) of
@@ -184,7 +185,7 @@ fun match ast pat =
             else (ast, [])
           end
       | _ => (ast, []));
-  in SOME (Symtab.build (match1 head pat), args) handle NO_MATCH => NONE end;
+  in SOME (Symtab.build (match1 p head pat), args) handle NO_MATCH => NONE end;
 
 end;
 
@@ -214,7 +215,7 @@ fun message head body =
 in
 
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
-fun normalize ctxt get_rules pre_ast =
+fun normalize ctxt {permissive_constraints = p} get_rules pre_ast =
   let
     val trace = Config.get ctxt trace;
     val stats = Config.get ctxt stats;
@@ -224,7 +225,7 @@ fun normalize ctxt get_rules pre_ast =
     val changes = Unsynchronized.ref 0;
 
     fun rewrite1 ((lhs, rhs) :: pats) ast =
-          (case match ast lhs of
+          (case match p ast lhs of
             SOME (env, args) =>
               (Unsynchronized.inc changes; SOME (mk_appl (subst env rhs) args))
           | NONE => (Unsynchronized.inc failed_matches; rewrite1 pats ast))

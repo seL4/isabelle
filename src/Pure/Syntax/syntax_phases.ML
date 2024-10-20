@@ -387,11 +387,9 @@ fun parse_tree ctxt root input =
   let
     val syn = Proof_Context.syntax_of ctxt;
     val tr = Syntax.parse_translation syn;
-    val parse_rules = Syntax.parse_rules syn;
+    val normalize = Ast.normalize ctxt {permissive_constraints = false} (Syntax.parse_rules syn);
     val (ambig_msgs, asts) = parse_asts ctxt false root input;
-    val results =
-      (map o apsnd o Exn.maps_res)
-        (Ast.normalize ctxt parse_rules #> Exn.result (ast_to_term ctxt tr)) asts;
+    val results = (map o apsnd o Exn.maps_res) (normalize #> Exn.result (ast_to_term ctxt tr)) asts;
   in (ambig_msgs, results) end;
 
 
@@ -830,7 +828,7 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
       end;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
-    |> Ast.normalize ctxt (Syntax.print_rules syn)
+    |> Ast.normalize ctxt {permissive_constraints = true} (Syntax.print_rules syn)
     |> pretty_ast pretty_flags language_markup
   end;
 
