@@ -144,9 +144,9 @@ fun unfold_ast c (y as Appl [Appl [Constant "_constrain", Constant c', _], x, xs
   | unfold_ast _ y = [y];
 
 fun unfold_ast_p c (y as Appl [Appl [Constant "_constrain", Constant c', _], x, xs]) =
-      if c = c' then apfst (cons x) (unfold_ast_p c xs) else ([], y)
+      if c = c' then unfold_ast_p c xs |>> cons x else ([], y)
   | unfold_ast_p c (y as Appl [Constant c', x, xs]) =
-      if c = c' then apfst (cons x) (unfold_ast_p c xs) else ([], y)
+      if c = c' then unfold_ast_p c xs |>> cons x else ([], y)
   | unfold_ast_p _ y = ([], y);
 
 
