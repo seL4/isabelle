@@ -18,16 +18,16 @@ method_setup prolog =
   \<open>Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (Prolog.prolog_tac ctxt thms))\<close>
   "Lambda Prolog interpreter"
 
-consts
+syntax
 
 (* D-formulas (programs):  D ::= !x. D | D .. D | D :- G | A            *)
-  Dand        :: "[bool, bool] => bool"         (infixr \<open>..\<close> 28)
-  Dif        :: "[bool, bool] => bool"         (infixl \<open>:-\<close> 29)
+  "_Dand" :: "[bool, bool] => bool"         (infixr \<open>..\<close> 28)
+  "_Dif" :: "[bool, bool] => bool"         (infixl \<open>:-\<close> 29)
 
 (* G-formulas (goals):     G ::= A | G & G | G | G | ? x. G
                                | True | !x. G | D => G                  *)
-(*Dand'         :: "[bool, bool] => bool"         (infixr "," 35)*)
-  Dimp          :: "[bool, bool] => bool"         (infixr \<open>=>\<close> 27)
+(*"_Dand'" :: "[bool, bool] => bool"         (infixr "," 35)*)
+  "_Dimp" :: "[bool, bool] => bool"         (infixr \<open>=>\<close> 27)
 
 translations
 
