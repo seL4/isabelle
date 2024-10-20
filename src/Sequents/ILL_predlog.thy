@@ -3,19 +3,16 @@ imports ILL
 begin
 
 typedecl plf
-
-consts
-  conj :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>&\<close> 35)
-  disj :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>|\<close> 35)
-  impl :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>>\<close> 35)
-  eq :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>=\<close> 35)
-  ff :: "plf"    (\<open>ff\<close>)
-
-  PL    :: "plf \<Rightarrow> o"      (\<open>[* / _ / *]\<close> [] 100)
+consts "PL" :: "plf \<Rightarrow> o"
 
 syntax
+  "_PL" :: "plf \<Rightarrow> o"      (\<open>[* / _ / *]\<close> [] 100)
+  "_conj" :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>&\<close> 35)
+  "_disj" :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>|\<close> 35)
+  "_impl" :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>>\<close> 35)
+  "_eq" :: "[plf,plf] \<Rightarrow> plf"   (infixr \<open>=\<close> 35)
+  "_ff" :: "plf"    (\<open>ff\<close>)
   "_NG" :: "plf \<Rightarrow> plf"   (\<open>- _ \<close> [50] 55)
-
 translations
   "[* A & B *]" \<rightleftharpoons> "[*A*] && [*B*]"
   "[* A | B *]" \<rightleftharpoons> "![*A*] ++ ![*B*]"
@@ -24,6 +21,7 @@ translations
   "[* A = B *]" \<rightharpoonup> "[* (A > B) & (B > A) *]"
 
   "[* A > B *]" \<rightleftharpoons> "![*A*] -o [*B*]"
+  "_PL" \<rightleftharpoons> "CONST PL"
 
 (* another translations for linear implication:
   "[* A > B *]" == "!([*A*] -o [*B*])" *)
