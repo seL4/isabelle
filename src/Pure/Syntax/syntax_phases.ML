@@ -173,6 +173,10 @@ fun parsetree_to_ast ctxt trf parsetree =
       | Parser.Tip tok =>
           if Lexicon.is_literal tok then report (report_pos tok) markup_cache a else ());
 
+    val ast_of_pos = Ast.Variable o Term_Position.encode;
+    val ast_of_position = ast_of_pos o report_pos;
+    fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
+
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
@@ -182,12 +186,6 @@ fun parsetree_to_ast ctxt trf parsetree =
       if Lexicon.valued_token tok
       then [Ast.Variable (Lexicon.str_of_token tok)]
       else [];
-
-    fun ast_of_position tok =
-      Ast.Variable (Term_Position.encode (report_pos tok));
-
-    fun ast_of_dummy a tok =
-      Ast.constrain (Ast.Constant a) (ast_of_position tok);
 
     fun asts_of_position c tok =
       [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
@@ -218,11 +216,12 @@ fun parsetree_to_ast ctxt trf parsetree =
       | asts_of (Parser.Node ({const = "_position_sort", ...}, [Parser.Tip tok])) =
           asts_of_position "_ofsort" tok
       | asts_of (Parser.Node ({const = a as "\<^const>Pure.dummy_pattern", ...}, [Parser.Tip tok])) =
-          [ast_of_dummy a tok]
+          [ast_of_position' a tok]
       | asts_of (Parser.Node ({const = a as "_idtdummy", ...}, [Parser.Tip tok])) =
-          [ast_of_dummy a tok]
+          [ast_of_position' a tok]
       | asts_of (Parser.Node ({const = "_idtypdummy", ...}, pts as [Parser.Tip tok, _, _])) =
-          [Ast.Appl (Ast.Constant "_constrain" :: ast_of_dummy "_idtdummy" tok :: maps asts_of pts)]
+          let val args = maps asts_of pts
+          in [Ast.Appl (Ast.Constant "_constrain" :: ast_of_position' "_idtdummy" tok :: args)] end
       | asts_of (Parser.Node ({const = a, ...}, pts)) =
           (report_literals a pts; [trans a (maps asts_of pts)])
       | asts_of (Parser.Tip tok) = asts_of_token tok
