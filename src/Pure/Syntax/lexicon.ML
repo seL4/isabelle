@@ -60,10 +60,10 @@ sig
   val read_int: string -> int option
   val read_num: string -> {radix: int, leading_zeros: int, value: int}
   val read_float: string -> {mant: int, exp: int}
-  val mark_class: string -> string val unmark_class: string -> string
-  val mark_type: string -> string val unmark_type: string -> string
-  val mark_const: string -> string val unmark_const: string -> string
-  val mark_fixed: string -> string val unmark_fixed: string -> string
+  val mark_class: string -> string val unmark_class: string -> string val is_class: string -> bool
+  val mark_type: string -> string val unmark_type: string -> string val is_type: string -> bool
+  val mark_const: string -> string val unmark_const: string -> string val is_const: string -> bool
+  val mark_fixed: string -> string val unmark_fixed: string -> string val is_fixed: string -> bool
   val unmark:
    {case_class: string -> 'a,
     case_type: string -> 'a,
@@ -476,12 +476,12 @@ fun read_float str =
 
 (* marked logical entities *)
 
-fun marker s = (prefix s, unprefix s);
+fun marker s = (prefix s, unprefix s, String.isPrefix s);
 
-val (mark_class, unmark_class) = marker "\<^class>";
-val (mark_type, unmark_type) = marker "\<^type>";
-val (mark_const, unmark_const) = marker "\<^const>";
-val (mark_fixed, unmark_fixed) = marker "\<^fixed>";
+val (mark_class, unmark_class, is_class) = marker "\<^class>";
+val (mark_type, unmark_type, is_type) = marker "\<^type>";
+val (mark_const, unmark_const, is_const) = marker "\<^const>";
+val (mark_fixed, unmark_fixed, is_fixed) = marker "\<^fixed>";
 
 fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
   (case try unmark_class s of
