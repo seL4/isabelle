@@ -14,8 +14,11 @@ definition Expr :: "(('a \<Rightarrow> nat) \<Rightarrow> nat) \<Rightarrow> ('a
   where "Expr exp env = exp env"
 
 syntax
-  "_Expr" :: "'a \<Rightarrow> 'a"  (\<open>EXPR _\<close> [1000] 999)
-  "_Var" :: "'a \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"  (\<open>VAR _\<close> [1000] 999)
+  "_Expr" :: "'a \<Rightarrow> 'a"  (\<open>(\<open>notation=\<open>prefix EXPR\<close>\<close>EXPR _)\<close> [1000] 999)
+  "_Var" :: "'a \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> nat"  (\<open>(\<open>notation=\<open>prefix VAR\<close>\<close>VAR _)\<close> [1000] 999)
+
+syntax_consts
+  "_Expr" \<rightleftharpoons> Expr
 
 parse_translation
   \<open>[Syntax_Trans.quote_antiquote_tr
