@@ -187,7 +187,7 @@ fun parsetree_to_ast ctxt trf parsetree =
       Ast.Variable (Term_Position.encode (report_pos tok));
 
     fun ast_of_dummy a tok =
-      Ast.Appl [Ast.Constant "_constrain", Ast.Constant a, ast_of_position tok];
+      Ast.constrain (Ast.Constant a) (ast_of_position tok);
 
     fun asts_of_position c tok =
       [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok), ast_of_position tok]]
@@ -682,7 +682,7 @@ fun term_to_ast ctxt trf =
     fun constrain clean T ast =
       let val U = Type_Annotation.print clean T in
         if U = dummyT then ast
-        else Ast.Appl [Ast.Constant "_constrain", ast, ast_of_termT ctxt trf (term_of_typ ctxt U)]
+        else Ast.constrain ast (ast_of_termT ctxt trf (term_of_typ ctxt U))
       end;
 
     fun main tm =
@@ -881,7 +881,7 @@ fun const_ast_tr intern ctxt asts =
         val pos = the_default Position.none (Term_Position.decode p);
         val (c', _) = decode_const ctxt (c, [pos]);
         val d = if intern then Lexicon.mark_const c' else c;
-      in Ast.Appl [Ast.Constant "_constrain", Ast.Constant d, T] end
+      in Ast.constrain (Ast.Constant d) T end
   | _ => raise Ast.AST ("const_ast_tr", asts));
 
 

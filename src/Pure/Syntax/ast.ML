@@ -11,6 +11,7 @@ sig
     Variable of string |
     Appl of ast list
   val mk_appl: ast -> ast list -> ast
+  val constrain: ast -> ast -> ast
   exception AST of string * ast list
   val ast_ord: ast ord
   structure Table: TABLE
@@ -51,6 +52,8 @@ datatype ast =
   there are no empty asts or nullary applications; use mk_appl for convenience*)
 fun mk_appl f [] = f
   | mk_appl f args = Appl (f :: args);
+
+fun constrain a b = Appl [Constant "_constrain", a, b];
 
 (*exception for system errors involving asts*)
 exception AST of string * ast list;
