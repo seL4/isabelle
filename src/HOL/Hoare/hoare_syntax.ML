@@ -97,7 +97,7 @@ fun com_tr ctxt =
           end
       | tr (Const (\<^syntax_const>\<open>_While\<close>,_) $ b $ i $ v $ c) xs =
           let val (c',a) = tr c xs
-              val (v',A) = case v of
+              val (v',A) = case Term_Position.strip_positions v of
                 Const (\<^const_syntax>\<open>HOL.eq\<close>, _) $ z $ t => (t, Syntax_Trans.abs_tr [z, a]) |
                 t => (t, Abs ("n", dummyT, a))
           in (syntax_const ctxt #While $ bexp_tr b xs $ c',
