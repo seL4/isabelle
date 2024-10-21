@@ -661,16 +661,26 @@ end;
 
 val show_abbrevs = Config.declare_bool ("show_abbrevs", \<^here>) (K true);
 
-fun contract_abbrevs ctxt t =
+fun contract_abbrevs ctxt tm =
   let
     val thy = theory_of ctxt;
     val consts = consts_of ctxt;
     val Mode {abbrev, ...} = get_mode ctxt;
-    val retrieve = Consts.retrieve_abbrevs consts (print_mode_value () @ [""]);
-    fun match_abbrev u = Option.map #1 (get_first (Pattern.match_rew thy u) (retrieve u));
+
+    val nets = Consts.revert_abbrevs consts (print_mode_value () @ [""]);
+    fun retrieves t =
+      let
+        val retrieve =
+          if Term.could_beta_eta_contract t
+          then Item_Net.retrieve
+          else Item_Net.retrieve_matching;
+      in maps (fn net => retrieve net t) nets end;
+
+    fun match_abbrev t =
+      Option.map #1 (get_first (Pattern.match_rew thy t) (retrieves t));
   in
-    if abbrev orelse not (Config.get ctxt show_abbrevs) orelse not (can Term.type_of t) then t
-    else Pattern.rewrite_term_top thy [] [match_abbrev] t
+    if abbrev orelse not (Config.get ctxt show_abbrevs) orelse not (can Term.type_of tm) then tm
+    else Pattern.rewrite_term_top thy [] [match_abbrev] tm
   end;
 
 
