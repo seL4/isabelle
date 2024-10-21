@@ -62,48 +62,60 @@ fun gen_rewrite_term bot thy rules procs tm =
             NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
           | x => x);
 
-    fun rew_sub r bounds skel (tm1 $ tm2) = (case tm1 of
+    fun rew_sub r bounds skel (tm1 $ tm2) =
+          (case tm1 of
             Abs (_, _, body) =>
               let val tm' = subst_bound (tm2, body)
               in SOME (the_default tm' (rew_sub r bounds skel0 tm')) end
           | _ =>
-            let val (skel1, skel2) = (case skel of
-                skel1 $ skel2 => (skel1, skel2)
-              | _ => (skel0, skel0))
-            in case r bounds skel1 tm1 of
-                SOME tm1' => (case r bounds skel2 tm2 of
+            let
+              val (skel1, skel2) =
+                (case skel of
+                  skel1 $ skel2 => (skel1, skel2)
+                | _ => (skel0, skel0));
+            in
+              (case r bounds skel1 tm1 of
+                SOME tm1' =>
+                  (case r bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1' $ tm2')
                   | NONE => SOME (tm1' $ tm2))
-              | NONE => (case r bounds skel2 tm2 of
+              | NONE =>
+                  (case r bounds skel2 tm2 of
                     SOME tm2' => SOME (tm1 $ tm2')
-                  | NONE => NONE)
+                  | NONE => NONE))
             end)
       | rew_sub r bounds skel (tm as Abs (x, _, _)) =
           let
             val (abs, tm') = variant_absfree bounds x tm;
-            val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0)
-          in case r (bounds + 1) skel' tm' of
+            val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0);
+          in
+            (case r (bounds + 1) skel' tm' of
               SOME tm'' => SOME (abs tm'')
-            | NONE => NONE
+            | NONE => NONE)
           end
       | rew_sub _ _ _ _ = NONE;
 
-    fun rew_bot bounds (Var _) _ = NONE
-      | rew_bot bounds skel tm = (case rew_sub rew_bot bounds skel tm of
-          SOME tm1 => (case rew tm1 of
-              SOME (tm2, skel') => SOME (the_default tm2 (rew_bot bounds skel' tm2))
-            | NONE => SOME tm1)
-        | NONE => (case rew tm of
-              SOME (tm1, skel') => SOME (the_default tm1 (rew_bot bounds skel' tm1))
-            | NONE => NONE));
+    fun rew_bot _ (Var _) _ = NONE
+      | rew_bot bounds skel tm =
+          (case rew_sub rew_bot bounds skel tm of
+            SOME tm1 =>
+              (case rew tm1 of
+                SOME (tm2, skel') => SOME (the_default tm2 (rew_bot bounds skel' tm2))
+              | NONE => SOME tm1)
+          | NONE => (case rew tm of
+                SOME (tm1, skel') => SOME (the_default tm1 (rew_bot bounds skel' tm1))
+              | NONE => NONE));
 
-    fun rew_top bounds _ tm = (case rew tm of
-          SOME (tm1, _) => (case rew_sub rew_top bounds skel0 tm1 of
-              SOME tm2 => SOME (the_default tm2 (rew_top bounds skel0 tm2))
-            | NONE => SOME tm1)
-        | NONE => (case rew_sub rew_top bounds skel0 tm of
-              SOME tm1 => SOME (the_default tm1 (rew_top bounds skel0 tm1))
-            | NONE => NONE));
+    fun rew_top bounds _ tm =
+      (case rew tm of
+        SOME (tm1, _) =>
+          (case rew_sub rew_top bounds skel0 tm1 of
+            SOME tm2 => SOME (the_default tm2 (rew_top bounds skel0 tm2))
+          | NONE => SOME tm1)
+      | NONE =>
+          (case rew_sub rew_top bounds skel0 tm of
+            SOME tm1 => SOME (the_default tm1 (rew_top bounds skel0 tm1))
+          | NONE => NONE));
 
   in the_default tm ((if bot then rew_bot else rew_top) 0 skel0 tm) end;
 
