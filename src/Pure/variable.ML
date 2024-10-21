@@ -72,6 +72,7 @@ sig
   val importT_inst: term list -> Proof.context -> typ TVars.table * Proof.context
   val import_inst: bool -> term list -> Proof.context ->
     (typ TVars.table * term Vars.table) * Proof.context
+  val import_inst_revert: typ TVars.table * term Vars.table -> typ TFrees.table * term Frees.table
   val importT_terms: term list -> Proof.context -> term list * Proof.context
   val import_terms: bool -> term list -> Proof.context -> term list * Proof.context
   val importT: thm list -> Proof.context -> (ctyp TVars.table * thm list) * Proof.context
@@ -614,6 +615,15 @@ fun import_inst is_open ts ctxt =
     val (ys, ctxt'') = variant_fixes (map (ren o #1 o #1) vars) ctxt';
     val inst = Vars.build (fold2 (fn (x, T) => fn y => Vars.add ((x, T), Free (y, T))) vars ys);
   in ((instT, inst), ctxt'') end;
+
+fun import_inst_revert (instT, inst) =
+  let
+    val instT' = TFrees.build (instT |> TVars.fold (fn (v, TFree w) => TFrees.add (w, TVar v)));
+    val instantiateT' = Term_Subst.instantiateT_frees instT';
+    val inst' =
+      Frees.build (inst |> Vars.fold (fn ((xi, T), Free (y, U)) =>
+        Frees.add ((y, instantiateT' U), Var (xi, instantiateT' T))));
+  in (instT', inst') end;
 
 fun importT_terms ts ctxt =
   let val (instT, ctxt') = importT_inst ts ctxt

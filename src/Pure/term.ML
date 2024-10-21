@@ -183,7 +183,6 @@ sig
   val maxidx_term: term -> int -> int
   val could_beta_contract: term -> bool
   val could_eta_contract: term -> bool
-  val could_beta_eta_contract: term -> bool
   val used_free: string -> term -> bool
   exception USED_FREE of string * term
   val dest_abs_fresh: string -> term -> (string * typ) * term
@@ -1044,12 +1043,6 @@ fun could_eta_contract (Abs (_, _, _ $ Bound 0)) = true
   | could_eta_contract (Abs (_, _, b)) = could_eta_contract b
   | could_eta_contract (t $ u) = could_eta_contract t orelse could_eta_contract u
   | could_eta_contract _ = false;
-
-fun could_beta_eta_contract (Abs _ $ _) = true
-  | could_beta_eta_contract (Abs (_, _, _ $ Bound 0)) = true
-  | could_beta_eta_contract (Abs (_, _, b)) = could_beta_eta_contract b
-  | could_beta_eta_contract (t $ u) = could_beta_eta_contract t orelse could_beta_eta_contract u
-  | could_beta_eta_contract _ = false;
 
 
 (* dest abstraction *)
