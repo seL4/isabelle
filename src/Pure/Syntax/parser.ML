@@ -661,11 +661,11 @@ val init_prec = (no_prec, Output.empty);
 fun update_prec (A, p) used =
   Inttab.map_default (A, init_prec) (fn (_, output) => (p, output)) used;
 
-fun movedot_states out' A min max = map_filter
+fun movedot_states out' A min max = build o fold
   (fn ((info, Nonterminal (B, p) :: sa, out): state) =>
-      if A = B andalso upto_prec min max p then SOME (info, sa, append_output out' out)
-      else NONE
-    | _ => NONE);
+      if A = B andalso upto_prec min max p then cons (info, sa, append_output out' out)
+      else I
+    | _ => I);
 
 fun process_states (Gram {prods = gram_prods, chains = gram_chains, ...}) stateset i c states0 =
   let
