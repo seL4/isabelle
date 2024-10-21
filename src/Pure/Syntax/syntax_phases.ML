@@ -118,7 +118,7 @@ fun decode_sort tm =
 (* decode_typ *)
 
 fun decode_pos (Free (s, _)) =
-      if is_some (Term_Position.decode s) then SOME s else NONE
+      if not (null (Term_Position.decode s)) then SOME s else NONE
   | decode_pos _ = NONE;
 
 fun decode_typ tm =
@@ -174,7 +174,7 @@ fun parsetree_to_ast ctxt trf parsetree =
           if Lexicon.is_literal tok then report (report_pos tok) markup_cache a else ());
 
     val ast_of_pos = Ast.Variable o Term_Position.encode;
-    val ast_of_position = ast_of_pos o report_pos;
+    val ast_of_position = ast_of_pos o single o report_pos;
     fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
 
     fun trans a args =
@@ -290,11 +290,11 @@ fun decode_term ctxt =
 
             fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
                   (case Term_Position.decode_position typ of
-                    SOME (p, T) => Type.constraint T (decode (p :: ps) qs bs t)
+                    SOME (ps', T) => Type.constraint T (decode (ps' @ ps) qs bs t)
                   | NONE => Type.constraint (decode_typ typ) (decode ps qs bs t))
               | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
                   (case Term_Position.decode_position typ of
-                    SOME (q, T) => Type.constraint (T --> dummyT) (decode ps (q :: qs) bs t)
+                    SOME (qs', T) => Type.constraint (T --> dummyT) (decode ps (qs' @ qs) bs t)
                   | NONE => Type.constraint (decode_typ typ --> dummyT) (decode ps qs bs t))
               | decode _ qs bs (Abs (x, T, t)) =
                   let
@@ -494,8 +494,8 @@ fun parse_ast_pattern ctxt (root, str) =
       | decode ps (Ast.Appl (asts as (Ast.Constant c :: ast :: Ast.Variable x :: args))) =
           if member (op =) Term_Position.markers c then
             (case Term_Position.decode x of
-              SOME p => Ast.mk_appl (decode (p :: ps) ast) (map (decode ps) args)
-            | NONE => decode_appl ps asts)
+              [] => decode_appl ps asts
+            | ps' => Ast.mk_appl (decode (ps' @ ps) ast) (map (decode ps) args))
           else decode_appl ps asts
       | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
@@ -546,7 +546,7 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Syntax.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if is_some (Term_Position.decode x) then Syntax.free x
+          if not (null (Term_Position.decode x)) then Syntax.free x
           else ofsort (Syntax.const "_tfree" $ Syntax.free x) S
       | term_of (TVar (xi, S)) = ofsort (Syntax.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
@@ -877,8 +877,7 @@ fun const_ast_tr intern ctxt asts =
   (case asts of
     [Ast.Appl [Ast.Constant "_constrain", Ast.Variable c, T as Ast.Variable p]] =>
       let
-        val pos = the_default Position.none (Term_Position.decode p);
-        val (c', _) = decode_const ctxt (c, [pos]);
+        val (c', _) = decode_const ctxt (c, Term_Position.decode p);
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.constrain (Ast.Constant d) T end
   | _ => raise Ast.AST ("const_ast_tr", asts));

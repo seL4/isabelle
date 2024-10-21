@@ -88,8 +88,8 @@ structure Set = Set(Table.Key);
 
 fun pretty_var x =
   (case Term_Position.decode x of
-    SOME pos => Term_Position.pretty pos
-  | NONE => Pretty.str x);
+    [] => Pretty.str x
+  | ps => Term_Position.pretty ps);
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) = pretty_var x
@@ -104,7 +104,7 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_ast);
 (* strip_positions *)
 
 fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts)) =
-      if member (op =) Term_Position.markers c andalso is_some (Term_Position.decode x)
+      if member (op =) Term_Position.markers c andalso not (null (Term_Position.decode x))
       then mk_appl (strip_positions u) (map strip_positions asts)
       else Appl (map strip_positions (t :: u :: v :: asts))
   | strip_positions (Appl asts) = Appl (map strip_positions asts)

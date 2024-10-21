@@ -125,10 +125,12 @@ fun prepare_positions ctxt tms =
           in (Type (a, Ts'), ps_idx') end
       | prepareT T (ps, idx) =
           (case Term_Position.decode_positionT T of
-            SOME pos =>
-              let val U = Type_Infer.mk_param idx []
-              in (U, ((pos, U) :: ps, idx + 1)) end
-          | NONE => (T, (ps, idx)));
+            [] => (T, (ps, idx))
+          | pos =>
+              let
+                val U = Type_Infer.mk_param idx [];
+                val ps' = map (rpair U) pos;
+              in (U, (ps' @ ps, idx + 1)) end);
 
     fun prepare (Const ("_type_constraint_", T)) ps_idx =
           let

@@ -94,7 +94,7 @@ fun get_positions ctxt x =
     fun get Cs (Const ("_type_constraint_", C) $ t) = get (C :: Cs) t
       | get Cs (Free (y, T)) =
           if x = y then
-            map_filter Term_Position.decode_positionT
+            maps Term_Position.decode_positionT
               (T :: map (Type.constraint_type ctxt) Cs)
           else []
       | get _ (t $ u) = get [] t @ get [] u

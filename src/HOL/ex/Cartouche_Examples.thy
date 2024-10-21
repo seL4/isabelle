@@ -70,8 +70,8 @@ ML \<open>
       let fun err () = raise TERM ("string_tr", args) in
         (case args of
           [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ Free (s, _) $ p] =>
-            (case Term_Position.decode_position p of
-              SOME (pos, _) => c $ mk_string (content (s, pos)) $ p
+            (case Term_Position.decode_position1 p of
+              SOME pos => c $ mk_string (content (s, pos)) $ p
             | NONE => err ())
         | _ => err ())
       end;

@@ -1,16 +1,17 @@
 (*  Title:      Pure/Syntax/term_position.ML
     Author:     Makarius
 
-Encoded position within term syntax trees.
+Positions within term syntax trees (non-empty list).
 *)
 
 signature TERM_POSITION =
 sig
-  val pretty: Position.T -> Pretty.T
-  val encode: Position.T -> string
-  val decode: string -> Position.T option
-  val decode_position: term -> (Position.T * typ) option
-  val decode_positionT: typ -> Position.T option
+  val pretty: Position.T list -> Pretty.T
+  val encode: Position.T list -> string
+  val decode: string -> Position.T list
+  val decode_position: term -> (Position.T list * typ) option
+  val decode_position1: term -> Position.T option
+  val decode_positionT: typ -> Position.T list
   val decode_positionS: sort -> Position.T list * sort
   val is_position: term -> bool
   val is_positionT: typ -> bool
@@ -26,37 +27,53 @@ struct
 val position_dummy = "<position>";
 val position_text = XML.Text position_dummy;
 
-fun pretty pos = Pretty.mark_str_position (pos, position_dummy);
+fun pretty ps = Pretty.marks_str (map Position.markup ps, position_dummy);
 
-fun encode pos =
-  YXML.string_of (XML.Elem (Position.markup pos, [position_text]));
+fun encode_pos pos = XML.Elem (Position.markup pos, [position_text]);
 
-fun decode str =
-  (case YXML.parse_body str handle Fail msg => error msg of
-    [XML.Elem ((name, props), [arg])] =>
+fun decode_pos (XML.Elem ((name, props), [arg])) =
       if name = Markup.positionN andalso arg = position_text
       then SOME (Position.of_properties props)
       else NONE
-  | _ => NONE);
+  | decode_pos _ = NONE;
+
+fun encode ps =
+  YXML.string_of_body (map encode_pos (if null ps then [Position.none] else ps));
+
+fun decode str =
+  let
+    val xml = YXML.parse_body str handle Fail msg => error msg;
+    val ps = map decode_pos xml;
+  in
+    if not (null ps) andalso forall is_some ps then map the ps
+    else if forall is_none ps then []
+    else error ("Bad encoded positions: " ^ quote str)
+  end;
 
 
 (* positions within parse trees *)
 
 fun decode_position (Free (x, _)) =
       (case decode x of
-        SOME pos => SOME (pos, TFree (x, dummyS))
-      | NONE => NONE)
+        [] => NONE
+      | ps => SOME (ps, TFree (x, dummyS)))
   | decode_position _ = NONE;
 
+fun decode_position1 (Free (x, _)) =
+      (case decode x of
+        [] => NONE
+      | pos :: _ => SOME pos)
+  | decode_position1 _ = NONE;
+
 fun decode_positionT (TFree (x, _)) = decode x
-  | decode_positionT _ = NONE;
+  | decode_positionT _ = [];
 
 fun decode_positionS cs =
-  let val (ps, sort) = List.partition (is_some o decode) cs
-  in (map (the o decode) ps, sort) end;
+  let val (ps, sort) = List.partition (not o null o decode) cs
+  in (maps decode ps, sort) end;
 
 val is_position = is_some o decode_position;
-val is_positionT = is_some o decode_positionT;
+val is_positionT = not o null o decode_positionT;
 
 val markers = ["_constrain", "_constrainAbs", "_ofsort"];
 
