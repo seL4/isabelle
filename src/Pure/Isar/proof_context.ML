@@ -668,16 +668,14 @@ fun contract_abbrevs ctxt tm =
     val Mode {abbrev, ...} = get_mode ctxt;
 
     val nets = Consts.revert_abbrevs consts (print_mode_value () @ [""]);
-    fun retrieves t =
+    fun match_abbrev t =
       let
         val retrieve =
           if Term.could_beta_eta_contract t
           then Item_Net.retrieve
           else Item_Net.retrieve_matching;
-      in maps (fn net => retrieve net t) nets end;
-
-    fun match_abbrev t =
-      Option.map #1 (get_first (Pattern.match_rew thy t) (retrieves t));
+        fun match_rew net = get_first (Pattern.match_rew thy t) (retrieve net t);
+      in Option.map #1 (get_first match_rew nets) end;
   in
     if abbrev orelse not (Config.get ctxt show_abbrevs) orelse not (can Term.type_of tm) then tm
     else Pattern.rewrite_term_top thy [] [match_abbrev] tm
