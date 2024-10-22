@@ -5,21 +5,18 @@
 Mixfix declarations, infixes, binders.
 *)
 
-signature BASIC_MIXFIX =
-sig
-  datatype mixfix =
-    NoSyn |
-    Mixfix of Input.source * int list * int * Position.range |
-    Infix of Input.source * int * Position.range |
-    Infixl of Input.source * int * Position.range |
-    Infixr of Input.source * int * Position.range |
-    Binder of Input.source * int * int * Position.range |
-    Structure of Position.range
-end;
+datatype mixfix =
+  NoSyn |
+  Mixfix of Input.source * int list * int * Position.range |
+  Infix of Input.source * int * Position.range |
+  Infixl of Input.source * int * Position.range |
+  Infixr of Input.source * int * Position.range |
+  Binder of Input.source * int * int * Position.range |
+  Structure of Position.range;
 
 signature MIXFIX =
 sig
-  include BASIC_MIXFIX
+  datatype mixfix = datatype mixfix
   val mixfix: string -> mixfix
   val is_empty: mixfix -> bool
   val is_infix: mixfix -> bool
@@ -42,14 +39,7 @@ struct
 
 (** mixfix declarations **)
 
-datatype mixfix =
-  NoSyn |
-  Mixfix of Input.source * int list * int * Position.range |
-  Infix of Input.source * int * Position.range |
-  Infixl of Input.source * int * Position.range |
-  Infixr of Input.source * int * Position.range |
-  Binder of Input.source * int * int * Position.range |
-  Structure of Position.range;
+datatype mixfix = datatype mixfix;
 
 fun mixfix s = Mixfix (Input.string s, [], 1000, Position.no_range);
 
@@ -280,6 +270,3 @@ fun syn_ext_consts ctxt logical_types const_decls =
   end;
 
 end;
-
-structure Basic_Mixfix: BASIC_MIXFIX = Mixfix;
-open Basic_Mixfix;
