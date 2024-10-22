@@ -218,7 +218,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
 
 end
 
-val try0 = Try0.try0 (SOME (Time.fromSeconds 5)) ([], [], [], [])
+val try0 = not o null o Try0.try0 (SOME (Time.fromSeconds 5)) ([], [], [], [])
 
 fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_context) =
   let

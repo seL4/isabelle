@@ -8,8 +8,9 @@ signature TRY0 =
 sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
+  type result = {name: string, command: string, time: int, state: Proof.state}
   val try0 : Time.time option -> string list * string list * string list * string list ->
-    Proof.state -> bool
+    Proof.state -> result list
 end;
 
 structure Try0 : TRY0 =
@@ -50,6 +51,8 @@ fun add_attr_text (NONE, _) s = s
 fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
   "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es), (dx, ds)];
 
+type result = {name: string, command: string, time: int, state: Proof.state}
+
 fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt quad st =
   if mode <> Auto_Try orelse run_if_auto_try then
     let
@@ -75,7 +78,9 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
         (if multiple_goals andalso num_after > 0 then select else "")
     in
-      if num_before > num_after then SOME (name, command, Time.toMilliseconds time, st') else NONE
+      if num_before > num_after then
+        SOME {name = name, command = command, time = Time.toMilliseconds time, state = st'}
+      else NONE
     end
   else NONE;
 
@@ -126,12 +131,12 @@ fun generic_try0 mode timeout_opt quad st =
   let
     val st = Proof.map_contexts (silence_methods false) st;
     fun try_method method = method mode timeout_opt quad st;
-    fun get_message (_, command, ms, _) = "Found proof: " ^ Active.sendback_markup_command
-      command ^ " (" ^ time_string ms ^ ")";
+    fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
+      command ^ " (" ^ time_string time ^ ")";
     val print_step = Option.map (tap (writeln o get_message));
     val get_results =
       if mode = Normal
-      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #3)
+      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #time)
       else Par_List.get_some try_method #> the_list;
   in
     if mode = Normal then
@@ -141,27 +146,29 @@ fun generic_try0 mode timeout_opt quad st =
     else
       ();
     (case get_results apply_methods of
-      [] => (if mode = Normal then writeln "No proof found" else (); (false, (noneN, [])))
-    | xs as (name, command, time, st') :: _ =>
+      [] => (if mode = Normal then writeln "No proof found" else (); ((false, (noneN, [])), []))
+    | results as {name, command, ...} :: _ =>
       let
-        val xs = xs |> map (fn (name, _, n, _) => (n, name))
-                    |> AList.coalesce (op =)
-                    |> map (swap o apsnd commas);
+        val method_times =
+          results
+          |> map (fn {name, time, ...} => (time, name))
+          |> AList.coalesce (op =)
+          |> map (swap o apsnd commas);
         val message =
           (case mode of
              Auto_Try => "Auto Try0 found a proof"
            | Try => "Try0 found a proof"
            | Normal => "Try this") ^ ": " ^
           Active.sendback_markup_command command ^
-          (case xs of
+          (case method_times of
             [(_, ms)] => " (" ^ time_string ms ^ ")"
-          | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ")");
+          | method_times => "\n(" ^ space_implode "; " (map tool_time_string method_times) ^ ")");
       in
-        (true, (name, if mode = Auto_Try then [message] else (writeln message; [])))
+        ((true, (name, if mode = Auto_Try then [message] else (writeln message; []))), results)
       end)
   end;
 
-fun try0 timeout_opt = fst oo generic_try0 Normal timeout_opt;
+fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt;
 
 fun try0_trans quad =
   Toplevel.keep_proof
@@ -193,6 +200,6 @@ val _ =
 val _ =
   Try.tool_setup
    {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])};
+    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])};
 
 end;
