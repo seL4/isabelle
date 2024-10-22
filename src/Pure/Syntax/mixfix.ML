@@ -1,5 +1,6 @@
 (*  Title:      Pure/Syntax/mixfix.ML
-    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow, TU Muenchen
+    Author:     Makarius
 
 Mixfix declarations, infixes, binders.
 *)
