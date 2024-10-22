@@ -779,7 +779,7 @@ fun prepare_sorts_env ctxt tys =
     val reports =
       (fold o fold_atyps)
         (fn T =>
-          if Term_Position.is_positionT T then I
+          if Term_Position.detect_positionT T then I
           else
             (case T of
               TFree (x, raw_S) => get_sort_reports (x, ~1) raw_S
@@ -791,7 +791,7 @@ fun prepare_sorts_env ctxt tys =
 fun replace_sortsT_same get_sort =
   Term.map_atyps_same
     (fn T =>
-      if Term_Position.is_positionT T then raise Same.SAME
+      if Term_Position.detect_positionT T then raise Same.SAME
       else
         (case T of
           TFree (x, raw_S) => TFree (x, Same.function_eq (op =) (get_sort (x, ~1)) raw_S)

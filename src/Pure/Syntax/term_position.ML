@@ -8,13 +8,14 @@ signature TERM_POSITION =
 sig
   val pretty: Position.T list -> Pretty.T
   val encode: Position.T list -> string
+  val detect: string -> bool
   val decode: string -> Position.T list
+  val detect_position: term -> bool
   val decode_position: term -> (Position.T list * typ) option
   val decode_position1: term -> Position.T option
+  val detect_positionT: typ -> bool
   val decode_positionT: typ -> Position.T list
   val decode_positionS: sort -> Position.T list * sort
-  val is_position: term -> bool
-  val is_positionT: typ -> bool
   val markers: string list
   val strip_positions: term -> term
 end;
@@ -37,21 +38,41 @@ fun decode_pos (XML.Elem ((name, props), [arg])) =
       else NONE
   | decode_pos _ = NONE;
 
+
+(* encode *)
+
+val encode_none = YXML.string_of (encode_pos Position.none);
+
 fun encode ps =
-  YXML.string_of_body (map encode_pos (if null ps then [Position.none] else ps));
+  (case remove (op =) Position.none ps of
+    [] => encode_none
+  | ps' => YXML.string_of_body (map encode_pos (distinct (op =) ps')));
+
+val encode_prefix = YXML.XY ^ Markup.positionN;
+
+
+(* decode *)
+
+val detect = String.isPrefix encode_prefix;
 
 fun decode str =
-  let
-    val xml = YXML.parse_body str handle Fail msg => error msg;
-    val ps = map decode_pos xml;
-  in
-    if not (null ps) andalso forall is_some ps then map the ps
-    else if forall is_none ps then []
-    else error ("Bad encoded positions: " ^ quote str)
-  end;
+  if str = encode_none then [Position.none]
+  else if detect str then
+    let
+      val xml = YXML.parse_body str handle Fail msg => error msg;
+      val ps = map decode_pos xml;
+    in
+      if not (null ps) andalso forall is_some ps then map the ps
+      else if forall is_none ps then []
+      else error ("Bad encoded positions: " ^ quote str)
+    end
+  else [];
 
 
 (* positions within parse trees *)
+
+fun detect_position (Free (x, _)) = detect x
+  | detect_position _ = false;
 
 fun decode_position (Free (x, _)) =
       (case decode x of
@@ -65,20 +86,23 @@ fun decode_position1 (Free (x, _)) =
       | pos :: _ => SOME pos)
   | decode_position1 _ = NONE;
 
+fun detect_positionT (TFree (x, _)) = detect x
+  | detect_positionT _ = false;
+
 fun decode_positionT (TFree (x, _)) = decode x
   | decode_positionT _ = [];
 
 fun decode_positionS cs =
-  let val (ps, sort) = List.partition (not o null o decode) cs
+  let val (ps, sort) = List.partition detect cs
   in (maps decode ps, sort) end;
 
-val is_position = is_some o decode_position;
-val is_positionT = not o null o decode_positionT;
+
+(* strip_positions *)
 
 val markers = ["_constrain", "_constrainAbs", "_ofsort"];
 
 fun strip_positions ((t as Const (c, _)) $ u $ v) =
-      if member (op =) markers c andalso is_position v
+      if member (op =) markers c andalso detect_position v
       then strip_positions u
       else t $ strip_positions u $ strip_positions v
   | strip_positions (t $ u) = strip_positions t $ strip_positions u

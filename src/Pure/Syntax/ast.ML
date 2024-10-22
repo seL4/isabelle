@@ -104,7 +104,7 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_ast);
 (* strip_positions *)
 
 fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts)) =
-      if member (op =) Term_Position.markers c andalso not (null (Term_Position.decode x))
+      if member (op =) Term_Position.markers c andalso Term_Position.detect x
       then mk_appl (strip_positions u) (map strip_positions asts)
       else Appl (map strip_positions (t :: u :: v :: asts))
   | strip_positions (Appl asts) = Appl (map strip_positions asts)

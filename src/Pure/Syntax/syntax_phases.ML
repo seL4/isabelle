@@ -117,8 +117,7 @@ fun decode_sort tm =
 
 (* decode_typ *)
 
-fun decode_pos (Free (s, _)) =
-      if not (null (Term_Position.decode s)) then SOME s else NONE
+fun decode_pos (Free (x, _)) = if Term_Position.detect x then SOME x else NONE
   | decode_pos _ = NONE;
 
 fun decode_typ tm =
@@ -546,7 +545,7 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Syntax.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if not (null (Term_Position.decode x)) then Syntax.free x
+          if Term_Position.detect x then Syntax.free x
           else ofsort (Syntax.const "_tfree" $ Syntax.free x) S
       | term_of (TVar (xi, S)) = ofsort (Syntax.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
