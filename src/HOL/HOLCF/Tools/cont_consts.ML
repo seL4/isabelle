@@ -28,16 +28,16 @@ fun change_cfun 0 T = T
 
 (* translations *)
 
-fun trans_rules name2 name1 n mx =
+fun trans_rules c1 c2 n mx =
   let
     val xs = Name.invent Name.context "xa" n
-    val extra_parse_rule = Syntax.Parse_Rule (Ast.Constant name2, Ast.Constant name1)
+    val extra_parse_rule = Syntax.Parse_Rule (Ast.Constant c1, Ast.Constant c2)
   in
     [Syntax.Parse_Print_Rule
-      (Ast.mk_appl (Ast.Constant name2) (map Ast.Variable xs),
+      (Ast.mk_appl (Ast.Constant c1) (map Ast.Variable xs),
         fold (fn x => fn t =>
             Ast.mk_appl (Ast.Constant \<^const_syntax>\<open>Rep_cfun\<close>) [t, Ast.Variable x])
-          xs (Ast.Constant name1))] @
+          xs (Ast.Constant c2))] @
     (case mx of
       Infix _ => [extra_parse_rule]
     | Infixl _ => [extra_parse_rule]
@@ -54,30 +54,27 @@ fun gen_add_consts prep_typ raw_decls thy =
 
     fun is_cont_const (_, _, NoSyn) = false
       | is_cont_const (_, _, Binder _) = false    (* FIXME ? *)
-      | is_cont_const (c, T, mx) =
+      | is_cont_const (b, T, mx) =
           let
             val n = Mixfix.mixfix_args thy_ctxt mx handle ERROR msg =>
-              cat_error msg ("in mixfix annotation for " ^ Binding.print c)
+              cat_error msg ("in mixfix annotation for " ^ Binding.print b)
           in count_cfun T >= n end
 
-    fun transform (c, T, mx) =
+    fun transform (b, T, mx) =
       let
-        fun syntax b = Lexicon.mark_const (Sign.full_bname thy b)
-        val c1 = Binding.name_of c
-        val c2 = c1 ^ "_cont_syntax"
+        val c = Sign.full_name thy b
+        val c1 = Lexicon.mark_syntax c
+        val c2 = Lexicon.mark_const c
         val n = Mixfix.mixfix_args thy_ctxt mx
-      in
-        ((c, T, NoSyn),
-          (Binding.name c2, change_cfun n T, mx),
-          trans_rules (syntax c2) (syntax c1) n mx)
-      end
+      in ((b, T, NoSyn), (c1, change_cfun n T, mx), trans_rules c1 c2 n mx) end
 
-    val decls = map (fn (c, T, mx) => (c, prep_typ thy T, mx)) raw_decls
+    val decls = map (fn (b, T, mx) => (b, prep_typ thy T, mx)) raw_decls
     val (cont_decls, normal_decls) = List.partition is_cont_const decls
     val transformed_decls = map transform cont_decls
   in
     thy
-    |> Sign.add_consts (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
+    |> Sign.add_consts (normal_decls @ map #1 transformed_decls)
+    |> Sign.syntax_global true Syntax.mode_default (map #2 transformed_decls)
     |> Sign.add_trrules (maps #3 transformed_decls)
   end
 
