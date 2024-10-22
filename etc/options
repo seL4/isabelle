@@ -523,8 +523,8 @@ option ci_mail_sender : string = "" for connection
 option ci_mail_smtp_host : string = "" for connection
 option ci_mail_smtp_port : int = 587 for connection
 
-option ci_mail_from : string = "ci@isabelle.systems"
+option ci_mail_from : string = "ci@proof.cit.tum.de"
   -- "mail address for build failure notifications"
-  
+
 option ci_mail_to : string = ""
   -- "recipient address for build failure notifications"
