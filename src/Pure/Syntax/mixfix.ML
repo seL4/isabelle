@@ -30,7 +30,6 @@ sig
   val default_constraint: Proof.context -> mixfix -> typ
   val make_type: int -> typ
   val binder_name: string -> string
-  val is_binder_name: string -> bool
   val syn_ext_types: Proof.context -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
   val syn_ext_consts: Proof.context -> string list -> (string * typ * mixfix) list ->
     Syntax_Ext.syn_ext
@@ -171,9 +170,7 @@ fun infix_block ctxt =
 (* binder notation *)
 
 val binder_stamp = stamp ();
-val binder_suffix = "_binder"
-val binder_name = suffix binder_suffix;
-val is_binder_name = String.isSuffix binder_suffix;
+val binder_name = perhaps (try Lexicon.unmark_const) #> Lexicon.mark_binder;
 
 val binder_bg = Symbol_Pos.explode0 "(";
 val binder_en = Symbol_Pos.explode0 "_./ _)";
