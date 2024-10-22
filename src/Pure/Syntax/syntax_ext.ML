@@ -383,7 +383,7 @@ fun mfix_to_xprod ctxt logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
       else
         let
           val indexed_const =
-            if const <> "" then const ^ "_indexed"
+            if const <> "" then Lexicon.mark_indexed const
             else err_in_mixfix "Missing constant name for indexed syntax";
           val rangeT = Term.range_type typ handle Match =>
             err_in_mixfix "Missing structure argument for indexed syntax";

@@ -1,45 +1,9 @@
 (*  Title:      Pure/Syntax/mixfix.ML
-    Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
+    Author:     Tobias Nipkow, TU Muenchen
+    Author:     Makarius
 
 Mixfix declarations, infixes, binders.
 *)
-
-signature BASIC_MIXFIX =
-sig
-  datatype mixfix =
-    NoSyn |
-    Mixfix of Input.source * int list * int * Position.range |
-    Infix of Input.source * int * Position.range |
-    Infixl of Input.source * int * Position.range |
-    Infixr of Input.source * int * Position.range |
-    Binder of Input.source * int * int * Position.range |
-    Structure of Position.range
-end;
-
-signature MIXFIX =
-sig
-  include BASIC_MIXFIX
-  val mixfix: string -> mixfix
-  val is_empty: mixfix -> bool
-  val equal: mixfix * mixfix -> bool
-  val range_of: mixfix -> Position.range
-  val pos_of: mixfix -> Position.T
-  val reset_pos: mixfix -> mixfix
-  val pretty_mixfix: mixfix -> Pretty.T
-  val mixfix_args: Proof.context -> mixfix -> int
-  val default_constraint: Proof.context -> mixfix -> typ
-  val make_type: int -> typ
-  val binder_name: string -> string
-  val is_binder_name: string -> bool
-  val syn_ext_types: Proof.context -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
-  val syn_ext_consts: Proof.context -> string list -> (string * typ * mixfix) list ->
-    Syntax_Ext.syn_ext
-end;
-
-structure Mixfix: MIXFIX =
-struct
-
-(** mixfix declarations **)
 
 datatype mixfix =
   NoSyn |
@@ -50,10 +14,42 @@ datatype mixfix =
   Binder of Input.source * int * int * Position.range |
   Structure of Position.range;
 
+signature MIXFIX =
+sig
+  datatype mixfix = datatype mixfix
+  val mixfix: string -> mixfix
+  val is_empty: mixfix -> bool
+  val is_infix: mixfix -> bool
+  val equal: mixfix * mixfix -> bool
+  val range_of: mixfix -> Position.range
+  val pos_of: mixfix -> Position.T
+  val reset_pos: mixfix -> mixfix
+  val pretty_mixfix: mixfix -> Pretty.T
+  val mixfix_args: Proof.context -> mixfix -> int
+  val default_constraint: Proof.context -> mixfix -> typ
+  val make_type: int -> typ
+  val binder_name: string -> string
+  val syn_ext_types: Proof.context -> (string * typ * mixfix) list -> Syntax_Ext.syn_ext
+  val syn_ext_consts: Proof.context -> string list -> (string * typ * mixfix) list ->
+    Syntax_Ext.syn_ext
+end;
+
+structure Mixfix: MIXFIX =
+struct
+
+(** mixfix declarations **)
+
+datatype mixfix = datatype mixfix;
+
 fun mixfix s = Mixfix (Input.string s, [], 1000, Position.no_range);
 
 fun is_empty NoSyn = true
   | is_empty _ = false;
+
+fun is_infix (Infix _) = true
+  | is_infix (Infixl _) = true
+  | is_infix (Infixr _) = true
+  | is_infix _ = false;
 
 fun equal (NoSyn, NoSyn) = true
   | equal (Mixfix (sy, ps, p, _), Mixfix (sy', ps', p', _)) =
@@ -171,9 +167,11 @@ fun infix_block ctxt =
 (* binder notation *)
 
 val binder_stamp = stamp ();
-val binder_suffix = "_binder"
-val binder_name = suffix binder_suffix;
-val is_binder_name = String.isSuffix binder_suffix;
+
+fun binder_name c =
+  (if Lexicon.is_const c then Lexicon.unmark_const c
+   else if Lexicon.is_fixed c then Lexicon.unmark_fixed c
+   else c) |> Lexicon.mark_binder;
 
 val binder_bg = Symbol_Pos.explode0 "(";
 val binder_en = Symbol_Pos.explode0 "_./ _)";
@@ -276,6 +274,3 @@ fun syn_ext_consts ctxt logical_types const_decls =
   end;
 
 end;
-
-structure Basic_Mixfix: BASIC_MIXFIX = Mixfix;
-open Basic_Mixfix;

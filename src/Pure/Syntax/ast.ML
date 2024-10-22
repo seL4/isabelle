@@ -104,7 +104,7 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_ast);
 (* strip_positions *)
 
 fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts)) =
-      if member (op =) Term_Position.markers c andalso not (null (Term_Position.decode x))
+      if member (op =) Term_Position.markers c andalso Term_Position.detect x
       then mk_appl (strip_positions u) (map strip_positions asts)
       else Appl (map strip_positions (t :: u :: v :: asts))
   | strip_positions (Appl asts) = Appl (map strip_positions asts)
@@ -163,15 +163,19 @@ local
 
 exception NO_MATCH;
 
-fun const_match _ (Constant a) b = a = b
-  | const_match _ (Variable a) b = a = b
-  | const_match true (Appl [Constant "_constrain", ast, _]) b = const_match false ast b
-  | const_match _ _ _ = false;
+fun const_match0 (Constant a) b = a = b
+  | const_match0 (Variable a) b = a = b
+  | const_match0 _ _ = false;
+
+fun const_match true (Appl [Constant "_constrain", ast, _]) b = const_match0 ast b
+  | const_match false (Appl [Constant "_constrain", ast, Variable x]) b =
+      Term_Position.detect x andalso const_match0 ast b
+  | const_match _ a b = const_match0 a b;
 
 fun match1 p ast (Constant b) env = if const_match p ast b then env else raise NO_MATCH
-  | match1 p ast (Variable x) env = Symtab.update (x, ast) env
+  | match1 _ ast (Variable x) env = Symtab.update (x, ast) env
   | match1 p (Appl asts) (Appl pats) env = match2 p asts pats env
-  | match1 p _ _ _ = raise NO_MATCH
+  | match1 _ _ _ _ = raise NO_MATCH
 and match2 p (ast :: asts) (pat :: pats) env = match1 p ast pat env |> match2 p asts pats
   | match2 _ [] [] env = env
   | match2 _ _ _ _ = raise NO_MATCH;

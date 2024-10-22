@@ -219,7 +219,7 @@ val _ = Theory.setup
     ("_lambda",           typ "pttrns \<Rightarrow> 'a \<Rightarrow> logic",
       mixfix ("(\<open>indent=3 notation=abstraction\<close>%_./ _)", [0, 3], 3)),
     (const "Pure.eq",     typ "'a \<Rightarrow> 'a \<Rightarrow> prop",       infix_ ("==", 2)),
-    (const "Pure.all_binder", typ "idts \<Rightarrow> prop \<Rightarrow> prop",
+    (Mixfix.binder_name "Pure.all", typ "idts \<Rightarrow> prop \<Rightarrow> prop",
       mixfix ("(\<open>indent=3 notation=\<open>binder !!\<close>\<close>!!_./ _)", [0, 0], 0)),
     (const "Pure.imp",    typ "prop \<Rightarrow> prop \<Rightarrow> prop",   infixr_ ("==>", 1)),
     ("_DDDOT",            typ "aprop",                  Mixfix.mixfix "..."),

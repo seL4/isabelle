@@ -60,6 +60,9 @@ sig
   val read_int: string -> int option
   val read_num: string -> {radix: int, leading_zeros: int, value: int}
   val read_float: string -> {mant: int, exp: int}
+  val mark_syntax: string -> string
+  val mark_binder: string -> string
+  val mark_indexed: string -> string
   val mark_class: string -> string val unmark_class: string -> string val is_class: string -> bool
   val mark_type: string -> string val unmark_type: string -> string val is_type: string -> bool
   val mark_const: string -> string val unmark_const: string -> string val is_const: string -> bool
@@ -474,9 +477,20 @@ fun read_float str =
   end;
 
 
-(* marked logical entities *)
+
+(** marked names **)
 
 fun marker s = (prefix s, unprefix s, String.isPrefix s);
+
+
+(* syntax consts *)
+
+val (mark_syntax, _, _) = marker "\<^syntax>";
+val (mark_binder, _, _) = marker "\<^binder>";
+val (mark_indexed, _, _) = marker "\<^indexed>";
+
+
+(* logical entities *)
 
 val (mark_class, unmark_class, is_class) = marker "\<^class>";
 val (mark_type, unmark_type, is_type) = marker "\<^type>";

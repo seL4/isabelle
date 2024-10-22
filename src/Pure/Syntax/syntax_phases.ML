@@ -15,6 +15,7 @@ sig
     Position.report_text list * term Exn.result -> Position.report_text list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
+  val const_syntax_legacy: bool Config.T
   val print_checks: Proof.context -> unit
   val typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
     Context.generic -> Context.generic
@@ -117,8 +118,7 @@ fun decode_sort tm =
 
 (* decode_typ *)
 
-fun decode_pos (Free (s, _)) =
-      if not (null (Term_Position.decode s)) then SOME s else NONE
+fun decode_pos (Free (x, _)) = if Term_Position.detect x then SOME x else NONE
   | decode_pos _ = NONE;
 
 fun decode_typ tm =
@@ -153,6 +153,15 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
+val const_syntax_legacy = Config.declare_bool ("const_syntax_legacy", \<^here>) (K false);
+
+fun parsetree_literals (Parser.Markup (_, ts)) = maps parsetree_literals ts
+  | parsetree_literals (Parser.Node _) = []
+  | parsetree_literals (Parser.Tip tok) =
+      if Lexicon.is_literal tok andalso
+        not (null (Lexicon.literal_markup (Lexicon.str_of_token tok)))
+      then [Lexicon.pos_of_token tok] else [];
+
 fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report_text list);
@@ -176,11 +185,6 @@ fun parsetree_to_ast ctxt trf parsetree =
     val ast_of_pos = Ast.Variable o Term_Position.encode;
     val ast_of_position = ast_of_pos o single o report_pos;
     fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
-
-    fun trans a args =
-      (case trf a of
-        NONE => Ast.mk_appl (Ast.Constant a) args
-      | SOME f => f ctxt args);
 
     fun asts_of_token tok =
       if Lexicon.valued_token tok
@@ -223,7 +227,20 @@ fun parsetree_to_ast ctxt trf parsetree =
           let val args = maps asts_of pts
           in [Ast.Appl (Ast.Constant "_constrain" :: ast_of_position' "_idtdummy" tok :: args)] end
       | asts_of (Parser.Node ({const = a, ...}, pts)) =
-          (report_literals a pts; [trans a (maps asts_of pts)])
+          let
+            val ps = maps parsetree_literals pts;
+            val args = maps asts_of pts;
+            fun head () =
+              if (Lexicon.is_fixed a orelse Lexicon.is_const a)
+                andalso not (Config.get ctxt const_syntax_legacy)
+              then Ast.constrain (Ast.Constant a) (ast_of_pos ps)
+              else Ast.Constant a;
+            val _ = List.app (fn pos => report pos markup_cache a) ps;
+          in
+            [case trf a of
+              SOME f => f ctxt args
+            | NONE => Ast.mk_appl (head ()) args]
+          end
       | asts_of (Parser.Tip tok) = asts_of_token tok
 
     and ast_of pt =
@@ -304,15 +321,13 @@ fun decode_term ctxt =
               | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
               | decode ps _ _ (Const (a, T)) =
                   (case try Lexicon.unmark_fixed a of
-                    SOME x => (report ps markup_free_cache x; Free (x, T))
+                    SOME x => Free (x, T)
                   | NONE =>
-                      let
-                        val c =
-                          (case try Lexicon.unmark_const a of
-                            SOME c => c
-                          | NONE => #1 (decode_const ctxt (a, [])));
-                        val _ = report ps markup_const_cache c;
-                      in Const (c, T) end)
+                      (case try Lexicon.unmark_const a of
+                        SOME c => Const (c, T)
+                      | NONE =>
+                          let val c = #1 (decode_const ctxt (a, []))
+                          in report ps markup_const_cache c; Const (c, T) end))
               | decode ps _ _ (Free (a, T)) =
                   ((Name.reject_internal (a, ps) handle ERROR msg =>
                       error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
@@ -546,7 +561,7 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Syntax.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if not (null (Term_Position.decode x)) then Syntax.free x
+          if Term_Position.detect x then Syntax.free x
           else ofsort (Syntax.const "_tfree" $ Syntax.free x) S
       | term_of (TVar (xi, S)) = ofsort (Syntax.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
