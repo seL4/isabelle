@@ -95,6 +95,7 @@ sig
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
   val show_abbrevs: bool Config.T
+  val contract_abbrevs: Proof.context -> term -> term
   val expand_abbrevs: Proof.context -> term -> term
   val cert_term: Proof.context -> term -> term
   val cert_prop: Proof.context -> term -> term
