@@ -152,6 +152,13 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
+fun parsetree_literals (Parser.Markup (_, ts)) = maps parsetree_literals ts
+  | parsetree_literals (Parser.Node _) = []
+  | parsetree_literals (Parser.Tip tok) =
+      if Lexicon.is_literal tok andalso
+        not (null (Lexicon.literal_markup (Lexicon.str_of_token tok)))
+      then [Lexicon.pos_of_token tok] else [];
+
 fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report_text list);
@@ -222,7 +229,19 @@ fun parsetree_to_ast ctxt trf parsetree =
           let val args = maps asts_of pts
           in [Ast.Appl (Ast.Constant "_constrain" :: ast_of_position' "_idtdummy" tok :: args)] end
       | asts_of (Parser.Node ({const = a, ...}, pts)) =
-          (report_literals a pts; [trans a (maps asts_of pts)])
+          let
+            val ps = maps parsetree_literals pts;
+            val args = maps asts_of pts;
+            fun head () =
+              if Lexicon.is_fixed a orelse Lexicon.is_const a
+              then Ast.constrain (Ast.Constant a) (ast_of_pos ps)
+              else Ast.Constant a;
+            val _ = List.app (fn pos => report pos markup_cache a) ps;
+          in
+            [case trf a of
+              SOME f => f ctxt args
+            | NONE => Ast.mk_appl (head ()) args]
+          end
       | asts_of (Parser.Tip tok) = asts_of_token tok
 
     and ast_of pt =
@@ -303,15 +322,13 @@ fun decode_term ctxt =
               | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
               | decode ps _ _ (Const (a, T)) =
                   (case try Lexicon.unmark_fixed a of
-                    SOME x => (report ps markup_free_cache x; Free (x, T))
+                    SOME x => Free (x, T)
                   | NONE =>
-                      let
-                        val c =
-                          (case try Lexicon.unmark_const a of
-                            SOME c => c
-                          | NONE => #1 (decode_const ctxt (a, [])));
-                        val _ = report ps markup_const_cache c;
-                      in Const (c, T) end)
+                      (case try Lexicon.unmark_const a of
+                        SOME c => Const (c, T)
+                      | NONE =>
+                          let val c = #1 (decode_const ctxt (a, []))
+                          in report ps markup_const_cache c; Const (c, T) end))
               | decode ps _ _ (Free (a, T)) =
                   ((Name.reject_internal (a, ps) handle ERROR msg =>
                       error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
