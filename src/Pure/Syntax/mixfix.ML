@@ -21,6 +21,7 @@ sig
   include BASIC_MIXFIX
   val mixfix: string -> mixfix
   val is_empty: mixfix -> bool
+  val is_infix: mixfix -> bool
   val equal: mixfix * mixfix -> bool
   val range_of: mixfix -> Position.range
   val pos_of: mixfix -> Position.T
@@ -53,6 +54,11 @@ fun mixfix s = Mixfix (Input.string s, [], 1000, Position.no_range);
 
 fun is_empty NoSyn = true
   | is_empty _ = false;
+
+fun is_infix (Infix _) = true
+  | is_infix (Infixl _) = true
+  | is_infix (Infixr _) = true
+  | is_infix _ = false;
 
 fun equal (NoSyn, NoSyn) = true
   | equal (Mixfix (sy, ps, p, _), Mixfix (sy', ps', p', _)) =
