@@ -21,18 +21,18 @@ datatype mode = Auto_Try | Try | Normal;
 
 val default_timeout = seconds 5.0;
 
-fun can_apply timeout_opt pre post tac st =
+fun can_apply timeout_opt post tac st =
   let val {goal, ...} = Proof.goal st in
     (case (case timeout_opt of
             SOME timeout => Timeout.apply_physical timeout
-          | NONE => fn f => fn x => f x) (Seq.pull o tac) (pre st) of
+          | NONE => fn f => fn x => f x) (Seq.pull o tac) st of
       SOME (x, _) => Thm.nprems_of (post x) < Thm.nprems_of goal
     | NONE => false)
   end;
 
-fun apply_generic timeout_opt name command pre post apply st =
+fun apply_generic timeout_opt name command post apply st =
   let val time_start = Time.now () in
-    if try (can_apply timeout_opt pre post apply) st = SOME true then
+    if try (can_apply timeout_opt post apply) st = SOME true then
       SOME (name, command, Time.toMilliseconds (Time.now () - time_start))
     else
       NONE
@@ -66,7 +66,7 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
       apply_generic timeout_opt name
         ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
          (if all_goals andalso Thm.nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
-        I (#goal o Proof.goal)
+        (#goal o Proof.goal)
         (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)
           #> Seq.filter_results) st
     end
