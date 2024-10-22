@@ -183,11 +183,6 @@ fun parsetree_to_ast ctxt trf parsetree =
     val ast_of_position = ast_of_pos o single o report_pos;
     fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
 
-    fun trans a args =
-      (case trf a of
-        NONE => Ast.mk_appl (Ast.Constant a) args
-      | SOME f => f ctxt args);
-
     fun asts_of_token tok =
       if Lexicon.valued_token tok
       then [Ast.Variable (Lexicon.str_of_token tok)]
