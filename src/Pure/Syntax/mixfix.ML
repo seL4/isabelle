@@ -167,7 +167,11 @@ fun infix_block ctxt =
 (* binder notation *)
 
 val binder_stamp = stamp ();
-val binder_name = perhaps (try Lexicon.unmark_const) #> Lexicon.mark_binder;
+
+fun binder_name c =
+  (if Lexicon.is_const c then Lexicon.unmark_const c
+   else if Lexicon.is_fixed c then Lexicon.unmark_fixed c
+   else c) |> Lexicon.mark_binder;
 
 val binder_bg = Symbol_Pos.explode0 "(";
 val binder_en = Symbol_Pos.explode0 "_./ _)";
