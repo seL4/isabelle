@@ -21,36 +21,26 @@ datatype mode = Auto_Try | Try | Normal;
 
 val default_timeout = seconds 5.0;
 
-fun can_apply timeout_opt post tac st =
-  let val {goal, ...} = Proof.goal st in
-    (case (case timeout_opt of
-            SOME timeout => Timeout.apply_physical timeout
-          | NONE => fn f => fn x => f x) (Seq.pull o tac) st of
-      SOME (x, _) => Thm.nprems_of (post x) < Thm.nprems_of goal
-    | NONE => false)
-  end;
+fun run_tac timeout_opt tac st =
+  let val with_timeout =
+    (case timeout_opt of SOME timeout => Timeout.apply_physical timeout | NONE => I)
+  in with_timeout (Seq.pull o tac) st |> Option.map fst end;
 
-fun apply_generic timeout_opt name command post apply st =
-  let val time_start = Time.now () in
-    if try (can_apply timeout_opt post apply) st = SOME true then
-      SOME (name, command, Time.toMilliseconds (Time.now () - time_start))
-    else
-      NONE
-  end;
+fun apply_recursive recurse elapsed0 timeout_opt post apply st =
+  (case Timing.timing (Option.join o try (run_tac timeout_opt apply)) st of
+    ({elapsed, ...}, SOME st') =>
+      if recurse andalso (st' |> Thm.nprems_of o #goal o Proof.goal) > 0 then
+        let val timeout_opt1 = (Option.map (fn timeout => timeout - elapsed) timeout_opt)
+        in apply_recursive recurse (elapsed0 + elapsed) timeout_opt1 post apply st' end
+      else (elapsed0 + elapsed, st')
+   |_ => (elapsed0, st))
 
-fun parse_method keywords s =
+fun parse_method ctxt s =
   enclose "(" ")" s
-  |> Token.explode keywords Position.start
+  |> Token.explode (Thy_Header.get_keywords' ctxt) Position.start
   |> filter Token.is_proper
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
-
-fun apply_named_method_on_first_goal ctxt =
-  parse_method (Thy_Header.get_keywords' ctxt)
-  #> Method.method_cmd ctxt
-  #> Method.Basic
-  #> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
-  #> Proof.refine;
 
 fun add_attr_text (NONE, _) s = s
   | add_attr_text (_, []) s = s
@@ -62,16 +52,32 @@ fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
 
 fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt quad st =
   if mode <> Auto_Try orelse run_if_auto_try then
-    let val attrs = attrs_text attrs quad in
-      apply_generic timeout_opt name
-        ((name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
-         (if all_goals andalso Thm.nprems_of (#goal (Proof.goal st)) > 1 then "[1]" else ""))
-        (#goal o Proof.goal)
-        (apply_named_method_on_first_goal (Proof.context_of st) (name ^ attrs)
-          #> Seq.filter_results) st
+    let
+      val attrs = attrs_text attrs quad
+      val ctxt = Proof.context_of st
+
+      val apply = name ^ attrs
+      |> parse_method ctxt
+      |> Method.method_cmd ctxt
+      |> Method.Basic
+      |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
+      |> Proof.refine
+      #> Seq.filter_results
+
+      val the_goal = #goal o Proof.goal
+      val num_before = Thm.nprems_of (the_goal st)
+      val multiple_goals = all_goals andalso num_before > 1
+      val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt the_goal apply st
+      val num_after = Thm.nprems_of (the_goal st')
+      val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
+      val command =
+        (if num_after = 0 then "by " else "apply ") ^
+        (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
+        (if multiple_goals andalso num_after > 0 then select else "")
+    in
+      if num_before > num_after then SOME (name, command, Time.toMilliseconds time, st') else NONE
     end
-  else
-    NONE;
+  else NONE;
 
 val full_attrs = (SOME "simp", SOME "intro", SOME "elim", SOME "dest");
 val clas_attrs = (NONE, SOME "intro", SOME "elim", SOME "dest");
@@ -119,15 +125,13 @@ fun silence_methods debug =
 fun generic_try0 mode timeout_opt quad st =
   let
     val st = Proof.map_contexts (silence_methods false) st;
-    fun trd (_, _, t) = t;
     fun try_method method = method mode timeout_opt quad st;
-    fun get_message (_, command, ms) = "Found proof: " ^ Active.sendback_markup_command
-      ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by" else "apply") ^ " " ^ command) ^
-      " (" ^ time_string ms ^ ")";
+    fun get_message (_, command, ms, _) = "Found proof: " ^ Active.sendback_markup_command
+      command ^ " (" ^ time_string ms ^ ")";
     val print_step = Option.map (tap (writeln o get_message));
     val get_results =
       if mode = Normal
-      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 trd)
+      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #3)
       else Par_List.get_some try_method #> the_list;
   in
     if mode = Normal then
@@ -137,11 +141,10 @@ fun generic_try0 mode timeout_opt quad st =
     else
       ();
     (case get_results apply_methods of
-      [] =>
-      (if mode = Normal then writeln "No proof found" else (); (false, (noneN, [])))
-    | xs as (name, command, _) :: _ =>
+      [] => (if mode = Normal then writeln "No proof found" else (); (false, (noneN, [])))
+    | xs as (name, command, time, st') :: _ =>
       let
-        val xs = xs |> map (fn (name, _, n) => (n, name))
+        val xs = xs |> map (fn (name, _, n, _) => (n, name))
                     |> AList.coalesce (op =)
                     |> map (swap o apsnd commas);
         val message =
@@ -149,9 +152,7 @@ fun generic_try0 mode timeout_opt quad st =
              Auto_Try => "Auto Try0 found a proof"
            | Try => "Try0 found a proof"
            | Normal => "Try this") ^ ": " ^
-          Active.sendback_markup_command
-              ((if Thm.nprems_of (#goal (Proof.goal st)) = 1 then "by"
-                else "apply") ^ " " ^ command) ^
+          Active.sendback_markup_command command ^
           (case xs of
             [(_, ms)] => " (" ^ time_string ms ^ ")"
           | xs => "\n(" ^ space_implode "; " (map tool_time_string xs) ^ ")");
