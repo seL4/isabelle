@@ -234,6 +234,10 @@ fun normalize ctxt {permissive_constraints = p} get_rules pre_ast =
     val changes = Unsynchronized.ref 0;
     val passes = Unsynchronized.ref 0;
 
+    fun test_changes () =
+      let val old_changes = ! changes
+      in fn () => old_changes <> ! changes end;
+
     fun rewrite1 ast (lhs, rhs) =
       (case match p ast lhs of
         NONE => (Unsynchronized.inc matches_failed; NONE)
@@ -255,17 +259,17 @@ fun normalize ctxt {permissive_constraints = p} get_rules pre_ast =
       (case norm1 ast of
         Appl subs =>
           let
-            val old_changes = ! changes;
+            val changed = test_changes ();
             val ast' = Appl (map norm2 subs);
-          in if old_changes = ! changes then ast' else norm1 ast' end
+          in if changed () then norm1 ast' else ast' end
       | atomic => atomic);
 
     fun norm ast =
       let
-        val old_changes = ! changes;
+        val changed = test_changes ();
         val ast' = norm2 ast;
         val _ = Unsynchronized.inc passes;
-      in if old_changes = ! changes then ast' else norm ast' end;
+      in if changed () then norm ast' else ast' end;
 
 
     val _ = tracing_if trace (fn () => message "pre:" (pretty_ast pre_ast));
