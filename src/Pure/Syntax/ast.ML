@@ -219,6 +219,9 @@ fun head_name (Constant a) = a
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
 
+fun tracing_if false _ = ()
+  | tracing_if true msg = tracing (msg ());
+
 in
 
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
@@ -227,63 +230,52 @@ fun normalize ctxt {permissive_constraints = p} get_rules pre_ast =
     val trace = Config.get ctxt trace;
     val stats = Config.get ctxt stats;
 
-    val passes = Unsynchronized.ref 0;
-    val failed_matches = Unsynchronized.ref 0;
+    val matches_failed = Unsynchronized.ref 0;
     val changes = Unsynchronized.ref 0;
+    val passes = Unsynchronized.ref 0;
 
-    fun rewrite1 ((lhs, rhs) :: pats) ast =
-          (case match p ast lhs of
-            SOME (env, args) =>
-              (Unsynchronized.inc changes; SOME (mk_appl (subst env rhs) args))
-          | NONE => (Unsynchronized.inc failed_matches; rewrite1 pats ast))
-      | rewrite1 [] _ = NONE;
+    fun rewrite1 ast (lhs, rhs) =
+      (case match p ast lhs of
+        NONE => (Unsynchronized.inc matches_failed; NONE)
+      | SOME (env, args) => (Unsynchronized.inc changes; SOME (mk_appl (subst env rhs) args)));
 
     fun rewrite2 a ast =
-      (case rewrite1 (get_rules a) ast of
+      (case get_first (rewrite1 ast) (get_rules a) of
         NONE => if a = "" then NONE else rewrite2 "" ast
       | some => some);
 
-    fun rewrite ast = rewrite2 (head_name ast) ast;
-
-    fun rewrote old_ast new_ast =
-      if trace then tracing (message "rewrote:" (pretty_rule (old_ast, new_ast)))
-      else ();
+    fun rewrote rule = tracing_if trace (fn () => message "rewrote:" (pretty_rule rule));
 
     fun norm1 ast =
-      (case rewrite ast of
-        SOME new_ast => (rewrote ast new_ast; norm1 new_ast)
+      (case rewrite2 (head_name ast) ast of
+        SOME ast' => (rewrote (ast, ast'); norm1 ast')
       | NONE => ast);
 
     fun norm2 ast =
       (case norm1 ast of
-        Appl sub_asts =>
+        Appl subs =>
           let
             val old_changes = ! changes;
-            val new_ast = Appl (map norm2 sub_asts);
-          in
-            if old_changes = ! changes then new_ast else norm1 new_ast
-          end
-      | atomic_ast => atomic_ast);
+            val ast' = Appl (map norm2 subs);
+          in if old_changes = ! changes then ast' else norm1 ast' end
+      | atomic => atomic);
 
     fun norm ast =
       let
         val old_changes = ! changes;
-        val new_ast = norm2 ast;
-      in
-        Unsynchronized.inc passes;
-        if old_changes = ! changes then new_ast else norm new_ast
-      end;
+        val ast' = norm2 ast;
+        val _ = Unsynchronized.inc passes;
+      in if old_changes = ! changes then ast' else norm ast' end;
 
 
-    val _ = if trace then tracing (message "pre:" (pretty_ast pre_ast)) else ();
+    val _ = tracing_if trace (fn () => message "pre:" (pretty_ast pre_ast));
     val post_ast = norm pre_ast;
     val _ =
-      if trace orelse stats then
-        tracing (message "post:" (pretty_ast post_ast) ^ "\nnormalize: " ^
-          string_of_int (! passes) ^ " passes, " ^
-          string_of_int (! changes) ^ " changes, " ^
-          string_of_int (! failed_matches) ^ " matches failed")
-      else ();
+      tracing_if (trace orelse stats) (fn () =>
+        message "post:" (pretty_ast post_ast) ^ "\nnormalize: " ^
+        string_of_int (! passes) ^ " passes, " ^
+        string_of_int (! changes) ^ " changes, " ^
+        string_of_int (! matches_failed) ^ " matches failed");
   in post_ast end;
 
 end;
