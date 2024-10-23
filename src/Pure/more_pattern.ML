@@ -51,7 +51,9 @@ val skel_fun = fn skel $ _ => skel | _ => skel0;
 val skel_arg = fn _ $ skel => skel | _ => skel0;
 val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
 
-fun gen_rewrite_term bot thy rules procs term =
+datatype mode = Bottom | Top;
+
+fun rewrite_term_mode mode thy rules procs term =
   let
     fun variant_absfree bounds x tm =
       let
@@ -81,16 +83,16 @@ fun gen_rewrite_term bot thy rules procs term =
           in Option.map abs (rw (bounds + 1) (skel_body skel) t') end
       | rew_sub _ _ _ _ = NONE;
 
-    fun rew_bot _ (Var _) _ = NONE
-      | rew_bot bounds skel t =
-          (case rew_sub rew_bot bounds skel t of
+    fun rew_bottom _ (Var _) _ = NONE
+      | rew_bottom bounds skel t =
+          (case rew_sub rew_bottom bounds skel t of
             SOME t1 =>
               (case rew t1 of
-                SOME (t2, skel') => SOME (the_default t2 (rew_bot bounds skel' t2))
+                SOME (t2, skel') => SOME (the_default t2 (rew_bottom bounds skel' t2))
               | NONE => SOME t1)
           | NONE =>
               (case rew t of
-                SOME (t1, skel') => SOME (the_default t1 (rew_bot bounds skel' t1))
+                SOME (t1, skel') => SOME (the_default t1 (rew_bottom bounds skel' t1))
               | NONE => NONE));
 
     fun rew_top bounds _ t =
@@ -104,12 +106,13 @@ fun gen_rewrite_term bot thy rules procs term =
             SOME t1 => SOME (the_default t1 (rew_top bounds skel0 t1))
           | NONE => NONE));
 
-  in the_default term ((if bot then rew_bot else rew_top) 0 skel0 term) end;
+    val rewrite = (case mode of Bottom => rew_bottom | Top => rew_top);
+  in the_default term (rewrite 0 skel0 term) end;
 
 in
 
-val rewrite_term = gen_rewrite_term true;
-val rewrite_term_top = gen_rewrite_term false;
+val rewrite_term = rewrite_term_mode Bottom;
+val rewrite_term_top = rewrite_term_mode Top;
 
 end;
 
