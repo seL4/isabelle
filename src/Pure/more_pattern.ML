@@ -44,13 +44,15 @@ fun match_rew thy tm (tm1, tm2) =
       handle Pattern.MATCH => NONE
   end;
 
+local
+
+val skel0 = Bound 0;
+val skel_fun = fn skel $ _ => skel | _ => skel0;
+val skel_arg = fn _ $ skel => skel | _ => skel0;
+val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
+
 fun gen_rewrite_term bot thy rules procs term =
   let
-    val skel0 = Bound 0;
-    val skel_fun = fn skel $ _ => skel | _ => skel0;
-    val skel_arg = fn _ $ skel => skel | _ => skel0;
-    val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
-
     fun variant_absfree bounds x tm =
       let
         val ((x', T), t') =
@@ -110,9 +112,12 @@ fun gen_rewrite_term bot thy rules procs term =
 
   in the_default term ((if bot then rew_bot else rew_top) 0 skel0 term) end;
 
+in
+
 val rewrite_term = gen_rewrite_term true;
 val rewrite_term_top = gen_rewrite_term false;
 
+end;
 
 open Pattern;
 

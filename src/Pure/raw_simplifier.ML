@@ -981,6 +981,9 @@ fun mk_procrule ctxt thm =
   skel0 is a dummy skeleton that is to enforce complete normalization.*)
 
 val skel0 = Bound 0;
+val skel_fun = fn skel $ _ => skel | _ => skel0;
+val skel_arg = fn _ $ skel => skel | _ => skel0;
+val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
 
 (*Use rhs as skeleton only if the lhs does not contain unnormalized bits.
   The latter may happen iff there are weak congruence rules for constants
@@ -1249,11 +1252,8 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
         let val Simpset (_, {congs, ...}) = simpset_of ctxt in
           (case Thm.term_of t0 of
               Abs (a, _, _) =>
-                let
-                  val ((v, t'), ctxt') = Variable.dest_abs_cterm t0 ctxt;
-                  val skel' = (case skel of Abs (_, _, sk) => sk | _ => skel0);
-                in
-                  (case botc skel' ctxt' t' of
+                let val ((v, t'), ctxt') = Variable.dest_abs_cterm t0 ctxt in
+                  (case botc (skel_body skel) ctxt' t' of
                     SOME thm => SOME (Thm.abstract_rule a v thm)
                   | NONE => NONE)
                 end
@@ -1270,20 +1270,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, maxidx) =
               | _  =>
                   let
                     fun appc () =
-                      let
-                        val (tskel, uskel) =
-                          (case skel of
-                            tskel $ uskel => (tskel, uskel)
-                          | _ => (skel0, skel0));
-                        val (ct, cu) = Thm.dest_comb t0;
-                      in
-                        (case botc tskel ctxt ct of
+                      let val (ct, cu) = Thm.dest_comb t0 in
+                        (case botc (skel_fun skel) ctxt ct of
                           SOME thm1 =>
-                            (case botc uskel ctxt cu of
+                            (case botc (skel_arg skel) ctxt cu of
                               SOME thm2 => SOME (Thm.combination thm1 thm2)
                             | NONE => SOME (Thm.combination thm1 (Thm.reflexive cu)))
                         | NONE =>
-                            (case botc uskel ctxt cu of
+                            (case botc (skel_arg skel) ctxt cu of
                               SOME thm1 => SOME (Thm.combination (Thm.reflexive ct) thm1)
                             | NONE => NONE))
                       end;
