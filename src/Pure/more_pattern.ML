@@ -44,9 +44,12 @@ fun match_rew thy tm (tm1, tm2) =
       handle Pattern.MATCH => NONE
   end;
 
-fun gen_rewrite_term bot thy rules procs tm =
+fun gen_rewrite_term bot thy rules procs term =
   let
     val skel0 = Bound 0;
+    val skel_fun = fn skel $ _ => skel | _ => skel0;
+    val skel_arg = fn _ $ skel => skel | _ => skel0;
+    val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
 
     fun variant_absfree bounds x tm =
       let
@@ -59,37 +62,25 @@ fun gen_rewrite_term bot thy rules procs tm =
     fun rew (Abs (_, _, body) $ t) = SOME (subst_bound (t, body), skel0)
       | rew tm =
           (case get_first (match_rew thy tm) rules of
-            NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
-          | x => x);
+            NONE => Option.map (rpair skel0) (get_first (fn proc => proc tm) procs)
+          | some => some);
 
-    fun rew_sub r bounds skel (tm1 $ tm2) =
-          (case tm1 of
-            Abs (_, _, body) =>
-              let val tm' = subst_bound (tm2, body)
-              in SOME (the_default tm' (rew_sub r bounds skel0 tm')) end
-          | _ =>
-            let
-              val (skel1, skel2) =
-                (case skel of
-                  skel1 $ skel2 => (skel1, skel2)
-                | _ => (skel0, skel0));
-            in
-              (case r bounds skel1 tm1 of
-                SOME tm1' =>
-                  (case r bounds skel2 tm2 of
-                    SOME tm2' => SOME (tm1' $ tm2')
-                  | NONE => SOME (tm1' $ tm2))
-              | NONE =>
-                  (case r bounds skel2 tm2 of
-                    SOME tm2' => SOME (tm1 $ tm2')
-                  | NONE => NONE))
-            end)
+    fun rew_sub r bounds _ (Abs (_, _, body) $ t) =
+          let val t' = subst_bound (t, body)
+          in SOME (the_default t' (rew_sub r bounds skel0 t')) end
+      | rew_sub r bounds skel (t1 $ t2) =
+          (case r bounds (skel_fun skel) t1 of
+            SOME t1' =>
+              (case r bounds (skel_arg skel) t2 of
+                SOME t2' => SOME (t1' $ t2')
+              | NONE => SOME (t1' $ t2))
+          | NONE =>
+              (case r bounds (skel_arg skel) t2 of
+                SOME t2' => SOME (t1 $ t2')
+              | NONE => NONE))
       | rew_sub r bounds skel (tm as Abs (x, _, _)) =
-          let
-            val (abs, tm') = variant_absfree bounds x tm;
-            val skel' = (case skel of Abs (_, _, skel') => skel' | _ => skel0);
-          in
-            (case r (bounds + 1) skel' tm' of
+          let val (abs, tm') = variant_absfree bounds x tm in
+            (case r (bounds + 1) (skel_body skel) tm' of
               SOME tm'' => SOME (abs tm'')
             | NONE => NONE)
           end
@@ -117,7 +108,7 @@ fun gen_rewrite_term bot thy rules procs tm =
             SOME tm1 => SOME (the_default tm1 (rew_top bounds skel0 tm1))
           | NONE => NONE));
 
-  in the_default tm ((if bot then rew_bot else rew_top) 0 skel0 tm) end;
+  in the_default term ((if bot then rew_bot else rew_top) 0 skel0 term) end;
 
 val rewrite_term = gen_rewrite_term true;
 val rewrite_term_top = gen_rewrite_term false;
