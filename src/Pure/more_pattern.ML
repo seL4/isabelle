@@ -72,7 +72,7 @@ fun rewrite_term_mode mode thy rules procs term =
 
     fun rew_sub rw bounds _ (Abs (_, _, body) $ t) =
           let val t' = subst_bound (t, body)
-          in SOME (the_default t' (rew_sub rw bounds skel0 t')) end
+          in SOME (perhaps (rew_sub rw bounds skel0) t') end
       | rew_sub rw bounds skel (t $ u) =
           (case (rw bounds (skel_fun skel) t, rw bounds (skel_arg skel) u) of
             (SOME t', SOME u') => SOME (t' $ u')
@@ -92,11 +92,11 @@ fun rewrite_term_mode mode thy rules procs term =
           (case rew_sub rew_bottom bounds skel t of
             SOME t1 =>
               (case rew t1 of
-                SOME (t2, skel') => SOME (the_default t2 (rew_bottom bounds skel' t2))
+                SOME (t2, skel') => SOME (perhaps (rew_bottom bounds skel') t2)
               | NONE => SOME t1)
           | NONE =>
               (case rew t of
-                SOME (t1, skel') => SOME (the_default t1 (rew_bottom bounds skel' t1))
+                SOME (t1, skel') => SOME (perhaps (rew_bottom bounds skel') t1)
               | NONE => NONE));
 
 
@@ -106,32 +106,30 @@ fun rewrite_term_mode mode thy rules procs term =
       (case rew t of
         SOME (t1, _) =>
           (case rew_sub rew_top bounds skel0 t1 of
-            SOME t2 => SOME (the_default t2 (rew_top bounds skel0 t2))
+            SOME t2 => SOME (perhaps (rew_top bounds skel0) t2)
           | NONE => SOME t1)
       | NONE =>
           (case rew_sub rew_top bounds skel0 t of
-            SOME t1 => SOME (the_default t1 (rew_top bounds skel0 t1))
+            SOME t1 => SOME (perhaps (rew_top bounds skel0) t1)
           | NONE => NONE));
 
 
     (* yoyo: see also Ast.normalize *)
 
-    fun rew_yoyo1 t =
-      rew t |> Option.map (fn (t', _) => the_default t' (rew_yoyo1 t'));
+    val rew_yoyo1 = perhaps_loop (rew #> Option.map #1);
 
     fun rew_yoyo2 bounds _ t =
       (case rew_yoyo1 t of
         SOME t1 =>
           (case rew_sub rew_yoyo2 bounds skel0 t1 of
-            SOME t2 => SOME (the_default t2 (rew_yoyo1 t2))
+            SOME t2 => SOME (perhaps rew_yoyo1 t2)
           | NONE => SOME t1)
       | NONE =>
           (case rew_sub rew_yoyo2 bounds skel0 t of
-            SOME t1 => SOME (the_default t1 (rew_yoyo1 t1))
+            SOME t1 => SOME (perhaps rew_yoyo1 t1)
           | NONE => NONE));
 
-    fun rew_yoyo bounds skel t =
-      rew_yoyo2 bounds skel t |> Option.map (fn t' => the_default t' (rew_yoyo bounds skel0 t'));
+    fun rew_yoyo bounds skel = perhaps_loop (rew_yoyo2 bounds skel);
 
 
     val rewrite = (case mode of Bottom => rew_bottom | Top => rew_top | Yoyo => rew_yoyo);
