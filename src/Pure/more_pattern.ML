@@ -54,7 +54,7 @@ val skel_body = fn Abs (_, _, skel) => skel | _ => skel0;
 
 datatype mode = Bottom | Top | Yoyo;
 
-fun rewrite_term_mode mode thy rules procs term =
+fun rewrite_term_mode mode thy rules procs =
   let
     fun variant_absfree bounds x tm =
       let
@@ -130,10 +130,9 @@ fun rewrite_term_mode mode thy rules procs term =
           | NONE => NONE));
 
     fun rew_yoyo bounds skel = perhaps_loop (rew_yoyo2 bounds skel);
-
-
-    val rewrite = (case mode of Bottom => rew_bottom | Top => rew_top | Yoyo => rew_yoyo);
-  in the_default term (rewrite 0 skel0 term) end;
+  in
+    perhaps ((case mode of Bottom => rew_bottom | Top => rew_top | Yoyo => rew_yoyo) 0 skel0)
+  end;
 
 in
 
