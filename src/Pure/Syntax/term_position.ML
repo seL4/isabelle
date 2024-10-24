@@ -1,7 +1,7 @@
 (*  Title:      Pure/Syntax/term_position.ML
     Author:     Makarius
 
-Positions within term syntax trees (non-empty list).
+Reported positions within term syntax trees (non-empty list).
 *)
 
 signature TERM_POSITION =
@@ -44,9 +44,9 @@ fun decode_pos (XML.Elem ((name, props), [arg])) =
 val encode_none = YXML.string_of (encode_pos Position.none);
 
 fun encode ps =
-  (case remove (op =) Position.none ps of
+  (case filter Position.is_reported ps of
     [] => encode_none
-  | ps' => YXML.string_of_body (map encode_pos (distinct (op =) ps')));
+  | ps' => YXML.string_of_body (map encode_pos ps'));
 
 val encode_prefix = YXML.XY ^ Markup.positionN;
 

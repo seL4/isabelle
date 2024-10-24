@@ -160,7 +160,7 @@ fun parsetree_literals (Parser.Markup (_, ts)) = maps parsetree_literals ts
   | parsetree_literals (Parser.Tip tok) =
       if Lexicon.is_literal tok andalso
         not (null (Lexicon.literal_markup (Lexicon.str_of_token tok)))
-      then [Lexicon.pos_of_token tok] else [];
+      then filter Position.is_reported [Lexicon.pos_of_token tok] else [];
 
 fun parsetree_to_ast ctxt trf parsetree =
   let
@@ -223,7 +223,7 @@ fun parsetree_to_ast ctxt trf parsetree =
             val ps = maps parsetree_literals pts;
             val args = maps asts_of pts;
             fun head () =
-              if (Lexicon.is_fixed a orelse Lexicon.is_const a)
+              if not (null ps) andalso (Lexicon.is_fixed a orelse Lexicon.is_const a)
                 andalso not (Config.get ctxt const_syntax_legacy)
               then Ast.constrain (Ast.Constant a) (ast_of_pos ps)
               else Ast.Constant a;
