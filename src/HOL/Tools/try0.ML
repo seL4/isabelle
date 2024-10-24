@@ -8,7 +8,7 @@ signature TRY0 =
 sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
-  datatype modifier = Simp | Intro | Elim | Dest
+  datatype modifier = Use | Simp | Intro | Elim | Dest
   type result = {name: string, command: string, time: int, state: Proof.state}
   val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list -> 
     Proof.state -> result list
@@ -44,7 +44,7 @@ fun parse_method ctxt s =
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
-datatype modifier = Simp | Intro | Elim | Dest
+datatype modifier = Use | Simp | Intro | Elim | Dest
 
 fun string_of_xthm (xref, args) =
   Facts.string_of_ref xref ^
