@@ -121,27 +121,18 @@ fun parse_named_pats match_kind =
             then Syntax.parse_prop ctxt3 term
             else Syntax.parse_term ctxt3 term;
 
-          val judgment_name = Object_Logic.judgment_name ctxt;
-
-          fun dest_judgment_dummy t =
-            (case t of
-              Const (c, _) $
-              (Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $ \<^Const_>\<open>Pure.dummy_pattern _\<close>) =>
-                if c = judgment_name then SOME T else NONE
-            | Const (\<^syntax_const>\<open>_type_constraint_\<close>, _) $ Const (c, _) $
-              (Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $ \<^Const_>\<open>Pure.dummy_pattern _\<close>) =>
-                if c = judgment_name then SOME T else NONE
-            | _ => NONE);
-
           fun drop_judgment_dummy t =
-            (case dest_judgment_dummy t of
-              SOME T =>
-                Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $ \<^Const>\<open>Pure.dummy_pattern \<^Type>\<open>prop\<close>\<close>
-            | NONE =>
-                (case t of
-                  t1 $ t2 => drop_judgment_dummy t1 $ drop_judgment_dummy t2
-                | Abs (a, T, b) => Abs (a, T, drop_judgment_dummy b)
-                | _ => t));
+            (case t of
+              Const (judgment, _) $
+                (Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $
+                  Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, _)) =>
+                if judgment = Object_Logic.judgment_name ctxt then
+                    Const (\<^syntax_const>\<open>_type_constraint_\<close>, T) $
+                      Const (\<^const_name>\<open>Pure.dummy_pattern\<close>, propT)
+                else t
+            | t1 $ t2 => drop_judgment_dummy t1 $ drop_judgment_dummy t2
+            | Abs (a, T, b) => Abs (a, T, drop_judgment_dummy b)
+            | _ => t);
 
           val pats =
             map (fn (_, (term, _)) => parse_term (Parse_Tools.the_parse_val term)) ts
