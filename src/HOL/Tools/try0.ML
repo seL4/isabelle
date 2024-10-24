@@ -10,7 +10,8 @@ sig
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Simp | Intro | Elim | Dest
   type result = {name: string, command: string, time: int, state: Proof.state}
-  val try0 : Time.time option -> (string * modifier list) list -> Proof.state -> result list
+  val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list -> 
+    Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -45,8 +46,13 @@ fun parse_method ctxt s =
 
 datatype modifier = Simp | Intro | Elim | Dest
 
+fun string_of_xthm (xref, args) =
+  Facts.string_of_ref xref ^
+  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
+
 fun add_attr_text tagged (tag, src) s =
-  let val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map fst
+  let
+    val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map (string_of_xthm o fst)
   in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
 
 fun attrs_text tags tagged =
@@ -175,12 +181,7 @@ fun try0_trans tagged =
   Toplevel.keep_proof
     (ignore o generic_try0 Normal (SOME default_timeout) tagged o Toplevel.proof_of)
 
-fun string_of_xthm (xref, args) =
-  Facts.string_of_ref xref ^
-  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
-
-val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm))
+val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 
 val parse_attr =
   Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Simp]))
