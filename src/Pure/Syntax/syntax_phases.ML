@@ -174,14 +174,6 @@ fun parsetree_to_ast ctxt trf parsetree =
 
     val markup_cache = markup_entity_cache ctxt;
 
-    fun report_literals a ts = List.app (report_literal a) ts
-    and report_literal a t =
-      (case t of
-        Parser.Markup (_, ts) => report_literals a ts
-      | Parser.Node _ => ()
-      | Parser.Tip tok =>
-          if Lexicon.is_literal tok then report (report_pos tok) markup_cache a else ());
-
     val ast_of_pos = Ast.Variable o Term_Position.encode;
     val ast_of_position = ast_of_pos o single o report_pos;
     fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
