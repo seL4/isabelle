@@ -92,7 +92,7 @@ fun improve_term_check ts ctxt =
   end;
 
 fun rewrite_liberal thy unchecks t =
-  (case try (Pattern.rewrite_term_top thy unchecks []) t of
+  (case try (Pattern.rewrite_term_yoyo thy unchecks []) t of
     NONE => NONE
   | SOME t' => if t aconv t' then NONE else SOME t');
 

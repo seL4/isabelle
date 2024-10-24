@@ -677,7 +677,7 @@ fun contract_abbrevs ctxt tm =
         fun match_abbrev t = get_first (fn net => get_first (rew t) (Item_Net.retrieve net t)) nets;
       in
         Term_Subst.instantiate inst tm
-        |> Pattern.rewrite_term_top thy [] [match_abbrev]
+        |> Pattern.rewrite_term_yoyo thy [] [match_abbrev]
         |> Term_Subst.instantiate_frees (Variable.import_inst_revert inst)
       end
   end;

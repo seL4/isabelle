@@ -447,7 +447,7 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
 fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val preprocess = perhaps (try (Pattern.rewrite_term_top thy (these_unchecks thy [class]) []));
+    val preprocess = perhaps (try (Pattern.rewrite_term_yoyo thy (these_unchecks thy [class]) []));
     val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -469,7 +469,7 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism lthy class;
     val rhs_generic =
-      perhaps (try (Pattern.rewrite_term_top thy (these_unchecks_reversed thy [class]) [])) rhs;
+      perhaps (try (Pattern.rewrite_term_yoyo thy (these_unchecks_reversed thy [class]) [])) rhs;
   in
     lthy
     |> canonical_abbrev_target class phi prmode ((b, mx), rhs)

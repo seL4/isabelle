@@ -57,6 +57,12 @@ functions (command 'print_ast_translation') based on Ast.unfold_ast etc.
 work in the same manner, but more complex translations may require
 manual changes: rare INCOMPATIBILITY.
 
+* Printing term abbreviations now uses a different strategy: alternate
+top-down, bottom-up, top-down etc. until a normal form is reached. This
+is more efficient than the former top-down strategy. It also conforms to
+AST rewriting (command 'translations'). Rare INCOMPATIBILITY, slightly
+different results could be printed (often slightly "better" ones).
+
 * The Simplifier now supports special "congprocs", using keyword
 'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
 antiquotation of the same name). See also
@@ -159,6 +165,12 @@ purposes.
 
 
 *** ML ***
+
+* The new operation Pattern.rewrite_term_yoyo alternates top-down,
+bottom-up, top-down etc. until a normal form is reached. This often
+works better than former rewrite_term_top --- that is still available,
+but has been renamed to rewrite_term_topdown to emphasize that something
+notable has changed here.
 
 * Constructors for type Pretty.T (such as Pretty.str, Pretty.mark_str,
 Pretty.markup_block) are now value-oriented. Use of the global

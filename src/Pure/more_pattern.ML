@@ -14,7 +14,7 @@ sig
   val first_order: term -> bool
   val match_rew: theory -> term -> term * term -> (term * term) option
   val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
-  val rewrite_term_top: theory -> (term * term) list -> (term -> term option) list -> term -> term
+  val rewrite_term_topdown: theory -> (term * term) list -> (term -> term option) list -> term -> term
   val rewrite_term_yoyo: theory -> (term * term) list -> (term -> term option) list -> term -> term
 end;
 
@@ -137,7 +137,7 @@ fun rewrite_term_mode mode thy rules procs =
 in
 
 val rewrite_term = rewrite_term_mode Bottom;
-val rewrite_term_top = rewrite_term_mode Top;
+val rewrite_term_topdown = rewrite_term_mode Top;
 val rewrite_term_yoyo = rewrite_term_mode Yoyo;
 
 end;
