@@ -10,21 +10,21 @@ sig
   val silence_methods : bool -> Proof.context -> Proof.context
   type result = {name: string, command: string, time: int, state: Proof.state}
   val try0 : Time.time option -> (string * string list) list -> Proof.state -> result list
-end;
+end
 
 structure Try0 : TRY0 =
 struct
 
-val noneN = "none";
+val noneN = "none"
 
-datatype mode = Auto_Try | Try | Normal;
+datatype mode = Auto_Try | Try | Normal
 
-val default_timeout = seconds 5.0;
+val default_timeout = seconds 5.0
 
 fun run_tac timeout_opt tac st =
   let val with_timeout =
     (case timeout_opt of SOME timeout => Timeout.apply_physical timeout | NONE => I)
-  in with_timeout (Seq.pull o tac) st |> Option.map fst end;
+  in with_timeout (Seq.pull o tac) st |> Option.map fst end
 
 fun apply_recursive recurse elapsed0 timeout_opt post apply st =
   (case Timing.timing (Option.join o try (run_tac timeout_opt apply)) st of
@@ -40,14 +40,14 @@ fun parse_method ctxt s =
   |> Token.explode (Thy_Header.get_keywords' ctxt) Position.start
   |> filter Token.is_proper
   |> Scan.read Token.stopper Method.parse
-  |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
+  |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
 fun add_attr_text tagged (tag, src) s =
   let val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map fst
-  in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end;
+  in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
 
 fun attrs_text tags tagged =
-  "" |> fold (add_attr_text tagged) tags;
+  "" |> fold (add_attr_text tagged) tags
 
 type result = {name: string, command: string, time: int, state: Proof.state}
 
@@ -80,13 +80,13 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         SOME {name = name, command = command, time = Time.toMilliseconds time, state = st'}
       else NONE
     end
-  else NONE;
+  else NONE
 
-val full_attrs = [("simp", "simp"), ("intro", "intro"), ("elim", "elim"), ("dest", "dest")];
-val clas_attrs = [("intro", "intro"), ("elim", "elim"), ("dest", "dest")];
-val simp_attrs = [("simp", "add")];
-val metis_attrs = [("simp", ""), ("intro", ""), ("elim", ""), ("dest", "")];
-val no_attrs = [];
+val full_attrs = [("simp", "simp"), ("intro", "intro"), ("elim", "elim"), ("dest", "dest")]
+val clas_attrs = [("intro", "intro"), ("elim", "elim"), ("dest", "dest")]
+val simp_attrs = [("simp", "add")]
+val metis_attrs = [("simp", ""), ("intro", ""), ("elim", ""), ("dest", "")]
+val no_attrs = []
 
 (* name * ((all_goals, run_if_auto_try), tags *)
 val named_methods =
@@ -103,12 +103,12 @@ val named_methods =
    ("force", ((false, false), full_attrs)),
    ("meson", ((false, false), metis_attrs)),
    ("satx", ((false, false), no_attrs)),
-   ("order", ((false, true), no_attrs))];
+   ("order", ((false, true), no_attrs))]
 
-val apply_methods = map apply_named_method named_methods;
+val apply_methods = map apply_named_method named_methods
 
-fun time_string ms = string_of_int ms ^ " ms";
-fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms;
+fun time_string ms = string_of_int ms ^ " ms"
+fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
 
 (* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
    bound exceeded" warnings and the like. *)
@@ -123,19 +123,19 @@ fun silence_methods debug =
       |> Proof_Context.background_theory (fn thy =>
           thy
           |> Context_Position.set_visible_global false
-          |> Config.put_global Unify.unify_trace false));
+          |> Config.put_global Unify.unify_trace false))
 
 fun generic_try0 mode timeout_opt tagged st =
   let
-    val st = Proof.map_contexts (silence_methods false) st;
-    fun try_method method = method mode timeout_opt tagged st;
+    val st = Proof.map_contexts (silence_methods false) st
+    fun try_method method = method mode timeout_opt tagged st
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
-      command ^ " (" ^ time_string time ^ ")";
-    val print_step = Option.map (tap (writeln o get_message));
+      command ^ " (" ^ time_string time ^ ")"
+    val print_step = Option.map (tap (writeln o get_message))
     val get_results =
       if mode = Normal
       then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #time)
-      else Par_List.get_some try_method #> the_list;
+      else Par_List.get_some try_method #> the_list
   in
     if mode = Normal then
       "Trying " ^ implode_space (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
@@ -151,7 +151,7 @@ fun generic_try0 mode timeout_opt tagged st =
           results
           |> map (fn {name, time, ...} => (time, name))
           |> AList.coalesce (op =)
-          |> map (swap o apsnd commas);
+          |> map (swap o apsnd commas)
         val message =
           (case mode of
              Auto_Try => "Auto Try0 found a proof"
@@ -160,42 +160,42 @@ fun generic_try0 mode timeout_opt tagged st =
           Active.sendback_markup_command command ^
           (case method_times of
             [(_, ms)] => " (" ^ time_string ms ^ ")"
-          | method_times => "\n(" ^ space_implode "; " (map tool_time_string method_times) ^ ")");
+          | method_times => "\n(" ^ space_implode "; " (map tool_time_string method_times) ^ ")")
       in
         ((true, (name, if mode = Auto_Try then [message] else (writeln message; []))), results)
       end)
-  end;
+  end
 
-fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt;
+fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 
 fun try0_trans tagged =
   Toplevel.keep_proof
-    (ignore o generic_try0 Normal (SOME default_timeout) tagged o Toplevel.proof_of);
+    (ignore o generic_try0 Normal (SOME default_timeout) tagged o Toplevel.proof_of)
 
 fun string_of_xthm (xref, args) =
   Facts.string_of_ref xref ^
-  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args);
+  implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm));
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm))
 
 val parse_attr =
   Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["simp"]))
   || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["intro"]))
   || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["elim"]))
-  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["dest"]));
+  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["dest"]))
 
 fun parse_attrs x =
   (Args.parens parse_attrs
-   || Scan.repeat parse_attr >> (fn tagged => fold (curry (op @)) tagged [])) x;
+   || Scan.repeat parse_attr >> (fn tagged => fold (curry (op @)) tagged [])) x
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
-    (Scan.optional parse_attrs [] #>> try0_trans);
+    (Scan.optional parse_attrs [] #>> try0_trans)
 
 val _ =
   Try.tool_setup
    {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE []};
+    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE []}
 
-end;
+end
