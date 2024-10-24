@@ -42,13 +42,12 @@ fun parse_method ctxt s =
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
-fun add_attr_text _ (NONE, _) s = s
-  | add_attr_text tagged (SOME y, x) s =
-    let val fs = tagged |> filter (fn (_, xs) => member (op =) xs x) |> map fst
-    in if null fs then s else s ^ " " ^ (if y = "" then "" else y ^ ": ") ^ implode_space fs end
+fun add_attr_text tagged (tag, src) s =
+  let val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map fst
+  in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end;
 
-fun attrs_text (sx, ix, ex, dx) tagged =
-  "" |> fold (add_attr_text tagged) [(sx, "simp"), (ix, "intro"), (ex, "elim"), (dx, "dest")];
+fun attrs_text tags tagged =
+  "" |> fold (add_attr_text tagged) tags;
 
 type result = {name: string, command: string, time: int, state: Proof.state}
 
@@ -83,13 +82,13 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
     end
   else NONE;
 
-val full_attrs = (SOME "simp", SOME "intro", SOME "elim", SOME "dest");
-val clas_attrs = (NONE, SOME "intro", SOME "elim", SOME "dest");
-val simp_attrs = (SOME "add", NONE, NONE, NONE);
-val metis_attrs = (SOME "", SOME "", SOME "", SOME "");
-val no_attrs = (NONE, NONE, NONE, NONE);
+val full_attrs = [("simp", "simp"), ("intro", "intro"), ("elim", "elim"), ("dest", "dest")];
+val clas_attrs = [("intro", "intro"), ("elim", "elim"), ("dest", "dest")];
+val simp_attrs = [("simp", "add")];
+val metis_attrs = [("simp", ""), ("intro", ""), ("elim", ""), ("dest", "")];
+val no_attrs = [];
 
-(* name * ((all_goals, run_if_auto_try), (simp, intro, elim, dest) *)
+(* name * ((all_goals, run_if_auto_try), tags *)
 val named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
