@@ -148,7 +148,7 @@ fun invoke_try0 thy t =
   let
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy)
   in
-    case Try0.try0 (SOME (seconds 5.0)) ([], [], [], []) state of
+    case Try0.try0 (SOME (seconds 5.0)) [] state of
       [] => (Unsolved, [])
     | _ => (Solved, [])
   end

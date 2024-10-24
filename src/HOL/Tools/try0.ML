@@ -9,8 +9,7 @@ sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
   type result = {name: string, command: string, time: int, state: Proof.state}
-  val try0 : Time.time option -> string list * string list * string list * string list ->
-    Proof.state -> result list
+  val try0 : Time.time option -> (string * string list) list -> Proof.state -> result list
 end;
 
 structure Try0 : TRY0 =
@@ -43,20 +42,20 @@ fun parse_method ctxt s =
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source");
 
-fun add_attr_text (NONE, _) s = s
-  | add_attr_text (_, []) s = s
-  | add_attr_text (SOME x, fs) s =
-    s ^ " " ^ (if x = "" then "" else x ^ ": ") ^ implode_space fs;
+fun add_attr_text _ (NONE, _) s = s
+  | add_attr_text tagged (SOME y, x) s =
+    let val fs = tagged |> filter (fn (_, xs) => member (op =) xs x) |> map fst
+    in if null fs then s else s ^ " " ^ (if y = "" then "" else y ^ ": ") ^ implode_space fs end
 
-fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
-  "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es), (dx, ds)];
+fun attrs_text (sx, ix, ex, dx) tagged =
+  "" |> fold (add_attr_text tagged) [(sx, "simp"), (ix, "intro"), (ex, "elim"), (dx, "dest")];
 
 type result = {name: string, command: string, time: int, state: Proof.state}
 
-fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt quad st =
+fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st =
   if mode <> Auto_Try orelse run_if_auto_try then
     let
-      val attrs = attrs_text attrs quad
+      val attrs = attrs_text attrs tagged
       val ctxt = Proof.context_of st
 
       val apply = name ^ attrs
@@ -127,10 +126,10 @@ fun silence_methods debug =
           |> Context_Position.set_visible_global false
           |> Config.put_global Unify.unify_trace false));
 
-fun generic_try0 mode timeout_opt quad st =
+fun generic_try0 mode timeout_opt tagged st =
   let
     val st = Proof.map_contexts (silence_methods false) st;
-    fun try_method method = method mode timeout_opt quad st;
+    fun try_method method = method mode timeout_opt tagged st;
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
       command ^ " (" ^ time_string time ^ ")";
     val print_step = Option.map (tap (writeln o get_message));
@@ -170,11 +169,9 @@ fun generic_try0 mode timeout_opt quad st =
 
 fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt;
 
-fun try0_trans quad =
+fun try0_trans tagged =
   Toplevel.keep_proof
-    (ignore o generic_try0 Normal (SOME default_timeout) quad o Toplevel.proof_of);
-
-fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) = (s1 @ s2, i1 @ i2, e1 @ e2, d1 @ d2);
+    (ignore o generic_try0 Normal (SOME default_timeout) tagged o Toplevel.proof_of);
 
 fun string_of_xthm (xref, args) =
   Facts.string_of_ref xref ^
@@ -184,22 +181,22 @@ val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm));
 
 val parse_attr =
-  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (fn ss => (ss, [], [], []))
-  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (fn is => ([], is, [], []))
-  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (fn es => ([], [], es, []))
-  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (fn ds => ([], [], [], ds));
+  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["simp"]))
+  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["intro"]))
+  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["elim"]))
+  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["dest"]));
 
 fun parse_attrs x =
   (Args.parens parse_attrs
-   || Scan.repeat parse_attr >> (fn quad => fold merge_attrs quad ([], [], [], []))) x;
+   || Scan.repeat parse_attr >> (fn tagged => fold (curry (op @)) tagged [])) x;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
-    (Scan.optional parse_attrs ([], [], [], []) #>> try0_trans);
+    (Scan.optional parse_attrs [] #>> try0_trans);
 
 val _ =
   Try.tool_setup
    {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE ([], [], [], [])};
+    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE []};
 
 end;
