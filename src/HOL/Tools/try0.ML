@@ -63,24 +63,34 @@ type result = {name: string, command: string, time: int, state: Proof.state}
 fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st =
   if mode <> Auto_Try orelse run_if_auto_try then
     let
+      val unused =
+        tagged |> filter (fn (_, tags) => null (inter (op =) tags (attrs |> map fst))) |> map fst
       val attrs = attrs_text attrs tagged
+
       val ctxt = Proof.context_of st
 
-      val apply = name ^ attrs
-      |> parse_method ctxt
-      |> Method.method_cmd ctxt
-      |> Method.Basic
-      |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
-      |> Proof.refine
-      #> Seq.filter_results
+      val using_text =
+        (K (Method.insert (Attrib.eval_thms ctxt unused)))
+        |> Method.Basic
 
+      val text =
+        name ^ attrs
+        |> parse_method ctxt
+        |> Method.method_cmd ctxt
+        |> Method.Basic
+        |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
+        |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Then, [using_text, m]))
+
+      val apply = text |> Proof.refine #> Seq.filter_results
       val the_goal = #goal o Proof.goal
       val num_before = Thm.nprems_of (the_goal st)
       val multiple_goals = all_goals andalso num_before > 1
       val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt the_goal apply st
       val num_after = Thm.nprems_of (the_goal st')
       val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
+      val unused = implode_space (unused |> map string_of_xthm)
       val command =
+        (if unused <> "" then "using " ^ unused ^ " " else "") ^
         (if num_after = 0 then "by " else "apply ") ^
         (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
         (if multiple_goals andalso num_after > 0 then select else "")
