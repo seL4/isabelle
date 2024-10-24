@@ -8,8 +8,9 @@ signature TRY0 =
 sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
+  datatype modifier = Simp | Intro | Elim | Dest
   type result = {name: string, command: string, time: int, state: Proof.state}
-  val try0 : Time.time option -> (string * string list) list -> Proof.state -> result list
+  val try0 : Time.time option -> (string * modifier list) list -> Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -41,6 +42,8 @@ fun parse_method ctxt s =
   |> filter Token.is_proper
   |> Scan.read Token.stopper Method.parse
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
+
+datatype modifier = Simp | Intro | Elim | Dest
 
 fun add_attr_text tagged (tag, src) s =
   let val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map fst
@@ -82,10 +85,10 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
     end
   else NONE
 
-val full_attrs = [("simp", "simp"), ("intro", "intro"), ("elim", "elim"), ("dest", "dest")]
-val clas_attrs = [("intro", "intro"), ("elim", "elim"), ("dest", "dest")]
-val simp_attrs = [("simp", "add")]
-val metis_attrs = [("simp", ""), ("intro", ""), ("elim", ""), ("dest", "")]
+val full_attrs = [(Simp, "simp"), (Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
+val clas_attrs = [(Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
+val simp_attrs = [(Simp, "add")]
+val metis_attrs = [(Simp, ""), (Intro, ""), (Elim, ""), (Dest, "")]
 val no_attrs = []
 
 (* name * ((all_goals, run_if_auto_try), tags *)
@@ -180,10 +183,10 @@ val parse_fact_refs =
   Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) (Parse.thm >> string_of_xthm))
 
 val parse_attr =
-  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["simp"]))
-  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["intro"]))
-  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["elim"]))
-  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair ["dest"]))
+  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Simp]))
+  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Intro]))
+  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Elim]))
+  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Dest]))
 
 fun parse_attrs x =
   (Args.parens parse_attrs
