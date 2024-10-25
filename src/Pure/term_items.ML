@@ -224,6 +224,13 @@ val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
 end;
 
 
+structure Indexnames: TERM_ITEMS = Term_Items
+(
+  type key = indexname;
+  val ord = Term_Ord.fast_indexname_ord;
+);
+
+
 structure Types:
 sig
   include TERM_ITEMS
