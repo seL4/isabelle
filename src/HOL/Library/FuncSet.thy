@@ -405,17 +405,13 @@ lemma fun_upd_in_PiE: "x \<notin> S \<Longrightarrow> f \<in> Pi\<^sub>E (insert
 
 lemma PiE_insert_eq: "Pi\<^sub>E (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
 proof -
-  {
-    fix f assume "f \<in> Pi\<^sub>E (insert x S) T" "x \<notin> S"
-    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
-      by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
-  }
+  have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)" if "f \<in> Pi\<^sub>E (insert x S) T" "x \<notin> S" for f
+    using that
+    by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
   moreover
-  {
-    fix f assume "f \<in> Pi\<^sub>E (insert x S) T" "x \<in> S"
-    then have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)"
-      by (auto intro!: image_eqI[where x="(f x, f)"] intro: fun_upd_in_PiE PiE_mem simp: insert_absorb)
-  }
+  have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> Pi\<^sub>E S T)" if "f \<in> Pi\<^sub>E (insert x S) T" "x \<in> S" for f
+    using that
+    by (auto intro!: image_eqI[where x="(f x, f)"] intro: fun_upd_in_PiE PiE_mem simp: insert_absorb)
   ultimately show ?thesis
     by (auto intro: PiE_fun_upd)
 qed
@@ -487,8 +483,7 @@ proof (intro iffI ballI)
     by auto
 qed (auto simp: PiE_def)
 
-lemma PiE_eq_iff:
-  "Pi\<^sub>E I F = Pi\<^sub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
+lemma PiE_eq_iff: "Pi\<^sub>E I F = Pi\<^sub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
 proof (intro iffI disjCI)
   assume eq[simp]: "Pi\<^sub>E I F = Pi\<^sub>E I F'"
   assume "\<not> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
@@ -528,8 +523,7 @@ proof (cases "PiE I S = {}")
     by simp
 qed simp
 
-lemma PiE_eq:
-   "PiE I S = PiE I T \<longleftrightarrow> PiE I S = {} \<and> PiE I T = {} \<or> (\<forall>i \<in> I. S i = T i)"
+lemma PiE_eq: "PiE I S = PiE I T \<longleftrightarrow> PiE I S = {} \<and> PiE I T = {} \<or> (\<forall>i \<in> I. S i = T i)"
   by (auto simp: PiE_eq_iff PiE_eq_empty_iff)
 
 lemma PiE_UNIV [simp]: "PiE UNIV (\<lambda>i. UNIV) = UNIV"
@@ -542,7 +536,7 @@ proof -
   proof -
     have "x \<in> S i \<Longrightarrow> \<exists>f\<in>Pi\<^sub>E I S. x = f i" for x
       using that
-      by (force intro: bexI [where x="\<lambda>k. if k=i then x else f k"]) 
+      by (force intro: bexI [where x="\<lambda>k. if k=i then x else f k"])
     then show ?thesis
       using that by force
   qed
@@ -552,15 +546,16 @@ qed
 
 lemma PiE_singleton:
   assumes "f \<in> extensional A"
-  shows   "PiE A (\<lambda>x. {f x}) = {f}"
+  shows "PiE A (\<lambda>x. {f x}) = {f}"
 proof -
-  {
-    fix g assume "g \<in> PiE A (\<lambda>x. {f x})"
-    hence "g x = f x" for x
+  have "g = f" if "g \<in> PiE A (\<lambda>x. {f x})" for g
+  proof -
+    from that have "g x = f x" for x
       using assms by (cases "x \<in> A") (auto simp: extensional_def)
-    hence "g = f" by (simp add: fun_eq_iff)
-  }
-  thus ?thesis using assms by (auto simp: extensional_def)
+    then show ?thesis by (simp add: fun_eq_iff)
+  qed
+  with assms show ?thesis
+    by (auto simp: extensional_def)
 qed
 
 lemma PiE_eq_singleton: "(\<Pi>\<^sub>E i\<in>I. S i) = {\<lambda>i\<in>I. f i} \<longleftrightarrow> (\<forall>i\<in>I. S i = {f i})"
@@ -568,14 +563,15 @@ lemma PiE_eq_singleton: "(\<Pi>\<^sub>E i\<in>I. S i) = {\<lambda>i\<in>I. f i} 
 
 lemma PiE_over_singleton_iff: "(\<Pi>\<^sub>E x\<in>{a}. B x) = (\<Union>b \<in> B a. {\<lambda>x \<in> {a}. b})"
 proof -
-  have "\<And>x. \<lbrakk>x a \<in> B a; x \<in> extensional {a}\<rbrakk> \<Longrightarrow> \<exists>xa\<in>B a. x = (\<lambda>x\<in>{a}. xa)"
-    using PiE_singleton by fastforce
+  have "\<exists>xa\<in>B a. x = (\<lambda>x\<in>{a}. xa)" if "x a \<in> B a" and "x \<in> extensional {a}" for x
+    using that PiE_singleton by fastforce
   then show ?thesis
     by (auto simp: PiE_iff split: if_split_asm)
 qed
 
 lemma all_PiE_elements:
-   "(\<forall>z \<in> PiE I S. \<forall>i \<in> I. P i (z i)) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. \<forall>x \<in> S i. P i x)" (is "?lhs = ?rhs")
+  "(\<forall>z \<in> PiE I S. \<forall>i \<in> I. P i (z i)) \<longleftrightarrow> PiE I S = {} \<or> (\<forall>i \<in> I. \<forall>x \<in> S i. P i x)"
+  (is "?lhs = ?rhs")
 proof (cases "PiE I S = {}")
   case False
   then obtain f where f: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> S i"
@@ -616,12 +612,12 @@ lemma extensional_funcset_extend_domain_inj_on_eq:
   shows "{f. f \<in> (insert x S) \<rightarrow>\<^sub>E T \<and> inj_on f (insert x S)} =
     (\<lambda>(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
 proof -
-  have "\<And>a f y. \<lbrakk>f \<in> S \<rightarrow>\<^sub>E T - {a}; a = (if y = x then a else f y); y \<in> S\<rbrakk>
-       \<Longrightarrow> False"
-    using assms by (auto dest!: PiE_mem split: if_split_asm)
+  have False if "f \<in> S \<rightarrow>\<^sub>E T - {a}" and "a = (if y = x then a else f y)" and "y \<in> S" for a f y
+    using assms that by (auto dest!: PiE_mem split: if_split_asm)
   moreover
-  have "\<And>f. \<lbrakk> f \<in> insert x S \<rightarrow>\<^sub>E T; inj_on f S; \<forall>xb\<in>S. f x \<noteq> f xb\<rbrakk>
-          \<Longrightarrow> \<exists>b. b \<in> S \<rightarrow>\<^sub>E T - {f x} \<and> inj_on b S \<and> f = b(x := f x)"
+  have "\<exists>b. b \<in> S \<rightarrow>\<^sub>E T - {f x} \<and> inj_on b S \<and> f = b(x := f x)"
+    if "f \<in> insert x S \<rightarrow>\<^sub>E T" and "inj_on f S" and "\<forall>xb\<in>S. f x \<noteq> f xb" for f
+    using that
     unfolding inj_on_def
     by (smt (verit, ccfv_threshold) PiE_restrict fun_upd_apply fun_upd_triv insert_Diff insert_iff
         restrict_PiE_iff restrict_upd)
@@ -630,15 +626,15 @@ proof -
     apply (auto simp: image_iff  intro: extensional_funcset_fun_upd_inj_onI
         extensional_funcset_fun_upd_extends_rangeI del: PiE_I PiE_E)
     apply (smt (verit, best) PiE_cong PiE_mem inj_on_def insertCI)
-    by blast
+    apply blast
+    done
 qed
 
 lemma extensional_funcset_extend_domain_inj_onI:
   assumes "x \<notin> S"
   shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^sub>E (T - {y}) \<and> inj_on g S}"
   using assms
-  apply (simp add: inj_on_def)
-  by (metis PiE_restrict fun_upd_apply restrict_fupd)
+  by (simp add: inj_on_def) (metis PiE_restrict fun_upd_apply restrict_fupd)
 
 
 subsubsection \<open>Misc properties of functions, composition and restriction from HOL Light\<close>
@@ -654,24 +650,19 @@ proof
     by (metis (mono_tags, opaque_lifting) f_inv_into_f imageI inv_into_into mem_Collect_eq)
 qed auto
 
-lemma function_factors_left:
-  "(\<forall>x y. (g x = g y) \<longrightarrow> (f x = f y)) \<longleftrightarrow> (\<exists>h. f = h \<circ> g)"
+lemma function_factors_left: "(\<forall>x y. (g x = g y) \<longrightarrow> (f x = f y)) \<longleftrightarrow> (\<exists>h. f = h \<circ> g)"
   using function_factors_left_gen [of "\<lambda>x. True" g f] unfolding o_def by blast
 
-lemma function_factors_right_gen:
-  "(\<forall>x. P x \<longrightarrow> (\<exists>y. g y = f x)) \<longleftrightarrow> (\<exists>h. \<forall>x. P x \<longrightarrow> f x = g(h x))"
+lemma function_factors_right_gen: "(\<forall>x. P x \<longrightarrow> (\<exists>y. g y = f x)) \<longleftrightarrow> (\<exists>h. \<forall>x. P x \<longrightarrow> f x = g(h x))"
   by metis
 
-lemma function_factors_right:
-  "(\<forall>x. \<exists>y. g y = f x) \<longleftrightarrow> (\<exists>h. f = g \<circ> h)"
+lemma function_factors_right: "(\<forall>x. \<exists>y. g y = f x) \<longleftrightarrow> (\<exists>h. f = g \<circ> h)"
   unfolding o_def by metis
 
-lemma restrict_compose_right:
-   "restrict (g \<circ> restrict f S) S = restrict (g \<circ> f) S"
+lemma restrict_compose_right: "restrict (g \<circ> restrict f S) S = restrict (g \<circ> f) S"
   by auto
 
-lemma restrict_compose_left:
-   "f ` S \<subseteq> T \<Longrightarrow> restrict (restrict g T \<circ> f) S = restrict (g \<circ> f) S"
+lemma restrict_compose_left: "f ` S \<subseteq> T \<Longrightarrow> restrict (restrict g T \<circ> f) S = restrict (g \<circ> f) S"
   by fastforce
 
 
@@ -696,80 +687,89 @@ qed
 lemma card_PiE: "finite S \<Longrightarrow> card (\<Pi>\<^sub>E i \<in> S. T i) = (\<Prod> i\<in>S. card (T i))"
 proof (induct rule: finite_induct)
   case empty
-  then show ?case by auto
+  then show ?case
+    by auto
 next
   case (insert x S)
   then show ?case
     by (simp add: PiE_insert_eq inj_combinator card_image card_cartesian_product)
 qed
 
-lemma card_funcsetE: "finite A \<Longrightarrow> card (A \<rightarrow>\<^sub>E B) = card B ^ card A" 
-  by (subst card_PiE, auto)
+lemma card_funcsetE: "finite A \<Longrightarrow> card (A \<rightarrow>\<^sub>E B) = card B ^ card A"
+  by (subst card_PiE) auto
 
-lemma card_inj_on_subset_funcset: assumes finB: "finite B"
-  and finC: "finite C" 
-  and AB: "A \<subseteq> B" 
-shows "card {f \<in> B \<rightarrow>\<^sub>E C. inj_on f A} = 
-  card C^(card B - card A) * prod ((-) (card C)) {0 ..< card A}"
+lemma card_inj_on_subset_funcset:
+  assumes finB: "finite B"
+    and finC: "finite C"
+    and AB: "A \<subseteq> B"
+  shows "card {f \<in> B \<rightarrow>\<^sub>E C. inj_on f A} =
+    card C^(card B - card A) * prod ((-) (card C)) {0 ..< card A}"
 proof -
-  define D where "D = B - A" 
-  from AB have B: "B = A \<union> D" and disj: "A \<inter> D = {}" unfolding D_def by auto
-  have sub: "card B - card A = card D" unfolding D_def using finB AB
+  define D where "D = B - A"
+  from AB have B: "B = A \<union> D" and disj: "A \<inter> D = {}"
+    unfolding D_def by auto
+  have sub: "card B - card A = card D"
+    unfolding D_def using finB AB
     by (metis card_Diff_subset finite_subset)
-  have "finite A" "finite D" using finB unfolding B by auto
-  thus ?thesis unfolding sub unfolding B using disj
+  from finB B have "finite A" "finite D" by auto
+  then show ?thesis
+    unfolding sub unfolding B using disj
   proof (induct A rule: finite_induct)
     case empty
-    from card_funcsetE[OF this(1), of C] show ?case by auto
+    from card_funcsetE[OF this(1), of C] show ?case
+      by auto
   next
     case (insert a A)
-    have "{f. f \<in> insert a A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f (insert a A)}
-      = {f(a := c) | f c. f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A \<and> c \<in> C - f ` A}" 
+    have "{f. f \<in> insert a A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f (insert a A)} =
+      {f(a := c) | f c. f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A \<and> c \<in> C - f ` A}"
       (is "?l = ?r")
     proof
-      show "?r \<subseteq> ?l" 
-        by (auto intro: inj_on_fun_updI split: if_splits) 
-      {
-        fix f
-        assume f: "f \<in> ?l" 
-        let ?g = "f(a := undefined)" 
-        let ?h = "?g(a := f a)" 
+      show "?r \<subseteq> ?l"
+        by (auto intro: inj_on_fun_updI split: if_splits)
+      have "f \<in> ?r" if f: "f \<in> ?l"  for f
+      proof -
+        let ?g = "f(a := undefined)"
+        let ?h = "?g(a := f a)"
         have mem: "f a \<in> C - ?g ` A" using insert(1,2,4,5) f by auto
         from f have f: "f \<in> insert a A \<union> D \<rightarrow>\<^sub>E C" "inj_on f (insert a A)" by auto
         hence "?g \<in> A \<union> D \<rightarrow>\<^sub>E C" "inj_on ?g A" using \<open>a \<notin> A\<close> \<open>insert a A \<inter> D = {}\<close>
           by (auto split: if_splits simp: inj_on_def)
         with mem have "?h \<in> ?r" by blast
         also have "?h = f" by auto
-        finally have "f \<in> ?r" .
-      }
-      thus "?l \<subseteq> ?r" by auto
+        finally show ?thesis .
+      qed
+      then show "?l \<subseteq> ?r" by auto
     qed
-    also have "\<dots> = (\<lambda> (f, c). f (a := c)) ` 
+    also have "\<dots> = (\<lambda> (f, c). f (a := c)) `
          (Sigma {f . f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A} (\<lambda> f. C - f ` A))"
       by auto
-    also have "card (...) = card (Sigma {f . f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A} (\<lambda> f. C - f ` A))" 
-    proof (rule card_image, intro inj_onI, clarsimp, goal_cases) 
+    also have "card (...) = card (Sigma {f . f \<in> A \<union> D \<rightarrow>\<^sub>E C \<and> inj_on f A} (\<lambda> f. C - f ` A))"
+    proof (rule card_image, intro inj_onI, clarsimp, goal_cases)
       case (1 f c g d)
-      let ?f = "f(a := c, a := undefined)" 
-      let ?g = "g(a := d, a := undefined)" 
-      from 1 have id: "f(a := c) = g(a := d)" by auto
-      from fun_upd_eqD[OF id] 
-      have cd: "c = d" by auto
-      from id have "?f = ?g" by auto
-      also have "?f = f" using `f \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5) 
+      let ?f = "f(a := c, a := undefined)"
+      let ?g = "g(a := d, a := undefined)"
+      from 1 have id: "f(a := c) = g(a := d)"
+        by auto
+      from fun_upd_eqD[OF id]
+      have cd: "c = d"
+        by auto
+      from id have "?f = ?g"
+        by auto
+      also have "?f = f" using `f \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5)
         by (intro ext, auto)
-      also have "?g = g" using `g \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5) 
+      also have "?g = g" using `g \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5)
         by (intro ext, auto)
-      finally show "f = g \<and> c = d" using cd by auto
+      finally show "f = g \<and> c = d"
+        using cd by auto
     qed
-    also have "\<dots> = (\<Sum>f\<in>{f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}. card (C - f ` A))" 
+    also have "\<dots> = (\<Sum>f\<in>{f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}. card (C - f ` A))"
       by (rule card_SigmaI, rule finite_subset[of _ "A \<union> D \<rightarrow>\<^sub>E C"],
           insert \<open>finite C\<close> \<open>finite D\<close> \<open>finite A\<close>, auto intro!: finite_PiE)
     also have "\<dots> = (\<Sum>f\<in>{f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}. card C - card A)"
       by (rule sum.cong[OF refl], subst card_Diff_subset, insert \<open>finite A\<close>, auto simp: card_image)
-    also have "\<dots> = (card C - card A) * card {f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}" 
+    also have "\<dots> = (card C - card A) * card {f \<in> A \<union> D \<rightarrow>\<^sub>E C. inj_on f A}"
       by simp
-    also have "\<dots> = card C ^ card D * ((card C - card A) * prod ((-) (card C)) {0..<card A})" 
+    also have "\<dots> = card C ^ card D * ((card C - card A) * prod ((-) (card C)) {0..<card A})"
       using insert by (auto simp: ac_simps)
     also have "(card C - card A) * prod ((-) (card C)) {0..<card A} =
       prod ((-) (card C)) {0..<Suc (card A)}" by simp
@@ -789,7 +789,7 @@ text \<open>
 \<close>
 lemma pigeonhole_card:
   assumes "f \<in> A \<rightarrow> B" "finite A" "finite B" "B \<noteq> {}"
-  shows   "\<exists>y\<in>B. card (f -` {y} \<inter> A) * card B \<ge> card A"
+  shows "\<exists>y\<in>B. card (f -` {y} \<inter> A) * card B \<ge> card A"
 proof -
   from assms have "card B > 0"
     by auto
@@ -802,11 +802,11 @@ proof -
     unfolding M_def using assms by (intro sum_mono Max.coboundedI) auto
   also have "\<dots> = card B * M"
     by simp
-  finally have "M * card B \<ge> card A"
+  finally have *: "M * card B \<ge> card A"
     by (simp add: mult_ac)
-  moreover have "M \<in> (\<lambda>y. card (f -` {y} \<inter> A)) ` B"
-    unfolding M_def using assms \<open>B \<noteq> {}\<close> by (intro Max_in) auto
-  ultimately show ?thesis
+  from assms have "M \<in> (\<lambda>y. card (f -` {y} \<inter> A)) ` B"
+    unfolding M_def by (intro Max_in) auto
+  with * show ?thesis
     by blast
 qed
 
