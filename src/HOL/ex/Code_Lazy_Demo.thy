@@ -113,7 +113,8 @@ datatype tree
   = L              (\<open>\<spadesuit>\<close>) 
   | Node tree tree (infix \<open>\<triangle>\<close> 900)
 
-notation (output) Node (\<open>\<triangle>(//\<^bold>l: _//\<^bold>r: _)\<close>)
+notation (output) Node
+  (\<open>(\<open>indent=1 notation=\<open>mixfix tree node\<close>\<close>\<triangle>//(\<open>open_block notation=\<open>mixfix tree branch\<close>\<close>\<^bold>l: _)//(\<open>open_block notation=\<open>mixfix tree branch\<close>\<close>\<^bold>r: _))\<close>)
 
 code_lazy_type tree
 
