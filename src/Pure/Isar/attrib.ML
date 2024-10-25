@@ -612,7 +612,6 @@ val _ = Theory.setup
   register_config_bool Syntax.ambiguity_warning #>
   register_config_int Syntax.ambiguity_limit #>
   register_config_bool Syntax_Trans.eta_contract #>
-  register_config_bool Syntax_Phases.const_syntax_legacy #>
   register_config_bool Name_Space.names_long #>
   register_config_bool Name_Space.names_short #>
   register_config_bool Name_Space.names_unique #>
