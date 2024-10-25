@@ -10,7 +10,7 @@ sig
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
   type result = {name: string, command: string, time: int, state: Proof.state}
-  val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list -> 
+  val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list ->
     Proof.state -> result list
 end
 
@@ -64,7 +64,11 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
   if mode <> Auto_Try orelse run_if_auto_try then
     let
       val unused =
-        tagged |> filter (fn (_, tags) => null (inter (op =) tags (attrs |> map fst))) |> map fst
+        tagged
+        |> filter
+          (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
+        |> map fst
+
       val attrs = attrs_text attrs tagged
 
       val ctxt = Proof.context_of st
