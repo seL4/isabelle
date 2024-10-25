@@ -65,7 +65,7 @@ fun deref tye (T as TVar (xi, _)) =
 fun add_parms tye T =
   (case deref tye T of
     Type (_, Ts) => fold (add_parms tye) Ts
-  | TVar (xi, _) => if is_param xi then insert (op =) xi else I
+  | TVar (xi, _) => if is_param xi then Indexnames.add_set xi else I
   | _ => I);
 
 fun add_names tye T =
@@ -81,9 +81,9 @@ fun finish ctxt tye (Ts, ts) =
   let
     val used =
       (fold o fold_types) (add_names tye) ts (fold (add_names tye) Ts (Variable.names_of ctxt));
-    val parms = rev ((fold o fold_types) (add_parms tye) ts (fold (add_parms tye) Ts []));
-    val names = Name.invent used ("?" ^ Name.aT) (length parms);
-    val tab = Vartab.make (parms ~~ names);
+    val parms = (fold o fold_types) (add_parms tye) ts (fold (add_parms tye) Ts Indexnames.empty);
+    val names = Name.invent used ("?" ^ Name.aT) (Indexnames.size parms);
+    val tab = Vartab.make (Indexnames.list_set parms ~~ names);
 
     fun finish_typ T =
       (case deref tye T of

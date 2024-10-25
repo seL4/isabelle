@@ -15,7 +15,6 @@ sig
     Position.report_text list * term Exn.result -> Position.report_text list * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
-  val const_syntax_legacy: bool Config.T
   val print_checks: Proof.context -> unit
   val typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
     Context.generic -> Context.generic
@@ -153,8 +152,6 @@ fun decode_typ tm =
 
 (* parsetree_to_ast *)
 
-val const_syntax_legacy = Config.declare_bool ("const_syntax_legacy", \<^here>) (K false);
-
 fun parsetree_literals (Parser.Markup (_, ts)) = maps parsetree_literals ts
   | parsetree_literals (Parser.Node _) = []
   | parsetree_literals (Parser.Tip tok) =
@@ -224,7 +221,6 @@ fun parsetree_to_ast ctxt trf parsetree =
             val args = maps asts_of pts;
             fun head () =
               if not (null ps) andalso (Lexicon.is_fixed a orelse Lexicon.is_const a)
-                andalso not (Config.get ctxt const_syntax_legacy)
               then Ast.constrain (Ast.Constant a) (ast_of_pos ps)
               else Ast.Constant a;
             val _ = List.app (fn pos => report pos markup_cache a) ps;
