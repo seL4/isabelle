@@ -19,7 +19,9 @@ sig
   val find_enclosed : string -> string -> string -> string list
   val nat_subscript : int -> string
   val unquote_tvar : string -> string
+  val content_of_pretty : Pretty.T -> string
   val maybe_quote : Proof.context -> string -> string
+  val pretty_maybe_quote : Proof.context -> Pretty.T -> Pretty.T
   val string_of_ext_time : bool * Time.time -> string
   val string_of_time : Time.time -> string
   val type_instance : theory -> typ -> typ -> bool
@@ -51,6 +53,8 @@ sig
   val short_thm_name : Proof.context -> thm -> string
   val map_prod : ('a -> 'b) -> ('c -> 'd) -> 'a * 'c -> 'b * 'd
   val compare_length_with : 'a list -> int -> order
+  val scan_and_trace_multi_thm : Context.generic * Token.T list ->
+    (thm list * Token.T list) * (Context.generic * Token.T list)
   val forall2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
 end;
 
@@ -140,10 +144,13 @@ fun nat_subscript n =
 val unquote_tvar = perhaps (try (unprefix "'"))
 val unquery_var = perhaps (try (unprefix "?"))
 
+(* unformatted string without markup *)
+val content_of_pretty = Protocol_Message.clean_output o Pretty.unformatted_string_of
+
 val is_long_identifier = forall Symbol_Pos.is_identifier o Long_Name.explode
-fun maybe_quote ctxt y =
+fun gen_maybe_quote content_of cartouche quote ctxt y =
   let
-    val s = Protocol_Message.clean_output y
+    val s = content_of y
     val is_literal = Keyword.is_literal (Thy_Header.get_keywords' ctxt)
     val q = if Config.get ctxt proof_cartouches then cartouche else quote
   in
@@ -151,6 +158,8 @@ fun maybe_quote ctxt y =
            not (is_long_identifier (unquery_var s))) orelse
            is_literal s) ? q
   end
+val maybe_quote = gen_maybe_quote Protocol_Message.clean_output cartouche quote
+val pretty_maybe_quote = gen_maybe_quote content_of_pretty Pretty.cartouche Pretty.quote
 
 fun string_of_ext_time (plus, time) =
   let val us = Time.toMicroseconds time in
@@ -431,5 +440,13 @@ val map_prod = Ctr_Sugar_Util.map_prod
 elements of the list. *)
 fun compare_length_with [] n = if n < 0 then GREATER else if n = 0 then EQUAL else LESS
   | compare_length_with (_ :: xs) n = if n <= 0 then GREATER else compare_length_with xs (n - 1)
+
+(* Scan Attrib.multi_thm and store the input tokens *)
+fun scan_and_trace_multi_thm (context, toks) =
+  let
+    val (thms, (context', toks')) = Attrib.multi_thm (context, toks)
+  in
+    ((thms, take (length toks - length toks') toks), (context', toks'))
+  end
 
 end;

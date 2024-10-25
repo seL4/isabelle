@@ -16,7 +16,7 @@ sig
   val trace : bool Config.T
 
   type isar_params =
-    bool * (string option * string option) * Time.time * real option * bool * bool
+    bool * (string option * string option * string list) * Time.time * real option * bool * bool
     * (term, string) atp_step list * thm
 
   val proof_text : Proof.context -> bool -> bool option -> bool -> (unit -> isar_params) -> int ->
@@ -132,11 +132,11 @@ fun add_lines_pass2 res [] = rev res
     end
 
 type isar_params =
-  bool * (string option * string option) * Time.time * real option * bool * bool
+  bool * (string option * string option * string list) * Time.time * real option * bool * bool
   * (term, string) atp_step list * thm
 
 val basic_systematic_methods =
-  [Metis_Method (NONE, NONE), Meson_Method, Blast_Method, SATx_Method, Argo_Method]
+  [Metis_Method (NONE, NONE, []), Meson_Method, Blast_Method, SATx_Method, Argo_Method]
 val basic_simp_based_methods =
   [Auto_Method, Simp_Method, Fastforce_Method, Force_Method]
 val basic_arith_methods =
@@ -145,7 +145,7 @@ val basic_arith_methods =
 val arith_methods = basic_arith_methods @ basic_simp_based_methods @ basic_systematic_methods
 val systematic_methods =
   basic_systematic_methods @ basic_arith_methods @ basic_simp_based_methods @
-  [Metis_Method (SOME full_typesN, NONE), Metis_Method (SOME no_typesN, NONE)]
+  [Metis_Method (SOME full_typesN, NONE, []), Metis_Method (SOME no_typesN, NONE, [])]
 val rewrite_methods = basic_simp_based_methods @ basic_systematic_methods @ basic_arith_methods
 val skolem_methods = Moura_Method :: systematic_methods
 
@@ -483,11 +483,11 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                      let
                        val used_facts' =
                          map_filter (fn s =>
-                            if exists (fn (s', (sc, _)) => s' = s andalso sc = Chained)
-                                used_facts then
+                            if exists (fn (p, (sc, _)) => content_of_pretty p = s andalso
+                                sc = Chained) used_facts then
                               NONE
                             else
-                              SOME (s, (Global, General))) gfs
+                              SOME (Pretty.str s, (Global, General))) gfs
                      in
                        ((used_facts', (meth, play_outcome)), banner, subgoal, subgoal_count)
                      end

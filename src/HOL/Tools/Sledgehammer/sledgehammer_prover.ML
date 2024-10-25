@@ -47,6 +47,7 @@ sig
      compress : real option,
      try0 : bool,
      smt_proofs : bool,
+     suggest_of : bool option,
      minimize : bool,
      slices : int,
      timeout : Time.time,
@@ -78,7 +79,7 @@ sig
      used_from : fact list,
      preferred_methss : proof_method * proof_method list list,
      run_time : Time.time,
-     message : (unit -> (string * stature) list * (proof_method * play_outcome)) -> string}
+     message : (unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string}
 
   type prover = params -> prover_problem -> prover_slice -> prover_result
 
@@ -88,7 +89,9 @@ sig
   val overlord_file_location_of_prover : string -> string * string
   val proof_banner : mode -> string -> string
   val is_atp : string -> bool
-  val bunches_of_proof_methods : Proof.context -> bool -> bool -> string -> proof_method list list
+  val bunches_of_metis_methods : Proof.context -> bool -> bool -> proof_method list list
+  val bunches_of_smt_methods : Proof.context -> proof_method list list
+  val bunches_of_proof_methods : Proof.context -> bool -> bool -> bool -> proof_method list list
   val facts_of_filter : string -> (string * fact list) list -> fact list
   val facts_of_basic_slice : base_slice -> (string * fact list) list -> fact list
   val is_fact_chained : (('a * stature) * 'b) -> bool
@@ -107,7 +110,6 @@ open ATP_Util
 open ATP_Problem
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
-open Metis_Tactic
 open Sledgehammer_Fact
 open Sledgehammer_Proof_Methods
 open Sledgehammer_ATP_Systems
@@ -158,6 +160,7 @@ type params =
    compress : real option,
    try0 : bool,
    smt_proofs : bool,
+   suggest_of : bool option,
    minimize : bool,
    slices : int,
    timeout : Time.time,
@@ -201,7 +204,7 @@ type prover_result =
    used_from : fact list,
    preferred_methss : proof_method * proof_method list list,
    run_time : Time.time,
-   message : (unit -> (string * stature) list * (proof_method * play_outcome)) -> string}
+   message : (unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string}
 
 type prover = params -> prover_problem -> prover_slice -> prover_result
 
@@ -209,30 +212,58 @@ fun overlord_file_location_of_prover prover = (getenv "ISABELLE_HOME_USER", "pro
 
 fun proof_banner mode prover_name =
   (case mode of
-    Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof: "
-  | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof: "
-  | _ => "Try this: ")
+    Auto_Try => "Auto Sledgehammer (" ^ prover_name ^ ") found a proof:"
+  | Try => "Sledgehammer (" ^ prover_name ^ ") found a proof:"
+  | _ => "Try this:")
 
-fun bunches_of_proof_methods ctxt smt_proofs needs_full_types desperate_lam_trans =
+fun bunches_of_metis_methods ctxt needs_full_types needs_lam_defs =
+  let
+    (* metis without options (preferred) *)
+    val preferred_method = Metis_Method (NONE, NONE, [])
+
+    (* metis with different options *)
+    val desperate_lam_trans = if needs_lam_defs then liftingN else opaque_liftingN
+    val option_methods =
+      Metis_Method (SOME full_typesN, NONE, []) ::
+      Metis_Method (NONE, SOME liftingN, []) ::
+      Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans, []) ::
+       (if needs_full_types then
+          [Metis_Method (SOME really_full_type_enc, NONE, []),
+           Metis_Method (SOME full_typesN, SOME desperate_lam_trans, [])]
+        else
+          [Metis_Method (SOME no_typesN, SOME desperate_lam_trans, [])])
+
+    (* metis with extensionality (often needed for lifting) *)
+    val ext_facts = [short_thm_name ctxt ext]
+    val ext_methods =
+      Metis_Method (NONE, SOME liftingN, ext_facts) ::
+       (if not needs_lam_defs then
+          []
+        else if needs_full_types then
+          [Metis_Method (SOME full_typesN, SOME liftingN, ext_facts)]
+        else
+          [Metis_Method (SOME no_typesN, SOME liftingN, ext_facts)])
+  in
+    [[preferred_method], option_methods, ext_methods]
+  end
+
+fun bunches_of_smt_methods ctxt =
+  [map (SMT_Method o SMT_Verit) (Verit_Strategies.all_veriT_stgies (Context.Proof ctxt)),
+   [SMT_Method SMT_Z3]]
+
+fun bunches_of_proof_methods ctxt smt_proofs needs_full_types needs_lam_defs =
   let
     val misc_methodss =
       [[Simp_Method, Auto_Method, Blast_Method, Linarith_Method, Meson_Method,
-        Metis_Method (NONE, NONE), Fastforce_Method, Force_Method, Presburger_Method,
+        Metis_Method (NONE, NONE, []), Fastforce_Method, Force_Method, Presburger_Method,
         Argo_Method, Order_Method]]
 
     val metis_methodss =
-      [Metis_Method (SOME full_typesN, NONE) ::
-       Metis_Method (SOME really_full_type_enc, SOME desperate_lam_trans) ::
-       (if needs_full_types then
-          [Metis_Method (SOME really_full_type_enc, NONE),
-           Metis_Method (SOME full_typesN, SOME desperate_lam_trans)]
-        else
-          [Metis_Method (SOME no_typesN, SOME desperate_lam_trans)])]
+      tl (bunches_of_metis_methods ctxt needs_full_types needs_lam_defs)
 
     val smt_methodss =
       if smt_proofs then
-        [map (SMT_Method o SMT_Verit) (Verit_Strategies.all_veriT_stgies (Context.Proof ctxt)),
-         [SMT_Method SMT_Z3]]
+        bunches_of_smt_methods ctxt
       else
         []
   in

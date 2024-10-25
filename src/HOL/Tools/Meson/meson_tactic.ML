@@ -17,7 +17,7 @@ fun meson_general_tac ctxt ths =
   let val ctxt' = put_claset HOL_cs ctxt
   in
     Meson.meson_tac ctxt' (maps (snd o Meson_Clausify.cnf_axiom Meson.simp_options_all_true ctxt'
-      false true 0) ths)
+      {new_skolem = false, combs = true, refl = true} 0) ths)
   end
 
 (* This is part of a workaround to avoid freezing schematic variables in \<^text>\<open>using\<close> facts. See

@@ -16,7 +16,7 @@ sig
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
-  val finish_cnf: thm list -> thm list
+  val finish_cnf: bool -> thm list -> thm list
   val presimplified_consts : string list
   val presimplify: simp_options -> Proof.context -> thm -> thm
   val make_nnf: simp_options -> Proof.context -> thm -> thm
@@ -277,7 +277,7 @@ fun notequal_lits_count \<^Const_>\<open>disj for P Q\<close> = notequal_lits_co
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
 fun refl_clause th =
   let val neqs = notequal_lits_count (HOLogic.dest_Trueprop (Thm.concl_of th))
-  in  zero_var_indexes (refl_clause_aux neqs th)  end
+  in  refl_clause_aux neqs th  end
   handle TERM _ => th;  (*probably dest_Trueprop on a weird theorem*)
 
 
@@ -408,8 +408,11 @@ fun cnf old_skolem_ths ctxt (th, ths) =
 fun make_cnf old_skolem_ths th ctxt =
   cnf old_skolem_ths ctxt (th, [])
 
-(*Generalization, removal of redundant equalities, removal of tautologies.*)
-fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
+(*Generalization, optional removal of redundant equalities, removal of tautologies.*)
+fun finish_cnf refl ths = ths
+  |> refl ? map refl_clause
+  |> map zero_var_indexes
+  |> filter (not o is_taut)
 
 
 (**** Generation of contrapositives ****)

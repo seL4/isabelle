@@ -158,7 +158,7 @@ fun fact_of_ref ctxt keywords chained css (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
-      implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src ctxt) args)
+      implode (map (enclose "[" "]" o content_of_pretty o Token.pretty_src ctxt) args)
 
     fun nth_name j =
       (case xref of

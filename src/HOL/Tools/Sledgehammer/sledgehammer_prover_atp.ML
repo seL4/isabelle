@@ -295,14 +295,15 @@ fun run_atp mode name
               ()
 
           val needs_full_types = is_typed_helper_used_in_atp_proof atp_proof
-          val preferred = Metis_Method (NONE, NONE)
+          val needs_lam_defs =
+            good_lam_trans = keep_lamsN orelse is_lam_def_used_in_atp_proof atp_proof
+          val preferred = Metis_Method (NONE, NONE, [])
           val preferred_methss =
             (preferred,
              if try0 then
-               bunches_of_proof_methods ctxt smt_proofs needs_full_types
-                 (if atp_proof_prefers_lifting atp_proof then liftingN else opaque_liftingN)
+               bunches_of_proof_methods ctxt smt_proofs needs_full_types needs_lam_defs
              else
-               [[preferred]])
+               bunches_of_metis_methods ctxt needs_full_types needs_lam_defs)
         in
           (NONE, used_facts, preferred_methss,
            fn preplay =>
@@ -328,8 +329,8 @@ fun run_atp mode name
                       |> local_name = zipperpositionN ? regroup_zipperposition_skolems
                       |> factify_atp_proof (map fst used_from) hyp_ts concl_t
                   in
-                    (verbose, (metis_type_enc, metis_lam_trans), preplay_timeout, compress, try0,
-                     minimize, full_atp_proof, goal)
+                    (verbose, (metis_type_enc, metis_lam_trans, []), preplay_timeout, compress,
+                     try0, minimize, full_atp_proof, goal)
                   end
 
                 val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)

@@ -115,14 +115,12 @@ fun thms_in_proof max_thms name_tabs th =
 
 fun thms_of_name ctxt name =
   let
-    val get = maps (Proof_Context.get_fact ctxt o fst)
     val keywords = Thy_Header.get_keywords' ctxt
   in
-    Symbol_Pos.explode (name, Position.start)
-    |> Token.tokenize keywords {strict = false}
+    Token.explode keywords Position.start name
     |> filter Token.is_proper
     |> Source.of_list
-    |> Source.source Token.stopper (Parse.thms1 >> get)
+    |> Source.source' (Context.Proof ctxt) Token.stopper Attrib.multi_thm
     |> Source.exhaust
   end
 

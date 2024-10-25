@@ -59,16 +59,19 @@ Hammering Away \\[\smallskipamount]
 \Large A User's Guide to Sledgehammer for Isabelle/HOL}
 \author{\hbox{} \\
 Jasmin Blanchette \\
-{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\[4\smallskipamount]
+{\normalsize Institut f\"ur Informatik, Ludwig-Maximilians-Universit\"at M\"unchen} \\[4\smallskipamount]
 {\normalsize with contributions from} \\[4\smallskipamount]
 Martin Desharnais \\
 {\normalsize Forschungsinstitut CODE, Universit\"at der Bundeswehr M\"unchen}  \\[4\smallskipamount]
 Lawrence C. Paulson \\
-{\normalsize Computer Laboratory, University of Cambridge} \\
+{\normalsize Computer Laboratory, University of Cambridge} \\[4\smallskipamount]
+Lukas Bartl \\
+{\normalsize Institut f\"ur Informatik, Ludwig-Maximilians-Universit\"at M\"unchen} \\
 \hbox{}}
 
 \maketitle
 
+\newpage
 \tableofcontents
 
 \setlength{\parskip}{.7em plus .2em minus .1em}
@@ -313,7 +316,7 @@ is better for first-order problems.
 
 \point{Familiarize yourself with the main options}
 
-Sledgehammer's options are fully documented in \S\ref{command-syntax}. Many of
+Sledgehammer's options are fully documented in \S\ref{option-reference}. Many of
 the options are very specialized, but serious users of the tool should at least
 familiarize themselves with the following options:
 
@@ -820,8 +823,8 @@ It is generally beneficial to run several provers in parallel.
 Alias for \textit{provers}.
 
 \opsmartfalse{falsify}{dont\_falsify}
-Specifies whether Sledgehammer should look for falsifications or for proofs. By
-default, it looks for both.
+Specifies whether Sledgehammer should look for falsifications or for proofs. If
+the option is set to \textit{smart}, it looks for both.
 
 A falsification indicates that the goal, taken as an axiom, would be
 inconsistent with some specific background facts if it were added as a lemma,
@@ -836,10 +839,10 @@ abduction (which stands in contrast to deduction)---that is, they are guessed
 and found to be sufficient to prove the goal.
 
 Abduction is currently supported only by E. If the option is set to
-\textit{smart} (the default), abduction is enabled only in some of the E time
-slices, and at most one candidate missing assumption is displayed. You can
-disable abduction altogether by setting the option to 0 or enable it in all
-time slices by setting it to a nonzero value.
+\textit{smart}, abduction is enabled only in some of the E time slices, and at
+most one candidate missing assumption is displayed. You can disable abduction
+altogether by setting the option to 0 or enable it in all time slices by setting
+it to a nonzero value.
 
 \optrueonly{dont\_abduce}
 Alias for ``\textit{abduce} = 0''.
@@ -1199,12 +1202,26 @@ Alias for ``\textit{compress} = 1''.
 
 \optrue{try0}{dont\_try0}
 Specifies whether standard proof methods such as \textit{auto} and
-\textit{blast} should be tried as alternatives to \textit{metis} in Isar proofs.
-The collection of methods is roughly the same as for the \textbf{try0} command.
+\textit{blast} should be tried as alternatives to \textit{metis} or
+\textit{smt}. The collection of methods is roughly the same as
+for the \textbf{try0} command.
 
 \optrue{smt\_proofs}{no\_smt\_proofs}
 Specifies whether the \textit{smt} proof method should be tried in addition to
 Isabelle's built-in proof methods.
+
+\opsmart{suggest\_of}{dont\_suggest\_of}
+Specifies whether Metis should try to infer variable instantiations before proof
+reconstruction, which results in instantiations of facts using \textbf{of}
+(e.g. \textit{map\_prod\_surj\_on}[\textbf{of} \textit{f A} "\textit{f}
+\textasciigrave \textit{A}" \textit{g B} "\textit{g} \textasciigrave
+\textit{B}"]). This can make the proof methods faster and more intelligible. If
+the option is set to \textit{smart} (the default), variable instantiations are
+inferred only if proof reconstruction failed or timed out.
+
+When using \textit{metis} directly, enable the configuration
+option [[\textit{metis\_suggest\_of}]] to directly get a suggestion with
+instantiations of facts using \textbf{of} from a successful proof.
 \end{enum}
 
 

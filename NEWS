@@ -90,6 +90,21 @@ Isabelle/VSCode extension settings.
 
 *** HOL ***
 
+* Sledgehammer:
+  - Added instantiations of facts using the "of" attribute
+    (e.g. "assms(1)[of x]"), which can be activated using the
+    Sledgehammer option "suggest_of" (default: smart, i.e. only if
+    preplaying failed).  This uses Metis internally to infer the
+    variable instantiations (see below).
+  - Added extensionality (fact "ext") to some "metis (lifting)" calls.
+  - Use pretty-printing to format suggested one-line proofs.
+
+* Metis:
+  - Added inference of variable instantiations, which can be activated
+    using the configuration option "metis_suggest_of" (default: false).
+    This outputs a suggestion with instantiations of the facts using the
+    "of" attribute (e.g. "assms(1)[of x]").
+
 * Various declaration bundles support adhoc modification of notation,
 notably like this:
 
@@ -153,8 +168,8 @@ on, notably like this:
       image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
-* Transitioinal theory "Divides" moved to "HOL-Library.Divides" and
-supposed to be removed in a furure release. Minor INCOMPATIBILITY.
+* Transitional theory "Divides" moved to "HOL-Library.Divides" and
+supposed to be removed in a future release. Minor INCOMPATIBILITY.
 Import "HOL-Library.Divides" and keep an eye on theorems prefixed with
 "Divides." to ease transition.
 

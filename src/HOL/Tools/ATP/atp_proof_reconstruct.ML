@@ -49,9 +49,11 @@ sig
   val used_facts_in_atp_proof : Proof.context -> (string * stature) list -> string atp_proof ->
     (string * stature) list
   val atp_proof_prefers_lifting : string atp_proof -> bool
+  val is_lam_def_used_in_atp_proof : string atp_proof -> bool
   val is_typed_helper_used_in_atp_proof : string atp_proof -> bool
   val replace_dependencies_in_line : atp_step_name * atp_step_name list -> ('a, 'b) atp_step ->
     ('a, 'b) atp_step
+  val uncombine_term : theory -> term -> term
   val termify_atp_proof : Proof.context -> string -> ATP_Problem.atp_format ->
     ATP_Problem_Generate.type_enc -> string Symtab.table -> (string * term) list ->
     int Symtab.table -> string atp_proof -> (term, string) atp_step list
@@ -572,6 +574,9 @@ val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 fun atp_proof_prefers_lifting atp_proof =
   (is_axiom_used_in_proof is_combinator_def atp_proof,
    is_axiom_used_in_proof is_lam_lifted atp_proof) = (false, true)
+
+val is_lam_def_used_in_atp_proof =
+  is_axiom_used_in_proof (is_combinator_def orf is_lam_lifted)
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix

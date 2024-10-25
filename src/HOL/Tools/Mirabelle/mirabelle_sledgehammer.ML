@@ -196,8 +196,8 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
               preplay_results
               |> map
                 (fn (meth, (play_outcome, used_facts)) =>
-                    "Preplay: " ^
-                    Sledgehammer_Proof_Methods.string_of_proof_method (map fst used_facts) meth ^
+                    "Preplay: " ^ Sledgehammer_Proof_Methods.string_of_proof_method
+                      (map (ATP_Util.content_of_pretty o fst) used_facts) meth ^
                     " (" ^ Sledgehammer_Proof_Methods.string_of_play_outcome play_outcome ^ ")")
               |> cat_lines
             else
@@ -211,7 +211,7 @@ fun run_sledgehammer (params as {provers, ...}) output_dir keep_probs keep_proof
       (case time_prover of NONE => "" | SOME ms => ", ATP " ^ string_of_int ms ^ "ms") ^
       ") [" ^ prover_name ^ "]: "
   in
-    (sledgehamer_outcome, triv_str ^ outcome_msg ^ msg ^
+    (sledgehamer_outcome, triv_str ^ outcome_msg ^ Protocol_Message.clean_output msg ^
        (if exhaustive_preplay_msg = "" then "" else ("\n" ^ exhaustive_preplay_msg)),
      change_data #> inc_sh_time_isa cpu_time)
   end

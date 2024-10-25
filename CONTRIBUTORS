@@ -6,6 +6,9 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* October 2024: Lukas Bartl, LMU München
+  Inference of variable instantiations with Metis
+
 * April - October 2024: Thomas Lindae and Fabian Huch, TU München
   Improvements to the language server for Isabelle/VSCode.
 

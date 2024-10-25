@@ -18,6 +18,7 @@ ML_file \<open>Tools/Sledgehammer/async_manager_legacy.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_util.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_fact.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_proof_methods.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_instantiations.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_annotate.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_proof.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_isar_preplay.ML\<close>

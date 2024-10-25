@@ -13,6 +13,8 @@ sig
 
   exception METIS_RECONSTRUCT of string * string
 
+  val hol_term_of_metis : Proof.context -> type_enc -> int Symtab.table ->
+    Metis_Term.term -> term
   val hol_clause_of_metis : Proof.context -> type_enc -> int Symtab.table ->
     (string * term) list * (string * term) list -> Metis_Thm.thm -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
@@ -78,6 +80,7 @@ fun hol_terms_of_metis ctxt type_enc concealed sym_tab fol_tms =
                   (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                             " of type " ^ Syntax.string_of_typ ctxt (type_of t))) ts'
   in ts' end
+  handle ERROR msg => raise METIS_RECONSTRUCT ("hol_terms_of_metis", msg)
 
 
 
@@ -201,22 +204,24 @@ fun resolve_inc_tyvars ctxt th1 i th2 =
     res (th1', th2)
     handle TERM z =>
       let
-        val ps = []
+        val tyenv = []
           |> fold (Term.add_vars o Thm.prop_of) [th1', th2]
           |> AList.group (op =)
           |> maps (fn ((s, _), T :: Ts) => map (fn T' => (Free (s, T), Free (s, T'))) Ts)
           |> rpair Envir.init
           |-> fold (Pattern.unify (Context.Proof ctxt))
-          |> Envir.type_env |> Vartab.dest
-          |> map (fn (x, (S, T)) => ((x, S), Thm.ctyp_of ctxt T))
+          |> Envir.type_env
+        val instT =
+          TVars.build (tyenv |> Vartab.fold (fn (x, (S, T)) =>
+            TVars.add ((x, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))))
       in
         (*The unifier, which is invoked from "Thm.bicompose", will sometimes refuse to unify
           "?a::?'a" with "?a::?'b" or "?a::nat" and throw a "TERM" exception (with "add_ffpair" as
           first argument). We then perform unification of the types of variables by hand and try
           again. We could do this the first time around but this error occurs seldom and we don't
           want to break existing proofs in subtle ways or slow them down.*)
-        if null ps then raise TERM z
-        else res (apply2 (Drule.instantiate_normalize (TVars.make ps, Vars.empty)) (th1', th2))
+        if TVars.is_empty instT then raise TERM z
+        else res (apply2 (Drule.instantiate_normalize (instT, Vars.empty)) (th1', th2))
       end
   end
 

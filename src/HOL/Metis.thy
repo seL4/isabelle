@@ -44,6 +44,7 @@ subsection \<open>Metis package\<close>
 
 ML_file \<open>Tools/Metis/metis_generate.ML\<close>
 ML_file \<open>Tools/Metis/metis_reconstruct.ML\<close>
+ML_file \<open>Tools/Metis/metis_instantiations.ML\<close>
 ML_file \<open>Tools/Metis/metis_tactic.ML\<close>
 
 hide_const (open) select fFalse fTrue fNot fComp fconj fdisj fimplies fAll fEx fequal lambda

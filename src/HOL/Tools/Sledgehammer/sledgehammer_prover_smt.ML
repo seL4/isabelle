@@ -141,12 +141,14 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
             if smt_proofs then
               SMT_Method (if name = "z3" then SMT_Z3 else SMT_Verit "default")
             else
-              Metis_Method (NONE, NONE);
+              Metis_Method (NONE, NONE, []);
           val methss =
             if try0 then
-              bunches_of_proof_methods ctxt smt_proofs false liftingN
+              bunches_of_proof_methods ctxt smt_proofs false true
+            else if smt_proofs then
+              bunches_of_smt_methods ctxt
             else
-              [[preferred]]
+              bunches_of_metis_methods ctxt false true
         in
           ((preferred, methss),
            fn preplay =>
@@ -154,8 +156,8 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
                val _ = if verbose then writeln "Generating proof text..." else ()
 
                fun isar_params () =
-                 (verbose, (NONE, NONE), preplay_timeout, compress, try0, minimize, atp_proof (),
-                  goal)
+                 (verbose, (NONE, NONE, []), preplay_timeout, compress, try0, minimize,
+                  atp_proof (), goal)
 
                val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))

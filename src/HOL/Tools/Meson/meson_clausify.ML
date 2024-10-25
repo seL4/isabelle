@@ -7,6 +7,7 @@ Transformation of HOL theorems into CNF forms.
 
 signature MESON_CLAUSIFY =
 sig
+  type clause_options = {new_skolem : bool, combs : bool, refl : bool}
   val new_skolem_var_prefix : string
   val new_nonskolem_var_prefix : string
   val is_zapped_var_name : string -> bool
@@ -15,12 +16,14 @@ sig
   val introduce_combinators_in_theorem : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val ss_only : thm list -> Proof.context -> Proof.context
-  val cnf_axiom : Meson.simp_options -> Proof.context -> bool -> bool -> int -> thm
+  val cnf_axiom : Meson.simp_options -> Proof.context -> clause_options -> int -> thm
     -> (thm * term) option * thm list
 end;
 
 structure Meson_Clausify : MESON_CLAUSIFY =
 struct
+
+type clause_options = {new_skolem : bool, combs : bool, refl : bool}
 
 (* the extra "Meson" helps prevent clashes (FIXME) *)
 val new_skolem_var_prefix = "MesonSK"
@@ -367,7 +370,7 @@ fun nnf_axiom simp_options choice_ths new_skolem ax_no th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom simp_options ctxt0 new_skolem combinators ax_no th =
+fun cnf_axiom simp_options ctxt0 {new_skolem, combs, refl} ax_no th =
   let
     val choice_ths = Meson.choice_theorems (Proof_Context.theory_of ctxt0)
     val (opt, (nnf_th, ctxt1)) =
@@ -387,10 +390,10 @@ fun cnf_axiom simp_options ctxt0 new_skolem combinators ax_no th =
     (opt |> Option.map (I #>> singleton (Variable.export ctxt2 ctxt0)
                         ##> (Thm.term_of #> HOLogic.dest_Trueprop
                              #> singleton (Variable.export_terms ctxt2 ctxt0))),
-     cnf_ths |> map (combinators ? introduce_combinators_in_theorem ctxt2
+     cnf_ths |> map (combs ? introduce_combinators_in_theorem ctxt2
                      #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
              |> Variable.export ctxt2 ctxt0
-             |> Meson.finish_cnf
+             |> Meson.finish_cnf refl
              |> map (Thm.close_derivation \<^here>))
   end
   handle THM _ => (NONE, [])

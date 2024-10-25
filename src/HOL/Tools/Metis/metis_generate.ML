@@ -29,6 +29,8 @@ sig
   val metis_name_table : ((string * int) * ((type_enc -> string) * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val reveal_lam_lifted : (string * term) list -> term -> term
+  val eliminate_lam_wrappers : term -> term
+  val have_common_thm : Proof.context -> thm list -> thm list -> bool
   val generate_metis_problem : Proof.context -> type_enc -> string -> thm list -> thm list ->
     int Symtab.table * (Metis_Thm.thm * isa_thm) list * (unit -> (string * int) list)
     * ((string * term) list * (string * term) list)
@@ -194,6 +196,11 @@ fun eliminate_lam_wrappers \<^Const_>\<open>Metis.lambda _ for t\<close> = elimi
   | eliminate_lam_wrappers (Abs (s, T, t)) = Abs (s, T, eliminate_lam_wrappers t)
   | eliminate_lam_wrappers t = t
 
+(* Designed to work also with monomorphic instances of polymorphic theorems. *)
+fun have_common_thm ctxt ths1 ths2 =
+  exists (member (Term.aconv_untyped o apply2 Thm.prop_of) ths1)
+    (map (Meson.make_meta_clause ctxt) ths2)
+
 (* Function to generate metis clauses, including comb and type clauses *)
 fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
   let
@@ -225,6 +232,12 @@ fun generate_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
     val (atp_problem, _, lifted, sym_tab) =
       generate_atp_problem ctxt true CNF Hypothesis type_enc Metis lam_trans false false false []
         \<^prop>\<open>False\<close> props
+
+    val _ = trace_msg ctxt (fn () => cat_lines ("OLD SKOLEM TERMS" ::
+        (old_skolems |> map (fn (s, t) => s ^ ": " ^ Syntax.string_of_term ctxt t))))
+    val _ = trace_msg ctxt (fn () => cat_lines ("LIFTED LAMBDAS" ::
+        (lifted |> map (fn (s, t) => s ^ ": " ^ Syntax.string_of_term ctxt t))))
+
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (lines_of_atp_problem CNF atp_problem))
