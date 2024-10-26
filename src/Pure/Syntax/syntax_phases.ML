@@ -54,12 +54,10 @@ fun markup_const ctxt c =
 
 fun markup_free ctxt x =
   let
-    val m1 =
-      if Variable.is_fixed ctxt x then Variable.markup_fixed ctxt x
-      else if not (Variable.is_body ctxt) orelse Syntax.is_pretty_global ctxt then Markup.fixed x
-      else Markup.intensify;
+    val strict = Variable.is_body ctxt andalso not (Syntax.is_pretty_global ctxt);
+    val m1 = if Variable.is_fixed ctxt x orelse strict then [Variable.markup_fixed ctxt x] else [];
     val m2 = Variable.markup ctxt x;
-  in [m1, m2] end;
+  in m1 @ [m2] end;
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
