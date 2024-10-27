@@ -94,16 +94,12 @@ text \<open>
     \<^descr> @{command "print_state"} prints the current proof state (if present),
     including current facts and goals.
 
-  All of the diagnostic commands above admit a list of \<open>modes\<close> to be
-  specified, which is appended to the current print mode; see also
-  \secref{sec:print-modes}. Thus the output behavior may be modified according
-  particular print mode features. For example, @{command
-  "print_state"}~\<open>(latex)\<close> prints the current proof state with mathematical
-  symbols and special characters represented in {\LaTeX} source, according to
-  the Isabelle style \<^cite>\<open>"isabelle-system"\<close>.
-
-  Note that antiquotations (cf.\ \secref{sec:antiq}) provide a more systematic
-  way to include formal items into the printed text document.
+  The diagnostic commands above accept an optional list of \<open>modes\<close>, which is
+  appended to the current print mode; see also \secref{sec:print-modes}. Thus
+  the output behavior may be modified according particular print mode
+  features. For example, @{command "thm"}~\<^verbatim>\<open>("") symmetric\<close> prints a theorem
+  without any special markup, bypassing the print mode setup of the Prover
+  IDE.
 \<close>
 
 
