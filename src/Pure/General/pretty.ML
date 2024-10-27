@@ -449,10 +449,10 @@ val symbolic_output =
       in Bytes.add bg #> body #> Bytes.add en end;
 
     fun out (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
-      | out (Block {markup = (bg, en), open_block, consistent, indent, body = prts, ...}) =
-          let
-            val block_markup =
-              Markup.block {open_block = open_block, consistent = consistent, indent = indent};
+      | out (Block {markup = (bg, en), open_block = true, body = prts, ...}) =
+          Bytes.add bg #> fold out prts #> Bytes.add en
+      | out (Block {markup = (bg, en), consistent, indent, body = prts, ...}) =
+          let val block_markup = Markup.block {consistent = consistent, indent = indent}
           in Bytes.add bg #> markup_bytes block_markup (fold out prts) #> Bytes.add en end
       | out (Break (false, wd, ind)) =
           markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)

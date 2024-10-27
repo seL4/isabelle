@@ -85,7 +85,7 @@ sig
   val block_properties: string list
   val indentN: string
   val widthN: string
-  val blockN: string val block: {open_block: bool, consistent: bool, indent: int} -> T
+  val blockN: string val block: {consistent: bool, indent: int} -> T
   val breakN: string val break: {width: int, indent: int} -> T
   val fbreakN: string val fbreak: T
   val itemN: string val item: T
@@ -483,9 +483,8 @@ val block_properties = [notationN, markupN, open_blockN, consistentN, unbreakabl
 val widthN = "width";
 
 val blockN = "block";
-fun block {open_block, consistent, indent} =
+fun block {consistent, indent} =
   (blockN,
-    (if open_block then [(open_blockN, Value.print_bool open_block)] else []) @
     (if consistent then [(consistentN, Value.print_bool consistent)] else []) @
     (if indent <> 0 then [(indentN, Value.print_int indent)] else []));
 
