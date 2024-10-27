@@ -131,18 +131,14 @@ done
 subsubsection "object references"
 
 type_synonym oref = "loc + qtname"         \<comment> \<open>generalized object reference\<close>
-syntax
-  Heap  :: "loc   \<Rightarrow> oref"
-  Stat  :: "qtname \<Rightarrow> oref"
-
-syntax_consts
-  Heap == Inl and
-  Stat == Inr
 
 translations
-  "Heap" => "CONST Inl"
-  "Stat" => "CONST Inr"
   (type) "oref" <= (type) "loc + qtname"
+
+abbreviation (input)
+  Heap :: "loc \<Rightarrow> oref" where "Heap \<equiv> Inl"
+abbreviation (input)
+  Stat :: "qtname \<Rightarrow> oref" where "Stat \<equiv> Inr"
 
 definition
   fields_table :: "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table" where
