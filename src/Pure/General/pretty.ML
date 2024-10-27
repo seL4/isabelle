@@ -368,7 +368,6 @@ fun break_dist (Break _ :: _, _) = 0
   | break_dist ([], after) = after;
 
 val force_break = fn Break (false, wd, ind) => Break (true, wd, ind) | prt => prt;
-val force_all = map force_break;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
 fun force_next [] = []
@@ -400,9 +399,9 @@ fun format_tree (ops: output_ops) input =
     fun format ([], _, _) text = text
       | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case prt of
-            Block {markup = (bg, en), open_block = true, body = bes, ...} =>
-              format (Out bg :: bes @ Out en :: prts, block, after) text
-          | Block {markup = (bg, en), consistent, indent, body = bes, length = blen, ...} =>
+            Block {markup = (bg, en), open_block = true, body, ...} =>
+              format (Out bg :: body @ Out en :: prts, block, after) text
+          | Block {markup = (bg, en), consistent, indent, body, length = blen, ...} =>
               let
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
@@ -410,10 +409,10 @@ fun format_tree (ops: output_ops) input =
                   if pos' < emergencypos then (ind |> blanks_buffer indent, pos')
                   else (blanks_buffer pos'' Buffer.empty, pos'');
                 val d = break_dist (prts, after)
-                val bes' = if consistent andalso pos + blen > margin - d then force_all bes else bes;
+                val body' = body |> (consistent andalso pos + blen > margin - d) ? map force_break;
                 val btext: text = text
                   |> control bg
-                  |> format (bes', block', d)
+                  |> format (body', block', d)
                   |> control en;
                 (*if this block was broken then force the next break*)
                 val prts' = if nl < #nl btext then force_next prts else prts;
@@ -444,22 +443,22 @@ val symbolic_output =
   let
     val ops = symbolic_output_ops;
 
-    fun markup_bytes m body =
+    fun markup_bytes m output_body =
       let val (bg, en) = #markup ops (YXML.output_markup m)
-      in Bytes.add bg #> body #> Bytes.add en end;
+      in Bytes.add bg #> output_body #> Bytes.add en end;
 
-    fun out (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
-      | out (Block {markup = (bg, en), open_block = true, body = prts, ...}) =
-          Bytes.add bg #> fold out prts #> Bytes.add en
-      | out (Block {markup = (bg, en), consistent, indent, body = prts, ...}) =
+    fun output (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
+      | output (Block {markup = (bg, en), open_block = true, body, ...}) =
+          Bytes.add bg #> fold output body #> Bytes.add en
+      | output (Block {markup = (bg, en), consistent, indent, body, ...}) =
           let val block_markup = Markup.block {consistent = consistent, indent = indent}
-          in Bytes.add bg #> markup_bytes block_markup (fold out prts) #> Bytes.add en end
-      | out (Break (false, wd, ind)) =
+          in Bytes.add bg #> markup_bytes block_markup (fold output body) #> Bytes.add en end
+      | output (Break (false, wd, ind)) =
           markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)
-      | out (Break (true, _, _)) = Bytes.add (output_newline ops)
-      | out (Str (s, _)) = Bytes.add s
-      | out (Out s) = Bytes.add s;
-  in Bytes.build o out o output_tree ops false end;
+      | output (Break (true, _, _)) = Bytes.add (output_newline ops)
+      | output (Str (s, _)) = Bytes.add s
+      | output (Out s) = Bytes.add s;
+  in Bytes.build o output o output_tree ops false end;
 
 val symbolic_string_of = Bytes.content o symbolic_output;
 
@@ -468,12 +467,12 @@ val symbolic_string_of = Bytes.content o symbolic_output;
 
 fun unformatted ops =
   let
-    fun out (Block ({markup = (bg, en), body = prts, ...})) =
-          Bytes.add bg #> fold out prts #> Bytes.add en
-      | out (Break (_, wd, _)) = output_spaces_bytes ops wd
-      | out (Str (s, _)) = Bytes.add s
-      | out (Out s) = Bytes.add s;
-  in Bytes.build o out o output_tree ops false end;
+    fun output (Block ({markup = (bg, en), body, ...})) =
+          Bytes.add bg #> fold output body #> Bytes.add en
+      | output (Break (_, wd, _)) = output_spaces_bytes ops wd
+      | output (Str (s, _)) = Bytes.add s
+      | output (Out s) = Bytes.add s;
+  in Bytes.build o output o output_tree ops false end;
 
 fun unformatted_string_of prt =
   Bytes.content (unformatted (output_ops NONE) prt);
