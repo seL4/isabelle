@@ -4,8 +4,8 @@
 
 section \<open>Formalisation of chain-complete partial orders, continuity and admissibility\<close>
 
-theory Complete_Partial_Order2 imports 
-  Main
+theory Complete_Partial_Order2
+  imports Main
 begin
 
 unbundle lattice_syntax
@@ -604,7 +604,7 @@ lemma fixp_preserves_mcont:
   and mcont: "\<And>f. mcont lub (\<sqsubseteq>) Sup (\<le>) f \<Longrightarrow> mcont lub (\<sqsubseteq>) Sup (\<le>) (F f)"
   shows "mcont lub (\<sqsubseteq>) Sup (\<le>) (ccpo.fixp (fun_lub Sup) (fun_ord (\<le>)) F)"
   (is "mcont _ _ _ _ ?fixp")
-unfolding mcont_def
+  unfolding mcont_def
 proof(intro conjI monotoneI contI)
   have mono: "monotone (fun_ord (\<le>)) (fun_ord (\<le>)) F"
     by(rule monotoneI)(auto simp add: fun_ord_def intro: monotoneD[OF mono])
@@ -612,36 +612,33 @@ proof(intro conjI monotoneI contI)
   have chain: "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` ?iter)"
     by(rule chain_imageI[OF ccpo.chain_iterates[OF ccpo_fun mono]])(simp add: fun_ord_def)
 
-  {
-    fix x y
-    assume "x \<sqsubseteq> y"
-    show "?fixp x \<le> ?fixp y"
-      apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
-      using chain
-    proof(rule ccpo_Sup_least)
-      fix x'
-      assume "x' \<in> (\<lambda>f. f x) ` ?iter"
-      then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
-      also from _ \<open>x \<sqsubseteq> y\<close> have "f x \<le> f y"
-        by(rule mcont_monoD[OF iterates_mcont[OF \<open>f \<in> ?iter\<close> mcont]])
-      also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
-        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
-      finally show "x' \<le> \<dots>" .
-    qed
-  next
-    fix Y
-    assume chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y"
-      and Y: "Y \<noteq> {}"
-    { fix f
-      assume "f \<in> ?iter"
-      hence "f (\<Or>Y) = \<Squnion>(f ` Y)"
-        using mcont chain Y by(rule mcont_contD[OF iterates_mcont]) }
+  show "?fixp x \<le> ?fixp y" if "x \<sqsubseteq> y" for x y
+    apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
+    using chain
+  proof(rule ccpo_Sup_least)
+    fix x'
+    assume "x' \<in> (\<lambda>f. f x) ` ?iter"
+    then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
+    also from _ \<open>x \<sqsubseteq> y\<close> have "f x \<le> f y"
+      by(rule mcont_monoD[OF iterates_mcont[OF \<open>f \<in> ?iter\<close> mcont]])
+    also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
+      by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
+    finally show "x' \<le> \<dots>" .
+  qed
+
+  show "?fixp (\<Or>Y) = \<Squnion>(?fixp ` Y)"
+    if chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y" and Y: "Y \<noteq> {}" for Y
+  proof -
+    have "f (\<Or>Y) = \<Squnion>(f ` Y)" if "f \<in> ?iter" for f
+      using that mcont chain Y
+      by (rule mcont_contD[OF iterates_mcont])
     moreover have "\<Squnion>((\<lambda>f. \<Squnion>(f ` Y)) ` ?iter) = \<Squnion>((\<lambda>x. \<Squnion>((\<lambda>f. f x) ` ?iter)) ` Y)"
       using chain ccpo.chain_iterates[OF ccpo_fun mono]
-      by(rule swap_Sup)(rule mcont_mono[OF iterates_mcont[OF _ mcont]])
-    ultimately show "?fixp (\<Or>Y) = \<Squnion>(?fixp ` Y)" unfolding ccpo.fixp_def[OF ccpo_fun]
-      by(simp add: fun_lub_apply cong: image_cong)
-  }
+      by (rule swap_Sup)(rule mcont_mono[OF iterates_mcont[OF _ mcont]])
+    ultimately show ?thesis
+      unfolding ccpo.fixp_def[OF ccpo_fun]
+      by (simp add: fun_lub_apply cong: image_cong)
+  qed
 qed
 
 end
@@ -1753,12 +1750,14 @@ proof(rule ccpo.compactI[OF _ ccpo.admissibleI])
   from A obtain z where "z \<in> A" by blast
   with * have z: "\<not> flat_ord x y z" ..
   hence y: "x \<noteq> y" "y \<noteq> z" by(auto simp add: flat_ord_def)
-  { assume "\<not> A \<subseteq> {x}"
-    then obtain z' where "z' \<in> A" "z' \<noteq> x" by auto
+  have "y \<noteq> (THE z. z \<in> A - {x})" if "\<not> A \<subseteq> {x}"
+  proof -
+    from that obtain z' where "z' \<in> A" "z' \<noteq> x" by auto
     then have "(THE z. z \<in> A - {x}) = z'"
       by(intro the_equality)(auto dest: chainD[OF chain] simp add: flat_ord_def)
     moreover have "z' \<noteq> y" using \<open>z' \<in> A\<close> * by(auto simp add: flat_ord_def)
-    ultimately have "y \<noteq> (THE z. z \<in> A - {x})" by simp }
+    ultimately show ?thesis by simp
+  qed
   with z show "\<not> flat_ord x y (flat_lub x A)" by(simp add: flat_ord_def flat_lub_def)
 qed
 

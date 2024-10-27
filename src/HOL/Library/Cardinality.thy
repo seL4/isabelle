@@ -74,8 +74,9 @@ lemma card_nat [simp]: "CARD(nat) = 0"
 
 lemma card_fun: "CARD('a \<Rightarrow> 'b) = (if CARD('a) \<noteq> 0 \<and> CARD('b) \<noteq> 0 \<or> CARD('b) = 1 then CARD('b) ^ CARD('a) else 0)"
 proof -
-  {  assume "0 < CARD('a)" and "0 < CARD('b)"
-    hence fina: "finite (UNIV :: 'a set)" and finb: "finite (UNIV :: 'b set)"
+  have "CARD('a \<Rightarrow> 'b) = CARD('b) ^ CARD('a)" if "0 < CARD('a)" and "0 < CARD('b)"
+  proof -
+    from that have fina: "finite (UNIV :: 'a set)" and finb: "finite (UNIV :: 'b set)"
       by(simp_all only: card_ge_0_finite)
     from finite_distinct_list[OF finb] obtain bs 
       where bs: "set bs = (UNIV :: 'b set)" and distb: "distinct bs" by blast
@@ -113,19 +114,23 @@ proof -
     qed
     hence "card (set ?xs) = length ?xs" by(simp only: distinct_card)
     moreover have "length ?xs = length bs ^ length as" by(simp add: length_n_lists)
-    ultimately have "CARD('a \<Rightarrow> 'b) = CARD('b) ^ CARD('a)" using cb ca by simp }
-  moreover {
-    assume cb: "CARD('b) = 1"
-    then obtain b where b: "UNIV = {b :: 'b}" by(auto simp add: card_Suc_eq)
+    ultimately show ?thesis using cb ca by simp
+  qed
+  moreover have "CARD('a \<Rightarrow> 'b) = 1" if "CARD('b) = 1"
+  proof -
+    from that obtain b where b: "UNIV = {b :: 'b}" by(auto simp add: card_Suc_eq)
     have eq: "UNIV = {\<lambda>x :: 'a. b ::'b}"
     proof(rule UNIV_eq_I)
       fix x :: "'a \<Rightarrow> 'b"
-      { fix y
+      have "x y = b" for y
+      proof -
         have "x y \<in> UNIV" ..
-        hence "x y = b" unfolding b by simp }
+        thus ?thesis unfolding b by simp
+      qed
       thus "x \<in> {\<lambda>x. b}" by(auto)
     qed
-    have "CARD('a \<Rightarrow> 'b) = 1" unfolding eq by simp }
+    show ?thesis unfolding eq by simp
+  qed
   ultimately show ?thesis
     by(auto simp del: One_nat_def)(auto simp add: card_eq_0_iff dest: finite_fun_UNIVD2 finite_fun_UNIVD1)
 qed
