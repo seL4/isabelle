@@ -202,6 +202,8 @@ fun parsetree_to_ast ctxt trf parsetree =
               |>> dest_Type_name;
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
+      | asts_of (Parser.Node ({const = "_DDDOT", ...}, [Parser.Tip tok])) =
+          [Ast.constrain (Ast.Variable Auto_Bind.dddot_vname) (ast_of_position tok)]
       | asts_of (Parser.Node ({const = "_position", ...}, [Parser.Tip tok])) =
           asts_of_position "_constrain" tok
       | asts_of (Parser.Node ({const = "_position_sort", ...}, [Parser.Tip tok])) =
@@ -662,7 +664,7 @@ fun mark_atoms ctxt tm =
             else Syntax.const "_free" $ t
           end
       | mark (t as Var (xi, T)) =
-          if xi = Auto_Bind.dddot then Const ("_DDDOT", T)
+          if xi = Auto_Bind.dddot_indexname then Const ("_DDDOT", T)
           else Syntax.const "_var" $ t
       | mark a = a;
   in mark tm end;
