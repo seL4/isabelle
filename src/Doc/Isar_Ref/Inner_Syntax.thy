@@ -482,8 +482,8 @@ text \<open>
   the entire phrase is a pretty printing block.
 
   The alternative notation \<^verbatim>\<open>(\<close>\<open>sy\<close>\<^verbatim>\<open>)\<close> is introduced in addition. Thus any
-  infix operator may be written in prefix form (as in Haskell), independently of
-  the number of arguments.
+  infix operator may be written in prefix form (as in Haskell), independently
+  of the number of arguments.
 \<close>
 
 
@@ -995,8 +995,10 @@ text \<open>
   carefully by syntax transformations.
 
   Pre-terms are further processed by the so-called \<^emph>\<open>check\<close> and \<^emph>\<open>uncheck\<close>
-  phases that are intertwined with type-inference (see also \<^cite>\<open>"isabelle-implementation"\<close>). The latter allows to operate on higher-order
-  abstract syntax with proper binding and type information already available.
+  phases that are intertwined with type-inference (see also
+  \<^cite>\<open>"isabelle-implementation"\<close>). The latter allows to operate on
+  higher-order abstract syntax with proper binding and type information
+  already available.
 
   As a rule of thumb, anything that manipulates bindings of variables or
   constants needs to be implemented as syntax transformation (see below).
@@ -1049,12 +1051,13 @@ text \<open>
 
   Input syntax of a term such as \<open>f a b = c\<close> does not yet indicate the scopes
   of atomic entities \<open>f, a, b, c\<close>: they could be global constants or local
-  variables, even bound ones depending on the context of the term. \<^ML>\<open>Ast.Variable\<close> leaves this choice still open: later syntax layers (or
+  variables, even bound ones depending on the context of the term.
+  \<^ML>\<open>Ast.Variable\<close> leaves this choice still open: later syntax layers (or
   translation functions) may capture such a variable to determine its role
   specifically, to make it a constant, bound variable, free variable etc. In
   contrast, syntax translations that introduce already known constants would
-  rather do it via \<^ML>\<open>Ast.Constant\<close> to prevent accidental re-interpretation
-  later on.
+  rather do it via \<^ML>\<open>Ast.Constant\<close> to prevent accidental
+  re-interpretation later on.
 
   Output syntax turns term constants into \<^ML>\<open>Ast.Constant\<close> and variables
   (free or schematic) into \<^ML>\<open>Ast.Variable\<close>. This information is precise
@@ -1232,10 +1235,12 @@ text \<open>
   applications within the term syntax, independently of the corresponding
   concrete syntax.
 
-  Atomic ASTs are distinguished as \<^ML>\<open>Ast.Constant\<close> versus \<^ML>\<open>Ast.Variable\<close> as follows: a qualified name or syntax constant declared via
-  @{command syntax}, or parse tree head of concrete notation becomes \<^ML>\<open>Ast.Constant\<close>, anything else \<^ML>\<open>Ast.Variable\<close>. Note that \<open>CONST\<close> and
-  \<open>XCONST\<close> within the term language (\secref{sec:pure-grammar}) allow to
-  enforce treatment as constants.
+  Atomic ASTs are distinguished as \<^ML>\<open>Ast.Constant\<close> versus
+  \<^ML>\<open>Ast.Variable\<close> as follows: a qualified name or syntax constant
+  declared via @{command syntax}, or parse tree head of concrete notation
+  becomes \<^ML>\<open>Ast.Constant\<close>, anything else \<^ML>\<open>Ast.Variable\<close>. Note that
+  \<open>CONST\<close> and \<open>XCONST\<close> within the term language (\secref{sec:pure-grammar})
+  allow to enforce treatment as constants.
 
   AST rewrite rules \<open>(lhs, rhs)\<close> need to obey the following side-conditions:
 
@@ -1429,12 +1434,14 @@ text \<open>
   in ML.
 
   For AST translations, the arguments \<open>x\<^sub>1, \<dots>, x\<^sub>n\<close> are ASTs. A combination
-  has the form \<^ML>\<open>Ast.Constant\<close>~\<open>c\<close> or \<^ML>\<open>Ast.Appl\<close>~\<open>[\<close>\<^ML>\<open>Ast.Constant\<close>~\<open>c, x\<^sub>1, \<dots>, x\<^sub>n]\<close>. For term translations, the arguments are
-  terms and a combination has the form \<^ML>\<open>Const\<close>~\<open>(c, \<tau>)\<close> or \<^ML>\<open>Const\<close>~\<open>(c, \<tau>) $ x\<^sub>1 $ \<dots> $ x\<^sub>n\<close>. Terms allow more sophisticated
-  transformations than ASTs do, typically involving abstractions and bound
-  variables. \<^emph>\<open>Typed\<close> print translations may even peek at the type \<open>\<tau>\<close> of the
-  constant they are invoked on, although some information might have been
-  suppressed for term output already.
+  has the form \<^ML>\<open>Ast.Constant\<close>~\<open>c\<close> or
+  \<^ML>\<open>Ast.Appl\<close>~\<open>[\<close>\<^ML>\<open>Ast.Constant\<close>~\<open>c, x\<^sub>1, \<dots>, x\<^sub>n]\<close>. For term
+  translations, the arguments are terms and a combination has the form
+  \<^ML>\<open>Const\<close>~\<open>(c, \<tau>)\<close> or \<^ML>\<open>Const\<close>~\<open>(c, \<tau>) $ x\<^sub>1 $ \<dots> $ x\<^sub>n\<close>. Terms
+  allow more sophisticated transformations than ASTs do, typically involving
+  abstractions and bound variables. \<^emph>\<open>Typed\<close> print translations may even peek
+  at the type \<open>\<tau>\<close> of the constant they are invoked on, although some
+  information might have been suppressed for term output already.
 
   Regardless of whether they act on ASTs or terms, translation functions
   called during the parsing process differ from those for printing in their
@@ -1453,13 +1460,14 @@ text \<open>
     Multiple functions associated with some syntactic name are tried in the
     order of declaration in the theory.
 
-  Only constant atoms --- constructor \<^ML>\<open>Ast.Constant\<close> for ASTs and \<^ML>\<open>Const\<close> for terms --- can invoke translation functions. This means that parse
-  translations can only be associated with parse tree heads of concrete
-  syntax, or syntactic constants introduced via other translations. For plain
-  identifiers within the term language, the status of constant versus variable
-  is not yet know during parsing. This is in contrast to print translations,
-  where constants are explicitly known from the given term in its fully
-  internal form.
+  Only constant atoms --- constructor \<^ML>\<open>Ast.Constant\<close> for ASTs and
+  \<^ML>\<open>Const\<close> for terms --- can invoke translation functions. This means
+  that parse translations can only be associated with parse tree heads of
+  concrete syntax, or syntactic constants introduced via other translations.
+  For plain identifiers within the term language, the status of constant
+  versus variable is not yet know during parsing. This is in contrast to print
+  translations, where constants are explicitly known from the given term in
+  its fully internal form.
 \<close>
 
 
@@ -1571,8 +1579,8 @@ text \<open>
   according to the grammar production.
 
   If an AST application \<open>(c x\<^sub>1 \<dots> x\<^sub>m)\<close> has more arguments than the
-  corresponding production, it is first split into \<open>((c x\<^sub>1 \<dots> x\<^sub>n) x\<^sub>n\<^sub>+\<^sub>1 \<dots>
-  x\<^sub>m)\<close> and then printed recursively as above.
+  corresponding production, it is first split into \<open>((c x\<^sub>1 \<dots> x\<^sub>n) x\<^sub>n\<^sub>+\<^sub>1 \<dots> x\<^sub>m)\<close>
+  and then printed recursively as above.
 
   Applications with too few arguments or with non-constant head or without a
   corresponding production are printed in prefix-form like \<open>f t\<^sub>1 \<dots> t\<^sub>n\<close> for
