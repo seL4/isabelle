@@ -21,46 +21,63 @@ and examples.
 
 *** Inner syntax --- the term language ***
 
-* Blocks for pretty-printing (of types, terms, props etc.) now support
-properties "open_block" (bool) and "notation" (string as cartouche).
-When "open_block" is enabled, the block has no impact on formatting, but
-it may carry markup information via "notation". The latter uses formal
-kinds (e.g. "mixfix", "infix", "binder") together with informal words to
-describe the notation. This markup affects both input and output of
-inner syntax --- it can be explored via mouse hovering in the Prover IDE
-as usual (or programmatically by Isabelle/Scala tools). Markup for
-"infix" and "binder" declarations are automatic, but general mixfix
-forms require manual annotations in the theory library. Plenty of
-existing examples may be found in the Isabelle sources by searching for
-"notation=" (without quotes and no extra space). Occasional
-INCOMPATIBILITY for 'no_syntax' or 'no_notation' declarations in user
-applications: the mixfix template needs to be adapted accordingly, but
-it is often better to use "unbundle no foobar_syntax", as explained for
-HOL libraries below.
+* Markup for free variables now works uniformly for parsing and
+printing, concerning declaration scopes and highlighting of undeclared
+variables.
 
-* Inner syntax translations now support formal dependencies via commands
+* Syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
 specification of the effect of 'translations' (or translation functions
 in ML). Most Isabelle theories have been adapted accordingly, such that
 hyperlinks work properly e.g. for "['a, 'b] \<Rightarrow> 'c" or "\<lbrakk>A; B\<rbrakk> \<Longrightarrow> C" in
 Pure, and "\<forall>x\<in>A. B x" or "\<exists>x\<in>A. B x" in HOL.
 
-* Inner syntax printing now supports type constraints for constants,
-optionally with mixfix syntax (infix, binder etc.). This is guarded by
-the configuration options "show_consts_markup" (default true) and
-"show_markup" (default true for PIDE interaction). The Prover IDE
-displays type constraints as usual via C-mouse hovering. Ast translation
-rules (command 'translations') already work with extra type constraints,
-but the result omits the type of a matched constant. ML translation
-functions (command 'print_ast_translation') based on Ast.unfold_ast etc.
-work in the same manner, but more complex translations may require
-manual changes: rare INCOMPATIBILITY.
+* Pattern matching of Ast constant "c" works for ("_constrain" "c" T) if
+the type T encodes a position (from parsing) or if constraints are
+considered optional (for printing): the type is dropped in both cases.
+Likewise, the printing of Asts wrt. mixfix syntax has been adapted to
+accept "c" or ("_constrain" "c" T).
 
-* Printing term abbreviations now uses a different strategy: alternate
-top-down, bottom-up, top-down etc. until a normal form is reached. This
-is more efficient than the former top-down strategy. It also conforms to
-AST rewriting (command 'translations'). Rare INCOMPATIBILITY, slightly
-different results could be printed (often slightly "better" ones).
+* Parsing now supports type constrains for logical constants that carry
+mixfix syntax (as before for constants without notation). Rare
+INCOMPATIBILITY for ML translation functions: need to cope with Asts
+like ("_constrain" "c" T) or pre-terms Const ("_type_constraint_", _) $
+Const ("c", _). Translation rules (command 'translations') usually work
+without changes, because pattern matching has become more liberal wrt.
+type constraints.
+
+* Printing now supports type constraints for logical constants, with or
+without mixfix syntax. This is guarded by the configuration options
+"show_consts_markup" (default true) and "show_markup" (default true for
+PIDE interaction). Ast translation rules (command 'translations')
+already work with extra type constraints, but the result omits the type
+of a matched constant. ML translation functions (command
+'print_ast_translation') based on Ast.unfold_ast etc. work in the same
+manner, but more complex translations may require manual changes: rare
+INCOMPATIBILITY.
+
+* Printing term abbreviations now uses a different rewrite strategy:
+alternate top-down, bottom-up, top-down etc. until a normal form is
+reached. This is more efficient than the former top-down strategy. It
+also conforms to AST rewriting (command 'translations'). Rare
+INCOMPATIBILITY, slightly different results could be printed (often
+slightly "better" ones).
+
+* Blocks for pretty-printing now support properties "open_block" (bool)
+and "notation" (string as cartouche). When "open_block" is enabled, the
+block has no impact on formatting, but it may carry markup information
+via "notation". The latter uses formal kinds (e.g. "mixfix", "infix",
+"binder") together with informal words to describe the notation. This
+markup affects both input and output of inner syntax --- it can be
+explored via mouse hovering in the Prover IDE, or programmatically by
+Isabelle/Scala tools. Markup for "infix" and "binder" declarations are
+automatic, but general mixfix forms require manual annotations in the
+theory library. Plenty of existing examples may be found in the Isabelle
+sources by searching for "notation=" (without quotes and no extra
+space). Occasional INCOMPATIBILITY for 'no_syntax' or 'no_notation'
+declarations in user applications: the mixfix template needs to be
+adapted accordingly, but it is often better to use "unbundle no
+foobar_syntax", as explained for HOL libraries below.
 
 * Command "unbundle b" and its variants like "context includes b" allow
 an optional name prefix with the reserved word "no": "unbundle no b"
