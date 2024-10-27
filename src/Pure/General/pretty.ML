@@ -315,8 +315,8 @@ fun output_tree (ops: output_ops) make_length =
             val body' = map out body;
           in
             Block
-             {markup = #markup ops (ML_Pretty.context_markup context),
-              open_block = ML_Pretty.context_open_block context,
+             {markup = #markup ops (ML_Pretty.markup_get context),
+              open_block = ML_Pretty.open_block_detect context,
               consistent = consistent,
               indent = indent,
               body = body',

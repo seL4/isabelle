@@ -7,9 +7,9 @@ Minimal support for raw ML pretty printing, notably for toplevel pp.
 signature ML_PRETTY =
 sig
   datatype context = datatype PolyML.context
-  val context_markup: PolyML.context list -> string * string
+  val markup_get: PolyML.context list -> string * string
   val markup_context: string * string -> PolyML.context list
-  val context_open_block: PolyML.context list -> bool
+  val open_block_detect: PolyML.context list -> bool
   val open_block_context: bool -> PolyML.context list
   datatype pretty = datatype PolyML.pretty
   val block: pretty list -> pretty
@@ -37,7 +37,7 @@ struct
 
 datatype context = datatype PolyML.context;
 
-fun context_property context name =
+fun get_property context name =
   (case List.find (fn ContextProperty (a, _) => name = a | _ => false) context of
     SOME (ContextProperty (_, b)) => b
   | _ => "");
@@ -48,10 +48,10 @@ fun context_property context name =
 val markup_bg = "markup_bg";
 val markup_en = "markup_en";
 
-fun context_markup context =
+fun markup_get context =
   let
-    val bg = context_property context markup_bg;
-    val en = context_property context markup_en;
+    val bg = get_property context markup_bg;
+    val en = get_property context markup_en;
   in (bg, en) end;
 
 fun markup_context (bg, en) =
@@ -63,7 +63,7 @@ fun markup_context (bg, en) =
 
 val open_block = ContextProperty ("open_block", "true");
 
-val context_open_block = List.exists (fn c => c = open_block);
+val open_block_detect = List.exists (fn c => c = open_block);
 
 fun open_block_context false = []
   | open_block_context true = [open_block];
