@@ -56,19 +56,19 @@ of a matched constant. ML translation functions (command
 manner, but more complex translations may require manual changes: rare
 INCOMPATIBILITY.
 
-* Printing term abbreviations now uses a different rewrite strategy:
-alternate top-down, bottom-up, top-down etc. until a normal form is
-reached. This is more efficient than the former top-down strategy. It
-also conforms to AST rewriting (command 'translations'). Rare
-INCOMPATIBILITY, slightly different results could be printed (often
-slightly "better" ones).
+* Printing term abbreviations now uses more efficient matching and
+rewrite strategy: alternate top-down, bottom-up, top-down etc. until a
+normal form is reached. This usually works better than the former
+top-down strategy, it also conforms to AST rewriting (command
+'translations'). Rare INCOMPATIBILITY, slightly different results could
+be printed.
 
-* Blocks for pretty-printing now support properties "open_block" (bool)
-and "notation" (string as cartouche). When "open_block" is enabled, the
-block has no impact on formatting, but it may carry markup information
-via "notation". The latter uses formal kinds (e.g. "mixfix", "infix",
-"binder") together with informal words to describe the notation. This
-markup affects both input and output of inner syntax --- it can be
+* Blocks in mixfix annotations now support properties "open_block"
+(bool) and "notation" (string as cartouche). When "open_block" is
+enabled, the block has no impact on formatting, but it may carry markup
+information via "notation". The latter uses formal kinds (e.g. "mixfix",
+"infix", "binder") together with informal words to describe the
+notation. This markup affects both parsing and printing --- it can be
 explored via mouse hovering in the Prover IDE, or programmatically by
 Isabelle/Scala tools. Markup for "infix" and "binder" declarations are
 automatic, but general mixfix forms require manual annotations in the
