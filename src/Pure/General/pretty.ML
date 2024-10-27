@@ -309,10 +309,10 @@ in
 
 fun output_tree (ops: output_ops) make_length =
   let
-    fun out (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
+    fun tree (ML_Pretty.PrettyBlock (ind, consistent, context, body)) =
           let
             val indent = long_nat ind;
-            val body' = map out body;
+            val body' = map tree body;
           in
             Block
              {markup = #markup ops (ML_Pretty.markup_get context),
@@ -322,11 +322,11 @@ fun output_tree (ops: output_ops) make_length =
               body = body',
               length = if make_length then block_length indent body' else ~1}
           end
-      | out (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
-      | out ML_Pretty.PrettyLineBreak = fbreak
-      | out (ML_Pretty.PrettyString s) = Str (#output ops s ||> force_nat)
-      | out (ML_Pretty.PrettyStringWithWidth (s, n)) = Str (s, long_nat n);
-  in out o to_ML end;
+      | tree (ML_Pretty.PrettyBreak (wd, ind)) = Break (false, long_nat wd, long_nat ind)
+      | tree ML_Pretty.PrettyLineBreak = fbreak
+      | tree (ML_Pretty.PrettyString s) = Str (#output ops s ||> force_nat)
+      | tree (ML_Pretty.PrettyStringWithWidth (s, n)) = Str (s, long_nat n);
+  in tree o to_ML end;
 
 end;
 
