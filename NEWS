@@ -32,15 +32,15 @@ in ML). Most Isabelle theories have been adapted accordingly, such that
 hyperlinks work properly e.g. for "['a, 'b] \<Rightarrow> 'c" or "\<lbrakk>A; B\<rbrakk> \<Longrightarrow> C" in
 Pure, and "\<forall>x\<in>A. B x" or "\<exists>x\<in>A. B x" in HOL.
 
-* Pattern matching of Ast constant "c" works for ("_constrain" "c" T) if
+* Pattern matching of AST constant "c" works for ("_constrain" "c" T) if
 the type T encodes a position (from parsing) or if constraints are
 considered optional (for printing): the type is dropped in both cases.
-Likewise, the printing of Asts wrt. mixfix syntax has been adapted to
+Likewise, the printing of ASTs wrt. mixfix syntax has been adapted to
 accept "c" or ("_constrain" "c" T).
 
 * Parsing now supports type constrains for logical constants that carry
 mixfix syntax (as before for constants without notation). Rare
-INCOMPATIBILITY for ML translation functions: need to cope with Asts
+INCOMPATIBILITY for ML translation functions: need to cope with ASTs
 like ("_constrain" "c" T) or pre-terms Const ("_type_constraint_", _) $
 Const ("c", _). Translation rules (command 'translations') usually work
 without changes, because pattern matching has become more liberal wrt.
@@ -49,7 +49,7 @@ type constraints.
 * Printing now supports type constraints for logical constants, with or
 without mixfix syntax. This is guarded by the configuration options
 "show_consts_markup" (default true) and "show_markup" (default true for
-PIDE interaction). Ast translation rules (command 'translations')
+PIDE interaction). AST translation rules (command 'translations')
 already work with extra type constraints, but the result omits the type
 of a matched constant. ML translation functions (command
 'print_ast_translation') based on Ast.unfold_ast etc. work in the same
