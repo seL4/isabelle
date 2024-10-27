@@ -334,8 +334,7 @@ text \<open>
   \<^descr> \<open>d\<close> is a delimiter, namely a non-empty sequence delimiter items of the
   following form:
     \<^enum> a control symbol followed by a cartouche
-    \<^enum> a single symbol, excluding the following special characters:
-      \<^medskip>
+    \<^enum> a single symbol, excluding the following special characters: \\[\medskipamount]
       \begin{tabular}{ll}
         \<^verbatim>\<open>'\<close> & single quote \\
         \<^verbatim>\<open>_\<close> & underscore \\
@@ -345,7 +344,6 @@ text \<open>
         \<^verbatim>\<open>/\<close> & slash \\
         \<open>\<open> \<close>\<close> & cartouche delimiters \\
       \end{tabular}
-      \<^medskip>
 
   \<^descr> \<^verbatim>\<open>'\<close> escapes the special meaning of these meta-characters, producing a
   literal version of the following character, unless that is a blank.
@@ -391,7 +389,7 @@ text \<open>
     atom: @{syntax short_ident} | @{syntax int} | @{syntax float} | @{syntax cartouche}
   \<close>
 
-  Each @{syntax entry} is a name-value pair, but the latter is optional. If
+  Each @{syntax entry} is a name--value pair, but the latter is optional. If
   the value is omitted, the default depends on its type (Boolean: \<^verbatim>\<open>true\<close>,
   number: \<^verbatim>\<open>1\<close>, otherwise the empty string). The following standard block
   properties are supported:
@@ -467,13 +465,13 @@ text \<open>
   \begin{tabular}{lll}
 
   \<^verbatim>\<open>(\<close>@{keyword_def "infix"}~\<^verbatim>\<open>"\<close>\<open>sy\<close>\<^verbatim>\<open>"\<close> \<open>p\<close>\<^verbatim>\<open>)\<close>
-  & \<open>\<mapsto>\<close> &
+  & \<open>\<leadsto>\<close> &
   \<^verbatim>\<open>("(_\<close>~\<open>sy\<close>\<^verbatim>\<open>/ _)" [\<close>\<open>p + 1\<close>\<^verbatim>\<open>,\<close>~\<open>p + 1\<close>\<^verbatim>\<open>]\<close>~\<open>p\<close>\<^verbatim>\<open>)\<close> \\
   \<^verbatim>\<open>(\<close>@{keyword_def "infixl"}~\<^verbatim>\<open>"\<close>\<open>sy\<close>\<^verbatim>\<open>"\<close> \<open>p\<close>\<^verbatim>\<open>)\<close>
-  & \<open>\<mapsto>\<close> &
+  & \<open>\<leadsto>\<close> &
   \<^verbatim>\<open>("(_\<close>~\<open>sy\<close>\<^verbatim>\<open>/ _)" [\<close>\<open>p\<close>\<^verbatim>\<open>,\<close>~\<open>p + 1\<close>\<^verbatim>\<open>]\<close>~\<open>p\<close>\<^verbatim>\<open>)\<close> \\
   \<^verbatim>\<open>(\<close>@{keyword_def "infixr"}~\<^verbatim>\<open>"\<close>\<open>sy\<close>\<^verbatim>\<open>"\<close>~\<open>p\<close>\<^verbatim>\<open>)\<close>
-  & \<open>\<mapsto>\<close> &
+  & \<open>\<leadsto>\<close> &
   \<^verbatim>\<open>("(_\<close>~\<open>sy\<close>\<^verbatim>\<open>/ _)" [\<close>\<open>p + 1\<close>\<^verbatim>\<open>,\<close>~\<open>p\<close>\<^verbatim>\<open>]\<close>~\<open>p\<close>\<^verbatim>\<open>)\<close> \\
 
   \end{tabular}
@@ -1300,6 +1298,12 @@ text \<open>
     them actual constants even before name space resolution (see also
     \secref{sec:ast}).
 
+    \<^item> Objects of the form \<^verbatim>\<open>Ast.Appl [Constant "_constrain",\<close>~\<open>u\<close>\<^verbatim>\<open>,\<close>~\<open>T\<close>\<^verbatim>\<open>]\<close>,
+    for \<open>u\<close> as \<^ML>\<open>Ast.Variable\<close>~\<open>x\<close> or \<^ML>\<open>Ast.Constant\<close>~\<open>x\<close>, are
+    matched by \<^ML>\<open>Ast.Constant\<close>~\<open>x\<close> if the AST \<open>T\<close> encodes a source
+    position (from parsing) or if types are considered optional (for
+    printing).
+
     \<^item> Object \<open>u\<close> is matched by pattern \<^ML>\<open>Ast.Variable\<close>~\<open>x\<close>, binding \<open>x\<close> to
     \<open>u\<close>.
 
@@ -1504,10 +1508,10 @@ text \<open>
   \end{tabular}
   \end{center}
 
-  Note that type and sort constraints may occur in further places ---
-  translations need to be ready to cope with them. The built-in syntax
-  transformation from parse trees to ASTs insert additional constraints that
-  represent source positions.
+  Note that type and sort constraints may occur in many other places ---
+  translations need to cope with them. The built-in syntax transformation from
+  parse trees to ASTs insert additional constraints that represent source
+  positions.
 \<close>
 
 
