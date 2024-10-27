@@ -9,18 +9,17 @@ New in this Isabelle version
 
 *** General ***
 
-* Command "unbundle b" and its variants like "context includes b" allow
-an optional name prefix with the reserved word "no": "unbundle no b"
-etc. This inverts the polarity of bundled declarations like 'notation'
-vs. 'no_notation', and thus avoids redundant bundle definitions like
-"foobar_syntax" vs. "no_foobar_syntax", because "no foobar_syntax" may
-be used instead. Consequently, the syntax for multiple bundle names has
-been changed slightly, demanding an explicit 'and' keyword. Minor
-INCOMPATIBILITY.
+* The Simplifier now supports special "congprocs", using keyword
+'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
+antiquotation of the same name). See also
+~~/src/HOL/Imperative_HOL/ex/Congproc_Ex.thy for further explanations
+and examples.
 
-* Command "open_bundle b" is like "bundle b" followed by "unbundle b",
-so its declarations are applied immediately, but also named for later
-re-use: "unbundle no b" etc.
+* The attribute "cong_format" produces the internal format of Simplifier
+"cong" rules, notably for congproc implementations.
+
+
+*** Inner syntax --- the term language ***
 
 * Blocks for pretty-printing (of types, terms, props etc.) now support
 properties "open_block" (bool) and "notation" (string as cartouche).
@@ -63,14 +62,45 @@ is more efficient than the former top-down strategy. It also conforms to
 AST rewriting (command 'translations'). Rare INCOMPATIBILITY, slightly
 different results could be printed (often slightly "better" ones).
 
-* The Simplifier now supports special "congprocs", using keyword
-'congproc' or 'weak_congproc' in the 'simproc_setup' command (or ML
-antiquotation of the same name). See also
-~~/src/HOL/Imperative_HOL/ex/Congproc_Ex.thy for further explanations
-and examples.
+* Command "unbundle b" and its variants like "context includes b" allow
+an optional name prefix with the reserved word "no": "unbundle no b"
+etc. This inverts the polarity of bundled declarations like 'notation'
+vs. 'no_notation', and thus avoids redundant bundle definitions like
+"foobar_syntax" vs. "no_foobar_syntax", because "no foobar_syntax" may
+be used instead. Consequently, the syntax for multiple bundle names has
+been changed slightly, demanding an explicit 'and' keyword. Minor
+INCOMPATIBILITY.
 
-* The attribute "cong_format" produces the internal format of Simplifier
-"cong" rules, notably for congproc implementations.
+* Command "open_bundle b" is like "bundle b" followed by "unbundle b",
+so its declarations are applied immediately, but also named for later
+re-use: "unbundle no b" etc.
+
+* Various HOL declaration bundles support adhoc modification of
+notation, notably like this:
+
+  unbundle no list_syntax
+  unbundle no list_enumeration_syntax
+  unbundle no list_comprehension_syntax
+  unbundle no relcomp_syntax
+  unbundle no converse_syntax
+  unbundle no rtrancl_syntax
+  unbundle no trancl_syntax
+  unbundle no reflcl_syntax
+  unbundle no abs_syntax
+  unbundle no floor_ceiling_syntax
+  unbundle no uminus_syntax
+  unbundle no funcset_syntax
+
+This is more robust than individual 'no_syntax' / 'no_notation'
+commands, which need to copy mixfix declarations from elsewhere and thus
+break after changes in the library.
+
+* Theory "HOL-Library.Datatype_Records" provides bundle
+"datatype_record_syntax" to exchange its alternative notation versus
+regular "record_syntax". This also allows to swap record syntax later
+on, notably like this:
+
+  unbundle no datatype_record_syntax
 
 
 *** Isabelle/VSCode Prover IDE ***
@@ -104,33 +134,6 @@ Isabelle/VSCode extension settings.
     using the configuration option "metis_suggest_of" (default: false).
     This outputs a suggestion with instantiations of the facts using the
     "of" attribute (e.g. "assms(1)[of x]").
-
-* Various declaration bundles support adhoc modification of notation,
-notably like this:
-
-  unbundle no list_syntax
-  unbundle no list_enumeration_syntax
-  unbundle no list_comprehension_syntax
-  unbundle no relcomp_syntax
-  unbundle no converse_syntax
-  unbundle no rtrancl_syntax
-  unbundle no trancl_syntax
-  unbundle no reflcl_syntax
-  unbundle no abs_syntax
-  unbundle no floor_ceiling_syntax
-  unbundle no uminus_syntax
-  unbundle no funcset_syntax
-
-This is more robust than individual 'no_syntax' / 'no_notation'
-commands, which need to copy mixfix declarations from elsewhere and thus
-break after changes in the library.
-
-* Theory "HOL-Library.Datatype_Records" provides bundle
-"datatype_record_syntax" to exchange its alternative notation versus
-regular "record_syntax". This also allows to swap record syntax later
-on, notably like this:
-
-  unbundle no datatype_record_syntax
 
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
@@ -181,6 +184,8 @@ purposes.
 
 *** ML ***
 
+* Antiquotation \<^bundle>\<open>name\<close> inlines a formally checked bundle name.
+
 * The new operation Pattern.rewrite_term_yoyo alternates top-down,
 bottom-up, top-down etc. until a normal form is reached. This often
 works better than former rewrite_term_top --- that is still available,
@@ -207,8 +212,6 @@ generate Latex source on their own account, instead of using regular
 Pretty.T interfaces (that are based on Latex.output_ops internally).
 Note that basic Markup.markup cannot be used for Latex output: proper
 Pretty.T operations are required (e.g. Pretty.mark_str).
-
-* Antiquotation \<^bundle>\<open>name\<close> inlines a formally checked bundle name.
 
 
 *** System ***
