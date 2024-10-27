@@ -168,10 +168,10 @@ on, notably like this:
       image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
-* Transitional theory "Divides" moved to "HOL-Library.Divides" and
+* Transitional theory "HOL.Divides" moved to "HOL-Library.Divides" and
 supposed to be removed in a future release. Minor INCOMPATIBILITY.
-Import "HOL-Library.Divides" and keep an eye on theorems prefixed with
-"Divides." to ease transition.
+Import "HOL-Library.Divides" and keep an eye qualified names with prefix
+"Divides" to ease transition.
 
 * The real-valued versions of ln, log, powr have been totalised by
 "ln(0) = x" and "ln(-x) = ln(x)". Many related theorems are now
