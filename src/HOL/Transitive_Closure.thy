@@ -690,6 +690,9 @@ lemma trancl_unfold_right: "r\<^sup>+ = r\<^sup>* O r"
 lemma trancl_unfold_left: "r\<^sup>+ = r O r\<^sup>*"
   by (auto dest: tranclD intro: rtrancl_into_trancl2)
 
+lemma tranclp_unfold_left: "r^++ = r OO r^**"
+by (auto intro!: ext dest: tranclpD intro: rtranclp_into_tranclp2)
+
 lemma trancl_insert: "(insert (y, x) r)\<^sup>+ = r\<^sup>+ \<union> {(a, b). (a, y) \<in> r\<^sup>* \<and> (x, b) \<in> r\<^sup>*}"
   \<comment> \<open>primitive recursion for \<open>trancl\<close> over finite relations\<close>
 proof -
@@ -930,6 +933,8 @@ primrec relpowp :: "nat \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \
 
 end
 
+lemmas relpowp_Suc_right = relpowp.simps(2)
+
 lemma relpowp_relpow_eq [pred_set_conv]:
   "(\<lambda>x y. (x, y) \<in> R) ^^ n = (\<lambda>x y. (x, y) \<in> R ^^ n)" for R :: "'a rel"
   by (induct n) (simp_all add: relcompp_relcomp_eq)
@@ -963,6 +968,10 @@ lemma relpowp_1 [simp]: "P ^^ 1 = P"
   for P :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   by (fact relpow_1 [to_pred])
 
+lemma relpowp_Suc_0 [simp]: "P ^^ (Suc 0) = P"
+  for P :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  by (auto)
+
 lemma relpow_0_I: "(x, x) \<in> R ^^ 0"
   by simp
 
@@ -972,13 +981,13 @@ lemma relpowp_0_I: "(P ^^ 0) x x"
 lemma relpow_Suc_I: "(x, y) \<in>  R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by auto
 
-lemma relpowp_Suc_I: "(P ^^ n) x y \<Longrightarrow> P y z \<Longrightarrow> (P ^^ Suc n) x z"
+lemma relpowp_Suc_I[trans]: "(P ^^ n) x y \<Longrightarrow> P y z \<Longrightarrow> (P ^^ Suc n) x z"
   by (fact relpow_Suc_I [to_pred])
 
 lemma relpow_Suc_I2: "(x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
   by (induct n arbitrary: z) (simp, fastforce)
 
-lemma relpowp_Suc_I2: "P x y \<Longrightarrow> (P ^^ n) y z \<Longrightarrow> (P ^^ Suc n) x z"
+lemma relpowp_Suc_I2[trans]: "P x y \<Longrightarrow> (P ^^ n) y z \<Longrightarrow> (P ^^ Suc n) x z"
   by (fact relpow_Suc_I2 [to_pred])
 
 lemma relpow_0_E: "(x, y) \<in> R ^^ 0 \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
@@ -1064,6 +1073,11 @@ next
   qed
 qed
 
+lemma relpowp_mono:
+  fixes x y :: 'a
+  shows "(\<And>x y. R x y \<Longrightarrow> S x y) \<Longrightarrow> (R ^^ n) x y \<Longrightarrow> (S ^^ n) x y"
+by (induction n arbitrary: y) auto
+
 lemma relpow_trans[trans]: "(x, y) \<in> R ^^ i \<Longrightarrow> (y, z) \<in> R ^^ j \<Longrightarrow> (x, z) \<in> R ^^ (i + j)"
   using relpowp_trans[to_set] .
 
@@ -1136,6 +1150,9 @@ lemma relpow_commute: "R O R ^^ n = R ^^ n O R"
 
 lemma relpowp_commute: "P OO P ^^ n = P ^^ n OO P"
   by (fact relpow_commute [to_pred])
+
+lemma relpowp_Suc_left: "R ^^ Suc n = R OO (R ^^ n)"
+by (simp add: relpowp_commute)
 
 lemma relpow_empty: "0 < n \<Longrightarrow> ({} :: ('a \<times> 'a) set) ^^ n = {}"
   by (cases n) auto

@@ -1230,6 +1230,17 @@ next
   then show ?case by (cases ys) auto
 qed
 
+lemma rev_eq_append_conv: "rev xs = ys @ zs \<longleftrightarrow> xs = rev zs @ rev ys"
+by (metis rev_append rev_rev_ident)
+
+lemma append_eq_rev_conv: "xs @ ys = rev zs \<longleftrightarrow> rev ys @ rev xs = zs"
+using rev_eq_append_conv[of zs xs ys] by auto
+
+lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
+by (simp add: rev_swap)
+
+lemmas Cons_eq_rev_iff = rev_eq_Cons_iff[THEN eq_iff_swap]
+
 lemma inj_on_rev[iff]: "inj_on rev A"
 by(simp add:inj_on_def)
 
@@ -1261,9 +1272,6 @@ using \<open>xs \<noteq> []\<close> proof (induct xs rule: rev_induct)
     case Cons with snoc show ?thesis by (fastforce intro!: snoc')
   qed
 qed simp
-
-lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
-by(rule rev_cases[of xs]) auto
 
 lemma length_Suc_conv_rev: "(length xs = Suc n) = (\<exists>y ys. xs = ys @ [y] \<and> length ys = n)"
 by (induct xs rule: rev_induct) auto
