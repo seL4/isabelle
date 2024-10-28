@@ -309,6 +309,9 @@ public option editor_continuous_checking : bool = true
 public option editor_output_state : bool = false
   -- "implicit output of proof state"
 
+public option editor_auto_hovering : bool = true
+  -- "automatic mouse hovering without keyboard modifier"
+
 public option editor_document_session : string = ""
   -- "session for interactive document preparation"
 
