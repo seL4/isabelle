@@ -21,13 +21,9 @@ object Pretty {
   val bullet: XML.Body = XML.elem(Markup.BULLET, space) :: space
 
   def block(body: XML.Body,
-    open_block: Boolean = false,
     consistent: Boolean = false,
     indent: Int = 2
-  ): XML.Tree = {
-    val markup = Markup.Block(open_block = open_block, consistent = consistent, indent = indent)
-    XML.Elem(markup, body)
-  }
+  ): XML.Tree = XML.Elem(Markup.Block(consistent = consistent, indent = indent), body)
 
   def brk(width: Int, indent: Int = 0): XML.Tree =
     XML.Elem(Markup.Break(width = width, indent = indent), spaces(width))
@@ -169,10 +165,10 @@ object Pretty {
           List(make_block(make_tree(body2), markup = markup, markup_body = Some(body1)))
         case XML.Elem(markup, body) =>
           markup match {
-            case Markup.Block(open_block, consistent, indent) =>
+            case Markup.Block(consistent, indent) =>
               List(
                 make_block(make_tree(body),
-                  open_block = open_block, consistent = consistent, indent = indent))
+                  consistent = consistent, indent = indent, open_block = false))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
