@@ -1239,7 +1239,7 @@ using rev_eq_append_conv[THEN eq_iff_swap] by metis
 lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by (simp add: rev_swap)
 
-lemmas Cons_eq_rev_iff[iff] = rev_eq_Cons_iff[THEN eq_iff_swap]
+lemmas Cons_eq_rev_iff = rev_eq_Cons_iff[THEN eq_iff_swap]
 
 lemma inj_on_rev[iff]: "inj_on rev A"
 by(simp add:inj_on_def)
