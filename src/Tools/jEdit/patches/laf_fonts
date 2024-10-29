@@ -1,5 +1,6 @@
---- 5.6.0/jEdit-orig/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2020-09-03 05:31:04.000000000 +0200
-+++ 5.6.0/jEdit-patched/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2021-02-01 18:00:07.541681144 +0100
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2024-10-29 11:50:54.062016616 +0100
 @@ -414,7 +414,9 @@
  
  		// adjust swing properties for button, menu, and label, and list and
@@ -11,3 +12,4 @@
  
  		// This is handled a little differently from other jEdit settings
  		// as this flag needs to be known very early in the
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java

@@ -501,7 +501,7 @@ https://sourceforge.net/projects/jedit-plugins/files
 
   /** Isabelle tool wrappers **/
 
-  val default_version = "5.6.0"
+  val default_version = "5.7.0"
   def default_java_home: Path = Path.explode("$JAVA_HOME").expand
 
   val isabelle_tool =

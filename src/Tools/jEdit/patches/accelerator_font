@@ -1,7 +1,7 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2020-09-03 05:31:04.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2021-05-10 11:02:05.784257753 +0200
-@@ -1130,9 +1130,7 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-10-29 11:50:54.062016616 +0100
+@@ -1094,9 +1094,7 @@
  				return new Font("Monospaced", Font.PLAIN, 12);
  			}
  			else {
