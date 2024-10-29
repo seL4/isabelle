@@ -1233,13 +1233,13 @@ qed
 lemma rev_eq_append_conv: "rev xs = ys @ zs \<longleftrightarrow> xs = rev zs @ rev ys"
 by (metis rev_append rev_rev_ident)
 
-lemma append_eq_rev_conv: "xs @ ys = rev zs \<longleftrightarrow> rev ys @ rev xs = zs"
-using rev_eq_append_conv[of zs xs ys] by auto
+lemma append_eq_rev_conv: "ys @ zs = rev xs \<longleftrightarrow> rev zs @ rev ys = xs"
+using rev_eq_append_conv[THEN eq_iff_swap] by metis
 
 lemma rev_eq_Cons_iff[iff]: "(rev xs = y#ys) = (xs = rev ys @ [y])"
 by (simp add: rev_swap)
 
-lemmas Cons_eq_rev_iff = rev_eq_Cons_iff[THEN eq_iff_swap]
+lemmas Cons_eq_rev_iff[iff] = rev_eq_Cons_iff[THEN eq_iff_swap]
 
 lemma inj_on_rev[iff]: "inj_on rev A"
 by(simp add:inj_on_def)
