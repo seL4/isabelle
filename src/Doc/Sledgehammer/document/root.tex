@@ -630,6 +630,9 @@ For convenience, the following aliases are provided:
 \item[\labelitemi] \textbf{\textit{no\_types}:} Alias for \textit{erased}.
 \end{enum}
 
+The \textit{metis} method also supports the Isabelle option
+[[\textit{metis\_suggest\_of}]], which tells \textit{metis} to suggest
+instantiations of facts using \textbf{of} from a successful proof.
 
 \section{Option Reference}
 \label{option-reference}
@@ -1218,10 +1221,6 @@ reconstruction, which results in instantiations of facts using \textbf{of}
 \textit{B}"]). This can make the proof methods faster and more intelligible. If
 the option is set to \textit{smart} (the default), variable instantiations are
 inferred only if proof reconstruction failed or timed out.
-
-When using \textit{metis} directly, enable the configuration
-option [[\textit{metis\_suggest\_of}]] to directly get a suggestion with
-instantiations of facts using \textbf{of} from a successful proof.
 \end{enum}
 
 
