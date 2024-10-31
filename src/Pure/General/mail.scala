@@ -72,7 +72,8 @@ object Mail {
     def check(): Unit = {
       val transport = mail_session.getTransport("smtp")
       try {
-        transport.connect(smtp_host, smtp_port, user, password)
+        transport.connect(smtp_host, smtp_port,
+          if (user.nonEmpty) user else null, if (password.nonEmpty) password else null)
         transport.close()
       }
       catch {
