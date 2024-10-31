@@ -222,7 +222,6 @@ type 'a converter = {
 }
 
 (* Walks over term and calls given converter *)
-(* get rid and use Term.strip_abs.eta especially for lambdas *)
 fun list_abs ([], t) = t
   | list_abs (a::abs,t) = list_abs (abs,t) |> absfree a
 fun walk ctxt (origin: term list) (conv as {ifc, casec, funcc, letc, ...} : 'a converter) (t as _ $ _) =
@@ -263,19 +262,17 @@ fun freeTerms (Var(ixn,T)) = Free (fst ixn, T)
 fun freeTypes (TVar ((t, _), T)) = TFree (t, T)
   | freeTypes t = t
 
-fun noFun (Type ("fun", _)) = error "Functions in datatypes are not allowed in case constructions"
-  | noFun T = T
-fun casecBuildBounds n t = if n > 0 then casecBuildBounds (n-1) (t $ (Bound (n-1))) else t
-fun casecAbs wctxt n (Type ("fun",[T,Tr])) (Abs (v,Ta,t)) = (map_atyps noFun T; Abs (v,Ta,casecAbs wctxt n Tr t))
-  | casecAbs wctxt n (Type ("fun",[T,Tr])) t =
-    (map_atyps noFun T; Abs ("uu",T,casecAbs wctxt (n + 1) Tr t))
-  | casecAbs wctxt n _ t = (#f wctxt) (casecBuildBounds n (Term.incr_bv n 0 t))
-fun fixCasecCases _ _ [t] = [t]
-  | fixCasecCases wctxt (Type (_,[T,Tr])) (t::ts) = casecAbs wctxt 0 T t :: fixCasecCases wctxt Tr ts
-  | fixCasecCases _ _ _ = error "Internal error: invalid case types/terms"
-fun fixCasec wctxt (t as Const (_,T)) args =
-      (check_args "cases" (t,args); list_comb (t,fixCasecCases wctxt T args))
-  | fixCasec _ _ _ = error "Internal error: invalid case term"
+fun fixCasecCases _ [t] = [t]
+  | fixCasecCases wctxt (t::ts) =
+    let
+      val num = fastype_of t |> strip_type |> fst |> length
+      val c' = Term.strip_abs_eta num t |> list_abs
+    in
+      c' :: fixCasecCases wctxt ts
+    end
+  | fixCasecCases _ _ = error "Internal error: invalid case types/terms"
+fun fixCasec wctxt t args =
+      (check_args "cases" (t,args); list_comb (t,fixCasecCases wctxt args))
 
 fun shortFunc fixedNum (Const (nm,T)) = 
     Const (nm,T |> strip_type |>> drop fixedNum |> (op --->))
@@ -285,7 +282,6 @@ fun shortApp fixedNum (c, args) =
 fun shortOriginFunc (term: term list) fixedNum (f as (c as Const (_,_), _))  =
   if contains' const_comp term c then shortApp fixedNum f else f
   | shortOriginFunc _ _ t = t
-val _ = strip_abs
 fun map_abs f (t as Abs _) = t |> strip_abs ||> f |> list_abs
   | map_abs _ t = t
 fun fixTerms ctxt (term: term list) (fixedNum: int) (t as pT $ (eq $ l $ r)) =
@@ -414,11 +410,12 @@ fun casecLastTyp (Type (n, [T1,T2])) = Type (n, [T1, change_typ T2])
 fun casecTyp (Type (n, [T1, T2])) =
       Type (n, [change_typ T1, (if casecIsCase T2 then casecTyp else casecLastTyp) T2])
   | casecTyp _ = error "Internal error: Invalid case type"
-fun casecAbs f (Abs (v,Ta,t)) = (case casecAbs f t of (nconst,t) => (nconst,Abs (v,Ta,t)))
+fun casecAbs f (Abs (v,Ta,t)) = (case casecAbs f (subst_bound (Free (v,Ta), t))
+                                  of (nconst,t) => (nconst,absfree (v,Ta) t))
   | casecAbs f t = (case f t of NONE => (false,HOLogic.zero) | SOME t => (true,t))
 fun casecArgs _ [t] = (false, [map_aterms use_origin t])
   | casecArgs f (t::ar) =
-    (case casecAbs f t of (nconst, tt) => 
+    (case casecAbs f t of (nconst, tt) =>
       casecArgs f ar ||> (fn ar => tt :: ar) |>> (if nconst then K true else I))
   | casecArgs _ _ = error "Internal error: Invalid case term"
 fun casec wctxt (Const (t,T)) args =
@@ -456,9 +453,9 @@ fun letc wctxt expT exp ([(nm,_)]) t =
          then
           let
             val exp' = letc_lambda wctxt expT exp
-            val t' = list_abs ([(nm,type_of exp')], t')
+            val t' = list_abs ([(nm,fastype_of exp')], t')
           in
-            Const (@{const_name "HOL.Let"}, [type_of exp', type_of t'] ---> HOLogic.natT) $ exp' $ t'
+            Const (@{const_name "HOL.Let"}, [fastype_of exp', fastype_of t'] ---> HOLogic.natT) $ exp' $ t'
           end
          else t') |> SOME
       | NONE => NONE)
@@ -746,7 +743,6 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) prin
     val fixedFrees = (hd term) |> strip_comb |> snd |> take fixedNum 
     val fixedFreesNames = map (fst o dest_Free) fixedFrees
     val term = map (shortFunc fixedNum o fst o strip_comb) term
-
     fun correctTerm term =
     let
       val get_f = fst o strip_comb o get_l
