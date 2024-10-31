@@ -519,12 +519,12 @@ section "Continuous integration"
 
 option ci_mail_user : string = "" for connection
 option ci_mail_password : string = "" for connection
-option ci_mail_sender : string = "" for connection
-option ci_mail_smtp_host : string = "" for connection
-option ci_mail_smtp_port : int = 587 for connection
+option ci_mail_sender : string = "ci@proof.cit.tum.de" for connection
+option ci_mail_smtp_host : string = "mail.cit.tum.de" for connection
+option ci_mail_smtp_port : int = 465 for connection
 
 option ci_mail_from : string = "ci@proof.cit.tum.de"
   -- "mail address for build failure notifications"
 
-option ci_mail_to : string = ""
+option ci_mail_to : string = "isabelle-ci@mailman46.in.tum.de"
   -- "recipient address for build failure notifications"
