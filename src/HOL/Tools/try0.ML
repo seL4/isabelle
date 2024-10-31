@@ -28,12 +28,13 @@ fun run_tac timeout_opt tac st =
     (case timeout_opt of SOME timeout => Timeout.apply_physical timeout | NONE => I)
   in with_timeout (Seq.pull o tac) st |> Option.map fst end
 
-fun apply_recursive recurse elapsed0 timeout_opt post apply st =
+val num_goals = Thm.nprems_of o #goal o Proof.goal
+fun apply_recursive recurse elapsed0 timeout_opt apply st =
   (case Timing.timing (Option.join o try (run_tac timeout_opt apply)) st of
     ({elapsed, ...}, SOME st') =>
-      if recurse andalso (st' |> Thm.nprems_of o #goal o Proof.goal) > 0 then
+      if recurse andalso num_goals st' > 0 andalso num_goals st' < num_goals st then
         let val timeout_opt1 = (Option.map (fn timeout => timeout - elapsed) timeout_opt)
-        in apply_recursive recurse (elapsed0 + elapsed) timeout_opt1 post apply st' end
+        in apply_recursive recurse (elapsed0 + elapsed) timeout_opt1 apply st' end
       else (elapsed0 + elapsed, st')
    |_ => (elapsed0, st))
 
@@ -86,11 +87,10 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Then, [using_text, m]))
 
       val apply = text |> Proof.refine #> Seq.filter_results
-      val the_goal = #goal o Proof.goal
-      val num_before = Thm.nprems_of (the_goal st)
+      val num_before = num_goals st
       val multiple_goals = all_goals andalso num_before > 1
-      val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt the_goal apply st
-      val num_after = Thm.nprems_of (the_goal st')
+      val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
+      val num_after = num_goals st'
       val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
       val unused = implode_space (unused |> map string_of_xthm)
       val command =
