@@ -1,6 +1,6 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2024-04-25 12:56:22.208257322 +0200
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/syntax/Chunk.java	2024-10-29 11:50:54.066016546 +0100
 @@ -332,9 +332,9 @@
  	//{{{ Package private members
  
@@ -36,10 +36,10 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.6.0-patched/
  		protected boolean removeEldestEntry(Map.Entry<GlyphKey, GlyphData> eldest)
  		{
  			return size() > capacity;
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2023-11-20 15:31:55.825519645 +0100
-@@ -914,6 +914,11 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-10-29 11:50:54.066016546 +0100
+@@ -919,6 +919,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
  
@@ -51,7 +51,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-pat
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-@@ -1622,8 +1627,8 @@
+@@ -1627,8 +1632,8 @@
  		}
  
  		// Scan backwards, trying to find a bracket
@@ -62,18 +62,9 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.6.0-pat
  		int count = 1;
  		char openBracket = '\0';
  		char closeBracket = '\0';
-@@ -6336,7 +6341,7 @@
- 		{
- 			int following = charBreaker.following(offset -
- 					index0Offset);
--			if (following == BreakIterator.DONE)
-+			if (following == BreakIterator.DONE || (Runtime.version().feature() >= 20 && following == offset - index0Offset))
- 			{
- 				// This means a end of line. Then it is
- 				// safe to assume 1 code unit is a character.
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2020-09-03 05:31:03.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java	2021-05-10 18:20:57.418571547 +0200
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-08-03 19:53:20.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-10-29 11:50:54.066016546 +0100
 @@ -115,6 +115,8 @@
  		case '⦄': if (direction != null) direction[0] = false; return '⦃';
  		case '⟪': if (direction != null) direction[0] = true;  return '⟫';
@@ -83,10 +74,10 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.6.0-patched
  		default:  return '\0';
  		}
  	} //}}}
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java
---- jedit5.6.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2020-09-03 05:31:09.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2021-05-10 11:02:05.820257742 +0200
-@@ -344,8 +344,28 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2024-08-03 19:53:21.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2024-10-29 11:50:54.066016546 +0100
+@@ -357,8 +357,28 @@
  			}
  		}
  

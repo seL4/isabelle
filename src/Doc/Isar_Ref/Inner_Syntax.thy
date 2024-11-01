@@ -419,13 +419,13 @@ text \<open>
       \<^item> @{notation_kind_def mixfix}: general mixfix notation, with delimiters
       surrounding its arguments.
 
-      \<^item> @{notation_kind_def prefix}: notation with delimiters before its
-      arguments.
+      \<^item> @{notation_kind_def prefix}: notation with delimiter before its
+      argument.
 
-      \<^item> @{notation_kind_def postfix}: notation with delimiters after its
-      arguments.
+      \<^item> @{notation_kind_def postfix}: notation with delimiter after its
+      argument.
 
-      \<^item> @{notation_kind_def "infix"}: notation with delimiters between its
+      \<^item> @{notation_kind_def "infix"}: notation with delimiter between its
       arguments (automatically inserted for @{keyword "infix"} annotations,
       see \secref{sec:infixes}).
 

@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection}
 
 
 object JEdit_Lib {
@@ -178,6 +178,21 @@ object JEdit_Lib {
 
   def caret_range(text_area: TextArea): Text.Range =
     point_range(text_area.getBuffer, text_area.getCaretPosition)
+
+  def selection_ranges(text_area: TextArea): List[Text.Range] = {
+    val buffer = text_area.getBuffer
+    text_area.getSelection.toList.flatMap(
+      {
+        case rect: Selection.Rect =>
+          List.from(
+            for {
+              l <- (rect.getStartLine to rect.getEndLine).iterator
+              r = Text.Range(rect.getStart(buffer, l), rect.getEnd(buffer, l))
+              if !r.is_singularity
+            } yield r)
+        case sel: Selection => List(Text.Range(sel.getStart, sel.getEnd))
+      })
+  }
 
   def visible_range(text_area: TextArea): Option[Text.Range] = {
     val buffer = text_area.getBuffer

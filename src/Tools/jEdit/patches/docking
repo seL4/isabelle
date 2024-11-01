@@ -1,6 +1,6 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2021-05-10 11:02:05.760257760 +0200
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2024-10-29 11:50:54.062016616 +0100
 @@ -45,14 +45,15 @@
   * @version $Id: FloatingWindowContainer.java 25333 2020-05-10 09:40:02Z kpouer $
   * @since jEdit 4.0pre1

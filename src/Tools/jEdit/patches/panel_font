@@ -1,7 +1,7 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2020-09-03 05:31:02.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2021-05-10 11:23:04.107511056 +0200
-@@ -52,6 +52,7 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2024-10-29 11:50:54.062016616 +0100
+@@ -53,6 +53,7 @@
  import javax.swing.JComponent;
  import javax.swing.JPanel;
  import javax.swing.JPopupMenu;
@@ -9,7 +9,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.
  import javax.swing.JToggleButton;
  import javax.swing.UIManager;
  import javax.swing.border.Border;
-@@ -163,6 +164,7 @@
+@@ -164,6 +165,7 @@
  		{
  			button = new JToggleButton();	
  			button.setMargin(new Insets(1,1,1,1));
@@ -17,7 +17,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.
  		}
  		GenericGUIUtilities.setButtonContentMargin(button, new Insets(6,6,6,6));
  		button.setRequestFocusEnabled(false);
-@@ -690,8 +692,6 @@
+@@ -683,8 +685,6 @@
  			renderHints = new RenderingHints(
  				RenderingHints.KEY_ANTIALIASING,
  				RenderingHints.VALUE_ANTIALIAS_ON);

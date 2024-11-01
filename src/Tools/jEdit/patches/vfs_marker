@@ -1,7 +1,7 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2020-09-03 05:31:04.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2021-05-10 11:02:05.824257741 +0200
-@@ -1194,6 +1194,7 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-10-29 11:50:54.058016686 +0100
+@@ -1195,6 +1195,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
  		Buffer buffer = null;
@@ -9,7 +9,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.6.0-pa
  
  check_selected:
  		for (VFSFile file : selectedFiles)
-@@ -1243,7 +1244,10 @@
+@@ -1244,7 +1245,10 @@
  				}
  
  				if (_buffer != null)
@@ -20,7 +20,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.6.0-pa
  			}
  			// otherwise if a file is selected in OPEN_DIALOG or
  			// SAVE_DIALOG mode, just let the listener(s)
-@@ -1252,21 +1256,30 @@
+@@ -1253,21 +1257,30 @@
  
  		if(buffer != null)
  		{
@@ -53,9 +53,9 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.6.0-pa
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2020-09-03 05:31:03.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2021-05-10 11:02:05.824257741 +0200
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-08-03 19:53:14.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-10-29 11:50:54.062016616 +0100
 @@ -302,6 +302,12 @@
  		}
  	} //}}}
@@ -69,10 +69,10 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.6.0-patched/jE
  	//{{{ getPath() method
  	public String getPath()
  	{
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/jEdit.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2021-05-10 11:02:05.824257741 +0200
-@@ -4242,7 +4242,7 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java	2024-08-03 19:53:14.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2024-10-29 11:50:54.062016616 +0100
+@@ -4233,7 +4233,7 @@
  	} //}}}
  
  	//{{{ gotoMarker() method

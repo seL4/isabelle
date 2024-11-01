@@ -73,6 +73,11 @@ object JEdit_Options {
     }
   }
 
+  object auto_hovering extends Bool_Access("editor_auto_hovering") {
+    class GUI extends Bool_GUI(this, "Auto hovering") {
+      tooltip = "Automatic mouse hovering without keyboard modifier"
+    }
+  }
 
 
   /* editor pane for plugin options */

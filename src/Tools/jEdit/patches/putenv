@@ -1,6 +1,6 @@
-diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java
---- jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2020-09-03 05:31:01.000000000 +0200
-+++ jedit5.6.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2021-05-10 11:23:04.139510558 +0200
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/MiscUtilities.java	2024-10-29 11:50:54.062016616 +0100
 @@ -131,6 +131,21 @@
  	static final Pattern winPattern = Pattern.compile(winPatternString);
  
@@ -27,21 +27,21 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.6.0-patched
  		if (m.find())
  		{
  			String varName = m.group(2);
--			String expansion = System.getenv(varName);
+-			String expansion = jEdit.systemManager.getenv(varName);
 +			String expansion = getenv(varName);
  			if (expansion != null)
- 				return m.replaceFirst(expansion);
- 		}
-@@ -179,7 +194,7 @@
+ 			{
+ 				expansion = Matcher.quoteReplacement(expansion);
+@@ -182,7 +197,7 @@
  				return arg;
  		}
  		String varName = m.group(2);
--		String expansion = System.getenv(varName);
+-		String expansion = jEdit.systemManager.getenv(varName);
 +		String expansion = getenv(varName);
  		if (expansion == null) {
  			if (varName.equalsIgnoreCase("jedit_settings") && jEdit.getSettingsDirectory() != null) {
  				expansion = jEdit.getSettingsDirectory();
-@@ -189,7 +204,7 @@
+@@ -192,7 +207,7 @@
  				varName = varName.toUpperCase();
  				String uparg = arg.toUpperCase();
  				m = p.matcher(uparg);
@@ -50,7 +50,7 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.6.0-patched
  			}
  		}
  		if (expansion != null) {
-@@ -1682,13 +1697,11 @@
+@@ -1674,13 +1689,11 @@
  		//{{{ VarCompressor constructor
  		VarCompressor()
  		{
@@ -65,3 +65,63 @@ diff -ru jedit5.6.0/jEdit/org/gjt/sp/jedit/MiscUtilities.java jedit5.6.0-patched
  			{
  				String k = entry.getKey();
  				if (k.equalsIgnoreCase("pwd") || k.equalsIgnoreCase("oldpwd")) continue;
+diff -ru jedit5.7.0/jEdit/test/org/gjt/sp/jedit/MiscUtilitiesTest.java jedit5.7.0-patched/jEdit/test/org/gjt/sp/jedit/MiscUtilitiesTest.java
+--- jedit5.7.0/jEdit/test/org/gjt/sp/jedit/MiscUtilitiesTest.java	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/test/org/gjt/sp/jedit/MiscUtilitiesTest.java	2024-10-29 12:21:05.284840022 +0100
+@@ -167,56 +167,6 @@
+ 	}
+ 
+ 	@Test
+-	public void expandVariablesEnvWindowsAsWindows() throws Exception
+-	{
+-		jEdit.systemManager = Mockito.mock(SystemManager.class);
+-		var captor = ArgumentCaptor.forClass(String.class);
+-		var value = "c:\\home\\jEdit";
+-		Mockito.when(jEdit.systemManager.getenv(captor.capture())).thenReturn(value);
+-		updateOS(WINDOWS_NT);
+-		var key = "jEdit_TEST";
+-		assertEquals(value, MiscUtilities.expandVariables('%' + key + '%'));
+-		assertEquals(captor.getValue(), key);
+-	}
+-	@Test
+-	public void expandVariablesEnvWindowsAsUnix() throws Exception
+-	{
+-		jEdit.systemManager = Mockito.mock(SystemManager.class);
+-		var captor = ArgumentCaptor.forClass(String.class);
+-		var value = "c:\\home\\jEdit";
+-		Mockito.when(jEdit.systemManager.getenv(captor.capture())).thenReturn(value);
+-		updateOS(UNIX);
+-		var key = "jEdit_TEST";
+-		assertEquals(value, MiscUtilities.expandVariables('%' + key + '%'));
+-		assertEquals(captor.getValue(), key);
+-	}
+-
+-	@Test
+-	public void expandVariablesEnvUnix() throws Exception
+-	{
+-		jEdit.systemManager = Mockito.mock(SystemManager.class);
+-		var captor = ArgumentCaptor.forClass(String.class);
+-		var value = "c:\\home\\jEdit";
+-		Mockito.when(jEdit.systemManager.getenv(captor.capture())).thenReturn(value);
+-		updateOS(UNIX);
+-		var key = "jEdit_TEST";
+-		assertEquals(value, MiscUtilities.expandVariables('$' + key));
+-		assertEquals(captor.getValue(), key);
+-	}
+-
+-	@Test
+-	public void expandVariablesEnvUnix2() throws Exception
+-	{
+-		jEdit.systemManager = Mockito.mock(SystemManager.class);
+-		var captor = ArgumentCaptor.forClass(String.class);
+-		var value = "c:\\home\\jEdit";
+-		Mockito.when(jEdit.systemManager.getenv(captor.capture())).thenReturn(value);
+-		updateOS(UNIX);
+-		var key = "jEdit_TEST";
+-		assertEquals(value, MiscUtilities.expandVariables("${" + key + '}'));
+-	}
+-
+-	@Test
+ 	public void expandVariablesEnvUnixNoMatch() throws Exception
+ 	{
+ 		updateOS(UNIX);

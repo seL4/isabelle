@@ -316,6 +316,8 @@ isabelle.reset-node-required.label=Reset node required
 isabelle.reset-words.label=Reset non-permanent words
 isabelle.select-entity.label=Select all occurences of formal entity at caret
 isabelle.select-entity.shortcut=CS+ENTER
+isabelle.select-structure.label=Select structure around selection or caret
+isabelle.select-structure.shortcut=C+7
 isabelle.set-continuous-checking.label=Set continuous checking
 isabelle.set-node-required.label=Set node required
 isabelle.toggle-breakpoint.label=Toggle Breakpoint
@@ -501,7 +503,7 @@ https://sourceforge.net/projects/jedit-plugins/files
 
   /** Isabelle tool wrappers **/
 
-  val default_version = "5.6.0"
+  val default_version = "5.7.0"
   def default_java_home: Path = Path.explode("$JAVA_HOME").expand
 
   val isabelle_tool =

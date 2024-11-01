@@ -63,6 +63,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val output_state_button = new JEdit_Options.output_state.GUI
 
+  private val auto_hovering_button = new JEdit_Options.auto_hovering.GUI
+
   private val auto_update_button = new GUI.Check("Auto update", init = do_update) {
     tooltip = "Indicate automatic update following cursor movement"
     override def clicked(state: Boolean): Unit = {
@@ -80,7 +82,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val controls =
     Wrap_Panel(
-      List(output_state_button, auto_update_button,
+      List(output_state_button, auto_hovering_button, auto_update_button,
         update_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
@@ -94,6 +96,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         GUI_Thread.later {
           handle_resize()
           output_state_button.load()
+          auto_hovering_button.load()
           handle_update(do_update, None)
         }
 

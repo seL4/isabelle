@@ -147,8 +147,8 @@ class Rich_Text_Area(
 
   private class Active_Area[A](
     render: JEdit_Rendering => Text.Range => Option[Text.Info[A]],
-    val require_control: Boolean = false,
-    val ignore_control: Boolean = false,
+    require_control: => Boolean = false,
+    ignore_control: => Boolean = false,
     cursor: Int = -1
   ) {
     private var the_text_info: Option[(String, Text.Info[A])] = None
@@ -192,7 +192,8 @@ class Rich_Text_Area(
   // owned by GUI thread
 
   private val highlight_area =
-    new Active_Area[Color](_.highlight, ignore_control = true)
+    new Active_Area[Color](_.highlight, require_control = true,
+      ignore_control = JEdit_Options.auto_hovering())
 
   private val hyperlink_area =
     new Active_Area[PIDE.editor.Hyperlink](
