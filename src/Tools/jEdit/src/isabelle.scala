@@ -388,9 +388,8 @@ object Isabelle {
     for (rendering <- Document_View.get_rendering(text_area)) {
       val sel_ranges = JEdit_Lib.selection_ranges(text_area)
       val caret_range = JEdit_Lib.caret_range(text_area)
-      val ranges = if (sel_ranges.isEmpty) List(caret_range) else sel_ranges
       val infos =
-        rendering.markup_structure(Rendering.structure_elements, ranges,
+        rendering.markup_structure(Rendering.structure_elements, List(caret_range),
           filter = markup => !sel_ranges.exists(r => r.contains(markup.range)))
       for (info <- infos) {
         text_area.addToSelection(new Selection.Range(info.range.start, info.range.stop))
