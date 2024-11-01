@@ -1185,6 +1185,12 @@ lemma image_paired_Times:
    "(\<lambda>(x,y). (f x, g y)) ` (A \<times> B) = (f ` A) \<times> (g ` B)"
   by auto
 
+lemma Times_insert_right: "A \<times> insert y B = (\<lambda>x. (x, y)) ` A \<union> A \<times> B"
+  by auto
+
+lemma Times_insert_left: "insert x A \<times> B = (\<lambda>y. (x, y)) ` B \<union> A \<times> B"
+  by auto
+
 lemma product_swap: "prod.swap ` (A \<times> B) = B \<times> A"
   by (auto simp add: set_eq_iff)
 

@@ -954,6 +954,9 @@ lemma repeat_mset_distrib_add_mset[simp]:
 lemma repeat_mset_empty[simp]: "repeat_mset n {#} = {#}"
   by transfer simp
 
+lemma set_mset_sum: "finite A \<Longrightarrow> set_mset (\<Sum>x\<in>A. f x) = (\<Union>x\<in>A. set_mset (f x))"
+  by (induction A rule: finite_induct) auto
+
 
 subsubsection \<open>Simprocs\<close>
 
@@ -1554,6 +1557,12 @@ lemma set_mset_subset_singletonD:
   shows   "A = replicate_mset (size A) x"
   using assms by (induction A) auto
 
+lemma count_conv_size_mset: "count A x = size (filter_mset (\<lambda>y. y = x) A)"
+  by (induction A) auto
+
+lemma size_conv_count_bool_mset: "size A = count A True + count A False"
+  by (induction A) auto
+
 
 subsubsection \<open>Strong induction and subset induction for multisets\<close>
 
@@ -1728,6 +1737,10 @@ lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow
 lemma image_mset_If:
   "image_mset (\<lambda>x. if P x then f x else g x) A =
      image_mset f (filter_mset P A) + image_mset g (filter_mset (\<lambda>x. \<not>P x) A)"
+  by (induction A) auto
+
+lemma filter_image_mset:
+  "filter_mset P (image_mset f A) = image_mset f (filter_mset (\<lambda>x. P (f x)) A)"
   by (induction A) auto
 
 lemma image_mset_Diff:
@@ -1983,7 +1996,10 @@ lemma mset_zero_iff[simp]: "(mset x = {#}) = (x = [])"
   by (induct x) auto
 
 lemma mset_zero_iff_right[simp]: "({#} = mset x) = (x = [])"
-by (induct x) auto
+  by (induct x) auto
+
+lemma mset_replicate [simp]: "mset (replicate n x) = replicate_mset n x"
+  by (induction n) auto
 
 lemma count_mset_gt_0: "x \<in> set xs \<Longrightarrow> count (mset xs) x > 0"
   by (induction xs) auto
@@ -2798,6 +2814,15 @@ lemma sum_eq_empty_iff:
   shows "sum f A = {#} \<longleftrightarrow> (\<forall>a\<in>A. f a = {#})"
   using assms by induct simp_all
 
+lemma mset_concat: "mset (concat xss) = (\<Sum>xs\<leftarrow>xss. mset xs)"
+  by (induction xss) auto
+
+lemma sum_mset_singleton_mset [simp]: "(\<Sum>x\<in>#A. {#f x#}) = image_mset f A"
+  by (induction A) auto
+
+lemma sum_list_singleton_mset [simp]: "(\<Sum>x\<leftarrow>xs. {#f x#}) = image_mset f (mset xs)"
+  by (induction xs) auto
+
 lemma Union_mset_empty_conv[simp]: "\<Sum>\<^sub># M = {#} \<longleftrightarrow> (\<forall>i\<in>#M. i = {#})"
   by (induction M) auto
 
@@ -3089,6 +3114,19 @@ lemma sort_by_quicksort:
     @ [x\<leftarrow>xs. x = xs ! (length xs div 2)]
     @ sort [x\<leftarrow>xs. x > xs ! (length xs div 2)]" (is "sort ?lhs = ?rhs")
   using sort_key_by_quicksort [of "\<lambda>x. x", symmetric] by simp
+
+lemma sort_append:
+  assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set ys \<Longrightarrow> x \<le> y"
+  shows   "sort (xs @ ys) = sort xs @ sort ys"
+  using assms by (intro properties_for_sort) (auto simp: sorted_append)
+
+lemma sort_append_replicate_left:
+  "(\<And>y. y \<in> set xs \<Longrightarrow> x \<le> y) \<Longrightarrow> sort (replicate n x @ xs) = replicate n x @ sort xs"
+  by (subst sort_append) auto
+
+lemma sort_append_replicate_right:
+  "(\<And>y. y \<in> set xs \<Longrightarrow> x \<ge> y) \<Longrightarrow> sort (xs @ replicate n x) = sort xs @ replicate n x"
+  by (subst sort_append) auto
 
 text \<open>A stable parameterized quicksort\<close>
 

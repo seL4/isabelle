@@ -1751,6 +1751,12 @@ proof (induct xs arbitrary: n)
     using less_Suc_eq_0_disj by auto
 qed simp
 
+lemma nth_append_left: "i < length xs \<Longrightarrow> (xs @ ys) ! i = xs ! i"
+  by (auto simp: nth_append)
+
+lemma nth_append_right: "i \<ge> length xs \<Longrightarrow> (xs @ ys) ! i = ys ! (i - length xs)"
+  by (auto simp: nth_append)
+      
 lemma nth_append_length [simp]: "(xs @ x # ys) ! length xs = x"
   by (induct xs) auto
 
@@ -5892,49 +5898,53 @@ qed
 
 lemma sort_conv_fold:
   "sort xs = fold insort xs []"
-by (rule sort_key_conv_fold) simp
+  by (rule sort_key_conv_fold) simp
 
 lemma length_sort[simp]: "length (sort_key f xs) = length xs"
-by (induct xs, auto)
+  by (induct xs, auto)
 
 lemma set_sort[simp]: "set(sort_key f xs) = set xs"
-by (induct xs) (simp_all add: set_insort_key)
+  by (induct xs) (simp_all add: set_insort_key)
 
 lemma distinct_insort: "distinct (insort_key f x xs) = (x \<notin> set xs \<and> distinct xs)"
-by(induct xs)(auto simp: set_insort_key)
+  by(induct xs)(auto simp: set_insort_key)
 
 lemma distinct_insort_key:
   "distinct (map f (insort_key f x xs)) = (f x \<notin> f ` set xs \<and> (distinct (map f xs)))"
-by (induct xs) (auto simp: set_insort_key)
+  by (induct xs) (auto simp: set_insort_key)
 
 lemma distinct_sort[simp]: "distinct (sort_key f xs) = distinct xs"
-by (induct xs) (simp_all add: distinct_insort)
+  by (induct xs) (simp_all add: distinct_insort)
 
 lemma sorted_insort_key: "sorted (map f (insort_key f x xs)) = sorted (map f xs)"
-by (induct xs) (auto simp: set_insort_key)
+  by (induct xs) (auto simp: set_insort_key)
 
 lemma sorted_insort: "sorted (insort x xs) = sorted xs"
-using sorted_insort_key [where f="\<lambda>x. x"] by simp
+  using sorted_insort_key [where f="\<lambda>x. x"] by simp
 
 theorem sorted_sort_key [simp]: "sorted (map f (sort_key f xs))"
-by (induct xs) (auto simp:sorted_insort_key)
+  by (induct xs) (auto simp:sorted_insort_key)
 
 theorem sorted_sort [simp]: "sorted (sort xs)"
-using sorted_sort_key [where f="\<lambda>x. x"] by simp
+  using sorted_sort_key [where f="\<lambda>x. x"] by simp
 
 lemma insort_not_Nil [simp]:
   "insort_key f a xs \<noteq> []"
-by (induction xs) simp_all
+  by (induction xs) simp_all
 
 lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
-by (cases xs) auto
+  by (cases xs) auto
 
 lemma sort_key_id_if_sorted: "sorted (map f xs) \<Longrightarrow> sort_key f xs = xs"
-by (induction xs) (auto simp add: insort_is_Cons)
+  by (induction xs) (auto simp add: insort_is_Cons)
 
 text \<open>Subsumed by @{thm sort_key_id_if_sorted} but easier to find:\<close>
 lemma sorted_sort_id: "sorted xs \<Longrightarrow> sort xs = xs"
-by (simp add: sort_key_id_if_sorted)
+  by (simp add: sort_key_id_if_sorted)
+
+lemma sort_replicate [simp]: "sort (replicate n x) = replicate n x"
+  using sorted_replicate sorted_sort_id
+  by presburger
 
 lemma insort_key_remove1:
   assumes "a \<in> set xs" and "sorted (map f xs)" and "hd (filter (\<lambda>x. f a = f x) xs) = a"
@@ -6486,6 +6496,32 @@ lemma nth_sorted_list_of_set_greaterThanAtMost:
   "n < j - i \<Longrightarrow> sorted_list_of_set {i<..j} ! n = Suc (i+n)"
   using nth_sorted_list_of_set_greaterThanLessThan [of n "Suc j" i]
   by (simp add: greaterThanAtMost_def greaterThanLessThan_eq lessThan_Suc_atMost)
+
+
+lemma sorted_wrt_induct [consumes 1, case_names Nil Cons]:
+  assumes "sorted_wrt R xs"
+  assumes "P []"
+          "\<And>x xs. (\<And>y. y \<in> set xs \<Longrightarrow> R x y) \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)"
+  shows   "P xs"
+  using assms(1) by (induction xs) (auto intro: assms)
+
+lemma sorted_wrt_trans_induct [consumes 2, case_names Nil single Cons]:
+  assumes "sorted_wrt R xs" "transp R"
+  assumes "P []" "\<And>x. P [x]"
+          "\<And>x y xs. R x y \<Longrightarrow> P (y # xs) \<Longrightarrow> P (x # y # xs)"
+  shows   "P xs"
+  using assms(1)
+  by (induction xs rule: induct_list012)
+     (auto intro: assms simp: sorted_wrt2[OF assms(2)])
+
+lemmas sorted_induct [consumes 1, case_names Nil single Cons] =
+  sorted_wrt_trans_induct[OF _ preorder_class.transp_on_le]
+
+lemma sorted_wrt_map_mono:
+  assumes "sorted_wrt R xs"
+  assumes "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> R x y \<Longrightarrow> R' (f x) (f y)"
+  shows   "sorted_wrt R' (map f xs)"
+  using assms by (induction rule: sorted_wrt_induct) auto
 
 
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
