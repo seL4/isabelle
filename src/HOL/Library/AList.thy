@@ -25,7 +25,7 @@ qualified primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times
     "update k v [] = [(k, v)]"
   | "update k v (p # ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
-lemma update_conv': "map_of (update k v al)  = (map_of al)(k\<mapsto>v)"
+lemma update_conv': "map_of (update k v al) = (map_of al)(k\<mapsto>v)"
   by (induct al) (auto simp add: fun_eq_iff)
 
 corollary update_conv: "map_of (update k v al) k' = ((map_of al)(k\<mapsto>v)) k'"
