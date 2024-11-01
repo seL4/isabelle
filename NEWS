@@ -124,7 +124,8 @@ on, notably like this:
 
 * Action isabelle.select_structure (with keyboard shortcut C+7) extends
 the editor selection by adding the enclosing formal structure, based on
-formal markup by the prover.
+formal markup by the prover. Repeated invocation of this action extends
+the selection incrementally.
 
 * Update to jEdit 5.7.0, the latest release.
 
