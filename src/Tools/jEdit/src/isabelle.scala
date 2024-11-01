@@ -360,7 +360,7 @@ object Isabelle {
   }
 
 
-  /* formal entities */
+  /* formal entities and structure */
 
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
@@ -380,6 +380,17 @@ object Isabelle {
         text_area.selectNone()
         for (r <- active_focus)
           text_area.addToSelection(new Selection.Range(r.start, r.stop))
+      }
+    }
+  }
+
+  def select_structure(text_area: JEditTextArea): Unit = {
+    for (rendering <- Document_View.get_rendering(text_area)) {
+      val sel_ranges = JEdit_Lib.selection_ranges(text_area)
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      val ranges = if (sel_ranges.isEmpty) List(caret_range) else sel_ranges
+      for (info <- rendering.markup_structure(Rendering.structure_elements, ranges)) {
+        text_area.addToSelection(new Selection.Range(info.range.start, info.range.stop))
       }
     }
   }

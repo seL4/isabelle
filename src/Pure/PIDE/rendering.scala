@@ -222,6 +222,11 @@ object Rendering {
 
   val text_color_elements = Markup.Elements(text_color.keySet)
 
+  val structure_elements =
+    Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
+      Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
+      Markup.COMMAND_SPAN)
+
   val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION, Markup.TIMING,
       Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
@@ -569,6 +574,26 @@ class Rendering(
       Text.Info(range, entries) <- results
       (i, elem) <- entries if !seen(i)
     } yield Text.Info(range, elem)
+  }
+
+
+  /* markup structure */
+
+  def markup_structure(
+    elements: Markup.Elements,
+    ranges: List[Text.Range],
+    filter: Text.Markup => Boolean = _ => true
+  ): List[Text.Markup] = {
+    def cumulate(range: Text.Range): List[Text.Info[Option[Text.Markup]]] =
+      snapshot.cumulate[Option[Text.Markup]](range, None, elements, _ =>
+        {
+          case (old, markup) =>
+            Some(if (old.isEmpty || filter(markup)) Some(markup) else old)
+        })
+
+    Library.distinct(
+      for (range <- ranges; case Text.Info(_, Some(m)) <- cumulate(range))
+        yield m)
   }
 
 

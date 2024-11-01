@@ -120,6 +120,13 @@ on, notably like this:
   unbundle no datatype_record_syntax
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* Action isabelle.select_structure (with keyboard shortcut C+7) extends
+the editor selection by adding the enclosing formal structure, based on
+formal markup by the prover.
+
+
 *** Isabelle/VSCode Prover IDE ***
 
 * General improvements: Persistent decorations for PIDE markup, correct

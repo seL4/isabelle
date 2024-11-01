@@ -82,6 +82,11 @@
 	    isabelle.jedit.Isabelle.select_entity(textArea);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.select-structure">
+	  <CODE>
+	    isabelle.jedit.Isabelle.select_structure(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.complete">
 	  <CODE>
 	    isabelle.jedit.Isabelle.complete(view, false);
