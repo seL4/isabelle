@@ -224,7 +224,7 @@ object Rendering {
 
   val structure_elements =
     Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
-      Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
+      Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name, Markup.ENTITY,
       Markup.COMMAND_SPAN)
 
   val tooltip_elements =
