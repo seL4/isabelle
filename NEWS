@@ -126,6 +126,8 @@ on, notably like this:
 the editor selection by adding the enclosing formal structure, based on
 formal markup by the prover.
 
+* Update to jEdit 5.7.0, the latest release.
+
 
 *** Isabelle/VSCode Prover IDE ***
 
