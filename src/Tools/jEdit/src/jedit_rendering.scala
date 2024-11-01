@@ -127,8 +127,8 @@ object JEdit_Rendering {
   private val breakpoint_elements = Markup.Elements(Markup.ML_BREAKPOINT)
 
   private val highlight_elements =
-    Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
-      Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL,
+    Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.COMMAND_SPAN,
+      Markup.ML_TYPING, Markup.TOKEN_RANGE, Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.URL,
       Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.FREE, Markup.SKOLEM,
       Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_BREAKPOINT,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name)

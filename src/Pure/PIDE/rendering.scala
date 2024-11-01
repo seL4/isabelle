@@ -230,7 +230,7 @@ object Rendering {
   val tooltip_elements =
     Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION, Markup.TIMING,
       Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
-      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL,
+      Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.COMMAND_SPAN,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
       Markup.Elements(tooltip_descriptions.keySet)
 
@@ -675,6 +675,9 @@ class Rendering(
           case (info, Text.Info(r0, XML.Elem(Markup.Url(name), _))) =>
             Some(info.add_info(r0, XML.Text("URL " + quote(name))))
 
+          case (info, Text.Info(r0, XML.Elem(Markup.Command_Span(span), _))) =>
+            Some(info.add_info(r0, XML.Text("command span " + quote(span.name))))
+
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
             Some(info.add_info(r0, Pretty.block(XML.Text("::") :: Pretty.brk(1) :: body), ord = 3))
@@ -691,6 +694,7 @@ class Rendering(
                 if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
                 else "breakpoint (disabled)"
               Some(info.add_info(r0, XML.Text(text)))
+
           case (info, Text.Info(r0, XML.Elem(Markup.Language(lang), _))) =>
             Some(info.add_info(r0, XML.Text("language: " + lang.description)))
 
