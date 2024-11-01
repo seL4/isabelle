@@ -103,13 +103,11 @@ lemma par_beta_cd: "s => t \<Longrightarrow> t => cd s"
 subsection \<open>Confluence (via complete developments)\<close>
 
 lemma diamond_par_beta2: "diamond par_beta"
-  apply (unfold diamond_def commute_def square_def)
-  apply (blast intro: par_beta_cd)
-  done
+  unfolding diamond_def commute_def square_def
+  by (blast intro: par_beta_cd)
 
 theorem beta_confluent: "confluent beta"
-  apply (rule diamond_par_beta2 diamond_to_confluence
+  by (rule diamond_par_beta2 diamond_to_confluence
     par_beta_subset_beta beta_subset_par_beta)+
-  done
 
 end

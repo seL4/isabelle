@@ -59,9 +59,9 @@ subsection \<open>Beta-reduction\<close>
 inductive beta :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<close> 50)
   where
     beta [simp, intro!]: "Abs s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
-  | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
-  | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
-  | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t ==> Abs s \<rightarrow>\<^sub>\<beta> Abs t"
+  | appL [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
+  | appR [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
+  | abs [simp, intro!]: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> Abs s \<rightarrow>\<^sub>\<beta> Abs t"
 
 abbreviation
   beta_reds :: "[dB, dB] => bool"  (infixl \<open>\<rightarrow>\<^sub>\<beta>\<^sup>*\<close> 50) where
@@ -79,19 +79,19 @@ declare if_not_P [simp] not_less_eq [simp]
 subsection \<open>Congruence rules\<close>
 
 lemma rtrancl_beta_Abs [intro!]:
-    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> Abs s \<rightarrow>\<^sub>\<beta>\<^sup>* Abs s'"
+    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<Longrightarrow> Abs s \<rightarrow>\<^sub>\<beta>\<^sup>* Abs s'"
   by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_AppL:
-    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t"
+    "s \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<Longrightarrow> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t"
   by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_AppR:
-    "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s \<degree> t'"
+    "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s \<degree> t'"
   by (induct set: rtranclp) (blast intro: rtranclp.rtrancl_into_rtrancl)+
 
 lemma rtrancl_beta_App [intro]:
-    "[| s \<rightarrow>\<^sub>\<beta>\<^sup>* s'; t \<rightarrow>\<^sub>\<beta>\<^sup>* t' |] ==> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'"
+    "\<lbrakk>s \<rightarrow>\<^sub>\<beta>\<^sup>* s'; t \<rightarrow>\<^sub>\<beta>\<^sup>* t'\<rbrakk> \<Longrightarrow> s \<degree> t \<rightarrow>\<^sub>\<beta>\<^sup>* s' \<degree> t'"
   by (blast intro!: rtrancl_beta_AppL rtrancl_beta_AppR intro: rtranclp_trans)
 
 
@@ -100,10 +100,10 @@ subsection \<open>Substitution-lemmas\<close>
 lemma subst_eq [simp]: "(Var k)[u/k] = u"
   by (simp add: subst_Var)
 
-lemma subst_gt [simp]: "i < j ==> (Var j)[u/i] = Var (j - 1)"
+lemma subst_gt [simp]: "i < j \<Longrightarrow> (Var j)[u/i] = Var (j - 1)"
   by (simp add: subst_Var)
 
-lemma subst_lt [simp]: "j < i ==> (Var j)[u/i] = Var j"
+lemma subst_lt [simp]: "j < i \<Longrightarrow> (Var j)[u/i] = Var j"
   by (simp add: subst_Var)
 
 lemma lift_lift:
@@ -151,39 +151,58 @@ text \<open>Not used in Church-Rosser proof, but in Strong
   Normalization. \medskip\<close>
 
 theorem subst_preserves_beta [simp]:
-    "r \<rightarrow>\<^sub>\<beta> s ==> r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i]"
+    "r \<rightarrow>\<^sub>\<beta> s \<Longrightarrow> r[t/i] \<rightarrow>\<^sub>\<beta> s[t/i]"
   by (induct arbitrary: t i set: beta) (simp_all add: subst_subst [symmetric])
 
-theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
-  apply (induct set: rtranclp)
-   apply (rule rtranclp.rtrancl_refl)
-  apply (erule rtranclp.rtrancl_into_rtrancl)
-  apply (erule subst_preserves_beta)
-  done
+theorem subst_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s \<Longrightarrow> r[t/i] \<rightarrow>\<^sub>\<beta>\<^sup>* s[t/i]"
+proof (induct set: rtranclp)
+  case base
+  then show ?case
+    by (iprover intro: rtrancl_refl)
+next
+  case (step y z)
+  then show ?case
+    by (iprover intro: rtranclp.simps subst_preserves_beta)
+qed
 
 theorem lift_preserves_beta [simp]:
-    "r \<rightarrow>\<^sub>\<beta> s ==> lift r i \<rightarrow>\<^sub>\<beta> lift s i"
+    "r \<rightarrow>\<^sub>\<beta> s \<Longrightarrow> lift r i \<rightarrow>\<^sub>\<beta> lift s i"
   by (induct arbitrary: i set: beta) auto
 
-theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
-  apply (induct set: rtranclp)
-   apply (rule rtranclp.rtrancl_refl)
-  apply (erule rtranclp.rtrancl_into_rtrancl)
-  apply (erule lift_preserves_beta)
-  done
+theorem lift_preserves_beta': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s \<Longrightarrow> lift r i \<rightarrow>\<^sub>\<beta>\<^sup>* lift s i"
+proof (induct set: rtranclp)
+  case base
+  then show ?case
+    by (iprover intro: rtrancl_refl)
+next
+  case (step y z)
+  then show ?case
+    by (iprover intro: lift_preserves_beta rtranclp.simps)
+qed
 
-theorem subst_preserves_beta2 [simp]: "r \<rightarrow>\<^sub>\<beta> s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
-  apply (induct t arbitrary: r s i)
-    apply (simp add: subst_Var r_into_rtranclp)
-   apply (simp add: rtrancl_beta_App)
-  apply (simp add: rtrancl_beta_Abs)
-  done
+theorem subst_preserves_beta2 [simp]: "r \<rightarrow>\<^sub>\<beta> s \<Longrightarrow> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
+proof (induct t arbitrary: r s i)
+  case (Var x)
+  then show ?case
+    by (simp add: subst_Var r_into_rtranclp)
+next
+  case (App t1 t2)
+  then show ?case 
+    by (simp add: rtrancl_beta_App)
+next
+  case (Abs t)
+  then show ?case by (simp add: rtrancl_beta_Abs)
+qed
 
-theorem subst_preserves_beta2': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s ==> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
-  apply (induct set: rtranclp)
-   apply (rule rtranclp.rtrancl_refl)
-  apply (erule rtranclp_trans)
-  apply (erule subst_preserves_beta2)
-  done
+
+theorem subst_preserves_beta2': "r \<rightarrow>\<^sub>\<beta>\<^sup>* s \<Longrightarrow> t[r/i] \<rightarrow>\<^sub>\<beta>\<^sup>* t[s/i]"
+proof (induct set: rtranclp)
+  case base
+  then show ?case by (iprover intro: rtrancl_refl)
+next
+  case (step y z)
+  then show ?case
+    by (iprover intro: rtranclp_trans subst_preserves_beta2)
+qed
 
 end

@@ -52,15 +52,10 @@ lemma listall_conj2: "listall (\<lambda>x. P x \<and> Q x) xs \<Longrightarrow> 
   by (induct xs) simp_all
 
 lemma listall_app: "listall P (xs @ ys) = (listall P xs \<and> listall P ys)"
-  apply (induct xs)
-   apply (rule iffI, simp, simp)
-  apply (rule iffI, simp, simp)
-  done
+  by (induct xs; intro iffI; simp)
 
 lemma listall_snoc [simp]: "listall P (xs @ [x]) = (listall P xs \<and> P x)"
-  apply (rule iffI)
-  apply (simp add: listall_app)+
-  done
+  by (rule iffI; simp add: listall_app)
 
 lemma listall_cong [cong, extraction_expand]:
   "xs = ys \<Longrightarrow> listall P xs = listall P ys"
@@ -82,18 +77,26 @@ where
 monos listall_def
 
 lemma nat_eq_dec: "\<And>n::nat. m = n \<or> m \<noteq> n"
-  apply (induct m)
-  apply (case_tac n)
-  apply (case_tac [3] n)
-  apply (simp only: nat.simps, iprover?)+
-  done
+proof (induction m)
+  case 0
+  then show ?case
+    by (cases n; simp only: nat.simps; iprover)
+next
+  case (Suc m)
+  then show ?case
+    by (cases n; simp only: nat.simps; iprover)
+qed
 
 lemma nat_le_dec: "\<And>n::nat. m < n \<or> \<not> (m < n)"
-  apply (induct m)
-  apply (case_tac n)
-    apply (case_tac [3] n)
-  apply (simp del: simp_thms subst_all, iprover?)+
-  done
+proof (induction m)
+  case 0
+  then show ?case
+    by (cases n; simp only: order.irrefl zero_less_Suc; iprover)
+next
+  case (Suc m)
+  then show ?case
+    by (cases n; simp only: not_less_zero Suc_less_eq; iprover)
+qed
 
 lemma App_NF_D: assumes NF: "NF (Var n \<degree>\<degree> ts)"
   shows "listall NF ts" using NF
@@ -103,11 +106,11 @@ lemma App_NF_D: assumes NF: "NF (Var n \<degree>\<degree> ts)"
 subsection \<open>Properties of \<open>NF\<close>\<close>
 
 lemma Var_NF: "NF (Var n)"
-  apply (subgoal_tac "NF (Var n \<degree>\<degree> [])")
-   apply simp
-  apply (rule NF.App)
-  apply simp
-  done
+proof -
+  have "NF (Var n \<degree>\<degree> [])"
+    by (rule NF.App) simp
+  then show ?thesis by simp
+qed
 
 lemma Abs_NF:
   assumes NF: "NF (Abs t \<degree>\<degree> ts)"
@@ -127,39 +130,29 @@ lemma subst_terms_NF: "listall NF ts \<Longrightarrow>
 
 lemma subst_Var_NF: "NF t \<Longrightarrow> NF (t[Var i/j])"
   apply (induct arbitrary: i j set: NF)
-  apply simp
-  apply (frule listall_conj1)
-  apply (drule listall_conj2)
-  apply (drule_tac i=i and j=j in subst_terms_NF)
-  apply assumption
-  apply (rule_tac m1=x and n1=j in nat_eq_dec [THEN disjE])
-  apply simp
-  apply (erule NF.App)
-  apply (rule_tac m1=j and n1=x in nat_le_dec [THEN disjE])
-  apply simp
-  apply (iprover intro: NF.App)
-  apply simp
-  apply (iprover intro: NF.App)
-  apply simp
-  apply (iprover intro: NF.Abs)
+   apply simp
+   apply (frule listall_conj1)
+   apply (drule listall_conj2)
+   apply (drule_tac i=i and j=j in subst_terms_NF)
+    apply assumption
+   apply (rule_tac m1=x and n1=j in nat_eq_dec [THEN disjE])
+    apply simp
+    apply (erule NF.App)
+   apply (rule_tac m1=j and n1=x in nat_le_dec [THEN disjE])
+    apply (simp_all add: NF.App NF.Abs)
   done
 
 lemma app_Var_NF: "NF t \<Longrightarrow> \<exists>t'. t \<degree> Var i \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<and> NF t'"
   apply (induct set: NF)
-  apply (simplesubst app_last)  \<comment> \<open>Using \<open>subst\<close> makes extraction fail\<close>
-  apply (rule exI)
-  apply (rule conjI)
-  apply (rule rtranclp.rtrancl_refl)
-  apply (rule NF.App)
-  apply (drule listall_conj1)
-  apply (simp add: listall_app)
-  apply (rule Var_NF)
-  apply (rule exI)
-  apply (rule conjI)
-  apply (rule rtranclp.rtrancl_into_rtrancl)
-  apply (rule rtranclp.rtrancl_refl)
-  apply (rule beta)
-  apply (erule subst_Var_NF)
+   apply (simplesubst app_last)  \<comment> \<open>Using \<open>subst\<close> makes extraction fail\<close>
+   apply (rule exI)
+   apply (rule conjI)
+    apply (rule rtranclp.rtrancl_refl)
+   apply (rule NF.App)
+   apply (drule listall_conj1)
+   apply (simp add: listall_app)
+   apply (rule Var_NF)
+  apply (iprover intro: rtranclp.rtrancl_into_rtrancl rtranclp.rtrancl_refl beta subst_Var_NF)
   done
 
 lemma lift_terms_NF: "listall NF ts \<Longrightarrow>
@@ -169,20 +162,12 @@ lemma lift_terms_NF: "listall NF ts \<Longrightarrow>
 
 lemma lift_NF: "NF t \<Longrightarrow> NF (lift t i)"
   apply (induct arbitrary: i set: NF)
-  apply (frule listall_conj1)
-  apply (drule listall_conj2)
-  apply (drule_tac i=i in lift_terms_NF)
-  apply assumption
-  apply (rule_tac m1=x and n1=i in nat_le_dec [THEN disjE])
-  apply simp
-  apply (rule NF.App)
-  apply assumption
-  apply simp
-  apply (rule NF.App)
-  apply assumption
-  apply simp
-  apply (rule NF.Abs)
-  apply simp
+   apply (frule listall_conj1)
+   apply (drule listall_conj2)
+   apply (drule_tac i=i in lift_terms_NF)
+    apply assumption
+   apply (rule_tac m1=x and n1=i in nat_le_dec [THEN disjE])
+    apply (simp_all add: NF.App NF.Abs)
   done
 
 text \<open>

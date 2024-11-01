@@ -76,49 +76,49 @@ subsection \<open>Lists of types\<close>
 
 lemma lists_typings:
     "e \<tturnstile> ts : Ts \<Longrightarrow> listsp (\<lambda>t. \<exists>T. e \<turnstile> t : T) ts"
-  apply (induct ts arbitrary: Ts)
-   apply (case_tac Ts)
-     apply simp
-     apply (rule listsp.Nil)
-    apply simp
-  apply (case_tac Ts)
-   apply simp
-  apply simp
-  apply (rule listsp.Cons)
-   apply blast
-  apply blast
-  done
+proof (induct ts arbitrary: Ts)
+  case Nil
+  then show ?case
+    by simp
+next
+  case c: (Cons a ts)
+  show ?case
+  proof (cases Ts)
+    case Nil
+    with c show ?thesis
+      by simp
+  next
+    case (Cons T list)
+    with c show ?thesis  by force
+  qed
+qed
 
 lemma types_snoc: "e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<tturnstile> ts @ [t] : Ts @ [T]"
-  apply (induct ts arbitrary: Ts)
-  apply simp
-  apply (case_tac Ts)
-  apply simp+
-  done
+  by (induct ts arbitrary: Ts) (auto split: list.split_asm)
 
 lemma types_snoc_eq: "e \<tturnstile> ts @ [t] : Ts @ [T] =
   (e \<tturnstile> ts : Ts \<and> e \<turnstile> t : T)"
-  apply (induct ts arbitrary: Ts)
-  apply (case_tac Ts)
-  apply simp+
-  apply (case_tac Ts)
-  apply (case_tac "ts @ [t]")
-  apply simp+
-  done
+proof (induct ts arbitrary: Ts)
+  case Nil
+  then show ?case
+    by (auto split: list.split)
+next
+  case (Cons a ts)
+  have "\<not> e \<tturnstile> ts @ [t] : []"
+  by (cases "ts @ [t]"; simp) 
+  with Cons show ?case 
+    by (auto split: list.split)
+qed
 
+text \<open>Cannot use \<open>rev_exhaust\<close> from the \<open>List\<close> theory, since it is not constructive\<close>
 lemma rev_exhaust2 [extraction_expand]:
   obtains (Nil) "xs = []"  |  (snoc) ys y where "xs = ys @ [y]"
-  \<comment> \<open>Cannot use \<open>rev_exhaust\<close> from the \<open>List\<close>
-    theory, since it is not constructive\<close>
-  apply (subgoal_tac "\<forall>ys. xs = rev ys \<longrightarrow> thesis")
-  apply (erule_tac x="rev xs" in allE)
-  apply simp
-  apply (rule allI)
-  apply (rule impI)
-  apply (case_tac ys)
-  apply simp
-  apply simp
-  done
+proof -
+  have \<section>: "xs = rev ys \<Longrightarrow> thesis" for ys
+    by (cases ys) (simp_all add: local.Nil snoc)
+  show thesis
+    using \<section> [of "rev xs"] by simp
+qed
 
 lemma types_snocE:
   assumes \<open>e \<tturnstile> ts @ [t] : Ts\<close>
@@ -139,44 +139,22 @@ subsection \<open>n-ary function types\<close>
 
 lemma list_app_typeD:
     "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> \<exists>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<and> e \<tturnstile> ts : Ts"
-  apply (induct ts arbitrary: t T)
-   apply simp
-  apply (rename_tac a b t T)
-  apply atomize
-  apply simp
-  apply (erule_tac x = "t \<degree> a" in allE)
-  apply (erule_tac x = T in allE)
-  apply (erule impE)
-   apply assumption
-  apply (elim exE conjE)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (rule_tac x = "Ta # Ts" in exI)
-  apply simp
-  done
+proof (induct ts arbitrary: t T)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons a b t T)
+  then show ?case
+    by (auto simp: split: list.split)
+qed
 
 lemma list_app_typeE:
   "e \<turnstile> t \<degree>\<degree> ts : T \<Longrightarrow> (\<And>Ts. e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> C) \<Longrightarrow> C"
-  by (insert list_app_typeD) fast
+  using list_app_typeD by iprover
 
 lemma list_app_typeI:
     "e \<turnstile> t : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> e \<turnstile> t \<degree>\<degree> ts : T"
-  apply (induct ts arbitrary: t T Ts)
-   apply simp
-  apply (rename_tac a b t T Ts)
-  apply atomize
-  apply (case_tac Ts)
-   apply simp
-  apply simp
-  apply (erule_tac x = "t \<degree> a" in allE)
-  apply (erule_tac x = T in allE)
-  apply (rename_tac list)
-  apply (erule_tac x = list in allE)
-  apply (erule impE)
-   apply (erule conjE)
-   apply (erule typing.App)
-   apply assumption
-  apply blast
-  done
+  by (induct ts arbitrary: t  Ts) (auto simp add: split: list.split_asm)
 
 text \<open>
 For the specific case where the head of the term is a variable,
@@ -187,92 +165,78 @@ for program extraction.
 
 theorem var_app_type_eq:
   "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow> e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> T = U"
-  apply (induct ts arbitrary: T U rule: rev_induct)
-  apply simp
-  apply (ind_cases "e \<turnstile> Var i : T" for T)
-  apply (ind_cases "e \<turnstile> Var i : T" for T)
-  apply simp
-  apply simp
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply atomize
-  apply (erule_tac x="Ta \<Rightarrow> T" in allE)
-  apply (erule_tac x="Tb \<Rightarrow> U" in allE)
-  apply (erule impE)
-  apply assumption
-  apply (erule impE)
-  apply assumption
-  apply simp
-  done
+  by (induct ts arbitrary: T U rule: rev_induct) auto
 
 lemma var_app_types: "e \<turnstile> Var i \<degree>\<degree> ts \<degree>\<degree> us : T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow>
   e \<turnstile> Var i \<degree>\<degree> ts : U \<Longrightarrow> \<exists>Us. U = Us \<Rrightarrow> T \<and> e \<tturnstile> us : Us"
-  apply (induct us arbitrary: ts Ts U)
-  apply simp
-  apply (erule var_app_type_eq)
-  apply assumption
-  apply simp
-  apply (rename_tac a b ts Ts U)
-  apply atomize
-  apply (case_tac U)
-  apply (rule FalseE)
-  apply simp
-  apply (erule list_app_typeE)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (rename_tac nat Tsa Ta)
-  apply (drule_tac T="Atom nat" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
-  apply assumption
-  apply simp
-  apply (rename_tac nat type1 type2)
-  apply (erule_tac x="ts @ [a]" in allE)
-  apply (erule_tac x="Ts @ [type1]" in allE)
-  apply (erule_tac x="type2" in allE)
-  apply simp
-  apply (erule impE)
-  apply (rule types_snoc)
-  apply assumption
-  apply (erule list_app_typeE)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (drule_tac T="type1 \<Rightarrow> type2" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
-  apply assumption
-  apply simp
-  apply (erule impE)
-  apply (rule typing.App)
-  apply assumption
-  apply (erule list_app_typeE)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (frule_tac T="type1 \<Rightarrow> type2" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
-  apply assumption
-  apply simp
-  apply (erule exE)
-  apply (rule_tac x="type1 # Us" in exI)
-  apply simp
-  apply (erule list_app_typeE)
-  apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
-  apply (frule_tac T="type1 \<Rightarrow> Us \<Rrightarrow> T" and U="Ta \<Rightarrow> Tsa \<Rrightarrow> T" in var_app_type_eq)
-  apply assumption
-  apply simp
-  done
+proof (induct us arbitrary: ts Ts U)
+  case Nil
+  then show ?case
+    by (simp add: var_app_type_eq)
+next
+  case (Cons a b ts Ts U)
+  then show ?case
+    apply atomize
+    apply (case_tac U)
+     apply (rule FalseE)
+     apply simp
+     apply (erule list_app_typeE)
+     apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+     apply (rename_tac nat Ts' T')
+     apply (drule_tac T="Atom nat" and U="T' \<Rightarrow> Ts' \<Rrightarrow> T" in var_app_type_eq)
+      apply assumption
+     apply simp
+    apply (rename_tac type1 type2)
+    apply (erule_tac x="ts @ [a]" in allE)
+    apply (erule_tac x="Ts @ [type1]" in allE)
+    apply (erule_tac x="type2" in allE)
+    apply simp
+    apply (erule impE)
+     apply (rule types_snoc)
+      apply assumption
+     apply (erule list_app_typeE)
+     apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+    using var_app_type_eq apply fastforce
+    apply (erule impE)
+     apply (rule typing.App)
+      apply assumption
+     apply (erule list_app_typeE)
+     apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+    using var_app_type_eq apply fastforce
+    apply (erule exE)
+    apply (rule_tac x="type1 # Us" in exI)
+    apply simp
+    apply (erule list_app_typeE)
+    apply (ind_cases "e \<turnstile> t \<degree> u : T" for t u T)
+    using var_app_type_eq by fastforce
+qed
 
 lemma var_app_typesE: "e \<turnstile> Var i \<degree>\<degree> ts : T \<Longrightarrow>
   (\<And>Ts. e \<turnstile> Var i : Ts \<Rrightarrow> T \<Longrightarrow> e \<tturnstile> ts : Ts \<Longrightarrow> P) \<Longrightarrow> P"
-  apply (drule var_app_types [of _ _ "[]", simplified])
-  apply (iprover intro: typing.Var)+
-  done
+  by (iprover intro: typing.Var dest: var_app_types [of _ _ "[]", simplified])
 
-lemma abs_typeE: "e \<turnstile> Abs t : T \<Longrightarrow> (\<And>U V. e\<langle>0:U\<rangle> \<turnstile> t : V \<Longrightarrow> P) \<Longrightarrow> P"
-  apply (cases T)
-  apply (rule FalseE)
-  apply (erule typing.cases)
-  apply simp_all
-  apply atomize
-  apply (rename_tac type1 type2)
-  apply (erule_tac x="type1" in allE)
-  apply (erule_tac x="type2" in allE)
-  apply (erule mp)
-  apply (erule typing.cases)
-  apply simp_all
-  done
+lemma abs_typeE:
+  assumes "e \<turnstile> Abs t : T" "\<And>U V. e\<langle>0:U\<rangle> \<turnstile> t : V \<Longrightarrow> P"
+  shows "P"
+proof (cases T)
+  case (Atom x1)
+  with assms(1) show ?thesis
+    apply-
+    apply (rule FalseE)
+    apply (erule typing.cases)
+      apply simp_all
+    done
+next
+  case (Fun type1 type2)
+  with assms show ?thesis
+    apply atomize
+    apply (erule_tac x="type1" in allE)
+    apply (erule_tac x="type2" in allE)
+    apply (erule mp)
+    apply (erule typing.cases)
+      apply simp_all
+    done
+qed
 
 
 subsection \<open>Lifting preserves well-typedness\<close>
@@ -282,57 +246,44 @@ lemma lift_type [intro!]: "e \<turnstile> t : T \<Longrightarrow> e\<langle>i:U\
 
 lemma lift_types:
   "e \<tturnstile> ts : Ts \<Longrightarrow> e\<langle>i:U\<rangle> \<tturnstile> (map (\<lambda>t. lift t i) ts) : Ts"
-  apply (induct ts arbitrary: Ts)
-   apply simp
-  apply (case_tac Ts)
-   apply auto
-  done
+  by (induct ts arbitrary: Ts) (auto split: list.split)
 
 
 subsection \<open>Substitution lemmas\<close>
 
 lemma subst_lemma:
     "e \<turnstile> t : T \<Longrightarrow> e' \<turnstile> u : U \<Longrightarrow> e = e'\<langle>i:U\<rangle> \<Longrightarrow> e' \<turnstile> t[u/i] : T"
-  apply (induct arbitrary: e' i U u set: typing)
-    apply (rule_tac x = x and y = i in linorder_cases)
-      apply auto
-  apply blast
-  done
+proof (induct arbitrary: e' i U u set: typing)
+  case (Var env x T)
+  then show ?case
+    by (force simp add: shift_def)
+next
+  case (Abs env T t U)
+  then show ?case by force
+qed auto
 
 lemma substs_lemma:
   "e \<turnstile> u : T \<Longrightarrow> e\<langle>i:T\<rangle> \<tturnstile> ts : Ts \<Longrightarrow>
      e \<tturnstile> (map (\<lambda>t. t[u/i]) ts) : Ts"
-  apply (induct ts arbitrary: Ts)
-   apply (case_tac Ts)
-    apply simp
-   apply simp
-  apply atomize
-  apply (case_tac Ts)
-   apply simp
-  apply simp
-  apply (erule conjE)
-  apply (erule (1) subst_lemma)
-  apply (rule refl)
-  done
+proof (induct ts arbitrary: Ts)
+  case Nil
+  then show ?case
+    by auto
+next
+  case (Cons a ts)
+  with subst_lemma show ?case
+    by (auto split: list.split)
+qed
 
 
 subsection \<open>Subject reduction\<close>
 
 lemma subject_reduction: "e \<turnstile> t : T \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> e \<turnstile> t' : T"
-  apply (induct arbitrary: t' set: typing)
-    apply blast
-   apply blast
-  apply atomize
-  apply (ind_cases "s \<degree> t \<rightarrow>\<^sub>\<beta> t'" for s t t')
-    apply hypsubst
-    apply (ind_cases "env \<turnstile> Abs t : T \<Rightarrow> U" for env t T U)
-    apply (rule subst_lemma)
-      apply assumption
-     apply assumption
-    apply (rule ext)
-    apply (case_tac x)
-     apply auto
-  done
+proof (induct arbitrary: t' set: typing)
+  case (App env s T U t)
+  with subst_lemma show ?case
+    by auto
+qed auto
 
 theorem subject_reduction': "t \<rightarrow>\<^sub>\<beta>\<^sup>* t' \<Longrightarrow> e \<turnstile> t : T \<Longrightarrow> e \<turnstile> t' : T"
   by (induct set: rtranclp) (iprover intro: subject_reduction)+

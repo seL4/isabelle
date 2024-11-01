@@ -266,16 +266,18 @@ lemmas [extraction_expand] = conj_assoc listall_cons_eq subst_all equal_allI
 extract type_NF
 
 lemma rtranclR_rtrancl_eq: "rtranclpR r a b = r\<^sup>*\<^sup>* a b"
-  apply (rule iffI)
-  apply (erule rtranclpR.induct)
-  apply (rule rtranclp.rtrancl_refl)
-  apply (erule rtranclp.rtrancl_into_rtrancl)
-  apply assumption
-  apply (erule rtranclp.induct)
-  apply (rule rtranclpR.rtrancl_refl)
-  apply (erule rtranclpR.rtrancl_into_rtrancl)
-  apply assumption
-  done
+proof
+  show "rtranclpR r a b \<Longrightarrow> r\<^sup>*\<^sup>* a b"
+    apply (erule rtranclpR.induct)
+     apply (rule rtranclp.rtrancl_refl)
+    apply (metis rtranclp.rtrancl_into_rtrancl)
+    done
+  show "r\<^sup>*\<^sup>* a b \<Longrightarrow> rtranclpR r a b"
+    apply (erule rtranclp.induct)
+     apply (rule rtranclpR.rtrancl_refl)
+    apply (metis rtranclpR.rtrancl_into_rtrancl)
+    done
+qed
 
 lemma NFR_imp_NF: "NFR nf t \<Longrightarrow> NF t"
   apply (erule NFR.induct)
