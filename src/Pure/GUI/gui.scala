@@ -14,7 +14,7 @@ import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAt
 import java.awt.geom.AffineTransform
 import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane, JTree,
   RootPaneContainer, JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
-import javax.swing.tree.MutableTreeNode
+import javax.swing.tree.{MutableTreeNode, TreeSelectionModel}
 
 import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
   Orientation}
@@ -258,9 +258,14 @@ object GUI {
 
   /* tree view */
 
-  def init_tree(root: MutableTreeNode): JTree = {
+  def init_tree(root: MutableTreeNode, single_selection_mode: Boolean = false): JTree = {
     val tree = new JTree(root)
     tree.setRowHeight(0)
+
+    if (single_selection_mode) {
+      tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+    }
+
     tree
   }
 

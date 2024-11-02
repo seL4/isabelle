@@ -13,7 +13,7 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.{JTree, JComponent}
-import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
+import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import javax.swing.event.TreeSelectionEvent
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -29,7 +29,7 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   /* tree view */
 
   val root: DefaultMutableTreeNode = new DefaultMutableTreeNode(root_name)
-  val tree: JTree = GUI.init_tree(root)
+  val tree: JTree = GUI.init_tree(root, single_selection_mode = true)
 
   def get_tree_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     tree.getLastSelectedPathComponent match {
@@ -50,7 +50,6 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   def reload(): Unit =
     tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
 
-  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
   tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
 
 

@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.{Dimension, Rectangle}
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JTree
-import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel, TreePath}
+import javax.swing.tree.{DefaultMutableTreeNode, TreePath}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
 
 import scala.util.matching.Regex
