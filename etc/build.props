@@ -326,7 +326,8 @@ sources = \
   src/Tools/jEdit/src/theories_dockable.scala \
   src/Tools/jEdit/src/theories_status.scala \
   src/Tools/jEdit/src/timing_dockable.scala \
-  src/Tools/jEdit/src/token_markup.scala
+  src/Tools/jEdit/src/token_markup.scala \
+  src/Tools/jEdit/src/tree_text_area.scala
 services = \
   isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \

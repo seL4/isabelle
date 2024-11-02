@@ -69,38 +69,38 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* pretty text area */
 
-  val pretty_text_area = new Pretty_Text_Area(view)
+  private val tree_text_area: Tree_Text_Area =
+    new Tree_Text_Area(view, root_name = "Threads") {
+      override def handle_resize(): Unit =
+        GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
-  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
+      override def handle_update(): Unit = {
+        GUI_Thread.require {}
 
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+        val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
+        val (new_threads, new_output) = debugger.status(tree_selection())
 
-  private def handle_update(): Unit = {
-    GUI_Thread.require {}
+        if (new_threads != current_threads) update_tree(new_threads)
 
-    val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
-    val (new_threads, new_output) = debugger.status(tree_selection())
+        if (new_output != current_output) {
+          pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+        }
 
-    if (new_threads != current_threads) update_tree(new_threads)
-
-    if (new_output != current_output) {
-      pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+        current_snapshot = new_snapshot
+        current_threads = new_threads
+        current_output = new_output
+      }
     }
 
-    current_snapshot = new_snapshot
-    current_threads = new_threads
-    current_output = new_output
-  }
+  override def detach_operation: Option[() => Unit] =
+    tree_text_area.pretty_text_area.detach_operation
+
+  set_content(tree_text_area.main_pane)
 
 
   /* tree view */
 
-  private val root = new DefaultMutableTreeNode("Threads")
-
-  val tree = new JTree(root)
-  tree.setRowHeight(0)
-  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+  def tree: JTree = tree_text_area.tree
 
   def tree_selection(): Option[Debugger.Context] =
     tree.getLastSelectedPathComponent match {
@@ -127,17 +127,16 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    tree.clearSelection()
-    root.removeAllChildren()
+    tree_text_area.clear()
 
     for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
       for ((_, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
-      root.add(thread_node)
+      tree_text_area.root.add(thread_node)
     }
 
-    tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
+    tree_text_area.reload()
 
     tree.expandRow(0)
     for (i <- Range.inclusive(tree.getRowCount - 1, 1, -1)) tree.expandRow(i)
@@ -175,11 +174,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         if (click != null && e.getClickCount == 1) update_focus()
       }
     })
-
-  private val tree_pane = new ScrollPane(Component.wrap(tree))
-  tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  tree_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  tree_pane.minimumSize = new Dimension(200, 100)
 
 
   /* controls */
@@ -262,7 +256,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tooltip = "Official Standard ML instead of Isabelle/ML"
   }
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
+  private val zoom =
+    new Font_Info.Zoom { override def changed(): Unit = tree_text_area.handle_resize() }
 
   private val controls =
     Wrap_Panel(
@@ -270,7 +265,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         break_button, continue_button, step_button, step_over_button, step_out_button,
         context_label, Component.wrap(context_field),
         expression_label, Component.wrap(expression_field), eval_button, sml_button,
-        pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+        tree_text_area.pretty_text_area.search_label,
+        tree_text_area.pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -295,27 +291,17 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
 
-  /* main panel */
-
-  val main_panel: SplitPane = new SplitPane(Orientation.Vertical) {
-    oneTouchExpandable = true
-    leftComponent = tree_pane
-    rightComponent = Component.wrap(pretty_text_area)
-  }
-  set_content(main_panel)
-
-
   /* main */
 
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { handle_resize() }
+        GUI_Thread.later { tree_text_area.handle_resize() }
 
       case Debugger.Update =>
         GUI_Thread.later {
           break_button.selected = debugger.is_break()
-          handle_update()
+          tree_text_area.handle_update()
         }
     }
 
@@ -323,7 +309,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
     debugger.init(dockable)
-    handle_update()
+    tree_text_area.handle_update()
     jEdit.propertiesChanged()
   }
 
@@ -339,7 +325,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* resize */
 
   private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
+    Delay.first(PIDE.session.update_delay, gui = true) { tree_text_area.handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
