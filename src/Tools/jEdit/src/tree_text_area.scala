@@ -77,6 +77,11 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
 
   /* main pane */
 
+  def handle_focus(): Unit = ()
+
+  lazy val component_focus: FocusAdapter =
+    new FocusAdapter { override def focusGained(e: FocusEvent): Unit = handle_focus() }
+
   val tree_pane: ScrollPane = new ScrollPane(Component.wrap(tree))
   tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   tree_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always

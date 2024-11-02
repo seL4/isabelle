@@ -71,6 +71,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val tree_text_area: Tree_Text_Area =
     new Tree_Text_Area(view, root_name = "Threads") {
+      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
+        update_focus()
+        update_vals()
+      }
+
       override def handle_resize(): Unit =
         GUI_Thread.require { pretty_text_area.zoom(zoom) }
 
@@ -91,10 +96,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         current_output = new_output
       }
 
-      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
-        update_focus()
-        update_vals()
-      }
+      override def handle_focus(): Unit = update_focus()
     }
 
   override def detach_operation: Option[() => Unit] =
@@ -102,16 +104,17 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   set_content(tree_text_area.main_pane)
   addComponentListener(tree_text_area.component_resize)
+  addFocusListener(tree_text_area.component_focus)
 
 
   /* tree view */
 
-  def tree: JTree = tree_text_area.tree
+  private def tree: JTree = tree_text_area.tree
 
-  def tree_selection(): Option[Debugger.Context] =
+  private def tree_selection(): Option[Debugger.Context] =
     tree_text_area.get_tree_selection({ case c: Debugger.Context => c })
 
-  def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
+  private def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
   private def update_tree(threads: Debugger.Threads): Unit = {
     val thread_contexts =
@@ -269,10 +272,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* focus */
 
   override def focusOnDefaultComponent(): Unit = eval_button.requestFocus()
-
-  addFocusListener(new FocusAdapter {
-    override def focusGained(e: FocusEvent): Unit = update_focus()
-  })
 
   private def update_focus(): Unit = {
     for (c <- tree_selection()) {
