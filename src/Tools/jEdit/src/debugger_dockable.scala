@@ -179,22 +179,22 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val continue_button = new GUI.Button("Continue") {
     tooltip = "Continue program on current thread, until next breakpoint"
-    override def clicked(): Unit = thread_selection().map(debugger.continue)
+    override def clicked(): Unit = thread_selection().foreach(debugger.continue)
   }
 
   private val step_button = new GUI.Button("Step") {
     tooltip = "Single-step in depth-first order"
-    override def clicked(): Unit = thread_selection().map(debugger.step)
+    override def clicked(): Unit = thread_selection().foreach(debugger.step)
   }
 
   private val step_over_button = new GUI.Button("Step over") {
     tooltip = "Single-step within this function"
-    override def clicked(): Unit = thread_selection().map(debugger.step_over)
+    override def clicked(): Unit = thread_selection().foreach(debugger.step_over)
   }
 
   private val step_out_button = new GUI.Button("Step out") {
     tooltip = "Single-step outside this function"
-    override def clicked(): Unit = thread_selection().map(debugger.step_out)
+    override def clicked(): Unit = thread_selection().foreach(debugger.step_out)
   }
 
   private val context_label = new Label("Context:") {
