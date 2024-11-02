@@ -9,16 +9,14 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{BorderLayout, Dimension}
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent,
-  MouseEvent, MouseAdapter}
+import java.awt.BorderLayout
+import java.awt.event.KeyEvent
 import javax.swing.{JTree, JMenuItem}
-import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
-import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.event.TreeSelectionEvent
 
 import scala.collection.immutable.SortedMap
-import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation, BorderPanel}
-import scala.swing.event.ButtonClicked
+import scala.swing.{Button, Label, Component}
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.menu.EnhancedMenuItem

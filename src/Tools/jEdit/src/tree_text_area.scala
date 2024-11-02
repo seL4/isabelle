@@ -9,20 +9,17 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{BorderLayout, Dimension}
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent,
+import java.awt.Dimension
+import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JMenuItem, JComponent}
+import javax.swing.{JTree, JComponent}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
-import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
+import javax.swing.event.TreeSelectionEvent
 
-import scala.collection.immutable.SortedMap
-import scala.swing.{Button, Label, Component, ScrollPane, SplitPane, Orientation, BorderPanel}
+import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 import scala.swing.event.ButtonClicked
 
-import org.gjt.sp.jedit.{jEdit, View}
-import org.gjt.sp.jedit.menu.EnhancedMenuItem
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.View
 
 
 class Tree_Text_Area(view: View, root_name: String = "Overview") {
