@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.{BorderLayout, Dimension}
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JMenuItem}
+import javax.swing.{JTree, JMenuItem, JComponent}
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener}
 
@@ -68,19 +68,8 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   lazy val delay_resize: Delay =
     Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
 
-  lazy val component_resize: ComponentAdapter =
-    new ComponentAdapter {
-      override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-      override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-    }
-
 
   /* main pane */
-
-  def handle_focus(): Unit = ()
-
-  lazy val component_focus: FocusAdapter =
-    new FocusAdapter { override def focusGained(e: FocusEvent): Unit = handle_focus() }
 
   val tree_pane: ScrollPane = new ScrollPane(Component.wrap(tree))
   tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
@@ -91,5 +80,27 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
     oneTouchExpandable = true
     leftComponent = tree_pane
     rightComponent = Component.wrap(pretty_text_area)
+  }
+
+
+  /* GUI component */
+
+  def handle_focus(): Unit = ()
+
+  def init_gui(component: JComponent): Unit = {
+    component.addComponentListener(
+      new ComponentAdapter {
+        override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+        override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
+      })
+    component.addFocusListener(
+      new FocusAdapter {
+        override def focusGained(e: FocusEvent): Unit = handle_focus()
+      })
+
+    component match {
+      case dockable: Dockable => dockable.set_content(main_pane)
+      case _ =>
+    }
   }
 }

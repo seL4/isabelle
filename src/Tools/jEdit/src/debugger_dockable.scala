@@ -102,9 +102,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def detach_operation: Option[() => Unit] =
     tree_text_area.pretty_text_area.detach_operation
 
-  set_content(tree_text_area.main_pane)
-  addComponentListener(tree_text_area.component_resize)
-  addFocusListener(tree_text_area.component_focus)
+  tree_text_area.init_gui(dockable)
 
 
   /* tree view */
