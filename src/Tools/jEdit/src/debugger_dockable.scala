@@ -101,6 +101,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tree_text_area.pretty_text_area.detach_operation
 
   set_content(tree_text_area.main_pane)
+  addComponentListener(tree_text_area.component_resize)
 
 
   /* tree view */
@@ -310,19 +311,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
-    delay_resize.revoke()
+    tree_text_area.delay_resize.revoke()
     debugger.exit(dockable)
     jEdit.propertiesChanged()
   }
-
-
-  /* resize */
-
-  private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { tree_text_area.handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
 }

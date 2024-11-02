@@ -65,6 +65,15 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   def handle_resize(): Unit = ()
   def handle_update(): Unit = ()
 
+  lazy val delay_resize: Delay =
+    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
+
+  lazy val component_resize: ComponentAdapter =
+    new ComponentAdapter {
+      override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
+      override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
+    }
+
 
   /* main pane */
 
