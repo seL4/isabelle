@@ -76,12 +76,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         update_vals()
       }
 
-      override def handle_resize(): Unit =
-        GUI_Thread.require { pretty_text_area.zoom(zoom) }
+      override def handle_resize(): Unit = pretty_text_area.zoom(zoom)
 
       override def handle_update(): Unit = {
-        GUI_Thread.require {}
-
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
 
