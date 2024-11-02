@@ -67,8 +67,7 @@ extends BorderPanel {
   private var nodes = List.empty[Graph_Display.Node]
   private val root = new DefaultMutableTreeNode("Nodes")
 
-  val tree = new JTree(root)
-  tree.setRowHeight(0)
+  val tree: JTree = GUI.init_tree(root)
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =

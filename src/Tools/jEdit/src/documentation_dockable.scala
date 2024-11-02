@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JScrollPane}
+import javax.swing.JScrollPane
 import javax.swing.tree.{DefaultMutableTreeNode, TreeSelectionModel}
 
 import org.gjt.sp.jedit.{View, OperatingSystem}
@@ -39,8 +39,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       })
   }
 
-  private val tree = new JTree(root)
-  tree.setRowHeight(0)
+  private val tree = GUI.init_tree(root)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow

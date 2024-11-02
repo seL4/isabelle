@@ -29,7 +29,7 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   /* tree view */
 
   val root: DefaultMutableTreeNode = new DefaultMutableTreeNode(root_name)
-  val tree: JTree = new JTree(root)
+  val tree: JTree = GUI.init_tree(root)
 
   def get_tree_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     tree.getLastSelectedPathComponent match {
@@ -50,7 +50,6 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   def reload(): Unit =
     tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
 
-  tree.setRowHeight(0)
   tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
   tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
 

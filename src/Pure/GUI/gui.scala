@@ -12,8 +12,9 @@ import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager
 import java.awt.event.{KeyAdapter, KeyEvent, ItemListener, ItemEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
+import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane, JTree,
   RootPaneContainer, JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+import javax.swing.tree.MutableTreeNode
 
 import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
   Orientation}
@@ -252,6 +253,15 @@ object GUI {
     }
 
     selection.index = 3
+  }
+
+
+  /* tree view */
+
+  def init_tree(root: MutableTreeNode): JTree = {
+    val tree = new JTree(root)
+    tree.setRowHeight(0)
+    tree
   }
 
 
