@@ -87,13 +87,13 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
 
   def handle_focus(): Unit = ()
 
-  def init_gui(component: JComponent): Unit = {
-    component.addComponentListener(
+  def init_gui(parent: JComponent): Unit = {
+    parent.addComponentListener(
       new ComponentAdapter {
         override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
         override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
       })
-    component.addFocusListener(
+    parent.addFocusListener(
       new FocusAdapter {
         override def focusGained(e: FocusEvent): Unit = handle_focus()
       })
@@ -106,7 +106,7 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
         }
       })
 
-    component match {
+    parent match {
       case dockable: Dockable => dockable.set_content(main_pane)
       case _ =>
     }
