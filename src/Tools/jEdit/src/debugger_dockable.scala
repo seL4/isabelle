@@ -163,14 +163,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  tree.addMouseListener(
-    new MouseAdapter {
-      override def mouseClicked(e: MouseEvent): Unit = {
-        val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null && e.getClickCount == 1) update_focus()
-      }
-    })
-
 
   /* controls */
 

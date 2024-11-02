@@ -98,6 +98,14 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
         override def focusGained(e: FocusEvent): Unit = handle_focus()
       })
 
+    tree.addMouseListener(
+      new MouseAdapter {
+        override def mouseClicked(e: MouseEvent): Unit = {
+          val click = tree.getPathForLocation(e.getX, e.getY)
+          if (click != null && e.getClickCount == 1) handle_focus()
+        }
+      })
+
     component match {
       case dockable: Dockable => dockable.set_content(main_pane)
       case _ =>
