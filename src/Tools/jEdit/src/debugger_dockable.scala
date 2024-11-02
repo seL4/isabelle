@@ -90,6 +90,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         current_threads = new_threads
         current_output = new_output
       }
+
+      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
+        update_focus()
+        update_vals()
+      }
     }
 
   override def detach_operation: Option[() => Unit] =
@@ -103,14 +108,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   def tree: JTree = tree_text_area.tree
 
   def tree_selection(): Option[Debugger.Context] =
-    tree.getLastSelectedPathComponent match {
-      case node: DefaultMutableTreeNode =>
-        node.getUserObject match {
-          case c: Debugger.Context => Some(c)
-          case _ => None
-        }
-      case _ => None
-    }
+    tree_text_area.get_tree_selection({ case c: Debugger.Context => c })
 
   def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
@@ -163,10 +161,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
   }
 
-  tree.addTreeSelectionListener({ (_: TreeSelectionEvent) =>
-    update_focus()
-    update_vals()
-  })
   tree.addMouseListener(
     new MouseAdapter {
       override def mouseClicked(e: MouseEvent): Unit = {

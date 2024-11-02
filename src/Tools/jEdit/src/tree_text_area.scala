@@ -32,10 +32,18 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   /* tree view */
 
   val root: DefaultMutableTreeNode = new DefaultMutableTreeNode(root_name)
-
   val tree: JTree = new JTree(root)
-  tree.setRowHeight(0)
-  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+
+  def get_tree_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
+    tree.getLastSelectedPathComponent match {
+      case node: DefaultMutableTreeNode =>
+        val obj = node.getUserObject
+        if (obj != null && which.isDefinedAt(obj)) Some(which(obj))
+        else None
+      case _ => None
+    }
+
+  def handle_tree_selection(e: TreeSelectionEvent): Unit = ()
 
   def clear(): Unit = {
     tree.clearSelection()
@@ -44,6 +52,10 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
 
   def reload(): Unit =
     tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
+
+  tree.setRowHeight(0)
+  tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+  tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
 
 
   /* text area */
