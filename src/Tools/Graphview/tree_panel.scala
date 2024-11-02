@@ -78,8 +78,9 @@ extends BorderPanel {
   })
   tree.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit =
-      if (e.getClickCount == 2)
+      if (e.getClickCount == 2) {
         point_action(tree.getPathForLocation(e.getX, e.getY))
+      }
   })
 
   private val tree_pane = new ScrollPane(Component.wrap(tree))
