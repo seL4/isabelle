@@ -67,7 +67,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* pretty text area */
 
-  private val tree_text_area: Tree_Text_Area =
+  private val output: Tree_Text_Area =
     new Tree_Text_Area(view, root_name = "Threads") {
       override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
         update_focus()
@@ -95,17 +95,15 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   override def detach_operation: Option[() => Unit] =
-    tree_text_area.pretty_text_area.detach_operation
+    output.pretty_text_area.detach_operation
 
-  tree_text_area.init_gui(dockable)
+  output.init_gui(dockable)
 
 
   /* tree view */
 
-  private def tree: Tree_View = tree_text_area.tree
-
   private def tree_selection(): Option[Debugger.Context] =
-    tree_text_area.tree.get_selection({ case c: Debugger.Context => c })
+    output.tree.get_selection({ case c: Debugger.Context => c })
 
   private def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
@@ -122,30 +120,30 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    tree_text_area.tree.clear()
+    output.tree.clear()
 
     for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
       for ((_, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
-      tree_text_area.tree.root.add(thread_node)
+      output.tree.root.add(thread_node)
     }
 
-    tree_text_area.tree.reload_model()
+    output.tree.reload_model()
 
-    tree.expandRow(0)
-    for (i <- Range.inclusive(tree.getRowCount - 1, 1, -1)) tree.expandRow(i)
+    output.tree.expandRow(0)
+    for (i <- Range.inclusive(output.tree.getRowCount - 1, 1, -1)) output.tree.expandRow(i)
 
     new_tree_selection match {
       case Some(c) =>
         val i =
           (for (t <- thread_contexts.iterator.takeWhile(t => c.thread_name != t.thread_name))
             yield t.size).sum
-        tree.addSelectionRow(i + c.index + 1)
+        output.tree.addSelectionRow(i + c.index + 1)
       case None =>
     }
 
-    tree.revalidate()
+    output.tree.revalidate()
   }
 
   def update_vals(): Unit = {
@@ -240,7 +238,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private val zoom =
-    new Font_Info.Zoom { override def changed(): Unit = tree_text_area.handle_resize() }
+    new Font_Info.Zoom { override def changed(): Unit = output.handle_resize() }
 
   private val controls =
     Wrap_Panel(
@@ -248,8 +246,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         break_button, continue_button, step_button, step_over_button, step_out_button,
         context_label, Component.wrap(context_field),
         expression_label, Component.wrap(expression_field), eval_button, sml_button,
-        tree_text_area.pretty_text_area.search_label,
-        tree_text_area.pretty_text_area.search_field, zoom))
+        output.pretty_text_area.search_label,
+        output.pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -275,12 +273,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { tree_text_area.handle_resize() }
+        GUI_Thread.later { output.handle_resize() }
 
       case Debugger.Update =>
         GUI_Thread.later {
           break_button.selected = debugger.is_break()
-          tree_text_area.handle_update()
+          output.handle_update()
         }
     }
 
@@ -288,14 +286,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
     debugger.init(dockable)
-    tree_text_area.handle_update()
+    output.handle_update()
     jEdit.propertiesChanged()
   }
 
   override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
-    tree_text_area.delay_resize.revoke()
+    output.delay_resize.revoke()
     debugger.exit(dockable)
     jEdit.propertiesChanged()
   }
