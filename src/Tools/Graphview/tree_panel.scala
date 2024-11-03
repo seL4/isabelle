@@ -148,11 +148,9 @@ extends BorderPanel {
   def refresh(): Unit = {
     val new_nodes = graphview.visible_graph.topological_order
     if (new_nodes != nodes) {
-      tree.clearSelection
+      tree.clear()
 
       nodes = new_nodes
-
-      tree.root.removeAllChildren
       for (node <- nodes) tree.root.add(new DefaultMutableTreeNode(node))
 
       tree.expandRow(0)
