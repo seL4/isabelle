@@ -29,7 +29,10 @@ class Tree_View(
   }
 
   def reload_model(): Unit =
-    getModel.asInstanceOf[DefaultTreeModel].reload(root)
+    getModel match {
+      case model: DefaultTreeModel => model.reload(root)
+      case _ =>
+    }
 
 
   /* init */
