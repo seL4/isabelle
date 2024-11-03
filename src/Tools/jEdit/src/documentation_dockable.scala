@@ -13,7 +13,7 @@ import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JScrollPane
 
-import org.gjt.sp.jedit.{View, OperatingSystem}
+import org.gjt.sp.jedit.View
 
 
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position) {
@@ -95,8 +95,8 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     tree.setVisibleRowCount(visible)
   }
 
-  private val tree_view = new JScrollPane(tree)
-  tree_view.setMinimumSize(new Dimension(200, 50))
+  private val tree_scroller = new JScrollPane(tree)
+  tree_scroller.setMinimumSize(new Dimension(200, 50))
 
-  set_content(tree_view)
+  set_content(tree_scroller)
 }
