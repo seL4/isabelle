@@ -15,7 +15,6 @@ import scala.collection.mutable
 import java.awt.event.{ActionListener, ActionEvent}
 
 import javax.swing.text.Segment
-import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.Buffer
