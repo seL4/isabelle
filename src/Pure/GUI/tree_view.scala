@@ -1,7 +1,7 @@
 /*  Title:      Pure/GUI/tree_view.scala
     Author:     Makarius
 
-Tree view with adjusted defaults.
+Tree view with sensible defaults.
 */
 
 package isabelle
