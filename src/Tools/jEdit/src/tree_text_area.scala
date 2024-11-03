@@ -13,7 +13,7 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
-import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
+import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.event.TreeSelectionEvent
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -28,28 +28,10 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
 
   /* tree view */
 
-  val root: DefaultMutableTreeNode = new DefaultMutableTreeNode(root_name)
-  val tree: Tree_View = new Tree_View(root, single_selection_mode = true)
-
-  def get_tree_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
-    tree.getLastSelectedPathComponent match {
-      case node: DefaultMutableTreeNode =>
-        val obj = node.getUserObject
-        if (obj != null && which.isDefinedAt(obj)) Some(which(obj))
-        else None
-      case _ => None
-    }
+  val tree: Tree_View =
+    new Tree_View(root = new DefaultMutableTreeNode(root_name), single_selection_mode = true)
 
   def handle_tree_selection(e: TreeSelectionEvent): Unit = ()
-
-  def clear(): Unit = {
-    tree.clearSelection()
-    root.removeAllChildren()
-  }
-
-  def reload(): Unit =
-    tree.getModel.asInstanceOf[DefaultTreeModel].reload(root)
-
   tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
 
 

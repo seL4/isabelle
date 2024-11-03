@@ -105,7 +105,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private def tree: Tree_View = tree_text_area.tree
 
   private def tree_selection(): Option[Debugger.Context] =
-    tree_text_area.get_tree_selection({ case c: Debugger.Context => c })
+    tree_text_area.tree.get_selection({ case c: Debugger.Context => c })
 
   private def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
@@ -122,16 +122,16 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    tree_text_area.clear()
+    tree_text_area.tree.clear()
 
     for (thread <- thread_contexts) {
       val thread_node = new DefaultMutableTreeNode(thread)
       for ((_, i) <- thread.debug_states.zipWithIndex)
         thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
-      tree_text_area.root.add(thread_node)
+      tree_text_area.tree.root.add(thread_node)
     }
 
-    tree_text_area.reload()
+    tree_text_area.tree.reload_model()
 
     tree.expandRow(0)
     for (i <- Range.inclusive(tree.getRowCount - 1, 1, -1)) tree.expandRow(i)

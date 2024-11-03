@@ -24,22 +24,21 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     override def toString: String = string
   }
 
-  private val root = new DefaultMutableTreeNode
+  private val tree = new Tree_View(single_selection_mode = true)
+
   for (section <- doc_contents.sections) {
-    root.add(new DefaultMutableTreeNode(section.title))
+    tree.root.add(new DefaultMutableTreeNode(section.title))
     section.entries.foreach(
       {
         case entry @ Doc.Doc(name, title, _) =>
           val string = "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
-          root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+          tree.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
             .add(new DefaultMutableTreeNode(Node(string, entry)))
         case entry @ Doc.Text_File(name: String, _) =>
-          root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
+          tree.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
             .add(new DefaultMutableTreeNode(Node(name, entry)))
       })
   }
-
-  private val tree = new Tree_View(root, single_selection_mode = true)
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 

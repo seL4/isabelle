@@ -64,9 +64,8 @@ extends BorderPanel {
   /* tree */
 
   private var nodes = List.empty[Graph_Display.Node]
-  private val root = new DefaultMutableTreeNode("Nodes")
 
-  val tree: Tree_View = new Tree_View(root)
+  val tree: Tree_View = new Tree_View(root = new DefaultMutableTreeNode("Nodes"))
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =
@@ -153,8 +152,8 @@ extends BorderPanel {
 
       nodes = new_nodes
 
-      root.removeAllChildren
-      for (node <- nodes) root.add(new DefaultMutableTreeNode(node))
+      tree.root.removeAllChildren
+      for (node <- nodes) tree.root.add(new DefaultMutableTreeNode(node))
 
       tree.expandRow(0)
       tree.revalidate()
