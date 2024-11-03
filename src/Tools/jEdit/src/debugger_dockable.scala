@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
-import javax.swing.{JTree, JMenuItem}
+import javax.swing.JMenuItem
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.event.TreeSelectionEvent
 
@@ -102,7 +102,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* tree view */
 
-  private def tree: JTree = tree_text_area.tree
+  private def tree: Tree_View = tree_text_area.tree
 
   private def tree_selection(): Option[Debugger.Context] =
     tree_text_area.get_tree_selection({ case c: Debugger.Context => c })

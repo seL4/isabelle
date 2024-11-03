@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
-import javax.swing.{JTree, JComponent}
+import javax.swing.JComponent
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel}
 import javax.swing.event.TreeSelectionEvent
 
@@ -29,7 +29,7 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   /* tree view */
 
   val root: DefaultMutableTreeNode = new DefaultMutableTreeNode(root_name)
-  val tree: JTree = GUI.init_tree(root, single_selection_mode = true)
+  val tree: Tree_View = new Tree_View(root, single_selection_mode = true)
 
   def get_tree_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     tree.getLastSelectedPathComponent match {

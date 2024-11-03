@@ -39,7 +39,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       })
   }
 
-  private val tree = GUI.init_tree(root, single_selection_mode = true)
+  private val tree = new Tree_View(root, single_selection_mode = true)
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 

@@ -11,7 +11,6 @@ import isabelle._
 
 import java.awt.{Dimension, Rectangle}
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
-import javax.swing.JTree
 import javax.swing.tree.{DefaultMutableTreeNode, TreePath}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
 
@@ -67,7 +66,7 @@ extends BorderPanel {
   private var nodes = List.empty[Graph_Display.Node]
   private val root = new DefaultMutableTreeNode("Nodes")
 
-  val tree: JTree = GUI.init_tree(root)
+  val tree: Tree_View = new Tree_View(root)
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =

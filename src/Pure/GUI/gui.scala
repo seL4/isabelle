@@ -12,9 +12,8 @@ import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager
 import java.awt.event.{KeyAdapter, KeyEvent, ItemListener, ItemEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane, JTree,
+import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
   RootPaneContainer, JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
-import javax.swing.tree.{MutableTreeNode, TreeSelectionModel}
 
 import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
   Orientation}
@@ -257,25 +256,6 @@ object GUI {
     }
 
     selection.index = 3
-  }
-
-
-  /* tree view */
-
-  def init_tree(root: MutableTreeNode, single_selection_mode: Boolean = false): JTree = {
-    val tree = new JTree(root)
-    tree.setRowHeight(0)
-
-    if (single_selection_mode) {
-      tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
-    }
-
-    // follow jEdit
-    if (!GUI.is_macos_laf) {
-      tree.putClientProperty("JTree.lineStyle", "Angled")
-    }
-
-    tree
   }
 
 
