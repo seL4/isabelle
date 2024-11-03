@@ -49,6 +49,10 @@ object GUI {
         .filterNot(info => old_lafs(info.getClassName))
     val more_lafs = look_and_feels.map(_.info)
     UIManager.setInstalledLookAndFeels((more_lafs ::: lafs).toArray)
+
+    // see https://www.formdev.com/flatlaf/customizing
+    UIManager.put("Component.arrowType", "triangle")
+    UIManager.put("ScrollBar.showButtons", true)
   }
 
 
@@ -264,6 +268,11 @@ object GUI {
 
     if (single_selection_mode) {
       tree.getSelectionModel.setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION)
+    }
+
+    // follow jEdit
+    if (!GUI.is_macos_laf) {
+      tree.putClientProperty("JTree.lineStyle", "Angled")
     }
 
     tree
