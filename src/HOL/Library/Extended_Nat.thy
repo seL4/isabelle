@@ -656,20 +656,21 @@ definition Inf_enat :: "enat set \<Rightarrow> enat" where
 
 definition Sup_enat :: "enat set \<Rightarrow> enat" where
   "Sup_enat A = (if A = {} then 0 else if finite A then Max A else \<infinity>)"
+
 instance
 proof
   fix x :: "enat" and A :: "enat set"
-  { assume "x \<in> A" then show "Inf A \<le> x"
-      unfolding Inf_enat_def by (auto intro: Least_le) }
-  { assume "\<And>y. y \<in> A \<Longrightarrow> x \<le> y" then show "x \<le> Inf A"
-      unfolding Inf_enat_def
-      by (cases "A = {}") (auto intro: LeastI2_ex) }
-  { assume "x \<in> A" then show "x \<le> Sup A"
-      unfolding Sup_enat_def by (cases "finite A") auto }
-  { assume "\<And>y. y \<in> A \<Longrightarrow> y \<le> x" then show "Sup A \<le> x"
-      unfolding Sup_enat_def using finite_enat_bounded by auto }
-qed (simp_all add:
- inf_enat_def sup_enat_def bot_enat_def top_enat_def Inf_enat_def Sup_enat_def)
+  show "x \<in> A \<Longrightarrow> Inf A \<le> x"
+    unfolding Inf_enat_def by (auto intro: Least_le)
+  show "(\<And>y. y \<in> A \<Longrightarrow> x \<le> y) \<Longrightarrow> x \<le> Inf A"
+    unfolding Inf_enat_def
+    by (cases "A = {}") (auto intro: LeastI2_ex)
+  show "x \<in> A \<Longrightarrow> x \<le> Sup A"
+    unfolding Sup_enat_def by (cases "finite A") auto
+  show "(\<And>y. y \<in> A \<Longrightarrow> y \<le> x) \<Longrightarrow> Sup A \<le> x"
+    unfolding Sup_enat_def using finite_enat_bounded by auto
+qed (simp_all add: inf_enat_def sup_enat_def bot_enat_def top_enat_def Inf_enat_def Sup_enat_def)
+
 end
 
 instance enat :: complete_linorder ..

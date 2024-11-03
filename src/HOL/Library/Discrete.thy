@@ -37,7 +37,7 @@ using \<open>n > 0\<close> proof (induct n rule: log.induct)
     with \<open>n \<ge> 2\<close> show ?thesis by (rule double)
   qed
 qed
-  
+
 lemma log_zero [simp]: "log 0 = 0"
   by (simp add: log.simps)
 
@@ -177,11 +177,8 @@ lemma sqrt_aux:
   fixes n :: nat
   shows "finite {m. m\<^sup>2 \<le> n}" and "{m. m\<^sup>2 \<le> n} \<noteq> {}"
 proof -
-  { fix m
-    assume "m\<^sup>2 \<le> n"
-    then have "m \<le> n"
-      by (cases m) (simp_all add: power2_eq_square)
-  } note ** = this
+  have **: "m \<le> n" if "m\<^sup>2 \<le> n" for m
+    using that by (cases m) (simp_all add: power2_eq_square)
   then have "{m. m\<^sup>2 \<le> n} \<subseteq> {m. m \<le> n}" by auto
   then show "finite {m. m\<^sup>2 \<le> n}" by (rule finite_subset) rule
   have "0\<^sup>2 \<le> n" by simp
@@ -295,14 +292,14 @@ lemma sqrt_le: "sqrt n \<le> n"
   using sqrt_aux [of n] by (auto simp add: sqrt_def intro: power2_nat_le_imp_le)
 
 text \<open>Additional facts about the discrete square root, thanks to Julian Biendarra, Manuel Eberl\<close>
-  
+
 lemma Suc_sqrt_power2_gt: "n < (Suc (Discrete.sqrt n))^2"
   using Max_ge[OF Discrete.sqrt_aux(1), of "Discrete.sqrt n + 1" n]
   by (cases "n < (Suc (Discrete.sqrt n))^2") (simp_all add: Discrete.sqrt_def)
 
 lemma le_sqrt_iff: "x \<le> Discrete.sqrt y \<longleftrightarrow> x^2 \<le> y"
 proof -
-  have "x \<le> Discrete.sqrt y \<longleftrightarrow> (\<exists>z. z\<^sup>2 \<le> y \<and> x \<le> z)"    
+  have "x \<le> Discrete.sqrt y \<longleftrightarrow> (\<exists>z. z\<^sup>2 \<le> y \<and> x \<le> z)"
     using Max_ge_iff[OF Discrete.sqrt_aux, of x y] by (simp add: Discrete.sqrt_def)
   also have "\<dots> \<longleftrightarrow> x^2 \<le> y"
   proof safe
@@ -311,7 +308,7 @@ proof -
   qed auto
   finally show ?thesis .
 qed
-  
+
 lemma le_sqrtI: "x^2 \<le> y \<Longrightarrow> x \<le> Discrete.sqrt y"
   by (simp add: le_sqrt_iff)
 
@@ -321,14 +318,14 @@ lemma sqrt_le_iff: "Discrete.sqrt y \<le> x \<longleftrightarrow> (\<forall>z. z
 lemma sqrt_leI:
   "(\<And>z. z^2 \<le> y \<Longrightarrow> z \<le> x) \<Longrightarrow> Discrete.sqrt y \<le> x"
   by (simp add: sqrt_le_iff)
-    
+
 lemma sqrt_Suc:
   "Discrete.sqrt (Suc n) = (if \<exists>m. Suc n = m^2 then Suc (Discrete.sqrt n) else Discrete.sqrt n)"
 proof cases
   assume "\<exists> m. Suc n = m^2"
   then obtain m where m_def: "Suc n = m^2" by blast
   then have lhs: "Discrete.sqrt (Suc n) = m" by simp
-  from m_def sqrt_power2_le[of n] 
+  from m_def sqrt_power2_le[of n]
     have "(Discrete.sqrt n)^2 < m^2" by linarith
   with power2_less_imp_less have lt_m: "Discrete.sqrt n < m" by blast
   from m_def Suc_sqrt_power2_gt[of "n"]
@@ -340,7 +337,7 @@ proof cases
 next
   assume asm: "\<not> (\<exists> m. Suc n = m^2)"
   hence "Suc n \<noteq> (Discrete.sqrt (Suc n))^2" by simp
-  with sqrt_power2_le[of "Suc n"] 
+  with sqrt_power2_le[of "Suc n"]
     have "Discrete.sqrt (Suc n) \<le> Discrete.sqrt n" by (intro le_sqrtI) linarith
   moreover have "Discrete.sqrt (Suc n) \<ge> Discrete.sqrt n"
     by (intro monoD[OF mono_sqrt]) simp_all

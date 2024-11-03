@@ -471,11 +471,12 @@ lemma finite_prod_fun:
 proof -
   have *: "finite {k. (\<exists>l. f1 l \<noteq> 0 \<and> (\<exists>q. f2 q \<noteq> 0 \<and> k = l + q))}"
     using assms by simp
-  { fix k l
+  have aux: "sum f2 {q. f2 q \<noteq> 0 \<and> k = l + q} = (\<Sum>q. (f2 q when k = l + q))" for k l
+  proof -
     have "{q. (f2 q when k = l + q) \<noteq> 0} \<subseteq> {q. f2 q \<noteq> 0 \<and> k = l + q}" by auto
-    with fin2 have "sum f2 {q. f2 q \<noteq> 0 \<and> k = l + q} = (\<Sum>q. (f2 q when k = l + q))"
-      by (simp add: Sum_any.expand_superset [of "{q. f2 q \<noteq> 0 \<and> k = l + q}"]) }
-  note aux = this
+    with fin2 show ?thesis
+      by (simp add: Sum_any.expand_superset [of "{q. f2 q \<noteq> 0 \<and> k = l + q}"])
+  qed
   have "{k. (\<Sum>l. f1 l * sum f2 {q. f2 q \<noteq> 0 \<and> k = l + q}) \<noteq> 0}
     \<subseteq> {k. (\<exists>l. f1 l * sum f2 {q. f2 q \<noteq> 0 \<and> k = l + q} \<noteq> 0)}"
     by (auto elim!: Sum_any.not_neutral_obtains_not_neutral)
@@ -526,7 +527,7 @@ proof
       have "?lhs k = (\<Sum>(ab, c). (\<Sum>(a, b). f a * g b when ab = a + b) * h c when k = ab + c)"
         by (simp add: prod_fun_unfold_prod)
       also have "\<dots> = (\<Sum>(ab, c). (\<Sum>(a, b). f a * g b * h c when k = ab + c when ab = a + b))"
-        using fin_fg 
+        using fin_fg
         apply (simp add: Sum_any_left_distrib split_def flip: Sum_any_when_independent)
         apply (simp add: when_when when_mult mult_when conj_commute)
         done
@@ -635,7 +636,7 @@ proof
     assume fin_g: "finite {k. g k \<noteq> 0}"
     assume fin_h: "finite {k. h k \<noteq> 0}"
     show "prod_fun (\<lambda>k. f k + g k) h = (\<lambda>k. prod_fun f h k + prod_fun g h k)"
-      by (auto simp: prod_fun_def fun_eq_iff algebra_simps 
+      by (auto simp: prod_fun_def fun_eq_iff algebra_simps
             Sum_any.distrib fin_f fin_g finite_mult_not_eq_zero_rightI)
   qed
 qed
@@ -921,14 +922,15 @@ instance poly_mapping :: (linorder, "{ordered_comm_monoid_add, ordered_ab_semigr
 proof (intro_classes, transfer)
   fix f g h :: "'a \<Rightarrow> 'b"
   assume *: "less_fun f g \<or> f = g"
-  { assume "less_fun f g"
-    then obtain k where "f k < g k" "(\<And>k'. k' < k \<Longrightarrow> f k' = g k')"
+  have "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k)" if "less_fun f g"
+  proof -
+    from that obtain k where "f k < g k" "(\<And>k'. k' < k \<Longrightarrow> f k' = g k')"
       by (blast elim!: less_funE)
     then have "h k + f k < h k + g k" "(\<And>k'. k' < k \<Longrightarrow> h k' + f k' = h k' + g k')"
       by simp_all
-    then have "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k)"
+    then show ?thesis
       by (blast intro: less_funI)
-  }
+  qed
   with * show "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k) \<or> (\<lambda>k. h k + f k) = (\<lambda>k. h k + g k)"
     by (auto simp: fun_eq_iff)
 qed
@@ -1273,12 +1275,14 @@ lemma mult_map_scale_conv_mult: "map ((*) s) p = single 0 s * p"
 proof(transfer fixing: s)
   fix p :: "'a \<Rightarrow> 'b"
   assume *: "finite {x. p x \<noteq> 0}"
-  { fix x
-    have "prod_fun (\<lambda>k'. s when 0 = k') p x =
-          (\<Sum>l :: 'a. if l = 0 then s * (\<Sum>q. p q when x = q) else 0)"
-      by(auto simp: prod_fun_def when_def intro: Sum_any.cong simp del: Sum_any.delta)
-    also have "\<dots> = (\<lambda>k. s * p k when p k \<noteq> 0) x" by(simp add: when_def)
-    also note calculation }
+  have "prod_fun (\<lambda>k'. s when 0 = k') p x = (\<lambda>k. s * p k when p k \<noteq> 0) x" (is "?lhs = ?rhs") for x
+  proof -
+    have "?lhs = (\<Sum>l :: 'a. if l = 0 then s * (\<Sum>q. p q when x = q) else 0)"
+      by (auto simp: prod_fun_def when_def intro: Sum_any.cong simp del: Sum_any.delta)
+    also have "\<dots> = ?rhs"
+      by (simp add: when_def)
+    finally show ?thesis .
+  qed
   then show "(\<lambda>k. s * p k when p k \<noteq> 0) = prod_fun (\<lambda>k'. s when 0 = k') p"
     by(simp add: fun_eq_iff)
 qed
@@ -1345,17 +1349,18 @@ lemma keys_nth [simp]:
   "keys (nth xs) =  fst ` {(n, v) \<in> set (enumerate 0 xs). v \<noteq> 0}"
 proof transfer
   fix xs :: "'a list"
-  { fix n
-    assume "nth_default 0 xs n \<noteq> 0"
-    then have "n < length xs" and "xs ! n \<noteq> 0"
+  have "n \<in> fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
+    if "nth_default 0 xs n \<noteq> 0" for n
+  proof -
+    from that have "n < length xs" and "xs ! n \<noteq> 0"
       by (auto simp: nth_default_def split: if_splits)
     then have "(n, xs ! n) \<in> {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}" (is "?x \<in> ?A")
       by (auto simp: in_set_conv_nth enumerate_eq_zip)
     then have "fst ?x \<in> fst ` ?A"
       by blast
-    then have "n \<in> fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
+    then show ?thesis
       by simp
-  }
+  qed
   then show "{k. nth_default 0 xs k \<noteq> 0} = fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
     by (auto simp: in_enumerate_iff_nth_default_eq)
 qed
@@ -1535,7 +1540,7 @@ next
   case False
   then show ?thesis
     by (simp add: Poly_Mapping.poly_mapping_size_def in_keys_iff)
-qed 
+qed
 
 lemma poly_mapping_size_estimation:
   "k \<in> keys m \<Longrightarrow> y \<le> f k + g (lookup m k) \<Longrightarrow> y < poly_mapping_size m"
@@ -1654,7 +1659,7 @@ lemma finite_cmul_nonzero: "finite {x. c * Poly_Mapping.lookup a x \<noteq> (0::
 lemma keys_cmul: "Poly_Mapping.keys(frag_cmul c a) \<subseteq> Poly_Mapping.keys a"
   using finite_cmul_nonzero [of c a]
   by (metis lookup_frag_cmul mult_zero_right not_in_keys_iff_lookup_eq_zero subsetI)
-  
+
 
 lemma keys_cmul_iff [iff]: "i \<in> Poly_Mapping.keys (frag_cmul c x) \<longleftrightarrow> i \<in> Poly_Mapping.keys x \<and> c \<noteq> 0"
   by (metis in_keys_iff lookup_frag_cmul mult_eq_0_iff)
@@ -1662,7 +1667,7 @@ lemma keys_cmul_iff [iff]: "i \<in> Poly_Mapping.keys (frag_cmul c x) \<longleft
 lemma keys_minus [simp]: "Poly_Mapping.keys(-a) = Poly_Mapping.keys a"
   by (metis (no_types, opaque_lifting) in_keys_iff lookup_uminus neg_equal_0_iff_equal subsetI subset_antisym)
 
-lemma keys_diff: 
+lemma keys_diff:
   "Poly_Mapping.keys(a - b) \<subseteq> Poly_Mapping.keys a \<union> Poly_Mapping.keys b"
   by (auto simp: in_keys_iff lookup_minus)
 
@@ -1726,15 +1731,15 @@ lemma frag_extend_minus:
 lemma frag_extend_add:
   "frag_extend f (a+b) = (frag_extend f a) + (frag_extend f b)"
 proof -
-  have *: "(\<Sum>i\<in>Poly_Mapping.keys a. frag_cmul (poly_mapping.lookup a i) (f i)) 
+  have *: "(\<Sum>i\<in>Poly_Mapping.keys a. frag_cmul (poly_mapping.lookup a i) (f i))
          = (\<Sum>i\<in>Poly_Mapping.keys a \<union> Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup a i) (f i))"
-          "(\<Sum>i\<in>Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup b i) (f i)) 
+          "(\<Sum>i\<in>Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup b i) (f i))
          = (\<Sum>i\<in>Poly_Mapping.keys a \<union> Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup b i) (f i))"
     by (auto simp: in_keys_iff intro: sum.mono_neutral_cong_left)
   have "frag_extend f (a+b) = (\<Sum>i\<in>Poly_Mapping.keys (a + b).
        frag_cmul (poly_mapping.lookup a i) (f i) + frag_cmul (poly_mapping.lookup b i) (f i)) "
     by (auto simp: frag_extend_def Poly_Mapping.lookup_add frag_cmul_distrib)
-  also have "... = (\<Sum>i \<in> Poly_Mapping.keys a \<union> Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup a i) (f i) 
+  also have "... = (\<Sum>i \<in> Poly_Mapping.keys a \<union> Poly_Mapping.keys b. frag_cmul (poly_mapping.lookup a i) (f i)
                          + frag_cmul (poly_mapping.lookup b i) (f i))"
   proof (rule sum.mono_neutral_cong_left)
     show "\<forall>i\<in>keys a \<union> keys b - keys (a + b).
@@ -1830,7 +1835,7 @@ lemma frag_split:
   fixes c :: "'a \<Rightarrow>\<^sub>0 int"
   assumes "Poly_Mapping.keys c \<subseteq> S \<union> T"
   obtains d e where "Poly_Mapping.keys d \<subseteq> S" "Poly_Mapping.keys e \<subseteq> T" "d + e = c"
-proof 
+proof
   let ?d = "frag_extend (\<lambda>f. if f \<in> S then frag_of f else 0) c"
   let ?e = "frag_extend (\<lambda>f. if f \<in> S then 0 else frag_of f) c"
   show "Poly_Mapping.keys ?d \<subseteq> S" "Poly_Mapping.keys ?e \<subseteq> T"

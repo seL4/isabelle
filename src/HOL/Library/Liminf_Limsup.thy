@@ -431,16 +431,14 @@ lemma Liminf_compose_continuous_mono:
   assumes c: "continuous_on UNIV f" and am: "mono f" and F: "F \<noteq> bot"
   shows "Liminf F (\<lambda>n. f (g n)) = f (Liminf F g)"
 proof -
-  { fix P assume "eventually P F"
-    have "\<exists>x. P x"
-    proof (rule ccontr)
-      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
-        by auto
-      with \<open>eventually P F\<close> F show False
-        by auto
-    qed }
-  note * = this
-
+  have *: "\<exists>x. P x" if "eventually P F" for P
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "P = (\<lambda>x. False)"
+      by auto
+    with \<open>eventually P F\<close> F show False
+      by auto
+  qed
   have "f (SUP P\<in>{P. eventually P F}. Inf (g ` Collect P)) =
     Sup (f ` (\<lambda>P. Inf (g ` Collect P)) ` {P. eventually P F})"
     using am continuous_on_imp_continuous_within [OF c]
@@ -449,7 +447,7 @@ proof -
     by (simp add: Liminf_def image_comp)
   also have "\<dots> = (SUP P \<in> {P. eventually P F}. Inf (f ` (g ` Collect P)))"
     using * continuous_at_Inf_mono [OF am continuous_on_imp_continuous_within [OF c]]
-    by auto 
+    by auto
   finally show ?thesis by (auto simp: Liminf_def image_comp)
 qed
 
@@ -458,16 +456,14 @@ lemma Limsup_compose_continuous_mono:
   assumes c: "continuous_on UNIV f" and am: "mono f" and F: "F \<noteq> bot"
   shows "Limsup F (\<lambda>n. f (g n)) = f (Limsup F g)"
 proof -
-  { fix P assume "eventually P F"
-    have "\<exists>x. P x"
-    proof (rule ccontr)
-      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
-        by auto
-      with \<open>eventually P F\<close> F show False
-        by auto
-    qed }
-  note * = this
-
+  have *: "\<exists>x. P x" if "eventually P F" for P
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "P = (\<lambda>x. False)"
+      by auto
+    with \<open>eventually P F\<close> F show False
+      by auto
+  qed
   have "f (INF P\<in>{P. eventually P F}. Sup (g ` Collect P)) =
     Inf (f ` (\<lambda>P. Sup (g ` Collect P)) ` {P. eventually P F})"
     using am continuous_on_imp_continuous_within [OF c]
@@ -513,16 +509,13 @@ lemma Limsup_compose_continuous_antimono:
   assumes c: "continuous_on UNIV f" and am: "antimono f" and F: "F \<noteq> bot"
   shows "Limsup F (\<lambda>n. f (g n)) = f (Liminf F g)"
 proof -
-  { fix P assume "eventually P F"
-    have "\<exists>x. P x"
-    proof (rule ccontr)
-      assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
-        by auto
-      with \<open>eventually P F\<close> F show False
-        by auto
-    qed }
-  note * = this
-
+  have *: "\<exists>x. P x" if "eventually P F" for P
+  proof (rule ccontr)
+    assume "\<not> (\<exists>x. P x)" then have "P = (\<lambda>x. False)"
+      by auto
+    with \<open>eventually P F\<close> F show False
+      by auto
+  qed
   have "f (SUP P\<in>{P. eventually P F}. Inf (g ` Collect P)) =
     Inf (f ` (\<lambda>P. Inf (g ` Collect P)) ` {P. eventually P F})"
     using am continuous_on_imp_continuous_within [OF c]

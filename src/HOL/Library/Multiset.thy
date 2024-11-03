@@ -636,7 +636,7 @@ lemma set_mset_mono:
 lemma mset_subset_eq_insertD:
   assumes "add_mset x A \<subseteq># B"
   shows "x \<in># B \<and> A \<subset># B"
-proof 
+proof
   show "x \<in># B"
     using assms by (simp add: mset_subset_eqD)
   have "A \<subseteq># add_mset x A"
@@ -728,7 +728,7 @@ lemma count_union_mset [simp]:
   by (simp add: union_mset_def)
 
 global_interpretation subset_mset: semilattice_neutr_order \<open>(\<union>#)\<close> \<open>{#}\<close> \<open>(\<supseteq>#)\<close> \<open>(\<supset>#)\<close>
-proof 
+proof
   show "\<And>a b. (b \<subseteq># a) = (a = a \<union># b)"
     by (simp add: Diff_eq_empty_iff_mset union_mset_def)
   show "\<And>a b. (b \<subset># a) = (a = a \<union># b \<and> a \<noteq> b)"
@@ -2224,7 +2224,7 @@ lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
 lemma count_mset_set': "count (mset_set A) x = (if finite A \<and> x \<in> A then 1 else 0)"
   by auto
 
-lemma subset_imp_msubset_mset_set: 
+lemma subset_imp_msubset_mset_set:
   assumes "A \<subseteq> B" "finite B"
   shows   "mset_set A \<subseteq># mset_set B"
 proof (rule mset_subset_eqI)
@@ -2958,7 +2958,7 @@ proof (induction M)
   show ?case
   proof (cases "x \<in> set_mset M")
     case True
-    have "(\<Prod>y\<in>set_mset (add_mset x M). f y ^ count (add_mset x M) y) = 
+    have "(\<Prod>y\<in>set_mset (add_mset x M). f y ^ count (add_mset x M) y) =
             (\<Prod>y\<in>set_mset M. (if y = x then f x else 1) * f y ^ count M y)"
       using True add by (intro prod.cong) auto
     also have "\<dots> = f x * (\<Prod>y\<in>set_mset M. f y ^ count M y)"
@@ -2970,7 +2970,7 @@ proof (induction M)
     hence "(\<Prod>y\<in>set_mset (add_mset x M). f y ^ count (add_mset x M) y) =
               f x * (\<Prod>y\<in>set_mset M. f y ^ count (add_mset x M) y)"
       by (auto simp: not_in_iff)
-    also have "(\<Prod>y\<in>set_mset M. f y ^ count (add_mset x M) y) = 
+    also have "(\<Prod>y\<in>set_mset M. f y ^ count (add_mset x M) y) =
                  (\<Prod>y\<in>set_mset M. f y ^ count M y)"
       using False by (intro prod.cong) auto
     also note add.IH [symmetric]
@@ -3942,9 +3942,8 @@ proof -
       using one_step_implies_mult[of "M - M \<inter># N" "N - M \<inter># N" R "M \<inter># N"] *
       by (auto simp: multp_code_def Let_def)
   next
-    { fix I J K :: "'a multiset" assume "(I + J) \<inter># (I + K) = {#}"
-      then have "I = {#}" by (metis inter_union_distrib_right union_eq_empty)
-    } note [dest!] = this
+    have [dest!]: "I = {#}" if "(I + J) \<inter># (I + K) = {#}" for I J K
+      using that by (metis inter_union_distrib_right union_eq_empty)
     assume ?R thus ?L
       using mult_cancel_max
       using mult_implies_one_step[OF assms(2), of "N - M \<inter># N" "M - M \<inter># N"]
@@ -3975,11 +3974,14 @@ lemma multeqp_code_iff_reflcl_mult:
   assumes "irrefl_on (set_mset N \<inter> set_mset M) R" and "trans R" and "\<And>x y. P x y \<longleftrightarrow> (x, y) \<in> R"
   shows "multeqp_code P N M \<longleftrightarrow> (N, M) \<in> (mult R)\<^sup>="
 proof -
-  { assume "N \<noteq> M" "M - M \<inter># N = {#}"
-    then obtain y where "count N y \<noteq> count M y" by (auto simp flip: count_inject)
-    then have "\<exists>y. count M y < count N y" using \<open>M - M \<inter># N = {#}\<close>
+  have "\<exists>y. count M y < count N y" if "N \<noteq> M" "M - M \<inter># N = {#}"
+  proof -
+    from that obtain y where "count N y \<noteq> count M y"
+      by (auto simp flip: count_inject)
+    then show ?thesis
+      using \<open>M - M \<inter># N = {#}\<close>
       by (auto simp flip: count_inject dest!: le_neq_implies_less fun_cong[of _ _ y])
-  }
+  qed
   then have "multeqp_code P N M \<longleftrightarrow> multp_code P N M \<or> N = M"
     by (auto simp: multeqp_code_def multp_code_def Let_def in_diff_count)
   thus ?thesis
@@ -4538,7 +4540,7 @@ qed
 lemma ex_mset: "\<exists>xs. mset xs = X"
   by (induct X) (simp, metis mset.simps(2))
 
-inductive pred_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> bool" 
+inductive pred_mset :: "('a \<Rightarrow> bool) \<Rightarrow> 'a multiset \<Rightarrow> bool"
 where
   "pred_mset P {#}"
 | "\<lbrakk>P a; pred_mset P M\<rbrakk> \<Longrightarrow> pred_mset P (add_mset a M)"

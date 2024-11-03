@@ -1163,7 +1163,7 @@ next
   case False
   then obtain p q where "x = ereal p" "y = ereal q"
     by (metis MInfty_eq_minfinity ereal.distinct(3) uminus_ereal.elims)
-  then show ?thesis 
+  then show ?thesis
     by (metis assms field_le_epsilon ereal_less(2) ereal_less_eq(3) plus_ereal.simps(1))
 qed
 
@@ -1857,7 +1857,7 @@ next
     by (metis MInfty_eq_minfinity ereal.distinct(3) uminus_ereal.elims)
   moreover have "\<And>x. \<lbrakk>q < x; x < p\<rbrakk> \<Longrightarrow> x \<in> real_of_ereal ` {ereal q<..<ereal p}"
     by (metis greaterThanLessThan_iff imageI less_ereal.simps(1) real_of_ereal.simps(1))
-  ultimately show ?thesis 
+  ultimately show ?thesis
     by (auto elim!: less_ereal.elims)
 qed
 
@@ -2026,17 +2026,15 @@ lemma ereal_less_divide_iff: "0 < (c::ereal) \<Longrightarrow> c < \<infinity> \
 lemma tendsto_cmult_ereal[tendsto_intros, simp, intro]:
   assumes c: "\<bar>c\<bar> \<noteq> \<infinity>" and f: "(f \<longlongrightarrow> x) F" shows "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F"
 proof -
-  { fix c :: ereal assume "0 < c" "c < \<infinity>"
-    then have "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F"
-      apply (intro tendsto_compose[OF _ f])
-      apply (auto intro!: order_tendstoI simp: eventually_at_topological)
-      apply (rule_tac x="{a/c <..}" in exI)
-      apply (auto split: ereal.split simp: ereal_divide_less_iff mult.commute) []
-      apply (rule_tac x="{..< a/c}" in exI)
-      apply (auto split: ereal.split simp: ereal_less_divide_iff mult.commute) []
-      done }
-  note * = this
-
+  have *: "((\<lambda>x. c * f x::ereal) \<longlongrightarrow> c * x) F" if "0 < c" "c < \<infinity>" for c :: ereal
+    using that
+    apply (intro tendsto_compose[OF _ f])
+    apply (auto intro!: order_tendstoI simp: eventually_at_topological)
+     apply (rule_tac x="{a/c <..}" in exI)
+     apply (auto split: ereal.split simp: ereal_divide_less_iff mult.commute) []
+    apply (rule_tac x="{..< a/c}" in exI)
+    apply (auto split: ereal.split simp: ereal_less_divide_iff mult.commute) []
+    done
   have "((0 < c \<and> c < \<infinity>) \<or> (-\<infinity> < c \<and> c < 0) \<or> c = 0)"
     using c by (cases c) auto
   then show ?thesis
@@ -2267,9 +2265,8 @@ lemma INF_ereal_minus_right:
   assumes "I \<noteq> {}" and "\<bar>c\<bar> \<noteq> \<infinity>"
   shows "(INF i\<in>I. c - f i) = c - (SUP i\<in>I. f i::ereal)"
 proof -
-  { fix b have "(-c) + b = - (c - b)"
-      using \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close> by (cases c b rule: ereal2_cases) auto }
-  note * = this
+  have *: "(- c) + b = - (c - b)" for b
+    using \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close> by (cases c b rule: ereal2_cases) auto
   show ?thesis
     using SUP_ereal_add_right[OF \<open>I \<noteq> {}\<close>, of "-c" f] \<open>\<bar>c\<bar> \<noteq> \<infinity>\<close>
     by (auto simp add: * ereal_SUP_uminus_eq)
@@ -2359,10 +2356,8 @@ lemma INF_ereal_add:
 proof -
   have INF_less: "(INF i. f i) < \<infinity>" "(INF i. g i) < \<infinity>"
     using assms unfolding INF_less_iff by auto
-  { fix a b :: ereal assume "a \<noteq> \<infinity>" "b \<noteq> \<infinity>"
-    then have "- ((- a) + (- b)) = a + b"
-      by (cases a b rule: ereal2_cases) auto }
-  note * = this
+  have *: "- ((- a) + (- b)) = a + b" if "a \<noteq> \<infinity>" "b \<noteq> \<infinity>" for a b :: ereal
+    using that by (cases a b rule: ereal2_cases) auto
   have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
     by (simp add: fin *)
   also have "\<dots> = Inf (f ` UNIV) + Inf (g ` UNIV)"
@@ -2953,8 +2948,8 @@ lemma tendsto_add_ereal_nonneg:
   fixes x y :: "ereal"
   assumes "x \<noteq> -\<infinity>" "y \<noteq> -\<infinity>" "(f \<longlongrightarrow> x) F" "(g \<longlongrightarrow> y) F"
   shows "((\<lambda>x. f x + g x) \<longlongrightarrow> x + y) F"
-proof cases
-  assume "x = \<infinity> \<or> y = \<infinity>"
+proof (cases "x = \<infinity> \<or> y = \<infinity>")
+  case True
   moreover
   { fix y :: ereal and f g :: "'a \<Rightarrow> ereal" assume "y \<noteq> -\<infinity>" "(f \<longlongrightarrow> \<infinity>) F" "(g \<longlongrightarrow> y) F"
     then obtain y' where "-\<infinity> < y'" "y' < y"
@@ -2974,7 +2969,7 @@ proof cases
   ultimately show ?thesis
     using assms by (auto simp: add_ac)
 next
-  assume "\<not> (x = \<infinity> \<or> y = \<infinity>)"
+  case False
   with assms tendsto_add_ereal[of x y f F g]
   show ?thesis
     by auto
@@ -3939,7 +3934,7 @@ lemma continuous_on_iff_real:
   fixes f :: "'a::t2_space \<Rightarrow> ereal"
   assumes "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
   shows "continuous_on A f \<longleftrightarrow> continuous_on A (real_of_ereal \<circ> f)"
-proof 
+proof
   assume L: "continuous_on A f"
   have "f ` A \<subseteq> UNIV - {\<infinity>, -\<infinity>}"
     using assms by force
@@ -3950,7 +3945,7 @@ next
   then have "continuous_on A (ereal \<circ> (real_of_ereal \<circ> f))"
     by (meson continuous_at_iff_ereal continuous_on_eq_continuous_within)
   then show "continuous_on A f"
-    using assms ereal_real' by auto 
+    using assms ereal_real' by auto
 qed
 
 lemma continuous_uminus_ereal [continuous_intros]: "continuous_on (A :: ereal set) uminus"

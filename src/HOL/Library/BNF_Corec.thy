@@ -139,11 +139,9 @@ lemma congdd_base_gen_congdd_base_aux:
 
 lemma cong_gen_cong: "cong (gen_cong R)"
 proof -
-  { fix R' x y
-    have "rel (gen_cong R) x y \<Longrightarrow> R \<le> R' \<Longrightarrow> cong R' \<Longrightarrow> R' (eval x) (eval y)"
-      by (force simp: rel_fun_def gen_cong_def cong_def dest: spec[of _ R']
+  have "rel (gen_cong R) x y \<Longrightarrow> R \<le> R' \<Longrightarrow> cong R' \<Longrightarrow> R' (eval x) (eval y)" for R' x y
+    by (force simp: rel_fun_def gen_cong_def cong_def dest: spec[of _ R']
         predicate2D[OF rel_mono, rotated -1, of _ _ _ R'])
-  }
   then show "cong (gen_cong R)" by (auto simp: equivp_gen_cong rel_fun_def gen_cong_def cong_def)
 qed
 

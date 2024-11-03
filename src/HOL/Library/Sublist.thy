@@ -80,7 +80,7 @@ proof
 next
   assume "xs = ys @ [y] \<or> prefix xs ys"
   then show "prefix xs (ys @ [y])"
-    by auto (metis append.assoc prefix_def) 
+    by auto (metis append.assoc prefix_def)
 qed
 
 lemma Cons_prefix_Cons [simp]: "prefix (x # xs) (y # ys) = (x = y \<and> prefix xs ys)"
@@ -96,7 +96,7 @@ lemma same_prefix_prefix [simp]: "prefix (xs @ ys) (xs @ zs) = prefix ys zs"
   by (induct xs) simp_all
 
 lemma same_prefix_nil [simp]: "prefix (xs @ ys) xs = (ys = [])"
-  by (simp add: prefix_def) 
+  by (simp add: prefix_def)
 
 lemma prefix_prefix [simp]: "prefix xs ys \<Longrightarrow> prefix xs (ys @ zs)"
   unfolding prefix_def by fastforce
@@ -295,7 +295,7 @@ qed
 
 lemma length_prefixes[simp]: "length (prefixes xs) = length xs+1"
   by (induction xs) auto
-    
+
 lemma distinct_prefixes [intro]: "distinct (prefixes xs)"
   by (induction xs) (auto simp: distinct_map)
 
@@ -310,8 +310,8 @@ lemma hd_prefixes [simp]: "hd (prefixes xs) = []"
 
 lemma last_prefixes [simp]: "last (prefixes xs) = xs"
   by (induction xs) (simp_all add: last_map)
-    
-lemma prefixes_append: 
+
+lemma prefixes_append:
   "prefixes (xs @ ys) = prefixes xs @ map (\<lambda>ys'. xs @ ys') (tl (prefixes ys))"
 proof (induction xs)
   case Nil
@@ -323,7 +323,7 @@ lemma prefixes_eq_snoc:
   (ys = [] \<and> xs = [] \<or> (\<exists>z zs. ys = zs@[z] \<and> xs = prefixes zs)) \<and> x = ys"
   by (cases ys rule: rev_cases) auto
 
-lemma prefixes_tailrec [code]: 
+lemma prefixes_tailrec [code]:
   "prefixes xs = rev (snd (foldl (\<lambda>(acc1, acc2) x. (x#acc1, rev (x#acc1)#acc2)) ([],[[]]) xs))"
 proof -
   have "foldl (\<lambda>(acc1, acc2) x. (x#acc1, rev (x#acc1)#acc2)) (ys, rev ys # zs) xs =
@@ -335,14 +335,14 @@ proof -
   qed simp_all
   from this [of "[]" "[]"] show ?thesis by simp
 qed
-  
+
 lemma set_prefixes_eq: "set (prefixes xs) = {ys. prefix ys xs}"
   by auto
 
 lemma card_set_prefixes [simp]: "card (set (prefixes xs)) = Suc (length xs)"
   by (subst distinct_card) auto
 
-lemma set_prefixes_append: 
+lemma set_prefixes_append:
   "set (prefixes (xs @ ys)) = set (prefixes xs) \<union> {xs @ ys' |ys'. ys' \<in> set (prefixes ys)}"
   by (subst prefixes_append, cases ys) auto
 
@@ -376,13 +376,14 @@ next
       by - (rule Least_equality, fastforce+)
     have 2: "?L \<noteq> {}" using \<open>x # xs \<in> L\<close> by auto
     from Suc.hyps(1)[OF 1[symmetric] 2] obtain ps where IH: "?P ?L ps" ..
-    { fix qs
-      assume "\<forall>qs. (\<forall>xa. x # xa \<in> L \<longrightarrow> prefix qs xa) \<longrightarrow> length qs \<le> length ps"
-      and "\<forall>xs\<in>L. prefix qs xs"
-      hence "length (tl qs) \<le> length ps"
-        by (metis Cons_prefix_Cons hd_Cons_tl list.sel(2) Nil_prefix) 
-      hence "length qs \<le> Suc (length ps)" by auto
-    }
+    have "length qs \<le> Suc (length ps)"
+      if "\<forall>qs. (\<forall>xa. x # xa \<in> L \<longrightarrow> prefix qs xa) \<longrightarrow> length qs \<le> length ps"
+      and "\<forall>xs\<in>L. prefix qs xs" for qs
+    proof -
+      from that have "length (tl qs) \<le> length ps"
+        by (metis Cons_prefix_Cons hd_Cons_tl list.sel(2) Nil_prefix)
+      thus ?thesis by auto
+    qed
     hence "?P L (x#ps)" using True IH by auto
     thus ?thesis ..
   next
@@ -544,7 +545,7 @@ lemma suffixE [elim?]:
   assumes "suffix xs ys"
   obtains zs where "ys = zs @ xs"
   using assms unfolding suffix_def by blast
-    
+
 lemma suffix_tl [simp]: "suffix (tl xs) xs"
   by (induct xs) (auto simp: suffix_def)
 
@@ -599,7 +600,7 @@ next
   then have "ys = rev zs @ xs" by simp
   then show "suffix xs ys" ..
 qed
-  
+
 lemma strict_suffix_to_prefix [code]: "strict_suffix xs ys \<longleftrightarrow> strict_prefix (rev xs) (rev ys)"
   by (auto simp: suffix_to_prefix strict_suffix_def strict_prefix_def)
 
@@ -645,7 +646,7 @@ lemma same_suffix_nil [simp]: "suffix (ys @ xs) xs = (ys = [])"
 theorem suffix_Cons: "suffix xs (y # ys) \<longleftrightarrow> xs = y # ys \<or> suffix xs ys"
   unfolding suffix_def by (auto simp: Cons_eq_append_conv)
 
-theorem suffix_append: 
+theorem suffix_append:
   "suffix xs (ys @ zs) \<longleftrightarrow> suffix xs zs \<or> (\<exists>xs'. xs = xs' @ zs \<and> suffix xs' ys)"
   by (auto simp: suffix_def append_eq_append_conv2)
 
@@ -672,7 +673,7 @@ proof (induct n arbitrary: xs ys)
   then show ?case by (cases ys) simp_all
 next
   case (Suc n)
-  then show ?case 
+  then show ?case
     by (cases xs) (auto intro: Suc dest: suffix_ConsD' suffix_order.less_imp_le)
 qed
 
@@ -808,7 +809,7 @@ lemma hd_suffixes [simp]: "hd (suffixes xs) = []"
 lemma last_suffixes [simp]: "last (suffixes xs) = xs"
   by (cases xs) simp_all
 
-lemma suffixes_append: 
+lemma suffixes_append:
   "suffixes (xs @ ys) = suffixes ys @ map (\<lambda>xs'. xs' @ ys) (tl (suffixes xs))"
 proof (induction ys rule: rev_induct)
   case Nil
@@ -824,7 +825,7 @@ lemma suffixes_eq_snoc:
      (ys = [] \<and> xs = [] \<or> (\<exists>z zs. ys = z#zs \<and> xs = suffixes zs)) \<and> x = ys"
   by (cases ys) auto
 
-lemma suffixes_tailrec [code]: 
+lemma suffixes_tailrec [code]:
   "suffixes xs = rev (snd (foldl (\<lambda>(acc1, acc2) x. (x#acc1, (x#acc1)#acc2)) ([],[[]]) (rev xs)))"
 proof -
   have "foldl (\<lambda>(acc1, acc2) x. (x#acc1, (x#acc1)#acc2)) (ys, ys # zs) (rev xs) =
@@ -836,14 +837,14 @@ proof -
   qed simp_all
   from this [of "[]" "[]"] show ?thesis by simp
 qed
-  
+
 lemma set_suffixes_eq: "set (suffixes xs) = {ys. suffix ys xs}"
   by auto
-    
+
 lemma card_set_suffixes [simp]: "card (set (suffixes xs)) = Suc (length xs)"
   by (subst distinct_card) auto
-  
-lemma set_suffixes_append: 
+
+lemma set_suffixes_append:
   "set (suffixes (xs @ ys)) = set (suffixes ys) \<union> {xs' @ ys |xs'. xs' \<in> set (suffixes xs)}"
   by (subst suffixes_append, cases xs rule: rev_cases) auto
 
@@ -853,10 +854,10 @@ lemma suffixes_conv_prefixes: "suffixes xs = map rev (prefixes (rev xs))"
 
 lemma prefixes_conv_suffixes: "prefixes xs = map rev (suffixes (rev xs))"
   by (induction xs) auto
-    
+
 lemma prefixes_rev: "prefixes (rev xs) = map rev (suffixes xs)"
   by (induction xs) auto
-    
+
 lemma suffixes_rev: "suffixes (rev xs) = map rev (prefixes xs)"
   by (induction xs) auto
 
@@ -870,13 +871,13 @@ where
 | list_emb_Cons [intro] : "list_emb P xs ys \<Longrightarrow> list_emb P xs (y#ys)"
 | list_emb_Cons2 [intro]: "P x y \<Longrightarrow> list_emb P xs ys \<Longrightarrow> list_emb P (x#xs) (y#ys)"
 
-lemma list_emb_mono:                         
+lemma list_emb_mono:
   assumes "\<And>x y. P x y \<longrightarrow> Q x y"
   shows "list_emb P xs ys \<longrightarrow> list_emb Q xs ys"
-proof                                        
-  assume "list_emb P xs ys"                    
+proof
+  assume "list_emb P xs ys"
   then show "list_emb Q xs ys" by (induct) (auto simp: assms)
-qed 
+qed
 
 lemma list_emb_Nil2 [simp]:
   assumes "list_emb P xs []" shows "xs = []"
@@ -888,13 +889,11 @@ lemma list_emb_refl:
   using assms by (induct xs) auto
 
 lemma list_emb_Cons_Nil [simp]: "list_emb P (x#xs) [] = False"
-proof -
-  { assume "list_emb P (x#xs) []"
-    from list_emb_Nil2 [OF this] have False by simp
-  } moreover {
-    assume False
-    then have "list_emb P (x#xs) []" by simp
-  } ultimately show ?thesis by blast
+proof
+  show False if "list_emb P (x#xs) []"
+    using list_emb_Nil2 [OF that] by simp
+  show "list_emb P (x#xs) []" if False
+    using that ..
 qed
 
 lemma list_emb_append2 [intro]: "list_emb P xs ys \<Longrightarrow> list_emb P xs (zs @ ys)"
@@ -1002,13 +1001,13 @@ lemma list_emb_code [code]:
   "list_emb P (x#xs) [] \<longleftrightarrow> False"
   "list_emb P (x#xs) (y#ys) \<longleftrightarrow> (if P x y then list_emb P xs ys else list_emb P (x#xs) ys)"
   by simp_all
-    
+
 
 subsection \<open>Subsequences (special case of homeomorphic embedding)\<close>
 
 abbreviation subseq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   where "subseq xs ys \<equiv> list_emb (=) xs ys"
-  
+
 definition strict_subseq where "strict_subseq xs ys \<longleftrightarrow> xs \<noteq> ys \<and> subseq xs ys"
 
 lemma subseq_Cons2: "subseq xs ys \<Longrightarrow> subseq (x#xs) (x#ys)" by auto
@@ -1073,7 +1072,7 @@ proof
   thus "subseq xs ys"
     by (induction ys arbitrary: xs) (auto simp: Let_def)
 next
-  have [simp]: "[] \<in> set (subseqs ys)" for ys :: "'a list" 
+  have [simp]: "[] \<in> set (subseqs ys)" for ys :: "'a list"
     by (induction ys) (auto simp: Let_def)
   assume "subseq xs ys"
   thus "xs \<in> set (subseqs ys)"
@@ -1105,33 +1104,39 @@ subsection \<open>Appending elements\<close>
 lemma subseq_append [simp]:
   "subseq (xs @ zs) (ys @ zs) \<longleftrightarrow> subseq xs ys" (is "?l = ?r")
 proof
-  { fix xs' ys' xs ys zs :: "'a list" assume "subseq xs' ys'"
-    then have "xs' = xs @ zs \<and> ys' = ys @ zs \<longrightarrow> subseq xs ys"
-    proof (induct arbitrary: xs ys zs)
-      case list_emb_Nil show ?case by simp
-    next
-      case (list_emb_Cons xs' ys' x)
-      { assume "ys=[]" then have ?case using list_emb_Cons(1) by auto }
-      moreover
-      { fix us assume "ys = x#us"
-        then have ?case using list_emb_Cons(2) by(simp add: list_emb.list_emb_Cons) }
-      ultimately show ?case by (auto simp:Cons_eq_append_conv)
-    next
-      case (list_emb_Cons2 x y xs' ys')
-      { assume "xs=[]" then have ?case using list_emb_Cons2(1) by auto }
-      moreover
-      { fix us vs assume "xs=x#us" "ys=x#vs" then have ?case using list_emb_Cons2 by auto}
-      moreover
-      { fix us assume "xs=x#us" "ys=[]" then have ?case using list_emb_Cons2(2) by bestsimp }
-      ultimately show ?case using \<open>(=) x y\<close> by (auto simp: Cons_eq_append_conv)
-    qed }
-  moreover assume ?l
-  ultimately show ?r by blast
-next
-  assume ?r then show ?l by (metis list_emb_append_mono subseq_order.order_refl)
+  have "xs' = xs @ zs \<and> ys' = ys @ zs \<longrightarrow> subseq xs ys"
+    if "subseq xs' ys'" for xs' ys' xs ys zs :: "'a list"
+    using that
+  proof (induct arbitrary: xs ys zs)
+    case list_emb_Nil
+    show ?case by simp
+  next
+    case (list_emb_Cons xs' ys' x)
+    have ?case if "ys = []"
+      using list_emb_Cons(1) that by auto
+    moreover
+    have ?case if "ys = x#us" for us
+      using list_emb_Cons(2) that by (simp add: list_emb.list_emb_Cons)
+    ultimately show ?case
+      by (auto simp: Cons_eq_append_conv)
+  next
+    case (list_emb_Cons2 x y xs' ys')
+    have ?case if "xs = []"
+      using list_emb_Cons2(1) that by auto
+    moreover
+    have ?case if "xs = x#us" "ys = x#vs" for us vs
+      using list_emb_Cons2 that by auto
+    moreover
+    have ?case  if "xs = x#us" "ys = []" for us
+      using list_emb_Cons2(2) that by bestsimp
+    ultimately show ?case
+      using \<open>x = y\<close> by (auto simp: Cons_eq_append_conv)
+  qed
+  then show "?l \<Longrightarrow> ?r" by blast
+  show "?r \<Longrightarrow> ?l" by (metis list_emb_append_mono subseq_order.order_refl)
 qed
 
-lemma subseq_append_iff: 
+lemma subseq_append_iff:
   "subseq xs (ys @ zs) \<longleftrightarrow> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> subseq xs1 ys \<and> subseq xs2 zs)"
   (is "?lhs = ?rhs")
 proof
@@ -1139,7 +1144,7 @@ proof
   proof (induction xs "ys @ zs" arbitrary: ys zs rule: list_emb.induct)
     case (list_emb_Cons xs ws y ys zs)
     from list_emb_Cons(2)[of "tl ys" zs] and list_emb_Cons(2)[of "[]" "tl zs"] and list_emb_Cons(1,3)
-      show ?case by (cases ys) auto
+    show ?case by (cases ys) auto
   next
     case (list_emb_Cons2 x y xs ws ys zs)
     from list_emb_Cons2(3)[of "tl ys" zs] and list_emb_Cons2(3)[of "[]" "tl zs"]
@@ -1148,7 +1153,7 @@ proof
   qed auto
 qed (auto intro: list_emb_append_mono)
 
-lemma subseq_appendE [case_names append]: 
+lemma subseq_appendE [case_names append]:
   assumes "subseq xs (ys @ zs)"
   obtains xs1 xs2 where "xs = xs1 @ xs2" "subseq xs1 ys" "subseq xs2 zs"
   using assms by (subst (asm) subseq_append_iff) auto
@@ -1173,13 +1178,13 @@ lemma subseq_filter [simp]:
   assumes "subseq xs ys" shows "subseq (filter P xs) (filter P ys)"
   using assms by induct auto
 
-lemma subseq_conv_nths: 
-  "subseq xs ys \<longleftrightarrow> (\<exists>N. xs = nths ys N)" (is "?L = ?R")
+lemma subseq_conv_nths: "subseq xs ys \<longleftrightarrow> (\<exists>N. xs = nths ys N)"
+  (is "?L = ?R")
 proof
-  assume ?L
-  then show ?R
+  show ?R if ?L using that
   proof (induct)
-    case list_emb_Nil show ?case by (metis nths_empty)
+    case list_emb_Nil
+    show ?case by (metis nths_empty)
   next
     case (list_emb_Cons xs ys x)
     then obtain N where "xs = nths ys N" by blast
@@ -1194,27 +1199,30 @@ proof
     moreover from list_emb_Cons2 have "x = y" by simp
     ultimately show ?case by blast
   qed
-next
-  assume ?R
-  then obtain N where "xs = nths ys N" ..
-  moreover have "subseq (nths ys N) ys"
-  proof (induct ys arbitrary: N)
-    case Nil show ?case by simp
-  next
-    case Cons then show ?case by (auto simp: nths_Cons)
+  show ?L if ?R
+  proof -
+    from that obtain N where "xs = nths ys N" ..
+    moreover have "subseq (nths ys N) ys"
+    proof (induct ys arbitrary: N)
+      case Nil
+      show ?case by simp
+    next
+      case Cons
+      then show ?case by (auto simp: nths_Cons)
+    qed
+    ultimately show ?thesis by simp
   qed
-  ultimately show ?L by simp
 qed
-  
-  
+
+
 subsection \<open>Contiguous sublists\<close>
 
 subsubsection \<open>\<open>sublist\<close>\<close>
 
-definition sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where 
+definition sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
   "sublist xs ys = (\<exists>ps ss. ys = ps @ xs @ ss)"
-  
-definition strict_sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where 
+
+definition strict_sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
   "strict_sublist xs ys \<longleftrightarrow> sublist xs ys \<and> xs \<noteq> ys"
 
 interpretation sublist_order: order sublist strict_sublist
@@ -1227,38 +1235,37 @@ proof
   thus "sublist xs zs" unfolding sublist_def by blast
 next
   fix xs ys :: "'a list"
-  {
-    assume "sublist xs ys" "sublist ys xs"
-    then obtain as bs cs ds 
-      where xs: "xs = as @ ys @ bs" and ys: "ys = cs @ xs @ ds" 
+  show "xs = ys" if "sublist xs ys" "sublist ys xs"
+  proof -
+    from that obtain as bs cs ds where xs: "xs = as @ ys @ bs" and ys: "ys = cs @ xs @ ds"
       by (auto simp: sublist_def)
     have "xs = as @ cs @ xs @ ds @ bs" by (subst xs, subst ys) auto
-    also have "length \<dots> = length as + length cs + length xs + length bs + length ds" 
+    also have "length \<dots> = length as + length cs + length xs + length bs + length ds"
       by simp
     finally have "as = []" "bs = []" by simp_all
-    with xs show "xs = ys" by simp
-  }
-  thus "strict_sublist xs ys \<longleftrightarrow> (sublist xs ys \<and> \<not>sublist ys xs)"
+    with xs show ?thesis by simp
+  qed
+  thus "strict_sublist xs ys \<longleftrightarrow> (sublist xs ys \<and> \<not> sublist ys xs)"
     by (auto simp: strict_sublist_def)
 qed (auto simp: strict_sublist_def sublist_def intro: exI[of _ "[]"])
-  
+
 lemma sublist_Nil_left [simp, intro]: "sublist [] ys"
   by (auto simp: sublist_def)
-    
+
 lemma sublist_Cons_Nil [simp]: "\<not>sublist (x#xs) []"
   by (auto simp: sublist_def)
-    
+
 lemma sublist_Nil_right [simp]: "sublist xs [] \<longleftrightarrow> xs = []"
   by (cases xs) auto
-    
+
 lemma sublist_appendI [simp, intro]: "sublist xs (ps @ xs @ ss)"
   by (auto simp: sublist_def)
-    
+
 lemma sublist_append_leftI [simp, intro]: "sublist xs (ps @ xs)"
   by (auto simp: sublist_def intro: exI[of _ "[]"])
-    
+
 lemma sublist_append_rightI [simp, intro]: "sublist xs (xs @ ss)"
-  by (auto simp: sublist_def intro: exI[of _ "[]"]) 
+  by (auto simp: sublist_def intro: exI[of _ "[]"])
 
 lemma sublist_altdef: "sublist xs ys \<longleftrightarrow> (\<exists>ys'. prefix ys' ys \<and> suffix xs ys')"
 proof safe
@@ -1271,7 +1278,7 @@ next
   assume "prefix ys' ys" "suffix xs ys'"
   thus "sublist xs ys" by (auto simp: prefix_def suffix_def)
 qed
-  
+
 lemma sublist_altdef': "sublist xs ys \<longleftrightarrow> (\<exists>ys'. suffix ys' ys \<and> prefix xs ys')"
 proof safe
   assume "sublist xs ys"
@@ -1286,7 +1293,7 @@ qed
 
 lemma sublist_Cons_right: "sublist xs (y # ys) \<longleftrightarrow> prefix xs (y # ys) \<or> sublist xs ys"
   by (auto simp: sublist_def prefix_def Cons_eq_append_conv)
-    
+
 lemma sublist_code [code]:
   "sublist [] ys \<longleftrightarrow> True"
   "sublist (x # xs) [] \<longleftrightarrow> False"
@@ -1294,7 +1301,7 @@ lemma sublist_code [code]:
   by (simp_all add: sublist_Cons_right)
 
 lemma sublist_append:
-  "sublist xs (ys @ zs) \<longleftrightarrow> 
+  "sublist xs (ys @ zs) \<longleftrightarrow>
      sublist xs ys \<or> sublist xs zs \<or> (\<exists>xs1 xs2. xs = xs1 @ xs2 \<and> suffix xs1 ys \<and> prefix xs2 zs)"
 by (auto simp: sublist_altdef prefix_append suffix_append)
 
@@ -1315,10 +1322,10 @@ lemma sublist_length_le: "sublist xs ys \<Longrightarrow> length xs \<le> length
 
 lemma set_mono_sublist: "sublist xs ys \<Longrightarrow> set xs \<subseteq> set ys"
   by (auto simp add: sublist_def)
-    
+
 lemma prefix_imp_sublist [simp, intro]: "prefix xs ys \<Longrightarrow> sublist xs ys"
   by (auto simp: sublist_def prefix_def intro: exI[of _ "[]"])
-    
+
 lemma suffix_imp_sublist [simp, intro]: "suffix xs ys \<Longrightarrow> sublist xs ys"
   by (auto simp: sublist_def suffix_def intro: exI[of _ "[]"])
 
@@ -1333,13 +1340,13 @@ lemma sublist_drop [simp, intro]: "sublist (drop n xs) xs"
 
 lemma sublist_dropWhile [simp, intro]: "sublist (dropWhile P xs) xs"
   by (rule suffix_imp_sublist[OF suffix_dropWhile])
-    
+
 lemma sublist_tl [simp, intro]: "sublist (tl xs) xs"
   by (rule suffix_imp_sublist) (simp_all add: suffix_drop)
-    
+
 lemma sublist_butlast [simp, intro]: "sublist (butlast xs) xs"
   by (rule prefix_imp_sublist) (simp_all add: prefixeq_butlast)
-    
+
 lemma sublist_rev [simp]: "sublist (rev xs) (rev ys) = sublist xs ys"
 proof
   assume "sublist (rev xs) (rev ys)"
@@ -1354,15 +1361,15 @@ next
   also have "rev \<dots> = rev bs @ rev xs @ rev as" by simp
   finally show "sublist (rev xs) (rev ys)" by simp
 qed
-    
+
 lemma sublist_rev_left: "sublist (rev xs) ys = sublist xs (rev ys)"
   by (subst sublist_rev [symmetric]) (simp only: rev_rev_ident)
-    
+
 lemma sublist_rev_right: "sublist xs (rev ys) = sublist (rev xs) ys"
   by (subst sublist_rev [symmetric]) (simp only: rev_rev_ident)
 
-lemma snoc_sublist_snoc: 
-  "sublist (xs @ [x]) (ys @ [y]) \<longleftrightarrow> 
+lemma snoc_sublist_snoc:
+  "sublist (xs @ [x]) (ys @ [y]) \<longleftrightarrow>
      (x = y \<and> suffix xs ys \<or> sublist (xs @ [x]) ys) "
   by (subst (1 2) sublist_rev [symmetric])
      (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)
@@ -1370,8 +1377,8 @@ lemma snoc_sublist_snoc:
 lemma sublist_snoc:
   "sublist xs (ys @ [y]) \<longleftrightarrow> suffix xs (ys @ [y]) \<or> sublist xs ys"
   by (subst (1 2) sublist_rev [symmetric])
-     (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)     
-     
+     (simp del: sublist_rev add: sublist_Cons_right suffix_to_prefix)
+
 lemma sublist_imp_subseq [intro]: "sublist xs ys \<Longrightarrow> subseq xs ys"
   by (auto simp: sublist_def)
 
@@ -1415,7 +1422,7 @@ primrec sublists :: "'a list \<Rightarrow> 'a list list" where
   "sublists [] = [[]]"
 | "sublists (x # xs) = sublists xs @ map ((#) x) (prefixes xs)"
 
-lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys" 
+lemma in_set_sublists [simp]: "xs \<in> set (sublists ys) \<longleftrightarrow> sublist xs ys"
   by (induction ys arbitrary: xs) (auto simp: sublist_Cons_right prefix_Cons)
 
 lemma set_sublists_eq: "set (sublists xs) = {ys. sublist ys xs}"
@@ -1428,8 +1435,8 @@ lemma length_sublists [simp]: "length (sublists xs) = Suc (length xs * Suc (leng
 subsection \<open>Parametricity\<close>
 
 context includes lifting_syntax
-begin    
-  
+begin
+
 private lemma prefix_primrec:
   "prefix = rec_list (\<lambda>xs. True) (\<lambda>x xs xsa ys.
               case ys of [] \<Rightarrow> False | y # ys \<Rightarrow> x = y \<and> xsa ys)"
@@ -1446,7 +1453,7 @@ proof (intro ext, goal_cases)
 qed
 
 private lemma list_emb_primrec:
-  "list_emb = (\<lambda>uu uua uuaa. rec_list (\<lambda>P xs. List.null xs) (\<lambda>y ys ysa P xs. case xs of [] \<Rightarrow> True 
+  "list_emb = (\<lambda>uu uua uuaa. rec_list (\<lambda>P xs. List.null xs) (\<lambda>y ys ysa P xs. case xs of [] \<Rightarrow> True
      | x # xs \<Rightarrow> if P x y then ysa P xs else ysa P (x # xs)) uuaa uu uua)"
 proof (intro ext, goal_cases)
   case (1 P xs ys)
@@ -1457,12 +1464,12 @@ qed
 
 lemma prefix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) prefix prefix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) prefix prefix"
   unfolding prefix_primrec by transfer_prover
-    
+
 lemma suffix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) suffix suffix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) suffix suffix"
   unfolding suffix_to_prefix [abs_def] by transfer_prover
 
 lemma sublist_transfer [transfer_rule]:
@@ -1474,7 +1481,7 @@ lemma parallel_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows   "(list_all2 A ===> list_all2 A ===> (=)) parallel parallel"
   unfolding parallel_def by transfer_prover
-    
+
 
 
 lemma list_emb_transfer [transfer_rule]:
@@ -1483,34 +1490,34 @@ lemma list_emb_transfer [transfer_rule]:
 
 lemma strict_prefix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_prefix strict_prefix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_prefix strict_prefix"
   unfolding strict_prefix_def by transfer_prover
-    
+
 lemma strict_suffix_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_suffix strict_suffix"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_suffix strict_suffix"
   unfolding strict_suffix_def by transfer_prover
-    
+
 lemma strict_subseq_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_subseq strict_subseq"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_subseq strict_subseq"
   unfolding strict_subseq_def by transfer_prover
-    
+
 lemma strict_sublist_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
-  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_sublist strict_sublist"  
+  shows   "(list_all2 A ===> list_all2 A ===> (=)) strict_sublist strict_sublist"
   unfolding strict_sublist_def by transfer_prover
 
 lemma prefixes_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows   "(list_all2 A ===> list_all2 (list_all2 A)) prefixes prefixes"
   unfolding prefixes_def by transfer_prover
-    
+
 lemma suffixes_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows   "(list_all2 A ===> list_all2 (list_all2 A)) suffixes suffixes"
   unfolding suffixes_def by transfer_prover
-    
+
 lemma sublists_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows   "(list_all2 A ===> list_all2 (list_all2 A)) sublists sublists"

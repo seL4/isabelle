@@ -37,14 +37,15 @@ lemma sums_offset:
 proof  -
   have "(\<lambda>k. (\<Sum>n<k. f (n + i)) + (\<Sum>j<i. f j)) \<longlonglongrightarrow> l + (\<Sum>j<i. f j)"
     using assms by (auto intro!: tendsto_add simp: sums_def)
-  moreover
-  { fix k :: nat
+  moreover have "(\<Sum>j<k + i. f j) = (\<Sum>n<k. f (n + i)) + (\<Sum>j<i. f j)" for k :: nat
+  proof -
     have "(\<Sum>j<k + i. f j) = (\<Sum>j=i..<k + i. f j) + (\<Sum>j=0..<i. f j)"
       by (subst sum.union_disjoint[symmetric]) (auto intro!: sum.cong)
     also have "(\<Sum>j=i..<k + i. f j) = (\<Sum>j\<in>(\<lambda>n. n + i)`{0..<k}. f j)"
       unfolding image_add_atLeastLessThan by simp
-    finally have "(\<Sum>j<k + i. f j) = (\<Sum>n<k. f (n + i)) + (\<Sum>j<i. f j)"
-      by (auto simp: inj_on_def atLeast0LessThan sum.reindex) }
+    finally show ?thesis
+      by (auto simp: inj_on_def atLeast0LessThan sum.reindex)
+  qed
   ultimately have "(\<lambda>k. (\<Sum>n<k + i. f n)) \<longlonglongrightarrow> l + (\<Sum>j<i. f j)"
     by simp
   then show ?thesis
@@ -222,7 +223,7 @@ lift_definition less_ennreal :: "ennreal \<Rightarrow> ennreal \<Rightarrow> boo
 
 instance
   by standard
-     (transfer ; auto simp: Inf_lower Inf_greatest Sup_upper Sup_least le_max_iff_disj max.absorb1)+
+     (transfer; auto simp: Inf_lower Inf_greatest Sup_upper Sup_least le_max_iff_disj max.absorb1)+
 
 end
 
@@ -236,8 +237,7 @@ instantiation ennreal :: infinity
 begin
 
 definition infinity_ennreal :: ennreal
-where
-  [simp]: "\<infinity> = (top::ennreal)"
+  where [simp]: "\<infinity> = (top::ennreal)"
 
 instance ..
 
@@ -293,7 +293,7 @@ qed
 
 instance ennreal :: ordered_comm_semiring
   by standard
-     (transfer ; auto intro: add_mono mult_mono mult_ac ereal_left_distrib ereal_mult_left_mono)+
+     (transfer; auto intro: add_mono mult_mono mult_ac ereal_left_distrib ereal_mult_left_mono)+
 
 instance ennreal :: linordered_nonzero_semiring
 proof
@@ -788,7 +788,7 @@ lift_definition ennreal :: "real \<Rightarrow> ennreal" is "sup 0 \<circ> ereal"
 
 declare [[coercion ennreal]]
 
-lemma ennreal_cong: "x = y \<Longrightarrow> ennreal x = ennreal y" 
+lemma ennreal_cong: "x = y \<Longrightarrow> ennreal x = ennreal y"
   by simp
 
 lemma ennreal_cases[cases type: ennreal]:
@@ -975,7 +975,7 @@ next
   case (real r) then show ?thesis
   proof (cases "x = 0")
     case False then show ?thesis
-      by (smt (verit, best) ennreal_0 ennreal_power inverse_ennreal 
+      by (smt (verit, best) ennreal_0 ennreal_power inverse_ennreal
                inverse_nonnegative_iff_nonnegative power_inverse real zero_less_power)
   qed (simp add: top_power_ennreal)
 qed
@@ -1288,7 +1288,7 @@ lemma tendsto_ennrealD:
   assumes *: "\<forall>\<^sub>F x in F. 0 \<le> f x" and x: "0 \<le> x"
   shows "(f \<longlongrightarrow> x) F"
 proof -
-  have "((\<lambda>x. enn2ereal (ennreal (f x))) \<longlongrightarrow> enn2ereal (ennreal x)) F 
+  have "((\<lambda>x. enn2ereal (ennreal (f x))) \<longlongrightarrow> enn2ereal (ennreal x)) F
     \<longleftrightarrow> (f \<longlongrightarrow> enn2ereal (ennreal x)) F"
     using "*" eventually_mono
     by (intro tendsto_cong) fastforce
@@ -1322,7 +1322,7 @@ lemma tendsto_enn2ereal_iff[simp]: "((\<lambda>i. enn2ereal (f i)) \<longlongrig
 
 lemma ennreal_tendsto_0_iff: "(\<And>n. f n \<ge> 0) \<Longrightarrow> ((\<lambda>n. ennreal (f n)) \<longlonglongrightarrow> 0) \<longleftrightarrow> (f \<longlonglongrightarrow> 0)"
   by (metis (mono_tags) ennreal_0 eventuallyI order_refl tendsto_ennreal_iff)
-    
+
 lemma continuous_on_add_ennreal:
   fixes f g :: "'a::topological_space \<Rightarrow> ennreal"
   shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. f x + g x)"

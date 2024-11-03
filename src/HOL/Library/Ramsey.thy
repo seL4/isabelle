@@ -5,13 +5,13 @@
 section \<open>Ramsey's Theorem\<close>
 
 theory Ramsey
-  imports Infinite_Set Equipollence FuncSet 
+  imports Infinite_Set Equipollence FuncSet
 begin
 
 subsection \<open>Preliminary definitions\<close>
 
 abbreviation strict_sorted :: "'a::linorder list \<Rightarrow> bool" where
-  "strict_sorted \<equiv> sorted_wrt (<)" 
+  "strict_sorted \<equiv> sorted_wrt (<)"
 
 subsubsection \<open>The $n$-element subsets of a set $A$\<close>
 
@@ -89,12 +89,13 @@ lemma ordered_nsets_4_eq:
   shows "[A]\<^bsup>4\<^esup> = {U. \<exists>u x y z. U = {u,x,y,z} \<and> u \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < x \<and> x < y \<and> y < z}"
     (is "_ = Collect ?RHS")
 proof -
-  { fix U
-    assume "U \<in> [A]\<^bsup>4\<^esup>"
-    then obtain l where "strict_sorted l" "List.set l = U" "length l = 4" "U \<subseteq> A"
+  have "?RHS U" if "U \<in> [A]\<^bsup>4\<^esup>" for U
+  proof -
+    from that obtain l where "strict_sorted l" "List.set l = U" "length l = 4" "U \<subseteq> A"
       by (simp add: nsets_def) (metis finite_set_strict_sorted)
-    then have "?RHS U"
-      unfolding numeral_nat length_Suc_conv by auto blast }
+    then show ?thesis
+      unfolding numeral_nat length_Suc_conv by auto blast
+  qed
   moreover
   have "Collect ?RHS \<subseteq> [A]\<^bsup>4\<^esup>"
     apply (clarsimp simp add: nsets_def eval_nat_numeral)
@@ -109,13 +110,14 @@ lemma ordered_nsets_5_eq:
   shows "[A]\<^bsup>5\<^esup> = {U. \<exists>u v x y z. U = {u,v,x,y,z} \<and> u \<in> A \<and> v \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < v \<and> v < x \<and> x < y \<and> y < z}"
     (is "_ = Collect ?RHS")
 proof -
-  { fix U
-  assume "U \<in> [A]\<^bsup>5\<^esup>"
-  then obtain l where "strict_sorted l" "List.set l = U" "length l = 5" "U \<subseteq> A"
-    apply (simp add: nsets_def)
-    by (metis finite_set_strict_sorted)
-  then have "?RHS U"
-    unfolding numeral_nat length_Suc_conv by auto blast }
+  have "?RHS U" if "U \<in> [A]\<^bsup>5\<^esup>" for U
+  proof -
+    from that obtain l where "strict_sorted l" "List.set l = U" "length l = 5" "U \<subseteq> A"
+      apply (simp add: nsets_def)
+      by (metis finite_set_strict_sorted)
+    then show ?thesis
+      unfolding numeral_nat length_Suc_conv by auto blast
+  qed
   moreover
   have "Collect ?RHS \<subseteq> [A]\<^bsup>5\<^esup>"
     apply (clarsimp simp add: nsets_def eval_nat_numeral)
@@ -338,7 +340,7 @@ lemma partn_lstE:
   using partn_lst_def monochromatic_def assms by metis
 
 lemma partn_lst_less:
-  assumes M: "partn_lst \<beta> \<alpha> n" and eq: "length \<alpha>' = length \<alpha>" 
+  assumes M: "partn_lst \<beta> \<alpha> n" and eq: "length \<alpha>' = length \<alpha>"
     and le: "\<And>i. i < length \<alpha> \<Longrightarrow> \<alpha>'!i \<le> \<alpha>!i "
   shows "partn_lst \<beta> \<alpha>' n"
 proof (clarsimp simp: partn_lst_def)
@@ -385,7 +387,7 @@ subsubsection \<open>The Erdős--Szekeres theorem exhibits an upper bound for Ra
 text \<open>The Erdős--Szekeres bound, essentially extracted from the proof\<close>
 fun ES :: "[nat,nat,nat] \<Rightarrow> nat"
   where "ES 0 k l = max k l"
-  |     "ES (Suc r) k l = 
+  |     "ES (Suc r) k l =
             (if r=0 then k+l-1
              else if k=0 \<or> l=0 then 1 else Suc (ES r (ES (Suc r) (k-1) l) (ES (Suc r) k (l-1))))"
 
@@ -685,7 +687,7 @@ next
       using Suc.prems
     proof (induct k \<equiv> "q1 + q2" arbitrary: q1 q2)
       case 0
-      with partn_lst_0 show ?case by auto 
+      with partn_lst_0 show ?case by auto
     next
       case (Suc k)
       consider "q1 = 0 \<or> q2 = 0" | "q1 \<noteq> 0" "q2 \<noteq> 0" by auto

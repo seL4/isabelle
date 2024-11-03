@@ -470,11 +470,12 @@ proof safe
     next
       case False
       hence "x = flat (stl s) !! (y - length (shd s))" by (metis less(2,3) flat_snth)
-      moreover
-      { from less(2) have *: "length (shd s) > 0" by (cases s) simp_all
+      moreover have "y - length (shd s) < y"
+      proof -
+        from less(2) have *: "length (shd s) > 0" by (cases s) simp_all
         with False have "y > 0" by (cases y) simp_all
-        with * have "y - length (shd s) < y" by simp
-      }
+        with * show ?thesis by simp
+      qed
       moreover have "\<forall>xs \<in> sset (stl s). xs \<noteq> []" using less(2) by (cases s) auto
       ultimately have "\<exists>n m'. x = stl s !! n ! m' \<and> m' < length (stl s !! n)" by (intro less(1)) auto
       thus ?thesis by (metis snth.simps(2))
@@ -482,7 +483,9 @@ proof safe
   qed
   thus "x \<in> ?R" by (auto simp: sset_range dest!: nth_mem)
 next
-  fix x xs assume "xs \<in> sset s" ?P "x \<in> set xs" thus "x \<in> ?L"
+  fix x xs
+  assume "xs \<in> sset s" ?P "x \<in> set xs"
+  thus "x \<in> ?L"
     by (induct rule: sset_induct)
       (metis UnI1 flat_unfold shift.simps(1) sset_shift,
        metis UnI2 flat_unfold shd_sset stl_sset sset_shift)

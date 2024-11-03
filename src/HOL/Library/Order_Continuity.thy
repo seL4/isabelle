@@ -133,12 +133,12 @@ proof (rule antisym)
   proof (rule lfp_lowerbound)
     have "mono (\<lambda>i::nat. (F ^^ i) bot)"
     proof -
-      { fix i::nat have "(F ^^ i) bot \<le> (F ^^ (Suc i)) bot"
-        proof (induct i)
-          case 0 show ?case by simp
-        next
-          case Suc thus ?case using monoD[OF mono Suc] by auto
-        qed }
+      have "(F ^^ i) bot \<le> (F ^^ (Suc i)) bot" for i::nat
+      proof (induct i)
+        case 0 show ?case by simp
+      next
+        case Suc thus ?case using monoD[OF mono Suc] by auto
+      qed
       thus ?thesis by (auto simp add: mono_iff_le_Suc)
     qed
     hence "F ?U = (SUP i. (F ^^ Suc i) bot)"
@@ -307,12 +307,14 @@ proof (rule antisym)
   proof (rule gfp_upperbound)
     have *: "antimono (\<lambda>i::nat. (F ^^ i) top)"
     proof -
-      { fix i::nat have "(F ^^ Suc i) top \<le> (F ^^ i) top"
-        proof (induct i)
-          case 0 show ?case by simp
-        next
-          case Suc thus ?case using monoD[OF mono Suc] by auto
-        qed }
+      have "(F ^^ Suc i) top \<le> (F ^^ i) top" for i::nat
+      proof (induct i)
+        case 0
+        show ?case by simp
+      next
+        case Suc
+        thus ?case using monoD[OF mono Suc] by auto
+      qed
       thus ?thesis by (auto simp add: antimono_iff_le_Suc)
     qed
     have "?U \<le> (INF i. (F ^^ Suc i) top)"

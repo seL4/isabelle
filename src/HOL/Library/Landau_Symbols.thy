@@ -659,7 +659,7 @@ proof -
     using assms by (intro big_power_increasing[OF small_imp_big]) auto
   finally show ?thesis by simp
 qed
-  
+
 sublocale big: landau_symbol L L' Lr
 proof
   have L: "L = bigo \<or> L = bigomega"
@@ -1522,15 +1522,16 @@ lemma maxmin_in_smallo:
   assumes "f \<in> o[F](h)" "g \<in> o[F](h)"
   shows   "(\<lambda>k. max (f k) (g k)) \<in> o[F](h)" "(\<lambda>k. min (f k) (g k)) \<in> o[F](h)"
 proof -
-  { fix c::real
-    assume "c>0"
-    with assms smallo_def
+  have "\<forall>\<^sub>F x in F. norm (max (f x) (g x)) \<le> c * norm(h x) \<and> norm (min (f x) (g x)) \<le> c * norm(h x)"
+    if "c>0" for c::real
+  proof -
+    from assms smallo_def that
     have "\<forall>\<^sub>F x in F. norm (f x) \<le> c * norm(h x)" "\<forall>\<^sub>F x in F. norm(g x) \<le> c * norm(h x)"
       by (auto simp: smallo_def)
-    then have "\<forall>\<^sub>F x in F. norm (max (f x) (g x)) \<le> c * norm(h x) \<and> norm (min (f x) (g x)) \<le> c * norm(h x)"
+    then show ?thesis
       by (smt (verit) eventually_elim2 max_def min_def)
-  } with assms   
-  show "(\<lambda>x. max (f x) (g x)) \<in> o[F](h)" "(\<lambda>x. min (f x) (g x)) \<in> o[F](h)"
+  qed
+  with assms show "(\<lambda>x. max (f x) (g x)) \<in> o[F](h)" "(\<lambda>x. min (f x) (g x)) \<in> o[F](h)"
     by (smt (verit) eventually_elim2 landau_o.smallI)+
 qed
 
