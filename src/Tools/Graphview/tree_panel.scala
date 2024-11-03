@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Dimension, Rectangle}
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
-import javax.swing.tree.{DefaultMutableTreeNode, TreePath}
+import javax.swing.tree.TreePath
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
 
 import scala.util.matching.Regex
@@ -30,11 +30,7 @@ extends BorderPanel {
       if (paths != null) {
         for (path <- paths if path != null) {
           path.getLastPathComponent match {
-            case tree_node: DefaultMutableTreeNode =>
-              tree_node.getUserObject match {
-                case node: Graph_Display.Node => graphview.Selection.add(node)
-                case _ =>
-              }
+            case Tree_View.Node(node: Graph_Display.Node) => graphview.Selection.add(node)
             case _ =>
           }
         }
@@ -47,11 +43,7 @@ extends BorderPanel {
     if (tree_pane != null && path != null) {
       val action_node =
         path.getLastPathComponent match {
-          case tree_node: DefaultMutableTreeNode =>
-            tree_node.getUserObject match {
-              case node: Graph_Display.Node => Some(node)
-              case _ => None
-            }
+          case Tree_View.Node(node: Graph_Display.Node) => Some(node)
           case _ => None
         }
       action_node.foreach(graph_panel.scroll_to_node(_))
@@ -65,7 +57,7 @@ extends BorderPanel {
 
   private var nodes = List.empty[Graph_Display.Node]
 
-  val tree: Tree_View = new Tree_View(root = new DefaultMutableTreeNode("Nodes"))
+  val tree: Tree_View = new Tree_View(root = Tree_View.Node("Nodes"))
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =
@@ -151,7 +143,7 @@ extends BorderPanel {
       tree.clear()
 
       nodes = new_nodes
-      for (node <- nodes) tree.root.add(new DefaultMutableTreeNode(node))
+      for (node <- nodes) tree.root.add(Tree_View.Node(node))
 
       tree.expandRow(0)
       tree.revalidate()

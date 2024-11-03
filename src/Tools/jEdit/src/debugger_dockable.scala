@@ -12,7 +12,6 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import javax.swing.JMenuItem
-import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.event.TreeSelectionEvent
 
 import scala.collection.immutable.SortedMap
@@ -123,9 +122,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     output.tree.clear()
 
     for (thread <- thread_contexts) {
-      val thread_node = new DefaultMutableTreeNode(thread)
+      val thread_node = Tree_View.Node(thread)
       for ((_, i) <- thread.debug_states.zipWithIndex)
-        thread_node.add(new DefaultMutableTreeNode(thread.select(i)))
+        thread_node.add(Tree_View.Node(thread.select(i)))
       output.tree.root.add(thread_node)
     }
 

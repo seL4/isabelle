@@ -13,7 +13,6 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
-import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.event.TreeSelectionEvent
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -29,7 +28,7 @@ class Tree_Text_Area(view: View, root_name: String = "Overview") {
   /* tree view */
 
   val tree: Tree_View =
-    new Tree_View(root = new DefaultMutableTreeNode(root_name), single_selection_mode = true)
+    new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
   def handle_tree_selection(e: TreeSelectionEvent): Unit = ()
   tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))

@@ -7,19 +7,32 @@ Tree view with adjusted defaults.
 package isabelle
 
 import javax.swing.JTree
-import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeModel, TreeSelectionModel}
+import javax.swing.tree.{MutableTreeNode, DefaultMutableTreeNode, DefaultTreeModel,
+  TreeSelectionModel}
 
+
+object Tree_View {
+  type Node = DefaultMutableTreeNode
+
+  object Node {
+    def apply(obj: AnyRef = null): Node =
+      if (obj == null) new DefaultMutableTreeNode else new DefaultMutableTreeNode(obj)
+
+    def unapply(tree_node: MutableTreeNode): Option[AnyRef] =
+      tree_node match {
+        case node: Node => Some(node.getUserObject)
+        case _ => None
+      }
+  }
+}
 
 class Tree_View(
-  val root: DefaultMutableTreeNode = new DefaultMutableTreeNode,
+  val root: Tree_View.Node = Tree_View.Node(),
   single_selection_mode: Boolean = false
 ) extends JTree(root) {
   def get_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     getLastSelectedPathComponent match {
-      case node: DefaultMutableTreeNode =>
-        val obj = node.getUserObject
-        if (obj != null && which.isDefinedAt(obj)) Some(which(obj))
-        else None
+      case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
       case _ => None
     }
 

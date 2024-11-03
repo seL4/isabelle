@@ -12,7 +12,6 @@ import isabelle._
 import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JScrollPane
-import javax.swing.tree.DefaultMutableTreeNode
 
 import org.gjt.sp.jedit.{View, OperatingSystem}
 
@@ -27,22 +26,22 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   private val tree = new Tree_View(single_selection_mode = true)
 
   for (section <- doc_contents.sections) {
-    tree.root.add(new DefaultMutableTreeNode(section.title))
+    tree.root.add(Tree_View.Node(section.title))
     section.entries.foreach(
       {
         case entry @ Doc.Doc(name, title, _) =>
           val string = "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
-          tree.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-            .add(new DefaultMutableTreeNode(Node(string, entry)))
+          tree.root.getLastChild.asInstanceOf[Tree_View.Node]
+            .add(Tree_View.Node(Node(string, entry)))
         case entry @ Doc.Text_File(name: String, _) =>
-          tree.root.getLastChild.asInstanceOf[DefaultMutableTreeNode]
-            .add(new DefaultMutableTreeNode(Node(name, entry)))
+          tree.root.getLastChild.asInstanceOf[Tree_View.Node]
+            .add(Tree_View.Node(Node(name, entry)))
       })
   }
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
-  private def action(node: DefaultMutableTreeNode): Unit = {
+  private def action(node: Tree_View.Node): Unit = {
     node.getUserObject match {
       case Node(_, Doc.Doc(_, _, path)) =>
         PIDE.editor.goto_doc(view, path)
@@ -59,7 +58,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
         val path = tree.getSelectionPath
         if (path != null) {
           path.getLastPathComponent match {
-            case node: DefaultMutableTreeNode => action(node)
+            case node: Tree_View.Node => action(node)
             case _ =>
           }
         }
@@ -71,8 +70,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       val click = tree.getPathForLocation(e.getX, e.getY)
       if (click != null && e.getClickCount == 1) {
         (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
-          case (node: DefaultMutableTreeNode, node1: DefaultMutableTreeNode) if node == node1 =>
-            action(node)
+          case (node: Tree_View.Node, node1: Tree_View.Node) if node == node1 => action(node)
           case _ =>
         }
       }

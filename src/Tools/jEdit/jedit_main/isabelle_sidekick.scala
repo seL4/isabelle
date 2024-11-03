@@ -11,7 +11,6 @@ package isabelle.jedit_main
 import isabelle._
 import isabelle.jedit._
 
-import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.text.Position
 import javax.swing.Icon
 
@@ -65,8 +64,8 @@ object Isabelle_Sidekick {
 
   def swing_markup_tree(
     tree: Markup_Tree,
-    parent: DefaultMutableTreeNode,
-    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode
+    parent: Tree_View.Node,
+    swing_node: Text.Info[List[XML.Elem]] => Tree_View.Node
   ): Unit = {
     for ((_, entry) <- tree.branches) {
       val node = swing_node(Text.Info(entry.range, entry.markup))
@@ -97,11 +96,11 @@ class Isabelle_Sidekick(name: String) extends SideKickParser(name) {
     val ok =
       if (syntax.isDefined) {
         val ok = parser(buffer, syntax.get, data)
-        if (stopped) { data.root.add(new DefaultMutableTreeNode("<stopped>")); true }
+        if (stopped) { data.root.add(Tree_View.Node("<stopped>")); true }
         else ok
       }
       else false
-    if (!ok) data.root.add(new DefaultMutableTreeNode("<ignored>"))
+    if (!ok) data.root.add(Tree_View.Node("<ignored>"))
 
     data
   }
@@ -115,7 +114,7 @@ class Isabelle_Sidekick_Structure(
 ) extends Isabelle_Sidekick(name) {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean = {
     def make_tree(
-      parent: DefaultMutableTreeNode,
+      parent: Tree_View.Node,
       offset: Text.Offset,
       documents: List[Document_Structure.Document]
     ): Unit = {
@@ -125,7 +124,7 @@ class Isabelle_Sidekick_Structure(
             case Document_Structure.Block(name, text, body) =>
               val range = Text.Range(i, i + document.length)
               val node =
-                new DefaultMutableTreeNode(
+                Tree_View.Node(
                   new Isabelle_Sidekick.Keyword_Asset(name, Library.first_line(text), range))
               parent.add(node)
               make_tree(node, i, body)
@@ -193,7 +192,7 @@ class Isabelle_Sidekick_Markup extends Isabelle_Sidekick("isabelle-markup") {
               val content = command.source(info.range).replace('\n', ' ')
               val info_text = Pretty.formatted(Pretty.fbreaks(info.info), margin = 40.0).mkString
 
-              new DefaultMutableTreeNode(
+              Tree_View.Node(
                 new Isabelle_Sidekick.Asset(command.toString, range) {
                   override def getShortString: String = content
                   override def getLongString: String = info_text
@@ -212,14 +211,14 @@ class Isabelle_Sidekick_News extends Isabelle_Sidekick("isabelle-news") {
   private val Heading1 = """^New in (.*)\w*$""".r
   private val Heading2 = """^\*\*\*\w*(.*)\w*\*\*\*\w*$""".r
 
-  private def make_node(s: String, start: Text.Offset, stop: Text.Offset): DefaultMutableTreeNode =
-    new DefaultMutableTreeNode(new Isabelle_Sidekick.Asset(s, Text.Range(start, stop)))
+  private def make_node(s: String, start: Text.Offset, stop: Text.Offset): Tree_View.Node =
+    Tree_View.Node(new Isabelle_Sidekick.Asset(s, Text.Range(start, stop)))
 
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean = {
     var offset = 0
     var end_offset = 0
 
-    var start1: Option[(Int, String, Vector[DefaultMutableTreeNode])] = None
+    var start1: Option[(Int, String, Vector[Tree_View.Node])] = None
     var start2: Option[(Int, String)] = None
 
     def close1(): Unit =
@@ -285,7 +284,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
             if_proper(name, " " + HTML.output(name)) + "</html>"
           val range = Text.Range(offset, offset + source.length)
           val asset = new Asset(label, label_html, range, source)
-          data.root.add(new DefaultMutableTreeNode(asset))
+          data.root.add(Tree_View.Node(asset))
         }
         offset += source.length
       }
