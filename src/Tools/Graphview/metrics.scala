@@ -10,7 +10,6 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.Font
-import java.awt.geom.Rectangle2D
 
 
 object Metrics {
