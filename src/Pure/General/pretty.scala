@@ -49,7 +49,7 @@ object Pretty {
   /* text metric -- standardized to width of space */
 
   abstract class Metric {
-    val unit: Double
+    def unit: Double
     def apply(s: String): Double
   }
 

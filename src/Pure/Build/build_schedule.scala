@@ -1557,10 +1557,10 @@ object Build_Schedule {
     import java.awt.geom.{GeneralPath, Rectangle2D}
     import java.awt.{BasicStroke, Color, Graphics2D}
 
-    val line_height = isabelle.graphview.Metrics.default.height
-    val char_width = isabelle.graphview.Metrics.default.char_width
-    val padding = isabelle.graphview.Metrics.default.space_width
-    val gap = isabelle.graphview.Metrics.default.gap
+    val line_height = Font_Metric.default.height
+    val char_width = Font_Metric.default.average_width
+    val padding = Font_Metric.default.space_width
+    val gap = Font_Metric.default.average_width * 3
 
     val graph = schedule.graph
 
@@ -1619,8 +1619,8 @@ object Build_Schedule {
     def paint(gfx: Graphics2D): Unit = {
       gfx.setColor(Color.LIGHT_GRAY)
       gfx.fillRect(0, 0, width, height)
-      gfx.setRenderingHints(isabelle.graphview.Metrics.rendering_hints)
-      gfx.setFont(isabelle.graphview.Metrics.default.font)
+      gfx.setRenderingHints(Font_Metric.default_hints)
+      gfx.setFont(Font_Metric.default.font)
       gfx.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND))
 
       draw_string(schedule.generator + ", build time: " + schedule.duration.message_hms, padding, 0)

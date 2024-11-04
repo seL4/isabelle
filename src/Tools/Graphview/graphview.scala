@@ -74,7 +74,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph) {
         val s =
           XML.content(Pretty.formatted(content,
             margin = options.int("graphview_content_margin").toDouble,
-            metric = metrics.Pretty_Metric))
+            metric = metrics))
         if (s.nonEmpty) s else node.toString
       }
       else node.toString
@@ -134,7 +134,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph) {
   }
 
   def paint(gfx: Graphics2D): Unit = {
-    gfx.setRenderingHints(Metrics.rendering_hints)
+    gfx.setRenderingHints(Font_Metric.default_hints)
 
     for (node <- graphview.current_node)
       Shapes.highlight_node(gfx, graphview, node)

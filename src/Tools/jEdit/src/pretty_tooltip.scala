@@ -243,7 +243,7 @@ class Pretty_Tooltip private(
 
       val painter = pretty_text_area.getPainter
       val geometry = JEdit_Lib.window_geometry(tip, painter)
-      val metric = JEdit_Lib.pretty_metric(painter)
+      val metric = JEdit_Lib.font_metric(painter)
 
       val margin =
         ((rendering.tooltip_margin * metric.average) min

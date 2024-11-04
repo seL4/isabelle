@@ -232,13 +232,16 @@ object JEdit_Lib {
 
   /* graphics range */
 
+  def font_metric(painter: TextAreaPainter): Font_Metric =
+    new Font_Metric(font = painter.getFont, context = painter.getFontRenderContext)
+
   case class Gfx_Range(x: Int, y: Int, length: Int)
 
   // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] = {
-    val metric = pretty_metric(text_area.getPainter)
-    val char_width = (metric.unit * metric.average).round.toInt
+    val metric = font_metric(text_area.getPainter)
+    val char_width = metric.average_width.round.toInt
 
     val buffer = text_area.getBuffer
 
@@ -282,23 +285,6 @@ object JEdit_Lib {
     }
     else None
   }
-
-
-  /* pretty text metric */
-
-  abstract class Pretty_Metric extends Pretty.Metric {
-    def average: Double
-  }
-
-  def pretty_metric(painter: TextAreaPainter): Pretty_Metric =
-    new Pretty_Metric {
-      def string_width(s: String): Double =
-        painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
-
-      val unit: Double = string_width(Symbol.space) max 1.0
-      val average: Double = string_width("mix") / (3 * unit)
-      def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
-    }
 
 
   /* icons */

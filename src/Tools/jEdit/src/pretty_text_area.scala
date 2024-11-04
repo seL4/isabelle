@@ -87,7 +87,7 @@ class Pretty_Text_Area(
     getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
 
     if (getWidth > 0) {
-      val metric = JEdit_Lib.pretty_metric(getPainter)
+      val metric = JEdit_Lib.font_metric(getPainter)
       val margin = ((getPainter.getWidth.toDouble / metric.unit) max 20.0).floor
 
       val snapshot = current_base_snapshot

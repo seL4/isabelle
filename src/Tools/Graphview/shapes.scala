@@ -24,7 +24,7 @@ object Shapes {
 
   def highlight_node(gfx: Graphics2D, graphview: Graphview, node: Graph_Display.Node): Unit = {
     val metrics = graphview.metrics
-    val extra = metrics.char_width
+    val extra = metrics.average_width
     val info = graphview.layout.get_node(node)
 
     gfx.setColor(graphview.highlight_color)
