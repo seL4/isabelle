@@ -32,12 +32,12 @@ class Font_Metric(
   def string_bounds(str: String): Rectangle2D = font.getStringBounds(str, context)
   def string_width(str: String): Double = string_bounds(str).getWidth
 
+  protected def sample: String = "mix"
+  val height: Double = string_bounds(sample).getHeight
+  val average_width: Double = string_width(sample) / sample.length
+
   val space_width: Double = string_width(Symbol.space)
   override def unit: Double = space_width max 1.0
   override def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
-
-  protected def sample: String = "mix"
-  val height: Double = string_bounds(sample).getHeight
-  val average_width: Double = string_bounds(sample).getWidth / sample.length
   def average: Double = average_width / unit
 }
