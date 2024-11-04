@@ -334,7 +334,7 @@ class Rich_Text_Area(
             // line background color
             for { (c, separator) <- rendering.line_background(line_range) } {
               gfx.setColor(rendering.color(c))
-              val sep = if (separator) 2 min (line_height / 2) else 0
+              val sep = if (separator) (2 min (line_height / 2)) max (line_height / 8) else 0
               gfx.fillRect(0, y + i * line_height, text_area.getWidth, line_height - sep)
             }
 
