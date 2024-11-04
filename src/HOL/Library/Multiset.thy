@@ -4342,16 +4342,14 @@ next
   proof (cases "List.extract ((=) x) ys")
     case None
     hence x: "x \<notin> set ys" by (simp add: extract_None_iff)
-    {
-      assume "mset (x # xs) \<subseteq># mset ys"
-      from set_mset_mono[OF this] x have False by simp
-    } note nle = this
+    have nle: False if "mset (x # xs) \<subseteq># mset ys"
+      using set_mset_mono[OF that] x by simp
     moreover
-    {
-      assume "mset (x # xs) \<subset># mset ys"
-      hence "mset (x # xs) \<subseteq># mset ys" by auto
-      from nle[OF this] have False .
-    }
+    have False if "mset (x # xs) \<subset># mset ys"
+    proof -
+      from that have "mset (x # xs) \<subseteq># mset ys" by auto
+      from nle[OF this] show ?thesis .
+    qed
     ultimately show ?thesis using None by auto
   next
     case (Some res)
