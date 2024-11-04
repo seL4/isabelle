@@ -673,7 +673,9 @@ object Symbol {
     def apply(str: String): Double =
       (for (s <- iterator(str)) yield {
         val sym = encode(s)
-        if (sym.startsWith("\\<long") || sym.startsWith("\\<Long")) 2
+        if (sym.startsWith("\\<longlonglong")) 4
+        else if (sym.startsWith("\\<longlong")) 3
+        else if (sym.startsWith("\\<long") || sym.startsWith("\\<Long")) 2
         else if (is_printable(sym)) 1
         else 0
       }).sum
