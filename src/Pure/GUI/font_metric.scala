@@ -6,7 +6,6 @@ Precise metric for smooth font rendering, notably for pretty-printing.
 
 package isabelle
 
-import java.util.HashMap
 import java.awt.{Font, RenderingHints}
 import java.awt.font.FontRenderContext
 import java.awt.geom.Rectangle2D
@@ -14,12 +13,10 @@ import java.awt.geom.Rectangle2D
 
 object Font_Metric {
   val default_hints: RenderingHints =
-  {
-    val hints = new HashMap[RenderingHints.Key, AnyRef]
-    hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    hints.put(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON)
-    new RenderingHints(hints)
-  }
+    new RenderingHints(
+      java.util.Map.of(
+        RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
+        RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON))
 
   val default_font: Font = new Font("Helvetica", Font.PLAIN, 12)
   val default_context: FontRenderContext = new FontRenderContext(null, true, true)
