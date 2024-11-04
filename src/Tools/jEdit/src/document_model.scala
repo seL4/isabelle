@@ -228,7 +228,7 @@ object Document_Model {
   def flush_edits(hidden: Boolean, purge: Boolean): (Document.Blobs, List[Document.Edit_Text]) = {
     GUI_Thread.require {}
 
-    state.change_result { st =>
+    state.change_result({ st =>
       val doc_blobs = st.document_blobs
 
       val buffer_edits =
@@ -273,7 +273,7 @@ object Document_Model {
         } yield file.getParentFile).toSet)
 
       ((doc_blobs, model_edits ::: purge_edits), st1)
-    }
+    })
   }
 
 
