@@ -25,10 +25,10 @@ object GUI {
 
   def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
 
-  def current_laf: String = UIManager.getLookAndFeel.getClass.getName()
+  def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
 
   def is_macos_laf: Boolean =
-    Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf
+    Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
   class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
     def info: UIManager.LookAndFeelInfo =
