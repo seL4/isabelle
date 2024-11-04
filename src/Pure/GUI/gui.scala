@@ -51,7 +51,6 @@ object GUI {
 
     // see https://www.formdev.com/flatlaf/customizing
     UIManager.put("Component.arrowType", "triangle")
-    UIManager.put("ScrollBar.showButtons", true)
   }
 
 
