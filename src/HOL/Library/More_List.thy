@@ -14,7 +14,7 @@ where
 lemma strip_while_rev [simp]:
   "strip_while P (rev xs) = rev (dropWhile P xs)"
   by (simp add: strip_while_def)
-  
+
 lemma strip_while_Nil [simp]:
   "strip_while P [] = []"
   by (simp add: strip_while_def)
@@ -281,7 +281,7 @@ lemma last_conv_nth_default:
   assumes "xs \<noteq> []"
   shows "last xs = nth_default dflt xs (length xs - 1)"
   using assms by (simp add: nth_default_def last_conv_nth)
-  
+
 lemma nth_default_map_eq:
   "f dflt' = dflt \<Longrightarrow> nth_default dflt (map f xs) n = f (nth_default dflt' xs n)"
   by (simp add: nth_default_def)
@@ -332,15 +332,18 @@ lemma nth_default_eq_iff:
   "nth_default dflt xs = nth_default dflt ys
      \<longleftrightarrow> strip_while (HOL.eq dflt) xs = strip_while (HOL.eq dflt) ys" (is "?P \<longleftrightarrow> ?Q")
 proof
-  let ?xs = "strip_while (HOL.eq dflt) xs" and ?ys = "strip_while (HOL.eq dflt) ys"
+  let ?strip_while = \<open>strip_while (HOL.eq dflt)\<close>
+  let ?xs = "?strip_while xs"
+  let ?ys = "?strip_while ys"
   assume ?P
   then have eq: "nth_default dflt ?xs = nth_default dflt ?ys"
     by simp
   have len: "length ?xs = length ?ys"
   proof (rule ccontr)
-    assume len: "length ?xs \<noteq> length ?ys"
+    assume neq: "\<not> ?thesis"
     { fix xs ys :: "'a list"
-      let ?xs = "strip_while (HOL.eq dflt) xs" and ?ys = "strip_while (HOL.eq dflt) ys"
+      let ?xs = "?strip_while xs"
+      let ?ys = "?strip_while ys"
       assume eq: "nth_default dflt ?xs = nth_default dflt ?ys"
       assume len: "length ?xs < length ?ys"
       then have "length ?ys > 0" by arith
@@ -354,8 +357,8 @@ proof
         using eq by simp
       moreover from len have "length ?ys - 1 \<ge> length ?xs" by simp
       ultimately have False by (simp only: nth_default_beyond) simp
-    } 
-    from this [of xs ys] this [of ys xs] len eq show False
+    }
+    from this [of xs ys] this [of ys xs] neq eq show False
       by (auto simp only: linorder_class.neq_iff)
   qed
   then show ?Q

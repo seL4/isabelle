@@ -33,7 +33,7 @@ proof cases
     also have "... = Suc (LEAST l. \<not> b ((c ^^ l) (c s)))"
       by (simp add: funpow_swap1)
     finally
-    show ?thesis 
+    show ?thesis
       using True 2 \<open>b s\<close> by (simp add: funpow_swap1 while_option_def)
   next
     case False
@@ -46,9 +46,9 @@ next
   assume [simp]: "\<not> b s"
   have least: "(LEAST k. \<not> b ((c ^^ k) s)) = 0"
     by (rule Least_equality) auto
-  moreover 
+  moreover
   have "\<exists>k. \<not> b ((c ^^ k) s)" by (rule exI[of _ "0::nat"]) auto
-  ultimately show ?thesis unfolding while_option_def by auto 
+  ultimately show ?thesis unfolding while_option_def by auto
 qed
 
 lemma while_option_stop2:
@@ -60,23 +60,22 @@ lemma while_option_stop: "while_option b c s = Some t \<Longrightarrow> \<not> b
 by(metis while_option_stop2)
 
 theorem while_option_rule:
-  assumes step: "!!s. P s ==> b s ==> P (c s)"
+  assumes step: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P (c s)"
     and result: "while_option b c s = Some t"
     and init: "P s"
   shows "P t"
 proof -
   define k where "k = (LEAST k. \<not> b ((c ^^ k) s))"
   from assms have t: "t = (c ^^ k) s"
-    by (simp add: while_option_def k_def split: if_splits)    
+    by (simp add: while_option_def k_def split: if_splits)
   have 1: "\<forall>i<k. b ((c ^^ i) s)"
     by (auto simp: k_def dest: not_less_Least)
-
-  { fix i assume "i \<le> k" then have "P ((c ^^ i) s)"
-      by (induct i) (auto simp: init step 1) }
+  have "P ((c ^^ i) s)" if "i \<le> k" for i
+    using that by (induct i) (auto simp: init step 1)
   thus "P t" by (auto simp: t)
 qed
 
-lemma funpow_commute: 
+lemma funpow_commute:
   "\<lbrakk>\<forall>k' < k. f (c ((c^^k') s)) = c' (f ((c^^k') s))\<rbrakk> \<Longrightarrow> f ((c^^k) s) = (c'^^k) (f s)"
 by (induct k arbitrary: s) auto
 
@@ -138,23 +137,26 @@ next
     have "\<not> b' ((c' ^^ Suc k') (f s))"
       unfolding Suc[symmetric] by (rule LeastI) (rule k)
     moreover
-    { fix k assume "k \<le> k'"
-      hence "k < ?k'" unfolding Suc by simp
-      hence "b' ((c' ^^ k) (f s))" by (rule iffD1[OF not_not, OF not_less_Least])
-    }
-    note b' = this
-    { fix k assume "k \<le> k'"
-      hence "f ((c ^^ k) s) = (c' ^^ k) (f s)"
-      and "b ((c ^^ k) s) = b' ((c' ^^ k) (f s))"
-      and "P ((c ^^ k) s)"
+    have b': "b' ((c' ^^ k) (f s))" if "k \<le> k'" for k
+    proof -
+      from that have "k < ?k'" unfolding Suc by simp
+      thus ?thesis by (rule iffD1[OF not_not, OF not_less_Least])
+    qed
+    have b: "b ((c ^^ k) s)"
+      and body: "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+      and inv: "P ((c ^^ k) s)"
+      if "k \<le> k'" for k
+    proof -
+      from that have "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+        and "b ((c ^^ k) s) = b' ((c' ^^ k) (f s))"
+        and "P ((c ^^ k) s)"
         by (induct k) (auto simp: b' assms)
       with \<open>k \<le> k'\<close>
-      have "b ((c ^^ k) s)"
-      and "f ((c ^^ k) s) = (c' ^^ k) (f s)"
-      and "P ((c ^^ k) s)"
+      show "b ((c ^^ k) s)"
+        and "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+        and "P ((c ^^ k) s)"
         by (auto simp: b')
-    }
-    note b = this(1) and body = this(2) and inv = this(3)
+    qed
     hence k': "f ((c ^^ k') s) = (c' ^^ k') (f s)" by auto
     ultimately show ?thesis unfolding Suc using b
     proof (intro Least_equality[symmetric], goal_cases)
@@ -188,7 +190,7 @@ next
 qed
 
 lemma while_option_commute:
-  assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)" 
+  assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)"
   shows "map_option f (while_option b c s) = while_option b' c' (f s)"
 by(rule while_option_commute_invariant[where P = "\<lambda>_. True"])
   (auto simp add: assms)
@@ -213,8 +215,8 @@ text \<open>
 \<close>
 
 theorem while_rule_lemma:
-  assumes invariant: "!!s. P s ==> b s ==> P (c s)"
-    and terminate: "!!s. P s ==> \<not> b s ==> Q s"
+  assumes invariant: "\<And>s. P s \<Longrightarrow> b s \<Longrightarrow> P (c s)"
+    and terminate: "\<And>s. P s \<Longrightarrow> \<not> b s \<Longrightarrow> Q s"
     and wf: "wf {(t, s). P s \<and> b s \<and> t = c s}"
   shows "P s \<Longrightarrow> Q (while b c s)"
   using wf
@@ -225,11 +227,11 @@ theorem while_rule_lemma:
   done
 
 theorem while_rule:
-  "[| P s;
-      !!s. [| P s; b s  |] ==> P (c s);
-      !!s. [| P s; \<not> b s  |] ==> Q s;
+  "\<lbrakk>P s;
+      \<And>s. \<lbrakk>P s; b s\<rbrakk> \<Longrightarrow> P (c s);
+      \<And>s. \<lbrakk>P s; \<not> b s\<rbrakk> \<Longrightarrow> Q s;
       wf r;
-      !!s. [| P s; b s  |] ==> (c s, s) \<in> r |] ==>
+      \<And>s. \<lbrakk>P s; b s\<rbrakk> \<Longrightarrow> (c s, s) \<in> r\<rbrakk> \<Longrightarrow>
    Q (while b c s)"
   apply (rule while_rule_lemma)
      prefer 4 apply assumption
@@ -241,10 +243,10 @@ theorem while_rule:
 
 text \<open>Combine invariant preservation and variant decrease in one goal:\<close>
 theorem while_rule2:
-  "[| P s;
-      !!s. [| P s; b s  |] ==> P (c s) \<and> (c s, s) \<in> r;
-      !!s. [| P s; \<not> b s  |] ==> Q s;
-      wf r |] ==>
+  "\<lbrakk>P s;
+      \<And>s. \<lbrakk>P s; b s\<rbrakk> \<Longrightarrow> P (c s) \<and> (c s, s) \<in> r;
+      \<And>s. \<lbrakk>P s; \<not> b s\<rbrakk> \<Longrightarrow> Q s;
+      wf r\<rbrakk> \<Longrightarrow>
    Q (while b c s)"
 using while_rule[of P] by metis
 
@@ -281,7 +283,7 @@ text\<open>Kleene iteration starting from the empty set and assuming some finite
 bounding set:\<close>
 
 lemma while_option_finite_subset_Some: fixes C :: "'a set"
-  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
   shows "\<exists>P. while_option (\<lambda>A. f A \<noteq> A) f {} = Some P"
 proof(rule measure_while_option_Some[where
     f= "%A::'a set. card C - card A" and P= "%A. A \<subseteq> C \<and> A \<subseteq> f A" and s= "{}"])
@@ -289,13 +291,13 @@ proof(rule measure_while_option_Some[where
   show "(f A \<subseteq> C \<and> f A \<subseteq> f (f A)) \<and> card C - card (f A) < card C - card A"
     (is "?L \<and> ?R")
   proof
-    show ?L by(metis A(1) assms(2) monoD[OF \<open>mono f\<close>])
+    show ?L by (metis A(1) assms(2) monoD[OF \<open>mono f\<close>])
     show ?R by (metis A assms(2,3) card_seteq diff_less_mono2 equalityI linorder_le_less_linear rev_finite_subset)
   qed
 qed simp
 
 lemma lfp_the_while_option:
-  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
   shows "lfp f = the(while_option (\<lambda>A. f A \<noteq> A) f {})"
 proof-
   obtain P where "while_option (\<lambda>A. f A \<noteq> A) f {} = Some P"
@@ -305,7 +307,7 @@ proof-
 qed
 
 lemma lfp_while:
-  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
   shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
 unfolding while_def using assms by (rule lfp_the_while_option) blast
 
@@ -377,9 +379,9 @@ by Nipkow (the theories are in the AFP entry Flyspeck by Nipkow)
 and the AFP article Executable Transitive Closures by René Thiemann.\<close>
 
 context
-fixes p :: "'a \<Rightarrow> bool"
-and f :: "'a \<Rightarrow> 'a list"
-and x :: 'a
+  fixes p :: "'a \<Rightarrow> bool"
+    and f :: "'a \<Rightarrow> 'a list"
+    and x :: 'a
 begin
 
 qualified fun rtrancl_while_test :: "'a list \<times> 'a set \<Rightarrow> bool"
@@ -398,32 +400,35 @@ where "rtrancl_while_invariant (ws, Z) =
    (x \<in> Z \<and> set ws \<subseteq> Z \<and> distinct ws \<and> {(x,y). y \<in> set(f x)} `` (Z - set ws) \<subseteq> Z \<and>
     Z \<subseteq> {(x,y). y \<in> set(f x)}\<^sup>* `` {x} \<and> (\<forall>z\<in>Z - set ws. p z))"
 
-qualified lemma rtrancl_while_invariant: 
+qualified lemma rtrancl_while_invariant:
   assumes inv: "rtrancl_while_invariant st" and test: "rtrancl_while_test st"
   shows   "rtrancl_while_invariant (rtrancl_while_step st)"
 proof (cases st)
-  fix ws Z assume st: "st = (ws, Z)"
+  fix ws Z
+  assume st: "st = (ws, Z)"
   with test obtain h t where "ws = h # t" "p h" by (cases ws) auto
   with inv st show ?thesis by (auto intro: rtrancl.rtrancl_into_rtrancl)
 qed
 
-lemma rtrancl_while_Some: assumes "rtrancl_while = Some(ws,Z)"
-shows "if ws = []
-       then Z = {(x,y). y \<in> set(f x)}\<^sup>* `` {x} \<and> (\<forall>z\<in>Z. p z)
-       else \<not>p(hd ws) \<and> hd ws \<in> {(x,y). y \<in> set(f x)}\<^sup>* `` {x}"
+lemma rtrancl_while_Some:
+  assumes "rtrancl_while = Some(ws,Z)"
+  shows "if ws = []
+         then Z = {(x,y). y \<in> set(f x)}\<^sup>* `` {x} \<and> (\<forall>z\<in>Z. p z)
+         else \<not>p(hd ws) \<and> hd ws \<in> {(x,y). y \<in> set(f x)}\<^sup>* `` {x}"
 proof -
   have "rtrancl_while_invariant ([x],{x})" by simp
   with rtrancl_while_invariant have I: "rtrancl_while_invariant (ws,Z)"
     by (rule while_option_rule[OF _ assms[unfolded rtrancl_while_def]])
-  { assume "ws = []"
-    hence ?thesis using I
+  show ?thesis
+  proof (cases "ws = []")
+    case True
+    thus ?thesis using I
       by (auto simp del:Image_Collect_case_prod dest: Image_closed_trancl)
-  } moreover
-  { assume "ws \<noteq> []"
-    hence ?thesis using I while_option_stop[OF assms[unfolded rtrancl_while_def]]
+  next
+    case False
+    thus ?thesis using I while_option_stop[OF assms[unfolded rtrancl_while_def]]
       by (simp add: subset_iff)
-  }
-  ultimately show ?thesis by simp
+  qed
 qed
 
 lemma rtrancl_while_finite_Some:
@@ -434,26 +439,29 @@ proof -
   have "wf ?R" by (blast intro: wf_mlex)
   then show ?thesis unfolding rtrancl_while_def
   proof (rule wf_rel_while_option_Some[of ?R rtrancl_while_invariant])
-    fix st assume *: "rtrancl_while_invariant st \<and> rtrancl_while_test st"
+    fix st
+    assume *: "rtrancl_while_invariant st \<and> rtrancl_while_test st"
     hence I: "rtrancl_while_invariant (rtrancl_while_step st)"
       by (blast intro: rtrancl_while_invariant)
     show "(rtrancl_while_step st, st) \<in> ?R"
     proof (cases st)
-      fix ws Z let ?ws = "fst (rtrancl_while_step st)" and ?Z = "snd (rtrancl_while_step st)"
+      fix ws Z
+      let ?ws = "fst (rtrancl_while_step st)"
+      let ?Z = "snd (rtrancl_while_step st)"
       assume st: "st = (ws, Z)"
       with * obtain h t where ws: "ws = h # t" "p h" by (cases ws) auto
-      { assume "remdups (filter (\<lambda>y. y \<notin> Z) (f h)) \<noteq> []"
+      show ?thesis
+      proof (cases "remdups (filter (\<lambda>y. y \<notin> Z) (f h)) = []")
+        case False
         then obtain z where "z \<in> set (remdups (filter (\<lambda>y. y \<notin> Z) (f h)))" by fastforce
         with st ws I have "Z \<subset> ?Z" "Z \<subseteq> ?Cl" "?Z \<subseteq> ?Cl" by auto
         with assms have "card (?Cl - ?Z) < card (?Cl - Z)" by (blast intro: psubset_card_mono)
-        with st ws have ?thesis unfolding mlex_prod_def by simp
-      }
-      moreover
-      { assume "remdups (filter (\<lambda>y. y \<notin> Z) (f h)) = []"
+        with st ws show ?thesis unfolding mlex_prod_def by simp
+      next
+        case True
         with st ws have "?Z = Z" "?ws = t"  by (auto simp: filter_empty_conv)
-        with st ws have ?thesis unfolding mlex_prod_def by simp
-      }
-      ultimately show ?thesis by blast
+        with st ws show ?thesis unfolding mlex_prod_def by simp
+      qed
     qed
   qed (simp_all add: rtrancl_while_invariant)
 qed
