@@ -1560,7 +1560,7 @@ object Build_Schedule {
     val line_height = Font_Metric.default.height
     val char_width = Font_Metric.default.average_width
     val padding = Font_Metric.default.space_width
-    val gap = Font_Metric.default.average_width * 3
+    val gap = char_width * 3
 
     val graph = schedule.graph
 
