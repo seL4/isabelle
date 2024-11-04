@@ -66,8 +66,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* pretty text area */
 
-  private val output: Tree_Text_Area =
-    new Tree_Text_Area(view, root_name = "Threads") {
+  private val output: Output_Area =
+    new Output_Area(view, root_name = "Threads") {
       override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
         update_focus()
         update_vals()

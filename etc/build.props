@@ -304,6 +304,7 @@ sources = \
   src/Tools/jEdit/src/keymap_merge.scala \
   src/Tools/jEdit/src/main_plugin.scala \
   src/Tools/jEdit/src/monitor_dockable.scala \
+  src/Tools/jEdit/src/output_area.scala \
   src/Tools/jEdit/src/output_dockable.scala \
   src/Tools/jEdit/src/pide_docking_framework.scala \
   src/Tools/jEdit/src/pretty_text_area.scala \
@@ -327,8 +328,7 @@ sources = \
   src/Tools/jEdit/src/theories_dockable.scala \
   src/Tools/jEdit/src/theories_status.scala \
   src/Tools/jEdit/src/timing_dockable.scala \
-  src/Tools/jEdit/src/token_markup.scala \
-  src/Tools/jEdit/src/tree_text_area.scala
+  src/Tools/jEdit/src/token_markup.scala
 services = \
   isabelle.Bash$Handler \
   isabelle.Bibtex$File_Format \

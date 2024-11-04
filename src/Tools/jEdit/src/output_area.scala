@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/tree_text_area.scala
+/*  Title:      Tools/jEdit/src/output_area.scala
     Author:     Makarius
 
-GUI component for tree view with pretty-printed text area.
+GUI component for structured output.
 */
 
 package isabelle.jedit
@@ -21,7 +21,7 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-class Tree_Text_Area(view: View, root_name: String = "Overview") {
+class Output_Area(view: View, root_name: String = "Overview") {
   GUI_Thread.require {}
 
 
