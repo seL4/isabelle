@@ -53,11 +53,6 @@ object Pretty {
     def apply(s: String): Double
   }
 
-  object Default_Metric extends Metric {
-    val unit = 1.0
-    def apply(s: String): Double = Codepoint.length(s).toDouble
-  }
-
 
   /* markup trees with physical blocks and breaks */
 
@@ -155,7 +150,7 @@ object Pretty {
   def formatted(input: XML.Body,
     margin: Double = default_margin,
     breakgain: Double = default_breakgain,
-    metric: Metric = Default_Metric
+    metric: Metric = Codepoint.Metric
   ): XML.Body = {
     val emergencypos = (margin / 2).round.toInt
 
@@ -225,7 +220,7 @@ object Pretty {
   def string_of(input: XML.Body,
     margin: Double = default_margin,
     breakgain: Double = default_breakgain,
-    metric: Metric = Default_Metric,
+    metric: Metric = Codepoint.Metric,
     pure: Boolean = false
   ): String = {
     output_content(pure, formatted(input, margin = margin, breakgain = breakgain, metric = metric))

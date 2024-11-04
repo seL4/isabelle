@@ -184,7 +184,7 @@ object Protocol {
     pos: Position.T = Position.none,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
-    metric: Pretty.Metric = Pretty.Default_Metric
+    metric: Pretty.Metric = Codepoint.Metric
   ): String = {
     val text1 = if (heading) "\n" + message_heading(elem, pos) + ":\n" else ""
 

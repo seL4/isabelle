@@ -25,4 +25,9 @@ object Codepoint {
   def iterator(s: String): Iterator[Int] = new Iterator_Offset(s, (c, _) => c)
 
   def length(s: String): Int = iterator(s).length
+
+  object Metric extends Pretty.Metric {
+    val unit = 1.0
+    def apply(s: String): Double = length(s).toDouble
+  }
 }
