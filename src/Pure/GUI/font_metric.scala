@@ -28,6 +28,13 @@ class Font_Metric(
   val context: FontRenderContext = Font_Metric.default_context) extends Pretty.Metric
 {
   override def toString: String = font.toString
+  override def hashCode: Int = font.hashCode
+
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Font_Metric => font == other.font && context == other.context
+      case _ => false
+    }
 
   def string_bounds(str: String): Rectangle2D = font.getStringBounds(str, context)
   def string_width(str: String): Double = string_bounds(str).getWidth
