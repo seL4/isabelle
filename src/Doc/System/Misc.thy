@@ -191,7 +191,7 @@ text \<open>
   @{verbatim [display]
 \<open>Usage: isabelle doc [DOC ...]
 
-  View Isabelle PDF documentation.\<close>}
+  View Isabelle documentation.\<close>}
 
   If called without arguments, it lists all available documents. Each line
   starts with an identifier, followed by a short description. Any of these

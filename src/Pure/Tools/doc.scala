@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/doc.scala
     Author:     Makarius
 
-Access to Isabelle examples and PDF documentation.
+Access to Isabelle examples and documentation.
 */
 
 package isabelle
@@ -130,13 +130,13 @@ object Doc {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle PDF documentation",
+  val isabelle_tool = Isabelle_Tool("doc", "view Isabelle documentation",
     Scala_Project.here,
     { args =>
       val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
-  View Isabelle examples and PDF documentation.
+  View Isabelle documentation.
 """)
       val docs = getopts(args)
 
