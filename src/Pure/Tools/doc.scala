@@ -1,7 +1,7 @@
 /*  Title:      Pure/Tools/doc.scala
     Author:     Makarius
 
-Access to Isabelle documentation.
+Access to Isabelle examples and PDF documentation.
 */
 
 package isabelle
@@ -11,13 +11,31 @@ import scala.collection.mutable
 
 
 object Doc {
-  /* dirs */
+  /* entries */
 
-  def dirs(): List[Path] =
-    Path.split(Isabelle_System.getenv("ISABELLE_DOCS"))
+  case class Section(title: String, important: Boolean, entries: List[Entry])
+  case class Entry(name: String, path: Path, title: String = "") {
+    def view(): Unit = Doc.view(path)
+    override def toString: String =  // GUI label
+      if (title.nonEmpty) {
+        "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
+      }
+      else name
+  }
+
+  def plain_file(path: Path): Option[Entry] =
+    if (path.is_file && !path.is_pdf) {
+      val a = path.implode
+      val b = Library.try_unprefix("$ISABELLE_HOME/", a).getOrElse(a)
+      Some(Entry(b, path))
+    }
+    else None
 
 
   /* contents */
+
+  def dirs(): List[Path] =
+    Path.split(Isabelle_System.getenv("ISABELLE_DOCS"))
 
   private def contents_lines(): List[(Path, String)] =
     for {
@@ -35,34 +53,18 @@ object Doc {
   }
   class Contents private(val sections: List[Section]) {
     def ++ (other: Contents): Contents = new Contents(sections ::: other.sections)
-    def entries: List[Entry] = sections.flatMap(_.entries)
-    def docs: List[Doc] = entries.collect({ case doc: Doc => doc })
+    def entries(name: String => Boolean = _ => true, pdf: Boolean = false): List[Entry] =
+      sections.flatMap(s => s.entries.filter(e => name(e.name) && (!pdf || e.path.is_pdf)))
   }
-
-  case class Section(title: String, important: Boolean, entries: List[Entry])
-  sealed abstract class Entry {
-    def name: String
-    def path: Path
-  }
-  case class Doc(name: String, title: String, path: Path) extends Entry
-  case class Text_File(name: String, path: Path) extends Entry
-
-  def text_file(path: Path): Option[Text_File] =
-    if (path.is_file) {
-      val a = path.implode
-      val b = Library.try_unprefix("$ISABELLE_HOME/", a).getOrElse(a)
-      Some(Text_File(b, path))
-    }
-    else None
 
   def release_notes(): Contents =
     Contents.section("Release Notes", true,
-      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(text_file))
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(plain_file))
 
   def examples(): Contents =
     Contents.section("Examples", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
-        text_file(file) match {
+        plain_file(file) match {
           case Some(entry) => entry
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         }))
@@ -85,7 +87,7 @@ object Doc {
     }
 
     val Section_ = """^(\S.*)\s*$""".r
-    val Doc_ = """^\s+(\S+)\s+(.+)\s*$""".r
+    val Entry_ = """^\s+(\S+)\s+(.+)\s*$""".r
 
     for ((dir, line) <- contents_lines()) {
       line match {
@@ -94,8 +96,9 @@ object Doc {
             case None => begin(Section(text, false, Nil))
             case Some(txt) => begin(Section(txt, true, Nil))
           }
-        case Doc_(name, title) =>
-          entries += Doc(name, title, dir + Path.basic(name).pdf)
+        case Entry_(name, title) =>
+          val path = dir + Path.basic(name)
+          entries += Entry(name, if (path.is_file) path else path.pdf, title = title)
         case _ =>
       }
     }
@@ -112,7 +115,7 @@ object Doc {
     val here = Scala_Project.here
     def apply(arg: String): String =
       if (arg.nonEmpty) error("Bad argument: " + quote(arg))
-      else cat_lines((for (doc <- contents().docs) yield doc.name).sorted)
+      else cat_lines((for (entry <- contents().entries(pdf = true)) yield entry.name).sorted)
   }
 
 
@@ -133,15 +136,15 @@ object Doc {
       val getopts = Getopts("""
 Usage: isabelle doc [DOC ...]
 
-  View Isabelle PDF documentation.
+  View Isabelle examples and PDF documentation.
 """)
       val docs = getopts(args)
 
       if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
       else {
         docs.foreach(name =>
-          contents().docs.find(_.name == name) match {
-            case Some(doc) => view(doc.path)
+          contents().entries(name = docs.contains).headOption match {
+            case Some(entry) => entry.view()
             case None => error("No Isabelle documentation entry: " + quote(name))
           }
         )

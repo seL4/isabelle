@@ -71,8 +71,8 @@ object Build_Doc {
     if (errs.nonEmpty) error(cat_lines(errs))
 
     if (view) {
-      for (doc <- Doc.main_contents().docs if docs.contains(doc.name)) {
-        Doc.view(doc.path)
+      for (entry <- Doc.main_contents().entries(name = docs.contains, pdf = true)) {
+        entry.view()
       }
     }
   }
