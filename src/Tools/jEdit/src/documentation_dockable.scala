@@ -19,34 +19,22 @@ import org.gjt.sp.jedit.View
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position) {
   private val doc_contents = Doc.contents()
 
-  private case class Node(string: String, entry: Doc.Entry) {
-    override def toString: String = string
-  }
-
   private val tree = new Tree_View(single_selection_mode = true)
 
   for (section <- doc_contents.sections) {
     tree.root.add(Tree_View.Node(section.title))
-    section.entries.foreach(
-      {
-        case entry @ Doc.Doc(name, title, _) =>
-          val string = "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
-          tree.root.getLastChild.asInstanceOf[Tree_View.Node]
-            .add(Tree_View.Node(Node(string, entry)))
-        case entry @ Doc.Text_File(name: String, _) =>
-          tree.root.getLastChild.asInstanceOf[Tree_View.Node]
-            .add(Tree_View.Node(Node(name, entry)))
-      })
+    for (entry <- section.entries) {
+      tree.root.getLastChild.asInstanceOf[Tree_View.Node].add(Tree_View.Node(entry))
+    }
   }
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
   private def action(node: Tree_View.Node): Unit = {
-    node.getUserObject match {
-      case Node(_, Doc.Doc(_, _, path)) =>
-        PIDE.editor.goto_doc(view, path)
-      case Node(_, Doc.Text_File(_, path)) =>
-        PIDE.editor.goto_file(true, view, File.platform_path(path))
+    node match {
+      case Tree_View.Node(entry: Doc.Entry) =>
+        if (entry.path.is_pdf) PIDE.editor.goto_doc(view, entry.path)
+        else PIDE.editor.goto_file(true, view, File.platform_path(entry.path))
       case _ =>
     }
   }

@@ -127,6 +127,10 @@ the editor selection by adding the enclosing formal structure, based on
 formal markup by the prover. Repeated invocation of this action extends
 the selection incrementally.
 
+* The "Documentation" panel supports plain text files again, notably
+"jedit-changes". This was broken in Isabelle2022, Isabelle2023,
+Isabelle2024.
+
 * Update to jEdit 5.7.0, the latest release.
 
 

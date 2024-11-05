@@ -363,8 +363,8 @@ object HTTP {
         p <- request.uri_path if p.is_pdf
         s = p.implode if s.startsWith("web/")
         name = p.base.split_ext._1.implode
-        doc <- doc_contents.docs.find(_.name == name)
-      } yield Response.read(doc.path)
+        entry <- doc_contents.entries(name = _ == name, pdf = true).headOption
+      } yield Response.read(entry.path)
 
     override def apply(request: Request): Option[Response] =
       doc_request(request) orElse super.apply(request)

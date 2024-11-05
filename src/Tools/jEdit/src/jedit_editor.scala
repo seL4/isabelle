@@ -186,13 +186,11 @@ class JEdit_Editor extends Editor[View] {
   /* hyperlinks */
 
   def hyperlink_doc(name: String): Option[Hyperlink] =
-    Doc.contents().entries.collectFirst(
-      { case entry if entry.name == name =>
-          new Hyperlink {
-            override val external: Boolean = !entry.path.is_file
-            def follow(view: View): Unit = goto_doc(view, entry.path)
-            override def toString: String = "doc " + quote(name)
-          }
+    Doc.contents().entries(name = _ == name).headOption.map(entry =>
+      new Hyperlink {
+        override val external: Boolean = !entry.path.is_file
+        def follow(view: View): Unit = goto_doc(view, entry.path)
+        override def toString: String = "doc " + quote(name)
       })
 
   def hyperlink_url(name: String): Hyperlink =
