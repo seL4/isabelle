@@ -70,8 +70,8 @@ proof -
     by (simp add: while_option_def k_def split: if_splits)
   have 1: "\<forall>i<k. b ((c ^^ i) s)"
     by (auto simp: k_def dest: not_less_Least)
-  have "P ((c ^^ i) s)" if "i \<le> k" for i
-    using that by (induct i) (auto simp: init step 1)
+  have "i \<le> k \<Longrightarrow> P ((c ^^ i) s)" for i
+    by (induct i) (auto simp: init step 1)
   thus "P t" by (auto simp: t)
 qed
 
@@ -137,17 +137,17 @@ next
     have "\<not> b' ((c' ^^ Suc k') (f s))"
       unfolding Suc[symmetric] by (rule LeastI) (rule k)
     moreover
-    have b': "b' ((c' ^^ k) (f s))" if "k \<le> k'" for k
+    have b': "b' ((c' ^^ k) (f s))" if asm: "k \<le> k'" for k
     proof -
-      from that have "k < ?k'" unfolding Suc by simp
+      from asm have "k < ?k'" unfolding Suc by simp
       thus ?thesis by (rule iffD1[OF not_not, OF not_less_Least])
     qed
     have b: "b ((c ^^ k) s)"
       and body: "f ((c ^^ k) s) = (c' ^^ k) (f s)"
       and inv: "P ((c ^^ k) s)"
-      if "k \<le> k'" for k
+      if asm: "k \<le> k'" for k
     proof -
-      from that have "f ((c ^^ k) s) = (c' ^^ k) (f s)"
+      from asm have "f ((c ^^ k) s) = (c' ^^ k) (f s)"
         and "b ((c ^^ k) s) = b' ((c' ^^ k) (f s))"
         and "P ((c ^^ k) s)"
         by (induct k) (auto simp: b' assms)
