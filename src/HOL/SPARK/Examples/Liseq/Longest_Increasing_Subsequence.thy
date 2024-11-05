@@ -87,13 +87,8 @@ proof -
   then obtain js where js: "liseq' xs i = card js" and "js \<in> iseq xs (Suc i)"
     and "finite js" and "Max js = i"
     by (auto simp add: liseq'_def intro: iseq_finite')
-  moreover {
-    fix js'
-    assume "js' \<in> iseq xs (Suc i)" "Max js' = i"
-    then have "card js' \<le> card js"
-      by (auto simp add: js [symmetric] liseq'_def iseq_finite intro!: iseq_singleton)
-  }
-  note max = this
+  moreover have max: "card js' \<le> card js" if "js' \<in> iseq xs (Suc i)" "Max js' = i" for js'
+    using that by (auto simp add: js [symmetric] liseq'_def iseq_finite intro!: iseq_singleton)
   moreover have "card {i} \<le> card js"
     by (rule max) (simp_all add: iseq_singleton)
   then have "js \<noteq> {}" by auto
