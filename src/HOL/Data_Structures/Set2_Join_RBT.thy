@@ -227,6 +227,7 @@ global_interpretation RBT: Set2_Join
 where join = join and inv = "\<lambda>t. invc t \<and> invh t"
 defines insert_rbt = RBT.insert and delete_rbt = RBT.delete and split_rbt = RBT.split
 and join2_rbt = RBT.join2 and split_min_rbt = RBT.split_min
+and inter_rbt = RBT.inter and union_rbt = RBT.union and diff_rbt = RBT.diff 
 proof (standard, goal_cases)
   case 1 show ?case by (rule set_join)
 next
