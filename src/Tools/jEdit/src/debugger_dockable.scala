@@ -68,11 +68,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val output: Output_Area =
     new Output_Area(view, root_name = "Threads") {
-      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
-        update_focus()
-        update_vals()
-      }
-
       override def handle_resize(): Unit = pretty_text_area.zoom(zoom)
 
       override def handle_update(): Unit = {
@@ -265,6 +260,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }
+
+  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
+    update_focus()
+    update_vals()
+  })
 
 
   /* main */

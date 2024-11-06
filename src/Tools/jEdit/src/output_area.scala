@@ -13,7 +13,6 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
-import javax.swing.event.TreeSelectionEvent
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 import scala.swing.event.ButtonClicked
@@ -29,9 +28,6 @@ class Output_Area(view: View, root_name: String = "Overview") {
 
   val tree: Tree_View =
     new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
-
-  def handle_tree_selection(e: TreeSelectionEvent): Unit = ()
-  tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
 
 
   /* text area */
