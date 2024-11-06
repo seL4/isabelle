@@ -5,7 +5,7 @@ section \<open>Queue Implementation via 2 Lists\<close>
 theory Queue_2Lists
 imports
   Queue_Spec
-  Reverse
+  Time_Funs
 begin
 
 text \<open>Definitions:\<close>
@@ -61,11 +61,7 @@ text \<open>Running times:\<close>
 
 time_fun norm
 time_fun enq
-time_fun tl
 time_fun deq
-
-lemma T_tl_0: "T_tl xs = 0"
-by(cases xs)auto
 
 text \<open>Amortized running times:\<close>
 
@@ -76,6 +72,6 @@ lemma a_enq: "T_enq a (fs,rs) + \<Phi>(enq a (fs,rs)) - \<Phi>(fs,rs) \<le> 2"
 by(auto simp: T_itrev)
 
 lemma a_deq: "T_deq (fs,rs) + \<Phi>(deq (fs,rs)) - \<Phi>(fs,rs) \<le> 1"
-by(auto simp: T_itrev T_tl_0)
+by(auto simp: T_itrev T_tl)
 
 end

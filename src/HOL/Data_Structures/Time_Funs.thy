@@ -2,7 +2,9 @@
   File:    Data_Structures/Time_Functions.thy
   Author:  Manuel Eberl, TU München
 *)
-section \<open>Time functions for various standard library operations\<close>
+
+section \<open>Time functions for various standard library operations. Also defines \<open>itrev\<close>.\<close>
+
 theory Time_Funs
   imports Define_Time_Function
 begin
@@ -69,5 +71,32 @@ lemma T_take_eq: "T_take n xs = min n (length xs) + 1"
 
 lemma T_drop_eq: "T_drop n xs = min n (length xs) + 1"
   by (induction xs arbitrary: n) (auto split: nat.splits)
-  
+
+time_fun rev
+
+lemma T_rev: "T_rev xs \<le> (length xs + 1)^2"
+by(induction xs) (auto simp: T_append power2_eq_square)
+
+fun itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"itrev [] ys = ys" |
+"itrev (x#xs) ys = itrev xs (x # ys)"
+
+lemma itrev: "itrev xs ys = rev xs @ ys"
+by(induction xs arbitrary: ys) auto
+
+lemma itrev_Nil: "itrev xs [] = rev xs"
+by(simp add: itrev)
+
+time_fun itrev
+
+lemma T_itrev: "T_itrev xs ys = length xs + 1"
+by(induction xs arbitrary: ys) auto
+
+time_fun tl
+
+lemma T_tl: "T_tl xs = 0"
+by (cases xs) simp_all
+
+declare T_tl.simps[simp del]
+
 end
