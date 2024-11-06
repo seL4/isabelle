@@ -23,15 +23,14 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   for (section <- doc_contents.sections) {
     tree.root.add(Tree_View.Node(section.title))
-    for (entry <- section.entries) {
-      tree.root.getLastChild.asInstanceOf[Tree_View.Node].add(Tree_View.Node(entry))
-    }
+    val last_node = tree.root.getLastChild.asInstanceOf[Tree_View.Node]
+    for (entry <- section.entries) last_node.add(Tree_View.Node(entry))
   }
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
-  private def action(node: Tree_View.Node): Unit = {
-    node match {
+  private def action(obj: AnyRef): Unit = {
+    obj match {
       case Tree_View.Node(entry: Doc.Entry) =>
         if (entry.path.is_pdf) PIDE.editor.goto_doc(view, entry.path)
         else PIDE.editor.goto_file(true, view, File.platform_path(entry.path))
@@ -44,12 +43,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
       if (e.getKeyCode == KeyEvent.VK_ENTER) {
         e.consume()
         val path = tree.getSelectionPath
-        if (path != null) {
-          path.getLastPathComponent match {
-            case node: Tree_View.Node => action(node)
-            case _ =>
-          }
-        }
+        if (path != null) action(path.getLastPathComponent)
       }
     }
   })
@@ -57,10 +51,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     override def mouseClicked(e: MouseEvent): Unit = {
       val click = tree.getPathForLocation(e.getX, e.getY)
       if (click != null && e.getClickCount == 1) {
-        (click.getLastPathComponent, tree.getLastSelectedPathComponent) match {
-          case (node: Tree_View.Node, node1: Tree_View.Node) if node == node1 => action(node)
-          case _ =>
-        }
+        val click_node = click.getLastPathComponent
+        val path_node = tree.getLastSelectedPathComponent
+        if (click_node == path_node) action(click_node)
       }
     }
   })
