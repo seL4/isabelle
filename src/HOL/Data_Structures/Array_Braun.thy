@@ -509,7 +509,7 @@ by(simp)
 
 lemma T_brauns_simple: "T_brauns k xs = (if xs = [] then 0 else
    3 * (min (2^k) (length xs) + 1) + (min (2^k) (length xs - 2^k) + 1) + T_brauns (k+1) (drop (2^k) xs)) + 1"
-by(simp add: T_nodes T_take_eq T_drop_eq length_brauns min_def)
+by(simp add: T_nodes T_take T_drop length_brauns min_def)
 
 theorem T_brauns_ub:
   "T_brauns k xs \<le> 9 * (length xs + 1)"

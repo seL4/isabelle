@@ -639,7 +639,7 @@ subsection \<open>Running time analysis\<close>
 
 time_fun partition3 equations partition3_code
 
-lemma T_partition3_eq: "T_partition3 x xs = length xs + 1"
+lemma T_partition3: "T_partition3 x xs = length xs + 1"
   by (induction x xs rule: T_partition3.induct) auto
 
 
@@ -658,7 +658,7 @@ proof -
   also have "T_insort xs \<le> (length xs + 1) ^ 2"
     by (rule T_insort_length)
   also have "T_nth (Sorting.insort xs) k = k + 1"
-    using assms by (subst T_nth_eq) (auto simp: length_insort)
+    using assms by (subst T_nth) (auto simp: length_insort)
   also have "k + 1 \<le> length xs"
     using assms by linarith
   also have "(length xs + 1) ^ 2 + length xs = length xs ^ 2 + 3 * length xs + 1"
@@ -671,7 +671,7 @@ lemma T_slow_median_le:
   shows   "T_slow_median xs \<le> length xs ^ 2 + 4 * length xs + 2"
 proof -
   have "T_slow_median xs = length xs + T_slow_select ((length xs - 1) div 2) xs + 1"
-    by (simp add: T_length_eq)
+    by (simp add: T_length)
   also from assms have "length xs > 0"
     by simp
   hence "(length xs - 1) div 2 < length xs"
@@ -699,7 +699,7 @@ lemma T_chop_reduce:
   by (cases n; cases xs) (auto simp: T_chop.simps)
 
 lemma T_chop_le: "T_chop d xs \<le> 5 * length xs + 1"
-  by (induction d xs rule: T_chop.induct) (auto simp: T_chop_reduce T_take_eq T_drop_eq)
+  by (induction d xs rule: T_chop.induct) (auto simp: T_chop_reduce T_take T_drop)
 
 time_fun mom_select
 
@@ -787,7 +787,7 @@ proof (induction k xs rule: T_mom_select.induct)
     case True \<comment> \<open>base case\<close>
     hence "T_mom_select k xs \<le> (length xs)\<^sup>2 + 4 * length xs + 3"
       using T_slow_select_le[of k xs] \<open>k < length xs\<close>
-      by (subst T_mom_select_simps(1)) (auto simp: T_length_eq)
+      by (subst T_mom_select_simps(1)) (auto simp: T_length)
     also have "\<dots> \<le> 20\<^sup>2 + 4 * 20 + 3"
       using True by (intro add_mono power_mono) auto
     also have "\<dots> = 483"
@@ -812,7 +812,7 @@ proof (induction k xs rule: T_mom_select.induct)
     have "T_ms \<le> 10 * n + 48"
     proof -
       have "T_ms = (\<Sum>ys\<leftarrow>chop 5 xs. T_slow_median ys) + length (chop 5 xs) + 1"
-        by (simp add: T_ms_def T_map_eq)
+        by (simp add: T_ms_def T_map)
       also have "(\<Sum>ys\<leftarrow>chop 5 xs. T_slow_median ys) \<le> (\<Sum>ys\<leftarrow>chop 5 xs. 47)"
       proof (intro sum_list_mono)
         fix ys assume "ys \<in> set (chop 5 xs)"
@@ -902,8 +902,8 @@ proof (induction k xs rule: T_mom_select.induct)
           unfold Let_def n_def [symmetric] x_def [symmetric] nl_def [symmetric] 
           ne_def [symmetric] prod.case tw [symmetric]) simp_all
     also have "\<dots> \<le> T_rec2 + T_rec1 + T_ms + 2 * n + nl + ne + T_chop 5 xs + 5" using False
-      by (auto simp add: T_rec1_def T_rec2_def T_partition3_eq
-                         T_length_eq T_ms_def nl_def ne_def)
+      by (auto simp add: T_rec1_def T_rec2_def T_partition3
+                         T_length T_ms_def nl_def ne_def)
     also have "nl \<le> n" by (simp add: nl_def ls_def)
     also have "ne \<le> n" by (simp add: ne_def es_def)
     also note \<open>T_ms \<le> 10 * n + 48\<close>
