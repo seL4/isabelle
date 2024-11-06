@@ -67,7 +67,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* pretty text area */
 
   private val output: Output_Area =
-    new Output_Area(view, root_name = "Threads") {
+    new Output_Area(view, root_name = "Threads", split = true) {
       override def handle_resize(): Unit = pretty_text_area.zoom(zoom)
 
       override def handle_update(): Unit = {
