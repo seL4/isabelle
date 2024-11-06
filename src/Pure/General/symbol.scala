@@ -676,7 +676,7 @@ object Symbol {
         if (sym.startsWith("\\<longlonglong")) 4
         else if (sym.startsWith("\\<longlong")) 3
         else if (sym.startsWith("\\<long") || sym.startsWith("\\<Long")) 2
-        else if (is_printable(sym)) 1
+        else if (is_blank(sym) || is_printable(sym)) 1
         else 0
       }).sum
   }
