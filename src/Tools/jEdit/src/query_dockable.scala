@@ -118,8 +118,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val control_panel =
       Wrap_Panel(
         List(query_label, Component.wrap(query), limit, allow_dups,
-          process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field))
+          process_indicator.component, apply_button) :::
+        pretty_text_area.search_components)
 
     def select(): Unit = { control_panel.contents += zoom }
 
@@ -166,9 +166,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val control_panel =
       Wrap_Panel(
-        List(
-          query_label, Component.wrap(query), process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field))
+        List(query_label, Component.wrap(query), process_indicator.component, apply_button) :::
+        pretty_text_area.search_components)
 
     def select(): Unit = { control_panel.contents += zoom }
 
@@ -252,8 +251,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       control_panel.contents += query_label
       update_items().foreach(item => control_panel.contents += item.gui)
       control_panel.contents ++=
-        List(process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+        List(process_indicator.component, apply_button) :::
+        pretty_text_area.search_components ::: List(zoom)
     }
 
     val page =

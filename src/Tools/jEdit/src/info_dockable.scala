@@ -88,8 +88,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private val controls =
-    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+  private val controls = Wrap_Panel(pretty_text_area.search_components ::: List(zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 

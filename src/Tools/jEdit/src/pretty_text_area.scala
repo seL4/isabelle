@@ -170,6 +170,8 @@ class Pretty_Text_Area(
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     })
 
+  def search_components: List[Component] = List(search_label, search_field)
+
   private val search_field_foreground = search_field.foreground
 
   private def search_action(text_field: JTextField): Unit = {

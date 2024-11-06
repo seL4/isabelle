@@ -239,9 +239,9 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       List(
         break_button, continue_button, step_button, step_over_button, step_out_button,
         context_label, Component.wrap(context_field),
-        expression_label, Component.wrap(expression_field), eval_button, sml_button,
-        output.pretty_text_area.search_label,
-        output.pretty_text_area.search_field, zoom))
+        expression_label, Component.wrap(expression_field), eval_button, sml_button) :::
+      output.pretty_text_area.search_components :::
+      List(output.pretty_text_area.search_field, zoom))
 
   add(controls.peer, BorderLayout.NORTH)
 
