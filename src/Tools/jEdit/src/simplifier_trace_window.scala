@@ -41,9 +41,6 @@ private object Simplifier_Trace_Window {
     val parent = None
     val interesting = true
     val markup = ""
-
-    def format: XML.Body =
-      Pretty.separate(tree_children.flatMap(_.format))
   }
 
   final class Elem_Tree(data: Simplifier_Trace.Item.Data, val parent: Option[Trace_Tree])
@@ -154,7 +151,7 @@ class Simplifier_Trace_Window(
   handle_resize()
 
   def handle_update(): Unit = {
-    val xml = tree.format
+    val xml = Pretty.separate(tree.tree_children.flatMap(_.format))
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
