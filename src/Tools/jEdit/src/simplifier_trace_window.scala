@@ -133,7 +133,7 @@ class Simplifier_Trace_Window(
   GUI_Thread.require {}
 
   private val pretty_text_area = new Pretty_Text_Area(view)
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = do_paint() }
+  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
@@ -149,19 +149,17 @@ class Simplifier_Trace_Window(
       new Simplifier_Trace_Window.Root_Tree(0)
   }
 
-  do_update()
+  handle_update()
   open()
-  do_paint()
+  handle_resize()
 
-  def do_update(): Unit = {
+  def handle_update(): Unit = {
     val xml = tree.format
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
-  def do_paint(): Unit =
+  def handle_resize(): Unit =
     GUI_Thread.later { pretty_text_area.zoom(zoom) }
-
-  def handle_resize(): Unit = do_paint()
 
 
   /* resize */

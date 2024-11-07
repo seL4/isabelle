@@ -53,7 +53,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
         text_area.update(snapshot, Command.Results.empty, Nil)
     }
 
-    do_paint()
+    handle_resize()
   }
 
   private def show_trace(): Unit = {
@@ -61,13 +61,11 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
-  private def do_paint(): Unit = {
+  private def handle_resize(): Unit = {
     GUI_Thread.later {
       text_area.resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale")))
     }
   }
-
-  private def handle_resize(): Unit = do_paint()
 
   private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =
