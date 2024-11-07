@@ -30,8 +30,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private var do_update = true
 
 
-  private val text_area = new Pretty_Text_Area(view)
-  set_content(text_area)
+  private val pretty_text_area = new Pretty_Text_Area(view)
+  set_content(pretty_text_area)
 
   private def update_contents(): Unit = {
     val snapshot = current_snapshot
@@ -42,7 +42,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
       case q :: _ =>
         val data = q.data
         val content = Pretty.separate(XML.Text(data.text) :: data.content)
-        text_area.update(snapshot, Command.Results.empty, content)
+        pretty_text_area.update(snapshot, Command.Results.empty, content)
         q.answers.foreach { answer =>
           answers.contents += new GUI.Button(answer.string) {
             override def clicked(): Unit =
@@ -50,7 +50,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
           }
         }
       case Nil =>
-        text_area.update(snapshot, Command.Results.empty, Nil)
+        pretty_text_area.update(snapshot, Command.Results.empty, Nil)
     }
 
     handle_resize()
@@ -61,7 +61,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
-  private def handle_resize(): Unit = text_area.zoom()
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =
