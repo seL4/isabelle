@@ -123,8 +123,8 @@ class Pretty_Text_Area(
   }
 
   def zoom(zoom: GUI.Zoom): Unit = {
-    val factor = if (zoom == null) 100 else zoom.factor
-    resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale") * factor / 100))
+    val percent = if (zoom == null) 100 else zoom.percent
+    resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale") * percent / 100))
   }
 
   def update(

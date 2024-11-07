@@ -298,7 +298,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel {
     tooltip = "Save current graph layout as PNG or PDF"
   }
 
-  private val zoom = new GUI.Zoom { override def changed(): Unit = rescale(0.01 * factor) }
+  private val zoom = new GUI.Zoom { override def changed(): Unit = rescale(scale) }
 
   private val fit_window = new Button {
     action = Action("Fit to window") { fit_to_window() }

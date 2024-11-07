@@ -63,7 +63,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def do_paint(): Unit = {
     GUI_Thread.later {
-      text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
+      text_area.resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale")))
     }
   }
 
