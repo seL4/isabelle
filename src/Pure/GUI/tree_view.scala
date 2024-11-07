@@ -20,7 +20,7 @@ object Tree_View {
 
     def unapply(tree_node: MutableTreeNode): Option[AnyRef] =
       tree_node match {
-        case node: Node if node.getUserObject != null => Some(node.getUserObject)
+        case node: Node => Some(node.getUserObject)
         case _ => None
       }
   }
@@ -32,7 +32,7 @@ class Tree_View(
 ) extends JTree(root) {
   def get_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     getLastSelectedPathComponent match {
-      case Tree_View.Node(obj) if which.isDefinedAt(obj) => Some(which(obj))
+      case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
       case _ => None
     }
 
