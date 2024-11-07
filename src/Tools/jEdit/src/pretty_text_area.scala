@@ -115,9 +115,7 @@ class Pretty_Text_Area(
     }
   }
 
-  def resize(font_info: Font_Info): Unit = {
-    GUI_Thread.require {}
-
+  def resize(font_info: Font_Info): Unit = GUI_Thread.require {
     current_font_info = font_info
     refresh()
   }
