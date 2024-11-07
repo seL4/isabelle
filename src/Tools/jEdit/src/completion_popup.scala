@@ -230,7 +230,7 @@ object Completion_Popup {
       def open_popup(result: Completion.Result): Unit = {
         val font =
           painter.getFont.deriveFont(
-            Font_Info.main_size(PIDE.options.real("jedit_popup_font_scale")))
+            Font_Info.main_size(scale = PIDE.options.real("jedit_popup_font_scale")))
 
         val range = result.range
 

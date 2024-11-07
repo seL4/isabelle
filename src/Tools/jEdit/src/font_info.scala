@@ -32,7 +32,7 @@ object Font_Info {
     restrict_size(jEdit.getIntegerProperty("view.fontsize", 16).toFloat * scale.toFloat)
 
   def main(scale: Double = 1.0): Font_Info =
-    Font_Info(main_family(), main_size(scale))
+    Font_Info(main_family(), main_size(scale = scale))
 
 
   /* incremental size change */

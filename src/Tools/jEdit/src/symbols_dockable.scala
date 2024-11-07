@@ -18,7 +18,7 @@ import org.gjt.sp.jedit.{EditBus, EBComponent, EBMessage, View}
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position) {
   private def font_size: Int =
-    Font_Info.main_size(PIDE.options.real("jedit_font_scale")).round
+    Font_Info.main_size(scale = PIDE.options.real("jedit_font_scale")).round
 
 
   /* abbrevs */
