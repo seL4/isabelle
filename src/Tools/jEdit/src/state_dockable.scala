@@ -28,8 +28,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val print_state =
     new Query_Operation(PIDE.editor, view, "print_state", _ => (),
-      (snapshot, results, body) =>
-        pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+      (snapshot, results, output) =>
+        pretty_text_area.update(snapshot, results, Pretty.separate(output)))
 
 
   /* resize */

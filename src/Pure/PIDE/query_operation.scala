@@ -36,7 +36,7 @@ class Query_Operation[Editor_Context](
   editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status => Unit,
-  consume_output: (Document.Snapshot, Command.Results, XML.Body) => Unit
+  consume_output: (Document.Snapshot, Command.Results, List[XML.Elem]) => Unit
 ) {
   private val print_function = operation_name + "_query"
 
