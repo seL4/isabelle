@@ -37,7 +37,7 @@ class Output_Area(view: View,
 
   val pretty_text_area: Pretty_Text_Area = new Pretty_Text_Area(view)
 
-  def handle_resize(): Unit = ()
+  def handle_resize(): Unit = pretty_text_area.zoom()
   def handle_update(): Unit = ()
 
   lazy val delay_resize: Delay =

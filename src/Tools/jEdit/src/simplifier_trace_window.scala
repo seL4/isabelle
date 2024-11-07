@@ -130,7 +130,6 @@ class Simplifier_Trace_Window(
   GUI_Thread.require {}
 
   private val pretty_text_area = new Pretty_Text_Area(view)
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
 
   size = new Dimension(500, 500)
   contents = new BorderPanel {
@@ -155,8 +154,7 @@ class Simplifier_Trace_Window(
     pretty_text_area.update(snapshot, Command.Results.empty, xml)
   }
 
-  def handle_resize(): Unit =
-    GUI_Thread.later { pretty_text_area.zoom(zoom) }
+  def handle_resize(): Unit = pretty_text_area.zoom()
 
 
   /* resize */
@@ -172,7 +170,7 @@ class Simplifier_Trace_Window(
 
   /* controls */
 
-  private val controls = Wrap_Panel(pretty_text_area.search_components ::: List(zoom))
+  private val controls = Wrap_Panel(pretty_text_area.search_zoom_components)
 
   peer.add(controls.peer, BorderLayout.NORTH)
 }

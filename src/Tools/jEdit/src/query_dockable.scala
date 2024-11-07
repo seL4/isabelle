@@ -300,7 +300,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private def handle_resize(): Unit =
     GUI_Thread.require {
-      if (operations != null) operations.foreach(_.pretty_text_area.zoom(zoom))
+      if (operations != null) operations.foreach(_.pretty_text_area.zoom(zoom = zoom))
     }
 
   private val delay_resize =

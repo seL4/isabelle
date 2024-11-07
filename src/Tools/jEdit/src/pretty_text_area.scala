@@ -120,9 +120,6 @@ class Pretty_Text_Area(
     refresh()
   }
 
-  def zoom(zoom: GUI.Zoom): Unit =
-    resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale"), zoom = zoom))
-
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
@@ -146,7 +143,7 @@ class Pretty_Text_Area(
     if (current_body.isEmpty) None else Some(() => detach())
 
 
-  /* common GUI components */
+  /* search */
 
   val search_label: Component = new Label("Search:") {
     tooltip = "Search and highlight output via regular expression"
@@ -166,8 +163,6 @@ class Pretty_Text_Area(
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     })
 
-  def search_components: List[Component] = List(search_label, search_field)
-
   private val search_field_foreground = search_field.foreground
 
   private def search_action(text_field: JTextField): Unit = {
@@ -186,6 +181,22 @@ class Pretty_Text_Area(
       if (ok) search_field_foreground
       else current_rendering.color(Rendering.Color.error))
   }
+
+
+  /* zoom */
+
+  val zoom_component: GUI.Zoom =
+    new Font_Info.Zoom { override def changed(): Unit = zoom() }
+
+  def zoom(zoom: GUI.Zoom = zoom_component): Unit =
+    resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale"), zoom = zoom))
+
+
+  /* common GUI components */
+
+  def search_components: List[Component] = List(search_label, search_field)
+
+  def search_zoom_components: List[Component] = List(search_label, search_field, zoom_component)
 
 
   /* key handling */

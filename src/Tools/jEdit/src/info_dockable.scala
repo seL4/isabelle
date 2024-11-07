@@ -72,10 +72,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   pretty_text_area.update(snapshot, results, info)
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
 
   /* resize */
@@ -88,7 +85,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private val controls = Wrap_Panel(pretty_text_area.search_components ::: List(zoom))
+  private val controls = Wrap_Panel(pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 

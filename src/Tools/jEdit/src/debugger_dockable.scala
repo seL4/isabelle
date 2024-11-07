@@ -68,8 +68,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   private val output: Output_Area =
     new Output_Area(view, root_name = "Threads", split = true) {
-      override def handle_resize(): Unit = pretty_text_area.zoom(zoom)
-
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
@@ -231,17 +229,13 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tooltip = "Official Standard ML instead of Isabelle/ML"
   }
 
-  private val zoom =
-    new Font_Info.Zoom { override def changed(): Unit = output.handle_resize() }
-
   private val controls =
     Wrap_Panel(
       List(
         break_button, continue_button, step_button, step_over_button, step_out_button,
         context_label, Component.wrap(context_field),
         expression_label, Component.wrap(expression_field), eval_button, sml_button) :::
-      output.pretty_text_area.search_components :::
-      List(output.pretty_text_area.search_field, zoom))
+      output.pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 

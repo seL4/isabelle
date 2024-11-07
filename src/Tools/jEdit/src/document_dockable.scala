@@ -91,8 +91,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-  private def handle_resize(): Unit = GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private val delay_resize: Delay =
     Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
@@ -352,7 +351,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       override def clicked(): Unit = cancel_process()
     }
 
-  private val output_controls = Wrap_Panel(List(cancel_button, zoom))
+  private val output_controls = Wrap_Panel(List(cancel_button, pretty_text_area.zoom_component))
 
   private val output_page =
     new TabbedPane.Page("Output", new BorderPanel {
