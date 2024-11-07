@@ -145,11 +145,11 @@ class Pretty_Text_Area(
 
   /* search */
 
-  val search_label: Component = new Label("Search:") {
+  private val search_label: Component = new Label("Search:") {
     tooltip = "Search and highlight output via regular expression"
   }
 
-  val search_field: Component =
+  private val search_field: Component =
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search") {
       private val input_delay =
         Delay.last(PIDE.session.input_delay, gui = true) { search_action(this) }
@@ -224,7 +224,7 @@ class Pretty_Text_Area(
 
         case KeyEvent.VK_A
         if strict_control =>
-          text_area.selectAll
+          text_area.selectAll()
           evt.consume()
 
         case KeyEvent.VK_ESCAPE =>
