@@ -185,10 +185,10 @@ class Pretty_Text_Area(
 
   /* zoom */
 
-  val zoom_component: GUI.Zoom =
+  val zoom_component: Font_Info.Zoom =
     new Font_Info.Zoom { override def changed(): Unit = zoom() }
 
-  def zoom(zoom: GUI.Zoom = zoom_component): Unit =
+  def zoom(zoom: Font_Info.Zoom = zoom_component): Unit =
     resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale"), zoom = zoom))
 
 

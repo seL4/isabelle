@@ -31,8 +31,10 @@ object Font_Info {
   def main_size(scale: Double = 1.0): Float =
     restrict_size(jEdit.getIntegerProperty("view.fontsize", 16).toFloat * scale.toFloat)
 
-  def main(scale: Double = 1.0, zoom: GUI.Zoom = null): Font_Info =
+  def main(scale: Double = 1.0, zoom: Zoom = null): Font_Info =
     Font_Info(main_family(), main_size(if (zoom == null) scale else scale * zoom.scale))
+
+  class Zoom extends GUI.Zoom { tooltip = "Zoom factor for output font size" }
 
 
   /* incremental size change */
@@ -76,11 +78,6 @@ object Font_Info {
       change_size(_ => size)
     }
   }
-
-
-  /* zoom */
-
-  class Zoom extends GUI.Zoom { tooltip = "Zoom factor for output font size" }
 }
 
 sealed case class Font_Info(family: String, size: Float) {
