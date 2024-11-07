@@ -670,10 +670,10 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
-            val text =
-              if (name == file) "file " + quote(file)
-              else "path " + quote(name) + "\nfile " + quote(file)
-            Some(info.add_info_text(r0, text))
+            val info1 =
+              if (name == file) info
+              else info.add_info_text(r0, "path " + quote(name))
+            Some(info1.add_info_text(r0, "file " + quote(file)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Doc(name), _))) =>
             val text = "doc " + quote(name)
