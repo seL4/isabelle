@@ -697,10 +697,10 @@ class Rendering(
               important = false))
 
           case (info, Text.Info(r0, Protocol.ML_Breakpoint(breakpoint))) =>
-              val text =
-                if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
-                else "breakpoint (disabled)"
-              Some(info.add_info_text(r0, text))
+            val text =
+              if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
+              else "breakpoint (disabled)"
+            Some(info.add_info_text(r0, text))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Language(lang), _))) =>
             Some(info.add_info_text(r0, "language: " + lang.description))
