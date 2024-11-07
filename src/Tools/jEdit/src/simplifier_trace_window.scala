@@ -150,8 +150,8 @@ class Simplifier_Trace_Window(
   handle_resize()
 
   def handle_update(): Unit = {
-    val xml = Pretty.separate(tree.tree_children.flatMap(_.format))
-    pretty_text_area.update(snapshot, Command.Results.empty, xml)
+    val output = tree.tree_children.flatMap(_.format)
+    pretty_text_area.update(snapshot, Command.Results.empty, Pretty.separate(output))
   }
 
   def handle_resize(): Unit = pretty_text_area.zoom()
