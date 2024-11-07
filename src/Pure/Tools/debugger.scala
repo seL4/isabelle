@@ -216,7 +216,7 @@ class Debugger private(session: Session) {
     }
   }
 
-  def status(focus: Option[Debugger.Context]): (Debugger.Threads, List[XML.Tree]) = {
+  def status(focus: Option[Debugger.Context]): (Debugger.Threads, List[XML.Elem]) = {
     val st = state.value
     val output =
       focus match {
@@ -225,8 +225,8 @@ class Debugger private(session: Session) {
           (for {
             (thread_name, results) <- st.output
             if thread_name == c.thread_name
-            (_, tree) <- results.iterator
-          } yield tree).toList
+            (_, msg) <- results.iterator
+          } yield msg).toList
       }
     (st.threads, output)
   }
