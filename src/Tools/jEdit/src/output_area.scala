@@ -13,7 +13,6 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
-import javax.swing.event.TreeSelectionEvent
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 import scala.swing.event.ButtonClicked
@@ -21,7 +20,10 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-class Output_Area(view: View, root_name: String = "Overview") {
+class Output_Area(view: View,
+  root_name: String = "Overview",
+  split: Boolean = false
+) {
   GUI_Thread.require {}
 
 
@@ -30,33 +32,39 @@ class Output_Area(view: View, root_name: String = "Overview") {
   val tree: Tree_View =
     new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
-  def handle_tree_selection(e: TreeSelectionEvent): Unit = ()
-  tree.addTreeSelectionListener((e: TreeSelectionEvent) => handle_tree_selection(e))
-
 
   /* text area */
 
   val pretty_text_area: Pretty_Text_Area = new Pretty_Text_Area(view)
 
-  def handle_resize(): Unit = ()
+  def handle_resize(): Unit = pretty_text_area.zoom()
   def handle_update(): Unit = ()
 
   lazy val delay_resize: Delay =
     Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
 
 
-  /* main pane */
+  /* main GUI components */
 
-  val tree_pane: ScrollPane = new ScrollPane(Component.wrap(tree))
-  tree_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  tree_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  tree_pane.minimumSize = new Dimension(200, 100)
-
-  val main_pane: SplitPane = new SplitPane(Orientation.Vertical) {
-    oneTouchExpandable = true
-    leftComponent = tree_pane
-    rightComponent = Component.wrap(pretty_text_area)
+  lazy val tree_pane: Component = {
+    val scroll_pane: ScrollPane = new ScrollPane(Component.wrap(tree))
+    scroll_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+    scroll_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+    scroll_pane.minimumSize = new Dimension(200, 100)
+    scroll_pane
   }
+
+  lazy val text_pane: Component = Component.wrap(pretty_text_area)
+
+  lazy val main_pane: Component =
+    if (split) {
+      new SplitPane(Orientation.Vertical) {
+        oneTouchExpandable = true
+        leftComponent = tree_pane
+        rightComponent = text_pane
+      }
+    }
+    else text_pane
 
 
   /* GUI component */

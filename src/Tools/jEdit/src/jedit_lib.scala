@@ -46,7 +46,7 @@ object JEdit_Lib {
     val old_content = dummy_window.getContentPane
 
     dummy_window.setContentPane(outer)
-    dummy_window.pack
+    dummy_window.pack()
     dummy_window.revalidate()
 
     val geometry =
@@ -252,17 +252,20 @@ object JEdit_Lib {
       try {
         val p = text_area.offsetToXY(range.start)
         val (q, r) =
-          if (get_text(buffer, Text.Range(stop - 1, stop)) == Some("\n"))
+          if (get_text(buffer, Text.Range(stop - 1, stop)).contains("\n")) {
             (text_area.offsetToXY(stop - 1), char_width)
-          else if (stop >= end)
+          }
+          else if (stop >= end) {
             (text_area.offsetToXY(end), char_width * (stop - end))
+          }
           else (text_area.offsetToXY(stop), 0)
         (p, q, r)
       }
       catch { case _: ArrayIndexOutOfBoundsException => (null, null, 0) }
 
-    if (p != null && q != null && p.x < q.x + r && p.y == q.y)
+    if (p != null && q != null && p.x < q.x + r && p.y == q.y) {
       Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
+    }
     else None
   }
 

@@ -85,7 +85,7 @@ abstract class Graphview(full_graph: Graph_Display.Graph) {
 
   /* tooltips */
 
-  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = null
+  def make_tooltip(parent: JComponent, x: Int, y: Int, tip: XML.Elem): String = null
 
 
   /* main colors */

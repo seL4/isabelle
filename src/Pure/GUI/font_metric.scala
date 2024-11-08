@@ -45,6 +45,18 @@ class Font_Metric(
 
   val space_width: Double = string_width(Symbol.space)
   override def unit: Double = space_width max 1.0
-  override def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
+  override def apply(s: String): Double = {
+    val s1 =
+      if (s.exists(c => Symbol.is_ascii_blank(c) && c != Symbol.space_char)) {
+        s.map(c => if (Symbol.is_ascii_blank(c)) Symbol.space_char else c)
+      }
+      else s
+    string_width(s1) / unit
+  }
   def average: Double = average_width / unit
+
+  def pretty_margin(margin: Int, limit: Int = -1): Int = {
+    val m = (margin * average).toInt
+    (if (limit < 0) m else m min limit) max 20
+  }
 }

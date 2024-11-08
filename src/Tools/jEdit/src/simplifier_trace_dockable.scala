@@ -30,8 +30,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private var do_update = true
 
 
-  private val text_area = new Pretty_Text_Area(view)
-  set_content(text_area)
+  private val pretty_text_area = new Pretty_Text_Area(view)
+  set_content(pretty_text_area)
 
   private def update_contents(): Unit = {
     val snapshot = current_snapshot
@@ -41,8 +41,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     context.questions.values.toList match {
       case q :: _ =>
         val data = q.data
-        val content = Pretty.separate(XML.Text(data.text) :: data.content)
-        text_area.update(snapshot, Command.Results.empty, content)
+        val output = List(Pretty.block(XML.Text(data.text) :: data.content, indent = 0))
+        pretty_text_area.update(snapshot, Command.Results.empty, output)
         q.answers.foreach { answer =>
           answers.contents += new GUI.Button(answer.string) {
             override def clicked(): Unit =
@@ -50,10 +50,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
           }
         }
       case Nil =>
-        text_area.update(snapshot, Command.Results.empty, Nil)
+        pretty_text_area.update(snapshot, Command.Results.empty, Nil)
     }
 
-    do_paint()
+    handle_resize()
   }
 
   private def show_trace(): Unit = {
@@ -61,13 +61,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
 
-  private def do_paint(): Unit = {
-    GUI_Thread.later {
-      text_area.resize(Font_Info.main(PIDE.options.real("jedit_font_scale")))
-    }
-  }
-
-  private def handle_resize(): Unit = do_paint()
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =

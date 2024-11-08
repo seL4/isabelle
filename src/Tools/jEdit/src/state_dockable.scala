@@ -27,9 +27,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
   private val print_state =
-    new Query_Operation(PIDE.editor, view, "print_state", _ => (),
-      (snapshot, results, body) =>
-        pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+    new Query_Operation(PIDE.editor, view, "print_state", _ => (), pretty_text_area.update)
 
 
   /* resize */
@@ -42,8 +40,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
 
   /* update */
@@ -93,12 +90,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     override def clicked(): Unit = print_state.locate_query()
   }
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-
   private val controls =
     Wrap_Panel(
-      List(auto_update_button, update_button,
-        locate_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+      List(auto_update_button, update_button, locate_button) :::
+      pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 

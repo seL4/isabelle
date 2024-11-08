@@ -299,7 +299,7 @@ class Rich_Text_Area(
                           val painter = text_area.getPainter
                           val loc = new Point(x, y + painter.getLineHeight / 2)
                           val results = snapshot.command_results(tip.range)
-                          Pretty_Tooltip(view, painter, loc, rendering, results, tip)
+                          Pretty_Tooltip(view, painter, loc, rendering, results, tip.info)
                       }
                   }
                 }
@@ -332,9 +332,10 @@ class Rich_Text_Area(
             val line_range = Text.Range(start(i), end(i) min buffer.getLength)
 
             // line background color
-            for { (c, separator) <- rendering.line_background(line_range) } {
-              gfx.setColor(rendering.color(c))
+            for (c <- rendering.line_background(line_range)) {
+              val separator = rendering.line_separator(line_range)
               val sep = if (separator) (2 min (line_height / 2)) max (line_height / 8) else 0
+              gfx.setColor(rendering.color(c))
               gfx.fillRect(0, y + i * line_height, text_area.getWidth, line_height - sep)
             }
 

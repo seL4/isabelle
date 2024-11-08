@@ -20,7 +20,7 @@ object Program_Progress {
     private var stop_time: Option[Time] = None
     def stop_now(): Unit = synchronized { stop_time = Some(Time.now()) }
 
-    def output(): (Command.Results, XML.Body) = synchronized {
+    def output(): (Command.Results, XML.Elem) = synchronized {
       val output_text = output_buffer.toString
       val elapsed_time = stop_time.map(t => t - start_time)
 
@@ -45,7 +45,7 @@ object Program_Progress {
           (results, message)
         }
 
-      (results, List(XML.elem(Markup.TRACING_MESSAGE, message)))
+      (results, XML.elem(Markup.TRACING_MESSAGE, message))
     }
   }
 }
@@ -58,12 +58,11 @@ abstract class Program_Progress(
   private var _finished_programs: List[Program_Progress.Program] = Nil
   private var _running_program: Option[Program_Progress.Program] = None
 
-  def output(): (Command.Results, XML.Body) = synchronized {
+  def output(): (Command.Results, List[XML.Elem]) = synchronized {
     val programs = (_running_program.toList ::: _finished_programs).reverse
     val programs_output = programs.map(_.output())
     val results = Command.Results.merge(programs_output.map(_._1))
-    val body = Library.separate(Pretty.Separator, programs_output.map(_._2)).flatten
-    (results, body)
+    (results, programs_output.map(_._2))
   }
 
   private def start_program(heading: String, title: String): Unit = synchronized {
