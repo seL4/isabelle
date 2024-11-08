@@ -604,40 +604,47 @@ class Rendering(
   private sealed case class Tooltip_Info(
     range: Text.Range,
     timing: Timing = Timing.zero,
-    messages: List[(Long, XML.Tree)] = Nil,
-    rev_infos: List[(Boolean, Int, XML.Tree)] = Nil
+    messages: List[(Long, XML.Elem)] = Nil,
+    rev_infos: List[(Boolean, Int, XML.Elem)] = Nil
   ) {
     def add_timing(t: Timing): Tooltip_Info = copy(timing = timing + t)
-    def add_message(r0: Text.Range, serial: Long, tree: XML.Tree): Tooltip_Info = {
+    def add_message(r0: Text.Range, serial: Long, msg: XML.Elem): Tooltip_Info = {
       val r = snapshot.convert(r0)
-      if (range == r) copy(messages = (serial -> tree) :: messages)
-      else copy(range = r, messages = List(serial -> tree))
+      if (range == r) copy(messages = (serial -> msg) :: messages)
+      else copy(range = r, messages = List(serial -> msg))
     }
-    def add_info(r0: Text.Range, tree: XML.Tree, important: Boolean = true, ord: Int = 0): Tooltip_Info = {
+    def add_info(r0: Text.Range, info: XML.Elem,
+      important: Boolean = true,
+      ord: Int = 0
+    ): Tooltip_Info = {
       val r = snapshot.convert(r0)
-      val entry = (important, ord, tree)
+      val entry = (important, ord, info)
       if (range == r) copy(rev_infos = entry :: rev_infos)
       else copy (range = r, rev_infos = List(entry))
     }
+    def add_info_text(r0: Text.Range, text: String, ord: Int = 0): Tooltip_Info =
+      add_info(r0, Pretty.string(text), ord = ord)
 
-    def timing_info(tree: XML.Tree): Option[XML.Tree] =
-      tree match {
-        case XML.Elem(Markup(Markup.TIMING, _), _) =>
-          if (timing.elapsed.seconds >= timing_threshold) Some(XML.Text(timing.message)) else None
-        case _ => Some(tree)
+    def timing_info(elem: XML.Elem): Option[XML.Elem] =
+      if (elem.markup.name == Markup.TIMING) {
+        if (timing.elapsed.seconds >= timing_threshold) {
+          Some(Pretty.string(timing.message))
+        }
+        else None
       }
-    def infos(important: Boolean = true): List[XML.Tree] =
+      else Some(elem)
+    def infos(important: Boolean = true): List[XML.Elem] =
       for {
-        (is_important, _, tree) <- rev_infos.reverse.sortBy(_._2) if is_important == important
-        tree1 <- timing_info(tree)
-      } yield tree1
+        (is_important, _, elem) <- rev_infos.reverse.sortBy(_._2) if is_important == important
+        elem1 <- timing_info(elem)
+      } yield elem1
   }
 
   def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
     if (Path.is_valid(name)) session.resources.append_path(node_name.master_dir, Path.explode(name))
     else name
 
-  def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Tree]]] = {
+  def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Elem]]] = {
     val results =
       snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, command_states =>
         {
@@ -648,8 +655,8 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, props), _)))
           if Rendering.tooltip_message_elements(name) =>
-            for ((i, tree) <- Command.State.get_result_proper(command_states, props))
-            yield info.add_message(r0, i, tree)
+            for ((i, msg) <- Command.State.get_result_proper(command_states, props))
+            yield info.add_message(r0, i, msg)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Entity(kind, name), _)))
           if kind != "" && kind != Markup.ML_DEF =>
@@ -658,25 +665,25 @@ class Rendering(
               if (name == "") kind1
               else if (kind1 == "") quote(name)
               else kind1 + " " + quote(name)
-            val info1 = info.add_info(r0, XML.Text(txt1), ord = 2)
+            val info1 = info.add_info_text(r0, txt1, ord = 2)
             Some(if (kind == Markup.COMMAND) info1.add_info(r0, XML.elem(Markup.TIMING)) else info1)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
-            val text =
-              if (name == file) "file " + quote(file)
-              else "path " + quote(name) + "\nfile " + quote(file)
-            Some(info.add_info(r0, XML.Text(text)))
+            val info1 =
+              if (name == file) info
+              else info.add_info_text(r0, "path " + quote(name))
+            Some(info1.add_info_text(r0, "file " + quote(file)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Doc(name), _))) =>
             val text = "doc " + quote(name)
-            Some(info.add_info(r0, XML.Text(text)))
+            Some(info.add_info_text(r0, text))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Url(name), _))) =>
-            Some(info.add_info(r0, XML.Text("URL " + quote(name))))
+            Some(info.add_info_text(r0, "URL " + quote(name)))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Command_Span(span), _))) =>
-            Some(info.add_info(r0, XML.Text("command span " + quote(span.name))))
+            Some(info.add_info_text(r0, "command span " + quote(span.name)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
@@ -690,13 +697,13 @@ class Rendering(
               important = false))
 
           case (info, Text.Info(r0, Protocol.ML_Breakpoint(breakpoint))) =>
-              val text =
-                if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
-                else "breakpoint (disabled)"
-              Some(info.add_info(r0, XML.Text(text)))
+            val text =
+              if (session.debugger.breakpoint_state(breakpoint)) "breakpoint (enabled)"
+              else "breakpoint (disabled)"
+            Some(info.add_info_text(r0, text))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Language(lang), _))) =>
-            Some(info.add_info(r0, XML.Text("language: " + lang.description)))
+            Some(info.add_info_text(r0, "language: " + lang.description))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
             val a = kind.nonEmpty
@@ -705,30 +712,30 @@ class Rendering(
             val description =
               if (!a && !b) "notation"
               else "notation: " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
-            Some(info.add_info(r0, XML.Text(description), ord = 1))
+            Some(info.add_info_text(r0, description, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
             val description =
               if (kind.isEmpty) "expression"
               else "expression: " + Word.implode(Word.explode('_', kind))
-            Some(info.add_info(r0, XML.Text(description), ord = 1))
+            Some(info.add_info_text(r0, description, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
-            Some(info.add_info(r0, XML.Text("Markdown: paragraph")))
+            Some(info.add_info_text(r0, "Markdown: paragraph"))
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_ITEM, _), _))) =>
-            Some(info.add_info(r0, XML.Text("Markdown: item")))
+            Some(info.add_info_text(r0, "Markdown: item"))
           case (info, Text.Info(r0, XML.Elem(Markup.Markdown_List(kind), _))) =>
-            Some(info.add_info(r0, XML.Text("Markdown: " + kind)))
+            Some(info.add_info_text(r0, "Markdown: " + kind))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), _))) =>
-            Rendering.tooltip_descriptions.get(name).map(desc => info.add_info(r0, XML.Text(desc)))
+            Rendering.tooltip_descriptions.get(name).map(desc => info.add_info_text(r0, desc))
         }).map(_.info)
 
     if (results.isEmpty) None
     else {
       val r = Text.Range(results.head.range.start, results.last.range.stop)
       val all_tips =
-        results.flatMap(_.messages).foldLeft(SortedMap.empty[Long, XML.Tree])(_ + _)
+        results.flatMap(_.messages).foldLeft(SortedMap.empty[Long, XML.Elem])(_ + _)
           .iterator.map(_._2).toList :::
         results.flatMap(res => res.infos()) :::
         results.flatMap(res => res.infos(important = false)).lastOption.toList

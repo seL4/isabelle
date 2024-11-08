@@ -82,8 +82,11 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel {
           case Some(node) =>
             graphview.model.full_graph.get_node(node) match {
               case Nil => null
-              case content =>
-                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, content)
+              case List(tip: XML.Elem) =>
+                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, tip)
+              case body =>
+                val tip = Pretty.block(body, indent = 0)
+                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, tip)
             }
           case None => null
         }
@@ -298,7 +301,7 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel {
     tooltip = "Save current graph layout as PNG or PDF"
   }
 
-  private val zoom = new GUI.Zoom { override def changed(): Unit = rescale(0.01 * factor) }
+  private val zoom = new GUI.Zoom { override def changed(): Unit = rescale(scale) }
 
   private val fit_window = new Button {
     action = Action("Fit to window") { fit_to_window() }

@@ -25,16 +25,10 @@ object JEdit_Rendering {
   def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
     new JEdit_Rendering(snapshot, model, options)
 
-  def text(
-    snapshot: Document.Snapshot,
-    formatted_body: XML.Body,
-    results: Command.Results = Command.Results.empty
-  ): (String, JEdit_Rendering) = {
-    val command = Command.rich_text(Document_ID.make(), results, formatted_body)
-    val snippet = snapshot.snippet(command, Document.Blobs.empty)
+  def apply(snapshot: Document.Snapshot, rich_text: Command): JEdit_Rendering = {
+    val snippet = snapshot.snippet(rich_text, Document.Blobs.empty)
     val model = File_Model.init(PIDE.session)
-    val rendering = apply(snippet, model, PIDE.options.value)
-    (command.source, rendering)
+    apply(snippet, model, PIDE.options.value)
   }
 
 
@@ -309,10 +303,9 @@ extends Rendering(snapshot, options, PIDE.session) {
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
   override def timing_threshold: Double = options.real("jedit_timing_threshold")
 
-  def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[XML.Body]] = {
-    val elements = if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements
-    tooltips(elements, range).map(info => info.map(Pretty.fbreaks))
-  }
+  def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[List[XML.Elem]]] =
+    tooltips(if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements,
+      range)
 
   lazy val tooltip_close_icon: Icon = JEdit_Lib.load_icon(options.string("tooltip_close_icon"))
   lazy val tooltip_detach_icon: Icon = JEdit_Lib.load_icon(options.string("tooltip_detach_icon"))
@@ -357,23 +350,16 @@ extends Rendering(snapshot, options, PIDE.session) {
   def squiggly_underline(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     message_underline_color(JEdit_Rendering.squiggly_elements, range)
 
-  def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] = {
-    val results =
-      snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
-        {
-          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
-        })
-    val pri = results.foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+  def line_background(range: Text.Range): Option[Rendering.Color.Value] =
+    Rendering.message_background_color.get(
+      snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ => {
+        case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
+      }).foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 })
 
-    Rendering.message_background_color.get(pri).map(message_color => {
-      val is_separator =
-        snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
-          {
-            case _ => Some(true)
-          }).exists(_.info)
-      (message_color, is_separator)
-    })
-  }
+  def line_separator(range: Text.Range): Boolean =
+    snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ => {
+      case _ => Some(true)
+    }).exists(_.info)
 
 
   /* text color */

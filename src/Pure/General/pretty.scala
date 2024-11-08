@@ -23,9 +23,11 @@ object Pretty {
   def block(body: XML.Body,
     consistent: Boolean = false,
     indent: Int = 2
-  ): XML.Tree = XML.Elem(Markup.Block(consistent = consistent, indent = indent), body)
+  ): XML.Elem = XML.Elem(Markup.Block(consistent = consistent, indent = indent), body)
 
-  def brk(width: Int, indent: Int = 0): XML.Tree =
+  def string(s: String): XML.Elem = block(XML.string(s), indent = 0)
+
+  def brk(width: Int, indent: Int = 0): XML.Elem =
     XML.Elem(Markup.Break(width = width, indent = indent), spaces(width))
 
   val fbrk: XML.Tree = XML.newline
@@ -43,7 +45,7 @@ object Pretty {
     en: String = ")",
     sep: XML.Body = comma,
     indent: Int = 2
-  ): XML.Tree = Pretty.block(XML.enclose(bg, en, separate(ts, sep = sep)), indent = indent)
+  ): XML.Elem = Pretty.block(XML.enclose(bg, en, separate(ts, sep = sep)), indent = indent)
 
 
   /* text metric -- standardized to width of space */

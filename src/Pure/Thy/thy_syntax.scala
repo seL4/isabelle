@@ -126,7 +126,7 @@ object Thy_Syntax {
     eds match {
       case e :: es =>
         def insert_text(cmd: Option[Command], text: String): Linear_Set[Command] =
-          if (text == "") commands else commands.insert_after(cmd, Command.text(text))
+          if (text == "") commands else commands.insert_after(cmd, Command.unparsed(text))
 
         Document.Node.Commands.starts(commands.iterator).find {
           case (cmd, cmd_start) =>

@@ -21,14 +21,14 @@ object Pretty_Text_Panel {
 class Pretty_Text_Panel private(
   resources: VSCode_Resources,
   channel: Channel,
-  output: (String, Option[LSP.Decoration]) => JSON.T
+  output_json: (String, Option[LSP.Decoration]) => JSON.T
 ) {
-  private var current_body: XML.Body = Nil
+  private var current_output: List[XML.Elem] = Nil
   private var current_formatted: XML.Body = Nil
   private var margin: Double = resources.message_margin
 
   private val delay_margin = Delay.last(resources.output_delay, channel.Error_Logger) {
-    refresh(current_body)
+    refresh(current_output)
   }
   
   def update_margin(new_margin: Double): Unit = {
@@ -36,12 +36,13 @@ class Pretty_Text_Panel private(
     delay_margin.invoke()
   }
 
-  def refresh(body: XML.Body): Unit = {
-    val formatted = Pretty.formatted(Pretty.separate(body), margin = margin, metric = Symbol.Metric)
+  def refresh(output: List[XML.Elem]): Unit = {
+    val formatted =
+      Pretty.formatted(Pretty.separate(output), margin = margin, metric = Symbol.Metric)
 
     if (formatted == current_formatted) return
 
-    current_body = body
+    current_output = output
     current_formatted = formatted
 
     if (resources.html_output) {
@@ -57,7 +58,7 @@ class Pretty_Text_Panel private(
         }
       val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
       val html = node_context.make_html(elements, formatted)
-      val message = output(HTML.source(html).toString, None)
+      val message = output_json(HTML.source(html).toString, None)
       channel.write(message)
     } else {
       def convert_symbols(body: XML.Body): XML.Body = {
@@ -83,8 +84,7 @@ class Pretty_Text_Panel private(
         })
         .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
 
-      val message = output(text, Some(LSP.Decoration(decorations)))
-      channel.write(message)
+      channel.write(output_json(text, Some(LSP.Decoration(decorations))))
     }
   }
 }

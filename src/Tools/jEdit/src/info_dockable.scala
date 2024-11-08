@@ -20,12 +20,12 @@ object Info_Dockable {
 
   private var implicit_snapshot = Document.Snapshot.init
   private var implicit_results = Command.Results.empty
-  private var implicit_info: XML.Body = Nil
+  private var implicit_info: List[XML.Elem] = Nil
 
   private def set_implicit(
     snapshot: Document.Snapshot,
     results: Command.Results,
-    info: XML.Body
+    info: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
 
@@ -41,7 +41,7 @@ object Info_Dockable {
     view: View,
     snapshot: Document.Snapshot,
     results: Command.Results,
-    info: XML.Body
+    info: List[XML.Elem]
   ): Unit = {
     set_implicit(snapshot, results, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")
@@ -72,10 +72,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   pretty_text_area.update(snapshot, results, info)
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
 
   /* resize */
@@ -88,8 +85,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
   })
 
-  private val controls =
-    Wrap_Panel(List(pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+  private val controls = Wrap_Panel(pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 

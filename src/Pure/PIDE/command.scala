@@ -386,10 +386,8 @@ object Command {
     new Command(id, node_name, blobs_info, span1, source1, results, markups)
   }
 
-  def text(source: String): Command = unparsed(source)
-
-  def rich_text(id: Document_ID.Command, results: Results, body: XML.Body): Command =
-    unparsed(XML.content(body), id = id, results = results,
+  def rich_text(body: XML.Body = Nil, results: Results = Results.empty): Command =
+    unparsed(XML.content(body), id = Document_ID.make(), results = results,
       markups = Markups.init(Markup_Tree.from_XML(body)))
 
 

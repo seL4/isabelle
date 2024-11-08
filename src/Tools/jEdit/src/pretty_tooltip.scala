@@ -28,16 +28,18 @@ object Pretty_Tooltip {
   private var stack: List[Pretty_Tooltip] = Nil
 
   private def hierarchy(
-    tip: Pretty_Tooltip
+    pretty_tooltip: Pretty_Tooltip
   ): Option[(List[Pretty_Tooltip], List[Pretty_Tooltip])] = {
     GUI_Thread.require {}
 
-    if (stack.contains(tip)) Some(stack.span(_ != tip))
+    if (stack.contains(pretty_tooltip)) Some(stack.span(_ != pretty_tooltip))
     else None
   }
 
   private def descendant(parent: JComponent): Option[Pretty_Tooltip] =
-    GUI_Thread.require { stack.find(tip => tip.original_parent == parent) }
+    GUI_Thread.require {
+      stack.find(pretty_tooltip => pretty_tooltip.original_parent == parent)
+    }
 
   def apply(
     view: View,
@@ -45,27 +47,28 @@ object Pretty_Tooltip {
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    info: Text.Info[XML.Body]
+    output: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
 
     stack match {
-      case top :: _ if top.results == results && top.info == info =>
+      case top :: _ if top.results == results && top.output == output =>
       case _ =>
         GUI.layered_pane(parent) match {
           case None =>
           case Some(layered) =>
             val (old, rest) =
               GUI.ancestors(parent).collectFirst({ case x: Pretty_Tooltip => x }) match {
-                case Some(tip) => hierarchy(tip).getOrElse((stack, Nil))
+                case Some(pretty_tooltip) => hierarchy(pretty_tooltip).getOrElse((stack, Nil))
                 case None => (stack, Nil)
               }
             old.foreach(_.hide_popup())
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
-            val tip = new Pretty_Tooltip(view, layered, parent, loc, rendering, results, info)
-            stack = tip :: rest
-            tip.show_popup()
+            val pretty_tooltip =
+              new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output)
+            stack = pretty_tooltip :: rest
+            pretty_tooltip.show_popup()
         }
     }
   }
@@ -117,7 +120,7 @@ object Pretty_Tooltip {
     Delay.last(PIDE.session.input_delay, gui = true) { dismiss_unfocused() }
 
   def dismiss_unfocused(): Unit = {
-    stack.span(tip => !tip.pretty_text_area.isFocusOwner) match {
+    stack.span(pretty_tooltip => !pretty_tooltip.pretty_text_area.isFocusOwner) match {
       case (Nil, _) =>
       case (unfocused, rest) =>
         deactivate()
@@ -126,16 +129,16 @@ object Pretty_Tooltip {
     }
   }
 
-  def dismiss(tip: Pretty_Tooltip): Unit = {
+  def dismiss(pretty_tooltip: Pretty_Tooltip): Unit = {
     deactivate()
-    hierarchy(tip) match {
+    hierarchy(pretty_tooltip) match {
       case Some((old, _ :: rest)) =>
         rest match {
           case top :: _ => top.request_focus()
           case Nil => JEdit_Lib.request_focus_view()
         }
         old.foreach(_.hide_popup())
-        tip.hide_popup()
+        pretty_tooltip.hide_popup()
         stack = rest
       case _ =>
     }
@@ -164,9 +167,9 @@ class Pretty_Tooltip private(
   location: Point,
   rendering: JEdit_Rendering,
   private val results: Command.Results,
-  private val info: Text.Info[XML.Body]
+  private val output: List[XML.Elem]
 ) extends JPanel(new BorderLayout) {
-  tip =>
+  pretty_tooltip =>
 
   GUI_Thread.require {}
 
@@ -177,7 +180,7 @@ class Pretty_Tooltip private(
     icon = rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
-    reactions += { case _: MouseClicked => Pretty_Tooltip.dismiss(tip) }
+    reactions += { case _: MouseClicked => Pretty_Tooltip.dismiss(pretty_tooltip) }
   }
 
   private val detach = new Label {
@@ -186,8 +189,8 @@ class Pretty_Tooltip private(
     listenTo(mouse.clicks)
     reactions += {
       case _: MouseClicked =>
-        Info_Dockable(view, rendering.snapshot, results, info.info)
-        Pretty_Tooltip.dismiss(tip)
+        Info_Dockable(view, rendering.snapshot, results, output)
+        Pretty_Tooltip.dismiss(pretty_tooltip)
     }
   }
 
@@ -199,7 +202,7 @@ class Pretty_Tooltip private(
   /* text area */
 
   val pretty_text_area: Pretty_Text_Area =
-    new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(tip), true) {
+    new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(pretty_tooltip), true) {
       override def get_background(): Option[Color] = Some(rendering.tooltip_color)
     }
 
@@ -220,20 +223,20 @@ class Pretty_Tooltip private(
   /* main content */
 
   def tip_border(has_focus: Boolean): Unit = {
-    tip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
-    tip.repaint()
+    pretty_tooltip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
+    pretty_tooltip.repaint()
   }
   tip_border(true)
 
   override def getFocusTraversalKeysEnabled = false
-  tip.setBackground(rendering.tooltip_color)
-  tip.add(controls.peer, BorderLayout.NORTH)
-  tip.add(pretty_text_area)
+  pretty_tooltip.setBackground(rendering.tooltip_color)
+  pretty_tooltip.add(controls.peer, BorderLayout.NORTH)
+  pretty_tooltip.add(pretty_text_area)
 
 
   /* popup */
 
-  private val popup = {
+  private val popup: Popup = {
     val screen = GUI.screen_location(layered, location)
     val size = {
       val bounds = JEdit_Rendering.popup_bounds
@@ -242,14 +245,13 @@ class Pretty_Tooltip private(
       val h_max = layered.getHeight min (screen.bounds.height * bounds).toInt
 
       val painter = pretty_text_area.getPainter
-      val geometry = JEdit_Lib.window_geometry(tip, painter)
+      val geometry = JEdit_Lib.window_geometry(pretty_tooltip, painter)
       val metric = JEdit_Lib.font_metric(painter)
-
       val margin =
-        ((rendering.tooltip_margin * metric.average) min
-          ((w_max - geometry.deco_width) / metric.unit).toInt) max 20
+        metric.pretty_margin(rendering.tooltip_margin,
+          limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
-      val formatted = Pretty.formatted(info.info, margin = margin, metric = metric)
+      val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
       val lines = XML.content_lines(formatted)
 
       val h = painter.getLineHeight * lines + geometry.deco_height
@@ -257,18 +259,18 @@ class Pretty_Tooltip private(
         if (h <= h_max) {
           split_lines(XML.content(formatted)).foldLeft(0.0) { case (m, line) => m max metric(line) }
         }
-        else margin
-      val w = (metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width
+        else margin.toDouble
+      val w = (metric.unit * (margin1 + 1)).round.toInt + geometry.deco_width
 
       new Dimension(w min w_max, h min h_max)
     }
-    new Popup(layered, tip, screen.relative(layered, size), size)
+    new Popup(layered, pretty_tooltip, screen.relative(layered, size), size)
   }
 
   private def show_popup(): Unit = {
     popup.show
     pretty_text_area.requestFocus()
-    pretty_text_area.update(rendering.snapshot, results, info.info)
+    pretty_text_area.update(rendering.snapshot, results, output)
   }
 
   private def hide_popup(): Unit = popup.hide

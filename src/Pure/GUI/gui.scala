@@ -222,17 +222,18 @@ object GUI {
 
   /* zoom factor */
 
-  private val Zoom_Factor = "([0-9]+)%?".r
+  private val Percent = "([0-9]+)%?".r
 
   class Zoom extends Selector[String](
     List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")
       .map(GUI.Selector.item)
   ) {
-    def factor: Int = parse(selection.item.toString)
+    def percent: Int = parse(selection.item.toString)
+    def scale: Double = 0.01 * percent
 
     private def parse(text: String): Int =
       text match {
-        case Zoom_Factor(s) =>
+        case Percent(s) =>
           val i = Integer.parseInt(s)
           if (10 <= i && i < 1000) i else 100
         case _ => 100

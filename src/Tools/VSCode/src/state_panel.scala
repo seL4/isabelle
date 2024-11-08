@@ -70,9 +70,9 @@ class State_Panel private(val server: Language_Server) {
 
   private val print_state =
     new Query_Operation(server.editor, (), "print_state", _ => (),
-      (_, _, body) =>
-        if (output_active.value && body.nonEmpty) {
-          pretty_panel.value.refresh(body)
+      (_, _, output) =>
+        if (output_active.value && output.nonEmpty) {
+          pretty_panel.value.refresh(output)
         })
 
   def locate(): Unit = print_state.locate_query()

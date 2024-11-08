@@ -19,7 +19,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by GUI thread */
 
   private var do_update = true
-  private var current_output: List[XML.Tree] = Nil
+  private var current_output: List[XML.Elem] = Nil
 
 
   /* pretty text area */
@@ -30,8 +30,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
 
-  private def handle_resize(): Unit =
-    GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]]): Unit = {
     GUI_Thread.require {}
@@ -52,7 +51,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         else current_output
 
       if (current_output != new_output) {
-        pretty_text_area.update(snapshot, results, Pretty.separate(new_output))
+        pretty_text_area.update(snapshot, results, new_output)
         current_output = new_output
       }
     }
@@ -78,12 +77,10 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     override def clicked(): Unit = handle_update(true, None)
   }
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-
   private val controls =
     Wrap_Panel(
-      List(output_state_button, auto_hovering_button, auto_update_button,
-        update_button, pretty_text_area.search_label, pretty_text_area.search_field, zoom))
+      List(output_state_button, auto_hovering_button, auto_update_button, update_button) :::
+      pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 

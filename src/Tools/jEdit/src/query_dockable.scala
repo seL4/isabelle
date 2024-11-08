@@ -77,9 +77,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "find_theorems",
-        consume_status(process_indicator, _),
-        (snapshot, results, body) =>
-          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+        consume_status(process_indicator, _), pretty_text_area.update)
 
     private def apply_query(): Unit = {
       query.addCurrentToHistory()
@@ -118,8 +116,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val control_panel =
       Wrap_Panel(
         List(query_label, Component.wrap(query), limit, allow_dups,
-          process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field))
+          process_indicator.component, apply_button) :::
+        pretty_text_area.search_components)
 
     def select(): Unit = { control_panel.contents += zoom }
 
@@ -140,9 +138,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "find_consts",
-        consume_status(process_indicator, _),
-        (snapshot, results, body) =>
-          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+        consume_status(process_indicator, _), pretty_text_area.update)
 
     private val query_label = new Label("Find:") {
       tooltip = GUI.tooltip_lines("Name / type patterns for constants")
@@ -166,9 +162,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     private val control_panel =
       Wrap_Panel(
-        List(
-          query_label, Component.wrap(query), process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field))
+        List(query_label, Component.wrap(query), process_indicator.component, apply_button) :::
+        pretty_text_area.search_components)
 
     def select(): Unit = { control_panel.contents += zoom }
 
@@ -218,9 +213,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "print_operation",
-        consume_status(process_indicator, _),
-        (snapshot, results, body) =>
-          pretty_text_area.update(snapshot, results, Pretty.separate(body)))
+        consume_status(process_indicator, _), pretty_text_area.update)
 
     private def apply_query(): Unit =
       query_operation.apply_query(selected_items())
@@ -252,8 +245,8 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       control_panel.contents += query_label
       update_items().foreach(item => control_panel.contents += item.gui)
       control_panel.contents ++=
-        List(process_indicator.component, apply_button,
-          pretty_text_area.search_label, pretty_text_area.search_field, zoom)
+        List(process_indicator.component, apply_button) :::
+        pretty_text_area.search_components ::: List(zoom)
     }
 
     val page =
@@ -301,7 +294,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private def handle_resize(): Unit =
     GUI_Thread.require {
-      if (operations != null) operations.foreach(_.pretty_text_area.zoom(zoom))
+      if (operations != null) operations.foreach(_.pretty_text_area.zoom(zoom = zoom))
     }
 
   private val delay_resize =

@@ -67,14 +67,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* pretty text area */
 
   private val output: Output_Area =
-    new Output_Area(view, root_name = "Threads") {
-      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
-        update_focus()
-        update_vals()
-      }
-
-      override def handle_resize(): Unit = pretty_text_area.zoom(zoom)
-
+    new Output_Area(view, root_name = "Threads", split = true) {
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
@@ -82,7 +75,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         if (new_threads != current_threads) update_tree(new_threads)
 
         if (new_output != current_output) {
-          pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+          pretty_text_area.update(new_snapshot, Command.Results.empty, new_output)
         }
 
         current_snapshot = new_snapshot
@@ -236,17 +229,13 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     tooltip = "Official Standard ML instead of Isabelle/ML"
   }
 
-  private val zoom =
-    new Font_Info.Zoom { override def changed(): Unit = output.handle_resize() }
-
   private val controls =
     Wrap_Panel(
       List(
         break_button, continue_button, step_button, step_over_button, step_out_button,
         context_label, Component.wrap(context_field),
-        expression_label, Component.wrap(expression_field), eval_button, sml_button,
-        output.pretty_text_area.search_label,
-        output.pretty_text_area.search_field, zoom))
+        expression_label, Component.wrap(expression_field), eval_button, sml_button) :::
+      output.pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -265,6 +254,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }
+
+  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
+    update_focus()
+    update_vals()
+  })
 
 
   /* main */

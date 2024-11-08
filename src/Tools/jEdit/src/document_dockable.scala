@@ -30,24 +30,21 @@ object Document_Dockable {
     process: Future[Unit] = Future.value(()),
     progress: Progress = new Progress,
     output_results: Command.Results = Command.Results.empty,
-    output_main: XML.Body = Nil,
-    output_more: XML.Body = Nil
+    output_main: List[XML.Elem] = Nil,
+    output_more: List[XML.Elem] = Nil
   ) {
     def running: Boolean = !process.is_finished
 
     def run(process: Future[Unit], progress: Progress, reset_pending: Boolean): State =
       copy(process = process, progress = progress, pending = if (reset_pending) false else pending)
 
-    def output(results: Command.Results, body: XML.Body): State =
-      copy(output_results = results, output_main = body, output_more = Nil)
+    def output(results: Command.Results, main: List[XML.Elem]): State =
+      copy(output_results = results, output_main = main, output_more = Nil)
 
-    def finish(body: XML.Body): State =
-      copy(process = Future.value(()), output_more = body)
+    def finish(more: List[XML.Elem]): State =
+      copy(process = Future.value(()), output_more = more)
 
-    def output_body: XML.Body =
-      output_main :::
-      (if (output_main.nonEmpty && output_more.nonEmpty) Pretty.Separator else Nil) :::
-      output_more
+    def output_all: List[XML.Elem] = output_main ::: output_more
 
     def reset(): State = {
       process.cancel()
@@ -74,7 +71,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
-    pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_body)
+    pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_all)
 
     if (st.running) process_indicator.update("Running document build process ...", 15)
     else if (st.pending) process_indicator.update("Waiting for pending document content ...", 5)
@@ -91,8 +88,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
-  private val zoom = new Font_Info.Zoom { override def changed(): Unit = handle_resize() }
-  private def handle_resize(): Unit = GUI_Thread.require { pretty_text_area.zoom(zoom) }
+  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private val delay_resize: Delay =
     Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
@@ -139,8 +135,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     current_state.guarded_access(st => if (st.process.is_finished) None else Some((), st))
 
   private def output_process(progress: Log_Progress): Unit = {
-    val (results, body) = progress.output()
-    current_state.change(_.output(results, body))
+    val (results, main) = progress.output()
+    current_state.change(_.output(results, main))
   }
 
   private def pending_process(): Unit =
@@ -153,7 +149,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       }
     }
 
-  private def finish_process(output: XML.Body): Unit =
+  private def finish_process(output: List[XML.Elem]): Unit =
     current_state.change { st =>
       if (st.pending) {
         delay_auto_build.revoke()
@@ -231,7 +227,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         progress.stop_program()
         output_process(progress)
         progress.stop()
-        finish_process(Pretty.separate(msgs))
+        finish_process(msgs)
 
         show_page(output_page)
       }
@@ -352,7 +348,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       override def clicked(): Unit = cancel_process()
     }
 
-  private val output_controls = Wrap_Panel(List(cancel_button, zoom))
+  private val output_controls = Wrap_Panel(List(cancel_button, pretty_text_area.zoom_component))
 
   private val output_page =
     new TabbedPane.Page("Output", new BorderPanel {

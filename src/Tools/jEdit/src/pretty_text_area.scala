@@ -32,20 +32,20 @@ class Pretty_Text_Area(
   close_action: () => Unit = () => (),
   propagate_keys: Boolean = false
 ) extends JEditEmbeddedTextArea {
-  text_area =>
+  pretty_text_area =>
 
   GUI_Thread.require {}
 
   private var current_font_info: Font_Info = Font_Info.main()
-  private var current_body: XML.Body = Nil
+  private var current_output: List[XML.Elem] = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
-    JEdit_Rendering.text(current_base_snapshot, Nil)._2
+    JEdit_Rendering(current_base_snapshot, Command.rich_text())
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
-    new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
+    new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
       get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
   private var current_search_pattern: Option[Regex] = None
@@ -88,17 +88,21 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val metric = JEdit_Lib.font_metric(getPainter)
-      val margin = ((getPainter.getWidth.toDouble / metric.unit) max 20.0).floor
+      val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.average_width).toInt)
 
       val snapshot = current_base_snapshot
       val results = current_base_results
-      val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
+      val formatted =
+        Pretty.formatted(Pretty.separate(current_output), margin = margin, metric = metric)
 
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =
-            try { JEdit_Rendering.text(snapshot, formatted_body, results = results) }
+            try {
+              val rich_text = Command.rich_text(body = formatted, results = results)
+              (rich_text.source, JEdit_Rendering(snapshot, rich_text))
+            }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
@@ -115,48 +119,41 @@ class Pretty_Text_Area(
     }
   }
 
-  def resize(font_info: Font_Info): Unit = {
-    GUI_Thread.require {}
-
+  def resize(font_info: Font_Info): Unit = GUI_Thread.require {
     current_font_info = font_info
     refresh()
-  }
-
-  def zoom(zoom: GUI.Zoom): Unit = {
-    val factor = if (zoom == null) 100 else zoom.factor
-    resize(Font_Info.main(PIDE.options.real("jedit_font_scale") * factor / 100))
   }
 
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
-    body: XML.Body
+    output: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
     require(!base_snapshot.is_outdated, "document snapshot outdated")
 
     current_base_snapshot = base_snapshot
     current_base_results = base_results
-    current_body = body
+    current_output = output
     refresh()
   }
 
   def detach(): Unit = {
     GUI_Thread.require {}
-    Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
+    Info_Dockable(view, current_base_snapshot, current_base_results, current_output)
   }
 
   def detach_operation: Option[() => Unit] =
-    if (current_body.isEmpty) None else Some(() => detach())
+    if (current_output.isEmpty) None else Some(() => detach())
 
 
-  /* common GUI components */
+  /* search */
 
-  val search_label: Component = new Label("Search:") {
+  private val search_label: Component = new Label("Search:") {
     tooltip = "Search and highlight output via regular expression"
   }
 
-  val search_field: Component =
+  private val search_field: Component =
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search") {
       private val input_delay =
         Delay.last(PIDE.session.input_delay, gui = true) { search_action(this) }
@@ -182,7 +179,7 @@ class Pretty_Text_Area(
       }
     if (current_search_pattern != pattern) {
       current_search_pattern = pattern
-      text_area.getPainter.repaint()
+      pretty_text_area.getPainter.repaint()
     }
     text_field.setForeground(
       if (ok) search_field_foreground
@@ -190,14 +187,30 @@ class Pretty_Text_Area(
   }
 
 
+  /* zoom */
+
+  val zoom_component: Font_Info.Zoom =
+    new Font_Info.Zoom { override def changed(): Unit = zoom() }
+
+  def zoom(zoom: Font_Info.Zoom = zoom_component): Unit =
+    resize(Font_Info.main(scale = PIDE.options.real("jedit_font_scale"), zoom = zoom))
+
+
+  /* common GUI components */
+
+  def search_components: List[Component] = List(search_label, search_field)
+
+  def search_zoom_components: List[Component] = List(search_label, search_field, zoom_component)
+
+
   /* key handling */
 
   override def getInputMethodRequests: InputMethodRequests = null
 
   inputHandlerProvider =
-    new DefaultInputHandlerProvider(new TextAreaInputHandler(text_area) {
+    new DefaultInputHandlerProvider(new TextAreaInputHandler(pretty_text_area) {
       override def getAction(action: String): JEditBeanShellAction =
-        text_area.getActionContext.getAction(action)
+        pretty_text_area.getActionContext.getAction(action)
       override def processKeyEvent(evt: KeyEvent, from: Int, global: Boolean): Unit = {}
       override def handleKey(key: KeyEventTranslator.Key, dry_run: Boolean): Boolean = false
     })
@@ -209,13 +222,13 @@ class Pretty_Text_Area(
 
       evt.getKeyCode match {
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
-        if strict_control && text_area.getSelectionCount != 0 =>
-          Registers.copy(text_area, '$')
+        if strict_control && pretty_text_area.getSelectionCount != 0 =>
+          Registers.copy(pretty_text_area, '$')
           evt.consume()
 
         case KeyEvent.VK_A
         if strict_control =>
-          text_area.selectAll
+          pretty_text_area.selectAll()
           evt.consume()
 
         case KeyEvent.VK_ESCAPE =>
