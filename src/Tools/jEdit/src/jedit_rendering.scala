@@ -356,23 +356,16 @@ extends Rendering(snapshot, options, PIDE.session) {
   def squiggly_underline(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     message_underline_color(JEdit_Rendering.squiggly_elements, range)
 
-  def line_background(range: Text.Range): Option[(Rendering.Color.Value, Boolean)] = {
-    val results =
-      snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ =>
-        {
-          case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
-        })
-    val pri = results.foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+  def line_background(range: Text.Range): Option[Rendering.Color.Value] =
+    Rendering.message_background_color.get(
+      snapshot.cumulate[Int](range, 0, JEdit_Rendering.line_background_elements, _ => {
+        case (pri, Text.Info(_, elem)) => Some(pri max Rendering.message_pri(elem.name))
+      }).foldLeft(0) { case (p1, Text.Info(_, p2)) => p1 max p2 })
 
-    Rendering.message_background_color.get(pri).map(message_color => {
-      val is_separator =
-        snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ =>
-          {
-            case _ => Some(true)
-          }).exists(_.info)
-      (message_color, is_separator)
-    })
-  }
+  def line_separator(range: Text.Range): Boolean =
+    snapshot.cumulate[Boolean](range, false, JEdit_Rendering.separator_elements, _ => {
+      case _ => Some(true)
+    }).exists(_.info)
 
 
   /* text color */
