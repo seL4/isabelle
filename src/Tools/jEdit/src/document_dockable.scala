@@ -71,8 +71,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
-    pretty_text_area.update(Document.Snapshot.init, st.output_results,
-      Pretty.separate(st.output_all))
+    pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_all)
 
     if (st.running) process_indicator.update("Running document build process ...", 15)
     else if (st.pending) process_indicator.update("Waiting for pending document content ...", 5)

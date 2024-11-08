@@ -20,12 +20,12 @@ object Info_Dockable {
 
   private var implicit_snapshot = Document.Snapshot.init
   private var implicit_results = Command.Results.empty
-  private var implicit_info: XML.Body = Nil
+  private var implicit_info: List[XML.Elem] = Nil
 
   private def set_implicit(
     snapshot: Document.Snapshot,
     results: Command.Results,
-    info: XML.Body
+    info: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
 
@@ -41,7 +41,7 @@ object Info_Dockable {
     view: View,
     snapshot: Document.Snapshot,
     results: Command.Results,
-    info: XML.Body
+    info: List[XML.Elem]
   ): Unit = {
     set_implicit(snapshot, results, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")

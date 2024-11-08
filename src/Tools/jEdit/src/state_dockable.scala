@@ -27,9 +27,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
 
   private val print_state =
-    new Query_Operation(PIDE.editor, view, "print_state", _ => (),
-      (snapshot, results, output) =>
-        pretty_text_area.update(snapshot, results, Pretty.separate(output)))
+    new Query_Operation(PIDE.editor, view, "print_state", _ => (), pretty_text_area.update)
 
 
   /* resize */

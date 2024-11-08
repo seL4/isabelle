@@ -56,7 +56,7 @@ private object Simplifier_Trace_Window {
     private def body_contains(regex: Regex, body: XML.Body): Boolean =
       body.exists(tree => regex.findFirstIn(XML.content(tree)).isDefined)
 
-    def format: Option[XML.Tree] = {
+    def format: Option[XML.Elem] = {
       def format_hint(data: Simplifier_Trace.Item.Data): XML.Tree =
         Pretty.block(Pretty.separate(XML.Text(data.text) :: data.content))
 
@@ -151,7 +151,7 @@ class Simplifier_Trace_Window(
 
   def handle_update(): Unit = {
     val output = tree.tree_children.flatMap(_.format)
-    pretty_text_area.update(snapshot, Command.Results.empty, Pretty.separate(output))
+    pretty_text_area.update(snapshot, Command.Results.empty, output)
   }
 
   def handle_resize(): Unit = pretty_text_area.zoom()

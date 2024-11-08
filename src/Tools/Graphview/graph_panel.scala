@@ -82,8 +82,11 @@ class Graph_Panel(val graphview: Graphview) extends BorderPanel {
           case Some(node) =>
             graphview.model.full_graph.get_node(node) match {
               case Nil => null
-              case content =>
-                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, content)
+              case List(tip: XML.Elem) =>
+                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, tip)
+              case body =>
+                val tip = Pretty.block(body, indent = 0)
+                graphview.make_tooltip(graph_pane.peer, event.getX, event.getY, tip)
             }
           case None => null
         }

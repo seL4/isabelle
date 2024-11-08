@@ -37,7 +37,7 @@ class Pretty_Text_Area(
   GUI_Thread.require {}
 
   private var current_font_info: Font_Info = Font_Info.main()
-  private var current_body: XML.Body = Nil
+  private var current_output: List[XML.Elem] = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
@@ -92,13 +92,14 @@ class Pretty_Text_Area(
 
       val snapshot = current_base_snapshot
       val results = current_base_results
-      val formatted_body = Pretty.formatted(current_body, margin = margin, metric = metric)
+      val formatted =
+        Pretty.formatted(Pretty.separate(current_output), margin = margin, metric = metric)
 
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =
-            try { JEdit_Rendering.text(snapshot, formatted_body, results = results) }
+            try { JEdit_Rendering.text(snapshot, formatted, results = results) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
@@ -123,24 +124,24 @@ class Pretty_Text_Area(
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
-    body: XML.Body
+    output: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
     require(!base_snapshot.is_outdated, "document snapshot outdated")
 
     current_base_snapshot = base_snapshot
     current_base_results = base_results
-    current_body = body
+    current_output = output
     refresh()
   }
 
   def detach(): Unit = {
     GUI_Thread.require {}
-    Info_Dockable(view, current_base_snapshot, current_base_results, current_body)
+    Info_Dockable(view, current_base_snapshot, current_base_results, current_output)
   }
 
   def detach_operation: Option[() => Unit] =
-    if (current_body.isEmpty) None else Some(() => detach())
+    if (current_output.isEmpty) None else Some(() => detach())
 
 
   /* search */

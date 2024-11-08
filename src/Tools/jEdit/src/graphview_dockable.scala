@@ -84,13 +84,13 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
         val graphview = new isabelle.graphview.Graphview(graph) {
           def options: Options = PIDE.options.value
 
-          override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String = {
+          override def make_tooltip(parent: JComponent, x: Int, y: Int, tip: XML.Elem): String = {
             Pretty_Tooltip.invoke(() =>
               {
                 val model = File_Model.init(PIDE.session)
                 val rendering = JEdit_Rendering(snapshot, model, options)
-                val info = Text.Info(Text.Range.offside, body)
-                Pretty_Tooltip(view, parent, new Point(x, y), rendering, Command.Results.empty, info)
+                val loc = new Point(x, y)
+                Pretty_Tooltip(view, parent, loc, rendering, Command.Results.empty, List(tip))
               })
             null
           }

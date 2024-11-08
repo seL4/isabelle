@@ -41,8 +41,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     context.questions.values.toList match {
       case q :: _ =>
         val data = q.data
-        val content = Pretty.separate(XML.Text(data.text) :: data.content)
-        pretty_text_area.update(snapshot, Command.Results.empty, content)
+        val output = List(Pretty.block(XML.Text(data.text) :: data.content, indent = 0))
+        pretty_text_area.update(snapshot, Command.Results.empty, output)
         q.answers.foreach { answer =>
           answers.contents += new GUI.Button(answer.string) {
             override def clicked(): Unit =

@@ -75,7 +75,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         if (new_threads != current_threads) update_tree(new_threads)
 
         if (new_output != current_output) {
-          pretty_text_area.update(new_snapshot, Command.Results.empty, Pretty.separate(new_output))
+          pretty_text_area.update(new_snapshot, Command.Results.empty, new_output)
         }
 
         current_snapshot = new_snapshot

@@ -45,12 +45,12 @@ object Pretty_Tooltip {
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    info: Text.Info[XML.Body]
+    output: List[XML.Elem]
   ): Unit = {
     GUI_Thread.require {}
 
     stack match {
-      case top :: _ if top.results == results && top.info == info =>
+      case top :: _ if top.results == results && top.output == output =>
       case _ =>
         GUI.layered_pane(parent) match {
           case None =>
@@ -63,7 +63,7 @@ object Pretty_Tooltip {
             old.foreach(_.hide_popup())
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
-            val tip = new Pretty_Tooltip(view, layered, parent, loc, rendering, results, info)
+            val tip = new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output)
             stack = tip :: rest
             tip.show_popup()
         }
@@ -164,7 +164,7 @@ class Pretty_Tooltip private(
   location: Point,
   rendering: JEdit_Rendering,
   private val results: Command.Results,
-  private val info: Text.Info[XML.Body]
+  private val output: List[XML.Elem]
 ) extends JPanel(new BorderLayout) {
   tip =>
 
@@ -186,7 +186,7 @@ class Pretty_Tooltip private(
     listenTo(mouse.clicks)
     reactions += {
       case _: MouseClicked =>
-        Info_Dockable(view, rendering.snapshot, results, info.info)
+        Info_Dockable(view, rendering.snapshot, results, output)
         Pretty_Tooltip.dismiss(tip)
     }
   }
@@ -249,7 +249,7 @@ class Pretty_Tooltip private(
         ((rendering.tooltip_margin * metric.average) min
           ((w_max - geometry.deco_width) / metric.unit).toInt) max 20
 
-      val formatted = Pretty.formatted(info.info, margin = margin, metric = metric)
+      val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
       val lines = XML.content_lines(formatted)
 
       val h = painter.getLineHeight * lines + geometry.deco_height
@@ -268,7 +268,7 @@ class Pretty_Tooltip private(
   private def show_popup(): Unit = {
     popup.show
     pretty_text_area.requestFocus()
-    pretty_text_area.update(rendering.snapshot, results, info.info)
+    pretty_text_area.update(rendering.snapshot, results, output)
   }
 
   private def hide_popup(): Unit = popup.hide

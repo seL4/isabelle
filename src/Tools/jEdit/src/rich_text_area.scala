@@ -299,7 +299,7 @@ class Rich_Text_Area(
                           val painter = text_area.getPainter
                           val loc = new Point(x, y + painter.getLineHeight / 2)
                           val results = snapshot.command_results(tip.range)
-                          Pretty_Tooltip(view, painter, loc, rendering, results, tip)
+                          Pretty_Tooltip(view, painter, loc, rendering, results, tip.info)
                       }
                   }
                 }

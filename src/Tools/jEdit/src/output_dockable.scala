@@ -19,7 +19,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by GUI thread */
 
   private var do_update = true
-  private var current_output: List[XML.Tree] = Nil
+  private var current_output: List[XML.Elem] = Nil
 
 
   /* pretty text area */
@@ -51,7 +51,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         else current_output
 
       if (current_output != new_output) {
-        pretty_text_area.update(snapshot, results, Pretty.separate(new_output))
+        pretty_text_area.update(snapshot, results, new_output)
         current_output = new_output
       }
     }
