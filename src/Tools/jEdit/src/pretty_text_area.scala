@@ -88,7 +88,7 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val metric = JEdit_Lib.font_metric(getPainter)
-      val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.unit).toInt)
+      val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.average_width).toInt)
 
       val snapshot = current_base_snapshot
       val results = current_base_results

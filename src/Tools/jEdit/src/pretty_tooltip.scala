@@ -249,7 +249,7 @@ class Pretty_Tooltip private(
       val metric = JEdit_Lib.font_metric(painter)
       val margin =
         metric.pretty_margin(rendering.tooltip_margin,
-          limit = ((w_max - geometry.deco_width) / metric.unit).floor)
+          limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
       val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
       val lines = XML.content_lines(formatted)
@@ -259,7 +259,7 @@ class Pretty_Tooltip private(
         if (h <= h_max) {
           split_lines(XML.content(formatted)).foldLeft(0.0) { case (m, line) => m max metric(line) }
         }
-        else margin
+        else margin.toDouble
       val w = (metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width
 
       new Dimension(w min w_max, h min h_max)

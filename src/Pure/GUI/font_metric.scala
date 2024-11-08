@@ -55,8 +55,8 @@ class Font_Metric(
   }
   def average: Double = average_width / unit
 
-  def pretty_margin(margin: Int, limit: Double = Double.NaN): Double = {
-    val m = margin * average
-    (if (limit.isNaN) m else m min limit) max 20.0
+  def pretty_margin(margin: Int, limit: Int = -1): Int = {
+    val m = (margin * average).toInt
+    (if (limit < 0) m else m min limit) max 20
   }
 }
