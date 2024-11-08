@@ -142,11 +142,7 @@ fun silence_methods debug =
       |> Simplifier_Trace.disable
       |> Context_Position.set_visible false
       |> Config.put Unify.unify_trace false
-      |> Config.put Argo_Tactic.trace "none"
-      |> Proof_Context.background_theory (fn thy =>
-          thy
-          |> Context_Position.set_visible_global false
-          |> Config.put_global Unify.unify_trace false))
+      |> Config.put Argo_Tactic.trace "none")
 
 fun generic_try0 mode timeout_opt tagged st =
   let
