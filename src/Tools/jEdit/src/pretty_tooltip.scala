@@ -260,7 +260,7 @@ class Pretty_Tooltip private(
           split_lines(XML.content(formatted)).foldLeft(0.0) { case (m, line) => m max metric(line) }
         }
         else margin.toDouble
-      val w = (metric.unit * (margin1 + metric.average)).round.toInt + geometry.deco_width
+      val w = (metric.unit * (margin1 + 1)).round.toInt + geometry.deco_width
 
       new Dimension(w min w_max, h min h_max)
     }
