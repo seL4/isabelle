@@ -2,61 +2,61 @@
            Tobias Nipkow (tuning)
 *)
 
-section \<open>Binomial Heap\<close>
+section \<open>Binomial Priority Queue\<close>
 
 theory Binomial_Heap
 imports
   "HOL-Library.Pattern_Aliases"
   Complex_Main
   Priority_Queue_Specs
-  Define_Time_Function
+  Time_Funs
 begin
 
 text \<open>
-  We formalize the binomial heap presentation from Okasaki's book.
+  We formalize the presentation from Okasaki's book.
   We show the functional correctness and complexity of all operations.
 
   The presentation is engineered for simplicity, and most
   proofs are straightforward and automatic.
 \<close>
 
-subsection \<open>Binomial Tree and Heap Datatype\<close>
+subsection \<open>Binomial Tree and Forest Types\<close>
 
 datatype 'a tree = Node (rank: nat) (root: 'a) (children: "'a tree list")
 
-type_synonym 'a trees = "'a tree list"
+type_synonym 'a forest = "'a tree list"
 
 subsubsection \<open>Multiset of elements\<close>
 
 fun mset_tree :: "'a::linorder tree \<Rightarrow> 'a multiset" where
   "mset_tree (Node _ a ts) = {#a#} + (\<Sum>t\<in>#mset ts. mset_tree t)"
 
-definition mset_trees :: "'a::linorder trees \<Rightarrow> 'a multiset" where
-  "mset_trees ts = (\<Sum>t\<in>#mset ts. mset_tree t)"
+definition mset_forest :: "'a::linorder forest \<Rightarrow> 'a multiset" where
+  "mset_forest ts = (\<Sum>t\<in>#mset ts. mset_tree t)"
 
 lemma mset_tree_simp_alt[simp]:
-  "mset_tree (Node r a ts) = {#a#} + mset_trees ts"
-  unfolding mset_trees_def by auto
+  "mset_tree (Node r a ts) = {#a#} + mset_forest ts"
+  unfolding mset_forest_def by auto
 declare mset_tree.simps[simp del]
 
 lemma mset_tree_nonempty[simp]: "mset_tree t \<noteq> {#}"
 by (cases t) auto
 
-lemma mset_trees_Nil[simp]:
-  "mset_trees [] = {#}"
-by (auto simp: mset_trees_def)
+lemma mset_forest_Nil[simp]:
+  "mset_forest [] = {#}"
+by (auto simp: mset_forest_def)
 
-lemma mset_trees_Cons[simp]: "mset_trees (t#ts) = mset_tree t + mset_trees ts"
-by (auto simp: mset_trees_def)
+lemma mset_forest_Cons[simp]: "mset_forest (t#ts) = mset_tree t + mset_forest ts"
+by (auto simp: mset_forest_def)
 
-lemma mset_trees_empty_iff[simp]: "mset_trees ts = {#} \<longleftrightarrow> ts=[]"
-by (auto simp: mset_trees_def)
+lemma mset_forest_empty_iff[simp]: "mset_forest ts = {#} \<longleftrightarrow> ts=[]"
+by (auto simp: mset_forest_def)
 
 lemma root_in_mset[simp]: "root t \<in># mset_tree t"
 by (cases t) auto
 
-lemma mset_trees_rev_eq[simp]: "mset_trees (rev ts) = mset_trees ts"
-by (auto simp: mset_trees_def)
+lemma mset_forest_rev_eq[simp]: "mset_forest (rev ts) = mset_forest ts"
+by (auto simp: mset_forest_def)
 
 subsubsection \<open>Invariants\<close>
 
@@ -71,11 +71,12 @@ fun heap :: "'a::linorder tree \<Rightarrow> bool" where
 
 definition "bheap t \<longleftrightarrow> btree t \<and> heap t"
 
-text \<open>Binomial Heap invariant\<close>
+text \<open>Binomial Forest invariant:\<close>
 definition "invar ts \<longleftrightarrow> (\<forall>t\<in>set ts. bheap t) \<and> (sorted_wrt (<) (map rank ts))"
 
+text \<open>A binomial forest is often called a binomial heap, but this overloads the latter term.\<close>
 
-text \<open>The children of a node are a valid heap\<close>
+text \<open>The children of a binomial heap node are a valid forest:\<close>
 lemma invar_children:
   "bheap (Node r v ts) \<Longrightarrow> invar (rev ts)"
   by (auto simp: bheap_def invar_def rev_map[symmetric])
@@ -111,7 +112,7 @@ by (cases "(t\<^sub>1, t\<^sub>2)" rule: link.cases) simp
 
 subsubsection \<open>\<open>ins_tree\<close>\<close>
 
-fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a trees \<Rightarrow> 'a trees" where
+fun ins_tree :: "'a::linorder tree \<Rightarrow> 'a forest \<Rightarrow> 'a forest" where
   "ins_tree t [] = [t]"
 | "ins_tree t\<^sub>1 (t\<^sub>2#ts) =
   (if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1#t\<^sub>2#ts else ins_tree (link t\<^sub>1 t\<^sub>2) ts)"
@@ -132,8 +133,8 @@ lemma invar_ins_tree:
 using assms
 by (induction t ts rule: ins_tree.induct) (auto simp: invar_link less_eq_Suc_le[symmetric])
 
-lemma mset_trees_ins_tree[simp]:
-  "mset_trees (ins_tree t ts) = mset_tree t + mset_trees ts"
+lemma mset_forest_ins_tree[simp]:
+  "mset_forest (ins_tree t ts) = mset_tree t + mset_forest ts"
 by (induction t ts rule: ins_tree.induct) auto
 
 lemma ins_tree_rank_bound:
@@ -148,13 +149,13 @@ subsubsection \<open>\<open>insert\<close>\<close>
 
 hide_const (open) insert
 
-definition insert :: "'a::linorder \<Rightarrow> 'a trees \<Rightarrow> 'a trees" where
+definition insert :: "'a::linorder \<Rightarrow> 'a forest \<Rightarrow> 'a forest" where
 "insert x ts = ins_tree (Node 0 x []) ts"
 
 lemma invar_insert[simp]: "invar t \<Longrightarrow> invar (insert x t)"
 by (auto intro!: invar_ins_tree simp: insert_def)
 
-lemma mset_trees_insert[simp]: "mset_trees (insert x t) = {#x#} + mset_trees t"
+lemma mset_forest_insert[simp]: "mset_forest (insert x t) = {#x#} + mset_forest t"
 by(auto simp: insert_def)
 
 subsubsection \<open>\<open>merge\<close>\<close>
@@ -163,12 +164,12 @@ context
 includes pattern_aliases
 begin
 
-fun merge :: "'a::linorder trees \<Rightarrow> 'a trees \<Rightarrow> 'a trees" where
+fun merge :: "'a::linorder forest \<Rightarrow> 'a forest \<Rightarrow> 'a forest" where
   "merge ts\<^sub>1 [] = ts\<^sub>1"
 | "merge [] ts\<^sub>2 = ts\<^sub>2"
-| "merge (t\<^sub>1#ts\<^sub>1 =: h\<^sub>1) (t\<^sub>2#ts\<^sub>2 =: h\<^sub>2) = (
-    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1 # merge ts\<^sub>1 h\<^sub>2 else
-    if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2 # merge h\<^sub>1 ts\<^sub>2
+| "merge (t\<^sub>1#ts\<^sub>1 =: f\<^sub>1) (t\<^sub>2#ts\<^sub>2 =: f\<^sub>2) = (
+    if rank t\<^sub>1 < rank t\<^sub>2 then t\<^sub>1 # merge ts\<^sub>1 f\<^sub>2 else
+    if rank t\<^sub>2 < rank t\<^sub>1 then t\<^sub>2 # merge f\<^sub>1 ts\<^sub>2
     else ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2)
   )"
 
@@ -179,8 +180,7 @@ by (cases ts\<^sub>2) auto
 
 lemma merge_rank_bound:
   assumes "t' \<in> set (merge ts\<^sub>1 ts\<^sub>2)"
-  assumes "\<forall>t\<^sub>1\<in>set ts\<^sub>1. rank t < rank t\<^sub>1"
-  assumes "\<forall>t\<^sub>2\<in>set ts\<^sub>2. rank t < rank t\<^sub>2"
+  assumes "\<forall>t\<^sub>1\<^sub>2\<in>set ts\<^sub>1 \<union> set ts\<^sub>2. rank t < rank t\<^sub>1\<^sub>2"
   shows "rank t < rank t'"
 using assms
 by (induction ts\<^sub>1 ts\<^sub>2 arbitrary: t' rule: merge.induct)
@@ -239,7 +239,7 @@ proof (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
     then show ?thesis using "3.prems" "3.IH" by (force elim!: merge_rank_bound)
   next
     case [simp]: EQ
-    \<comment> \<open>@{const merge} links both first trees, and inserts them into the merged remaining heaps\<close>
+    \<comment> \<open>@{const merge} links both first forest, and inserts them into the merged remaining heaps\<close>
     have "merge (t\<^sub>1 # ts\<^sub>1) (t\<^sub>2 # ts\<^sub>2) = ins_tree (link t\<^sub>1 t\<^sub>2) (merge ts\<^sub>1 ts\<^sub>2)" by simp
     also have "invar \<dots>" proof (intro invar_ins_tree invar_link) 
       \<comment> \<open>Invariant of merged remaining heaps follows by IH\<close>
@@ -260,13 +260,13 @@ proof (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
 qed auto
 
 
-lemma mset_trees_merge[simp]:
-  "mset_trees (merge ts\<^sub>1 ts\<^sub>2) = mset_trees ts\<^sub>1 + mset_trees ts\<^sub>2"
+lemma mset_forest_merge[simp]:
+  "mset_forest (merge ts\<^sub>1 ts\<^sub>2) = mset_forest ts\<^sub>1 + mset_forest ts\<^sub>2"
 by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct) auto
 
 subsubsection \<open>\<open>get_min\<close>\<close>
 
-fun get_min :: "'a::linorder trees \<Rightarrow> 'a" where
+fun get_min :: "'a::linorder forest \<Rightarrow> 'a" where
   "get_min [t] = root t"
 | "get_min (t#ts) = min (root t) (get_min ts)"
 
@@ -275,12 +275,12 @@ lemma bheap_root_min:
   assumes "x \<in># mset_tree t"
   shows "root t \<le> x"
 using assms unfolding bheap_def
-by (induction t arbitrary: x rule: mset_tree.induct) (fastforce simp: mset_trees_def)
+by (induction t arbitrary: x rule: mset_tree.induct) (fastforce simp: mset_forest_def)
 
 lemma get_min_mset:
   assumes "ts\<noteq>[]"
   assumes "invar ts"
-  assumes "x \<in># mset_trees ts"
+  assumes "x \<in># mset_forest ts"
   shows "get_min ts \<le> x"
   using assms
 apply (induction ts arbitrary: x rule: get_min.induct)
@@ -291,19 +291,19 @@ apply (auto
 done
 
 lemma get_min_member:
-  "ts\<noteq>[] \<Longrightarrow> get_min ts \<in># mset_trees ts"
+  "ts\<noteq>[] \<Longrightarrow> get_min ts \<in># mset_forest ts"
 by (induction ts rule: get_min.induct) (auto simp: min_def)
 
 lemma get_min:
-  assumes "mset_trees ts \<noteq> {#}"
+  assumes "mset_forest ts \<noteq> {#}"
   assumes "invar ts"
-  shows "get_min ts = Min_mset (mset_trees ts)"
+  shows "get_min ts = Min_mset (mset_forest ts)"
 using assms get_min_member get_min_mset
 by (auto simp: eq_Min_iff)
 
 subsubsection \<open>\<open>get_min_rest\<close>\<close>
 
-fun get_min_rest :: "'a::linorder trees \<Rightarrow> 'a tree \<times> 'a trees" where
+fun get_min_rest :: "'a::linorder forest \<Rightarrow> 'a tree \<times> 'a forest" where
   "get_min_rest [t] = (t,[])"
 | "get_min_rest (t#ts) = (let (t',ts') = get_min_rest ts
                      in if root t \<le> root t' then (t,ts) else (t',t#ts'))"
@@ -349,31 +349,31 @@ qed
 
 subsubsection \<open>\<open>del_min\<close>\<close>
 
-definition del_min :: "'a::linorder trees \<Rightarrow> 'a::linorder trees" where
+definition del_min :: "'a::linorder forest \<Rightarrow> 'a::linorder forest" where
 "del_min ts = (case get_min_rest ts of
-   (Node r x ts\<^sub>1, ts\<^sub>2) \<Rightarrow> merge (rev ts\<^sub>1) ts\<^sub>2)"
+   (Node r x ts\<^sub>1, ts\<^sub>2) \<Rightarrow> merge (itrev ts\<^sub>1 []) ts\<^sub>2)"
 
 lemma invar_del_min[simp]:
   assumes "ts \<noteq> []"
   assumes "invar ts"
   shows "invar (del_min ts)"
 using assms
-unfolding del_min_def
+unfolding del_min_def itrev_Nil
 by (auto
       split: prod.split tree.split
       intro!: invar_merge invar_children 
       dest: invar_get_min_rest
     )
 
-lemma mset_trees_del_min:
+lemma mset_forest_del_min:
   assumes "ts \<noteq> []"
-  shows "mset_trees ts = mset_trees (del_min ts) + {# get_min ts #}"
+  shows "mset_forest ts = mset_forest (del_min ts) + {# get_min ts #}"
 using assms
-unfolding del_min_def
+unfolding del_min_def itrev_Nil
 apply (clarsimp split: tree.split prod.split)
 apply (frule (1) get_min_rest_get_min_same_root)
 apply (frule (1) mset_get_min_rest)
-apply (auto simp: mset_trees_def)
+apply (auto simp: mset_forest_def)
 done
 
 
@@ -385,7 +385,7 @@ to show that binomial heaps satisfy the specification of priority queues with me
 interpretation bheaps: Priority_Queue_Merge
   where empty = "[]" and is_empty = "(=) []" and insert = insert
   and get_min = get_min and del_min = del_min and merge = merge
-  and invar = invar and mset = mset_trees
+  and invar = invar and mset = mset_forest
 proof (unfold_locales, goal_cases)
   case 1 thus ?case by simp
 next
@@ -394,7 +394,7 @@ next
   case 3 thus ?case by auto
 next
   case (4 q)
-  thus ?case using mset_trees_del_min[of q] get_min[OF _ \<open>invar q\<close>]
+  thus ?case using mset_forest_del_min[of q] get_min[OF _ \<open>invar q\<close>]
     by (auto simp: union_single_eq_diff)
 next
   case (5 q) thus ?case using get_min[of q] by auto
@@ -425,7 +425,7 @@ proof (induction t)
 
   from Node have COMPL: "map rank ts = rev [0..<r]" by auto
 
-  have "size (mset_trees ts) = (\<Sum>t\<leftarrow>ts. size (mset_tree t))"
+  have "size (mset_forest ts) = (\<Sum>t\<leftarrow>ts. size (mset_tree t))"
     by (induction ts) auto
   also have "\<dots> = (\<Sum>t\<leftarrow>ts. 2^rank t)" using IH
     by (auto cong: map_cong)
@@ -447,9 +447,9 @@ using assms unfolding bheap_def
 by (simp add: size_mset_btree)
 
 text \<open>The length of a binomial heap is bounded by the number of its elements\<close>
-lemma size_mset_trees:
+lemma size_mset_forest:
   assumes "invar ts"
-  shows "length ts \<le> log 2 (size (mset_trees ts) + 1)"
+  shows "length ts \<le> log 2 (size (mset_forest ts) + 1)"
 proof -
   from \<open>invar ts\<close> have
     ASC: "sorted_wrt (<) (map rank ts)" and
@@ -464,9 +464,9 @@ proof -
     using sorted_wrt_less_idx[OF ASC] by(simp add: sum_list_mono2)
   also have "?T + 1 \<le> (\<Sum>t\<leftarrow>ts. size (mset_tree t)) + 1" using TINV
     by (auto cong: map_cong simp: size_mset_tree)
-  also have "\<dots> = size (mset_trees ts) + 1"
-    unfolding mset_trees_def by (induction ts) auto
-  finally have "2^length ts \<le> size (mset_trees ts) + 1" by simp
+  also have "\<dots> = size (mset_forest ts) + 1"
+    unfolding mset_forest_def by (induction ts) auto
+  finally have "2^length ts \<le> size (mset_forest ts) + 1" by simp
   then show ?thesis using le_log2_of_power by blast
 qed
 
@@ -493,12 +493,12 @@ subsubsection \<open>\<open>T_insert\<close>\<close>
 
 lemma T_insert_bound:
   assumes "invar ts"
-  shows "T_insert x ts \<le> log 2 (size (mset_trees ts) + 1) + 1"
+  shows "T_insert x ts \<le> log 2 (size (mset_forest ts) + 1) + 1"
 proof -
   have "real (T_insert x ts) \<le> real (length ts) + 1"
     unfolding T_insert.simps using T_ins_tree_simple_bound
     by (metis of_nat_1 of_nat_add of_nat_mono) 
-  also note size_mset_trees[OF \<open>invar ts\<close>]
+  also note size_mset_forest[OF \<open>invar ts\<close>]
   finally show ?thesis by simp
 qed
 
@@ -525,8 +525,8 @@ by (induction ts\<^sub>1 ts\<^sub>2 rule: merge.induct)
 text \<open>Finally, we get the desired logarithmic bound\<close>
 lemma T_merge_bound:
   fixes ts\<^sub>1 ts\<^sub>2
-  defines "n\<^sub>1 \<equiv> size (mset_trees ts\<^sub>1)"
-  defines "n\<^sub>2 \<equiv> size (mset_trees ts\<^sub>2)"
+  defines "n\<^sub>1 \<equiv> size (mset_forest ts\<^sub>1)"
+  defines "n\<^sub>2 \<equiv> size (mset_forest ts\<^sub>2)"
   assumes "invar ts\<^sub>1" "invar ts\<^sub>2"
   shows "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
 proof -
@@ -534,8 +534,8 @@ proof -
 
   have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * real (length ts\<^sub>1) + 2 * real (length ts\<^sub>2) + 1"
     using T_merge_length[of ts\<^sub>1 ts\<^sub>2] by simp
-  also note size_mset_trees[OF \<open>invar ts\<^sub>1\<close>]
-  also note size_mset_trees[OF \<open>invar ts\<^sub>2\<close>]
+  also note size_mset_forest[OF \<open>invar ts\<^sub>1\<close>]
+  also note size_mset_forest[OF \<open>invar ts\<^sub>2\<close>]
   finally have "T_merge ts\<^sub>1 ts\<^sub>2 \<le> 2 * log 2 (n\<^sub>1 + 1) + 2 * log 2 (n\<^sub>2 + 1) + 1"
     unfolding n_defs by (simp add: algebra_simps)
   also have "log 2 (n\<^sub>1 + 1) \<le> log 2 (n\<^sub>1 + n\<^sub>2 + 1)" 
@@ -562,19 +562,16 @@ by (induction ts rule: T_get_min.induct) auto
 lemma T_get_min_bound:
   assumes "invar ts"
   assumes "ts\<noteq>[]"
-  shows "T_get_min ts \<le> log 2 (size (mset_trees ts) + 1)"
+  shows "T_get_min ts \<le> log 2 (size (mset_forest ts) + 1)"
 proof -
   have 1: "T_get_min ts = length ts" using assms T_get_min_estimate by auto
-  also note size_mset_trees[OF \<open>invar ts\<close>]
+  also note size_mset_forest[OF \<open>invar ts\<close>]
   finally show ?thesis .
 qed
 
 subsubsection \<open>\<open>T_del_min\<close>\<close>
 
 time_fun get_min_rest
-(*fun T_get_min_rest :: "'a::linorder trees \<Rightarrow> nat" where
-  "T_get_min_rest [t] = 1"
-| "T_get_min_rest (t#ts) = 1 + T_get_min_rest ts"*)
 
 lemma T_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min_rest ts = length ts"
   by (induction ts rule: T_get_min_rest.induct) auto
@@ -582,24 +579,18 @@ lemma T_get_min_rest_estimate: "ts\<noteq>[] \<Longrightarrow> T_get_min_rest ts
 lemma T_get_min_rest_bound:
   assumes "invar ts"
   assumes "ts\<noteq>[]"
-  shows "T_get_min_rest ts \<le> log 2 (size (mset_trees ts) + 1)"
+  shows "T_get_min_rest ts \<le> log 2 (size (mset_forest ts) + 1)"
 proof -
   have 1: "T_get_min_rest ts = length ts" using assms T_get_min_rest_estimate by auto
-  also note size_mset_trees[OF \<open>invar ts\<close>]
+  also note size_mset_forest[OF \<open>invar ts\<close>]
   finally show ?thesis .
 qed
-
-text\<open>Note that although the definition of function \<^const>\<open>rev\<close> has quadratic complexity,
-it can and is implemented (via suitable code lemmas) as a linear time function.
-Thus the following definition is justified:\<close>
-
-definition "T_rev xs = length xs + 1"
 
 time_fun del_min
 
 lemma T_del_min_bound:
   fixes ts
-  defines "n \<equiv> size (mset_trees ts)"
+  defines "n \<equiv> size (mset_forest ts)"
   assumes "invar ts" and "ts\<noteq>[]"
   shows "T_del_min ts \<le> 6 * log 2 (n+1) + 2"
 proof -
@@ -610,20 +601,20 @@ proof -
     using invar_get_min_rest[OF GM \<open>ts\<noteq>[]\<close> \<open>invar ts\<close>] invar_children
     by auto
 
-  define n\<^sub>1 where "n\<^sub>1 = size (mset_trees ts\<^sub>1)"
-  define n\<^sub>2 where "n\<^sub>2 = size (mset_trees ts\<^sub>2)"
+  define n\<^sub>1 where "n\<^sub>1 = size (mset_forest ts\<^sub>1)"
+  define n\<^sub>2 where "n\<^sub>2 = size (mset_forest ts\<^sub>2)"
 
   have "n\<^sub>1 \<le> n" "n\<^sub>1 + n\<^sub>2 \<le> n" unfolding n_def n\<^sub>1_def n\<^sub>2_def
     using mset_get_min_rest[OF GM \<open>ts\<noteq>[]\<close>]
-    by (auto simp: mset_trees_def)
+    by (auto simp: mset_forest_def)
 
-  have "T_del_min ts = real (T_get_min_rest ts) + real (T_rev ts\<^sub>1) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
-    unfolding T_del_min.simps GM
+  have "T_del_min ts = real (T_get_min_rest ts) + real (T_itrev ts\<^sub>1 []) + real (T_merge (rev ts\<^sub>1) ts\<^sub>2)"
+    unfolding T_del_min.simps GM T_itrev itrev_Nil
     by simp
   also have "T_get_min_rest ts \<le> log 2 (n+1)" 
     using T_get_min_rest_bound[OF \<open>invar ts\<close> \<open>ts\<noteq>[]\<close>] unfolding n_def by simp
-  also have "T_rev ts\<^sub>1 \<le> 1 + log 2 (n\<^sub>1 + 1)"
-    unfolding T_rev_def n\<^sub>1_def using size_mset_trees[OF I1] by simp
+  also have "T_itrev ts\<^sub>1 [] \<le> 1 + log 2 (n\<^sub>1 + 1)"
+    unfolding T_itrev n\<^sub>1_def using size_mset_forest[OF I1] by simp
   also have "T_merge (rev ts\<^sub>1) ts\<^sub>2 \<le> 4*log 2 (n\<^sub>1 + n\<^sub>2 + 1) + 1"
     unfolding n\<^sub>1_def n\<^sub>2_def using T_merge_bound[OF I1 I2] by (simp add: algebra_simps)
   finally have "T_del_min ts \<le> log 2 (n+1) + log 2 (n\<^sub>1 + 1) + 4*log 2 (real (n\<^sub>1 + n\<^sub>2) + 1) + 2"
