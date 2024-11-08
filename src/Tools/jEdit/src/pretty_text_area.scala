@@ -41,7 +41,7 @@ class Pretty_Text_Area(
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
-    JEdit_Rendering.text(current_base_snapshot, Nil)._2
+    JEdit_Rendering(current_base_snapshot, Command.rich_text())
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
@@ -99,7 +99,10 @@ class Pretty_Text_Area(
       future_refresh =
         Some(Future.fork {
           val (text, rendering) =
-            try { JEdit_Rendering.text(snapshot, formatted, results = results) }
+            try {
+              val rich_text = Command.rich_text(body = formatted, results = results)
+              (rich_text.source, JEdit_Rendering(snapshot, rich_text))
+            }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
