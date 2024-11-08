@@ -32,7 +32,7 @@ class Pretty_Text_Area(
   close_action: () => Unit = () => (),
   propagate_keys: Boolean = false
 ) extends JEditEmbeddedTextArea {
-  text_area =>
+  pretty_text_area =>
 
   GUI_Thread.require {}
 
@@ -45,7 +45,7 @@ class Pretty_Text_Area(
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
-    new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
+    new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
       get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
   private var current_search_pattern: Option[Regex] = None
@@ -176,7 +176,7 @@ class Pretty_Text_Area(
       }
     if (current_search_pattern != pattern) {
       current_search_pattern = pattern
-      text_area.getPainter.repaint()
+      pretty_text_area.getPainter.repaint()
     }
     text_field.setForeground(
       if (ok) search_field_foreground
@@ -205,9 +205,9 @@ class Pretty_Text_Area(
   override def getInputMethodRequests: InputMethodRequests = null
 
   inputHandlerProvider =
-    new DefaultInputHandlerProvider(new TextAreaInputHandler(text_area) {
+    new DefaultInputHandlerProvider(new TextAreaInputHandler(pretty_text_area) {
       override def getAction(action: String): JEditBeanShellAction =
-        text_area.getActionContext.getAction(action)
+        pretty_text_area.getActionContext.getAction(action)
       override def processKeyEvent(evt: KeyEvent, from: Int, global: Boolean): Unit = {}
       override def handleKey(key: KeyEventTranslator.Key, dry_run: Boolean): Boolean = false
     })
@@ -219,13 +219,13 @@ class Pretty_Text_Area(
 
       evt.getKeyCode match {
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
-        if strict_control && text_area.getSelectionCount != 0 =>
-          Registers.copy(text_area, '$')
+        if strict_control && pretty_text_area.getSelectionCount != 0 =>
+          Registers.copy(pretty_text_area, '$')
           evt.consume()
 
         case KeyEvent.VK_A
         if strict_control =>
-          text_area.selectAll()
+          pretty_text_area.selectAll()
           evt.consume()
 
         case KeyEvent.VK_ESCAPE =>
