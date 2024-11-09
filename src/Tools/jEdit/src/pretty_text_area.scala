@@ -88,8 +88,6 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val metric = JEdit_Lib.font_metric(getPainter)
-      val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.average_width).toInt)
-
       val output = current_output
       val snapshot = current_base_snapshot
       val results = current_base_results
@@ -97,7 +95,8 @@ class Pretty_Text_Area(
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
-          val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
+          val formatted =
+            Pretty.formatted(Pretty.separate(output), margin = metric.margin, metric = metric)
           val rich_text = Command.rich_text(body = formatted, results = results)
           val rendering =
             try { JEdit_Rendering(snapshot, rich_text) }

@@ -248,7 +248,7 @@ class Pretty_Tooltip private(
       val geometry = JEdit_Lib.window_geometry(pretty_tooltip, painter)
       val metric = JEdit_Lib.font_metric(painter)
       val margin =
-        metric.pretty_margin(rendering.tooltip_margin,
+        metric.make_margin(rendering.tooltip_margin,
           limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
       val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)

@@ -25,16 +25,10 @@ object Font_Metric {
 
 class Font_Metric(
   val font: Font = Font_Metric.default_font,
-  val context: FontRenderContext = Font_Metric.default_context) extends Pretty.Metric
+  val context: FontRenderContext = Font_Metric.default_context,
+  standard_margin: Double => Int = _ => Pretty.default_margin.toInt) extends Pretty.Metric
 {
   override def toString: String = font.toString
-  override def hashCode: Int = font.hashCode
-
-  override def equals(that: Any): Boolean =
-    that match {
-      case other: Font_Metric => font == other.font && context == other.context
-      case _ => false
-    }
 
   def string_bounds(str: String): Rectangle2D = font.getStringBounds(str, context)
   def string_width(str: String): Double = string_bounds(str).getWidth
@@ -55,8 +49,18 @@ class Font_Metric(
   }
   def average: Double = average_width / unit
 
-  def pretty_margin(margin: Int, limit: Int = -1): Int = {
+  def make_margin(margin: Int, limit: Int = -1): Int = {
     val m = (margin * average).toInt
     (if (limit < 0) m else m min limit) max 20
   }
+  val margin: Int = make_margin(standard_margin(average_width))
+
+  override lazy val hashCode: Int = (font, context, margin).hashCode
+
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Font_Metric =>
+        font == other.font && context == other.context && margin == other.margin
+      case _ => false
+    }
 }
