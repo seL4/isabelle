@@ -568,7 +568,7 @@ object Document {
     val version: Version,
     val node_name: Node.Name,
     pending_edits: Pending_Edits,
-    val snippet_command: Option[Command]
+    val snippet_commands: List[Command]
   ) {
     override def toString: String =
       "Snapshot(node = " + node_name.node + ", version = " + version.id +
@@ -576,7 +576,7 @@ object Document {
 
     def switch(name: Node.Name): Snapshot =
       if (name == node_name) this
-      else new Snapshot(state, version, name, pending_edits, None)
+      else new Snapshot(state, version, name, pending_edits, Nil)
 
 
     /* nodes */
@@ -628,27 +628,41 @@ object Document {
 
     /* command as add-on snippet */
 
-    def snippet(command: Command, doc_blobs: Blobs): Snapshot = {
-      val node_name = command.node_name
+    def snippet(commands: List[Command], doc_blobs: Blobs): Snapshot = {
+      require(commands.nonEmpty, "no snippet commands")
 
-      val blobs = for (a <- command.blobs_names; b <- doc_blobs.get(a)) yield a -> b
+      val node_name = commands.head.node_name
+      val node_commands = Linear_Set.from(commands)
+
+      require(commands.forall(command => command.node_name == node_name),
+        "incoherent snippet node names")
+
+      val blobs =
+        for {
+          command <- commands
+          a <- command.blobs_names
+          b <- doc_blobs.get(a)
+        } yield a -> b
 
       val nodes0 = version.nodes
-      val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
+      val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(node_commands))
       val nodes2 = blobs.foldLeft(nodes1) { case (ns, (a, b)) => ns + (a -> Node.init_blob(b)) }
       val version1 = Version.make(nodes2)
 
       val edits: List[Edit_Text] =
-        List(node_name -> Node.Edits(List(Text.Edit.insert(0, command.source)))) :::
+        List(node_name -> Node.Edits(List(Text.Edit.insert(0, Command.full_source(commands))))) :::
         blobs.map({ case (a, b) => a -> Node.Blob(b) })
 
-      val state0 = state.define_command(command)
+      val assign_update: Assign_Update =
+        commands.map(command => command.id -> List(Document_ID.make()))
+
+      val state0 = commands.foldLeft(state)(_.define_command(_))
       val state1 =
         state0.continue_history(Future.value(version), edits, Future.value(version1))
           .define_version(version1, state0.the_assignment(version))
-          .assign(version1.id, Nil, List(command.id -> List(Document_ID.make())))._2
+          .assign(version1.id, Nil, assign_update)._2
 
-      state1.snapshot(node_name = node_name, snippet_command = Some(command))
+      state1.snapshot(node_name = node_name, snippet_commands = commands)
     }
 
 
@@ -1030,7 +1044,7 @@ object Document {
             Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
               blobs_info = command.blobs_info, results = st.results, markups = st.markups)
           val state1 = copy(theories = theories - id)
-          (state1.snippet(command1, doc_blobs), state1)
+          (state1.snippet(List(command1), doc_blobs), state1)
       }
 
     def assign(
@@ -1254,7 +1268,7 @@ object Document {
     def snapshot(
       node_name: Node.Name = Node.Name.empty,
       pending_edits: Pending_Edits = Pending_Edits.empty,
-      snippet_command: Option[Command] = None
+      snippet_commands: List[Command] = Nil
     ): Snapshot = {
       val stable = recent_stable
       val version = stable.version.get_finished
@@ -1265,10 +1279,10 @@ object Document {
           case (name, Node.Edits(es)) <- change.rev_edits
         } yield (name -> es)).foldLeft(pending_edits)(_ + _)
 
-      new Snapshot(this, version, node_name, pending_edits1, snippet_command)
+      new Snapshot(this, version, node_name, pending_edits1, snippet_commands)
     }
 
-    def snippet(command: Command, doc_blobs: Blobs): Snapshot =
-      snapshot().snippet(command, doc_blobs)
+    def snippet(commands: List[Command], doc_blobs: Blobs): Snapshot =
+      snapshot().snippet(commands, doc_blobs)
   }
 }

@@ -18,6 +18,7 @@ import javax.swing.event.{DocumentListener, DocumentEvent}
 
 import scala.swing.{Label, Component}
 import scala.util.matching.Regex
+import scala.collection.mutable
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
@@ -26,6 +27,24 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
 import org.gjt.sp.util.{SyntaxUtilities, Log}
 
+
+object Pretty_Text_Area {
+  def format_rich_texts(
+    output: List[XML.Elem],
+    metric: Font_Metric,
+    results: Command.Results
+  ): List[Command] = {
+    val result = new mutable.ListBuffer[Command]
+    for (msg <- output) {
+      if (result.nonEmpty) {
+        result += Command.rich_text(body = Pretty.Separator, id = Document_ID.make())
+      }
+      val body = Pretty.formatted(List(msg), margin = metric.margin, metric = metric)
+      result += Command.rich_text(body = body, id = Markup.Serial.get(msg.markup.properties))
+    }
+    result.toList
+  }
+}
 
 class Pretty_Text_Area(
   view: View,
@@ -40,8 +59,7 @@ class Pretty_Text_Area(
   private var current_output: List[XML.Elem] = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
-  private var current_rendering: JEdit_Rendering =
-    JEdit_Rendering(current_base_snapshot, Command.rich_text())
+  private var current_rendering: JEdit_Rendering = JEdit_Rendering(current_base_snapshot, Nil)
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
@@ -95,11 +113,12 @@ class Pretty_Text_Area(
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
-          val formatted =
-            Pretty.formatted(Pretty.separate(output), margin = metric.margin, metric = metric)
-          val rich_text = Command.rich_text(body = formatted, results = results)
-          val rendering =
-            try { JEdit_Rendering(snapshot, rich_text) }
+          val (text, rendering) =
+            try {
+              val rich_texts = Pretty_Text_Area.format_rich_texts(output, metric, results)
+              val rendering = JEdit_Rendering(snapshot, rich_texts)
+              (Command.full_source(rich_texts), rendering)
+            }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
@@ -113,7 +132,7 @@ class Pretty_Text_Area(
               JEdit_Lib.buffer_edit(getBuffer) {
                 rich_text_area.active_reset()
                 getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-                JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(rich_text.source))
+                JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(text))
                 setCaretPosition(0)
               }
             }
@@ -137,7 +156,7 @@ class Pretty_Text_Area(
 
     current_base_snapshot = base_snapshot
     current_base_results = base_results
-    current_output = output
+    current_output = output.map(Protocol_Message.provide_serial)
     refresh()
   }
 

@@ -386,9 +386,17 @@ object Command {
     new Command(id, node_name, blobs_info, span1, source1, results, markups)
   }
 
-  def rich_text(body: XML.Body = Nil, results: Results = Results.empty): Command =
-    unparsed(XML.content(body), id = Document_ID.make(), results = results,
+  def rich_text(
+    body: XML.Body = Nil,
+    id: Document_ID.Command = Document_ID.none,
+    results: Results = Results.empty
+  ): Command = {
+    unparsed(XML.content(body), id = id, results = results,
       markups = Markups.init(Markup_Tree.from_XML(body)))
+  }
+
+  def full_source(commands: Iterable[Command]): String =
+    commands.iterator.map(_.source).mkString
 
 
   /* edits and perspective */

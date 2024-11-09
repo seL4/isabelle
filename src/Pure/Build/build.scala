@@ -764,7 +764,7 @@ Usage: isabelle build_worker [OPTIONS]
 
       val doc_blobs = Document.Blobs.make(blobs)
 
-      Document.State.init.snippet(command, doc_blobs)
+      Document.State.init.snippet(List(command), doc_blobs)
     }
   }
 

@@ -34,6 +34,13 @@ object Protocol_Message {
   }
 
 
+  /* message serial */
+
+  def provide_serial(msg: XML.Elem): XML.Elem =
+    if (Markup.Serial.get(msg.markup.properties) != 0L) msg
+    else msg.copy(markup = msg.markup.update_properties(Markup.Serial(Document_ID.make())))
+
+
   /* inlined reports */
 
   val report_elements: Markup.Elements = Markup.Elements(Markup.REPORT)
