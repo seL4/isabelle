@@ -104,12 +104,18 @@ class Pretty_Text_Area(
           Exn.Interrupt.expose()
 
           GUI_Thread.later {
-            current_rendering = rendering
-            JEdit_Lib.buffer_edit(getBuffer) {
-              rich_text_area.active_reset()
-              getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-              JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(rich_text.source))
-              setCaretPosition(0)
+            if (metric == JEdit_Lib.font_metric(getPainter) &&
+              output == current_output &&
+              snapshot == current_base_snapshot &&
+              results == current_base_results
+            ) {
+              current_rendering = rendering
+              JEdit_Lib.buffer_edit(getBuffer) {
+                rich_text_area.active_reset()
+                getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
+                JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(rich_text.source))
+                setCaretPosition(0)
+              }
             }
           }
         })
