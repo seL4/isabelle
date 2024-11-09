@@ -90,19 +90,17 @@ class Pretty_Text_Area(
       val metric = JEdit_Lib.font_metric(getPainter)
       val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.average_width).toInt)
 
+      val output = current_output
       val snapshot = current_base_snapshot
       val results = current_base_results
-      val formatted =
-        Pretty.formatted(Pretty.separate(current_output), margin = margin, metric = metric)
 
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
-          val (text, rendering) =
-            try {
-              val rich_text = Command.rich_text(body = formatted, results = results)
-              (rich_text.source, JEdit_Rendering(snapshot, rich_text))
-            }
+          val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
+          val rich_text = Command.rich_text(body = formatted, results = results)
+          val rendering =
+            try { JEdit_Rendering(snapshot, rich_text) }
             catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Exn.Interrupt.expose()
 
@@ -111,7 +109,7 @@ class Pretty_Text_Area(
             JEdit_Lib.buffer_edit(getBuffer) {
               rich_text_area.active_reset()
               getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-              JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(text))
+              JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(rich_text.source))
               setCaretPosition(0)
             }
           }
