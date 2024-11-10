@@ -18,7 +18,6 @@ import javax.swing.event.{DocumentListener, DocumentEvent}
 
 import scala.swing.{Label, Component}
 import scala.util.matching.Regex
-import scala.collection.mutable
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
@@ -27,27 +26,6 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
 import org.gjt.sp.util.{SyntaxUtilities, Log}
 
-
-object Pretty_Text_Area {
-  def format_rich_texts(
-    output: List[XML.Elem],
-    margin: Double,
-    metric: Font_Metric,
-    results: Command.Results
-  ): List[Command] = {
-    val result = new mutable.ListBuffer[Command]
-    for (msg <- output) {
-      if (result.nonEmpty) {
-        result += Rich_Text.command(body = Pretty.Separator, id = Document_ID.make())
-      }
-      val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
-      result += Rich_Text.command(body = body, id = Markup.Serial.get(msg.markup.properties))
-
-      Exn.Interrupt.expose()
-    }
-    result.toList
-  }
-}
 
 class Pretty_Text_Area(
   view: View,
@@ -119,7 +97,7 @@ class Pretty_Text_Area(
         Some(Future.fork {
           val (text, rendering) =
             try {
-              val rich_texts = Pretty_Text_Area.format_rich_texts(output, margin, metric, results)
+              val rich_texts = Rich_Text.format(output, margin, metric, results)
               val rendering = JEdit_Rendering(snapshot, rich_texts)
               (Command.full_source(rich_texts), rendering)
             }

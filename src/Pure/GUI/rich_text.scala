@@ -9,6 +9,8 @@ package isabelle
 
 import javax.swing.JComponent
 
+import scala.collection.mutable
+
 
 object Rich_Text {
   def command(
@@ -19,6 +21,25 @@ object Rich_Text {
     val source = XML.content(body)
     val markups = Command.Markups.init(Markup_Tree.from_XML(body))
     Command.unparsed(source, id = id, results = results, markups = markups)
+  }
+
+  def format(
+    msgs: List[XML.Elem],
+    margin: Double,
+    metric: Font_Metric,
+    results: Command.Results
+  ) : List[Command] = {
+    val result = new mutable.ListBuffer[Command]
+    for (msg <- msgs) {
+      if (result.nonEmpty) {
+        result += command(body = Pretty.Separator, id = Document_ID.make())
+      }
+      val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
+      result += command(body = body, id = Markup.Serial.get(msg.markup.properties))
+
+      Exn.Interrupt.expose()
+    }
+    result.toList
   }
 
   def make_margin(metric: Font_Metric, margin: Int, limit: Int = -1): Int = {
