@@ -649,8 +649,18 @@ object Document {
       val nodes2 = blobs.foldLeft(nodes1) { case (ns, (a, b)) => ns + (a -> Node.init_blob(b)) }
       val version1 = Version.make(nodes2)
 
+      val text_edits: List[Text.Edit] = {
+        var offset = 0
+        val result = new mutable.ListBuffer[Text.Edit]
+        for (command <- commands) {
+          result += Text.Edit.insert(offset, command.source)
+          offset += command.source.length
+        }
+        result.toList
+      }
+
       val edits: List[Edit_Text] =
-        List(node_name -> Node.Edits(List(Text.Edit.insert(0, Command.full_source(commands))))) :::
+        List(node_name -> Node.Edits(text_edits)) :::
         blobs.map({ case (a, b) => a -> Node.Blob(b) })
 
       val assign_update: Assign_Update =

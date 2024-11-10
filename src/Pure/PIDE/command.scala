@@ -395,9 +395,6 @@ object Command {
       markups = Markups.init(Markup_Tree.from_XML(body)))
   }
 
-  def full_source(commands: Iterable[Command]): String =
-    commands.iterator.map(_.source).mkString
-
 
   /* edits and perspective */
 
