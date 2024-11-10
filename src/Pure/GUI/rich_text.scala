@@ -13,6 +13,19 @@ import scala.collection.mutable
 
 
 object Rich_Text {
+  /* margin */
+
+  def make_margin(metric: Font_Metric, margin: Int, limit: Int = -1): Int = {
+    val m = (margin * metric.average).toInt
+    (if (limit < 0) m else m min limit) max 20
+  }
+
+  def component_margin(metric: Font_Metric, component: JComponent): Int =
+    make_margin(metric, (component.getWidth.toDouble / metric.average_width).toInt)
+
+
+  /* format */
+
   def command(
     body: XML.Body = Nil,
     id: Document_ID.Command = Document_ID.none,
@@ -41,12 +54,4 @@ object Rich_Text {
     }
     result.toList
   }
-
-  def make_margin(metric: Font_Metric, margin: Int, limit: Int = -1): Int = {
-    val m = (margin * metric.average).toInt
-    (if (limit < 0) m else m min limit) max 20
-  }
-
-  def component_margin(metric: Font_Metric, component: JComponent): Int =
-    make_margin(metric, (component.getWidth.toDouble / metric.average_width).toInt)
 }
