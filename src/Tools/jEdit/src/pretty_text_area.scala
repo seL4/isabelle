@@ -95,11 +95,11 @@ class Pretty_Text_Area(
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
-          val (text, rendering) =
+          val (rich_texts, rendering) =
             try {
               val rich_texts = Rich_Text.format(output, margin, metric, results)
               val rendering = JEdit_Rendering(snapshot, rich_texts)
-              (Command.full_source(rich_texts), rendering)
+              (rich_texts, rendering)
             }
             catch {
               case exn: Throwable if !Exn.is_interrupt(exn) =>
@@ -120,7 +120,7 @@ class Pretty_Text_Area(
               JEdit_Lib.buffer_edit(getBuffer) {
                 rich_text_area.active_reset()
                 getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-                JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(text))
+                JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(rich_texts.map(_.text).mkString))
                 setCaretPosition(0)
               }
             }

@@ -25,10 +25,10 @@ object JEdit_Rendering {
   def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
     new JEdit_Rendering(snapshot, model, options)
 
-  def apply(snapshot: Document.Snapshot, rich_texts: List[Command]): JEdit_Rendering = {
+  def apply(snapshot: Document.Snapshot, rich_texts: List[Rich_Text.Formatted]): JEdit_Rendering = {
     val snapshot1 =
       if (rich_texts.isEmpty) snapshot
-      else snapshot.snippet(rich_texts, Document.Blobs.empty)
+      else snapshot.snippet(rich_texts.map(_.command), Document.Blobs.empty)
     val model = File_Model.init(PIDE.session)
     apply(snapshot1, model, PIDE.options.value)
   }
