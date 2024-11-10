@@ -41,6 +41,8 @@ object Pretty_Text_Area {
       }
       val body = Pretty.formatted(List(msg), margin = metric.margin, metric = metric)
       result += Command.rich_text(body = body, id = Markup.Serial.get(msg.markup.properties))
+
+      Exn.Interrupt.expose()
     }
     result.toList
   }
@@ -119,8 +121,11 @@ class Pretty_Text_Area(
               val rendering = JEdit_Rendering(snapshot, rich_texts)
               (Command.full_source(rich_texts), rendering)
             }
-            catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
-          Exn.Interrupt.expose()
+            catch {
+              case exn: Throwable if !Exn.is_interrupt(exn) =>
+                Log.log(Log.ERROR, this, exn)
+                throw exn
+            }
 
           GUI_Thread.later {
             if (metric == JEdit_Lib.font_metric(getPainter) &&
