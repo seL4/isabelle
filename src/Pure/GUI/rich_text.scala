@@ -35,7 +35,7 @@ object Rich_Text {
         result += command(body = Pretty.Separator, id = Document_ID.make())
       }
       val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
-      result += command(body = body, id = Markup.Serial.get(msg.markup.properties))
+      result += command(body = body, id = Protocol_Message.get_serial(msg))
 
       Exn.Interrupt.expose()
     }

@@ -36,8 +36,11 @@ object Protocol_Message {
 
   /* message serial */
 
+  def get_serial(msg: XML.Elem): Long =
+    Markup.Serial.get(msg.markup.properties)
+
   def provide_serial(msg: XML.Elem): XML.Elem =
-    if (Markup.Serial.get(msg.markup.properties) != 0L) msg
+    if (get_serial(msg) != 0L) msg
     else msg.copy(markup = msg.markup.update_properties(Markup.Serial(Document_ID.make())))
 
 
