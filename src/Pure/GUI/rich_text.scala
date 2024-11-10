@@ -7,6 +7,9 @@ Support for rendering of rich text, based on individual messages (XML.Elem).
 package isabelle
 
 
+import javax.swing.JComponent
+
+
 object Rich_Text {
   def command(
     body: XML.Body = Nil,
@@ -17,4 +20,12 @@ object Rich_Text {
     val markups = Command.Markups.init(Markup_Tree.from_XML(body))
     Command.unparsed(source, id = id, results = results, markups = markups)
   }
+
+  def make_margin(metric: Font_Metric, margin: Int, limit: Int = -1): Int = {
+    val m = (margin * metric.average).toInt
+    (if (limit < 0) m else m min limit) max 20
+  }
+
+  def component_margin(metric: Font_Metric, component: JComponent): Int =
+    make_margin(metric, (component.getWidth.toDouble / metric.average_width).toInt)
 }

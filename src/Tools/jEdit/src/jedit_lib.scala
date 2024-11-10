@@ -235,8 +235,7 @@ object JEdit_Lib {
   def font_metric(painter: TextAreaPainter): Font_Metric =
     new Font_Metric(
       font = painter.getFont,
-      context = painter.getFontRenderContext,
-      standard_margin = (average_width: Double) => (painter.getWidth.toDouble / average_width).toInt)
+      context = painter.getFontRenderContext)
 
   case class Gfx_Range(x: Int, y: Int, length: Int)
 

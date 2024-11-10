@@ -31,6 +31,7 @@ import org.gjt.sp.util.{SyntaxUtilities, Log}
 object Pretty_Text_Area {
   def format_rich_texts(
     output: List[XML.Elem],
+    margin: Double,
     metric: Font_Metric,
     results: Command.Results
   ): List[Command] = {
@@ -39,7 +40,7 @@ object Pretty_Text_Area {
       if (result.nonEmpty) {
         result += Rich_Text.command(body = Pretty.Separator, id = Document_ID.make())
       }
-      val body = Pretty.formatted(List(msg), margin = metric.margin, metric = metric)
+      val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
       result += Rich_Text.command(body = body, id = Markup.Serial.get(msg.markup.properties))
 
       Exn.Interrupt.expose()
@@ -108,6 +109,7 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val metric = JEdit_Lib.font_metric(getPainter)
+      val margin = Rich_Text.component_margin(metric, getPainter)
       val output = current_output
       val snapshot = current_base_snapshot
       val results = current_base_results
@@ -117,7 +119,7 @@ class Pretty_Text_Area(
         Some(Future.fork {
           val (text, rendering) =
             try {
-              val rich_texts = Pretty_Text_Area.format_rich_texts(output, metric, results)
+              val rich_texts = Pretty_Text_Area.format_rich_texts(output, margin, metric, results)
               val rendering = JEdit_Rendering(snapshot, rich_texts)
               (Command.full_source(rich_texts), rendering)
             }
@@ -128,10 +130,13 @@ class Pretty_Text_Area(
             }
 
           GUI_Thread.later {
-            if (metric == JEdit_Lib.font_metric(getPainter) &&
-              output == current_output &&
-              snapshot == current_base_snapshot &&
-              results == current_base_results
+            val current_metric = JEdit_Lib.font_metric(getPainter)
+            val current_margin = Rich_Text.component_margin(current_metric, getPainter)
+            if (metric == current_metric &&
+                margin == current_margin &&
+                output == current_output &&
+                snapshot == current_base_snapshot &&
+                results == current_base_results
             ) {
               current_rendering = rendering
               JEdit_Lib.buffer_edit(getBuffer) {
