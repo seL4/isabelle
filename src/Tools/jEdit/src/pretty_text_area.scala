@@ -37,10 +37,10 @@ object Pretty_Text_Area {
     val result = new mutable.ListBuffer[Command]
     for (msg <- output) {
       if (result.nonEmpty) {
-        result += Command.rich_text(body = Pretty.Separator, id = Document_ID.make())
+        result += Rich_Text.command(body = Pretty.Separator, id = Document_ID.make())
       }
       val body = Pretty.formatted(List(msg), margin = metric.margin, metric = metric)
-      result += Command.rich_text(body = body, id = Markup.Serial.get(msg.markup.properties))
+      result += Rich_Text.command(body = body, id = Markup.Serial.get(msg.markup.properties))
 
       Exn.Interrupt.expose()
     }
