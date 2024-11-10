@@ -92,12 +92,6 @@ object JEdit_Lib {
 
   def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
 
-  def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A = {
-    val undo_in_progress = buffer.isUndoInProgress
-    def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
-    try { set(true); body } finally { set(undo_in_progress) }
-  }
-
 
   /* main jEdit components */
 
@@ -141,11 +135,26 @@ object JEdit_Lib {
   }
 
 
-  /* get text */
+  /* buffer text */
 
   def get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
+
+  def set_text(buffer: JEditBuffer, text: List[String]): Unit = {
+    val old = buffer.isUndoInProgress
+    def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
+    try {
+      set(true)
+      buffer.beginCompoundEdit()
+      buffer.remove(0, buffer.getLength)
+      buffer.insert(0, text.mkString)
+    }
+    finally {
+      buffer.endCompoundEdit()
+      set(old)
+    }
+  }
 
 
   /* point range */
