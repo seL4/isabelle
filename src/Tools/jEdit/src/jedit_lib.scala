@@ -16,6 +16,7 @@ import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
 import scala.jdk.CollectionConverters._
+import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
@@ -144,11 +145,32 @@ object JEdit_Lib {
   def set_text(buffer: JEditBuffer, text: List[String]): Unit = {
     val old = buffer.isUndoInProgress
     def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
+
+    val length = buffer.getLength
+    var offset = 0
+
+    @tailrec def drop_common_prefix(list: List[String]): List[String] =
+      list match {
+        case s :: rest
+          if offset + s.length <= length &&
+          CharSequence.compare(buffer.getSegment(offset, s.length), s) == 0 =>
+            offset += s.length
+            drop_common_prefix(rest)
+        case _ => list
+      }
+
+    def insert(list: List[String]): Unit =
+      for (s <- list) {
+        buffer.insert(offset, s)
+        offset += s.length
+      }
+
     try {
       set(true)
       buffer.beginCompoundEdit()
-      buffer.remove(0, buffer.getLength)
-      buffer.insert(0, text.mkString)
+      val rest = drop_common_prefix(text)
+      if (offset < length) buffer.remove(offset, length - offset)
+      insert(rest)
     }
     finally {
       buffer.endCompoundEdit()
