@@ -41,7 +41,7 @@ object Rich_Text {
   ) : List[Formatted] = {
     val result = new mutable.ListBuffer[Formatted]
     for (msg <- msgs) {
-      if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator, Command.Results.empty)
+      if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator, results)
 
       val id = Protocol_Message.get_serial(msg)
       val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
