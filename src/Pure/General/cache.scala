@@ -56,6 +56,7 @@ class Cache(max_string: Int, initial_size: Int) {
     else if (x == "true") "true"
     else if (x == "false") "false"
     else if (x == "0.0") "0.0"
+    else if (Symbol.is_static_spaces(x)) Symbol.spaces(x.length)
     else if (Library.is_small_int(x)) Library.signed_string_of_int(Integer.parseInt(x))
     else {
       lookup(x) match {
