@@ -471,6 +471,8 @@ xml-insert-closing-tag.shortcut=
 
     /* settings */
 
+    // see also https://docs.oracle.com/en/java/javase/21/troubleshoot/java-2d-properties.html
+
     component_dir.write_settings("""
 JEDIT_HOME="$COMPONENT/""" + jedit_patched + """"
 JEDIT_JARS=""" + quote(File.read_dir(jars_dir).map("$JEDIT_HOME/jars/" + _).mkString(":")) + """
@@ -480,7 +482,7 @@ classpath "$JEDIT_JAR"
 JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
 JEDIT_OPTIONS="-reuseview -nobackground -nosplash -log=9"
 JEDIT_JAVA_OPTIONS="-Xms512m -Xmx4g -Xss16m"
-JEDIT_JAVA_SYSTEM_OPTIONS="-Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"
+JEDIT_JAVA_SYSTEM_OPTIONS="-Dsun.java2d.metal=false -Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"
 
 ISABELLE_DOCS="$ISABELLE_DOCS:$JEDIT_HOME/doc"
 """)
