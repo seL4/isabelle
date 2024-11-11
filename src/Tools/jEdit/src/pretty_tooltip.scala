@@ -251,14 +251,12 @@ class Pretty_Tooltip private(
         Rich_Text.make_margin(metric, rendering.tooltip_margin,
           limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
-      val formatted = Pretty.formatted(Pretty.separate(output), margin = margin, metric = metric)
-      val lines = XML.content_lines(formatted)
+      val formatted = Rich_Text.format(output, margin, metric)
+      val lines = Rich_Text.formatted_lines(formatted)
 
       val h = painter.getLineHeight * lines + geometry.deco_height
       val margin1 =
-        if (h <= h_max) {
-          split_lines(XML.content(formatted)).foldLeft(0.0) { case (m, line) => m max metric(line) }
-        }
+        if (h <= h_max) Rich_Text.formatted_margin(metric, formatted)
         else margin.toDouble
       val w = (metric.unit * (margin1 + 1)).round.toInt + geometry.deco_width
 

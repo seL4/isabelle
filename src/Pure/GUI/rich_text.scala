@@ -37,7 +37,7 @@ object Rich_Text {
     msgs: List[XML.Elem],
     margin: Double,
     metric: Font_Metric,
-    results: Command.Results
+    results: Command.Results = Command.Results.empty
   ) : List[Formatted] = {
     val result = new mutable.ListBuffer[Formatted]
     for (msg <- msgs) {
@@ -51,4 +51,15 @@ object Rich_Text {
     }
     result.toList
   }
+
+  def formatted_lines(formatted: List[Formatted]): Int =
+    if (formatted.isEmpty) 0
+    else {
+      1 + formatted.iterator.map(form =>
+        XML.traverse_text(form.body, 0, (n, s) => n + Library.count_newlines(s))).sum
+    }
+
+  def formatted_margin(metric: Font_Metric, formatted: List[Formatted]): Double =
+    split_lines(formatted.map(_.text).mkString)
+      .foldLeft(0.0) { case (m, line) => m max metric(line) }
 }

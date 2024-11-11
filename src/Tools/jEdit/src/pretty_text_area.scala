@@ -97,7 +97,7 @@ class Pretty_Text_Area(
         Some(Future.fork {
           val (rich_texts, rendering) =
             try {
-              val rich_texts = Rich_Text.format(output, margin, metric, results)
+              val rich_texts = Rich_Text.format(output, margin, metric, results = results)
               val rendering = JEdit_Rendering(snapshot, rich_texts)
               (rich_texts, rendering)
             }
