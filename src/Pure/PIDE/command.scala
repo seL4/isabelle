@@ -333,10 +333,8 @@ object Command {
         case XML.Elem(Markup(name, props), body) =>
           props match {
             case Markup.Serial(i) =>
-              val markup_message =
-                cache.elem(Protocol.make_message(body, name, props = props))
-              val message_markup =
-                cache.elem(XML.elem(Markup(name, props.filter(p => p._1 == Markup.SERIAL))))
+              val markup_message = cache.elem(Protocol.make_message(body, name, props = props))
+              val message_markup = cache.elem(XML.elem(Markup(name, Markup.Serial(i))))
 
               var st = add_result(i -> markup_message)
               if (Protocol.is_inlined(message)) {
