@@ -26,26 +26,21 @@ object Rich_Text {
 
   /* format */
 
-  sealed case class Formatted(id: Document_ID.Generic, body: XML.Body, results: Command.Results) {
+  sealed case class Formatted(id: Document_ID.Generic, body: XML.Body) {
     lazy val text: String = XML.content(body)
-    lazy val command: Command =
-      Command.unparsed(text, id = id, results = results,
-        markups = Command.Markups.init(Markup_Tree.from_XML(body)))
+    lazy val markups: Command.Markups = Command.Markups.init(Markup_Tree.from_XML(body))
+    def command(results: Command.Results): Command =
+      Command.unparsed(text, id = id, results = results, markups = markups)
   }
 
-  def format(
-    msgs: List[XML.Elem],
-    margin: Double,
-    metric: Font_Metric,
-    results: Command.Results = Command.Results.empty
-  ) : List[Formatted] = {
+  def format(msgs: List[XML.Elem], margin: Double, metric: Font_Metric): List[Formatted] = {
     val result = new mutable.ListBuffer[Formatted]
     for (msg <- msgs) {
-      if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator, results)
+      if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator)
 
       val id = Protocol_Message.get_serial(msg)
       val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
-      result += Formatted(id, body, results)
+      result += Formatted(id, body)
 
       Exn.Interrupt.expose()
     }

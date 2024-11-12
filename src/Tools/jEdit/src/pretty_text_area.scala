@@ -40,7 +40,8 @@ class Pretty_Text_Area(
   private var current_output: List[XML.Elem] = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
-  private var current_rendering: JEdit_Rendering = JEdit_Rendering(current_base_snapshot, Nil)
+  private var current_rendering: JEdit_Rendering =
+    JEdit_Rendering(current_base_snapshot, Nil, Command.Results.empty)
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
@@ -97,8 +98,8 @@ class Pretty_Text_Area(
         Some(Future.fork {
           val (rich_texts, rendering) =
             try {
-              val rich_texts = Rich_Text.format(output, margin, metric, results = results)
-              val rendering = JEdit_Rendering(snapshot, rich_texts)
+              val rich_texts = Rich_Text.format(output, margin, metric)
+              val rendering = JEdit_Rendering(snapshot, rich_texts, results)
               (rich_texts, rendering)
             }
             catch {

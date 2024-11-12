@@ -478,8 +478,8 @@ final class Command private(
   def is_ignored: Boolean = span.kind == Command_Span.Ignored_Span
 
   def is_undefined: Boolean = id == Document_ID.none
-  val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
-  val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
+  lazy val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
+  lazy val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
 
   def potentially_initialized: Boolean = span.name == Thy_Header.THEORY
 
@@ -506,9 +506,9 @@ final class Command private(
 
   /* source chunks */
 
-  val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(source)
+  lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(source)
 
-  val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
+  lazy val chunks: Map[Symbol.Text_Chunk.Name, Symbol.Text_Chunk] =
     ((Symbol.Text_Chunk.Default -> chunk) ::
       (for (case Exn.Res(blob) <- blobs; (_, file) <- blob.content)
         yield blob.chunk_file -> file)).toMap
@@ -516,7 +516,7 @@ final class Command private(
   def length: Int = source.length
   def range: Text.Range = chunk.range
 
-  val core_range: Text.Range =
+  lazy val core_range: Text.Range =
     Text.Range(0,
       span.content.reverseIterator.takeWhile(_.is_ignored).foldLeft(length)(_ - _.source.length))
 
@@ -600,8 +600,8 @@ final class Command private(
 
   /* accumulated results */
 
-  val init_state: Command.State =
+  lazy val init_state: Command.State =
     Command.State(this, results = init_results, markups = init_markups)
 
-  val empty_state: Command.State = Command.State(this)
+  lazy val empty_state: Command.State = Command.State(this)
 }
