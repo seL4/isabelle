@@ -380,8 +380,8 @@ object Command {
     results: Results = Results.empty,
     markups: Markups = Markups.empty
   ): Command = {
-    val (source1, span1) = Command_Span.unparsed(source, theory = theory).compact_source
-    new Command(id, node_name, blobs_info, span1, source1, results, markups)
+    val span = Command_Span.unparsed(source, theory = theory)
+    new Command(id, node_name, blobs_info, span, source, results, markups)
   }
 
 
