@@ -7,6 +7,8 @@ Support for rendering of rich text, based on individual messages (XML.Elem).
 package isabelle
 
 
+import java.lang.ref.WeakReference
+
 import javax.swing.JComponent
 
 import scala.collection.mutable
@@ -33,15 +35,16 @@ object Rich_Text {
       Command.unparsed(text, id = id, results = results, markups = markups)
   }
 
-  def format(msgs: List[XML.Elem], margin: Double, metric: Font_Metric): List[Formatted] = {
+  def format(
+    msgs: List[XML.Elem],
+    margin: Double,
+    metric: Font_Metric,
+    cache: Cache = Cache.none
+  ): List[Formatted] = {
     val result = new mutable.ListBuffer[Formatted]
     for (msg <- msgs) {
       if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator)
-
-      val id = Protocol_Message.get_serial(msg)
-      val body = Pretty.formatted(List(msg), margin = margin, metric = metric)
-      result += Formatted(id, body)
-
+      result += cache.format(msg, margin, metric)
       Exn.Interrupt.expose()
     }
     result.toList
@@ -57,4 +60,44 @@ object Rich_Text {
   def formatted_margin(metric: Font_Metric, formatted: List[Formatted]): Double =
     split_lines(formatted.map(_.text).mkString)
       .foldLeft(0.0) { case (m, line) => m max metric(line) }
+
+
+  /* cache */
+
+  object Cache {
+    def make(
+        compress: Compress.Cache = Compress.Cache.make(),
+        max_string: Int = isabelle.Cache.default_max_string,
+        initial_size: Int = isabelle.Cache.default_initial_size): Cache =
+      new Cache(compress, initial_size, max_string)
+
+    val none: Cache = make(max_string = 0)
+
+    sealed case class Args(msg: XML.Elem, margin: Double, metric: Font_Metric)
+  }
+
+  class Cache(compress: Compress.Cache, max_string: Int, initial_size: Int)
+  extends Term.Cache(compress, max_string, initial_size) {
+    cache =>
+
+    def format(msg: XML.Elem, margin: Double, metric: Font_Metric): Formatted = {
+      def run: Formatted =
+        Formatted(Protocol_Message.get_serial(msg),
+          cache.body(Pretty.formatted(List(msg), margin = margin, metric = metric)))
+
+      if (cache.table == null) run
+      else {
+        val x = Cache.Args(msg, margin, metric)
+        cache.table.get(x) match {
+          case ref: WeakReference[Any] => ref.get.asInstanceOf[Formatted]
+          case null =>
+            val y = run
+            cache.table.synchronized {
+              if (cache.table.get(x) == null) cache.table.put(x, new WeakReference[Any](y))
+            }
+            y
+        }
+      }
+    }
+  }
 }

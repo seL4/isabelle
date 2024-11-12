@@ -251,7 +251,7 @@ class Pretty_Tooltip private(
         Rich_Text.make_margin(metric, rendering.tooltip_margin,
           limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
-      val formatted = Rich_Text.format(output, margin, metric)
+      val formatted = Rich_Text.format(output, margin, metric, cache = PIDE.cache)
       val lines = Rich_Text.formatted_lines(formatted)
 
       val h = painter.getLineHeight * lines + geometry.deco_height

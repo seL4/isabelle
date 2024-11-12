@@ -26,9 +26,9 @@ object Cache {
 class Cache(max_string: Int, initial_size: Int) {
   val no_cache: Boolean = max_string == 0
 
-  private val table: JMap[Any, WeakReference[Any]] =
+  protected val table: JMap[Any, WeakReference[Any]] =
     if (max_string == 0) null
-    else  Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
+    else Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
 
   override def toString: String =
     if (no_cache) "Cache.none" else "Cache(size = " + table.size + ")"

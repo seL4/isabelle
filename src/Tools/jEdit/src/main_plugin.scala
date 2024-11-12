@@ -53,6 +53,7 @@ object PIDE {
   def options: JEdit_Options = plugin.options
   def resources: JEdit_Resources = plugin.resources
   def session: Session = plugin.session
+  def cache: Rich_Text.Cache = session.cache.asInstanceOf[Rich_Text.Cache]
 
   object editor extends JEdit_Editor
 }
@@ -76,7 +77,12 @@ class Main_Plugin extends EBPlugin {
   /* session */
 
   private var _session: Session = null
-  private def init_session(): Unit = _session = new Session(options.value, resources)
+  private def init_session(): Unit = {
+    _session =
+      new Session(options.value, resources) {
+        override val cache: Term.Cache = Rich_Text.Cache.make()
+      }
+  }
   def session: Session = _session
 
 
