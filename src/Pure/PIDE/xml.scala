@@ -177,14 +177,6 @@ object XML {
   def text_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + s.length)
   def symbol_length(body: Body): Int = traverse_text(body, 0, (n, s) => n + Symbol.length(s))
 
-  def content_is_empty(body: Body): Boolean =
-    traverse_text(body, true, (b, s) => b && s.isEmpty)
-
-  def content_lines(body: Body): Int = {
-    val n = traverse_text(body, 0, (n, s) => n + Library.count_newlines(s))
-    if (n == 0 && content_is_empty(body)) 0 else n + 1
-  }
-
   def content(body: Body): String =
     Library.string_builder(hint = text_length(body)) { text =>
       traverse_text(body, (), (_, s) => text.append(s))

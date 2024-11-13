@@ -300,7 +300,7 @@ object Build_Job {
                 def export_text(name: String, text: String, compress: Boolean = true): Unit =
                   export_(name, List(XML.Text(text)), compress = compress)
 
-                for (command <- snapshot.snippet_command) {
+                for (command <- snapshot.snippet_commands) {
                   export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
                 }
 

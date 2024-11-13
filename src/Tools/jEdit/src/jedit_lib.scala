@@ -12,10 +12,11 @@ import isabelle._
 import java.io.{File => JFile}
 import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
-import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
+import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
 import scala.jdk.CollectionConverters._
+import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
@@ -92,12 +93,6 @@ object JEdit_Lib {
 
   def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
 
-  def buffer_undo_in_progress[A](buffer: JEditBuffer, body: => A): A = {
-    val undo_in_progress = buffer.isUndoInProgress
-    def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
-    try { set(true); body } finally { set(undo_in_progress) }
-  }
-
 
   /* main jEdit components */
 
@@ -141,11 +136,49 @@ object JEdit_Lib {
   }
 
 
-  /* get text */
+  /* buffer text */
 
   def get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
+
+  def set_text(buffer: JEditBuffer, text: List[String]): Int = {
+    val old = buffer.isUndoInProgress
+    def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
+
+    val length = buffer.getLength
+    var offset = 0
+
+    @tailrec def drop_common_prefix(list: List[String]): List[String] =
+      list match {
+        case s :: rest
+          if offset + s.length <= length &&
+          CharSequence.compare(buffer.getSegment(offset, s.length), s) == 0 =>
+            offset += s.length
+            drop_common_prefix(rest)
+        case _ => list
+      }
+
+    def insert(list: List[String]): Unit =
+      for (s <- list) {
+        buffer.insert(offset, s)
+        offset += s.length
+      }
+
+    try {
+      set(true)
+      buffer.beginCompoundEdit()
+      val rest = drop_common_prefix(text)
+      val update_start = offset
+      if (offset < length) buffer.remove(offset, length - offset)
+      insert(rest)
+      update_start
+    }
+    finally {
+      buffer.endCompoundEdit()
+      set(old)
+    }
+  }
 
 
   /* point range */
@@ -230,10 +263,43 @@ object JEdit_Lib {
   }
 
 
+  /* scrolling */
+
+  def vertical_scrollbar(text_area: TextArea): JScrollBar =
+    Untyped.get[JScrollBar](text_area, "vertical")
+
+  def horizontal_scrollbar(text_area: TextArea): JScrollBar =
+    Untyped.get[JScrollBar](text_area, "horizontal")
+
+  def scrollbar_at_end(scrollbar: JScrollBar): Boolean =
+    scrollbar.getValue > 0 &&
+      scrollbar.getValue + scrollbar.getVisibleAmount == scrollbar.getMaximum
+
+  def scrollbar_bottom(text_area: TextArea): Boolean =
+    scrollbar_at_end(vertical_scrollbar(text_area))
+
+  def scrollbar_start(text_area: TextArea): Int =
+    text_area.getBuffer.getLineStartOffset(vertical_scrollbar(text_area).getValue)
+
+  def bottom_line_offset(buffer: JEditBuffer): Int =
+    buffer.getLineStartOffset(buffer.getLineOfOffset(buffer.getLength))
+
+  def scroll_to_caret(text_area: TextArea): Unit = {
+    val caret_line = text_area.getCaretLine()
+    val display_manager = text_area.getDisplayManager
+    if (!display_manager.isLineVisible(caret_line)) {
+      display_manager.expandFold(caret_line, true)
+    }
+    text_area.scrollToCaret(true)
+  }
+
+
   /* graphics range */
 
   def font_metric(painter: TextAreaPainter): Font_Metric =
-    new Font_Metric(font = painter.getFont, context = painter.getFontRenderContext)
+    new Font_Metric(
+      font = painter.getFont,
+      context = painter.getFontRenderContext)
 
   case class Gfx_Range(x: Int, y: Int, length: Int)
 

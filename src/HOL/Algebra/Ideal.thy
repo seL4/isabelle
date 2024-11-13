@@ -102,8 +102,8 @@ lemma (in ideal) a_rcos_sum:
 lemma (in ring) set_add_comm:
   assumes "I \<subseteq> carrier R" "J \<subseteq> carrier R" shows "I <+> J = J <+> I"
 proof -
-  { fix I J assume "I \<subseteq> carrier R" "J \<subseteq> carrier R" hence "I <+> J \<subseteq> J <+> I"
-      using a_comm unfolding set_add_def' by (auto, blast) }
+  have "I <+> J \<subseteq> J <+> I" if "I \<subseteq> carrier R" "J \<subseteq> carrier R" for I J
+    using that a_comm unfolding set_add_def' by (auto, blast)
   thus ?thesis
     using assms by auto
 qed
@@ -262,35 +262,33 @@ lemma (in ring) i_Intersect:
   assumes Sideals: "\<And>I. I \<in> S \<Longrightarrow> ideal I R" and notempty: "S \<noteq> {}"
   shows "ideal (\<Inter>S) R"
 proof -
-  { fix x y J
-    assume "\<forall>I\<in>S. x \<in> I" "\<forall>I\<in>S. y \<in> I" and JS: "J \<in> S"
+  have "x \<oplus> y \<in> J" if "\<forall>I\<in>S. x \<in> I" "\<forall>I\<in>S. y \<in> I" and JS: "J \<in> S" for x y J
+  proof -
     interpret ideal J R by (rule Sideals[OF JS])
-    have "x \<oplus> y \<in> J"
-      by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close> \<open>\<forall>I\<in>S. y \<in> I\<close>) }
-  moreover
-    have "\<zero> \<in> J" if "J \<in> S" for J
-      by (simp add: that Sideals additive_subgroup.zero_closed ideal.axioms(1)) 
-  moreover
-  { fix x J
-    assume "\<forall>I\<in>S. x \<in> I" and JS: "J \<in> S"
+    show ?thesis by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close> \<open>\<forall>I\<in>S. y \<in> I\<close>)
+  qed
+  moreover have "\<zero> \<in> J" if "J \<in> S" for J
+    by (simp add: that Sideals additive_subgroup.zero_closed ideal.axioms(1)) 
+  moreover have "\<ominus> x \<in> J" if "\<forall>I\<in>S. x \<in> I" and JS: "J \<in> S" for x J
+  proof -
     interpret ideal J R by (rule Sideals[OF JS])
-    have "\<ominus> x \<in> J"
-      by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close>) }
-  moreover
-  { fix x y J
-    assume "\<forall>I\<in>S. x \<in> I" and ycarr: "y \<in> carrier R" and JS: "J \<in> S"
+    show ?thesis by (simp add: JS \<open>\<forall>I\<in>S. x \<in> I\<close>)
+  qed
+  moreover have "y \<otimes> x \<in> J" "x \<otimes> y \<in> J"
+    if "\<forall>I\<in>S. x \<in> I" and ycarr: "y \<in> carrier R" and JS: "J \<in> S" for x y J
+  proof -
     interpret ideal J R by (rule Sideals[OF JS])
-    have "y \<otimes> x \<in> J" "x \<otimes> y \<in> J" 
-      using I_l_closed I_r_closed JS \<open>\<forall>I\<in>S. x \<in> I\<close> ycarr by blast+ }
-  moreover
-  { fix x
-    assume "\<forall>I\<in>S. x \<in> I"
+    show "y \<otimes> x \<in> J" "x \<otimes> y \<in> J" using I_l_closed I_r_closed JS \<open>\<forall>I\<in>S. x \<in> I\<close> ycarr by blast+
+  qed
+  moreover have "x \<in> carrier R" if "\<forall>I\<in>S. x \<in> I" for x
+    proof -
     obtain I0 where I0S: "I0 \<in> S"
       using notempty by blast
     interpret ideal I0 R by (rule Sideals[OF I0S])
     have "x \<in> I0"
       by (simp add: I0S \<open>\<forall>I\<in>S. x \<in> I\<close>) 
-    with a_subset have "x \<in> carrier R" by fast }
+    with a_subset show ?thesis by fast
+  qed
   ultimately show ?thesis
     by unfold_locales (auto simp: Inter_eq simp flip: a_inv_def)
 qed
@@ -308,17 +306,14 @@ proof (rule ideal.intro)
     by (rule ring_axioms)
   show "ideal_axioms (I <+> J) R"
   proof -
-    { fix x i j
-      assume xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J"
-      from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
-      have "\<exists>h\<in>I. \<exists>k\<in>J. (i \<oplus> j) \<otimes> x = h \<oplus> k"
-        by (meson iI ideal.I_r_closed idealJ jJ l_distr local.idealI) }
-    moreover
-    { fix x i j
-      assume xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J"
-      from xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
-      have "\<exists>h\<in>I. \<exists>k\<in>J. x \<otimes> (i \<oplus> j) = h \<oplus> k"
-        by (meson iI ideal.I_l_closed idealJ jJ local.idealI r_distr) }
+    have "\<exists>h\<in>I. \<exists>k\<in>J. (i \<oplus> j) \<otimes> x = h \<oplus> k"
+      if xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J" for x i j
+      using xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
+      by (meson iI ideal.I_r_closed idealJ jJ l_distr local.idealI)
+    moreover have "\<exists>h\<in>I. \<exists>k\<in>J. x \<otimes> (i \<oplus> j) = h \<oplus> k"
+      if xcarr: "x \<in> carrier R" and iI: "i \<in> I" and jJ: "j \<in> J" for x i j
+      using xcarr ideal.Icarr[OF idealI iI] ideal.Icarr[OF idealJ jJ]
+        by (meson iI ideal.I_l_closed idealJ jJ local.idealI r_distr)
     ultimately show "ideal_axioms (I <+> J) R"
       by (intro ideal_axioms.intro) (auto simp: set_add_defs)
   qed

@@ -38,24 +38,23 @@ lemma dropped_seq_is_exact_seq:
   assumes "exact_seq (G, F)" and "(i :: nat) < length F"
   shows "exact_seq (drop i G, drop i F)"
 proof-
-  { fix t i assume "exact_seq t" "i < length (snd t)"
-    hence "exact_seq (drop i (fst t), drop i (snd t))"
-    proof (induction arbitrary: i)
-      case (unity G1 G2 f) thus ?case
-        by (simp add: exact_seq.unity)
+  have "exact_seq (drop i (fst t), drop i (snd t))" if "exact_seq t" "i < length (snd t)" for t i
+    using that
+  proof (induction arbitrary: i)
+    case (unity G1 G2 f) thus ?case
+      by (simp add: exact_seq.unity)
+  next
+    case (extension G K l g q H h) show ?case
+    proof (cases)
+      assume "i = 0" thus ?case
+        using exact_seq.extension[OF extension.hyps] by simp
     next
-      case (extension G K l g q H h) show ?case
-      proof (cases)
-        assume "i = 0" thus ?case
-          using exact_seq.extension[OF extension.hyps] by simp
-      next
-        assume "i \<noteq> 0" hence "i \<ge> Suc 0" by simp
-        then obtain k where "k < length (snd (G # K # l, g # q))" "i = Suc k"
-          using Suc_le_D extension.prems by auto
-        thus ?thesis using extension.IH by simp 
-      qed
-    qed }
-
+      assume "i \<noteq> 0" hence "i \<ge> Suc 0" by simp
+      then obtain k where "k < length (snd (G # K # l, g # q))" "i = Suc k"
+        using Suc_le_D extension.prems by auto
+      thus ?thesis using extension.IH by simp 
+    qed
+  qed
   thus ?thesis using assms by auto
 qed
 
@@ -68,18 +67,19 @@ lemma truncated_seq_is_exact_seq:
 lemma exact_seq_imp_exact_hom:
    assumes "exact_seq (G1 # l,q) \<longlongrightarrow>\<^bsub>g1\<^esub> G2 \<longlongrightarrow>\<^bsub>g2\<^esub> G3"
    shows "g1 ` (carrier G1) = kernel G2 G3 g2"
-proof-
-  { fix t assume "exact_seq t" and "length (fst t) \<ge> 3 \<and> length (snd t) \<ge> 2"
-    hence "(hd (tl (snd t))) ` (carrier (hd (tl (tl (fst t))))) =
+proof -
+  have "(hd (tl (snd t))) ` (carrier (hd (tl (tl (fst t))))) =
             kernel (hd (tl (fst t))) (hd (fst t)) (hd (snd t))"
-    proof (induction)
-      case (unity G1 G2 f)
-      then show ?case by auto
-    next
-      case (extension G l g q H h)
-      then show ?case by auto
-    qed }
-  thus ?thesis using assms by fastforce
+    if "exact_seq t" and "length (fst t) \<ge> 3 \<and> length (snd t) \<ge> 2" for t
+    using that
+  proof (induction)
+    case (unity G1 G2 f)
+    then show ?case by auto
+  next
+    case (extension G l g q H h)
+    then show ?case by auto
+  qed
+  with assms show ?thesis by fastforce
 qed
 
 lemma exact_seq_imp_exact_hom_arbitrary:
@@ -103,16 +103,15 @@ lemma exact_seq_imp_group_hom :
   assumes "exact_seq ((G # l, q)) \<longlongrightarrow>\<^bsub>g\<^esub> H"
   shows "group_hom G H g"
 proof-
-  { fix t assume "exact_seq t"
-    hence "group_hom (hd (tl (fst t))) (hd (fst t)) (hd(snd t))"
-    proof (induction)
-      case (unity G1 G2 f)
-      then show ?case by auto
-    next
-      case (extension G l g q H h)
-      then show ?case unfolding group_hom_def group_hom_axioms_def by auto
-    qed }
-  note aux_lemma = this
+  have aux_lemma: "group_hom (hd (tl (fst t))) (hd (fst t)) (hd(snd t))" if "exact_seq t" for t
+    using that
+  proof (induction)
+    case (unity G1 G2 f)
+    then show ?case by auto
+  next
+    case (extension G l g q H h)
+    then show ?case unfolding group_hom_def group_hom_axioms_def by auto
+  qed
   show ?thesis using aux_lemma[OF assms]
     by simp
 qed

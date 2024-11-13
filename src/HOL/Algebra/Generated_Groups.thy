@@ -344,23 +344,23 @@ proof (rule group.group_comm_groupI[OF derived_quot_is_group], simp add: FactGro
     by (simp add: DG.rcos_sum)
   also have " ... = derived G (carrier G) #> (g2 \<otimes> g1)"
   proof -
-    { fix g1 g2 assume g1: "g1 \<in> carrier G" and g2: "g2 \<in> carrier G"
-      have "derived G (carrier G) #> (g1 \<otimes> g2) \<subseteq> derived G (carrier G) #> (g2 \<otimes> g1)"
-      proof
-        fix h assume "h \<in> derived G (carrier G) #> (g1 \<otimes> g2)"
-        then obtain g' where h: "g' \<in> carrier G" "g' \<in> derived G (carrier G)" "h = g' \<otimes> (g1 \<otimes> g2)"
-          using DG.subset unfolding r_coset_def by auto
-        hence "h = g' \<otimes> (g1 \<otimes> g2) \<otimes> (inv g1 \<otimes> inv g2 \<otimes> g2 \<otimes> g1)"
-          using g1 g2 by (simp add: m_assoc)
-        hence "h = (g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2)) \<otimes> (g2 \<otimes> g1)"
-          using h(1) g1 g2 inv_closed m_assoc m_closed by presburger
-        moreover have "g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2 \<in> derived G (carrier G)"
-          using incl[of _ "derived_set G (carrier G)"] g1 g2 unfolding derived_def by blast
-        hence "g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2) \<in> derived G (carrier G)"
-          using DG.m_closed[OF h(2)] by simp
-        ultimately show "h \<in> derived G (carrier G) #> (g2 \<otimes> g1)"
-          unfolding r_coset_def by blast
-      qed }
+    have "derived G (carrier G) #> (g1 \<otimes> g2) \<subseteq> derived G (carrier G) #> (g2 \<otimes> g1)"
+      if g1: "g1 \<in> carrier G" and g2: "g2 \<in> carrier G" for g1 g2
+    proof
+      fix h assume "h \<in> derived G (carrier G) #> (g1 \<otimes> g2)"
+      then obtain g' where h: "g' \<in> carrier G" "g' \<in> derived G (carrier G)" "h = g' \<otimes> (g1 \<otimes> g2)"
+        using DG.subset unfolding r_coset_def by auto
+      hence "h = g' \<otimes> (g1 \<otimes> g2) \<otimes> (inv g1 \<otimes> inv g2 \<otimes> g2 \<otimes> g1)"
+        using g1 g2 by (simp add: m_assoc)
+      hence "h = (g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2)) \<otimes> (g2 \<otimes> g1)"
+        using h(1) g1 g2 inv_closed m_assoc m_closed by presburger
+      moreover have "g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2 \<in> derived G (carrier G)"
+        using incl[of _ "derived_set G (carrier G)"] g1 g2 unfolding derived_def by blast
+      hence "g' \<otimes> (g1 \<otimes> g2 \<otimes> inv g1 \<otimes> inv g2) \<in> derived G (carrier G)"
+        using DG.m_closed[OF h(2)] by simp
+      ultimately show "h \<in> derived G (carrier G) #> (g2 \<otimes> g1)"
+        unfolding r_coset_def by blast
+    qed
     thus ?thesis
       using g1(1) g2(1) by auto
   qed

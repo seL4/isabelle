@@ -41,7 +41,7 @@ class Pretty_Text_Area(
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
-    JEdit_Rendering(current_base_snapshot, Command.rich_text())
+    JEdit_Rendering(current_base_snapshot, Nil, Command.Results.empty)
   private var future_refresh: Option[Future[Unit]] = None
 
   private val rich_text_area =
@@ -88,31 +88,51 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val metric = JEdit_Lib.font_metric(getPainter)
-      val margin = metric.pretty_margin((getPainter.getWidth.toDouble / metric.average_width).toInt)
-
+      val margin = Rich_Text.component_margin(metric, getPainter)
+      val output = current_output
       val snapshot = current_base_snapshot
       val results = current_base_results
-      val formatted =
-        Pretty.formatted(Pretty.separate(current_output), margin = margin, metric = metric)
 
       future_refresh.foreach(_.cancel())
       future_refresh =
         Some(Future.fork {
-          val (text, rendering) =
+          val (rich_texts, rendering) =
             try {
-              val rich_text = Command.rich_text(body = formatted, results = results)
-              (rich_text.source, JEdit_Rendering(snapshot, rich_text))
+              val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.cache)
+              val rendering = JEdit_Rendering(snapshot, rich_texts, results)
+              (rich_texts, rendering)
             }
-            catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
-          Exn.Interrupt.expose()
+            catch {
+              case exn: Throwable if !Exn.is_interrupt(exn) =>
+                Log.log(Log.ERROR, this, exn)
+                throw exn
+            }
 
           GUI_Thread.later {
-            current_rendering = rendering
-            JEdit_Lib.buffer_edit(getBuffer) {
-              rich_text_area.active_reset()
-              getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-              JEdit_Lib.buffer_undo_in_progress(getBuffer, setText(text))
-              setCaretPosition(0)
+            val current_metric = JEdit_Lib.font_metric(getPainter)
+            val current_margin = Rich_Text.component_margin(current_metric, getPainter)
+            if (metric == current_metric &&
+                margin == current_margin &&
+                output == current_output &&
+                snapshot == current_base_snapshot &&
+                results == current_base_results
+            ) {
+              current_rendering = rendering
+
+              val scroll_bottom = JEdit_Lib.scrollbar_bottom(pretty_text_area)
+              val scroll_start = JEdit_Lib.scrollbar_start(pretty_text_area)
+              val update_start =
+                JEdit_Lib.buffer_edit(getBuffer) {
+                  rich_text_area.active_reset()
+                  getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
+                  JEdit_Lib.set_text(getBuffer, rich_texts.map(_.text))
+                }
+
+              setCaretPosition(
+                if (scroll_bottom) JEdit_Lib.bottom_line_offset(getBuffer)
+                else if (scroll_start < update_start) scroll_start
+                else 0)
+              JEdit_Lib.scroll_to_caret(pretty_text_area)
             }
           }
         })
@@ -134,7 +154,7 @@ class Pretty_Text_Area(
 
     current_base_snapshot = base_snapshot
     current_base_results = base_results
-    current_output = output
+    current_output = output.map(Protocol_Message.provide_serial)
     refresh()
   }
 

@@ -216,37 +216,43 @@ lemma sum_phi'_factors:
  assumes "n > 0"
  shows "(\<Sum>d | d dvd n. phi' d) = n"
 proof -
-  { fix d assume "d dvd n" then obtain q where q: "n = d * q" ..
-    have "card {a. 1 \<le> a \<and> a \<le> d \<and> coprime a d} = card {m \<in> {1 .. n}.  n div gcd m n = d}"
-         (is "card ?RF = card ?F")
-    proof (rule card_bij_eq)
-      { fix a b assume "a * n div d = b * n div d"
-        hence "a * (n div d) = b * (n div d)"
-          using dvd_div_mult[OF \<open>d dvd n\<close>] by (fastforce simp add: mult.commute)
-        hence "a = b" using dvd_div_ge_1[OF _ \<open>d dvd n\<close>] \<open>n>0\<close>
-          by (simp add: mult.commute nat_mult_eq_cancel1)
-      } thus "inj_on (\<lambda>a. a*n div d) ?RF" unfolding inj_on_def by blast
-      { fix a assume a: "a\<in>?RF"
-        hence "a * (n div d) \<ge> 1" using \<open>n>0\<close> dvd_div_ge_1[OF _ \<open>d dvd n\<close>] by simp
-        hence ge_1: "a * n div d \<ge> 1" by (simp add: \<open>d dvd n\<close> div_mult_swap)
-        have le_n: "a * n div d \<le> n" using div_mult_mono a by simp
-        have "gcd (a * n div d) n = n div d * gcd a d"
-          by (simp add: gcd_mult_distrib_nat q ac_simps)
-        hence "n div gcd (a * n div d) n = d*n div (d*(n div d))" using a by simp
-        hence "a * n div d \<in> ?F"
-          using ge_1 le_n by (fastforce simp add: \<open>d dvd n\<close>)
-      } thus "(\<lambda>a. a*n div d) ` ?RF \<subseteq> ?F" by blast
-      { fix m l assume A: "m \<in> ?F" "l \<in> ?F" "m div gcd m n = l div gcd l n"
-        hence "gcd m n = gcd l n" using dvd_div_eq_2[OF assms] by fastforce
-        hence "m = l" using dvd_div_eq_1[of "gcd m n" m l] A(3) by fastforce
-      } thus "inj_on (\<lambda>a. a div gcd a n) ?F" unfolding inj_on_def by blast
-      { fix m assume "m \<in> ?F"
-        hence "m div gcd m n \<in> ?RF" using dvd_div_ge_1
-          by (fastforce simp add: div_le_mono div_gcd_coprime)
-      } thus "(\<lambda>a. a div gcd a n) ` ?F \<subseteq> ?RF" by blast
-    qed force+
-  } hence phi'_eq: "\<And>d. d dvd n \<Longrightarrow> phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"
-      unfolding phi'_def by presburger
+  have "card {a. 1 \<le> a \<and> a \<le> d \<and> coprime a d} = card {m \<in> {1 .. n}.  n div gcd m n = d}"
+    (is "card ?RF = card ?F")
+    if "d dvd n" for d
+  proof (rule card_bij_eq)
+    from that obtain q where q: "n = d * q" ..
+    have "a = b" if "a * n div d = b * n div d" for a b
+    proof -
+      from that have "a * (n div d) = b * (n div d)"
+        using dvd_div_mult[OF \<open>d dvd n\<close>] by (fastforce simp add: mult.commute)
+      then show ?thesis using dvd_div_ge_1[OF _ \<open>d dvd n\<close>] \<open>n>0\<close>
+        by (simp add: mult.commute nat_mult_eq_cancel1)
+    qed
+    thus "inj_on (\<lambda>a. a*n div d) ?RF" unfolding inj_on_def by blast
+    have "a * n div d \<in> ?F" if a: "a\<in>?RF" for a
+    proof -
+      from that have "a * (n div d) \<ge> 1" using \<open>n>0\<close> dvd_div_ge_1[OF _ \<open>d dvd n\<close>] by simp
+      hence ge_1: "a * n div d \<ge> 1" by (simp add: \<open>d dvd n\<close> div_mult_swap)
+      have le_n: "a * n div d \<le> n" using div_mult_mono a by simp
+      have "gcd (a * n div d) n = n div d * gcd a d"
+        by (simp add: gcd_mult_distrib_nat q ac_simps)
+      hence "n div gcd (a * n div d) n = d*n div (d*(n div d))" using a by simp
+      then show ?thesis
+        using ge_1 le_n by (fastforce simp add: \<open>d dvd n\<close>)
+    qed
+    thus "(\<lambda>a. a*n div d) ` ?RF \<subseteq> ?F" by blast
+    have "m = l" if A: "m \<in> ?F" "l \<in> ?F" "m div gcd m n = l div gcd l n" for m l
+    proof -
+      from that have "gcd m n = gcd l n" using dvd_div_eq_2[OF assms] by fastforce
+      then show ?thesis using dvd_div_eq_1[of "gcd m n" m l] A(3) by fastforce
+    qed
+    thus "inj_on (\<lambda>a. a div gcd a n) ?F" unfolding inj_on_def by blast
+    have "m div gcd m n \<in> ?RF" if "m \<in> ?F" for m
+      using that dvd_div_ge_1  by (fastforce simp add: div_le_mono div_gcd_coprime)
+    thus "(\<lambda>a. a div gcd a n) ` ?F \<subseteq> ?RF" by blast
+  qed force+
+  hence phi'_eq: "\<And>d. d dvd n \<Longrightarrow> phi' d = card {m \<in> {1 .. n}. n div gcd m n = d}"
+    unfolding phi'_def by presburger
   have fin: "finite {d. d dvd n}" using dvd_nat_bounds[OF \<open>n>0\<close>] by force
   have "(\<Sum>d | d dvd n. phi' d)
                  = card (\<Union>d \<in> {d. d dvd n}. {m \<in> {1 .. n}. n div gcd m n = d})"
@@ -419,22 +425,23 @@ lemma ord_inj':
 proof (rule inj_onI, rule ccontr)
   fix x y :: nat
   assume A: "x \<in> {1 .. ord a}" "y \<in> {1 .. ord a}" "a [^] x = a [^] y" "x\<noteq>y"
-  { assume "x < ord a" "y < ord a"
-    hence False using ord_inj[OF assms] A unfolding inj_on_def by fastforce
-  }
-  moreover
-  { assume "x = ord a" "y < ord a"
+  then consider "x < ord a" "y < ord a" | "x = ord a" "y < ord a" | "y = ord a" "x < ord a"
+    by force
+  then show False
+  proof cases
+    case 1
+    then show ?thesis using ord_inj[OF assms] A unfolding inj_on_def by fastforce
+  next
+    case 2
     hence "a [^] y = a [^] (0::nat)" using pow_ord_eq_1 A by (simp add: a)
     hence "y=0" using ord_inj[OF assms] \<open>y < ord a\<close> unfolding inj_on_def by force
-    hence False using A by fastforce
-  }
-  moreover
-  { assume "y = ord a" "x < ord a"
+    with A show ?thesis by fastforce
+  next
+    case 3
     hence "a [^] x = a [^] (0::nat)" using pow_ord_eq_1 A by (simp add: a)
     hence "x=0" using ord_inj[OF assms] \<open>x < ord a\<close> unfolding inj_on_def by force
-    hence False using A by fastforce
-  }
-  ultimately show False using A  by force
+    with A show ?thesis by fastforce
+  qed
 qed
 
 lemma (in group) ord_ge_1: 
@@ -462,8 +469,9 @@ lemma ord_elems:
   shows "{a[^]x | x. x \<in> (UNIV :: nat set)} = {a[^]x | x. x \<in> {0 .. ord a - 1}}" (is "?L = ?R")
 proof
   show "?R \<subseteq> ?L" by blast
-  { fix y assume "y \<in> ?L"
-    then obtain x::nat where x: "y = a[^]x" by auto
+  have "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" if "y \<in> ?L" for y
+  proof -
+    from that obtain x::nat where x: "y = a[^]x" by auto
     define r q where "r = x mod ord a" and "q = x div ord a"
     then have "x = q * ord a + r"
       by (simp add: div_mult_mod_eq)
@@ -472,8 +480,8 @@ proof
     hence "y = a[^]r" using assms by (simp add: pow_ord_eq_1)
     have "r < ord a" using ord_ge_1[OF assms] by (simp add: r_def)
     hence "r \<in> {0 .. ord a - 1}" by (force simp: r_def)
-    hence "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" using \<open>y=a[^]r\<close> by blast
-  }
+    thus ?thesis using \<open>y=a[^]r\<close> by blast
+  qed
   thus "?L \<subseteq> ?R" by auto
 qed
 
@@ -598,20 +606,21 @@ lemma ord_elems_inf_carrier:
  assumes "a \<in> carrier G" "ord a \<noteq> 0"
  shows "{a[^]x | x. x \<in> (UNIV :: nat set)} = {a[^]x | x. x \<in> {0 .. ord a - 1}}" (is "?L = ?R")
 proof
- show "?R \<subseteq> ?L" by blast
- { fix y assume "y \<in> ?L"
-   then obtain x::nat where x: "y = a[^]x" by auto
-   define r q where "r = x mod ord a" and "q = x div ord a"
-   then have "x = q * ord a + r"
-     by (simp add: div_mult_mod_eq)
-   hence "y = (a[^]ord a)[^]q \<otimes> a[^]r"
-     using x assms by (metis mult.commute nat_pow_mult nat_pow_pow)
-   hence "y = a[^]r" using assms by simp
-   have "r < ord a" using assms by (simp add: r_def)
-   hence "r \<in> {0 .. ord a - 1}" by (force simp: r_def)
-   hence "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" using \<open>y=a[^]r\<close> by blast
- }
- thus "?L \<subseteq> ?R" by auto
+  show "?R \<subseteq> ?L" by blast
+  have "y \<in> {a[^]x | x. x \<in> {0 .. ord a - 1}}" if "y \<in> ?L" for y
+  proof -
+    from that obtain x::nat where x: "y = a[^]x" by auto
+    define r q where "r = x mod ord a" and "q = x div ord a"
+    then have "x = q * ord a + r"
+      by (simp add: div_mult_mod_eq)
+    hence "y = (a[^]ord a)[^]q \<otimes> a[^]r"
+      using x assms by (metis mult.commute nat_pow_mult nat_pow_pow)
+    hence "y = a[^]r" using assms by simp
+    have "r < ord a" using assms by (simp add: r_def)
+    hence "r \<in> {0 .. ord a - 1}" by (force simp: r_def)
+    then show ?thesis using \<open>y=a[^]r\<close> by blast
+  qed
+  thus "?L \<subseteq> ?R" by auto
 qed
 
 lemma generate_pow_nat:
@@ -669,8 +678,7 @@ proof (cases "ord a = 0")
   then show ?thesis
     using \<open>ord a = 0\<close> by auto
 next
-  case False
-  note finite_subgroup = this
+  case finite_subgroup: False
   then have "generate G { a } = (([^]) a) ` {0..ord a - 1}"
     using generate_pow_nat ord_elems_inf_carrier a by auto
   hence "card (generate G {a}) = card {0..ord a - 1}"
@@ -952,12 +960,14 @@ proof -
   have set_eq2: "{x \<in> carrier (mult_of R) . group.ord (mult_of R) x = d}
                 = (\<lambda> n . a[^]n) ` {n \<in> {1 .. d}. group.ord (mult_of R) (a[^]n) = d}" (is "?L = ?R")
   proof
-    { fix x assume x: "x \<in> (carrier (mult_of R)) \<and> group.ord (mult_of R) x = d"
-      hence "x \<in> {x \<in> carrier (mult_of R). x [^] d = \<one>}"
+    have "x \<in> ?R" if x: "x \<in> (carrier (mult_of R)) \<and> group.ord (mult_of R) x = d" for x
+    proof -
+      from that have "x \<in> {x \<in> carrier (mult_of R). x [^] d = \<one>}"
         by (simp add: G.pow_ord_eq_1[of x, symmetric])
       then obtain n where n: "x = a[^]n \<and> n \<in> {1 .. d}" using set_eq1 by blast
-      hence "x \<in> ?R" using x by fast
-    } thus "?L \<subseteq> ?R" by blast
+      then show ?thesis using x by fast
+    qed
+    thus "?L \<subseteq> ?R" by blast
     show "?R \<subseteq> ?L" using a by (auto simp add: carrier_mult_of[symmetric] simp del: carrier_mult_of)
   qed
   have "inj_on (\<lambda> n . a[^]n) {n \<in> {1 .. d}. group.ord (mult_of R) (a[^]n) = d}"
@@ -994,27 +1004,30 @@ proof -
     using fin finite by (subst card_UN_disjoint) auto
   also have "?U = carrier (mult_of R)"
   proof
-    { fix x assume x: "x \<in> carrier (mult_of R)"
-      hence x': "x\<in>carrier (mult_of R)" by simp
+    have "x \<in> ?U" if x: "x \<in> carrier (mult_of R)" for x
+    proof -
+      from that have x': "x\<in>carrier (mult_of R)" by simp
       then have "group.ord (mult_of R) x dvd order (mult_of R)"
         using G.ord_dvd_group_order by blast
-      hence "x \<in> ?U" using dvd_nat_bounds[of "order (mult_of R)" "group.ord (mult_of R) x"] x by blast
-    } thus "carrier (mult_of R) \<subseteq> ?U" by blast
+      then show ?thesis
+        using dvd_nat_bounds[of "order (mult_of R)" "group.ord (mult_of R) x"] x by blast
+    qed
+    thus "carrier (mult_of R) \<subseteq> ?U" by blast
   qed auto
   also have "card ... = order (mult_of R)"
     using order_mult_of finite' by (simp add: order_def)
   finally have sum_Ns_eq: "(\<Sum>d | d dvd order (mult_of R). ?N d) = order (mult_of R)" .
 
-  { fix d assume d: "d dvd order (mult_of R)"
-    have "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} \<le> phi' d"
-    proof cases
-      assume "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} = 0" thus ?thesis by presburger
-      next
-      assume "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} \<noteq> 0"
-      hence "\<exists>a \<in> carrier (mult_of R). group.ord (mult_of R) a = d" by (auto simp: card_eq_0_iff)
-      thus ?thesis using num_elems_of_ord_eq_phi'[OF finite d] by auto
-    qed
-  }
+  have "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} \<le> phi' d"
+    if d: "d dvd order (mult_of R)" for d
+  proof (cases "card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = d} = 0")
+    case True
+    thus ?thesis by presburger
+  next
+    case False
+    hence "\<exists>a \<in> carrier (mult_of R). group.ord (mult_of R) a = d" by (auto simp: card_eq_0_iff)
+    thus ?thesis using num_elems_of_ord_eq_phi'[OF finite d] by auto
+  qed
   hence all_le: "\<And>i. i \<in> {d. d dvd order (mult_of R) }
         \<Longrightarrow> (\<lambda>i. card {a \<in> carrier (mult_of R). group.ord (mult_of R) a = i}) i \<le> (\<lambda>i. phi' i) i" by fast
   hence le: "(\<Sum>i | i dvd order (mult_of R). ?N i)

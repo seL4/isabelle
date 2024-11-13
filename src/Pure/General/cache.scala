@@ -26,9 +26,9 @@ object Cache {
 class Cache(max_string: Int, initial_size: Int) {
   val no_cache: Boolean = max_string == 0
 
-  private val table: JMap[Any, WeakReference[Any]] =
+  protected val table: JMap[Any, WeakReference[Any]] =
     if (max_string == 0) null
-    else  Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
+    else Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
 
   override def toString: String =
     if (no_cache) "Cache.none" else "Cache(size = " + table.size + ")"
@@ -56,6 +56,7 @@ class Cache(max_string: Int, initial_size: Int) {
     else if (x == "true") "true"
     else if (x == "false") "false"
     else if (x == "0.0") "0.0"
+    else if (Symbol.is_static_spaces(x)) Symbol.spaces(x.length)
     else if (Library.is_small_int(x)) Library.signed_string_of_int(Integer.parseInt(x))
     else {
       lookup(x) match {

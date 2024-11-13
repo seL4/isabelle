@@ -119,15 +119,14 @@ proof -
   have "group ((G\<lparr>carrier := H <#> S\<rparr>) Mod H)"
     by (simp add: H_contained_in_set_mult normal.factorgroup_is_group normal_axioms 
         normal_restrict_supergroup normal_set_mult_subgroup)
-  moreover
-  { fix g
-    assume g: "g \<in> S"
-    with g have "g \<in> H <#> S"
+  moreover have "H #> g \<in> carrier ((G\<lparr>carrier := H <#> S\<rparr>) Mod H)" if g: "g \<in> S" for g
+  proof -
+    from g that have "g \<in> H <#> S"
       using S_contained_in_set_mult by blast
-    hence "H #> g \<in> carrier ((G\<lparr>carrier := H <#> S\<rparr>) Mod H)" 
-      unfolding FactGroup_def RCOSETS_def r_coset_def by auto }
-  moreover
-  have "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> H #> x \<otimes> y = H #> x <#> (H #> y)"
+    thus "H #> g \<in> carrier ((G\<lparr>carrier := H <#> S\<rparr>) Mod H)" 
+      unfolding FactGroup_def RCOSETS_def r_coset_def by auto
+  qed
+  moreover have "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> H #> x \<otimes> y = H #> x <#> (H #> y)"
     using normal.rcos_sum normal_axioms subgroup.mem_carrier subgrpS by fastforce
   ultimately show ?thesis
     by (auto simp: group_hom_def group_hom_axioms_def hom_def)

@@ -82,6 +82,7 @@ sources = \
   src/Pure/GUI/gui.scala \
   src/Pure/GUI/gui_thread.scala \
   src/Pure/GUI/popup.scala \
+  src/Pure/GUI/rich_text.scala \
   src/Pure/GUI/tree_view.scala \
   src/Pure/GUI/wrap_panel.scala \
   src/Pure/General/antiquote.scala \

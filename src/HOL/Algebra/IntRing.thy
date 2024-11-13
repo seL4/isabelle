@@ -54,7 +54,7 @@ proof -
   show "carrier \<Z> = UNIV" by simp
 
   \<comment> \<open>Operations\<close>
-  { fix x y show "mult \<Z> x y = x * y" by simp }
+  show "mult \<Z> x y = x * y" for x y by simp
   show "one \<Z> = 1" by simp
   show "pow \<Z> x n = x^n" by (induct n) simp_all
 qed
@@ -67,11 +67,8 @@ proof -
   then interpret int: comm_monoid \<Z> .
 
   \<comment> \<open>Operations\<close>
-  { fix x y have "mult \<Z> x y = x * y" by simp }
-  note mult = this
-  have one: "one \<Z> = 1" by simp
   show "finprod \<Z> f A = prod f A"
-    by (induct A rule: infinite_finite_induct, auto)
+    by (induct A rule: infinite_finite_induct) auto
 qed
 
 interpretation int: abelian_monoid \<Z>
@@ -88,12 +85,10 @@ proof -
   show "carrier \<Z> = UNIV" by simp
 
   \<comment> \<open>Operations\<close>
-  { fix x y show "add \<Z> x y = x + y" by simp }
-  note add = this
-  show zero: "zero \<Z> = 0"
-    by simp
+  show "add \<Z> x y = x + y" for x y by simp
+  show zero: "zero \<Z> = 0" by simp
   show "finsum \<Z> f A = sum f A"
-    by (induct A rule: infinite_finite_induct, auto)
+    by (induct A rule: infinite_finite_induct) auto
 qed
 
 interpretation int: abelian_group \<Z>
@@ -118,17 +113,15 @@ proof -
   qed auto
   then interpret int: abelian_group \<Z> .
   \<comment> \<open>Operations\<close>
-  { fix x y have "add \<Z> x y = x + y" by simp }
-  note add = this
+  have add: "add \<Z> x y = x + y" for x y by simp
   have zero: "zero \<Z> = 0" by simp
-  {
-    fix x
+  show a_inv: "a_inv \<Z> x = - x" for x
+  proof -
     have "add \<Z> (- x) x = zero \<Z>"
       by (simp add: add zero)
-    then show "a_inv \<Z> x = - x"
+    then show ?thesis
       by (simp add: int.minus_equality)
-  }
-  note a_inv = this
+  qed
   show "a_minus \<Z> x y = x - y"
     by (simp add: int.minus_eq add a_inv)
 qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq)+
