@@ -23,7 +23,7 @@ import scala.collection.mutable
 import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.syntax.{Chunk => JEditChunk, SyntaxStyle}
-import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, Selection}
 
 
 class Rich_Text_Area(
@@ -218,7 +218,8 @@ class Rich_Text_Area(
   private val mouse_listener = new MouseAdapter {
     override def mouseClicked(e: MouseEvent): Unit = {
       robust_body(()) {
-        if (e.getClickCount == 1) {
+        val clicks = e.getClickCount
+        if (clicks == 1) {
           hyperlink_area.info match {
             case Some(Text.Info(range, link)) =>
               if (!link.external) {
@@ -237,6 +238,15 @@ class Rich_Text_Area(
             case Some((text, Text.Info(_, markup))) =>
               Active.action(view, text, markup)
               close_action()
+              e.consume()
+            case None =>
+          }
+        }
+        else if (clicks == 2) {
+          highlight_area.info match {
+            case Some(Text.Info(r, _)) =>
+              text_area.selectNone()
+              text_area.addToSelection(new Selection.Range(r.start, r.stop))
               e.consume()
             case None =>
           }
