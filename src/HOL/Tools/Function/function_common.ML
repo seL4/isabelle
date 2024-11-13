@@ -25,7 +25,8 @@ sig
     totality : thm option,
     cases : thm list,
     pelims: thm list list,
-    elims: thm list list option}
+    elims: thm list list option,
+    input_eqns: term list}
   val profile : bool Unsynchronized.ref
   val PROFILE : string -> ('a -> 'b) -> 'a -> 'b
   val mk_acc : typ -> term -> term
@@ -99,10 +100,11 @@ type info =
   totality : thm option,
   cases : thm list,
   pelims : thm list list,
-  elims : thm list list option}
+  elims : thm list list option,
+  input_eqns: term list}
 
 fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psimps, pinducts,
-  simps, inducts, termination, totality, defname, is_partial, cases, pelims, elims} : info) =
+  simps, inducts, termination, totality, defname, is_partial, cases, pelims, elims, input_eqns} : info) =
     let
       val term = Morphism.term phi
       val thm = Morphism.thm phi
@@ -114,7 +116,8 @@ fun transform_function_data phi ({add_simps, case_names, fnames, fs, R, dom, psi
         inducts = Option.map fact inducts, termination = thm termination,
         totality = Option.map thm totality, defname = Morphism.binding phi defname,
         is_partial = is_partial, cases = fact cases,
-        pelims = map fact pelims, elims = Option.map (map fact) elims }
+        pelims = map fact pelims, elims = Option.map (map fact) elims,
+        input_eqns = map term input_eqns }
     end
 
 
