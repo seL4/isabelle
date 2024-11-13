@@ -285,23 +285,22 @@ lemma (in ring) indexed_eval_inj_on_carrier:
   assumes "\<And>P. P \<in> carrier L \<Longrightarrow> carrier_coeff P" and "\<And>P. P \<in> carrier L \<Longrightarrow> index_free P i" and "\<zero>\<^bsub>L\<^esub> = indexed_const \<zero>"
   shows "inj_on (\<lambda>Ps. indexed_eval Ps i) (carrier (poly_ring L))"
 proof -
-  { fix Ps
-    assume "Ps \<in> carrier (poly_ring L)" and "indexed_eval Ps i = indexed_const \<zero>"
-    have "Ps = []"
-    proof (rule ccontr)
-      assume "Ps \<noteq> []"
-      then obtain P' Ps' where Ps: "Ps = P' # Ps'"
-        using list.exhaust by blast
-      with \<open>Ps \<in> carrier (poly_ring L)\<close>
-      have "P' \<noteq> indexed_const \<zero>" and "list_all carrier_coeff Ps" and "list_all (\<lambda>P. index_free P i) Ps"
-        using assms unfolding sym[OF univ_poly_carrier[of L "carrier L"]] polynomial_def
-        by (simp add: list.pred_set subset_code(1))+
-      then obtain m where "(indexed_eval Ps i) m \<noteq> \<zero>"
-        using exists_indexed_eval_monomial'[of P' Ps'] unfolding Ps by auto
-      hence "indexed_eval Ps i \<noteq> indexed_const \<zero>"
-        unfolding indexed_const_def by auto
-      with \<open>indexed_eval Ps i = indexed_const \<zero>\<close> show False by simp
-    qed } note aux_lemma = this
+  have aux_lemma: "Ps = []"
+    if "Ps \<in> carrier (poly_ring L)" and "indexed_eval Ps i = indexed_const \<zero>" for Ps
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then obtain P' Ps' where Ps: "Ps = P' # Ps'"
+      using list.exhaust by blast
+    with \<open>Ps \<in> carrier (poly_ring L)\<close>
+    have "P' \<noteq> indexed_const \<zero>" and "list_all carrier_coeff Ps" and "list_all (\<lambda>P. index_free P i) Ps"
+      using assms unfolding sym[OF univ_poly_carrier[of L "carrier L"]] polynomial_def
+      by (simp add: list.pred_set subset_code(1))+
+    then obtain m where "(indexed_eval Ps i) m \<noteq> \<zero>"
+      using exists_indexed_eval_monomial'[of P' Ps'] unfolding Ps by auto
+    hence "indexed_eval Ps i \<noteq> indexed_const \<zero>"
+      unfolding indexed_const_def by auto
+    with \<open>indexed_eval Ps i = indexed_const \<zero>\<close> show False by simp
+  qed
 
   show ?thesis
   proof (rule inj_onI)
@@ -356,9 +355,9 @@ lemma (in ring) indexed_pmult_index_free:
 lemma (in ring) indexed_eval_index_free:
   assumes "list_all (\<lambda>P. index_free P j) Ps" and "i \<noteq> j" shows "index_free (indexed_eval Ps i) j"
 proof -
-  { fix Ps assume "list_all (\<lambda>P. index_free P j) Ps" hence "index_free (indexed_eval_aux Ps i) j"
-      using indexed_padd_index_free[OF indexed_pmult_index_free[OF _ assms(2)]]
-      by (induct Ps) (auto simp add: indexed_zero_def index_free_def) }
+  have "index_free (indexed_eval_aux Ps i) j" if "list_all (\<lambda>P. index_free P j) Ps" for Ps
+    using that indexed_padd_index_free[OF indexed_pmult_index_free[OF _ assms(2)]]
+    by (induct Ps) (auto simp add: indexed_zero_def index_free_def)
   thus ?thesis
     using assms(1) by auto
 qed

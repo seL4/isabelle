@@ -408,20 +408,16 @@ lemma UP_m_comm:
   assumes R1: "p \<in> carrier P" and R2: "q \<in> carrier P" shows "p \<otimes>\<^bsub>P\<^esub> q = q \<otimes>\<^bsub>P\<^esub> p"
 proof (rule up_eqI)
   fix n
-  {
-    fix k and a b :: "nat=>'a"
-    assume R: "a \<in> UNIV \<rightarrow> carrier R" "b \<in> UNIV \<rightarrow> carrier R"
-    then have "k <= n ==>
-      (\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) = (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))"
-      (is "_ \<Longrightarrow> ?eq k")
-    proof (induct k)
-      case 0 then show ?case by (simp add: Pi_def)
-    next
-      case (Suc k) then show ?case
-        by (subst (2) finsum_Suc2) (simp add: Pi_def a_comm)+
-    qed
-  }
-  note l = this
+  have l: "(\<Oplus>i \<in> {..k}. a i \<otimes> b (n-i)) = (\<Oplus>i \<in> {..k}. a (k-i) \<otimes> b (i+n-k))" (is "?eq k")
+    if "a \<in> UNIV \<rightarrow> carrier R" "b \<in> UNIV \<rightarrow> carrier R" and "k <= n"
+    for k and a b :: "nat=>'a"
+  using that
+  proof (induct k)
+    case 0 then show ?case by (simp add: Pi_def)
+  next
+    case (Suc k) then show ?case
+      by (subst (2) finsum_Suc2) (simp add: Pi_def a_comm)+
+  qed
   from R1 R2 show "coeff P (p \<otimes>\<^bsub>P\<^esub> q) n =  coeff P (q \<otimes>\<^bsub>P\<^esub> p) n"
     unfolding coeff_mult [OF R1 R2, of n]
     unfolding coeff_mult [OF R2 R1, of n]

@@ -207,19 +207,22 @@ lemma swapidseq_ext_backwards:
   shows "\<exists>a b A' p'. a \<noteq> b \<and> A = (insert a (insert b A')) \<and>
                      swapidseq_ext A' n p' \<and> p = (transpose a b) \<circ> p'"
 proof -
-  { fix A n k and p :: "'a \<Rightarrow> 'a"
-    assume "swapidseq_ext A n p" "n = Suc k"
-    hence "\<exists>a b A' p'. a \<noteq> b \<and> A = (insert a (insert b A')) \<and>
-                       swapidseq_ext A' k p' \<and> p = (transpose a b) \<circ> p'"
-    proof (induction, simp)
-      case single thus ?case
-        by (metis Un_insert_right insert_iff insert_is_Un swapidseq_ext.single)
-    next
-      case comp thus ?case
-        by blast 
-    qed }
-  thus ?thesis
-    using assms by simp
+  have "\<exists>a b A' p'. a \<noteq> b \<and> A = (insert a (insert b A')) \<and>
+                     swapidseq_ext A' k p' \<and> p = (transpose a b) \<circ> p'"
+    if "swapidseq_ext A n p" "n = Suc k"
+    for A n k and p :: "'a \<Rightarrow> 'a"
+    using that
+  proof (induction)
+    case empty
+    thus ?case by simp
+  next
+    case single
+    thus ?case by (metis Un_insert_right insert_iff insert_is_Un swapidseq_ext.single)
+  next
+    case comp
+    thus ?case by blast 
+  qed
+  thus ?thesis using assms by simp
 qed
 
 lemma swapidseq_ext_backwards':
@@ -369,61 +372,61 @@ proof -
   proof
     show "generate (alt_group n) (three_cycles n) \<subseteq> carrier (alt_group n)"
       using A.generate_subgroup_incl[OF three_cycles_incl A.subgroup_self] .
-  next
     show "carrier (alt_group n) \<subseteq> generate (alt_group n) (three_cycles n)"
     proof
-      { fix q :: "nat \<Rightarrow> nat" and a b c
-        assume "a \<noteq> b" "b \<noteq> c" "{ a, b, c } \<subseteq> {1..n}" 
-        have "cycle_of_list [a, b, c] \<in> generate (alt_group n) (three_cycles n)"
-        proof (cases)
-          assume "c = a"
-          hence "cycle_of_list [ a, b, c ] = id"
-            by (simp add: swap_commute)
-          thus "cycle_of_list [ a, b, c ] \<in> generate (alt_group n) (three_cycles n)"
-            using one[of "alt_group n"] unfolding alt_group_one by simp
-        next
-          assume "c \<noteq> a"
-          have "distinct [a, b, c]"
-            using \<open>a \<noteq> b\<close> and \<open>b \<noteq> c\<close> and \<open>c \<noteq> a\<close> by auto
-          with \<open>{ a, b, c } \<subseteq> {1..n}\<close>
-          show "cycle_of_list [ a, b, c ] \<in> generate (alt_group n) (three_cycles n)"
-            by (intro incl, fastforce)
-        qed } note aux_lemma1 = this
+      have aux_lemma1: "cycle_of_list [a, b, c] \<in> generate (alt_group n) (three_cycles n)"
+        if "a \<noteq> b" "b \<noteq> c" "{ a, b, c } \<subseteq> {1..n}"
+        for q :: "nat \<Rightarrow> nat" and a b c
+      proof (cases)
+        assume "c = a"
+        hence "cycle_of_list [ a, b, c ] = id"
+          by (simp add: swap_commute)
+        thus "cycle_of_list [ a, b, c ] \<in> generate (alt_group n) (three_cycles n)"
+          using one[of "alt_group n"] unfolding alt_group_one by simp
+      next
+        assume "c \<noteq> a"
+        have "distinct [a, b, c]"
+          using \<open>a \<noteq> b\<close> and \<open>b \<noteq> c\<close> and \<open>c \<noteq> a\<close> by auto
+        with \<open>{ a, b, c } \<subseteq> {1..n}\<close>
+        show "cycle_of_list [ a, b, c ] \<in> generate (alt_group n) (three_cycles n)"
+          by (intro incl) fastforce
+      qed
     
-      { fix S :: "nat set" and q :: "nat \<Rightarrow> nat"
-        assume seq: "swapidseq_ext S (Suc (Suc 0)) q" and S: "S \<subseteq> {1..n}"
-        have "q \<in> generate (alt_group n) (three_cycles n)"
-        proof -
-          obtain a b q' where ab: "a \<noteq> b" "a \<in> S" "b \<in> S"
-            and q': "swapidseq_ext S (Suc 0) q'" "q = (transpose a b) \<circ> q'"
-            using swapidseq_ext_backwards'[OF seq] by auto 
-          obtain c d where cd: "c \<noteq> d" "c \<in> S" "d \<in> S"
-            and q: "q = (transpose a b) \<circ> (Fun.swap c d id)"
-            using swapidseq_ext_backwards'[OF q'(1)]
-                  swapidseq_ext_zero_imp_id
-            unfolding q'(2)
-            by fastforce
+      have aux_lemma2: "q \<in> generate (alt_group n) (three_cycles n)"
+        if seq: "swapidseq_ext S (Suc (Suc 0)) q" and S: "S \<subseteq> {1..n}"
+        for S :: "nat set" and q :: "nat \<Rightarrow> nat"
+      proof -
+        obtain a b q' where ab: "a \<noteq> b" "a \<in> S" "b \<in> S"
+          and q': "swapidseq_ext S (Suc 0) q'" "q = (transpose a b) \<circ> q'"
+          using swapidseq_ext_backwards'[OF seq] by auto 
+        obtain c d where cd: "c \<noteq> d" "c \<in> S" "d \<in> S"
+          and q: "q = (transpose a b) \<circ> (Fun.swap c d id)"
+          using swapidseq_ext_backwards'[OF q'(1)]
+            swapidseq_ext_zero_imp_id
+          unfolding q'(2)
+          by fastforce
 
-          consider (eq) "b = c" | (ineq) "b \<noteq> c" by auto
-          thus ?thesis
-          proof cases
-            case eq then have "q = cycle_of_list [ a, b, d ]"
-              unfolding q by simp
-            moreover have "{ a, b, d } \<subseteq> {1..n}"
-              using ab cd S by blast
-            ultimately show ?thesis
-              using aux_lemma1[OF ab(1)] cd(1) eq by simp
-          next
-            case ineq
-            hence "q = cycle_of_list [ a, b, c ] \<circ> cycle_of_list [ b, c, d ]"
-              unfolding q by (simp add: swap_nilpotent o_assoc)
-            moreover have "{ a, b, c } \<subseteq> {1..n}" and "{ b, c, d } \<subseteq> {1..n}"
-              using ab cd S by blast+
-            ultimately show ?thesis
-              using eng[OF aux_lemma1[OF ab(1) ineq] aux_lemma1[OF ineq cd(1)]]
-              unfolding alt_group_mult by simp
-          qed
-        qed } note aux_lemma2 = this
+        consider (eq) "b = c" | (ineq) "b \<noteq> c" by auto
+        thus ?thesis
+        proof cases
+          case eq
+          then have "q = cycle_of_list [ a, b, d ]"
+            unfolding q by simp
+          moreover have "{ a, b, d } \<subseteq> {1..n}"
+            using ab cd S by blast
+          ultimately show ?thesis
+            using aux_lemma1[OF ab(1)] cd(1) eq by simp
+        next
+          case ineq
+          hence "q = cycle_of_list [ a, b, c ] \<circ> cycle_of_list [ b, c, d ]"
+            unfolding q by (simp add: swap_nilpotent o_assoc)
+          moreover have "{ a, b, c } \<subseteq> {1..n}" and "{ b, c, d } \<subseteq> {1..n}"
+            using ab cd S by blast+
+          ultimately show ?thesis
+            using eng[OF aux_lemma1[OF ab(1) ineq] aux_lemma1[OF ineq cd(1)]]
+            unfolding alt_group_mult by simp
+        qed
+      qed
       
       fix p assume "p \<in> carrier (alt_group n)" then have p: "p permutes {1..n}" "evenperm p"
         unfolding alt_group_carrier by auto
@@ -464,66 +467,67 @@ proof
   show "derived (alt_group n) (carrier (alt_group n)) \<subseteq> carrier (alt_group n)"
     using group.derived_in_carrier[OF alt_group_is_group] by simp
 next
-  { fix p assume "p \<in> three_cycles n" have "p \<in> derived (alt_group n) (carrier (alt_group n))"
-    proof -
-      obtain cs where cs: "p = cycle_of_list cs" "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}"
-        using \<open>p \<in> three_cycles n\<close> by auto
-      then obtain a b c where cs_def: "cs = [ a, b, c ]"
-        using stupid_lemma[OF cs(3)] by blast
-      have "card (set cs) = 3"
-        using cs(2-3)
-        by (simp add: distinct_card)
+  have aux_lemma: "p \<in> derived (alt_group n) (carrier (alt_group n))"
+    if "p \<in> three_cycles n" for p
+  proof -
+    obtain cs where cs: "p = cycle_of_list cs" "cycle cs" "length cs = 3" "set cs \<subseteq> {1..n}"
+      using \<open>p \<in> three_cycles n\<close> by auto
+    then obtain a b c where cs_def: "cs = [ a, b, c ]"
+      using stupid_lemma[OF cs(3)] by blast
+    have "card (set cs) = 3"
+      using cs(2-3)
+      by (simp add: distinct_card)
 
-      have "set cs \<noteq> {1..n}"
-        using assms cs(3) unfolding sym[OF distinct_card[OF cs(2)]] by auto
-      then obtain d where d: "d \<notin> set cs" "d \<in> {1..n}"
-        using cs(4) by blast
+    have "set cs \<noteq> {1..n}"
+      using assms cs(3) unfolding sym[OF distinct_card[OF cs(2)]] by auto
+    then obtain d where d: "d \<notin> set cs" "d \<in> {1..n}"
+      using cs(4) by blast
 
-      hence "cycle (d # cs)" and "length (d # cs) = 4" and "card {1..n} = n"
-        using cs(2-3) by auto 
-      hence "set (d # cs) \<noteq> {1..n}"
-        using assms unfolding sym[OF distinct_card[OF \<open>cycle (d # cs)\<close>]]
-        by (metis Suc_n_not_le_n eval_nat_numeral(3)) 
-      then obtain e where e: "e \<notin> set (d # cs)" "e \<in> {1..n}"
-        using d cs(4) by (metis insert_subset list.simps(15) subsetI subset_antisym) 
+    hence "cycle (d # cs)" and "length (d # cs) = 4" and "card {1..n} = n"
+      using cs(2-3) by auto 
+    hence "set (d # cs) \<noteq> {1..n}"
+      using assms unfolding sym[OF distinct_card[OF \<open>cycle (d # cs)\<close>]]
+      by (metis Suc_n_not_le_n eval_nat_numeral(3)) 
+    then obtain e where e: "e \<notin> set (d # cs)" "e \<in> {1..n}"
+      using d cs(4) by (metis insert_subset list.simps(15) subsetI subset_antisym) 
 
-      define q where "q = (Fun.swap d e id) \<circ> (Fun.swap b c id)"
-      hence "bij q"
-        by (simp add: bij_comp)
-      moreover have "q b = c" and "q c = b"
-        using d(1) e(1) unfolding q_def cs_def by simp+
-      moreover have "q a = a"
-        using d(1) e(1) cs(2) unfolding q_def cs_def by auto
-      ultimately have "q \<circ> p \<circ> (inv' q) = cycle_of_list [ a, c, b ]"
-        using conjugation_of_cycle[OF cs(2), of q]
-        unfolding sym[OF cs(1)] unfolding cs_def by simp
-      also have " ... = p \<circ> p"
-        using cs(2) unfolding cs(1) cs_def
-        by (simp add: comp_swap swap_commute transpose_comp_triple) 
-      finally have "q \<circ> p \<circ> (inv' q) = p \<circ> p" .
-      moreover have "bij p"
-        unfolding cs(1) cs_def by (simp add: bij_comp)
-      ultimately have p: "q \<circ> p \<circ> (inv' q) \<circ> (inv' p) = p"
-        by (simp add: bijection.intro bijection.inv_comp_right comp_assoc)
+    define q where "q = (Fun.swap d e id) \<circ> (Fun.swap b c id)"
+    hence "bij q"
+      by (simp add: bij_comp)
+    moreover have "q b = c" and "q c = b"
+      using d(1) e(1) unfolding q_def cs_def by simp+
+    moreover have "q a = a"
+      using d(1) e(1) cs(2) unfolding q_def cs_def by auto
+    ultimately have "q \<circ> p \<circ> (inv' q) = cycle_of_list [ a, c, b ]"
+      using conjugation_of_cycle[OF cs(2), of q]
+      unfolding sym[OF cs(1)] unfolding cs_def by simp
+    also have " ... = p \<circ> p"
+      using cs(2) unfolding cs(1) cs_def
+      by (simp add: comp_swap swap_commute transpose_comp_triple) 
+    finally have "q \<circ> p \<circ> (inv' q) = p \<circ> p" .
+    moreover have "bij p"
+      unfolding cs(1) cs_def by (simp add: bij_comp)
+    ultimately have p: "q \<circ> p \<circ> (inv' q) \<circ> (inv' p) = p"
+      by (simp add: bijection.intro bijection.inv_comp_right comp_assoc)
 
-      have "swapidseq (Suc (Suc 0)) q"
-        using comp_Suc[OF comp_Suc[OF id], of b c d e] e(1) cs(2)  unfolding q_def cs_def by auto
-      hence "evenperm q"
-        using even_Suc_Suc_iff evenperm_unique by blast
-      moreover have "q permutes { d, e, b, c }"
-        unfolding q_def by (simp add: permutes_compose permutes_swap_id)
-      hence "q permutes {1..n}"
-        using cs(4) d(2) e(2) permutes_subset unfolding cs_def by fastforce
-      ultimately have "q \<in> carrier (alt_group n)"
-        unfolding alt_group_carrier by simp
-      moreover have "p \<in> carrier (alt_group n)"
-        using \<open>p \<in> three_cycles n\<close> three_cycles_incl by blast
-      ultimately have "p \<in> derived_set (alt_group n) (carrier (alt_group n))"
-        using p alt_group_inv_equality unfolding alt_group_mult
-        by (metis (no_types, lifting) UN_iff singletonI)
-      thus "p \<in> derived (alt_group n) (carrier (alt_group n))"
-        unfolding derived_def by (rule incl)
-    qed } note aux_lemma = this
+    have "swapidseq (Suc (Suc 0)) q"
+      using comp_Suc[OF comp_Suc[OF id], of b c d e] e(1) cs(2)  unfolding q_def cs_def by auto
+    hence "evenperm q"
+      using even_Suc_Suc_iff evenperm_unique by blast
+    moreover have "q permutes { d, e, b, c }"
+      unfolding q_def by (simp add: permutes_compose permutes_swap_id)
+    hence "q permutes {1..n}"
+      using cs(4) d(2) e(2) permutes_subset unfolding cs_def by fastforce
+    ultimately have "q \<in> carrier (alt_group n)"
+      unfolding alt_group_carrier by simp
+    moreover have "p \<in> carrier (alt_group n)"
+      using \<open>p \<in> three_cycles n\<close> three_cycles_incl by blast
+    ultimately have "p \<in> derived_set (alt_group n) (carrier (alt_group n))"
+      using p alt_group_inv_equality unfolding alt_group_mult
+      by (metis (no_types, lifting) UN_iff singletonI)
+    thus "p \<in> derived (alt_group n) (carrier (alt_group n))"
+      unfolding derived_def by (rule incl)
+  qed
 
   interpret A: group "alt_group n"
     using alt_group_is_group .

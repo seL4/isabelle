@@ -115,8 +115,7 @@ next
       then show ?thesis
         using \<open>(A,y) \<in> foldSetD D (\<cdot>) e\<close> by auto
     next
-      case (2 x' A' y')
-      note A' = this
+      case A': (2 x' A' y')
       show ?thesis
         using foldSetD.cases [OF \<open>(A,y) \<in> foldSetD D (\<cdot>) e\<close>]
       proof cases
@@ -124,8 +123,7 @@ next
         then show ?thesis
           using \<open>(A,x) \<in> foldSetD D (\<cdot>) e\<close> by auto
       next
-        case (2 x'' A'' y'')
-        note A'' = this
+        case A'': (2 x'' A'' y'')
         show ?thesis
         proof (cases "x' = x''")
           case True

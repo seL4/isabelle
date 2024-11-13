@@ -217,29 +217,30 @@ next
   hence deg_eq: "degree p1 = degree p2"
     using degree_def'[OF assms(1)] degree_def'[OF assms(2)] by auto
   thus "p1 = p2"
-  proof (cases)
-    assume "p1 \<noteq> [] \<and> p2 \<noteq> []"
+  proof (cases "p1 \<noteq> [] \<and> p2 \<noteq> []")
+    case True
     hence "length p1 = length p2"
       using deg_eq by (simp add: Nitpick.size_list_simp(2)) 
     thus ?thesis
       using coeff_iff_length_cond[of p1 p2] coeff_eq by simp
   next
-    { fix p1 p2 assume A: "p1 = []" "coeff p1 = coeff p2" "polynomial K p2"
-      have "p2 = []"
-      proof (rule ccontr)
-        assume "p2 \<noteq> []"
-        hence "(coeff p2) (degree p2) \<noteq> \<zero>"
-          using A(3) unfolding polynomial_def
-          by (metis coeff.simps(2) list.collapse)
-        moreover have "(coeff p1) ` UNIV = { \<zero> }"
-          using A(1) by auto
-        hence "(coeff p2) ` UNIV = { \<zero> }"
-          using A(2) by simp
-        ultimately show False
-          by blast
-      qed } note aux_lemma = this
-    assume "\<not> (p1 \<noteq> [] \<and> p2 \<noteq> [])"
-    hence "p1 = [] \<or> p2 = []" by simp
+    case False
+    have aux_lemma: "p2 = []"
+      if A: "p1 = []" "coeff p1 = coeff p2" "polynomial K p2"
+      for p1 p2
+    proof (rule ccontr)
+      assume "p2 \<noteq> []"
+      hence "(coeff p2) (degree p2) \<noteq> \<zero>"
+        using A(3) unfolding polynomial_def
+        by (metis coeff.simps(2) list.collapse)
+      moreover have "(coeff p1) ` UNIV = { \<zero> }"
+        using A(1) by auto
+      hence "(coeff p2) ` UNIV = { \<zero> }"
+        using A(2) by simp
+      ultimately show False
+        by blast
+    qed
+    from False have "p1 = [] \<or> p2 = []" by simp
     thus ?thesis
       using assms coeff_eq aux_lemma[of p1 p2] aux_lemma[of p2 p1] by auto
   qed
@@ -409,20 +410,19 @@ lemma poly_add_is_polynomial:
   assumes "set p1 \<subseteq> K" and "set p2 \<subseteq> K"
   shows "polynomial K (poly_add p1 p2)"
 proof -
-  { fix p1 p2 assume A: "set p1 \<subseteq> K" "set p2 \<subseteq> K" "length p1 \<ge> length p2"
-    hence "polynomial K (poly_add p1 p2)"
-    proof -
-      define p2' where "p2' = (replicate (length p1 - length p2) \<zero>) @ p2"
-      hence "set p2' \<subseteq> K" and "length p1 = length p2'"
-        using A(2-3) subringE(2)[OF K] by auto
-      hence "set (map2 (\<oplus>) p1 p2') \<subseteq> K"
-        using A(1) subringE(7)[OF K]
-        by (induct p1) (auto, metis set_ConsD subsetD set_zip_leftD set_zip_rightD)
-      thus ?thesis
-        unfolding p2'_def using normalize_gives_polynomial A(3) by simp
-    qed }
-  thus ?thesis
-    using assms by auto
+  have "polynomial K (poly_add p1 p2)"
+    if A: "set p1 \<subseteq> K" "set p2 \<subseteq> K" "length p1 \<ge> length p2" for p1 p2
+  proof -
+    define p2' where "p2' = (replicate (length p1 - length p2) \<zero>) @ p2"
+    hence "set p2' \<subseteq> K" and "length p1 = length p2'"
+      using A(2-3) subringE(2)[OF K] by auto
+    hence "set (map2 (\<oplus>) p1 p2') \<subseteq> K"
+      using A(1) subringE(7)[OF K]
+      by (induct p1) (auto, metis set_ConsD subsetD set_zip_leftD set_zip_rightD)
+    thus ?thesis
+      unfolding p2'_def using normalize_gives_polynomial A(3) by simp
+  qed
+  thus ?thesis using assms by auto
 qed
 
 lemma poly_add_closed: "\<lbrakk> polynomial K p1; polynomial K p2 \<rbrakk> \<Longrightarrow> polynomial K (poly_add p1 p2)"
@@ -432,29 +432,28 @@ lemma poly_add_length_eq:
   assumes "polynomial K p1" "polynomial K p2" and "length p1 \<noteq> length p2"
   shows "length (poly_add p1 p2) = max (length p1) (length p2)"
 proof -
-  { fix p1 p2 assume A: "polynomial K p1" "polynomial K p2" "length p1 > length p2"
-    hence "length (poly_add p1 p2) = max (length p1) (length p2)"
-    proof -
-      let ?p2 = "(replicate (length p1 - length p2) \<zero>) @ p2"
-      have p1: "p1 \<noteq> []" and p2: "?p2 \<noteq> []"
-        using A(3) by auto
-      then have "zip p1 (replicate (length p1 - length p2) \<zero> @ p2) = zip (lead_coeff p1 # tl p1) (lead_coeff (replicate (length p1 - length p2) \<zero> @ p2) # tl (replicate (length p1 - length p2) \<zero> @ p2))"
-        by auto
-      hence "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1 \<oplus> lead_coeff ?p2"
-        by simp
-      moreover have "lead_coeff p1 \<in> carrier R"
-        using p1 A(1) lead_coeff_in_carrier[OF K, of "hd p1" "tl p1"] by auto
-      ultimately have "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1"
-        using A(3) by auto
-      moreover have "lead_coeff p1 \<noteq> \<zero>"
-        using p1 A(1) unfolding polynomial_def by simp
-      ultimately have "length (normalize (map2 (\<oplus>) p1 ?p2)) = length p1"
-        using normalize_length_eq by auto
-      thus ?thesis
-        using A(3) by auto
-    qed }
-  thus ?thesis
-    using assms by auto
+  have "length (poly_add p1 p2) = max (length p1) (length p2)"
+    if A: "polynomial K p1" "polynomial K p2" "length p1 > length p2" for p1 p2
+  proof -
+    let ?p2 = "(replicate (length p1 - length p2) \<zero>) @ p2"
+    have p1: "p1 \<noteq> []" and p2: "?p2 \<noteq> []"
+      using A(3) by auto
+    then have "zip p1 (replicate (length p1 - length p2) \<zero> @ p2) =
+        zip (lead_coeff p1 # tl p1) (lead_coeff (replicate (length p1 - length p2) \<zero> @ p2) # tl (replicate (length p1 - length p2) \<zero> @ p2))"
+      by auto
+    hence "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1 \<oplus> lead_coeff ?p2"
+      by simp
+    moreover have "lead_coeff p1 \<in> carrier R"
+      using p1 A(1) lead_coeff_in_carrier[OF K, of "hd p1" "tl p1"] by auto
+    ultimately have "lead_coeff (map2 (\<oplus>) p1 ?p2) = lead_coeff p1"
+      using A(3) by auto
+    moreover have "lead_coeff p1 \<noteq> \<zero>"
+      using p1 A(1) unfolding polynomial_def by simp
+    ultimately have "length (normalize (map2 (\<oplus>) p1 ?p2)) = length p1"
+      using normalize_length_eq by auto
+    thus ?thesis using A(3) by auto
+  qed
+  thus ?thesis using assms by auto
 qed
 
 lemma poly_add_degree_eq:
@@ -471,10 +470,10 @@ lemma poly_add_in_carrier:
 
 lemma poly_add_length_le: "length (poly_add p1 p2) \<le> max (length p1) (length p2)"
 proof -
-  { fix p1 p2 :: "'a list" assume A: "length p1 \<ge> length p2"
-    let ?p2 = "(replicate (length p1 - length p2) \<zero>) @ p2"
-    have "length (poly_add p1 p2) \<le> max (length p1) (length p2)"
-      using normalize_length_le[of "map2 (\<oplus>) p1 ?p2"] A by auto }
+  have "length (poly_add p1 p2) \<le> max (length p1) (length p2)"
+    if "length p1 \<ge> length p2" for p1 p2 :: "'a list"
+    using normalize_length_le[of "map2 (\<oplus>) p1 ((replicate (length p1 - length p2) \<zero>) @ p2)"] that
+    by auto
   thus ?thesis
     by (metis le_cases max.commute poly_add.simps)
 qed
@@ -582,57 +581,58 @@ lemma poly_add_normalize_aux:
   assumes "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
   shows "poly_add p1 p2 = poly_add (normalize p1) p2"
 proof -
-  { fix n p1 p2 assume "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
-    hence "poly_add p1 p2 = poly_add ((replicate n \<zero>) @ p1) p2"
-    proof (induction n)
-      case 0 thus ?case by simp
-    next
-      { fix p1 p2 :: "'a list"
-        assume in_carrier: "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
-        have "poly_add p1 p2 = poly_add (\<zero> # p1) p2"
-        proof -
-          have "length p1 \<ge> length p2 \<Longrightarrow> ?thesis"
-          proof -
-            assume A: "length p1 \<ge> length p2"
-            let ?p2 = "\<lambda>n. (replicate n \<zero>) @ p2"
-            have "poly_add p1 p2 = normalize (map2 (\<oplus>) (\<zero> # p1) (\<zero> # ?p2 (length p1 - length p2)))"
-              using A by simp
-            also have " ... = normalize (map2 (\<oplus>) (\<zero> # p1) (?p2 (length (\<zero> # p1) - length p2)))"
-              by (simp add: A Suc_diff_le)
-            also have " ... = poly_add (\<zero> # p1) p2"
-              using A by simp
-            finally show ?thesis .
-          qed
+  have aux_lemma: "poly_add p1 p2 = poly_add ((replicate n \<zero>) @ p1) p2"
+    if "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
+    for n p1 p2
+    using that
+  proof (induction n)
+    case 0
+    thus ?case by simp
+  next
+    case (Suc n)
+    have aux_lemma: "poly_add p1 p2 = poly_add (\<zero> # p1) p2"
+      if in_carrier: "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
+      for p1 p2
+    proof -
+      have "length p1 \<ge> length p2 \<Longrightarrow> ?thesis"
+      proof -
+        assume A: "length p1 \<ge> length p2"
+        let ?p2 = "\<lambda>n. (replicate n \<zero>) @ p2"
+        have "poly_add p1 p2 = normalize (map2 (\<oplus>) (\<zero> # p1) (\<zero> # ?p2 (length p1 - length p2)))"
+          using A by simp
+        also have " ... = normalize (map2 (\<oplus>) (\<zero> # p1) (?p2 (length (\<zero> # p1) - length p2)))"
+          by (simp add: A Suc_diff_le)
+        also have " ... = poly_add (\<zero> # p1) p2"
+          using A by simp
+        finally show ?thesis .
+      qed
+      moreover have "length p2 > length p1 \<Longrightarrow> ?thesis"
+      proof -
+        assume A: "length p2 > length p1"
+        let ?f = "\<lambda>n p. (replicate n \<zero>) @ p"
+        have "poly_add p1 p2 = poly_add p2 p1"
+          using A by simp
+        also have " ... = normalize (map2 (\<oplus>) p2 (?f (length p2 - length p1) p1))"
+          using A by simp
+        also have " ... = normalize (map2 (\<oplus>) p2 (?f (length p2 - Suc (length p1)) (\<zero> # p1)))"
+          by (metis A Suc_diff_Suc append_Cons replicate_Suc replicate_app_Cons_same)
+        also have " ... = poly_add p2 (\<zero> # p1)"
+          using A by simp
+        also have " ... = poly_add (\<zero> # p1) p2"
+          using poly_add_comm[of p2 "\<zero> # p1"] in_carrier by auto
+        finally show ?thesis .
+      qed
+      ultimately show ?thesis by auto
+    qed
 
-          moreover have "length p2 > length p1 \<Longrightarrow> ?thesis"
-          proof -
-            assume A: "length p2 > length p1"
-            let ?f = "\<lambda>n p. (replicate n \<zero>) @ p"
-            have "poly_add p1 p2 = poly_add p2 p1"
-              using A by simp
-            also have " ... = normalize (map2 (\<oplus>) p2 (?f (length p2 - length p1) p1))"
-              using A by simp
-            also have " ... = normalize (map2 (\<oplus>) p2 (?f (length p2 - Suc (length p1)) (\<zero> # p1)))"
-              by (metis A Suc_diff_Suc append_Cons replicate_Suc replicate_app_Cons_same)
-            also have " ... = poly_add p2 (\<zero> # p1)"
-              using A by simp
-            also have " ... = poly_add (\<zero> # p1) p2"
-              using poly_add_comm[of p2 "\<zero> # p1"] in_carrier by auto
-            finally show ?thesis .
-          qed
-
-          ultimately show ?thesis by auto
-        qed } note aux_lemma = this
-
-      case (Suc n)
-      hence in_carrier: "set (replicate n \<zero> @ p1) \<subseteq> carrier R"
-        by auto
-      have "poly_add p1 p2 = poly_add (replicate n \<zero> @ p1) p2"
-        using Suc by simp
-      also have " ... = poly_add (replicate (Suc n) \<zero> @ p1) p2"
-        using aux_lemma[OF in_carrier Suc(3)] by simp
-      finally show ?case .
-    qed } note aux_lemma = this
+    from Suc have in_carrier: "set (replicate n \<zero> @ p1) \<subseteq> carrier R"
+      by auto
+    have "poly_add p1 p2 = poly_add (replicate n \<zero> @ p1) p2"
+      using Suc by simp
+    also have " ... = poly_add (replicate (Suc n) \<zero> @ p1) p2"
+      using aux_lemma[OF in_carrier Suc(3)] by simp
+    finally show ?case .
+  qed
 
   have "poly_add p1 p2 =
         poly_add ((replicate (length p1 - length (normalize p1)) \<zero>) @ normalize p1) p2"
@@ -935,29 +935,29 @@ lemma poly_mult_prepend_replicate_zero:
   assumes "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
   shows "poly_mult p1 p2 = poly_mult ((replicate n \<zero>) @ p1) p2"
 proof -
-  { fix p1 p2 assume A: "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R"
-    hence "poly_mult p1 p2 = poly_mult (\<zero> # p1) p2"
-    proof -
-      let ?a_p2 = "(map ((\<otimes>) \<zero>) p2) @ (replicate (length p1) \<zero>)"
-      have "?a_p2 = replicate (length p2 + length p1) \<zero>"
-        using A(2) by (induction p2) (auto)
-      hence "poly_mult (\<zero> # p1) p2 = poly_add (replicate (length p2 + length p1) \<zero>) (poly_mult p1 p2)"
-        by simp
-      also have " ... = poly_add (normalize (replicate (length p2 + length p1) \<zero>)) (poly_mult p1 p2)"
-        using poly_add_normalize(1)[of "replicate (length p2 + length p1) \<zero>" "poly_mult p1 p2"]
-              poly_mult_in_carrier[OF A] by force
-      also have " ... = poly_mult p1 p2"
-        using poly_add_zero(2)[OF _ poly_mult_is_polynomial[OF _ A]] carrier_is_subring
-              normalize_replicate_zero[of "length p2 + length p1" "[]"] by simp
-      finally show ?thesis by auto
-    qed } note aux_lemma = this
-  
+  have aux_lemma: "poly_mult p1 p2 = poly_mult (\<zero> # p1) p2"
+    if A: "set p1 \<subseteq> carrier R" "set p2 \<subseteq> carrier R" for p1 p2
+  proof -
+    let ?a_p2 = "(map ((\<otimes>) \<zero>) p2) @ (replicate (length p1) \<zero>)"
+    have "?a_p2 = replicate (length p2 + length p1) \<zero>"
+      using A(2) by (induction p2) (auto)
+    hence "poly_mult (\<zero> # p1) p2 = poly_add (replicate (length p2 + length p1) \<zero>) (poly_mult p1 p2)"
+      by simp
+    also have " ... = poly_add (normalize (replicate (length p2 + length p1) \<zero>)) (poly_mult p1 p2)"
+      using poly_add_normalize(1)[of "replicate (length p2 + length p1) \<zero>" "poly_mult p1 p2"]
+            poly_mult_in_carrier[OF A] by force
+    also have " ... = poly_mult p1 p2"
+      using poly_add_zero(2)[OF _ poly_mult_is_polynomial[OF _ A]] carrier_is_subring
+            normalize_replicate_zero[of "length p2 + length p1" "[]"] by simp
+    finally show ?thesis by auto
+  qed
   from assms show ?thesis
   proof (induction n)
-    case 0 thus ?case by simp
+    case 0
+    thus ?case by simp
   next
-    case (Suc n) thus ?case
-      using aux_lemma[of "replicate n \<zero> @ p1" p2] by force
+    case (Suc n)
+    thus ?case using aux_lemma[of "replicate n \<zero> @ p1" p2] by force
   qed
 qed
 
@@ -1896,14 +1896,15 @@ lemma (in ring) eval_poly_add:
   assumes "set p \<subseteq> carrier R" "set q \<subseteq> carrier R" and "a \<in> carrier R"
   shows "eval (poly_add p q) a = (eval p a) \<oplus> (eval q a)"
 proof -
-  { fix p q assume A: "set p \<subseteq> carrier R" "set q \<subseteq> carrier R" "length p \<ge> length q"
-    hence "eval (poly_add p ((replicate (length p - length q) \<zero>) @ q)) a =
+  have aux_lemma: "eval (poly_add p q) a = (eval p a) \<oplus> (eval q a)"
+    if A: "set p \<subseteq> carrier R" "set q \<subseteq> carrier R" "length p \<ge> length q" for p q
+  proof -
+    from that have "eval (poly_add p ((replicate (length p - length q) \<zero>) @ q)) a =
          (eval p a) \<oplus> (eval ((replicate (length p - length q) \<zero>) @ q) a)"
       using eval_poly_add_aux[OF A(1) _ _ assms(3), of "(replicate (length p - length q) \<zero>) @ q"] by force
-    hence "eval (poly_add p q) a = (eval p a) \<oplus> (eval q a)"
-      using eval_replicate[OF A(2) assms(3)] A(3) by auto }
-  note aux_lemma = this
-
+    then show "eval (poly_add p q) a = (eval p a) \<oplus> (eval q a)"
+      using eval_replicate[OF A(2) assms(3)] A(3) by auto
+  qed
   have ?thesis if "length q \<ge> length p"
     using assms(1-2)[THEN eval_in_carrier[OF _ assms(3)]] poly_add_comm[OF assms(1-2)]
           aux_lemma[OF assms(2,1) that]
@@ -1978,8 +1979,12 @@ proof (induct p)
   case Nil thus ?case
     using eval_in_carrier[OF assms(2-3)] by simp
 next
-  { fix n b assume b: "b \<in> carrier R"
-    hence "set (map ((\<otimes>) b) q) \<subseteq> carrier R" and "set (replicate n \<zero>) \<subseteq> carrier R"
+  case (Cons b p)
+
+  have aux_lemma: "eval ((map ((\<otimes>) b) q) @ (replicate n \<zero>)) a = (eval (monom b n) a) \<otimes> (eval q a)"
+    if b: "b \<in> carrier R" for n b
+  proof -
+    from that have "set (map ((\<otimes>) b) q) \<subseteq> carrier R" and "set (replicate n \<zero>) \<subseteq> carrier R"
       using assms(2) by (induct q) (auto)
     hence "eval ((map ((\<otimes>) b) q) @ (replicate n \<zero>)) a = (eval ((map ((\<otimes>) b) q)) a) \<otimes> (a [^] n) \<oplus> \<zero>"
       using eval_append[OF _ _ assms(3), of "map ((\<otimes>) b) q" "replicate n \<zero>"] 
@@ -1990,12 +1995,11 @@ next
       by simp
     also have " ... = (b \<otimes> (a [^] n)) \<otimes> (eval q a)"
       using eval_in_carrier[OF assms(2-3)] b assms(3) m_assoc m_comm by auto
-    finally have "eval ((map ((\<otimes>) b) q) @ (replicate n \<zero>)) a = (eval (monom b n) a) \<otimes> (eval q a)"
-      using eval_monom[OF b assms(3)] by simp }
-  note aux_lemma = this
+    finally show ?thesis
+      using eval_monom[OF b assms(3)] by simp
+  qed
 
-  case (Cons b p)
-  hence in_carrier:
+  from Cons have in_carrier:
     "eval (monom b (length p)) a \<in> carrier R" "eval p a \<in> carrier R" "eval q a \<in> carrier R" "b \<in> carrier R"
     using eval_in_carrier monom_in_carrier assms by auto
   have set_map: "set ((map ((\<otimes>) b) q) @ (replicate (length p) \<zero>)) \<subseteq> carrier R"
@@ -2183,43 +2187,52 @@ proof -
   interpret UP: domain "K[X]"
     using univ_poly_is_domain[OF assms(1)] .
 
-  { fix l assume "set l \<subseteq> K"
-    hence "poly_of_const a \<in> carrier (K[X])" if "a \<in> set l" for a
+  have aux_lemma1: "set (?map_norm l) \<subseteq> carrier (K[X])" if "set l \<subseteq> K" for l
+  proof -
+    from that have "poly_of_const a \<in> carrier (K[X])" if "a \<in> set l" for a
       using that normalize_gives_polynomial[of "[ a ]" K]
       unfolding univ_poly_carrier poly_of_const_def by auto
-    hence "set (?map_norm l) \<subseteq> carrier (K[X])"
-      by auto }
-  note aux_lemma1 = this
+    then show ?thesis by auto
+  qed
 
-  { fix q l assume set_l: "set l \<subseteq> K" and q: "q \<in> carrier (K[X])"
-    from set_l have "UP.eval (?map_norm l) q = UP.eval (?map_norm ((replicate n \<zero>) @ l)) q" for n
-    proof (induct n, simp)
-      case (Suc n)
-      from \<open>set l \<subseteq> K\<close> have set_replicate: "set ((replicate n \<zero>) @ l) \<subseteq> K"
-        using subringE(2)[OF assms(1)] by (induct n) (auto)
-      have step: "UP.eval (?map_norm l') q = UP.eval (?map_norm (\<zero> # l')) q" if "set l' \<subseteq> K" for l'
-        using UP.eval_in_carrier[OF aux_lemma1[OF that]] q unfolding poly_of_const_def
-        by (simp, simp add: sym[OF univ_poly_zero[of R K]])
-      have "UP.eval (?map_norm l) q = UP.eval (?map_norm ((replicate n \<zero>) @ l)) q"
-        using Suc by simp
-      also have " ... = UP.eval (map poly_of_const ((replicate (Suc n) \<zero>) @ l)) q"
-        using step[OF set_replicate] by simp
-      finally show ?case .
-    qed }
-  note aux_lemma2 = this
+  have aux_lemma2: "UP.eval (?map_norm l) q = UP.eval (?map_norm ((replicate n \<zero>) @ l)) q"
+    if set_l: "set l \<subseteq> K" and q: "q \<in> carrier (K[X])"
+    for n q l
+    using set_l
+  proof (induct n)
+    case 0
+    then show ?case by simp
+  next
+    case (Suc n)
+    from \<open>set l \<subseteq> K\<close> have set_replicate: "set ((replicate n \<zero>) @ l) \<subseteq> K"
+      using subringE(2)[OF assms(1)] by (induct n) (auto)
+    have step: "UP.eval (?map_norm l') q = UP.eval (?map_norm (\<zero> # l')) q" if "set l' \<subseteq> K" for l'
+      using UP.eval_in_carrier[OF aux_lemma1[OF that]] q unfolding poly_of_const_def
+      by (simp, simp add: sym[OF univ_poly_zero[of R K]])
+    have "UP.eval (?map_norm l) q = UP.eval (?map_norm ((replicate n \<zero>) @ l)) q"
+      using Suc by simp
+    also have " ... = UP.eval (map poly_of_const ((replicate (Suc n) \<zero>) @ l)) q"
+      using step[OF set_replicate] by simp
+    finally show ?case .
+  qed
 
-  { fix q l assume "set l \<subseteq> K" and q: "q \<in> carrier (K[X])"
+  have aux_lemma3: "UP.eval (?map_norm l) q = UP.eval (?map_norm (normalize l)) q"
+    if "set l \<subseteq> K" and q: "q \<in> carrier (K[X])" for q l
+  proof -
     from \<open>set l \<subseteq> K\<close> have set_norm: "set (normalize l) \<subseteq> K"
       by (induct l) (auto)
-    have "UP.eval (?map_norm l) q = UP.eval (?map_norm (normalize l)) q"
+    show ?thesis
       using aux_lemma2[OF set_norm q, of "length l - length (local.normalize l)"]
-      unfolding sym[OF normalize_trick[of l]] .. }
-  note aux_lemma3 = this
+      unfolding sym[OF normalize_trick[of l]] ..
+  qed
 
   from \<open>p \<in> carrier (K[X])\<close> show ?thesis
   proof (induct "length p" arbitrary: p rule: less_induct)
     case less thus ?case
-    proof (cases p, simp add: univ_poly_zero)
+    proof (cases p)
+      case Nil
+      then show ?thesis by (simp add: univ_poly_zero)
+    next
       case (Cons a l)
       hence a: "a \<in> carrier R - { \<zero> }" and set_l: "set l \<subseteq> carrier R" "set l \<subseteq> K"
         using less(2) subringE(1)[OF assms(1)] unfolding sym[OF univ_poly_carrier] polynomial_def by auto

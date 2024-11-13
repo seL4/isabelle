@@ -109,38 +109,37 @@ lemma (in ring) subring_gen_incl :
     and "I \<subseteq> K"
   shows "generate_ring (R\<lparr>carrier := K\<rparr>) I \<subseteq> generate_ring (R\<lparr>carrier := H\<rparr>) I"
 proof
-  {fix J assume J_def : "subring J R" "I \<subseteq> J"
-    have "generate_ring (R \<lparr> carrier := J \<rparr>) I \<subseteq> J"
-      using ring.mono_generate_ring[of "(R\<lparr>carrier := J\<rparr>)" I J ] subring_is_ring[OF J_def(1)]
-          ring.generate_ring_in_carrier[of "R\<lparr>carrier := J\<rparr>"]  ring_axioms J_def(2)
-      by auto}
-  note incl_HK = this
-  {fix x have "x \<in> generate_ring (R\<lparr>carrier := K\<rparr>) I \<Longrightarrow> x \<in> generate_ring (R\<lparr>carrier := H\<rparr>) I" 
-    proof (induction  rule : generate_ring.induct)
-      case one
-        have "\<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub> \<otimes> \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub> = \<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub>" by simp
-        moreover have "\<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub> \<otimes> \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub> = \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub>" by simp
-        ultimately show ?case using assms generate_ring.one by metis
-    next
-      case (incl h) thus ?case using generate_ring.incl by force
-    next
-      case (a_inv h)
-      note hyp = this
-      have "a_inv (R\<lparr>carrier := K\<rparr>) h = a_inv R h" 
-        using assms group.m_inv_consistent[of "add_monoid R" K] a_comm_group incl_HK[of K] hyp
-        unfolding subring_def comm_group_def a_inv_def by auto
-      moreover have "a_inv (R\<lparr>carrier := H\<rparr>) h = a_inv R h"
-        using assms group.m_inv_consistent[of "add_monoid R" H] a_comm_group incl_HK[of H] hyp
-        unfolding subring_def comm_group_def a_inv_def by auto
-      ultimately show ?case using generate_ring.a_inv a_inv.IH by fastforce
-    next
-      case (eng_add h1 h2)
-      thus ?case using incl_HK assms generate_ring.eng_add by force
-    next
-      case (eng_mult h1 h2)
-      thus ?case using generate_ring.eng_mult by force
-    qed}
-  thus "\<And>x. x \<in> generate_ring (R\<lparr>carrier := K\<rparr>) I \<Longrightarrow> x \<in> generate_ring (R\<lparr>carrier := H\<rparr>) I"
+  have incl_HK: "generate_ring (R \<lparr> carrier := J \<rparr>) I \<subseteq> J" if J_def : "subring J R" "I \<subseteq> J" for J
+    using ring.mono_generate_ring[of "(R\<lparr>carrier := J\<rparr>)" I J ] subring_is_ring[OF J_def(1)]
+      ring.generate_ring_in_carrier[of "R\<lparr>carrier := J\<rparr>"]  ring_axioms J_def(2)
+    by auto
+
+  fix x
+  have "x \<in> generate_ring (R\<lparr>carrier := K\<rparr>) I \<Longrightarrow> x \<in> generate_ring (R\<lparr>carrier := H\<rparr>) I" 
+  proof (induction  rule : generate_ring.induct)
+    case one
+    have "\<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub> \<otimes> \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub> = \<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub>" by simp
+    moreover have "\<one>\<^bsub>R\<lparr>carrier := H\<rparr>\<^esub> \<otimes> \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub> = \<one>\<^bsub>R\<lparr>carrier := K\<rparr>\<^esub>" by simp
+    ultimately show ?case using assms generate_ring.one by metis
+  next
+    case (incl h) thus ?case using generate_ring.incl by force
+  next
+    case (a_inv h)
+    have "a_inv (R\<lparr>carrier := K\<rparr>) h = a_inv R h" 
+      using assms group.m_inv_consistent[of "add_monoid R" K] a_comm_group incl_HK[of K] a_inv
+      unfolding subring_def comm_group_def a_inv_def by auto
+    moreover have "a_inv (R\<lparr>carrier := H\<rparr>) h = a_inv R h"
+      using assms group.m_inv_consistent[of "add_monoid R" H] a_comm_group incl_HK[of H] a_inv
+      unfolding subring_def comm_group_def a_inv_def by auto
+    ultimately show ?case using generate_ring.a_inv a_inv.IH by fastforce
+  next
+    case (eng_add h1 h2)
+    thus ?case using incl_HK assms generate_ring.eng_add by force
+  next
+    case (eng_mult h1 h2)
+    thus ?case using generate_ring.eng_mult by force
+  qed
+  thus "x \<in> generate_ring (R\<lparr>carrier := K\<rparr>) I \<Longrightarrow> x \<in> generate_ring (R\<lparr>carrier := H\<rparr>) I"
     by auto
 qed
 

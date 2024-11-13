@@ -735,27 +735,25 @@ corollary (in domain) associated_polynomials_imp_same_length: (* stronger than "
   assumes "subring K R" and "p \<in> carrier (K[X])" and "q \<in> carrier (K[X])"
   shows "p \<sim>\<^bsub>K[X]\<^esub> q \<Longrightarrow> length p = length q"
 proof -
-  { fix p q
-    assume p: "p \<in> carrier (K[X])" and q: "q \<in> carrier (K[X])" and "p \<sim>\<^bsub>K[X]\<^esub> q"
-    have "length p \<le> length q"
-    proof (cases "q = []")
-      case True with \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p = []"
-        unfolding associated_def True factor_def univ_poly_def by auto
-      thus ?thesis
-        using True by simp
-    next
-      case False
-      from \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p divides\<^bsub>K [X]\<^esub> q"
-        unfolding associated_def by simp
-      hence "p divides\<^bsub>poly_ring R\<^esub> q"
-        using carrier_polynomial[OF assms(1)]
-        unfolding factor_def univ_poly_carrier univ_poly_mult by auto
-      with \<open>q \<noteq> []\<close> have "degree p \<le> degree q"
-        using pdivides_imp_degree_le[OF assms(1) p q] unfolding pdivides_def by simp
-      with \<open>q \<noteq> []\<close> show ?thesis
-        by (cases "p = []", auto simp add: Suc_leI le_diff_iff)
-    qed
-  } note aux_lemma = this
+  have aux_lemma: "length p \<le> length q"
+    if p: "p \<in> carrier (K[X])" and q: "q \<in> carrier (K[X])" and "p \<sim>\<^bsub>K[X]\<^esub> q" for p q
+  proof (cases "q = []")
+    case True with \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p = []"
+      unfolding associated_def True factor_def univ_poly_def by auto
+    thus ?thesis
+      using True by simp
+  next
+    case False
+    from \<open>p \<sim>\<^bsub>K[X]\<^esub> q\<close> have "p divides\<^bsub>K [X]\<^esub> q"
+      unfolding associated_def by simp
+    hence "p divides\<^bsub>poly_ring R\<^esub> q"
+      using carrier_polynomial[OF assms(1)]
+      unfolding factor_def univ_poly_carrier univ_poly_mult by auto
+    with \<open>q \<noteq> []\<close> have "degree p \<le> degree q"
+      using pdivides_imp_degree_le[OF assms(1) p q] unfolding pdivides_def by simp
+    with \<open>q \<noteq> []\<close> show ?thesis
+      by (cases "p = []", auto simp add: Suc_leI le_diff_iff)
+  qed
 
   interpret UP: domain "K[X]"
     using univ_poly_is_domain[OF assms(1)] .
@@ -896,21 +894,23 @@ next
   interpret UP: domain "K[X]"
     using univ_poly_is_domain[OF assms(1)] .
 
-  { fix q r
-    assume q: "q \<in> carrier (K[X])" and r: "r \<in> carrier (K[X])" and "[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r"
-    hence not_zero: "q \<noteq> []" "r \<noteq> []"
+  have aux_lemma1: "degree q + degree r = 1" "q \<noteq> []" "r \<noteq> []"
+    if q: "q \<in> carrier (K[X])" and r: "r \<in> carrier (K[X])" and "[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r" for q r
+  proof -
+    from that have not_zero: "q \<noteq> []" "r \<noteq> []"
       by (metis UP.integral_iff list.distinct(1) univ_poly_zero)+
     have "degree (q \<otimes>\<^bsub>K[X]\<^esub> r) = degree q + degree r"
       using not_zero poly_mult_degree_eq[OF assms(1)] q r
       by (simp add: univ_poly_carrier univ_poly_mult)
-    with sym[OF \<open>[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r\<close>] have "degree q + degree r = 1" and "q \<noteq> []" "r \<noteq> []"
+    with sym[OF \<open>[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r\<close>] show "degree q + degree r = 1" and "q \<noteq> []" "r \<noteq> []"
       using not_zero by auto
-  } note aux_lemma1 = this
+  qed
 
-  { fix q r
-    assume q: "q \<in> carrier (K[X])" "q \<noteq> []" and r: "r \<in> carrier (K[X])" "r \<noteq> []"
-      and "[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r" and "degree q = 1" and "degree r = 0"
-    hence "length q = Suc (Suc 0)" and "length r = Suc 0"
+  have aux_lemma2: "r \<in> Units (K[X])"
+    if q: "q \<in> carrier (K[X])" "q \<noteq> []" and r: "r \<in> carrier (K[X])" "r \<noteq> []"
+    and "[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r" and "degree q = 1" and "degree r = 0" for q r
+  proof -
+    from that have "length q = Suc (Suc 0)" and "length r = Suc 0"
       by (linarith, metis add.right_neutral add_eq_if length_0_conv)
     from \<open>length q = Suc (Suc 0)\<close> obtain c d where q_def: "q = [ c, d ]"
       by (metis length_0_conv length_Cons list.exhaust nat.inject)
@@ -933,9 +933,9 @@ next
     moreover have "[ c \<otimes> inv_a ] \<otimes>\<^bsub>K[X]\<^esub> r = [ \<one> ]"
       using \<open>a = c \<otimes> e\<close> a inv_a c e subsetD[OF subringE(1)[OF assms(1)]]
       unfolding r_def univ_poly_mult by (auto) (simp add: m_assoc m_lcomm integral_iff)+
-    ultimately have "r \<in> Units (K[X])"
+    ultimately show ?thesis
       using r(1) UP.m_comm[OF in_carrier r(1)] unfolding sym[OF univ_poly_one[of R K]] Units_def by auto
-  } note aux_lemma2 = this
+  qed
 
   fix q r
   assume q: "q \<in> carrier (K[X])" and r: "r \<in> carrier (K[X])" and qr: "[ a, b ] = q \<otimes>\<^bsub>K[X]\<^esub> r"
@@ -1264,24 +1264,24 @@ next
   interpret UP: domain "poly_ring R"
     using univ_poly_is_domain[OF carrier_is_subring] .
 
-  { fix p q
-    assume p: "p \<in> carrier (poly_ring R)" and q: "q \<in> carrier (poly_ring R)" and pq: "p \<sim>\<^bsub>poly_ring R\<^esub> q"
-    have "is_root p x \<Longrightarrow> is_root q x"
-    proof -
-      assume is_root: "is_root p x"
-      then have "[ \<one>, \<ominus> x ] pdivides p" and "p \<noteq> []" and "x \<in> carrier R"
-        using is_root_imp_pdivides[OF p] unfolding is_root_def by auto
-      moreover have "[ \<one>, \<ominus> x ] \<in> carrier (poly_ring R)"
-        using is_root unfolding is_root_def sym[OF univ_poly_carrier] polynomial_def by simp
-      ultimately have "[ \<one>, \<ominus> x ] pdivides q"
-        using UP.divides_cong_r[OF _ pq ] unfolding pdivides_def by simp
-      with \<open>p \<noteq> []\<close> and \<open>x \<in> carrier R\<close> show ?thesis
-        using associated_polynomials_imp_same_length[OF carrier_is_subring p q pq]
-              pdivides_imp_is_root[of q x]
-        by fastforce  
-    qed
-  }
-
+  have "is_root q x"
+    if p: "p \<in> carrier (poly_ring R)"
+    and q: "q \<in> carrier (poly_ring R)"
+    and pq: "p \<sim>\<^bsub>poly_ring R\<^esub> q"
+    and is_root: "is_root p x"
+    for p q
+  proof -
+    from is_root have "[ \<one>, \<ominus> x ] pdivides p" and "p \<noteq> []" and "x \<in> carrier R"
+      using is_root_imp_pdivides[OF p] unfolding is_root_def by auto
+    moreover have "[ \<one>, \<ominus> x ] \<in> carrier (poly_ring R)"
+      using is_root unfolding is_root_def sym[OF univ_poly_carrier] polynomial_def by simp
+    ultimately have "[ \<one>, \<ominus> x ] pdivides q"
+      using UP.divides_cong_r[OF _ pq ] unfolding pdivides_def by simp
+    with \<open>p \<noteq> []\<close> and \<open>x \<in> carrier R\<close> show ?thesis
+      using associated_polynomials_imp_same_length[OF carrier_is_subring p q pq]
+        pdivides_imp_is_root[of q x]
+      by fastforce  
+  qed
   then show ?thesis
     using assms UP.associated_sym[OF assms(3)] by blast 
 qed

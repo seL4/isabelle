@@ -1914,9 +1914,10 @@ proof -
     interpret Anormal: normal A "(G Mod H)" using assms by simp
     show "{x \<in> carrier G. H #> x \<in> A} #> x = x <# {x \<in> carrier G. H #> x \<in> A}" if x: "x \<in> carrier G" for x
     proof -
-      { fix y
-        assume y: "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x"
-        then obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x' \<otimes> x" 
+      have "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}"
+        if y: "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x" for y
+      proof -
+        from that obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x' \<otimes> x" 
           unfolding r_coset_def by auto
         from x(1) have Hx: "H #> x \<in> carrier (G Mod H)" 
           unfolding FactGroup_def RCOSETS_def by force
@@ -1937,11 +1938,12 @@ proof -
         also have "\<dots> = y"
           by (simp add: x x')
         finally have "x \<otimes> (inv x \<otimes> x' \<otimes> x) = y" .
-        with xcoset have "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}" by auto}
-      moreover
-      { fix y
-        assume y: "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}"
-        then obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x \<otimes> x'" unfolding l_coset_def by auto
+        with xcoset show ?thesis by auto
+      qed
+      moreover have "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x"
+        if y: "y \<in> x <# {x \<in> carrier G. H #> x \<in> A}" for y
+      proof -
+        from that obtain x' where x': "x' \<in> carrier G" "H #> x' \<in> A" "y = x \<otimes> x'" unfolding l_coset_def by auto
         from x(1) have invx: "inv x \<in> carrier G" 
           by (rule inv_closed)
         hence Hinvx: "H #> (inv x) \<in> carrier (G Mod H)" 
@@ -1960,7 +1962,8 @@ proof -
         also have "\<dots> = y"
           by (simp add: x x')
         finally have "x \<otimes> x' \<otimes> inv x \<otimes> x = y".
-        with xcoset have "y \<in> {x \<in> carrier G. H #> x \<in> A} #> x" by auto }
+        with xcoset show ?thesis by auto
+      qed
       ultimately show ?thesis
         by auto
     qed

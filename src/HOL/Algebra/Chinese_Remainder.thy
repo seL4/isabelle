@@ -231,11 +231,13 @@ lemma (in ring) canonical_proj_is_surj:
   shows "(canonical_proj I J) ` carrier R = carrier (RDirProd (R Quot I) (R Quot J))"
   unfolding RDirProd_def DirProd_def FactRing_def A_RCOSETS_def'
 proof (auto simp add: monoid.defs)
-  { fix I i assume "ideal I R" "i \<in> I" hence "I +> i = \<zero>\<^bsub>R Quot I\<^esub>"
-      using a_rcos_zero by (simp add: FactRing_def)
-  } note aux_lemma1 = this
+  have aux_lemma1: "I +> i = \<zero>\<^bsub>R Quot I\<^esub>" if "ideal I R" "i \<in> I" for I i
+    using that a_rcos_zero by (simp add: FactRing_def)
 
-  { fix I i j assume A: "ideal I R" "i \<in> I" "j \<in> carrier R" "i \<oplus> j = \<one>"
+  have aux_lemma2: "I +> j = \<one>\<^bsub>R Quot I\<^esub>"
+    if A: "ideal I R" "i \<in> I" "j \<in> carrier R" "i \<oplus> j = \<one>"
+    for I i j
+  proof -
     have "(I +> i) \<oplus>\<^bsub>R Quot I\<^esub> (I +> j) = I +> \<one>"
       using ring_hom_memE(3)[OF ideal.rcos_ring_hom ideal.Icarr[OF _ A(2)] A(3)] A(1,4) by simp
     moreover have "I +> i = I"
@@ -243,9 +245,9 @@ proof (auto simp add: monoid.defs)
       by (simp add: A(1-2) abelian_subgroup.a_rcos_const)
     moreover have "I +> j \<in> carrier (R Quot I)" and "I = \<zero>\<^bsub>R Quot I\<^esub>" and "I +> \<one> = \<one>\<^bsub>R Quot I\<^esub>"
       by (auto simp add: FactRing_def A_RCOSETS_def' A(3))
-    ultimately have "I +> j = \<one>\<^bsub>R Quot I\<^esub>"
+    ultimately show ?thesis
       using ring.ring_simprules(8)[OF ideal.quotient_is_ring[OF A(1)]] by simp
-  } note aux_lemma2 = this
+  qed
 
   interpret I: ring "R Quot I" + J: ring "R Quot J"
     using assms(1-2)[THEN ideal.quotient_is_ring] by auto
@@ -418,33 +420,33 @@ proof (induct n arbitrary: I)
   case 0 show ?case
     by (auto simp add: RDirProd_list_carrier FactRing_def A_RCOSETS_def')
 next
-  { fix S :: "'c ring" and T :: "'d ring" and f g
-    assume A: "ring T" "f \<in> ring_hom R S" "g \<in> ring_hom R T" "f ` carrier R \<subseteq> f ` (a_kernel R T g)"
-    have "(\<lambda>a. (f a, g a)) ` carrier R = (f ` carrier R) \<times> (g ` carrier R)"
+  have aux_lemma: "(\<lambda>a. (f a, g a)) ` carrier R = (f ` carrier R) \<times> (g ` carrier R)"
+    if A: "ring T" "f \<in> ring_hom R S" "g \<in> ring_hom R T" "f ` carrier R \<subseteq> f ` (a_kernel R T g)"
+    for S :: "'c ring" and T :: "'d ring" and f g
+  proof
+    show "(\<lambda>a. (f a, g a)) ` carrier R \<subseteq> (f ` carrier R) \<times> (g ` carrier R)"
+      by blast
+  next
+    show "(f ` carrier R) \<times> (g ` carrier R) \<subseteq> (\<lambda>a. (f a, g a)) ` carrier R"
     proof
-      show "(\<lambda>a. (f a, g a)) ` carrier R \<subseteq> (f ` carrier R) \<times> (g ` carrier R)"
+      fix t assume "t \<in> (f ` carrier R) \<times> (g ` carrier R)"
+      then obtain a b where a: "a \<in> carrier R" "f a = fst t" and b: "b \<in> carrier R" "g b = snd t"
+        by auto
+      obtain c where c: "c \<in> a_kernel R T g" "f c = f (a \<ominus> b)"
+        using A(4) minus_closed[OF a(1) b (1)] by auto
+      have "f (c \<oplus> b) = f (a \<ominus> b) \<oplus>\<^bsub>S\<^esub>  f b"
+        using ring_hom_memE(3)[OF A(2)] b c unfolding a_kernel_def' by auto
+      hence "f (c \<oplus> b) = f a"
+        using ring_hom_memE(3)[OF A(2) minus_closed[of a b], of b] a b by algebra
+      moreover have "g (c \<oplus> b) = g b"
+        using ring_hom_memE(1,3)[OF A(3)] b(1) c ring.ring_simprules(8)[OF A(1)]
+        unfolding a_kernel_def' by auto
+      ultimately have "(\<lambda>a. (f a, g a)) (c \<oplus> b) = t" and "c \<oplus> b \<in> carrier R"
+        using a b c unfolding a_kernel_def' by auto
+      thus "t \<in> (\<lambda>a. (f a, g a)) ` carrier R"
         by blast
-    next
-      show "(f ` carrier R) \<times> (g ` carrier R) \<subseteq> (\<lambda>a. (f a, g a)) ` carrier R"
-      proof
-        fix t assume "t \<in> (f ` carrier R) \<times> (g ` carrier R)"
-        then obtain a b where a: "a \<in> carrier R" "f a = fst t" and b: "b \<in> carrier R" "g b = snd t"
-          by auto
-        obtain c where c: "c \<in> a_kernel R T g" "f c = f (a \<ominus> b)"
-          using A(4) minus_closed[OF a(1) b (1)] by auto
-        have "f (c \<oplus> b) = f (a \<ominus> b) \<oplus>\<^bsub>S\<^esub>  f b"
-          using ring_hom_memE(3)[OF A(2)] b c unfolding a_kernel_def' by auto
-        hence "f (c \<oplus> b) = f a"
-          using ring_hom_memE(3)[OF A(2) minus_closed[of a b], of b] a b by algebra
-        moreover have "g (c \<oplus> b) = g b"
-          using ring_hom_memE(1,3)[OF A(3)] b(1) c ring.ring_simprules(8)[OF A(1)]
-          unfolding a_kernel_def' by auto
-        ultimately have "(\<lambda>a. (f a, g a)) (c \<oplus> b) = t" and "c \<oplus> b \<in> carrier R"
-          using a b c unfolding a_kernel_def' by auto
-        thus "t \<in> (\<lambda>a. (f a, g a)) ` carrier R"
-          by blast
-      qed
-    qed } note aux_lemma = this
+    qed
+  qed
 
   let ?map_Quot = "\<lambda>I n. map (\<lambda>i. R Quot (I i)) [0..< Suc n]"
   let ?DirProd = "\<lambda>I n. RDirProd_list (?map_Quot I n)"

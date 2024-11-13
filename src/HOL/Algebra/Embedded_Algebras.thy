@@ -1123,14 +1123,14 @@ lemma dimension_is_inj:
   assumes "dimension n K E" and "dimension m K E"
   shows "n = m"
 proof -
-  { fix n m assume n: "dimension n K E" and m: "dimension m K E"
-    then obtain Vs
+  have aux_lemma: "n \<le> m" if n: "dimension n K E" and m: "dimension m K E" for n m
+  proof -
+    from that obtain Vs
       where Vs: "set Vs \<subseteq> carrier R" "independent K Vs" "length Vs = n" "Span K Vs = E"
       using exists_base by meson
-    hence "n \<le> m"
+    then show ?thesis
       using independent_length_le_dimension[OF m Vs(2)] Span_base_incl[OF Vs(1)] by auto
-  } note aux_lemma = this
-
+  qed
   show ?thesis
     using aux_lemma[OF assms] aux_lemma[OF assms(2,1)] by simp
 qed
@@ -1166,28 +1166,28 @@ lemma complete_base:
   assumes "dimension n K E" and "independent K Us" "set Us \<subseteq> E"
   shows "\<exists>Vs. length (Vs @ Us) = n \<and> independent K (Vs @ Us) \<and> Span K (Vs @ Us) = E"
 proof -
-  { fix Us k assume "k \<le> n" "independent K Us" "set Us \<subseteq> E" "length Us = k"
-    hence "\<exists>Vs. length (Vs @ Us) = n \<and> independent K (Vs @ Us) \<and> Span K (Vs @ Us) = E"
-    proof (induct arbitrary: Us rule: inc_induct)
-      case base thus ?case
-        using independent_length_eq_dimension[OF assms(1) base(1-2)] by auto
-    next
-      case (step m)
-      have "Span K Us \<subseteq> E"
-        using mono_Span_subset step(4-6) exists_base[OF assms(1)] by blast
-      hence "Span K Us \<subset> E"
-        using independent_length_eq_dimension[OF assms(1) step(4-5)] step(2,6) assms(1) by blast
-      then obtain v where v: "v \<in> E" "v \<notin> Span K Us"
-        using Span_strict_incl exists_base[OF assms(1)] by blast
-      hence "independent K (v # Us)"
-        using space_subgroup_props(1)[OF assms(1)] li_Cons[OF _ v(2) step(4)] by auto
-      then obtain Vs
-        where "length (Vs @ (v # Us)) = n" "independent K (Vs @ (v # Us))" "Span K (Vs @ (v # Us)) = E"
-        using step(3)[of "v # Us"] step(1-2,4-6) v by auto
-      thus ?case
-        by (metis append.assoc append_Cons append_Nil)
-    qed } note aux_lemma = this
-
+  have aux_lemma: "\<exists>Vs. length (Vs @ Us) = n \<and> independent K (Vs @ Us) \<and> Span K (Vs @ Us) = E"
+    if "k \<le> n" "independent K Us" "set Us \<subseteq> E" "length Us = k" for Us k
+    using that
+  proof (induct arbitrary: Us rule: inc_induct)
+    case base
+    thus ?case using independent_length_eq_dimension[OF assms(1) base(1-2)] by auto
+  next
+    case (step m)
+    have "Span K Us \<subseteq> E"
+      using mono_Span_subset step(4-6) exists_base[OF assms(1)] by blast
+    hence "Span K Us \<subset> E"
+      using independent_length_eq_dimension[OF assms(1) step(4-5)] step(2,6) assms(1) by blast
+    then obtain v where v: "v \<in> E" "v \<notin> Span K Us"
+      using Span_strict_incl exists_base[OF assms(1)] by blast
+    hence "independent K (v # Us)"
+      using space_subgroup_props(1)[OF assms(1)] li_Cons[OF _ v(2) step(4)] by auto
+    then obtain Vs
+      where "length (Vs @ (v # Us)) = n" "independent K (Vs @ (v # Us))" "Span K (Vs @ (v # Us)) = E"
+      using step(3)[of "v # Us"] step(1-2,4-6) v by auto
+    thus ?case
+      by (metis append.assoc append_Cons append_Nil)
+  qed
   have "length Us \<le> n"
     using independent_length_le_dimension[OF assms] .
   thus ?thesis

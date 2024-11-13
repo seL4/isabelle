@@ -518,22 +518,22 @@ lemma (in noetherian_ring) ideal_chain_is_trivial:
   assumes "C \<noteq> {}" "subset.chain { I. ideal I R } C"
   shows "\<Union>C \<in> C"
 proof -
-  { fix S assume "finite S" "S \<subseteq> \<Union>C"
-    hence "\<exists>I. I \<in> C \<and> S \<subseteq> I"
-    proof (induct S)
-      case empty thus ?case
-        using assms(1) by blast
-    next
-      case (insert s S)
-      then obtain I where I: "I \<in> C" "S \<subseteq> I"
-        by blast
-      moreover obtain I' where I': "I' \<in> C" "s \<in> I'"
-        using insert(4) by blast
-      ultimately have "I \<subseteq> I' \<or> I' \<subseteq> I"
-        using assms unfolding pred_on.chain_def by blast
-      thus ?case
-        using I I' by blast
-    qed } note aux_lemma = this
+  have aux_lemma: "\<exists>I. I \<in> C \<and> S \<subseteq> I" if "finite S" "S \<subseteq> \<Union>C" for S
+    using that
+  proof (induct S)
+    case empty
+    thus ?case using assms(1) by blast
+  next
+    case (insert s S)
+    then obtain I where I: "I \<in> C" "S \<subseteq> I"
+      by blast
+    moreover obtain I' where I': "I' \<in> C" "s \<in> I'"
+      using insert(4) by blast
+    ultimately have "I \<subseteq> I' \<or> I' \<subseteq> I"
+      using assms unfolding pred_on.chain_def by blast
+    thus ?case
+      using I I' by blast
+  qed
 
   obtain S where S: "finite S" "S \<subseteq> carrier R" "\<Union>C = Idl S"
     using finetely_gen[OF chain_Union_is_ideal[OF assms(2)]] assms(1) by auto
@@ -805,27 +805,27 @@ lemma (in principal_domain) ideal_sum_iff_gcd:
   assumes "a \<in> carrier R" "b \<in> carrier R" "d \<in> carrier R"
   shows "PIdl d = PIdl a <+>\<^bsub>R\<^esub> PIdl b \<longleftrightarrow> d gcdof a b"
 proof -
-  { fix a b d
-    assume in_carrier: "a \<in> carrier R" "b \<in> carrier R" "d \<in> carrier R"
-       and ideal_eq: "PIdl d = PIdl a <+>\<^bsub>R\<^esub> PIdl b"
-    have "d gcdof a b"
-    proof (auto simp add: isgcd_def)
-      have "a \<in> PIdl d" and "b \<in> PIdl d"
-        using in_carrier(1-2)[THEN cgenideal_ideal] additive_subgroup.zero_closed[OF ideal.axioms(1)]
-              in_carrier(1-2)[THEN cgenideal_self] in_carrier(1-2)
-        unfolding ideal_eq set_add_def' by force+
-      thus "d divides a" and "d divides b"
-        using in_carrier(1,2)[THEN to_contain_is_to_divide[OF in_carrier(3)]]
-              cgenideal_minimal[OF cgenideal_ideal[OF in_carrier(3)]] by simp+
-    next
-      fix c assume c: "c \<in> carrier R" "c divides a" "c divides b"
-      hence "PIdl a \<subseteq> PIdl c" and "PIdl b \<subseteq> PIdl c"
-        using to_contain_is_to_divide in_carrier by auto
-      hence "PIdl a <+>\<^bsub>R\<^esub> PIdl b \<subseteq> PIdl c"
-        by (metis Un_subset_iff c(1) in_carrier(1-2) cgenideal_ideal genideal_minimal union_genideal)
-      thus "c divides d"
-        using ideal_eq to_contain_is_to_divide[OF c(1) in_carrier(3)] by simp
-    qed } note aux_lemma = this
+  have aux_lemma: "d gcdof a b"
+    if in_carrier: "a \<in> carrier R" "b \<in> carrier R" "d \<in> carrier R"
+    and ideal_eq: "PIdl d = PIdl a <+>\<^bsub>R\<^esub> PIdl b"
+    for a b d
+  proof (auto simp add: isgcd_def)
+    have "a \<in> PIdl d" and "b \<in> PIdl d"
+      using in_carrier(1-2)[THEN cgenideal_ideal] additive_subgroup.zero_closed[OF ideal.axioms(1)]
+            in_carrier(1-2)[THEN cgenideal_self] in_carrier(1-2)
+      unfolding ideal_eq set_add_def' by force+
+    thus "d divides a" and "d divides b"
+      using in_carrier(1,2)[THEN to_contain_is_to_divide[OF in_carrier(3)]]
+            cgenideal_minimal[OF cgenideal_ideal[OF in_carrier(3)]] by simp+
+  next
+    fix c assume c: "c \<in> carrier R" "c divides a" "c divides b"
+    hence "PIdl a \<subseteq> PIdl c" and "PIdl b \<subseteq> PIdl c"
+      using to_contain_is_to_divide in_carrier by auto
+    hence "PIdl a <+>\<^bsub>R\<^esub> PIdl b \<subseteq> PIdl c"
+      by (metis Un_subset_iff c(1) in_carrier(1-2) cgenideal_ideal genideal_minimal union_genideal)
+    thus "c divides d"
+      using ideal_eq to_contain_is_to_divide[OF c(1) in_carrier(3)] by simp
+  qed
 
   have "PIdl d = PIdl a <+>\<^bsub>R\<^esub> PIdl b \<Longrightarrow> d gcdof a b"
     using aux_lemma assms by simp
