@@ -75,7 +75,11 @@ fun prepare_function do_print prep fixspec eqns config lthy =
     val fixes = map (apfst (apfst Binding.name_of)) fixes0
     val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
-
+    val props0 = map snd spec0
+    val vars0 = map Term.strip_all_vars props0
+    val input_eqns =
+      map (fn (ps,prop) => Term.subst_bounds (rev (map Free ps), Term.strip_all_body prop))
+        (vars0 ~~ props0)
     val fnames = map (fst o fst) fixes0
     val defname = Binding.conglomerate fnames;
 
@@ -122,7 +126,7 @@ fun prepare_function do_print prep fixspec eqns config lthy =
           { add_simps=addsmps, fnames=fnames, case_names=cnames, psimps=psimps',
           pinducts=snd pinducts', simps=NONE, inducts=NONE, termination=termination', totality=NONE,
           fs=fs, R=R, dom=dom, defname=defname, is_partial=true, cases=flat cases',
-          pelims=pelims',elims=NONE}
+          pelims=pelims', elims=NONE, input_eqns = input_eqns}
 
         val _ =
           Proof_Display.print_consts do_print (Position.thread_data ()) lthy2
@@ -180,7 +184,7 @@ fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
           | NONE => error "Not a function"))
 
     val { termination, fs, R, add_simps, case_names, psimps,
-      pinducts, defname, fnames, cases, dom, pelims, ...} = info
+      pinducts, defname, fnames, cases, dom, pelims, input_eqns, ...} = info
     val domT = domain_type (fastype_of R)
     val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     fun afterqed [[raw_totality]] lthy1 =
@@ -204,7 +208,7 @@ fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
           let val info' = { is_partial=false, defname=defname, fnames=fnames, add_simps=add_simps,
             case_names=case_names, fs=fs, R=R, dom=dom, psimps=psimps, pinducts=pinducts,
             simps=SOME simps, inducts=SOME inducts, termination=termination, totality=SOME totality,
-            cases=cases, pelims=pelims, elims=SOME elims}
+            cases=cases, pelims=pelims, elims=SOME elims, input_eqns = input_eqns}
             |> transform_function_data (Morphism.binding_morphism "" prep_binding)
           in
             (info',
