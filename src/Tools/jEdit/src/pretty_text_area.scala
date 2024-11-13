@@ -118,13 +118,20 @@ class Pretty_Text_Area(
                 results == current_base_results
             ) {
               current_rendering = rendering
-              val bottom = JEdit_Lib.scrollbar_at_bottom(pretty_text_area)
-              JEdit_Lib.buffer_edit(getBuffer) {
-                rich_text_area.active_reset()
-                getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-                JEdit_Lib.set_text(getBuffer, rich_texts.map(_.text))
-              }
-              setCaretPosition(if (bottom) JEdit_Lib.bottom_line_offset(getBuffer) else 0)
+
+              val scroll_bottom = JEdit_Lib.scrollbar_bottom(pretty_text_area)
+              val scroll_start = JEdit_Lib.scrollbar_start(pretty_text_area)
+              val update_start =
+                JEdit_Lib.buffer_edit(getBuffer) {
+                  rich_text_area.active_reset()
+                  getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
+                  JEdit_Lib.set_text(getBuffer, rich_texts.map(_.text))
+                }
+
+              setCaretPosition(
+                if (scroll_bottom) JEdit_Lib.bottom_line_offset(getBuffer)
+                else if (scroll_start < update_start) scroll_start
+                else 0)
               JEdit_Lib.scroll_to_caret(pretty_text_area)
             }
           }

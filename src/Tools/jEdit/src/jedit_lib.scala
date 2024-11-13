@@ -142,7 +142,7 @@ object JEdit_Lib {
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
-  def set_text(buffer: JEditBuffer, text: List[String]): Unit = {
+  def set_text(buffer: JEditBuffer, text: List[String]): Int = {
     val old = buffer.isUndoInProgress
     def set(b: Boolean): Unit = Untyped.set[Boolean](buffer, "undoInProgress", b)
 
@@ -169,8 +169,10 @@ object JEdit_Lib {
       set(true)
       buffer.beginCompoundEdit()
       val rest = drop_common_prefix(text)
+      val update_start = offset
       if (offset < length) buffer.remove(offset, length - offset)
       insert(rest)
+      update_start
     }
     finally {
       buffer.endCompoundEdit()
@@ -269,12 +271,15 @@ object JEdit_Lib {
   def horizontal_scrollbar(text_area: TextArea): JScrollBar =
     Untyped.get[JScrollBar](text_area, "horizontal")
 
-  def scrollbar_at_bottom(text_area: TextArea): Boolean = {
-    val vertical = vertical_scrollbar(text_area)
-    vertical != null &&
-      vertical.getValue > 0 &&
-      vertical.getValue + vertical.getVisibleAmount == vertical.getMaximum
-  }
+  def scrollbar_at_end(scrollbar: JScrollBar): Boolean =
+    scrollbar.getValue > 0 &&
+      scrollbar.getValue + scrollbar.getVisibleAmount == scrollbar.getMaximum
+
+  def scrollbar_bottom(text_area: TextArea): Boolean =
+    scrollbar_at_end(vertical_scrollbar(text_area))
+
+  def scrollbar_start(text_area: TextArea): Int =
+    text_area.getBuffer.getLineStartOffset(vertical_scrollbar(text_area).getValue)
 
   def bottom_line_offset(buffer: JEditBuffer): Int =
     buffer.getLineStartOffset(buffer.getLineOfOffset(buffer.getLength))
