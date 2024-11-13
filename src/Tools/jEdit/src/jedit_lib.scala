@@ -12,7 +12,7 @@ import isabelle._
 import java.io.{File => JFile}
 import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
-import javax.swing.{Icon, ImageIcon, JWindow, SwingUtilities}
+import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
 import scala.jdk.CollectionConverters._
@@ -258,6 +258,34 @@ object JEdit_Lib {
       val end_line = if (end >= 0) end else visible_lines
       text_area.invalidateScreenLineRange(start_line, end_line)
     }
+  }
+
+
+  /* scrolling */
+
+  def vertical_scrollbar(text_area: TextArea): JScrollBar =
+    Untyped.get[JScrollBar](text_area, "vertical")
+
+  def horizontal_scrollbar(text_area: TextArea): JScrollBar =
+    Untyped.get[JScrollBar](text_area, "horizontal")
+
+  def scrollbar_at_bottom(text_area: TextArea): Boolean = {
+    val vertical = vertical_scrollbar(text_area)
+    vertical != null &&
+      vertical.getValue > 0 &&
+      vertical.getValue + vertical.getVisibleAmount == vertical.getMaximum
+  }
+
+  def bottom_line_offset(buffer: JEditBuffer): Int =
+    buffer.getLineStartOffset(buffer.getLineOfOffset(buffer.getLength))
+
+  def scroll_to_caret(text_area: TextArea): Unit = {
+    val caret_line = text_area.getCaretLine()
+    val display_manager = text_area.getDisplayManager
+    if (!display_manager.isLineVisible(caret_line)) {
+      display_manager.expandFold(caret_line, true)
+    }
+    text_area.scrollToCaret(true)
   }
 
 
