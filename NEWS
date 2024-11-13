@@ -127,6 +127,21 @@ the editor selection by adding the enclosing formal structure, based on
 formal markup by the prover. Repeated invocation of this action extends
 the selection incrementally.
 
+* The Output dockable (and its variants used elsewhere) has been
+improved as follows:
+
+  - Its vertical scroll position is maintained more carefully, when
+    messages are printed incrementally.
+
+  - Performance of printing messages repeatedly has improved slightly,
+    with less load on the GUI thread.
+
+  - Highlighting works via mouse hovering alone, without requiring
+    C-modifier. Double click selects that area.
+
+* An active highlight area in the input buffer or output panel may be
+selected via double-click.
+
 * The "Documentation" panel supports plain text files again, notably
 "jedit-changes". This was broken in Isabelle2022, Isabelle2023,
 Isabelle2024.
