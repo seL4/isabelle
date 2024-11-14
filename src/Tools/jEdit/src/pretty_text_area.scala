@@ -111,7 +111,8 @@ class Pretty_Text_Area(
           GUI_Thread.later {
             val current_metric = JEdit_Lib.font_metric(getPainter)
             val current_margin = Rich_Text.component_margin(current_metric, getPainter)
-            if (metric == current_metric &&
+            if (true || // FIXME
+                metric == current_metric &&
                 margin == current_margin &&
                 output == current_output &&
                 snapshot == current_base_snapshot &&
