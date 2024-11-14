@@ -218,39 +218,27 @@ class Rich_Text_Area(
   private val mouse_listener = new MouseAdapter {
     override def mouseClicked(e: MouseEvent): Unit = {
       robust_body(()) {
-        if (!e.isConsumed()) {
-          val clicks = e.getClickCount
-          if (clicks == 1) {
-            hyperlink_area.info match {
-              case Some(Text.Info(range, link)) =>
-                if (!link.external) {
-                  try { text_area.moveCaretPosition(range.start) }
-                  catch {
-                    case _: ArrayIndexOutOfBoundsException =>
-                    case _: IllegalArgumentException =>
-                  }
-                  text_area.requestFocus()
+        if (!e.isConsumed() && e.getClickCount == 1) {
+          hyperlink_area.info match {
+            case Some(Text.Info(range, link)) =>
+              if (!link.external) {
+                try { text_area.moveCaretPosition(range.start) }
+                catch {
+                  case _: ArrayIndexOutOfBoundsException =>
+                  case _: IllegalArgumentException =>
                 }
-                link.follow(view)
-                e.consume()
-              case None =>
-            }
-            active_area.text_info match {
-              case Some((text, Text.Info(_, markup))) =>
-                Active.action(view, text, markup)
-                close_action()
-                e.consume()
-              case None =>
-            }
+                text_area.requestFocus()
+              }
+              link.follow(view)
+              e.consume()
+            case None =>
           }
-          else if (clicks == 2) {
-            highlight_area.info match {
-              case Some(Text.Info(r, _)) =>
-                text_area.selectNone()
-                text_area.addToSelection(new Selection.Range(r.start, r.stop))
-                e.consume()
-              case None =>
-            }
+          active_area.text_info match {
+            case Some((text, Text.Info(_, markup))) =>
+              Active.action(view, text, markup)
+              close_action()
+              e.consume()
+            case None =>
           }
         }
       }
@@ -293,6 +281,14 @@ class Rich_Text_Area(
                     area.update_rendering(rendering, range)
                   }
                   else area.reset()
+                }
+                if (JEdit_Lib.alt_modifier(evt)) {
+                  highlight_area.info.map(_.range) match {
+                    case Some(range) =>
+                      if (!JEdit_Lib.shift_modifier(evt)) text_area.selectNone()
+                      text_area.addToSelection(new Selection.Range(range.start, range.stop))
+                    case None =>
+                  }
                 }
             }
           }

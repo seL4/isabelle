@@ -137,10 +137,12 @@ improved as follows:
     with less load on the GUI thread.
 
   - Highlighting works via mouse hovering alone, without requiring
-    C-modifier. Double click selects that area.
+    C-modifier.
 
 * An active highlight area in the input buffer or output panel may be
-selected via double-click.
+turned into a text selection by using the ALT modifier. Together with
+SHIFT modifier, an existing selection is augmented (otherwise it is
+reset).
 
 * The "Documentation" panel supports plain text files again, notably
 "jedit-changes". This was broken in Isabelle2022, Isabelle2023,

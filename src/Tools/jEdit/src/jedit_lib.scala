@@ -424,6 +424,9 @@ object JEdit_Lib {
   def shift_modifier(evt: InputEvent): Boolean =
     (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
 
+  def alt_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
+
   def modifier_string(evt: InputEvent): String =
     KeyEventTranslator.getModifierString(evt) match {
       case null => ""
