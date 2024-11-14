@@ -61,14 +61,15 @@ extends BorderPanel {
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit =
-      if (e.getKeyCode == KeyEvent.VK_ENTER) {
+      if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
         e.consume()
         selection_action()
       }
   })
   tree.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit =
-      if (e.getClickCount == 2) {
+      if (!e.isConsumed() && e.getClickCount == 2) {
+        e.consume()
         point_action(tree.getPathForLocation(e.getX, e.getY))
       }
   })

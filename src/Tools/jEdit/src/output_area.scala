@@ -85,8 +85,13 @@ class Output_Area(view: View,
     tree.addMouseListener(
       new MouseAdapter {
         override def mouseClicked(e: MouseEvent): Unit = {
-          val click = tree.getPathForLocation(e.getX, e.getY)
-          if (click != null && e.getClickCount == 1) handle_focus()
+          if (!e.isConsumed()) {
+            val click = tree.getPathForLocation(e.getX, e.getY)
+            if (click != null && e.getClickCount == 1) {
+              e.consume()
+              handle_focus()
+            }
+          }
         }
       })
 

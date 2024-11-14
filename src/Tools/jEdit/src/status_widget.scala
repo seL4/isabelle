@@ -87,7 +87,8 @@ object Status_Widget {
 
     addMouseListener(new MouseAdapter {
       override def mouseClicked(evt: MouseEvent): Unit = {
-        if (evt.getClickCount == 2) {
+        if (!evt.isConsumed() && evt.getClickCount == 2) {
+          evt.consume()
           view.getInputHandler.invokeAction(action)
         }
       }

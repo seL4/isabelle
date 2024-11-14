@@ -629,8 +629,10 @@ class Completion_Popup private(
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mouseClicked(e: MouseEvent): Unit = {
-      if (complete_selected()) e.consume()
-      hide_popup()
+      if (!e.isConsumed()) {
+        if (complete_selected()) e.consume()
+        hide_popup()
+      }
     }
   })
 

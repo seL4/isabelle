@@ -218,37 +218,39 @@ class Rich_Text_Area(
   private val mouse_listener = new MouseAdapter {
     override def mouseClicked(e: MouseEvent): Unit = {
       robust_body(()) {
-        val clicks = e.getClickCount
-        if (clicks == 1) {
-          hyperlink_area.info match {
-            case Some(Text.Info(range, link)) =>
-              if (!link.external) {
-                try { text_area.moveCaretPosition(range.start) }
-                catch {
-                  case _: ArrayIndexOutOfBoundsException =>
-                  case _: IllegalArgumentException =>
+        if (!e.isConsumed()) {
+          val clicks = e.getClickCount
+          if (clicks == 1) {
+            hyperlink_area.info match {
+              case Some(Text.Info(range, link)) =>
+                if (!link.external) {
+                  try { text_area.moveCaretPosition(range.start) }
+                  catch {
+                    case _: ArrayIndexOutOfBoundsException =>
+                    case _: IllegalArgumentException =>
+                  }
+                  text_area.requestFocus()
                 }
-                text_area.requestFocus()
-              }
-              link.follow(view)
-              e.consume()
-            case None =>
+                link.follow(view)
+                e.consume()
+              case None =>
+            }
+            active_area.text_info match {
+              case Some((text, Text.Info(_, markup))) =>
+                Active.action(view, text, markup)
+                close_action()
+                e.consume()
+              case None =>
+            }
           }
-          active_area.text_info match {
-            case Some((text, Text.Info(_, markup))) =>
-              Active.action(view, text, markup)
-              close_action()
-              e.consume()
-            case None =>
-          }
-        }
-        else if (clicks == 2) {
-          highlight_area.info match {
-            case Some(Text.Info(r, _)) =>
-              text_area.selectNone()
-              text_area.addToSelection(new Selection.Range(r.start, r.stop))
-              e.consume()
-            case None =>
+          else if (clicks == 2) {
+            highlight_area.info match {
+              case Some(Text.Info(r, _)) =>
+                text_area.selectNone()
+                text_area.addToSelection(new Selection.Range(r.start, r.stop))
+                e.consume()
+              case None =>
+            }
           }
         }
       }

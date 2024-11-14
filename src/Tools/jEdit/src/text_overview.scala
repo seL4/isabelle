@@ -33,9 +33,13 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
 
   addMouseListener(new MouseAdapter {
     override def mousePressed(event: MouseEvent): Unit = {
-      val line = (event.getY * lines()) / getHeight
-      if (line >= 0 && line < text_area.getLineCount)
-        text_area.setCaretPosition(text_area.getLineStartOffset(line))
+      if (!event.isConsumed()) {
+        val line = (event.getY * lines()) / getHeight
+        if (line >= 0 && line < text_area.getLineCount) {
+          event.consume()
+          text_area.setCaretPosition(text_area.getLineStartOffset(line))
+        }
+      }
     }
   })
 
