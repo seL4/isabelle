@@ -295,7 +295,7 @@ object JEdit_Lib {
   }
 
 
-  /* graphics range */
+  /* font */
 
   def init_font_context(view: View, painter: TextAreaPainter): Unit = {
     painter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
@@ -310,6 +310,9 @@ object JEdit_Lib {
     new Font_Metric(
       font = painter.getFont,
       context = painter.getFontRenderContext)
+
+
+  /* graphics range */
 
   case class Gfx_Range(x: Int, y: Int, length: Int)
 
