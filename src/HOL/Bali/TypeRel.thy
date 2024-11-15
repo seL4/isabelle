@@ -230,17 +230,14 @@ proof -
     proof
       assume eq_C_D: "C=D"
       show "False"
-      proof -
+      proof (rule notE)
         from subcls1_C_Z eq_C_D 
-        have "G\<turnstile>D \<prec>\<^sub>C Z"
+        show "G\<turnstile>D \<prec>\<^sub>C Z"
           by (auto)
         also
         from subcls_Z_D ws   
-        have "\<not> G\<turnstile>D \<prec>\<^sub>C Z"
+        show "\<not> G\<turnstile>D \<prec>\<^sub>C Z"
           by (rule subcls_acyclic)
-        ultimately 
-        show ?thesis 
-          by - (rule notE)
       qed
     qed
   qed

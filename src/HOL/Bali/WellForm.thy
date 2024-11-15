@@ -927,15 +927,16 @@ proof -
     from wf cls_C neq_C_Obj
     have accessible_super: "G\<turnstile>(Class (super c)) accessible_in (pid C)" 
       by (auto dest: wf_prog_cdecl wf_cdecl_supD is_acc_classD)
-    {
-      fix old
-      assume    member_super: "G\<turnstile>Method old member_of (super c)"
-      assume     inheritable: "G \<turnstile>Method old inheritable_in pid C"
-      assume instance_method: "\<not> is_static old"
+    have hyp_member_super: "?P C old"
+      if member_super: "G\<turnstile>Method old member_of (super c)"
+      and inheritable: "G \<turnstile>Method old inheritable_in pid C"
+      and instance_method: "\<not> is_static old"
+    for old
+    proof -
       from member_super
       have old_declared: "G\<turnstile>Method old declared_in (declclass old)"
        by (cases old) (auto dest: member_of_declC)
-      have "?P C old"
+      show ?thesis
       proof (cases "G\<turnstile>mid (msig old) undeclared_in C")
         case True
         with inheritable super accessible_super member_super
@@ -982,7 +983,7 @@ proof -
             by (contradiction)
         qed
       qed
-    } note hyp_member_super = this
+    qed
     from subclsC cls_C 
     have "G\<turnstile>(super c)\<preceq>\<^sub>C declclass old"
       by (rule subcls_superD)
@@ -1411,9 +1412,8 @@ proof -
         \<Longrightarrow> G\<turnstile>(mdecl (sig,mthd m)) declared_in (declclass m)"
   proof (induct C rule: ws_class_induct')
     case Object
-    assume "methd G Object sig = Some m" 
-    with wf show ?thesis
-      by - (rule method_declared_inI, auto) 
+    show ?thesis if "methd G Object sig = Some m"
+      by (rule method_declared_inI) (use wf that in auto)
   next
     case Subcls
     fix C c
@@ -2012,15 +2012,13 @@ lemma wf_imethds_hiding_objmethdsD:
   shows "G\<turnstile>resTy new\<preceq>resTy old \<and> is_static new = is_static old" (is "?P new")
 proof -
   from wf have ws: "ws_prog G" by simp
-  {
-    fix I i new
-    assume ifI: "iface G I = Some i"
-    assume new: "table_of (imethods i) sig = Some new" 
-    from ifI new not_private wf old  
-    have "?P (I,new)"
+  have hyp_newmethod: "?P (I,new)"
+    if ifI: "iface G I = Some i"
+    and new: "table_of (imethods i) sig = Some new"
+    for I i new
+    using ifI new not_private wf old  
       by (auto dest!: wf_prog_idecl wf_idecl_hiding cond_hiding_entailsD
             simp del: methd_Object)
-  } note hyp_newmethod = this  
   from is_if_I ws new 
   show ?thesis
   proof (induct rule: ws_interface_induct)
@@ -2540,7 +2538,7 @@ proof -
   from subclseq iscls_statC 
   have iscls_dynC: "is_class G dynC"
     by (rule subcls_is_class2)
-  from  iscls_dynC iscls_statC wf m
+  from iscls_dynC iscls_statC wf m
   have "G\<turnstile>dynC \<preceq>\<^sub>C (declclass m) \<and> is_class G (declclass m) \<and>
         methd G (declclass m) sig = Some m" 
     by - (drule dynmethd_declC, auto)

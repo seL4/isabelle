@@ -286,9 +286,8 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
     have "G,A\<turnstile>{Normal (?P  \<and>. Not \<circ> initd C)} .Init C. {?R}" 
     proof (cases n)
       case 0
-      with is_cls
       show ?thesis
-        by - (rule ax_impossible [THEN conseq1],fastforce dest: nyinitcls_emptyD)
+        by (rule ax_impossible [THEN conseq1]) (use is_cls 0 in \<open>fastforce dest: nyinitcls_emptyD\<close>)
     next
       case (Suc m)
       with mgf_hyp have mgf_hyp': "\<And> t. G,A\<turnstile>{=:m} t\<succ> {G\<rightarrow>}"
@@ -413,18 +412,15 @@ proof (rule MGFn_free_wt_da_NormalConformI [rule_format],clarsimp)
         obtain "(abrupt s1 = None \<longrightarrow> G,store s1\<turnstile>a\<Colon>\<preceq>RefT statT)"
           and  "s1\<Colon>\<preceq>(G, L)"
           by (rule eval_type_soundE) simp
-        moreover
-        {
-          assume normal_s1: "normal s1"
-          have "\<exists>P. \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>ps\<rangle>\<^sub>l\<guillemotright> P"
-          proof -
-            from eval_e wt_e da_e wf normal_s1
-            have "nrm C \<subseteq>  dom (locals (store s1))"
-              by (cases rule: da_good_approxE') iprover
-            with da_ps show ?thesis
-              by (rule da_weakenE) iprover
-          qed
-        }
+        moreover have "\<exists>P. \<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>ps\<rangle>\<^sub>l\<guillemotright> P"
+          if normal_s1: "normal s1"
+        proof -
+          from eval_e wt_e da_e wf normal_s1
+          have "nrm C \<subseteq>  dom (locals (store s1))"
+            by (cases rule: da_good_approxE') iprover
+          with da_ps show ?thesis
+            by (rule da_weakenE) iprover
+        qed
         ultimately show ?thesis
           using eq_accC_accC' by simp
       qed
@@ -538,9 +534,8 @@ lemma eval_expression_no_jump':
   and      wt: "\<lparr>prg=G, cls=C,lcl=L\<rparr>\<turnstile>e\<Colon>-T" 
   and      wf: "wf_prog G"
 shows "abrupt s1 \<noteq> Some (Jump j)"
-using eval no_jmp wt wf
-by - (rule eval_expression_no_jump 
-            [where ?Env="\<lparr>prg=G, cls=C,lcl=L\<rparr>",simplified],auto)
+  by (rule eval_expression_no_jump [where ?Env="\<lparr>prg=G, cls=C,lcl=L\<rparr>",simplified])
+    (use eval no_jmp wt wf in auto)
 
 
 text \<open>To derive the most general formula for the loop statement, we need to
@@ -938,17 +933,13 @@ proof
   fix l show "abrupt s2 \<noteq> Some (Jump (Break l)) \<and>  
               abrupt s2 \<noteq> Some (Jump (Cont l))"
   proof -
-    fix accC from clsD have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
+    fix accC
+    from clsD have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
       by auto
-    from eval_init wf
     have s1_no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-      by - (rule eval_statement_no_jump [OF _ _ _ wt_init],auto)
-    from eval_c _ wt_c wf
-    show ?thesis
-      apply (rule jumpNestingOk_eval [THEN conjE, elim_format])
-      using jmpOk s1_no_jmp
-      apply auto
-      done
+      by (rule eval_statement_no_jump [OF _ _ _ wt_init]) (use eval_init wf in auto)
+    from eval_c _ wt_c wf show ?thesis
+      by (rule jumpNestingOk_eval [THEN conjE, elim_format]) (use jmpOk s1_no_jmp in auto)
   qed
 qed
 
@@ -1021,12 +1012,12 @@ proof (induct rule: full_nat_induct)
   assume hyp: "\<forall> m. Suc m \<le> n \<longrightarrow> (\<forall> t. G,A\<turnstile>{=:m} t\<succ> {G\<rightarrow>})"
   show "G,A\<turnstile>{=:n} t\<succ> {G\<rightarrow>}"
   proof -
-  { 
     fix v e c es
     have "G,A\<turnstile>{=:n} \<langle>v\<rangle>\<^sub>v\<succ> {G\<rightarrow>}" and 
       "G,A\<turnstile>{=:n} \<langle>e\<rangle>\<^sub>e\<succ> {G\<rightarrow>}" and
       "G,A\<turnstile>{=:n} \<langle>c\<rangle>\<^sub>s\<succ> {G\<rightarrow>}" and  
       "G,A\<turnstile>{=:n} \<langle>es\<rangle>\<^sub>l\<succ> {G\<rightarrow>}"
+      for v e c es
     proof (induct rule: compat_var.induct compat_expr.induct compat_stmt.induct compat_expr_list.induct)
       case (LVar v)
       show "G,A\<turnstile>{=:n} \<langle>LVar v\<rangle>\<^sub>v\<succ> {G\<rightarrow>}"
@@ -1337,7 +1328,6 @@ proof (induct rule: full_nat_induct)
         apply (fastforce intro: eval.Cons)
         done
     qed
-  }
   thus ?thesis
     by (cases rule: term_cases) auto
   qed

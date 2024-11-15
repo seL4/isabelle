@@ -119,45 +119,38 @@ proof -
       by (cases j) auto
   next
     case (Comp c1 c2 jmps' jmps)
-    from Comp.prems 
-    have "jumpNestingOkS jmps c1" by - (rule Comp.hyps,auto)
-    moreover from Comp.prems
-    have "jumpNestingOkS jmps c2" by - (rule Comp.hyps,auto)
-    ultimately show ?case
-      by simp
+    have "jumpNestingOkS jmps c1" by (rule Comp.hyps) (use Comp.prems in auto)
+    moreover
+    have "jumpNestingOkS jmps c2" by (rule Comp.hyps) (use Comp.prems in auto)
+    ultimately show ?case by simp
   next
     case (If' e c1 c2 jmps' jmps)
-    from If'.prems 
-    have "jumpNestingOkS jmps c1" by - (rule If'.hyps,auto)
-    moreover from If'.prems 
-    have "jumpNestingOkS jmps c2" by - (rule If'.hyps,auto)
-    ultimately show ?case
-      by simp
+    have "jumpNestingOkS jmps c1" by (rule If'.hyps) (use If'.prems in auto)
+    moreover
+    have "jumpNestingOkS jmps c2" by (rule If'.hyps) (use If'.prems in auto)
+    ultimately show ?case by simp
   next
     case (Loop l e c jmps' jmps)
-    from \<open>jumpNestingOkS jmps' (l\<bullet> While(e) c)\<close>
-    have "jumpNestingOkS ({Cont l} \<union> jmps') c" by simp
+    from \<open>jumpNestingOkS jmps' (l\<bullet> While(e) c)\<close> have "jumpNestingOkS ({Cont l} \<union> jmps') c"
+      by simp
     moreover
-    from \<open>jmps' \<subseteq> jmps\<close>
-    have "{Cont l} \<union> jmps'  \<subseteq> {Cont l} \<union> jmps" by auto
-    ultimately
-    have "jumpNestingOkS ({Cont l} \<union> jmps) c"
+    from \<open>jmps' \<subseteq> jmps\<close> have "{Cont l} \<union> jmps'  \<subseteq> {Cont l} \<union> jmps"
+      by auto
+    ultimately have "jumpNestingOkS ({Cont l} \<union> jmps) c"
       by (rule Loop.hyps)
     thus ?case by simp
   next
     case (TryC c1 C vn c2 jmps' jmps)
-    from TryC.prems 
-    have "jumpNestingOkS jmps c1" by - (rule TryC.hyps,auto)
-    moreover from TryC.prems 
-    have "jumpNestingOkS jmps c2" by - (rule TryC.hyps,auto)
+    have "jumpNestingOkS jmps c1" by (rule TryC.hyps) (use TryC.prems in auto)
+    moreover 
+    have "jumpNestingOkS jmps c2" by (rule TryC.hyps) (use TryC.prems in auto)
     ultimately show ?case
       by simp
   next
     case (Fin c1 c2 jmps' jmps)
-    from Fin.prems 
-    have "jumpNestingOkS jmps c1" by - (rule Fin.hyps,auto)
-    moreover from Fin.prems 
-    have "jumpNestingOkS jmps c2" by - (rule Fin.hyps,auto)
+    have "jumpNestingOkS jmps c1" by (rule Fin.hyps) (use Fin.prems in auto)
+    moreover
+    have "jumpNestingOkS jmps c2" by (rule Fin.hyps) (use Fin.prems in auto)
     ultimately show ?case
       by simp
   qed (simp_all)
@@ -312,28 +305,24 @@ proof -
     note G = \<open>prg Env = G\<close>
     have wt_c: "Env\<turnstile>c\<Colon>\<surd>" 
       using Lab.prems by (elim wt_elim_cases)
-    { 
-      fix j
-      assume ab_s1: "abrupt (abupd (absorb jmp) s1) = Some (Jump j)"
-      have "j\<in>jmps"          
+    have "j\<in>jmps" if ab_s1: "abrupt (abupd (absorb jmp) s1) = Some (Jump j)" for j
+    proof -
+      from ab_s1 have jmp_s1: "abrupt s1 = Some (Jump j)"
+        by (cases s1) (simp add: absorb_def)
+      note hyp_c = \<open>PROP ?Hyp (In1r c) (Norm s0) s1 \<diamondsuit>\<close>
+      from ab_s1 have "j \<noteq> jmp" 
+        by (cases s1) (simp add: absorb_def)
+      moreover have "j \<in> {jmp} \<union> jmps"
       proof -
-        from ab_s1 have jmp_s1: "abrupt s1 = Some (Jump j)"
-          by (cases s1) (simp add: absorb_def)
-        note hyp_c = \<open>PROP ?Hyp (In1r c) (Norm s0) s1 \<diamondsuit>\<close>
-        from ab_s1 have "j \<noteq> jmp" 
-          by (cases s1) (simp add: absorb_def)
-        moreover have "j \<in> {jmp} \<union> jmps"
-        proof -
-          from jmpOK 
-          have "jumpNestingOk ({jmp} \<union> jmps) (In1r c)" by simp
-          with wt_c jmp_s1 G hyp_c
-          show ?thesis
-            by - (rule hyp_c [THEN conjunct1,rule_format],simp)
-        qed
-        ultimately show ?thesis
-          by simp
+        from jmpOK 
+        have "jumpNestingOk ({jmp} \<union> jmps) (In1r c)" by simp
+        with wt_c jmp_s1 G hyp_c
+        show ?thesis
+          by - (rule hyp_c [THEN conjunct1,rule_format],simp)
       qed
-    }
+      ultimately show ?thesis
+        by simp
+    qed
     thus ?case by simp
   next
     case (Comp s0 c1 s1 c2 s2 jmps T Env)
@@ -342,24 +331,21 @@ proof -
     from Comp.prems obtain
       wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and wt_c2: "Env\<turnstile>c2\<Colon>\<surd>"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume abr_s2: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if abr_s2: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      have jmp: "?Jmp jmps s1"
       proof -
-        have jmp: "?Jmp jmps s1"
-        proof -
-          note hyp_c1 = \<open>PROP ?Hyp (In1r c1) (Norm s0) s1 \<diamondsuit>\<close>
-          with wt_c1 jmpOk G 
-          show ?thesis by simp
-        qed
-        moreover note hyp_c2 = \<open>PROP ?Hyp (In1r c2) s1 s2 (\<diamondsuit>::vals)\<close>
-        have jmpOk': "jumpNestingOk jmps (In1r c2)" using jmpOk by simp
-        moreover note wt_c2 G abr_s2
-        ultimately show "j \<in> jmps"
-          by (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)])
+        note hyp_c1 = \<open>PROP ?Hyp (In1r c1) (Norm s0) s1 \<diamondsuit>\<close>
+        with wt_c1 jmpOk G 
+        show ?thesis by simp
       qed
-    } thus ?case by simp
+      moreover note hyp_c2 = \<open>PROP ?Hyp (In1r c2) s1 s2 (\<diamondsuit>::vals)\<close>
+      have jmpOk': "jumpNestingOk jmps (In1r c2)" using jmpOk by simp
+      moreover note wt_c2 G abr_s2
+      ultimately show "j \<in> jmps"
+        by (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)])
+    qed
+    thus ?case by simp
   next
     case (If s0 e b s1 c1 c2 s2 jmps T Env)
     note jmpOk = \<open>jumpNestingOk jmps (In1r (If(e) c1 Else c2))\<close>
@@ -368,23 +354,19 @@ proof -
               wt_e: "Env\<turnstile>e\<Colon>-PrimT Boolean" and 
       wt_then_else: "Env\<turnstile>(if the_Bool b then c1 else c2)\<Colon>\<surd>"
       by (elim wt_elim_cases) simp
-    { 
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 b)\<close>
-        with wt_e G have "?Jmp jmps s1" 
-          by simp
-        moreover note hyp_then_else =
-          \<open>PROP ?Hyp (In1r (if the_Bool b then c1 else c2)) s1 s2 \<diamondsuit>\<close>
-        have "jumpNestingOk jmps (In1r (if the_Bool b then c1 else c2))"
-          using jmpOk by (cases "the_Bool b") simp_all
-        moreover note wt_then_else G jmp
-        ultimately show "j\<in> jmps" 
-          by (rule hyp_then_else [THEN conjunct1,rule_format (no_asm)])
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      note \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 b)\<close>
+      with wt_e G have "?Jmp jmps s1" 
+        by simp
+      moreover note hyp_then_else =
+        \<open>PROP ?Hyp (In1r (if the_Bool b then c1 else c2)) s1 s2 \<diamondsuit>\<close>
+      have "jumpNestingOk jmps (In1r (if the_Bool b then c1 else c2))"
+        using jmpOk by (cases "the_Bool b") simp_all
+      moreover note wt_then_else G jmp
+      ultimately show "j\<in> jmps" 
+        by (rule hyp_then_else [THEN conjunct1,rule_format (no_asm)])
+    qed
     thus ?case by simp
   next
     case (Loop s0 e b s1 c s2 l s3 jmps T Env)
@@ -395,74 +377,66 @@ proof -
               wt_e: "Env\<turnstile>e\<Colon>-PrimT Boolean" and 
               wt_c: "Env\<turnstile>c\<Colon>\<surd>"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt s3 = Some (Jump j)" 
-      have "j\<in>jmps"
-      proof -
-        note \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 b)\<close>
-        with wt_e G have jmp_s1: "?Jmp jmps s1" 
-          by simp
-        show ?thesis
-        proof (cases "the_Bool b")
-          case False
-          from Loop.hyps
-          have "s3=s1"
-            by (simp (no_asm_use) only: if_False False) 
-          with jmp_s1 jmp have "j \<in> jmps" by simp
-          thus ?thesis by simp
-        next
-          case True
-          from Loop.hyps 
-            (* Because of the mixture of object and pure logic in the rule 
+    have "j\<in>jmps" if jmp: "abrupt s3 = Some (Jump j)" for j
+    proof -
+      note \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 b)\<close>
+      with wt_e G have jmp_s1: "?Jmp jmps s1" 
+        by simp
+      show ?thesis
+      proof (cases "the_Bool b")
+        case False
+        from Loop.hyps
+        have "s3=s1"
+          by (simp (no_asm_use) only: if_False False) 
+        with jmp_s1 jmp have "j \<in> jmps" by simp
+        thus ?thesis by simp
+      next
+        case True
+        from Loop.hyps 
+          (* Because of the mixture of object and pure logic in the rule 
                eval.If the atomization-rulification of the induct method 
                leaves the hypothesis in object logic *)
-          have "?HypObj (In1r c) s1 s2 (\<diamondsuit>::vals)"
-            apply (simp (no_asm_use) only: True if_True )
-            apply (erule conjE)+
-            apply assumption
-            done
-          note hyp_c = this [rule_format (no_asm)]
-          moreover from jmpOk have "jumpNestingOk ({Cont l} \<union> jmps) (In1r c)"
-            by simp
-          moreover from jmp_s1 have "?Jmp ({Cont l} \<union> jmps) s1" by simp
-          ultimately have jmp_s2: "?Jmp ({Cont l} \<union> jmps) s2" 
-            using wt_c G by iprover
-          have "?Jmp jmps (abupd (absorb (Cont l)) s2)"
-          proof -
-            {
-              fix j'
-              assume abs: "abrupt (abupd (absorb (Cont l)) s2)=Some (Jump j')"
-              have "j' \<in> jmps"
-              proof (cases "j' = Cont l")
-                case True
-                with abs show ?thesis
-                  by (cases s2) (simp add: absorb_def)
-              next
-                case False 
-                with abs have "abrupt s2 = Some (Jump j')"
-                  by (cases s2) (simp add: absorb_def) 
-                with jmp_s2 False show ?thesis
-                  by simp
-              qed
-            }
-            thus ?thesis by simp
+        have "?HypObj (In1r c) s1 s2 (\<diamondsuit>::vals)"
+          apply (simp (no_asm_use) only: True if_True )
+          apply (erule conjE)+
+          apply assumption
+          done
+        note hyp_c = this [rule_format (no_asm)]
+        moreover from jmpOk have "jumpNestingOk ({Cont l} \<union> jmps) (In1r c)"
+          by simp
+        moreover from jmp_s1 have "?Jmp ({Cont l} \<union> jmps) s1" by simp
+        ultimately have jmp_s2: "?Jmp ({Cont l} \<union> jmps) s2" 
+          using wt_c G by iprover
+        have "?Jmp jmps (abupd (absorb (Cont l)) s2)"
+        proof -
+          have "j' \<in> jmps" if abs: "abrupt (abupd (absorb (Cont l)) s2)=Some (Jump j')" for j'
+          proof (cases "j' = Cont l")
+            case True
+            with abs show ?thesis
+              by (cases s2) (simp add: absorb_def)
+          next
+            case False 
+            with abs have "abrupt s2 = Some (Jump j')"
+              by (cases s2) (simp add: absorb_def) 
+            with jmp_s2 False show ?thesis
+              by simp
           qed
-          moreover
-          from Loop.hyps
-          have "?HypObj (In1r (l\<bullet> While(e) c)) 
-                        (abupd (absorb (Cont l)) s2) s3 (\<diamondsuit>::vals)"
-            apply (simp (no_asm_use) only: True if_True)
-            apply (erule conjE)+
-            apply assumption
-            done
-          note hyp_w = this [rule_format (no_asm)]
-          note jmpOk wt G jmp 
-          ultimately show "j\<in> jmps" 
-            by (rule hyp_w [THEN conjunct1,rule_format (no_asm)])
+          thus ?thesis by simp
         qed
+        moreover
+        from Loop.hyps
+        have "?HypObj (In1r (l\<bullet> While(e) c)) 
+                        (abupd (absorb (Cont l)) s2) s3 (\<diamondsuit>::vals)"
+          apply (simp (no_asm_use) only: True if_True)
+          apply (erule conjE)+
+          apply assumption
+          done
+        note hyp_w = this [rule_format (no_asm)]
+        note jmpOk wt G jmp 
+        ultimately show "j\<in> jmps" 
+          by (rule hyp_w [THEN conjunct1,rule_format (no_asm)])
       qed
-    }
+    qed
     thus ?case by simp
   next
     case (Jmp s j jmps T Env) thus ?case by simp
@@ -473,20 +447,16 @@ proof -
     from Throw.prems obtain Te where 
       wt_e: "Env\<turnstile>e\<Colon>-Te" 
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt (abupd (throw a) s1) = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        from \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 a)\<close>
-        have "?Jmp jmps s1" using wt_e G by simp
-        moreover
-        from jmp 
-        have "abrupt s1 = Some (Jump j)"
-          by (cases s1) (simp add: throw_def abrupt_if_def)
-        ultimately show "j \<in> jmps" by simp
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt (abupd (throw a) s1) = Some (Jump j)" for j
+    proof -
+      from \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 a)\<close>
+      have "?Jmp jmps s1" using wt_e G by simp
+      moreover
+      from jmp 
+      have "abrupt s1 = Some (Jump j)"
+        by (cases s1) (simp add: throw_def abrupt_if_def)
+      ultimately show "j \<in> jmps" by simp
+    qed
     thus ?case by simp
   next
     case (Try s0 c1 s1 s2 C vn c2 s3 jmps T Env)
@@ -496,49 +466,45 @@ proof -
       wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and  
       wt_c2: "Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>\<turnstile>c2\<Colon>\<surd>"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt s3 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note \<open>PROP ?Hyp (In1r c1) (Norm s0) s1 (\<diamondsuit>::vals)\<close>
-        with jmpOk wt_c1 G
-        have jmp_s1: "?Jmp jmps s1" by simp
-        note s2 = \<open>G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2\<close>
-        show "j \<in> jmps"
-        proof (cases "G,s2\<turnstile>catch C")
-          case False
-          from Try.hyps have "s3=s2" 
-            by (simp (no_asm_use) only: False if_False)
-          with jmp have "abrupt s1 = Some (Jump j)"
-            using sxalloc_no_jump' [OF s2] by simp
-          with jmp_s1 
-          show ?thesis by simp
-        next
-          case True
-          with Try.hyps 
-          have "?HypObj (In1r c2) (new_xcpt_var vn s2) s3 (\<diamondsuit>::vals)"
-            apply (simp (no_asm_use) only: True if_True simp_thms)
-            apply (erule conjE)+
-            apply assumption
-            done
-          note hyp_c2 = this [rule_format (no_asm)]
-          from jmp_s1 sxalloc_no_jump' [OF s2] 
-          have "?Jmp jmps s2"
-            by simp
-          hence "?Jmp jmps (new_xcpt_var vn s2)"
-            by (cases s2) simp
-          moreover have "jumpNestingOk jmps (In1r c2)" using jmpOk by simp
-          moreover note wt_c2
-          moreover from G 
-          have "prg (Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>) = G"
-            by simp
-          moreover note jmp
-          ultimately show ?thesis 
-            by (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)])
-        qed
+    have "j\<in>jmps" if jmp: "abrupt s3 = Some (Jump j)" for j
+    proof -
+      note \<open>PROP ?Hyp (In1r c1) (Norm s0) s1 (\<diamondsuit>::vals)\<close>
+      with jmpOk wt_c1 G
+      have jmp_s1: "?Jmp jmps s1" by simp
+      note s2 = \<open>G\<turnstile>s1 \<midarrow>sxalloc\<rightarrow> s2\<close>
+      show "j \<in> jmps"
+      proof (cases "G,s2\<turnstile>catch C")
+        case False
+        from Try.hyps have "s3=s2" 
+          by (simp (no_asm_use) only: False if_False)
+        with jmp have "abrupt s1 = Some (Jump j)"
+          using sxalloc_no_jump' [OF s2] by simp
+        with jmp_s1 
+        show ?thesis by simp
+      next
+        case True
+        with Try.hyps 
+        have "?HypObj (In1r c2) (new_xcpt_var vn s2) s3 (\<diamondsuit>::vals)"
+          apply (simp (no_asm_use) only: True if_True simp_thms)
+          apply (erule conjE)+
+          apply assumption
+          done
+        note hyp_c2 = this [rule_format (no_asm)]
+        from jmp_s1 sxalloc_no_jump' [OF s2] 
+        have "?Jmp jmps s2"
+          by simp
+        hence "?Jmp jmps (new_xcpt_var vn s2)"
+          by (cases s2) simp
+        moreover have "jumpNestingOk jmps (In1r c2)" using jmpOk by simp
+        moreover note wt_c2
+        moreover from G 
+        have "prg (Env\<lparr>lcl := (lcl Env)(VName vn\<mapsto>Class C)\<rparr>) = G"
+          by simp
+        moreover note jmp
+        ultimately show ?thesis 
+          by (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)])
       qed
-    }
+    qed
     thus ?case by simp
   next
     case (Fin s0 c1 x1 s1 c2 s2 s3 jmps T Env)
@@ -547,26 +513,22 @@ proof -
     from Fin.prems obtain 
       wt_c1: "Env\<turnstile>c1\<Colon>\<surd>" and wt_c2: "Env\<turnstile>c2\<Colon>\<surd>"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt s3 = Some (Jump j)" 
-      have "j \<in> jmps"
-      proof (cases "x1=Some (Jump j)")
-        case True
-        note hyp_c1 = \<open>PROP ?Hyp (In1r c1) (Norm s0) (x1,s1) \<diamondsuit>\<close>
-        with True jmpOk wt_c1 G show ?thesis 
-          by - (rule hyp_c1 [THEN conjunct1,rule_format (no_asm)],simp_all)
-      next
-        case False
-        note hyp_c2 = \<open>PROP ?Hyp (In1r c2) (Norm s1) s2 \<diamondsuit>\<close>
-        note \<open>s3 = (if \<exists>err. x1 = Some (Error err) then (x1, s1)
+    have "j \<in> jmps" if jmp: "abrupt s3 = Some (Jump j)" for j
+    proof (cases "x1=Some (Jump j)")
+      case True
+      note hyp_c1 = \<open>PROP ?Hyp (In1r c1) (Norm s0) (x1,s1) \<diamondsuit>\<close>
+      with True jmpOk wt_c1 G show ?thesis 
+        by - (rule hyp_c1 [THEN conjunct1,rule_format (no_asm)],simp_all)
+    next
+      case False
+      note hyp_c2 = \<open>PROP ?Hyp (In1r c2) (Norm s1) s2 \<diamondsuit>\<close>
+      note \<open>s3 = (if \<exists>err. x1 = Some (Error err) then (x1, s1)
                     else abupd (abrupt_if (x1 \<noteq> None) x1) s2)\<close>
-        with False jmp have "abrupt s2 = Some (Jump j)"
-          by (cases s2) (simp add: abrupt_if_def)
-        with jmpOk wt_c2 G show ?thesis 
-          by - (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)],simp_all)
-      qed
-    }
+      with False jmp have "abrupt s2 = Some (Jump j)"
+        by (cases s2) (simp add: abrupt_if_def)
+      with jmpOk wt_c2 G show ?thesis 
+        by - (rule hyp_c2 [THEN conjunct1,rule_format (no_asm)],simp_all)
+    qed
     thus ?case by simp
   next
     case (Init C c s0 s3 s1 s2 jmps T Env)
@@ -575,227 +537,195 @@ proof -
     note \<open>the (class G C) = c\<close>
     with Init.prems have c: "class G C = Some c"
       by (elim wt_elim_cases) auto
-    {
-      fix j
-      assume jmp: "abrupt s3 = (Some (Jump j))" 
-      have "j\<in>jmps"
-      proof (cases "inited C (globs s0)") 
-        case True
-        with Init.hyps have "s3=Norm s0"
-          by simp
-        with jmp
-        have "False" by simp thus ?thesis ..
-      next
-        case False
-        from wf c G
-        have wf_cdecl: "wf_cdecl G (C,c)"
-          by (simp add: wf_prog_cdecl)
-        from Init.hyps
-        have "?HypObj (In1r (if C = Object then Skip else Init (super c))) 
+    have "j\<in>jmps" if jmp: "abrupt s3 = (Some (Jump j))" for j
+    proof (cases "inited C (globs s0)") 
+      case True
+      with Init.hyps have "s3=Norm s0"
+        by simp
+      with jmp have "False"
+        by simp
+      thus ?thesis ..
+    next
+      case False
+      from wf c G
+      have wf_cdecl: "wf_cdecl G (C,c)"
+        by (simp add: wf_prog_cdecl)
+      from Init.hyps
+      have "?HypObj (In1r (if C = Object then Skip else Init (super c))) 
                             (Norm ((init_class_obj G C) s0)) s1 (\<diamondsuit>::vals)"
-          apply (simp (no_asm_use) only: False if_False simp_thms)
-          apply (erule conjE)+
-          apply assumption
-          done
-        note hyp_s1 = this [rule_format (no_asm)]
-        from wf_cdecl G have
-          wt_super: "Env\<turnstile>(if C = Object then Skip else Init (super c))\<Colon>\<surd>"
-          by (cases "C=Object")
-             (auto dest: wf_cdecl_supD is_acc_classD) 
-        from hyp_s1 [OF _ _ wt_super G]
-        have "?Jmp jmps s1" 
-          by simp
-        hence jmp_s1: "?Jmp jmps ((set_lvars Map.empty) s1)" by (cases s1) simp
-        from False Init.hyps
-        have "?HypObj (In1r (init c)) ((set_lvars Map.empty) s1) s2 (\<diamondsuit>::vals)" 
-          apply (simp (no_asm_use) only: False if_False simp_thms)
-          apply (erule conjE)+
-          apply assumption
-          done
-        note hyp_init_c = this [rule_format (no_asm)] 
-        from wf_cdecl 
-        have wt_init_c: "\<lparr>prg = G, cls = C, lcl = Map.empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
-          by (rule wf_cdecl_wt_init)
-        from wf_cdecl have "jumpNestingOkS {} (init c)" 
-          by (cases rule: wf_cdeclE)
-        hence "jumpNestingOkS jmps (init c)"
-          by (rule jumpNestingOkS_mono) simp
-        moreover 
-        have "abrupt s2 = Some (Jump j)"
-        proof -
-          from False Init.hyps 
-          have "s3 = (set_lvars (locals (store s1))) s2"  by simp
-          with jmp show ?thesis by (cases s2) simp
-        qed
-        ultimately show ?thesis
-          using hyp_init_c [OF jmp_s1 _ wt_init_c]
-          by simp
+        apply (simp (no_asm_use) only: False if_False simp_thms)
+        apply (erule conjE)+
+        apply assumption
+        done
+      note hyp_s1 = this [rule_format (no_asm)]
+      from wf_cdecl G have
+        wt_super: "Env\<turnstile>(if C = Object then Skip else Init (super c))\<Colon>\<surd>"
+        by (cases "C=Object")
+          (auto dest: wf_cdecl_supD is_acc_classD) 
+      from hyp_s1 [OF _ _ wt_super G]
+      have "?Jmp jmps s1" 
+        by simp
+      hence jmp_s1: "?Jmp jmps ((set_lvars Map.empty) s1)" by (cases s1) simp
+      from False Init.hyps
+      have "?HypObj (In1r (init c)) ((set_lvars Map.empty) s1) s2 (\<diamondsuit>::vals)" 
+        apply (simp (no_asm_use) only: False if_False simp_thms)
+        apply (erule conjE)+
+        apply assumption
+        done
+      note hyp_init_c = this [rule_format (no_asm)] 
+      from wf_cdecl 
+      have wt_init_c: "\<lparr>prg = G, cls = C, lcl = Map.empty\<rparr>\<turnstile>init c\<Colon>\<surd>"
+        by (rule wf_cdecl_wt_init)
+      from wf_cdecl have "jumpNestingOkS {} (init c)" 
+        by (cases rule: wf_cdeclE)
+      hence "jumpNestingOkS jmps (init c)"
+        by (rule jumpNestingOkS_mono) simp
+      moreover 
+      have "abrupt s2 = Some (Jump j)"
+      proof -
+        from False Init.hyps 
+        have "s3 = (set_lvars (locals (store s1))) s2"  by simp
+        with jmp show ?thesis by (cases s2) simp
       qed
-    }
+      ultimately show ?thesis
+        using hyp_init_c [OF jmp_s1 _ wt_init_c]
+        by simp
+    qed
     thus ?case by simp
   next
     case (NewC s0 C s1 a s2 jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof - 
-        note \<open>prg Env = G\<close>
-        moreover note hyp_init = \<open>PROP ?Hyp (In1r (Init C)) (Norm s0) s1 \<diamondsuit>\<close>
-        moreover from wf NewC.prems 
-        have "Env\<turnstile>(Init C)\<Colon>\<surd>"
-          by (elim wt_elim_cases) (drule is_acc_classD,simp)
-        moreover 
-        have "abrupt s1 = Some (Jump j)"
-        proof -
-          from \<open>G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2\<close> and jmp show ?thesis
-            by (rule halloc_no_jump')
-        qed
-        ultimately show "j \<in> jmps" 
-          by - (rule hyp_init [THEN conjunct1,rule_format (no_asm)],auto)
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof - 
+      note \<open>prg Env = G\<close>
+      moreover note hyp_init = \<open>PROP ?Hyp (In1r (Init C)) (Norm s0) s1 \<diamondsuit>\<close>
+      moreover from wf NewC.prems 
+      have "Env\<turnstile>(Init C)\<Colon>\<surd>"
+        by (elim wt_elim_cases) (drule is_acc_classD,simp)
+      moreover 
+      have "abrupt s1 = Some (Jump j)"
+      proof -
+        from \<open>G\<turnstile>s1 \<midarrow>halloc CInst C\<succ>a\<rightarrow> s2\<close> and jmp show ?thesis
+          by (rule halloc_no_jump')
       qed
-    }
+      ultimately show "j \<in> jmps" 
+        by - (rule hyp_init [THEN conjunct1,rule_format (no_asm)],auto)
+    qed
     thus ?case by simp
   next
     case (NewA s0 elT s1 e i s2 a s3 jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s3 = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if jmp: "abrupt s3 = Some (Jump j)" for j
+    proof -
+      note G = \<open>prg Env = G\<close>
+      from NewA.prems 
+      obtain wt_init: "Env\<turnstile>init_comp_ty elT\<Colon>\<surd>" and 
+        wt_size: "Env\<turnstile>e\<Colon>-PrimT Integer"
+        by (elim wt_elim_cases) (auto dest:  wt_init_comp_ty')
+      note \<open>PROP ?Hyp (In1r (init_comp_ty elT)) (Norm s0) s1 \<diamondsuit>\<close>
+      with wt_init G 
+      have "?Jmp jmps s1" 
+        by (simp add: init_comp_ty_def)
+      moreover
+      note hyp_e = \<open>PROP ?Hyp (In1l e) s1 s2 (In1 i)\<close>
+      have "abrupt s2 = Some (Jump j)"
       proof -
-        note G = \<open>prg Env = G\<close>
-        from NewA.prems 
-        obtain wt_init: "Env\<turnstile>init_comp_ty elT\<Colon>\<surd>" and 
-               wt_size: "Env\<turnstile>e\<Colon>-PrimT Integer"
-          by (elim wt_elim_cases) (auto dest:  wt_init_comp_ty')
-        note \<open>PROP ?Hyp (In1r (init_comp_ty elT)) (Norm s0) s1 \<diamondsuit>\<close>
-        with wt_init G 
-        have "?Jmp jmps s1" 
-          by (simp add: init_comp_ty_def)
-        moreover
-        note hyp_e = \<open>PROP ?Hyp (In1l e) s1 s2 (In1 i)\<close>
-        have "abrupt s2 = Some (Jump j)"
-        proof -
-          note \<open>G\<turnstile>abupd (check_neg i) s2\<midarrow>halloc Arr elT (the_Intg i)\<succ>a\<rightarrow> s3\<close>
-          moreover note jmp
-          ultimately 
-          have "abrupt (abupd (check_neg i) s2) = Some (Jump j)"
-            by (rule halloc_no_jump')
-          thus ?thesis by (cases s2) auto
-        qed
-        ultimately show "j\<in>jmps" using wt_size G 
-          by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)],simp_all)
+        note \<open>G\<turnstile>abupd (check_neg i) s2\<midarrow>halloc Arr elT (the_Intg i)\<succ>a\<rightarrow> s3\<close>
+        moreover note jmp
+        ultimately 
+        have "abrupt (abupd (check_neg i) s2) = Some (Jump j)"
+          by (rule halloc_no_jump')
+        thus ?thesis by (cases s2) auto
       qed
-    }
+      ultimately show "j\<in>jmps" using wt_size G 
+        by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)],simp_all)
+    qed
     thus ?case by simp
   next
     case (Cast s0 e v s1 s2 cT jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
+      note \<open>prg Env = G\<close>
+      moreover from Cast.prems
+      obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
+      moreover 
+      have "abrupt s1 = Some (Jump j)"
       proof -
-        note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
-        note \<open>prg Env = G\<close>
-        moreover from Cast.prems
-        obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
-        moreover 
-        have "abrupt s1 = Some (Jump j)"
-        proof -
-          note \<open>s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits cT) ClassCast) s1\<close>
-          moreover note jmp
-          ultimately show ?thesis by (cases s1) (simp add: abrupt_if_def)
-        qed
-        ultimately show ?thesis 
-          by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all)
+        note \<open>s2 = abupd (raise_if (\<not> G,snd s1\<turnstile>v fits cT) ClassCast) s1\<close>
+        moreover note jmp
+        ultimately show ?thesis by (cases s1) (simp add: abrupt_if_def)
       qed
-    }
+      ultimately show ?thesis 
+        by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all)
+    qed
     thus ?case by simp
   next
     case (Inst s0 e v s1 b eT jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s1 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
-        note \<open>prg Env = G\<close>
-        moreover from Inst.prems
-        obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
-        moreover note jmp
-        ultimately show "j\<in>jmps" 
-          by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all)
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt s1 = Some (Jump j)" for j
+    proof -
+      note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
+      note \<open>prg Env = G\<close>
+      moreover from Inst.prems
+      obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
+      moreover note jmp
+      ultimately show "j\<in>jmps" 
+        by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all)
+    qed
     thus ?case by simp
   next
     case Lit thus ?case by simp
   next
     case (UnOp s0 e v s1 unop jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s1 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
-        note \<open>prg Env = G\<close>
-        moreover from UnOp.prems
-        obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
-        moreover note jmp
-        ultimately show  "j\<in>jmps" 
-          by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all) 
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt s1 = Some (Jump j)" for j
+    proof -
+      note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
+      note \<open>prg Env = G\<close>
+      moreover from UnOp.prems obtain eT where "Env\<turnstile>e\<Colon>-eT" by (elim wt_elim_cases)
+      moreover note jmp
+      ultimately show "j\<in>jmps" 
+        by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all)
+    qed
     thus ?case by simp
   next
     case (BinOp s0 e1 v1 s1 binop e2 v2 s2 jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note G = \<open>prg Env = G\<close>
-        from BinOp.prems
-        obtain e1T e2T where 
-          wt_e1: "Env\<turnstile>e1\<Colon>-e1T" and
-          wt_e2: "Env\<turnstile>e2\<Colon>-e2T" 
-          by (elim wt_elim_cases)
-        note \<open>PROP ?Hyp (In1l e1) (Norm s0) s1 (In1 v1)\<close>
-        with G wt_e1 have jmp_s1: "?Jmp jmps s1" by simp
-        note hyp_e2 =
-          \<open>PROP ?Hyp (if need_second_arg binop v1 then In1l e2 else In1r Skip)
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      note G = \<open>prg Env = G\<close>
+      from BinOp.prems
+      obtain e1T e2T where 
+        wt_e1: "Env\<turnstile>e1\<Colon>-e1T" and
+        wt_e2: "Env\<turnstile>e2\<Colon>-e2T" 
+        by (elim wt_elim_cases)
+      note \<open>PROP ?Hyp (In1l e1) (Norm s0) s1 (In1 v1)\<close>
+      with G wt_e1 have jmp_s1: "?Jmp jmps s1" by simp
+      note hyp_e2 =
+        \<open>PROP ?Hyp (if need_second_arg binop v1 then In1l e2 else In1r Skip)
                      s1 s2 (In1 v2)\<close>
-        show "j\<in>jmps"
-        proof (cases "need_second_arg binop v1")
-          case True with jmp_s1 wt_e2 jmp G
-          show ?thesis 
-            by - (rule hyp_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
-        next
-          case False with jmp_s1 jmp G
-          show ?thesis 
-            by - (rule hyp_e2 [THEN conjunct1,rule_format (no_asm)],auto)
-        qed
+      show "j\<in>jmps"
+      proof (cases "need_second_arg binop v1")
+        case True with jmp_s1 wt_e2 jmp G
+        show ?thesis 
+          by - (rule hyp_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
+      next
+        case False with jmp_s1 jmp G
+        show ?thesis 
+          by - (rule hyp_e2 [THEN conjunct1,rule_format (no_asm)],auto)
       qed
-    }
+    qed
     thus ?case by simp
   next
     case Super thus ?case by simp
   next
     case (Acc s0 va v f s1 jmps T Env)
-    {
-      fix j
-      assume jmp: "abrupt s1 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note hyp_va = \<open>PROP ?Hyp (In2 va) (Norm s0) s1 (In2 (v,f))\<close>
-        note \<open>prg Env = G\<close>
-        moreover from Acc.prems
-        obtain vT where "Env\<turnstile>va\<Colon>=vT" by (elim wt_elim_cases)
-        moreover note jmp
-        ultimately show "j\<in>jmps" 
-          by - (rule hyp_va [THEN conjunct1,rule_format (no_asm)], simp_all)
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt s1 = Some (Jump j)" for j
+    proof -
+      note hyp_va = \<open>PROP ?Hyp (In2 va) (Norm s0) s1 (In2 (v,f))\<close>
+      note \<open>prg Env = G\<close>
+      moreover from Acc.prems
+      obtain vT where "Env\<turnstile>va\<Colon>=vT" by (elim wt_elim_cases)
+      moreover note jmp
+      ultimately show "j\<in>jmps" 
+        by - (rule hyp_va [THEN conjunct1,rule_format (no_asm)], simp_all)
+    qed
     thus ?case by simp
   next
     case (Ass s0 va w f s1 e v s2 jmps T Env)
@@ -807,34 +737,30 @@ proof -
       by (elim wt_elim_cases)
     note hyp_v = \<open>PROP ?Hyp (In2 va) (Norm s0) s1 (In2 (w,f))\<close>
     note hyp_e = \<open>PROP ?Hyp (In1l e) s1 s2 (In1 v)\<close>
-    {
-      fix j
-      assume jmp: "abrupt (assign f v s2) = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        have "abrupt s2 = Some (Jump j)"
-        proof (cases "normal s2")
-          case True
-          from \<open>G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2\<close> and True have nrm_s1: "normal s1" 
-            by (rule eval_no_abrupt_lemma [rule_format]) 
-          with nrm_s1 wt_va G True
-          have "abrupt (f v s2) \<noteq> Some (Jump j)"
-            using hyp_v [THEN conjunct2,rule_format (no_asm)]
-            by simp
-          from this jmp
-          show ?thesis
-            by (rule assign_abrupt_propagation)
-        next
-          case False with jmp 
-          show ?thesis by (cases s2) (simp add: assign_def Let_def)
-        qed
-        moreover from wt_va G
-        have "?Jmp jmps s1"
-          by - (rule hyp_v [THEN conjunct1],simp_all)
-        ultimately show ?thesis using G 
-          by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all, rule wt_e)
+    have "j\<in>jmps" if jmp: "abrupt (assign f v s2) = Some (Jump j)" for j
+    proof -
+      have "abrupt s2 = Some (Jump j)"
+      proof (cases "normal s2")
+        case True
+        from \<open>G\<turnstile>s1 \<midarrow>e-\<succ>v\<rightarrow> s2\<close> and True have nrm_s1: "normal s1" 
+          by (rule eval_no_abrupt_lemma [rule_format]) 
+        with nrm_s1 wt_va G True
+        have "abrupt (f v s2) \<noteq> Some (Jump j)"
+          using hyp_v [THEN conjunct2,rule_format (no_asm)]
+          by simp
+        from this jmp
+        show ?thesis
+          by (rule assign_abrupt_propagation)
+      next
+        case False with jmp 
+        show ?thesis by (cases s2) (simp add: assign_def Let_def)
       qed
-    }
+      moreover from wt_va G
+      have "?Jmp jmps s1"
+        by - (rule hyp_v [THEN conjunct1],simp_all)
+      ultimately show ?thesis using G 
+        by - (rule hyp_e [THEN conjunct1,rule_format (no_asm)], simp_all, rule wt_e)
+    qed
     thus ?case by simp
   next
     case (Cond s0 e0 b s1 e1 e2 v s2 jmps T Env)
@@ -847,28 +773,24 @@ proof -
        and  wt_e1: "Env\<turnstile>e1\<Colon>-e1T"
        and  wt_e2: "Env\<turnstile>e2\<Colon>-e2T"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps" 
-      proof -
-        from wt_e0 G 
-        have jmp_s1: "?Jmp jmps s1"
-          by - (rule hyp_e0 [THEN conjunct1],simp_all)
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      from wt_e0 G 
+      have jmp_s1: "?Jmp jmps s1"
+        by - (rule hyp_e0 [THEN conjunct1],simp_all)
+      show ?thesis
+      proof (cases "the_Bool b")
+        case True
+        with jmp_s1 wt_e1 G jmp
         show ?thesis
-        proof (cases "the_Bool b")
-          case True
-          with jmp_s1 wt_e1 G jmp
-          show ?thesis
-            by-(rule hyp_e1_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
-        next
-          case False
-          with jmp_s1 wt_e2 G jmp
-          show ?thesis
-            by-(rule hyp_e1_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
-        qed
+          by-(rule hyp_e1_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
+      next
+        case False
+        with jmp_s1 wt_e2 G jmp
+        show ?thesis
+          by-(rule hyp_e1_e2 [THEN conjunct1,rule_format (no_asm)],simp_all)
       qed
-    }
+    qed
     thus ?case by simp
   next
     case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4
@@ -878,40 +800,35 @@ proof -
     obtain eT argsT 
       where wt_e: "Env\<turnstile>e\<Colon>-eT" and wt_args: "Env\<turnstile>args\<Colon>\<doteq>argsT"
       by (elim wt_elim_cases)
-    {
-      fix j
-      assume jmp: "abrupt ((set_lvars (locals (store s2))) s4) 
-                     = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if jmp: "abrupt ((set_lvars (locals (store s2))) s4) = Some (Jump j)" for j
+    proof -
+      note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 a)\<close>
+      from wt_e G 
+      have jmp_s1: "?Jmp jmps s1"
+        by - (rule hyp_e [THEN conjunct1],simp_all)
+      note hyp_args = \<open>PROP ?Hyp (In3 args) s1 s2 (In3 vs)\<close>
+      have "abrupt s2 = Some (Jump j)"
       proof -
-        note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 a)\<close>
-        from wt_e G 
-        have jmp_s1: "?Jmp jmps s1"
-          by - (rule hyp_e [THEN conjunct1],simp_all)
-        note hyp_args = \<open>PROP ?Hyp (In3 args) s1 s2 (In3 vs)\<close>
-        have "abrupt s2 = Some (Jump j)"
-        proof -
-          note \<open>G\<turnstile>s3' \<midarrow>Methd D \<lparr>name = mn, parTs = pTs\<rparr>-\<succ>v\<rightarrow> s4\<close>
-          moreover
-          from jmp have "abrupt s4 = Some (Jump j)"
-            by (cases s4) simp
-          ultimately have "abrupt s3' = Some (Jump j)"
-            by - (rule ccontr,drule (1) Methd_no_jump,simp)
-          moreover note \<open>s3' = check_method_access G accC statT mode 
+        note \<open>G\<turnstile>s3' \<midarrow>Methd D \<lparr>name = mn, parTs = pTs\<rparr>-\<succ>v\<rightarrow> s4\<close>
+        moreover
+        from jmp have "abrupt s4 = Some (Jump j)"
+          by (cases s4) simp
+        ultimately have "abrupt s3' = Some (Jump j)"
+          by - (rule ccontr,drule (1) Methd_no_jump,simp)
+        moreover note \<open>s3' = check_method_access G accC statT mode 
                               \<lparr>name = mn, parTs = pTs\<rparr> a s3\<close>
-          ultimately have "abrupt s3 = Some (Jump j)"
-            by (cases s3) 
-               (simp add: check_method_access_def abrupt_if_def Let_def)
-          moreover 
-          note \<open>s3 = init_lvars G D \<lparr>name=mn, parTs=pTs\<rparr> mode a vs s2\<close>
-          ultimately show ?thesis
-            by (cases s2) (auto simp add: init_lvars_def2)
-        qed
-        with jmp_s1 wt_args G
-        show ?thesis
-          by - (rule hyp_args [THEN conjunct1,rule_format (no_asm)], simp_all)
+        ultimately have "abrupt s3 = Some (Jump j)"
+          by (cases s3) 
+            (simp add: check_method_access_def abrupt_if_def Let_def)
+        moreover 
+        note \<open>s3 = init_lvars G D \<lparr>name=mn, parTs=pTs\<rparr> mode a vs s2\<close>
+        ultimately show ?thesis
+          by (cases s2) (auto simp add: init_lvars_def2)
       qed
-    }
+      with jmp_s1 wt_args G
+      show ?thesis
+        by - (rule hyp_args [THEN conjunct1,rule_format (no_asm)], simp_all)
+    qed
     thus ?case by simp
   next
     case (Methd s0 D sig v s1 jmps T Env)
@@ -952,45 +869,36 @@ proof -
         by simp
     qed
     note fvar = \<open>(v, s2') = fvar statDeclC stat fn a s2\<close>
-    {
-      fix j
-      assume jmp: "abrupt s3 = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if jmp: "abrupt s3 = Some (Jump j)" for j
+    proof -
+      note hyp_init = \<open>PROP ?Hyp (In1r (Init statDeclC)) (Norm s0) s1 \<diamondsuit>\<close>
+      have "?Jmp jmps s1"
+        by (rule hyp_init [THEN conjunct1]) (use G wt_init in auto)
+      moreover
+      note hyp_e = \<open>PROP ?Hyp (In1l e) s1 s2 (In1 a)\<close>
+      have "abrupt s2 = Some (Jump j)"
       proof -
-        note hyp_init = \<open>PROP ?Hyp (In1r (Init statDeclC)) (Norm s0) s1 \<diamondsuit>\<close>
-        from G wt_init 
-        have "?Jmp jmps s1"
-          by - (rule hyp_init [THEN conjunct1],auto)
-        moreover
-        note hyp_e = \<open>PROP ?Hyp (In1l e) s1 s2 (In1 a)\<close>
-        have "abrupt s2 = Some (Jump j)"
-        proof -
-          note \<open>s3 = check_field_access G accC statDeclC fn stat a s2'\<close>
-          with jmp have "abrupt s2' = Some (Jump j)"
-            by (cases s2') 
-               (simp add: check_field_access_def abrupt_if_def Let_def)
-         with fvar show "abrupt s2 =  Some (Jump j)"
-            by (cases s2) (simp add: fvar_def2 abrupt_if_def)
-        qed
-        ultimately show ?thesis
-          using G wt_e
-          by - (rule hyp_e [THEN conjunct1, rule_format (no_asm)],simp_all)
+        note \<open>s3 = check_field_access G accC statDeclC fn stat a s2'\<close>
+        with jmp have "abrupt s2' = Some (Jump j)"
+          by (cases s2') 
+            (simp add: check_field_access_def abrupt_if_def Let_def)
+        with fvar show "abrupt s2 =  Some (Jump j)"
+          by (cases s2) (simp add: fvar_def2 abrupt_if_def)
       qed
-    }
+      ultimately show ?thesis
+        using G wt_e
+        by - (rule hyp_e [THEN conjunct1, rule_format (no_asm)],simp_all)
+    qed
     moreover
     from fvar obtain upd w
       where upd: "upd = snd (fst (fvar statDeclC stat fn a s2))" and
               v: "v=(w,upd)"
       by (cases "fvar statDeclC stat fn a s2")
         (simp, use surjective_pairing in blast)
-    {
-      fix j val fix s::state
-      assume "normal s3"
-      assume no_jmp: "abrupt s \<noteq> Some (Jump j)"
-      with upd
-      have "abrupt (upd val s) \<noteq> Some (Jump j)"
-        by (rule fvar_upd_no_jump)
-    }
+    have "abrupt (upd val s) \<noteq> Some (Jump j)"
+      if "abrupt s \<noteq> Some (Jump j)"
+      for j val and s::state
+      using upd that by (rule fvar_upd_no_jump)
     ultimately show ?case using v by simp
   next
     case (AVar s0 e1 a s1 e2 i s2 v s2' jmps T Env)
@@ -1000,68 +908,56 @@ proof -
       wt_e1: "Env\<turnstile>e1\<Colon>-e1T" and wt_e2: "Env\<turnstile>e2\<Colon>-e2T"
       by  (elim wt_elim_cases) simp
     note avar = \<open>(v, s2') = avar G i a s2\<close>
-    {
-      fix j
-      assume jmp: "abrupt s2' = Some (Jump j)"
-      have "j\<in>jmps"
+    have "j\<in>jmps" if jmp: "abrupt s2' = Some (Jump j)" for j
+    proof -
+      note hyp_e1 = \<open>PROP ?Hyp (In1l e1) (Norm s0) s1 (In1 a)\<close>
+      from G wt_e1
+      have "?Jmp jmps s1"
+        by - (rule hyp_e1 [THEN conjunct1], auto)
+      moreover
+      note hyp_e2 = \<open>PROP ?Hyp (In1l e2) s1 s2 (In1 i)\<close>
+      have "abrupt s2 = Some (Jump j)"
       proof -
-        note hyp_e1 = \<open>PROP ?Hyp (In1l e1) (Norm s0) s1 (In1 a)\<close>
-        from G wt_e1
-        have "?Jmp jmps s1"
-          by - (rule hyp_e1 [THEN conjunct1], auto)
-        moreover
-        note hyp_e2 = \<open>PROP ?Hyp (In1l e2) s1 s2 (In1 i)\<close>
-        have "abrupt s2 = Some (Jump j)"
-        proof -
-          from avar have "s2' = snd (avar G i a s2)"
-            by (cases "avar G i a s2") simp
-          with jmp show ?thesis by - (rule avar_state_no_jump,simp) 
-        qed  
-        ultimately show ?thesis
-          using wt_e2 G
-          by - (rule hyp_e2 [THEN conjunct1, rule_format (no_asm)],simp_all)
-      qed
-    }
+        from avar have "s2' = snd (avar G i a s2)"
+          by (cases "avar G i a s2") simp
+        with jmp show ?thesis by - (rule avar_state_no_jump,simp) 
+      qed  
+      ultimately show ?thesis
+        using wt_e2 G
+        by - (rule hyp_e2 [THEN conjunct1, rule_format (no_asm)],simp_all)
+    qed
     moreover
     from avar obtain upd w
       where upd: "upd = snd (fst (avar G i a s2))" and
               v: "v=(w,upd)"
       by (cases "avar G i a s2")
         (simp, use surjective_pairing in blast)
-    {
-      fix j val fix s::state
-      assume "normal s2'"
-      assume no_jmp: "abrupt s \<noteq> Some (Jump j)"
-      with upd
-      have "abrupt (upd val s) \<noteq> Some (Jump j)"
-        by (rule avar_upd_no_jump)
-    }
+    have "abrupt (upd val s) \<noteq> Some (Jump j)" if "abrupt s \<noteq> Some (Jump j)"
+      for j val and s::state
+      using upd that by (rule avar_upd_no_jump)
     ultimately show ?case using v by simp
   next
-    case Nil thus ?case by simp
+    case Nil
+    thus ?case by simp
   next
     case (Cons s0 e v s1 es vs s2 jmps T Env)
     note G = \<open>prg Env = G\<close>
     from Cons.prems obtain eT esT
       where wt_e: "Env\<turnstile>e\<Colon>-eT" and wt_e2: "Env\<turnstile>es\<Colon>\<doteq>esT"
       by  (elim wt_elim_cases) simp
-    {
-      fix j
-      assume jmp: "abrupt s2 = Some (Jump j)"
-      have "j\<in>jmps"
-      proof -
-        note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
-        from G wt_e
-        have "?Jmp jmps s1"
-          by - (rule hyp_e [THEN conjunct1],simp_all)
-        moreover
-        note hyp_es = \<open>PROP ?Hyp (In3 es) s1 s2 (In3 vs)\<close>
-        ultimately show ?thesis
-          using wt_e2 G jmp
-          by - (rule hyp_es [THEN conjunct1, rule_format (no_asm)],
-                (assumption|simp (no_asm_simp))+)
-      qed
-    }
+    have "j\<in>jmps" if jmp: "abrupt s2 = Some (Jump j)" for j
+    proof -
+      note hyp_e = \<open>PROP ?Hyp (In1l e) (Norm s0) s1 (In1 v)\<close>
+      from G wt_e
+      have "?Jmp jmps s1"
+        by - (rule hyp_e [THEN conjunct1],simp_all)
+      moreover
+      note hyp_es = \<open>PROP ?Hyp (In3 es) s1 s2 (In3 vs)\<close>
+      ultimately show ?thesis
+        using wt_e2 G jmp
+        by - (rule hyp_es [THEN conjunct1, rule_format (no_asm)],
+            (assumption|simp (no_asm_simp))+)
+    qed
     thus ?case by simp
   qed
   note generalized = this
@@ -2243,379 +2139,376 @@ lemma assigns_if_good_approx:
 proof -
   \<comment> \<open>To properly perform induction on the evaluation relation we have to
         generalize the lemma to terms not only expressions.\<close>
-  { fix t val
-   assume eval': "prg Env\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (val,s1)"  
-   assume bool': "Env\<turnstile> t\<Colon>Inl (PrimT Boolean)"
-   assume expr:  "\<exists> expr. t=In1l expr"
-   have "assigns_if (the_Bool (the_In1 val)) (the_In1l t) 
-                \<subseteq> dom (locals (store s1))"
-   using eval' normal bool' expr
-   proof (induct)
-     case Abrupt thus ?case by simp
-   next
-     case (NewC s0 C s1 a s2)
-     from \<open>Env\<turnstile>NewC C\<Colon>-PrimT Boolean\<close>
-     have False 
-       by cases simp
-     thus ?case ..
-   next
-     case (NewA s0 T s1 e i s2 a s3)
-     from \<open>Env\<turnstile>New T[e]\<Colon>-PrimT Boolean\<close>
-     have False 
-       by cases simp
-     thus ?case ..
-   next
-     case (Cast s0 e b s1 s2 T)
-     note s2 = \<open>s2 = abupd (raise_if (\<not> prg Env,snd s1\<turnstile>b fits T) ClassCast) s1\<close>
-     have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))" 
-     proof -
-       from s2 and \<open>normal s2\<close>
-       have "normal s1"
-         by (cases s1) simp
-       moreover
-       from \<open>Env\<turnstile>Cast T e\<Colon>-PrimT Boolean\<close>
-       have "Env\<turnstile>e\<Colon>- PrimT Boolean" 
-         by cases (auto dest: cast_Boolean2)
-       ultimately show ?thesis 
-         by (rule Cast.hyps [elim_format]) auto
-     qed
-     also from s2 
-     have "\<dots> \<subseteq> dom (locals (store s2))"
-       by simp
-     finally show ?case by simp
-   next
-     case (Inst s0 e v s1 b T)
-     from \<open>prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close> and \<open>normal s1\<close>
-     have "assignsE e \<subseteq> dom (locals (store s1))"
-       by (rule assignsE_good_approx)
-     thus ?case
-       by simp
-   next
-     case (Lit s v)
-     from \<open>Env\<turnstile>Lit v\<Colon>-PrimT Boolean\<close>
-     have "typeof empty_dt v = Some (PrimT Boolean)"
-       by cases simp
-     then obtain b where "v=Bool b"
-       by (cases v) (simp_all add: empty_dt_def)
-     thus ?case
-       by simp
-   next
-     case (UnOp s0 e v s1 unop)
-     note bool = \<open>Env\<turnstile>UnOp unop e\<Colon>-PrimT Boolean\<close>
-     hence bool_e: "Env\<turnstile>e\<Colon>-PrimT Boolean" 
-       by cases (cases unop,simp_all)
-     show ?case
-     proof (cases "constVal (UnOp unop e)")
-       case None
-       note \<open>normal s1\<close>
-       moreover note bool_e
-       ultimately have "assigns_if (the_Bool v) e \<subseteq> dom (locals (store s1))"
-         by (rule UnOp.hyps [elim_format]) auto
-       moreover
-       from bool have "unop = UNot"
-         by cases (cases unop, simp_all)
-       moreover note None
-       ultimately 
-       have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) 
+  have generalized: "assigns_if (the_Bool (the_In1 val)) (the_In1l t) \<subseteq> dom (locals (store s1))"
+    if eval': "prg Env\<turnstile> s0 \<midarrow>t\<succ>\<rightarrow> (val,s1)"  
+      and bool': "Env\<turnstile> t\<Colon>Inl (PrimT Boolean)"
+      and expr:  "\<exists> expr. t=In1l expr"
+    for t val
+    using eval' normal bool' expr
+  proof (induct)
+    case Abrupt thus ?case by simp
+  next
+    case (NewC s0 C s1 a s2)
+    from \<open>Env\<turnstile>NewC C\<Colon>-PrimT Boolean\<close>
+    have False 
+      by cases simp
+    thus ?case ..
+  next
+    case (NewA s0 T s1 e i s2 a s3)
+    from \<open>Env\<turnstile>New T[e]\<Colon>-PrimT Boolean\<close>
+    have False 
+      by cases simp
+    thus ?case ..
+  next
+    case (Cast s0 e b s1 s2 T)
+    note s2 = \<open>s2 = abupd (raise_if (\<not> prg Env,snd s1\<turnstile>b fits T) ClassCast) s1\<close>
+    have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))" 
+    proof -
+      from s2 and \<open>normal s2\<close>
+      have "normal s1"
+        by (cases s1) simp
+      moreover
+      from \<open>Env\<turnstile>Cast T e\<Colon>-PrimT Boolean\<close>
+      have "Env\<turnstile>e\<Colon>- PrimT Boolean" 
+        by cases (auto dest: cast_Boolean2)
+      ultimately show ?thesis 
+        by (rule Cast.hyps [elim_format]) auto
+    qed
+    also from s2 
+    have "\<dots> \<subseteq> dom (locals (store s2))"
+      by simp
+    finally show ?case by simp
+  next
+    case (Inst s0 e v s1 b T)
+    from \<open>prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close> and \<open>normal s1\<close>
+    have "assignsE e \<subseteq> dom (locals (store s1))"
+      by (rule assignsE_good_approx)
+    thus ?case
+      by simp
+  next
+    case (Lit s v)
+    from \<open>Env\<turnstile>Lit v\<Colon>-PrimT Boolean\<close>
+    have "typeof empty_dt v = Some (PrimT Boolean)"
+      by cases simp
+    then obtain b where "v=Bool b"
+      by (cases v) (simp_all add: empty_dt_def)
+    thus ?case
+      by simp
+  next
+    case (UnOp s0 e v s1 unop)
+    note bool = \<open>Env\<turnstile>UnOp unop e\<Colon>-PrimT Boolean\<close>
+    hence bool_e: "Env\<turnstile>e\<Colon>-PrimT Boolean" 
+      by cases (cases unop,simp_all)
+    show ?case
+    proof (cases "constVal (UnOp unop e)")
+      case None
+      note \<open>normal s1\<close>
+      moreover note bool_e
+      ultimately have "assigns_if (the_Bool v) e \<subseteq> dom (locals (store s1))"
+        by (rule UnOp.hyps [elim_format]) auto
+      moreover
+      from bool have "unop = UNot"
+        by cases (cases unop, simp_all)
+      moreover note None
+      ultimately 
+      have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) 
               \<subseteq> dom (locals (store s1))"
-         by simp
-       thus ?thesis by simp
-     next
-       case (Some c)
-       moreover
-       from \<open>prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close>
-       have "prg Env\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>eval_unop unop v\<rightarrow> s1" 
-         by (rule eval.UnOp)
-       with Some
-       have "eval_unop unop v=c"
-         by (rule constVal_eval_elim) simp
-       moreover
-       from Some bool
-       obtain b where "c=Bool b"
-         by (rule constVal_Boolean [elim_format])
-            (cases c, simp_all add: empty_dt_def)
-       ultimately
-       have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) = {}"
-         by simp
-       thus ?thesis by simp
-     qed
-   next
-     case (BinOp s0 e1 v1 s1 binop e2 v2 s2)
-     note bool = \<open>Env\<turnstile>BinOp binop e1 e2\<Colon>-PrimT Boolean\<close>
-     show ?case
-     proof (cases "constVal (BinOp binop e1 e2)") 
-       case (Some c)
-       moreover
-       from BinOp.hyps
-       have
-         "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
-         by - (rule eval.BinOp) 
-       with Some
-       have "eval_binop binop v1 v2=c"
-         by (rule constVal_eval_elim) simp
-       moreover
-       from Some bool
-       obtain b where "c = Bool b"
-         by (rule constVal_Boolean [elim_format])
-            (cases c, simp_all add: empty_dt_def)
-       ultimately
-       have "assigns_if (the_Bool (eval_binop binop v1 v2)) (BinOp binop e1 e2) 
+        by simp
+      thus ?thesis by simp
+    next
+      case (Some c)
+      moreover
+      from \<open>prg Env\<turnstile>Norm s0 \<midarrow>e-\<succ>v\<rightarrow> s1\<close>
+      have "prg Env\<turnstile>Norm s0 \<midarrow>UnOp unop e-\<succ>eval_unop unop v\<rightarrow> s1" 
+        by (rule eval.UnOp)
+      with Some
+      have "eval_unop unop v=c"
+        by (rule constVal_eval_elim) simp
+      moreover
+      from Some bool
+      obtain b where "c=Bool b"
+        by (rule constVal_Boolean [elim_format])
+          (cases c, simp_all add: empty_dt_def)
+      ultimately
+      have "assigns_if (the_Bool (eval_unop unop v)) (UnOp unop e) = {}"
+        by simp
+      thus ?thesis by simp
+    qed
+  next
+    case (BinOp s0 e1 v1 s1 binop e2 v2 s2)
+    note bool = \<open>Env\<turnstile>BinOp binop e1 e2\<Colon>-PrimT Boolean\<close>
+    show ?case
+    proof (cases "constVal (BinOp binop e1 e2)") 
+      case (Some c)
+      moreover
+      from BinOp.hyps
+      have
+        "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
+        by - (rule eval.BinOp) 
+      with Some
+      have "eval_binop binop v1 v2=c"
+        by (rule constVal_eval_elim) simp
+      moreover
+      from Some bool
+      obtain b where "c = Bool b"
+        by (rule constVal_Boolean [elim_format])
+          (cases c, simp_all add: empty_dt_def)
+      ultimately
+      have "assigns_if (the_Bool (eval_binop binop v1 v2)) (BinOp binop e1 e2) 
              = {}"
-         by simp 
-       thus ?thesis by simp
-     next
-       case None
-       show ?thesis
-       proof (cases "binop=CondAnd \<or> binop=CondOr")
-         case True
-         from bool obtain bool_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
-                          bool_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
-           using True by cases auto
-         have "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s1))"
-         proof -
-           from BinOp have "normal s1"
-             by - (erule eval_no_abrupt_lemma [rule_format])
-           from this bool_e1
-           show ?thesis
-             by (rule BinOp.hyps [elim_format]) auto
-         qed
-         also
-         from BinOp.hyps
-         have "\<dots> \<subseteq> dom (locals (store s2))"
-           by - (erule dom_locals_eval_mono_elim,simp)
-         finally
-         have e1_s2: "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s2))".
-         from True show ?thesis
-         proof
-           assume condAnd: "binop = CondAnd"
-           show ?thesis
-           proof (cases "the_Bool (eval_binop binop v1 v2)")
-             case True
-             with condAnd 
-             have need_second: "need_second_arg binop v1"
-               by (simp add: need_second_arg_def)
-             from \<open>normal s2\<close>
-             have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-               by (rule BinOp.hyps [elim_format]) 
-                  (simp add: need_second bool_e2)+
-             with e1_s2
-             have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+        by simp 
+      thus ?thesis by simp
+    next
+      case None
+      show ?thesis
+      proof (cases "binop=CondAnd \<or> binop=CondOr")
+        case True
+        from bool obtain bool_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
+          bool_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
+          using True by cases auto
+        have "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s1))"
+        proof -
+          from BinOp have "normal s1"
+            by - (erule eval_no_abrupt_lemma [rule_format])
+          from this bool_e1
+          show ?thesis
+            by (rule BinOp.hyps [elim_format]) auto
+        qed
+        also
+        from BinOp.hyps
+        have "\<dots> \<subseteq> dom (locals (store s2))"
+          by - (erule dom_locals_eval_mono_elim,simp)
+        finally
+        have e1_s2: "assigns_if (the_Bool v1) e1 \<subseteq> dom (locals (store s2))".
+        from True show ?thesis
+        proof
+          assume condAnd: "binop = CondAnd"
+          show ?thesis
+          proof (cases "the_Bool (eval_binop binop v1 v2)")
+            case True
+            with condAnd 
+            have need_second: "need_second_arg binop v1"
+              by (simp add: need_second_arg_def)
+            from \<open>normal s2\<close>
+            have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+              by (rule BinOp.hyps [elim_format]) 
+                (simp add: need_second bool_e2)+
+            with e1_s2
+            have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
                     \<subseteq> dom (locals (store s2))"
-               by (rule Un_least)
-             with True condAnd None show ?thesis
-               by simp
-           next
-             case False
-             note binop_False = this
-             show ?thesis
-             proof (cases "need_second_arg binop v1")
-               case True
-               with binop_False condAnd
-               obtain "the_Bool v1=True" and "the_Bool v2 = False"
-                 by (simp add: need_second_arg_def)
-               moreover
-               from \<open>normal s2\<close>
-               have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-                 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
-               with e1_s2
-               have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+              by (rule Un_least)
+            with True condAnd None show ?thesis
+              by simp
+          next
+            case False
+            note binop_False = this
+            show ?thesis
+            proof (cases "need_second_arg binop v1")
+              case True
+              with binop_False condAnd
+              obtain "the_Bool v1=True" and "the_Bool v2 = False"
+                by (simp add: need_second_arg_def)
+              moreover
+              from \<open>normal s2\<close>
+              have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+                by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
+              with e1_s2
+              have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
                       \<subseteq> dom (locals (store s2))"
-                 by (rule Un_least)
-               moreover note binop_False condAnd None
-               ultimately show ?thesis
-                 by auto
-             next
-               case False
-               with binop_False condAnd
-               have "the_Bool v1=False"
-                 by (simp add: need_second_arg_def)
-               with e1_s2 
-               show ?thesis
-                 using binop_False condAnd None by auto
-             qed
-           qed
-         next
-           assume condOr: "binop = CondOr"
-           show ?thesis
-           proof (cases "the_Bool (eval_binop binop v1 v2)")
-             case False
-             with condOr 
-             have need_second: "need_second_arg binop v1"
-               by (simp add: need_second_arg_def)
-             from \<open>normal s2\<close>
-             have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-               by (rule BinOp.hyps [elim_format]) 
-                  (simp add: need_second bool_e2)+
-             with e1_s2
-             have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+                by (rule Un_least)
+              moreover note binop_False condAnd None
+              ultimately show ?thesis
+                by auto
+            next
+              case False
+              with binop_False condAnd
+              have "the_Bool v1=False"
+                by (simp add: need_second_arg_def)
+              with e1_s2 
+              show ?thesis
+                using binop_False condAnd None by auto
+            qed
+          qed
+        next
+          assume condOr: "binop = CondOr"
+          show ?thesis
+          proof (cases "the_Bool (eval_binop binop v1 v2)")
+            case False
+            with condOr 
+            have need_second: "need_second_arg binop v1"
+              by (simp add: need_second_arg_def)
+            from \<open>normal s2\<close>
+            have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+              by (rule BinOp.hyps [elim_format]) 
+                (simp add: need_second bool_e2)+
+            with e1_s2
+            have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
                     \<subseteq> dom (locals (store s2))"
-               by (rule Un_least)
-             with False condOr None show ?thesis
-               by simp
-           next
-             case True
-             note binop_True = this
-             show ?thesis
-             proof (cases "need_second_arg binop v1")
-               case True
-               with binop_True condOr
-               obtain "the_Bool v1=False" and "the_Bool v2 = True"
-                 by (simp add: need_second_arg_def)
-               moreover
-               from \<open>normal s2\<close>
-               have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
-                 by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
-               with e1_s2
-               have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
+              by (rule Un_least)
+            with False condOr None show ?thesis
+              by simp
+          next
+            case True
+            note binop_True = this
+            show ?thesis
+            proof (cases "need_second_arg binop v1")
+              case True
+              with binop_True condOr
+              obtain "the_Bool v1=False" and "the_Bool v2 = True"
+                by (simp add: need_second_arg_def)
+              moreover
+              from \<open>normal s2\<close>
+              have "assigns_if (the_Bool v2) e2 \<subseteq> dom (locals (store s2))"
+                by (rule BinOp.hyps [elim_format]) (simp add: True bool_e2)+
+              with e1_s2
+              have "assigns_if (the_Bool v1) e1 \<union> assigns_if (the_Bool v2) e2
                       \<subseteq> dom (locals (store s2))"
-                 by (rule Un_least)
-               moreover note binop_True condOr None
-               ultimately show ?thesis
-                 by auto
-             next
-               case False
-               with binop_True condOr
-               have "the_Bool v1=True"
-                 by (simp add: need_second_arg_def)
-               with e1_s2 
-               show ?thesis
-                 using binop_True condOr None by auto
-             qed
-           qed
-         qed  
-       next
-         case False
-         note \<open>\<not> (binop = CondAnd \<or> binop = CondOr)\<close>
-         from BinOp.hyps
-         have
-           "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
-           by - (rule eval.BinOp)  
-         moreover note \<open>normal s2\<close>
-         ultimately
-         have "assignsE (BinOp binop e1 e2) \<subseteq> dom (locals (store s2))"
-           by (rule assignsE_good_approx)
-         with False None
-         show ?thesis 
-           by simp
-       qed
-     qed
-   next     
-     case Super 
-     note \<open>Env\<turnstile>Super\<Colon>-PrimT Boolean\<close>
-     hence False 
-       by cases simp
-     thus ?case ..
-   next
-     case (Acc s0 va v f s1)
-     from \<open>prg Env\<turnstile>Norm s0 \<midarrow>va=\<succ>(v, f)\<rightarrow> s1\<close> and \<open>normal s1\<close>
-     have "assignsV va \<subseteq> dom (locals (store s1))"
-       by (rule assignsV_good_approx)
-     thus ?case by simp
-   next
-     case (Ass s0 va w f s1 e v s2)
-     hence "prg Env\<turnstile>Norm s0 \<midarrow>va := e-\<succ>v\<rightarrow> assign f v s2"
-       by - (rule eval.Ass)
-     moreover note \<open>normal (assign f v s2)\<close>
-     ultimately 
-     have "assignsE (va := e) \<subseteq> dom (locals (store (assign f v s2)))"
-       by (rule assignsE_good_approx)
-     thus ?case by simp
-   next
-     case (Cond s0 e0 b s1 e1 e2 v s2)
-     from \<open>Env\<turnstile>e0 ? e1 : e2\<Colon>-PrimT Boolean\<close>
-     obtain wt_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
-            wt_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
-       by cases (auto dest: widen_Boolean2)
-     note eval_e0 = \<open>prg Env\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1\<close>
-     have e0_s2: "assignsE e0 \<subseteq> dom (locals (store s2))"
-     proof -
-       note eval_e0 
-       moreover
-       from Cond.hyps and \<open>normal s2\<close> have "normal s1"
-         by - (erule eval_no_abrupt_lemma [rule_format],simp)
-       ultimately
-       have "assignsE e0 \<subseteq> dom (locals (store s1))"
-         by (rule assignsE_good_approx)
-       also
-       from Cond
-       have "\<dots> \<subseteq> dom (locals (store s2))"
-         by - (erule dom_locals_eval_mono [elim_format],simp)
-       finally show ?thesis .
-     qed
-     show ?case
-     proof (cases "constVal e0")
-       case None
-       have "assigns_if (the_Bool v) e1 \<inter>  assigns_if (the_Bool v) e2 
+                by (rule Un_least)
+              moreover note binop_True condOr None
+              ultimately show ?thesis
+                by auto
+            next
+              case False
+              with binop_True condOr
+              have "the_Bool v1=True"
+                by (simp add: need_second_arg_def)
+              with e1_s2 
+              show ?thesis
+                using binop_True condOr None by auto
+            qed
+          qed
+        qed  
+      next
+        case False
+        note \<open>\<not> (binop = CondAnd \<or> binop = CondOr)\<close>
+        from BinOp.hyps
+        have
+          "prg Env\<turnstile>Norm s0 \<midarrow>BinOp binop e1 e2-\<succ>eval_binop binop v1 v2\<rightarrow> s2"
+          by - (rule eval.BinOp)  
+        moreover note \<open>normal s2\<close>
+        ultimately
+        have "assignsE (BinOp binop e1 e2) \<subseteq> dom (locals (store s2))"
+          by (rule assignsE_good_approx)
+        with False None
+        show ?thesis 
+          by simp
+      qed
+    qed
+  next     
+    case Super 
+    note \<open>Env\<turnstile>Super\<Colon>-PrimT Boolean\<close>
+    hence False 
+      by cases simp
+    thus ?case ..
+  next
+    case (Acc s0 va v f s1)
+    from \<open>prg Env\<turnstile>Norm s0 \<midarrow>va=\<succ>(v, f)\<rightarrow> s1\<close> and \<open>normal s1\<close>
+    have "assignsV va \<subseteq> dom (locals (store s1))"
+      by (rule assignsV_good_approx)
+    thus ?case by simp
+  next
+    case (Ass s0 va w f s1 e v s2)
+    hence "prg Env\<turnstile>Norm s0 \<midarrow>va := e-\<succ>v\<rightarrow> assign f v s2"
+      by - (rule eval.Ass)
+    moreover note \<open>normal (assign f v s2)\<close>
+    ultimately 
+    have "assignsE (va := e) \<subseteq> dom (locals (store (assign f v s2)))"
+      by (rule assignsE_good_approx)
+    thus ?case by simp
+  next
+    case (Cond s0 e0 b s1 e1 e2 v s2)
+    from \<open>Env\<turnstile>e0 ? e1 : e2\<Colon>-PrimT Boolean\<close>
+    obtain wt_e1: "Env\<turnstile>e1\<Colon>-PrimT Boolean" and
+      wt_e2: "Env\<turnstile>e2\<Colon>-PrimT Boolean"
+      by cases (auto dest: widen_Boolean2)
+    note eval_e0 = \<open>prg Env\<turnstile>Norm s0 \<midarrow>e0-\<succ>b\<rightarrow> s1\<close>
+    have e0_s2: "assignsE e0 \<subseteq> dom (locals (store s2))"
+    proof -
+      note eval_e0 
+      moreover
+      from Cond.hyps and \<open>normal s2\<close> have "normal s1"
+        by - (erule eval_no_abrupt_lemma [rule_format],simp)
+      ultimately
+      have "assignsE e0 \<subseteq> dom (locals (store s1))"
+        by (rule assignsE_good_approx)
+      also
+      from Cond
+      have "\<dots> \<subseteq> dom (locals (store s2))"
+        by - (erule dom_locals_eval_mono [elim_format],simp)
+      finally show ?thesis .
+    qed
+    show ?case
+    proof (cases "constVal e0")
+      case None
+      have "assigns_if (the_Bool v) e1 \<inter>  assigns_if (the_Bool v) e2 
               \<subseteq> dom (locals (store s2))"
-       proof (cases "the_Bool b")
-         case True
-         from \<open>normal s2\<close>
-         have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"    
-           by (rule Cond.hyps [elim_format]) (simp_all add: wt_e1 True)
-         thus ?thesis
-           by blast
-       next
-         case False
-         from \<open>normal s2\<close>
-         have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
-           by (rule Cond.hyps [elim_format]) (simp_all add: wt_e2 False)
-         thus ?thesis
-           by blast
-       qed
-       with e0_s2
-       have "assignsE e0 \<union> 
+      proof (cases "the_Bool b")
+        case True
+        from \<open>normal s2\<close>
+        have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"    
+          by (rule Cond.hyps [elim_format]) (simp_all add: wt_e1 True)
+        thus ?thesis
+          by blast
+      next
+        case False
+        from \<open>normal s2\<close>
+        have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
+          by (rule Cond.hyps [elim_format]) (simp_all add: wt_e2 False)
+        thus ?thesis
+          by blast
+      qed
+      with e0_s2
+      have "assignsE e0 \<union> 
              (assigns_if (the_Bool v) e1 \<inter>  assigns_if (the_Bool v) e2)
                \<subseteq> dom (locals (store s2))"
-         by (rule Un_least)
-       with None show ?thesis
-         by simp
-     next
-       case (Some c)
-       from this eval_e0 have eq_b_c: "b=c" 
-         by (rule constVal_eval_elim) 
-       show ?thesis
-       proof (cases "the_Bool c")
-         case True
-         from \<open>normal s2\<close>
-         have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"
-           by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c True wt_e1)
-         with e0_s2
-         have "assignsE e0 \<union> assigns_if (the_Bool v) e1  \<subseteq> \<dots>"
-           by (rule Un_least)
-         with Some True show ?thesis
-           by simp
-       next
-         case False
-         from \<open>normal s2\<close>
-         have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
-           by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c False wt_e2)
-         with e0_s2
-         have "assignsE e0 \<union> assigns_if (the_Bool v) e2  \<subseteq> \<dots>"
-           by (rule Un_least)
-         with Some False show ?thesis
-           by simp
-       qed
-     qed
-   next
-     case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4)
-     hence
-     "prg Env\<turnstile>Norm s0 \<midarrow>({accC,statT,mode}e\<cdot>mn( {pTs}args))-\<succ>v\<rightarrow> 
+        by (rule Un_least)
+      with None show ?thesis
+        by simp
+    next
+      case (Some c)
+      from this eval_e0 have eq_b_c: "b=c" 
+        by (rule constVal_eval_elim) 
+      show ?thesis
+      proof (cases "the_Bool c")
+        case True
+        from \<open>normal s2\<close>
+        have "assigns_if (the_Bool v) e1 \<subseteq> dom (locals (store s2))"
+          by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c True wt_e1)
+        with e0_s2
+        have "assignsE e0 \<union> assigns_if (the_Bool v) e1  \<subseteq> \<dots>"
+          by (rule Un_least)
+        with Some True show ?thesis
+          by simp
+      next
+        case False
+        from \<open>normal s2\<close>
+        have "assigns_if (the_Bool v) e2 \<subseteq> dom (locals (store s2))"    
+          by (rule Cond.hyps [elim_format]) (simp_all add: eq_b_c False wt_e2)
+        with e0_s2
+        have "assignsE e0 \<union> assigns_if (the_Bool v) e2  \<subseteq> \<dots>"
+          by (rule Un_least)
+        with Some False show ?thesis
+          by simp
+      qed
+    qed
+  next
+    case (Call s0 e a s1 args vs s2 D mode statT mn pTs s3 s3' accC v s4)
+    hence
+      "prg Env\<turnstile>Norm s0 \<midarrow>({accC,statT,mode}e\<cdot>mn( {pTs}args))-\<succ>v\<rightarrow> 
                        (set_lvars (locals (store s2)) s4)"
-       by - (rule eval.Call)
-     hence "assignsE ({accC,statT,mode}e\<cdot>mn( {pTs}args)) 
+      by - (rule eval.Call)
+    hence "assignsE ({accC,statT,mode}e\<cdot>mn( {pTs}args)) 
               \<subseteq>  dom (locals (store ((set_lvars (locals (store s2))) s4)))"
-       using \<open>normal ((set_lvars (locals (snd s2))) s4)\<close>
-       by (rule assignsE_good_approx)
-     thus ?case by simp
-   next
-     case Methd show ?case by simp
-   next
-     case Body show ?case by simp
-   qed simp+ \<comment> \<open>all the statements and variables\<close>
- }
- note generalized = this
- from eval bool show ?thesis
-   by (rule generalized [elim_format]) simp+
+      using \<open>normal ((set_lvars (locals (snd s2))) s4)\<close>
+      by (rule assignsE_good_approx)
+    thus ?case by simp
+  next
+    case Methd show ?case by simp
+  next
+    case Body show ?case by simp
+  qed simp_all \<comment> \<open>all the statements and variables\<close>
+  from eval bool show ?thesis
+    by (rule generalized [elim_format]) simp+
 qed
 
 lemma assigns_if_good_approx': 
@@ -2731,19 +2624,16 @@ proof -
     moreover 
     have "?BreakAssigned (Norm s0) (abupd (absorb j) s1) A"
     proof -
-      {
-        fix l'
-        assume break: "abrupt (abupd (absorb j) s1) = Some (Jump (Break l'))"
-        with j 
-        have "l\<noteq>l'"
+      have "(brk A l' \<subseteq> dom (locals (store (abupd (absorb j) s1))))"
+        if break: "abrupt (abupd (absorb j) s1) = Some (Jump (Break l'))" for l'
+      proof -
+        from j that have "l\<noteq>l'"
           by (cases s1) (auto dest!: absorb_Some_JumpD)
         hence "(rmlab l (brk C)) l'= (brk C) l'"
-          by (simp)
-        with break brk_c A
-        have 
-          "(brk A l' \<subseteq> dom (locals (store (abupd (absorb j) s1))))"
+          by simp
+        with break brk_c A show ?thesis
           by (cases s1) auto
-      }
+      qed
       then show ?thesis
         by simp
     qed
@@ -3399,74 +3289,68 @@ proof -
       qed
     qed
     moreover
-    {
-      fix l assume brk_s3: "abrupt s3 = Some (Jump (Break l))"
-      have "brk A l \<subseteq> dom (locals (store s3))"
-      proof (cases "normal s2")
-        case True
-        with brk_s3 s3 
-        have s2_s3: "dom (locals (store s2)) \<subseteq> dom (locals (store s3))"
+    have "brk A l \<subseteq> dom (locals (store s3))" if brk_s3: "abrupt s3 = Some (Jump (Break l))" for l
+    proof (cases "normal s2")
+      case True
+      with brk_s3 s3 
+      have s2_s3: "dom (locals (store s2)) \<subseteq> dom (locals (store s3))"
+        by simp
+      have "brk C1 l \<subseteq> dom (locals (store s3))"
+      proof -
+        from True brk_s3 s3 have "x1=Some (Jump (Break l))"
+          by (cases s2) (simp add: abrupt_if_def)
+        with brkAss_C1 s1_s2 s2_s3
+        show ?thesis
           by simp
-        have "brk C1 l \<subseteq> dom (locals (store s3))"
-        proof -
-          from True brk_s3 s3 have "x1=Some (Jump (Break l))"
-            by (cases s2) (simp add: abrupt_if_def)
-          with brkAss_C1 s1_s2 s2_s3
-          show ?thesis
-            by simp
-        qed
-        moreover from True nrmAss_C2 s2_s3
-        have "nrm C2 \<subseteq> dom (locals (store s3))"
-          by - (rule subset_trans, simp_all)
-        ultimately 
-        have "((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) l \<subseteq> \<dots>"
-          by blast
-        with brk_A show ?thesis
-          by simp blast
-      next
-        case False
-        note not_normal_s2 = this
-        have "s3=s2"
-        proof (cases "normal (x1,s1)")
-          case True with not_normal_s2 s3 show ?thesis
-            by (cases s2) (simp add: abrupt_if_def)
-        next
-          case False with not_normal_s2 s3 brk_s3 show ?thesis
-            by (cases s2) (simp add: abrupt_if_def)
-        qed
-        with brkAss_C2 brk_s3
-        have "brk C2 l \<subseteq> dom (locals (store s3))"
-          by simp
-        with brk_A show ?thesis
-          by simp blast
       qed
-    }
+      moreover from True nrmAss_C2 s2_s3
+      have "nrm C2 \<subseteq> dom (locals (store s3))"
+        by - (rule subset_trans, simp_all)
+      ultimately 
+      have "((brk C1) \<Rightarrow>\<union>\<^sub>\<forall> (nrm C2)) l \<subseteq> \<dots>"
+        by blast
+      with brk_A show ?thesis
+        by simp blast
+    next
+      case False
+      note not_normal_s2 = this
+      have "s3=s2"
+      proof (cases "normal (x1,s1)")
+        case True with not_normal_s2 s3 show ?thesis
+          by (cases s2) (simp add: abrupt_if_def)
+      next
+        case False with not_normal_s2 s3 brk_s3 show ?thesis
+          by (cases s2) (simp add: abrupt_if_def)
+      qed
+      with brkAss_C2 brk_s3
+      have "brk C2 l \<subseteq> dom (locals (store s3))"
+        by simp
+      with brk_A show ?thesis
+        by simp blast
+    qed
     hence "?BreakAssigned (Norm s0) s3 A"
       by simp
     moreover
-    {
-      assume abr_s3: "abrupt s3 = Some (Jump Ret)"
-      have "Result \<in> dom (locals (store s3))"
-      proof (cases "x1 = Some (Jump Ret)")
-        case True
-        note ret_x1 = this
-        with resAss_s1 have res_s1: "Result \<in> dom (locals s1)"
-          by simp
-        moreover have "dom (locals (store ((Norm s1)::state))) 
+    have "Result \<in> dom (locals (store s3))" if abr_s3: "abrupt s3 = Some (Jump Ret)"
+    proof (cases "x1 = Some (Jump Ret)")
+      case True
+      note ret_x1 = this
+      with resAss_s1 have res_s1: "Result \<in> dom (locals s1)"
+        by simp
+      moreover have "dom (locals (store ((Norm s1)::state))) 
                          \<subseteq> dom (locals (store s2))"
-          by (rule dom_locals_eval_mono_elim) (rule Fin.hyps)
-        ultimately have "Result \<in> dom (locals (store s2))"
-          by - (rule subsetD,auto)
-        with res_s1 s3 show ?thesis
-          by simp
-      next
-        case False
-        with s3 abr_s3 obtain  "abrupt s2 = Some (Jump Ret)" and "s3=s2"
-          by (cases s2) (simp add: abrupt_if_def)
-        with resAss_s2 show ?thesis
-          by simp
-      qed
-    }
+        by (rule dom_locals_eval_mono_elim) (rule Fin.hyps)
+      ultimately have "Result \<in> dom (locals (store s2))"
+        by - (rule subsetD,auto)
+      with res_s1 s3 show ?thesis
+        by simp
+    next
+      case False
+      with s3 abr_s3 obtain  "abrupt s2 = Some (Jump Ret)" and "s3=s2"
+        by (cases s2) (simp add: abrupt_if_def)
+      with resAss_s2 show ?thesis
+        by simp
+    qed
     hence "?ResAssigned (Norm s0) s3"
       by simp
     ultimately show ?case by (intro conjI)
@@ -3547,21 +3431,19 @@ proof -
     with A have "?NormalAssigned s2 A"
       by simp
     moreover
-    {
-      fix j have "abrupt s2 \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile> Norm s0 \<midarrow>NewC C-\<succ>Addr a\<rightarrow> s2"
-          unfolding G by (rule eval.NewC NewC.hyps)+
-        from NewC.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with NewC.prems have "Env\<turnstile>NewC C\<Colon>-T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    }
+    have "abrupt s2 \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile> Norm s0 \<midarrow>NewC C-\<succ>Addr a\<rightarrow> s2"
+        unfolding G by (rule eval.NewC NewC.hyps)+
+      from NewC.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with NewC.prems have "Env\<turnstile>NewC C\<Colon>-T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s2 A" and "?ResAssigned (Norm s0) s2"
       by simp_all      
     ultimately show ?case by (intro conjI)
@@ -3612,21 +3494,19 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s3 \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile> Norm s0 \<midarrow>New elT[e]-\<succ>Addr a\<rightarrow> s3"
-          unfolding G by (rule eval.NewA NewA.hyps)+
-        from NewA.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with NewA.prems have "Env\<turnstile>New elT[e]\<Colon>-T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    }
+    have "abrupt s3 \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile> Norm s0 \<midarrow>New elT[e]-\<succ>Addr a\<rightarrow> s3"
+        unfolding G by (rule eval.NewA NewA.hyps)+
+      from NewA.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with NewA.prems have "Env\<turnstile>New elT[e]\<Colon>-T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s3 A" and "?ResAssigned (Norm s0) s3"
       by simp_all
     ultimately show ?case by (intro conjI)
@@ -3657,21 +3537,19 @@ proof -
         by blast
     qed
     moreover
-    {
-      fix j have "abrupt s2 \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile> Norm s0 \<midarrow>Cast cT e-\<succ>v\<rightarrow> s2"
-          unfolding G by (rule eval.Cast Cast.hyps)+
-        from Cast.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with Cast.prems have "Env\<turnstile>Cast cT e\<Colon>-T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    }
+    have "abrupt s2 \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile> Norm s0 \<midarrow>Cast cT e-\<succ>v\<rightarrow> s2"
+        unfolding G by (rule eval.Cast Cast.hyps)+
+      from Cast.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with Cast.prems have "Env\<turnstile>Cast cT e\<Colon>-T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s2 A" and "?ResAssigned (Norm s0) s2"
       by simp_all
     ultimately show ?case by (intro conjI)
@@ -3852,17 +3730,15 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s2 \<noteq> Some (Jump j)"
-      proof -
-        from BinOp.prems T 
-        have "Env\<turnstile>In1l (BinOp binop e1 e2)\<Colon>Inl (PrimT (binop_type binop))"
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf) 
-      qed
-    }
+    have "abrupt s2 \<noteq> Some (Jump j)" for j
+    proof -
+      from BinOp.prems T 
+      have "Env\<turnstile>In1l (BinOp binop e1 e2)\<Colon>Inl (PrimT (binop_type binop))"
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf) 
+    qed
     hence "?BreakAssigned (Norm s0) s2 A" and "?ResAssigned (Norm s0) s2"
       by simp_all
     ultimately show ?case by (intro conjI) 
@@ -3998,21 +3874,19 @@ proof -
         finally show ?thesis .
       qed
     qed
-    moreover 
-    {
-      fix j have "abrupt (assign upd v s2) \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile>Norm s0 \<midarrow>var:=e-\<succ>v\<rightarrow> (assign upd v s2)"
-          by (simp only: G) (rule eval.Ass Ass.hyps)+
-        from Ass.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with Ass.prems have "Env\<turnstile>var:=e\<Colon>-T'" by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    }
+    moreover
+    have "abrupt (assign upd v s2) \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile>Norm s0 \<midarrow>var:=e-\<succ>v\<rightarrow> (assign upd v s2)"
+        by (simp only: G) (rule eval.Ass Ass.hyps)+
+      from Ass.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with Ass.prems have "Env\<turnstile>var:=e\<Colon>-T'" by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) (assign upd v s2) A"
       and "?ResAssigned (Norm s0) (assign upd v s2)"       
       by simp_all
@@ -4122,20 +3996,18 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s2 \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<rightarrow> s2"
-          unfolding G by (rule eval.Cond Cond.hyps)+
-        from Cond.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with Cond.prems have "Env\<turnstile>e0 ? e1 : e2\<Colon>-T'" by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    } 
+    have "abrupt s2 \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile>Norm s0 \<midarrow>e0 ? e1 : e2-\<succ>v\<rightarrow> s2"
+        unfolding G by (rule eval.Cond Cond.hyps)+
+      from Cond.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with Cond.prems have "Env\<turnstile>e0 ? e1 : e2\<Colon>-T'" by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s2 A" and "?ResAssigned (Norm s0) s2"
       by simp_all
     ultimately show ?case by (intro conjI)
@@ -4192,22 +4064,20 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt (restore_lvars s2 s4) \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile>Norm s0 \<midarrow>({accC,statT,mode}e\<cdot>mn( {pTs}args))-\<succ>v
+    have "abrupt (restore_lvars s2 s4) \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile>Norm s0 \<midarrow>({accC,statT,mode}e\<cdot>mn( {pTs}args))-\<succ>v
                             \<rightarrow> (restore_lvars s2 s4)"
-          unfolding G by (rule eval.Call Call)+
-        from Call.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with Call.prems have "Env\<turnstile>({accC,statT,mode}e\<cdot>mn( {pTs}args))\<Colon>-T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_no_jump) (simp_all add: G wf)
-      qed
-    } 
+        unfolding G by (rule eval.Call Call)+
+      from Call.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with Call.prems have "Env\<turnstile>({accC,statT,mode}e\<cdot>mn( {pTs}args))\<Colon>-T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) (restore_lvars s2 s4) A"
       and "?ResAssigned (Norm s0) (restore_lvars s2 s4)"
       by simp_all
@@ -4312,23 +4182,21 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s3 \<noteq> Some (Jump j)"
-      proof -
-        obtain w upd where v: "(w,upd)=v"
-          by (cases v) auto
-        have eval: "prg Env\<turnstile>Norm s0\<midarrow>({accC,statDeclC,stat}e..fn)=\<succ>(w,upd)\<rightarrow>s3"
-          by (simp only: G v) (rule eval.FVar FVar.hyps)+
-        from FVar.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with FVar.prems have "Env\<turnstile>({accC,statDeclC,stat}e..fn)\<Colon>=T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_var_no_jump [THEN conjunct1]) (simp_all add: G wf)
-      qed
-    } 
+    have "abrupt s3 \<noteq> Some (Jump j)" for j
+    proof -
+      obtain w upd where v: "(w,upd)=v"
+        by (cases v) auto
+      have eval: "prg Env\<turnstile>Norm s0\<midarrow>({accC,statDeclC,stat}e..fn)=\<succ>(w,upd)\<rightarrow>s3"
+        by (simp only: G v) (rule eval.FVar FVar.hyps)+
+      from FVar.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with FVar.prems have "Env\<turnstile>({accC,statDeclC,stat}e..fn)\<Colon>=T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_var_no_jump [THEN conjunct1]) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s3 A" and "?ResAssigned (Norm s0) s3"
       by simp_all
     ultimately show ?case by (intro conjI)
@@ -4378,23 +4246,21 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s2' \<noteq> Some (Jump j)"
-      proof -
-        obtain w upd where v: "(w,upd)=v"
-          by (cases v) auto
-        have eval: "prg Env\<turnstile>Norm s0\<midarrow>(e1.[e2])=\<succ>(w,upd)\<rightarrow>s2'"
-          unfolding G v by (rule eval.AVar AVar.hyps)+
-        from AVar.prems 
-        obtain T' where  "T=Inl T'"
-          by (elim wt_elim_cases) simp
-        with AVar.prems have "Env\<turnstile>(e1.[e2])\<Colon>=T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_var_no_jump [THEN conjunct1]) (simp_all add: G wf)
-      qed
-    } 
+    have "abrupt s2' \<noteq> Some (Jump j)" for j
+    proof -
+      obtain w upd where v: "(w,upd)=v"
+        by (cases v) auto
+      have eval: "prg Env\<turnstile>Norm s0\<midarrow>(e1.[e2])=\<succ>(w,upd)\<rightarrow>s2'"
+        unfolding G v by (rule eval.AVar AVar.hyps)+
+      from AVar.prems 
+      obtain T' where  "T=Inl T'"
+        by (elim wt_elim_cases) simp
+      with AVar.prems have "Env\<turnstile>(e1.[e2])\<Colon>=T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_var_no_jump [THEN conjunct1]) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s2' A" and "?ResAssigned (Norm s0) s2'"
       by simp_all
     ultimately show ?case by (intro conjI)
@@ -4438,21 +4304,19 @@ proof -
       qed
     qed
     moreover
-    {
-      fix j have "abrupt s2 \<noteq> Some (Jump j)"
-      proof -
-        have eval: "prg Env\<turnstile>Norm s0\<midarrow>(e # es)\<doteq>\<succ>v#vs\<rightarrow>s2"
-          unfolding G by (rule eval.Cons Cons.hyps)+
-        from Cons.prems 
-        obtain T' where  "T=Inr T'"
-          by (elim wt_elim_cases) simp
-        with Cons.prems have "Env\<turnstile>(e # es)\<Colon>\<doteq>T'" 
-          by simp
-        from eval _ this
-        show ?thesis
-          by (rule eval_expression_list_no_jump) (simp_all add: G wf)
-      qed
-    } 
+    have "abrupt s2 \<noteq> Some (Jump j)" for j
+    proof -
+      have eval: "prg Env\<turnstile>Norm s0\<midarrow>(e # es)\<doteq>\<succ>v#vs\<rightarrow>s2"
+        unfolding G by (rule eval.Cons Cons.hyps)+
+      from Cons.prems 
+      obtain T' where  "T=Inr T'"
+        by (elim wt_elim_cases) simp
+      with Cons.prems have "Env\<turnstile>(e # es)\<Colon>\<doteq>T'" 
+        by simp
+      from eval _ this
+      show ?thesis
+        by (rule eval_expression_list_no_jump) (simp_all add: G wf)
+    qed
     hence "?BreakAssigned (Norm s0) s2 A" and "?ResAssigned (Norm s0) s2"
       by simp_all
     ultimately show ?case by (intro conjI)

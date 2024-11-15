@@ -1019,9 +1019,8 @@ proof (induct set: members)
        (auto simp add: declared_in_def cdeclaredmethd_def cdeclaredfield_def)
 next
   case (Inherited m C S)  
-  assume "G\<turnstile>C\<prec>\<^sub>C1S" and "is_class G S"
-  then show "is_class G C"
-    by - (rule subcls_is_class2,auto)
+  show "is_class G C" if "G\<turnstile>C\<prec>\<^sub>C1S" and "is_class G S"
+    by (rule subcls_is_class2) (use that in auto)
 qed
 
 lemma member_of_declC: 
@@ -2336,13 +2335,13 @@ lemma subclsEval:
   shows "D\<in>superclasses G C" using clsrel cls_C
 proof (induct arbitrary: c rule: converse_trancl_induct)
   case (base C)
-  with ws wf show ?case
-    by (auto intro: no_subcls1_Object simp add: superclasses_rec subcls1_def)
+  show ?case
+    by (use ws wf base in \<open>auto intro: no_subcls1_Object simp add: superclasses_rec subcls1_def\<close>)
 next
   case (step C S)
-  with ws wf show ?case
-    by - (rule superclasses_mono,
-          auto dest: no_subcls1_Object simp add: subcls1_def )
+  show ?case
+    by (rule superclasses_mono)
+      (use ws wf step in \<open>auto dest: no_subcls1_Object simp add: subcls1_def\<close>)
 qed
 
 end

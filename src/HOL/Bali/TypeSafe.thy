@@ -1614,87 +1614,73 @@ proof -
     from eval_e1 have 
       s0_s1:"dom (locals (store s0)) \<subseteq> dom (locals (store s1))"
       by (rule dom_locals_eval_mono_elim)
-    {
-      assume condAnd: "binop=CondAnd"
-      have ?thesis
-      proof -
-        from da obtain E2' where
-          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
-             \<turnstile> dom (locals (store s0)) \<union> assigns_if True e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
-          by cases (simp add: condAnd)+
-        moreover
-        have "dom (locals (store s0)) 
-          \<union> assigns_if True e1 \<subseteq> dom (locals (store s1))"
-        proof -
-          from condAnd wt_binop have e1T: "e1T=PrimT Boolean"
-            by simp
-          with normal_s1 conf_v1 obtain b where "v1=Bool b"
-            by (auto dest: conf_Boolean)
-          with True condAnd
-          have v1: "v1=Bool True"
-            by simp
-          from eval_e1 normal_s1 
-          have "assigns_if True e1 \<subseteq> dom (locals (store s1))"
-            by (rule assigns_if_good_approx' [elim_format])
-               (insert wt_e1, simp_all add: e1T v1)
-          with s0_s1 show ?thesis by (rule Un_least)
-        qed
-        ultimately
-        show ?thesis
-          using that by (cases rule: da_weakenE) (simp add: True)
-      qed
-    }
-    moreover
-    { 
-      assume condOr: "binop=CondOr"
-      have ?thesis
-        (* Beweis durch Analogie/Example/Pattern?, True\<rightarrow>False; And\<rightarrow>Or *)
-      proof -
-        from da obtain E2' where
-          "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
-              \<turnstile> dom (locals (store s0)) \<union> assigns_if False e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
-          by cases (simp add: condOr)+
-        moreover
-        have "dom (locals (store s0)) 
-                     \<union> assigns_if False e1 \<subseteq> dom (locals (store s1))"
-        proof -
-          from condOr wt_binop have e1T: "e1T=PrimT Boolean"
-            by simp
-          with normal_s1 conf_v1 obtain b where "v1=Bool b"
-            by (auto dest: conf_Boolean)
-          with True condOr
-          have v1: "v1=Bool False"
-            by simp
-          from eval_e1 normal_s1 
-          have "assigns_if False e1 \<subseteq> dom (locals (store s1))"
-            by (rule assigns_if_good_approx' [elim_format])
-               (insert wt_e1, simp_all add: e1T v1)
-          with s0_s1 show ?thesis by (rule Un_least)
-        qed
-        ultimately
-        show ?thesis
-          using that by (rule da_weakenE) (simp add: True)
-      qed
-    }
-    moreover
-    {
-      assume notAndOr: "binop\<noteq>CondAnd" "binop\<noteq>CondOr"
-      have ?thesis
-      proof -
-        from da notAndOr obtain E1' where
-          da_e1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
-                  \<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>e1\<rangle>\<^sub>e\<guillemotright> E1'"
-          and da_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> nrm E1' \<guillemotright>In1l e2\<guillemotright> A"
-          by cases simp+
-        from eval_e1 wt_e1 da_e1 wf normal_s1 
-        have "nrm E1' \<subseteq> dom (locals (store s1))"
-          by (cases rule: da_good_approxE') iprover
-        with da_e2 show ?thesis
-          using that by (rule da_weakenE) (simp add: True)
-      qed
-    }
-    ultimately show ?thesis
+    consider (condAnd) "binop=CondAnd" | (condOr) "binop=CondOr" | (notAndOr) "binop\<noteq>CondAnd" "binop\<noteq>CondOr"
       by (cases binop) auto
+    then show ?thesis
+    proof cases
+      case condAnd
+      from da obtain E2' where
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+             \<turnstile> dom (locals (store s0)) \<union> assigns_if True e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
+        by cases (simp add: condAnd)+
+      moreover
+      have "dom (locals (store s0)) 
+          \<union> assigns_if True e1 \<subseteq> dom (locals (store s1))"
+      proof -
+        from condAnd wt_binop have e1T: "e1T=PrimT Boolean"
+          by simp
+        with normal_s1 conf_v1 obtain b where "v1=Bool b"
+          by (auto dest: conf_Boolean)
+        with True condAnd
+        have v1: "v1=Bool True"
+          by simp
+        from eval_e1 normal_s1 
+        have "assigns_if True e1 \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx' [elim_format])
+            (insert wt_e1, simp_all add: e1T v1)
+        with s0_s1 show ?thesis by (rule Un_least)
+      qed
+      ultimately show ?thesis
+        using that by (cases rule: da_weakenE) (simp add: True)
+    next
+      case condOr
+        (* Beweis durch Analogie/Example/Pattern?, True\<rightarrow>False; And\<rightarrow>Or *)
+      from da obtain E2' where
+        "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+              \<turnstile> dom (locals (store s0)) \<union> assigns_if False e1 \<guillemotright>\<langle>e2\<rangle>\<^sub>e\<guillemotright> E2'"
+        by cases (simp add: condOr)+
+      moreover
+      have "dom (locals (store s0)) 
+                     \<union> assigns_if False e1 \<subseteq> dom (locals (store s1))"
+      proof -
+        from condOr wt_binop have e1T: "e1T=PrimT Boolean"
+          by simp
+        with normal_s1 conf_v1 obtain b where "v1=Bool b"
+          by (auto dest: conf_Boolean)
+        with True condOr
+        have v1: "v1=Bool False"
+          by simp
+        from eval_e1 normal_s1 
+        have "assigns_if False e1 \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx' [elim_format])
+            (insert wt_e1, simp_all add: e1T v1)
+        with s0_s1 show ?thesis by (rule Un_least)
+      qed
+      ultimately show ?thesis
+        using that by (rule da_weakenE) (simp add: True)
+    next
+      case notAndOr
+      from da notAndOr obtain E1' where
+        da_e1: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
+                  \<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>e1\<rangle>\<^sub>e\<guillemotright> E1'"
+        and da_e2: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> nrm E1' \<guillemotright>In1l e2\<guillemotright> A"
+        by cases simp+
+      from eval_e1 wt_e1 da_e1 wf normal_s1 
+      have "nrm E1' \<subseteq> dom (locals (store s1))"
+        by (cases rule: da_good_approxE') iprover
+      with da_e2 show ?thesis
+        using that by (rule da_weakenE) (simp add: True)
+    qed
   qed
   thus ?thesis ..
 qed
@@ -2503,20 +2489,18 @@ proof -
     from error_free_s1 s2
     have error_free_s2: "error_free s2"
       by simp
-    {
-      assume norm_s2: "normal s2"
-      have "G,L,store s2\<turnstile>In1l (Cast castT e)\<succ>In1 v\<Colon>\<preceq>T"
-      proof -
-        from s2 norm_s2 have "normal s1"
-          by (cases s1) simp
-        with v_ok 
-        have "G,store s1\<turnstile>v\<Colon>\<preceq>eT"
-          by simp
-        with eT wf s2 T norm_s2
-        show ?thesis
-          by (cases s1) (auto dest: fits_conf)
-      qed
-    }
+    have "G,L,store s2\<turnstile>In1l (Cast castT e)\<succ>In1 v\<Colon>\<preceq>T"
+      if norm_s2: "normal s2"
+    proof -
+      from s2 norm_s2 have "normal s1"
+        by (cases s1) simp
+      with v_ok 
+      have "G,store s1\<turnstile>v\<Colon>\<preceq>eT"
+        by simp
+      with eT wf s2 T norm_s2
+      show ?thesis
+        by (cases s1) (auto dest: fits_conf)
+    qed
     with conf_s2 error_free_s2
     show "s2\<Colon>\<preceq>(G, L) \<and> 
            (normal s2 \<longrightarrow> G,L,store s2\<turnstile>In1l (Cast castT e)\<succ>In1 v\<Colon>\<preceq>T)  \<and>
@@ -2700,24 +2684,22 @@ proof -
       da_v: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In2 v\<guillemotright> V"
       by (cases "\<exists> n. v=LVar n") (insert da.LVar, auto elim!: da_elim_cases)
-    {
-      fix n assume lvar: "v=LVar n"
-      have "locals (store s1) n \<noteq> None"
+    have lvar_in_locals: "locals (store s1) n \<noteq> None"
+      if lvar: "v=LVar n" for n
+    proof -
+      from Acc.prems lvar have 
+        "n \<in> dom (locals s0)"
+        by (cases "\<exists> n. v=LVar n") (auto elim!: da_elim_cases)
+      also
+      have "dom (locals s0) \<subseteq> dom (locals (store s1))"
       proof -
-        from Acc.prems lvar have 
-          "n \<in> dom (locals s0)"
-          by (cases "\<exists> n. v=LVar n") (auto elim!: da_elim_cases)
-        also
-        have "dom (locals s0) \<subseteq> dom (locals (store s1))"
-        proof -
-          from \<open>G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1\<close>
-          show ?thesis
-            by (rule dom_locals_eval_mono_elim) simp
-        qed
-        finally show ?thesis
-          by blast
+        from \<open>G\<turnstile>Norm s0 \<midarrow>v=\<succ>(w, upd)\<rightarrow> s1\<close>
+        show ?thesis
+          by (rule dom_locals_eval_mono_elim) simp
       qed
-    } note lvar_in_locals = this 
+      finally show ?thesis
+        by blast
+    qed
     from conf_s0 wt_v da_v
     obtain conf_s1: "s1\<Colon>\<preceq>(G, L)"
       and  conf_var: "(normal s1 \<longrightarrow> G,L,store s1\<turnstile>In2 v\<succ>In2 (w, upd)\<Colon>\<preceq>Inl vT)"
@@ -3018,28 +3000,26 @@ proof -
            conf_a: "normal s1 \<Longrightarrow> G, store s1\<turnstile>a\<Colon>\<preceq>RefT statT" and
            error_free_s1: "error_free s1" 
       by (rule hyp_e [elim_format]) simp
-    { 
-      assume abnormal_s2: "\<not> normal s2"
-      have "set_lvars (locals (store s2)) s4 = s2"
-      proof -
-        from abnormal_s2 init_lvars 
-        obtain keep_abrupt: "abrupt s3 = abrupt s2" and
-             "store s3 = store (init_lvars G invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> 
+    have propagate_abnormal_s2: "set_lvars (locals (store s2)) s4 = s2"
+      if abnormal_s2: "\<not> normal s2"
+    proof -
+      from abnormal_s2 init_lvars 
+      obtain keep_abrupt: "abrupt s3 = abrupt s2" and
+        "store s3 = store (init_lvars G invDeclC \<lparr>name = mn, parTs = pTs'\<rparr> 
                                             mode a vs s2)" 
-          by (auto simp add: init_lvars_def2)
-        moreover
-        from keep_abrupt abnormal_s2 check
-        have eq_s3'_s3: "s3'=s3" 
-          by (auto simp add: check_method_access_def Let_def)
-        moreover
-        from eq_s3'_s3 abnormal_s2 keep_abrupt eval_methd
-        have "s4=s3'"
-          by auto
-        ultimately show
-          "set_lvars (locals (store s2)) s4 = s2"
-          by (cases s2,cases s3) (simp add: init_lvars_def2)
-      qed
-    } note propagate_abnormal_s2 = this
+        by (auto simp add: init_lvars_def2)
+      moreover
+      from keep_abrupt abnormal_s2 check
+      have eq_s3'_s3: "s3'=s3" 
+        by (auto simp add: check_method_access_def Let_def)
+      moreover
+      from eq_s3'_s3 abnormal_s2 keep_abrupt eval_methd
+      have "s4=s3'"
+        by auto
+      ultimately show
+        "set_lvars (locals (store s2)) s4 = s2"
+        by (cases s2,cases s3) (simp add: init_lvars_def2)
+    qed
     show "(set_lvars (locals (store s2))) s4\<Colon>\<preceq>(G, L) \<and>
            (normal ((set_lvars (locals (store s2))) s4) \<longrightarrow>
              G,L,store ((set_lvars (locals (store s2))) s4)
@@ -3419,26 +3399,24 @@ proof -
         by force
     qed
     moreover
-    {
-      assume normal_upd_s2:  "normal (abupd (absorb Ret) s2)"
-      have "Result \<in> dom (locals (store s2))"
-      proof -
-        from normal_upd_s2
-        have "normal s2 \<or> abrupt s2 = Some (Jump Ret)"
-          by (cases s2) (simp add: absorb_def)
-        thus ?thesis
-        proof 
-          assume "normal s2"
-          with eval_c wt_c da_C' wf res nrm_C'
-          show ?thesis
-            by (cases rule: da_good_approxE') blast
-        next
-          assume "abrupt s2 = Some (Jump Ret)"
-          with conf_s2 show ?thesis
-            by (cases s2) (auto dest: conforms_RetD simp add: dom_def)
-        qed 
-      qed
-    }
+    have "Result \<in> dom (locals (store s2))"
+      if normal_upd_s2:  "normal (abupd (absorb Ret) s2)"
+    proof -
+      from normal_upd_s2
+      have "normal s2 \<or> abrupt s2 = Some (Jump Ret)"
+        by (cases s2) (simp add: absorb_def)
+      thus ?thesis
+      proof 
+        assume "normal s2"
+        with eval_c wt_c da_C' wf res nrm_C'
+        show ?thesis
+          by (cases rule: da_good_approxE') blast
+      next
+        assume "abrupt s2 = Some (Jump Ret)"
+        with conf_s2 show ?thesis
+          by (cases s2) (auto dest: conforms_RetD simp add: dom_def)
+      qed 
+    qed
     moreover note T resultT
     ultimately
     show "abupd (absorb Ret) s3\<Colon>\<preceq>(G, L) \<and>
@@ -3939,29 +3917,27 @@ proof -
     from wt_c1 da_c1
     have P_c1: "P L accC (Norm s0) \<langle>c1\<rangle>\<^sub>s \<diamondsuit> s1"
       by (rule Comp.hyps)
-    {
-      fix Q
-      assume normal_s1: "normal s1"
-      assume elim: "\<And> C2'. 
+    have thesis
+      if normal_s1: "normal s1"
+      and elim: "\<And> C2'.
                     \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile>dom (locals (store s1))\<guillemotright>\<langle>c2\<rangle>\<^sub>s\<guillemotright>C2';
-                       P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2\<rbrakk> \<Longrightarrow> Q"
-      have Q
+                       P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2\<rbrakk> \<Longrightarrow> thesis"
+      for thesis
+    proof -
+      obtain C2' where 
+        da: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<^sub>s\<guillemotright> C2'"
       proof -
-        obtain C2' where 
-          da: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>c2\<rangle>\<^sub>s\<guillemotright> C2'"
-        proof -
-          from eval_c1 wt_c1 da_c1 wf normal_s1
-          have "nrm C1 \<subseteq> dom (locals (store s1))"
-            by (cases rule: da_good_approxE') iprover
-          with da_c2 show thesis
-            by (rule da_weakenE) (rule that)
-        qed
-        with wt_c2 have "P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2"
-          by (rule Comp.hyps)
-        with da show ?thesis
-          using elim by iprover
+        from eval_c1 wt_c1 da_c1 wf normal_s1
+        have "nrm C1 \<subseteq> dom (locals (store s1))"
+          by (cases rule: da_good_approxE') iprover
+        with da_c2 show thesis
+          by (rule da_weakenE) (rule that)
       qed
-    }
+      with wt_c2 have "P L accC s1 \<langle>c2\<rangle>\<^sub>s \<diamondsuit> s2"
+        by (rule Comp.hyps)
+      with da show ?thesis
+        using elim by iprover
+    qed
     with eval_c1 eval_c2 wt_c1 wt_c2 da_c1 P_c1 
     show ?case
       by (rule comp) iprover+
@@ -3985,39 +3961,37 @@ proof -
     from wt_e da_e
     have P_e: "P L accC (Norm s0) \<langle>e\<rangle>\<^sub>e \<lfloor>b\<rfloor>\<^sub>e s1"
       by (rule If.hyps)
-    {
-      fix Q
-      assume normal_s1: "normal s1"
-      assume elim: "\<And> C. \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))
-                                   \<guillemotright>\<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s\<guillemotright> C;
-                              P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2
-                              \<rbrakk> \<Longrightarrow> Q"
-      have Q
-      proof -
-        obtain C' where
-          da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
+    have thesis
+      if normal_s1: "normal s1"
+      and elim: "\<And> C. \<lbrakk>\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> (dom (locals (store s1)))
+                             \<guillemotright>\<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s\<guillemotright> C;
+                        P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2
+                        \<rbrakk> \<Longrightarrow> thesis"
+    for thesis
+    proof -
+      obtain C' where
+        da: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>\<turnstile> 
                 (dom (locals (store s1)))\<guillemotright>\<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<guillemotright> C'"
-        proof -
-          from eval_e have 
-            "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
-            by (rule dom_locals_eval_mono_elim)
-          moreover
-          from eval_e normal_s1 wt_e 
-          have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-            by (rule assigns_if_good_approx')
-          ultimately 
-          have "dom (locals (store ((Norm s0)::state))) 
+      proof -
+        from eval_e have 
+          "dom (locals (store ((Norm s0)::state))) \<subseteq> dom (locals (store s1))"
+          by (rule dom_locals_eval_mono_elim)
+        moreover
+        from eval_e normal_s1 wt_e 
+        have "assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
+          by (rule assigns_if_good_approx')
+        ultimately 
+        have "dom (locals (store ((Norm s0)::state))) 
             \<union> assigns_if (the_Bool b) e \<subseteq> dom (locals (store s1))"
-            by (rule Un_least)
-          with da_then_else show thesis
-            by (rule da_weakenE) (rule that)
-        qed
-        with wt_then_else
-        have "P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2"
-          by (rule If.hyps)
-        with da show ?thesis using elim by iprover
+          by (rule Un_least)
+        with da_then_else show thesis
+          by (rule da_weakenE) (rule that)
       qed
-    }
+      with wt_then_else
+      have "P L accC s1 \<langle>if the_Bool b then c1 else c2\<rangle>\<^sub>s \<diamondsuit> s2"
+        by (rule If.hyps)
+      with da show ?thesis using elim by iprover
+    qed
     with eval_e eval_then_else wt_e wt_then_else da_e P_e
     show ?case
       by (rule "if") iprover+

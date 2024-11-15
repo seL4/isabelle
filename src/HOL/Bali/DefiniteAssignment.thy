@@ -974,7 +974,7 @@ proof -
       by (elim wt_elim_cases) simp
     with BinOp.hyps
     show ?case
-      by - (cases binop, auto simp add: assignsE_const_simp)
+      by (cases binop) (auto simp add: assignsE_const_simp)
   next
     case (Cond c e1 e2)
     note hyp_c = \<open>?Boolean c \<Longrightarrow> ?Incl c\<close>
@@ -1073,12 +1073,9 @@ proof -
     then 
     have "nrm C \<inter> brk C l \<subseteq> nrm C' \<inter> brk C' l" by auto
     moreover
-    {
-      fix l'
-      from hyp_brk
-      have "rmlab l (brk C) l'  \<subseteq> rmlab l (brk C') l'"
-        by  (cases "l=l'") simp_all
-    }
+    from hyp_brk
+    have "rmlab l (brk C) l'  \<subseteq> rmlab l (brk C') l'" for l'
+      by  (cases "l=l'") simp_all
     moreover note A A'
     ultimately show ?case
       by simp
@@ -1143,20 +1140,18 @@ proof -
     have "nrm A \<subseteq> nrm A'"
       by blast
     moreover
-    { fix l'
-      have  "brk A l' \<subseteq> brk A' l'"
-      proof (cases "constVal e")
-        case None
-        with A A' C' 
-        show ?thesis
-           by (cases "l=l'") auto
-      next
-        case (Some bv)
-        with A A' C'
-        show ?thesis
-          by (cases "the_Bool bv", cases "l=l'") auto
-      qed
-    }
+    have  "brk A l' \<subseteq> brk A' l'" for l'
+    proof (cases "constVal e")
+      case None
+      with A A' C' 
+      show ?thesis
+        by (cases "l=l'") auto
+    next
+      case (Some bv)
+      with A A' C'
+      show ?thesis
+        by (cases "the_Bool bv", cases "l=l'") auto
+    qed
     ultimately show ?case
       by auto
   next

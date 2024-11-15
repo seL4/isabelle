@@ -888,12 +888,12 @@ valid evaluation of these terms
 
 lemma eval_Callee: "G\<turnstile>Norm s\<midarrow>Callee l e-\<succ>v\<rightarrow> s' = False"
 proof -
-  { fix s t v s'
-    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
-         normal: "normal s" and
-         callee: "t=In1l (Callee l e)"
-    then have "False" by induct auto
-  }  
+  have False
+    if eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')"
+    and normal: "normal s"
+    and callee: "t=In1l (Callee l e)"
+    for s t v s'
+    using that by induct auto
   then show ?thesis
     by (cases s') fastforce
 qed
@@ -901,36 +901,36 @@ qed
 
 lemma eval_InsInitE: "G\<turnstile>Norm s\<midarrow>InsInitE c e-\<succ>v\<rightarrow> s' = False"
 proof -
-  { fix s t v s'
-    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
-         normal: "normal s" and
-         callee: "t=In1l (InsInitE c e)"
-    then have "False" by induct auto
-  }
+  have "False"
+    if eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')"
+    and normal: "normal s"
+    and callee: "t=In1l (InsInitE c e)"
+    for s t v s'
+    using that by induct auto
   then show ?thesis
     by (cases s') fastforce
 qed
 
 lemma eval_InsInitV: "G\<turnstile>Norm s\<midarrow>InsInitV c w=\<succ>v\<rightarrow> s' = False"
 proof -
-  { fix s t v s'
-    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
-         normal: "normal s" and
-         callee: "t=In2 (InsInitV c w)"
-    then have "False" by induct auto
-  }  
+  have "False"
+    if eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')"
+    and normal: "normal s"
+    and callee: "t=In2 (InsInitV c w)"
+    for s t v s'
+    using that by induct auto
   then show ?thesis
     by (cases s') fastforce
 qed
 
 lemma eval_FinA: "G\<turnstile>Norm s\<midarrow>FinA a c\<rightarrow> s' = False"
 proof -
-  { fix s t v s'
-    assume eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')" and
-         normal: "normal s" and
-         callee: "t=In1r (FinA a c)"
-    then have "False" by induct auto
-  }  
+  have "False"
+    if eval: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v,s')"
+    and normal: "normal s"
+    and callee: "t=In1r (FinA a c)"
+    for s t v s'
+    using that by induct auto
   then show ?thesis
     by (cases s') fastforce 
 qed
