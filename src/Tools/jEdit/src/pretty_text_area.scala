@@ -42,7 +42,14 @@ class Pretty_Text_Area(
   private var current_base_results = Command.Results.empty
   private var current_rendering: JEdit_Rendering =
     JEdit_Rendering(current_base_snapshot, Nil, Command.Results.empty)
-  private var future_refresh: Option[Future[Unit]] = None
+
+  private val future_refresh = Synchronized[Option[Future[Unit]]](None)
+  private def fork_refresh(body: => Unit): Future[Unit] =
+    future_refresh.change_result({ old =>
+      old.foreach(_.cancel())
+      val future = Future.fork(body)
+      (future, Some(future))
+    })
 
   private val rich_text_area =
     new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
@@ -93,9 +100,8 @@ class Pretty_Text_Area(
       val snapshot = current_base_snapshot
       val results = current_base_results
 
-      future_refresh.foreach(_.cancel())
-      future_refresh =
-        Some(Future.fork {
+      lazy val current_refresh: Future[Unit] = fork_refresh(
+        {
           val (rich_texts, rendering) =
             try {
               val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.cache)
@@ -109,15 +115,7 @@ class Pretty_Text_Area(
             }
 
           GUI_Thread.later {
-            val current_metric = JEdit_Lib.font_metric(getPainter)
-            val current_margin = Rich_Text.component_margin(current_metric, getPainter)
-            if (true || // FIXME
-                metric == current_metric &&
-                margin == current_margin &&
-                output == current_output &&
-                snapshot == current_base_snapshot &&
-                results == current_base_results
-            ) {
+            if (future_refresh.value.contains(current_refresh)) {
               current_rendering = rendering
 
               val scroll_bottom = JEdit_Lib.scrollbar_bottom(pretty_text_area)
@@ -137,6 +135,7 @@ class Pretty_Text_Area(
             }
           }
         })
+      current_refresh
     }
   }
 
