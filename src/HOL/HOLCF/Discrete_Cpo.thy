@@ -1,10 +1,10 @@
-(*  Title:      HOL/HOLCF/Discrete.thy
+(*  Title:      HOL/HOLCF/Discrete_Cpo.thy
     Author:     Tobias Nipkow
 *)
 
 section \<open>Discrete cpo types\<close>
 
-theory Discrete
+theory Discrete_Cpo
   imports Cont
 begin
 
