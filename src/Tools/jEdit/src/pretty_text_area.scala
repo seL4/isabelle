@@ -21,7 +21,7 @@ import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
-import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
+import org.gjt.sp.jedit.textarea.JEditEmbeddedTextArea
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
 import org.gjt.sp.util.{SyntaxUtilities, Log}
@@ -63,10 +63,8 @@ class Pretty_Text_Area(
   def refresh(): Unit = {
     GUI_Thread.require {}
 
-    val font = current_font_info.font
-    getPainter.setFont(font)
-    getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
-    getPainter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
+    getPainter.setFont(current_font_info.font)
+    JEdit_Lib.init_font_context(view, getPainter)
     getPainter.setStyles(
       SyntaxUtilities.loadStyles(current_font_info.family, current_font_info.size.round))
     getPainter.setLineExtraSpacing(jEdit.getIntegerProperty("options.textarea.lineSpacing", 0))
