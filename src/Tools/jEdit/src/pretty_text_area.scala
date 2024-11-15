@@ -251,6 +251,7 @@ class Pretty_Text_Area(
 
         case KeyEvent.VK_ESCAPE =>
           if (Isabelle.dismissed_popups(view)) evt.consume()
+          else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 
         case _ =>
       }
