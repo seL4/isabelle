@@ -106,7 +106,6 @@ object Component_JEdit {
     component_path: Path,
     version: String,
     original: Boolean = false,
-    java_home: Path = default_java_home,
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.require_command("ant", test = "-version")
@@ -172,8 +171,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       progress.echo("Building jEdit ...")
       Isabelle_System.copy_dir(source_dir, tmp_source_dir)
-      progress.bash("env JAVA_HOME=" + File.bash_platform_path(java_home) + " ant",
-        cwd = tmp_source_dir, echo = true).check
+      progress.bash("ant", cwd = tmp_source_dir, echo = true).check
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
 
       val java_sources =
@@ -506,14 +504,12 @@ https://sourceforge.net/projects/jedit-plugins/files
   /** Isabelle tool wrappers **/
 
   val default_version = "5.7.0"
-  def default_java_home: Path = Path.explode("$JAVA_HOME").expand
 
   val isabelle_tool =
     Isabelle_Tool("component_jedit", "build Isabelle component from the jEdit text-editor",
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var java_home = default_java_home
         var original = false
         var version = default_version
 
@@ -522,14 +518,12 @@ Usage: isabelle component_jedit [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -J JAVA_HOME Java version for building jedit.jar (e.g. version 11)
     -O           retain copy of original jEdit directory
     -V VERSION   jEdit version (default: """ + quote(default_version) + """)
 
   Build auxiliary jEdit component from original sources, with some patches.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "J:" -> (arg => java_home = Path.explode(arg)),
           "O" -> (_ => original = true),
           "V:" -> (arg => version = arg))
 
@@ -539,7 +533,6 @@ Usage: isabelle component_jedit [OPTIONS]
         val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
         val progress = new Console_Progress()
 
-        build_jedit(component_dir, version, original = original,
-          java_home = java_home, progress = progress)
+        build_jedit(component_dir, version, original = original, progress = progress)
       })
 }

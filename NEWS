@@ -140,9 +140,7 @@ improved as follows:
     C-modifier.
 
 * An active highlight area in the input buffer or output panel may be
-turned into a text selection by using the ALT modifier. Together with
-SHIFT modifier, an existing selection is augmented (otherwise it is
-reset).
+turned into a text selection by using the ALT modifier.
 
 * The "Documentation" panel supports plain text files again, notably
 "jedit-changes". This was broken in Isabelle2022, Isabelle2023,

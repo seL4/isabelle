@@ -12,6 +12,7 @@ import isabelle._
 import java.io.{File => JFile}
 import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
+import java.awt.font.FontRenderContext
 import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
@@ -22,7 +23,7 @@ import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
 import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection, AntiAlias}
 
 
 object JEdit_Lib {
@@ -294,12 +295,24 @@ object JEdit_Lib {
   }
 
 
-  /* graphics range */
+  /* font */
+
+  def init_font_context(view: View, painter: TextAreaPainter): Unit = {
+    painter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+    painter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
+    val old = painter.getFontRenderContext
+    Untyped.set[FontRenderContext](painter, "fontRenderContext",
+      new FontRenderContext(view.getGraphicsConfiguration.getDefaultTransform,
+        old.getAntiAliasingHint, old.getFractionalMetricsHint))
+  }
 
   def font_metric(painter: TextAreaPainter): Font_Metric =
     new Font_Metric(
       font = painter.getFont,
       context = painter.getFontRenderContext)
+
+
+  /* graphics range */
 
   case class Gfx_Range(x: Int, y: Int, length: Int)
 
