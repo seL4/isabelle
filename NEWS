@@ -146,6 +146,10 @@ turned into a text selection by using the ALT modifier.
 "jedit-changes". This was broken in Isabelle2022, Isabelle2023,
 Isabelle2024.
 
+* Text rendering performance on macOS may be improved by using old
+OpenGL instead of new Metal. This is controlled by the java command-line
+option "-Dsun.java2d.metal=false", which is now the default.
+
 * Update to jEdit 5.7.0, the latest release.
 
 
