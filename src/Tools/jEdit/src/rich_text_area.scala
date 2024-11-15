@@ -285,6 +285,7 @@ class Rich_Text_Area(
                 if (JEdit_Lib.alt_modifier(evt)) {
                   highlight_area.info.map(_.range) match {
                     case Some(range) =>
+                      text_area.requestFocus()
                       text_area.selectNone()
                       text_area.addToSelection(new Selection.Range(range.start, range.stop))
                     case None =>
