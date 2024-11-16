@@ -126,6 +126,7 @@ fun chop :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
 | "chop n xs = take n xs # chop n (drop n xs)"
 
 lemmas [simp del] = chop.simps
+lemmas [simp] = chop.simps(1)
 
 text \<open>
   This is an alternative induction rule for \<^const>\<open>chop\<close>, which is often nicer to use.
@@ -143,11 +144,8 @@ qed (blast | simp)+
 lemma chop_eq_Nil_iff [simp]: "chop n xs = [] \<longleftrightarrow> n = 0 \<or> xs = []"
   by (induction n xs rule: chop.induct; subst chop.simps) auto
 
-lemma chop_0 [simp]: "chop 0 xs = []"
-  by (simp add: chop.simps)
-
 lemma chop_Nil [simp]: "chop n [] = []"
-  by (cases n) (auto simp: chop.simps)
+  by (cases n) auto
 
 lemma chop_reduce: "n > 0 \<Longrightarrow> xs \<noteq> [] \<Longrightarrow> chop n xs = take n xs # chop n (drop n xs)"
   by (cases n; cases xs) (auto simp: chop.simps)
