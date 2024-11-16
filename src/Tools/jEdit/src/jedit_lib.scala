@@ -16,6 +16,7 @@ import java.awt.font.FontRenderContext
 import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow, SwingUtilities}
 
 import scala.util.parsing.input.CharSequenceReader
+import scala.util.matching.Regex
 import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
 
@@ -142,6 +143,13 @@ object JEdit_Lib {
   def get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
+
+  def search_text(buffer: JEditBuffer, range: Text.Range, regex: Regex): List[Text.Range] =
+    List.from(
+      for {
+        s <- get_text(buffer, range).iterator
+        m <- regex.findAllMatchIn(s)
+      } yield Text.Range(range.start + m.start, range.start + m.end))
 
   def set_text(buffer: JEditBuffer, text: List[String]): Int = {
     val old = buffer.isUndoInProgress

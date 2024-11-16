@@ -626,9 +626,7 @@ class Rich_Text_Area(
             // search pattern
             for {
               regex <- search_pattern
-              text <- JEdit_Lib.get_text(buffer, line_range)
-              m <- regex.findAllMatchIn(text)
-              range = Text.Range(m.start, m.end) + line_range.start
+              range <- JEdit_Lib.search_text(buffer, line_range, regex)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(rendering.search_color)
