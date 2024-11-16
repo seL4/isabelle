@@ -67,7 +67,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* pretty text area */
 
   private val output: Output_Area =
-    new Output_Area(view, root_name = "Threads", split = true) {
+    new Output_Area(view, root_name = "Threads") {
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
@@ -89,7 +89,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
 
-  output.init_gui(dockable)
+  output.init_gui(dockable, split = true)
 
 
   /* tree view */
