@@ -917,7 +917,7 @@ next
         case True
         from eval_e1 wt_e1 da_e1 conf_s0 wf
         have conf_v1: "G,store s1\<turnstile>v1\<Colon>\<preceq>e1T" 
-          by (rule evaln_type_sound [elim_format]) (insert True,simp)
+          by (rule evaln_type_sound [elim_format]) (use True in simp)
         from eval_e1 
         have "G\<turnstile>s0 \<midarrow>e1-\<succ>v1\<rightarrow> s1"
           by (rule evaln_eval)
@@ -985,7 +985,7 @@ next
         by cases simp
       from da obtain V where 
         da_var: "\<lparr>prg=G,cls=accC,lcl=L\<rparr> \<turnstile> dom (locals (store s0)) \<guillemotright>\<langle>var\<rangle>\<^sub>v\<guillemotright> V"
-        by (cases "\<exists> n. var=LVar n") (insert da.LVar,auto elim!: da_elim_cases)
+        by (cases "\<exists> n. var=LVar n") (use da.LVar in \<open>auto elim!: da_elim_cases\<close>)
       from eval obtain upd where
         eval_var: "G\<turnstile>s0 \<midarrow>var=\<succ>(v, upd)\<midarrow>n\<rightarrow> s1"
         using normal_s0 by (fastforce elim: evaln_elim_cases)
@@ -1266,7 +1266,7 @@ next
       have s1_no_return: "abrupt s1 \<noteq> Some (Jump Ret)"
         by (rule eval_expression_no_jump 
                  [where ?Env="\<lparr>prg=G,cls=accC,lcl=L\<rparr>",simplified])
-           (insert normal_s0,auto)
+           (use normal_s0 in auto)
 
       from valid_e P valid_A conf_s0 evaln_e wt_e da_e
       obtain "Q \<lfloor>a\<rfloor>\<^sub>e s1 Z" and conf_s1: "s1\<Colon>\<preceq>(G,L)"
@@ -1397,13 +1397,13 @@ next
           by (rule evaln_eval)
         from evaln_e wt_e da_e conf_s0 wf
         have conf_a: "G, store s1\<turnstile>a\<Colon>\<preceq>RefT statT"
-          by (rule evaln_type_sound [elim_format]) (insert normal_s1,simp)
+          by (rule evaln_type_sound [elim_format]) (use normal_s1 in simp)
         with normal_s1 normal_s2 eval_args 
         have conf_a_s2: "G, store s2\<turnstile>a\<Colon>\<preceq>RefT statT"
           by (auto dest: eval_gext)
         from evaln_args wt_args da_args' conf_s1 wf
         have conf_args: "list_all2 (conf G (store s2)) vs pTs"
-          by (rule evaln_type_sound [elim_format]) (insert normal_s2,simp)
+          by (rule evaln_type_sound [elim_format]) (use normal_s2 in simp)
         from statM 
         obtain
           statM': "(statDeclT,statM)\<in>mheads G accC statT \<lparr>name=mn,parTs=pTs'\<rparr>" 
@@ -1645,10 +1645,9 @@ next
         by (rule validE)
       have "s3=s2"
       proof -
-        from eval_init [THEN evaln_eval] wf
         have s1_no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-          by - (rule eval_statement_no_jump [OF _ _ _ wt_init],
-                insert normal_s0,auto)
+          by (rule eval_statement_no_jump [OF _ _ _ wt_init])
+            (use eval_init [THEN evaln_eval] wf normal_s0 in auto)
         from eval_c [THEN evaln_eval] _ wt_c wf
         have "\<And> j. abrupt s2 = Some (Jump j) \<Longrightarrow> j=Ret"
           by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)
@@ -2310,7 +2309,7 @@ next
         from sxalloc wf
         have "s2=s1"
           by (rule sxalloc_type_sound [elim_format])
-             (insert False, auto split: option.splits abrupt.splits )
+             (use False in \<open>auto split: option.splits abrupt.splits\<close>)
         with False 
         have no_catch: "\<not>  G,s2\<turnstile>catch C"
           by (simp add: catch_def)
@@ -2437,7 +2436,7 @@ next
         by auto
       from eval_c1 wt_c1 da_c1 conf_s0 wf
       have  "error_free (abr1,s1)"
-        by (rule evaln_type_sound  [elim_format]) (insert normal_s0,simp)
+        by (rule evaln_type_sound  [elim_format]) (use normal_s0 in simp)
       with s3 have s3': "s3 = abupd (abrupt_if (abr1 \<noteq> None) abr1) s2"
         by (simp add: error_free_def)
       from conf_s1 
@@ -2544,8 +2543,8 @@ next
           using that by (auto intro: assigned.select_convs)
       next
         case False 
-        with da_Init show ?thesis
-          by - (rule that, auto intro: assigned.select_convs)
+        show ?thesis
+          by (rule that) (use da_Init False in \<open>auto intro: assigned.select_convs\<close>)
       qed
       from normal_s0 conf_s0 wf cls_C not_inited
       have conf_init_cls: "(Norm ((init_class_obj G C) (store s0)))\<Colon>\<preceq>(G, L)"

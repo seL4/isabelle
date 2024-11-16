@@ -337,7 +337,7 @@ proof (rule MGFn_free_wt [rule_format],elim exE,rule MGFn_NormalI)
           apply (rule MGFnD' [THEN conseq12, THEN allI])
           apply (clarsimp simp add: split_paired_all)
           apply (rule eval.Init [OF c])
-          apply (insert c)
+          using c
           apply auto
           done
       qed
@@ -579,7 +579,7 @@ proof (induct rule: converse_rtrancl_induct)
       note abrupt_s' = this
       from eval_e _ wt wf
       have no_cont: "abrupt s' \<noteq> Some (Jump (Cont l))"
-        by (rule eval_expression_no_jump') (insert normal_t,simp)
+        by (rule eval_expression_no_jump') (use normal_t in simp)
       have
         "if the_Bool v 
              then (G\<turnstile>s' \<midarrow>c\<rightarrow> s' \<and> 

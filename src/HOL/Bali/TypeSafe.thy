@@ -560,7 +560,7 @@ proof -
         eq_declC_sm_dm:"statDeclT = ClassT (declclass dm)"  and
              eq_mheads:"sm=mhead (mthd dm) "
       by - (drule static_mheadsD, (force dest: accmethd_SomeD)+)
-    then have static: "is_static dm = is_static sm" by - (auto)
+    then have static: "is_static dm = is_static sm" by auto
     with declC invC dynlookup_static dm
     have declC': "declC = (declclass dm)"  
       by (auto simp add: invocation_declclass_def)
@@ -1421,9 +1421,8 @@ next
   next
     case (Cons y tl)
     note ys = \<open>ys=y#tl\<close>
-    with tab_vn tab'_vn 
     have "(tab(x\<mapsto>y)) vn = Some el"
-      by - (rule Cons.hyps,auto)
+      by (rule Cons.hyps) (use tab_vn tab'_vn ys in auto)
     moreover from tab'_vn ys
     have "(tab'(x\<mapsto>y, xs[\<mapsto>]tl)) vn = None" 
       by simp
@@ -1503,8 +1502,8 @@ next
     case Nil with len show ?thesis by simp
   next
     case (Cons y tl)
-    with len have "dom (tab(x\<mapsto>y, xs[\<mapsto>]tl)) = dom (tab(x\<mapsto>y)) \<union> set xs"
-      by - (rule Hyp,simp)
+    have "dom (tab(x\<mapsto>y, xs[\<mapsto>]tl)) = dom (tab(x\<mapsto>y)) \<union> set xs"
+      by (rule Hyp) (use len Cons in simp)
     moreover 
     have "dom (tab(x\<mapsto>hd ys)) = dom tab \<union> {x}"
       by (rule dom_map_upd)
@@ -1637,7 +1636,7 @@ proof -
         from eval_e1 normal_s1 
         have "assigns_if True e1 \<subseteq> dom (locals (store s1))"
           by (rule assigns_if_good_approx' [elim_format])
-            (insert wt_e1, simp_all add: e1T v1)
+            (use wt_e1 in \<open>simp_all add: e1T v1\<close>)
         with s0_s1 show ?thesis by (rule Un_least)
       qed
       ultimately show ?thesis
@@ -1663,7 +1662,7 @@ proof -
         from eval_e1 normal_s1 
         have "assigns_if False e1 \<subseteq> dom (locals (store s1))"
           by (rule assigns_if_good_approx' [elim_format])
-            (insert wt_e1, simp_all add: e1T v1)
+            (use wt_e1 in \<open>simp_all add: e1T v1\<close>)
         with s0_s1 show ?thesis by (rule Un_least)
       qed
       ultimately show ?thesis
@@ -2102,7 +2101,7 @@ proof -
       from sx_alloc wf
       have eq_s2_s1: "s2=s1"
         by (rule sxalloc_type_sound [elim_format])
-           (insert False, auto split: option.splits abrupt.splits )
+           (use False in \<open>auto split: option.splits abrupt.splits\<close>)
       with False 
       have "\<not>  G,s2\<turnstile>catch catchC"
         by (simp add: catch_def)
@@ -2258,8 +2257,7 @@ proof -
     note cls = \<open>the (class G C) = c\<close>
     note conf_s0 = \<open>Norm s0\<Colon>\<preceq>(G, L)\<close>
     note wt = \<open>\<lparr>prg = G, cls = accC, lcl = L\<rparr>\<turnstile>In1r (Init C)\<Colon>T\<close>
-    with cls
-    have cls_C: "class G C = Some c"
+    with cls have cls_C: "class G C = Some c"
       by - (erule wt_elim_cases, auto)
     show "s3\<Colon>\<preceq>(G, L) \<and> (normal s3 \<longrightarrow> G,L,store s3\<turnstile>In1r (Init C)\<succ>\<diamondsuit>\<Colon>\<preceq>T) \<and>
           (error_free (Norm s0) = error_free s3)"
@@ -2305,8 +2303,8 @@ proof -
           using that by (auto intro: assigned.select_convs)
       next
         case False 
-        with da_Init show ?thesis
-          by - (rule that, auto intro: assigned.select_convs)
+        show ?thesis
+          by (rule that) (use da_Init False in \<open>auto intro: assigned.select_convs\<close>)
       qed
       ultimately 
       obtain conf_s1: "s1\<Colon>\<preceq>(G, L)" and error_free_s1: "error_free s1"
@@ -2418,17 +2416,17 @@ proof -
          \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In1r (init_comp_ty elT)\<guillemotright> I"
       proof (cases "\<exists>C. elT = Class C")
         case True
-        thus ?thesis
-          by - (rule that, (auto intro: da_Init [simplified] 
-                                        assigned.select_convs
-                              simp add: init_comp_ty_def))
+        show ?thesis
+          by (rule that)
+            (use True in \<open>auto intro: da_Init [simplified] assigned.select_convs
+                            simp add: init_comp_ty_def\<close>)
          (* simplified: to rewrite \<langle>Init C\<rangle> to In1r (Init C) *)
       next
         case False
-        thus ?thesis
-        by - (rule that, (auto intro: da_Skip [simplified] 
-                                      assigned.select_convs
-                           simp add: init_comp_ty_def))
+        show ?thesis
+          by (rule that)
+            (use False in \<open>auto intro: da_Skip [simplified] assigned.select_convs
+              simp add: init_comp_ty_def\<close>)
          (* simplified: to rewrite \<langle>Skip\<rangle> to In1r (Skip) *)
       qed
       ultimately show thesis
@@ -2683,7 +2681,7 @@ proof -
     from Acc.prems obtain V where
       da_v: "\<lparr>prg=G,cls=accC,lcl=L\<rparr>
                   \<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>In2 v\<guillemotright> V"
-      by (cases "\<exists> n. v=LVar n") (insert da.LVar, auto elim!: da_elim_cases)
+      by (cases "\<exists> n. v=LVar n") (use da.LVar in \<open>auto elim!: da_elim_cases\<close>)
     have lvar_in_locals: "locals (store s1) n \<noteq> None"
       if lvar: "v=LVar n" for n
     proof -
@@ -3384,9 +3382,8 @@ proof -
       from iscls_D
       have wt_init: "\<lparr>prg=G, cls=accC, lcl=L\<rparr>\<turnstile>(Init D)\<Colon>\<surd>"
         by auto
-      from eval_init wf
       have s1_no_jmp: "\<And> j. abrupt s1 \<noteq> Some (Jump j)"
-        by - (rule eval_statement_no_jump [OF _ _ _ wt_init],auto)
+        by (rule eval_statement_no_jump [OF _ _ _ wt_init]) (use eval_init wf in auto)
       from eval_c _ wt_c wf
       have "\<And> j. abrupt s2 = Some (Jump j) \<Longrightarrow> j=Ret"
         by (rule jumpNestingOk_evalE) (auto intro: jmpOk simp add: s1_no_jmp)

@@ -3805,7 +3805,7 @@ proof -
         from Ass.prems obtain E where
           da_e: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E" and
           nrm_A: "nrm A = nrm E \<union> {vn}"
-          by (elim da_elim_cases) (insert vn,auto)
+          by (elim da_elim_cases) (use vn in auto)
         obtain E' where
           da_e': "Env\<turnstile> dom (locals (store s1)) \<guillemotright>\<langle>e\<rangle>\<guillemotright> E'" and
           E_E': "nrm E \<subseteq> nrm E'"
@@ -3849,7 +3849,7 @@ proof -
         from Ass.prems obtain V where
           da_var: "Env\<turnstile> dom (locals (store ((Norm s0)::state))) \<guillemotright>\<langle>var\<rangle>\<guillemotright> V" and
           da_e:   "Env\<turnstile> nrm V \<guillemotright>\<langle>e\<rangle>\<guillemotright> A"
-          by (elim da_elim_cases) (insert False,simp+)
+          by (elim da_elim_cases) (use False in simp_all)
         from hyp_var wt_var da_var G normal_s1
         have "nrm V \<subseteq> dom (locals (store s1))"
           by simp

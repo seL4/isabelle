@@ -1201,11 +1201,11 @@ proof -
       by blast
     note hyp_c2 = \<open>PROP ?Hyp Env B \<langle>c2\<rangle> C2\<close>
     from da_c2' B' 
-     obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
-       by - (drule hyp_c2,auto)
-     with A A' C1'
-     show ?case
-       by auto
+    obtain "nrm C2 \<subseteq> nrm C2'" "(\<forall>l. brk C2 l \<subseteq> brk C2' l)"
+      by - (drule hyp_c2,auto)
+    with A A' C1'
+    show ?case
+      by auto
    next
      case Init thus ?case by (elim da_elim_cases) auto
    next
