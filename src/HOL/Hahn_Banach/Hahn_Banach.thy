@@ -59,39 +59,36 @@ proof -
   then have M: "M = \<dots>" by (simp only:)
   from E have F: "vectorspace F" ..
   note FE = \<open>F \<unlhd> E\<close>
-  {
-    fix c assume cM: "c \<in> chains M" and ex: "\<exists>x. x \<in> c"
-    have "\<Union>c \<in> M"
-      \<comment> \<open>Show that every non-empty chain \<open>c\<close> of \<open>M\<close> has an upper bound in \<open>M\<close>:\<close>
-      \<comment> \<open>\<open>\<Union>c\<close> is greater than any element of the chain \<open>c\<close>, so it suffices to show \<open>\<Union>c \<in> M\<close>.\<close>
-      unfolding M_def
-    proof (rule norm_pres_extensionI)
-      let ?H = "domain (\<Union>c)"
-      let ?h = "funct (\<Union>c)"
+  have "\<Union>c \<in> M" if cM: "c \<in> chains M" and ex: "\<exists>x. x \<in> c" for c
+    \<comment> \<open>Show that every non-empty chain \<open>c\<close> of \<open>M\<close> has an upper bound in \<open>M\<close>:\<close>
+    \<comment> \<open>\<open>\<Union>c\<close> is greater than any element of the chain \<open>c\<close>, so it suffices to show \<open>\<Union>c \<in> M\<close>.\<close>
+    unfolding M_def
+  proof (rule norm_pres_extensionI)
+    let ?H = "domain (\<Union>c)"
+    let ?h = "funct (\<Union>c)"
 
-      have a: "graph ?H ?h = \<Union>c"
-      proof (rule graph_domain_funct)
-        fix x y z assume "(x, y) \<in> \<Union>c" and "(x, z) \<in> \<Union>c"
-        with M_def cM show "z = y" by (rule sup_definite)
-      qed
-      moreover from M cM a have "linearform ?H ?h"
-        by (rule sup_lf)
-      moreover from a M cM ex FE E have "?H \<unlhd> E"
-        by (rule sup_subE)
-      moreover from a M cM ex FE have "F \<unlhd> ?H"
-        by (rule sup_supF)
-      moreover from a M cM ex have "graph F f \<subseteq> graph ?H ?h"
-        by (rule sup_ext)
-      moreover from a M cM have "\<forall>x \<in> ?H. ?h x \<le> p x"
-        by (rule sup_norm_pres)
-      ultimately show "\<exists>H h. \<Union>c = graph H h
-          \<and> linearform H h
-          \<and> H \<unlhd> E
-          \<and> F \<unlhd> H
-          \<and> graph F f \<subseteq> graph H h
-          \<and> (\<forall>x \<in> H. h x \<le> p x)" by blast
+    have a: "graph ?H ?h = \<Union>c"
+    proof (rule graph_domain_funct)
+      fix x y z assume "(x, y) \<in> \<Union>c" and "(x, z) \<in> \<Union>c"
+      with M_def cM show "z = y" by (rule sup_definite)
     qed
-  }
+    moreover from M cM a have "linearform ?H ?h"
+      by (rule sup_lf)
+    moreover from a M cM ex FE E have "?H \<unlhd> E"
+      by (rule sup_subE)
+    moreover from a M cM ex FE have "F \<unlhd> ?H"
+      by (rule sup_supF)
+    moreover from a M cM ex have "graph F f \<subseteq> graph ?H ?h"
+      by (rule sup_ext)
+    moreover from a M cM have "\<forall>x \<in> ?H. ?h x \<le> p x"
+      by (rule sup_norm_pres)
+    ultimately show "\<exists>H h. \<Union>c = graph H h
+        \<and> linearform H h
+        \<and> H \<unlhd> E
+        \<and> F \<unlhd> H
+        \<and> graph F f \<subseteq> graph H h
+        \<and> (\<forall>x \<in> H. h x \<le> p x)" by blast
+  qed
   then have "\<exists>g \<in> M. \<forall>x \<in> M. g \<subseteq> x \<longrightarrow> x = g"
   \<comment> \<open>With Zorn's Lemma we can conclude that there is a maximal element in \<open>M\<close>. \<^smallskip>\<close>
   proof (rule Zorn's_Lemma)
@@ -371,11 +368,11 @@ proof -
   have q: "seminorm E p"
   proof
     fix x y a assume x: "x \<in> E" and y: "y \<in> E"
-    
+
     txt \<open>\<open>p\<close> is positive definite:\<close>
     have "0 \<le> \<parallel>f\<parallel>\<hyphen>F" by (rule ge_zero)
     moreover from x have "0 \<le> \<parallel>x\<parallel>" ..
-    ultimately show "0 \<le> p x"  
+    ultimately show "0 \<le> p x"
       by (simp add: p_def zero_le_mult_iff)
 
     txt \<open>\<open>p\<close> is absolutely homogeneous:\<close>

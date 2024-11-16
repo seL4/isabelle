@@ -110,9 +110,7 @@ lemma (in vectorspace) subspace_refl [intro]: "V \<unlhd> V"
 proof
   show "V \<noteq> {}" ..
   show "V \<subseteq> V" ..
-next
-  fix x y assume x: "x \<in> V" and y: "y \<in> V"
-  fix a :: real
+  fix a :: real and x y assume x: "x \<in> V" and y: "y \<in> V"
   from x y show "x + y \<in> V" by simp
   from x show "a \<cdot> x \<in> V" by simp
 qed
@@ -181,14 +179,13 @@ lemma (in vectorspace) lin_subspace [intro]:
   shows "lin x \<unlhd> V"
 proof
   from x show "lin x \<noteq> {}" by auto
-next
   show "lin x \<subseteq> V"
   proof
     fix x' assume "x' \<in> lin x"
     then obtain a where "x' = a \<cdot> x" ..
     with x show "x' \<in> V" by simp
   qed
-next
+
   fix x' x'' assume x': "x' \<in> lin x" and x'': "x'' \<in> lin x"
   show "x' + x'' \<in> lin x"
   proof -
@@ -199,8 +196,7 @@ next
     also have "\<dots> \<in> lin x" ..
     finally show ?thesis .
   qed
-  fix a :: real
-  show "a \<cdot> x' \<in> lin x"
+  show "a \<cdot> x' \<in> lin x" for a :: real
   proof -
     from x' obtain a' where "x' = a' \<cdot> x" ..
     with x have "a \<cdot> x' = (a * a') \<cdot> x" by (simp add: mult_assoc)
@@ -294,7 +290,7 @@ proof -
         "u \<in> U" and "v \<in> V" ..
       then show "x \<in> E" by simp
     qed
-  next
+
     fix x y assume x: "x \<in> U + V" and y: "y \<in> U + V"
     show "x + y \<in> U + V"
     proof -
@@ -308,7 +304,7 @@ proof -
         using x y by (simp_all add: add_ac)
       then show ?thesis ..
     qed
-    fix a show "a \<cdot> x \<in> U + V"
+    show "a \<cdot> x \<in> U + V" for a
     proof -
       from x obtain u v where "x = u + v" and "u \<in> U" and "v \<in> V" ..
       then have "a \<cdot> u \<in> U" and "a \<cdot> v \<in> V"
@@ -359,7 +355,7 @@ proof -
     from v2 v1 have v: "v2 - v1 \<in> V"
       by (rule vectorspace.diff_closed [OF V])
     with eq have u': " u1 - u2 \<in> V" by (simp only:)
-    
+
     show "u1 = u2"
     proof (rule add_minus_eq)
       from u1 show "u1 \<in> E" ..
@@ -405,14 +401,14 @@ proof -
           then obtain a where xx': "x = a \<cdot> x'"
             by blast
           have "x = 0"
-          proof cases
-            assume "a = 0"
+          proof (cases "a = 0")
+            case True
             with xx' and x' show ?thesis by simp
           next
-            assume a: "a \<noteq> 0"
+            case False
             from x have "x \<in> H" ..
             with xx' have "inverse a \<cdot> a \<cdot> x' \<in> H" by simp
-            with a and x' have "x' \<in> H" by (simp add: mult_assoc2)
+            with False and x' have "x' \<in> H" by (simp add: mult_assoc2)
             with \<open>x' \<notin> H\<close> show ?thesis by contradiction
           qed
           then show "x \<in> {0}" ..

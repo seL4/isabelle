@@ -27,17 +27,15 @@ proof (rule Zorn_Lemma2)
   proof
     fix c assume "c \<in> chains S"
     show "\<exists>y \<in> S. \<forall>z \<in> c. z \<subseteq> y"
-    proof cases
+    proof (cases "c = {}")
       txt \<open>If \<open>c\<close> is an empty chain, then every element in \<open>S\<close> is an upper
         bound of \<open>c\<close>.\<close>
-
-      assume "c = {}"
+      case True
       with aS show ?thesis by fast
-
+    next
       txt \<open>If \<open>c\<close> is non-empty, then \<open>\<Union>c\<close> is an upper bound of \<open>c\<close>, lying in
         \<open>S\<close>.\<close>
-    next
-      assume "c \<noteq> {}"
+      case False
       show ?thesis
       proof
         show "\<forall>z \<in> c. z \<subseteq> \<Union>c" by fast

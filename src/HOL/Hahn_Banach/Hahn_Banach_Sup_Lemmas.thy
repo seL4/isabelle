@@ -300,11 +300,10 @@ proof
   from FE show "F \<noteq> {}" by (rule subspace.non_empty)
   from graph M cM ex have "graph F f \<subseteq> graph H h" by (rule sup_ext)
   then show "F \<subseteq> H" ..
-  fix x y assume "x \<in> F" and "y \<in> F"
-  with FE show "x + y \<in> F" by (rule subspace.add_closed)
-next
-  fix x a assume "x \<in> F"
-  with FE show "a \<cdot> x \<in> F" by (rule subspace.mult_closed)
+  show "x + y \<in> F" if "x \<in> F" and "y \<in> F" for x y
+    using FE that by (rule subspace.add_closed)
+  show "a \<cdot> x \<in> F" if "x \<in> F" for x a
+    using FE that by (rule subspace.mult_closed)
 qed
 
 text \<open>
@@ -409,37 +408,32 @@ proof
   interpret seminorm E p by fact
   interpret linearform H h by fact
   have H: "vectorspace H" using \<open>vectorspace E\<close> ..
-  {
-    assume l: ?L
-    show ?R
-    proof
-      fix x assume x: "x \<in> H"
-      have "h x \<le> \<bar>h x\<bar>" by arith
-      also from l x have "\<dots> \<le> p x" ..
-      finally show "h x \<le> p x" .
+  show ?R if l: ?L
+  proof
+    fix x assume x: "x \<in> H"
+    have "h x \<le> \<bar>h x\<bar>" by arith
+    also from l x have "\<dots> \<le> p x" ..
+    finally show "h x \<le> p x" .
+  qed
+  show ?L if r: ?R
+  proof
+    fix x assume x: "x \<in> H"
+    show "\<bar>b\<bar> \<le> a" when "- a \<le> b" "b \<le> a" for a b :: real
+      using that by arith
+    from \<open>linearform H h\<close> and H x
+    have "- h x = h (- x)" by (rule linearform.neg [symmetric])
+    also
+    from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
+    with r have "h (- x) \<le> p (- x)" ..
+    also have "\<dots> = p x"
+      using \<open>seminorm E p\<close> \<open>vectorspace E\<close>
+    proof (rule seminorm.minus)
+      from x show "x \<in> E" ..
     qed
-  next
-    assume r: ?R
-    show ?L
-    proof
-      fix x assume x: "x \<in> H"
-      show "\<bar>b\<bar> \<le> a" when "- a \<le> b" "b \<le> a" for a b :: real
-        using that by arith
-      from \<open>linearform H h\<close> and H x
-      have "- h x = h (- x)" by (rule linearform.neg [symmetric])
-      also
-      from H x have "- x \<in> H" by (rule vectorspace.neg_closed)
-      with r have "h (- x) \<le> p (- x)" ..
-      also have "\<dots> = p x"
-        using \<open>seminorm E p\<close> \<open>vectorspace E\<close>
-      proof (rule seminorm.minus)
-        from x show "x \<in> E" ..
-      qed
-      finally have "- h x \<le> p x" .
-      then show "- p x \<le> h x" by simp
-      from r x show "h x \<le> p x" ..
-    qed
-  }
+    finally have "- h x \<le> p x" .
+    then show "- p x \<le> h x" by simp
+    from r x show "h x \<le> p x" ..
+  qed
 qed
 
 end

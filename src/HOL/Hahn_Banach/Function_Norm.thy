@@ -113,13 +113,13 @@ proof -
       proof
         fix y assume y: "y \<in> B V f"
         show "y \<le> b"
-        proof cases
-          assume "y = 0"
+        proof (cases "y = 0")
+          case True
           then show ?thesis unfolding b_def by arith
         next
           txt \<open>The second case is \<open>y = \<bar>f x\<bar> / \<parallel>x\<parallel>\<close> for some
             \<open>x \<in> V\<close> with \<open>x \<noteq> 0\<close>.\<close>
-          assume "y \<noteq> 0"
+          case False
           with y obtain x where y_rep: "y = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
               and x: "x \<in> V" and neq: "x \<noteq> 0"
             by (auto simp add: B_def divide_inverse)
@@ -132,7 +132,7 @@ proof -
           also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
           proof (rule mult_right_mono)
             from c x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
-            from gt have "0 < inverse \<parallel>x\<parallel>" 
+            from gt have "0 < inverse \<parallel>x\<parallel>"
               by (rule positive_imp_inverse_positive)
             then show "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
           qed
@@ -140,7 +140,7 @@ proof -
             by (rule Groups.mult.assoc)
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
-          then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
+          then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp
           also have "c * 1 \<le> b" by (simp add: b_def)
           finally show "y \<le> b" .
         qed
@@ -205,8 +205,8 @@ proof -
   interpret continuous V f norm by fact
   interpret linearform V f by fact
   show ?thesis
-  proof cases
-    assume "x = 0"
+  proof (cases "x = 0")
+    case True
     then have "\<bar>f x\<bar> = \<bar>f 0\<bar>" by simp
     also have "f 0 = 0" by rule unfold_locales
     also have "\<bar>\<dots>\<bar> = 0" by simp
@@ -216,7 +216,7 @@ proof -
     with a have "0 \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" by (simp add: zero_le_mult_iff)
     finally show "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>" .
   next
-    assume "x \<noteq> 0"
+    case False
     with x have neq: "\<parallel>x\<parallel> \<noteq> 0" by simp
     then have "\<bar>f x\<bar> = (\<bar>f x\<bar> * inverse \<parallel>x\<parallel>) * \<parallel>x\<parallel>" by simp
     also have "\<dots> \<le>  \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
@@ -250,11 +250,11 @@ proof -
   proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     fix b assume b: "b \<in> B V f"
     show "b \<le> c"
-    proof cases
-      assume "b = 0"
+    proof (cases "b = 0")
+      case True
       with ge show ?thesis by simp
     next
-      assume "b \<noteq> 0"
+      case False
       with b obtain x where b_rep: "b = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
         and x_neq: "x \<noteq> 0" and x: "x \<in> V"
         by (auto simp add: B_def divide_inverse)
@@ -272,7 +272,7 @@ proof -
       qed
       finally show ?thesis .
     qed
-  qed (insert \<open>continuous V f norm\<close>, simp_all add: continuous_def)
+  qed (use \<open>continuous V f norm\<close> in \<open>simp_all add: continuous_def\<close>)
 qed
 
 end

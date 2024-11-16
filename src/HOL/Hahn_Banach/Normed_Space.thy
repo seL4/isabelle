@@ -101,8 +101,8 @@ proof -
   interpret normed_vectorspace E norm by fact
   show ?thesis
   proof
-    show "vectorspace F" by (rule vectorspace) unfold_locales
-  next
+    show "vectorspace F"
+      by (rule vectorspace) unfold_locales
     have "Normed_Space.norm E norm" ..
     with subset show "Normed_Space.norm F norm"
       by (simp add: norm_def seminorm_def norm_axioms_def)
