@@ -326,34 +326,36 @@ object JEdit_Lib {
 
   // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
-  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] = {
+  def gfx_range(text_area: TextArea): Text.Range => Option[Gfx_Range] = {
     val metric = font_metric(text_area.getPainter)
     val char_width = metric.average_width.round.toInt
 
     val buffer = text_area.getBuffer
-
     val end = buffer.getLength
-    val stop = range.stop
 
-    val (p, q, r) =
-      try {
-        val p = text_area.offsetToXY(range.start)
-        val (q, r) =
-          if (get_text(buffer, Text.Range(stop - 1, stop)).contains("\n")) {
-            (text_area.offsetToXY(stop - 1), char_width)
-          }
-          else if (stop >= end) {
-            (text_area.offsetToXY(end), char_width * (stop - end))
-          }
-          else (text_area.offsetToXY(stop), 0)
-        (p, q, r)
+    { (range: Text.Range) =>
+      val stop = range.stop
+
+      val (p, q, r) =
+        try {
+          val p = text_area.offsetToXY(range.start)
+          val (q, r) =
+            if (get_text(buffer, Text.Range(stop - 1, stop)).contains("\n")) {
+              (text_area.offsetToXY(stop - 1), char_width)
+            }
+            else if (stop >= end) {
+              (text_area.offsetToXY(end), char_width * (stop - end))
+            }
+            else (text_area.offsetToXY(stop), 0)
+          (p, q, r)
+        }
+        catch { case _: ArrayIndexOutOfBoundsException => (null, null, 0) }
+
+      if (p != null && q != null && p.x < q.x + r && p.y == q.y) {
+        Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
       }
-      catch { case _: ArrayIndexOutOfBoundsException => (null, null, 0) }
-
-    if (p != null && q != null && p.x < q.x + r && p.y == q.y) {
-      Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
+      else None
     }
-    else None
   }
 
 
@@ -366,7 +368,7 @@ object JEdit_Lib {
       val offset = text_area.xyToOffset(x, y, false)
       if (offset >= 0) {
         val range = point_range(text_area.getBuffer, offset)
-        gfx_range(text_area, range) match {
+        gfx_range(text_area)(range) match {
           case Some(g) if g.x <= x && x < g.x + g.length => Some(range)
           case _ => None
         }

@@ -98,6 +98,7 @@ class Rich_Text_Area(
 
   @volatile private var painter_rendering: JEdit_Rendering = null
   @volatile private var painter_clip: Shape = null
+  @volatile private var painter_gfx_range: Text.Range => Option[JEdit_Lib.Gfx_Range] = null
   @volatile private var caret_focus = Rendering.Focus.empty
 
   private val set_state = new TextAreaExtension {
@@ -113,6 +114,7 @@ class Rich_Text_Area(
     ): Unit = {
       painter_rendering = get_rendering()
       painter_clip = gfx.getClip
+      painter_gfx_range = JEdit_Lib.gfx_range(text_area)
       caret_focus =
         if (caret_enabled && !painter_rendering.snapshot.is_outdated) {
           painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), caret_focus_range)
@@ -134,6 +136,7 @@ class Rich_Text_Area(
     ): Unit = {
       painter_rendering = null
       painter_clip = null
+      painter_gfx_range = null
       caret_focus = Rendering.Focus.empty
     }
   }
@@ -356,7 +359,7 @@ class Rich_Text_Area(
             for {
               Text.Info(range, c) <-
                 rendering.background(Rendering.background_elements, line_range, caret_focus)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.color(c))
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -366,7 +369,7 @@ class Rich_Text_Area(
             for {
               info <- active_area.info
               Text.Info(range, _) <- info.try_restrict(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.active_hover_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -375,7 +378,7 @@ class Rich_Text_Area(
             // squiggly underline
             for {
               Text.Info(range, c) <- rendering.squiggly_underline(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.color(c))
               val x0 = (r.x / 2) * 2
@@ -392,7 +395,7 @@ class Rich_Text_Area(
               spell <- rendering.spell_checker(line_range)
               text <- JEdit_Lib.get_text(buffer, spell.range)
               info <- spell_checker.marked_words(spell.range.start, text)
-              r <- JEdit_Lib.gfx_range(text_area, info.range)
+              r <- painter_gfx_range(info.range)
             } {
               gfx.setColor(rendering.spell_checker_color)
               val y0 = r.y + ((fm.getAscent + 4) min (line_height - 2))
@@ -581,7 +584,7 @@ class Rich_Text_Area(
             // bullet bar
             for {
               Text.Info(range, color) <- rendering.bullet(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
@@ -617,7 +620,7 @@ class Rich_Text_Area(
             // foreground color
             for {
               Text.Info(range, c) <- rendering.foreground(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.color(c))
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -627,7 +630,7 @@ class Rich_Text_Area(
             for {
               regex <- search_pattern
               range <- JEdit_Lib.search_text(buffer, line_range, regex)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.search_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -637,7 +640,7 @@ class Rich_Text_Area(
             for {
               info <- highlight_area.info
               Text.Info(range, color) <- info.try_restrict(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -647,7 +650,7 @@ class Rich_Text_Area(
             for {
               info <- hyperlink_area.info
               Text.Info(range, _) <- info.try_restrict(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
+              r <- painter_gfx_range(range)
             } {
               gfx.setColor(rendering.hyperlink_color)
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
@@ -657,7 +660,7 @@ class Rich_Text_Area(
             if (!active_exists() && caret_visible) {
               for {
                 Text.Info(range, color) <- rendering.entity_ref(line_range, caret_focus)
-                r <- JEdit_Lib.gfx_range(text_area, range)
+                r <- painter_gfx_range(range)
               } {
                 gfx.setColor(color)
                 gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
@@ -669,7 +672,7 @@ class Rich_Text_Area(
               for {
                 completion <- Completion_Popup.Text_Area(text_area)
                 Text.Info(range, color) <- completion.rendering(rendering, line_range)
-                r <- JEdit_Lib.gfx_range(text_area, range)
+                r <- painter_gfx_range(range)
               } {
                 gfx.setColor(color)
                 gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
