@@ -76,10 +76,9 @@ fun prepare_function do_print prep fixspec eqns config lthy =
     val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
     val props0 = map snd spec0
-    val vars0 = map Term.strip_all_vars props0
-    val input_eqns =
-      map (fn (ps,prop) => Term.subst_bounds (rev (map Free ps), Term.strip_all_body prop))
-        (vars0 ~~ props0)
+    fun varify (ps,prop) =
+      Term.subst_bounds (rev (map (fn (a,T) => Var((a,0),T)) ps), Term.strip_all_body prop)
+    val input_eqns = map varify (map Term.strip_all_vars props0 ~~ props0)
     val fnames = map (fst o fst) fixes0
     val defname = Binding.conglomerate fnames;
 
