@@ -114,13 +114,13 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
-    handle_update(true)
+    output.init()
   }
 
   override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     PIDE.session.caret_focus -= main
-    output.delay_resize.revoke()
+    output.exit()
   }
 }

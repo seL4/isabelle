@@ -133,4 +133,8 @@ class Output_Area(view: View, root_name: String = "Overview") {
       case _ =>
     }
   }
+
+  def init(): Unit = handle_update()
+
+  def exit(): Unit = delay_resize.revoke()
 }
