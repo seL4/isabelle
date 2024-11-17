@@ -144,6 +144,10 @@ object JEdit_Lib {
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
+  def can_search_text(buffer: JEditBuffer, range: Text.Range, regex: Regex): Boolean =
+    try { regex.findFirstIn(buffer.getSegment(range.start, range.length)).nonEmpty }
+    catch { case _: ArrayIndexOutOfBoundsException => false }
+
   def search_text(buffer: JEditBuffer, range: Text.Range, regex: Regex): List[Text.Range] =
     List.from(
       for {
