@@ -21,7 +21,7 @@ imports
   Countable_Set_Type
   Debug
   Diagonal_Subsequence
-  Discrete
+  Discrete_Functions
   Disjoint_Sets
   Disjoint_FSets
   Dlist

@@ -7,7 +7,7 @@ section \<open>Radius of Convergence and Summation Tests\<close>
 theory Summation_Tests
 imports
   Complex_Main
-  "HOL-Library.Discrete"
+  "HOL-Library.Discrete_Functions"
   "HOL-Library.Extended_Real"
   "HOL-Library.Liminf_Limsup"
   Extended_Real_Limits
@@ -135,33 +135,33 @@ begin
 
 private lemma condensation_inequality:
   assumes mono: "\<And>m n. 0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> f n \<le> f m"
-  shows   "(\<Sum>k=1..<n. f k) \<ge> (\<Sum>k=1..<n. f (2 * 2 ^ Discrete.log k))" (is "?thesis1")
-          "(\<Sum>k=1..<n. f k) \<le> (\<Sum>k=1..<n. f (2 ^ Discrete.log k))" (is "?thesis2")
-  by (intro sum_mono mono Discrete.log_exp2_ge Discrete.log_exp2_le, simp, simp)+
+  shows   "(\<Sum>k=1..<n. f k) \<ge> (\<Sum>k=1..<n. f (2 * 2 ^ floor_log k))" (is "?thesis1")
+          "(\<Sum>k=1..<n. f k) \<le> (\<Sum>k=1..<n. f (2 ^ floor_log k))" (is "?thesis2")
+  by (intro sum_mono mono floor_log_exp2_ge floor_log_exp2_le, simp, simp)+
 
-private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ Discrete.log k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
+private lemma condensation_condense1: "(\<Sum>k=1..<2^n. f (2 ^ floor_log k)) = (\<Sum>k<n. 2^k * f (2 ^ k))"
 proof (induction n)
   case (Suc n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
-  also have "(\<Sum>k\<in>\<dots>. f (2 ^ Discrete.log k)) =
-                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^Discrete.log k))"
+  also have "(\<Sum>k\<in>\<dots>. f (2 ^ floor_log k)) =
+                 (\<Sum>k<n. 2^k * f (2^k)) + (\<Sum>k = 2^n..<2^Suc n. f (2^floor_log k))"
     by (subst sum.union_disjoint) (insert Suc, auto)
-  also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
-  hence "(\<Sum>k = 2^n..<2^Suc n. f (2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
+  also have "floor_log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro floor_log_eqI) simp_all
+  hence "(\<Sum>k = 2^n..<2^Suc n. f (2^floor_log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^n))"
     by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^n)" by (simp)
   finally show ?case by simp
 qed simp
 
-private lemma condensation_condense2: "(\<Sum>k=1..<2^n. f (2 * 2 ^ Discrete.log k)) = (\<Sum>k<n. 2^k * f (2 ^ Suc k))"
+private lemma condensation_condense2: "(\<Sum>k=1..<2^n. f (2 * 2 ^ floor_log k)) = (\<Sum>k<n. 2^k * f (2 ^ Suc k))"
 proof (induction n)
   case (Suc n)
   have "{1..<2^Suc n} = {1..<2^n} \<union> {2^n..<(2^Suc n :: nat)}" by auto
-  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ Discrete.log k)) =
-                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^Discrete.log k))"
+  also have "(\<Sum>k\<in>\<dots>. f (2 * 2 ^ floor_log k)) =
+                 (\<Sum>k<n. 2^k * f (2^Suc k)) + (\<Sum>k = 2^n..<2^Suc n. f (2 * 2^floor_log k))"
     by (subst sum.union_disjoint) (insert Suc, auto)
-  also have "Discrete.log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro Discrete.log_eqI) simp_all
-  hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^Discrete.log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
+  also have "floor_log k = n" if "k \<in> {2^n..<2^Suc n}" for k using that by (intro floor_log_eqI) simp_all
+  hence "(\<Sum>k = 2^n..<2^Suc n. f (2*2^floor_log k)) = (\<Sum>(_::nat) = 2^n..<2^Suc n. f (2^Suc n))"
     by (intro sum.cong) simp_all
   also have "\<dots> = 2^n * f (2^Suc n)" by (simp)
   finally show ?case by simp

@@ -7,7 +7,7 @@ theory Function_Growth
 imports
   Main
   "HOL-Library.Preorder"
-  "HOL-Library.Discrete"
+  "HOL-Library.Discrete_Functions"
 begin
 
 subsection \<open>Motivation\<close>
@@ -23,7 +23,7 @@ text \<open>
   \<open>f \<lesssim> g \<longleftrightarrow> f \<in> O(g)\<close>.  From a didactic point of view, this does not only
   avoid the notational oddities mentioned above but also emphasizes the key insight
   of a growth hierarchy of functions:
-  \<open>(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> Discrete.log \<lesssim> Discrete.sqrt \<lesssim> id \<lesssim> \<dots>\<close>.
+  \<open>(\<lambda>n. 0) \<lesssim> (\<lambda>n. k) \<lesssim> floor_log \<lesssim> floor_sqrt \<lesssim> id \<lesssim> \<dots>\<close>.
 \<close>
 
 subsection \<open>Model\<close>
@@ -365,46 +365,46 @@ lemma
   by (rule less_fun_strongI) auto
 
 lemma
-  "(\<lambda>_. k) \<prec> Discrete.log"
+  "(\<lambda>_. k) \<prec> floor_log"
 proof (rule less_fun_strongI)
   fix c :: nat
-  have "\<forall>m>2 ^ (Suc (c * k)). c * k < Discrete.log m"
+  have "\<forall>m>2 ^ (Suc (c * k)). c * k < floor_log m"
   proof (rule allI, rule impI)
     fix m :: nat
     assume "2 ^ Suc (c * k) < m"
     then have "2 ^ Suc (c * k) \<le> m" by simp
-    with log_mono have "Discrete.log (2 ^ (Suc (c * k))) \<le> Discrete.log m"
+    with floor_log_mono have "floor_log (2 ^ (Suc (c * k))) \<le> floor_log m"
       by (blast dest: monoD)
-    moreover have "c * k < Discrete.log (2 ^ (Suc (c * k)))" by simp
-    ultimately show "c * k < Discrete.log m" by auto
+    moreover have "c * k < floor_log (2 ^ (Suc (c * k)))" by simp
+    ultimately show "c * k < floor_log m" by auto
   qed
-  then show "\<exists>n. \<forall>m>n. c * k < Discrete.log m" ..
+  then show "\<exists>n. \<forall>m>n. c * k < floor_log m" ..
 qed
 
 (*lemma
-  "Discrete.log \<prec> Discrete.sqrt"
+  "floor_log \<prec> floor_sqrt"
 proof (rule less_fun_strongI)*)
-text \<open>\<^prop>\<open>Discrete.log \<prec> Discrete.sqrt\<close>\<close>
+text \<open>\<^prop>\<open>floor_log \<prec> floor_sqrt\<close>\<close>
 
 lemma
-  "Discrete.sqrt \<prec> id"
+  "floor_sqrt \<prec> id"
 proof (rule less_fun_strongI)
   fix c :: nat
   assume "0 < c"
-  have "\<forall>m>(Suc c)\<^sup>2. c * Discrete.sqrt m < id m"
+  have "\<forall>m>(Suc c)\<^sup>2. c * floor_sqrt m < id m"
   proof (rule allI, rule impI)
     fix m
     assume "(Suc c)\<^sup>2 < m"
     then have "(Suc c)\<^sup>2 \<le> m" by simp
-    with mono_sqrt have "Discrete.sqrt ((Suc c)\<^sup>2) \<le> Discrete.sqrt m" by (rule monoE)
-    then have "Suc c \<le> Discrete.sqrt m" by simp
-    then have "c < Discrete.sqrt m" by simp
-    moreover from \<open>(Suc c)\<^sup>2 < m\<close> have "Discrete.sqrt m > 0" by simp
-    ultimately have "c * Discrete.sqrt m < Discrete.sqrt m * Discrete.sqrt m" by simp
+    with mono_floor_sqrt have "floor_sqrt ((Suc c)\<^sup>2) \<le> floor_sqrt m" by (rule monoE)
+    then have "Suc c \<le> floor_sqrt m" by simp
+    then have "c < floor_sqrt m" by simp
+    moreover from \<open>(Suc c)\<^sup>2 < m\<close> have "floor_sqrt m > 0" by simp
+    ultimately have "c * floor_sqrt m < floor_sqrt m * floor_sqrt m" by simp
     also have "\<dots> \<le> m" by (simp add: power2_eq_square [symmetric])
-    finally show "c * Discrete.sqrt m < id m" by simp
+    finally show "c * floor_sqrt m < id m" by simp
   qed
-  then show "\<exists>n. \<forall>m>n. c * Discrete.sqrt m < id m" ..
+  then show "\<exists>n. \<forall>m>n. c * floor_sqrt m < id m" ..
 qed
 
 lemma

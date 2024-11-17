@@ -155,7 +155,7 @@ lemma is_nth_power_nat_code [code]:
   by (auto simp: is_nth_power_nat_def is_nth_power_def power_eq_iff_eq_base self_le_power)
 
 
-(* TODO: Harmonise with Discrete.sqrt *)
+(* TODO: Harmonise with Discrete_Functions.floor_sqrt *)
 
 subsection \<open>The $n$-root of a natural number\<close>
 

@@ -185,6 +185,11 @@ Isabelle/VSCode extension settings.
     This outputs a suggestion with instantiations of the facts using the
     "of" attribute (e.g. "assms(1)[of x]").
 
+* Theory "HOL-Library/Discrete" has been renamed "HOL-Library/Discrete_Functions"
+  Discrete.log -> floor_log
+  Discrete.sqrt -> floor_sqrt
+  Renamed lemmas accordingly (...log/sqrt... -> ...floor_log/sqrt...)
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITY.
