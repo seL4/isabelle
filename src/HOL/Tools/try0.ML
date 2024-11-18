@@ -74,19 +74,16 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
 
       val ctxt = Proof.context_of st
 
-      val using_text =
-        (K (Method.insert (Attrib.eval_thms ctxt unused)))
-        |> Method.Basic
-
       val text =
         name ^ attrs
         |> parse_method ctxt
         |> Method.method_cmd ctxt
         |> Method.Basic
         |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
-        |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Then, [using_text, m]))
 
-      val apply = text |> Proof.refine #> Seq.filter_results
+      val apply =
+        Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
+        #> Proof.refine text #> Seq.filter_results
       val num_before = num_goals st
       val multiple_goals = all_goals andalso num_before > 1
       val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
