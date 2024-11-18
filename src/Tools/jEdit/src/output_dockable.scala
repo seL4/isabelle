@@ -11,6 +11,7 @@ import isabelle._
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
+import javax.swing.event.TreeSelectionEvent
 
 import org.gjt.sp.jedit.View
 
@@ -66,6 +67,19 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       }
     }
   }
+
+
+  /* tree view */
+
+  private def tree_selection(): Option[Pretty_Text_Area.Search_Result] =
+    output.tree.get_selection({ case x: Pretty_Text_Area.Search_Result => x })
+
+  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
+    for (result <- tree_selection()) {
+      output.pretty_text_area.setCaretPosition(result.line_range.start)
+      JEdit_Lib.scroll_to_caret(output.pretty_text_area)
+    }
+  })
 
   output.init_gui(dockable, split = true)
 
