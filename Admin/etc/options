@@ -2,7 +2,7 @@
 
 section "Admin tools"
 
-option isabelle_components_server : string = "lxbroy10.informatik.tu-muenchen.de"
+option isabelle_components_server : string = "lxbroy10.in.tum.de"
   -- "user@host for SSH connection"
 
 option isabelle_components_dir : string = "/p/home/isabelle/components"
