@@ -28,7 +28,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* pretty text area */
 
   private val output: Output_Area =
-    new Output_Area(view) {
+    new Output_Area(view, root_name = "Search results") {
+      override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
+        tree.clear()
+        for (result <- search.results) tree.root.add(Tree_View.Node(result))
+        tree.reload_model()
+        tree.expandRow(0)
+        tree.revalidate()
+      }
       override def handle_update(): Unit = dockable.handle_update(true)
     }
 
@@ -60,7 +67,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  output.init_gui(dockable)
+  output.init_gui(dockable, split = true)
 
 
   /* controls */

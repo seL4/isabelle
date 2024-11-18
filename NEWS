@@ -139,6 +139,8 @@ improved as follows:
   - Highlighting works via mouse hovering alone, without requiring
     C-modifier.
 
+  - Search results are shown as tree view.
+
 * An active highlight area in the input buffer or output panel may be
 turned into a text selection by using the ALT modifier.
 

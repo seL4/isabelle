@@ -37,18 +37,20 @@ object Pretty_Text_Area {
   ) {
     lazy val match_ranges: List[Text.Range] = JEdit_Lib.search_text(buffer, line_range, regex)
     lazy val line_text: String = JEdit_Lib.get_text(buffer, line_range).get
-    lazy val gui_text: String = "<b>% 3d".format(line) + ":</b> " + Library.trim_line(line_text)
+    lazy val gui_text: String = "% 3d".format(line) + ": " + Library.trim_line(line_text)
     override def toString: String = gui_text
   }
 
   sealed case class Search_Results(
     buffer: JEditBuffer,
-    pattern: Option[Regex],
-    results: List[Search_Result]
+    pattern: Option[Regex] = None,
+    results: List[Search_Result] = Nil
   ) {
+    val length: Int = results.length
+
     def update(start_offset: Int): (Int, Search_Results) =
     pattern match {
-      case None => (results.length, this)
+      case None => (length, this)
       case Some(regex) =>
         val start_line = buffer.getLineOfOffset(start_offset)
         val results1 = results.takeWhile(result => result.line < start_line)
@@ -61,6 +63,10 @@ object Pretty_Text_Area {
             } yield Search_Result(buffer, regex, line, line_range))
         (results1.length, copy(results = results1 ::: results2))
     }
+
+    def update_pattern(new_pattern: Option[Regex]): Option[Search_Results] =
+      if (pattern == new_pattern) None
+      else Some(copy(pattern = new_pattern, results = Nil).update(0)._2)
   }
 }
 
@@ -92,8 +98,9 @@ class Pretty_Text_Area(
     new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
       get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
-  private var current_search_pattern: Option[Regex] = None
-  def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_pattern }
+  private var current_search_results = Pretty_Text_Area.Search_Results(getBuffer)
+  def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_results.pattern }
+  def handle_search(search: Pretty_Text_Area.Search_Results): Unit = ()
 
   def get_background(): Option[Color] = None
 
@@ -167,6 +174,13 @@ class Pretty_Text_Area(
                 else if (scroll_start < update_start) scroll_start
                 else 0)
               JEdit_Lib.scroll_to_caret(pretty_text_area)
+
+              val (unchanged_length, search_results) = current_search_results.update(update_start)
+              if (unchanged_length < search_results.length) {
+                current_search_results = search_results
+                handle_search(search_results)
+                pretty_text_area.getPainter.repaint()
+              }
             }
           }
         })
@@ -232,13 +246,14 @@ class Pretty_Text_Area(
           val re = Library.make_regex(s)
           (re, re.isDefined)
       }
-    if (current_search_pattern != pattern) {
-      current_search_pattern = pattern
-      pretty_text_area.getPainter.repaint()
-    }
     text_field.setForeground(
       if (ok) search_field_foreground
       else current_rendering.color(Rendering.Color.error))
+    for (search_results <- current_search_results.update_pattern(pattern)) {
+      current_search_results = search_results
+      handle_search(search_results)
+      refresh()
+    }
   }
 
 

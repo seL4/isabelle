@@ -22,6 +22,8 @@ import org.gjt.sp.jedit.View
 
 
 class Output_Area(view: View, root_name: String = "Overview") {
+  output_area =>
+
   GUI_Thread.require {}
 
 
@@ -33,8 +35,13 @@ class Output_Area(view: View, root_name: String = "Overview") {
 
   /* text area */
 
-  val pretty_text_area: Pretty_Text_Area = new Pretty_Text_Area(view)
+  val pretty_text_area: Pretty_Text_Area =
+    new Pretty_Text_Area(view) {
+      override def handle_search(search: Pretty_Text_Area.Search_Results): Unit =
+        output_area.handle_search(search)
+    }
 
+  def handle_search(search: Pretty_Text_Area.Search_Results): Unit = ()
   def handle_resize(): Unit = pretty_text_area.zoom()
   def handle_update(): Unit = ()
 
