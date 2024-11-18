@@ -20,12 +20,49 @@ import scala.swing.{Label, Component}
 import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
 import org.gjt.sp.jedit.textarea.JEditEmbeddedTextArea
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
 import org.gjt.sp.util.{SyntaxUtilities, Log}
 
+
+object Pretty_Text_Area {
+  sealed case class Search_Result(
+    buffer: JEditBuffer,
+    regex: Regex,
+    line: Int,
+    line_range: Text.Range
+  ) {
+    lazy val match_ranges: List[Text.Range] = JEdit_Lib.search_text(buffer, line_range, regex)
+    lazy val line_text: String = JEdit_Lib.get_text(buffer, line_range).get
+    lazy val gui_text: String = "<b>% 3d".format(line) + ":</b> " + Library.trim_line(line_text)
+    override def toString: String = gui_text
+  }
+
+  sealed case class Search_Results(
+    buffer: JEditBuffer,
+    pattern: Option[Regex],
+    results: List[Search_Result]
+  ) {
+    def update(start_offset: Int): (Int, Search_Results) =
+    pattern match {
+      case None => (results.length, this)
+      case Some(regex) =>
+        val start_line = buffer.getLineOfOffset(start_offset)
+        val results1 = results.takeWhile(result => result.line < start_line)
+        val results2 =
+          List.from(
+            for {
+              line <- (start_line until buffer.getLineCount).iterator
+              line_range = JEdit_Lib.line_range(buffer, line)
+              if JEdit_Lib.can_search_text(buffer, line_range, regex)
+            } yield Search_Result(buffer, regex, line, line_range))
+        (results1.length, copy(results = results1 ::: results2))
+    }
+  }
+}
 
 class Pretty_Text_Area(
   view: View,
