@@ -37,7 +37,7 @@ object Pretty_Text_Area {
   ) {
     lazy val match_ranges: List[Text.Range] = JEdit_Lib.search_text(buffer, line_range, regex)
     lazy val line_text: String = JEdit_Lib.get_text(buffer, line_range).get
-    lazy val gui_text: String = "% 3d".format(line) + ": " + Library.trim_line(line_text)
+    lazy val gui_text: String = line.toString + ": " + Library.trim_line(line_text)
     override def toString: String = gui_text
   }
 
