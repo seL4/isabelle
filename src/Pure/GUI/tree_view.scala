@@ -36,9 +36,12 @@ class Tree_View(
       case _ => None
     }
 
-  def clear(): Unit = {
+  def init_model(body: => Unit): Unit = {
     clearSelection()
     root.removeAllChildren()
+    body
+    expandRow(0)
+    reload_model()
   }
 
   def reload_model(): Unit =

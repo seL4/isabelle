@@ -112,18 +112,16 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    output.tree.clear()
-
-    for (thread <- thread_contexts) {
-      val thread_node = Tree_View.Node(thread)
-      for ((_, i) <- thread.debug_states.zipWithIndex)
-        thread_node.add(Tree_View.Node(thread.select(i)))
-      output.tree.root.add(thread_node)
+    output.tree.init_model {
+      for (thread <- thread_contexts) {
+        val thread_node = Tree_View.Node(thread)
+        for ((_, i) <- thread.debug_states.zipWithIndex) {
+          thread_node.add(Tree_View.Node(thread.select(i)))
+        }
+        output.tree.root.add(thread_node)
+      }
     }
 
-    output.tree.reload_model()
-
-    output.tree.expandRow(0)
     for (i <- Range.inclusive(output.tree.getRowCount - 1, 1, -1)) output.tree.expandRow(i)
 
     new_tree_selection match {
