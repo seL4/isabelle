@@ -37,20 +37,23 @@ object Output_Area {
 
   sealed case class Search_Results(
     buffer: JEditBuffer,
-    regex: Regex,
+    pattern: Option[Regex],
     results: List[Search_Result]
   ) {
-    def update(start_offset: Int): (Int, Search_Results) = {
-      val start_line = buffer.getLineOfOffset(start_offset)
-      val results1 = results.takeWhile(result => result.line < start_line)
-      val results2 =
-        List.from(
-          for {
-            line <- (start_line until buffer.getLineCount).iterator
-            line_range = JEdit_Lib.line_range(buffer, line)
-            if JEdit_Lib.can_search_text(buffer, line_range, regex)
-          } yield Search_Result(buffer, regex, line, line_range))
-      (results1.length, copy(results = results1 ::: results2))
+    def update(start_offset: Int): (Int, Search_Results) =
+    pattern match {
+      case None => (results.length, this)
+      case Some(regex) =>
+        val start_line = buffer.getLineOfOffset(start_offset)
+        val results1 = results.takeWhile(result => result.line < start_line)
+        val results2 =
+          List.from(
+            for {
+              line <- (start_line until buffer.getLineCount).iterator
+              line_range = JEdit_Lib.line_range(buffer, line)
+              if JEdit_Lib.can_search_text(buffer, line_range, regex)
+            } yield Search_Result(buffer, regex, line, line_range))
+        (results1.length, copy(results = results1 ::: results2))
     }
   }
 }
