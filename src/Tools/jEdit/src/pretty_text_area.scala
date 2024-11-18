@@ -175,8 +175,9 @@ class Pretty_Text_Area(
                 else 0)
               JEdit_Lib.scroll_to_caret(pretty_text_area)
 
-              val (unchanged_length, search_results) = current_search_results.update(update_start)
-              if (unchanged_length < search_results.length) {
+              val (search_update_start, search_results) =
+                current_search_results.update(update_start)
+              if (current_search_results != search_results) {
                 current_search_results = search_results
                 handle_search(search_results)
                 pretty_text_area.getPainter.repaint()
