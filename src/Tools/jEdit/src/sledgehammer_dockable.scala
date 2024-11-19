@@ -19,6 +19,8 @@ import org.gjt.sp.jedit.gui.HistoryTextField
 
 
 class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
@@ -28,7 +30,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 
-  output.init_gui(this)
+  output.setup(dockable)
+  set_content(output.text_pane)
 
 
   /* query operation */

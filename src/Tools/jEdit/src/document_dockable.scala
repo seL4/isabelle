@@ -347,7 +347,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
   message_pane.pages ++= List(input_page, output_page)
 
-  output.init_gui(dockable, set_content = false)
+  output.setup(dockable)
   set_content(message_pane)
 
 

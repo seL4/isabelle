@@ -58,7 +58,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  output.init_gui(dockable, split = true)
+  output.setup(dockable)
+  dockable.set_content(output.split_pane)
 
 
   /* controls */

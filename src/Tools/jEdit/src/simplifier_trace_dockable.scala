@@ -18,6 +18,8 @@ import org.gjt.sp.jedit.View
 
 
 class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
@@ -31,7 +33,9 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
 
   private val output: Output_Area = new Output_Area(view)
-  output.init_gui(this)
+
+  output.setup(dockable)
+  set_content(output.text_pane)
 
   private def update_contents(): Unit = {
     val snapshot = current_snapshot

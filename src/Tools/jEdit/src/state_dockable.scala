@@ -16,6 +16,8 @@ import org.gjt.sp.jedit.View
 
 
 class State_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
@@ -28,7 +30,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val print_state =
     new Query_Operation(PIDE.editor, view, "print_state", _ => (), output.pretty_text_area.update)
 
-  output.init_gui(this, split = true)
+  output.setup(dockable)
+  set_content(output.split_pane)
 
 
   /* update */

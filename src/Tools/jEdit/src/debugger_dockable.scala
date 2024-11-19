@@ -96,7 +96,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
 
-  output.init_gui(dockable, split = true)
+  output.setup(dockable)
+  set_content(output.split_pane)
 
 
   /* tree view */

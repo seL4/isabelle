@@ -76,7 +76,8 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   private val controls = Wrap_Panel(output.pretty_text_area.search_zoom_components)
   add(controls.peer, BorderLayout.NORTH)
 
-  output.init_gui(dockable, split = true)
+  output.setup(dockable)
+  set_content(output.split_pane)
 
 
   /* main */
