@@ -53,7 +53,9 @@ class Tree_View(
 
   /* cell renderer */
 
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = ()
+  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = {
+    renderer.setIcon(null)
+  }
 
   private val tree_cell_renderer: TreeCellRenderer = new DefaultTreeCellRenderer {
     override def getTreeCellRendererComponent(

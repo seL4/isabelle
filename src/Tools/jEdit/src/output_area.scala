@@ -37,7 +37,9 @@ class Output_Area(view: View, root_name: String = "Search results") {
         output_area.render_tree_cell(renderer)
     }
 
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = ()
+  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = {
+    renderer.setIcon(null)
+  }
 
   def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
     tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
