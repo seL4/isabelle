@@ -64,10 +64,17 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private var current_output: List[XML.Tree] = Nil
 
 
-  /* pretty text area */
+  /* output area */
 
   private val output: Output_Area =
     new Output_Area(view, root_name = "Threads") {
+      override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
+
+      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
+        update_focus()
+        update_vals()
+      }
+
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
@@ -252,11 +259,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }
-
-  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
-    update_focus()
-    update_vals()
-  })
 
 
   /* main */

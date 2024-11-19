@@ -11,7 +11,6 @@ import isabelle._
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
-import javax.swing.event.TreeSelectionEvent
 
 import org.gjt.sp.jedit.View
 
@@ -26,16 +25,10 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private var current_output: List[XML.Elem] = Nil
 
 
-  /* pretty text area */
+  /* output area */
 
   private val output: Output_Area =
-    new Output_Area(view, root_name = "Search results") {
-      override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
-        tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
-        tree.revalidate()
-      }
-      override def handle_update(): Unit = dockable.handle_update(true)
-    }
+    new Output_Area(view) { override def handle_update(): Unit = dockable.handle_update(true) }
 
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
@@ -64,19 +57,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       }
     }
   }
-
-
-  /* tree view */
-
-  private def tree_selection(): Option[Pretty_Text_Area.Search_Result] =
-    output.tree.get_selection({ case x: Pretty_Text_Area.Search_Result => x })
-
-  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
-    for (result <- tree_selection()) {
-      output.pretty_text_area.setCaretPosition(result.line_range.start)
-      JEdit_Lib.scroll_to_caret(output.pretty_text_area)
-    }
-  })
 
   output.init_gui(dockable, split = true)
 

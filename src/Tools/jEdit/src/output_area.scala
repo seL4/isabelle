@@ -13,6 +13,7 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
+import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -21,7 +22,7 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-class Output_Area(view: View, root_name: String = "Overview") {
+class Output_Area(view: View, root_name: String = "Search results") {
   output_area =>
 
   GUI_Thread.require {}
@@ -32,6 +33,17 @@ class Output_Area(view: View, root_name: String = "Overview") {
   val tree: Tree_View =
     new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
+  def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
+    tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
+    tree.revalidate()
+  }
+
+  def handle_tree_selection(e: TreeSelectionEvent): Unit =
+    for (result <- tree.get_selection({ case x: Pretty_Text_Area.Search_Result => x })) {
+      pretty_text_area.setCaretPosition(result.line_range.start)
+      JEdit_Lib.scroll_to_caret(pretty_text_area)
+    }
+
 
   /* text area */
 
@@ -41,7 +53,6 @@ class Output_Area(view: View, root_name: String = "Overview") {
         output_area.handle_search(search)
     }
 
-  def handle_search(search: Pretty_Text_Area.Search_Results): Unit = ()
   def handle_resize(): Unit = pretty_text_area.zoom()
   def handle_update(): Unit = ()
 
@@ -77,6 +88,11 @@ class Output_Area(view: View, root_name: String = "Overview") {
       }
     }
 
+  private lazy val tree_selection_listener =
+    new TreeSelectionListener {
+      def valueChanged(e: TreeSelectionEvent): Unit = handle_tree_selection(e)
+    }
+
 
   /* GUI components */
 
@@ -101,6 +117,7 @@ class Output_Area(view: View, root_name: String = "Overview") {
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
     tree.addMouseListener(mouse_listener)
+    tree.addTreeSelectionListener(tree_selection_listener)
     parent match {
       case dockable: Dockable => dockable.set_content(if (split) split_pane else text_pane)
       case _ =>
