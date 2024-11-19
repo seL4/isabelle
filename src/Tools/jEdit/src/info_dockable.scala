@@ -50,6 +50,9 @@ object Info_Dockable {
 
 
 class Info_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
+
   /* component state -- owned by GUI thread */
 
   private val snapshot = Info_Dockable.implicit_snapshot
@@ -65,47 +68,33 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     }
 
 
-  /* pretty text area */
+  /* output text area */
 
-  private val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
+  private val output: Output_Area = new Output_Area(view)
+  output.pretty_text_area.update(snapshot, results, info)
 
-  pretty_text_area.update(snapshot, results, info)
-
-  private def handle_resize(): Unit = pretty_text_area.zoom()
-
-
-  /* resize */
-
-  private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
-
-  private val controls = Wrap_Panel(pretty_text_area.search_zoom_components)
-
+  private val controls = Wrap_Panel(output.pretty_text_area.search_zoom_components)
   add(controls.peer, BorderLayout.NORTH)
+
+  output.init_gui(dockable, split = true)
 
 
   /* main */
 
   private val main =
     Session.Consumer[Session.Global_Options](getClass.getName) {
-      case _: Session.Global_Options => GUI_Thread.later { handle_resize() }
+      case _: Session.Global_Options => GUI_Thread.later { output.handle_resize() }
     }
 
   override def init(): Unit = {
     GUI.parent_window(this).foreach(_.addWindowFocusListener(window_focus_listener))
     PIDE.session.global_options += main
-    handle_resize()
+    output.init()
   }
 
   override def exit(): Unit = {
     GUI.parent_window(this).foreach(_.removeWindowFocusListener(window_focus_listener))
     PIDE.session.global_options -= main
-    delay_resize.revoke()
+    output.exit()
   }
 }
