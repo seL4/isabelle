@@ -48,8 +48,11 @@ fun parse_method ctxt s =
 datatype modifier = Use | Simp | Intro | Elim | Dest
 
 fun string_of_xthm (xref, args) =
-  (case xref of Facts.Fact literal => cartouche literal | _ => Facts.string_of_ref xref) ^
-    implode (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
+  (case xref of
+    Facts.Fact literal => literal |> Symbol_Pos.explode0 |> Symbol_Pos.implode |> cartouche
+  | _ =>
+      Facts.string_of_ref xref) ^ implode
+        (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
 fun add_attr_text tagged (tag, src) s =
   let
