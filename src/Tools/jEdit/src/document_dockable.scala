@@ -65,13 +65,16 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val current_state = Synchronized(Document_Dockable.State.init())
 
   private val process_indicator = new Process_Indicator
-  private val pretty_text_area = new Pretty_Text_Area(view)
+  private val output: Output_Area = new Output_Area(view)
   private val message_pane = new TabbedPane
+
+  override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
+
 
   private def show_state(): Unit = GUI_Thread.later {
     val st = current_state.value
 
-    pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_all)
+    output.pretty_text_area.update(Document.Snapshot.init, st.output_results, st.output_all)
 
     if (st.running) process_indicator.update("Running document build process ...", 15)
     else if (st.pending) process_indicator.update("Waiting for pending document content ...", 5)
@@ -82,21 +85,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     show_state()
     message_pane.selection.page = page
   }
-
-
-  /* text area with zoom/resize */
-
-  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
-
-  private def handle_resize(): Unit = pretty_text_area.zoom()
-
-  private val delay_resize: Delay =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
 
 
   /* progress */
@@ -348,16 +336,18 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       override def clicked(): Unit = cancel_process()
     }
 
-  private val output_controls = Wrap_Panel(List(cancel_button, pretty_text_area.zoom_component))
+  private val output_controls =
+    Wrap_Panel(List(cancel_button, output.pretty_text_area.zoom_component))
 
   private val output_page =
     new TabbedPane.Page("Output", new BorderPanel {
       layout(output_controls) = BorderPanel.Position.North
-      layout(Component.wrap(pretty_text_area)) = BorderPanel.Position.Center
+      layout(output.text_pane) = BorderPanel.Position.Center
     }, "Results from document build process")
 
   message_pane.pages ++= List(input_page, output_page)
 
+  output.init_gui(dockable, set_content = false)
   set_content(message_pane)
 
 
@@ -368,7 +358,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       case _: Session.Global_Options =>
         GUI_Thread.later {
           document_session.load()
-          handle_resize()
+          output.handle_resize()
           refresh_theories()
         }
       case changed: Session.Commands_Changed =>
@@ -397,14 +387,14 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
-    handle_resize()
+    output.init()
     delay_load.invoke()
   }
 
   override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
-    delay_resize.revoke()
+    output.exit()
     PIDE.editor.document_exit(dockable)
   }
 }

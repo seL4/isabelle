@@ -113,13 +113,14 @@ class Output_Area(view: View, root_name: String = "Search results") {
       rightComponent = text_pane
     }
 
-  def init_gui(parent: JComponent, split: Boolean = false): Unit = {
+  def init_gui(parent: JComponent, split: Boolean = false, set_content: Boolean = true): Unit = {
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
     tree.addMouseListener(mouse_listener)
     tree.addTreeSelectionListener(tree_selection_listener)
     parent match {
-      case dockable: Dockable => dockable.set_content(if (split) split_pane else text_pane)
+      case dockable: Dockable if set_content =>
+        dockable.set_content(if (split) split_pane else text_pane)
       case _ =>
     }
   }
