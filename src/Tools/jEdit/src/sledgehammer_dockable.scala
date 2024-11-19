@@ -22,12 +22,13 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   GUI_Thread.require {}
 
 
-  /* text area */
+  /* output text area */
 
-  val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
+  private val output: Output_Area = new Output_Area(view)
 
-  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
+  override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
+
+  output.init_gui(this)
 
 
   /* query operation */
@@ -46,20 +47,8 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val sledgehammer =
-    new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status, pretty_text_area.update)
-
-
-  /* resize */
-
-  private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
-
-  private def handle_resize(): Unit = pretty_text_area.zoom()
+    new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status,
+      output.pretty_text_area.update)
 
 
   /* controls */
@@ -123,7 +112,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     Wrap_Panel(
       List(provers_label, Component.wrap(provers), isar_proofs, try0,
         process_indicator.component, apply_query, cancel_query, locate_query,
-        pretty_text_area.zoom_component))
+        output.pretty_text_area.zoom_component))
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -134,19 +123,20 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val main =
     Session.Consumer[Session.Global_Options](getClass.getName) {
-      case _: Session.Global_Options => GUI_Thread.later { update_provers(); handle_resize() }
+      case _: Session.Global_Options =>
+        GUI_Thread.later { update_provers(); output.handle_resize() }
     }
 
   override def init(): Unit = {
     PIDE.session.global_options += main
     update_provers()
-    handle_resize()
+    output.init()
     sledgehammer.activate()
   }
 
   override def exit(): Unit = {
     sledgehammer.deactivate()
     PIDE.session.global_options -= main
-    delay_resize.revoke()
+    output.exit()
   }
 }
