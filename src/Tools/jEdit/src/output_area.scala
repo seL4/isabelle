@@ -124,7 +124,10 @@ class Output_Area(view: View, root_name: String = "Search results") {
     }
   }
 
-  def init(): Unit = handle_update()
+  def init(): Unit = {
+    handle_update()
+    handle_resize()
+  }
 
   def exit(): Unit = delay_resize.revoke()
 }
