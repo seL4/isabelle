@@ -24,6 +24,10 @@ object Tree_View {
         case _ => None
       }
   }
+
+  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = {
+    renderer.setIcon(null)
+  }
 }
 
 class Tree_View(
@@ -53,9 +57,8 @@ class Tree_View(
 
   /* cell renderer */
 
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = {
-    renderer.setIcon(null)
-  }
+  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit =
+    Tree_View.render_tree_cell(renderer)
 
   private val tree_cell_renderer: TreeCellRenderer = new DefaultTreeCellRenderer {
     override def getTreeCellRendererComponent(
