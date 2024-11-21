@@ -14,7 +14,6 @@ import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEven
   MouseEvent, MouseAdapter}
 import javax.swing.JComponent
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
-import javax.swing.tree.DefaultTreeCellRenderer
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -31,14 +30,10 @@ class Output_Area(view: View, root_name: String = "Search results") {
 
   /* tree view */
 
-  val tree: Tree_View =
-    new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true) {
-      override def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit =
-        output_area.render_tree_cell(renderer)
-    }
+  val tree_cell_renderer: Tree_View.Cell_Renderer = new Tree_View.Cell_Renderer
 
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit =
-    Tree_View.render_tree_cell(renderer)
+  val tree: Tree_View =
+    new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
   def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
     tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
@@ -125,6 +120,7 @@ class Output_Area(view: View, root_name: String = "Search results") {
     parent.addFocusListener(focus_listener)
     tree.addMouseListener(mouse_listener)
     tree.addTreeSelectionListener(tree_selection_listener)
+    tree.setCellRenderer(tree_cell_renderer)
   }
 
   def init(): Unit = {

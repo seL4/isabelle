@@ -25,8 +25,22 @@ object Tree_View {
       }
   }
 
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit = {
-    renderer.setIcon(null)
+  class Cell_Renderer extends DefaultTreeCellRenderer {
+    def setup(value: AnyRef): Unit = setIcon(null)
+
+    override def getTreeCellRendererComponent(
+      tree: JTree,
+      value: AnyRef,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean
+    ): java.awt.Component = {
+      super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
+      setup(value)
+      this
+    }
   }
 }
 
@@ -55,31 +69,9 @@ class Tree_View(
     }
 
 
-  /* cell renderer */
-
-  def render_tree_cell(renderer: DefaultTreeCellRenderer): Unit =
-    Tree_View.render_tree_cell(renderer)
-
-  private val tree_cell_renderer: TreeCellRenderer = new DefaultTreeCellRenderer {
-    override def getTreeCellRendererComponent(
-      tree: JTree,
-      value: AnyRef,
-      selected: Boolean,
-      expanded: Boolean,
-      leaf: Boolean,
-      row: Int,
-      hasFocus: Boolean
-    ): java.awt.Component = {
-      super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
-      render_tree_cell(this)
-      this
-    }
-  }
-
-
   /* init */
 
-  setCellRenderer(tree_cell_renderer)
+  setCellRenderer(new Tree_View.Cell_Renderer)
 
   setRowHeight(0)
 
