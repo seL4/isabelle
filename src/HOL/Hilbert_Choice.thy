@@ -147,6 +147,34 @@ proof -
 qed
 
 
+subsection \<open>Getting an element of a nonempty set\<close>
+
+definition some_elem :: "'a set \<Rightarrow> 'a"
+  where "some_elem A = (SOME x. x \<in> A)"
+
+lemma some_elem_eq [simp]: "some_elem {x} = x"
+  by (simp add: some_elem_def)
+
+lemma some_elem_nonempty: "A \<noteq> {} \<Longrightarrow> some_elem A \<in> A"
+  unfolding some_elem_def by (auto intro: someI)
+
+lemma is_singleton_some_elem: "is_singleton A \<longleftrightarrow> A = {some_elem A}"
+  by (auto simp: is_singleton_def)
+
+lemma some_elem_image_unique:
+  assumes "A \<noteq> {}"
+    and *: "\<And>y. y \<in> A \<Longrightarrow> f y = a"
+  shows "some_elem (f ` A) = a"
+  unfolding some_elem_def
+proof (rule some1_equality)
+  from \<open>A \<noteq> {}\<close> obtain y where "y \<in> A" by auto
+  with * \<open>y \<in> A\<close> have "a \<in> f ` A" by blast
+  then show "a \<in> f ` A" by auto
+  with * show "\<exists>!x. x \<in> f ` A"
+    by auto
+qed
+
+
 subsection \<open>Function Inverse\<close>
 
 lemma inv_def: "inv f = (\<lambda>y. SOME x. f x = y)"

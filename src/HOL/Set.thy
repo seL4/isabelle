@@ -1834,14 +1834,13 @@ lemma is_singleton_the_elem: "is_singleton A \<longleftrightarrow> A = {the_elem
 
 lemma the_elem_image_unique:
   assumes "A \<noteq> {}"
-    and *: "\<And>y. y \<in> A \<Longrightarrow> f y = f x"
-  shows "the_elem (f ` A) = f x"
+    and *: "\<And>y. y \<in> A \<Longrightarrow> f y = a"
+  shows "the_elem (f ` A) = a"
   unfolding the_elem_def
 proof (rule the1_equality)
   from \<open>A \<noteq> {}\<close> obtain y where "y \<in> A" by auto
-  with * have "f x = f y" by simp
-  with \<open>y \<in> A\<close> have "f x \<in> f ` A" by blast
-  with * show "f ` A = {f x}" by auto
+  with * \<open>y \<in> A\<close> have "a \<in> f ` A" by blast
+  with * show "f ` A = {a}" by auto
   then show "\<exists>!x. f ` A = {x}" by auto
 qed
 
