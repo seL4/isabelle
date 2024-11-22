@@ -20,12 +20,85 @@ import scala.swing.{Label, Component}
 import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
 import org.gjt.sp.jedit.textarea.JEditEmbeddedTextArea
+import org.gjt.sp.jedit.search.HyperSearchResults
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
-import org.gjt.sp.util.{SyntaxUtilities, Log}
+import org.gjt.sp.util.{SyntaxUtilities, Log, HtmlUtilities}
 
+object Pretty_Text_Area {
+  def make_highlight_style(): String =
+    HtmlUtilities.style2html(jEdit.getProperty(HyperSearchResults.HIGHLIGHT_PROP),
+      Font_Metric.default_font)
+
+  sealed case class Search_Result(
+    buffer: JEditBuffer,
+    highlight_style: String,
+    regex: Regex,
+    line: Int,
+    line_range: Text.Range
+  ) {
+    lazy val line_text: String =
+      Library.trim_line(JEdit_Lib.get_text(buffer, line_range).getOrElse(""))
+
+    lazy val gui_text: String = {
+      // see also HyperSearchResults.highlightString
+      val s = new StringBuilder(line_range.length * 2)
+      s ++= "<html><b>"
+      s ++= line.toString
+      s ++= ":</b> "
+
+      val line_start = line_range.start
+      val search_range = Text.Range(line_start, line_start + line_text.length)
+      var last = 0
+      for (range <- JEdit_Lib.search_text(buffer, search_range, regex)) {
+        val next = range.start - line_start
+        if (last < next) s ++= line_text.substring(last, next)
+        s ++= "<span style=\""
+        s ++= highlight_style
+        s ++= "\">"
+        s ++= line_text.substring(next, next + range.length)
+        s ++= "</span>"
+        last = range.stop - line_start
+      }
+      if (last < line_text.length) s ++= line_text.substring(last)
+      s ++= "</html>"
+      s.toString
+    }
+    override def toString: String = gui_text
+  }
+
+  sealed case class Search_Results(
+    buffer: JEditBuffer,
+    highlight_style: String,
+    pattern: Option[Regex] = None,
+    results: List[Search_Result] = Nil
+  ) {
+    val length: Int = results.length
+
+    def update(start_offset: Int): (Int, Search_Results) =
+    pattern match {
+      case None => (length, this)
+      case Some(regex) =>
+        val start_line = buffer.getLineOfOffset(start_offset)
+        val results1 = results.takeWhile(result => result.line < start_line)
+        val results2 =
+          List.from(
+            for {
+              line <- (start_line until buffer.getLineCount).iterator
+              line_range = JEdit_Lib.line_range(buffer, line)
+              if JEdit_Lib.can_search_text(buffer, line_range, regex)
+            } yield Search_Result(buffer, highlight_style, regex, line, line_range))
+        (results1.length, copy(results = results1 ::: results2))
+    }
+
+    def update_pattern(new_pattern: Option[Regex]): Option[Search_Results] =
+      if (pattern == new_pattern) None
+      else Some(copy(pattern = new_pattern, results = Nil).update(0)._2)
+  }
+}
 
 class Pretty_Text_Area(
   view: View,
@@ -55,8 +128,11 @@ class Pretty_Text_Area(
     new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
       get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
-  private var current_search_pattern: Option[Regex] = None
-  def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_pattern }
+  private var current_search_results =
+    Pretty_Text_Area.Search_Results(getBuffer, Pretty_Text_Area.make_highlight_style())
+
+  def get_search_pattern(): Option[Regex] = GUI_Thread.require { current_search_results.pattern }
+  def handle_search(search: Pretty_Text_Area.Search_Results): Unit = ()
 
   def get_background(): Option[Color] = None
 
@@ -130,6 +206,14 @@ class Pretty_Text_Area(
                 else if (scroll_start < update_start) scroll_start
                 else 0)
               JEdit_Lib.scroll_to_caret(pretty_text_area)
+
+              val (search_update_start, search_results) =
+                current_search_results.update(update_start)
+              if (current_search_results != search_results) {
+                current_search_results = search_results
+                handle_search(search_results)
+                pretty_text_area.getPainter.repaint()
+              }
             }
           }
         })
@@ -195,13 +279,14 @@ class Pretty_Text_Area(
           val re = Library.make_regex(s)
           (re, re.isDefined)
       }
-    if (current_search_pattern != pattern) {
-      current_search_pattern = pattern
-      pretty_text_area.getPainter.repaint()
-    }
     text_field.setForeground(
       if (ok) search_field_foreground
       else current_rendering.color(Rendering.Color.error))
+    for (search_results <- current_search_results.update_pattern(pattern)) {
+      current_search_results = search_results
+      handle_search(search_results)
+      refresh()
+    }
   }
 
 

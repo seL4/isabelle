@@ -64,10 +64,17 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private var current_output: List[XML.Tree] = Nil
 
 
-  /* pretty text area */
+  /* output area */
 
   private val output: Output_Area =
     new Output_Area(view, root_name = "Threads") {
+      override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
+
+      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
+        update_focus()
+        update_vals()
+      }
+
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
@@ -89,7 +96,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
 
-  output.init_gui(dockable, split = true)
+  output.setup(dockable)
+  set_content(output.split_pane)
 
 
   /* tree view */
@@ -112,18 +120,16 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         case _ => thread_contexts.headOption
       }
 
-    output.tree.clear()
-
-    for (thread <- thread_contexts) {
-      val thread_node = Tree_View.Node(thread)
-      for ((_, i) <- thread.debug_states.zipWithIndex)
-        thread_node.add(Tree_View.Node(thread.select(i)))
-      output.tree.root.add(thread_node)
+    output.tree.init_model {
+      for (thread <- thread_contexts) {
+        val thread_node = Tree_View.Node(thread)
+        for ((_, i) <- thread.debug_states.zipWithIndex) {
+          thread_node.add(Tree_View.Node(thread.select(i)))
+        }
+        output.tree.root.add(thread_node)
+      }
     }
 
-    output.tree.reload_model()
-
-    output.tree.expandRow(0)
     for (i <- Range.inclusive(output.tree.getRowCount - 1, 1, -1)) output.tree.expandRow(i)
 
     new_tree_selection match {
@@ -255,11 +261,6 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }
 
-  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
-    update_focus()
-    update_vals()
-  })
-
 
   /* main */
 
@@ -279,14 +280,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options += main
     PIDE.session.debugger_updates += main
     debugger.init(dockable)
-    output.handle_update()
+    output.init()
     jEdit.propertiesChanged()
   }
 
   override def exit(): Unit = {
     PIDE.session.global_options -= main
     PIDE.session.debugger_updates -= main
-    output.delay_resize.revoke()
+    output.exit()
     debugger.exit(dockable)
     jEdit.propertiesChanged()
   }

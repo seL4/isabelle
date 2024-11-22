@@ -8,7 +8,7 @@ package isabelle
 
 import javax.swing.JTree
 import javax.swing.tree.{MutableTreeNode, DefaultMutableTreeNode, DefaultTreeModel,
-  TreeSelectionModel}
+  TreeSelectionModel, TreeCellRenderer, DefaultTreeCellRenderer}
 
 
 object Tree_View {
@@ -24,6 +24,24 @@ object Tree_View {
         case _ => None
       }
   }
+
+  class Cell_Renderer extends DefaultTreeCellRenderer {
+    def setup(value: AnyRef): Unit = setIcon(null)
+
+    override def getTreeCellRendererComponent(
+      tree: JTree,
+      value: AnyRef,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean
+    ): java.awt.Component = {
+      super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus)
+      setup(value)
+      this
+    }
+  }
 }
 
 class Tree_View(
@@ -36,9 +54,12 @@ class Tree_View(
       case _ => None
     }
 
-  def clear(): Unit = {
+  def init_model(body: => Unit): Unit = {
     clearSelection()
     root.removeAllChildren()
+    body
+    expandRow(0)
+    reload_model()
   }
 
   def reload_model(): Unit =
@@ -49,6 +70,8 @@ class Tree_View(
 
 
   /* init */
+
+  setCellRenderer(new Tree_View.Cell_Renderer)
 
   setRowHeight(0)
 

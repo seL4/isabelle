@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.{Dimension, Rectangle}
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.tree.TreePath
-import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, DocumentListener, DocumentEvent}
+import javax.swing.event.{DocumentListener, DocumentEvent}
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, BorderPanel, Label, TextField, Button, Action}
@@ -140,14 +140,9 @@ extends BorderPanel {
 
   def refresh(): Unit = {
     val new_nodes = graphview.visible_graph.topological_order
-    if (new_nodes != nodes) {
-      tree.clear()
-
+    if (nodes != new_nodes) {
       nodes = new_nodes
-      for (node <- nodes) tree.root.add(Tree_View.Node(node))
-
-      tree.expandRow(0)
-      tree.revalidate()
+      tree.init_model { for (node <- nodes) tree.root.add(Tree_View.Node(node)) }
     }
     revalidate()
     repaint()

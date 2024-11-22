@@ -144,6 +144,10 @@ object JEdit_Lib {
     try { Some(buffer.getText(range.start, range.length)) }
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
+  def can_search_text(buffer: JEditBuffer, range: Text.Range, regex: Regex): Boolean =
+    try { regex.findFirstIn(buffer.getSegment(range.start, range.length)).nonEmpty }
+    catch { case _: ArrayIndexOutOfBoundsException => false }
+
   def search_text(buffer: JEditBuffer, range: Text.Range, regex: Regex): List[Text.Range] =
     List.from(
       for {
@@ -335,26 +339,23 @@ object JEdit_Lib {
 
     { (range: Text.Range) =>
       val stop = range.stop
+      try {
+        val p = text_area.offsetToXY(range.start)
+        val (q, r) =
+          if (get_text(buffer, Text.Range(stop - 1, stop)).contains("\n")) {
+            (text_area.offsetToXY(stop - 1), char_width)
+          }
+          else if (stop >= end) {
+            (text_area.offsetToXY(end), char_width * (stop - end))
+          }
+          else (text_area.offsetToXY(stop), 0)
 
-      val (p, q, r) =
-        try {
-          val p = text_area.offsetToXY(range.start)
-          val (q, r) =
-            if (get_text(buffer, Text.Range(stop - 1, stop)).contains("\n")) {
-              (text_area.offsetToXY(stop - 1), char_width)
-            }
-            else if (stop >= end) {
-              (text_area.offsetToXY(end), char_width * (stop - end))
-            }
-            else (text_area.offsetToXY(stop), 0)
-          (p, q, r)
+        if (p != null && q != null && p.x < q.x + r && p.y == q.y) {
+          Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
         }
-        catch { case _: ArrayIndexOutOfBoundsException => (null, null, 0) }
-
-      if (p != null && q != null && p.x < q.x + r && p.y == q.y) {
-        Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
+        else None
       }
-      else None
+      catch { case _: ArrayIndexOutOfBoundsException => None }
     }
   }
 

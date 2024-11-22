@@ -18,6 +18,8 @@ import org.gjt.sp.jedit.View
 
 
 class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
@@ -30,8 +32,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private var do_update = true
 
 
-  private val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
+  private val output: Output_Area = new Output_Area(view)
+
+  output.setup(dockable)
+  set_content(output.text_pane)
 
   private def update_contents(): Unit = {
     val snapshot = current_snapshot
@@ -41,8 +45,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     context.questions.values.toList match {
       case q :: _ =>
         val data = q.data
-        val output = List(Pretty.block(XML.Text(data.text) :: data.content, indent = 0))
-        pretty_text_area.update(snapshot, Command.Results.empty, output)
+        output.pretty_text_area.update(snapshot, Command.Results.empty,
+          List(Pretty.block(XML.Text(data.text) :: data.content, indent = 0)))
         q.answers.foreach { answer =>
           answers.contents += new GUI.Button(answer.string) {
             override def clicked(): Unit =
@@ -50,18 +54,16 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
           }
         }
       case Nil =>
-        pretty_text_area.update(snapshot, Command.Results.empty, Nil)
+        output.pretty_text_area.update(snapshot, Command.Results.empty, Nil)
     }
 
-    handle_resize()
+    output.handle_resize()
   }
 
   private def show_trace(): Unit = {
     val trace = Simplifier_Trace.generate_trace(PIDE.session, current_results)
     new Simplifier_Trace_Window(view, current_snapshot, trace)
   }
-
-  private def handle_resize(): Unit = pretty_text_area.zoom()
 
   private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =
@@ -92,7 +94,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { handle_resize() }
+        GUI_Thread.later { output.handle_resize() }
 
       case changed: Session.Commands_Changed =>
         GUI_Thread.later { handle_update(do_update) }
@@ -109,6 +111,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
     PIDE.session.trace_events += main
+    output.init()
     handle_update(true)
   }
 
@@ -117,19 +120,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
     PIDE.session.commands_changed -= main
     PIDE.session.caret_focus -= main
     PIDE.session.trace_events -= main
-    delay_resize.revoke()
+    output.exit()
   }
-
-
-  /* resize */
-
-  private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
 
 
   /* controls */

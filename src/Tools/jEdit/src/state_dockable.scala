@@ -16,31 +16,22 @@ import org.gjt.sp.jedit.View
 
 
 class State_Dockable(view: View, position: String) extends Dockable(view, position) {
+  dockable =>
+
   GUI_Thread.require {}
 
 
-  /* text area */
+  /* output text area */
 
-  val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
+  private val output: Output_Area = new Output_Area(view)
 
-  override def detach_operation: Option[() => Unit] = pretty_text_area.detach_operation
+  override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 
   private val print_state =
-    new Query_Operation(PIDE.editor, view, "print_state", _ => (), pretty_text_area.update)
+    new Query_Operation(PIDE.editor, view, "print_state", _ => (), output.pretty_text_area.update)
 
-
-  /* resize */
-
-  private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()
-    override def componentShown(e: ComponentEvent): Unit = delay_resize.invoke()
-  })
-
-  private def handle_resize(): Unit = pretty_text_area.zoom()
+  output.setup(dockable)
+  set_content(output.split_pane)
 
 
   /* update */
@@ -93,7 +84,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val controls =
     Wrap_Panel(
       List(auto_update_button, update_button, locate_button) :::
-      pretty_text_area.search_zoom_components)
+      output.pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
 
@@ -103,7 +94,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { handle_resize() }
+        GUI_Thread.later { output.handle_resize() }
 
       case changed: Session.Commands_Changed =>
         if (changed.assignment) GUI_Thread.later { auto_update() }
@@ -116,7 +107,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
     PIDE.session.caret_focus += main
-    handle_resize()
+    output.init()
     print_state.activate()
     auto_update()
   }
@@ -126,6 +117,6 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     PIDE.session.caret_focus -= main
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
-    delay_resize.revoke()
+    output.exit()
   }
 }
