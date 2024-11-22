@@ -353,11 +353,6 @@ lemma transpose_invertible:
   shows "invertible (transpose A)"
   by (meson assms invertible_def matrix_left_right_inverse right_invertible_transpose)
 
-lemma vector_matrix_mul_assoc:
-  fixes v :: "('a::comm_semiring_1)^'n"
-  shows "(v v* M) v* N = v v* (M ** N)"
-  by (metis (no_types, opaque_lifting) matrix_transpose_mul matrix_vector_mul_assoc transpose_matrix_vector)
-
 lemma matrix_scaleR_vector_ac:
   fixes A :: "real^('m::finite)^'n"
   shows "A *v (k *\<^sub>R v) = k *\<^sub>R A *v v"

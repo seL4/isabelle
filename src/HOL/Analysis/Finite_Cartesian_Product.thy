@@ -1018,32 +1018,26 @@ lemma matrix_mul_rid [simp]:
   unfolding matrix_matrix_mult_def mat_def
   by (auto simp: if_distrib if_distribR sum.delta'[OF finite] cong: if_cong)
 
-proposition matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
+lemma matrix_mul_assoc: "A ** (B ** C) = (A ** B) ** C"
   apply (vector matrix_matrix_mult_def sum_distrib_left sum_distrib_right mult.assoc)
-  apply (subst sum.swap)
-  apply simp
-  done
+  using sum.swap by fastforce
 
-proposition matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
+lemma matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply (vector matrix_matrix_mult_def matrix_vector_mult_def
     sum_distrib_left sum_distrib_right mult.assoc)
-  apply (subst sum.swap)
-  apply simp
-  done
+  using sum.swap by fastforce
 
-proposition vector_matrix_mul_assoc: "(x v* A) v* B = x v* (A**B)"
+lemma vector_matrix_mul_assoc: "(x v* A) v* B = x v* (A**B)"
   apply (vector matrix_matrix_mult_def vector_matrix_mult_def
     sum_distrib_left sum_distrib_right mult.assoc)
-  apply (subst sum.swap)
-  apply simp
-  done
+  using sum.swap by fastforce
 
-proposition scalar_matrix_assoc:
+lemma scalar_matrix_assoc:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
   by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff scaleR_sum_right)
 
-proposition matrix_scalar_ac:
+lemma matrix_scalar_ac:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "A ** (k *\<^sub>R B) = k *\<^sub>R A ** B"
   by (simp add: matrix_matrix_mult_def sum_distrib_left mult_ac vec_eq_iff)
@@ -1229,7 +1223,7 @@ proof -
     unfolding invertible_def by auto
 qed
 
-proposition scalar_invertible_iff:
+lemma scalar_invertible_iff:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   assumes "k \<noteq> 0" and "invertible A"
   shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
@@ -1264,13 +1258,12 @@ lemma scaleR_vector_matrix_assoc:
   shows "(k *\<^sub>R x) v* A = k *\<^sub>R (x v* A)"
   by (metis matrix_vector_mult_scaleR transpose_matrix_vector)
 
-proposition vector_scaleR_matrix_ac:
+lemma vector_scaleR_matrix_ac:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
   shows "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
 proof -
   have "x v* (k *\<^sub>R A) = (k *\<^sub>R x) v* A"
-    unfolding vector_matrix_mult_def
-    by (simp add: algebra_simps)
+    by (simp add: vector_matrix_mult_def algebra_simps)
   with scaleR_vector_matrix_assoc
   show "x v* (k *\<^sub>R A) = k *\<^sub>R (x v* A)"
     by auto
