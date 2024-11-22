@@ -986,7 +986,7 @@ definition\<^marker>\<open>tag important\<close> matrix_vector_mult :: "('a::sem
 
 definition\<^marker>\<open>tag important\<close> vector_matrix_mult :: "'a ^ 'm \<Rightarrow> ('a::semiring_1) ^'n^'m \<Rightarrow> 'a ^'n "
     (infixl \<open>v*\<close> 70)
-  where "v v* m == (\<chi> j. sum (\<lambda>i. ((m$i)$j) * (v$i)) (UNIV :: 'm set)) :: 'a^'n"
+  where "v v* m == (\<chi> j. sum (\<lambda>i. ((v$i) * (m$i)$j)) (UNIV :: 'm set)) :: 'a^'n"
 
 definition\<^marker>\<open>tag unimportant\<close> "(mat::'a::zero => 'a ^'n^'n) k = (\<chi> i j. if i = j then k else 0)"
 definition\<^marker>\<open>tag unimportant\<close> transpose where
@@ -1031,6 +1031,13 @@ proposition matrix_vector_mul_assoc: "A *v (B *v x) = (A ** B) *v x"
   apply simp
   done
 
+proposition vector_matrix_mul_assoc: "(x v* A) v* B = x v* (A**B)"
+  apply (vector matrix_matrix_mult_def vector_matrix_mult_def
+    sum_distrib_left sum_distrib_right mult.assoc)
+  apply (subst sum.swap)
+  apply simp
+  done
+
 proposition scalar_matrix_assoc:
   fixes A :: "('a::real_algebra_1)^'m^'n"
   shows "k *\<^sub>R (A ** B) = (k *\<^sub>R A) ** B"
@@ -1043,6 +1050,13 @@ proposition matrix_scalar_ac:
 
 lemma matrix_vector_mul_lid [simp]: "mat 1 *v x = (x::'a::semiring_1 ^ 'n)"
   apply (vector matrix_vector_mult_def mat_def)
+  apply (simp add: if_distrib if_distribR cong del: if_weak_cong)
+  done
+
+lemma vector_matrix_mul_rid [simp]:
+  fixes v :: "('a::semiring_1)^'n"
+  shows "v v* mat 1 = v"
+  apply (vector vector_matrix_mult_def mat_def)
   apply (simp add: if_distrib if_distribR cong del: if_weak_cong)
   done
 
@@ -1139,6 +1153,11 @@ lemma vector_matrix_left_distrib [algebra_simps]:
   unfolding vector_matrix_mult_def
   by (simp add: algebra_simps sum.distrib vec_eq_iff)
 
+lemma vector_matrix_mult_diff_distrib [algebra_simps]:
+  fixes A :: "'a::ring_1^'n^'m"
+  shows "(x - y) v* A = x v* A - y v* A"
+  by (vector vector_matrix_mult_def sum_subtractf left_diff_distrib)
+
 lemma matrix_vector_right_distrib [algebra_simps]:
   "A *v (x + y) = A *v x + A *v y"
   by (vector matrix_vector_mult_def sum.distrib distrib_left)
@@ -1167,6 +1186,15 @@ lemma matrix_vector_mult_diff_rdistrib [algebra_simps]:
   fixes A :: "'a :: ring_1^'n^'m"
   shows "(A - B) *v x = (A *v x) - (B *v x)"
   by (vector matrix_vector_mult_def sum_subtractf left_diff_distrib)
+
+lemma vector_matrix_mult_add_rdistrib [algebra_simps]:
+  "x v* (A + B) = (x v* A) + (x v* B)"
+  by (vector vector_matrix_mult_def sum.distrib distrib_left)
+
+lemma  vector_matrix_mult_diff_rdistrib [algebra_simps]:
+  fixes A :: "'a :: ring_1^'n^'m"
+  shows "x v* (A - B) = (x v* A) - (x v* B)"
+  by (vector vector_matrix_mult_def sum_subtractf right_diff_distrib)
 
 lemma matrix_vector_column:
   "(A::'a::comm_semiring_1^'n^_) *v x = sum (\<lambda>i. (x$i) *s ((transpose A)$i)) (UNIV:: 'n set)"
@@ -1207,13 +1235,13 @@ proposition scalar_invertible_iff:
   shows "invertible (k *\<^sub>R A) \<longleftrightarrow> k \<noteq> 0 \<and> invertible A"
   by (simp add: assms scalar_invertible)
 
-lemma vector_transpose_matrix [simp]: "x v* transpose A = A *v x"
+lemma vector_transpose_matrix [simp]: "x v* transpose A = A *v (x:: 'a::{comm_semiring_1}^'n)"
   unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
-  by simp
+  by (simp add: mult.commute)
 
-lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* A"
+lemma transpose_matrix_vector [simp]: "transpose A *v x = x v* (A:: 'a::{comm_semiring_1}^'m^'n)"
   unfolding transpose_def vector_matrix_mult_def matrix_vector_mult_def
-  by simp
+  by (simp add: mult.commute)
 
 lemma vector_scalar_commute:
   fixes A :: "'a::{field}^'m^'n"
@@ -1230,11 +1258,6 @@ lemma vector_matrix_mult_0 [simp]: "0 v* A = 0"
 
 lemma vector_matrix_mult_0_right [simp]: "x v* 0 = 0"
   unfolding vector_matrix_mult_def by (simp add: zero_vec_def)
-
-lemma vector_matrix_mul_rid [simp]:
-  fixes v :: "('a::semiring_1)^'n"
-  shows "v v* mat 1 = v"
-  by (metis matrix_vector_mul_lid transpose_mat vector_transpose_matrix)
 
 lemma scaleR_vector_matrix_assoc:
   fixes k :: real and x :: "real^'n" and A :: "real^'m^'n"
