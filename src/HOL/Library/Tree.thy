@@ -363,11 +363,21 @@ subsection "List of entries"
 lemma eq_inorder_Nil[simp]: "inorder t = [] \<longleftrightarrow> t = Leaf"
 by (cases t) auto
 
-lemma eq_Nil_inorder[simp]: "[] = inorder t \<longleftrightarrow> t = Leaf"
-by (cases t) auto
+lemmas eq_Nil_inorder[simp] = eq_inorder_Nil[THEN eq_iff_swap]
 
 lemma set_inorder[simp]: "set (inorder t) = set_tree t"
 by (induction t) auto
+
+lemma preorder_eq_Nil_iff[simp]: "(preorder t = []) = (t = \<langle>\<rangle>)"
+by (cases t) auto
+
+lemmas Nil_eq_preorder_iff [simp] = preorder_eq_Nil_iff[THEN eq_iff_swap]
+
+lemma preorder_eq_Cons_iff:
+  "preorder t = x # xs \<longleftrightarrow> (\<exists> l r. t = \<langle>l, x, r\<rangle> \<and> xs = preorder l @ preorder r)"
+by (cases t) auto
+
+lemmas Cons_eq_preorder_iff = preorder_eq_Cons_iff[THEN eq_iff_swap]
 
 lemma set_preorder[simp]: "set (preorder t) = set_tree t"
 by (induction t) auto
