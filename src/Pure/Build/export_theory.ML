@@ -390,7 +390,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         (fn loc => fn () => SOME (fn () =>
           let
             val {typargs, args, axioms} = locale_content thy loc;
-            val used = fold Name.declare (map #1 typargs @ map (#1 o #1) args) Name.context;
+            val used = Name.build_context (fold Name.declare (map #1 typargs @ map (#1 o #1) args));
           in encode_locale used (typargs, args, axioms) end
           handle ERROR msg =>
             cat_error msg ("The error(s) above occurred in locale " ^
