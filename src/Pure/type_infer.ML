@@ -115,7 +115,7 @@ fun fixate ctxt pattern ts =
         in (TVars.add ((xi, S), TFree (a, improve_sort S)) inst, used') end
       else (inst, used);
     val params = TVars.build (fold TVars.add_tvars ts) |> TVars.list_set;
-    val used = (fold o fold_types) Term.declare_typ_names ts (Variable.names_of ctxt);
+    val used = fold Term.declare_tfree_names ts (Variable.names_of ctxt);
     val (inst, _) = fold subst_param params (TVars.empty, used);
   in (Same.commit o Same.map o Term.map_types_same) (Term_Subst.instantiateT_same inst) ts end;
 

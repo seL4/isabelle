@@ -214,12 +214,12 @@ val declare_maxidx = map_maxidx o Integer.max;
 (* names *)
 
 fun declare_type_names t =
-  map_names (fold_types Term.declare_typ_names t) #>
+  map_names (Term.declare_tfree_names t) #>
   map_maxidx (fold_types Term.maxidx_typ t);
 
 fun declare_names t =
   declare_type_names t #>
-  map_names (Term.declare_term_frees t) #>
+  map_names (Term.declare_free_names t) #>
   map_maxidx (Term.maxidx_term t);
 
 

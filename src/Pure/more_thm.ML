@@ -349,7 +349,7 @@ local
 
 val used_frees =
   Name.build_context o
-    Thm.fold_terms {hyps = true} Term.declare_term_frees;
+    Thm.fold_terms {hyps = true} Term.declare_free_names;
 
 fun used_vars i =
   Name.build_context o
