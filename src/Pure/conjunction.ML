@@ -144,7 +144,7 @@ fun conjs n =
   let
     val As =
       map (fn A => Thm.global_cterm_of bootstrap_thy (Free (A, propT)))
-        (Name.invent Name.context "" n);
+        (Name.invent_global "" n);
   in (As, mk_conjunction_balanced As) end;
 
 val B = read_prop "B";

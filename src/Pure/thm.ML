@@ -2609,7 +2609,7 @@ fun standard_tvars thm =
   let
     val thy = theory_of_thm thm;
     val tvars = build_rev (Term.add_tvars (prop_of thm));
-    val names = Name.invent Name.context Name.aT (length tvars);
+    val names = Name.invent_global_types (length tvars);
     val tinst =
       map2 (fn (ai, S) => fn b => ((ai, S), global_ctyp_of thy (TVar ((b, 0), S)))) tvars names;
   in instantiate (TVars.make tinst, Vars.empty) thm end

@@ -287,7 +287,7 @@ fun add_deps_const c thy =
 fun add_deps_type c thy =
   let
     val n = Sign.arity_number thy c;
-    val args = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
+    val args = map (fn a => TFree (a, [])) (Name.invent_global_types n);
   in thy |> add_deps_global "" (type_dep (c, args)) [] end
 
 fun specify_const decl thy =

@@ -276,7 +276,7 @@ fun make_rewrite t c_ty =
   let
     val vs = strip_abs_vars t;
     val vts = map snd vs
-      |> Name.invent_names Name.context Name.uu
+      |> Name.invent_names_global Name.uu
       |> map (fn (v, T) => Var ((v, 0), T));
   in (betapplys (t, vts), betapplys (Const c_ty, vts)) end;
 
@@ -581,7 +581,7 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;
-    val vs = Name.invent_names Name.context Name.aT sorts;
+    val vs = Name.invent_types_global sorts;
   in (tycos, vs, sort) end;
 
 

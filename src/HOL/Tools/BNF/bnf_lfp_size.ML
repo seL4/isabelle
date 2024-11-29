@@ -50,7 +50,7 @@ structure Data = Generic_Data
 fun check_size_type thy T_name size_name =
   let
     val n = Sign.arity_number thy T_name;
-    val As = map (fn s => TFree (s, \<^sort>\<open>type\<close>)) (Name.invent Name.context Name.aT n);
+    val As = map (fn s => TFree (s, \<^sort>\<open>type\<close>)) (Name.invent_global_types n);
     val T = Type (T_name, As);
     val size_T = map mk_to_natT As ---> mk_to_natT T;
     val size_const = Const (size_name, size_T);

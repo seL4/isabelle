@@ -643,7 +643,7 @@ fun gen_rep_datatype prep_term config after_qed raw_ts thy =
       map (fn xs => nth xs m) raw_vss
       |> foldr1 (Sorts.inter_sort (Sign.classes_of thy));
     val sorts = map inter_sort ms;
-    val vs = Name.invent_names Name.context Name.aT sorts;
+    val vs = Name.invent_types_global sorts;
 
     fun norm_constr (raw_vs, (c, T)) =
       (c, map_atyps

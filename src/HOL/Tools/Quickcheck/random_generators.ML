@@ -219,7 +219,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
         val tTs = (map o apsnd) termifyT simple_tTs;
         val is_rec = exists is_some ks;
         val k = fold (fn NONE => I | SOME k => Integer.max k) ks 0;
-        val vs = Name.invent_names Name.context "x" (map snd simple_tTs);
+        val vs = Name.invent_names_global "x" (map snd simple_tTs);
         val tc = HOLogic.mk_return T \<^typ>\<open>Random.seed\<close>
           (HOLogic.mk_valtermify_app c vs simpleT);
         val t = HOLogic.mk_ST

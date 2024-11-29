@@ -40,7 +40,7 @@ fun gen_add_consts prep_typ raw_decls thy =
         val c = Sign.full_name thy b
         val c1 = Lexicon.mark_syntax c
         val c2 = Lexicon.mark_const c
-        val xs = Name.invent Name.context "xa" (Mixfix.mixfix_args thy_ctxt mx)
+        val xs = Name.invent_global "xa" (Mixfix.mixfix_args thy_ctxt mx)
         val trans_rules =
           Syntax.Parse_Print_Rule
             (Ast.mk_appl (Ast.Constant c1) (map Ast.Variable xs),

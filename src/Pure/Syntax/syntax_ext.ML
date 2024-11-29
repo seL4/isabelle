@@ -388,7 +388,7 @@ fun mfix_to_xprod ctxt logical_types (Mfix (sy, typ, const, pris, pri, pos)) =
           val rangeT = Term.range_type typ handle Match =>
             err_in_mixfix "Missing structure argument for indexed syntax";
 
-          val xs = map Ast.Variable (Name.invent Name.context "xa" (length args - 1));
+          val xs = map Ast.Variable (Name.invent_global "xa" (length args - 1));
           val (xs1, xs2) = chop (find_index is_index args) xs;
           val i = Ast.Variable "i";
           val lhs =

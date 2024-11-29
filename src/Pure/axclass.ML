@@ -280,7 +280,7 @@ fun add_arity raw_th thy =
     val binding =
       Binding.concealed (Binding.name (prefix arity_prefix (Logic.name_arity arity)));
 
-    val args = Name.invent_names Name.context Name.aT Ss;
+    val args = Name.invent_types_global Ss;
     val missing_params =
       Sign.complete_sort thy [c]
       |> maps (these o Option.map #params o try (get_info thy))

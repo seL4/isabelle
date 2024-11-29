@@ -224,7 +224,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         (fn c =>
           (fn Type.Logical_Type n =>
                 SOME (fn () =>
-                  encode_type (get_syntax_type thy_ctxt c, Name.invent Name.context Name.aT n, NONE))
+                  encode_type (get_syntax_type thy_ctxt c, Name.invent_global_types n, NONE))
             | Type.Abbreviation (args, U, false) =>
                 SOME (fn () =>
                   encode_type (get_syntax_type thy_ctxt c, args, SOME U))

@@ -48,7 +48,7 @@ let
 fun add_typerep tyco thy =
   let
     val sorts = replicate (Sign.arity_number thy tyco) \<^sort>\<open>typerep\<close>;
-    val vs = Name.invent_names Name.context "'a" sorts;
+    val vs = Name.invent_types_global sorts;
     val ty = Type (tyco, map TFree vs);
     val lhs = \<^Const>\<open>typerep ty\<close> $ Free ("T", Term.itselfT ty);
     val rhs = \<^Const>\<open>Typerep\<close> $ HOLogic.mk_literal tyco

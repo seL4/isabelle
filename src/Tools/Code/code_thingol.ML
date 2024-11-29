@@ -656,7 +656,7 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
     val class_params = these_class_params class;
     val superclass_params = maps these_class_params
       ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
-    val vs = Name.invent_names Name.context Name.aT (Sorts.mg_domain algebra tyco [class]);
+    val vs = Name.invent_types_global (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
     val vs' = map2 (fn (v, sort1) => fn sort2 => (v,
       Sorts.inter_sort (Sign.classes_of thy) (sort1, sort2))) vs sorts';
