@@ -389,7 +389,7 @@ fun impl_ast_tr' asts =
 (* dependent / nondependent quantifiers *)
 
 fun print_abs (x, T, b) =
-  let val (x', _) = Name.variant x (Term.declare_term_names b Name.context)
+  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_term_names b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =

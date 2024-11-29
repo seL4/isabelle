@@ -598,8 +598,8 @@ fun declare_term_names tm =
   declare_tfree_names tm;
 
 fun variant_frees t frees =
-  fst (fold_map Name.variant (map fst frees) (declare_term_names t Name.context)) ~~
-    map snd frees;
+  #1 (fold_map Name.variant (map fst frees) (Name.build_context (declare_term_names t))) ~~
+    map #2 frees;
 
 fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
@@ -812,7 +812,7 @@ val betapplys = Library.foldl betapply;
   of bound variables and implicit eta-expansion*)
 fun strip_abs_eta k t =
   let
-    val used = fold_aterms declare_free_names t Name.context;
+    val used = Name.build_context (fold_aterms declare_free_names t);
     fun strip_abs t (0, used) = (([], t), (0, used))
       | strip_abs (Abs (v, T, t)) (k, used) =
           let

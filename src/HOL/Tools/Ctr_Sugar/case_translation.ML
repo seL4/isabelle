@@ -161,7 +161,7 @@ fun case_tr err ctxt [t, u] =
           | replace_dummies t used = (t, used);
 
         fun dest_case1 (t as Const (\<^syntax_const>\<open>_case1\<close>, _) $ l $ r) =
-              let val (l', _) = replace_dummies l (Term.declare_free_names t Name.context) in
+              let val (l', _) = replace_dummies l (Name.build_context (Term.declare_free_names t)) in
                 abs_pat l' []
                   (Syntax.const \<^const_syntax>\<open>case_elem\<close> $ Term_Position.strip_positions l' $ r)
               end
@@ -198,7 +198,7 @@ fun case_tr' (_ :: x :: t :: ts) =
 
         fun mk_clauses (Const (\<^const_syntax>\<open>case_nil\<close>, _)) = []
           | mk_clauses (Const (\<^const_syntax>\<open>case_cons\<close>, _) $ t $ u) =
-              mk_clause t [] (Term.declare_free_names t Name.context) :: mk_clauses u
+              mk_clause t [] (Name.build_context (Term.declare_free_names t)) :: mk_clauses u
           | mk_clauses _ = raise Match;
       in
         list_comb (Syntax.const \<^syntax_const>\<open>_case_syntax\<close> $ x $
@@ -440,8 +440,7 @@ fun decode_clause (Const (\<^const_name>\<open>case_abs\<close>, _) $ Abs (s, T,
 
 fun decode_cases (Const (\<^const_name>\<open>case_nil\<close>, _)) = []
   | decode_cases (Const (\<^const_name>\<open>case_cons\<close>, _) $ t $ u) =
-      decode_clause t [] (Term.declare_free_names t Name.context) ::
-      decode_cases u
+      decode_clause t [] (Name.build_context (Term.declare_free_names t)) :: decode_cases u
   | decode_cases _ = case_error "decode_cases";
 
 fun check_case ctxt =
@@ -562,7 +561,7 @@ fun encode_case recur (t, ps as (pat, rhs) :: _) =
   | encode_case _ _ = case_error "encode_case";
 
 fun strip_case' ctxt d (pat, rhs) =
-  (case dest_case ctxt d (Term.declare_free_names pat Name.context) rhs of
+  (case dest_case ctxt d (Name.build_context (Term.declare_free_names pat)) rhs of
     SOME (exp as Free _, clauses) =>
       if Term.exists_subterm (curry (op aconv) exp) pat andalso
         not (exists (fn (_, rhs') =>
