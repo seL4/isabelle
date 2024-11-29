@@ -2165,7 +2165,7 @@ element in a stream:
 \<close>
 
     primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
-      "every_snd s = SCons (shd s) (stl (stl s))"
+      "every_snd s = SCons (shd s) (every_snd (stl (stl s)))"
 
 text \<open>
 \noindent
@@ -2506,7 +2506,7 @@ text \<open>\blankline\<close>
 
     primcorec every_snd :: "'a stream \<Rightarrow> 'a stream" where
       "shd (every_snd s) = shd s"
-    | "stl (every_snd s) = stl (stl s)"
+    | "stl (every_snd s) = every_snd (stl (stl s))"
 
 text \<open>
 \noindent
