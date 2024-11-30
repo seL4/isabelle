@@ -263,7 +263,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
         val args' = args |> filter (is_free o #1);
         val typargs' = typargs |> filter (is_free o #1);
         val used_typargs = fold (Name.declare o #1) typargs' used;
-        val sorts = Name.invent used_typargs Name.aT (length extra_shyps) ~~ extra_shyps;
+        val sorts = Name.invent_types used_typargs extra_shyps;
       in ((sorts @ typargs', args', prop), proof) end;
 
     fun standard_prop_of thm =

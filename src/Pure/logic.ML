@@ -335,7 +335,7 @@ fun name_arities (t, _, S) =
 fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 
 fun mk_arities (t, Ss, S) =
-  let val T = Type (t, ListPair.map TFree (Name.invent_global_types (length Ss), Ss))
+  let val T = Type (t, map TFree (Name.invent_types_global Ss))
   in map (fn c => mk_of_class (T, c)) S end;
 
 fun mk_arity (t, Ss, c) = the_single (mk_arities (t, Ss, [c]));

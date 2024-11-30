@@ -594,7 +594,7 @@ fun export_morphism inner outer =
 
 fun invent_types Ss ctxt =
   let
-    val tfrees = Name.invent (names_of ctxt) Name.aT (length Ss) ~~ Ss;
+    val tfrees = Name.invent_types (names_of ctxt) Ss;
     val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

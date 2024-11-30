@@ -211,9 +211,8 @@ fun rewrite_terms r =
   let
     fun rew_term Ts t =
       let
-        val frees =
-          map Free
-            (Name.invent (Name.build_context (Term.declare_free_names t)) "xa" (length Ts) ~~ Ts);
+        val names = Name.build_context (Term.declare_free_names t);
+        val frees = map Free (Name.invent_names names "xa" Ts);
         val t' = r (subst_bounds (frees, t));
         fun strip [] t = t
           | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;
