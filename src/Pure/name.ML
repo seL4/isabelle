@@ -29,6 +29,7 @@ sig
   val declare_renamed: string * string -> context -> context
   val is_declared: context -> string -> bool
   val invent: context -> string -> int -> string list
+  val invent': string -> int -> context -> string list * context
   val invent_global: string -> int -> string list
   val invent_global_types: int -> string list
   val invent_names: context -> string -> 'a list -> (string * 'a) list
@@ -130,6 +131,10 @@ fun invent ctxt =
           let val x' = Symbol.bump_string x
           in if is_declared ctxt x then invs x' n else x :: invs x' (n - 1) end;
   in invs o clean end;
+
+fun invent' x n ctxt =
+  let val xs = invent ctxt x n
+  in (xs, fold declare xs ctxt) end;
 
 val invent_global = invent context;
 val invent_global_types = invent_global aT;

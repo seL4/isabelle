@@ -109,9 +109,7 @@ fun fixate ctxt pattern ts =
 
     fun subst_param (xi, S) (inst, used) =
       if is_param xi then
-        let
-          val [a] = Name.invent used Name.aT 1;
-          val used' = Name.declare a used;
+        let val ([a], used') = Name.invent' Name.aT 1 used;
         in (TVars.add ((xi, S), TFree (a, improve_sort S)) inst, used') end
       else (inst, used);
     val params = TVars.build (fold TVars.add_tvars ts) |> TVars.list_set;

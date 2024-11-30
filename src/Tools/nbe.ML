@@ -339,11 +339,8 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
         val vs = (fold o Code_Thingol.fold_varnames)
           (fn v => AList.map_default (op =) (v, 0) (Integer.add 1)) args [];
         val names = Name.make_context (map fst vs);
-        fun declare v k ctxt =
-          let val vs = Name.invent ctxt v k
-          in (vs, fold Name.declare vs ctxt) end;
         val (vs_renames, _) = fold_map (fn (v, k) => if k > 1
-          then declare v (k - 1) #>> (fn vs => (v, vs))
+          then Name.invent' v (k - 1) #>> (fn vs => (v, vs))
           else pair (v, [])) vs names;
         val samepairs = maps (fn (v, vs) => map (pair v) vs) vs_renames;
         fun subst_vars (t as IConst _) samepairs = (t, samepairs)
