@@ -1315,8 +1315,8 @@ fun extract_rho_from_equation
         else (c, d) :: (add_association a b r);
 
     fun new_TVar known_TVars =
-      Name.invent_list (map (fst o fst o dest_TVar) known_TVars) "x" 1
-      |> (fn [s] => TVar ((s, 0), []));
+      let val [a] = Name.invent_list (map (fst o fst o dest_TVar) known_TVars) Name.aT 1
+      in TVar ((a, 0), []) end
 
     fun instantiate_type inferred_types =
       Term.typ_subst_TVars (map (apfst (fst o dest_TVar)) inferred_types);
