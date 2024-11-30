@@ -161,7 +161,7 @@ fun case_tr err ctxt [t, u] =
           | replace_dummies t used = (t, used);
 
         fun dest_case1 (t as Const (\<^syntax_const>\<open>_case1\<close>, _) $ l $ r) =
-              let val (l', _) = replace_dummies l (Term.declare_term_frees t Name.context) in
+              let val (l', _) = replace_dummies l (Name.build_context (Term.declare_free_names t)) in
                 abs_pat l' []
                   (Syntax.const \<^const_syntax>\<open>case_elem\<close> $ Term_Position.strip_positions l' $ r)
               end
@@ -198,7 +198,7 @@ fun case_tr' (_ :: x :: t :: ts) =
 
         fun mk_clauses (Const (\<^const_syntax>\<open>case_nil\<close>, _)) = []
           | mk_clauses (Const (\<^const_syntax>\<open>case_cons\<close>, _) $ t $ u) =
-              mk_clause t [] (Term.declare_term_frees t Name.context) :: mk_clauses u
+              mk_clause t [] (Name.build_context (Term.declare_free_names t)) :: mk_clauses u
           | mk_clauses _ = raise Match;
       in
         list_comb (Syntax.const \<^syntax_const>\<open>_case_syntax\<close> $ x $
@@ -248,7 +248,7 @@ exception CASE_ERROR of string * int;
   completion.*)
 
 fun add_row_used ((prfx, pats), (tm, _)) =
-  fold Term.declare_term_frees (tm :: pats @ map Free prfx);
+  fold Term.declare_free_names (tm :: pats @ map Free prfx);
 
 (*try to preserve names given by user*)
 fun default_name "" (Free (name', _)) = name'
@@ -307,7 +307,7 @@ fun partition _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                       val (xs, _) =
                         fold_map Name.variant
                           (replicate (length ps) "x")
-                          (fold Term.declare_term_frees gvars used');
+                          (fold Term.declare_free_names gvars used');
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
                         (Const (\<^const_name>\<open>undefined\<close>, res_ty), ~1))]
@@ -361,7 +361,7 @@ fun mk_case ctxt used range_ty =
                 | SOME (case_comb, constructors) =>
                     let
                       val pty = body_type cT;
-                      val used' = fold Term.declare_term_frees us used;
+                      val used' = fold Term.declare_free_names us used;
                       val nrows = maps (expand constructors used' pty) rows;
                       val subproblems = partition used' constructors pty range_ty nrows;
                       val (pat_rect, dtrees) =
@@ -440,8 +440,7 @@ fun decode_clause (Const (\<^const_name>\<open>case_abs\<close>, _) $ Abs (s, T,
 
 fun decode_cases (Const (\<^const_name>\<open>case_nil\<close>, _)) = []
   | decode_cases (Const (\<^const_name>\<open>case_cons\<close>, _) $ t $ u) =
-      decode_clause t [] (Term.declare_term_frees t Name.context) ::
-      decode_cases u
+      decode_clause t [] (Name.build_context (Term.declare_free_names t)) :: decode_cases u
   | decode_cases _ = case_error "decode_cases";
 
 fun check_case ctxt =
@@ -479,10 +478,7 @@ fun dest_case ctxt d used t =
                 map (pair "x") (drop j (take i (binder_types (fastype_of t)))), [])
               else chop i zs;
             val u = fold_rev Term.abs ys (strip_abs_body t);
-            val xs' = map Free
-              ((fold_map Name.variant (map fst xs)
-                  (Term.declare_term_names u used) |> fst) ~~
-               map snd xs);
+            val xs' = map Free (Name.variant_names (Term.declare_term_names u used) xs);
             val (xs1, xs2) = chop j xs'
           in (xs', list_comb (subst_bounds (rev xs1, u), xs2)) end;
         fun is_dependent i t =
@@ -562,7 +558,7 @@ fun encode_case recur (t, ps as (pat, rhs) :: _) =
   | encode_case _ _ = case_error "encode_case";
 
 fun strip_case' ctxt d (pat, rhs) =
-  (case dest_case ctxt d (Term.declare_term_frees pat Name.context) rhs of
+  (case dest_case ctxt d (Name.build_context (Term.declare_free_names pat)) rhs of
     SOME (exp as Free _, clauses) =>
       if Term.exists_subterm (curry (op aconv) exp) pat andalso
         not (exists (fn (_, rhs') =>

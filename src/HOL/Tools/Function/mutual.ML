@@ -247,7 +247,7 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
 fun mutual_cases_rule ctxt cases_rule n ST (MutualPart {i, cargTs = Ts, ...}) =
   let
     val [P, x] =
-      Variable.variant_frees ctxt [] [("P", \<^typ>\<open>bool\<close>), ("x", HOLogic.mk_tupleT Ts)]
+      Variable.variant_names ctxt [("P", \<^typ>\<open>bool\<close>), ("x", HOLogic.mk_tupleT Ts)]
       |> map (Thm.cterm_of ctxt o Free);
     val sumtree_inj = Thm.cterm_of ctxt (Sum_Tree.mk_inj ST n i (Thm.term_of x));
 

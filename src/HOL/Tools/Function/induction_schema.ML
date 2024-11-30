@@ -121,7 +121,8 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
     val relevant_cases = filter (fn SchemeCase {bidx=bidx', ...} => bidx' = bidx) cases
 
     val allqnames = fold (fn SchemeCase {qs, ...} => fold (insert (op =) o Free) qs) relevant_cases []
-    val (Pbool :: xs') = map Free (Variable.variant_frees ctxt allqnames (("P", HOLogic.boolT) :: xs))
+    val (Pbool :: xs') =
+      map Free (Variable.variant_names (fold Variable.declare_names allqnames ctxt) (("P", HOLogic.boolT) :: xs))
     val Cs' = map (Pattern.rewrite_term (Proof_Context.theory_of ctxt) (filter_out (op aconv) (map Free xs ~~ xs')) []) Cs
 
     fun mk_case (SchemeCase {qs, oqnames, gs, lhs, ...}) =

@@ -17,13 +17,13 @@ sig
   val def_sort: Proof.context -> indexname -> sort option
   val declare_maxidx: int -> Proof.context -> Proof.context
   val declare_names: term -> Proof.context -> Proof.context
+  val variant_names: Proof.context -> (string * 'a) list -> (string * 'a) list
   val declare_constraints: term -> Proof.context -> Proof.context
   val declare_internal: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
   val declare_typ: typ -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
   val declare_thm: thm -> Proof.context -> Proof.context
-  val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
   val bind_term: indexname * term -> Proof.context -> Proof.context
   val unbind_term: indexname -> Proof.context -> Proof.context
   val maybe_bind_term: indexname * term option -> Proof.context -> Proof.context
@@ -211,16 +211,18 @@ val def_sort = Vartab.lookup o #2 o constraints_of;
 val declare_maxidx = map_maxidx o Integer.max;
 
 
-(* names *)
+(* type/term names *)
 
 fun declare_type_names t =
-  map_names (fold_types (fold_atyps Term.declare_typ_names) t) #>
+  map_names (Term.declare_tfree_names t) #>
   map_maxidx (fold_types Term.maxidx_typ t);
 
 fun declare_names t =
   declare_type_names t #>
-  map_names (fold_aterms Term.declare_term_frees t) #>
+  map_names (Term.declare_free_names t) #>
   map_maxidx (Term.maxidx_term t);
+
+fun variant_names ctxt xs = Name.variant_names (names_of ctxt) xs;
 
 
 (* type occurrences *)
@@ -273,15 +275,6 @@ val declare_prf =
   Proofterm.fold_proof_terms_types declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms {hyps = true} declare_internal;
-
-
-(* renaming term/type frees *)
-
-fun variant_frees ctxt ts frees =
-  let
-    val names = names_of (fold declare_names ts ctxt);
-    val xs = fst (fold_map Name.variant (map #1 frees) names);
-  in xs ~~ map snd frees end;
 
 
 
@@ -444,6 +437,13 @@ fun new_fixes names' args =
   fold new_fixed args #>
   pair (map (#2 o #1) args);
 
+fun variant ctxt raw_xs =
+  let
+    val names = names_of ctxt;
+    val xs = map (fn x => Name.clean x |> Name.is_internal x ? Name.internal) raw_xs;
+    val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
+  in (names', xs ~~ xs') end;
+
 in
 
 fun add_fixes_binding bs ctxt =
@@ -464,20 +464,13 @@ fun add_fixes_binding bs ctxt =
       else (xs, fold Name.declare xs names);
   in ctxt |> new_fixes names' ((xs ~~ xs') ~~ map Binding.pos_of bs) end;
 
-fun variant_names ctxt raw_xs =
-  let
-    val names = names_of ctxt;
-    val xs = map (fn x => Name.clean x |> Name.is_internal x ? Name.internal) raw_xs;
-    val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
-  in (names', xs ~~ xs') end;
-
 fun variant_fixes xs ctxt =
-  let val (names', vs) = variant_names ctxt xs;
+  let val (names', vs) = variant ctxt xs;
   in ctxt |> new_fixes names' (map (rpair Position.none) vs) end;
 
 fun bound_fixes xs ctxt =
   let
-    val (names', vs) = variant_names ctxt (map #1 xs);
+    val (names', vs) = variant ctxt (map #1 xs);
     val (ys, ctxt') = fold_map next_bound (map2 (fn (x', _) => fn (_, T) => (x', T)) vs xs) ctxt;
     val fixes = map2 (fn (x, _) => fn Free (y, _) => ((x, y), Position.none)) vs ys;
   in ctxt' |> new_fixes names' fixes end;
@@ -594,7 +587,7 @@ fun export_morphism inner outer =
 
 fun invent_types Ss ctxt =
   let
-    val tfrees = Name.invent (names_of ctxt) Name.aT (length Ss) ~~ Ss;
+    val tfrees = Name.invent_types (names_of ctxt) Ss;
     val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

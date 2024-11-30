@@ -114,7 +114,7 @@ fun args_number thy = length o binder_types o const_typ thy;
 fun devarify ty =
   let
     val tys = build (fold_atyps (fn TVar vi_sort => AList.update (op =) vi_sort) ty);
-    val vs = Name.invent Name.context Name.aT (length tys);
+    val vs = Name.invent_global_types (length tys);
     val mapping = map2 (fn v => fn (vi, sort) => (vi, TFree (v, sort))) vs tys;
   in Term.typ_subst_TVars mapping ty end;
 
@@ -544,7 +544,7 @@ fun constrset_of_consts thy consts =
      of [tyco] => tyco
       | [] => error "Empty constructor set"
       | tycos => error ("Different type constructors in constructor set: " ^ commas_quote tycos)
-    val vs = Name.invent Name.context Name.aT (Sign.arity_number thy tyco);
+    val vs = Name.invent_global_types (Sign.arity_number thy tyco);
     fun inst vs' (c, (vs, ty)) =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
@@ -562,7 +562,7 @@ type constructors =
 fun get_type thy tyco = case lookup_vs_type_spec thy tyco
  of SOME (vs, type_spec) => apfst (pair vs) (constructors_of type_spec)
   | NONE => Sign.arity_number thy tyco
-      |> Name.invent Name.context Name.aT
+      |> Name.invent_global_types
       |> map (rpair [])
       |> rpair []
       |> rpair false;
@@ -962,7 +962,7 @@ fun cert_of_eqns ctxt c [] = Equations (dummy_thm ctxt c, [])
         val inter_sorts =
           build o fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd);
         val sorts = map_transpose inter_sorts vss;
-        val vts = Name.invent_names Name.context Name.aT sorts;
+        val vts = Name.invent_types_global sorts;
         fun instantiate vs =
           Thm.instantiate (TVars.make (vs ~~ map (Thm.ctyp_of ctxt o TFree) vts), Vars.empty);
         val thms' = map2 instantiate vss thms;

@@ -925,12 +925,12 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
     val predT = replicate k HOLogic.boolT ---> argTs ---> HOLogic.boolT;
     val fp_const = if coind then \<^Const>\<open>gfp predT\<close> else \<^Const>\<open>lfp predT\<close>;
 
+    val ctxt1 = fold Variable.declare_names intr_ts lthy
     val p :: xs =
-      map Free (Variable.variant_frees lthy intr_ts
+      map Free (Variable.variant_names ctxt1
         (("p", predT) :: (mk_names "x" (length argTs) ~~ argTs)));
-    val bs =
-      map Free (Variable.variant_frees lthy (p :: xs @ intr_ts)
-        (map (rpair HOLogic.boolT) (mk_names "b" k)));
+    val ctxt2 = fold Variable.declare_names (p :: xs) ctxt1
+    val bs = map Free (Variable.variant_names ctxt2 (map (rpair HOLogic.boolT) (mk_names "b" k)));
 
     fun subst t =
       (case dest_predicate cs params t of
@@ -1001,8 +1001,8 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
         map_index (fn (i, ((b, mx), c)) =>
           let
             val Ts = arg_types_of (length params) c;
-            val xs =
-              map Free (Variable.variant_frees lthy' intr_ts (mk_names "x" (length Ts) ~~ Ts));
+            val ctxt = fold Variable.declare_names intr_ts lthy';
+            val xs = map Free (Variable.variant_names ctxt (mk_names "x" (length Ts) ~~ Ts));
           in
             ((b, mx),
               ((Thm.make_def_binding internals b, []), fold_rev lambda (params @ xs)

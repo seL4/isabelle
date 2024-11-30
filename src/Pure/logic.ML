@@ -335,7 +335,7 @@ fun name_arities (t, _, S) =
 fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 
 fun mk_arities (t, Ss, S) =
-  let val T = Type (t, ListPair.map TFree (Name.invent Name.context Name.aT (length Ss), Ss))
+  let val T = Type (t, map TFree (Name.invent_types_global Ss))
   in map (fn c => mk_of_class (T, c)) S end;
 
 fun mk_arity (t, Ss, c) = the_single (mk_arities (t, Ss, [c]));
@@ -375,7 +375,7 @@ fun unconstrain_context shyps present_set =
     val {present, extra} = present_sorts shyps present_set;
 
     val n = Types.size present_set;
-    val (names1, names2) = Name.invent Name.context Name.aT (n + length extra) |> chop n;
+    val (names1, names2) = Name.invent_global_types (n + length extra) |> chop n;
 
     val present_map =
       map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;
@@ -667,7 +667,7 @@ fun get_goal st i =
 (*reverses parameters for substitution*)
 fun goal_params st i =
   let val gi = get_goal st i
-      val rfrees = map Free (Term.rename_wrt_term gi (strip_params gi))
+      val rfrees = map Free (rev (Term.variant_frees gi (strip_params gi)))
   in (gi, rfrees) end;
 
 fun concl_of_goal st i =

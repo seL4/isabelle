@@ -60,7 +60,7 @@ fun global_type lthy (b, raw_args) =
 fun final_type (b, n) lthy =
   let
     val c = Local_Theory.full_name lthy b;
-    val args = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT n);
+    val args = map (fn a => TFree (a, [])) (Name.invent_global_types n);
   in
     Local_Theory.background_theory
       (Theory.add_deps (Proof_Context.defs_context lthy) "" (Theory.type_dep (c, args)) []) lthy

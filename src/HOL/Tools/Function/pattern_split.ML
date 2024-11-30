@@ -20,7 +20,7 @@ open Function_Lib
 
 fun new_var ctxt vs T =
   let
-    val [v] = Variable.variant_frees ctxt vs [("v", T)]
+    val v = singleton (Variable.variant_names (fold Variable.declare_names vs ctxt)) ("v", T)
   in
     (Free v :: vs, Free v)
   end

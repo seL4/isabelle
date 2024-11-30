@@ -29,10 +29,18 @@ sig
   val declare_renamed: string * string -> context -> context
   val is_declared: context -> string -> bool
   val invent: context -> string -> int -> string list
+  val invent': string -> int -> context -> string list * context
+  val invent_global: string -> int -> string list
+  val invent_global_types: int -> string list
   val invent_names: context -> string -> 'a list -> (string * 'a) list
+  val invent_names_global: string -> 'a list -> (string * 'a) list
+  val invent_types: context -> 'a list -> (string * 'a) list
+  val invent_types_global: 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
   val variant: string -> context -> string * context
   val variant_bound: string -> context -> string * context
+  val variant_names: context -> (string * 'a) list -> (string * 'a) list
+  val variant_names_build: (context -> context) -> (string * 'a) list -> (string * 'a) list
   val variant_list: string list -> string list -> string list
   val enforce_case: bool -> string -> string
   val desymbolize: bool option -> string -> string
@@ -126,7 +134,18 @@ fun invent ctxt =
           in if is_declared ctxt x then invs x' n else x :: invs x' (n - 1) end;
   in invs o clean end;
 
+fun invent' x n ctxt =
+  let val xs = invent ctxt x n
+  in (xs, fold declare xs ctxt) end;
+
+val invent_global = invent context;
+val invent_global_types = invent_global aT;
+
 fun invent_names ctxt x xs = invent ctxt x (length xs) ~~ xs;
+fun invent_names_global x xs = invent_names context x xs;
+
+fun invent_types ctxt xs = invent_names ctxt aT xs;
+fun invent_types_global xs = invent_types context xs;
 
 val invent_list = invent o make_context;
 
@@ -154,6 +173,9 @@ fun variant name ctxt =
   in (x' ^ replicate_string n "_", ctxt') end;
 
 fun variant_bound name = variant (if is_bound name then "u" else name);
+
+fun variant_names ctxt xs = #1 (fold_map (variant o fst) xs ctxt) ~~ map snd xs;
+fun variant_names_build f xs = variant_names (build_context f) xs;
 
 fun variant_list used names = #1 (make_context used |> fold_map variant names);
 

@@ -262,7 +262,7 @@ fun derive_case_trivial ctxt fpT_name =
       |> mk_TFrees' (map Type.sort_of_atyp As0);
     val fpT = Type (fpT_name, As);
 
-    val (var_name, ()) = singleton (Variable.variant_frees ctxt []) ("x", ());
+    val (var_name, ()) = singleton (Variable.variant_names ctxt) ("x", ());
     val var = Free (var_name, fpT);
     val goal = mk_Trueprop_eq (expand_to_ctr_term ctxt fpT var, var);
 
@@ -394,7 +394,7 @@ fun derive_unique ctxt phi code_goal
     val fun_T = fastype_of fun_t;
     val num_args = num_binder_types fun_T;
 
-    val f = Free (singleton (Variable.variant_frees ctxt []) ("f", fun_T));
+    val f = Free (singleton (Variable.variant_names ctxt) ("f", fun_T));
 
     val is_self_call = curry (op aconv) fun_t;
     val has_self_call = exists_subterm is_self_call;
@@ -777,7 +777,8 @@ fun parse_corec_equation ctxt fun_frees eq =
     val (arg_Ts, _) = strip_type (fastype_of fun_t);
     val added_Ts = drop (length arg_ts) arg_Ts;
     val free_names = mk_names (length added_Ts) "x" ~~ added_Ts;
-    val free_args = Variable.variant_frees ctxt [rhs, lhs] free_names |> map Free;
+    val free_args =
+      Variable.variant_names (fold Variable.declare_names [rhs, lhs] ctxt) free_names |> map Free;
   in
     (arg_ts @ free_args, list_comb (rhs, free_args))
   end;
@@ -1315,8 +1316,8 @@ fun extract_rho_from_equation
         else (c, d) :: (add_association a b r);
 
     fun new_TVar known_TVars =
-      Name.invent_list (map (fst o fst o dest_TVar) known_TVars) "x" 1
-      |> (fn [s] => TVar ((s, 0), []));
+      let val [a] = Name.invent_list (map (fst o fst o dest_TVar) known_TVars) Name.aT 1
+      in TVar ((a, 0), []) end
 
     fun instantiate_type inferred_types =
       Term.typ_subst_TVars (map (apfst (fst o dest_TVar)) inferred_types);

@@ -248,7 +248,7 @@ fun preprocess ctxt t =
           @{thm bot_fun_def}, @{thm less_bool_def}])
     val t' = Pattern.rewrite_term thy rewrs [] (Object_Logic.atomize_term ctxt t)
     val (vs, body) = strip_all t'
-    val vs' = Variable.variant_frees ctxt [t'] vs
+    val vs' = Variable.variant_names (Variable.declare_names t' ctxt) vs
   in subst_bounds (map Free (rev vs'), body) end
 
 

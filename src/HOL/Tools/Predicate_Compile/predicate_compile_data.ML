@@ -127,26 +127,22 @@ fun full_fun_cong_expand th =
     val i = length (binder_types (fastype_of f)) - length args
   in funpow i (fn th => th RS meta_fun_cong) th end;
 
-fun declare_names s xs ctxt =
-  let
-    val res = Name.invent_names ctxt s xs
-  in (res, fold Name.declare (map fst res) ctxt) end
-
 fun split_all_pairs thy th =
   let
     val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, [th']), _) = Variable.import true [th] ctxt
     val t = Thm.prop_of th'
     val frees = Term.add_frees t []
-    val freenames = Term.add_free_names t []
-    val nctxt = Name.make_context freenames
     fun mk_tuple_rewrites (x, T) nctxt =
       let
         val Ts = HOLogic.flatten_tupleT T
-        val (xTs, nctxt') = declare_names x Ts nctxt
+        val xTs = Name.invent_names nctxt x Ts
+        val nctxt' = fold (Name.declare o #1) xTs nctxt
         val paths = HOLogic.flat_tupleT_paths T
       in ((Free (x, T), HOLogic.mk_ptuple paths T (map Free xTs)), nctxt') end
-    val (rewr, _) = fold_map mk_tuple_rewrites frees nctxt
+    val (rewr, _) =
+      Name.build_context (Term.declare_free_names t)
+      |> fold_map mk_tuple_rewrites frees
     val t' = Pattern.rewrite_term thy rewr [] t
     val th'' =
       Goal.prove ctxt (Term.add_free_names t' []) [] t'

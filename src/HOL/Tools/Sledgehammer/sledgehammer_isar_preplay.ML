@@ -139,8 +139,8 @@ fun raw_preplay_step_for_method ctxt chained timeout meth
            (cf. "~~/src/Pure/Isar/obtain.ML") *)
         let
           val frees = map Free xs
-          val thesis =
-            Free (singleton (Variable.variant_frees ctxt frees) ("thesis", HOLogic.boolT))
+          val ctxt' = fold Variable.declare_names frees ctxt
+          val thesis = Free (singleton (Variable.variant_names ctxt') ("thesis", HOLogic.boolT))
           val thesis_prop = HOLogic.mk_Trueprop thesis
 
           (* !!x1...xn. t ==> thesis *)

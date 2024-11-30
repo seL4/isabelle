@@ -1204,7 +1204,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A)
 fun define_quickcheck_predicate t thy =
   let
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees (Proof_Context.init_global thy) [] vs (* FIXME proper context!? *)
+    val vs' = Variable.variant_names (Proof_Context.init_global thy) vs (* FIXME proper context!? *)
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
     val constname = "quickcheck"

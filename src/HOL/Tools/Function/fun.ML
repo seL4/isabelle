@@ -66,8 +66,7 @@ fun mk_catchall fixes arity_of =
         val n = arity_of fname
         val (argTs, rT) = chop n (binder_types fT)
           |> apsnd (fn Ts => Ts ---> body_type fT)
-
-        val qs = map Free (Name.invent Name.context "a" n ~~ argTs)
+        val qs = map Free (Name.invent_names_global "a" argTs)
       in
         HOLogic.mk_eq(list_comb (Free (fname, fT), qs),
           Const (\<^const_name>\<open>undefined\<close>, rT))

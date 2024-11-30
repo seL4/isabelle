@@ -245,9 +245,9 @@ fun prove_strong_ind s avoids lthy =
              if null (preds_of ps prem) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
-        val vs = map (Var o apfst (rpair 0)) (Term.rename_wrt_term prem params')
+        val vs = map (Var o apfst (rpair 0)) (Term.variant_frees prem params')
       in
-        (Logic.list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
+        (Logic.list_all (params', prem), (vs, subst_bounds (rev vs, prem)))
       end) prems);
 
     val ind_vars =

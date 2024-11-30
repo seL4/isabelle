@@ -98,13 +98,9 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
       (if co then [false] else []) @ (if contra then [true] else [])) variances;
     val Ts21 = maps mk_argT ((Ts2 ~~ Ts1) ~~ variances);
     val Ts32 = maps mk_argT ((Ts3 ~~ Ts2) ~~ variances);
-    fun invents n k nctxt =
-      let
-        val names = Name.invent nctxt n k;
-      in (names, fold Name.declare names nctxt) end;
     val ((names21, names32), nctxt) = Variable.names_of ctxt
-      |> invents "f" (length Ts21)
-      ||>> invents "f" (length Ts32);
+      |> Name.invent' "f" (length Ts21)
+      ||>> Name.invent' "f" (length Ts32);
     val T1 = Type (tyco, Ts1);
     val T2 = Type (tyco, Ts2);
     val T3 = Type (tyco, Ts3);

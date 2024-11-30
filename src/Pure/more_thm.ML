@@ -349,12 +349,11 @@ local
 
 val used_frees =
   Name.build_context o
-    Thm.fold_terms {hyps = true} Term.declare_term_frees;
+    Thm.fold_terms {hyps = true} Term.declare_free_names;
 
 fun used_vars i =
   Name.build_context o
-    (Thm.fold_terms {hyps = false} o Term.fold_aterms)
-      (fn Var ((x, j), _) => i = j ? Name.declare x | _ => I);
+    Thm.fold_terms {hyps = false} (Term.declare_var_names (fn j => i = j));
 
 fun dest_all ct used =
   (case Thm.term_of ct of

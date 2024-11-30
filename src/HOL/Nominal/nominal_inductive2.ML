@@ -146,8 +146,8 @@ fun map_thm ctxt f tac monos opt th =
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
 fun abs_params params t =
-  let val vs =  map (Var o apfst (rpair 0)) (Term.rename_wrt_term t params)
-  in (Logic.list_all (params, t), (rev vs, subst_bounds (vs, t))) end;
+  let val vs =  map (Var o apfst (rpair 0)) (Term.variant_frees t params)
+  in (Logic.list_all (params, t), (vs, subst_bounds (rev vs, t))) end;
 
 fun inst_params thy (vs, p) th cts =
   let val env = Pattern.first_order_match thy (p, Thm.prop_of th)

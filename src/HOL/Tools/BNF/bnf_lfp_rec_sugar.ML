@@ -394,7 +394,8 @@ fun build_rec_arg ctxt (funs_data : eqn_data list list) has_call (ctr_spec : rec
         if member (op =) frees t then Free (the_single (Term.variant_frees t [dest_Free t])) else t;
 
       val args = replicate n_args ("", dummyT)
-        |> Term.rename_wrt_term t
+        |> Term.variant_frees t
+        |> rev
         |> map Free
         |> fold (fn (ctr_arg_idx, (arg_idx, _)) =>
             nth_map arg_idx (K (nth ctr_args ctr_arg_idx)))

@@ -56,10 +56,7 @@ fun variant_names ctxt ts xs =
   let
     val names =
       Variable.names_of ctxt
-      |> (fold o fold_aterms)
-          (fn Var ((a, _), _) => Name.declare a
-            | Free (a, _) => Name.declare a
-            | _ => I) ts;
+      |> fold (fn t => Term.declare_free_names t #> Term.declare_var_names (K true) t) ts;
   in fst (fold_map Name.variant xs names) end;
 
 (* fix parameters of a subgoal "i", as free variables, and create an

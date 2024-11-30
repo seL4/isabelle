@@ -60,8 +60,7 @@ fun for_term_of_instance tyco vs f thy =
 
 fun mk_term_of_eq thy ty (c, (_, tys)) =
   let
-    val t = list_comb (Const (c, tys ---> ty),
-      map Free (Name.invent_names Name.context "a" tys));
+    val t = list_comb (Const (c, tys ---> ty), map Free (Name.invent_names_global "a" tys));
     val (arg, rhs) =
       apply2 (Thm.global_cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         (t,

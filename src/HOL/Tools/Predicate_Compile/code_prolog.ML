@@ -991,8 +991,9 @@ fun values ctxt soln t_compr =
             mk_set_compr (t :: in_insert) ts xs
           else
             let
-              val uu as (uuN, uuT) =
-                singleton (Variable.variant_frees ctxt' [t]) ("uu", fastype_of t)
+              val uuT = fastype_of t
+              val uu as (uuN, _) =
+                singleton (Variable.variant_names (Variable.declare_names t ctxt')) ("uu", uuT)
               val set_compr =
                 HOLogic.mk_Collect (uuN, uuT,
                   fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))

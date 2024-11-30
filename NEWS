@@ -81,12 +81,12 @@ foobar_syntax", as explained for HOL libraries below.
 
 * Command "unbundle b" and its variants like "context includes b" allow
 an optional name prefix with the reserved word "no": "unbundle no b"
-etc. This inverts the polarity of bundled declarations like 'notation'
-vs. 'no_notation', and thus avoids redundant bundle definitions like
-"foobar_syntax" vs. "no_foobar_syntax", because "no foobar_syntax" may
-be used instead. Consequently, the syntax for multiple bundle names has
-been changed slightly, demanding an explicit 'and' keyword. Minor
-INCOMPATIBILITY.
+etc. This reverses both the order and polarity of bundled declarations
+like 'notation' vs. 'no_notation', and thus avoids redundant bundle
+definitions like "foobar_syntax" vs. "no_foobar_syntax", because "no
+foobar_syntax" may be used instead. Consequently, the syntax for
+multiple bundle names has been changed slightly, demanding an explicit
+'and' keyword. Minor INCOMPATIBILITY.
 
 * Command "open_bundle b" is like "bundle b" followed by "unbundle b",
 so its declarations are applied immediately, but also named for later

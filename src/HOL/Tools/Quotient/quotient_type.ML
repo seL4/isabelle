@@ -33,7 +33,7 @@ fun typedef_term rel rty lthy =
   let
     val [x, c] =
       [("x", rty), ("c", HOLogic.mk_setT rty)]
-      |> Variable.variant_frees lthy [rel]
+      |> Variable.variant_names (Variable.declare_names rel lthy)
       |> map Free
   in
     HOLogic.Collect_const (HOLogic.mk_setT rty) $ (lambda c (HOLogic.exists_const rty $

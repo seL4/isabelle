@@ -339,11 +339,8 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
         val vs = (fold o Code_Thingol.fold_varnames)
           (fn v => AList.map_default (op =) (v, 0) (Integer.add 1)) args [];
         val names = Name.make_context (map fst vs);
-        fun declare v k ctxt =
-          let val vs = Name.invent ctxt v k
-          in (vs, fold Name.declare vs ctxt) end;
         val (vs_renames, _) = fold_map (fn (v, k) => if k > 1
-          then declare v (k - 1) #>> (fn vs => (v, vs))
+          then Name.invent' v (k - 1) #>> (fn vs => (v, vs))
           else pair (v, [])) vs names;
         val samepairs = maps (fn (v, vs) => map (pair v) vs) vs_renames;
         fun subst_vars (t as IConst _) samepairs = (t, samepairs)
@@ -381,8 +378,7 @@ fun assemble_eqnss ctxt idx_of deps eqnss =
 
     fun assemble_eqns (sym, (num_args, (dicts, eqns))) =
       let
-        val default_args = map nbe_default
-          (Name.invent Name.context "a" (num_args - length dicts));
+        val default_args = map nbe_default (Name.invent_global "a" (num_args - length dicts));
         val eqns' = map_index (assemble_eqn sym dicts default_args) eqns
           @ (if Code_Symbol.is_value sym then [] else [(nbe_fun idx_of (length eqns) sym,
             [([ml_list (rev (dicts @ default_args))],
@@ -436,7 +432,7 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
   | eqns_of_stmt (sym_class, Code_Thingol.Class (v, (classrels, classparams))) =
       let
         val syms = map Class_Relation classrels @ map (Constant o fst) classparams;
-        val params = Name.invent Name.context "d" (length syms);
+        val params = Name.invent_global "d" (length syms);
         fun mk (k, sym) =
           (sym, ([(v, [])],
             [([dummy_const sym_class [] `$$ map (IVar o SOME) params],
