@@ -255,9 +255,6 @@ val declare_varnames = fold_varnames Name.declare;
 
 fun exists_var t v = fold_varnames (fn w => fn b => v = w orelse b) t false;
 
-fun invent_params used tys =
-  Name.invent_names (Name.build_context used) "a" tys;
-
 fun split_pat_abs ((NONE, ty) `|=> (t, _)) = SOME ((IVar NONE, ty), t)
   | split_pat_abs ((SOME v, ty) `|=> (t, _)) = SOME (case t
      of ICase { term = IVar (SOME w), clauses = [(p, body)], ... } =>
@@ -276,7 +273,8 @@ fun unfold_abs_eta [] t = ([], t)
       in (v :: vs, t') end
   | unfold_abs_eta tys t =
       let
-        val vs = map (SOME o fst) (invent_params (declare_varnames t) tys);
+        val names = Name.build_context (declare_varnames t);
+        val vs = map SOME (Name.invent names "a" (length tys));
       in (vs, t `$$ map IVar vs) end;
 
 fun satisfied_application wanted ({ dom, range, ... }, ts) =
@@ -293,9 +291,8 @@ fun satisfied_application wanted ({ dom, range, ... }, ts) =
       in (([], (ts1, rty)), ts2) end
     else
       let
-        val vs_tys = invent_params (fold declare_varnames ts)
-          (((take delta o drop given) dom))
-          |> (map o apfst) SOME;
+        val names = Name.build_context (fold declare_varnames ts);
+        val vs_tys = (map o apfst) SOME (Name.invent_names names "a" (take delta (drop given dom)));
       in ((vs_tys, (ts @ map (IVar o fst) vs_tys, rty)), []) end
   end
 
