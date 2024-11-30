@@ -410,7 +410,7 @@ fun strip_subgoal goal i ctxt =
   let
     val (t, (frees, params)) =
       Logic.goal_params (Thm.prop_of goal) i
-      ||> (map dest_Free #> Variable.variant_frees ctxt [] #> `(map Free))
+      ||> (map dest_Free #> Variable.variant_names ctxt #> `(map Free))
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev params, hyp_ts, concl_t) end

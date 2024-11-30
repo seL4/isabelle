@@ -279,14 +279,12 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
                 let
                   val (constr, args) = strip_comb t
                   val T = fastype_of t
+                  val ctxt1 = fold Variable.declare_names (concl :: assms) ctxt
                   val vars =
-                    map Free
-                      (Variable.variant_frees ctxt (concl :: assms)
-                        (map (fn t => ("x", fastype_of t)) args))
+                    map Free (Variable.variant_names ctxt1 (map (fn t => ("x", fastype_of t)) args))
                   val varnames = map (fst o dest_Free) vars
-                  val dummy_var =
-                    Free (singleton
-                      (Variable.variant_frees ctxt (concl :: assms @ vars)) ("dummy", T))
+                  val ctxt2 = fold Variable.declare_names vars ctxt1
+                  val dummy_var = Free (singleton (Variable.variant_names ctxt2) ("dummy", T))
                   val new_assms = map HOLogic.mk_eq (vars ~~ args)
                   val bound_vars' = union (op =) (vars_of lhs) (union (op =) varnames bound_vars)
                   val cont_t = mk_smart_test_term' concl bound_vars' (new_assms @ assms) genuine

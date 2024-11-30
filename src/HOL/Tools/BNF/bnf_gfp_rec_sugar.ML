@@ -1212,7 +1212,9 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
           (map2 append (take actual_nn thmss'') nchotomy_taut_thmss, drop actual_nn thmss'');
 
         val ps =
-          Variable.variant_frees lthy (maps (maps #fun_args) disc_eqnss) [("P", HOLogic.boolT)];
+          Variable.variant_names
+            (fold Variable.declare_names (maps (maps #fun_args) disc_eqnss) lthy)
+            [("P", HOLogic.boolT)];
 
         val exhaust_thmss =
           map2 (fn false => K []

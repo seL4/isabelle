@@ -87,7 +87,7 @@ in
 
 fun Mset ctxt prop =
   let
-    val [(Mset, _), (P, _)] = Variable.variant_frees ctxt [] [("Mset", ()), ("P", ())];
+    val [(Mset, _), (P, _)] = Variable.variant_names ctxt [("Mset", ()), ("P", ())];
 
     val vars = get_vars prop;
     val varsT = fastype_of (mk_bodyC vars);

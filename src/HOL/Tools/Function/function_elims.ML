@@ -79,7 +79,7 @@ fun mk_partial_elim_rules ctxt result =
     val n_fs = length fs;
 
     fun variant_free used_term v =
-      Free (singleton (Variable.variant_frees ctxt [used_term]) v);
+      Free (singleton (Variable.variant_names (Variable.declare_names used_term ctxt)) v);
 
     fun mk_partial_elim_rule (idx, f) =
       let

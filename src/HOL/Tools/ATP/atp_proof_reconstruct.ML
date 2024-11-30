@@ -274,11 +274,11 @@ fun quantify_over_var textual quant_of var_s var_T t =
   in t |> map_aterms norm_var_types |> fold_rev quant_of (map Var normTs) end
 
 (* This assumes that distinct names are mapped to distinct names by
-   "Variable.variant_frees". This does not hold in general but should hold for
+   "Variable.variant_names". This does not hold in general but should hold for
    ATP-generated Skolem function names, since these end with a digit and
    "variant_frees" appends letters. *)
 fun desymbolize_and_fresh_up ctxt s =
-  fst (hd (Variable.variant_frees ctxt [] [(Name.desymbolize (SOME false) s, ())]))
+  fst (singleton (Variable.variant_names ctxt) (Name.desymbolize (SOME false) s, ()))
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed. The code is similar to "term_of_atp_fo". *)

@@ -159,7 +159,7 @@ fun judgment_conv ctxt cv ct =
 
 fun is_propositional ctxt T =
   T = propT orelse
-    let val x = Free (singleton (Variable.variant_frees ctxt []) ("x", T))
+    let val x = Free (singleton (Variable.variant_names ctxt) ("x", T))
     in can (fn () => Syntax.check_term ctxt (ensure_propT ctxt x)) () end;
 
 

@@ -17,13 +17,13 @@ sig
   val def_sort: Proof.context -> indexname -> sort option
   val declare_maxidx: int -> Proof.context -> Proof.context
   val declare_names: term -> Proof.context -> Proof.context
+  val variant_names: Proof.context -> (string * 'a) list -> (string * 'a) list
   val declare_constraints: term -> Proof.context -> Proof.context
   val declare_internal: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
   val declare_typ: typ -> Proof.context -> Proof.context
   val declare_prf: Proofterm.proof -> Proof.context -> Proof.context
   val declare_thm: thm -> Proof.context -> Proof.context
-  val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
   val bind_term: indexname * term -> Proof.context -> Proof.context
   val unbind_term: indexname -> Proof.context -> Proof.context
   val maybe_bind_term: indexname * term option -> Proof.context -> Proof.context
@@ -211,7 +211,7 @@ val def_sort = Vartab.lookup o #2 o constraints_of;
 val declare_maxidx = map_maxidx o Integer.max;
 
 
-(* names *)
+(* type/term names *)
 
 fun declare_type_names t =
   map_names (Term.declare_tfree_names t) #>
@@ -221,6 +221,8 @@ fun declare_names t =
   declare_type_names t #>
   map_names (Term.declare_free_names t) #>
   map_maxidx (Term.maxidx_term t);
+
+fun variant_names ctxt xs = Name.variant_names (names_of ctxt) xs;
 
 
 (* type occurrences *)
@@ -273,12 +275,6 @@ val declare_prf =
   Proofterm.fold_proof_terms_types declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms {hyps = true} declare_internal;
-
-
-(* renaming term/type frees *)
-
-fun variant_frees ctxt ts frees =
-  Name.variant_names (names_of (fold declare_names ts ctxt)) frees;
 
 
 

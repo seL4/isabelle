@@ -883,7 +883,7 @@ fun proove_termination (term: term list) terms (T_info: Function.info, lthy: loc
             | args _ = []
           val dom_vars =
             terms |> hd |> get_l |> map_types (map_atyps freeTypes)
-            |> args |> Variable.variant_frees lthy []
+            |> args |> Variable.variant_names lthy
           val dom_args = 
             List.foldl (fn (t,p) => HOLogic.mk_prod ((Free t),p)) (Free (hd dom_vars)) (tl dom_vars)
 
