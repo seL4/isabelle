@@ -33,6 +33,7 @@ sig
   val invent_global_types: int -> string list
   val invent_names: context -> string -> 'a list -> (string * 'a) list
   val invent_names_global: string -> 'a list -> (string * 'a) list
+  val invent_types: context -> 'a list -> (string * 'a) list
   val invent_types_global: 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
   val variant: string -> context -> string * context
@@ -135,7 +136,9 @@ val invent_global_types = invent_global aT;
 
 fun invent_names ctxt x xs = invent ctxt x (length xs) ~~ xs;
 fun invent_names_global x xs = invent_names context x xs;
-fun invent_types_global xs = invent_names context aT xs;
+
+fun invent_types ctxt xs = invent_names ctxt aT xs;
+fun invent_types_global xs = invent_types context xs;
 
 val invent_list = invent o make_context;
 
