@@ -153,7 +153,10 @@ sig
   val add_consts: term -> (string * typ) list -> (string * typ) list
   val declare_tfree_namesT: typ -> Name.context -> Name.context
   val declare_tfree_names: term -> Name.context -> Name.context
+  val declare_tvar_namesT: (int -> bool) -> typ -> Name.context -> Name.context
+  val declare_tvar_names: (int -> bool) -> term -> Name.context -> Name.context
   val declare_free_names: term -> Name.context -> Name.context
+  val declare_var_names: (int -> bool) -> term -> Name.context -> Name.context
   val hidden_polymorphism: term -> (indexname * sort) list
   val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
@@ -576,7 +579,10 @@ val add_const_names = fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
 val add_consts = fold_aterms (fn Const c => insert (op =) c | _ => I);
 val declare_tfree_namesT = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
 val declare_tfree_names = fold_types declare_tfree_namesT;
+fun declare_tvar_namesT pred = fold_atyps (fn TVar ((a, i), _) => pred i ? Name.declare a | _ => I);
+val declare_tvar_names = fold_types o declare_tvar_namesT;
 val declare_free_names = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
+fun declare_var_names pred = fold_aterms (fn Var ((x, i), _) => pred i ? Name.declare x | _ => I);
 
 (*extra type variables in a term, not covered by its type*)
 fun hidden_polymorphism t =
