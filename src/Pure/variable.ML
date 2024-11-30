@@ -278,10 +278,7 @@ val declare_thm = Thm.fold_terms {hyps = true} declare_internal;
 (* renaming term/type frees *)
 
 fun variant_frees ctxt ts frees =
-  let
-    val names = names_of (fold declare_names ts ctxt);
-    val xs = fst (fold_map Name.variant (map #1 frees) names);
-  in xs ~~ map snd frees end;
+  Name.variant_names (names_of (fold declare_names ts ctxt)) frees;
 
 
 

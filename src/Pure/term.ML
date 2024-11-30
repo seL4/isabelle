@@ -603,8 +603,7 @@ fun declare_term_names tm =
   declare_tfree_names tm;
 
 fun variant_frees t frees =
-  #1 (fold_map Name.variant (map fst frees) (Name.build_context (declare_term_names t))) ~~
-    map #2 frees;
+  Name.variant_names_build (declare_term_names t) frees;
 
 
 (* sorts *)

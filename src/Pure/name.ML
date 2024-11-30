@@ -39,6 +39,8 @@ sig
   val invent_list: string list -> string -> int -> string list
   val variant: string -> context -> string * context
   val variant_bound: string -> context -> string * context
+  val variant_names: context -> (string * 'a) list -> (string * 'a) list
+  val variant_names_build: (context -> context) -> (string * 'a) list -> (string * 'a) list
   val variant_list: string list -> string list -> string list
   val enforce_case: bool -> string -> string
   val desymbolize: bool option -> string -> string
@@ -171,6 +173,9 @@ fun variant name ctxt =
   in (x' ^ replicate_string n "_", ctxt') end;
 
 fun variant_bound name = variant (if is_bound name then "u" else name);
+
+fun variant_names ctxt xs = #1 (fold_map (variant o fst) xs ctxt) ~~ map snd xs;
+fun variant_names_build f xs = variant_names (build_context f) xs;
 
 fun variant_list used names = #1 (make_context used |> fold_map variant names);
 

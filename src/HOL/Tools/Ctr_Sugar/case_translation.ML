@@ -478,10 +478,7 @@ fun dest_case ctxt d used t =
                 map (pair "x") (drop j (take i (binder_types (fastype_of t)))), [])
               else chop i zs;
             val u = fold_rev Term.abs ys (strip_abs_body t);
-            val xs' = map Free
-              ((fold_map Name.variant (map fst xs)
-                  (Term.declare_term_names u used) |> fst) ~~
-               map snd xs);
+            val xs' = map Free (Name.variant_names (Term.declare_term_names u used) xs);
             val (xs1, xs2) = chop j xs'
           in (xs', list_comb (subst_bounds (rev xs1, u), xs2)) end;
         fun is_dependent i t =
