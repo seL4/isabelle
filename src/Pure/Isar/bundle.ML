@@ -126,10 +126,11 @@ fun apply_bundle loc (add, bundle) ctxt =
     val notes = if loc then Local_Theory.notes else Attrib.local_notes "";
     val add0 = Syntax.get_polarity ctxt;
     val add1 = Syntax.effective_polarity ctxt add;
+    val bundle' = if add1 then bundle else rev (map (apsnd rev) bundle);
   in
     ctxt
     |> Context_Position.set_visible false
-    |> notes [(Binding.empty_atts, polarity_decls add1 @ bundle @ polarity_decls add0)] |> snd
+    |> notes [(Binding.empty_atts, polarity_decls add1 @ bundle' @ polarity_decls add0)] |> snd
     |> Context_Position.restore_visible ctxt
   end;
 

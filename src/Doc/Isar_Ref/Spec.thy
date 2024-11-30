@@ -297,7 +297,9 @@ text \<open>
     \<^item> @{command type_notation} versus @{command no_type_notation}
 
   This also works recursively for the @{command unbundle} command as
-  declaration inside a @{command bundle} definition.
+  declaration inside a @{command bundle} definition: \<^verbatim>\<open>no\<close> means that
+  both the order and polarity of declarations is reversed (following
+  algebraic group laws).
 
 
   Here is an artificial example of bundling various configuration options:
