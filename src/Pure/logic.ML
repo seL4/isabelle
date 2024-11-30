@@ -667,7 +667,7 @@ fun get_goal st i =
 (*reverses parameters for substitution*)
 fun goal_params st i =
   let val gi = get_goal st i
-      val rfrees = map Free (Term.rename_wrt_term gi (strip_params gi))
+      val rfrees = map Free (rev (Term.variant_frees gi (strip_params gi)))
   in (gi, rfrees) end;
 
 fun concl_of_goal st i =

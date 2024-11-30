@@ -166,7 +166,6 @@ sig
   val strip_sortsT_same: typ Same.operation
   val strip_sortsT: typ -> typ
   val strip_sorts: term -> term
-  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val eq_ix: indexname * indexname -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
@@ -606,8 +605,6 @@ fun declare_term_names tm =
 fun variant_frees t frees =
   #1 (fold_map Name.variant (map fst frees) (Name.build_context (declare_term_names t))) ~~
     map #2 frees;
-
-fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
 
 (* sorts *)
