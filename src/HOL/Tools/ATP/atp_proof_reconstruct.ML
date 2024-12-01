@@ -278,7 +278,7 @@ fun quantify_over_var textual quant_of var_s var_T t =
    ATP-generated Skolem function names, since these end with a digit and
    "variant_frees" appends letters. *)
 fun desymbolize_and_fresh_up ctxt s =
-  fst (singleton (Variable.variant_names ctxt) (Name.desymbolize (SOME false) s, ()))
+  #1 (Name.variant (Name.desymbolize (SOME false) s) (Variable.names_of ctxt))
 
 (* Higher-order translation. Variables are typed (although we don't use that information). Lambdas
    are typed. The code is similar to "term_of_atp_fo". *)

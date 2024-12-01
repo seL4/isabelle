@@ -262,7 +262,7 @@ fun derive_case_trivial ctxt fpT_name =
       |> mk_TFrees' (map Type.sort_of_atyp As0);
     val fpT = Type (fpT_name, As);
 
-    val (var_name, ()) = singleton (Variable.variant_names ctxt) ("x", ());
+    val var_name = #1 (Name.variant "x" (Variable.names_of ctxt));
     val var = Free (var_name, fpT);
     val goal = mk_Trueprop_eq (expand_to_ctr_term ctxt fpT var, var);
 
