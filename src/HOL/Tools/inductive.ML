@@ -338,7 +338,7 @@ in
 
 fun check_rule ctxt cs params ((binding, att), rule) =
   let
-    val params' = Term.variant_frees rule (Logic.strip_params rule);
+    val params' = Variable.variant_names (Variable.declare_names rule ctxt) (Logic.strip_params rule);
     val frees = rev (map Free params');
     val concl = subst_bounds (frees, Logic.strip_assums_concl rule);
     val prems = map (curry subst_bounds frees) (Logic.strip_assums_hyp rule);
