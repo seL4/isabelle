@@ -102,8 +102,10 @@ fun find_points ctxt metric_ty ct =
     (case find ct of
       [] =>
         (*if no point can be found, invent one*)
-        let val x = singleton (Term.variant_frees (Thm.term_of ct)) ("x", metric_ty)
-        in [Thm.cterm_of ctxt (Free x)] end
+        let
+          val names = Variable.names_of ctxt |> Term.declare_free_names (Thm.term_of ct)
+          val x = Free (#1 (Name.variant "x" names), metric_ty)
+        in [Thm.cterm_of ctxt x] end
     | points => points)
   end
 
