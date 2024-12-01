@@ -38,7 +38,7 @@ fun process_eqn is_fixed spec rec_fns =
   let
     val (vs, Ts) = split_list (strip_qnt_vars \<^const_name>\<open>Pure.all\<close> spec);
     val body = strip_qnt_body \<^const_name>\<open>Pure.all\<close> spec;
-    val (vs', _) = fold_map Name.variant vs (Name.make_context (fold_aterms
+    val vs' = vs |> Name.variants (Name.make_context (fold_aterms
       (fn Free (v, _) => insert (op =) v | _ => I) body []));
     val eqn = curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body;
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop eqn)

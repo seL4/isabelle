@@ -34,7 +34,7 @@ fun unquantify t =
   let
     val (vs, Ts) = split_list (strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t);
     val body = strip_qnt_body \<^const_name>\<open>Pure.all\<close> t;
-    val (vs', _) = fold_map Name.variant vs (Name.make_context (fold_aterms
+    val vs' = vs |> Name.variants (Name.make_context (fold_aterms
       (fn Free (v, _) => insert (op =) v | _ => I) body []))
   in (curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body) end;
 

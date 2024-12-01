@@ -57,7 +57,7 @@ fun variant_names ctxt ts xs =
     val names =
       Variable.names_of ctxt
       |> fold (fn t => Term.declare_free_names t #> Term.declare_var_names (K true) t) ts;
-  in fst (fold_map Name.variant xs names) end;
+  in Name.variants names xs end;
 
 (* fix parameters of a subgoal "i", as free variables, and create an
 exporting function that will use the result of this proved goal to

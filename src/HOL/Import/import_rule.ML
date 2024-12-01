@@ -335,7 +335,7 @@ fun store_thm binding thm thy =
     val thm = Drule.export_without_context_open thm
     val tvs = Term.add_tvars (Thm.prop_of thm) []
     val tns = map (fn (_, _) => "'") tvs
-    val nms = fst (fold_map Name.variant tns (Variable.names_of ctxt))
+    val nms = Name.variants (Variable.names_of ctxt) tns
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
     val thm' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) thm
   in

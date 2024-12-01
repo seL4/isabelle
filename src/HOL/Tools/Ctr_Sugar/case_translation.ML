@@ -260,7 +260,7 @@ fun fresh_constr colty used c =
   let
     val T = dest_Const_type c;
     val Ts = binder_types T;
-    val (names, _) = fold_map Name.variant (make_tnames Ts) used;
+    val names = Name.variants used (make_tnames Ts);
     val ty = body_type T;
     val ty_theta = Type.raw_match (ty, colty) Vartab.empty
       handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);
@@ -304,10 +304,9 @@ fun partition _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                   then
                     let
                       val Ts = map fastype_of ps;
-                      val (xs, _) =
-                        fold_map Name.variant
-                          (replicate (length ps) "x")
-                          (fold Term.declare_free_names gvars used');
+                      val xs =
+                        Name.variants (fold Term.declare_free_names gvars used')
+                          (replicate (length ps) "x");
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
                         (Const (\<^const_name>\<open>undefined\<close>, res_ty), ~1))]

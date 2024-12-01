@@ -1465,8 +1465,7 @@ fun declare_unimplemented_global c =
 
 fun case_cong thy case_const (num_args, (pos, _)) =
   let
-    val ([x, y], ctxt) = fold_map Name.variant ["A", "A'"] Name.context;
-    val (zs, _) = fold_map Name.variant (replicate (num_args - 1) "") ctxt;
+    val x :: y :: zs = Name.variants Name.context ("A" :: "A'" :: replicate (num_args - 1) "");
     val (ws, vs) = chop pos zs;
     val T = devarify (const_typ thy case_const);
     val Ts = binder_types T;

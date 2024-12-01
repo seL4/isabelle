@@ -346,7 +346,7 @@ fun varify_global_names fixed t =
       build (t |> (Term.fold_types o Term.fold_atyps)
         (fn TFree v => if TFrees.defined fixed v then I else insert (op =) v | _ => I));
     val used = Name.build_context (t |> Term.declare_tvar_names (K true));
-    val ys = #1 (fold_map Name.variant (map #1 xs) used);
+    val ys = Name.variants used (map #1 xs);
   in map2 (fn (a, S) => fn b => ((a, S), ((b, 0), S))) xs ys end;
 
 fun varify_global fixed t =
