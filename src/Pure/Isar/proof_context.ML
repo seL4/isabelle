@@ -571,24 +571,28 @@ fun check_const {proper, strict} ctxt (c, ps) =
       Name.reject_internal (c, ps) handle ERROR msg =>
         error (msg ^ consts_completion_message ctxt (c, ps));
     fun err msg = error (msg ^ Position.here_list ps);
-    val consts = consts_of ctxt;
+
     val fixed = if proper then NONE else Variable.lookup_fixed ctxt c;
+    val const = Variable.lookup_const ctxt c;
+    val consts = consts_of ctxt;
+
     val (t, reports) =
-      (case (fixed, Variable.lookup_const ctxt c) of
-        (SOME x, NONE) =>
-          let
-            val reports = ps
-              |> filter (Context_Position.is_reported ctxt)
-              |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
-          in (Free (x, infer_type ctxt (x, dummyT)), reports) end
-      | (_, SOME d) =>
-          let
-            val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
-            val reports = ps
-              |> filter (Context_Position.is_reported ctxt)
-              |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
-          in (Const (d, T), reports) end
-      | _ => Consts.check_const (Context.Proof ctxt) consts (c, ps));
+      if is_some fixed andalso is_none const then
+        let
+          val x = the fixed;
+          val reports = ps
+            |> filter (Context_Position.is_reported ctxt)
+            |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
+        in (Free (x, infer_type ctxt (x, dummyT)), reports) end
+      else if is_some const then
+        let
+          val d = the const;
+          val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
+          val reports = ps
+            |> filter (Context_Position.is_reported ctxt)
+            |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
+        in (Const (d, T), reports) end
+      else Consts.check_const (Context.Proof ctxt) consts (c, ps);
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>
