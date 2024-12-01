@@ -29,6 +29,7 @@ sig
   val names_short: bool Config.T
   val names_unique: bool Config.T
   val extern_generic: Context.generic -> T -> string -> xstring
+  val extern_global: theory -> T -> string -> xstring
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string ord
   val extern_shortest: Proof.context -> T -> string -> xstring
@@ -322,6 +323,7 @@ fun extern_generic context space name =
     else extern_names (get_aliases space name)
   end;
 
+val extern_global = extern_generic o Context.Theory;
 val extern = extern_generic o Context.Proof;
 
 fun extern_ord ctxt space = string_ord o apply2 (extern ctxt space);

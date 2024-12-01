@@ -74,7 +74,7 @@ fun thm_deps thy =
 fun pretty_thm_deps thy thms =
   let
     val facts = Global_Theory.facts_of thy;
-    val extern_fact = Name_Space.extern_generic (Context.Theory thy) (Facts.space_of facts);
+    val extern_fact = Name_Space.extern_global thy (Facts.space_of facts);
     val deps =
       (case try (thm_deps thy) thms of
         SOME deps => deps
