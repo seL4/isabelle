@@ -713,9 +713,6 @@ end;
 
 local
 
-fun extern_fixed ctxt x =
-  if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
-
 fun extern_cache ctxt =
   Symtab.unsynchronized_cache (fn c =>
     (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
@@ -725,12 +722,7 @@ fun extern_cache ctxt =
           [] => c
         | [b] => b
         | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
-    |> Lexicon.unmark
-       {case_class = Proof_Context.extern_class ctxt,
-        case_type = Proof_Context.extern_type ctxt,
-        case_const = Proof_Context.extern_const ctxt,
-        case_fixed = extern_fixed ctxt,
-        case_default = I})
+    |> Proof_Context.extern_entity ctxt)
   |> #apply;
 
 val var_or_skolem_cache =
@@ -759,7 +751,8 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
     val extern = extern_cache ctxt;
 
     val free_or_skolem_cache =
-      #apply (Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, extern_fixed ctxt x)));
+      Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, Proof_Context.extern_fixed ctxt x))
+      |> #apply;
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);

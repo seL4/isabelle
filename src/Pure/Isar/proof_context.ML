@@ -54,6 +54,8 @@ sig
   val markup_type: Proof.context -> string -> string
   val pretty_type: Proof.context -> string -> Pretty.T
   val extern_const: Proof.context -> string -> xstring
+  val extern_fixed: Proof.context -> string -> string
+  val extern_entity: Proof.context -> string -> string
   val markup_const: Proof.context -> string -> string
   val pretty_const: Proof.context -> string -> Pretty.T
   val transfer: theory -> Proof.context -> Proof.context
@@ -386,6 +388,15 @@ val intern_const = Name_Space.intern o const_space;
 fun extern_class ctxt = Name_Space.extern ctxt (class_space ctxt);
 fun extern_type ctxt = Name_Space.extern ctxt (type_space ctxt);
 fun extern_const ctxt = Name_Space.extern_if (is_none o lookup_free ctxt) ctxt (const_space ctxt);
+fun extern_fixed ctxt x = if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
+
+fun extern_entity ctxt =
+  Lexicon.unmark
+   {case_class = extern_class ctxt,
+    case_type = extern_type ctxt,
+    case_const = extern_const ctxt,
+    case_fixed = extern_fixed ctxt,
+    case_default = I};
 
 fun markup_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |-> Markup.markup;
 fun markup_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |-> Markup.markup;
