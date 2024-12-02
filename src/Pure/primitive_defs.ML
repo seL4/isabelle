@@ -77,7 +77,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
 fun abs_def eq =
   let
     val body = Term.strip_all_body eq;
-    val vars = map Free (Term.variant_frees body (Term.strip_all_vars eq));
+    val vars = map Free (Term.variant_bounds body (Term.strip_all_vars eq));
     val (lhs, rhs) = Logic.dest_equals (Term.subst_bounds (rev vars, body));
     val (lhs', args) = Term.strip_comb lhs;
     val rhs' = fold_rev (absfree o dest_Free) args rhs;

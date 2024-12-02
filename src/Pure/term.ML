@@ -157,6 +157,7 @@ sig
   val declare_tvar_names: (int -> bool) -> term -> Name.context -> Name.context
   val declare_free_names: term -> Name.context -> Name.context
   val declare_var_names: (int -> bool) -> term -> Name.context -> Name.context
+  val variant_bounds: term -> (string * 'a) list -> (string * 'a) list
   val hidden_polymorphism: term -> (indexname * sort) list
   val declare_term_names: term -> Name.context -> Name.context
   val variant_frees: term -> (string * 'a) list -> (string * 'a) list
@@ -582,6 +583,8 @@ fun declare_tvar_namesT pred = fold_atyps (fn TVar ((a, i), _) => pred i ? Name.
 val declare_tvar_names = fold_types o declare_tvar_namesT;
 val declare_free_names = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
 fun declare_var_names pred = fold_aterms (fn Var ((x, i), _) => pred i ? Name.declare x | _ => I);
+
+fun variant_bounds t = Name.variant_names_build (declare_free_names t);
 
 (*extra type variables in a term, not covered by its type*)
 fun hidden_polymorphism t =

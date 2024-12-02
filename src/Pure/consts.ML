@@ -313,7 +313,7 @@ fun strip_abss (t as Abs (x, T, b)) =
 fun rev_abbrev lhs rhs =
   let
     val (xs, body) = strip_abss (Envir.beta_eta_contract rhs);
-    val vars = map (fn (x, T) => Var ((x, 0), T)) (Term.variant_frees body xs);
+    val vars = map (fn (x, T) => Var ((x, 0), T)) (Term.variant_bounds body xs);
   in (Term.subst_bounds (rev vars, body), Term.list_comb (lhs, vars)) end;
 
 in

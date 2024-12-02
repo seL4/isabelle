@@ -149,7 +149,7 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
           let
             val recs = filter (Old_Datatype_Aux.is_rec_type o snd) (cargs' ~~ cargs);
             val rargs = map (rpair dummyT o fst o fst) recs;
-            val subs = Term.variant_frees rhs rargs;
+            val subs = Term.variant_bounds rhs rargs;
             val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
               (Free x, (Old_Datatype_Aux.body_index y, Free z))) recs subs) rhs (fnames', fnss')
                 handle PrimrecError (s, NONE) => primrec_error_eqn s eq
