@@ -72,7 +72,10 @@ fun appl_error thy prt vs Hs s f a =
   end;
 
 fun thm_of_proof thy =
-  let val lookup = lookup_thm thy in
+  let
+    val global_ctxt = Syntax.init_pretty_global thy;
+    val lookup = lookup_thm thy;
+  in
     fn prf =>
       let
         val prf_names =
@@ -96,9 +99,9 @@ fun thm_of_proof thy =
                   if is_equal prop prop' then ()
                   else
                     error ("Duplicate use of theorem name " ^
-                      quote (Global_Theory.print_thm_name thy thm_name) ^ Position.here thm_pos
-                      ^ "\n" ^ Syntax.string_of_term_global thy prop
-                      ^ "\n\n" ^ Syntax.string_of_term_global thy prop');
+                      quote (Global_Theory.print_thm_name global_ctxt thm_name) ^ Position.here thm_pos
+                      ^ "\n" ^ Syntax.string_of_term global_ctxt prop
+                      ^ "\n\n" ^ Syntax.string_of_term global_ctxt prop');
               in thm_of_atom thm Ts end
 
           | thm_of _ _ (PAxm (name, _, SOME Ts)) =

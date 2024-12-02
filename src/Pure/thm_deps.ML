@@ -11,7 +11,7 @@ sig
   val has_skip_proof: thm list -> bool
   val pretty_thm_oracles: Proof.context -> thm list -> Pretty.T
   val thm_deps: theory -> thm list -> (Proofterm.thm_id * Thm_Name.T) list
-  val pretty_thm_deps: theory -> thm list -> Pretty.T
+  val pretty_thm_deps: Proof.context -> thm list -> Pretty.T
   val unused_thms_cmd: theory list * theory list -> (Thm_Name.T * thm) list
 end;
 
@@ -71,10 +71,11 @@ fun thm_deps thy =
       |-> Inttab.fold_rev (fn (_, SOME entry) => cons entry | _ => I)
   end;
 
-fun pretty_thm_deps thy thms =
+fun pretty_thm_deps ctxt thms =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val facts = Global_Theory.facts_of thy;
-    val extern_fact = Name_Space.extern_global thy (Facts.space_of facts);
+    val extern_fact = Name_Space.extern ctxt (Facts.space_of facts);
     val deps =
       (case try (thm_deps thy) thms of
         SOME deps => deps
@@ -83,7 +84,7 @@ fun pretty_thm_deps thy thms =
       deps
       |> map (fn (_, thm_name as (name, _)) => (extern_fact name, thm_name))
       |> sort_by #1
-      |> map (fn (_, thm_name) => Pretty.item [Global_Theory.pretty_thm_name thy thm_name])
+      |> map (fn (_, thm_name) => Pretty.item [Global_Theory.pretty_thm_name ctxt thm_name])
   in Pretty.big_list ("dependencies: " ^ string_of_int (length items)) items end;
 
 

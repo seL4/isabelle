@@ -481,10 +481,9 @@ fun print_term ctxt s t =
 
 fun print_thm ctxt msg (name, th) =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val sffx =
       if Thm_Name.is_empty name then ""
-      else " " ^ quote (Global_Theory.print_thm_name thy name) ^ ":";
+      else " " ^ quote (Global_Theory.print_thm_name ctxt name) ^ ":";
   in print_term ctxt (msg ^ sffx) (Thm.full_prop_of th) end;
 
 fun print_thm0 ctxt msg th = print_thm ctxt msg (Thm_Name.empty, th);

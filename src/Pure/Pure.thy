@@ -1378,10 +1378,8 @@ val _ =
     "print theorem dependencies (immediate non-transitive)"
     (Parse.thms1 >> (fn args =>
       Toplevel.keep (fn st =>
-        let
-          val thy = Toplevel.theory_of st;
-          val ctxt = Toplevel.context_of st;
-        in Pretty.writeln (Thm_Deps.pretty_thm_deps thy (Attrib.eval_thms ctxt args)) end)));
+        let val ctxt = Toplevel.context_of st
+        in Pretty.writeln (Thm_Deps.pretty_thm_deps ctxt (Attrib.eval_thms ctxt args)) end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thm_oracles\<close>
