@@ -23,7 +23,7 @@ sig
   val expr: string * Position.T -> ('a list * 'b) list -> ((P * 'a) list * 'b) list
 
   val parse: string -> T
-  val print_prefix: Context.generic -> Name_Space.T -> T -> Markup.T * string
+  val print_prefix: Proof.context -> Name_Space.T -> T -> Markup.T * string
   val print_suffix: T -> string
   val print: T -> string
   val print_pos: P -> string
@@ -99,9 +99,9 @@ end;
 
 (* print *)
 
-fun print_prefix context space ((name, _): T) =
+fun print_prefix ctxt space ((name, _): T) =
   if name = "" then (Markup.empty, "")
-  else (Name_Space.markup space name, Name_Space.extern_generic context space name);
+  else (Name_Space.markup space name, Name_Space.extern ctxt space name);
 
 fun print_suffix (name, index) =
   if name = "" orelse index = 0 then ""

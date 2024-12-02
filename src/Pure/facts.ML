@@ -30,7 +30,7 @@ sig
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
   val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
-  val pretty_thm_name: Context.generic -> T -> Thm_Name.T -> Pretty.T
+  val pretty_thm_name: Proof.context -> T -> Thm_Name.T -> Pretty.T
   val defined: T -> string -> bool
   val is_dynamic: T -> string -> bool
   val lookup: Context.generic -> T -> string -> {dynamic: bool, thms: thm list} option
@@ -174,9 +174,9 @@ val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
 fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of;
 
-fun pretty_thm_name context facts thm_name =
+fun pretty_thm_name ctxt facts thm_name =
   let
-    val prfx = Thm_Name.print_prefix context (space_of facts) thm_name;
+    val prfx = Thm_Name.print_prefix ctxt (space_of facts) thm_name;
     val sffx = Thm_Name.print_suffix thm_name;
   in Pretty.block [Pretty.mark_str prfx, Pretty.str sffx] end;
 

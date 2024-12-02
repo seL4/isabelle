@@ -434,7 +434,7 @@ fun markup_extern_fact _ "" = ([], "")
       in (markups, xname) end;
 
 fun pretty_thm_name ctxt (name, i) =
-  Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
+  Facts.pretty_thm_name ctxt (facts_of_fact ctxt name) (name, i);
 
 val print_thm_name = Pretty.string_of oo pretty_thm_name;
 

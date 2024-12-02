@@ -89,7 +89,7 @@ fun dest_thms verbose prev_thys thy =
   |> maps (fn (name, thms) => Thm_Name.list (name, Position.none) thms);
 
 fun pretty_thm_name ctxt =
-  Facts.pretty_thm_name (Context.Proof ctxt) (facts_of (Proof_Context.theory_of ctxt));
+  Facts.pretty_thm_name ctxt (facts_of (Proof_Context.theory_of ctxt));
 
 val print_thm_name = Pretty.string_of oo pretty_thm_name;
 
