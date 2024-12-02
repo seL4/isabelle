@@ -65,15 +65,14 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity_cache ctxt =
-  Symtab.unsynchronized_cache (fn c =>
+  Symtab.apply_unsynchronized_cache (fn c =>
     Syntax.get_consts (Proof_Context.syntax_of ctxt) c
     |> maps (Lexicon.unmark
        {case_class = markup_class ctxt,
         case_type = markup_type ctxt,
         case_const = markup_const ctxt,
         case_fixed = markup_free ctxt,
-        case_default = K []}))
-  |> #apply;
+        case_default = K []}));
 
 
 
@@ -267,8 +266,8 @@ fun decode_const ctxt (c, ps) =
 
 fun decode_term ctxt =
   let
-    val markup_free_cache = #apply (Symtab.unsynchronized_cache (markup_free ctxt));
-    val markup_const_cache = #apply (Symtab.unsynchronized_cache (markup_const ctxt));
+    val markup_free_cache = Symtab.apply_unsynchronized_cache (markup_free ctxt);
+    val markup_const_cache = Symtab.apply_unsynchronized_cache (markup_const ctxt);
 
     fun decode (result as (_: Position.report_text list, Exn.Exn _)) = result
       | decode (reports0, Exn.Res tm) =
@@ -714,7 +713,7 @@ end;
 local
 
 fun extern_cache ctxt =
-  Symtab.unsynchronized_cache (fn c =>
+  Symtab.apply_unsynchronized_cache (fn c =>
     (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
       [b] => b
     | bs =>
@@ -722,18 +721,16 @@ fun extern_cache ctxt =
           [] => c
         | [b] => b
         | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
-    |> Proof_Context.extern_entity ctxt)
-  |> #apply;
+    |> Proof_Context.extern_entity ctxt);
 
 val var_or_skolem_cache =
-  Symtab.unsynchronized_cache (fn s =>
+  Symtab.apply_unsynchronized_cache (fn s =>
     (case Lexicon.read_variable s of
       SOME (x, i) =>
         (case try Name.dest_skolem x of
           SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
         | NONE => (Markup.var, s))
-    | NONE => (Markup.var, s)))
-  |> #apply;
+    | NONE => (Markup.var, s)));
 
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
@@ -751,8 +748,8 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
     val extern = extern_cache ctxt;
 
     val free_or_skolem_cache =
-      Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, Proof_Context.extern_fixed ctxt x))
-      |> #apply;
+      Symtab.apply_unsynchronized_cache (fn x =>
+        (markup_free ctxt x, Proof_Context.extern_fixed ctxt x));
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);

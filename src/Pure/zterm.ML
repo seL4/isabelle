@@ -548,7 +548,7 @@ fun subst_term_same typ var =
 
 fun instantiate_type_same instT =
   if ZTVars.is_empty instT then Same.same
-  else #apply (ZTypes.unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT))));
+  else ZTypes.apply_unsynchronized_cache (subst_type_same (Same.function (ZTVars.lookup instT)));
 
 fun instantiate_term_same typ inst =
   subst_term_same typ (Same.function (ZVars.lookup inst));
@@ -863,9 +863,7 @@ fun norm_term_same {ztyp, zterm} (envir as Envir.Envir {tyenv, tenv, ...}) =
   let
     val lookup =
       if Vartab.is_empty tenv then K NONE
-      else
-        #apply (ZVars.unsynchronized_cache
-          (apsnd typ_of #> Envir.lookup envir #> Option.map zterm));
+      else ZVars.apply_unsynchronized_cache (apsnd typ_of #> Envir.lookup envir #> Option.map zterm);
 
     val normT = norm_type_same ztyp tyenv;
 
@@ -1008,8 +1006,8 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val typ_operation = #typ_operation ucontext {strip_sorts = true};
     val unconstrain_typ = Same.commit typ_operation;
     val unconstrain_ztyp =
-      #apply (ZTypes.unsynchronized_cache
-        (Same.function_eq (op =) (typ_of #> unconstrain_typ #> ztyp_of)));
+      ZTypes.apply_unsynchronized_cache
+        (Same.function_eq (op =) (typ_of #> unconstrain_typ #> ztyp_of));
     val unconstrain_zterm = zterm o Term.map_types typ_operation;
     val unconstrain_proof = Same.commit (map_proof_types {hyps = true} unconstrain_ztyp);
 
@@ -1226,10 +1224,10 @@ fun generalize_proof (tfrees, frees) idx prf =
     val typ =
       if Names.is_empty tfrees then Same.same
       else
-        #apply (ZTypes.unsynchronized_cache
+        ZTypes.apply_unsynchronized_cache
           (subst_type_same (fn ((a, i), S) =>
             if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
-            else raise Same.SAME)));
+            else raise Same.SAME));
     val term =
       subst_term_same typ (fn ((x, i), T) =>
         if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
@@ -1251,10 +1249,10 @@ fun varifyT_proof names prf =
     let
       val tab = ZTVars.build (names |> fold (fn ((a, S), b) => ZTVars.add (((a, ~1), S), b)));
       val typ =
-        #apply (ZTypes.unsynchronized_cache (subst_type_same (fn v =>
+        ZTypes.apply_unsynchronized_cache (subst_type_same (fn v =>
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
-          | SOME w => ZTVar w))));
+          | SOME w => ZTVar w)));
     in map_proof_types {hyps = false} typ prf end;
 
 fun legacy_freezeT_proof t prf =
@@ -1263,7 +1261,7 @@ fun legacy_freezeT_proof t prf =
   | SOME f =>
       let
         val tvar = ztyp_of o Same.function f;
-        val typ = #apply (ZTypes.unsynchronized_cache (subst_type_same tvar));
+        val typ = ZTypes.apply_unsynchronized_cache (subst_type_same tvar);
       in map_proof_types {hyps = false} typ prf end);
 
 
@@ -1297,7 +1295,7 @@ fun incr_tvar_same inc =
   if inc = 0 then Same.same
   else
     let fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME
-    in #apply (ZTypes.unsynchronized_cache (subst_type_same tvar)) end;
+    in ZTypes.apply_unsynchronized_cache (subst_type_same tvar) end;
 
 fun incr_indexes_proof inc prf =
   let
@@ -1437,8 +1435,8 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
     val typ_cache = typ_cache thy;
 
     val typ =
-      #apply (ZTypes.unsynchronized_cache
-        (typ_of #> #typ_operation ucontext {strip_sorts = true} #> ztyp_of));
+      ZTypes.apply_unsynchronized_cache
+        (typ_of #> #typ_operation ucontext {strip_sorts = true} #> ztyp_of);
 
     val typ_sort = #typ_operation ucontext {strip_sorts = false};
 
