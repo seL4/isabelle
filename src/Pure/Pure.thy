@@ -1210,7 +1210,8 @@ val _ =
       Toplevel.keep (fn state =>
         let
           val thy = Toplevel.theory_of state;
-          val name = Locale.check thy raw_name;
+          val ctxt = Toplevel.context_of state;
+          val name = Locale.check ctxt raw_name;
         in Pretty.writeln (Locale.pretty_locale thy show_facts name) end)));
 
 val _ =
@@ -1219,9 +1220,9 @@ val _ =
     (Parse.name_position >> (fn raw_name =>
       Toplevel.keep (fn state =>
         let
-          val ctxt = Toplevel.context_of state;
           val thy = Toplevel.theory_of state;
-          val name = Locale.check thy raw_name;
+          val ctxt = Toplevel.context_of state;
+          val name = Locale.check ctxt raw_name;
         in Pretty.writeln (Locale.pretty_registrations ctxt name) end)));
 
 val _ =
@@ -1257,12 +1258,16 @@ val _ =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>locale_deps\<close> "visualize locale dependencies"
-    (Scan.succeed
-      (Toplevel.keep (Toplevel.theory_of #> (fn thy =>
+    (Scan.succeed (Toplevel.keep (fn state =>
+      let
+        val thy = Toplevel.theory_of state;
+        val ctxt = Toplevel.context_of state;
+      in
         Locale.pretty_locale_deps thy
         |> map (fn {name, parents, body} =>
-          ((name, Graph_Display.content_node (Locale.extern thy name) [body]), parents))
-        |> Graph_Display.display_graph_old))));
+          ((name, Graph_Display.content_node (Locale.extern ctxt name) [body]), parents))
+        |> Graph_Display.display_graph_old
+      end)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_term_bindings\<close>

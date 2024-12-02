@@ -44,8 +44,9 @@ sig
     (string * morphism) list -> theory -> theory
   val locale_space: theory -> Name_Space.T
   val intern: theory -> xstring -> string
-  val check: theory -> xstring * Position.T -> string
-  val extern: theory -> string -> xstring
+  val check_global: theory -> xstring * Position.T -> string
+  val check: Proof.context -> xstring * Position.T -> string
+  val extern: Proof.context -> string -> xstring
   val markup_name: Proof.context -> string -> string
   val pretty_name: Proof.context -> string -> Pretty.T
   val defined: theory -> string -> bool
@@ -192,14 +193,20 @@ structure Locales = Theory_Data
 
 val locale_space = Name_Space.space_of_table o Locales.get;
 val intern = Name_Space.intern o locale_space;
-fun check thy = #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
+
+fun check_global thy =
+  #1 o Name_Space.check (Context.Theory thy) (Locales.get thy);
+
+fun check ctxt =
+  #1 o Name_Space.check (Context.Proof ctxt) (Locales.get (Proof_Context.theory_of ctxt));
 
 val _ = Theory.setup
  (ML_Antiquotation.inline_embedded \<^binding>\<open>locale\<close>
-   (Args.theory -- Scan.lift Parse.embedded_position >>
+   (Args.context -- Scan.lift Parse.embedded_position >>
       (ML_Syntax.print_string o uncurry check)));
 
-fun extern thy = Name_Space.extern_global thy (locale_space thy);
+fun extern ctxt =
+  Name_Space.extern ctxt (locale_space (Proof_Context.theory_of ctxt));
 
 fun markup_extern ctxt =
   Name_Space.markup_extern ctxt (locale_space (Proof_Context.theory_of ctxt));
