@@ -385,7 +385,7 @@ val intern_const = Name_Space.intern o const_space;
 
 fun extern_class ctxt = Name_Space.extern ctxt (class_space ctxt);
 fun extern_type ctxt = Name_Space.extern ctxt (type_space ctxt);
-fun extern_const ctxt = Name_Space.extern ctxt (const_space ctxt);
+fun extern_const ctxt = Name_Space.extern_if (is_none o lookup_free ctxt) ctxt (const_space ctxt);
 
 fun markup_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |-> Markup.markup;
 fun markup_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |-> Markup.markup;
