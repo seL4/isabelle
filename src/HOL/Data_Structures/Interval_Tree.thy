@@ -73,12 +73,12 @@ fun max_hi :: "('a::order_bot) ivl_tree \<Rightarrow> 'a" where
 "max_hi Leaf = bot" |
 "max_hi (Node _ (_,m) _) = m"
 
-definition max3 :: "('a::linorder) ivl \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"max3 a m n = max (high a) (max m n)"
+definition max3 :: "('a::{linorder,order_bot}) ivl \<Rightarrow> 'a ivl_tree \<Rightarrow> 'a ivl_tree \<Rightarrow> 'a" where
+"max3 a l r = max (high a) (max (max_hi l) (max_hi r))"
 
 fun inv_max_hi :: "('a::{linorder,order_bot}) ivl_tree \<Rightarrow> bool" where
 "inv_max_hi Leaf \<longleftrightarrow> True" |
-"inv_max_hi (Node l (a, m) r) \<longleftrightarrow> (m = max3 a (max_hi l) (max_hi r) \<and> inv_max_hi l \<and> inv_max_hi r)"
+"inv_max_hi (Node l (a, m) r) \<longleftrightarrow> (m = max3 a l r \<and> inv_max_hi l \<and> inv_max_hi r)"
 
 lemma max_hi_is_max:
   "inv_max_hi t \<Longrightarrow> a \<in> set_tree t \<Longrightarrow> high a \<le> max_hi t"
@@ -119,7 +119,7 @@ qed
 subsection \<open>Insertion and Deletion\<close>
 
 definition node where
-[simp]: "node l a r = Node l (a, max3 a (max_hi l) (max_hi r)) r"
+[simp]: "node l a r = Node l (a, max3 a l r) r"
 
 fun insert :: "'a::{linorder,order_bot} ivl \<Rightarrow> 'a ivl_tree \<Rightarrow> 'a ivl_tree" where
 "insert x Leaf = Node Leaf (x, high x) Leaf" |
