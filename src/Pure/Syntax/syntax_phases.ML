@@ -265,22 +265,6 @@ fun decode_const ctxt (c, ps) =
   Proof_Context.check_const {proper = true, strict = false} ctxt (c, ps)
   |>> dest_Const_name;
 
-local
-
-fun get_free ctxt x =
-  let
-    val fixed = Variable.lookup_fixed ctxt x;
-    val is_const = can (decode_const ctxt) (x, []) orelse Long_Name.is_qualified x;
-    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
-  in
-    if Variable.is_const ctxt x then NONE
-    else if is_some fixed then fixed
-    else if not is_const orelse is_declared then SOME x
-    else NONE
-  end;
-
-in
-
 fun decode_term ctxt =
   let
     val markup_free_cache = #apply (Symtab.unsynchronized_cache (markup_free ctxt));
@@ -319,7 +303,7 @@ fun decode_term ctxt =
               | decode ps _ _ (Free (a, T)) =
                   ((Name.reject_internal (a, ps) handle ERROR msg =>
                       error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
-                    (case get_free ctxt a of
+                    (case Proof_Context.lookup_free ctxt a of
                       SOME x => (report ps markup_free_cache x; Free (x, T))
                     | NONE =>
                         let
@@ -336,8 +320,6 @@ fun decode_term ctxt =
           in (! reports, tm') end;
 
   in decode end;
-
-end;
 
 
 

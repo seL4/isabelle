@@ -42,6 +42,7 @@ sig
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
+  val lookup_free: Proof.context -> string -> string option
   val defs_context: Proof.context -> Defs.context
   val intern_class: Proof.context -> xstring -> string
   val intern_type: Proof.context -> xstring -> string
@@ -351,11 +352,30 @@ val qualified = map_naming o Name_Space.qualified;
 val concealed = map_naming Name_Space.concealed;
 
 
+(* const vs. free *)
+
+val const_space = Consts.space_of o consts_of;
+
+fun is_const_declared ctxt x =
+  let val space = const_space ctxt
+  in Name_Space.declared space (Name_Space.intern space x) end;
+
+fun lookup_free ctxt x =
+  if Variable.is_const ctxt x then NONE
+  else
+    (case Variable.lookup_fixed ctxt x of
+      NONE =>
+        let
+          val is_const = Long_Name.is_qualified x orelse is_const_declared ctxt x;
+          val is_free_declared = is_some (Variable.default_type ctxt x);
+        in if not is_const orelse is_free_declared then SOME x else NONE end
+    | fixed => fixed);
+
+
 (* name spaces *)
 
 val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
-val const_space = Consts.space_of o consts_of;
 
 fun defs_context ctxt = (ctxt, (const_space ctxt, type_space ctxt));
 
