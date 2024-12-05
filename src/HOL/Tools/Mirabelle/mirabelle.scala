@@ -112,6 +112,7 @@ object Mirabelle {
       val mirabelle_stride = options.check_name("mirabelle_stride")
       val mirabelle_timeout = options.check_name("mirabelle_timeout")
       val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
+      val mirabelle_parallel_group_size = options.check_name("mirabelle_parallel_group_size")
 
       var actions: List[String] = Nil
       var base_sessions: List[String] = Nil
@@ -144,6 +145,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -j INT       maximum number of parallel jobs (default 1)
     -m INT       """ + mirabelle_max_calls.description + " (default " + mirabelle_max_calls.default_value + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p INT       """ + mirabelle_parallel_group_size.description + " (default " + mirabelle_parallel_group_size.default_value + """)
     -r INT       """ + mirabelle_randomize.description + " (default " + mirabelle_randomize.default_value + """)
     -s INT       """ + mirabelle_stride.description + " (default " + mirabelle_stride.default_value + """)
     -t SECONDS   """ + mirabelle_timeout.description + " (default " + mirabelle_timeout.default_value + """)
@@ -177,6 +179,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
         "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
         "o:" -> (arg => options = options + arg),
+        "p:" -> (arg => options = options + ("mirabelle_parallel_group_size=" + arg)),
         "r:" -> (arg => options = options + ("mirabelle_randomize=" + arg)),
         "s:" -> (arg => options = options + ("mirabelle_stride=" + arg)),
         "t:" -> (arg => options = options + ("mirabelle_timeout=" + arg)),

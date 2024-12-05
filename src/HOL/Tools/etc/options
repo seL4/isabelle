@@ -65,6 +65,9 @@ option mirabelle_randomize : int = 0
 option mirabelle_output_dir : string = "mirabelle"
   -- "output directory for log files and generated artefacts"
 
+option mirabelle_parallel_group_size : int = 0
+  -- "number of actions to perform in parallel (0: unbounded)"
+
 option mirabelle_actions : string = ""
   -- "Mirabelle actions (outer syntax, separated by semicolons)"
 

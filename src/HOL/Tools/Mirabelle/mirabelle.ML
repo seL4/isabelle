@@ -207,7 +207,12 @@ val _ =
           val mirabelle_randomize = Options.default_int \<^system_option>\<open>mirabelle_randomize\<close>;
           val mirabelle_theories = Options.default_string \<^system_option>\<open>mirabelle_theories\<close>;
           val mirabelle_output_dir = Options.default_string \<^system_option>\<open>mirabelle_output_dir\<close>;
+          val mirabelle_parallel_group_size = Options.default_int \<^system_option>\<open>mirabelle_parallel_group_size\<close>;
           val check_theory = check_theories (space_explode "," mirabelle_theories);
+
+          fun parallel_app (f : 'a -> unit) (xs : 'a list) : unit =
+            chop_groups mirabelle_parallel_group_size xs
+            |> List.app (ignore o Par_List.map f)
 
           fun make_commands (thy_index, (thy, segments)) =
             let
@@ -275,7 +280,7 @@ val _ =
               end) indexed_commands
             end)
           (* Don't use multithreading for a dry run because of the high per-thread overhead. *)
-          |> (if mirabelle_dry_run then map else Par_List.map) (fn ((action, context), command) =>
+          |> (if mirabelle_dry_run then List.app else parallel_app) (fn ((action, context), command) =>
               apply_action (if mirabelle_dry_run then dry_run_action else action) context command);
 
           (* finalize actions *)
