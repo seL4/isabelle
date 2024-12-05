@@ -29,7 +29,7 @@ isabelle build -b HOL-TPTP 2>&1 | grep --line-buffered -v "elapsed time$"
 for FILE in "$@"
 do
   echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.nitpick_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end" \
+ML \<open> ATP_Problem_Import.nitpick_tptp_file @{theory} ($TIMEOUT) \"$FILE\" \<close> end" \
     > /tmp/$SCRATCH.thy
   isabelle process -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" -l HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val \|^Loading theory\|^poly.*warning: The type of\|^   monotype.$"
 done
