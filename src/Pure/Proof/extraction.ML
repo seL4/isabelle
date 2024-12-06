@@ -505,6 +505,8 @@ val dummyt = Const ("dummy", dummyT);
 fun extract thm_vss thy =
   let
     val thy' = add_syntax thy;
+    val global_ctxt = Syntax.init_pretty_global thy';
+    val print_thm_name = Global_Theory.print_thm_name global_ctxt;
 
     val {realizes_eqns, typeof_eqns, types, realizers, defs, expand, prep} =
       ExtractionData.get thy;
@@ -640,8 +642,7 @@ fun extract thm_vss thy =
                   let
                     val _ = T = nullT orelse error "corr: internal error";
                     val _ =
-                      msg d ("Building correctness proof for " ^
-                        quote (Global_Theory.print_thm_name thy thm_name) ^
+                      msg d ("Building correctness proof for " ^ quote (print_thm_name thm_name) ^
                         (if null vs' then ""
                          else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
@@ -670,8 +671,8 @@ fun extract thm_vss thy =
             | SOME rs => (case find vs' rs of
                 SOME (_, prf') => (Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs), defs')
               | NONE => error ("corr: no realizer for instance of theorem " ^
-                  quote (Global_Theory.print_thm_name thy' thm_name) ^ ":\n" ^
-                    Syntax.string_of_term_global thy'
+                  quote (print_thm_name thm_name) ^ ":\n" ^
+                    Syntax.string_of_term global_ctxt
                       (Envir.beta_norm (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))))
           end
 
@@ -686,7 +687,7 @@ fun extract thm_vss thy =
               SOME (_, prf) => (Proofterm.proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye),
                 defs)
             | NONE => error ("corr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term global_ctxt (Envir.beta_norm
                   (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
@@ -738,7 +739,7 @@ fun extract thm_vss thy =
                 NONE =>
                   let
                     val _ =
-                      msg d ("Extracting " ^ quote (Global_Theory.print_thm_name thy' thm_name) ^
+                      msg d ("Extracting " ^ quote (print_thm_name thm_name) ^
                         (if null vs' then ""
                          else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Proofterm.reconstruct_proof thy' prop prf);
@@ -790,8 +791,8 @@ fun extract thm_vss thy =
             | SOME rs => (case find vs' rs of
                 SOME (t, _) => (subst_TVars tye' t, defs)
               | NONE => error ("extr: no realizer for instance of theorem " ^
-                  quote (Global_Theory.print_thm_name thy' thm_name) ^ ":\n" ^
-                    Syntax.string_of_term_global thy' (Envir.beta_norm
+                  quote (print_thm_name thm_name) ^ ":\n" ^
+                    Syntax.string_of_term global_ctxt (Envir.beta_norm
                     (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
@@ -803,7 +804,7 @@ fun extract thm_vss thy =
             case find vs' (Thm_Name.Table.lookup_list realizers (s, 0)) of
               SOME (t, _) => (subst_TVars tye' t, defs)
             | NONE => error ("extr: no realizer for instance of axiom " ^
-                quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
+                quote s ^ ":\n" ^ Syntax.string_of_term global_ctxt (Envir.beta_norm
                   (Proofterm.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
@@ -817,7 +818,7 @@ fun extract thm_vss thy =
         val name = Thm.derivation_name thm;
         val _ = if Thm_Name.is_empty name then error "extraction: unnamed theorem" else ();
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
-          quote (Global_Theory.print_thm_name thy' name) ^ " has no computational content")
+          quote (print_thm_name name) ^ " has no computational content")
       in Proofterm.reconstruct_proof thy' prop prf end;
 
     val defs =

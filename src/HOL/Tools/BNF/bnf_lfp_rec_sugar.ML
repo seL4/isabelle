@@ -391,10 +391,10 @@ fun build_rec_arg ctxt (funs_data : eqn_data list list) has_call (ctr_spec : rec
         |> map_filter (try (apsnd (fn Nested_Rec p => p)));
 
       fun ensure_unique frees t =
-        if member (op =) frees t then Free (the_single (Term.variant_frees t [dest_Free t])) else t;
+        if member (op =) frees t then Free (the_single (Term.variant_bounds t [dest_Free t])) else t;
 
       val args = replicate n_args ("", dummyT)
-        |> Term.variant_frees t
+        |> Term.variant_bounds t
         |> rev
         |> map Free
         |> fold (fn (ctr_arg_idx, (arg_idx, _)) =>

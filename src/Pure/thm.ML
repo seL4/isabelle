@@ -1095,8 +1095,8 @@ fun strip_shyps thm =
                 SOME T' => T'
               | NONE => raise Fail "strip_shyps: bad type variable in proof term"));
         val map_ztyp =
-          #apply (ZTypes.unsynchronized_cache
-            (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar)));
+          ZTypes.apply_unsynchronized_cache
+            (ZTerm.subst_type_same (ZTerm.ztyp_of o map_atyp o ZTerm.typ_of o ZTVar));
 
         val zproof' = ZTerm.map_proof_types {hyps = true} map_ztyp zproof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;

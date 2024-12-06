@@ -47,8 +47,7 @@ fun pretty_abbrev ctxt s =
   in Proof_Context.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_locale ctxt (name, pos) =
-  let val thy = Proof_Context.theory_of ctxt
-  in Pretty.str (Locale.extern thy (Locale.check thy (name, pos))) end;
+  Pretty.str (Locale.extern ctxt (Locale.check ctxt (name, pos)));
 
 fun pretty_bundle ctxt (name, pos) =
   Pretty.str (Bundle.extern ctxt (Bundle.check ctxt (name, pos)));

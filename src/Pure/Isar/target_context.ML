@@ -25,7 +25,7 @@ fun prep_includes thy =
 fun context_begin_named_cmd raw_includes ("-", _) thy =
       Named_Target.init (prep_includes thy raw_includes) "" thy
   | context_begin_named_cmd raw_includes name thy =
-      Named_Target.init (prep_includes thy raw_includes) (Locale.check thy name) thy;
+      Named_Target.init (prep_includes thy raw_includes) (Locale.check_global thy name) thy;
 
 val end_named_cmd = Context.Theory o Local_Theory.exit_global;
 

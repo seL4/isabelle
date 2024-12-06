@@ -28,7 +28,7 @@ sig
   val names_long: bool Config.T
   val names_short: bool Config.T
   val names_unique: bool Config.T
-  val extern_generic: Context.generic -> T -> string -> xstring
+  val extern_if: (xstring -> bool) -> Proof.context -> T -> string -> xstring
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string ord
   val extern_shortest: Proof.context -> T -> string -> xstring
@@ -292,16 +292,17 @@ val names_long = Config.declare_option_bool ("names_long", \<^here>);
 val names_short = Config.declare_option_bool ("names_short", \<^here>);
 val names_unique = Config.declare_option_bool ("names_unique", \<^here>);
 
-fun extern_generic context space name =
+fun extern_if ok ctxt space name =
   let
-    val names_long = Config.get_generic context names_long;
-    val names_short = Config.get_generic context names_short;
-    val names_unique = Config.get_generic context names_unique;
+    val names_long = Config.get ctxt names_long;
+    val names_short = Config.get ctxt names_short;
+    val names_unique = Config.get ctxt names_unique;
 
     fun extern_chunks require_unique a chunks =
       let val {full_name = c, unique, ...} = intern_chunks space chunks in
-        if (not require_unique orelse unique) andalso is_alias space c a
-        then SOME (Long_Name.implode_chunks chunks)
+        if (not require_unique orelse unique) andalso is_alias space c a then
+          let val x = Long_Name.implode_chunks chunks
+          in if ok x then SOME x else NONE end
         else NONE
       end;
 
@@ -322,7 +323,7 @@ fun extern_generic context space name =
     else extern_names (get_aliases space name)
   end;
 
-val extern = extern_generic o Context.Proof;
+val extern = extern_if (K true);
 
 fun extern_ord ctxt space = string_ord o apply2 (extern ctxt space);
 

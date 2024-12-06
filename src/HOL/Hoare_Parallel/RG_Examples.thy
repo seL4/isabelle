@@ -117,11 +117,11 @@ apply(rule Parallel)
     apply simp
    apply clarify
    apply simp
-   apply(subgoal_tac "xa=0")
+   apply(subgoal_tac "x=0")
     apply simp
    apply arith
   apply clarify
-  apply(case_tac xaa, simp, simp)
+  apply(case_tac xa, simp, simp)
  apply clarify
  apply simp
  apply(erule_tac x=0 in all_dupE)

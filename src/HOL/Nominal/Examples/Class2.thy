@@ -4671,7 +4671,7 @@ apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,za)]" and x="(x):Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
-apply(drule_tac pi="[(x,za)]" and x="(x):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,za)]" and x="(x):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(drule_tac pi="[(x,za)]" and x="(x):Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -4679,17 +4679,17 @@ apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(case_tac "x=ya")
 apply(simp)
-apply(drule_tac pi="[(ya,za)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(ya,za)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
 apply(case_tac "za=ya")
 apply(simp)
-apply(drule_tac pi="[(x,ya)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,ya)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
-apply(drule_tac pi="[(x,za)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,za)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(case_tac "x=xa")
@@ -4707,7 +4707,7 @@ apply(simp)
 apply(drule_tac pi="[(x,za)]" and x="(xa):Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
-apply(drule_tac pi="[(x,za)]" and x="(x):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,za)]" and x="(x):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(case_tac "x=xa")
@@ -4727,17 +4727,17 @@ apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(case_tac "x=ya")
 apply(simp)
-apply(drule_tac pi="[(ya,za)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(ya,za)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
 apply(case_tac "za=ya")
 apply(simp)
-apply(drule_tac pi="[(x,ya)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,ya)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
-apply(drule_tac pi="[(x,za)]" and x="(ya):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,za)]" and x="(ya):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 done
@@ -4800,7 +4800,7 @@ apply(auto intro: CANDs_alpha simp add: trm.inject calc_atm abs_fresh fresh_atm)
 apply(drule_tac pi="[(x,y)]" and x="<aa>:Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
-apply(drule_tac pi="[(x,y)]" and x="(x):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,y)]" and x="(x):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(drule_tac pi="[(x,y)]" and x="<aa>:Ma" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
@@ -4808,17 +4808,17 @@ apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(case_tac "x=xa")
 apply(simp)
-apply(drule_tac pi="[(xa,y)]" and x="(xa):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(xa,y)]" and x="(xa):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
 apply(case_tac "y=xa")
 apply(simp)
-apply(drule_tac pi="[(x,xa)]" and x="(xa):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,xa)]" and x="(xa):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 apply(simp)
-apply(drule_tac pi="[(x,y)]" and x="(xa):Nb" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
+apply(drule_tac pi="[(x,y)]" and x="(xa):Na" in pt_set_bij2[OF pt_name_inst, OF at_name_inst])
 apply(simp add: CAND_eqvt_name calc_atm)
 apply(auto intro: CANDs_alpha)[1]
 done

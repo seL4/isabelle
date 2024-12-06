@@ -315,34 +315,34 @@ text \<open>print \<^term>\<open>case_prod f\<close> as \<^term>\<open>\<lambda>
 
 typed_print_translation \<open>
   let
-    fun case_prod_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
-      | case_prod_guess_names_tr' T [Abs (x, xT, t)] =
+    fun case_prod_guess_names_tr' _ T [Abs (x, _, Abs _)] = raise Match
+      | case_prod_guess_names_tr' ctxt T [Abs (x, xT, t)] =
           (case (head_of t) of
             Const (\<^const_syntax>\<open>case_prod\<close>, _) => raise Match
           | _ =>
             let
               val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-              val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
-              val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
+              val (y, t') = Syntax_Trans.atomic_abs_tr' ctxt ("y", yT, incr_boundvars 1 t $ Bound 0);
+              val (x', t'') = Syntax_Trans.atomic_abs_tr' ctxt (x, xT, t');
             in
               Syntax.const \<^syntax_const>\<open>_abs\<close> $
                 (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
             end)
-      | case_prod_guess_names_tr' T [t] =
+      | case_prod_guess_names_tr' ctxt T [t] =
           (case head_of t of
             Const (\<^const_syntax>\<open>case_prod\<close>, _) => raise Match
           | _ =>
             let
               val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
               val (y, t') =
-                Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
-              val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
+                Syntax_Trans.atomic_abs_tr' ctxt ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
+              val (x', t'') = Syntax_Trans.atomic_abs_tr' ctxt ("x", xT, t');
             in
               Syntax.const \<^syntax_const>\<open>_abs\<close> $
                 (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
             end)
-      | case_prod_guess_names_tr' _ _ = raise Match;
-  in [(\<^const_syntax>\<open>case_prod\<close>, K case_prod_guess_names_tr')] end
+      | case_prod_guess_names_tr' _ _ _ = raise Match;
+  in [(\<^const_syntax>\<open>case_prod\<close>, case_prod_guess_names_tr')] end
 \<close>
 
 text \<open>Reconstruct pattern from (nested) \<^const>\<open>case_prod\<close>s,
@@ -351,39 +351,39 @@ text \<open>Reconstruct pattern from (nested) \<^const>\<open>case_prod\<close>s
 
 print_translation \<open>
   let
-    fun case_prod_tr' [Abs (x, T, t as (Abs abs))] =
+    fun case_prod_tr' ctxt [Abs (x, T, t as (Abs abs))] =
           (* case_prod (\<lambda>x y. t) \<Rightarrow> \<lambda>(x, y) t *)
           let
-            val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+            val (y, t') = Syntax_Trans.atomic_abs_tr' ctxt abs;
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' ctxt (x, T, t');
           in
             Syntax.const \<^syntax_const>\<open>_abs\<close> $
               (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $ y) $ t''
           end
-      | case_prod_tr' [Abs (x, T, (s as Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t))] =
+      | case_prod_tr' ctxt [Abs (x, T, (s as Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t))] =
           (* case_prod (\<lambda>x. (case_prod (\<lambda>y z. t))) \<Rightarrow> \<lambda>(x, y, z). t *)
           let
             val Const (\<^syntax_const>\<open>_abs\<close>, _) $
               (Const (\<^syntax_const>\<open>_pattern\<close>, _) $ y $ z) $ t' =
-                case_prod_tr' [t];
-            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
+                case_prod_tr' ctxt [t];
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' ctxt (x, T, t');
           in
             Syntax.const \<^syntax_const>\<open>_abs\<close> $
               (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x' $
                 (Syntax.const \<^syntax_const>\<open>_patterns\<close> $ y $ z)) $ t''
           end
-      | case_prod_tr' [Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t] =
+      | case_prod_tr' ctxt [Const (\<^const_syntax>\<open>case_prod\<close>, _) $ t] =
           (* case_prod (case_prod (\<lambda>x y z. t)) \<Rightarrow> \<lambda>((x, y), z). t *)
-          case_prod_tr' [(case_prod_tr' [t])]
+          case_prod_tr' ctxt [(case_prod_tr' ctxt [t])]
             (* inner case_prod_tr' creates next pattern *)
-      | case_prod_tr' [Const (\<^syntax_const>\<open>_abs\<close>, _) $ x_y $ Abs abs] =
+      | case_prod_tr' ctxt [Const (\<^syntax_const>\<open>_abs\<close>, _) $ x_y $ Abs abs] =
           (* case_prod (\<lambda>pttrn z. t) \<Rightarrow> \<lambda>(pttrn, z). t *)
-          let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
+          let val (z, t) = Syntax_Trans.atomic_abs_tr' ctxt abs in
             Syntax.const \<^syntax_const>\<open>_abs\<close> $
               (Syntax.const \<^syntax_const>\<open>_pattern\<close> $ x_y $ z) $ t
           end
-      | case_prod_tr' _ = raise Match;
-  in [(\<^const_syntax>\<open>case_prod\<close>, K case_prod_tr')] end
+      | case_prod_tr' _ _ = raise Match;
+  in [(\<^const_syntax>\<open>case_prod\<close>, case_prod_tr')] end
 \<close>
 
 

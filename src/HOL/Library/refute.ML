@@ -1186,7 +1186,7 @@ fun refute_term ctxt params assm_ts t =
           (a, T) :: strip_all_vars t
       | strip_all_vars _ = [] : (string * typ) list
     val strip_t = strip_all_body ex_closure
-    val frees = Term.variant_frees strip_t (strip_all_vars ex_closure)
+    val frees = Term.variant_bounds strip_t (strip_all_vars ex_closure)
     val subst_t = Term.subst_bounds (map Free (rev frees), strip_t)
   in
     find_model ctxt (actual_params ctxt params) assm_ts subst_t true

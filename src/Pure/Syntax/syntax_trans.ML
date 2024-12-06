@@ -31,13 +31,14 @@ sig
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val mark_bound_abs: string * typ -> term
   val mark_bound_body: string * typ -> term
-  val bound_vars: (string * typ) list -> term -> term
+  val variant_bounds: Proof.context -> term -> (string * 'a) list -> (string * 'a) list
+  val bound_vars: Proof.context -> (string * typ) list -> term -> term
   val abs_tr': Proof.context -> term -> term
-  val atomic_abs_tr': string * typ * term -> term * term
+  val atomic_abs_tr': Proof.context -> string * typ * term -> term * term
   val const_abs_tr': term -> term
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
-  val preserve_binder_abs_tr': string -> typ -> term list -> term
-  val preserve_binder_abs2_tr': string -> typ -> term list -> term
+  val preserve_binder_abs_tr': string -> Proof.context -> typ -> term list -> term
+  val preserve_binder_abs2_tr': string -> Proof.context -> typ -> term list -> term
   val print_abs: string * typ * term -> string * term
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
@@ -47,6 +48,7 @@ sig
   val update_name_tr': term -> term
   val get_idents: Proof.context -> {structs: string list, fixes: string list}
   val put_idents: {structs: string list, fixes: string list} -> Proof.context -> Proof.context
+  val default_struct: Proof.context -> string option
   val pure_parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
   val pure_parse_translation: (string * (Proof.context -> term list -> term)) list
   val pure_print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
@@ -73,7 +75,6 @@ val no_type_bracketsN = "no_type_brackets";
 fun no_type_brackets () =
   find_first (fn mode => mode = type_bracketsN orelse mode = no_type_bracketsN)
     (print_mode_value ()) <> SOME type_bracketsN;
-
 
 
 (** parse (ast) translations **)
@@ -224,6 +225,8 @@ structure Idents = Proof_Data
 val get_idents = Idents.get;
 val put_idents = Idents.put;
 
+val default_struct = try hd o #structs o get_idents;
+
 fun indexdefault_ast_tr [] =
       Ast.Appl [Ast.Constant "_index",
         Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]]
@@ -239,9 +242,9 @@ fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
 fun struct_tr ctxt [Const ("_indexdefault", _)] =
-      (case #structs (get_idents ctxt) of
-        x :: _ => Syntax.const (Lexicon.mark_fixed x)
-      | _ => error "Illegal reference to implicit structure")
+      (case default_struct ctxt of
+        SOME x => Syntax.const (Lexicon.mark_fixed x)
+      | NONE => error "Illegal reference to implicit structure")
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
@@ -301,14 +304,27 @@ fun eta_contr ctxt = Config.get ctxt eta_contract ? eta_abs;
 fun mark_bound_abs (x, T) = Const ("_bound", T --> T) $ Free (x, T);
 fun mark_bound_body (x, T) = Const ("_bound", dummyT) $ Free (x, T);
 
-fun bound_vars vars body =
-  subst_bounds (map mark_bound_abs (rev (Term.variant_frees body vars)), body);
+fun variant_bounds ctxt t =
+  let
+    val s = the_default "" (default_struct ctxt);
 
-fun strip_abss vars_of body_of tm =
+    fun declare (Const ("_struct", _) $ Const ("_indexdefault", _)) = Name.declare s
+      | declare (Const (c, _)) =
+          if Lexicon.is_fixed c then Name.declare (Lexicon.unmark_fixed c) else I
+      | declare (Free (x, _)) = Name.declare x
+      | declare (t $ u) = declare t #> declare u
+      | declare (Abs (_, _, t)) = declare t
+      | declare _ = I;
+  in Name.variant_names_build (declare t) end;
+
+fun bound_vars ctxt vars body =
+  subst_bounds (map mark_bound_abs (rev (variant_bounds ctxt body vars)), body);
+
+fun strip_abss ctxt vars_of body_of tm =
   let
     val vars = vars_of tm;
     val body = body_of tm;
-    val new_vars = Term.variant_frees body vars;
+    val new_vars = variant_bounds ctxt body vars;
     fun subst (x, T) b =
       if Name.is_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
@@ -319,10 +335,10 @@ fun strip_abss vars_of body_of tm =
 
 fun abs_tr' ctxt tm =
   uncurry (fold_rev (fn x => fn t => Syntax.const "_abs" $ x $ t))
-    (strip_abss strip_abs_vars strip_abs_body (eta_contr ctxt tm));
+    (strip_abss ctxt strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
-fun atomic_abs_tr' (x, T, t) =
-  let val xT = singleton (Term.variant_frees t) (x, T)
+fun atomic_abs_tr' ctxt (x, T, t) =
+  let val xT = singleton (variant_bounds ctxt t) (x, T)
   in (mark_bound_abs xT, subst_bound (mark_bound_body xT, t)) end;
 
 fun abs_ast_tr' asts =
@@ -346,21 +362,21 @@ fun mk_binder_tr' (name, syn) =
       | mk_idts [idt] = idt
       | mk_idts (idt :: idts) = Syntax.const "_idts" $ idt $ mk_idts idts;
 
-    fun tr' t =
+    fun tr' ctxt t =
       let
-        val (xs, bd) = strip_abss (strip_qnt_vars name) (strip_qnt_body name) t;
+        val (xs, bd) = strip_abss ctxt (strip_qnt_vars name) (strip_qnt_body name) t;
       in Syntax.const syn $ mk_idts xs $ bd end;
 
-    fun binder_tr' (t :: ts) = Term.list_comb (tr' (Syntax.const name $ t), ts)
-      | binder_tr' [] = raise Match;
-  in (name, fn _ => binder_tr') end;
+    fun binder_tr' ctxt (t :: ts) = Term.list_comb (tr' ctxt (Syntax.const name $ t), ts)
+      | binder_tr' _ [] = raise Match;
+  in (name, binder_tr') end;
 
-fun preserve_binder_abs_tr' syn ty (Abs abs :: ts) =
-  let val (x, t) = atomic_abs_tr' abs
+fun preserve_binder_abs_tr' syn ctxt ty (Abs abs :: ts) =
+  let val (x, t) = atomic_abs_tr' ctxt abs
   in list_comb (Const (syn, ty) $ x $ t, ts) end;
 
-fun preserve_binder_abs2_tr' syn ty (A :: Abs abs :: ts) =
-  let val (x, t) = atomic_abs_tr' abs
+fun preserve_binder_abs2_tr' syn ctxt ty (A :: Abs abs :: ts) =
+  let val (x, t) = atomic_abs_tr' ctxt abs
   in list_comb (Const (syn, ty) $ x $ A $ t, ts) end;
 
 
@@ -389,7 +405,7 @@ fun impl_ast_tr' asts =
 (* dependent / nondependent quantifiers *)
 
 fun print_abs (x, T, b) =
-  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_term_names b)))
+  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_free_names b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
@@ -449,9 +465,9 @@ fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
 fun struct_ast_tr' ctxt [Ast.Constant "_indexdefault"] =
-      (case #structs (get_idents ctxt) of
-        x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
-      | _ => raise Match)
+      (case default_struct ctxt of
+        SOME x => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
+      | NONE => raise Match)
   | struct_ast_tr' _ _ = raise Match;
 
 

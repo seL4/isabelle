@@ -42,6 +42,9 @@ sig
   val class_space: Proof.context -> Name_Space.T
   val type_space: Proof.context -> Name_Space.T
   val const_space: Proof.context -> Name_Space.T
+  val lookup_free: Proof.context -> string -> string option
+  val printable_const: Proof.context -> string -> bool
+  val exclude_consts: Symset.T -> Proof.context -> Proof.context
   val defs_context: Proof.context -> Defs.context
   val intern_class: Proof.context -> xstring -> string
   val intern_type: Proof.context -> xstring -> string
@@ -53,6 +56,8 @@ sig
   val markup_type: Proof.context -> string -> string
   val pretty_type: Proof.context -> string -> Pretty.T
   val extern_const: Proof.context -> string -> xstring
+  val extern_fixed: Proof.context -> string -> string
+  val extern_entity: Proof.context -> string -> string
   val markup_const: Proof.context -> string -> string
   val pretty_const: Proof.context -> string -> Pretty.T
   val transfer: theory -> Proof.context -> Proof.context
@@ -248,7 +253,8 @@ datatype data =
    {mode: mode,                  (*inner syntax mode*)
     syntax: Local_Syntax.T,      (*local syntax*)
     tsig: Type.tsig * Type.tsig, (*local/global type signature -- local name space / defsort only*)
-    consts: Consts.T * Consts.T, (*local/global consts -- local name space / abbrevs only*)
+    consts: Symset.T * Consts.T * Consts.T,
+      (*exclude consts, local/global consts -- local name space / abbrevs only*)
     facts: Facts.T,              (*local facts, based on initial global facts*)
     cases: cases};               (*named case contexts*)
 
@@ -262,7 +268,7 @@ structure Data = Proof_Data
     make_data (mode_default,
       Local_Syntax.init thy,
       (Type.change_ignore (Sign.tsig_of thy), Sign.tsig_of thy),
-      (Consts.change_ignore (Sign.consts_of thy), Sign.consts_of thy),
+      (Symset.empty, Consts.change_ignore (Sign.consts_of thy), Sign.consts_of thy),
       Global_Theory.facts_of thy,
       empty_cases);
 );
@@ -299,6 +305,8 @@ fun map_consts f =
   map_data (fn (mode, syntax, tsig, consts, facts, cases) =>
     (mode, syntax, tsig, f consts, facts, cases));
 
+fun map_local_consts f = map_consts (fn (a, b, c) => (a, f b, c));
+
 fun map_facts_result f =
   map_data_result (fn (mode, syntax, tsig, consts, facts, cases) =>
     let val (res, facts') = f facts
@@ -323,7 +331,8 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 fun arity_sorts ctxt = Type.arity_sorts (Context.Proof ctxt) (tsig_of ctxt);
 
-val consts_of = #1 o #consts o rep_data;
+val exclude_consts_of = #1 o #consts o rep_data;
+val consts_of = #2 o #consts o rep_data;
 val cases_of = #cases o rep_data;
 
 
@@ -351,11 +360,37 @@ val qualified = map_naming o Name_Space.qualified;
 val concealed = map_naming Name_Space.concealed;
 
 
+(* const vs. free *)
+
+val const_space = Consts.space_of o consts_of;
+
+fun is_const_declared ctxt x =
+  let val space = const_space ctxt
+  in Name_Space.declared space (Name_Space.intern space x) end;
+
+fun lookup_free ctxt x =
+  if Variable.is_const ctxt x then NONE
+  else
+    (case Variable.lookup_fixed ctxt x of
+      NONE =>
+        let
+          val is_const = Long_Name.is_qualified x orelse is_const_declared ctxt x;
+          val is_free_declared = is_some (Variable.default_type ctxt x);
+        in if not is_const orelse is_free_declared then SOME x else NONE end
+    | fixed => fixed);
+
+fun printable_const ctxt x =
+  is_none (lookup_free ctxt x) andalso
+    not (Symset.member (exclude_consts_of ctxt) x);
+
+fun exclude_consts names2 =
+  map_consts (fn (names1, consts, thy_consts) => (Symset.union names1 names2, consts, thy_consts));
+
+
 (* name spaces *)
 
 val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
-val const_space = Consts.space_of o consts_of;
 
 fun defs_context ctxt = (ctxt, (const_space ctxt, type_space ctxt));
 
@@ -365,7 +400,16 @@ val intern_const = Name_Space.intern o const_space;
 
 fun extern_class ctxt = Name_Space.extern ctxt (class_space ctxt);
 fun extern_type ctxt = Name_Space.extern ctxt (type_space ctxt);
-fun extern_const ctxt = Name_Space.extern ctxt (const_space ctxt);
+fun extern_const ctxt = Name_Space.extern_if (printable_const ctxt) ctxt (const_space ctxt);
+fun extern_fixed ctxt x = if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
+
+fun extern_entity ctxt =
+  Lexicon.unmark
+   {case_class = extern_class ctxt,
+    case_type = extern_type ctxt,
+    case_const = extern_const ctxt,
+    case_fixed = extern_fixed ctxt,
+    case_default = I};
 
 fun markup_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |-> Markup.markup;
 fun markup_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |-> Markup.markup;
@@ -391,10 +435,10 @@ fun transfer_syntax thy ctxt =
         if Type.eq_tsig (thy_tsig, global_tsig) then tsig
         else (Type.merge_tsig (Context.Proof ctxt) (local_tsig, thy_tsig), thy_tsig)  (*historic merge order*)
       end) |>
-    map_consts (fn consts as (local_consts, global_consts) =>
+    map_consts (fn consts as (exclude_consts, local_consts, global_consts) =>
       let val thy_consts = Sign.consts_of thy in
         if Consts.eq_consts (thy_consts, global_consts) then consts
-        else (Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
+        else (exclude_consts, Consts.merge (local_consts, thy_consts), thy_consts)  (*historic merge order*)
       end)
   end;
 
@@ -434,7 +478,7 @@ fun markup_extern_fact _ "" = ([], "")
       in (markups, xname) end;
 
 fun pretty_thm_name ctxt (name, i) =
-  Facts.pretty_thm_name (Context.Proof ctxt) (facts_of_fact ctxt name) (name, i);
+  Facts.pretty_thm_name ctxt (facts_of_fact ctxt name) (name, i);
 
 val print_thm_name = Pretty.string_of oo pretty_thm_name;
 
@@ -571,24 +615,28 @@ fun check_const {proper, strict} ctxt (c, ps) =
       Name.reject_internal (c, ps) handle ERROR msg =>
         error (msg ^ consts_completion_message ctxt (c, ps));
     fun err msg = error (msg ^ Position.here_list ps);
-    val consts = consts_of ctxt;
+
     val fixed = if proper then NONE else Variable.lookup_fixed ctxt c;
+    val const = Variable.lookup_const ctxt c;
+    val consts = consts_of ctxt;
+
     val (t, reports) =
-      (case (fixed, Variable.lookup_const ctxt c) of
-        (SOME x, NONE) =>
-          let
-            val reports = ps
-              |> filter (Context_Position.is_reported ctxt)
-              |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
-          in (Free (x, infer_type ctxt (x, dummyT)), reports) end
-      | (_, SOME d) =>
-          let
-            val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
-            val reports = ps
-              |> filter (Context_Position.is_reported ctxt)
-              |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
-          in (Const (d, T), reports) end
-      | _ => Consts.check_const (Context.Proof ctxt) consts (c, ps));
+      if is_some fixed andalso is_none const then
+        let
+          val x = the fixed;
+          val reports = ps
+            |> filter (Context_Position.is_reported ctxt)
+            |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
+        in (Free (x, infer_type ctxt (x, dummyT)), reports) end
+      else if is_some const then
+        let
+          val d = the const;
+          val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
+          val reports = ps
+            |> filter (Context_Position.is_reported ctxt)
+            |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
+        in (Const (d, T), reports) end
+      else Consts.check_const (Context.Proof ctxt) consts (c, ps);
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>
@@ -1206,7 +1254,7 @@ end;
 (* aliases *)
 
 fun type_alias b c ctxt = (map_tsig o apfst) (Type.type_alias (naming_of ctxt) b c) ctxt;
-fun const_alias b c ctxt = (map_consts o apfst) (Consts.alias (naming_of ctxt) b c) ctxt;
+fun const_alias b c ctxt = map_local_consts (Consts.alias (naming_of ctxt) b c) ctxt;
 
 
 (* local constants *)
@@ -1216,7 +1264,7 @@ fun add_const_constraint (c, opt_T) ctxt =
     fun prepT raw_T =
       let val T = cert_typ ctxt raw_T
       in cert_term ctxt (Const (c, T)); T end;
-  in ctxt |> (map_consts o apfst) (Consts.constrain (c, Option.map prepT opt_T)) end;
+  in ctxt |> map_local_consts (Consts.constrain (c, Option.map prepT opt_T)) end;
 
 fun add_abbrev mode (b, raw_t) ctxt =
   let
@@ -1227,12 +1275,12 @@ fun add_abbrev mode (b, raw_t) ctxt =
       |> Consts.abbreviate (Context.Proof ctxt) (tsig_of ctxt) mode (b, t);
   in
     ctxt
-    |> (map_consts o apfst) (K consts')
+    |> map_local_consts (K consts')
     |> Variable.declare_term rhs
     |> pair (lhs, rhs)
   end;
 
-fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
+fun revert_abbrev mode c = map_local_consts (Consts.revert_abbrev mode c);
 
 fun generic_add_abbrev mode arg =
   Context.mapping_result (Sign.add_abbrev mode arg) (add_abbrev mode arg);
@@ -1471,9 +1519,9 @@ val print_syntax = Syntax.print_syntax o syntax_of;
 fun pretty_abbrevs verbose show_globals ctxt =
   let
     val space = const_space ctxt;
-    val (constants, global_constants) =
-      apply2 (#constants o Consts.dest) (#consts (rep_data ctxt));
-    val globals = Symtab.make global_constants;
+    val (_, consts, global_consts) = #consts (rep_data ctxt);
+    val constants = #constants (Consts.dest consts);
+    val globals = Symtab.make (#constants (Consts.dest global_consts));
     fun add_abbr (_, (_, NONE)) = I
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I

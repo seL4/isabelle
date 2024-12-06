@@ -216,8 +216,8 @@ translations
   "\<exists>!x|\<in>|A. P" \<rightharpoonup> "\<exists>!x. x |\<in>| A \<and> P"
 
 typed_print_translation \<open>
- [(\<^const_syntax>\<open>fBall\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBall\<close>),
-  (\<^const_syntax>\<open>fBex\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBex\<close>)]
+ [(\<^const_syntax>\<open>fBall\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBall\<close>),
+  (\<^const_syntax>\<open>fBex\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_fBex\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 syntax

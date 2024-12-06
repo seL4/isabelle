@@ -215,7 +215,7 @@ fun global_sublocale expression =
   gen_global_sublocale (K I) cert_interpretation expression;
 
 fun global_sublocale_cmd raw_expression =
-  gen_global_sublocale Locale.check read_interpretation raw_expression;
+  gen_global_sublocale Locale.check_global read_interpretation raw_expression;
 
 end;
 

@@ -66,7 +66,7 @@ type expression = (xstring * Position.T, string) expr * (binding * string option
 
 (** Internalise locale names in expr **)
 
-fun check_expr thy instances = map (apfst (Locale.check thy)) instances;
+fun check_expr ctxt instances = map (apfst (Locale.check ctxt)) instances;
 
 
 (** Parameters of expression **)
@@ -378,7 +378,7 @@ fun prep_full_context_statement
   let
     val thy = Proof_Context.theory_of ctxt1;
 
-    val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
+    val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr ctxt1) raw_import);
 
     fun prep_insts_cumulative (loc, (prfx, (inst, eqns))) (i, insts, eqnss, ctxt) =
       let

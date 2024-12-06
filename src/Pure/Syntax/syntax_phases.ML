@@ -65,15 +65,14 @@ fun markup_bound def ps (name, id) =
   Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity_cache ctxt =
-  Symtab.unsynchronized_cache (fn c =>
+  Symtab.apply_unsynchronized_cache (fn c =>
     Syntax.get_consts (Proof_Context.syntax_of ctxt) c
     |> maps (Lexicon.unmark
        {case_class = markup_class ctxt,
         case_type = markup_type ctxt,
         case_const = markup_const ctxt,
         case_fixed = markup_free ctxt,
-        case_default = K []}))
-  |> #apply;
+        case_default = K []}));
 
 
 
@@ -265,26 +264,10 @@ fun decode_const ctxt (c, ps) =
   Proof_Context.check_const {proper = true, strict = false} ctxt (c, ps)
   |>> dest_Const_name;
 
-local
-
-fun get_free ctxt x =
-  let
-    val fixed = Variable.lookup_fixed ctxt x;
-    val is_const = can (decode_const ctxt) (x, []) orelse Long_Name.is_qualified x;
-    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
-  in
-    if Variable.is_const ctxt x then NONE
-    else if is_some fixed then fixed
-    else if not is_const orelse is_declared then SOME x
-    else NONE
-  end;
-
-in
-
 fun decode_term ctxt =
   let
-    val markup_free_cache = #apply (Symtab.unsynchronized_cache (markup_free ctxt));
-    val markup_const_cache = #apply (Symtab.unsynchronized_cache (markup_const ctxt));
+    val markup_free_cache = Symtab.apply_unsynchronized_cache (markup_free ctxt);
+    val markup_const_cache = Symtab.apply_unsynchronized_cache (markup_const ctxt);
 
     fun decode (result as (_: Position.report_text list, Exn.Exn _)) = result
       | decode (reports0, Exn.Res tm) =
@@ -319,7 +302,7 @@ fun decode_term ctxt =
               | decode ps _ _ (Free (a, T)) =
                   ((Name.reject_internal (a, ps) handle ERROR msg =>
                       error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
-                    (case get_free ctxt a of
+                    (case Proof_Context.lookup_free ctxt a of
                       SOME x => (report ps markup_free_cache x; Free (x, T))
                     | NONE =>
                         let
@@ -336,8 +319,6 @@ fun decode_term ctxt =
           in (! reports, tm') end;
 
   in decode end;
-
-end;
 
 
 
@@ -731,11 +712,8 @@ end;
 
 local
 
-fun extern_fixed ctxt x =
-  if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
-
 fun extern_cache ctxt =
-  Symtab.unsynchronized_cache (fn c =>
+  Symtab.apply_unsynchronized_cache (fn c =>
     (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
       [b] => b
     | bs =>
@@ -743,41 +721,52 @@ fun extern_cache ctxt =
           [] => c
         | [b] => b
         | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
-    |> Lexicon.unmark
-       {case_class = Proof_Context.extern_class ctxt,
-        case_type = Proof_Context.extern_type ctxt,
-        case_const = Proof_Context.extern_const ctxt,
-        case_fixed = extern_fixed ctxt,
-        case_default = I})
-  |> #apply;
+    |> Proof_Context.extern_entity ctxt);
 
 val var_or_skolem_cache =
-  Symtab.unsynchronized_cache (fn s =>
+  Symtab.apply_unsynchronized_cache (fn s =>
     (case Lexicon.read_variable s of
       SOME (x, i) =>
         (case try Name.dest_skolem x of
           SOME x' => (Markup.skolem, Term.string_of_vname (x', i))
         | NONE => (Markup.var, s))
-    | NONE => (Markup.var, s)))
-  |> #apply;
+    | NONE => (Markup.var, s)));
 
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
+fun exclude_consts ast ctxt =
   let
+    val s = the_default "" (Syntax_Trans.default_struct ctxt);
+
+    fun exclude (Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]) = Symset.insert s
+      | exclude (Ast.Constant c) =
+          if Lexicon.is_fixed c then Symset.insert (Lexicon.unmark_fixed c) else I
+      | exclude (Ast.Appl [Ast.Constant "_bound", Ast.Variable x]) = Symset.insert x
+      | exclude (Ast.Appl [Ast.Constant "_free", Ast.Variable x]) = Symset.insert x
+      | exclude (Ast.Appl asts) = fold exclude asts
+      | exclude _ = I;
+  in Proof_Context.exclude_consts (Symset.build (exclude ast)) ctxt end;
+
+fun unparse_t t_to_ast pretty_flags language_markup ctxt0 t =
+  let
+    val syn = Proof_Context.syntax_of ctxt0;
+    val prtabs = Syntax.print_mode_tabs syn;
+    val trf = Syntax.print_ast_translation syn;
+
+    val ast = t_to_ast ctxt0 (Syntax.print_translation syn) t;
+    val ctxt = exclude_consts ast ctxt0;
+
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
     val show_types = Config.get ctxt show_types orelse show_sorts;
 
-    val syn = Proof_Context.syntax_of ctxt;
-    val prtabs = Syntax.print_mode_tabs syn;
-    val trf = Syntax.print_ast_translation syn;
     val markup = markup_entity_cache ctxt;
     val extern = extern_cache ctxt;
 
     val free_or_skolem_cache =
-      #apply (Symtab.unsynchronized_cache (fn x => (markup_free ctxt x, extern_fixed ctxt x)));
+      Symtab.apply_unsynchronized_cache (fn x =>
+        (markup_free ctxt x, Proof_Context.extern_fixed ctxt x));
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
@@ -829,8 +818,7 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
             in Unsynchronized.change cache (Ast.Table.update (A, block)); block end)
       end;
   in
-    t_to_ast ctxt (Syntax.print_translation syn) t
-    |> Ast.normalize ctxt {permissive_constraints = true} (Syntax.print_rules syn)
+    Ast.normalize ctxt {permissive_constraints = true} (Syntax.print_rules syn) ast
     |> pretty_ast pretty_flags language_markup
   end;
 

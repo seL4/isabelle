@@ -324,8 +324,8 @@ parse_translation \<open>
 \<close>
 
 typed_print_translation \<open>
- [(\<^const_syntax>\<open>Ball\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Ball\<close>),
-  (\<^const_syntax>\<open>Bex\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Bex\<close>)]
+ [(\<^const_syntax>\<open>Ball\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Ball\<close>),
+  (\<^const_syntax>\<open>Bex\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_Bex\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 print_translation \<open>
@@ -348,7 +348,7 @@ let
       if check (P, 0) then tr' P
       else
         let
-          val (x as _ $ Free(xN, _), t) = Syntax_Trans.atomic_abs_tr' abs;
+          val (x as _ $ Free(xN, _), t) = Syntax_Trans.atomic_abs_tr' ctxt abs;
           val M = Syntax.const \<^syntax_const>\<open>_Coll\<close> $ x $ t;
         in
           case t of

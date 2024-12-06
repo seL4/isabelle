@@ -68,6 +68,7 @@ sig
   val make_set: key list -> set
   type 'a cache_ops = {apply: key -> 'a, reset: unit -> unit, size: unit -> int}
   val unsynchronized_cache: (key -> 'a) -> 'a cache_ops
+  val apply_unsynchronized_cache: (key -> 'a) -> key -> 'a
 end;
 
 functor Table(Key: KEY): TABLE =
@@ -609,6 +610,8 @@ fun unsynchronized_cache f =
     fun reset () = (cache2 := empty; cache1 := empty);
     fun total_size () = size (! cache1) + size (! cache2);
   in {apply = apply, reset = reset, size = total_size} end;
+
+fun apply_unsynchronized_cache f = #apply (unsynchronized_cache f);
 
 
 (* ML pretty-printing *)

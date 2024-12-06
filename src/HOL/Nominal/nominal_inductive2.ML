@@ -146,7 +146,7 @@ fun map_thm ctxt f tac monos opt th =
   in Option.map prove (map_term f prop (the_default prop opt)) end;
 
 fun abs_params params t =
-  let val vs =  map (Var o apfst (rpair 0)) (Term.variant_frees t params)
+  let val vs =  map (Var o apfst (rpair 0)) (Term.variant_bounds t params)
   in (Logic.list_all (params, t), (vs, subst_bounds (rev vs, t))) end;
 
 fun inst_params thy (vs, p) th cts =
