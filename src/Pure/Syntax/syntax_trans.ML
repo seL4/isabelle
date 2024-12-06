@@ -29,9 +29,10 @@ sig
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val declare_term_names: Proof.context -> term -> Name.context -> Name.context
+  val variant_bounds: Proof.context -> term -> (string * 'a) list -> (string * 'a) list
   val mark_bound_abs: string * typ -> term
   val mark_bound_body: string * typ -> term
-  val variant_bounds: Proof.context -> term -> (string * 'a) list -> (string * 'a) list
   val bound_vars: Proof.context -> (string * typ) list -> term -> term
   val abs_tr': Proof.context -> term -> term
   val atomic_abs_tr': Proof.context -> string * typ * term -> term * term
@@ -299,12 +300,9 @@ val eta_contract = Config.declare_option_bool ("eta_contract", \<^here>);
 fun eta_contr ctxt = Config.get ctxt eta_contract ? eta_abs;
 
 
-(* abstraction *)
+(* renaming variables *)
 
-fun mark_bound_abs (x, T) = Const ("_bound", T --> T) $ Free (x, T);
-fun mark_bound_body (x, T) = Const ("_bound", dummyT) $ Free (x, T);
-
-fun variant_bounds ctxt t =
+fun declare_term_names ctxt =
   let
     val s = the_default "" (default_struct ctxt);
 
@@ -315,7 +313,16 @@ fun variant_bounds ctxt t =
       | declare (t $ u) = declare t #> declare u
       | declare (Abs (_, _, t)) = declare t
       | declare _ = I;
-  in Name.variant_names_build (declare t) end;
+  in declare end;
+
+fun variant_bounds ctxt =
+  Name.variant_names_build o declare_term_names ctxt;
+
+
+(* abstraction *)
+
+fun mark_bound_abs (x, T) = Const ("_bound", T --> T) $ Free (x, T);
+fun mark_bound_body (x, T) = Const ("_bound", dummyT) $ Free (x, T);
 
 fun bound_vars ctxt vars body =
   subst_bounds (map mark_bound_abs (rev (variant_bounds ctxt body vars)), body);
