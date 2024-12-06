@@ -244,7 +244,7 @@ fun prep_output ctxt tye bs ts Ts =
     val (Ts_bTs', ts') = Type_Infer.finish ctxt tye (Ts @ map snd bs, ts);
     val (Ts', Ts'') = chop (length Ts) Ts_bTs';
     fun prep t =
-      let val xs = rev (Term.variant_frees t (rev (map fst bs ~~ Ts'')))
+      let val xs = rev (Term.variant_bounds t (rev (map fst bs ~~ Ts'')))
       in Term.subst_bounds (map Syntax_Trans.mark_bound_abs xs, t) end;
   in (map prep ts', Ts') end;
 

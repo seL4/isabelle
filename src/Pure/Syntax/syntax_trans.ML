@@ -302,13 +302,13 @@ fun mark_bound_abs (x, T) = Const ("_bound", T --> T) $ Free (x, T);
 fun mark_bound_body (x, T) = Const ("_bound", dummyT) $ Free (x, T);
 
 fun bound_vars vars body =
-  subst_bounds (map mark_bound_abs (rev (Term.variant_frees body vars)), body);
+  subst_bounds (map mark_bound_abs (rev (Term.variant_bounds body vars)), body);
 
 fun strip_abss vars_of body_of tm =
   let
     val vars = vars_of tm;
     val body = body_of tm;
-    val new_vars = Term.variant_frees body vars;
+    val new_vars = Term.variant_bounds body vars;
     fun subst (x, T) b =
       if Name.is_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
@@ -322,7 +322,7 @@ fun abs_tr' ctxt tm =
     (strip_abss strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
 fun atomic_abs_tr' (x, T, t) =
-  let val xT = singleton (Term.variant_frees t) (x, T)
+  let val xT = singleton (Term.variant_bounds t) (x, T)
   in (mark_bound_abs xT, subst_bound (mark_bound_body xT, t)) end;
 
 fun abs_ast_tr' asts =
@@ -389,7 +389,7 @@ fun impl_ast_tr' asts =
 (* dependent / nondependent quantifiers *)
 
 fun print_abs (x, T, b) =
-  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_term_names b)))
+  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_free_names b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =

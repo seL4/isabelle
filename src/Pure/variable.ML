@@ -326,7 +326,7 @@ fun revert_bounds ctxt t =
     [] => t
   | bounds =>
       let
-        val names = Term.declare_term_names t (names_of ctxt);
+        val names = Term.declare_free_names t (names_of ctxt);
         val xs = rev (Name.variants names (rev (map #2 bounds)));
         fun substs (((b, T), _), x') =
           let fun subst U = (Free (b, U), Syntax_Trans.mark_bound_abs (x', U))
@@ -705,7 +705,7 @@ val restore_bound_focus = set_bound_focus o is_bound_focus;
 
 fun focus_params bindings t ctxt =
   let
-    val ps = Term.variant_frees t (Term.strip_all_vars t);  (*as they are printed :-*)
+    val ps = Term.variant_bounds t (Term.strip_all_vars t);
     val (xs, Ts) = split_list ps;
     val (xs', ctxt') =
       (case bindings of

@@ -735,15 +735,27 @@ val var_or_skolem_cache =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
+val exclude_consts =
   let
+    fun exclude (Ast.Appl [Ast.Constant "_bound", Ast.Variable x]) = Symset.insert x
+      | exclude (Ast.Appl [Ast.Constant "_free", Ast.Variable x]) = Symset.insert x
+      | exclude (Ast.Appl asts) = fold exclude asts
+      | exclude _ = I;
+  in Proof_Context.exclude_consts o Symset.build o exclude end;
+
+fun unparse_t t_to_ast pretty_flags language_markup ctxt0 t =
+  let
+    val syn = Proof_Context.syntax_of ctxt0;
+    val prtabs = Syntax.print_mode_tabs syn;
+    val trf = Syntax.print_ast_translation syn;
+
+    val ast = t_to_ast ctxt0 (Syntax.print_translation syn) t;
+    val ctxt = exclude_consts ast ctxt0;
+
     val show_markup = Config.get ctxt show_markup;
     val show_sorts = Config.get ctxt show_sorts;
     val show_types = Config.get ctxt show_types orelse show_sorts;
 
-    val syn = Proof_Context.syntax_of ctxt;
-    val prtabs = Syntax.print_mode_tabs syn;
-    val trf = Syntax.print_ast_translation syn;
     val markup = markup_entity_cache ctxt;
     val extern = extern_cache ctxt;
 
@@ -801,8 +813,7 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt t =
             in Unsynchronized.change cache (Ast.Table.update (A, block)); block end)
       end;
   in
-    t_to_ast ctxt (Syntax.print_translation syn) t
-    |> Ast.normalize ctxt {permissive_constraints = true} (Syntax.print_rules syn)
+    Ast.normalize ctxt {permissive_constraints = true} (Syntax.print_rules syn) ast
     |> pretty_ast pretty_flags language_markup
   end;
 
