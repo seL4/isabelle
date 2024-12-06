@@ -119,6 +119,10 @@ on, notably like this:
 
   unbundle no datatype_record_syntax
 
+* Printing of constants and bound variables is more careful to avoid
+free variables, and fixed variables with mixfix syntax (including
+'structure'). Rare INCOMPATIBILITY, e.g. in "subgoal_tac", "rule_tac".
+
 
 *** Isabelle/jEdit Prover IDE ***
 
