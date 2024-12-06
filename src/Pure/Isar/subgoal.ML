@@ -171,7 +171,7 @@ fun param_bindings ctxt (param_suffix, raw_param_specs) st =
     val subgoal = #1 (Logic.dest_implies (Thm.prop_of st));
     val subgoal_params =
       map (apfst (Name.internal o Name.clean)) (Term.strip_all_vars subgoal)
-      |> Term.variant_bounds subgoal |> map #1;
+      |> Syntax_Trans.variant_bounds ctxt subgoal |> map #1;
 
     val n = length subgoal_params;
     val m = length raw_param_specs;

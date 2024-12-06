@@ -39,8 +39,8 @@ parse_translation \<open>
 \<close>
 
 print_translation \<open>
-  [(\<^const_syntax>\<open>Abs_cfun\<close>, fn _ => fn [Abs abs] =>
-      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
+  [(\<^const_syntax>\<open>Abs_cfun\<close>, fn ctxt => fn [Abs abs] =>
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' ctxt abs
       in Syntax.const \<^syntax_const>\<open>_cabs\<close> $ x $ t end)]
 \<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 

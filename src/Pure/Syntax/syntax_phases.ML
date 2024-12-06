@@ -735,13 +735,18 @@ val var_or_skolem_cache =
 val typing_elem = YXML.output_markup_elem Markup.typing;
 val sorting_elem = YXML.output_markup_elem Markup.sorting;
 
-val exclude_consts =
+fun exclude_consts ast ctxt =
   let
-    fun exclude (Ast.Appl [Ast.Constant "_bound", Ast.Variable x]) = Symset.insert x
+    val s = the_default "" (Syntax_Trans.default_struct ctxt);
+
+    fun exclude (Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]) = Symset.insert s
+      | exclude (Ast.Constant c) =
+          if Lexicon.is_fixed c then Symset.insert (Lexicon.unmark_fixed c) else I
+      | exclude (Ast.Appl [Ast.Constant "_bound", Ast.Variable x]) = Symset.insert x
       | exclude (Ast.Appl [Ast.Constant "_free", Ast.Variable x]) = Symset.insert x
       | exclude (Ast.Appl asts) = fold exclude asts
       | exclude _ = I;
-  in Proof_Context.exclude_consts o Symset.build o exclude end;
+  in Proof_Context.exclude_consts (Symset.build (exclude ast)) ctxt end;
 
 fun unparse_t t_to_ast pretty_flags language_markup ctxt0 t =
   let

@@ -142,29 +142,29 @@ syntax
 
 print_translation \<open>
   let
-    fun dest_LAM (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>unit_when\<close>,_) $ t) =
+    fun dest_LAM _ (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>unit_when\<close>,_) $ t) =
           (Syntax.const \<^syntax_const>\<open>_noargs\<close>, t)
-    |   dest_LAM (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>csplit\<close>,_) $ t) =
+    |   dest_LAM ctxt (Const (\<^const_syntax>\<open>Rep_cfun\<close>,_) $ Const (\<^const_syntax>\<open>csplit\<close>,_) $ t) =
           let
-            val (v1, t1) = dest_LAM t;
-            val (v2, t2) = dest_LAM t1;
+            val (v1, t1) = dest_LAM ctxt t;
+            val (v2, t2) = dest_LAM ctxt t1;
           in (Syntax.const \<^syntax_const>\<open>_args\<close> $ v1 $ v2, t2) end
-    |   dest_LAM (Const (\<^const_syntax>\<open>Abs_cfun\<close>,_) $ t) =
+    |   dest_LAM ctxt (Const (\<^const_syntax>\<open>Abs_cfun\<close>,_) $ t) =
           let
             val abs =
               case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
-            val (x, t') = Syntax_Trans.atomic_abs_tr' abs;
+            val (x, t') = Syntax_Trans.atomic_abs_tr' ctxt abs;
           in (Syntax.const \<^syntax_const>\<open>_variable\<close> $ x, t') end
-    |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
+    |   dest_LAM _ _ = raise Match; (* too few vars: abort translation *)
 
-    fun Case1_tr' [Const(\<^const_syntax>\<open>branch\<close>,_) $ p, r] =
-          let val (v, t) = dest_LAM r in
+    fun Case1_tr' ctxt [Const(\<^const_syntax>\<open>branch\<close>,_) $ p, r] =
+          let val (v, t) = dest_LAM ctxt r in
             Syntax.const \<^syntax_const>\<open>_Case1\<close> $
               (Syntax.const \<^syntax_const>\<open>_match\<close> $ p $ v) $ t
           end;
 
-  in [(\<^const_syntax>\<open>Rep_cfun\<close>, K Case1_tr')] end
+  in [(\<^const_syntax>\<open>Rep_cfun\<close>, Case1_tr')] end
 \<close>
 
 translations

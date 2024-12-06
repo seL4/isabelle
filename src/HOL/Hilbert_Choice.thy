@@ -29,8 +29,8 @@ translations
   "SOME x. P" \<rightleftharpoons> "CONST Eps (\<lambda>x. P)"
 
 print_translation \<open>
-  [(\<^const_syntax>\<open>Eps\<close>, fn _ => fn [Abs abs] =>
-      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
+  [(\<^const_syntax>\<open>Eps\<close>, fn ctxt => fn [Abs abs] =>
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' ctxt abs
       in Syntax.const \<^syntax_const>\<open>_Eps\<close> $ x $ t end)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 

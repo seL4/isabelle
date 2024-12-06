@@ -135,7 +135,7 @@ syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
 
 typed_print_translation \<open>
-  [(\<^const_syntax>\<open>Uniq\<close>, fn _ => Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Uniq\<close>)]
+  [(\<^const_syntax>\<open>Uniq\<close>, Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Uniq\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 
@@ -150,7 +150,7 @@ syntax_consts "_Ex1" \<rightleftharpoons> Ex1
 translations "\<exists>!x. P" \<rightleftharpoons> "CONST Ex1 (\<lambda>x. P)"
 
 typed_print_translation \<open>
-  [(\<^const_syntax>\<open>Ex1\<close>, fn _ => Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Ex1\<close>)]
+  [(\<^const_syntax>\<open>Ex1\<close>, Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Ex1\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 
@@ -183,8 +183,8 @@ syntax "_The" :: "[pttrn, bool] \<Rightarrow> 'a"  (\<open>(\<open>indent=3 nota
 syntax_consts "_The" \<rightleftharpoons> The
 translations "THE x. P" \<rightleftharpoons> "CONST The (\<lambda>x. P)"
 print_translation \<open>
-  [(\<^const_syntax>\<open>The\<close>, fn _ => fn [Abs abs] =>
-      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
+  [(\<^const_syntax>\<open>The\<close>, fn ctxt => fn [Abs abs] =>
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' ctxt abs
       in Syntax.const \<^syntax_const>\<open>_The\<close> $ x $ t end)]
 \<close>  \<comment> \<open>To avoid eta-contraction of body\<close>
 

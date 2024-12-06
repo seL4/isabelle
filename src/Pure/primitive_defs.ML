@@ -31,7 +31,7 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     val eq_body = Term.strip_all_body eq;
 
     val display_terms =
-      commas_quote o map (Syntax.string_of_term ctxt o Syntax_Trans.bound_vars eq_vars);
+      commas_quote o map (Syntax.string_of_term ctxt o Syntax_Trans.bound_vars ctxt eq_vars);
     val display_types = commas_quote o map (Syntax.string_of_typ ctxt);
 
     val (raw_lhs, rhs) = Logic.dest_equals eq_body handle TERM _ => err "Not a meta-equality (\<equiv>)";

@@ -105,7 +105,7 @@ syntax "_Uniq" :: "pttrn \<Rightarrow> o \<Rightarrow> o"  (\<open>(\<open>inden
 syntax_consts "_Uniq" \<rightleftharpoons> Uniq
 translations "\<exists>\<^sub>\<le>\<^sub>1x. P" \<rightleftharpoons> "CONST Uniq (\<lambda>x. P)"
 typed_print_translation \<open>
-  [(\<^const_syntax>\<open>Uniq\<close>, fn _ => Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Uniq\<close>)]
+  [(\<^const_syntax>\<open>Uniq\<close>, Syntax_Trans.preserve_binder_abs_tr' \<^syntax_const>\<open>_Uniq\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 

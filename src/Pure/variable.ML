@@ -705,7 +705,7 @@ val restore_bound_focus = set_bound_focus o is_bound_focus;
 
 fun focus_params bindings t ctxt =
   let
-    val ps = Term.variant_bounds t (Term.strip_all_vars t);
+    val ps = Syntax_Trans.variant_bounds ctxt t (Term.strip_all_vars t);
     val (xs, Ts) = split_list ps;
     val (xs', ctxt') =
       (case bindings of

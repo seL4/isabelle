@@ -283,7 +283,7 @@ print_translation \<open>
       end
     | unnest_tuples pat = pat
 
-    fun tr' [sig_alg, Const (\<^const_syntax>\<open>Collect\<close>, _) $ t] =
+    fun tr' ctxt [sig_alg, Const (\<^const_syntax>\<open>Collect\<close>, _) $ t] =
       let
         val bound_dummyT = Const (\<^syntax_const>\<open>_bound\<close>, dummyT)
 
@@ -300,7 +300,7 @@ print_translation \<open>
             end
         | go pattern elem (Abs abs) =
             let
-              val (x as (_ $ tx), t) = Syntax_Trans.atomic_abs_tr' abs
+              val (x as (_ $ tx), t) = Syntax_Trans.atomic_abs_tr' ctxt abs
             in
               go ((x, 0) :: pattern) (bound_dummyT $ tx :: elem) t
             end
@@ -313,7 +313,7 @@ print_translation \<open>
         go [] [] t
       end
   in
-    [(\<^const_syntax>\<open>Sigma_Algebra.measure\<close>, K tr')]
+    [(\<^const_syntax>\<open>Sigma_Algebra.measure\<close>, tr')]
   end
 \<close>
 

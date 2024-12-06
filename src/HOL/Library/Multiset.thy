@@ -181,8 +181,8 @@ translations
   "\<exists>x\<in>#A. P" \<rightleftharpoons> "CONST Multiset.Bex A (\<lambda>x. P)"
 
 typed_print_translation \<open>
- [(\<^const_syntax>\<open>Multiset.Ball\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_MBall\<close>),
-  (\<^const_syntax>\<open>Multiset.Bex\<close>, fn _ => Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_MBex\<close>)]
+ [(\<^const_syntax>\<open>Multiset.Ball\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_MBall\<close>),
+  (\<^const_syntax>\<open>Multiset.Bex\<close>, Syntax_Trans.preserve_binder_abs2_tr' \<^syntax_const>\<open>_MBex\<close>)]
 \<close> \<comment> \<open>to avoid eta-contraction of body\<close>
 
 lemma count_eq_zero_iff:
