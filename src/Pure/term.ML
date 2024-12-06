@@ -159,8 +159,6 @@ sig
   val declare_var_names: (int -> bool) -> term -> Name.context -> Name.context
   val variant_bounds: term -> (string * 'a) list -> (string * 'a) list
   val hidden_polymorphism: term -> (indexname * sort) list
-  val declare_term_names: term -> Name.context -> Name.context
-  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val smash_sortsT_same: sort -> typ Same.operation
   val smash_sortsT: sort -> typ -> typ
   val smash_sorts: sort -> term -> term
@@ -577,13 +575,14 @@ val add_free_names = fold_aterms (fn Free (x, _) => insert (op =) x | _ => I);
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 val add_const_names = fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
 val add_consts = fold_aterms (fn Const c => insert (op =) c | _ => I);
+
+(*renaming variables*)
 val declare_tfree_namesT = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
 val declare_tfree_names = fold_types declare_tfree_namesT;
 fun declare_tvar_namesT pred = fold_atyps (fn TVar ((a, i), _) => pred i ? Name.declare a | _ => I);
 val declare_tvar_names = fold_types o declare_tvar_namesT;
 val declare_free_names = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
 fun declare_var_names pred = fold_aterms (fn Var ((x, i), _) => pred i ? Name.declare x | _ => I);
-
 fun variant_bounds t = Name.variant_names_build (declare_free_names t);
 
 (*extra type variables in a term, not covered by its type*)
@@ -594,19 +593,6 @@ fun hidden_polymorphism t =
     val extra_tvars = fold_types (fold_atyps
       (fn TVar v => if member (op =) tvarsT v then I else insert (op =) v | _ => I)) t [];
   in extra_tvars end;
-
-
-(* renaming variables *)
-
-fun declare_term_names tm =
-  fold_aterms
-    (fn Const (a, _) => Name.declare (Long_Name.base_name a)
-      | Free (a, _) => Name.declare a
-      | _ => I) tm #>
-  declare_tfree_names tm;
-
-fun variant_frees t frees =
-  Name.variant_names_build (declare_term_names t) frees;
 
 
 (* sorts *)
