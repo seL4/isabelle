@@ -47,6 +47,7 @@ sig
   val update_name_tr': term -> term
   val get_idents: Proof.context -> {structs: string list, fixes: string list}
   val put_idents: {structs: string list, fixes: string list} -> Proof.context -> Proof.context
+  val default_struct: Proof.context -> string option
   val pure_parse_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
   val pure_parse_translation: (string * (Proof.context -> term list -> term)) list
   val pure_print_ast_translation: (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
@@ -224,6 +225,8 @@ structure Idents = Proof_Data
 val get_idents = Idents.get;
 val put_idents = Idents.put;
 
+val default_struct = try hd o #structs o get_idents;
+
 fun indexdefault_ast_tr [] =
       Ast.Appl [Ast.Constant "_index",
         Ast.Appl [Ast.Constant "_struct", Ast.Constant "_indexdefault"]]
@@ -239,9 +242,9 @@ fun index_tr [t] = t
   | index_tr ts = raise TERM ("index_tr", ts);
 
 fun struct_tr ctxt [Const ("_indexdefault", _)] =
-      (case #structs (get_idents ctxt) of
-        x :: _ => Syntax.const (Lexicon.mark_fixed x)
-      | _ => error "Illegal reference to implicit structure")
+      (case default_struct ctxt of
+        SOME x => Syntax.const (Lexicon.mark_fixed x)
+      | NONE => error "Illegal reference to implicit structure")
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
@@ -449,9 +452,9 @@ fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
 fun struct_ast_tr' ctxt [Ast.Constant "_indexdefault"] =
-      (case #structs (get_idents ctxt) of
-        x :: _ => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
-      | _ => raise Match)
+      (case default_struct ctxt of
+        SOME x => Ast.Appl [Ast.Constant "_free", Ast.Variable x]
+      | NONE => raise Match)
   | struct_ast_tr' _ _ = raise Match;
 
 
