@@ -43,9 +43,8 @@ object Pretty_Text_Area {
     lazy val line_text: String =
       Library.trim_line(JEdit_Lib.get_text(buffer, line_range).getOrElse(""))
 
-    lazy val gui_text: String = {
+    lazy val gui_text: String = Library.string_builder(line_range.length * 2) { s =>
       // see also HyperSearchResults.highlightString
-      val s = new StringBuilder(line_range.length * 2)
       s ++= "<html><b>"
       s ++= line.toString
       s ++= ":</b> "
@@ -65,7 +64,6 @@ object Pretty_Text_Area {
       }
       if (last < line_text.length) s ++= line_text.substring(last)
       s ++= "</html>"
-      s.toString
     }
     override def toString: String = gui_text
   }
