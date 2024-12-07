@@ -74,11 +74,10 @@ class Pretty_Text_Panel private(
       val text = XML.content(converted)
 
       val document = Line.Document(text)
-      val decorations = tree
-        .cumulate(Text.Range.full, None: Option[String], Rendering.text_color_elements, (_, m) => {
-          Some(Some(m.info.name))
-        })
-        .flatMap(e => e.info match {
+      val decorations =
+        tree.cumulate[Option[String]](Text.Range.full, None, Rendering.text_color_elements,
+          { case (_, m) => Some(Some(m.info.name)) }
+        ).flatMap(e => e.info match {
           case None => None
           case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
         })
