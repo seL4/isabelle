@@ -30,7 +30,7 @@ class Pretty_Text_Panel private(
   private val delay_margin = Delay.last(resources.output_delay, channel.Error_Logger) {
     refresh(current_output)
   }
-  
+
   def update_margin(new_margin: Double): Unit = {
     margin = new_margin
     delay_margin.invoke()
@@ -88,4 +88,3 @@ class Pretty_Text_Panel private(
     }
   }
 }
-
