@@ -130,10 +130,12 @@ object JEdit_Sessions {
       val all_sessions =
         sessions.build_topological_order.filter(name => sessions(name).documents.nonEmpty).sorted
       val doc_sessions = all_sessions.filter(name => sessions(name).doc_group)
+      val unsorted_sessions = all_sessions.filter(name => sessions(name).unsorted_chapter)
 
-      new Selector(options, "editor_document_session", standalone,
-        doc_sessions.map(GUI.Selector.item),
-        all_sessions.map(GUI.Selector.item))
+      val batches =
+        (if (unsorted_sessions.nonEmpty) List(unsorted_sessions.map(GUI.Selector.item)) else Nil) :::
+          List(doc_sessions.map(GUI.Selector.item), all_sessions.map(GUI.Selector.item))
+      new Selector(options, "editor_document_session", standalone, batches:_*)
     }
 
 

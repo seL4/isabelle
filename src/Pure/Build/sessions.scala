@@ -709,6 +709,8 @@ object Sessions {
 
     def dirs: List[Path] = dir :: directories
 
+    def unsorted_chapter: Boolean = chapter == UNSORTED
+
     def main_group: Boolean = groups.contains("main")
     def doc_group: Boolean = groups.contains("doc")
 
