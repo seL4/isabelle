@@ -375,7 +375,7 @@ extends Rendering(snapshot, options, PIDE.session) {
     else
       snapshot.cumulate(range, current_color, Rendering.text_color_elements, _ =>
         {
-          case (_, Text.Info(_, elem)) => Rendering.text_color.get(elem.name).map(color)
+          case (_, Text.Info(_, elem)) => Rendering.get_text_color(elem.name).map(color)
         })
   }
 

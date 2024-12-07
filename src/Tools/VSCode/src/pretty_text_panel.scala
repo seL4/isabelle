@@ -79,7 +79,8 @@ class Pretty_Text_Panel private(
           { case (_, m) => Some(Some(m.info.name)) }
         ).flatMap(e => e.info match {
           case None => None
-          case Some(i) => Some((document.range(e._1), "text_" ++ Rendering.text_color(i).toString))
+          case Some(name) =>
+            Some((document.range(e._1), "text_" ++ Rendering.get_text_color(name).get.toString))
         })
         .groupMap(_._2)(e => LSP.Decoration_Options(e._1, List())).toList
 

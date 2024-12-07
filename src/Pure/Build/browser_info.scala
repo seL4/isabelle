@@ -522,7 +522,7 @@ object Browser_Info {
                 case _ =>
                   body1
               }
-            Rendering.foreground.get(name) orElse Rendering.text_color.get(name) match {
+            Rendering.foreground.get(name) orElse Rendering.get_text_color(name) match {
               case Some(c) => (html_class(c.toString, html), offset)
               case None => (html_class(name, html), offset)
             }

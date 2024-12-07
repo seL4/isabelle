@@ -105,7 +105,9 @@ object Rendering {
 
   /* text color */
 
-  val text_color = Map(
+  def get_text_color(name: String): Option[Color.Value] = text_colors.get(name)
+
+  private val text_colors = Map(
     Markup.KEYWORD1 -> Color.keyword1,
     Markup.KEYWORD2 -> Color.keyword2,
     Markup.KEYWORD3 -> Color.keyword3,
@@ -220,7 +222,7 @@ object Rendering {
 
   val foreground_elements = Markup.Elements(foreground.keySet)
 
-  val text_color_elements = Markup.Elements(text_color.keySet)
+  val text_color_elements = Markup.Elements(text_colors.keySet)
 
   val structure_elements =
     Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
