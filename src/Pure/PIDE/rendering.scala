@@ -109,6 +109,8 @@ object Rendering {
     if (Markup.has_syntax(markup.properties)) text_color2.get(markup.name)
     else text_color1.get(markup.name) orElse text_color2.get(markup.name)
 
+  def get_foreground(name: String): Option[Color.Value] = foreground.get(name)
+
   private val text_color1 = Map(
     Markup.IMPROPER -> Color.improper,
     Markup.FREE -> Color.free,
@@ -149,7 +151,7 @@ object Rendering {
     Markup.COMMENT2 -> Color.comment2,
     Markup.COMMENT3 -> Color.comment3)
 
-  val foreground =
+  private val foreground =
     Map(
       Markup.STRING -> Color.quoted,
       Markup.ALT_STRING -> Color.quoted,
@@ -159,7 +161,9 @@ object Rendering {
 
   /* tooltips */
 
-  val tooltip_descriptions =
+  def get_tooltip_description(name: String): Option[String] = tooltip_description.get(name)
+
+  private val tooltip_description =
     Map(
       Markup.TOKEN_RANGE -> "inner syntax token",
       Markup.FREE -> "free variable",
@@ -199,24 +203,24 @@ object Rendering {
 
   /* markup elements */
 
-  val position_elements =
+  val position_elements: Markup.Elements =
     Markup.Elements(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
-  val semantic_completion_elements =
+  val semantic_completion_elements: Markup.Elements =
     Markup.Elements(Markup.COMPLETION, Markup.NO_COMPLETION)
 
-  val language_context_elements =
+  val language_context_elements: Markup.Elements =
     Markup.Elements(Markup.STRING, Markup.ALT_STRING,
       Markup.CARTOUCHE, Markup.COMMENT, Markup.LANGUAGE,
       Markup.ML_STRING, Markup.ML_COMMENT)
 
-  val language_elements = Markup.Elements(Markup.LANGUAGE)
+  val language_elements: Markup.Elements = Markup.Elements(Markup.LANGUAGE)
 
-  val active_elements =
+  val active_elements: Markup.Elements =
     Markup.Elements(Markup.DIALOG, Markup.BROWSER, Markup.GRAPHVIEW, Markup.THEORY_EXPORTS,
       Markup.SENDBACK, Markup.JEDIT_ACTION, Markup.SIMP_TRACE_PANEL)
 
-  val background_elements =
+  val background_elements: Markup.Elements =
     Document_Status.Command_Status.proper_elements + Markup.WRITELN_MESSAGE +
       Markup.STATE_MESSAGE + Markup.INFORMATION_MESSAGE +
       Markup.TRACING_MESSAGE + Markup.WARNING_MESSAGE +
@@ -224,46 +228,47 @@ object Rendering {
       Markup.BAD + Markup.INTENSIFY + Markup.ENTITY +
       Markup.Markdown_Bullet.name ++ active_elements
 
-  val foreground_elements = Markup.Elements(foreground.keySet)
+  val foreground_elements: Markup.Elements = Markup.Elements(foreground.keySet)
 
-  val text_color_elements = Markup.Elements(text_color1.keySet ++ text_color2.keySet)
+  val text_color_elements: Markup.Elements =
+    Markup.Elements(text_color1.keySet ++ text_color2.keySet)
 
-  val structure_elements =
+  val structure_elements: Markup.Elements =
     Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name, Markup.ENTITY,
       Markup.COMMAND_SPAN)
 
-  val tooltip_elements =
+  val tooltip_elements: Markup.Elements =
     Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION, Markup.TIMING,
       Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
       Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.COMMAND_SPAN,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
-      Markup.Elements(tooltip_descriptions.keySet)
+      Markup.Elements(tooltip_description.keySet)
 
-  val tooltip_message_elements =
+  val tooltip_message_elements: Markup.Elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR,
       Markup.BAD)
 
-  val message_elements = Markup.Elements(message_pri.keySet)
-  val warning_elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
-  val error_elements = Markup.Elements(Markup.ERROR)
+  val message_elements: Markup.Elements = Markup.Elements(message_pri.keySet)
+  val warning_elements: Markup.Elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
+  val error_elements: Markup.Elements = Markup.Elements(Markup.ERROR)
 
-  val comment_elements =
+  val comment_elements: Markup.Elements =
     Markup.Elements(Markup.ML_COMMENT, Markup.COMMENT, Markup.COMMENT1, Markup.COMMENT2,
       Markup.COMMENT3)
 
-  val entity_elements = Markup.Elements(Markup.ENTITY)
+  val entity_elements: Markup.Elements = Markup.Elements(Markup.ENTITY)
 
-  val antiquoted_elements = Markup.Elements(Markup.ANTIQUOTED)
+  val antiquoted_elements: Markup.Elements = Markup.Elements(Markup.ANTIQUOTED)
 
-  val meta_data_elements =
+  val meta_data_elements: Markup.Elements =
     Markup.Elements(Markup.META_TITLE, Markup.META_CREATOR, Markup.META_CONTRIBUTOR,
       Markup.META_DATE, Markup.META_DESCRIPTION, Markup.META_LICENSE)
 
-  val document_tag_elements =
+  val document_tag_elements: Markup.Elements =
     Markup.Elements(Markup.Document_Tag.name)
 
-  val markdown_elements =
+  val markdown_elements: Markup.Elements =
     Markup.Elements(Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name,
       Markup.Markdown_Bullet.name)
 }
@@ -734,7 +739,7 @@ class Rendering(
             Some(info.add_info_text(r0, "Markdown: " + kind))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), _))) =>
-            Rendering.tooltip_descriptions.get(name).map(desc => info.add_info_text(r0, desc))
+            Rendering.get_tooltip_description(name).map(desc => info.add_info_text(r0, desc))
         }).map(_.info)
 
     if (results.isEmpty) None
