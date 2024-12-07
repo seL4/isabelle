@@ -39,8 +39,8 @@ sig
     constrain_block: Ast.ast -> Markup.output Pretty.block,
     constrain_trans: Ast.ast -> Ast.ast -> Pretty.T option,
     markup_trans: string -> Ast.ast list -> Pretty.T option,
-    markup: string -> Markup.T list,
-    extern: string -> xstring}
+    markup_syntax: string -> Markup.T list,
+    pretty_entity: string -> Pretty.T}
   val pretty: {type_mode: bool, curried: bool} -> Proof.context -> prtab list ->
     pretty_ops -> Ast.ast -> Pretty.T list
   val type_mode_flags: {type_mode: bool, curried: bool}
@@ -231,8 +231,8 @@ type pretty_ops =
   constrain_block: Ast.ast -> Markup.output Pretty.block,
   constrain_trans: Ast.ast -> Ast.ast -> Pretty.T option,
   markup_trans: string -> Ast.ast list -> Pretty.T option,
-  markup: string -> Markup.T list,
-  extern: string -> xstring};
+  markup_syntax: string -> Markup.T list,
+  pretty_entity: string -> Pretty.T};
 
 fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
   let
@@ -283,7 +283,7 @@ fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
                 if nargs = 0 then
                   (case Option.mapPartial constrain_trans constraint of
                     SOME prt => [prt]
-                  | NONE => [Pretty.marks_str (#markup ops a, #extern ops a)])
+                  | NONE => [#pretty_entity ops a])
                 else main p (application (cc, args))
             | SOME (symbs, n, q) =>
                 if nargs = n then parens p q a (symbs, args) constraint
@@ -305,7 +305,7 @@ fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
             SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) =>
               Pretty.make_block (#constrain_block ops ty) o single
           | _ => I);
-      in #1 (syntax (#markup ops a, output) (symbs', args)) end
+      in #1 (syntax (#markup_syntax ops a, output) (symbs', args)) end
 
     and syntax _ ([], args) = ([], args)
       | syntax m (Arg p :: symbs, arg :: args) =
