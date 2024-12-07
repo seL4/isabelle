@@ -105,14 +105,20 @@ object Rendering {
 
   /* text color */
 
-  def get_text_color(name: String): Option[Color.Value] = text_colors.get(name)
+  def get_text_color(markup: Markup): Option[Color.Value] =
+    if (Markup.has_syntax(markup.properties)) text_color2.get(markup.name)
+    else text_color1.get(markup.name) orElse text_color2.get(markup.name)
 
-  private val text_colors = Map(
+  private val text_color1 = Map(
+    Markup.IMPROPER -> Color.improper,
+    Markup.FREE -> Color.free,
+    Markup.SKOLEM -> Color.skolem)
+
+  private val text_color2 = Map(
     Markup.KEYWORD1 -> Color.keyword1,
     Markup.KEYWORD2 -> Color.keyword2,
     Markup.KEYWORD3 -> Color.keyword3,
     Markup.QUASI_KEYWORD -> Color.quasi_keyword,
-    Markup.IMPROPER -> Color.improper,
     Markup.OPERATOR -> Color.operator,
     Markup.STRING -> Color.main,
     Markup.ALT_STRING -> Color.main,
@@ -121,8 +127,6 @@ object Rendering {
     Markup.DELIMITER -> Color.main,
     Markup.TFREE -> Color.tfree,
     Markup.TVAR -> Color.tvar,
-    Markup.FREE -> Color.free,
-    Markup.SKOLEM -> Color.skolem,
     Markup.BOUND -> Color.bound,
     Markup.VAR -> Color.`var`,
     Markup.INNER_STRING -> Color.inner_quoted,
@@ -222,7 +226,7 @@ object Rendering {
 
   val foreground_elements = Markup.Elements(foreground.keySet)
 
-  val text_color_elements = Markup.Elements(text_colors.keySet)
+  val text_color_elements = Markup.Elements(text_color1.keySet ++ text_color2.keySet)
 
   val structure_elements =
     Markup.Elements(Markup.NOTATION, Markup.EXPRESSION, Markup.LANGUAGE, Markup.ML_TYPING,

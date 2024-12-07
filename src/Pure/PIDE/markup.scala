@@ -479,6 +479,13 @@ object Markup {
   val COMMENT3 = "comment3"
 
 
+  /* concrete syntax (notably mixfix notation) */
+
+  val Syntax = new Properties.Boolean("syntax")
+
+  def has_syntax(props: Properties.T): Boolean = Syntax.get(props)
+
+
   /* timing */
 
   val Elapsed = new Properties.Double("elapsed")

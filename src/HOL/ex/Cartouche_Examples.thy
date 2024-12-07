@@ -71,7 +71,7 @@ ML \<open>
         (case args of
           [(c as Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ Free (s, _) $ p] =>
             (case Term_Position.decode_position1 p of
-              SOME pos => c $ mk_string (content (s, pos)) $ p
+              SOME {pos, ...} => c $ mk_string (content (s, pos)) $ p
             | NONE => err ())
         | _ => err ())
       end;

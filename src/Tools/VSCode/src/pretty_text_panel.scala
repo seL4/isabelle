@@ -75,13 +75,13 @@ class Pretty_Text_Panel private(
 
       val document = Line.Document(text)
       val decorations =
-        tree.cumulate[Option[String]](Text.Range.full, None, Rendering.text_color_elements,
-          { case (_, m) => Some(Some(m.info.name)) }
+        tree.cumulate[Option[Markup]](Text.Range.full, None, Rendering.text_color_elements,
+          { case (_, m) => Some(Some(m.info.markup)) }
         ).flatMap(info =>
             info.info match {
-              case Some(name) =>
+              case Some(markup) =>
                 val range = document.range(info.range)
-                Some((range, "text_" + Rendering.get_text_color(name).get.toString))
+                Some((range, "text_" + Rendering.get_text_color(markup).get.toString))
               case None => None
             }
         ).groupMap(_._2)(e => LSP.Decoration_Options(e._1, Nil)).toList

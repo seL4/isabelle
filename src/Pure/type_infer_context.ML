@@ -8,7 +8,7 @@ signature TYPE_INFER_CONTEXT =
 sig
   val const_sorts: bool Config.T
   val const_type: Proof.context -> string -> typ option
-  val prepare_positions: Proof.context -> term list -> term list * (Position.T * typ) list
+  val prepare_positions: Proof.context -> term list -> term list * (Term_Position.T * typ) list
   val prepare: Proof.context -> term list -> int * term list
   val infer_types: Proof.context -> term list -> term list
   val infer_types_finished: Proof.context -> term list -> term list

@@ -100,7 +100,7 @@ fun get_positions ctxt x =
       | get _ (t $ u) = get [] t @ get [] u
       | get _ (Abs (_, _, t)) = get [] t
       | get _ _ = [];
-  in get [] end;
+  in map #pos o get [] end;
 
 local
 

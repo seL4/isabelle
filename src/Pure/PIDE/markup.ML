@@ -196,6 +196,8 @@ sig
   val comment1N: string val comment1: T
   val comment2N: string val comment2: T
   val comment3N: string val comment3: T
+  val syntaxN: string val syntax_properties: bool -> T -> T
+  val has_syntax: Properties.T -> bool
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -673,6 +675,19 @@ val (commentN, comment) = markup_elem "comment";
 val (comment1N, comment1) = markup_elem "comment1";
 val (comment2N, comment2) = markup_elem "comment2";
 val (comment3N, comment3) = markup_elem "comment3";
+
+
+(* concrete syntax (notably mixfix notation) *)
+
+val syntaxN = "syntax";
+
+val syntax_elements = [improperN, freeN, skolemN];
+
+fun syntax_properties syntax (m as (elem, props): T) =
+  if syntax andalso member (op =) syntax_elements elem
+  then (elem, Properties.put (syntaxN, "true") props) else m;
+
+fun has_syntax props = Properties.get_bool props syntaxN;
 
 
 (* timing *)

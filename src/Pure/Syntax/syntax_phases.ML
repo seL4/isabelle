@@ -61,8 +61,9 @@ fun markup_free ctxt x =
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
-fun markup_bound def ps (name, id) =
-  Markup.bound :: map (fn pos => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
+fun markup_bound def (ps: Term_Position.T list) (name, id) =
+  Markup.bound ::
+    map (fn {pos, ...} => Position.make_entity_markup def id Markup.boundN (name, pos)) ps;
 
 fun markup_entity ctxt c =
   Syntax.get_consts (Proof_Context.syntax_of ctxt) c
@@ -158,7 +159,7 @@ fun parsetree_literals (Parser.Markup (_, ts)) = maps parsetree_literals ts
 fun parsetree_to_ast ctxt trf parsetree =
   let
     val reports = Unsynchronized.ref ([]: Position.report_text list);
-    fun report pos = Position.store_reports reports [pos];
+    fun report pos = Term_Position.store_reports reports [pos];
     val append_reports = Position.append_reports reports;
 
     fun report_pos tok =
@@ -168,8 +169,11 @@ fun parsetree_to_ast ctxt trf parsetree =
     val markup_cache = Symtab.apply_unsynchronized_cache (markup_entity ctxt);
 
     val ast_of_pos = Ast.Variable o Term_Position.encode;
-    val ast_of_position = ast_of_pos o single o report_pos;
-    fun ast_of_position' a = Ast.constrain (Ast.Constant a) o ast_of_position;
+    val ast_of_position = Ast.Variable o Term_Position.encode_no_syntax o single o report_pos;
+
+    val syntax_ast_of_pos = Ast.Variable o Term_Position.encode_syntax;
+    val syntax_ast_of_position = syntax_ast_of_pos o single o report_pos;
+    fun syntax_ast_of_position' a = Ast.constrain (Ast.Constant a) o syntax_ast_of_position;
 
     fun asts_of_token tok =
       if Lexicon.valued_token tok
@@ -201,21 +205,21 @@ fun parsetree_to_ast ctxt trf parsetree =
             val _ = append_reports rs;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ({const = "_DDDOT", ...}, [Parser.Tip tok])) =
-          [Ast.constrain (Ast.Variable Auto_Bind.dddot_vname) (ast_of_position tok)]
+          [Ast.constrain (Ast.Variable Auto_Bind.dddot_vname) (syntax_ast_of_position tok)]
       | asts_of (Parser.Node ({const = "_position", ...}, [Parser.Tip tok])) =
           asts_of_position "_constrain" tok
       | asts_of (Parser.Node ({const = "_position_sort", ...}, [Parser.Tip tok])) =
           asts_of_position "_ofsort" tok
       | asts_of (Parser.Node ({const = a as "\<^const>Pure.dummy_pattern", ...}, [Parser.Tip tok])) =
-          [ast_of_position' a tok]
+          [syntax_ast_of_position' a tok]
       | asts_of (Parser.Node ({const = a as "_idtdummy", ...}, [Parser.Tip tok])) =
-          [ast_of_position' a tok]
+          [syntax_ast_of_position' a tok]
       | asts_of (Parser.Node ({const = "_idtypdummy", ...}, pts as [Parser.Tip tok, _, _])) =
           let val args = maps asts_of pts
-          in [Ast.Appl (Ast.Constant "_constrain" :: ast_of_position' "_idtdummy" tok :: args)] end
+          in [Ast.Appl (Ast.Constant "_constrain" :: syntax_ast_of_position' "_idtdummy" tok :: args)] end
       | asts_of (Parser.Node ({const = a, ...}, pts)) =
           let
-            val ps = maps parsetree_literals pts;
+            val ps = map Term_Position.syntax (maps parsetree_literals pts);
             val args = maps asts_of pts;
             fun head () =
               if not (null ps) andalso (Lexicon.is_fixed a orelse Lexicon.is_const a)
@@ -272,7 +276,7 @@ fun decode_term ctxt =
       | decode (reports0, Exn.Res tm) =
           let
             val reports = Unsynchronized.ref reports0;
-            fun report ps = Position.store_reports reports ps;
+            fun report ps = Term_Position.store_reports reports ps;
             val append_reports = Position.append_reports reports;
 
             fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
@@ -299,13 +303,13 @@ fun decode_term ctxt =
                           let val c = #1 (decode_const ctxt (a, []))
                           in report ps markup_const_cache c; Const (c, T) end))
               | decode ps _ _ (Free (a, T)) =
-                  ((Name.reject_internal (a, ps) handle ERROR msg =>
-                      error (msg ^ Proof_Context.consts_completion_message ctxt (a, ps)));
+                  ((Name.reject_internal (a, map #pos ps) handle ERROR msg =>
+                      error (msg ^ Proof_Context.consts_completion_message ctxt (a, map #pos ps)));
                     (case Proof_Context.lookup_free ctxt a of
                       SOME x => (report ps markup_free_cache x; Free (x, T))
                     | NONE =>
                         let
-                          val (c, rs) = decode_const ctxt (a, ps);
+                          val (c, rs) = decode_const ctxt (a, map #pos ps);
                           val _ = append_reports rs;
                         in Const (c, T) end))
               | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
@@ -462,7 +466,7 @@ fun parse_ast_pattern ctxt (root, str) =
     val syn = Proof_Context.syntax_of ctxt;
 
     val reports = Unsynchronized.ref ([]: Position.report_text list);
-    fun report ps = Position.store_reports reports ps;
+    fun report ps = Term_Position.store_reports reports ps;
 
     val markup_cache = Symtab.apply_unsynchronized_cache (markup_entity ctxt);
 
@@ -765,11 +769,12 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt0 t =
     val pretty_free_cache = Symtab.apply_unsynchronized_cache (pretty_free ctxt);
     val pretty_var_cache = Symtab.apply_unsynchronized_cache pretty_var;
 
-    val markup_syntax_cache = Symtab.apply_unsynchronized_cache (markup_entity ctxt);
+    val markup_syntax_cache =
+      Symtab.apply_unsynchronized_cache (markup_entity ctxt #> map (Markup.syntax_properties true));
 
     val pretty_entity_cache =
       Symtab.apply_unsynchronized_cache (fn a =>
-        Pretty.marks_str (markup_syntax_cache a, extern ctxt a));
+        Pretty.marks_str (markup_entity ctxt a, extern ctxt a));
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
@@ -872,7 +877,7 @@ fun const_ast_tr intern ctxt asts =
   (case asts of
     [Ast.Appl [Ast.Constant "_constrain", Ast.Variable c, T as Ast.Variable p]] =>
       let
-        val (c', _) = decode_const ctxt (c, Term_Position.decode p);
+        val (c', _) = decode_const ctxt (c, map #pos (Term_Position.decode p));
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.constrain (Ast.Constant d) T end
   | _ => raise Ast.AST ("const_ast_tr", asts));
@@ -995,7 +1000,7 @@ fun check_terms ctxt raw_ts =
       |> apply_term_check ctxt
       |> chop (length ts);
     val typing_report =
-      fold2 (fn (pos, _) => fn ty =>
+      fold2 (fn ({pos, ...}, _) => fn ty =>
         if Position.is_reported pos then
           cons (Position.reported_text pos Markup.typing
             (Syntax.string_of_typ ctxt (Logic.dest_type ty)))

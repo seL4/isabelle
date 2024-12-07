@@ -89,7 +89,7 @@ structure Set = Set(Table.Key);
 fun pretty_var x =
   (case Term_Position.decode x of
     [] => Pretty.str x
-  | ps => Term_Position.pretty ps);
+  | ps => Term_Position.pretty (map #pos ps));
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) = pretty_var x

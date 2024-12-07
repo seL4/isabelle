@@ -790,7 +790,7 @@ fun prepare_sorts_env ctxt tys =
           Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
             handle Vartab.DUP _ =>
               error ("Inconsistent sort constraints for type variable " ^
-                quote (Term.string_of_vname' xi) ^ Position.here_list ps)
+                quote (Term.string_of_vname' xi) ^ Position.here_list (map #pos ps))
       end;
 
     val env =
@@ -821,7 +821,7 @@ fun prepare_sorts_env ctxt tys =
 
     fun get_sort_reports xi raw_S =
       let
-        val ps = #1 (Term_Position.decode_positionS raw_S);
+        val ps = map #pos (#1 (Term_Position.decode_positionS raw_S));
         val S = get_sort xi raw_S handle ERROR msg => error (msg ^ Position.here_list ps);
       in fold (add_report S) ps end;
 
