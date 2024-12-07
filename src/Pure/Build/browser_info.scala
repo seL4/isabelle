@@ -513,7 +513,6 @@ object Browser_Info {
             if (kind == Markup.ENUMERATE) (List(HTML.`enum`(body1)), offset)
             else (List(HTML.list(body1)), offset)
           case XML.Elem(markup, body) =>
-            val name = markup.name
             val (body1, offset) = html_body(body, end_offset)
             val html =
               markup.properties match {
@@ -522,9 +521,9 @@ object Browser_Info {
                 case _ =>
                   body1
               }
-            Rendering.get_foreground(name) orElse Rendering.get_text_color(markup) match {
+            Rendering.get_foreground(markup.name) orElse Rendering.get_text_color(markup) match {
               case Some(c) => (html_class(c.toString, html), offset)
-              case None => (html_class(name, html), offset)
+              case None => (html_class(markup.name, html), offset)
             }
           case XML.Text(text) =>
             val offset = end_offset - Symbol.length(text)
