@@ -478,7 +478,8 @@ object Browser_Info {
       @tailrec
       def html_body_single(xml_tree: XML.Tree, end_offset: Symbol.Offset): (XML.Body, Symbol.Offset) =
         xml_tree match {
-          case XML.Wrapped_Elem(markup, _, body) => html_body_single(XML.Elem(markup, body), end_offset)
+          case XML.Wrapped_Elem(markup, _, body) =>
+            html_body_single(XML.Elem(markup, body), end_offset)
           case XML.Elem(Markup(Markup.ENTITY, props @ Markup.Kind(kind)), body) =>
             val (body1, offset) = html_body(body, end_offset)
             if (elements.entity(kind)) {
@@ -521,10 +522,14 @@ object Browser_Info {
                 case _ =>
                   body1
               }
-            Rendering.get_foreground_text_color(markup) match {
-              case Some(c) => (html_class(c.toString, html), offset)
-              case None => (html_class(markup.name, html), offset)
-            }
+            val c =
+              Rendering.get_foreground_text_color(markup) match {
+                case Some(color) => color.toString
+                case None =>
+                  if (Rendering.get_foreground_text_color(Markup(markup.name, Nil)).nonEmpty) ""
+                  else markup.name
+              }
+            (html_class(c, html), offset)
           case XML.Text(text) =>
             val offset = end_offset - Symbol.length(text)
             val body = HTML.text(Symbol.decode(text))
