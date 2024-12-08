@@ -158,6 +158,7 @@ object Browser_Info {
   val default_elements: Elements =
     Elements(
       html = Rendering.foreground_elements ++ Rendering.text_color_elements +
+        Markup.TCLASS + Markup.TCONST + Markup.CONST +
         Markup.NUMERAL + Markup.COMMENT + Markup.ENTITY + Markup.LANGUAGE +
         Markup.PATH + Markup.URL,
       entity = Markup.Elements(Markup.THEORY, Markup.TYPE_NAME, Markup.CONSTANT, Markup.FACT,

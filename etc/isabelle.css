@@ -34,8 +34,11 @@ body {
 .control        { font-weight: bold; font-style: italic; }
 
 .binding        { color: #336655; }
+.tclass         { }
+.tconst         { }
 .tfree          { color: #A020F0; }
 .tvar           { color: #A020F0; }
+.const          { }
 .free           { color: #0000FF; }
 .skolem         { color: #D2691E; }
 .bound          { color: #008000; }
