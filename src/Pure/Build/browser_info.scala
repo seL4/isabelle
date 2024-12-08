@@ -523,11 +523,12 @@ object Browser_Info {
                   body1
               }
             val c =
-              Rendering.get_foreground_text_color(markup) match {
-                case Some(color) => color.toString
-                case None =>
-                  if (Rendering.get_foreground_text_color(Markup(markup.name, Nil)).nonEmpty) ""
-                  else markup.name
+              if (Markup.has_syntax(markup.properties)) ""
+              else {
+                Rendering.get_foreground_text_color(markup) match {
+                  case Some(color) => color.toString
+                  case None => markup.name
+                }
               }
             (html_class(c, html), offset)
           case XML.Text(text) =>
