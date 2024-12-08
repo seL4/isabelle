@@ -44,13 +44,13 @@ struct
 (** markup logical entities **)
 
 fun markup_class ctxt c =
-  [Name_Space.markup (Type.class_space (Proof_Context.tsig_of ctxt)) c];
+  [Name_Space.markup (Type.class_space (Proof_Context.tsig_of ctxt)) c, Markup.tclass];
 
 fun markup_type ctxt c =
-  [Name_Space.markup (Type.type_space (Proof_Context.tsig_of ctxt)) c];
+  [Name_Space.markup (Type.type_space (Proof_Context.tsig_of ctxt)) c, Markup.tconst];
 
 fun markup_const ctxt c =
-  [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
+  [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c, Markup.const];
 
 fun markup_free ctxt x =
   let

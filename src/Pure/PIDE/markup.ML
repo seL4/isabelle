@@ -114,8 +114,11 @@ sig
   val attributeN: string
   val methodN: string
   val method_modifierN: string
+  val tclassN: string val tclass: T
+  val tconstN: string val tconst: T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
+  val constN: string val const: T
   val freeN: string val free: T
   val skolemN: string val skolem: T
   val boundN: string val bound: T
@@ -542,8 +545,11 @@ val method_modifierN = "method_modifier";
 
 (* inner syntax *)
 
+val (tclassN, tclass) = markup_elem "tclass";
+val (tconstN, tconst) = markup_elem "tconst";
 val (tfreeN, tfree) = markup_elem "tfree";
 val (tvarN, tvar) = markup_elem "tvar";
+val (constN, const) = markup_elem "const";
 val (freeN, free) = markup_elem "free";
 val (skolemN, skolem) = markup_elem "skolem";
 val (boundN, bound) = markup_elem "bound";
@@ -681,7 +687,7 @@ val (comment3N, comment3) = markup_elem "comment3";
 
 val syntaxN = "syntax";
 
-val syntax_elements = [improperN, freeN, skolemN];
+val syntax_elements = [tclassN, tconstN, improperN, constN, freeN, skolemN];
 
 fun syntax_properties syntax (m as (elem, props): T) =
   if syntax andalso member (op =) syntax_elements elem

@@ -334,8 +334,11 @@ object Markup {
 
   /* inner syntax */
 
+  val TCLASS = "tclass"
+  val TCONST = "tconst"
   val TFREE = "tfree"
   val TVAR = "tvar"
+  val CONST = "const"
   val FREE = "free"
   val SKOLEM = "skolem"
   val BOUND = "bound"

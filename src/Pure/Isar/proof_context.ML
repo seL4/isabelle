@@ -529,7 +529,7 @@ fun check_class ctxt (xname, pos) =
             [Name_Space.completion (Context.Proof ctxt) class_space (K true) (xname, pos)]);
     val reports =
       if Context_Position.is_reported ctxt pos
-      then [(pos, Name_Space.markup class_space name)] else [];
+      then [(pos, Name_Space.markup class_space name), (pos, Markup.tclass)] else [];
   in (name, reports) end;
 
 fun read_class ctxt text =
@@ -589,10 +589,13 @@ fun check_type_name {proper, strict} ctxt (c, pos) =
   else
     let
       val ((d, reports), decl) = Type.check_decl (Context.Proof ctxt) (tsig_of ctxt) (c, pos);
+      val reports' =
+        if Context_Position.is_reported ctxt pos
+        then reports @ [(pos, Markup.tconst)] else reports;
       val _ =
         if strict andalso not (Type.decl_logical decl)
         then error ("Bad type name: " ^ quote d ^ Position.here pos) else ();
-    in (Type (d, replicate (Type.decl_args decl) dummyT), reports) end;
+    in (Type (d, replicate (Type.decl_args decl) dummyT), reports') end;
 
 fun read_type_name flags ctxt text =
   let
@@ -620,23 +623,32 @@ fun check_const {proper, strict} ctxt (c, ps) =
     val const = Variable.lookup_const ctxt c;
     val consts = consts_of ctxt;
 
+    val is_reported = Context_Position.is_reported ctxt;
     val (t, reports) =
       if is_some fixed andalso is_none const then
         let
           val x = the fixed;
-          val reports = ps
-            |> filter (Context_Position.is_reported ctxt)
-            |> map (fn pos => (pos, Markup.name x (Variable.markup ctxt x)));
+          val reports =
+            ps |> maps (fn pos =>
+              if is_reported pos then [(pos, Markup.name x (Variable.markup ctxt x))]
+              else []);
         in (Free (x, infer_type ctxt (x, dummyT)), reports) end
       else if is_some const then
         let
           val d = the const;
           val T = Consts.type_scheme consts d handle TYPE (msg, _, _) => err msg;
-          val reports = ps
-            |> filter (Context_Position.is_reported ctxt)
-            |> map (fn pos => (pos, Name_Space.markup (Consts.space_of consts) d));
+          val reports =
+            ps |> maps (fn pos =>
+              if is_reported pos then
+                [(pos, Name_Space.markup (Consts.space_of consts) d), (pos, Markup.const)]
+              else []);
         in (Const (d, T), reports) end
-      else Consts.check_const (Context.Proof ctxt) consts (c, ps);
+      else
+        let
+          val (d, reports1) = Consts.check_const (Context.Proof ctxt) consts (c, ps);
+          val reports2 =
+            ps |> maps (fn pos => if is_reported pos then [(pos, Markup.const)] else []);
+        in (d, reports1 @ reports2) end;
     val _ =
       (case (strict, t) of
         (true, Const (d, _)) =>
