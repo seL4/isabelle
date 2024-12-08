@@ -1077,7 +1077,8 @@ lemma mono_on_subset: "mono_on A f \<Longrightarrow> B \<subseteq> A \<Longright
 end
 
 lemma mono_on_greaterD:
-  assumes "mono_on A g" "x \<in> A" "y \<in> A" "g x > (g (y::_::linorder) :: _ :: linorder)"
+  fixes g :: "'a::linorder \<Rightarrow> 'b::linorder"
+  assumes "mono_on A g" "x \<in> A" "y \<in> A" "g x > g y"
   shows "x > y"
 proof (rule ccontr)
   assume "\<not>x > y"
@@ -1263,7 +1264,8 @@ proof
 qed
 
 lemma strict_mono_on_imp_inj_on:
-  assumes "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> (_ :: preorder))"
+  fixes f :: "'a::linorder \<Rightarrow> 'b::preorder"
+  assumes "strict_mono_on A f"
   shows "inj_on f A"
 proof (rule inj_onI)
   fix x y assume "x \<in> A" "y \<in> A" "f x = f y"
@@ -1273,7 +1275,8 @@ proof (rule inj_onI)
 qed
 
 lemma strict_mono_on_leD:
-  assumes "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder)" "x \<in> A" "y \<in> A" "x \<le> y"
+  fixes f :: "'a::linorder \<Rightarrow> 'b::preorder"
+  assumes "strict_mono_on A f" "x \<in> A" "y \<in> A" "x \<le> y"
   shows "f x \<le> f y"
 proof (cases "x = y")
   case True
@@ -1286,13 +1289,13 @@ next
 qed
 
 lemma strict_mono_on_eqD:
-  fixes f :: "(_ :: linorder) \<Rightarrow> (_ :: preorder)"
+  fixes f :: "'c::linorder \<Rightarrow> 'd::preorder"
   assumes "strict_mono_on A f" "f x = f y" "x \<in> A" "y \<in> A"
   shows "y = x"
   using assms by (cases rule: linorder_cases) (auto dest: strict_mono_onD)
 
-lemma strict_mono_on_imp_mono_on:
-  "strict_mono_on A (f :: (_ :: linorder) \<Rightarrow> _ :: preorder) \<Longrightarrow> mono_on A f"
+lemma strict_mono_on_imp_mono_on: "strict_mono_on A f \<Longrightarrow> mono_on A f"
+  for f :: "'a::linorder \<Rightarrow> 'b::preorder"
   by (rule mono_onI, rule strict_mono_on_leD)
 
 lemma mono_imp_strict_mono:
