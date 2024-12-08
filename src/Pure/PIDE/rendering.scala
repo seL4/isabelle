@@ -109,7 +109,8 @@ object Rendering {
     if (Markup.has_syntax(markup.properties)) text_color2.get(markup.name)
     else text_color1.get(markup.name) orElse text_color2.get(markup.name)
 
-  def get_foreground(name: String): Option[Color.Value] = foreground.get(name)
+  def get_foreground_text_color(markup: Markup): Option[Color.Value] =
+    foreground.get(markup.name) orElse get_text_color(markup)
 
   private val text_color1 = Map(
     Markup.IMPROPER -> Color.improper,

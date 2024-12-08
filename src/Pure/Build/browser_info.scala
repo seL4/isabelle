@@ -521,7 +521,7 @@ object Browser_Info {
                 case _ =>
                   body1
               }
-            Rendering.get_foreground(markup.name) orElse Rendering.get_text_color(markup) match {
+            Rendering.get_foreground_text_color(markup) match {
               case Some(c) => (html_class(c.toString, html), offset)
               case None => (html_class(markup.name, html), offset)
             }
