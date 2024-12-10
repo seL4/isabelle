@@ -877,8 +877,8 @@ fun const_ast_tr intern ctxt asts =
   (case asts of
     [Ast.Appl [Ast.Constant "_constrain", Ast.Variable c, T as Ast.Variable p]] =>
       let
-        val (c', _) = decode_const ctxt (c, map #pos (Term_Position.decode p));
-        val d = if intern then Lexicon.mark_const c' else c;
+        val (c', reports) = decode_const ctxt (c, map #pos (Term_Position.decode p));
+        val d = if intern then (Context_Position.reports ctxt reports; Lexicon.mark_const c') else c;
       in Ast.constrain (Ast.Constant d) T end
   | _ => raise Ast.AST ("const_ast_tr", asts));
 
