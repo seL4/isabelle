@@ -243,9 +243,10 @@ val escape = enclose (Symbol.latex ^ Symbol.open_) Symbol.close;
 
 local
 
-val command_markup = YXML.output_markup (Markup.latex_macro "isacommand");
-val keyword_markup = YXML.output_markup (Markup.latex_macro "isakeyword");
-val indent_markup = YXML.output_markup (Markup.latex_macro "isaindent");
+val macro_markup = YXML.output_markup o Markup.latex_macro;
+val command_markup = macro_markup "isacommand";
+val keyword_markup = macro_markup "isakeyword";
+val indent_markup = macro_markup "isaindent";
 
 fun latex_markup (s, _: Properties.T) =
   if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
