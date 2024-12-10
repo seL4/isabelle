@@ -25,6 +25,7 @@ sig
   val markup_pattern: Markup.T
   val markup_type_literal: Markup.T
   val markup_literal: Markup.T
+  val markup_index: Markup.T
   val markup_type_application: Markup.T
   val markup_application: Markup.T
   val markup_abstraction: Markup.T
@@ -106,6 +107,7 @@ val markup_binder = setup_notation (Binding.make ("binder", \<^here>));
 val markup_pattern = setup_notation (Binding.make ("pattern", \<^here>));
 val markup_type_literal = setup_notation (Binding.make ("type_literal", \<^here>));
 val markup_literal = setup_notation (Binding.make ("literal", \<^here>));
+val markup_index = setup_notation (Binding.make ("index", \<^here>));
 
 val markup_type_application = setup_notation (Binding.make ("type_application", \<^here>));
 val markup_application = setup_notation (Binding.make ("application", \<^here>));
