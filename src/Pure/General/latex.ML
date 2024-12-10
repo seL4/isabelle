@@ -243,15 +243,19 @@ val escape = enclose (Symbol.latex ^ Symbol.open_) Symbol.close;
 
 local
 
-val macro_markup = YXML.output_markup o Markup.latex_macro;
-val command_markup = macro_markup "isacommand";
-val keyword_markup = macro_markup "isakeyword";
-val indent_markup = macro_markup "isaindent";
+val markup_macro = YXML.output_markup o Markup.latex_macro;
+val markup_indent = markup_macro "isaindent";
+val markup_latex =
+ Symtab.make
+  [(Markup.commandN, markup_macro "isacommand"),
+   (Markup.keyword1N, markup_macro "isacommand"),
+   (Markup.keyword2N, markup_macro "isakeyword"),
+   (Markup.keyword3N, markup_macro"isacommand")
+  ];
 
-fun latex_markup (s, _: Properties.T) =
-  if member (op =) [Markup.commandN, Markup.keyword1N, Markup.keyword3N] s then command_markup
-  else if s = Markup.keyword2N then keyword_markup
-  else Markup.no_output;
+fun latex_markup (a, props) =
+  (if Markup.has_syntax props then NONE else Symtab.lookup markup_latex a)
+  |> the_default Markup.no_output;
 
 fun latex_markup_output (bg, en) =
   (case try YXML.parse (bg ^ en) of
@@ -259,7 +263,7 @@ fun latex_markup_output (bg, en) =
   | _ => Markup.no_output);
 
 fun latex_indent s (_: int) =
-  if s = "" then s else uncurry enclose indent_markup s;
+  if s = "" then s else uncurry enclose markup_indent s;
 
 in
 
