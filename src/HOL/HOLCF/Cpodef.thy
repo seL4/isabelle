@@ -5,7 +5,7 @@
 section \<open>Subtypes of pcpos\<close>
 
 theory Cpodef
-  imports Adm
+  imports Cpo
   keywords "pcpodef" "cpodef" :: thy_goal_defn
 begin
 
@@ -16,7 +16,7 @@ text \<open>
   if the ordering is defined in the standard way.
 \<close>
 
-setup \<open>Sign.add_const_constraint (\<^const_name>\<open>Porder.below\<close>, NONE)\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>below\<close>, NONE)\<close>
 
 theorem typedef_po:
   fixes Abs :: "'a::po \<Rightarrow> 'b::type"
@@ -30,7 +30,7 @@ theorem typedef_po:
   apply (erule (1) below_antisym)
   done
 
-setup \<open>Sign.add_const_constraint (\<^const_name>\<open>Porder.below\<close>, SOME \<^typ>\<open>'a::below \<Rightarrow> 'a::below \<Rightarrow> bool\<close>)\<close>
+setup \<open>Sign.add_const_constraint (\<^const_name>\<open>below\<close>, SOME \<^typ>\<open>'a::below \<Rightarrow> 'a::below \<Rightarrow> bool\<close>)\<close>
 
 
 subsection \<open>Proving a subtype is finite\<close>

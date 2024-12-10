@@ -5,7 +5,7 @@
 section \<open>Lifting types of class type to flat pcpo's\<close>
 
 theory Lift
-imports Discrete_Cpo Up
+imports Up
 begin
 
 default_sort type

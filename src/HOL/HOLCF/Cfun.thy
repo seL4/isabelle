@@ -6,7 +6,7 @@
 section \<open>The type of continuous functions\<close>
 
 theory Cfun
-  imports Cpodef Fun_Cpo Product_Cpo
+  imports Cpodef
 begin
 
 default_sort cpo

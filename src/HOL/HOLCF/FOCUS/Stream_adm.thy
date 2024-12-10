@@ -30,8 +30,8 @@ definition
 section "admissibility"
 
 lemma infinite_chain_adm_lemma:
-  "\<lbrakk>Porder.chain Y; \<forall>i. P (Y i);  
-    \<And>Y. \<lbrakk>Porder.chain Y; \<forall>i. P (Y i); \<not> finite_chain Y\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
+  "\<lbrakk>chain Y; \<forall>i. P (Y i);  
+    \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<not> finite_chain Y\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
       \<Longrightarrow> P (\<Squnion>i. Y i)"
 apply (case_tac "finite_chain Y")
 prefer 2 apply fast
@@ -43,7 +43,7 @@ apply (erule spec)
 done
 
 lemma increasing_chain_adm_lemma:
-  "\<lbrakk>Porder.chain Y;  \<forall>i. P (Y i); \<And>Y. \<lbrakk>Porder.chain Y; \<forall>i. P (Y i);
+  "\<lbrakk>chain Y;  \<forall>i. P (Y i); \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i);
     \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
       \<Longrightarrow> P (\<Squnion>i. Y i)"
 apply (erule infinite_chain_adm_lemma)
@@ -55,9 +55,9 @@ apply (fast dest: le_imp_less_or_eq elim: chain_mono_less)
 done
 
 lemma flatstream_adm_lemma:
-  assumes 1: "Porder.chain Y"
+  assumes 1: "chain Y"
   assumes 2: "\<forall>i. P (Y i)"
-  assumes 3: "(\<And>Y. [| Porder.chain Y; \<forall>i. P (Y i); \<forall>k. \<exists>j. enat k < #((Y j)::'a::flat stream)|]
+  assumes 3: "(\<And>Y. [| chain Y; \<forall>i. P (Y i); \<forall>k. \<exists>j. enat k < #((Y j)::'a::flat stream)|]
   ==> P(LUB i. Y i))"
   shows "P(LUB i. Y i)"
 apply (rule increasing_chain_adm_lemma [OF 1 2])
@@ -78,7 +78,7 @@ apply (metis enat_ord_code(4) slen_infinite)
 done
 
 (* should be without reference to stream length? *)
-lemma flatstream_admI: "[|(\<And>Y. [| Porder.chain Y; \<forall>i. P (Y i); 
+lemma flatstream_admI: "[|(\<And>Y. [| chain Y; \<forall>i. P (Y i); 
  \<forall>k. \<exists>j. enat k < #((Y j)::'a::flat stream)|] ==> P(LUB i. Y i))|]==> adm P"
 apply (unfold adm_def)
 apply (intro strip)
@@ -210,13 +210,13 @@ apply (fast)
 done
 
 lemma adm_set:
-"{\<Squnion>i. Y i |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
+"{\<Squnion>i. Y i |Y. chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> P \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
 apply (unfold adm_def)
 apply (fast)
 done
 
-lemma def_gfp_admI: "P \<equiv> gfp F \<Longrightarrow> {\<Squnion>i. Y i |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> 
-  F {\<Squnion>i. Y i |Y. Porder.chain Y \<and> (\<forall>i. Y i \<in> P)} \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
+lemma def_gfp_admI: "P \<equiv> gfp F \<Longrightarrow> {\<Squnion>i. Y i |Y. chain Y \<and> (\<forall>i. Y i \<in> P)} \<subseteq> 
+  F {\<Squnion>i. Y i |Y. chain Y \<and> (\<forall>i. Y i \<in> P)} \<Longrightarrow> adm (\<lambda>x. x\<in>P)"
 apply (simp)
 apply (rule adm_set)
 apply (erule gfp_upperbound)
