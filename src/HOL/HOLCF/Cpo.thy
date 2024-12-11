@@ -595,16 +595,9 @@ end
 
 section \<open>Continuity and monotonicity\<close>
 
-text \<open>
-   Now we change the default class! Form now on all untyped type variables are
-   of default class po
-\<close>
-
-default_sort po
-
 subsection \<open>Definitions\<close>
 
-definition monofun :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"  \<comment> \<open>monotonicity\<close>
+definition monofun :: "('a::po \<Rightarrow> 'b::po) \<Rightarrow> bool"  \<comment> \<open>monotonicity\<close>
   where "monofun f \<longleftrightarrow> (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
 definition cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"
@@ -1117,9 +1110,6 @@ lemma contlub_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> (\
   by (simp add: lub_fun ch2ch_lambda)
 
 section \<open>The cpo of cartesian products\<close>
-
-default_sort cpo
-
 
 subsection \<open>Unit type is a pcpo\<close>
 
