@@ -106,6 +106,7 @@ notation, notably like this:
   unbundle no abs_syntax
   unbundle no floor_ceiling_syntax
   unbundle no uminus_syntax
+  unbundle no binomial_syntax
   unbundle no funcset_syntax
 
 This is more robust than individual 'no_syntax' / 'no_notation'

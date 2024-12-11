@@ -18,8 +18,13 @@ text \<open>This development is based on the work of Andy Gordon and Florian Kam
 
 text \<open>Combinatorial definition\<close>
 
-definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"  (infix \<open>choose\<close> 64)
-  where "n choose k = card {K\<in>Pow {0..<n}. card K = k}"
+definition binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"
+  where "binomial n k = card {K\<in>Pow {0..<n}. card K = k}"
+
+open_bundle binomial_syntax
+begin
+notation binomial  (infix \<open>choose\<close> 64)
+end
 
 lemma binomial_right_mono:
   assumes "m \<le> n" shows "m choose k \<le> n choose k"

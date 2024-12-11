@@ -8,7 +8,7 @@ theory Universal
 imports Bifinite Completion "HOL-Library.Nat_Bijection"
 begin
 
-no_notation binomial  (infix \<open>choose\<close> 64)
+unbundle no binomial_syntax
 
 
 subsection \<open>Basis for universal domain\<close>
@@ -983,6 +983,6 @@ instance udom :: bifinite
 
 hide_const (open) node
 
-notation binomial  (infixl \<open>choose\<close> 65)
+unbundle binomial_syntax
 
 end
