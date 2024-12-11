@@ -558,6 +558,7 @@ lemma flat_eq: "a \<noteq> \<bottom> \<Longrightarrow> a \<sqsubseteq> b = (a = 
 
 end
 
+
 subsection \<open>Discrete cpos\<close>
 
 class discrete_cpo = below +
@@ -799,9 +800,11 @@ lemma cont_discrete_cpo [simp, cont2cont]: "cont f"
   apply simp
   done
 
+
 section \<open>Admissibility and compactness\<close>
 
 default_sort cpo
+
 
 subsection \<open>Definitions\<close>
 
@@ -969,6 +972,7 @@ lemmas adm_lemmas =
   adm_below adm_eq adm_not_below
   adm_compact_not_below adm_compact_neq adm_neq_compact
 
+
 section \<open>Class instances for the full function space\<close>
 
 subsection \<open>Full function space is a partial order\<close>
@@ -1108,6 +1112,7 @@ text \<open>What D.A.Schmidt calls continuity of abstraction; never used here\<c
 lemma contlub_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
   for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo"
   by (simp add: lub_fun ch2ch_lambda)
+
 
 section \<open>The cpo of cartesian products\<close>
 
@@ -1400,6 +1405,7 @@ instance prod :: (chfin, chfin) chfin
   apply (erule compact_imp_max_in_chain)
   apply (case_tac "\<Squnion>i. Y i", simp)
   done
+
 
 section \<open>Discrete cpo types\<close>
 

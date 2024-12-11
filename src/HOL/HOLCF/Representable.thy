@@ -10,6 +10,7 @@ begin
 
 default_sort cpo
 
+
 subsection \<open>Class of representable domains\<close>
 
 text \<open>
@@ -88,6 +89,7 @@ lemmas emb_eq_iff = domain.e_eq_iff
 lemmas emb_strict = domain.e_strict
 lemmas prj_strict = domain.p_strict
 
+
 subsection \<open>Domains are bifinite\<close>
 
 lemma approx_chain_ep_cast:
@@ -126,6 +128,7 @@ by standard (rule approx_chain_ep_cast [OF ep_pair_emb_prj cast_DEFL])
 instance predomain \<subseteq> profinite
 by standard (rule approx_chain_ep_cast [OF predomain_ep cast_liftdefl])
 
+
 subsection \<open>Universal domain ep-pairs\<close>
 
 definition "u_emb = udom_emb (\<lambda>i. u_map\<cdot>(udom_approx i))"
@@ -162,6 +165,7 @@ lemma ep_pair_ssum: "ep_pair ssum_emb ssum_prj"
 lemma ep_pair_sfun: "ep_pair sfun_emb sfun_prj"
   unfolding sfun_emb_def sfun_prj_def
   by (simp add: ep_pair_udom approx_chain_sfun_map)
+
 
 subsection \<open>Type combinators\<close>
 
@@ -223,6 +227,7 @@ lemma u_liftdefl_liftdefl_of:
 by (rule cast_eq_imp_eq)
    (simp add: cast_u_liftdefl cast_liftdefl_of cast_u_defl)
 
+
 subsection \<open>Class instance proofs\<close>
 
 subsubsection \<open>Universal domain\<close>
@@ -267,6 +272,7 @@ qed (fact liftemb_udom_def liftprj_udom_def liftdefl_udom_def)+
 
 end
 
+
 subsubsection \<open>Lifted cpo\<close>
 
 instantiation u :: (predomain) "domain"
@@ -303,6 +309,7 @@ end
 
 lemma DEFL_u: "DEFL('a::predomain u) = u_liftdefl\<cdot>LIFTDEFL('a)"
 by (rule defl_u_def)
+
 
 subsubsection \<open>Strict function space\<close>
 
@@ -341,6 +348,7 @@ end
 lemma DEFL_sfun:
   "DEFL('a::domain \<rightarrow>! 'b::domain) = sfun_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sfun_def)
+
 
 subsubsection \<open>Continuous function space\<close>
 
@@ -382,6 +390,7 @@ lemma DEFL_cfun:
   "DEFL('a::predomain \<rightarrow> 'b::domain) = DEFL('a u \<rightarrow>! 'b)"
 by (rule defl_cfun_def)
 
+
 subsubsection \<open>Strict product\<close>
 
 instantiation sprod :: ("domain", "domain") "domain"
@@ -419,6 +428,7 @@ end
 lemma DEFL_sprod:
   "DEFL('a::domain \<otimes> 'b::domain) = sprod_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_sprod_def)
+
 
 subsubsection \<open>Cartesian product\<close>
 
@@ -508,6 +518,7 @@ lemma LIFTDEFL_prod:
     prod_liftdefl\<cdot>LIFTDEFL('a)\<cdot>LIFTDEFL('b)"
 by (rule liftdefl_prod_def)
 
+
 subsubsection \<open>Unit type\<close>
 
 instantiation unit :: "domain"
@@ -540,6 +551,7 @@ instance proof
 qed (fact liftemb_unit_def liftprj_unit_def liftdefl_unit_def)+
 
 end
+
 
 subsubsection \<open>Discrete cpo\<close>
 
@@ -586,6 +598,7 @@ qed
 
 end
 
+
 subsubsection \<open>Strict sum\<close>
 
 instantiation ssum :: ("domain", "domain") "domain"
@@ -623,6 +636,7 @@ end
 lemma DEFL_ssum:
   "DEFL('a::domain \<oplus> 'b::domain) = ssum_defl\<cdot>DEFL('a)\<cdot>DEFL('b)"
 by (rule defl_ssum_def)
+
 
 subsubsection \<open>Lifted HOL type\<close>
 

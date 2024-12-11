@@ -112,6 +112,7 @@ qed
 
 end
 
+
 subsection \<open>Proofs about take functions\<close>
 
 text \<open>
@@ -172,6 +173,7 @@ proof -
   from \<open>adm P\<close> this \<open>\<And>n. P (t n\<cdot>x)\<close> have "P (\<Squnion>n. t n\<cdot>x)" by (rule admD)
   with \<open>chain t\<close> \<open>(\<Squnion>n. t n) = ID\<close> show "P x" by (simp add: lub_distribs)
 qed
+
 
 subsection \<open>Finiteness\<close>
 
@@ -264,6 +266,7 @@ lemma lub_ID_finite_take_induct:
   shows "(\<And>n. P (d n\<cdot>x)) \<Longrightarrow> P x"
 using lub_ID_finite [OF assms] by metis
 
+
 subsection \<open>Proofs about constructor functions\<close>
 
 text \<open>Lemmas for proving nchotomy rule:\<close>
@@ -354,6 +357,7 @@ lemmas take_con_rules =
   ssum_map_sinl' ssum_map_sinr' sprod_map_spair' u_map_up
   deflation_strict deflation_ID ID1 cfcomp2
 
+
 subsection \<open>ML setup\<close>
 
 named_theorems domain_deflation "theorems like deflation a ==> deflation (foo_map$a)"
@@ -416,6 +420,7 @@ lemma domain_rep_iso:
 unfolding abs_def rep_def
 by (simp add: emb_prj_emb DEFL)
 
+
 subsection \<open>Deflations as sets\<close>
 
 definition defl_set :: "'a::bifinite defl \<Rightarrow> 'a set"
@@ -434,6 +439,7 @@ lemma defl_set_subset_iff: "defl_set A \<subseteq> defl_set B \<longleftrightarr
 apply (simp add: defl_set_def subset_eq cast_below_cast [symmetric])
 apply (auto simp add: cast.belowI cast.belowD)
 done
+
 
 subsection \<open>Proving a subtype is representable\<close>
 
@@ -508,6 +514,7 @@ setup \<open>
 \<close>
 
 ML_file \<open>Tools/domaindef.ML\<close>
+
 
 subsection \<open>Isomorphic deflations\<close>
 
@@ -670,6 +677,7 @@ lemma isodefl_cfun:
   shows "isodefl (cfun_map\<cdot>d1\<cdot>d2) (sfun_defl\<cdot>t1\<cdot>t2)"
 using isodefl_sfun [OF assms] unfolding isodefl_def
 by (simp add: emb_cfun_def prj_cfun_def cfcomp1 encode_cfun_map)
+
 
 subsection \<open>Setting up the domain package\<close>
 

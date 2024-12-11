@@ -10,6 +10,7 @@ begin
 
 default_sort cpo
 
+
 subsection \<open>Chains of finite deflations\<close>
 
 locale approx_chain =
@@ -43,6 +44,7 @@ by (rule admD2, simp_all)
 
 end
 
+
 subsection \<open>Omega-profinite and bifinite domains\<close>
 
 class bifinite = pcpo +
@@ -50,6 +52,7 @@ class bifinite = pcpo +
 
 class profinite = cpo +
   assumes profinite: "\<exists>(a::nat \<Rightarrow> 'a\<^sub>\<bottom> \<rightarrow> 'a\<^sub>\<bottom>). approx_chain a"
+
 
 subsection \<open>Building approx chains\<close>
 
@@ -154,6 +157,7 @@ qed
 lemma discr_approx: "approx_chain discr_approx"
 using chain_discr_approx lub_discr_approx finite_deflation_discr_approx
 by (rule approx_chain.intro)
+
 
 subsection \<open>Class instance proofs\<close>
 

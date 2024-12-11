@@ -31,6 +31,7 @@ lemma ep_pair_convex: "ep_pair convex_emb convex_prj"
   unfolding convex_emb_def convex_prj_def
   by (simp add: ep_pair_udom approx_chain_convex_map)
 
+
 subsection \<open>Deflation combinators\<close>
 
 definition upper_defl :: "udom defl \<rightarrow> udom defl"
@@ -56,6 +57,7 @@ lemma cast_convex_defl:
   "cast\<cdot>(convex_defl\<cdot>A) = convex_emb oo convex_map\<cdot>(cast\<cdot>A) oo convex_prj"
 using ep_pair_convex finite_deflation_convex_map
 unfolding convex_defl_def by (rule cast_defl_fun1)
+
 
 subsection \<open>Domain class instances\<close>
 
@@ -167,6 +169,7 @@ by (rule defl_lower_pd_def)
 lemma DEFL_convex: "DEFL('a::domain convex_pd) = convex_defl\<cdot>DEFL('a)"
 by (rule defl_convex_pd_def)
 
+
 subsection \<open>Isomorphic deflations\<close>
 
 lemma isodefl_upper:
@@ -192,6 +195,7 @@ apply (simp add: cast_convex_defl cast_isodefl)
 apply (simp add: emb_convex_pd_def prj_convex_pd_def)
 apply (simp add: convex_map_map)
 done
+
 
 subsection \<open>Domain package setup for powerdomains\<close>
 

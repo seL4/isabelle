@@ -466,6 +466,7 @@ proof (rule finite_deflation_intro)
     by (rule finite_range_imp_finite_fixes)
 qed
 
+
 subsection \<open>Convex powerdomain is bifinite\<close>
 
 lemma approx_chain_convex_map:
@@ -480,6 +481,7 @@ proof
     using bifinite [where 'a='a]
     by (fast intro!: approx_chain_convex_map)
 qed
+
 
 subsection \<open>Join\<close>
 

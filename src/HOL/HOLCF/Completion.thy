@@ -128,6 +128,7 @@ apply (rule below_refl)
 apply (erule (1) below_trans)
 done
 
+
 subsection \<open>Lemmas about least upper bounds\<close>
 
 lemma is_ub_thelub_ex: "\<lbrakk>\<exists>u. S <<| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> lub S"
@@ -183,6 +184,7 @@ by (simp only: principal_below_iff)
 lemma ch2ch_principal [simp]:
   "\<forall>i. Y i \<preceq> Y (Suc i) \<Longrightarrow> chain (\<lambda>i. principal (Y i))"
 by (simp add: chainI principal_mono)
+
 
 subsubsection \<open>Principal ideals approximate all elements\<close>
 
@@ -295,6 +297,7 @@ apply (drule adm_compact_neq [OF _ cont_id])
 apply (subgoal_tac "chain (\<lambda>i. principal (Y i))")
 apply (drule (2) admD2, fast, simp)
 done
+
 
 subsection \<open>Defining functions in terms of basis elements\<close>
 

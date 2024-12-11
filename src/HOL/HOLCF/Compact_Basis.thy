@@ -10,6 +10,7 @@ begin
 
 default_sort bifinite
 
+
 subsection \<open>A compact basis for powerdomains\<close>
 
 definition "pd_basis = {S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
@@ -39,6 +40,7 @@ proof -
   thus ?thesis by - (rule exI)
   (* FIXME: why doesn't ".." or "by (rule exI)" work? *)
 qed
+
 
 subsection \<open>Unit and plus constructors\<close>
 
@@ -90,6 +92,7 @@ lemma pd_basis_induct:
 apply (induct x rule: pd_basis_induct1)
 apply (rule PDUnit, erule PDPlus [OF PDUnit])
 done
+
 
 subsection \<open>Fold operator\<close>
 

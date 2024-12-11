@@ -285,6 +285,7 @@ lemma succeed_neq_fail [simp]:
   "succeed\<cdot>x \<noteq> fail" "fail \<noteq> succeed\<cdot>x"
 by (simp_all add: succeed_def fail_def cont_Abs_match Abs_match_inject)
 
+
 subsubsection \<open>Run operator\<close>
 
 definition
@@ -304,6 +305,7 @@ by (simp add: cont_Rep_match Abs_match_inverse)
 lemma run_succeed [simp]: "run\<cdot>(succeed\<cdot>x) = x"
 unfolding run_def succeed_def
 by (simp add: cont_Rep_match cont_Abs_match Abs_match_inverse)
+
 
 subsubsection \<open>Monad plus operator\<close>
 
@@ -334,6 +336,7 @@ by (cases m, simp_all)
 
 lemma mplus_assoc: "(x +++ y) +++ z = x +++ (y +++ z)"
 by (cases x, simp_all)
+
 
 subsection \<open>Match functions for built-in types\<close>
 
@@ -430,6 +433,7 @@ lemma match_FF_simps [simp]:
   "match_FF\<cdot>TT\<cdot>k = fail"
   "match_FF\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_FF_def)
+
 
 subsection \<open>Mutual recursion\<close>
 

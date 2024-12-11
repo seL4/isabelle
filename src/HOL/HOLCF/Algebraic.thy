@@ -10,6 +10,7 @@ begin
 
 default_sort bifinite
 
+
 subsection \<open>Type constructor for finite deflations\<close>
 
 typedef 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
@@ -71,6 +72,7 @@ by (rule belowI, rule assms, erule subst, rule compact)
 lemma compact_Rep_fin_defl [simp]: "compact (Rep_fin_defl a)"
 using finite_deflation_Rep_fin_defl
 by (rule finite_deflation_imp_compact)
+
 
 subsection \<open>Defining algebraic deflations by ideal completion\<close>
 
@@ -147,6 +149,7 @@ by intro_classes (fast intro: defl_minimal)
 lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
 by (rule defl_minimal [THEN bottomI, symmetric])
 
+
 subsection \<open>Applying algebraic deflations\<close>
 
 definition
@@ -214,6 +217,7 @@ done
 
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
 by (rule cast.below [THEN bottomI])
+
 
 subsection \<open>Deflation combinators\<close>
 

@@ -19,6 +19,7 @@ definition
   Def :: "'a \<Rightarrow> 'a lift" where
   "Def x = Abs_lift (up\<cdot>(Discr x))"
 
+
 subsection \<open>Lift as a datatype\<close>
 
 lemma lift_induct: "\<lbrakk>P \<bottom>; \<And>x. P (Def x)\<rbrakk> \<Longrightarrow> P y"
@@ -70,6 +71,7 @@ proof
     by (induct x) auto
 qed
 
+
 subsection \<open>Continuity of \<^const>\<open>case_lift\<close>\<close>
 
 lemma case_lift_eq: "case_lift \<bottom> f x = fup\<cdot>(\<Lambda> y. f (undiscr y))\<cdot>(Rep_lift x)"
@@ -81,6 +83,7 @@ done
 lemma cont2cont_case_lift [simp]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y); cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. case_lift \<bottom> (f x) (g x))"
 unfolding case_lift_eq by (simp add: cont_Rep_lift)
+
 
 subsection \<open>Further operations\<close>
 
