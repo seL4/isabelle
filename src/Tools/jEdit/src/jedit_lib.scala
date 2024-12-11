@@ -365,12 +365,14 @@ object JEdit_Lib {
   def pixel_range(text_area: TextArea, x: Int, y: Int): Option[Text.Range] = {
     // coordinates wrt. inner painter component
     val painter = text_area.getPainter
+    val buffer = text_area.getBuffer
     if (0 <= x && x < painter.getWidth && 0 <= y && y < painter.getHeight) {
       val offset = text_area.xyToOffset(x, y, false)
       if (offset >= 0) {
-        val range = point_range(text_area.getBuffer, offset)
+        val range = point_range(buffer, offset)
         gfx_range(text_area)(range) match {
-          case Some(g) if g.x <= x && x < g.x + g.length => Some(range)
+          case Some(g) if g.x <= x && x < g.x + g.length =>
+            range.try_restrict(buffer_range(buffer))
           case _ => None
         }
       }
