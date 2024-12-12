@@ -24,9 +24,9 @@ theorem (in below) typedef_class_po:
   apply (rule class.po.intro)
   apply (unfold below)
     apply (rule below_refl)
-   apply (erule (1) below_trans)
+   apply (fact below_trans)
   apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
-  apply (erule (1) below_antisym)
+  apply (fact below_antisym)
   done
 
 lemmas typedef_po_class = below.typedef_class_po [THEN po.intro_of_class]
