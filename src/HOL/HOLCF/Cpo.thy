@@ -808,7 +808,10 @@ default_sort cpo
 
 subsection \<open>Definitions\<close>
 
-definition adm :: "('a::cpo \<Rightarrow> bool) \<Rightarrow> bool"
+context cpo
+begin
+
+definition adm :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
   where "adm P \<longleftrightarrow> (\<forall>Y. chain Y \<longrightarrow> (\<forall>i. P (Y i)) \<longrightarrow> P (\<Squnion>i. Y i))"
 
 lemma admI: "(\<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i)\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)) \<Longrightarrow> adm P"
@@ -823,6 +826,8 @@ lemma admD2: "adm (\<lambda>x. \<not> P x) \<Longrightarrow> chain Y \<Longright
 lemma triv_admI: "\<forall>x. P x \<Longrightarrow> adm P"
   by (rule admI) (erule spec)
 
+end
+
 
 subsection \<open>Admissibility on chain-finite types\<close>
 
@@ -834,6 +839,9 @@ lemma adm_chfin [simp]: "adm P"
 
 
 subsection \<open>Admissibility of special formulae and propagation\<close>
+
+context cpo
+begin
 
 lemma adm_const [simp]: "adm (\<lambda>x. t)"
   by (rule admI, simp)
@@ -897,6 +905,8 @@ lemma adm_imp [simp]: "adm (\<lambda>x. \<not> P x) \<Longrightarrow> adm (\<lam
 lemma adm_iff [simp]: "adm (\<lambda>x. P x \<longrightarrow> Q x) \<Longrightarrow> adm (\<lambda>x. Q x \<longrightarrow> P x) \<Longrightarrow> adm (\<lambda>x. P x \<longleftrightarrow> Q x)"
   by (subst iff_conv_conj_imp) (rule adm_conj)
 
+end
+
 text \<open>admissibility and continuity\<close>
 
 lemma adm_below [simp]: "cont (\<lambda>x. u x) \<Longrightarrow> cont (\<lambda>x. v x) \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
@@ -914,7 +924,10 @@ lemma adm_not_below [simp]: "cont (\<lambda>x. t x) \<Longrightarrow> adm (\<lam
 
 subsection \<open>Compactness\<close>
 
-definition compact :: "'a::cpo \<Rightarrow> bool"
+context cpo
+begin
+
+definition compact :: "'a \<Rightarrow> bool"
   where "compact k = adm (\<lambda>x. k \<notsqsubseteq> x)"
 
 lemma compactI: "adm (\<lambda>x. k \<notsqsubseteq> x) \<Longrightarrow> compact k"
@@ -931,6 +944,8 @@ lemma compactD2: "compact x \<Longrightarrow> chain Y \<Longrightarrow> x \<sqsu
 
 lemma compact_below_lub_iff: "compact x \<Longrightarrow> chain Y \<Longrightarrow> x \<sqsubseteq> (\<Squnion>i. Y i) \<longleftrightarrow> (\<exists>i. x \<sqsubseteq> Y i)"
   by (fast intro: compactD2 elim: below_lub)
+
+end
 
 lemma compact_chfin [simp]: "compact x"
   for x :: "'a::chfin"
