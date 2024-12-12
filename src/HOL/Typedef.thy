@@ -23,12 +23,11 @@ lemma Rep_inject: "Rep x = Rep y \<longleftrightarrow> x = y"
 proof
   assume "Rep x = Rep y"
   then have "Abs (Rep x) = Abs (Rep y)" by (simp only:)
-  moreover have "Abs (Rep x) = x" by (rule Rep_inverse)
-  moreover have "Abs (Rep y) = y" by (rule Rep_inverse)
-  ultimately show "x = y" by simp
+  also have "Abs (Rep x) = x" by (rule Rep_inverse)
+  also have "Abs (Rep y) = y" by (rule Rep_inverse)
+  finally show "x = y" .
 next
-  assume "x = y"
-  then show "Rep x = Rep y" by (simp only:)
+  show "x = y \<Longrightarrow> Rep x = Rep y" by (simp only:)
 qed
 
 lemma Abs_inject:
@@ -37,12 +36,11 @@ lemma Abs_inject:
 proof
   assume "Abs x = Abs y"
   then have "Rep (Abs x) = Rep (Abs y)" by (simp only:)
-  moreover from \<open>x \<in> A\<close> have "Rep (Abs x) = x" by (rule Abs_inverse)
-  moreover from \<open>y \<in> A\<close> have "Rep (Abs y) = y" by (rule Abs_inverse)
-  ultimately show "x = y" by simp
+  also from \<open>x \<in> A\<close> have "Rep (Abs x) = x" by (rule Abs_inverse)
+  also from \<open>y \<in> A\<close> have "Rep (Abs y) = y" by (rule Abs_inverse)
+  finally show "x = y" .
 next
-  assume "x = y"
-  then show "Abs x = Abs y" by (simp only:)
+  show "x = y \<Longrightarrow> Abs x = Abs y" by (simp only:)
 qed
 
 lemma Rep_cases [cases set]:
@@ -69,8 +67,8 @@ lemma Rep_induct [induct set]:
   shows "P y"
 proof -
   have "P (Rep (Abs y))" by (rule hyp)
-  moreover from y have "Rep (Abs y) = y" by (rule Abs_inverse)
-  ultimately show "P y" by simp
+  also from y have "Rep (Abs y) = y" by (rule Abs_inverse)
+  finally show "P y" .
 qed
 
 lemma Abs_induct [induct type]:
@@ -79,8 +77,8 @@ lemma Abs_induct [induct type]:
 proof -
   have "Rep x \<in> A" by (rule Rep)
   then have "P (Abs (Rep x))" by (rule r)
-  moreover have "Abs (Rep x) = x" by (rule Rep_inverse)
-  ultimately show "P x" by simp
+  also have "Abs (Rep x) = x" by (rule Rep_inverse)
+  finally show "P x" .
 qed
 
 lemma Rep_range: "range Rep = A"
@@ -99,10 +97,11 @@ proof
   show "Abs ` A \<subseteq> UNIV" by (rule subset_UNIV)
   show "UNIV \<subseteq> Abs ` A"
   proof
-    fix x
-    have "x = Abs (Rep x)" by (rule Rep_inverse [symmetric])
-    moreover have "Rep x \<in> A" by (rule Rep)
-    ultimately show "x \<in> Abs ` A" by (rule image_eqI)
+    show "x \<in> Abs ` A" for x
+    proof (rule image_eqI)
+      show "x = Abs (Rep x)" by (rule Rep_inverse [symmetric])
+      show "Rep x \<in> A" by (rule Rep)
+    qed
   qed
 qed
 
