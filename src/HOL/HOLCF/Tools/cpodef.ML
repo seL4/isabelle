@@ -183,7 +183,7 @@ fun add_podef typ set opt_bindings tac thy =
     val below_def = singleton (Proof_Context.export lthy ctxt_thy) below_ldef
     val thy = lthy
       |> Class.prove_instantiation_exit
-          (fn ctxt => resolve_tac ctxt [@{thm typedef_po} OF [type_definition, below_def]] 1)
+          (fn ctxt => resolve_tac ctxt [@{thm typedef_po_class} OF [type_definition, below_def]] 1)
   in ((info, below_def), thy) end
 
 fun prepare_cpodef

@@ -252,7 +252,7 @@ end
 
 instance compact_basis :: (pcpo) po
 using type_definition_compact_basis compact_le_def
-by (rule typedef_po)
+by (rule typedef_po_class)
 
 definition
   approximants :: "'a::pcpo \<Rightarrow> 'a compact_basis set" where

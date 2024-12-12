@@ -16,21 +16,20 @@ text \<open>
   if the ordering is defined in the standard way.
 \<close>
 
-setup \<open>Sign.add_const_constraint (\<^const_name>\<open>below\<close>, NONE)\<close>
-
-theorem typedef_po:
-  fixes Abs :: "'a::po \<Rightarrow> 'b::type"
+theorem (in below) typedef_class_po:
+  fixes Abs :: "'b::po \<Rightarrow> 'a"
   assumes type: "type_definition Rep Abs A"
     and below: "(\<sqsubseteq>) \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-  shows "OFCLASS('b, po_class)"
-  apply (intro_classes, unfold below)
+  shows "class.po below"
+  apply (rule class.po.intro)
+  apply (unfold below)
     apply (rule below_refl)
    apply (erule (1) below_trans)
   apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
   apply (erule (1) below_antisym)
   done
 
-setup \<open>Sign.add_const_constraint (\<^const_name>\<open>below\<close>, SOME \<^typ>\<open>'a::below \<Rightarrow> 'a::below \<Rightarrow> bool\<close>)\<close>
+lemmas typedef_po_class = below.typedef_class_po [THEN po.intro_of_class]
 
 
 subsection \<open>Proving a subtype is finite\<close>

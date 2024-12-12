@@ -24,7 +24,7 @@ end
 
 instance fin_defl :: (bifinite) po
 using type_definition_fin_defl below_fin_defl_def
-by (rule typedef_po)
+by (rule typedef_po_class)
 
 lemma finite_deflation_Rep_fin_defl: "finite_deflation (Rep_fin_defl d)"
 using Rep_fin_defl by simp
