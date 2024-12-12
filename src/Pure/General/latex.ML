@@ -250,16 +250,16 @@ val markup_latex =
   [(Markup.commandN, markup_macro "isacommand"),
    (Markup.keyword1N, markup_macro "isacommand"),
    (Markup.keyword2N, markup_macro "isakeyword"),
-   (Markup.keyword3N, markup_macro"isacommand"),
-   (Markup.tclassN, markup_macro"isatclass"),
-   (Markup.tconstN, markup_macro"isatconst"),
-   (Markup.tfreeN, markup_macro"isatfree"),
-   (Markup.tvarN, markup_macro"isatvar"),
-   (Markup.constN, markup_macro"isaconst"),
-   (Markup.freeN, markup_macro"isafree"),
-   (Markup.skolemN, markup_macro"isaskolem"),
-   (Markup.boundN, markup_macro"isabound"),
-   (Markup.varN, markup_macro"isavar")];
+   (Markup.keyword3N, markup_macro "isacommand"),
+   (Markup.tclassN, markup_macro "isatclass"),
+   (Markup.tconstN, markup_macro "isatconst"),
+   (Markup.tfreeN, markup_macro "isatfree"),
+   (Markup.tvarN, markup_macro "isatvar"),
+   (Markup.constN, markup_macro "isaconst"),
+   (Markup.freeN, markup_macro "isafree"),
+   (Markup.skolemN, markup_macro "isaskolem"),
+   (Markup.boundN, markup_macro "isabound"),
+   (Markup.varN, markup_macro "isavar")];
 
 fun latex_markup (a, props) =
   (if Markup.has_syntax props then NONE else Symtab.lookup markup_latex a)
