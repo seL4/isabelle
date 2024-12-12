@@ -9,9 +9,6 @@ theory Cfun
   imports Cpodef
 begin
 
-default_sort cpo
-
-
 subsection \<open>Definition of continuous function type\<close>
 
 definition "cfun = {f::'a \<Rightarrow> 'b. cont f}"
@@ -455,9 +452,7 @@ lemma assoc_oo: "f oo (g oo h) = (f oo g) oo h"
 
 subsection \<open>Strictified functions\<close>
 
-default_sort pcpo
-
-definition seq :: "'a \<rightarrow> 'b \<rightarrow> 'b"
+definition seq :: "'a::pcpo \<rightarrow> 'b::pcpo \<rightarrow> 'b"
   where "seq = (\<Lambda> x. if x = \<bottom> then \<bottom> else ID)"
 
 lemma cont2cont_if_bottom [cont2cont, simp]:
@@ -481,7 +476,7 @@ lemma seq_simps [simp]:
   "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x = ID"
   by (simp_all add: seq_conv_if)
 
-definition strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b"
+definition strictify  :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> 'a \<rightarrow> 'b"
   where "strictify = (\<Lambda> f x. seq\<cdot>x\<cdot>(f\<cdot>x))"
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"

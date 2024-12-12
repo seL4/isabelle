@@ -255,7 +255,7 @@ using type_definition_compact_basis compact_le_def
 by (rule typedef_po)
 
 definition
-  approximants :: "'a \<Rightarrow> 'a compact_basis set" where
+  approximants :: "'a::pcpo \<Rightarrow> 'a compact_basis set" where
   "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
 definition

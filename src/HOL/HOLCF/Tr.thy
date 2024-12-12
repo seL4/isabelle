@@ -58,12 +58,10 @@ lemma not_below_FF_iff [simp]: "x \<notsqsubseteq> FF \<longleftrightarrow> x = 
 
 subsection \<open>Case analysis\<close>
 
-default_sort pcpo
-
-definition tr_case :: "'a \<rightarrow> 'a \<rightarrow> tr \<rightarrow> 'a"
+definition tr_case :: "'a::pcpo \<rightarrow> 'a \<rightarrow> tr \<rightarrow> 'a"
   where "tr_case = (\<Lambda> t e (Def b). if b then t else e)"
 
-abbreviation cifte_syn :: "[tr, 'c, 'c] \<Rightarrow> 'c"  (\<open>(\<open>notation=\<open>mixfix If expression\<close>\<close>If (_)/ then (_)/ else (_))\<close> [0, 0, 60] 60)
+abbreviation cifte_syn :: "[tr, 'c::pcpo, 'c] \<Rightarrow> 'c"  (\<open>(\<open>notation=\<open>mixfix If expression\<close>\<close>If (_)/ then (_)/ else (_))\<close> [0, 0, 60] 60)
   where "If b then e1 else e2 \<equiv> tr_case\<cdot>e1\<cdot>e2\<cdot>b"
 
 translations
@@ -94,7 +92,7 @@ abbreviation orelse_syn :: "tr \<Rightarrow> tr \<Rightarrow> tr"  (\<open>_ ore
 definition neg :: "tr \<rightarrow> tr"
   where "neg = flift2 Not"
 
-definition If2 :: "tr \<Rightarrow> 'c \<Rightarrow> 'c \<Rightarrow> 'c"
+definition If2 :: "tr \<Rightarrow> 'c::pcpo \<Rightarrow> 'c \<Rightarrow> 'c"
   where "If2 Q x y = (If Q then x else y)"
 
 text \<open>tactic for tr-thms with case split\<close>

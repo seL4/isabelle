@@ -8,12 +8,9 @@ theory Algebraic
 imports Universal Map_Functions
 begin
 
-default_sort bifinite
-
-
 subsection \<open>Type constructor for finite deflations\<close>
 
-typedef 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
+typedef 'a::bifinite fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_bottom)
 
 instantiation fin_defl :: (bifinite) below
@@ -76,7 +73,7 @@ by (rule finite_deflation_imp_compact)
 
 subsection \<open>Defining algebraic deflations by ideal completion\<close>
 
-typedef 'a defl = "{S::'a fin_defl set. below.ideal S}"
+typedef 'a::bifinite defl = "{S::'a fin_defl set. below.ideal S}"
 by (rule below.ex_ideal)
 
 instantiation defl :: (bifinite) below
@@ -97,10 +94,10 @@ using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_cpo)
 
 definition
-  defl_principal :: "'a fin_defl \<Rightarrow> 'a defl" where
+  defl_principal :: "'a::bifinite fin_defl \<Rightarrow> 'a defl" where
   "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
-lemma fin_defl_countable: "\<exists>f::'a fin_defl \<Rightarrow> nat. inj f"
+lemma fin_defl_countable: "\<exists>f::'a::bifinite fin_defl \<Rightarrow> nat. inj f"
 proof -
   obtain f :: "'a compact_basis \<Rightarrow> nat" where inj_f: "inj f"
     using compact_basis.countable ..
@@ -153,7 +150,7 @@ by (rule defl_minimal [THEN bottomI, symmetric])
 subsection \<open>Applying algebraic deflations\<close>
 
 definition
-  cast :: "'a defl \<rightarrow> 'a \<rightarrow> 'a"
+  cast :: "'a::bifinite defl \<rightarrow> 'a \<rightarrow> 'a"
 where
   "cast = defl.extension Rep_fin_defl"
 

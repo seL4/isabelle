@@ -8,9 +8,6 @@ theory Bifinite
   imports Map_Functions Cprod Sprod Sfun Up "HOL-Library.Countable"
 begin
 
-default_sort cpo
-
-
 subsection \<open>Chains of finite deflations\<close>
 
 locale approx_chain =

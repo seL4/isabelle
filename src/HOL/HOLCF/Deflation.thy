@@ -8,9 +8,6 @@ theory Deflation
   imports Cfun
 begin
 
-default_sort cpo
-
-
 subsection \<open>Continuous deflations\<close>
 
 locale deflation =

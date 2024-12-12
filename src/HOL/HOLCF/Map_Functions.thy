@@ -10,8 +10,6 @@ begin
 
 subsection \<open>Map operator for continuous function space\<close>
 
-default_sort cpo
-
 definition cfun_map :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'd)"
   where "cfun_map = (\<Lambda> a b f x. b\<cdot>(f\<cdot>(a\<cdot>x)))"
 
@@ -214,9 +212,7 @@ qed
 
 subsection \<open>Map function for strict products\<close>
 
-default_sort pcpo
-
-definition sprod_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<otimes> 'c \<rightarrow> 'b \<otimes> 'd"
+definition sprod_map :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> ('c::pcpo \<rightarrow> 'd::pcpo) \<rightarrow> 'a \<otimes> 'c \<rightarrow> 'b \<otimes> 'd"
   where "sprod_map = (\<Lambda> f g. ssplit\<cdot>(\<Lambda> x y. (:f\<cdot>x, g\<cdot>y:)))"
 
 lemma sprod_map_strict [simp]: "sprod_map\<cdot>a\<cdot>b\<cdot>\<bottom> = \<bottom>"
@@ -315,7 +311,7 @@ qed
 
 subsection \<open>Map function for strict sums\<close>
 
-definition ssum_map :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<oplus> 'c \<rightarrow> 'b \<oplus> 'd"
+definition ssum_map :: "('a::pcpo \<rightarrow> 'b::pcpo) \<rightarrow> ('c::pcpo \<rightarrow> 'd::pcpo) \<rightarrow> 'a \<oplus> 'c \<rightarrow> 'b \<oplus> 'd"
   where "ssum_map = (\<Lambda> f g. sscase\<cdot>(sinl oo f)\<cdot>(sinr oo g))"
 
 lemma ssum_map_strict [simp]: "ssum_map\<cdot>f\<cdot>g\<cdot>\<bottom> = \<bottom>"
@@ -422,7 +418,7 @@ qed
 
 subsection \<open>Map operator for strict function space\<close>
 
-definition sfun_map :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow>! 'c) \<rightarrow> ('b \<rightarrow>! 'd)"
+definition sfun_map :: "('b::pcpo \<rightarrow> 'a::pcpo) \<rightarrow> ('c::pcpo \<rightarrow> 'd::pcpo) \<rightarrow> ('a \<rightarrow>! 'c) \<rightarrow> ('b \<rightarrow>! 'd)"
   where "sfun_map = (\<Lambda> a b. sfun_abs oo cfun_map\<cdot>a\<cdot>b oo sfun_rep)"
 
 lemma sfun_map_ID: "sfun_map\<cdot>ID\<cdot>ID = ID"

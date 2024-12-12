@@ -9,17 +9,15 @@ theory Ssum
   imports Tr
 begin
 
-default_sort pcpo
-
-
 subsection \<open>Definition of strict sum type\<close>
 
 definition "ssum =
-  {p :: tr \<times> ('a \<times> 'b). p = \<bottom> \<or>
+  {p :: tr \<times> ('a::pcpo \<times> 'b::pcpo). p = \<bottom> \<or>
     (fst p = TT \<and> fst (snd p) \<noteq> \<bottom> \<and> snd (snd p) = \<bottom>) \<or>
     (fst p = FF \<and> fst (snd p) = \<bottom> \<and> snd (snd p) \<noteq> \<bottom>)}"
 
-pcpodef ('a, 'b) ssum  (\<open>(\<open>notation=\<open>infix strict sum\<close>\<close>_ \<oplus>/ _)\<close> [21, 20] 20) = "ssum :: (tr \<times> 'a \<times> 'b) set"
+pcpodef ('a::pcpo, 'b::pcpo) ssum  (\<open>(\<open>notation=\<open>infix strict sum\<close>\<close>_ \<oplus>/ _)\<close> [21, 20] 20) =
+  "ssum :: (tr \<times> 'a \<times> 'b) set"
   by (simp_all add: ssum_def)
 
 instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
@@ -31,10 +29,10 @@ type_notation (ASCII)
 
 subsection \<open>Definitions of constructors\<close>
 
-definition sinl :: "'a \<rightarrow> ('a ++ 'b)"
+definition sinl :: "'a::pcpo \<rightarrow> ('a ++ 'b::pcpo)"
   where "sinl = (\<Lambda> a. Abs_ssum (seq\<cdot>a\<cdot>TT, a, \<bottom>))"
 
-definition sinr :: "'b \<rightarrow> ('a ++ 'b)"
+definition sinr :: "'b::pcpo \<rightarrow> ('a::pcpo ++ 'b)"
   where "sinr = (\<Lambda> b. Abs_ssum (seq\<cdot>b\<cdot>FF, \<bottom>, b))"
 
 lemma sinl_ssum: "(seq\<cdot>a\<cdot>TT, a, \<bottom>) \<in> ssum"
@@ -161,7 +159,7 @@ lemma below_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p
 
 subsection \<open>Case analysis combinator\<close>
 
-definition sscase :: "('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c"
+definition sscase :: "('a::pcpo \<rightarrow> 'c::pcpo) \<rightarrow> ('b::pcpo \<rightarrow> 'c) \<rightarrow> ('a ++ 'b) \<rightarrow> 'c"
   where "sscase = (\<Lambda> f g s. (\<lambda>(t, x, y). If t then f\<cdot>x else g\<cdot>y) (Rep_ssum s))"
 
 translations

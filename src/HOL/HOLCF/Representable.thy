@@ -8,9 +8,6 @@ theory Representable
 imports Algebraic Map_Functions "HOL-Library.Countable"
 begin
 
-default_sort cpo
-
-
 subsection \<open>Class of representable domains\<close>
 
 text \<open>

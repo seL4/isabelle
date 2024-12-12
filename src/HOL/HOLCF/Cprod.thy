@@ -8,9 +8,6 @@ theory Cprod
   imports Cfun
 begin
 
-default_sort cpo
-
-
 subsection \<open>Continuous case function for unit type\<close>
 
 definition unit_when :: "'a \<rightarrow> unit \<rightarrow> 'a"

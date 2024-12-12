@@ -17,7 +17,7 @@ subsection \<open>Continuous isomorphisms\<close>
 text \<open>A locale for continuous isomorphisms\<close>
 
 locale iso =
-  fixes abs :: "'a \<rightarrow> 'b"
+  fixes abs :: "'a::pcpo \<rightarrow> 'b::pcpo"
   fixes rep :: "'b \<rightarrow> 'a"
   assumes abs_iso [simp]: "rep\<cdot>(abs\<cdot>x) = x"
   assumes rep_iso [simp]: "abs\<cdot>(rep\<cdot>y) = y"
@@ -374,15 +374,13 @@ ML_file \<open>Tools/Domain/domain_induction.ML\<close>
 
 subsection \<open>Representations of types\<close>
 
-default_sort "domain"
-
-lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a) = cast\<cdot>DEFL('a)\<cdot>x"
+lemma emb_prj: "emb\<cdot>((prj\<cdot>x)::'a::domain) = cast\<cdot>DEFL('a)\<cdot>x"
 by (simp add: cast_DEFL)
 
 lemma emb_prj_emb:
-  fixes x :: "'a"
+  fixes x :: "'a::domain"
   assumes "DEFL('a) \<sqsubseteq> DEFL('b)"
-  shows "emb\<cdot>(prj\<cdot>(emb\<cdot>x) :: 'b) = emb\<cdot>x"
+  shows "emb\<cdot>(prj\<cdot>(emb\<cdot>x) :: 'b::domain) = emb\<cdot>x"
 unfolding emb_prj
 apply (rule cast.belowD)
 apply (rule monofun_cfun_arg [OF assms])
@@ -390,7 +388,7 @@ apply (simp add: cast_DEFL)
 done
 
 lemma prj_emb_prj:
-  assumes "DEFL('a) \<sqsubseteq> DEFL('b)"
+  assumes "DEFL('a::domain) \<sqsubseteq> DEFL('b::domain)"
   shows "prj\<cdot>(emb\<cdot>(prj\<cdot>x :: 'b)) = (prj\<cdot>x :: 'a)"
  apply (rule emb_eq_iff [THEN iffD1])
  apply (simp only: emb_prj)
@@ -404,7 +402,7 @@ text \<open>Isomorphism lemmas used internally by the domain package:\<close>
 
 lemma domain_abs_iso:
   fixes abs and rep
-  assumes DEFL: "DEFL('b) = DEFL('a)"
+  assumes DEFL: "DEFL('b::domain) = DEFL('a::domain)"
   assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
   assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "rep\<cdot>(abs\<cdot>x) = x"
@@ -413,7 +411,7 @@ by (simp add: emb_prj_emb DEFL)
 
 lemma domain_rep_iso:
   fixes abs and rep
-  assumes DEFL: "DEFL('b) = DEFL('a)"
+  assumes DEFL: "DEFL('b::domain) = DEFL('a::domain)"
   assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
   assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "abs\<cdot>(rep\<cdot>x) = x"
@@ -518,7 +516,7 @@ ML_file \<open>Tools/domaindef.ML\<close>
 
 subsection \<open>Isomorphic deflations\<close>
 
-definition isodefl :: "('a \<rightarrow> 'a) \<Rightarrow> udom defl \<Rightarrow> bool"
+definition isodefl :: "('a::domain \<rightarrow> 'a) \<Rightarrow> udom defl \<Rightarrow> bool"
   where "isodefl d t \<longleftrightarrow> cast\<cdot>t = emb oo d oo prj"
 
 definition isodefl' :: "('a::predomain \<rightarrow> 'a) \<Rightarrow> udom u defl \<Rightarrow> bool"
@@ -535,7 +533,7 @@ unfolding isodefl_def
 by (drule cfun_fun_cong [where x="\<bottom>"], simp)
 
 lemma isodefl_imp_deflation:
-  fixes d :: "'a \<rightarrow> 'a"
+  fixes d :: "'a::domain \<rightarrow> 'a"
   assumes "isodefl d t" shows "deflation d"
 proof
   note assms [unfolded isodefl_def, simp]
@@ -546,14 +544,14 @@ proof
     using cast.below [of t "emb\<cdot>x"] by simp
 qed
 
-lemma isodefl_ID_DEFL: "isodefl (ID :: 'a \<rightarrow> 'a) DEFL('a)"
+lemma isodefl_ID_DEFL: "isodefl (ID :: 'a \<rightarrow> 'a) DEFL('a::domain)"
 unfolding isodefl_def by (simp add: cast_DEFL)
 
 lemma isodefl_LIFTDEFL:
   "isodefl' (ID :: 'a \<rightarrow> 'a) LIFTDEFL('a::predomain)"
 unfolding isodefl'_def by (simp add: cast_liftdefl u_map_ID)
 
-lemma isodefl_DEFL_imp_ID: "isodefl (d :: 'a \<rightarrow> 'a) DEFL('a) \<Longrightarrow> d = ID"
+lemma isodefl_DEFL_imp_ID: "isodefl (d :: 'a \<rightarrow> 'a) DEFL('a::domain) \<Longrightarrow> d = ID"
 unfolding isodefl_def
 apply (simp add: cast_DEFL)
 apply (simp add: cfun_eq_iff)
@@ -588,7 +586,7 @@ done
 
 lemma isodefl_abs_rep:
   fixes abs and rep and d
-  assumes DEFL: "DEFL('b) = DEFL('a)"
+  assumes DEFL: "DEFL('b::domain) = DEFL('a::domain)"
   assumes abs_def: "(abs :: 'a \<rightarrow> 'b) \<equiv> prj oo emb"
   assumes rep_def: "(rep :: 'b \<rightarrow> 'a) \<equiv> prj oo emb"
   shows "isodefl d t \<Longrightarrow> isodefl (abs oo d oo rep) t"

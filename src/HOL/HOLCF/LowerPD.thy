@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  lower_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<flat>\<close> 50) where
+  lower_le :: "'a::bifinite pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<flat>\<close> 50) where
   "lower_le = (\<lambda>u v. \<forall>x\<in>Rep_pd_basis u. \<exists>y\<in>Rep_pd_basis v. x \<sqsubseteq> y)"
 
 lemma lower_le_refl [simp]: "t \<le>\<flat> t"
@@ -74,7 +74,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a lower_pd  (\<open>(\<open>notation=\<open>postfix lower_pd\<close>\<close>'(_')\<flat>)\<close>) =
+typedef 'a::bifinite lower_pd  (\<open>(\<open>notation=\<open>postfix lower_pd\<close>\<close>'(_')\<flat>)\<close>) =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 
@@ -96,7 +96,7 @@ using type_definition_lower_pd below_lower_pd_def
 by (rule lower_le.typedef_ideal_cpo)
 
 definition
-  lower_principal :: "'a pd_basis \<Rightarrow> 'a lower_pd" where
+  lower_principal :: "'a::bifinite pd_basis \<Rightarrow> 'a lower_pd" where
   "lower_principal t = Abs_lower_pd {u. u \<le>\<flat> t}"
 
 interpretation lower_pd:
@@ -120,16 +120,16 @@ by (rule lower_pd_minimal [THEN bottomI, symmetric])
 subsection \<open>Monadic unit and plus\<close>
 
 definition
-  lower_unit :: "'a \<rightarrow> 'a lower_pd" where
+  lower_unit :: "'a::bifinite \<rightarrow> 'a lower_pd" where
   "lower_unit = compact_basis.extension (\<lambda>a. lower_principal (PDUnit a))"
 
 definition
-  lower_plus :: "'a lower_pd \<rightarrow> 'a lower_pd \<rightarrow> 'a lower_pd" where
+  lower_plus :: "'a::bifinite lower_pd \<rightarrow> 'a lower_pd \<rightarrow> 'a lower_pd" where
   "lower_plus = lower_pd.extension (\<lambda>t. lower_pd.extension (\<lambda>u.
       lower_principal (PDPlus t u)))"
 
 abbreviation
-  lower_add :: "'a lower_pd \<Rightarrow> 'a lower_pd \<Rightarrow> 'a lower_pd"
+  lower_add :: "'a::bifinite lower_pd \<Rightarrow> 'a lower_pd \<Rightarrow> 'a lower_pd"
     (infixl \<open>\<union>\<flat>\<close> 65) where
   "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
@@ -151,7 +151,7 @@ by (simp add: lower_pd.extension_principal
     lower_pd.extension_mono PDPlus_lower_mono)
 
 interpretation lower_add: semilattice lower_add proof
-  fix xs ys zs :: "'a lower_pd"
+  fix xs ys zs :: "'a::bifinite lower_pd"
   show "(xs \<union>\<flat> ys) \<union>\<flat> zs = xs \<union>\<flat> (ys \<union>\<flat> zs)"
     apply (induct xs rule: lower_pd.principal_induct, simp)
     apply (induct ys rule: lower_pd.principal_induct, simp)
@@ -273,7 +273,7 @@ lemma lower_pd_induct1:
   assumes unit: "\<And>x. P {x}\<flat>"
   assumes insert:
     "\<And>x ys. \<lbrakk>P {x}\<flat>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<flat> \<union>\<flat> ys)"
-  shows "P (xs::'a lower_pd)"
+  shows "P (xs::'a::bifinite lower_pd)"
 apply (induct xs rule: lower_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: lower_unit_Rep_compact_basis [symmetric])
@@ -288,7 +288,7 @@ lemma lower_pd_induct
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<flat>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<flat> ys)"
-  shows "P (xs::'a lower_pd)"
+  shows "P (xs::'a::bifinite lower_pd)"
 apply (induct xs rule: lower_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: lower_unit_Rep_compact_basis [symmetric] unit)
@@ -300,7 +300,7 @@ subsection \<open>Monadic bind\<close>
 
 definition
   lower_bind_basis ::
-  "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b lower_pd" where
+  "'a::bifinite pd_basis \<Rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b::bifinite lower_pd" where
   "lower_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
     (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<flat> y\<cdot>f)"
@@ -334,7 +334,7 @@ apply simp
 done
 
 definition
-  lower_bind :: "'a lower_pd \<rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b lower_pd" where
+  lower_bind :: "'a::bifinite lower_pd \<rightarrow> ('a \<rightarrow> 'b lower_pd) \<rightarrow> 'b::bifinite lower_pd" where
   "lower_bind = lower_pd.extension lower_bind_basis"
 
 syntax
@@ -371,7 +371,7 @@ by (induct xs, simp_all)
 subsection \<open>Map\<close>
 
 definition
-  lower_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a lower_pd \<rightarrow> 'b lower_pd" where
+  lower_map :: "('a::bifinite \<rightarrow> 'b::bifinite) \<rightarrow> 'a lower_pd \<rightarrow> 'b lower_pd" where
   "lower_map = (\<Lambda> f xs. lower_bind\<cdot>xs\<cdot>(\<Lambda> x. {f\<cdot>x}\<flat>))"
 
 lemma lower_map_unit [simp]:
@@ -479,7 +479,7 @@ qed
 subsection \<open>Join\<close>
 
 definition
-  lower_join :: "'a lower_pd lower_pd \<rightarrow> 'a lower_pd" where
+  lower_join :: "'a::bifinite lower_pd lower_pd \<rightarrow> 'a lower_pd" where
   "lower_join = (\<Lambda> xss. lower_bind\<cdot>xss\<cdot>(\<Lambda> xs. xs))"
 
 lemma lower_join_unit [simp]:

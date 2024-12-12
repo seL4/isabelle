@@ -10,12 +10,9 @@ begin
 
 section \<open>Fixed point operator and admissibility\<close>
 
-default_sort pcpo
-
-
 subsection \<open>Iteration\<close>
 
-primrec iterate :: "nat \<Rightarrow> ('a::cpo \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)"
+primrec iterate :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<rightarrow> ('a \<rightarrow> 'a)"
   where
     "iterate 0 = (\<Lambda> F x. x)"
   | "iterate (Suc n) = (\<Lambda> F x. F\<cdot>(iterate n\<cdot>F\<cdot>x))"
@@ -44,12 +41,12 @@ lemma chain_iterate [simp]: "chain (\<lambda>i. iterate i\<cdot>F\<cdot>\<bottom
 
 subsection \<open>Least fixed point operator\<close>
 
-definition "fix" :: "('a \<rightarrow> 'a) \<rightarrow> 'a"
+definition "fix" :: "('a::pcpo \<rightarrow> 'a) \<rightarrow> 'a"
   where "fix = (\<Lambda> F. \<Squnion>i. iterate i\<cdot>F\<cdot>\<bottom>)"
 
 text \<open>Binder syntax for \<^term>\<open>fix\<close>\<close>
 
-abbreviation fix_syn :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder \<open>\<mu> \<close> 10)
+abbreviation fix_syn :: "('a::pcpo \<Rightarrow> 'a) \<Rightarrow> 'a"  (binder \<open>\<mu> \<close> 10)
   where "fix_syn (\<lambda>x. f x) \<equiv> fix\<cdot>(\<Lambda> x. f x)"
 
 notation (ASCII)
@@ -209,9 +206,11 @@ text \<open>
 \<close>
 
 lemma fix_cprod:
-  "fix\<cdot>(F::'a \<times> 'b \<rightarrow> 'a \<times> 'b) =
-   (\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))),
-    \<mu> y. snd (F\<cdot>(\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))), y)))"
+  fixes F :: "'a::pcpo \<times> 'b::pcpo \<rightarrow> 'a \<times> 'b"
+  shows
+    "fix\<cdot>F =
+     (\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))),
+      \<mu> y. snd (F\<cdot>(\<mu> x. fst (F\<cdot>(x, \<mu> y. snd (F\<cdot>(x, y)))), y)))"
   (is "fix\<cdot>F = (?x, ?y)")
 proof (rule fix_eqI)
   have *: "fst (F\<cdot>(?x, ?y)) = ?x"
@@ -249,8 +248,6 @@ qed
 section "Package for defining recursive functions in HOLCF"
 
 subsection \<open>Pattern-match monad\<close>
-
-default_sort cpo
 
 pcpodef 'a match = "UNIV::(one ++ 'a u) set"
 by simp_all
@@ -340,50 +337,48 @@ by (cases x, simp_all)
 
 subsection \<open>Match functions for built-in types\<close>
 
-default_sort pcpo
-
 definition
-  match_bottom :: "'a \<rightarrow> 'c match \<rightarrow> 'c match"
+  match_bottom :: "'a::pcpo \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_bottom = (\<Lambda> x k. seq\<cdot>x\<cdot>fail)"
 
 definition
-  match_Pair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_Pair :: "'a \<times> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_Pair = (\<Lambda> x k. csplit\<cdot>k\<cdot>x)"
 
 definition
-  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_spair :: "'a::pcpo \<otimes> 'b::pcpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c::pcpo match"
 where
   "match_spair = (\<Lambda> x k. ssplit\<cdot>k\<cdot>x)"
 
 definition
-  match_sinl :: "'a \<oplus> 'b \<rightarrow> ('a \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_sinl :: "'a::pcpo \<oplus> 'b::pcpo \<rightarrow> ('a \<rightarrow> 'c::pcpo match) \<rightarrow> 'c match"
 where
   "match_sinl = (\<Lambda> x k. sscase\<cdot>k\<cdot>(\<Lambda> b. fail)\<cdot>x)"
 
 definition
-  match_sinr :: "'a \<oplus> 'b \<rightarrow> ('b \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_sinr :: "'a::pcpo \<oplus> 'b::pcpo \<rightarrow> ('b \<rightarrow> 'c::pcpo match) \<rightarrow> 'c match"
 where
   "match_sinr = (\<Lambda> x k. sscase\<cdot>(\<Lambda> a. fail)\<cdot>k\<cdot>x)"
 
 definition
-  match_up :: "'a::cpo u \<rightarrow> ('a \<rightarrow> 'c match) \<rightarrow> 'c match"
+  match_up :: "'a u \<rightarrow> ('a \<rightarrow> 'c::pcpo match) \<rightarrow> 'c match"
 where
   "match_up = (\<Lambda> x k. fup\<cdot>k\<cdot>x)"
 
 definition
-  match_ONE :: "one \<rightarrow> 'c match \<rightarrow> 'c match"
+  match_ONE :: "one \<rightarrow> 'c::pcpo match \<rightarrow> 'c match"
 where
   "match_ONE = (\<Lambda> ONE k. k)"
 
 definition
-  match_TT :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
+  match_TT :: "tr \<rightarrow> 'c::pcpo match \<rightarrow> 'c match"
 where
   "match_TT = (\<Lambda> x k. If x then k else fail)"
 
 definition
-  match_FF :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
+  match_FF :: "tr \<rightarrow> 'c::pcpo match \<rightarrow> 'c match"
 where
   "match_FF = (\<Lambda> x k. If x then fail else k)"
 

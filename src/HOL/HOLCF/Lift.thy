@@ -8,15 +8,13 @@ theory Lift
 imports Up
 begin
 
-default_sort type
-
-pcpodef 'a lift = "UNIV :: 'a discr u set"
+pcpodef 'a::type lift = "UNIV :: 'a discr u set"
 by simp_all
 
 lemmas inst_lift_pcpo = Abs_lift_strict [symmetric]
 
 definition
-  Def :: "'a \<Rightarrow> 'a lift" where
+  Def :: "'a::type \<Rightarrow> 'a lift" where
   "Def x = Abs_lift (up\<cdot>(Discr x))"
 
 
@@ -30,7 +28,7 @@ apply (case_tac x)
 apply (simp add: Def_def)
 done
 
-old_rep_datatype "\<bottom>::'a lift" Def
+old_rep_datatype "\<bottom>::'a::type lift" Def
   by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
 text \<open>\<^term>\<open>bottom\<close> and \<^term>\<open>Def\<close>\<close>
@@ -88,7 +86,7 @@ unfolding case_lift_eq by (simp add: cont_Rep_lift)
 subsection \<open>Further operations\<close>
 
 definition
-  flift1 :: "('a \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder \<open>FLIFT \<close> 10)  where
+  flift1 :: "('a::type \<Rightarrow> 'b::pcpo) \<Rightarrow> ('a lift \<rightarrow> 'b)"  (binder \<open>FLIFT \<close> 10)  where
   "flift1 = (\<lambda>f. (\<Lambda> x. case_lift \<bottom> f x))"
 
 translations
@@ -97,7 +95,7 @@ translations
   "\<Lambda>(CONST Def x). t" <= "FLIFT x. t"
 
 definition
-  flift2 :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
+  flift2 :: "('a::type \<Rightarrow> 'b::type) \<Rightarrow> ('a lift \<rightarrow> 'b lift)" where
   "flift2 f = (FLIFT x. Def (f x))"
 
 lemma flift1_Def [simp]: "flift1 f\<cdot>(Def x) = (f x)"

@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  upper_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<sharp>\<close> 50) where
+  upper_le :: "'a::bifinite pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<sharp>\<close> 50) where
   "upper_le = (\<lambda>u v. \<forall>y\<in>Rep_pd_basis v. \<exists>x\<in>Rep_pd_basis u. x \<sqsubseteq> y)"
 
 lemma upper_le_refl [simp]: "t \<le>\<sharp> t"
@@ -72,7 +72,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a upper_pd  (\<open>(\<open>notation=\<open>postfix upper_pd\<close>\<close>'(_')\<sharp>)\<close>) =
+typedef 'a::bifinite upper_pd  (\<open>(\<open>notation=\<open>postfix upper_pd\<close>\<close>'(_')\<sharp>)\<close>) =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
 
@@ -94,7 +94,7 @@ using type_definition_upper_pd below_upper_pd_def
 by (rule upper_le.typedef_ideal_cpo)
 
 definition
-  upper_principal :: "'a pd_basis \<Rightarrow> 'a upper_pd" where
+  upper_principal :: "'a::bifinite pd_basis \<Rightarrow> 'a upper_pd" where
   "upper_principal t = Abs_upper_pd {u. u \<le>\<sharp> t}"
 
 interpretation upper_pd:
@@ -118,16 +118,16 @@ by (rule upper_pd_minimal [THEN bottomI, symmetric])
 subsection \<open>Monadic unit and plus\<close>
 
 definition
-  upper_unit :: "'a \<rightarrow> 'a upper_pd" where
+  upper_unit :: "'a::bifinite \<rightarrow> 'a upper_pd" where
   "upper_unit = compact_basis.extension (\<lambda>a. upper_principal (PDUnit a))"
 
 definition
-  upper_plus :: "'a upper_pd \<rightarrow> 'a upper_pd \<rightarrow> 'a upper_pd" where
+  upper_plus :: "'a::bifinite upper_pd \<rightarrow> 'a upper_pd \<rightarrow> 'a upper_pd" where
   "upper_plus = upper_pd.extension (\<lambda>t. upper_pd.extension (\<lambda>u.
       upper_principal (PDPlus t u)))"
 
 abbreviation
-  upper_add :: "'a upper_pd \<Rightarrow> 'a upper_pd \<Rightarrow> 'a upper_pd"
+  upper_add :: "'a::bifinite upper_pd \<Rightarrow> 'a upper_pd \<Rightarrow> 'a upper_pd"
     (infixl \<open>\<union>\<sharp>\<close> 65) where
   "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
@@ -266,7 +266,7 @@ lemma upper_pd_induct1:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<sharp>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<sharp> \<union>\<sharp> ys)"
-  shows "P (xs::'a upper_pd)"
+  shows "P (xs::'a::bifinite upper_pd)"
 apply (induct xs rule: upper_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: upper_unit_Rep_compact_basis [symmetric])
@@ -281,7 +281,7 @@ lemma upper_pd_induct
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<sharp> ys)"
-  shows "P (xs::'a upper_pd)"
+  shows "P (xs::'a::bifinite upper_pd)"
 apply (induct xs rule: upper_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: upper_unit_Rep_compact_basis [symmetric] unit)
@@ -293,7 +293,7 @@ subsection \<open>Monadic bind\<close>
 
 definition
   upper_bind_basis ::
-  "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b upper_pd" where
+  "'a::bifinite pd_basis \<Rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b::bifinite upper_pd" where
   "upper_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
     (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
@@ -327,7 +327,7 @@ apply simp
 done
 
 definition
-  upper_bind :: "'a upper_pd \<rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b upper_pd" where
+  upper_bind :: "'a::bifinite upper_pd \<rightarrow> ('a \<rightarrow> 'b upper_pd) \<rightarrow> 'b::bifinite upper_pd" where
   "upper_bind = upper_pd.extension upper_bind_basis"
 
 syntax
@@ -364,7 +364,7 @@ by (induct xs, simp_all)
 subsection \<open>Map\<close>
 
 definition
-  upper_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a upper_pd \<rightarrow> 'b upper_pd" where
+  upper_map :: "('a::bifinite \<rightarrow> 'b::bifinite) \<rightarrow> 'a upper_pd \<rightarrow> 'b upper_pd" where
   "upper_map = (\<Lambda> f xs. upper_bind\<cdot>xs\<cdot>(\<Lambda> x. {f\<cdot>x}\<sharp>))"
 
 lemma upper_map_unit [simp]:
@@ -472,7 +472,7 @@ qed
 subsection \<open>Join\<close>
 
 definition
-  upper_join :: "'a upper_pd upper_pd \<rightarrow> 'a upper_pd" where
+  upper_join :: "'a::bifinite upper_pd upper_pd \<rightarrow> 'a upper_pd" where
   "upper_join = (\<Lambda> xss. upper_bind\<cdot>xss\<cdot>(\<Lambda> xs. xs))"
 
 lemma upper_join_unit [simp]:

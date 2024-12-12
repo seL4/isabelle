@@ -8,14 +8,11 @@ theory Compact_Basis
 imports Universal
 begin
 
-default_sort bifinite
-
-
 subsection \<open>A compact basis for powerdomains\<close>
 
-definition "pd_basis = {S::'a compact_basis set. finite S \<and> S \<noteq> {}}"
+definition "pd_basis = {S::'a::bifinite compact_basis set. finite S \<and> S \<noteq> {}}"
 
-typedef 'a pd_basis = "pd_basis :: 'a compact_basis set set"
+typedef 'a::bifinite pd_basis = "pd_basis :: 'a compact_basis set set"
   unfolding pd_basis_def
   apply (rule_tac x="{_}" in exI)
   apply simp
@@ -29,7 +26,7 @@ by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
 
 text \<open>The powerdomain basis type is countable.\<close>
 
-lemma pd_basis_countable: "\<exists>f::'a pd_basis \<Rightarrow> nat. inj f"
+lemma pd_basis_countable: "\<exists>f::'a::bifinite pd_basis \<Rightarrow> nat. inj f"
 proof -
   obtain g :: "'a compact_basis \<Rightarrow> nat" where "inj g"
     using compact_basis.countable ..
@@ -45,11 +42,11 @@ qed
 subsection \<open>Unit and plus constructors\<close>
 
 definition
-  PDUnit :: "'a compact_basis \<Rightarrow> 'a pd_basis" where
+  PDUnit :: "'a::bifinite compact_basis \<Rightarrow> 'a pd_basis" where
   "PDUnit = (\<lambda>x. Abs_pd_basis {x})"
 
 definition
-  PDPlus :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> 'a pd_basis" where
+  PDPlus :: "'a::bifinite pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> 'a pd_basis" where
   "PDPlus t u = Abs_pd_basis (Rep_pd_basis t \<union> Rep_pd_basis u)"
 
 lemma Rep_PDUnit:
@@ -98,7 +95,7 @@ subsection \<open>Fold operator\<close>
 
 definition
   fold_pd ::
-    "('a compact_basis \<Rightarrow> 'b::type) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a pd_basis \<Rightarrow> 'b"
+    "('a::bifinite compact_basis \<Rightarrow> 'b::type) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a pd_basis \<Rightarrow> 'b"
   where "fold_pd g f t = semilattice_set.F f (g ` Rep_pd_basis t)"
 
 lemma fold_pd_PDUnit:

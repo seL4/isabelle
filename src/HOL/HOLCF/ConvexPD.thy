@@ -11,7 +11,7 @@ begin
 subsection \<open>Basis preorder\<close>
 
 definition
-  convex_le :: "'a pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<natural>\<close> 50) where
+  convex_le :: "'a::bifinite pd_basis \<Rightarrow> 'a pd_basis \<Rightarrow> bool" (infix \<open>\<le>\<natural>\<close> 50) where
   "convex_le = (\<lambda>u v. u \<le>\<sharp> v \<and> u \<le>\<flat> v)"
 
 lemma convex_le_refl [simp]: "t \<le>\<natural> t"
@@ -119,7 +119,7 @@ done
 
 subsection \<open>Type definition\<close>
 
-typedef 'a convex_pd  (\<open>(\<open>notation=\<open>postfix convex_pd\<close>\<close>'(_')\<natural>)\<close>) =
+typedef 'a::bifinite convex_pd  (\<open>(\<open>notation=\<open>postfix convex_pd\<close>\<close>'(_')\<natural>)\<close>) =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 
@@ -141,7 +141,7 @@ using type_definition_convex_pd below_convex_pd_def
 by (rule convex_le.typedef_ideal_cpo)
 
 definition
-  convex_principal :: "'a pd_basis \<Rightarrow> 'a convex_pd" where
+  convex_principal :: "'a::bifinite pd_basis \<Rightarrow> 'a convex_pd" where
   "convex_principal t = Abs_convex_pd {u. u \<le>\<natural> t}"
 
 interpretation convex_pd:
@@ -165,16 +165,16 @@ by (rule convex_pd_minimal [THEN bottomI, symmetric])
 subsection \<open>Monadic unit and plus\<close>
 
 definition
-  convex_unit :: "'a \<rightarrow> 'a convex_pd" where
+  convex_unit :: "'a::bifinite \<rightarrow> 'a convex_pd" where
   "convex_unit = compact_basis.extension (\<lambda>a. convex_principal (PDUnit a))"
 
 definition
-  convex_plus :: "'a convex_pd \<rightarrow> 'a convex_pd \<rightarrow> 'a convex_pd" where
+  convex_plus :: "'a::bifinite convex_pd \<rightarrow> 'a convex_pd \<rightarrow> 'a convex_pd" where
   "convex_plus = convex_pd.extension (\<lambda>t. convex_pd.extension (\<lambda>u.
       convex_principal (PDPlus t u)))"
 
 abbreviation
-  convex_add :: "'a convex_pd \<Rightarrow> 'a convex_pd \<Rightarrow> 'a convex_pd"
+  convex_add :: "'a::bifinite convex_pd \<Rightarrow> 'a convex_pd \<Rightarrow> 'a convex_pd"
     (infixl \<open>\<union>\<natural>\<close> 65) where
   "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
@@ -280,7 +280,7 @@ lemma convex_pd_induct1:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<natural>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<natural> \<union>\<natural> ys)"
-  shows "P (xs::'a convex_pd)"
+  shows "P (xs::'a::bifinite convex_pd)"
 apply (induct xs rule: convex_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct1)
 apply (simp only: convex_unit_Rep_compact_basis [symmetric])
@@ -295,7 +295,7 @@ lemma convex_pd_induct
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<natural> ys)"
-  shows "P (xs::'a convex_pd)"
+  shows "P (xs::'a::bifinite convex_pd)"
 apply (induct xs rule: convex_pd.principal_induct, rule P)
 apply (induct_tac a rule: pd_basis_induct)
 apply (simp only: convex_unit_Rep_compact_basis [symmetric] unit)
@@ -307,7 +307,7 @@ subsection \<open>Monadic bind\<close>
 
 definition
   convex_bind_basis ::
-  "'a pd_basis \<Rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b convex_pd" where
+  "'a::bifinite pd_basis \<Rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b::bifinite convex_pd" where
   "convex_bind_basis = fold_pd
     (\<lambda>a. \<Lambda> f. f\<cdot>(Rep_compact_basis a))
     (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<natural> y\<cdot>f)"
@@ -340,7 +340,7 @@ apply (simp add: monofun_LAM monofun_cfun)
 done
 
 definition
-  convex_bind :: "'a convex_pd \<rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b convex_pd" where
+  convex_bind :: "'a::bifinite convex_pd \<rightarrow> ('a \<rightarrow> 'b convex_pd) \<rightarrow> 'b::bifinite convex_pd" where
   "convex_bind = convex_pd.extension convex_bind_basis"
 
 syntax
@@ -378,7 +378,7 @@ by (induct xs, simp_all)
 subsection \<open>Map\<close>
 
 definition
-  convex_map :: "('a \<rightarrow> 'b) \<rightarrow> 'a convex_pd \<rightarrow> 'b convex_pd" where
+  convex_map :: "('a::bifinite \<rightarrow> 'b) \<rightarrow> 'a convex_pd \<rightarrow> 'b::bifinite convex_pd" where
   "convex_map = (\<Lambda> f xs. convex_bind\<cdot>xs\<cdot>(\<Lambda> x. {f\<cdot>x}\<natural>))"
 
 lemma convex_map_unit [simp]:
@@ -486,7 +486,7 @@ qed
 subsection \<open>Join\<close>
 
 definition
-  convex_join :: "'a convex_pd convex_pd \<rightarrow> 'a convex_pd" where
+  convex_join :: "'a::bifinite convex_pd convex_pd \<rightarrow> 'a convex_pd" where
   "convex_join = (\<Lambda> xss. convex_bind\<cdot>xss\<cdot>(\<Lambda> xs. xs))"
 
 lemma convex_join_unit [simp]:
@@ -522,7 +522,7 @@ lemma convex_le_imp_upper_le: "t \<le>\<natural> u \<Longrightarrow> t \<le>\<sh
 unfolding convex_le_def by simp
 
 definition
-  convex_to_upper :: "'a convex_pd \<rightarrow> 'a upper_pd" where
+  convex_to_upper :: "'a::bifinite convex_pd \<rightarrow> 'a upper_pd" where
   "convex_to_upper = convex_pd.extension upper_principal"
 
 lemma convex_to_upper_principal [simp]:
@@ -562,7 +562,7 @@ lemma convex_le_imp_lower_le: "t \<le>\<natural> u \<Longrightarrow> t \<le>\<fl
 unfolding convex_le_def by simp
 
 definition
-  convex_to_lower :: "'a convex_pd \<rightarrow> 'a lower_pd" where
+  convex_to_lower :: "'a::bifinite convex_pd \<rightarrow> 'a lower_pd" where
   "convex_to_lower = convex_pd.extension lower_principal"
 
 lemma convex_to_lower_principal [simp]:

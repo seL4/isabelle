@@ -9,14 +9,12 @@ theory Sprod
   imports Cfun
 begin
 
-default_sort pcpo
-
-
 subsection \<open>Definition of strict product type\<close>
 
-definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
+definition "sprod = {p::'a::pcpo \<times> 'b::pcpo. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 
-pcpodef ('a, 'b) sprod  (\<open>(\<open>notation=\<open>infix strict product\<close>\<close>_ \<otimes>/ _)\<close> [21,20] 20) = "sprod :: ('a \<times> 'b) set"
+pcpodef ('a::pcpo, 'b::pcpo) sprod  (\<open>(\<open>notation=\<open>infix strict product\<close>\<close>_ \<otimes>/ _)\<close> [21,20] 20) =
+  "sprod :: ('a \<times> 'b) set"
   by (simp_all add: sprod_def)
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
@@ -28,16 +26,16 @@ type_notation (ASCII)
 
 subsection \<open>Definitions of constants\<close>
 
-definition sfst :: "('a ** 'b) \<rightarrow> 'a"
+definition sfst :: "('a::pcpo ** 'b::pcpo) \<rightarrow> 'a"
   where "sfst = (\<Lambda> p. fst (Rep_sprod p))"
 
-definition ssnd :: "('a ** 'b) \<rightarrow> 'b"
+definition ssnd :: "('a::pcpo ** 'b::pcpo) \<rightarrow> 'b"
   where "ssnd = (\<Lambda> p. snd (Rep_sprod p))"
 
-definition spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)"
+definition spair :: "'a::pcpo \<rightarrow> 'b::pcpo \<rightarrow> ('a ** 'b)"
   where "spair = (\<Lambda> a b. Abs_sprod (seq\<cdot>b\<cdot>a, seq\<cdot>a\<cdot>b))"
 
-definition ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c"
+definition ssplit :: "('a::pcpo \<rightarrow> 'b::pcpo \<rightarrow> 'c::pcpo) \<rightarrow> ('a ** 'b) \<rightarrow> 'c"
   where "ssplit = (\<Lambda> f p. seq\<cdot>p\<cdot>(f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
 syntax

@@ -353,6 +353,10 @@ text \<open>The class cpo of chain complete partial orders\<close>
 
 class cpo = po +
   assumes cpo: "chain S \<Longrightarrow> \<exists>x. range S <<| x"
+
+default_sort cpo
+
+context cpo
 begin
 
 text \<open>in cpo's everthing equal to THE lub has lub properties for every chain\<close>
@@ -601,7 +605,7 @@ subsection \<open>Definitions\<close>
 definition monofun :: "('a::po \<Rightarrow> 'b::po) \<Rightarrow> bool"  \<comment> \<open>monotonicity\<close>
   where "monofun f \<longleftrightarrow> (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
 
-definition cont :: "('a::cpo \<Rightarrow> 'b::cpo) \<Rightarrow> bool"
+definition cont :: "('a \<Rightarrow> 'b) \<Rightarrow> bool"
   where "cont f = (\<forall>Y. chain Y \<longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i))"
 
 lemma contI: "(\<And>Y. chain Y \<Longrightarrow> range (\<lambda>i. f (Y i)) <<| f (\<Squnion>i. Y i)) \<Longrightarrow> cont f"
@@ -667,7 +671,7 @@ lemma cont2contlubE: "cont f \<Longrightarrow> chain Y \<Longrightarrow> f (\<Sq
   done
 
 lemma contI2:
-  fixes f :: "'a::cpo \<Rightarrow> 'b::cpo"
+  fixes f :: "'a \<Rightarrow> 'b"
   assumes mono: "monofun f"
   assumes below: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk> \<Longrightarrow> f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
   shows "cont f"
@@ -710,7 +714,7 @@ lemma cont_const [simp, cont2cont]: "cont (\<lambda>x. c)"
 text \<open>application of functions is continuous\<close>
 
 lemma cont_apply:
-  fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo" and t :: "'a \<Rightarrow> 'b"
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" and t :: "'a \<Rightarrow> 'b"
   assumes 1: "cont (\<lambda>x. t x)"
   assumes 2: "\<And>x. cont (\<lambda>y. f x y)"
   assumes 3: "\<And>y. cont (\<lambda>x. f x y)"
@@ -769,7 +773,7 @@ lemma cont_finch2finch: "cont f \<Longrightarrow> finite_chain Y \<Longrightarro
 text \<open>All monotone functions with chain-finite domain are continuous.\<close>
 
 lemma chfindom_monofun2cont: "monofun f \<Longrightarrow> cont f"
-  for f :: "'a::chfin \<Rightarrow> 'b::cpo"
+  for f :: "'a::chfin \<Rightarrow> 'b"
   apply (erule contI2)
   apply (frule chfin2finch)
   apply (clarsimp simp add: finite_chain_def)
@@ -794,7 +798,7 @@ lemma flatdom_strict2cont: "f \<bottom> = \<bottom> \<Longrightarrow> cont f"
 text \<open>All functions with discrete domain are continuous.\<close>
 
 lemma cont_discrete_cpo [simp, cont2cont]: "cont f"
-  for f :: "'a::discrete_cpo \<Rightarrow> 'b::cpo"
+  for f :: "'a::discrete_cpo \<Rightarrow> 'b"
   apply (rule contI)
   apply (drule discrete_chain_const, clarify)
   apply simp
@@ -802,9 +806,6 @@ lemma cont_discrete_cpo [simp, cont2cont]: "cont f"
 
 
 section \<open>Admissibility and compactness\<close>
-
-default_sort cpo
-
 
 subsection \<open>Definitions\<close>
 
@@ -833,8 +834,7 @@ subsection \<open>Admissibility on chain-finite types\<close>
 
 text \<open>For chain-finite (easy) types every formula is admissible.\<close>
 
-lemma adm_chfin [simp]: "adm P"
-  for P :: "'a::chfin \<Rightarrow> bool"
+lemma adm_chfin [simp]: "adm P" for P :: "'a::chfin \<Rightarrow> bool"
   by (rule admI, frule chfin, auto simp add: maxinch_is_thelub)
 
 
@@ -947,8 +947,7 @@ lemma compact_below_lub_iff: "compact x \<Longrightarrow> chain Y \<Longrightarr
 
 end
 
-lemma compact_chfin [simp]: "compact x"
-  for x :: "'a::chfin"
+lemma compact_chfin [simp]: "compact x" for x :: "'a::chfin"
   by (rule compactI [OF adm_chfin])
 
 lemma compact_imp_max_in_chain: "chain Y \<Longrightarrow> compact (\<Squnion>i. Y i) \<Longrightarrow> \<exists>i. max_in_chain i Y"
@@ -1002,16 +1001,12 @@ end
 
 instance "fun" :: (type, po) po
 proof
-  fix f :: "'a \<Rightarrow> 'b"
+  fix f g h :: "'a \<Rightarrow> 'b"
   show "f \<sqsubseteq> f"
     by (simp add: below_fun_def)
-next
-  fix f g :: "'a \<Rightarrow> 'b"
-  assume "f \<sqsubseteq> g" and "g \<sqsubseteq> f" then show "f = g"
+  show "f \<sqsubseteq> g \<Longrightarrow> g \<sqsubseteq> f \<Longrightarrow> f = g"
     by (simp add: below_fun_def fun_eq_iff below_antisym)
-next
-  fix f g h :: "'a \<Rightarrow> 'b"
-  assume "f \<sqsubseteq> g" and "g \<sqsubseteq> h" then show "f \<sqsubseteq> h"
+  show "f \<sqsubseteq> g \<Longrightarrow> g \<sqsubseteq> h \<Longrightarrow> f \<sqsubseteq> h"
     unfolding below_fun_def by (fast elim: below_trans)
 qed
 
@@ -1044,14 +1039,14 @@ lemma is_lub_lambda: "(\<And>x. range (\<lambda>i. Y i x) <<| f x) \<Longrightar
   by (simp add: is_lub_def is_ub_def below_fun_def)
 
 lemma is_lub_fun: "chain S \<Longrightarrow> range S <<| (\<lambda>x. \<Squnion>i. S i x)"
-  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo"
+  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b"
   apply (rule is_lub_lambda)
   apply (rule cpo_lubI)
   apply (erule ch2ch_fun)
   done
 
 lemma lub_fun: "chain S \<Longrightarrow> (\<Squnion>i. S i) = (\<lambda>x. \<Squnion>i. S i x)"
-  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo"
+  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b"
   by (rule is_lub_fun [THEN lub_eqI])
 
 instance "fun"  :: (type, cpo) cpo
@@ -1125,7 +1120,7 @@ lemma cont2cont_lambda [simp]:
 text \<open>What D.A.Schmidt calls continuity of abstraction; never used here\<close>
 
 lemma contlub_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> (\<lambda>x. \<Squnion>i. S i x) = (\<Squnion>i. (\<lambda>x. S i x))"
-  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b::cpo"
+  for S :: "nat \<Rightarrow> 'a::type \<Rightarrow> 'b"
   by (simp add: lub_fun ch2ch_lambda)
 
 
@@ -1160,19 +1155,13 @@ end
 
 instance prod :: (po, po) po
 proof
-  fix x :: "'a \<times> 'b"
+  fix x y z :: "'a \<times> 'b"
   show "x \<sqsubseteq> x"
     by (simp add: below_prod_def)
-next
-  fix x y :: "'a \<times> 'b"
-  assume "x \<sqsubseteq> y" "y \<sqsubseteq> x"
-  then show "x = y"
+  show "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
     unfolding below_prod_def prod_eq_iff
     by (fast intro: below_antisym)
-next
-  fix x y z :: "'a \<times> 'b"
-  assume "x \<sqsubseteq> y" "y \<sqsubseteq> z"
-  then show "x \<sqsubseteq> z"
+  show "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
     unfolding below_prod_def
     by (fast intro: below_trans)
 qed
@@ -1238,17 +1227,17 @@ lemma is_lub_Pair: "range A <<| x \<Longrightarrow> range B <<| y \<Longrightarr
   by (simp add: is_lub_def is_ub_def below_prod_def)
 
 lemma lub_Pair: "chain A \<Longrightarrow> chain B \<Longrightarrow> (\<Squnion>i. (A i, B i)) = (\<Squnion>i. A i, \<Squnion>i. B i)"
-  for A :: "nat \<Rightarrow> 'a::cpo" and B :: "nat \<Rightarrow> 'b::cpo"
+  for A :: "nat \<Rightarrow> 'a" and B :: "nat \<Rightarrow> 'b"
   by (fast intro: lub_eqI is_lub_Pair elim: thelubE)
 
 lemma is_lub_prod:
-  fixes S :: "nat \<Rightarrow> ('a::cpo \<times> 'b::cpo)"
+  fixes S :: "nat \<Rightarrow> ('a \<times> 'b)"
   assumes "chain S"
   shows "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
   using assms by (auto elim: prod_chain_cases simp: is_lub_Pair cpo_lubI)
 
 lemma lub_prod: "chain S \<Longrightarrow> (\<Squnion>i. S i) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
-  for S :: "nat \<Rightarrow> 'a::cpo \<times> 'b::cpo"
+  for S :: "nat \<Rightarrow> 'a \<times> 'b"
   by (rule is_lub_prod [THEN lub_eqI])
 
 instance prod :: (cpo, cpo) cpo
@@ -1262,8 +1251,7 @@ qed
 
 instance prod :: (discrete_cpo, discrete_cpo) discrete_cpo
 proof
-  fix x y :: "'a \<times> 'b"
-  show "x \<sqsubseteq> y \<longleftrightarrow> x = y"
+  show "x \<sqsubseteq> y \<longleftrightarrow> x = y" for x y :: "'a \<times> 'b"
     by (simp add: below_prod_def prod_eq_iff)
 qed
 
@@ -1392,12 +1380,10 @@ lemma adm_case_prod [simp]:
 
 subsection \<open>Compactness and chain-finiteness\<close>
 
-lemma fst_below_iff: "fst x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
-  for x :: "'a \<times> 'b"
+lemma fst_below_iff: "fst x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)" for x :: "'a \<times> 'b"
   by (simp add: below_prod_def)
 
-lemma snd_below_iff: "snd x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (fst x, y)"
-  for x :: "'a \<times> 'b"
+lemma snd_below_iff: "snd x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (fst x, y)" for x :: "'a \<times> 'b"
   by (simp add: below_prod_def)
 
 lemma compact_fst: "compact x \<Longrightarrow> compact (fst x)"
@@ -1424,7 +1410,7 @@ instance prod :: (chfin, chfin) chfin
 
 section \<open>Discrete cpo types\<close>
 
-datatype 'a discr = Discr "'a :: type"
+datatype 'a discr = Discr "'a::type"
 
 subsection \<open>Discrete cpo class instance\<close>
 
@@ -1441,7 +1427,7 @@ end
 
 subsection \<open>\emph{undiscr}\<close>
 
-definition undiscr :: "('a::type)discr \<Rightarrow> 'a"
+definition undiscr :: "'a::type discr \<Rightarrow> 'a"
   where "undiscr x = (case x of Discr y \<Rightarrow> y)"
 
 lemma undiscr_Discr [simp]: "undiscr (Discr x) = x"
