@@ -19,8 +19,8 @@ sig
     Brk of int |
     En
   datatype xprod = XProd of string * xsymb list * string * int
+  val fold_delims: (string -> 'a -> 'a) -> xprod -> 'a -> 'a
   val chain_pri: int
-  val delims_of: xprod list -> Symbol.symbol list list
   datatype syn_ext =
     Syn_Ext of {
       xprods: xprod list,
@@ -107,12 +107,9 @@ val index = Argument ("index", 1000);
 
 datatype xprod = XProd of string * xsymb list * string * int;
 
-val chain_pri = ~1;   (*dummy for chain productions*)
+fun fold_delims f (XProd (_, xsymbs, _, _)) = fold (fn Delim s => f s | _ => I) xsymbs;
 
-fun delims_of xprods =
-  fold (fn XProd (_, xsymbs, _, _) =>
-    fold (fn Delim s => insert (op =) s | _ => I) xsymbs) xprods []
-  |> map Symbol.explode;
+val chain_pri = ~1;   (*dummy for chain productions*)
 
 
 

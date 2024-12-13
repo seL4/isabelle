@@ -87,6 +87,7 @@ sig
   val is_literal: lexicon -> string list -> bool
   val literal: lexicon -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
   val empty_lexicon: lexicon
+  val build_lexicon: (lexicon -> lexicon) -> lexicon
   val extend_lexicon: string list -> lexicon -> lexicon
   val make_lexicon: string list list -> lexicon
   val dest_lexicon: lexicon -> string list
@@ -308,6 +309,9 @@ fun drain get stopper scan ((state, xs), src) =
 datatype lexicon = Lexicon of (bool * lexicon) Symtab.table;
 
 val empty_lexicon = Lexicon Symtab.empty;
+
+fun build_lexicon f : lexicon = f empty_lexicon;
+
 fun is_empty_lexicon (Lexicon tab) = Symtab.is_empty tab;
 
 fun is_literal _ [] = false

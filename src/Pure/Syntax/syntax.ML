@@ -360,6 +360,48 @@ fun pretty_flexpair ctxt (t, u) =
 
 
 
+(** keywords **)
+
+abstype keywords = Keywords of Symset.T * Scan.lexicon lazy
+with
+
+val empty_keywords =
+  Keywords (Symset.empty, Lazy.value Scan.empty_lexicon);
+
+fun make_keywords set =
+  let fun lex () = Scan.build_lexicon (set |> Symset.fold (Scan.extend_lexicon o Symbol.explode))
+  in Keywords (set, Lazy.lazy lex) end;
+
+fun add_keywords s (keywords as Keywords (set, lex)) =
+  if Symset.member set s then keywords
+  else
+    let
+      val set' = Symset.insert s set;
+      val lex' = Lazy.map_finished (fn x => Scan.extend_lexicon (Symbol.explode s) x) lex;
+    in Keywords (set', lex') end;
+
+fun merge_keywords (keywords1 as Keywords (set1, lex1), keywords2 as Keywords (set2, lex2)) =
+  if pointer_eq (keywords1, keywords2) then keywords1
+  else if Symset.is_empty set1 then keywords2
+  else if Symset.is_empty set2 then keywords1
+  else if Symset.subset (set1, set2) then keywords2
+  else if Symset.subset (set2, set1) then keywords1
+  else
+    let
+      val set' = Symset.merge (set1, set2);
+      val lex' = Lazy.value (Scan.merge_lexicons (apply2 Lazy.force (lex1, lex2)));
+    in Keywords (set', lex') end;
+
+fun member_keywords (Keywords (set, _)) = Symset.member set;
+
+fun dest_keywords (Keywords (set, _)) = sort_strings (Symset.dest set);
+
+fun tokenize_keywords (Keywords (_, lex)) = Lexicon.tokenize (Lazy.force lex);
+
+end;
+
+
+
 (** tables of translation functions **)
 
 (* parse (ast) translations *)
@@ -417,7 +459,7 @@ fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 datatype syntax =
   Syntax of {
     input: Syntax_Ext.xprod list,
-    lexicon: Scan.lexicon,
+    keywords: keywords,
     gram: Parser.gram Synchronized.cache,
     consts: unit Graph.T,
     prmodes: string list,
@@ -451,8 +493,8 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
 fun is_const (Syntax ({consts, ...}, _)) c =
   Graph.defined consts c andalso not (Lexicon.is_marked c);
 
-fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
-fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
+fun is_keyword (Syntax ({keywords, ...}, _)) = member_keywords keywords;
+fun tokenize (Syntax ({keywords, ...}, _)) = tokenize_keywords keywords;
 fun parse (Syntax ({gram, ...}, _)) = Parser.parse (cache_eval gram);
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
@@ -502,7 +544,7 @@ fun update_consts (c, bs) consts =
 
 val empty_syntax = Syntax
   ({input = [],
-    lexicon = Scan.empty_lexicon,
+    keywords = empty_keywords,
     gram = Synchronized.cache (fn () => Parser.empty_gram),
     consts = Graph.empty,
     prmodes = [],
@@ -519,7 +561,7 @@ val empty_syntax = Syntax
 
 fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
-    val {input, lexicon, gram, consts = consts1, prmodes, parse_ast_trtab, parse_ruletab,
+    val {input, keywords, gram, consts = consts1, prmodes, parse_ast_trtab, parse_ruletab,
       parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
     val Syntax_Ext.Syn_Ext {xprods, consts = consts2, parse_ast_translation,
       parse_rules, parse_translation, print_translation, print_rules,
@@ -530,7 +572,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = new_xprods @ input,
-      lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
+      keywords = (fold o Syntax_Ext.fold_delims) add_keywords new_xprods keywords,
       gram = if null new_xprods then gram else extend_gram new_xprods input gram,
       consts = fold update_consts consts2 consts1,
       prmodes = insert (op =) mode prmodes,
@@ -551,7 +593,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
     val Syntax_Ext.Syn_Ext {xprods, consts = _, parse_ast_translation, parse_rules,
       parse_translation, print_translation, print_rules, print_ast_translation} = syn_ext;
-    val {input, lexicon, gram, consts, prmodes, parse_ast_trtab, parse_ruletab,
+    val {input, keywords, gram, consts, prmodes, parse_ast_trtab, parse_ruletab,
       parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
     val input' = if inout then subtract (op =) xprods input else input;
     val changed = length input <> length input';
@@ -559,7 +601,10 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = input',
-      lexicon = if changed then Scan.make_lexicon (Syntax_Ext.delims_of input') else lexicon,
+      keywords =
+        if changed
+        then make_keywords (Symset.build (input' |> (fold o Syntax_Ext.fold_delims) Symset.insert))
+        else keywords,
       gram = if changed then new_gram input' else gram,
       consts = consts,
       prmodes = prmodes,
@@ -577,12 +622,12 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
 
 fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
   let
-    val {input = input1, lexicon = lexicon1, gram = gram1, consts = consts1,
+    val {input = input1, keywords = keywords1, gram = gram1, consts = consts1,
       prmodes = prmodes1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
       parse_trtab = parse_trtab1, print_trtab = print_trtab1, print_ruletab = print_ruletab1,
       print_ast_trtab = print_ast_trtab1, prtabs = prtabs1} = tabs1;
 
-    val {input = input2, lexicon = lexicon2, gram = gram2, consts = consts2,
+    val {input = input2, keywords = keywords2, gram = gram2, consts = consts2,
       prmodes = prmodes2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
       parse_trtab = parse_trtab2, print_trtab = print_trtab2, print_ruletab = print_ruletab2,
       print_ast_trtab = print_ast_trtab2, prtabs = prtabs2} = tabs2;
@@ -602,7 +647,7 @@ fun merge_syntax (Syntax (tabs1, _), Syntax (tabs2, _)) =
   in
     Syntax
     ({input = input',
-      lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
+      keywords = merge_keywords (keywords1, keywords2),
       gram = gram',
       consts =
         Graph.merge_acyclic (op =) (consts1, consts2)
@@ -629,11 +674,11 @@ fun pretty_strs_qs name strs =
 
 fun pretty_gram (Syntax (tabs, _)) =
   let
-    val {lexicon, prmodes, gram, ...} = tabs;
+    val {keywords, prmodes, gram, ...} = tabs;
     val prmodes' = sort_strings (filter_out (fn s => s = "") prmodes);
   in
     [Pretty.block (Pretty.breaks
-      (Pretty.str "lexicon:" :: map (Pretty.quote o Pretty.keyword1) (Scan.dest_lexicon lexicon))),
+      (Pretty.str "lexicon:" :: map (Pretty.quote o Pretty.keyword1) (dest_keywords keywords))),
       Pretty.big_list "productions:" (Parser.pretty_gram (cache_eval gram)),
       pretty_strs_qs "print modes:" prmodes']
   end;
