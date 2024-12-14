@@ -116,8 +116,7 @@ sig
   val update_const_gram: Proof.context -> bool -> string list ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_consts: Proof.context -> (string * string list) list -> syntax -> syntax
-  val update_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
-  val remove_trrules: Proof.context -> Ast.ast trrule list -> syntax -> syntax
+  val update_trrules: Proof.context -> bool -> Ast.ast trrule list -> syntax -> syntax
   val get_polarity: Proof.context -> bool
   val set_polarity: bool -> Proof.context -> Proof.context
   val set_polarity_generic: bool -> Context.generic -> Context.generic
@@ -774,8 +773,9 @@ fun update_const_gram ctxt add logical_types prmode decls =
 
 val update_consts = update_syntax mode_default oo Syntax_Ext.syn_ext_consts;
 
-fun update_trrules ctxt = update_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
-fun remove_trrules ctxt = remove_syntax mode_default o Syntax_Ext.syn_ext_rules ctxt o check_rules;
+fun update_trrules ctxt add =
+  (if add then update_syntax else remove_syntax) mode_default o
+    Syntax_Ext.syn_ext_rules ctxt o check_rules;
 
 
 (* polarity of declarations: true = add, false = del *)

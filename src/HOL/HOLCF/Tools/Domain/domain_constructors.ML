@@ -488,7 +488,7 @@ fun add_case_combinator
           Syntax.Parse_Rule (case_trans true false) ::
           abscon_trans false @ abscon_trans true
     in
-      val thy = Sign.add_trrules trans_rules thy
+      val thy = Sign.translations_global true trans_rules thy
     end
 
     (* prove beta reduction rule for case combinator *)

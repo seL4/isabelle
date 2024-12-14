@@ -57,7 +57,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     thy
     |> Sign.add_consts (normal_decls @ map #1 transformed_decls)
     |> Sign.syntax_global true Syntax.mode_default (map #2 transformed_decls)
-    |> Sign.add_trrules (maps #3 transformed_decls)
+    |> Sign.translations_global true (maps #3 transformed_decls)
   end
 
 val add_consts = gen_add_consts Sign.certify_typ

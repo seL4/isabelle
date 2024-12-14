@@ -13,8 +13,7 @@ sig
   val print_translation: Input.source -> theory -> theory
   val typed_print_translation: Input.source -> theory -> theory
   val print_ast_translation: Input.source -> theory -> theory
-  val translations: (xstring * string) Syntax.trrule list -> theory -> theory
-  val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
+  val translations: bool -> (string * string) Syntax.trrule list -> theory -> theory
   val syntax_consts: ((string * Position.T) list * (xstring * Position.T) list) list ->
     theory -> theory
   val syntax_types: ((string * Position.T) list * (xstring * Position.T) list) list ->
@@ -98,10 +97,11 @@ fun print_ast_translation source =
 
 (* translation rules *)
 
-val read_trrules = map o Syntax.parse_trrule o Proof_Context.init_global;
-
-fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
-fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
+fun translations add raw_rules thy =
+  let
+    val thy_ctxt = Proof_Context.init_global thy;
+    val rules = map (Syntax.parse_trrule thy_ctxt) raw_rules;
+  in Sign.translations_global add rules thy end;
 
 
 (* syntax consts/types (after translation) *)

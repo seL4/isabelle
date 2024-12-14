@@ -431,11 +431,11 @@ val trans_line =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>translations\<close> "add syntax translation rules"
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations true));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>no_translations\<close> "delete syntax translation rules"
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.no_translations));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations false));
 
 in end\<close>
 

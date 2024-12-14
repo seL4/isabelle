@@ -102,8 +102,7 @@ sig
     (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
   val print_ast_translation:
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
-  val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
-  val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
+  val translations_global: bool -> Ast.ast Syntax.trrule list -> theory -> theory
   val get_scope: theory -> Binding.scope option
   val new_scope: theory -> Binding.scope * theory
   val new_group: theory -> theory
@@ -519,8 +518,7 @@ end;
 
 (* translation rules *)
 
-val add_trrules = update_syn_global Syntax.update_trrules;
-val del_trrules = update_syn_global Syntax.remove_trrules;
+fun translations_global add = update_syn_global (fn ctxt => Syntax.update_trrules ctxt add);
 
 
 (* naming *)

@@ -522,7 +522,7 @@ fun add_pattern_combinators
       val trans_rules : Ast.ast Syntax.trrule list =
           maps one_case_trans (pat_consts ~~ spec);
     in
-      val thy = Sign.add_trrules trans_rules thy;
+      val thy = Sign.translations_global true trans_rules thy;
     end;
 
     (* prove strictness and reduction rules of pattern combinators *)
