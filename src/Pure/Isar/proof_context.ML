@@ -167,6 +167,8 @@ sig
     Proof.context -> Proof.context
   val generic_syntax: bool -> Syntax.mode -> (string * typ * mixfix) list ->
     Context.generic -> Context.generic
+  val translations: bool -> Ast.ast Syntax.trrule list -> Proof.context -> Proof.context
+  val generic_translations: bool -> Ast.ast Syntax.trrule list -> Context.generic -> Context.generic
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val generic_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -1216,6 +1218,18 @@ fun syntax add mode args ctxt =
 
 fun generic_syntax add mode args =
   Context.mapping (Sign.syntax_global add mode args) (syntax add mode args);
+
+
+(* translations *)
+
+fun translations add args ctxt =
+  let
+    val add' = Syntax.effective_polarity ctxt add;
+    val _ = Sign.check_translations ctxt args;
+  in ctxt |> map_syntax (Local_Syntax.translations ctxt add' args) end;
+
+fun generic_translations add args =
+  Context.mapping (Sign.translations_global add args) (translations add args);
 
 
 (* notation *)

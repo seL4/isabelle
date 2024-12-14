@@ -25,6 +25,9 @@ and examples.
 printing, concerning declaration scopes and highlighting of undeclared
 variables.
 
+* Syntax translations now work in a local theory context, notably within
+"bundle begin ... end".
+
 * Syntax translations now support formal dependencies via commands
 'syntax_types' or 'syntax_consts'. This is essentially an abstract
 specification of the effect of 'translations' (or translation functions

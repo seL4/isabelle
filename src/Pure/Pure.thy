@@ -430,12 +430,12 @@ val trans_line =
     >> (fn (left, (arr, right)) => arr (left, right));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>translations\<close> "add syntax translation rules"
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations true));
+  Outer_Syntax.local_theory \<^command_keyword>\<open>translations\<close> "add syntax translation rules"
+    (Scan.repeat1 trans_line >> Local_Theory.translations_cmd true);
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>no_translations\<close> "delete syntax translation rules"
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations false));
+  Outer_Syntax.local_theory \<^command_keyword>\<open>no_translations\<close> "delete syntax translation rules"
+    (Scan.repeat1 trans_line >> Local_Theory.translations_cmd false);
 
 in end\<close>
 

@@ -14,6 +14,7 @@ sig
   datatype kind = Type | Const | Fixed
   val add_syntax: Proof.context -> (kind * (string * typ * mixfix)) list ->
     T -> {structs: string list, fixes: string list} option * T
+  val translations: Proof.context -> bool -> Ast.ast Syntax.trrule list -> T -> T
   val set_mode: Syntax.mode -> T -> T
   val restore_mode: T -> T -> T
   val update_modesyntax: Proof.context -> bool -> Syntax.mode ->
@@ -34,13 +35,15 @@ datatype T = Syntax of
  {thy_syntax: Syntax.syntax,
   local_syntax: Syntax.syntax,
   mode: Syntax.mode,
-  mixfixes: local_mixfix list};
+  mixfixes: local_mixfix list,
+  translations: (bool * Ast.ast Syntax.trrule list) list};
 
-fun make_syntax (thy_syntax, local_syntax, mode, mixfixes) =
-  Syntax {thy_syntax = thy_syntax, local_syntax = local_syntax, mode = mode, mixfixes = mixfixes};
+fun make_syntax (thy_syntax, local_syntax, mode, mixfixes, translations) =
+  Syntax {thy_syntax = thy_syntax, local_syntax = local_syntax, mode = mode,
+    mixfixes = mixfixes, translations = translations};
 
-fun map_syntax f (Syntax {thy_syntax, local_syntax, mode, mixfixes}) =
-  make_syntax (f (thy_syntax, local_syntax, mode, mixfixes));
+fun map_syntax f (Syntax {thy_syntax, local_syntax, mode, mixfixes, translations}) =
+  make_syntax (f (thy_syntax, local_syntax, mode, mixfixes, translations));
 
 fun is_consistent ctxt (Syntax {thy_syntax, ...}) =
   Syntax.eq_syntax (Sign.syntax_of (Proof_Context.theory_of ctxt), thy_syntax);
@@ -50,7 +53,7 @@ fun syntax_of (Syntax {local_syntax, ...}) = local_syntax;
 
 (* build syntax *)
 
-fun build_syntax ctxt mode mixfixes =
+fun build_syntax ctxt mode mixfixes translations =
   let
     val thy = Proof_Context.theory_of ctxt;
     val thy_syntax = Sign.syntax_of thy;
@@ -60,16 +63,17 @@ fun build_syntax ctxt mode mixfixes =
           Syntax.update_const_gram ctxt add (Sign.logical_types thy) mode decls;
 
     val local_syntax = thy_syntax
-      |> fold update_gram (AList.coalesce (op =) (rev (map snd mixfixes)));
-  in make_syntax (thy_syntax, local_syntax, mode, mixfixes) end;
+      |> fold update_gram (AList.coalesce (op =) (rev (map snd mixfixes)))
+      |> fold_rev (uncurry (Syntax.update_trrules ctxt)) translations;
+  in make_syntax (thy_syntax, local_syntax, mode, mixfixes, translations) end;
 
 fun init thy =
   let val thy_syntax = Sign.syntax_of thy
-  in make_syntax (thy_syntax, thy_syntax, Syntax.mode_default, []) end;
+  in make_syntax (thy_syntax, thy_syntax, Syntax.mode_default, [], []) end;
 
-fun rebuild ctxt (syntax as Syntax {mode, mixfixes, ...}) =
+fun rebuild ctxt (syntax as Syntax {mode, mixfixes, translations, ...}) =
   if is_consistent ctxt syntax then syntax
-  else build_syntax ctxt mode mixfixes;
+  else build_syntax ctxt mode mixfixes translations;
 
 
 (* mixfix declarations *)
@@ -93,7 +97,7 @@ fun prep_struct (Fixed, (c, _, Structure _)) = SOME c
 
 in
 
-fun update_syntax ctxt add raw_decls (syntax as (Syntax {mode, mixfixes, ...})) =
+fun update_syntax ctxt add raw_decls (syntax as (Syntax {mode, mixfixes, translations, ...})) =
   (case filter_out (Mixfix.is_empty o #3 o #2) raw_decls of
     [] => (NONE, syntax)
   | decls =>
@@ -109,7 +113,7 @@ fun update_syntax ctxt add raw_decls (syntax as (Syntax {mode, mixfixes, ...})) 
             else subtract (op =) new_structs (#structs idents),
            fixes = fold (fn ({name = x, is_fixed = true}, _) => cons x | _ => I) mixfixes' []};
 
-        val syntax' = build_syntax ctxt mode mixfixes';
+        val syntax' = build_syntax ctxt mode mixfixes' translations;
       in (if idents = idents' then NONE else SOME idents', syntax') end);
 
 fun add_syntax ctxt = update_syntax ctxt true;
@@ -117,10 +121,16 @@ fun add_syntax ctxt = update_syntax ctxt true;
 end;
 
 
+(* translations *)
+
+fun translations ctxt add args (Syntax {thy_syntax, local_syntax, mode, mixfixes, translations}) =
+  (Sign.check_translations ctxt args; build_syntax ctxt mode mixfixes ((add, args) :: translations));
+
+
 (* syntax mode *)
 
-fun set_mode mode = map_syntax (fn (thy_syntax, local_syntax, _, mixfixes) =>
-  (thy_syntax, local_syntax, mode, mixfixes));
+fun set_mode mode = map_syntax (fn (thy_syntax, local_syntax, _, mixfixes, translations) =>
+  (thy_syntax, local_syntax, mode, mixfixes, translations));
 
 fun restore_mode (Syntax {mode, ...}) = set_mode mode;
 

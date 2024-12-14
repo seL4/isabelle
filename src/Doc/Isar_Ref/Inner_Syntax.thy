@@ -1123,8 +1123,8 @@ text \<open>
     @{command_def "no_syntax"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{command_def "syntax_types"} & : & \<open>theory \<rightarrow> theory\<close> \\
     @{command_def "syntax_consts"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def "translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
-    @{command_def "no_translations"} & : & \<open>theory \<rightarrow> theory\<close> \\
+    @{command_def "translations"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+    @{command_def "no_translations"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
     @{attribute_def syntax_ast_trace} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def syntax_ast_stats} & : & \<open>attribute\<close> & default \<open>false\<close> \\
   \end{tabular}

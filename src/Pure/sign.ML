@@ -102,6 +102,8 @@ sig
     (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
   val print_ast_translation:
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
+  val check_translations: Proof.context -> Ast.ast Syntax.trrule list -> unit
+  val translations: Proof.context -> bool -> Ast.ast Syntax.trrule list -> theory -> theory
   val translations_global: bool -> Ast.ast Syntax.trrule list -> theory -> theory
   val get_scope: theory -> Binding.scope option
   val new_scope: theory -> Binding.scope * theory
@@ -518,7 +520,36 @@ end;
 
 (* translation rules *)
 
-fun translations_global add = update_syn_global (fn ctxt => Syntax.update_trrules ctxt add);
+fun check_translations ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+
+    fun err msg = error ("Malformed syntax translations: " ^ msg);
+
+    fun print_const c =
+      uncurry Markup.markup (Name_Space.markup_extern ctxt (const_space thy) c);
+
+    fun check_ast (Ast.Appl asts) = List.app check_ast asts
+      | check_ast (Ast.Variable _) = ()
+      | check_ast (Ast.Constant s) =
+          (case try Lexicon.unmark_fixed s of
+            NONE =>
+              (case try Lexicon.unmark_const s of
+                SOME c =>
+                  if declared_const thy c then ()
+                  else err ("non-global constant " ^ quote (print_const c))
+              | NONE => ())
+          | SOME x => err ("local variable " ^ Syntax.string_of_term ctxt (Syntax.free x)));
+  in List.app (ignore o Syntax.map_trrule (tap check_ast)) end;
+
+fun translations ctxt add args thy =
+  (check_translations ctxt args; map_syn (Syntax.update_trrules ctxt add args) thy);
+
+fun translations_global add args thy =
+  let
+    val thy_ctxt = Proof_Context.init_global thy;
+    val add' = Syntax.effective_polarity thy_ctxt add;
+  in translations thy_ctxt add' args thy end;
 
 
 (* naming *)

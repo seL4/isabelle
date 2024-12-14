@@ -293,6 +293,7 @@ text \<open>
   the polarity of certain declaration commands should be inverted, notably:
 
     \<^item> @{command syntax} versus @{command no_syntax}
+    \<^item> @{command translations} versus @{command no_translations}
     \<^item> @{command notation} versus @{command no_notation}
     \<^item> @{command type_notation} versus @{command no_type_notation}
 
