@@ -98,15 +98,7 @@ fun print_ast_translation source =
 
 (* translation rules *)
 
-fun read_trrules thy raw_rules =
-  let
-    val ctxt = Proof_Context.init_global thy;
-    val read_root =
-      dest_Type_name o Proof_Context.read_type_name {proper = true, strict = false} ctxt;
-  in
-    raw_rules
-    |> map (Syntax.map_trrule (fn (r, s) => Syntax_Phases.parse_ast_pattern ctxt (read_root r, s)))
-  end;
+val read_trrules = map o Syntax.parse_trrule o Proof_Context.init_global;
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
 fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;

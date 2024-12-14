@@ -13,7 +13,6 @@ sig
   val decode_typ: term -> typ
   val decode_term: Proof.context ->
     Position.report_text list * term Exn.result -> Position.report_text list * term Exn.result
-  val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
   val term_of_typ: Proof.context -> typ -> term
   val print_checks: Proof.context -> unit
   val typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
@@ -459,10 +458,14 @@ fun parse_term is_prop ctxt =
   end;
 
 
-(* parse_ast_pattern *)
+(* translation rules *)
 
-fun parse_ast_pattern ctxt (root, str) =
+fun parse_trrule ctxt = Syntax.map_trrule (fn (raw_root, raw_pattern) =>
   let
+    val root = raw_root
+      |> Proof_Context.read_type_name {proper = true, strict = false} ctxt
+      |> dest_Type_name;
+
     val syn = Proof_Context.syntax_of ctxt;
 
     val reports = Unsynchronized.ref ([]: Position.report_text list);
@@ -486,7 +489,7 @@ fun parse_ast_pattern ctxt (root, str) =
           else decode_appl ps asts
       | decode ps (Ast.Appl asts) = decode_appl ps asts;
 
-    val source = Syntax.read_input str;
+    val source = Syntax.read_input raw_pattern;
     val pos = Input.pos_of source;
     val syms = Input.source_explode source;
     val ast =
@@ -494,7 +497,7 @@ fun parse_ast_pattern ctxt (root, str) =
       |> uncurry (report_result ctxt pos)
       |> decode [];
     val _ = Context_Position.reports_text ctxt (! reports);
-  in ast end;
+  in ast end);
 
 
 
@@ -1024,7 +1027,8 @@ end;
 val _ =
   Theory.setup
    (Syntax.install_operations
-     {parse_sort = parse_sort,
+     {parse_trrule = parse_trrule,
+      parse_sort = parse_sort,
       parse_typ = parse_typ,
       parse_term = parse_term false,
       parse_prop = parse_term true,

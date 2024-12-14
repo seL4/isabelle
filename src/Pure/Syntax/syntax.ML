@@ -7,6 +7,10 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature SYNTAX =
 sig
+  datatype 'a trrule =
+    Parse_Rule of 'a * 'a |
+    Print_Rule of 'a * 'a |
+    Parse_Print_Rule of 'a * 'a
   type operations
   val install_operations: operations -> theory -> theory
   val root: string Config.T
@@ -18,6 +22,7 @@ sig
   val read_input: string -> Input.source
   val parse_input: Proof.context -> (XML.tree list -> 'a) ->
     (bool -> Markup.T) -> (Symbol_Pos.T list * Position.T -> 'a) -> string -> 'a
+  val parse_trrule: Proof.context -> (string * string) trrule -> Ast.ast trrule
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -100,10 +105,6 @@ sig
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
-  datatype 'a trrule =
-    Parse_Rule of 'a * 'a |
-    Print_Rule of 'a * 'a |
-    Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val update_trfuns: Proof.context ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
@@ -134,8 +135,14 @@ struct
 
 (* operations *)
 
+datatype 'a trrule =
+  Parse_Rule of 'a * 'a |
+  Print_Rule of 'a * 'a |
+  Parse_Print_Rule of 'a * 'a;
+
 type operations =
- {parse_sort: Proof.context -> string -> sort,
+ {parse_trrule: Proof.context -> (string * string) trrule -> Ast.ast trrule,
+  parse_sort: Proof.context -> string -> sort,
   parse_typ: Proof.context -> string -> typ,
   parse_term: Proof.context -> string -> term,
   parse_prop: Proof.context -> string -> term,
@@ -233,6 +240,7 @@ end;
 
 (* (un)parsing *)
 
+val parse_trrule = operation #parse_trrule;
 val parse_sort = operation #parse_sort;
 val parse_typ = operation #parse_typ;
 val parse_term = operation #parse_term;
@@ -716,11 +724,6 @@ end;
 (** prepare translation rules **)
 
 (* rules *)
-
-datatype 'a trrule =
-  Parse_Rule of 'a * 'a |
-  Print_Rule of 'a * 'a |
-  Parse_Print_Rule of 'a * 'a;
 
 fun map_trrule f (Parse_Rule (x, y)) = Parse_Rule (f x, f y)
   | map_trrule f (Print_Rule (x, y)) = Print_Rule (f x, f y)
