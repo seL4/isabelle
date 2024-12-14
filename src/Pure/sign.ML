@@ -102,6 +102,7 @@ sig
     (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
   val print_ast_translation:
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
+  val check_syntax_dep: Proof.context -> string -> unit
   val check_translations: Proof.context -> Ast.ast Syntax.trrule list -> unit
   val translations: Proof.context -> bool -> Ast.ast Syntax.trrule list -> theory -> theory
   val translations_global: bool -> Ast.ast Syntax.trrule list -> theory -> theory
@@ -520,26 +521,27 @@ end;
 
 (* translation rules *)
 
-fun check_translations ctxt =
+fun check_syntax_dep ctxt s =
   let
     val thy = Proof_Context.theory_of ctxt;
+    fun print_type c = uncurry Markup.markup (Name_Space.markup_extern ctxt (type_space thy) c);
+    fun print_const c = uncurry Markup.markup (Name_Space.markup_extern ctxt (const_space thy) c);
+  in
+    s |> Lexicon.unmark
+     {case_class = K (),
+      case_type = fn c =>
+        if declared_tyname thy c then () else error ("Not a global type: " ^ quote (print_type c)),
+      case_const = fn c =>
+        if declared_const thy c then () else error ("Not a global const: " ^ quote (print_const c)),
+      case_fixed = fn x => error ("Bad local variable: " ^ quote x),
+      case_default = K ()}
+  end;
 
-    fun err msg = error ("Malformed syntax translations: " ^ msg);
-
-    fun print_const c =
-      uncurry Markup.markup (Name_Space.markup_extern ctxt (const_space thy) c);
-
+fun check_translations ctxt =
+  let
     fun check_ast (Ast.Appl asts) = List.app check_ast asts
       | check_ast (Ast.Variable _) = ()
-      | check_ast (Ast.Constant s) =
-          (case try Lexicon.unmark_fixed s of
-            NONE =>
-              (case try Lexicon.unmark_const s of
-                SOME c =>
-                  if declared_const thy c then ()
-                  else err ("non-global constant " ^ quote (print_const c))
-              | NONE => ())
-          | SOME x => err ("local variable " ^ Syntax.string_of_term ctxt (Syntax.free x)));
+      | check_ast (Ast.Constant s) = check_syntax_dep ctxt s;
   in List.app (ignore o Syntax.map_trrule (tap check_ast)) end;
 
 fun translations ctxt add args thy =

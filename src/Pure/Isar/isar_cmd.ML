@@ -15,9 +15,9 @@ sig
   val print_ast_translation: Input.source -> theory -> theory
   val translations: bool -> (string * string) Syntax.trrule list -> theory -> theory
   val syntax_consts: ((string * Position.T) list * (xstring * Position.T) list) list ->
-    theory -> theory
+    local_theory -> local_theory
   val syntax_types: ((string * Position.T) list * (xstring * Position.T) list) list ->
-    theory -> theory
+    local_theory -> local_theory
   val oracle: bstring * Position.range -> Input.source -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} -> Input.source -> local_theory -> local_theory
   val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
@@ -108,15 +108,13 @@ fun translations add raw_rules thy =
 
 local
 
-fun syntax_deps_cmd f args thy =
+fun syntax_deps_cmd f args lthy =
   let
-    val ctxt = Proof_Context.init_global thy;
-
-    val check_lhs = Proof_Context.check_syntax_const ctxt;
+    val check_lhs = Proof_Context.check_syntax_const lthy;
     fun check_rhs (b: xstring, pos: Position.T) =
       let
-        val (c: string, reports) = f ctxt (b, pos);
-        val _ = Context_Position.reports ctxt reports;
+        val (c: string, reports) = f lthy (b, pos);
+        val _ = Context_Position.reports lthy reports;
       in c end;
 
     fun check (raw_lhs, raw_rhs) =
@@ -124,15 +122,15 @@ fun syntax_deps_cmd f args thy =
         val lhs = map check_lhs raw_lhs;
         val rhs = map check_rhs raw_rhs;
       in map (fn l => (l, rhs)) lhs end;
-  in Sign.syntax_deps (maps check args) thy end;
+  in Local_Theory.syntax_deps (maps check args) lthy end;
 
 fun check_const ctxt (s, pos) =
   Proof_Context.check_const {proper = true, strict = false} ctxt (s, [pos])
-  |>> (Term.dest_Const_name #> Lexicon.mark_const);
+  |>> (Term.dest_Const_name #> Lexicon.mark_const #> tap (Sign.check_syntax_dep ctxt));
 
 fun check_type_name ctxt arg =
   Proof_Context.check_type_name {proper = true, strict = false} ctxt arg
-  |>> (Term.dest_Type_name #> Lexicon.mark_type);
+  |>> (Term.dest_Type_name #> Lexicon.mark_type #> tap (Sign.check_syntax_dep ctxt));
 
 in
 

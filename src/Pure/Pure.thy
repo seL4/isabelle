@@ -408,12 +408,12 @@ val syntax_consts =
       Parse.!!! (Scan.repeat1 Parse.name_position));
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>syntax_consts\<close> "declare syntax const dependencies"
-    (syntax_consts >> (Toplevel.theory o Isar_Cmd.syntax_consts));
+  Outer_Syntax.local_theory \<^command_keyword>\<open>syntax_consts\<close> "declare syntax const dependencies"
+    (syntax_consts >> Isar_Cmd.syntax_consts);
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>syntax_types\<close> "declare syntax const dependencies (type names)"
-    (syntax_consts >> (Toplevel.theory o Isar_Cmd.syntax_types));
+  Outer_Syntax.local_theory \<^command_keyword>\<open>syntax_types\<close> "declare syntax const dependencies (type names)"
+    (syntax_consts >> Isar_Cmd.syntax_types);
 
 val trans_pat =
   Scan.optional

@@ -67,6 +67,7 @@ sig
     local_theory -> local_theory
   val syntax_cmd: bool -> Syntax.mode -> (string * string * mixfix) list ->
     local_theory -> local_theory
+  val syntax_deps: (string * string list) list -> Proof.context -> local_theory
   val translations: bool -> Ast.ast Syntax.trrule list -> local_theory -> local_theory
   val translations_cmd: bool -> (string * string) Syntax.trrule list -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
@@ -334,6 +335,10 @@ fun gen_syntax prep_type add mode raw_args lthy =
 
 val syntax = gen_syntax (K I);
 val syntax_cmd = gen_syntax Proof_Context.read_typ_syntax;
+
+fun syntax_deps args =
+  declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
+    (fn _ => Proof_Context.generic_syntax_deps args);
 
 
 (* translations *)
