@@ -537,7 +537,7 @@ fun get_consts (Syntax ({consts, ...}, _)) c =
   then filter (Graph.is_minimal consts) (Graph.all_preds consts [c])
   else [c];
 
-fun update_consts (c, bs) consts =
+fun add_consts (c, bs) consts =
   if c = "" orelse (null bs andalso (Lexicon.is_marked c orelse Graph.defined consts c))
   then consts
   else
@@ -581,7 +581,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     ({input = new_xprods @ input,
       keywords = (fold o Syntax_Ext.fold_delims) add_keywords new_xprods keywords,
       gram = if null new_xprods then gram else extend_gram new_xprods input gram,
-      consts = fold update_consts consts2 consts1,
+      consts = fold add_consts consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
