@@ -498,7 +498,7 @@ fun get_approx (Syntax ({prtabs, ...}, _)) c =
       |> Option.map Prefix);
 
 fun is_const (Syntax ({consts, ...}, _)) c =
-  Graph.defined consts c andalso not (Lexicon.is_marked c);
+  Graph.defined consts c andalso not (Lexicon.is_marked_entity c);
 
 fun is_keyword (Syntax ({keywords, ...}, _)) = member_keywords keywords;
 fun tokenize (Syntax ({keywords, ...}, _)) = tokenize_keywords keywords;
@@ -538,7 +538,7 @@ fun get_consts (Syntax ({consts, ...}, _)) c =
   else [c];
 
 fun add_consts (c, bs) consts =
-  if c = "" orelse (null bs andalso (Lexicon.is_marked c orelse Graph.defined consts c))
+  if c = "" orelse (null bs andalso (Lexicon.is_marked_entity c orelse Graph.defined consts c))
   then consts
   else
     consts

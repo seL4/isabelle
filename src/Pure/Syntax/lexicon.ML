@@ -67,13 +67,13 @@ sig
   val mark_type: string -> string val unmark_type: string -> string val is_type: string -> bool
   val mark_const: string -> string val unmark_const: string -> string val is_const: string -> bool
   val mark_fixed: string -> string val unmark_fixed: string -> string val is_fixed: string -> bool
-  val unmark:
+  val unmark_entity:
    {case_class: string -> 'a,
     case_type: string -> 'a,
     case_const: string -> 'a,
     case_fixed: string -> 'a,
     case_default: string -> 'a} -> string -> 'a
-  val is_marked: string -> bool
+  val is_marked_entity: string -> bool
   val dummy_type: term
   val fun_type: term
 end;
@@ -497,7 +497,7 @@ val (mark_type, unmark_type, is_type) = marker "\<^type>";
 val (mark_const, unmark_const, is_const) = marker "\<^const>";
 val (mark_fixed, unmark_fixed, is_fixed) = marker "\<^fixed>";
 
-fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
+fun unmark_entity {case_class, case_type, case_const, case_fixed, case_default} s =
   (case try unmark_class s of
     SOME c => case_class c
   | NONE =>
@@ -511,8 +511,8 @@ fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
                 SOME c => case_fixed c
               | NONE => case_default s))));
 
-val is_marked =
-  unmark {case_class = K true, case_type = K true, case_const = K true,
+val is_marked_entity =
+  unmark_entity {case_class = K true, case_type = K true, case_const = K true,
     case_fixed = K true, case_default = K false};
 
 val dummy_type = Syntax.const (mark_type "dummy");

@@ -407,7 +407,7 @@ fun extern_const ctxt = Name_Space.extern_if (printable_const ctxt) ctxt (const_
 fun extern_fixed ctxt x = if Name.is_skolem x then Variable.revert_fixed ctxt x else x;
 
 fun extern_entity ctxt =
-  Lexicon.unmark
+  Lexicon.unmark_entity
    {case_class = extern_class ctxt,
     case_type = extern_type ctxt,
     case_const = extern_const ctxt,

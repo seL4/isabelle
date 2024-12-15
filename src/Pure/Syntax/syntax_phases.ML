@@ -66,7 +66,7 @@ fun markup_bound def (ps: Term_Position.T list) (name, id) =
 
 fun markup_entity ctxt c =
   Syntax.get_consts (Proof_Context.syntax_of ctxt) c
-  |> maps (Lexicon.unmark
+  |> maps (Lexicon.unmark_entity
      {case_class = markup_class ctxt,
       case_type = markup_type ctxt,
       case_const = markup_const ctxt,
@@ -722,7 +722,7 @@ fun extern ctxt c =
   (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
     [b] => b
   | bs =>
-      (case filter Lexicon.is_marked bs of
+      (case filter Lexicon.is_marked_entity bs of
         [] => c
       | [b] => b
       | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))

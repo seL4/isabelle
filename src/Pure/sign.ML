@@ -527,7 +527,7 @@ fun check_syntax_dep ctxt s =
     fun print_type c = uncurry Markup.markup (Name_Space.markup_extern ctxt (type_space thy) c);
     fun print_const c = uncurry Markup.markup (Name_Space.markup_extern ctxt (const_space thy) c);
   in
-    s |> Lexicon.unmark
+    s |> Lexicon.unmark_entity
      {case_class = K (),
       case_type = fn c =>
         if declared_tyname thy c then () else error ("Not a global type: " ^ quote (print_type c)),
