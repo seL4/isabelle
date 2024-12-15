@@ -285,6 +285,10 @@ text \<open>
 \<close>
 
 nonterminal tuple_args and patterns
+
+open_bundle tuple_syntax
+begin
+
 syntax
   "_tuple"      :: "'a \<Rightarrow> tuple_args \<Rightarrow> 'a \<times> 'b"        (\<open>(\<open>indent=1 notation=\<open>mixfix tuple\<close>\<close>'(_,/ _'))\<close>)
   "_tuple_arg"  :: "'a \<Rightarrow> tuple_args"                   (\<open>_\<close>)
@@ -309,6 +313,8 @@ translations
      not \<open>pttrn\<close>.\<close>
   "\<lambda>(). b" \<rightleftharpoons> "CONST case_unit b"
   "_abs (CONST Unity) t" \<rightharpoonup> "\<lambda>(). t"
+
+end
 
 text \<open>print \<^term>\<open>case_prod f\<close> as \<^term>\<open>\<lambda>(x, y). f x y\<close> and
   \<^term>\<open>case_prod (\<lambda>x. f x)\<close> as \<^term>\<open>\<lambda>(x, y). f x y\<close>\<close>

@@ -98,19 +98,28 @@ re-use: "unbundle no b" etc.
 * Various HOL declaration bundles support adhoc modification of
 notation, notably like this:
 
-  unbundle no list_syntax
-  unbundle no list_enumeration_syntax
-  unbundle no list_comprehension_syntax
-  unbundle no relcomp_syntax
-  unbundle no converse_syntax
-  unbundle no rtrancl_syntax
-  unbundle no trancl_syntax
-  unbundle no reflcl_syntax
   unbundle no abs_syntax
-  unbundle no floor_ceiling_syntax
-  unbundle no uminus_syntax
   unbundle no binomial_syntax
+  unbundle no converse_syntax
+  unbundle no floor_ceiling_syntax
   unbundle no funcset_syntax
+  unbundle no let_syntax
+  unbundle no list_comprehension_syntax
+  unbundle no list_enumeration_syntax
+  unbundle no list_maplet_syntax
+  unbundle no list_syntax
+  unbundle no list_update_syntax
+  unbundle no maplet_syntax
+  unbundle no prod_list_syntax
+  unbundle no reflcl_syntax
+  unbundle no relcomp_syntax
+  unbundle no rtrancl_syntax
+  unbundle no set_enumeration_syntax
+  unbundle no sum_list_syntax
+  unbundle no trancl_syntax
+  unbundle no tuple_syntax
+  unbundle no uminus_syntax
+  unbundle no update_syntax
 
 This is more robust than individual 'no_syntax' / 'no_notation'
 commands, which need to copy mixfix declarations from elsewhere and thus

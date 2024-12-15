@@ -97,6 +97,10 @@ qed
 end
 
 text \<open>Some syntactic sugar for summing a function over a list:\<close>
+
+open_bundle sum_list_syntax
+begin
+
 syntax (ASCII)
   "_sum_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(\<open>indent=3 notation=\<open>binder SUM\<close>\<close>SUM _<-_. _)\<close> [0, 51, 10] 10)
 syntax
@@ -105,6 +109,8 @@ syntax_consts
   "_sum_list" == sum_list
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Sum>x\<leftarrow>xs. b" == "CONST sum_list (CONST map (\<lambda>x. b) xs)"
+
+end
 
 context
   includes lifting_syntax
@@ -596,6 +602,9 @@ end
 
 text \<open>Some syntactic sugar:\<close>
 
+open_bundle prod_list_syntax
+begin
+
 syntax (ASCII)
   "_prod_list" :: "pttrn => 'a list => 'b => 'b"    (\<open>(\<open>indent=3 notation=\<open>binder PROD\<close>\<close>PROD _<-_. _)\<close> [0, 51, 10] 10)
 syntax
@@ -604,6 +613,8 @@ syntax_consts
   "_prod_list" \<rightleftharpoons> prod_list
 translations \<comment> \<open>Beware of argument permutation!\<close>
   "\<Prod>x\<leftarrow>xs. b" \<rightleftharpoons> "CONST prod_list (CONST map (\<lambda>x. b) xs)"
+
+end
 
 context
   includes lifting_syntax

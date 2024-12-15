@@ -233,6 +233,10 @@ definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
   where "Let s f \<equiv> f s"
 
 nonterminal letbinds and letbind
+
+open_bundle let_syntax
+begin
+
 syntax
   "_bind"       :: "[pttrn, 'a] \<Rightarrow> letbind"              (\<open>(\<open>indent=2 notation=\<open>mixfix let binding\<close>\<close>_ =/ _)\<close> 10)
   ""            :: "letbind \<Rightarrow> letbinds"                 (\<open>_\<close>)
@@ -243,6 +247,8 @@ syntax_consts
 translations
   "_Let (_binds b bs) e"  \<rightleftharpoons> "_Let b (_Let bs e)"
   "let x = a in e"        \<rightleftharpoons> "CONST Let a (\<lambda>x. e)"
+
+end
 
 axiomatization undefined :: 'a
 

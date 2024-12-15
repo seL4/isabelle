@@ -840,6 +840,9 @@ definition fun_upd :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \
 
 nonterminal updbinds and updbind
 
+open_bundle update_syntax
+begin
+
 syntax
   "_updbind" :: "'a \<Rightarrow> 'a \<Rightarrow> updbind"             (\<open>(\<open>indent=2 notation=\<open>mixfix update\<close>\<close>_ :=/ _)\<close>)
   ""         :: "updbind \<Rightarrow> updbinds"             (\<open>_\<close>)
@@ -851,6 +854,8 @@ syntax_consts
 translations
   "_Update f (_updbinds b bs)" \<rightleftharpoons> "_Update (_Update f b) bs"
   "f(x:=y)" \<rightleftharpoons> "CONST fun_upd f x y"
+
+end
 
 (* Hint: to define the sum of two functions (or maps), use case_sum.
          A nice infix syntax could be defined by

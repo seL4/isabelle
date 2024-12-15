@@ -53,14 +53,16 @@ text \<open>List enumeration\<close>
 
 open_bundle list_enumeration_syntax
 begin
+
 syntax
   "_list" :: "args \<Rightarrow> 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix list enumeration\<close>\<close>[_])\<close>)
-end
 syntax_consts
   "_list" \<rightleftharpoons> Cons
 translations
   "[x, xs]" \<rightleftharpoons> "x#[xs]"
   "[x]" \<rightleftharpoons> "x#[]"
+
+end
 
 
 subsection \<open>Basic list processing functions\<close>
@@ -90,7 +92,9 @@ primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a
 "filter P [] = []" |
 "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
 
-text \<open>Special input syntax for filter:\<close>
+open_bundle filter_syntax  \<comment> \<open>Special input syntax for filter\<close>
+begin
+
 syntax (ASCII)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"  (\<open>(\<open>indent=1 notation=\<open>mixfix filter\<close>\<close>[_<-_./ _])\<close>)
 syntax
@@ -99,6 +103,8 @@ syntax_consts
   "_filter" \<rightleftharpoons> filter
 translations
   "[x<-xs . P]" \<rightharpoonup> "CONST filter (\<lambda>x. P) xs"
+
+end
 
 primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
 fold_Nil:  "fold f [] = id" |
@@ -140,6 +146,9 @@ primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow>
 
 nonterminal lupdbinds and lupdbind
 
+open_bundle list_update_syntax
+begin
+
 syntax
   "_lupdbind":: "['a, 'a] => lupdbind"    (\<open>(\<open>indent=2 notation=\<open>mixfix update\<close>\<close>_ :=/ _)\<close>)
   "" :: "lupdbind => lupdbinds"    (\<open>_\<close>)
@@ -151,6 +160,8 @@ syntax_consts
 translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "CONST list_update xs i x"
+
+end
 
 primrec takeWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "takeWhile P [] = []" |

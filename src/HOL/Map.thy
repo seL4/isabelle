@@ -56,6 +56,9 @@ but must only contain \<open>\<mapsto>\<close>, not \<open>:=\<close>, because \
 
 nonterminal maplet and maplets
 
+open_bundle maplet_syntax
+begin
+
 syntax
   "_maplet"  :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /\<mapsto>/ _)\<close>)
   ""         :: "maplet \<Rightarrow> updbind"  (\<open>_\<close>)
@@ -79,6 +82,8 @@ translations
   "_Map (_maplet x y)"  \<leftharpoondown> "_Update (\<lambda>u. CONST None) (_maplet x y)"
   "_Map (_updbinds m (_maplet x y))"  \<leftharpoondown> "_Update (_Map m) (_maplet x y)"
 
+end
+
 
 text \<open>Updating with lists:\<close>
 
@@ -96,6 +101,9 @@ definition map_upds :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a list \<Righta
 
 text \<open>There is also the more specialized update syntax \<open>xs [\<mapsto>] ys\<close> for lists \<open>xs\<close> and \<open>ys\<close>.\<close>
 
+open_bundle list_maplet_syntax
+begin
+
 syntax
   "_maplets"  :: "['a, 'a] \<Rightarrow> maplet"  (\<open>(\<open>open_block notation=\<open>mixfix maplet\<close>\<close>_ /[\<mapsto>]/ _)\<close>)
 
@@ -110,6 +118,8 @@ translations
 
   "_Map (_maplets xs ys)"  \<leftharpoondown> "_Update (\<lambda>u. CONST None) (_maplets xs ys)"
   "_Map (_updbinds m (_maplets xs ys))"  \<leftharpoondown> "_Update (_Map m) (_maplets xs ys)"
+
+end
 
 
 subsection \<open>@{term [source] empty}\<close>

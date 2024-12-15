@@ -156,6 +156,9 @@ abbreviation empty :: "'a set" (\<open>{}\<close>)
 definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
   where insert_compr: "insert a B = {x. x = a \<or> x \<in> B}"
 
+open_bundle set_enumeration_syntax
+begin
+
 syntax
   "_Finset" :: "args \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set enumeration\<close>\<close>{_})\<close>)
 syntax_consts
@@ -163,6 +166,8 @@ syntax_consts
 translations
   "{x, xs}" \<rightleftharpoons> "CONST insert x {xs}"
   "{x}" \<rightleftharpoons> "CONST insert x {}"
+
+end
 
 
 subsection \<open>Subsets and bounded quantifiers\<close>
