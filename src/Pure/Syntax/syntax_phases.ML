@@ -476,7 +476,7 @@ fun parse_trrule ctxt = Syntax.map_trrule (fn (raw_root, raw_pattern) =>
     fun decode_const ps c = (report ps markup_cache c; Ast.Constant c);
     fun decode_var ps x = (report ps (fn () => [Markup.name x Markup.free]) (); Ast.Variable x);
     fun decode_appl ps asts = Ast.Appl (map (decode ps) asts)
-    and decode ps (Ast.Constant c) = decode_const ps c
+    and decode _ (ast as Ast.Constant _) = ast
       | decode ps (Ast.Variable x) =
           if Syntax.is_const syn x orelse Long_Name.is_qualified x
           then decode_const ps x
