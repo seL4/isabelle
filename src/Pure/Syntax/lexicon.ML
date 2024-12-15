@@ -511,9 +511,8 @@ fun unmark_entity {case_class, case_type, case_const, case_fixed, case_default} 
                 SOME c => case_fixed c
               | NONE => case_default s))));
 
-val is_marked_entity =
-  unmark_entity {case_class = K true, case_type = K true, case_const = K true,
-    case_fixed = K true, case_default = K false};
+fun is_marked_entity s =
+  is_class s orelse is_type s orelse is_const s orelse is_fixed s;
 
 val dummy_type = Syntax.const (mark_type "dummy");
 val fun_type = Syntax.const (mark_type "fun");
