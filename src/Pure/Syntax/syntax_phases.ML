@@ -718,16 +718,6 @@ end;
 
 local
 
-fun extern ctxt c =
-  (case Syntax.get_consts (Proof_Context.syntax_of ctxt) c of
-    [b] => b
-  | bs =>
-      (case filter Lexicon.is_marked_entity bs of
-        [] => c
-      | [b] => b
-      | _ => error ("Multiple logical entities for " ^ quote c ^ ": " ^ commas_quote bs)))
-  |> Proof_Context.extern_entity ctxt;
-
 fun pretty_free ctxt x =
   Pretty.marks_str (markup_free ctxt x, Proof_Context.extern_fixed ctxt x);
 
@@ -777,7 +767,10 @@ fun unparse_t t_to_ast pretty_flags language_markup ctxt0 t =
 
     val pretty_entity_cache =
       Symtab.apply_unsynchronized_cache (fn a =>
-        Pretty.marks_str (markup_entity ctxt a, extern ctxt a));
+        let
+          val m1 = if Syntax.is_const syn a then [Markup.bad ()] else [];
+          val m2 = markup_entity ctxt a;
+        in Pretty.marks_str (m1 @ m2, Proof_Context.extern_entity ctxt a) end);
 
     val cache1 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
     val cache2 = Unsynchronized.ref (Ast.Table.empty: Markup.output Pretty.block Ast.Table.table);
