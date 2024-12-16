@@ -11,10 +11,10 @@ object Component_SQLite {
   /* build sqlite */
 
   val default_main_url =
-    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.2.0/sqlite-jdbc-3.45.2.0.jar"
+    "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.47.1.0/sqlite-jdbc-3.47.1.0.jar"
 
   val default_logger_url =
-    "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+    "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
 
   private def jar_name(url: String): String = {
     Url.get_base_name(url, suffix = ".jar") getOrElse
