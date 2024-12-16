@@ -32,7 +32,7 @@ object Component_Zstd {
 
   val license_url = "https://raw.githubusercontent.com/luben/zstd-jni/master/LICENSE"
   val default_download_url = "https://repo1.maven.org/maven2/com/github/luben/zstd-jni"
-  val default_version = "1.5.5-4"
+  val default_version = "1.5.6-8"
 
   def build_zstd(
     target_dir: Path = Path.current,
