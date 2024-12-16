@@ -47,6 +47,7 @@ sources = \
   src/Pure/Admin/component_vampire.scala \
   src/Pure/Admin/component_verit.scala \
   src/Pure/Admin/component_windows_app.scala \
+  src/Pure/Admin/component_xz.scala \
   src/Pure/Admin/component_zipperposition.scala \
   src/Pure/Admin/component_zstd.scala \
   src/Pure/Admin/isabelle_cronjob.scala \
