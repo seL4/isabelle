@@ -415,6 +415,18 @@ lemma nat_uint_eq [simp]:
   \<open>nat (uint w) = unat w\<close>
   by transfer simp
 
+lemma nat_of_natural_unsigned_eq [simp]:
+  \<open>nat_of_natural (unsigned w) = unat w\<close>
+  by transfer simp
+
+lemma int_of_integer_unsigned_eq [simp]:
+  \<open>int_of_integer (unsigned w) = uint w\<close>
+  by transfer simp
+
+lemma int_of_integer_signed_eq [simp]:
+  \<open>int_of_integer (signed w) = sint w\<close>
+  by transfer simp
+
 lemma sgn_uint_eq [simp]:
   \<open>sgn (uint w) = of_bool (w \<noteq> 0)\<close>
   by transfer (simp add: less_le)
