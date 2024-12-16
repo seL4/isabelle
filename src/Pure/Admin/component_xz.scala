@@ -79,7 +79,7 @@ Usage: isabelle component_xz [OPTIONS]
     -U URL       download URL (default: """ + quote(default_download_url) + """)
     -V VERSION   version (default: """ + quote(default_version) + """)
 
-  Build zxz-java component from the specified download base URL and VERSION,
+  Build xz-java component from the specified download base URL and VERSION,
   see also """ + main_url + "\n",
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "S:" -> (arg => source_url = arg),
