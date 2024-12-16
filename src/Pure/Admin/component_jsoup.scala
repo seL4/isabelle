@@ -11,7 +11,7 @@ object Component_Jsoup {
   /* build jsoup */
 
   val default_download_url =
-    "https://repo1.maven.org/maven2/org/jsoup/jsoup/1.17.2/jsoup-1.17.2.jar"
+    "https://repo1.maven.org/maven2/org/jsoup/jsoup/1.18.3/jsoup-1.18.3.jar"
 
   def build_jsoup(
     download_url: String = default_download_url,
