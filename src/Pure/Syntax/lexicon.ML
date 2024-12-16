@@ -52,7 +52,7 @@ sig
   val explode_string: string * Position.T -> Symbol_Pos.T list
   val implode_str: Symbol.symbol list -> string
   val explode_str: string * Position.T -> Symbol_Pos.T list
-  val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
+  val tokenize: Scan.lexicon -> {raw: bool} -> Symbol_Pos.T list -> token list
   val read_indexname: string -> indexname
   val read_var: string -> term
   val read_variable: string -> indexname option
@@ -312,10 +312,10 @@ fun token kind =
   let val i = token_kind_index kind
   in fn ss => Token (i, Symbol_Pos.content ss, Symbol_Pos.range ss) end;
 
-fun tokenize lex xids syms =
+fun tokenize lex {raw} syms =
   let
-    val scan_xid =
-      (if xids then $$$ "_" @@@ scan_id || scan_id else scan_id) ||
+    val scan_id =
+      (if raw then $$$ "_" @@@ scan_id || scan_id else scan_id) ||
       $$$ "_" @@@ $$$ "_";
 
     val scan_val =
@@ -325,7 +325,7 @@ fun tokenize lex xids syms =
       Symbol_Pos.scan_float >> token Float ||
       scan_num >> token Num ||
       scan_longid >> token Long_Ident ||
-      scan_xid >> token Ident;
+      scan_id >> token Ident;
 
     val scan_lit = Scan.literal lex >> token Literal;
 
