@@ -12,12 +12,14 @@ import isabelle._
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   MouseEvent, MouseAdapter}
-import javax.swing.JComponent
+import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 import scala.swing.event.ButtonClicked
+
+import com.formdev.flatlaf.ui.FlatSplitPaneUI
 
 import org.gjt.sp.jedit.View
 
@@ -114,6 +116,37 @@ class Output_Area(view: View, root_name: String = "Search results") {
       leftComponent = tree_pane
       rightComponent = text_pane
     }
+
+  def split_pane_layout(open: Boolean = false): Unit = {
+    split_pane.peer.getUI match {
+      case ui: FlatSplitPaneUI =>
+        val div = ui.getDivider
+
+        // operations from protected FlatSplitPaneUI.FlatSplitPaneDivider
+        val left_collapsed =
+          Untyped.the_method(div.getClass, "isLeftCollapsed").invoke(div) == java.lang.Boolean.TRUE
+        val right_collapsed =
+          Untyped.the_method(div.getClass, "isRightCollapsed").invoke(div) == java.lang.Boolean.TRUE
+
+        def click(i: Int): Unit = {
+          val comp =
+            try { div.getComponent(i) }
+            catch { case _: ArrayIndexOutOfBoundsException => null }
+          comp match {
+            case button: JButton => button.doClick()
+            case _ =>
+          }
+        }
+
+        if (open && left_collapsed) click(1)
+        else if (open && right_collapsed || !open && !left_collapsed) click(0)
+        else if (!open && right_collapsed) {
+          click(0)
+          GUI_Thread.later { click(0) }  // FIXME!?
+        }
+      case _ =>
+    }
+  }
 
   def setup(parent: JComponent): Unit = {
     parent.addComponentListener(component_listener)
