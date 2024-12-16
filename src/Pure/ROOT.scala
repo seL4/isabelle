@@ -29,4 +29,3 @@ package object isabelle {
   def if_proper[A](x: Iterable[A], body: => String): String = Library.if_proper(x, body)
   def if_proper(b: Boolean, body: => String): String = Library.if_proper(b, body)
 }
-
