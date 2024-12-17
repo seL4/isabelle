@@ -23,7 +23,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* output text area */
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area =
+    new Output_Area(view) {
+      override def handle_shown(): Unit = split_pane_layout()
+    }
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 

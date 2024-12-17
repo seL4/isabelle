@@ -27,8 +27,11 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* output area */
 
-  private val output: Output_Area =
-    new Output_Area(view) { override def handle_update(): Unit = dockable.handle_update(true) }
+  val output: Output_Area =
+    new Output_Area(view) {
+      override def handle_update(): Unit = dockable.handle_update(true)
+      override def handle_shown(): Unit = split_pane_layout()
+    }
 
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation

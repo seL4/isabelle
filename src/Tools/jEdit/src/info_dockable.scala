@@ -70,7 +70,11 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* output text area */
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area =
+    new Output_Area(view) {
+      override def handle_shown(): Unit = split_pane_layout()
+    }
+
   output.pretty_text_area.update(snapshot, results, info)
 
   private val controls = Wrap_Panel(output.pretty_text_area.search_zoom_components)

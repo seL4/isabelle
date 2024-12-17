@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
-  MouseEvent, MouseAdapter}
+  HierarchyListener, HierarchyEvent, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 
@@ -37,7 +37,13 @@ class Output_Area(view: View, root_name: String = "Search results") {
   val tree: Tree_View =
     new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
+  private var search_activated = false
+
   def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
+    if (!search_activated && search.pattern.isDefined) {
+      search_activated = true
+      delay_shown.invoke()
+    }
     tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
     tree.revalidate()
   }
@@ -67,6 +73,23 @@ class Output_Area(view: View, root_name: String = "Search results") {
   /* handle events */
 
   def handle_focus(): Unit = ()
+  def handle_shown(): Unit = ()
+
+  lazy val delay_shown: Delay =
+    Delay.first(PIDE.session.input_delay, gui = true) { handle_shown() }
+
+  private lazy val hierarchy_listener =
+    new HierarchyListener {
+      override def hierarchyChanged(e: HierarchyEvent): Unit = {
+        val displayed =
+          (e.getChangeFlags & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0 &&
+            e.getComponent.isDisplayable
+        val shown =
+          (e.getChangeFlags & HierarchyEvent.SHOWING_CHANGED) != 0 &&
+            e.getComponent.isShowing
+        if (displayed || shown) delay_shown.invoke()
+      }
+    }
 
   private lazy val component_listener =
     new ComponentAdapter {
@@ -117,7 +140,7 @@ class Output_Area(view: View, root_name: String = "Search results") {
       rightComponent = text_pane
     }
 
-  def split_pane_layout(open: Boolean = false): Unit = {
+  def split_pane_layout(open: Boolean = search_activated): Unit = {
     split_pane.peer.getUI match {
       case ui: FlatSplitPaneUI =>
         val div = ui.getDivider
@@ -149,6 +172,7 @@ class Output_Area(view: View, root_name: String = "Search results") {
   }
 
   def setup(parent: JComponent): Unit = {
+    parent.addHierarchyListener(hierarchy_listener)
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
     tree.addMouseListener(mouse_listener)
@@ -161,5 +185,8 @@ class Output_Area(view: View, root_name: String = "Search results") {
     handle_resize()
   }
 
-  def exit(): Unit = delay_resize.revoke()
+  def exit(): Unit = {
+    delay_resize.revoke()
+    delay_shown.revoke()
+  }
 }
