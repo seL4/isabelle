@@ -14,12 +14,11 @@ import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEven
   HierarchyListener, HierarchyEvent, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
+import javax.swing.plaf.basic.BasicSplitPaneUI
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 import scala.swing.event.ButtonClicked
-
-import com.formdev.flatlaf.ui.FlatSplitPaneUI
 
 import org.gjt.sp.jedit.View
 
@@ -142,14 +141,22 @@ class Output_Area(view: View, root_name: String = "Search results") {
 
   def split_pane_layout(open: Boolean = search_activated): Unit = {
     split_pane.peer.getUI match {
-      case ui: FlatSplitPaneUI =>
+      case ui: BasicSplitPaneUI =>
         val div = ui.getDivider
 
-        // operations from protected FlatSplitPaneUI.FlatSplitPaneDivider
-        val left_collapsed =
-          Untyped.the_method(div.getClass, "isLeftCollapsed").invoke(div) == java.lang.Boolean.TRUE
-        val right_collapsed =
-          Untyped.the_method(div.getClass, "isRightCollapsed").invoke(div) == java.lang.Boolean.TRUE
+        val orientation = split_pane.orientation
+        val location = split_pane.dividerLocation
+        val insets = split_pane.peer.getInsets
+
+        val (left_collapsed, right_collapsed) =
+          if (orientation == Orientation.Vertical) {
+            (location == insets.left,
+              location == (split_pane.peer.getWidth - div.getWidth - insets.right))
+          }
+          else {
+            (location == insets.top,
+              location == (split_pane.peer.getHeight - div.getHeight - insets.bottom))
+          }
 
         def click(i: Int): Unit = {
           val comp =
