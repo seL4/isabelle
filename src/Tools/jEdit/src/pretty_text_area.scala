@@ -50,19 +50,20 @@ object Pretty_Text_Area {
       s ++= ":</b> "
 
       val line_start = line_range.start
-      val search_range = Text.Range(line_start, line_start + line_text.length)
+      val plain_text = line_text.replace('\t',' ').trim
+      val search_range = Text.Range(line_start, line_start + plain_text.length)
       var last = 0
       for (range <- JEdit_Lib.search_text(buffer, search_range, regex)) {
         val next = range.start - line_start
-        if (last < next) s ++= line_text.substring(last, next)
+        if (last < next) s ++= plain_text.substring(last, next)
         s ++= "<span style=\""
         s ++= highlight_style
         s ++= "\">"
-        s ++= line_text.substring(next, next + range.length)
+        s ++= plain_text.substring(next, next + range.length)
         s ++= "</span>"
         last = range.stop - line_start
       }
-      if (last < line_text.length) s ++= line_text.substring(last)
+      if (last < plain_text.length) s ++= plain_text.substring(last)
       s ++= "</html>"
     }
     override def toString: String = gui_text
