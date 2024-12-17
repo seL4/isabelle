@@ -58,16 +58,33 @@ lemma upper_le_induct [induct set: upper_le]:
   assumes 2: "\<And>t u a. P t (PDUnit a) \<Longrightarrow> P (PDPlus t u) (PDUnit a)"
   assumes 3: "\<And>t u v. \<lbrakk>P t u; P t v\<rbrakk> \<Longrightarrow> P t (PDPlus u v)"
   shows "P t u"
-using le apply (induct u arbitrary: t rule: pd_basis_induct)
-apply (erule rev_mp)
-apply (induct_tac t rule: pd_basis_induct)
-apply (simp add: 1)
-apply (simp add: upper_le_PDPlus_PDUnit_iff)
-apply (simp add: 2)
-apply (subst PDPlus_commute)
-apply (simp add: 2)
-apply (simp add: upper_le_PDPlus_iff 3)
-done
+  using le
+proof (induct u arbitrary: t rule: pd_basis_induct)
+  case (PDUnit a)
+  then show ?case
+  proof (induct t rule: pd_basis_induct)
+    case PDUnit
+    then show ?case by (simp add: 1)
+  next
+    case (PDPlus t u)
+    from PDPlus(3) consider (t) "t \<le>\<sharp> PDUnit a" | (u) "u \<le>\<sharp> PDUnit a"
+      by (auto simp: upper_le_PDPlus_PDUnit_iff)
+    then show ?case
+    proof cases
+      case t
+      then have "P t (PDUnit a)" by (rule PDPlus(1))
+      then show ?thesis by (rule 2)
+    next
+      case u
+      then have "P u (PDUnit a)" by (rule PDPlus(2))
+      then have "P (PDPlus u t) (PDUnit a)" by (rule 2)
+      then show ?thesis by (simp only: PDPlus_commute)
+    qed
+  qed
+next
+  case (PDPlus t t' u)
+  then show ?case by (simp add: upper_le_PDPlus_iff 3)
+qed
 
 
 subsection \<open>Type definition\<close>
@@ -267,26 +284,41 @@ lemma upper_pd_induct1:
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<sharp>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<sharp> \<union>\<sharp> ys)"
   shows "P (xs::'a::bifinite upper_pd)"
-apply (induct xs rule: upper_pd.principal_induct, rule P)
-apply (induct_tac a rule: pd_basis_induct1)
-apply (simp only: upper_unit_Rep_compact_basis [symmetric])
-apply (rule unit)
-apply (simp only: upper_unit_Rep_compact_basis [symmetric]
-                  upper_plus_principal [symmetric])
-apply (erule insert [OF unit])
-done
+proof (induct xs rule: upper_pd.principal_induct)
+  have *: "P {Rep_compact_basis a}\<sharp>" for a
+    by (rule unit)
+  show "P (upper_principal a)" for a
+  proof (induct a rule: pd_basis_induct1)
+    case (PDUnit a)
+    with * show ?case
+      by (simp only: upper_unit_Rep_compact_basis [symmetric])
+  next
+    case (PDPlus a t)
+    with * have "P ({Rep_compact_basis a}\<sharp> \<union>\<sharp> upper_principal t)"
+      by (rule insert)
+    then show ?case
+      by (simp only: upper_unit_Rep_compact_basis [symmetric]
+          upper_plus_principal [symmetric])
+  qed
+qed (rule P)
 
-lemma upper_pd_induct
-  [case_names adm upper_unit upper_plus, induct type: upper_pd]:
+lemma upper_pd_induct [case_names adm upper_unit upper_plus, induct type: upper_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<sharp>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<sharp> ys)"
   shows "P (xs::'a::bifinite upper_pd)"
-apply (induct xs rule: upper_pd.principal_induct, rule P)
-apply (induct_tac a rule: pd_basis_induct)
-apply (simp only: upper_unit_Rep_compact_basis [symmetric] unit)
-apply (simp only: upper_plus_principal [symmetric] plus)
-done
+proof (induct xs rule: upper_pd.principal_induct)
+  show "P (upper_principal a)" for a
+  proof (induct a rule: pd_basis_induct)
+    case PDUnit
+    then show ?case
+      by (simp only: upper_unit_Rep_compact_basis [symmetric] unit)
+  next
+    case PDPlus
+    then show ?case
+      by (simp only: upper_plus_principal [symmetric] plus)
+  qed
+qed (rule P)
 
 
 subsection \<open>Monadic bind\<close>

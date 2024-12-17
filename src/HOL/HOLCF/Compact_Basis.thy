@@ -68,7 +68,7 @@ unfolding Rep_pd_basis_inject [symmetric] Rep_PDPlus by (rule Un_commute)
 lemma PDPlus_absorb: "PDPlus t t = t"
 unfolding Rep_pd_basis_inject [symmetric] Rep_PDPlus by (rule Un_absorb)
 
-lemma pd_basis_induct1:
+lemma pd_basis_induct1 [case_names PDUnit PDPlus]:
   assumes PDUnit: "\<And>a. P (PDUnit a)"
   assumes PDPlus: "\<And>a t. P t \<Longrightarrow> P (PDPlus (PDUnit a) t)"
   shows "P x"
@@ -87,7 +87,7 @@ proof (induct x)
   qed
 qed
 
-lemma pd_basis_induct:
+lemma pd_basis_induct [case_names PDUnit PDPlus]:
   assumes PDUnit: "\<And>a. P (PDUnit a)"
   assumes PDPlus: "\<And>t u. \<lbrakk>P t; P u\<rbrakk> \<Longrightarrow> P (PDPlus t u)"
   shows "P x"
