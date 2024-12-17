@@ -13,29 +13,28 @@ subsection \<open>A compact basis for powerdomains\<close>
 definition "pd_basis = {S::'a::bifinite compact_basis set. finite S \<and> S \<noteq> {}}"
 
 typedef 'a::bifinite pd_basis = "pd_basis :: 'a compact_basis set set"
-  unfolding pd_basis_def
-  apply (rule_tac x="{_}" in exI)
-  apply simp
-  done
+proof
+  show "{a} \<in> ?pd_basis" for a
+    by (simp add: pd_basis_def)
+qed
 
 lemma finite_Rep_pd_basis [simp]: "finite (Rep_pd_basis u)"
-by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
+using Rep_pd_basis [of u, unfolded pd_basis_def] by simp
 
 lemma Rep_pd_basis_nonempty [simp]: "Rep_pd_basis u \<noteq> {}"
-by (insert Rep_pd_basis [of u, unfolded pd_basis_def]) simp
+using Rep_pd_basis [of u, unfolded pd_basis_def] by simp
 
 text \<open>The powerdomain basis type is countable.\<close>
 
-lemma pd_basis_countable: "\<exists>f::'a::bifinite pd_basis \<Rightarrow> nat. inj f"
+lemma pd_basis_countable: "\<exists>f::'a::bifinite pd_basis \<Rightarrow> nat. inj f" (is "Ex ?P")
 proof -
   obtain g :: "'a compact_basis \<Rightarrow> nat" where "inj g"
     using compact_basis.countable ..
-  hence image_g_eq: "\<And>A B. g ` A = g ` B \<longleftrightarrow> A = B"
+  hence image_g_eq: "g ` A = g ` B \<longleftrightarrow> A = B" for A B
     by (rule inj_image_eq_iff)
   have "inj (\<lambda>t. set_encode (g ` Rep_pd_basis t))"
     by (simp add: inj_on_def set_encode_eq image_g_eq Rep_pd_basis_inject)
-  thus ?thesis by - (rule exI)
-  (* FIXME: why doesn't ".." or "by (rule exI)" work? *)
+  thus ?thesis by (rule exI [of ?P])
 qed
 
 
@@ -73,22 +72,26 @@ lemma pd_basis_induct1:
   assumes PDUnit: "\<And>a. P (PDUnit a)"
   assumes PDPlus: "\<And>a t. P t \<Longrightarrow> P (PDPlus (PDUnit a) t)"
   shows "P x"
-apply (induct x, unfold pd_basis_def, clarify)
-apply (erule (1) finite_ne_induct)
-apply (cut_tac a=x in PDUnit)
-apply (simp add: PDUnit_def)
-apply (drule_tac a=x in PDPlus)
-apply (simp add: PDUnit_def PDPlus_def
-  Abs_pd_basis_inverse [unfolded pd_basis_def])
-done
+proof (induct x)
+  case (Abs_pd_basis y)
+  then have "finite y" and "y \<noteq> {}" by (simp_all add: pd_basis_def)
+  then show ?case
+  proof (induct rule: finite_ne_induct)
+    case (singleton x)
+    show ?case by (rule PDUnit [unfolded PDUnit_def])
+  next
+    case (insert x F)
+    from insert(4) have "P (PDPlus (PDUnit x) (Abs_pd_basis F))" by (rule PDPlus)
+    with insert(1,2) show ?case
+      by (simp add: PDUnit_def PDPlus_def Abs_pd_basis_inverse [unfolded pd_basis_def])
+  qed
+qed
 
 lemma pd_basis_induct:
   assumes PDUnit: "\<And>a. P (PDUnit a)"
   assumes PDPlus: "\<And>t u. \<lbrakk>P t; P u\<rbrakk> \<Longrightarrow> P (PDPlus t u)"
   shows "P x"
-apply (induct x rule: pd_basis_induct1)
-apply (rule PDUnit, erule PDPlus [OF PDUnit])
-done
+  by (induct x rule: pd_basis_induct1) (fact PDUnit, fact PDPlus [OF PDUnit])
 
 
 subsection \<open>Fold operator\<close>
