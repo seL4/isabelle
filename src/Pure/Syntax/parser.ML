@@ -543,11 +543,15 @@ fun trees_range trees =
   end;
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
-  | pretty_tree (Node ({const = c, ...}, ts)) =
-      let val body = maps pretty_tree ts in
-        if c = "" then body
-        else [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: body))]
-      end
+  | pretty_tree (Node ({nonterm = nt, const = c, ...}, ts)) =
+      let
+        fun mark_const body =
+          if c = "" then body
+          else [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: body))];
+        fun mark_nonterm body =
+          if nt = "" then body
+          else [Pretty.markup_open (Markup.name nt Markup_Kind.markup_syntax) body];
+      in mark_nonterm (mark_const (maps pretty_tree ts))  end
   | pretty_tree (Tip tok) =
       if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
 
