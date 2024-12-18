@@ -74,7 +74,8 @@ val default_default_params =
    ("suggest_of", "smart"),
    ("minimize", "true"),
    ("slices", string_of_int (12 * Multithreading.max_threads ())),
-   ("preplay_timeout", "1")]
+   ("preplay_timeout", "1"),
+   ("cache_dir", "")]
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
@@ -272,6 +273,8 @@ fun extract_params mode default_params override_params =
     val timeout = lookup_time "timeout"
     val preplay_timeout = lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
+    val cache_dir = Option.mapPartial
+      (fn str => if str = "" then NONE else SOME (Path.explode str)) (lookup "cache_dir")
   in
     {debug = debug, verbose = verbose, overlord = overlord, spy = spy, provers = provers,
      abduce = abduce, falsify = falsify, type_enc = type_enc, strict = strict,
@@ -281,7 +284,7 @@ fun extract_params mode default_params override_params =
      max_new_mono_instances = max_new_mono_instances, max_proofs = max_proofs,
      isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
      suggest_of = suggest_of, minimize = minimize, slices = slices, timeout = timeout,
-     preplay_timeout = preplay_timeout, expect = expect}
+     preplay_timeout = preplay_timeout, expect = expect, cache_dir = cache_dir}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

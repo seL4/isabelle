@@ -35,7 +35,7 @@ sig
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
-    int -> Time.time -> string list -> parsed_proof
+    int -> Time.time -> ((string -> string) -> string -> string) -> string list -> parsed_proof
 
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
@@ -136,7 +136,7 @@ fun trace_replay_data ({context = ctxt, typs, terms, ...} : SMT_Translate.replay
 
 in
 
-fun invoke name command options smt_options ithms ctxt =
+fun invoke memoize_fun_call name command options smt_options ithms ctxt =
   let
     val options = options @ SMT_Config.solver_options_of ctxt
     val comments = [implode_space options]
@@ -146,7 +146,14 @@ fun invoke name command options smt_options ithms ctxt =
       |> tap (trace_assms ctxt)
       |> SMT_Translate.translate ctxt name smt_options comments
       ||> tap trace_replay_data
-  in (run_solver ctxt' name (make_command command options) str, replay_data) end
+
+    val run_solver = run_solver ctxt' name (make_command command options)
+
+    val output_lines =
+      (case memoize_fun_call of
+        NONE => run_solver str
+      | SOME memoize => split_lines (memoize (cat_lines o run_solver) str))
+  in (output_lines, replay_data) end
 
 end
 
@@ -264,13 +271,13 @@ fun apply_solver_and_replay ctxt thms0 =
     val thms = map (pair SMT_Util.Axiom o check_topsort ctxt) thms0
     val (name, {command, smt_options, replay, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
-      invoke name command [] smt_options (SMT_Normalize.normalize ctxt thms) ctxt
+      invoke NONE name command [] smt_options (SMT_Normalize.normalize ctxt thms) ctxt
   in replay ctxt replay_data output end
 
 
 (* filter (for Sledgehammer) *)
 
-fun smt_filter ctxt0 goal xfacts i time_limit options =
+fun smt_filter ctxt0 goal xfacts i time_limit memoize_fun_call options =
   let
     val ctxt = ctxt0 |> Config.put SMT_Config.timeout (Time.toReal time_limit)
 
@@ -290,7 +297,8 @@ fun smt_filter ctxt0 goal xfacts i time_limit options =
 
     val (name, {command, smt_options, parse_proof, ...}) = name_and_info_of ctxt
     val (output, replay_data) =
-      invoke name command options smt_options (SMT_Normalize.normalize ctxt thms) ctxt
+      invoke (SOME memoize_fun_call) name command options smt_options
+        (SMT_Normalize.normalize ctxt thms) ctxt
   in
     parse_proof ctxt replay_data xfacts (map Thm.prop_of prems) (Thm.term_of concl) output
   end

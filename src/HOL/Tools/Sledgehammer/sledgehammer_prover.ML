@@ -52,7 +52,8 @@ sig
      slices : int,
      timeout : Time.time,
      preplay_timeout : Time.time,
-     expect : string}
+     expect : string,
+     cache_dir : Path.T option}
 
   val string_of_params : params -> string
   val slice_timeout : int -> int -> Time.time -> Time.time
@@ -65,7 +66,8 @@ sig
      subgoal_count : int,
      factss : (string * fact list) list,
      has_already_found_something : unit -> bool,
-     found_something : string -> unit}
+     found_something : string -> unit,
+     memoize_fun_call : (string -> string) -> string -> string}
 
   datatype prover_slice_extra =
     ATP_Slice of atp_slice
@@ -165,7 +167,8 @@ type params =
    slices : int,
    timeout : Time.time,
    preplay_timeout : Time.time,
-   expect : string}
+   expect : string,
+   cache_dir : Path.T option}
 
 fun string_of_params (params : params) =
   Pretty.pure_string_of (Pretty.from_ML (ML_system_pretty (params, 100)))
@@ -190,7 +193,8 @@ type prover_problem =
    subgoal_count : int,
    factss : (string * fact list) list,
    has_already_found_something : unit -> bool,
-   found_something : string -> unit}
+   found_something : string -> unit,
+   memoize_fun_call : (string -> string) -> string -> string}
 
 datatype prover_slice_extra =
   ATP_Slice of atp_slice
