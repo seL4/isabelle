@@ -69,6 +69,9 @@ object Pretty_Text_Area {
     override def toString: String = gui_text
   }
 
+  def search_title(lines: Int = 0): String =
+    "Search result" + (if (lines <= 1) "" else " (" + lines + " lines)")
+
   sealed case class Search_Results(
     buffer: JEditBuffer,
     highlight_style: String,

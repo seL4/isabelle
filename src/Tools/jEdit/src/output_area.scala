@@ -23,7 +23,7 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-class Output_Area(view: View, root_name: String = "Search results") {
+class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title()) {
   output_area =>
 
   GUI_Thread.require {}
@@ -43,7 +43,10 @@ class Output_Area(view: View, root_name: String = "Search results") {
       search_activated = true
       delay_shown.invoke()
     }
-    tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
+    tree.init_model {
+      tree.root.setUserObject(Pretty_Text_Area.search_title(lines = search.length))
+      for (result <- search.results) tree.root.add(Tree_View.Node(result))
+    }
     tree.revalidate()
   }
 
