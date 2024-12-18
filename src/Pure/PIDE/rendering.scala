@@ -172,6 +172,14 @@ object Rendering {
       Markup.TFREE -> "free type variable",
       Markup.TVAR -> "schematic type variable")
 
+  def tooltip_text(markup: String, kind: String, name: String): String = {
+    val a = kind.nonEmpty
+    val b = name.nonEmpty
+    val k = Word.implode(Word.explode('_', kind))
+    if (!a && !b) markup
+    else markup + ": " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
+  }
+
 
   /* entity focus */
 
@@ -716,18 +724,11 @@ class Rendering(
             Some(info.add_info_text(r0, "language: " + lang.description))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
-            val a = kind.nonEmpty
-            val b = name.nonEmpty
-            val k = Word.implode(Word.explode('_', kind))
-            val description =
-              if (!a && !b) "notation"
-              else "notation: " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
+            val description = Rendering.tooltip_text(Markup.NOTATION, kind, name)
             Some(info.add_info_text(r0, description, ord = 1))
 
-          case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind), _))) =>
-            val description =
-              if (kind.isEmpty) "expression"
-              else "expression: " + Word.implode(Word.explode('_', kind))
+          case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind, name), _))) =>
+            val description = Rendering.tooltip_text(Markup.EXPRESSION, kind, name)
             Some(info.add_info_text(r0, description, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
