@@ -179,9 +179,9 @@ object Markup {
 
   val EXPRESSION = "expression"
   object Expression {
-    def unapply(markup: Markup): Option[String] =
+    def unapply(markup: Markup): Option[(String, String)] =
       markup match {
-        case Markup(EXPRESSION, props) => Some(Kind.get(props))
+        case Markup(EXPRESSION, props) => Some((Kind.get(props), Name.get(props)))
         case _ => None
       }
 

@@ -437,7 +437,7 @@ fun entity_antiquotation name check macro =
 
 val _ =
   Theory.setup
-   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "isacommand" #>
+   (entity_antiquotation \<^binding>\<open>command\<close> Outer_Syntax.check_command "isakeywordONE" #>
     entity_antiquotation \<^binding>\<open>method\<close> Method.check_name "isa" #>
     entity_antiquotation \<^binding>\<open>attribute\<close> Attrib.check_name "isa");
 
