@@ -159,16 +159,27 @@ in
 
 fun output_token ctxt tok =
   let
+    val keywords = Thy_Header.get_keywords' ctxt;
+
     fun output antiq bg en =
       output_body ctxt antiq bg en (Input.source_explode (Token.input_of tok));
   in
     (case Token.kind_of tok of
       Token.Comment NONE => []
     | Token.Comment (SOME Comment.Marker) => []
-    | Token.Command => output false "\\isacommand{" "}"
+    | Token.Command =>
+        let
+          val name = (Token.content_of tok);
+          val bg =
+            if Keyword.is_theory_end keywords name then "\\isakeywordTWO{"
+            else if Keyword.is_proof_asm keywords name orelse
+              Keyword.is_proof_asm_goal keywords name then "\\isakeywordTHREE{"
+            else if Keyword.is_proof_asm_goal keywords name then "\\isakeywordTHREE{"
+            else "\\isakeywordONE{";
+        in output false bg "}" end
     | Token.Keyword =>
         if Symbol.is_ascii_identifier (Token.content_of tok)
-        then output false "\\isakeyword{" "}"
+        then output false "\\isakeywordTWO{" "}"
         else output false "" ""
     | Token.String => output false "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}"
     | Token.Alt_String => output false "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}"

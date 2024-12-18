@@ -80,6 +80,7 @@ sig
   val is_proof_open: keywords -> string -> bool
   val is_proof_close: keywords -> string -> bool
   val is_proof_asm: keywords -> string -> bool
+  val is_proof_asm_goal: keywords -> string -> bool
   val is_improper: keywords -> string -> bool
   val is_printed: keywords -> string -> bool
 end;
@@ -289,6 +290,7 @@ val is_proof_open =
 val is_proof_close = command_category [qed, qed_script, qed_block, prf_close];
 
 val is_proof_asm = command_category [prf_asm, prf_asm_goal];
+val is_proof_asm_goal = command_category [prf_asm_goal];
 val is_improper = command_category [qed_script, prf_script, prf_script_goal, prf_script_asm_goal];
 
 fun is_printed keywords = is_theory_goal keywords orf is_proof keywords;

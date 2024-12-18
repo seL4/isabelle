@@ -247,10 +247,10 @@ val markup_macro = YXML.output_markup o Markup.latex_macro;
 val markup_indent = markup_macro "isaindent";
 val markup_latex =
  Symtab.make
-  [(Markup.commandN, markup_macro "isacommand"),
-   (Markup.keyword1N, markup_macro "isacommand"),
-   (Markup.keyword2N, markup_macro "isakeyword"),
-   (Markup.keyword3N, markup_macro "isacommand"),
+  [(Markup.commandN, markup_macro "isakeywordONE"),
+   (Markup.keyword1N, markup_macro "isakeywordONE"),
+   (Markup.keyword2N, markup_macro "isakeywordTWO"),
+   (Markup.keyword3N, markup_macro "isakeywordTHREE"),
    (Markup.tclassN, markup_macro "isatclass"),
    (Markup.tconstN, markup_macro "isatconst"),
    (Markup.tfreeN, markup_macro "isatfree"),
