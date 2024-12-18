@@ -33,7 +33,7 @@ qed
 
 lemma mono_union_L:
   "mono (\<lambda>Y. X \<union> L c Y)"
-by (metis (no_types) L_mono mono_def order_eq_iff set_eq_subset sup_mono)
+using L_mono unfolding mono_def by (metis (no_types) order_eq_iff set_eq_subset sup_mono)
 
 lemma L_While_unfold:
   "L (WHILE b DO c) X = vars b \<union> X \<union> L c (L (WHILE b DO c) X)"
