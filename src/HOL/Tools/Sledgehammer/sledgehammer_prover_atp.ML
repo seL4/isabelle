@@ -145,7 +145,7 @@ fun run_atp mode name
     val prob_path =
       if problem_dest_dir = "" then
         File.tmp_path problem_file_name
-      else if File.exists (Path.explode problem_dest_dir) then
+      else if File.is_dir (Path.explode problem_dest_dir) then
         Path.explode problem_dest_dir + problem_file_name
       else
         error ("No such directory: " ^ quote problem_dest_dir)
@@ -233,9 +233,9 @@ fun run_atp mode name
               else
                   let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
                   in Process_Result.out res end
-            (* Hackish: This removes the two first lines that contain call-specific information
-            such as timestamp. *)
-            val arg = cat_lines (drop 2 lines_of_atp_problem)
+            (* Hackish: This removes the first two lines that contain call-specific information
+            such as a timestamp. *)
+            val arg = cat_lines (command :: drop 2 lines_of_atp_problem)
           in
             Timing.timing (memoize_fun_call f) arg
           end
@@ -289,7 +289,7 @@ fun run_atp mode name
       let val proof_dest_dir_path = Path.explode proof_dest_dir in
         if proof_dest_dir = "" then
           Output.system_message "don't export proof"
-        else if File.exists proof_dest_dir_path then
+        else if File.is_dir proof_dest_dir_path then
           File.write (proof_dest_dir_path + proof_file_name) output
         else
           error ("No such directory: " ^ quote proof_dest_dir)
