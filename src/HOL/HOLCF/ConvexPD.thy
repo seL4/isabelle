@@ -92,10 +92,7 @@ proof (intro exI conjI)
     apply fast
     done
   show "t \<le>\<natural> ?v" "u \<le>\<natural> ?w"
-   apply (insert z)
-   apply (simp_all add: convex_le_def upper_le_def lower_le_def Rep_PDPlus Rep_v Rep_w)
-   apply fast+
-   done
+    using z by (simp_all add: convex_le_def upper_le_def lower_le_def Rep_PDPlus Rep_v Rep_w) fast+
 qed
 
 lemma convex_le_induct [induct set: convex_le]:
@@ -104,17 +101,24 @@ lemma convex_le_induct [induct set: convex_le]:
   assumes 3: "\<And>a b. a \<sqsubseteq> b \<Longrightarrow> P (PDUnit a) (PDUnit b)"
   assumes 4: "\<And>t u v w. \<lbrakk>P t v; P u w\<rbrakk> \<Longrightarrow> P (PDPlus t u) (PDPlus v w)"
   shows "P t u"
-using le apply (induct t arbitrary: u rule: pd_basis_induct)
-apply (erule rev_mp)
-apply (induct_tac u rule: pd_basis_induct1)
-apply (simp add: 3)
-apply (simp, clarify, rename_tac a b t)
-apply (subgoal_tac "P (PDPlus (PDUnit a) (PDUnit a)) (PDPlus (PDUnit b) t)")
-apply (simp add: PDPlus_absorb)
-apply (erule (1) 4 [OF 3])
-apply (drule convex_le_PDPlus_lemma, clarify)
-apply (simp add: 4)
-done
+  using le
+proof (induct t arbitrary: u rule: pd_basis_induct)
+  case (PDUnit a)
+  then show ?case
+  proof (induct u rule: pd_basis_induct1)
+    case (PDUnit b)
+    then show ?case by (simp add: 3)
+  next
+    case (PDPlus b t)
+    have "P (PDPlus (PDUnit a) (PDUnit a)) (PDPlus (PDUnit b) t)"
+      by (rule 4 [OF 3]) (use PDPlus in simp_all)
+    then show ?case by (simp add: PDPlus_absorb)
+  qed
+next
+  case PDPlus
+  from PDPlus(1,2) show ?case
+    using convex_le_PDPlus_lemma [OF PDPlus(3)] by (auto simp add: 4)
+qed
 
 
 subsection \<open>Type definition\<close>
@@ -281,26 +285,34 @@ lemma convex_pd_induct1:
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes insert: "\<And>x ys. \<lbrakk>P {x}\<natural>; P ys\<rbrakk> \<Longrightarrow> P ({x}\<natural> \<union>\<natural> ys)"
   shows "P (xs::'a::bifinite convex_pd)"
-apply (induct xs rule: convex_pd.principal_induct, rule P)
-apply (induct_tac a rule: pd_basis_induct1)
-apply (simp only: convex_unit_Rep_compact_basis [symmetric])
-apply (rule unit)
-apply (simp only: convex_unit_Rep_compact_basis [symmetric]
-                  convex_plus_principal [symmetric])
-apply (erule insert [OF unit])
-done
+proof (induct xs rule: convex_pd.principal_induct)
+  show "P (convex_principal a)" for a
+  proof (induct a rule: pd_basis_induct1)
+    case PDUnit
+    show ?case by (simp only: convex_unit_Rep_compact_basis [symmetric]) (rule unit)
+  next
+    case PDPlus
+    show ?case
+      by (simp only: convex_unit_Rep_compact_basis [symmetric] convex_plus_principal [symmetric])
+        (rule insert [OF unit PDPlus])
+  qed
+qed (rule P)
 
-lemma convex_pd_induct
-  [case_names adm convex_unit convex_plus, induct type: convex_pd]:
+lemma convex_pd_induct [case_names adm convex_unit convex_plus, induct type: convex_pd]:
   assumes P: "adm P"
   assumes unit: "\<And>x. P {x}\<natural>"
   assumes plus: "\<And>xs ys. \<lbrakk>P xs; P ys\<rbrakk> \<Longrightarrow> P (xs \<union>\<natural> ys)"
   shows "P (xs::'a::bifinite convex_pd)"
-apply (induct xs rule: convex_pd.principal_induct, rule P)
-apply (induct_tac a rule: pd_basis_induct)
-apply (simp only: convex_unit_Rep_compact_basis [symmetric] unit)
-apply (simp only: convex_plus_principal [symmetric] plus)
-done
+proof (induct xs rule: convex_pd.principal_induct)
+  show "P (convex_principal a)" for a
+  proof (induct a rule: pd_basis_induct)
+    case PDUnit
+    then show ?case by (simp only: convex_unit_Rep_compact_basis [symmetric] unit)
+  next
+    case PDPlus
+    then show ?case by (simp only: convex_plus_principal [symmetric] plus)
+  qed
+qed (rule P)
 
 
 subsection \<open>Monadic bind\<close>

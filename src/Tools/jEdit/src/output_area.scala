@@ -11,9 +11,10 @@ import isabelle._
 
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
-  MouseEvent, MouseAdapter}
-import javax.swing.JComponent
+  HierarchyListener, HierarchyEvent, MouseEvent, MouseAdapter}
+import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
+import javax.swing.plaf.basic.BasicSplitPaneUI
 
 import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
@@ -22,7 +23,7 @@ import scala.swing.event.ButtonClicked
 import org.gjt.sp.jedit.View
 
 
-class Output_Area(view: View, root_name: String = "Search results") {
+class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title()) {
   output_area =>
 
   GUI_Thread.require {}
@@ -35,8 +36,17 @@ class Output_Area(view: View, root_name: String = "Search results") {
   val tree: Tree_View =
     new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
 
+  private var search_activated = false
+
   def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {
-    tree.init_model { for (result <- search.results) tree.root.add(Tree_View.Node(result)) }
+    if (!search_activated && search.pattern.isDefined) {
+      search_activated = true
+      delay_shown.invoke()
+    }
+    tree.init_model {
+      tree.root.setUserObject(Pretty_Text_Area.search_title(lines = search.length))
+      for (result <- search.results) tree.root.add(Tree_View.Node(result))
+    }
     tree.revalidate()
   }
 
@@ -65,6 +75,23 @@ class Output_Area(view: View, root_name: String = "Search results") {
   /* handle events */
 
   def handle_focus(): Unit = ()
+  def handle_shown(): Unit = ()
+
+  lazy val delay_shown: Delay =
+    Delay.first(PIDE.session.input_delay, gui = true) { handle_shown() }
+
+  private lazy val hierarchy_listener =
+    new HierarchyListener {
+      override def hierarchyChanged(e: HierarchyEvent): Unit = {
+        val displayed =
+          (e.getChangeFlags & HierarchyEvent.DISPLAYABILITY_CHANGED) != 0 &&
+            e.getComponent.isDisplayable
+        val shown =
+          (e.getChangeFlags & HierarchyEvent.SHOWING_CHANGED) != 0 &&
+            e.getComponent.isShowing
+        if (displayed || shown) delay_shown.invoke()
+      }
+    }
 
   private lazy val component_listener =
     new ComponentAdapter {
@@ -115,7 +142,47 @@ class Output_Area(view: View, root_name: String = "Search results") {
       rightComponent = text_pane
     }
 
+  def split_pane_layout(open: Boolean = search_activated): Unit = {
+    split_pane.peer.getUI match {
+      case ui: BasicSplitPaneUI =>
+        val div = ui.getDivider
+
+        val orientation = split_pane.orientation
+        val location = split_pane.dividerLocation
+        val insets = split_pane.peer.getInsets
+
+        val (left_collapsed, right_collapsed) =
+          if (orientation == Orientation.Vertical) {
+            (location == insets.left,
+              location == (split_pane.peer.getWidth - div.getWidth - insets.right))
+          }
+          else {
+            (location == insets.top,
+              location == (split_pane.peer.getHeight - div.getHeight - insets.bottom))
+          }
+
+        def click(i: Int): Unit = {
+          val comp =
+            try { div.getComponent(i) }
+            catch { case _: ArrayIndexOutOfBoundsException => null }
+          comp match {
+            case button: JButton => button.doClick()
+            case _ =>
+          }
+        }
+
+        if (open && left_collapsed) click(1)
+        else if (open && right_collapsed || !open && !left_collapsed) click(0)
+        else if (!open && right_collapsed) {
+          click(0)
+          GUI_Thread.later { click(0) }  // FIXME!?
+        }
+      case _ =>
+    }
+  }
+
   def setup(parent: JComponent): Unit = {
+    parent.addHierarchyListener(hierarchy_listener)
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
     tree.addMouseListener(mouse_listener)
@@ -128,5 +195,8 @@ class Output_Area(view: View, root_name: String = "Search results") {
     handle_resize()
   }
 
-  def exit(): Unit = delay_resize.revoke()
+  def exit(): Unit = {
+    delay_resize.revoke()
+    delay_shown.revoke()
+  }
 }

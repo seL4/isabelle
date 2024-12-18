@@ -23,7 +23,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   /* output text area */
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area =
+    new Output_Area(view) {
+      override def handle_shown(): Unit = split_pane_layout()
+    }
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 
@@ -71,6 +74,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
     }
   }
 
+  private val auto_hovering_button = new JEdit_Options.auto_hovering.GUI
+
   private val update_button = new GUI.Button("<html><b>Update</b></html>") {
     tooltip = "Update display according to the command at cursor position"
     override def clicked(): Unit = update_request()
@@ -83,7 +88,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val controls =
     Wrap_Panel(
-      List(auto_update_button, update_button, locate_button) :::
+      List(auto_hovering_button, auto_update_button, update_button, locate_button) :::
       output.pretty_text_area.search_zoom_components)
 
   add(controls.peer, BorderLayout.NORTH)
@@ -94,7 +99,10 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case _: Session.Global_Options =>
-        GUI_Thread.later { output.handle_resize() }
+        GUI_Thread.later {
+          output.handle_resize()
+          auto_hovering_button.load()
+        }
 
       case changed: Session.Commands_Changed =>
         if (changed.assignment) GUI_Thread.later { auto_update() }

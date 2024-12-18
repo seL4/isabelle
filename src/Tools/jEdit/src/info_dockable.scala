@@ -70,10 +70,17 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   /* output text area */
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area =
+    new Output_Area(view) {
+      override def handle_shown(): Unit = split_pane_layout()
+    }
+
   output.pretty_text_area.update(snapshot, results, info)
 
-  private val controls = Wrap_Panel(output.pretty_text_area.search_zoom_components)
+  private val auto_hovering_button = new JEdit_Options.auto_hovering.GUI
+
+  private val controls =
+    Wrap_Panel(auto_hovering_button :: output.pretty_text_area.search_zoom_components)
   add(controls.peer, BorderLayout.NORTH)
 
   output.setup(dockable)
@@ -84,7 +91,11 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val main =
     Session.Consumer[Session.Global_Options](getClass.getName) {
-      case _: Session.Global_Options => GUI_Thread.later { output.handle_resize() }
+      case _: Session.Global_Options =>
+        GUI_Thread.later {
+          output.handle_resize()
+          auto_hovering_button.load()
+        }
     }
 
   override def init(): Unit = {
