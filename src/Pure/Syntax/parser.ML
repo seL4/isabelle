@@ -544,7 +544,10 @@ fun trees_range trees =
 
 fun pretty_tree (Markup (_, ts)) = maps pretty_tree ts
   | pretty_tree (Node ({const = c, ...}, ts)) =
-      [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: maps pretty_tree ts))]
+      let val body = maps pretty_tree ts in
+        if c = "" then body
+        else [Pretty.enclose "(" ")" (Pretty.breaks (Pretty.quote (Pretty.str c) :: body))]
+      end
   | pretty_tree (Tip tok) =
       if Lexicon.valued_token tok then [Pretty.str (Lexicon.str_of_token tok)] else [];
 
