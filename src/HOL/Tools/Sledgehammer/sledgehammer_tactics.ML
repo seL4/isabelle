@@ -45,7 +45,8 @@ fun run_prover override_params fact_override chained i n ctxt goal =
       |> hd |> snd
     val problem =
       {comment = "", state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], has_already_found_something = K false, found_something = K ()}
+       factss = [("", facts)], has_already_found_something = K false, found_something = K (),
+       memoize_fun_call = (fn f => f)}
     val slice = hd (get_slices ctxt name)
   in
     (case prover params problem slice of

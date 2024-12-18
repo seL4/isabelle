@@ -866,7 +866,7 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
     val problem =
       {comment = "Goal: " ^ goal_name, state = Proof.init ctxt, goal = goal, subgoal = 1,
        subgoal_count = 1, factss = [("", facts)], has_already_found_something = K false,
-       found_something = K ()}
+       found_something = K (), memoize_fun_call = (fn f => f)}
     val slice = hd (get_slices ctxt prover)
   in
     get_minimizing_prover ctxt MaSh (K ()) prover params problem slice

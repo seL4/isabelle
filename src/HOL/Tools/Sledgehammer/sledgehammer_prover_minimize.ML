@@ -82,7 +82,7 @@ fun print silent f = if silent then () else writeln (f ())
 
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
-      suggest_of, minimize, preplay_timeout, induction_rules, ...} : params)
+      suggest_of, minimize, preplay_timeout, induction_rules, cache_dir, ...} : params)
     (slice as ((_, _, falsify, _, fact_filter), slice_extra)) silent (prover : prover) timeout i n
     state goal facts =
   let
@@ -99,10 +99,11 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
        max_new_mono_instances = max_new_mono_instances, max_proofs = 1,
        isar_proofs = isar_proofs, compress = compress, try0 = try0, smt_proofs = smt_proofs,
        suggest_of = suggest_of, minimize = minimize, slices = 1, timeout = timeout,
-       preplay_timeout = preplay_timeout, expect = ""}
+       preplay_timeout = preplay_timeout, expect = "", cache_dir = cache_dir}
     val problem =
       {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
-       factss = [("", facts)], has_already_found_something = K false, found_something = K ()}
+       factss = [("", facts)], has_already_found_something = K false, found_something = K (),
+       memoize_fun_call = (fn f => f)}
     val result0 as {outcome = outcome0, used_facts, used_from, preferred_methss, run_time,
         message} =
       prover params problem ((1, false, false, length facts, fact_filter), slice_extra)

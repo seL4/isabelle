@@ -320,7 +320,7 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
 
-    fun flip_problem {comment, state, goal, subgoal, factss = factss, ...} =
+    fun flip_problem {comment, state, goal, subgoal, factss, memoize_fun_call, ...} =
       let
         val thy = Proof_Context.theory_of ctxt
         val assms = Assumption.all_assms_of ctxt
@@ -340,7 +340,8 @@ fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
         {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
          subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
          has_already_found_something = has_already_found_something,
-         found_something = found_something "a falsification"}
+         found_something = found_something "a falsification",
+         memoize_fun_call = memoize_fun_call}
       end
 
     val problem as {goal, ...} = problem |> falsify ? flip_problem
@@ -486,8 +487,35 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
     |> distinct (op =)
   end
 
+local
+
+fun memoize verbose cache_dir f arg =
+  let
+    val hash = SHA1.rep (SHA1.digest arg)
+    val file = cache_dir + Path.explode hash
+  in
+    if File.is_file file then
+      let
+        val () =
+          if verbose then
+            writeln ("Found problem with key " ^ hash ^ " in cache.")
+          else
+            ()
+      in
+        File.read file
+      end
+    else
+      let
+        val result = f arg
+      in
+        File.write file result;
+        result
+      end
+  end
+in
+
 fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules, max_facts,
-    max_proofs, slices, timeout, ...}) mode writeln_result i (fact_override as {only, ...}) state =
+    max_proofs, slices, timeout, cache_dir, ...}) mode writeln_result i (fact_override as {only, ...}) state =
   if null provers then
     error "No prover is set"
   else
@@ -589,13 +617,23 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
             factss
           end
 
+        val memoize_fun_call =
+          (case cache_dir of
+            NONE => (fn f => fn arg => f arg)
+          | SOME path =>
+            (if File.is_dir path then
+              memoize verbose path
+            else
+              (warning ("No such directory: " ^ quote (Path.print path));
+              fn f => fn arg => f arg)))
+
         fun launch_provers () =
           let
             val factss = get_factss provers
             val problem =
               {comment = "", state = state, goal = goal, subgoal = i, subgoal_count = n,
                factss = factss, has_already_found_something = has_already_found_something,
-               found_something = found_something "a proof"}
+               found_something = found_something "a proof", memoize_fun_call = memoize_fun_call}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
             val launch = launch_prover_and_preplay params mode has_already_found_something
               found_something massage_message writeln_result learn
@@ -651,5 +689,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
             if message = "" then normal_failure ()
             else (the_default writeln writeln_result ("Warning: " ^ message); false)))
       end)
+
+end
 
 end;

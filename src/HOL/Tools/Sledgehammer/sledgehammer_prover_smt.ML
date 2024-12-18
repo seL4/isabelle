@@ -70,7 +70,7 @@ val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
 
 fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, type_enc, slices,
-    timeout, ...} : params) state goal i slice_size facts options =
+    timeout, ...} : params) memoize_fun_call state goal i slice_size facts options =
   let
     val run_timeout = slice_timeout slice_size slices timeout
     val (higher_order, nat_as_int) =
@@ -104,7 +104,7 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
     val birth = Timer.checkRealTimer timer
 
     val filter_result as {outcome, ...} =
-      \<^try>\<open>SMT_Solver.smt_filter ctxt goal facts i run_timeout options
+      \<^try>\<open>SMT_Solver.smt_filter ctxt goal facts i run_timeout memoize_fun_call options
         catch exn =>
           {outcome = SOME (SMT_Failure.Other_Failure (Runtime.exn_message exn)), fact_ids = NONE,
            atp_proof = K []}\<close>
@@ -115,9 +115,11 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
     {outcome = outcome, filter_result = filter_result, used_from = facts, run_time = run_time}
   end
 
-fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, try0,
-      smt_proofs, minimize, preplay_timeout, ...})
-    ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem)
+fun run_smt_solver mode name
+    (params as {debug, verbose, isar_proofs, compress, try0, smt_proofs, minimize, preplay_timeout,
+      ...} : params)
+    ({state, goal, subgoal, subgoal_count, factss, found_something, memoize_fun_call,
+      ...} : prover_problem)
     slice =
   let
     val (basic_slice as (slice_size, _, _, _, _), SMT_Slice options) = slice
@@ -125,7 +127,7 @@ fun run_smt_solver mode name (params as {debug, verbose, isar_proofs, compress, 
     val ctxt = Proof.context_of state
 
     val {outcome, filter_result = {fact_ids, atp_proof, ...}, used_from, run_time} =
-      smt_filter name params state goal subgoal slice_size facts options
+      smt_filter name params memoize_fun_call state goal subgoal slice_size facts options
     val used_facts =
       (case fact_ids of
         NONE => map fst used_from
