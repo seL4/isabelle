@@ -825,6 +825,12 @@ It is generally beneficial to run several provers in parallel.
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
 
+\opdefault{cache\_dir}{string}{""}
+Specifies whether Sledgehammer should cache the result of the external provers or not and, if yes, where.
+If the option is set to the empty string (i.e., ""), then no caching takes place.
+Otherwise, the string is interpreted as a path to a directory where the cached result will be saved.
+The content of the cache directory can be deleted at any time to reset the cache.
+
 \opsmartfalse{falsify}{dont\_falsify}
 Specifies whether Sledgehammer should look for falsifications or for proofs. If
 the option is set to \textit{smart}, it looks for both.
