@@ -233,9 +233,9 @@ fun run_atp mode name
               else
                   let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
                   in Process_Result.out res end
-            (* Hackish: This removes the two first lines that contain call-specific information
-            such as timestamp. *)
-            val arg = cat_lines (drop 2 lines_of_atp_problem)
+            (* Hackish: This removes the first two lines that contain call-specific information
+            such as a timestamp. *)
+            val arg = cat_lines (command :: drop 2 lines_of_atp_problem)
           in
             Timing.timing (memoize_fun_call f) arg
           end
