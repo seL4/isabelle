@@ -136,6 +136,18 @@ lift_definition nat_of_integer :: "integer \<Rightarrow> nat"
   is Int.nat
   .
 
+lemma nat_of_integer_0 [simp]:
+  \<open>nat_of_integer 0 = 0\<close>
+  by transfer simp
+
+lemma nat_of_integer_1 [simp]:
+  \<open>nat_of_integer 1 = 1\<close>
+  by transfer simp
+
+lemma nat_of_integer_numeral [simp]:
+  \<open>nat_of_integer (numeral n) = numeral n\<close>
+  by transfer simp
+
 lemma nat_of_integer_of_nat [simp]:
   "nat_of_integer (of_nat n) = n"
   by transfer simp
@@ -1249,7 +1261,7 @@ lemma [code abstract]:
 
 lemma [code]:
   \<open>integer_of_natural (mask n) = mask n\<close>
-  by transfer (simp add: mask_eq_exp_minus_1 of_nat_diff)
+  by transfer (simp add: mask_eq_exp_minus_1)
 
 lemma [code_abbrev]:
   "natural_of_integer (Code_Numeral.Pos k) = numeral k"
