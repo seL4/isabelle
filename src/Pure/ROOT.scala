@@ -1,5 +1,6 @@
 /*  Title:      Pure/ROOT.scala
     Author:     Makarius
+    UUID:       d4ac0ad0-9374-4722-b755-018dd6dd0e3b
 
 Root of isabelle package.
 */
@@ -29,4 +30,3 @@ package object isabelle {
   def if_proper[A](x: Iterable[A], body: => String): String = Library.if_proper(x, body)
   def if_proper(b: Boolean, body: => String): String = Library.if_proper(b, body)
 }
-
