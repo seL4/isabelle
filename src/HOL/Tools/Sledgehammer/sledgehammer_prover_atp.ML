@@ -145,10 +145,13 @@ fun run_atp mode name
     val prob_path =
       if problem_dest_dir = "" then
         File.tmp_path problem_file_name
-      else if File.is_dir (Path.explode problem_dest_dir) then
-        Path.explode problem_dest_dir + problem_file_name
       else
-        error ("No such directory: " ^ quote problem_dest_dir)
+        let val problem_dest_dir_path = Path.explode problem_dest_dir in
+          if File.is_dir problem_dest_dir_path then
+            problem_dest_dir_path + problem_file_name
+          else
+            error ("No such directory: " ^ quote problem_dest_dir)
+        end
 
     val executable =
       (case find_first (fn var => getenv var <> "") (fst exec) of
@@ -286,14 +289,15 @@ fun run_atp mode name
        too. *)
     fun clean_up () = if problem_dest_dir = "" then (try File.rm prob_path; ()) else ()
     fun export (_, (output, _, _, _, _, _, _, _), _) =
-      let val proof_dest_dir_path = Path.explode proof_dest_dir in
-        if proof_dest_dir = "" then
-          Output.system_message "don't export proof"
-        else if File.is_dir proof_dest_dir_path then
-          File.write (proof_dest_dir_path + proof_file_name) output
-        else
-          error ("No such directory: " ^ quote proof_dest_dir)
-      end
+      if proof_dest_dir = "" then
+        Output.system_message "don't export proof"
+      else
+        let val proof_dest_dir_path = Path.explode proof_dest_dir in
+          if File.is_dir proof_dest_dir_path then
+            File.write (proof_dest_dir_path + proof_file_name) output
+          else
+            error ("No such directory: " ^ quote proof_dest_dir)
+        end
 
     val ((_, pool, lifted, sym_tab),
          (_, run_time, used_from, atp_problem, tstplike_proof, atp_proof,
