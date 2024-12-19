@@ -494,23 +494,20 @@ fun memoize verbose cache_dir f arg =
     val hash = SHA1.rep (SHA1.digest arg)
     val file = cache_dir + Path.explode hash
   in
-    if File.is_file file then
+    (case try File.read file of
+      NONE => 
+      let val result = f arg in
+        File.write file result;
+        result
+      end
+    | SOME s =>
       let
         val () =
           if verbose then
             writeln ("Found problem with key " ^ hash ^ " in cache.")
           else
             ()
-      in
-        File.read file
-      end
-    else
-      let
-        val result = f arg
-      in
-        File.write file result;
-        result
-      end
+      in s end)
   end
 in
 
