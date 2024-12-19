@@ -119,14 +119,6 @@ abbreviation rec_nat :: "'a \<Rightarrow> (nat \<Rightarrow> 'a \<Rightarrow> 'a
 declare nat.sel[code del]
 
 hide_const (open) Nat.pred \<comment> \<open>hide everything related to the selector\<close>
-hide_fact
-  nat.case_eq_if
-  nat.collapse
-  nat.expand
-  nat.sel
-  nat.exhaust_sel
-  nat.split_sel
-  nat.split_sel_asm
 
 lemma nat_exhaust [case_names 0 Suc, cases type: nat]:
   "(y = 0 \<Longrightarrow> P) \<Longrightarrow> (\<And>nat. y = Suc nat \<Longrightarrow> P) \<Longrightarrow> P"
