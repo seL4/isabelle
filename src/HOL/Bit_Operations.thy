@@ -1237,14 +1237,6 @@ lemma take_bit_flip_bit_eq:
   \<open>take_bit n (flip_bit m a) = (if n \<le> m then take_bit n a else flip_bit m (take_bit n a))\<close>
   by (rule bit_eqI) (auto simp: bit_take_bit_iff bit_flip_bit_iff)
 
-lemma bit_1_0 [simp]:
-  \<open>bit 1 0\<close>
-  by (simp add: bit_0)
-
-lemma not_bit_1_Suc [simp]:
-  \<open>\<not> bit 1 (Suc n)\<close>
-  by (simp add: bit_Suc)
-
 lemma push_bit_Suc_numeral [simp]:
   \<open>push_bit (Suc n) (numeral k) = push_bit n (numeral (Num.Bit0 k))\<close>
   by (simp add: numeral_eq_Suc mult_2_right) (simp add: numeral_Bit0)
@@ -1387,7 +1379,7 @@ lemma bit_not_iff_eq:
 
 lemma not_one_eq [simp]:
   \<open>NOT 1 = - 2\<close>
-  by (simp add: bit_eq_iff bit_not_iff) (simp add: bit_1_iff)
+  by (rule bit_eqI, simp add: bit_simps)
 
 sublocale "and": semilattice_neutr \<open>(AND)\<close> \<open>- 1\<close>
   by standard (rule bit_eqI, simp add: bit_and_iff)
@@ -2695,6 +2687,18 @@ subsection \<open>Symbolic computations on numeral expressions\<close>
 context semiring_bits
 begin
 
+lemma bit_1_0 [simp]:
+  \<open>bit 1 0\<close>
+  by (simp add: bit_0)
+
+lemma not_bit_1_Suc [simp]:
+  \<open>\<not> bit 1 (Suc n)\<close>
+  by (simp add: bit_Suc)
+
+lemma not_bit_1_numeral [simp]:
+  \<open>\<not> bit 1 (numeral m)\<close>
+  by (simp add: numeral_eq_Suc)
+
 lemma not_bit_numeral_Bit0_0 [simp]:
   \<open>\<not> bit (numeral (Num.Bit0 m)) 0\<close>
   by (simp add: bit_0)
@@ -2770,7 +2774,6 @@ lemma bit_numeral_rec:
   by (cases n; simp add: bit_0)+
 
 lemma bit_numeral_simps [simp]:
-  \<open>\<not> bit 1 (numeral n)\<close>
   \<open>bit (numeral (Num.Bit0 w)) (numeral n) \<longleftrightarrow> bit (numeral w) (pred_numeral n)\<close>
   \<open>bit (numeral (Num.Bit1 w)) (numeral n) \<longleftrightarrow> bit (numeral w) (pred_numeral n)\<close>
   by (simp_all add: bit_1_iff numeral_eq_Suc)
@@ -2923,7 +2926,8 @@ lemma and_not_numerals:
   \<open>numeral (Num.Bit1 m) AND NOT (1 :: int) = numeral (Num.Bit0 m)\<close>
   \<open>numeral (Num.Bit1 m) AND NOT (numeral (Num.Bit0 n)) = 1 + (2 :: int) * (numeral m AND NOT (numeral n))\<close>
   \<open>numeral (Num.Bit1 m) AND NOT (numeral (Num.Bit1 n)) = (2 :: int) * (numeral m AND NOT (numeral n))\<close>
-  by (simp_all add: bit_eq_iff) (auto simp: bit_0 bit_simps bit_Suc bit_numeral_rec BitM_inc_eq sub_inc_One_eq split: nat.split)
+  by (simp_all add: bit_eq_iff)
+    (auto simp: bit_0 bit_simps bit_Suc bit_numeral_rec BitM_inc_eq sub_inc_One_eq split: nat.split)
 
 fun and_not_num :: \<open>num \<Rightarrow> num \<Rightarrow> num option\<close> \<^marker>\<open>contributor \<open>Andreas Lochbihler\<close>\<close>
 where
