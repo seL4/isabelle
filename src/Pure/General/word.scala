@@ -76,6 +76,8 @@ object Word {
   def explode(text: String): List[String] =
     explode(Character.isWhitespace _, text)
 
+  def informal(text: String): String = implode(explode('_', text))
+
 
   /* brackets */
 

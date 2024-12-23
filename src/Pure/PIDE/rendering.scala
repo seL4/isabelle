@@ -175,7 +175,7 @@ object Rendering {
   def tooltip_text(markup: String, kind: String, name: String): String = {
     val a = kind.nonEmpty
     val b = name.nonEmpty
-    val k = Word.implode(Word.explode('_', kind))
+    val k = Word.informal(kind)
     if (!a && !b) markup
     else markup + ": " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
   }
@@ -678,7 +678,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup.Entity(kind, name), _)))
           if kind != "" && kind != Markup.ML_DEF =>
-            val kind1 = Word.implode(Word.explode('_', kind))
+            val kind1 = Word.informal(kind)
             val txt1 =
               if (name == "") kind1
               else if (kind1 == "") quote(name)

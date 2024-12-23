@@ -198,8 +198,7 @@ object Completion {
             if (kind == "") (name, quote(decode(name)))
             else
              (Long_Name.qualify(kind, name),
-              Word.implode(Word.explode('_', kind)) +
-              (if (xname == name) "" else " " + quote(decode(name))))
+              Word.informal(kind) + (if (xname == name) "" else " " + quote(decode(name))))
         } yield {
           val description = List(xname1, "(" + descr_name + ")")
           val replacement =
