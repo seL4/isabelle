@@ -69,12 +69,31 @@ object GUI {
 
   /* named items */
 
-  sealed case class Name(name: String, kind: String = "", prefix: String = "") {
+  enum Style { case plain, html, symbol, symbol_decoded }
+
+  def make_bold(str: String, style: Style = Style.plain): String =
+    style match {
+      case Style.plain => str
+      case Style.html => "<b>" + HTML.output(str) + "</b>"
+      case _ =>
+        val b = if (style == Style.symbol) Symbol.bold else Symbol.bold_decoded
+        Symbol.iterator(str)
+          .flatMap(s => if (Symbol.is_controllable(s)) List(b, s) else List(s))
+          .mkString
+    }
+
+  sealed case class Name(
+    name: String,
+    kind: String = "",
+    prefix: String = "",
+    style: Style = Style.plain
+  ) {
     override def toString: String = {
       val a = kind.nonEmpty
       val b = name.nonEmpty
+      val k = if_proper(kind, make_bold(kind, style = style))
       prefix + if_proper(a || b,
-        if_proper(prefix, ": ") + kind + if_proper(a && b, " ") + if_proper(b, quote(name)))
+        if_proper(prefix, ": ") + k + if_proper(a && b, " ") + if_proper(b, quote(name)))
     }
   }
 
