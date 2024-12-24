@@ -67,6 +67,18 @@ object GUI {
   }
 
 
+  /* named items */
+
+  sealed case class Name(name: String, kind: String = "", prefix: String = "") {
+    override def toString: String = {
+      val a = kind.nonEmpty
+      val b = name.nonEmpty
+      prefix + if_proper(a || b,
+        if_proper(prefix, ": ") + kind + if_proper(a && b, " ") + if_proper(b, quote(name)))
+    }
+  }
+
+
   /* simple dialogs */
 
   def scrollable_text(

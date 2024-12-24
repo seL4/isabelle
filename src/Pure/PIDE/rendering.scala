@@ -172,14 +172,6 @@ object Rendering {
       Markup.TFREE -> "free type variable",
       Markup.TVAR -> "schematic type variable")
 
-  def tooltip_text(markup: String, kind: String, name: String): String = {
-    val a = kind.nonEmpty
-    val b = name.nonEmpty
-    val k = Word.informal(kind)
-    if (!a && !b) markup
-    else markup + ": " + k + if_proper(a && b, " ") + if_proper(b, quote(name))
-  }
-
 
   /* entity focus */
 
@@ -724,12 +716,12 @@ class Rendering(
             Some(info.add_info_text(r0, "language: " + lang.description))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
-            val description = Rendering.tooltip_text(Markup.NOTATION, kind, name)
-            Some(info.add_info_text(r0, description, ord = 1))
+            val descr = GUI.Name(name, kind = Word.informal(kind), prefix = Markup.NOTATION)
+            Some(info.add_info_text(r0, descr.toString, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind, name), _))) =>
-            val description = Rendering.tooltip_text(Markup.EXPRESSION, kind, name)
-            Some(info.add_info_text(r0, description, ord = 1))
+            val descr = GUI.Name(name, kind = Word.informal(kind), prefix = Markup.EXPRESSION)
+            Some(info.add_info_text(r0, descr.toString, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
             Some(info.add_info_text(r0, "Markdown: paragraph"))
