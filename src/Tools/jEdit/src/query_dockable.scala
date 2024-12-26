@@ -10,9 +10,9 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
-import javax.swing.{JComponent, JTextField}
+import javax.swing.JComponent
 
-import scala.swing.{Component, TextField, Label, ListView, TabbedPane, BorderPanel}
+import scala.swing.{Component, TextField, Label, TabbedPane, BorderPanel}
 import scala.swing.event.{SelectionChanged, Key, KeyPressed}
 
 import org.gjt.sp.jedit.View
