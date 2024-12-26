@@ -71,6 +71,9 @@ object GUI {
 
   enum Style { case plain, html, symbol_encoded, symbol_decoded }
 
+  def make_text(str: String, style: Style = Style.plain): String =
+    if (style == Style.html) HTML.output(str) else str
+
   def make_bold(str: String, style: Style = Style.plain): String =
     style match {
       case Style.plain => str
@@ -91,9 +94,10 @@ object GUI {
     override def toString: String = {
       val a = kind.nonEmpty
       val b = name.nonEmpty
-      val k = if_proper(kind, make_bold(kind, style = style))
-      prefix + if_proper(a || b,
-        if_proper(prefix, ": ") + k + if_proper(a && b, " ") + if_proper(b, quote(name)))
+      make_text(prefix, style = style) +
+        if_proper(a || b,
+          if_proper(prefix, ": ") + if_proper(kind, make_bold(kind, style = style)) +
+          if_proper(a && b, " ") + if_proper(b, make_text(quote(name), style = style)))
     }
   }
 
