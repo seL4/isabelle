@@ -78,8 +78,10 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     def gui_name: GUI.Name
     def gui_text: String = {
       val style = GUI.Style_HTML
+      val bullet = if (depth == 0) style.bullet_triangle else style.bullet
       style.enclose(
-        style.spaces(2 * depth) + style.make_text(Time.print_seconds(timing) + "s ") +
+        style.spaces(4 * depth) + bullet + " " +
+        style.make_text(Time.print_seconds(timing) + "s ") +
         gui_name.set_style(style).toString)
     }
     def follow(snapshot: Document.Snapshot): Unit

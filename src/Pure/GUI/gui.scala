@@ -95,7 +95,11 @@ object GUI {
 
   object Style_Plain extends Style { override def toString: String = "plain" }
 
-  object Style_HTML extends Style_HTML { override def toString: String = "html" }
+  object Style_HTML extends Style_HTML {
+    override def toString: String = "html"
+    def bullet: String = "\u2218"
+    def bullet_triangle: String = "\u25b9"
+  }
 
   object Style_Symbol_Encoded extends Style_Symbol {
     override def toString: String = "symbol_encoded"
