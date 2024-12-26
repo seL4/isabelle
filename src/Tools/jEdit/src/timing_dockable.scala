@@ -133,8 +133,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         handle_update()
     }
     tooltip = threshold_tooltip
-    verifier = ((s: String) =>
-      s match { case Value.Double(x) => x >= 0.0 case _ => false })
+    verifier = { case Value.Double(x) => x >= 0.0 case _ => false }
   }
 
   private val controls = Wrap_Panel(List(threshold_label, threshold_value))
