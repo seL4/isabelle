@@ -75,12 +75,14 @@ object GUI {
     def make_bold(str: String): String = str
     def enclose_text(str: String): String = enclose(make_text(str))
     def enclose_bold(str: String): String = enclose(make_bold(str))
+    def spaces(n: Int): String = Symbol.spaces(n)
   }
 
   class Style_HTML extends Style {
     override def enclose(body: String): String = "<html>" + body + "</html>"
     override def make_text(str: String): String = HTML.output(str)
     override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
+    override def spaces(n: Int): String = HTML.spaces(n)
   }
 
   abstract class Style_Symbol extends Style {

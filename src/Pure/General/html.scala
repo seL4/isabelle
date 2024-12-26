@@ -12,6 +12,20 @@ import org.jsoup.Jsoup
 
 
 object HTML {
+  /* spaces (non-breaking) */
+
+  val space = "\u00a0"
+
+  private val static_spaces = space * 100
+
+  def spaces(n: Int): String = {
+    require(n >= 0, "negative spaces")
+    if (n == 0) ""
+    else if (n < static_spaces.length) static_spaces.substring(0, n)
+    else space * n
+  }
+
+
   /* attributes */
 
   class Attribute(val name: String, value: String) {
