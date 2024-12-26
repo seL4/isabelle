@@ -25,18 +25,17 @@ object Symbol {
   val space_char = ' '
   val space = " "
 
-  private val static_spaces_length = 4000
-  private val static_spaces = space * static_spaces_length
+  private val static_spaces = space * 4000
 
   def is_static_spaces(s: String): Boolean = {
     val n = s.length
-    n == 0 || n <= static_spaces_length && s(0) == space_char && s.forall(_ == space_char)
+    n == 0 || n <= static_spaces.length && s(0) == space_char && s.forall(_ == space_char)
   }
 
   def spaces(n: Int): String = {
     require(n >= 0, "negative spaces")
     if (n == 0) ""
-    else if (n < static_spaces_length) static_spaces.substring(0, n)
+    else if (n < static_spaces.length) static_spaces.substring(0, n)
     else space * n
   }
 
