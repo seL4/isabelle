@@ -272,7 +272,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   private val build_button =
-    new GUI.Button("<html><b>Build</b></html>") {
+    new GUI.Button(GUI.Style_HTML.enclose_bold("Build")) {
       tooltip = "Build document"
       override def clicked(): Unit = pending_process()
     }

@@ -108,7 +108,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       override def clicked(): Unit = apply_query()
     }
 
-    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button(GUI.Style_HTML.enclose_bold("Apply")) {
       tooltip = "Find theorems meeting specified criteria"
       override def clicked(): Unit = apply_query()
     }
@@ -155,7 +155,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button(GUI.Style_HTML.enclose_bold("Apply")) {
       tooltip = "Find constants by name / type patterns"
       override def clicked(): Unit = apply_query()
     }
@@ -226,7 +226,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     /* GUI page */
 
-    private val apply_button = new GUI.Button("<html><b>Apply</b></html>") {
+    private val apply_button = new GUI.Button(GUI.Style_HTML.enclose_bold("Apply")) {
       tooltip = "Apply to current context"
       override def clicked(): Unit = apply_query()
 

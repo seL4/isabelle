@@ -128,7 +128,7 @@ extends BorderPanel {
     })
 
   private val selection_apply = new Button {
-    action = Action("<html><b>Apply</b></html>") { selection_action () }
+    action = Action(GUI.Style_HTML.enclose_bold("Apply")) { selection_action () }
     tooltip = "Apply tree selection to graph"
   }
 

@@ -73,6 +73,8 @@ object GUI {
     def enclose(body: String): String = body
     def make_text(str: String): String = str
     def make_bold(str: String): String = str
+    def enclose_text(str: String): String = enclose(make_text(str))
+    def enclose_bold(str: String): String = enclose(make_bold(str))
   }
 
   class Style_HTML extends Style {
@@ -319,7 +321,7 @@ object GUI {
 
   def tooltip_lines(text: String): String =
     if (text == null || text == "") null
-    else "<html>" + HTML.output(text) + "</html>"
+    else Style_HTML.enclose_text(text)
 
 
   /* icon */

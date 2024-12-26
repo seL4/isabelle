@@ -76,7 +76,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val auto_hovering_button = new JEdit_Options.auto_hovering.GUI
 
-  private val update_button = new GUI.Button("<html><b>Update</b></html>") {
+  private val update_button = new GUI.Button(GUI.Style_HTML.enclose_bold("Update")) {
     tooltip = "Update display according to the command at cursor position"
     override def clicked(): Unit = update_request()
   }
