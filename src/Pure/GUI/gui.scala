@@ -116,6 +116,8 @@ object GUI {
     prefix: String = "",
     style: Style = Style_Plain
   ) {
+    def set_style(new_style: Style): Name = copy(style = new_style)
+
     override def toString: String = {
       val a = kind.nonEmpty
       val b = name.nonEmpty
