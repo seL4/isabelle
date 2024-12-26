@@ -80,6 +80,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
   extends Entry {
+    def make_current: Theory_Entry = copy(current = true)
     def print: String =
       Time.print_seconds(timing) + "s theory " + quote(name.theory)
     def follow(snapshot: Document.Snapshot): Unit =
@@ -163,7 +164,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
-      if (entry.name == name) entry.copy(current = true) :: commands
+      if (entry.name == name) entry.make_current :: commands
       else List(entry))
   }
 
