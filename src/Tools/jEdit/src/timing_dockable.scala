@@ -66,31 +66,38 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       ): Component = {
         val component = Renderer_Component
         component.entry = entry
-        component.text = entry.print
+        component.text = entry.gui_text
         component
       }
     }
   }
 
   private abstract class Entry {
+    def depth: Int = 0
     def timing: Double
-    def print: String
+    def gui_name: GUI.Name
+    def gui_text: String = {
+      val name = gui_name
+      val style = name.style
+      style.enclose(
+        style.spaces(2 * depth) + style.make_text(Time.print_seconds(timing) + "s ") +
+        name.toString)
+    }
     def follow(snapshot: Document.Snapshot): Unit
   }
 
   private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
   extends Entry {
     def make_current: Theory_Entry = copy(current = true)
-    def print: String =
-      Time.print_seconds(timing) + "s theory " + quote(name.theory)
+    def gui_name: GUI.Name = GUI.Name(name.theory, kind = "theory", style = GUI.Style_HTML)
     def follow(snapshot: Document.Snapshot): Unit =
       PIDE.editor.goto_file(true, view, name.node)
   }
 
   private case class Command_Entry(command: Command, timing: Double)
   extends Entry {
-    def print: String =
-      "  " + Time.print_seconds(timing) + "s command " + quote(command.span.name)
+    override def depth: Int = 1
+    def gui_name: GUI.Name = GUI.Name(command.span.name, kind = "command", style = GUI.Style_HTML)
     def follow(snapshot: Document.Snapshot): Unit =
       PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view))
   }
