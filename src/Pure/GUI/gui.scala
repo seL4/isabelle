@@ -67,37 +67,58 @@ object GUI {
   }
 
 
+  /* style */
+
+  class Style {
+    def enclose(body: String): String = body
+    def make_text(str: String): String = str
+    def make_bold(str: String): String = str
+  }
+
+  class Style_HTML extends Style {
+    override def enclose(body: String): String = "<html>" + body + "</html>"
+    override def make_text(str: String): String = HTML.output(str)
+    override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
+  }
+
+  abstract class Style_Symbol extends Style {
+    def bold: String
+    override def make_bold(str: String): String =
+      Symbol.iterator(str)
+        .flatMap(s => if (Symbol.is_controllable(s)) List(bold, s) else List(s))
+        .mkString
+  }
+
+  object Style_Plain extends Style { override def toString: String = "plain" }
+
+  object Style_HTML extends Style_HTML { override def toString: String = "html" }
+
+  object Style_Symbol_Encoded extends Style_Symbol {
+    override def toString: String = "symbol_encoded"
+    override def bold: String = Symbol.bold
+  }
+
+  object Style_Symbol_Decoded extends Style_Symbol {
+    override def toString: String = "symbol_decoded"
+    override def bold: String = Symbol.bold_decoded
+  }
+
+
   /* named items */
-
-  enum Style { case plain, html, symbol_encoded, symbol_decoded }
-
-  def make_text(str: String, style: Style = Style.plain): String =
-    if (style == Style.html) HTML.output(str) else str
-
-  def make_bold(str: String, style: Style = Style.plain): String =
-    style match {
-      case Style.plain => str
-      case Style.html => "<b>" + HTML.output(str) + "</b>"
-      case _ =>
-        val b = if (style == Style.symbol_encoded) Symbol.bold else Symbol.bold_decoded
-        Symbol.iterator(str)
-          .flatMap(s => if (Symbol.is_controllable(s)) List(b, s) else List(s))
-          .mkString
-    }
 
   sealed case class Name(
     name: String,
     kind: String = "",
     prefix: String = "",
-    style: Style = Style.plain
+    style: Style = Style_Plain
   ) {
     override def toString: String = {
       val a = kind.nonEmpty
       val b = name.nonEmpty
-      make_text(prefix, style = style) +
+      style.make_text(prefix) +
         if_proper(a || b,
-          if_proper(prefix, ": ") + if_proper(kind, make_bold(kind, style = style)) +
-          if_proper(a && b, " ") + if_proper(b, make_text(quote(name), style = style)))
+          if_proper(prefix, ": ") + if_proper(kind, style.make_bold(kind)) +
+          if_proper(a && b, " ") + if_proper(b, style.make_text(quote(name))))
     }
   }
 

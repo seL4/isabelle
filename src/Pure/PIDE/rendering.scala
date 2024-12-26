@@ -162,7 +162,7 @@ object Rendering {
 
   def gui_name(name: String, kind: String = "", prefix: String = ""): String =
     GUI.Name(name, kind = Word.informal(kind), prefix = prefix,
-      style = GUI.Style.symbol_decoded).toString
+      style = GUI.Style_Symbol_Decoded).toString
 
   def get_tooltip_description(name: String): Option[String] = tooltip_description.get(name)
 
