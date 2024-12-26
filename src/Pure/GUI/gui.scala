@@ -69,14 +69,14 @@ object GUI {
 
   /* named items */
 
-  enum Style { case plain, html, symbol, symbol_decoded }
+  enum Style { case plain, html, symbol_encoded, symbol_decoded }
 
   def make_bold(str: String, style: Style = Style.plain): String =
     style match {
       case Style.plain => str
       case Style.html => "<b>" + HTML.output(str) + "</b>"
       case _ =>
-        val b = if (style == Style.symbol) Symbol.bold else Symbol.bold_decoded
+        val b = if (style == Style.symbol_encoded) Symbol.bold else Symbol.bold_decoded
         Symbol.iterator(str)
           .flatMap(s => if (Symbol.is_controllable(s)) List(b, s) else List(s))
           .mkString
