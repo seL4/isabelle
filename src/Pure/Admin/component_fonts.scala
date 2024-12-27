@@ -24,6 +24,8 @@ object Component_Fonts {
         0x201c,  // double quote
         0x201d,  // double quote
         0x201e,  // double quote
+        0x2022,  // regular bullet
+        0x2023,  // triangular bullet
         0x2039,  // single guillemet
         0x203a,  // single guillemet
         0x204b,  // FOOTNOTE
@@ -58,7 +60,6 @@ object Component_Fonts {
         0x2016,  // big parallel
         0x2020,  // dagger
         0x2021,  // double dagger
-        0x2022,  // bullet
         0x2026,  // ellipsis
         0x2030,  // perthousand
         0x2032,  // minute

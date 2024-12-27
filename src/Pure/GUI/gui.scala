@@ -102,8 +102,8 @@ object GUI {
         }
       }
 
-    def bullet: String = "\u2218"
-    def bullet_triangle: String = "\u25b9"
+    def regular_bullet: String = "\u2022"
+    def triangular_bullet: String = "\u2023"
   }
 
   abstract class Style_Symbol extends Style {
