@@ -32,6 +32,7 @@ object Isabelle_Sidekick {
   }
 
   class Keyword_Asset(keyword: String, text: String, range: Text.Range) extends IAsset {
+    private val style = GUI.Style_HTML
     private val css = GUI.imitate_font_css(GUI.label_font())
 
     protected var _name: String = text
@@ -43,12 +44,12 @@ object Isabelle_Sidekick {
       val s =
         _name.indexOf(keyword) match {
           case i if i >= 0 && n > 0 =>
-            HTML.output(_name.substring(0, i)) +
-            "<b>" + HTML.output(keyword) + "</b>" +
-            HTML.output(_name.substring(i + n))
-          case _ => HTML.output(_name)
+            style.make_text(_name.substring(0, i)) +
+            style.make_bold(keyword) +
+            style.make_text(_name.substring(i + n))
+          case _ => style.make_text(_name)
         }
-      GUI.Style_HTML.enclose_style(css, s)
+      style.enclose_style(css, s)
     }
     override def getLongString: String = _name
     override def getName: String = _name
