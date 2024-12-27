@@ -83,6 +83,9 @@ object GUI {
     override def make_text(str: String): String = HTML.output(str)
     override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
     override def spaces(n: Int): String = HTML.spaces(n)
+
+    def bullet: String = "\u2218"
+    def bullet_triangle: String = "\u25b9"
   }
 
   abstract class Style_Symbol extends Style {
@@ -95,11 +98,7 @@ object GUI {
 
   object Style_Plain extends Style { override def toString: String = "plain" }
 
-  object Style_HTML extends Style_HTML {
-    override def toString: String = "html"
-    def bullet: String = "\u2218"
-    def bullet_triangle: String = "\u25b9"
-  }
+  object Style_HTML extends Style_HTML { override def toString: String = "html" }
 
   object Style_Symbol_Encoded extends Style_Symbol {
     override def toString: String = "symbol_encoded"
