@@ -79,13 +79,19 @@ object GUI {
   }
 
   class Style_HTML extends Style {
-    override def enclose(body: String): String = "<html>" + body + "</html>"
+    override def enclose(body: String): String = enclose_style("", body)
     override def make_text(str: String): String = HTML.output(str)
     override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
     override def spaces(n: Int): String = HTML.spaces(n)
 
     def enclose_style(style: String, body: String): String =
-      if (style.isEmpty) enclose(body)
+      if (style.isEmpty) {
+        Library.string_builder(body.length + 13) { s =>
+          s ++= "<html>"
+          s ++= body
+          s ++= "</html>"
+        }
+      }
       else {
         Library.string_builder(style.length + body.length + 35) { s =>
           s ++= "<html><span style=\""
