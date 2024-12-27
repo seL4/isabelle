@@ -48,7 +48,7 @@ object Isabelle_Sidekick {
             HTML.output(_name.substring(i + n))
           case _ => HTML.output(_name)
         }
-      "<html><span style=\"" + css + "\">" + s + "</span></html>"
+      GUI.Style_HTML.enclose_style(css, s)
     }
     override def getLongString: String = _name
     override def getName: String = _name

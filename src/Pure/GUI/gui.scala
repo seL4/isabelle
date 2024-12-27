@@ -84,6 +84,18 @@ object GUI {
     override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
     override def spaces(n: Int): String = HTML.spaces(n)
 
+    def enclose_style(style: String, body: String): String =
+      if (style.isEmpty) enclose(body)
+      else {
+        Library.string_builder(style.length + body.length + 35) { s =>
+          s ++= "<html><span style=\""
+          s ++= style
+          s ++= "\">"
+          s ++= body
+          s ++= "</span></html>"
+        }
+      }
+
     def bullet: String = "\u2218"
     def bullet_triangle: String = "\u25b9"
   }
