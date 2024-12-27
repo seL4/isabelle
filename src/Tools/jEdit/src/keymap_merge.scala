@@ -102,12 +102,14 @@ object Keymap_Merge {
     PIDE.options.color_value("error_color")
 
   private sealed case class Table_Entry(shortcut: Shortcut, head: Option[Int], tail: List[Int]) {
-    override def toString: String =
-      if (head.isEmpty) "<html>" + HTML.output(shortcut.toString) + "</html>"
-      else
-        "<html><font style='color: #" + Color_Value.print(conflict_color) + ";'>" +
-          HTML.output("--- " + shortcut.toString) +
-        "</font></html>"
+    override def toString: String = {
+      val style = GUI.Style_HTML
+      if (head.isEmpty) style.enclose(style.make_text(shortcut.toString))
+      else {
+        style.enclose_style(HTML.color_property(conflict_color),
+          style.make_text("--- " + shortcut.toString))
+      }
+    }
   }
 
   private class Table_Model(entries: List[Table_Entry]) extends AbstractTableModel {
