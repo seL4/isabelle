@@ -28,35 +28,16 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         entry2.timing compare entry1.timing
     }
 
+    def make_gui_style(command: Boolean = false): String =
+      HTML.background_property(
+        if (command) view.getTextArea.getPainter.getMultipleSelectionColor
+        else view.getTextArea.getPainter.getSelectionColor)
+
     class Renderer extends ListView.Renderer[Entry] {
       private object component extends Label {
-        var entry: Entry = null
-
         opaque = false
         xAlignment = Alignment.Leading
         border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
-
-        override def paintComponent(gfx: Graphics2D): Unit = {
-          def paint_rectangle(color: Color): Unit = {
-            val size = peer.getSize()
-            val insets = border.getBorderInsets(peer)
-            val x = insets.left
-            val y = insets.top
-            val w = size.width - x - insets.right
-            val h = size.height - y - insets.bottom
-            gfx.setColor(color)
-            gfx.fillRect(x, y, w, h)
-          }
-
-          entry match {
-            case theory_entry: Theory_Entry if theory_entry.current =>
-              paint_rectangle(view.getTextArea.getPainter.getSelectionColor)
-            case _: Command_Entry =>
-              paint_rectangle(view.getTextArea.getPainter.getMultipleSelectionColor)
-            case _ =>
-          }
-          super.paintComponent(gfx)
-        }
       }
 
       def componentFor(
@@ -66,7 +47,6 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         entry: Entry,
         index: Int
       ): Component = {
-        component.entry = entry
         component.text = entry.gui_text
         component
       }
@@ -76,11 +56,12 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private abstract class Entry {
     def depth: Int = 0
     def timing: Double
+    def gui_style: String = ""
     def gui_name: GUI.Name
     def gui_text: String = {
       val style = GUI.Style_HTML
       val bullet = if (depth == 0) style.bullet_triangle else style.bullet
-      style.enclose(
+      style.enclose_style(gui_style,
         style.spaces(4 * depth) + bullet + " " +
         style.make_text(Time.print_seconds(timing) + "s ") +
         gui_name.set_style(style).toString)
@@ -88,17 +69,18 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     def follow(snapshot: Document.Snapshot): Unit
   }
 
-  private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
+  private case class Theory_Entry(name: Document.Node.Name, timing: Double)
   extends Entry {
-    def make_current: Theory_Entry = copy(current = true)
+    def make_current: Theory_Entry =
+      new Theory_Entry(name, timing) { override val gui_style: String = Entry.make_gui_style() }
     def gui_name: GUI.Name = GUI.Name(name.theory, kind = "theory")
     def follow(snapshot: Document.Snapshot): Unit =
       PIDE.editor.goto_file(true, view, name.node)
   }
 
-  private case class Command_Entry(command: Command, timing: Double)
-  extends Entry {
+  private case class Command_Entry(command: Command, timing: Double) extends Entry {
     override def depth: Int = 1
+    override val gui_style: String = Entry.make_gui_style(command = true)
     def gui_name: GUI.Name = GUI.Name(command.span.name, kind = "command")
     def follow(snapshot: Document.Snapshot): Unit =
       PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view))
@@ -167,7 +149,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val theories =
       (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.command_timings.nonEmpty)
-        yield Theory_Entry(node_name, node_timing.total, false)).sorted(Entry.Ordering)
+        yield Theory_Entry(node_name, node_timing.total)).sorted(Entry.Ordering)
     val commands =
       (for ((command, command_timing) <- timing.command_timings.toList)
         yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
