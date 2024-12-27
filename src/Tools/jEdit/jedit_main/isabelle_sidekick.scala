@@ -272,6 +272,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
     val data = Isabelle_Sidekick.root_data(buffer)
 
     try {
+      val style = GUI.Style_HTML
       var offset = 0
       for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
         val kind = chunk.kind
@@ -279,9 +280,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
         val source = chunk.source
         if (kind != "") {
           val label = kind + if_proper(name, " " + name)
-          val label_html =
-            "<html><b>" + HTML.output(kind) + "</b>" +
-            if_proper(name, " " + HTML.output(name)) + "</html>"
+          val label_html = style.enclose(GUI.Name(name, kind = kind, style = style).toString)
           val range = Text.Range(offset, offset + source.length)
           val asset = new Asset(label, label_html, range, source)
           data.root.add(Tree_View.Node(asset))
