@@ -28,43 +28,44 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         entry2.timing compare entry1.timing
     }
 
-    object Renderer_Component extends Label {
-      opaque = false
-      xAlignment = Alignment.Leading
-      border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
-
-      var entry: Entry = null
-      override def paintComponent(gfx: Graphics2D): Unit = {
-        def paint_rectangle(color: Color): Unit = {
-          val size = peer.getSize()
-          val insets = border.getBorderInsets(peer)
-          val x = insets.left
-          val y = insets.top
-          val w = size.width - x - insets.right
-          val h = size.height - y - insets.bottom
-          gfx.setColor(color)
-          gfx.fillRect(x, y, w, h)
-        }
-
-        entry match {
-          case theory_entry: Theory_Entry if theory_entry.current =>
-            paint_rectangle(view.getTextArea.getPainter.getSelectionColor)
-          case _: Command_Entry =>
-            paint_rectangle(view.getTextArea.getPainter.getMultipleSelectionColor)
-          case _ =>
-        }
-        super.paintComponent(gfx)
-      }
-    }
-
     class Renderer extends ListView.Renderer[Entry] {
+      private object component extends Label {
+        var entry: Entry = null
+
+        opaque = false
+        xAlignment = Alignment.Leading
+        border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
+
+        override def paintComponent(gfx: Graphics2D): Unit = {
+          def paint_rectangle(color: Color): Unit = {
+            val size = peer.getSize()
+            val insets = border.getBorderInsets(peer)
+            val x = insets.left
+            val y = insets.top
+            val w = size.width - x - insets.right
+            val h = size.height - y - insets.bottom
+            gfx.setColor(color)
+            gfx.fillRect(x, y, w, h)
+          }
+
+          entry match {
+            case theory_entry: Theory_Entry if theory_entry.current =>
+              paint_rectangle(view.getTextArea.getPainter.getSelectionColor)
+            case _: Command_Entry =>
+              paint_rectangle(view.getTextArea.getPainter.getMultipleSelectionColor)
+            case _ =>
+          }
+          super.paintComponent(gfx)
+        }
+      }
+
       def componentFor(
         list: ListView[_ <: Timing_Dockable.this.Entry],
         isSelected: Boolean,
         focused: Boolean,
-        entry: Entry, index: Int
+        entry: Entry,
+        index: Int
       ): Component = {
-        val component = Renderer_Component
         component.entry = entry
         component.text = entry.gui_text
         component
