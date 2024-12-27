@@ -18,7 +18,8 @@ object Doc {
     def view(): Unit = Doc.view(path)
     override def toString: String =  // GUI label
       if (title.nonEmpty) {
-        "<html><b>" + HTML.output(name) + "</b>:  " + HTML.output(title) + "</html>"
+        val style = GUI.Style_HTML
+        style.enclose(style.make_bold(name) + style.make_text(": " + title))
       }
       else name
   }

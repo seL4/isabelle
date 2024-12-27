@@ -32,6 +32,7 @@ object Isabelle_Sidekick {
   }
 
   class Keyword_Asset(keyword: String, text: String, range: Text.Range) extends IAsset {
+    private val style = GUI.Style_HTML
     private val css = GUI.imitate_font_css(GUI.label_font())
 
     protected var _name: String = text
@@ -43,12 +44,12 @@ object Isabelle_Sidekick {
       val s =
         _name.indexOf(keyword) match {
           case i if i >= 0 && n > 0 =>
-            HTML.output(_name.substring(0, i)) +
-            "<b>" + HTML.output(keyword) + "</b>" +
-            HTML.output(_name.substring(i + n))
-          case _ => HTML.output(_name)
+            style.make_text(_name.substring(0, i)) +
+            style.make_bold(keyword) +
+            style.make_text(_name.substring(i + n))
+          case _ => style.make_text(_name)
         }
-      "<html><span style=\"" + css + "\">" + s + "</span></html>"
+      style.enclose_style(css, s)
     }
     override def getLongString: String = _name
     override def getName: String = _name
@@ -272,6 +273,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
     val data = Isabelle_Sidekick.root_data(buffer)
 
     try {
+      val style = GUI.Style_HTML
       var offset = 0
       for (chunk <- Bibtex.parse(JEdit_Lib.buffer_text(buffer))) {
         val kind = chunk.kind
@@ -279,9 +281,7 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
         val source = chunk.source
         if (kind != "") {
           val label = kind + if_proper(name, " " + name)
-          val label_html =
-            "<html><b>" + HTML.output(kind) + "</b>" +
-            if_proper(name, " " + HTML.output(name)) + "</html>"
+          val label_html = style.enclose(GUI.Name(name, kind = kind, style = style).toString)
           val range = Text.Range(offset, offset + source.length)
           val asset = new Asset(label, label_html, range, source)
           data.root.add(Tree_View.Node(asset))

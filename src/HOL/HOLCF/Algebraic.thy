@@ -47,11 +47,11 @@ unfolding below_fin_defl_def
 by (rule Rep_fin_defl.belowD)
 
 lemma fin_defl_eqI:
-  "(\<And>x. Rep_fin_defl a\<cdot>x = x \<longleftrightarrow> Rep_fin_defl b\<cdot>x = x) \<Longrightarrow> a = b"
-apply (rule below_antisym)
-apply (rule fin_defl_belowI, simp)
-apply (rule fin_defl_belowI, simp)
-done
+  "a = b" if "(\<And>x. Rep_fin_defl a\<cdot>x = x \<longleftrightarrow> Rep_fin_defl b\<cdot>x = x)"
+proof (rule below_antisym)
+  show "a \<sqsubseteq> b" by (rule fin_defl_belowI) (simp add: that)
+  show "b \<sqsubseteq> a" by (rule fin_defl_belowI) (simp add: that)
+qed
 
 lemma Rep_fin_defl_mono: "a \<sqsubseteq> b \<Longrightarrow> Rep_fin_defl a \<sqsubseteq> Rep_fin_defl b"
 unfolding below_fin_defl_def .
@@ -63,8 +63,8 @@ unfolding below_fin_defl_def
 by (simp add: Abs_fin_defl_inverse)
 
 lemma (in finite_deflation) compact_belowI:
-  assumes "\<And>x. compact x \<Longrightarrow> d\<cdot>x = x \<Longrightarrow> f\<cdot>x = x" shows "d \<sqsubseteq> f"
-by (rule belowI, rule assms, erule subst, rule compact)
+  "d \<sqsubseteq> f" if "\<And>x. compact x \<Longrightarrow> d\<cdot>x = x \<Longrightarrow> f\<cdot>x = x"
+  by (rule belowI, rule that, erule subst, rule compact)
 
 lemma compact_Rep_fin_defl [simp]: "compact (Rep_fin_defl a)"
 using finite_deflation_Rep_fin_defl
@@ -79,10 +79,10 @@ by (rule below.ex_ideal)
 instantiation defl :: (bifinite) below
 begin
 
-definition
-  "x \<sqsubseteq> y \<longleftrightarrow> Rep_defl x \<subseteq> Rep_defl y"
+definition "x \<sqsubseteq> y \<longleftrightarrow> Rep_defl x \<subseteq> Rep_defl y"
 
 instance ..
+
 end
 
 instance defl :: (bifinite) po
@@ -93,9 +93,8 @@ instance defl :: (bifinite) cpo
 using type_definition_defl below_defl_def
 by (rule below.typedef_ideal_cpo)
 
-definition
-  defl_principal :: "'a::bifinite fin_defl \<Rightarrow> 'a defl" where
-  "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
+definition defl_principal :: "'a::bifinite fin_defl \<Rightarrow> 'a defl"
+  where "defl_principal t = Abs_defl {u. u \<sqsubseteq> t}"
 
 lemma fin_defl_countable: "\<exists>f::'a::bifinite fin_defl \<Rightarrow> nat. inj f"
 proof -
@@ -134,11 +133,13 @@ by (rule below.typedef_ideal_completion)
 text \<open>Algebraic deflations are pointed\<close>
 
 lemma defl_minimal: "defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"
-apply (induct x rule: defl.principal_induct, simp)
-apply (rule defl.principal_mono)
-apply (simp add: below_fin_defl_def)
-apply (simp add: Abs_fin_defl_inverse finite_deflation_bottom)
-done
+proof (induct x rule: defl.principal_induct)
+  fix a :: "'a fin_defl"
+  have "Abs_fin_defl \<bottom> \<sqsubseteq> a"
+    by (simp add: below_fin_defl_def Abs_fin_defl_inverse finite_deflation_bottom)
+  then show "defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> defl_principal a"
+    by (rule defl.principal_mono)
+qed simp
 
 instance defl :: (bifinite) pcpo
 by intro_classes (fast intro: defl_minimal)
@@ -149,17 +150,12 @@ by (rule defl_minimal [THEN bottomI, symmetric])
 
 subsection \<open>Applying algebraic deflations\<close>
 
-definition
-  cast :: "'a::bifinite defl \<rightarrow> 'a \<rightarrow> 'a"
-where
-  "cast = defl.extension Rep_fin_defl"
+definition cast :: "'a::bifinite defl \<rightarrow> 'a \<rightarrow> 'a"
+  where "cast = defl.extension Rep_fin_defl"
 
-lemma cast_defl_principal:
-  "cast\<cdot>(defl_principal a) = Rep_fin_defl a"
-unfolding cast_def
-apply (rule defl.extension_principal)
-apply (simp only: below_fin_defl_def)
-done
+lemma cast_defl_principal: "cast\<cdot>(defl_principal a) = Rep_fin_defl a"
+  unfolding cast_def
+  by (rule defl.extension_principal) (simp only: below_fin_defl_def)
 
 lemma deflation_cast: "deflation (cast\<cdot>d)"
 apply (induct d rule: defl.principal_induct)
@@ -169,22 +165,20 @@ apply (rule finite_deflation_imp_deflation)
 apply (rule finite_deflation_Rep_fin_defl)
 done
 
-lemma finite_deflation_cast:
-  "compact d \<Longrightarrow> finite_deflation (cast\<cdot>d)"
-apply (drule defl.compact_imp_principal, clarify)
-apply (simp add: cast_defl_principal)
-apply (rule finite_deflation_Rep_fin_defl)
-done
+lemma finite_deflation_cast: "compact d \<Longrightarrow> finite_deflation (cast\<cdot>d)"
+  apply (drule defl.compact_imp_principal)
+  apply clarify
+  apply (simp add: cast_defl_principal)
+  apply (rule finite_deflation_Rep_fin_defl)
+  done
 
 interpretation cast: deflation "cast\<cdot>d"
 by (rule deflation_cast)
 
 declare cast.idem [simp]
 
-lemma compact_cast [simp]: "compact d \<Longrightarrow> compact (cast\<cdot>d)"
-apply (rule finite_deflation_imp_compact)
-apply (erule finite_deflation_cast)
-done
+lemma compact_cast [simp]: "compact (cast\<cdot>d)" if "compact d"
+  by (rule finite_deflation_imp_compact) (use that in \<open>rule finite_deflation_cast\<close>)
 
 lemma cast_below_cast: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<longleftrightarrow> A \<sqsubseteq> B"
 apply (induct A rule: defl.principal_induct, simp)
@@ -236,10 +230,13 @@ lemma cast_defl_fun1:
   assumes f: "\<And>a. finite_deflation a \<Longrightarrow> finite_deflation (f\<cdot>a)"
   shows "cast\<cdot>(defl_fun1 e p f\<cdot>A) = e oo f\<cdot>(cast\<cdot>A) oo p"
 proof -
-  have 1: "\<And>a. finite_deflation (e oo f\<cdot>(Rep_fin_defl a) oo p)"
-    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
-    apply (rule f, rule finite_deflation_Rep_fin_defl)
-    done
+  have 1: "finite_deflation (e oo f\<cdot>(Rep_fin_defl a) oo p)" for a
+  proof -
+    have "finite_deflation (f\<cdot>(Rep_fin_defl a))"
+      using finite_deflation_Rep_fin_defl by (rule f)
+    with ep show ?thesis
+      by (rule ep_pair.finite_deflation_e_d_p)
+  qed
   show ?thesis
     by (induct A rule: defl.principal_induct, simp)
        (simp only: defl_fun1_def
@@ -259,11 +256,13 @@ lemma cast_defl_fun2:
                 finite_deflation (f\<cdot>a\<cdot>b)"
   shows "cast\<cdot>(defl_fun2 e p f\<cdot>A\<cdot>B) = e oo f\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo p"
 proof -
-  have 1: "\<And>a b. finite_deflation
-      (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p)"
-    apply (rule ep_pair.finite_deflation_e_d_p [OF ep])
-    apply (rule f, (rule finite_deflation_Rep_fin_defl)+)
-    done
+  have 1: "finite_deflation (e oo f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b) oo p)" for a b
+  proof -
+    have "finite_deflation (f\<cdot>(Rep_fin_defl a)\<cdot>(Rep_fin_defl b))"
+      using finite_deflation_Rep_fin_defl finite_deflation_Rep_fin_defl by (rule f)
+    with ep show ?thesis
+      by (rule ep_pair.finite_deflation_e_d_p)
+  qed 
   show ?thesis
     apply (induct A rule: defl.principal_induct, simp)
     apply (induct B rule: defl.principal_induct, simp)

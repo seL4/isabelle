@@ -20,7 +20,7 @@ object Delay {
 final class Delay private(first: Boolean, delay: => Time, log: Logger, event: => Unit) {
   private var running: Option[Event_Timer.Request] = None
 
-  private def run: Unit = {
+  private def run(): Unit = {
     val do_run = synchronized {
       if (running.isDefined) { running = None; true } else false
     }
@@ -37,8 +37,9 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
         case Some(request) => if (first) false else { request.cancel(); true }
         case None => true
       }
-    if (new_run)
-      running = Some(Event_Timer.request(Time.now() + delay)(run))
+    if (new_run) {
+      running = Some(Event_Timer.request(Time.now() + delay)(run()))
+    }
   }
 
   def revoke(msg: String = ""): Unit = synchronized {
@@ -55,7 +56,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
       case Some(request) =>
         val alt_time = Time.now() + alt_delay
         if (request.time < alt_time && request.cancel()) {
-          running = Some(Event_Timer.request(alt_time)(run))
+          running = Some(Event_Timer.request(alt_time)(run()))
         }
       case None =>
     }

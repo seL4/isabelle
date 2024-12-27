@@ -7,11 +7,28 @@ HTML presentation elements.
 package isabelle
 
 
+import java.awt.Color
+import java.util.Locale
+
 import org.jsoup.nodes.{Entities => Jsoup_Entities, Document => Jsoup_Document}
 import org.jsoup.Jsoup
 
 
 object HTML {
+  /* spaces (non-breaking) */
+
+  val space = "\u00a0"
+
+  private val static_spaces = space * 100
+
+  def spaces(n: Int): String = {
+    require(n >= 0, "negative spaces")
+    if (n == 0) ""
+    else if (n < static_spaces.length) static_spaces.substring(0, n)
+    else space * n
+  }
+
+
   /* attributes */
 
   class Attribute(val name: String, value: String) {
@@ -96,6 +113,21 @@ object HTML {
   def script(s: String): XML.Elem = XML.elem("script", List(raw(text(s))))
   def script_file(href: String): XML.Elem = XML.Elem(Markup("script", List("src" -> href)), Nil)
   def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
+
+  def color(c: Color): String = {
+    val r = Integer.valueOf(c.getRed)
+    val g = Integer.valueOf(c.getGreen)
+    val b = Integer.valueOf(c.getBlue)
+    c.getAlpha match {
+      case 255 => String.format(Locale.ROOT, "rgb(%d,%d,%d)", r, g, b)
+      case a =>
+        String.format(Locale.ROOT, "rgba(%d,%d,%d,%.2f)", r, g, b,
+          java.lang.Double.valueOf(a.toDouble / 255))
+    }
+  }
+
+  def color_property(c: Color): String = "color: " + color(c)
+  def background_property(c: Color): String = "background: " + color(c)
 
 
   /* href */

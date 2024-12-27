@@ -9,9 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, TextArea, Label, ListView, ScrollPane, Component}
+import scala.swing.{Button, Label, ScrollPane}
 
-import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
+import java.awt.BorderLayout
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
 import org.gjt.sp.jedit.{View, jEdit}

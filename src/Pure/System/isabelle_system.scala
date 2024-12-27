@@ -390,7 +390,7 @@ object Isabelle_System {
   /* JVM shutdown hook */
 
   def create_shutdown_hook(body: => Unit): Thread = {
-    val shutdown_hook = Isabelle_Thread.create(new Runnable { def run: Unit = body })
+    val shutdown_hook = Isabelle_Thread.create(new Runnable { def run(): Unit = body })
 
     try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }

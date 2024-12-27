@@ -216,7 +216,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   private val eval_button =
-    new GUI.Button("<html><b>Eval</b></html>") {
+    new GUI.Button(GUI.Style_HTML.enclose_bold("Eval")) {
       tooltip = "Evaluate ML expression within optional context"
       override def clicked(): Unit = eval_expression()
     }

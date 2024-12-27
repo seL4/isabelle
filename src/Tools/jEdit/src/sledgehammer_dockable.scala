@@ -96,7 +96,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
     tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\""
   }
 
-  private val apply_query = new GUI.Button("<html><b>Apply</b></html>") {
+  private val apply_query = new GUI.Button(GUI.Style_HTML.enclose_bold("Apply")) {
     tooltip = "Search for first-order proof using automatic theorem provers"
     override def clicked(): Unit = hammer()
   }

@@ -238,7 +238,7 @@ object Markup {
     def is_antiquotation: Boolean = name == Language.ANTIQUOTATION
     def is_path: Boolean = name == Language.PATH
 
-    def description: String = Word.implode(Word.explode('_', name))
+    def description: String = Word.informal(name)
   }
 
 

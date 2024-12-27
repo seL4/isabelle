@@ -32,7 +32,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     def update_font(): Unit = { font = GUI.font(size = font_size) }
     update_font()
 
-    text = "<html>" + HTML.output(Symbol.decode(txt)) + "</html>"
+    text = GUI.Style_HTML.enclose_text(Symbol.decode(txt))
     action =
       Action(text) {
         val text_area = view.getTextArea

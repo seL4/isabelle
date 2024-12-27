@@ -67,6 +67,89 @@ object GUI {
   }
 
 
+  /* style */
+
+  class Style {
+    def enclose(body: String): String = body
+    def make_text(str: String): String = str
+    def make_bold(str: String): String = str
+    def enclose_text(str: String): String = enclose(make_text(str))
+    def enclose_bold(str: String): String = enclose(make_bold(str))
+    def spaces(n: Int): String = Symbol.spaces(n)
+  }
+
+  class Style_HTML extends Style {
+    override def enclose(body: String): String = enclose_style("", body)
+    override def make_text(str: String): String = HTML.output(str)
+    override def make_bold(str: String): String = "<b>" + make_text(str) + "</b>"
+    override def spaces(n: Int): String = HTML.spaces(n)
+
+    def enclose_style(style: String, body: String): String =
+      if (style.isEmpty) {
+        Library.string_builder(body.length + 13) { s =>
+          s ++= "<html>"
+          s ++= body
+          s ++= "</html>"
+        }
+      }
+      else {
+        Library.string_builder(style.length + body.length + 35) { s =>
+          s ++= "<html><span style=\""
+          s ++= style
+          s ++= "\">"
+          s ++= body
+          s ++= "</span></html>"
+        }
+      }
+
+    def regular_bullet: String = "\u2022"
+    def triangular_bullet: String = "\u2023"
+  }
+
+  abstract class Style_Symbol extends Style {
+    def bold: String
+    override def make_bold(str: String): String =
+      Symbol.iterator(str)
+        .flatMap(s => if (Symbol.is_controllable(s)) List(bold, s) else List(s))
+        .mkString
+  }
+
+  object Style_Plain extends Style { override def toString: String = "plain" }
+
+  object Style_HTML extends Style_HTML { override def toString: String = "html" }
+
+  object Style_Symbol_Encoded extends Style_Symbol {
+    override def toString: String = "symbol_encoded"
+    override def bold: String = Symbol.bold
+  }
+
+  object Style_Symbol_Decoded extends Style_Symbol {
+    override def toString: String = "symbol_decoded"
+    override def bold: String = Symbol.bold_decoded
+  }
+
+
+  /* named items */
+
+  sealed case class Name(
+    name: String,
+    kind: String = "",
+    prefix: String = "",
+    style: Style = Style_Plain
+  ) {
+    def set_style(new_style: Style): Name = copy(style = new_style)
+
+    override def toString: String = {
+      val a = kind.nonEmpty
+      val b = name.nonEmpty
+      style.make_text(prefix) +
+        if_proper(a || b,
+          if_proper(prefix, ": ") + if_proper(kind, style.make_bold(kind)) +
+          if_proper(a && b, " ") + if_proper(b, style.make_text(quote(name))))
+    }
+  }
+
+
   /* simple dialogs */
 
   def scrollable_text(
@@ -263,7 +346,7 @@ object GUI {
 
   def tooltip_lines(text: String): String =
     if (text == null || text == "") null
-    else "<html>" + HTML.output(text) + "</html>"
+    else Style_HTML.enclose_text(text)
 
 
   /* icon */
