@@ -387,6 +387,7 @@ fun format_tree (ops: output_ops) input =
 
     val indent_markup = #indent_markup ops;
     val no_indent_markup = indent_markup = Markup.no_output;
+    val (indent_bg, indent_en) = apply2 Substring.full indent_markup;
 
     val add_indent = if no_indent_markup then K I else output_spaces_buffer ops;
 
@@ -396,7 +397,7 @@ fun format_tree (ops: output_ops) input =
         val indent =
           if no_indent_markup then Bytes.add (Symbol.spaces n)
           else if s = "" then I
-          else Bytes.add (#1 indent_markup) #> Bytes.add s #> Bytes.add (#2 indent_markup);
+          else Bytes.add_substring indent_bg #> Bytes.add s #> Bytes.add_substring indent_en;
         val tx' = tx |> Bytes.add newline |> indent;
         val ind' = Buffer.add s Buffer.empty;
       in {tx = tx', ind = ind', pos = n, nl = nl + 1} end;
