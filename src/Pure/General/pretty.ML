@@ -75,7 +75,7 @@ sig
    {symbolic: bool,
     output: string -> Output.output * int,
     markup: Markup.output -> Markup.output,
-    indent: string -> int -> Output.output,
+    indent_markup: Markup.output,
     margin: int}
   val output_ops: int option -> output_ops
   val pure_output_ops: int option -> output_ops
@@ -243,14 +243,14 @@ type output_ops =
  {symbolic: bool,
   output: string -> Output.output * int,
   markup: Markup.output -> Markup.output,
-  indent: string -> int -> Output.output,
+  indent_markup: Markup.output,
   margin: int};
 
 fun make_output_ops {symbolic, markup} opt_margin : output_ops =
  {symbolic = symbolic,
   output = fn s => (s, size s),
   markup = markup,
-  indent = fn _ => Symbol.spaces,
+  indent_markup = Markup.no_output,
   margin = ML_Pretty.get_margin opt_margin};
 
 val pure_output_ops = make_output_ops {symbolic = false, markup = K Markup.no_output};
@@ -382,17 +382,24 @@ fun format_tree (ops: output_ops) input =
     val breakgain = margin div 20;     (*minimum added space required of a break*)
     val emergencypos = margin div 2;   (*position too far to right*)
 
-    val linebreak = newline (output_newline ops);
+    val newline = output_newline ops;
     val blanks = string o output_spaces ops;
-    val blanks_buffer = output_spaces_buffer ops;
 
-    fun indentation (buf, len) {tx, ind, pos, nl} : text =
-      let val s = Buffer.content buf in
-       {tx = Bytes.add (#indent ops s len) tx,
-        ind = Buffer.add s ind,
-        pos = pos + len,
-        nl = nl}
-      end;
+    val indent_markup = #indent_markup ops;
+    val no_indent_markup = indent_markup = Markup.no_output;
+
+    val add_indent = if no_indent_markup then K I else output_spaces_buffer ops;
+
+    fun break_indent (buf, n) ({tx, nl, ...}: text) : text =
+      let
+        val s = Buffer.content buf;
+        val indent =
+          if no_indent_markup then Bytes.add (Symbol.spaces n)
+          else if s = "" then I
+          else Bytes.add (#1 indent_markup) #> Bytes.add s #> Bytes.add (#2 indent_markup);
+        val tx' = tx |> Bytes.add newline |> indent;
+        val ind' = Buffer.add s Buffer.empty;
+      in {tx = tx', ind = ind', pos = n, nl = nl + 1} end;
 
     (*blockin is the indentation of the current block;
       after is the width of the following context until next break.*)
@@ -406,8 +413,9 @@ fun format_tree (ops: output_ops) input =
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
                 val block' =
-                  if pos' < emergencypos then (ind |> blanks_buffer indent, pos')
-                  else (blanks_buffer pos'' Buffer.empty, pos'');
+                  if pos' < emergencypos
+                  then (add_indent indent ind, pos')
+                  else (add_indent pos'' Buffer.empty, pos'');
                 val d = break_dist (prts, after)
                 val body' = body |> (consistent andalso pos + blen > margin - d) ? map force_break;
                 val btext: text = text
@@ -424,7 +432,7 @@ fun format_tree (ops: output_ops) input =
                 (if not force andalso
                     pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
-                 else text |> linebreak |> indentation block |> blanks ind)
+                 else text |> break_indent block |> blanks ind)
           | Str str => format (prts, block, after) (string str text)
           | Raw s => format (prts, block, after) (raw s text));
   in

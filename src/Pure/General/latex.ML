@@ -244,7 +244,7 @@ val escape = enclose (Symbol.latex ^ Symbol.open_) Symbol.close;
 local
 
 val markup_macro = YXML.output_markup o Markup.latex_macro;
-val markup_indent = markup_macro "isaindent";
+
 val markup_latex =
  Symtab.make
   [(Markup.commandN, markup_macro "isakeywordONE"),
@@ -272,16 +272,13 @@ fun latex_markup_output (bg, en) =
     SOME (XML.Elem (m, _)) => latex_markup m
   | _ => Markup.no_output);
 
-fun latex_indent s (_: int) =
-  if s = "" then s else uncurry enclose markup_indent s;
-
 in
 
 fun output_ops opt_margin : Pretty.output_ops =
  {symbolic = false,
   output = output_width,
   markup = latex_markup_output,
-  indent = latex_indent,
+  indent_markup = markup_macro "isaindent",
   margin = ML_Pretty.get_margin opt_margin};
 
 end;
