@@ -209,15 +209,17 @@ effect, but may be defined in root.tex like this:
   \renewcommand{\isatconst}[1]{{\color{darkgray}#1}}
   \renewcommand{\isaconst}[1]{\textsl{\color{darkgray}#1}}
 
-* LaTeX presentation of outer syntax keywords now distinguishes
-keyword1, keyword2, keyword3 more carefully. This allows to imitate
-Isabelle/jEdit rendering like this:
+* LaTeX presentation now distinguishes keywords of outer and inner
+syntax more carefully. This allows to imitate Isabelle/jEdit rendering
+like this:
 
   \renewcommand{\isacommand}[1]{\isakeywordONE{#1}}
   \renewcommand{\isakeywordONE}[1]{\isakeyword{\color[RGB]{0,102,153}#1}}
   \renewcommand{\isakeywordTWO}[1]{\isakeyword{\color[RGB]{0,153,102}#1}}
   \renewcommand{\isakeywordTHREE}[1]{\isakeyword{\color[RGB]{0,153,255}#1}}
 
+  \renewcommand{\isaliteral}[1]{\isakeyword{\color[RGB]{0,102,153}#1}}
+  \renewcommand{\isadelimiter}[1]{#1}
 
 
 *** HOL ***
