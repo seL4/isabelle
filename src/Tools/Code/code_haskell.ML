@@ -330,10 +330,6 @@ val prelude_import_unqualified_constr = [
   ("Maybe", ["Nothing", "Just"])
 ];
 
-val data_bits_import_operators = [
-  ".&.", ".|.", ".^."
-];
-
 fun serialize_haskell module_prefix string_classes ctxt { module_name,
     reserved_syms, identifiers, includes, class_syntax, tyco_syntax, const_syntax } program exports =
   let
@@ -383,10 +379,7 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
       enclose "import Prelude (" ");" (commas (map str
         (map (Library.enclose "(" ")") prelude_import_operators @ prelude_import_unqualified)
           @ map (fn (tyco, constrs) => (enclose (tyco ^ "(") ")" o commas o map str) constrs) prelude_import_unqualified_constr))
-      :: enclose "import Data.Bits (" ");" (commas
-        (map (str o Library.enclose "(" ")") data_bits_import_operators))
       :: print_qualified_import "Prelude"
-      :: print_qualified_import "Data.Bits"
       :: map (print_qualified_import o fst) includes;
     fun print_module module_name (gr, imports) =
       let

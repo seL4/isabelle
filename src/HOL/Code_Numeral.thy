@@ -872,26 +872,6 @@ code_printing
     and (Haskell) "Prelude.abs"
     and (Scala) "_.abs"
     and (Eval) "abs"
-| constant "Bit_Operations.and :: integer \<Rightarrow> integer \<Rightarrow> integer" \<rightharpoonup>
-    (SML) "IntInf.andb ((_),/ (_))"
-    and (OCaml) "Z.logand"
-    and (Haskell) infixl 7 ".&."
-    and (Scala) infixl 3 "&"
-| constant "Bit_Operations.or :: integer \<Rightarrow> integer \<Rightarrow> integer" \<rightharpoonup>
-    (SML) "IntInf.orb ((_),/ (_))"
-    and (OCaml) "Z.logor"
-    and (Haskell) infixl 5 ".|."
-    and (Scala) infixl 1 "|"
-| constant "Bit_Operations.xor :: integer \<Rightarrow> integer \<Rightarrow> integer" \<rightharpoonup>
-    (SML) "IntInf.xorb ((_),/ (_))"
-    and (OCaml) "Z.logxor"
-    and (Haskell) infixl 6 ".^."
-    and (Scala) infixl 2 "^"
-| constant "Bit_Operations.not :: integer \<Rightarrow> integer" \<rightharpoonup>
-    (SML) "IntInf.notb"
-    and (OCaml) "Z.lognot"
-    and (Haskell) "Data.Bits.complement"
-    and (Scala) "_.unary'_~"
 
 code_identifier
   code_module Code_Numeral \<rightharpoonup> (SML) Arith and (OCaml) Arith and (Haskell) Arith
