@@ -25,8 +25,11 @@ definition empty :: "'a tree" where
 fun is_empty :: "'a tree \<Rightarrow> bool" where
 "is_empty t = (t = Leaf)"
 
+fun get_min :: "'a tree \<Rightarrow> 'a" where
+"get_min (Node l a r) = a"
+
 sublocale Priority_Queue where empty = empty and is_empty = is_empty and insert = insert
-and get_min = "value" and del_min = del_min and invar = heap and mset = mset_tree
+and get_min = get_min and del_min = del_min and invar = heap and mset = mset_tree
 proof (standard, goal_cases)
   case 1 thus ?case by (simp add: empty_def)
 next
@@ -34,7 +37,7 @@ next
 next
   case 3 thus ?case by(simp add: mset_insert)
 next
-  case 4 thus ?case by(simp add: mset_del_min)
+  case 4 thus ?case by(auto simp add: mset_del_min neq_Leaf_iff)
 next
   case 5 thus ?case by(auto simp: neq_Leaf_iff Min_insert2 simp del: Un_iff)
 next
@@ -74,8 +77,11 @@ next
   case (4 q) thus ?case by (cases q)(auto simp: invar_merge)
 qed
 
+lemmas local_empty_def = local.empty_def
+lemmas local_get_min_def = local.get_min.simps
+
 sublocale PQM: Priority_Queue_Merge where empty = empty and is_empty = is_empty and insert = insert
-and get_min = "value" and del_min = del_min and invar = heap and mset = mset_tree and merge = merge
+and get_min = get_min and del_min = del_min and invar = heap and mset = mset_tree and merge = merge
 proof(standard, goal_cases)
   case 1 thus ?case by (simp add: mset_merge)
 next
