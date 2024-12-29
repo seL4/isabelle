@@ -417,11 +417,12 @@ fun format_tree (ops: output_ops) input =
                   if pos' < emergencypos
                   then (add_indent indent ind, pos')
                   else (add_indent pos'' Buffer.empty, pos'');
-                val d = break_dist (prts, after)
-                val body' = body |> (consistent andalso pos + blen > margin - d) ? map force_break;
+                val after' = break_dist (prts, after)
+                val body' = body
+                  |> (consistent andalso pos + blen > margin - after') ? map force_break;
                 val btext: text = text
                   |> raw bg
-                  |> format (body', block', d)
+                  |> format (body', block', after')
                   |> raw en;
                 (*if this block was broken then force the next break*)
                 val prts' = if nl < #nl btext then force_next prts else prts;

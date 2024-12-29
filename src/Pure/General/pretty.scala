@@ -193,21 +193,19 @@ object Pretty {
           val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 = if (pos1 < emergencypos) pos1 else pos2
-          val d = break_dist(ts, after)
-          val body1 = if (consistent && text.pos + blen > margin - d) force_all(body) else body
-          val btext =
-            if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, d, text)
+          val after1 = break_dist(ts, after)
+          val body1 = if (consistent && text.pos + blen > margin - after1) force_all(body) else body
+          val btext1 =
+            if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, after1, text)
             else {
-              val btext0 = format(body1, blockin1, d, text.reset)
+              val btext = format(body1, blockin1, after1, text.reset)
               val elem =
-                markup_body match {
-                  case None => XML.Elem(markup, btext0.content)
-                  case Some(body1) => XML.Wrapped_Elem(markup, body1, btext0.content)
-                }
-              btext0.set(elem :: text.tx)
+                if (markup_body.isEmpty) XML.Elem(markup, btext.content)
+                else XML.Wrapped_Elem(markup, markup_body.get, btext.content)
+              btext.set(elem :: text.tx)
             }
-          val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
-          format(ts1, blockin, after, btext)
+          val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
+          format(ts1, blockin, after, btext1)
 
         case Break(force, wd, ind) :: ts =>
           if (!force &&
