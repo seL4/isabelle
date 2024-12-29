@@ -69,7 +69,12 @@ object Pretty {
     indent: Int,
     body: List[Tree],
     length: Double
-  ) extends Tree
+  ) extends Tree {
+    def no_markup: Boolean = markup.is_empty && markup_body.isEmpty
+    def markup_elem(body: XML.Body): XML.Elem =
+      if (markup_body.isEmpty) XML.Elem(markup, body)
+      else XML.Wrapped_Elem(markup, markup_body.get, body)
+  }
   private case class Break(force: Boolean, width: Int, indent: Int) extends Tree {
     def length: Double = width.toDouble
   }
@@ -189,19 +194,19 @@ object Pretty {
           val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
           format(ts1, blockin, after, btext1)
 
-        case Block(markup, markup_body, _, consistent, indent, body, blen) :: ts =>
-          val pos1 = (text.pos + indent).ceil.toInt
+        case (block: Block) :: ts =>
+          val pos1 = (text.pos + block.indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 = if (pos1 < emergencypos) pos1 else pos2
           val after1 = break_dist(ts, after)
-          val body1 = if (consistent && text.pos + blen > margin - after1) force_all(body) else body
+          val body1 =
+            if (block.consistent && text.pos + block.length > margin - after1) force_all(block.body)
+            else block.body
           val btext1 =
-            if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, after1, text)
+            if (block.no_markup) format(body1, blockin1, after1, text)
             else {
               val btext = format(body1, blockin1, after1, text.reset)
-              val elem =
-                if (markup_body.isEmpty) XML.Elem(markup, btext.content)
-                else XML.Wrapped_Elem(markup, markup_body.get, btext.content)
+              val elem = block.markup_elem(btext.content)
               btext.set(elem :: text.tx)
             }
           val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
