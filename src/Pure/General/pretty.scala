@@ -167,7 +167,8 @@ object Pretty {
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {
         case XML.Wrapped_Elem(markup, markup_body, body) =>
-          List(make_block(make_tree(body), markup = markup, markup_body = Some(markup_body)))
+          List(make_block(make_tree(body),
+            markup = markup, markup_body = Some(markup_body), open_block = true))
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
@@ -190,7 +191,8 @@ object Pretty {
 
         case (block: Block) :: ts if block.open_block =>
           val btext = format(block.body, blockin, break_dist(ts, after), text.reset)
-          val btext1 = btext.set(XML.Elem(block.markup, btext.content) :: text.tx)
+          val elem = block.markup_elem(btext.content)
+          val btext1 = btext.set(elem :: text.tx)
           val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
           format(ts1, blockin, after, btext1)
 
