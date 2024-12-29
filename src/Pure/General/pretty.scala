@@ -121,11 +121,14 @@ object Pretty {
   /* formatting */
 
   private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0) {
+    def set(body: XML.Body): Text = copy(tx = body)
+    def reset: Text = if (tx.isEmpty) this else copy(tx = Nil)
+    def content: XML.Body = tx.reverse
+
     def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
     def string(s: String, len: Double): Text =
       copy(tx = if (s == "") tx else XML.Text(s) :: tx, pos = pos + len)
     def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
-    def content: XML.Body = tx.reverse
   }
 
   private def break_dist(trees: List[Tree], after: Double): Double =
@@ -163,14 +166,12 @@ object Pretty {
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
-              List(
-                make_block(make_tree(body),
-                  consistent = consistent, indent = indent, open_block = false))
+              List(make_block(make_tree(body), consistent = consistent, indent = indent))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
-              List(make_block(make_tree(bullet ::: body),
-                markup = Markup.Expression.item, indent = 2))
+              val item = make_tree(bullet ::: body)
+              List(make_block(item, markup = Markup.Expression.item, indent = 2))
             case _ =>
               List(make_block(make_tree(body), markup = markup, open_block = true))
           }
@@ -183,9 +184,9 @@ object Pretty {
         case Nil => text
 
         case (block: Block) :: ts if block.open_block =>
-          val btext = format(block.body, blockin, break_dist(ts, after), text.copy(tx = Nil))
+          val btext = format(block.body, blockin, break_dist(ts, after), text.reset)
           val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
-          val btext1 = btext.copy(tx = XML.Elem(block.markup, btext.content) :: text.tx)
+          val btext1 = btext.set(XML.Elem(block.markup, btext.content) :: text.tx)
           format(ts1, blockin, after, btext1)
 
         case Block(markup, markup_body, _, consistent, indent, body, blen) :: ts =>
@@ -197,13 +198,13 @@ object Pretty {
           val btext =
             if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, d, text)
             else {
-              val btext0 = format(body1, blockin1, d, text.copy(tx = Nil))
+              val btext0 = format(body1, blockin1, d, text.reset)
               val elem =
                 markup_body match {
                   case None => XML.Elem(markup, btext0.content)
                   case Some(body1) => XML.Wrapped_Elem(markup, body1, btext0.content)
                 }
-              btext0.copy(tx = elem :: text.tx)
+              btext0.set(elem :: text.tx)
             }
           val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
           format(ts1, blockin, after, btext)
