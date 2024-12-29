@@ -343,12 +343,6 @@ val empty: text =
   pos = 0,
   nl = 0};
 
-fun newline s {tx, ind = _, pos = _, nl} : text =
- {tx = Bytes.add s tx,
-  ind = Buffer.empty,
-  pos = 0,
-  nl = nl + 1};
-
 fun string (s, len) {tx, ind, pos: int, nl} : text =
  {tx = Bytes.add s tx,
   ind = Buffer.add s ind,
