@@ -402,7 +402,7 @@ fun format_tree (ops: output_ops) input =
       | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case prt of
             Block {markup = (bg, en), open_block = true, body, ...} =>
-              format (Raw bg :: body @ Raw en :: prts, block, after) text
+              text |> raw bg |> format (body @ Raw en :: prts, block, after)
           | Block {markup = (bg, en), consistent, indent, body, length = blen, ...} =>
               let
                 val pos' = pos + indent;
@@ -414,10 +414,8 @@ fun format_tree (ops: output_ops) input =
                 val after' = break_dist (prts, after)
                 val body' = body
                   |> (consistent andalso pos + blen > margin - after') ? map force_break;
-                val btext: text = text
-                  |> raw bg
-                  |> format (body', block', after')
-                  |> raw en;
+                val btext: text =
+                  text |> raw bg |> format (body' @ [Raw en], block', after');
                 (*if this block was broken then force the next break*)
                 val prts' = if nl < #nl btext then force_next prts else prts;
               in format (prts', block, after) btext end
