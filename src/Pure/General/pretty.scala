@@ -185,8 +185,8 @@ object Pretty {
 
         case (block: Block) :: ts if block.open_block =>
           val btext = format(block.body, blockin, break_dist(ts, after), text.reset)
-          val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
           val btext1 = btext.set(XML.Elem(block.markup, btext.content) :: text.tx)
+          val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
           format(ts1, blockin, after, btext1)
 
         case Block(markup, markup_body, _, consistent, indent, body, blen) :: ts =>
