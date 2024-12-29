@@ -166,8 +166,8 @@ object Pretty {
 
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {
-        case XML.Wrapped_Elem(markup, body1, body2) =>
-          List(make_block(make_tree(body2), markup = markup, markup_body = Some(body1)))
+        case XML.Wrapped_Elem(markup, markup_body, body) =>
+          List(make_block(make_tree(body), markup = markup, markup_body = Some(markup_body)))
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
