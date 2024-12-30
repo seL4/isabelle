@@ -271,7 +271,8 @@ fun output_spaces_bytes ops = Bytes.add o #1 o output_spaces ops;
 (* output tree *)
 
 datatype tree =
-    Block of
+    End  (*end of markup*)
+  | Block of
      {markup: Markup.output,
       open_block: bool,
       consistent: bool,
@@ -279,13 +280,12 @@ datatype tree =
       body: tree list,
       length: int}
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
-  | Str of Output.output * int  (*string output, length*)
-  | Raw of Output.output;  (*raw output: no length, no indent*)
+  | Str of Output.output * int;  (*string output, length*)
 
-fun tree_length (Block {length = len, ...}) = len
+fun tree_length End = 0
+  | tree_length (Block {length = len, ...}) = len
   | tree_length (Break (_, wd, _)) = wd
-  | tree_length (Str (_, len)) = len
-  | tree_length (Raw _) = 0;
+  | tree_length (Str (_, len)) = len;
 
 local
 
@@ -335,22 +335,32 @@ end;
 
 local
 
-type text = {tx: Bytes.T, ind: Buffer.T, pos: int, nl: int};
+type text = {markups: Markup.output list, tx: Bytes.T, ind: Buffer.T, pos: int, nl: int};
 
 val empty: text =
- {tx = Bytes.empty,
+ {markups = [],
+  tx = Bytes.empty,
   ind = Buffer.empty,
   pos = 0,
   nl = 0};
 
-fun string (s, len) {tx, ind, pos: int, nl} : text =
- {tx = Bytes.add s tx,
+fun string (s, len) {markups, tx, ind, pos: int, nl} : text =
+ {markups = markups,
+  tx = Bytes.add s tx,
   ind = Buffer.add s ind,
   pos = pos + len,
   nl = nl};
 
-fun raw s {tx, ind, pos: int, nl} : text =
- {tx = Bytes.add s tx,
+fun push (markup as (bg, _)) {markups, tx, ind, pos: int, nl} : text =
+ {markups = markup :: markups,
+  tx = Bytes.add bg tx,
+  ind = ind,
+  pos = pos,
+  nl = nl};
+
+fun pop {markups = (_, en) :: markups, tx, ind, pos: int, nl} : text =
+ {markups = markups,
+  tx = Bytes.add en tx,
   ind = ind,
   pos = pos,
   nl = nl};
@@ -385,7 +395,7 @@ fun format_tree (ops: output_ops) input =
 
     val add_indent = if no_indent_markup then K I else output_spaces_buffer ops;
 
-    fun break_indent (buf, n) ({tx, nl, ...}: text) : text =
+    fun break_indent (buf, n) ({markups, tx, nl, ...}: text) : text =
       let
         val s = Buffer.content buf;
         val indent =
@@ -394,16 +404,17 @@ fun format_tree (ops: output_ops) input =
           else Bytes.add_substring indent_bg #> Bytes.add s #> Bytes.add_substring indent_en;
         val tx' = tx |> Bytes.add newline |> indent;
         val ind' = Buffer.add s Buffer.empty;
-      in {tx = tx', ind = ind', pos = n, nl = nl + 1} end;
+      in {markups = markups, tx = tx', ind = ind', pos = n, nl = nl + 1} end;
 
     (*blockin is the indentation of the current block;
       after is the width of the following context until next break.*)
     fun format ([], _, _) text = text
       | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
           (case prt of
-            Block {markup = (bg, en), open_block = true, body, ...} =>
-              text |> raw bg |> format (body @ Raw en :: prts, block, after)
-          | Block {markup = (bg, en), consistent, indent, body, length = blen, ...} =>
+            End => format (prts, block, after) (pop text)
+          | Block {markup, open_block = true, body, ...} =>
+              text |> push markup |> format (body @ End :: prts, block, after)
+          | Block {markup, consistent, indent, body, length = blen, ...} =>
               let
                 val pos' = pos + indent;
                 val pos'' = pos' mod emergencypos;
@@ -415,7 +426,7 @@ fun format_tree (ops: output_ops) input =
                 val body' = body
                   |> (consistent andalso pos + blen > margin - after') ? map force_break;
                 val btext: text =
-                  text |> raw bg |> format (body' @ [Raw en], block', after');
+                  text |> push markup |> format (body' @ [End], block', after');
                 (*if this block was broken then force the next break*)
                 val prts' = if nl < #nl btext then force_next prts else prts;
               in format (prts', block, after) btext end
@@ -427,8 +438,7 @@ fun format_tree (ops: output_ops) input =
                     pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
                  then text |> blanks wd  (*just insert wd blanks*)
                  else text |> break_indent block |> blanks ind)
-          | Str str => format (prts, block, after) (string str text)
-          | Raw s => format (prts, block, after) (raw s text));
+          | Str str => format (prts, block, after) (string str text));
   in
     #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
   end;
@@ -449,7 +459,8 @@ val symbolic_output =
       let val (bg, en) = #markup ops (YXML.output_markup m)
       in Bytes.add bg #> output_body #> Bytes.add en end;
 
-    fun output (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
+    fun output End = I
+      | output (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
       | output (Block {markup = (bg, en), open_block = true, body, ...}) =
           Bytes.add bg #> fold output body #> Bytes.add en
       | output (Block {markup = (bg, en), consistent, indent, body, ...}) =
@@ -458,8 +469,7 @@ val symbolic_output =
       | output (Break (false, wd, ind)) =
           markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)
       | output (Break (true, _, _)) = Bytes.add (output_newline ops)
-      | output (Str (s, _)) = Bytes.add s
-      | output (Raw s) = Bytes.add s;
+      | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
 val symbolic_string_of = Bytes.content o symbolic_output;
@@ -469,11 +479,11 @@ val symbolic_string_of = Bytes.content o symbolic_output;
 
 fun unformatted ops =
   let
-    fun output (Block ({markup = (bg, en), body, ...})) =
+    fun output End = I
+      | output (Block ({markup = (bg, en), body, ...})) =
           Bytes.add bg #> fold output body #> Bytes.add en
       | output (Break (_, wd, _)) = output_spaces_bytes ops wd
-      | output (Str (s, _)) = Bytes.add s
-      | output (Raw s) = Bytes.add s;
+      | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
 fun unformatted_string_of prt =
