@@ -118,8 +118,8 @@ object Pretty {
 
   def unbreakable(input: XML.Body): XML.Body =
     input flatMap {
-      case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, unbreakable(body2)))
+      case XML.Wrapped_Elem(markup1, markup2, body) =>
+        List(XML.Wrapped_Elem(markup1, markup2, unbreakable(body)))
       case XML.Elem(Markup.Break(width, _), _) => spaces(width)
       case XML.Elem(markup, body) => List(XML.Elem(markup, unbreakable(body)))
       case XML.Text(text) => XML.string(split_lines(text).mkString(Symbol.space))
