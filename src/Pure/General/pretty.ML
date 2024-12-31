@@ -378,6 +378,8 @@ fun force_next [] = []
   | force_next ((prt as Break _) :: prts) = force_break prt :: prts
   | force_next (prt :: prts) = prt :: force_next prts;
 
+nonfix before;
+
 in
 
 fun format_tree (ops: output_ops) input =
@@ -406,39 +408,41 @@ fun format_tree (ops: output_ops) input =
         val ind' = Buffer.add s Buffer.empty;
       in {markups = markups, tx = tx', ind = ind', pos = n, nl = nl + 1} end;
 
-    (*blockin is the indentation of the current block;
-      after is the width of the following context until next break.*)
-    fun format ([], _, _) text = text
-      | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
-          (case prt of
-            End => format (prts, block, after) (pop text)
-          | Block {markup, open_block = true, body, ...} =>
-              text |> push markup |> format (body @ End :: prts, block, after)
-          | Block {markup, consistent, indent, body, length = blen, ...} =>
-              let
-                val pos' = pos + indent;
-                val pos'' = pos' mod emergencypos;
-                val block' =
-                  if pos' < emergencypos
-                  then (add_indent indent ind, pos')
-                  else (add_indent pos'' Buffer.empty, pos'');
-                val after' = break_dist (prts, after)
-                val body' = body
-                  |> (consistent andalso pos + blen > margin - after') ? map force_break;
-                val btext: text =
-                  text |> push markup |> format (body' @ [End], block', after');
-                (*if this block was broken then force the next break*)
-                val prts' = if nl < #nl btext then force_next prts else prts;
-              in format (prts', block, after) btext end
-          | Break (force, wd, ind) =>
-              (*no break if text to next break fits on this line
-                or if breaking would add only breakgain to space*)
-              format (prts, block, after)
-                (if not force andalso
-                    pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
-                 then text |> blanks wd  (*just insert wd blanks*)
-                 else text |> break_indent block |> blanks ind)
-          | Str str => format (prts, block, after) (string str text));
+    nonfix before;
+
+    (*'before' is the indentation context of the current block*)
+    (*'after' is the width of the input context until the next break*)
+    fun format (trees, before, after) (text as {pos, ...}) =
+      (case trees of
+        [] => text
+      | End :: ts => format (ts, before, after) (pop text)
+      | Block {markup, open_block = true, body, ...} :: ts =>
+          text |> push markup |> format (body @ End :: ts, before, after)
+      | Block {markup, consistent, indent, body, length = blen, ...} :: ts =>
+          let
+            val pos' = pos + indent;
+            val pos'' = pos' mod emergencypos;
+            val before' =
+              if pos' < emergencypos
+              then (add_indent indent (#ind text), pos')
+              else (add_indent pos'' Buffer.empty, pos'');
+            val after' = break_dist (ts, after)
+            val body' = body
+              |> (consistent andalso pos + blen > margin - after') ? map force_break;
+            val btext: text =
+              text |> push markup |> format (body' @ [End], before', after');
+            (*if this block was broken then force the next break*)
+            val ts' = if #nl text < #nl btext then force_next ts else ts;
+          in format (ts', before, after) btext end
+      | Break (force, wd, ind) :: ts =>
+          (*no break if text to next break fits on this line
+            or if breaking would add only breakgain to space*)
+          format (ts, before, after)
+            (if not force andalso
+                pos + wd <= Int.max (margin - break_dist (ts, after), #2 before + breakgain)
+             then text |> blanks wd  (*just insert wd blanks*)
+             else text |> break_indent before |> blanks ind)
+      | Str str :: ts => format (ts, before, after) (string str text));
   in
     #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
   end;

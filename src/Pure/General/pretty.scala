@@ -217,41 +217,35 @@ object Pretty {
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
       }
 
-    def format(trees: List[Tree], blockin: Int, after: Double, text: Text): Text =
+    def format(trees: List[Tree], before: Int, after: Double, text: Text): Text =
       trees match {
         case Nil => text
-
-        case End :: ts =>
-          format(ts, blockin, after, text.pop)
-
+        case End :: ts => format(ts, before, after, text.pop)
         case (block: Block) :: ts if block.open_block =>
-          format(block.body ::: End :: ts, blockin, after, text.push(block.markup))
-
+          format(block.body ::: End :: ts, before, after, text.push(block.markup))
         case (block: Block) :: ts =>
           val pos1 = (text.pos + block.indent).ceil.toInt
           val pos2 = pos1 % emergencypos
-          val blockin1 = if (pos1 < emergencypos) pos1 else pos2
+          val before1 = if (pos1 < emergencypos) pos1 else pos2
           val after1 = break_dist(ts, after)
           val body1 =
             if (block.consistent && text.pos + block.length > margin - after1) force_all(block.body)
             else block.body
           val btext1 =
-            if (block.markup == no_markup) format(body1, blockin1, after1, text)
+            if (block.markup == no_markup) format(body1, before1, after1, text)
             else {
-              val btext = format(body1, blockin1, after1, text.reset)
+              val btext = format(body1, before1, after1, text.reset)
               val elem = markup_elem(block.markup, btext.result)
               btext.restore(text.add(elem))
             }
           val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
-          format(ts1, blockin, after, btext1)
-
+          format(ts1, before, after, btext1)
         case Break(force, wd, ind) :: ts =>
           if (!force &&
-              text.pos + wd <= ((margin - break_dist(ts, after)) max (blockin + breakgain)))
-            format(ts, blockin, after, text.blanks(wd))
-          else format(ts, blockin, after, text.newline.blanks(blockin + ind))
-
-        case Str(s, len) :: ts => format(ts, blockin, after, text.string(s, len))
+              text.pos + wd <= ((margin - break_dist(ts, after)) max (before + breakgain)))
+            format(ts, before, after, text.blanks(wd))
+          else format(ts, before, after, text.newline.blanks(before + ind))
+        case Str(s, len) :: ts => format(ts, before, after, text.string(s, len))
       }
     format(make_tree(input), 0, 0.0, Text()).result
   }
