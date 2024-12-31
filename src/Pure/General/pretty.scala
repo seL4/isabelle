@@ -217,15 +217,15 @@ object Pretty {
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
       }
 
-    def format(trees: List[Tree], before: Int, after: Double, text: Text): Text =
+    def format(trees: List[Tree], before: Double, after: Double, text: Text): Text =
       trees match {
         case Nil => text
         case End :: ts => format(ts, before, after, text.pop)
         case (block: Block) :: ts if block.open_block =>
           format(block.body ::: End :: ts, before, after, text.push(block.markup))
         case (block: Block) :: ts =>
-          val pos1 = (text.pos + block.indent).ceil.toInt
-          val pos2 = pos1 % emergencypos
+          val pos1 = text.pos + block.indent
+          val pos2 = (pos1.round.toInt % emergencypos).toDouble
           val before1 = if (pos1 < emergencypos) pos1 else pos2
           val after1 = break_dist(ts, after)
           val body1 =
@@ -244,10 +244,10 @@ object Pretty {
           if (!force &&
               text.pos + wd <= ((margin - break_dist(ts, after)) max (before + breakgain)))
             format(ts, before, after, text.blanks(wd))
-          else format(ts, before, after, text.newline.blanks(before + ind))
+          else format(ts, before, after, text.newline.blanks((before + ind).ceil.toInt))
         case Str(s, len) :: ts => format(ts, before, after, text.string(s, len))
       }
-    format(make_tree(input), 0, 0.0, Text()).result
+    format(make_tree(input), 0.0, 0.0, Text()).result
   }
 
   def string_of(input: XML.Body,
