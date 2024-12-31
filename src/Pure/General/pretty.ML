@@ -335,35 +335,49 @@ end;
 
 local
 
-type text = {markups: Markup.output list, tx: Bytes.T, ind: Buffer.T, pos: int, nl: int};
+type context = Markup.output list;  (*stack of pending markup*)
 
-val empty: text =
- {markups = [],
-  tx = Bytes.empty,
-  ind = Buffer.empty,
-  pos = 0,
-  nl = 0};
+abstype state = State of context * Bytes.T
+with
 
-fun string (s, len) {markups, tx, ind, pos: int, nl} : text =
- {markups = markups,
-  tx = Bytes.add s tx,
-  ind = Buffer.add s ind,
+fun state_output (State (_, output)) = output;
+
+val empty_state = State ([], Bytes.empty);
+
+fun add_state s (State (context, output)) =
+  State (context, Bytes.add s output);
+
+fun push_state (markup as (bg, _)) (State (context, output)) =
+  State (markup :: context, Bytes.add bg output);
+
+fun pop_state (State ((_, en) :: context, output)) =
+  State (context, Bytes.add en output);
+
+end;
+
+type text = {main: state, line: state, pos: int, nl: int};
+
+val empty: text = {main = empty_state, line = empty_state, pos = 0, nl = 0};
+
+fun string (s, len) {main, line, pos, nl} : text =
+ {main = add_state s main,
+  line = add_state s line,
   pos = pos + len,
   nl = nl};
 
-fun push (markup as (bg, _)) {markups, tx, ind, pos: int, nl} : text =
- {markups = markup :: markups,
-  tx = Bytes.add bg tx,
-  ind = ind,
+fun push m {main, line, pos, nl} : text =
+ {main = push_state m main,
+  line = line,
   pos = pos,
   nl = nl};
 
-fun pop {markups = (_, en) :: markups, tx, ind, pos: int, nl} : text =
- {markups = markups,
-  tx = Bytes.add en tx,
-  ind = ind,
+fun pop {main, line, pos, nl} : text =
+ {main = pop_state main,
+  line = line,
   pos = pos,
   nl = nl};
+
+fun result ({main, ...}: text) = state_output main;
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
@@ -393,22 +407,22 @@ fun format_tree (ops: output_ops) input =
 
     val indent_markup = #indent_markup ops;
     val no_indent_markup = indent_markup = Markup.no_output;
-    val (indent_bg, indent_en) = apply2 Substring.full indent_markup;
 
-    val add_indent = if no_indent_markup then K I else output_spaces_buffer ops;
+    val add_indent = if no_indent_markup then K I else add_state o #1 o output_spaces ops;
 
-    fun break_indent (buf, n) ({markups, tx, nl, ...}: text) : text =
+    fun break_indent (before_state, before_pos) ({main, line, nl, ...}: text) : text =
       let
-        val s = Buffer.content buf;
-        val indent =
-          if no_indent_markup then Bytes.add (Symbol.spaces n)
-          else if s = "" then I
-          else Bytes.add_substring indent_bg #> Bytes.add s #> Bytes.add_substring indent_en;
-        val tx' = tx |> Bytes.add newline |> indent;
-        val ind' = Buffer.add s Buffer.empty;
-      in {markups = markups, tx = tx', ind = ind', pos = n, nl = nl + 1} end;
-
-    nonfix before;
+        val (main', line') =
+          if no_indent_markup then
+            (main |> add_state newline |> add_state (Symbol.spaces before_pos), line)
+          else
+            let
+              val ss = Bytes.contents (state_output before_state);
+              val main' = main |> add_state newline
+                |> not (null ss) ? (push_state indent_markup #> fold add_state ss #> pop_state);
+              val line' = fold add_state ss empty_state;
+            in (main', line') end;
+      in {main = main', line = line', pos = before_pos, nl = nl + 1} end;
 
     (*'before' is the indentation context of the current block*)
     (*'after' is the width of the input context until the next break*)
@@ -424,8 +438,8 @@ fun format_tree (ops: output_ops) input =
             val pos'' = pos' mod emergencypos;
             val before' =
               if pos' < emergencypos
-              then (add_indent indent (#ind text), pos')
-              else (add_indent pos'' Buffer.empty, pos'');
+              then (add_indent indent (#line text), pos')
+              else (add_indent pos'' empty_state, pos'');
             val after' = break_dist (ts, after)
             val body' = body
               |> (consistent andalso pos + blen > margin - after') ? map force_break;
@@ -444,7 +458,7 @@ fun format_tree (ops: output_ops) input =
              else text |> break_indent before |> blanks ind)
       | Str str :: ts => format (ts, before, after) (string str text));
   in
-    #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
+    result (format ([output_tree ops true input], (empty_state, 0), 0) empty)
   end;
 
 end;
