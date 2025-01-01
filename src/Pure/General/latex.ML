@@ -251,8 +251,6 @@ val markup_latex =
    (Markup.keyword1N, markup_macro "isakeywordONE"),
    (Markup.keyword2N, markup_macro "isakeywordTWO"),
    (Markup.keyword3N, markup_macro "isakeywordTHREE"),
-   (Markup.literalN, markup_macro "isaliteral"),
-   (Markup.delimiterN, markup_macro "isadelimiter"),
    (Markup.tclassN, markup_macro "isatclass"),
    (Markup.tconstN, markup_macro "isatconst"),
    (Markup.tfreeN, markup_macro "isatfree"),
