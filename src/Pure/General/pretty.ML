@@ -264,7 +264,6 @@ fun output_ops opt_margin =
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
 fun output_spaces (ops: output_ops) = #output ops o Symbol.spaces;
-fun output_spaces_buffer ops = Buffer.add o #1 o output_spaces ops;
 fun output_spaces_bytes ops = Bytes.add o #1 o output_spaces ops;
 
 
@@ -353,27 +352,34 @@ fun push_state (markup as (bg, _)) (State (context, output)) =
 fun pop_state (State ((_, en) :: context, output)) =
   State (context, Bytes.add en output);
 
+fun close_state (State (context, output)) =
+  State ([], fold (Bytes.add o #2) context output);
+
+fun reopen_state (State (old_context, _)) (State (context, output)) =
+  State (old_context @ context, fold_rev (Bytes.add o #1) old_context output);
+
 end;
 
-type text = {main: state, line: state, pos: int, nl: int};
+type text = {main: state, line: state option, pos: int, nl: int};
 
-val empty: text = {main = empty_state, line = empty_state, pos = 0, nl = 0};
+val empty: text = {main = empty_state, line = NONE, pos = 0, nl = 0};
+val empty_line: text = {main = empty_state, line = SOME empty_state, pos = 0, nl = 0};
 
 fun string (s, len) {main, line, pos, nl} : text =
  {main = add_state s main,
-  line = add_state s line,
+  line = Option.map (add_state s) line,
   pos = pos + len,
   nl = nl};
 
 fun push m {main, line, pos, nl} : text =
  {main = push_state m main,
-  line = line,
+  line = Option.map (push_state m) line,
   pos = pos,
   nl = nl};
 
 fun pop {main, line, pos, nl} : text =
  {main = pop_state main,
-  line = line,
+  line = Option.map pop_state line,
   pos = pos,
   nl = nl};
 
@@ -403,25 +409,29 @@ fun format_tree (ops: output_ops) input =
     val emergencypos = margin div 2;   (*position too far to right*)
 
     val newline = output_newline ops;
+
     val blanks = string o output_spaces ops;
+    fun blanks_state n state = add_state (#1 (output_spaces ops n)) state;
 
     val indent_markup = #indent_markup ops;
     val no_indent_markup = indent_markup = Markup.no_output;
 
-    val add_indent = if no_indent_markup then K I else add_state o #1 o output_spaces ops;
-
-    fun break_indent (before_state, before_pos) ({main, line, nl, ...}: text) : text =
+    fun break_indent (before_state, before_pos) ({main, nl, ...}: text) : text =
       let
         val (main', line') =
           if no_indent_markup then
-            (main |> add_state newline |> add_state (Symbol.spaces before_pos), line)
+            (main |> add_state newline |> add_state (Symbol.spaces before_pos), NONE)
           else
             let
-              val ss = Bytes.contents (state_output before_state);
-              val main' = main |> add_state newline
-                |> not (null ss) ? (push_state indent_markup #> fold add_state ss #> pop_state);
-              val line' = fold add_state ss empty_state;
-            in (main', line') end;
+              val ss = Bytes.contents (state_output (the before_state));
+              val main' =
+                if null ss then main |> add_state newline
+                else
+                  main |> close_state |> add_state newline
+                  |> push_state indent_markup |> fold add_state ss |> pop_state
+                  |> reopen_state main;
+              val line' = empty_state |> fold add_state ss |> reopen_state main;
+            in (main', SOME line') end;
       in {main = main', line = line', pos = before_pos, nl = nl + 1} end;
 
     (*'before' is the indentation context of the current block*)
@@ -438,8 +448,8 @@ fun format_tree (ops: output_ops) input =
             val pos'' = pos' mod emergencypos;
             val before' =
               if pos' < emergencypos
-              then (add_indent indent (#line text), pos')
-              else (add_indent pos'' empty_state, pos'');
+              then (Option.map (close_state o blanks_state indent) (#line text), pos')
+              else (Option.map (fn _ => blanks_state pos'' empty_state) (#line text), pos'');
             val after' = break_dist (ts, after)
             val body' = body
               |> (consistent andalso pos + blen > margin - after') ? map force_break;
@@ -457,8 +467,10 @@ fun format_tree (ops: output_ops) input =
              then text |> blanks wd  (*just insert wd blanks*)
              else text |> break_indent before |> blanks ind)
       | Str str :: ts => format (ts, before, after) (string str text));
+
+    val init = if no_indent_markup then empty else empty_line;
   in
-    result (format ([output_tree ops true input], (empty_state, 0), 0) empty)
+    result (format ([output_tree ops true input], (#line init, 0), 0) init)
   end;
 
 end;
