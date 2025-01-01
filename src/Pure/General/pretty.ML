@@ -408,31 +408,30 @@ fun format_tree (ops: output_ops) input =
     val breakgain = margin div 20;     (*minimum added space required of a break*)
     val emergencypos = margin div 2;   (*position too far to right*)
 
-    val newline = output_newline ops;
-
-    val blanks = string o output_spaces ops;
     fun blanks_state n state = add_state (#1 (output_spaces ops n)) state;
+    val blanks = string o output_spaces ops;
 
     val indent_markup = #indent_markup ops;
     val no_indent_markup = indent_markup = Markup.no_output;
 
-    fun break_indent (before_state, before_pos) ({main, nl, ...}: text) : text =
+    val break_state = add_state (output_newline ops);
+    fun break (state, pos) ({main, nl, ...}: text) : text =
       let
         val (main', line') =
           if no_indent_markup then
-            (main |> add_state newline |> add_state (Symbol.spaces before_pos), NONE)
+            (main |> break_state |> add_state (Symbol.spaces pos), NONE)
           else
             let
-              val ss = Bytes.contents (state_output (the before_state));
+              val ss = Bytes.contents (state_output (the state));
               val main' =
-                if null ss then main |> add_state newline
+                if null ss then main |> break_state
                 else
-                  main |> close_state |> add_state newline
+                  main |> close_state |> break_state
                   |> push_state indent_markup |> fold add_state ss |> pop_state
                   |> reopen_state main;
               val line' = empty_state |> fold add_state ss |> reopen_state main;
             in (main', SOME line') end;
-      in {main = main', line = line', pos = before_pos, nl = nl + 1} end;
+      in {main = main', line = line', pos = pos, nl = nl + 1} end;
 
     (*'before' is the indentation context of the current block*)
     (*'after' is the width of the input context until the next break*)
@@ -465,7 +464,7 @@ fun format_tree (ops: output_ops) input =
             (if not force andalso
                 pos + wd <= Int.max (margin - break_dist (ts, after), #2 before + breakgain)
              then text |> blanks wd  (*just insert wd blanks*)
-             else text |> break_indent before |> blanks ind)
+             else text |> break before |> blanks ind)
       | Str str :: ts => format (ts, before, after) (string str text));
 
     val init = if no_indent_markup then empty else empty_line;
