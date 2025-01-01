@@ -75,7 +75,7 @@ sig
    {symbolic: bool,
     output: string -> Output.output * int,
     markup: Markup.output -> Markup.output,
-    indent: string -> int -> Output.output,
+    indent_markup: Markup.output,
     margin: int}
   val output_ops: int option -> output_ops
   val pure_output_ops: int option -> output_ops
@@ -243,14 +243,14 @@ type output_ops =
  {symbolic: bool,
   output: string -> Output.output * int,
   markup: Markup.output -> Markup.output,
-  indent: string -> int -> Output.output,
+  indent_markup: Markup.output,
   margin: int};
 
 fun make_output_ops {symbolic, markup} opt_margin : output_ops =
  {symbolic = symbolic,
   output = fn s => (s, size s),
   markup = markup,
-  indent = fn _ => Symbol.spaces,
+  indent_markup = Markup.no_output,
   margin = ML_Pretty.get_margin opt_margin};
 
 val pure_output_ops = make_output_ops {symbolic = false, markup = K Markup.no_output};
@@ -264,14 +264,14 @@ fun output_ops opt_margin =
 fun output_newline (ops: output_ops) = #1 (#output ops "\n");
 
 fun output_spaces (ops: output_ops) = #output ops o Symbol.spaces;
-fun output_spaces_buffer ops = Buffer.add o #1 o output_spaces ops;
 fun output_spaces_bytes ops = Bytes.add o #1 o output_spaces ops;
 
 
 (* output tree *)
 
 datatype tree =
-    Block of
+    End  (*end of markup*)
+  | Block of
      {markup: Markup.output,
       open_block: bool,
       consistent: bool,
@@ -279,13 +279,12 @@ datatype tree =
       body: tree list,
       length: int}
   | Break of bool * int * int  (*mandatory flag, width if not taken, extra indentation if taken*)
-  | Str of Output.output * int  (*string output, length*)
-  | Raw of Output.output;  (*raw output: no length, no indent*)
+  | Str of Output.output * int;  (*string output, length*)
 
-fun tree_length (Block {length = len, ...}) = len
+fun tree_length End = 0
+  | tree_length (Block {length = len, ...}) = len
   | tree_length (Break (_, wd, _)) = wd
-  | tree_length (Str (_, len)) = len
-  | tree_length (Raw _) = 0;
+  | tree_length (Str (_, len)) = len;
 
 local
 
@@ -335,31 +334,56 @@ end;
 
 local
 
-type text = {tx: Bytes.T, ind: Buffer.T, pos: int, nl: int};
+type context = Markup.output list;  (*stack of pending markup*)
 
-val empty: text =
- {tx = Bytes.empty,
-  ind = Buffer.empty,
-  pos = 0,
-  nl = 0};
+abstype state = State of context * Bytes.T
+with
 
-fun newline s {tx, ind = _, pos = _, nl} : text =
- {tx = Bytes.add s tx,
-  ind = Buffer.empty,
-  pos = 0,
-  nl = nl + 1};
+fun state_output (State (_, output)) = output;
 
-fun string (s, len) {tx, ind, pos: int, nl} : text =
- {tx = Bytes.add s tx,
-  ind = Buffer.add s ind,
+val empty_state = State ([], Bytes.empty);
+
+fun add_state s (State (context, output)) =
+  State (context, Bytes.add s output);
+
+fun push_state (markup as (bg, _)) (State (context, output)) =
+  State (markup :: context, Bytes.add bg output);
+
+fun pop_state (State ((_, en) :: context, output)) =
+  State (context, Bytes.add en output);
+
+fun close_state (State (context, output)) =
+  State ([], fold (Bytes.add o #2) context output);
+
+fun reopen_state (State (old_context, _)) (State (context, output)) =
+  State (old_context @ context, fold_rev (Bytes.add o #1) old_context output);
+
+end;
+
+type text = {main: state, line: state option, pos: int, nl: int};
+
+val empty: text = {main = empty_state, line = NONE, pos = 0, nl = 0};
+val empty_line: text = {main = empty_state, line = SOME empty_state, pos = 0, nl = 0};
+
+fun string (s, len) {main, line, pos, nl} : text =
+ {main = add_state s main,
+  line = Option.map (add_state s) line,
   pos = pos + len,
   nl = nl};
 
-fun raw s {tx, ind, pos: int, nl} : text =
- {tx = Bytes.add s tx,
-  ind = ind,
+fun push m {main, line, pos, nl} : text =
+ {main = push_state m main,
+  line = Option.map (push_state m) line,
   pos = pos,
   nl = nl};
+
+fun pop {main, line, pos, nl} : text =
+ {main = pop_state main,
+  line = Option.map pop_state line,
+  pos = pos,
+  nl = nl};
+
+fun result ({main, ...}: text) = state_output main;
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
@@ -374,6 +398,8 @@ fun force_next [] = []
   | force_next ((prt as Break _) :: prts) = force_break prt :: prts
   | force_next (prt :: prts) = prt :: force_next prts;
 
+nonfix before;
+
 in
 
 fun format_tree (ops: output_ops) input =
@@ -382,53 +408,68 @@ fun format_tree (ops: output_ops) input =
     val breakgain = margin div 20;     (*minimum added space required of a break*)
     val emergencypos = margin div 2;   (*position too far to right*)
 
-    val linebreak = newline (output_newline ops);
+    fun blanks_state n state = add_state (#1 (output_spaces ops n)) state;
     val blanks = string o output_spaces ops;
-    val blanks_buffer = output_spaces_buffer ops;
 
-    fun indentation (buf, len) {tx, ind, pos, nl} : text =
-      let val s = Buffer.content buf in
-       {tx = Bytes.add (#indent ops s len) tx,
-        ind = Buffer.add s ind,
-        pos = pos + len,
-        nl = nl}
-      end;
+    val indent_markup = #indent_markup ops;
+    val no_indent_markup = indent_markup = Markup.no_output;
 
-    (*blockin is the indentation of the current block;
-      after is the width of the following context until next break.*)
-    fun format ([], _, _) text = text
-      | format (prt :: prts, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
-          (case prt of
-            Block {markup = (bg, en), open_block = true, body, ...} =>
-              format (Raw bg :: body @ Raw en :: prts, block, after) text
-          | Block {markup = (bg, en), consistent, indent, body, length = blen, ...} =>
-              let
-                val pos' = pos + indent;
-                val pos'' = pos' mod emergencypos;
-                val block' =
-                  if pos' < emergencypos then (ind |> blanks_buffer indent, pos')
-                  else (blanks_buffer pos'' Buffer.empty, pos'');
-                val d = break_dist (prts, after)
-                val body' = body |> (consistent andalso pos + blen > margin - d) ? map force_break;
-                val btext: text = text
-                  |> raw bg
-                  |> format (body', block', d)
-                  |> raw en;
-                (*if this block was broken then force the next break*)
-                val prts' = if nl < #nl btext then force_next prts else prts;
-              in format (prts', block, after) btext end
-          | Break (force, wd, ind) =>
-              (*no break if text to next break fits on this line
-                or if breaking would add only breakgain to space*)
-              format (prts, block, after)
-                (if not force andalso
-                    pos + wd <= Int.max (margin - break_dist (prts, after), blockin + breakgain)
-                 then text |> blanks wd  (*just insert wd blanks*)
-                 else text |> linebreak |> indentation block |> blanks ind)
-          | Str str => format (prts, block, after) (string str text)
-          | Raw s => format (prts, block, after) (raw s text));
+    val break_state = add_state (output_newline ops);
+    fun break (state, pos) ({main, nl, ...}: text) : text =
+      let
+        val (main', line') =
+          if no_indent_markup then
+            (main |> break_state |> add_state (Symbol.spaces pos), NONE)
+          else
+            let
+              val ss = Bytes.contents (state_output (the state));
+              val main' =
+                if null ss then main |> break_state
+                else
+                  main |> close_state |> break_state
+                  |> push_state indent_markup |> fold add_state ss |> pop_state
+                  |> reopen_state main;
+              val line' = empty_state |> fold add_state ss |> reopen_state main;
+            in (main', SOME line') end;
+      in {main = main', line = line', pos = pos, nl = nl + 1} end;
+
+    (*'before' is the indentation context of the current block*)
+    (*'after' is the width of the input context until the next break*)
+    fun format (trees, before, after) (text as {pos, ...}) =
+      (case trees of
+        [] => text
+      | End :: ts => format (ts, before, after) (pop text)
+      | Block {markup, open_block = true, body, ...} :: ts =>
+          text |> push markup |> format (body @ End :: ts, before, after)
+      | Block {markup, consistent, indent, body, length = blen, ...} :: ts =>
+          let
+            val pos' = pos + indent;
+            val pos'' = pos' mod emergencypos;
+            val before' =
+              if pos' < emergencypos
+              then (Option.map (close_state o blanks_state indent) (#line text), pos')
+              else (Option.map (fn _ => blanks_state pos'' empty_state) (#line text), pos'');
+            val after' = break_dist (ts, after)
+            val body' = body
+              |> (consistent andalso pos + blen > margin - after') ? map force_break;
+            val btext: text =
+              text |> push markup |> format (body' @ [End], before', after');
+            (*if this block was broken then force the next break*)
+            val ts' = if #nl text < #nl btext then force_next ts else ts;
+          in format (ts', before, after) btext end
+      | Break (force, wd, ind) :: ts =>
+          (*no break if text to next break fits on this line
+            or if breaking would add only breakgain to space*)
+          format (ts, before, after)
+            (if not force andalso
+                pos + wd <= Int.max (margin - break_dist (ts, after), #2 before + breakgain)
+             then text |> blanks wd  (*just insert wd blanks*)
+             else text |> break before |> blanks ind)
+      | Str str :: ts => format (ts, before, after) (string str text));
+
+    val init = if no_indent_markup then empty else empty_line;
   in
-    #tx (format ([output_tree ops true input], (Buffer.empty, 0), 0) empty)
+    result (format ([output_tree ops true input], (#line init, 0), 0) init)
   end;
 
 end;
@@ -447,7 +488,8 @@ val symbolic_output =
       let val (bg, en) = #markup ops (YXML.output_markup m)
       in Bytes.add bg #> output_body #> Bytes.add en end;
 
-    fun output (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
+    fun output End = I
+      | output (Block {markup = (bg, en), body = [], ...}) = Bytes.add bg #> Bytes.add en
       | output (Block {markup = (bg, en), open_block = true, body, ...}) =
           Bytes.add bg #> fold output body #> Bytes.add en
       | output (Block {markup = (bg, en), consistent, indent, body, ...}) =
@@ -456,8 +498,7 @@ val symbolic_output =
       | output (Break (false, wd, ind)) =
           markup_bytes (Markup.break {width = wd, indent = ind}) (output_spaces_bytes ops wd)
       | output (Break (true, _, _)) = Bytes.add (output_newline ops)
-      | output (Str (s, _)) = Bytes.add s
-      | output (Raw s) = Bytes.add s;
+      | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
 val symbolic_string_of = Bytes.content o symbolic_output;
@@ -467,11 +508,11 @@ val symbolic_string_of = Bytes.content o symbolic_output;
 
 fun unformatted ops =
   let
-    fun output (Block ({markup = (bg, en), body, ...})) =
+    fun output End = I
+      | output (Block ({markup = (bg, en), body, ...})) =
           Bytes.add bg #> fold output body #> Bytes.add en
       | output (Break (_, wd, _)) = output_spaces_bytes ops wd
-      | output (Str (s, _)) = Bytes.add s
-      | output (Raw s) = Bytes.add s;
+      | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
 fun unformatted_string_of prt =

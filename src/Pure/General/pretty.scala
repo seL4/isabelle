@@ -60,10 +60,22 @@ object Pretty {
 
   private def force_nat(i: Int): Int = i max 0
 
+  type Markup_Body = (Markup, Option[XML.Body])
+  val no_markup: Markup_Body = (Markup.Empty, None)
+  val item_markup: Markup_Body = (Markup.Expression.item, None)
+
+  def markup_elem(markup: Markup_Body, body: XML.Body): XML.Elem =
+    markup match {
+      case (m, None) => XML.Elem(m, body)
+      case (m1, Some(m2)) => XML.Wrapped_Elem(m1, m2, body)
+    }
+
   private sealed abstract class Tree { def length: Double }
+  private case object End extends Tree {
+    override def length: Double = 0.0
+  }
   private case class Block(
-    markup: Markup,
-    markup_body: Option[XML.Body],
+    markup: Markup_Body,
     open_block: Boolean,
     consistent: Boolean,
     indent: Int,
@@ -78,8 +90,7 @@ object Pretty {
   private val FBreak = Break(true, 1, 0)
 
   private def make_block(body: List[Tree],
-    markup: Markup = Markup.Empty,
-    markup_body: Option[XML.Body] = None,
+    markup: Markup_Body = no_markup,
     open_block: Boolean = false,
     consistent: Boolean = false,
     indent: Int = 0
@@ -96,7 +107,7 @@ object Pretty {
         case Nil => len1
       }
     }
-    Block(markup, markup_body, open_block, consistent, indent1, body, body_length(body, 0.0))
+    Block(markup, open_block, consistent, indent1, body, body_length(body, 0.0))
   }
 
 
@@ -107,8 +118,8 @@ object Pretty {
 
   def unbreakable(input: XML.Body): XML.Body =
     input flatMap {
-      case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, unbreakable(body2)))
+      case XML.Wrapped_Elem(markup1, markup2, body) =>
+        List(XML.Wrapped_Elem(markup1, markup2, unbreakable(body)))
       case XML.Elem(Markup.Break(width, _), _) => spaces(width)
       case XML.Elem(markup, body) => List(XML.Elem(markup, unbreakable(body)))
       case XML.Text(text) => XML.string(split_lines(text).mkString(Symbol.space))
@@ -120,12 +131,43 @@ object Pretty {
 
   /* formatting */
 
-  private sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0) {
-    def newline: Text = copy(tx = fbrk :: tx, pos = 0.0, nl = nl + 1)
+  private type State = List[(Markup_Body, List[XML.Tree])]
+  private val init_state: State = List((no_markup, Nil))
+
+  private sealed case class Text(
+    state: State = init_state,
+    pos: Double = 0.0,
+    nl: Int = 0
+  ) {
+    def add(t: XML.Tree, len: Double = 0.0): Text =
+      (state: @unchecked) match {
+        case (m, ts) :: rest => copy(state = (m, t :: ts) :: rest, pos = pos + len)
+      }
+
+    def push(m: Markup_Body): Text =
+      copy(state = (m, Nil) :: state)
+
+    def pop: Text =
+      (state: @unchecked) match {
+        case (m1, ts1) :: (m2, ts2) :: rest =>
+          copy(state = (m2, markup_elem(m1, ts1.reverse) :: ts2) :: rest)
+      }
+
+    def result: XML.Body =
+      (state: @unchecked) match {
+        case List((m, ts)) if m == no_markup => ts.reverse
+      }
+
+    def reset: Text = copy(state = init_state)
+    def restore(other: Text): Text = copy(state = other.state)
+
+    def newline: Text = add(fbrk).copy(pos = 0.0, nl = nl + 1)
+
     def string(s: String, len: Double): Text =
-      copy(tx = if (s == "") tx else XML.Text(s) :: tx, pos = pos + len)
+      if (s.isEmpty) copy(pos = pos + len)
+      else add(XML.Text(s), len = len)
+
     def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
-    def content: XML.Body = tx.reverse
   }
 
   private def break_dist(trees: List[Tree], after: Double): Double =
@@ -158,65 +200,54 @@ object Pretty {
 
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {
-        case XML.Wrapped_Elem(markup, body1, body2) =>
-          List(make_block(make_tree(body2), markup = markup, markup_body = Some(body1)))
+        case XML.Wrapped_Elem(markup1, markup2, body) =>
+          List(make_block(make_tree(body), markup = (markup1, Some(markup2)), open_block = true))
         case XML.Elem(markup, body) =>
           markup match {
             case Markup.Block(consistent, indent) =>
-              List(
-                make_block(make_tree(body),
-                  consistent = consistent, indent = indent, open_block = false))
+              List(make_block(make_tree(body), consistent = consistent, indent = indent))
             case Markup.Break(width, indent) =>
               List(Break(false, force_nat(width), force_nat(indent)))
             case Markup(Markup.ITEM, _) =>
-              List(make_block(make_tree(bullet ::: body),
-                markup = Markup.Expression.item, indent = 2))
+              List(make_block(make_tree(bullet ::: body), markup = item_markup, indent = 2))
             case _ =>
-              List(make_block(make_tree(body), markup = markup, open_block = true))
+              List(make_block(make_tree(body), markup = (markup, None), open_block = true))
           }
         case XML.Text(text) =>
           Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
       }
 
-    def format(trees: List[Tree], blockin: Int, after: Double, text: Text): Text =
+    def format(trees: List[Tree], before: Double, after: Double, text: Text): Text =
       trees match {
         case Nil => text
-
+        case End :: ts => format(ts, before, after, text.pop)
         case (block: Block) :: ts if block.open_block =>
-          val btext = format(block.body, blockin, break_dist(ts, after), text.copy(tx = Nil))
-          val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
-          val btext1 = btext.copy(tx = XML.Elem(block.markup, btext.content) :: text.tx)
-          format(ts1, blockin, after, btext1)
-
-        case Block(markup, markup_body, _, consistent, indent, body, blen) :: ts =>
-          val pos1 = (text.pos + indent).ceil.toInt
-          val pos2 = pos1 % emergencypos
-          val blockin1 = if (pos1 < emergencypos) pos1 else pos2
-          val d = break_dist(ts, after)
-          val body1 = if (consistent && text.pos + blen > margin - d) force_all(body) else body
-          val btext =
-            if (markup.is_empty && markup_body.isEmpty) format(body1, blockin1, d, text)
+          format(block.body ::: End :: ts, before, after, text.push(block.markup))
+        case (block: Block) :: ts =>
+          val pos1 = text.pos + block.indent
+          val pos2 = (pos1.round.toInt % emergencypos).toDouble
+          val before1 = if (pos1 < emergencypos) pos1 else pos2
+          val after1 = break_dist(ts, after)
+          val body1 =
+            if (block.consistent && text.pos + block.length > margin - after1) force_all(block.body)
+            else block.body
+          val btext1 =
+            if (block.markup == no_markup) format(body1, before1, after1, text)
             else {
-              val btext0 = format(body1, blockin1, d, text.copy(tx = Nil))
-              val elem =
-                markup_body match {
-                  case None => XML.Elem(markup, btext0.content)
-                  case Some(body1) => XML.Wrapped_Elem(markup, body1, btext0.content)
-                }
-              btext0.copy(tx = elem :: text.tx)
+              val btext = format(body1, before1, after1, text.reset)
+              val elem = markup_elem(block.markup, btext.result)
+              btext.restore(text.add(elem))
             }
-          val ts1 = if (text.nl < btext.nl) force_next(ts) else ts
-          format(ts1, blockin, after, btext)
-
+          val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
+          format(ts1, before, after, btext1)
         case Break(force, wd, ind) :: ts =>
           if (!force &&
-              text.pos + wd <= ((margin - break_dist(ts, after)) max (blockin + breakgain)))
-            format(ts, blockin, after, text.blanks(wd))
-          else format(ts, blockin, after, text.newline.blanks(blockin + ind))
-
-        case Str(s, len) :: ts => format(ts, blockin, after, text.string(s, len))
+              text.pos + wd <= ((margin - break_dist(ts, after)) max (before + breakgain)))
+            format(ts, before, after, text.blanks(wd))
+          else format(ts, before, after, text.newline.blanks((before + ind).ceil.toInt))
+        case Str(s, len) :: ts => format(ts, before, after, text.string(s, len))
       }
-    format(make_tree(input), 0, 0.0, Text()).content
+    format(make_tree(input), 0.0, 0.0, Text()).result
   }
 
   def string_of(input: XML.Body,

@@ -61,12 +61,13 @@ fun markup_context (bg, en) =
 
 (* open_block flag *)
 
-val open_block = ContextProperty ("open_block", "true");
+val open_block = ContextProperty ("open_block", "");
 
-val open_block_detect = List.exists (fn c => c = open_block);
+val open_block_detect =
+  List.exists (fn ContextProperty ("open_block", _) => true | _ => false);
 
-fun open_block_context false = []
-  | open_block_context true = [open_block];
+fun open_block_context true = [open_block]
+  | open_block_context false = [];
 
 
 
