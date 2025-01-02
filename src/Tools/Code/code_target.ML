@@ -643,9 +643,10 @@ val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
 fun arrange_printings prep_syms ctxt =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun arrange check (sym, target_syns) =
       map (fn (target_name, some_syn) =>
-        (target_name, (sym, Option.map (check ctxt target_name sym) some_syn))) target_syns;
+        (assert_target thy target_name, (sym, Option.map (check ctxt target_name sym) some_syn))) target_syns;
   in
     Code_Symbol.maps_attr'
       (arrange check_const_syntax) (arrange check_tyco_syntax)
