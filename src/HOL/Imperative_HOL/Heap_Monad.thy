@@ -565,7 +565,7 @@ readArray = Data.Array.ST.readArray
 writeArray :: STArray s a -> Integer -> a -> ST s ()
 writeArray = Data.Array.ST.writeArray\<close>
 
-code_reserved Haskell Heap
+code_reserved (Haskell) Heap
 
 text \<open>Monad\<close>
 
@@ -620,7 +620,7 @@ object Array {
 
 \<close>
 
-code_reserved Scala Heap Ref Array
+code_reserved (Scala) Heap Ref Array
 
 code_printing type_constructor Heap \<rightharpoonup> (Scala) "(Unit/ =>/ _)"
 code_printing constant bind \<rightharpoonup> (Scala) "Heap.bind"

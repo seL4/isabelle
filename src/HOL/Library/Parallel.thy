@@ -23,7 +23,7 @@ code_printing
 | constant fork \<rightharpoonup> (Eval) "Future.fork"
 | constant join \<rightharpoonup> (Eval) "Future.join"
 
-code_reserved Eval Future future
+code_reserved (Eval) Future future
 
 
 subsection \<open>Parallel lists\<close>
@@ -50,7 +50,7 @@ code_printing
 | constant forall \<rightharpoonup> (Eval) "Par'_List.forall"
 | constant exists \<rightharpoonup> (Eval) "Par'_List.exists"
 
-code_reserved Eval Par_List
+code_reserved (Eval) Par_List
 
 
 hide_const (open) fork join map exists forall

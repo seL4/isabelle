@@ -42,7 +42,7 @@ code_pred sublist .
 
 text \<open>Avoid popular infix.\<close>
 
-code_reserved SML upto
+code_reserved (SML) upto
 
 text \<open>Explicit check in \<open>OCaml\<close> for correct precedence of let expressions in list expressions\<close>
 

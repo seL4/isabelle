@@ -780,7 +780,8 @@ hide_const (open) Pos Neg sub dup divmod_abs
 
 subsection \<open>Serializer setup for target language integers\<close>
 
-code_reserved Eval int Integer abs
+code_reserved
+  (Eval) int Integer abs
 
 code_printing
   type_constructor integer \<rightharpoonup>

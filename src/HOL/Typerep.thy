@@ -90,7 +90,8 @@ code_printing
   type_constructor typerep \<rightharpoonup> (Eval) "Term.typ"
 | constant Typerep \<rightharpoonup> (Eval) "Term.Type/ (_, _)"
 
-code_reserved Eval Term
+code_reserved
+  (Eval) Term
 
 hide_const (open) typerep Typerep
 

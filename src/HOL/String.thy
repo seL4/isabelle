@@ -721,10 +721,11 @@ lemma [code_computation_unfold]:
 
 end
 
-code_reserved SML string String Char Str_Literal
-code_reserved OCaml string String Char Str_Literal
-code_reserved Haskell Prelude
-code_reserved Scala string
+code_reserved
+  (SML) string String Char Str_Literal
+  and (OCaml) string String Char Str_Literal
+  and (Haskell) Prelude
+  and (Scala) string
 
 code_identifier
   code_module String \<rightharpoonup>

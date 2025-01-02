@@ -17,7 +17,8 @@ axiomatization catch_match :: "'a => 'a => 'a"
 code_printing
   constant catch_match \<rightharpoonup> (Quickcheck) "((_) handle Match => _)"
 
-code_reserved Quickcheck Match
+code_reserved
+  (Quickcheck) Match
 
 subsection \<open>The \<open>random\<close> class\<close>
 
@@ -271,7 +272,8 @@ code_printing
   for this reason we use a distinguished target \<open>Quickcheck\<close>
   not spoiling the regular trusted code generation\<close>
 
-code_reserved Quickcheck Random_Generators
+code_reserved
+  (Quickcheck) Random_Generators
 
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
 

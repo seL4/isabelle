@@ -195,14 +195,10 @@ code_printing
 | constant "HOL.equal :: unit \<Rightarrow> unit \<Rightarrow> bool" \<rightharpoonup>
     (Haskell) infix 4 "=="
 
-code_reserved SML
-  unit
-
-code_reserved OCaml
-  unit
-
-code_reserved Scala
-  Unit
+code_reserved
+  (SML) unit
+  and (OCaml) unit
+  and (Scala) Unit
 
 
 subsection \<open>The product type\<close>

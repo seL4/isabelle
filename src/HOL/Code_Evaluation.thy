@@ -88,7 +88,8 @@ code_printing
 
 ML_file \<open>Tools/code_evaluation.ML\<close>
 
-code_reserved Eval Code_Evaluation
+code_reserved
+  (Eval) Code_Evaluation
 
 ML_file \<open>~~/src/HOL/Tools/value_command.ML\<close>
 
@@ -128,7 +129,8 @@ lemma term_of_integer [unfolded typerep_fun_def typerep_num_def typerep_integer_
        (term_of (- i)))"
   by (rule term_of_anything [THEN meta_eq_to_obj_eq])
 
-code_reserved Eval HOLogic
+code_reserved
+  (Eval) HOLogic
 
 
 subsection \<open>Generic reification\<close>

@@ -739,10 +739,9 @@ fun code_expr_checkingP (all_public, raw_cs) =
 in
 
 val _ =
-  Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close>
-    "declare words as reserved for target language"
-    (Parse.name -- Scan.repeat1 Parse.name
-      >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds));
+  Outer_Syntax.command \<^command_keyword>\<open>code_reserved\<close> "declare words as reserved for target language"
+    (Parse.and_list1 (\<^keyword>\<open>(\<close> |-- (Parse.name --| \<^keyword>\<open>)\<close> -- Scan.repeat1 Parse.name))
+      >> (Toplevel.theory o fold (fn (target, reserveds) => fold (add_reserved target) reserveds)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_identifier\<close> "declare mandatory names for code symbols"

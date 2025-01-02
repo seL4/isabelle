@@ -116,7 +116,7 @@ end;\<close> for type_constructor lazy constant delay force termify_lazy
 | constant force \<rightharpoonup> (SML) "Lazy.force"
 | constant termify_lazy \<rightharpoonup> (SML) "Lazy.termify'_lazy"
 
-code_reserved SML Lazy
+code_reserved (SML) Lazy
 
 code_printing \<comment> \<open>For code generation within the Isabelle environment, we reuse the thread-safe
   implementation of lazy from \<^file>\<open>~~/src/Pure/Concurrent/lazy.ML\<close>\<close>
@@ -137,7 +137,7 @@ fun termify_lazy
 end;\<close> for constant termify_lazy
 | constant termify_lazy \<rightharpoonup> (Eval) "Termify'_Lazy.termify'_lazy"
 
-code_reserved Eval Termify_Lazy
+code_reserved (Eval) Termify_Lazy
 
 code_printing
   type_constructor lazy \<rightharpoonup> (OCaml) "_ Lazy.t"
@@ -161,7 +161,7 @@ let termify_lazy const app abs unitT funT lazyT term_of ty x _ =
 end;;\<close> for constant termify_lazy
 | constant termify_lazy \<rightharpoonup> (OCaml) "Termify'_Lazy.termify'_lazy"
 
-code_reserved OCaml Lazy Termify_Lazy
+code_reserved (OCaml) Lazy Termify_Lazy
 
 
 code_printing
@@ -175,7 +175,7 @@ force (Lazy x) = x\<close> for type_constructor lazy constant delay force
 | constant delay \<rightharpoonup> (Haskell) "Lazy.delay"
 | constant force \<rightharpoonup> (Haskell) "Lazy.force"
 
-code_reserved Haskell Lazy
+code_reserved (Haskell) Lazy
 
 code_printing
   code_module Lazy \<rightharpoonup> (Scala) 
@@ -220,7 +220,7 @@ code_printing
 | constant force \<rightharpoonup> (Scala) "Lazy.force"
 | constant termify_lazy \<rightharpoonup> (Scala) "Lazy.termify'_lazy"
 
-code_reserved Scala Lazy
+code_reserved (Scala) Lazy
 
 text \<open>Make evaluation with the simplifier respect \<^term>\<open>delay\<close>s.\<close>
 

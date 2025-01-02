@@ -373,13 +373,9 @@ code_printing
 | constant "HOL.equal :: 'a option \<Rightarrow> 'a option \<Rightarrow> bool" \<rightharpoonup>
     (Haskell) infix 4 "=="
 
-code_reserved SML
-  option NONE SOME
-
-code_reserved OCaml
-  option None Some
-
-code_reserved Scala
-  Option None Some
+code_reserved
+  (SML) option NONE SOME
+  and (OCaml) option None Some
+  and (Scala) Option None Some
 
 end

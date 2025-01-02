@@ -222,6 +222,9 @@ Isabelle/jEdit rendering like this:
 
 *** HOL ***
 
+* Code generator: `code_reserved` now uses brackets for target languages,
+similar to `code_printing.
+
 * Sledgehammer:
   - Added instantiations of facts using the "of" attribute
     (e.g. "assms(1)[of x]"), which can be activated using the

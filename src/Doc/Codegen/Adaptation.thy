@@ -295,7 +295,7 @@ text \<open>
   @{command_def "code_reserved"} command:
 \<close>
 
-code_reserved %quote "\<SMLdummy>" bool true false andalso
+code_reserved %quotett ("\<SMLdummy>") bool true false andalso
 
 text \<open>
   \noindent Next, we try to map HOL pairs to SML pairs, using the
@@ -388,7 +388,7 @@ code_printing %quotett code_module "Errno" \<rightharpoonup> (Haskell)
 
   errno i = error ("Error number: " ++ show i)\<close>
 
-code_reserved %quotett Haskell Errno
+code_reserved %quotett (Haskell) Errno
 
 text \<open>
   \noindent Such named modules are then prepended to every

@@ -200,8 +200,8 @@ fun yieldn n f i pol = (case f i pol of
 end;
 \<close>
 
-code_reserved Eval Limited_Sequence
-
+code_reserved
+  (Eval) Limited_Sequence
 
 hide_const (open) yield empty single eval map_seq bind union if_seq not_seq map
   pos_empty pos_single pos_bind pos_decr_bind pos_union pos_if_seq pos_iterate_upto pos_not_seq pos_map
@@ -213,4 +213,3 @@ hide_fact (open) yield_def empty_def single_def eval_def map_seq_def bind_def un
   neg_empty_def neg_single_def neg_bind_def neg_union_def neg_if_seq_def neg_iterate_upto_def neg_not_seq_def neg_map_def
 
 end
-

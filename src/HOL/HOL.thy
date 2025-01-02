@@ -2074,14 +2074,10 @@ code_printing
 | constant False \<rightharpoonup>
     (SML) "false" and (OCaml) "false" and (Haskell) "False" and (Scala) "false"
 
-code_reserved SML
-  bool true false
-
-code_reserved OCaml
-  bool
-
-code_reserved Scala
-  Boolean
+code_reserved
+  (SML) bool true false
+  and (OCaml) bool
+  and (Scala) Boolean
 
 code_printing
   constant Not \<rightharpoonup>
@@ -2101,11 +2097,9 @@ code_printing
     and (Haskell) "!(if (_)/ then (_)/ else (_))"
     and (Scala) "!((_) match {/ case true => (_)/ case false => (_)/ })"
 
-code_reserved SML
-  not
-
-code_reserved OCaml
-  not
+code_reserved
+  (SML) not
+  and (OCaml) not
 
 code_identifier
   code_module Pure \<rightharpoonup>

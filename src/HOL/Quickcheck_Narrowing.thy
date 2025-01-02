@@ -22,7 +22,8 @@ data Typerep = Typerep String [Typerep]
 | type_constructor typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 | constant Typerep.Typerep \<rightharpoonup> (Haskell_Quickcheck) "Typerep.Typerep"
 
-code_reserved Haskell_Quickcheck Typerep
+code_reserved
+  (Haskell_Quickcheck) Typerep
 
 code_printing
   type_constructor integer \<rightharpoonup> (Haskell_Quickcheck) "Prelude.Int"

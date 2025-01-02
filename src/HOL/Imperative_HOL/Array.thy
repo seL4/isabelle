@@ -451,7 +451,7 @@ code_printing constant Array.nth' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.su
 code_printing constant Array.upd' \<rightharpoonup> (SML) "(fn/ ()/ =>/ Array.update/ ((_),/ IntInf.toInt _,/ (_)))"
 code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (SML) infixl 6 "="
 
-code_reserved SML Array
+code_reserved (SML) Array
 
 
 text \<open>OCaml\<close>
@@ -467,7 +467,7 @@ code_printing constant Array.nth' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array
 code_printing constant Array.upd' \<rightharpoonup> (OCaml) "(fun/ ()/ ->/ Array.set/ _/ (Z.to'_int/ _)/ _)"
 code_printing constant "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" \<rightharpoonup> (OCaml) infixl 4 "="
 
-code_reserved OCaml Array
+code_reserved (OCaml) Array
 
 
 text \<open>Haskell\<close>

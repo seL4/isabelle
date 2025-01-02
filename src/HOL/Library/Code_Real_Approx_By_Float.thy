@@ -82,7 +82,7 @@ declare [[code drop: \<open>HOL.equal :: real \<Rightarrow> real \<Rightarrow> b
   arccos
   arctan]]
 
-code_reserved SML Real
+code_reserved (SML) Real
 
 code_printing
   type_constructor real \<rightharpoonup>

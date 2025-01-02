@@ -2314,7 +2314,7 @@ text \<open>
     ;
     @@{command (HOL) code_deps} (const_expr+)
     ;
-    @@{command (HOL) code_reserved} target (@{syntax string}+)
+    @@{command (HOL) code_reserved} ('(' target ')' (@{syntax string}+) + @'and')
     ;
     symbol_const: @'constant' const
     ;

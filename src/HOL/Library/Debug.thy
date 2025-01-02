@@ -39,7 +39,6 @@ code_printing
 | constant Debug.flush \<rightharpoonup> (Eval) "Output.tracing/ (@{make'_string} _)" \<comment> \<open>note indirection via antiquotation\<close>
 | constant Debug.timing \<rightharpoonup> (Eval) "Timing.timeap'_msg"
 
-code_reserved Eval Output Timing
+code_reserved (Eval) Output Timing
 
 end
-

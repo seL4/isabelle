@@ -655,7 +655,7 @@ definition "qsort a = do {
     return a
   }"
 
-code_reserved SML upto
+code_reserved (SML) upto
 
 definition "example = do {
     a \<leftarrow> Array.of_list ([42, 2, 3, 5, 0, 1705, 8, 3, 15] :: nat list);

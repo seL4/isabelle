@@ -8089,11 +8089,9 @@ code_printing
 
 setup \<open>fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"]\<close>
 
-code_reserved SML
-  list
-
-code_reserved OCaml
-  list
+code_reserved
+  (SML) list
+  and (OCaml) list
 
 
 subsubsection \<open>Use convenient predefined operations\<close>
