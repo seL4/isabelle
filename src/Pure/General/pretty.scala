@@ -64,12 +64,6 @@ object Pretty {
   val no_markup: Markup_Body = (Markup.Empty, None)
   val item_markup: Markup_Body = (Markup.Expression.item, None)
 
-  def markup_elem(markup: Markup_Body, body: XML.Body): XML.Elem =
-    markup match {
-      case (m, None) => XML.Elem(m, body)
-      case (m1, Some(m2)) => XML.Wrapped_Elem(m1, m2, body)
-    }
-
   private sealed abstract class Tree { def length: Double }
   private case object End extends Tree {
     override def length: Double = 0.0
@@ -131,43 +125,75 @@ object Pretty {
 
   /* formatting */
 
-  private type State = List[(Markup_Body, List[XML.Tree])]
-  private val init_state: State = List((no_markup, Nil))
+  private sealed abstract class Tree_Buffer { def result: XML.Tree }
+  private case class Elem_Buffer(markup: Markup_Body, body: XML.Body) extends Tree_Buffer {
+    def result: XML.Elem =
+      markup match {
+        case (m, None) => XML.Elem(m, body)
+        case (m1, Some(m2)) => XML.Wrapped_Elem(m1, m2, body)
+      }
+  }
+  private case class Text_Buffer(buffer: List[String]) extends Tree_Buffer {
+    def result: XML.Text = XML.Text(buffer.reverse.mkString)
+
+    def add(s: String): Text_Buffer =
+      if (s.isEmpty) this else copy(buffer = s :: buffer)
+  }
+
+  private case class Result_Buffer(
+    markup: Markup_Body = no_markup,
+    buffer: List[Tree_Buffer] = Nil
+  ) {
+    def result_body: XML.Body = buffer.foldLeft[XML.Body](Nil)((res, t) => t.result :: res)
+    def result_elem: Elem_Buffer = Elem_Buffer(markup, result_body)
+
+    def add(elem: Elem_Buffer): Result_Buffer = copy(buffer = elem :: buffer)
+
+    def string(s: String): Result_Buffer =
+      if (s.isEmpty) this
+      else {
+        buffer match {
+          case (text: Text_Buffer) :: ts => copy(buffer = text.add(s) :: ts)
+          case _ => copy(buffer = Text_Buffer(List(s)) :: buffer)
+        }
+      }
+  }
+
+  private type State = List[Result_Buffer]
+  private val init_state: State = List(Result_Buffer())
 
   private sealed case class Text(
     state: State = init_state,
     pos: Double = 0.0,
     nl: Int = 0
   ) {
-    def add(t: XML.Tree, len: Double = 0.0): Text =
+    def add(elem: Elem_Buffer): Text =
       (state: @unchecked) match {
-        case (m, ts) :: rest => copy(state = (m, t :: ts) :: rest, pos = pos + len)
+        case res :: rest => copy(state = res.add(elem) :: rest)
       }
 
     def push(m: Markup_Body): Text =
-      copy(state = (m, Nil) :: state)
+      copy(state = Result_Buffer(markup = m) :: state)
 
     def pop: Text =
       (state: @unchecked) match {
-        case (m1, ts1) :: (m2, ts2) :: rest =>
-          copy(state = (m2, markup_elem(m1, ts1.reverse) :: ts2) :: rest)
+        case res1 :: res2 :: rest => copy(state = res2.add(res1.result_elem) :: rest)
       }
 
     def result: XML.Body =
       (state: @unchecked) match {
-        case List((m, ts)) if m == no_markup => ts.reverse
+        case List(res) if res.markup == no_markup => res.result_body
       }
 
     def reset: Text = copy(state = init_state)
     def restore(other: Text): Text = copy(state = other.state)
 
-    def newline: Text = add(fbrk).copy(pos = 0.0, nl = nl + 1)
-
     def string(s: String, len: Double): Text =
-      if (s.isEmpty) copy(pos = pos + len)
-      else add(XML.Text(s), len = len)
-
+      (state: @unchecked) match {
+        case res :: rest => copy(state = res.string(s) :: rest, pos = pos + len)
+      }
     def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
+    def newline: Text = string("\n", 0.0).copy(pos = 0.0, nl = nl + 1)
   }
 
   private def break_dist(trees: List[Tree], after: Double): Double =
@@ -235,7 +261,7 @@ object Pretty {
             if (block.markup == no_markup) format(body1, before1, after1, text)
             else {
               val btext = format(body1, before1, after1, text.reset)
-              val elem = markup_elem(block.markup, btext.result)
+              val elem = Elem_Buffer(block.markup, btext.result)
               btext.restore(text.add(elem))
             }
           val ts1 = if (text.nl < btext1.nl) force_next(ts) else ts
