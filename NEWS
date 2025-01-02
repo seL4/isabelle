@@ -240,7 +240,9 @@ target languages, similar to 'code_printing'.
     This outputs a suggestion with instantiations of the facts using the
     "of" attribute (e.g. "assms(1)[of x]").
 
-* Theory "HOL-Library/Discrete" has been renamed "HOL-Library/Discrete_Functions"
+* Theory HOL-Library.Discrete has been renamed
+HOL-Library.Discrete_Functions
+
   Discrete.log -> floor_log
   Discrete.sqrt -> floor_sqrt
   Renamed lemmas accordingly (...log/sqrt... -> ...floor_log/sqrt...)
@@ -286,10 +288,9 @@ supposed to be removed in a future release. Minor INCOMPATIBILITY.
 Import "HOL-Library.Divides" and keep an eye qualified names with prefix
 "Divides" to ease transition.
 
-* The real-valued versions of ln, log, powr have been totalised by
-"ln(0) = x" and "ln(-x) = ln(x)". Many related theorems are now
-unconditional, with ln_mult_pos and ln_divide_pos introduced for legacy
-purposes.
+* The real-valued versions of ln, log, powr have been totalised by "ln 0
+= x" and "ln (- x) = ln x". Many related theorems are now unconditional,
+with ln_mult_pos and ln_divide_pos introduced for legacy purposes.
 
 
 *** ML ***

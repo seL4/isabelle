@@ -7,7 +7,7 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * October 2024: Lukas Bartl, LMU München
-  Inference of variable instantiations with Metis
+  Inference of variable instantiations with Metis.
 
 * April - October 2024: Thomas Lindae and Fabian Huch, TU München
   Improvements to the language server for Isabelle/VSCode.
