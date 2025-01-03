@@ -226,6 +226,8 @@ Isabelle/jEdit rendering like this:
 target languages, similar to 'code_printing'.
 
 * Sledgehammer:
+  - Update of bundled provers:
+      . E 3.1 -- with patch on Windows/Cygwin for proper interrupts
   - Added instantiations of facts using the "of" attribute
     (e.g. "assms(1)[of x]"), which can be activated using the
     Sledgehammer option "suggest_of" (default: smart, i.e. only if

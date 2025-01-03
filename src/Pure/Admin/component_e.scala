@@ -49,6 +49,13 @@ object Component_E {
 
       progress.echo("Building E prover for " + platform_name + " ...")
 
+      // adhoc patch wrt. https://github.com/eprover/eprover/commit/d40e1db7d786
+      if (Platform.is_windows) {
+        File.change_lines(source_dir + Path.explode("PROVER/eprover.c"), strict = true) {
+          _.map(line => if (line.containsSlice("setpgid(0, 0)")) "" else line)
+        }
+      }
+
       val build_options = {
         val result = Isabelle_System.bash("./configure --help", cwd = source_dir)
         if (result.check.out.containsSlice("--enable-ho")) " --enable-ho" else ""
@@ -85,6 +92,9 @@ E_VERSION=""" + quote(version) + """
 
       File.write(component_dir.README,
         "This is E prover " + version + " from\n" + archive_url + """
+
+* On Windows/Cygwin, the sources have been patched to remove setpgid in
+  PROVER/eprover.c
 
 * The distribution has been built like this:
 
