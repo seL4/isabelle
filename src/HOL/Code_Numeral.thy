@@ -1174,43 +1174,6 @@ end
 
 instance natural :: linordered_euclidean_semiring_bit_operations ..
 
-context
-  includes bit_operations_syntax
-begin
-
-lemma [code]:
-  \<open>bit m n \<longleftrightarrow> odd (drop_bit n m)\<close>
-  \<open>mask n = 2 ^ n - (1 :: natural)\<close>
-  \<open>set_bit n m = m OR push_bit n 1\<close>
-  \<open>flip_bit n m = m XOR push_bit n 1\<close>
-  \<open>push_bit n m = m * 2 ^ n\<close>
-  \<open>drop_bit n m = m div 2 ^ n\<close>
-  \<open>take_bit n m = m mod 2 ^ n\<close> for m :: natural
-  by (fact bit_iff_odd_drop_bit mask_eq_exp_minus_1
-    set_bit_eq_or flip_bit_eq_xor push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
-
-lemma [code]:
-  \<open>m AND n = (if m = 0 \<or> n = 0 then 0
-    else (m mod 2) * (n mod 2) + 2 * ((m div 2) AND (n div 2)))\<close> for m n :: natural
-  by transfer (fact and_nat_unfold)
-
-lemma [code]:
-  \<open>m OR n = (if m = 0 then n else if n = 0 then m
-    else max (m mod 2) (n mod 2) + 2 * ((m div 2) OR (n div 2)))\<close> for m n :: natural
-  by transfer (fact or_nat_unfold)
-
-lemma [code]:
-  \<open>m XOR n = (if m = 0 then n else if n = 0 then m
-    else (m mod 2 + n mod 2) mod 2 + 2 * ((m div 2) XOR (n div 2)))\<close> for m n :: natural
-  by transfer (fact xor_nat_unfold)
-
-lemma [code]:
-  \<open>unset_bit 0 m = 2 * (m div 2)\<close>
-  \<open>unset_bit (Suc n) m = m mod 2 + 2 * unset_bit n (m div 2)\<close> for m :: natural
-  by (transfer; simp add: unset_bit_Suc)+
-
-end
-
 lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
   is "nat :: int \<Rightarrow> nat"
   .
@@ -1365,6 +1328,56 @@ lemma [code]: "m \<le> n \<longleftrightarrow> integer_of_natural m \<le> intege
 
 lemma [code]: "m < n \<longleftrightarrow> integer_of_natural m < integer_of_natural n"
   by transfer simp
+
+context
+  includes bit_operations_syntax
+begin
+
+lemma [code]:
+  \<open>bit m n \<longleftrightarrow> bit (integer_of_natural m) n\<close>
+  by transfer (simp add: bit_simps)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (m AND n) = integer_of_natural m AND integer_of_natural n\<close>
+  by transfer (simp add: of_nat_and_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (m OR n) = integer_of_natural m OR integer_of_natural n\<close>
+  by transfer (simp add: of_nat_or_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (m XOR n) = integer_of_natural m XOR integer_of_natural n\<close>
+  by transfer (simp add: of_nat_xor_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (mask n) = mask n\<close>
+  by transfer (simp add: of_nat_mask_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (set_bit n m) = set_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_set_bit_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (unset_bit n m) = unset_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_unset_bit_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (flip_bit n m) = flip_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_flip_bit_eq)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (push_bit n m) = push_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_push_bit)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (drop_bit n m) = drop_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_drop_bit)
+
+lemma [code abstract]:
+  \<open>integer_of_natural (take_bit n m) = take_bit n (integer_of_natural m)\<close>
+  by transfer (simp add: of_nat_take_bit)
+
+end
 
 hide_const (open) Nat
 

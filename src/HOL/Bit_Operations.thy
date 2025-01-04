@@ -2491,6 +2491,18 @@ lemma of_nat_mask_eq:
   \<open>of_nat (mask n) = mask n\<close>
   by (induction n) (simp_all add: mask_Suc_double Bit_Operations.mask_Suc_double of_nat_or_eq)
 
+lemma of_nat_set_bit_eq:
+  \<open>of_nat (set_bit n m) = set_bit n (of_nat m)\<close>
+  by (simp add: set_bit_eq_or Bit_Operations.set_bit_eq_or of_nat_or_eq Bit_Operations.push_bit_eq_mult)
+
+lemma of_nat_unset_bit_eq:
+  \<open>of_nat (unset_bit n m) = unset_bit n (of_nat m)\<close>
+  by (simp add: unset_bit_eq_or_xor Bit_Operations.unset_bit_eq_or_xor of_nat_or_eq of_nat_xor_eq Bit_Operations.push_bit_eq_mult)
+
+lemma of_nat_flip_bit_eq:
+  \<open>of_nat (flip_bit n m) = flip_bit n (of_nat m)\<close>
+  by (simp add: flip_bit_eq_xor Bit_Operations.flip_bit_eq_xor of_nat_xor_eq Bit_Operations.push_bit_eq_mult)
+
 end
 
 context linordered_euclidean_semiring_bit_operations
