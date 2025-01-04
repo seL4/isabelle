@@ -58,7 +58,7 @@ text \<open>
 section \<open>Quick start\<close>
 
 text \<open>
-  The starting point is a fresh installation of \<^bold>\<open>Ubuntu 20.04 or 22.04
+  The starting point is a fresh installation of \<^bold>\<open>Ubuntu 22.04 or 24.04
   LTS\<close>\<^footnote>\<open>\<^url>\<open>https://ubuntu.com/download\<close>\<close>: these versions are mandatory due to
   subtle dependencies on system packages and configuration that is assumed by
   the Isabelle setup tool.
@@ -383,7 +383,7 @@ subsection \<open>\<^verbatim>\<open>isabelle phabricator_setup\<close>\<close>
 
 text \<open>
   The @{tool_def phabricator_setup} tool installs a fresh Phorge instance
-  on Ubuntu 20.04 or 22.04 LTS:
+  on Ubuntu 22.04 or 24.04 LTS:
   @{verbatim [display] \<open>Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
@@ -419,7 +419,7 @@ text \<open>
   further packages required by Phorge. This might require a reboot.
 
   Option \<^verbatim>\<open>-M:\<close> installs a standard Mercurial release from source: a specific
-  version that is known to work on Ubuntu 20.04 or 22.04, respectively. It is
+  version that is known to work on Ubuntu 22.04 or 24.04, respectively. It is
   also possible to specify the path or URL of the source archive (\<^verbatim>\<open>.tar.gz\<close>).
   This option is recommended for production use, but it requires to
   \<^emph>\<open>uninstall\<close> existing Mercurial packages provided by the operating system.

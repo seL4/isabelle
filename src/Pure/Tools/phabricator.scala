@@ -20,17 +20,6 @@ object Phabricator {
 
   /* system packages */
 
-  val packages_ubuntu_20_04: List[String] =
-    Docker_Build.packages :::
-    List(
-      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
-      "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
-      "php-json", "php-mbstring",
-      // more packages
-      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion", "python-pygments",
-      // mercurial build packages
-      "make", "gcc", "python", "python2-dev", "python-docutils", "python-openssl")
-
   val packages_ubuntu_22_04: List[String] =
     Docker_Build.packages :::
     List(
@@ -56,8 +45,7 @@ object Phabricator {
   def packages(webserver: Webserver): List[String] = {
     val release = Linux.Release()
     val pkgs =
-      if (release.is_ubuntu_20_04) packages_ubuntu_20_04
-      else if (release.is_ubuntu_22_04) packages_ubuntu_22_04
+      if (release.is_ubuntu_22_04) packages_ubuntu_22_04
       else if (release.is_ubuntu_24_04) packages_ubuntu_24_04
       else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 or 24.04 LTS")
     pkgs ::: webserver.packages()
@@ -216,8 +204,7 @@ object Phabricator {
 
   def standard_mercurial_source: String = {
     val release = Linux.Release()
-    if (release.is_ubuntu_20_04) "https://www.mercurial-scm.org/release/mercurial-3.9.2.tar.gz"
-    else if (release.is_ubuntu_22_04) "https://www.mercurial-scm.org/release/mercurial-6.1.4.tar.gz"
+    if (release.is_ubuntu_22_04) "https://www.mercurial-scm.org/release/mercurial-6.1.4.tar.gz"
     else "https://www.mercurial-scm.org/release/mercurial-6.8.2.tar.gz"
   }
 
