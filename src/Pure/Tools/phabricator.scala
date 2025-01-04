@@ -871,7 +871,7 @@ PidFile /var/run/""" + ssh_name + """.pid
     Linux.service_install(ssh_name,
 """[Unit]
 Description=OpenBSD Secure Shell server for Isabelle/Phorge
-After=network.target auditd.service isabelle-phabricator-phd.service
+After=network.target auditd.service ssh.service isabelle-phabricator-phd.service
 ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
 
 [Service]
