@@ -373,6 +373,7 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Generate_Target_Nat
     Generate_Abstract_Char
     Generate_Efficient_Datastructures
+    Generate_Target_Bit_Operations
     Code_Lazy_Test
     Code_Test_PolyML
     Code_Test_Scala
