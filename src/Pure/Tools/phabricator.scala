@@ -777,6 +777,9 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
 
   /** setup ssh **/
 
+  // see also https://we.phorge.it/book/phorge/article/diffusion_hosting/#sshd-setup
+
+
   /* sshd config */
 
   private val Port = """^\s*Port\s+(\d+)\s*$""".r
