@@ -5,6 +5,7 @@
 
 theory Code_Test_GHC
 imports
+  "HOL-Library.Code_Target_Bit_Shifts"
   "HOL-Library.Code_Test"
   Code_Lazy_Test
 begin

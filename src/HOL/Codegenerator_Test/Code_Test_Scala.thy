@@ -3,7 +3,9 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-theory Code_Test_Scala imports
+theory Code_Test_Scala
+imports
+  "HOL-Library.Code_Target_Bit_Shifts"
   "HOL-Library.Code_Test"
   Code_Lazy_Test
 begin

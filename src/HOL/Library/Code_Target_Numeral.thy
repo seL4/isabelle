@@ -5,7 +5,7 @@
 section \<open>Implementation of natural and integer numbers by target-language integers\<close>
 
 theory Code_Target_Numeral
-imports Code_Target_Int Code_Target_Nat
+imports Code_Target_Nat Code_Target_Int Code_Target_Bit_Shifts
 begin
 
 end

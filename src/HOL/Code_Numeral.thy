@@ -377,19 +377,6 @@ context
 begin
 
 lemma [code]:
-  \<open>bit k n \<longleftrightarrow> odd (drop_bit n k)\<close>
-  \<open>NOT k = - k - 1\<close>
-  \<open>mask n = 2 ^ n - (1 :: integer)\<close>
-  \<open>set_bit n k = k OR push_bit n 1\<close>
-  \<open>unset_bit n k = k AND NOT (push_bit n 1)\<close>
-  \<open>flip_bit n k = k XOR push_bit n 1\<close>
-  \<open>push_bit n k = k * 2 ^ n\<close>
-  \<open>drop_bit n k = k div 2 ^ n\<close>
-  \<open>take_bit n k = k mod 2 ^ n\<close> for k :: integer
-  by (fact bit_iff_odd_drop_bit not_eq_complement mask_eq_exp_minus_1
-    set_bit_eq_or unset_bit_eq_and_not flip_bit_eq_xor push_bit_eq_mult drop_bit_eq_div take_bit_eq_mod)+
-
-lemma [code]:
   \<open>k AND l = (if k = 0 \<or> l = 0 then 0 else if k = - 1 then l else if l = - 1 then k
     else (k mod 2) * (l mod 2) + 2 * ((k div 2) AND (l div 2)))\<close> for k l :: integer
   by transfer (fact and_int_unfold) 
@@ -403,6 +390,42 @@ lemma [code]:
   \<open>k XOR l = (if k = - 1 then NOT l else if l = - 1 then NOT k else if k = 0 then l else if l = 0 then k
     else \<bar>k mod 2 - l mod 2\<bar> + 2 * ((k div 2) XOR (l div 2)))\<close> for k l :: integer
   by transfer (fact xor_int_unfold)
+
+lemma [code]:
+  \<open>NOT k = - k - 1\<close> for k :: integer
+  by (fact not_eq_complement)
+
+lemma [code]:
+  \<open>bit k n \<longleftrightarrow> k AND push_bit n 1 \<noteq> (0 :: integer)\<close>
+  by (simp add: and_exp_eq_0_iff_not_bit)
+
+lemma [code]:
+  \<open>mask n = push_bit n 1 - (1 :: integer)\<close>
+  by (simp add: mask_eq_exp_minus_1)
+
+lemma [code]:
+  \<open>set_bit n k = k OR push_bit n 1\<close> for k :: integer
+  by (fact set_bit_def)
+
+lemma [code]:
+  \<open>unset_bit n k = k AND NOT (push_bit n 1)\<close> for k :: integer
+  by (fact unset_bit_def)
+
+lemma [code]:
+  \<open>flip_bit n k = k XOR push_bit n 1\<close> for k :: integer
+  by (fact flip_bit_def)
+
+lemma [code]:
+  \<open>push_bit n k = k * 2 ^ n\<close> for k :: integer
+  by (fact push_bit_eq_mult)
+
+lemma [code]:
+  \<open>drop_bit n k = k div  2 ^ n\<close> for k :: integer
+  by (fact drop_bit_eq_div)
+
+lemma [code]:
+  \<open>take_bit n k = k AND mask n\<close> for k :: integer
+  by (fact take_bit_eq_mask)
 
 end
 

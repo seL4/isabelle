@@ -5,6 +5,7 @@
 
 theory Code_Test_PolyML
 imports 
+  "HOL-Library.Code_Target_Bit_Shifts"
   "HOL-Library.Code_Test"
   Code_Lazy_Test
 begin

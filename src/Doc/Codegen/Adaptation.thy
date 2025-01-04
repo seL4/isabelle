@@ -204,13 +204,17 @@ text \<open>
        Pattern matching with \<^term>\<open>0::nat\<close> / \<^const>\<open>Suc\<close> is eliminated
        by a preprocessor.
 
+    \item[\<open>Code_Target_Bit_Shifts\<close>] implements bit shifts on \<^typ>\<open>integer\<close>
+       by target-language operations. Combined with \<open>Code_Target_Int\<close>
+       or \<open>Code_Target_Nat\<close>, bit shifts on \<^typ>\<open>int\<close> or \<^type>\<open>nat\<close> can
+       be implemented by target-language operations.
+
     \item[\<open>Code_Target_Numeral\<close>] is a convenience theory
-       containing both \<open>Code_Target_Nat\<close> and
-       \<open>Code_Target_Int\<close>.
+       containing \<open>Code_Target_Nat\<close>, \<open>Code_Target_Int\<close> and \<open>Code_Target_Bit_Shifts\<close>-
 
     \item[\<open>Code_Abstract_Char\<close>] implements type \<^typ>\<open>char\<close> by target language
        integers, sacrificing pattern patching in exchange for dramatically
-       increased performance for comparisions.
+       increased performance for comparisons.
 
     \item[\<^theory>\<open>HOL-Library.IArray\<close>] provides a type \<^typ>\<open>'a iarray\<close>
        isomorphic to lists but implemented by (effectively immutable)
