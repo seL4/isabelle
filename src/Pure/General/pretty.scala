@@ -163,34 +163,34 @@ object Pretty {
   private val init_state: State = List(Result_Buffer())
 
   private sealed case class Text(
-    state: State = init_state,
+    main: State = init_state,
     pos: Double = 0.0,
     nl: Int = 0
   ) {
     def add(elem: Elem_Buffer): Text =
-      (state: @unchecked) match {
-        case res :: rest => copy(state = res.add(elem) :: rest)
+      (main: @unchecked) match {
+        case res :: rest => copy(main = res.add(elem) :: rest)
       }
 
     def push(m: Markup_Body): Text =
-      copy(state = Result_Buffer(markup = m) :: state)
+      copy(main = Result_Buffer(markup = m) :: main)
 
     def pop: Text =
-      (state: @unchecked) match {
-        case res1 :: res2 :: rest => copy(state = res2.add(res1.result_elem) :: rest)
+      (main: @unchecked) match {
+        case res1 :: res2 :: rest => copy(main = res2.add(res1.result_elem) :: rest)
       }
 
     def result: XML.Body =
-      (state: @unchecked) match {
+      (main: @unchecked) match {
         case List(res) if res.markup == no_markup => res.result_body
       }
 
-    def reset: Text = copy(state = init_state)
-    def restore(other: Text): Text = copy(state = other.state)
+    def reset: Text = copy(main = init_state)
+    def restore(other: Text): Text = copy(main = other.main)
 
     def string(s: String, len: Double): Text =
-      (state: @unchecked) match {
-        case res :: rest => copy(state = res.string(s) :: rest, pos = pos + len)
+      (main: @unchecked) match {
+        case res :: rest => copy(main = res.string(s) :: rest, pos = pos + len)
       }
     def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
     def newline: Text = string("\n", 0.0).copy(pos = 0.0, nl = nl + 1)

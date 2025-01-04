@@ -341,7 +341,7 @@ with
 
 fun state_output (State (_, output)) = output;
 
-val empty_state = State ([], Bytes.empty);
+val init_state = State ([], Bytes.empty);
 
 fun add_state s (State (context, output)) =
   State (context, Bytes.add s output);
@@ -362,8 +362,8 @@ end;
 
 type text = {main: state, line: state option, pos: int, nl: int};
 
-val empty: text = {main = empty_state, line = NONE, pos = 0, nl = 0};
-val empty_line: text = {main = empty_state, line = SOME empty_state, pos = 0, nl = 0};
+val init_no_line: text = {main = init_state, line = NONE, pos = 0, nl = 0};
+val init_line: text = {main = init_state, line = SOME init_state, pos = 0, nl = 0};
 
 fun string (s, len) {main, line, pos, nl} : text =
  {main = add_state s main,
@@ -429,7 +429,7 @@ fun format_tree (ops: output_ops) input =
                   main |> close_state |> break_state
                   |> push_state indent_markup |> fold add_state ss |> pop_state
                   |> reopen_state main;
-              val line' = empty_state |> fold add_state ss |> reopen_state main;
+              val line' = init_state |> fold add_state ss |> reopen_state main;
             in (main', SOME line') end;
       in {main = main', line = line', pos = pos, nl = nl + 1} end;
 
@@ -448,7 +448,7 @@ fun format_tree (ops: output_ops) input =
             val before' =
               if pos' < emergencypos
               then (Option.map (close_state o blanks_state indent) (#line text), pos')
-              else (Option.map (fn _ => blanks_state pos'' empty_state) (#line text), pos'');
+              else (Option.map (fn _ => blanks_state pos'' init_state) (#line text), pos'');
             val after' = break_dist (ts, after)
             val body' = body
               |> (consistent andalso pos + blen > margin - after') ? map force_break;
@@ -467,7 +467,7 @@ fun format_tree (ops: output_ops) input =
              else text |> break before |> blanks ind)
       | Str str :: ts => format (ts, before, after) (string str text));
 
-    val init = if no_indent_markup then empty else empty_line;
+    val init = if no_indent_markup then init_no_line else init_line;
   in
     result (format ([output_tree ops true input], (#line init, 0), 0) init)
   end;
