@@ -230,7 +230,7 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
 
     fun check_deadline () =
       let val t = Time.now () in
-        if Time.compare (t, deadline) <> LESS
+        if t >= deadline
         then raise Timeout.TIMEOUT (t - time_start)
         else ()
       end
