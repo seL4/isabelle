@@ -132,7 +132,8 @@ text \<open>
     \<^medskip> A few other Setup Issues might be relevant as well, e.g.\ the timezone
     of the server. Some more exotic points can be ignored: Phorge provides
     careful explanations about what it thinks could be wrong, while leaving
-    some room for interpretation.
+    some room for interpretation. It may also help to reboot the host machine,
+    to make sure that all Webserver + PHP configuration is properly activated.
 \<close>
 
 
