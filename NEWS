@@ -660,10 +660,10 @@ for all platforms, including ARM Linux and Apple Silicon.
 
 * Update to .NET / Fsharp 8.0.x: the current long-term support version.
 
-* Update to current Phorge 2024 week 35 (formerly Phabricator), with
-support for Ubuntu 20.4 and 22.04. The Isabelle "system" manual now
-refers to the project as "Phorge", but "phabricator" remains for formal
-names (files, DNS etc.).
+* Update to current Phorge (formerly Phabricator) on Ubuntu 22.04 and
+24.04; see also https://we.phorge.it/w/changelog/2024.35/. The Isabelle
+"system" manual now refers to the project as "Phorge", but "phabricator"
+remains for formal names (files, DNS etc.).
 
 * Update to official Poly/ML 5.9.1.
 

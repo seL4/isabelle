@@ -345,7 +345,7 @@ fun nicer_name ((a, x), i) ((b, y), j) =
         (case qual_ord (x, y) of EQUAL => txt_ord (x, y) | ord => ord)
       | ord => ord)
     | ord => ord)
-  | ord => ord) <> GREATER;
+  | ord => ord) |> is_less_equal;
 
 fun rem_cdups nicer xs =
   let

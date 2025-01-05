@@ -97,8 +97,11 @@ object Linux {
 
     Isabelle_System.bash(
       "adduser --quiet --disabled-password --gecos " + Bash.string(description) +
+        " --home /home/" + Bash.string(name) +
         (if (system) " --system --group --shell /bin/bash " else "") +
         " " + Bash.string(name)).check
+
+    Isabelle_System.bash("usermod -p '*' " + Bash.string(name)).check
 
     if (ssh_setup) {
       val id_rsa = user_home(name) + "/.ssh/id_rsa"
