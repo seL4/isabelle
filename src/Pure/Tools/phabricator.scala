@@ -42,13 +42,11 @@ object Phabricator {
       // mercurial build packages
       "make", "gcc", "gettext", "python3", "python3-dev", "python3-docutils", "python3-setuptools")
 
-  def packages(webserver: Webserver): List[String] = {
+  def system_packages(): List[String] = {
     val release = Linux.Release()
-    val pkgs =
-      if (release.is_ubuntu_22_04) packages_ubuntu_22_04
-      else if (release.is_ubuntu_24_04) packages_ubuntu_24_04
-      else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 or 24.04 LTS")
-    pkgs ::: webserver.packages()
+    if (release.is_ubuntu_22_04) packages_ubuntu_22_04
+    else if (release.is_ubuntu_24_04) packages_ubuntu_24_04
+    else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 or 24.04 LTS")
   }
 
 
@@ -372,7 +370,8 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
       Linux.check_reboot_required()
     }
 
-    Linux.package_install(packages(webserver), progress = progress)
+    Linux.package_install(webserver.packages(), progress = progress)
+    Linux.package_install(system_packages(), progress = progress)
     Linux.check_reboot_required()
 
 
