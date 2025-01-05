@@ -23,7 +23,7 @@ object Phabricator {
   val packages_ubuntu_22_04: List[String] =
     Docker_Build.packages :::
     List(
-      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
+      // base packages
       "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
       "php-json", "php-mbstring",
       // more packages
@@ -34,7 +34,7 @@ object Phabricator {
   val packages_ubuntu_24_04: List[String] =
     Docker_Build.packages :::
     List(
-      // https://secure.phabricator.com/source/phabricator/browse/master/scripts/install/install_ubuntu.sh 15e6e2adea61
+      // base packages
       "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
       "php-json", "php-mbstring",
       // more packages
