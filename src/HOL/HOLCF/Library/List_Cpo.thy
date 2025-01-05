@@ -16,21 +16,19 @@ begin
 definition
   "xs \<sqsubseteq> ys \<longleftrightarrow> list_all2 (\<sqsubseteq>) xs ys"
 
-instance proof
-  fix xs :: "'a list"
-  from below_refl show "xs \<sqsubseteq> xs"
+instance
+proof
+  fix xs ys zs :: "'a list"
+  show "xs \<sqsubseteq> xs"
+    using below_refl 
     unfolding below_list_def
     by (rule list_all2_refl)
-next
-  fix xs ys zs :: "'a list"
-  assume "xs \<sqsubseteq> ys" and "ys \<sqsubseteq> zs"
-  with below_trans show "xs \<sqsubseteq> zs"
+  show "xs \<sqsubseteq> ys \<Longrightarrow> ys \<sqsubseteq> zs \<Longrightarrow> xs \<sqsubseteq> zs"
+    using below_trans 
     unfolding below_list_def
     by (rule list_all2_trans)
-next
-  fix xs ys zs :: "'a list"
-  assume "xs \<sqsubseteq> ys" and "ys \<sqsubseteq> xs"
-  with below_antisym show "xs = ys"
+  show "xs \<sqsubseteq> ys \<Longrightarrow> ys \<sqsubseteq> xs \<Longrightarrow> xs = ys"
+    using below_antisym
     unfolding below_list_def
     by (rule list_all2_antisym)
 qed
