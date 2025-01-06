@@ -364,6 +364,11 @@ In particular, YXML parsing and printing now works on very large byte
 vectors as well: only the individual content nodes are limited by the
 built-in string size.
 
+* Update to current Phorge (formerly Phabricator) on Ubuntu 22.04 and
+24.04; see also https://we.phorge.it/w/changelog/2024.35/. The Isabelle
+"system" manual now refers to the project as "Phorge", but "phabricator"
+remains for formal names (files, DNS etc.).
+
 
 
 New in Isabelle2024 (May 2024)
@@ -659,11 +664,6 @@ For example:
 for all platforms, including ARM Linux and Apple Silicon.
 
 * Update to .NET / Fsharp 8.0.x: the current long-term support version.
-
-* Update to current Phorge (formerly Phabricator) on Ubuntu 22.04 and
-24.04; see also https://we.phorge.it/w/changelog/2024.35/. The Isabelle
-"system" manual now refers to the project as "Phorge", but "phabricator"
-remains for formal names (files, DNS etc.).
 
 * Update to official Poly/ML 5.9.1.
 
