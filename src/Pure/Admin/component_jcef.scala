@@ -41,7 +41,7 @@ object Component_JCEF {
   /* build JCEF */
 
   val default_url = "https://github.com/jcefmaven/jcefbuild/releases/download"
-  val default_version = "1.0.18"
+  val default_version = "1.0.61"
 
   def build_jcef(
     base_url: String = default_url,
@@ -124,7 +124,7 @@ Examples invocations:
   import isabelle._
   System.setProperty("java.library.path", File.platform_path(Path.explode("$ISABELLE_JCEF_LIB")))
   org.cef.CefApp.startup(Array())
-  GUI_Thread.later { val frame = new tests.detailed.MainFrame(false, false, false, Array()); frame.setSize(1200,900); frame.setVisible(true) }
+  GUI_Thread.later { val frame = new tests.detailed.MainFrame(false, false, false, 60, Array()); frame.setSize(1200,900); frame.setVisible(true) }
 
 * Demo websites
 
