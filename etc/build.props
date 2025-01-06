@@ -28,6 +28,7 @@ sources = \
   src/Pure/Admin/component_fonts.scala \
   src/Pure/Admin/component_hugo.scala \
   src/Pure/Admin/component_javamail.scala \
+  src/Pure/Admin/component_jcef.scala \
   src/Pure/Admin/component_jdk.scala \
   src/Pure/Admin/component_jedit.scala \
   src/Pure/Admin/component_jsoup.scala \
