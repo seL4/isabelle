@@ -78,19 +78,19 @@ Packaging
 - regular packaging:
 
   #on fast Linux machine, with access to build_host for each platform
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2024 -j2 -l
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025 -j2 -l
 
 - Docker image:
 
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2024 Isabelle2024_linux.tar.gz
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2024_X11_Latex -P X11 -P latex Isabelle2024_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2025 Isabelle2025_linux.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2025_X11_Latex -P X11 -P latex Isabelle2025_linux.tar.gz
 
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2024_ARM Isabelle2024_linux_arm.tar.gz
-  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2024_ARM_X11_Latex -P X11 -P latex Isabelle2024_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2025_ARM Isabelle2025_linux_arm.tar.gz
+  isabelle docker_build -o Dockerfile -E -t makarius/isabelle:Isabelle2025_ARM_X11_Latex -P X11 -P latex Isabelle2025_linux_arm.tar.gz
 
   docker login
 
-  docker push makarius/isabelle:Isabelle2024
+  docker push makarius/isabelle:Isabelle2025
 
   docker tag ... latest
   docker push makarius/isabelle:latest
