@@ -113,7 +113,6 @@ text \<open>
     @{attribute_def show_sorts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def show_consts} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def show_abbrevs} & : & \<open>attribute\<close> & default \<open>true\<close> \\
-    @{attribute_def show_brackets} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def names_long} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def names_short} & : & \<open>attribute\<close> & default \<open>false\<close> \\
     @{attribute_def names_unique} & : & \<open>attribute\<close> & default \<open>true\<close> \\
@@ -157,13 +156,6 @@ text \<open>
   occur at several different type instances.
 
   \<^descr> @{attribute show_abbrevs} controls folding of constant abbreviations.
-
-  \<^descr> @{attribute show_brackets} controls bracketing in pretty printed output.
-  If enabled, all sub-expressions of the pretty printing tree will be
-  parenthesized, even if this produces malformed term syntax! This crude way
-  of showing the internal structure of pretty printed entities may
-  occasionally help to diagnose problems with operator priorities, for
-  example.
 
   \<^descr> @{attribute names_long}, @{attribute names_short}, and @{attribute
   names_unique} control the way of printing fully qualified internal names in

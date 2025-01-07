@@ -432,8 +432,6 @@ fun parse_term is_prop ctxt =
           val errs = map snd (failed_results results');
           val checked = map snd (proper_results results');
           val checked_len = length checked;
-
-          val pretty_term = Syntax.pretty_term (Config.put Printer.show_brackets true ctxt);
         in
           if checked_len = 0 then
             report_result ctxt pos []
@@ -452,7 +450,7 @@ fun parse_term is_prop ctxt =
                 (("Ambiguous input\n" ^ string_of_int checked_len ^ " terms are type correct" ^
                   (if checked_len <= limit then ""
                    else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-                  map (Pretty.string_of o Pretty.item o single o pretty_term)
+                  map (Pretty.string_of o Pretty.item o single o Syntax.pretty_term ctxt)
                     (take limit checked))))))]
         end handle ERROR msg => parse_failed ctxt pos msg kind)
   end;

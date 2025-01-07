@@ -7,7 +7,6 @@ Pretty printing of asts, terms, types and print (ast) translation.
 
 signature BASIC_PRINTER =
 sig
-  val show_brackets: bool Config.T
   val show_types: bool Config.T
   val show_sorts: bool Config.T
   val show_markup: bool Config.T
@@ -51,7 +50,6 @@ struct
 
 (** options for printing **)
 
-val show_brackets = Config.declare_option_bool ("show_brackets", \<^here>);
 val show_types = Config.declare_option_bool ("show_types", \<^here>);
 val show_sorts = Config.declare_option_bool ("show_sorts", \<^here>);
 val show_markup_default = Unsynchronized.ref false;
@@ -236,8 +234,6 @@ type pretty_ops =
 
 fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
   let
-    val show_brackets = Config.get ctxt show_brackets;
-
     val application =
       if type_mode then Syntax_Trans.tappl_ast_tr'
       else if curried then Syntax_Trans.applC_ast_tr'
@@ -297,9 +293,7 @@ fun pretty {type_mode, curried} ctxt prtabs (ops: pretty_ops) =
 
     and parens p q a (symbs, args) constraint =
       let
-        val symbs' =
-          if p > q orelse (show_brackets andalso q <> 1000 andalso not (is_chain symbs))
-          then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
+        val symbs' = if p > q then [Block (par_block, par_bg :: symbs @ [par_en])] else symbs;
         val output =
           (case constraint of
             SOME (Ast.Appl [Ast.Constant "_constrain", _, ty]) =>

@@ -82,6 +82,11 @@ declarations in user applications: the mixfix template needs to be
 adapted accordingly, but it is often better to use "unbundle no
 foobar_syntax", as explained for HOL libraries below.
 
+* The option "show_brackets" has been discontinued: its inaccurate
+placement of extra parentheses has been superseded by markup of mixfix
+blocks (which allows to explore subterm structure in the Prover IDE via
+C-mouse hovering).
+
 * Command "unbundle b" and its variants like "context includes b" allow
 an optional name prefix with the reserved word "no": "unbundle no b"
 etc. This reverses both the order and polarity of bundled declarations
@@ -135,6 +140,7 @@ on, notably like this:
 * Printing of constants and bound variables is more careful to avoid
 free variables, and fixed variables with mixfix syntax (including
 'structure'). Rare INCOMPATIBILITY, e.g. in "subgoal_tac", "rule_tac".
+
 
 
 *** Isabelle/jEdit Prover IDE ***
