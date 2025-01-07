@@ -204,10 +204,10 @@ fun make_e_config max_new_mono_insts good_slices : atp_config =
 
 val old_e_config : atp_config = make_e_config default_max_new_mono_instances (let
        val (format, type_enc, lam_trans, extra_options) =
-         if is_greater_equal (string_ord (getenv "E_VERSION", "3.0")) then
+         if getenv "E_VERSION" >= "3.0" then
            (* '$ite' support appears to be unsound. *)
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true --demod-under-lambda=true")
-         else if is_greater_equal (string_ord (getenv "E_VERSION", "2.6")) then
+         else if getenv "E_VERSION" >= "2.6" then
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
          else
            (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
