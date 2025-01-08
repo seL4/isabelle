@@ -4416,6 +4416,43 @@ proof (induction xs arbitrary: X)
     by (auto simp: sum.If_cases simp flip: diff_eq)
 qed simp
 
+lemma count_list_Suc_split_first:
+  assumes "count_list xs x = Suc n"
+  shows "\<exists> pref rest. xs = pref @ x # rest \<and> x \<notin> set pref \<and> count_list rest x = n"
+proof -
+  let ?pref = "takeWhile (\<lambda>u. u \<noteq> x) xs"
+  let ?rest = "drop (length ?pref) xs"
+  have "x \<in> set xs" using assms count_notin by fastforce
+  hence rest: "?rest \<noteq> [] \<and> hd ?rest = x"
+    by (metis (mono_tags, lifting) append_Nil2 dropWhile_eq_drop hd_dropWhile
+        takeWhile_dropWhile_id takeWhile_eq_all_conv)
+  have 1: "x \<notin> set ?pref" by (metis (full_types) set_takeWhileD)
+  have 2: "xs = ?pref @ x # tl ?rest"
+    by (metis rest append_eq_conv_conj hd_Cons_tl takeWhile_eq_take)
+  have "count_list (tl ?rest) x = n"using [[metis_suggest_of]]
+    using assms rest 1 2 count_notin count_list_append[of ?pref "x # tl ?rest" x] by simp
+  with 1 2 show ?thesis by blast
+qed
+
+lemma split_list_cycles:
+  "\<exists>pref xss. xs = pref @ concat xss \<and> x \<notin> set pref \<and> (\<forall>ys \<in> set xss. \<exists>zs. ys = x # zs)"
+proof (induction "count_list xs x" arbitrary: xs)
+  case 0
+  show ?case using 0[symmetric] concat.simps(1) count_list_0_iff by fastforce
+next
+  case (Suc n)
+  from Suc.hyps(2) obtain pref rest where
+    *: "xs = pref @ x # rest" "x \<notin> set pref" "count_list rest x = n"
+    by (metis count_list_Suc_split_first)
+  from Suc.hyps(1)[OF *(3)[symmetric]] obtain pref1 xss where
+    **: "rest = pref1 @ concat xss" "x \<notin> set pref1" "\<forall>ys\<in>set xss. \<exists>zs. ys = x # zs"
+    by blast
+  let ?xss = "(x # pref1) # xss"
+  have "xs = pref @ concat ?xss \<and> x \<notin> set pref \<and> (\<forall>ys \<in> set ?xss. \<exists>zs. ys = x # zs)"
+    using *(1,2) ** by auto
+  thus ?case by blast
+qed
+
 
 subsubsection \<open>\<^const>\<open>List.extract\<close>\<close>
 
