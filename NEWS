@@ -245,6 +245,7 @@ Isabelle/jEdit rendering like this:
 * Sledgehammer:
   - Update of bundled provers:
       . E 3.1 -- with patch on Windows/Cygwin for proper interrupts
+      . cvc5 1.2.0 -- with support for arm64-linux
   - Added instantiations of facts using the "of" attribute
     (e.g. "assms(1)[of x]"), which can be activated using the
     Sledgehammer option "instantiate" (default: smart, i.e. only if

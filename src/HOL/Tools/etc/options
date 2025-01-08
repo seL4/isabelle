@@ -26,7 +26,7 @@ public option auto_solve_direct : bool = true
 
 section "Miscellaneous Tools"
 
-public option sledgehammer_provers : string = "cvc4 verit z3 e spass vampire zipperposition"
+public option sledgehammer_provers : string = "cvc5 verit z3 e spass vampire zipperposition"
   -- "provers for Sledgehammer (separated by blanks)"
 
 public option sledgehammer_timeout : int = 30

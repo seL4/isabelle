@@ -86,7 +86,7 @@ fun uncached_solve_nun_problem ({solvers, overlord, min_bound, max_bound, bound_
     else
       let
         val bash_cmd =
-          "PATH=\"$CVC4_HOME:$KODKODI/bin:$SMBC_HOME:$PATH\" \"$" ^
+          "PATH=\"$CVC5_HOME:$KODKODI/bin:$SMBC_HOME:$PATH\" \"$" ^
           nunchaku_home_env_var ^ "\"/nunchaku --skolems-in-model --no-color " ^
           (if specialize then "" else "--no-specialize ") ^
           "--solvers \"" ^ space_implode "," (map Bash.string solvers) ^ "\" " ^

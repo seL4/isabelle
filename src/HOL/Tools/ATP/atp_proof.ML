@@ -43,7 +43,7 @@ sig
 
   val agsyholN : string
   val alt_ergoN : string
-  val cvc4N : string
+  val cvc5N : string
   val eN : string
   val iproverN : string
   val leo2N : string
@@ -111,7 +111,7 @@ open ATP_Problem
 
 val agsyholN = "agsyhol"
 val alt_ergoN = "alt_ergo"
-val cvc4N = "cvc4"
+val cvc5N = "cvc5"
 val eN = "e"
 val iproverN = "iprover"
 val leo2N = "leo2"

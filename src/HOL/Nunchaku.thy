@@ -11,7 +11,7 @@ available at
 
 The "$NUNCHAKU_HOME" environment variable must be set to the absolute path to
 the directory containing the "nunchaku" executable. The Isabelle components
-for CVC4, Kodkodi, and SMBC are necessary to use these backend solvers.
+for cvc5, Kodkodi, and SMBC are necessary to use these backend solvers.
 *)
 
 theory Nunchaku
