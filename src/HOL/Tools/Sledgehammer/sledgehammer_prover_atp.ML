@@ -216,8 +216,7 @@ fun run_atp mode name
              string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
         val make_args = arguments abduce full_proofs extra run_timeout
-        fun make_command args =
-          implode_space (File.bash_path executable :: args)
+        fun make_command args = implode_space (File.bash_path executable :: args)
         val args = make_args prob_path
         val command = make_command args
 
