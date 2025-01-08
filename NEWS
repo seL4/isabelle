@@ -240,7 +240,7 @@ HOL-Library.Code_Target_Numeral.
       . E 3.1 -- with patch on Windows/Cygwin for proper interrupts
   - Added instantiations of facts using the "of" attribute
     (e.g. "assms(1)[of x]"), which can be activated using the
-    Sledgehammer option "suggest_of" (default: smart, i.e. only if
+    Sledgehammer option "instantiate" (default: smart, i.e. only if
     preplaying failed).  This uses Metis internally to infer the
     variable instantiations (see below).
   - Added extensionality (fact "ext") to some "metis (lifting)" calls.
@@ -248,7 +248,7 @@ HOL-Library.Code_Target_Numeral.
 
 * Metis:
   - Added inference of variable instantiations, which can be activated
-    using the configuration option "metis_suggest_of" (default: false).
+    using the configuration option "metis_instantiate" (default: false).
     This outputs a suggestion with instantiations of the facts using the
     "of" attribute (e.g. "assms(1)[of x]").
 

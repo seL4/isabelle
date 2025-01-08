@@ -221,7 +221,7 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
    |> spy ? tap (fn res => spying spy (fn () => (state, subgoal, name, spying_str_of_res res)))
  end
 
-fun preplay_prover_result ({verbose, suggest_of, minimize, preplay_timeout, ...} : params)
+fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...} : params)
     state goal subgoal
     (result as {outcome, used_facts, preferred_methss, message, ...} : prover_result) =
   let
@@ -242,9 +242,9 @@ fun preplay_prover_result ({verbose, suggest_of, minimize, preplay_timeout, ...}
           fun preplay_succeeded ((_, (Played _, _)) :: _, _) = true
             | preplay_succeeded _ = false
           val instantiate_timeout = Time.scale 5.0 preplay_timeout
-          val suggest_of = if null used_facts0 then SOME false else suggest_of
+          val instantiate = if null used_facts0 then SOME false else instantiate
           val (preplay_results, pretty_used_facts) =
-            (case suggest_of of
+            (case instantiate of
               SOME false => preplay pretty_used_facts0
             | SOME true =>
               (* Always try to infer variable instantiations *)

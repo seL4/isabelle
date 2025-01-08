@@ -4429,7 +4429,7 @@ proof -
   have 1: "x \<notin> set ?pref" by (metis (full_types) set_takeWhileD)
   have 2: "xs = ?pref @ x # tl ?rest"
     by (metis rest append_eq_conv_conj hd_Cons_tl takeWhile_eq_take)
-  have "count_list (tl ?rest) x = n"using [[metis_suggest_of]]
+  have "count_list (tl ?rest) x = n"
     using assms rest 1 2 count_notin count_list_append[of ?pref "x # tl ?rest" x] by simp
   with 1 2 show ?thesis by blast
 qed

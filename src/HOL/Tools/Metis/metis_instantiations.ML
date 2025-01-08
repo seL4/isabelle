@@ -21,14 +21,14 @@ sig
     mth : Metis_Thm.thm
   }
 
-  val suggest_of : bool Config.T
-  val suggest_undefined : bool Config.T
+  val instantiate : bool Config.T
+  val instantiate_undefined : bool Config.T
   val metis_call : string -> string -> string
   val table_of_thm_inst : thm * inst -> cterm Vars.table
   val pretty_name_inst : Proof.context -> string * inst -> Pretty.T
   val string_of_name_inst : Proof.context -> string * inst -> string
   val infer_thm_insts : infer_params -> (thm * inst) list option
-  val suggest_of_call : infer_params -> thm -> unit
+  val instantiate_call : infer_params -> thm -> unit
 end;
 
 structure Metis_Instantiations : METIS_INSTANTIATIONS =
@@ -58,9 +58,9 @@ type infer_params = {
 }
 
 (* Config option to enable suggestion of of-instantiations (e.g. "assms(1)[of x]") *)
-val suggest_of = Attrib.setup_config_bool @{binding "metis_suggest_of"} (K false)
+val instantiate = Attrib.setup_config_bool @{binding "metis_instantiate"} (K false)
 (* Config option to allow instantiation of variables with "undefined" *)
-val suggest_undefined = Attrib.setup_config_bool @{binding "metis_suggest_undefined"} (K true)
+val instantiate_undefined = Attrib.setup_config_bool @{binding "metis_instantiate_undefined"} (K true)
 
 fun metis_call type_enc lam_trans =
   let
@@ -184,7 +184,7 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
     (* "undefined" if allowed and not using new_skolem, "_" otherwise. *)
     val undefined_pattern =
       (* new_skolem uses schematic variables which should not be instantiated with "undefined" *)
-      if not new_skolem andalso Config.get ctxt suggest_undefined then
+      if not new_skolem andalso Config.get ctxt instantiate_undefined then
         Const o (pair @{const_name "undefined"})
       else
         Term.dummy_pattern
@@ -408,7 +408,7 @@ fun write_command {ctxt, type_enc, lam_trans, th_name, ...} st th_insts =
   end
 
 (* Infer variable instantiations and suggest of-instantiations *)
-fun suggest_of_call infer_params st =
+fun instantiate_call infer_params st =
   infer_thm_insts infer_params
   |> Option.mapPartial (Option.filter (not o thm_insts_trivial))
   |> Option.app (write_command infer_params st)

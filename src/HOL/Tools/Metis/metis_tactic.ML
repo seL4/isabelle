@@ -13,8 +13,8 @@ sig
 
   val trace : bool Config.T
   val verbose : bool Config.T
-  val suggest_of : bool Config.T
-  val suggest_undefined : bool Config.T
+  val instantiate : bool Config.T
+  val instantiate_undefined : bool Config.T
   val new_skolem : bool Config.T
   val advisory_simp : bool Config.T
   val pretty_name_inst : Proof.context -> string * inst -> Pretty.T
@@ -304,11 +304,11 @@ fun th_name_multi_thm multi_ths th =
 (* Metis tactic to prove a subgoal and optionally suggest of-instantiations *)
 fun metis_tac' th_name type_encs lam_trans ctxt ths i =
   let
-    val suggest_of = Config.get ctxt suggest_of
-    val suggest_of_tac =
-      if suggest_of then
+    val instantiate = Config.get ctxt instantiate
+    val instantiate_tac =
+      if instantiate then
         (fn (NONE, st) => st
-          | (SOME infer_params, st) => tap (suggest_of_call infer_params) st)
+          | (SOME infer_params, st) => tap (instantiate_call infer_params) st)
       else
         snd
   in
@@ -316,8 +316,8 @@ fun metis_tac' th_name type_encs lam_trans ctxt ths i =
      * which is bad for inferring variable instantiations.  Metis doesn't need
      * it, so we set it to "false" when we want to infer variable instantiations.
      * We don't do it always because we don't want to break existing proofs. *)
-    metis_tac_infer_params th_name type_encs lam_trans (not suggest_of) ctxt ths i
-    #> Seq.map suggest_of_tac
+    metis_tac_infer_params th_name type_encs lam_trans (not instantiate) ctxt ths i
+    #> Seq.map instantiate_tac
   end
 
 (* Metis tactic without theorem name, therefore won't suggest of-instantiations *)
