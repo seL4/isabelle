@@ -33,8 +33,6 @@ sig
   | Nunchaku_Var_Not_Set
   | Nunchaku_Cannot_Execute
   | Nunchaku_Not_Found
-  | CVC4_Cannot_Execute
-  | CVC4_Not_Found
   | Unknown_Error of int * string
 
   val nunchaku_home_env_var: string
@@ -70,8 +68,6 @@ datatype nun_outcome =
 | Nunchaku_Var_Not_Set
 | Nunchaku_Cannot_Execute
 | Nunchaku_Not_Found
-| CVC4_Cannot_Execute
-| CVC4_Not_Found
 | Unknown_Error of int * string;
 
 val nunchaku_home_env_var = "NUNCHAKU_HOME";
