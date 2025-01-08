@@ -495,7 +495,7 @@ fun memoize verbose cache_dir f arg =
     val file = cache_dir + Path.explode hash
   in
     (case try File.read file of
-      NONE => 
+      NONE =>
       let val result = f arg in
         File.write file result;
         result

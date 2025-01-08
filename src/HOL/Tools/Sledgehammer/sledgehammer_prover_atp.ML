@@ -215,8 +215,11 @@ fun run_atp mode name
           (state, subgoal, name, "Generating ATP problem in " ^
              string_of_int (Time.toMilliseconds elapsed) ^ " ms"))
 
-        val args = arguments abduce full_proofs extra run_timeout prob_path
-        val command = implode_space (File.bash_path executable :: args)
+        val make_args = arguments abduce full_proofs extra run_timeout
+        fun make_command args =
+          implode_space (File.bash_path executable :: args)
+        val args = make_args prob_path
+        val command = make_command args
 
         val lines_of_atp_problem =
           lines_of_atp_problem good_format (fn () => atp_problem_term_order_info atp_problem)
@@ -231,14 +234,16 @@ fun run_atp mode name
           let
             val f = fn _ =>
               if exec = isabelle_scala_function then
-                  let val {output, ...} = SystemOnTPTP.run_system_encoded args
-                  in output end
+                let val {output, ...} = SystemOnTPTP.run_system_encoded args
+                in output end
               else
-                  let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
-                  in Process_Result.out res end
-            (* Hackish: This removes the first two lines that contain call-specific information
-            such as a timestamp. *)
-            val arg = cat_lines (command :: drop 2 lines_of_atp_problem)
+                let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
+                in Process_Result.out res end
+            (* Hackish: The following lines try to make the TPTP problem and command line more
+            deterministic and constant. *)
+            val hackish_lines = drop 2 lines_of_atp_problem
+            val hackish_command = make_command (make_args (Path.basic "fake_prob_path.p"))
+            val arg = cat_lines (hackish_command :: hackish_lines)
           in
             Timing.timing (memoize_fun_call f) arg
           end
