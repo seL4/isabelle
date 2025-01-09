@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Metis/metis_instantiations.ML
-    Author:     Lukas Bartl, LMU Muenchen
+    Author:     Lukas Bartl, Universitaet Augsburg
 
 Inference of Variable Instantiations for Metis.
 *)

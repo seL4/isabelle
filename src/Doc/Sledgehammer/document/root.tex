@@ -66,7 +66,7 @@ Martin Desharnais \\
 Lawrence C. Paulson \\
 {\normalsize Computer Laboratory, University of Cambridge} \\[4\smallskipamount]
 Lukas Bartl \\
-{\normalsize Institut f\"ur Informatik, Ludwig-Maximilians-Universit\"at M\"unchen} \\
+{\normalsize Institut f\"ur Informatik, Universit\"at Augsburg} \\
 \hbox{}}
 
 \maketitle
@@ -631,8 +631,8 @@ For convenience, the following aliases are provided:
 \end{enum}
 
 The \textit{metis} method also supports the Isabelle option
-[[\textit{metis\_suggest\_of}]], which tells \textit{metis} to suggest
-instantiations of facts using \textbf{of} from a successful proof.
+[[\textit{metis\_instantiate}]], which tells \textit{metis} to infer and
+suggest instantiations of facts using \textbf{of} from a successful proof.
 
 \section{Option Reference}
 \label{option-reference}
@@ -1219,7 +1219,7 @@ for the \textbf{try0} command.
 Specifies whether the \textit{smt} proof method should be tried in addition to
 Isabelle's built-in proof methods.
 
-\opsmart{suggest\_of}{dont\_suggest\_of}
+\opsmart{instantiate}{dont\_instantiate}
 Specifies whether Metis should try to infer variable instantiations before proof
 reconstruction, which results in instantiations of facts using \textbf{of}
 (e.g. \textit{map\_prod\_surj\_on}[\textbf{of} \textit{f A} "\textit{f}

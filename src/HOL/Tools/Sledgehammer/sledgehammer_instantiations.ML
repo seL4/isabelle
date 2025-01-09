@@ -1,5 +1,5 @@
-(*  Title:      HOL/Tools/Metis/metis_instantiations.ML
-    Author:     Lukas Bartl, LMU Muenchen
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_instantiations.ML
+    Author:     Lukas Bartl, Universitaet Augsburg
 
 Inference of Variable Instantiations with Metis.
 *)
@@ -88,13 +88,12 @@ fun instantiate_facts state verbose timeout goal subgoal facts =
         (case timed_infer_thm_insts metis_method of
           NONE => infer_thm_insts metis_methods
         | thm_insts => thm_insts)
-    fun fact_of_thm_inst (th, inst) =
-      List.find (fn (_, ths) => member Thm.eq_thm ths th) fact_thms
-      |> Option.map (apfst (rpair inst) o fst)
-      |> Option.map (apfst (Metis_Tactic.pretty_name_inst ctxt))
+    fun instantiate_fact ((name, stature), ths) thm_insts =
+      List.partition (member Thm.eq_thm ths o fst) thm_insts
+      |>> map (fn (_, inst) => (Metis_Tactic.pretty_name_inst ctxt (name, inst), stature))
   in
     infer_thm_insts (metis_methods ctxt)
-    |> Option.map (map_filter fact_of_thm_inst)
+    |> Option.map (flat o fst o fold_map instantiate_fact fact_thms)
     |> verbose ? tap (Option.app (fn inst_facts =>
         Pretty.str "Instantiated facts:" :: map fst inst_facts
         |> Pretty.block o Pretty.breaks
