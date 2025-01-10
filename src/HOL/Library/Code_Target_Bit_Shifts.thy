@@ -148,7 +148,10 @@ object Bit_Shifts {
 private val maxIndex : BigInt = BigInt(Int.MaxValue);
 
 private def replicate[A](i : BigInt, x : A) : List[A] =
-  if (i <= 0) Nil else x :: replicate[A](i - 1, x)
+  i <= 0 match {
+    case true => Nil
+    case false => x :: replicate[A](i - 1, x)
+  }
 
 private def splitIndex(i : BigInt) : List[Int] = {
   val (b, s) = i /% maxIndex
