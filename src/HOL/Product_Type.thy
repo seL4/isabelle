@@ -990,8 +990,8 @@ lemma fst_swap [simp]: "fst (prod.swap x) = snd x"
 lemma snd_swap [simp]: "snd (prod.swap x) = fst x"
   by (cases x) simp
 
-lemma split_pairs:
-  "(A,B) = X \<longleftrightarrow> fst X = A \<and> snd X = B" and "X = (A,B) \<longleftrightarrow> fst X = A \<and> snd X = B" 
+lemma split_pairs: "(A,B) = X \<longleftrightarrow> fst X = A \<and> snd X = B"
+  and split_pairs2: "X = (A,B) \<longleftrightarrow> fst X = A \<and> snd X = B" 
   by auto
 
 text \<open>Disjoint union of a family of sets -- Sigma.\<close>
