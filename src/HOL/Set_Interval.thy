@@ -45,19 +45,19 @@ definition
   "{l..} == {x. l\<le>x}"
 
 definition
-  greaterThanLessThan :: "'a => 'a => 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_<..<_})\<close>) where
+  greaterThanLessThan :: "'a => 'a => 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<..<_})\<close>) where
   "{l<..<u} == {l<..} Int {..<u}"
 
 definition
-  atLeastLessThan :: "'a => 'a => 'a set"      (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_..<_})\<close>) where
+  atLeastLessThan :: "'a => 'a => 'a set"      (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/..<_})\<close>) where
   "{l..<u} == {l..} Int {..<u}"
 
 definition
-  greaterThanAtMost :: "'a => 'a => 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_<.._})\<close>) where
+  greaterThanAtMost :: "'a => 'a => 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<.._})\<close>) where
   "{l<..u} == {l<..} Int {..u}"
 
 definition
-  atLeastAtMost :: "'a => 'a => 'a set"        (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_.._})\<close>) where
+  atLeastAtMost :: "'a => 'a => 'a set"        (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/.._})\<close>) where
   "{l..u} == {l..} Int {..u}"
 
 end
