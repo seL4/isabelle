@@ -761,8 +761,8 @@ object Find_Facts {
   case class Result(blocks: Blocks, facets: Facets)
 
   class Encode(options: Options) {
-    val library_base_url = Url(options.string("browser_info_url_library"))
-    val afp_base_url = Url(options.string("browser_info_url_afp"))
+    val library_base_url = Url(options.string("find_facts_url_library"))
+    val afp_base_url = Url(options.string("find_facts_url_afp"))
 
     def url(block: Block): Url = {
       val base_url = if (block.chapter == AFP.chapter) afp_base_url else library_base_url
