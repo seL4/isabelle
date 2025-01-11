@@ -15,6 +15,8 @@ object Component_Elm {
     def archive_name = file_name + ".gz"
     def download(base_url: String, version: String): String =
       base_url + "/" + version + "/" + archive_name
+
+    val exe: Path = Path.basic("elm").exe_if(platform_name.endsWith("-windows"))
   }
 
   val platforms: List[Download_Platform] =
@@ -52,7 +54,6 @@ object Component_Elm {
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform.platform_name))
 
-      val exe = Path.basic("elm")
       val download = platform.download(base_url, version)
 
       Isabelle_System.with_tmp_dir("download", component_dir.path.file) { download_dir =>
@@ -61,8 +62,8 @@ object Component_Elm {
 
           Isabelle_System.download_file(download, archive_file, progress = progress)
           Isabelle_System.bash("gunzip " + File.bash_path(archive_file))
-          Isabelle_System.copy_file(archive_file.drop_ext, platform_dir + exe)
-          File.set_executable(platform_dir + exe)
+          Isabelle_System.copy_file(archive_file.drop_ext, platform_dir + platform.exe)
+          File.set_executable(platform_dir + platform.exe)
         }
       }
     }
