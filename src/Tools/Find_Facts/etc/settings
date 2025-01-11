@@ -1,0 +1,3 @@
+FIND_FACTS_HOME="$COMPONENT"
+
+init_components "${ISABELLE_COMPONENTS_BASE:-$USER_HOME/.isabelle/contrib}" "$FIND_FACTS_HOME/components/find_facts"
