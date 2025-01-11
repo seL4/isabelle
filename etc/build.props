@@ -23,6 +23,7 @@ sources = \
   src/Pure/Admin/component_cygwin.scala \
   src/Pure/Admin/component_e.scala \
   src/Pure/Admin/component_easychair.scala \
+  src/Pure/Admin/component_elm.scala \
   src/Pure/Admin/component_eptcs.scala \
   src/Pure/Admin/component_foiltex.scala \
   src/Pure/Admin/component_fonts.scala \
@@ -42,6 +43,7 @@ sources = \
   src/Pure/Admin/component_prismjs.scala \
   src/Pure/Admin/component_rsync.scala \
   src/Pure/Admin/component_scala.scala \
+  src/Pure/Admin/component_solr.scala \
   src/Pure/Admin/component_spass.scala \
   src/Pure/Admin/component_sqlite.scala \
   src/Pure/Admin/component_stack.scala \

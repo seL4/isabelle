@@ -14,10 +14,7 @@ import org.jsoup.nodes.Element
 
 
 object Elm {
-  private lazy val elm_home =
-    proper_string(Isabelle_System.getenv("ISABELLE_ELM")).getOrElse(error("No elm component found"))
-
-  private lazy val exec = Path.explode(elm_home) + Path.basic("elm")
+  private lazy val exec = Path.explode("$ISABELLE_ELM_HOME/elm").expand
 
   object Project {
     def apply(
