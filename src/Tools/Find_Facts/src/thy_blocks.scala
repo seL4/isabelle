@@ -3,8 +3,10 @@
 Block structure for Isabelle theories, read from build database.
 */
 
-package isabelle
+package isabelle.find_facts
 
+
+import isabelle._
 
 import scala.annotation.tailrec
 

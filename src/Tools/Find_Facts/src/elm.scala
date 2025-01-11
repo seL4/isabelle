@@ -3,8 +3,10 @@
 Elm module for Isabelle.
 */
 
-package isabelle
+package isabelle.find_facts
 
+
+import isabelle._
 
 import java.io.{File => JFile}
 

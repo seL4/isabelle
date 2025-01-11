@@ -3,8 +3,11 @@
 
 Full-text search engine for Isabelle (including web server), using Solr as backend.
 */
-package isabelle
 
+package isabelle.find_facts
+
+
+import isabelle._
 
 import scala.annotation.tailrec
 import scala.collection.immutable.TreeMap
@@ -632,7 +635,7 @@ object Find_Facts {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("find_facts_index", "index sessions for find_facts",
+  val isabelle_tool1 = Isabelle_Tool("find_facts_index", "index sessions for find_facts",
     Scala_Project.here,
     { args =>
       var clean = false
@@ -681,7 +684,7 @@ object Find_Facts {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool1 = Isabelle_Tool("find_facts_index_component",
+  val isabelle_tool2 = Isabelle_Tool("find_facts_index_component",
     "build component from find_facts index", Scala_Project.here,
     { args =>
       var options = Options.init()
@@ -916,7 +919,7 @@ object Find_Facts {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool2 = Isabelle_Tool("find_facts", "run find_facts server", Scala_Project.here,
+  val isabelle_tool3 = Isabelle_Tool("find_facts", "run find_facts server", Scala_Project.here,
   { args =>
     var devel = false
     var options = Options.init()

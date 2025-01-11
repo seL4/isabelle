@@ -3,10 +3,12 @@
 Support for full-text search via Solr. See also: https://solr.apache.org/
 */
 
-package isabelle
+package isabelle.find_facts
 
 
-import scala.jdk.CollectionConverters.*
+import isabelle._
+
+import scala.jdk.CollectionConverters._
 
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer
 import org.apache.solr.client.solrj.request.json.{JsonQueryRequest, TermsFacetMap, DomainMap}
