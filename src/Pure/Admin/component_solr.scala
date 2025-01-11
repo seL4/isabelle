@@ -7,7 +7,7 @@ package isabelle
 
 
 object Component_Solr {
-  val default_download_url = "https://dlcdn.apache.org/solr/solr/9.6.1/solr-9.6.1.tgz"
+  val default_download_url = "https://dlcdn.apache.org/solr/solr/9.7.0/solr-9.7.0.tgz"
 
 
   /* build solr */
@@ -58,8 +58,6 @@ object Component_Solr {
 
       Isabelle_System.make_directory(component_dir.lib)
 
-      val compile = List("solr-solrj", "solr-api", "solr-core")
-
       val jars =
         File.find_files(webapp_lib_dir.file, _.getName.endsWith(".jar")) ++
           File.find_files(server_lib_dir.file, _.getName.endsWith(".jar"))
@@ -71,10 +69,13 @@ object Component_Solr {
 
       def jar_path(file: String): String = "$SOLR_HOME/lib/" + file
 
+      val classpath = List("solr-solrj", "solr-api", "solr-core").map(_ + "-" + version + ".jar")
+      val solr_jars = File.read_dir(component_dir.lib).filterNot(classpath.contains)
+
       component_dir.write_settings("""
 SOLR_HOME="$COMPONENT"
-SOLR_JARS=""" + quote(compile.map(_ + "-" + version + ".jar").map(jar_path).mkString(":")) + """
-classpath """ + quote(File.read_dir(component_dir.lib).map(jar_path).mkString(":")) + """
+SOLR_JARS=""" + quote(solr_jars.map(jar_path).mkString(":")) + """
+classpath """ + quote(classpath.map(jar_path).mkString(":")) + """
 
 SOLR_LUCENE_VERSION="9.10"
 SOLR_SCHEMA_VERSION="1.6"
@@ -86,7 +87,7 @@ SOLR_SCHEMA_VERSION="1.6"
       File.write(component_dir.README,
         "This Isabelle component provides Solr " + version + " jars from\n" + download_url + """
 
-        Fabian
+        Fabian Huch
         """ + Date.Format.date(Date.now()) + "\n")
     }
 
