@@ -70,7 +70,11 @@ object Component_Solr {
       def jar_path(file: String): String = "$SOLR_HOME/lib/" + file
 
       val classpath = List("solr-solrj", "solr-api", "solr-core").map(_ + "-" + version + ".jar")
-      val solr_jars = File.read_dir(component_dir.lib).filterNot(classpath.contains)
+
+      def suppress(name: String): Boolean =
+        classpath.contains(name) || name.startsWith("slf4j-api")
+
+      val solr_jars = File.read_dir(component_dir.lib).filterNot(suppress)
 
       component_dir.write_settings("""
 SOLR_HOME="$COMPONENT"
