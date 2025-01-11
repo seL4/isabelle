@@ -1,3 +1,5 @@
 # -*- shell-script -*- :mode=shellscript:
 
 FIND_FACTS_HOME="$COMPONENT"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$FIND_FACTS_HOME/Tools"

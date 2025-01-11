@@ -635,9 +635,8 @@ object Find_Facts {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool1 = Isabelle_Tool("find_facts_index", "index sessions for find_facts",
-    Scala_Project.here,
-    { args =>
+  def main_tool1(args: Array[String]): Unit = {
+    Command_Line.tool {
       var clean = false
       val dirs = new mutable.ListBuffer[Path]
       var options = Options.init()
@@ -661,7 +660,9 @@ object Find_Facts {
       val progress = new Console_Progress()
 
       find_facts_index(options, sessions, dirs = dirs.toList, clean = clean, progress = progress)
-    })
+    }
+  }
+
 
 
   /** index components **/
@@ -919,14 +920,14 @@ object Find_Facts {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool3 = Isabelle_Tool("find_facts", "run find_facts server", Scala_Project.here,
-  { args =>
-    var devel = false
-    var options = Options.init()
-    var port = 8080
-    var verbose = false
+  def main_tool3 (args: Array[String]): Unit = {
+    Command_Line.tool {
+      var devel = false
+      var options = Options.init()
+      var port = 8080
+      var verbose = false
 
-    val getopts = Getopts("""
+      val getopts = Getopts("""
 Usage: isabelle find_facts [OPTIONS]
 
   Options are:
@@ -942,11 +943,12 @@ Usage: isabelle find_facts [OPTIONS]
         "p:" -> (arg => port = Value.Int.parse(arg)),
         "v" -> (_ => verbose = true))
 
-    val more_args = getopts(args)
-    if (more_args.nonEmpty) getopts.usage()
+      val more_args = getopts(args)
+      if (more_args.nonEmpty) getopts.usage()
 
-    val progress = new Console_Progress(verbose = verbose)
+      val progress = new Console_Progress(verbose = verbose)
 
-    find_facts(options, port, devel = devel, progress = progress)
-  })
+      find_facts(options, port, devel = devel, progress = progress)
+    }
+  }
 }

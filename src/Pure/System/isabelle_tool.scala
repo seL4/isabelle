@@ -208,9 +208,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_Zipperposition.isabelle_tool,
   Component_Zstd.isabelle_tool,
   Components.isabelle_tool,
-  isabelle.find_facts.Find_Facts.isabelle_tool1,
   isabelle.find_facts.Find_Facts.isabelle_tool2,
-  isabelle.find_facts.Find_Facts.isabelle_tool3,
   isabelle.vscode.Component_VSCode.isabelle_tool,
   isabelle.vscode.Component_VSCodium.isabelle_tool1,
   isabelle.vscode.Component_VSCodium.isabelle_tool2)
