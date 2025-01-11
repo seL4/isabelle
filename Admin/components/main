@@ -5,6 +5,7 @@ bib2xhtml-20190409
 csdp-6.1.1
 cvc4-1.8
 e-3.1-1
+elm-0.19.1
 easychair-3.5
 eptcs-1.7.0
 flatlaf-2.6
@@ -32,6 +33,7 @@ prismjs-1.29.0
 rsync-3.2.7-1
 scala-3.3.4
 smbc-0.4.1
+solr-9.7.0
 spass-3.8ds-2
 sqlite-3.47.1.0
 stack-2.15.5
