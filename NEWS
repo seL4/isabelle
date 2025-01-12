@@ -357,7 +357,7 @@ Apache Solr (see also https://solr.apache.org). Minimal example:
     isabelle find_facts_server
     open http://localhost:8080/app#search?q=Hilbert
 
-Persistent data is stored in $ISABELLE_HOME_USER/solr/.
+Persistent data is stored in $ISABELLE_HOME_USER/find_facts/.
 
 * The Build_Manager module has replaced previous glue-code for Jenkins
 integration. The module contains a server that coordinates continuous
