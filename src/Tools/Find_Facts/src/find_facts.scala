@@ -843,19 +843,26 @@ object Find_Facts {
 
   /* find facts */
 
+  val template_web_dir: Path = Path.explode("$FIND_FACTS_HOME/web")
+  val default_web_dir: Path = Path.explode("$FIND_FACTS_WEB")
+
   def find_facts(
     options: Options,
     port: Int,
     devel: Boolean = false,
+    web_dir: Path = default_web_dir,
     progress: Progress = new Progress
   ): Unit = {
+    progress.echo("Web directory " + web_dir.expand)
+    Isabelle_System.copy_dir(template_web_dir, web_dir, direct = true)
+
     val database = options.string("find_facts_database_name")
     val encode = new Encode(options)
-    val logo = Bytes.read(Path.explode("$FIND_FACTS_HOME/web/favicon.ico"))
+    val logo = Bytes.read(web_dir + Path.explode("favicon.ico"))
 
     val isabelle_style = HTML.fonts_css("/fonts/" + _) + "\n\n" + File.read(HTML.isabelle_css)
 
-    val project = Elm.Project("Find_Facts", Path.explode("$FIND_FACTS_HOME/web"), head = List(
+    val project = Elm.Project("Find_Facts", web_dir, head = List(
       HTML.style("html,body {width: 100%, height: 100%}"),
       Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
       HTML.style_file("isabelle.css"),
@@ -927,6 +934,7 @@ object Find_Facts {
       var options = Options.init()
       var port = 8080
       var verbose = false
+      var web_dir = default_web_dir
 
       val getopts = Getopts("""
 Usage: isabelle find_facts_server [OPTIONS]
@@ -936,20 +944,22 @@ Usage: isabelle find_facts_server [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p PORT      explicit web server port
     -v           verbose server
+    -w DIR       web directory (default: """ + default_web_dir + """)
 
   Run server for Find_Facts.
 """,
         "d" -> (_ => devel = true),
         "o:" -> (arg => options = options + arg),
         "p:" -> (arg => port = Value.Int.parse(arg)),
-        "v" -> (_ => verbose = true))
+        "v" -> (_ => verbose = true),
+        "w:" -> (arg => web_dir = Path.explode(arg)))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress(verbose = verbose)
 
-      find_facts(options, port, devel = devel, progress = progress)
+      find_facts(options, port, devel = devel, web_dir = web_dir, progress = progress)
     }
   }
 }
