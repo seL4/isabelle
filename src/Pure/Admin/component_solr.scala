@@ -58,28 +58,27 @@ object Component_Solr {
 
       Isabelle_System.make_directory(component_dir.lib)
 
-      val jars =
-        File.find_files(webapp_lib_dir.file, _.getName.endsWith(".jar")) ++
-          File.find_files(server_lib_dir.file, _.getName.endsWith(".jar"))
-
-      for (jar <- jars) Isabelle_System.copy_file(jar, component_dir.lib.file)
+      for {
+        dir <- List(webapp_lib_dir, server_lib_dir)
+        jar <- File.find_files(dir.file, _.getName.endsWith(".jar"))
+      } Isabelle_System.copy_file(jar, component_dir.lib.file)
 
 
       /* settings */
 
-      def jar_path(file: String): String = "$SOLR_HOME/lib/" + file
+      def quote_jars(names: List[String]): String =
+        quote(names.map("$SOLR_HOME/lib/" + _).mkString(":"))
 
       val classpath = List("solr-solrj", "solr-api", "solr-core").map(_ + "-" + version + ".jar")
 
-      def suppress(name: String): Boolean =
-        classpath.contains(name) || name.startsWith("slf4j-api")
-
-      val solr_jars = File.read_dir(component_dir.lib).filterNot(suppress)
+      val solr_jars =
+        File.read_dir(component_dir.lib).filterNot((name: String) =>
+          classpath.contains(name) || name.startsWith("slf4j-api"))
 
       component_dir.write_settings("""
 SOLR_HOME="$COMPONENT"
-SOLR_JARS=""" + quote(solr_jars.map(jar_path).mkString(":")) + """
-classpath """ + quote(classpath.map(jar_path).mkString(":")) + """
+SOLR_JARS=""" + quote_jars(solr_jars) + """
+classpath """ + quote_jars(classpath) + """
 
 SOLR_LUCENE_VERSION="9.10"
 SOLR_SCHEMA_VERSION="1.6"
