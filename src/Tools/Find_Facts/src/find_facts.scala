@@ -707,7 +707,9 @@ object Find_Facts {
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
-      find_facts_index_component(options, target_dir = target_dir)
+      val progress = new Console_Progress()
+
+      find_facts_index_component(options, target_dir = target_dir, progress = progress)
     })
 
 
