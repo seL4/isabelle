@@ -639,7 +639,8 @@ object Find_Facts {
   def main_tool1(args: Array[String]): Unit = {
     Command_Line.tool {
       var clean = false
-      val dirs = new mutable.ListBuffer[Path]
+      val dirs_buffer = new mutable.ListBuffer[Path]
+      var no_build = false
       var options = Options.init()
 
       val getopts = Getopts("""
@@ -648,19 +649,45 @@ object Find_Facts {
     Options are:
       -c           clean previous index
       -d DIR       include session directory
+      -n           no build -- take existing session build databases
       -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
 
     Index sessions for find_facts.
   """,
         "c" -> (_ => clean = true),
-        "d:" -> (arg => dirs += Path.explode(arg)),
+        "d:" -> (arg => dirs_buffer += Path.explode(arg)),
+        "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg))
 
       val sessions = getopts(args)
+      val dirs = dirs_buffer.toList
 
       val progress = new Console_Progress()
 
-      find_facts_index(options, sessions, dirs = dirs.toList, clean = clean, progress = progress)
+
+      /* build */
+
+      if (!no_build) {
+        def build(test: Boolean = false): Build.Results =
+          Build.build(options, selection = Sessions.Selection(sessions = sessions),
+            no_build = test, dirs = dirs)
+
+        progress.interrupt_handler {
+          if (!build(test = true).ok) {
+            progress.echo("Build started ...")
+            val rc = build().rc
+            if (rc != Process_Result.RC.ok) {
+              Output.error_message("Build failed")
+              sys.exit(rc)
+            }
+          }
+        }
+      }
+
+
+      /* index */
+
+      find_facts_index(options, sessions, dirs = dirs, clean = clean, progress = progress)
     }
   }
 
