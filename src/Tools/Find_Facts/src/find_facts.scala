@@ -642,6 +642,7 @@ object Find_Facts {
       val dirs_buffer = new mutable.ListBuffer[Path]
       var no_build = false
       var options = Options.init()
+      var verbose = false
 
       val getopts = Getopts("""
   Usage: isabelle find_facts_index [OPTIONS] [SESSIONS ...]
@@ -651,26 +652,28 @@ object Find_Facts {
       -d DIR       include session directory
       -n           no build -- take existing session build databases
       -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+      -v           verbose build
 
-    Index sessions for find_facts.
+    Build and index sessions for Find_Facts.
   """,
         "c" -> (_ => clean = true),
         "d:" -> (arg => dirs_buffer += Path.explode(arg)),
         "n" -> (_ => no_build = true),
-        "o:" -> (arg => options = options + arg))
+        "o:" -> (arg => options = options + arg),
+        "v" -> (_ => verbose = true))
 
       val sessions = getopts(args)
       val dirs = dirs_buffer.toList
 
-      val progress = new Console_Progress()
+      val progress = new Console_Progress(verbose = verbose)
 
 
       /* build */
 
       if (!no_build) {
         def build(test: Boolean = false): Build.Results =
-          Build.build(options, selection = Sessions.Selection(sessions = sessions),
-            no_build = test, dirs = dirs)
+          Build.build(options, selection = Sessions.Selection(sessions = sessions), dirs = dirs,
+            no_build = test, progress = if (test) new Progress else progress)
 
         progress.interrupt_handler {
           if (!build(test = true).ok) {
