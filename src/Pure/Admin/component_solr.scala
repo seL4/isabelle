@@ -1,4 +1,5 @@
-/*  Author:     Fabian Huch, TU Muenchen
+/*  Title:      Pure/Admin/component_solr.scala
+    Author:     Fabian Huch, TU Muenchen
 
 Build Isabelle Solr component from official downloads. See also: https://solr.apache.org/
 */

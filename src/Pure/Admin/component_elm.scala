@@ -1,4 +1,5 @@
-/*  Author:     Fabian Huch, TU Muenchen
+/*  Title:      Pure/Admin/component_elm.scala
+    Author:     Fabian Huch, TU Muenchen
 
 Build Isabelle Elm component from official downloads. See also: https://elm-lang.org/
 */
