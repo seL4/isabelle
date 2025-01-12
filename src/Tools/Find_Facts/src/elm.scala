@@ -18,8 +18,6 @@ import org.jsoup.nodes.Element
 
 
 object Elm {
-  private lazy val exec = Path.explode("$ISABELLE_ELM_HOME/elm").expand
-
   object Project {
     def apply(
       name: String,
@@ -73,7 +71,8 @@ object Elm {
         progress.echo("### Building " + name + " (" + output.canonical.implode + ") ...")
 
         val cmd =
-          File.bash_path(exec) + " make " + File.bash_path(main) + " --optimize --output=" + output
+          File.bash_path(Path.explode("$ISABELLE_ELM_HOME/elm")) + " make " +
+            File.bash_path(main) + " --optimize --output=" + output
         val res = Isabelle_System.bash(cmd, cwd = dir)
 
         if (!res.ok) {
