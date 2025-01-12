@@ -109,29 +109,27 @@ object Thy_Blocks {
     }
 
     def parse(spans: List[Span]): List[Block] = {
-      import Keyword.*
-
       def parse1(blocks: Blocks, span: Span): Blocks =
         blocks.peek match {
-          case _ if span.is_of_kind(document) => blocks.add(span)
-          case None if span.is_of_kind(theory_begin) => blocks.push(Thy(List(span)))
-          case Some(_) if span.is_of_kind(diag) => blocks.add(span)
-          case Some(Thy(_)) if span.is_of_kind(theory_goal) => blocks.push(Prf(List(span)))
-          case Some(Thy(_)) if span.is_of_kind(theory_block) =>
+          case _ if span.is_of_kind(Keyword.document) => blocks.add(span)
+          case None if span.is_of_kind(Keyword.theory_begin) => blocks.push(Thy(List(span)))
+          case Some(_) if span.is_of_kind(Keyword.diag) => blocks.add(span)
+          case Some(Thy(_)) if span.is_of_kind(Keyword.theory_goal) => blocks.push(Prf(List(span)))
+          case Some(Thy(_)) if span.is_of_kind(Keyword.theory_block) =>
             (if (span.has_begin) blocks.push else blocks.add)(Decl(List(span)))
-          case Some(Thy(_)) if span.is_of_kind(theory_end) => blocks.add(span).pop
-          case Some(Thy(_)) if span.is_of_kind(theory_body) => blocks.add(span)
-          case Some(Prf(_)) if span.is_of_kind(proof_open) => blocks.push(Prf(List(span)))
-          case Some(Prf(_)) if span.is_of_kind(proof_close) => blocks.add(span).pop
-          case Some(Prf(_)) if span.is_of_kind(qed_global) => blocks.add(span).pop_prfs
-          case Some(Prf(_)) if span.is_of_kind(proof_body) => blocks.add(span)
-          case Some(Decl(_)) if span.is_of_kind(proof_open) => blocks.push(Prf(List(span)))
-          case Some(Decl(_)) if span.is_of_kind(proof_body) => blocks.add(span)
-          case Some(Decl(_)) if span.is_of_kind(theory_goal) => blocks.push(Prf(List(span)))
-          case Some(Decl(_)) if span.is_of_kind(theory_block) =>
+          case Some(Thy(_)) if span.is_of_kind(Keyword.theory_end) => blocks.add(span).pop
+          case Some(Thy(_)) if span.is_of_kind(Keyword.theory_body) => blocks.add(span)
+          case Some(Prf(_)) if span.is_of_kind(Keyword.proof_open) => blocks.push(Prf(List(span)))
+          case Some(Prf(_)) if span.is_of_kind(Keyword.proof_close) => blocks.add(span).pop
+          case Some(Prf(_)) if span.is_of_kind(Keyword.qed_global) => blocks.add(span).pop_prfs
+          case Some(Prf(_)) if span.is_of_kind(Keyword.proof_body) => blocks.add(span)
+          case Some(Decl(_)) if span.is_of_kind(Keyword.proof_open) => blocks.push(Prf(List(span)))
+          case Some(Decl(_)) if span.is_of_kind(Keyword.proof_body) => blocks.add(span)
+          case Some(Decl(_)) if span.is_of_kind(Keyword.theory_goal) => blocks.push(Prf(List(span)))
+          case Some(Decl(_)) if span.is_of_kind(Keyword.theory_block) =>
             (if (span.has_begin) blocks.push else blocks.add)(Decl(List(span)))
-          case Some(Decl(_)) if span.is_of_kind(theory_end) => blocks.add(span).pop
-          case Some(Decl(_)) if span.is_of_kind(theory_body) => blocks.add(span)
+          case Some(Decl(_)) if span.is_of_kind(Keyword.theory_end) => blocks.add(span).pop
+          case Some(Decl(_)) if span.is_of_kind(Keyword.theory_body) => blocks.add(span)
           case e => error("Unexpected span " + span + " at " + e)
         }
 
