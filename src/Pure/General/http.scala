@@ -1,5 +1,6 @@
 /*  Title:      Pure/General/http.scala
     Author:     Makarius
+    Author:     Fabian Huch, TU München
 
 HTTP client and server support.
 */
@@ -261,6 +262,42 @@ object HTTP {
       }
       else Response.empty.write(http, 400)
     }
+  }
+
+
+  /* REST service (via JSON) */
+
+  abstract class REST_Service(
+    name: String,
+    progress: Progress = new Progress,
+    method: String = "POST"
+  ) extends Service(name, method = method) {
+    def handle(body: JSON.T): Option[JSON.T]
+
+    def apply(request: Request): Option[Response] =
+      try {
+        for {
+          json <-
+            Exn.capture(JSON.parse(request.input.text)) match {
+              case Exn.Res(json) => Some(json)
+              case _ =>
+                progress.echo("Could not parse: " + quote(request.input.text), verbose = true)
+                None
+            }
+          res <-
+            handle(json) match {
+              case Some(res) => Some(res)
+              case None =>
+                progress.echo("Invalid request: " + JSON.Format(json), verbose = true)
+                None
+            }
+        } yield Response(Bytes(JSON.Format(res)), content_type = "application/json")
+      }
+      catch { case exn: Throwable =>
+        val uuid = UUID.random()
+        progress.echo_error_message("Server error <" + uuid + ">: " + exn)
+        Some(Response.text("internal server error: " + uuid))
+      }
   }
 
 

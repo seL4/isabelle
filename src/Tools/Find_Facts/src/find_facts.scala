@@ -814,36 +814,6 @@ object Find_Facts {
 
   /* find facts */
 
-  abstract class REST_Service(path: Path, progress: Progress, method: String = "POST")
-    extends HTTP.Service(path.implode, method = method) {
-    def handle(body: JSON.T): Option[JSON.T]
-
-    def apply(request: HTTP.Request): Option[HTTP.Response] =
-      try {
-        for {
-          json <-
-            Exn.capture(JSON.parse(request.input.text)) match {
-              case Exn.Res(json) => Some(json)
-              case _ =>
-                progress.echo("Could not parse: " + quote(request.input.text), verbose = true)
-                None
-            }
-          res <-
-            handle(json) match {
-              case Some(res) => Some(res)
-              case None =>
-                progress.echo("Invalid request: " + JSON.Format(json), verbose = true)
-                None
-            }
-        } yield HTTP.Response(Bytes(JSON.Format(res)), content_type = "application/json")
-      }
-      catch { case exn: Throwable =>
-        val uuid = UUID.random()
-        progress.echo_error_message("Server error <" + uuid + ">: " + exn)
-        Some(HTTP.Response.text("internal server error: " + uuid))
-      }
-  }
-
   def find_facts(
     options: Options,
     port: Int,
@@ -884,19 +854,19 @@ object Find_Facts {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
               Some(HTTP.Response.html(if (devel) project.build_html(progress) else frontend))
           },
-          new REST_Service(Path.explode("api/block"), progress) {
+          new HTTP.REST_Service("api/block", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
               for {
                 request <- Parse.query_block(body)
                 block <- query_block(db, request)
               } yield encode.block(block)
           },
-          new REST_Service(Path.explode("api/blocks"), progress) {
+          new HTTP.REST_Service("api/blocks", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
               for (request <- Parse.query_blocks(body))
               yield encode.blocks(query_blocks(db, request.query, Some(request.cursor)))
           },
-          new REST_Service(Path.explode("api/query"), progress) {
+          new HTTP.REST_Service("api/query", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
               for (query <- Parse.query(body)) yield {
                 val facet = query_facet(db, query)
