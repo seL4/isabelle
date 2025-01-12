@@ -1,4 +1,4 @@
-/*  Title:      Pure/GUI/gui.scala
+/*  Title:      Pure/GUI/font_metric.scala
     Author:     Makarius
 
 Precise metric for smooth font rendering, notably for pretty-printing.

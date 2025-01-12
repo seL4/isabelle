@@ -1,0 +1,11 @@
+(* :mode=isabelle-options: *)
+
+section "Find Facts"
+
+option find_facts_database_name : string = "local"
+
+option find_facts_url_library : string = "https://isabelle.in.tum.de/dist/library/"
+  -- "base URL for Isabelle HTML presentation"
+
+option find_facts_url_afp : string = "https://www.isa-afp.org/browser_info/current/"
+  -- "base URL for AFP HTML presentation"
