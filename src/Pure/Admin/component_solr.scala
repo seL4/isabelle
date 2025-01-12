@@ -73,7 +73,9 @@ object Component_Solr {
 
       val solr_jars =
         File.read_dir(component_dir.lib).filterNot((name: String) =>
-          classpath.contains(name) || name.startsWith("slf4j-api"))
+          classpath.contains(name) ||
+            name.startsWith("slf4j-api") ||
+            name.startsWith("log4j-slf4j2"))
 
       component_dir.write_settings("""
 SOLR_HOME="$COMPONENT"
