@@ -350,6 +350,16 @@ Pretty.T operations are required (e.g. Pretty.mark_str).
 
 *** System ***
 
+* The "find_facts" tool provides a full-text search engine as web
+application based on Apache Solr (see also https://solr.apache.org).
+Minimal example:
+
+    isabelle find_facts_index HOL
+    isabelle find_facts -v
+    open http://localhost:8080/app#search?q=Hilbert
+
+Persistent data is stored in $ISABELLE_HOME_USER/solr/.
+
 * The Build_Manager module has replaced previous glue-code for Jenkins
 integration. The module contains a server that coordinates continuous
 integration jobs and user-submitted build tasks and displays them via
