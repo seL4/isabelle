@@ -10,7 +10,7 @@ Contributions to this Isabelle version
   Inference of variable instantiations with Metis.
 
 * 2024: Fabian Huch, TU München
-  Search engine "find_facts": web application based on Apache Solr.
+  Find_Facts search engine: web application based on Apache Solr.
 
 * April - October 2024: Thomas Lindae and Fabian Huch, TU München
   Improvements to the language server for Isabelle/VSCode.

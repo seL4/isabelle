@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# DESCRIPTION: run server for Find_Facts
+
+isabelle scala_build || exit $?
+
+eval "declare -a JAVA_ARGS=($ISABELLE_TOOL_JAVA_OPTIONS)"
+
+classpath "$SOLR_JARS"
+
+exec isabelle java "${JAVA_ARGS[@]}" --enable-native-access=ALL-UNNAMED isabelle.find_facts.Find_Facts_Server_Tool "$@"

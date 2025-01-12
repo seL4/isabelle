@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# DESCRIPTION: index sessions for find_facts
+# DESCRIPTION: index sessions for Find_Facts
 
 isabelle scala_build || exit $?
 
