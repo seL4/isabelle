@@ -836,7 +836,7 @@ object Find_Facts {
       HTML.script_file(
         "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js")))
 
-    val frontend = project.build_html(progress)
+    val frontend = project.build_html(progress = progress)
 
     using(Solr.open_database(database)) { db =>
       val stats = Find_Facts.query_stats(db, Query(Nil))
@@ -852,7 +852,8 @@ object Find_Facts {
           },
           new HTTP.Service("app") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
-              Some(HTTP.Response.html(if (devel) project.build_html(progress) else frontend))
+              Some(HTTP.Response.html(
+                if (devel) project.build_html(progress = progress) else frontend))
           },
           new HTTP.REST_Service("api/block", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =

@@ -64,7 +64,7 @@ object Elm {
         case _ => SHA1.digest_empty
       }
 
-    def build_html(progress: Progress): String = {
+    def build_html(progress: Progress = new Progress): String = {
       val digest = sources_shasum.digest
       if (digest == get_digest) File.read(output)
       else {
