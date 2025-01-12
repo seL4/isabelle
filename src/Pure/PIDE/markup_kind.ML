@@ -1,4 +1,4 @@
-(*  Title:      Pure/markup_kind.ML
+(*  Title:      Pure/PIDE/markup_kind.ML
     Author:     Makarius
 
 Formally defined kind for Markup.notation and Markup.expression.
