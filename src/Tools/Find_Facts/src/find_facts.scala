@@ -853,7 +853,6 @@ object Find_Facts {
     web_dir: Path = default_web_dir,
     progress: Progress = new Progress
   ): Unit = {
-    progress.echo("Web directory " + web_dir.expand)
     Isabelle_System.copy_dir(template_web_dir, web_dir, direct = true)
 
     val database = options.string("find_facts_database_name")
@@ -876,7 +875,7 @@ object Find_Facts {
 
     using(Solr.open_database(database)) { db =>
       val stats = Find_Facts.query_stats(db, Query(Nil))
-      progress.echo("Started find facts with " + stats.results + " blocks, " +
+      progress.echo("Started Find_Facts with " + stats.results + " blocks, " +
         stats.consts + " consts, " + stats.typs + " typs, " + stats.thms + " thms")
 
       val server =
@@ -913,7 +912,7 @@ object Find_Facts {
           }))
 
       server.start()
-      progress.echo("Server started on port " + server.http_server.getAddress.getPort)
+      progress.echo("Server started " + server.toString + "/app")
 
       @tailrec
       def loop(): Unit = {
