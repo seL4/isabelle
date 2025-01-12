@@ -68,7 +68,7 @@ object Elm {
       val digest = sources_shasum.digest
       if (digest == get_digest) File.read(output)
       else {
-        progress.echo_warning("Building " + name + " (" + output.absolute + ") ...")
+        progress.echo_warning("Building web application in " + output.absolute + " ...")
 
         val cmd =
           File.bash_path(Path.explode("$ISABELLE_ELM_HOME/elm")) + " make " +
