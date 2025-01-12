@@ -687,7 +687,7 @@ object Find_Facts {
   /* Isabelle tool wrapper */
 
   val isabelle_tool2 = Isabelle_Tool("find_facts_index_component",
-    "build component from find_facts index", Scala_Project.here,
+    "build Isabelle component from Find_Facts index", Scala_Project.here,
     { args =>
       var options = Options.init()
       var target_dir = Path.current
@@ -699,7 +699,7 @@ object Find_Facts {
       -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
       -D DIR       target directory (default ".")
 
-    Build component from finalized find_facts index with given name.
+    Build Isabelle component from finalized Find_Facts index with given name.
   """,
         "o:" -> (arg => options = options + arg),
         "D:" -> (arg => target_dir = Path.explode(arg)))
