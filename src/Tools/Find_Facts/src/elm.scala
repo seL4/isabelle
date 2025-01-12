@@ -68,7 +68,7 @@ object Elm {
       val digest = sources_shasum.digest
       if (digest == get_digest) File.read(output)
       else {
-        progress.echo("### Building " + name + " (" + output.canonical.implode + ") ...")
+        progress.echo_warning("Building " + name + " (" + output.absolute + ") ...")
 
         val cmd =
           File.bash_path(Path.explode("$ISABELLE_ELM_HOME/elm")) + " make " +
@@ -76,7 +76,7 @@ object Elm {
         val res = Isabelle_System.bash(cmd, cwd = dir)
 
         if (!res.ok) {
-          progress.echo(res.err)
+          progress.echo_error_message(res.err)
           error("Failed to compile Elm sources")
         }
 
