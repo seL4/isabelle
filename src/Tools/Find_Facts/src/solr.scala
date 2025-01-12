@@ -26,8 +26,10 @@ object Solr {
   def init(solr_data: Path): Path = {
     File.write(Isabelle_System.make_directory(solr_data) + Path.basic("solr.xml"), "<solr/>")
 
-    for (entry <- space_explode(':', Isabelle_System.getenv("SOLR_COMPONENTS")) if entry.nonEmpty)
-      Isabelle_System.symlink(Path.explode(entry).absolute, solr_data, force = true)
+    // non-portable: only for Linux or macOS
+    for (path <- Path.split(Isabelle_System.getenv("SOLR_COMPONENTS"))) {
+      Isabelle_System.symlink(path.absolute, solr_data, force = true)
+    }
 
     java.util.logging.LogManager.getLogManager.reset()
     solr_data
