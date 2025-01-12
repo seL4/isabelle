@@ -1619,7 +1619,7 @@ lemma ennreal_SUP_add_left:
   shows "I \<noteq> {} \<Longrightarrow> (SUP i\<in>I. f i + c) = (SUP i\<in>I. f i) + c"
   apply transfer
   apply (simp add: SUP_ereal_add_left)
-  by (metis SUP_upper all_not_in_conv ereal_le_add_mono1 max.absorb2 max.bounded_iff)
+  by (metis SUP_upper all_not_in_conv add_increasing2 max.absorb2 max.bounded_iff)
 
 lemma ennreal_SUP_const_minus:
   fixes f :: "'a \<Rightarrow> ennreal"
