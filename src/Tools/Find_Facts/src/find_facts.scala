@@ -846,9 +846,11 @@ object Find_Facts {
   val template_web_dir: Path = Path.explode("$FIND_FACTS_HOME/web")
   val default_web_dir: Path = Path.explode("$FIND_FACTS_WEB")
 
+  val default_port = 8080
+
   def find_facts(
     options: Options,
-    port: Int,
+    port: Int = default_port,
     devel: Boolean = false,
     web_dir: Path = default_web_dir,
     progress: Progress = new Progress
@@ -931,7 +933,7 @@ object Find_Facts {
     Command_Line.tool {
       var devel = false
       var options = Options.init()
-      var port = 8080
+      var port = default_port
       var verbose = false
       var web_dir = default_web_dir
 
@@ -941,7 +943,7 @@ Usage: isabelle find_facts_server [OPTIONS]
   Options are:
     -d           devel mode
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p PORT      explicit web server port
+    -p PORT      explicit web server port (default: """ + default_port + """)
     -v           verbose server
     -w DIR       web directory (default: """ + default_web_dir + """)
 
@@ -958,7 +960,7 @@ Usage: isabelle find_facts_server [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      find_facts(options, port, devel = devel, web_dir = web_dir, progress = progress)
+      find_facts(options, port = port, devel = devel, web_dir = web_dir, progress = progress)
     }
   }
 }
