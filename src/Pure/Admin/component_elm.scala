@@ -12,7 +12,7 @@ object Component_Elm {
   sealed case class Download_Platform(platform_name: String, file_name: String) {
     override def toString: String = platform_name
 
-    def archive_name = file_name + ".gz"
+    def archive_name: String = file_name + ".gz"
     def download(base_url: String, version: String): String =
       base_url + "/" + version + "/" + archive_name
 
