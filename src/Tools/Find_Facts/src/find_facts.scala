@@ -929,7 +929,7 @@ object Find_Facts {
       var verbose = false
 
       val getopts = Getopts("""
-Usage: isabelle find_facts [OPTIONS]
+Usage: isabelle find_facts_server [OPTIONS]
 
   Options are:
     -d           devel mode
@@ -937,7 +937,7 @@ Usage: isabelle find_facts [OPTIONS]
     -p PORT      explicit web server port
     -v           verbose server
 
-  Run the find_facts web service.
+  Run server for Find_Facts.
 """,
         "d" -> (_ => devel = true),
         "o:" -> (arg => options = options + arg),
