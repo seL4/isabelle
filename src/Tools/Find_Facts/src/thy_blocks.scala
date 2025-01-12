@@ -75,7 +75,7 @@ object Thy_Blocks {
     }
 
     case class Blocks(private val stack: List[Block], private val out: List[Block]) {
-      def peek: Option[Block] = stack.headOption
+      def top: Option[Block] = stack.headOption
       def push(block: Block): Blocks = copy(stack = block :: stack)
       def add(block: Block): Blocks =
         stack match {
@@ -110,7 +110,7 @@ object Thy_Blocks {
 
     def parse(spans: List[Span]): List[Block] = {
       def parse1(blocks: Blocks, span: Span): Blocks =
-        blocks.peek match {
+        blocks.top match {
           case _ if span.is_of_kind(Keyword.document) => blocks.add(span)
           case None if span.is_of_kind(Keyword.theory_begin) => blocks.push(Thy(List(span)))
           case Some(_) if span.is_of_kind(Keyword.diag) => blocks.add(span)
