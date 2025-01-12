@@ -1,4 +1,5 @@
-/*  Author:     Fabian Huch, TU Muenchen
+/*  Title:      Tools/Find_Facts/src/thy_blocks.scala
+    Author:     Fabian Huch, TU Muenchen
 
 Block structure for Isabelle theories, read from build database.
 */

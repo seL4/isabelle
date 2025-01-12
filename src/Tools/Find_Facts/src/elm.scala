@@ -1,6 +1,8 @@
-/*  Author:     Fabian Huch, TU Muenchen
+/*  Title:      Tools/Find_Facts/src/elm.scala
+    Author:     Fabian Huch, TU Muenchen
 
-Elm module for Isabelle.
+Support for Elm https://elm-lang.org "A delightful language for reliable web
+applications".
 */
 
 package isabelle.find_facts

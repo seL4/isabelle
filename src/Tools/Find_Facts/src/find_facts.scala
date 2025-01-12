@@ -1,7 +1,8 @@
-/*  Title:      Tools/Find_Facts.scala
+/*  Title:      Tools/Find_Facts/src/find_facts.scala
     Author:     Fabian Huch, TU Muenchen
 
-Full-text search engine for Isabelle (including web server), using Solr as backend.
+Full-text search engine for Isabelle (including web server), using Apache Solr
+https://solr.apache.org as backend.
 */
 
 package isabelle.find_facts

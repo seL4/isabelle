@@ -1,6 +1,9 @@
-/*  Author:     Fabian Huch, TU Muenchen
+/*  Title:      Tools/Find_Facts/src/solr.scala
+    Author:     Fabian Huch, TU Muenchen
 
-Support for full-text search via Solr. See also: https://solr.apache.org/
+Full-text search via Apache Solr. see also: https://solr.apache.org/.
+
+NB: This requires a separate Java process with classpath "$SOLR_JARS".
 */
 
 package isabelle.find_facts
