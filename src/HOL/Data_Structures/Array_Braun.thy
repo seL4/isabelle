@@ -500,13 +500,6 @@ by(induction ls xs rs rule: T_nodes.induct) auto
 
 time_fun brauns
 
-lemma T_brauns_pretty: "T_brauns k xs = (if xs = [] then 0 else
-   let ys = take (2^k) xs;
-       zs = drop (2^k) xs;
-       ts = brauns (k+1) zs
-   in T_take (2 ^ k) xs + T_drop (2 ^ k) xs + T_brauns (k + 1) zs + T_drop (2 ^ k) ts + T_nodes ts ys (drop (2 ^ k) ts)) + 1"
-by(simp)
-
 lemma T_brauns_simple: "T_brauns k xs = (if xs = [] then 0 else
    3 * (min (2^k) (length xs) + 1) + (min (2^k) (length xs - 2^k) + 1) + T_brauns (k+1) (drop (2^k) xs)) + 1"
 by(simp add: T_nodes T_take T_drop length_brauns min_def)
@@ -614,13 +607,6 @@ unfolding defs list_fast_rec.simps[of ts] by(rule refl)
 time_function list_fast_rec equations list_fast_rec_simp
 termination
   by (relation "measure (sum_list o map size)"; simp add: list_fast_rec_term defs)
-
-lemma T_list_fast_rec_pretty:
-  "T_list_fast_rec ts = (let us = filter (\<lambda>t. t \<noteq> Leaf) ts
-  in length ts + 1 + (if us = [] then 0 else
-  5 * (length us + 1) + T_list_fast_rec (map left us @ map right us))) + 1"
-unfolding defs T_list_fast_rec.simps[of ts]
-by(simp add: T_append)
 
 declare T_list_fast_rec.simps[simp del]
 
