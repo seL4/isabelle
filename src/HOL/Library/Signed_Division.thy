@@ -104,8 +104,7 @@ lemma int_sdiv_simps [simp]:
     "(a :: int) sdiv 1 = a"
     "(a :: int) sdiv 0 = 0"
     "(a :: int) sdiv -1 = -a"
-  apply (auto simp: signed_divide_int_def sgn_if)
-  done
+  by (auto simp: signed_divide_int_def sgn_if)
 
 lemma smod_int_mod_0 [simp]:
   "x smod (0 :: int) = x"
@@ -120,33 +119,26 @@ lemma sgn_sdiv_eq_sgn_mult:
   by (auto simp: signed_divide_int_def sgn_div_eq_sgn_mult sgn_mult)
 
 lemma int_sdiv_same_is_1 [simp]:
-    "a \<noteq> 0 \<Longrightarrow> ((a :: int) sdiv b = a) = (b = 1)"
-  apply (rule iffI)
-   apply (clarsimp simp: signed_divide_int_def)
-   apply (subgoal_tac "b > 0")
-    apply (case_tac "a > 0")
-     apply (clarsimp simp: sgn_if)
-  apply (simp_all add: not_less algebra_split_simps sgn_if split: if_splits)
-  using int_div_less_self [of a b] apply linarith
-    apply (metis add.commute add.inverse_inverse group_cancel.rule0 int_div_less_self linorder_neqE_linordered_idom neg_0_le_iff_le not_less verit_comp_simplify1(1) zless_imp_add1_zle)
-   apply (metis div_minus_right neg_imp_zdiv_neg_iff neg_le_0_iff_le not_less order.not_eq_order_implies_strict)
-  apply (metis abs_le_zero_iff abs_of_nonneg neg_imp_zdiv_nonneg_iff order.not_eq_order_implies_strict)
-  done
+  assumes "a \<noteq> 0"
+  shows  "((a :: int) sdiv b = a) = (b = 1)"
+proof -
+  have "b = 1" if "a sdiv b = a"
+  proof -
+    have "b>0"
+      by (smt (verit, ccfv_threshold) assms mult_cancel_left2 sgn_if sgn_mult
+          sgn_sdiv_eq_sgn_mult that)
+    then show ?thesis
+      by (smt (verit) assms dvd_eq_mod_eq_0 int_div_less_self of_bool_eq(1,2) sgn_if
+          signed_divide_int_eq_divide_int that zdiv_zminus1_eq_if)
+  qed
+  then show ?thesis
+    by auto
+qed
 
 lemma int_sdiv_negated_is_minus1 [simp]:
     "a \<noteq> 0 \<Longrightarrow> ((a :: int) sdiv b = - a) = (b = -1)"
-  apply (clarsimp simp: signed_divide_int_def)
-  apply (rule iffI)
-   apply (subgoal_tac "b < 0")
-    apply (case_tac "a > 0")
-     apply (clarsimp simp: sgn_if algebra_split_simps not_less)
-     apply (case_tac "sgn (a * b) = -1")
-      apply (simp_all add: not_less algebra_split_simps sgn_if split: if_splits)
-     apply (metis add.inverse_inverse int_div_less_self int_one_le_iff_zero_less less_le neg_0_less_iff_less)
-    apply (metis add.inverse_inverse div_minus_right int_div_less_self int_one_le_iff_zero_less less_le neg_0_less_iff_less)
-   apply (metis less_le neg_less_0_iff_less not_less pos_imp_zdiv_neg_iff)
-  apply (metis div_minus_right dual_order.eq_iff neg_imp_zdiv_nonneg_iff neg_less_0_iff_less)
-  done
+  using int_sdiv_same_is_1 [of _ "-b"]
+  using signed_divide_int_def by fastforce
 
 lemma sdiv_int_range:
   \<open>a sdiv b \<in> {- \<bar>a\<bar>..\<bar>a\<bar>}\<close> for a b :: int
@@ -178,9 +170,8 @@ lemma smod_int_compares:
    "\<lbrakk> 0 \<le> a; b < 0 \<rbrakk> \<Longrightarrow> 0 \<le> (a :: int) smod b"
    "\<lbrakk> a \<le> 0; b < 0 \<rbrakk> \<Longrightarrow> (a :: int) smod b \<le> 0"
    "\<lbrakk> a \<le> 0; b < 0 \<rbrakk> \<Longrightarrow> b \<le> (a :: int) smod b"
-  apply (insert smod_int_range [where a=a and b=b])
-  apply (auto simp: add1_zle_eq smod_int_alt_def sgn_if)
-  done
+  using smod_int_range [where a=a and b=b]
+  by (auto simp: add1_zle_eq smod_int_alt_def sgn_if)
 
 lemma smod_mod_positive:
     "\<lbrakk> 0 \<le> (a :: int); 0 \<le> b \<rbrakk> \<Longrightarrow> a smod b = a mod b"
