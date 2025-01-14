@@ -1849,7 +1849,7 @@ lemma mult_float_mono1:
            (plus_down prec (nprt b * nprt bb)
              (plus_down prec (pprt a * pprt ab)
                (pprt b * nprt ab)))"
-  by (smt (verit, del_insts) mult_mono plus_down_mono add_mono nprt_mono nprt_le_zero zero_le_pprt 
+  by (smt (verit, best) mult_mono plus_down_mono add_mono nprt_mono nprt_le_zero zero_le_pprt 
 pprt_mono mult_mono_nonpos_nonneg mult_mono_nonpos_nonpos mult_mono_nonneg_nonpos)
 
 lemma mult_float_mono2:
@@ -1867,7 +1867,7 @@ lemma mult_float_mono2:
            (plus_up prec (pprt aa * nprt bc)
              (plus_up prec (nprt ba * pprt ac)
                (nprt aa * nprt ac)))"
-  by (smt (verit, del_insts) plus_up_mono add_mono mult_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono 
+  by (smt (verit, best) plus_up_mono add_mono mult_mono nprt_mono nprt_le_zero zero_le_pprt pprt_mono 
       mult_mono_nonpos_nonneg mult_mono_nonpos_nonpos mult_mono_nonneg_nonpos)
 
 

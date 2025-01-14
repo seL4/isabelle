@@ -13,48 +13,48 @@ unbundle lattice_syntax
 lemma chain_transfer [transfer_rule]:
   includes lifting_syntax
   shows "((A ===> A ===> (=)) ===> rel_set A ===> (=)) Complete_Partial_Order.chain Complete_Partial_Order.chain"
-unfolding chain_def[abs_def] by transfer_prover
-                             
+  unfolding chain_def[abs_def] by transfer_prover
+
 lemma linorder_chain [simp, intro!]:
   fixes Y :: "_ :: linorder set"
   shows "Complete_Partial_Order.chain (\<le>) Y"
-by(auto intro: chainI)
+  by(auto intro: chainI)
 
 lemma fun_lub_apply: "\<And>Sup. fun_lub Sup Y x = Sup ((\<lambda>f. f x) ` Y)"
-by(simp add: fun_lub_def image_def)
+  by(simp add: fun_lub_def image_def)
 
 lemma fun_lub_empty [simp]: "fun_lub lub {} = (\<lambda>_. lub {})"
-by(rule ext)(simp add: fun_lub_apply)
+  by(rule ext)(simp add: fun_lub_apply)
 
 lemma chain_fun_ordD: 
   assumes "Complete_Partial_Order.chain (fun_ord le) Y"
   shows "Complete_Partial_Order.chain le ((\<lambda>f. f x) ` Y)"
-by(rule chainI)(auto dest: chainD[OF assms] simp add: fun_ord_def)
+  by(rule chainI)(auto dest: chainD[OF assms] simp add: fun_ord_def)
 
 lemma chain_Diff:
   "Complete_Partial_Order.chain ord A
   \<Longrightarrow> Complete_Partial_Order.chain ord (A - B)"
-by(erule chain_subset) blast
+  by(erule chain_subset) blast
 
 lemma chain_rel_prodD1:
   "Complete_Partial_Order.chain (rel_prod orda ordb) Y
   \<Longrightarrow> Complete_Partial_Order.chain orda (fst ` Y)"
-by(auto 4 3 simp add: chain_def)
+  by(auto 4 3 simp add: chain_def)
 
 lemma chain_rel_prodD2:
   "Complete_Partial_Order.chain (rel_prod orda ordb) Y
   \<Longrightarrow> Complete_Partial_Order.chain ordb (snd ` Y)"
-by(auto 4 3 simp add: chain_def)
+  by(auto 4 3 simp add: chain_def)
 
 
 context ccpo begin
 
 lemma ccpo_fun: "class.ccpo (fun_lub Sup) (fun_ord (\<le>)) (mk_less (fun_ord (\<le>)))"
   by standard (auto 4 3 simp add: mk_less_def fun_ord_def fun_lub_apply
-    intro: order.trans order.antisym chain_imageI ccpo_Sup_upper ccpo_Sup_least)
+      intro: order.trans order.antisym chain_imageI ccpo_Sup_upper ccpo_Sup_least)
 
 lemma ccpo_Sup_below_iff: "Complete_Partial_Order.chain (\<le>) Y \<Longrightarrow> Sup Y \<le> x \<longleftrightarrow> (\<forall>y\<in>Y. y \<le> x)"
-by(fast intro: order_trans[OF ccpo_Sup_upper] ccpo_Sup_least)
+  by (meson local.ccpo_Sup_least local.ccpo_Sup_upper local.dual_order.trans)
 
 lemma Sup_minus_bot: 
   assumes chain: "Complete_Partial_Order.chain (\<le>) A"
@@ -152,11 +152,9 @@ proof(rule order.antisym)
   proof(rule ccpo_Sup_least)
     fix y
     assume "y \<in> (\<lambda>x. f x x) ` Y"
-    then obtain x where "x \<in> Y" and "y = f x x" by blast note this(2)
-    also from chain2[OF \<open>x \<in> Y\<close>] have "\<dots> \<le> \<Squnion>(f x ` Y)"
-      by(rule ccpo_Sup_upper)(simp add: \<open>x \<in> Y\<close>)
-    also have "\<dots> \<le> ?lhs" by(rule ccpo_Sup_upper[OF chain1])(simp add: \<open>x \<in> Y\<close>)
-    finally show "y \<le> ?lhs" .
+    then obtain x where "x \<in> Y" and "y = f x x" by blast
+    then show "y \<le> ?lhs"
+      by (metis (no_types, lifting) chain1 chain2 imageI ccpo_Sup_upper order.trans)
   qed
 qed
 
@@ -179,6 +177,7 @@ proof(rule ccpo_Sup_least)
   hence "f y \<le> f (\<Or>Y)" using \<open>y \<in> Y\<close> by(rule mono)
   finally show "x \<le> \<dots>" .
 qed
+
 
 lemma swap_Sup:
   fixes le_b (infix \<open>\<sqsubseteq>\<close> 60)
@@ -222,11 +221,10 @@ next
     proof(rule ccpo_Sup_least)
       fix x'
       assume "x' \<in> (\<lambda>f. f x) ` Z"
-      then obtain f where "f \<in> Z" "x' = f x" by blast note this(2)
-      also have "f x \<le> f y" using \<open>f \<in> Z\<close> \<open>x \<sqsubseteq> y\<close> by(rule monotoneD[OF mono])
-      also have "f y \<le> ?rhs" using chain3
-        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
-      finally show "x' \<le> ?rhs" .
+      then obtain f where "f \<in> Z" "x' = f x" by blast 
+      then show "x' \<le> ?rhs"
+        by (metis (mono_tags, lifting) \<open>x \<sqsubseteq> y\<close> chain3 imageI ccpo_Sup_upper
+            order_trans mono monotoneD)
     qed
   qed
 
@@ -239,11 +237,10 @@ next
     proof(rule ccpo_Sup_least)
       fix x'
       assume "x' \<in> f ` Y"
-      then obtain y where "y \<in> Y" "x' = f y" by blast note this(2)
-      also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` Z)" using chain3
-        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
-      also have "\<dots> \<le> ?rhs" using chain4 by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
-      finally show "x' \<le> ?rhs" .
+      then obtain y where "y \<in> Y" "x' = f y" by blast
+      then show "x' \<le> ?rhs"
+        by (metis (mono_tags, lifting) \<open>f \<in> Z\<close> chain3 chain4 imageI local.ccpo_Sup_upper
+            order.trans)
     qed
     finally show "x \<le> ?rhs" .
   qed
@@ -257,12 +254,10 @@ next
     proof(rule ccpo_Sup_least)
       fix x'
       assume "x' \<in> (\<lambda>f. f y) ` Z"
-      then obtain f where "f \<in> Z" "x' = f y" by blast note this(2)
-      also have "f y \<le> \<Squnion>(f ` Y)" using chain1[OF \<open>f \<in> Z\<close>]
-        by(rule ccpo_Sup_upper)(simp add: \<open>y \<in> Y\<close>)
-      also have "\<dots> \<le> ?lhs" using chain2
-        by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> Z\<close>)
-      finally show "x' \<le> ?lhs" .
+      then obtain f where "f \<in> Z" "x' = f y" by blast
+      then show "x' \<le> ?lhs"
+        by (metis (mono_tags, lifting) \<open>y \<in> Y\<close> ccpo_Sup_below_iff chain1 chain2 imageI
+            ccpo_Sup_upper)
     qed
     finally show "x \<le> ?lhs" .
   qed
@@ -411,47 +406,47 @@ end
 declare if_mono[simp]
 
 lemma monotone_id' [cont_intro]: "monotone ord ord (\<lambda>x. x)"
-by(simp add: monotone_def)
+  by(simp add: monotone_def)
 
 lemma monotone_applyI:
   "monotone orda ordb F \<Longrightarrow> monotone (fun_ord orda) ordb (\<lambda>f. F (f x))"
-by(rule monotoneI)(auto simp add: fun_ord_def dest: monotoneD)
+  by(rule monotoneI)(auto simp add: fun_ord_def dest: monotoneD)
 
 lemma monotone_if_fun [partial_function_mono]:
   "\<lbrakk> monotone (fun_ord orda) (fun_ord ordb) F; monotone (fun_ord orda) (fun_ord ordb) G \<rbrakk>
   \<Longrightarrow> monotone (fun_ord orda) (fun_ord ordb) (\<lambda>f n. if c n then F f n else G f n)"
-by(simp add: monotone_def fun_ord_def)
+  by(simp add: monotone_def fun_ord_def)
 
 lemma monotone_fun_apply_fun [partial_function_mono]: 
   "monotone (fun_ord (fun_ord ord)) (fun_ord ord) (\<lambda>f n. f t (g n))"
-by(rule monotoneI)(simp add: fun_ord_def)
+  by(rule monotoneI)(simp add: fun_ord_def)
 
 lemma monotone_fun_ord_apply: 
   "monotone orda (fun_ord ordb) f \<longleftrightarrow> (\<forall>x. monotone orda ordb (\<lambda>y. f y x))"
-by(auto simp add: monotone_def fun_ord_def)
+  by(auto simp add: monotone_def fun_ord_def)
 
 context preorder begin
 
 declare transp_on_le[cont_intro]
 
 lemma monotone_const [simp, cont_intro]: "monotone ord (\<le>) (\<lambda>_. c)"
-by(rule monotoneI) simp
+  by(rule monotoneI) simp
 
 end
 
 lemma transp_le [cont_intro, simp]:
   "class.preorder ord (mk_less ord) \<Longrightarrow> transp ord"
-by(rule preorder.transp_on_le)
+  by(rule preorder.transp_on_le)
 
 context partial_function_definitions begin
 
 declare const_mono [cont_intro, simp]
 
 lemma transp_le [cont_intro, simp]: "transp leq"
-by(rule transpI)(rule leq_trans)
+  by(rule transpI)(rule leq_trans)
 
 lemma preorder [cont_intro, simp]: "class.preorder leq (mk_less leq)"
-by(unfold_locales)(auto simp add: mk_less_def intro: leq_refl leq_trans)
+  by(unfold_locales)(auto simp add: mk_less_def intro: leq_refl leq_trans)
 
 declare ccpo[cont_intro, simp]
 
@@ -460,91 +455,91 @@ end
 lemma contI [intro?]:
   "(\<And>Y. \<lbrakk> Complete_Partial_Order.chain orda Y; Y \<noteq> {} \<rbrakk> \<Longrightarrow> f (luba Y) = lubb (f ` Y)) 
   \<Longrightarrow> cont luba orda lubb ordb f"
-unfolding cont_def by blast
+  unfolding cont_def by blast
 
 lemma contD:
   "\<lbrakk> cont luba orda lubb ordb f; Complete_Partial_Order.chain orda Y; Y \<noteq> {} \<rbrakk> 
   \<Longrightarrow> f (luba Y) = lubb (f ` Y)"
-unfolding cont_def by blast
+  unfolding cont_def by blast
 
 lemma cont_id [simp, cont_intro]: "\<And>Sup. cont Sup ord Sup ord id"
-by(rule contI) simp
+  by(rule contI) simp
 
 lemma cont_id' [simp, cont_intro]: "\<And>Sup. cont Sup ord Sup ord (\<lambda>x. x)"
-using cont_id[unfolded id_def] .
+  using cont_id[unfolded id_def] .
 
 lemma cont_applyI [cont_intro]:
   assumes cont: "cont luba orda lubb ordb g"
   shows "cont (fun_lub luba) (fun_ord orda) lubb ordb (\<lambda>f. g (f x))"
-by(rule contI)(drule chain_fun_ordD[where x=x], simp add: fun_lub_apply image_image contD[OF cont])
+  by(rule contI)(drule chain_fun_ordD[where x=x], simp add: fun_lub_apply image_image contD[OF cont])
 
 lemma call_cont: "cont (fun_lub lub) (fun_ord ord) lub ord (\<lambda>f. f t)"
-by(simp add: cont_def fun_lub_apply)
+  by(simp add: cont_def fun_lub_apply)
 
 lemma cont_if [cont_intro]:
   "\<lbrakk> cont luba orda lubb ordb f; cont luba orda lubb ordb g \<rbrakk>
   \<Longrightarrow> cont luba orda lubb ordb (\<lambda>x. if c then f x else g x)"
-by(cases c) simp_all
+  by(cases c) simp_all
 
 lemma mcontI [intro?]:
-   "\<lbrakk> monotone orda ordb f; cont luba orda lubb ordb f \<rbrakk> \<Longrightarrow> mcont luba orda lubb ordb f"
-by(simp add: mcont_def)
+  "\<lbrakk> monotone orda ordb f; cont luba orda lubb ordb f \<rbrakk> \<Longrightarrow> mcont luba orda lubb ordb f"
+  by(simp add: mcont_def)
 
 lemma mcont_mono: "mcont luba orda lubb ordb f \<Longrightarrow> monotone orda ordb f"
-by(simp add: mcont_def)
+  by(simp add: mcont_def)
 
 lemma mcont_cont [simp]: "mcont luba orda lubb ordb f \<Longrightarrow> cont luba orda lubb ordb f"
-by(simp add: mcont_def)
+  by(simp add: mcont_def)
 
 lemma mcont_monoD:
   "\<lbrakk> mcont luba orda lubb ordb f; orda x y \<rbrakk> \<Longrightarrow> ordb (f x) (f y)"
-by(auto simp add: mcont_def dest: monotoneD)
+  by(auto simp add: mcont_def dest: monotoneD)
 
 lemma mcont_contD:
   "\<lbrakk> mcont luba orda lubb ordb f; Complete_Partial_Order.chain orda Y; Y \<noteq> {} \<rbrakk>
   \<Longrightarrow> f (luba Y) = lubb (f ` Y)"
-by(auto simp add: mcont_def dest: contD)
+  by(auto simp add: mcont_def dest: contD)
 
 lemma mcont_call [cont_intro, simp]:
   "mcont (fun_lub lub) (fun_ord ord) lub ord (\<lambda>f. f t)"
-by(simp add: mcont_def call_mono call_cont)
+  by(simp add: mcont_def call_mono call_cont)
 
 lemma mcont_id' [cont_intro, simp]: "mcont lub ord lub ord (\<lambda>x. x)"
-by(simp add: mcont_def monotone_id')
+  by(simp add: mcont_def monotone_id')
 
 lemma mcont_applyI:
   "mcont luba orda lubb ordb (\<lambda>x. F x) \<Longrightarrow> mcont (fun_lub luba) (fun_ord orda) lubb ordb (\<lambda>f. F (f x))"
-by(simp add: mcont_def monotone_applyI cont_applyI)
+  by(simp add: mcont_def monotone_applyI cont_applyI)
 
 lemma mcont_if [cont_intro, simp]:
   "\<lbrakk> mcont luba orda lubb ordb (\<lambda>x. f x); mcont luba orda lubb ordb (\<lambda>x. g x) \<rbrakk>
   \<Longrightarrow> mcont luba orda lubb ordb (\<lambda>x. if c then f x else g x)"
-by(simp add: mcont_def cont_if)
+  by(simp add: mcont_def cont_if)
 
 lemma cont_fun_lub_apply: 
   "cont luba orda (fun_lub lubb) (fun_ord ordb) f \<longleftrightarrow> (\<forall>x. cont luba orda lubb ordb (\<lambda>y. f y x))"
-by(simp add: cont_def fun_lub_def fun_eq_iff)(auto simp add: image_def)
+  by(simp add: cont_def fun_lub_def fun_eq_iff)(auto simp add: image_def)
 
 lemma mcont_fun_lub_apply: 
   "mcont luba orda (fun_lub lubb) (fun_ord ordb) f \<longleftrightarrow> (\<forall>x. mcont luba orda lubb ordb (\<lambda>y. f y x))"
-by(auto simp add: monotone_fun_ord_apply cont_fun_lub_apply mcont_def)
+  by(auto simp add: monotone_fun_ord_apply cont_fun_lub_apply mcont_def)
 
 context ccpo begin
 
 lemma cont_const [simp, cont_intro]: "cont luba orda Sup (\<le>) (\<lambda>x. c)"
-by (rule contI) (simp add: image_constant_conv cong del: SUP_cong_simp)
+  by (rule contI) (simp add: image_constant_conv cong del: SUP_cong_simp)
 
 lemma mcont_const [cont_intro, simp]:
   "mcont luba orda Sup (\<le>) (\<lambda>x. c)"
-by(simp add: mcont_def)
+  by(simp add: mcont_def)
 
 lemma cont_apply:
   assumes 2: "\<And>x. cont lubb ordb Sup (\<le>) (\<lambda>y. f x y)"
-  and t: "cont luba orda lubb ordb (\<lambda>x. t x)"
-  and 1: "\<And>y. cont luba orda Sup (\<le>) (\<lambda>x. f x y)"
-  and mono: "monotone orda ordb (\<lambda>x. t x)"
-  and mono2: "\<And>x. monotone ordb (\<le>) (\<lambda>y. f x y)"
-  and mono1: "\<And>y. monotone orda (\<le>) (\<lambda>x. f x y)"
+    and t: "cont luba orda lubb ordb (\<lambda>x. t x)"
+    and 1: "\<And>y. cont luba orda Sup (\<le>) (\<lambda>x. f x y)"
+    and mono: "monotone orda ordb (\<lambda>x. t x)"
+    and mono2: "\<And>x. monotone ordb (\<le>) (\<lambda>y. f x y)"
+    and mono1: "\<And>y. monotone orda (\<le>) (\<lambda>x. f x y)"
   shows "cont luba orda Sup (\<le>) (\<lambda>x. f x (t x))"
 proof
   fix Y
@@ -561,16 +556,16 @@ lemma mcont2mcont':
      \<And>y. mcont lub ord Sup (\<le>) (\<lambda>x. f x y);
      mcont lub ord lub' ord' (\<lambda>y. t y) \<rbrakk>
   \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x (t x))"
-unfolding mcont_def by(blast intro: transp_on_le monotone2monotone cont_apply)
+  unfolding mcont_def by(blast intro: transp_on_le monotone2monotone cont_apply)
 
 lemma mcont2mcont:
   "\<lbrakk>mcont lub' ord' Sup (\<le>) (\<lambda>x. f x); mcont lub ord lub' ord' (\<lambda>x. t x)\<rbrakk> 
   \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f (t x))"
-by(rule mcont2mcont'[OF _ mcont_const]) 
+  by(rule mcont2mcont'[OF _ mcont_const]) 
 
 context
   fixes ord :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix \<open>\<sqsubseteq>\<close> 60) 
-  and lub :: "'b set \<Rightarrow> 'b" (\<open>\<Or>\<close>)
+    and lub :: "'b set \<Rightarrow> 'b" (\<open>\<Or>\<close>)
 begin
 
 lemma cont_fun_lub_Sup:
@@ -818,42 +813,42 @@ lemmas [simp, cont_intro] =
 lemma admissible_disj' [simp, cont_intro]:
   "\<lbrakk> class.ccpo lub ord (mk_less ord); ccpo.admissible lub ord P; ccpo.admissible lub ord Q \<rbrakk>
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. P x \<or> Q x)"
-by(rule ccpo.admissible_disj)
+  by(rule ccpo.admissible_disj)
 
 lemma admissible_imp' [cont_intro]:
   "\<lbrakk> class.ccpo lub ord (mk_less ord);
      ccpo.admissible lub ord (\<lambda>x. \<not> P x);
      ccpo.admissible lub ord (\<lambda>x. Q x) \<rbrakk>
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. P x \<longrightarrow> Q x)"
-unfolding imp_conv_disj by(rule ccpo.admissible_disj)
+  unfolding imp_conv_disj by(rule ccpo.admissible_disj)
 
 lemma admissible_imp [cont_intro]:
   "(Q \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. P x))
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. Q \<longrightarrow> P x)"
-by(rule ccpo.admissibleI)(auto dest: ccpo.admissibleD)
+  by(rule ccpo.admissibleI)(auto dest: ccpo.admissibleD)
 
 lemma admissible_not_mem' [THEN admissible_subst, cont_intro, simp]:
   shows admissible_not_mem: "ccpo.admissible Union (\<subseteq>) (\<lambda>A. x \<notin> A)"
-by(rule ccpo.admissibleI) auto
+  by(rule ccpo.admissibleI) auto
 
 lemma admissible_eqI:
   assumes f: "cont luba orda lub ord (\<lambda>x. f x)"
-  and g: "cont luba orda lub ord (\<lambda>x. g x)"
+    and g: "cont luba orda lub ord (\<lambda>x. g x)"
   shows "ccpo.admissible luba orda (\<lambda>x. f x = g x)"
-apply(rule ccpo.admissibleI)
-apply(simp_all add: contD[OF f] contD[OF g] cong: image_cong)
-done
+  apply(rule ccpo.admissibleI)
+  apply(simp_all add: contD[OF f] contD[OF g] cong: image_cong)
+  done
 
 corollary admissible_eq_mcontI [cont_intro]:
   "\<lbrakk> mcont luba orda lub ord (\<lambda>x. f x); 
     mcont luba orda lub ord (\<lambda>x. g x) \<rbrakk>
   \<Longrightarrow> ccpo.admissible luba orda (\<lambda>x. f x = g x)"
-by(rule admissible_eqI)(auto simp add: mcont_def)
+  by(rule admissible_eqI)(auto simp add: mcont_def)
 
 lemma admissible_iff [cont_intro, simp]:
   "\<lbrakk> ccpo.admissible lub ord (\<lambda>x. P x \<longrightarrow> Q x); ccpo.admissible lub ord (\<lambda>x. Q x \<longrightarrow> P x) \<rbrakk>
   \<Longrightarrow> ccpo.admissible lub ord (\<lambda>x. P x \<longleftrightarrow> Q x)"
-by(subst iff_conv_conj_imp)(rule admissible_conj)
+  by(subst iff_conv_conj_imp)(rule admissible_conj)
 
 context ccpo begin
 
@@ -999,35 +994,35 @@ lemma fixp_strong_induct_uc:
     and bot: "P (\<lambda>_. lub {})"
     and step: "\<And>f'. \<lbrakk> P (U f'); le_fun (U f') (U f) \<rbrakk> \<Longrightarrow> P (U (F f'))"
   shows "P (U f)"
-unfolding eq inverse
-apply (rule ccpo.fixp_strong_induct[OF ccpo adm])
-apply (insert mono, auto simp: monotone_def fun_ord_def bot fun_lub_def)[2]
-apply (rule_tac f'5="C x" in step)
-apply (simp_all add: inverse eq)
-done
+  unfolding eq inverse
+  apply (rule ccpo.fixp_strong_induct[OF ccpo adm])
+    apply (insert mono, auto simp: monotone_def fun_ord_def bot fun_lub_def)[2]
+  apply (rule_tac f'5="C x" in step)
+   apply (simp_all add: inverse eq)
+  done
 
 end
 
 subsection \<open>\<^term>\<open>(=)\<close> as order\<close>
 
 definition lub_singleton :: "('a set \<Rightarrow> 'a) \<Rightarrow> bool"
-where "lub_singleton lub \<longleftrightarrow> (\<forall>a. lub {a} = a)"
+  where "lub_singleton lub \<longleftrightarrow> (\<forall>a. lub {a} = a)"
 
 definition the_Sup :: "'a set \<Rightarrow> 'a"
-where "the_Sup A = (THE a. a \<in> A)"
+  where "the_Sup A = (THE a. a \<in> A)"
 
 lemma lub_singleton_the_Sup [cont_intro, simp]: "lub_singleton the_Sup"
-by(simp add: lub_singleton_def the_Sup_def)
+  by(simp add: lub_singleton_def the_Sup_def)
 
 lemma (in ccpo) lub_singleton: "lub_singleton Sup"
-by(simp add: lub_singleton_def)
+  by(simp add: lub_singleton_def)
 
 lemma (in partial_function_definitions) lub_singleton [cont_intro, simp]: "lub_singleton lub"
-by(rule ccpo.lub_singleton)(rule Partial_Function.ccpo[OF partial_function_definitions_axioms])
+  by(rule ccpo.lub_singleton)(rule Partial_Function.ccpo[OF partial_function_definitions_axioms])
 
 lemma preorder_eq [cont_intro, simp]:
   "class.preorder (=) (mk_less (=))"
-by(unfold_locales)(simp_all add: mk_less_def)
+  by(unfold_locales)(simp_all add: mk_less_def)
 
 lemma monotone_eqI [cont_intro]:
   assumes "class.preorder ord (mk_less ord)"
@@ -1052,23 +1047,23 @@ qed
 lemma mcont_eqI [cont_intro, simp]:
   "\<lbrakk> class.preorder ord (mk_less ord); lub_singleton lub \<rbrakk>
   \<Longrightarrow> mcont the_Sup (=) lub ord f"
-by(simp add: mcont_def cont_eqI monotone_eqI)
+  by(simp add: mcont_def cont_eqI monotone_eqI)
 
 subsection \<open>ccpo for products\<close>
 
 definition prod_lub :: "('a set \<Rightarrow> 'a) \<Rightarrow> ('b set \<Rightarrow> 'b) \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> 'a \<times> 'b"
-where "prod_lub Sup_a Sup_b Y = (Sup_a (fst ` Y), Sup_b (snd ` Y))"
+  where "prod_lub Sup_a Sup_b Y = (Sup_a (fst ` Y), Sup_b (snd ` Y))"
 
 lemma lub_singleton_prod_lub [cont_intro, simp]:
   "\<lbrakk> lub_singleton luba; lub_singleton lubb \<rbrakk> \<Longrightarrow> lub_singleton (prod_lub luba lubb)"
-by(simp add: lub_singleton_def prod_lub_def)
+  by(simp add: lub_singleton_def prod_lub_def)
 
 lemma prod_lub_empty [simp]: "prod_lub luba lubb {} = (luba {}, lubb {})"
-by(simp add: prod_lub_def)
+  by(simp add: prod_lub_def)
 
 lemma preorder_rel_prodI [cont_intro, simp]:
   assumes "class.preorder orda (mk_less orda)"
-  and "class.preorder ordb (mk_less ordb)"
+    and "class.preorder ordb (mk_less ordb)"
   shows "class.preorder (rel_prod orda ordb) (mk_less (rel_prod orda ordb))"
 proof -
   interpret a: preorder orda "mk_less orda" by fact
@@ -1078,9 +1073,9 @@ qed
 
 lemma order_rel_prodI:
   assumes a: "class.order orda (mk_less orda)"
-  and b: "class.order ordb (mk_less ordb)"
+    and b: "class.order ordb (mk_less ordb)"
   shows "class.order (rel_prod orda ordb) (mk_less (rel_prod orda ordb))"
-  (is "class.order ?ord ?ord'")
+    (is "class.order ?ord ?ord'")
 proof(intro class.order.intro class.order_axioms.intro)
   interpret a: order orda "mk_less orda" by(fact a)
   interpret b: order ordb "mk_less ordb" by(fact b)
@@ -1093,10 +1088,10 @@ qed
 
 lemma monotone_rel_prodI:
   assumes mono2: "\<And>a. monotone ordb ordc (\<lambda>b. f (a, b))"
-  and mono1: "\<And>b. monotone orda ordc (\<lambda>a. f (a, b))"
-  and a: "class.preorder orda (mk_less orda)"
-  and b: "class.preorder ordb (mk_less ordb)"
-  and c: "class.preorder ordc (mk_less ordc)"
+    and mono1: "\<And>b. monotone orda ordc (\<lambda>a. f (a, b))"
+    and a: "class.preorder orda (mk_less orda)"
+    and b: "class.preorder ordb (mk_less ordb)"
+    and c: "class.preorder ordc (mk_less ordc)"
   shows "monotone (rel_prod orda ordb) ordc f"
 proof -
   interpret a: preorder orda "mk_less orda" by(rule a)
@@ -1108,7 +1103,7 @@ qed
 
 lemma monotone_rel_prodD1:
   assumes mono: "monotone (rel_prod orda ordb) ordc f"
-  and preorder: "class.preorder ordb (mk_less ordb)"
+    and preorder: "class.preorder ordb (mk_less ordb)"
   shows "monotone orda ordc (\<lambda>a. f (a, b))"
 proof -
   interpret preorder ordb "mk_less ordb" by(rule preorder)
@@ -1117,7 +1112,7 @@ qed
 
 lemma monotone_rel_prodD2:
   assumes mono: "monotone (rel_prod orda ordb) ordc f"
-  and preorder: "class.preorder orda (mk_less orda)"
+    and preorder: "class.preorder orda (mk_less orda)"
   shows "monotone ordb ordc (\<lambda>b. f (a, b))"
 proof -
   interpret preorder orda "mk_less orda" by(rule preorder)
@@ -1129,68 +1124,68 @@ lemma monotone_case_prodI:
     class.preorder orda (mk_less orda); class.preorder ordb (mk_less ordb);
     class.preorder ordc (mk_less ordc) \<rbrakk>
   \<Longrightarrow> monotone (rel_prod orda ordb) ordc (case_prod f)"
-by(rule monotone_rel_prodI) simp_all
+  by(rule monotone_rel_prodI) simp_all
 
 lemma monotone_case_prodD1:
   assumes mono: "monotone (rel_prod orda ordb) ordc (case_prod f)"
-  and preorder: "class.preorder ordb (mk_less ordb)"
+    and preorder: "class.preorder ordb (mk_less ordb)"
   shows "monotone orda ordc (\<lambda>a. f a b)"
-using monotone_rel_prodD1[OF assms] by simp
+  using monotone_rel_prodD1[OF assms] by simp
 
 lemma monotone_case_prodD2:
   assumes mono: "monotone (rel_prod orda ordb) ordc (case_prod f)"
-  and preorder: "class.preorder orda (mk_less orda)"
+    and preorder: "class.preorder orda (mk_less orda)"
   shows "monotone ordb ordc (f a)"
-using monotone_rel_prodD2[OF assms] by simp
+  using monotone_rel_prodD2[OF assms] by simp
 
 context 
   fixes orda ordb ordc
   assumes a: "class.preorder orda (mk_less orda)"
-  and b: "class.preorder ordb (mk_less ordb)"
-  and c: "class.preorder ordc (mk_less ordc)"
+    and b: "class.preorder ordb (mk_less ordb)"
+    and c: "class.preorder ordc (mk_less ordc)"
 begin
 
 lemma monotone_rel_prod_iff:
   "monotone (rel_prod orda ordb) ordc f \<longleftrightarrow>
    (\<forall>a. monotone ordb ordc (\<lambda>b. f (a, b))) \<and> 
    (\<forall>b. monotone orda ordc (\<lambda>a. f (a, b)))"
-using a b c by(blast intro: monotone_rel_prodI dest: monotone_rel_prodD1 monotone_rel_prodD2)
+  using a b c by(blast intro: monotone_rel_prodI dest: monotone_rel_prodD1 monotone_rel_prodD2)
 
 lemma monotone_case_prod_iff [simp]:
   "monotone (rel_prod orda ordb) ordc (case_prod f) \<longleftrightarrow>
    (\<forall>a. monotone ordb ordc (f a)) \<and> (\<forall>b. monotone orda ordc (\<lambda>a. f a b))"
-by(simp add: monotone_rel_prod_iff)
+  by(simp add: monotone_rel_prod_iff)
 
 end
 
 lemma monotone_case_prod_apply_iff:
   "monotone orda ordb (\<lambda>x. (case_prod f x) y) \<longleftrightarrow> monotone orda ordb (case_prod (\<lambda>a b. f a b y))"
-by(simp add: monotone_def)
+  by(simp add: monotone_def)
 
 lemma monotone_case_prod_applyD:
   "monotone orda ordb (\<lambda>x. (case_prod f x) y)
   \<Longrightarrow> monotone orda ordb (case_prod (\<lambda>a b. f a b y))"
-by(simp add: monotone_case_prod_apply_iff)
+  by(simp add: monotone_case_prod_apply_iff)
 
 lemma monotone_case_prod_applyI:
   "monotone orda ordb (case_prod (\<lambda>a b. f a b y))
   \<Longrightarrow> monotone orda ordb (\<lambda>x. (case_prod f x) y)"
-by(simp add: monotone_case_prod_apply_iff)
+  by(simp add: monotone_case_prod_apply_iff)
 
 
 lemma cont_case_prod_apply_iff:
   "cont luba orda lubb ordb (\<lambda>x. (case_prod f x) y) \<longleftrightarrow> cont luba orda lubb ordb (case_prod (\<lambda>a b. f a b y))"
-by(simp add: cont_def split_def)
+  by(simp add: cont_def split_def)
 
 lemma cont_case_prod_applyI:
   "cont luba orda lubb ordb (case_prod (\<lambda>a b. f a b y))
   \<Longrightarrow> cont luba orda lubb ordb (\<lambda>x. (case_prod f x) y)"
-by(simp add: cont_case_prod_apply_iff)
+  by(simp add: cont_case_prod_apply_iff)
 
 lemma cont_case_prod_applyD:
   "cont luba orda lubb ordb (\<lambda>x. (case_prod f x) y)
   \<Longrightarrow> cont luba orda lubb ordb (case_prod (\<lambda>a b. f a b y))"
-by(simp add: cont_case_prod_apply_iff)
+  by(simp add: cont_case_prod_apply_iff)
 
 lemma mcont_case_prod_apply_iff [simp]:
   "mcont luba orda lubb ordb (\<lambda>x. (case_prod f x) y) \<longleftrightarrow> 
@@ -1307,13 +1302,8 @@ lemma mono2mono2:
   and t: "monotone orda ordb (\<lambda>x. t x)"
   and t': "monotone orda ordc (\<lambda>x. t' x)"
   shows "monotone orda leq (\<lambda>x. f (t x) (t' x))"
-proof(rule monotoneI)
-  fix x y
-  assume "orda x y"
-  hence "rel_prod ordb ordc (t x, t' x) (t y, t' y)"
-    using t t' by(auto dest: monotoneD)
-  from monotoneD[OF f this] show "leq (f (t x) (t' x)) (f (t y) (t' y))" by simp
-qed
+  by (metis (mono_tags, lifting) case_prod_conv monotoneD monotoneI rel_prod.intros
+      assms)
 
 lemma cont_case_prodI [cont_intro]:
   "\<lbrakk> monotone (rel_prod orda ordb) leq (case_prod f);
@@ -1322,7 +1312,7 @@ lemma cont_case_prodI [cont_intro]:
     class.preorder orda (mk_less orda);
     class.preorder ordb (mk_less ordb) \<rbrakk>
   \<Longrightarrow> cont (prod_lub luba lubb) (rel_prod orda ordb) lub leq (case_prod f)"
-by(rule ccpo.cont_case_prodI)(rule Partial_Function.ccpo[OF partial_function_definitions_axioms])
+  by(rule ccpo.cont_case_prodI)(rule Partial_Function.ccpo[OF partial_function_definitions_axioms])
 
 lemma cont_case_prod_iff:
   "\<lbrakk> monotone (rel_prod orda ordb) leq (case_prod f);
@@ -1330,39 +1320,39 @@ lemma cont_case_prod_iff:
      class.preorder ordb (mk_less ordb); lub_singleton lubb \<rbrakk>
   \<Longrightarrow> cont (prod_lub luba lubb) (rel_prod orda ordb) lub leq (case_prod f) \<longleftrightarrow>
    (\<forall>x. cont lubb ordb lub leq (\<lambda>y. f x y)) \<and> (\<forall>y. cont luba orda lub leq (\<lambda>x. f x y))"
-by(blast dest: cont_case_prodD1 cont_case_prodD2 intro: cont_case_prodI)
+  by(blast dest: cont_case_prodD1 cont_case_prodD2 intro: cont_case_prodI)
 
 lemma mcont_case_prod_iff [simp]:
   "\<lbrakk> class.preorder orda (mk_less orda); lub_singleton luba;
      class.preorder ordb (mk_less ordb); lub_singleton lubb \<rbrakk>
   \<Longrightarrow> mcont (prod_lub luba lubb) (rel_prod orda ordb) lub leq (case_prod f) \<longleftrightarrow>
    (\<forall>x. mcont lubb ordb lub leq (\<lambda>y. f x y)) \<and> (\<forall>y. mcont luba orda lub leq (\<lambda>x. f x y))"
-unfolding mcont_def by(auto simp add: cont_case_prod_iff)
+  unfolding mcont_def by(auto simp add: cont_case_prod_iff)
 
 end
 
 lemma mono2mono_case_prod [cont_intro]:
   assumes "\<And>x y. monotone orda ordb (\<lambda>f. pair f x y)"
   shows "monotone orda ordb (\<lambda>f. case_prod (pair f) x)"
-by(rule monotoneI)(auto split: prod.split dest: monotoneD[OF assms])
+  by(rule monotoneI)(auto split: prod.split dest: monotoneD[OF assms])
 
 subsection \<open>Complete lattices as ccpo\<close>
 
 context complete_lattice begin
 
 lemma complete_lattice_ccpo: "class.ccpo Sup (\<le>) (<)"
-by(unfold_locales)(fast intro: Sup_upper Sup_least)+
+  by(unfold_locales)(fast intro: Sup_upper Sup_least)+
 
 lemma complete_lattice_ccpo': "class.ccpo Sup (\<le>) (mk_less (\<le>))"
-by(unfold_locales)(auto simp add: mk_less_def intro: Sup_upper Sup_least)
+  by(unfold_locales)(auto simp add: mk_less_def intro: Sup_upper Sup_least)
 
 lemma complete_lattice_partial_function_definitions: 
   "partial_function_definitions (\<le>) Sup"
-by(unfold_locales)(auto intro: Sup_least Sup_upper)
+  by(unfold_locales)(auto intro: Sup_least Sup_upper)
 
 lemma complete_lattice_partial_function_definitions_dual:
   "partial_function_definitions (\<ge>) Inf"
-by(unfold_locales)(auto intro: Inf_lower Inf_greatest)
+  by(unfold_locales)(auto intro: Inf_lower Inf_greatest)
 
 lemmas [cont_intro, simp] =
   Partial_Function.ccpo[OF complete_lattice_partial_function_definitions]
@@ -1370,18 +1360,18 @@ lemmas [cont_intro, simp] =
 
 lemma mono2mono_inf:
   assumes f: "monotone ord (\<le>) (\<lambda>x. f x)" 
-  and g: "monotone ord (\<le>) (\<lambda>x. g x)"
+    and g: "monotone ord (\<le>) (\<lambda>x. g x)"
   shows "monotone ord (\<le>) (\<lambda>x. f x \<sqinter> g x)"
-by(auto 4 3 dest: monotoneD[OF f] monotoneD[OF g] intro: le_infI1 le_infI2 intro!: monotoneI)
+  by(auto 4 3 dest: monotoneD[OF f] monotoneD[OF g] intro: le_infI1 le_infI2 intro!: monotoneI)
 
 lemma mcont_const [simp]: "mcont lub ord Sup (\<le>) (\<lambda>_. c)"
-by(rule ccpo.mcont_const[OF complete_lattice_ccpo])
+  by(rule ccpo.mcont_const[OF complete_lattice_ccpo])
 
 lemma mono2mono_sup:
   assumes f: "monotone ord (\<le>) (\<lambda>x. f x)"
-  and g: "monotone ord (\<le>) (\<lambda>x. g x)"
+    and g: "monotone ord (\<le>) (\<lambda>x. g x)"
   shows "monotone ord (\<le>) (\<lambda>x. f x \<squnion> g x)"
-by(auto 4 3 intro!: monotoneI intro: sup.coboundedI1 sup.coboundedI2 dest: monotoneD[OF f] monotoneD[OF g])
+  by(auto 4 3 intro!: monotoneI intro: sup.coboundedI1 sup.coboundedI2 dest: monotoneD[OF f] monotoneD[OF g])
 
 lemma Sup_image_sup: 
   assumes "Y \<noteq> {}"
@@ -1408,16 +1398,16 @@ next
 qed
 
 lemma mcont_sup1: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>y. x \<squnion> y)"
-by(auto 4 3 simp add: mcont_def sup.coboundedI1 sup.coboundedI2 intro!: monotoneI contI intro: Sup_image_sup[symmetric])
+  by(auto 4 3 simp add: mcont_def sup.coboundedI1 sup.coboundedI2 intro!: monotoneI contI intro: Sup_image_sup[symmetric])
 
 lemma mcont_sup2: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>x. x \<squnion> y)"
-by(subst sup_commute)(rule mcont_sup1)
+  by(subst sup_commute)(rule mcont_sup1)
 
 lemma mcont2mcont_sup [cont_intro, simp]:
   "\<lbrakk> mcont lub ord Sup (\<le>) (\<lambda>x. f x);
      mcont lub ord Sup (\<le>) (\<lambda>x. g x) \<rbrakk>
   \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x \<squnion> g x)"
-by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_sup1 mcont_sup2 ccpo.mcont_const[OF complete_lattice_ccpo])
+  by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_sup1 mcont_sup2 ccpo.mcont_const[OF complete_lattice_ccpo])
 
 end
 
@@ -1426,59 +1416,59 @@ lemmas [cont_intro] = admissible_leI[OF complete_lattice_ccpo']
 context complete_distrib_lattice begin
 
 lemma mcont_inf1: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>y. x \<sqinter> y)"
-by(auto intro: monotoneI contI simp add: le_infI2 inf_Sup mcont_def)
+  by(auto intro: monotoneI contI simp add: le_infI2 inf_Sup mcont_def)
 
 lemma mcont_inf2: "mcont Sup (\<le>) Sup (\<le>) (\<lambda>x. x \<sqinter> y)"
-by(auto intro: monotoneI contI simp add: le_infI1 Sup_inf mcont_def)
+  by(auto intro: monotoneI contI simp add: le_infI1 Sup_inf mcont_def)
 
 lemma mcont2mcont_inf [cont_intro, simp]:
   "\<lbrakk> mcont lub ord Sup (\<le>) (\<lambda>x. f x);
     mcont lub ord Sup (\<le>) (\<lambda>x. g x) \<rbrakk>
   \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. f x \<sqinter> g x)"
-by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_inf1 mcont_inf2 ccpo.mcont_const[OF complete_lattice_ccpo])
+  by(best intro: ccpo.mcont2mcont'[OF complete_lattice_ccpo] mcont_inf1 mcont_inf2 ccpo.mcont_const[OF complete_lattice_ccpo])
 
 end
 
 interpretation lfp: partial_function_definitions "(\<le>) :: _ :: complete_lattice \<Rightarrow> _" Sup
-by(rule complete_lattice_partial_function_definitions)
+  by(rule complete_lattice_partial_function_definitions)
 
 declaration \<open>Partial_Function.init "lfp" \<^term>\<open>lfp.fixp_fun\<close> \<^term>\<open>lfp.mono_body\<close>
   @{thm lfp.fixp_rule_uc} @{thm lfp.fixp_induct_uc} NONE\<close>
 
 interpretation gfp: partial_function_definitions "(\<ge>) :: _ :: complete_lattice \<Rightarrow> _" Inf
-by(rule complete_lattice_partial_function_definitions_dual)
+  by(rule complete_lattice_partial_function_definitions_dual)
 
 declaration \<open>Partial_Function.init "gfp" \<^term>\<open>gfp.fixp_fun\<close> \<^term>\<open>gfp.mono_body\<close>
   @{thm gfp.fixp_rule_uc} @{thm gfp.fixp_induct_uc} NONE\<close>
 
 lemma insert_mono [partial_function_mono]:
-   "monotone (fun_ord (\<subseteq>)) (\<subseteq>) A \<Longrightarrow> monotone (fun_ord (\<subseteq>)) (\<subseteq>) (\<lambda>y. insert x (A y))"
-by(rule monotoneI)(auto simp add: fun_ord_def dest: monotoneD)
+  "monotone (fun_ord (\<subseteq>)) (\<subseteq>) A \<Longrightarrow> monotone (fun_ord (\<subseteq>)) (\<subseteq>) (\<lambda>y. insert x (A y))"
+  by(rule monotoneI)(auto simp add: fun_ord_def dest: monotoneD)
 
 lemma mono2mono_insert [THEN lfp.mono2mono, cont_intro, simp]:
   shows monotone_insert: "monotone (\<subseteq>) (\<subseteq>) (insert x)"
-by(rule monotoneI) blast
+  by(rule monotoneI) blast
 
 lemma mcont2mcont_insert[THEN lfp.mcont2mcont, cont_intro, simp]:
   shows mcont_insert: "mcont Union (\<subseteq>) Union (\<subseteq>) (insert x)"
-by(blast intro: mcontI contI monotone_insert)
+  by(blast intro: mcontI contI monotone_insert)
 
 lemma mono2mono_image [THEN lfp.mono2mono, cont_intro, simp]:
   shows monotone_image: "monotone (\<subseteq>) (\<subseteq>) ((`) f)"
-by(rule monotoneI) blast
+  by(rule monotoneI) blast
 
 lemma cont_image: "cont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
-by(rule contI)(auto)
+  by(rule contI)(auto)
 
 lemma mcont2mcont_image [THEN lfp.mcont2mcont, cont_intro, simp]:
   shows mcont_image: "mcont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
-by(blast intro: mcontI monotone_image cont_image)
+  by(blast intro: mcontI monotone_image cont_image)
 
 context complete_lattice begin
 
 lemma monotone_Sup [cont_intro, simp]:
   "monotone ord (\<subseteq>) f \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>f x)"
-by(blast intro: monotoneI Sup_least Sup_upper dest: monotoneD)
+  by(blast intro: monotoneI Sup_least Sup_upper dest: monotoneD)
 
 lemma cont_Sup:
   assumes "cont lub ord Union (\<subseteq>) f"
@@ -1694,21 +1684,21 @@ lemmas parallel_fixp_induct_2_2 = parallel_fixp_induct_uc[
   for P
 
 lemma monotone_fst: "monotone (rel_prod orda ordb) orda fst"
-by(auto intro: monotoneI)
+  by(auto intro: monotoneI)
 
 lemma mcont_fst: "mcont (prod_lub luba lubb) (rel_prod orda ordb) luba orda fst"
-by(auto intro!: mcontI monotoneI contI simp add: prod_lub_def)
+  by(auto intro!: mcontI monotoneI contI simp add: prod_lub_def)
 
 lemma mcont2mcont_fst [cont_intro, simp]:
   "mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) t
   \<Longrightarrow> mcont lub ord luba orda (\<lambda>x. fst (t x))"
-by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel split_beta prod_lub_def image_image)
+  by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel split_beta prod_lub_def image_image)
 
 lemma monotone_snd: "monotone (rel_prod orda ordb) ordb snd"
-by(auto intro: monotoneI)
+  by(auto intro: monotoneI)
 
 lemma mcont_snd: "mcont (prod_lub luba lubb) (rel_prod orda ordb) lubb ordb snd"
-by(auto intro!: mcontI monotoneI contI simp add: prod_lub_def)
+  by(auto intro!: mcontI monotoneI contI simp add: prod_lub_def)
 
 lemma mcont2mcont_snd [cont_intro, simp]:
   "mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) t
@@ -1718,19 +1708,20 @@ by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: r
 lemma monotone_Pair:
   "\<lbrakk> monotone ord orda f; monotone ord ordb g \<rbrakk>
   \<Longrightarrow> monotone ord (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
-by(simp add: monotone_def)
+  by(simp add: monotone_def)
 
 lemma cont_Pair:
   "\<lbrakk> cont lub ord luba orda f; cont lub ord lubb ordb g \<rbrakk>
   \<Longrightarrow> cont lub ord (prod_lub luba lubb) (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
-by(rule contI)(auto simp add: prod_lub_def image_image dest!: contD)
+  by(rule contI)(auto simp add: prod_lub_def image_image dest!: contD)
 
 lemma mcont_Pair:
   "\<lbrakk> mcont lub ord luba orda f; mcont lub ord lubb ordb g \<rbrakk>
   \<Longrightarrow> mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) (\<lambda>x. (f x, g x))"
-by(rule mcontI)(simp_all add: monotone_Pair mcont_mono cont_Pair)
+  by(rule mcontI)(simp_all add: monotone_Pair mcont_mono cont_Pair)
 
-context partial_function_definitions begin
+context partial_function_definitions 
+begin
 text \<open>Specialised versions of @{thm [source] mcont_call} for admissibility proofs for parallel fixpoint inductions\<close>
 lemmas mcont_call_fst [cont_intro] = mcont_call[THEN mcont2mcont, OF mcont_fst]
 lemmas mcont_call_snd [cont_intro] = mcont_call[THEN mcont2mcont, OF mcont_snd]
