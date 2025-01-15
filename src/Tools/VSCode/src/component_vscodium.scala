@@ -81,12 +81,7 @@ object Component_VSCodium {
 
     def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
       progress.echo("Getting VSCodium repository ...")
-      Isabelle_System.bash(
-        List(
-          "set -e",
-          "git clone -n " + Bash.string(vscodium_repository) + " .",
-          "git checkout -q " + Bash.string(version)
-        ).mkString("\n"), cwd = build_dir).check
+      Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = version)
 
       progress.echo("Getting VSCode repository ...")
       Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir).check

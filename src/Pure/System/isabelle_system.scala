@@ -503,6 +503,18 @@ object Isabelle_System {
     }
   }
 
+  def git_clone(url: String, target: Path,
+    checkout: String = "HEAD",
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Unit = {
+    progress.echo("Cloning " + quote(url))
+    bash(
+      "git clone --quiet --no-checkout " + Bash.string(url) + " . && " +
+      "git checkout --quiet --detach " + Bash.string(checkout),
+      ssh = ssh, cwd = ssh.make_directory(target)).check
+  }
+
   def open(arg: String): Unit =
     bash("exec \"$ISABELLE_OPEN\" " + Bash.string(arg) + " >/dev/null 2>/dev/null &")
 
