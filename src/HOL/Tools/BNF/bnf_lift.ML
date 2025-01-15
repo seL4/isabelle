@@ -436,7 +436,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
     (* get the bnf for RepT *)
     val ((bnf_F, (deads, alphas)), ((_, unfolds), lthy)) =
-      bnf_of_typ true Dont_Inline (Binding.qualify true AbsT_name) flatten_tyargs []
+      bnf_of_typ true Hardly_Inline (Binding.qualify true AbsT_name) flatten_tyargs []
         Ds0 RepT ((empty_comp_cache, empty_unfolds), lthy);
 
     val set_bs =
@@ -670,7 +670,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
               [card_order_bd_tac, cinfinite_bd_tac, regularCard_bd_tac] @ set_bds_tac @
               [le_rel_OO_tac, rel_OO_Grp_tac, pred_set_tac];
 
-            val (bnf_G, lthy) = bnf_def Dont_Inline (user_policy Note_Some) true I
+            val (bnf_G, lthy) = bnf_def Hardly_Inline (user_policy Note_Some) true I
               tactics wit_tac NONE map_b rel_b pred_b set_bs
               (((((((Binding.empty, AbsT), map_G), sets_G), bd_G), wits_G), SOME rel_G), SOME pred_G)
               lthy;
@@ -852,7 +852,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
       map dest_TFree alpha0s |> filter (fn T => exists (fn Ts => member op= Ts T) Ass);
 
     val ((bnf_F, (deads, alphas)), ((_, unfolds), lthy)) =
-      bnf_of_typ true Dont_Inline (Binding.qualify true absT_name) flatten_tyargs
+      bnf_of_typ true Hardly_Inline (Binding.qualify true absT_name) flatten_tyargs
         [] Ds0 repT ((empty_comp_cache, empty_unfolds), lthy);
     val live = length alphas;
     val _ = (if live = 0 then error "No live variables" else ());
@@ -1889,7 +1889,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
             | mk_wit_tacs [] ws ctxt = mk_wit_tacs set_F'_thmss ws ctxt
             | mk_wit_tacs _ _ _ = all_tac;
 
-          val (bnf_G, lthy) = bnf_def Dont_Inline (user_policy Note_Some) true I
+          val (bnf_G, lthy) = bnf_def Hardly_Inline (user_policy Note_Some) true I
             tactics (mk_wit_tacs [] wit_thms) NONE map_b rel_b pred_b set_bs
             (((((((Binding.empty, absT), map_G), sets_G), bd_G), wits_G), SOME rel_G), NONE) lthy;
 
