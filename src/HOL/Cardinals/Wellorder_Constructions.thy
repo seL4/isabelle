@@ -322,7 +322,7 @@ lemma underS_induct:
   shows "P a"
   by (induct rule: well_order_induct) (rule assms, simp add: underS_def)
 
-lemma suc_underS:
+lemma suc_underS':
   assumes B: "B \<subseteq> Field r" and A: "AboveS B \<noteq> {}" and b: "b \<in> B"
   shows "b \<in> underS (suc B)"
   using suc_AboveS[OF B A] b unfolding underS_def AboveS_def by auto
