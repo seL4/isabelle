@@ -463,7 +463,7 @@ fun add_ind_set_def
         eta_contract (member op = cs' orf is_pred pred_arities))) intros;
     val cnames_syn' = map (fn (b, _) => (Binding.suffix_name "p" b, NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof lthy)) monos;
-    val ({preds, intrs, elims, raw_induct, eqs, ...}, lthy1) =
+    val ({preds, intrs, elims, raw_induct, eqs, def, mono, ...}, lthy1) =
       Inductive.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, alt_name = Binding.empty,
           coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
@@ -513,7 +513,7 @@ fun add_ind_set_def
         (map (to_set [] (Context.Proof lthy3)) eqs) raw_induct' lthy3;
   in
     ({intrs = intrs', elims = elims', induct = induct, inducts = inducts,
-      raw_induct = raw_induct', preds = map fst defs, eqs = eqs'},
+      raw_induct = raw_induct', preds = map fst defs, eqs = eqs', def = def, mono = mono},
      lthy4)
   end;
 

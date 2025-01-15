@@ -21,7 +21,7 @@ Features:
 signature INDUCTIVE =
 sig
   type result =
-    {preds: term list, elims: thm list, raw_induct: thm,
+    {preds: term list, elims: thm list, raw_induct: thm, def: thm, mono: thm,
      induct: thm, inducts: thm list, intrs: thm list, eqs: thm list}
   val transform_result: morphism -> result -> result
   type info = {names: string list, coind: bool} * result
@@ -180,17 +180,18 @@ fun select_disj_tac ctxt =
 (** context data **)
 
 type result =
-  {preds: term list, elims: thm list, raw_induct: thm,
+  {preds: term list, elims: thm list, raw_induct: thm, def: thm, mono: thm,
    induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
 
-fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
+fun transform_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs, def, mono} =
   let
     val term = Morphism.term phi;
     val thm = Morphism.thm phi;
     val fact = Morphism.fact phi;
   in
-   {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct,
-    induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs}
+   {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct, def = thm def,
+    induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs,
+    mono = thm mono}
   end;
 
 type info = {names: string list, coind: bool} * result;
@@ -1152,6 +1153,8 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        raw_induct = rulify lthy3 raw_induct,
        induct = induct,
        inducts = inducts,
+       def = fp_def,
+       mono = mono,
        eqs = eqs'};
 
     val lthy4 = lthy3
