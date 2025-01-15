@@ -59,6 +59,7 @@ sig
   val bd_card_order_of_bnf: bnf -> thm
   val bd_cinfinite_of_bnf: bnf -> thm
   val bd_regularCard_of_bnf: bnf -> thm
+  val bd_def_of_bnf: bnf -> thm
   val collect_set_map_of_bnf: bnf -> thm
   val in_bd_of_bnf: bnf -> thm
   val in_cong_of_bnf: bnf -> thm
@@ -251,14 +252,15 @@ val morph_axioms = map_axioms o Morphism.thm;
 type defs = {
   map_def: thm,
   set_defs: thm list,
+  bd_def: thm,
   rel_def: thm,
   pred_def: thm
 }
 
-fun mk_defs map sets rel pred = {map_def = map, set_defs = sets, rel_def = rel, pred_def = pred};
+fun mk_defs map sets bd rel pred = {map_def = map, bd_def = bd, set_defs = sets, rel_def = rel, pred_def = pred};
 
-fun map_defs f {map_def, set_defs, rel_def, pred_def} =
-  {map_def = f map_def, set_defs = map f set_defs, rel_def = f rel_def, pred_def = f pred_def};
+fun map_defs f {map_def, set_defs, bd_def, rel_def, pred_def} =
+  {map_def = f map_def, set_defs = map f set_defs, bd_def = f bd_def, rel_def = f rel_def, pred_def = f pred_def};
 
 val morph_defs = map_defs o Morphism.thm;
 
@@ -582,6 +584,7 @@ val bd_Cnotzero_of_bnf = #bd_Cnotzero o #facts o rep_bnf;
 val bd_card_order_of_bnf = #bd_card_order o #axioms o rep_bnf;
 val bd_cinfinite_of_bnf = #bd_cinfinite o #axioms o rep_bnf;
 val bd_regularCard_of_bnf = #bd_regularCard o #axioms o rep_bnf;
+val bd_def_of_bnf = #bd_def o #defs o rep_bnf;
 val collect_set_map_of_bnf = Lazy.force o #collect_set_map o #facts o rep_bnf;
 val in_bd_of_bnf = Lazy.force o #in_bd o #facts o rep_bnf;
 val in_cong_of_bnf = Lazy.force o #in_cong o #facts o rep_bnf;
@@ -1005,8 +1008,10 @@ fun note_bnf_defs bnf lthy =
     val notes =
       [(mk_def_binding map_of_bnf, map_def_of_bnf bnf),
        (mk_def_binding rel_of_bnf, rel_def_of_bnf bnf),
+       (mk_def_binding bd_of_bnf, bd_def_of_bnf bnf),
        (mk_def_binding pred_of_bnf, pred_def_of_bnf bnf)] @
       @{map 2} (pair o mk_def_binding o K) (sets_of_bnf bnf) (set_defs_of_bnf bnf)
+      |> filter_out (fn (b, thm) => Thm.is_reflexive thm)
       |> map (fn (b, thm) => ((b, []), [([thm], [])]));
   in
     lthy
@@ -2042,7 +2047,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val inj_map_strong = Lazy.lazy mk_inj_map_strong;
 
-        val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def bnf_pred_def;
+        val defs = mk_defs bnf_map_def bnf_set_defs bnf_bd_def bnf_rel_def bnf_pred_def;
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
           in_mono in_rel inj_map inj_map_strong map_comp map_cong map_cong_simp map_cong_pred map_id
