@@ -147,6 +147,8 @@ object Library {
   def cat_lines(lines: IterableOnce[String]): String =
     lines.iterator.mkString("\n")
 
+  def make_lines(lines: String*): String = cat_lines(lines)
+
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
   def prefix_lines(prfx: String, str: String): String =

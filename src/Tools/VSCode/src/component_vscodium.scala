@@ -281,13 +281,13 @@ object Component_VSCodium {
       progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
-          List(
+          Library.make_lines(
             "set -e",
             platform_info.environment,
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ).mkString("\n"), cwd = build_dir, echo = progress.verbose).check
+          ), cwd = build_dir, echo = progress.verbose).check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
