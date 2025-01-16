@@ -41,6 +41,7 @@ structure Bit_Shifts : sig
   type int = IntInf.int
   val push : int -> int -> int
   val drop : int -> int -> int
+  val word_max_index : Word.word (*only for validation*)
 end = struct
 
 type int = IntInf.int;
