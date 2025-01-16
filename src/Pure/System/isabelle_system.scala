@@ -507,7 +507,7 @@ object Isabelle_System {
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
-    progress.echo("Cloning " + quote(url))
+    progress.echo("Cloning " + quote(url) + " ...")
     bash(
       "git clone --quiet --no-checkout " + Bash.string(url) + " . && " +
       "git checkout --quiet --detach " + Bash.string(checkout),
