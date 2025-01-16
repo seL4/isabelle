@@ -289,13 +289,9 @@ fun inst sigma th =
        |> forall_elim_list rng
   end
 
-fun transl_dotc #"." = "dot"
-  | transl_dotc c = Char.toString c
-val transl_dot = String.translate transl_dotc
+val transl_dot = String.translate (fn #"." => "dot" | c => Char.toString c)
 
-fun transl_qmc #"?" = "t"
-  | transl_qmc c = Char.toString c
-val transl_qm = String.translate transl_qmc
+val transl_qm = String.translate (fn #"?" => "t" | c => Char.toString c)
 
 fun getconstname s thy =
   case Import_Data.get_const_map s thy of
@@ -418,7 +414,7 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (Thm.global_ctyp_of thy (TFree ("'" ^ (transl_qm n), \<^sort>\<open>type\<close>))) (thy, state)
+          setty (Thm.global_ctyp_of thy (TFree ("'" ^ transl_qm n, \<^sort>\<open>type\<close>))) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
             (fn tys => Thm.global_ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
