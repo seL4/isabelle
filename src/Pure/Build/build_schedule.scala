@@ -1261,7 +1261,7 @@ object Build_Schedule {
 
     def read_serial(db: SQL.Database, build_uuid: String = ""): Long =
       db.execute_query_statementO[Long](
-        Schedules.table.select(List(Schedules.serial.max), sql = 
+        Schedules.table.select(List(Schedules.serial.max), sql =
           SQL.where(if_proper(build_uuid, Schedules.build_uuid.equal(build_uuid)))),
           _.long(Schedules.serial)).getOrElse(0L)
 
@@ -1373,7 +1373,7 @@ object Build_Schedule {
         schedule.generator != old_schedule.generator ||
         schedule.start != old_schedule.start ||
         schedule.graph != old_schedule.graph
-      
+
       val schedule1 =
         if (changed) schedule.copy(serial = old_schedule.next_serial) else schedule
       if (schedule1.serial != schedule.serial) write_schedule(db, schedule1)
