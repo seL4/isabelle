@@ -580,6 +580,7 @@ object Find_Facts {
   def find_facts_index(
     options: Options,
     sessions: List[String],
+    afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     clean: Boolean = false,
     progress: Progress = new Progress
@@ -589,7 +590,8 @@ object Find_Facts {
     val session = Session(options, Resources.bootstrap)
 
     val selection = Sessions.Selection(sessions = sessions)
-    val session_structure = Sessions.load_structure(options, dirs = dirs).selection(selection)
+    val session_structure =
+      Sessions.load_structure(options, dirs = AFP.main_dirs(afp_root) ::: dirs).selection(selection)
     val deps = Sessions.Deps.load(session_structure)
     val browser_info_context = Browser_Info.context(session_structure)
 
@@ -599,7 +601,7 @@ object Find_Facts {
         using(Solr.init_database(database, Find_Facts.private_data, clean = clean)) { db =>
           using(Export.open_database_context(store)) { database_context =>
             val document_info = Document_Info.read(database_context, deps, sessions)
-            
+
             def index_session(session_name: String): Unit = {
               using(database_context.open_session0(session_name)) { session_context =>
                 val info = session_structure(session_name)
@@ -638,6 +640,7 @@ object Find_Facts {
 
   def main_tool1(args: Array[String]): Unit = {
     Command_Line.tool {
+      var afp_root: Option[Path] = None
       var clean = false
       val dirs_buffer = new mutable.ListBuffer[Path]
       var no_build = false
@@ -648,6 +651,7 @@ object Find_Facts {
   Usage: isabelle find_facts_index [OPTIONS] [SESSIONS ...]
 
     Options are:
+      -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
       -c           clean previous index
       -d DIR       include session directory
       -n           no build -- take existing session build databases
@@ -656,6 +660,7 @@ object Find_Facts {
 
     Build and index sessions for Find_Facts.
   """,
+        "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "c" -> (_ => clean = true),
         "d:" -> (arg => dirs_buffer += Path.explode(arg)),
         "n" -> (_ => no_build = true),
@@ -673,7 +678,7 @@ object Find_Facts {
       if (!no_build) {
         def build(test: Boolean = false): Build.Results =
           Build.build(options, selection = Sessions.Selection(sessions = sessions), dirs = dirs,
-            no_build = test, progress = if (test) new Progress else progress)
+            afp_root = afp_root, no_build = test, progress = if (test) new Progress else progress)
 
         progress.interrupt_handler {
           if (!build(test = true).ok) {
@@ -690,7 +695,8 @@ object Find_Facts {
 
       /* index */
 
-      find_facts_index(options, sessions, dirs = dirs, clean = clean, progress = progress)
+      find_facts_index(options, sessions, dirs = dirs, afp_root = afp_root, clean = clean, 
+        progress = progress)
     }
   }
 
