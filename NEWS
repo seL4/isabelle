@@ -235,6 +235,9 @@ target languages, similar to 'code_printing'.
 types by target-language operations; this is also used by
 HOL-Library.Code_Target_Numeral.
 
+* Theory HOL-Library.Code_Bit_Shifts_for_Arithmetic rewrites certain
+arithmetic operations on numerals to bit shifts.
+
 * Sledgehammer:
   - Update of bundled provers:
       . E 3.1 -- with patch on Windows/Cygwin for proper interrupts
