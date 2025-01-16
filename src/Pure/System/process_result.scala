@@ -18,6 +18,8 @@ object Process_Result {
     val interrupt = 130
     val timeout = 142
 
+    val regular: Set[Int] = Set(ok, error)
+
     private def text(rc: Int): String = {
       val txt =
         rc match {
