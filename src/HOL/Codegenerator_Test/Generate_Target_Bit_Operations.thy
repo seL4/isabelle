@@ -60,25 +60,24 @@ test_code check in OCaml
 test_code check in GHC
 test_code check in Scala
 
-text \<open>Checking the index maximum for \<text>\<open>SML\<close>\<close>
-
-ML \<open>
-fun check_max max =
-  let
-    val _ = IntInf.~>> (0, max);
-    val _ = \<^assert> ((IntInf.~>> (0, Word.+ (max, Word.fromInt 1)); false) handle Size => true)
-  in () end;
-\<close>
+text \<open>Checking the index maximum for \<text>\<open>PolyML\<close>\<close>
 
 definition \<open>check_max = ()\<close>
 
-code_printing constant check \<rightharpoonup>
-  (Eval) "check'_max Bit'_Shifts.word'_max'_index"
-
 definition \<open>anchor = (Code_Target_Bit_Shifts.drop_bit, check_max)\<close>
 
-ML \<open>
-\<^code>\<open>anchor\<close>;
+code_printing
+    code_module Check_Max  \<rightharpoonup>
+      (SML) \<open>
+fun check_max max =
+  let
+    val _ = IntInf.~>> (0, max);
+    val _ = ((IntInf.~>> (0, Word.+ (max, Word.fromInt 1)); raise Fail "Bad max") handle Size => ())
+  in () end;
 \<close>
+  | constant check_max \<rightharpoonup>
+      (SML) "check'_max Bit'_Shifts.word'_max'_index"
+
+test_code \<open>snd anchor = ()\<close> in PolyML
 
 end
