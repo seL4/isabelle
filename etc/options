@@ -234,6 +234,9 @@ option build_schedule_outdated_delay : real = 300.0
 option build_schedule_inactive_delay : real = 300.0
   -- "delay removing inactive hosts"
 
+option build_schedule_history : int = 150
+  -- "length of history relevant for scheduling (in days)"
+
 
 section "Build Manager"
 

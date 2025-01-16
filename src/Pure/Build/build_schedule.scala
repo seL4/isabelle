@@ -69,14 +69,16 @@ object Build_Schedule {
     }
 
     def load(
+      build_options: Options,
       host_infos: Host_Infos,
       log_database: SQL.Database,
       sessions_structure: Sessions.Structure
     ): Timing_Data = {
+      val days = build_options.int("build_schedule_history")
       val build_history =
         for {
           log_name <- log_database.execute_query_statement(
-            Build_Log.private_data.meta_info_table.select(List(Build_Log.Column.log_name)),
+            Build_Log.private_data.select_recent_log_names(days),
             List.from[String], res => res.string(Build_Log.Column.log_name))
           meta_info <- Build_Log.private_data.read_meta_info(log_database, log_name)
           build_info = Build_Log.private_data.read_build_info(log_database, log_name)
@@ -1065,9 +1067,8 @@ object Build_Schedule {
       Host_Infos.load(build_options, build_hosts, _host_database)
     }
 
-    private val timing_data: Timing_Data = {
-      Timing_Data.load(_host_infos, _log_database, build_context.sessions_structure)
-    }
+    private val timing_data: Timing_Data =
+      Timing_Data.load(build_options, _host_infos, _log_database, build_context.sessions_structure)
 
     private var _scheduler = init_scheduler(timing_data)
 
@@ -1108,6 +1109,7 @@ object Build_Schedule {
       val props =
         List(
           Build_Log.Prop.build_id.name -> build_context.build_uuid,
+          Build_Log.Prop.isabelle_version.name -> Isabelle_System.isabelle_id(),
           Build_Log.Prop.build_engine.name -> build_context.engine.name,
           Build_Log.Prop.build_host.name -> hostname,
           Build_Log.Prop.build_start.name -> Build_Log.print_date(build_start))
@@ -1525,7 +1527,7 @@ object Build_Schedule {
       }
 
       val host_infos = Host_Infos.load(build_options, cluster_hosts, host_database)
-      val timing_data = Timing_Data.load(host_infos, log_database, full_sessions)
+      val timing_data = Timing_Data.load(build_options, host_infos, log_database, full_sessions)
 
       val sessions = Build_Process.Sessions.empty.init(build_context, database_server, progress)
 
