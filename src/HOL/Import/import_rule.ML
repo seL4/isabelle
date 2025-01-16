@@ -289,14 +289,22 @@ fun inst sigma th =
        |> forall_elim_list rng
   end
 
-val transl_dot = String.translate (fn #"." => "dot" | c => Char.toString c)
+val make_name = String.translate (fn #"." => "dot" | c => Char.toString c)
 
-val transl_qm = String.translate (fn #"?" => "t" | c => Char.toString c)
+fun make_free (x, ty) = Free (make_name x, ty)
 
-fun getconstname s thy =
-  case Import_Data.get_const_map s thy of
-      SOME s => s
-    | NONE => Sign.full_name thy (Binding.name (transl_dot s))
+fun make_tfree a =
+  let val b = "'" ^ String.translate (fn #"?" => "t" | c => Char.toString c) a
+  in TFree (b, \<^sort>\<open>type\<close>) end
+
+fun make_const thy (c, ty) =
+  let
+    val d =
+      (case Import_Data.get_const_map c thy of
+        SOME d => d
+      | NONE => Sign.full_name thy (Binding.name (make_name c)))
+  in Const (d, ty) end
+
 fun gettyname s thy =
   case Import_Data.get_typ_map s thy of
     SOME s => s
@@ -398,7 +406,7 @@ fun process_line str tstate =
       | process tstate (#"F", [name, t]) =
           let
             val (tm, (thy, state)) = gettm t tstate
-            val (th, thy) = def (transl_dot name) tm thy
+            val (th, thy) = def (make_name name) tm thy
           in
             setth th (thy, state)
           end
@@ -414,20 +422,20 @@ fun process_line str tstate =
           end
       | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
       | process (thy, state) (#"t", [n]) =
-          setty (Thm.global_ctyp_of thy (TFree ("'" ^ transl_qm n, \<^sort>\<open>type\<close>))) (thy, state)
+          setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
             (fn tys => Thm.global_ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
       | process (thy, state) (#"v", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (Free (transl_dot n, Thm.typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm
       | process (thy, state) (#"c", [n, ty]) =
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (Const (getconstname n thy, Thm.typ_of ty))) |-> settm
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm
       | process tstate (#"f", [t1, t2]) =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.apply t1 t2) |-> settm
       | process tstate (#"l", [t1, t2]) =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.lambda t1 t2) |-> settm
       | process (thy, state) (#"+", [s]) =
-          (store_thm (Binding.name (transl_dot s)) (last_thm state) thy, state)
+          (store_thm (Binding.name (make_name s)) (last_thm state) thy, state)
       | process _ (c, _) = error ("process: unknown command: " ^ String.implode [c])
 
     fun parse_line s =
