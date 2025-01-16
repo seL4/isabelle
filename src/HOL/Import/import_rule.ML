@@ -152,7 +152,7 @@ fun abs cv th =
     val th3 = implies_elim_all th2
     val th4 = Thm.forall_intr cv th3
     val i = Thm.instantiate' [SOME (Thm.ctyp_of_cterm cv), SOME (Thm.ctyp_of_cterm tl)]
-      [SOME ll, SOME lr] @{thm ext2}
+      [SOME ll, SOME lr] @{lemma "(\<And>x. f x = g x) \<Longrightarrow> f = g" by (rule ext)}
   in
     meta_mp i th4
   end
@@ -193,6 +193,12 @@ fun def constname rhs thy =
       end
   | NONE => def' constname rhs thy
 
+fun typedef_hol2hollight nty oty rep abs pred a r =
+  Thm.instantiate' [SOME nty, SOME oty] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
+    @{lemma "type_definition Rep Abs (Collect P) \<Longrightarrow> Abs (Rep a) = a \<and> P r = (Rep (Abs r) = r)"
+        by (metis type_definition.Rep_inverse type_definition.Abs_inverse
+              type_definition.Rep mem_Collect_eq)}
+
 fun typedef_hollight th thy =
   let
     val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
@@ -201,15 +207,16 @@ fun typedef_hollight th thy =
     val P = Thm.dest_arg cn
     val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
   in
-    Thm.instantiate' [SOME nty, SOME oty] [SOME rept, SOME abst, SOME P,
-      SOME (Thm.global_cterm_of thy (Free ("a", Thm.typ_of nty))),
-      SOME (Thm.global_cterm_of thy (Free ("r", Thm.typ_of oty)))] @{thm typedef_hol2hollight}
+    typedef_hol2hollight nty oty rept abst P
+      (Thm.global_cterm_of thy (Free ("a", Thm.typ_of nty)))
+      (Thm.global_cterm_of thy (Free ("r", Thm.typ_of oty)))
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
   let
     val ctT = Thm.ctyp_of_cterm ct
-    val nonempty = Thm.instantiate' [SOME ctT] [SOME cP, SOME ct] @{thm light_ex_imp_nonempty}
+    val nonempty = Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
+      @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
     val th2 = meta_mp nonempty td_th
     val c =
       case Thm.concl_of th2 of
@@ -233,11 +240,9 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val rept = Thm.dest_arg th_s
     val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
     val typedef_th =
-       Thm.instantiate'
-          [SOME nty, SOME oty]
-          [SOME rept, SOME abst, SOME cP, SOME (Thm.global_cterm_of thy' (Free ("a", aty))),
-             SOME (Thm.global_cterm_of thy' (Free ("r", Thm.typ_of ctT)))]
-          @{thm typedef_hol2hollight}
+      typedef_hol2hollight nty oty rept abst cP
+        (Thm.global_cterm_of thy' (Free ("a", aty)))
+        (Thm.global_cterm_of thy' (Free ("r", Thm.typ_of ctT)))
     val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
   in
     (th4, thy')
