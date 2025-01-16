@@ -577,6 +577,21 @@ object Find_Facts {
       } yield block)
   }
 
+  def find_facts_index_command(
+    sessions: List[String],
+    ssh: SSH.System = SSH.Local,
+    isabelle_home: Path = Path.current,
+    options: List[Options.Spec] = Nil,
+    dirs: List[Path] = Nil,
+    clean: Boolean = false
+  ): String = {
+    ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " find_facts_index" +
+      dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
+      if_proper(clean, " -c") +
+      Options.Spec.bash_strings(options, bg = true) +
+      sessions.map(session => " " + session).mkString
+  }
+  
   def find_facts_index(
     options: Options,
     sessions: List[String],
