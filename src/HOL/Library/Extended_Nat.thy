@@ -191,10 +191,10 @@ lemma plus_1_eSuc:
   by (simp_all add: eSuc_plus_1 ac_simps)
 
 lemma iadd_Suc: "eSuc m + n = eSuc (m + n)"
-  by (simp_all add: eSuc_plus_1 ac_simps)
+  by (simp add: eSuc_plus_1 ac_simps)
 
 lemma iadd_Suc_right: "m + eSuc n = eSuc (m + n)"
-  by (simp only: add.commute[of m] iadd_Suc)
+  by (metis add.commute iadd_Suc)
 
 subsection \<open>Multiplication\<close>
 
@@ -216,29 +216,12 @@ lemma times_enat_simps [simp, code]:
 instance
 proof
   fix a b c :: enat
-  show "(a * b) * c = a * (b * c)"
-    unfolding times_enat_def zero_enat_def
-    by (simp split: enat.split)
-  show comm: "a * b = b * a"
-    unfolding times_enat_def zero_enat_def
-    by (simp split: enat.split)
-  show "1 * a = a"
-    unfolding times_enat_def zero_enat_def one_enat_def
-    by (simp split: enat.split)
   show distr: "(a + b) * c = a * c + b * c"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split add: distrib_right)
-  show "0 * a = 0"
-    unfolding times_enat_def zero_enat_def
-    by (simp split: enat.split)
-  show "a * 0 = 0"
-    unfolding times_enat_def zero_enat_def
-    by (simp split: enat.split)
   show "a * (b + c) = a * b + a * c"
     by (cases a b c rule: enat3_cases) (auto simp: times_enat_def zero_enat_def distrib_left)
-  show "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
-    by (cases a b rule: enat2_cases) (auto simp: times_enat_def zero_enat_def)
-qed
+qed (auto simp: times_enat_def zero_enat_def one_enat_def split: enat.split)
 
 end
 
@@ -246,13 +229,10 @@ lemma mult_eSuc: "eSuc m * n = n + m * n"
   unfolding eSuc_plus_1 by (simp add: algebra_simps)
 
 lemma mult_eSuc_right: "m * eSuc n = m + m * n"
-  unfolding eSuc_plus_1 by (simp add: algebra_simps)
+  by (metis mult.commute mult_eSuc)
 
 lemma of_nat_eq_enat: "of_nat n = enat n"
-  apply (induct n)
-  apply (simp add: enat_0)
-  apply (simp add: plus_1_eSuc eSuc_enat)
-  done
+  by (induct n) (auto simp: enat_0 plus_1_eSuc eSuc_enat)
 
 instance enat :: semiring_char_0
 proof
@@ -267,7 +247,7 @@ subsection \<open>Numerals\<close>
 
 lemma numeral_eq_enat:
   "numeral k = enat (numeral k)"
-  using of_nat_eq_enat [of "numeral k"] by simp
+  by (metis of_nat_eq_enat of_nat_numeral)
 
 lemma enat_numeral [code_abbrev]:
   "enat (numeral k) = numeral k"
@@ -349,11 +329,11 @@ lemma enat_ord_simps [simp]:
 
 lemma numeral_le_enat_iff[simp]:
   shows "numeral m \<le> enat n \<longleftrightarrow> numeral m \<le> n"
-by (auto simp: numeral_eq_enat)
+  by (auto simp: numeral_eq_enat)
 
 lemma numeral_less_enat_iff[simp]:
   shows "numeral m < enat n \<longleftrightarrow> numeral m < n"
-by (auto simp: numeral_eq_enat)
+  by (auto simp: numeral_eq_enat)
 
 lemma enat_ord_code [code]:
   "enat m \<le> enat n \<longleftrightarrow> m \<le> n"
@@ -472,17 +452,15 @@ lemma iadd_le_enat_iff:
 by(cases x y rule: enat.exhaust[case_product enat.exhaust]) simp_all
 
 lemma chain_incr: "\<forall>i. \<exists>j. Y i < Y j \<Longrightarrow> \<exists>j. enat k < Y j"
-apply (induct_tac k)
- apply (simp (no_asm) only: enat_0)
- apply (fast intro: le_less_trans [OF zero_le])
-apply (erule exE)
-apply (drule spec)
-apply (erule exE)
-apply (drule ileI1)
-apply (rule eSuc_enat [THEN subst])
-apply (rule exI)
-apply (erule (1) le_less_trans)
-done
+proof (induction k)
+  case 0
+  then show ?case
+    using enat_0 zero_less_iff_neq_zero by fastforce 
+next
+  case (Suc k)
+  then show ?case
+    by (meson Suc_ile_eq order_le_less_trans)
+qed
 
 lemma eSuc_max: "eSuc (max x y) = max (eSuc x) (eSuc y)"
   by (simp add: eSuc_def split: enat.split)
@@ -490,10 +468,7 @@ lemma eSuc_max: "eSuc (max x y) = max (eSuc x) (eSuc y)"
 lemma eSuc_Max:
   assumes "finite A" "A \<noteq> {}"
   shows "eSuc (Max A) = Max (eSuc ` A)"
-using assms proof induction
-  case (insert x A)
-  thus ?case by(cases "A = {}")(simp_all add: eSuc_max)
-qed simp
+  by (simp add: assms mono_Max_commute mono_eSuc)
 
 instantiation enat :: "{order_bot, order_top}"
 begin
@@ -511,19 +486,16 @@ lemma finite_enat_bounded:
   shows "finite A"
 proof (rule finite_subset)
   show "finite (enat ` {..n})" by blast
-  have "A \<subseteq> {..enat n}" using le_fin by fastforce
-  also have "\<dots> \<subseteq> enat ` {..n}"
-    apply (rule subsetI)
-    subgoal for x by (cases x) auto
-    done
-  finally show "A \<subseteq> enat ` {..n}" .
+  have "A \<subseteq> enat ` {..n}"
+    using enat_ile le_fin by fastforce
+  then show "A \<subseteq> enat ` {..n}" .
 qed
 
 
 subsection \<open>Cancellation simprocs\<close>
 
 lemma add_diff_cancel_enat[simp]: "x \<noteq> \<infinity> \<Longrightarrow> x + y - x = (y::enat)"
-by (metis add.commute add.right_neutral add_diff_assoc_enat idiff_self order_refl)
+  by (metis add.commute add.right_neutral add_diff_assoc_enat idiff_self order_refl)
 
 lemma enat_add_left_cancel: "a + b = a + c \<longleftrightarrow> a = (\<infinity>::enat) \<or> b = c"
   unfolding plus_enat_def by (simp split: enat.split)
@@ -535,7 +507,7 @@ lemma enat_add_left_cancel_less: "a + b < a + c \<longleftrightarrow> a \<noteq>
   unfolding plus_enat_def by (simp split: enat.split)
 
 lemma plus_eq_infty_iff_enat: "(m::enat) + n = \<infinity> \<longleftrightarrow> m=\<infinity> \<or> n=\<infinity>"
-using enat_add_left_cancel by fastforce
+  using enat_add_left_cancel by fastforce
 
 ML \<open>
 structure Cancel_Enat_Common =
@@ -605,32 +577,21 @@ text \<open>TODO: add simprocs for combining and cancelling numerals\<close>
 subsection \<open>Well-ordering\<close>
 
 lemma less_enatE:
-  "[| n < enat m; !!k. n = enat k ==> k < m ==> P |] ==> P"
-by (induct n) auto
+  "\<lbrakk>n < enat m; \<And>k. \<lbrakk>n = enat k; k < m\<rbrakk> \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  using enat_iless enat_ord_simps(2) by blast
 
 lemma less_infinityE:
-  "[| n < \<infinity>; !!k. n = enat k ==> P |] ==> P"
-by (induct n) auto
+  "\<lbrakk>n < \<infinity>; \<And>k. n = enat k \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
+  by auto
 
 lemma enat_less_induct:
-  assumes prem: "\<And>n. \<forall>m::enat. m < n \<longrightarrow> P m \<Longrightarrow> P n" shows "P n"
+  assumes "\<And>n. \<forall>m::enat. m < n \<longrightarrow> P m \<Longrightarrow> P n" 
+  shows "P n"
 proof -
-  have P_enat: "\<And>k. P (enat k)"
-    apply (rule nat_less_induct)
-    apply (rule prem, clarify)
-    apply (erule less_enatE, simp)
-    done
-  show ?thesis
-  proof (induct n)
-    fix nat
-    show "P (enat nat)" by (rule P_enat)
-  next
-    show "P \<infinity>"
-      apply (rule prem, clarify)
-      apply (erule less_infinityE)
-      apply (simp add: P_enat)
-      done
-  qed
+  have "P (enat k)" for k
+    by (induction k rule: less_induct) (metis less_enatE assms)
+  then show ?thesis
+    by (metis enat.exhaust less_infinityE assms)
 qed
 
 instance enat :: wellorder

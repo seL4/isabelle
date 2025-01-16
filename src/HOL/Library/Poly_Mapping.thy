@@ -20,19 +20,13 @@ lemma finite_mult_not_eq_zero_leftI:
   fixes f :: "'b \<Rightarrow> 'a :: mult_zero"
   assumes "finite {a. f a \<noteq> 0}"
   shows "finite {a. g a * f a \<noteq> 0}"
-proof -
-  have "{a. g a * f a \<noteq> 0} \<subseteq> {a. f a \<noteq> 0}" by auto
-  then show ?thesis using assms by (rule finite_subset)
-qed
+  by (metis (mono_tags, lifting) Collect_mono assms mult_zero_right finite_subset)
 
 lemma finite_mult_not_eq_zero_rightI:
   fixes f :: "'b \<Rightarrow> 'a :: mult_zero"
   assumes "finite {a. f a \<noteq> 0}"
   shows "finite {a. f a * g a \<noteq> 0}"
-proof -
-  have "{a. f a * g a \<noteq> 0} \<subseteq> {a. f a \<noteq> 0}" by auto
-  then show ?thesis using assms by (rule finite_subset)
-qed
+  by (metis (mono_tags, lifting) Collect_mono assms lambda_zero finite_subset)
 
 lemma finite_mult_not_eq_zero_prodI:
   fixes f g :: "'a \<Rightarrow> 'b::semiring_0"
@@ -227,10 +221,7 @@ text \<open>
 typedef (overloaded) ('a, 'b) poly_mapping (\<open>(_ \<Rightarrow>\<^sub>0 /_)\<close> [1, 0] 0) =
   "{f :: 'a \<Rightarrow> 'b::zero. finite {x. f x \<noteq> 0}}"
   morphisms lookup Abs_poly_mapping
-proof -
-  have "(\<lambda>_::'a. (0 :: 'b)) \<in> ?poly_mapping" by simp
-  then show ?thesis by (blast intro!: exI)
-qed
+  using not_finite_existsD by force
 
 declare lookup_inverse [simp]
 declare lookup_inject [simp]
@@ -366,9 +357,8 @@ instance
 
 end
 
-lemma lookup_add:
-  "lookup (f + g) k = lookup f k + lookup g k"
-  by transfer rule
+lemma lookup_add: "lookup (f + g) k = lookup f k + lookup g k"
+  by (simp add: plus_poly_mapping.rep_eq)
 
 instance poly_mapping :: (type, comm_monoid_add) comm_monoid_add
   by intro_classes (transfer, simp add: fun_eq_iff ac_simps)+
@@ -435,13 +425,12 @@ instance
 
 end
 
-lemma lookup_one:
-  "lookup 1 k = (1 when k = 0)"
-  by transfer rule
+lemma lookup_one: "lookup 1 k = (1 when k = 0)"
+  by (meson one_poly_mapping.rep_eq)
 
 lemma lookup_one_zero [simp]:
   "lookup 1 0 = 1"
-  by transfer simp
+  by (simp add: one_poly_mapping.rep_eq)
 
 definition prod_fun :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a::monoid_add \<Rightarrow> 'b::semiring_0"
 where
@@ -455,8 +444,9 @@ lemma prod_fun_unfold_prod:
 proof -
   let ?C = "{a. f a \<noteq> 0} \<times> {b. g b \<noteq> 0}"
   from fin_f fin_g have "finite ?C" by blast
-  moreover have "{a. \<exists>b. (f a * g b when k = a + b) \<noteq> 0} \<times>
-    {b. \<exists>a. (f a * g b when k = a + b) \<noteq> 0} \<subseteq> {a. f a \<noteq> 0} \<times> {b. g b \<noteq> 0}"
+  moreover 
+  have "{a. \<exists>b. (f a * g b when k = a + b) \<noteq> 0} \<times>
+        {b. \<exists>a. (f a * g b when k = a + b) \<noteq> 0} \<subseteq> {a. f a \<noteq> 0} \<times> {b. g b \<noteq> 0}"
     by auto
   ultimately show ?thesis using fin_g
     by (auto simp: prod_fun_def
@@ -653,7 +643,7 @@ proof
   show "1 * a = a"
     by transfer (simp add: prod_fun_def [abs_def] when_mult)
   show "a * 1 = a"
-    apply transfer
+    apply transfer 
     apply (simp add: prod_fun_def [abs_def] Sum_any_right_distrib Sum_any_left_distrib mult_when)
     apply (subst when_commute)
     apply simp
@@ -705,11 +695,11 @@ lemma lookup_single:
 
 lemma lookup_single_eq [simp]:
   "lookup (single k v) k = v"
-  by transfer simp
+  by (simp add: single.rep_eq)
 
 lemma lookup_single_not_eq:
   "k \<noteq> k' \<Longrightarrow> lookup (single k v) k' = 0"
-  by transfer simp
+  by (simp add: single.rep_eq)
 
 lemma single_zero [simp]:
   "single k 0 = 0"
@@ -749,11 +739,7 @@ lemma single_of_nat [simp]:
 
 lemma lookup_of_nat:
   "lookup (of_nat n) k = (of_nat n when k = 0)"
-proof -
-  have "lookup (of_nat n) k = lookup (single 0 (of_nat n)) k"
-    by simp
-  then show ?thesis unfolding lookup_single by simp
-qed
+  by (metis lookup_single lookup_single_not_eq single_of_nat)
 
 lemma of_nat_single:
   "of_nat = single 0 \<circ> of_nat"
@@ -923,14 +909,7 @@ proof (intro_classes, transfer)
   fix f g h :: "'a \<Rightarrow> 'b"
   assume *: "less_fun f g \<or> f = g"
   have "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k)" if "less_fun f g"
-  proof -
-    from that obtain k where "f k < g k" "(\<And>k'. k' < k \<Longrightarrow> f k' = g k')"
-      by (blast elim!: less_funE)
-    then have "h k + f k < h k + g k" "(\<And>k'. k' < k \<Longrightarrow> h k' + f k' = h k' + g k')"
-      by simp_all
-    then show ?thesis
-      by (blast intro: less_funI)
-  qed
+    by (metis (no_types, lifting) less_fun_def add_strict_left_mono that)
   with * show "less_fun (\<lambda>k. h k + f k) (\<lambda>k. h k + g k) \<or> (\<lambda>k. h k + f k) = (\<lambda>k. h k + g k)"
     by (auto simp: fun_eq_iff)
 qed
@@ -986,7 +965,7 @@ proof transfer
   have "Set.range f - {0} \<subseteq> f ` {x. f x \<noteq> 0}"
     by auto
   thus "finite (Set.range f - {0})"
-    by(rule finite_subset)(rule finite_imageI[OF *])
+    using "*" finite_surj by blast
 qed
 
 lemma in_keys_lookup_in_range [simp]:
@@ -994,7 +973,7 @@ lemma in_keys_lookup_in_range [simp]:
   by transfer simp
 
 lemma in_keys_iff: "x \<in> (keys s) = (lookup s x \<noteq> 0)"
-  by (transfer, simp)
+  by (simp add: lookup_not_eq_zero_eq_in_keys)
 
 lemma keys_zero [simp]:
   "keys 0 = {}"
@@ -1221,9 +1200,9 @@ proof -
   fix g :: "'c \<Rightarrow> 'd" and p :: "'a \<Rightarrow> 'c"
   assume "finite {x. p x \<noteq> 0}"
   hence "finite (f ` {y. p (f y) \<noteq> 0})"
-    by(rule finite_subset[rotated]) auto
+    by (simp add: rev_finite_subset subset_eq)
   thus "finite {x. (p \<circ> f) x \<noteq> 0}" unfolding o_def
-    by(rule finite_imageD)(rule subset_inj_on[OF inj_f], simp)
+    by (metis finite_imageD injD inj_f inj_on_def)
 qed
 
 end
@@ -1402,7 +1381,7 @@ qed
 
 lemma nth_trailing_zeros [simp]:
   "nth (xs @ replicate n 0) = nth xs"
-  by transfer simp
+  by (simp add: nth.abs_eq)
 
 lemma nth_idem:
   "nth (List.map (lookup f) [0..<degree f]) = f"
@@ -1454,7 +1433,7 @@ lemma the_value_items [simp]:
 
 lemma lookup_the_value:
   "lookup (the_value xs) k = (case map_of xs k of None \<Rightarrow> 0 | Some v \<Rightarrow> v)"
-  by transfer rule
+  by (simp add: the_value.rep_eq)
 
 lemma items_the_value:
   assumes "sorted (List.map fst xs)" and "distinct (List.map fst xs)" and "0 \<notin> snd ` set xs"
@@ -1552,15 +1531,10 @@ lemma poly_mapping_size_estimation2:
 proof -
   from assms obtain k where *: "lookup m k = v" "v \<noteq> 0"
     by transfer blast
-  from * have "k \<in> keys m"
+  then have "k \<in> keys m"
     by (simp add: in_keys_iff)
-  then show ?thesis
-  proof (rule poly_mapping_size_estimation)
-    from assms * have "y \<le> g (lookup m k)"
-      by simp
-    then show "y \<le> f k + g (lookup m k)"
-      by simp
-  qed
+  with * show ?thesis
+    by (simp add: Poly_Mapping.poly_mapping_size_estimation assms(2) trans_le_add2)
 qed
 
 end
@@ -1616,15 +1590,7 @@ lemma lookup_frag_of [simp]:
   by (force simp add: lookup_single_not_eq)
 
 lemma frag_of_nonzero [simp]: "frag_of a \<noteq> 0"
-proof -
-  let ?f = "\<lambda>x. if x = a then 1 else (0::int)"
-  have "?f \<noteq> (\<lambda>x. 0::int)"
-    by (auto simp: fun_eq_iff)
-  then have "Poly_Mapping.lookup (Abs_poly_mapping ?f) \<noteq> Poly_Mapping.lookup (Abs_poly_mapping (\<lambda>x. 0))"
-    by fastforce
-  then show ?thesis
-    by (metis lookup_single_eq lookup_zero)
-qed
+  by (metis lookup_single_eq lookup_zero zero_neq_one)
 
 definition frag_cmul :: "int \<Rightarrow> ('a \<Rightarrow>\<^sub>0 int) \<Rightarrow> ('a \<Rightarrow>\<^sub>0 int)"
   where "frag_cmul c a = Abs_poly_mapping (\<lambda>x. c * Poly_Mapping.lookup a x)"
@@ -1636,7 +1602,7 @@ lemma frag_cmul_zero2 [simp]: "frag_cmul c 0 = 0"
   by (simp add: frag_cmul_def)
 
 lemma frag_cmul_one [simp]: "frag_cmul 1 x = x"
-  by (auto simp: frag_cmul_def Poly_Mapping.poly_mapping.lookup_inverse)
+  by (simp add: frag_cmul_def)
 
 lemma frag_cmul_minus_one [simp]: "frag_cmul (-1) x = -x"
   by (simp add: frag_cmul_def uminus_poly_mapping_def poly_mapping_eqI)
@@ -1684,13 +1650,7 @@ lemma frag_cmul_distrib: "frag_cmul (c+d) a = frag_cmul c a + frag_cmul d a"
   by (simp add: frag_cmul_def plus_poly_mapping_def int_distrib)
 
 lemma frag_cmul_distrib2: "frag_cmul c (a+b) = frag_cmul c a + frag_cmul c b"
-proof -
-  have "finite {x. poly_mapping.lookup a x + poly_mapping.lookup b x \<noteq> 0}"
-    using keys_add [of a b]
-    by (metis (no_types, lifting) finite_keys finite_subset keys.rep_eq lookup_add mem_Collect_eq subsetI)
-  then show ?thesis
-    by (simp add: frag_cmul_def plus_poly_mapping_def int_distrib)
-qed
+  by (simp add: int_distrib(2) lookup_add poly_mapping_eqI)
 
 lemma frag_cmul_diff_distrib: "frag_cmul (a - b) c = frag_cmul a c - frag_cmul b c"
   by (auto simp: left_diff_distrib lookup_minus poly_mapping_eqI)
