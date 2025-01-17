@@ -7,10 +7,10 @@ Importer data.
 
 signature IMPORT_DATA =
 sig
-  val get_const_map : string -> theory -> string option
-  val get_typ_map : string -> theory -> string option
-  val get_const_def : string -> theory -> thm option
-  val get_typ_def : string -> theory -> thm option
+  val get_const_map : theory -> string -> string option
+  val get_typ_map : theory -> string -> string option
+  val get_const_def : theory -> string -> thm option
+  val get_typ_def : theory -> string -> thm option
 
   val add_const_map : string -> string -> theory -> theory
   val add_const_map_cmd : string -> string -> theory -> theory
@@ -37,13 +37,13 @@ structure Data = Theory_Data
     }
 )
 
-fun get_const_map s thy = Symtab.lookup (#const_map (Data.get thy)) s
+val get_const_map = Symtab.lookup o #const_map o Data.get
 
-fun get_typ_map s thy = Symtab.lookup (#ty_map (Data.get thy)) s
+val get_typ_map = Symtab.lookup o #ty_map o Data.get
 
-fun get_const_def s thy = Symtab.lookup (#const_def (Data.get thy)) s
+val get_const_def = Symtab.lookup o #const_def o Data.get
 
-fun get_typ_def s thy = Symtab.lookup (#ty_def (Data.get thy)) s
+val get_typ_def = Symtab.lookup o #ty_def o Data.get
 
 fun add_const_map s1 s2 thy =
   Data.map (fn {const_map, ty_map, const_def, ty_def} =>

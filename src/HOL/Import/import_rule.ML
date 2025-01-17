@@ -18,12 +18,12 @@ sig
   val conj2 : thm -> thm
   val refl : cterm -> thm
   val abs : cterm -> thm -> thm
-  val mdef : string -> theory -> thm
+  val mdef : theory -> string -> thm
   val def : string -> cterm -> theory -> thm * theory
-  val mtydef : string -> theory -> thm
+  val mtydef : theory -> string -> thm
   val tydef :
     string -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
-  val inst_type : (ctyp * ctyp) list -> thm -> theory -> thm
+  val inst_type : theory -> (ctyp * ctyp) list -> thm -> thm
   val inst : (cterm * cterm) list -> thm -> thm
 
   type state
@@ -178,18 +178,18 @@ fun def' constname rhs thy =
     (meta_eq_to_obj_eq def_thm, thy2)
   end
 
-fun mdef name thy =
-  case Import_Data.get_const_def name thy of
+fun mdef thy name =
+  case Import_Data.get_const_def thy name of
     SOME th => th
   | NONE => error ("constant mapped but no definition: " ^ name)
 
 fun def constname rhs thy =
-  case Import_Data.get_const_def constname thy of
+  case Import_Data.get_const_def thy constname of
     SOME _ =>
       let
         val () = warning ("Const mapped but def provided: " ^ constname)
       in
-        (mdef constname thy, thy)
+        (mdef thy constname, thy)
       end
   | NONE => def' constname rhs thy
 
@@ -199,7 +199,7 @@ fun typedef_hol2hollight nty oty rep abs pred a r =
         by (metis type_definition.Rep_inverse type_definition.Abs_inverse
               type_definition.Rep mem_Collect_eq)}
 
-fun typedef_hollight th thy =
+fun typedef_hollight thy th =
   let
     val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
@@ -248,22 +248,22 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     (th4, thy')
   end
 
-fun mtydef name thy =
-  case Import_Data.get_typ_def name thy of
-    SOME thn => meta_mp (typedef_hollight thn thy) thn
+fun mtydef thy name =
+  case Import_Data.get_typ_def thy name of
+    SOME thn => meta_mp (typedef_hollight thy thn) thn
   | NONE => error ("type mapped but no tydef thm registered: " ^ name)
 
 fun tydef tycname abs_name rep_name P t td_th thy =
-  case Import_Data.get_typ_def tycname thy of
+  case Import_Data.get_typ_def thy tycname of
     SOME _ =>
       let
         val () = warning ("Type mapped but proofs provided: " ^ tycname)
       in
-        (mtydef tycname thy, thy)
+        (mtydef thy tycname, thy)
       end
   | NONE => tydef' tycname abs_name rep_name P t td_th thy
 
-fun inst_type lambda th thy =
+fun inst_type thy lambda th =
   let
     fun assoc _ [] = error "assoc"
       | assoc x ((x',y)::rest) = if x = x' then y else assoc x rest
@@ -300,13 +300,13 @@ fun make_tfree a =
 fun make_const thy (c, ty) =
   let
     val d =
-      (case Import_Data.get_const_map c thy of
+      (case Import_Data.get_const_map thy c of
         SOME d => d
       | NONE => Sign.full_name thy (Binding.name (make_name c)))
   in Const (d, ty) end
 
-fun gettyname s thy =
-  case Import_Data.get_typ_map s thy of
+fun gettyname thy s =
+  case Import_Data.get_typ_map thy s of
     SOME s => s
   | NONE => Sign.full_name thy (Binding.name s)
 
@@ -393,7 +393,7 @@ fun process_line str tstate =
             val (th, tstate) = getth th (thy, state)
             val (tys, tstate) = fold_map getty tys tstate
           in
-            setth (inst_type (pairList tys) th thy) tstate
+            setth (inst_type thy (pairList tys) th) tstate
           end
       | process tstate (#"S", l) =
           let
@@ -410,7 +410,7 @@ fun process_line str tstate =
           in
             setth th (thy, state)
           end
-      | process (thy, state) (#"F", [name]) = setth (mdef name thy) (thy, state)
+      | process (thy, state) (#"F", [name]) = setth (mdef thy name) (thy, state)
       | process tstate (#"Y", [name, absname, repname, t1, t2, th]) =
           let
             val (th, tstate) = getth th tstate
@@ -420,12 +420,12 @@ fun process_line str tstate =
           in
             setth th (thy, state)
           end
-      | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef name thy) (thy, state)
+      | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef thy name) (thy, state)
       | process (thy, state) (#"t", [n]) =
           setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
-            (fn tys => Thm.global_ctyp_of thy (Type (gettyname n thy, map Thm.typ_of tys))) |-> setty
+            (fn tys => Thm.global_ctyp_of thy (Type (gettyname thy n, map Thm.typ_of tys))) |-> setty
       | process (thy, state) (#"v", [n, ty]) =
           getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm
       | process (thy, state) (#"c", [n, ty]) =
