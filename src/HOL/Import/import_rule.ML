@@ -219,7 +219,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val th2 = meta_mp nonempty td_th
     val c =
       case Thm.concl_of th2 of
-        _ $ (Const(\<^const_name>\<open>Ex\<close>,_) $ Abs(_,_,Const(\<^const_name>\<open>Set.member\<close>,_) $ _ $ c)) => c
+        \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
       | _ => error "type_introduction: bad type definition theorem"
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
