@@ -49,6 +49,7 @@ sig
   val dest_abs_fresh: string -> cterm -> cterm * cterm
   val dest_abs_global: cterm -> cterm * cterm
   val rename_tvar: indexname -> ctyp -> ctyp
+  val free: string * ctyp -> cterm
   val var: indexname * ctyp -> cterm
   val apply: cterm -> cterm -> cterm
   val lambda_name: string * cterm -> cterm -> cterm
@@ -339,6 +340,9 @@ fun rename_tvar (a, i) (Ctyp {cert, T, maxidx, sorts}) =
       | _ => raise TYPE ("rename_tvar: no variable", [T], []));
     val _ = if i < 0 then raise TYPE ("rename_tvar: bad index", [TVar ((a, i), S)], []) else ();
   in Ctyp {cert = cert, T = TVar ((a, i), S), maxidx = Int.max (i, maxidx), sorts = sorts} end;
+
+fun free (x, Ctyp {cert, T, maxidx, sorts}) =
+  Cterm {cert = cert, t = Free (x, T), T = T, maxidx = maxidx, sorts = sorts};
 
 fun var ((x, i), Ctyp {cert, T, maxidx, sorts}) =
   if i < 0 then raise TERM ("var: bad index", [Var ((x, i), T)])

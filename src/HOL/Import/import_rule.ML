@@ -198,9 +198,7 @@ fun typedef_hollight thy th =
     val P = Thm.dest_arg cn
     val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
   in
-    typedef_hol2hollight nty oty rept abst P
-      (Thm.global_cterm_of thy (Free ("a", Thm.typ_of nty)))
-      (Thm.global_cterm_of thy (Free ("r", Thm.typ_of oty)))
+    typedef_hol2hollight nty oty rept abst P (Thm.free ("a", nty)) (Thm.free ("r", oty))
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
@@ -224,19 +222,16 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
      (Typedef.add_typedef {overloaded = false}
        (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
        (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1)) thy
-    val aty = #abs_type (#1 typedef_info)
+    val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
     val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
     val typedef_th =
-      typedef_hol2hollight nty oty rept abst cP
-        (Thm.global_cterm_of thy' (Free ("a", aty)))
-        (Thm.global_cterm_of thy' (Free ("r", Thm.typ_of ctT)))
-    val th4 = typedef_th OF [#type_definition (#2 typedef_info)]
+      typedef_hol2hollight nty oty rept abst cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
   in
-    (th4, thy')
+    (typedef_th OF [#type_definition (#2 typedef_info)], thy')
   end
 
 fun mtydef thy name =
