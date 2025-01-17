@@ -1985,6 +1985,9 @@ next
   finally show ?thesis .
 qed
 
+lemma exp_gt_self: "x < exp (x::real)"
+  using exp_gt_zero ln_less_self by fastforce
+
 lemma ln_one_plus_pos_lower_bound:
   fixes x :: real
   assumes a: "0 \<le> x" and b: "x \<le> 1"
