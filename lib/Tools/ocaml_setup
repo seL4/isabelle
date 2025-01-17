@@ -2,20 +2,6 @@
 #
 # Author: Makarius
 #
-# DESCRIPTION: setup OCaml via OPAM
+# DESCRIPTION: setup OCaml for Isabelle via OPAM
 
-set -e
-
-if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]
-then
-  isabelle_opam switch -y "$ISABELLE_OCAML_VERSION"
-elif [ -e "$ISABELLE_OPAM_ROOT/config" ]
-then
-  isabelle_opam switch create -y "$ISABELLE_OCAML_VERSION"
-else
-  mkdir -p "$ISABELLE_OPAM_ROOT"
-  cd "$ISABELLE_OPAM_ROOT"
-  isabelle_opam init -y --disable-sandboxing --no-setup --compiler="$ISABELLE_OCAML_VERSION"
-fi
-
-isabelle_opam install -y zarith
+isabelle ocaml_setup_base && isabelle_opam install -y zarith

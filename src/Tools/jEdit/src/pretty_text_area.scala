@@ -45,6 +45,8 @@ object Pretty_Text_Area {
         .replace('\t',' ')
 
     lazy val gui_text: String = Library.string_builder(line_range.length * 2) { s =>
+      val style = GUI.Style_HTML
+
       // see also HyperSearchResults.highlightString
       s ++= "<html><b>"
       s ++= line.toString
@@ -58,15 +60,15 @@ object Pretty_Text_Area {
       var last = plain_start
       for (range <- JEdit_Lib.search_text(buffer, search_range, regex)) {
         val next = range.start - line_start
-        if (last < next) s ++= line_text.substring(last, next)
+        if (last < next) s ++= style.make_text(line_text.substring(last, next))
         s ++= "<span style=\""
         s ++= highlight_style
         s ++= "\">"
-        s ++= line_text.substring(next, next + range.length)
+        s ++= style.make_text(line_text.substring(next, next + range.length))
         s ++= "</span>"
         last = range.stop - line_start
       }
-      if (last < plain_stop) s ++= line_text.substring(last)
+      if (last < plain_stop) s ++= style.make_text(line_text.substring(last))
       s ++= "</html>"
     }
     override def toString: String = gui_text

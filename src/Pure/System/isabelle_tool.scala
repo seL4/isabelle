@@ -180,6 +180,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_Elm.isabelle_tool,
   Component_Foiltex.isabelle_tool,
   Component_Fonts.isabelle_tool,
+  Component_HOL_Light.isabelle_tool,
   Component_Hugo.isabelle_tool,
   Component_Javamail.isabelle_tool,
   Component_JCEF.isabelle_tool,

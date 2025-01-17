@@ -495,13 +495,24 @@ object Isabelle_System {
   }
 
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
-    with_tmp_file("patch") { patch =>
+    val lines =
       Isabelle_System.bash(
-        "diff -ru " + diff_options + " -- " + File.bash_path(src) + " " + File.bash_path(dst) +
-          " > " + File.bash_path(patch),
-        cwd = base_dir).check_rc(_ <= 1)
-      File.read(patch)
-    }
+        "diff -Nru" + if_proper(diff_options, " " + diff_options) + " -- " +
+          File.bash_path(src) + " " + File.bash_path(dst),
+        cwd = base_dir).check_rc(Process_Result.RC.regular).out_lines
+    Library.terminate_lines(lines)
+  }
+
+  def git_clone(url: String, target: Path,
+    checkout: String = "HEAD",
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Unit = {
+    progress.echo("Cloning " + quote(url) + " ...")
+    bash(
+      "git clone --quiet --no-checkout " + Bash.string(url) + " . && " +
+      "git checkout --quiet --detach " + Bash.string(checkout),
+      ssh = ssh, cwd = ssh.make_directory(target)).check
   }
 
   def open(arg: String): Unit =

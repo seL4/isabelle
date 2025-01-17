@@ -27,6 +27,7 @@ sources = \
   src/Pure/Admin/component_eptcs.scala \
   src/Pure/Admin/component_foiltex.scala \
   src/Pure/Admin/component_fonts.scala \
+  src/Pure/Admin/component_hol_light.scala \
   src/Pure/Admin/component_hugo.scala \
   src/Pure/Admin/component_javamail.scala \
   src/Pure/Admin/component_jcef.scala \
