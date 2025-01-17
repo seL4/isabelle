@@ -315,13 +315,13 @@ fun get (map, no) s =
       NONE => error "Import_Rule.get: lookup failed"
     | SOME res => (res, (if i < 0 then Inttab.delete (Int.abs i) map else map, no)))
 
-fun getty i (thy, (tyi, tmi, thi)) = let val (i, tyi) = (get tyi i) in (i, (thy, (tyi, tmi, thi))) end
-fun gettm i (thy, (tyi, tmi, thi)) = let val (i, tmi) = (get tmi i) in (i, (thy, (tyi, tmi, thi))) end
-fun getth i (thy, (tyi, tmi, thi)) = let val (i, thi) = (get thi i) in (i, (thy, (tyi, tmi, thi))) end
+fun typ i (thy, (tyi, tmi, thi)) = let val (i, tyi) = (get tyi i) in (i, (thy, (tyi, tmi, thi))) end
+fun term i (thy, (tyi, tmi, thi)) = let val (i, tmi) = (get tmi i) in (i, (thy, (tyi, tmi, thi))) end
+fun thm i (thy, (tyi, tmi, thi)) = let val (i, thi) = (get thi i) in (i, (thy, (tyi, tmi, thi))) end
 fun set (map, no) v = (Inttab.update_new (no + 1, v) map, no + 1)
-fun setty v (thy, (tyi, tmi, thi)) = (thy, (set tyi v, tmi, thi))
-fun settm v (thy, (tyi, tmi, thi)) = (thy, (tyi, set tmi v, thi))
-fun setth v (thy, (tyi, tmi, thi)) = (thy, (tyi, tmi, set thi v))
+fun set_typ v (thy, (tyi, tmi, thi)) = (thy, (set tyi v, tmi, thi))
+fun set_term v (thy, (tyi, tmi, thi)) = (thy, (tyi, set tmi v, thi))
+fun set_thm v (thy, (tyi, tmi, thi)) = (thy, (tyi, tmi, set thi v))
 
 fun last_thm (_, _, (map, no)) =
   case Inttab.lookup map no of
@@ -359,71 +359,71 @@ fun parse_line s =
 
 fun process_line str =
   let
-    fun process (#"R", [t]) = gettm t #>> refl #-> setth
-      | process (#"B", [t]) = gettm t #>> beta #-> setth
-      | process (#"1", [th]) = getth th #>> conj1 #-> setth
-      | process (#"2", [th]) = getth th #>> conj2 #-> setth
-      | process (#"H", [t]) = gettm t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Thm.trivial #-> setth
+    fun process (#"R", [t]) = term t #>> refl #-> set_thm
+      | process (#"B", [t]) = term t #>> beta #-> set_thm
+      | process (#"1", [th]) = thm th #>> conj1 #-> set_thm
+      | process (#"2", [th]) = thm th #>> conj2 #-> set_thm
+      | process (#"H", [t]) = term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Thm.trivial #-> set_thm
       | process (#"A", [_, t]) =
-          gettm t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Skip_Proof.make_thm_cterm #-> setth
-      | process (#"C", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry comb #-> setth
-      | process (#"T", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry trans #-> setth
-      | process (#"E", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry eq_mp #-> setth
-      | process (#"D", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry deduct #-> setth
-      | process (#"L", [t, th]) = gettm t ##>> (fn ti => getth th ti) #>> uncurry abs #-> setth
+          term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Skip_Proof.make_thm_cterm #-> set_thm
+      | process (#"C", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry comb #-> set_thm
+      | process (#"T", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry trans #-> set_thm
+      | process (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
+      | process (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
+      | process (#"L", [t, th]) = term t ##>> (fn ti => thm th ti) #>> uncurry abs #-> set_thm
       | process (#"M", [s]) = (fn (thy, state) =>
           let
             val ctxt = Proof_Context.init_global thy
             val th = freezeT thy (Global_Theory.get_thm thy s)
             val ((_, [th']), _) = Variable.import true [th] ctxt
           in
-            setth th' (thy, state)
+            set_thm th' (thy, state)
           end)
       | process (#"Q", l) = (fn (thy, state) =>
           let
             val (tys, th) = list_last l
-            val (th, tstate) = getth th (thy, state)
-            val (tys, tstate) = fold_map getty tys tstate
+            val (th, tstate) = thm th (thy, state)
+            val (tys, tstate) = fold_map typ tys tstate
           in
-            setth (inst_type thy (pair_list tys) th) tstate
+            set_thm (inst_type thy (pair_list tys) th) tstate
           end)
       | process (#"S", l) = (fn tstate =>
           let
             val (tms, th) = list_last l
-            val (th, tstate) = getth th tstate
-            val (tms, tstate) = fold_map gettm tms tstate
+            val (th, tstate) = thm th tstate
+            val (tms, tstate) = fold_map term tms tstate
           in
-            setth (inst (pair_list tms) th) tstate
+            set_thm (inst (pair_list tms) th) tstate
           end)
       | process (#"F", [name, t]) = (fn tstate =>
           let
-            val (tm, (thy, state)) = gettm t tstate
+            val (tm, (thy, state)) = term t tstate
             val (th, thy) = def (make_name name) tm thy
           in
-            setth th (thy, state)
+            set_thm th (thy, state)
           end)
-      | process (#"F", [name]) = (fn (thy, state) => setth (mdef thy name) (thy, state))
+      | process (#"F", [name]) = (fn (thy, state) => set_thm (mdef thy name) (thy, state))
       | process (#"Y", [name, absname, repname, t1, t2, th]) = (fn tstate =>
           let
-            val (th, tstate) = getth th tstate
-            val (t1, tstate) = gettm t1 tstate
-            val (t2, (thy, state)) = gettm t2 tstate
+            val (th, tstate) = thm th tstate
+            val (t1, tstate) = term t1 tstate
+            val (t2, (thy, state)) = term t2 tstate
             val (th, thy) = tydef name absname repname t1 t2 th thy
           in
-            setth th (thy, state)
+            set_thm th (thy, state)
           end)
-      | process (#"Y", [name, _, _]) = (fn (thy, state) => setth (mtydef thy name) (thy, state))
+      | process (#"Y", [name, _, _]) = (fn (thy, state) => set_thm (mtydef thy name) (thy, state))
       | process (#"t", [n]) = (fn (thy, state) =>
-          setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state))
+          set_typ (Thm.global_ctyp_of thy (make_tfree n)) (thy, state))
       | process (#"a", n :: l) = (fn (thy, state) =>
-          fold_map getty l (thy, state) |>>
-            (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> setty)
+          fold_map typ l (thy, state) |>>
+            (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> set_typ)
       | process (#"v", [n, ty]) = (fn (thy, state) =>
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm)
+          typ ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> set_term)
       | process (#"c", [n, ty]) = (fn (thy, state) =>
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm)
-      | process (#"f", [t1, t2]) = gettm t1 ##>> gettm t2 #>> uncurry Thm.apply #-> settm
-      | process (#"l", [t1, t2]) = gettm t1 ##>> gettm t2 #>> uncurry Thm.lambda #-> settm
+          typ ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> set_term)
+      | process (#"f", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.apply #-> set_term
+      | process (#"l", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.lambda #-> set_term
       | process (#"+", [s]) = (fn (thy, state) =>
           (store_thm (Binding.name (make_name s)) (last_thm state) thy, state))
       | process (c, _) = error ("process: unknown command: " ^ String.implode [c])
