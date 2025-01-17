@@ -67,13 +67,13 @@ fun add_typ_map_cmd c s thy =
 fun add_const_def c th name_opt thy =
   let
     val th' = Thm.legacy_freezeT th
-    val name =
+    val d =
       (case name_opt of
         NONE => dest_Const_name (#1 (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'))))
-      | SOME name => name)
+      | SOME d => d)
   in
     thy
-    |> add_const_map c name
+    |> add_const_map c d
     |> Data.map (fn {const_map, ty_map, const_def, ty_def} =>
       {const_map = const_map, ty_map = ty_map,
        const_def = (Symtab.update (c, th') const_def), ty_def = ty_def})
