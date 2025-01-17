@@ -82,12 +82,7 @@ fun add_const_def c th name_opt thy =
 fun add_typ_def type_name abs_name rep_name th thy =
   let
     val th' = Thm.legacy_freezeT th
-    val ((_, rep), abs) =
-      Thm.prop_of th'
-      |> HOLogic.dest_Trueprop
-      |> dest_comb |> #1
-      |> dest_comb |>> dest_comb
-    val A = domain_type (fastype_of rep)
+    val \<^Const_>\<open>type_definition A _ for rep abs _\<close> = HOLogic.dest_Trueprop (Thm.prop_of th')
   in
     thy
     |> add_typ_map type_name (dest_Type_name A)
