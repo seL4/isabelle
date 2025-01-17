@@ -187,13 +187,13 @@ fun def' c rhs thy =
 fun mdef thy name =
   case Import_Data.get_const_def thy name of
     SOME th => th
-  | NONE => error ("constant mapped but no definition: " ^ name)
+  | NONE => error ("Constant mapped, but no definition: " ^ quote name)
 
 fun def c rhs thy =
   case Import_Data.get_const_def thy c of
     SOME _ =>
       let
-        val () = warning ("Const mapped but def provided: " ^ c)
+        val () = warning ("Const mapped, but def provided: " ^ quote c)
       in
         (mdef thy c, thy)
       end
@@ -225,7 +225,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val c =
       case Thm.concl_of th2 of
         \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
-      | _ => error "type_introduction: bad type definition theorem"
+      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [th2])
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
     val typedef_bindings =
@@ -252,13 +252,13 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
 fun mtydef thy name =
   case Import_Data.get_typ_def thy name of
     SOME thn => meta_mp (typedef_hollight thy thn) thn
-  | NONE => error ("type mapped but no tydef thm registered: " ^ name)
+  | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name)
 
 fun tydef tycname abs_name rep_name P t td_th thy =
   case Import_Data.get_typ_def thy tycname of
     SOME _ =>
       let
-        val () = warning ("Type mapped but proofs provided: " ^ tycname)
+        val () = warning ("Type mapped but proofs provided: " ^ quote tycname)
       in
         (mtydef thy tycname, thy)
       end
@@ -313,10 +313,10 @@ fun init_state thy = State (thy, (Inttab.empty, 0), (Inttab.empty, 0), (Inttab.e
 
 fun get (tab, no) s =
   (case Int.fromString s of
-    NONE => error "Import_Rule.get: not a number"
+    NONE => raise Fail "get: not a number"
   | SOME i =>
       (case Inttab.lookup tab (Int.abs i) of
-        NONE => error "Import_Rule.get: lookup failed"
+        NONE => raise Fail "get: lookup failed"
       | SOME res => (res, (if i < 0 then Inttab.delete (Int.abs i) tab else tab, no))))
 
 fun get_theory (State (thy, _, _, _)) = thy;
@@ -338,16 +338,16 @@ fun set_thm th (State (thy, a, b, c)) = State (thy, a, b, set c th)
 
 fun last_thm (State (_, _, _, (tab, no))) =
   case Inttab.lookup tab no of
-    NONE => error "Import_Rule.last_thm: lookup failed"
+    NONE => raise Fail "last_thm: lookup failed"
   | SOME th => th
 
 fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
   | list_last [x] = ([], x)
-  | list_last [] = error "list_last: empty"
+  | list_last [] = raise Fail "list_last: empty"
 
 fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
   | pair_list [] = []
-  | pair_list _ = error "pair_list: odd list length"
+  | pair_list _ = raise Fail "pair_list: odd list length"
 
 fun store_thm binding th0 thy =
   let
@@ -364,10 +364,10 @@ fun store_thm binding th0 thy =
 
 fun parse_line s =
   (case String.tokens (fn x => x = #"\n" orelse x = #" ") s of
-    [] => error "parse_line: empty"
+    [] => raise Fail "parse_line: empty"
   | cmd :: args =>
       (case String.explode cmd of
-        [] => error "parse_line: empty command"
+        [] => raise Fail "parse_line: empty command"
       | c :: cs => (c, String.implode cs :: args)))
 
 fun process_line str =
@@ -439,7 +439,7 @@ fun process_line str =
       | process (#"l", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.lambda #-> set_term
       | process (#"+", [s]) = (fn state =>
           map_theory (store_thm (Binding.name (make_name s)) (last_thm state)) state)
-      | process (c, _) = error ("process: unknown command: " ^ String.implode [c])
+      | process (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
   in
     process (parse_line str)
   end
