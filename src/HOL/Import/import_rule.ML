@@ -353,14 +353,6 @@ fun store_thm binding thm thy =
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
   end
 
-fun log_timestamp () =
-  let
-    val time = Time.now ()
-    val millis = nth (space_explode "." (Time.fmt 3 time)) 1
-  in
-    Date.fmt "%d.%m.%Y %H:%M:%S." (Date.fromTimeLocal time) ^ millis
-  end
-
 fun process_line str tstate =
   let
     fun process tstate (#"R", [t]) = gettm t tstate |>> refl |-> setth
