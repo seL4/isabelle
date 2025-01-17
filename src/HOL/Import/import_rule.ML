@@ -25,11 +25,7 @@ sig
     string -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
   val inst_type : theory -> (ctyp * ctyp) list -> thm -> thm
   val inst : (cterm * cterm) list -> thm -> thm
-
-  type state
-  val init_state : state
-  val process_line : string -> (theory * state) -> (theory * state)
-  val process_file : Path.T -> theory -> theory
+  val import_file : Path.T -> theory -> theory
 end
 
 structure Import_Rule: IMPORT_RULE =
@@ -353,7 +349,15 @@ fun store_thm binding thm thy =
     snd (Global_Theory.add_thm ((binding, thm'), []) thy)
   end
 
-fun process_line str tstate =
+fun parse_line s =
+  (case String.tokens (fn x => x = #"\n" orelse x = #" ") s of
+    [] => error "parse_line: empty"
+  | cmd :: args =>
+      (case String.explode cmd of
+        [] => error "parse_line: empty command"
+      | c :: cs => (c, String.implode cs :: args)))
+
+fun process_line str =
   let
     fun process tstate (#"R", [t]) = gettm t tstate |>> refl |-> setth
       | process tstate (#"B", [t]) = gettm t tstate |>> beta |-> setth
@@ -431,18 +435,11 @@ fun process_line str tstate =
       | process (thy, state) (#"+", [s]) =
           (store_thm (Binding.name (make_name s)) (last_thm state) thy, state)
       | process _ (c, _) = error ("process: unknown command: " ^ String.implode [c])
-
-    fun parse_line s =
-        case String.tokens (fn x => (x = #"\n" orelse x = #" ")) s of
-          [] => error "parse_line: empty"
-        | h :: t => (case String.explode h of
-            [] => error "parse_line: empty command"
-          | sh :: st => (sh, (String.implode st) :: t))
   in
-    process tstate (parse_line str)
+    fn tstate => process tstate (parse_line str)
   end
 
-fun process_file path0 thy =
+fun import_file path0 thy =
   let
     val path = File.absolute_path (Resources.master_directory thy + path0)
     val lines =
@@ -450,8 +447,8 @@ fun process_file path0 thy =
       else File.read_lines path
   in #1 (fold process_line lines (thy, init_state)) end
 
-val _ = Outer_Syntax.command \<^command_keyword>\<open>import_file\<close>
-  "import a recorded proof file"
-  (Parse.path >> (fn name => Toplevel.theory (fn thy => process_file (Path.explode name) thy)))
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>import_file\<close> "import recorded proofs from HOL Light"
+    (Parse.path >> (fn name => Toplevel.theory (fn thy => import_file (Path.explode name) thy)))
 
 end
