@@ -153,22 +153,22 @@ fun abs cv th =
     meta_mp i th4
   end
 
-fun freezeT thy thm =
+fun freezeT thy th =
   let
-    val tvars = Term.add_tvars (Thm.prop_of thm) []
+    val tvars = Term.add_tvars (Thm.prop_of th) []
     val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
   in
-    Thm.instantiate (TVars.make (tvars ~~ map (Thm.global_ctyp_of thy) tfrees), Vars.empty) thm
+    Thm.instantiate (TVars.make (tvars ~~ map (Thm.global_ctyp_of thy) tfrees), Vars.empty) th
   end
 
 fun def' c rhs thy =
   let
     val b = Binding.name c
-    val typ = type_of rhs
-    val thy1 = Sign.add_consts [(b, typ, NoSyn)] thy
-    val eq = Logic.mk_equals (Const (Sign.full_name thy1 b, typ), rhs)
-    val (thm, thy2) = Global_Theory.add_def (Binding.suffix_name "_hldef" b, eq) thy1
-    val def_thm = freezeT thy1 thm
+    val ty = type_of rhs
+    val thy1 = Sign.add_consts [(b, ty, NoSyn)] thy
+    val eq = Logic.mk_equals (Const (Sign.full_name thy1 b, ty), rhs)
+    val (th, thy2) = Global_Theory.add_def (Binding.suffix_name "_hldef" b, eq) thy1
+    val def_thm = freezeT thy1 th
   in
     (meta_eq_to_obj_eq def_thm, thy2)
   end
@@ -326,7 +326,7 @@ fun setth v (thy, (tyi, tmi, thi)) = (thy, (tyi, tmi, set thi v))
 fun last_thm (_, _, (map, no)) =
   case Inttab.lookup map no of
     NONE => error "Import_Rule.last_thm: lookup failed"
-  | SOME thm => thm
+  | SOME th => th
 
 fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
   | list_last [x] = ([], x)
@@ -336,17 +336,17 @@ fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
   | pair_list [] = []
   | pair_list _ = error "pair_list: odd list length"
 
-fun store_thm binding thm thy =
+fun store_thm binding th0 thy =
   let
     val ctxt = Proof_Context.init_global thy
-    val thm = Drule.export_without_context_open thm
-    val tvs = Term.add_tvars (Thm.prop_of thm) []
+    val th = Drule.export_without_context_open th0
+    val tvs = Term.add_tvars (Thm.prop_of th) []
     val tns = map (fn (_, _) => "'") tvs
     val nms = Name.variants (Variable.names_of ctxt) tns
     val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val thm' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) thm
+    val th' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) th
   in
-    snd (Global_Theory.add_thm ((binding, thm'), []) thy)
+    snd (Global_Theory.add_thm ((binding, th'), []) thy)
   end
 
 fun parse_line s =
@@ -374,8 +374,8 @@ fun process_line str =
       | process (#"M", [s]) = (fn (thy, state) =>
           let
             val ctxt = Proof_Context.init_global thy
-            val thm = freezeT thy (Global_Theory.get_thm thy s)
-            val ((_, [th']), _) = Variable.import true [thm] ctxt
+            val th = freezeT thy (Global_Theory.get_thm thy s)
+            val ((_, [th']), _) = Variable.import true [th] ctxt
           in
             setth th' (thy, state)
           end)
