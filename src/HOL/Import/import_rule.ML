@@ -302,7 +302,7 @@ fun make_type thy (c, args) =
     val d =
       (case Import_Data.get_typ_map thy c of
         SOME d => d
-      | NONE => Sign.full_name thy (Binding.name c))
+      | NONE => Sign.full_name thy (Binding.name (make_name c)))
   in Type (d, args) end
 
 fun make_const thy (c, ty) =
