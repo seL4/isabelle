@@ -328,13 +328,13 @@ fun last_thm (_, _, (map, no)) =
     NONE => error "Import_Rule.last_thm: lookup failed"
   | SOME thm => thm
 
-fun listLast (h1 :: (h2 :: t)) = apfst (fn t => h1 :: h2 :: t) (listLast t)
-  | listLast [p] = ([], p)
-  | listLast [] = error "listLast: empty"
+fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
+  | list_last [x] = ([], x)
+  | list_last [] = error "list_last: empty"
 
-fun pairList (h1 :: (h2 :: t)) = ((h1, h2) :: pairList t)
-  | pairList [] = []
-  | pairList _ = error "pairList: odd list length"
+fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
+  | pair_list [] = []
+  | pair_list _ = error "pair_list: odd list length"
 
 fun store_thm binding thm thy =
   let
@@ -387,19 +387,19 @@ fun process_line str =
           end
       | process (#"Q", l) (thy, state) =
           let
-            val (tys, th) = listLast l
+            val (tys, th) = list_last l
             val (th, tstate) = getth th (thy, state)
             val (tys, tstate) = fold_map getty tys tstate
           in
-            setth (inst_type thy (pairList tys) th) tstate
+            setth (inst_type thy (pair_list tys) th) tstate
           end
       | process (#"S", l) tstate =
           let
-            val (tms, th) = listLast l
+            val (tms, th) = list_last l
             val (th, tstate) = getth th tstate
             val (tms, tstate) = fold_map gettm tms tstate
           in
-            setth (inst (pairList tms) th) tstate
+            setth (inst (pair_list tms) th) tstate
           end
       | process (#"F", [name, t]) tstate =
           let
