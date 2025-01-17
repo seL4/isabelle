@@ -886,7 +886,7 @@ val _ = Theory.setup
         make_destination = fn p => p + Path.explode "ROOT.ml"
           (*extension demanded by OCaml compiler*),
         make_command = fn _ =>
-          "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg ROOT.ml </dev/null"},
+          "\"$ISABELLE_OCAMLFIND\" ocamlopt -w -p-u -package zarith -linkpkg ROOT.ml </dev/null"},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))

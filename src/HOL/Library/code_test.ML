@@ -426,7 +426,7 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
     val _ = List.app (File.write code_path o snd) code_files
     val _ = File.write driver_path driver
     val cmd =
-      "\"$ISABELLE_OCAMLFIND\" ocamlopt -w pu -package zarith -linkpkg" ^
+      "\"$ISABELLE_OCAMLFIND\" ocamlopt -w -p-u -package zarith -linkpkg" ^
       " -o " ^ File.bash_path compiled_path ^ " -I " ^ File.bash_path dir ^ " " ^
       File.bash_path code_path ^ " " ^ File.bash_path driver_path ^ " </dev/null"
   in compile compiler cmd; evaluate compiler (File.bash_path compiled_path) end
