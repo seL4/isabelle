@@ -53,7 +53,7 @@ fun add_const_map s1 s2 thy =
 fun add_const_map_cmd s1 raw_s2 thy =
   let
     val ctxt = Proof_Context.init_global thy
-    val Const (s2, _) = Proof_Context.read_const {proper = true, strict = false} ctxt raw_s2
+    val s2 = dest_Const_name (Proof_Context.read_const {proper = true, strict = false} ctxt raw_s2)
   in add_const_map s1 s2 thy end
 
 fun add_typ_map s1 s2 thy =
@@ -64,7 +64,7 @@ fun add_typ_map s1 s2 thy =
 fun add_typ_map_cmd s1 raw_s2 thy =
   let
     val ctxt = Proof_Context.init_global thy
-    val Type (s2, _) = Proof_Context.read_type_name {proper = true, strict = false} ctxt raw_s2
+    val s2 = dest_Type_name (Proof_Context.read_type_name {proper = true, strict = false} ctxt raw_s2)
   in add_typ_map s1 s2 thy end
 
 fun add_const_def s th name_opt thy =
