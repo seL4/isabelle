@@ -151,10 +151,13 @@ fun abs cv th =
 
 fun freezeT thy th =
   let
-    val tvars = Term.add_tvars (Thm.prop_of th) []
-    val tfrees = map (fn ((t, _), s) => TFree (t, s)) tvars
+    fun add (v as ((a, _), S)) tvars =
+      if TVars.defined tvars v then tvars
+      else TVars.add (v, Thm.global_ctyp_of thy (TFree (a, S))) tvars
+    val tyinst =
+      TVars.build (Thm.prop_of th |> (fold_types o fold_atyps) (fn TVar v => add v | _ => I))
   in
-    Thm.instantiate (TVars.make (tvars ~~ map (Thm.global_ctyp_of thy) tfrees), Vars.empty) th
+    Thm.instantiate (tyinst, Vars.empty) th
   end
 
 fun def' c rhs thy =
