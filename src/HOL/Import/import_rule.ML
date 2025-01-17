@@ -31,9 +31,9 @@ end
 structure Import_Rule: IMPORT_RULE =
 struct
 
-val init_state = ((Inttab.empty, 0), (Inttab.empty, 0), (Inttab.empty, 0))
-
 type state = (ctyp Inttab.table * int) * (cterm Inttab.table * int) * (thm Inttab.table * int)
+
+val init_state: state = ((Inttab.empty, 0), (Inttab.empty, 0), (Inttab.empty, 0))
 
 fun implies_elim_all th = implies_elim_list th (map Thm.assume (cprems_of th))
 
@@ -359,25 +359,25 @@ fun parse_line s =
 
 fun process_line str =
   let
-    fun process tstate (#"R", [t]) = gettm t tstate |>> refl |-> setth
-      | process tstate (#"B", [t]) = gettm t tstate |>> beta |-> setth
-      | process tstate (#"1", [th]) = getth th tstate |>> conj1 |-> setth
-      | process tstate (#"2", [th]) = getth th tstate |>> conj2 |-> setth
-      | process tstate (#"H", [t]) =
+    fun process (#"R", [t]) tstate = gettm t tstate |>> refl |-> setth
+      | process (#"B", [t]) tstate = gettm t tstate |>> beta |-> setth
+      | process (#"1", [th]) tstate = getth th tstate |>> conj1 |-> setth
+      | process (#"2", [th]) tstate = getth th tstate |>> conj2 |-> setth
+      | process (#"H", [t]) tstate =
           gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Thm.trivial |-> setth
-      | process tstate (#"A", [_, t]) =
+      | process (#"A", [_, t]) tstate =
           gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Skip_Proof.make_thm_cterm |-> setth
-      | process tstate (#"C", [th1, th2]) =
+      | process (#"C", [th1, th2]) tstate =
           getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => comb t1 t2) |-> setth
-      | process tstate (#"T", [th1, th2]) =
+      | process (#"T", [th1, th2]) tstate =
           getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => trans t1 t2) |-> setth
-      | process tstate (#"E", [th1, th2]) =
+      | process (#"E", [th1, th2]) tstate =
           getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => eq_mp t1 t2) |-> setth
-      | process tstate (#"D", [th1, th2]) =
+      | process (#"D", [th1, th2]) tstate =
           getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => deduct t1 t2) |-> setth
-      | process tstate (#"L", [t, th]) =
+      | process (#"L", [t, th]) tstate =
           gettm t tstate ||>> (fn ti => getth th ti) |>> (fn (tm, th) => abs tm th) |-> setth
-      | process (thy, state) (#"M", [s]) =
+      | process (#"M", [s]) (thy, state) =
           let
             val ctxt = Proof_Context.init_global thy
             val thm = freezeT thy (Global_Theory.get_thm thy s)
@@ -385,7 +385,7 @@ fun process_line str =
           in
             setth th' (thy, state)
           end
-      | process (thy, state) (#"Q", l) =
+      | process (#"Q", l) (thy, state) =
           let
             val (tys, th) = listLast l
             val (th, tstate) = getth th (thy, state)
@@ -393,7 +393,7 @@ fun process_line str =
           in
             setth (inst_type thy (pairList tys) th) tstate
           end
-      | process tstate (#"S", l) =
+      | process (#"S", l) tstate =
           let
             val (tms, th) = listLast l
             val (th, tstate) = getth th tstate
@@ -401,15 +401,15 @@ fun process_line str =
           in
             setth (inst (pairList tms) th) tstate
           end
-      | process tstate (#"F", [name, t]) =
+      | process (#"F", [name, t]) tstate =
           let
             val (tm, (thy, state)) = gettm t tstate
             val (th, thy) = def (make_name name) tm thy
           in
             setth th (thy, state)
           end
-      | process (thy, state) (#"F", [name]) = setth (mdef thy name) (thy, state)
-      | process tstate (#"Y", [name, absname, repname, t1, t2, th]) =
+      | process (#"F", [name]) (thy, state) = setth (mdef thy name) (thy, state)
+      | process (#"Y", [name, absname, repname, t1, t2, th]) tstate =
           let
             val (th, tstate) = getth th tstate
             val (t1, tstate) = gettm t1 tstate
@@ -418,25 +418,25 @@ fun process_line str =
           in
             setth th (thy, state)
           end
-      | process (thy, state) (#"Y", [name, _, _]) = setth (mtydef thy name) (thy, state)
-      | process (thy, state) (#"t", [n]) =
+      | process (#"Y", [name, _, _]) (thy, state) = setth (mtydef thy name) (thy, state)
+      | process (#"t", [n]) (thy, state) =
           setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state)
-      | process (thy, state) (#"a", n :: l) =
+      | process (#"a", n :: l) (thy, state) =
           fold_map getty l (thy, state) |>>
             (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> setty
-      | process (thy, state) (#"v", [n, ty]) =
+      | process (#"v", [n, ty]) (thy, state) =
           getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm
-      | process (thy, state) (#"c", [n, ty]) =
+      | process (#"c", [n, ty]) (thy, state) =
           getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm
-      | process tstate (#"f", [t1, t2]) =
+      | process (#"f", [t1, t2]) tstate =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.apply t1 t2) |-> settm
-      | process tstate (#"l", [t1, t2]) =
+      | process (#"l", [t1, t2]) tstate =
           gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.lambda t1 t2) |-> settm
-      | process (thy, state) (#"+", [s]) =
+      | process (#"+", [s]) (thy, state) =
           (store_thm (Binding.name (make_name s)) (last_thm state) thy, state)
-      | process _ (c, _) = error ("process: unknown command: " ^ String.implode [c])
+      | process (c, _) _ = error ("process: unknown command: " ^ String.implode [c])
   in
-    fn tstate => process tstate (parse_line str)
+    process (parse_line str)
   end
 
 fun import_file path0 thy =
