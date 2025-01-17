@@ -45,20 +45,19 @@ fun meta_mp th1 th2 =
 
 fun meta_eq_to_obj_eq th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.cconcl_of th)
-    val cty = Thm.ctyp_of_cterm tml
-    val i = Thm.instantiate' [SOME cty] [SOME tml, SOME tmr]
-      @{thm meta_eq_to_obj_eq}
+    val (t, u) = Thm.dest_equals (Thm.cconcl_of th)
+    val A = Thm.ctyp_of_cterm t
+    val rl = Thm.instantiate' [SOME A] [SOME t, SOME u] @{thm meta_eq_to_obj_eq}
   in
-    Thm.implies_elim i th
+    Thm.implies_elim rl th
   end
 
 fun beta ct = meta_eq_to_obj_eq (Thm.beta_conversion false ct)
 
 fun eq_mp th1 th2 =
   let
-    val (tm1l, tm1r) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th1))
-    val i1 = Thm.instantiate' [] [SOME tm1l, SOME tm1r] @{thm iffD1}
+    val (Q, P) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th1))
+    val i1 = Thm.instantiate' [] [SOME Q, SOME P] @{thm iffD1}
     val i2 = meta_mp i1 th1
   in
     meta_mp i2 th2
@@ -66,12 +65,12 @@ fun eq_mp th1 th2 =
 
 fun comb th1 th2 =
   let
-    val t1c = Thm.dest_arg (Thm.cconcl_of th1)
-    val t2c = Thm.dest_arg (Thm.cconcl_of th2)
-    val (cf, cg) = Thm.dest_binop t1c
-    val (cx, cy) = Thm.dest_binop t2c
-    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm cf)
-    val i1 = Thm.instantiate' [SOME A, SOME B] [SOME cf, SOME cg, SOME cx, SOME cy] @{thm cong}
+    val t1 = Thm.dest_arg (Thm.cconcl_of th1)
+    val t2 = Thm.dest_arg (Thm.cconcl_of th2)
+    val (f, g) = Thm.dest_binop t1
+    val (x, y) = Thm.dest_binop t2
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm f)
+    val i1 = Thm.instantiate' [SOME A, SOME B] [SOME f, SOME g, SOME x, SOME y] @{thm cong}
     val i2 = meta_mp i1 th1
   in
     meta_mp i2 th2
@@ -79,10 +78,10 @@ fun comb th1 th2 =
 
 fun trans th1 th2 =
   let
-    val t1c = Thm.dest_arg (Thm.cconcl_of th1)
-    val t2c = Thm.dest_arg (Thm.cconcl_of th2)
-    val (r, s) = Thm.dest_binop t1c
-    val (_, t) = Thm.dest_binop t2c
+    val t1 = Thm.dest_arg (Thm.cconcl_of th1)
+    val t2 = Thm.dest_arg (Thm.cconcl_of th2)
+    val (r, s) = Thm.dest_binop t1
+    val t = Thm.dest_arg t2
     val ty = Thm.ctyp_of_cterm r
     val i1 = Thm.instantiate' [SOME ty] [SOME r, SOME s, SOME t] @{thm trans}
     val i2 = meta_mp i1 th1
@@ -98,8 +97,7 @@ fun deduct th1 th2 =
     val th2a = implies_elim_all th2
     val th1b = Thm.implies_intr th2c th1a
     val th2b = Thm.implies_intr th1c th2a
-    val i = Thm.instantiate' []
-      [SOME (Thm.dest_arg th1c), SOME (Thm.dest_arg th2c)] @{thm iffI}
+    val i = Thm.instantiate' [] [SOME (Thm.dest_arg th1c), SOME (Thm.dest_arg th2c)] @{thm iffI}
     val i1 = Thm.implies_elim i (Thm.assume (Thm.cprop_of th2b))
     val i2 = Thm.implies_elim i1 th1b
     val i3 = Thm.implies_intr (Thm.cprop_of th2b) i2
@@ -110,42 +108,41 @@ fun deduct th1 th2 =
 
 fun conj1 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
-    val i = Thm.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct1}
+    val (P, Q) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
+    val i = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct1}
   in
     meta_mp i th
   end
 
 fun conj2 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
-    val i = Thm.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct2}
+    val (P, Q) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
+    val i = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct2}
   in
     meta_mp i th
   end
 
-fun refl ctm =
-  let
-    val cty = Thm.ctyp_of_cterm ctm
-  in
-    Thm.instantiate' [SOME cty] [SOME ctm] @{thm refl}
-  end
+fun refl t =
+  let val A = Thm.ctyp_of_cterm t
+  in Thm.instantiate' [SOME A] [SOME t] @{thm refl} end
 
-fun abs cv th =
+fun abs x th =
   let
     val th1 = implies_elim_all th
     val (tl, tr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th1))
-    val (ll, lr) = (Thm.lambda cv tl, Thm.lambda cv tr)
-    val (al, ar) = (Thm.apply ll cv, Thm.apply lr cv)
+    val (f, g) = (Thm.lambda x tl, Thm.lambda x tr)
+    val (al, ar) = (Thm.apply f x, Thm.apply g x)
     val bl = beta al
     val br = meta_eq_to_obj_eq (Thm.symmetric (Thm.beta_conversion false ar))
-    val th2 = trans (trans bl th1) br
-    val th3 = implies_elim_all th2
-    val th4 = Thm.forall_intr cv th3
-    val i = Thm.instantiate' [SOME (Thm.ctyp_of_cterm cv), SOME (Thm.ctyp_of_cterm tl)]
-      [SOME ll, SOME lr] @{lemma "(\<And>x. f x = g x) \<Longrightarrow> f = g" by (rule ext)}
+    val th2 =
+      trans (trans bl th1) br
+      |> implies_elim_all
+      |> Thm.forall_intr x
+    val i =
+      Thm.instantiate' [SOME (Thm.ctyp_of_cterm x), SOME (Thm.ctyp_of_cterm tl)]
+        [SOME f, SOME g] @{lemma "(\<And>x. f x = g x) \<Longrightarrow> f = g" by (rule ext)}
   in
-    meta_mp i th4
+    meta_mp i th2
   end
 
 fun freezeT thy th =
@@ -184,9 +181,9 @@ fun def' c rhs thy =
   end
 
 fun mdef thy name =
-  case Import_Data.get_const_def thy name of
+  (case Import_Data.get_const_def thy name of
     SOME th => th
-  | NONE => error ("Constant mapped, but no definition: " ^ quote name)
+  | NONE => error ("Constant mapped, but no definition: " ^ quote name))
 
 fun def c rhs thy =
   if is_some (Import_Data.get_const_def thy c) then
@@ -201,13 +198,13 @@ fun typedef_hol2hollight A B rep abs pred a r =
 
 fun typedef_hollight th =
   let
-    val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
-    val (th_s, abst) = Thm.dest_comb th_s
-    val rept = Thm.dest_arg th_s
-    val P = Thm.dest_arg cn
-    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
+    val ((rep, abs), P) =
+      Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
+      |>> (Thm.dest_comb #>> Thm.dest_arg)
+      ||> Thm.dest_arg
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rep)
   in
-    typedef_hol2hollight A B rept abst P (Thm.free ("a", A)) (Thm.free ("r", B))
+    typedef_hol2hollight A B rep abs P (Thm.free ("a", A)) (Thm.free ("r", B))
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
@@ -217,9 +214,9 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
       @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
     val th2 = meta_mp nonempty td_th
     val c =
-      case Thm.concl_of th2 of
+      (case Thm.concl_of th2 of
         \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
-      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [th2])
+      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [th2]))
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
     val typedef_bindings =
@@ -233,8 +230,8 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
        (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1)) thy
     val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
-    val (th_s, abs) = Thm.dest_comb (#1 (Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))))
-    val rep = Thm.dest_arg th_s
+    val (rep, abs) =
+      Thm.dest_comb (#1 (Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th)))) |>> Thm.dest_arg
     val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rep)
     val typedef_th = typedef_hol2hollight A B rep abs cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
   in
@@ -242,19 +239,14 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
   end
 
 fun mtydef thy name =
-  case Import_Data.get_typ_def thy name of
-    SOME thn => meta_mp (typedef_hollight thn) thn
-  | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name)
+  (case Import_Data.get_typ_def thy name of
+    SOME th => meta_mp (typedef_hollight th) th
+  | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name))
 
 fun tydef tycname abs_name rep_name P t td_th thy =
-  case Import_Data.get_typ_def thy tycname of
-    SOME _ =>
-      let
-        val () = warning ("Type mapped but proofs provided: " ^ quote tycname)
-      in
-        (mtydef thy tycname, thy)
-      end
-  | NONE => tydef' tycname abs_name rep_name P t td_th thy
+  if is_some (Import_Data.get_typ_def thy tycname) then
+    (warning ("Type mapped but proofs provided: " ^ quote tycname); (mtydef thy tycname, thy))
+  else tydef' tycname abs_name rep_name P t td_th thy
 
 fun inst_type lambda =
   let
