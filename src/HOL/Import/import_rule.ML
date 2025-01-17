@@ -359,57 +359,51 @@ fun parse_line s =
 
 fun process_line str =
   let
-    fun process (#"R", [t]) tstate = gettm t tstate |>> refl |-> setth
-      | process (#"B", [t]) tstate = gettm t tstate |>> beta |-> setth
-      | process (#"1", [th]) tstate = getth th tstate |>> conj1 |-> setth
-      | process (#"2", [th]) tstate = getth th tstate |>> conj2 |-> setth
-      | process (#"H", [t]) tstate =
-          gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Thm.trivial |-> setth
-      | process (#"A", [_, t]) tstate =
-          gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Skip_Proof.make_thm_cterm |-> setth
-      | process (#"C", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> uncurry comb |-> setth
-      | process (#"T", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> uncurry trans |-> setth
-      | process (#"E", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> uncurry eq_mp |-> setth
-      | process (#"D", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> uncurry deduct |-> setth
-      | process (#"L", [t, th]) tstate =
-          gettm t tstate ||>> (fn ti => getth th ti) |>> uncurry abs |-> setth
-      | process (#"M", [s]) (thy, state) =
+    fun process (#"R", [t]) = gettm t #>> refl #-> setth
+      | process (#"B", [t]) = gettm t #>> beta #-> setth
+      | process (#"1", [th]) = getth th #>> conj1 #-> setth
+      | process (#"2", [th]) = getth th #>> conj2 #-> setth
+      | process (#"H", [t]) = gettm t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Thm.trivial #-> setth
+      | process (#"A", [_, t]) =
+          gettm t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Skip_Proof.make_thm_cterm #-> setth
+      | process (#"C", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry comb #-> setth
+      | process (#"T", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry trans #-> setth
+      | process (#"E", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry eq_mp #-> setth
+      | process (#"D", [th1, th2]) = getth th1 ##>> getth th2 #>> uncurry deduct #-> setth
+      | process (#"L", [t, th]) = gettm t ##>> (fn ti => getth th ti) #>> uncurry abs #-> setth
+      | process (#"M", [s]) = (fn (thy, state) =>
           let
             val ctxt = Proof_Context.init_global thy
             val thm = freezeT thy (Global_Theory.get_thm thy s)
             val ((_, [th']), _) = Variable.import true [thm] ctxt
           in
             setth th' (thy, state)
-          end
-      | process (#"Q", l) (thy, state) =
+          end)
+      | process (#"Q", l) = (fn (thy, state) =>
           let
             val (tys, th) = list_last l
             val (th, tstate) = getth th (thy, state)
             val (tys, tstate) = fold_map getty tys tstate
           in
             setth (inst_type thy (pair_list tys) th) tstate
-          end
-      | process (#"S", l) tstate =
+          end)
+      | process (#"S", l) = (fn tstate =>
           let
             val (tms, th) = list_last l
             val (th, tstate) = getth th tstate
             val (tms, tstate) = fold_map gettm tms tstate
           in
             setth (inst (pair_list tms) th) tstate
-          end
-      | process (#"F", [name, t]) tstate =
+          end)
+      | process (#"F", [name, t]) = (fn tstate =>
           let
             val (tm, (thy, state)) = gettm t tstate
             val (th, thy) = def (make_name name) tm thy
           in
             setth th (thy, state)
-          end
-      | process (#"F", [name]) (thy, state) = setth (mdef thy name) (thy, state)
-      | process (#"Y", [name, absname, repname, t1, t2, th]) tstate =
+          end)
+      | process (#"F", [name]) = (fn (thy, state) => setth (mdef thy name) (thy, state))
+      | process (#"Y", [name, absname, repname, t1, t2, th]) = (fn tstate =>
           let
             val (th, tstate) = getth th tstate
             val (t1, tstate) = gettm t1 tstate
@@ -417,24 +411,22 @@ fun process_line str =
             val (th, thy) = tydef name absname repname t1 t2 th thy
           in
             setth th (thy, state)
-          end
-      | process (#"Y", [name, _, _]) (thy, state) = setth (mtydef thy name) (thy, state)
-      | process (#"t", [n]) (thy, state) =
-          setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state)
-      | process (#"a", n :: l) (thy, state) =
+          end)
+      | process (#"Y", [name, _, _]) = (fn (thy, state) => setth (mtydef thy name) (thy, state))
+      | process (#"t", [n]) = (fn (thy, state) =>
+          setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state))
+      | process (#"a", n :: l) = (fn (thy, state) =>
           fold_map getty l (thy, state) |>>
-            (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> setty
-      | process (#"v", [n, ty]) (thy, state) =
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm
-      | process (#"c", [n, ty]) (thy, state) =
-          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm
-      | process (#"f", [t1, t2]) tstate =
-          gettm t1 tstate ||>> gettm t2 |>> uncurry Thm.apply |-> settm
-      | process (#"l", [t1, t2]) tstate =
-          gettm t1 tstate ||>> gettm t2 |>> uncurry Thm.lambda |-> settm
-      | process (#"+", [s]) (thy, state) =
-          (store_thm (Binding.name (make_name s)) (last_thm state) thy, state)
-      | process (c, _) _ = error ("process: unknown command: " ^ String.implode [c])
+            (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> setty)
+      | process (#"v", [n, ty]) = (fn (thy, state) =>
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm)
+      | process (#"c", [n, ty]) = (fn (thy, state) =>
+          getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm)
+      | process (#"f", [t1, t2]) = gettm t1 ##>> gettm t2 #>> uncurry Thm.apply #-> settm
+      | process (#"l", [t1, t2]) = gettm t1 ##>> gettm t2 #>> uncurry Thm.lambda #-> settm
+      | process (#"+", [s]) = (fn (thy, state) =>
+          (store_thm (Binding.name (make_name s)) (last_thm state) thy, state))
+      | process (c, _) = error ("process: unknown command: " ^ String.implode [c])
   in
     process (parse_line str)
   end
