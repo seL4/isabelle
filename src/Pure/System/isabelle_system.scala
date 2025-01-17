@@ -100,7 +100,8 @@ object Isabelle_System {
   def isabelle_id(root: Path = Path.ISABELLE_HOME): String =
     getetc("ISABELLE_ID", root = root) orElse
     Mercurial.archive_id(root) orElse
-    Mercurial.id_repository(root, rev = "") getOrElse
+    Mercurial.id_repository(root, rev = "") orElse
+    Mercurial.sync_id(root) getOrElse
     error("Failed to identify Isabelle distribution " + root.expand)
 
   object Isabelle_Id extends Scala.Fun_String("isabelle_id") {
