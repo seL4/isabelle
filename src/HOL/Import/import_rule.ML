@@ -368,15 +368,15 @@ fun process_line str =
       | process (#"A", [_, t]) tstate =
           gettm t tstate |>> Thm.apply \<^cterm>\<open>Trueprop\<close> |>> Skip_Proof.make_thm_cterm |-> setth
       | process (#"C", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => comb t1 t2) |-> setth
+          getth th1 tstate ||>> getth th2 |>> uncurry comb |-> setth
       | process (#"T", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => trans t1 t2) |-> setth
+          getth th1 tstate ||>> getth th2 |>> uncurry trans |-> setth
       | process (#"E", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => eq_mp t1 t2) |-> setth
+          getth th1 tstate ||>> getth th2 |>> uncurry eq_mp |-> setth
       | process (#"D", [th1, th2]) tstate =
-          getth th1 tstate ||>> getth th2 |>> (fn (t1, t2) => deduct t1 t2) |-> setth
+          getth th1 tstate ||>> getth th2 |>> uncurry deduct |-> setth
       | process (#"L", [t, th]) tstate =
-          gettm t tstate ||>> (fn ti => getth th ti) |>> (fn (tm, th) => abs tm th) |-> setth
+          gettm t tstate ||>> (fn ti => getth th ti) |>> uncurry abs |-> setth
       | process (#"M", [s]) (thy, state) =
           let
             val ctxt = Proof_Context.init_global thy
@@ -429,9 +429,9 @@ fun process_line str =
       | process (#"c", [n, ty]) (thy, state) =
           getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_const thy (n, Thm.typ_of ty))) |-> settm
       | process (#"f", [t1, t2]) tstate =
-          gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.apply t1 t2) |-> settm
+          gettm t1 tstate ||>> gettm t2 |>> uncurry Thm.apply |-> settm
       | process (#"l", [t1, t2]) tstate =
-          gettm t1 tstate ||>> gettm t2 |>> (fn (t1, t2) => Thm.lambda t1 t2) |-> settm
+          gettm t1 tstate ||>> gettm t2 |>> uncurry Thm.lambda |-> settm
       | process (#"+", [s]) (thy, state) =
           (store_thm (Binding.name (make_name s)) (last_thm state) thy, state)
       | process (c, _) _ = error ("process: unknown command: " ^ String.implode [c])
