@@ -117,6 +117,9 @@ object Mercurial {
 
   /* hg_sync meta data */
 
+  def sync_id(root: Path, ssh: SSH.System = SSH.Local): Option[String] =
+    if (Hg_Sync.ok(root, ssh)) Some(Hg_Sync.directory(root, ssh).id) else None
+
   object Hg_Sync {
     val NAME = ".hg_sync"
     val _NAME: String = " " + NAME
