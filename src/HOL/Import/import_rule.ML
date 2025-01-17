@@ -70,9 +70,8 @@ fun comb th1 th2 =
     val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
     val (cf, cg) = Thm.dest_binop t1c
     val (cx, cy) = Thm.dest_binop t2c
-    val [fd, fr] = Thm.dest_ctyp (Thm.ctyp_of_cterm cf)
-    val i1 = Thm.instantiate' [SOME fd, SOME fr]
-      [SOME cf, SOME cg, SOME cx, SOME cy] @{thm cong}
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm cf)
+    val i1 = Thm.instantiate' [SOME A, SOME B] [SOME cf, SOME cg, SOME cx, SOME cy] @{thm cong}
     val i2 = meta_mp i1 th1
   in
     meta_mp i2 th2
@@ -190,30 +189,25 @@ fun mdef thy name =
   | NONE => error ("Constant mapped, but no definition: " ^ quote name)
 
 fun def c rhs thy =
-  case Import_Data.get_const_def thy c of
-    SOME _ =>
-      let
-        val () = warning ("Const mapped, but def provided: " ^ quote c)
-      in
-        (mdef thy c, thy)
-      end
-  | NONE => def' c (Thm.term_of rhs) thy
+  if is_some (Import_Data.get_const_def thy c) then
+    (warning ("Const mapped, but def provided: " ^ quote c); (mdef thy c, thy))
+  else def' c (Thm.term_of rhs) thy
 
-fun typedef_hol2hollight nty oty rep abs pred a r =
-  Thm.instantiate' [SOME nty, SOME oty] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
+fun typedef_hol2hollight A B rep abs pred a r =
+  Thm.instantiate' [SOME A, SOME B] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
     @{lemma "type_definition Rep Abs (Collect P) \<Longrightarrow> Abs (Rep a) = a \<and> P r = (Rep (Abs r) = r)"
         by (metis type_definition.Rep_inverse type_definition.Abs_inverse
               type_definition.Rep mem_Collect_eq)}
 
-fun typedef_hollight thy th =
+fun typedef_hollight th =
   let
     val (th_s, cn) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
     val (th_s, abst) = Thm.dest_comb th_s
     val rept = Thm.dest_arg th_s
     val P = Thm.dest_arg cn
-    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
   in
-    typedef_hol2hollight nty oty rept abst P (Thm.free ("a", nty)) (Thm.free ("r", oty))
+    typedef_hol2hollight A B rept abst P (Thm.free ("a", A)) (Thm.free ("r", B))
   end
 
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
@@ -239,19 +233,17 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
        (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1)) thy
     val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
-    val (th_s, _) = Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))
-    val (th_s, abst) = Thm.dest_comb th_s
-    val rept = Thm.dest_arg th_s
-    val [nty, oty] = Thm.dest_ctyp (Thm.ctyp_of_cterm rept)
-    val typedef_th =
-      typedef_hol2hollight nty oty rept abst cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
+    val (th_s, abs) = Thm.dest_comb (#1 (Thm.dest_comb (Thm.dest_arg (Thm.cprop_of th))))
+    val rep = Thm.dest_arg th_s
+    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rep)
+    val typedef_th = typedef_hol2hollight A B rep abs cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
   in
     (typedef_th OF [#type_definition (#2 typedef_info)], thy')
   end
 
 fun mtydef thy name =
   case Import_Data.get_typ_def thy name of
-    SOME thn => meta_mp (typedef_hollight thy thn) thn
+    SOME thn => meta_mp (typedef_hollight thn) thn
   | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name)
 
 fun tydef tycname abs_name rep_name P t td_th thy =
