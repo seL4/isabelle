@@ -442,12 +442,16 @@ fun process_line str tstate =
     process tstate (parse_line str)
   end
 
-fun process_file path thy =
-  #1 (fold process_line (File.read_lines path) (thy, init_state))
+fun process_file path0 thy =
+  let
+    val path = File.absolute_path (Resources.master_directory thy + path0)
+    val lines =
+      if Path.is_zst path then Bytes.read path |> Zstd.uncompress |> Bytes.trim_split_lines
+      else File.read_lines path
+  in #1 (fold process_line lines (thy, init_state)) end
 
 val _ = Outer_Syntax.command \<^command_keyword>\<open>import_file\<close>
   "import a recorded proof file"
   (Parse.path >> (fn name => Toplevel.theory (fn thy => process_file (Path.explode name) thy)))
-
 
 end
