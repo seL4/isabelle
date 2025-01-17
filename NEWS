@@ -298,6 +298,9 @@ HOL-Library.Discrete_Functions
       image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
+* Theory "HOL-Library.Suc_Notation" provides compact notation for nested
+Suc terms.
+
 * Transitional theory "HOL.Divides" moved to "HOL-Library.Divides" and
 supposed to be removed in a future release. Minor INCOMPATIBILITY.
 Import "HOL-Library.Divides" and keep an eye on qualified names with prefix
