@@ -23,7 +23,7 @@ sig
   val mtydef : theory -> string -> thm
   val tydef :
     string -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
-  val inst_type : theory -> (ctyp * ctyp) list -> thm -> thm
+  val inst_type : (ctyp * ctyp) list -> thm -> thm
   val inst : (cterm * cterm) list -> thm -> thm
   val import_file : Path.T -> theory -> theory
 end
@@ -249,22 +249,13 @@ fun tydef tycname abs_name rep_name P t td_th thy =
       end
   | NONE => tydef' tycname abs_name rep_name P t td_th thy
 
-fun inst_type thy lambda th =
+fun inst_type lambda =
   let
-    fun assoc _ [] = error "assoc"
-      | assoc x ((x',y)::rest) = if x = x' then y else assoc x rest
-    val lambda = map (fn (a, b) => (Thm.typ_of a, b)) lambda
-    val tys_before = Term.add_tfrees (Thm.prop_of th) []
-    val th1 = Thm.varifyT_global th
-    val tys_after = Term.add_tvars (Thm.prop_of th1) []
     val tyinst =
-      map2 (fn bef => fn iS =>
-        (case try (assoc (TFree bef)) lambda of
-          SOME cty => (iS, cty)
-        | NONE => (iS, Thm.global_ctyp_of thy (TFree bef))))
-      tys_before tys_after
+      TFrees.build (lambda |> fold (fn (a, b) =>
+        TFrees.add (Term.dest_TFree (Thm.typ_of a), b)))
   in
-    Thm.instantiate (TVars.make tyinst, Vars.empty) th1
+    Thm.instantiate_frees (tyinst, Frees.empty)
   end
 
 fun inst sigma th =
@@ -393,7 +384,7 @@ fun process_line str =
             val (th, state1) = thm th state
             val (tys, state2) = fold_map typ tys state1
           in
-            set_thm (inst_type (get_theory state) (pair_list tys) th) state2
+            set_thm (inst_type (pair_list tys) th) state2
           end)
       | process (#"S", l) = (fn state =>
           let
