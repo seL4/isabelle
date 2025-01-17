@@ -591,7 +591,7 @@ object Find_Facts {
       Options.Spec.bash_strings(options, bg = true) +
       sessions.map(session => " " + session).mkString
   }
-  
+
   def find_facts_index(
     options: Options,
     sessions: List[String],
@@ -710,11 +710,10 @@ object Find_Facts {
 
       /* index */
 
-      find_facts_index(options, sessions, dirs = dirs, afp_root = afp_root, clean = clean, 
+      find_facts_index(options, sessions, dirs = dirs, afp_root = afp_root, clean = clean,
         progress = progress)
     }
   }
-
 
 
   /** index components **/

@@ -1411,7 +1411,7 @@ object Build_Manager {
         def render_diff(data: Report.Data, components: List[Component]): XML.Body =
           par(List(page_link(Page.BUILD, "back to build", Markup.Name(build.name)))) ::
           (for (component <- components if !component.is_local) yield {
-            val infos = 
+            val infos =
               data.component_logs.toMap.get(component.name).toList.flatMap(colored) :::
               data.component_diffs.toMap.get(component.name).toList.flatMap(colored)
 
@@ -1508,7 +1508,7 @@ object Build_Manager {
           Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
           HTML.style_file("https://hawkz.github.io/gdcss/gd.css"),
           HTML.style("""
-:root { 
+:root {
   --color-secondary: var(--color-tertiary);
   --color-secondary-hover: var(--color-tertiary-hover);
 }
@@ -1894,7 +1894,7 @@ Usage: isabelle build_manager_database [OPTIONS]
     progress.interrupt_handler {
       using(store.open_ssh()) { ssh =>
         val user = ssh.execute("whoami").check.out
-        
+
         val build_config = User_Build(user, afp_rev, prefs, requirements, all_sessions,
           base_sessions, exclude_session_groups, exclude_sessions, session_groups, sessions,
           build_heap, clean_build, export_files, fresh_build, presentation, verbose)
