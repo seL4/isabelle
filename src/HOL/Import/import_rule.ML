@@ -160,6 +160,18 @@ fun freezeT thy th =
     Thm.instantiate (tyinst, Vars.empty) th
   end
 
+fun freeze thy = freezeT thy #> (fn th =>
+  let
+    val vars = Vars.build (th |> Thm.add_vars)
+    val inst = vars |> Vars.map (fn _ => fn v =>
+      let
+        val Var ((x, _), _) = Thm.term_of v
+        val ty = Thm.ctyp_of_cterm v
+      in Thm.free (x, ty) end)
+  in
+    Thm.instantiate (TVars.empty, inst) th
+  end)
+
 fun def' c rhs thy =
   let
     val b = Binding.name c
@@ -375,11 +387,9 @@ fun process_line str =
       | process (#"M", [s]) = (fn state =>
           let
             val thy = get_theory state
-            val ctxt = Proof_Context.init_global thy
-            val th = freezeT thy (Global_Theory.get_thm thy s)
-            val ((_, [th']), _) = Variable.import true [th] ctxt
+            val th = freeze thy (Global_Theory.get_thm thy s)
           in
-            set_thm th' state
+            set_thm th state
           end)
       | process (#"Q", l) = (fn state =>
           let
