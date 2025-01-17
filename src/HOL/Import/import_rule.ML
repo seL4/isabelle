@@ -297,6 +297,14 @@ fun make_tfree a =
   let val b = "'" ^ String.translate (fn #"?" => "t" | c => Char.toString c) a
   in TFree (b, \<^sort>\<open>type\<close>) end
 
+fun make_type thy (c, args) =
+  let
+    val d =
+      (case Import_Data.get_typ_map thy c of
+        SOME d => d
+      | NONE => Sign.full_name thy (Binding.name c))
+  in Type (d, args) end
+
 fun make_const thy (c, ty) =
   let
     val d =
@@ -304,11 +312,6 @@ fun make_const thy (c, ty) =
         SOME d => d
       | NONE => Sign.full_name thy (Binding.name (make_name c)))
   in Const (d, ty) end
-
-fun gettyname thy s =
-  case Import_Data.get_typ_map thy s of
-    SOME s => s
-  | NONE => Sign.full_name thy (Binding.name s)
 
 fun get (map, no) s =
   case Int.fromString s of
@@ -425,7 +428,7 @@ fun process_line str tstate =
           setty (Thm.global_ctyp_of thy (make_tfree n)) (thy, state)
       | process (thy, state) (#"a", n :: l) =
           fold_map getty l (thy, state) |>>
-            (fn tys => Thm.global_ctyp_of thy (Type (gettyname thy n, map Thm.typ_of tys))) |-> setty
+            (fn tys => Thm.global_ctyp_of thy (make_type thy (n, map Thm.typ_of tys))) |-> setty
       | process (thy, state) (#"v", [n, ty]) =
           getty ty (thy, state) |>> (fn ty => Thm.global_cterm_of thy (make_free (n, Thm.typ_of ty))) |-> settm
       | process (thy, state) (#"c", [n, ty]) =
