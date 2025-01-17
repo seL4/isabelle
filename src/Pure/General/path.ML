@@ -33,6 +33,8 @@ sig
   val ext: string -> T -> T
   val platform_exe: T -> T
   val split_ext: T -> T * string
+  val drop_ext: T -> T
+  val get_ext: T -> string
   val expand: T -> T
   val file_name: T -> string
   eqtype binding
@@ -211,6 +213,9 @@ val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
   (case chop_suffix (fn c => c <> ".") (raw_explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
+
+val drop_ext = #1 o split_ext;
+val get_ext = #2 o split_ext;
 
 
 (* expand variables *)
