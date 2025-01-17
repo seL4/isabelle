@@ -343,7 +343,8 @@ fun compile_generated_files ctxt args external export export_prefix source =
         export |> List.app (fn (bindings, executable) =>
           bindings |> List.app (fn binding0 =>
             let
-              val binding = binding0 |> Path.map_binding (executable = SOME true ? Path.exe);
+              val binding = binding0
+                |> Path.map_binding (executable = SOME true ? Path.platform_exe);
               val (path, pos) = Path.dest_binding binding;
               val content =
                 (case try Bytes.read (dir + path) of

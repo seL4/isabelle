@@ -33,7 +33,6 @@ sig
   val ext: string -> T -> T
   val platform_exe: T -> T
   val split_ext: T -> T * string
-  val exe: T -> T
   val expand: T -> T
   val file_name: T -> string
   eqtype binding
@@ -212,8 +211,6 @@ val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
   (case chop_suffix (fn c => c <> ".") (raw_explode s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
-
-val exe = ML_System.platform_is_windows ? ext "exe";
 
 
 (* expand variables *)
