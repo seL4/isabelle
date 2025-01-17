@@ -387,9 +387,9 @@ fun process_line str =
       | process (#"M", [s]) = (fn state =>
           let
             val thy = get_theory state
-            val th = freeze thy (Global_Theory.get_thm thy s)
+            val th = Global_Theory.get_thm thy s
           in
-            set_thm th state
+            set_thm (freeze thy th) state
           end)
       | process (#"Q", l) = (fn state =>
           let
@@ -410,9 +410,10 @@ fun process_line str =
       | process (#"F", [name, t]) = (fn state =>
           let
             val (tm, state1) = term t state
-            val (th, state2) = map_theory_result (def (make_name name) tm) state1
           in
-            set_thm th state2
+            state1
+            |> map_theory_result (def (make_name name) tm)
+            |-> set_thm
           end)
       | process (#"F", [name]) = (fn state => set_thm (mdef (get_theory state) name) state)
       | process (#"Y", [name, absname, repname, t1, t2, th]) = (fn state =>
@@ -420,9 +421,10 @@ fun process_line str =
             val (th, state1) = thm th state
             val (t1, state2) = term t1 state1
             val (t2, state3) = term t2 state2
-            val (th, state4) = map_theory_result (tydef name absname repname t1 t2 th) state3
           in
-            set_thm th state4
+            state3
+            |> map_theory_result (tydef name absname repname t1 t2 th)
+            |-> set_thm
           end)
       | process (#"Y", [name, _, _]) = (fn state => set_thm (mtydef (get_theory state) name) state)
       | process (#"t", [n]) = (fn state => set_typ (ctyp_of state (make_tfree n)) state)
