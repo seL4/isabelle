@@ -165,14 +165,13 @@ fun freezeT thy thm =
     Thm.instantiate (TVars.make (tvars ~~ map (Thm.global_ctyp_of thy) tfrees), Vars.empty) thm
   end
 
-fun def' constname rhs thy =
+fun def' c rhs thy =
   let
-    val rhs = Thm.term_of rhs
+    val b = Binding.name c
     val typ = type_of rhs
-    val constbinding = Binding.name constname
-    val thy1 = Sign.add_consts [(constbinding, typ, NoSyn)] thy
-    val eq = Logic.mk_equals (Const (Sign.full_name thy1 constbinding, typ), rhs)
-    val (thm, thy2) = Global_Theory.add_def (Binding.suffix_name "_hldef" constbinding, eq) thy1
+    val thy1 = Sign.add_consts [(b, typ, NoSyn)] thy
+    val eq = Logic.mk_equals (Const (Sign.full_name thy1 b, typ), rhs)
+    val (thm, thy2) = Global_Theory.add_def (Binding.suffix_name "_hldef" b, eq) thy1
     val def_thm = freezeT thy1 thm
   in
     (meta_eq_to_obj_eq def_thm, thy2)
@@ -183,15 +182,15 @@ fun mdef thy name =
     SOME th => th
   | NONE => error ("constant mapped but no definition: " ^ name)
 
-fun def constname rhs thy =
-  case Import_Data.get_const_def thy constname of
+fun def c rhs thy =
+  case Import_Data.get_const_def thy c of
     SOME _ =>
       let
-        val () = warning ("Const mapped but def provided: " ^ constname)
+        val () = warning ("Const mapped but def provided: " ^ c)
       in
-        (mdef thy constname, thy)
+        (mdef thy c, thy)
       end
-  | NONE => def' constname rhs thy
+  | NONE => def' c (Thm.term_of rhs) thy
 
 fun typedef_hol2hollight nty oty rep abs pred a r =
   Thm.instantiate' [SOME nty, SOME oty] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
