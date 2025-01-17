@@ -36,7 +36,7 @@ fun implies_elim_all th = implies_elim_list th (map Thm.assume (cprems_of th))
 fun meta_mp th1 th2 =
   let
     val th1a = implies_elim_all th1
-    val th1b = Thm.implies_intr (strip_imp_concl (Thm.cprop_of th2)) th1a
+    val th1b = Thm.implies_intr (Thm.cconcl_of th2) th1a
     val th2a = implies_elim_all th2
     val th3 = Thm.implies_elim th1b th2a
   in
@@ -45,7 +45,7 @@ fun meta_mp th1 th2 =
 
 fun meta_eq_to_obj_eq th =
   let
-    val (tml, tmr) = Thm.dest_binop (strip_imp_concl (Thm.cprop_of th))
+    val (tml, tmr) = Thm.dest_binop (Thm.cconcl_of th)
     val cty = Thm.ctyp_of_cterm tml
     val i = Thm.instantiate' [SOME cty] [SOME tml, SOME tmr]
       @{thm meta_eq_to_obj_eq}
@@ -57,7 +57,7 @@ fun beta ct = meta_eq_to_obj_eq (Thm.beta_conversion false ct)
 
 fun eq_mp th1 th2 =
   let
-    val (tm1l, tm1r) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1)))
+    val (tm1l, tm1r) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th1))
     val i1 = Thm.instantiate' [] [SOME tm1l, SOME tm1r] @{thm iffD1}
     val i2 = meta_mp i1 th1
   in
@@ -66,8 +66,8 @@ fun eq_mp th1 th2 =
 
 fun comb th1 th2 =
   let
-    val t1c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1))
-    val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
+    val t1c = Thm.dest_arg (Thm.cconcl_of th1)
+    val t2c = Thm.dest_arg (Thm.cconcl_of th2)
     val (cf, cg) = Thm.dest_binop t1c
     val (cx, cy) = Thm.dest_binop t2c
     val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm cf)
@@ -79,8 +79,8 @@ fun comb th1 th2 =
 
 fun trans th1 th2 =
   let
-    val t1c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1))
-    val t2c = Thm.dest_arg (strip_imp_concl (Thm.cprop_of th2))
+    val t1c = Thm.dest_arg (Thm.cconcl_of th1)
+    val t2c = Thm.dest_arg (Thm.cconcl_of th2)
     val (r, s) = Thm.dest_binop t1c
     val (_, t) = Thm.dest_binop t2c
     val ty = Thm.ctyp_of_cterm r
@@ -92,8 +92,8 @@ fun trans th1 th2 =
 
 fun deduct th1 th2 =
   let
-    val th1c = strip_imp_concl (Thm.cprop_of th1)
-    val th2c = strip_imp_concl (Thm.cprop_of th2)
+    val th1c = Thm.cconcl_of th1
+    val th2c = Thm.cconcl_of th2
     val th1a = implies_elim_all th1
     val th2a = implies_elim_all th2
     val th1b = Thm.implies_intr th2c th1a
@@ -110,7 +110,7 @@ fun deduct th1 th2 =
 
 fun conj1 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th)))
+    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
     val i = Thm.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct1}
   in
     meta_mp i th
@@ -118,7 +118,7 @@ fun conj1 th =
 
 fun conj2 th =
   let
-    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th)))
+    val (tml, tmr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th))
     val i = Thm.instantiate' [] [SOME tml, SOME tmr] @{thm conjunct2}
   in
     meta_mp i th
@@ -134,7 +134,7 @@ fun refl ctm =
 fun abs cv th =
   let
     val th1 = implies_elim_all th
-    val (tl, tr) = Thm.dest_binop (Thm.dest_arg (strip_imp_concl (Thm.cprop_of th1)))
+    val (tl, tr) = Thm.dest_binop (Thm.dest_arg (Thm.cconcl_of th1))
     val (ll, lr) = (Thm.lambda cv tl, Thm.lambda cv tr)
     val (al, ar) = (Thm.apply ll cv, Thm.apply lr cv)
     val bl = beta al
