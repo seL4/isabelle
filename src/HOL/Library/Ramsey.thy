@@ -27,7 +27,7 @@ lemma nsets_mono: "A \<subseteq> B \<Longrightarrow> nsets A n \<subseteq> nsets
 lemma nsets_Pi_contra: "A' \<subseteq> A \<Longrightarrow> Pi ([A]\<^bsup>n\<^esup>) B \<subseteq> Pi ([A']\<^bsup>n\<^esup>) B"
   by (auto simp: nsets_def)
 
-lemma nsets_2_eq: "nsets A 2 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}})"
+lemma nsets_2_eq: "[A]\<^bsup>2\<^esup> = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. {{x, y}})"
   by (auto simp: nsets_def card_2_iff)
 
 lemma nsets2_E:
@@ -41,7 +41,7 @@ lemma nsets_doubleton_2_eq [simp]: "[{x, y}]\<^bsup>2\<^esup> = (if x=y then {} 
 lemma doubleton_in_nsets_2 [simp]: "{x,y} \<in> [A]\<^bsup>2\<^esup> \<longleftrightarrow> x \<in> A \<and> y \<in> A \<and> x \<noteq> y"
   by (auto simp: nsets_2_eq Set.doubleton_eq_iff)
 
-lemma nsets_3_eq: "nsets A 3 = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. \<Union>z\<in>A - {x,y}. {{x,y,z}})"
+lemma nsets_3_eq: "[A]\<^bsup>3\<^esup> = (\<Union>x\<in>A. \<Union>y\<in>A - {x}. \<Union>z\<in>A - {x,y}. {{x,y,z}})"
   by (simp add: eval_nat_numeral nsets_def card_Suc_eq) blast
 
 lemma nsets_4_eq: "[A]\<^bsup>4\<^esup> = (\<Union>u\<in>A. \<Union>x\<in>A - {u}. \<Union>y\<in>A - {u,x}. \<Union>z\<in>A - {u,x,y}. {{u,x,y,z}})"
@@ -49,9 +49,10 @@ lemma nsets_4_eq: "[A]\<^bsup>4\<^esup> = (\<Union>u\<in>A. \<Union>x\<in>A - {u
 proof
   show "[A]\<^bsup>4\<^esup> \<subseteq> ?rhs"
     by (clarsimp simp add: nsets_def eval_nat_numeral card_Suc_eq) blast
-  show "?rhs \<subseteq> [A]\<^bsup>4\<^esup>"
-    apply (clarsimp simp add: nsets_def eval_nat_numeral card_Suc_eq)
-    by (metis insert_iff singletonD)
+  have "\<And>X. X \<in> ?rhs \<Longrightarrow> card X = 4"
+    by (force simp: card_2_iff)
+  then show "?rhs \<subseteq> [A]\<^bsup>4\<^esup>"
+    by (auto simp: nsets_def)
 qed
 
 lemma nsets_disjoint_2:
@@ -60,76 +61,75 @@ lemma nsets_disjoint_2:
 
 lemma ordered_nsets_2_eq:
   fixes A :: "'a::linorder set"
-  shows "nsets A 2 = {{x,y} | x y. x \<in> A \<and> y \<in> A \<and> x<y}"
+  shows "[A]\<^bsup>2\<^esup> = {{x,y} | x y. x \<in> A \<and> y \<in> A \<and> x<y}"
      (is "_ = ?rhs")
 proof
-  show "nsets A 2 \<subseteq> ?rhs"
-    unfolding numeral_nat
-    apply (clarsimp simp add: nsets_def card_Suc_eq Set.doubleton_eq_iff not_less)
-    by (metis antisym)
-  show "?rhs \<subseteq> nsets A 2"
+  show "[A]\<^bsup>2\<^esup> \<subseteq> ?rhs"
+    by (auto simp: nsets_def card_2_iff doubleton_eq_iff neq_iff)
+  show "?rhs \<subseteq> [A]\<^bsup>2\<^esup>"
     unfolding numeral_nat by (auto simp: nsets_def card_Suc_eq)
 qed
 
 lemma ordered_nsets_3_eq:
   fixes A :: "'a::linorder set"
-  shows "nsets A 3 = {{x,y,z} | x y z. x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> x<y \<and> y<z}"
+  shows "[A]\<^bsup>3\<^esup> = {{x,y,z} | x y z. x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> x<y \<and> y<z}"
      (is "_ = ?rhs")
 proof
-  show "nsets A 3 \<subseteq> ?rhs"
-    apply (clarsimp simp add: nsets_def card_Suc_eq eval_nat_numeral)
-    by (metis insert_commute linorder_cases)
-  show "?rhs \<subseteq> nsets A 3"
-    apply (clarsimp simp add: nsets_def card_Suc_eq eval_nat_numeral)
-  by (metis empty_iff insert_iff not_less_iff_gr_or_eq)
+  show "[A]\<^bsup>3\<^esup> \<subseteq> ?rhs"
+    unfolding nsets_def card_3_iff
+    by (smt (verit, del_insts) Collect_mono_iff insert_commute insert_subset
+        linorder_less_linear)
+  have "\<And>X. X \<in> ?rhs \<Longrightarrow> card X = 3"
+    by (force simp: card_3_iff)
+  then show "?rhs \<subseteq> [A]\<^bsup>3\<^esup>"
+    by (auto simp: nsets_def)
 qed
 
 lemma ordered_nsets_4_eq:
   fixes A :: "'a::linorder set"
-  shows "[A]\<^bsup>4\<^esup> = {U. \<exists>u x y z. U = {u,x,y,z} \<and> u \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < x \<and> x < y \<and> y < z}"
-    (is "_ = Collect ?RHS")
+  defines "rhs \<equiv> \<lambda>U. \<exists>u x y z. U = {u,x,y,z} \<and> u \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < x \<and> x < y \<and> y < z"
+  shows "[A]\<^bsup>4\<^esup> = Collect rhs"
 proof -
-  have "?RHS U" if "U \<in> [A]\<^bsup>4\<^esup>" for U
+  have "rhs U" if "U \<in> [A]\<^bsup>4\<^esup>" for U
   proof -
     from that obtain l where "strict_sorted l" "List.set l = U" "length l = 4" "U \<subseteq> A"
       by (simp add: nsets_def) (metis finite_set_strict_sorted)
     then show ?thesis
-      unfolding numeral_nat length_Suc_conv by auto blast
+      unfolding numeral_nat length_Suc_conv rhs_def by auto blast
   qed
   moreover
-  have "Collect ?RHS \<subseteq> [A]\<^bsup>4\<^esup>"
-    apply (clarsimp simp add: nsets_def eval_nat_numeral)
-    apply (subst card_insert_disjoint, auto)+
-    done
+  have "\<And>X. X \<in> Collect rhs \<Longrightarrow> card X = 4 \<and> finite X \<and> X \<subseteq> A"
+    by (auto simp: rhs_def card_insert_if)
   ultimately show ?thesis
-    by auto
+    unfolding nsets_def by blast
 qed
 
 lemma ordered_nsets_5_eq:
   fixes A :: "'a::linorder set"
-  shows "[A]\<^bsup>5\<^esup> = {U. \<exists>u v x y z. U = {u,v,x,y,z} \<and> u \<in> A \<and> v \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < v \<and> v < x \<and> x < y \<and> y < z}"
-    (is "_ = Collect ?RHS")
+  defines "rhs \<equiv> \<lambda>U. \<exists>u v x y z. U = {u,v,x,y,z} \<and> u \<in> A \<and> v \<in> A \<and> x \<in> A \<and> y \<in> A \<and> z \<in> A \<and> u < v \<and> v < x \<and> x < y \<and> y < z"
+  shows "[A]\<^bsup>5\<^esup> = Collect rhs"
 proof -
-  have "?RHS U" if "U \<in> [A]\<^bsup>5\<^esup>" for U
+  have "rhs U" if "U \<in> [A]\<^bsup>5\<^esup>" for U
   proof -
     from that obtain l where "strict_sorted l" "List.set l = U" "length l = 5" "U \<subseteq> A"
-      apply (simp add: nsets_def)
-      by (metis finite_set_strict_sorted)
+      by (simp add: nsets_def) (metis finite_set_strict_sorted)
     then show ?thesis
-      unfolding numeral_nat length_Suc_conv by auto blast
+      unfolding numeral_nat length_Suc_conv rhs_def by auto blast
   qed
   moreover
-  have "Collect ?RHS \<subseteq> [A]\<^bsup>5\<^esup>"
-    apply (clarsimp simp add: nsets_def eval_nat_numeral)
-    apply (subst card_insert_disjoint, auto)+
-    done
+  have "\<And>X. X \<in> Collect rhs \<Longrightarrow> card X = 5 \<and> finite X \<and> X \<subseteq> A"
+    by (auto simp: rhs_def card_insert_if)
   ultimately show ?thesis
-    by auto
+    unfolding nsets_def by blast
 qed
 
 lemma binomial_eq_nsets: "n choose k = card (nsets {0..<n} k)"
-  apply (simp add: binomial_def nsets_def)
-  by (meson subset_eq_atLeast0_lessThan_finite)
+proof -
+  have "{K. K \<subseteq> {0..<n} \<and> card K = k} = {N. N \<subseteq> {0..<n} \<and> finite N \<and> card N = k}"
+    using infinite_super by blast
+  then show ?thesis
+    by (simp add: binomial_def nsets_def)
+qed
 
 lemma nsets_eq_empty_iff: "nsets A r = {} \<longleftrightarrow> finite A \<and> card A < r"
   unfolding nsets_def
@@ -157,9 +157,10 @@ lemma nsets_singleton_iff: "nsets {a} r = (if r=0 then {{}} else if r=1 then {{a
   by (auto simp: nsets_def card_gt_0_iff subset_singleton_iff)
 
 lemma nsets_self [simp]: "nsets {..<m} m = {{..<m}}"
-  unfolding nsets_def
-  apply auto
-  by (metis add.left_neutral lessThan_atLeast0 lessThan_iff subset_card_intvl_is_intvl)
+proof
+  show "[{..<m}]\<^bsup>m\<^esup> \<subseteq> {{..<m}}"
+    by (force simp add: card_subset_eq nsets_def)
+qed (simp add: nsets_def)
 
 lemma nsets_zero [simp]: "nsets A 0 = {{}}"
   by (auto simp: nsets_def)
@@ -170,17 +171,16 @@ lemma nsets_one: "nsets A (Suc 0) = (\<lambda>x. {x}) ` A"
 lemma inj_on_nsets:
   assumes "inj_on f A"
   shows "inj_on (\<lambda>X. f ` X) ([A]\<^bsup>n\<^esup>)"
-  using assms unfolding nsets_def
-  by (metis (no_types, lifting) inj_on_inverseI inv_into_image_cancel mem_Collect_eq)
+  using assms by (simp add: nsets_def inj_on_def inj_on_image_eq_iff)
 
 lemma bij_betw_nsets:
   assumes "bij_betw f A B"
   shows "bij_betw (\<lambda>X. f ` X) ([A]\<^bsup>n\<^esup>) ([B]\<^bsup>n\<^esup>)"
 proof -
-  have "(`) f ` [A]\<^bsup>n\<^esup> = [f ` A]\<^bsup>n\<^esup>"
-    using assms
-    apply (auto simp: nsets_def bij_betw_def image_iff card_image inj_on_subset)
+  have "\<And>X. \<lbrakk>X \<subseteq> f ` A; finite X\<rbrakk> \<Longrightarrow> \<exists>Y\<subseteq>A. finite Y \<and> card Y = card X \<and> X = f ` Y"
     by (metis card_image inj_on_finite order_refl subset_image_inj)
+  then have "(`) f ` [A]\<^bsup>n\<^esup> = [f ` A]\<^bsup>n\<^esup>"
+    using assms by (auto simp: nsets_def bij_betw_def image_iff card_image inj_on_subset)
   with assms show ?thesis
     by (auto simp: bij_betw_def inj_on_nsets)
 qed
@@ -188,9 +188,14 @@ qed
 lemma nset_image_obtains:
   assumes "X \<in> [f`A]\<^bsup>k\<^esup>" "inj_on f A"
   obtains Y where "Y \<in> [A]\<^bsup>k\<^esup>" "X = f ` Y"
-  using assms
-  apply (clarsimp simp add: nsets_def subset_image_iff)
-  by (metis card_image finite_imageD inj_on_subset)
+proof
+  show "X = f ` (A \<inter> f -` X)"
+    using assms by (auto simp: nsets_def)
+  then show "A Int (f -` X) \<in> [A]\<^bsup>k\<^esup>"
+    using assms
+    unfolding nsets_def mem_Collect_eq
+    by (metis card_image finite_image_iff inf_le1 subset_inj_on)
+qed
 
 lemma nsets_image_funcset:
   assumes "g \<in> S \<rightarrow> T" and "inj_on g S"
@@ -331,8 +336,12 @@ proof (clarsimp simp: partn_lst_def)
 qed
 
 lemma partn_lst_eq_partn: "partn_lst {..<n} [m,m] 2 = partn {..<n} m 2 {..<2::nat}"
-  apply (simp add: partn_lst_def partn_def numeral_2_eq_2)
-  by (metis less_2_cases numeral_2_eq_2 lessThan_iff nth_Cons_0 nth_Cons_Suc)
+proof -
+  have "\<And>i. i < 2 \<Longrightarrow> [m, m] ! i = m"
+    using less_2_cases_iff by force
+  then show ?thesis
+    by (auto simp: partn_lst_def partn_def numeral_2_eq_2 cong: conj_cong)
+qed
 
 lemma partn_lstE:
   assumes "partn_lst \<beta> \<alpha> \<gamma>" "f \<in> nsets \<beta> \<gamma>  \<rightarrow>  {..<l}" "length \<alpha> = l"
@@ -603,8 +612,7 @@ proof -
           using V by simp
         then have "u ` V \<in> nsets {..<p} (q2 - Suc 0)"
           using u_nsets [of _ "q2 - Suc 0"] nsets_mono [OF Vsub] Usub u
-          unfolding bij_betw_def nsets_def
-          by (fastforce elim!: subsetD)
+          unfolding bij_betw_def nsets_def by blast
         then have inq1: "?W \<in> nsets {..p} q2"
           unfolding nsets_def using \<open>q2 > 0\<close> card_insert_if by fastforce
         have invu_nsets: "inv_into {..<p2} u ` X \<in> nsets V r"
@@ -653,9 +661,9 @@ proof -
         then have "u ` V \<in> nsets {..p} q1"
           using V u_nsets by auto
         moreover have "f ` nsets (u ` V) (Suc r) \<subseteq> {j}"
-          using hj
+          using hj unfolding h_def image_subset_iff nsets_def
           apply (clarsimp simp add: h_def image_subset_iff nsets_def)
-          by (metis Zero_not_Suc card_eq_0_iff card_image subset_image_inj)
+          by (metis card_image finite_imageD subset_image_inj)
         ultimately show ?thesis
           using jzero not_less_eq by fastforce
       qed
@@ -792,7 +800,7 @@ next
               using Suc Suc.hyps(2) j by linarith
             have "nsets (u ` V) r \<subseteq> (\<lambda>x. (u ` x)) ` nsets V r"
               apply (clarsimp simp add: nsets_def image_iff)
-              by (metis card_eq_0_iff card_image image_is_empty subset_image_inj)
+              by (metis card_image finite_imageD subset_image_inj)
             then have "f ` nsets (u ` V) r \<subseteq> h ` nsets V r"
               by (auto simp: h_def)
             then show "f ` nsets (u ` V) r \<subseteq> {j}"
@@ -866,9 +874,8 @@ proof -
       show "card (v ` U) = m \<and> clique (v ` U) E \<or> card (v ` U) = n \<and> indep (v ` U) E"
         using i unfolding numeral_2_eq_2
           using gi U u
-          apply (simp add: image_subset_iff nsets_2_eq clique_def indep_def less_Suc_eq)
-          apply (auto simp: f_def nsets_def card_image inj_on_subset split: if_split_asm)
-          done
+          unfolding image_subset_iff nsets_2_eq clique_def indep_def less_Suc_eq
+          by (auto simp: f_def nsets_def card_image inj_on_subset split: if_splits)
     qed
   qed
   then show ?thesis
