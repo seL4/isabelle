@@ -92,23 +92,12 @@ has been patched in 2 stages. The overall export process works like this:
       /* OCaml setup */
 
       progress.echo("Setup OCaml ...")
-
       progress.bash(
         if (only_offline) "isabelle ocaml_setup_base"
         else "isabelle ocaml_setup && isabelle ocaml_opam install -y camlp5",
         echo = progress.verbose).check
 
       val opam_env = Isabelle_System.bash("isabelle ocaml_opam env").check.out
-
-
-      /* repository clone */
-
-      val hol_light_dir = tmp_dir + Path.basic("hol-light")
-
-      if (!only_offline) {
-        Isabelle_System.git_clone(hol_light_url, hol_light_dir, checkout = hol_light_rev,
-          progress = progress)
-      }
 
 
       /* "offline" tool */
@@ -130,6 +119,10 @@ has been patched in 2 stages. The overall export process works like this:
       /* export */
 
       if (!only_offline) {
+        val hol_light_dir = tmp_dir + Path.basic("hol-light")
+        Isabelle_System.git_clone(hol_light_url, hol_light_dir, checkout = hol_light_rev,
+          progress = progress)
+
         progress.echo("Exporting proofs ...")
         progress.bash(
           Library.make_lines("set -e", opam_env,
