@@ -123,20 +123,32 @@ has been patched in 2 stages. The overall export process works like this:
         Isabelle_System.git_clone(hol_light_url, hol_light_dir, checkout = hol_light_rev,
           progress = progress)
 
-        progress.echo("Exporting proofs ...")
-        progress.bash(
-          Library.make_lines("set -e", opam_env,
-            "make",
-            "patch -p1 < " + File.bash_path(patch1),
-            "./ocaml-hol -I +compiler-libs stage1.ml",
-            "patch -p1 < " + File.bash_path(patch2),
-            "export MAXTMS=10000",
-            "./ocaml-hol -I +compiler-libs stage2.ml",
-            "gzip -d proofs.gz",
-            "> maps.lst",
-            File.bash_path(platform_dir + offline_exe) + " proofs"
-          ),
-          cwd = hol_light_dir, echo = progress.verbose).check
+        def run(n: Int, lines: String*): Unit = {
+          val title = "stage " + n
+          if (n > 0) progress.echo("Running " + title + " ...")
+
+          val start = Time.now()
+          progress.bash(cat_lines("set -e" :: opam_env :: lines.toList),
+            cwd = hol_light_dir, echo = progress.verbose).check
+          val elapsed = Time.now() - start
+
+          if (n > 0) {
+            progress.echo("Finished " + title + " (" + elapsed.message_hms + " elapsed time)")
+          }
+        }
+
+        run(0, "make")
+        run(1,
+          "patch -p1 < " + File.bash_path(patch1),
+          "./ocaml-hol -I +compiler-libs stage1.ml")
+        run(2,
+          "patch -p1 < " + File.bash_path(patch2),
+          "export MAXTMS=10000",
+          "./ocaml-hol -I +compiler-libs stage2.ml")
+        run(3,
+          "gzip -d proofs.gz",
+          "> maps.lst",
+          File.bash_path(platform_dir + offline_exe) + " proofs")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
         Isabelle_System.copy_file(hol_light_dir + Path.explode("proofs"), bundle_dir)
