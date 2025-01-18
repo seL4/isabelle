@@ -348,11 +348,13 @@ fun set_typ ty (State (thy, a, b, c)) = State (thy, set a ty, b, c)
 fun set_term tm (State (thy, a, b, c)) = State (thy, a, set b tm, c)
 fun set_thm th (State (thy, a, b, c)) = State (thy, a, b, set c th)
 
-fun get_thm name (state as State (thy, _, _, _)) =
-  (freeze thy (Global_Theory.get_thm thy name), state);
+fun stored_thm name (State (thy, a, b, c)) =
+  let val th = freeze thy (Global_Theory.get_thm thy name)
+  in State (thy, a, b, set c th) end
 
-fun store_last_thm binding (State (thy, a, b, c as (tab, no))) =
+fun store_thm name (State (thy, a, b, c as (tab, no))) =
   let
+    val binding = Binding.name (make_name name)
     val th0 =
       (case Inttab.lookup tab no of
         NONE => raise Fail ("No thm " ^ string_of_int no)
@@ -390,7 +392,7 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
   | command (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
   | command (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
-  | command (#"M", [s]) = get_thm s #-> set_thm
+  | command (#"M", [name]) = stored_thm name
   | command (#"Q", args) =
       split_last args |> (fn (tys, th) => thm th #-> (fn th => typs tys #-> (fn tys =>
         set_thm (inst_type (pair_list tys) th))))
@@ -410,7 +412,7 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"c", [c, ty]) = theory #-> (fn thy => typ ty #>> make_const thy c #-> set_term)
   | command (#"f", [t, u]) = term t #-> (fn t => term u #-> (fn u => set_term (Thm.apply t u)))
   | command (#"l", [x, t]) = term x #-> (fn x => term t #-> (fn t => set_term (Thm.lambda x t)))
-  | command (#"+", [s]) = store_last_thm (Binding.name (make_name s))
+  | command (#"+", [name]) = store_thm name
   | command (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
 
 in
