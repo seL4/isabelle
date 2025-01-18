@@ -268,11 +268,11 @@ fun inst sigma th =
 
 val make_name = String.translate (fn #"." => "dot" | c => Char.toString c)
 
-fun make_free (x, ty) = Free (make_name x, ty)
+fun make_free (x, ty) = Thm.free (make_name x, ty);
 
-fun make_tfree a =
+fun make_tfree thy a =
   let val b = "'" ^ String.translate (fn #"?" => "t" | c => Char.toString c) a
-  in TFree (b, \<^sort>\<open>type\<close>) end
+  in Thm.global_ctyp_of thy (TFree (b, \<^sort>\<open>type\<close>)) end
 
 fun make_type thy (c, args) =
   let
@@ -280,7 +280,8 @@ fun make_type thy (c, args) =
       (case Import_Data.get_typ_map thy c of
         SOME d => d
       | NONE => Sign.full_bname thy (make_name c))
-  in Type (d, args) end
+    val T = Thm.global_ctyp_of thy (Type (d, replicate (length args) dummyT))
+  in Thm.make_ctyp T args end
 
 fun make_const thy (c, ty) =
   let
@@ -288,7 +289,7 @@ fun make_const thy (c, ty) =
       (case Import_Data.get_const_map thy c of
         SOME d => d
       | NONE => Sign.full_bname thy (make_name c))
-  in Const (d, ty) end
+  in Thm.global_cterm_of thy (Const (d, Thm.typ_of ty)) end
 
 
 datatype state =
@@ -305,12 +306,9 @@ fun get (tab, no) s =
       | SOME res => (res, (if i < 0 then Inttab.delete (Int.abs i) tab else tab, no))))
 
 fun get_theory (State (thy, _, _, _)) = thy;
-fun map_theory f (State (thy, a, b, c)) = State (f thy, a, b, c);
-fun map_theory_result f (State (thy, a, b, c)) =
+val theory = `get_theory;
+fun theory_op f (State (thy, a, b, c)) =
   let val (res, thy') = f thy in (res, State (thy', a, b, c)) end;
-
-fun ctyp_of (State (thy, _, _, _)) = Thm.global_ctyp_of thy;
-fun cterm_of (State (thy, _, _, _)) = Thm.global_cterm_of thy;
 
 fun typ i (State (thy, a, b, c)) = let val (i, a') = get a i in (i, State (thy, a', b, c)) end
 fun term i (State (thy, a, b, c)) = let val (i, b') = get b i in (i, State (thy, a, b', c)) end
@@ -321,10 +319,24 @@ fun set_typ ty (State (thy, a, b, c)) = State (thy, set a ty, b, c)
 fun set_term tm (State (thy, a, b, c)) = State (thy, a, set b tm, c)
 fun set_thm th (State (thy, a, b, c)) = State (thy, a, b, set c th)
 
-fun last_thm (State (_, _, _, (tab, no))) =
-  case Inttab.lookup tab no of
-    NONE => raise Fail "last_thm: lookup failed"
-  | SOME th => th
+fun get_thm name (state as State (thy, _, _, _)) =
+  (freeze thy (Global_Theory.get_thm thy name), state);
+
+fun store_last_thm binding (State (thy, a, b, c as (tab, no))) =
+  let
+    val th0 =
+      (case Inttab.lookup tab no of
+        NONE => raise Fail ("No thm " ^ string_of_int no)
+      | SOME th => th)
+    val ctxt = Proof_Context.init_global thy
+    val th = Drule.export_without_context_open th0
+    val tvs = Term.add_tvars (Thm.prop_of th) []
+    val tns = map (fn (_, _) => "'") tvs
+    val nms = Name.variants (Variable.names_of ctxt) tns
+    val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
+    val th' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) th
+    val thy' = #2 (Global_Theory.add_thm ((binding, th'), []) thy)
+  in State (thy', a, b, c) end
 
 fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
   | list_last [x] = ([], x)
@@ -333,19 +345,6 @@ fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
 fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
   | pair_list [] = []
   | pair_list _ = raise Fail "pair_list: odd list length"
-
-fun store_thm binding th0 thy =
-  let
-    val ctxt = Proof_Context.init_global thy
-    val th = Drule.export_without_context_open th0
-    val tvs = Term.add_tvars (Thm.prop_of th) []
-    val tns = map (fn (_, _) => "'") tvs
-    val nms = Name.variants (Variable.names_of ctxt) tns
-    val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val th' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) th
-  in
-    snd (Global_Theory.add_thm ((binding, th'), []) thy)
-  end
 
 fun parse_line s =
   (case String.tokens (fn x => x = #"\n" orelse x = #" ") s of
@@ -368,64 +367,32 @@ fun process_line str =
       | process (#"T", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry trans #-> set_thm
       | process (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
       | process (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
-      | process (#"L", [t, th]) = term t ##>> (fn ti => thm th ti) #>> uncurry abs #-> set_thm
-      | process (#"M", [s]) = (fn state =>
-          let
-            val thy = get_theory state
-            val th = Global_Theory.get_thm thy s
-          in
-            set_thm (freeze thy th) state
-          end)
-      | process (#"Q", l) = (fn state =>
-          let
-            val (tys, th) = list_last l
-            val (th, state1) = thm th state
-            val (tys, state2) = fold_map typ tys state1
-          in
-            set_thm (inst_type (pair_list tys) th) state2
-          end)
-      | process (#"S", l) = (fn state =>
-          let
-            val (tms, th) = list_last l
-            val (th, state1) = thm th state
-            val (tms, state2) = fold_map term tms state1
-          in
-            set_thm (inst (pair_list tms) th) state2
-          end)
-      | process (#"F", [name, t]) = (fn state =>
-          let
-            val (tm, state1) = term t state
-          in
-            state1
-            |> map_theory_result (def (make_name name) tm)
-            |-> set_thm
-          end)
-      | process (#"F", [name]) = (fn state => set_thm (mdef (get_theory state) name) state)
-      | process (#"Y", [name, absname, repname, t1, t2, th]) = (fn state =>
-          let
-            val (th, state1) = thm th state
-            val (t1, state2) = term t1 state1
-            val (t2, state3) = term t2 state2
-          in
-            state3
-            |> map_theory_result (tydef name absname repname t1 t2 th)
-            |-> set_thm
-          end)
-      | process (#"Y", [name, _, _]) = (fn state => set_thm (mtydef (get_theory state) name) state)
-      | process (#"t", [n]) = (fn state => set_typ (ctyp_of state (make_tfree n)) state)
-      | process (#"a", n :: l) = (fn state =>
-          fold_map typ l state
-          |>> (fn tys => ctyp_of state (make_type (get_theory state) (n, map Thm.typ_of tys)))
-          |-> set_typ)
-      | process (#"v", [n, ty]) = (fn state =>
-          typ ty state |>> (fn ty => cterm_of state (make_free (n, Thm.typ_of ty))) |-> set_term)
-      | process (#"c", [n, ty]) = (fn state =>
-          typ ty state |>> (fn ty =>
-            cterm_of state (make_const (get_theory state) (n, Thm.typ_of ty))) |-> set_term)
+      | process (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
+      | process (#"M", [s]) = get_thm s #-> set_thm
+      | process (#"Q", args) =
+          list_last args |> (fn (tys, th) =>
+            thm th #-> (fn th => fold_map typ tys #-> (fn tys =>
+              set_thm (inst_type (pair_list tys) th))))
+      | process (#"S", args) =
+          list_last args |> (fn (ts, th) =>
+            thm th #-> (fn th => fold_map term ts #-> (fn ts =>
+              set_thm (inst (pair_list ts) th))))
+      | process (#"F", [name, t]) =
+          term t #-> (fn t => theory_op (def (make_name name) t) #-> set_thm)
+      | process (#"F", [name]) = theory #-> (fn thy => set_thm (mdef thy name))
+      | process (#"Y", [name, abs, rep, t1, t2, th]) =
+          thm th #-> (fn th => term t1 #-> (fn t1 => term t2 #-> (fn t2 =>
+            theory_op (tydef name abs rep t1 t2 th) #-> set_thm)))
+      | process (#"Y", [name, _, _]) = theory #-> (fn thy => set_thm (mtydef thy name))
+      | process (#"t", [n]) = theory #-> (fn thy => set_typ (make_tfree thy n))
+      | process (#"a", n :: tys) = theory #-> (fn thy =>
+          fold_map typ tys #-> (fn tys => set_typ (make_type thy (n, tys))))
+      | process (#"v", [n, ty]) = typ ty #>> curry make_free n #-> set_term
+      | process (#"c", [n, ty]) = theory #-> (fn thy =>
+          typ ty #>> curry (make_const thy) n #-> set_term)
       | process (#"f", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.apply #-> set_term
       | process (#"l", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.lambda #-> set_term
-      | process (#"+", [s]) = (fn state =>
-          map_theory (store_thm (Binding.name (make_name s)) (last_thm state)) state)
+      | process (#"+", [s]) = store_last_thm (Binding.name (make_name s))
       | process (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
   in
     process (parse_line str)
