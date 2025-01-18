@@ -323,18 +323,17 @@ datatype state =
 
 fun init_state thy = State (thy, (Inttab.empty, 0), (Inttab.empty, 0), (Inttab.empty, 0))
 
-fun get (tab, no) s =
+fun get (tab, reg) s =
   (case Int.fromString s of
     NONE => raise Fail "get: not a number"
   | SOME i =>
       (case Inttab.lookup tab (Int.abs i) of
         NONE => raise Fail "get: lookup failed"
-      | SOME res => (res, (if i < 0 then Inttab.delete (Int.abs i) tab else tab, no))))
+      | SOME res => (res, (if i < 0 then Inttab.delete (Int.abs i) tab else tab, reg))))
 
 fun get_theory (State (thy, _, _, _)) = thy;
 val theory = `get_theory;
-fun theory_op f (State (thy, a, b, c)) =
-  let val (res, thy') = f thy in (res, State (thy', a, b, c)) end;
+fun theory_op f (State (thy, a, b, c)) = let val (y, thy') = f thy in (y, State (thy', a, b, c)) end;
 
 fun typ i (State (thy, a, b, c)) = let val (i, a') = get a i in (i, State (thy, a', b, c)) end
 fun term i (State (thy, a, b, c)) = let val (i, b') = get b i in (i, State (thy, a, b', c)) end
@@ -343,7 +342,7 @@ fun thm i (State (thy, a, b, c)) = let val (i, c') = get c i in (i, State (thy, 
 val typs = fold_map typ
 val terms = fold_map term
 
-fun set (tab, no) v = (Inttab.update_new (no + 1, v) tab, no + 1)
+fun set (tab, reg) res = (Inttab.update_new (reg + 1, res) tab, reg + 1)
 fun set_typ ty (State (thy, a, b, c)) = State (thy, set a ty, b, c)
 fun set_term tm (State (thy, a, b, c)) = State (thy, a, set b tm, c)
 fun set_thm th (State (thy, a, b, c)) = State (thy, a, b, set c th)
@@ -352,11 +351,11 @@ fun stored_thm name (State (thy, a, b, c)) =
   let val th = freeze thy (Global_Theory.get_thm thy name)
   in State (thy, a, b, set c th) end
 
-fun store_thm name (State (thy, a, b, c as (tab, no))) =
+fun store_thm name (State (thy, a, b, c as (tab, reg))) =
   let
     val th =
-      (case Inttab.lookup tab no of
-        NONE => raise Fail ("No result thm " ^ string_of_int no)
+      (case Inttab.lookup tab reg of
+        NONE => raise Fail "store_thm: lookup failed"
       | SOME th0 => Drule.export_without_context_open th0)
 
     val tvars = TVars.build (Thm.fold_terms {hyps = false} TVars.add_tvars th);
@@ -407,7 +406,7 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
       thm th #-> (fn th => term t1 #-> (fn t1 => term t2 #-> (fn t2 =>
         theory_op (tydef name abs rep t1 t2 th) #-> set_thm)))
   | command (#"Y", [name, _, _]) = theory #-> (fn thy => set_thm (mtydef thy name))
-  | command (#"t", [n]) = theory #-> (fn thy => set_typ (make_tfree thy n))
+  | command (#"t", [a]) = theory #-> (fn thy => set_typ (make_tfree thy a))
   | command (#"a", c :: tys) = theory #-> (fn thy => typs tys #>> make_type thy c #-> set_typ)
   | command (#"v", [x, ty]) = typ ty #>> make_free x #-> set_term
   | command (#"c", [c, ty]) = theory #-> (fn thy => typ ty #>> make_const thy c #-> set_term)
