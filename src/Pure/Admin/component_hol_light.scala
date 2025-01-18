@@ -57,6 +57,7 @@ HOL_LIGHT_OFFLINE="$HOL_LIGHT_IMPORT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_A
 Author: Alexander Krauss, QAware GmbH, 2013
 Author: Sophie Tourret, INRIA, 2024
 Author: Stéphane Glondu, INRIA, 2024
+
 LICENSE (export tools): BSD-3 from Isabelle
 LICENSE (HOL Light proofs): BSD-2 from HOL Light
 
