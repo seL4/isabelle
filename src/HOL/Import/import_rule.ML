@@ -367,10 +367,6 @@ fun store_last_thm binding (State (thy, a, b, c as (tab, no))) =
     val thy' = #2 (Global_Theory.add_thm ((binding, th'), []) thy)
   in State (thy', a, b, c) end
 
-fun list_last (x :: y :: zs) = apfst (fn t => x :: y :: t) (list_last zs)
-  | list_last [x] = ([], x)
-  | list_last [] = raise Fail "list_last: empty"
-
 fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
   | pair_list [] = []
   | pair_list _ = raise Fail "pair_list: odd list length"
@@ -396,10 +392,10 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
   | command (#"M", [s]) = get_thm s #-> set_thm
   | command (#"Q", args) =
-      list_last args |> (fn (tys, th) => thm th #-> (fn th => typs tys #-> (fn tys =>
+      split_last args |> (fn (tys, th) => thm th #-> (fn th => typs tys #-> (fn tys =>
         set_thm (inst_type (pair_list tys) th))))
   | command (#"S", args) =
-      list_last args |> (fn (ts, th) => thm th #-> (fn th => terms ts #-> (fn ts =>
+      split_last args |> (fn (ts, th) => thm th #-> (fn th => terms ts #-> (fn ts =>
         set_thm (inst (pair_list ts) th))))
   | command (#"F", [name, t]) =
       term t #-> (fn t => theory_op (def (make_name name) t) #-> set_thm)
