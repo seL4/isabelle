@@ -17,7 +17,7 @@ lemma [import_const T]:
 
 lemma [import_const "/\\"]:
   "(\<and>) = (\<lambda>p q. (\<lambda>f. f p q :: bool) = (\<lambda>f. f True True))"
-  by metis
+  by (metis (full_types))
 
 lemma [import_const "==>"]:
   "(\<longrightarrow>) = (\<lambda>(p::bool) q::bool. (p \<and> q) = p)"
@@ -136,8 +136,7 @@ lemma [import_const BIT0]:
   apply auto
   done
 
-definition [import_const BIT1, simp]:
-  "bit1 = (\<lambda>x. Suc (bit0 x))"
+definition [import_const BIT1, simp]: "bit1 = (\<lambda>x. Suc (bit0 x))"
 
 definition [simp]: "pred n = n - 1"
 
@@ -181,9 +180,7 @@ lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
   by (simp add: fun_eq_iff)
 
-definition even
-where
-  "even = Parity.even"
+definition even where "even = Parity.even"
   
 lemma EVEN[import_const "EVEN" : even]:
   "even (id 0::nat) = True \<and> (\<forall>n. even (Suc n) = (\<not> even n))"
@@ -313,15 +310,15 @@ lemma ZIP[import_const ZIP : zip]:
 lemma WF[import_const WF : wfP]:
   "\<forall>u. wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
 proof (intro allI iffI impI wfI_min[to_pred], elim exE wfE_min[to_pred])
-  fix x :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and xa :: "'a" and Q
-  assume a: "xa \<in> Q"
-  assume "\<forall>P. Ex P \<longrightarrow> (\<exists>xa. P xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> P y))"
-  then have "Ex (\<lambda>x. x \<in> Q) \<longrightarrow> (\<exists>xa. (\<lambda>x. x \<in> Q) xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> (\<lambda>x. x \<in> Q) y))" by auto
-  then show "\<exists>z\<in>Q. \<forall>y. x y z \<longrightarrow> y \<notin> Q" using a by auto
+  fix u :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and x :: "'a" and Q
+  assume a: "x \<in> Q"
+  assume "\<forall>P. (\<exists>x. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y))"
+  then have "(\<exists>x. x \<in> Q) \<longrightarrow> (\<exists>x. (\<lambda>x. x \<in> Q) x \<and> (\<forall>y. u y x \<longrightarrow> y \<notin> Q))" by auto
+  with a show "\<exists>x\<in>Q. \<forall>y. u y x \<longrightarrow> y \<notin> Q" by auto
 next
-  fix x P and xa :: 'A and z
-  assume "P xa" "z \<in> {a. P a}" "\<And>y. x y z \<Longrightarrow> y \<notin> {a. P a}"
-  then show "\<exists>xa. P xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> P y)" by auto
+  fix u P and x :: 'A and z
+  assume "P x" "z \<in> {a. P a}" "\<And>y. u y z \<Longrightarrow> y \<notin> {a. P a}"
+  then show "\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)" by auto
 qed auto
 
 end
