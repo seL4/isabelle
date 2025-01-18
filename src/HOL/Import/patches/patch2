@@ -5,7 +5,7 @@
  needs "lib.ml";;
  
 +#load "unix.cma";;
-+let poutc = Unix.open_process_out "buffer | gzip -c > proofs.gz";;
++let poutc = open_out "proofs";;
 +let foutc = open_out "facts.lst";;
 +let stop_recording () = close_out poutc; close_out foutc;;
 +

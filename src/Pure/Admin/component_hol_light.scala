@@ -27,8 +27,8 @@ object Component_HOL_Light {
 
     if (!only_offline) {
       Linux.check_system()
-      Isabelle_System.require_command("buffer", test = "-i /dev/null")
       Isabelle_System.require_command("patch")
+      Isabelle_System.require_command("zstd")
     }
 
 
@@ -76,7 +76,6 @@ has been patched in 2 phases. The overall export process works like this:
   export MAXTMS=10000
   ./ocaml-hol -I +compiler-libs stage2.ml
 
-  gzip -d proofs.gz
   > maps.lst
   "$HOL_LIGHT_IMPORT/x86_64-linux/offline"
 
@@ -157,12 +156,12 @@ has been patched in 2 phases. The overall export process works like this:
           "export MAXTMS=10000",
           "./ocaml-hol -I +compiler-libs stage2.ml")
         run(3,
-          "gzip -d proofs.gz",
           "> maps.lst",
-          File.bash_path(platform_dir + offline_exe) + " proofs")
+          File.bash_path(platform_dir + offline_exe) + " proofs",
+          "zstd -8 proofs")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
-        Isabelle_System.copy_file(hol_light_dir + Path.explode("proofs"), bundle_dir)
+        Isabelle_System.copy_file(hol_light_dir + Path.explode("proofs.zst"), bundle_dir)
       }
     }
   }
