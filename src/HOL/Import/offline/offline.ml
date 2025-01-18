@@ -80,12 +80,12 @@ let process thth thtm tmtm thty tmty tyty = function
 | (c, l) -> failwith ((String.make 1 c) ^ (String.concat " " l))
 ;;
 
-let thth = Array.create 155097624 [];;
-let tmth = Array.create 55000000 [];;
-let tmtm = Array.create 55000000 [];;
-let tyth = Array.create 200000 [];;
-let tytm = Array.create 200000 [];;
-let tyty = Array.create 200000 [];;
+let thth = Array.make 155097624 [];;
+let tmth = Array.make 55000000 [];;
+let tmtm = Array.make 55000000 [];;
+let tyth = Array.make 200000 [];;
+let tytm = Array.make 200000 [];;
+let tyty = Array.make 200000 [];;
 
 let needth no = not (IM.mem no !maps);;
 
@@ -167,9 +167,9 @@ print_char 'c'; flush stdout;;
 rev_tables ();;
 print_char 'C'; flush stdout;;
 
-let othnth = Array.create 155300000 0;;
-let otmntm = Array.create 55000000 0;;
-let otynty = Array.create 200000 0;;
+let othnth = Array.make 155300000 0;;
+let otmntm = Array.make 55000000 0;;
+let otynty = Array.make 200000 0;;
 
 let outl oc tag ss is =
   let ss = ss @ (List.map string_of_int is) in
