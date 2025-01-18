@@ -162,6 +162,7 @@ has been patched in 2 phases. The overall export process works like this:
           "zstd -8 proofs")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
+        Isabelle_System.copy_file(hol_light_dir + Path.explode("facts.lst"), bundle_dir)
         Isabelle_System.copy_file(hol_light_dir + Path.explode("proofs.zst"), bundle_dir)
       }
     }
