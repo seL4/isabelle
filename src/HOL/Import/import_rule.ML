@@ -210,8 +210,9 @@ fun typedef_hollight th =
 fun tydef' tycname abs_name rep_name cP ct td_th thy =
   let
     val ctT = Thm.ctyp_of_cterm ct
-    val nonempty = Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
-      @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
+    val nonempty =
+      Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
+        @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
     val th2 = meta_mp nonempty td_th
     val c =
       (case Thm.concl_of th2 of

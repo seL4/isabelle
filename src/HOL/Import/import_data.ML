@@ -97,15 +97,15 @@ val _ =
   Theory.setup (Attrib.setup \<^binding>\<open>import_const\<close>
     (Scan.lift Parse.name --
       Scan.option (Scan.lift \<^keyword>\<open>:\<close> |-- Args.const {proper = true, strict = false}) >>
-      (fn (s1, s2) => Thm.declaration_attribute
-        (fn th => Context.mapping (add_const_def s1 th s2) I)))
+      (fn (c, d) => Thm.declaration_attribute
+        (fn th => Context.mapping (add_const_def c th d) I)))
     "declare a theorem as an equality that maps the given constant")
 
 val _ =
   Theory.setup (Attrib.setup \<^binding>\<open>import_type\<close>
     (Scan.lift (Parse.name -- Parse.name -- Parse.name) >>
-      (fn ((tyname, absname), repname) => Thm.declaration_attribute
-        (fn th => Context.mapping (add_typ_def tyname absname repname th) I)))
+      (fn ((c, abs), rep) => Thm.declaration_attribute
+        (fn th => Context.mapping (add_typ_def c abs rep th) I)))
     "declare a type_definition theorem as a map for an imported type with abs and rep")
 
 val _ =
