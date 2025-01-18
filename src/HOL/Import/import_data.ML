@@ -120,14 +120,4 @@ val _ =
     ((Parse.name --| \<^keyword>\<open>:\<close>) -- Parse.const >>
       (fn (c, d) => Toplevel.theory (add_const_map_cmd c d)))
 
-(*Initial type and constant maps, for types and constants that are not
-  defined, which means their definitions do not appear in the proof dump.*)
-val _ =
-  Theory.setup
-   (add_typ_map "bool" \<^type_name>\<open>bool\<close> #>
-    add_typ_map "fun" \<^type_name>\<open>fun\<close> #>
-    add_typ_map "ind" \<^type_name>\<open>ind\<close> #>
-    add_const_map "=" \<^const_name>\<open>HOL.eq\<close> #>
-    add_const_map "@" \<^const_name>\<open>Eps\<close>)
-
 end
