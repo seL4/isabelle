@@ -354,49 +354,44 @@ fun parse_line s =
         [] => raise Fail "parse_line: empty command"
       | c :: cs => (c, String.implode cs :: args)))
 
-fun process_line str =
-  let
-    fun process (#"R", [t]) = term t #>> refl #-> set_thm
-      | process (#"B", [t]) = term t #>> beta #-> set_thm
-      | process (#"1", [th]) = thm th #>> conj1 #-> set_thm
-      | process (#"2", [th]) = thm th #>> conj2 #-> set_thm
-      | process (#"H", [t]) = term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Thm.trivial #-> set_thm
-      | process (#"A", [_, t]) =
-          term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Skip_Proof.make_thm_cterm #-> set_thm
-      | process (#"C", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry comb #-> set_thm
-      | process (#"T", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry trans #-> set_thm
-      | process (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
-      | process (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
-      | process (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
-      | process (#"M", [s]) = get_thm s #-> set_thm
-      | process (#"Q", args) =
-          list_last args |> (fn (tys, th) =>
-            thm th #-> (fn th => fold_map typ tys #-> (fn tys =>
-              set_thm (inst_type (pair_list tys) th))))
-      | process (#"S", args) =
-          list_last args |> (fn (ts, th) =>
-            thm th #-> (fn th => fold_map term ts #-> (fn ts =>
-              set_thm (inst (pair_list ts) th))))
-      | process (#"F", [name, t]) =
-          term t #-> (fn t => theory_op (def (make_name name) t) #-> set_thm)
-      | process (#"F", [name]) = theory #-> (fn thy => set_thm (mdef thy name))
-      | process (#"Y", [name, abs, rep, t1, t2, th]) =
-          thm th #-> (fn th => term t1 #-> (fn t1 => term t2 #-> (fn t2 =>
-            theory_op (tydef name abs rep t1 t2 th) #-> set_thm)))
-      | process (#"Y", [name, _, _]) = theory #-> (fn thy => set_thm (mtydef thy name))
-      | process (#"t", [n]) = theory #-> (fn thy => set_typ (make_tfree thy n))
-      | process (#"a", n :: tys) = theory #-> (fn thy =>
-          fold_map typ tys #-> (fn tys => set_typ (make_type thy (n, tys))))
-      | process (#"v", [n, ty]) = typ ty #>> curry make_free n #-> set_term
-      | process (#"c", [n, ty]) = theory #-> (fn thy =>
-          typ ty #>> curry (make_const thy) n #-> set_term)
-      | process (#"f", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.apply #-> set_term
-      | process (#"l", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.lambda #-> set_term
-      | process (#"+", [s]) = store_last_thm (Binding.name (make_name s))
-      | process (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
-  in
-    process (parse_line str)
-  end
+fun command (#"R", [t]) = term t #>> refl #-> set_thm
+  | command (#"B", [t]) = term t #>> beta #-> set_thm
+  | command (#"1", [th]) = thm th #>> conj1 #-> set_thm
+  | command (#"2", [th]) = thm th #>> conj2 #-> set_thm
+  | command (#"H", [t]) = term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Thm.trivial #-> set_thm
+  | command (#"A", [_, t]) =
+      term t #>> Thm.apply \<^cterm>\<open>Trueprop\<close> #>> Skip_Proof.make_thm_cterm #-> set_thm
+  | command (#"C", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry comb #-> set_thm
+  | command (#"T", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry trans #-> set_thm
+  | command (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
+  | command (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
+  | command (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
+  | command (#"M", [s]) = get_thm s #-> set_thm
+  | command (#"Q", args) =
+      list_last args |> (fn (tys, th) =>
+        thm th #-> (fn th => fold_map typ tys #-> (fn tys =>
+          set_thm (inst_type (pair_list tys) th))))
+  | command (#"S", args) =
+      list_last args |> (fn (ts, th) =>
+        thm th #-> (fn th => fold_map term ts #-> (fn ts =>
+          set_thm (inst (pair_list ts) th))))
+  | command (#"F", [name, t]) =
+      term t #-> (fn t => theory_op (def (make_name name) t) #-> set_thm)
+  | command (#"F", [name]) = theory #-> (fn thy => set_thm (mdef thy name))
+  | command (#"Y", [name, abs, rep, t1, t2, th]) =
+      thm th #-> (fn th => term t1 #-> (fn t1 => term t2 #-> (fn t2 =>
+        theory_op (tydef name abs rep t1 t2 th) #-> set_thm)))
+  | command (#"Y", [name, _, _]) = theory #-> (fn thy => set_thm (mtydef thy name))
+  | command (#"t", [n]) = theory #-> (fn thy => set_typ (make_tfree thy n))
+  | command (#"a", n :: tys) = theory #-> (fn thy =>
+      fold_map typ tys #-> (fn tys => set_typ (make_type thy (n, tys))))
+  | command (#"v", [n, ty]) = typ ty #>> curry make_free n #-> set_term
+  | command (#"c", [n, ty]) = theory #-> (fn thy =>
+      typ ty #>> curry (make_const thy) n #-> set_term)
+  | command (#"f", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.apply #-> set_term
+  | command (#"l", [t1, t2]) = term t1 ##>> term t2 #>> uncurry Thm.lambda #-> set_term
+  | command (#"+", [s]) = store_last_thm (Binding.name (make_name s))
+  | command (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
 
 fun import_file path0 thy =
   let
@@ -404,7 +399,7 @@ fun import_file path0 thy =
     val lines =
       if Path.is_zst path then Bytes.read path |> Zstd.uncompress |> Bytes.trim_split_lines
       else File.read_lines path
-  in get_theory (fold process_line lines (init_state thy)) end
+  in get_theory (fold (command o parse_line) lines (init_state thy)) end
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>import_file\<close> "import recorded proofs from HOL Light"
