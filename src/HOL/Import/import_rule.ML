@@ -354,19 +354,20 @@ fun stored_thm name (State (thy, a, b, c)) =
 
 fun store_thm name (State (thy, a, b, c as (tab, no))) =
   let
-    val binding = Binding.name (make_name name)
-    val th0 =
+    val th =
       (case Inttab.lookup tab no of
-        NONE => raise Fail ("No thm " ^ string_of_int no)
-      | SOME th => th)
-    val ctxt = Proof_Context.init_global thy
-    val th = Drule.export_without_context_open th0
-    val tvs = Term.add_tvars (Thm.prop_of th) []
-    val tns = map (fn (_, _) => "'") tvs
-    val nms = Name.variants (Variable.names_of ctxt) tns
-    val vs = map TVar ((nms ~~ (map (snd o fst) tvs)) ~~ (map snd tvs))
-    val th' = Thm.instantiate (TVars.make (tvs ~~ map (Thm.ctyp_of ctxt) vs), Vars.empty) th
-    val thy' = #2 (Global_Theory.add_thm ((binding, th'), []) thy)
+        NONE => raise Fail ("No result thm " ^ string_of_int no)
+      | SOME th0 => Drule.export_without_context_open th0)
+
+    val tvars = TVars.build (Thm.fold_terms {hyps = false} TVars.add_tvars th);
+    val names = Name.invent_global_types (TVars.size tvars)
+    val tyinst =
+      TVars.build (fold2
+        (fn v as ((_, i), S) => fn b => TVars.add (v, Thm.global_ctyp_of thy (TVar ((b, i), S))))
+        (TVars.list_set tvars) names)
+
+    val th' = Thm.instantiate (tyinst, Vars.empty) th
+    val thy' = #2 (Global_Theory.add_thm ((Binding.name (make_name name), th'), []) thy)
   in State (thy', a, b, c) end
 
 fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
