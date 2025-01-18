@@ -31,6 +31,10 @@ end
 structure Import_Rule: IMPORT_RULE =
 struct
 
+(** primitive rules of HOL Light **)
+
+(* basic logic *)
+
 fun implies_elim_all th = implies_elim_list th (map Thm.assume (cprems_of th))
 
 fun meta_mp th1 th2 =
@@ -145,6 +149,9 @@ fun abs x th =
     meta_mp i th2
   end
 
+
+(* instantiation *)
+
 fun freezeT thy th =
   let
     fun add (v as ((a, _), S)) tvars =
@@ -168,6 +175,26 @@ fun freeze thy = freezeT thy #> (fn th =>
     Thm.instantiate (TVars.empty, inst) th
   end)
 
+fun inst_type lambda =
+  let
+    val tyinst =
+      TFrees.build (lambda |> fold (fn (a, b) =>
+        TFrees.add (Term.dest_TFree (Thm.typ_of a), b)))
+  in
+    Thm.instantiate_frees (tyinst, Frees.empty)
+  end
+
+fun inst sigma th =
+  let
+    val (dom, rng) = ListPair.unzip (rev sigma)
+  in
+    th |> forall_intr_list dom
+       |> forall_elim_list rng
+  end
+
+
+(* constant definitions *)
+
 fun def' c rhs thy =
   let
     val b = Binding.name c
@@ -189,6 +216,9 @@ fun def c rhs thy =
   if is_some (Import_Data.get_const_def thy c) then
     (warning ("Const mapped, but def provided: " ^ quote c); (mdef thy c, thy))
   else def' c (Thm.term_of rhs) thy
+
+
+(* type definitions *)
 
 fun typedef_hol2hollight A B rep abs pred a r =
   Thm.instantiate' [SOME A, SOME B] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
@@ -249,22 +279,11 @@ fun tydef tycname abs_name rep_name P t td_th thy =
     (warning ("Type mapped but proofs provided: " ^ quote tycname); (mtydef thy tycname, thy))
   else tydef' tycname abs_name rep_name P t td_th thy
 
-fun inst_type lambda =
-  let
-    val tyinst =
-      TFrees.build (lambda |> fold (fn (a, b) =>
-        TFrees.add (Term.dest_TFree (Thm.typ_of a), b)))
-  in
-    Thm.instantiate_frees (tyinst, Frees.empty)
-  end
 
-fun inst sigma th =
-  let
-    val (dom, rng) = ListPair.unzip (rev sigma)
-  in
-    th |> forall_intr_list dom
-       |> forall_elim_list rng
-  end
+
+(** importer **)
+
+(* basic entities *)
 
 val make_name = String.translate (fn #"." => "dot" | c => Char.toString c)
 
@@ -294,6 +313,10 @@ fun make_const thy c ty =
 val make_thm = Skip_Proof.make_thm_cterm o Thm.apply \<^cterm>\<open>Trueprop\<close>
 val assume_thm = Thm.trivial o Thm.apply \<^cterm>\<open>Trueprop\<close>
 
+
+(* import file *)
+
+local
 
 datatype state =
   State of theory * (ctyp Inttab.table * int) * (cterm Inttab.table * int) * (thm Inttab.table * int)
@@ -394,6 +417,8 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"+", [s]) = store_last_thm (Binding.name (make_name s))
   | command (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
 
+in
+
 fun import_file path0 thy =
   let
     val path = File.absolute_path (Resources.master_directory thy + path0)
@@ -405,5 +430,7 @@ fun import_file path0 thy =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>import_file\<close> "import recorded proofs from HOL Light"
     (Parse.path >> (fn name => Toplevel.theory (fn thy => import_file (Path.explode name) thy)))
+
+end
 
 end
