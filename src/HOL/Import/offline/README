@@ -1,0 +1,12 @@
+* Compile and run "offline/offline.ml" (warning, this uses a lot of memory)
+
+  ocamlopt offline.ml -o offline
+  > maps.lst
+  ./offline
+
+* Format of maps.lst:
+
+  - THM1 THM2   map HOL Light THM1 to Isabelle/HOL THM2 and forget its deps
+  - THM -       do not record THM and make sure it is not used (its deps must be mapped)
+  - THM         the definition of constant/type is mapped in Isabelle/HOL, so forget
+                its deps and look its map up when defining (may fail at import time)

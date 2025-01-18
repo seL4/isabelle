@@ -1,0 +1,230 @@
+T_DEF
+AND_DEF
+IMP_DEF
+FORALL_DEF
+EXISTS_DEF
+OR_DEF
+F_DEF
+NOT_DEF
+EXISTS_UNIQUE_DEF
+_FALSITY_
+ETA_AX        hl_ax1
+SELECT_AX     hl_ax2
+COND_DEF
+DEF_o
+I_DEF
+TYDEF_1
+one_DEF
+DEF_mk_pair
+TYDEF_prod
+DEF_,
+DEF_FST
+DEF_SND
+DEF_CURRY     -
+CURRY_DEF     CURRY_DEF
+DEF_ONE_ONE
+DEF_ONTO
+INFINITY_AX   hl_ax3
+TYDEF_num     -
+ZERO_DEF      -
+DEF_SUC       -
+SUC_DEF       -
+NOT_SUC       NOT_SUC
+SUC_INJ       SUC_INJ
+num_INDUCTION num_INDUCTION
+DEF_NUMERAL
+num_Axiom     num_Axiom
+DEF_BIT0
+DEF_BIT1
+DEF_PRE       -
+PRE           PRE
+DEF_+         -
+ADD           ADD
+DEF_*         -
+MULT          MULT
+DEF_EXP       -
+EXP           EXP
+DEF_<=        -
+LE            LE
+DEF_<         -
+LT            LT
+DEF_>=
+DEF_>
+DEF_MAX
+DEF_MIN
+DEF_EVEN      -
+EVEN          EVEN
+DEF_-         -
+SUB           SUB
+DEF_FACT      -
+FACT          FACT
+DEF_DIV       -
+DEF_MOD       -
+DIVISION_0    DIVISION_0
+TYDEF_sum     -
+DEF_INL       -
+DEF_INR       -
+sum_RECURSION sum_RECURSION
+sum_INDUCT    sum_INDUCT
+DEF_OUTL      -
+OUTL          OUTL
+DEF_OUTR      -
+OUTR          OUTR
+TYDEF_list    -
+DEF_NIL       -
+DEF_CONS      -
+list_RECURSION list_RECURSION
+list_INDUCT   list_INDUCT
+DEF_HD        -
+HD            HD
+DEF_TL        -
+TL            TL
+DEF_APPEND    -
+APPEND        APPEND
+DEF_REVERSE   -
+REVERSE_conjunct0 REVERSE(0)
+REVERSE_conjunct1 REVERSE(1)
+DEF_LENGTH    -
+LENGTH        LENGTH
+DEF_MAP       -
+MAP           MAP
+DEF_LAST      -
+LAST          LAST
+DEF_BUTLAST   -
+BUTLAST_conjunct0 BUTLAST(0)
+BUTLAST_conjunct1 BUTLAST(1)
+DEF_REPLICATE -
+REPLICATE_conjunct0 REPLICATE(0)
+REPLICATE_conjunct1 REPLICATE(1)
+DEF_NULL      -
+NULL_conjunct0 NULL(0)
+NULL_conjunct1 NULL(1)
+DEF_ALL       -
+ALL_conjunct0 ALL(0)
+ALL_conjunct1 ALL(1)
+DEF_EX        -
+EX_conjunct0  EX(0)
+EX_conjunct1  EX(1)
+DEF_ITLIST    -
+ITLIST_conjunct0 ITLIST(0)
+ITLIST_conjunct1 ITLIST(1)
+DEF_ALL2      -
+ALL2_DEF_conjunct0 ALL2_DEF(0)
+ALL2_DEF_conjunct1 ALL2_DEF(1)
+DEF_FILTER    -
+FILTER_conjunct0 FILTER(0)
+FILTER_conjunct1 FILTER(1)
+DEF_ZIP       -
+ZIP_DEF_conjunct0 -
+ZIP_DEF_conjunct1 -
+ZIP_DEF       -
+ZIP_conjunct0 ZIP(0)
+ZIP_conjunct1 ZIP(1)
+TYDEF_real -
+DEF_real_of_num -
+real_of_num -
+real_of_num_th -
+DEF_real_neg -
+real_neg -
+real_neg_th -
+DEF_real_add -
+real_add -
+real_add_th -
+DEF_real_mul -
+real_mul -
+real_mul_th -
+DEF_real_le -
+real_le -
+real_le_th -
+DEF_real_inv -
+real_inv -
+real_inv_th -
+REAL_ADD_SYM REAL_ADD_SYM
+REAL_ADD_ASSOC REAL_ADD_ASSOC
+REAL_ADD_LID REAL_ADD_LID
+REAL_ADD_LINV REAL_ADD_LINV
+REAL_MUL_SYM REAL_MUL_SYM
+REAL_MUL_ASSOC REAL_MUL_ASSOC
+REAL_MUL_LID REAL_MUL_LID
+REAL_ADD_LDISTRIB REAL_ADD_LDISTRIB
+REAL_LE_REFL REAL_LE_REFL
+REAL_LE_ANTISYM REAL_LE_ANTISYM
+REAL_LE_TRANS REAL_LE_TRANS
+REAL_LE_TOTAL REAL_LE_TOTAL
+REAL_LE_LADD_IMP REAL_LE_LADD_IMP
+REAL_LE_MUL REAL_LE_MUL
+REAL_OF_NUM_LE REAL_OF_NUM_LE
+DEF_real_sub -
+real_sub real_sub
+DEF_real_lt -
+real_lt real_lt
+DEF_real_ge -
+real_ge real_ge
+DEF_real_gt -
+real_gt real_gt
+DEF_real_abs -
+real_abs real_abs
+DEF_real_pow -
+REAL_POLY_CLAUSES_conjunct9 REAL_POLY_CLAUSES_conjunct9
+REAL_POLY_CLAUSES_conjunct8 REAL_POLY_CLAUSES_conjunct8
+DEF_real_div -
+real_div real_div
+DEF_real_max -
+real_max real_max
+DEF_real_min -
+real_min real_min
+DEF_real_sgn -
+real_sgn real_sgn
+REAL_HREAL_LEMMA1 -
+REAL_HREAL_LEMMA2 -
+REAL_COMPLETE_SOMEPOS REAL_COMPLETE_SOMEPOS
+REAL_OF_NUM_MUL REAL_OF_NUM_MUL
+REAL_OF_NUM_ADD REAL_OF_NUM_ADD
+REAL_OF_NUM_EQ REAL_OF_NUM_EQ
+REAL_INV_0 REAL_INV_0
+REAL_MUL_LINV REAL_MUL_LINV
+TYDEF_int -
+DEF_integer -
+integer integer
+int_rep int_rep
+int_abstr int_abstr
+dest_int_rep dest_int_rep
+int_eq int_eq
+DEF_int_le -
+int_le     int_le
+DEF_int_ge -
+int_ge     int_ge
+DEF_int_lt -
+int_lt     int_lt
+DEF_int_gt -
+int_gt     int_gt
+DEF_int_of_num -
+int_of_num int_of_num
+int_of_num_th int_of_num_th
+int_neg    -
+int_neg_th int_neg_th
+DEF_int_add -
+int_add    -
+int_add_th int_add_th
+DEF_int_sub -
+int_sub    -
+int_sub_th int_sub_th
+DEF_int_mul -
+int_mul    -
+int_mul_th int_mul_th
+DEF_int_abs -
+int_abs    -
+int_abs_th int_abs_th
+DEF_int_sgn -
+int_sgn    -
+int_sgn_th int_sgn_th
+DEF_int_max -
+int_max    -
+int_max_th int_max_th
+DEF_int_min -
+int_min    -
+int_min_th int_min_th
+DEF_int_pow -
+int_pow    -
+int_pow_th int_pow_th
+INT_IMAGE INT_IMAGE
