@@ -180,7 +180,7 @@ has been patched in 2 phases. The overall export process works like this:
 
         run(3,
           File.bash_path(platform_dir + offline_exe) + " proofs",
-          "zstd -8 proofs")
+          "zstd -8 -c < proofsN > proofs.zst")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
         for (name <- List("facts.lst", "maps.lst", "proofs.zst")) {
