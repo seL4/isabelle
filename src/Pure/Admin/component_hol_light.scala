@@ -11,16 +11,18 @@ package isabelle
 object Component_HOL_Light {
   /* resources */
 
+  val hol_import_dir: Path = Path.explode("~~/src/HOL/Import")
+  def default_maps: Path = hol_import_dir + Path.explode("offline/maps.lst")
+
   val default_hol_light_url = "https://github.com/jrh13/hol-light.git"
   val default_hol_light_rev = "Release-3.0.0"
-
-  val hol_import_dir: Path = Path.explode("~~/src/HOL/Import")
 
   def build_hol_light_import(
     only_offline: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
     load_more: List[Path] = Nil,
+    maps: Option[Path] = Some(default_maps),
     hol_light_url: String = default_hol_light_url,
     hol_light_rev: String = default_hol_light_rev
   ): Unit = {
@@ -83,7 +85,7 @@ has been patched in 2 phases. The overall export process works like this:
   export MAXTMS=10000
   ./ocaml-hol -I +compiler-libs stage2.ml
 
-  > maps.lst
+  cp "$HOL_LIGHT_IMPORT/bundle/maps.lst" .
   "$HOL_LIGHT_IMPORT/x86_64-linux/offline"
 
 
@@ -172,14 +174,18 @@ has been patched in 2 phases. The overall export process works like this:
           "patch -p1 < " + File.bash_path(patch(2)),
           "export MAXTMS=10000",
           "./ocaml-hol -I +compiler-libs stage2.ml")
+
+        Bytes.write(hol_light_dir + Path.explode("maps.lst"),
+          if (maps.isEmpty) Bytes.empty else Bytes.read(maps.get))
+
         run(3,
-          "> maps.lst",
           File.bash_path(platform_dir + offline_exe) + " proofs",
           "zstd -8 proofs")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
-        Isabelle_System.copy_file(hol_light_dir + Path.explode("facts.lst"), bundle_dir)
-        Isabelle_System.copy_file(hol_light_dir + Path.explode("proofs.zst"), bundle_dir)
+        for (name <- List("facts.lst", "maps.lst", "proofs.zst")) {
+          Isabelle_System.copy_file(hol_light_dir + Path.explode(name), bundle_dir)
+        }
       }
     }
   }
@@ -193,6 +199,7 @@ has been patched in 2 phases. The overall export process works like this:
       { args =>
         var target_dir = Path.current
         var load_more = List.empty[Path]
+        var maps: Option[Path] = Some(default_maps)
         var only_offline = false
         var hol_light_url = default_hol_light_url
         var hol_light_rev = default_hol_light_rev
@@ -204,6 +211,8 @@ Usage: isabelle component_hol_light_import [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -L PATH      load additional HOL Light files, after "hol.ml"
+    -M PATH      alternative maps.lst for offline alignment of facts
+                 ("." means empty, default: """ + default_maps + """)
     -O           only build the "offline" tool
     -U URL       git URL for original HOL Light repository, default:
                  """ + default_hol_light_url + """
@@ -218,6 +227,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "L:" -> (arg => load_more = load_more ::: List(Path.explode(arg))),
+          "M:" -> (arg => maps = if (arg == ".") None else Some(Path.explode(arg))),
           "O" -> (_ => only_offline = true),
           "U:" -> (arg => hol_light_url = arg),
           "r:" -> (arg => hol_light_rev = arg),
@@ -230,6 +240,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 
         build_hol_light_import(
           only_offline = only_offline, progress = progress, target_dir = target_dir,
-          load_more = load_more, hol_light_url = hol_light_url, hol_light_rev = hol_light_rev)
+          load_more = load_more, maps = maps,
+          hol_light_url = hol_light_url, hol_light_rev = hol_light_rev)
       })
 }
