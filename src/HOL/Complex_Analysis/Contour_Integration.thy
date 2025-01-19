@@ -105,7 +105,6 @@ proof -
     from that have "x \<in> interior {0..1}" by auto
     with S[of x] that show ?thesis by (auto simp: at_within_interior[of _ "{0..1}"])
   qed
-
   have "(f has_contour_integral I) (-g) \<longleftrightarrow>
           ((\<lambda>x. f (- g x) * vector_derivative (-g) (at x)) has_integral I) {0..1}"
     by (simp add: has_contour_integral)
@@ -577,13 +576,8 @@ lemma contour_integral_subpath_combine_less:
           "u<v" "v<w"
     shows "contour_integral (subpath u v g) f + contour_integral (subpath v w g) f =
            contour_integral (subpath u w g) f"
-proof -
-  have "(\<lambda>x. f (g x) * vector_derivative g (at x)) integrable_on {u..w}"
-    using integrable_on_subcbox [where a=u and b=w and S = "{0..1}"] assms
-    by (auto simp: contour_integrable_on)
-  with assms show ?thesis
-    by (auto simp: contour_integral_subcontour_integral Henstock_Kurzweil_Integration.integral_combine)
-qed
+  by (smt (verit) Henstock_Kurzweil_Integration.integral_combine assms
+      has_integral_contour_integral_subpath has_integral_iff)
 
 lemma contour_integral_subpath_combine:
   assumes "f contour_integrable_on g" "valid_path g" "u \<in> {0..1}" "v \<in> {0..1}" "w \<in> {0..1}"
@@ -614,7 +608,8 @@ proof (cases "u\<noteq>v \<and> v\<noteq>w \<and> u\<noteq>w")
 next
   case False
   with assms show ?thesis
-    by (metis add.right_neutral contour_integral_reversepath contour_integral_subpath_refl diff_0 eq_diff_eq add_0 reversepath_subpath valid_path_subpath)
+    by (metis add.right_neutral contour_integral_reversepath contour_integral_subpath_refl
+        diff_0 eq_diff_eq add_0 reversepath_subpath valid_path_subpath)
 qed
 
 lemma contour_integral_integral:
@@ -652,9 +647,8 @@ lemma has_contour_integral_linepath_Reals_iff:
   shows   "(f has_contour_integral I) (linepath a b) \<longleftrightarrow>
            ((\<lambda>x. f (of_real x)) has_integral I) {Re a..Re b}"
 proof -
-  from assms have [simp]: "of_real (Re a) = a" "of_real (Re b) = b"
-    by (simp_all add: complex_eq_iff)
-  from assms have "a \<noteq> b" by auto
+  have [simp]: "of_real (Re a) = a" "of_real (Re b) = b" and "a \<noteq> b"
+    using assms by (simp_all add: complex_eq_iff)
   have "((\<lambda>x. f (of_real x)) has_integral I) (cbox (Re a) (Re b)) \<longleftrightarrow>
           ((\<lambda>x. f (a + b * of_real x - a * of_real x)) has_integral I /\<^sub>R (Re b - Re a)) {0..1}"
     by (subst has_integral_affinity_iff [of "Re b - Re a" _ "Re a", symmetric])
@@ -665,8 +659,9 @@ proof -
   also have "(\<dots> has_integral I /\<^sub>R (Re b - Re a)) {0..1} \<longleftrightarrow>
                ((\<lambda>x. f (linepath a b x) * (b - a)) has_integral I) {0..1}" using assms
     by (subst has_integral_cmul_iff) (auto simp: linepath_def scaleR_conv_of_real algebra_simps)
-  also have "\<dots> \<longleftrightarrow> (f has_contour_integral I) (linepath a b)" unfolding has_contour_integral_def
-    by (intro has_integral_cong) (simp add: vector_derivative_linepath_within)
+  also have "\<dots> \<longleftrightarrow> (f has_contour_integral I) (linepath a b)" 
+    unfolding has_contour_integral_def
+    using has_contour_integral_def has_contour_integral_linepath by presburger
   finally show ?thesis by simp
 qed
 
@@ -684,12 +679,14 @@ lemma contour_integral_linepath_Reals_eq:
   shows   "contour_integral (linepath a b) f = integral {Re a..Re b} (\<lambda>x. f (of_real x))"
 proof (cases "f contour_integrable_on linepath a b")
   case True
-  thus ?thesis using has_contour_integral_linepath_Reals_iff[OF assms, of f]
-    using has_contour_integral_integral has_contour_integral_unique by blast
+  thus ?thesis
+    by (metis assms has_contour_integral_integral
+        has_contour_integral_linepath_Reals_iff integral_unique)
 next
   case False
-  thus ?thesis using contour_integrable_linepath_Reals_iff[OF assms, of f]
-    by (simp add: not_integrable_contour_integral not_integrable_integral)
+  thus ?thesis
+    by (simp add: assms contour_integrable_linepath_Reals_iff
+        not_integrable_contour_integral not_integrable_integral)
 qed
 
 subsection \<open>Cauchy's theorem where there's a primitive\<close>
@@ -705,8 +702,7 @@ proof -
   obtain K where "finite K" and K: "\<forall>x\<in>{a..b} - K. g differentiable (at x within {a..b})" and cg: "continuous_on {a..b} g"
     using assms by (auto simp: piecewise_differentiable_on_def)
   have "continuous_on (g ` {a..b}) f"
-    using assms
-    by (metis field_differentiable_def field_differentiable_imp_continuous_at continuous_on_eq_continuous_within continuous_on_subset image_subset_iff)
+    using assms by (metis DERIV_continuous_on continuous_on_subset image_subsetI)
   then have cfg: "continuous_on {a..b} (\<lambda>x. f (g x))"
     by (rule continuous_on_compose [OF cg, unfolded o_def])
   { fix x::real
@@ -753,10 +749,9 @@ proof -
     by (rule continuous_intros | simp add: assms)+
   then have "continuous_on {0..1} (\<lambda>x. f (linepath a b x) * (b - a))"
     by (metis (no_types, lifting) continuous_on_compose continuous_on_cong continuous_on_linepath linepath_image_01 o_apply)
-  then have "(\<lambda>x. f (linepath a b x) *
-         vector_derivative (linepath a b)
-          (at x within {0..1})) integrable_on
-    {0..1}"
+  then have "(\<lambda>x. f (linepath a b x)
+             * vector_derivative (linepath a b) (at x within {0..1})) 
+             integrable_on {0..1}"
     by (metis (no_types, lifting) continuous_on_cong integrable_continuous_real vector_derivative_linepath_within)
   then show ?thesis
     by (simp add: contour_integrable_on_def has_contour_integral_def integrable_on_def [symmetric])
@@ -984,7 +979,7 @@ proof (cases "k = 0 \<or> k = 1")
     using assms by auto
 next
   case False
-  then have k: "0 < k" "k < 1" "complex_of_real k \<noteq> 1"
+  then have k: "0 < k" "k < 1"
     using assms by auto
   have c': "c = k *\<^sub>R (b - a) + a"
     by (metis diff_add_cancel c)
@@ -1002,8 +997,8 @@ next
   } note fi = this
   { assume *: "((\<lambda>x. f ((1 - x) *\<^sub>R c + x *\<^sub>R b) * (b - c)) has_integral j) {0..1}"
     have **: "\<And>x. (((1 - x) / (1 - k)) *\<^sub>R c + ((x - k) / (1 - k)) *\<^sub>R b) = ((1 - x) *\<^sub>R a + x *\<^sub>R b)"
-      using k unfolding c' scaleR_conv_of_real
-      apply (simp add: divide_simps)
+      using k 
+      apply (simp add: c' scaleR_conv_of_real divide_simps)
       apply (simp add: distrib_right distrib_left right_diff_distrib left_diff_distrib)
       done
     have "((\<lambda>x. f ((1 - x) *\<^sub>R a + x *\<^sub>R b) * (b - a)) has_integral j) {k..1}"
@@ -1044,10 +1039,14 @@ proof -
   moreover have "closed_segment c b \<subseteq> closed_segment a b"
     by (metis c' ends_in_segment(2) in_segment(1) k subset_closed_segment)
   ultimately
-  have *: "continuous_on (closed_segment a c) f" "continuous_on (closed_segment c b) f"
+  have "continuous_on (closed_segment a c) f" "continuous_on (closed_segment c b) f"
     by (auto intro: continuous_on_subset [OF f])
-  show ?thesis
-    by (rule contour_integral_unique) (meson "*" c contour_integrable_continuous_linepath has_contour_integral_integral has_contour_integral_split k)
+  then have "(f has_contour_integral 
+                contour_integral (linepath a c) f + contour_integral (linepath c b) f) (linepath a b)"
+    by (meson c contour_integrable_continuous_linepath
+        has_contour_integral_integral has_contour_integral_split k)
+  then show ?thesis
+    by (metis contour_integral_unique)
 qed
 
 lemma contour_integral_split_linepath:
@@ -1113,10 +1112,7 @@ proof -
     apply (subst integral_swap_continuous [where 'a = real and 'b = real, of 0 0 1 1, simplified])
     subgoal
       by (rule fgh gvcon' hvcon' continuous_intros | simp add: split_def)+
-    subgoal
-      unfolding integral_mult_left [symmetric]
-      by (simp only: mult_ac)
-    done
+    by (simp add: mult.commute mult.left_commute)
   also have "\<dots> = contour_integral h (\<lambda>z. contour_integral g (\<lambda>w. f w z))"
     unfolding contour_integral_integral integral_mult_left [symmetric]
     by (simp add: algebra_simps)
@@ -1252,14 +1248,8 @@ qed
 
 lemma path_image_part_circlepath':
   "path_image (part_circlepath z r s t) = (\<lambda>x. z + r * cis x) ` closed_segment s t"
-proof -
-  have "path_image (part_circlepath z r s t) =
-          (\<lambda>x. z + r * exp(\<i> * of_real x)) ` linepath s t ` {0..1}"
-    by (simp add: image_image path_image_def part_circlepath_def)
-  also have "linepath s t ` {0..1} = closed_segment s t"
-    by (rule linepath_image_01)
-  finally show ?thesis by (simp add: cis_conv_exp)
-qed
+  by (metis (no_types, lifting) ext cis_conv_exp image_image linepath_image_01
+      part_circlepath_def path_image_def)
 
 lemma path_image_part_circlepath_subset:
     "\<lbrakk>s \<le> t; 0 \<le> r\<rbrakk> \<Longrightarrow> path_image(part_circlepath z r s t) \<subseteq> sphere z r"
@@ -1443,10 +1433,11 @@ next
   case False
   have *: "finite {x. cmod ((2 * real_of_int x * pi) * \<i>) \<le> b + cmod (Ln w)}"
   proof (simp add: norm_mult finite_int_iff_bounded_le)
-    show "\<exists>k. abs ` {x. 2 * \<bar>of_int x\<bar> * pi \<le> b + cmod (Ln w)} \<subseteq> {..k}"
-    apply (rule_tac x="\<lfloor>(b + cmod (Ln w)) / (2*pi)\<rfloor>" in exI)
-    apply (auto simp: field_split_simps le_floor_iff)
-      done
+    have "abs ` {x. 2 * \<bar>real_of_int x\<bar> * pi \<le> b + cmod (Ln w)}
+    \<subseteq> {..\<lfloor>(b + cmod (Ln w)) / (2 * pi)\<rfloor>}"
+      by (auto simp: field_split_simps le_floor_iff)
+    then show "\<exists>k. abs ` {x. 2 * \<bar>of_int x\<bar> * pi \<le> b + cmod (Ln w)} \<subseteq> {..k}"
+      by blast
   qed
   have [simp]: "\<And>P f. {z. P z \<and> (\<exists>n. z = f n)} = f ` {n. P (f n)}"
     by blast
@@ -1482,12 +1473,12 @@ proof -
   next
     case 2
     have [simp]: "\<bar>r\<bar> = r" using \<open>r > 0\<close> by linarith
-    have [simp]: "cmod (complex_of_real t - complex_of_real s) = t-s"
+    have [simp]: "cmod (of_real t - of_real s) = t-s"
       by (metis "2" abs_of_pos diff_gt_0_iff_gt norm_of_real of_real_diff)
     have "finite (part_circlepath z r s t -` {y} \<inter> {0..1})" if "y \<in> k" for y
     proof -
       let ?w = "(y - z)/of_real r / exp(\<i> * of_real s)"
-      have fin: "finite (of_real -` {z. cmod z \<le> 1 \<and> exp (\<i> * complex_of_real (t - s) * z) = ?w})"
+      have fin: "finite (of_real -` {z. cmod z \<le> 1 \<and> exp (\<i> * of_real (t - s) * z) = ?w})"
         using \<open>s < t\<close>
         by (intro finite_vimageI [OF finite_bounded_log2]) (auto simp: inj_of_real)
       show ?thesis
@@ -1583,7 +1574,7 @@ lemma arc_part_circlepath:
   assumes "r \<noteq> 0" "s \<noteq> t" "\<bar>s - t\<bar> < 2*pi"
     shows "arc (part_circlepath z r s t)"
 proof -
-  have *: "x = y" if eq: "\<i> * (linepath s t x) = \<i> * (linepath s t y) + 2 * of_int n * complex_of_real pi * \<i>"
+  have *: "x = y" if eq: "\<i> * (linepath s t x) = \<i> * (linepath s t y) + 2 * of_int n * of_real pi * \<i>"
     and x: "x \<in> {0..1}" and y: "y \<in> {0..1}" for x y n
   proof (rule ccontr)
     assume "x \<noteq> y"
@@ -1735,9 +1726,9 @@ lemma notin_path_image_circlepath [simp]: "cmod (w - z) < r \<Longrightarrow> w 
 
 lemma contour_integral_circlepath:
   assumes "r > 0"
-  shows "contour_integral (circlepath z r) (\<lambda>w. 1 / (w - z)) = 2 * complex_of_real pi * \<i>"
+  shows "contour_integral (circlepath z r) (\<lambda>w. 1 / (w - z)) = 2 * of_real pi * \<i>"
 proof (rule contour_integral_unique)
-  show "((\<lambda>w. 1 / (w - z)) has_contour_integral 2 * complex_of_real pi * \<i>) (circlepath z r)"
+  show "((\<lambda>w. 1 / (w - z)) has_contour_integral 2 * of_real pi * \<i>) (circlepath z r)"
     unfolding has_contour_integral_def using assms has_integral_const_real [of _ 0 1]
     apply (subst has_integral_cong)
      apply (simp add: vector_derivative_circlepath01)
