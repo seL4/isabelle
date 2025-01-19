@@ -195,8 +195,8 @@ not affect the running ML session. *)
     /* component */
 
     val component_name1 = if (component_name.isEmpty) "polyml-" + polyml_version else component_name
-    val component_dir = Components.Directory(target_dir + Path.basic(component_name1)).create()
-    progress.echo("Component " + component_dir)
+    val component_dir =
+      Components.Directory(target_dir + Path.basic(component_name1)).create(progress = progress)
 
 
     /* download and build */
