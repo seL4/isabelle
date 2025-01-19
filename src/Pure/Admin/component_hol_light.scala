@@ -20,6 +20,7 @@ object Component_HOL_Light {
     only_offline: Boolean = false,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
+    load_more: List[Path] = Nil,
     hol_light_url: String = default_hol_light_url,
     hol_light_rev: String = default_hol_light_rev
   ): Unit = {
@@ -118,6 +119,7 @@ has been patched in 2 phases. The overall export process works like this:
         /* clone repository */
 
         val hol_light_dir = tmp_dir + Path.basic("hol-light")
+
         Isabelle_System.git_clone(hol_light_url, hol_light_dir, checkout = hol_light_rev,
           progress = progress)
 
@@ -130,6 +132,15 @@ has been patched in 2 phases. The overall export process works like this:
           (if (source) hol_import_dir else component_dir.path) + Path.explode("patches/patch" + n)
 
         for (n <- List(1, 2)) Isabelle_System.copy_file(patch(n, source = true), patch(n))
+
+        if (load_more.nonEmpty) {
+          val bad = load_more.filter(path => !(hol_light_dir + path).is_file)
+          if (bad.nonEmpty) error("Bad HOL Light files: " + bad.mkString(", "))
+
+          val more = load_more.map(path => "needs " + path + ";; ").mkString("+", "", "")
+          File.change_lines(patch(1), strict = true)(_.map(line =>
+            if (line == "+(*LOAD MORE*)") more else line))
+        }
 
 
         /* export stages */
@@ -176,6 +187,7 @@ has been patched in 2 phases. The overall export process works like this:
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var load_more = List.empty[Path]
         var only_offline = false
         var hol_light_url = default_hol_light_url
         var hol_light_rev = default_hol_light_rev
@@ -186,6 +198,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -L PATH      load additional HOL Light files, after "hol.ml"
     -O           only build the "offline" tool
     -U URL       git URL for original HOL Light repository, default:
                  """ + default_hol_light_url + """
@@ -193,9 +206,13 @@ Usage: isabelle component_hol_light_import [OPTIONS]
                     default_hol_light_rev + """)
     -v           verbose
 
-  Build Isabelle component for HOL Light import.
+  Build Isabelle component for HOL Light import. For example:
+
+    isabelle component_hol_light_import -L Logic/make.ml
+    isabelle component_hol_light_import -L 100/thales.ml -L 100/ceva.ml
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
+          "L:" -> (arg => load_more = load_more ::: List(Path.explode(arg))),
           "O" -> (_ => only_offline = true),
           "U:" -> (arg => hol_light_url = arg),
           "r:" -> (arg => hol_light_rev = arg),
@@ -208,6 +225,6 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 
         build_hol_light_import(
           only_offline = only_offline, progress = progress, target_dir = target_dir,
-          hol_light_url = hol_light_url, hol_light_rev = hol_light_rev)
+          load_more = load_more, hol_light_url = hol_light_url, hol_light_rev = hol_light_rev)
       })
 }
