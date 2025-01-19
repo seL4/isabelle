@@ -9,6 +9,8 @@ Based on earlier code by Steven Obua and Sebastian Skalberg.
 
 signature IMPORT_RULE =
 sig
+  val trace : bool Config.T
+  type name = {hol: string, isabelle: string}
   val beta : cterm -> thm
   val eq_mp : thm -> thm -> thm
   val comb : thm -> thm -> thm
@@ -19,10 +21,9 @@ sig
   val refl : cterm -> thm
   val abs : cterm -> thm -> thm
   val mdef : theory -> string -> thm
-  val def : string -> cterm -> theory -> thm * theory
+  val def : name -> cterm -> theory -> thm * theory
   val mtydef : theory -> string -> thm
-  val tydef :
-    string -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
+  val tydef : name -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
   val inst_type : (ctyp * ctyp) list -> thm -> thm
   val inst : (cterm * cterm) list -> thm -> thm
   val import_file : Path.T -> theory -> theory
@@ -30,6 +31,24 @@ end
 
 structure Import_Rule: IMPORT_RULE =
 struct
+
+(* tracing *)
+
+val trace = Attrib.setup_config_bool \<^binding>\<open>import_trace\<close> (K false)
+
+type name = {hol: string, isabelle: string}
+
+fun print_name {hol, isabelle} =
+  if hol = isabelle then quote hol
+  else quote hol ^ " = " ^ quote isabelle
+
+fun print_item kind name =
+  Markup.markup Markup.keyword1 kind ^ " " ^ print_name name
+
+fun tracing_item thy kind name =
+  if Config.get_global thy trace then tracing (print_item kind name) else ()
+
+
 
 (** primitive rules of HOL Light **)
 
@@ -195,8 +214,9 @@ fun inst sigma th =
 
 (* constant definitions *)
 
-fun def' c rhs thy =
+fun def' (name as {isabelle = c, ...}) rhs thy =
   let
+    val _ = tracing_item thy "const" name;
     val b = Binding.name c
     val ty = type_of rhs
     val thy1 = Sign.add_consts [(b, ty, NoSyn)] thy
@@ -212,10 +232,10 @@ fun mdef thy name =
     SOME th => th
   | NONE => error ("Constant mapped, but no definition: " ^ quote name))
 
-fun def c rhs thy =
+fun def (name as {isabelle = c, ...}) rhs thy =
   if is_some (Import_Data.get_const_def thy c) then
     (warning ("Const mapped, but def provided: " ^ quote c); (mdef thy c, thy))
-  else def' c (Thm.term_of rhs) thy
+  else def' name (Thm.term_of rhs) thy
 
 
 (* type definitions *)
@@ -237,8 +257,10 @@ fun typedef_hollight th =
     typedef_hol2hollight A B rep abs P (Thm.free ("a", A)) (Thm.free ("r", B))
   end
 
-fun tydef' tycname abs_name rep_name cP ct td_th thy =
+fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy =
   let
+    val _ = tracing_item thy "type" name;
+
     val ctT = Thm.ctyp_of_cterm ct
     val nonempty =
       Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
@@ -274,10 +296,10 @@ fun mtydef thy name =
     SOME th => meta_mp (typedef_hollight th) th
   | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name))
 
-fun tydef tycname abs_name rep_name P t td_th thy =
+fun tydef (name as {hol = tycname, ...}) abs_name rep_name P t td_th thy =
   if is_some (Import_Data.get_typ_def thy tycname) then
     (warning ("Type mapped but proofs provided: " ^ quote tycname); (mtydef thy tycname, thy))
-  else tydef' tycname abs_name rep_name P t td_th thy
+  else tydef' name abs_name rep_name P t td_th thy
 
 
 
@@ -285,9 +307,10 @@ fun tydef tycname abs_name rep_name P t td_th thy =
 
 (* basic entities *)
 
-val make_name = String.translate (fn #"." => "dot" | c => Char.toString c)
+fun make_name hol =
+  {hol = hol, isabelle = String.translate (fn #"." => "dot" | c => Char.toString c) hol}
 
-fun make_free x ty = Thm.free (make_name x, ty);
+fun make_free x ty = Thm.free (#isabelle (make_name x), ty);
 
 fun make_tfree thy a =
   let val b = "'" ^ String.translate (fn #"?" => "t" | c => Char.toString c) a
@@ -298,7 +321,7 @@ fun make_type thy c args =
     val d =
       (case Import_Data.get_typ_map thy c of
         SOME d => d
-      | NONE => Sign.full_bname thy (make_name c))
+      | NONE => Sign.full_bname thy (#isabelle (make_name c)))
     val T = Thm.global_ctyp_of thy (Type (d, replicate (length args) dummyT))
   in Thm.make_ctyp T args end
 
@@ -307,7 +330,7 @@ fun make_const thy c ty =
     val d =
       (case Import_Data.get_const_map thy c of
         SOME d => d
-      | NONE => Sign.full_bname thy (make_name c))
+      | NONE => Sign.full_bname thy (#isabelle (make_name c)))
   in Thm.global_cterm_of thy (Const (d, Thm.typ_of ty)) end
 
 val make_thm = Skip_Proof.make_thm_cterm o Thm.apply \<^cterm>\<open>Trueprop\<close>
@@ -353,6 +376,8 @@ fun stored_thm name (State (thy, a, b, c)) =
 
 fun store_thm name (State (thy, a, b, c as (tab, reg))) =
   let
+    val _ = tracing_item thy "thm" name;
+
     val th =
       (case Inttab.lookup tab reg of
         NONE => raise Fail "store_thm: lookup failed"
@@ -366,7 +391,7 @@ fun store_thm name (State (thy, a, b, c as (tab, reg))) =
         (TVars.list_set tvars) names)
 
     val th' = Thm.instantiate (tyinst, Vars.empty) th
-    val thy' = #2 (Global_Theory.add_thm ((Binding.name (make_name name), th'), []) thy)
+    val thy' = #2 (Global_Theory.add_thm ((Binding.name (#isabelle name), th'), []) thy)
   in State (thy', a, b, c) end
 
 fun pair_list (x :: y :: zs) = ((x, y) :: pair_list zs)
@@ -404,7 +429,7 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"F", [name]) = theory #-> (fn thy => set_thm (mdef thy name))
   | command (#"Y", [name, abs, rep, t1, t2, th]) =
       thm th #-> (fn th => term t1 #-> (fn t1 => term t2 #-> (fn t2 =>
-        theory_op (tydef name abs rep t1 t2 th) #-> set_thm)))
+        theory_op (tydef (make_name name) abs rep t1 t2 th) #-> set_thm)))
   | command (#"Y", [name, _, _]) = theory #-> (fn thy => set_thm (mtydef thy name))
   | command (#"t", [a]) = theory #-> (fn thy => set_typ (make_tfree thy a))
   | command (#"a", c :: tys) = theory #-> (fn thy => typs tys #>> make_type thy c #-> set_typ)
@@ -412,7 +437,7 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"c", [c, ty]) = theory #-> (fn thy => typ ty #>> make_const thy c #-> set_term)
   | command (#"f", [t, u]) = term t #-> (fn t => term u #-> (fn u => set_term (Thm.apply t u)))
   | command (#"l", [x, t]) = term x #-> (fn x => term t #-> (fn t => set_term (Thm.lambda x t)))
-  | command (#"+", [name]) = store_thm name
+  | command (#"+", [name]) = store_thm (make_name name)
   | command (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
 
 in
