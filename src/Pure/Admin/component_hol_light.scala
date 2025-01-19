@@ -68,6 +68,10 @@ This is an export of primitive proofs from HOL Light """ + hol_light_rev + """.
 The original repository """ + hol_light_url + """
 has been patched in 2 phases. The overall export process works like this:
 
+  isabelle ocaml_setup
+  isabelle ocaml_opam install -y camlp5
+  eval $(isabelle ocaml_opam env)
+
   cd hol-light
   make
 
