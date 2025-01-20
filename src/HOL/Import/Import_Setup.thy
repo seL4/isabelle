@@ -1,6 +1,7 @@
 (*  Title:      HOL/Import/Import_Setup.thy
     Author:     Cezary Kaliszyk, University of Innsbruck
     Author:     Alexander Krauss, QAware GmbH
+    Author:     Makarius
 *)
 
 section \<open>Importer machinery\<close>

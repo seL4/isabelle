@@ -1,3 +1,29 @@
+(*  Title:      HOL/Import/offline/offline.ml
+    Author:     Cezary Kaliszyk, University of Innsbruck
+    Author:     Alexander Krauss, QAware GmbH
+
+Stand-alone OCaml program for post-processing of HOL Light export:
+
+  - input files: facts.lst, maps.lst, proofs
+  - output files: facts.lstN, proofsN
+
+Compile and run "offline/offline.ml" like this:
+
+  ocamlopt offline.ml -o offline
+  > maps.lst
+  ./offline   # this uses a lot of memory
+
+Format of maps.lst:
+
+  THM1 THM2
+    map HOL Light THM1 to Isabelle/HOL THM2 and forget its deps
+  THM -
+    do not record THM and make sure it is not used (its deps must be mapped)
+  THM
+    the definition of constant/type is mapped in Isabelle/HOL, so forget
+    its deps and look its map up when defining (may fail at import time)
+*)
+
 let output_int oc i = output_string oc (string_of_int i);;
 let string_list_of_string str sep =
   let rec slos_aux str ans =

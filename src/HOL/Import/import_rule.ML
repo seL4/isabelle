@@ -1,6 +1,7 @@
 (*  Title:      HOL/Import/import_rule.ML
     Author:     Cezary Kaliszyk, University of Innsbruck
     Author:     Alexander Krauss, QAware GmbH
+    Author:     Makarius
 
 Importer proof rules and processing of lines and files.
 

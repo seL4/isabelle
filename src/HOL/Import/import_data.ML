@@ -1,6 +1,7 @@
 (*  Title:      HOL/Import/import_data.ML
     Author:     Cezary Kaliszyk, University of Innsbruck
     Author:     Alexander Krauss, QAware GmbH
+    Author:     Makarius
 
 Importer data.
 *)
