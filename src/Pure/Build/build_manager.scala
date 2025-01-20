@@ -1135,7 +1135,7 @@ object Build_Manager {
     private def add_tasks(previous: Date, next: Date): Unit = synchronized_database("add_tasks") {
       for (ci_job <- ci_jobs)
         ci_job.trigger match {
-          case Build_CI.Timed(in_interval) if in_interval(previous, next) =>
+          case timer: Build_CI.Timed if timer.next(previous, next) =>
             val task = CI_Build.task(ci_job)
             echo("Triggered task " + task.kind)
             _state = _state.add_pending(task)

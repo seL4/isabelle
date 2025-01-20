@@ -79,7 +79,9 @@ object Build_CI {
       }
   }
 
-  case class Timed(in_interval: (Date, Date) => Boolean) extends Trigger
+  case class Timed(in_interval: (Date, Date) => Boolean) extends Trigger {
+    def next(before: Date, now: Date): Boolean = in_interval(before, now)
+  }
 
 
   /* build hooks */
