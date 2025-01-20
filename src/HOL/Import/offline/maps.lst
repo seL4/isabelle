@@ -36,6 +36,8 @@ DEF_NUMERAL
 num_Axiom     num_Axiom
 DEF_BIT0
 DEF_BIT1
+DEF_WF        -
+WF            WF
 DEF_PRE       -
 PRE           PRE
 DEF_+         -
@@ -81,23 +83,12 @@ DEF_TL        -
 TL            TL
 DEF_APPEND    -
 APPEND        APPEND
-DEF_REVERSE   -
 DEF_LENGTH    -
 LENGTH        LENGTH
 DEF_MAP       -
 MAP           MAP
 DEF_LAST      -
 LAST          LAST
-DEF_BUTLAST   -
-DEF_REPLICATE -
-DEF_NULL      -
-DEF_ALL       -
-DEF_EX        -
-DEF_ITLIST    -
-DEF_ALL2      -
-DEF_FILTER    -
-DEF_ZIP       -
-ZIP_DEF       -
 TYDEF_real -
 DEF_real_of_num -
 real_of_num -
