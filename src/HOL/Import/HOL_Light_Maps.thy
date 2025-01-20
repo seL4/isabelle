@@ -295,7 +295,7 @@ lemma ALL2_DEF[import_const ALL2 : list_all2]:
   "list_all2 (P::'t18495 \<Rightarrow> 't18502 \<Rightarrow> bool) [] (l2::'t18502 list) = (l2 = []) \<and>
   list_all2 P ((h1::'t18495) # (t1::'t18495 list)) l2 =
   (if l2 = [] then False else P h1 (hd l2) \<and> list_all2 P t1 (tl l2))"
-  by simp (induct_tac l2, simp_all)
+  by simp (induct l2, simp_all)
 
 lemma FILTER[import_const FILTER : filter]:
   "filter (P::'t18680 \<Rightarrow> bool) [] = [] \<and>
@@ -308,18 +308,19 @@ lemma ZIP[import_const ZIP : zip]:
   by simp
 
 lemma WF[import_const WF : wfP]:
-  "\<forall>u. wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
+  "\<forall>R. wfP R \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y)))"
 proof (intro allI iffI impI wfI_min[to_pred], elim exE wfE_min[to_pred])
-  fix u :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and x :: "'a" and Q
-  assume a: "x \<in> Q"
-  assume "\<forall>P. (\<exists>x. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y))"
-  then have "(\<exists>x. x \<in> Q) \<longrightarrow> (\<exists>x. (\<lambda>x. x \<in> Q) x \<and> (\<forall>y. u y x \<longrightarrow> y \<notin> Q))" by auto
-  with a show "\<exists>x\<in>Q. \<forall>y. u y x \<longrightarrow> y \<notin> Q" by auto
-next
-  fix u P and x :: 'A and z
-  assume "P x" "z \<in> {a. P a}" "\<And>y. u y z \<Longrightarrow> y \<notin> {a. P a}"
-  then show "\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)" by auto
+  fix R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and P :: "'a \<Rightarrow> bool" and x z :: "'a"
+  {
+    fix Q
+    assume a: "x \<in> Q"
+    assume "\<forall>P. (\<exists>x. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y))"
+    then have "(\<exists>x. x \<in> Q) \<longrightarrow> (\<exists>x. (\<lambda>x. x \<in> Q) x \<and> (\<forall>y. R y x \<longrightarrow> y \<notin> Q))" by auto
+    with a show "\<exists>x\<in>Q. \<forall>y. R y x \<longrightarrow> y \<notin> Q" by auto
+  next
+    assume "P x" "z \<in> {a. P a}" "\<And>y. R y z \<Longrightarrow> y \<notin> {a. P a}"
+    then show "\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y)" by auto
+  }
 qed auto
 
 end
-
