@@ -14,6 +14,10 @@ object Component_HOL_Light {
   val hol_import_dir: Path = Path.explode("~~/src/HOL/Import")
   def default_maps: Path = hol_import_dir + Path.explode("offline/maps.lst")
 
+  def bundle_contents(preserve_raw: Boolean = false): List[String] =
+    List("facts.lstN", "maps.lst", "proofsN.zst") :::
+      (if (preserve_raw) List("facts.lst", "proofs") else Nil)
+
   val default_hol_light_url = "https://github.com/jrh13/hol-light.git"
   val default_hol_light_rev = "Release-3.0.0"
 
@@ -23,6 +27,7 @@ object Component_HOL_Light {
     target_dir: Path = Path.current,
     load_more: List[Path] = Nil,
     maps: Option[Path] = Some(default_maps),
+    preserve_raw: Boolean = false,
     hol_light_url: String = default_hol_light_url,
     hol_light_rev: String = default_hol_light_rev
   ): Unit = {
@@ -49,7 +54,7 @@ object Component_HOL_Light {
 
     component_dir.write_settings("""
 HOL_LIGHT_IMPORT="$COMPONENT"
-HOL_LIGHT_BUNDLE="$HOL_LIGHT_IMPORT/bundle/proofs.zst"
+HOL_LIGHT_BUNDLE="$HOL_LIGHT_IMPORT/bundle/proofsN.zst"
 HOL_LIGHT_OFFLINE="$HOL_LIGHT_IMPORT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}/offline"
 """)
 
@@ -179,11 +184,11 @@ has been patched in 2 phases. The overall export process works like this:
           if (maps.isEmpty) Bytes.empty else Bytes.read(maps.get))
 
         run(3,
-          File.bash_path(platform_dir + offline_exe) + " proofs",
-          "zstd -8 -c < proofsN > proofs.zst")
+          File.bash_path(platform_dir + offline_exe),
+          "zstd -8 proofsN")
 
         val bundle_dir = Isabelle_System.make_directory(component_dir.path + Path.explode("bundle"))
-        for (name <- List("facts.lst", "maps.lst", "proofs.zst")) {
+        for (name <- bundle_contents(preserve_raw = preserve_raw)) {
           Isabelle_System.copy_file(hol_light_dir + Path.explode(name), bundle_dir)
         }
       }
@@ -201,6 +206,7 @@ has been patched in 2 phases. The overall export process works like this:
         var load_more = List.empty[Path]
         var maps: Option[Path] = Some(default_maps)
         var only_offline = false
+        var preserve_raw = false
         var hol_light_url = default_hol_light_url
         var hol_light_rev = default_hol_light_rev
         var verbose = false
@@ -214,6 +220,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
     -M PATH      alternative maps.lst for offline alignment of facts
                  ("." means empty, default: """ + default_maps + """)
     -O           only build the "offline" tool
+    -P           preserve raw proofs, before offline alignment of facts
     -U URL       git URL for original HOL Light repository, default:
                  """ + default_hol_light_url + """
     -r REV       revision or branch to checkout HOL Light (default: """ +
@@ -229,6 +236,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
           "L:" -> (arg => load_more = load_more ::: List(Path.explode(arg))),
           "M:" -> (arg => maps = if (arg == ".") None else Some(Path.explode(arg))),
           "O" -> (_ => only_offline = true),
+          "P" -> (_ => preserve_raw = true),
           "U:" -> (arg => hol_light_url = arg),
           "r:" -> (arg => hol_light_rev = arg),
           "v" -> (_ => verbose = true))
@@ -240,7 +248,7 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 
         build_hol_light_import(
           only_offline = only_offline, progress = progress, target_dir = target_dir,
-          load_more = load_more, maps = maps,
+          load_more = load_more, maps = maps, preserve_raw = preserve_raw,
           hol_light_url = hol_light_url, hol_light_rev = hol_light_rev)
       })
 }
