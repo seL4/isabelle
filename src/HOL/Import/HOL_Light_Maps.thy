@@ -123,6 +123,17 @@ lemma num_INDUCTION:
   "\<forall>P. P 0 \<and> (\<forall>n. P n \<longrightarrow> P (Suc n)) \<longrightarrow> (\<forall>n. P n)"
   by (auto intro: nat.induct)
 
+lemma num_Axiom:
+  "\<forall>(e::'A) f. \<exists>!fn. fn 0 = e \<and> (\<forall>n. fn (Suc n) = f (fn n) n)"
+  apply (intro allI)
+  subgoal for e f
+    apply (rule ex1I [where a = "Nat.rec_nat e (\<lambda>a b. f b a)"])
+     apply simp
+    apply (rule ext)
+    subgoal for fn x by (induct x) simp_all
+    done
+  done
+
 lemma [import_const NUMERAL]: "id = (\<lambda>x :: nat. x)"
   by auto
 
@@ -131,9 +142,10 @@ definition [simp]: "bit0 n = 2 * n"
 lemma [import_const BIT0]:
   "bit0 = (SOME fn. fn (id 0) = id 0 \<and> (\<forall>n. fn (Suc n) = Suc (Suc (fn n))))"
   apply (auto intro!: some_equality[symmetric])
-  apply (auto simp add: fun_eq_iff)
-  apply (induct_tac x)
-  apply auto
+  subgoal for fn
+    apply (rule ext)
+    subgoal for x by (induct x) simp_all
+    done
   done
 
 definition [import_const BIT1, simp]: "bit1 = (\<lambda>x. Suc (bit0 x))"
