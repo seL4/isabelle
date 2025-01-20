@@ -310,6 +310,11 @@ fun tydef (name as {hol = tycname, ...}) abs_name rep_name P t td_th thy =
 fun make_name hol =
   {hol = hol, isabelle = String.translate (fn #"." => "dot" | c => Char.toString c) hol}
 
+fun make_bound a =
+  (case try (unprefix "_") a of
+    SOME b => if forall_string Symbol.is_ascii_digit b then "u" else b
+  | NONE => a);
+
 fun make_free x ty = Thm.free (#isabelle (make_name x), ty);
 
 fun make_tfree thy a =
@@ -436,7 +441,9 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"v", [x, ty]) = typ ty #>> make_free x #-> set_term
   | command (#"c", [c, ty]) = theory #-> (fn thy => typ ty #>> make_const thy c #-> set_term)
   | command (#"f", [t, u]) = term t #-> (fn t => term u #-> (fn u => set_term (Thm.apply t u)))
-  | command (#"l", [x, t]) = term x #-> (fn x => term t #-> (fn t => set_term (Thm.lambda x t)))
+  | command (#"l", [x, t]) =
+      term x #-> (fn x => term t #-> (fn t =>
+        set_term (Thm.lambda_name (make_bound (#1 (dest_Free (Thm.term_of x))), x) t)))
   | command (#"+", [name]) = store_thm (make_name name)
   | command (c, _) = raise Fail ("process: unknown command: " ^ String.str c)
 
