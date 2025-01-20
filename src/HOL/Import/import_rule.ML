@@ -195,18 +195,18 @@ fun freeze thy = freezeT thy #> (fn th =>
     Thm.instantiate (TVars.empty, inst) th
   end)
 
-fun inst_type lambda =
+fun inst_type theta =
   let
     val tyinst =
-      TFrees.build (lambda |> fold (fn (a, b) =>
+      TFrees.build (theta |> fold (fn (a, b) =>
         TFrees.add (Term.dest_TFree (Thm.typ_of a), b)))
   in
     Thm.instantiate_frees (tyinst, Frees.empty)
   end
 
-fun inst sigma th =
+fun inst theta th =
   let
-    val (dom, rng) = ListPair.unzip (rev sigma)
+    val (dom, rng) = ListPair.unzip (rev theta)
   in
     th |> forall_intr_list dom
        |> forall_elim_list rng
