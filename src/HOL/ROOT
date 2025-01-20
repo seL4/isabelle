@@ -694,6 +694,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     BigO
     BinEx
     Birthday_Paradox
+    Bit_Operation_Calculations
     Bubblesort
     CTL
     Cartouche_Examples
