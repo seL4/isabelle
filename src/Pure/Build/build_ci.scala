@@ -71,6 +71,8 @@ object Build_CI {
 
   object Timed {
     def nightly(start: Time = Time.hms(0, 17, 0)): Timed = Timed(Date.Daily(start))
+    def weekly(day: Date.Day = Date.Day.sun, start: Time = Time.hms(0, 17, 0)): Timed =
+      Timed(Date.Weekly(day, Date.Daily(start)))
   }
 
   case class Timed(cycle: Date.Cycle) extends Trigger {
