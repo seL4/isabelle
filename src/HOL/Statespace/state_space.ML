@@ -349,7 +349,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
     val assume =
       ((Binding.name dist_thm_name, [attr]),
-        [(HOLogic.Trueprop $
+        [(HOLogic.mk_Trueprop
           (Const (\<^const_name>\<open>all_distinct\<close>, Type (\<^type_name>\<open>tree\<close>, [nameT]) --> HOLogic.boolT) $
             DistinctTreeProver.mk_tree (fn n => Free (n, nameT)) nameT
               (sort fast_string_ord all_comps)), [])]);

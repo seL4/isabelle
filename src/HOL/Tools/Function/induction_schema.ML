@@ -141,7 +141,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
   end
 
 fun mk_wf R (IndScheme {T, ...}) =
-  HOLogic.Trueprop $ (Const (\<^const_abbrev>\<open>wf\<close>, mk_relT T --> HOLogic.boolT) $ R)
+  HOLogic.mk_Trueprop (Const (\<^const_abbrev>\<open>wf\<close>, mk_relT T --> HOLogic.boolT) $ R)
 
 fun mk_ineqs R thesisn (IndScheme {T, cases, branches}) =
   let
