@@ -55,7 +55,7 @@ fun tracing_item thy kind name =
 
 (* basic logic *)
 
-fun implies_elim_all th = implies_elim_list th (map Thm.assume (cprems_of th))
+fun implies_elim_all th = implies_elim_list th (map Thm.assume_cterm (cprems_of th))
 
 fun meta_mp th1 th2 =
   let
@@ -122,7 +122,7 @@ fun deduct th1 th2 =
     val th1b = Thm.implies_intr th2c th1a
     val th2b = Thm.implies_intr th1c th2a
     val i = Thm.instantiate' [] [SOME (Thm.dest_arg th1c), SOME (Thm.dest_arg th2c)] @{thm iffI}
-    val i1 = Thm.implies_elim i (Thm.assume (Thm.cprop_of th2b))
+    val i1 = Thm.implies_elim i (Thm.assume_cterm (Thm.cprop_of th2b))
     val i2 = Thm.implies_elim i1 th1b
     val i3 = Thm.implies_intr (Thm.cprop_of th2b) i2
     val i4 = Thm.implies_elim i3 th2b

@@ -142,7 +142,8 @@ sig
   val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
   val check_oracle: Proof.context -> xstring * Position.T -> string
   (*inference rules*)
-  val assume: cterm -> thm
+  val assume: cterm -> thm  (*exception THM*)
+  val assume_cterm: cterm -> thm  (*exception CTERM*)
   val implies_intr: cterm -> thm -> thm
   val implies_elim: thm -> thm -> thm
   val forall_intr: cterm -> thm -> thm
@@ -1261,6 +1262,10 @@ fun assume raw_ct =
           prop = prop})
       end
   end;
+
+fun assume_cterm A = assume A
+  handle THM (msg, _, _) => raise CTERM (msg, [A]);
+
 
 (*Implication introduction
     [A]
