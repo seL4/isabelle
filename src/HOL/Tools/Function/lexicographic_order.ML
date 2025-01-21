@@ -76,7 +76,7 @@ fun mk_cell ctxt solve_tac (vars, prems, lhs, rhs) mfun = Lazy.lazy (fn _ =>
         (case try_proof ctxt (goals \<^const_name>\<open>Orderings.less_eq\<close>) solve_tac of
           Solved thm2 => LessEq (thm2, thm)
         | Stuck thm2 =>
-            if Thm.prems_of thm2 = [HOLogic.Trueprop $ \<^term>\<open>False\<close>] then False thm2
+            if Thm.prems_of thm2 = [\<^prop>\<open>False\<close>] then False thm2
             else None (thm2, thm)
         | _ => raise Match) (* FIXME *)
     | _ => raise Match)
