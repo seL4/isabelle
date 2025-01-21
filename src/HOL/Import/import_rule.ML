@@ -219,19 +219,19 @@ fun typedef_hollight th =
     typedef_hol2hollight A B rep abs P (Thm.free ("a", A)) (Thm.free ("r", B))
   end
 
-fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy =
+fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct nonempty_hol thy =
   let
     val _ = tracing_item thy "type" name;
 
     val ctT = Thm.ctyp_of_cterm ct
-    val th2 =
+    val nonempty =
       Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
         @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
-      |> Thm.elim_implies td_th
+      |> Thm.elim_implies nonempty_hol
     val c =
-      (case Thm.concl_of th2 of
+      (case Thm.concl_of nonempty of
         \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
-      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [th2]))
+      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [nonempty]))
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
     val typedef_bindings =
@@ -241,7 +241,7 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy
     val ((_, typedef_info), thy') =
      Typedef.add_typedef_global {overloaded = false}
        (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
-       (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1) thy
+       (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [nonempty] 1) thy
     val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (rep, abs) = Thm.dest_binop (Thm.dest_fun (HOLogic.dest_judgment (Thm.cprop_of th)))
