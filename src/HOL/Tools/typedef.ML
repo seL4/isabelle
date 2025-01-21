@@ -302,7 +302,7 @@ fun add_typedef overloaded typ set opt_bindings tac lthy =
 
 fun add_typedef_global overloaded typ set opt_bindings tac =
   Named_Target.theory_map_result (apsnd o transform_info)
-    (add_typedef overloaded typ set opt_bindings tac)
+    (add_typedef overloaded typ set opt_bindings tac);
 
 
 (* typedef: proof interface *)
