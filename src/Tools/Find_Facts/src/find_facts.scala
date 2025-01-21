@@ -924,7 +924,7 @@ object Find_Facts {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
               Some(HTTP.Response(Bytes(isabelle_style), "text/css"))
           },
-          new HTTP.Service("app") {
+          new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
               Some(HTTP.Response.html(
                 if (devel) project.build_html(progress = progress) else frontend))
@@ -951,7 +951,7 @@ object Find_Facts {
           }))
 
       server.start()
-      progress.echo("Server started " + server.toString + "/app")
+      progress.echo("Server started " + server.toString + "/find_facts")
 
       @tailrec
       def loop(): Unit = {

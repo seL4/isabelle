@@ -361,7 +361,7 @@ Apache Solr (see also https://solr.apache.org). Minimal example:
 
     isabelle find_facts_index HOL
     isabelle find_facts_server
-    open http://localhost:8080/app#search?q=Hilbert
+    open http://localhost:8080/find_facts#search?q=Hilbert
 
 Persistent data is stored in $ISABELLE_HOME_USER/find_facts/.
 
