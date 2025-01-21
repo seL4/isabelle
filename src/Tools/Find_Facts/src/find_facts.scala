@@ -883,7 +883,7 @@ object Find_Facts {
 
   val default_port = 8080
 
-  def find_facts(
+  def find_facts_server(
     options: Options,
     port: Int = default_port,
     devel: Boolean = false,
@@ -994,7 +994,7 @@ Usage: isabelle find_facts_server [OPTIONS]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      find_facts(options, port = port, devel = devel, progress = progress)
+      find_facts_server(options, port = port, devel = devel, progress = progress)
     }
   }
 }
