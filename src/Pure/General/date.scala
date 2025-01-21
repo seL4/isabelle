@@ -10,7 +10,7 @@ package isabelle
 import java.util.Locale
 import java.time.{Instant, ZonedDateTime, LocalTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
-import java.time.temporal.TemporalAccessor
+import java.time.temporal.{ChronoUnit, TemporalAccessor}
 
 import scala.annotation.tailrec
 
@@ -99,9 +99,67 @@ object Date {
 
   def apply(t: Time, timezone: ZoneId = Date.timezone()): Date =
     instant(t.instant, timezone)
+
+
+  /* varying-length calendar cycles */
+
+  enum Day { case mon, tue, wed, thu, fri, sat, sun }
+  enum Month { case jan, feb, mar, apr, may, jun, jul, aug, sep, okt, nov, dec }
+
+  sealed trait Cycle {
+    def zero(date: Date): Date
+    def next(date: Date): Date
+  }
+
+  case class Daily(at: Time = Time.zero) extends Cycle {
+    require(at >= Time.zero && at < Time.hms(24, 0, 0))
+
+    def zero(date: Date): Date = date.midnight
+    def next(date: Date): Date = {
+      val start = zero(date) + at
+      if (date.time < start.time) start else start.shift(1)
+    }
+
+    override def toString: String = "Daily(" + Format.time(Date(at, timezone_utc)) + ")"
+  }
+
+  case class Weekly(on: Day = Day.mon, step: Daily = Daily()) extends Cycle {
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfWeek.getValue).midnight
+    def next(date: Date): Date = {
+      val next = step.next(zero(date).shift(on.ordinal) - Time.ms(1))
+      if (date.time < next.time) next else Date(next.rep.plus(1, ChronoUnit.WEEKS))
+    }
+  }
+
+  case class Monthly(nth: Int = 1, step: Daily = Daily()) extends Cycle {
+    require(nth > 0 && nth <= 31)
+
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfMonth).midnight
+    def next(date: Date): Date = {
+      @tailrec def find_next(zero: Date): Date = {
+        val next = step.next(zero.shift(nth - 1) - Time.ms(1))
+        if (next.rep.getDayOfMonth == nth && date.time < next.time) next
+        else find_next(Date(zero.rep.plus(1, ChronoUnit.MONTHS)))
+      }
+      find_next(zero(date))
+    }
+  }
+
+  case class Yearly(in: Month = Month.jan, step: Monthly = Monthly()) extends Cycle {
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfYear).midnight
+    def next(date: Date): Date = {
+      @tailrec def find_next(zero: Date): Date = {
+        val next = step.next(Date(zero.rep.plus(in.ordinal, ChronoUnit.MONTHS)) - Time.ms(1))
+        if (next.rep.getMonthValue - 1 == in.ordinal && date.time < next.time) next
+        else find_next(Date(zero.rep.plus(1, ChronoUnit.YEARS)))
+      }
+      find_next(zero(date))
+    }
+  }
 }
 
 sealed case class Date(rep: ZonedDateTime) {
+  def shift(days: Int): Date = Date(rep.plus(days, ChronoUnit.DAYS))
   def midnight: Date =
     new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
 
