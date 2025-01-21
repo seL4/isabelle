@@ -81,10 +81,9 @@ fun beta ct = meta_eq_to_obj_eq (Thm.beta_conversion false ct)
 fun eq_mp th1 th2 =
   let
     val (Q, P) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th1))
-    val i1 = Thm.instantiate' [] [SOME Q, SOME P] @{thm iffD1}
-    val i2 = meta_mp i1 th1
+    val rl = Thm.instantiate' [] [SOME Q, SOME P] @{thm iffD1}
   in
-    meta_mp i2 th2
+    meta_mp (meta_mp rl th1) th2
   end
 
 fun comb th1 th2 =
@@ -94,10 +93,9 @@ fun comb th1 th2 =
     val (f, g) = Thm.dest_binop t1
     val (x, y) = Thm.dest_binop t2
     val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm f)
-    val i1 = Thm.instantiate' [SOME A, SOME B] [SOME f, SOME g, SOME x, SOME y] @{thm cong}
-    val i2 = meta_mp i1 th1
+    val rl = Thm.instantiate' [SOME A, SOME B] [SOME f, SOME g, SOME x, SOME y] @{thm cong}
   in
-    meta_mp i2 th2
+    meta_mp (meta_mp rl th1) th2
   end
 
 fun trans th1 th2 =
@@ -106,44 +104,43 @@ fun trans th1 th2 =
     val t2 = HOLogic.dest_judgment (Thm.cconcl_of th2)
     val (r, s) = Thm.dest_binop t1
     val t = Thm.dest_arg t2
-    val ty = Thm.ctyp_of_cterm r
-    val i1 = Thm.instantiate' [SOME ty] [SOME r, SOME s, SOME t] @{thm trans}
-    val i2 = meta_mp i1 th1
+    val A = Thm.ctyp_of_cterm r
+    val rl = Thm.instantiate' [SOME A] [SOME r, SOME s, SOME t] @{thm trans}
   in
-    meta_mp i2 th2
+    meta_mp (meta_mp rl th1) th2
   end
 
 fun deduct th1 th2 =
   let
-    val th1c = Thm.cconcl_of th1
-    val th2c = Thm.cconcl_of th2
-    val th1a = implies_elim_all th1
-    val th2a = implies_elim_all th2
-    val th1b = Thm.implies_intr th2c th1a
-    val th2b = Thm.implies_intr th1c th2a
-    val i = Thm.instantiate' [] [SOME (HOLogic.dest_judgment th1c), SOME (HOLogic.dest_judgment th2c)] @{thm iffI}
-    val i1 = Thm.implies_elim i (Thm.assume_cterm (Thm.cprop_of th2b))
-    val i2 = Thm.implies_elim i1 th1b
-    val i3 = Thm.implies_intr (Thm.cprop_of th2b) i2
-    val i4 = Thm.implies_elim i3 th2b
+    val Q = Thm.cconcl_of th1
+    val P = Thm.cconcl_of th2
+    val th1' = implies_elim_all th1 |> Thm.implies_intr P
+    val th2' = implies_elim_all th2 |> Thm.implies_intr Q
+    val rl =
+      Thm.instantiate' [] [SOME (HOLogic.dest_judgment Q), SOME (HOLogic.dest_judgment P)]
+        @{thm iffI}
   in
-    implies_intr_hyps i4
+    Thm.implies_elim rl (Thm.assume_cterm (Thm.cprop_of th2'))
+    |> Thm.elim_implies th1'
+    |> Thm.implies_intr (Thm.cprop_of th2')
+    |> Thm.elim_implies th2'
+    |> implies_intr_hyps
   end
 
 fun conj1 th =
   let
     val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th))
-    val i = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct1}
+    val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct1}
   in
-    meta_mp i th
+    meta_mp rl th
   end
 
 fun conj2 th =
   let
     val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th))
-    val i = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct2}
+    val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct2}
   in
-    meta_mp i th
+    meta_mp rl th
   end
 
 fun refl t =
@@ -162,11 +159,11 @@ fun abs x th =
       trans (trans bl th1) br
       |> implies_elim_all
       |> Thm.forall_intr x
-    val i =
+    val rl =
       Thm.instantiate' [SOME (Thm.ctyp_of_cterm x), SOME (Thm.ctyp_of_cterm tl)]
         [SOME f, SOME g] @{lemma "(\<And>x. f x = g x) \<Longrightarrow> f = g" by (rule ext)}
   in
-    meta_mp i th2
+    meta_mp rl th2
   end
 
 
