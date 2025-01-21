@@ -729,12 +729,11 @@ object Find_Facts {
   }
 
   def find_facts_index_build(
-    options: Options,
+    database: String,
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
     val solr = Solr.init(solr_data_dir)
-    val database = options.string("find_facts_database_name")
 
     val component = "find_facts-" + database
     val component_dir =
@@ -751,27 +750,28 @@ object Find_Facts {
   val isabelle_tool2 = Isabelle_Tool("find_facts_index_build",
     "build Isabelle component from Find_Facts index", Scala_Project.here,
     { args =>
-      var options = Options.init()
       var target_dir = Path.current
 
       val getopts = Getopts("""
-  Usage: isabelle find_facts_index_build
+  Usage: isabelle find_facts_index_build DATABASE
 
     Options are:
-      -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
       -D DIR       target directory (default ".")
 
-    Build Isabelle component from finalized Find_Facts index with given name.
+    Build Isabelle component from finalized Find_Facts index with given database name.
   """,
-        "o:" -> (arg => options = options + arg),
         "D:" -> (arg => target_dir = Path.explode(arg)))
 
       val more_args = getopts(args)
-      if (more_args.nonEmpty) getopts.usage()
+      val database =
+        more_args match {
+          case database :: Nil => database
+          case _ => getopts.usage()
+        }
 
       val progress = new Console_Progress()
 
-      find_facts_index_build(options, target_dir = target_dir, progress = progress)
+      find_facts_index_build(database, target_dir = target_dir, progress = progress)
     })
 
 
