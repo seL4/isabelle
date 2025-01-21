@@ -721,7 +721,14 @@ object Find_Facts {
 
   /** index components **/
 
-  def find_facts_index_component(
+  def resolve_indexes(solr: Solr.System): Unit = {
+    // non-portable: only for Linux or macOS
+    for (path <- Path.split(Isabelle_System.getenv("FIND_FACTS_INDEXES"))) {
+      Isabelle_System.symlink(path.absolute, solr.solr_data, force = true)
+    }
+  }
+
+  def find_facts_index_build(
     options: Options,
     target_dir: Path = Path.current,
     progress: Progress = new Progress
@@ -729,25 +736,26 @@ object Find_Facts {
     val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
 
-    val component = "find_facts_index-" + database
+    val component = "find_facts-" + database
     val component_dir =
       Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
     Isabelle_System.copy_dir(solr.database_dir(database), component_dir.path)
-    component_dir.write_settings("SOLR_COMPONENTS=\"$SOLR_COMPONENTS:$COMPONENT/" + database + "\"")
+    component_dir.write_settings(
+      "FIND_FACTS_INDEXES=\"$FIND_FACTS_INDEXES:$COMPONENT/" + database + "\"")
   }
 
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool2 = Isabelle_Tool("find_facts_index_component",
+  val isabelle_tool2 = Isabelle_Tool("find_facts_index_build",
     "build Isabelle component from Find_Facts index", Scala_Project.here,
     { args =>
       var options = Options.init()
       var target_dir = Path.current
 
       val getopts = Getopts("""
-  Usage: isabelle find_facts_index_component
+  Usage: isabelle find_facts_index_build
 
     Options are:
       -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -763,7 +771,7 @@ object Find_Facts {
 
       val progress = new Console_Progress()
 
-      find_facts_index_component(options, target_dir = target_dir, progress = progress)
+      find_facts_index_build(options, target_dir = target_dir, progress = progress)
     })
 
 
@@ -903,6 +911,8 @@ object Find_Facts {
     val frontend = project.build_html(progress = progress)
 
     val solr = Solr.init(solr_data_dir)
+    resolve_indexes(solr)
+
     using(solr.open_database(database)) { db =>
       val stats = Find_Facts.query_stats(db, Query(Nil))
       progress.echo("Started Find_Facts with " + stats.results + " blocks, " +

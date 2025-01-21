@@ -25,12 +25,6 @@ import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 object Solr {
   def init(solr_data: Path): System = {
     File.write(Isabelle_System.make_directory(solr_data) + Path.basic("solr.xml"), "<solr/>")
-
-    // non-portable: only for Linux or macOS
-    for (path <- Path.split(Isabelle_System.getenv("SOLR_COMPONENTS"))) {
-      Isabelle_System.symlink(path.absolute, solr_data, force = true)
-    }
-
     java.util.logging.LogManager.getLogManager.reset()
     new System(solr_data)
   }
