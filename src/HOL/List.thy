@@ -263,6 +263,15 @@ primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
 replicate_0: "replicate 0 x = []" |
 replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
+overloading pow_list == "compow :: nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+begin
+
+primrec pow_list :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"pow_list 0 xs = []" |
+"pow_list (Suc n) xs = xs @ pow_list n xs"
+
+end
+
 text \<open>
   Function \<open>size\<close> is overloaded for all datatypes. Users may
   refer to the list version as \<open>length\<close>.\<close>
@@ -1168,7 +1177,7 @@ lemma inj_map_eq_map[simp]: "inj f \<Longrightarrow> (map f xs = map f ys) = (xs
 by(blast dest:map_injective)
 
 lemma inj_mapI: "inj f \<Longrightarrow> inj (map f)"
-by (iprover dest: map_injective injD intro: inj_onI)
+by (rule list.inj_map)
 
 lemma inj_mapD: "inj (map f) \<Longrightarrow> inj f"
   by (metis (no_types, opaque_lifting) injI list.inject list.simps(9) the_inv_f_f)
@@ -1180,7 +1189,7 @@ lemma inj_on_mapI: "inj_on f (\<Union>(set ` A)) \<Longrightarrow> inj_on (map f
   by (blast intro:inj_onI dest:inj_onD map_inj_on)
 
 lemma map_idI: "(\<And>x. x \<in> set xs \<Longrightarrow> f x = x) \<Longrightarrow> map f xs = xs"
-by (induct xs, auto)
+by (rule list.map_ident_strong)
 
 lemma map_fun_upd [simp]: "y \<notin> set xs \<Longrightarrow> map (f(y:=v)) xs = map f xs"
 by (induct xs) auto
@@ -1217,6 +1226,9 @@ by (induct xs) auto
 
 lemma rev_rev_ident [simp]: "rev (rev xs) = xs"
 by (induct xs) auto
+
+lemma rev_involution[simp]: "rev \<circ> rev = id"
+by auto
 
 lemma rev_swap: "(rev xs = ys) = (xs = rev ys)"
 by auto
@@ -1283,6 +1295,21 @@ using \<open>xs \<noteq> []\<close> proof (induct xs rule: rev_induct)
     case Cons with snoc show ?thesis by (fastforce intro!: snoc')
   qed
 qed simp
+
+lemma rev_induct2:
+  "\<lbrakk> P [] [];
+  \<And>x xs. P (xs @ [x]) [];
+  \<And>y ys. P [] (ys @ [y]);
+  \<And>x xs y ys. P xs ys  \<Longrightarrow> P (xs @ [x]) (ys @ [y]) \<rbrakk>
+ \<Longrightarrow> P xs ys"
+proof (induct xs arbitrary: ys rule: rev_induct)
+  case Nil
+  then show ?case using rev_induct[of "P []"] by presburger
+next
+  case (snoc x xs)
+  hence "P xs ys'" for ys' by simp
+  then show ?case by (simp add: rev_induct snoc.prems(2,4))
+qed
 
 lemma length_Suc_conv_rev: "(length xs = Suc n) = (\<exists>y ys. xs = ys @ [y] \<and> length ys = n)"
 by (induct xs rule: rev_induct) auto
@@ -4404,6 +4431,10 @@ lemma count_list_inj_map:
   "\<lbrakk> inj_on f (set xs); x \<in> set xs \<rbrakk> \<Longrightarrow> count_list (map f xs) (f x) = count_list xs x"
 by (induction xs) (simp, fastforce)
 
+lemma count_list_map_conv:
+assumes "inj f" shows "count_list (map f xs) (f x) = count_list xs x"
+by (induction xs) (simp_all add: inj_eq[OF assms])
+
 lemma count_list_rev[simp]: "count_list (rev xs) x = count_list xs x"
 by (induction xs) auto
 
@@ -4714,6 +4745,9 @@ lemma concat_replicate_trivial[simp]:
   "concat (replicate i []) = []"
   by (induct i) (auto simp add: map_replicate_const)
 
+lemma concat_replicate_single[simp]: "concat (replicate m [a]) = replicate m a"
+by(induction m) auto
+
 lemma replicate_empty[simp]: "(replicate n x = []) \<longleftrightarrow> n=0"
 by (induct n) auto
 
@@ -4810,6 +4844,134 @@ by (induct n) (simp_all)
 lemma fold_replicate [simp]:
   "fold f (replicate n x) = f x ^^ n"
 by (subst foldr_fold [symmetric]) simp_all
+
+
+subsubsection \<open>\<^term>\<open>xs ^^ n\<close>\<close>
+
+context
+begin
+
+interpretation monoid_mult "[]" "append"
+  rewrites "power u n = u ^^ n"
+proof-
+  show "class.monoid_mult [] (@)"
+    by (unfold_locales, simp_all)
+  show "power.power [] (@) u n = u ^^ n"
+    by(induction n) (auto simp add: power.power.simps)
+qed
+
+\<comment> \<open>inherited power properties\<close>
+
+lemmas pow_list_zero = power.power_0 and
+  pow_list_one = power_Suc0_right and
+  pow_list_1 = power_one_right and
+  pow_list_Nil = power_one and
+  pow_list_2 = power2_eq_square and
+  pow_list_Suc = power_Suc and
+  pow_list_Suc2 = power_Suc2 and
+  pow_list_comm = power_commutes and
+  pow_list_add = power_add and
+  pow_list_eq_if = power_eq_if and
+  pow_list_mult = power_mult and
+  pow_list_commuting_commutes = power_commuting_commutes
+
+end
+
+lemma pow_list_alt: "xs^^n = concat (replicate n xs)"
+by (induct n) auto
+
+lemma pow_list_single: "[a] ^^ m = replicate m a"
+by(simp add: pow_list_alt)
+
+lemma length_pow_list_single [simp]: "length([a] ^^ n) = n"
+by (simp add: pow_list_single)
+
+lemma nth_pow_list_single: "i < m \<Longrightarrow> ([a] ^^ m) ! i = a"
+by (simp add: pow_list_single)
+
+lemma pow_list_not_NilD: "xs ^^ m \<noteq> [] \<Longrightarrow> 0 < m"
+by (cases m) auto
+
+lemma length_pow_list:  "length(xs ^^ k) = k * length xs"
+by (induction k) simp+
+
+lemma pow_list_set: "set (w ^^ Suc k) = set w"
+by (induction k)(simp_all)
+
+lemma pow_list_slide: "xs @ (ys @ xs) ^^ n  @ ys = (xs @ ys)^^(Suc n)"
+by (induction n) simp+
+
+lemma hd_pow_list: "0 < n \<Longrightarrow> hd(xs ^^ n) = hd xs"
+by(auto simp: pow_list_alt hd_append gr0_conv_Suc)
+
+lemma rev_pow_list: "rev (xs ^^ m) = (rev xs) ^^ m"
+by (induction m)(auto simp: pow_list_comm)
+
+lemma eq_pow_list_iff_eq_exp[simp]: assumes "xs \<noteq> []" shows "xs ^^ k = xs ^^ m \<longleftrightarrow> k = m"
+proof
+  assume "k = m" thus "xs ^^ k = xs ^^ m" by simp
+next
+  assume "xs ^^ k = xs ^^ m"
+  thus "k = m" using \<open>xs \<noteq> []\<close>[folded length_0_conv]
+    by (metis length_pow_list mult_cancel2)
+qed
+
+lemma pow_list_Nil_iff_0: "xs \<noteq> [] \<Longrightarrow> xs ^^ m = [] \<longleftrightarrow> m = 0"
+by (simp add: pow_list_eq_if)
+
+lemma pow_list_Nil_iff_Nil: "0 < m \<Longrightarrow> xs ^^ m = [] \<longleftrightarrow>  xs = []"
+by (cases xs) (auto simp add: pow_list_Nil pow_list_Nil_iff_0)
+
+lemma pow_eq_eq:
+  assumes "xs ^^ k = ys ^^ k" and "0 < k"
+  shows "(xs::'a list) = ys"
+proof-
+  have "length xs = length ys"
+    using assms(1) length_pow_list by (metis nat_mult_eq_cancel1[OF \<open>0 < k\<close>])
+  thus ?thesis by (metis Suc_pred append_eq_append_conv assms(1,2) pow_list.simps(2))
+qed
+
+lemma map_pow_list[simp]: "map f (xs ^^ k) = (map f xs) ^^ k"
+by (induction k) simp_all
+
+lemma concat_pow_list: "concat (xs ^^ k) = (concat xs) ^^ k"
+by (induction k) simp_all
+
+lemma concat_pow_list_single[simp]: "concat ([a] ^^ k) = a ^^ k"
+by (simp add: pow_list_alt)
+
+lemma pow_list_single_Nil_iff: "[a] ^^ n = [] \<longleftrightarrow> n = 0"
+by (simp add: pow_list_single)
+
+lemma hd_pow_list_single: "k \<noteq> 0 \<Longrightarrow> hd ([a] ^^ k) = a"
+by (cases k) simp+
+
+lemma index_pow_mod: "i < length(xs ^^ k) \<Longrightarrow> (xs ^^ k)!i = xs!(i mod length xs)"
+proof(induction k)
+  have aux:  "length(xs ^^ Suc l) = length(xs ^^ l) + length xs" for l
+    by simp
+  have aux1: "length (xs ^^ l) \<le> i \<Longrightarrow> i < length(xs ^^ l) + length xs \<Longrightarrow>  i mod length xs = i -  length(xs^^l)" for l
+    unfolding length_pow_list[of l xs]
+     using less_diff_conv2[of "l * length xs" i "length xs", unfolded add.commute[of "length xs"  "l * length xs"]]
+       le_add_diff_inverse[of "l*length xs" i]
+    by (simp add: mod_nat_eqI)
+  case (Suc k)
+  show ?case
+    unfolding aux sym[OF pow_list_Suc2[symmetric]] nth_append le_mod_geq
+    using aux1[ OF _ Suc.prems[unfolded aux]]
+      Suc.IH pow_list_Suc2[symmetric] Suc.prems[unfolded aux] leI[of i "length(xs ^^ k)"] by presburger
+qed auto
+
+lemma unique_letter_word: assumes "\<And>c. c \<in> set w \<Longrightarrow> c = a" shows "w = [a] ^^ length w"
+  using assms proof (induction w)
+  case (Cons b w)
+  have "[a] ^^ length w = w" using Cons.IH[OF Cons.prems[OF list.set_intros(2)]]..
+  then show "b # w = [a] ^^ length(b # w)"
+    unfolding Cons.prems[OF list.set_intros(1)] by auto
+qed simp
+
+lemma count_list_pow_list: "count_list (w ^^ k) a = k * (count_list w a)"
+by (induction k) simp+
 
 
 subsubsection \<open>\<^const>\<open>enumerate\<close>\<close>
@@ -6612,8 +6774,7 @@ lemmas lists_Int_eq [simp] = listsp_inf_eq [to_set]
 lemma Cons_in_lists_iff[simp]: "x#xs \<in> lists A \<longleftrightarrow> x \<in> A \<and> xs \<in> lists A"
 by auto
 
-lemma append_in_listsp_conv [iff]:
-     "(listsp A (xs @ ys)) = (listsp A xs \<and> listsp A ys)"
+lemma append_in_listsp_conv [iff]: "(listsp A (xs @ ys)) = (listsp A xs \<and> listsp A ys)"
 by (induct xs) auto
 
 lemmas append_in_lists_conv [iff] = append_in_listsp_conv [to_set]
@@ -6634,6 +6795,9 @@ by (rule in_listsp_conv_set [THEN iffD2])
 
 lemmas in_listsI [intro!] = in_listspI [to_set]
 
+lemma mono_lists: "mono lists"
+unfolding mono_def by auto
+
 lemma lists_eq_set: "lists A = {xs. set xs \<le> A}"
 by auto
 
@@ -6649,6 +6813,41 @@ proof -
       by (induct xs) (auto simp del: list.map simp add: list.map[symmetric] intro!: imageI) }
   then show ?thesis by auto
 qed
+
+lemma inj_on_map_lists: assumes "inj_on f A"
+  shows "inj_on (map f) (lists A)"
+proof
+  fix xs ys
+  assume "xs \<in> lists A" and "ys \<in> lists A" and "map f xs = map f ys"
+  have "x = y" if "x \<in> set xs" and "y \<in> set ys" and  "f x =  f y"  for x y
+    using in_listsD[OF \<open>xs \<in> lists A\<close>, rule_format, OF \<open>x \<in> set xs\<close>]
+          in_listsD[OF \<open>ys \<in> lists A\<close>, rule_format, OF \<open>y \<in> set ys\<close>]
+         \<open>inj_on f A\<close>[unfolded inj_on_def, rule_format, OF _ _ \<open>f x =  f y\<close>] by blast
+  from list.inj_map_strong[OF this  \<open>map f xs = map f ys\<close>]
+  show "xs = ys".
+qed
+
+lemma bij_lists: "bij_betw f X Y \<Longrightarrow> bij_betw (map f) (lists X) (lists Y)"
+unfolding bij_betw_def using inj_on_map_lists lists_image by metis
+
+lemma replicate_in_lists: "a \<in> A \<Longrightarrow> replicate k a \<in> lists A"
+by (induction k) auto
+
+lemma sing_pow_lists: "a \<in> A \<Longrightarrow> [a] ^^ n \<in> lists A"
+by (induction n) auto
+
+lemma one_generated_list_power: "u \<in> lists {x} \<Longrightarrow> \<exists>k. concat u = x ^^ k"
+proof(induction u rule: lists.induct)
+  case Nil
+  then show ?case by (metis concat.simps(1) pow_list.simps(1))
+next
+  case Cons
+  then show ?case by (metis concat.simps(2) pow_list_Suc singletonD)
+qed
+
+lemma pow_list_in_lists: "0 < k \<Longrightarrow> u ^^ k \<in> lists B \<Longrightarrow> u \<in> lists B"
+by (metis Suc_pred in_lists_conv_set pow_list_set)
+
 
 subsubsection \<open>Inductive definition for membership\<close>
 

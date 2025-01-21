@@ -384,16 +384,27 @@ fun activate_target ctxt target_name =
     val serializer = (#serializer o #language) target;
   in { serializer = serializer, data = data, modify = modify } end;
 
-fun project_program_for_syms ctxt syms_hidden syms1 program1 =
+fun report_unimplemented ctxt program requested unimplemented =
   let
-    val syms2 = subtract (op =) syms_hidden syms1;
+    val deps = flat (map_product (fn req => fn unimpl =>
+      Code_Symbol.Graph.irreducible_paths program (req, Constant unimpl)) requested unimplemented)
+    val pretty_dep = space_implode " -> " o map (Code_Symbol.quote ctxt)
+  in
+    error ("No code equations for "
+      ^ commas (map (Proof_Context.markup_const ctxt) unimplemented)
+      ^ ",\nrequested by dependencies\n"
+      ^ space_implode "\n" (map pretty_dep deps))
+  end;
+
+fun project_program_for_syms ctxt syms_hidden requested1 program1 =
+  let
+    val requested2 = subtract (op =) syms_hidden requested1;
     val program2 = Code_Symbol.Graph.restrict (not o member (op =) syms_hidden) program1;
     val unimplemented = Code_Thingol.unimplemented program2;
     val _ =
       if null unimplemented then ()
-      else error ("No code equations for " ^
-        commas (map (Proof_Context.markup_const ctxt) unimplemented));
-    val syms3 = Code_Symbol.Graph.all_succs program2 syms2;
+      else report_unimplemented ctxt program2 requested2 unimplemented;
+    val syms3 = Code_Symbol.Graph.all_succs program2 requested2;
     val program3 = Code_Symbol.Graph.restrict (member (op =) syms3) program2;
   in program3 end;
 
