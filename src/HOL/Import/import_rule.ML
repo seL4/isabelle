@@ -55,92 +55,67 @@ fun tracing_item thy kind name =
 
 (* basic logic *)
 
-fun implies_elim_all th = implies_elim_list th (map Thm.assume_cterm (cprems_of th))
-
-fun meta_mp th1 th2 =
+fun to_obj_eq th =
   let
-    val th1a = implies_elim_all th1
-    val th1b = Thm.implies_intr (Thm.cconcl_of th2) th1a
-    val th2a = implies_elim_all th2
-    val th3 = Thm.implies_elim th1b th2a
-  in
-    implies_intr_hyps th3
-  end
-
-fun meta_eq_to_obj_eq th =
-  let
-    val (t, u) = Thm.dest_equals (Thm.cconcl_of th)
+    val (t, u) = Thm.dest_equals (Thm.cprop_of th)
     val A = Thm.ctyp_of_cterm t
     val rl = Thm.instantiate' [SOME A] [SOME t, SOME u] @{thm meta_eq_to_obj_eq}
   in
     Thm.implies_elim rl th
   end
 
-fun beta ct = meta_eq_to_obj_eq (Thm.beta_conversion false ct)
+fun to_meta_eq th =
+  let
+    val (t, u) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
+    val A = Thm.ctyp_of_cterm t
+    val rl = Thm.instantiate' [SOME A] [SOME t, SOME u] @{thm eq_reflection}
+  in
+    Thm.implies_elim rl th
+  end
+
+fun beta t = Thm.beta_conversion false t |> to_obj_eq
 
 fun eq_mp th1 th2 =
   let
-    val (Q, P) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th1))
+    val (Q, P) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th1))
     val rl = Thm.instantiate' [] [SOME Q, SOME P] @{thm iffD1}
   in
-    meta_mp (meta_mp rl th1) th2
+    Thm.implies_elim (Thm.implies_elim rl th1) th2
   end
 
 fun comb th1 th2 =
-  let
-    val t1 = HOLogic.dest_judgment (Thm.cconcl_of th1)
-    val t2 = HOLogic.dest_judgment (Thm.cconcl_of th2)
-    val (f, g) = Thm.dest_binop t1
-    val (x, y) = Thm.dest_binop t2
-    val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm f)
-    val rl = Thm.instantiate' [SOME A, SOME B] [SOME f, SOME g, SOME x, SOME y] @{thm cong}
-  in
-    meta_mp (meta_mp rl th1) th2
-  end
+  Thm.combination (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
 
 fun trans th1 th2 =
-  let
-    val t1 = HOLogic.dest_judgment (Thm.cconcl_of th1)
-    val t2 = HOLogic.dest_judgment (Thm.cconcl_of th2)
-    val (r, s) = Thm.dest_binop t1
-    val t = Thm.dest_arg t2
-    val A = Thm.ctyp_of_cterm r
-    val rl = Thm.instantiate' [SOME A] [SOME r, SOME s, SOME t] @{thm trans}
-  in
-    meta_mp (meta_mp rl th1) th2
-  end
+  Thm.transitive (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
 
 fun deduct th1 th2 =
   let
-    val Q = Thm.cconcl_of th1
-    val P = Thm.cconcl_of th2
-    val th1' = implies_elim_all th1 |> Thm.implies_intr P
-    val th2' = implies_elim_all th2 |> Thm.implies_intr Q
+    val Q = Thm.cprop_of th1
+    val P = Thm.cprop_of th2
+    val th1' = Thm.implies_intr P th1
+    val th2' = Thm.implies_intr Q th2
     val rl =
       Thm.instantiate' [] [SOME (HOLogic.dest_judgment Q), SOME (HOLogic.dest_judgment P)]
         @{thm iffI}
   in
-    Thm.implies_elim rl (Thm.assume_cterm (Thm.cprop_of th2'))
-    |> Thm.elim_implies th1'
-    |> Thm.implies_intr (Thm.cprop_of th2')
-    |> Thm.elim_implies th2'
-    |> implies_intr_hyps
+    Thm.implies_elim (Thm.implies_elim rl th2') th1'
   end
 
 fun conj1 th =
   let
-    val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th))
+    val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
     val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct1}
   in
-    meta_mp rl th
+    Thm.implies_elim rl th
   end
 
 fun conj2 th =
   let
-    val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th))
+    val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
     val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct2}
   in
-    meta_mp rl th
+    Thm.implies_elim rl th
   end
 
 fun refl t =
@@ -148,23 +123,8 @@ fun refl t =
   in Thm.instantiate' [SOME A] [SOME t] @{thm refl} end
 
 fun abs x th =
-  let
-    val th1 = implies_elim_all th
-    val (tl, tr) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cconcl_of th1))
-    val (f, g) = (Thm.lambda x tl, Thm.lambda x tr)
-    val (al, ar) = (Thm.apply f x, Thm.apply g x)
-    val bl = beta al
-    val br = meta_eq_to_obj_eq (Thm.symmetric (Thm.beta_conversion false ar))
-    val th2 =
-      trans (trans bl th1) br
-      |> implies_elim_all
-      |> Thm.forall_intr x
-    val rl =
-      Thm.instantiate' [SOME (Thm.ctyp_of_cterm x), SOME (Thm.ctyp_of_cterm tl)]
-        [SOME f, SOME g] @{lemma "(\<And>x. f x = g x) \<Longrightarrow> f = g" by (rule ext)}
-  in
-    meta_mp rl th2
-  end
+  to_meta_eq th |> Thm.abstract_rule (Term.term_name (Thm.term_of x)) x |> to_obj_eq
+
 
 
 (* instantiation *)
@@ -180,7 +140,7 @@ fun freezeT thy th =
     Thm.instantiate (tyinst, Vars.empty) th
   end
 
-fun freeze thy = freezeT thy #> (fn th =>
+fun freeze' th =
   let
     val vars = Vars.build (th |> Thm.add_vars)
     val inst = vars |> Vars.map (fn _ => fn v =>
@@ -190,7 +150,9 @@ fun freeze thy = freezeT thy #> (fn th =>
       in Thm.free (x, ty) end)
   in
     Thm.instantiate (TVars.empty, inst) th
-  end)
+  end
+
+fun freeze thy = freezeT thy #> freeze';
 
 fun inst_type theta =
   let
@@ -203,10 +165,12 @@ fun inst_type theta =
 
 fun inst theta th =
   let
-    val (dom, rng) = ListPair.unzip (rev theta)
+    val inst =
+      Frees.build (theta |> fold (fn (a, b) =>
+        Frees.add (Term.dest_Free (Thm.term_of a), b)))
   in
-    th |> forall_intr_list dom
-       |> forall_elim_list rng
+    Thm.instantiate_frees (TFrees.empty, inst) th
+    |> freeze'
   end
 
 
@@ -220,9 +184,9 @@ fun def' (name as {isabelle = c, ...}) rhs thy =
     val thy1 = Sign.add_consts [(b, ty, NoSyn)] thy
     val eq = Logic.mk_equals (Const (Sign.full_name thy1 b, ty), rhs)
     val (th, thy2) = Global_Theory.add_def (Binding.suffix_name "_hldef" b, eq) thy1
-    val def_thm = freezeT thy1 th
+    val def_thm = freezeT thy1 th |> to_obj_eq
   in
-    (meta_eq_to_obj_eq def_thm, thy2)
+    (def_thm, thy2)
   end
 
 fun mdef thy name =
@@ -232,7 +196,7 @@ fun mdef thy name =
 
 fun def (name as {isabelle = c, ...}) rhs thy =
   if is_some (Import_Data.get_const_def thy c) then
-    (warning ("Const mapped, but def provided: " ^ quote c); (mdef thy c, thy))
+    (warning ("Const mapped, but def provided: " ^ quote c); (freeze thy (mdef thy c), thy))
   else def' name (Thm.term_of rhs) thy
 
 
@@ -260,10 +224,10 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy
     val _ = tracing_item thy "type" name;
 
     val ctT = Thm.ctyp_of_cterm ct
-    val nonempty =
+    val th2 =
       Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
         @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
-    val th2 = meta_mp nonempty td_th
+      |> Thm.elim_implies td_th
     val c =
       (case Thm.concl_of th2 of
         \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
@@ -289,7 +253,7 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy
 
 fun mtydef thy name =
   (case Import_Data.get_typ_def thy name of
-    SOME th => meta_mp (typedef_hollight th) th
+    SOME th => Thm.implies_elim (typedef_hollight th) th
   | NONE => error ("Type mapped, but no tydef thm registered: " ^ quote name))
 
 fun tydef (name as {hol = tycname, ...}) abs_name rep_name P t td_th thy =
@@ -335,7 +299,7 @@ fun make_const thy c ty =
   in Thm.global_cterm_of thy (Const (d, Thm.typ_of ty)) end
 
 val make_thm = Skip_Proof.make_thm_cterm o HOLogic.mk_judgment
-val assume_thm = Thm.trivial o HOLogic.mk_judgment
+val assume_thm = Thm.assume_cterm o HOLogic.mk_judgment
 
 
 (* import file *)
