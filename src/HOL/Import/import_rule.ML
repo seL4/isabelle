@@ -219,20 +219,19 @@ fun typedef_hollight th =
     typedef_hol2hollight A B rep abs P (Thm.free ("a", A)) (Thm.free ("r", B))
   end
 
-fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct nonempty_hol thy =
+fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name P t witness thy =
   let
     val _ = tracing_item thy "type" name;
 
-    val ctT = Thm.ctyp_of_cterm ct
+    val T = Thm.ctyp_of_cterm t
     val nonempty =
-      Thm.instantiate' [SOME ctT] [SOME cP, SOME ct]
+      Thm.instantiate' [SOME T] [SOME P, SOME t]
         @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
-      |> Thm.elim_implies nonempty_hol
-    val c =
-      (case Thm.concl_of nonempty of
-        \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ c\<close>)\<close>\<close>\<close> => c
-      | _ => raise THM ("type_introduction: bad type definition theorem", 0, [nonempty]))
-    val tfrees = Term.add_tfrees c []
+      |> Thm.elim_implies witness
+    val \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ set\<close>)\<close>\<close>\<close> =
+      Thm.concl_of nonempty
+
+    val tfrees = Term.add_tfrees set []
     val tnames = sort_strings (map fst tfrees)
     val typedef_bindings =
      {Rep_name = Binding.name rep_name,
@@ -240,13 +239,13 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct nonempty_
       type_definition_name = Binding.name ("type_definition_" ^ tycname)}
     val ((_, typedef_info), thy') =
      Typedef.add_typedef_global {overloaded = false}
-       (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
+       (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) set
        (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [nonempty] 1) thy
     val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
     val (rep, abs) = Thm.dest_binop (Thm.dest_fun (HOLogic.dest_judgment (Thm.cprop_of th)))
     val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rep)
-    val typedef_th = typedef_hol2hollight A B rep abs cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
+    val typedef_th = typedef_hol2hollight A B rep abs P (Thm.free ("a", aty)) (Thm.free ("r", T))
   in
     (typedef_th OF [#type_definition (#2 typedef_info)], thy')
   end
