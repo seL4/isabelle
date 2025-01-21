@@ -70,7 +70,7 @@ object Build_CI {
   case object On_Commit extends Trigger
 
   object Timed {
-    def nightly(start_time: Time = Time.zero): Timed = Timed(Date.Daily(start_time))
+    def nightly(start: Time = Time.hms(0, 17, 0)): Timed = Timed(Date.Daily(start))
   }
 
   case class Timed(cycle: Date.Cycle) extends Trigger {
