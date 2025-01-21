@@ -70,17 +70,11 @@ object Build_CI {
   case object On_Commit extends Trigger
 
   object Timed {
-    def nightly(start_time: Time = Time.zero): Timed =
-      Timed { (before, now) =>
-        val start0 = before.midnight + start_time
-        val start1 = now.midnight + start_time
-        (before.time < start0.time && start0.time <= now.time) ||
-          (before.time < start1.time && start1.time <= now.time)
-      }
+    def nightly(start_time: Time = Time.zero): Timed = Timed(Date.Daily(start_time))
   }
 
-  case class Timed(in_interval: (Date, Date) => Boolean) extends Trigger {
-    def next(before: Date, now: Date): Boolean = in_interval(before, now)
+  case class Timed(cycle: Date.Cycle) extends Trigger {
+    def next(previous: Date, now: Date): Boolean = cycle.next(previous).time < cycle.next(now).time
   }
 
 
