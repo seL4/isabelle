@@ -878,8 +878,8 @@ object Find_Facts {
 
   /* find facts */
 
-  val template_web_dir: Path = Path.explode("$FIND_FACTS_HOME/web")
-  val default_web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
+  val web_sources: Path = Path.explode("$FIND_FACTS_HOME/web")
+  val web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
 
   val default_port = 8080
 
@@ -887,10 +887,9 @@ object Find_Facts {
     options: Options,
     port: Int = default_port,
     devel: Boolean = false,
-    web_dir: Path = default_web_dir,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.copy_dir(template_web_dir, web_dir, direct = true)
+    Isabelle_System.copy_dir(web_sources, web_dir, direct = true)
 
     val database = options.string("find_facts_database_name")
     val encode = new Encode(options)
@@ -973,7 +972,6 @@ object Find_Facts {
       var options = Options.init()
       var port = default_port
       var verbose = false
-      var web_dir = default_web_dir
 
       val getopts = Getopts("""
 Usage: isabelle find_facts_server [OPTIONS]
@@ -983,22 +981,20 @@ Usage: isabelle find_facts_server [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p PORT      explicit web server port (default: """ + default_port + """)
     -v           verbose server
-    -w DIR       web directory (default: """ + default_web_dir + """)
 
   Run server for Find_Facts.
 """,
         "d" -> (_ => devel = true),
         "o:" -> (arg => options = options + arg),
         "p:" -> (arg => port = Value.Int.parse(arg)),
-        "v" -> (_ => verbose = true),
-        "w:" -> (arg => web_dir = Path.explode(arg)))
+        "v" -> (_ => verbose = true))
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
       val progress = new Console_Progress(verbose = verbose)
 
-      find_facts(options, port = port, devel = devel, web_dir = web_dir, progress = progress)
+      find_facts(options, port = port, devel = devel, progress = progress)
     }
   }
 }
