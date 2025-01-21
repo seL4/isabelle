@@ -112,7 +112,7 @@ object Find_Facts {
 
   /** Solr data model **/
 
-  val solr_data_dir: Path = Path.explode("$FIND_FACTS_SOLR_DATA")
+  val solr_data_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/solr")
 
   object private_data extends Solr.Data("find_facts") {
     /* types */
@@ -879,7 +879,7 @@ object Find_Facts {
   /* find facts */
 
   val template_web_dir: Path = Path.explode("$FIND_FACTS_HOME/web")
-  val default_web_dir: Path = Path.explode("$FIND_FACTS_WEB")
+  val default_web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
 
   val default_port = 8080
 
