@@ -23,7 +23,7 @@ import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 
 
 object Solr {
-  def init(solr_data: Path): Path = {
+  def init(solr_data: Path): System = {
     File.write(Isabelle_System.make_directory(solr_data) + Path.basic("solr.xml"), "<solr/>")
 
     // non-portable: only for Linux or macOS
@@ -32,10 +32,8 @@ object Solr {
     }
 
     java.util.logging.LogManager.getLogManager.reset()
-    solr_data
+    new System(solr_data)
   }
-
-  lazy val solr_data: Path = init(Path.explode("$SOLR_DATA"))
 
 
   /** query language */
@@ -347,32 +345,34 @@ object Solr {
 
   /* database */
 
-  def database_dir(database: String): Path = solr_data + Path.basic(database)
+  class System private[Solr](val solr_data: Path) {
+    def database_dir(database: String): Path = solr_data + Path.basic(database)
 
-  def init_database(database: String, data: Data, clean: Boolean = false): Database = {
-    val db_dir = database_dir(database)
+    def init_database(database: String, data: Data, clean: Boolean = false): Database = {
+      val db_dir = database_dir(database)
 
-    if (clean) Isabelle_System.rm_tree(db_dir)
+      if (clean) Isabelle_System.rm_tree(db_dir)
 
-    val conf_dir = db_dir + Path.basic("conf")
-    if (!conf_dir.is_dir) {
-      Isabelle_System.make_directory(conf_dir)
-      File.write(conf_dir + Path.basic("schema.xml"), XML.string_of_body(data.schema))
-      File.write(conf_dir + Path.basic("solrconfig.xml"), XML.string_of_body(data.solr_config))
-      data.more_config.foreach((path, content) => File.write(conf_dir + path, content))
+      val conf_dir = db_dir + Path.basic("conf")
+      if (!conf_dir.is_dir) {
+        Isabelle_System.make_directory(conf_dir)
+        File.write(conf_dir + Path.basic("schema.xml"), XML.string_of_body(data.schema))
+        File.write(conf_dir + Path.basic("solrconfig.xml"), XML.string_of_body(data.solr_config))
+        data.more_config.foreach((path, content) => File.write(conf_dir + path, content))
+      }
+
+      open_database(database)
     }
 
-    open_database(database)
-  }
+    def open_database(database: String): Database = {
+      val server = new EmbeddedSolrServer(solr_data.java_path, database)
 
-  def open_database(database: String): Database = {
-    val server = new EmbeddedSolrServer(solr_data.java_path, database)
+      val cores = server.getCoreContainer.getAllCoreNames.asScala
+      if (cores.contains(database)) server.getCoreContainer.reload(database)
+      else server.getCoreContainer.create(database, Map.empty.asJava)
 
-    val cores = server.getCoreContainer.getAllCoreNames.asScala
-    if (cores.contains(database)) server.getCoreContainer.reload(database)
-    else server.getCoreContainer.create(database, Map.empty.asJava)
-
-    new Database(server)
+      new Database(server)
+    }
   }
 
   class Database private[Solr](solr: EmbeddedSolrServer) extends AutoCloseable {

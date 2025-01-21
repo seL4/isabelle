@@ -112,6 +112,8 @@ object Find_Facts {
 
   /** Solr data model **/
 
+  val solr_data_dir: Path = Path.explode("$FIND_FACTS_SOLR_DATA")
+
   object private_data extends Solr.Data("find_facts") {
     /* types */
 
@@ -601,6 +603,7 @@ object Find_Facts {
     progress: Progress = new Progress
   ): Unit = {
     val store = Store(options)
+    val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
     val session = Session(options, Resources.bootstrap)
 
@@ -613,7 +616,7 @@ object Find_Facts {
     if (sessions.isEmpty) progress.echo("Nothing to index")
     else {
       val stats =
-        using(Solr.init_database(database, Find_Facts.private_data, clean = clean)) { db =>
+        using(solr.init_database(database, Find_Facts.private_data, clean = clean)) { db =>
           using(Export.open_database_context(store)) { database_context =>
             val document_info = Document_Info.read(database_context, deps, sessions)
 
@@ -723,13 +726,14 @@ object Find_Facts {
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
+    val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
 
     val component = "find_facts_index-" + database
     val component_dir =
       Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
-    Isabelle_System.copy_dir(Solr.database_dir(database), component_dir.path)
+    Isabelle_System.copy_dir(solr.database_dir(database), component_dir.path)
     component_dir.write_settings("SOLR_COMPONENTS=\"$SOLR_COMPONENTS:$COMPONENT/" + database + "\"")
   }
 
@@ -898,7 +902,8 @@ object Find_Facts {
 
     val frontend = project.build_html(progress = progress)
 
-    using(Solr.open_database(database)) { db =>
+    val solr = Solr.init(solr_data_dir)
+    using(solr.open_database(database)) { db =>
       val stats = Find_Facts.query_stats(db, Query(Nil))
       progress.echo("Started Find_Facts with " + stats.results + " blocks, " +
         stats.consts + " consts, " + stats.typs + " typs, " + stats.thms + " thms")
