@@ -129,7 +129,7 @@ fun apply_inst ctxt t u =
   end;
 
 fun head_conv cv ct =
-  if can Thm.dest_comb ct then Conv.fun_conv (head_conv cv) ct else cv ct;
+  if can Thm.dest_fun ct then Conv.fun_conv (head_conv cv) ct else cv ct;
 
 
 (*** currying transformation ***)

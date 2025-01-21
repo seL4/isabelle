@@ -144,7 +144,7 @@ text \<open>
 simproc_setup beta_cfun_proc ("Rep_cfun (Abs_cfun f)") = \<open>
   K (fn ctxt => fn ct =>
     let
-      val f = #2 (Thm.dest_comb (#2 (Thm.dest_comb ct)));
+      val f = Thm.dest_arg (Thm.dest_arg ct);
       val [T, U] = Thm.dest_ctyp (Thm.ctyp_of_cterm f);
       val tr = Thm.instantiate' [SOME T, SOME U] [SOME f] (mk_meta_eq @{thm Abs_cfun_inverse2});
       val rules = Named_Theorems.get ctxt \<^named_theorems>\<open>cont2cont\<close>;

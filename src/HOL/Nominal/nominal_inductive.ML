@@ -33,8 +33,8 @@ val fresh_prod = @{thm fresh_prod};
 
 val perm_bool = mk_meta_eq @{thm perm_bool_def};
 val perm_boolI = @{thm perm_boolI};
-val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
-  (Drule.strip_imp_concl (Thm.cprop_of perm_boolI))));
+val (_, [perm_boolI_pi, _]) = Drule.strip_comb (Thm.dest_arg
+  (Drule.strip_imp_concl (Thm.cprop_of perm_boolI)));
 
 fun mk_perm_bool ctxt pi th =
   th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;

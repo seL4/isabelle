@@ -239,7 +239,7 @@ fun get_dist_thm2 ctxt x y =
 
     fun get_paths dist_thm =
       let
-        val ctree = Thm.cprop_of dist_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
+        val ctree = Thm.cprop_of dist_thm |> Thm.dest_arg |> Thm.dest_arg;
         val tree = Thm.term_of ctree;
         val x_path = the (DistinctTreeProver.find_tree x tree);
         val y_path = the (DistinctTreeProver.find_tree y tree);

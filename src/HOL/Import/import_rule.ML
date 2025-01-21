@@ -281,8 +281,7 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name cP ct td_th thy
        (SOME typedef_bindings) (fn ctxt => resolve_tac ctxt [th2] 1)) thy
     val aty = Thm.global_ctyp_of thy' (#abs_type (#1 typedef_info))
     val th = freezeT thy' (#type_definition (#2 typedef_info))
-    val (rep, abs) =
-      Thm.dest_comb (#1 (Thm.dest_comb (HOLogic.dest_judgment (Thm.cprop_of th)))) |>> Thm.dest_arg
+    val (rep, abs) = Thm.dest_binop (Thm.dest_fun (HOLogic.dest_judgment (Thm.cprop_of th)))
     val [A, B] = Thm.dest_ctyp (Thm.ctyp_of_cterm rep)
     val typedef_th = typedef_hol2hollight A B rep abs cP (Thm.free ("a", aty)) (Thm.free ("r", ctT))
   in

@@ -192,9 +192,9 @@ fun rewrite' ctxt old_prems bounds thms ct =
 fun rewrite ctxt thms ct =
   let
     val thm1 = Thm.eta_long_conversion ct
-    val rhs = thm1 |> Thm.cprop_of |> Thm.dest_comb |> snd
+    val rhs = thm1 |> Thm.cprop_of |> Thm.dest_arg
     val (thm2, prems) = rewrite' ctxt [] [] thms rhs
-    val rhs = thm2 |> Thm.cprop_of |> Thm.dest_comb |> snd
+    val rhs = thm2 |> Thm.cprop_of |> Thm.dest_arg
     val thm3 = Thm.eta_conversion rhs
     val thm = Thm.transitive thm1 (Thm.transitive thm2 thm3)
   in

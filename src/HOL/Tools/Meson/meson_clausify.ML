@@ -197,7 +197,7 @@ fun c_variant_abs_multi (ct0, vars) =
 fun old_skolem_theorem_of_def ctxt rhs0 =
   let
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of ctxt
-    val rhs' = rhs |> Thm.dest_comb |> snd
+    val rhs' = rhs |> Thm.dest_arg
     val (ch, frees) = c_variant_abs_multi (rhs', [])
     val (hilbert, cabs) = ch |> Thm.dest_comb |>> Thm.term_of
     val T =
