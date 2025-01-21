@@ -14,7 +14,11 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
+  val is_Trueprop: term -> bool
   val Trueprop_conv: conv -> conv
+  val mk_judgment: cterm -> cterm
+  val is_judgment: cterm -> bool
+  val dest_judgment: cterm -> cterm
   val mk_induct_forall: typ -> term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
@@ -25,9 +29,9 @@ sig
   val mk_set: typ -> term list -> term
   val dest_set: term -> term list
   val mk_UNIV: typ -> term
-  val conj_intr: Proof.context -> thm -> thm -> thm
-  val conj_elim: Proof.context -> thm -> thm * thm
-  val conj_elims: Proof.context -> thm -> thm list
+  val conj_intr: thm -> thm -> thm
+  val conj_elim: thm -> thm * thm
+  val conj_elims: thm -> thm list
   val conj: term
   val disj: term
   val imp: term
@@ -195,22 +199,31 @@ fun mk_Trueprop P = Trueprop $ P;
 fun dest_Trueprop \<^Const_>\<open>Trueprop for P\<close> = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
+fun is_Trueprop \<^Const_>\<open>Trueprop for _\<close> = true
+  | is_Trueprop _ = false;
+
+val is_judgment = is_Trueprop o Thm.term_of;
+
 fun Trueprop_conv cv ct =
-  (case Thm.term_of ct of
-    \<^Const_>\<open>Trueprop for _\<close> => Conv.arg_conv cv ct
-  | _ => raise CTERM ("Trueprop_conv", [ct]))
+  if is_judgment ct then Conv.arg_conv cv ct
+  else raise CTERM ("Trueprop_conv", [ct]);
 
+val mk_judgment = Thm.apply \<^cterm>\<open>Trueprop\<close>;
 
-fun conj_intr ctxt thP thQ =
+fun dest_judgment ct =
+  if is_judgment ct then Thm.dest_arg ct
+  else raise CTERM ("dest_judgment", [ct]);
+
+fun conj_intr thP thQ =
   let
-    val (P, Q) = apply2 (Object_Logic.dest_judgment ctxt o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = apply2 (dest_judgment o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val rule = \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<Longrightarrow> Q \<Longrightarrow> P \<and> Q\<close> by (rule conjI)\<close>
   in Drule.implies_elim_list rule [thP, thQ] end;
 
-fun conj_elim ctxt thPQ =
+fun conj_elim thPQ =
   let
-    val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment ctxt (Thm.cprop_of thPQ))
+    val (P, Q) = Thm.dest_binop (dest_judgment (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
     val thP =
       Thm.implies_elim \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<and> Q \<Longrightarrow> P\<close> by (rule conjunct1)\<close> thPQ;
@@ -218,9 +231,9 @@ fun conj_elim ctxt thPQ =
       Thm.implies_elim \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<and> Q \<Longrightarrow> Q\<close> by (rule conjunct2)\<close> thPQ;
   in (thP, thQ) end;
 
-fun conj_elims ctxt th =
-  let val (th1, th2) = conj_elim ctxt th
-  in conj_elims ctxt th1 @ conj_elims ctxt th2 end handle THM _ => [th];
+fun conj_elims th =
+  let val (th1, th2) = conj_elim th
+  in conj_elims th1 @ conj_elims th2 end handle THM _ => [th];
 
 val conj = \<^Const>\<open>conj\<close>;
 val disj = \<^Const>\<open>disj\<close>;

@@ -376,7 +376,7 @@ fun unify ctxt q =
    let
     val th =
      Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply \<^cterm>\<open>Not\<close>
+      (HOLogic.mk_judgment (Thm.apply \<^cterm>\<open>Not\<close>
            (Thm.apply (Thm.apply \<^cterm>\<open>(=) :: int => _\<close> (Numeral.mk_cnumber \<^ctyp>\<open>int\<close> x))
            \<^cterm>\<open>0::int\<close>)))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
@@ -469,7 +469,7 @@ let
    let
     val th =
      Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply \<^cterm>\<open>Trueprop\<close>
+      (HOLogic.mk_judgment
            (Thm.apply (Thm.apply dvdc (Numeral.mk_cnumber \<^ctyp>\<open>int\<close> x)) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
@@ -481,7 +481,7 @@ let
    end
  val dp =
    let val th = Simplifier.rewrite (put_simpset lin_ss ctxt)
-      (Thm.apply \<^cterm>\<open>Trueprop\<close>
+      (HOLogic.mk_judgment
            (Thm.apply (Thm.apply \<^cterm>\<open>(<) :: int => _\<close> \<^cterm>\<open>0::int\<close>) cd))
    in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
@@ -736,7 +736,7 @@ fun thin_prems_tac ctxt P =
      val q = if P c then c else \<^cterm>\<open>False\<close>
      val ng = fold_rev (fn (a,v) => fn t => Thm.apply a (Thm.lambda v t)) qvs
          (fold_rev (fn p => fn q => Thm.apply (Thm.apply \<^cterm>\<open>HOL.implies\<close> p) q) qs q)
-     val g = Thm.apply (Thm.apply \<^cterm>\<open>(==>)\<close> (Thm.apply \<^cterm>\<open>Trueprop\<close> ng)) p'
+     val g = Thm.apply (Thm.apply \<^cterm>\<open>(==>)\<close> (HOLogic.mk_judgment ng)) p'
      val ntac = (case qs of [] => q aconvc \<^cterm>\<open>False\<close>
                          | _ => false)
     in

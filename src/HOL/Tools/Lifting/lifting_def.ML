@@ -222,8 +222,7 @@ fun generate_parametric_transfer_rule ctxt0 transfer_rule parametric_transfer_ru
         val typ = Thm.typ_of_cterm rel
         val POS_const = Thm.cterm_of ctxt (mk_POS typ)
         val var = Thm.cterm_of ctxt (Var (("X", Thm.maxidx_of_cterm rel + 1), typ))
-        val goal =
-          Thm.apply (Thm.cterm_of ctxt HOLogic.Trueprop) (Thm.apply (Thm.apply POS_const rel) var)
+        val goal = HOLogic.mk_judgment (Thm.apply (Thm.apply POS_const rel) var)
       in
         [Lifting_Term.merge_transfer_relations ctxt goal, thm] MRSL @{thm POS_apply}
       end

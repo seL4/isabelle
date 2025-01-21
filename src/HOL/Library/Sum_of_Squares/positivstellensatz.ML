@@ -461,10 +461,10 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             let
               val (th1, cert1) =
                 overall (Left::cert_choice) dun
-                  (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.dest_arg1 ct))::oths)
+                  (Thm.assume (HOLogic.mk_judgment (Thm.dest_arg1 ct))::oths)
               val (th2, cert2) =
                 overall (Right::cert_choice) dun
-                  (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.dest_arg ct))::oths)
+                  (Thm.assume (HOLogic.mk_judgment (Thm.dest_arg ct))::oths)
             in (disj_cases th th1 th2, Branch (cert1, cert2)) end
           else overall cert_choice (th::dun) oths
         end
@@ -572,7 +572,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
             val (th2, certs) = overall [] [] [specl avs (Thm.assume (Thm.rhs_of th1))]
             val th3 =
               fold simple_choose evs
-                (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> bod))) th2)
+                (prove_hyp (Thm.equal_elim th1 (Thm.assume (HOLogic.mk_judgment bod))) th2)
           in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume not_A)) th3), certs)
           end
       in

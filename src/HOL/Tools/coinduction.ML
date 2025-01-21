@@ -106,7 +106,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
                      [] => all_tac
                    | inv :: case_prems =>
                        let
-                         val (init, last) = funpow_yield (p + e - 1) (HOLogic.conj_elim ctxt) inv;
+                         val (init, last) = funpow_yield (p + e - 1) HOLogic.conj_elim inv;
                          val inv_thms = init @ [last];
                          val eqs = take e inv_thms;
                          fun is_local_var t =

@@ -184,9 +184,6 @@ fun introduce_combinators_in_theorem ctxt th =
             (* A type variable of sort "{}" will make "abstraction" fail. *)
             TrueI)
 
-(*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of \<^theory_context>\<open>HOL\<close> HOLogic.Trueprop;
-
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
 fun c_variant_abs_multi (ct0, vars) =
@@ -208,10 +205,10 @@ fun old_skolem_theorem_of_def ctxt rhs0 =
         Const (_, Type (\<^type_name>\<open>fun\<close>, [_, T])) => T
       | _ => raise TERM ("old_skolem_theorem_of_def: expected \"Eps\"", [hilbert])
     val cex = Thm.cterm_of ctxt (HOLogic.exists_const T)
-    val ex_tm = Thm.apply cTrueprop (Thm.apply cex cabs)
+    val ex_tm = HOLogic.mk_judgment (Thm.apply cex cabs)
     val conc =
       Drule.list_comb (rhs, frees)
-      |> Drule.beta_conv cabs |> Thm.apply cTrueprop
+      |> Drule.beta_conv cabs |> HOLogic.mk_judgment
     fun tacf [prem] =
       rewrite_goals_tac ctxt @{thms skolem_def [abs_def]}
       THEN resolve_tac ctxt

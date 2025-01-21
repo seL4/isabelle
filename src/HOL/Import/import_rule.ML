@@ -339,8 +339,8 @@ fun make_const thy c ty =
       | NONE => Sign.full_bname thy (#isabelle (make_name c)))
   in Thm.global_cterm_of thy (Const (d, Thm.typ_of ty)) end
 
-val make_thm = Skip_Proof.make_thm_cterm o Thm.apply \<^cterm>\<open>Trueprop\<close>
-val assume_thm = Thm.trivial o Thm.apply \<^cterm>\<open>Trueprop\<close>
+val make_thm = Skip_Proof.make_thm_cterm o HOLogic.mk_judgment
+val assume_thm = Thm.trivial o HOLogic.mk_judgment
 
 
 (* import file *)

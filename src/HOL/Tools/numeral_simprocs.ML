@@ -471,7 +471,7 @@ fun cancel_simplify_meta_eq ctxt cancel_th th =
     simplify_one ctxt (([th, cancel_th]) MRS trans);
 
 local
-  val Tp_Eq = Thm.reflexive (Thm.cterm_of \<^theory_context>\<open>HOL\<close> HOLogic.Trueprop)
+  val Tp_Eq = Thm.reflexive \<^cterm>\<open>Trueprop\<close>
   fun Eq_True_elim Eq =
     Thm.equal_elim (Thm.combination Tp_Eq (Thm.symmetric Eq)) @{thm TrueI}
 in
@@ -593,7 +593,7 @@ fun prove_nz ctxt T t =
     val eq = Thm.instantiate_cterm (TVars.make1 (type_tvar, T), Vars.empty) geq
     val th =
       Simplifier.rewrite (ctxt addsimps @{thms simp_thms})
-        (Thm.apply \<^cterm>\<open>Trueprop\<close> (Thm.apply \<^cterm>\<open>Not\<close>
+        (HOLogic.mk_judgment (Thm.apply \<^cterm>\<open>Not\<close>
           (Thm.apply (Thm.apply eq t) z)))
   in Thm.equal_elim (Thm.symmetric th) TrueI end
 
