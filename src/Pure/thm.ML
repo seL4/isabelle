@@ -76,13 +76,16 @@ sig
   val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
   val prems_of: thm -> term list
+  val take_prems_of: int -> thm -> term list
   val nprems_of: thm -> int
   val no_prems: thm -> bool
+  val prem_of: thm -> int -> term
   val major_prem_of: thm -> term
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
   val cconcl_of: thm -> cterm
   val cprems_of: thm -> cterm list
+  val take_cprems_of: int -> thm -> cterm list
   val chyps_of: thm -> cterm list
   val thm_ord: thm ord
   exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
@@ -519,11 +522,15 @@ val tpairs_of = #tpairs o rep_thm;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
+fun take_prems_of n = Logic.take_imp_prems n o prop_of;
 val nprems_of = Logic.count_prems o prop_of;
 val no_prems = Logic.no_prems o prop_of;
 
+fun prem_of th i =
+  Logic.nth_prem (i, prop_of th) handle TERM _ => raise THM ("prem_of", i, [th]);
+
 fun major_prem_of th =
-  (case prems_of th of
+  (case take_prems_of 1 th of
     prem :: _ => Logic.strip_assums_concl prem
   | [] => raise THM ("major_prem_of: rule with no premises", 0, [th]));
 
@@ -540,6 +547,10 @@ fun cconcl_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
 fun cprems_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = t})
     (prems_of th);
+
+fun take_cprems_of n (th as Thm (_, {cert, maxidx, shyps, ...})) =
+  map (fn t => Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = t})
+    (take_prems_of n th);
 
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;

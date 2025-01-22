@@ -23,6 +23,7 @@ sig
   val list_implies: term list * term -> term
   val strip_imp_prems: term -> term list
   val strip_imp_concl: term -> term
+  val take_imp_prems: int -> term -> term list
   val strip_prems: int * term list * term -> term list * term
   val count_prems: term -> int
   val no_prems: term -> bool
@@ -199,6 +200,11 @@ fun strip_imp_prems (Const("Pure.imp", _) $ A $ B) = A :: strip_imp_prems B
 (* A1\<Longrightarrow>...An\<Longrightarrow>B  goes to B, where B is not an implication *)
 fun strip_imp_concl (Const("Pure.imp", _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
+
+(* take at most n prems, where n < 0 means infinity *)
+fun take_imp_prems 0 _ = []
+  | take_imp_prems n (Const ("Pure.imp", _) $ A $ B) = A :: take_imp_prems (n - 1) B
+  | take_imp_prems _ _ = [];
 
 (*Strip and return premises: (i, [], A1\<Longrightarrow>...Ai\<Longrightarrow>B)
     goes to   ([Ai, A(i-1),...,A1] , B)         (REVERSED)
