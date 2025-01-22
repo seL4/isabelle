@@ -408,24 +408,21 @@ fun instantiate_frees (instT, inst) th =
   if TFrees.is_empty instT andalso Frees.is_empty inst then th
   else
     let
-      val idx = Thm.maxidx_of th + 1;
-      fun index ((a, A), b) = (((a, idx), A), b);
-      val insts =
-        (TVars.build (TFrees.fold (TVars.add o index) instT),
-         Vars.build (Frees.fold (Vars.add o index) inst));
       val tfrees = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
       val frees = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
 
+      val idx = Thm.maxidx_of th + 1;
+      fun index ((a, A), b) = (((a, idx), A), b);
+      val instT' = TVars.build (TFrees.fold (TVars.add o index) instT);
+      val inst' = Vars.build (Frees.fold (Vars.add o index) inst);
+
       val hyps = Thm.chyps_of th;
-      val inst_cterm =
-        Thm.generalize_cterm (tfrees, frees) idx #>
-        Thm.instantiate_cterm insts;
     in
       th
       |> fold_rev Thm.implies_intr hyps
       |> Thm.generalize (tfrees, frees) idx
-      |> Thm.instantiate insts
-      |> fold (elim_implies o Thm.assume o inst_cterm) hyps
+      |> Thm.instantiate (instT', inst')
+      |> assume_prems (length hyps)
     end;
 
 
