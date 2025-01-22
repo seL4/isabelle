@@ -358,15 +358,17 @@ object Solr {
       open_database(database)
     }
 
-    def open_database(database: String): Database = {
-      val server = new EmbeddedSolrServer(solr_data.java_path, database)
-
-      val cores = server.getCoreContainer.getAllCoreNames.asScala
-      if (cores.contains(database)) server.getCoreContainer.reload(database)
-      else server.getCoreContainer.create(database, Map.empty.asJava)
-
-      new Database(server)
-    }
+    def open_database(database: String): Database =
+      if (!database_dir(database).is_dir) error("Missing Solr database: " + quote(database))
+      else {
+        val server = new EmbeddedSolrServer(solr_data.java_path, database)
+  
+        val cores = server.getCoreContainer.getAllCoreNames.asScala
+        if (cores.contains(database)) server.getCoreContainer.reload(database)
+        else server.getCoreContainer.create(database, Map.empty.asJava)
+  
+        new Database(server)
+      }
   }
 
   class Database private[Solr](solr: EmbeddedSolrServer) extends AutoCloseable {
