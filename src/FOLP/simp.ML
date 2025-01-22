@@ -83,9 +83,7 @@ fun lhs_net_tac ctxt net =
           biresolve_tac ctxt (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
-fun nth_subgoal i thm = nth (Thm.prems_of thm) (i - 1);
-
-fun goal_concl i thm = Logic.strip_assums_concl (nth_subgoal i thm);
+fun goal_concl i thm = Logic.strip_assums_concl (Thm.prem_of thm i);
 
 fun lhs_of_eq i thm = lhs_of(goal_concl i thm)
 and rhs_of_eq i thm = rhs_of(goal_concl i thm);
@@ -370,7 +368,7 @@ fun variants_abs ([],P) = P
 
 (*Select subgoal i from proof state; substitute parameters, for printing*)
 fun prepare_goal i st =
-    let val subgi = nth_subgoal i st
+    let val subgi = Thm.prem_of st i
         val params = rev (Logic.strip_params subgi)
     in variants_abs (params, Logic.strip_assums_concl subgi) end;
 
@@ -425,7 +423,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
 (*NB: the "Adding rewrites:" trace will look strange because assumptions
       are represented by rules, generalized over their parameters*)
 fun add_asms(ss,thm,a,anet,ats,cs) =
-    let val As = strip_varify(nth_subgoal i thm, a, []);
+    let val As = strip_varify(Thm.prem_of thm i, a, []);
         val thms = map (Thm.trivial o Thm.cterm_of ctxt) As;
         val new_rws = maps mk_rew_rules thms;
         val rwrls = map mk_trans (maps mk_rew_rules thms);
@@ -532,7 +530,7 @@ in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 
 fun find_subst ctxt T =
 let fun find (thm::thms) =
-        let val (Const(_,cT), va, vb) = dest_red(hd(Thm.prems_of thm));
+        let val (Const(_,cT), va, vb) = dest_red(Thm.prem_of thm 1);
             val [P] = subtract (op =) [va, vb] (Misc_Legacy.add_term_vars (Thm.concl_of thm, []));
             val eqT::_ = binder_types cT
         in if Sign.typ_instance (Proof_Context.theory_of ctxt) (T,eqT) then SOME(thm,va,vb,P)
