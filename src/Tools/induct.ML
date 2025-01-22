@@ -120,7 +120,7 @@ fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle Lis
 
 in
 
-fun left_var_prem thm = mk_var (hd (vars_of (hd (Thm.prems_of thm)))) handle List.Empty =>
+fun left_var_prem thm = mk_var (hd (vars_of (hd (Thm.take_prems_of 1 thm)))) handle List.Empty =>
   raise THM ("No variables in major premise of rule", 0, [thm]);
 
 val left_var_concl = concl_var hd;

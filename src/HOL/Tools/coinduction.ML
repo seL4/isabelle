@@ -71,7 +71,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
             val (instT, inst) = Thm.match (thm_concl, concl);
             val rhoTs = map (fn (v, T) => (TVar v, Thm.typ_of T)) (TVars.dest instT);
             val rhots = map (fn (v, t) => (Var v, Thm.term_of t)) (Vars.dest inst);
-            val xs = hd (Thm.prems_of raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
+            val xs = hd (Thm.take_prems_of 1 raw_thm) |> HOLogic.dest_Trueprop |> strip_comb |> snd
               |> map (subst_atomic_types rhoTs);
             val raw_eqs = map (fn x => (x, AList.lookup op aconv rhots x |> the)) xs;
             val ((names, ctxt), Ts) = map_split (apfst fst o dest_Var o fst) raw_eqs

@@ -102,7 +102,7 @@ unrotated to get backto the originial position(s) *)
 fun hide_other_goals th =
   let
     (* tl beacuse fst sg is the goal we are interested in *)
-    val cprems = tl (Drule.cprems_of th);
+    val cprems = tl (Thm.cprems_of th);
     val aprems = map Thm.assume cprems;
   in (Drule.implies_elim_list (Drule.rotate_prems 1 th) aprems, cprems) end;
 

@@ -156,7 +156,7 @@ fun try_prove_reflexivity ctxt prop =
     val concl_pat = Drule.strip_imp_concl (Thm.cprop_of rule)
     val insts = Thm.first_order_match (concl_pat, cprop)
     val rule = Drule.instantiate_normalize insts rule
-    val prop = hd (Thm.prems_of rule)
+    val prop = hd (Thm.take_prems_of 1 rule)
   in
     case mono_eq_prover ctxt prop of
       SOME thm => SOME (thm RS rule)
@@ -233,7 +233,7 @@ fun generate_parametric_transfer_rule ctxt0 transfer_rule parametric_transfer_ru
     val preprocessed_thm = preprocess ctxt0 thm
     val (fixed_thm, ctxt1) = ctxt0
       |> yield_singleton (apfst snd oo Variable.import true) preprocessed_thm
-    val assms = cprems_of fixed_thm
+    val assms = Thm.cprems_of fixed_thm
     val add_transfer_rule = Thm.attribute_declaration Transfer.transfer_add
     val (prems, ctxt2) = ctxt1 |> fold_map Thm.assume_hyps assms
     val ctxt3 =  ctxt2 |> Context.proof_map (fold add_transfer_rule prems)
@@ -386,7 +386,7 @@ fun generate_rep_eq ctxt def_thm rsp_thm (rty, qty) =
         val rel_fun = prove_rel ctxt rsp_thm (rty, qty)
         val rep_abs_thm = [quot_thm, rel_fun] MRSL @{thm Quotient_rep_abs_eq}
       in
-        case mono_eq_prover ctxt (hd (Thm.prems_of rep_abs_thm)) of
+        case mono_eq_prover ctxt (hd (Thm.take_prems_of 1 rep_abs_thm)) of
           SOME mono_eq_thm =>
             let
               val rep_abs_eq = mono_eq_thm RS rep_abs_thm

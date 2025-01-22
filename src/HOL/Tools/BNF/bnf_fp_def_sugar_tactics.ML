@@ -545,7 +545,7 @@ fun mk_set_induct0_tac ctxt cts assms dtor_set_inducts exhausts set_pre_defs cto
     val assms_tac =
       let val assms' = map (unfold_thms ctxt (@{thm id_bnf_def} :: ctor_defs)) assms in
         fold (curry (op ORELSE')) (map (fn thm =>
-            funpow (length (Thm.prems_of thm)) (fn tac => tac THEN' assume_tac ctxt)
+            funpow (Thm.nprems_of thm) (fn tac => tac THEN' assume_tac ctxt)
               (rtac ctxt thm)) assms')
           (etac ctxt FalseE)
       end;

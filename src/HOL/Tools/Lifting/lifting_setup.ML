@@ -427,7 +427,7 @@ local
 
   fun reduce_Domainp ctxt rules thm =
     let
-      val goal = thm |> Thm.prems_of |> hd
+      val goal = hd (Thm.take_prems_of 1 thm)
       val var = goal |> HOLogic.dest_Trueprop |> dest_comb |> snd |> dest_Var 
       val reduced_assm =
         reduce_goal [var] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
@@ -439,7 +439,7 @@ in
     let
       fun reduce_first_assm ctxt rules thm =
         let
-          val goal = thm |> Thm.prems_of |> hd
+          val goal = hd (Thm.take_prems_of 1 thm)
           val reduced_assm =
             reduce_goal [] goal (TRY (REPEAT_ALL_NEW (resolve_tac ctxt rules) 1)) ctxt
         in

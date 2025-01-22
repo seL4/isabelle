@@ -637,7 +637,7 @@ fun mk_readable_rsp_thm_eq tm ctxt =
       let
         fun prove_extra_assms thm =
           let
-            val assms = cprems_of thm
+            val assms = Thm.cprems_of thm
             fun finish thm = if Thm.no_prems thm then SOME (Goal.conclude thm) else NONE
             fun prove ctm = Option.mapPartial finish (SINGLE tactic (Goal.init ctm))
           in

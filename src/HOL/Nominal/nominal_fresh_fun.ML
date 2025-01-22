@@ -12,7 +12,7 @@ a tactic to analyse instances of the fresh_fun.
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun gen_res_inst_tac_term ctxt instf tyinst tinst elim th i st =
   let
-    val cgoal = nth (cprems_of st) (i - 1);
+    val cgoal = nth (Thm.cprems_of st) (i - 1);
     val maxidx = Thm.maxidx_of_cterm cgoal;
     val j = maxidx + 1;
     val tyinst' = map (apfst (Logic.incr_tvar j)) tyinst;

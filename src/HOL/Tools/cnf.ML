@@ -106,7 +106,7 @@ fun clause2raw_thm ctxt clause =
     (* becomes "[..., A1, ..., An] |- B"                                   *)
     fun prems_to_hyps thm =
       fold (fn cprem => fn thm' =>
-        Thm.implies_elim thm' (Thm.assume cprem)) (cprems_of thm) thm
+        Thm.implies_elim thm' (Thm.assume cprem)) (Thm.cprems_of thm) thm
   in
     (* [...] |- ~(x1 | ... | xn) ==> False *)
     (@{thm cnf.clause2raw_notE} OF [clause])

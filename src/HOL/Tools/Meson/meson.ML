@@ -558,7 +558,7 @@ fun presimplify (simp_options as {let_simps, ...} : simp_options) ctxt =
   #> let_simps ? rewrite_rule ctxt @{thms Let_def [abs_def]}
 
 fun make_nnf simp_options ctxt th =
-  (case Thm.prems_of th of
+  (case Thm.take_prems_of 1 th of
     [] => th |> presimplify simp_options ctxt |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]));
 

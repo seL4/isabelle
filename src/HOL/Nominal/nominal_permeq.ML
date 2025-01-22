@@ -289,7 +289,7 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
 
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun finite_guess_tac_i tactical ctxt i st =
-    let val goal = nth (cprems_of st) (i - 1)
+    let val goal = nth (Thm.cprems_of st) (i - 1)
     in
       case Envir.eta_contract (Logic.strip_assums_concl (Thm.term_of goal)) of
           _ $ (Const (\<^const_name>\<open>finite\<close>, _) $ (Const (\<^const_name>\<open>Nominal.supp\<close>, T) $ x)) =>
@@ -329,7 +329,7 @@ fun finite_guess_tac_i tactical ctxt i st =
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun fresh_guess_tac_i tactical ctxt i st =
     let
-        val goal = nth (cprems_of st) (i - 1)
+        val goal = nth (Thm.cprems_of st) (i - 1)
         val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
         val fresh_atm = Proof_Context.get_thms ctxt "fresh_atm"
         val ctxt1 = ctxt addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm

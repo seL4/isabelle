@@ -1504,7 +1504,7 @@ fun try_param_tac ctxt s rule = CSUBGOAL (fn (cgoal, i) =>
     val (x, ca) =
       (case rev (drop (length params) ys) of
         [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
-          (hd (rev (Logic.strip_assums_hyp (hd (Thm.prems_of rule')))))))), true)
+          (hd (rev (Logic.strip_assums_hyp (hd (Thm.take_prems_of 1 rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' =
       infer_instantiate ctxt

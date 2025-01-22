@@ -463,7 +463,7 @@ in
             | _ => false
   
           val inst_distr_rule = rewr_imp distr_rule ctm
-          val extra_assms = filter_out is_POS_or_NEG (cprems_of inst_distr_rule)
+          val extra_assms = filter_out is_POS_or_NEG (Thm.cprems_of inst_distr_rule)
           val proved_assms = map_interrupt prove_assm extra_assms
         in
           Option.map (curry op OF inst_distr_rule) proved_assms
@@ -491,7 +491,7 @@ in
                   case distr_rule of
                     NONE => raise MERGE_TRANSFER_REL (cannot_merge_error_msg ())
                   | SOME distr_rule =>
-                      map (gen_merge_transfer_relations quotients ctxt0) (cprems_of distr_rule)
+                      map (gen_merge_transfer_relations quotients ctxt0) (Thm.cprems_of distr_rule)
                         MRSL distr_rule
                 end
               else
@@ -504,7 +504,7 @@ in
                       val unfolded_ctm = Thm.rhs_of (Conv.arg1_conv (Conv.arg_conv (Conv.rewr_conv pcrel_def)) ctm)
                       val distr_rule = rewrs_imp @{thms POS_pcr_rule NEG_pcr_rule} unfolded_ctm
                       val result = (map (gen_merge_transfer_relations quotients ctxt0) 
-                        (cprems_of distr_rule)) MRSL distr_rule
+                        (Thm.cprems_of distr_rule)) MRSL distr_rule
                       val fold_pcr_rel = Conv.rewr_conv (Thm.symmetric pcrel_def)
                     in  
                       Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.combination_conv 

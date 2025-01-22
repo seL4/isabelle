@@ -176,7 +176,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
 
     val psimp = import sum_psimp_eq
     val (simp, restore_cond) =
-      case cprems_of psimp of
+      case Thm.cprems_of psimp of
         [] => (psimp, I)
       | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
       | _ => raise General.Fail "Too many conditions"

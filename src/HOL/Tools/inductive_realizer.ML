@@ -372,7 +372,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       let
         val vs' = rename (map (apply2 (fst o fst o dest_Var))
           (params ~~ List.take (snd (strip_comb (HOLogic.dest_Trueprop
-            (hd (Thm.prems_of (hd inducts))))), nparms))) vs;
+            (hd (Thm.take_prems_of 1 (hd inducts))))), nparms))) vs;
         val rs = indrule_realizer thy induct raw_induct rsets params'
           (vs' @ Ps) rec_names rss' intrs dummies;
         val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs' @ Ps) r
@@ -505,7 +505,7 @@ fun rlz_attrib arg = Thm.declaration_attribute (fn thm => Context.mapping
     fun err () = error "ind_realizer: bad rule";
     val sets =
       (case HOLogic.dest_conj (HOLogic.dest_Trueprop (Thm.concl_of thm)) of
-           [_] => [pred_of (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))]
+           [_] => [pred_of (HOLogic.dest_Trueprop (hd (Thm.take_prems_of 1 thm)))]
          | xs => map (pred_of o fst o HOLogic.dest_imp) xs)
          handle TERM _ => err () | List.Empty => err ();
   in 
