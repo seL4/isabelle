@@ -63,6 +63,7 @@ sig
   val check_shyps: Proof.context -> thm -> thm
   val weaken_sorts': Proof.context -> cterm -> cterm
   val elim_implies: thm -> thm -> thm
+  val assume_prems: int -> thm -> thm
   val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -332,6 +333,12 @@ val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
         B
 *)
 fun elim_implies thA thAB = Thm.implies_elim thAB thA;
+
+
+(* assume_prems: shift at most n premises into hyps, where n < 0 means infinity *)
+
+fun assume_prems n th =
+  fold (elim_implies o Thm.assume) (Thm.take_cprems_of n th) th;
 
 
 (* forall_intr_name *)

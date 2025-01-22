@@ -104,9 +104,6 @@ fun clause2raw_thm ctxt clause =
           (Seq.hd (REPEAT_DETERM (resolve_tac ctxt @{thms cnf.clause2raw_not_disj} i) thm))
     (* moves all premises to hyps, i.e. "[...] |- A1 ==> ... ==> An ==> B" *)
     (* becomes "[..., A1, ..., An] |- B"                                   *)
-    fun prems_to_hyps thm =
-      fold (fn cprem => fn thm' =>
-        Thm.implies_elim thm' (Thm.assume cprem)) (Thm.cprems_of thm) thm
   in
     (* [...] |- ~(x1 | ... | xn) ==> False *)
     (@{thm cnf.clause2raw_notE} OF [clause])
@@ -115,7 +112,7 @@ fun clause2raw_thm ctxt clause =
     (* [...] |- x1' ==> ... ==> xn' ==> False *)
     |> Seq.hd o TRYALL (resolve_tac ctxt @{thms cnf.clause2raw_not_not})
     (* [..., x1', ..., xn'] |- False *)
-    |> prems_to_hyps
+    |> Thm.assume_prems ~1
   end;
 
 (* ------------------------------------------------------------------------- *)
