@@ -417,7 +417,7 @@ fun generate_abs_eq ctxt def_thm rsp_thm quot_thm =
             val ctm = Thm.dest_equals_lhs (Thm.cprop_of rep_id)
             val unfolded_maps_eq = unfold_fun_maps ctm
             val t1 = [quot_thm, def_thm, rsp_thm] MRSL @{thm Quotient_rep_abs_fold_unmap}
-            val prems_pat = (hd o Drule.cprems_of) t1
+            val prems_pat = Thm.cprem_of t1 1
             val insts = Thm.first_order_match (prems_pat, Thm.cprop_of unfolded_maps_eq)
           in
             unfolded_maps_eq RS (Drule.instantiate_normalize insts t1)
