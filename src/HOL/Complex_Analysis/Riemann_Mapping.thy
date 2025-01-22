@@ -63,8 +63,10 @@ proof -
   qed
   show ?thesis
     unfolding Moebius_function_def
-    apply (intro holomorphic_intros)
-    by (metis "*" mult.commute complex_cnj_cnj complex_cnj_mult complex_cnj_one complex_mod_cnj mem_ball_0 right_minus_eq)
+  proof (intro holomorphic_intros)
+    show "\<And>z. z \<in> ball 0 1 \<Longrightarrow> 1 - cnj w * z \<noteq> 0"
+      by (metis * complex_cnj_cnj complex_cnj_mult complex_mod_cnj mem_ball_0 mult.commute mult_1 right_minus_eq)
+  qed
 qed
 
 lemma Moebius_function_compose:
@@ -80,7 +82,7 @@ proof -
     have "w2 * cnj w2 = 1"
       using that meq by (auto simp: algebra_simps)
     then show "z = 0"
-      by (metis (no_types) \<open>cmod w2 < 1\<close> complex_mod_cnj less_irrefl mult.right_neutral norm_mult_less norm_one)
+      using \<open>cmod w2 < 1\<close> complex_mod_sqrt_Re_mult_cnj by force
   qed
   moreover have "z - w2 - w1 * (1 - cnj w2 * z) = z * (1 - cnj w2 * z - cnj w1 * (z - w2))"
     using meq by (fastforce simp: algebra_simps)
@@ -151,10 +153,9 @@ proof -
           by force
         have *: "((\<lambda>w. f (r * w)) has_field_derivative deriv f (r * z) * r) (at z)"
           if "z \<in> ball 0 1" for z::complex
-        proof (rule DERIV_chain' [where g=f])
-          show "(f has_field_derivative deriv f (of_real r * z)) (at (of_real r * z))"
-            by (metis holomorphic_derivI [OF holF \<open>open S\<close>] \<open>f \<in> F\<close> image_subset_iff r01 that)
-        qed simp
+          using DERIV_chain' [where g=f] \<open>open S\<close>
+          by (meson DERIV_cmult_Id \<open>f \<in> F\<close> holF holomorphic_derivI image_subset_iff
+              r01 that)
         have df0: "((\<lambda>w. f (r * w)) has_field_derivative deriv f 0 * r) (at 0)"
           using * [of 0] by simp
         have deq: "deriv (\<lambda>x. f (complex_of_real r * x)) 0 = deriv f 0 * complex_of_real r"
@@ -316,12 +317,7 @@ proof -
         qed
       qed
       have norm\<psi>1: "norm(\<psi> (h (f z))) < 1" if "z \<in> S" for z
-      proof -
-        have "norm (\<psi> (h (f z)) ^ 2) < 1"
-          by (metis (no_types) that DIM_complex \<psi>2 h01 image_subset_iff mem_ball_0 nf1)
-        then show ?thesis
-          by (metis le_less_trans mult_less_cancel_left2 norm_ge_zero norm_power not_le power2_eq_square)
-      qed
+        by (metis \<psi>2 h01 image_subset_iff mem_ball_0 nf1 norm_power power_less1_D that)
       then have \<psi>01: "\<psi> (h (f 0)) \<in> ball 0 1"
         by (simp add: \<open>0 \<in> S\<close>)
       obtain p q where p0: "p (\<psi> (h (f 0))) = 0"
@@ -535,7 +531,7 @@ next
             using gxy by (auto simp: path_image_join)
         qed (use gxy holf in auto)
         then have fintxy: "f contour_integrable_on linepath x y"
-          by (metis (no_types, lifting) contour_integrable_joinD1 contour_integrable_joinD2 gxy(2) has_contour_integral_integrable pathfinish_linepath pathstart_reversepath valid_path_imp_reverse valid_path_join valid_path_linepath vp(2))
+          using gxy(2) has_contour_integral_integrable vp by fastforce
         have fintgx: "f contour_integrable_on (?g x)" "f contour_integrable_on (?g y)"
           using openS contour_integrable_holomorphic_simple gxy holf vp by blast+
         show ?thesis
@@ -671,8 +667,8 @@ proof -
       unfolding norm_divide
       using \<open>r > 0\<close> g_not_r [OF \<open>z \<in> S\<close>] g_not_r [OF \<open>a \<in> S\<close>]
       by (simp_all add: field_split_simps dist_commute dist_norm)
-  then show "?f ` S \<subseteq> ball 0 1"
-    by auto
+    then show "?f ` S \<subseteq> ball 0 1"
+      by auto
     show "inj_on ?f S"
       using \<open>r > 0\<close> eqg apply (clarsimp simp: inj_on_def)
       by (metis diff_add_cancel)
@@ -697,7 +693,7 @@ proof -
     proof (intro exI conjI)
       show "g \<circ> k holomorphic_on h ` S"
         by (smt (verit) holg holk holomorphic_on_compose holomorphic_on_subset imageE image_subset_iff kh)
-      show "\<forall>z\<in>h ` S. f z = ((g \<circ> k) z)\<^sup>2"
+      show "\<forall>z \<in> h ` S. f z = ((g \<circ> k) z)\<^sup>2"
         using eqg kh by auto
     qed
   qed
@@ -714,22 +710,13 @@ proof -
 qed
 
 lemma homeomorphic_to_disc:
-  assumes S: "S \<noteq> {}"
-    and prev: "S = UNIV \<or>
+  assumes "S = UNIV \<or>
                (\<exists>f g. f holomorphic_on S \<and> g holomorphic_on ball 0 1 \<and>
-                     (\<forall>z \<in> S. f z \<in> ball 0 1 \<and> g(f z) = z) \<and>
-                     (\<forall>z \<in> ball 0 1. g z \<in> S \<and> f(g z) = z))" (is "_ \<or> ?P")
+                      (\<forall>z \<in> S. f z \<in> ball 0 1 \<and> g(f z) = z) \<and>
+                      (\<forall>z \<in> ball 0 1. g z \<in> S \<and> f(g z) = z))" (is "_ \<or> ?P")
   shows "S homeomorphic ball (0::complex) 1"
-  using prev
-proof
-  assume "S = UNIV" then show ?thesis
-    using homeomorphic_ball01_UNIV homeomorphic_sym by blast
-next
-  assume ?P
-  then show ?thesis
-    unfolding homeomorphic_minimal
-    using holomorphic_on_imp_continuous_on by blast
-qed
+  by (smt (verit, ccfv_SIG) holomorphic_on_imp_continuous_on homeomorphic_ball01_UNIV
+      homeomorphic_minimal assms)
 
 lemma homeomorphic_to_disc_imp_simply_connected:
   assumes "S = {} \<or> S homeomorphic ball (0::complex) 1"
@@ -900,15 +887,11 @@ proof -
           using n \<open>cmod x < 1\<close> by (auto simp: field_split_simps algebra_simps D_def)
         moreover have " f ` D n \<inter> closure (f ` A n) = {}"
         proof -
-          have op_fDn: "open(f ` (D n))"
-          proof (rule invariance_of_domain)
-            show "continuous_on (D n) f"
-              by (rule continuous_on_subset [OF contf D01])
-            show "open (D n)"
-              by (simp add: D_def)
-            show "inj_on f (D n)"
-              unfolding inj_on_def using D01 by (metis gf mem_ball_0 subsetCE)
-          qed
+          have"inj_on f (D n)"
+            unfolding inj_on_def using D01 by (metis gf mem_ball_0 subsetCE)
+          then have op_fDn: "open(f ` (D n))"
+            by (metis invariance_of_domain D_def Elementary_Metric_Spaces.open_ball 
+                continuous_on_subset [OF contf D01])
           have injf: "inj_on f (ball 0 1)"
             by (metis mem_ball_0 inj_on_def gf)
           have "D n \<union> A n \<subseteq> ball 0 1"
@@ -992,9 +975,9 @@ proof -
               by (metis closedin_diff closedin_self closedin_closed_trans [OF _ clo_INTX] K)
           qed (use \<open>compact L\<close> \<open>C \<subseteq> L\<close> in auto)
         qed
-        obtain U V where "open U" and "compact (closure U)" and "open V" "K \<subseteq> U"
-                     and V: "\<Inter>(range X) - K \<subseteq> V" and "U \<inter> V = {}"
-          using separation_normal_compact [OF \<open>compact K\<close> clo] by blast
+        obtain U V where "open U" "open V" and "compact (closure U)"
+                     and V: "\<Inter>(range X) - K \<subseteq> V" and U: "K \<subseteq> U" "U \<inter> V = {}"
+          by (metis Diff_disjoint separation_normal_compact [OF \<open>compact K\<close> clo])
         then have "U \<inter> (\<Inter> (range X) - K) = {}"
           by blast
         have "(closure U - U) \<inter> (\<Inter>n. X n \<inter> closure U) \<noteq> {}"
@@ -1049,12 +1032,8 @@ proof -
         moreover have "(\<Inter>n. X n \<inter> closure U) = (\<Inter>n. X n) \<inter> closure U"
           by blast
         moreover have "x \<in> U" if "\<And>n. x \<in> X n" "x \<in> closure U" for x
-        proof -
-          have "x \<notin> V"
-            using \<open>U \<inter> V = {}\<close> \<open>open V\<close> closure_iff_nhds_not_empty that(2) by blast
-          then show ?thesis
-            by (metis (no_types) Diff_iff INT_I V \<open>K \<subseteq> U\<close> subsetD that(1))
-        qed
+          by (metis Diff_iff INT_I U V \<open>open V\<close> closure_iff_nhds_not_empty
+              order.refl subsetD that)
         ultimately show False
           by (auto simp: open_Int_closure_eq_empty [OF \<open>open V\<close>, of U])
       qed
@@ -1101,7 +1080,7 @@ proof (cases "bounded S")
           moreover have "closed C"
             using C_ccsw clo_ccs by blast
           ultimately show False
-            by (metis C False \<open>S \<noteq> UNIV\<close> C_ccsw bot_eq_sup_iff connected_component_eq_UNIV frontier_Int_closed
+            by (metis C \<open>S \<noteq> {}\<close> \<open>S \<noteq> UNIV\<close> C_ccsw bot_eq_sup_iff connected_component_eq_UNIV frontier_Int_closed
                 frontier_closed frontier_complement frontier_eq_empty frontier_of_components_subset in_components_maximal inf.orderE)
         qed
         then show "connected_component_set (- S) w \<inter> frontier S \<noteq> {}"
@@ -1114,14 +1093,18 @@ proof (cases "bounded S")
             by (auto simp: closed_Compl closed_connected_component frontier_def openS)
           show "frontier (connected_component_set (- S) z) \<subseteq> frontier (- S)"
             using frontier_of_connected_component_subset by fastforce
-          have "\<not> bounded (-S)"
+          have "connected (closure S - S)"
+            by (metis confr frontier_def interior_open openS)
+          moreover have "\<not> bounded (-S)"
             by (simp add: True cobounded_imp_unbounded)
+          moreover have "bounded (connected_component_set (- S) w)"
+            using C_ccsw \<open>bounded C\<close> by auto
+          ultimately have "z \<notin> S"
+            using \<open>w \<notin> S\<close> openS
+            by (metis ComplI Compl_eq_Diff_UNIV connected_UNIV closed_closure closure_subset
+                  connected_component_eq_self connected_diff_open_from_closed subset_UNIV)
           then have "connected_component_set (- S) z \<noteq> {}"
-            unfolding connected_component_eq_empty
-            using confr openS \<open>bounded C\<close> \<open>w \<notin> S\<close>
-            apply (simp add: frontier_def interior_open C_ccsw)
-            by (metis ComplI Compl_eq_Diff_UNIV connected_UNIV closed_closure closure_subset connected_component_eq_self
-                      connected_diff_open_from_closed subset_UNIV)
+            by (metis ComplI connected_component_eq_empty)
           then show "frontier (connected_component_set (- S) z) \<noteq> {}"
             by (metis False \<open>S \<noteq> UNIV\<close> connected_component_eq_UNIV frontier_complement frontier_eq_empty)
         qed
@@ -1285,8 +1268,8 @@ proof (clarsimp simp add: simply_connected_eq_holomorphic_sqrt [OF openS] \<open
       obtain \<delta> where "0 < \<delta>" "\<And>w. \<lbrakk>w \<in> S; dist w z < \<delta>\<rbrakk> \<Longrightarrow> dist (g w) (g z) < cmod (g z)"
         using contg [unfolded continuous_on_iff] by (metis \<open>g z \<noteq> 0\<close> \<open>z \<in> S\<close> zero_less_norm_iff)
       then have \<delta>: "\<And>w. \<lbrakk>w \<in> S; w \<in> ball z \<delta>\<rbrakk> \<Longrightarrow> g w + g z \<noteq> 0"
-        apply (clarsimp simp: dist_norm)
-        by (metis add_diff_cancel_left' dist_0_norm dist_complex_def less_le_not_le norm_increases_online norm_minus_commute)
+        by (metis add.commute add_cancel_right_left dist_commute dist_complex_def mem_ball
+            norm_increases_online norm_not_less_zero norm_zero order_less_asym)
       have *: "(\<lambda>x. (f x - f z) / (x - z) / (g x + g z)) \<midarrow>z\<rightarrow> deriv f z / (g z + g z)"
       proof (intro tendsto_intros)
         show "(\<lambda>x. (f x - f z) / (x - z)) \<midarrow>z\<rightarrow> deriv f z"
@@ -1303,10 +1286,9 @@ proof (clarsimp simp add: simply_connected_eq_holomorphic_sqrt [OF openS] \<open
           using \<open>z \<in> S\<close> \<open>0 < \<delta>\<close> by simp
         show "\<And>x. \<lbrakk>x \<in> ball z \<delta> \<inter> S; x \<noteq> z\<rbrakk>
                   \<Longrightarrow> (f x - f z) / (x - z) / (g x + g z) = (g x - g z) / (x - z)"
-          using \<delta>
-          apply (simp add: geq \<open>z \<in> S\<close> divide_simps)
-          apply (auto simp: algebra_simps power2_eq_square)
-          done
+          using \<delta> \<open>z \<in> S\<close>
+          apply (simp add: geq field_split_simps power2_eq_square)
+          by (metis distrib_left mult_cancel_right)
       qed
       then show "\<exists>f'. (g has_field_derivative f') (at z)" ..
     qed
@@ -1401,7 +1383,7 @@ proof -
       assume g: "g holomorphic_on ball 0 1" "\<forall>z\<in>ball 0 1. g z \<in> S \<and> f (g z) = z"
         and "\<forall>z\<in>S. cmod (f z) < 1 \<and> g (f z) = z"
       then have "S = g ` (ball 0 1)"
-        by (force simp:)
+        by force
       then have "open S"
         by (metis open_ball g inj_on_def open_mapping_thm3)
     }
@@ -1480,9 +1462,10 @@ proof -
         proof -
           have "closed_segment t u \<subseteq> {0..1}"
             using closed_segment_eq_real_ivl t that by auto
+          then have "\<And>r. \<lbrakk>r \<in> closed_segment t u\<rbrakk> \<Longrightarrow> dist (p t) (p r) < cmod (p t - \<zeta>)"
+            by (smt (verit, best) d dist_commute dist_in_closed_segment subsetD \<open>dist u t < d\<close>)
           then have piB: "path_image(subpath t u p) \<subseteq> ?B"
-            apply (clarsimp simp add: path_image_subpath_gen)
-            by (metis subsetD le_less_trans \<open>dist u t < d\<close> d dist_commute dist_in_closed_segment)
+            by (auto simp: path_image_subpath_gen)
           have *: "path (g \<circ> subpath t u p)"
           proof (rule path_continuous_image)
             show "path (subpath t u p)"
@@ -1561,9 +1544,7 @@ proof
     qed
     show "continuous_on UNIV (\<lambda>w. \<zeta> + exp w)"
       by (rule continuous_intros)+
-    show "(\<lambda>w. \<zeta> + exp w) \<in> UNIV \<rightarrow> -{\<zeta>}"
-      by auto
-  qed
+  qed auto
   then have "homotopic_with_canon (\<lambda>r. pathfinish r = pathstart r) {0..1} (-{\<zeta>}) p (\<lambda>x. \<zeta> + 1)"
     by (rule homotopic_with_eq) (auto simp: o_def peq pathfinish_def pathstart_def)
   then have "homotopic_loops (-{\<zeta>}) p (\<lambda>t. \<zeta> + 1)"
