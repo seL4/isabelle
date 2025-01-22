@@ -619,6 +619,7 @@ object Find_Facts {
 
     if (sessions.isEmpty) progress.echo("Nothing to index")
     else {
+      val start_date = Date.now()
       val stats =
         using(solr.init_database(database, Find_Facts.private_data, clean = clean)) { db =>
           using(Export.open_database_context(store)) { database_context =>
@@ -635,7 +636,7 @@ object Find_Facts {
                   Build.read_theory(theory_context) match {
                     case None => progress.echo_warning("No snapshot for theory " + name.theory)
                     case Some(snapshot) =>
-                      progress.echo("Theory " + name.theory + " ...")
+                      progress.echo("Indexing theory " + quote(name.theory), verbose = true)
                       val blocks =
                         make_thy_blocks(options, session, browser_info_context, document_info,
                           theory_context, snapshot, info.chapter)
@@ -652,8 +653,9 @@ object Find_Facts {
           Find_Facts.query_stats(db, query)
         }
 
-      progress.echo("Indexed " + stats.results + " blocks with " +
-        stats.consts + " consts, " + stats.typs + " typs, " + stats.thms + " thms")
+      val timing = Date.now() - start_date
+      progress.echo("Indexed " + stats.results + " blocks with " + stats.consts + " consts, " +
+        stats.typs + " typs, " + stats.thms + " thms in " + timing.message)
     }
   }
 
