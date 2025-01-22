@@ -585,11 +585,15 @@ object Find_Facts {
     isabelle_home: Path = Path.current,
     options: List[Options.Spec] = Nil,
     dirs: List[Path] = Nil,
-    clean: Boolean = false
+    clean: Boolean = false,
+    no_build: Boolean = false,
+    verbose: Boolean = false,
   ): String = {
     ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " find_facts_index" +
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
       if_proper(clean, " -c") +
+      if_proper(no_build, " -n") +
+      if_proper(verbose, " -v") +
       Options.Spec.bash_strings(options, bg = true) +
       sessions.map(session => " " + session).mkString
   }
