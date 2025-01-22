@@ -33,10 +33,10 @@ object Component_Javamail {
 
   val jars =
     List(
-      Jar("jakarta.mail", "jakarta.mail-api", "2.1.2"),
-      Jar("jakarta.activation", "jakarta.activation-api", "2.1.2"),
-      Jar("org.eclipse.angus", "angus-mail", "2.0.2"),
-      Jar("org.eclipse.angus", "angus-activation", "2.0.1"))
+      Jar("jakarta.mail", "jakarta.mail-api", "2.1.3"),
+      Jar("jakarta.activation", "jakarta.activation-api", "2.1.3"),
+      Jar("org.eclipse.angus", "angus-mail", "2.0.3"),
+      Jar("org.eclipse.angus", "angus-activation", "2.0.2"))
 
 
   /* build javamail */
