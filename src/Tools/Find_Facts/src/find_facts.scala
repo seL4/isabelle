@@ -721,12 +721,13 @@ object Find_Facts {
 
   /** index components **/
 
-  def resolve_indexes(solr: Solr.System): Unit = {
-    // non-portable: only for Linux or macOS
-    for (path <- Path.split(Isabelle_System.getenv("FIND_FACTS_INDEXES"))) {
-      Isabelle_System.symlink(path.absolute, solr.solr_data, force = true)
-    }
-  }
+  def resolve_indexes(solr: Solr.System): Unit =
+    for {
+      path <- Path.split(Isabelle_System.getenv("FIND_FACTS_INDEXES"))
+      database = Library.perhaps_unprefix("find_facts-", path.file_name)
+      database_dir = solr.database_dir(database)
+      if !database_dir.is_dir
+    } Isabelle_System.copy_dir(path, database_dir, direct = true)
 
   def find_facts_index_build(
     database: String,
