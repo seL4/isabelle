@@ -11,22 +11,6 @@ Based on earlier code by Steven Obua and Sebastian Skalberg.
 signature IMPORT_RULE =
 sig
   val trace : bool Config.T
-  type name = {hol: string, isabelle: string}
-  val beta : cterm -> thm
-  val eq_mp : thm -> thm -> thm
-  val comb : thm -> thm -> thm
-  val trans : thm -> thm -> thm
-  val deduct : thm -> thm -> thm
-  val conj1 : thm -> thm
-  val conj2 : thm -> thm
-  val refl : cterm -> thm
-  val abs : cterm -> thm -> thm
-  val mdef : theory -> string -> thm
-  val def : name -> cterm -> theory -> thm * theory
-  val mtydef : theory -> string -> thm
-  val tydef : name -> string -> string -> cterm -> cterm -> thm -> theory -> thm * theory
-  val inst_type : (ctyp * ctyp) list -> thm -> thm
-  val inst : (cterm * cterm) list -> thm -> thm
   val import_file : Path.T -> theory -> theory
 end
 
@@ -53,8 +37,6 @@ fun tracing_item thy kind name =
 
 (** primitive rules of HOL Light **)
 
-(* basic logic *)
-
 fun to_obj_eq th =
   let
     val (t, u) = Thm.dest_equals (Thm.cprop_of th)
@@ -73,7 +55,24 @@ fun to_meta_eq th =
     Thm.implies_elim rl th
   end
 
+
+(* basic logic *)
+
+fun refl t =
+  \<^instantiate>\<open>(no_beta) 'a = \<open>Thm.ctyp_of_cterm t\<close> and t in lemma \<open>t = t\<close> by (fact refl)\<close>
+
+fun trans th1 th2 =
+  Thm.transitive (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
+
+fun mk_comb th1 th2 =
+  Thm.combination (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
+
+fun abs x th =
+  to_meta_eq th |> Thm.abstract_rule (Term.term_name (Thm.term_of x)) x |> to_obj_eq
+
 fun beta t = Thm.beta_conversion false t |> to_obj_eq
+
+val assume = Thm.assume_cterm o HOLogic.mk_judgment
 
 fun eq_mp th1 th2 =
   let
@@ -83,13 +82,7 @@ fun eq_mp th1 th2 =
     Thm.implies_elim (Thm.implies_elim rl th1) th2
   end
 
-fun comb th1 th2 =
-  Thm.combination (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
-
-fun trans th1 th2 =
-  Thm.transitive (to_meta_eq th1) (to_meta_eq th2) |> to_obj_eq
-
-fun deduct th1 th2 =
+fun deduct_antisym_rule th1 th2 =
   let
     val Q = Thm.cprop_of th1
     val P = Thm.cprop_of th2
@@ -119,13 +112,6 @@ fun conj2 th =
   in
     Thm.implies_elim rl th
   end
-
-fun refl t =
-  \<^instantiate>\<open>(no_beta) 'a = \<open>Thm.ctyp_of_cterm t\<close> and t in lemma \<open>t = t\<close> by (fact refl)\<close>
-
-fun abs x th =
-  to_meta_eq th |> Thm.abstract_rule (Term.term_name (Thm.term_of x)) x |> to_obj_eq
-
 
 
 (* instantiation *)
@@ -298,7 +284,6 @@ fun make_const thy c ty =
   in Thm.global_cterm_of thy (Const (d, Thm.typ_of ty)) end
 
 val make_thm = Skip_Proof.make_thm_cterm o HOLogic.mk_judgment
-val assume_thm = Thm.assume_cterm o HOLogic.mk_judgment
 
 
 (* import file *)
@@ -374,12 +359,12 @@ fun command (#"R", [t]) = term t #>> refl #-> set_thm
   | command (#"B", [t]) = term t #>> beta #-> set_thm
   | command (#"1", [th]) = thm th #>> conj1 #-> set_thm
   | command (#"2", [th]) = thm th #>> conj2 #-> set_thm
-  | command (#"H", [t]) = term t #>> assume_thm #-> set_thm
+  | command (#"H", [t]) = term t #>> assume #-> set_thm
   | command (#"A", [_, t]) = term t #>> make_thm #-> set_thm
-  | command (#"C", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry comb #-> set_thm
+  | command (#"C", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry mk_comb #-> set_thm
   | command (#"T", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry trans #-> set_thm
   | command (#"E", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry eq_mp #-> set_thm
-  | command (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct #-> set_thm
+  | command (#"D", [th1, th2]) = thm th1 ##>> thm th2 #>> uncurry deduct_antisym_rule #-> set_thm
   | command (#"L", [t, th]) = term t ##>> thm th #>> uncurry abs #-> set_thm
   | command (#"M", [name]) = stored_thm name
   | command (#"Q", args) =
