@@ -61,8 +61,10 @@ sig
   val first_order_match: cterm * cterm -> ctyp TVars.table * cterm Vars.table
   (*theorems*)
   val fold_terms: {hyps: bool} -> (term -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_ctyps: {hyps: bool} -> (typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_cterms: {hyps: bool} -> (term -> bool) -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_ctyps: {hyps: bool} ->
+    ('a -> typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_cterms: {hyps: bool} ->
+    ('a -> term -> bool) -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_id: thm -> Context.theory_id
@@ -468,13 +470,15 @@ fun fold_terms h f (Thm (_, {tpairs, prop, hyps, ...})) =
   fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? fold f hyps;
 
 fun fold_atomic_ctyps h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
-  let fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps}
-  in (fold_terms h o fold_types o fold_atyps) (fn T => if g T then f (ctyp T) else I) th end;
+  let
+    fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps};
+    fun apply T a = if g a T then f (ctyp T) a else a;
+  in (fold_terms h o fold_types o fold_atyps) apply th end;
 
 fun fold_atomic_cterms h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let
     fun cterm t T = Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = shyps};
-    fun apply t T = if g t then f (cterm t T) else I;
+    fun apply t T a = if g a t then f (cterm t T) a else a;
   in
     (fold_terms h o fold_aterms)
       (fn t as Const (_, T) => apply t T
