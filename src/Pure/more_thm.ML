@@ -408,19 +408,43 @@ fun instantiate_frees (instT, inst) th =
   if TFrees.is_empty instT andalso Frees.is_empty inst then th
   else
     let
-      val tfrees = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
-      val frees = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
+      val namesT = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
+      val names = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
 
-      val idx = Thm.maxidx_of th + 1;
+      val idx =
+        (Thm.maxidx_of th
+          |> TFrees.fold (Integer.max o Thm.maxidx_of_ctyp o #2) instT
+          |> Frees.fold (Integer.max o Thm.maxidx_of_cterm o #2) inst) + 1;
       fun index ((a, A), b) = (((a, idx), A), b);
-      val instT' = TVars.build (TFrees.fold (TVars.add o index) instT);
-      val inst' = Vars.build (Frees.fold (Vars.add o index) inst);
+
+      val instT' =
+        TVars.build (TFrees.fold (TVars.add o index) instT)
+        |> not (Names.is_empty namesT) ? Thm.fold_atomic_ctyps {hyps = true}
+            (fn TFree (a, S) => Names.defined namesT a andalso not (TFrees.defined instT (a, S))
+              | _ => false)
+            (fn cT =>
+              let val (a, S) = dest_TFree (Thm.typ_of cT)
+              in TVars.add (((a, idx), S), cT) end) th;
+
+      val inst_typ = Term_Subst.instantiateT_frees (TFrees.map (K Thm.typ_of) instT);
+      val inst_ctyp =
+        Thm.generalize_cterm (namesT, Names.empty) idx #>
+        Thm.instantiate_cterm (instT', Vars.empty);
+
+      val inst' =
+        Vars.build (Frees.fold (Vars.add o index) inst)
+        |> not (Names.is_empty names) ? Thm.fold_atomic_cterms {hyps = true}
+            (fn Free (x, T) => Names.defined names x andalso not (Frees.defined inst (x, inst_typ T))
+              | _ => false)
+            (fn ct =>
+              let val (x, T) = dest_Free (Thm.term_of ct)
+              in Vars.add (((x, idx), inst_typ T), inst_ctyp ct) end) th;
 
       val hyps = Thm.chyps_of th;
     in
       th
       |> fold_rev Thm.implies_intr hyps
-      |> Thm.generalize (tfrees, frees) idx
+      |> Thm.generalize (namesT, names) idx
       |> Thm.instantiate (instT', inst')
       |> assume_prems (length hyps)
     end;

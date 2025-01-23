@@ -170,7 +170,6 @@ fun inst theta th =
         Frees.add (Term.dest_Free (Thm.term_of a), b)))
   in
     Thm.instantiate_frees (TFrees.empty, inst) th
-    |> freeze'
   end
 
 

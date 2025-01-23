@@ -31,6 +31,7 @@ sig
   val dest_ctyp: ctyp -> ctyp list
   val dest_ctypN: int -> ctyp -> ctyp
   val make_ctyp: ctyp -> ctyp list -> ctyp
+  val maxidx_of_ctyp: ctyp -> int
   (*certified terms*)
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -206,6 +207,8 @@ struct
 datatype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 fun typ_of (Ctyp {T, ...}) = T;
+
+fun maxidx_of_ctyp (Ctyp {maxidx, ...}) = maxidx;
 
 fun global_ctyp_of thy raw_T =
   let
