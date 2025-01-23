@@ -59,7 +59,7 @@ fun to_obj_eq th =
   let
     val (t, u) = Thm.dest_equals (Thm.cprop_of th)
     val A = Thm.ctyp_of_cterm t
-    val rl = Thm.instantiate' [SOME A] [SOME t, SOME u] @{thm meta_eq_to_obj_eq}
+    val rl = \<^instantiate>\<open>(no_beta) 'a = A and t and u in lemma \<open>t \<equiv> u \<Longrightarrow> t = u\<close> by simp\<close>
   in
     Thm.implies_elim rl th
   end
@@ -68,7 +68,7 @@ fun to_meta_eq th =
   let
     val (t, u) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
     val A = Thm.ctyp_of_cterm t
-    val rl = Thm.instantiate' [SOME A] [SOME t, SOME u] @{thm eq_reflection}
+    val rl = \<^instantiate>\<open>(no_beta) 'a = A and t and u in lemma \<open>t = u \<Longrightarrow> t \<equiv> u\<close> by simp\<close>
   in
     Thm.implies_elim rl th
   end
@@ -78,7 +78,7 @@ fun beta t = Thm.beta_conversion false t |> to_obj_eq
 fun eq_mp th1 th2 =
   let
     val (Q, P) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th1))
-    val rl = Thm.instantiate' [] [SOME Q, SOME P] @{thm iffD1}
+    val rl = \<^instantiate>\<open>(no_beta) P and Q in lemma \<open>Q = P \<Longrightarrow> Q \<Longrightarrow> P\<close> by (fact iffD1)\<close>
   in
     Thm.implies_elim (Thm.implies_elim rl th1) th2
   end
@@ -96,16 +96,18 @@ fun deduct th1 th2 =
     val th1' = Thm.implies_intr P th1
     val th2' = Thm.implies_intr Q th2
     val rl =
-      Thm.instantiate' [] [SOME (HOLogic.dest_judgment Q), SOME (HOLogic.dest_judgment P)]
-        @{thm iffI}
+      \<^instantiate>\<open>(no_beta)
+          P = \<open>HOLogic.dest_judgment P\<close> and
+          Q = \<open>HOLogic.dest_judgment Q\<close>
+        in lemma \<open>(P \<Longrightarrow> Q) \<Longrightarrow> (Q \<Longrightarrow> P) \<Longrightarrow> Q = P\<close> by (rule iffI)\<close>
   in
-    Thm.implies_elim (Thm.implies_elim rl th2') th1'
+    Thm.implies_elim (Thm.implies_elim rl th1') th2'
   end
 
 fun conj1 th =
   let
     val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
-    val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct1}
+    val rl = \<^instantiate>\<open>(no_beta) P and Q in lemma \<open>P \<and> Q \<Longrightarrow> P\<close> by (fact conjunct1)\<close>
   in
     Thm.implies_elim rl th
   end
@@ -113,14 +115,13 @@ fun conj1 th =
 fun conj2 th =
   let
     val (P, Q) = Thm.dest_binop (HOLogic.dest_judgment (Thm.cprop_of th))
-    val rl = Thm.instantiate' [] [SOME P, SOME Q] @{thm conjunct2}
+    val rl = \<^instantiate>\<open>(no_beta) P and Q in lemma \<open>P \<and> Q \<Longrightarrow> Q\<close> by (fact conjunct2)\<close>
   in
     Thm.implies_elim rl th
   end
 
 fun refl t =
-  let val A = Thm.ctyp_of_cterm t
-  in Thm.instantiate' [SOME A] [SOME t] @{thm refl} end
+  \<^instantiate>\<open>(no_beta) 'a = \<open>Thm.ctyp_of_cterm t\<close> and t in lemma \<open>t = t\<close> by (fact refl)\<close>
 
 fun abs x th =
   to_meta_eq th |> Thm.abstract_rule (Term.term_name (Thm.term_of x)) x |> to_obj_eq
@@ -202,10 +203,10 @@ fun def (name as {isabelle = c, ...}) rhs thy =
 (* type definitions *)
 
 fun typedef_hol2hollight A B rep abs pred a r =
-  Thm.instantiate' [SOME A, SOME B] [SOME rep, SOME abs, SOME pred, SOME a, SOME r]
-    @{lemma "type_definition Rep Abs (Collect P) \<Longrightarrow> Abs (Rep a) = a \<and> P r = (Rep (Abs r) = r)"
+  \<^instantiate>\<open>(no_beta) 'a = A and 'b = B and Rep = rep and Abs = abs and P = pred and a and r
+    in lemma "type_definition Rep Abs (Collect P) \<Longrightarrow> Abs (Rep a) = a \<and> P r = (Rep (Abs r) = r)"
         by (metis type_definition.Rep_inverse type_definition.Abs_inverse
-              type_definition.Rep mem_Collect_eq)}
+              type_definition.Rep mem_Collect_eq)\<close>
 
 fun typedef_hollight th =
   let
@@ -224,8 +225,8 @@ fun tydef' (name as {isabelle = tycname, ...}) abs_name rep_name P t witness thy
 
     val T = Thm.ctyp_of_cterm t
     val nonempty =
-      Thm.instantiate' [SOME T] [SOME P, SOME t]
-        @{lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto}
+      \<^instantiate>\<open>(no_beta) 'a = T and P and t
+        in lemma "P t \<Longrightarrow> \<exists>x. x \<in> Collect P" by auto\<close>
       |> Thm.elim_implies witness
     val \<^Const_>\<open>Trueprop for \<^Const_>\<open>Ex _ for \<open>Abs (_, _, \<^Const_>\<open>Set.member _ for _ set\<close>)\<close>\<close>\<close> =
       Thm.concl_of nonempty
