@@ -12,10 +12,10 @@ sig
   type cinsts = ((indexname * sort) * ctyp) list * ((indexname * typ) * cterm) list
   val instantiate_typ: insts -> typ -> typ
   val instantiate_ctyp: Position.T -> cinsts -> ctyp -> ctyp
-  val instantiate_term: insts -> term -> term
-  val instantiate_cterm: Position.T -> cinsts -> cterm -> cterm
-  val instantiate_thm: Position.T -> cinsts -> thm -> thm
-  val instantiate_thms: Position.T -> cinsts -> thm list -> thm list
+  val instantiate_term: bool -> insts -> term -> term
+  val instantiate_cterm: Position.T -> bool -> cinsts -> cterm -> cterm
+  val instantiate_thm: Position.T -> bool -> cinsts -> thm -> thm
+  val instantiate_thms: Position.T -> bool -> cinsts -> thm list -> thm list
   val get_thms: Proof.context -> int -> thm list
   val get_thm: Proof.context -> int -> thm
 end;
@@ -38,12 +38,12 @@ fun instantiate_ctyp pos (cinsts: cinsts) cT =
   Thm.instantiate_ctyp (TVars.make (#1 cinsts)) cT
   handle CTERM (msg, args) => Exn.reraise (CTERM (msg ^ Position.here pos, args));
 
-fun instantiate_term (insts: insts) =
+fun instantiate_term beta (insts: insts) =
   let
     val instT = TVars.make (#1 insts);
     val instantiateT = Term_Subst.instantiateT instT;
     val inst = Vars.make ((map o apfst o apsnd) instantiateT (#2 insts));
-  in Term_Subst.instantiate_beta (instT, inst) end;
+  in (if beta then Term_Subst.instantiate_beta else Term_Subst.instantiate) (instT, inst) end;
 
 fun make_cinsts (cinsts: cinsts) =
   let
@@ -52,15 +52,15 @@ fun make_cinsts (cinsts: cinsts) =
     val cinst = Vars.make ((map o apfst o apsnd) instantiateT (#2 cinsts));
   in (cinstT, cinst) end;
 
-fun instantiate_cterm pos cinsts ct =
-  Thm.instantiate_beta_cterm (make_cinsts cinsts) ct
+fun instantiate_cterm pos beta cinsts ct =
+  (if beta then Thm.instantiate_beta_cterm else Thm.instantiate_cterm) (make_cinsts cinsts) ct
   handle CTERM (msg, args) => Exn.reraise (CTERM (msg ^ Position.here pos, args));
 
-fun instantiate_thm pos cinsts th =
-  Thm.instantiate_beta (make_cinsts cinsts) th
+fun instantiate_thm pos beta cinsts th =
+  (if beta then Thm.instantiate_beta else Thm.instantiate) (make_cinsts cinsts) th
   handle THM (msg, i, args) => Exn.reraise (THM (msg ^ Position.here pos, i, args));
 
-fun instantiate_thms pos cinsts = map (instantiate_thm pos cinsts);
+fun instantiate_thms pos beta cinsts = map (instantiate_thm pos beta cinsts);
 
 
 (* context data *)
@@ -180,6 +180,8 @@ fun prepare_ml range kind ml1 ml2 ml_val (ml_instT, ml_inst) ctxt =
         ml_range range (ML_Context.struct_name ctxt ^ "." ^ ml_name));
   in ((ml_env, ml_body), ctxt') end;
 
+fun prepare_beta {beta} = " " ^ Value.print_bool beta;
+
 fun prepare_type range ((((kind, pos), ml1, ml2), schematic), s) insts ctxt =
   let
     val T = Syntax.read_typ ctxt s;
@@ -189,23 +191,24 @@ fun prepare_type range ((((kind, pos), ml1, ml2), schematic), s) insts ctxt =
       prepare_insts pos schematic ctxt1 ctxt insts [t] ||> (the_single #> Logic.dest_type);
   in prepare_ml range kind ml1 ml2 (ML_Syntax.print_typ T') ml_insts ctxt end;
 
-fun prepare_term read range ((((kind, pos), ml1, ml2), schematic), (s, fixes)) insts ctxt =
+fun prepare_term read range ((((kind, pos), ml1, ml2), schematic), (s, fixes)) beta insts ctxt =
   let
     val ctxt' = #2 (Proof_Context.add_fixes_cmd fixes ctxt);
     val t = read ctxt' s;
     val ctxt1 = Proof_Context.augment t ctxt';
     val (ml_insts, t') = prepare_insts pos schematic ctxt1 ctxt insts [t] ||> the_single;
-  in prepare_ml range kind ml1 ml2 (ML_Syntax.print_term t') ml_insts ctxt end;
+  in prepare_ml range kind ml1 (ml2 ^ prepare_beta beta) (ML_Syntax.print_term t') ml_insts ctxt end;
 
-fun prepare_lemma range ((pos, schematic), make_lemma) insts ctxt =
+fun prepare_lemma range ((pos, schematic), make_lemma) beta insts ctxt =
   let
     val (ths, (props, ctxt1)) = make_lemma ctxt
     val (i, thms_ctxt) = put_thms ths ctxt;
     val ml_insts = #1 (prepare_insts pos schematic ctxt1 ctxt insts props);
+    val args = ml_here pos ^ prepare_beta beta;
     val (ml1, ml2) =
       if length ths = 1
-      then ("ML_Instantiate.get_thm ML_context", "ML_Instantiate.instantiate_thm " ^ ml_here pos)
-      else ("ML_Instantiate.get_thms ML_context", "ML_Instantiate.instantiate_thms " ^ ml_here pos);
+      then ("ML_Instantiate.get_thm ML_context", "ML_Instantiate.instantiate_thm " ^ args)
+      else ("ML_Instantiate.get_thms ML_context", "ML_Instantiate.instantiate_thms " ^ args);
   in prepare_ml range "lemma" ml1 ml2 (ML_Syntax.print_int i) ml_insts thms_ctxt end;
 
 fun typ_ml (kind, pos: Position.T) = ((kind, pos), "", "ML_Instantiate.instantiate_typ ");
@@ -219,11 +222,12 @@ fun cterm_ml (kind, pos) =
 
 val command_name = Parse.position o Parse.command_name;
 
+val parse_beta = Args.mode "no_beta" >> (fn b => {beta = not b});
 val parse_schematic = Args.mode "schematic" >> (fn b => {schematic = b});
 
 fun parse_body range =
   (command_name "typ" >> typ_ml || command_name "ctyp" >> ctyp_ml) -- parse_schematic --
-    Parse.!!! Parse.typ >> prepare_type range ||
+    Parse.!!! Parse.typ >> (K o prepare_type range) ||
   (command_name "term" >> term_ml || command_name "cterm" >> cterm_ml) -- parse_schematic --
     Parse.!!! (Parse.term -- Parse.for_fixes) >> prepare_term Syntax.read_term range ||
   (command_name "prop" >> term_ml || command_name "cprop" >> cterm_ml) -- parse_schematic --
@@ -234,12 +238,12 @@ val _ = Theory.setup
   (ML_Context.add_antiquotation_embedded \<^binding>\<open>instantiate\<close>
     (fn range => fn input => fn ctxt =>
       let
-        val (insts, prepare_val) = input
+        val ((beta, insts), prepare_val) = input
           |> Parse.read_embedded ctxt (make_keywords ctxt)
-              ((parse_insts --| Parse.$$$ "in") -- parse_body range);
+              (parse_beta -- (parse_insts --| Parse.$$$ "in") -- parse_body range);
 
         val (((ml_env, ml_body), decls), ctxt1) = ctxt
-          |> prepare_val (apply2 (map #1) insts)
+          |> prepare_val beta (apply2 (map #1) insts)
           ||>> ML_Context.expand_antiquotes_list (op @ (apply2 (map #2) insts));
 
         fun decl' ctxt' =
