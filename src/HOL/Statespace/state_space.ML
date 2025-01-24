@@ -239,7 +239,7 @@ fun get_dist_thm2 ctxt x y =
 
     fun get_paths dist_thm =
       let
-        val ctree = Thm.cprop_of dist_thm |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;
+        val ctree = Thm.cprop_of dist_thm |> Thm.dest_arg |> Thm.dest_arg;
         val tree = Thm.term_of ctree;
         val x_path = the (DistinctTreeProver.find_tree x tree);
         val y_path = the (DistinctTreeProver.find_tree y tree);
@@ -349,7 +349,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
     val assume =
       ((Binding.name dist_thm_name, [attr]),
-        [(HOLogic.Trueprop $
+        [(HOLogic.mk_Trueprop
           (Const (\<^const_name>\<open>all_distinct\<close>, Type (\<^type_name>\<open>tree\<close>, [nameT]) --> HOLogic.boolT) $
             DistinctTreeProver.mk_tree (fn n => Free (n, nameT)) nameT
               (sort fast_string_ord all_comps)), [])]);

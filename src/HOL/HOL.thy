@@ -2177,7 +2177,7 @@ ML \<open>
     fun wrong_prem \<^Const_>\<open>All _ for \<open>Abs (_, _, t)\<close>\<close> = wrong_prem t
       | wrong_prem (Bound _) = true
       | wrong_prem _ = false;
-    val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.prems_of);
+    val filter_right = filter (not o wrong_prem o HOLogic.dest_Trueprop o hd o Thm.take_prems_of 1);
     fun smp i = funpow i (fn m => filter_right ([spec] RL m)) [mp];
   in
     fun smp_tac ctxt j = EVERY' [dresolve_tac ctxt (smp j), assume_tac ctxt];

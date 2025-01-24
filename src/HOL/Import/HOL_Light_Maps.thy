@@ -17,7 +17,7 @@ lemma [import_const T]:
 
 lemma [import_const "/\\"]:
   "(\<and>) = (\<lambda>p q. (\<lambda>f. f p q :: bool) = (\<lambda>f. f True True))"
-  by metis
+  by (metis (full_types))
 
 lemma [import_const "==>"]:
   "(\<longrightarrow>) = (\<lambda>(p::bool) q::bool. (p \<and> q) = p)"
@@ -123,6 +123,17 @@ lemma num_INDUCTION:
   "\<forall>P. P 0 \<and> (\<forall>n. P n \<longrightarrow> P (Suc n)) \<longrightarrow> (\<forall>n. P n)"
   by (auto intro: nat.induct)
 
+lemma num_Axiom:
+  "\<forall>(e::'A) f. \<exists>!fn. fn 0 = e \<and> (\<forall>n. fn (Suc n) = f (fn n) n)"
+  apply (intro allI)
+  subgoal for e f
+    apply (rule ex1I [where a = "Nat.rec_nat e (\<lambda>a b. f b a)"])
+     apply simp
+    apply (rule ext)
+    subgoal for fn x by (induct x) simp_all
+    done
+  done
+
 lemma [import_const NUMERAL]: "id = (\<lambda>x :: nat. x)"
   by auto
 
@@ -131,13 +142,13 @@ definition [simp]: "bit0 n = 2 * n"
 lemma [import_const BIT0]:
   "bit0 = (SOME fn. fn (id 0) = id 0 \<and> (\<forall>n. fn (Suc n) = Suc (Suc (fn n))))"
   apply (auto intro!: some_equality[symmetric])
-  apply (auto simp add: fun_eq_iff)
-  apply (induct_tac x)
-  apply auto
+  subgoal for fn
+    apply (rule ext)
+    subgoal for x by (induct x) simp_all
+    done
   done
 
-definition [import_const BIT1, simp]:
-  "bit1 = (\<lambda>x. Suc (bit0 x))"
+definition [import_const BIT1, simp]: "bit1 = (\<lambda>x. Suc (bit0 x))"
 
 definition [simp]: "pred n = n - 1"
 
@@ -181,9 +192,7 @@ lemma DEF_MIN[import_const "MIN"]:
   "min = (\<lambda>x y :: nat. if x \<le> y then x else y)"
   by (simp add: fun_eq_iff)
 
-definition even
-where
-  "even = Parity.even"
+definition even where "even = Parity.even"
   
 lemma EVEN[import_const "EVEN" : even]:
   "even (id 0::nat) = True \<and> (\<forall>n. even (Suc n) = (\<not> even n))"
@@ -298,7 +307,7 @@ lemma ALL2_DEF[import_const ALL2 : list_all2]:
   "list_all2 (P::'t18495 \<Rightarrow> 't18502 \<Rightarrow> bool) [] (l2::'t18502 list) = (l2 = []) \<and>
   list_all2 P ((h1::'t18495) # (t1::'t18495 list)) l2 =
   (if l2 = [] then False else P h1 (hd l2) \<and> list_all2 P t1 (tl l2))"
-  by simp (induct_tac l2, simp_all)
+  by simp (induct l2, simp_all)
 
 lemma FILTER[import_const FILTER : filter]:
   "filter (P::'t18680 \<Rightarrow> bool) [] = [] \<and>
@@ -311,18 +320,19 @@ lemma ZIP[import_const ZIP : zip]:
   by simp
 
 lemma WF[import_const WF : wfP]:
-  "\<forall>u. wfP u \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. u y x \<longrightarrow> \<not> P y)))"
+  "\<forall>R. wfP R \<longleftrightarrow> (\<forall>P. (\<exists>x :: 'A. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y)))"
 proof (intro allI iffI impI wfI_min[to_pred], elim exE wfE_min[to_pred])
-  fix x :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and xa :: "'a" and Q
-  assume a: "xa \<in> Q"
-  assume "\<forall>P. Ex P \<longrightarrow> (\<exists>xa. P xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> P y))"
-  then have "Ex (\<lambda>x. x \<in> Q) \<longrightarrow> (\<exists>xa. (\<lambda>x. x \<in> Q) xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> (\<lambda>x. x \<in> Q) y))" by auto
-  then show "\<exists>z\<in>Q. \<forall>y. x y z \<longrightarrow> y \<notin> Q" using a by auto
-next
-  fix x P and xa :: 'A and z
-  assume "P xa" "z \<in> {a. P a}" "\<And>y. x y z \<Longrightarrow> y \<notin> {a. P a}"
-  then show "\<exists>xa. P xa \<and> (\<forall>y. x y xa \<longrightarrow> \<not> P y)" by auto
+  fix R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and P :: "'a \<Rightarrow> bool" and x z :: "'a"
+  {
+    fix Q
+    assume a: "x \<in> Q"
+    assume "\<forall>P. (\<exists>x. P x) \<longrightarrow> (\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y))"
+    then have "(\<exists>x. x \<in> Q) \<longrightarrow> (\<exists>x. (\<lambda>x. x \<in> Q) x \<and> (\<forall>y. R y x \<longrightarrow> y \<notin> Q))" by auto
+    with a show "\<exists>x\<in>Q. \<forall>y. R y x \<longrightarrow> y \<notin> Q" by auto
+  next
+    assume "P x" "z \<in> {a. P a}" "\<And>y. R y z \<Longrightarrow> y \<notin> {a. P a}"
+    then show "\<exists>x. P x \<and> (\<forall>y. R y x \<longrightarrow> \<not> P y)" by auto
+  }
 qed auto
 
 end
-

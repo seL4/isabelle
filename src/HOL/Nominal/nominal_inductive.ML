@@ -33,8 +33,8 @@ val fresh_prod = @{thm fresh_prod};
 
 val perm_bool = mk_meta_eq @{thm perm_bool_def};
 val perm_boolI = @{thm perm_boolI};
-val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
-  (Drule.strip_imp_concl (Thm.cprop_of perm_boolI))));
+val (_, [perm_boolI_pi, _]) = Drule.strip_comb (Thm.dest_arg
+  (Drule.strip_imp_concl (Thm.cprop_of perm_boolI)));
 
 fun mk_perm_bool ctxt pi th =
   th RS infer_instantiate ctxt [(#1 (dest_Var (Thm.term_of perm_boolI_pi)), pi)] perm_boolI;
@@ -147,7 +147,7 @@ fun first_order_matchs pats objs = Thm.first_order_match
    eta_contract_cterm (Conjunction.mk_conjunction_balanced objs));
 
 fun first_order_mrs ths th = ths MRS
-  Thm.instantiate (first_order_matchs (cprems_of th) (map Thm.cprop_of ths)) th;
+  Thm.instantiate (first_order_matchs (Thm.cprems_of th) (map Thm.cprop_of ths)) th;
 
 fun prove_strong_ind s avoids lthy =
   let
@@ -531,7 +531,7 @@ fun prove_strong_ind s avoids lthy =
                            | NONE => fold_rev (NominalDatatype.mk_perm []) pis x)
                        | x => x) o HOLogic.dest_Trueprop o Thm.prop_of) case_hyps));
                   val inst = Thm.first_order_match (Thm.dest_arg
-                    (Drule.strip_imp_concl (hd (cprems_of case_hyp))), obj);
+                    (Drule.strip_imp_concl (hd (Thm.cprems_of case_hyp))), obj);
                   val th = Goal.prove ctxt3 [] [] (Thm.term_of concl)
                     (fn {context = ctxt4, ...} =>
                        resolve_tac ctxt4 [Thm.instantiate inst case_hyp] 1 THEN

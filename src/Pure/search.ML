@@ -129,7 +129,7 @@ fun THEN_ITER_DEEPEN lim tac0 satp tac1 st =
                 let
                   val np' = Thm.nprems_of st;
                   (*rgd' calculation assumes tactic operates on subgoal 1*)
-                  val rgd' = not (has_vars (hd (Thm.prems_of st)));
+                  val rgd' = not (has_vars (hd (Thm.take_prems_of 1 st)));
                   val k' = k + np' - np + 1;  (*difference in # of subgoals, +1*)
                 in
                   if k' + np' >= bnd then depth (bnd, Int.min (inc, k' + np' + 1 - bnd)) qs

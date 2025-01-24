@@ -324,6 +324,10 @@ change their semantics silently! Rare INCOMPATIBILITY, better use
 Variable.variant_names or Variable.focus_params, instead of
 Logic.goal_params etc.
 
+* Antiquotation \<^instantiate>\<open>(no_beta) x = t in \<dots>\<close> is like
+\<^instantiate>\<open>x = t in \<dots>\<close>, but without implicit beta-normalization.
+This is occasionally useful for low-level applications.
+
 * Antiquotation \<^bundle>\<open>name\<close> inlines a formally checked bundle name.
 
 * The new operation Pattern.rewrite_term_yoyo alternates top-down,

@@ -896,13 +896,8 @@ val strip_disj   = rev o (op::) o strip dest_disj
  * Going into and out of prop
  *---------------------------------------------------------------------------*)
 
-fun is_Trueprop ct =
-  (case Thm.term_of ct of
-    Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => true
-  | _ => false);
-
-fun mk_prop ct = if is_Trueprop ct then ct else Thm.apply \<^cterm>\<open>Trueprop\<close> ct;
-fun drop_prop ct = if is_Trueprop ct then Thm.dest_arg ct else ct;
+fun mk_prop ct = if HOLogic.is_judgment ct then ct else HOLogic.mk_judgment ct;
+fun drop_prop ct = if HOLogic.is_judgment ct then Thm.dest_arg ct else ct;
 
 end;
 

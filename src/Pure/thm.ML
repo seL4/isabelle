@@ -31,6 +31,7 @@ sig
   val dest_ctyp: ctyp -> ctyp list
   val dest_ctypN: int -> ctyp -> ctyp
   val make_ctyp: ctyp -> ctyp list -> ctyp
+  val maxidx_of_ctyp: ctyp -> int
   (*certified terms*)
   val term_of: cterm -> term
   val typ_of_cterm: cterm -> typ
@@ -60,8 +61,10 @@ sig
   val first_order_match: cterm * cterm -> ctyp TVars.table * cterm Vars.table
   (*theorems*)
   val fold_terms: {hyps: bool} -> (term -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_ctyps: {hyps: bool} -> (typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
-  val fold_atomic_cterms: {hyps: bool} -> (term -> bool) -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_ctyps: {hyps: bool} ->
+    ('a -> typ -> bool) -> (ctyp -> 'a -> 'a) -> thm -> 'a -> 'a
+  val fold_atomic_cterms: {hyps: bool} ->
+    ('a -> term -> bool) -> (cterm -> 'a -> 'a) -> thm -> 'a -> 'a
   val terms_of_tpairs: (term * term) list -> term list
   val full_prop_of: thm -> term
   val theory_id: thm -> Context.theory_id
@@ -76,13 +79,16 @@ sig
   val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
   val prems_of: thm -> term list
+  val take_prems_of: int -> thm -> term list
   val nprems_of: thm -> int
   val no_prems: thm -> bool
+  val prem_of: thm -> int -> term
   val major_prem_of: thm -> term
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
   val cconcl_of: thm -> cterm
   val cprems_of: thm -> cterm list
+  val take_cprems_of: int -> thm -> cterm list
   val chyps_of: thm -> cterm list
   val thm_ord: thm ord
   exception CONTEXT of string * ctyp list * cterm list * thm list * Context.generic option
@@ -142,7 +148,8 @@ sig
   val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
   val check_oracle: Proof.context -> xstring * Position.T -> string
   (*inference rules*)
-  val assume: cterm -> thm
+  val assume: cterm -> thm  (*exception THM*)
+  val assume_cterm: cterm -> thm  (*exception CTERM*)
   val implies_intr: cterm -> thm -> thm
   val implies_elim: thm -> thm -> thm
   val forall_intr: cterm -> thm -> thm
@@ -202,6 +209,8 @@ struct
 datatype ctyp = Ctyp of {cert: Context.certificate, T: typ, maxidx: int, sorts: sort Ord_List.T};
 
 fun typ_of (Ctyp {T, ...}) = T;
+
+fun maxidx_of_ctyp (Ctyp {maxidx, ...}) = maxidx;
 
 fun global_ctyp_of thy raw_T =
   let
@@ -461,13 +470,15 @@ fun fold_terms h f (Thm (_, {tpairs, prop, hyps, ...})) =
   fold (fn (t, u) => f t #> f u) tpairs #> f prop #> #hyps h ? fold f hyps;
 
 fun fold_atomic_ctyps h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
-  let fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps}
-  in (fold_terms h o fold_types o fold_atyps) (fn T => if g T then f (ctyp T) else I) th end;
+  let
+    fun ctyp T = Ctyp {cert = cert, T = T, maxidx = maxidx, sorts = shyps};
+    fun apply T a = if g a T then f (ctyp T) a else a;
+  in (fold_terms h o fold_types o fold_atyps) apply th end;
 
 fun fold_atomic_cterms h g f (th as Thm (_, {cert, maxidx, shyps, ...})) =
   let
     fun cterm t T = Cterm {cert = cert, t = t, T = T, maxidx = maxidx, sorts = shyps};
-    fun apply t T = if g t then f (cterm t T) else I;
+    fun apply t T a = if g a t then f (cterm t T) a else a;
   in
     (fold_terms h o fold_aterms)
       (fn t as Const (_, T) => apply t T
@@ -518,11 +529,15 @@ val tpairs_of = #tpairs o rep_thm;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
+fun take_prems_of n = Logic.take_imp_prems n o prop_of;
 val nprems_of = Logic.count_prems o prop_of;
 val no_prems = Logic.no_prems o prop_of;
 
+fun prem_of th i =
+  Logic.nth_prem (i, prop_of th) handle TERM _ => raise THM ("prem_of", i, [th]);
+
 fun major_prem_of th =
-  (case prems_of th of
+  (case take_prems_of 1 th of
     prem :: _ => Logic.strip_assums_concl prem
   | [] => raise THM ("major_prem_of: rule with no premises", 0, [th]));
 
@@ -539,6 +554,10 @@ fun cconcl_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
 fun cprems_of (th as Thm (_, {cert, maxidx, shyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = t})
     (prems_of th);
+
+fun take_cprems_of n (th as Thm (_, {cert, maxidx, shyps, ...})) =
+  map (fn t => Cterm {cert = cert, maxidx = maxidx, T = propT, sorts = shyps, t = t})
+    (take_prems_of n th);
 
 fun chyps_of (Thm (_, {cert, shyps, hyps, ...})) =
   map (fn t => Cterm {cert = cert, maxidx = ~1, T = propT, sorts = shyps, t = t}) hyps;
@@ -1261,6 +1280,10 @@ fun assume raw_ct =
           prop = prop})
       end
   end;
+
+fun assume_cterm A = assume A
+  handle THM (msg, _, _) => raise CTERM (msg, [A]);
+
 
 (*Implication introduction
     [A]

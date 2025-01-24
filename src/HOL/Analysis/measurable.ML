@@ -125,7 +125,7 @@ fun dest_measurable_fun t =
   | _ => raise (TERM ("not a measurability predicate", [t])))
 
 fun not_measurable_prop n thm =
-  if length (Thm.prems_of thm) < n then false
+  if Thm.nprems_of thm < n then false
   else
     (case nth_hol_goal thm n of
       \<^Const_>\<open>Set.member _ for _ \<^Const_>\<open>sets _ for _\<close>\<close> => false

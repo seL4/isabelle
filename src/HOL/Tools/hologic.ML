@@ -14,7 +14,11 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
+  val is_Trueprop: term -> bool
   val Trueprop_conv: conv -> conv
+  val mk_judgment: cterm -> cterm
+  val is_judgment: cterm -> bool
+  val dest_judgment: cterm -> cterm
   val mk_induct_forall: typ -> term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
@@ -25,9 +29,9 @@ sig
   val mk_set: typ -> term list -> term
   val dest_set: term -> term list
   val mk_UNIV: typ -> term
-  val conj_intr: Proof.context -> thm -> thm -> thm
-  val conj_elim: Proof.context -> thm -> thm * thm
-  val conj_elims: Proof.context -> thm -> thm list
+  val conj_intr: thm -> thm -> thm
+  val conj_elim: thm -> thm * thm
+  val conj_elims: thm -> thm list
   val conj: term
   val disj: term
   val imp: term
@@ -149,8 +153,8 @@ fun mk_comp (f, g) =
 
 (* bool and set *)
 
-val boolN = "HOL.bool";
-val boolT = Type (boolN, []);
+val boolT = \<^Type>\<open>bool\<close>;
+val boolN = dest_Type_name boolT;
 
 fun mk_induct_forall T = Const ("HOL.induct_forall", (T --> boolT) --> boolT);
 
@@ -188,29 +192,38 @@ fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
 
 fun mk_obj_eq th = th RS @{thm meta_eq_to_obj_eq};
 
-val Trueprop = Const (\<^const_name>\<open>Trueprop\<close>, boolT --> propT);
+val Trueprop = \<^Const>\<open>Trueprop\<close>;
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ P) = P
+fun dest_Trueprop \<^Const_>\<open>Trueprop for P\<close> = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
+fun is_Trueprop \<^Const_>\<open>Trueprop for _\<close> = true
+  | is_Trueprop _ = false;
+
+val is_judgment = is_Trueprop o Thm.term_of;
+
 fun Trueprop_conv cv ct =
-  (case Thm.term_of ct of
-    Const (\<^const_name>\<open>Trueprop\<close>, _) $ _ => Conv.arg_conv cv ct
-  | _ => raise CTERM ("Trueprop_conv", [ct]))
+  if is_judgment ct then Conv.arg_conv cv ct
+  else raise CTERM ("Trueprop_conv", [ct]);
 
+val mk_judgment = Thm.apply \<^cterm>\<open>Trueprop\<close>;
 
-fun conj_intr ctxt thP thQ =
+fun dest_judgment ct =
+  if is_judgment ct then Thm.dest_arg ct
+  else raise CTERM ("dest_judgment", [ct]);
+
+fun conj_intr thP thQ =
   let
-    val (P, Q) = apply2 (Object_Logic.dest_judgment ctxt o Thm.cprop_of) (thP, thQ)
+    val (P, Q) = apply2 (dest_judgment o Thm.cprop_of) (thP, thQ)
       handle CTERM (msg, _) => raise THM (msg, 0, [thP, thQ]);
     val rule = \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<Longrightarrow> Q \<Longrightarrow> P \<and> Q\<close> by (rule conjI)\<close>
   in Drule.implies_elim_list rule [thP, thQ] end;
 
-fun conj_elim ctxt thPQ =
+fun conj_elim thPQ =
   let
-    val (P, Q) = Thm.dest_binop (Object_Logic.dest_judgment ctxt (Thm.cprop_of thPQ))
+    val (P, Q) = Thm.dest_binop (dest_judgment (Thm.cprop_of thPQ))
       handle CTERM (msg, _) => raise THM (msg, 0, [thPQ]);
     val thP =
       Thm.implies_elim \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<and> Q \<Longrightarrow> P\<close> by (rule conjunct1)\<close> thPQ;
@@ -218,62 +231,62 @@ fun conj_elim ctxt thPQ =
       Thm.implies_elim \<^instantiate>\<open>P and Q in lemma (open) \<open>P \<and> Q \<Longrightarrow> Q\<close> by (rule conjunct2)\<close> thPQ;
   in (thP, thQ) end;
 
-fun conj_elims ctxt th =
-  let val (th1, th2) = conj_elim ctxt th
-  in conj_elims ctxt th1 @ conj_elims ctxt th2 end handle THM _ => [th];
+fun conj_elims th =
+  let val (th1, th2) = conj_elim th
+  in conj_elims th1 @ conj_elims th2 end handle THM _ => [th];
 
-val conj = \<^term>\<open>HOL.conj\<close>
-and disj = \<^term>\<open>HOL.disj\<close>
-and imp = \<^term>\<open>implies\<close>
-and Not = \<^term>\<open>Not\<close>;
+val conj = \<^Const>\<open>conj\<close>;
+val disj = \<^Const>\<open>disj\<close>;
+val imp = \<^Const>\<open>implies\<close>;
+val Not = \<^Const>\<open>Not\<close>;
 
-fun mk_conj (t1, t2) = conj $ t1 $ t2
-and mk_disj (t1, t2) = disj $ t1 $ t2
-and mk_imp (t1, t2) = imp $ t1 $ t2
-and mk_not t = Not $ t;
+fun mk_conj (t1, t2) = \<^Const>\<open>conj for t1 t2\<close>;
+fun mk_disj (t1, t2) = \<^Const>\<open>disj for t1 t2\<close>;
+fun mk_imp (t1, t2) = \<^Const>\<open>implies for t1 t2\<close>;
+fun mk_not t = \<^Const>\<open>Not for t\<close>;
 
-fun dest_conj (Const ("HOL.conj", _) $ t $ t') = t :: dest_conj t'
+fun dest_conj \<^Const_>\<open>conj for t t'\<close> = t :: dest_conj t'
   | dest_conj t = [t];
 
 (*Like dest_conj, but flattens conjunctions however nested*)
-fun conjuncts_aux (Const ("HOL.conj", _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+fun conjuncts_aux \<^Const_>\<open>conj for t t'\<close> conjs = conjuncts_aux t (conjuncts_aux t' conjs)
   | conjuncts_aux t conjs = t::conjs;
 
 fun conjuncts t = conjuncts_aux t [];
 
-fun dest_disj (Const ("HOL.disj", _) $ t $ t') = t :: dest_disj t'
+fun dest_disj \<^Const_>\<open>disj for t t'\<close> = t :: dest_disj t'
   | dest_disj t = [t];
 
 (*Like dest_disj, but flattens disjunctions however nested*)
-fun disjuncts_aux (Const ("HOL.disj", _) $ t $ t') disjs = disjuncts_aux t (disjuncts_aux t' disjs)
+fun disjuncts_aux \<^Const_>\<open>disj for t t'\<close> disjs = disjuncts_aux t (disjuncts_aux t' disjs)
   | disjuncts_aux t disjs = t::disjs;
 
 fun disjuncts t = disjuncts_aux t [];
 
-fun dest_imp (Const ("HOL.implies", _) $ A $ B) = (A, B)
+fun dest_imp \<^Const_>\<open>implies for A B\<close> = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
-fun dest_not (Const ("HOL.Not", _) $ t) = t
+fun dest_not \<^Const_>\<open>Not for t\<close> = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
 
 fun conj_conv cv1 cv2 ct =
   (case Thm.term_of ct of
-    Const (\<^const_name>\<open>HOL.conj\<close>, _) $ _ $ _ =>
+    \<^Const_>\<open>conj for _ _\<close> =>
       Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("conj_conv", [ct]));
 
 
-fun eq_const T = Const (\<^const_name>\<open>HOL.eq\<close>, T --> T --> boolT);
+fun eq_const T = \<^Const>\<open>HOL.eq T\<close>;
 
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const (\<^const_name>\<open>HOL.eq\<close>, _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq \<^Const_>\<open>HOL.eq _ for lhs rhs\<close> = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun eq_conv cv1 cv2 ct =
   (case Thm.term_of ct of
-    Const (\<^const_name>\<open>HOL.eq\<close>, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
+    \<^Const_>\<open>HOL.eq _ for _ _\<close> => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("eq_conv", [ct]));
 
 
@@ -301,8 +314,8 @@ fun mk_binrel c (t, u) =
 
 (*destruct the application of a binary operator. The dummyT case is a crude
   way of handling polymorphic operators.*)
-fun dest_bin c T (tm as Const (c', Type ("fun", [T', _])) $ t $ u) =
-      if c = c' andalso (T=T' orelse T=dummyT) then (t, u)
+fun dest_bin c T (tm as Const (c', \<^Type>\<open>fun T' _\<close>) $ t $ u) =
+      if c = c' andalso (T = T' orelse T = dummyT) then (t, u)
       else raise TERM ("dest_bin " ^ c, [tm])
   | dest_bin c _ tm = raise TERM ("dest_bin " ^ c, [tm]);
 
@@ -352,7 +365,7 @@ fun case_prod_const (A, B, C) =
 
 fun mk_case_prod t =
   (case Term.fastype_of t of
-    T as (Type ("fun", [A, Type ("fun", [B, C])])) =>
+    T as \<^Type>\<open>fun A \<^Type>\<open>fun B C\<close>\<close> =>
       Const ("Product_Type.prod.case_prod", T --> mk_prodT (A, B) --> C) $ t
   | _ => raise TERM ("mk_case_prod: bad body type", [t]));
 
@@ -549,9 +562,8 @@ fun mk_number T 0 = Const ("Groups.zero_class.zero", T)
 
 fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Groups.one_class.one", T)) = (T, 1)
-  | dest_number (Const ("Num.numeral_class.numeral", Type ("fun", [_, T])) $ t) =
-      (T, dest_numeral t)
-  | dest_number (Const ("Groups.uminus_class.uminus", Type ("fun", _)) $ t) =
+  | dest_number (Const ("Num.numeral_class.numeral", \<^Type>\<open>fun _ T\<close>) $ t) = (T, dest_numeral t)
+  | dest_number (Const ("Groups.uminus_class.uminus", \<^Type>\<open>fun _ _\<close>) $ t) =
       apsnd (op ~) (dest_number t)
   | dest_number t = raise TERM ("dest_number", [t]);
 
@@ -592,14 +604,15 @@ fun dest_list (Const ("List.list.Nil", _)) = []
 
 (* booleans as bits *)
 
-fun mk_bit b = if b = 0 then \<^term>\<open>False\<close>
-  else if b = 1 then \<^term>\<open>True\<close>
+fun mk_bit b =
+  if b = 0 then \<^Const>\<open>False\<close>
+  else if b = 1 then \<^Const>\<open>True\<close>
   else raise TERM ("mk_bit", []);
 
 fun mk_bits len = map mk_bit o Integer.radicify 2 len;
 
-fun dest_bit \<^term>\<open>False\<close> = 0
-  | dest_bit \<^term>\<open>True\<close> = 1
+fun dest_bit \<^Const>\<open>False\<close> = 0
+  | dest_bit \<^Const>\<open>True\<close> = 1
   | dest_bit _ = raise TERM ("dest_bit", []);
 
 val dest_bits = Integer.eval_radix 2 o map dest_bit;

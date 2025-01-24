@@ -1,0 +1,24 @@
+--- hol-light/statements.ml	1970-01-01 01:00:00.000000000 +0100
++++ hol-light-patched/statements.ml	2025-01-18 11:12:11.185279392 +0100
+@@ -0,0 +1,6 @@
++let dump_theorems () =
++  let oc = open_out "theorems" in
++  output_value oc (map (fun (a,b) -> (a, dest_thm b)) !theorems);
++  close_out oc
++;;
++dump_theorems ();;
+--- hol-light/stage1.ml	1970-01-01 01:00:00.000000000 +0100
++++ hol-light-patched/stage1.ml	2025-01-18 11:12:11.185279392 +0100
+@@ -0,0 +1,5 @@
++#use "hol.ml";;
++(*LOAD MORE*)
++#use "update_database.ml";;
++#use "statements.ml";;
++exit 0;;
+--- hol-light/stage2.ml	1970-01-01 01:00:00.000000000 +0100
++++ hol-light-patched/stage2.ml	2025-01-18 11:12:11.384276293 +0100
+@@ -0,0 +1,4 @@
++#use "hol.ml";;
++(*LOAD MORE*)
++stop_recording ();;
++exit 0;;

@@ -385,7 +385,7 @@ fun prove_split_thms (config : Old_Datatype_Aux.config)
 
     fun prove_split_thms ((((((t1, t2), inject), dist_rewrites'), exhaustion), case_thms'), T) =
       let
-        val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (Thm.prems_of exhaustion)));
+        val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (Thm.take_prems_of 1 exhaustion)));
         val ctxt = Proof_Context.init_global thy;
         val exhaustion' = exhaustion
           |> infer_instantiate ctxt [(#1 (dest_Var lhs), Thm.cterm_of ctxt (Free ("x", T)))];

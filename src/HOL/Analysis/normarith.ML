@@ -359,7 +359,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val th1 = real_vector_combo_prover ctxt' translator (nubs,ges',gts')
   val shs = filter (member (fn (t,th) => t aconvc Thm.cprop_of th) asl) (Thm.chyps_of th1)
   val th11 = hd (Variable.export ctxt' ctxt [fold Thm.implies_intr shs th1])
-  val cps = map (swap o Thm.dest_equals) (cprems_of th11)
+  val cps = map (swap o Thm.dest_equals) (Thm.cprems_of th11)
   val th12 = Drule.instantiate_normalize (TVars.empty, Vars.make (map (apfst (dest_Var o Thm.term_of)) cps)) th11
   val th13 = fold Thm.elim_implies (map (Thm.reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])

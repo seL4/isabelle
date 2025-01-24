@@ -237,7 +237,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
         val prems2 = maps (dest_conjunct_prem o rewrite_rule ctxt2 tuple_rew_rules) prems1
         val pats =
           map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop)
-            (take nargs (Thm.prems_of case_th))
+            (Thm.take_prems_of nargs case_th)
         val case_th' =
           Thm.instantiate (TVars.empty, Vars.make (inst_of_matches pats)) case_th
             OF replicate nargs @{thm refl}
@@ -325,7 +325,7 @@ fun add_intro (opt_case_name, thm) thy =
 
 fun set_elim thm =
   let
-    val name = dest_Const_name (fst (strip_comb (HOLogic.dest_Trueprop (hd (Thm.prems_of thm)))))
+    val name = dest_Const_name (fst (strip_comb (HOLogic.dest_Trueprop (hd (Thm.take_prems_of 1 thm)))))
   in
     PredData.map (Graph.map_node name (map_pred_data (apsnd (apfst (apfst (apsnd (K (SOME thm))))))))
   end

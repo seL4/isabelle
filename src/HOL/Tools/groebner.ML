@@ -455,8 +455,8 @@ fun prove_conj tab cjs =
 fun conj_ac_rule eq =
  let
   val (l,r) = Thm.dest_equals eq
-  val ctabl = mk_conj_tab (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> l))
-  val ctabr = mk_conj_tab (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> r))
+  val ctabl = mk_conj_tab (Thm.assume (HOLogic.mk_judgment l))
+  val ctabr = mk_conj_tab (Thm.assume (HOLogic.mk_judgment r))
   fun tabl c = the (Termtab.lookup ctabl (Thm.term_of c))
   fun tabr c = the (Termtab.lookup ctabr (Thm.term_of c))
   val thl  = prove_conj tabl (conjuncts r) |> implies_intr_hyps
@@ -485,7 +485,7 @@ fun choose v th th' = case Thm.concl_of th of
   | _ => error ""  (* FIXME ? *)
 
 fun simple_choose ctxt v th =
-   choose v (Thm.assume ((Thm.apply \<^cterm>\<open>Trueprop\<close> o mk_ex ctxt v)
+   choose v (Thm.assume ((HOLogic.mk_judgment o mk_ex ctxt v)
     (Thm.dest_arg (hd (Thm.chyps_of th))))) th
 
 
@@ -502,7 +502,7 @@ fun simple_choose ctxt v th =
   val (p0,q0) = Thm.dest_binop t
   val (vs',P) = strip_exists p0
   val (vs,_) = strip_exists q0
-   val th = Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> P)
+   val th = Thm.assume (HOLogic.mk_judgment P)
    val th1 = implies_intr_hyps (fold (simple_choose ctxt) vs' (fold mkexi vs th))
    val th2 = implies_intr_hyps (fold (simple_choose ctxt) vs (fold mkexi vs' th))
    val p = (Thm.dest_arg o Thm.dest_arg1 o Thm.cprop_of) th1
@@ -662,23 +662,23 @@ fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
 
 fun refute ctxt tm =
- if Thm.term_of tm aconv \<^Const>\<open>False\<close> then Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> tm) else
+ if Thm.term_of tm aconv \<^Const>\<open>False\<close> then Thm.assume (HOLogic.mk_judgment tm) else
  ((let
    val (nths0,eths0) =
     List.partition (is_neg o concl)
-     (HOLogic.conj_elims ctxt (Thm.assume (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)))
+     (HOLogic.conj_elims (Thm.assume (HOLogic.mk_judgment tm)))
    val  nths = filter (is_eq o Thm.dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
   in
    if null eths then
     let
-      val th1 = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr ctxt th1 th2)) nths
+      val th1 = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
       val th2 =
         Conv.fconv_rule
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
       val conc = th2 |> concl |> Thm.dest_arg
       val (l,_) = conc |> dest_eq
-    in Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)
+    in Thm.implies_intr (HOLogic.mk_judgment tm)
                     (Thm.equal_elim (Drule.arg_cong_rule \<^cterm>\<open>Trueprop\<close> (eqF_intr th2))
                            (HOLogic.mk_obj_eq (Thm.reflexive l)))
     end
@@ -692,13 +692,13 @@ fun refute ctxt tm =
       end
      else
       let
-       val nth = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr ctxt th1 th2)) nths
+       val nth = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
        val (vars,pol::pols) =
           grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 =
         Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) nth
-       val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr ctxt th1) neq_01
+       val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,_) => c > @0) p)) cert
@@ -713,12 +713,12 @@ fun refute ctxt tm =
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
-    val th3 = HOLogic.conj_intr ctxt (HOLogic.mk_obj_eq (mk_add (Thm.symmetric th1) th2)) noteqth
+    val th3 = HOLogic.conj_intr (HOLogic.mk_obj_eq (mk_add (Thm.symmetric th1) th2)) noteqth
     val th4 =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
     val (l, _) = dest_eq(Thm.dest_arg(concl th4))
-   in Thm.implies_intr (Thm.apply \<^cterm>\<open>Trueprop\<close> tm)
+   in Thm.implies_intr (HOLogic.mk_judgment tm)
                         (Thm.equal_elim (Drule.arg_cong_rule \<^cterm>\<open>Trueprop\<close> (eqF_intr th4))
                    (HOLogic.mk_obj_eq (Thm.reflexive l)))
    end

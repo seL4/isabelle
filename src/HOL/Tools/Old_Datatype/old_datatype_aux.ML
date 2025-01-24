@@ -154,7 +154,7 @@ fun exh_tac ctxt exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
     val params = Logic.strip_params goal;
     val tname = dest_Type_name (#2 (hd (rev params)));
     val exhaustion = Thm.lift_rule cgoal (exh_thm_of tname);
-    val prem' = hd (Thm.prems_of exhaustion);
+    val prem' = hd (Thm.take_prems_of 1 exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' =
       infer_instantiate ctxt

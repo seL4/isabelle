@@ -37,8 +37,8 @@ structure Term_Items = Term_Items
 );
 open Term_Items;
 
-val add_vars = Thm.fold_atomic_cterms {hyps = false} Term.is_Var add_set;
-val add_frees = Thm.fold_atomic_cterms {hyps = true} Term.is_Free add_set;
+val add_vars = Thm.fold_atomic_cterms {hyps = false} (K Term.is_Var) add_set;
+val add_frees = Thm.fold_atomic_cterms {hyps = true} (K Term.is_Free) add_set;
 
 end;
 

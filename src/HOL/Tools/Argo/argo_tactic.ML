@@ -286,10 +286,8 @@ fun term_of _ (Argo_Expr.E (Argo_Expr.True, _)) = \<^Const>\<open>True\<close>
         SOME t => t
       | NONE => raise Fail "bad expression")
 
-fun as_prop ct = Thm.apply \<^cterm>\<open>Trueprop\<close> ct
-
 fun cterm_of ctxt cons e = Thm.cterm_of ctxt (term_of (ctxt, cons) e)
-fun cprop_of ctxt cons e = as_prop (cterm_of ctxt cons e)
+fun cprop_of ctxt cons e = HOLogic.mk_judgment (cterm_of ctxt cons e)
 
 
 (* generic proof tools *)
@@ -299,7 +297,7 @@ fun discharge2 thm1 thm2 rule = discharge thm2 (discharge thm1 rule)
 fun discharges thm rules = [thm] RL rules
 
 fun under_assumption f ct =
-  let val cprop = as_prop ct
+  let val cprop = HOLogic.mk_judgment ct
   in Thm.implies_intr cprop (f (Thm.assume cprop)) end
 
 
@@ -537,7 +535,7 @@ val dneg_rule = @{lemma "\<not>\<not>P \<Longrightarrow> P" by auto}
 fun replay_hyp i ct =
   if i < 0 then (Thm.assume ct, [(~i, ct)])
   else
-    let val cu = as_prop (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply \<^cterm>\<open>Not\<close> (Thm.dest_arg ct)))
+    let val cu = HOLogic.mk_judgment (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply \<^cterm>\<open>Not\<close> (Thm.dest_arg ct)))
     in (discharge (Thm.assume cu) dneg_rule, [(~i, cu)]) end
 
 

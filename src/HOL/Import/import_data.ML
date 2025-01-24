@@ -1,6 +1,7 @@
 (*  Title:      HOL/Import/import_data.ML
     Author:     Cezary Kaliszyk, University of Innsbruck
     Author:     Alexander Krauss, QAware GmbH
+    Author:     Makarius
 
 Importer data.
 *)
@@ -97,15 +98,15 @@ val _ =
   Theory.setup (Attrib.setup \<^binding>\<open>import_const\<close>
     (Scan.lift Parse.name --
       Scan.option (Scan.lift \<^keyword>\<open>:\<close> |-- Args.const {proper = true, strict = false}) >>
-      (fn (s1, s2) => Thm.declaration_attribute
-        (fn th => Context.mapping (add_const_def s1 th s2) I)))
+      (fn (c, d) => Thm.declaration_attribute
+        (fn th => Context.mapping (add_const_def c th d) I)))
     "declare a theorem as an equality that maps the given constant")
 
 val _ =
   Theory.setup (Attrib.setup \<^binding>\<open>import_type\<close>
     (Scan.lift (Parse.name -- Parse.name -- Parse.name) >>
-      (fn ((tyname, absname), repname) => Thm.declaration_attribute
-        (fn th => Context.mapping (add_typ_def tyname absname repname th) I)))
+      (fn ((c, abs), rep) => Thm.declaration_attribute
+        (fn th => Context.mapping (add_typ_def c abs rep th) I)))
     "declare a type_definition theorem as a map for an imported type with abs and rep")
 
 val _ =
@@ -119,15 +120,5 @@ val _ =
     "map external const name to existing Isabelle/HOL const name"
     ((Parse.name --| \<^keyword>\<open>:\<close>) -- Parse.const >>
       (fn (c, d) => Toplevel.theory (add_const_map_cmd c d)))
-
-(*Initial type and constant maps, for types and constants that are not
-  defined, which means their definitions do not appear in the proof dump.*)
-val _ =
-  Theory.setup
-   (add_typ_map "bool" \<^type_name>\<open>bool\<close> #>
-    add_typ_map "fun" \<^type_name>\<open>fun\<close> #>
-    add_typ_map "ind" \<^type_name>\<open>ind\<close> #>
-    add_const_map "=" \<^const_name>\<open>HOL.eq\<close> #>
-    add_const_map "@" \<^const_name>\<open>Eps\<close>)
 
 end

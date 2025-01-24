@@ -176,7 +176,7 @@ fun derive_encode_injectives_thms _ [] = []
       Goal.prove (*no sorry*) ctxt [] [] goal (fn {context = ctxt, prems = _} =>
         mk_encode_injectives_tac ctxt ns induct nchotomys injectss rec_thmss map_comps'
           inj_map_strongs')
-      |> HOLogic.conj_elims ctxt
+      |> HOLogic.conj_elims
       |> Proof_Context.export names_ctxt ctxt
       |> map (Thm.close_derivation \<^here>)
     end;

@@ -31,7 +31,7 @@ fun drop_fact_warning ctxt =
 (** instantiate elimination rules **)
 
 local
-  val (cpfalse, cfalse) = `SMT_Util.mk_cprop \<^cterm>\<open>False\<close>
+  val (cpfalse, cfalse) = `HOLogic.mk_judgment \<^cterm>\<open>False\<close>
 
   fun inst f ct thm =
     let val cv = f (Drule.strip_imp_concl (Thm.cprop_of thm))

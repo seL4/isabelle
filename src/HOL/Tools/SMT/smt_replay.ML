@@ -80,7 +80,7 @@ end
 (* proof combinators *)
 
 fun under_assumption f ct =
-  let val ct' = SMT_Util.mk_cprop ct in Thm.implies_intr ct' (f (Thm.assume ct')) end
+  let val ct' = HOLogic.mk_judgment ct in Thm.implies_intr ct' (f (Thm.assume ct')) end
 
 fun discharge p pq = Thm.implies_elim pq p
 

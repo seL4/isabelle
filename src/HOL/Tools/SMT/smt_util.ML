@@ -51,8 +51,6 @@ sig
   val dest_all_cabs: cterm -> Proof.context -> cterm * Proof.context
   val dest_cbinder: cterm -> Proof.context -> cterm * Proof.context
   val dest_all_cbinders: cterm -> Proof.context -> cterm * Proof.context
-  val mk_cprop: cterm -> cterm
-  val dest_cprop: cterm -> cterm
   val mk_cequals: cterm -> cterm -> cterm
   val term_of: cterm -> term
   val prop_of: thm -> term
@@ -200,13 +198,6 @@ fun dest_cbinder ct ctxt =
   | _ => raise CTERM ("not a binder", [ct]))
 
 val dest_all_cbinders = repeat_yield (try o dest_cbinder)
-
-val mk_cprop = Thm.apply \<^cterm>\<open>Trueprop\<close>
-
-fun dest_cprop ct =
-  (case Thm.term_of ct of
-    \<^Const_>\<open>Trueprop for _\<close> => Thm.dest_arg ct
-  | _ => raise CTERM ("not a property", [ct]))
 
 val equals = mk_const_pat \<^theory> \<^const_name>\<open>Pure.eq\<close> Thm.dest_ctyp0
 fun mk_cequals ct cu = Thm.mk_binop (instT' ct equals) ct cu

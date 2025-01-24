@@ -423,7 +423,7 @@ fun equal_cterms ts us =
 fun prep_rule n th =
   let
     val th' = Thm.permute_prems 0 n th;
-    val prems = take (Thm.nprems_of th' - n) (Drule.cprems_of th');
+    val prems = Thm.take_cprems_of (Thm.nprems_of th' - n) th';
     val th'' = Drule.implies_elim_list th' (map Thm.assume prems);
   in (prems, (n, th'')) end;
 

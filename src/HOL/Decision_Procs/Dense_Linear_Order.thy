@@ -930,7 +930,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply \<^cterm>\<open>Trueprop\<close>
+               (HOLogic.mk_judgment
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -953,7 +953,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply \<^cterm>\<open>Trueprop\<close>
+               (HOLogic.mk_judgment
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -975,7 +975,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply \<^cterm>\<open>Trueprop\<close>
+               (HOLogic.mk_judgment
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -1000,7 +1000,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cz = Thm.dest_arg ct
         val neg = cr < @0
         val cthp = Simplifier.rewrite ctxt
-               (Thm.apply \<^cterm>\<open>Trueprop\<close>
+               (HOLogic.mk_judgment
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -1019,7 +1019,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite ctxt
-            (Thm.apply \<^cterm>\<open>Trueprop\<close>
+            (HOLogic.mk_judgment
              (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim
@@ -1041,7 +1041,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val cthp = Simplifier.rewrite ctxt
-            (Thm.apply \<^cterm>\<open>Trueprop\<close>
+            (HOLogic.mk_judgment
              (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val rth = Thm.implies_elim

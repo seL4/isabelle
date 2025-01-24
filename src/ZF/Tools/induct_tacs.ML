@@ -97,7 +97,7 @@ fun exhaust_induct_tac exh ctxt var fixes i state = SUBGOAL (fn _ =>
       |> (if exh then #exhaustion else #induct)
       |> Thm.transfer thy;
     val \<^Const_>\<open>mem for \<open>Var(ixn,_)\<close> _\<close> =
-        (case Thm.prems_of rule of
+        (case Thm.take_prems_of 1 rule of
              [] => error "induction is not available for this datatype"
            | major::_ => \<^dest_judgment> major)
   in
@@ -124,7 +124,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
     val constructors =
         map (head_of o const_of o \<^dest_judgment> o Thm.prop_of) case_eqns;
 
-    val \<^Const_>\<open>mem for _ data\<close> = \<^dest_judgment> (hd (Thm.prems_of elim));
+    val \<^Const_>\<open>mem for _ data\<close> = \<^dest_judgment> (hd (Thm.take_prems_of 1 elim));
 
     val Const(big_rec_name, _) = head_of data;
 

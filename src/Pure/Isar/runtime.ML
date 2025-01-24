@@ -106,6 +106,9 @@ fun exn_messages e =
         EXCURSION_FAIL (exn, loc) =>
           map (fn ((i, msg), id) => ((i, msg ^ Markup.markup Markup.no_report ("\n" ^ loc)), id))
             (sorted_msgs context exn)
+      | Morphism.MORPHISM (name, exn) =>
+          map (fn ((i, msg), id) => ((i, "MORPHISM " ^ quote name ^ "\n" ^ msg), id))
+            (sorted_msgs context exn)
       | _ =>
         let
           val msg =

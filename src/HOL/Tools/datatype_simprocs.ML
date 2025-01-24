@@ -88,7 +88,7 @@ val forbidden_types =
 *)
 fun no_proper_subterm_proc ctxt ct =
   let
-    val (clhs, crhs) = ct |> Thm.dest_comb |> apfst (Thm.dest_comb #> snd)
+    val (clhs, crhs) = Thm.dest_binop ct
     val (lhs, rhs) = apply2 Thm.term_of (clhs, crhs)
     val cT = Thm.ctyp_of_cterm clhs    
     val T = Thm.typ_of cT

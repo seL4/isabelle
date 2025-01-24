@@ -169,7 +169,7 @@ fun inst_subst_tac ctxt b rl = CSUBGOAL (fn (cBi, i) =>
         val (ixn, T) = dest_Var (Term.head_of (Data.dest_Trueprop
           (Logic.strip_assums_concl (Thm.prop_of rl'))));
         val (v1, v2) = Data.dest_eq (Data.dest_Trueprop
-          (Logic.strip_assums_concl (hd (Thm.prems_of rl'))));
+          (Logic.strip_assums_concl (hd (Thm.take_prems_of 1 rl'))));
         val (Ts, V) = split_last (Term.binder_types T);
         val u =
           fold_rev Term.abs (ps @ [("x", U)])

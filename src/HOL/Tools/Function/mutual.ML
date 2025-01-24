@@ -176,7 +176,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
 
     val psimp = import sum_psimp_eq
     val (simp, restore_cond) =
-      case cprems_of psimp of
+      case Thm.cprems_of psimp of
         [] => (psimp, I)
       | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
       | _ => raise General.Fail "Too many conditions"
@@ -184,7 +184,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
     val simp_ctxt = fold Thm.declare_hyps (Thm.chyps_of simp) ctxt
   in
     Goal.prove simp_ctxt [] []
-      (HOLogic.Trueprop $ HOLogic.mk_eq (list_comb (f, args), rhs))
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (list_comb (f, args), rhs)))
       (fn _ =>
         Local_Defs.unfold0_tac ctxt all_orig_fdefs
           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1

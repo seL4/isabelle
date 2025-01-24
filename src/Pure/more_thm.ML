@@ -63,6 +63,7 @@ sig
   val check_shyps: Proof.context -> thm -> thm
   val weaken_sorts': Proof.context -> cterm -> cterm
   val elim_implies: thm -> thm -> thm
+  val assume_prems: int -> thm -> thm
   val forall_intr_name: string * cterm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -133,14 +134,14 @@ val eq_ctyp = op = o apply2 Thm.typ_of;
 val op aconvc = op aconv o apply2 Thm.term_of;
 
 val add_tvars =
-  Thm.fold_atomic_ctyps {hyps = false} Term.is_TVar (fn cT => fn tab =>
-    let val v = Term.dest_TVar (Thm.typ_of cT)
-    in tab |> not (TVars.defined tab v) ? TVars.add (v, cT) end);
+  Thm.fold_atomic_ctyps {hyps = false}
+    (fn tab => fn T => Term.is_TVar T andalso not (TVars.defined tab (Term.dest_TVar T)))
+    (fn cT => TVars.add (Term.dest_TVar (Thm.typ_of cT), cT));
 
 val add_vars =
-  Thm.fold_atomic_cterms {hyps = false} Term.is_Var (fn ct => fn tab =>
-    let val v = Term.dest_Var (Thm.term_of ct)
-    in tab |> not (Vars.defined tab v) ? Vars.add (v, ct) end);
+  Thm.fold_atomic_cterms {hyps = false}
+    (fn tab => fn t => Term.is_Var t andalso not (Vars.defined tab (Term.dest_Var t)))
+    (fn ct => Vars.add (Term.dest_Var (Thm.term_of ct), ct));
 
 
 (* ctyp operations *)
@@ -334,6 +335,12 @@ val weaken_sorts' = Thm.weaken_sorts o #shyps o Hyps.get;
 fun elim_implies thA thAB = Thm.implies_elim thAB thA;
 
 
+(* assume_prems: shift at most n premises into hyps, where n < 0 means infinity *)
+
+fun assume_prems n th =
+  fold (elim_implies o Thm.assume) (Thm.take_cprems_of n th) th;
+
+
 (* forall_intr_name *)
 
 fun forall_intr_name (a, x) th =
@@ -401,24 +408,53 @@ fun instantiate_frees (instT, inst) th =
   if TFrees.is_empty instT andalso Frees.is_empty inst then th
   else
     let
-      val idx = Thm.maxidx_of th + 1;
+      val namesT = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
+      val names = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
+
+      val idx =
+        (Thm.maxidx_of th
+          |> TFrees.fold (Integer.max o Thm.maxidx_of_ctyp o #2) instT
+          |> Frees.fold (Integer.max o Thm.maxidx_of_cterm o #2) inst) + 1;
       fun index ((a, A), b) = (((a, idx), A), b);
-      val insts =
-        (TVars.build (TFrees.fold (TVars.add o index) instT),
-         Vars.build (Frees.fold (Vars.add o index) inst));
-      val tfrees = Names.build (TFrees.fold (Names.add_set o #1 o #1) instT);
-      val frees = Names.build (Frees.fold (Names.add_set o #1 o #1) inst);
+
+      val instT' =
+        TVars.build (TFrees.fold (TVars.add o index) instT)
+        |> not (Names.is_empty namesT) ? Thm.fold_atomic_ctyps {hyps = true}
+            (fn tab => fn T => Term.is_TFree T andalso
+              let val (a, S) = Term.dest_TFree T in
+                Names.defined namesT a andalso
+                not (TFrees.defined instT (a, S)) andalso
+                not (TVars.defined tab ((a, idx), S))
+              end)
+            (fn cT =>
+              let val (a, S) = Term.dest_TFree (Thm.typ_of cT)
+              in TVars.add (((a, idx), S), cT) end) th;
+
+      val inst_typ = Term_Subst.instantiateT_frees (TFrees.map (K Thm.typ_of) instT);
+      val inst_ctyp =
+        Thm.generalize_cterm (namesT, Names.empty) idx #>
+        Thm.instantiate_cterm (instT', Vars.empty);
+
+      val inst' =
+        Vars.build (Frees.fold (Vars.add o index) inst)
+        |> not (Names.is_empty names) ? Thm.fold_atomic_cterms {hyps = true}
+            (fn tab => fn t => Term.is_Free t andalso
+              let val (x, T) = Term.dest_Free t in
+                Names.defined names x andalso
+                  let val U = inst_typ T
+                  in not (Frees.defined inst (x, U)) andalso not (Vars.defined tab ((x, idx), U)) end
+              end)
+            (fn ct =>
+              let val (x, T) = Term.dest_Free (Thm.term_of ct)
+              in Vars.add (((x, idx), inst_typ T), inst_ctyp ct) end) th;
 
       val hyps = Thm.chyps_of th;
-      val inst_cterm =
-        Thm.generalize_cterm (tfrees, frees) idx #>
-        Thm.instantiate_cterm insts;
     in
       th
       |> fold_rev Thm.implies_intr hyps
-      |> Thm.generalize (tfrees, frees) idx
-      |> Thm.instantiate insts
-      |> fold (elim_implies o Thm.assume o inst_cterm) hyps
+      |> Thm.generalize (namesT, names) idx
+      |> Thm.instantiate (instT', inst')
+      |> assume_prems (length hyps)
     end;
 
 
@@ -453,10 +489,8 @@ fun forall_intr_frees th =
       Frees.build
        (fold Frees.add_frees (Thm.terms_of_tpairs (Thm.tpairs_of th)) #>
         fold Frees.add_frees (Thm.hyps_of th));
-    val is_fixed = Frees.defined fixed o Term.dest_Free o Thm.term_of;
-    val frees =
-      Cterms.build (th |> Thm.fold_atomic_cterms {hyps = false} Term.is_Free
-        (fn ct => not (is_fixed ct) ? Cterms.add_set ct));
+    fun guard t = Term.is_Free t andalso not (Frees.defined fixed (Term.dest_Free t));
+    val frees = Cterms.build (th |> Thm.fold_atomic_cterms {hyps = false} (K guard) Cterms.add_set);
   in fold_rev Thm.forall_intr (Cterms.list_set frees) th end;
 
 

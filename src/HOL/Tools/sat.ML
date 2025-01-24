@@ -165,8 +165,7 @@ fun resolve_raw_clauses _ [] =
 
             val res_thm =
               let
-                val P =
-                  snd (Thm.dest_comb (if hyp1_is_neg then hyp2 else hyp1))  (* strip Trueprop *)
+                val P = HOLogic.dest_judgment (if hyp1_is_neg then hyp2 else hyp1)
               in
                 \<^instantiate>\<open>P in
                   lemma \<open>(P \<Longrightarrow> False) \<Longrightarrow> (\<not> P \<Longrightarrow> False) \<Longrightarrow> False\<close> by (rule case_split)\<close>
