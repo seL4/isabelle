@@ -4,8 +4,8 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2025 (March 2025)
+--------------------------------
 
 *** General ***
 
@@ -228,18 +228,6 @@ Isabelle/jEdit rendering like this:
 
 *** HOL ***
 
-* Code generator: command 'code_reserved' now uses parentheses for
-target languages, similar to 'code_printing'.
-
-* Theory HOL.List: overloaded power operator (^^) on type list.
-
-* Theory HOL-Library.Code_Target_Bit_Shifts implemented bit shifts on numeric
-types by target-language operations; this is also used by
-HOL-Library.Code_Target_Numeral.
-
-* Theory HOL-Library.Code_Bit_Shifts_for_Arithmetic rewrites certain
-arithmetic operations on numerals to bit shifts.
-
 * Sledgehammer:
   - Update of bundled provers:
       . E 3.1 -- with patch on Windows/Cygwin for proper interrupts
@@ -257,12 +245,10 @@ arithmetic operations on numerals to bit shifts.
     This outputs a suggestion with instantiations of the facts using the
     "of" attribute (e.g. "assms(1)[of x]").
 
-* Theory HOL-Library.Discrete has been renamed
-HOL-Library.Discrete_Functions
+* Code generator: command 'code_reserved' now uses parentheses for
+target languages, similar to 'code_printing'.
 
-  Discrete.log -> floor_log
-  Discrete.sqrt -> floor_sqrt
-  Renamed lemmas accordingly (...log/sqrt... -> ...floor_log/sqrt...)
+* Theory HOL.List: overloaded power operator (^^) on type list.
 
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
@@ -291,6 +277,30 @@ HOL-Library.Discrete_Functions
       wf_on_antimono_stronger
       wfp_on_antimono_stronger
 
+* Theory "HOL.Transcendental": the real-valued versions of ln, log,
+(powr) have been totalised by "ln 0 = x" and "ln (- x) = ln x". Many
+related theorems are now unconditional, with ln_mult_pos and
+ln_divide_pos introduced for legacy purposes.
+
+* Transitional theory "HOL.Divides" moved to "HOL-Library.Divides" and
+supposed to be removed in a future release. Minor INCOMPATIBILITY.
+Import "HOL-Library.Divides" and keep an eye on qualified names with
+prefix "Divides" to ease transition.
+
+* Theory HOL-Library.Code_Target_Bit_Shifts implemented bit shifts on
+numeric types by target-language operations; this is also used by
+HOL-Library.Code_Target_Numeral.
+
+* Theory HOL-Library.Code_Bit_Shifts_for_Arithmetic rewrites certain
+arithmetic operations on numerals to bit shifts.
+
+* Theory HOL-Library.Discrete has been renamed
+HOL-Library.Discrete_Functions to avoid name conflicts:
+
+  Discrete.log -> floor_log
+  Discrete.sqrt -> floor_sqrt
+  Renamed lemmas accordingly (...log/sqrt... -> ...floor_log/sqrt...)
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       wfP_less_multiset ~> wfp_less_multiset
@@ -300,17 +310,8 @@ HOL-Library.Discrete_Functions
       image_mset_diff_if_inj
       minus_add_mset_if_not_in_lhs[simp]
 
-* Theory "HOL-Library.Suc_Notation" provides compact notation for nested
-Suc terms.
-
-* Transitional theory "HOL.Divides" moved to "HOL-Library.Divides" and
-supposed to be removed in a future release. Minor INCOMPATIBILITY.
-Import "HOL-Library.Divides" and keep an eye on qualified names with prefix
-"Divides" to ease transition.
-
-* The real-valued versions of ln, log, powr have been totalised by "ln 0
-= x" and "ln (- x) = ln x". Many related theorems are now unconditional,
-with ln_mult_pos and ln_divide_pos introduced for legacy purposes.
+* Theory "HOL-Library.Suc_Notation" provides compact notation for
+iterated Suc terms.
 
 
 *** ML ***

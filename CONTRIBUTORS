@@ -3,14 +3,18 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2025
+-----------------------------
 
 * October 2024 - January 2025: Lukas Bartl, Universität Augsburg
   Inference of variable instantiations with Metis.
 
 * 2024: Fabian Huch, TU München
   Find_Facts search engine: web application based on Apache Solr.
+
+* 2024: Fabian Huch, TU München
+  Build_Manager for distrubuted cluster, with web front-end (supersedes
+  Jenkins).
 
 * April - October 2024: Thomas Lindae and Fabian Huch, TU München
   Improvements to the language server for Isabelle/VSCode.
