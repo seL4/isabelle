@@ -13,7 +13,7 @@ plugin.isabelle.jedit_main.Plugin.activate=defer
 plugin.isabelle.jedit_main.Plugin.usePluginHome=false
 
 #dependencies
-plugin.isabelle.jedit_main.Plugin.depend.0=jdk 17
+plugin.isabelle.jedit_main.Plugin.depend.0=jdk 21
 plugin.isabelle.jedit_main.Plugin.depend.1=jedit 05.06.00.00
 plugin.isabelle.jedit_main.Plugin.depend.2=plugin console.ConsolePlugin 5.1.4
 plugin.isabelle.jedit_main.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.4.0

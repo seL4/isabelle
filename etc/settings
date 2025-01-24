@@ -16,8 +16,8 @@ ISABELLE_JAVA_SYSTEM_OPTIONS="-server -Dfile.encoding=UTF-8 -Disabelle.threads=0
 
 ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
 
-ISABELLE_JAVAC_OPTIONS="-encoding UTF-8 -Xlint:-options -deprecation -source 17 -target 17"
-ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -feature -java-output-version 17 -source 3.3 -old-syntax -no-indent -color never -pagewidth 78 -J-Xms512m -J-Xmx4g -J-Xss16m"
+ISABELLE_JAVAC_OPTIONS="-encoding UTF-8 -Xlint:-options -deprecation -source 21 -target 21"
+ISABELLE_SCALAC_OPTIONS="-encoding UTF-8 -feature -java-output-version 21 -source 3.3 -old-syntax -no-indent -color never -pagewidth 78 -J-Xms512m -J-Xmx4g -J-Xss16m"
 
 ISABELLE_SCALA_JAR="$ISABELLE_HOME/lib/classes/isabelle.jar"
 
