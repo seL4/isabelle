@@ -35,6 +35,8 @@ object Component_HOL_Light {
 
     if (!only_offline) {
       Linux.check_system()
+      Isabelle_System.require_command("bzip2")
+      Isabelle_System.require_command("m4")
       Isabelle_System.require_command("patch")
       Isabelle_System.require_command("zstd")
     }
@@ -231,6 +233,9 @@ Usage: isabelle component_hol_light_import [OPTIONS]
 
     isabelle component_hol_light_import -L Logic/make.ml
     isabelle component_hol_light_import -L 100/thales.ml -L 100/ceva.ml
+
+  The HOL Light build process uses OCaml/OPAM from Isabelle; this requires
+  C development tools with libgmp-dev.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "L:" -> (arg => load_more = load_more ::: List(Path.explode(arg))),
