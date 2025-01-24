@@ -75,12 +75,9 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit0 n) = map_option (\<lambda>q. dup q + 1) (sub m n)"
   "sub (Num.Bit0 m) (Num.Bit1 n) = (case sub m n of None \<Rightarrow> None
      | Some q \<Rightarrow> if q = 0 then None else Some (dup q - 1))"
-  apply (auto simp add: nat_of_num_numeral
-    Num.dbl_def Num.dbl_inc_def Num.dbl_dec_def
-    Let_def le_imp_diff_is_add BitM_plus_one sub_def dup_def)
-  apply (simp_all add: sub_non_positive)
-  apply (simp_all add: sub_non_negative [symmetric, where ?'a = int])
-  done
+  by (auto simp: nat_of_num_numeral Num.dbl_def Num.dbl_inc_def Num.dbl_dec_def
+    Let_def le_imp_diff_is_add BitM_plus_one sub_def dup_def 
+    sub_non_positive nat_add_distrib sub_non_negative)
 
 declare [[code drop: "minus :: nat \<Rightarrow> _"]]
 

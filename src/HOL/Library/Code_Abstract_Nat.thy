@@ -127,7 +127,6 @@ lemma take_bit_num_code [code]:
     (case n of 0 \<Rightarrow> None | Suc n \<Rightarrow> (case take_bit_num n m of None \<Rightarrow> None | Some q \<Rightarrow> Some (Num.Bit0 q)))\<close>
   \<open>take_bit_num n (Num.Bit1 m) =
     (case n of 0 \<Rightarrow> None | Suc n \<Rightarrow> Some (case take_bit_num n m of None \<Rightarrow> Num.One | Some q \<Rightarrow> Num.Bit1 q))\<close>
-    apply (cases n; simp)+
-  done
+  by (cases n; simp)+
 
 end

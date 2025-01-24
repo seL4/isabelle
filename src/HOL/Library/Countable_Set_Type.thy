@@ -414,10 +414,9 @@ lemma cBall_simps [simp, no_atp]:
 by auto
 
 lemma atomize_cBall:
-    "(\<And>x. cin x A ==> P x) == Trueprop (cBall A (\<lambda>x. P x))"
-apply (simp only: atomize_all atomize_imp)
-apply (rule equal_intr_rule)
-by (transfer, simp)+
+    "(\<And>x. cin x A \<Longrightarrow> P x) == Trueprop (cBall A (\<lambda>x. P x))"
+  unfolding atomize_all atomize_imp 
+  by (rule equal_intr_rule; blast)
 
 subsubsection \<open>\<^const>\<open>cUnion\<close>\<close>
 
@@ -526,48 +525,43 @@ context
 begin
 
 lemma card_of_countable_sets_range:
-fixes A :: "'a set"
-shows "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |{f::nat \<Rightarrow> 'a. range f \<subseteq> A}|"
-apply(rule card_of_ordLeqI[of from_nat_into]) using inj_on_from_nat_into
-unfolding inj_on_def by auto
+  fixes A :: "'a set"
+  shows "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |{f::nat \<Rightarrow> 'a. range f \<subseteq> A}|"
+proof (intro card_of_ordLeqI[of from_nat_into])
+qed (use inj_on_from_nat_into in \<open>auto simp: inj_on_def\<close>)
 
 lemma card_of_countable_sets_Func:
-"|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |A| ^c natLeq"
-using card_of_countable_sets_range card_of_Func_UNIV[THEN ordIso_symmetric]
-unfolding cexp_def Field_natLeq Field_card_of
-by (rule ordLeq_ordIso_trans)
+  "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |A| ^c natLeq"
+  using card_of_countable_sets_range card_of_Func_UNIV[THEN ordIso_symmetric]
+  unfolding cexp_def Field_natLeq Field_card_of
+  by (rule ordLeq_ordIso_trans)
 
 lemma ordLeq_countable_subsets:
-"|A| \<le>o |{X. X \<subseteq> A \<and> countable X}|"
-apply (rule card_of_ordLeqI[of "\<lambda> a. {a}"]) unfolding inj_on_def by auto
+  "|A| \<le>o |{X. X \<subseteq> A \<and> countable X}|"
+proof -
+  have "\<And>a. a \<in> A \<Longrightarrow> {a} \<in> {X. X \<subseteq> A \<and> countable X}"
+    by auto
+  with card_of_ordLeqI[of "\<lambda> a. {a}"] show ?thesis
+    using inj_singleton by blast
+qed
 
 end
 
 lemma finite_countable_subset:
-"finite {X. X \<subseteq> A \<and> countable X} \<longleftrightarrow> finite A"
-apply (rule iffI)
- apply (erule contrapos_pp)
- apply (rule card_of_ordLeq_infinite)
- apply (rule ordLeq_countable_subsets)
- apply assumption
-apply (rule finite_Collect_conjI)
-apply (rule disjI1)
-apply (erule finite_Collect_subsets)
-done
+  "finite {X. X \<subseteq> A \<and> countable X} \<longleftrightarrow> finite A"
+  using card_of_ordLeq_infinite ordLeq_countable_subsets by force
 
 lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
   including cset.lifting
-  apply (rule f_the_inv_into_f[unfolded inj_on_def image_iff])
-   apply transfer' apply simp
-  apply transfer' apply simp
-  done
+  by (meson CollectI f_the_inv_into_f inj_on_inverseI rangeI rcset_induct
+      rcset_inverse)
 
 lemma Collect_Int_Times: "{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
-by auto
+  by auto
 
 
 lemma rel_cset_aux:
-"(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
+  "(\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t) \<longleftrightarrow>
  ((BNF_Def.Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage fst))\<inverse>\<inverse> OO
    BNF_Def.Grp {x. rcset x \<subseteq> {(a, b). R a b}} (cimage snd)) a b" (is "?L = ?R")
 proof
@@ -626,7 +620,7 @@ next
   fix R
   show "rel_cset R = (\<lambda>x y. \<exists>z. rcset z \<subseteq> {(x, y). R x y} \<and>
     cimage fst z = x \<and> cimage snd z = y)"
-  unfolding rel_cset_alt_def[abs_def] rel_cset_aux[unfolded OO_Grp_alt] by simp
+    unfolding rel_cset_alt_def[abs_def] rel_cset_aux[unfolded OO_Grp_alt] by simp
 qed(simp add: bot_cset.rep_eq)
 
 end
