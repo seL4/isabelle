@@ -459,6 +459,7 @@ f84c7ecafb07a0d763f1d70edc54f7c43c2e8c63 postgresql-42.4.0.tar.gz
 65bf0d99f4e80f5802c573106327c337fe608fe7 postgresql-42.7.1.tar.gz
 459c2b8da13910ba6c89ad91b9d26f4a63615117 postgresql-42.7.3.tar.gz
 6393156f24d911c8f9f242612aec2563514ceb59 postgresql-42.7.4.tar.gz
+ac7b66661335d97bf714a1721febacc11396b837 postgresql-42.7.5.tar.gz
 f132329ca1045858ef456cc08b197c9eeea6881b postgresql-9.4.1212.tar.gz
 3fc5e7f759e7220b9e3fc5bac296e312e34a60ad prismjs-1.29.0.tar.gz
 f042bba5fb82c7eb8aee99f92eb6ec38c8a067f7 python-3.10.4.tar.gz
@@ -514,6 +515,7 @@ edaa1268d82203067657aabcf0371ce7d4b579b9 spass-3.8ds-2.tar.gz
 43b5afbcad575ab6817d2289756ca22fd2ef43a9 spass-3.8ds.tar.gz
 24a1397d06c79361d7507d59cbfe39962ce25148 sqlite-3.45.2.0.tar.gz
 1a74d0866ba56aa086686e17965d636df97e4e96 sqlite-3.47.1.0.tar.gz
+7834002b29aff9d381617151f138bcd8df828fa9 sqlite-3.48.0.0.tar.gz
 b016a785f1f78855c00d351ff598355c3b87450f sqlite-jdbc-3.18.0-1.tar.gz
 b85b5bc071a59ef2a8326ceb1617d5a9a5be41cf sqlite-jdbc-3.18.0.tar.gz
 e56117a67ab01fb24c7fc054ede3160cefdac5f8 sqlite-jdbc-3.20.0.tar.gz

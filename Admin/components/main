@@ -28,14 +28,14 @@ nunchaku-0.5
 opam-2.0.7
 pdfjs-2.14.305
 polyml-5.9.1
-postgresql-42.7.4
+postgresql-42.7.5
 prismjs-1.29.0
 rsync-3.2.7-1
 scala-3.3.4
 smbc-0.4.1
 solr-9.7.0-1
 spass-3.8ds-2
-sqlite-3.47.1.0
+sqlite-3.48.0.0
 stack-2.15.5
 vampire-4.8
 verit-2021.06.2-rmx-1
