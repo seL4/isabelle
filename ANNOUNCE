@@ -1,31 +1,41 @@
 Subject: Announcing Isabelle2024
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2024 is now available.
+Isabelle2025 is now available.
 
-This version introduces various changes over Isabelle2023: see the
+This version introduces many changes over Isabelle2024: see the
 NEWS file for further details. Here are various details:
 
-* More robust and scalable support for distributed build clusters.
+* Inner syntax: markup for blocks and type information about constants.
 
-* Official support for ARM64 on Linux (notably Docker on Apple Silicon).
+* Inner syntax: more scalable pretty-printing, based on bytes (blobs).
 
-* HOL: various improvements of theory libraries, notably in HOL-Analysis.
+* Inner syntax: more efficient folding of term abbreviations.
 
-* HOL: updates and improvements of Sledgehammer.
+* Inner syntax: more robust "no_syntax" declarations via bundles.
 
-* ML: antiquotations for try-catch-finally.
+* HOL: various improvements of theory libraries.
 
-* ML: physical interrupts are now distinguished from runtime system failures.
+* HOL: updates and improvements of Sledgehammer and external provers.
 
-* System: support for global registry in TOML format.
+* HOL: various improvements to code generation.
 
-* System: support the Go development environment (all platforms).
+* Isabelle/jEdit: various improvements to Output, including Search.
 
-* System: bundled MLton now includes both Linux and macOS (Intel).
+* Isabelle/VSCode: various improvements, concerning markup, completions etc.
+
+* Document preparation: more markup for term output.
+
+* ML: value-oriented pretty printing using explicit Pretty.output_ops.
+
+* System: Find_Facts full-text search engine, with web interface.
+
+* System: Build_Manager in Isabelle/Scala, as replacement for Jenkins.
+
+* System: more scalable type isabelle.Bytes, allow messages of many GiB.
 
 
-You may get Isabelle2024 from the following mirror sites:
+You may get Isabelle2025 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
