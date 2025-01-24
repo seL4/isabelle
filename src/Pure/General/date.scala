@@ -1,5 +1,6 @@
 /*  Title:      Pure/General/date.scala
     Author:     Makarius
+    Author:     Fabian Huch, TU München
 
 Date and time, with timezone.
 */
