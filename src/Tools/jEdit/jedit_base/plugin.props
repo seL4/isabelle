@@ -14,4 +14,4 @@ plugin.isabelle.jedit_base.Plugin.usePluginHome=false
 
 #dependencies
 plugin.isabelle.jedit_base.Plugin.depend.0=jdk 17
-plugin.isabelle.jedit_base.Plugin.depend.1=jedit 05.05.00.00
+plugin.isabelle.jedit_base.Plugin.depend.1=jedit 05.06.00.00

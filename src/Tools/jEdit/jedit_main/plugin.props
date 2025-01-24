@@ -5,7 +5,7 @@
 #identification
 plugin.isabelle.jedit_main.Plugin.name=Isabelle
 plugin.isabelle.jedit_main.Plugin.author=Johannes H\u00F6lzl, Lars Hupel, Fabian Immler, Markus Kaiser, Makarius Wenzel
-plugin.isabelle.jedit_main.Plugin.version=11.3
+plugin.isabelle.jedit_main.Plugin.version=12.0
 plugin.isabelle.jedit_main.Plugin.description=Isabelle/jEdit main plugin
 
 #system parameters
