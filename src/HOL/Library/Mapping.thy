@@ -83,13 +83,7 @@ proof
     "(HOL.eq ===> rel_option A)
       (\<lambda>k. if k < length xs then Some (xs ! k) else None)
       (\<lambda>k. if k < length ys then Some (ys ! k) else None)"
-    apply induct
-     apply auto
-    unfolding rel_fun_def
-    apply clarsimp
-    apply (case_tac xa)
-     apply (auto dest: list_all2_lengthD list_all2_nthD)
-    done
+    by induct (auto simp add: list_all2_lengthD list_all2_nthD rel_funI)
 qed
 
 lemma map_parametric:
@@ -225,11 +219,11 @@ begin
 definition "HOL.equal m1 m2 \<longleftrightarrow> (\<forall>k. lookup m1 k = lookup m2 k)"
 
 instance
-  apply standard
+proof
+  show "\<And>x y::('a, 'b) mapping. equal_class.equal x y = (x = y)"
   unfolding equal_mapping_def
-  apply transfer
-  apply auto
-  done
+  by transfer auto
+qed
 
 end
 
@@ -656,10 +650,7 @@ lemma All_mapping_map_values: "All_mapping (map_values f m) P \<longleftrightarr
 
 lemma All_mapping_tabulate: "(\<forall>x\<in>set xs. P x (f x)) \<Longrightarrow> All_mapping (Mapping.tabulate xs f) P"
   unfolding All_mapping_def
-  apply (intro allI)
-  apply transfer
-  apply (auto split: option.split dest!: map_of_SomeD)
-  done
+  by transfer (auto split: option.split dest!: map_of_SomeD)
 
 lemma All_mapping_alist:
   "(\<And>k v. (k, v) \<in> set xs \<Longrightarrow> P k v) \<Longrightarrow> All_mapping (Mapping.of_alist xs) P"
@@ -896,7 +887,7 @@ proof -
   qed
   from assms show ?thesis
     unfolding ordered_entries_def
-    apply (transfer fixing: k v) using "*" by auto
+    by (transfer fixing: k v) (use "*" in auto)
 qed
 
 lemma ordered_entries_delete[simp]:

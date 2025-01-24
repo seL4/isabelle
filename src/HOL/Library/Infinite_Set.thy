@@ -40,10 +40,7 @@ text \<open>
 \<close>
 
 lemma unbounded_k_infinite: "\<forall>m>k. \<exists>n>m. n \<in> S \<Longrightarrow> infinite (S::nat set)"
-  apply (clarsimp simp add: finite_nat_set_iff_bounded)
-  apply (drule_tac x="Suc (max m k)" in spec)
-  using less_Suc_eq apply fastforce
-  done
+  by (metis finite_nat_set_iff_bounded gt_ex order_less_not_sym order_less_trans)
 
 lemma nat_not_finite: "finite (UNIV::nat set) \<Longrightarrow> R"
   by simp
@@ -306,13 +303,14 @@ proof (induct n arbitrary: S)
 next
   case (Suc n S)
   show ?case
-    using enumerate_mono[OF zero_less_Suc \<open>infinite S\<close>, of n] \<open>infinite S\<close>
-    apply (subst (1 2) enumerate_Suc')
-    apply (subst Suc)
-     apply (use \<open>infinite S\<close> in simp)
-    apply (intro arg_cong[where f = Least] ext)
-    apply (auto simp flip: enumerate_Suc')
-    done
+  proof (rule order.antisym)
+    have S: "infinite (S - {wellorder_class.enumerate S 0})"
+      using Suc by auto
+    show "wellorder_class.enumerate S (Suc (Suc n)) \<le> (LEAST s. s \<in> S \<and> wellorder_class.enumerate S (Suc n) < s)"
+      using enumerate_mono[OF zero_less_Suc] \<open>infinite S\<close> S
+      by (smt (verit, best) LeastI_ex Suc.hyps enumerate_0 enumerate_Suc enumerate_in_set
+          enumerate_step insertE insert_Diff linorder_not_less not_less_Least)
+  qed (simp add: Least_le Suc.prems enumerate_in_set)
 qed
 
 lemma enumerate_Ex:
@@ -424,10 +422,13 @@ proof (induction n arbitrary: S)
     by (metis all_not_in_conv card.empty enumerate.simps(1) not_less0 wellorder_Least_lemma(1))
 next
   case (Suc n)
+  then have "wellorder_class.enumerate (S - {LEAST n. n \<in> S}) n \<in> S"
+    by (metis Diff_empty Diff_insert0 Suc_lessD Suc_less_eq card.insert_remove
+      finite_Diff insert_Diff insert_Diff_single insert_iff)
+  then
   show ?case
     using Suc.prems Suc.IH [of "S - {LEAST n. n \<in> S}"]
-    apply (simp add: enumerate.simps)
-    by (metis Diff_empty Diff_insert0 Suc_lessD card.remove less_Suc_eq)
+    by (simp add: enumerate.simps)
 qed
 
 lemma finite_enumerate_step: "\<lbrakk>finite S; Suc n < card S\<rbrakk> \<Longrightarrow> enumerate S n < enumerate S (Suc n)"
