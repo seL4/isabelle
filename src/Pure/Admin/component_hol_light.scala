@@ -121,7 +121,7 @@ has been patched in 2 phases. The overall export process works like this:
 
       Isabelle_System.copy_dir(hol_import_dir + offline_path, offline_dir, direct = true)
 
-      progress.bash("ocamlopt offline.ml -o offline",
+      progress.bash("ocamlc.opt offline.ml -o offline",
         cwd = offline_dir, echo = progress.verbose).check
       Isabelle_System.copy_file(offline_dir + offline_exe, platform_dir + offline_exe)
       File.set_executable(platform_dir + offline_exe)
