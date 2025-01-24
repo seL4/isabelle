@@ -231,6 +231,8 @@ Isabelle/jEdit rendering like this:
 * Code generator: command 'code_reserved' now uses parentheses for
 target languages, similar to 'code_printing'.
 
+* Theory HOL.List: overloaded power operator (^^) on type list.
+
 * Theory HOL-Library.Code_Target_Bit_Shifts implemented bit shifts on numeric
 types by target-language operations; this is also used by
 HOL-Library.Code_Target_Numeral.
