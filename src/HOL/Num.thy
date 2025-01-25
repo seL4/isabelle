@@ -15,69 +15,69 @@ datatype num = One | Bit0 num | Bit1 num
 
 text \<open>Increment function for type \<^typ>\<open>num\<close>\<close>
 
-primrec inc :: "num \<Rightarrow> num"
+primrec inc :: \<open>num \<Rightarrow> num\<close>
   where
-    "inc One = Bit0 One"
-  | "inc (Bit0 x) = Bit1 x"
-  | "inc (Bit1 x) = Bit0 (inc x)"
+    \<open>inc One = Bit0 One\<close>
+  | \<open>inc (Bit0 x) = Bit1 x\<close>
+  | \<open>inc (Bit1 x) = Bit0 (inc x)\<close>
 
 text \<open>Converting between type \<^typ>\<open>num\<close> and type \<^typ>\<open>nat\<close>\<close>
 
-primrec nat_of_num :: "num \<Rightarrow> nat"
+primrec nat_of_num :: \<open>num \<Rightarrow> nat\<close>
   where
-    "nat_of_num One = Suc 0"
-  | "nat_of_num (Bit0 x) = nat_of_num x + nat_of_num x"
-  | "nat_of_num (Bit1 x) = Suc (nat_of_num x + nat_of_num x)"
+    \<open>nat_of_num One = Suc 0\<close>
+  | \<open>nat_of_num (Bit0 x) = nat_of_num x + nat_of_num x\<close>
+  | \<open>nat_of_num (Bit1 x) = Suc (nat_of_num x + nat_of_num x)\<close>
 
-primrec num_of_nat :: "nat \<Rightarrow> num"
+primrec num_of_nat :: \<open>nat \<Rightarrow> num\<close>
   where
-    "num_of_nat 0 = One"
-  | "num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)"
+    \<open>num_of_nat 0 = One\<close>
+  | \<open>num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)\<close>
 
-lemma nat_of_num_pos: "0 < nat_of_num x"
+lemma nat_of_num_pos: \<open>0 < nat_of_num x\<close>
   by (induct x) simp_all
 
-lemma nat_of_num_neq_0: " nat_of_num x \<noteq> 0"
+lemma nat_of_num_neq_0: \<open> nat_of_num x \<noteq> 0\<close>
   by (induct x) simp_all
 
-lemma nat_of_num_inc: "nat_of_num (inc x) = Suc (nat_of_num x)"
+lemma nat_of_num_inc: \<open>nat_of_num (inc x) = Suc (nat_of_num x)\<close>
   by (induct x) simp_all
 
-lemma num_of_nat_double: "0 < n \<Longrightarrow> num_of_nat (n + n) = Bit0 (num_of_nat n)"
+lemma num_of_nat_double: \<open>0 < n \<Longrightarrow> num_of_nat (n + n) = Bit0 (num_of_nat n)\<close>
   by (induct n) simp_all
 
 text \<open>Type \<^typ>\<open>num\<close> is isomorphic to the strictly positive natural numbers.\<close>
 
-lemma nat_of_num_inverse: "num_of_nat (nat_of_num x) = x"
+lemma nat_of_num_inverse: \<open>num_of_nat (nat_of_num x) = x\<close>
   by (induct x) (simp_all add: num_of_nat_double nat_of_num_pos)
 
-lemma num_of_nat_inverse: "0 < n \<Longrightarrow> nat_of_num (num_of_nat n) = n"
+lemma num_of_nat_inverse: \<open>0 < n \<Longrightarrow> nat_of_num (num_of_nat n) = n\<close>
   by (induct n) (simp_all add: nat_of_num_inc)
 
-lemma num_eq_iff: "x = y \<longleftrightarrow> nat_of_num x = nat_of_num y"
+lemma num_eq_iff: \<open>x = y \<longleftrightarrow> nat_of_num x = nat_of_num y\<close>
   apply safe
   apply (drule arg_cong [where f=num_of_nat])
   apply (simp add: nat_of_num_inverse)
   done
 
 lemma num_induct [case_names One inc]:
-  fixes P :: "num \<Rightarrow> bool"
-  assumes One: "P One"
-    and inc: "\<And>x. P x \<Longrightarrow> P (inc x)"
-  shows "P x"
+  fixes P :: \<open>num \<Rightarrow> bool\<close>
+  assumes One: \<open>P One\<close>
+    and inc: \<open>\<And>x. P x \<Longrightarrow> P (inc x)\<close>
+  shows \<open>P x\<close>
 proof -
-  obtain n where n: "Suc n = nat_of_num x"
-    by (cases "nat_of_num x") (simp_all add: nat_of_num_neq_0)
-  have "P (num_of_nat (Suc n))"
+  obtain n where n: \<open>Suc n = nat_of_num x\<close>
+    by (cases \<open>nat_of_num x\<close>) (simp_all add: nat_of_num_neq_0)
+  have \<open>P (num_of_nat (Suc n))\<close>
   proof (induct n)
     case 0
     from One show ?case by simp
   next
     case (Suc n)
-    then have "P (inc (num_of_nat (Suc n)))" by (rule inc)
-    then show "P (num_of_nat (Suc (Suc n)))" by simp
+    then have \<open>P (inc (num_of_nat (Suc n)))\<close> by (rule inc)
+    then show \<open>P (num_of_nat (Suc (Suc n)))\<close> by simp
   qed
-  with n show "P x"
+  with n show \<open>P x\<close>
     by (simp add: nat_of_num_inverse)
 qed
 
@@ -90,155 +90,155 @@ text \<open>
 
 subsection \<open>Numeral operations\<close>
 
-instantiation num :: "{plus,times,linorder}"
+instantiation num :: \<open>{plus,times,linorder}\<close>
 begin
 
-definition [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
+definition [code del]: \<open>m + n = num_of_nat (nat_of_num m + nat_of_num n)\<close>
 
-definition [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
+definition [code del]: \<open>m * n = num_of_nat (nat_of_num m * nat_of_num n)\<close>
 
-definition [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
+definition [code del]: \<open>m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n\<close>
 
-definition [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
+definition [code del]: \<open>m < n \<longleftrightarrow> nat_of_num m < nat_of_num n\<close>
 
 instance
   by standard (auto simp add: less_num_def less_eq_num_def num_eq_iff)
 
 end
 
-lemma nat_of_num_add: "nat_of_num (x + y) = nat_of_num x + nat_of_num y"
+lemma nat_of_num_add: \<open>nat_of_num (x + y) = nat_of_num x + nat_of_num y\<close>
   unfolding plus_num_def
   by (intro num_of_nat_inverse add_pos_pos nat_of_num_pos)
 
-lemma nat_of_num_mult: "nat_of_num (x * y) = nat_of_num x * nat_of_num y"
+lemma nat_of_num_mult: \<open>nat_of_num (x * y) = nat_of_num x * nat_of_num y\<close>
   unfolding times_num_def
   by (intro num_of_nat_inverse mult_pos_pos nat_of_num_pos)
 
 lemma add_num_simps [simp, code]:
-  "One + One = Bit0 One"
-  "One + Bit0 n = Bit1 n"
-  "One + Bit1 n = Bit0 (n + One)"
-  "Bit0 m + One = Bit1 m"
-  "Bit0 m + Bit0 n = Bit0 (m + n)"
-  "Bit0 m + Bit1 n = Bit1 (m + n)"
-  "Bit1 m + One = Bit0 (m + One)"
-  "Bit1 m + Bit0 n = Bit1 (m + n)"
-  "Bit1 m + Bit1 n = Bit0 (m + n + One)"
+  \<open>One + One = Bit0 One\<close>
+  \<open>One + Bit0 n = Bit1 n\<close>
+  \<open>One + Bit1 n = Bit0 (n + One)\<close>
+  \<open>Bit0 m + One = Bit1 m\<close>
+  \<open>Bit0 m + Bit0 n = Bit0 (m + n)\<close>
+  \<open>Bit0 m + Bit1 n = Bit1 (m + n)\<close>
+  \<open>Bit1 m + One = Bit0 (m + One)\<close>
+  \<open>Bit1 m + Bit0 n = Bit1 (m + n)\<close>
+  \<open>Bit1 m + Bit1 n = Bit0 (m + n + One)\<close>
   by (simp_all add: num_eq_iff nat_of_num_add)
 
 lemma mult_num_simps [simp, code]:
-  "m * One = m"
-  "One * n = n"
-  "Bit0 m * Bit0 n = Bit0 (Bit0 (m * n))"
-  "Bit0 m * Bit1 n = Bit0 (m * Bit1 n)"
-  "Bit1 m * Bit0 n = Bit0 (Bit1 m * n)"
-  "Bit1 m * Bit1 n = Bit1 (m + n + Bit0 (m * n))"
+  \<open>m * One = m\<close>
+  \<open>One * n = n\<close>
+  \<open>Bit0 m * Bit0 n = Bit0 (Bit0 (m * n))\<close>
+  \<open>Bit0 m * Bit1 n = Bit0 (m * Bit1 n)\<close>
+  \<open>Bit1 m * Bit0 n = Bit0 (Bit1 m * n)\<close>
+  \<open>Bit1 m * Bit1 n = Bit1 (m + n + Bit0 (m * n))\<close>
   by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult distrib_right distrib_left)
 
 lemma eq_num_simps:
-  "One = One \<longleftrightarrow> True"
-  "One = Bit0 n \<longleftrightarrow> False"
-  "One = Bit1 n \<longleftrightarrow> False"
-  "Bit0 m = One \<longleftrightarrow> False"
-  "Bit1 m = One \<longleftrightarrow> False"
-  "Bit0 m = Bit0 n \<longleftrightarrow> m = n"
-  "Bit0 m = Bit1 n \<longleftrightarrow> False"
-  "Bit1 m = Bit0 n \<longleftrightarrow> False"
-  "Bit1 m = Bit1 n \<longleftrightarrow> m = n"
+  \<open>One = One \<longleftrightarrow> True\<close>
+  \<open>One = Bit0 n \<longleftrightarrow> False\<close>
+  \<open>One = Bit1 n \<longleftrightarrow> False\<close>
+  \<open>Bit0 m = One \<longleftrightarrow> False\<close>
+  \<open>Bit1 m = One \<longleftrightarrow> False\<close>
+  \<open>Bit0 m = Bit0 n \<longleftrightarrow> m = n\<close>
+  \<open>Bit0 m = Bit1 n \<longleftrightarrow> False\<close>
+  \<open>Bit1 m = Bit0 n \<longleftrightarrow> False\<close>
+  \<open>Bit1 m = Bit1 n \<longleftrightarrow> m = n\<close>
   by simp_all
 
 lemma le_num_simps [simp, code]:
-  "One \<le> n \<longleftrightarrow> True"
-  "Bit0 m \<le> One \<longleftrightarrow> False"
-  "Bit1 m \<le> One \<longleftrightarrow> False"
-  "Bit0 m \<le> Bit0 n \<longleftrightarrow> m \<le> n"
-  "Bit0 m \<le> Bit1 n \<longleftrightarrow> m \<le> n"
-  "Bit1 m \<le> Bit1 n \<longleftrightarrow> m \<le> n"
-  "Bit1 m \<le> Bit0 n \<longleftrightarrow> m < n"
+  \<open>One \<le> n \<longleftrightarrow> True\<close>
+  \<open>Bit0 m \<le> One \<longleftrightarrow> False\<close>
+  \<open>Bit1 m \<le> One \<longleftrightarrow> False\<close>
+  \<open>Bit0 m \<le> Bit0 n \<longleftrightarrow> m \<le> n\<close>
+  \<open>Bit0 m \<le> Bit1 n \<longleftrightarrow> m \<le> n\<close>
+  \<open>Bit1 m \<le> Bit1 n \<longleftrightarrow> m \<le> n\<close>
+  \<open>Bit1 m \<le> Bit0 n \<longleftrightarrow> m < n\<close>
   using nat_of_num_pos [of n] nat_of_num_pos [of m]
   by (auto simp add: less_eq_num_def less_num_def)
 
 lemma less_num_simps [simp, code]:
-  "m < One \<longleftrightarrow> False"
-  "One < Bit0 n \<longleftrightarrow> True"
-  "One < Bit1 n \<longleftrightarrow> True"
-  "Bit0 m < Bit0 n \<longleftrightarrow> m < n"
-  "Bit0 m < Bit1 n \<longleftrightarrow> m \<le> n"
-  "Bit1 m < Bit1 n \<longleftrightarrow> m < n"
-  "Bit1 m < Bit0 n \<longleftrightarrow> m < n"
+  \<open>m < One \<longleftrightarrow> False\<close>
+  \<open>One < Bit0 n \<longleftrightarrow> True\<close>
+  \<open>One < Bit1 n \<longleftrightarrow> True\<close>
+  \<open>Bit0 m < Bit0 n \<longleftrightarrow> m < n\<close>
+  \<open>Bit0 m < Bit1 n \<longleftrightarrow> m \<le> n\<close>
+  \<open>Bit1 m < Bit1 n \<longleftrightarrow> m < n\<close>
+  \<open>Bit1 m < Bit0 n \<longleftrightarrow> m < n\<close>
   using nat_of_num_pos [of n] nat_of_num_pos [of m]
   by (auto simp add: less_eq_num_def less_num_def)
 
-lemma le_num_One_iff: "x \<le> num.One \<longleftrightarrow> x = num.One"
+lemma le_num_One_iff: \<open>x \<le> One \<longleftrightarrow> x = One\<close>
   by (simp add: antisym_conv)
 
 text \<open>Rules using \<open>One\<close> and \<open>inc\<close> as constructors.\<close>
 
-lemma add_One: "x + One = inc x"
+lemma add_One: \<open>x + One = inc x\<close>
   by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
 
-lemma add_One_commute: "One + n = n + One"
+lemma add_One_commute: \<open>One + n = n + One\<close>
   by (induct n) simp_all
 
-lemma add_inc: "x + inc y = inc (x + y)"
+lemma add_inc: \<open>x + inc y = inc (x + y)\<close>
   by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
 
-lemma mult_inc: "x * inc y = x * y + x"
+lemma mult_inc: \<open>x * inc y = x * y + x\<close>
   by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
 
 text \<open>The \<^const>\<open>num_of_nat\<close> conversion.\<close>
 
-lemma num_of_nat_One: "n \<le> 1 \<Longrightarrow> num_of_nat n = One"
+lemma num_of_nat_One: \<open>n \<le> 1 \<Longrightarrow> num_of_nat n = One\<close>
   by (cases n) simp_all
 
 lemma num_of_nat_plus_distrib:
-  "0 < m \<Longrightarrow> 0 < n \<Longrightarrow> num_of_nat (m + n) = num_of_nat m + num_of_nat n"
+  \<open>0 < m \<Longrightarrow> 0 < n \<Longrightarrow> num_of_nat (m + n) = num_of_nat m + num_of_nat n\<close>
   by (induct n) (auto simp add: add_One add_One_commute add_inc)
 
 text \<open>A double-and-decrement function.\<close>
 
-primrec BitM :: "num \<Rightarrow> num"
+primrec BitM :: \<open>num \<Rightarrow> num\<close>
   where
-    "BitM One = One"
-  | "BitM (Bit0 n) = Bit1 (BitM n)"
-  | "BitM (Bit1 n) = Bit1 (Bit0 n)"
+    \<open>BitM One = One\<close>
+  | \<open>BitM (Bit0 n) = Bit1 (BitM n)\<close>
+  | \<open>BitM (Bit1 n) = Bit1 (Bit0 n)\<close>
 
-lemma BitM_plus_one: "BitM n + One = Bit0 n"
+lemma BitM_plus_one: \<open>BitM n + One = Bit0 n\<close>
   by (induct n) simp_all
 
-lemma one_plus_BitM: "One + BitM n = Bit0 n"
+lemma one_plus_BitM: \<open>One + BitM n = Bit0 n\<close>
   unfolding add_One_commute BitM_plus_one ..
 
 lemma BitM_inc_eq:
-  \<open>Num.BitM (Num.inc n) = Num.Bit1 n\<close>
+  \<open>BitM (inc n) = Bit1 n\<close>
   by (induction n) simp_all
 
 lemma inc_BitM_eq:
-  \<open>Num.inc (Num.BitM n) = num.Bit0 n\<close>
+  \<open>inc (BitM n) = Bit0 n\<close>
   by (simp add: BitM_plus_one[symmetric] add_One)
 
 text \<open>Squaring and exponentiation.\<close>
 
-primrec sqr :: "num \<Rightarrow> num"
+primrec sqr :: \<open>num \<Rightarrow> num\<close>
   where
-    "sqr One = One"
-  | "sqr (Bit0 n) = Bit0 (Bit0 (sqr n))"
-  | "sqr (Bit1 n) = Bit1 (Bit0 (sqr n + n))"
+    \<open>sqr One = One\<close>
+  | \<open>sqr (Bit0 n) = Bit0 (Bit0 (sqr n))\<close>
+  | \<open>sqr (Bit1 n) = Bit1 (Bit0 (sqr n + n))\<close>
 
-primrec pow :: "num \<Rightarrow> num \<Rightarrow> num"
+primrec pow :: \<open>num \<Rightarrow> num \<Rightarrow> num\<close>
   where
-    "pow x One = x"
-  | "pow x (Bit0 y) = sqr (pow x y)"
-  | "pow x (Bit1 y) = sqr (pow x y) * x"
+    \<open>pow x One = x\<close>
+  | \<open>pow x (Bit0 y) = sqr (pow x y)\<close>
+  | \<open>pow x (Bit1 y) = sqr (pow x y) * x\<close>
 
-lemma nat_of_num_sqr: "nat_of_num (sqr x) = nat_of_num x * nat_of_num x"
+lemma nat_of_num_sqr: \<open>nat_of_num (sqr x) = nat_of_num x * nat_of_num x\<close>
   by (induct x) (simp_all add: algebra_simps nat_of_num_add)
 
-lemma sqr_conv_mult: "sqr x = x * x"
+lemma sqr_conv_mult: \<open>sqr x = x * x\<close>
   by (simp add: num_eq_iff nat_of_num_sqr nat_of_num_mult)
 
 lemma num_double [simp]:
-  "num.Bit0 num.One * n = num.Bit0 n"
+  \<open>Bit0 num.One * n = Bit0 n\<close>
   by (simp add: num_eq_iff nat_of_num_mult)
 
 
@@ -252,19 +252,19 @@ text \<open>
 class numeral = one + semigroup_add
 begin
 
-primrec numeral :: "num \<Rightarrow> 'a"
+primrec numeral :: \<open>num \<Rightarrow> 'a\<close>
   where
-    numeral_One: "numeral One = 1"
-  | numeral_Bit0: "numeral (Bit0 n) = numeral n + numeral n"
-  | numeral_Bit1: "numeral (Bit1 n) = numeral n + numeral n + 1"
+    numeral_One: \<open>numeral One = 1\<close>
+  | numeral_Bit0: \<open>numeral (Bit0 n) = numeral n + numeral n\<close>
+  | numeral_Bit1: \<open>numeral (Bit1 n) = numeral n + numeral n + 1\<close>
 
 lemma numeral_code [code]:
-  "numeral One = 1"
-  "numeral (Bit0 n) = (let m = numeral n in m + m)"
-  "numeral (Bit1 n) = (let m = numeral n in m + m + 1)"
+  \<open>numeral One = 1\<close>
+  \<open>numeral (Bit0 n) = (let m = numeral n in m + m)\<close>
+  \<open>numeral (Bit1 n) = (let m = numeral n in m + m + 1)\<close>
   by (simp_all add: Let_def)
 
-lemma one_plus_numeral_commute: "1 + numeral x = numeral x + 1"
+lemma one_plus_numeral_commute: \<open>1 + numeral x = numeral x + 1\<close>
 proof (induct x)
   case One
   then show ?case by simp
@@ -276,7 +276,7 @@ next
   then show ?case by (simp add: add.assoc [symmetric]) (simp add: add.assoc)
 qed
 
-lemma numeral_inc: "numeral (inc x) = numeral x + 1"
+lemma numeral_inc: \<open>numeral (inc x) = numeral x + 1\<close>
 proof (induct x)
   case One
   then show ?case by simp
@@ -285,7 +285,7 @@ next
   then show ?case by simp
 next
   case (Bit1 x)
-  have "numeral x + (1 + numeral x) + 1 = numeral x + (numeral x + 1) + 1"
+  have \<open>numeral x + (1 + numeral x) + 1 = numeral x + (numeral x + 1) + 1\<close>
     by (simp only: one_plus_numeral_commute)
   with Bit1 show ?case
     by (simp add: add.assoc)
@@ -293,7 +293,7 @@ qed
 
 declare numeral.simps [simp del]
 
-abbreviation "Numeral1 \<equiv> numeral One"
+abbreviation \<open>Numeral1 \<equiv> numeral One\<close>
 
 declare numeral_One [code_post]
 
@@ -302,7 +302,7 @@ end
 text \<open>Numeral syntax.\<close>
 
 syntax
-  "_Numeral" :: "num_const \<Rightarrow> 'a"  (\<open>(\<open>open_block notation=\<open>literal number\<close>\<close>_)\<close>)
+  "_Numeral" :: \<open>num_const \<Rightarrow> 'a\<close>  (\<open>(\<open>open_block notation=\<open>literal number\<close>\<close>_)\<close>)
 
 ML_file \<open>Tools/numeral.ML\<close>
 
@@ -349,20 +349,20 @@ subsubsection \<open>Structures with addition: class \<open>numeral\<close>\<clo
 context numeral
 begin
 
-lemma numeral_add: "numeral (m + n) = numeral m + numeral n"
+lemma numeral_add: \<open>numeral (m + n) = numeral m + numeral n\<close>
   by (induct n rule: num_induct)
     (simp_all only: numeral_One add_One add_inc numeral_inc add.assoc)
 
-lemma numeral_plus_numeral: "numeral m + numeral n = numeral (m + n)"
+lemma numeral_plus_numeral: \<open>numeral m + numeral n = numeral (m + n)\<close>
   by (rule numeral_add [symmetric])
 
-lemma numeral_plus_one: "numeral n + 1 = numeral (n + One)"
+lemma numeral_plus_one: \<open>numeral n + 1 = numeral (n + One)\<close>
   using numeral_add [of n One] by (simp add: numeral_One)
 
-lemma one_plus_numeral: "1 + numeral n = numeral (One + n)"
+lemma one_plus_numeral: \<open>1 + numeral n = numeral (One + n)\<close>
   using numeral_add [of One n] by (simp add: numeral_One)
 
-lemma one_add_one: "1 + 1 = 2"
+lemma one_add_one: \<open>1 + 1 = 2\<close>
   using numeral_add [of One One] by (simp add: numeral_One)
 
 lemmas add_numeral_special =
@@ -376,21 +376,21 @@ subsubsection \<open>Structures with negation: class \<open>neg_numeral\<close>\
 class neg_numeral = numeral + group_add
 begin
 
-lemma uminus_numeral_One: "- Numeral1 = - 1"
+lemma uminus_numeral_One: \<open>- Numeral1 = - 1\<close>
   by (simp add: numeral_One)
 
 text \<open>Numerals form an abelian subgroup.\<close>
 
-inductive is_num :: "'a \<Rightarrow> bool"
+inductive is_num :: \<open>'a \<Rightarrow> bool\<close>
   where
-    "is_num 1"
-  | "is_num x \<Longrightarrow> is_num (- x)"
-  | "is_num x \<Longrightarrow> is_num y \<Longrightarrow> is_num (x + y)"
+    \<open>is_num 1\<close>
+  | \<open>is_num x \<Longrightarrow> is_num (- x)\<close>
+  | \<open>is_num x \<Longrightarrow> is_num y \<Longrightarrow> is_num (x + y)\<close>
 
-lemma is_num_numeral: "is_num (numeral k)"
+lemma is_num_numeral: \<open>is_num (numeral k)\<close>
   by (induct k) (simp_all add: numeral.simps is_num.intros)
 
-lemma is_num_add_commute: "is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + y = y + x"
+lemma is_num_add_commute: \<open>is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + y = y + x\<close>
 proof(induction x rule: is_num.induct)
   case 1
   then show ?case
@@ -399,36 +399,36 @@ proof(induction x rule: is_num.induct)
     then show ?case by simp
   next
     case (2 y)
-    then have "y + (1 + - y) + y = y + (- y + 1) + y"
+    then have \<open>y + (1 + - y) + y = y + (- y + 1) + y\<close>
       by (simp add: add.assoc)
-    then have "y + (1 + - y) = y + (- y + 1)"
+    then have \<open>y + (1 + - y) = y + (- y + 1)\<close>
       by simp
     then show ?case
       by (rule add_left_imp_eq[of y])
   next
     case (3 x y)
-    then have "1 + (x + y) = x + 1 + y"
+    then have \<open>1 + (x + y) = x + 1 + y\<close>
       by (simp add: add.assoc [symmetric])
     then show ?case using 3
       by (simp add: add.assoc)
   qed
 next
   case (2 x)
-  then have "x + (- x + y) + x = x + (y + - x) + x"
+  then have \<open>x + (- x + y) + x = x + (y + - x) + x\<close>
     by (simp add: add.assoc)
-  then have "x + (- x + y) = x + (y + - x)"
+  then have \<open>x + (- x + y) = x + (y + - x)\<close>
     by simp
   then show ?case
     by (rule add_left_imp_eq[of x])
 next
   case (3 x z)
-  moreover have "x + (y + z) = (x + y) + z"
+  moreover have \<open>x + (y + z) = (x + y) + z\<close>
     by (simp add: add.assoc[symmetric])
   ultimately show ?case 
     by (simp add: add.assoc)
 qed
 
-lemma is_num_add_left_commute: "is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + (y + z) = y + (x + z)"
+lemma is_num_add_left_commute: \<open>is_num x \<Longrightarrow> is_num y \<Longrightarrow> x + (y + z) = y + (x + z)\<close>
   by (simp only: add.assoc [symmetric] is_num_add_commute)
 
 lemmas is_num_normalize =
@@ -436,104 +436,104 @@ lemmas is_num_normalize =
   is_num.intros is_num_numeral
   minus_add
 
-definition dbl :: "'a \<Rightarrow> 'a"
-  where "dbl x = x + x"
+definition dbl :: \<open>'a \<Rightarrow> 'a\<close>
+  where \<open>dbl x = x + x\<close>
 
-definition dbl_inc :: "'a \<Rightarrow> 'a"
-  where "dbl_inc x = x + x + 1"
+definition dbl_inc :: \<open>'a \<Rightarrow> 'a\<close>
+  where \<open>dbl_inc x = x + x + 1\<close>
 
-definition dbl_dec :: "'a \<Rightarrow> 'a"
-  where "dbl_dec x = x + x - 1"
+definition dbl_dec :: \<open>'a \<Rightarrow> 'a\<close>
+  where \<open>dbl_dec x = x + x - 1\<close>
 
-definition sub :: "num \<Rightarrow> num \<Rightarrow> 'a"
-  where "sub k l = numeral k - numeral l"
+definition sub :: \<open>num \<Rightarrow> num \<Rightarrow> 'a\<close>
+  where \<open>sub k l = numeral k - numeral l\<close>
 
-lemma numeral_BitM: "numeral (BitM n) = numeral (Bit0 n) - 1"
+lemma numeral_BitM: \<open>numeral (BitM n) = numeral (Bit0 n) - 1\<close>
   by (simp only: BitM_plus_one [symmetric] numeral_add numeral_One eq_diff_eq)
 
 lemma sub_inc_One_eq:
-  \<open>Num.sub (Num.inc n) num.One = numeral n\<close>
+  \<open>sub (inc n) num.One = numeral n\<close>
   by (simp_all add: sub_def diff_eq_eq numeral_inc numeral.numeral_One)
 
 lemma dbl_simps [simp]:
-  "dbl (- numeral k) = - dbl (numeral k)"
-  "dbl 0 = 0"
-  "dbl 1 = 2"
-  "dbl (- 1) = - 2"
-  "dbl (numeral k) = numeral (Bit0 k)"
+  \<open>dbl (- numeral k) = - dbl (numeral k)\<close>
+  \<open>dbl 0 = 0\<close>
+  \<open>dbl 1 = 2\<close>
+  \<open>dbl (- 1) = - 2\<close>
+  \<open>dbl (numeral k) = numeral (Bit0 k)\<close>
   by (simp_all add: dbl_def numeral.simps minus_add)
 
 lemma dbl_inc_simps [simp]:
-  "dbl_inc (- numeral k) = - dbl_dec (numeral k)"
-  "dbl_inc 0 = 1"
-  "dbl_inc 1 = 3"
-  "dbl_inc (- 1) = - 1"
-  "dbl_inc (numeral k) = numeral (Bit1 k)"
+  \<open>dbl_inc (- numeral k) = - dbl_dec (numeral k)\<close>
+  \<open>dbl_inc 0 = 1\<close>
+  \<open>dbl_inc 1 = 3\<close>
+  \<open>dbl_inc (- 1) = - 1\<close>
+  \<open>dbl_inc (numeral k) = numeral (Bit1 k)\<close>
   by (simp_all add: dbl_inc_def dbl_dec_def numeral.simps numeral_BitM is_num_normalize algebra_simps
       del: add_uminus_conv_diff)
 
 lemma dbl_dec_simps [simp]:
-  "dbl_dec (- numeral k) = - dbl_inc (numeral k)"
-  "dbl_dec 0 = - 1"
-  "dbl_dec 1 = 1"
-  "dbl_dec (- 1) = - 3"
-  "dbl_dec (numeral k) = numeral (BitM k)"
+  \<open>dbl_dec (- numeral k) = - dbl_inc (numeral k)\<close>
+  \<open>dbl_dec 0 = - 1\<close>
+  \<open>dbl_dec 1 = 1\<close>
+  \<open>dbl_dec (- 1) = - 3\<close>
+  \<open>dbl_dec (numeral k) = numeral (BitM k)\<close>
   by (simp_all add: dbl_dec_def dbl_inc_def numeral.simps numeral_BitM is_num_normalize)
 
 lemma sub_num_simps [simp]:
-  "sub One One = 0"
-  "sub One (Bit0 l) = - numeral (BitM l)"
-  "sub One (Bit1 l) = - numeral (Bit0 l)"
-  "sub (Bit0 k) One = numeral (BitM k)"
-  "sub (Bit1 k) One = numeral (Bit0 k)"
-  "sub (Bit0 k) (Bit0 l) = dbl (sub k l)"
-  "sub (Bit0 k) (Bit1 l) = dbl_dec (sub k l)"
-  "sub (Bit1 k) (Bit0 l) = dbl_inc (sub k l)"
-  "sub (Bit1 k) (Bit1 l) = dbl (sub k l)"
+  \<open>sub One One = 0\<close>
+  \<open>sub One (Bit0 l) = - numeral (BitM l)\<close>
+  \<open>sub One (Bit1 l) = - numeral (Bit0 l)\<close>
+  \<open>sub (Bit0 k) One = numeral (BitM k)\<close>
+  \<open>sub (Bit1 k) One = numeral (Bit0 k)\<close>
+  \<open>sub (Bit0 k) (Bit0 l) = dbl (sub k l)\<close>
+  \<open>sub (Bit0 k) (Bit1 l) = dbl_dec (sub k l)\<close>
+  \<open>sub (Bit1 k) (Bit0 l) = dbl_inc (sub k l)\<close>
+  \<open>sub (Bit1 k) (Bit1 l) = dbl (sub k l)\<close>
   by (simp_all add: dbl_def dbl_dec_def dbl_inc_def sub_def numeral.simps
     numeral_BitM is_num_normalize del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma add_neg_numeral_simps:
-  "numeral m + - numeral n = sub m n"
-  "- numeral m + numeral n = sub n m"
-  "- numeral m + - numeral n = - (numeral m + numeral n)"
+  \<open>numeral m + - numeral n = sub m n\<close>
+  \<open>- numeral m + numeral n = sub n m\<close>
+  \<open>- numeral m + - numeral n = - (numeral m + numeral n)\<close>
   by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize
       del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma add_neg_numeral_special:
-  "1 + - numeral m = sub One m"
-  "- numeral m + 1 = sub One m"
-  "numeral m + - 1 = sub m One"
-  "- 1 + numeral n = sub n One"
-  "- 1 + - numeral n = - numeral (inc n)"
-  "- numeral m + - 1 = - numeral (inc m)"
-  "1 + - 1 = 0"
-  "- 1 + 1 = 0"
-  "- 1 + - 1 = - 2"
+  \<open>1 + - numeral m = sub One m\<close>
+  \<open>- numeral m + 1 = sub One m\<close>
+  \<open>numeral m + - 1 = sub m One\<close>
+  \<open>- 1 + numeral n = sub n One\<close>
+  \<open>- 1 + - numeral n = - numeral (inc n)\<close>
+  \<open>- numeral m + - 1 = - numeral (inc m)\<close>
+  \<open>1 + - 1 = 0\<close>
+  \<open>- 1 + 1 = 0\<close>
+  \<open>- 1 + - 1 = - 2\<close>
   by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize right_minus numeral_inc
       del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma diff_numeral_simps:
-  "numeral m - numeral n = sub m n"
-  "numeral m - - numeral n = numeral (m + n)"
-  "- numeral m - numeral n = - numeral (m + n)"
-  "- numeral m - - numeral n = sub n m"
+  \<open>numeral m - numeral n = sub m n\<close>
+  \<open>numeral m - - numeral n = numeral (m + n)\<close>
+  \<open>- numeral m - numeral n = - numeral (m + n)\<close>
+  \<open>- numeral m - - numeral n = sub n m\<close>
   by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize
       del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
 lemma diff_numeral_special:
-  "1 - numeral n = sub One n"
-  "numeral m - 1 = sub m One"
-  "1 - - numeral n = numeral (One + n)"
-  "- numeral m - 1 = - numeral (m + One)"
-  "- 1 - numeral n = - numeral (inc n)"
-  "numeral m - - 1 = numeral (inc m)"
-  "- 1 - - numeral n = sub n One"
-  "- numeral m - - 1 = sub One m"
-  "1 - 1 = 0"
-  "- 1 - 1 = - 2"
-  "1 - - 1 = 2"
-  "- 1 - - 1 = 0"
+  \<open>1 - numeral n = sub One n\<close>
+  \<open>numeral m - 1 = sub m One\<close>
+  \<open>1 - - numeral n = numeral (One + n)\<close>
+  \<open>- numeral m - 1 = - numeral (m + One)\<close>
+  \<open>- 1 - numeral n = - numeral (inc n)\<close>
+  \<open>numeral m - - 1 = numeral (inc m)\<close>
+  \<open>- 1 - - numeral n = sub n One\<close>
+  \<open>- numeral m - - 1 = sub One m\<close>
+  \<open>1 - 1 = 0\<close>
+  \<open>- 1 - 1 = - 2\<close>
+  \<open>1 - - 1 = 2\<close>
+  \<open>- 1 - - 1 = 0\<close>
   by (simp_all add: sub_def numeral_add numeral.simps is_num_normalize numeral_inc
       del: add_uminus_conv_diff add: diff_conv_add_uminus)
 
@@ -547,29 +547,29 @@ begin
 
 subclass numeral ..
 
-lemma numeral_mult: "numeral (m * n) = numeral m * numeral n"
+lemma numeral_mult: \<open>numeral (m * n) = numeral m * numeral n\<close>
   by (induct n rule: num_induct)
     (simp_all add: numeral_One mult_inc numeral_inc numeral_add distrib_left)
 
-lemma numeral_times_numeral: "numeral m * numeral n = numeral (m * n)"
+lemma numeral_times_numeral: \<open>numeral m * numeral n = numeral (m * n)\<close>
   by (rule numeral_mult [symmetric])
 
-lemma mult_2: "2 * z = z + z"
+lemma mult_2: \<open>2 * z = z + z\<close>
   by (simp add: one_add_one [symmetric] distrib_right)
 
-lemma mult_2_right: "z * 2 = z + z"
+lemma mult_2_right: \<open>z * 2 = z + z\<close>
   by (simp add: one_add_one [symmetric] distrib_left)
 
 lemma left_add_twice:
-  "a + (a + b) = 2 * a + b"
+  \<open>a + (a + b) = 2 * a + b\<close>
   by (simp add: mult_2 ac_simps)
 
 lemma numeral_Bit0_eq_double:
-  \<open>numeral (num.Bit0 n) = 2 * numeral n\<close>
+  \<open>numeral (Bit0 n) = 2 * numeral n\<close>
   by (simp add: mult_2) (simp add: numeral_Bit0)
 
 lemma numeral_Bit1_eq_inc_double:
-  \<open>numeral (num.Bit1 n) = 2 * numeral n + 1\<close>
+  \<open>numeral (Bit1 n) = 2 * numeral n + 1\<close>
   by (simp add: mult_2) (simp add: numeral_Bit1)
 
 end
@@ -582,24 +582,24 @@ begin
 
 subclass semiring_numeral ..
 
-lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
+lemma of_nat_numeral [simp]: \<open>of_nat (numeral n) = numeral n\<close>
   by (induct n) (simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
 end
 
-lemma nat_of_num_numeral [code_abbrev]: "nat_of_num = numeral"
+lemma nat_of_num_numeral [code_abbrev]: \<open>nat_of_num = numeral\<close>
 proof
   fix n
-  have "numeral n = nat_of_num n"
+  have \<open>numeral n = nat_of_num n\<close>
     by (induct n) (simp_all add: numeral.simps)
-  then show "nat_of_num n = numeral n"
+  then show \<open>nat_of_num n = numeral n\<close>
     by simp
 qed
 
 lemma nat_of_num_code [code]:
-  "nat_of_num One = 1"
-  "nat_of_num (Bit0 n) = (let m = nat_of_num n in m + m)"
-  "nat_of_num (Bit1 n) = (let m = nat_of_num n in Suc (m + m))"
+  \<open>nat_of_num One = 1\<close>
+  \<open>nat_of_num (Bit0 n) = (let m = nat_of_num n in m + m)\<close>
+  \<open>nat_of_num (Bit1 n) = (let m = nat_of_num n in Suc (m + m))\<close>
   by (simp_all add: Let_def)
 
 
@@ -608,20 +608,20 @@ subsubsection \<open>Equality: class \<open>semiring_char_0\<close>\<close>
 context semiring_char_0
 begin
 
-lemma numeral_eq_iff: "numeral m = numeral n \<longleftrightarrow> m = n"
+lemma numeral_eq_iff: \<open>numeral m = numeral n \<longleftrightarrow> m = n\<close>
   by (simp only: of_nat_numeral [symmetric] nat_of_num_numeral [symmetric]
     of_nat_eq_iff num_eq_iff)
 
-lemma numeral_eq_one_iff: "numeral n = 1 \<longleftrightarrow> n = One"
+lemma numeral_eq_one_iff: \<open>numeral n = 1 \<longleftrightarrow> n = One\<close>
   by (rule numeral_eq_iff [of n One, unfolded numeral_One])
 
-lemma one_eq_numeral_iff: "1 = numeral n \<longleftrightarrow> One = n"
+lemma one_eq_numeral_iff: \<open>1 = numeral n \<longleftrightarrow> One = n\<close>
   by (rule numeral_eq_iff [of One n, unfolded numeral_One])
 
-lemma numeral_neq_zero: "numeral n \<noteq> 0"
+lemma numeral_neq_zero: \<open>numeral n \<noteq> 0\<close>
   by (simp add: of_nat_numeral [symmetric] nat_of_num_numeral [symmetric] nat_of_num_pos)
 
-lemma zero_neq_numeral: "0 \<noteq> numeral n"
+lemma zero_neq_numeral: \<open>0 \<noteq> numeral n\<close>
   unfolding eq_commute [of 0] by (rule numeral_neq_zero)
 
 lemmas eq_numeral_simps [simp] =
@@ -639,70 +639,70 @@ subsubsection \<open>Comparisons: class \<open>linordered_nonzero_semiring\<clos
 context linordered_nonzero_semiring
 begin
 
-lemma numeral_le_iff: "numeral m \<le> numeral n \<longleftrightarrow> m \<le> n"
+lemma numeral_le_iff: \<open>numeral m \<le> numeral n \<longleftrightarrow> m \<le> n\<close>
 proof -
-  have "of_nat (numeral m) \<le> of_nat (numeral n) \<longleftrightarrow> m \<le> n"
+  have \<open>of_nat (numeral m) \<le> of_nat (numeral n) \<longleftrightarrow> m \<le> n\<close>
     by (simp only: less_eq_num_def nat_of_num_numeral of_nat_le_iff)
   then show ?thesis by simp
 qed
 
-lemma one_le_numeral: "1 \<le> numeral n"
-  using numeral_le_iff [of num.One n] by (simp add: numeral_One)
+lemma one_le_numeral: \<open>1 \<le> numeral n\<close>
+  using numeral_le_iff [of One n] by (simp add: numeral_One)
 
-lemma numeral_le_one_iff: "numeral n \<le> 1 \<longleftrightarrow> n \<le> num.One"
-  using numeral_le_iff [of n num.One] by (simp add: numeral_One)
+lemma numeral_le_one_iff: \<open>numeral n \<le> 1 \<longleftrightarrow> n \<le> One\<close>
+  using numeral_le_iff [of n One] by (simp add: numeral_One)
 
-lemma numeral_less_iff: "numeral m < numeral n \<longleftrightarrow> m < n"
+lemma numeral_less_iff: \<open>numeral m < numeral n \<longleftrightarrow> m < n\<close>
 proof -
-  have "of_nat (numeral m) < of_nat (numeral n) \<longleftrightarrow> m < n"
+  have \<open>of_nat (numeral m) < of_nat (numeral n) \<longleftrightarrow> m < n\<close>
     unfolding less_num_def nat_of_num_numeral of_nat_less_iff ..
   then show ?thesis by simp
 qed
 
-lemma not_numeral_less_one: "\<not> numeral n < 1"
-  using numeral_less_iff [of n num.One] by (simp add: numeral_One)
+lemma not_numeral_less_one: \<open>\<not> numeral n < 1\<close>
+  using numeral_less_iff [of n One] by (simp add: numeral_One)
 
-lemma one_less_numeral_iff: "1 < numeral n \<longleftrightarrow> num.One < n"
-  using numeral_less_iff [of num.One n] by (simp add: numeral_One)
+lemma one_less_numeral_iff: \<open>1 < numeral n \<longleftrightarrow> One < n\<close>
+  using numeral_less_iff [of One n] by (simp add: numeral_One)
 
-lemma zero_le_numeral: "0 \<le> numeral n"
+lemma zero_le_numeral: \<open>0 \<le> numeral n\<close>
   using dual_order.trans one_le_numeral zero_le_one by blast
 
-lemma zero_less_numeral: "0 < numeral n"
+lemma zero_less_numeral: \<open>0 < numeral n\<close>
   using less_linear not_numeral_less_one order.strict_trans zero_less_one by blast
 
-lemma not_numeral_le_zero: "\<not> numeral n \<le> 0"
+lemma not_numeral_le_zero: \<open>\<not> numeral n \<le> 0\<close>
   by (simp add: not_le zero_less_numeral)
 
-lemma not_numeral_less_zero: "\<not> numeral n < 0"
+lemma not_numeral_less_zero: \<open>\<not> numeral n < 0\<close>
   by (simp add: not_less zero_le_numeral)
 
-lemma one_of_nat_le_iff [simp]: "1 \<le> of_nat k \<longleftrightarrow> 1 \<le> k"
+lemma one_of_nat_le_iff [simp]: \<open>1 \<le> of_nat k \<longleftrightarrow> 1 \<le> k\<close>
   using of_nat_le_iff [of 1] by simp
 
-lemma numeral_nat_le_iff [simp]: "numeral n \<le> of_nat k \<longleftrightarrow> numeral n \<le> k"
-  using of_nat_le_iff [of "numeral n"] by simp
+lemma numeral_nat_le_iff [simp]: \<open>numeral n \<le> of_nat k \<longleftrightarrow> numeral n \<le> k\<close>
+  using of_nat_le_iff [of \<open>numeral n\<close>] by simp
 
-lemma of_nat_le_1_iff [simp]: "of_nat k \<le> 1 \<longleftrightarrow> k \<le> 1"
+lemma of_nat_le_1_iff [simp]: \<open>of_nat k \<le> 1 \<longleftrightarrow> k \<le> 1\<close>
   using of_nat_le_iff [of _ 1] by simp
 
-lemma of_nat_le_numeral_iff [simp]: "of_nat k \<le> numeral n \<longleftrightarrow> k \<le> numeral n"
-  using of_nat_le_iff [of _ "numeral n"] by simp
+lemma of_nat_le_numeral_iff [simp]: \<open>of_nat k \<le> numeral n \<longleftrightarrow> k \<le> numeral n\<close>
+  using of_nat_le_iff [of _ \<open>numeral n\<close>] by simp
 
-lemma one_of_nat_less_iff [simp]: "1 < of_nat k \<longleftrightarrow> 1 < k"
+lemma one_of_nat_less_iff [simp]: \<open>1 < of_nat k \<longleftrightarrow> 1 < k\<close>
   using of_nat_less_iff [of 1] by simp
 
-lemma numeral_nat_less_iff [simp]: "numeral n < of_nat k \<longleftrightarrow> numeral n < k"
-  using of_nat_less_iff [of "numeral n"] by simp
+lemma numeral_nat_less_iff [simp]: \<open>numeral n < of_nat k \<longleftrightarrow> numeral n < k\<close>
+  using of_nat_less_iff [of \<open>numeral n\<close>] by simp
 
-lemma of_nat_less_1_iff [simp]: "of_nat k < 1 \<longleftrightarrow> k < 1"
+lemma of_nat_less_1_iff [simp]: \<open>of_nat k < 1 \<longleftrightarrow> k < 1\<close>
   using of_nat_less_iff [of _ 1] by simp
 
-lemma of_nat_less_numeral_iff [simp]: "of_nat k < numeral n \<longleftrightarrow> k < numeral n"
-  using of_nat_less_iff [of _ "numeral n"] by simp
+lemma of_nat_less_numeral_iff [simp]: \<open>of_nat k < numeral n \<longleftrightarrow> k < numeral n\<close>
+  using of_nat_less_iff [of _ \<open>numeral n\<close>] by simp
 
-lemma of_nat_eq_numeral_iff [simp]: "of_nat k = numeral n \<longleftrightarrow> k = numeral n"
-  using of_nat_eq_iff [of _ "numeral n"] by simp
+lemma of_nat_eq_numeral_iff [simp]: \<open>of_nat k = numeral n \<longleftrightarrow> k = numeral n\<close>
+  using of_nat_eq_iff [of _ \<open>numeral n\<close>] by simp
 
 lemmas le_numeral_extra =
   zero_le_one not_one_le_zero
@@ -727,27 +727,27 @@ lemmas less_numeral_simps [simp] =
   not_numeral_less_zero
 
 lemma min_0_1 [simp]:
-  fixes min' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  defines "min' \<equiv> min"
+  fixes min' :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  defines \<open>min' \<equiv> min\<close>
   shows
-    "min' 0 1 = 0"
-    "min' 1 0 = 0"
-    "min' 0 (numeral x) = 0"
-    "min' (numeral x) 0 = 0"
-    "min' 1 (numeral x) = 1"
-    "min' (numeral x) 1 = 1"
+    \<open>min' 0 1 = 0\<close>
+    \<open>min' 1 0 = 0\<close>
+    \<open>min' 0 (numeral x) = 0\<close>
+    \<open>min' (numeral x) 0 = 0\<close>
+    \<open>min' 1 (numeral x) = 1\<close>
+    \<open>min' (numeral x) 1 = 1\<close>
   by (simp_all add: min'_def min_def le_num_One_iff)
 
 lemma max_0_1 [simp]:
-  fixes max' :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-  defines "max' \<equiv> max"
+  fixes max' :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a\<close>
+  defines \<open>max' \<equiv> max\<close>
   shows
-    "max' 0 1 = 1"
-    "max' 1 0 = 1"
-    "max' 0 (numeral x) = numeral x"
-    "max' (numeral x) 0 = numeral x"
-    "max' 1 (numeral x) = numeral x"
-    "max' (numeral x) 1 = numeral x"
+    \<open>max' 0 1 = 1\<close>
+    \<open>max' 1 0 = 1\<close>
+    \<open>max' 0 (numeral x) = numeral x\<close>
+    \<open>max' (numeral x) 0 = numeral x\<close>
+    \<open>max' 1 (numeral x) = numeral x\<close>
+    \<open>max' (numeral x) 1 = numeral x\<close>
   by (simp_all add: max'_def max_def le_num_One_iff)
 
 end
@@ -755,16 +755,16 @@ end
 text \<open>Unfold \<open>min\<close> and \<open>max\<close> on numerals.\<close>
 
 lemmas max_number_of [simp] =
-  max_def [of "numeral u" "numeral v"]
-  max_def [of "numeral u" "- numeral v"]
-  max_def [of "- numeral u" "numeral v"]
-  max_def [of "- numeral u" "- numeral v"] for u v
+  max_def [of \<open>numeral u\<close> \<open>numeral v\<close>]
+  max_def [of \<open>numeral u\<close> \<open>- numeral v\<close>]
+  max_def [of \<open>- numeral u\<close> \<open>numeral v\<close>]
+  max_def [of \<open>- numeral u\<close> \<open>- numeral v\<close>] for u v
 
 lemmas min_number_of [simp] =
-  min_def [of "numeral u" "numeral v"]
-  min_def [of "numeral u" "- numeral v"]
-  min_def [of "- numeral u" "numeral v"]
-  min_def [of "- numeral u" "- numeral v"] for u v
+  min_def [of \<open>numeral u\<close> \<open>numeral v\<close>]
+  min_def [of \<open>numeral u\<close> \<open>- numeral v\<close>]
+  min_def [of \<open>- numeral u\<close> \<open>numeral v\<close>]
+  min_def [of \<open>- numeral u\<close> \<open>- numeral v\<close>] for u v
 
 
 subsubsection \<open>Multiplication and negation: class \<open>ring_1\<close>\<close>
@@ -775,15 +775,15 @@ begin
 subclass neg_numeral ..
 
 lemma mult_neg_numeral_simps:
-  "- numeral m * - numeral n = numeral (m * n)"
-  "- numeral m * numeral n = - numeral (m * n)"
-  "numeral m * - numeral n = - numeral (m * n)"
+  \<open>- numeral m * - numeral n = numeral (m * n)\<close>
+  \<open>- numeral m * numeral n = - numeral (m * n)\<close>
+  \<open>numeral m * - numeral n = - numeral (m * n)\<close>
   by (simp_all only: mult_minus_left mult_minus_right minus_minus numeral_mult)
 
-lemma mult_minus1 [simp]: "- 1 * z = - z"
+lemma mult_minus1 [simp]: \<open>- 1 * z = - z\<close>
   by (simp add: numeral.simps)
 
-lemma mult_minus1_right [simp]: "z * - 1 = - z"
+lemma mult_minus1_right [simp]: \<open>z * - 1 = - z\<close>
   by (simp add: numeral.simps)
 
 lemma minus_sub_one_diff_one [simp]:
@@ -805,28 +805,28 @@ subsubsection \<open>Equality using \<open>iszero\<close> for rings with non-zer
 context ring_1
 begin
 
-definition iszero :: "'a \<Rightarrow> bool"
-  where "iszero z \<longleftrightarrow> z = 0"
+definition iszero :: \<open>'a \<Rightarrow> bool\<close>
+  where \<open>iszero z \<longleftrightarrow> z = 0\<close>
 
-lemma iszero_0 [simp]: "iszero 0"
+lemma iszero_0 [simp]: \<open>iszero 0\<close>
   by (simp add: iszero_def)
 
-lemma not_iszero_1 [simp]: "\<not> iszero 1"
+lemma not_iszero_1 [simp]: \<open>\<not> iszero 1\<close>
   by (simp add: iszero_def)
 
-lemma not_iszero_Numeral1: "\<not> iszero Numeral1"
+lemma not_iszero_Numeral1: \<open>\<not> iszero Numeral1\<close>
   by (simp add: numeral_One)
 
-lemma not_iszero_neg_1 [simp]: "\<not> iszero (- 1)"
+lemma not_iszero_neg_1 [simp]: \<open>\<not> iszero (- 1)\<close>
   by (simp add: iszero_def)
 
-lemma not_iszero_neg_Numeral1: "\<not> iszero (- Numeral1)"
+lemma not_iszero_neg_Numeral1: \<open>\<not> iszero (- Numeral1)\<close>
   by (simp add: numeral_One)
 
-lemma iszero_neg_numeral [simp]: "iszero (- numeral w) \<longleftrightarrow> iszero (numeral w)"
+lemma iszero_neg_numeral [simp]: \<open>iszero (- numeral w) \<longleftrightarrow> iszero (numeral w)\<close>
   unfolding iszero_def by (rule neg_equal_0_iff_equal)
 
-lemma eq_iff_iszero_diff: "x = y \<longleftrightarrow> iszero (x - y)"
+lemma eq_iff_iszero_diff: \<open>x = y \<longleftrightarrow> iszero (x - y)\<close>
   unfolding iszero_def by (rule eq_iff_diff_eq_0)
 
 text \<open>
@@ -842,18 +842,18 @@ text \<open>
 \<close>
 
 lemma eq_numeral_iff_iszero:
-  "numeral x = numeral y \<longleftrightarrow> iszero (sub x y)"
-  "numeral x = - numeral y \<longleftrightarrow> iszero (numeral (x + y))"
-  "- numeral x = numeral y \<longleftrightarrow> iszero (numeral (x + y))"
-  "- numeral x = - numeral y \<longleftrightarrow> iszero (sub y x)"
-  "numeral x = 1 \<longleftrightarrow> iszero (sub x One)"
-  "1 = numeral y \<longleftrightarrow> iszero (sub One y)"
-  "- numeral x = 1 \<longleftrightarrow> iszero (numeral (x + One))"
-  "1 = - numeral y \<longleftrightarrow> iszero (numeral (One + y))"
-  "numeral x = 0 \<longleftrightarrow> iszero (numeral x)"
-  "0 = numeral y \<longleftrightarrow> iszero (numeral y)"
-  "- numeral x = 0 \<longleftrightarrow> iszero (numeral x)"
-  "0 = - numeral y \<longleftrightarrow> iszero (numeral y)"
+  \<open>numeral x = numeral y \<longleftrightarrow> iszero (sub x y)\<close>
+  \<open>numeral x = - numeral y \<longleftrightarrow> iszero (numeral (x + y))\<close>
+  \<open>- numeral x = numeral y \<longleftrightarrow> iszero (numeral (x + y))\<close>
+  \<open>- numeral x = - numeral y \<longleftrightarrow> iszero (sub y x)\<close>
+  \<open>numeral x = 1 \<longleftrightarrow> iszero (sub x One)\<close>
+  \<open>1 = numeral y \<longleftrightarrow> iszero (sub One y)\<close>
+  \<open>- numeral x = 1 \<longleftrightarrow> iszero (numeral (x + One))\<close>
+  \<open>1 = - numeral y \<longleftrightarrow> iszero (numeral (One + y))\<close>
+  \<open>numeral x = 0 \<longleftrightarrow> iszero (numeral x)\<close>
+  \<open>0 = numeral y \<longleftrightarrow> iszero (numeral y)\<close>
+  \<open>- numeral x = 0 \<longleftrightarrow> iszero (numeral x)\<close>
+  \<open>0 = - numeral y \<longleftrightarrow> iszero (numeral y)\<close>
   unfolding eq_iff_iszero_diff diff_numeral_simps diff_numeral_special
   by simp_all
 
@@ -865,52 +865,52 @@ subsubsection \<open>Equality and negation: class \<open>ring_char_0\<close>\<cl
 context ring_char_0
 begin
 
-lemma not_iszero_numeral [simp]: "\<not> iszero (numeral w)"
+lemma not_iszero_numeral [simp]: \<open>\<not> iszero (numeral w)\<close>
   by (simp add: iszero_def)
 
-lemma neg_numeral_eq_iff: "- numeral m = - numeral n \<longleftrightarrow> m = n"
+lemma neg_numeral_eq_iff: \<open>- numeral m = - numeral n \<longleftrightarrow> m = n\<close>
   by simp
 
-lemma numeral_neq_neg_numeral: "numeral m \<noteq> - numeral n"
+lemma numeral_neq_neg_numeral: \<open>numeral m \<noteq> - numeral n\<close>
   by (simp add: eq_neg_iff_add_eq_0 numeral_plus_numeral)
 
-lemma neg_numeral_neq_numeral: "- numeral m \<noteq> numeral n"
+lemma neg_numeral_neq_numeral: \<open>- numeral m \<noteq> numeral n\<close>
   by (rule numeral_neq_neg_numeral [symmetric])
 
-lemma zero_neq_neg_numeral: "0 \<noteq> - numeral n"
+lemma zero_neq_neg_numeral: \<open>0 \<noteq> - numeral n\<close>
   by simp
 
-lemma neg_numeral_neq_zero: "- numeral n \<noteq> 0"
+lemma neg_numeral_neq_zero: \<open>- numeral n \<noteq> 0\<close>
   by simp
 
-lemma one_neq_neg_numeral: "1 \<noteq> - numeral n"
+lemma one_neq_neg_numeral: \<open>1 \<noteq> - numeral n\<close>
   using numeral_neq_neg_numeral [of One n] by (simp add: numeral_One)
 
-lemma neg_numeral_neq_one: "- numeral n \<noteq> 1"
+lemma neg_numeral_neq_one: \<open>- numeral n \<noteq> 1\<close>
   using neg_numeral_neq_numeral [of n One] by (simp add: numeral_One)
 
-lemma neg_one_neq_numeral: "- 1 \<noteq> numeral n"
+lemma neg_one_neq_numeral: \<open>- 1 \<noteq> numeral n\<close>
   using neg_numeral_neq_numeral [of One n] by (simp add: numeral_One)
 
-lemma numeral_neq_neg_one: "numeral n \<noteq> - 1"
+lemma numeral_neq_neg_one: \<open>numeral n \<noteq> - 1\<close>
   using numeral_neq_neg_numeral [of n One] by (simp add: numeral_One)
 
-lemma neg_one_eq_numeral_iff: "- 1 = - numeral n \<longleftrightarrow> n = One"
+lemma neg_one_eq_numeral_iff: \<open>- 1 = - numeral n \<longleftrightarrow> n = One\<close>
   using neg_numeral_eq_iff [of One n] by (auto simp add: numeral_One)
 
-lemma numeral_eq_neg_one_iff: "- numeral n = - 1 \<longleftrightarrow> n = One"
+lemma numeral_eq_neg_one_iff: \<open>- numeral n = - 1 \<longleftrightarrow> n = One\<close>
   using neg_numeral_eq_iff [of n One] by (auto simp add: numeral_One)
 
-lemma neg_one_neq_zero: "- 1 \<noteq> 0"
+lemma neg_one_neq_zero: \<open>- 1 \<noteq> 0\<close>
   by simp
 
-lemma zero_neq_neg_one: "0 \<noteq> - 1"
+lemma zero_neq_neg_one: \<open>0 \<noteq> - 1\<close>
   by simp
 
-lemma neg_one_neq_one: "- 1 \<noteq> 1"
+lemma neg_one_neq_one: \<open>- 1 \<noteq> 1\<close>
   using neg_numeral_neq_numeral [of One One] by (simp only: numeral_One not_False_eq_True)
 
-lemma one_neq_neg_one: "1 \<noteq> - 1"
+lemma one_neq_neg_one: \<open>1 \<noteq> - 1\<close>
   using numeral_neq_neg_numeral [of One One] by (simp only: numeral_One not_False_eq_True)
 
 lemmas eq_neg_numeral_simps [simp] =
@@ -933,82 +933,82 @@ begin
 
 subclass ring_char_0 ..
 
-lemma neg_numeral_le_iff: "- numeral m \<le> - numeral n \<longleftrightarrow> n \<le> m"
+lemma neg_numeral_le_iff: \<open>- numeral m \<le> - numeral n \<longleftrightarrow> n \<le> m\<close>
   by (simp only: neg_le_iff_le numeral_le_iff)
 
-lemma neg_numeral_less_iff: "- numeral m < - numeral n \<longleftrightarrow> n < m"
+lemma neg_numeral_less_iff: \<open>- numeral m < - numeral n \<longleftrightarrow> n < m\<close>
   by (simp only: neg_less_iff_less numeral_less_iff)
 
-lemma neg_numeral_less_zero: "- numeral n < 0"
+lemma neg_numeral_less_zero: \<open>- numeral n < 0\<close>
   by (simp only: neg_less_0_iff_less zero_less_numeral)
 
-lemma neg_numeral_le_zero: "- numeral n \<le> 0"
+lemma neg_numeral_le_zero: \<open>- numeral n \<le> 0\<close>
   by (simp only: neg_le_0_iff_le zero_le_numeral)
 
-lemma not_zero_less_neg_numeral: "\<not> 0 < - numeral n"
+lemma not_zero_less_neg_numeral: \<open>\<not> 0 < - numeral n\<close>
   by (simp only: not_less neg_numeral_le_zero)
 
-lemma not_zero_le_neg_numeral: "\<not> 0 \<le> - numeral n"
+lemma not_zero_le_neg_numeral: \<open>\<not> 0 \<le> - numeral n\<close>
   by (simp only: not_le neg_numeral_less_zero)
 
-lemma neg_numeral_less_numeral: "- numeral m < numeral n"
+lemma neg_numeral_less_numeral: \<open>- numeral m < numeral n\<close>
   using neg_numeral_less_zero zero_less_numeral by (rule less_trans)
 
-lemma neg_numeral_le_numeral: "- numeral m \<le> numeral n"
+lemma neg_numeral_le_numeral: \<open>- numeral m \<le> numeral n\<close>
   by (simp only: less_imp_le neg_numeral_less_numeral)
 
-lemma not_numeral_less_neg_numeral: "\<not> numeral m < - numeral n"
+lemma not_numeral_less_neg_numeral: \<open>\<not> numeral m < - numeral n\<close>
   by (simp only: not_less neg_numeral_le_numeral)
 
-lemma not_numeral_le_neg_numeral: "\<not> numeral m \<le> - numeral n"
+lemma not_numeral_le_neg_numeral: \<open>\<not> numeral m \<le> - numeral n\<close>
   by (simp only: not_le neg_numeral_less_numeral)
 
-lemma neg_numeral_less_one: "- numeral m < 1"
+lemma neg_numeral_less_one: \<open>- numeral m < 1\<close>
   by (rule neg_numeral_less_numeral [of m One, unfolded numeral_One])
 
-lemma neg_numeral_le_one: "- numeral m \<le> 1"
+lemma neg_numeral_le_one: \<open>- numeral m \<le> 1\<close>
   by (rule neg_numeral_le_numeral [of m One, unfolded numeral_One])
 
-lemma not_one_less_neg_numeral: "\<not> 1 < - numeral m"
+lemma not_one_less_neg_numeral: \<open>\<not> 1 < - numeral m\<close>
   by (simp only: not_less neg_numeral_le_one)
 
-lemma not_one_le_neg_numeral: "\<not> 1 \<le> - numeral m"
+lemma not_one_le_neg_numeral: \<open>\<not> 1 \<le> - numeral m\<close>
   by (simp only: not_le neg_numeral_less_one)
 
-lemma not_numeral_less_neg_one: "\<not> numeral m < - 1"
+lemma not_numeral_less_neg_one: \<open>\<not> numeral m < - 1\<close>
   using not_numeral_less_neg_numeral [of m One] by (simp add: numeral_One)
 
-lemma not_numeral_le_neg_one: "\<not> numeral m \<le> - 1"
+lemma not_numeral_le_neg_one: \<open>\<not> numeral m \<le> - 1\<close>
   using not_numeral_le_neg_numeral [of m One] by (simp add: numeral_One)
 
-lemma neg_one_less_numeral: "- 1 < numeral m"
+lemma neg_one_less_numeral: \<open>- 1 < numeral m\<close>
   using neg_numeral_less_numeral [of One m] by (simp add: numeral_One)
 
-lemma neg_one_le_numeral: "- 1 \<le> numeral m"
+lemma neg_one_le_numeral: \<open>- 1 \<le> numeral m\<close>
   using neg_numeral_le_numeral [of One m] by (simp add: numeral_One)
 
-lemma neg_numeral_less_neg_one_iff: "- numeral m < - 1 \<longleftrightarrow> m \<noteq> One"
+lemma neg_numeral_less_neg_one_iff: \<open>- numeral m < - 1 \<longleftrightarrow> m \<noteq> One\<close>
   by (cases m) simp_all
 
-lemma neg_numeral_le_neg_one: "- numeral m \<le> - 1"
+lemma neg_numeral_le_neg_one: \<open>- numeral m \<le> - 1\<close>
   by simp
 
-lemma not_neg_one_less_neg_numeral: "\<not> - 1 < - numeral m"
+lemma not_neg_one_less_neg_numeral: \<open>\<not> - 1 < - numeral m\<close>
   by simp
 
-lemma not_neg_one_le_neg_numeral_iff: "\<not> - 1 \<le> - numeral m \<longleftrightarrow> m \<noteq> One"
+lemma not_neg_one_le_neg_numeral_iff: \<open>\<not> - 1 \<le> - numeral m \<longleftrightarrow> m \<noteq> One\<close>
   by (cases m) simp_all
 
-lemma sub_non_negative: "sub n m \<ge> 0 \<longleftrightarrow> n \<ge> m"
+lemma sub_non_negative: \<open>sub n m \<ge> 0 \<longleftrightarrow> n \<ge> m\<close>
   by (simp only: sub_def le_diff_eq) simp
 
-lemma sub_positive: "sub n m > 0 \<longleftrightarrow> n > m"
+lemma sub_positive: \<open>sub n m > 0 \<longleftrightarrow> n > m\<close>
   by (simp only: sub_def less_diff_eq) simp
 
-lemma sub_non_positive: "sub n m \<le> 0 \<longleftrightarrow> n \<le> m"
+lemma sub_non_positive: \<open>sub n m \<le> 0 \<longleftrightarrow> n \<le> m\<close>
   by (simp only: sub_def diff_le_eq) simp
 
-lemma sub_negative: "sub n m < 0 \<longleftrightarrow> n < m"
+lemma sub_negative: \<open>sub n m < 0 \<longleftrightarrow> n < m\<close>
   by (simp only: sub_def diff_less_eq) simp
 
 lemmas le_neg_numeral_simps [simp] =
@@ -1020,10 +1020,10 @@ lemmas le_neg_numeral_simps [simp] =
   neg_numeral_le_neg_one not_neg_one_le_neg_numeral_iff
 
 lemma le_minus_one_simps [simp]:
-  "- 1 \<le> 0"
-  "- 1 \<le> 1"
-  "\<not> 0 \<le> - 1"
-  "\<not> 1 \<le> - 1"
+  \<open>- 1 \<le> 0\<close>
+  \<open>- 1 \<le> 1\<close>
+  \<open>\<not> 0 \<le> - 1\<close>
+  \<open>\<not> 1 \<le> - 1\<close>
   by simp_all
 
 lemmas less_neg_numeral_simps [simp] =
@@ -1035,19 +1035,19 @@ lemmas less_neg_numeral_simps [simp] =
   neg_numeral_less_neg_one_iff not_neg_one_less_neg_numeral
 
 lemma less_minus_one_simps [simp]:
-  "- 1 < 0"
-  "- 1 < 1"
-  "\<not> 0 < - 1"
-  "\<not> 1 < - 1"
+  \<open>- 1 < 0\<close>
+  \<open>- 1 < 1\<close>
+  \<open>\<not> 0 < - 1\<close>
+  \<open>\<not> 1 < - 1\<close>
   by (simp_all add: less_le)
 
-lemma abs_numeral [simp]: "\<bar>numeral n\<bar> = numeral n"
+lemma abs_numeral [simp]: \<open>\<bar>numeral n\<bar> = numeral n\<close>
   by simp
 
-lemma abs_neg_numeral [simp]: "\<bar>- numeral n\<bar> = numeral n"
+lemma abs_neg_numeral [simp]: \<open>\<bar>- numeral n\<bar> = numeral n\<close>
   by (simp only: abs_minus_cancel abs_numeral)
 
-lemma abs_neg_one [simp]: "\<bar>- 1\<bar> = 1"
+lemma abs_neg_one [simp]: \<open>\<bar>- 1\<bar> = 1\<close>
   by simp
 
 end
@@ -1056,129 +1056,129 @@ end
 subsubsection \<open>Natural numbers\<close>
 
 lemma numeral_num_of_nat:
-  "numeral (num_of_nat n) = n" if "n > 0"
+  \<open>numeral (num_of_nat n) = n\<close> if \<open>n > 0\<close>
   using that nat_of_num_numeral num_of_nat_inverse by simp
 
-lemma Suc_1 [simp]: "Suc 1 = 2"
+lemma Suc_1 [simp]: \<open>Suc 1 = 2\<close>
   unfolding Suc_eq_plus1 by (rule one_add_one)
 
-lemma Suc_numeral [simp]: "Suc (numeral n) = numeral (n + One)"
+lemma Suc_numeral [simp]: \<open>Suc (numeral n) = numeral (n + One)\<close>
   unfolding Suc_eq_plus1 by (rule numeral_plus_one)
 
-definition pred_numeral :: "num \<Rightarrow> nat"
-  where "pred_numeral k = numeral k - 1"
+definition pred_numeral :: \<open>num \<Rightarrow> nat\<close>
+  where \<open>pred_numeral k = numeral k - 1\<close>
 
 declare [[code drop: pred_numeral]]
 
-lemma numeral_eq_Suc: "numeral k = Suc (pred_numeral k)"
+lemma numeral_eq_Suc: \<open>numeral k = Suc (pred_numeral k)\<close>
   by (simp add: pred_numeral_def)
 
 lemma eval_nat_numeral:
-  "numeral One = Suc 0"
-  "numeral (Bit0 n) = Suc (numeral (BitM n))"
-  "numeral (Bit1 n) = Suc (numeral (Bit0 n))"
+  \<open>numeral One = Suc 0\<close>
+  \<open>numeral (Bit0 n) = Suc (numeral (BitM n))\<close>
+  \<open>numeral (Bit1 n) = Suc (numeral (Bit0 n))\<close>
   by (simp_all add: numeral.simps BitM_plus_one)
 
 lemma pred_numeral_simps [simp]:
-  "pred_numeral One = 0"
-  "pred_numeral (Bit0 k) = numeral (BitM k)"
-  "pred_numeral (Bit1 k) = numeral (Bit0 k)"
+  \<open>pred_numeral One = 0\<close>
+  \<open>pred_numeral (Bit0 k) = numeral (BitM k)\<close>
+  \<open>pred_numeral (Bit1 k) = numeral (Bit0 k)\<close>
   by (simp_all only: pred_numeral_def eval_nat_numeral diff_Suc_Suc diff_0)
 
 lemma pred_numeral_inc [simp]:
-  "pred_numeral (Num.inc k) = numeral k"
+  \<open>pred_numeral (inc k) = numeral k\<close>
   by (simp only: pred_numeral_def numeral_inc diff_add_inverse2)
 
-lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
+lemma numeral_2_eq_2: \<open>2 = Suc (Suc 0)\<close>
   by (simp add: eval_nat_numeral)
 
-lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
+lemma numeral_3_eq_3: \<open>3 = Suc (Suc (Suc 0))\<close>
   by (simp add: eval_nat_numeral)
 
-lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
+lemma numeral_1_eq_Suc_0: \<open>Numeral1 = Suc 0\<close>
   by (simp only: numeral_One One_nat_def)
 
-lemma Suc_nat_number_of_add: "Suc (numeral v + n) = numeral (v + One) + n"
+lemma Suc_nat_number_of_add: \<open>Suc (numeral v + n) = numeral (v + One) + n\<close>
   by simp
 
-lemma numerals: "Numeral1 = (1::nat)" "2 = Suc (Suc 0)"
+lemma numerals: \<open>Numeral1 = (1::nat)\<close> \<open>2 = Suc (Suc 0)\<close>
   by (rule numeral_One) (rule numeral_2_eq_2)
 
 lemmas numeral_nat = eval_nat_numeral BitM.simps One_nat_def
 
 text \<open>Comparisons involving \<^term>\<open>Suc\<close>.\<close>
 
-lemma eq_numeral_Suc [simp]: "numeral k = Suc n \<longleftrightarrow> pred_numeral k = n"
+lemma eq_numeral_Suc [simp]: \<open>numeral k = Suc n \<longleftrightarrow> pred_numeral k = n\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma Suc_eq_numeral [simp]: "Suc n = numeral k \<longleftrightarrow> n = pred_numeral k"
+lemma Suc_eq_numeral [simp]: \<open>Suc n = numeral k \<longleftrightarrow> n = pred_numeral k\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma less_numeral_Suc [simp]: "numeral k < Suc n \<longleftrightarrow> pred_numeral k < n"
+lemma less_numeral_Suc [simp]: \<open>numeral k < Suc n \<longleftrightarrow> pred_numeral k < n\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma less_Suc_numeral [simp]: "Suc n < numeral k \<longleftrightarrow> n < pred_numeral k"
+lemma less_Suc_numeral [simp]: \<open>Suc n < numeral k \<longleftrightarrow> n < pred_numeral k\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma le_numeral_Suc [simp]: "numeral k \<le> Suc n \<longleftrightarrow> pred_numeral k \<le> n"
+lemma le_numeral_Suc [simp]: \<open>numeral k \<le> Suc n \<longleftrightarrow> pred_numeral k \<le> n\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma le_Suc_numeral [simp]: "Suc n \<le> numeral k \<longleftrightarrow> n \<le> pred_numeral k"
+lemma le_Suc_numeral [simp]: \<open>Suc n \<le> numeral k \<longleftrightarrow> n \<le> pred_numeral k\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma diff_Suc_numeral [simp]: "Suc n - numeral k = n - pred_numeral k"
+lemma diff_Suc_numeral [simp]: \<open>Suc n - numeral k = n - pred_numeral k\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma diff_numeral_Suc [simp]: "numeral k - Suc n = pred_numeral k - n"
+lemma diff_numeral_Suc [simp]: \<open>numeral k - Suc n = pred_numeral k - n\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma max_Suc_numeral [simp]: "max (Suc n) (numeral k) = Suc (max n (pred_numeral k))"
+lemma max_Suc_numeral [simp]: \<open>max (Suc n) (numeral k) = Suc (max n (pred_numeral k))\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma max_numeral_Suc [simp]: "max (numeral k) (Suc n) = Suc (max (pred_numeral k) n)"
+lemma max_numeral_Suc [simp]: \<open>max (numeral k) (Suc n) = Suc (max (pred_numeral k) n)\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma min_Suc_numeral [simp]: "min (Suc n) (numeral k) = Suc (min n (pred_numeral k))"
+lemma min_Suc_numeral [simp]: \<open>min (Suc n) (numeral k) = Suc (min n (pred_numeral k))\<close>
   by (simp add: numeral_eq_Suc)
 
-lemma min_numeral_Suc [simp]: "min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)"
+lemma min_numeral_Suc [simp]: \<open>min (numeral k) (Suc n) = Suc (min (pred_numeral k) n)\<close>
   by (simp add: numeral_eq_Suc)
 
 text \<open>For \<^term>\<open>case_nat\<close> and \<^term>\<open>rec_nat\<close>.\<close>
 
-lemma case_nat_numeral [simp]: "case_nat a f (numeral v) = (let pv = pred_numeral v in f pv)"
+lemma case_nat_numeral [simp]: \<open>case_nat a f (numeral v) = (let pv = pred_numeral v in f pv)\<close>
   by (simp add: numeral_eq_Suc)
 
 lemma case_nat_add_eq_if [simp]:
-  "case_nat a f ((numeral v) + n) = (let pv = pred_numeral v in f (pv + n))"
+  \<open>case_nat a f ((numeral v) + n) = (let pv = pred_numeral v in f (pv + n))\<close>
   by (simp add: numeral_eq_Suc)
 
 lemma rec_nat_numeral [simp]:
-  "rec_nat a f (numeral v) = (let pv = pred_numeral v in f pv (rec_nat a f pv))"
+  \<open>rec_nat a f (numeral v) = (let pv = pred_numeral v in f pv (rec_nat a f pv))\<close>
   by (simp add: numeral_eq_Suc Let_def)
 
 lemma rec_nat_add_eq_if [simp]:
-  "rec_nat a f (numeral v + n) = (let pv = pred_numeral v in f (pv + n) (rec_nat a f (pv + n)))"
+  \<open>rec_nat a f (numeral v + n) = (let pv = pred_numeral v in f (pv + n) (rec_nat a f (pv + n)))\<close>
   by (simp add: numeral_eq_Suc Let_def)
 
 text \<open>Case analysis on \<^term>\<open>n < 2\<close>.\<close>
-lemma less_2_cases: "n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0"
+lemma less_2_cases: \<open>n < 2 \<Longrightarrow> n = 0 \<or> n = Suc 0\<close>
   by (auto simp add: numeral_2_eq_2)
 
-lemma less_2_cases_iff: "n < 2 \<longleftrightarrow> n = 0 \<or> n = Suc 0"
+lemma less_2_cases_iff: \<open>n < 2 \<longleftrightarrow> n = 0 \<or> n = Suc 0\<close>
   by (auto simp add: numeral_2_eq_2)
 
 text \<open>Removal of Small Numerals: 0, 1 and (in additive positions) 2.\<close>
 text \<open>bh: Are these rules really a good idea? LCP: well, it already happens for 0 and 1!\<close>
 
-lemma add_2_eq_Suc [simp]: "2 + n = Suc (Suc n)"
+lemma add_2_eq_Suc [simp]: \<open>2 + n = Suc (Suc n)\<close>
   by simp
 
-lemma add_2_eq_Suc' [simp]: "n + 2 = Suc (Suc n)"
+lemma add_2_eq_Suc' [simp]: \<open>n + 2 = Suc (Suc n)\<close>
   by simp
 
 text \<open>Can be used to eliminate long strings of Sucs, but not by default.\<close>
-lemma Suc3_eq_add_3: "Suc (Suc (Suc n)) = 3 + n"
+lemma Suc3_eq_add_3: \<open>Suc (Suc (Suc n)) = 3 + n\<close>
   by simp
 
 lemmas nat_1_add_1 = one_add_one [where 'a=nat] (* legacy *)
@@ -1191,15 +1191,15 @@ lemma numeral_add_unfold_funpow:
 proof (rule sym, induction k arbitrary: a)
   case One
   then show ?case
-    by (simp add: numeral_One Num.numeral_One)
+    by (simp add: Num.numeral_One numeral_One)
 next
   case (Bit0 k)
   then show ?case
-    by (simp add: numeral_Bit0 Num.numeral_Bit0 ac_simps funpow_add)
+    by (simp add: Num.numeral_Bit0 numeral_Bit0 ac_simps funpow_add)
 next
   case (Bit1 k)
   then show ?case
-    by (simp add: numeral_Bit1 Num.numeral_Bit1 ac_simps funpow_add)
+    by (simp add: Num.numeral_Bit1 numeral_Bit1 ac_simps funpow_add)
 qed
 
 end
@@ -1223,7 +1223,7 @@ lemma transfer_rule_numeral:
       \<open>(R ===> R ===> R) (+) (+)\<close>
     for R :: \<open>'a::{semiring_numeral,monoid_add} \<Rightarrow> 'b::{semiring_numeral,monoid_add} \<Rightarrow> bool\<close>
 proof -
-  have "((=) ===> R) (\<lambda>k. ((+) 1 ^^ numeral k) 0) (\<lambda>k. ((+) 1 ^^ numeral k) 0)"
+  have \<open>((=) ===> R) (\<lambda>k. ((+) 1 ^^ numeral k) 0) (\<lambda>k. ((+) 1 ^^ numeral k) 0)\<close>
     by transfer_prover
   moreover have \<open>numeral = (\<lambda>k. ((+) (1::'a) ^^ numeral k) 0)\<close>
     using numeral_add_unfold_funpow [where ?'a = 'a, of _ 0]
@@ -1245,10 +1245,10 @@ begin
 
 subclass field_char_0 ..
 
-lemma half_gt_zero_iff: "0 < a / 2 \<longleftrightarrow> 0 < a"
+lemma half_gt_zero_iff: \<open>0 < a / 2 \<longleftrightarrow> 0 < a\<close>
   by (auto simp add: field_simps)
 
-lemma half_gt_zero [simp]: "0 < a \<Longrightarrow> 0 < a / 2"
+lemma half_gt_zero [simp]: \<open>0 < a \<Longrightarrow> 0 < a / 2\<close>
   by (simp add: half_gt_zero_iff)
 
 end
@@ -1271,84 +1271,84 @@ subsubsection \<open>Special Simplification for Constants\<close>
 
 text \<open>These distributive laws move literals inside sums and differences.\<close>
 
-lemmas distrib_right_numeral [simp] = distrib_right [of _ _ "numeral v"] for v
-lemmas distrib_left_numeral [simp] = distrib_left [of "numeral v"] for v
-lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
-lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
+lemmas distrib_right_numeral [simp] = distrib_right [of _ _ \<open>numeral v\<close>] for v
+lemmas distrib_left_numeral [simp] = distrib_left [of \<open>numeral v\<close>] for v
+lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ \<open>numeral v\<close>] for v
+lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of \<open>numeral v\<close>] for v
 
 text \<open>These are actually for fields, like real\<close>
 
-lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of "numeral w"] for w
-lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of "numeral w"] for w
-lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of "numeral w"] for w
-lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of "numeral w"] for w
+lemmas zero_less_divide_iff_numeral [simp, no_atp] = zero_less_divide_iff [of \<open>numeral w\<close>] for w
+lemmas divide_less_0_iff_numeral [simp, no_atp] = divide_less_0_iff [of \<open>numeral w\<close>] for w
+lemmas zero_le_divide_iff_numeral [simp, no_atp] = zero_le_divide_iff [of \<open>numeral w\<close>] for w
+lemmas divide_le_0_iff_numeral [simp, no_atp] = divide_le_0_iff [of \<open>numeral w\<close>] for w
 
 text \<open>Replaces \<open>inverse #nn\<close> by \<open>1/#nn\<close>.  It looks
   strange, but then other simprocs simplify the quotient.\<close>
 
 lemmas inverse_eq_divide_numeral [simp] =
-  inverse_eq_divide [of "numeral w"] for w
+  inverse_eq_divide [of \<open>numeral w\<close>] for w
 
 lemmas inverse_eq_divide_neg_numeral [simp] =
-  inverse_eq_divide [of "- numeral w"] for w
+  inverse_eq_divide [of \<open>- numeral w\<close>] for w
 
 text \<open>These laws simplify inequalities, moving unary minus from a term
   into the literal.\<close>
 
 lemmas equation_minus_iff_numeral [no_atp] =
-  equation_minus_iff [of "numeral v"] for v
+  equation_minus_iff [of \<open>numeral v\<close>] for v
 
 lemmas minus_equation_iff_numeral [no_atp] =
-  minus_equation_iff [of _ "numeral v"] for v
+  minus_equation_iff [of _ \<open>numeral v\<close>] for v
 
 lemmas le_minus_iff_numeral [no_atp] =
-  le_minus_iff [of "numeral v"] for v
+  le_minus_iff [of \<open>numeral v\<close>] for v
 
 lemmas minus_le_iff_numeral [no_atp] =
-  minus_le_iff [of _ "numeral v"] for v
+  minus_le_iff [of _ \<open>numeral v\<close>] for v
 
 lemmas less_minus_iff_numeral [no_atp] =
-  less_minus_iff [of "numeral v"] for v
+  less_minus_iff [of \<open>numeral v\<close>] for v
 
 lemmas minus_less_iff_numeral [no_atp] =
-  minus_less_iff [of _ "numeral v"] for v
+  minus_less_iff [of _ \<open>numeral v\<close>] for v
 
 (* FIXME maybe simproc *)
 
 text \<open>Cancellation of constant factors in comparisons (\<open><\<close> and \<open>\<le>\<close>)\<close>
 
-lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of "numeral v"] for v
-lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ "numeral v"] for v
-lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of "numeral v"] for v
-lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ "numeral v"] for v
+lemmas mult_less_cancel_left_numeral [simp, no_atp] = mult_less_cancel_left [of \<open>numeral v\<close>] for v
+lemmas mult_less_cancel_right_numeral [simp, no_atp] = mult_less_cancel_right [of _ \<open>numeral v\<close>] for v
+lemmas mult_le_cancel_left_numeral [simp, no_atp] = mult_le_cancel_left [of \<open>numeral v\<close>] for v
+lemmas mult_le_cancel_right_numeral [simp, no_atp] = mult_le_cancel_right [of _ \<open>numeral v\<close>] for v
 
 text \<open>Multiplying out constant divisors in comparisons (\<open><\<close>, \<open>\<le>\<close> and \<open>=\<close>)\<close>
 
-named_theorems divide_const_simps "simplification rules to simplify comparisons involving constant divisors"
+named_theorems divide_const_simps \<open>simplification rules to simplify comparisons involving constant divisors\<close>
 
 lemmas le_divide_eq_numeral1 [simp,divide_const_simps] =
-  pos_le_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_le_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+  pos_le_divide_eq [of \<open>numeral w\<close>, OF zero_less_numeral]
+  neg_le_divide_eq [of \<open>- numeral w\<close>, OF neg_numeral_less_zero] for w
 
 lemmas divide_le_eq_numeral1 [simp,divide_const_simps] =
-  pos_divide_le_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_le_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+  pos_divide_le_eq [of \<open>numeral w\<close>, OF zero_less_numeral]
+  neg_divide_le_eq [of \<open>- numeral w\<close>, OF neg_numeral_less_zero] for w
 
 lemmas less_divide_eq_numeral1 [simp,divide_const_simps] =
-  pos_less_divide_eq [of "numeral w", OF zero_less_numeral]
-  neg_less_divide_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+  pos_less_divide_eq [of \<open>numeral w\<close>, OF zero_less_numeral]
+  neg_less_divide_eq [of \<open>- numeral w\<close>, OF neg_numeral_less_zero] for w
 
 lemmas divide_less_eq_numeral1 [simp,divide_const_simps] =
-  pos_divide_less_eq [of "numeral w", OF zero_less_numeral]
-  neg_divide_less_eq [of "- numeral w", OF neg_numeral_less_zero] for w
+  pos_divide_less_eq [of \<open>numeral w\<close>, OF zero_less_numeral]
+  neg_divide_less_eq [of \<open>- numeral w\<close>, OF neg_numeral_less_zero] for w
 
 lemmas eq_divide_eq_numeral1 [simp,divide_const_simps] =
-  eq_divide_eq [of _ _ "numeral w"]
-  eq_divide_eq [of _ _ "- numeral w"] for w
+  eq_divide_eq [of _ _ \<open>numeral w\<close>]
+  eq_divide_eq [of _ _ \<open>- numeral w\<close>] for w
 
 lemmas divide_eq_eq_numeral1 [simp,divide_const_simps] =
-  divide_eq_eq [of _ "numeral w"]
-  divide_eq_eq [of _ "- numeral w"] for w
+  divide_eq_eq [of _ \<open>numeral w\<close>]
+  divide_eq_eq [of _ \<open>- numeral w\<close>] for w
 
 
 subsubsection \<open>Optional Simplification Rules Involving Constants\<close>
@@ -1356,28 +1356,28 @@ subsubsection \<open>Optional Simplification Rules Involving Constants\<close>
 text \<open>Simplify quotients that are compared with a literal constant.\<close>
 
 lemmas le_divide_eq_numeral [divide_const_simps] =
-  le_divide_eq [of "numeral w"]
-  le_divide_eq [of "- numeral w"] for w
+  le_divide_eq [of \<open>numeral w\<close>]
+  le_divide_eq [of \<open>- numeral w\<close>] for w
 
 lemmas divide_le_eq_numeral [divide_const_simps] =
-  divide_le_eq [of _ _ "numeral w"]
-  divide_le_eq [of _ _ "- numeral w"] for w
+  divide_le_eq [of _ _ \<open>numeral w\<close>]
+  divide_le_eq [of _ _ \<open>- numeral w\<close>] for w
 
 lemmas less_divide_eq_numeral [divide_const_simps] =
-  less_divide_eq [of "numeral w"]
-  less_divide_eq [of "- numeral w"] for w
+  less_divide_eq [of \<open>numeral w\<close>]
+  less_divide_eq [of \<open>- numeral w\<close>] for w
 
 lemmas divide_less_eq_numeral [divide_const_simps] =
-  divide_less_eq [of _ _ "numeral w"]
-  divide_less_eq [of _ _ "- numeral w"] for w
+  divide_less_eq [of _ _ \<open>numeral w\<close>]
+  divide_less_eq [of _ _ \<open>- numeral w\<close>] for w
 
 lemmas eq_divide_eq_numeral [divide_const_simps] =
-  eq_divide_eq [of "numeral w"]
-  eq_divide_eq [of "- numeral w"] for w
+  eq_divide_eq [of \<open>numeral w\<close>]
+  eq_divide_eq [of \<open>- numeral w\<close>] for w
 
 lemmas divide_eq_eq_numeral [divide_const_simps] =
-  divide_eq_eq [of _ _ "numeral w"]
-  divide_eq_eq [of _ _ "- numeral w"] for w
+  divide_eq_eq [of _ _ \<open>numeral w\<close>]
+  divide_eq_eq [of _ _ \<open>- numeral w\<close>] for w
 
 text \<open>Not good as automatic simprules because they cause case splits.\<close>
 
@@ -1387,19 +1387,19 @@ lemmas [divide_const_simps] =
 
 subsection \<open>Setting up simprocs\<close>
 
-lemma mult_numeral_1: "Numeral1 * a = a"
-  for a :: "'a::semiring_numeral"
+lemma mult_numeral_1: \<open>Numeral1 * a = a\<close>
+  for a :: \<open>'a::semiring_numeral\<close>
   by simp
 
-lemma mult_numeral_1_right: "a * Numeral1 = a"
-  for a :: "'a::semiring_numeral"
+lemma mult_numeral_1_right: \<open>a * Numeral1 = a\<close>
+  for a :: \<open>'a::semiring_numeral\<close>
   by simp
 
-lemma divide_numeral_1: "a / Numeral1 = a"
-  for a :: "'a::field"
+lemma divide_numeral_1: \<open>a / Numeral1 = a\<close>
+  for a :: \<open>'a::field\<close>
   by simp
 
-lemma inverse_numeral_1: "inverse Numeral1 = (Numeral1::'a::division_ring)"
+lemma inverse_numeral_1: \<open>inverse Numeral1 = (Numeral1::'a::division_ring)\<close>
   by simp
 
 text \<open>
@@ -1408,15 +1408,15 @@ text \<open>
 \<close>
 
 lemma mult_1s_semiring_numeral:
-  "Numeral1 * a = a"
-  "a * Numeral1 = a"
-  for a :: "'a::semiring_numeral"
+  \<open>Numeral1 * a = a\<close>
+  \<open>a * Numeral1 = a\<close>
+  for a :: \<open>'a::semiring_numeral\<close>
   by simp_all
 
 lemma mult_1s_ring_1:
-  "- Numeral1 * b = - b"
-  "b * - Numeral1 = - b"
-  for b :: "'a::ring_1"
+  \<open>- Numeral1 * b = - b\<close>
+  \<open>b * - Numeral1 = - b\<close>
+  for b :: \<open>'a::ring_1\<close>
   by simp_all
 
 lemmas mult_1s = mult_1s_semiring_numeral mult_1s_ring_1
@@ -1428,7 +1428,7 @@ setup \<open>
       | _ => false)
 \<close>
 
-simproc_setup reorient_numeral ("numeral w = x" | "- numeral w = y") =
+simproc_setup reorient_numeral (\<open>numeral w = x\<close> | \<open>- numeral w = y\<close>) =
   \<open>K Reorient_Proc.proc\<close>
 
 
@@ -1477,11 +1477,11 @@ lemmas rel_simps =
   less_numeral_simps less_neg_numeral_simps less_minus_one_simps less_numeral_extra
   eq_numeral_simps eq_neg_numeral_simps eq_numeral_extra
 
-lemma Let_numeral [simp]: "Let (numeral v) f = f (numeral v)"
+lemma Let_numeral [simp]: \<open>Let (numeral v) f = f (numeral v)\<close>
   \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
   unfolding Let_def ..
 
-lemma Let_neg_numeral [simp]: "Let (- numeral v) f = f (- numeral v)"
+lemma Let_neg_numeral [simp]: \<open>Let (- numeral v) f = f (- numeral v)\<close>
   \<comment> \<open>Unfold all \<open>let\<close>s involving constants\<close>
   unfolding Let_def ..
 
@@ -1506,30 +1506,29 @@ end
 
 subsubsection \<open>Simplification of arithmetic when nested to the right\<close>
 
-lemma add_numeral_left [simp]: "numeral v + (numeral w + z) = (numeral(v + w) + z)"
+lemma add_numeral_left [simp]: \<open>numeral v + (numeral w + z) = (numeral(v + w) + z)\<close>
   by (simp_all add: add.assoc [symmetric])
 
 lemma add_neg_numeral_left [simp]:
-  "numeral v + (- numeral w + y) = (sub v w + y)"
-  "- numeral v + (numeral w + y) = (sub w v + y)"
-  "- numeral v + (- numeral w + y) = (- numeral(v + w) + y)"
+  \<open>numeral v + (- numeral w + y) = (sub v w + y)\<close>
+  \<open>- numeral v + (numeral w + y) = (sub w v + y)\<close>
+  \<open>- numeral v + (- numeral w + y) = (- numeral(v + w) + y)\<close>
   by (simp_all add: add.assoc [symmetric])
 
 lemma mult_numeral_left_semiring_numeral:
-  "numeral v * (numeral w * z) = (numeral(v * w) * z :: 'a::semiring_numeral)"
+  \<open>numeral v * (numeral w * z) = (numeral(v * w) * z :: 'a::semiring_numeral)\<close>
   by (simp add: mult.assoc [symmetric])
 
 lemma mult_numeral_left_ring_1:
-  "- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)"
-  "numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)"
-  "- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'a::ring_1)"
+  \<open>- numeral v * (numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)\<close>
+  \<open>numeral v * (- numeral w * y) = (- numeral(v * w) * y :: 'a::ring_1)\<close>
+  \<open>- numeral v * (- numeral w * y) = (numeral(v * w) * y :: 'a::ring_1)\<close>
   by (simp_all add: mult.assoc [symmetric])
 
 lemmas mult_numeral_left [simp] =
   mult_numeral_left_semiring_numeral
   mult_numeral_left_ring_1
 
-hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 
 
 subsection \<open>Code module namespace\<close>
@@ -1540,12 +1539,12 @@ code_identifier
 subsection \<open>Printing of evaluated natural numbers as numerals\<close>
 
 lemma [code_post]:
-  "Suc 0 = 1"
-  "Suc 1 = 2"
-  "Suc (numeral n) = numeral (Num.inc n)"
+  \<open>Suc 0 = 1\<close>
+  \<open>Suc 1 = 2\<close>
+  \<open>Suc (numeral n) = numeral (inc n)\<close>
   by (simp_all add: numeral_inc)
 
-lemmas [code_post] = Num.inc.simps
+lemmas [code_post] = inc.simps
 
 
 subsection \<open>More on auxiliary conversion\<close>
@@ -1553,36 +1552,19 @@ subsection \<open>More on auxiliary conversion\<close>
 context semiring_1
 begin
 
-lemma numeral_num_of_nat_unfold:
-  \<open>numeral (num_of_nat n) = (if n = 0 then 1 else of_nat n)\<close>
-  by (induction n) (simp_all add: numeral_inc ac_simps)
-
 lemma num_of_nat_numeral_eq [simp]:
   \<open>num_of_nat (numeral q) = q\<close>
-proof (induction q)
-  case One
-  then show ?case
-    by simp
-next
-  case (Bit0 q)
-  then have "num_of_nat (numeral (num.Bit0 q)) = num_of_nat (numeral q + numeral q)"
-    by (simp only: Num.numeral_Bit0 Num.numeral_add)
-  also have "\<dots> = num.Bit0 (num_of_nat (numeral q))"
-    by (rule num_of_nat_double) simp
-  finally show ?case
-    using Bit0.IH by simp
-next
-  case (Bit1 q)
-  then have "num_of_nat (numeral (num.Bit1 q)) = num_of_nat (numeral q + numeral q + 1)"
-    by (simp only: Num.numeral_Bit1 Num.numeral_add)
-  also have "\<dots> = num_of_nat (numeral q + numeral q) + num_of_nat 1"
-    by (rule num_of_nat_plus_distrib) auto
-  also have "\<dots> = num.Bit0 (num_of_nat (numeral q)) + num_of_nat 1"
-    by (subst num_of_nat_double) auto
-  finally show ?case
-    using Bit1.IH by simp
-qed
+  by (simp flip: nat_of_num_numeral add: nat_of_num_inverse)
+
+lemma numeral_num_of_nat_unfold:
+  \<open>numeral (num_of_nat n) = (if n = 0 then 1 else of_nat n)\<close>
+  apply (simp only: of_nat_numeral [symmetric, of \<open>num_of_nat n\<close>] flip: nat_of_num_numeral)
+  apply (auto simp add: num_of_nat_inverse)
+  done
 
 end
+
+
+hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 
 end
