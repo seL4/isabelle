@@ -29,7 +29,7 @@ object Component_Stack {
   /* build stack */
 
   val default_url = "https://github.com/commercialhaskell/stack/releases/download"
-  val default_version = "2.15.5"
+  val default_version = "2.15.7"
 
   def build_stack(
     base_url: String = default_url,
