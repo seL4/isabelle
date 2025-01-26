@@ -288,10 +288,10 @@ context fixes ordb :: "'b \<Rightarrow> 'b \<Rightarrow> bool" (infix \<open>\<s
 
 lemma iterates_mono:
   assumes f: "f \<in> ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
-  and mono: "\<And>f. monotone (\<sqsubseteq>) (\<le>) f \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) (F f)"
+    and mono: "\<And>f. monotone (\<sqsubseteq>) (\<le>) f \<Longrightarrow> monotone (\<sqsubseteq>) (\<le>) (F f)"
   shows "monotone (\<sqsubseteq>) (\<le>) f"
-using f
-by(induction rule: ccpo.iterates.induct[OF ccpo_fun, consumes 1, case_names step Sup])(blast intro: mono mono_lub)+
+  using f
+  by(induction rule: ccpo.iterates.induct[OF ccpo_fun, consumes 1])(blast intro: mono mono_lub)+
 
 lemma fixp_preserves_mono:
   assumes mono: "\<And>x. monotone (fun_ord (\<le>)) (\<le>) (\<lambda>f. F f x)"
@@ -304,22 +304,23 @@ proof(rule monotoneI)
   let ?iter = "ccpo.iterates (fun_lub Sup) (fun_ord (\<le>)) F"
   have chain: "\<And>x. Complete_Partial_Order.chain (\<le>) ((\<lambda>f. f x) ` ?iter)"
     by(rule chain_imageI[OF ccpo.chain_iterates[OF ccpo_fun mono]])(simp add: fun_ord_def)
-
   fix x y
   assume "x \<sqsubseteq> y"
-  show "?fixp x \<le> ?fixp y"
-    apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
+  have "(\<Squnion>f\<in>?iter. f x) \<le> (\<Squnion>f\<in>?iter. f y)"
     using chain
   proof(rule ccpo_Sup_least)
     fix x'
     assume "x' \<in> (\<lambda>f. f x) ` ?iter"
-    then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
-    also have "f x \<le> f y"
-      by(rule monotoneD[OF iterates_mono[OF \<open>f \<in> ?iter\<close> mono2]])(blast intro: \<open>x \<sqsubseteq> y\<close>)+
-    also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
-      by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
-    finally show "x' \<le> \<dots>" .
+    then obtain f where f: "f \<in> ?iter" "x' = f x" by blast 
+    then have "f x \<le> f y"
+      by (metis \<open>x \<sqsubseteq> y\<close> iterates_mono mono2 monotoneD)
+    also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)"
+      using chain f local.ccpo_Sup_upper by auto
+    finally show "x' \<le> \<dots>"
+      using f(2) by blast 
   qed
+  then show "?fixp x \<le> ?fixp y"
+    unfolding ccpo.fixp_def[OF ccpo_fun] fun_lub_apply .
 qed
 
 end
@@ -331,8 +332,8 @@ lemma monotone2monotone:
   and t: "monotone orda ordb (\<lambda>x. t x)"
   and 1: "\<And>y. monotone orda ordc (\<lambda>x. f x y)"
   and trans: "transp ordc"
-  shows "monotone orda ordc (\<lambda>x. f x (t x))"
-by(blast intro: monotoneI transpD[OF trans] monotoneD[OF t] monotoneD[OF 2] monotoneD[OF 1])
+shows "monotone orda ordc (\<lambda>x. f x (t x))"
+  using assms unfolding monotone_on_def by (metis UNIV_I transpE)
 
 subsection \<open>Continuity\<close>
 
@@ -466,12 +467,12 @@ lemma cont_id [simp, cont_intro]: "\<And>Sup. cont Sup ord Sup ord id"
   by(rule contI) simp
 
 lemma cont_id' [simp, cont_intro]: "\<And>Sup. cont Sup ord Sup ord (\<lambda>x. x)"
-  using cont_id[unfolded id_def] .
+  by (simp add: Inf.INF_identity_eq contI)
 
 lemma cont_applyI [cont_intro]:
   assumes cont: "cont luba orda lubb ordb g"
   shows "cont (fun_lub luba) (fun_ord orda) lubb ordb (\<lambda>f. g (f x))"
-  by(rule contI)(drule chain_fun_ordD[where x=x], simp add: fun_lub_apply image_image contD[OF cont])
+  using assms by (simp add: cont_def chain_fun_ordD fun_lub_apply image_image)
 
 lemma call_cont: "cont (fun_lub lub) (fun_ord ord) lub ord (\<lambda>f. f t)"
   by(simp add: cont_def fun_lub_apply)
@@ -608,19 +609,24 @@ proof(intro conjI monotoneI contI)
     by(rule chain_imageI[OF ccpo.chain_iterates[OF ccpo_fun mono]])(simp add: fun_ord_def)
 
   show "?fixp x \<le> ?fixp y" if "x \<sqsubseteq> y" for x y
-    apply (simp only: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
-    using chain
-  proof(rule ccpo_Sup_least)
-    fix x'
-    assume "x' \<in> (\<lambda>f. f x) ` ?iter"
-    then obtain f where "f \<in> ?iter" "x' = f x" by blast note this(2)
-    also from _ \<open>x \<sqsubseteq> y\<close> have "f x \<le> f y"
-      by(rule mcont_monoD[OF iterates_mcont[OF \<open>f \<in> ?iter\<close> mcont]])
-    also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)" using chain
-      by(rule ccpo_Sup_upper)(simp add: \<open>f \<in> ?iter\<close>)
-    finally show "x' \<le> \<dots>" .
+  proof -
+    have "(\<Squnion>f\<in>?iter. f x)
+    \<le> (\<Squnion>f\<in>?iter. f y)"
+      using chain
+    proof(rule ccpo_Sup_least)
+      fix x'
+      assume "x' \<in> (\<lambda>f. f x) ` ?iter"
+      then obtain f where f: "f \<in> ?iter" "x' = f x" by blast 
+      then have "f x \<le> f y"
+        by (metis iterates_mcont mcont mcont_monoD that)
+      also have "f y \<le> \<Squnion>((\<lambda>f. f y) ` ?iter)"
+        using chain f local.ccpo_Sup_upper by auto
+      finally show "x' \<le> \<dots>"
+        using f(2) by blast 
+    qed
+    then show ?thesis
+      by (simp add: ccpo.fixp_def[OF ccpo_fun] fun_lub_apply)
   qed
-
   show "?fixp (\<Or>Y) = \<Squnion>(?fixp ` Y)"
     if chain: "Complete_Partial_Order.chain (\<sqsubseteq>) Y" and Y: "Y \<noteq> {}" for Y
   proof -
@@ -798,11 +804,8 @@ subsection \<open>Admissibility\<close>
 lemma admissible_subst:
   assumes adm: "ccpo.admissible luba orda (\<lambda>x. P x)"
   and mcont: "mcont lubb ordb luba orda f"
-  shows "ccpo.admissible lubb ordb (\<lambda>x. P (f x))"
-apply(rule ccpo.admissibleI)
-apply(frule (1) mcont_contD[OF mcont])
-apply(auto intro: ccpo.admissibleD[OF adm] chain_imageI dest: mcont_monoD[OF mcont])
-done
+shows "ccpo.admissible lubb ordb (\<lambda>x. P (f x))"
+  using assms by (simp add: ccpo.admissible_def chain_imageI mcont_contD mcont_monoD)
 
 lemmas [simp, cont_intro] = 
   admissible_all
@@ -835,9 +838,7 @@ lemma admissible_eqI:
   assumes f: "cont luba orda lub ord (\<lambda>x. f x)"
     and g: "cont luba orda lub ord (\<lambda>x. g x)"
   shows "ccpo.admissible luba orda (\<lambda>x. f x = g x)"
-  apply(rule ccpo.admissibleI)
-  apply(simp_all add: contD[OF f] contD[OF g] cong: image_cong)
-  done
+  by (smt (verit, best) Sup.SUP_cong ccpo.admissible_def contD assms)
 
 corollary admissible_eq_mcontI [cont_intro]:
   "\<lbrakk> mcont luba orda lub ord (\<lambda>x. f x); 
@@ -866,7 +867,6 @@ proof(rule ccpo.admissibleI)
   proof(rule ccpo_Sup_least)
     from chain show "Complete_Partial_Order.chain (\<le>) (f ` A)"
       by(rule chain_imageI)(rule mcont_monoD[OF f])
-    
     fix x
     assume "x \<in> f ` A"
     then obtain y where "y \<in> A" "x = f y" by blast note this(2)
@@ -1269,10 +1269,11 @@ proof(rule contI)
     by(rule contD)(simp_all add: chain_rel_prodD2[OF chain] \<open>Y \<noteq> {}\<close>)
   hence "\<Squnion>((\<lambda>x. f (x, lubb (snd ` Y))) ` fst ` Y) = \<Squnion>((\<lambda>x. \<dots> x) ` fst ` Y)" by simp
   also have "\<dots> = \<Squnion>((\<lambda>x. f (fst x, snd x)) ` Y)"
-    unfolding image_image split_def using chain
-    apply(rule diag_Sup)
-    using monotoneD[OF mono]
-    by(auto intro: monotoneI)
+    unfolding image_image  using chain
+  proof (rule diag_Sup)
+    show "\<And>y. y \<in> Y \<Longrightarrow> monotone (rel_prod orda ordb) (\<le>) (\<lambda>x. f (fst x, snd y))"
+      by (smt (verit, best) b.order_refl mono monotoneD monotoneI rel_prod_inject rel_prod_sel)
+  qed (use mono monotoneD in fastforce)
   finally show "f (prod_lub luba lubb Y) = \<Squnion>(f ` Y)" by simp
 qed
 
@@ -1455,10 +1456,10 @@ lemma mcont2mcont_insert[THEN lfp.mcont2mcont, cont_intro, simp]:
 
 lemma mono2mono_image [THEN lfp.mono2mono, cont_intro, simp]:
   shows monotone_image: "monotone (\<subseteq>) (\<subseteq>) ((`) f)"
-  by(rule monotoneI) blast
+  by (simp add: image_mono monoI)
 
 lemma cont_image: "cont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
-  by(rule contI)(auto)
+  by (meson contI image_Union)
 
 lemma mcont2mcont_image [THEN lfp.mcont2mcont, cont_intro, simp]:
   shows mcont_image: "mcont Union (\<subseteq>) Union (\<subseteq>) ((`) f)"
@@ -1473,21 +1474,24 @@ lemma monotone_Sup [cont_intro, simp]:
 lemma cont_Sup:
   assumes "cont lub ord Union (\<subseteq>) f"
   shows "cont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
-apply(rule contI)
-apply(simp add: contD[OF assms])
-apply(blast intro: Sup_least Sup_upper order_trans order.antisym)
-done
+proof -
+  have "\<And>Y. \<lbrakk>Complete_Partial_Order.chain ord Y; Y \<noteq> {}\<rbrakk>
+         \<Longrightarrow> \<Squnion> \<Union> (f ` Y) = (\<Squnion>x\<in>Y. \<Squnion> f x)"
+    by (blast intro: Sup_least Sup_upper order_trans order.antisym)
+  with assms show ?thesis
+    by (force simp: cont_def)
+qed
 
 lemma mcont_Sup: "mcont lub ord Union (\<subseteq>) f \<Longrightarrow> mcont lub ord Sup (\<le>) (\<lambda>x. \<Squnion>f x)"
-unfolding mcont_def by(blast intro: monotone_Sup cont_Sup)
+  unfolding mcont_def by(blast intro: monotone_Sup cont_Sup)
 
 lemma monotone_SUP:
   "\<lbrakk> monotone ord (\<subseteq>) f; \<And>y. monotone ord (\<le>) (\<lambda>x. g x y) \<rbrakk> \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>y\<in>f x. g x y)"
-by(rule monotoneI)(blast dest: monotoneD intro: Sup_upper order_trans intro!: Sup_least)
+  by(rule monotoneI)(blast dest: monotoneD intro: Sup_upper order_trans intro!: Sup_least)
 
 lemma monotone_SUP2:
   "(\<And>y. y \<in> A \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. g x y)) \<Longrightarrow> monotone ord (\<le>) (\<lambda>x. \<Squnion>y\<in>A. g x y)"
-by(rule monotoneI)(blast intro: Sup_upper order_trans dest: monotoneD intro!: Sup_least)
+  by(rule monotoneI)(blast intro: Sup_upper order_trans dest: monotoneD intro!: Sup_least)
 
 lemma cont_SUP:
   assumes f: "mcont lub ord Union (\<subseteq>) f"
@@ -1571,7 +1575,7 @@ unfolding Ball_def by simp
 
 lemma admissible_Bex'[THEN admissible_subst, cont_intro, simp]:
   shows admissible_Bex: "ccpo.admissible Union (\<subseteq>) (\<lambda>A. \<exists>x\<in>A. P x)"
-by(rule ccpo.admissibleI)(auto)
+  using ccpo.admissible_def by fastforce
 
 subsection \<open>Parallel fixpoint induction\<close>
 
@@ -1591,8 +1595,18 @@ lemma ccpo_rel_prodI:
   "class.ccpo (prod_lub luba lubb) (rel_prod orda ordb) (mk_less (rel_prod orda ordb))"
   (is "class.ccpo ?lub ?ord ?ord'")
 proof(intro class.ccpo.intro class.ccpo_axioms.intro)
-  show "class.order ?ord ?ord'" by(rule order_rel_prodI) intro_locales
-qed(auto 4 4 simp add: prod_lub_def intro: a.ccpo_Sup_upper b.ccpo_Sup_upper a.ccpo_Sup_least b.ccpo_Sup_least rev_image_eqI dest: chain_rel_prodD1 chain_rel_prodD2)
+  show "class.order ?ord ?ord'" 
+    by(rule order_rel_prodI) intro_locales
+  show "\<And>A x. \<lbrakk>Complete_Partial_Order.chain (rel_prod orda ordb) A; x \<in> A\<rbrakk>
+           \<Longrightarrow> rel_prod orda ordb x (prod_lub luba lubb A)"
+    by (simp add: a.ccpo_Sup_upper b.ccpo_Sup_upper chain_rel_prodD1 chain_rel_prodD2
+        prod_lub_def rel_prod_sel)
+  show "\<And>A z. \<lbrakk>Complete_Partial_Order.chain (rel_prod orda ordb) A;
+            \<And>x. x \<in> A \<Longrightarrow> rel_prod orda ordb x z\<rbrakk>
+           \<Longrightarrow> rel_prod orda ordb (prod_lub luba lubb A) z"
+    by (metis (full_types) a.ccpo_Sup_below_iff b.ccpo_Sup_least chain_rel_prodD1
+        chain_rel_prodD2 imageE prod.sel prod_lub_def rel_prod_sel)
+qed
 
 interpretation ab: ccpo "prod_lub luba lubb" "rel_prod orda ordb" "mk_less (rel_prod orda ordb)"
 by(rule ccpo_rel_prodI)
@@ -1641,7 +1655,8 @@ proof -
       fix y
       assume "ordb y (snd ?lhs)"
       thus "ordb (g y) (snd ?lhs)"
-        by(subst ab.fixp_unfold)(auto simp add: f g dest: monotoneD[OF g])
+        by (smt (verit, best) ab.fixp_unfold f g monotoneD monotone_map_prod
+            snd_map_prod)
     qed(auto intro: b.ccpo_Sup_least chain_empty)
     ultimately show "?ord (?rhs1, ?rhs2) ?lhs"
       by(simp add: rel_prod_conv split_beta)
@@ -1663,14 +1678,17 @@ lemma parallel_fixp_induct_uc:
   and adm: "ccpo.admissible (prod_lub (fun_lub luba) (fun_lub lubb)) (rel_prod (fun_ord orda) (fun_ord ordb)) (\<lambda>x. P (fst x) (snd x))"
   and bot: "P (\<lambda>_. luba {}) (\<lambda>_. lubb {})"
   and step: "\<And>f g. P (U1 f) (U2 g) \<Longrightarrow> P (U1 (F f)) (U2 (G g))"
-  shows "P (U1 f) (U2 g)"
-apply(unfold eq1 eq2 inverse inverse2)
-apply(rule parallel_fixp_induct[OF partial_function_definitions.ccpo[OF a] partial_function_definitions.ccpo[OF b] adm])
-using F apply(simp add: monotone_def fun_ord_def)
-using G apply(simp add: monotone_def fun_ord_def)
-apply(simp add: fun_lub_def bot)
-apply(rule step, simp add: inverse inverse2)
-done
+shows "P (U1 f) (U2 g)"
+  unfolding eq1 eq2 inverse inverse2
+proof (rule parallel_fixp_induct[OF partial_function_definitions.ccpo[OF a] partial_function_definitions.ccpo[OF b] adm])
+  show "monotone (fun_ord orda) (fun_ord orda) (\<lambda>f. U1 (F (C1 f)))"
+    "monotone (fun_ord ordb) (fun_ord ordb) (\<lambda>g. U2 (G (C2 g)))"
+    using F G by(simp_all add: monotone_def fun_ord_def)
+  show "P (fun_lub luba {}) (fun_lub lubb {})"
+    by (simp add: fun_lub_def bot)
+  show "\<And>x y. P x y \<Longrightarrow> P (U1 (F (C1 x))) (U2 (G (C2 y)))"
+    by (simp add: inverse inverse2 local.step)
+qed
 
 lemmas parallel_fixp_induct_1_1 = parallel_fixp_induct_uc[
   of _ _ _ _ "\<lambda>x. x" _ "\<lambda>x. x" "\<lambda>x. x" _ "\<lambda>x. x",
@@ -1692,7 +1710,7 @@ lemma mcont_fst: "mcont (prod_lub luba lubb) (rel_prod orda ordb) luba orda fst"
 lemma mcont2mcont_fst [cont_intro, simp]:
   "mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) t
   \<Longrightarrow> mcont lub ord luba orda (\<lambda>x. fst (t x))"
-  by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel split_beta prod_lub_def image_image)
+  by (simp add: mcont_def monotone_on_def prod_lub_def cont_def image_image rel_prod_sel)
 
 lemma monotone_snd: "monotone (rel_prod orda ordb) ordb snd"
   by(auto intro: monotoneI)
@@ -1749,7 +1767,8 @@ proof(rule ccpo.compactI[OF _ ccpo.admissibleI])
     moreover have "z' \<noteq> y" using \<open>z' \<in> A\<close> * by(auto simp add: flat_ord_def)
     ultimately show ?thesis by simp
   qed
-  with z show "\<not> flat_ord x y (flat_lub x A)" by(simp add: flat_ord_def flat_lub_def)
+  with z show "\<not> flat_ord x y (flat_lub x A)" 
+    by(simp add: flat_ord_def flat_lub_def)
 qed
 
 end
