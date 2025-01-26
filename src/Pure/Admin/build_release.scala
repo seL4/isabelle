@@ -45,10 +45,8 @@ object Build_Release {
     val isabelle_archive: Path = dist_dir + isabelle.tar.gz
     val isabelle_library_archive: Path = dist_dir + Path.explode(dist_name + "_library.tar.gz")
 
-    def other_isabelle(dir: Path, suffix: String = "-build"): Other_Isabelle =
-      Other_Isabelle(dir + isabelle,
-        isabelle_identifier = dist_name + suffix,
-        progress = progress)
+    def other_isabelle(dir: Path): Other_Isabelle =
+      Other_Isabelle(dir + isabelle, isabelle_identifier = dist_name, progress = progress)
 
     def make_announce(id: String): Unit = {
       if (release_name.isEmpty) {
@@ -845,7 +843,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           val bundle_path = context.dist_dir + Path.basic(bundle)
           execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle_path))
 
-          val other_isabelle = context.other_isabelle(tmp_dir, suffix = "")
+          val other_isabelle = context.other_isabelle(tmp_dir)
 
           Isabelle_System.make_directory(other_isabelle.etc)
           File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
