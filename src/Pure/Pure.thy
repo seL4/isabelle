@@ -1422,16 +1422,19 @@ subsubsection \<open>Adhoc overloading\<close>
 ML \<open>
 local
 
+val adhoc_overloading_args =
+  Parse.and_list1 ((Parse.const --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) -- Scan.repeat Parse.term);
+
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
     "add adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term)
+    (adhoc_overloading_args
       >> Adhoc_Overloading.adhoc_overloading_cmd true);
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>no_adhoc_overloading\<close>
     "delete adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term)
+    (adhoc_overloading_args
       >> Adhoc_Overloading.adhoc_overloading_cmd false);
 
 in end

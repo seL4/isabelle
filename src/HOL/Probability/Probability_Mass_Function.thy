@@ -367,7 +367,7 @@ proof (clarify, intro conjI)
     done
 qed
 
-adhoc_overloading Monad_Syntax.bind bind_pmf
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_pmf
 
 lemma ennreal_pmf_bind: "pmf (bind_pmf N f) i = (\<integral>\<^sup>+x. pmf (f x) i \<partial>measure_pmf N)"
   unfolding pmf.rep_eq bind_pmf.rep_eq

@@ -513,7 +513,7 @@ subsubsection \<open>Bind\<close>
 definition bind_spmf :: "'a spmf \<Rightarrow> ('a \<Rightarrow> 'b spmf) \<Rightarrow> 'b spmf"
   where "bind_spmf x f = bind_pmf x (\<lambda>a. case a of None \<Rightarrow> return_pmf None | Some a' \<Rightarrow> f a')"
 
-adhoc_overloading Monad_Syntax.bind bind_spmf
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind_spmf
 
 lemma return_None_bind_spmf [simp]: "return_pmf None \<bind> (f :: 'a \<Rightarrow> _) = return_pmf None"
   by(simp add: bind_spmf_def bind_return_pmf)

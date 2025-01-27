@@ -89,7 +89,7 @@ lemma run_state_bind[simp]:
   "run_state (bind x f) s = (case run_state x s of (a, s') \<Rightarrow> run_state (f a) s')"
 unfolding bind_def by auto
 
-adhoc_overloading Monad_Syntax.bind bind
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind
 
 lemma bind_left_identity[simp]: "bind (return a) f = f a"
 unfolding return_def bind_def by simp

@@ -1092,7 +1092,7 @@ definition bind :: "'a measure \<Rightarrow> ('a \<Rightarrow> 'b measure) \<Rig
   "bind M f = (if space M = {} then count_space {} else
     join (distr M (subprob_algebra (f (SOME x. x \<in> space M))) f))"
 
-adhoc_overloading Monad_Syntax.bind bind
+adhoc_overloading Monad_Syntax.bind \<rightleftharpoons> bind
 
 lemma bind_empty:
   "space M = {} \<Longrightarrow> bind M f = count_space {}"

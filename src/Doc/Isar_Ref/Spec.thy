@@ -1111,11 +1111,11 @@ text \<open>
   \<^file>\<open>~~/src/HOL/Library/Monad_Syntax.thy\<close>.
 
   \<^rail>\<open>
-    (@@{command adhoc_overloading} | @@{command no_adhoc_overloading})
-      (@{syntax name} (@{syntax term} + ) + @'and')
+    (@@{command adhoc_overloading} | @@{command no_adhoc_overloading}) \<newline>
+      (@{syntax name} ('==' | '\<rightleftharpoons>') (@{syntax term} + ) + @'and')
   \<close>
 
-  \<^descr> @{command "adhoc_overloading"}~\<open>c v\<^sub>1 ... v\<^sub>n\<close> associates variants with an
+  \<^descr> @{command "adhoc_overloading"}~\<open>c \<rightleftharpoons> v\<^sub>1 ... v\<^sub>n\<close> associates variants with an
   existing constant.
 
   \<^descr> @{command "no_adhoc_overloading"} is similar to @{command
