@@ -51,7 +51,11 @@ fun curry f x y = f (x, y);
 fun fold _ [] y = y
   | fold f (x :: xs) y = fold f xs (f x y);
 
-fun replicate n x = (if n <= 0 then [] else x :: replicate (n - 1) x);
+fun positive n = IntInf.> (n, 0);
+
+fun decr n = IntInf.- (n, 1);
+
+fun replicate n x = (if positive n then x :: replicate (decr n) x else []);
 
 val exp = curry IntInf.pow 2;
 
