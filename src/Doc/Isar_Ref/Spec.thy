@@ -296,6 +296,7 @@ text \<open>
     \<^item> @{command translations} versus @{command no_translations}
     \<^item> @{command notation} versus @{command no_notation}
     \<^item> @{command type_notation} versus @{command no_type_notation}
+    \<^item> @{command adhoc_overloading} versus @{command no_adhoc_overloading}
 
   This also works recursively for the @{command unbundle} command as
   declaration inside a @{command bundle} definition: \<^verbatim>\<open>no\<close> means that

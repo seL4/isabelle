@@ -203,14 +203,14 @@ val _ = Context.>>
 
 local
 
-fun generic_adhoc_overloading add =
-  if add then
+fun generic_adhoc_overloading add args context =
+  if Syntax.effective_polarity_generic context add then
     fold (fn (oconst, ts) =>
       generic_add_overloaded oconst
-      #> fold (generic_add_variant oconst) ts)
+      #> fold (generic_add_variant oconst) ts) args context
   else
     fold (fn (oconst, ts) =>
-      fold (generic_remove_variant oconst) ts);
+      fold (generic_remove_variant oconst) ts) args context;
 
 fun gen_adhoc_overloading prep_arg add raw_args lthy =
   let
