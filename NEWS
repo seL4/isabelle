@@ -130,6 +130,20 @@ This is more robust than individual 'no_syntax' / 'no_notation'
 commands, which need to copy mixfix declarations from elsewhere and thus
 break after changes in the library.
 
+* Former theory "HOL-Library.Adhoc_Overloading" is now included in Pure,
+with a few changes (minor INCOMPATIBILITY):
+
+  - Theory imports of "HOL-Library.Adhoc_Overloading" need to be removed
+    (or replaced by Main).
+
+  - Equivalence of overloaded constants has become more liberal: sorts
+    of type variables are ignore, schematic type variables only need to
+    match (in both directions) instead of being literally equal.
+
+  - Command syntax now requires a separator: "adhoc_overloading c \<rightleftharpoons> vs".
+
+  - The "no" keyword for bundles works as for 'syntax' / 'no_syntax'.
+
 * Theory "HOL-Library.Datatype_Records" provides bundle
 "datatype_record_syntax" to exchange its alternative notation versus
 regular "record_syntax". This also allows to swap record syntax later
