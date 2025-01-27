@@ -8,13 +8,7 @@ Adhoc overloading of constants based on their types.
 signature ADHOC_OVERLOADING =
 sig
   val show_variants: bool Config.T
-  val is_overloaded: Proof.context -> string -> bool
-  val generic_add_overloaded: string -> Context.generic -> Context.generic
-  val generic_remove_overloaded: string -> Context.generic -> Context.generic
-  val generic_add_variant: string -> term -> Context.generic -> Context.generic
-  (*If the list of variants is empty at the end of "generic_remove_variant", then
-  "generic_remove_overloaded" is called implicitly.*)
-  val generic_remove_variant: string -> term -> Context.generic -> Context.generic
+  val adhoc_overloading: bool -> (string * term list) list -> local_theory -> local_theory
   val adhoc_overloading_cmd: bool -> (string * string list) list -> local_theory -> local_theory
 end
 
@@ -93,6 +87,8 @@ fun generic_add_overloaded oconst context =
   if is_overloaded (Context.proof_of context) oconst then context
   else map_tables (Symtab.update (oconst, [])) I context;
 
+(*If the list of variants is empty at the end of "generic_remove_variant", then
+"generic_remove_overloaded" is called implicitly.*)
 fun generic_remove_overloaded oconst context =
   let
     fun remove_oconst_and_variants context oconst =
@@ -205,7 +201,9 @@ val _ = Context.>>
 
 (* commands *)
 
-fun generic_adhoc_overloading_cmd add =
+local
+
+fun generic_adhoc_overloading add =
   if add then
     fold (fn (oconst, ts) =>
       generic_add_overloaded oconst
@@ -214,26 +212,36 @@ fun generic_adhoc_overloading_cmd add =
     fold (fn (oconst, ts) =>
       fold (generic_remove_variant oconst) ts);
 
-fun adhoc_overloading_cmd' add args phi =
-  let val args' = args
-    |> map (apsnd (map_filter (fn t =>
-         let val t' = Morphism.term phi t;
-         in if Term.aconv_untyped (t, t') then SOME t' else NONE end)));
-  in generic_adhoc_overloading_cmd add args' end;
-
-fun adhoc_overloading_cmd add raw_args lthy =
+fun gen_adhoc_overloading prep_arg add raw_args lthy =
   let
-    fun const_name ctxt =
-      dest_Const_name o Proof_Context.read_const {proper = false, strict = false} ctxt;  (* FIXME {proper = true, strict = true} (!?) *)
-    fun read_term ctxt = singleton (Variable.polymorphic ctxt) o Syntax.read_term ctxt;
-    val args =
-      raw_args
-      |> map (apfst (const_name lthy))
-      |> map (apsnd (map (read_term lthy)));
+    val args = map (prep_arg lthy) raw_args;
   in
-    Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
-      (adhoc_overloading_cmd' add args) lthy
+    lthy |> Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
+      (fn phi =>
+        let val args' = args
+          |> map (apsnd (map_filter (fn t =>
+               let val t' = Morphism.term phi t;
+               in if Term.aconv_untyped (t, t') then SOME t' else NONE end)));
+        in generic_adhoc_overloading add args' end)
   end;
+
+fun cert_const_name ctxt c =
+  (Consts.the_const_type (Proof_Context.consts_of ctxt) c; c);
+
+fun read_const_name ctxt =
+  dest_Const_name o Proof_Context.read_const {proper = true, strict = true} ctxt;
+
+fun cert_term ctxt = Proof_Context.cert_term ctxt #> singleton (Variable.polymorphic ctxt);
+fun read_term ctxt = Syntax.read_term ctxt #> singleton (Variable.polymorphic ctxt);
+
+in
+
+val adhoc_overloading =
+  gen_adhoc_overloading (fn ctxt => fn (c, ts) => (cert_const_name ctxt c, map (cert_term ctxt) ts));
+
+val adhoc_overloading_cmd =
+  gen_adhoc_overloading (fn ctxt => fn (c, ts) => (read_const_name ctxt c, map (read_term ctxt) ts));
 
 end;
 
+end;
