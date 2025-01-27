@@ -38,13 +38,13 @@ fun mapprox_float \<^Const_>\<open>Float for m e\<close> = real_of_man_exp (int_
       handle TERM _ => raise TERM ("mapprox_float", [t]);
 
 (* TODO: define using compiled terms? *)
-fun mapprox_floatarith \<^Const_>\<open>Add for a b\<close> xs = mapprox_floatarith a xs + mapprox_floatarith b xs
-  | mapprox_floatarith \<^Const_>\<open>Minus for a\<close> xs = ~ (mapprox_floatarith a xs)
-  | mapprox_floatarith \<^Const_>\<open>Mult for a b\<close> xs = mapprox_floatarith a xs * mapprox_floatarith b xs
-  | mapprox_floatarith \<^Const_>\<open>Inverse for a\<close> xs = 1.0 / mapprox_floatarith a xs
+fun mapprox_floatarith \<^Const_>\<open>Add for a b\<close> xs = Real.+ (mapprox_floatarith a xs, mapprox_floatarith b xs)
+  | mapprox_floatarith \<^Const_>\<open>Minus for a\<close> xs = Real.~ (mapprox_floatarith a xs)
+  | mapprox_floatarith \<^Const_>\<open>Mult for a b\<close> xs = Real.* (mapprox_floatarith a xs, mapprox_floatarith b xs)
+  | mapprox_floatarith \<^Const_>\<open>Inverse for a\<close> xs = 1.0 / (mapprox_floatarith a xs : real)
   | mapprox_floatarith \<^Const_>\<open>Cos for a\<close> xs = Math.cos (mapprox_floatarith a xs)
   | mapprox_floatarith \<^Const_>\<open>Arctan for a\<close> xs = Math.atan (mapprox_floatarith a xs)
-  | mapprox_floatarith \<^Const_>\<open>Abs for a\<close> xs = abs (mapprox_floatarith a xs)
+  | mapprox_floatarith \<^Const_>\<open>Abs for a\<close> xs = Real.abs (mapprox_floatarith a xs : real)
   | mapprox_floatarith \<^Const_>\<open>Max for a b\<close> xs =
       Real.max (mapprox_floatarith a xs, mapprox_floatarith b xs)
   | mapprox_floatarith \<^Const_>\<open>Min for a b\<close> xs =
@@ -66,15 +66,15 @@ fun mapprox_atLeastAtMost eps x a b xs =
     let
       val x' = mapprox_floatarith x xs
     in
-      mapprox_floatarith a xs + eps <= x' andalso x' + eps <= mapprox_floatarith b xs
+      Real.<= (Real.+ (mapprox_floatarith a xs, eps), x') andalso Real.<= (Real.+ (x', eps), mapprox_floatarith b xs)
     end
 
 fun mapprox_form eps \<^Const_>\<open>Bound for x a b f\<close> xs =
     (not (mapprox_atLeastAtMost eps x a b xs)) orelse mapprox_form eps f xs
 | mapprox_form eps \<^Const_>\<open>Assign for x a f\<close> xs =
     (Real.!= (mapprox_floatarith x xs, mapprox_floatarith a xs)) orelse mapprox_form eps f xs
-| mapprox_form eps \<^Const_>\<open>Less for a b\<close> xs = mapprox_floatarith a xs + eps < mapprox_floatarith b xs
-| mapprox_form eps \<^Const_>\<open>LessEqual for a b\<close> xs = mapprox_floatarith a xs + eps <= mapprox_floatarith b xs
+| mapprox_form eps \<^Const_>\<open>Less for a b\<close> xs = Real.< (Real.+ (mapprox_floatarith a xs, eps), mapprox_floatarith b xs)
+| mapprox_form eps \<^Const_>\<open>LessEqual for a b\<close> xs = Real.<= (Real.+ (mapprox_floatarith a xs, eps), mapprox_floatarith b xs)
 | mapprox_form eps \<^Const_>\<open>AtLeastAtMost for x a b\<close> xs = mapprox_atLeastAtMost eps x a b xs
 | mapprox_form eps \<^Const_>\<open>Conj for f g\<close> xs = mapprox_form eps f xs andalso mapprox_form eps g xs
 | mapprox_form eps \<^Const_>\<open>Disj for f g\<close> xs = mapprox_form eps f xs orelse mapprox_form eps g xs
