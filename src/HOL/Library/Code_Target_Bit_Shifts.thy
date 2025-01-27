@@ -101,7 +101,7 @@ let drop i = fold drop' (splitIndex (Z.abs i));;
 end;;
 \<close> for constant Code_Target_Bit_Shifts.push_bit Code_Target_Bit_Shifts.drop_bit
     and (Haskell) \<open>
-module Bit_Shifts where
+module Bit_Shifts (push, drop, push', drop') where
 
 import Prelude (Int, Integer, toInteger, fromInteger, maxBound, divMod, (-), (<=), abs, flip)
 import GHC.Bits (Bits)
@@ -123,17 +123,17 @@ splitIndex i = fromInteger s : replicate (fromInteger b) maxBound
 
 {- The implementations are formally total, though indices >~ maxIndex will produce heavy computation load -}
 
-push' :: Int -> Int -> Int
-push' i = flip shiftL (abs i)
-
 push :: Integer -> Integer -> Integer
 push i = fold (flip shiftL) (splitIndex (abs i))
 
-drop' :: Int -> Int -> Int
-drop' i = flip shiftR (abs i)
-
 drop :: Integer -> Integer -> Integer
 drop i = fold (flip shiftR) (splitIndex (abs i))
+
+push' :: Int -> Int -> Int
+push' i = flip shiftL (abs i)
+
+drop' :: Int -> Int -> Int
+drop' i = flip shiftR (abs i)
 \<close> for constant Code_Target_Bit_Shifts.push_bit Code_Target_Bit_Shifts.drop_bit
     and (Scala) \<open>
 object Bit_Shifts {
