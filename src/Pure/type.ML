@@ -84,6 +84,7 @@ sig
   val could_match: typ * typ -> bool
   val could_matches: typ list * typ list -> bool
   val raw_instance: typ * typ -> bool
+  val raw_equiv: typ * typ -> bool
   exception TUNIFY
   val unify: tsig -> typ * typ -> tyenv * int -> tyenv * int
   val raw_unify: typ * typ -> tyenv -> tyenv
@@ -487,10 +488,11 @@ and could_matches (T :: Ts, U :: Us) = could_match (T, U) andalso could_matches 
   | could_matches ([], []) = true
   | could_matches _ = false;
 
-fun raw_instance (T, U) =
-  if could_match (U, T) then
-    (Vartab.build (raw_match (U, T)); true) handle TYPE_MATCH => false
-  else false;
+fun can_raw_match arg =
+  (Vartab.build (raw_match arg); true) handle TYPE_MATCH => false;
+
+fun raw_instance (T, U) = could_match (U, T) andalso can_raw_match (U, T);
+fun raw_equiv (T, U) = could_match (U, T) andalso can_raw_match (U, T) andalso can_raw_match (T, U);
 
 
 (* unification *)
