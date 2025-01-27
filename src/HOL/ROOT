@@ -22,7 +22,7 @@ session "HOL-Examples" in Examples = HOL +
   sessions
     "HOL-Computational_Algebra"
   theories
-    Adhoc_Overloading_Examples
+    Adhoc_Overloading
     Ackermann
     Cantor
     Coherent

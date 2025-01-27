@@ -313,6 +313,9 @@ HOL-Library.Discrete_Functions to avoid name conflicts:
 * Theory "HOL-Library.Suc_Notation" provides compact notation for
 iterated Suc terms.
 
+* Theory "HOL-Library.Adhoc_Overloading" has been moved to Pure. Minor
+INCOMPATIBILITY: need to adjust theory imports.
+
 
 *** ML ***
 

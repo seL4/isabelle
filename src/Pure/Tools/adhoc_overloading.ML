@@ -1,4 +1,5 @@
-(*  Author:     Alexander Krauss, TU Muenchen
+(*  Title:      Pure/Tools/adhoc_overloading.ML
+    Author:     Alexander Krauss, TU Muenchen
     Author:     Christian Sternagel, University of Innsbruck
 
 Adhoc overloading of constants based on their types.
@@ -6,6 +7,7 @@ Adhoc overloading of constants based on their types.
 
 signature ADHOC_OVERLOADING =
 sig
+  val show_variants: bool Config.T
   val is_overloaded: Proof.context -> string -> bool
   val generic_add_overloaded: string -> Context.generic -> Context.generic
   val generic_remove_overloaded: string -> Context.generic -> Context.generic
@@ -13,7 +15,7 @@ sig
   (*If the list of variants is empty at the end of "generic_remove_variant", then
   "generic_remove_overloaded" is called implicitly.*)
   val generic_remove_variant: string -> term -> Context.generic -> Context.generic
-  val show_variants: bool Config.T
+  val adhoc_overloading_cmd: bool -> (string * string list) list -> local_theory -> local_theory
 end
 
 structure Adhoc_Overloading: ADHOC_OVERLOADING =
@@ -232,16 +234,6 @@ fun adhoc_overloading_cmd add raw_args lthy =
     Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
       (adhoc_overloading_cmd' add args) lthy
   end;
-
-val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
-    "add adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd true);
-
-val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>no_adhoc_overloading\<close>
-    "delete adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
 
 end;
 

@@ -1,14 +1,13 @@
-(*  Title:      HOL/Examples/Adhoc_Overloading_Examples.thy
+(*  Title:      HOL/Examples/Adhoc_Overloading.thy
     Author:     Christian Sternagel
 *)
 
 section \<open>Ad Hoc Overloading\<close>
 
-theory Adhoc_Overloading_Examples
+theory Adhoc_Overloading
 imports
   Main
   "HOL-Library.Infinite_Set"
-  "HOL-Library.Adhoc_Overloading"
 begin
 
 text \<open>Adhoc overloading allows to overload a constant depending on
@@ -253,4 +252,3 @@ lemma "(Abs_perm id :: 'a perm) \<bullet> id = id"
   by (metis Rep_perm_0 id_def inj_imp_inv_eq inj_on_id uminus_perm_def zero_perm_def)
 
 end
-

@@ -6,7 +6,7 @@
 section \<open>Monad notation for arbitrary types\<close>
 
 theory Monad_Syntax
-  imports Adhoc_Overloading
+  imports Main
 begin
 
 text \<open>
