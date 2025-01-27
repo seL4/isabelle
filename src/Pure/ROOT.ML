@@ -365,6 +365,7 @@ ML_file "Tools/rail.ML";
 ML_file "Tools/rule_insts.ML";
 ML_file "Tools/thy_deps.ML";
 ML_file "Tools/class_deps.ML";
+ML_file "Tools/adhoc_overloading.ML";
 ML_file "Tools/find_theorems.ML";
 ML_file "Tools/find_consts.ML";
 ML_file "Tools/simplifier_trace.ML";

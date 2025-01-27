@@ -296,6 +296,7 @@ text \<open>
     \<^item> @{command translations} versus @{command no_translations}
     \<^item> @{command notation} versus @{command no_notation}
     \<^item> @{command type_notation} versus @{command no_type_notation}
+    \<^item> @{command adhoc_overloading} versus @{command no_adhoc_overloading}
 
   This also works recursively for the @{command unbundle} command as
   declaration inside a @{command bundle} definition: \<^verbatim>\<open>no\<close> means that
@@ -1091,6 +1092,41 @@ end
 lemma "Length (a, b, c, ()) = 3" by simp
 lemma "Length ((a, b), (c, d), ()) = 2" by simp
 lemma "Length ((a, b, c, d, e), ()) = 1" by simp
+
+
+section \<open>Overloaded constant abbreviations: adhoc overloading\<close>
+
+text \<open>
+  \begin{tabular}{rcll}
+  @{command_def "adhoc_overloading"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{command_def "no_adhoc_overloading"} & : & \<open>local_theory \<rightarrow> local_theory\<close> \\
+  @{attribute_def "show_variants"} & : & \<open>attribute\<close> & default \<open>false\<close> \\
+  \end{tabular}
+
+  \<^medskip>
+  Adhoc overloading allows to overload a constant depending on its type.
+  Typically this involves the introduction of an uninterpreted constant (used
+  for input and output) and the addition of some variants (used internally).
+  For examples see \<^file>\<open>~~/src/HOL/Examples/Adhoc_Overloading.thy\<close> and
+  \<^file>\<open>~~/src/HOL/Library/Monad_Syntax.thy\<close>.
+
+  \<^rail>\<open>
+    (@@{command adhoc_overloading} | @@{command no_adhoc_overloading}) \<newline>
+      (@{syntax name} ('==' | '\<rightleftharpoons>') (@{syntax term} + ) + @'and')
+  \<close>
+
+  \<^descr> @{command "adhoc_overloading"}~\<open>c \<rightleftharpoons> v\<^sub>1 ... v\<^sub>n\<close> associates variants with an
+  existing constant.
+
+  \<^descr> @{command "no_adhoc_overloading"} is similar to @{command
+  "adhoc_overloading"}, but removes the specified variants from the present
+  context.
+
+  \<^descr> @{attribute "show_variants"} controls printing of variants of overloaded
+  constants. If enabled, the internally used variants are printed instead of
+  their respective overloaded constants. This is occasionally useful to check
+  whether the system agrees with a user's expectations about derived variants.
+\<close>
 
 
 section \<open>Incorporating ML code \label{sec:ML}\<close>

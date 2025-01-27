@@ -1,14 +1,13 @@
-(*  Title:      HOL/Examples/Adhoc_Overloading_Examples.thy
+(*  Title:      HOL/Examples/Adhoc_Overloading.thy
     Author:     Christian Sternagel
 *)
 
 section \<open>Ad Hoc Overloading\<close>
 
-theory Adhoc_Overloading_Examples
+theory Adhoc_Overloading
 imports
   Main
   "HOL-Library.Infinite_Set"
-  "HOL-Library.Adhoc_Overloading"
 begin
 
 text \<open>Adhoc overloading allows to overload a constant depending on
@@ -36,7 +35,7 @@ consts vars :: "'a \<Rightarrow> 'b set"
 
 text \<open>Which is then overloaded with variants for terms, rules, and TRSs.\<close>
 adhoc_overloading
-  vars term_vars
+  vars \<rightleftharpoons> term_vars
 
 value [nbe] "vars (Fun ''f'' [Var 0, Var 1])"
 
@@ -44,7 +43,7 @@ fun rule_vars :: "('a, 'b) term \<times> ('a, 'b) term \<Rightarrow> 'b set" whe
   "rule_vars (l, r) = vars l \<union> vars r"
 
 adhoc_overloading
-  vars rule_vars
+  vars \<rightleftharpoons> rule_vars
 
 value [nbe] "vars (Var 1, Var 0)"
 
@@ -52,7 +51,7 @@ definition trs_vars :: "(('a, 'b) term \<times> ('a, 'b) term) set \<Rightarrow>
   "trs_vars R = \<Union>(rule_vars ` R)"
 
 adhoc_overloading
-  vars trs_vars
+  vars \<rightleftharpoons> trs_vars
 
 value [nbe] "vars {(Var 1, Var 0)}"
 
@@ -63,7 +62,7 @@ value "vars (R :: (('a, 'b) term \<times> ('a, 'b) term) set)"
 
 text \<open>It is also possible to remove variants.\<close>
 no_adhoc_overloading
-  vars term_vars rule_vars 
+  vars \<rightleftharpoons> term_vars rule_vars 
 
 (*value "vars (Var 1)" (*does not have an instance*)*)
 
@@ -72,7 +71,7 @@ input and output. Internally, always a variant is used, as can be
 observed by the configuration option \<open>show_variants\<close>.\<close>
 
 adhoc_overloading
-  vars term_vars
+  vars \<rightleftharpoons> term_vars
 
 declare [[show_variants]]
 
@@ -187,7 +186,7 @@ locale permute =
 begin
 
 adhoc_overloading
-  PERMUTE permute
+  PERMUTE \<rightleftharpoons> permute
 
 end
 
@@ -196,7 +195,7 @@ definition permute_atom :: "'a perm \<Rightarrow> 'a \<Rightarrow> 'a" where
   "permute_atom p a = (Rep_perm p) a"
 
 adhoc_overloading
-  PERMUTE permute_atom
+  PERMUTE \<rightleftharpoons> permute_atom
 
 interpretation atom_permute: permute permute_atom
   by standard (simp_all add: permute_atom_def Rep_perm_simps)
@@ -206,7 +205,7 @@ definition permute_perm :: "'a perm \<Rightarrow> 'a perm \<Rightarrow> 'a perm"
   "permute_perm p q = p + q - p"
 
 adhoc_overloading
-  PERMUTE permute_perm
+  PERMUTE \<rightleftharpoons> permute_perm
 
 interpretation perm_permute: permute permute_perm
   apply standard
@@ -223,13 +222,13 @@ locale fun_permute =
 begin
 
 adhoc_overloading
-  PERMUTE perm1 perm2
+  PERMUTE \<rightleftharpoons> perm1 perm2
 
 definition permute_fun :: "'a perm \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'c)" where
   "permute_fun p f = (\<lambda>x. p \<bullet> (f (-p \<bullet> x)))"
 
 adhoc_overloading
-  PERMUTE permute_fun
+  PERMUTE \<rightleftharpoons> permute_fun
 
 end
 
@@ -245,7 +244,7 @@ interpretation atom_fun_permute: fun_permute permute_atom permute_atom
   by (unfold_locales)
 
 adhoc_overloading
-  PERMUTE atom_fun_permute.permute_fun
+  PERMUTE \<rightleftharpoons> atom_fun_permute.permute_fun
 
 lemma "(Abs_perm id :: 'a perm) \<bullet> id = id"
   unfolding atom_fun_permute.permute_fun_def
@@ -253,4 +252,3 @@ lemma "(Abs_perm id :: 'a perm) \<bullet> id = id"
   by (metis Rep_perm_0 id_def inj_imp_inv_eq inj_on_id uminus_perm_def zero_perm_def)
 
 end
-

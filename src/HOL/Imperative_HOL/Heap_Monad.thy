@@ -250,7 +250,7 @@ definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarro
                 | None \<Rightarrow> None)"
 
 adhoc_overloading
-  Monad_Syntax.bind Heap_Monad.bind
+  Monad_Syntax.bind \<rightleftharpoons> Heap_Monad.bind
 
 lemma execute_bind [execute_simps]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<bind> g) h = execute (g x) h'"

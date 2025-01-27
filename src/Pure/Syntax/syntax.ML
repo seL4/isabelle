@@ -121,6 +121,8 @@ sig
   val set_polarity: bool -> Proof.context -> Proof.context
   val set_polarity_generic: bool -> Context.generic -> Context.generic
   val effective_polarity: Proof.context -> bool -> bool
+  val effective_polarity_global: theory -> bool -> bool
+  val effective_polarity_generic: Context.generic -> bool -> bool
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -787,6 +789,8 @@ val set_polarity = Config.put polarity;
 val set_polarity_generic = Config.put_generic polarity;
 
 fun effective_polarity ctxt add = get_polarity ctxt = add;
+fun effective_polarity_global thy add = Config.get_global thy polarity = add;
+val effective_polarity_generic = Context.cases effective_polarity_global effective_polarity;
 
 
 open Lexicon.Syntax;

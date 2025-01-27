@@ -1,4 +1,5 @@
-(*  Author:     Alexander Krauss, TU Muenchen
+(*  Title:      Pure/Tools/adhoc_overloading.ML
+    Author:     Alexander Krauss, TU Muenchen
     Author:     Christian Sternagel, University of Innsbruck
 
 Adhoc overloading of constants based on their types.
@@ -6,14 +7,9 @@ Adhoc overloading of constants based on their types.
 
 signature ADHOC_OVERLOADING =
 sig
-  val is_overloaded: Proof.context -> string -> bool
-  val generic_add_overloaded: string -> Context.generic -> Context.generic
-  val generic_remove_overloaded: string -> Context.generic -> Context.generic
-  val generic_add_variant: string -> term -> Context.generic -> Context.generic
-  (*If the list of variants is empty at the end of "generic_remove_variant", then
-  "generic_remove_overloaded" is called implicitly.*)
-  val generic_remove_variant: string -> term -> Context.generic -> Context.generic
   val show_variants: bool Config.T
+  val adhoc_overloading: bool -> (string * term list) list -> local_theory -> local_theory
+  val adhoc_overloading_cmd: bool -> (string * string list) list -> local_theory -> local_theory
 end
 
 structure Adhoc_Overloading: ADHOC_OVERLOADING =
@@ -57,7 +53,7 @@ fun err_unresolved_overloading ctxt0 (c, T) t instances =
 (* generic data *)
 
 fun variants_eq ((v1, T1), (v2, T2)) =
-  Term.aconv_untyped (v1, v2) andalso T1 = T2;
+  Term.aconv_untyped (v1, v2) andalso Type.raw_equiv (T1, T2);
 
 structure Overload_Data = Generic_Data
 (
@@ -91,6 +87,8 @@ fun generic_add_overloaded oconst context =
   if is_overloaded (Context.proof_of context) oconst then context
   else map_tables (Symtab.update (oconst, [])) I context;
 
+(*If the list of variants is empty at the end of "generic_remove_variant", then
+"generic_remove_overloaded" is called implicitly.*)
 fun generic_remove_overloaded oconst context =
   let
     fun remove_oconst_and_variants context oconst =
@@ -203,45 +201,47 @@ val _ = Context.>>
 
 (* commands *)
 
-fun generic_adhoc_overloading_cmd add =
-  if add then
+local
+
+fun generic_adhoc_overloading add args context =
+  if Syntax.effective_polarity_generic context add then
     fold (fn (oconst, ts) =>
       generic_add_overloaded oconst
-      #> fold (generic_add_variant oconst) ts)
+      #> fold (generic_add_variant oconst) ts) args context
   else
     fold (fn (oconst, ts) =>
-      fold (generic_remove_variant oconst) ts);
+      fold (generic_remove_variant oconst) ts) args context;
 
-fun adhoc_overloading_cmd' add args phi =
-  let val args' = args
-    |> map (apsnd (map_filter (fn t =>
-         let val t' = Morphism.term phi t;
-         in if Term.aconv_untyped (t, t') then SOME t' else NONE end)));
-  in generic_adhoc_overloading_cmd add args' end;
-
-fun adhoc_overloading_cmd add raw_args lthy =
+fun gen_adhoc_overloading prep_arg add raw_args lthy =
   let
-    fun const_name ctxt =
-      dest_Const_name o Proof_Context.read_const {proper = false, strict = false} ctxt;  (* FIXME {proper = true, strict = true} (!?) *)
-    fun read_term ctxt = singleton (Variable.polymorphic ctxt) o Syntax.read_term ctxt;
-    val args =
-      raw_args
-      |> map (apfst (const_name lthy))
-      |> map (apsnd (map (read_term lthy)));
+    val args = map (prep_arg lthy) raw_args;
   in
-    Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
-      (adhoc_overloading_cmd' add args) lthy
+    lthy |> Local_Theory.declaration {syntax = true, pervasive = false, pos = Position.thread_data ()}
+      (fn phi =>
+        let val args' = args
+          |> map (apsnd (map_filter (fn t =>
+               let val t' = Morphism.term phi t;
+               in if Term.aconv_untyped (t, t') then SOME t' else NONE end)));
+        in generic_adhoc_overloading add args' end)
   end;
 
-val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
-    "add adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd true);
+fun cert_const_name ctxt c =
+  (Consts.the_const_type (Proof_Context.consts_of ctxt) c; c);
 
-val _ =
-  Outer_Syntax.local_theory \<^command_keyword>\<open>no_adhoc_overloading\<close>
-    "delete adhoc overloading for constants / fixed variables"
-    (Parse.and_list1 (Parse.const -- Scan.repeat Parse.term) >> adhoc_overloading_cmd false);
+fun read_const_name ctxt =
+  dest_Const_name o Proof_Context.read_const {proper = true, strict = true} ctxt;
+
+fun cert_term ctxt = Proof_Context.cert_term ctxt #> singleton (Variable.polymorphic ctxt);
+fun read_term ctxt = Syntax.read_term ctxt #> singleton (Variable.polymorphic ctxt);
+
+in
+
+val adhoc_overloading =
+  gen_adhoc_overloading (fn ctxt => fn (c, ts) => (cert_const_name ctxt c, map (cert_term ctxt) ts));
+
+val adhoc_overloading_cmd =
+  gen_adhoc_overloading (fn ctxt => fn (c, ts) => (read_const_name ctxt c, map (read_term ctxt) ts));
 
 end;
 
+end;

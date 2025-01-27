@@ -96,6 +96,7 @@ keywords
   and "realizers" :: thy_decl
   and "realizability" :: thy_decl
   and "extract_type" "extract" :: thy_decl
+  and "adhoc_overloading" "no_adhoc_overloading" :: thy_decl
   and "find_theorems" "find_consts" :: diag
   and "named_theorems" :: thy_decl
 abbrevs "\\tag" = "\<^marker>\<open>tag \<close>"
@@ -1414,6 +1415,30 @@ val _ =
           end)));
 
 in end\<close>
+
+
+subsubsection \<open>Adhoc overloading\<close>
+
+ML \<open>
+local
+
+val adhoc_overloading_args =
+  Parse.and_list1 ((Parse.const --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) -- Scan.repeat Parse.term);
+
+val _ =
+  Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
+    "add adhoc overloading for constants / fixed variables"
+    (adhoc_overloading_args
+      >> Adhoc_Overloading.adhoc_overloading_cmd true);
+
+val _ =
+  Outer_Syntax.local_theory \<^command_keyword>\<open>no_adhoc_overloading\<close>
+    "delete adhoc overloading for constants / fixed variables"
+    (adhoc_overloading_args
+      >> Adhoc_Overloading.adhoc_overloading_cmd false);
+
+in end
+\<close>
 
 
 subsubsection \<open>Find consts and theorems\<close>

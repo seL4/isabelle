@@ -67,15 +67,14 @@ fun qty_of_code_dt (CODE_DT code_dt) = #qty code_dt;
 fun wit_of_code_dt (CODE_DT code_dt) = #wit code_dt;
 fun wit_thm_of_code_dt (CODE_DT code_dt) = #wit_thm code_dt;
 fun rep_isom_data_of_code_dt (CODE_DT code_dt) = #rep_isom_data code_dt;
-fun ty_alpha_equiv (T, U) = Type.raw_instance (T, U) andalso Type.raw_instance (U, T);
-fun code_dt_eq c = (ty_alpha_equiv o apply2 rty_of_code_dt) c 
-  andalso (ty_alpha_equiv o apply2 qty_of_code_dt) c;
+fun code_dt_eq c = (Type.raw_equiv o apply2 rty_of_code_dt) c 
+  andalso (Type.raw_equiv o apply2 qty_of_code_dt) c;
 fun term_of_code_dt code_dt = code_dt |> `rty_of_code_dt ||> qty_of_code_dt |> HOLogic.mk_prodT
   |> Net.encode_type |> single;
 
 (* modulo renaming, typ must contain TVars *)
 fun is_code_dt_of_type (rty, qty) code_dt = code_dt |> `rty_of_code_dt ||> qty_of_code_dt
-  |> HOLogic.mk_prodT |> curry ty_alpha_equiv (HOLogic.mk_prodT (rty, qty));
+  |> HOLogic.mk_prodT |> curry Type.raw_equiv (HOLogic.mk_prodT (rty, qty));
 
 fun mk_rep_isom_data isom transfer bundle_name pointer =
   REP_ISOM { isom = isom, transfer = transfer, bundle_name = bundle_name, pointer = pointer}

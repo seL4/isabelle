@@ -6,7 +6,7 @@
 section \<open>Monad notation for arbitrary types\<close>
 
 theory Monad_Syntax
-  imports Adhoc_Overloading
+  imports Main
 begin
 
 text \<open>
@@ -70,6 +70,6 @@ translations
   "(m \<then> n)" \<rightharpoonup> "(m \<bind> (\<lambda>_. n))"
 
 adhoc_overloading
-  bind Set.bind Predicate.bind Option.bind List.bind
+  bind \<rightleftharpoons> Set.bind Predicate.bind Option.bind List.bind
 
 end
