@@ -775,9 +775,9 @@ fun check_ascii k =
   then k
   else raise Fail "Non-ASCII character in literal";
 
-val char_of_ascii = Char.chr o IntInf.toInt o (fn k => k mod 128);
+val char_of_ascii = Char.chr o toInt o (fn k => k mod 128);
 
-val ascii_of_char = check_ascii o IntInf.fromInt o Char.ord;
+val ascii_of_char = check_ascii o fromInt o Char.ord;
 
 val literal_of_asciis = String.implode o map char_of_ascii;
 

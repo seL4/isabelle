@@ -44,41 +44,31 @@ structure Bit_Shifts : sig
   val word_max_index : Word.word (*only for validation*)
 end = struct
 
-type int = IntInf.int;
-
-fun curry f x y = f (x, y);
+open IntInf;
 
 fun fold _ [] y = y
   | fold f (x :: xs) y = fold f xs (f x y);
 
-fun positive n = IntInf.> (n, 0);
+fun replicate n x = (if n <= 0 then [] else x :: replicate (n - 1) x);
 
-fun decr n = IntInf.- (n, 1);
+val max_index = pow (2, (Word.wordSize - 3)) - 1; (*experimentally determined*)
 
-fun replicate n x = (if positive n then x :: replicate (decr n) x else []);
-
-val exp = curry IntInf.pow 2;
-
-val div_mod = curry IntInf.divMod;
-
-val max_index = exp (Word.wordSize - 3) - 1; (*experimentally determined*)
-
-val word_of_int = Word.fromLargeInt o IntInf.toLarge;
+val word_of_int = Word.fromLargeInt o toLarge;
 
 val word_max_index = word_of_int max_index;
 
-fun words_of_int k = case div_mod k max_index
+fun words_of_int k = case divMod (k, max_index)
   of (b, s) => word_of_int s :: (replicate b word_max_index);
 
-fun push' i k = IntInf.<< (k, i);
+fun push' i k = << (k, i);
 
-fun drop' i k = IntInf.~>> (k, i);
+fun drop' i k = ~>> (k, i);
 
 (* The implementations are formally total, though indices >~ max_index will produce heavy computation load *)
 
-fun push i = fold push' (words_of_int (IntInf.abs i));
+fun push i = fold push' (words_of_int (abs i));
 
-fun drop i = fold drop' (words_of_int (IntInf.abs i));
+fun drop i = fold drop' (words_of_int (abs i));
 
 end;\<close> for constant Code_Target_Bit_Shifts.push_bit Code_Target_Bit_Shifts.drop_bit
     and (OCaml) \<open>
@@ -86,8 +76,6 @@ module Bit_Shifts : sig
   val push : Z.t -> Z.t -> Z.t
   val drop : Z.t -> Z.t -> Z.t
 end = struct
-
-let curry f x y = f (x, y);;
 
 let rec fold f xs y = match xs with
   [] -> y
