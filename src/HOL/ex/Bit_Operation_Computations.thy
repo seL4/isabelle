@@ -2,7 +2,7 @@
 
 section \<open>Tests for simplifying bit operations on ground terms\<close>
 
-theory Bit_Operation_Calculations
+theory Bit_Operation_Computations
   imports
     "HOL.Bit_Operations"
     "HOL-Library.Word"
