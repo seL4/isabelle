@@ -80,13 +80,13 @@ fun map_data f =
     let val (variants', oconsts') = f (variants, oconsts)
     in {variants = variants', oconsts = oconsts'} end);
 
-val no_overloaded = Symtab.is_empty o #variants o Data.get;
-val is_overloaded = Symtab.defined o #variants o Data.get;
+val no_variants = Symtab.is_empty o #variants o Data.get;
+val has_variants = Symtab.defined o #variants o Data.get;
 val get_variants = Symtab.lookup o #variants o Data.get;
 val get_overloaded = Termtab.lookup o #oconsts o Data.get;
 
 fun generic_add_overloaded oconst context =
-  if is_overloaded context oconst then context
+  if has_variants context oconst then context
   else (map_data o apfst) (Symtab.update (oconst, [])) context;
 
 (*If the list of variants is empty at the end of "generic_remove_variant", then
@@ -104,14 +104,14 @@ fun generic_remove_overloaded oconst context =
           (Symtab.delete_safe oconst variants, remove_variants oconsts))
       end;
   in
-    if is_overloaded context oconst then remove_oconst_and_variants context oconst
+    if has_variants context oconst then remove_oconst_and_variants context oconst
     else err_not_overloaded oconst
   end;
 
 local
   fun generic_variant add oconst t context =
     let
-      val _ = if is_overloaded context oconst then () else err_not_overloaded oconst;
+      val _ = if has_variants context oconst then () else err_not_overloaded oconst;
       val T = t |> fastype_of;
       val t' = Term.map_types (K dummyT) t;
     in
@@ -189,16 +189,16 @@ fun insert_overloaded ctxt =
 fun add_consts_overloaded ctxt =
   let
     val context = Context.Proof ctxt;
-    val overloaded = is_overloaded context;
+    val overloaded = has_variants context;
   in
-    if no_overloaded context then K I
+    if no_variants context then K I
     else fold_aterms (fn Const (c, T) => if overloaded c then insert (op =) (c, T) else I | _ => I)
   end;
 
 in
 
 fun check ctxt =
-  if no_overloaded (Context.Proof ctxt) then I
+  if no_variants (Context.Proof ctxt) then I
   else map (fn t => Term.map_aterms (insert_variants ctxt t) t);
 
 fun uncheck ctxt ts =
