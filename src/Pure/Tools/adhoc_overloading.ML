@@ -202,7 +202,7 @@ fun check ctxt =
   else map (fn t => Term.map_aterms (insert_variants ctxt t) t);
 
 fun uncheck ctxt ts =
-  if Config.get ctxt show_variants orelse exists (is_none o try Term.type_of) ts then ts
+  if Config.get ctxt show_variants orelse exists (not o can Term.type_of) ts then ts
   else map (insert_overloaded ctxt) ts;
 
 fun reject_unresolved ctxt =
