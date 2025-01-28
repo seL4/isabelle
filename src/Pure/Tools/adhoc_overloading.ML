@@ -66,12 +66,12 @@ structure Data = Generic_Data
     ({variants = vtab1, oconsts = otab1},
      {variants = vtab2, oconsts = otab2}) : T =
     let
-      fun merge_oconsts _ (oconst1, oconst2) =
+      fun join (oconst1, oconst2) =
         if oconst1 = oconst2 then oconst1
         else err_duplicate_variant oconst1;
     in
       {variants = Symtab.merge_list variants_eq (vtab1, vtab2),
-       oconsts = Termtab.join merge_oconsts (otab1, otab2)}
+       oconsts = Termtab.join (K join) (otab1, otab2)}
     end;
 );
 
@@ -141,8 +141,11 @@ end;
 
 (* check / uncheck *)
 
-fun unifiable_with thy T1 T2 =
+local
+
+fun unifiable_types ctxt (T1, T2) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val maxidx1 = Term.maxidx_of_typ T1;
     val T2' = Logic.incr_tvar (maxidx1 + 1) T2;
     val maxidx2 = Term.maxidx_typ T2' maxidx1;
@@ -151,10 +154,12 @@ fun unifiable_with thy T1 T2 =
 fun get_candidates ctxt (c, T) =
   get_variants (Context.Proof ctxt) c
   |> Option.map (map_filter (fn (t, T') =>
-    if unifiable_with (Proof_Context.theory_of ctxt) T T'
+    if unifiable_types ctxt (T, T')
     (*keep the type constraint for the type-inference check phase*)
     then SOME (Type.constraint T t)
     else NONE));
+
+val the_candidates = the oo get_candidates;
 
 fun insert_variants ctxt t (oconst as Const (c, T)) =
       (case get_candidates ctxt (c, T) of
@@ -165,13 +170,16 @@ fun insert_variants ctxt t (oconst as Const (c, T)) =
 
 fun insert_overloaded ctxt =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun proc t =
       Term.map_types (K dummyT) t
       |> get_overloaded (Context.Proof ctxt)
       |> Option.map (Const o rpair (Term.type_of t));
   in
-    Pattern.rewrite_term_yoyo (Proof_Context.theory_of ctxt) [] [proc]
+    Pattern.rewrite_term_yoyo thy [] [proc]
   end;
+
+in
 
 fun check ctxt =
   map (fn t => Term.map_aterms (insert_variants ctxt t) t);
@@ -182,12 +190,13 @@ fun uncheck ctxt ts =
 
 fun reject_unresolved ctxt =
   let
-    val the_candidates = the o get_candidates ctxt;
     fun check_unresolved t =
       (case filter (is_overloaded (Context.Proof ctxt) o fst) (Term.add_consts t []) of
         [] => t
-      | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
+      | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates ctxt cT));
   in map check_unresolved end;
+
+end;
 
 
 (* setup *)
