@@ -14,7 +14,7 @@ fun merge_adj :: "('a::ord) lheap list \<Rightarrow> 'a lheap list" where
 "merge_adj (t1 # t2 # ts) = merge t1 t2 # merge_adj ts"
 
 text \<open>For the termination proof of \<open>merge_all\<close> below.\<close>
-lemma length_merge_adjacent[simp]: "length (merge_adj ts) = (length ts + 1) div 2"
+lemma length_merge_adjacent[termination_simp]: "length (merge_adj ts) = (length ts + 1) div 2"
 by (induction ts rule: merge_adj.induct) auto
 
 fun merge_all :: "('a::ord) lheap list \<Rightarrow> 'a lheap" where
@@ -117,7 +117,7 @@ next
   have "even (length ts)" using "3.prems"(3) even_Suc_Suc_iff by fastforce
   from "3.prems"(2) size_merge_adj[OF this] "3.prems"(1)
   have 2: "\<forall>x \<in> set(merge_adj ?ts). size x = 2*n" by(auto simp: size_merge)
-  have 3: "length ?ts2 = 2 ^ k'" using "3.prems"(3) k' by auto
+  have 3: "length ?ts2 = 2 ^ k'" using "3.prems"(3) k' by (simp add: length_merge_adjacent)
   have 4: "length ?ts div 2 = 2 ^ k'"
     using "3.prems"(3) k' by(simp add: power_eq_if[of 2 k] split: if_splits)
   have "T_merge_all ?ts = T_merge_adj ?ts + T_merge_all ?ts2" by simp
