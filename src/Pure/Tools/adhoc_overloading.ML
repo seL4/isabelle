@@ -79,12 +79,12 @@ fun map_tables f g =
   Data.map (fn {variants = vtab, oconsts = otab} =>
     {variants = f vtab, oconsts = g otab});
 
-val is_overloaded = Symtab.defined o #variants o Data.get o Context.Proof;
-val get_variants = Symtab.lookup o #variants o Data.get o Context.Proof;
-val get_overloaded = Termtab.lookup o #oconsts o Data.get o Context.Proof;
+val is_overloaded = Symtab.defined o #variants o Data.get;
+val get_variants = Symtab.lookup o #variants o Data.get;
+val get_overloaded = Termtab.lookup o #oconsts o Data.get;
 
 fun generic_add_overloaded oconst context =
-  if is_overloaded (Context.proof_of context) oconst then context
+  if is_overloaded context oconst then context
   else map_tables (Symtab.update (oconst, [])) I context;
 
 (*If the list of variants is empty at the end of "generic_remove_variant", then
@@ -94,27 +94,26 @@ fun generic_remove_overloaded oconst context =
     fun remove_oconst_and_variants context oconst =
       let
         val remove_variants =
-          (case get_variants (Context.proof_of context) oconst of
+          (case get_variants context oconst of
             NONE => I
           | SOME vs => fold (Termtab.remove (op =) o rpair oconst o fst) vs);
       in map_tables (Symtab.delete_safe oconst) remove_variants context end;
   in
-    if is_overloaded (Context.proof_of context) oconst then remove_oconst_and_variants context oconst
+    if is_overloaded context oconst then remove_oconst_and_variants context oconst
     else err_not_overloaded oconst
   end;
 
 local
   fun generic_variant add oconst t context =
     let
-      val ctxt = Context.proof_of context;
-      val _ = if is_overloaded ctxt oconst then () else err_not_overloaded oconst;
+      val _ = if is_overloaded context oconst then () else err_not_overloaded oconst;
       val T = t |> fastype_of;
       val t' = Term.map_types (K dummyT) t;
     in
       if add then
         let
           val _ =
-            (case get_overloaded ctxt t' of
+            (case get_overloaded context t' of
               NONE => ()
             | SOME oconst' => err_duplicate_variant oconst');
         in
@@ -123,13 +122,13 @@ local
       else
         let
           val _ =
-            if member variants_eq (the (get_variants ctxt oconst)) (t', T) then ()
+            if member variants_eq (the (get_variants context oconst)) (t', T) then ()
             else err_not_a_variant oconst;
         in
           map_tables (Symtab.map_entry oconst (remove1 variants_eq (t', T)))
             (Termtab.delete_safe t') context
           |> (fn context =>
-            (case get_variants (Context.proof_of context) oconst of
+            (case get_variants context oconst of
               SOME [] => generic_remove_overloaded oconst context
             | _ => context))
         end
@@ -150,7 +149,7 @@ fun unifiable_with thy T1 T2 =
   in can (Sign.typ_unify thy (T1, T2')) (Vartab.empty, maxidx2) end;
 
 fun get_candidates ctxt (c, T) =
-  get_variants ctxt c
+  get_variants (Context.Proof ctxt) c
   |> Option.map (map_filter (fn (t, T') =>
     if unifiable_with (Proof_Context.theory_of ctxt) T T'
     (*keep the type constraint for the type-inference check phase*)
@@ -168,7 +167,7 @@ fun insert_overloaded ctxt =
   let
     fun proc t =
       Term.map_types (K dummyT) t
-      |> get_overloaded ctxt
+      |> get_overloaded (Context.Proof ctxt)
       |> Option.map (Const o rpair (Term.type_of t));
   in
     Pattern.rewrite_term_yoyo (Proof_Context.theory_of ctxt) [] [proc]
@@ -185,7 +184,7 @@ fun reject_unresolved ctxt =
   let
     val the_candidates = the o get_candidates ctxt;
     fun check_unresolved t =
-      (case filter (is_overloaded ctxt o fst) (Term.add_consts t []) of
+      (case filter (is_overloaded (Context.Proof ctxt) o fst) (Term.add_consts t []) of
         [] => t
       | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates cT));
   in map check_unresolved end;
