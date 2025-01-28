@@ -137,7 +137,7 @@ with a few changes (minor INCOMPATIBILITY):
     (or replaced by Main).
 
   - Equivalence of overloaded constants has become more liberal: sorts
-    of type variables are ignore, schematic type variables only need to
+    of type variables are ignored, schematic type variables only need to
     match (in both directions) instead of being literally equal.
 
   - Command syntax now requires a separator: "adhoc_overloading c \<rightleftharpoons> vs".
