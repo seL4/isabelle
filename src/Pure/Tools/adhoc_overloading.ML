@@ -80,6 +80,7 @@ fun map_data f =
     let val (variants', oconsts') = f (variants, oconsts)
     in {variants = variants', oconsts = oconsts'} end);
 
+val no_overloaded = Symtab.is_empty o #variants o Data.get;
 val is_overloaded = Symtab.defined o #variants o Data.get;
 val get_variants = Symtab.lookup o #variants o Data.get;
 val get_overloaded = Termtab.lookup o #oconsts o Data.get;
@@ -185,10 +186,20 @@ fun insert_overloaded ctxt =
     Pattern.rewrite_term_yoyo thy [] [proc]
   end;
 
+fun add_consts_overloaded ctxt =
+  let
+    val context = Context.Proof ctxt;
+    val overloaded = is_overloaded context;
+  in
+    if no_overloaded context then K I
+    else fold_aterms (fn Const (c, T) => if overloaded c then insert (op =) (c, T) else I | _ => I)
+  end;
+
 in
 
 fun check ctxt =
-  map (fn t => Term.map_aterms (insert_variants ctxt t) t);
+  if no_overloaded (Context.Proof ctxt) then I
+  else map (fn t => Term.map_aterms (insert_variants ctxt t) t);
 
 fun uncheck ctxt ts =
   if Config.get ctxt show_variants orelse exists (is_none o try Term.type_of) ts then ts
@@ -197,9 +208,9 @@ fun uncheck ctxt ts =
 fun reject_unresolved ctxt =
   let
     fun check_unresolved t =
-      (case filter (is_overloaded (Context.Proof ctxt) o fst) (Term.add_consts t []) of
+      (case add_consts_overloaded ctxt t [] of
         [] => t
-      | (cT :: _) => err_unresolved_overloading ctxt cT t (the_candidates ctxt cT));
+      | const :: _ => err_unresolved_overloading ctxt const t (the_candidates ctxt const));
   in map check_unresolved end;
 
 end;
