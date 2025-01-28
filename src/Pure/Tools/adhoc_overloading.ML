@@ -55,7 +55,7 @@ fun err_unresolved_overloading ctxt0 (c, T) t instances =
 fun variants_eq ((v1, T1), (v2, T2)) =
   Term.aconv_untyped (v1, v2) andalso Type.raw_equiv (T1, T2);
 
-structure Overload_Data = Generic_Data
+structure Data = Generic_Data
 (
   type T =
     {variants : (term * typ) list Symtab.table,
@@ -76,19 +76,19 @@ structure Overload_Data = Generic_Data
 );
 
 fun map_tables f g =
-  Overload_Data.map (fn {variants = vtab, oconsts = otab} =>
+  Data.map (fn {variants = vtab, oconsts = otab} =>
     {variants = f vtab, oconsts = g otab});
 
-val is_overloaded = Symtab.defined o #variants o Overload_Data.get o Context.Proof;
-val get_variants = Symtab.lookup o #variants o Overload_Data.get o Context.Proof;
-val get_overloaded = Termtab.lookup o #oconsts o Overload_Data.get o Context.Proof;
+val is_overloaded = Symtab.defined o #variants o Data.get o Context.Proof;
+val get_variants = Symtab.lookup o #variants o Data.get o Context.Proof;
+val get_overloaded = Termtab.lookup o #oconsts o Data.get o Context.Proof;
 
 fun generic_add_overloaded oconst context =
   if is_overloaded (Context.proof_of context) oconst then context
   else map_tables (Symtab.update (oconst, [])) I context;
 
 (*If the list of variants is empty at the end of "generic_remove_variant", then
-"generic_remove_overloaded" is called implicitly.*)
+  "generic_remove_overloaded" is called implicitly.*)
 fun generic_remove_overloaded oconst context =
   let
     fun remove_oconst_and_variants context oconst =
