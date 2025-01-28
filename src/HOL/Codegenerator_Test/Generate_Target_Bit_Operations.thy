@@ -8,9 +8,11 @@ imports
   "HOL-Library.Code_Target_Bit_Shifts"
 begin
 
-unbundle bit_operations_syntax
+context
+  includes bit_operations_syntax
+begin
 
-definition computations where
+qualified definition computations where
   \<open>computations = (
     [bit (473514 :: integer) 5, bit (- 805167 :: integer) 7],
     [473514 AND 767063, - 805167 AND 767063, 473514 AND - 314527, - 805167 AND - 314527 :: integer],
@@ -27,7 +29,7 @@ definition computations where
     [signed_take_bit 12 473514, signed_take_bit 12 (- 805167) :: integer]
   )\<close>
 
-definition results where
+qualified definition results where
   \<open>results = (
     [True, True],
     [208898, 242769, 209184, - 839103 :: integer],
@@ -44,7 +46,7 @@ definition results where
     [- 1622, - 2351 :: integer]
   )\<close>
 
-definition check where
+qualified definition check where
   \<open>check \<longleftrightarrow> computations = results\<close>
 
 lemma check
@@ -56,15 +58,15 @@ lemma check
 lemma check
   by eval
 
-test_code check in OCaml
-test_code check in GHC
 test_code check in Scala
 
 text \<open>Checking the index maximum for \<text>\<open>PolyML\<close>\<close>
 
-definition \<open>check_max = ()\<close>
+qualified definition \<open>check_max = ()\<close>
 
-definition \<open>anchor = (Code_Target_Bit_Shifts.drop_bit, check_max)\<close>
+qualified definition \<open>anchor = (Code_Target_Bit_Shifts.drop_bit, check_max)\<close>
+
+end
 
 code_printing
     code_module Check_Max  \<rightharpoonup>
@@ -75,9 +77,9 @@ fun check_max max =
     val _ = ((IntInf.~>> (0, Word.+ (max, Word.fromInt 1)); raise Fail "Bad max") handle Size => ())
   in () end;
 \<close>
-  | constant check_max \<rightharpoonup>
+  | constant Generate_Target_Bit_Operations.check_max \<rightharpoonup>
       (SML) "check'_max Bit'_Shifts.word'_max'_index"
 
-test_code \<open>snd anchor = ()\<close> in PolyML
+test_code \<open>snd Generate_Target_Bit_Operations.anchor = ()\<close> in PolyML
 
 end

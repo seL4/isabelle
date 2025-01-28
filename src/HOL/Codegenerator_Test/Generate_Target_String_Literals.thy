@@ -7,7 +7,10 @@ imports
   "HOL-Library.Code_Test"
 begin
 
-definition computations where
+context
+begin
+
+qualified definition computations where
   \<open>computations = (
     STR ''abc'' + STR 0x20 + STR ''def'',
     String.implode ''abc'',
@@ -18,7 +21,7 @@ definition computations where
     STR ''abc'' < STR ''def''
   )\<close>
 
-definition results where
+qualified definition results where
   \<open>results = (
     STR ''abc def'',
     STR ''abc'',
@@ -29,7 +32,7 @@ definition results where
     True
   )\<close>
 
-definition check where
+qualified definition check where
   \<open>check \<longleftrightarrow> computations = results\<close>
 
 lemma check
@@ -41,8 +44,8 @@ lemma check
 lemma check
   by eval
 
-test_code check in OCaml
-test_code check in GHC
 test_code check in Scala
+
+end
 
 end

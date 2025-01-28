@@ -377,17 +377,24 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
     Code_Lazy_Test
     Code_Test_PolyML
     Code_Test_Scala
-  theories [condition = "ISABELLE_GHC,ISABELLE_OCAMLFIND"]
     Generate_Target_String_Literals
     Generate_Target_Bit_Operations
+  theories [condition = ISABELLE_MLTON]
+    Generate_Target_MLton
+  theories [condition = ISABELLE_SMLNJ]
+    Generate_Target_SMLNJ
+  theories [condition = ISABELLE_OCAMLFIND]
+    Generate_Target_OCaml
   theories [condition = ISABELLE_GHC]
-    Code_Test_GHC
+    Generate_Target_GHC
   theories [condition = ISABELLE_MLTON]
     Code_Test_MLton
-  theories [condition = ISABELLE_OCAMLFIND]
-    Code_Test_OCaml
   theories [condition = ISABELLE_SMLNJ]
     Code_Test_SMLNJ
+  theories [condition = ISABELLE_OCAMLFIND]
+    Code_Test_OCaml
+  theories [condition = ISABELLE_GHC]
+    Code_Test_GHC
 
 session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
   description "

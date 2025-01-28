@@ -51,7 +51,7 @@ fun fold _ [] y = y
 
 fun replicate n x = (if n <= 0 then [] else x :: replicate (n - 1) x);
 
-val max_index = pow (2, (Word.wordSize - 3)) - 1; (*experimentally determined*)
+val max_index = pow (fromInt 2, Int.- (Word.wordSize, 3)) - fromInt 1; (*experimentally determined*)
 
 val word_of_int = Word.fromLargeInt o toLarge;
 
