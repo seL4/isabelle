@@ -168,12 +168,13 @@ fun get_candidates ctxt (c, T) =
 
 val the_candidates = the oo get_candidates;
 
-fun insert_variants ctxt t (oconst as Const (c, T)) =
-      (case get_candidates ctxt (c, T) of
-        SOME [] => err_unresolved_overloading ctxt (c, T) t []
+fun insert_variants_same ctxt t : term Same.operation =
+  (fn Const const =>
+      (case get_candidates ctxt const of
+        SOME [] => err_unresolved_overloading ctxt const t []
       | SOME [variant] => variant
-      | _ => oconst)
-  | insert_variants _ _ oconst = oconst;
+      | _ => raise Same.SAME)
+    | _ => raise Same.SAME);
 
 fun insert_overloaded ctxt =
   let
@@ -199,7 +200,7 @@ in
 
 fun check ctxt =
   if no_variants (Context.Proof ctxt) then I
-  else map (fn t => Term.map_aterms (insert_variants ctxt t) t);
+  else map (fn t => Term.map_aterms (insert_variants_same ctxt t) t);
 
 fun uncheck ctxt ts =
   if Config.get ctxt show_variants orelse exists (not o can Term.type_of) ts then ts
