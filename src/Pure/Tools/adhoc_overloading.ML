@@ -112,7 +112,7 @@ local
   fun generic_variant add oconst t context =
     let
       val _ = if has_variants context oconst then () else err_not_overloaded oconst;
-      val T = t |> fastype_of;
+      val T = fastype_of t;
       val t' = Term.map_types (K dummyT) t;
     in
       if add then
@@ -187,20 +187,18 @@ fun insert_overloaded ctxt =
     Pattern.rewrite_term_yoyo thy [] [proc]
   end;
 
-fun add_consts_overloaded ctxt =
+fun overloaded_term_consts ctxt =
   let
     val context = Context.Proof ctxt;
     val overloaded = has_variants context;
-  in
-    if no_variants context then K I
-    else fold_aterms (fn Const (c, T) => if overloaded c then insert (op =) (c, T) else I | _ => I)
-  end;
+    val add = fn Const (c, T) => if overloaded c then insert (op =) (c, T) else I | _ => I;
+  in fn t => if no_variants context then [] else fold_aterms add t [] end;
 
 in
 
 fun check ctxt =
   if no_variants (Context.Proof ctxt) then I
-  else map (fn t => Term.map_aterms (insert_variants_same ctxt t) t);
+  else map (fn t => t |> Term.map_aterms (insert_variants_same ctxt t));
 
 fun uncheck ctxt ts =
   if Config.get ctxt show_variants orelse exists (not o can Term.type_of) ts then ts
@@ -209,7 +207,7 @@ fun uncheck ctxt ts =
 fun reject_unresolved ctxt =
   let
     fun check_unresolved t =
-      (case add_consts_overloaded ctxt t [] of
+      (case overloaded_term_consts ctxt t of
         [] => t
       | const :: _ => err_unresolved_overloading ctxt const t (the_candidates ctxt const));
   in map check_unresolved end;
