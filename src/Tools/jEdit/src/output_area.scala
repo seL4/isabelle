@@ -137,6 +137,7 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
 
   lazy val split_pane: SplitPane =
     new SplitPane(Orientation.Vertical) {
+      resizeWeight = 0.5
       oneTouchExpandable = true
       leftComponent = tree_pane
       rightComponent = text_pane
