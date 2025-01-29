@@ -166,7 +166,10 @@ class Rich_Text_Area(
     def update(new_info: Option[Text.Info[A]]): Unit = {
       val old_text_info = the_text_info
       val new_text_info =
-        new_info.map(info => (text_area.getText(info.range.start, info.range.length), info))
+        for {
+          info <- new_info
+          s <- JEdit_Lib.get_text(text_area.getBuffer, info.range)
+        } yield (s, info)
 
       if (new_text_info != old_text_info) {
         caret_update()
