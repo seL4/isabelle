@@ -1423,7 +1423,8 @@ ML \<open>
 local
 
 val adhoc_overloading_args =
-  Parse.and_list1 ((Parse.const --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) -- Scan.repeat Parse.term);
+  Parse.and_list1
+    ((Parse.const --| (\<^keyword>\<open>\<rightleftharpoons>\<close> || \<^keyword>\<open>==\<close>)) -- Parse.!!! (Scan.repeat1 Parse.term));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>adhoc_overloading\<close>
