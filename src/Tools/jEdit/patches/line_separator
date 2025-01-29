@@ -1,0 +1,23 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/bufferio/BufferIORequest.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/bufferio/BufferIORequest.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/bufferio/BufferIORequest.java	2024-08-03 19:53:19.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/bufferio/BufferIORequest.java	2025-01-29 20:03:36.236518733 +0100
+@@ -357,7 +357,7 @@
+ 
+ 		Segment lineSegment = new Segment();
+ 		String newline = buffer.getStringProperty(JEditBuffer.LINESEP);
+-		if(newline == null)
++		if(newline == null || newline.isEmpty())
+ 			newline = System.getProperty("line.separator");
+ 
+ 		final int bufferLineCount = buffer.getLineCount();
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/Buffer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/Buffer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/Buffer.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/Buffer.java	2025-01-29 20:00:53.025217244 +0100
+@@ -1236,6 +1236,7 @@
+ 	 */
+ 	public void setLineSeparator(String lineSep)
+ 	{
++		lineSep = org.jedit.misc.LineSepType.fromSeparator(lineSep).getSeparator();
+ 		setProperty(LINESEP, lineSep);
+ 		setDirty(true);
+ 		propertiesChanged();
