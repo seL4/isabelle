@@ -504,6 +504,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Bash.strings(sessions), echo = true).check
           Isabelle_System.make_directory(database_target_dir)
           Isabelle_System.copy_dir(database_dir, database_target_dir, direct = true)
+
+          Isabelle_System.rm_tree(database_dir)
+          database_dir.dir.file.delete  // "$FIND_FACTS_HOME_USER/solr"
+          database_dir.dir.dir.file.delete  // "$FIND_FACTS_HOME_USER"
         }
 
         if (!include_library) other_isabelle_purge("browser_info")
