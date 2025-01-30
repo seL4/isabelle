@@ -420,7 +420,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   def build_release_archive(
     context: Release_Context,
     version: String,
-    parallel_jobs: Int = 1
+    parallel_jobs: Int = 1,
+    build_library: Boolean = false,
+    include_library: Boolean = false,
+    include_find_facts: Boolean = false
   ): Unit = {
     val progress = context.progress
 
@@ -457,9 +460,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       record_bundled_components(context.isabelle_dir)
 
 
-      /* build tools and documentation */
+      /* build documentation and internal HTML library */
 
       val other_isabelle = context.other_isabelle(context.dist_dir)
+
+      def other_isabelle_purge(name: String): Unit =
+        Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.basic(name))
 
       other_isabelle.init(echo = true)
 
@@ -471,11 +477,43 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       make_news(other_isabelle)
 
-      for (name <- List("Admin", "browser_info", "heaps")) {
-        Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.explode(name))
+      other_isabelle_purge("browser_info")
+
+      if (build_library || include_library || include_find_facts) {
+        require(Platform.is_unix, "Linux or macOS platform required")
+
+        val opt_dirs = "-d '~~/src/Benchmarks' "
+        other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
+          " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
+          " -o system_heaps -a " + opt_dirs, echo = true).check
+
+        if (include_find_facts) {
+          val database_name = "isabelle"
+          val database_dir =
+            other_isabelle.expand_path(
+              Path.explode("$FIND_FACTS_HOME_USER/solr") + Path.basic(database_name))
+          val database_target_dir =
+            other_isabelle.expand_path(
+              Path.explode("$FIND_FACTS_HOME/lib/find_facts-" + database_name))
+
+          val sessions =
+            other_isabelle.bash("bin/isabelle sessions -a " + opt_dirs).check.out_lines
+          other_isabelle.bash(
+            "bin/isabelle find_facts_index -o find_facts_database_name=" +
+              Bash.string(database_name) + " -n " + opt_dirs +
+              Bash.strings(sessions), echo = true).check
+          Isabelle_System.make_directory(database_target_dir)
+          Isabelle_System.copy_dir(database_dir, database_target_dir, direct = true)
+        }
+
+        if (!include_library) other_isabelle_purge("browser_info")
       }
 
+      other_isabelle_purge("Admin")
+      other_isabelle_purge("heaps")
+
       other_isabelle.cleanup()
+      other_isabelle.isabelle_home_user.file.delete
 
 
       progress.echo_warning("Creating release archive " + context.isabelle_archive + " ...")
@@ -485,6 +523,12 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         """find . -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w""")
       execute_tar(context.dist_dir, "-czf " +
         File.bash_path(context.isabelle_archive) + " " + Bash.string(context.dist_name))
+
+      if (build_library) {
+        progress.echo_warning("Creating library archive " + context.isabelle_library_archive + " ...")
+        execute_tar(context.dist_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
+          " " + Bash.string(context.dist_name + "/browser_info"))
+      }
     }
   }
 
@@ -498,7 +542,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     more_components: List[Path] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
-    build_library: Boolean = false,
     parallel_jobs: Int = 1
   ): Unit = {
     val progress = context.progress
@@ -828,37 +871,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         Isabelle_System.copy_file(context.dist_dir + Path.explode(bundle), dir)
       }
     }
-
-
-    /* HTML library */
-
-    if (build_library) {
-      if (context.isabelle_library_archive.is_file) {
-        progress.echo_warning("Library archive already exists: " + context.isabelle_library_archive)
-      }
-      else {
-        require(Platform.is_unix, "Linux or macOS platform required")
-        Isabelle_System.with_tmp_dir("build_release") { tmp_dir =>
-          val bundle = context.dist_name + "_" + Platform.family + ".tar.gz"
-          val bundle_path = context.dist_dir + Path.basic(bundle)
-          execute_tar(tmp_dir, "-xzf " + File.bash_path(bundle_path))
-
-          val other_isabelle = context.other_isabelle(tmp_dir)
-
-          Isabelle_System.make_directory(other_isabelle.etc)
-          File.write(other_isabelle.etc_settings, "ML_OPTIONS=\"--minheap 1000 --maxheap 4000\"\n")
-
-          other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
-            " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-            " -o system_heaps -c -a -d '~~/src/Benchmarks'", echo = true).check
-          other_isabelle.isabelle_home_user.file.delete
-
-          execute(tmp_dir, "chmod -R a+r,g=o " + Bash.string(context.dist_name))
-          execute_tar(tmp_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
-            " " + Bash.string(context.dist_name + "/browser_info"))
-        }
-      }
-    }
   }
 
 
@@ -869,6 +881,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     Command_Line.tool {
       var afp_rev = ""
       var target_dir = Path.current
+      var include_find_facts = false
+      var include_library = false
       var release_name = ""
       var source_archive = ""
       var website: Option[Path] = None
@@ -886,13 +900,15 @@ Usage: Admin/build_release [OPTIONS]
   Options are:
     -A REV       corresponding AFP changeset id
     -D DIR       target directory (default ".")
+    -F           include library: Find_Facts data
+    -L           include library: HTML presentation
     -R RELEASE   explicit release name
     -S ARCHIVE   use existing source archive (file or URL)
     -W WEBSITE   produce minimal website in given directory
     -b SESSIONS  build platform-specific session images (separated by commas)
     -c ARCHIVE   clean bundling with additional component .tar.gz archive
     -j INT       maximum number of parallel jobs (default 1)
-    -l           build library
+    -l           build library archive
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p NAMES     platform families (default: """ + quote(default_platform_families.mkString(",")) + """)
     -r REV       Mercurial changeset id (default: ARCHIVE or RELEASE or tip)
@@ -901,6 +917,8 @@ Usage: Admin/build_release [OPTIONS]
 """,
         "A:" -> (arg => afp_rev = arg),
         "D:" -> (arg => target_dir = Path.explode(arg)),
+        "F" -> (_ => include_find_facts = true),
+        "L" -> (_ => include_library = true),
         "R:" -> (arg => release_name = arg),
         "S:" -> (arg => source_archive = arg),
         "W:" -> (arg => website = Some(Path.explode(arg))),
@@ -931,7 +949,9 @@ Usage: Admin/build_release [OPTIONS]
         if (source_archive.isEmpty) {
           val context = make_context(release_name)
           val version = proper_string(rev) orElse proper_string(release_name) getOrElse "tip"
-          build_release_archive(context, version, parallel_jobs = parallel_jobs)
+          build_release_archive(context, version, parallel_jobs = parallel_jobs,
+            build_library = build_library, include_library = include_library,
+            include_find_facts = include_find_facts)
           context
         }
         else {
@@ -945,7 +965,7 @@ Usage: Admin/build_release [OPTIONS]
 
       build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
         more_components = more_components, build_sessions = build_sessions,
-        build_library = build_library, parallel_jobs = parallel_jobs, website = website)
+        parallel_jobs = parallel_jobs, website = website)
     }
   }
 }

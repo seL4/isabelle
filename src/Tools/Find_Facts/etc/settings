@@ -2,6 +2,11 @@
 
 FIND_FACTS_HOME="$COMPONENT"
 FIND_FACTS_HOME_USER="$ISABELLE_HOME_USER/find_facts"
-FIND_FACTS_INDEXES=""
+
+if [ -d "$FIND_FACTS_HOME/lib/find_facts-isabelle" ]; then
+  FIND_FACTS_INDEXES="$FIND_FACTS_HOME/lib/find_facts-isabelle"
+else
+  FIND_FACTS_INDEXES=""
+fi
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$FIND_FACTS_HOME/lib/Tools"
