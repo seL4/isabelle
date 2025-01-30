@@ -51,8 +51,8 @@ object Browser_Info {
       }
     }
 
-    def init_directory(dir: Path): Path = {
-      check_directory(dir)
+    def init_directory(dir: Path, permissive: Boolean = false): Path = {
+      if (!permissive) check_directory(dir)
       Isabelle_System.make_directory(dir + PATH)
       dir
     }
@@ -285,7 +285,7 @@ object Browser_Info {
     /* maintain presentation structure */
 
     def update_chapter(session_name: String, session_description: String): Unit = synchronized {
-      val dir = Meta_Info.init_directory(chapter_dir(session_name))
+      val dir = Meta_Info.init_directory(chapter_dir(session_name), permissive = true)
       Meta_Info.change(dir, Meta_Info.INDEX) { text =>
         val index0 = Meta_Info.Index.parse(text, "chapter")
         val item = Meta_Info.Item(session_name, description = session_description)
@@ -312,7 +312,7 @@ object Browser_Info {
     }
 
     def update_root(): Unit = synchronized {
-      Meta_Info.init_directory(root_dir)
+      Meta_Info.init_directory(root_dir, permissive = true)
       HTML.init_fonts(root_dir)
       Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle.gif"),
         root_dir + Path.explode("isabelle.gif"))
