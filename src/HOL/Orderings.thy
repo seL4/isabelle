@@ -568,7 +568,7 @@ fun print_orders ctxt0 =
         Pretty.quote (Syntax.pretty_typ ctxt (type_of t)), Pretty.brk 1]
     fun pretty_order ({kind = kind, ops = ops, ...}, _) =
       Pretty.block ([Pretty.str (@{make_string} kind), Pretty.str ":", Pretty.brk 1]
-                    @ map pretty_term ops)
+                    @ map pretty_term [#eq ops, #le ops, #lt ops])
   in
     Pretty.writeln (Pretty.big_list "order structures:" (map pretty_order orders))
   end

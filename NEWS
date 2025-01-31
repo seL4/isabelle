@@ -330,6 +330,10 @@ iterated Suc terms.
 * Theory "HOL-Library.Adhoc_Overloading" has been moved to Pure. Minor
 INCOMPATIBILITY: need to adjust theory imports.
 
+* Theory "HOL.Orderings":
+  Added experimental support for inserting additional premises when the order solver is called.
+  This can used to e.g. extend the order solver to deal with numerals. 
+  In Isabelle/HOL, hooks can be added with HOL_Base_Order_Tac.declare_insert_prems_hook.
 
 *** ML ***
 
