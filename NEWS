@@ -263,8 +263,6 @@ Isabelle/jEdit rendering like this:
 * Code generator: command 'code_reserved' now uses parentheses for
 target languages, similar to 'code_printing'.
 
-* Theory HOL.List: overloaded power operator (^^) on type list.
-
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITY.
