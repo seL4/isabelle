@@ -30,7 +30,7 @@ val default_default_params =
    ("max_genuine", "1"),
    ("max_potential", "1"),
    ("overlord", "false"),
-   ("solvers", "cvc4 kodkod paradox smbc"),
+   ("solvers", "cvc5 kodkod paradox smbc"),
    ("specialize", "true"),
    ("spy", "false"),
    ("timeout", "30"),

@@ -3,7 +3,7 @@ gnu-utils-20211030
 bash_process-20240326
 bib2xhtml-20190409
 csdp-6.1.1
-cvc4-1.8
+cvc5-1.2.0-1
 e-3.1-1
 elm-0.19.1
 easychair-3.5
@@ -15,7 +15,7 @@ isabelle_fonts-20241227
 isabelle_setup-20240327
 javamail-20250122
 jdk-21.0.6
-jedit-20250129
+jedit-20250130
 jfreechart-1.5.3
 jortho-1.0-2
 jsoup-1.18.3

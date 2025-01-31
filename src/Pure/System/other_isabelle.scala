@@ -187,6 +187,7 @@ final class Other_Isabelle private(
 
   def cleanup(): Unit = {
     clean_settings()
+    ssh.delete(expand_path(Host.private_data.database))
     ssh.delete(etc, isabelle_home_user)
   }
 }

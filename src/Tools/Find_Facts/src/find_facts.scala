@@ -748,7 +748,7 @@ object Find_Facts {
 
     Isabelle_System.copy_dir(solr.database_dir(database), component_dir.path)
     component_dir.write_settings(
-      "FIND_FACTS_INDEXES=\"$FIND_FACTS_INDEXES:$COMPONENT/" + database + "\"")
+      "\nFIND_FACTS_INDEXES=\"$FIND_FACTS_INDEXES:$COMPONENT/" + database + "\"")
   }
 
 

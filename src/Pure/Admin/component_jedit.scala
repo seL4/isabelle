@@ -197,6 +197,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       Isabelle_System.download_file(url, jars_dir + Path.basic(name), progress = progress)
     }
 
+    (jars_dir + Path.basic("MacOS.jar")).file.delete
+
     for { (name, vers) <- download_plugins } {
       Isabelle_System.with_tmp_file("tmp", ext = "zip") { zip_path =>
         val url =
