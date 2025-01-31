@@ -263,6 +263,11 @@ Isabelle/jEdit rendering like this:
 * Code generator: command 'code_reserved' now uses parentheses for
 target languages, similar to 'code_printing'.
 
+* Theory "HOL.Orderings": Added experimental support for inserting
+additional premises when the order solver is called. This can used to
+e.g. extend the order solver to deal with numerals. In Isabelle/HOL,
+hooks can be added with HOL_Base_Order_Tac.declare_insert_prems_hook.
+
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
     Minor INCOMPATIBILITY.
@@ -329,10 +334,6 @@ iterated Suc terms.
 * Theory "HOL-Library.Adhoc_Overloading" has been moved to Pure. Minor
 INCOMPATIBILITY: need to adjust theory imports.
 
-* Theory "HOL.Orderings":
-  Added experimental support for inserting additional premises when the order solver is called.
-  This can used to e.g. extend the order solver to deal with numerals. 
-  In Isabelle/HOL, hooks can be added with HOL_Base_Order_Tac.declare_insert_prems_hook.
 
 *** ML ***
 
