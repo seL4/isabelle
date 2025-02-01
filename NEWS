@@ -191,6 +191,12 @@ option "-Dsun.java2d.metal=false", which is now the default.
 
 * Update to jEdit 5.7.0, the latest release.
 
+* Update to FlatLaf 3.5.4, the latest release. 2.6 was the last portable
+version, but 3.x requires a Java jar together with a native library. The
+latter is missing for arm64-linux, so old 2.6 is used on that platform:
+this may lead to minor differences in GUI appearance and behaviour.
+
+
 
 *** Isabelle/VSCode Prover IDE ***
 
