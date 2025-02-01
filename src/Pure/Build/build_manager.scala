@@ -1628,13 +1628,13 @@ html { background-color: white; }"""))
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
-      ssh.execute("chown -R :" + ssh_group + " " + File.bash_path(dir))
+      ssh.execute("chown -R :" + unix_group + " " + File.bash_path(dir))
     }
 
     def init_dirs(): Unit =
       List(pending, finished).foreach(dir => sync_permissions(Isabelle_System.make_directory(dir)))
 
-    val ssh_group: String = options.string("build_manager_group")
+    val unix_group: String = options.string("build_manager_group")
 
     def open_database(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
       PostgreSQL.open_database_server(options, server = server,
