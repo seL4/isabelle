@@ -202,6 +202,7 @@ text \<open>
   @{verbatim [display] \<open>isabelle document -v -V -O. FOL\<close>}
 \<close>
 
+
 section \<open>Full-text search for formal theory content\<close>
 
 text \<open>
