@@ -888,11 +888,9 @@ object Find_Facts {
   val web_sources: Path = Path.explode("$FIND_FACTS_HOME/web")
   val web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
 
-  val default_port = 8080
-
   def find_facts_server(
     options: Options,
-    port: Int = default_port,
+    port: Int = 0,
     devel: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
@@ -977,7 +975,7 @@ object Find_Facts {
     Command_Line.tool {
       var devel = false
       var options = Options.init()
-      var port = default_port
+      var port = 0
       var verbose = false
 
       val getopts = Getopts("""
@@ -986,7 +984,7 @@ Usage: isabelle find_facts_server [OPTIONS]
   Options are:
     -d           devel mode
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p PORT      explicit web server port (default: """ + default_port + """)
+    -p PORT      explicit server port
     -v           verbose server
 
   Run server for Find_Facts.
