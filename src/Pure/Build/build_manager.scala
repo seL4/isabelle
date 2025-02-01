@@ -1618,7 +1618,10 @@ html { background-color: white; }"""))
   case class Store(options: Options) {
     val base_dir = Path.explode(options.string("build_manager_dir"))
     val identifier = options.string("build_manager_identifier")
-    val address = Url(options.string("build_manager_address"))
+    val address = {
+      Url(proper_string(options.string("build_manager_address")) getOrElse
+        "https://" + options.string("build_manager_ssh_host"))
+    }
 
     val pending = base_dir + Path.basic("pending")
     val finished = base_dir + Path.basic("finished")

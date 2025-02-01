@@ -246,8 +246,8 @@ option build_manager_group : string = "isabelle"
 option build_manager_dir : string = "/srv/build"
   -- "directory for submissions on build server"
 
-option build_manager_address : string = "https://build.proof.cit.tum.de"
-  -- "web address for build server"
+option build_manager_address : string = ""
+  -- "explicit web address for build server"
 
 option build_manager_identifier : string = "build_manager"
   -- "isabelle identifier for build manager processes"
