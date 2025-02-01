@@ -1704,17 +1704,6 @@ html { background-color: white; }"""))
 
   /* Isabelle tool wrapper */
 
-  private def show_options(relevant_options: List[String], options: Options): String =
-    cat_lines(relevant_options.flatMap(options.get).map(_.print))
-
-  private val notable_server_options =
-    List(
-      "build_manager_dir",
-      "build_manager_address",
-      "build_manager_ssh_host",
-      "build_manager_ssh_group",
-      "build_manager_ci_jobs")
-
   val isabelle_tool = Isabelle_Tool("build_manager", "run build manager", Scala_Project.here,
     { args =>
       var afp_root: Option[Path] = None
@@ -1734,9 +1723,8 @@ Usage: isabelle build_manager [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p PORT      explicit web server port
 
-  Run Isabelle build manager. Notable system options:
-
-""" + Library.indent_lines(2, show_options(notable_server_options, options)) + "\n",
+  Run Isabelle build manager.
+""",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "D:" -> (arg => dirs += Path.explode(arg)),
         "H:" -> (arg => build_hosts ++= Build_Cluster.Host.parse(Registry.global, arg)),
@@ -1934,8 +1922,6 @@ Usage: isabelle build_manager_database [OPTIONS]
 
   /* Isabelle tool wrapper */
 
-  val notable_client_options = List("build_manager_ssh_user", "build_manager_ssh_group")
-
   val isabelle_tool2 = Isabelle_Tool("build_task", "submit build task for build manager",
     Scala_Project.here,
     { args =>
@@ -1979,7 +1965,7 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
 
   Submit build task on SSH server. Notable system options:
 
-""" + Library.indent_lines(2, show_options(notable_client_options, options)) + "\n",
+""" + Library.indent_lines(2, options.get("build_manager_ssh_user").get.print) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "P" -> (_ => presentation = true),
