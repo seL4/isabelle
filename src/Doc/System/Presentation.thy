@@ -202,4 +202,58 @@ text \<open>
   @{verbatim [display] \<open>isabelle document -v -V -O. FOL\<close>}
 \<close>
 
+section \<open>Full-text search for formal theory content\<close>
+
+text \<open>
+  The session information of a regular @{tool_ref build} can also be used to
+  generate a search index for full-text search over formal theory content. To
+  that end, the \<^verbatim>\<open>Find_Facts\<close> module integrates Apache Solr\<^footnote>\<open>\<^url>\<open>https://solr.apache.org/\<close>\<close>,
+  a full-text search engine, that can run embedded in a JVM process. Solr is
+  bundled as a separate Isabelle component, and its run-time dependencies 
+  (as specified in  @{setting SOLR_JARS}) need to be added separately to the
+  classpath of a regular Isabelle/Scala process.
+
+  \<^medskip>
+  
+  A search index can be created using the @{tool_def find_facts_index} tool,
+  which has options similar to the regular @{tool_ref build}. User data such
+  as search indexes is stored in @{setting FIND_FACTS_HOME_USER}. The name of
+  the search index can be specified via system option 
+  @{system_option find_facts_database_name}. A finished search index can be
+  packed for later use as a regular Isabelle component using the 
+  @{tool_def find_facts_index_build} tool: Initializing such a component
+  causes it to be added to the list of managed components in
+  @{setting FIND_FACTS_INDEXES}.
+
+  \<^medskip>
+  The user interface of the search is available as web application that 
+  can be started with the @{tool_def find_facts_server} tool. Its usage is:
+  @{verbatim [display]
+\<open>Usage: isabelle find_facts_server [OPTIONS]
+
+  Options are:
+    -d           devel mode
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -p PORT      explicit web server port
+    -v           verbose server
+
+  Run server for Find_Facts.
+\<close>}
+
+  This Isabelle/Scala HTTP server provides the both the front-end
+  (implemented in the Elm\<^footnote>\<open>\<^url>\<open>https://elm-lang.org/\<close>\<close> language) and REST
+  endpoints for search queries with JSON data.
+
+  Options \<^verbatim>\<open>-o\<close>, \<open>-v\<close> have the same meaning as usual.
+
+  Option \<^verbatim>\<open>-d\<close> re-compiles the front-end in \<^path>\<open>$FIND_FACTS_HOME_USER/web\<close>
+  on page reload (when sources are changed).
+
+  Option \<^verbatim>\<open>-p\<close> specifies an explicit TCP port for the server socket 
+  (assigned by the operating system per default). For public-facing servers,
+  a common scheme is \<^verbatim>\<open>-p 8080\<close> that is access-restricted via firewall rules,
+  with a reverse proxy in system space (that also handles SSL) on ports 80 and
+  443. 
+\<close>
+
 end
