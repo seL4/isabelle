@@ -1721,7 +1721,7 @@ html { background-color: white; }"""))
       val dirs = new mutable.ListBuffer[Path]
       val build_hosts = new mutable.ListBuffer[Build_Cluster.Host]
       var options = Options.init()
-      var port = 8080
+      var port = 0
 
       val getopts = Getopts("""
 Usage: isabelle build_manager [OPTIONS]
