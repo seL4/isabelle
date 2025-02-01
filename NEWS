@@ -191,6 +191,16 @@ option "-Dsun.java2d.metal=false", which is now the default.
 
 * Update to jEdit 5.7.0, the latest release.
 
+* Update to FlatLaf 3.5.4, the latest release. 2.6 was the last portable
+version, but 3.x requires a Java jar together with a native library. The
+latter is missing for arm64-linux, so old 2.6 is used on that platform:
+this may lead to minor differences in GUI appearance and behaviour.
+
+* Due to the update of FlatLaf, x86_64-linux with Wayland window manager
+(e.g. standard Ubuntu) now renders submenus like "File / Recent Files"
+properly. On arm64-linux an old problem of FlatLaf persists, but it is
+possible to use WaylandEnable=false in /etc/gdm3/custom.conf and reboot.
+
 
 *** Isabelle/VSCode Prover IDE ***
 
