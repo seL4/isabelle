@@ -24,7 +24,6 @@ object Component_Hugo {
 
   val platforms: List[Download_Platform] =
     List(
-      Download_Platform("arm64-linux", "hugo_extended_{V}_linux-arm64.tar.gz"),
       Download_Platform("x86_64-darwin", "hugo_extended_{V}_darwin-universal.tar.gz"),
       Download_Platform("x86_64-linux", "hugo_extended_{V}_linux-amd64.tar.gz"),
       Download_Platform("x86_64-windows", "hugo_extended_{V}_windows-amd64.zip"))
@@ -33,7 +32,7 @@ object Component_Hugo {
   /* build hugo */
 
   val default_url = "https://github.com/gohugoio/hugo/releases/download"
-  val default_version = "0.119.0"
+  val default_version = "0.142.0"
 
   def build_hugo(
     base_url: String = default_url,
