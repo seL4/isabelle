@@ -1617,18 +1617,14 @@ html { background-color: white; }"""))
 
   case class Store(options: Options) {
     val base_dir = Path.explode(options.string("build_manager_dir"))
-    val identifier = options.string("build_manager_identifier")
     val address = {
       Url(proper_string(options.string("build_manager_address")) getOrElse
         "https://" + options.string("build_manager_ssh_host"))
     }
 
     val pending = base_dir + Path.basic("pending")
-    val finished = base_dir + Path.basic("finished")
 
     def task_dir(task: Task) = pending + Path.basic(task.uuid.toString)
-    def report(kind: String, id: Long): Report =
-      Report(kind, id, finished + Path.make(List(kind, id.toString)))
 
     def sync_permissions(dir: Path, ssh: SSH.System = SSH.Local): Unit = {
       ssh.execute("chmod -R g+rwx " + File.bash_path(dir))
@@ -1640,18 +1636,6 @@ html { background-color: white; }"""))
 
     val ssh_group: String = options.string("build_manager_group")
 
-    def open_cluster_ssh(): SSH.Session =
-      SSH.open_session(options,
-        host = options.string("build_manager_cluster_ssh_host"),
-        port = options.int("build_manager_cluster_ssh_port"),
-        user = options.string("build_manager_cluster_ssh_user"))
-
-    def open_ssh(): SSH.Session =
-      SSH.open_session(options,
-        host = options.string("build_manager_ssh_host"),
-        port = options.int("build_manager_ssh_port"),
-        user = options.string("build_manager_ssh_user"))
-
     def open_database(server: SSH.Server = SSH.no_server): PostgreSQL.Database =
       PostgreSQL.open_database_server(options, server = server,
         user = options.string("build_manager_database_user"),
@@ -1662,6 +1646,30 @@ html { background-color: white; }"""))
         ssh_host = options.string("build_manager_database_ssh_host"),
         ssh_port = options.int("build_manager_database_ssh_port"),
         ssh_user = options.string("build_manager_database_ssh_user"))
+
+
+    /* server */
+
+    val identifier = options.string("build_manager_identifier")
+
+    val finished = base_dir + Path.basic("finished")
+    def report(kind: String, id: Long): Report =
+      Report(kind, id, finished + Path.make(List(kind, id.toString)))
+
+    def open_cluster_ssh(): SSH.Session =
+      SSH.open_session(options,
+        host = options.string("build_manager_cluster_ssh_host"),
+        port = options.int("build_manager_cluster_ssh_port"),
+        user = options.string("build_manager_cluster_ssh_user"))
+
+
+    /* client */
+
+    def open_ssh(): SSH.Session =
+      SSH.open_session(options,
+        host = options.string("build_manager_ssh_host"),
+        port = options.int("build_manager_ssh_port"),
+        user = options.string("build_manager_ssh_user"))
 
     def open_postgresql_server(): SSH.Server =
       PostgreSQL.open_server(options,
