@@ -203,7 +203,7 @@ text \<open>
   although it uses relatively complex quasi-hierarchic naming conventions like
   \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to use unqualified
   names that are relatively long and descriptive, as in the Archive of Formal
-  Proofs (\<^url>\<open>https://isa-afp.org\<close>), for example.
+  Proofs (AFP, \<^url>\<open>https://isa-afp.org\<close>), for example.
 \<close>
 
 
@@ -1104,6 +1104,7 @@ text \<open>
   service. The system option @{system_option build_manager_ci_jobs} controls
   which jobs are executed by the \<^verbatim>\<open>Build_Manager\<close>.
 
+  \<^medskip>
   The command-line usage to start the server is:
   @{verbatim [display]
 \<open>Usage: isabelle build_manager [OPTIONS]
@@ -1119,9 +1120,11 @@ text \<open>
   Run Isabelle build manager.
 \<close>}
 
-  \<^medskip> Options \<^verbatim>\<open>-o\<close> and \<^verbatim>\<open>-p\<close> are the same as in other server applications.
+  \<^medskip> Option \<^verbatim>\<open>-o\<close> has the same meaning as for @{tool build}.
 
-  \<^medskip> Option \<^verbatim>\<open>-A\<close> refers to the AFP (must be a Mercurial clone)
+  \<^medskip> Option \<^verbatim>\<open>-p\<close> has the same meaning as for @{tool server}.
+
+  \<^medskip> Option \<^verbatim>\<open>-A\<close> refers to the AFP (must be a Mercurial clone).
 
   \<^medskip> Option \<^verbatim>\<open>-D\<close> extra Isabelle components in a Mercurial repository clone to
   be considered by the poller and CI jobs.
