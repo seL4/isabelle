@@ -23,19 +23,17 @@ object Component_FlatLaf {
   /* build flatlaf */
 
   val default_download_url = "https://repo1.maven.org/maven2/com/formdev/flatlaf"
-  val default_portable_version = "2.6"
-  val default_native_version = "3.5.4"
+  val default_version = "3.5.4"
 
   def build_flatlaf(
     target_dir: Path = Path.current,
     download_url: String = default_download_url,
-    portable_version: String = default_portable_version,
-    native_version: String = default_native_version,
+    version: String = default_version,
     progress: Progress = new Progress,
   ): Unit = {
     /* component */
 
-    val component_name = "flatlaf-" + native_version
+    val component_name = "flatlaf-" + version
     val component_dir =
       Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 
@@ -44,21 +42,17 @@ object Component_FlatLaf {
 
     Isabelle_System.make_directory(component_dir.lib)
 
-    def download(name: String, version: String, dir: Path): Path = {
+    def download(name: String, exe: Boolean = false): Unit = {
       val download_name = name.replace("{V}", version)
-      val target = dir + Path.basic(download_name)
+      val target = component_dir.lib + Path.basic(download_name)
       Isabelle_System.download_file(
         download_url + "/" + version + "/" + download_name, target, progress = progress)
-      target
+      if (exe) File.set_executable(target)
     }
 
-    download("flatlaf-{V}-no-natives.jar", native_version, component_dir.lib)
-    download("flatlaf-{V}.jar", portable_version, component_dir.lib)
+    download("flatlaf-{V}-no-natives.jar")
 
-    for (platform <- platforms) {
-      val path = download(platform.name, native_version, component_dir.lib)
-      if (platform.exe) File.set_executable(path)
-    }
+    for (platform <- platforms) download(platform.name, exe = platform.exe)
 
 
     /* settings */
@@ -66,11 +60,7 @@ object Component_FlatLaf {
     component_dir.write_settings("""
 ISABELLE_FLATLAF_HOME="$COMPONENT"
 
-if [ "$ISABELLE_PLATFORM64" = "arm64-linux" ]; then
-  classpath "$ISABELLE_FLATLAF_HOME/lib/flatlaf-""" + portable_version + """.jar"
-else
-  classpath "$ISABELLE_FLATLAF_HOME/lib/flatlaf-""" + native_version + """-no-natives.jar"
-fi
+classpath "$ISABELLE_FLATLAF_HOME/lib/flatlaf-""" + version + """-no-natives.jar"
 
 isabelle_scala_service "isabelle.FlatLightLaf"
 isabelle_scala_service "isabelle.FlatDarkLaf"
@@ -86,10 +76,6 @@ https://mvnrepository.com/artifact/com.formdev/flatlaf
 
 It is covered by the Apache License 2.0 license.
 
-The last portable version was """ + portable_version + ", but current " + native_version +
-""" requires a Java jar
-together with a native library (e.g. in the same directory).
-
 
         Makarius
         """ + Date.Format.date(Date.now()) + "\n")
@@ -104,8 +90,7 @@ together with a native library (e.g. in the same directory).
       { args =>
         var target_dir = Path.current
         var download_url = default_download_url
-        var native_version = default_native_version
-        var portable_version = default_portable_version
+        var version = default_version
 
         val getopts = Getopts("""
 Usage: isabelle component_flatlaf [OPTIONS]
@@ -113,21 +98,19 @@ Usage: isabelle component_flatlaf [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -U URL       download URL (default: """ + quote(default_download_url) + """)
-    -N VERSION   native version (default: """ + quote(default_native_version) + """)
-    -P VERSION   portable version (default: """ + quote(default_portable_version) + """)
+    -V VERSION   version (default: """ + quote(default_version) + """)
 
   Build flatlaf component from official downloads.""",
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => download_url = arg),
-          "N:" -> (arg => native_version = arg),
-          "P:" -> (arg => portable_version = arg))
+          "V:" -> (arg => version = arg))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress()
 
-        build_flatlaf(target_dir = target_dir, download_url = download_url,
-          portable_version = portable_version, native_version = native_version, progress = progress)
+        build_flatlaf(target_dir = target_dir, download_url = download_url, version = version,
+          progress = progress)
       })
 }
