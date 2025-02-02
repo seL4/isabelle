@@ -26,10 +26,10 @@ theory Guess
 begin
 
 text \<open>
-  The @{command guess} is similar to @{command obtain}, but it derives the
-  obtained context elements from the course of tactical reasoning in the
-  proof. Thus it can considerably obscure the proof: it is provided here as
-  \<^emph>\<open>improper\<close> and experimental feature.
+  The is similar to @{command obtain}, but it derives the obtained context
+  elements from the course of tactical reasoning in the proof. Thus it can
+  considerably obscure the proof: it is provided here as \<^emph>\<open>improper\<close> and
+  experimental feature.
 
   A proof with @{command guess} starts with a fixed goal \<open>thesis\<close>. The
   subsequent refinement steps may turn this to anything of the form

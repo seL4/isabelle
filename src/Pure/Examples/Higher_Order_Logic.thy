@@ -9,12 +9,13 @@ theory Higher_Order_Logic
 begin
 
 text \<open>
-  The following theory development illustrates the foundations of Higher-Order
-  Logic. The ``HOL'' logic that is given here resembles \<^cite>\<open>"Gordon:1985:HOL"\<close> and its predecessor \<^cite>\<open>"church40"\<close>, but the order of
-  axiomatizations and defined connectives has be adapted to modern
-  presentations of \<open>\<lambda>\<close>-calculus and Constructive Type Theory. Thus it fits
-  nicely to the underlying Natural Deduction framework of Isabelle/Pure and
-  Isabelle/Isar.
+  The following theory development illustrates the foundations of
+  Higher-Order Logic. The ``HOL'' logic that is given here resembles
+  \<^cite>\<open>"Gordon:1985:HOL"\<close> and its predecessor \<^cite>\<open>"church40"\<close>, but
+  the order of axiomatizations and defined connectives has be adapted to
+  modern presentations of \<open>\<lambda>\<close>-calculus and Constructive Type Theory. Thus
+  it fits nicely to the underlying Natural Deduction framework of
+  Isabelle/Pure and Isabelle/Isar.
 \<close>
 
 
