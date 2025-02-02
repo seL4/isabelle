@@ -199,7 +199,7 @@ uniformity (arm64-linux lacks a native library).
 * Thanks to the update of FlatLaf, Linux with Wayland window manager
 (e.g. standard Ubuntu) now renders submenus like "File / Recent Files"
 in Isabelle/jEdit properly. Before that, the menu could disappear
-sponteneously.
+spontaneously.
 
 
 *** Isabelle/VSCode Prover IDE ***
