@@ -510,6 +510,13 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           database_dir.dir.dir.file.delete  // "$FIND_FACTS_HOME_USER"
         }
 
+        if (build_library) {
+          progress.echo_warning(
+            "Creating library archive " + context.isabelle_library_archive + " ...")
+          execute_tar(context.dist_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
+            " " + Bash.string(context.dist_name + "/browser_info"))
+        }
+
         if (!include_library) other_isabelle_purge("browser_info")
       }
 
@@ -527,12 +534,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         """find . -type f "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" ")" -print | xargs chmod -f u-w""")
       execute_tar(context.dist_dir, "-czf " +
         File.bash_path(context.isabelle_archive) + " " + Bash.string(context.dist_name))
-
-      if (build_library) {
-        progress.echo_warning("Creating library archive " + context.isabelle_library_archive + " ...")
-        execute_tar(context.dist_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
-          " " + Bash.string(context.dist_name + "/browser_info"))
-      }
     }
   }
 
