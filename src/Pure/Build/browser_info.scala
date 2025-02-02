@@ -564,7 +564,7 @@ object Browser_Info {
     val session_dir = context.session_dir(session_name).expand
     progress.echo("Presenting " + session_name + " in " + session_dir + " ...")
 
-    Meta_Info.init_directory(context.chapter_dir(session_name))
+    Meta_Info.init_directory(context.chapter_dir(session_name), permissive = true)
     Meta_Info.clean_directory(session_dir)
 
     val session = context.document_info.the_session(session_name)
