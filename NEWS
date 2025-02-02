@@ -194,9 +194,7 @@ option "-Dsun.java2d.metal=false", which is now the default.
 * Update to FlatLaf 3.5.4, the latest release. Starting with version 3.x
 there is native library support for non-portable GUI operations. The
 Isabelle/Scala GUI setup disables that by default, for cross-platform
-uniformity (arm64-linux lacks a native library). It can be enabled via
-the Java runtime option -Dflatlaf.useNativeLibrary=true (e.g. via
-JEDIT_JAVA_SYSTEM_OPTIONS).
+uniformity (arm64-linux lacks a native library).
 
 * Thanks to the update of FlatLaf, Linux with Wayland window manager
 (e.g. standard Ubuntu) now renders submenus like "File / Recent Files"
