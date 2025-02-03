@@ -437,7 +437,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       use_release_archive(context, Release_Archive.read(context.isabelle_archive), id = id)
     }
     else {
-      progress.echo_warning("Preparing release " + context.dist_name + " ...")
+      progress.echo("Preparing release " + context.dist_name + " ...")
 
       Isabelle_System.new_directory(context.dist_dir)
 
@@ -469,6 +469,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       other_isabelle.init(echo = true)
 
+      progress.echo("Building documentation ...")
       try {
         other_isabelle.bash(
           "bin/isabelle build_doc -a -o system_heaps -j " + parallel_jobs, echo = true).check
@@ -480,6 +481,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       other_isabelle_purge("browser_info")
 
       if (build_library || include_library || include_find_facts) {
+        progress.echo("Presenting library ...")
         require(Platform.is_unix, "Linux or macOS platform required")
 
         val opt_dirs = "-d '~~/src/Benchmarks' "
@@ -488,6 +490,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           " -o system_heaps -a " + opt_dirs, echo = true).check
 
         if (include_find_facts) {
+          progress.echo("Building Find_Facts index ...")
+
           val database_name = "isabelle"
           val database_dir =
             other_isabelle.expand_path(
@@ -511,8 +515,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         }
 
         if (build_library) {
-          progress.echo_warning(
-            "Creating library archive " + context.isabelle_library_archive + " ...")
+          progress.echo("Creating library archive " + context.isabelle_library_archive + " ...")
           execute_tar(context.dist_dir, "-czf " + File.bash_path(context.isabelle_library_archive) +
             " " + Bash.string(context.dist_name + "/browser_info"))
         }
@@ -527,7 +530,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       other_isabelle.isabelle_home_user.file.delete
 
 
-      progress.echo_warning("Creating release archive " + context.isabelle_archive + " ...")
+      progress.echo("Creating release archive " + context.isabelle_archive + " ...")
 
       execute(context.dist_dir, """chmod -R a+r,u+w,g=o .""")
       execute(context.dist_dir,
