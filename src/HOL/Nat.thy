@@ -1296,6 +1296,8 @@ lemma nat_diff_split_asm: "P (a - b) \<longleftrightarrow> \<not> (a < b \<and> 
   for a b :: nat
   \<comment> \<open>elimination of \<open>-\<close> on \<open>nat\<close> in assumptions\<close>
   by (auto split: nat_diff_split)
+  
+lemmas nat_diff_splits = nat_diff_split nat_diff_split_asm
 
 lemma Suc_pred': "0 < n \<Longrightarrow> n = Suc(n - 1)"
   by simp
