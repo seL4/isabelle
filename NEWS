@@ -431,6 +431,9 @@ built-in string size.
 "system" manual now refers to the project as "Phorge", but "phabricator"
 remains for formal names (files, DNS etc.).
 
+* Update of the MLton SML compiler to work better with current macOS
+versions (including ARM). Windows and Linux ARM remain unsupported.
+
 
 
 New in Isabelle2024 (May 2024)
