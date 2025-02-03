@@ -527,7 +527,6 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       other_isabelle_purge("heaps")
 
       other_isabelle.cleanup()
-      other_isabelle.isabelle_home_user.file.delete
 
 
       progress.echo("Creating release archive " + context.isabelle_archive + " ...")

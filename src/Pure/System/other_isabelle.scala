@@ -188,5 +188,5 @@ final class Other_Isabelle private(
   /* cleanup */
 
   def cleanup(): Unit =
-    ssh.delete(host_db, etc_settings, etc_preferences, etc)
+    ssh.delete(host_db, etc_settings, etc_preferences, etc, isabelle_home_user)
 }
