@@ -395,8 +395,6 @@ lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightar
 
 subsubsection \<open>Well-foundedness of transitive closure\<close>
 
-
-
 lemma ex_terminating_rtranclp_strong:
   assumes wf: "wfp_on {x'. R\<^sup>*\<^sup>* x x'} R\<inverse>\<inverse>"
   shows "\<exists>y. R\<^sup>*\<^sup>* x y \<and> (\<nexists>z. R y z)"
