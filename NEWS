@@ -263,6 +263,7 @@ Isabelle/jEdit rendering like this:
     variable instantiations (see below).
   - Added extensionality (fact "ext") to some "metis (lifting)" calls.
   - Use pretty-printing to format suggested one-line proofs.
+  - Added option "cache_dir" to cache the result of external provers.
 
 * Metis:
   - Added inference of variable instantiations, which can be activated
