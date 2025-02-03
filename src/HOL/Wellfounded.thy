@@ -307,6 +307,33 @@ lemma wf_eq_minimal: "wf r \<longleftrightarrow> (\<forall>Q x. x \<in> Q \<long
 lemmas wfp_eq_minimal = wf_eq_minimal [to_pred]
 
 
+subsubsection \<open>Finite characterization of well-foundedness\<close>
+
+lemma strict_partial_order_wfp_on_finite_set:
+  assumes "transp_on \<X> R" and "asymp_on \<X> R" and "finite \<X>"
+  shows "wfp_on \<X> R"
+  unfolding Wellfounded.wfp_on_iff_ex_minimal
+proof (intro allI impI)
+  fix \<W>
+  assume "\<W> \<subseteq> \<X>" and "\<W> \<noteq> {}"
+
+  have "finite \<W>"
+    using finite_subset[OF \<open>\<W> \<subseteq> \<X>\<close> \<open>finite \<X>\<close>] .
+
+  moreover have "asymp_on \<W> R"
+    using asymp_on_subset[OF \<open>asymp_on \<X> R\<close> \<open>\<W> \<subseteq> \<X>\<close>] .
+
+  moreover have "transp_on \<W> R"
+    using transp_on_subset[OF \<open>transp_on \<X> R\<close> \<open>\<W> \<subseteq> \<X>\<close>] .
+
+  ultimately have "\<exists>m\<in>\<W>. \<forall>x\<in>\<W>. x \<noteq> m \<longrightarrow> \<not> R x m"
+    using \<open>\<W> \<noteq> {}\<close> Finite_Set.bex_min_element[of \<W> R] by iprover
+
+  thus "\<exists>z\<in>\<W>. \<forall>y. R y z \<longrightarrow> y \<notin> \<W>"
+    using asymp_onD[OF \<open>asymp_on \<W> R\<close>] by fast
+qed
+
+
 subsubsection \<open>Antimonotonicity\<close>
 
 
