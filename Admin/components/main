@@ -23,7 +23,7 @@ kodkodi-1.5.7
 lipics-3.1.3
 llncs-2.25
 minisat-2.2.1-1
-mlton-20210117-3
+mlton-20241230-1
 nunchaku-0.5
 opam-2.0.7
 pdfjs-2.14.305
@@ -31,7 +31,7 @@ polyml-5.9.1
 postgresql-42.7.5
 prismjs-1.29.0
 rsync-3.2.7-1
-scala-3.3.4
+scala-3.3.5
 smbc-0.4.1
 solr-9.7.0-1
 spass-3.8ds-2

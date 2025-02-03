@@ -1,4 +1,7 @@
-(* Author: Florian Haftmann, TU Muenchen *)
+(*
+    Author:     Florian Haftmann, TU Muenchen
+    UUID:       9c5036f1-7617-4ac5-8de7-d996863e5e58
+*)
 
 section \<open>Test of target-language specific implementations for MLton\<close>
 

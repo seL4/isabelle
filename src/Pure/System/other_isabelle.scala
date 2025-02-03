@@ -75,6 +75,8 @@ final class Other_Isabelle private(
 
   val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
 
+  def host_db: Path = isabelle_home_user + Path.explode("host.db")
+
   def etc: Path = isabelle_home_user + Path.explode("etc")
   def etc_settings: Path = etc + Path.explode("settings")
   def etc_preferences: Path = etc + Path.explode("preferences")
@@ -185,9 +187,6 @@ final class Other_Isabelle private(
 
   /* cleanup */
 
-  def cleanup(): Unit = {
-    clean_settings()
-    ssh.delete(expand_path(Host.private_data.database))
-    ssh.delete(etc, isabelle_home_user)
-  }
+  def cleanup(): Unit =
+    ssh.delete(host_db, etc_settings, etc_preferences, etc, isabelle_home_user)
 }
