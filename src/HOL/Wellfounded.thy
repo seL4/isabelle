@@ -395,6 +395,43 @@ lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightar
 
 subsubsection \<open>Well-foundedness of transitive closure\<close>
 
+
+
+lemma ex_terminating_rtranclp_strong:
+  assumes wf: "wfp_on {x'. R\<^sup>*\<^sup>* x x'} R\<inverse>\<inverse>"
+  shows "\<exists>y. R\<^sup>*\<^sup>* x y \<and> (\<nexists>z. R y z)"
+proof (cases "\<exists>y. R x y")
+  case True
+  with wf show ?thesis
+  proof (induction rule: Wellfounded.wfp_on_induct)
+    case in_set
+    thus ?case
+      by simp
+  next
+    case (less y)
+    have "R\<^sup>*\<^sup>* x y"
+      using less.hyps mem_Collect_eq[of _ "R\<^sup>*\<^sup>* x"] by iprover
+
+    moreover obtain z where "R y z"
+      using less.prems by iprover
+
+    ultimately have "R\<^sup>*\<^sup>* x z"
+      using rtranclp.rtrancl_into_rtrancl[of R x y z] by iprover
+
+    show ?case
+      using \<open>R y z\<close> \<open>R\<^sup>*\<^sup>* x z\<close> less.IH[of z] rtranclp_trans[of R y z] by blast
+  qed
+next
+  case False
+  thus ?thesis
+    by blast
+qed
+
+lemma ex_terminating_rtranclp:
+  assumes wf: "wfp R\<inverse>\<inverse>"
+  shows "\<exists>y. R\<^sup>*\<^sup>* x y \<and> (\<nexists>z. R y z)"
+  using ex_terminating_rtranclp_strong[OF wfp_on_subset[OF wf subset_UNIV]] .
+
 lemma wf_trancl:
   assumes "wf r"
   shows "wf (r\<^sup>+)"

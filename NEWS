@@ -302,6 +302,8 @@ hooks can be added with HOL_Base_Order_Tac.declare_insert_prems_hook.
       wfP_wf_eq ~> wfp_wf_eq
       wf_acc_iff ~> wf_iff_acc
   - Added lemmas.
+      ex_terminating_rtranclp
+      ex_terminating_rtranclp_strong
       strict_partial_order_wfp_on_finite_set
       wf_on_antimono_stronger
       wfp_on_antimono_stronger
