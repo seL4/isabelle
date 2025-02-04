@@ -70,7 +70,7 @@ fun unsynchronized_init cache_path =
     val table =
       if File.exists cache_path then
         let
-          fun err () = error ("Cache IO: corrupted cache file: " ^ File.bash_path cache_path)
+          fun err () = error ("Cache IO: corrupted cache file: " ^ Path.print cache_path)
 
           fun int_of_string s =
             (case read_int (raw_explode s) of
