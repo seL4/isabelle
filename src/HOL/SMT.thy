@@ -731,7 +731,7 @@ subsection \<open>Certificates\<close>
 
 text \<open>
 By setting the option \<open>smt_certificates\<close> to the name of a file,
-all following applications of an SMT solver a cached in that file.
+all following applications of an SMT solver are cached in that file.
 Any further application of the same SMT solver (using the very same
 configuration) re-uses the cached certificate instead of invoking the
 solver. An empty string disables caching certificates.
