@@ -96,12 +96,14 @@ val map_solvers = Data.map o @{apply 3(1)}
 val put_solver = Data.map o @{apply 3(2)} o K o SOME;
 val put_certificates = Data.map o @{apply 3(3)} o K;
 
+val defined_solvers = Symtab.defined o get_solvers';
+
 fun set_solver_options (name, options) =
   let val opts = String.tokens (Symbol.is_ascii_blank o str) options
   in map_solvers (Symtab.map_entry name (apsnd (K opts))) end
 
 fun add_solver (info as {name, ...} : solver_info) context =
-  if Symtab.defined (get_solvers' context) name then
+  if defined_solvers context name then
     error ("Solver already registered: " ^ quote name)
   else
     context
@@ -122,8 +124,7 @@ fun is_available' context name =
 val is_available = is_available' o Context.Proof;
 
 fun available_solvers_of ctxt =
-  let val context = Context.Proof ctxt
-  in filter (is_available' context) (all_solvers_of' context) end;
+  filter (is_available ctxt) (all_solvers_of ctxt);
 
 fun warn_solver (Context.Proof ctxt) name =
       if Context_Position.is_visible ctxt then
