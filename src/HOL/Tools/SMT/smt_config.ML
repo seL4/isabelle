@@ -234,8 +234,8 @@ val get_certificates_path = Option.map (Cache_IO.cache_path_of) o certificates_o
 fun select_certificates name context = context |> put_certificates (
   if name = "" then NONE
   else
-    (Resources.master_directory (Context.theory_of context) + Path.explode name)
-    |> SOME o Cache_IO.unsynchronized_init)
+    let val dir = Resources.master_directory (Context.theory_of context) + Path.explode name
+    in SOME (Cache_IO.unsynchronized_init dir) end);
 
 val setup_certificates =
   Attrib.setup \<^binding>\<open>smt_certificates\<close>
