@@ -68,7 +68,7 @@ end;
 structure SMT_Config: SMT_CONFIG =
 struct
 
-(* solver *)
+(* context data *)
 
 type solver_info = {
   name: string,
@@ -76,59 +76,54 @@ type solver_info = {
   avail: unit -> bool,
   options: Proof.context -> string list}
 
-type data = {
-  solvers: (solver_info * string list) Symtab.table,
-  solver: string option,
-  certs: Cache_IO.cache option}
-
-fun mk_data solvers solver certs: data = {solvers=solvers, solver=solver, certs=certs}
-
-val empty_data = mk_data Symtab.empty NONE NONE
-
-fun solvers_of ({solvers, ...}: data) = solvers
-fun solver_of ({solver, ...}: data) = solver
-fun certs_of ({certs, ...}: data) = certs
-
-fun map_solvers f ({solvers, solver, certs}: data) = mk_data (f solvers) solver certs
-fun map_solver f ({solvers, solver, certs}: data) = mk_data solvers (f solver) certs
-fun put_certs c ({solvers, solver, ...}: data) = mk_data solvers solver c
-
-fun merge_data ({solvers=ss1,solver=s1,certs=c1}: data, {solvers=ss2,solver=s2,certs=c2}: data) =
-  mk_data (Symtab.merge (K true) (ss1, ss2)) (merge_options (s1, s2)) (merge_options (c1, c2))
-
 structure Data = Generic_Data
 (
-  type T = data
-  val empty = empty_data
-  val merge = merge_data
-)
+  type T =
+    (solver_info * string list) Symtab.table *  (*all solvers*)
+    string option *  (*selected solver*)
+    Cache_IO.cache option;  (*certificates*)
+  val empty: T = (Symtab.empty, NONE, NONE);
+  fun merge ((ss1, s1, c1): T, (ss2, s2, c2): T) =
+    (Symtab.merge (K true) (ss1, ss2), merge_options (s1, s2), merge_options (c1, c2));
+);
+
+val get_solvers' = #1 o Data.get;
+val get_solvers = get_solvers' o Context.Proof;
+val get_solver = #2 o Data.get o Context.Proof;
+val certificates_of = #3 o Data.get o Context.Proof;
+
+val map_solvers = Data.map o @{apply 3(1)}
+val put_solver = Data.map o @{apply 3(2)} o K o SOME;
+val put_certificates = Data.map o @{apply 3(3)} o K;
 
 fun set_solver_options (name, options) =
   let val opts = String.tokens (Symbol.is_ascii_blank o str) options
-  in Data.map (map_solvers (Symtab.map_entry name (apsnd (K opts)))) end
+  in map_solvers (Symtab.map_entry name (apsnd (K opts))) end
 
 fun add_solver (info as {name, ...} : solver_info) context =
-  if Symtab.defined (solvers_of (Data.get context)) name then
+  if Symtab.defined (get_solvers' context) name then
     error ("Solver already registered: " ^ quote name)
   else
     context
-    |> Data.map (map_solvers (Symtab.update (name, (info, []))))
+    |> map_solvers (Symtab.update (name, (info, [])))
     |> Context.map_theory (Attrib.setup (Binding.name (name ^ "_options"))
         (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
           (Thm.declaration_attribute o K o set_solver_options o pair name))
         ("additional command-line options for SMT solver " ^ quote name))
 
-fun all_solvers_of ctxt = Symtab.keys (solvers_of (Data.get (Context.Proof ctxt)))
+val all_solvers_of' = Symtab.keys o get_solvers';
+val all_solvers_of = all_solvers_of' o Context.Proof;
 
-fun solver_name_of ctxt = solver_of (Data.get (Context.Proof ctxt))
-
-fun is_available ctxt name =
-  (case Symtab.lookup (solvers_of (Data.get (Context.Proof ctxt))) name of
+fun is_available' context name =
+  (case Symtab.lookup (get_solvers' context) name of
     SOME ({avail, ...}, _) => avail ()
-  | NONE => false)
+  | NONE => false);
+
+val is_available = is_available' o Context.Proof;
 
 fun available_solvers_of ctxt =
-  filter (is_available ctxt) (all_solvers_of ctxt)
+  let val context = Context.Proof ctxt
+  in filter (is_available' context) (all_solvers_of' context) end;
 
 fun warn_solver (Context.Proof ctxt) name =
       if Context_Position.is_visible ctxt then
@@ -137,28 +132,23 @@ fun warn_solver (Context.Proof ctxt) name =
   | warn_solver _ _ = ()
 
 fun select_solver name context =
-  let
-    val ctxt = Context.proof_of context
-    val upd = Data.map (map_solver (K (SOME name)))
-  in
-    if not (member (op =) (all_solvers_of ctxt) name) then
-      error ("Trying to select unknown solver: " ^ quote name)
-    else if not (is_available ctxt name) then
-      (warn_solver context name; upd context)
-    else upd context
-  end
+  if not (member (op =) (all_solvers_of' context) name) then
+    error ("Trying to select unknown solver: " ^ quote name)
+  else if not (is_available' context name) then
+    (warn_solver context name; put_solver name context)
+  else put_solver name context;
 
 fun no_solver_err () = error "No SMT solver selected"
 
 fun solver_of ctxt =
-  (case solver_name_of ctxt of
+  (case get_solver ctxt of
     SOME name => name
   | NONE => no_solver_err ())
 
 fun solver_info_of default select ctxt =
-  (case solver_name_of ctxt of
+  (case get_solver ctxt of
     NONE => default ()
-  | SOME name => select (Symtab.lookup (solvers_of (Data.get (Context.Proof ctxt))) name))
+  | SOME name => select (Symtab.lookup (get_solvers ctxt) name))
 
 fun solver_class_of ctxt =
   let fun class_of ({class, ...}: solver_info, _) = class ctxt
@@ -238,15 +228,13 @@ fun with_timeout ctxt = with_time_limit ctxt timeout
 
 (* certificates *)
 
-val certificates_of = certs_of o Data.get o Context.Proof
+val get_certificates_path = Option.map (Cache_IO.cache_path_of) o certificates_of;
 
-val get_certificates_path = Option.map (Cache_IO.cache_path_of) o certificates_of
-
-fun select_certificates name context = context |> Data.map (put_certs (
+fun select_certificates name context = context |> put_certificates (
   if name = "" then NONE
   else
     (Resources.master_directory (Context.theory_of context) + Path.explode name)
-    |> SOME o Cache_IO.unsynchronized_init))
+    |> SOME o Cache_IO.unsynchronized_init)
 
 val setup_certificates =
   Attrib.setup \<^binding>\<open>smt_certificates\<close>
@@ -267,7 +255,7 @@ fun print_setup ctxt =
 
     val names = available_solvers_of ctxt
     val ns = if null names then ["(none)"] else sort_strings names
-    val n = the_default "(none)" (solver_name_of ctxt)
+    val n = the_default "(none)" (get_solver ctxt)
     val opts = solver_options_of ctxt
 
     val t = string_of_real (Config.get ctxt timeout)
