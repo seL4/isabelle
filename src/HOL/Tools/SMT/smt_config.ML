@@ -133,7 +133,7 @@ fun warn_solver (Context.Proof ctxt) name =
   | warn_solver _ _ = ()
 
 fun select_solver name context =
-  if not (member (op =) (all_solvers_of' context) name) then
+  if not (defined_solvers context name) then
     error ("Trying to select unknown solver: " ^ quote name)
   else if not (is_available' context name) then
     (warn_solver context name; put_solver name context)
