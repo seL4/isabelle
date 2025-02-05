@@ -16,6 +16,7 @@ signature TIMING =
 sig
   include BASIC_TIMING
   type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time}
+  val zero: timing
   type start
   val start: unit -> start
   val result: start -> timing
@@ -33,6 +34,8 @@ struct
 (* type timing *)
 
 type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time};
+
+val zero: timing = {elapsed = Time.zeroTime, cpu = Time.zeroTime, gc = Time.zeroTime};
 
 
 (* timer control *)
