@@ -22,6 +22,8 @@ object HTTP {
     val mime_type_bytes: String = "application/octet-stream"
     val mime_type_text: String = "text/plain; charset=utf-8"
     val mime_type_html: String = "text/html; charset=utf-8"
+    val mime_type_css: String = "text/css; charset=utf-8"
+    val mime_type_js: String = "text/javascript; charset=utf-8"
 
     val default_mime_type: String = mime_type_bytes
     val default_encoding: String = UTF8.charset.name
