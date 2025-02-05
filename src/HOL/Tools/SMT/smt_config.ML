@@ -253,22 +253,20 @@ fun print_setup ctxt =
     val n = the_default "(none)" (get_solver ctxt);
     val opts = solver_options_of ctxt;
 
-    val t = string_of_real (Config.get ctxt timeout);
-
     val certs_filename =
       (case get_certificates_path ctxt of
         SOME path => Path.print path
       | NONE => "(disabled)");
-  in
-    Pretty.writeln (Pretty.big_list "SMT setup:" [
-      Pretty.str ("Current SMT solver: " ^ n),
+
+    val items =
+     [Pretty.str ("Current SMT solver: " ^ n),
       Pretty.str ("Current SMT solver options: " ^ implode_space opts),
       Pretty.str_list "Available SMT solvers: "  "" ns,
-      Pretty.str ("Current timeout: " ^ t ^ " seconds"),
+      Pretty.str ("Current timeout: " ^ Value.print_real (Config.get ctxt timeout) ^ " seconds"),
       Pretty.str ("With proofs: " ^ Value.print_bool (not (Config.get ctxt oracle))),
       Pretty.str ("Certificates cache: " ^ certs_filename),
-      Pretty.str ("Fixed certificates: " ^ Value.print_bool (Config.get ctxt read_only_certificates))])
-  end;
+      Pretty.str ("Fixed certificates: " ^ Value.print_bool (Config.get ctxt read_only_certificates))];
+  in Pretty.writeln (Pretty.big_list "SMT setup:" (map (Pretty.item o single) items)) end;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>smt_status\<close>
