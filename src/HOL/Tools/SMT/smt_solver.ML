@@ -105,8 +105,11 @@ fun run_solver ctxt name mk_cmd input =
 
     val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
-    val ({elapsed, ...}, {redirected_output = res, output = err, return_code}) =
+    val ({elapsed, ...}, result) =
       Timing.timing (SMT_Config.with_timeout ctxt (run ctxt name mk_cmd)) input
+    val res = Process_Result.out_lines result
+    val err = Process_Result.err_lines result
+    val return_code = Process_Result.rc result
     val _ = SMT_Config.trace_msg ctxt (pretty "Solver:") err
 
     val output = drop_suffix (equal "") res

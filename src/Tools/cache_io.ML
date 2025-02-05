@@ -7,20 +7,16 @@ Cache for output of external processes.
 signature CACHE_IO =
 sig
   (*IO wrapper*)
-  type result = {
-    output: string list,
-    redirected_output: string list,
-    return_code: int}
-  val raw_run: (Path.T -> Path.T -> string) -> string -> Path.T -> Path.T -> result
-  val run: (Path.T -> Path.T -> string) -> string -> result
+  val raw_run: (Path.T -> Path.T -> string) -> string -> Path.T -> Path.T -> Process_Result.T
+  val run: (Path.T -> Path.T -> string) -> string -> Process_Result.T
 
   (*cache*)
   type cache
   val unsynchronized_init: Path.T -> cache
   val cache_path_of: cache -> Path.T
-  val lookup: cache -> string -> result option * string
-  val run_and_cache: cache -> string -> (Path.T -> Path.T -> string) -> string -> result
-  val run_cached: cache -> (Path.T -> Path.T -> string) -> string -> result
+  val lookup: cache -> string -> Process_Result.T option * string
+  val run_and_cache: cache -> string -> (Path.T -> Path.T -> string) -> string -> Process_Result.T
+  val run_cached: cache -> (Path.T -> Path.T -> string) -> string -> Process_Result.T
 end
 
 structure Cache_IO : CACHE_IO =
@@ -29,11 +25,6 @@ struct
 (* IO wrapper *)
 
 val cache_io_prefix = "cache-io-"
-
-type result = {
-  output: string list,
-  redirected_output: string list,
-  return_code: int}
 
 fun try_read_lines path =
   let
@@ -46,9 +37,12 @@ fun try_read_lines path =
 fun raw_run make_cmd str in_path out_path =
   let
     val _ = File.write in_path str
-    val (out2, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
-    val out1 = try_read_lines out_path
-  in {output = split_lines out2, redirected_output = out1, return_code = rc} end
+    val (err, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
+    val out_lines = try_read_lines out_path
+  in
+    Process_Result.make
+      {rc = rc, out_lines = out_lines, err_lines = split_lines err, timing = Timing.zero}
+  end
 
 fun run make_cmd str =
   Isabelle_System.with_tmp_file cache_io_prefix "" (fn in_path =>
@@ -107,22 +101,26 @@ fun lookup (Cache {path = cache_path, table}) str =
               else (i, xsp)
             val (out, err) =
               apply2 rev (snd (fold load (File.read_lines cache_path) (1, ([], []))))
-          in ((SOME {output = err, redirected_output = out, return_code = 0}, key), tab) end))
+            val result =
+              Process_Result.make {rc = 0, out_lines = out, err_lines = err, timing = Timing.zero}
+          in ((SOME result, key), tab) end))
   end
 
 fun run_and_cache (Cache {path = cache_path, table}) key make_cmd str =
   let
-    val {output = err, redirected_output=out, return_code} = run make_cmd str
-    val (l1, l2) = apply2 length (out, err)
+    val result = run make_cmd str
+    val out_lines = Process_Result.out_lines result
+    val err_lines = Process_Result.err_lines result
+    val (l1, l2) = apply2 length (out_lines, err_lines)
     val header = key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
-    val lines = map (suffix "\n") (header :: out @ err)
+    val lines = map (suffix "\n") (header :: out_lines @ err_lines)
 
     val _ = Synchronized.change table (fn (p, tab) =>
       if Symtab.defined tab key then (p, tab)
       else
         let val _ = File.append_list cache_path lines
         in (p+l1+l2+1, Symtab.update (key, (p+1, l1, l2)) tab) end)
-  in {output = err, redirected_output = out, return_code = return_code} end
+  in result end
 
 fun run_cached cache make_cmd str =
   (case lookup cache str of
