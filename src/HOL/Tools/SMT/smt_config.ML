@@ -162,11 +162,11 @@ fun solver_options_of ctxt =
           opts @ options ctxt
   in solver_info_of (K []) all_options ctxt end;
 
-val setup_solver =
-  Attrib.setup \<^binding>\<open>smt_solver\<close>
+val _ =
+  Theory.setup (Attrib.setup \<^binding>\<open>smt_solver\<close>
     (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
-    "SMT solver configuration";
+    "SMT solver configuration");
 
 
 (* options *)
@@ -237,23 +237,17 @@ fun select_certificates name context = context |> put_certificates (
     let val dir = Resources.master_directory (Context.theory_of context) + Path.explode name
     in SOME (Cache_IO.unsynchronized_init dir) end);
 
-val setup_certificates =
-  Attrib.setup \<^binding>\<open>smt_certificates\<close>
+val _ =
+  Theory.setup (Attrib.setup \<^binding>\<open>smt_certificates\<close>
     (Scan.lift (\<^keyword>\<open>=\<close> |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
-    "SMT certificates configuration";
+    "SMT certificates configuration");
 
 
-(* setup *)
-
-val _ = Theory.setup (
-  setup_solver #>
-  setup_certificates);
+(* print_setup *)
 
 fun print_setup ctxt =
   let
-    fun string_of_bool b = if b then "true" else "false";
-
     val names = available_solvers_of ctxt;
     val ns = if null names then ["(none)"] else sort_strings names;
     val n = the_default "(none)" (get_solver ctxt);
@@ -271,11 +265,9 @@ fun print_setup ctxt =
       Pretty.str ("Current SMT solver options: " ^ implode_space opts),
       Pretty.str_list "Available SMT solvers: "  "" ns,
       Pretty.str ("Current timeout: " ^ t ^ " seconds"),
-      Pretty.str ("With proofs: " ^
-        string_of_bool (not (Config.get ctxt oracle))),
+      Pretty.str ("With proofs: " ^ Value.print_bool (not (Config.get ctxt oracle))),
       Pretty.str ("Certificates cache: " ^ certs_filename),
-      Pretty.str ("Fixed certificates: " ^
-        string_of_bool (Config.get ctxt read_only_certificates))])
+      Pretty.str ("Fixed certificates: " ^ Value.print_bool (Config.get ctxt read_only_certificates))])
   end;
 
 val _ =
