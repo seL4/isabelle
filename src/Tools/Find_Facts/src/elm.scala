@@ -18,6 +18,11 @@ import org.jsoup.nodes.Element
 
 
 object Elm {
+  def elm_home: Path = {
+    Path.explode(proper_string(Isabelle_System.getenv("ISABELLE_ELM_HOME"))
+      getOrElse error("No elm component found"))
+  }
+
   object Project {
     def apply(
       name: String,
@@ -71,7 +76,7 @@ object Elm {
         progress.echo("Building web application " + output.absolute + " ...")
 
         val cmd =
-          File.bash_path(Path.explode("$ISABELLE_ELM_HOME/elm")) + " make " +
+          File.bash_path(elm_home + Path.basic("elm")) + " make " +
             File.bash_path(main) + " --optimize --output=" + output
         val res = Isabelle_System.bash(cmd, cwd = dir)
 
