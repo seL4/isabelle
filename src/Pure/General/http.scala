@@ -338,7 +338,7 @@ object HTTP {
   /** Isabelle services **/
 
   def isabelle_services: List[Service] =
-    List(Welcome_Service, Fonts_Service, PDFjs_Service, Docs_Service)
+    List(Welcome_Service, Fonts_Service, CSS_Service, PDFjs_Service, Docs_Service)
 
 
   /* welcome */
@@ -372,6 +372,19 @@ object HTTP {
             { case entry if path == entry.path.base => Response(entry.bytes) }
           ))
       }
+  }
+
+
+  /* css */
+
+  object CSS_Service extends CSS()
+
+  class CSS(name: String = "css", fonts: String = Fonts_Service.name) extends Service(name) {
+    private lazy val css =
+      HTML.fonts_css("/" + fonts + "/" + _) + "\n\n" + File.read(HTML.isabelle_css)
+
+    def apply(request: Request): Option[Response] =
+      Some(Response(Bytes(css), Content.mime_type_css))
   }
 
 

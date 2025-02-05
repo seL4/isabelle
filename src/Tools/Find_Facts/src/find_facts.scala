@@ -896,7 +896,7 @@ object Find_Facts {
         List(
           HTML.style("html,body {width: 100%, height: 100%}"),
           Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
-          HTML.style_file("isabelle.css"),
+          HTML.style_file(HTTP.CSS_Service.name),
           HTML.style_file("https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons"),
           HTML.style_file(
             "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"),
@@ -917,8 +917,6 @@ object Find_Facts {
     val database = options.string("find_facts_database_name")
     val encode = new Encode(options)
 
-    val isabelle_style = HTML.fonts_css("/fonts/" + _) + "\n\n" + File.read(HTML.isabelle_css)
-
     val html = build_html(progress = progress)
 
     val solr = Solr.init(solr_data_dir)
@@ -932,10 +930,7 @@ object Find_Facts {
       val server =
         HTTP.server(port, name = "", services = List(
           HTTP.Fonts_Service,
-          new HTTP.Service("isabelle.css") {
-            def apply(request: HTTP.Request): Option[HTTP.Response] =
-              Some(HTTP.Response(Bytes(isabelle_style), "text/css"))
-          },
+          HTTP.CSS_Service,
           new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
               Some(HTTP.Response.html(if (devel) build_html(progress = progress) else html))
