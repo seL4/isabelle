@@ -883,10 +883,30 @@ object Find_Facts {
   }
 
 
-  /* find facts */
+  /* web */
 
   val web_sources: Path = Path.explode("$FIND_FACTS_HOME/web")
-  val web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
+  val default_web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
+
+  def build_html(web_dir: Path = default_web_dir, progress: Progress = new Progress): String = {
+    Isabelle_System.copy_dir(web_sources, web_dir, direct = true)
+    val logo = Bytes.read(web_dir + Path.explode("favicon.ico"))
+    val project =
+      Elm.Project("Find_Facts", web_dir, head =
+        List(
+          HTML.style("html,body {width: 100%, height: 100%}"),
+          Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
+          HTML.style_file("isabelle.css"),
+          HTML.style_file("https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons"),
+          HTML.style_file(
+            "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"),
+          HTML.script_file(
+            "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js")))
+    project.build_html(progress = progress)
+  }
+
+
+  /* find facts */
 
   def find_facts_server(
     options: Options,
@@ -894,25 +914,12 @@ object Find_Facts {
     devel: Boolean = false,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.copy_dir(web_sources, web_dir, direct = true)
-
     val database = options.string("find_facts_database_name")
     val encode = new Encode(options)
-    val logo = Bytes.read(web_dir + Path.explode("favicon.ico"))
 
     val isabelle_style = HTML.fonts_css("/fonts/" + _) + "\n\n" + File.read(HTML.isabelle_css)
 
-    val project = Elm.Project("Find_Facts", web_dir, head = List(
-      HTML.style("html,body {width: 100%, height: 100%}"),
-      Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
-      HTML.style_file("isabelle.css"),
-      HTML.style_file("https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons"),
-      HTML.style_file(
-        "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"),
-      HTML.script_file(
-        "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js")))
-
-    val frontend = project.build_html(progress = progress)
+    val html = build_html(progress = progress)
 
     val solr = Solr.init(solr_data_dir)
     resolve_indexes(solr)
@@ -931,8 +938,7 @@ object Find_Facts {
           },
           new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
-              Some(HTTP.Response.html(
-                if (devel) project.build_html(progress = progress) else frontend))
+              Some(HTTP.Response.html(if (devel) build_html(progress = progress) else html))
           },
           new HTTP.REST_Service("api/block", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
