@@ -774,4 +774,35 @@ proof -
   finally show ?thesis .
 qed
 
+text \<open>Thanks to Manuel Eberl\<close>
+lemma prime_cong_4_nat_cases [consumes 1, case_names 2 cong_1 cong_3]:
+  assumes "prime (p :: nat)"
+  obtains "p = 2" | "[p = 1] (mod 4)" | "[p = 3] (mod 4)"
+proof -
+  have "[p = 2] (mod 4) \<longleftrightarrow> p = 2"
+  proof
+    assume "[p = 2] (mod 4)"
+    hence "p mod 4 = 2"
+      by (auto simp: cong_def)
+    hence "even p"
+      by (simp add: even_even_mod_4_iff)
+    with assms show "p = 2"
+      unfolding prime_nat_iff by force
+  qed auto
+  moreover have "[p \<noteq> 0] (mod 4)"
+  proof
+    assume "[p = 0] (mod 4)"
+    hence "4 dvd p"
+      by (auto simp: cong_0_iff)
+    with assms have "p = 4"
+      by (subst (asm) prime_nat_iff) auto
+    thus False
+      using assms by simp
+  qed
+  ultimately consider "[p = 3] (mod 4)" | "[p = 1] (mod 4)" | "p = 2"
+    by (fastforce simp: cong_def)
+  thus ?thesis
+    using that by metis
+qed
+
 end

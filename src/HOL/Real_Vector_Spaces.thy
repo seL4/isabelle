@@ -287,6 +287,9 @@ lemma of_real_sum[simp]: "of_real (sum f s) = (\<Sum>x\<in>s. of_real (f x))"
 lemma of_real_prod[simp]: "of_real (prod f s) = (\<Prod>x\<in>s. of_real (f x))"
   by (induct s rule: infinite_finite_induct) auto
 
+lemma sum_list_of_real: "sum_list (map of_real xs) = of_real (sum_list xs)"
+  by (induction xs) auto
+
 lemma nonzero_of_real_inverse:
   "x \<noteq> 0 \<Longrightarrow> of_real (inverse x) = inverse (of_real x :: 'a::real_div_algebra)"
   by (simp add: of_real_def nonzero_inverse_scaleR_distrib)
