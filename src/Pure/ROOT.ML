@@ -54,6 +54,7 @@ ML_file "General/random.ML";
 ML_file "General/value.ML";
 ML_file "General/properties.ML";
 ML_file "General/output.ML";
+ML_file "General/time.ML";
 ML_file "PIDE/markup.ML";
 ML_file "General/utf8.ML";
 ML_file "General/scan.ML";
@@ -94,7 +95,6 @@ ML_file "General/file.ML";
 ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
 ML_file "General/seq.ML";
-ML_file "General/time.ML";
 ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 

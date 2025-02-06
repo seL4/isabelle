@@ -10,10 +10,10 @@ sig
   val strings: string list -> string
   type params
   val dest_params: params ->
-   {script: string, input: string, cwd: Path.T option, putenv: (string * string) list,
+   {script: string, input: Bytes.T, cwd: Path.T option, putenv: (string * string) list,
     redirect: bool, timeout: Time.time, description: string}
   val script: string -> params
-  val input: string -> params -> params
+  val input: Bytes.T -> params -> params
   val cwd: Path.T -> params -> params
   val putenv: (string * string) list -> params -> params
   val redirect: params -> params
@@ -56,7 +56,7 @@ val strings = implode_space o map string;
 
 abstype params =
   Params of
-   {script: string, input: string, cwd: Path.T option, putenv: (string * string) list,
+   {script: string, input: Bytes.T, cwd: Path.T option, putenv: (string * string) list,
     redirect: bool, timeout: Time.time, description: string}
 with
 
@@ -69,7 +69,7 @@ fun make_params (script, input, cwd, putenv, redirect, timeout, description) =
 fun map_params f (Params {script, input, cwd, putenv, redirect, timeout, description}) =
   make_params (f (script, input, cwd, putenv, redirect, timeout, description));
 
-fun script script = make_params (script, "", NONE, [], false, Time.zeroTime, "");
+fun script script = make_params (script, Bytes.empty, NONE, [], false, Time.zeroTime, "");
 
 fun input input =
   map_params (fn (script, _, cwd, putenv, redirect, timeout, description) =>

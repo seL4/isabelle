@@ -703,9 +703,9 @@ val cpuN = "cpu";
 val gcN = "gc";
 
 fun timing_properties {elapsed, cpu, gc} =
- [(elapsedN, Value.print_time elapsed),
-  (cpuN, Value.print_time cpu),
-  (gcN, Value.print_time gc)];
+ [(elapsedN, Time.print elapsed),
+  (cpuN, Time.print cpu),
+  (gcN, Time.print gc)];
 
 val timingN = "timing";
 fun timing t = (timingN, timing_properties t);
