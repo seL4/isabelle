@@ -137,12 +137,12 @@ fun trace_replay_data ({context = ctxt, typs, terms, ...} : SMT_Translate.replay
 
 in
 
-fun invoke memoize_fun_call name command options smt_options ithms ctxt =
+fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
   let
-    val options = options @ SMT_Config.solver_options_of ctxt
+    val options = cmd_options @ SMT_Config.solver_options_of ctxt
     val comments = [implode_space options]
 
-    val (str, replay_data as {context = ctxt', ...}) =
+    val (input, replay_data as {context = ctxt', ...}) =
       ithms
       |> tap (trace_assms ctxt)
       |> SMT_Translate.translate ctxt name smt_options comments
@@ -153,8 +153,8 @@ fun invoke memoize_fun_call name command options smt_options ithms ctxt =
 
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_cmd str
-      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) str))
+        NONE => run_cmd input
+      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) input))
   in (output_lines, replay_data) end
 
 end
