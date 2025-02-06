@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/time.scala
     Author:     Makarius
 
-Time based on nanoseconds (idealized).
+Time based on nanoseconds (idealized), printed as milliseconds.
 *)
 
 signature TIME =
