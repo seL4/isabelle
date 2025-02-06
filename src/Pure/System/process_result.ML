@@ -6,6 +6,7 @@ Result of system process.
 
 signature PROCESS_RESULT =
 sig
+  val startup_failure_rc: int
   val interrupt_rc: int
   val timeout_rc: int
   type T
@@ -29,6 +30,7 @@ end;
 structure Process_Result: PROCESS_RESULT =
 struct
 
+val startup_failure_rc = 127
 val interrupt_rc = 130
 val timeout_rc = 142
 
