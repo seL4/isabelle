@@ -1653,7 +1653,6 @@ text \<open>
     ;
 
     @@{command (HOL) try0} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thms} ) + ) ?
-      @{syntax nat}?
     ;
 
     @@{command (HOL) sledgehammer} ( '[' args ']' )? facts? @{syntax nat}?
