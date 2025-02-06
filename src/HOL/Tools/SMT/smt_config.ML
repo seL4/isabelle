@@ -252,6 +252,7 @@ fun print_setup ctxt =
     val ns = if null names then ["(none)"] else sort_strings names;
     val n = the_default "(none)" (get_solver ctxt);
     val opts = solver_options_of ctxt;
+    val t = seconds (Config.get ctxt timeout)
 
     val certs_filename =
       (case get_certificates_path ctxt of
@@ -262,7 +263,7 @@ fun print_setup ctxt =
      [Pretty.str ("Current SMT solver: " ^ n),
       Pretty.str ("Current SMT solver options: " ^ implode_space opts),
       Pretty.str_list "Available SMT solvers: "  "" ns,
-      Pretty.str ("Current timeout: " ^ Value.print_real (Config.get ctxt timeout) ^ " seconds"),
+      Pretty.str ("Current timeout: " ^ (if Timeout.ignored t then "(none)" else Time.message t)),
       Pretty.str ("With proofs: " ^ Value.print_bool (not (Config.get ctxt oracle))),
       Pretty.str ("Certificates cache: " ^ certs_filename),
       Pretty.str ("Fixed certificates: " ^ Value.print_bool (Config.get ctxt read_only_certificates))];
