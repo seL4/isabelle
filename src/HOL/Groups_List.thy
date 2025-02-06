@@ -203,15 +203,15 @@ begin
 
 lemma sum_list_eq_0_iff [simp]:
   "sum_list ns = 0 \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
-by (simp add: sum_list_nonneg_eq_0_iff)
+  by (simp add: sum_list_nonneg_eq_0_iff)
 
 lemma member_le_sum_list:
   "x \<in> set xs \<Longrightarrow> x \<le> sum_list xs"
-by (induction xs) (auto simp: add_increasing add_increasing2)
+  by (induction xs) (auto simp: add_increasing add_increasing2)
 
 lemma elem_le_sum_list:
   "k < size ns \<Longrightarrow> ns ! k \<le> sum_list (ns)"
-by (rule member_le_sum_list) simp
+  by (simp add: member_le_sum_list)
 
 end
 
@@ -379,6 +379,7 @@ next
   thus ?case by simp
 qed
 
+(*Note that we also have this for class canonically_ordered_monoid_add*)
 lemma member_le_sum_list:
   fixes x :: "'a :: ordered_comm_monoid_add"
   assumes "x \<in> set xs" "\<And>x. x \<in> set xs \<Longrightarrow> x \<ge> 0"
