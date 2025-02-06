@@ -12,7 +12,7 @@ import Array.Extra as Array
 import Browser.Events as Events
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (name, style)
+import Html.Attributes exposing (class, name, style)
 import Html.Events.Extra exposing (onEnter)
 import Html.Extra as Html
 import Json.Decode as Decode
@@ -268,6 +268,20 @@ view_menu counts value =
     x::xs -> ItemList.list (ItemList.config |> ItemList.setAttributes menu_config) x xs
     _ -> Html.nothing
 
+isabelle_icon_button s =
+  IconButton.customIcon
+    Html.i
+    [class "material-icons", style "vertical-align" "top",
+      style "font-family" "\"Isabelle DejaVu Sans Mono\", monospace", style "font-size" "math"]
+    [Html.text s]
+
+isabelle_icon_textfield s =
+  TextFieldIcon.customIcon
+    Html.i
+    [class "material-icons", style "font-family" "\"Isabelle DejaVu Sans Mono\", monospace",
+      style "font-size" "larger"]
+    [Html.text s]
+
 view_filter: Maybe String -> Dict String Int -> (Int, Filter) -> Html Msg
 view_filter search0 counts (i, filter) =
   let
@@ -281,7 +295,7 @@ view_filter search0 counts (i, filter) =
         [TextField.outlined
           (TextField.config
            |> TextField.setLeadingIcon (Just (
-             TextFieldIcon.icon (if filter.exclude then "block" else "done")
+             isabelle_icon_textfield (if filter.exclude then "∉" else "∈")
              |> TextFieldIcon.setOnInteraction (Change_Filter i)))
            |> TextField.setValue (Just value)
            |> TextField.setOnInput (Input_Filter (Maybe.isNothing search))
@@ -292,7 +306,7 @@ view_filter search0 counts (i, filter) =
       LayoutGrid.cell [LayoutGrid.span1, LayoutGrid.alignLeft] [
         IconButton.iconButton
           (IconButton.config |> IconButton.setOnClick (Remove_Filter i))
-          (IconButton.icon "close")]]
+          (isabelle_icon_button "×")]]
 
 view_facet: String -> String -> List String -> Dict String Int -> Set String -> Html Msg
 view_facet field t ts counts selected =
