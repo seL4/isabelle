@@ -229,7 +229,7 @@ val z3: SMT_Solver.solver_config = {
   name = "z3",
   class = select_class,
   avail = make_avail "Z3",
-  command = make_command "Z3",
+  command = fn () => [getenv "Z3_SOLVER", "-in"],
   options = z3_options,
   smt_options = [(":produce-proofs", "true")],
   good_slices =

@@ -60,35 +60,33 @@ struct
 
 local
 
-fun make_command command options problem_path proof_path =
-  Bash.strings (command () @ options) ^ " " ^
-    File.bash_platform_path problem_path ^
-    " > " ^ File.bash_path proof_path ^ " 2>&1"
-
 fun with_trace ctxt msg f x =
   let val _ = SMT_Config.trace_msg ctxt (fn () => msg) ()
   in f x end
 
-fun run ctxt name mk_cmd input =
+fun run ctxt name cmd input =
   (case SMT_Config.certificates_of ctxt of
     NONE =>
       if not (SMT_Config.is_available ctxt name) then
         error ("The SMT solver " ^ quote name ^ " is not installed")
       else if Config.get ctxt SMT_Config.debug_files = "" then
-        with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...") (Cache_IO.run mk_cmd) input
+        with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...") (Cache_IO.run cmd) input
       else
         let
           val base_path = Path.explode (Config.get ctxt SMT_Config.debug_files)
           val in_path = Path.ext "smt_in" base_path
           val out_path = Path.ext "smt_out" base_path
-        in Cache_IO.raw_run mk_cmd input in_path out_path end
+          val _ = File.write in_path input
+          val result = Cache_IO.run cmd input
+          val _ = Bytes.write out_path (Bytes.terminate_lines (Process_Result.out_lines result))
+        in result end
   | SOME certs =>
       (case Cache_IO.lookup certs input of
         (NONE, key) =>
           if Config.get ctxt SMT_Config.read_only_certificates then
             error ("Bad certificate cache: missing certificate")
           else
-            Cache_IO.run_and_cache certs key mk_cmd input
+            Cache_IO.run_and_cache certs key cmd input
       | (SOME output, _) =>
           with_trace ctxt ("Using cached certificate from " ^
             Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
@@ -99,14 +97,14 @@ fun normal_return_codes "z3" = [0, 1]
   | normal_return_codes "verit" = [0, 14, 255]
   | normal_return_codes _ = [0, 1]
 
-fun run_solver ctxt name mk_cmd input =
+fun run_solver ctxt name cmd input =
   let
     fun pretty tag lines = Pretty.string_of (Pretty.big_list tag (map Pretty.str lines))
 
     val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
 
     val ({elapsed, ...}, result) =
-      Timing.timing (SMT_Config.with_timeout ctxt (run ctxt name mk_cmd)) input
+      Timing.timing (SMT_Config.with_timeout ctxt (run ctxt name cmd)) input
     val res = Process_Result.out_lines result
     val err = Process_Result.err_lines result
     val return_code = Process_Result.rc result
@@ -150,12 +148,13 @@ fun invoke memoize_fun_call name command options smt_options ithms ctxt =
       |> SMT_Translate.translate ctxt name smt_options comments
       ||> tap trace_replay_data
 
-    val run_solver = run_solver ctxt' name (make_command command options)
+    val cmd = Bash.script (Bash.strings (command () @ options))
+    val run_cmd = run_solver ctxt' name cmd
 
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_solver str
-      | SOME memoize => split_lines (memoize (cat_lines o run_solver) str))
+        NONE => run_cmd str
+      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) str))
   in (output_lines, replay_data) end
 
 end

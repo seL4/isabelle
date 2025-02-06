@@ -6,51 +6,17 @@ Cache for output of external processes.
 
 signature CACHE_IO =
 sig
-  (*IO wrapper*)
-  val raw_run: (Path.T -> Path.T -> string) -> string -> Path.T -> Path.T -> Process_Result.T
-  val run: (Path.T -> Path.T -> string) -> string -> Process_Result.T
-
-  (*cache*)
   type cache
   val unsynchronized_init: Path.T -> cache
   val cache_path_of: cache -> Path.T
   val lookup: cache -> string -> Process_Result.T option * string
-  val run_and_cache: cache -> string -> (Path.T -> Path.T -> string) -> string -> Process_Result.T
-  val run_cached: cache -> (Path.T -> Path.T -> string) -> string -> Process_Result.T
+  val run: Bash.params -> string -> Process_Result.T
+  val run_and_cache: cache -> string -> Bash.params -> string -> Process_Result.T
+  val run_cached: cache -> Bash.params -> string -> Process_Result.T
 end
 
 structure Cache_IO : CACHE_IO =
 struct
-
-(* IO wrapper *)
-
-val cache_io_prefix = "cache-io-"
-
-fun try_read_lines path =
-  let
-    fun loop n =
-      (case try File.read_lines path of
-        SOME lines => lines
-      | NONE => if n > 0 then (OS.Process.sleep (seconds 0.05); loop (n - 1)) else [])
-  in if File.exists path then loop (if ML_System.platform_is_windows then 20 else 0) else [] end
-
-fun raw_run make_cmd str in_path out_path =
-  let
-    val _ = File.write in_path str
-    val (err, rc) = Isabelle_System.bash_output (make_cmd in_path out_path)
-    val out_lines = try_read_lines out_path
-  in
-    Process_Result.make
-      {rc = rc, out_lines = out_lines, err_lines = split_lines err, timing = Timing.zero}
-  end
-
-fun run make_cmd str =
-  Isabelle_System.with_tmp_file cache_io_prefix "" (fn in_path =>
-    Isabelle_System.with_tmp_file cache_io_prefix "" (fn out_path =>
-      raw_run make_cmd str in_path out_path))
-
-
-(* cache *)
 
 abstype cache = Cache of {
   path: Path.T,
@@ -106,9 +72,26 @@ fun lookup (Cache {path = cache_path, table}) str =
           in ((SOME result, key), tab) end))
   end
 
-fun run_and_cache (Cache {path = cache_path, table}) key make_cmd str =
+fun run cmd input =
   let
-    val result = run make_cmd str
+    val result = cmd
+      |> Bash.input (Bytes.string input)
+      |> Bash.redirect
+      |> Isabelle_System.bash_process
+    val rc = Process_Result.rc result
+  in
+    if rc = Process_Result.startup_failure_rc then
+      Process_Result.make
+       {rc = rc,
+        err_lines = Process_Result.out_lines result,
+        out_lines = [],
+        timing = Process_Result.timing result}
+    else result
+  end
+
+fun run_and_cache (Cache {path = cache_path, table}) key cmd input =
+  let
+    val result = run cmd input
     val out_lines = Process_Result.out_lines result
     val err_lines = Process_Result.err_lines result
     val (l1, l2) = apply2 length (out_lines, err_lines)
@@ -122,9 +105,9 @@ fun run_and_cache (Cache {path = cache_path, table}) key make_cmd str =
         in (p+l1+l2+1, Symtab.update (key, (p+1, l1, l2)) tab) end)
   in result end
 
-fun run_cached cache make_cmd str =
-  (case lookup cache str of
-    (NONE, key) => run_and_cache cache key make_cmd str
+fun run_cached cache cmd input =
+  (case lookup cache input of
+    (NONE, key) => run_and_cache cache key cmd input
   | (SOME output, _) => output)
 
 end
