@@ -28,17 +28,17 @@ object Elm {
       name: String,
       dir: Path,
       main: Path = Path.explode("src/Main.elm"),
-      output: Path = Path.explode("index.html"),
+      output_file: Path = Path.explode("index.html"),
       head: XML.Body = Nil
     ): Project = {
       if (!dir.is_dir) error("Project directory does not exist: " + dir)
       val main_file = dir + main
       if (!main_file.is_file) error("Main elm file does not exist: " + main_file)
-      new Project(name, dir, main, dir + output, head)
+      new Project(name, dir, main, dir + output_file, head)
     }
   }
 
-  class Project private(name: String, dir: Path, main: Path, output: Path, head: XML.Body) {
+  class Project private(name: String, dir: Path, main: Path, output_file: Path, head: XML.Body) {
     val definition = JSON.parse(File.read(dir + Path.basic("elm.json")))
     val src_dirs =
       JSON.strings(definition, "source-directories").getOrElse(
@@ -61,7 +61,7 @@ object Elm {
 
     def get_digest: SHA1.Digest =
       Exn.capture {
-        val html = HTML.parse_document(File.read(output))
+        val html = HTML.parse_document(File.read(output_file))
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
         Library.the_single(elem.eachAttr("content").asScala.toList)
       } match {
@@ -71,13 +71,13 @@ object Elm {
 
     def build_html(progress: Progress = new Progress): String = {
       val digest = sources_shasum.digest
-      if (digest == get_digest) File.read(output)
+      if (digest == get_digest) File.read(output_file)
       else {
-        progress.echo("Building web application " + output.absolute + " ...")
+        progress.echo("Building web application " + output_file.absolute + " ...")
 
         val cmd =
           File.bash_path(elm_home + Path.basic("elm")) + " make " +
-            File.bash_path(main) + " --optimize --output=" + output
+            File.bash_path(main) + " --optimize --output=" + output_file
         val res = Isabelle_System.bash(cmd, cwd = dir)
 
         if (!res.ok) {
@@ -85,12 +85,12 @@ object Elm {
           error("Failed to compile Elm sources")
         }
 
-        val file = HTML.parse_document(File.read(output))
+        val file = HTML.parse_document(File.read(output_file))
         file.head.appendChild(
           Element("meta").attr("name", "shasum").attr("content", digest.toString))
         file.head.append(XML.string_of_body(head))
         val html = file.html
-        File.write(output, html)
+        File.write(output_file, html)
 
         html
       }
