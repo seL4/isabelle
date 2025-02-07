@@ -486,8 +486,7 @@ text_raw \<open>
 \<close>
 lemma True
 proof -
-  \<comment> \<open>pretty trivial\<close>
-  show True by force
+  show True by (rule TrueI)
 qed
 text_raw \<open>
   \end{minipage}\end{center}
@@ -498,21 +497,20 @@ text \<open>
 
 \begin{quote}
 \small
-\verb!text_raw {!\verb!*!\\
+\verb!text_raw \!\verb!<open>!\\
 \verb!  \begin{figure}!\\
 \verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
 \verb!  \isastyleminor\isamarkuptrue!\\
-\verb!*!\verb!}!\\
+\verb!\!\verb!<close>!\\
 \verb!lemma True!\\
 \verb!proof -!\\
-\verb!  -- "pretty trivial"!\\
-\verb!  show True by force!\\
+\verb!  show True by (rule TrueI)!\\
 \verb!qed!\\
-\verb!text_raw {!\verb!*!\\
+\verb!text_raw \!\verb!<open>!\\
 \verb!  \end{minipage}\end{center}!\\
 \verb!  \caption{Example proof in a figure.}\label{fig:proof}!\\
 \verb!  \end{figure}!\\
-\verb!*!\verb!}!
+\verb!\!\verb!<close>!
 \end{quote}
 
 Other theory text, e.g.\ definitions, can be put in figures, too.
