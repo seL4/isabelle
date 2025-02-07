@@ -25,6 +25,7 @@ sources = \
   src/Pure/Admin/component_easychair.scala \
   src/Pure/Admin/component_elm.scala \
   src/Pure/Admin/component_eptcs.scala \
+  src/Pure/Admin/component_find_facts_web.scala \
   src/Pure/Admin/component_flatlaf.scala \
   src/Pure/Admin/component_foiltex.scala \
   src/Pure/Admin/component_fonts.scala \

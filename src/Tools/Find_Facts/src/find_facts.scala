@@ -887,28 +887,58 @@ object Find_Facts {
 
   val web_html: Path = Path.basic("index").html
 
-  val web_sources: Path = Path.explode("$FIND_FACTS_HOME/web")
+  val web_sources_dir: Path = Path.explode("$FIND_FACTS_HOME/web")
+  val web_assets_dir: Path = Path.explode("$FIND_FACTS_WEB_ASSETS_DIR")
+
+  val default_web_assets: String = Isabelle_System.getenv("FIND_FACTS_WEB_ASSETS")
   val default_web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
+
+  def web_project(dir: Path, web_assets: String = default_web_assets): Elm.Project = {
+    val logo = Bytes.read(web_sources_dir + Path.explode("favicon.ico"))
+
+    val assets = space_explode(',', web_assets).map(Asset.parse)
+    val css = 
+      for ((asset, mime_type) <- assets if mime_type == HTTP.Content.mime_type_css)
+      yield HTML.style_file("find_facts/" + asset)
+    val js =
+      for ((asset, mime_type) <- assets if mime_type == HTTP.Content.mime_type_js)
+      yield HTML.script_file("find_facts/" + asset)
+
+    Elm.Project("Find_Facts", dir, head =
+      HTML.style("html,body {width: 100%, height: 100%}") ::
+      Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text) ::
+      HTML.style_file(HTTP.CSS_Service.name) :: css ::: js)
+  }
 
   def build_html(
     output_file: Path,
     web_dir: Path = default_web_dir,
+    web_assets: String = default_web_assets,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.copy_dir(web_sources, web_dir, direct = true)
-    val logo = Bytes.read(web_dir + Path.explode("favicon.ico"))
-    val project =
-      Elm.Project("Find_Facts", web_dir, head =
-        List(
-          HTML.style("html,body {width: 100%, height: 100%}"),
-          Web_App.More_HTML.icon("data:image/x-icon;base64," + logo.encode_base64.text),
-          HTML.style_file(HTTP.CSS_Service.name),
-          HTML.style_file("https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons"),
-          HTML.style_file(
-            "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"),
-          HTML.script_file(
-            "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js")))
-    project.build_html(output_file, progress = progress)
+    Isabelle_System.copy_dir(web_sources_dir, web_dir, direct = true)
+    web_project(web_dir, web_assets).build_html(output_file, progress = progress)
+  }
+
+  object Asset {
+    def parse(s: String): (String, String) =
+      space_explode(':', s) match {
+        case file :: mime_type :: Nil => file -> mime_type
+        case _ => error("Malformed asset: " + quote(s))
+    }
+
+    def load(s: String): Asset = {
+      val (file, mime_type) = parse(s)
+      val path = web_assets_dir + Path.explode(file)
+      Asset(path, Bytes.read(path), mime_type)
+    }
+  }
+
+  case class Asset(path: Path, content: Bytes, mime_type: String)
+
+  def load_web_assets: List[Asset] = {
+    val assets = proper_string(default_web_assets) getOrElse error("No find_facts web assets found")
+    space_explode(',', assets).map(Asset.load)
   }
 
 
@@ -928,7 +958,11 @@ object Find_Facts {
       File.read(default_web_dir + web_html)
     }
 
-    val html = rebuild()
+    val digest = web_project(web_sources_dir).sources_shasum.digest
+    val html =
+      if (digest != Elm.Project.get_digest(web_assets_dir + web_html)) rebuild()
+      else File.read(web_assets_dir + web_html)
+    val web_assets = load_web_assets
 
     val solr = Solr.init(solr_data_dir)
     resolve_indexes(solr)
@@ -944,7 +978,13 @@ object Find_Facts {
           HTTP.CSS_Service,
           new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
-              Some(HTTP.Response.html(if (devel) rebuild() else html))
+              if (request.toplevel) Some(HTTP.Response.html(if (devel) rebuild() else html))
+              else {
+                request.uri_path.flatMap(path => web_assets.collectFirst({
+                  case asset if path == asset.path.base =>
+                    HTTP.Response(asset.content, asset.mime_type)
+                }))
+              }
           },
           new HTTP.REST_Service("api/block", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
