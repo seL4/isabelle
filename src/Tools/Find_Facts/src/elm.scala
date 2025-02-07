@@ -35,6 +35,16 @@ object Elm {
       if (!main_file.is_file) error("Main elm file does not exist: " + main_file)
       new Project(name, dir, main, head)
     }
+
+    def get_digest(output_file: Path): SHA1.Digest =
+      Exn.capture {
+        val html = HTML.parse_document(File.read(output_file))
+        val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
+        Library.the_single(elem.eachAttr("content").asScala.toList)
+      } match {
+        case Exn.Res(s) => SHA1.fake_digest(s)
+        case _ => SHA1.digest_empty
+      }
   }
 
   class Project private(name: String, dir: Path, main: Path, head: XML.Body) {
@@ -58,19 +68,9 @@ object Elm {
       meta_info ::: head_digest ::: source_digest
     }
 
-    def get_digest(output_file: Path): SHA1.Digest =
-      Exn.capture {
-        val html = HTML.parse_document(File.read(output_file))
-        val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
-        Library.the_single(elem.eachAttr("content").asScala.toList)
-      } match {
-        case Exn.Res(s) => SHA1.fake_digest(s)
-        case _ => SHA1.digest_empty
-      }
-
     def build_html(output_file: Path, progress: Progress = new Progress): Unit = {
       val digest = sources_shasum.digest
-      if (digest != get_digest(output_file)) {
+      if (digest != Project.get_digest(output_file)) {
         progress.echo("Building web application " + output_file.absolute + " ...")
 
         val cmd =
