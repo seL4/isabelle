@@ -59,9 +59,9 @@ object Elm {
       meta_info ::: head_digest ::: source_digest
     }
 
-    def get_digest: SHA1.Digest =
+    def get_digest(file: Path = output_file): SHA1.Digest =
       Exn.capture {
-        val html = HTML.parse_document(File.read(output_file))
+        val html = HTML.parse_document(File.read(file))
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
         Library.the_single(elem.eachAttr("content").asScala.toList)
       } match {
@@ -71,7 +71,7 @@ object Elm {
 
     def build_html(progress: Progress = new Progress): String = {
       val digest = sources_shasum.digest
-      if (digest == get_digest) File.read(output_file)
+      if (digest == get_digest()) File.read(output_file)
       else {
         progress.echo("Building web application " + output_file.absolute + " ...")
 
