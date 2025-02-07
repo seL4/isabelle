@@ -885,10 +885,16 @@ object Find_Facts {
 
   /* web */
 
+  val web_html: Path = Path.basic("index").html
+
   val web_sources: Path = Path.explode("$FIND_FACTS_HOME/web")
   val default_web_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/web")
 
-  def build_html(web_dir: Path = default_web_dir, progress: Progress = new Progress): String = {
+  def build_html(
+    output_file: Path,
+    web_dir: Path = default_web_dir,
+    progress: Progress = new Progress
+  ): Unit = {
     Isabelle_System.copy_dir(web_sources, web_dir, direct = true)
     val logo = Bytes.read(web_dir + Path.explode("favicon.ico"))
     val project =
@@ -902,7 +908,7 @@ object Find_Facts {
             "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.css"),
           HTML.script_file(
             "https://unpkg.com/material-components-web-elm@9.1.0/dist/material-components-web-elm.min.js")))
-    project.build_html(progress = progress)
+    project.build_html(output_file, progress = progress)
   }
 
 
@@ -917,7 +923,12 @@ object Find_Facts {
     val database = options.string("find_facts_database_name")
     val encode = new Encode(options)
 
-    val html = build_html(progress = progress)
+    def rebuild(): String = {
+      build_html(default_web_dir + web_html, progress = progress)
+      File.read(default_web_dir + web_html)
+    }
+
+    val html = rebuild()
 
     val solr = Solr.init(solr_data_dir)
     resolve_indexes(solr)
@@ -933,7 +944,7 @@ object Find_Facts {
           HTTP.CSS_Service,
           new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
-              Some(HTTP.Response.html(if (devel) build_html(progress = progress) else html))
+              Some(HTTP.Response.html(if (devel) rebuild() else html))
           },
           new HTTP.REST_Service("api/block", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =

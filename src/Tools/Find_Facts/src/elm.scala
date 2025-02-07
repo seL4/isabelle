@@ -28,17 +28,16 @@ object Elm {
       name: String,
       dir: Path,
       main: Path = Path.explode("src/Main.elm"),
-      output_file: Path = Path.explode("index.html"),
       head: XML.Body = Nil
     ): Project = {
       if (!dir.is_dir) error("Project directory does not exist: " + dir)
       val main_file = dir + main
       if (!main_file.is_file) error("Main elm file does not exist: " + main_file)
-      new Project(name, dir, main, dir + output_file, head)
+      new Project(name, dir, main, head)
     }
   }
 
-  class Project private(name: String, dir: Path, main: Path, output_file: Path, head: XML.Body) {
+  class Project private(name: String, dir: Path, main: Path, head: XML.Body) {
     val definition = JSON.parse(File.read(dir + Path.basic("elm.json")))
     val src_dirs =
       JSON.strings(definition, "source-directories").getOrElse(
@@ -59,9 +58,9 @@ object Elm {
       meta_info ::: head_digest ::: source_digest
     }
 
-    def get_digest(file: Path = output_file): SHA1.Digest =
+    def get_digest(output_file: Path): SHA1.Digest =
       Exn.capture {
-        val html = HTML.parse_document(File.read(file))
+        val html = HTML.parse_document(File.read(output_file))
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
         Library.the_single(elem.eachAttr("content").asScala.toList)
       } match {
@@ -69,10 +68,9 @@ object Elm {
         case _ => SHA1.digest_empty
       }
 
-    def build_html(progress: Progress = new Progress): String = {
+    def build_html(output_file: Path, progress: Progress = new Progress): Unit = {
       val digest = sources_shasum.digest
-      if (digest == get_digest()) File.read(output_file)
-      else {
+      if (digest != get_digest(output_file)) {
         progress.echo("Building web application " + output_file.absolute + " ...")
 
         val cmd =
@@ -91,8 +89,6 @@ object Elm {
         file.head.append(XML.string_of_body(head))
         val html = file.html
         File.write(output_file, html)
-
-        html
       }
     }
   }
