@@ -141,6 +141,12 @@ proof
     .
 qed
 
+lemma sum_list_of_nat: "sum_list (map of_nat xs) = of_nat (sum_list xs)"
+  by (induction xs) auto
+
+lemma sum_list_of_int: "sum_list (map of_int xs) = of_int (sum_list xs)"
+  by (induction xs) auto
+
 lemma (in comm_monoid_add) sum_list_map_remove1:
   "x \<in> set xs \<Longrightarrow> sum_list (map f xs) = f x + sum_list (map f (remove1 x xs))"
   by (induct xs) (auto simp add: ac_simps)
@@ -171,7 +177,7 @@ by(induction xs; simp)
 
 lemma (in comm_monoid_add) distinct_sum_list_conv_Sum:
   "distinct xs \<Longrightarrow> sum_list xs = Sum (set xs)"
-  by (induct xs) simp_all
+  by (metis local.sum.set_conv_list local.sum_list_def map_ident remdups_id_iff_distinct)
 
 lemma sum_list_upt[simp]:
   "m \<le> n \<Longrightarrow> sum_list [m..<n] = \<Sum> {m..<n}"
@@ -181,14 +187,14 @@ context ordered_comm_monoid_add
 begin
 
 lemma sum_list_nonneg: "(\<And>x. x \<in> set xs \<Longrightarrow> 0 \<le> x) \<Longrightarrow> 0 \<le> sum_list xs"
-by (induction xs) auto
+  by (induction xs) auto
 
 lemma sum_list_nonpos: "(\<And>x. x \<in> set xs \<Longrightarrow> x \<le> 0) \<Longrightarrow> sum_list xs \<le> 0"
-by (induction xs) (auto simp: add_nonpos_nonpos)
+  by (induction xs) (auto simp: add_nonpos_nonpos)
 
 lemma sum_list_nonneg_eq_0_iff:
   "(\<And>x. x \<in> set xs \<Longrightarrow> 0 \<le> x) \<Longrightarrow> sum_list xs = 0 \<longleftrightarrow> (\<forall>x\<in> set xs. x = 0)"
-by (induction xs) (simp_all add: add_nonneg_eq_0_iff sum_list_nonneg)
+  by (induction xs) (simp_all add: add_nonneg_eq_0_iff sum_list_nonneg)
 
 end
 
@@ -197,24 +203,29 @@ begin
 
 lemma sum_list_eq_0_iff [simp]:
   "sum_list ns = 0 \<longleftrightarrow> (\<forall>n \<in> set ns. n = 0)"
-by (simp add: sum_list_nonneg_eq_0_iff)
+  by (simp add: sum_list_nonneg_eq_0_iff)
 
 lemma member_le_sum_list:
   "x \<in> set xs \<Longrightarrow> x \<le> sum_list xs"
-by (induction xs) (auto simp: add_increasing add_increasing2)
+  by (induction xs) (auto simp: add_increasing add_increasing2)
 
 lemma elem_le_sum_list:
   "k < size ns \<Longrightarrow> ns ! k \<le> sum_list (ns)"
-by (rule member_le_sum_list) simp
+  by (simp add: member_le_sum_list)
 
 end
 
 lemma (in ordered_cancel_comm_monoid_diff) sum_list_update:
   "k < size xs \<Longrightarrow> sum_list (xs[k := x]) = sum_list xs + x - xs ! k"
-apply(induction xs arbitrary:k)
- apply (auto simp: add_ac split: nat.split)
-apply(drule elem_le_sum_list)
-by (simp add: local.add_diff_assoc local.add_increasing)
+proof (induction xs arbitrary:k)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons a xs)
+  then show ?case
+    apply (simp add: add_ac split: nat.split)
+    using add_increasing diff_add_assoc elem_le_sum_list zero_le by force
+qed
 
 lemma (in monoid_add) sum_list_triv:
   "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
@@ -276,8 +287,7 @@ can be formulated with multisets and the multiset order\<close>
 lemma sum_list_mono2: fixes xs :: "'a ::ordered_comm_monoid_add list"
 shows "\<lbrakk> length xs = length ys; \<And>i. i < length xs \<longrightarrow> xs!i \<le> ys!i \<rbrakk>
   \<Longrightarrow> sum_list xs \<le> sum_list ys"
-apply(induction xs ys rule: list_induct2)
-by(auto simp: nth_Cons' less_Suc_eq_0_disj imp_ex add_mono)
+  by (induction xs ys rule: list_induct2) (auto simp: nth_Cons' less_Suc_eq_0_disj imp_ex add_mono)
 
 lemma (in monoid_add) sum_list_distinct_conv_sum_set:
   "distinct xs \<Longrightarrow> sum_list (map f xs) = sum f (set xs)"
@@ -369,6 +379,29 @@ next
   thus ?case by simp
 qed
 
+(*Note that we also have this for class canonically_ordered_monoid_add*)
+lemma member_le_sum_list:
+  fixes x :: "'a :: ordered_comm_monoid_add"
+  assumes "x \<in> set xs" "\<And>x. x \<in> set xs \<Longrightarrow> x \<ge> 0"
+  shows   "x \<le> sum_list xs"
+  using assms
+proof (induction xs)
+  case (Cons y xs)
+  show ?case
+  proof (cases "y = x")
+    case True
+    have "x + 0 \<le> x + sum_list xs"
+      by (intro add_mono order.refl sum_list_nonneg) (use Cons in auto)
+    thus ?thesis
+      using True by auto
+  next
+    case False
+    have "0 + x \<le> y + sum_list xs"
+      by (intro add_mono Cons.IH Cons.prems) (use Cons.prems False in auto)
+    thus ?thesis
+      by auto
+  qed
+qed auto
 
 subsection \<open>Horner sums\<close>
 

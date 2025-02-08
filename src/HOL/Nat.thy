@@ -1268,7 +1268,7 @@ lemma diff_is_0_eq [simp]: "m - n = 0 \<longleftrightarrow> m \<le> n"
 
 lemma diff_is_0_eq' [simp]: "m \<le> n \<Longrightarrow> m - n = 0"
   for m n :: nat
-  by (rule iffD2, rule diff_is_0_eq)
+  by simp
 
 lemma zero_less_diff [simp]: "0 < n - m \<longleftrightarrow> m < n"
   for m n :: nat
@@ -1754,6 +1754,9 @@ proof -
   then show ?thesis
     by simp
 qed
+
+lemma of_nat_diff_if: \<open>of_nat (m - n) = (if n\<le>m then of_nat m - of_nat n else 0)\<close>
+  by (simp add: not_le less_imp_le)
 
 end
 

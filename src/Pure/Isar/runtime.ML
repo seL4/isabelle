@@ -113,7 +113,7 @@ fun exn_messages e =
         let
           val msg =
             (case exn of
-              Timeout.TIMEOUT t => Timeout.print t
+              Timeout.TIMEOUT t => Timeout.message t
             | TOPLEVEL_ERROR => "Error"
             | ERROR "" => "Error"
             | ERROR msg => msg

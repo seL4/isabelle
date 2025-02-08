@@ -133,7 +133,7 @@ ML \<open>
           else
             (warning (" test: file " ^ Path.print file ^
              " raised exception: " ^ Runtime.exn_message exn);
-             {gc = Time.zeroTime, cpu = Time.zeroTime, elapsed = Time.zeroTime})
+             Timing.zero)
       val to_real = Time.toReal
       val diff_elapsed =
         #elapsed t2 - #elapsed t1

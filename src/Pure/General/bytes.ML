@@ -36,6 +36,7 @@ sig
   val split_lines: T -> string list
   val trim_split_lines: T -> string list
   val cat_lines: string list -> T
+  val terminate_lines: string list -> T
   val read_block: int -> BinIO.instream -> string
   val read_stream: int -> BinIO.instream -> T
   val write_stream: BinIO.outstream -> T -> unit
@@ -189,6 +190,8 @@ val split_lines = space_explode "\n";
 val trim_split_lines = trim_line #> split_lines #> map Library.trim_line;
 
 fun cat_lines lines = build (fold add (separate "\n" lines));
+
+fun terminate_lines lines = build (fold (fn line => add line #> add "\n") lines);
 
 
 (* IO *)

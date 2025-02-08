@@ -41,13 +41,15 @@ fun bash_process params =
     val {script, input, cwd, putenv, redirect, timeout, description} =
       Bash.dest_params params;
     val server_run =
-      [Bash.server_run, script, input,
-        let open XML.Encode in YXML.string_of_body (option (string o absolute_path) cwd) end,
-        let open XML.Encode in YXML.string_of_body o list (pair string string) end
-          (("ISABELLE_TMP", getenv "ISABELLE_TMP") :: putenv),
-        Value.print_bool redirect,
-        Value.print_real (Time.toReal timeout),
-        description];
+     [Bytes.string Bash.server_run,
+      Bytes.string script,
+      input,
+      let open XML.Encode in YXML.bytes_of_body (option (string o absolute_path) cwd) end,
+      let open XML.Encode in YXML.bytes_of_body o list (pair string string) end
+        (("ISABELLE_TMP", getenv "ISABELLE_TMP") :: putenv),
+      Bytes.string (Value.print_bool redirect),
+      Bytes.string (Value.print_real (Time.toReal timeout)),
+      Bytes.string description];
 
     val address = Options.default_string \<^system_option>\<open>bash_process_address\<close>;
     val password = Options.default_string \<^system_option>\<open>bash_process_password\<close>;
@@ -93,7 +95,7 @@ fun bash_process params =
             Exn.Res res => res
           | Exn.Exn exn => (kill maybe_uuid; Exn.reraise exn));
       in
-        with_streams (fn s => (Byte_Message.write_message_string (#2 s) server_run; loop NONE s))
+        with_streams (fn s => (Byte_Message.write_message (#2 s) server_run; loop NONE s))
       end)
   end;
 

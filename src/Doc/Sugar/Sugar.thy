@@ -486,8 +486,7 @@ text_raw \<open>
 \<close>
 lemma True
 proof -
-  \<comment> \<open>pretty trivial\<close>
-  show True by force
+  show True by (rule TrueI)
 qed
 text_raw \<open>
   \end{minipage}\end{center}
@@ -498,21 +497,20 @@ text \<open>
 
 \begin{quote}
 \small
-\verb!text_raw {!\verb!*!\\
+\verb!text_raw \!\verb!<open>!\\
 \verb!  \begin{figure}!\\
 \verb!  \begin{center}\begin{minipage}{0.6\textwidth}!\\
 \verb!  \isastyleminor\isamarkuptrue!\\
-\verb!*!\verb!}!\\
+\verb!\!\verb!<close>!\\
 \verb!lemma True!\\
 \verb!proof -!\\
-\verb!  -- "pretty trivial"!\\
-\verb!  show True by force!\\
+\verb!  show True by (rule TrueI)!\\
 \verb!qed!\\
-\verb!text_raw {!\verb!*!\\
+\verb!text_raw \!\verb!<open>!\\
 \verb!  \end{minipage}\end{center}!\\
 \verb!  \caption{Example proof in a figure.}\label{fig:proof}!\\
 \verb!  \end{figure}!\\
-\verb!*!\verb!}!
+\verb!\!\verb!<close>!
 \end{quote}
 
 Other theory text, e.g.\ definitions, can be put in figures, too.
@@ -535,9 +533,9 @@ Include some markers at the beginning and the end of the theory snippet you want
 You have to place the following lines before and after the snippet, where snippets must always be
 consecutive lines of theory text:
 \begin{quote}
-\verb!\text_raw{!\verb!*\snip{!\emph{snippetname}\verb!}{1}{2}{%*!\verb!}!\\
+\verb!\text_raw\!\verb!<open>\snip{!\emph{snippetname}\verb!}{1}{2}{%\!\verb!<close>!\\
 \emph{theory text}\\
-\verb!\text_raw{!\verb!*!\verb!}%endsnip*!\verb!}!
+\verb!\text_raw\!\verb!<open>%endsnip\!\verb!<close>!
 \end{quote}
 where \emph{snippetname} should be a unique name for the snippet. The numbers \texttt{1}
 and \texttt{2} are explained in a moment.

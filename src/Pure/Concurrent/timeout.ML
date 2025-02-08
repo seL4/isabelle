@@ -15,7 +15,7 @@ sig
   val end_time: Time.time -> Time.time
   val apply: Time.time -> ('a -> 'b) -> 'a -> 'b
   val apply_physical: Time.time -> ('a -> 'b) -> 'a -> 'b
-  val print: Time.time -> string
+  val message: Time.time -> string
 end;
 
 structure Timeout: TIMEOUT =
@@ -59,6 +59,6 @@ fun apply' {physical, timeout} f x =
 fun apply timeout f x = apply' {physical = false, timeout = timeout} f x;
 fun apply_physical timeout f x = apply' {physical = true, timeout = timeout} f x;
 
-fun print t = "Timeout after " ^ Value.print_time t ^ "s";
+fun message t = "Timeout after " ^ Time.message t;
 
 end;
