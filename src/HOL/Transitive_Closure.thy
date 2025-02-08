@@ -676,6 +676,9 @@ lemma trancl_empty [simp]: "{}\<^sup>+ = {}"
 lemma rtrancl_empty [simp]: "{}\<^sup>* = Id"
   by (rule subst [OF reflcl_trancl]) simp
 
+lemma rtrancl__Id[simp]: "Id\<^sup>* = Id"
+using rtrancl_empty rtrancl_idemp[of "{}"] by (simp)
+
 lemma rtranclpD: "R\<^sup>*\<^sup>* a b \<Longrightarrow> a = b \<or> a \<noteq> b \<and> R\<^sup>+\<^sup>+ a b"
   by (force simp: reflclp_tranclp [symmetric] simp del: reflclp_tranclp)
 
