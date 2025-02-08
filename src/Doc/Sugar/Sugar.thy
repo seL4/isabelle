@@ -533,9 +533,9 @@ Include some markers at the beginning and the end of the theory snippet you want
 You have to place the following lines before and after the snippet, where snippets must always be
 consecutive lines of theory text:
 \begin{quote}
-\verb!\text_raw{!\verb!*\snip{!\emph{snippetname}\verb!}{1}{2}{%*!\verb!}!\\
+\verb!\text_raw\!\verb!<open>\snip{!\emph{snippetname}\verb!}{1}{2}{%\!\verb!<close>!\\
 \emph{theory text}\\
-\verb!\text_raw{!\verb!*!\verb!}%endsnip*!\verb!}!
+\verb!\text_raw\!\verb!<open>%endsnip\!\verb!<close>!
 \end{quote}
 where \emph{snippetname} should be a unique name for the snippet. The numbers \texttt{1}
 and \texttt{2} are explained in a moment.
