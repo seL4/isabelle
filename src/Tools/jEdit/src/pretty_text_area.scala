@@ -199,6 +199,14 @@ class Pretty_Text_Area(
             if (future_refresh.value.contains(current_refresh)) {
               current_rendering = rendering
 
+              val horizontal_offset = pretty_text_area.getHorizontalOffset
+
+              def scroll_to(offset: Int, x: Int = horizontal_offset): Unit = {
+                setCaretPosition(offset)
+                JEdit_Lib.scroll_to_caret(pretty_text_area)
+                pretty_text_area.setHorizontalOffset(x)
+              }
+
               val scroll_bottom = JEdit_Lib.scrollbar_bottom(pretty_text_area)
               val scroll_start = JEdit_Lib.scrollbar_start(pretty_text_area)
               val update_start =
@@ -208,11 +216,9 @@ class Pretty_Text_Area(
                   JEdit_Lib.set_text(getBuffer, rich_texts.map(_.text))
                 }
 
-              setCaretPosition(
-                if (scroll_bottom) JEdit_Lib.bottom_line_offset(getBuffer)
-                else if (scroll_start < update_start) scroll_start
-                else 0)
-              JEdit_Lib.scroll_to_caret(pretty_text_area)
+              if (scroll_bottom) scroll_to(JEdit_Lib.bottom_line_offset(getBuffer))
+              else if (scroll_start < update_start) scroll_to(scroll_start)
+              else scroll_to(0, x = 0)
 
               val (search_update_start, search_results) =
                 current_search_results.update(update_start)
