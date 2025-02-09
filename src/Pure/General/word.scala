@@ -77,10 +77,4 @@ object Word {
     explode(Character.isWhitespace _, text)
 
   def informal(text: String): String = implode(explode('_', text))
-
-
-  /* brackets */
-
-  val open_brackets = "([{«‹⟨⌈⌊⦇⟦⦃⟪"
-  val close_brackets = ")]}»›⟩⌉⌋⦈⟧⦄⟫"
 }

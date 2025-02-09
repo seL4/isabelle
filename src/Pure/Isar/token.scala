@@ -295,8 +295,8 @@ sealed case class Token(kind: Token.Kind.Value, source: String) {
     source.startsWith(Symbol.open) ||
     source.startsWith(Symbol.open_decoded))
 
-  def is_open_bracket: Boolean = is_keyword && Word.open_brackets.exists(is_keyword)
-  def is_close_bracket: Boolean = is_keyword && Word.close_brackets.exists(is_keyword)
+  def is_open_bracket: Boolean = is_keyword && Symbol.open_brackets_decoded.exists(is_keyword)
+  def is_close_bracket: Boolean = is_keyword && Symbol.close_brackets_decoded.exists(is_keyword)
 
   def is_begin: Boolean = is_keyword("begin")
   def is_end: Boolean = is_command("end")

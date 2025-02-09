@@ -525,6 +525,12 @@ object Symbol {
     val close_decoded: Symbol = decode(close)
 
 
+    /* brackets */
+
+    val open_brackets_decoded = decode(open_brackets)
+    val close_brackets_decoded = decode(close_brackets)
+
+
     /* control symbols */
 
     val control_decoded: Set[Symbol] =
@@ -627,6 +633,15 @@ object Symbol {
     !is_open(sym) && !is_close(sym) && (raw_symbolic(sym) || symbols.symbolic.contains(sym))
 
   def is_symbolic_char(sym: Symbol): Boolean = symbols.sym_chars.contains(sym)
+
+
+  /* brackets */
+
+  val open_brackets = """([{\<guillemotleft>\<open>\<langle>\<lceil>\<lfloor>\<lparr>\<lbrakk>\<lbrace>\<llangle>"""
+  val close_brackets = """)]}\<guillemotright>\<close>\<rangle>\<rceil>\<rfloor>\<rparr>\<rbrakk>\<rbrace>\<rrangle>"""
+
+  def open_brackets_decoded = symbols.open_brackets_decoded
+  def close_brackets_decoded = symbols.close_brackets_decoded
 
 
   /* control symbols */
