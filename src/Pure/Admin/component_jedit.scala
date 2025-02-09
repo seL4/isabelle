@@ -21,8 +21,8 @@ object Component_JEdit {
     val init: Mode =
       empty +
         ("noWordSep" -> Symbol.decode("""_'?\<^sub>\^<>""")) +
-        ("unalignedOpenBrackets" -> "{[(«‹⟨⌈⌊⦇⟦⦃⦉") +
-        ("unalignedCloseBrackets" -> "⦊⦄⟧⦈⌋⌉⟩›»)]}") +
+        ("unalignedOpenBrackets" -> Symbol.open_brackets_decoded) +
+        ("unalignedCloseBrackets" -> Symbol.close_brackets_decoded) +
         ("tabSize" -> "2") +
         ("indentSize" -> "2")
 

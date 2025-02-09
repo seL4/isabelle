@@ -637,8 +637,8 @@ object Symbol {
 
   /* brackets */
 
-  val open_brackets = """([{\<guillemotleft>\<open>\<langle>\<lceil>\<lfloor>\<lparr>\<lbrakk>\<lbrace>\<llangle>"""
-  val close_brackets = """)]}\<guillemotright>\<close>\<rangle>\<rceil>\<rfloor>\<rparr>\<rbrakk>\<rbrace>\<rrangle>"""
+  val open_brackets = """([{\<guillemotleft>\<open>\<langle>\<lceil>\<lfloor>\<lparr>\<lbrakk>\<lbrace>\<llangle>\<lblot>"""
+  val close_brackets = """)]}\<guillemotright>\<close>\<rangle>\<rceil>\<rfloor>\<rparr>\<rbrakk>\<rbrace>\<rrangle>\<rblot>"""
 
   def open_brackets_decoded = symbols.open_brackets_decoded
   def close_brackets_decoded = symbols.close_brackets_decoded
