@@ -7,6 +7,10 @@ begin
 chapter \<open>Phabricator / Phorge server setup \label{ch:phabricator}\<close>
 
 text \<open>
+  The Isabelle development site \<^url>\<open>https://isabelle-dev.sketis.net\<close> uses
+  Phorge to provide a comprehensive view on several repositories: Isabelle
+  proper, the Archive of Formal Proofs, and Poly/ML.
+
   Phorge\<^footnote>\<open>\<^url>\<open>https://phorge.it\<close>\<close> is an open-source product to support the
   development process of complex software projects (open or closed ones). It
   is a community fork to replace the former
