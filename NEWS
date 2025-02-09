@@ -190,10 +190,11 @@ option "-Dsun.java2d.metal=false", which is now the default.
 
 * Update to jEdit 5.7.0, the latest release.
 
-* Update to FlatLaf 3.5.4, the latest release. Starting with version 3.x
-there is native library support for non-portable GUI operations. The
-Isabelle/Scala GUI setup disables that by default, for cross-platform
-uniformity (arm64-linux lacks a native library).
+* Update GUI look-and-feel to FlatLaf 3.5.4, the latest release.
+Starting with version 3.x there is native library support for
+non-portable GUI operations. The Isabelle/Scala GUI setup disables that
+by default, for cross-platform uniformity (arm64-linux lacks a native
+library).
 
 * Thanks to the update of FlatLaf, Linux with Wayland window manager
 (e.g. standard Ubuntu) now renders submenus like "File / Recent Files"
@@ -263,11 +264,10 @@ Isabelle/jEdit rendering like this:
   - Use pretty-printing to format suggested one-line proofs.
   - Added option "cache_dir" to cache the result of external provers.
 
-* Metis:
-  - Added inference of variable instantiations, which can be activated
-    using the configuration option "metis_instantiate" (default: false).
-    This outputs a suggestion with instantiations of the facts using the
-    "of" attribute (e.g. "assms(1)[of x]").
+* Metis: Added inference of variable instantiations, which can be
+activated using the configuration option "metis_instantiate" (default:
+false). This outputs a suggestion with instantiations of the facts using
+the "of" attribute (e.g. "assms(1)[of x]").
 
 * Code generator: command 'code_reserved' now uses parentheses for
 target languages, similar to 'code_printing'.
@@ -276,6 +276,9 @@ target languages, similar to 'code_printing'.
 additional premises when the order solver is called. This can used to
 e.g. extend the order solver to deal with numerals. In Isabelle/HOL,
 hooks can be added with HOL_Base_Order_Tac.declare_insert_prems_hook.
+
+* Theory "HOL.Nat": thm "of_nat_diff" is now declared as [simp]. Minor
+INCOMPATIBILITY.
 
 * Theory "HOL.Wellfounded":
   - Removed lemma wellorder.wfP_less. Use wellorder.wfp_on_less instead.
@@ -342,8 +345,6 @@ HOL-Library.Discrete_Functions to avoid name conflicts:
 
 * Theory "HOL-Library.Suc_Notation" provides compact notation for
 iterated Suc terms.
-
-* Theory "HOL.Nat": of_nat_diff is now a simprule, minor INCOMPATIBILITY.
 
 * Theory "HOL-Library.Adhoc_Overloading" has been moved to Pure. Minor
 INCOMPATIBILITY: need to adjust theory imports.
