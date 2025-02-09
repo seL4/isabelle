@@ -10,7 +10,7 @@ Checklist for official releases
 
 - Admin/components/bundled: update naproche;
 
-- test "isabelle find_facts_index FOL && isabelle find_facts_server" on all platforms;
+- test "isabelle find_facts_index FOL && isabelle find_facts_server";
 
 - test "isabelle dump -b Pure ZF";
 
