@@ -128,7 +128,7 @@ object Profiling {
         "spaces_size%")
 
     def header: List[String] =
-      "session" :: header0.flatMap(a => List(a, "\u2211" + a))
+      "session" :: header0.flatMap(a => List(a, Symbol.decode("""\<Sum>""") + a))
   }
 
   final class Statistics private(
