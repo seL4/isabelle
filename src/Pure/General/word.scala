@@ -26,7 +26,7 @@ object Word {
   def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
 
   def capitalized(str: String): String =
-    if (str.length == 0) str
+    if (str.isEmpty) str
     else {
       val n = Character.charCount(str.codePointAt(0))
       uppercase(str.substring(0, n)) + lowercase(str.substring(n))
