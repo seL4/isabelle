@@ -1886,10 +1886,9 @@ fun make_inst thy (v as (_, T)) (Cterm {t = u, T = U, maxidx, ...}) =
         Pretty.block [Syntax.pretty_term_global thy t, Pretty.str " ::",
           Pretty.brk 1, Syntax.pretty_typ_global thy ty];
       val msg =
-        Pretty.string_of (Pretty.block
-         [Pretty.str "instantiate: type conflict",
-          Pretty.fbrk, pretty_typing (Var v) T,
-          Pretty.fbrk, pretty_typing u U])
+        Pretty.string_of (Pretty.big_list "instantiate: type conflict"
+         [Pretty.item [pretty_typing (Var v) T],
+          Pretty.item [pretty_typing u U]]);
     in raise TYPE (msg, [T, U], [Var v, u]) end;
 
 fun prep_insts (instT, inst) (cert, sorts) =
