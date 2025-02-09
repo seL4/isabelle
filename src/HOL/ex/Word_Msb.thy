@@ -1,5 +1,12 @@
-theory Word_Lsb_Msb
-  imports "HOL-Library.Word"          
+(*  Title:      HOL/ex/Word_Msb.thy
+    Author:     Florian Haftmann, TU Muenchen
+*)
+
+section \<open>An attempt for msb on word\<close>
+
+
+theory Word_Msb
+  imports "HOL-Library.Word"
 begin
 
 class word = ring_bit_operations +
@@ -12,7 +19,7 @@ begin
 lemma word_length_not_0 [simp]:
   \<open>word_length TYPE('a) \<noteq> 0\<close>
   using word_length_positive
-  by simp 
+  by simp
 
 lemma possible_bit_iff_less_word_length:
   \<open>possible_bit TYPE('a) n \<longleftrightarrow> n < word_length TYPE('a)\<close> (is \<open>?P \<longleftrightarrow> ?Q\<close>)
@@ -55,9 +62,6 @@ context
   includes bit_operations_syntax
 begin
 
-abbreviation lsb :: \<open>'a \<Rightarrow> bool\<close>
-  where \<open>lsb \<equiv> odd\<close>
-
 definition msb :: \<open>'a \<Rightarrow> bool\<close>
   where \<open>msb w = bit w (word_length TYPE('a) - Suc 0)\<close>
 
@@ -93,9 +97,9 @@ lemma msb_xor_iff [simp]:
   \<open>msb (v XOR w) \<longleftrightarrow> \<not> (msb v \<longleftrightarrow> msb w)\<close>
   by (simp add: msb_def bit_simps)
 
-lemma msb_exp_iff [simp]:                                             
+lemma msb_exp_iff [simp]:
   \<open>msb (2 ^ n) \<longleftrightarrow> n = word_length TYPE('a) - Suc 0\<close>
-  by (simp add: msb_def bit_simps possible_bit_iff_less_word_length)
+  by (auto simp add: msb_def bit_simps possible_bit_iff_less_word_length)
 
 lemma msb_mask_iff [simp]:
   \<open>msb (mask n) \<longleftrightarrow> word_length TYPE('a) \<le> n\<close>

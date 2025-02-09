@@ -770,6 +770,7 @@ session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
     Triangular_Numbers
     Unification
     While_Combinator_Example
+    Word_Msb
     veriT_Preprocessing
   theories [skip_proofs = false]
     SAT_Examples
