@@ -216,8 +216,10 @@ class Pretty_Text_Area(
                   JEdit_Lib.set_text(getBuffer, rich_texts.map(_.text))
                 }
 
-              if (scroll_bottom) scroll_to(JEdit_Lib.bottom_line_offset(getBuffer))
-              else if (scroll_start < update_start) scroll_to(scroll_start)
+              if (update_start > 0 && scroll_bottom) {
+                scroll_to(JEdit_Lib.bottom_line_offset(getBuffer))
+              }
+              else if (update_start > scroll_start) scroll_to(scroll_start)
               else scroll_to(0, x = 0)
 
               val (search_update_start, search_results) =
