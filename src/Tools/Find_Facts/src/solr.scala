@@ -24,7 +24,11 @@ import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 
 object Solr {
   def init(solr_data: Path): System = {
-    File.write(Isabelle_System.make_directory(solr_data) + Path.basic("solr.xml"), "<solr/>")
+    val solr_xml = Isabelle_System.make_directory(solr_data) + Path.basic("solr.xml")
+    val max_clauses =
+      XML.Elem(Markup("int", Markup.Name("maxBooleanClauses")), XML.string(Int.MaxValue.toString))
+    File.write(solr_xml, XML.string_of_body(List(XML.elem("solr", List(max_clauses)))))
+
     java.util.logging.LogManager.getLogManager.reset()
     new System(solr_data)
   }
