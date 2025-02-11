@@ -128,7 +128,7 @@ push_url save key url =
 
 get_result: Query -> Cmd Msg
 get_result query =
-  Http.post {url="/api/query", expect = Http.expectJson (Query_Result query) Query.decode_result,
+  Http.post {url="api/query", expect = Http.expectJson (Query_Result query) Query.decode_result,
     body = query |> Query.encode_query |> Http.jsonBody}
 
 query_delay: Query -> Delay Msg
@@ -136,12 +136,12 @@ query_delay query = {name = "query", delay = 500, event = get_result query}
 
 get_blocks: Query -> String -> Cmd Msg
 get_blocks query cursor =
-  Http.post {url = "/api/blocks", expect = Http.expectJson (Query_Blocks query) Query.decode_blocks,
+  Http.post {url = "api/blocks", expect = Http.expectJson (Query_Blocks query) Query.decode_blocks,
     body = {query = query, cursor = cursor} |> Query.encode_query_blocks |> Http.jsonBody}
 
 get_block: String -> Cmd Msg
 get_block id =
-  Http.post {url = "/api/block", expect = Http.expectJson (Query_Block id) Query.decode_block,
+  Http.post {url = "api/block", expect = Http.expectJson (Query_Block id) Query.decode_block,
     body = id |> Query.encode_query_block |> Http.jsonBody}
 
 
