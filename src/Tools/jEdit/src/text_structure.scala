@@ -14,7 +14,6 @@ import java.util.{List => JList}
 import org.gjt.sp.jedit.indent.{IndentRule, IndentAction}
 import org.gjt.sp.jedit.textarea.{TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.Buffer
 
 
 object Text_Structure {

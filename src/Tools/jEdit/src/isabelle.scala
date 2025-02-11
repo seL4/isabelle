@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.indent.IndentRule
-import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
+import org.gjt.sp.jedit.gui.DockableWindowManager
 import org.jedit.options.CombinedOptions
 
 

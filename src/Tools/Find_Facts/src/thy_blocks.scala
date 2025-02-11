@@ -9,8 +9,6 @@ package isabelle.find_facts
 
 import isabelle._
 
-import scala.annotation.tailrec
-
 
 object Thy_Blocks {
   /** spans **/

@@ -12,7 +12,7 @@ import isabelle._
 import scala.swing.{Component, Label}
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter, KeyEvent}
+import java.awt.event.KeyEvent
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.HistoryTextField

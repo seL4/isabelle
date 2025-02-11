@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, Color}
+import java.awt.Color
 import javax.swing.{InputVerifier, JComponent, UIManager}
 import javax.swing.text.JTextComponent
 

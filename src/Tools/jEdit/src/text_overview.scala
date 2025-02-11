@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.annotation.tailrec
 
-import java.awt.{Graphics, Graphics2D, BorderLayout, Dimension, Color}
+import java.awt.{Graphics, Graphics2D, BorderLayout, Dimension}
 import java.awt.event.{MouseAdapter, MouseEvent}
 import javax.swing.{JPanel, ToolTipManager}
 

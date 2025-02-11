@@ -6,8 +6,6 @@ Dump cumulative PIDE session database.
 
 package isabelle
 
-import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter}
-
 
 object Dump {
   /* aspects */

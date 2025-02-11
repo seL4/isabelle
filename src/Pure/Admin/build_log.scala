@@ -11,7 +11,6 @@ import java.io.{File => JFile}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
 
-import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.util.matching.Regex
 

@@ -12,8 +12,8 @@ import isabelle._
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.io.Encoding
 
-import java.nio.charset.{Charset, CodingErrorAction, CharacterCodingException}
-import java.io.{InputStream, OutputStream, Reader, Writer, InputStreamReader, OutputStreamWriter,
+import java.nio.charset.{CodingErrorAction, CharacterCodingException}
+import java.io.{InputStream, OutputStream, Reader, Writer, OutputStreamWriter,
   CharArrayReader, ByteArrayOutputStream}
 
 import scala.io.{Codec, BufferedSource}

@@ -8,7 +8,6 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 package isabelle
 
 
-import java.util.{Map => JMap}
 import java.io.{File => JFile}
 import java.nio.file.{Path => JPath}
 

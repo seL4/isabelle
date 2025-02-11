@@ -7,7 +7,7 @@ Scalable byte strings, with incremental construction (via Builder).
 package isabelle
 
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileInputStream, FileOutputStream,
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream,
   InputStreamReader, InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1

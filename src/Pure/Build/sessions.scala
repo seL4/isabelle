@@ -8,7 +8,7 @@ package isabelle
 
 import java.io.{File => JFile}
 
-import scala.collection.immutable.{SortedSet, SortedMap}
+import scala.collection.immutable.SortedSet
 import scala.collection.mutable
 
 

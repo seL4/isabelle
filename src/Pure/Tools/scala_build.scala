@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import java.nio.file.Files
 import java.nio.file.{Path => JPath}
 
 import scala.jdk.CollectionConverters._

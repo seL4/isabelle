@@ -10,7 +10,7 @@ package isabelle
 import java.util.{Properties => JProperties}
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
-  InputStreamReader, File => JFile, IOException}
+  File => JFile, IOException}
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}

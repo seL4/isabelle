@@ -9,7 +9,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Dimension, Rectangle}
+import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.tree.TreePath
 import javax.swing.event.{DocumentListener, DocumentEvent}

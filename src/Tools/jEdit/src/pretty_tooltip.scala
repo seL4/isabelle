@@ -18,7 +18,6 @@ import scala.swing.{FlowPanel, Label}
 import scala.swing.event.MouseClicked
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.textarea.TextArea
 
 
 object Pretty_Tooltip {

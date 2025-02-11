@@ -11,7 +11,6 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.Color
-import scala.collection.immutable.SortedSet
 
 
 object Mutator {

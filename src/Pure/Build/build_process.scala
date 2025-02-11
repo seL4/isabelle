@@ -8,9 +8,7 @@ optional presentation.
 package isabelle
 
 
-import scala.collection.immutable.SortedMap
 import scala.math.Ordering
-import scala.annotation.tailrec
 
 
 object Build_Process {

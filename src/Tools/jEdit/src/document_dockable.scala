@@ -10,12 +10,11 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter}
 
-import scala.swing.{ScrollPane, TextArea, Label, TabbedPane, BorderPanel, Component}
+import scala.swing.{ScrollPane, TabbedPane, BorderPanel, Component}
 import scala.swing.event.SelectionChanged
 
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.View
 
 
 object Document_Dockable {

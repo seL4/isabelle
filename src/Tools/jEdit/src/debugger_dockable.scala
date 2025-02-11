@@ -15,7 +15,7 @@ import javax.swing.JMenuItem
 import javax.swing.event.TreeSelectionEvent
 
 import scala.collection.immutable.SortedMap
-import scala.swing.{Button, Label, Component}
+import scala.swing.{Label, Component}
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.menu.EnhancedMenuItem

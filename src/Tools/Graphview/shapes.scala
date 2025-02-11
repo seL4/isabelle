@@ -11,8 +11,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{BasicStroke, Graphics2D, Shape}
-import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D,
-  RoundRectangle2D, PathIterator}
+import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D, PathIterator}
 
 
 object Shapes {

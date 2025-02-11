@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter, WindowFocusListener, WindowEvent}
+import java.awt.event.{WindowFocusListener, WindowEvent}
 
 import org.gjt.sp.jedit.View
 

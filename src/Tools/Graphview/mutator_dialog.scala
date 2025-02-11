@@ -10,7 +10,6 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.Color
 import java.awt.FocusTraversalPolicy
 import javax.swing.JColorChooser
 import javax.swing.border.EmptyBorder

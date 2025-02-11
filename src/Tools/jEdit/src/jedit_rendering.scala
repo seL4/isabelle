@@ -16,8 +16,6 @@ import javax.swing.Icon
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import org.gjt.sp.jedit.jEdit
 
-import scala.collection.immutable.SortedMap
-
 
 object JEdit_Rendering {
   /* make rendering */

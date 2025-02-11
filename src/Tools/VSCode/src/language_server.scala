@@ -16,7 +16,6 @@ import isabelle._
 import java.io.{PrintStream, OutputStream, File => JFile}
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 
 object Language_Server {

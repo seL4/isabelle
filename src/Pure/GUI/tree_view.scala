@@ -8,7 +8,7 @@ package isabelle
 
 import javax.swing.JTree
 import javax.swing.tree.{MutableTreeNode, DefaultMutableTreeNode, DefaultTreeModel,
-  TreeSelectionModel, TreeCellRenderer, DefaultTreeCellRenderer}
+  TreeSelectionModel, DefaultTreeCellRenderer}
 
 
 object Tree_View {

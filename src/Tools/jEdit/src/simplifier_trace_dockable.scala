@@ -12,7 +12,6 @@ import isabelle._
 import scala.swing.{Orientation, Separator}
 
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import org.gjt.sp.jedit.View
 

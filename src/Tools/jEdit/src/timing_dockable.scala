@@ -12,11 +12,10 @@ import isabelle._
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
 import scala.swing.event.{MouseClicked, ValueChanged}
 
-import java.awt.{BorderLayout, Graphics2D, Insets, Color}
+import java.awt.BorderLayout
 import javax.swing.{JList, BorderFactory}
-import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
-import org.gjt.sp.jedit.{View, jEdit}
+import org.gjt.sp.jedit.View
 
 
 class Timing_Dockable(view: View, position: String) extends Dockable(view, position) {

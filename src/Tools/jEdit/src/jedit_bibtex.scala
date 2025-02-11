@@ -10,15 +10,13 @@ package isabelle.jedit
 import isabelle._
 
 
-import scala.collection.mutable
-
 import java.awt.event.{ActionListener, ActionEvent}
 
 import javax.swing.text.Segment
 import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler}
 
 
