@@ -379,9 +379,10 @@ object HTTP {
 
   object CSS_Service extends CSS()
 
-  class CSS(name: String = "css", fonts: String = Fonts_Service.name) extends Service(name) {
+  class CSS(name: String = "isabelle.css", fonts: String = Fonts_Service.name)
+    extends Service(name) {
     private lazy val css =
-      HTML.fonts_css("/" + fonts + "/" + _) + "\n\n" + File.read(HTML.isabelle_css)
+      HTML.fonts_css(fonts + "/" + _) + "\n\n" + File.read(HTML.isabelle_css)
 
     def apply(request: Request): Option[Response] =
       Some(Response(Bytes(css), Content.mime_type_css))
