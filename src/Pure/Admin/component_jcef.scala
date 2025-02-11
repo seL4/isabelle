@@ -72,7 +72,7 @@ object Component_JCEF {
             file <- File.find_files(platform_dir.file).iterator
             name = file.getName
             if File.is_dll(name) || File.is_exe(name)
-          } File.set_executable(File.path(file), true)
+          } File.set_executable(File.path(file))
 
           val classpath =
             File.find_files(platform_dir.file, pred = file => File.is_jar(file.getName))
