@@ -82,6 +82,7 @@ init _ url key =
 
 
 {- url encoding/decoding -}
+{- NB: routing only in URL fragment. -}
 
 aboutN = "about"
 searchN = "search"
@@ -164,7 +165,9 @@ update msg model =
   case msg of
     Link_Clicked urlRequest ->
       case urlRequest of
-        Browser.Internal url -> (model, push_url True model.nav_key url)
+        Browser.Internal url ->
+          if url.path == model.url.path then (model, push_url True model.nav_key url)
+          else (model, Navigation.load (Url.toString url))
         Browser.External href -> (model, Navigation.load href)
 
     Url_Changed url ->
