@@ -265,6 +265,9 @@ object SQL {
   abstract class Data(table_prefix: String = "") {
     def tables: Tables
 
+    def tables_ok(db: SQL.Database): Boolean =
+      tables.forall(db.exists_table)
+
     def transaction_lock[A](
       db: Database,
       create: Boolean = false,

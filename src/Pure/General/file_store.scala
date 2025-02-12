@@ -39,15 +39,15 @@ object File_Store {
   }
 
   def database_entry(database: Path, name: String): Option[Entry] =
-    if (!database.is_file) None
-    else {
+    if (database.is_file) {
       using(SQLite.open_database(database)) { db =>
         private_data.transaction_lock(db) {
-          if (!private_data.tables.forall(db.exists_table)) None
-          else private_data.read_entry(db, name)
+          if (private_data.tables_ok(db)) private_data.read_entry(db, name)
+          else None
         }
       }
     }
+    else None
 
 
   /* entry */
