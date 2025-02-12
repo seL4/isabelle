@@ -49,6 +49,23 @@ object File_Store {
     }
     else None
 
+  def database_extract(database: Path, dir: Path,
+    compress_cache: Compress.Cache = Compress.Cache.none
+  ): Unit = {
+    if (database.is_file) {
+      using(SQLite.open_database(database)) { db =>
+        private_data.transaction_lock(db) {
+          if (private_data.tables_ok(db)) {
+            for {
+              name <- private_data.read_names(db)
+              entry <- private_data.read_entry(db, name)
+            } entry.write_file(dir, compress_cache = compress_cache)
+          }
+        }
+      }
+    }
+  }
+
 
   /* entry */
 
