@@ -569,12 +569,10 @@ and tptp_string_of_formula format (ATyQuant (q, xs, phi)) =
     |> parens
   | tptp_string_of_formula format
         (AConn (ANot, [AAtom (ATerm (("=" (* tptp_equal *), []), ts))])) =
-    space_implode (" " ^ tptp_not_equal ^ " ") (map (tptp_string_of_term format) ts)
-    |> is_format_higher_order format ? parens
+    parens (space_implode (" " ^ tptp_not_equal ^ " ") (map (tptp_string_of_term format) ts))
   | tptp_string_of_formula format
         (AConn (ANot, [AAtom (ATerm (("equal" (* tptp_old_equal *), []), ts))])) =
-    space_implode (" " ^ tptp_not_equal ^ " ") (map (tptp_string_of_term format) ts)
-    |> is_format_higher_order format ? parens
+    parens (space_implode (" " ^ tptp_not_equal ^ " ") (map (tptp_string_of_term format) ts))
   | tptp_string_of_formula format (AConn (c, [phi])) =
     tptp_string_of_connective c ^ " " ^ (tptp_string_of_formula format phi |> parens)
     |> parens
