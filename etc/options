@@ -5,27 +5,27 @@ section "Document Preparation"
 option browser_info : bool = false for build
   -- "generate theory browser information"
 
-option document : string = "" (standard "true") for build
+option document : string = "" (standard "true") for build build_sync
   -- "build PDF document (enabled for \"pdf\" or \"true\", disabled for \"\" or \"false\")"
-option document_output : string = "" (standard "output") for build
+option document_output : string = "" (standard "output") for build build_sync
   -- "document output directory"
-option document_echo : bool = false for build
+option document_echo : bool = false for build build_sync
   -- "inform about document file names during session presentation"
-option document_variants : string = "document" for build document
+option document_variants : string = "document" for build document build_sync
   -- "alternative document variants (separated by colons)"
-option document_tags : string = "" for document
+option document_tags : string = "" for document build_sync
   -- "default command tags (separated by commas)"
-option document_bibliography : bool = false for document
+option document_bibliography : bool = false for document build_sync
   -- "explicitly enable use of bibtex (default: according to presence of root.bib)"
-option document_build : string = "lualatex" (standard "build") for document
+option document_build : string = "lualatex" (standard "build") for document build_sync
   -- "document build engine (e.g. build, lualatex, pdflatex)"
-option document_logo : string = "" (standard "_") for document
+option document_logo : string = "" (standard "_") for document build_sync
   -- "generate named instance of Isabelle logo (underscore means unnamed variant)"
-option document_heading_prefix : string = "isamarkup" (standard) for document
+option document_heading_prefix : string = "isamarkup" (standard) for document build_sync
   -- "prefix for LaTeX macros generated from 'chapter', 'section' etc."
-option document_comment_latex : bool = false for document
+option document_comment_latex : bool = false for document build_sync
   -- "use regular LaTeX version of comment.sty, instead of historic plain TeX version"
-option document_cite_commands : string = "cite,nocite,citet,citep" for document
+option document_cite_commands : string = "cite,nocite,citet,citep" for document build_sync
   -- "antiquotation commands to determine the structure of bibliography"
 
 option thy_output_display : bool = false for content
