@@ -77,12 +77,12 @@ object File_Store {
   ) {
     require(name.nonEmpty && size >= 0 && (size > 0 || compressed))
 
-    def content(cache: Compress.Cache = Compress.Cache.none): Bytes =
-      if (compressed) body.uncompress(cache = cache) else body
+    def content(compress_cache: Compress.Cache = Compress.Cache.none): Bytes =
+      if (compressed) body.uncompress(cache = compress_cache) else body
 
-    def write_file(dir: Path, cache: Compress.Cache = Compress.Cache.none): Unit = {
+    def write_file(dir: Path, compress_cache: Compress.Cache = Compress.Cache.none): Unit = {
       val path = Path.explode(name)
-      File.content(path, content(cache = cache)).write(dir)
+      File.content(path, content(compress_cache = compress_cache)).write(dir)
       if (executable) File.set_executable(dir + path)
     }
   }
