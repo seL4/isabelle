@@ -105,6 +105,7 @@ sources = \
   src/Pure/General/date.scala \
   src/Pure/General/exn.scala \
   src/Pure/General/file.scala \
+  src/Pure/General/file_store.scala \
   src/Pure/General/file_watcher.scala \
   src/Pure/General/graph.scala \
   src/Pure/General/graph_display.scala \
