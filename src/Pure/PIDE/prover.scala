@@ -215,7 +215,7 @@ class Prover(
 
     Isabelle_Thread.fork(name = name) {
       try {
-        var result = new StringBuilder(100)
+        val result = new StringBuilder(100)
         var finished = false
         while (!finished) {
           //{{{
