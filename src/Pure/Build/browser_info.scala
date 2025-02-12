@@ -12,6 +12,17 @@ import scala.collection.mutable
 
 
 object Browser_Info {
+  /* SQLite database with compressed entries */
+
+  val default_database: Path = Path.explode("$ISABELLE_BROWSER_INFO_LIBRARY")
+  val default_dir: Path = Path.explode("$ISABELLE_BROWSER_INFO")
+
+  def make_database(database: Path = default_database, dir: Path = default_dir): Unit =
+    File_Store.make_database(database, dir,
+      compress_options = Compress.Options_Zstd(level = 8),
+      compress_cache = Compress.Cache.make())
+
+
   /* browser_info store configuration */
 
   object Config {

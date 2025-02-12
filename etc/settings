@@ -101,6 +101,7 @@ ISABELLE_HEAPS_SYSTEM="$ISABELLE_HOME/heaps"
 # HTML browser info.
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 ISABELLE_BROWSER_INFO_SYSTEM="$ISABELLE_HOME/browser_info"
+ISABELLE_BROWSER_INFO_LIBRARY="$ISABELLE_HOME/lib/browser_info.db"
 
 # Site settings check -- just to make it a little bit harder to copy this file verbatim!
 [ -n "$ISABELLE_SITE_SETTINGS_PRESENT" ] && \

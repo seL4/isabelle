@@ -478,11 +478,11 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
       make_news(other_isabelle)
 
-      other_isabelle_purge("browser_info")
-
       if (build_library || include_library || include_find_facts) {
         progress.echo("Presenting library ...")
         require(Platform.is_unix, "Linux or macOS platform required")
+
+        other_isabelle_purge("browser_info")
 
         val opt_dirs = "-d '~~/src/Benchmarks' "
         other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
@@ -520,11 +520,16 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             " " + Bash.string(context.dist_name + "/browser_info"))
         }
 
-        if (!include_library) other_isabelle_purge("browser_info")
+        if (include_library) {
+          Browser_Info.make_database(
+            other_isabelle.expand_path(Browser_Info.default_database),
+            other_isabelle.expand_path(Browser_Info.default_dir))
+        }
       }
 
       other_isabelle_purge("Admin")
       other_isabelle_purge("heaps")
+      other_isabelle_purge("browser_info")
 
       other_isabelle.cleanup()
 
