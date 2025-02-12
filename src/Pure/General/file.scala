@@ -123,6 +123,9 @@ object File {
     else None
   }
 
+  def perhaps_relative_path(base: Path, other: Path): Path =
+    relative_path(base, other).getOrElse(other)
+
 
   /* bash path */
 

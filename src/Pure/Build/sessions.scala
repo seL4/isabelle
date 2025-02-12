@@ -418,7 +418,7 @@ object Sessions {
                     name <- proper_session_theories.iterator
                     path = Path.explode(name.master_dir)
                     if !ok(path.canonical_file)
-                    path1 = File.relative_path(info.dir.canonical, path).getOrElse(path)
+                    path1 = File.perhaps_relative_path(info.dir.canonical, path)
                   } yield (path1, name)).toList
                 val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).distinct.sorted
 

@@ -638,7 +638,7 @@ object Browser_Info {
           val html = context.source(node_context(file, file_dir).make_html(thy_elements, xml))
 
           val path = Path.explode(file)
-          val src_path = File.relative_path(master_dir, path).getOrElse(path)
+          val src_path = File.perhaps_relative_path(master_dir, path)
 
           val file_title = "File " + Symbol.cartouche_decoded(src_path.implode_short)
           HTML.write_document(file_dir, file_html.file_name,
