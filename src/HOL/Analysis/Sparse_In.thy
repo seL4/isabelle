@@ -90,6 +90,10 @@ lemma open_diff_sparse_pts:
   by (metis Diff_Diff_Int Diff_cancel Diff_eq_empty_iff Diff_subset 
       closedin_def double_diff openin_open_eq topspace_euclidean_subtopology)
 
+lemma sparse_in_UNIV_imp_closed: "X sparse_in UNIV \<Longrightarrow> closed X"
+  by (simp add: Compl_eq_Diff_UNIV closed_open open_diff_sparse_pts)
+
+
 lemma sparse_imp_countable:
   fixes D::"'a ::euclidean_space set"
   assumes  "open D" "pts sparse_in D"
@@ -196,10 +200,8 @@ lemma eventually_cosparse_open_eq:
 
 lemma eventually_cosparse_imp_eventually_at:
   "eventually P (cosparse A) \<Longrightarrow> x \<in> A \<Longrightarrow> eventually P (at x within B)"
-  unfolding eventually_cosparse sparse_in_def
-  apply (auto simp: islimpt_conv_frequently_at frequently_def)
-   apply (metis UNIV_I eventually_at_topological)
-  done
+  unfolding eventually_cosparse sparse_in_def islimpt_def eventually_at_topological 
+  by fastforce
 
 lemma eventually_in_cosparse:
   assumes "A \<subseteq> X" "open A"
@@ -226,6 +228,5 @@ lemma cosparse_empty [simp]: "cosparse {} = bot"
 
 lemma cosparse_eq_bot_iff' [simp]: "cosparse (A :: 'a :: perfect_space set) = bot \<longleftrightarrow> A = {}"
   by (auto simp: cosparse_eq_bot_iff not_open_singleton)
-
 
 end

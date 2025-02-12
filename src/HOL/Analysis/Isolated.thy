@@ -1,5 +1,5 @@
 theory Isolated
-  imports "HOL-Analysis.Elementary_Metric_Spaces"
+  imports "Elementary_Metric_Spaces" "Sparse_In"
 
 begin
 
@@ -323,5 +323,11 @@ proof -
     by (subst filtermap_times_pos_at_right) (use assms in auto)
   finally show ?thesis .
 qed
+
+lemma uniform_discrete_imp_sparse:
+  assumes "uniform_discrete X"
+  shows   "X sparse_in A"
+  using assms unfolding uniform_discrete_def sparse_in_ball_def
+  by (auto simp: discrete_imp_not_islimpt)
 
 end
