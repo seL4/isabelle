@@ -7,7 +7,7 @@ Maps with multiple entries per key.
 package isabelle
 
 import scala.collection.mutable
-import scala.collection.{IterableFactory, MapFactory, MapFactoryDefaults}
+import scala.collection.{MapFactory, MapFactoryDefaults}
 import scala.collection.immutable.{Iterable, MapOps}
 
 

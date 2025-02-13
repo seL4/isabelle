@@ -8,8 +8,6 @@ multiplexing, but this does not work on Windows.
 package isabelle
 
 
-import java.util.{Map => JMap}
-
 import scala.annotation.tailrec
 
 

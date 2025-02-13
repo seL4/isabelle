@@ -16,9 +16,7 @@ import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 import javax.swing.plaf.basic.BasicSplitPaneUI
 
-import scala.util.matching.Regex
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
-import scala.swing.event.ButtonClicked
 
 import org.gjt.sp.jedit.View
 

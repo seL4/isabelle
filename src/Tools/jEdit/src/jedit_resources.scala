@@ -11,13 +11,12 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.{File => JFile, ByteArrayOutputStream}
-import javax.swing.text.Segment
 
 import scala.util.parsing.input.Reader
 
-import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSManager}
+import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
-import org.gjt.sp.jedit.{jEdit, View, Buffer}
+import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 

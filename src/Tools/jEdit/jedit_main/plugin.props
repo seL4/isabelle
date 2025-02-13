@@ -30,6 +30,7 @@ options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Render
 #menu actions and dockables
 plugin.isabelle.jedit_main.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit_main.Plugin.menu= \
+  isabelle.browser-info \
   isabelle-export-browser \
   isabelle-session-browser \
   isabelle.preview \
@@ -51,6 +52,7 @@ plugin.isabelle.jedit_main.Plugin.menu= \
   isabelle-syslog \
   isabelle-theories \
   isabelle-timing
+isabelle.browser-info.label=Browse HTML library
 isabelle-debugger.label=Debugger panel
 isabelle-debugger.title=Debugger
 isabelle-document.label=Document panel

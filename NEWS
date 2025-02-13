@@ -158,6 +158,10 @@ free variables, and fixed variables with mixfix syntax (including
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Action isabelle.browser_info or menu "Plugins / Isabelle / Browse HTML
+Library" opens a web browser on the HTML library that is distributed
+with Isabelle (if available, see $ISABELLE_HOME/lib/browser_info.db).
+
 * Action isabelle.select_structure (with keyboard shortcut C+7) extends
 the editor selection by adding the enclosing formal structure, based on
 formal markup by the prover. Repeated invocation of this action extends

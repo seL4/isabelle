@@ -728,7 +728,7 @@ Usage: isabelle build_worker [OPTIONS]
       val blobs =
         blobs_files.map { name =>
           val path = Path.explode(name)
-          val src_path = File.relative_path(master_dir, path).getOrElse(path)
+          val src_path = File.perhaps_relative_path(master_dir, path)
 
           val file = read_source_file(name)
           val bytes = file.bytes

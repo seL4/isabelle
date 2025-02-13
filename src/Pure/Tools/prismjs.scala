@@ -6,8 +6,6 @@ Support for the Prism.js syntax highlighter -- via external Node.js process.
 
 package isabelle
 
-import scala.collection.mutable
-
 
 object Prismjs {
   /* component resources */

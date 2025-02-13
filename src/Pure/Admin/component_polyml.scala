@@ -9,9 +9,6 @@ Note: macOS 14 Sonoma requires "LDFLAGS=... -ld64".
 package isabelle
 
 
-import scala.util.matching.Regex
-
-
 object Component_PolyML {
   /** platform-specific build **/
 

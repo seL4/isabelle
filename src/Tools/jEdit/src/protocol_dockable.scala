@@ -9,8 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.BorderLayout
-
 import scala.swing.{TextArea, ScrollPane}
 
 import org.gjt.sp.jedit.View

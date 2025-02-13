@@ -10,19 +10,10 @@ package isabelle
 import java.io.{File => JFile, PrintStream, ByteArrayOutputStream, OutputStream}
 
 import scala.collection.mutable
-import scala.annotation.tailrec
 
 import dotty.tools.dotc.CompilationUnit
-import dotty.tools.dotc.ast.Trees.PackageDef
-import dotty.tools.dotc.ast.untpd
-import dotty.tools.dotc.core.Contexts.{Context => CompilerContext}
-import dotty.tools.dotc.core.NameOps.moduleClassName
-import dotty.tools.dotc.core.{Phases, StdNames}
-import dotty.tools.dotc.interfaces
-import dotty.tools.dotc.reporting.{Diagnostic, ConsoleReporter}
-import dotty.tools.dotc.util.{SourceFile, SourcePosition, NoSourcePosition}
 import dotty.tools.repl
-import dotty.tools.repl.{ReplCompiler, ReplDriver}
+import dotty.tools.repl.ReplDriver
 
 
 object Scala {

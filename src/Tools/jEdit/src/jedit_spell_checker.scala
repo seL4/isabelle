@@ -13,7 +13,7 @@ import javax.swing.JMenuItem
 
 import org.gjt.sp.jedit.menu.EnhancedMenuItem
 import org.gjt.sp.jedit.jEdit
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object JEdit_Spell_Checker {

@@ -9,7 +9,7 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{InputStream, OutputStream, FileOutputStream, File => JFile}
+import java.io.{InputStream, OutputStream}
 
 import scala.collection.mutable
 

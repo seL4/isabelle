@@ -10,7 +10,6 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.Component
-import java.io.InputStream
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.io.{VFS => JEdit_VFS, VFSFile}

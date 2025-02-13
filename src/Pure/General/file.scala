@@ -10,7 +10,7 @@ package isabelle
 import java.util.{Properties => JProperties}
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
-  InputStreamReader, File => JFile, IOException}
+  File => JFile, IOException}
 import java.nio.file.{StandardOpenOption, Path => JPath, Files, SimpleFileVisitor,
   FileVisitOption, FileVisitResult}
 import java.nio.file.attribute.{BasicFileAttributes, PosixFilePermission}
@@ -122,6 +122,9 @@ object File {
       Some(path(base_path.relativize(other_path).toFile))
     else None
   }
+
+  def perhaps_relative_path(base: Path, other: Path): Path =
+    relative_path(base, other).getOrElse(other)
 
 
   /* bash path */

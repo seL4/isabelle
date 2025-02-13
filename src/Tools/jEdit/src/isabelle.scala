@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, StructureMatcher, Selection}
 import org.gjt.sp.jedit.syntax.TokenMarker
 import org.gjt.sp.jedit.indent.IndentRule
-import org.gjt.sp.jedit.gui.{DockableWindowManager, CompleteWord}
+import org.gjt.sp.jedit.gui.DockableWindowManager
 import org.jedit.options.CombinedOptions
 
 
@@ -593,4 +593,12 @@ object Isabelle {
 
   def java_monitor(view: View): Unit =
     Java_Monitor.java_monitor_external(view, look_and_feel = GUI.current_laf())
+
+
+  /* HTTP browser_info */
+
+  def open_browser_info(view: View): Unit = {
+    val url = Url.append_path(PIDE.plugin.http_server.url, HTTP.Browser_Info_Service.index_path())
+    PIDE.editor.hyperlink_url(url).follow(view)
+  }
 }

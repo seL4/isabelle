@@ -9,6 +9,7 @@ package isabelle
 
 import java.io.{File => JFile, FileInputStream}
 import java.security.MessageDigest
+import java.util.HexFormat
 
 import isabelle.setup.{Build => Setup_Build}
 
@@ -24,6 +25,7 @@ object SHA1 {
         case other: Digest => rep == other.toString
         case _ => false
       }
+    def base64: String = Base64.encode(HexFormat.of().parseHex(rep))
   }
 
   def fake_digest(rep: String): Digest = new Digest(rep)

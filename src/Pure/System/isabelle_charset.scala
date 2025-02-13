@@ -8,9 +8,7 @@ package isabelle
 
 
 import java.util.{List => JList}
-import java.nio.Buffer
-import java.nio.{ByteBuffer, CharBuffer}
-import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder, CoderResult}
+import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder}
 import java.nio.charset.spi.CharsetProvider
 
 

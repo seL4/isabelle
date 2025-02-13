@@ -11,14 +11,11 @@ import isabelle._
 
 import scala.annotation.tailrec
 import scala.collection.immutable.SortedMap
-import scala.swing.{BorderPanel, Component, Dimension, Frame, Label, TextField}
-import scala.swing.event.{Key, KeyPressed}
+import scala.swing.{BorderPanel, Component, Dimension, Frame}
 import scala.util.matching.Regex
 
 import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
-
-import javax.swing.SwingUtilities
 
 import org.gjt.sp.jedit.View
 

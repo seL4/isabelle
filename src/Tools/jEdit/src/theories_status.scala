@@ -9,12 +9,10 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{ListView, Alignment, Label, CheckBox, BorderPanel, BoxPanel, Orientation,
-  Component}
+import scala.swing.{ListView, Alignment, Label, CheckBox, BorderPanel, Component}
 import scala.swing.event.{MouseClicked, MouseMoved}
 
-import java.awt.{BorderLayout, Graphics2D, Color, Point, Dimension}
-import javax.swing.border.{BevelBorder, SoftBevelBorder}
+import java.awt.{Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory, UIManager}
 
 import org.gjt.sp.jedit.View

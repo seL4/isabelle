@@ -21,7 +21,7 @@ package isabelle
 
 import java.io.{BufferedInputStream, BufferedOutputStream, InputStreamReader, OutputStreamWriter,
   IOException}
-import java.net.{Socket, SocketException, SocketTimeoutException, ServerSocket, InetAddress}
+import java.net.{Socket, ServerSocket, InetAddress}
 
 
 object Server {

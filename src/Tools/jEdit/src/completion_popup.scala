@@ -16,11 +16,8 @@ import javax.swing.border.LineBorder
 import javax.swing.text.DefaultCaret
 
 import scala.swing.{ListView, ScrollPane}
-import scala.swing.event.MouseClicked
-import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, Selection}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
-import org.gjt.sp.util.StandardUtilities
 
 
 object Completion_Popup {

@@ -76,7 +76,6 @@ object Profiling {
     ): Statistics = {
       val session_base = session_background.base
       val session_name = session_base.session_name
-      val sessions_structure = session_background.sessions_structure
 
       val session = {
         val args = session_base.used_theories.map(p => p._1.theory)

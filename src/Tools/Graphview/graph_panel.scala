@@ -12,12 +12,10 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
-import javax.imageio.ImageIO
-import javax.swing.{JScrollPane, JComponent, SwingUtilities}
-import javax.swing.border.EmptyBorder
+import javax.swing.{JScrollPane, SwingUtilities}
 
 import scala.swing.{BorderPanel, Button, CheckBox, Action, FileChooser, Panel, ScrollPane}
-import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked, MouseEvent}
+import scala.swing.event.{Event, Key, MousePressed, MouseDragged, MouseClicked}
 
 
 class Graph_Panel(val graphview: Graphview) extends BorderPanel {

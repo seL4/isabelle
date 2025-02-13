@@ -9,7 +9,6 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.Sorting
 
 
 object Text {

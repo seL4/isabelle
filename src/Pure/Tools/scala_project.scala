@@ -230,9 +230,8 @@ dependencies {
 
     progress.echo("Creating " + build_tool + " project directory: " + project_dir.absolute)
     Isabelle_System.make_directory(project_dir)
-
-    val java_src_dir = Isabelle_System.make_directory(project_dir + build_tool.java_src_dir)
-    val scala_src_dir = Isabelle_System.make_directory(project_dir + build_tool.scala_src_dir)
+    Isabelle_System.make_directory(project_dir + build_tool.java_src_dir)
+    Isabelle_System.make_directory(project_dir + build_tool.scala_src_dir)
 
     val (jars, sources) = isabelle_files
     isabelle_scala_files

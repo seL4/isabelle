@@ -12,7 +12,7 @@ import isabelle._
 
 import java.awt.Font
 
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.jEdit
 
 
 object Font_Info {

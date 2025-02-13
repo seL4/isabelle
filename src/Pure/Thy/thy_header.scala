@@ -8,7 +8,6 @@ package isabelle
 
 
 import scala.util.parsing.input.Reader
-import scala.util.matching.Regex
 
 
 object Thy_Header {

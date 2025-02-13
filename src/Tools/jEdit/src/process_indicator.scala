@@ -9,7 +9,6 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Image
 import java.awt.event.{ActionListener, ActionEvent}
 import javax.swing.{ImageIcon, Timer}
 import scala.swing.{Label, Component}

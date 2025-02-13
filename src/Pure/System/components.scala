@@ -149,7 +149,7 @@ object Components {
     progress: Progress = new Progress
   ): Directory = {
     val base_name = local_dir.expand.base
-    val local_directory = Directory(local_dir).check
+    Directory(local_dir).check
     val remote_directory = Directory(base_dir + base_name, ssh = ssh)
     if (remote_directory.ok) remote_directory
     else {

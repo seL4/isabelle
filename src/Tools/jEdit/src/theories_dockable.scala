@@ -9,12 +9,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import scala.swing.{Button, Label, ScrollPane}
+import scala.swing.{Label, ScrollPane}
 
 import java.awt.BorderLayout
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
-import org.gjt.sp.jedit.{View, jEdit}
+import org.gjt.sp.jedit.View
 
 
 class Theories_Dockable(view: View, position: String) extends Dockable(view, position) {

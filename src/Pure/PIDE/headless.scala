@@ -10,7 +10,6 @@ package isabelle
 import java.io.{File => JFile}
 
 import scala.annotation.tailrec
-import scala.collection.mutable
 
 
 object Headless {

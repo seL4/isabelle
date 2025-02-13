@@ -10,10 +10,10 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.{File => JFile}
-import java.awt.{Component, Container, GraphicsEnvironment, Point, Rectangle, Dimension, Toolkit}
+import java.awt.{Component, Container, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import java.awt.font.FontRenderContext
-import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow, SwingUtilities}
+import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow}
 
 import scala.util.parsing.input.CharSequenceReader
 import scala.util.matching.Regex

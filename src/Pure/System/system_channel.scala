@@ -8,8 +8,8 @@ package isabelle
 
 
 import java.io.{InputStream, OutputStream}
-import java.net.{InetAddress, InetSocketAddress, ProtocolFamily, ServerSocket, SocketAddress,
-  StandardProtocolFamily, UnixDomainSocketAddress, StandardSocketOptions}
+import java.net.{InetSocketAddress, ProtocolFamily, StandardProtocolFamily, UnixDomainSocketAddress,
+  StandardSocketOptions}
 import java.nio.channels.{ServerSocketChannel, Channels}
 
 

@@ -9,14 +9,13 @@ package isabelle
 import java.util.{Map => JMap}
 import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
   Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
-import java.awt.event.{KeyAdapter, KeyEvent, ItemListener, ItemEvent}
+import java.awt.event.{KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JButton, JDialog, JFrame, JLabel, JLayeredPane, JOptionPane,
-  RootPaneContainer, JTextField, JWindow, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+import javax.swing.{ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
+  RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities}
 
-import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Label, Separator,
-  Orientation}
+import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 

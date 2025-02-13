@@ -7,9 +7,6 @@ Systematic naming of individual theorems, as selections from multi-facts.
 package isabelle
 
 
-import scala.math.Ordering
-
-
 object Thm_Name {
   object Ordering extends scala.math.Ordering[Thm_Name] {
     def compare(thm_name1: Thm_Name, thm_name2: Thm_Name): Int =

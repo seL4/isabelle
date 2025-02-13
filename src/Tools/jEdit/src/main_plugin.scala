@@ -18,7 +18,6 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged,
   ViewUpdate}
-import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
 
 

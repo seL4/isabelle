@@ -10,7 +10,7 @@ package isabelle.graphview
 
 import isabelle._
 
-import java.awt.{Font, Color, Shape, Graphics2D}
+import java.awt.{Font, Color, Graphics2D}
 import java.awt.geom.{Point2D, Rectangle2D}
 import javax.swing.JComponent
 

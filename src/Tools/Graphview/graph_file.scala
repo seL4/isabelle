@@ -10,7 +10,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.io.{File => JFile}
-import java.awt.{Color, Graphics2D}
+import java.awt.Graphics2D
 
 
 object Graph_File {
