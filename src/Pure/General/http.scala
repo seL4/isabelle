@@ -11,7 +11,6 @@ package isabelle
 import java.io.{File => JFile}
 import java.nio.file.Files
 import java.net.{InetSocketAddress, URI, HttpURLConnection}
-import java.util.HexFormat
 import com.sun.net.httpserver.{HttpExchange, HttpHandler, HttpServer}
 
 
@@ -240,8 +239,8 @@ object HTTP {
     def write(http: HttpExchange, code: Int, is_head: Boolean = false): Unit = {
       http.getResponseHeaders.set("Content-Type", content_type)
       if (is_head) {
-        val encoded_digest = Base64.encode(HexFormat.of().parseHex(SHA1.digest(output).toString))
-        http.getResponseHeaders.set("Content-Digest", "sha=:" + encoded_digest + ":")
+        val digest_base64 = SHA1.digest(output).base64
+        http.getResponseHeaders.set("Content-Digest", "sha=:" + digest_base64 + ":")
       }
       http.sendResponseHeaders(code, if (is_head) -1 else output.size)
       if (!is_head) using(http.getResponseBody)(output.write_stream)
