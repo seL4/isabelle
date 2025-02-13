@@ -2,6 +2,11 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
+	<ACTION NAME="isabelle.browser-info">
+	  <CODE>
+	    isabelle.jedit.Isabelle.open_browser_info(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.set-continuous-checking">
 	  <CODE>
 	    isabelle.jedit.Isabelle.set_continuous_checking();

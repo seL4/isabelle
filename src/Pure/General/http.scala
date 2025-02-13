@@ -31,6 +31,16 @@ object HTTP {
     def file_mime_type(file: JFile): String =
       Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
 
+    def bytes_mime_type(bytes: Bytes, ext: String = ""): String =
+      if (ext.isEmpty) default_mime_type
+      else {
+        Isabelle_System.with_tmp_file("tmp", ext = ext) { tmp_path =>
+          val n = if (bytes.size < 4096) bytes.size.toInt else 4096
+          Bytes.write(tmp_path, bytes.slice(0, n))
+          file_mime_type(tmp_path.file)
+        }
+      }
+
     def apply(
         bytes: Bytes,
         file_name: String = "",
@@ -341,7 +351,8 @@ object HTTP {
   /** Isabelle services **/
 
   def isabelle_services: List[Service] =
-    List(Welcome_Service, Fonts_Service, CSS_Service, PDFjs_Service, Docs_Service)
+    List(Welcome_Service, Fonts_Service, CSS_Service, PDFjs_Service, Docs_Service,
+      Browser_Info_Service)
 
 
   /* welcome */
@@ -423,5 +434,36 @@ object HTTP {
 
     override def apply(request: Request): Option[Response] =
       doc_request(request) orElse super.apply(request)
+  }
+
+
+  /* browser info */
+
+  object Browser_Info_Service extends Browser_Info()
+
+  class Browser_Info(
+    name: String = "browser_info",
+    database: Path = Path.explode("$ISABELLE_BROWSER_INFO_LIBRARY"),
+    compress_cache: Compress.Cache = Compress.Cache.none
+  ) extends Service(name) {
+
+    override def apply(request: Request): Option[Response] = {
+      val entry_name = request.uri_path.map(_.implode).getOrElse("")
+
+      val proper_response =
+        for (entry <- File_Store.database_entry(database, entry_name))
+        yield {
+          val bytes = entry.content(compress_cache = compress_cache)
+          val mime_type = Content.bytes_mime_type(bytes, ext = Url.get_ext(entry_name))
+          Response.content(HTTP.Content(bytes, mime_type = mime_type))
+        }
+
+      def error_response: Response = {
+        val msg = "Cannot access database " + database.expand + " entry " + quote(entry_name)
+        HTTP.Response.text(Output.error_message_text(msg))
+      }
+
+      Some(proper_response getOrElse error_response)
+    }
   }
 }

@@ -593,4 +593,14 @@ object Isabelle {
 
   def java_monitor(view: View): Unit =
     Java_Monitor.java_monitor_external(view, look_and_feel = GUI.current_laf())
+
+
+  /* HTTP browser_info */
+
+  def open_browser_info(view: View): Unit = {
+    val url =
+      Url.append_path(PIDE.plugin.http_server.url,
+        Url.append_path(HTTP.Browser_Info_Service.name, "index.html"))
+    PIDE.editor.hyperlink_url(url).follow(view)
+  }
 }
