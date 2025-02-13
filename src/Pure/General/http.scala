@@ -270,11 +270,11 @@ object HTTP {
         val request = new Request(server_name, name, uri, input)
         Exn.result(apply(request)) match {
           case Exn.Res(Some(response)) =>
-            response.write(http, 200, is_head)
+            response.write(http, 200, is_head = is_head)
           case Exn.Res(None) =>
-            Response.empty.write(http, 404, is_head)
+            Response.empty.write(http, 404, is_head = is_head)
           case Exn.Exn(ERROR(msg)) =>
-            Response.text(Output.error_message_text(msg)).write(http, 500, is_head)
+            Response.text(Output.error_message_text(msg)).write(http, 500, is_head = is_head)
           case Exn.Exn(exn) => throw exn
         }
       }
