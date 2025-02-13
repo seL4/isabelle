@@ -154,6 +154,9 @@ object Url {
 
   def dir_path(prefix: String, direct: Boolean = false): String =
     if (direct) direct_path(prefix) else prefix
+
+  def index_path(prefix: String = "", index: String = ""): String =
+    append_path(prefix, if (index.isEmpty) "index.html" else index)
 }
 
 final class Url private(val uri: URI) {

@@ -254,6 +254,9 @@ object HTTP {
   abstract class Service(val name: String, method: String = "GET") {
     override def toString: String = name
 
+    def index_path(prefix: String = name, index: String = ""): String =
+      Url.index_path(prefix = prefix, index = index)
+
     def apply(request: Request): Option[Response]
 
     def context(server_name: String): String =

@@ -598,9 +598,7 @@ object Isabelle {
   /* HTTP browser_info */
 
   def open_browser_info(view: View): Unit = {
-    val url =
-      Url.append_path(PIDE.plugin.http_server.url,
-        Url.append_path(HTTP.Browser_Info_Service.name, "index.html"))
+    val url = Url.append_path(PIDE.plugin.http_server.url, HTTP.Browser_Info_Service.index_path())
     PIDE.editor.hyperlink_url(url).follow(view)
   }
 }
