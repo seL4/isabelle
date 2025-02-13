@@ -132,6 +132,12 @@ object Url {
     else Some(s.substring(0, j + 1))
   }
 
+  def get_ext(str: String): String = {
+    val s = get_base_name(str).getOrElse("")
+    val i = s.lastIndexOf('.')
+    if (i < 0 || i + 1 >= s.length) "" else s.substring(i + 1)
+  }
+
   def append_path(prefix: String, suffix: String): String =
     if (prefix.endsWith(":") || prefix.endsWith("/") || prefix.endsWith("\\") || prefix.isEmpty) {
       prefix + suffix
