@@ -115,6 +115,11 @@ object Find_Facts {
   val solr_data_dir: Path = Path.explode("$FIND_FACTS_HOME_USER/solr")
 
   object private_data extends Solr.Data("find_facts") {
+    /* meta info */
+
+    val browser_info_database = new Properties.String("browser_info_database")
+
+
     /* types */
 
     val symbol_codes =
@@ -447,6 +452,18 @@ object Find_Facts {
     }
   }
 
+  def meta_info(browser_info_database: Option[Path] = None): Properties.T =
+    browser_info_database match {
+      case Some(path) => Find_Facts.private_data.browser_info_database(path.implode)
+      case None => Nil
+    }
+
+  def browser_info_database(db: Solr.Database): Path =
+    db.props match {
+      case Find_Facts.private_data.browser_info_database(file) => db.dir + Path.explode(file)
+      case _ => Browser_Info.default_database
+    }
+
   def query_block(db: Solr.Database, id: String): Option[Block] = {
     val q = Solr.filter(Find_Facts.private_data.Fields.id, Solr.phrase(id))
     Find_Facts.private_data.read_blocks(db, q, Nil).blocks.headOption
@@ -604,6 +621,7 @@ object Find_Facts {
     afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
     clean: Boolean = false,
+    browser_info: Boolean = true,
     progress: Progress = new Progress
   ): Unit = {
     val store = Store(options)
@@ -619,43 +637,58 @@ object Find_Facts {
 
     if (sessions.isEmpty) progress.echo("Nothing to index")
     else {
-      val start_date = Date.now()
-      val stats =
-        using(solr.init_database(database, Find_Facts.private_data, clean = clean)) { db =>
-          using(Export.open_database_context(store)) { database_context =>
-            val document_info = Document_Info.read(database_context, deps, sessions)
+      Isabelle_System.with_tmp_dir("browser_info") { root_dir =>
+        val start_date = Date.now()
+        val props = meta_info(if (browser_info) Some(Path.basic("browser_info.db")) else None)
+        val stats =
+          using(solr.init_database(database, Find_Facts.private_data, props, clean = clean)) { db =>
+            using(Export.open_database_context(store)) { database_context =>
+              val document_info = Document_Info.read(database_context, deps, sessions)
+              val context1 =
+                Browser_Info.context(session_structure, root_dir = root_dir,
+                  document_info = document_info)
+              if (browser_info) context1.update_root()
 
-            def index_session(session_name: String): Unit = {
-              using(database_context.open_session0(session_name)) { session_context =>
-                val info = session_structure(session_name)
-                progress.echo("Session " + info.chapter + "/" + session_name + " ...")
+              def index_session(session_name: String): Unit = {
+                val background =
+                  if (browser_info) deps.background(session_name)
+                  else Sessions.background0(session_name)
+                using(database_context.open_session(background)) { session_context =>
+                  val info = session_structure(session_name)
+                  progress.echo("Session " + info.chapter + "/" + session_name + " ...")
 
-                Find_Facts.private_data.delete_session(db, session_name)
-                deps(session_name).proper_session_theories.foreach { name =>
-                  val theory_context = session_context.theory(name.theory)
-                  Build.read_theory(theory_context) match {
-                    case None => progress.echo_warning("No snapshot for theory " + name.theory)
-                    case Some(snapshot) =>
-                      progress.echo("Indexing theory " + quote(name.theory), verbose = true)
-                      val blocks =
-                        make_thy_blocks(options, session, context, document_info, theory_context,
-                          snapshot, info.chapter)
-                      Find_Facts.private_data.update_theory(db, theory_context.theory, blocks)
+                  if (browser_info) Browser_Info.build_session(context1, session_context)
+
+                  Find_Facts.private_data.delete_session(db, session_name)
+                  deps(session_name).proper_session_theories.foreach { name =>
+                    val theory_context = session_context.theory(name.theory)
+                    Build.read_theory(theory_context) match {
+                      case None => progress.echo_warning("No snapshot for theory " + name.theory)
+                      case Some(snapshot) =>
+                        progress.echo("Indexing theory " + quote(name.theory), verbose = true)
+                        val blocks =
+                          make_thy_blocks(options, session, context, document_info, theory_context,
+                            snapshot, info.chapter)
+                        Find_Facts.private_data.update_theory(db, theory_context.theory, blocks)
+                    }
                   }
                 }
               }
+
+              Par_List.map(index_session, sessions)
+
+              if (browser_info)
+                Browser_Info.make_database(db.dir + Path.basic("browser_info.db"), root_dir)
             }
 
-            Par_List.map(index_session, sessions)
+            val query = Query(Field_Filter(Field.session, sessions.map(Atom.Exact(_))))
+            Find_Facts.query_stats(db, query)
           }
 
-          val query = Query(Field_Filter(Field.session, sessions.map(Atom.Exact(_))))
-          Find_Facts.query_stats(db, query)
-        }
-
-      val timing = Date.now() - start_date
-      progress.echo("Indexed " + stats.results + " blocks with " + stats.consts + " consts, " +
-        stats.typs + " typs, " + stats.thms + " thms in " + timing.message)
+        val timing = Date.now() - start_date
+        progress.echo("Indexed " + stats.results + " blocks with " + stats.consts + " consts, " +
+          stats.typs + " typs, " + stats.thms + " thms in " + timing.message)
+      }
     }
   }
 
