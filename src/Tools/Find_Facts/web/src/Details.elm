@@ -55,4 +55,4 @@ view (Model model) =
         h2 [Typography.headline4] [text "Details"],
         h3 [Typography.headline6]
           [text "In ", a [href url] [text theory], text (" (" ++ block.file ++ ")")],
-        Utils.view_code code start_before]
+        Utils.view_code code start_before Nothing]

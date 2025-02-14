@@ -51,13 +51,26 @@ view_html html =
     Ok nodes -> span [] (Html.Parser.Util.toVirtualDom nodes)
     _ -> text (String.stripTags html)
 
-view_code: String -> Int -> Html msg
-view_code src start =
+view_code: String -> Int -> Maybe Int -> Html msg
+view_code src start max_lines =
   let
     view_line i line =
       "<div style=\"width:5ch; color:gray; text-align:right; display:inline-block\">" ++ (String.fromInt (start + i)) ++ "</div>  " ++ line
-    src1 = split_lines src |> List.indexedMap view_line |> String.join "\n"
-  in Html.pre [class "source"] [view_html src1]
+    lines = split_lines src
+    fade = """
+linear-gradient(
+  to bottom,
+  rgba(0,0,0, 1) 0,
+  rgba(0,0,0, 1) 80%,
+  rgba(0,0,0, 0) 95%,
+  rgba(0,0,0, 0) 0)
+100% 50% / 100% 100% repeat-x
+    """
+    limit f =
+      max_lines
+      |> Maybe.filter ((>) (List.length lines)) |> Maybe.map f |> Maybe.withDefault identity
+    src1 = lines |> limit List.take |> List.indexedMap view_line |> String.join "\n"
+  in Html.pre (limit (always ((::) (style "mask" fade))) [class "source"]) [view_html src1]
 
 
 outside_elem: String -> Decode.Decoder Bool

@@ -78,7 +78,7 @@ view_block block =
          (LayoutGrid.layoutGrid [LayoutGrid.alignLeft, style "width" "100%"] [
            div [Typography.caption, style "margin-bottom" "8px"]
              [text (block.session ++ "/" ++ block.file_name)],
-           Utils.view_code block.html block.start_line]),
+           Utils.view_code block.html block.start_line (Just 34)]),
        [])}
 
 view_results blocks is_loading =
