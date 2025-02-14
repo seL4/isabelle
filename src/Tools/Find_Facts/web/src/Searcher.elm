@@ -271,16 +271,13 @@ view_menu counts value =
 isabelle_icon_button s =
   IconButton.customIcon
     Html.i
-    [class "material-icons", style "vertical-align" "top",
-      style "font-family" "\"Isabelle DejaVu Sans Mono\", monospace", style "font-size" "math"]
+    [class "material-icons", style "vertical-align" "top", Utils.isabelle_font,
+     style "font-size" "math"]
     [Html.text s]
 
 isabelle_icon_textfield s =
   TextFieldIcon.customIcon
-    Html.i
-    [class "material-icons", style "font-family" "\"Isabelle DejaVu Sans Mono\", monospace",
-      style "font-size" "larger"]
-    [Html.text s]
+    Html.i [class "material-icons", Utils.isabelle_font, style "font-size" "larger"] [Html.text s]
 
 view_filter: Maybe String -> Dict String Int -> (Int, Filter) -> Html Msg
 view_filter search0 counts (i, filter) =

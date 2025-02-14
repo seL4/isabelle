@@ -81,3 +81,6 @@ outside_elem name =
       Decode.field "name" Decode.string |> Decode.andThen decode_name,
       Decode.lazy (\_ -> outside_elem name |> Decode.field "parentNode"),
       Decode.succeed True]
+
+isabelle_font : Attribute msg
+isabelle_font = style "font-family" "\"Isabelle DejaVu Sans Mono\", monospace"
