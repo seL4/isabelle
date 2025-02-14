@@ -504,7 +504,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             other_isabelle.bash("bin/isabelle sessions -a " + opt_dirs).check.out_lines
           other_isabelle.bash(
             "bin/isabelle find_facts_index -o find_facts_database_name=" +
-              Bash.string(database_name) + " -n " + opt_dirs +
+              Bash.string(database_name) + " -n -N " + opt_dirs +
               Bash.strings(sessions), echo = true).check
           Isabelle_System.make_directory(database_target_dir)
           Isabelle_System.copy_dir(database_dir, database_target_dir, direct = true)
