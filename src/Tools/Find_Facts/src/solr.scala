@@ -54,7 +54,7 @@ object Solr {
   def term(b: Boolean): Source = b.toString
   def term(i: Int): Source = i.toString
   def term(s: String): Source =
-    "(\\s+)".r.replaceAllIn(escape(s, special), ws => "\\\\" + ws.matched)
+    "(\\s)".r.replaceAllIn(escape(s, special), ws => "\\\\" + ws.matched)
 
   def range(from: Int, to: Int): Source = "[" + from + " TO " + to + "]"
   def phrase(s: String): Source = quote(escape(s, special))
