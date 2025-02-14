@@ -389,11 +389,11 @@ object Solr {
         if (cores.contains(database)) server.getCoreContainer.reload(database)
         else server.getCoreContainer.create(database, Map.empty.asJava)
   
-        new Database(props, server)
+        new Database(props, database_dir(database), server)
       }
   }
 
-  class Database private[Solr](val props: Properties.T, solr: EmbeddedSolrServer)
+  class Database private[Solr](val props: Properties.T, val dir: Path, solr: EmbeddedSolrServer)
     extends AutoCloseable {
     override def close(): Unit = solr.close()
 
