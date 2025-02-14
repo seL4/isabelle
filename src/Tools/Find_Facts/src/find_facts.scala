@@ -602,13 +602,13 @@ object Find_Facts {
     isabelle_home: Path = Path.current,
     options: List[Options.Spec] = Nil,
     dirs: List[Path] = Nil,
-    clean: Boolean = false,
+    browser_info: Boolean = true,
     no_build: Boolean = false,
     verbose: Boolean = false,
   ): String = {
     ssh.bash_path(Isabelle_Tool.exe(isabelle_home)) + " find_facts_index" +
       dirs.map(dir => " -d " + ssh.bash_path(dir)).mkString +
-      if_proper(clean, " -c") +
+      if_proper(!browser_info, " -N") +
       if_proper(no_build, " -n") +
       if_proper(verbose, " -v") +
       Options.Spec.bash_strings(options, bg = true) +
@@ -620,7 +620,6 @@ object Find_Facts {
     sessions: List[String],
     afp_root: Option[Path] = None,
     dirs: List[Path] = Nil,
-    clean: Boolean = false,
     browser_info: Boolean = true,
     progress: Progress = new Progress
   ): Unit = {
@@ -641,7 +640,7 @@ object Find_Facts {
         val start_date = Date.now()
         val props = meta_info(if (browser_info) Some(Path.basic("browser_info.db")) else None)
         val stats =
-          using(solr.init_database(database, Find_Facts.private_data, props, clean = clean)) { db =>
+          using(solr.init_database(database, Find_Facts.private_data, props, clean = true)) { db =>
             using(Export.open_database_context(store)) { database_context =>
               val document_info = Document_Info.read(database_context, deps, sessions)
               val context1 =
@@ -698,7 +697,7 @@ object Find_Facts {
   def main_tool1(args: Array[String]): Unit = {
     Command_Line.tool {
       var afp_root: Option[Path] = None
-      var clean = false
+      var browser_info = true
       val dirs_buffer = new mutable.ListBuffer[Path]
       var no_build = false
       var options = Options.init()
@@ -709,7 +708,7 @@ object Find_Facts {
 
     Options are:
       -A ROOT      include AFP with given root directory (":" for """ + AFP.BASE.implode + """)
-      -c           clean previous index
+      -N           no html presentation -- use """ + Browser_Info.default_database.implode + """
       -d DIR       include session directory
       -n           no build -- take existing session build databases
       -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -718,7 +717,7 @@ object Find_Facts {
     Build and index sessions for Find_Facts.
   """,
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
-        "c" -> (_ => clean = true),
+        "N" -> (_ => browser_info = false),
         "d:" -> (arg => dirs_buffer += Path.explode(arg)),
         "n" -> (_ => no_build = true),
         "o:" -> (arg => options = options + arg),
@@ -752,8 +751,8 @@ object Find_Facts {
 
       /* index */
 
-      find_facts_index(options, sessions, dirs = dirs, afp_root = afp_root, clean = clean,
-        progress = progress)
+      find_facts_index(options, sessions, dirs = dirs, afp_root = afp_root,
+        browser_info = browser_info, progress = progress)
     }
   }
 
