@@ -142,7 +142,9 @@ object Find_Facts {
         if !Special_Char.matches(symbol) && !Arrow.matches(symbol)
       } yield symbol + " => " + code
 
-    override lazy val more_config = Map(Path.basic("synonyms.txt") -> synonyms.mkString("\n"))
+    override lazy val more_config =
+      Map(Path.basic("synonyms.txt") ->
+        Solr.escape(synonyms.mkString("\n"), Solr.special -- Solr.wildcard_char.map(_.toString)))
 
     object Types {
       private val strip_html = Solr.Class("charFilter", "HTMLStripCharFilterFactory")
