@@ -19,7 +19,7 @@ defs =
   view_def "Wildcards" "consist of ?/* inside a term and match a single/arbitrary many characters." ++
   view_def "Phrases" "are delimited by \" quotes and match a term sequence (no wildcards) exactly." ++
   view_def "Main search bar" "will look for any of your terms in source code and names." ++
-  view_def "Filters" "allow you to exclude/include (click on the checkmark) specific properties." ++
+  view_def "Filters" "allow you to exclude/include (click on the symbol) specific properties." ++
   view_def "Drill-down" "allows you to multi-select once your result set is small enough."
 
 view: Html Never
