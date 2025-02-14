@@ -629,10 +629,10 @@ object Find_Facts {
     val session = Session(options, Resources.bootstrap)
 
     val selection = Sessions.Selection(sessions = sessions)
-    val session_structure =
+    val sessions_structure =
       Sessions.load_structure(options, dirs = AFP.main_dirs(afp_root) ::: dirs).selection(selection)
-    val deps = Sessions.Deps.load(session_structure)
-    val context = Browser_Info.context(session_structure)
+    val deps = Sessions.Deps.load(sessions_structure)
+    val context = Browser_Info.context(sessions_structure)
 
     if (sessions.isEmpty) progress.echo("Nothing to index")
     else {
@@ -644,7 +644,7 @@ object Find_Facts {
             using(Export.open_database_context(store)) { database_context =>
               val document_info = Document_Info.read(database_context, deps, sessions)
               val context1 =
-                Browser_Info.context(session_structure, root_dir = root_dir,
+                Browser_Info.context(sessions_structure, root_dir = root_dir,
                   document_info = document_info)
               if (browser_info) context1.update_root()
 
@@ -653,7 +653,7 @@ object Find_Facts {
                   if (browser_info) deps.background(session_name)
                   else Sessions.background0(session_name)
                 using(database_context.open_session(background)) { session_context =>
-                  val info = session_structure(session_name)
+                  val info = sessions_structure(session_name)
                   progress.echo("Session " + info.chapter + "/" + session_name + " ...")
 
                   if (browser_info) Browser_Info.build_session(context1, session_context)
