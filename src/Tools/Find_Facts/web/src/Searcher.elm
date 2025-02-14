@@ -277,7 +277,11 @@ isabelle_icon_button s =
 
 isabelle_icon_textfield s =
   TextFieldIcon.customIcon
-    Html.i [class "material-icons", Utils.isabelle_font, style "font-size" "larger"] [Html.text s]
+    Html.i [class "material-icons"] [Html.button
+      [style "padding" "0 0 0 0", style "border" "0", style "border-radius" "50%",
+       style "width" "1.35em", style "height" "1.35em", Utils.isabelle_font,
+       style "font-size" "larger"]
+      [Html.text s]]
 
 view_filter: Maybe String -> Dict String Int -> (Int, Filter) -> Html Msg
 view_filter search0 counts (i, filter) =
@@ -362,7 +366,7 @@ view (Model model) =
         [style "width" "100%", style "background-color" "white", style "margin-bottom" "16px"]
       |> TextField.setValue (Just model.search.any_filter)
       |> TextField.setOnInput Input_Any),
-      h3 [Typography.headline6] [text "Filters"]] ++ (
+      h3 [Typography.headline6] [text "Filters", span [Utils.isabelle_font] [text " (∩)"]]] ++ (
       Array.toIndexedList model.search.filters
       |> List.map view_filter1) ++
     [view_add_filter] ++ (
