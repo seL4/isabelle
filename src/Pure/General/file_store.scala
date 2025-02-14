@@ -92,7 +92,7 @@ object File_Store {
     compressed: Boolean,
     body: Bytes
   ) {
-    require(name.nonEmpty && size >= 0 && (size > 0 || compressed))
+    require(name.nonEmpty && size >= 0 && (size > 0 || !compressed))
 
     def content(compress_cache: Compress.Cache = Compress.Cache.none): Bytes =
       if (compressed) body.uncompress(cache = compress_cache) else body
