@@ -523,7 +523,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
         if (include_library) {
           Browser_Info.make_database(
             other_isabelle.expand_path(Browser_Info.default_database),
-            other_isabelle.expand_path(Browser_Info.default_dir))
+            other_isabelle.expand_path(Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")))
         }
       }
 

@@ -79,20 +79,22 @@ object File_Store {
       val name = Url.append_path(name_prefix, path.expand.implode)
       val bs = Bytes.read(dir + path)
       val size = bs.size
+      val digest = SHA1.digest(bs).toString
       val executable = File.is_executable(dir + path)
       val (compressed, body) = bs.maybe_compress(options = compress_options, cache = compress_cache)
-      Entry(name, size, executable, compressed, body)
+      Entry(name, size, digest, executable, compressed, body)
     }
   }
 
   sealed case class Entry(
     name: String,
     size: Long,
+    digest: String,
     executable: Boolean,
     compressed: Boolean,
     body: Bytes
   ) {
-    require(name.nonEmpty && size >= 0 && (size > 0 || compressed))
+    require(name.nonEmpty && size >= 0 && (size > 0 || !compressed))
 
     def content(compress_cache: Compress.Cache = Compress.Cache.none): Bytes =
       if (compressed) body.uncompress(cache = compress_cache) else body
@@ -113,11 +115,13 @@ object File_Store {
     object Base {
       val name = SQL.Column.string("name").make_primary_key
       val size = SQL.Column.long("size")
+      val digest = SQL.Column.string("digest")
       val executable = SQL.Column.bool("executable")
       val compressed = SQL.Column.bool("compressed")
       val body = SQL.Column.bytes("body")
 
-      val table = SQL.Table("isabelle_file_store", List(name, size, executable, compressed, body))
+      val table =
+        SQL.Table("isabelle_file_store", List(name, size, digest, executable, compressed, body))
     }
 
     def read_names(db: SQL.Database): List[String] =
@@ -128,23 +132,24 @@ object File_Store {
 
     def read_entry(db: SQL.Database, name: String): Option[Entry] =
       db.execute_query_statementO[Entry](
-        Base.table.select(List(Base.size, Base.executable, Base.compressed, Base.body),
-          sql = Base.name.where_equal(name)),
+        Base.table.select(Base.table.columns, sql = Base.name.where_equal(name)),
         { res =>
           val size = res.long(Base.size)
+          val digest = proper_string(res.string(Base.digest)).getOrElse(SHA1.digest_empty.toString)
           val executable = res.bool(Base.executable)
           val compressed = res.bool(Base.compressed)
           val body = res.bytes(Base.body)
-          Entry(name, size, executable, compressed, body)
+          Entry(name, size, digest, executable, compressed, body)
         })
 
     def write_entry(db: SQL.Database, entry: Entry): Unit =
       db.execute_statement(Base.table.insert(), body = { stmt =>
         stmt.string(1) = entry.name
         stmt.long(2) = entry.size
-        stmt.bool(3) = entry.executable
-        stmt.bool(4) = entry.compressed
-        stmt.bytes(5) = entry.body
+        stmt.string(3) = if (entry.digest == SHA1.digest_empty.toString) None else Some(entry.digest)
+        stmt.bool(4) = entry.executable
+        stmt.bool(5) = entry.compressed
+        stmt.bytes(6) = entry.body
       })
   }
 }
