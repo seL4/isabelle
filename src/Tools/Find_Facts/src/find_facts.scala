@@ -473,7 +473,7 @@ object Find_Facts {
   def make_thy_blocks(
     options: Options,
     session: Session,
-    browser_info_context: Browser_Info.Context,
+    context: Browser_Info.Context,
     document_info: Document_Info,
     theory_context: Export.Theory_Context,
     snapshot: Document.Snapshot,
@@ -486,7 +486,7 @@ object Find_Facts {
     val theory_info =
       document_info.theory_by_name(session_name, theory).getOrElse(
         error("No info for theory " + theory))
-    val thy_dir = browser_info_context.theory_dir(theory_info)
+    val thy_dir = context.theory_dir(theory_info)
 
     def make_node_blocks(
       snapshot: Document.Snapshot,
@@ -494,7 +494,7 @@ object Find_Facts {
     ): List[Block] = {
       val version = snapshot.version.id
       val file = Path.explode(snapshot.node_name.node).squash.implode
-      val url_path = thy_dir + browser_info_context.smart_html(theory_info, snapshot.node_name.node)
+      val url_path = thy_dir + context.smart_html(theory_info, snapshot.node_name.node)
 
       val elements =
         Browser_Info.Elements(html = Browser_Info.default_elements.html - Markup.ENTITY)
@@ -615,7 +615,7 @@ object Find_Facts {
     val session_structure =
       Sessions.load_structure(options, dirs = AFP.main_dirs(afp_root) ::: dirs).selection(selection)
     val deps = Sessions.Deps.load(session_structure)
-    val browser_info_context = Browser_Info.context(session_structure)
+    val context = Browser_Info.context(session_structure)
 
     if (sessions.isEmpty) progress.echo("Nothing to index")
     else {
@@ -638,8 +638,8 @@ object Find_Facts {
                     case Some(snapshot) =>
                       progress.echo("Indexing theory " + quote(name.theory), verbose = true)
                       val blocks =
-                        make_thy_blocks(options, session, browser_info_context, document_info,
-                          theory_context, snapshot, info.chapter)
+                        make_thy_blocks(options, session, context, document_info, theory_context,
+                          snapshot, info.chapter)
                       Find_Facts.private_data.update_theory(db, theory_context.theory, blocks)
                   }
                 }
