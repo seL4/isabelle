@@ -865,14 +865,9 @@ object Find_Facts {
 
   case class Result(blocks: Blocks, facets: Facets)
 
-  class Encode(options: Options) {
-    val library_base_url = Url(options.string("find_facts_url_library"))
-    val afp_base_url = Url(options.string("find_facts_url_afp"))
-
-    def url(block: Block): Url = {
-      val base_url = if (block.chapter == AFP.chapter) afp_base_url else library_base_url
-      base_url.resolve(block.url_path.implode)
-    }
+  object Encode {
+    def print_url(block: Block): String = 
+      HTTP.Browser_Info_Service.name + "/" + block.url_path.implode
 
     def block(block: Block): JSON.T =
       JSON.Object(
@@ -882,7 +877,7 @@ object Find_Facts {
         "theory" -> block.theory,
         "file" -> block.file,
         "file_name" -> block.file_name,
-        "url" -> url(block).toString,
+        "url" -> print_url(block),
         "command" -> block.command,
         "start_line" -> block.start_line,
         "src_before" -> block.src_before,
@@ -983,7 +978,6 @@ object Find_Facts {
     progress: Progress = new Progress
   ): Unit = {
     val database = options.string("find_facts_database_name")
-    val encode = new Encode(options)
 
     def rebuild(): String = {
       build_html(default_web_dir + web_html, progress = progress)
@@ -1008,6 +1002,7 @@ object Find_Facts {
         HTTP.server(port, name = "", services = List(
           HTTP.Fonts_Service,
           HTTP.CSS_Service,
+          HTTP.Browser_Info(database = browser_info_database(db)),
           new HTTP.Service("find_facts") {
             def apply(request: HTTP.Request): Option[HTTP.Response] =
               if (request.toplevel) Some(HTTP.Response.html(if (devel) rebuild() else html))
@@ -1023,19 +1018,19 @@ object Find_Facts {
               for {
                 request <- Parse.query_block(body)
                 block <- query_block(db, request)
-              } yield encode.block(block)
+              } yield Encode.block(block)
           },
           new HTTP.REST_Service("api/blocks", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
               for (request <- Parse.query_blocks(body))
-              yield encode.blocks(query_blocks(db, request.query, Some(request.cursor)))
+              yield Encode.blocks(query_blocks(db, request.query, Some(request.cursor)))
           },
           new HTTP.REST_Service("api/query", progress = progress) {
             def handle(body: JSON.T): Option[JSON.T] =
               for (query <- Parse.query(body)) yield {
                 val facet = query_facet(db, query)
                 val blocks = query_blocks(db, query)
-                encode.result(Result(blocks, facet))
+                Encode.result(Result(blocks, facet))
               }
           }))
 
