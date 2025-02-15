@@ -68,6 +68,8 @@ object VSCode_Main {
       Bash.strings(electron :: args0 ::: args) +
         (if (background) " > /dev/null 2> /dev/null &" else "")
 
+    progress.bash(Bash.strings(List(electron, "-v"))).check
+
     progress.bash(script, env = env, echo = true)
   }
 
@@ -244,8 +246,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
         else install_extension(vsix_path = vsix_path, progress = console_progress)
 
         val (background, app_progress) =
-          if (console) (false, console_progress)
-          else { run_vscodium(List("--version")).check; (true, new Progress) }
+          if (console) (false, console_progress) else (true, new Progress)
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
