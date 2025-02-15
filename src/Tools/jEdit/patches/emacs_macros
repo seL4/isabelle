@@ -1,0 +1,66 @@
+diff -ru jedit5.7.0/jEdit/macros/Emacs/Emacs_Insert_File.bsh jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Insert_File.bsh
+--- jedit5.7.0/jEdit/macros/Emacs/Emacs_Insert_File.bsh	2024-08-03 19:53:28.000000000 +0200
++++ jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Insert_File.bsh	2025-02-14 13:36:18.460665938 +0100
+@@ -14,7 +14,7 @@
+     else
+         path = dirname (path);
+     result = GUIUtilities.showVFSFileDialog(view, path, VFSBrowser.OPEN_DIALOG, false);
+-    if (result != null)
++    if (result.length > 0)
+         buffer.insertFile (view, result[0]);
+ }
+ 
+diff -ru jedit5.7.0/jEdit/macros/Emacs/Emacs_Next_Line.bsh jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Next_Line.bsh
+--- jedit5.7.0/jEdit/macros/Emacs/Emacs_Next_Line.bsh	2024-08-03 19:53:28.000000000 +0200
++++ jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Next_Line.bsh	2025-02-14 13:39:47.045930441 +0100
+@@ -12,16 +12,13 @@
+ 
+ void emacsNextLine(View view){
+ 
+-	// need access to textArea.lastLinePartial
+-	setAccessibility(true);
+-
+ 	int first = textArea.getFirstLine();
+ 	int caretLine = textArea.getScreenLineOfOffset(textArea.getCaretPosition());
+ 	int visibleLines = textArea.getVisibleLines();
+ 	int electricScroll = textArea.getElectricScroll();
+ 
+ 	if(caretLine != -1 && caretLine+1 >= 
+-			(visibleLines - (electricScroll + (textArea.lastLinePartial ? 1 : 0))))
++			(visibleLines - (electricScroll + (textArea.isLastLinePartial() ? 1 : 0))))
+ 	{
+ 		int newFirst = (first + (visibleLines - electricScroll) / 2);
+ 		textArea.setFirstLine(newFirst);
+diff -ru jedit5.7.0/jEdit/macros/Emacs/Emacs_Previous_Line.bsh jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Previous_Line.bsh
+--- jedit5.7.0/jEdit/macros/Emacs/Emacs_Previous_Line.bsh	2024-08-03 19:53:28.000000000 +0200
++++ jedit5.7.0-patched/jEdit/macros/Emacs/Emacs_Previous_Line.bsh	2025-02-14 13:40:14.798441955 +0100
+@@ -12,9 +12,6 @@
+ 
+ void emacsPreviousLine(View view){
+ 
+-	// need access to textArea.lastLinePartial
+-	setAccessibility(true);
+-
+ 	int first = textArea.getFirstLine();
+ 	int caretLine = textArea.getScreenLineOfOffset(textArea.getCaretPosition());
+ 	int visibleLines = textArea.getVisibleLines();
+diff -ru jedit5.7.0/jEdit/macros/Emacs/EmacsUtil.bsh jedit5.7.0-patched/jEdit/macros/Emacs/EmacsUtil.bsh
+--- jedit5.7.0/jEdit/macros/Emacs/EmacsUtil.bsh	2024-08-03 19:53:28.000000000 +0200
++++ jedit5.7.0-patched/jEdit/macros/Emacs/EmacsUtil.bsh	2025-02-14 13:41:40.315946858 +0100
+@@ -31,6 +31,7 @@
+         buf.append (c);
+         if (c == '\n')
+             break;
++        i++;
+     }
+     
+     return buf.toString();
+@@ -266,6 +267,8 @@
+ int findBeginningOfSentence()
+ {
+     caret = textArea.getCaretPosition() - 1;
++    if (caret < 0)
++        caret = 0;
+     if (charAt (caret) == '.')
+         caret--;
+ 

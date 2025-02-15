@@ -62,6 +62,14 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pat
  		int count = 1;
  		char openBracket = '\0';
  		char closeBracket = '\0';
+@@ -4983,6 +4988,7 @@
+ 	final Point offsetXY;
+ 
+ 	boolean lastLinePartial;
++	public boolean isLastLinePartial() { return lastLinePartial; }
+ 
+ 	boolean blink;
+ 	//}}}
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-08-03 19:53:20.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-10-29 11:50:54.066016546 +0100
