@@ -121,6 +121,7 @@ object Component_JEdit {
 
     val jedit_dir = Isabelle_System.make_directory(component_path + Path.basic(jedit))
     val jedit_patched_dir = component_path + Path.basic(jedit_patched)
+    val source_dir = jedit_patched_dir + Path.basic("jEdit")
 
     def download_jedit(dir: Path, name: String, target_name: String = ""): Path = {
       val jedit_name = jedit + name
@@ -149,7 +150,6 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       Isabelle_System.copy_dir(jedit_dir, jedit_patched_dir)
 
-      val source_dir = jedit_patched_dir + Path.basic("jEdit")
       val source_org_dir = source_dir + Path.basic("org")
       val tmp_source_dir = tmp_dir + Path.basic("jEdit")
 
@@ -216,7 +216,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
     val drop_encodings =
       Charset.availableCharsets().keySet().asScala.toList.sorted.filterNot(keep_encodings.contains)
 
-    File.write(jedit_patched_dir + Path.explode("properties/jEdit.props"),
+    File.write(source_dir + Path.explode("properties/jEdit.props"),
 """#jEdit properties
 autoReloadDialog=false
 buffer.deepIndent=false
@@ -412,7 +412,7 @@ view.width=1200
 xml-insert-closing-tag.shortcut=
 """)
 
-    val modes_dir = jedit_patched_dir + Path.basic("modes")
+    val modes_dir = source_dir + Path.basic("modes")
 
     Mode.list.foreach(_.write(modes_dir))
 
@@ -441,6 +441,12 @@ xml-insert-closing-tag.shortcut=
           line)
       }
       else List(line))
+    }
+
+    for (name <- List("keymaps", "macros", "modes", "properties", "startup")) {
+      val path = Path.explode(name)
+      Isabelle_System.rm_tree(jedit_patched_dir + path)
+      Isabelle_System.copy_dir(source_dir + path, jedit_patched_dir)
     }
 
 
