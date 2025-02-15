@@ -2,3 +2,7 @@
 
 ISABELLE_JEDIT_OPTIONS=""
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+
+JEDIT_OPTIONS="-reuseview -nobackground -nosplash -log=9"
+JEDIT_JAVA_OPTIONS="-Xms512m -Xmx4g -Xss16m"
+JEDIT_JAVA_SYSTEM_OPTIONS="-Dsun.java2d.metal=false -Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"

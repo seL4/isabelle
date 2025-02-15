@@ -486,9 +486,6 @@ JEDIT_JAR="$JEDIT_HOME/jedit.jar"
 classpath "$JEDIT_JAR"
 
 JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
-JEDIT_OPTIONS="-reuseview -nobackground -nosplash -log=9"
-JEDIT_JAVA_OPTIONS="-Xms512m -Xmx4g -Xss16m"
-JEDIT_JAVA_SYSTEM_OPTIONS="-Dsun.java2d.metal=false -Duser.language=en -Dawt.useSystemAAFontSettings=on -Dswing.aatext=true -Dapple.laf.useScreenMenuBar=true -Dapple.awt.application.name=Isabelle"
 
 ISABELLE_DOCS="$ISABELLE_DOCS:$JEDIT_HOME/doc"
 """)
