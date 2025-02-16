@@ -127,13 +127,18 @@ proof -
 qed
 
 lemma le_degree: "coeff p n \<noteq> 0 \<Longrightarrow> n \<le> degree p"
-  by (erule contrapos_np, rule coeff_eq_0, simp)
+  using coeff_eq_0 linorder_le_less_linear by blast
 
 lemma degree_le: "\<forall>i>n. coeff p i = 0 \<Longrightarrow> degree p \<le> n"
   unfolding degree_def by (erule Least_le)
 
 lemma less_degree_imp: "n < degree p \<Longrightarrow> \<exists>i>n. coeff p i \<noteq> 0"
   unfolding degree_def by (drule not_less_Least, simp)
+
+lemma poly_eqI2:
+  assumes "degree p = degree q" and "\<And>i. i \<le> degree p \<Longrightarrow> coeff p i = coeff q i"
+  shows "p = q"
+  by (metis assms le_degree poly_eqI)
 
 
 subsection \<open>The zero polynomial\<close>
@@ -356,6 +361,36 @@ translations
   "[:x, xs:]" \<rightleftharpoons> "CONST pCons x [:xs:]"
   "[:x:]" \<rightleftharpoons> "CONST pCons x 0"
 
+lemma degree_0_id: 
+  assumes "degree p = 0"
+  shows "[: coeff p 0 :] = p"
+  by (metis assms coeff_pCons_0 degree_eq_zeroE) 
+
+lemma degree0_coeffs: "degree p = 0 \<Longrightarrow> \<exists> a. p = [: a :]"
+  by (meson degree_eq_zeroE)
+
+lemma degree1_coeffs:
+  fixes p :: "'a::zero poly"
+  assumes "degree p = 1"
+  obtains a b where "p = [: b, a :]" "a \<noteq> 0"
+proof -
+  obtain b a q where "p = pCons b q" "q = pCons a 0"
+    by (metis assms degree0_coeffs degree_0 degree_pCons_eq_if lessI less_one pCons_cases)
+  then show thesis
+    using assms that by force
+qed
+
+lemma degree2_coeffs:
+  fixes p :: "'a::zero poly"
+  assumes "degree p = 2"
+  obtains a b c where "p = [: c, b, a :]" "a \<noteq> 0"
+proof -
+  obtain c q where "p = pCons c q" "degree q = 1"
+    by (metis One_nat_def assms degree_0 degree_pCons_eq_if fact_0 fact_2 nat.inject numeral_2_eq_2 pCons_cases)
+  then show thesis
+    by (metis degree1_coeffs that)
+qed
+
 
 subsection \<open>Representation of polynomials by lists of coefficients\<close>
 
@@ -455,7 +490,10 @@ next
 qed
 
 lemma nth_default_coeffs_eq: "nth_default 0 (coeffs p) = coeff p"
-  by (simp add: fun_eq_iff coeff_Poly_eq [symmetric])
+  by (metis Poly_coeffs coeff_Poly_eq)
+
+lemma range_coeff: "range (coeff p) = insert 0 (set (coeffs p))" 
+  by (metis nth_default_coeffs_eq range_nth_default)
 
 lemma [code]: "coeff p = nth_default 0 (coeffs p)"
   by (simp add: nth_default_coeffs_eq)
@@ -591,6 +629,16 @@ qed
 
 lemma poly_0_coeff_0: "poly p 0 = coeff p 0"
   by (cases p) (auto simp: poly_altdef)
+
+lemma poly_zero:
+  fixes p :: "'a :: comm_ring_1 poly"
+  assumes x: "poly p x = 0" shows "p = 0 \<longleftrightarrow> degree p = 0"
+proof
+  assume degp: "degree p = 0"
+  hence "poly p x = coeff p (degree p)" by(subst degree_0_id[OF degp,symmetric], simp)
+  hence "coeff p (degree p) = 0" using x by auto
+  thus "p = 0" by auto
+qed auto
 
 
 subsection \<open>Monomials\<close>
@@ -1132,6 +1180,12 @@ lemma smult_one [simp]:
   "smult c 1 = [:c:]"
   by (simp add: one_pCons)
 
+lemma smult_sum: "smult (\<Sum>i \<in> S. f i) p = (\<Sum>i \<in> S. smult (f i) p)"
+  by (induct S rule: infinite_finite_induct, auto simp: smult_add_left)
+
+lemma smult_power: "(smult a p) ^ n = smult (a ^ n) (p ^ n)"
+  by (induct n, auto simp: field_simps)
+
 lemma monom_eq_1 [simp]:
   "monom 1 0 = 1"
   by (simp add: monom_0 one_pCons)
@@ -1143,6 +1197,21 @@ lemma monom_eq_1_iff:
 lemma monom_altdef:
   "monom c n = smult c ([:0, 1:] ^ n)"
   by (induct n) (simp_all add: monom_0 monom_Suc)
+
+lemma degree_sum_list_le: "(\<And> p . p \<in> set ps \<Longrightarrow> degree p \<le> n)
+  \<Longrightarrow> degree (sum_list ps) \<le> n"
+proof (induct ps)
+  case (Cons p ps)
+  hence "degree (sum_list ps) \<le> n" "degree p \<le> n" by auto
+  thus ?case unfolding sum_list.Cons by (metis degree_add_le)
+qed simp
+
+lemma degree_prod_list_le: "degree (prod_list ps) \<le> sum_list (map degree ps)"
+proof (induct ps)
+  case (Cons p ps)
+  show ?case unfolding prod_list.Cons
+    by (rule order.trans[OF degree_mult_le], insert Cons, auto)
+qed simp
 
 instance poly :: ("{comm_semiring_1,semiring_1_no_zero_divisors}") semiring_1_no_zero_divisors ..
 instance poly :: (comm_ring) comm_ring ..
@@ -1208,6 +1277,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma coeff_monom_Suc: "coeff (monom a (Suc d) * p) (Suc i) = coeff (monom a d * p) i"
+  by (simp add: monom_Suc)
+
 lemma monom_1_dvd_iff': "monom 1 n dvd p \<longleftrightarrow> (\<forall>k<n. coeff p k = 0)"
 proof
   assume "monom 1 n dvd p"
@@ -1228,6 +1300,18 @@ next
   then show "monom 1 n dvd p" by simp
 qed
 
+lemma coeff_sum_monom:
+  assumes n: "n \<le> d"
+  shows "coeff (\<Sum>i\<le>d. monom (f i) i) n = f n" (is "?l = _")
+proof -
+  have "?l = (\<Sum>i\<le>d. coeff (monom (f i) i) n)" (is "_ = sum ?cmf _")
+    using coeff_sum.
+  also have "{..d} = insert n ({..d}-{n})" using n by auto
+    hence "sum ?cmf {..d} = sum ?cmf ..." by auto
+  also have "... = sum ?cmf ({..d}-{n}) + ?cmf n" by (subst sum.insert,auto)
+  also have "sum ?cmf ({..d}-{n}) = 0" by (subst sum.neutral, auto)
+  finally show ?thesis by simp
+qed
 
 subsection \<open>Mapping polynomials\<close>
 
@@ -1877,6 +1961,33 @@ next
   from \<open>?lhs\<close> and this [of "p - q"] show ?rhs
     by auto
 qed
+
+text \<open>A nice extension rule for polynomials.\<close>
+lemma poly_ext:
+  fixes p q :: "'a :: {ring_char_0, idom} poly"
+  assumes "\<And>x. poly p x = poly q x" shows "p = q"
+  unfolding poly_eq_poly_eq_iff[symmetric]
+  using assms by (rule ext)
+
+text \<open>Copied from non-negative variants.\<close>
+lemma coeff_linear_power_neg[simp]:
+  fixes a :: "'a::comm_ring_1"
+  shows "coeff ([:a, -1:] ^ n) n = (-1)^n"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  then have "degree ([:a, - 1:] ^ n) < Suc n"
+    by (auto intro: le_less_trans degree_power_le)
+  with Suc show ?case
+    by (simp add: coeff_eq_0)
+qed
+
+lemma degree_linear_power_neg[simp]:
+  fixes a :: "'a::{idom,comm_ring_1}"
+  shows "degree ([:a, -1:] ^ n) = n"
+  by (simp add: degree_power_eq)
 
 lemma poly_all_0_iff_0: "(\<forall>x. poly p x = 0) \<longleftrightarrow> p = 0"
   for p :: "'a::{ring_char_0,comm_ring_1,ring_no_zero_divisors} poly"
