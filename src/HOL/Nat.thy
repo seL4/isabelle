@@ -1625,7 +1625,7 @@ proof (rule antisym)
 qed
 
 lemma mono_pow: "mono f \<Longrightarrow> mono (f ^^ n)"
-  for f :: "'a \<Rightarrow> 'a::complete_lattice"
+  for f :: "'a \<Rightarrow> 'a::order"
   by (induct n) (auto simp: mono_def)
 
 lemma lfp_funpow:
@@ -2375,23 +2375,23 @@ lemma GreatestI_ex_nat:
 subsection \<open>Monotonicity of \<open>funpow\<close>\<close>
 
 lemma funpow_increasing: "m \<le> n \<Longrightarrow> mono f \<Longrightarrow> (f ^^ n) \<top> \<le> (f ^^ m) \<top>"
-  for f :: "'a::{lattice,order_top} \<Rightarrow> 'a"
+  for f :: "'a::order_top \<Rightarrow> 'a"
   by (induct rule: inc_induct)
     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right
       intro: order_trans[OF _ funpow_mono])
 
 lemma funpow_decreasing: "m \<le> n \<Longrightarrow> mono f \<Longrightarrow> (f ^^ m) \<bottom> \<le> (f ^^ n) \<bottom>"
-  for f :: "'a::{lattice,order_bot} \<Rightarrow> 'a"
+  for f :: "'a::order_bot \<Rightarrow> 'a"
   by (induct rule: dec_induct)
     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right
       intro: order_trans[OF _ funpow_mono])
 
 lemma mono_funpow: "mono Q \<Longrightarrow> mono (\<lambda>i. (Q ^^ i) \<bottom>)"
-  for Q :: "'a::{lattice,order_bot} \<Rightarrow> 'a"
+  for Q :: "'a::order_bot \<Rightarrow> 'a"
   by (auto intro!: funpow_decreasing simp: mono_def)
 
 lemma antimono_funpow: "mono Q \<Longrightarrow> antimono (\<lambda>i. (Q ^^ i) \<top>)"
-  for Q :: "'a::{lattice,order_top} \<Rightarrow> 'a"
+  for Q :: "'a::order_top \<Rightarrow> 'a"
   by (auto intro!: funpow_increasing simp: antimono_def)
 
 
