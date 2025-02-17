@@ -2060,6 +2060,39 @@ next
   finally show ?case by simp
 qed
 
+lemma bex_const1_if_mono_below_diag: fixes f :: "nat \<Rightarrow> nat" assumes "mono f"
+shows "f n < n \<Longrightarrow> \<exists>i<n. f(Suc i) = f i"
+proof(induction n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  have *: "f n \<le> f(Suc n)" using assms[simplified mono_iff_le_Suc] by blast
+  from Suc.prems[simplified less_Suc_eq]
+  show ?case
+  proof
+    assume "f(Suc n) < n"
+    from order.strict_trans1[OF * this]
+    show ?thesis using Suc.IH less_SucI by blast
+  next
+    assume "f(Suc n) = n"
+    from order.strict_trans1[OF * Suc.prems, simplified less_Suc_eq]
+    show ?case
+    proof
+      assume "f n < n"
+      thus ?thesis using Suc.IH less_SucI by blast
+    next
+      assume "f n = n"
+      with \<open>f(Suc n) = n\<close> show ?thesis by auto
+    qed
+  qed
+qed
+
+lemma bex_const1_if_mono_below_diag_Suc:
+fixes f :: "nat \<Rightarrow> nat" assumes "mono f" "f(Suc m) \<le> m"
+shows "\<exists>i\<le>m. f (Suc i) = f i"
+using bex_const1_if_mono_below_diag[OF assms(1), of "Suc m"] assms(2) less_Suc_eq_le by blast
+
 
 text \<open>Subtraction laws, mostly by Clemens Ballarin\<close>
 
