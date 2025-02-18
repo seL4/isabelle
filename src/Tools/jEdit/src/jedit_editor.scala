@@ -238,12 +238,12 @@ class JEdit_Editor extends Editor[View] {
     line1: Int,
     offset: Symbol.Offset
   ) : Option[Hyperlink] = {
-    for (name <- PIDE.resources.source_file(source_name)) yield {
+    for (platform_path <- PIDE.resources.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(focus, Line.Node_Position(name, pos))
+        hyperlink_file(focus, Line.Node_Position(platform_path, pos))
 
       if (offset > 0) {
-        PIDE.resources.get_file_content(PIDE.resources.node_name(name)) match {
+        PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
           case Some(text) =>
             hyperlink(
               Symbol.iterator(text).zipWithIndex.takeWhile(p => p._2 < offset - 1).map(_._1).
