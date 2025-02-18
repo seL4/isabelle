@@ -832,8 +832,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val sfx_exe = tmp_dir + Component_Windows_App.sfx_path
             val sfx_txt =
-              File.read(Path.explode("~~/Admin/Windows/Installer/sfx.txt"))
-                .replace("{ISABELLE_NAME}", isabelle_name)
+              Library.trim_split_lines(
+                Component_Windows_App.sfx_txt.replace("{ISABELLE_NAME}", isabelle_name)
+              ).map(_ + "\r\n").mkString
 
             Bytes.write(context.dist_dir + isabelle_exe,
               Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))

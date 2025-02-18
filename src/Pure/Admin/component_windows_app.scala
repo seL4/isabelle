@@ -21,6 +21,19 @@ object Component_Windows_App {
   val sfx_name = "7zsd_All_x64.sfx"
   val sfx_path: Path = Path.basic("windows_app") + Path.basic(sfx_name)
 
+  val sfx_txt =
+""";!@Install@!UTF-8!
+GUIFlags="64"
+InstallPath="%UserDesktop%"
+BeginPrompt="Unpack {ISABELLE_NAME}?"
+ExtractPathText="Target directory"
+ExtractTitle="Unpacking {ISABELLE_NAME} ..."
+Shortcut="Du,{%%T\{ISABELLE_NAME}\{ISABELLE_NAME}.exe},{},{},{},{{ISABELLE_NAME}},{%%T\{ISABELLE_NAME}}"
+RunProgram="\"%%T\{ISABELLE_NAME}\{ISABELLE_NAME}.exe\""
+AutoInstall="\"%%T\{ISABELLE_NAME}\{ISABELLE_NAME}.exe\" -init"
+;!@InstallEnd@!
+"""
+
 
   /* build windows_app */
 
