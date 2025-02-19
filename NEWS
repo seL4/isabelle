@@ -220,6 +220,14 @@ insert proof methods from Sledgehammer output.
 * Relevant Isabelle options can now be overriden from the
 Isabelle/VSCode extension settings.
 
+* More robust treatment of startup errors for "isabelle vscode" and the
+underlying "isabelle electron". This helps to make it work on recent
+Linux distributions, notably Ubuntu 24.04 or 24.10.
+
+* Proper HTML output on Windows: hyperlinks refer to files in standard
+Isabelle path notation as expected. Thus the State panel works again
+reliably, after it was broken in Isabelle2022.
+
 
 *** Document preparation ***
 
