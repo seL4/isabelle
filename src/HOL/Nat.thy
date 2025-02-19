@@ -1534,8 +1534,7 @@ lemma id_funpow[simp]: "id ^^ n = id"
 
 lemma funpow_mono: "mono f \<Longrightarrow> A \<le> B \<Longrightarrow> (f ^^ n) A \<le> (f ^^ n) B"
   for f :: "'a \<Rightarrow> ('a::order)"
-  by (induct n arbitrary: A B)
-     (auto simp del: funpow.simps(2) simp add: funpow_Suc_right mono_def)
+  by (induct n) (auto simp: mono_def)
 
 lemma funpow_mono2:
   assumes "mono f"
