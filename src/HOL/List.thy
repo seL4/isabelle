@@ -6596,6 +6596,12 @@ lemma sorted_wrt_map_mono:
   shows   "sorted_wrt R' (map f xs)"
   using assms by (induction rule: sorted_wrt_induct) auto
 
+lemma sorted_map_mono:
+  assumes "sorted xs" and "mono_on (set xs) f"
+  shows   "sorted (map f xs)"
+  using assms(1)
+  by (rule sorted_wrt_map_mono) (use assms in \<open>auto simp: mono_on_def\<close>)
+
 
 subsubsection \<open>\<open>lists\<close>: the list-forming operator over sets\<close>
 
