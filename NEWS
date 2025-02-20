@@ -323,7 +323,7 @@ INCOMPATIBILITY.
       wfp_on_antimono_stronger
 
 * Theory "HOL.Transcendental": the real-valued versions of ln, log,
-(powr) have been totalised by "ln 0 = x" and "ln (- x) = ln x". Many
+(powr) have been totalised by "ln 0 = 0" and "ln (- x) = ln x". Many
 related theorems are now unconditional, with ln_mult_pos and
 ln_divide_pos introduced for legacy purposes.
 
