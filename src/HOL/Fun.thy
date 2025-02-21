@@ -816,18 +816,12 @@ lemma translation_subtract_Int:
   "(\<lambda>x. x - a) ` (s \<inter> t) = ((\<lambda>x. x - a) ` s) \<inter> ((\<lambda>x. x - a) ` t)"
 by(rule image_Int)(simp add: inj_on_def diff_eq_eq)
 
-end
-
-(* TODO: prove in group_add *)
-context ab_group_add
-begin
-
 lemma translation_Compl:
   "(+) a ` (- t) = - ((+) a ` t)"
 proof (rule set_eqI)
   fix b
   show "b \<in> (+) a ` (- t) \<longleftrightarrow> b \<in> - (+) a ` t"
-    by (auto simp: image_iff algebra_simps intro!: bexI [of _ "b - a"])
+    by (auto simp: image_iff algebra_simps intro!: bexI [of _ "- a + b"])
 qed
 
 end
