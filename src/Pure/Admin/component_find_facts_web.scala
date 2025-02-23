@@ -103,8 +103,9 @@ web application, and its compiled index.html.
 
 Sources can be found in $FIND_FACTS_HOME/web.
 
+
         Fabian Huch
-""")
+        """ + Date.Format.date(Date.now()) + "\n")
 
 
     /* pre-compiled web app */
