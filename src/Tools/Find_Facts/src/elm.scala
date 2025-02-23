@@ -53,18 +53,19 @@ object Elm {
       JSON.strings(definition, "source-directories").getOrElse(
         error("Missing source directories in elm.json"))
 
-    def sources: List[JFile] =
+    def sources: List[Path] =
       for {
         src_dir <- src_dirs
         path = dir + Path.explode(src_dir)
         file <- File.find_files(path.file, _.getName.endsWith(".elm"))
-      } yield file
+        rel_path <- File.relative_path(dir, File.path(file))
+      } yield rel_path
 
     def sources_shasum: SHA1.Shasum = {
       val meta_info = SHA1.shasum_meta_info(SHA1.digest(JSON.Format(definition)))
       val head_digest = SHA1.shasum(SHA1.digest(XML.string_of_body(head)), "head")
       val source_digest =
-        SHA1.shasum_sorted(for (file <- sources) yield SHA1.digest(file) -> file.getCanonicalPath)
+        SHA1.shasum_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
       meta_info ::: head_digest ::: source_digest
     }
 
