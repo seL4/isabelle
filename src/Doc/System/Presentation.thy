@@ -221,9 +221,9 @@ text \<open>
   the search index can be specified via system option 
   @{system_option find_facts_database_name}. A finished search index can be
   packed for later use as a regular Isabelle component using the 
-  @{tool_def find_facts_index_build} tool: Initializing such a component
-  causes it to be added to the list of managed components in
-  @{setting FIND_FACTS_INDEXES}.
+  @{tool_def find_facts_index_build} tool, with a \<^verbatim>\<open>.db\<close> file and
+  \<^verbatim>\<open>etc/settings\<close> to augment @{setting FIND_FACTS_INDEXES} for use by @{tool
+  find_facts_server}.
 
   \<^medskip>
   The user interface of the search is available as web application that 

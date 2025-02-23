@@ -3,8 +3,8 @@
 FIND_FACTS_HOME="$COMPONENT"
 FIND_FACTS_HOME_USER="$ISABELLE_HOME_USER/find_facts"
 
-if [ -d "$FIND_FACTS_HOME/lib/find_facts-isabelle" ]; then
-  FIND_FACTS_INDEXES="$FIND_FACTS_HOME/lib/find_facts-isabelle"
+if [ -f "$FIND_FACTS_HOME/lib/isabelle.db" ]; then
+  FIND_FACTS_INDEXES="$FIND_FACTS_HOME/lib/isabelle.db"
 else
   FIND_FACTS_INDEXES=""
 fi

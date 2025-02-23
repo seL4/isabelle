@@ -761,13 +761,23 @@ object Find_Facts {
 
   /** index components **/
 
-  def resolve_indexes(solr: Solr.System): Unit =
-    for {
-      path <- Path.split(Isabelle_System.getenv("FIND_FACTS_INDEXES"))
-      database = Library.perhaps_unprefix("find_facts-", path.file_name)
-      database_dir = solr.database_dir(database)
-      if !database_dir.is_dir
-    } Isabelle_System.copy_dir(path, database_dir, direct = true)
+  def resolve_indexes(solr: Solr.System, progress: Progress = new Progress): Unit = {
+    val compress_cache = Compress.Cache.make()
+    for (path <- Path.split(Isabelle_System.getenv("FIND_FACTS_INDEXES"))) {
+      val database = path.drop_ext.file_name
+      val database_dir = solr.database_dir(database)
+      if (!database_dir.is_dir) {
+        progress.echo("Extracting " + path.expand)
+        Isabelle_System.make_directory(database_dir)
+        File_Store.database_extract(path, database_dir, compress_cache = compress_cache)
+      }
+    }
+  }
+
+  def make_database(database_path: Path, database_dir: Path): Unit =
+    File_Store.make_database(database_path, database_dir,
+      compress_options = Compress.Options_Zstd(level = 8),
+      compress_cache = Compress.Cache.make())
 
   def find_facts_index_build(
     database: String,
@@ -776,13 +786,15 @@ object Find_Facts {
   ): Unit = {
     val solr = Solr.init(solr_data_dir)
 
-    val component = "find_facts-" + database
+    val component = "find_facts_" + database + "-" + Date.Format.alt_date(Date.now())
     val component_dir =
       Components.Directory(target_dir + Path.basic(component)).create(progress = progress)
 
-    Isabelle_System.copy_dir(solr.database_dir(database), component_dir.path)
+    val database_path = Path.basic(database).db
+    make_database(component_dir.path + database_path, solr.database_dir(database))
+
     component_dir.write_settings(
-      "\nFIND_FACTS_INDEXES=\"$FIND_FACTS_INDEXES:$COMPONENT/" + database + "\"")
+      "\nFIND_FACTS_INDEXES=\"$FIND_FACTS_INDEXES:$COMPONENT/" + database_path.implode + "\"")
   }
 
 
@@ -993,7 +1005,7 @@ object Find_Facts {
     val web_assets = load_web_assets
 
     val solr = Solr.init(solr_data_dir)
-    resolve_indexes(solr)
+    resolve_indexes(solr, progress = progress)
 
     using(solr.open_database(database)) { db =>
       val stats = Find_Facts.query_stats(db, Query(Nil))

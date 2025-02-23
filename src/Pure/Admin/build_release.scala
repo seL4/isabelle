@@ -6,6 +6,8 @@ Build full Isabelle distribution from repository.
 
 package isabelle
 
+import isabelle.find_facts.Find_Facts
+
 
 object Build_Release {
   /** release context **/
@@ -496,9 +498,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           val database_dir =
             other_isabelle.expand_path(
               Path.explode("$FIND_FACTS_HOME_USER/solr") + Path.basic(database_name))
-          val database_target_dir =
+          val database_target =
             other_isabelle.expand_path(
-              Path.explode("$FIND_FACTS_HOME/lib/find_facts-" + database_name))
+              Path.explode("$FIND_FACTS_HOME/lib") + Path.basic(database_name).db)
 
           val sessions =
             other_isabelle.bash("bin/isabelle sessions -a " + opt_dirs).check.out_lines
@@ -506,8 +508,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             "bin/isabelle find_facts_index -o find_facts_database_name=" +
               Bash.string(database_name) + " -n -N " + opt_dirs +
               Bash.strings(sessions), echo = true).check
-          Isabelle_System.make_directory(database_target_dir)
-          Isabelle_System.copy_dir(database_dir, database_target_dir, direct = true)
+          Find_Facts.make_database(database_target, database_dir)
 
           Isabelle_System.rm_tree(database_dir)
           database_dir.dir.file.delete  // "$FIND_FACTS_HOME_USER/solr"
