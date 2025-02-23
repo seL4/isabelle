@@ -412,7 +412,14 @@ Pretty.T operations are required (e.g. Pretty.mark_str).
 *** System ***
 
 * Find_Facts is a full-text search engine as web application based on
-Apache Solr (see also https://solr.apache.org). Minimal example:
+Apache Solr (see https://solr.apache.org). Example using a bundled
+database (if available,
+$ISABELLE_HOME/src/Tools/Find_Facts/lib/isabelle.db):
+
+    isabelle find_facts_server -p 8080 -o find_facts_database_name=isabelle
+    open http://localhost:8080/find_facts#search?q=Hilbert
+
+Example that builds its own database (called "local" by default):
 
     isabelle find_facts_index HOL
     isabelle find_facts_server -p 8080
