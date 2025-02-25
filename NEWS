@@ -7,6 +7,12 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+* Theory "HOL.Fun":
+  - Added lemmas.
+      antimonotone_on_inf_fun
+      antimonotone_on_sup_fun
+      monotone_on_inf_fun
+      monotone_on_sup_fun
 
 
 New in Isabelle2025 (March 2025)
