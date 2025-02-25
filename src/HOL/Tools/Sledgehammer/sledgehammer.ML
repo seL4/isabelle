@@ -240,8 +240,9 @@ fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...
           val preplay = `(fn pretty_used_facts =>
             play_one_line_proofs minimize preplay_timeout pretty_used_facts
               state goal subgoal (snd preferred_methss))
-          fun preplay_succeeded ((_, (Played _, _)) :: _, _) = true
-            | preplay_succeeded _ = false
+          fun preplay_succeeded ((_, (Played _, _)) :: _, _) _ = true
+            | preplay_succeeded _ [] = true
+            | preplay_succeeded _ _ = false
           val instantiate_timeout = Time.scale 5.0 preplay_timeout
           val instantiate = if null used_facts0 then SOME false else instantiate
           val (preplay_results, pretty_used_facts) =
@@ -256,7 +257,7 @@ fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...
               let
                 val preplay_results0 = preplay pretty_used_facts0
               in
-                if preplay_succeeded preplay_results0 then
+                if preplay_succeeded preplay_results0 (snd preferred_methss) then
                   preplay_results0
                 else
                   (* Preplay failed, now try to infer variable instantiations *)
