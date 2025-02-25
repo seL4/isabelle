@@ -40,13 +40,12 @@ val is_tactic_prover = member (op =) tactic_provers
 
 val meshN = "mesh"
 
-fun good_slices_of_tactic_prover name =
+fun good_slices_of_tactic_prover _ =
   (* FUDGE *)
   [(1, false, false, 0, meshN),
    (1, false, false, 2, meshN),
-   (1, false, false, 4, meshN),
    (1, false, false, 8, meshN),
-   (1, false, false, 16, meshN)]
+   (1, false, false, 32, meshN)]
 
 (* In sync with Sledgehammer_Proof_Methods.tac_of_proof_method *)
 fun tac_of ctxt name (local_facts, global_facts) =
@@ -82,8 +81,10 @@ fun run_tactic_prover mode name ({timeout, ...} : params)
 
     val (local_facts, global_facts) =
       ([], [])
-      |> fold (fn fact => if fst (snd (fst fact)) = Global then apsnd (cons (snd fact))
-        else apfst (cons (snd fact))) facts
+      |> fold (fn ((_, (scope, _)), thm) =>
+        if scope = Global then apsnd (cons thm)
+        else if scope = Chained then I
+        else apfst (cons thm)) facts
       |> apfst (append chained)
 
     val timer = Timer.startRealTimer ()
