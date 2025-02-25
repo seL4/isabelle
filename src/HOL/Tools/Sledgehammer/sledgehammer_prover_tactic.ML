@@ -88,10 +88,10 @@ fun meth_of name =
 fun tac_of ctxt name (local_facts, global_facts) =
   Sledgehammer_Proof_Methods.tac_of_proof_method ctxt (local_facts, global_facts) (meth_of name)
 
-fun run_tactic_prover mode name ({timeout, ...} : params)
+fun run_tactic_prover mode name ({slices, timeout, ...} : params)
     ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
   let
-    val (basic_slice, No_Slice) = slice
+    val (basic_slice as (slice_size, _, _, _, _), No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
     val {facts = chained, ...} = Proof.goal state
     val ctxt = Proof.context_of state
@@ -104,10 +104,12 @@ fun run_tactic_prover mode name ({timeout, ...} : params)
         else apfst (cons thm)) facts
       |> apfst (append chained)
 
+    val run_timeout = slice_timeout slice_size slices timeout
+
     val timer = Timer.startRealTimer ()
 
     val out =
-      (Timeout.apply timeout
+      (Timeout.apply run_timeout
          (Goal.prove ctxt [] [] (Logic.get_goal (Thm.prop_of goal) subgoal))
          (fn {context = ctxt, ...} =>
             HEADGOAL (tac_of ctxt name (local_facts, global_facts)));
