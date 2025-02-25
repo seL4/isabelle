@@ -11,8 +11,18 @@ sig
   type prover = Sledgehammer_Prover.prover
   type base_slice = Sledgehammer_ATP_Systems.base_slice
 
+  val algebraN : string
+  val argoN : string
   val autoN : string
   val blastN : string
+  val fastforceN : string
+  val forceN : string
+  val linarithN : string
+  val mesonN : string
+  val metisN : string
+  val orderN : string
+  val presburgerN : string
+  val satxN : string
   val simpN : string
 
   val tactic_provers : string list
@@ -30,11 +40,23 @@ open Sledgehammer_ATP_Systems
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 
+val algebraN = "algebra"
+val argoN = "argo"
 val autoN = "auto"
 val blastN = "blast"
+val fastforceN = "fastforce"
+val forceN = "force"
+val linarithN = "linarith"
+val mesonN = "meson"
+val metisN = "metis"
+val orderN = "order"
+val presburgerN = "presburger"
+val satxN = "satx"
 val simpN = "simp"
 
-val tactic_provers = [autoN, blastN, simpN]
+val tactic_provers =
+  [algebraN, argoN, autoN, blastN, fastforceN, forceN, linarithN, mesonN,
+   metisN, orderN, presburgerN, satxN, simpN]
 
 val is_tactic_prover = member (op =) tactic_provers
 
@@ -47,29 +69,24 @@ fun good_slices_of_tactic_prover _ =
    (1, false, false, 8, meshN),
    (1, false, false, 32, meshN)]
 
-(* In sync with Sledgehammer_Proof_Methods.tac_of_proof_method *)
-fun tac_of ctxt name (local_facts, global_facts) =
-  if name = autoN then
-    Method.insert_tac ctxt (local_facts @ global_facts) THEN'
-    SELECT_GOAL (Clasimp.auto_tac ctxt)
-  else if name = blastN then
-    Method.insert_tac ctxt (local_facts @ global_facts) THEN'
-    blast_tac ctxt
-  else if name = simpN then
-    Method.insert_tac ctxt local_facts THEN'
-    Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
-  else
-    error ("Unknown tactic: " ^ quote name)
-
 fun meth_of name =
-  if name = autoN then
-    Auto_Method
-  else if name = blastN then
-    Blast_Method
-  else if name = simpN then
-    Simp_Method
-  else
-    error ("Unknown tactic: " ^ quote name)
+  if name = algebraN then Algebra_Method
+  else if name = argoN then Argo_Method
+  else if name = autoN then Auto_Method
+  else if name = blastN then Blast_Method
+  else if name = fastforceN then Fastforce_Method
+  else if name = forceN then Force_Method
+  else if name = linarithN then Linarith_Method
+  else if name = mesonN then Meson_Method
+  else if name = metisN then Metis_Method (NONE, NONE, [])
+  else if name = orderN then Order_Method
+  else if name = presburgerN then Presburger_Method
+  else if name = satxN then SATx_Method
+  else if name = simpN then Simp_Method
+  else error ("Unknown tactic: " ^ quote name)
+
+fun tac_of ctxt name (local_facts, global_facts) =
+  Sledgehammer_Proof_Methods.tac_of_proof_method ctxt (local_facts, global_facts) (meth_of name)
 
 fun run_tactic_prover mode name ({timeout, ...} : params)
     ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
@@ -110,8 +127,8 @@ fun run_tactic_prover mode name ({timeout, ...} : params)
     val message = fn _ =>
       (case outcome of
         NONE =>
-        one_line_proof_text ((used_facts, (meth_of name, Played run_time)), proof_banner mode name,
-          subgoal, subgoal_count)
+        one_line_proof_text ((map (apfst Pretty.str) used_facts, (meth_of name, Played run_time)),
+          proof_banner mode name, subgoal, subgoal_count)
       | SOME failure => string_of_atp_failure failure)
   in
     {outcome = outcome, used_facts = used_facts, used_from = facts,
