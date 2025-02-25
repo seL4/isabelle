@@ -42,18 +42,11 @@ val meshN = "mesh"
 
 fun good_slices_of_tactic_prover name =
   (* FUDGE *)
-  if name = simpN then
-    [(1, false, false, 0, meshN),
-     (1, false, false, 2, meshN),
-     (1, false, false, 8, meshN),
-     (1, false, false, 32, meshN),
-     (1, false, false, 128, meshN)]
-  else
-    [(1, false, false, 0, meshN),
-     (1, false, false, 1, meshN),
-     (1, false, false, 2, meshN),
-     (1, false, false, 4, meshN),
-     (1, false, false, 8, meshN)]
+  [(1, false, false, 0, meshN),
+   (1, false, false, 2, meshN),
+   (1, false, false, 4, meshN),
+   (1, false, false, 8, meshN),
+   (1, false, false, 16, meshN)]
 
 (* In sync with Sledgehammer_Proof_Methods.tac_of_proof_method *)
 fun tac_of ctxt name (local_facts, global_facts) =

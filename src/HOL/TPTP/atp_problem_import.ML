@@ -12,7 +12,7 @@ sig
   val nitpick_tptp_file : theory -> int -> string -> unit
   val refute_tptp_file : theory -> int -> string -> unit
   val can_tac : Proof.context -> (Proof.context -> tactic) -> term -> bool
-  val SOLVE_TIMEOUT :  int -> string -> tactic -> tactic
+  val SOLVE_TIMEOUT : int -> string -> tactic -> tactic
   val atp_tac : local_theory -> int -> (string * string) list -> int -> term list -> string ->
     int -> tactic
   val smt_solver_tac : string -> local_theory -> int -> tactic
