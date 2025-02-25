@@ -86,11 +86,14 @@ fun run_tactic_prover mode name (params as {debug, verbose, isar_proofs, compres
   let
     val (basic_slice, No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
+    val {facts = chained, ...} = Proof.goal state
     val ctxt = Proof.context_of state
 
     val (local_facts, global_facts) =
-      fold (fn fact => if fst (snd (fst fact)) = Global then apsnd (cons (snd fact))
-        else apfst (cons (snd fact))) facts ([], [])
+      ([], [])
+      |> fold (fn fact => if fst (snd (fst fact)) = Global then apsnd (cons (snd fact))
+        else apfst (cons (snd fact))) facts
+      |> apfst (append chained)
 
     val timer = Timer.startRealTimer ()
 
