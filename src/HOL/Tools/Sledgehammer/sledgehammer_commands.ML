@@ -74,7 +74,7 @@ val default_default_params =
    ("smt_proofs", "true"),
    ("instantiate", "smart"),
    ("minimize", "true"),
-   ("slices", string_of_int (12 * Multithreading.max_threads ())),
+   ("slices", string_of_int (24 * Multithreading.max_threads ())),
    ("preplay_timeout", "1"),
    ("cache_dir", "")]
 

@@ -79,10 +79,8 @@ fun meth_of name =
   else
     error ("Unknown tactic: " ^ quote name)
 
-fun run_tactic_prover mode name (params as {debug, verbose, isar_proofs, compress, try0, minimize,
-     timeout, ...})
-    ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem)
-    slice =
+fun run_tactic_prover mode name ({timeout, ...} : params)
+    ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
   let
     val (basic_slice, No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
