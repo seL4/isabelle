@@ -14,6 +14,7 @@ sig
   type params = Sledgehammer_Prover.params
   type prover = Sledgehammer_Prover.prover
   type prover_slice = Sledgehammer_Prover.prover_slice
+  type prover_result = Sledgehammer_Prover.prover_result
 
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
@@ -22,7 +23,7 @@ sig
 
   val binary_min_facts : int Config.T
   val minimize_facts : (thm list -> unit) -> string -> params -> prover_slice -> bool -> int ->
-    int -> Proof.state -> thm -> ((string * stature) * thm list) list ->
+    int -> Proof.state -> thm -> ((string * stature) * thm list) list -> prover_result ->
     ((string * stature) * thm list) list option
     * ((unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
@@ -89,7 +90,7 @@ fun print silent f = if silent then () else writeln (f ())
 fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new_mono_instances,
       type_enc, strict, lam_trans, uncurried_aliases, isar_proofs, compress, try0, smt_proofs,
       instantiate, minimize, preplay_timeout, induction_rules, cache_dir, ...} : params)
-    (slice as ((_, _, falsify, _, fact_filter), slice_extra)) silent (prover : prover) timeout i n
+    ((_, _, falsify, _, fact_filter), slice_extra) silent (prover : prover) timeout i n
     state goal facts =
   let
     val _ = print silent (fn () => "Testing " ^ n_facts (map fst facts) ^
@@ -206,7 +207,7 @@ fun binary_minimize test timeout result xs =
   end
 
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice silent i n state
-    goal facts =
+    goal facts result =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
@@ -214,32 +215,37 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice 
 
     fun test timeout non_chained =
       test_facts params slice silent prover timeout i n state goal (chained @ non_chained)
+
+    fun minimize used_facts (result as {run_time, ...}) =
+      let
+        val non_chained = filter_used_facts true used_facts non_chained
+        val min =
+          if length non_chained >= Config.get ctxt binary_min_facts then binary_minimize
+          else linear_minimize
+        val (min_facts, {message, ...}) =
+          min test (new_timeout timeout run_time) result non_chained
+        val min_facts_and_chained = chained @ min_facts
+      in
+        print silent (fn () => cat_lines
+          ["Minimized to " ^ n_facts (map fst min_facts)] ^
+           (case length chained of
+             0 => ""
+           | n => " (plus " ^ string_of_int n ^ " chained)"));
+        (if learn then do_learn (maps snd min_facts_and_chained) else ());
+        (SOME min_facts_and_chained, message)
+      end
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ prover_name);
-     (case test timeout non_chained of
-       result as {outcome = NONE, used_facts, run_time, ...} =>
-       let
-         val non_chained = filter_used_facts true used_facts non_chained
-         val min =
-           if length non_chained >= Config.get ctxt binary_min_facts then binary_minimize
-           else linear_minimize
-         val (min_facts, {message, ...}) =
-           min test (new_timeout timeout run_time) result non_chained
-         val min_facts_and_chained = chained @ min_facts
-       in
-         print silent (fn () => cat_lines
-           ["Minimized to " ^ n_facts (map fst min_facts)] ^
-            (case length chained of
-              0 => ""
-            | n => " (plus " ^ string_of_int n ^ " chained)"));
-         (if learn then do_learn (maps snd min_facts_and_chained) else ());
-         (SOME min_facts_and_chained, message)
-       end
-     | {outcome = SOME TimedOut, ...} =>
-       (NONE, fn _ =>
-          "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
-          \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\")")
-     | {message, ...} => (NONE, (prefix "Prover error: " o message))))
+     if is_tactic_prover prover_name then
+       minimize (map fst facts) result
+     else
+       (case test timeout non_chained of
+         result as {outcome = NONE, used_facts, ...} => minimize used_facts result
+       | {outcome = SOME TimedOut, ...} =>
+         (NONE, fn _ =>
+            "Timeout: You can increase the time limit using the \"timeout\" option (e.g., \
+            \timeout = " ^ string_of_int (10 + Time.toMilliseconds timeout div 1000) ^ "\")")
+       | {message, ...} => (NONE, (prefix "Prover error: " o message))))
     handle ERROR msg => (NONE, fn _ => "Warning: " ^ msg)
   end
 
@@ -255,7 +261,7 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
         if minimize then
           minimize_facts do_learn name params slice
             (not verbose orelse (mode <> Normal andalso mode <> MaSh)) subgoal subgoal_count state
-            goal (filter_used_facts true used_facts (map (apsnd single) used_from))
+            goal (filter_used_facts true used_facts (map (apsnd single) used_from)) result
           |>> Option.map (map fst)
         else
           (SOME used_facts, message)
