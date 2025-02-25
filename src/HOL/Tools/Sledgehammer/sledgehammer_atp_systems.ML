@@ -223,27 +223,32 @@ val old_e_config : atp_config = make_e_config default_max_new_mono_instances (le
 
 val new_e_config : atp_config =
   (* FUDGE: this solved 950/1500 (63.33 %) using MePo when testing *)
-  make_e_config 128
-    [(((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
-     (((2, false, false, 1024, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  128, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false, 2048, meshN), (TF0, "mono_native", combsN, false, ""))),
-     (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((2, false, false, 1024, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
-     (((2, false, false,   64, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,   32, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((2, false, false, 2048, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  256, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  512, meshN), (TF0, "mono_native", combsN, false, ""))),
-     (((2, false, false, 1024, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((2, false, false,   16, meshN), (TH0, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
-     (((2, false, false,   64, meshN), (TF0, "mono_native", liftingN, false, ""))),
-     (((2, false, false,  128, meshN), (TF0, "mono_native", combsN, false, ""))),
-     (((2, false, false, 2048, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
-     (((2, false, false, 2048, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, "")))]
+  let
+    val extra_options = "--auto-schedule"
+    val good_slices =
+      [(((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, extra_options))),
+       (((2, false, false, 1024, meshN), (TH0, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  128, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false, 2048, meshN), (TF0, "mono_native", combsN, false, extra_options))),
+       (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, extra_options))),
+       (((2, false, false, 1024, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, extra_options))),
+       (((2, false, false,   64, meshN), (TH0, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,   32, meshN), (TF0, "mono_native", liftingN, false, extra_options))),
+       (((2, false, false, 2048, meshN), (TH0, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  256, meshN), (TH0, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  512, meshN), (TF0, "mono_native", combsN, false, extra_options))),
+       (((2, false, false, 1024, meshN), (TF0, "mono_native", liftingN, false, extra_options))),
+       (((2, false, false,   16, meshN), (TH0, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, extra_options))),
+       (((2, false, false,   64, meshN), (TF0, "mono_native", liftingN, false, extra_options))),
+       (((2, false, false,  128, meshN), (TF0, "mono_native", combsN, false, extra_options))),
+       (((2, false, false, 2048, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, extra_options))),
+       (((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, extra_options))),
+       (((2, false, false, 2048, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, extra_options)))]
+    in
+      make_e_config 128 good_slices
+    end
 
 in
 
