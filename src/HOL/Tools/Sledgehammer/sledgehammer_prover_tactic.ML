@@ -113,6 +113,7 @@ fun run_tactic_prover mode name ({timeout, ...} : params)
             HEADGOAL (tac_of ctxt name (local_facts, global_facts)));
        NONE)
       handle ERROR _ => SOME GaveUp
+           | Exn.Interrupt_Breakdown => SOME GaveUp
            | Timeout.TIMEOUT _ => SOME TimedOut
 
     val run_time = Timer.checkRealTimer timer
