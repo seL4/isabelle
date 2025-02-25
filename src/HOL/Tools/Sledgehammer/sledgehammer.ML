@@ -51,6 +51,7 @@ open Sledgehammer_Isar_Minimize
 open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
+open Sledgehammer_Prover_Tactic
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
@@ -437,7 +438,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
         extra_extra0)) =
         ATP_Slice (format0, the_default type_enc0 type_enc, the_default lam_trans0 lam_trans,
           the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
-      | adjust_extra (extra as SMT_Slice _) = extra
+      | adjust_extra extra = extra
 
     fun adjust_slice max_slice_size
         ((slice_size0, abduce0, falsify0, num_facts0, fact_filter0), extra) =

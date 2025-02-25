@@ -43,29 +43,35 @@ open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
 open Sledgehammer_Prover_SMT
+open Sledgehammer_Prover_Tactic
 
 fun is_prover_supported ctxt =
-  is_atp orf is_smt_prover ctxt
+  is_atp orf is_smt_solver ctxt orf is_tactic_prover
 
 fun is_prover_installed ctxt prover_name =
   if is_atp prover_name then
     let val thy = Proof_Context.theory_of ctxt in
       is_atp_installed thy prover_name
     end
+  else if is_smt_solver ctxt prover_name then
+    is_smt_solver_installed ctxt prover_name
   else
-    is_smt_prover_installed ctxt prover_name
+    true
 
 fun get_prover ctxt mode name =
   if is_atp name then run_atp mode name
-  else if is_smt_prover ctxt name then run_smt_solver mode name
+  else if is_smt_solver ctxt name then run_smt_solver mode name
+  else if is_tactic_prover name then run_tactic_prover mode name
   else error ("No such prover: " ^ name)
 
 fun get_slices ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_atp name then
       map (apsnd ATP_Slice) (#good_slices (get_atp thy name ()) ctxt)
-    else if is_smt_prover ctxt name then
+    else if is_smt_solver ctxt name then
       map (apsnd SMT_Slice) (SMT_Solver.good_slices ctxt name)
+    else if is_tactic_prover name then
+      map (rpair No_Slice) (good_slices_of_tactic_prover name)
     else
       error ("No such prover: " ^ name)
   end
