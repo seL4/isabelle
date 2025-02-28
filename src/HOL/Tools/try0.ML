@@ -6,7 +6,6 @@ Try a combination of proof methods.
 
 signature TRY0 =
 sig
-  val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
   type xthm = Facts.ref * Token.src list
