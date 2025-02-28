@@ -9,9 +9,10 @@ sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
+  type xthm = Facts.ref * Token.src list
+  type tagged_xthm = xthm * modifier list
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
-  val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list ->
-    Proof.state -> result list
+  val try0 : Time.time option -> tagged_xthm list -> Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -46,20 +47,22 @@ fun parse_method ctxt s =
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
 datatype modifier = Use | Simp | Intro | Elim | Dest
+type xthm = Facts.ref * Token.src list
+type tagged_xthm = xthm * modifier list
 
-fun string_of_xthm (xref, args) =
+fun string_of_xthm ((xref, args) : xthm) =
   (case xref of
     Facts.Fact literal => literal |> Symbol_Pos.explode0 |> Symbol_Pos.implode |> cartouche
   | _ =>
       Facts.string_of_ref xref) ^ implode
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
-fun add_attr_text tagged (tag, src) s =
+fun add_attr_text (tagged : tagged_xthm list) (tag, src) s =
   let
     val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map (string_of_xthm o fst)
   in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
 
-fun attrs_text tags tagged =
+fun attrs_text tags (tagged : tagged_xthm list) =
   "" |> fold (add_attr_text tagged) tags
 
 type result = {name: string, command: string, time: Time.time, state: Proof.state}
@@ -145,7 +148,7 @@ fun silence_methods debug =
       |> Config.put Unify.unify_trace false
       |> Config.put Argo_Tactic.trace "none")
 
-fun generic_try0 mode timeout_opt tagged st =
+fun generic_try0 mode timeout_opt (tagged : tagged_xthm list) st =
   let
     val st = Proof.map_contexts (silence_methods false) st
     fun try_method method = method mode timeout_opt tagged st
