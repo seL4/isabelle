@@ -320,6 +320,30 @@ proof
   with * show "a = b \<and> b = c" by auto
 qed simp
 
+text \<open>Quantifiers\<close>
+
+lemma ex_interval_simps:
+      "(\<exists>x \<in> {..<u}. P x) \<longleftrightarrow> (\<exists>x<u. P x)"
+      "(\<exists>x \<in> {..u}. P x) \<longleftrightarrow> (\<exists>x\<le>u. P x)"
+      "(\<exists>x \<in> {l<..}. P x) \<longleftrightarrow> (\<exists>x>l. P x)"
+      "(\<exists>x \<in> {l..}. P x) \<longleftrightarrow> (\<exists>x\<ge>l. P x)"
+      "(\<exists>x \<in> {l<..<u}. P x) \<longleftrightarrow> (\<exists>x. l<x \<and> x<u \<and> P x)"
+      "(\<exists>x \<in> {l..<u}. P x) \<longleftrightarrow> (\<exists>x. l\<le>x \<and> x<u \<and> P x)"
+      "(\<exists>x \<in> {l<..u}. P x) \<longleftrightarrow> (\<exists>x. l<x \<and> x\<le>u \<and> P x)"
+      "(\<exists>x \<in> {l..u}. P x) \<longleftrightarrow> (\<exists>x. l\<le>x \<and> x\<le>u \<and> P x)"
+  by auto
+
+lemma all_interval_simps:
+      "(\<forall>x \<in> {..<u}. P x) \<longleftrightarrow> (\<forall>x<u. P x)"
+      "(\<forall>x \<in> {..u}. P x) \<longleftrightarrow> (\<forall>x\<le>u. P x)"
+      "(\<forall>x \<in> {l<..}. P x) \<longleftrightarrow> (\<forall>x>l. P x)"
+      "(\<forall>x \<in> {l..}. P x) \<longleftrightarrow> (\<forall>x\<ge>l. P x)"
+      "(\<forall>x \<in> {l<..<u}. P x) \<longleftrightarrow> (\<forall>x. l<x \<longrightarrow> x<u \<longrightarrow> P x)"
+      "(\<forall>x \<in> {l..<u}. P x) \<longleftrightarrow> (\<forall>x. l\<le>x \<longrightarrow> x<u \<longrightarrow> P x)"
+      "(\<forall>x \<in> {l<..u}. P x) \<longleftrightarrow> (\<forall>x. l<x \<longrightarrow> x\<le>u \<longrightarrow> P x)"
+      "(\<forall>x \<in> {l..u}. P x) \<longleftrightarrow> (\<forall>x. l\<le>x \<longrightarrow> x\<le>u \<longrightarrow> P x)"
+  by auto
+
 text \<open>The following results generalise their namesakes in @{theory HOL.Nat} to intervals\<close>
 
 lemma lift_Suc_mono_le_ivl:
