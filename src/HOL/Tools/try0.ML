@@ -66,6 +66,8 @@ fun attrs_text tags (tagged : tagged_xthm list) =
 
 type result = {name: string, command: string, time: Time.time, state: Proof.state}
 
+local
+
 fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st :
   result option =
   if mode <> Auto_Try orelse run_if_auto_try then
@@ -115,7 +117,7 @@ val metis_attrs = [(Simp, ""), (Intro, ""), (Elim, ""), (Dest, "")]
 val no_attrs = []
 
 (* name * ((all_goals, run_if_auto_try), tags *)
-val named_methods =
+val raw_named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
    ("blast", ((false, true), clas_attrs)),
@@ -131,7 +133,12 @@ val named_methods =
    ("satx", ((false, false), no_attrs)),
    ("order", ((false, true), no_attrs))]
 
-val apply_methods = map apply_named_method named_methods
+in
+
+val named_methods = map fst raw_named_methods
+val apply_methods = map apply_named_method raw_named_methods
+
+end
 
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
 fun tool_time_string (s, time) = s ^ ": " ^ time_string time
@@ -166,7 +173,7 @@ fun generic_try0 mode timeout_opt (tagged : tagged_xthm list) st =
         |> the_list
   in
     if mode = Normal then
-      "Trying " ^ implode_space (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
+      "Trying " ^ implode_space (Try.serial_commas "and" (map quote named_methods)) ^
       "..."
       |> writeln
     else
