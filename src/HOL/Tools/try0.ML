@@ -9,7 +9,7 @@ sig
   val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
-  type result = {name: string, command: string, time: int, state: Proof.state}
+  type result = {name: string, command: string, time: Time.time, state: Proof.state}
   val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list ->
     Proof.state -> result list
 end
@@ -62,9 +62,10 @@ fun add_attr_text tagged (tag, src) s =
 fun attrs_text tags tagged =
   "" |> fold (add_attr_text tagged) tags
 
-type result = {name: string, command: string, time: int, state: Proof.state}
+type result = {name: string, command: string, time: Time.time, state: Proof.state}
 
-fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st =
+fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st :
+  result option =
   if mode <> Auto_Try orelse run_if_auto_try then
     let
       val unused =
@@ -100,7 +101,7 @@ fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeou
         (if multiple_goals andalso num_after > 0 then select else "")
     in
       if num_before > num_after then
-        SOME {name = name, command = command, time = Time.toMilliseconds time, state = st'}
+        SOME {name = name, command = command, time = time, state = st'}
       else NONE
     end
   else NONE
@@ -130,8 +131,8 @@ val named_methods =
 
 val apply_methods = map apply_named_method named_methods
 
-fun time_string ms = string_of_int ms ^ " ms"
-fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
+fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
+fun tool_time_string (s, time) = s ^ ": " ^ time_string time
 
 (* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
    bound exceeded" warnings and the like. *)
@@ -151,10 +152,16 @@ fun generic_try0 mode timeout_opt tagged st =
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
       command ^ " (" ^ time_string time ^ ")"
     val print_step = Option.map (tap (writeln o get_message))
-    val get_results =
-      if mode = Normal
-      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #time)
-      else Par_List.get_some try_method #> the_list
+    fun get_results methods : result list =
+      if mode = Normal then
+        methods
+        |> Par_List.map (try_method #> print_step)
+        |> map_filter I
+        |> sort (Time.compare o apply2 #time)
+      else
+        methods
+        |> Par_List.get_some try_method
+        |> the_list
   in
     if mode = Normal then
       "Trying " ^ implode_space (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
