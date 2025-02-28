@@ -11,6 +11,8 @@ sig
   type xthm = Facts.ref * Token.src list
   type tagged_xthm = xthm * modifier list
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
+  val apply_proof_method : string -> Time.time option -> (xthm * modifier list) list ->
+    Proof.state -> result option
   val try0 : Time.time option -> tagged_xthm list -> Proof.state -> result list
 end
 
@@ -68,48 +70,6 @@ type result = {name: string, command: string, time: Time.time, state: Proof.stat
 
 local
 
-fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st :
-  result option =
-  if mode <> Auto_Try orelse run_if_auto_try then
-    let
-      val unused =
-        tagged
-        |> filter
-          (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
-        |> map fst
-
-      val attrs = attrs_text attrs tagged
-
-      val ctxt = Proof.context_of st
-
-      val text =
-        name ^ attrs
-        |> parse_method ctxt
-        |> Method.method_cmd ctxt
-        |> Method.Basic
-        |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
-
-      val apply =
-        Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
-        #> Proof.refine text #> Seq.filter_results
-      val num_before = num_goals st
-      val multiple_goals = all_goals andalso num_before > 1
-      val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
-      val num_after = num_goals st'
-      val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
-      val unused = implode_space (unused |> map string_of_xthm)
-      val command =
-        (if unused <> "" then "using " ^ unused ^ " " else "") ^
-        (if num_after = 0 then "by " else "apply ") ^
-        (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
-        (if multiple_goals andalso num_after > 0 then select else "")
-    in
-      if num_before > num_after then
-        SOME {name = name, command = command, time = time, state = st'}
-      else NONE
-    end
-  else NONE
-
 val full_attrs = [(Simp, "simp"), (Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
 val clas_attrs = [(Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
 val simp_attrs = [(Simp, "add")]
@@ -133,12 +93,69 @@ val raw_named_methods =
    ("satx", ((false, false), no_attrs)),
    ("order", ((false, true), no_attrs))]
 
+fun apply_raw_named_method (name, ((all_goals, _), attrs)) timeout_opt tagged st :
+    result option =
+  let
+    val unused =
+      tagged
+      |> filter
+        (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
+      |> map fst
+
+    val attrs = attrs_text attrs tagged
+
+    val ctxt = Proof.context_of st
+
+    val text =
+      name ^ attrs
+      |> parse_method ctxt
+      |> Method.method_cmd ctxt
+      |> Method.Basic
+      |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
+
+    val apply =
+      Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
+      #> Proof.refine text #> Seq.filter_results
+    val num_before = num_goals st
+    val multiple_goals = all_goals andalso num_before > 1
+    val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
+    val num_after = num_goals st'
+    val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
+    val unused = implode_space (unused |> map string_of_xthm)
+    val command =
+      (if unused <> "" then "using " ^ unused ^ " " else "") ^
+      (if num_after = 0 then "by " else "apply ") ^
+      (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
+      (if multiple_goals andalso num_after > 0 then select else "")
+  in
+    if num_before > num_after then
+      SOME {name = name, command = command, time = time, state = st'}
+    else NONE
+  end
+
 in
 
 val named_methods = map fst raw_named_methods
-val apply_methods = map apply_named_method raw_named_methods
+
+fun apply_proof_method name timeout_opt tagged st :
+  result option =
+  (case AList.lookup (op =) raw_named_methods name of
+    NONE => NONE
+  | SOME raw_method => apply_raw_named_method (name, raw_method) timeout_opt tagged st)
+
+fun maybe_apply_proof_method name mode timeout_opt tagged st :
+  result option =
+  (case AList.lookup (op =) raw_named_methods name of
+    NONE => NONE
+  | SOME (raw_method as ((_, run_if_auto_try), _)) =>
+    if mode <> Auto_Try orelse run_if_auto_try then
+      apply_raw_named_method (name, raw_method) timeout_opt tagged st
+    else
+      NONE)
 
 end
+
+val maybe_apply_methods = map maybe_apply_proof_method named_methods
 
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
 fun tool_time_string (s, time) = s ^ ": " ^ time_string time
@@ -178,7 +195,7 @@ fun generic_try0 mode timeout_opt (tagged : tagged_xthm list) st =
       |> writeln
     else
       ();
-    (case get_results apply_methods of
+    (case get_results maybe_apply_methods of
       [] => (if mode = Normal then writeln "No proof found" else (); ((false, (noneN, [])), []))
     | results as {name, command, ...} :: _ =>
       let
