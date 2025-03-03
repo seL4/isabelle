@@ -88,15 +88,16 @@ object Rich_Text {
       if (cache.table == null) run
       else {
         val x = Cache.Args(msg, margin, metric)
-        cache.table.get(x) match {
-          case ref: WeakReference[Any] => ref.get.asInstanceOf[Formatted]
-          case null =>
-            val y = run
-            cache.table.synchronized {
-              if (cache.table.get(x) == null) cache.table.put(x, new WeakReference[Any](y))
-            }
-            y
-        }
+
+        def get: Option[Formatted] =
+          cache.table.get(x) match {
+            case ref: WeakReference[Any] => Option(ref.get.asInstanceOf[Formatted])
+            case null => None
+          }
+
+        val y = get.getOrElse(run)
+        cache.table.synchronized { if (get.isEmpty) cache.table.put(x, new WeakReference[Any](y)) }
+        y
       }
     }
   }
