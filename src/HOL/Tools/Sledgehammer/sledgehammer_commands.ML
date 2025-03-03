@@ -25,6 +25,7 @@ open Sledgehammer_Fact
 open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_SMT
+open Sledgehammer_Prover_Tactic
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 open Sledgehammer
@@ -73,7 +74,7 @@ val default_default_params =
    ("smt_proofs", "true"),
    ("instantiate", "smart"),
    ("minimize", "true"),
-   ("slices", string_of_int (12 * Multithreading.max_threads ())),
+   ("slices", string_of_int (24 * Multithreading.max_threads ())),
    ("preplay_timeout", "1"),
    ("cache_dir", "")]
 
@@ -170,7 +171,7 @@ structure Data = Theory_Data
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
   \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
-  filter (is_prover_installed ctxt) (smts ctxt @ local_atps)
+  filter (is_prover_installed ctxt) (smt_solvers ctxt @ local_atps @ tactic_provers)
   |> implode_param
 
 fun set_default_raw_param param thy =

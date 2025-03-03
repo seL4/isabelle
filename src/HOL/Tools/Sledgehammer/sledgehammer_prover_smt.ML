@@ -15,11 +15,11 @@ sig
   val smt_builtins : bool Config.T
   val smt_triggers : bool Config.T
 
-  val is_smt_prover : Proof.context -> string -> bool
-  val is_smt_prover_installed : Proof.context -> string -> bool
+  val is_smt_solver : Proof.context -> string -> bool
+  val is_smt_solver_installed : Proof.context -> string -> bool
   val run_smt_solver : mode -> string -> prover
 
-  val smts : Proof.context -> string list
+  val smt_solvers : Proof.context -> string list
 end;
 
 structure Sledgehammer_Prover_SMT : SLEDGEHAMMER_PROVER_SMT =
@@ -38,10 +38,10 @@ open Sledgehammer_Prover
 val smt_builtins = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_builtins\<close> (K true)
 val smt_triggers = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_triggers\<close> (K true)
 
-val smts = sort_strings o SMT_Config.all_solvers_of
+val smt_solvers = sort_strings o SMT_Config.all_solvers_of
 
-val is_smt_prover = member (op =) o smts
-val is_smt_prover_installed = member (op =) o SMT_Config.available_solvers_of
+val is_smt_solver = member (op =) o smt_solvers
+val is_smt_solver_installed = member (op =) o SMT_Config.available_solvers_of
 
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until these are sorted out
    properly in the SMT module, we must interpret these here. *)

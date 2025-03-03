@@ -72,6 +72,7 @@ sig
   datatype prover_slice_extra =
     ATP_Slice of atp_slice
   | SMT_Slice of string list
+  | No_Slice
 
   type prover_slice = base_slice * prover_slice_extra
 
@@ -199,6 +200,7 @@ type prover_problem =
 datatype prover_slice_extra =
   ATP_Slice of atp_slice
 | SMT_Slice of string list
+| No_Slice
 
 type prover_slice = base_slice * prover_slice_extra
 

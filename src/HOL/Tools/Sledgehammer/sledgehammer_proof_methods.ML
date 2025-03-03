@@ -44,7 +44,7 @@ sig
   val tac_of_proof_method : Proof.context -> thm list * thm list -> proof_method -> int -> tactic
   val string_of_play_outcome : play_outcome -> string
   val play_outcome_ord : play_outcome ord
-  val one_line_proof_text : Proof.context -> int -> one_line_params -> string
+  val one_line_proof_text : one_line_params -> string
 end;
 
 structure Sledgehammer_Proof_Methods : SLEDGEHAMMER_PROOF_METHODS =
@@ -220,7 +220,7 @@ fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal i n = "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 (* FIXME *)
-fun proof_method_command meth i n used_chaineds _(*num_chained*) extras =
+fun proof_method_command meth i n used_chaineds extras =
   let
     val (indirect_facts, direct_facts) =
       if is_proof_method_direct meth then ([], extras) else (extras, [])
@@ -246,11 +246,10 @@ val failed_command_line =
     (* Add optional markup break (command may need multiple lines) *)
     Markup.markup (Markup.break {width = 1, indent = 2}) " ")
 
-fun one_line_proof_text _ num_chained
-    ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
+fun one_line_proof_text ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
   let val (chained, extra) = List.partition (fn (_, (sc, _)) => sc = Chained) used_facts in
     map fst extra
-    |> proof_method_command meth subgoal subgoal_count (map fst chained) num_chained
+    |> proof_method_command meth subgoal subgoal_count (map fst chained)
     |> (if play = Play_Failed then failed_command_line else try_command_line banner play)
   end
 

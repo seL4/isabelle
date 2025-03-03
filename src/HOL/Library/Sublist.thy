@@ -63,11 +63,9 @@ lemma strict_prefixE [elim?]:
 
 subsection \<open>Basic properties of prefixes\<close>
 
-(* FIXME rm *)
 theorem Nil_prefix [simp]: "prefix [] xs"
   by (fact prefix_bot.bot_least)
 
-(* FIXME rm *)
 theorem prefix_Nil [simp]: "(prefix xs []) = (xs = [])"
   by (fact prefix_bot.bot_unique)
 
@@ -80,7 +78,7 @@ proof
 next
   assume "xs = ys @ [y] \<or> prefix xs ys"
   then show "prefix xs (ys @ [y])"
-    by auto (metis append.assoc prefix_def)
+    using prefix_def prefix_order.order_trans by blast
 qed
 
 lemma Cons_prefix_Cons [simp]: "prefix (x # xs) (y # ys) = (x = y \<and> prefix xs ys)"
@@ -109,23 +107,26 @@ theorem prefix_Cons: "prefix xs (y # ys) = (xs = [] \<or> (\<exists>zs. xs = y #
 
 theorem prefix_append:
   "prefix xs (ys @ zs) = (prefix xs ys \<or> (\<exists>us. xs = ys @ us \<and> prefix us zs))"
-  apply (induct zs rule: rev_induct)
-   apply force
-  apply (simp flip: append_assoc)
-  apply (metis append_eq_appendI)
-  done
+proof (induct zs rule: rev_induct)
+  case Nil
+  then show ?case by force
+next
+  case (snoc x xs)
+  then show ?case
+    by (metis append.assoc prefix_snoc)
+qed
 
 lemma append_one_prefix:
   "prefix xs ys \<Longrightarrow> length xs < length ys \<Longrightarrow> prefix (xs @ [ys ! length xs]) ys"
-  proof (unfold prefix_def)
-    assume a1: "\<exists>zs. ys = xs @ zs"
-    then obtain sk :: "'a list" where sk: "ys = xs @ sk" by fastforce
-    assume a2: "length xs < length ys"
-    have f1: "\<And>v. ([]::'a list) @ v = v" using append_Nil2 by simp
-    have "[] \<noteq> sk" using a1 a2 sk less_not_refl by force
-    hence "\<exists>v. xs @ hd sk # v = ys" using sk by (metis hd_Cons_tl)
-    thus "\<exists>zs. ys = (xs @ [ys ! length xs]) @ zs" using f1 by fastforce
-  qed
+proof (unfold prefix_def)
+  assume a1: "\<exists>zs. ys = xs @ zs"
+  then obtain sk :: "'a list" where sk: "ys = xs @ sk" by fastforce
+  assume a2: "length xs < length ys"
+  have f1: "\<And>v. ([]::'a list) @ v = v" using append_Nil2 by simp
+  have "[] \<noteq> sk" using a1 a2 sk less_not_refl by force
+  hence "\<exists>v. xs @ hd sk # v = ys" using sk by (metis hd_Cons_tl)
+  thus "\<exists>zs. ys = (xs @ [ys ! length xs]) @ zs" using f1 by fastforce
+qed
 
 theorem prefix_length_le: "prefix xs ys \<Longrightarrow> length xs \<le> length ys"
   by (auto simp add: prefix_def)
@@ -148,7 +149,7 @@ lemma takeWhile_is_prefix: "prefix (takeWhile P xs) xs"
   unfolding prefix_def by (metis takeWhile_dropWhile_id)
 
 lemma prefixeq_butlast: "prefix (butlast xs) xs"
-by (simp add: butlast_conv_take take_is_prefix)
+  by (simp add: butlast_conv_take take_is_prefix)
 
 lemma prefix_map_rightE:
   assumes "prefix xs (map f ys)"
@@ -162,13 +163,13 @@ proof -
 qed
 
 lemma map_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (map f xs) (map f ys)"
-by (auto simp: prefix_def)
+  by (auto simp: prefix_def)
 
 lemma filter_mono_prefix: "prefix xs ys \<Longrightarrow> prefix (filter P xs) (filter P ys)"
-by (auto simp: prefix_def)
+  by (auto simp: prefix_def)
 
 lemma sorted_antimono_prefix: "prefix xs ys \<Longrightarrow> sorted ys \<Longrightarrow> sorted xs"
-by (metis sorted_append prefix_def)
+  by (metis sorted_append prefix_def)
 
 lemma prefix_length_less: "strict_prefix xs ys \<Longrightarrow> length xs < length ys"
   by (auto simp: strict_prefix_def prefix_def)
@@ -281,8 +282,8 @@ qed
 subsection \<open>Prefixes\<close>
 
 primrec prefixes where
-"prefixes [] = [[]]" |
-"prefixes (x#xs) = [] # map ((#) x) (prefixes xs)"
+  "prefixes [] = [[]]" |
+  "prefixes (x#xs) = [] # map ((#) x) (prefixes xs)"
 
 lemma in_set_prefixes[simp]: "xs \<in> set (prefixes ys) \<longleftrightarrow> prefix xs ys"
 proof (induct xs arbitrary: ys)
@@ -400,44 +401,43 @@ qed
 lemma Longest_common_prefix_unique:
   \<open>\<exists>! ps. (\<forall>xs \<in> L. prefix ps xs) \<and> (\<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> length qs \<le> length ps)\<close>
   if \<open>L \<noteq> {}\<close>
-  using that apply (rule ex_ex1I[OF Longest_common_prefix_ex])
-  using that apply (auto simp add: prefix_def)
-  apply (metis append_eq_append_conv_if order.antisym)
-  done
+  apply (intro ex_ex1I[OF Longest_common_prefix_ex [OF that]])
+  by (meson that all_not_in_conv prefix_length_prefix prefix_order.dual_order.eq_iff)
 
 lemma Longest_common_prefix_eq:
- "\<lbrakk> L \<noteq> {};  \<forall>xs \<in> L. prefix ps xs;
+  "\<lbrakk> L \<noteq> {};  \<forall>xs \<in> L. prefix ps xs;
     \<forall>qs. (\<forall>xs \<in> L. prefix qs xs) \<longrightarrow> size qs \<le> size ps \<rbrakk>
   \<Longrightarrow> Longest_common_prefix L = ps"
-unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
-by(rule some1_equality[OF Longest_common_prefix_unique]) auto
+  unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
+  by(rule some1_equality[OF Longest_common_prefix_unique]) auto
 
 lemma Longest_common_prefix_prefix:
   "xs \<in> L \<Longrightarrow> prefix (Longest_common_prefix L) xs"
-unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
-by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
+  unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
+  by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
 
 lemma Longest_common_prefix_longest:
   "L \<noteq> {} \<Longrightarrow> \<forall>xs\<in>L. prefix ps xs \<Longrightarrow> length ps \<le> length(Longest_common_prefix L)"
-unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
-by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
+  unfolding Longest_common_prefix_def arg_max_def is_arg_max_linorder
+  by(rule someI2_ex[OF Longest_common_prefix_ex]) auto
 
 lemma Longest_common_prefix_max_prefix:
   "L \<noteq> {} \<Longrightarrow> \<forall>xs\<in>L. prefix ps xs \<Longrightarrow> prefix ps (Longest_common_prefix L)"
-by(metis Longest_common_prefix_prefix Longest_common_prefix_longest
-     prefix_length_prefix ex_in_conv)
+  by(metis Longest_common_prefix_prefix Longest_common_prefix_longest
+      prefix_length_prefix ex_in_conv)
 
 lemma Longest_common_prefix_Nil: "[] \<in> L \<Longrightarrow> Longest_common_prefix L = []"
-using Longest_common_prefix_prefix prefix_Nil by blast
+  using Longest_common_prefix_prefix prefix_Nil by blast
 
-lemma Longest_common_prefix_image_Cons: "L \<noteq> {} \<Longrightarrow>
-  Longest_common_prefix ((#) x ` L) = x # Longest_common_prefix L"
-apply(rule Longest_common_prefix_eq)
-  apply(simp)
- apply (simp add: Longest_common_prefix_prefix)
-apply simp
-by(metis Longest_common_prefix_longest[of L] Cons_prefix_Cons Nitpick.size_list_simp(2)
-     Suc_le_mono hd_Cons_tl order.strict_implies_order zero_less_Suc)
+lemma Longest_common_prefix_image_Cons: 
+  assumes "L \<noteq> {}"
+  shows "Longest_common_prefix ((#) x ` L) = x # Longest_common_prefix L"
+proof (intro Longest_common_prefix_eq strip)
+  show "\<And>qs. \<forall>xs\<in>(#) x ` L. prefix qs xs \<Longrightarrow>
+          length qs \<le> length (x # Longest_common_prefix L)"
+    by (metis assms Longest_common_prefix_longest[of L] Cons_prefix_Cons Suc_le_mono hd_Cons_tl 
+        image_eqI length_Cons prefix_bot.bot_least prefix_length_le)
+qed (auto simp add: assms Longest_common_prefix_prefix)
 
 lemma Longest_common_prefix_eq_Cons: assumes "L \<noteq> {}" "[] \<notin> L"  "\<forall>xs\<in>L. hd xs = x"
 shows "Longest_common_prefix L = x # Longest_common_prefix {ys. x#ys \<in> L}"
@@ -450,26 +450,26 @@ qed
 
 lemma Longest_common_prefix_eq_Nil:
   "\<lbrakk>x#ys \<in> L; y#zs \<in> L; x \<noteq> y \<rbrakk> \<Longrightarrow> Longest_common_prefix L = []"
-by (metis Longest_common_prefix_prefix list.inject prefix_Cons)
+  by (metis Longest_common_prefix_prefix list.inject prefix_Cons)
 
 fun longest_common_prefix :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"longest_common_prefix (x#xs) (y#ys) =
+  "longest_common_prefix (x#xs) (y#ys) =
   (if x=y then x # longest_common_prefix xs ys else [])" |
-"longest_common_prefix _ _ = []"
+  "longest_common_prefix _ _ = []"
 
 lemma longest_common_prefix_prefix1:
   "prefix (longest_common_prefix xs ys) xs"
-by(induction xs ys rule: longest_common_prefix.induct) auto
+  by(induction xs ys rule: longest_common_prefix.induct) auto
 
 lemma longest_common_prefix_prefix2:
   "prefix (longest_common_prefix xs ys) ys"
-by(induction xs ys rule: longest_common_prefix.induct) auto
+  by(induction xs ys rule: longest_common_prefix.induct) auto
 
 lemma longest_common_prefix_max_prefix:
   "\<lbrakk> prefix ps xs; prefix ps ys \<rbrakk>
    \<Longrightarrow> prefix ps (longest_common_prefix xs ys)"
-by(induction xs ys arbitrary: ps rule: longest_common_prefix.induct)
-  (auto simp: prefix_Cons)
+  by(induction xs ys arbitrary: ps rule: longest_common_prefix.induct)
+    (auto simp: prefix_Cons)
 
 
 subsection \<open>Parallel lists\<close>
@@ -506,10 +506,7 @@ proof (induct rule: list_induct2', blast, force, force)
 qed
 
 lemma parallel_append: "a \<parallel> b \<Longrightarrow> a @ c \<parallel> b @ d"
-  apply (rule parallelI)
-    apply (erule parallelE, erule conjE,
-      induct rule: not_prefix_induct, simp+)+
-  done
+  by (meson parallelE parallelI prefixI prefix_order.trans prefix_same_cases)
 
 lemma parallel_appendI: "xs \<parallel> ys \<Longrightarrow> x = xs @ xs' \<Longrightarrow> y = ys @ ys' \<Longrightarrow> x \<parallel> y"
   by (simp add: parallel_append)
@@ -1265,31 +1262,13 @@ lemma sublist_append_leftI [simp, intro]: "sublist xs (ps @ xs)"
   by (auto simp: sublist_def intro: exI[of _ "[]"])
 
 lemma sublist_append_rightI [simp, intro]: "sublist xs (xs @ ss)"
-  by (auto simp: sublist_def intro: exI[of _ "[]"])
+  by (metis append_eq_append_conv2 sublist_appendI)
 
 lemma sublist_altdef: "sublist xs ys \<longleftrightarrow> (\<exists>ys'. prefix ys' ys \<and> suffix xs ys')"
-proof safe
-  assume "sublist xs ys"
-  then obtain ps ss where "ys = ps @ xs @ ss" by (auto simp: sublist_def)
-  thus "\<exists>ys'. prefix ys' ys \<and> suffix xs ys'"
-    by (intro exI[of _ "ps @ xs"] conjI suffix_appendI) auto
-next
-  fix ys'
-  assume "prefix ys' ys" "suffix xs ys'"
-  thus "sublist xs ys" by (auto simp: prefix_def suffix_def)
-qed
+  by (metis append_assoc prefix_def sublist_def suffix_def)
 
 lemma sublist_altdef': "sublist xs ys \<longleftrightarrow> (\<exists>ys'. suffix ys' ys \<and> prefix xs ys')"
-proof safe
-  assume "sublist xs ys"
-  then obtain ps ss where "ys = ps @ xs @ ss" by (auto simp: sublist_def)
-  thus "\<exists>ys'. suffix ys' ys \<and> prefix xs ys'"
-    by (intro exI[of _ "xs @ ss"] conjI suffixI) auto
-next
-  fix ys'
-  assume "suffix ys' ys" "prefix xs ys'"
-  thus "sublist xs ys" by (auto simp: prefix_def suffix_def)
-qed
+  by (metis prefixE prefixI sublist_appendI sublist_def suffixE suffixI)
 
 lemma sublist_Cons_right: "sublist xs (y # ys) \<longleftrightarrow> prefix xs (y # ys) \<or> sublist xs ys"
   by (auto simp: sublist_def prefix_def Cons_eq_append_conv)
@@ -1453,8 +1432,8 @@ proof (intro ext, goal_cases)
 qed
 
 private lemma list_emb_primrec:
-  "list_emb = (\<lambda>uu uua uuaa. rec_list (\<lambda>P xs. List.null xs) (\<lambda>y ys ysa P xs. case xs of [] \<Rightarrow> True
-     | x # xs \<Rightarrow> if P x y then ysa P xs else ysa P (x # xs)) uuaa uu uua)"
+  "list_emb = (\<lambda>uu l' l. rec_list (\<lambda>P xs. List.null xs) (\<lambda>y ys ysa P xs. case xs of [] \<Rightarrow> True
+     | x # xs \<Rightarrow> if P x y then ysa P xs else ysa P (x # xs)) l uu l')"
 proof (intro ext, goal_cases)
   case (1 P xs ys)
   show ?case

@@ -101,9 +101,9 @@ Lukas Bartl \\
 \section{Introduction}
 \label{introduction}
 
-Sledgehammer is a tool that applies automatic theorem provers (ATPs)
-and satisfiability-modulo-theories (SMT) solvers on the current goal, mostly
-to find proofs but also to refute the goal.%
+Sledgehammer is a tool that applies automatic theorem provers (ATPs),
+satisfiability-modulo-theories (SMT) solvers, and Isabelle proof methods on the
+current goal, mostly to find proofs but optionally also to refute the goal.%
 \footnote{The distinction between ATPs and SMT solvers is mostly
 historical but convenient.}
 %
@@ -115,17 +115,21 @@ Zipperposition \cite{cruanes-2014}. The ATPs are run either locally or remotely
 via the System\-On\-TPTP web service \cite{sutcliffe-2000}. The supported SMT
 solvers are CVC4 \cite{cvc4}, cvc5 \cite{barbosa-et-al-cvc5}, veriT
 \cite{bouton-et-al-2009}, and Z3 \cite{de-moura-2008}. These are always run
-locally.
+locally. The supported proof methods are \textit{algebra}, \textit{argo},
+\textit{auto}, \textit{blast}, \textit{fastforce}, \textit{force},
+\textit{linarith}, \textit{meson}, \textit{metis}, \textit{order},
+\textit{presburger}, \textit{satx}, and \textit{simp}. The proof method support
+is experimental and disabled by default.
 
-The problem passed to the automatic provers (or solvers) consists of your
-current goal together with a heuristic selection of hundreds of facts (theorems)
-from the current theory context, filtered by relevance.
+The problem passed to the ATPs, SMT solvers, or proof methods consists
+of your current goal together with a heuristic selection of facts (theorems)
+from the current theory context, filtered by likely relevance.
 
 The result of a successful proof search is some source text that typically
-reconstructs the proof within Isabelle. For ATPs, the reconstructed proof
-typically relies on the general-purpose \textit{metis} proof method, which
-integrates the Metis ATP in Isabelle/HOL with explicit inferences going through
-the kernel. Thus its results are correct by construction.
+reconstructs the proof within Isabelle. The reconstructed proof often relies on
+the general-purpose \textit{metis} proof method, which integrates the Metis ATP
+in Isabelle/HOL with explicit inferences going through the kernel. Thus its
+results are correct by construction.
 
 Sometimes the automatic provers might detect that the goal is inconsistent with
 the background facts---or even that the background facts are inconsistent
@@ -154,7 +158,7 @@ concerning Sledgehammer or this manual should be directed to the author at
 \label{installation}
 
 Sledgehammer is part of Isabelle, so you do not need to install it. However, it
-relies on third-party automatic provers (ATPs and SMT solvers).
+relies on third-party ATPs and SMT solvers.
 
 Among the ATPs, agsyHOL, Alt-Ergo, E, LEO-II, Leo-III, Satallax, SPASS, Vampire,
 and Zipperposition can be run locally; in addition, agsyHOL, Alt-Ergo, E,
@@ -162,7 +166,7 @@ iProver, LEO-II, Leo-III, Satallax, Vampire, Waldmeister, and Zipperposition are
 available remotely via System\-On\-TPTP \cite{sutcliffe-2000}. The SMT solvers
 CVC4, cvc5, veriT, and Z3 can be run locally.
 
-There are three main ways to install automatic provers on your machine:
+There are three main ways to install ATPs or SMT solvers on your machine:
 
 \begin{sloppy}
 \begin{enum}
@@ -177,7 +181,7 @@ cvc5, E, SPASS, Vampire, veriT, Z3, and Zipperposition binary packages from
 \footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
 startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
-file with the absolute path to the prover. For example, if the
+file with the absolute path to the system. For example, if the
 \texttt{components} file does not exist yet and you extracted SPASS to
 \texttt{/usr/local/spass-3.8ds}, create it with the single line
 
@@ -322,15 +326,13 @@ familiarize themselves with the following options:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{provers}} (\S\ref{mode-of-operation}) specifies
-the automatic provers (ATPs and SMT solvers) that should be run whenever
-Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{cvc4 e
+the automatic provers (ATPs, SMT solvers, or proof methods) that should be run whenever
+Sledgehammer is invoked (e.g., ``\textit{provers}~= \textit{auto cvc4 e
 vampire zipperposition\/}'').
 
 \item[\labelitemi] \textbf{\textit{max\_facts}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
-default, the value is prover-dependent but varies between about 50 and 1000. If
-the provers time out, you can try lowering this value to, say, 25 or 50 and see
-if that helps.
+default, the value is prover-dependent and varies between 0 and about 1000.
 
 \item[\labelitemi] \textbf{\textit{isar\_proofs}} (\S\ref{output-format}) specifies
 that Isar proofs should be generated, in addition to one-line proofs. The length
@@ -421,10 +423,10 @@ selected at subsequent iterations.
 
 \point{Why does Metis fail to reconstruct the proof?}
 
-There are many reasons. If Metis runs seemingly forever, that is a sign that the
-proof is too difficult for it. Metis's search is complete for first-order logic
-with equality, so if the proof was found by a superposition-based ATP such as
-E, SPASS, or Vampire, Metis should \emph{eventually} find it---in principle.
+There are many reasons. If Metis runs seemingly forever, that is a sign that
+the proof is too difficult for it. Metis's search is complete for first-order
+logic with equality, but ATPs such as E, Vampire, and Zipperposition are
+higher-order, so Metis might fail at refinding their proofs.
 
 In some rare cases, \textit{metis} fails fairly quickly, and you get the error
 message ``One-line proof reconstruction failed.'' This indicates that
@@ -437,8 +439,8 @@ the \textit{strict} option (\S\ref{problem-encoding}).
 \textit{mono\_tags} arguments to Metis?}
 
 The \textit{metis}~(\textit{full\_types}) proof method
-and its cousin \textit{metis}~(\textit{mono\_tags}) are fully-typed
-versions of Metis. It is somewhat slower than \textit{metis}, but the proof
+and its relative \textit{metis}~(\textit{mono\_tags}) are fully-typed
+versions of Metis. They are somewhat slower than \textit{metis}, but the proof
 search is fully typed, and it also includes more powerful rules such as the
 axiom ``$x = \const{True} \mathrel{\lor} x = \const{False}$'' for reasoning in
 higher-order positions (e.g., in set comprehensions). The method is tried as a
@@ -478,25 +480,16 @@ $\lambda$-abstractions. See the \textit{lam\_trans} option
 \point{Are the generated proofs minimal?}
 
 Automatic provers frequently use many more facts than are necessary.
-Sledgehammer includes a proof minimization tool that takes a set of facts returned by
-a given prover and repeatedly calls a prover or proof method with subsets of
-those facts to find a minimal set. Reducing the number of facts typically helps
-reconstruction and declutters the proof documents.
+Sledgehammer includes a proof minimization tool that takes a set of facts
+returned by a prover and repeatedly calls a prover or proof method with subsets
+of those facts to find a minimal set. Reducing the number of facts typically
+helps reconstruction and declutters the proof documents.
 
 
 \point{A strange error occurred---what should I do?}
 
 Sledgehammer tries to give informative error messages. Please report any strange
 error to the author at \authoremail.
-
-
-\point{Auto can solve it---why not Sledgehammer?}
-
-Problems can be easy for \textit{auto} and difficult for automatic provers, but
-the reverse is also true, so do not be discouraged if your first attempts fail.
-Because the system refers to all theorems known to Isabelle, it is particularly
-suitable when your goal has a short proof but requires lemmas that you do not
-know about.
 
 
 \point{Why are there so many options?}
@@ -528,8 +521,8 @@ subgoal number \qty{num} (1 by default), with the given options and facts.
 
 \item[\labelitemi] \textbf{\textit{supported\_provers}:} Prints the list of
 automatic provers supported by Sledgehammer. See \S\ref{installation} and
-\S\ref{mode-of-operation} for more information on how to install automatic
-provers.
+\S\ref{mode-of-operation} for more information on how to install ATPs and SMT
+solvers.
 
 \item[\labelitemi] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
@@ -551,9 +544,7 @@ proofs. This happens automatically at Sledgehammer invocations if the
 theory to process all the available facts, learning from proofs generated by
 automatic provers. The prover to use and its timeout can be set using the
 \textit{prover} (\S\ref{mode-of-operation}) and \textit{timeout}
-(\S\ref{timeouts}) options. It is recommended to perform learning using a
-first-order ATP (such as E, SPASS, and Vampire) as opposed to a
-higher-order ATP or an SMT solver.
+(\S\ref{timeouts}) options.
 
 \item[\labelitemi] \textbf{\textit{relearn\_isar}:} Same as \textit{unlearn}
 followed by \textit{learn\_isar}.
@@ -687,12 +678,11 @@ counterparts, ``= \textit{true\/}'' may be omitted.
 \begin{enum}
 \opnodefaultbrk{provers}{string}
 Specifies the automatic provers to use as a space-separated list (e.g.,
-``\textit{cvc4}~\textit{e}~\textit{spass}~\textit{vampire\/}'').
+``\textit{auto}~\textit{cvc4}~\textit{e}~\textit{spass}~\textit{vampire\/}'').
 Provers can be run locally or remotely; see \S\ref{installation} for
-installation instructions. By default, \textit{provers} is set to the list of
-all installed local provers.
+installation instructions.
 
-The following local provers are supported:
+The following local ATPs and SMT solvers are supported:
 
 \begin{sloppy}
 \begin{enum}
@@ -719,13 +709,13 @@ Barbosa et al.\ \cite{barbosa-et-al-cvc5}. To use cvc5,
 set the environment variable \texttt{CVC5\_SOLVER} to the complete path of the
 executable, including the file name.
 
-\item[\labelitemi] \textbf{\textit{e}:} E is a first-order resolution prover
+\item[\labelitemi] \textbf{\textit{e}:} E is a higher-order superposition prover
 developed by Stephan Schulz \cite{schulz-2019}. To use E, set the environment
 variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
-executable and \texttt{E\_VERSION} to the version number (e.g., ``1.8''), or
+executable and \texttt{E\_VERSION} to the version number (e.g., ``3.0''), or
 install the prebuilt E package from \download.
 
-\item[\labelitemi] \textbf{\textit{iprover}:} iProver is a pure
+\item[\labelitemi] \textbf{\textit{iprover}:} iProver is a first-order
 instantiation-based prover developed by Konstantin Korovin \cite{korovin-2009}.
 To use iProver, set the environment variable \texttt{IPROVER\_HOME} to the
 directory that contains the \texttt{iproveropt} executable. iProver depends on
@@ -750,25 +740,26 @@ support for the TPTP typed higher-order syntax (TH0). To use Satallax, set the
 environment variable \texttt{SATALLAX\_HOME} to the directory that contains the
 \texttt{satallax} executable.
 
-\item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order resolution
+\item[\labelitemi] \textbf{\textit{spass}:} SPASS is a first-order superposition
 prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
 To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
 that contains the \texttt{SPASS} executable and \texttt{SPASS\_VERSION} to the
 version number (e.g., ``3.8ds''), or install the prebuilt SPASS package from
 \download.
 
-\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a first-order
-resolution prover developed by Andrei Voronkov and his colleagues
+\item[\labelitemi] \textbf{\textit{vampire}:} Vampire is a higher-order
+superposition prover developed by Andrei Voronkov and his colleagues
 \cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
 executable and \texttt{VAMPIRE\_VERSION} to the version number (e.g.,
-``4.2.2'').
+``4.8'').
 
-\item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is an
-SMT solver developed by David D\'eharbe, Pascal Fontaine, and their colleagues.
-It is designed to produce detailed proofs for reconstruction in proof
-assistants. To use veriT, set the environment variable \texttt{ISABELLE\_VERIT}
-to the complete path of the executable, including the file name.
+\item[\labelitemi] \textbf{\textit{verit}:} veriT \cite{bouton-et-al-2009} is a
+first-order SMT solver developed by David D\'eharbe, Pascal Fontaine, and their
+colleagues. It is designed to produce detailed proofs for reconstruction in
+proof assistants. To use veriT, set the environment variable
+\texttt{ISABELLE\_VERIT} to the complete path of the executable, including the
+file name.
 
 \item[\labelitemi] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{de-moura-2008}. To use Z3, set the environment variable
@@ -780,12 +771,12 @@ file name.
 Cruanes, Petar Vukmirovi\'c, and colleagues. To use Zipperposition, set the
 environment variable \texttt{ZIPPERPOSITION\_HOME} to the directory that
 contains the \texttt{zipperposition} executable and
-\texttt{ZIPPERPOSITION\_VERSION} to the version number (e.g., ``2.0.1'').
+\texttt{ZIPPERPOSITION\_VERSION} to the version number (e.g., ``2.1'').
 \end{enum}
 
 \end{sloppy}
 
-Moreover, the following remote provers are supported:
+The following remote ATPs are supported:
 
 \begin{enum}
 \item[\labelitemi] \textbf{\textit{remote\_agsyhol}:} The remote version of
@@ -817,10 +808,20 @@ runs on Geoff Sutcliffe's Miami servers.
 version of Zipperposition runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer runs a subset of CVC4, E, SPASS, Vampire, veriT, Z3,
-and Zipperposition in parallel, either locally or remotely---depending on the
-number of processor cores available and on which provers are actually installed.
-It is generally beneficial to run several provers in parallel.
+By default, \textit{provers} is set to a subset of CVC4, E, SPASS, Vampire,
+veriT, Z3, and Zipperposition, to be run in parallel, either locally or
+remotely---depending on the number of processor cores available and on which
+provers are actually installed. Proof methods are currently not included, due
+to their experimental status. (Proof methods can nevertheless appear in
+Isabelle proofs that reconstruct proofs originally found by ATPs or SMT
+solvers.)
+
+The following proof methods are supported:\ \textbf{\textit{algebra}},
+\textbf{\textit{argo}}, \textbf{\textit{auto}}, \textbf{\textit{blast}},
+\textbf{\textit{fastforce}}, \textbf{\textit{force}},
+\textbf{\textit{linarith}}, \textbf{\textit{meson}}, \textbf{\textit{metis}},
+\textbf{\textit{order}}, \textbf{\textit{presburger}}, \textbf{\textit{satx}},
+\textbf{\textit{simp}}.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
@@ -936,7 +937,7 @@ behaves like MePo.
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart} (the default), it effectively
 takes a value that was empirically found to be appropriate for the prover.
-Typical values lie between 50 and 1000.
+Typical values lie between 0 and 1000.
 
 \opdefault{fact\_thresholds}{float\_pair}{\upshape 0.45~0.85}
 Specifies the thresholds above which facts are considered relevant by the
@@ -955,9 +956,9 @@ place only if MaSh is enabled.
 Specifies the maximum number of monomorphic instances to generate beyond
 \textit{max\_facts}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart} (the default), it
-takes a value that was empirically found to be appropriate for the prover. For
-most provers, this value is 100.
+prover and possibly the specified type encoding. If the option is set to
+\textit{smart} (the default), it takes a value that was empirically found to be
+appropriate for the prover. For most provers, this value is 100.
 
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
@@ -966,9 +967,9 @@ most provers, this value is 100.
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
-type encoding used. If the option is set to \textit{smart} (the default), it
-takes a value that was empirically found to be appropriate for the prover.
-For most provers, this value is 3.
+prover and possibly the specified type encoding. If the option is set to
+\textit{smart} (the default), it takes a value that was empirically found to be
+appropriate for the prover.
 
 \nopagebreak
 {\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
@@ -1247,12 +1248,12 @@ Specifies the expected outcome, which must be one of the following:
 problem.
 \end{enum}
 
-Sledgehammer emits an error if the actual outcome differs from the expected outcome. This option is
-useful for regression testing.
+Sledgehammer emits an error if the actual outcome differs from the expected
+outcome. This option is useful for regression testing.
 
-The expected outcomes are not mutually exclusive. More specifically, \textit{some} is accepted
-whenever \textit{some\_preplayed} is accepted as the former has strictly fewer requirements
-than the later.
+The expected outcomes are not mutually exclusive. More specifically,
+\textit{some} is accepted whenever \textit{some\_preplayed} is accepted as the
+former has strictly fewer requirements than the later.
 
 \nopagebreak
 {\small See also \textit{timeout} (\S\ref{timeouts}).}
@@ -1267,7 +1268,7 @@ than the later.
 Specifies the maximum number of seconds that the automatic provers should spend
 searching for a proof. This excludes problem preparation and is a soft limit.
 
-\opdefault{slices}{int}{\upshape 12 times the number of cores detected}
+\opdefault{slices}{int}{\upshape 24 times the number of cores detected}
 Specifies the number of time slices. Time slices are the basic unit for prover
 invocations. They are divided among the available provers. A single prover
 invocation can occupy a single slice, two slices, or more, depending on the
@@ -1299,9 +1300,9 @@ Alias for ``\textit{preplay\_timeout} = 0''.
 \label{mirabelle}
 
 The \texttt{isabelle mirabelle} tool executes Sledgehammer or other advisory
-tools (e.g., Nitpick) or tactics (e.g., \textit{auto}) on all subgoals emerging
-in a theory. It is typically used to measure the success rate of a proof tool
-on some benchmark. Its command-line usage is as follows:
+tools (e.g., Nitpick) or proof methods (e.g., \textit{auto}) on all subgoals
+emerging in a theory. It is typically used to measure the success rate of a
+proof tool on some benchmark. Its command-line usage is as follows:
 
 {\small
 \begin{verbatim}
