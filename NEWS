@@ -14,6 +14,12 @@ New in this Isabelle version
       monotone_on_inf_fun
       monotone_on_sup_fun
 
+* Theory "HOL-Library.Multiset":
+  - Added lemmas.
+      filter_mset_mono_strong
+      filter_mset_sum_list
+      set_mset_sum_list[simp]
+
 
 New in Isabelle2025 (March 2025)
 --------------------------------

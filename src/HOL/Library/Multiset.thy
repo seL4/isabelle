@@ -1299,10 +1299,16 @@ lemma filter_mset_add_mset [simp]:
 lemma multiset_filter_subset[simp]: "filter_mset f M \<subseteq># M"
   by (simp add: mset_subset_eqI)
 
+lemma filter_mset_mono_strong:
+  assumes "A \<subseteq># B" "\<And>x. x \<in># A \<Longrightarrow> P x \<Longrightarrow> Q x"
+  shows   "filter_mset P A \<subseteq># filter_mset Q B"
+  by (rule mset_subset_eqI) (insert assms, auto simp: mset_subset_eq_count count_eq_zero_iff)
+
+(* TODO: rename to filter_mset_mono_strong *)
 lemma multiset_filter_mono:
   assumes "A \<subseteq># B"
   shows "filter_mset f A \<subseteq># filter_mset f B"
-  by (metis assms filter_sup_mset subset_mset.order_iff)
+  using filter_mset_mono_strong[OF \<open>A \<subseteq># B\<close>] .
 
 lemma filter_mset_eq_conv:
   "filter_mset P M = N \<longleftrightarrow> N \<subseteq># M \<and> (\<forall>b\<in>#N. P b) \<and> (\<forall>a\<in>#M - N. \<not> P a)" (is "?P \<longleftrightarrow> ?Q")
@@ -2816,6 +2822,12 @@ lemma sum_eq_empty_iff:
 
 lemma mset_concat: "mset (concat xss) = (\<Sum>xs\<leftarrow>xss. mset xs)"
   by (induction xss) auto
+
+lemma set_mset_sum_list [simp]: "set_mset (sum_list xs) = (\<Union>x\<in>set xs. set_mset x)"
+  by (induction xs) auto
+
+lemma filter_mset_sum_list: "filter_mset P (sum_list xs) = sum_list (map (filter_mset P) xs)"
+  by (induction xs) simp_all
 
 lemma sum_mset_singleton_mset [simp]: "(\<Sum>x\<in>#A. {#f x#}) = image_mset f A"
   by (induction A) auto
