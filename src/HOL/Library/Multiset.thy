@@ -2847,12 +2847,6 @@ lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#
 lemma size_mset_sum_mset_conv [simp]: "size (\<Sum>\<^sub># A :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
   by (induction A) auto
 
-lemma size_multiset_sum_mset [simp]: "size (\<Sum>X\<in>#A. X :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
-  unfolding size_mset_sum_mset_conv
-  unfolding image_mset.identity
-  unfolding id_apply
-  ..
-
 lemma sum_mset_image_mset_mono_strong:
   assumes "A \<subseteq># B" and f_subeq_g: "\<And>x. x \<in># A \<Longrightarrow> f x \<subseteq># g x"
   shows "(\<Sum>x\<in>#A. f x) \<subseteq># (\<Sum>x\<in>#B. g x)"

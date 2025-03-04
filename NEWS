@@ -17,6 +17,8 @@ New in this Isabelle version
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
+  - Removed lemmas.
+      size_multiset_sum_mset[simp]
   - Added lemmas.
       filter_mset_eq_mempty_iff
       filter_mset_mono_strong
