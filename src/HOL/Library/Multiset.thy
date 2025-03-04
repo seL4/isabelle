@@ -1745,7 +1745,7 @@ lemma image_mset_If:
      image_mset f (filter_mset P A) + image_mset g (filter_mset (\<lambda>x. \<not>P x) A)"
   by (induction A) auto
 
-lemma filter_image_mset:
+lemma filter_mset_image_mset:
   "filter_mset P (image_mset f A) = image_mset f (filter_mset (\<lambda>x. P (f x)) A)"
   by (induction A) auto
 

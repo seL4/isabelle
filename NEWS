@@ -15,6 +15,8 @@ New in this Isabelle version
       monotone_on_sup_fun
 
 * Theory "HOL-Library.Multiset":
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      filter_image_mset ~> filter_mset_image_mset
   - Added lemmas.
       filter_mset_mono_strong
       filter_mset_sum_list
