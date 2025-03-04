@@ -2844,6 +2844,29 @@ lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#
 lemma size_multiset_sum_mset [simp]: "size (\<Sum>X\<in>#A. X :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
   by (induction A) auto
 
+lemma sum_mset_image_mset_mono_strong:
+  assumes "A \<subseteq># B" and f_subeq_g: "\<And>x. x \<in># A \<Longrightarrow> f x \<subseteq># g x"
+  shows "(\<Sum>x\<in>#A. f x) \<subseteq># (\<Sum>x\<in>#B. g x)"
+proof -
+  define B' where
+    "B' = B - A"
+
+  have "B = A + B'"
+    using B'_def assms(1) by fastforce
+
+  have "\<Sum>\<^sub># (image_mset f A) \<subseteq># \<Sum>\<^sub># (image_mset g A)"
+    using f_subeq_g by (induction A) (auto intro!: subset_mset.add_mono)
+  also have "\<dots> \<subseteq># \<Sum>\<^sub># (image_mset g A) + \<Sum>\<^sub># (image_mset g B')"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g A + image_mset g B')"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g (A + B'))"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g B)"
+    unfolding \<open>B = A + B'\<close> ..
+  finally show ?thesis .
+qed
+
 context comm_monoid_mult
 begin
 
