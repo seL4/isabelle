@@ -1337,7 +1337,7 @@ next
   qed
 qed
 
-lemma filter_mset_eq_mempty_iff: "filter_mset P A = {#} \<longleftrightarrow> (\<forall>x. x \<in># A \<longrightarrow> \<not>P x)"
+lemma filter_mset_eq_mempty_iff[simp]: "filter_mset P A = {#} \<longleftrightarrow> (\<forall>x. x \<in># A \<longrightarrow> \<not> P x)"
   by (auto simp: multiset_eq_iff count_eq_zero_iff)
 
 lemma filter_filter_mset: "filter_mset P (filter_mset Q M) = {#x \<in># M. Q x \<and> P x#}"

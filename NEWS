@@ -20,7 +20,7 @@ New in this Isabelle version
   - Removed lemmas.
       size_multiset_sum_mset[simp]
   - Added lemmas.
-      filter_mset_eq_mempty_iff
+      filter_mset_eq_mempty_iff[simp]
       filter_mset_mono_strong
       filter_mset_sum_list
       set_mset_sum_list[simp]
