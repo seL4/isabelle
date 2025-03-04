@@ -22,6 +22,7 @@ New in this Isabelle version
       filter_mset_mono_strong
       filter_mset_sum_list
       set_mset_sum_list[simp]
+      size_mset_sum_mset_conv[simp]
 
 
 New in Isabelle2025 (March 2025)
