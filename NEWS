@@ -16,6 +16,7 @@ New in this Isabelle version
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
+      wf_on_lex_prod[intro]
       wfp_on_iff_wfp
 
 * Theory "HOL-Library.Multiset":

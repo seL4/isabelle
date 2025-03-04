@@ -1211,28 +1211,59 @@ definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \
 lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
   by (auto simp:lex_prod_def)
 
+lemma wf_on_lex_prod[intro]:
+  assumes wfA: "wf_on A r\<^sub>A" and wfB: "wf_on B r\<^sub>B"
+  shows "wf_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
+  unfolding wf_on_iff_ex_minimal
+proof (intro allI impI)
+  fix AB assume "AB \<subseteq> A \<times> B" and "AB \<noteq> {}"
+  hence "fst ` AB \<subseteq> A" and "snd ` AB \<subseteq> B"
+    by auto
+
+  from \<open>fst ` AB \<subseteq> A\<close> \<open>AB \<noteq> {}\<close> obtain a where
+    a_in: "a \<in> fst ` AB" and
+    a_minimal: "(\<forall>y. (y, a) \<in> r\<^sub>A \<longrightarrow> y \<notin> fst ` AB)"
+    using wfA[unfolded wf_on_iff_ex_minimal, rule_format, of "fst ` AB"]
+    by auto
+
+  from \<open>snd ` AB \<subseteq> B\<close> \<open>AB \<noteq> {}\<close> a_in obtain b where
+    b_in: "b \<in> snd ` {p \<in> AB. fst p = a}" and
+    b_minimal: "(\<forall>y. (y, b) \<in> r\<^sub>B \<longrightarrow> y \<notin> snd ` {p \<in> AB. fst p = a})"
+    using wfB[unfolded wf_on_iff_ex_minimal, rule_format, of "snd ` {p \<in> AB. fst p = a}"]
+    by blast
+
+  show "\<exists>z\<in>AB. \<forall>y. (y, z) \<in> r\<^sub>A <*lex*> r\<^sub>B \<longrightarrow> y \<notin> AB"
+  proof (rule bexI)
+    show "(a, b) \<in> AB"
+      using b_in by (simp add: image_iff)
+  next
+    show "\<forall>y. (y, (a, b)) \<in> r\<^sub>A <*lex*> r\<^sub>B \<longrightarrow> y \<notin> AB"
+    proof (intro allI impI)
+      fix p assume "(p, (a, b)) \<in> r\<^sub>A <*lex*> r\<^sub>B"
+      hence "(fst p, a) \<in> r\<^sub>A \<or> fst p = a \<and> (snd p, b) \<in> r\<^sub>B"
+        unfolding lex_prod_def by auto
+      thus "p \<notin> AB"
+      proof (elim disjE conjE)
+        assume "(fst p, a) \<in> r\<^sub>A"
+        hence "fst p \<notin> fst ` AB"
+          using a_minimal by simp
+        thus ?thesis
+          by (rule contrapos_nn) simp
+      next
+        assume "fst p = a" and "(snd p, b) \<in> r\<^sub>B"
+        hence "snd p \<notin> snd ` {p \<in> AB. fst p = a}"
+          using b_minimal by simp
+        thus "p \<notin> AB"
+          by (rule contrapos_nn) (simp add: \<open>fst p = a\<close>)
+      qed
+    qed
+  qed
+qed
+
 lemma wf_lex_prod [intro!]:
   assumes "wf ra" "wf rb"
   shows "wf (ra <*lex*> rb)"
-proof (rule wfI)
-  fix z :: "'a \<times> 'b" and P
-  assume * [rule_format]: "\<forall>u. (\<forall>v. (v, u) \<in> ra <*lex*> rb \<longrightarrow> P v) \<longrightarrow> P u"
-  obtain x y where zeq: "z = (x,y)"
-    by fastforce
-  have "P(x,y)" using \<open>wf ra\<close>
-  proof (induction x arbitrary: y rule: wf_induct_rule)
-    case (less x)
-    note lessx = less
-    show ?case using \<open>wf rb\<close> less
-    proof (induction y rule: wf_induct_rule)
-      case (less y)
-      show ?case
-        by (force intro: * less.IH lessx)
-    qed
-  qed
-  then show "P z"
-    by (simp add: zeq)
-qed auto
+  using wf_on_lex_prod[OF \<open>wf ra\<close> \<open>wf rb\<close>, unfolded UNIV_Times_UNIV] .
 
 lemma refl_lex_prod[simp]: "refl r\<^sub>B \<Longrightarrow> refl (r\<^sub>A <*lex*> r\<^sub>B)"
   by (auto intro!: reflI dest: refl_onD)
