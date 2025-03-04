@@ -18,6 +18,7 @@ New in this Isabelle version
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
   - Added lemmas.
+      filter_mset_eq_mempty_iff
       filter_mset_mono_strong
       filter_mset_sum_list
       set_mset_sum_list[simp]
