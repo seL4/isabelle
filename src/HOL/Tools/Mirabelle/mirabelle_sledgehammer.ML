@@ -94,7 +94,7 @@ local
 
 val str = string_of_int
 val str3 = Real.fmt (StringCvt.FIX (SOME 3))
-fun percentage a b = string_of_int (a * 100 div b)
+fun percentage a b = Real.fmt (StringCvt.FIX (SOME 1)) (Real.fromInt (a * 100) / Real.fromInt b)
 fun ms t = Real.fromInt t / 1000.0
 fun avg_time t n =
   if n > 0 then (Real.fromInt t / 1000.0) / Real.fromInt n else 0.0
