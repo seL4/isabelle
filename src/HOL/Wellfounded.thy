@@ -393,6 +393,28 @@ lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightar
   using wfp_on_antimono_strong .
 
 
+subsubsection \<open>Equivalence between \<^const>\<open>wfp_on\<close> and \<^const>\<open>wfp\<close>\<close>
+
+lemma wfp_on_iff_wfp: "wfp_on A R \<longleftrightarrow> wfp (\<lambda>x y. R x y \<and>  x \<in> A \<and> y \<in> A)"
+  (is "?LHS \<longleftrightarrow> ?RHS")
+proof (rule iffI)
+  assume ?LHS
+  then show ?RHS
+    unfolding wfp_on_iff_ex_minimal
+    by force
+next
+  assume ?RHS
+  thus ?LHS
+  proof (rule wfp_on_antimono_strong)
+    show "A \<subseteq> UNIV"
+      using subset_UNIV .
+  next
+    show "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R x y \<and> x \<in> A \<and> y \<in> A"
+      by iprover
+  qed
+qed
+
+
 subsubsection \<open>Well-foundedness of transitive closure\<close>
 
 lemma ex_terminating_rtranclp_strong:
