@@ -16,6 +16,8 @@ New in this Isabelle version
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
+      bex_rtrancl_min_element_if_wf_on
+      bex_rtrancl_min_element_if_wfp_on
       wf_on_lex_prod[intro]
       wfp_on_iff_wfp
 

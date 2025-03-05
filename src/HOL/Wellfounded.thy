@@ -417,34 +417,64 @@ qed
 
 subsubsection \<open>Well-foundedness of transitive closure\<close>
 
+lemma bex_rtrancl_min_element_if_wf_on:
+  assumes wf: "wf_on A r" and x_in: "x \<in> A"
+  shows "\<exists>y \<in> A. (y, x) \<in> r\<^sup>* \<and> \<not>(\<exists>z \<in> A. (z, y) \<in> r)"
+  using wf
+proof (induction x rule: wf_on_induct)
+  case in_set
+  thus ?case
+    using x_in .
+next
+  case (less z)
+  show ?case                            
+  proof (cases "\<exists>y \<in> A. (y, z) \<in> r")
+    case True
+    then obtain y where "y \<in> A" and "(y, z) \<in> r"
+      by blast
+    then obtain x where "x \<in> A" and "(x, y) \<in> r\<^sup>*" and "\<not> (\<exists>w\<in>A. (w, x) \<in> r)"
+      using less.IH by blast
+    show ?thesis
+    proof (intro bexI conjI)
+      show "(x, z) \<in> r\<^sup>*"
+        using rtrancl.rtrancl_into_rtrancl[of x y r z]
+        using \<open>(x, y) \<in> r\<^sup>*\<close> \<open>(y, z) \<in> r\<close> by blast
+    next
+      show "\<not> (\<exists>z\<in>A. (z, x) \<in> r)"
+        using \<open>\<not> (\<exists>w\<in>A. (w, x) \<in> r)\<close> .
+    next
+      show "x \<in> A"
+        using \<open>x \<in> A\<close> .
+    qed
+  next
+    case False
+    show ?thesis
+    proof (intro bexI conjI)
+      show "(z, z) \<in> r\<^sup>*"
+        using rtrancl.rtrancl_refl .
+    next
+      show "\<not> (\<exists>w\<in>A. (w, z) \<in> r)"
+        using False .
+    next
+      show "z \<in> A"
+        using less.hyps .
+    qed
+  qed
+qed
+
+lemma bex_rtransclp_min_element_if_wfp_on: "wfp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> \<exists>y\<in>A. R\<^sup>*\<^sup>* y x \<and> \<not> (\<exists>z\<in>A. R z y)"
+  by (rule bex_rtrancl_min_element_if_wf_on[to_pred])
+
 lemma ex_terminating_rtranclp_strong:
   assumes wf: "wfp_on {x'. R\<^sup>*\<^sup>* x x'} R\<inverse>\<inverse>"
   shows "\<exists>y. R\<^sup>*\<^sup>* x y \<and> (\<nexists>z. R y z)"
-proof (cases "\<exists>y. R x y")
-  case True
-  with wf show ?thesis
-  proof (induction rule: Wellfounded.wfp_on_induct)
-    case in_set
-    thus ?case
-      by simp
-  next
-    case (less y)
-    have "R\<^sup>*\<^sup>* x y"
-      using less.hyps mem_Collect_eq[of _ "R\<^sup>*\<^sup>* x"] by iprover
+proof -
+  have x_in: "x \<in> {x'. R\<^sup>*\<^sup>* x x'}"
+    by simp
 
-    moreover obtain z where "R y z"
-      using less.prems by iprover
-
-    ultimately have "R\<^sup>*\<^sup>* x z"
-      using rtranclp.rtrancl_into_rtrancl[of R x y z] by iprover
-
-    show ?case
-      using \<open>R y z\<close> \<open>R\<^sup>*\<^sup>* x z\<close> less.IH[of z] rtranclp_trans[of R y z] by blast
-  qed
-next
-  case False
-  thus ?thesis
-    by blast
+  show ?thesis
+    using bex_rtransclp_min_element_if_wfp_on[OF wf x_in]
+    using rtranclp.rtrancl_into_rtrancl[of R x] by blast
 qed
 
 lemma ex_terminating_rtranclp:
