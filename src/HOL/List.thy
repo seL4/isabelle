@@ -2488,6 +2488,11 @@ lemma dropWhile_append2 [simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> P(x)) \<Longrightarrow> dropWhile P (xs @ ys) = dropWhile P ys"
   by (induct xs) auto
 
+lemma dropWhile_id[simp]:
+    "(\<And>x. x \<in> set xs \<Longrightarrow> \<not> P x) \<Longrightarrow> dropWhile P xs = xs"
+using takeWhile_dropWhile_id[of P xs] takeWhile_eq_Nil_iff[of P xs]
+by fastforce
+
 lemma dropWhile_append3:
   "\<not> P y \<Longrightarrow>dropWhile P (xs @ y # ys) = dropWhile P xs @ y # ys"
   by (induct xs) auto
@@ -5644,13 +5649,19 @@ by (induction xs) simp_all
 
 lemma
   assumes "sorted_wrt f xs"
-  shows sorted_wrt_take: "sorted_wrt f (take n xs)"
-  and   sorted_wrt_drop: "sorted_wrt f (drop n xs)"
+  shows sorted_wrt_take[simp]: "sorted_wrt f (take n xs)"
+  and   sorted_wrt_drop[simp]: "sorted_wrt f (drop n xs)"
 proof -
   from assms have "sorted_wrt f (take n xs @ drop n xs)" by simp
   thus "sorted_wrt f (take n xs)" and "sorted_wrt f (drop n xs)"
     unfolding sorted_wrt_append by simp_all
 qed
+
+lemma sorted_wrt_dropWhile[simp]: "sorted_wrt R xs \<Longrightarrow> sorted_wrt R (dropWhile P xs)"
+by (auto dest: sorted_wrt_drop simp: dropWhile_eq_drop)
+
+lemma sorted_wrt_takeWhile[simp]: "sorted_wrt R xs \<Longrightarrow> sorted_wrt R (takeWhile P xs)"
+by (subst takeWhile_eq_take) (auto dest: sorted_wrt_take)
 
 lemma sorted_wrt_filter:
   "sorted_wrt f xs \<Longrightarrow> sorted_wrt f (filter P xs)"
@@ -6499,6 +6510,10 @@ proof -
   show "folding_insort_key (\<le>) (<) UNIV (\<lambda>x. x)"
     by standard simp
 qed (simp_all add: sorted_list_of_set_def)
+
+lemma ex1_sorted_list_for_set_if_finite:
+  "finite X \<Longrightarrow> \<exists>!xs. sorted_wrt (<) xs \<and> set xs = X"
+  by (metis sorted_list_of_set.finite_set_strict_sorted strict_sorted_equal)
 
 text \<open>Alias theorems for backwards compatibility and ease of use.\<close>
 lemmas sorted_list_of_set = sorted_list_of_set.sorted_key_list_of_set and
