@@ -807,7 +807,9 @@ text %mlantiq \<open>
   ;
   @@{ML_antiquotation thms} thms
   ;
-  @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
+  @@{ML_antiquotation lemma} @{syntax embedded_lemma}
+  ;
+  @{syntax_def embedded_lemma} ('(' @'open' ')')? ((prop +) + @'and') \<newline>
     @{syntax for_fixes} @'by' method method?
   ;
   @@{ML_antiquotation oracle_name} embedded
@@ -1358,5 +1360,129 @@ text %mlex \<open>
   \<^item> \<^file>\<open>~~/src/HOL/Proofs/ex/XML_Data.thy\<close> demonstrates export and import of
   proof terms via XML/ML data representation.
 \<close>
+
+section \<open>Instantiation of formal entities \label{sec:instantiation}\<close>
+
+text \<open>
+  The construction of formal entities (types, terms, theorems) in Isabelle/ML
+  can be tedious, error-prone, and costly at run-time. Repeated certification
+  of types/terms, or proof steps for theorems should be minimized, when
+  performance is relevant.
+
+  For example, consider a proof-producing decision procedure that refers to
+  certain term schemes and derived rules that need to be applied repeatedly. A
+  reasonably efficient approach is the subsequent separation of Isabelle/ML
+  \<^emph>\<open>compile-time\<close> vs. \<^emph>\<open>run-time\<close>. Lets say there is an ML module that is
+  loaded into the theory context to provide a tool as proof method, to be used
+  later in a different context.
+
+    \<^item> At compile-time, the ML module constructs templates for relevant formal
+    entities, e.g. as certified types/terms and proven theorems (with
+    parameters). This uses the source notation for types, terms, propositions,
+    inlined into Isabelle/ML. Formal parameters are taken from the template,
+    and turned into ML names (as in \<^verbatim>\<open>let\<close> expressions).
+
+    \<^item> At run-time, the ML tool takes concrete entities from the application
+    context, and instantiates the above templates accordingly. The formal
+    parameters of the compile-time template get assigned to concrete ML
+    values. ML names and types have already been properly checked by the ML
+    compiler, and the running program cannot go wrong in that respect. (It
+    \<^emph>\<open>can\<close> go wrong, concerning types of the implemented logic, though).
+
+  This approach is supported by ML antiquotations as follows.
+\<close>
+
+text %mlantiq \<open>
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "instantiate"} & : & \<open>ML_antiquotation\<close> \\
+  \end{matharray}
+
+  \<^rail>\<open>
+  @@{ML_antiquotation instantiate} embedded
+  \<close>
+
+  \<^descr> \<open>@{instantiation source}\<close> refers to embedded source text to produce an
+  instantiation for a logical entity that is given literally in the text. The
+  content of the @{syntax embedded} argument follows the syntax category
+  @{syntax instantiation} defined below, using @{syntax embedded_ml} from
+  antiquotation @{ML_antiquotation Type} (\secref{sec:types}), and @{syntax
+  embedded_lemma} from antiquotation @{ML_antiquotation lemma}
+  (\secref{sec:thms}).
+
+  \<^rail>\<open>
+    @{syntax_def instantiation}: no_beta? (inst + @'and') @'in' @{syntax body}
+    ;
+    no_beta: '(' 'no_beta' ')'
+    ;
+    schematic: '(' 'schematic' ')'
+    ;
+    inst: ((type_ident | name) ((@'=' @{syntax embedded_ml}))?)
+    ;
+    body: body_type | body_term | body_prop | body_lemma
+    ;
+    body_type: ('typ' | 'ctyp') schematic? embedded
+    ;
+    body_term: ('term' | 'cterm') schematic? embedded
+    ;
+    body_prop: ('prop' | 'cprop') schematic? embedded
+    ;
+    body_lemma: 'lemma' schematic? @{syntax embedded_lemma}
+  \<close>
+
+    \<^item> An @{syntax inst} entry assigns a type/term variable to a suitable ML
+    value, given as ML expression in the current program context. The ML type
+    of the expression needs to fit to the situation: \<^verbatim>\<open>'a =\<close>~\<open>ty\<close> refers to
+    \<open>ty\<close>\<^verbatim>\<open>: typ\<close> or \<open>ty\<close>\<^verbatim>\<open>: ctyp\<close>, and \<^verbatim>\<open>a =\<close>~\<open>tm\<close> refers to \<open>tm\<close>\<^verbatim>\<open>: term\<close> or
+    \<open>tm\<close>\<^verbatim>\<open>: cterm\<close>. Only a body for uncertified \<^verbatim>\<open>typ\<close> / \<^verbatim>\<open>term\<close> / \<^verbatim>\<open>prop\<close>
+    admits uncertified \<^ML_type>\<open>typ\<close> or \<^ML_type>\<open>term\<close> parameters. The
+    other cases require certified \<^ML_type>\<open>ctyp\<close> or \<^ML_type>\<open>cterm\<close>
+    parameters.
+
+    If the RHS of the @{syntax inst} entry is omitted, it defaults to the LHS:
+    \<^verbatim>\<open>a\<close> becomes \<^verbatim>\<open>a = a\<close>. This only works for term variables that happen to
+    be legal ML identifiers, and not for type variables.
+
+    \<^item> The ``\<open>(schematic)\<close>'' option disables the usual check that all LHS names
+    in @{syntax inst} are exactly those present as free variables in the body
+    entity (type, term, prop, lemma statement). By default, omitted variables
+    cause an error, but with ``\<open>(schematic)\<close>'' they remain as schematic
+    variables. The latter needs to be used with care, because unexpected
+    variables may emerge, when the theory name space for constants changes
+    over time.
+
+    \<^item> The ``\<open>(no_beta)\<close>'' option disables the usual \<open>\<beta>\<close>-normalization for
+    \<open>body_term\<close> / \<open>body_prop\<close> / \<open>body_lemma\<close>, but has no effect on
+    \<open>body_type\<close>. This is occasionally useful for low-level applications, where
+    \<open>\<beta>\<close>-conversion is treated explicitly in primitive inferences.
+\<close>
+
+text %mlex \<open>
+  Below are some examples that demonstrate the antiquotation syntax.
+  Real-world applications may be found in the Isabelle sources, by searching
+  for the literal text ``\<^verbatim>\<open>\<^instantiate>\<close>''.
+\<close>
+
+ML \<open>
+  \<comment> \<open>uncertified type parameters\<close>
+  fun make_assoc_type (A: typ, B: typ) : typ =
+    \<^instantiate>\<open>'a = A and 'b = B in typ \<open>('a \<times> 'b) list\<close>\<close>;
+
+  \<comment> \<open>uncertified term parameters\<close>
+  val make_assoc_list : (term * term) list -> term list =
+    map (fn (x, y) =>
+      \<^instantiate>\<open>'a = \<open>fastype_of x\<close> and 'b = \<open>fastype_of y\<close> and
+        x and y in term \<open>(x, y)\<close> for x :: 'a and y :: 'b\<close>);
+
+  \<comment> \<open>theorem with certified term parameters\<close>
+  fun symmetry (x: cterm) (y: cterm) : thm =
+    \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y in
+      lemma \<open>x = y \<Longrightarrow> y = x\<close> for x y :: 'a by simp\<close>
+
+  \<comment> \<open>theorem with certified type parameter, and schematic result\<close>
+  fun symmetry_schematic (A: ctyp) : thm =
+    \<^instantiate>\<open>'a = A in
+      lemma (schematic) \<open>x = y \<Longrightarrow> y = x\<close> for x y :: 'a by simp\<close>
+\<close>
+
 
 end
