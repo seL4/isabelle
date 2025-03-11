@@ -1082,7 +1082,7 @@ text \<open>
   proof state messages without further distraction, while all other messages
   are displayed in \<^emph>\<open>Output\<close> (\secref{sec:output}).
   \Figref{fig:output-and-state} shows a typical GUI layout where both panels
-  are open.
+  are open, while the \<^emph>\<open>Proof state\<close> option is disabled within \<^emph>\<open>Output\<close>.
 
   \begin{figure}[!htb]
   \begin{center}
