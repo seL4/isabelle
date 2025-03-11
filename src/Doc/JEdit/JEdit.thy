@@ -1209,7 +1209,7 @@ text \<open>
 \<close>
 
 
-section \<open>Tooltips and hyperlinks \label{sec:tooltips-hyperlinks}\<close>
+section \<open>Tooltips, hyperlinks, and syntax structure \label{sec:tooltips-hyperlinks}\<close>
 
 text \<open>
   Formally processed text (prover input or output) contains rich markup that
@@ -1255,6 +1255,29 @@ text \<open>
   document processing of the editor session and thus prevents further
   exploration: the chain of hyperlinks may end in some source file of the
   underlying logic image, or within the ML bootstrap sources of Isabelle/Pure.
+
+  \<^medskip>
+  Hyperlinks refer to atomic entities of formal syntax, but it is also
+  possible to visualize nested syntax structure, according to formal markup by
+  the prover. This information is derived from by pretty-printing blocks
+  within mixfix annotations: it is automatic for \<^theory_text>\<open>infix\<close> and \<^theory_text>\<open>binder\<close>, but
+  needs to be specified explicitly for free-form mixfix syntax (by the authors
+  of the theory library). \Figref{fig:syntax-structure} illustrates the result
+  for nested \<^theory_text>\<open>infix\<close>-expressions in Isabelle/HOL.
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{popup3} \\[1ex]
+  \includegraphics[scale=0.333]{popup4}
+  \end{center}
+  \caption{Visualized markup for nested infix expressions}
+  \label{fig:syntax-structure}
+  \end{figure}
+
+  Instead of exploring formal syntax via the mouse, it is also possible to use
+  the keyboard action @{action_def "isabelle.select-structure"} (\<^verbatim>\<open>C+7\<close>). It
+  extends the editor selection by adding the enclosing syntax structure.
+  Repeated invocation of this action extends the selection incrementally.
 \<close>
 
 
