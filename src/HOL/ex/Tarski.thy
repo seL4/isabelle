@@ -59,7 +59,8 @@ definition Top :: "'a potype \<Rightarrow> 'a"
   where "Top po = greatest (\<lambda>x. True) po"
 
 definition PartialOrder :: "'a potype set"
-  where "PartialOrder = {P. refl_on (pset P) (order P) \<and> antisym (order P) \<and> trans (order P)}"
+  where "PartialOrder = {P. order P \<subseteq> pset P \<times> pset P \<and>
+    refl_on (pset P) (order P) \<and> antisym (order P) \<and> trans (order P)}"
 
 definition CompleteLattice :: "'a potype set"
   where "CompleteLattice =
@@ -159,6 +160,10 @@ lemma monotoneE: "\<lbrakk>monotone f A r; x \<in> A; y \<in> A; (x, y) \<in> r\
 lemma po_subset_po: 
   assumes "S \<subseteq> A" shows "\<lparr>pset = S, order = induced S r\<rparr> \<in> PartialOrder"
 proof -
+  have "induced S r \<subseteq> S \<times> S"
+    by (metis (lifting) BNF_Def.Collect_case_prodD induced_def mem_Sigma_iff
+        prod.sel subrelI)
+  moreover
   have "refl_on S (induced S r)"
     using \<open>S \<subseteq> A\<close> by (auto simp: refl_on_def induced_def intro: reflE)
   moreover
@@ -197,7 +202,7 @@ lemma isLub_dual_isGlb: "isLub S cl = isGlb S (dual cl)"
   by (simp add: isLub_def isGlb_def dual_def converse_unfold)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
-  using cl_po by (simp add: PartialOrder_def dual_def)
+  using cl_po by (simp add: PartialOrder_def dual_def converse_Times flip: converse_subset_swap)
 
 lemma Rdual:
   assumes major: "\<And>S. S \<subseteq> A \<Longrightarrow> \<exists>L. isLub S po L" and "S \<subseteq> A" and "A = pset po"
@@ -453,9 +458,10 @@ proof -
     have "(lub H cl, f (lub H cl)) \<in> r"
       using assms lubH_le_flubH by blast
     then have "(f (lub H cl), f (f (lub H cl))) \<in> r"
-      by (meson PO_imp_refl_on monotoneE monotone_f refl_on_domain)
+      by (metis (lifting) PiE assms f_in_funcset lub_in_lattice mem_Collect_eq
+          monotoneE monotone_f subsetI)
     then have "f (lub H cl) \<in> H"
-      by (metis (no_types, lifting) PO_imp_refl_on assms mem_Collect_eq refl_on_domain)
+      using assms f_in_funcset lub_in_lattice by auto
     then show ?thesis
       by (simp add: assms lub_upper)
   qed
@@ -510,7 +516,7 @@ lemma T_thm_1_glb: "glb P cl = glb {x \<in> A. (f x, x) \<in> r} cl"
 subsection \<open>interval\<close>
 
 lemma rel_imp_elem: "(x, y) \<in> r \<Longrightarrow> x \<in> A"
-  using CO_refl_on by (auto simp: refl_on_def)
+  using A_def PartialOrder_def cl_po r_def by blast
 
 lemma interval_subset: "\<lbrakk>a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> interval r a b \<subseteq> A"
   by (simp add: interval_def) (blast intro: rel_imp_elem)
@@ -665,7 +671,7 @@ proof (simp add: intY1_def interval_def, rule conjI)
     using assms intY1_elem interval_imp_mem lubY_in_A unfolding intY1_def
     using lubY_le_flubY monotoneE monotone_f po.transE by blast
   then show "(f x, Top cl) \<in> r"
-    by (meson PO_imp_refl_on Top_prop refl_onD2)
+    by (metis assms f_in_funcset intY1_elem[of x] Top_prop[of "f x"] PiE[of f A "\<lambda>_. A" x])
 qed
 
 lemma intY1_mono: "monotone (\<lambda> x \<in> intY1. f x) intY1 (induced intY1 r)"

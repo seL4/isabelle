@@ -151,7 +151,7 @@ subsection \<open>Properties of relations\<close>
 subsubsection \<open>Reflexivity\<close>
 
 definition refl_on :: "'a set \<Rightarrow> 'a rel \<Rightarrow> bool"
-  where "refl_on A r \<longleftrightarrow> r \<subseteq> A \<times> A \<and> (\<forall>x\<in>A. (x, x) \<in> r)"
+  where "refl_on A r \<longleftrightarrow> (\<forall>x\<in>A. (x, x) \<in> r)"
 
 abbreviation refl :: "'a rel \<Rightarrow> bool" \<comment> \<open>reflexivity over a type\<close>
   where "refl \<equiv> refl_on UNIV"
@@ -170,7 +170,7 @@ text \<open>@{thm [source] reflp_def} is for backward compatibility.\<close>
 lemma reflp_refl_eq [pred_set_conv]: "reflp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> refl r"
   by (simp add: refl_on_def reflp_def)
 
-lemma refl_onI [intro?]: "r \<subseteq> A \<times> A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> (x, x) \<in> r) \<Longrightarrow> refl_on A r"
+lemma refl_onI [intro?]: "(\<And>x. x \<in> A \<Longrightarrow> (x, x) \<in> r) \<Longrightarrow> refl_on A r"
   unfolding refl_on_def by (iprover intro!: ballI)
 
 lemma reflI: "(\<And>x. (x, x) \<in> r) \<Longrightarrow> refl r"
@@ -184,12 +184,6 @@ lemma reflpI[intro?]: "(\<And>x. R x x) \<Longrightarrow> reflp R"
   by (rule reflp_onI)
 
 lemma refl_onD: "refl_on A r \<Longrightarrow> a \<in> A \<Longrightarrow> (a, a) \<in> r"
-  unfolding refl_on_def by blast
-
-lemma refl_onD1: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> x \<in> A"
-  unfolding refl_on_def by blast
-
-lemma refl_onD2: "refl_on A r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> y \<in> A"
   unfolding refl_on_def by blast
 
 lemma reflD: "refl r \<Longrightarrow> (a, a) \<in> r"
@@ -251,10 +245,6 @@ lemma reflp_on_empty [simp]: "reflp_on {} R"
 
 lemma refl_on_singleton [simp]: "refl_on {x} {(x, x)}"
 by (blast intro: refl_onI)
-
-lemma refl_on_def' [nitpick_unfold, code]:
-  "refl_on A r \<longleftrightarrow> (\<forall>(x, y) \<in> r. x \<in> A \<and> y \<in> A) \<and> (\<forall>x \<in> A. (x, x) \<in> r)"
-  by (auto intro: refl_onI dest: refl_onD refl_onD1 refl_onD2)
 
 lemma reflp_on_equality [simp]: "reflp_on A (=)"
   by (simp add: reflp_on_def)
@@ -952,7 +942,7 @@ lemma Id_on_subset_Times: "Id_on A \<subseteq> A \<times> A"
   by blast
 
 lemma refl_on_Id_on: "refl_on A (Id_on A)"
-  by (rule refl_onI [OF Id_on_subset_Times Id_onI])
+  by (rule refl_onI[OF Id_onI])
 
 lemma antisym_Id_on [simp]: "antisym (Id_on A)"
   unfolding antisym_def by blast

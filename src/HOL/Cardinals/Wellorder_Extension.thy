@@ -87,7 +87,9 @@ proof -
       "\<And>r. r \<in> R \<Longrightarrow> downset_on (Field r) p" and
       "\<And>r. r \<in> R \<Longrightarrow> extension_on (Field r) r p"
       using Chains_wo [OF \<open>R \<in> Chains I\<close>] by (simp_all add: order_on_defs)
-    have "Refl (\<Union>R)" using \<open>\<forall>r\<in>R. Refl r\<close>  unfolding refl_on_def by fastforce
+    have "(\<Union>R) \<subseteq> Field (\<Union>R) \<times> Field (\<Union>R)"
+      using Restr_Field by blast
+    moreover have "Refl (\<Union>R)" using \<open>\<forall>r\<in>R. Refl r\<close>  unfolding refl_on_def by fastforce
     moreover have "trans (\<Union>R)"
       by (rule chain_subset_trans_Union [OF subch \<open>\<forall>r\<in>R. trans r\<close>])
     moreover have "antisym (\<Union>R)"
@@ -130,10 +132,13 @@ proof -
     let ?s = "{(y, x) | y. y \<in> Field m}"
     let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)" by (auto simp: Field_def)
-    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
+    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)" and
+      "m \<subseteq> Field m \<times> Field m"
       using \<open>Well_order m\<close> by (simp_all add: order_on_defs)
     txt \<open>We show that the extension is a wellorder.\<close>
-    have "Refl ?m" using \<open>Refl m\<close> Fm by (auto simp: refl_on_def)
+    have "?m \<subseteq> Field ?m \<times> Field ?m"
+      using \<open>m \<subseteq> Field m \<times> Field m\<close> by auto
+    moreover have "Refl ?m" using \<open>Refl m\<close> Fm by (auto simp: refl_on_def)
     moreover have "trans ?m" using \<open>trans m\<close> \<open>x \<notin> Field m\<close>
       unfolding trans_def Field_def Domain_unfold Domain_converse [symmetric] by blast
     moreover have "antisym ?m" using \<open>antisym m\<close> \<open>x \<notin> Field m\<close>
@@ -160,7 +165,7 @@ proof -
       \<open>downset_on (Field m) p\<close> and \<open>downset_on (Field ?m) p\<close> and
       \<open>extension_on (Field m) m p\<close> and \<open>extension_on (Field ?m) ?m p\<close> and
       \<open>Refl m\<close> and \<open>x \<notin> Field m\<close>
-      by (auto simp: I_def init_seg_of_def refl_on_def)
+      by (auto simp: I_def init_seg_of_def refl_on_def dest: well_order_on_domain)
     ultimately
     \<comment> \<open>This contradicts maximality of m:\<close>
     show False using max and \<open>x \<notin> Field m\<close> unfolding Field_def by blast
@@ -199,7 +204,8 @@ proof -
   from \<open>p \<subseteq> r\<close> have "p \<subseteq> ?r" using \<open>Field p \<subseteq> A\<close> by (auto simp: Field_def)
   have "Refl r" "trans r" "antisym r" "Total r" "wf (r - Id)"
     using \<open>Well_order r\<close> by (simp_all add: order_on_defs)
-  have "refl_on A ?r" using \<open>Refl r\<close> by (auto simp: refl_on_def univ)
+  have "?r \<subseteq> A \<times> A" by blast
+  moreover have "refl_on A ?r" using \<open>Refl r\<close> by (auto simp: refl_on_def univ)
   moreover have "trans ?r" using \<open>trans r\<close>
     unfolding trans_def by blast
   moreover have "antisym ?r" using \<open>antisym r\<close>

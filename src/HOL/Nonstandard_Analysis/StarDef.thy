@@ -51,6 +51,7 @@ lemma starrel_iff [iff]: "(X, Y) \<in> starrel \<longleftrightarrow> eventually 
 
 lemma equiv_starrel: "equiv UNIV starrel"
 proof (rule equivI)
+  show "starrel \<subseteq> UNIV \<times> UNIV" by simp
   show "refl starrel" by (simp add: refl_on_def)
   show "sym starrel" by (simp add: sym_def eq_commute)
   show "trans starrel" by (intro transI) (auto elim: eventually_elim2)

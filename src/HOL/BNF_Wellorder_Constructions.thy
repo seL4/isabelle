@@ -56,8 +56,24 @@ lemma trans_Restr:
   unfolding trans_def Field_def by blast
 
 lemma Preorder_Restr:
-  "Preorder r \<Longrightarrow> Preorder(Restr r A)"
-  unfolding preorder_on_def by (simp add: Refl_Restr trans_Restr)
+  assumes "Preorder r"
+  shows "Preorder(Restr r A)"
+  unfolding preorder_on_def
+proof (intro conjI)
+  have "r \<subseteq> Field r \<times> Field r" and "Refl r" and "trans r"
+    using \<open>Preorder r\<close>
+    by (simp_all only: preorder_on_def)
+
+  show "Restr r A \<subseteq> Field (Restr r A) \<times> Field (Restr r A)"
+    using \<open>r \<subseteq> Field r \<times> Field r\<close>
+    by (auto simp add: Field_def)
+
+  show "Refl (Restr r A)"
+    using Refl_Restr[OF \<open>Refl r\<close>] .
+
+  show "trans (Restr r A)"
+    using trans_Restr[OF \<open>trans r\<close>] .
+qed
 
 lemma Partial_order_Restr:
   "Partial_order r \<Longrightarrow> Partial_order(Restr r A)"
@@ -867,6 +883,18 @@ lemma dir_image_minus_Id:
   "inj_on f (Field r) \<Longrightarrow> (dir_image r f) - Id = dir_image (r - Id) f"
   unfolding inj_on_def Field_def dir_image_def by auto
 
+lemma dir_image_subset:
+  assumes "r \<subseteq> A \<times> B"
+  shows "dir_image r f \<subseteq> f ` A \<times> f ` B"
+proof (rule subsetI)
+  fix x
+  assume "x \<in> dir_image r f"
+  then obtain a b where "x = (f a, f b)" and "(a, b) \<in> r"
+    unfolding dir_image_def by blast
+  thus "x \<in> f ` A \<times> f ` B"
+    using \<open>r \<subseteq> A \<times> B\<close> by auto
+qed
+
 lemma Refl_dir_image:
   assumes "Refl r"
   shows "Refl(dir_image r f)"
@@ -903,8 +931,23 @@ proof safe
 qed
 
 lemma Preorder_dir_image:
-  "\<lbrakk>Preorder r; inj_on f (Field r)\<rbrakk> \<Longrightarrow> Preorder (dir_image r f)"
-  by (simp add: preorder_on_def Refl_dir_image trans_dir_image)
+  assumes "Preorder r" and inj: "inj_on f (Field r)"
+  shows "Preorder (dir_image r f)"
+  unfolding preorder_on_def
+proof (intro conjI)
+  have "r \<subseteq> Field r \<times> Field r" and "Refl r" and "trans r"
+    using \<open>Preorder r\<close> by (simp_all only: preorder_on_def)
+
+  show "dir_image r f \<subseteq> Field (dir_image r f) \<times> Field (dir_image r f)"
+    using dir_image_subset[OF \<open>r \<subseteq> Field r \<times> Field r\<close>]
+    unfolding dir_image_Field .
+
+  show "Refl (dir_image r f)"
+    using Refl_dir_image[OF \<open>Refl r\<close>] .
+
+  show "trans (dir_image r f)"
+    using trans_dir_image[OF \<open>trans r\<close> inj] .
+qed
 
 lemma antisym_dir_image:
   assumes AN: "antisym r" and INJ: "inj_on f (Field r)"
@@ -1059,6 +1102,13 @@ next
     thus "(a1,a2) \<in> Field (bsqr r)" unfolding Field_def by auto
   qed
 qed
+
+lemma bsqr_subset:
+  assumes "r \<subseteq> Field r \<times> Field r"
+  shows "bsqr r \<subseteq> Field (bsqr r) \<times> Field (bsqr r)"
+  using \<open>r \<subseteq> Field r \<times> Field r\<close>
+  unfolding Field_bsqr
+  by (auto simp add: bsqr_def)
 
 lemma bsqr_Refl: "Refl(bsqr r)"
   by(unfold refl_on_def Field_bsqr, auto simp add: bsqr_def)
@@ -1302,8 +1352,16 @@ qed
 lemma bsqr_Linear_order:
   assumes "Well_order r"
   shows "Linear_order(bsqr r)"
-  unfolding order_on_defs
-  using assms bsqr_Refl bsqr_Trans bsqr_antisym bsqr_Total by blast
+proof -
+  have "r \<subseteq> Field r \<times> Field r"
+    using \<open>Well_order r\<close>
+    by (simp only: order_on_defs)
+
+  thus ?thesis
+    unfolding order_on_defs
+    using assms bsqr_Refl bsqr_Trans bsqr_antisym bsqr_Total bsqr_subset[OF \<open>r \<subseteq> Field r \<times> Field r\<close>]
+    by auto
+qed
 
 lemma bsqr_Well_order:
   assumes "Well_order r"

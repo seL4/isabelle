@@ -1104,7 +1104,16 @@ lemma natLeq_trans: "trans natLeq"
 
 lemma natLeq_Preorder: "Preorder natLeq"
   unfolding preorder_on_def
-  by (auto simp add: natLeq_Refl natLeq_trans)
+proof (intro conjI)
+  show "natLeq \<subseteq> Field natLeq \<times> Field natLeq"
+    unfolding natLeq_def Field_def by blast
+next
+  show "Refl natLeq"
+    using natLeq_Refl .
+next
+  show "trans natLeq"
+    using natLeq_trans .
+qed
 
 lemma natLeq_antisym: "antisym natLeq"
   unfolding antisym_def natLeq_def by auto

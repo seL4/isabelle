@@ -673,7 +673,7 @@ proof -
   interpret group G by fact
   show ?thesis
   proof (intro equivI)
-    have "rcong H \<subseteq> carrier G \<times> carrier G"
+    show "rcong H \<subseteq> carrier G \<times> carrier G"
       by (auto simp add: r_congruent_def)
     thus "refl_on (carrier G) (rcong H)"
       by (auto simp add: r_congruent_def refl_on_def)

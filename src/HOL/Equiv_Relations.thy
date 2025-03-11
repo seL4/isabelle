@@ -11,14 +11,14 @@ begin
 subsection \<open>Equivalence relations -- set version\<close>
 
 definition equiv :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> bool"
-  where "equiv A r \<longleftrightarrow> refl_on A r \<and> sym r \<and> trans r"
+  where "equiv A r \<longleftrightarrow> r \<subseteq> A \<times> A \<and> refl_on A r \<and> sym r \<and> trans r"
 
-lemma equivI: "refl_on A r \<Longrightarrow> sym r \<Longrightarrow> trans r \<Longrightarrow> equiv A r"
+lemma equivI: "r \<subseteq> A \<times> A \<Longrightarrow> refl_on A r \<Longrightarrow> sym r \<Longrightarrow> trans r \<Longrightarrow> equiv A r"
   by (simp add: equiv_def)
 
 lemma equivE:
   assumes "equiv A r"
-  obtains "refl_on A r" and "sym r" and "trans r"
+  obtains "r \<subseteq> A \<times> A" and "refl_on A r" and "sym r" and "trans r"
   using assms by (simp add: equiv_def)
 
 text \<open>
@@ -30,24 +30,27 @@ text \<open>
 lemma sym_trans_comp_subset: "sym r \<Longrightarrow> trans r \<Longrightarrow> r\<inverse> O r \<subseteq> r"
   unfolding trans_def sym_def converse_unfold by blast
 
-lemma refl_on_comp_subset: "refl_on A r \<Longrightarrow> r \<subseteq> r\<inverse> O r"
+lemma refl_on_comp_subset: "r \<subseteq> A \<times> A \<Longrightarrow> refl_on A r \<Longrightarrow> r \<subseteq> r\<inverse> O r"
   unfolding refl_on_def by blast
 
 lemma equiv_comp_eq: "equiv A r \<Longrightarrow> r\<inverse> O r = r"
-  unfolding equiv_def
-  by (iprover intro: sym_trans_comp_subset refl_on_comp_subset equalityI)
+  by (iprover elim: equivE intro: sym_trans_comp_subset refl_on_comp_subset equalityI)
 
 text \<open>Second half.\<close>
 
 lemma comp_equivI:
   assumes "r\<inverse> O r = r" "Domain r = A"
   shows "equiv A r"
-proof -
+proof (rule equivI)
+  show "r \<subseteq> A \<times> A"
+    using assms by auto
+
   have *: "\<And>x y. (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r"
     using assms by blast
-  show ?thesis
-    unfolding equiv_def refl_on_def sym_def trans_def
-    using assms by (auto intro: *)
+
+  thus "refl_on A r" "sym r" "trans r"
+    unfolding refl_on_def sym_def trans_def
+    using assms by auto
 qed
 
 
@@ -57,8 +60,19 @@ lemma equiv_class_subset: "equiv A r \<Longrightarrow> (a, b) \<in> r \<Longrigh
   \<comment> \<open>lemma for the next result\<close>
   unfolding equiv_def trans_def sym_def by blast
 
-theorem equiv_class_eq: "equiv A r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> r``{a} = r``{b}"
-  by (intro equalityI equiv_class_subset; force simp add: equiv_def sym_def)
+theorem equiv_class_eq:
+  assumes "equiv A r" and "(a, b) \<in> r"
+  shows "r``{a} = r``{b}"
+proof (intro subset_antisym equiv_class_subset[OF \<open>equiv A r\<close>])
+  show "(a, b) \<in> r"
+    using \<open>(a, b) \<in> r\<close> .
+next
+  have "sym r"
+    using \<open>equiv A r\<close> by (auto elim: equivE)
+  thus "(b, a) \<in> r"
+    using \<open>(a, b) \<in> r\<close>
+    by (auto dest: symD)
+qed
 
 lemma equiv_class_self: "equiv A r \<Longrightarrow> a \<in> A \<Longrightarrow> a \<in> r``{a}"
   unfolding equiv_def refl_on_def by blast
@@ -100,8 +114,17 @@ lemma quotientE: "X \<in> A//r \<Longrightarrow> (\<And>x. X = r``{x} \<Longrigh
 lemma Union_quotient: "equiv A r \<Longrightarrow> \<Union>(A//r) = A"
   unfolding equiv_def refl_on_def quotient_def by blast
 
-lemma quotient_disj: "equiv A r \<Longrightarrow> X \<in> A//r \<Longrightarrow> Y \<in> A//r \<Longrightarrow> X = Y \<or> X \<inter> Y = {}"
-  unfolding quotient_def equiv_def trans_def sym_def by blast
+lemma quotient_disj:
+  assumes "equiv A r" and "X \<in> A//r" and "Y \<in> A//r"
+  shows "X = Y \<or> X \<inter> Y = {}"
+proof -
+  have "sym r" and "trans r"
+    using \<open>equiv A r\<close>
+    by (auto elim: equivE)
+  thus ?thesis
+    using assms(2,3)
+    unfolding quotient_def equiv_def trans_def sym_def by blast
+qed
 
 lemma quotient_eqI:
   assumes "equiv A r" "X \<in> A//r" "Y \<in> A//r" and xy: "x \<in> X" "y \<in> Y" "(x, y) \<in> r"
@@ -109,8 +132,11 @@ lemma quotient_eqI:
 proof -
   obtain a b where "a \<in> A" and a: "X = r `` {a}" and "b \<in> A" and b: "Y = r `` {b}"
     using assms by (auto elim!: quotientE)
-  then have "(a,b) \<in> r"
-      using xy \<open>equiv A r\<close> unfolding equiv_def sym_def trans_def by blast
+  moreover have "sym r" and "trans r"
+    using \<open>equiv A r\<close>
+    by (auto elim: equivE)
+  ultimately have "(a,b) \<in> r"
+      using xy unfolding sym_def trans_def by blast
   then show ?thesis
     unfolding a b by (rule equiv_class_eq [OF \<open>equiv A r\<close>])
 qed

@@ -60,8 +60,8 @@ definition Top :: "'a potype => 'a" where
   "Top po == greatest (\<lambda>x. True) po"
 
 definition PartialOrder :: "('a potype) set" where
-  "PartialOrder == {P. refl_on (pset P) (order P) & antisym (order P) &
-                       trans (order P)}"
+  "PartialOrder \<equiv> {P. order P \<subseteq> pset P \<times> pset P \<and>
+    refl_on (pset P) (order P) \<and> antisym (order P) \<and> trans (order P)}"
 
 definition CompleteLattice :: "('a potype) set" where
   "CompleteLattice == {cl. cl \<in> PartialOrder \<and>
@@ -155,19 +155,26 @@ lemma (in PO) monotoneE:
 by (simp add: monotone_def)
 
 lemma (in PO) po_subset_po:
-     "S \<subseteq> A ==> (| pset = S, order = induced S r |) \<in> PartialOrder"
-apply (simp (no_asm) add: PartialOrder_def)
-apply auto
-\<comment> \<open>refl\<close>
-apply (simp add: refl_on_def induced_def)
-apply (blast intro: reflE)
-\<comment> \<open>antisym\<close>
-apply (simp add: antisym_def induced_def)
-apply (blast intro: antisymE)
-\<comment> \<open>trans\<close>
-apply (simp add: trans_def induced_def)
-apply (blast intro: transE)
-done
+  assumes "S \<subseteq> A"
+  shows "(| pset = S, order = induced S r |) \<in> PartialOrder"
+  unfolding PartialOrder_def mem_Collect_eq potype.simps
+proof (intro conjI)
+  show "induced S r \<subseteq> S \<times> S"
+    by (metis (no_types, lifting) case_prodD induced_def mem_Collect_eq
+        mem_Sigma_iff subrelI)
+
+  show "refl_on S (induced S r)"
+    using \<open>S \<subseteq> A\<close>
+    by (simp add: induced_def reflE refl_on_def subsetD)
+
+  show "antisym (induced S r)"
+    by (metis (lifting) BNF_Def.Collect_case_prodD PO_imp_sym antisym_subset induced_def
+        prod.collapse subsetI)
+
+  show "trans (induced S r)"
+    by (metis (no_types, lifting) case_prodD case_prodI induced_def local.transE mem_Collect_eq
+        trans_on_def)
+qed
 
 lemma (in PO) indE: "[| (x, y) \<in> induced S r; S \<subseteq> A |] ==> (x, y) \<in> r"
 by (simp add: add: induced_def)
@@ -196,7 +203,7 @@ by (simp add: isLub_def isGlb_def dual_def converse_unfold)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def dual_def)
+  apply (simp add: PartialOrder_def dual_def converse_Times flip: converse_subset_swap)
 done
 
 lemma Rdual:
@@ -486,8 +493,9 @@ lemma (in CLF) flubH_le_lubH:
      "[|  H = {x. (x, f x) \<in> r & x \<in> A} |] ==> (f (lub H cl), lub H cl) \<in> r"
 apply (rule lub_upper, fast)
 apply (rule_tac t = "H" in ssubst, assumption)
-apply (rule CollectI)
-by (metis (lifting) CO_refl_on lubH_le_flubH monotone_def monotone_f refl_onD1 refl_onD2)
+  apply (rule CollectI)
+  by (metis (lifting) Pi_iff f_in_funcset lubH_le_flubH lub_in_lattice
+      mem_Collect_eq monotoneE monotone_f subsetI)
 
 declare CLF.f_in_funcset[rule del] funcset_mem[rule del]
         CL.lub_in_lattice[rule del] PO.monotoneE[rule del]
@@ -533,10 +541,12 @@ qed
 lemma (in CLF) (*lubH_is_fixp:*)
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)
-apply (rule conjI)
-apply (metis CO_refl_on lubH_le_flubH refl_onD1)
-apply (metis antisymE flubH_le_lubH lubH_le_flubH)
-done
+  apply (rule conjI)
+  subgoal
+    by (metis (lifting) fix_def lubH_is_fixp mem_Collect_eq)
+  subgoal
+    by (metis antisymE flubH_le_lubH lubH_le_flubH)
+  done
 
 lemma (in CLF) fix_in_H:
      "[| H = {x. (x, f x) \<in> r & x \<in> A};  x \<in> P |] ==> x \<in> H"
@@ -618,7 +628,8 @@ subsection \<open>interval\<close>
 declare (in CLF) CO_refl_on[simp] refl_on_def [simp]
 
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
-by (metis CO_refl_on refl_onD1)
+  by (metis (no_types, lifting) A_def PartialOrder_def cl_po mem_Collect_eq
+      mem_Sigma_iff r_def subsetD)
 
 declare (in CLF) CO_refl_on[simp del]  refl_on_def [simp del]
 
@@ -626,7 +637,8 @@ declare (in CLF) rel_imp_elem[intro]
 declare interval_def [simp]
 
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
-by (metis CO_refl_on interval_imp_mem refl_onD refl_onD2 rel_imp_elem subset_eq)
+  by (metis PO.interval_imp_mem PO.intro dualPO dualr_iff interval_dual r_def
+      rel_imp_elem subsetI)
 
 declare (in CLF) rel_imp_elem[rule del]
 declare interval_def [simp del]

@@ -7647,7 +7647,7 @@ proof -
 qed
 
 theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
-  by (simp add: equiv_def listrel_refl_on listrel_sym listrel_trans)
+  by (simp add: equiv_def listrel_subset listrel_refl_on listrel_sym listrel_trans)
 
 lemma listrel_rtrancl_refl[iff]: "(xs,xs) \<in> listrel(r\<^sup>*)"
   using listrel_refl_on[of UNIV, OF refl_rtrancl]

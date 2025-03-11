@@ -96,7 +96,8 @@ lemmas ord_trans = ordIso_transitive ordLeq_transitive ordLess_transitive
 lemma ofilter_ordLeq:
   assumes "Well_order r" and "ofilter r A"
   shows "Restr r A \<le>o r"
-by (metis assms inf.orderE ofilter_embed ofilter_subset_ordLeq refl_on_def wo_rel.Field_ofilter wo_rel.REFL wo_rel.intro)
+  by (metis Well_order_Restr[of r A] assms ofilter_embed[of r A] ordLess_iff[of r "Restr r A"]
+      ordLess_or_ordLeq[of r "Restr r A"])
 
 corollary under_Restr_ordLeq:
   "Well_order r \<Longrightarrow> Restr r (under r a) \<le>o r"
@@ -334,7 +335,7 @@ proof(rule ccontr, simp)
   have bb: "b \<in> Field r" using bA unfolding underS_def Field_def by auto
   assume "\<forall>a\<in>A.  b \<notin> underS a"
   hence 0: "\<forall>a \<in> A. (a,b) \<in> r" using A bA unfolding underS_def
-    by simp (metis REFL in_mono max2_def max2_greater refl_on_domain)
+    using bb in_notinI[of b] by blast
   have "(supr A, b) \<in> r"
     by (simp add: "0" A bb supr_least)
   thus False
@@ -605,7 +606,7 @@ lemma isLimOrd_succ:
   assumes isLimOrd and "i \<in> Field r"
   shows "succ i \<in> Field r"
   using assms unfolding isLimOrd_def isSuccOrd_def
-  by (metis REFL in_notinI refl_on_domain succ_smallest)
+  using FieldI1[of "succ i" _ r] in_notinI[of i] succ_smallest[of i] by blast
 
 lemma isLimOrd_aboveS:
   assumes l: isLimOrd and i: "i \<in> Field r"

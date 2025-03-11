@@ -11,7 +11,7 @@ begin
 
 subsection \<open>Orders on a set\<close>
 
-definition "preorder_on A r \<equiv> refl_on A r \<and> trans r"
+definition "preorder_on A r \<equiv> r \<subseteq> A \<times> A \<and> refl_on A r \<and> trans r"
 
 definition "partial_order_on A r \<equiv> preorder_on A r \<and> antisym r"
 
@@ -26,7 +26,7 @@ lemmas order_on_defs =
   strict_linear_order_on_def well_order_on_def
 
 lemma partial_order_onD:
-  assumes "partial_order_on A r" shows "refl_on A r" and "trans r" and "antisym r"
+  assumes "partial_order_on A r" shows "refl_on A r" and "trans r" and "antisym r" and "r \<subseteq> A \<times> A"
   using assms unfolding partial_order_on_def preorder_on_def by auto
 
 lemma preorder_on_empty[simp]: "preorder_on {} {}"
@@ -43,7 +43,7 @@ lemma well_order_on_empty[simp]: "well_order_on {} {}"
 
 
 lemma preorder_on_converse[simp]: "preorder_on A (r\<inverse>) = preorder_on A r"
-  by (simp add: preorder_on_def)
+  by (auto simp add: preorder_on_def)
 
 lemma partial_order_on_converse[simp]: "partial_order_on A (r\<inverse>) = partial_order_on A r"
   by (simp add: partial_order_on_def)
@@ -154,7 +154,8 @@ definition relation_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow
   where "relation_of P A \<equiv> { (a, b) \<in> A \<times> A. P a b }"
 
 lemma Field_relation_of:
-  assumes "refl_on A (relation_of P A)" shows "Field (relation_of P A) = A"
+  assumes "relation_of P A \<subseteq> A \<times> A" and "refl_on A (relation_of P A)"
+  shows "Field (relation_of P A) = A"
   using assms unfolding refl_on_def Field_def by auto
 
 lemma partial_order_on_relation_ofI:
@@ -163,8 +164,10 @@ lemma partial_order_on_relation_ofI:
     and antisym: "\<And>a b. \<lbrakk> a \<in> A; b \<in> A \<rbrakk> \<Longrightarrow> P a b \<Longrightarrow> P b a \<Longrightarrow> a = b"
   shows "partial_order_on A (relation_of P A)"
 proof -
-  from refl have "refl_on A (relation_of P A)"
-    unfolding refl_on_def relation_of_def by auto
+  have "relation_of P A \<subseteq> A \<times> A"
+    unfolding relation_of_def by auto
+  moreover have "refl_on A (relation_of P A)"
+    using refl unfolding refl_on_def relation_of_def by auto
   moreover have "trans (relation_of P A)" and "antisym (relation_of P A)"
     unfolding relation_of_def
     by (auto intro: transI dest: trans, auto intro: antisymI dest: antisym)
@@ -173,8 +176,15 @@ proof -
 qed
 
 lemma Partial_order_relation_ofI:
-  assumes "partial_order_on A (relation_of P A)" shows "Partial_order (relation_of P A)"
-  using Field_relation_of assms partial_order_on_def preorder_on_def by fastforce
+  assumes "partial_order_on A (relation_of P A)"
+  shows "Partial_order (relation_of P A)"
+proof -
+  have *: "Field (relation_of P A) = A"
+    using assms by (simp_all only: Field_relation_of partial_order_on_def preorder_on_def)
+  show ?thesis
+    unfolding *
+    using assms .
+qed
 
 
 subsection \<open>Orders on a type\<close>
@@ -197,11 +207,8 @@ text \<open>
 
 subsubsection \<open>Auxiliaries\<close>
 
-lemma refl_on_domain: "refl_on A r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> a \<in> A \<and> b \<in> A"
-  by (auto simp add: refl_on_def)
-
 corollary well_order_on_domain: "well_order_on A r \<Longrightarrow> (a, b) \<in> r \<Longrightarrow> a \<in> A \<and> b \<in> A"
-  by (auto simp add: refl_on_domain order_on_defs)
+  by (auto simp add: order_on_defs)
 
 lemma well_order_on_Field: "well_order_on A r \<Longrightarrow> A = Field r"
   by (auto simp add: refl_on_def Field_def order_on_defs)
