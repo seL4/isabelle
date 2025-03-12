@@ -170,8 +170,8 @@ the selection incrementally.
 * The Output dockable (and its variants used elsewhere) has been
 improved as follows:
 
-  - Its vertical scroll position is maintained more carefully, when
-    messages are printed incrementally.
+  - Its scroll position is maintained more carefully, when messages are
+    printed incrementally.
 
   - Performance of printing messages repeatedly has improved slightly,
     with less load on the GUI thread.
