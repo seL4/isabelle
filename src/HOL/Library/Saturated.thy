@@ -129,7 +129,7 @@ proof
     case True thus ?thesis by (simp add: sat_eq_iff)
   next
     case False thus ?thesis
-      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib min_add_distrib_left min_add_distrib_right min.assoc min.absorb2)
+      by (simp add: sat_eq_iff nat_mult_min_left add_mult_distrib min_add_distrib_left min_add_distrib_right min.assoc)
   qed
 qed (simp_all add: sat_eq_iff mult.commute)
 
@@ -250,5 +250,49 @@ next
   show "Sup {} = (bot::'a sat)"
     by (auto simp: bot_sat_def)
 qed
+
+
+subsection \<open>Enumeration\<close>
+
+lemma inj_on_sat_of_nat:
+  shows "inj_on (of_nat :: nat \<Rightarrow> 'a::len sat) {0..<LENGTH('a)}"
+by (rule inj_onI) (simp add: sat_eq_iff)
+
+lemma UNIV_sat_eq_of_nat:
+  shows "(UNIV :: 'a::len sat set) = of_nat ` {0..LENGTH('a)}" (is "?lhs = ?rhs")
+proof -
+  have "x \<in> ?rhs" for x :: "'a sat"
+    by (simp add: image_eqI[where x="nat_of x"] sat_eq_iff)
+  then show ?thesis
+    by blast
+qed
+
+instantiation sat :: (len) enum
+begin
+
+definition enum_sat :: "'a sat list" where
+  "enum_sat = map of_nat [0..<Suc(LENGTH('a))]"
+
+definition enum_all_sat :: "('a sat \<Rightarrow> bool) \<Rightarrow> bool" where
+  "enum_all_sat = All"
+
+definition enum_ex_sat :: "('a sat \<Rightarrow> bool) \<Rightarrow> bool" where
+  "enum_ex_sat = Ex"
+
+instance
+proof intro_classes
+  show "UNIV = set (enum_class.enum :: 'a sat list)"
+    by (simp only: enum_sat_def UNIV_sat_eq_of_nat set_map flip: atLeastAtMost_upt)
+  show "distinct (enum_class.enum :: 'a sat list)"
+    by (clarsimp simp: enum_sat_def distinct_map inj_on_sat_of_nat sat_eq_iff)
+qed (simp_all add: enum_all_sat_def enum_ex_sat_def)
+
+end
+
+lemma enum_sat_code [code]:
+  fixes P :: "'a::len sat \<Rightarrow> bool"
+  shows "Enum.enum_all P \<longleftrightarrow> list_all P Enum.enum"
+    and "Enum.enum_ex P \<longleftrightarrow> list_ex P Enum.enum"
+by (simp_all add: enum_all_sat_def enum_ex_sat_def enum_UNIV list_all_iff list_ex_iff)
 
 end
