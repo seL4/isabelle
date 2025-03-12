@@ -14,6 +14,11 @@ New in this Isabelle version
       monotone_on_inf_fun
       monotone_on_sup_fun
 
+* Theory "HOL.Relations":
+  - Changed definition of predicate refl_on to not constrain the domain and
+    range of the relation. To get the old semantics, explicitely use the
+    formula "r ⊂ A × A ∧ refl_on A r". INCOMPATIBILITY.
+
 * Theory "HOL.Wellfounded":
   - Added lemmas.
       bex_rtrancl_min_element_if_wf_on
