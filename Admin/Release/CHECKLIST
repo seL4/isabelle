@@ -59,7 +59,7 @@ Checklist for official releases
 
 - Windows: check recent MiKTeX;
 
-- Phabricator:
+- Phorge:
     . src/Doc/System/Phabricator.thy: check/update underlying Ubuntu version
     . etc/options: check/update phabricator_version entries;
 
@@ -80,7 +80,7 @@ Packaging
 - regular packaging:
 
   #on fast Linux machine, with access to build_host for each platform
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025 -j2 -l
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025 -j2 -l -F -L
 
 - Docker image:
 
