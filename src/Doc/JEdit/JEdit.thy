@@ -336,7 +336,7 @@ text \<open>
   technical problems have accumulated in recent years (e.g.\ see
   \secref{sec:problems}).
 
-  In 2021, we are de-facto back to \<^emph>\<open>portable look-and-feels\<close>, which also
+  Since 2021, we are de-facto back to \<^emph>\<open>portable look-and-feels\<close>, which also
   happen to be \emph{scalable} on high-resolution displays:
 
     \<^item> \<^verbatim>\<open>FlatLaf Light\<close> is the default for Isabelle/jEdit on all platforms. It
@@ -1040,9 +1040,8 @@ text \<open>
 
   \<^medskip>
   \<^emph>\<open>Explicit highlighting\<close> of output works via the \<^emph>\<open>Search\<close> field: it matches
-  the text agains a given regular expression, in the notation that is commonly
-  used on the Java
-  platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
+  the text against a given regular expression, in the notation of
+  Java.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
   Results are also presented as a tree view, by sub-dividing the output panel
   on demand.
 
