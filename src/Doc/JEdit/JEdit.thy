@@ -1039,6 +1039,22 @@ text \<open>
   \end{figure}
 
   \<^medskip>
+  \<^emph>\<open>Explicit highlighting\<close> of output works via the \<^emph>\<open>Search\<close> field: it matches
+  the text agains a given regular expression, in the notation that is commonly
+  used on the Java
+  platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
+  Results are also presented as a tree view, by sub-dividing the output panel
+  on demand.
+
+  \<^emph>\<open>Implicit highlighting\<close> of output is based on formal markup by the prover.
+  If the \<^emph>\<open>Auto hovering\<close> option is enabled (default), then mouse hovering
+  alone is sufficient to see highlighted ranges stemming from nested syntax
+  structure (see also \secref{sec:tooltips-hyperlinks}); together with the ALT
+  keyboard modifier this produces a selection that is ready for copy-paste.
+  Without \<^emph>\<open>Auto hovering\<close>, an additional keyboard modifier \<^verbatim>\<open>CONTROL\<close> (Linux,
+  Windows) or \<^verbatim>\<open>COMMAND\<close> (macOS) is required, as for input text.
+
+  \<^medskip>
   Following the IDE principle, regular messages are attached to the original
   source in the proper place and may be inspected on demand via popups. This
   excludes messages that are somehow internal to the machinery of proof
@@ -1151,10 +1167,8 @@ text \<open>
     \<^item> The \<^emph>\<open>Apply\<close> button attaches a fresh query invocation to the current
     context of the command where the cursor is pointing in the text.
 
-    \<^item> The \<^emph>\<open>Search\<close> field allows to highlight query output according to some
-    regular expression, in the notation that is commonly used on the Java
-    platform.\<^footnote>\<open>\<^url>\<open>https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html\<close>\<close>
-    This may serve as an additional visual filter of the result.
+    \<^item> The \<^emph>\<open>Search\<close> warks as in the \<^emph>\<open>Output\<close> panel (\secref{sec:output}), but
+    without an extra tree view.
 
     \<^item> The \<^emph>\<open>Zoom\<close> box controls the font size of the output area.
 
