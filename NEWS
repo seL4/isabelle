@@ -30,7 +30,10 @@ New in this Isabelle version
   - Added lemmas.
       antisym_relation_of[simp]
       asym_relation_of[simp]
+      irrefl_relation_ofD
+      refl_relation_ofD
       sym_relation_of[simp]
+      total_relation_ofD
       trans_relation_of[simp]
 
 * Theory "HOL-Library.Multiset":

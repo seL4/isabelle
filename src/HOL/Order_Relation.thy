@@ -153,6 +153,12 @@ subsection\<open>Relations given by a predicate and the field\<close>
 definition relation_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set"
   where "relation_of P A \<equiv> { (a, b) \<in> A \<times> A. P a b }"
 
+lemma refl_relation_ofD: "refl (relation_of R S) \<Longrightarrow> reflp_on S R"
+  by (auto simp: relation_of_def intro: reflp_onI dest: reflD)
+
+lemma irrefl_relation_ofD: "irrefl (relation_of R S) \<Longrightarrow> irreflp_on S R"
+  by (auto simp: relation_of_def intro: irreflp_onI dest: irreflD)
+
 lemma sym_relation_of[simp]: "sym (relation_of R S) \<longleftrightarrow> symp_on S R"
 proof (rule iffI)
   show "sym (relation_of R S) \<Longrightarrow> symp_on S R"
@@ -188,6 +194,9 @@ next
   show "transp_on S R \<Longrightarrow> trans (relation_of R S)"
     by (auto simp: relation_of_def intro: transI dest: transp_onD)
 qed
+
+lemma total_relation_ofD: "total (relation_of R S) \<Longrightarrow> totalp_on S R"
+  by (auto simp: relation_of_def total_on_def intro: totalp_onI)
 
 lemma Field_relation_of:
   assumes "relation_of P A \<subseteq> A \<times> A" and "refl_on A (relation_of P A)"
