@@ -26,6 +26,13 @@ New in this Isabelle version
       wf_on_lex_prod[intro]
       wfp_on_iff_wfp
 
+* Theory "HOL.Order_Relation":
+  - Added lemmas.
+      antisym_relation_of[simp]
+      asym_relation_of[simp]
+      sym_relation_of[simp]
+      trans_relation_of[simp]
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset

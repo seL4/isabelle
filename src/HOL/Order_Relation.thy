@@ -153,6 +153,42 @@ subsection\<open>Relations given by a predicate and the field\<close>
 definition relation_of :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set"
   where "relation_of P A \<equiv> { (a, b) \<in> A \<times> A. P a b }"
 
+lemma sym_relation_of[simp]: "sym (relation_of R S) \<longleftrightarrow> symp_on S R"
+proof (rule iffI)
+  show "sym (relation_of R S) \<Longrightarrow> symp_on S R"
+    by (auto simp: relation_of_def intro: symp_onI dest: symD)
+next
+  show "symp_on S R \<Longrightarrow> sym (relation_of R S)"
+    by (auto simp: relation_of_def intro: symI dest: symp_onD)
+qed
+
+lemma asym_relation_of[simp]: "asym (relation_of R S) \<longleftrightarrow> asymp_on S R"
+proof (rule iffI)
+  show "asym (relation_of R S) \<Longrightarrow> asymp_on S R"
+    by (auto simp: relation_of_def intro: asymp_onI dest: asymD)
+next
+  show "asymp_on S R \<Longrightarrow> asym (relation_of R S)"
+    by (auto simp: relation_of_def intro: asymI dest: asymp_onD)
+qed
+
+lemma antisym_relation_of[simp]: "antisym (relation_of R S) \<longleftrightarrow> antisymp_on S R"
+proof (rule iffI)
+  show "antisym (relation_of R S) \<Longrightarrow> antisymp_on S R"
+    by (simp add: antisym_on_def antisymp_on_def relation_of_def)
+next
+  show "antisymp_on S R \<Longrightarrow> antisym (relation_of R S)"
+    by (simp add: antisym_on_def antisymp_on_def relation_of_def)
+qed
+
+lemma trans_relation_of[simp]: "trans (relation_of R S) \<longleftrightarrow> transp_on S R"
+proof (rule iffI)
+  show "trans (relation_of R S) \<Longrightarrow> transp_on S R"
+    by (auto simp: relation_of_def intro: transp_onI dest: transD)
+next
+  show "transp_on S R \<Longrightarrow> trans (relation_of R S)"
+    by (auto simp: relation_of_def intro: transI dest: transp_onD)
+qed
+
 lemma Field_relation_of:
   assumes "relation_of P A \<subseteq> A \<times> A" and "refl_on A (relation_of P A)"
   shows "Field (relation_of P A) = A"
