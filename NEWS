@@ -38,6 +38,10 @@ New in this Isabelle version
       total_relation_ofD
       trans_relation_of[simp]
 
+* Theory "HOL.Equiv_Relation":
+  - Added lemmas.
+      quotient_disj_strong
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset

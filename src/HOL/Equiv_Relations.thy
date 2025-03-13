@@ -135,17 +135,30 @@ lemma quotientE: "X \<in> A//r \<Longrightarrow> (\<And>x. X = r``{x} \<Longrigh
 lemma Union_quotient: "equiv A r \<Longrightarrow> \<Union>(A//r) = A"
   unfolding equiv_def refl_on_def quotient_def by blast
 
-lemma quotient_disj:
-  assumes "equiv A r" and "X \<in> A//r" and "Y \<in> A//r"
+lemma quotient_disj_strong:
+  assumes "r \<subseteq> A \<times> A" and "sym_on A r" and "trans_on A r" and "X \<in> A//r" and "Y \<in> A//r"
   shows "X = Y \<or> X \<inter> Y = {}"
 proof -
-  have "sym r" and "trans r"
-    using \<open>equiv A r\<close>
-    by (auto elim: equivE)
-  thus ?thesis
-    using assms(2,3)
-    unfolding quotient_def equiv_def trans_def sym_def by blast
+  obtain x where "x \<in> A" and "X = {x'. (x, x') \<in> r}"
+    using \<open>X \<in> A//r\<close> unfolding quotient_def UN_iff by blast
+
+  moreover obtain y where "y \<in> A" and "Y = {y'. (y, y') \<in> r}"
+    using \<open>Y \<in> A//r\<close> unfolding quotient_def UN_iff by blast
+
+  have f8: "\<forall>a aa. (aa, a) \<in> r \<or> (a, aa) \<notin> r"
+    using \<open>r \<subseteq> A \<times> A\<close>[unfolded subset_eq] \<open>sym_on A r\<close>[THEN sym_onD] by blast
+  have f9: "\<forall>a aa ab. (aa, ab) \<in> r \<or> (aa, a) \<notin> r \<or> (a, ab) \<notin> r"
+    using \<open>r \<subseteq> A \<times> A\<close>[unfolded subset_eq] \<open>trans_on A r\<close>[THEN trans_onD] by blast
+  then have "\<forall>a aa. aa \<in> Y \<or> (y, a) \<notin> r \<or> (a, aa) \<notin> r"
+    using \<open>Y = {y'. (y, y') \<in> r}\<close> by simp
+  then show ?thesis
+    using f9 f8 \<open>X = {x'. (x, x') \<in> r}\<close> \<open>Y = {y'. (y, y') \<in> r}\<close>
+      Collect_cong disjoint_iff_not_equal mem_Collect_eq by blast
 qed
+
+lemma quotient_disj: "equiv A r \<Longrightarrow> X \<in> A//r \<Longrightarrow> Y \<in> A//r \<Longrightarrow> X = Y \<or> X \<inter> Y = {}"
+  by (rule quotient_disj_strong[of r A X Y])
+    (auto elim: equivE intro: sym_on_subset trans_on_subset)
 
 lemma quotient_eqI:
   assumes "equiv A r" "X \<in> A//r" "Y \<in> A//r" and xy: "x \<in> X" "y \<in> Y" "(x, y) \<in> r"
