@@ -159,6 +159,7 @@ fun raw_preplay_step_for_method ctxt chained timeout meth
       Goal.prove ctxt [] [] goal (fn {context = ctxt, ...} =>
         HEADGOAL (tac_of_proof_method ctxt assmsp meth))
       handle ERROR msg => error ("Preplay error: " ^ msg)
+           | Exn.Interrupt_Breakdown => error "Preplay error"
 
     val play_outcome = take_time timeout prove ()
   in

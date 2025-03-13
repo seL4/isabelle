@@ -50,6 +50,7 @@ lemma exprel_refl: "X \<sim> X"
 
 theorem equiv_exprel: "equiv UNIV exprel"
 proof (rule equivI)
+  show "exprel \<subseteq> UNIV \<times> UNIV" by simp
   show "refl exprel" by (simp add: refl_on_def exprel_refl)
   show "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
   show "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)

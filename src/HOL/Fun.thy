@@ -816,18 +816,12 @@ lemma translation_subtract_Int:
   "(\<lambda>x. x - a) ` (s \<inter> t) = ((\<lambda>x. x - a) ` s) \<inter> ((\<lambda>x. x - a) ` t)"
 by(rule image_Int)(simp add: inj_on_def diff_eq_eq)
 
-end
-
-(* TODO: prove in group_add *)
-context ab_group_add
-begin
-
 lemma translation_Compl:
   "(+) a ` (- t) = - ((+) a ` t)"
 proof (rule set_eqI)
   fix b
   show "b \<in> (+) a ` (- t) \<longleftrightarrow> b \<in> - (+) a ` t"
-    by (auto simp: image_iff algebra_simps intro!: bexI [of _ "b - a"])
+    by (auto simp: image_iff algebra_simps intro!: bexI [of _ "- a + b"])
 qed
 
 end
@@ -1344,6 +1338,26 @@ lemma (in semilattice_inf) mono_inf: "mono f \<Longrightarrow> f (A \<sqinter> B
 lemma (in semilattice_sup) mono_sup: "mono f \<Longrightarrow> f A \<squnion> f B \<le> f (A \<squnion> B)"
   for f :: "'a \<Rightarrow> 'b::semilattice_sup"
   by (auto simp add: mono_def intro: Lattices.sup_least)
+
+lemma monotone_on_sup_fun:
+  fixes f g :: "_ \<Rightarrow> _:: semilattice_sup"
+  shows "monotone_on A P (\<le>) f \<Longrightarrow> monotone_on A P (\<le>) g \<Longrightarrow> monotone_on A P (\<le>) (f \<squnion> g)"
+  by (auto intro: monotone_onI sup_mono dest: monotone_onD simp: sup_fun_def)
+
+lemma monotone_on_inf_fun:
+  fixes f g :: "_ \<Rightarrow> _:: semilattice_inf"
+  shows "monotone_on A P (\<le>) f \<Longrightarrow> monotone_on A P (\<le>) g \<Longrightarrow> monotone_on A P (\<le>) (f \<sqinter> g)"
+  by (auto intro: monotone_onI inf_mono dest: monotone_onD simp: inf_fun_def)
+
+lemma antimonotone_on_sup_fun:
+  fixes f g :: "_ \<Rightarrow> _:: semilattice_sup"
+  shows "monotone_on A P (\<ge>) f \<Longrightarrow> monotone_on A P (\<ge>) g \<Longrightarrow> monotone_on A P (\<ge>) (f \<squnion> g)"
+  by (auto intro: monotone_onI sup_mono dest: monotone_onD simp: sup_fun_def)
+
+lemma antimonotone_on_inf_fun:
+  fixes f g :: "_ \<Rightarrow> _:: semilattice_inf"
+  shows "monotone_on A P (\<ge>) f \<Longrightarrow> monotone_on A P (\<ge>) g \<Longrightarrow> monotone_on A P (\<ge>) (f \<sqinter> g)"
+  by (auto intro: monotone_onI inf_mono dest: monotone_onD simp: inf_fun_def)
 
 lemma (in linorder) min_of_mono: "mono f \<Longrightarrow> min (f m) (f n) = f (min m n)"
   by (auto simp: mono_def Orderings.min_def min_def intro: Orderings.antisym)

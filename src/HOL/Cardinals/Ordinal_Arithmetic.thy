@@ -52,7 +52,9 @@ proof(safe)
 qed
 
 lemma osum_Preorder: "\<lbrakk>Preorder r; Preorder r'\<rbrakk> \<Longrightarrow> Preorder (r +o r')"
-  unfolding preorder_on_def using osum_Refl osum_trans by blast
+  unfolding preorder_on_def using osum_Refl osum_trans
+  by (metis inf.cobounded2[of "r +o r'" "Field (r +o r') \<times> Field (r +o r')"]
+      Restr_Field[of "r +o r'"])
 
 lemma osum_antisym: "\<lbrakk>antisym r; antisym r'\<rbrakk> \<Longrightarrow> antisym (r +o r')"
   unfolding antisym_def osum_def by auto
@@ -178,7 +180,9 @@ lemma oprod_trans:
   using assms by (clarsimp simp: trans_def antisym_def oprod_def) (metis FieldI1 FieldI2)
 
 lemma oprod_Preorder: "\<lbrakk>Preorder r; Preorder r'; antisym r; antisym r'\<rbrakk> \<Longrightarrow> Preorder (r *o r')"
-  unfolding preorder_on_def using oprod_Refl oprod_trans by blast
+  unfolding preorder_on_def using oprod_Refl oprod_trans
+  by (metis Restr_Field[of "r *o r'"]
+      inf.cobounded2[of "r *o r'" "Field (r *o r') \<times> Field (r *o r')"])
 
 lemma oprod_antisym: "\<lbrakk>antisym r; antisym r'\<rbrakk> \<Longrightarrow> antisym (r *o r')"
   unfolding antisym_def oprod_def by auto
@@ -588,7 +592,7 @@ proof (unfold trans_def, safe)
 qed
 
 lemma oexp_Preorder: "Preorder oexp"
-  unfolding preorder_on_def using oexp_Refl oexp_trans by blast
+  unfolding preorder_on_def using oexp_Refl oexp_trans Restr_Field[of oexp] by blast
 
 lemma oexp_antisym: "antisym oexp"
 proof (unfold antisym_def, safe, rule ccontr)

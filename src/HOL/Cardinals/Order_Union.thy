@@ -89,7 +89,7 @@ lemma Osum_trans:
 
 lemma Osum_Preorder:
   "\<lbrakk>Field r Int Field r' = {}; Preorder r; Preorder r'\<rbrakk> \<Longrightarrow> Preorder (r Osum r')"
-  unfolding preorder_on_def using Osum_Refl Osum_trans by blast
+  unfolding preorder_on_def using Osum_Refl Osum_trans Restr_Field by blast
 
 lemma Osum_antisym:
   assumes FLD: "Field r Int Field r' = {}" and

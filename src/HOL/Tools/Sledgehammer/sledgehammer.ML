@@ -51,6 +51,7 @@ open Sledgehammer_Isar_Minimize
 open Sledgehammer_ATP_Systems
 open Sledgehammer_Prover
 open Sledgehammer_Prover_ATP
+open Sledgehammer_Prover_Tactic
 open Sledgehammer_Prover_Minimize
 open Sledgehammer_MaSh
 
@@ -239,8 +240,9 @@ fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...
           val preplay = `(fn pretty_used_facts =>
             play_one_line_proofs minimize preplay_timeout pretty_used_facts
               state goal subgoal (snd preferred_methss))
-          fun preplay_succeeded ((_, (Played _, _)) :: _, _) = true
-            | preplay_succeeded _ = false
+          fun preplay_succeeded ((_, (Played _, _)) :: _, _) _ = true
+            | preplay_succeeded _ [] = true
+            | preplay_succeeded _ _ = false
           val instantiate_timeout = Time.scale 5.0 preplay_timeout
           val instantiate = if null used_facts0 then SOME false else instantiate
           val (preplay_results, pretty_used_facts) =
@@ -255,7 +257,7 @@ fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...
               let
                 val preplay_results0 = preplay pretty_used_facts0
               in
-                if preplay_succeeded preplay_results0 then
+                if preplay_succeeded preplay_results0 (snd preferred_methss) then
                   preplay_results0
                 else
                   (* Preplay failed, now try to infer variable instantiations *)
@@ -437,7 +439,7 @@ fun prover_slices_of_schedule ctxt goal subgoal factss
         extra_extra0)) =
         ATP_Slice (format0, the_default type_enc0 type_enc, the_default lam_trans0 lam_trans,
           the_default uncurried_aliases0 uncurried_aliases, extra_extra0)
-      | adjust_extra (extra as SMT_Slice _) = extra
+      | adjust_extra extra = extra
 
     fun adjust_slice max_slice_size
         ((slice_size0, abduce0, falsify0, num_facts0, fact_filter0), extra) =

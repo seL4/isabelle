@@ -223,7 +223,7 @@ proof(unfold inj_on_def, clarify)
     unfolding Field_def by auto
   {assume "(a,b) \<in> r"
     hence "a \<in> under r b \<and> b \<in> under r b"
-      using Refl by(auto simp add: under_def refl_on_def)
+      using Refl by (auto simp add: under_def refl_on_def Field_def)
     hence "a = b"
       using EMB 1 ***
       by (auto simp add: embed_def bij_betw_def inj_on_def)
@@ -231,7 +231,7 @@ proof(unfold inj_on_def, clarify)
   moreover
   {assume "(b,a) \<in> r"
     hence "a \<in> under r a \<and> b \<in> under r a"
-      using Refl by(auto simp add: under_def refl_on_def)
+      using Refl by (auto simp add: under_def refl_on_def Field_def)
     hence "a = b"
       using EMB 1 ***
       by (auto simp add: embed_def bij_betw_def inj_on_def)

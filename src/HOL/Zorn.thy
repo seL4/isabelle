@@ -543,7 +543,7 @@ proof -
     unfolding relation_of_def using that by auto
   ultimately have "\<exists>m\<in>A. \<forall>a\<in>A. (m, a) \<in> relation_of P A \<longrightarrow> a = m"
     using Zorns_po_lemma[OF Partial_order_relation_ofI[OF po], rule_format] ch
-    unfolding Field_relation_of[OF partial_order_onD(1)[OF po]] by blast
+    unfolding Field_relation_of[OF partial_order_onD(4)[OF po] partial_order_onD(1)[OF po]] by blast
   then show ?thesis
     by (auto simp: relation_of_def)
 qed
@@ -749,7 +749,9 @@ proof -
     have "\<forall>r\<in>R. Refl r" and "\<forall>r\<in>R. trans r" and "\<forall>r\<in>R. antisym r"
       and "\<forall>r\<in>R. Total r" and "\<forall>r\<in>R. wf (r - Id)"
       using Chains_wo [OF \<open>R \<in> Chains I\<close>] by (simp_all add: order_on_defs)
-    have "Refl (\<Union>R)"
+    have "(\<Union> R) \<subseteq> Field (\<Union> R) \<times> Field (\<Union> R)"
+      unfolding Field_def by auto
+    moreover have "Refl (\<Union>R)"
       using \<open>\<forall>r\<in>R. Refl r\<close> unfolding refl_on_def by fastforce
     moreover have "trans (\<Union>R)"
       by (rule chain_subset_trans_Union [OF subch \<open>\<forall>r\<in>R. trans r\<close>])
@@ -798,10 +800,13 @@ proof -
     let ?m = "insert (x, x) m \<union> ?s"
     have Fm: "Field ?m = insert x (Field m)"
       by (auto simp: Field_def)
-    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)"
+    have "Refl m" and "trans m" and "antisym m" and "Total m" and "wf (m - Id)" and
+      "m \<subseteq> Field m \<times> Field m"
       using \<open>Well_order m\<close> by (simp_all add: order_on_defs)
 \<comment> \<open>We show that the extension is a well-order\<close>
-    have "Refl ?m"
+    have "?m \<subseteq> Field ?m \<times> Field ?m"
+      using \<open>m \<subseteq> Field m \<times> Field m\<close> by auto
+    moreover have "Refl ?m"
       using \<open>Refl m\<close> Fm unfolding refl_on_def by blast
     moreover have "trans ?m" using \<open>trans m\<close> and \<open>x \<notin> Field m\<close>
       unfolding trans_def Field_def by blast
@@ -839,9 +844,12 @@ proof -
   let ?r = "{(x, y). x \<in> A \<and> y \<in> A \<and> (x, y) \<in> r}"
   have 1: "Field ?r = A"
     using wo univ by (fastforce simp: Field_def order_on_defs refl_on_def)
-  from \<open>Well_order r\<close> have "Refl r" "trans r" "antisym r" "Total r" "wf (r - Id)"
+  from \<open>Well_order r\<close> have "Refl r" "trans r" "antisym r" "Total r" "wf (r - Id)" and
+    "r \<subseteq> Field r \<times> Field r"
     by (simp_all add: order_on_defs)
-  from \<open>Refl r\<close> have "Refl ?r"
+  have "?r \<subseteq> Field ?r \<times> Field ?r"
+      using \<open>r \<subseteq> Field r \<times> Field r\<close> by (auto simp: 1)
+  moreover from \<open>Refl r\<close> have "Refl ?r"
     by (auto simp: refl_on_def 1 univ)
   moreover from \<open>trans r\<close> have "trans ?r"
     unfolding trans_def by blast

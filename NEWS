@@ -4,6 +4,57 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+* Theory "HOL.Fun":
+  - Added lemmas.
+      antimonotone_on_inf_fun
+      antimonotone_on_sup_fun
+      monotone_on_inf_fun
+      monotone_on_sup_fun
+
+* Theory "HOL.Relations":
+  - Changed definition of predicate refl_on to not constrain the domain and
+    range of the relation. To get the old semantics, explicitely use the
+    formula "r ⊂ A × A ∧ refl_on A r". INCOMPATIBILITY.
+
+* Theory "HOL.Wellfounded":
+  - Added lemmas.
+      bex_rtrancl_min_element_if_wf_on
+      bex_rtrancl_min_element_if_wfp_on
+      wf_on_lex_prod[intro]
+      wfp_on_iff_wfp
+
+* Theory "HOL.Order_Relation":
+  - Added lemmas.
+      antisym_relation_of[simp]
+      asym_relation_of[simp]
+      irrefl_relation_ofD
+      refl_relation_ofD
+      sym_relation_of[simp]
+      total_relation_ofD
+      trans_relation_of[simp]
+
+* Theory "HOL.Equiv_Relation":
+  - Strengthened lemmas. Minor INCOMPATIBILITY.
+      sym_trans_comp_subset
+  - Added lemmas.
+      quotient_disj_strong
+
+* Theory "HOL-Library.Multiset":
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      filter_image_mset ~> filter_mset_image_mset
+  - Removed lemmas.
+      size_multiset_sum_mset[simp]
+  - Added lemmas.
+      filter_mset_eq_mempty_iff[simp]
+      filter_mset_mono_strong
+      filter_mset_sum_list
+      set_mset_sum_list[simp]
+      size_mset_sum_mset_conv[simp]
+
+
 New in Isabelle2025 (March 2025)
 --------------------------------
 

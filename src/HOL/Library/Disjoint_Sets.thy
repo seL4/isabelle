@@ -389,7 +389,7 @@ lemma partition_on_quotient:
   assumes r: "equiv A r"
   shows "partition_on A (A // r)"
 proof (rule partition_onI)
-  from r have "refl_on A r"
+  from r have "r \<subseteq> A \<times> A" and "refl_on A r"
     by (auto elim: equivE)
   then show "\<Union>(A // r) = A" "{} \<notin> A // r"
     by (auto simp: refl_on_def quotient_def)
@@ -408,9 +408,10 @@ proof (rule equivI)
   have "A = \<Union>P"
     using P by (auto simp: partition_on_def)
 
-  have "{(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p} \<subseteq> A \<times> A"
+  show "{(x, y). \<exists>p \<in> P. x \<in> p \<and> y \<in> p} \<subseteq> A \<times> A"
     unfolding \<open>A = \<Union>P\<close> by blast
-  then show "refl_on A {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
+
+  show "refl_on A {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"
     unfolding refl_on_def \<open>A = \<Union>P\<close> by auto
 next
   show "trans {(x, y). \<exists>p\<in>P. x \<in> p \<and> y \<in> p}"

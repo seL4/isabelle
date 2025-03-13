@@ -393,36 +393,88 @@ lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightar
   using wfp_on_antimono_strong .
 
 
+subsubsection \<open>Equivalence between \<^const>\<open>wfp_on\<close> and \<^const>\<open>wfp\<close>\<close>
+
+lemma wfp_on_iff_wfp: "wfp_on A R \<longleftrightarrow> wfp (\<lambda>x y. R x y \<and>  x \<in> A \<and> y \<in> A)"
+  (is "?LHS \<longleftrightarrow> ?RHS")
+proof (rule iffI)
+  assume ?LHS
+  then show ?RHS
+    unfolding wfp_on_iff_ex_minimal
+    by force
+next
+  assume ?RHS
+  thus ?LHS
+  proof (rule wfp_on_antimono_strong)
+    show "A \<subseteq> UNIV"
+      using subset_UNIV .
+  next
+    show "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> R x y \<and> x \<in> A \<and> y \<in> A"
+      by iprover
+  qed
+qed
+
+
 subsubsection \<open>Well-foundedness of transitive closure\<close>
+
+lemma bex_rtrancl_min_element_if_wf_on:
+  assumes wf: "wf_on A r" and x_in: "x \<in> A"
+  shows "\<exists>y \<in> A. (y, x) \<in> r\<^sup>* \<and> \<not>(\<exists>z \<in> A. (z, y) \<in> r)"
+  using wf
+proof (induction x rule: wf_on_induct)
+  case in_set
+  thus ?case
+    using x_in .
+next
+  case (less z)
+  show ?case                            
+  proof (cases "\<exists>y \<in> A. (y, z) \<in> r")
+    case True
+    then obtain y where "y \<in> A" and "(y, z) \<in> r"
+      by blast
+    then obtain x where "x \<in> A" and "(x, y) \<in> r\<^sup>*" and "\<not> (\<exists>w\<in>A. (w, x) \<in> r)"
+      using less.IH by blast
+    show ?thesis
+    proof (intro bexI conjI)
+      show "(x, z) \<in> r\<^sup>*"
+        using rtrancl.rtrancl_into_rtrancl[of x y r z]
+        using \<open>(x, y) \<in> r\<^sup>*\<close> \<open>(y, z) \<in> r\<close> by blast
+    next
+      show "\<not> (\<exists>z\<in>A. (z, x) \<in> r)"
+        using \<open>\<not> (\<exists>w\<in>A. (w, x) \<in> r)\<close> .
+    next
+      show "x \<in> A"
+        using \<open>x \<in> A\<close> .
+    qed
+  next
+    case False
+    show ?thesis
+    proof (intro bexI conjI)
+      show "(z, z) \<in> r\<^sup>*"
+        using rtrancl.rtrancl_refl .
+    next
+      show "\<not> (\<exists>w\<in>A. (w, z) \<in> r)"
+        using False .
+    next
+      show "z \<in> A"
+        using less.hyps .
+    qed
+  qed
+qed
+
+lemma bex_rtransclp_min_element_if_wfp_on: "wfp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> \<exists>y\<in>A. R\<^sup>*\<^sup>* y x \<and> \<not> (\<exists>z\<in>A. R z y)"
+  by (rule bex_rtrancl_min_element_if_wf_on[to_pred])
 
 lemma ex_terminating_rtranclp_strong:
   assumes wf: "wfp_on {x'. R\<^sup>*\<^sup>* x x'} R\<inverse>\<inverse>"
   shows "\<exists>y. R\<^sup>*\<^sup>* x y \<and> (\<nexists>z. R y z)"
-proof (cases "\<exists>y. R x y")
-  case True
-  with wf show ?thesis
-  proof (induction rule: Wellfounded.wfp_on_induct)
-    case in_set
-    thus ?case
-      by simp
-  next
-    case (less y)
-    have "R\<^sup>*\<^sup>* x y"
-      using less.hyps mem_Collect_eq[of _ "R\<^sup>*\<^sup>* x"] by iprover
+proof -
+  have x_in: "x \<in> {x'. R\<^sup>*\<^sup>* x x'}"
+    by simp
 
-    moreover obtain z where "R y z"
-      using less.prems by iprover
-
-    ultimately have "R\<^sup>*\<^sup>* x z"
-      using rtranclp.rtrancl_into_rtrancl[of R x y z] by iprover
-
-    show ?case
-      using \<open>R y z\<close> \<open>R\<^sup>*\<^sup>* x z\<close> less.IH[of z] rtranclp_trans[of R y z] by blast
-  qed
-next
-  case False
-  thus ?thesis
-    by blast
+  show ?thesis
+    using bex_rtransclp_min_element_if_wfp_on[OF wf x_in]
+    using rtranclp.rtrancl_into_rtrancl[of R x] by blast
 qed
 
 lemma ex_terminating_rtranclp:
@@ -1189,28 +1241,59 @@ definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \
 lemma in_lex_prod[simp]: "((a, b), (a', b')) \<in> r <*lex*> s \<longleftrightarrow> (a, a') \<in> r \<or> a = a' \<and> (b, b') \<in> s"
   by (auto simp:lex_prod_def)
 
+lemma wf_on_lex_prod[intro]:
+  assumes wfA: "wf_on A r\<^sub>A" and wfB: "wf_on B r\<^sub>B"
+  shows "wf_on (A \<times> B) (r\<^sub>A <*lex*> r\<^sub>B)"
+  unfolding wf_on_iff_ex_minimal
+proof (intro allI impI)
+  fix AB assume "AB \<subseteq> A \<times> B" and "AB \<noteq> {}"
+  hence "fst ` AB \<subseteq> A" and "snd ` AB \<subseteq> B"
+    by auto
+
+  from \<open>fst ` AB \<subseteq> A\<close> \<open>AB \<noteq> {}\<close> obtain a where
+    a_in: "a \<in> fst ` AB" and
+    a_minimal: "(\<forall>y. (y, a) \<in> r\<^sub>A \<longrightarrow> y \<notin> fst ` AB)"
+    using wfA[unfolded wf_on_iff_ex_minimal, rule_format, of "fst ` AB"]
+    by auto
+
+  from \<open>snd ` AB \<subseteq> B\<close> \<open>AB \<noteq> {}\<close> a_in obtain b where
+    b_in: "b \<in> snd ` {p \<in> AB. fst p = a}" and
+    b_minimal: "(\<forall>y. (y, b) \<in> r\<^sub>B \<longrightarrow> y \<notin> snd ` {p \<in> AB. fst p = a})"
+    using wfB[unfolded wf_on_iff_ex_minimal, rule_format, of "snd ` {p \<in> AB. fst p = a}"]
+    by blast
+
+  show "\<exists>z\<in>AB. \<forall>y. (y, z) \<in> r\<^sub>A <*lex*> r\<^sub>B \<longrightarrow> y \<notin> AB"
+  proof (rule bexI)
+    show "(a, b) \<in> AB"
+      using b_in by (simp add: image_iff)
+  next
+    show "\<forall>y. (y, (a, b)) \<in> r\<^sub>A <*lex*> r\<^sub>B \<longrightarrow> y \<notin> AB"
+    proof (intro allI impI)
+      fix p assume "(p, (a, b)) \<in> r\<^sub>A <*lex*> r\<^sub>B"
+      hence "(fst p, a) \<in> r\<^sub>A \<or> fst p = a \<and> (snd p, b) \<in> r\<^sub>B"
+        unfolding lex_prod_def by auto
+      thus "p \<notin> AB"
+      proof (elim disjE conjE)
+        assume "(fst p, a) \<in> r\<^sub>A"
+        hence "fst p \<notin> fst ` AB"
+          using a_minimal by simp
+        thus ?thesis
+          by (rule contrapos_nn) simp
+      next
+        assume "fst p = a" and "(snd p, b) \<in> r\<^sub>B"
+        hence "snd p \<notin> snd ` {p \<in> AB. fst p = a}"
+          using b_minimal by simp
+        thus "p \<notin> AB"
+          by (rule contrapos_nn) (simp add: \<open>fst p = a\<close>)
+      qed
+    qed
+  qed
+qed
+
 lemma wf_lex_prod [intro!]:
   assumes "wf ra" "wf rb"
   shows "wf (ra <*lex*> rb)"
-proof (rule wfI)
-  fix z :: "'a \<times> 'b" and P
-  assume * [rule_format]: "\<forall>u. (\<forall>v. (v, u) \<in> ra <*lex*> rb \<longrightarrow> P v) \<longrightarrow> P u"
-  obtain x y where zeq: "z = (x,y)"
-    by fastforce
-  have "P(x,y)" using \<open>wf ra\<close>
-  proof (induction x arbitrary: y rule: wf_induct_rule)
-    case (less x)
-    note lessx = less
-    show ?case using \<open>wf rb\<close> less
-    proof (induction y rule: wf_induct_rule)
-      case (less y)
-      show ?case
-        by (force intro: * less.IH lessx)
-    qed
-  qed
-  then show "P z"
-    by (simp add: zeq)
-qed auto
+  using wf_on_lex_prod[OF \<open>wf ra\<close> \<open>wf rb\<close>, unfolded UNIV_Times_UNIV] .
 
 lemma refl_lex_prod[simp]: "refl r\<^sub>B \<Longrightarrow> refl (r\<^sub>A <*lex*> r\<^sub>B)"
   by (auto intro!: reflI dest: refl_onD)

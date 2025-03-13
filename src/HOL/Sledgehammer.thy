@@ -29,6 +29,7 @@ ML_file \<open>Tools/Sledgehammer/sledgehammer_atp_systems.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_prover.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_atp.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_smt.ML\<close>
+ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_tactic.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_prover_minimize.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_mepo.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_mash.ML\<close>

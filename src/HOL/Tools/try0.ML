@@ -6,12 +6,14 @@ Try a combination of proof methods.
 
 signature TRY0 =
 sig
-  val noneN : string
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
-  type result = {name: string, command: string, time: int, state: Proof.state}
-  val try0 : Time.time option -> ((Facts.ref * Token.src list)  * modifier list) list ->
-    Proof.state -> result list
+  type xthm = Facts.ref * Token.src list
+  type tagged_xthm = xthm * modifier list
+  type result = {name: string, command: string, time: Time.time, state: Proof.state}
+  val apply_proof_method : string -> Time.time option -> (xthm * modifier list) list ->
+    Proof.state -> result option
+  val try0 : Time.time option -> tagged_xthm list -> Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -46,64 +48,27 @@ fun parse_method ctxt s =
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
 datatype modifier = Use | Simp | Intro | Elim | Dest
+type xthm = Facts.ref * Token.src list
+type tagged_xthm = xthm * modifier list
 
-fun string_of_xthm (xref, args) =
+fun string_of_xthm ((xref, args) : xthm) =
   (case xref of
     Facts.Fact literal => literal |> Symbol_Pos.explode0 |> Symbol_Pos.implode |> cartouche
   | _ =>
       Facts.string_of_ref xref) ^ implode
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
-fun add_attr_text tagged (tag, src) s =
+fun add_attr_text (tagged : tagged_xthm list) (tag, src) s =
   let
     val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map (string_of_xthm o fst)
   in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
 
-fun attrs_text tags tagged =
+fun attrs_text tags (tagged : tagged_xthm list) =
   "" |> fold (add_attr_text tagged) tags
 
-type result = {name: string, command: string, time: int, state: Proof.state}
+type result = {name: string, command: string, time: Time.time, state: Proof.state}
 
-fun apply_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode timeout_opt tagged st =
-  if mode <> Auto_Try orelse run_if_auto_try then
-    let
-      val unused =
-        tagged
-        |> filter
-          (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
-        |> map fst
-
-      val attrs = attrs_text attrs tagged
-
-      val ctxt = Proof.context_of st
-
-      val text =
-        name ^ attrs
-        |> parse_method ctxt
-        |> Method.method_cmd ctxt
-        |> Method.Basic
-        |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
-
-      val apply =
-        Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
-        #> Proof.refine text #> Seq.filter_results
-      val num_before = num_goals st
-      val multiple_goals = all_goals andalso num_before > 1
-      val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
-      val num_after = num_goals st'
-      val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
-      val unused = implode_space (unused |> map string_of_xthm)
-      val command =
-        (if unused <> "" then "using " ^ unused ^ " " else "") ^
-        (if num_after = 0 then "by " else "apply ") ^
-        (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
-        (if multiple_goals andalso num_after > 0 then select else "")
-    in
-      if num_before > num_after then
-        SOME {name = name, command = command, time = Time.toMilliseconds time, state = st'}
-      else NONE
-    end
-  else NONE
+local
 
 val full_attrs = [(Simp, "simp"), (Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
 val clas_attrs = [(Intro, "intro"), (Elim, "elim"), (Dest, "dest")]
@@ -112,7 +77,7 @@ val metis_attrs = [(Simp, ""), (Intro, ""), (Elim, ""), (Dest, "")]
 val no_attrs = []
 
 (* name * ((all_goals, run_if_auto_try), tags *)
-val named_methods =
+val raw_named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
    ("blast", ((false, true), clas_attrs)),
@@ -128,10 +93,72 @@ val named_methods =
    ("satx", ((false, false), no_attrs)),
    ("order", ((false, true), no_attrs))]
 
-val apply_methods = map apply_named_method named_methods
+fun apply_raw_named_method (name, ((all_goals, _), attrs)) timeout_opt tagged st :
+    result option =
+  let
+    val unused =
+      tagged
+      |> filter
+        (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
+      |> map fst
 
-fun time_string ms = string_of_int ms ^ " ms"
-fun tool_time_string (s, ms) = s ^ ": " ^ time_string ms
+    val attrs = attrs_text attrs tagged
+
+    val ctxt = Proof.context_of st
+
+    val text =
+      name ^ attrs
+      |> parse_method ctxt
+      |> Method.method_cmd ctxt
+      |> Method.Basic
+      |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
+
+    val apply =
+      Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
+      #> Proof.refine text #> Seq.filter_results
+    val num_before = num_goals st
+    val multiple_goals = all_goals andalso num_before > 1
+    val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
+    val num_after = num_goals st'
+    val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
+    val unused = implode_space (unused |> map string_of_xthm)
+    val command =
+      (if unused <> "" then "using " ^ unused ^ " " else "") ^
+      (if num_after = 0 then "by " else "apply ") ^
+      (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
+      (if multiple_goals andalso num_after > 0 then select else "")
+  in
+    if num_before > num_after then
+      SOME {name = name, command = command, time = time, state = st'}
+    else NONE
+  end
+
+in
+
+val named_methods = map fst raw_named_methods
+
+fun apply_proof_method name timeout_opt tagged st :
+  result option =
+  (case AList.lookup (op =) raw_named_methods name of
+    NONE => NONE
+  | SOME raw_method => apply_raw_named_method (name, raw_method) timeout_opt tagged st)
+
+fun maybe_apply_proof_method name mode timeout_opt tagged st :
+  result option =
+  (case AList.lookup (op =) raw_named_methods name of
+    NONE => NONE
+  | SOME (raw_method as ((_, run_if_auto_try), _)) =>
+    if mode <> Auto_Try orelse run_if_auto_try then
+      apply_raw_named_method (name, raw_method) timeout_opt tagged st
+    else
+      NONE)
+
+end
+
+val maybe_apply_methods = map maybe_apply_proof_method named_methods
+
+fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
+fun tool_time_string (s, time) = s ^ ": " ^ time_string time
 
 (* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
    bound exceeded" warnings and the like. *)
@@ -144,25 +171,31 @@ fun silence_methods debug =
       |> Config.put Unify.unify_trace false
       |> Config.put Argo_Tactic.trace "none")
 
-fun generic_try0 mode timeout_opt tagged st =
+fun generic_try0 mode timeout_opt (tagged : tagged_xthm list) st =
   let
     val st = Proof.map_contexts (silence_methods false) st
     fun try_method method = method mode timeout_opt tagged st
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
       command ^ " (" ^ time_string time ^ ")"
     val print_step = Option.map (tap (writeln o get_message))
-    val get_results =
-      if mode = Normal
-      then Par_List.map (try_method #> print_step) #> map_filter I #> sort (int_ord o apply2 #time)
-      else Par_List.get_some try_method #> the_list
+    fun get_results methods : result list =
+      if mode = Normal then
+        methods
+        |> Par_List.map (try_method #> print_step)
+        |> map_filter I
+        |> sort (Time.compare o apply2 #time)
+      else
+        methods
+        |> Par_List.get_some try_method
+        |> the_list
   in
     if mode = Normal then
-      "Trying " ^ implode_space (Try.serial_commas "and" (map (quote o fst) named_methods)) ^
+      "Trying " ^ implode_space (Try.serial_commas "and" (map quote named_methods)) ^
       "..."
       |> writeln
     else
       ();
-    (case get_results apply_methods of
+    (case get_results maybe_apply_methods of
       [] => (if mode = Normal then writeln "No proof found" else (); ((false, (noneN, [])), []))
     | results as {name, command, ...} :: _ =>
       let

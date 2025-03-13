@@ -160,7 +160,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
           isar_params ()
       in
         if null atp_proof0 then
-          one_line_proof_text ctxt 0 one_line_params
+          one_line_proof_text one_line_params
         else
           let
             val systematic_methods' = insert (op =) (Metis_Method alt_metis_args) systematic_methods
@@ -475,7 +475,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
           in
             (case (num_chained, add_isar_steps (steps_of_isar_proof isar_proof) 0) of
               (0, 1) =>
-              one_line_proof_text ctxt 0
+              one_line_proof_text
                 (if is_less (play_outcome_ord (play_outcome, one_line_play)) then
                    (case isar_proof of
                      Proof {steps = [Prove {qualifiers = [Show], facts = (_, gfs),
@@ -502,7 +502,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
                    else []) @
                   (if do_preplay then [string_of_play_outcome play_outcome] else [])
               in
-                one_line_proof_text ctxt 0 one_line_params ^
+                one_line_proof_text one_line_params ^
                 (if isar_proofs <> NONE orelse (case play_outcome of Played _ => true | _ => false) then
                    "\n\nIsar proof" ^ (commas msg |> not (null msg) ? enclose " (" ")") ^ ":\n" ^
                    Active.sendback_markup_command
@@ -519,7 +519,7 @@ fun isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
       (case try generate_proof_text () of
         SOME s => s
       | NONE =>
-        one_line_proof_text ctxt 0 one_line_params ^
+        one_line_proof_text one_line_params ^
         (if isar_proofs = SOME true then "\nWarning: Isar proof construction failed" else ""))
   end
 
@@ -535,7 +535,7 @@ fun proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained
       (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
      isar_proof_text ctxt debug num_chained isar_proofs smt_proofs isar_params
    else
-     one_line_proof_text ctxt num_chained) one_line_params
+     one_line_proof_text) one_line_params
 
 fun abduce_text ctxt tms =
   "Candidate missing assumption" ^ plural_s (length tms) ^ ":\n" ^

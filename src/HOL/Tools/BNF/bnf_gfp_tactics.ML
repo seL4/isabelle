@@ -338,18 +338,19 @@ fun mk_incl_lsbis_tac ctxt n i lsbis_def =
     rtac ctxt equalityD2, rtac ctxt (mk_nth_conv n i)] 1;
 
 fun mk_equiv_lsbis_tac ctxt sbis_lsbis lsbis_incl incl_lsbis bis_Id_on bis_converse bis_O =
-  EVERY' [rtac ctxt (@{thm equiv_def} RS iffD2),
+  EVERY' [rtac ctxt @{thm equivI},
+    rtac ctxt lsbis_incl,
 
-    rtac ctxt conjI, rtac ctxt (@{thm refl_on_def} RS iffD2),
-    rtac ctxt conjI, rtac ctxt lsbis_incl, rtac ctxt ballI, rtac ctxt set_mp,
+    rtac ctxt @{thm refl_onI},
+    rtac ctxt set_mp,
     rtac ctxt incl_lsbis, rtac ctxt bis_Id_on, assume_tac ctxt, etac ctxt @{thm Id_onI},
 
-    rtac ctxt conjI, rtac ctxt (@{thm sym_def} RS iffD2),
-    rtac ctxt allI, rtac ctxt allI, rtac ctxt impI, rtac ctxt set_mp,
+    rtac ctxt @{thm symI},
+    rtac ctxt set_mp,
     rtac ctxt incl_lsbis, rtac ctxt bis_converse, rtac ctxt sbis_lsbis, etac ctxt @{thm converseI},
 
-    rtac ctxt (@{thm trans_def} RS iffD2),
-    rtac ctxt allI, rtac ctxt allI, rtac ctxt allI, rtac ctxt impI, rtac ctxt impI, rtac ctxt set_mp,
+    rtac ctxt @{thm transI},
+    rtac ctxt set_mp,
     rtac ctxt incl_lsbis, rtac ctxt bis_O, rtac ctxt sbis_lsbis, rtac ctxt sbis_lsbis,
     etac ctxt @{thm relcompI}, assume_tac ctxt] 1;
 

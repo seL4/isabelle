@@ -1299,10 +1299,16 @@ lemma filter_mset_add_mset [simp]:
 lemma multiset_filter_subset[simp]: "filter_mset f M \<subseteq># M"
   by (simp add: mset_subset_eqI)
 
+lemma filter_mset_mono_strong:
+  assumes "A \<subseteq># B" "\<And>x. x \<in># A \<Longrightarrow> P x \<Longrightarrow> Q x"
+  shows   "filter_mset P A \<subseteq># filter_mset Q B"
+  by (rule mset_subset_eqI) (insert assms, auto simp: mset_subset_eq_count count_eq_zero_iff)
+
+(* TODO: rename to filter_mset_mono_strong *)
 lemma multiset_filter_mono:
   assumes "A \<subseteq># B"
   shows "filter_mset f A \<subseteq># filter_mset f B"
-  by (metis assms filter_sup_mset subset_mset.order_iff)
+  using filter_mset_mono_strong[OF \<open>A \<subseteq># B\<close>] .
 
 lemma filter_mset_eq_conv:
   "filter_mset P M = N \<longleftrightarrow> N \<subseteq># M \<and> (\<forall>b\<in>#N. P b) \<and> (\<forall>a\<in>#M - N. \<not> P a)" (is "?P \<longleftrightarrow> ?Q")
@@ -1330,6 +1336,9 @@ next
     qed
   qed
 qed
+
+lemma filter_mset_eq_mempty_iff[simp]: "filter_mset P A = {#} \<longleftrightarrow> (\<forall>x. x \<in># A \<longrightarrow> \<not> P x)"
+  by (auto simp: multiset_eq_iff count_eq_zero_iff)
 
 lemma filter_filter_mset: "filter_mset P (filter_mset Q M) = {#x \<in># M. Q x \<and> P x#}"
   by (auto simp: multiset_eq_iff)
@@ -1739,7 +1748,7 @@ lemma image_mset_If:
      image_mset f (filter_mset P A) + image_mset g (filter_mset (\<lambda>x. \<not>P x) A)"
   by (induction A) auto
 
-lemma filter_image_mset:
+lemma filter_mset_image_mset:
   "filter_mset P (image_mset f A) = image_mset f (filter_mset (\<lambda>x. P (f x)) A)"
   by (induction A) auto
 
@@ -2817,6 +2826,12 @@ lemma sum_eq_empty_iff:
 lemma mset_concat: "mset (concat xss) = (\<Sum>xs\<leftarrow>xss. mset xs)"
   by (induction xss) auto
 
+lemma set_mset_sum_list [simp]: "set_mset (sum_list xs) = (\<Union>x\<in>set xs. set_mset x)"
+  by (induction xs) auto
+
+lemma filter_mset_sum_list: "filter_mset P (sum_list xs) = sum_list (map (filter_mset P) xs)"
+  by (induction xs) simp_all
+
 lemma sum_mset_singleton_mset [simp]: "(\<Sum>x\<in>#A. {#f x#}) = image_mset f A"
   by (induction A) auto
 
@@ -2829,8 +2844,31 @@ lemma Union_mset_empty_conv[simp]: "\<Sum>\<^sub># M = {#} \<longleftrightarrow>
 lemma Union_image_single_mset[simp]: "\<Sum>\<^sub># (image_mset (\<lambda>x. {#x#}) m) = m"
   by(induction m) auto
 
-lemma size_multiset_sum_mset [simp]: "size (\<Sum>X\<in>#A. X :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
+lemma size_mset_sum_mset_conv [simp]: "size (\<Sum>\<^sub># A :: 'a multiset) = (\<Sum>X\<in>#A. size X)"
   by (induction A) auto
+
+lemma sum_mset_image_mset_mono_strong:
+  assumes "A \<subseteq># B" and f_subeq_g: "\<And>x. x \<in># A \<Longrightarrow> f x \<subseteq># g x"
+  shows "(\<Sum>x\<in>#A. f x) \<subseteq># (\<Sum>x\<in>#B. g x)"
+proof -
+  define B' where
+    "B' = B - A"
+
+  have "B = A + B'"
+    using B'_def assms(1) by fastforce
+
+  have "\<Sum>\<^sub># (image_mset f A) \<subseteq># \<Sum>\<^sub># (image_mset g A)"
+    using f_subeq_g by (induction A) (auto intro!: subset_mset.add_mono)
+  also have "\<dots> \<subseteq># \<Sum>\<^sub># (image_mset g A) + \<Sum>\<^sub># (image_mset g B')"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g A + image_mset g B')"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g (A + B'))"
+    by simp
+  also have "\<dots> = \<Sum>\<^sub># (image_mset g B)"
+    unfolding \<open>B = A + B'\<close> ..
+  finally show ?thesis .
+qed
 
 context comm_monoid_mult
 begin

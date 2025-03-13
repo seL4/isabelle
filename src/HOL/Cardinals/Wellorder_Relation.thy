@@ -218,7 +218,7 @@ proof(unfold AboveS_def above_def, auto)
 next
   fix b assume "(suc B, b) \<in> r"
   thus "b \<in> Field r"
-    using REFL refl_on_def[of _ r] by auto
+    by (simp add: FieldI2)
 next
   fix a b
   assume 1: "(suc B, b) \<in> r" and 2: "a \<in> B"

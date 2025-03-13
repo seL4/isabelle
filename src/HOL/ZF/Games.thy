@@ -816,6 +816,9 @@ typedef Pg = Pg
 
 lemma equiv_eq_game[simp]: "equiv UNIV eq_game_rel"
 proof (rule equivI)
+  show "eq_game_rel \<subseteq> UNIV \<times> UNIV"
+    by simp
+next
   show "refl eq_game_rel"
     by (auto simp only: eq_game_rel_def intro: reflI eq_game_refl)
 next
