@@ -7,6 +7,8 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
 * Theory "HOL.Fun":
   - Added lemmas.
       antimonotone_on_inf_fun
@@ -15,9 +17,9 @@ New in this Isabelle version
       monotone_on_sup_fun
 
 * Theory "HOL.Relations":
-  - Changed definition of predicate refl_on to not constrain the domain and
-    range of the relation. To get the old semantics, explicitely use the
-    formula "r ⊂ A × A ∧ refl_on A r". INCOMPATIBILITY.
+  - Changed definition of predicate refl_on to not constrain the domain
+    and range of the relation. To get the old semantics, explicitely use
+    the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
@@ -53,6 +55,7 @@ New in this Isabelle version
       filter_mset_sum_list
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
+
 
 
 New in Isabelle2025 (March 2025)
