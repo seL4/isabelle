@@ -27,6 +27,8 @@ New in this Isabelle version
       wfp_on_iff_wfp
 
 * Theory "HOL.Order_Relation":
+  - Strengthened lemmas. Minor INCOMPATIBILITY.
+      sym_trans_comp_subset
   - Added lemmas.
       antisym_relation_of[simp]
       asym_relation_of[simp]

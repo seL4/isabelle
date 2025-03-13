@@ -27,14 +27,35 @@ text \<open>
   First half: \<open>equiv A r \<Longrightarrow> r\<inverse> O r = r\<close>.
 \<close>
 
-lemma sym_trans_comp_subset: "sym r \<Longrightarrow> trans r \<Longrightarrow> r\<inverse> O r \<subseteq> r"
-  unfolding trans_def sym_def converse_unfold by blast
+lemma sym_trans_comp_subset:
+  assumes "r \<subseteq> A \<times> A" and "sym_on A r" and "trans_on A r"
+  shows "r\<inverse> O r \<subseteq> r"
+proof (rule subsetI)
+  fix p
+  assume "p \<in> r\<inverse> O r"
+  then obtain x y z where "p = (x, z)" and "(y, x) \<in> r" and "(y, z) \<in> r"
+    by auto
+  hence "x \<in> A" and "y \<in> A" and "z \<in> A"
+    using \<open>r \<subseteq> A \<times> A\<close> by auto
+  have "(x, y) \<in> r"
+    using \<open>(y, x) \<in> r\<close> \<open>x \<in> A\<close> \<open>y \<in> A\<close> \<open>sym_on A r\<close> by (simp add: sym_on_def)
+  hence "(x, z) \<in> r"
+    using \<open>trans_on A r\<close>[THEN trans_onD, OF \<open>x \<in> A\<close> \<open>y \<in> A\<close> \<open>z \<in> A\<close>] \<open>(y, z) \<in> r\<close> by blast
+  thus "p \<in> r"
+    unfolding \<open>p = (x, z)\<close> .
+qed
 
 lemma refl_on_comp_subset: "r \<subseteq> A \<times> A \<Longrightarrow> refl_on A r \<Longrightarrow> r \<subseteq> r\<inverse> O r"
   unfolding refl_on_def by blast
 
 lemma equiv_comp_eq: "equiv A r \<Longrightarrow> r\<inverse> O r = r"
-  by (iprover elim: equivE intro: sym_trans_comp_subset refl_on_comp_subset equalityI)
+proof (rule subset_antisym)
+  show "equiv A r \<Longrightarrow> r\<inverse> O r \<subseteq> r"
+    by (rule sym_trans_comp_subset[of r A]) (auto elim: equivE intro: sym_on_subset trans_on_subset)
+next
+  show "equiv A r \<Longrightarrow> r \<subseteq> r\<inverse> O r"
+    by (rule refl_on_comp_subset[of r A]) (auto elim: equivE)
+qed
 
 text \<open>Second half.\<close>
 
