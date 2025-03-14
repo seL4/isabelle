@@ -477,6 +477,9 @@ lemma symp_onD: "symp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<i
 lemma sympD [dest?]: "symp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
   by (rule symD[to_pred])
 
+lemma symp_on_equality[simp]: "symp_on A (=)"
+  by (simp add: symp_on_def)
+
 lemma sym_Int: "sym r \<Longrightarrow> sym s \<Longrightarrow> sym (r \<inter> s)"
   by (fast intro: symI elim: symE)
 

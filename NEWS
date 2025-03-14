@@ -27,6 +27,7 @@ New in this Isabelle version
       transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
       reflp_on_refl_on_eq[pred_set_conv]
+      symp_on_equality[simp]
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
