@@ -239,7 +239,7 @@ lemma refl_on_UNION: "\<forall>x\<in>S. refl_on (A x) (r x) \<Longrightarrow> re
 lemma reflp_on_Sup: "\<forall>x\<in>S. reflp_on (A x) (R x) \<Longrightarrow> reflp_on (\<Union>(A ` S)) (\<Squnion>(R ` S))"
   by (auto intro: reflp_onI dest: reflp_onD)
 
-lemma refl_on_empty [simp]: "refl_on {} {}"
+lemma refl_on_empty [simp]: "refl_on {} r"
   by (simp add: refl_on_def)
 
 lemma reflp_on_empty [simp]: "reflp_on {} R"
