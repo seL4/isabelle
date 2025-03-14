@@ -1482,7 +1482,7 @@ proof
 next
   fix x y z
   assume "?R x y" "?R y z"
-  with transp_ord_option[OF transp_equality] show "?R x z" by(rule transp_rel_pmf[THEN transpD])
+  with transp_ord_option[OF transp_on_equality] show "?R x z" by(rule transp_rel_pmf[THEN transpD])
 next
   fix x y
   assume "?R x y" "?R y x"

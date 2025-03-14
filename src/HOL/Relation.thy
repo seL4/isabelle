@@ -589,9 +589,8 @@ lemma antisym_bot [simp]:
   "antisymp \<bottom>"
   by (fact antisym_empty [to_pred])
     
-lemma antisymp_equality [simp]:
-  "antisymp HOL.eq"
-  by (auto intro: antisympI)
+lemma antisymp_on_equality[simp]: "antisymp_on A (=)"
+  by (auto intro: antisymp_onI)
 
 lemma antisym_singleton [simp]:
   "antisym {x}"
@@ -715,8 +714,8 @@ lemma trans_join: "trans r \<longleftrightarrow> (\<forall>(x, y1) \<in> r. \<fo
 lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
   by (simp add: trans_def transp_def)
 
-lemma transp_equality [simp]: "transp (=)"
-  by (auto intro: transpI)
+lemma transp_on_equality[simp]: "transp_on A (=)"
+  by (auto intro: transp_onI)
 
 lemma trans_empty [simp]: "trans {}"
   by (blast intro: transI)

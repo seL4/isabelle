@@ -22,6 +22,9 @@ New in this Isabelle version
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
+  - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
+      antisymp_equality[simp] ~> antisymp_on_equality[simp]
+      transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
       reflp_on_refl_on_eq[pred_set_conv]
 
