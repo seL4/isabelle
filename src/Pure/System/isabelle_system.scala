@@ -487,11 +487,17 @@ object Isabelle_System {
         } Files.setLastModifiedTime(res, t)
       }
     }
-    else if (File.is_tar_bz2(name) || File.is_tgz(name) || File.is_tar_gz(name)) {
-      val flags = if (File.is_tar_bz2(name)) "-xjf " else "-xzf "
-      Isabelle_System.gnutar(flags + File.bash_path(archive), dir = dir, strip = strip).check
+    else {
+      val extr =
+        if (File.is_tar_bz2(name)) "-xjf"
+        else if (File.is_tgz(name) || File.is_tar_gz(name)) "-xzf"
+        else if (File.is_tar_xz(name)) "--xz -xf"
+        else ""
+      if (extr.nonEmpty) {
+        Isabelle_System.gnutar(extr + " " + File.bash_path(archive), dir = dir, strip = strip).check
+      }
+      else error("Cannot extract " + archive)
     }
-    else error("Cannot extract " + archive)
   }
 
   def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
