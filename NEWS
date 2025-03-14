@@ -20,6 +20,8 @@ New in this Isabelle version
   - Changed definition of predicate refl_on to not constrain the domain
     and range of the relation. To get the old semantics, explicitely use
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
+  - Added lemmas.
+      reflp_on_refl_on_eq[pred_set_conv]
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.

@@ -167,8 +167,10 @@ lemma reflp_def[no_atp]: "reflp R \<longleftrightarrow> (\<forall>x. R x x)"
 
 text \<open>@{thm [source] reflp_def} is for backward compatibility.\<close>
 
-lemma reflp_refl_eq [pred_set_conv]: "reflp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> refl r"
-  by (simp add: refl_on_def reflp_def)
+lemma reflp_on_refl_on_eq[pred_set_conv]: "reflp_on A (\<lambda>a b. (a, b) \<in> r) \<longleftrightarrow> refl_on A r"
+  by (simp add: refl_on_def reflp_on_def)
+
+lemmas reflp_refl_eq = reflp_on_refl_on_eq[of UNIV]
 
 lemma refl_onI [intro?]: "(\<And>x. x \<in> A \<Longrightarrow> (x, x) \<in> r) \<Longrightarrow> refl_on A r"
   unfolding refl_on_def by (iprover intro!: ballI)
