@@ -828,7 +828,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             progress.echo("Packaging " + archive_name + " ...")
             execute(tmp_dir,
-              "7z -y -bd a " + File.bash_path(exe_archive) + " " + Bash.string(isabelle_name))
+              File.bash_path(Component_Windows_App.seven_zip(exe = true)) +
+                " -myv=1602 -y -bd a " + File.bash_path(exe_archive) + " " +
+                Bash.string(isabelle_name))
             if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
 
             val sfx_exe = tmp_dir + Component_Windows_App.sfx_path
@@ -949,9 +951,6 @@ Usage: Admin/build_release [OPTIONS]
 
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
-
-      if (platform_families.contains(Platform.Family.windows) && !Isabelle_System.bash("7z i").ok)
-        error("Building for windows requires 7z")
 
       val progress = new Console_Progress()
       def make_context(name: String): Release_Context =
