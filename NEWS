@@ -58,6 +58,9 @@ New in this Isabelle version
 * Theory "HOL.Transfer":
   - Moved predicates left_unique and right_unique from HOL.Transfer to
     HOL.Relation. Minor INCOMPATIBILITY.
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      left_unique_iff (use left_unique_iff_Uniq instead)
+      right_unique_iff (use right_unique_iff_Uniq instead)
   - Added lemmas.
       single_valuedp_eq_right_unique
 
