@@ -835,6 +835,9 @@ lemma left_uniqueI: "(\<And>x y z. A x z \<Longrightarrow> A y z \<Longrightarro
 lemma left_uniqueD: "left_unique A \<Longrightarrow> A x z \<Longrightarrow> A y z \<Longrightarrow> x = y"
   unfolding left_unique_def by blast
 
+lemma left_unique_iff_Uniq: "left_unique r \<longleftrightarrow> (\<forall>y. \<exists>\<^sub>\<le>\<^sub>1x. r x y)"
+  unfolding Uniq_def left_unique_def by blast
+
 
 subsubsection \<open>Right uniqueness\<close>
 

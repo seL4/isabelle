@@ -28,6 +28,7 @@ New in this Isabelle version
       antisymp_equality[simp] ~> antisymp_on_equality[simp]
       transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
+      left_unique_iff_Uniq
       reflp_on_refl_on_eq[pred_set_conv]
       symp_on_equality[simp]
 
