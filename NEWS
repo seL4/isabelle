@@ -16,10 +16,12 @@ New in this Isabelle version
       monotone_on_inf_fun
       monotone_on_sup_fun
 
-* Theory "HOL.Relations":
+* Theory "HOL.Relation":
   - Changed definition of predicate refl_on to not constrain the domain
     and range of the relation. To get the old semantics, explicitely use
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
+  - Removed predicate single_valuedp. Use predicate right_unique instead.
+    INCOMPATIBILITY.
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
@@ -53,7 +55,7 @@ New in this Isabelle version
       quotient_disj_strong
 
 * Theory "HOL.Transfer":
-  - Moved right_unique from HOL.Transfer to HOL.Relations.
+  - Moved right_unique from HOL.Transfer to HOL.Relation.
     Minor INCOMPATIBILITY.
   - Added lemmas.
       single_valuedp_eq_right_unique

@@ -829,30 +829,20 @@ subsubsection \<open>Single valued relations\<close>
 definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
   where "single_valued r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (\<forall>z. (x, z) \<in> r \<longrightarrow> y = z))"
 
-definition single_valuedp :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "single_valuedp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> (\<forall>z. r x z \<longrightarrow> y = z))"
-
 definition right_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
   "right_unique R \<longleftrightarrow> (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z)"
 
-lemma single_valuedp_eq_right_unique: "single_valuedp = right_unique"
-  by (rule ext) (simp add: single_valuedp_def right_unique_def)
+lemma right_unique_single_valued_eq [pred_set_conv]:
+  "right_unique (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> single_valued r"
+  by (simp add: single_valued_def right_unique_def)
 
-lemma single_valuedp_single_valued_eq [pred_set_conv]:
-  "single_valuedp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> single_valued r"
-  by (simp add: single_valued_def single_valuedp_def)
-
-lemma single_valuedp_iff_Uniq:
-  "single_valuedp r \<longleftrightarrow> (\<forall>x. \<exists>\<^sub>\<le>\<^sub>1y. r x y)"
-  unfolding Uniq_def single_valuedp_def by auto
+lemma right_unique_iff_Uniq:
+  "right_unique r \<longleftrightarrow> (\<forall>x. \<exists>\<^sub>\<le>\<^sub>1y. r x y)"
+  unfolding Uniq_def right_unique_def by auto
 
 lemma single_valuedI:
   "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (\<And>z. (x, z) \<in> r \<Longrightarrow> y = z)) \<Longrightarrow> single_valued r"
   unfolding single_valued_def by blast
-
-lemma single_valuedpI:
-  "(\<And>x y. r x y \<Longrightarrow> (\<And>z. r x z \<Longrightarrow> y = z)) \<Longrightarrow> single_valuedp r"
-  by (fact single_valuedI [to_pred])
 
 lemma right_uniqueI: "(\<And>x y z. R x y \<Longrightarrow> R x z \<Longrightarrow> y = z) \<Longrightarrow> right_unique R"
   unfolding right_unique_def by fast
@@ -861,10 +851,6 @@ lemma single_valuedD:
   "single_valued r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (x, z) \<in> r \<Longrightarrow> y = z"
   by (simp add: single_valued_def)
 
-lemma single_valuedpD:
-  "single_valuedp r \<Longrightarrow> r x y \<Longrightarrow> r x z \<Longrightarrow> y = z"
-  by (fact single_valuedD [to_pred])
-
 lemma right_uniqueD: "right_unique R \<Longrightarrow> R x y \<Longrightarrow> R x z \<Longrightarrow> y = z"
   unfolding right_unique_def by fast
 
@@ -872,16 +858,14 @@ lemma single_valued_empty [simp]:
   "single_valued {}"
   by (simp add: single_valued_def)
 
-lemma single_valuedp_bot [simp]:
-  "single_valuedp \<bottom>"
-  by (fact single_valued_empty [to_pred])
+lemma right_unique_bot[simp]: "right_unique \<bottom>"
+  by (fact single_valued_empty[to_pred])
 
 lemma single_valued_subset:
   "r \<subseteq> s \<Longrightarrow> single_valued s \<Longrightarrow> single_valued r"
   unfolding single_valued_def by blast
 
-lemma single_valuedp_less_eq:
-  "r \<le> s \<Longrightarrow> single_valuedp s \<Longrightarrow> single_valuedp r"
+lemma right_unique_less_eq: "r \<le> s \<Longrightarrow> right_unique s \<Longrightarrow> right_unique r"
   by (fact single_valued_subset [to_pred])
 
 
