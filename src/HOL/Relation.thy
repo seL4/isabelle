@@ -832,6 +832,12 @@ definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
 definition single_valuedp :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "single_valuedp r \<longleftrightarrow> (\<forall>x y. r x y \<longrightarrow> (\<forall>z. r x z \<longrightarrow> y = z))"
 
+definition right_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+  "right_unique R \<longleftrightarrow> (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z)"
+
+lemma single_valuedp_eq_right_unique: "single_valuedp = right_unique"
+  by (rule ext) (simp add: single_valuedp_def right_unique_def)
+
 lemma single_valuedp_single_valued_eq [pred_set_conv]:
   "single_valuedp (\<lambda>x y. (x, y) \<in> r) \<longleftrightarrow> single_valued r"
   by (simp add: single_valued_def single_valuedp_def)
@@ -848,6 +854,9 @@ lemma single_valuedpI:
   "(\<And>x y. r x y \<Longrightarrow> (\<And>z. r x z \<Longrightarrow> y = z)) \<Longrightarrow> single_valuedp r"
   by (fact single_valuedI [to_pred])
 
+lemma right_uniqueI: "(\<And>x y z. R x y \<Longrightarrow> R x z \<Longrightarrow> y = z) \<Longrightarrow> right_unique R"
+  unfolding right_unique_def by fast
+
 lemma single_valuedD:
   "single_valued r \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (x, z) \<in> r \<Longrightarrow> y = z"
   by (simp add: single_valued_def)
@@ -855,6 +864,9 @@ lemma single_valuedD:
 lemma single_valuedpD:
   "single_valuedp r \<Longrightarrow> r x y \<Longrightarrow> r x z \<Longrightarrow> y = z"
   by (fact single_valuedD [to_pred])
+
+lemma right_uniqueD: "right_unique R \<Longrightarrow> R x y \<Longrightarrow> R x z \<Longrightarrow> y = z"
+  unfolding right_unique_def by fast
 
 lemma single_valued_empty [simp]:
   "single_valued {}"

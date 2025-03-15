@@ -115,9 +115,6 @@ definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow
 definition right_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "right_total R \<longleftrightarrow> (\<forall>y. \<exists>x. R x y)"
 
-definition right_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "right_unique R \<longleftrightarrow> (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z)"
-
 definition bi_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "bi_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y) \<and> (\<forall>y. \<exists>x. R x y)"
 
@@ -125,9 +122,6 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
   where "bi_unique R \<longleftrightarrow>
     (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z) \<and>
     (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
-
-lemma single_valuedp_eq_right_unique: "single_valuedp = right_unique"
-  by (rule ext) (simp add: single_valuedp_def right_unique_def)
 
 lemma left_unique_iff: "left_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R x z)"
   unfolding Uniq_def left_unique_def by force
@@ -158,12 +152,6 @@ lemma bi_unique_iff: "bi_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<
 
 lemma right_unique_iff: "right_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R z x)"
   unfolding Uniq_def right_unique_def by force
-
-lemma right_uniqueI: "(\<And>x y z. \<lbrakk> A x y; A x z \<rbrakk> \<Longrightarrow> y = z) \<Longrightarrow> right_unique A"
-unfolding right_unique_def by fast
-
-lemma right_uniqueD: "\<lbrakk> right_unique A; A x y; A x z \<rbrakk> \<Longrightarrow> y = z"
-unfolding right_unique_def by fast
 
 lemma right_totalI: "(\<And>y. \<exists>x. A x y) \<Longrightarrow> right_total A"
 by(simp add: right_total_def)

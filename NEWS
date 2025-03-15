@@ -53,6 +53,8 @@ New in this Isabelle version
       quotient_disj_strong
 
 * Theory "HOL.Transfer":
+  - Moved right_unique from HOL.Transfer to HOL.Relations.
+    Minor INCOMPATIBILITY.
   - Added lemmas.
       single_valuedp_eq_right_unique
 
