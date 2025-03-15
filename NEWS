@@ -20,6 +20,8 @@ New in this Isabelle version
   - Changed definition of predicate refl_on to not constrain the domain
     and range of the relation. To get the old semantics, explicitely use
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
+  - Removed predicate single_valuedp. Use predicate right_unique instead.
+    INCOMPATIBILITY.
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
