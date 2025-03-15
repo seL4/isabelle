@@ -52,6 +52,10 @@ New in this Isabelle version
   - Added lemmas.
       quotient_disj_strong
 
+* Theory "HOL.Transfer":
+  - Added lemmas.
+      single_valuedp_eq_right_unique
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset

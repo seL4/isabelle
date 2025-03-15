@@ -126,6 +126,9 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
     (\<forall>x y z. R x y \<longrightarrow> R x z \<longrightarrow> y = z) \<and>
     (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
 
+lemma single_valuedp_eq_right_unique: "single_valuedp = right_unique"
+  by (rule ext) (simp add: single_valuedp_def right_unique_def)
+
 lemma left_unique_iff: "left_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R x z)"
   unfolding Uniq_def left_unique_def by force
 
