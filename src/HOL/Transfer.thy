@@ -109,9 +109,6 @@ subsection \<open>Predicates on relations, i.e. ``class constraints''\<close>
 definition left_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "left_total R \<longleftrightarrow> (\<forall>x. \<exists>y. R x y)"
 
-definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
-  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
-
 definition right_total :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
   where "right_total R \<longleftrightarrow> (\<forall>y. \<exists>x. R x y)"
 
@@ -125,12 +122,6 @@ definition bi_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 
 
 lemma left_unique_iff: "left_unique R \<longleftrightarrow> (\<forall>z. \<exists>\<^sub>\<le>\<^sub>1x. R x z)"
   unfolding Uniq_def left_unique_def by force
-
-lemma left_uniqueI: "(\<And>x y z. \<lbrakk> A x z; A y z \<rbrakk> \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
-unfolding left_unique_def by blast
-
-lemma left_uniqueD: "\<lbrakk> left_unique A; A x z; A y z \<rbrakk> \<Longrightarrow> x = y"
-unfolding left_unique_def by blast
 
 lemma left_totalI:
   "(\<And>x. \<exists>y. R x y) \<Longrightarrow> left_total R"

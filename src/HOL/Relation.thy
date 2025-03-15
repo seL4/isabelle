@@ -824,7 +824,19 @@ lemma (in linorder) totalp_on_ge[simp]: "totalp_on A (\<ge>)"
   by (rule totalp_onI, rule linear)
 
 
-subsubsection \<open>Single valued relations\<close>
+subsubsection \<open>Left uniqueness\<close>
+
+definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+  "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
+lemma left_uniqueI: "(\<And>x y z. A x z \<Longrightarrow> A y z \<Longrightarrow> x = y) \<Longrightarrow> left_unique A"
+  unfolding left_unique_def by blast
+
+lemma left_uniqueD: "left_unique A \<Longrightarrow> A x z \<Longrightarrow> A y z \<Longrightarrow> x = y"
+  unfolding left_unique_def by blast
+
+
+subsubsection \<open>Right uniqueness\<close>
 
 definition single_valued :: "('a \<times> 'b) set \<Rightarrow> bool"
   where "single_valued r \<longleftrightarrow> (\<forall>x y. (x, y) \<in> r \<longrightarrow> (\<forall>z. (x, z) \<in> r \<longrightarrow> y = z))"
