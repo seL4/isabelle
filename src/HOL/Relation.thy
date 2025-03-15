@@ -788,11 +788,59 @@ lemma totalp_onD:
 lemma totalpD: "totalp R \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
   by (simp add: totalp_onD)
 
+lemma totalp_on_mono_stronger:
+  fixes
+    A :: "'a set" and R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and
+    B :: "'b set" and Q :: "'b \<Rightarrow> 'b \<Rightarrow> bool" and
+    f :: "'a \<Rightarrow> 'b"
+  assumes "totalp_on B Q" and "f ` A \<subseteq> B" and
+    Q_imp_R: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q (f x) (f y) \<Longrightarrow> R x y" and
+    inj_f: "inj_on f A"
+  shows "totalp_on A R"
+proof (rule totalp_onI)
+  fix x y :: 'a
+  assume "x \<in> A" and "y \<in> A" and "x \<noteq> y"
+  hence "f x \<in> B" and "f y \<in> B" and "f x \<noteq> f y"
+    using \<open>f ` A \<subseteq> B\<close> inj_f by (auto dest: inj_onD)
+  hence "Q (f x) (f y) \<or> Q (f y) (f x)"
+    using \<open>totalp_on B Q\<close> by (iprover dest: totalp_onD)
+  thus "R x y \<or> R y x"
+    using Q_imp_R \<open>x \<in> A\<close> \<open>y \<in> A\<close> by iprover
+qed
+
+lemma totalp_on_mono_stronger_alt:
+  fixes
+    A :: "'a set" and R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and
+    B :: "'b set" and Q :: "'b \<Rightarrow> 'b \<Rightarrow> bool" and
+    f :: "'b \<Rightarrow> 'a"
+  assumes "totalp_on B Q" and "A \<subseteq> f ` B" and
+    Q_imp_R: "\<And>x y. x \<in> B \<Longrightarrow> y \<in> B \<Longrightarrow> Q x y \<Longrightarrow> R (f x) (f y)"
+  shows "totalp_on A R"
+proof (rule totalp_onI)
+  fix x y :: 'a
+  assume "x \<in> A" and "y \<in> A" and "x \<noteq> y"
+  then obtain x' y' where "x' \<in> B" and "x = f x'" and "y' \<in> B" and "y = f y'" and "x' \<noteq> y'"
+    using \<open>A \<subseteq> f ` B\<close> by blast
+  hence "Q x' y' \<or> Q y' x'"
+    using \<open>totalp_on B Q\<close>[THEN totalp_onD] by blast
+  hence "R (f x') (f y') \<or> R (f y') (f x')"
+    using Q_imp_R \<open>x' \<in> B\<close> \<open>y' \<in> B\<close> by blast
+  thus "R x y \<or> R y x"
+    using \<open>x = f x'\<close> \<open>y = f y'\<close> by blast
+qed
+
+lemma totalp_on_mono_strong:
+  "totalp_on B Q \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q x y \<Longrightarrow> R x y) \<Longrightarrow> totalp_on A R"
+  using totalp_on_mono_stronger[of B Q "\<lambda>x. x" A R, simplified] .
+
+lemma totalp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> Q \<le> R \<Longrightarrow> totalp_on B Q \<le> totalp_on A R"
+  by (auto intro: totalp_on_mono_strong)
+
 lemma total_on_subset: "total_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> total_on B r"
   by (auto simp: total_on_def)
 
 lemma totalp_on_subset: "totalp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> totalp_on B R"
-  by (auto intro: totalp_onI dest: totalp_onD)
+  using totalp_on_mono_strong .
 
 lemma totalp_on_image:
   assumes "inj_on f A"

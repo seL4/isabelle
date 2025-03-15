@@ -31,6 +31,10 @@ New in this Isabelle version
       left_unique_iff_Uniq
       reflp_on_refl_on_eq[pred_set_conv]
       symp_on_equality[simp]
+      totalp_on_mono[mono]
+      totalp_on_mono_strong
+      totalp_on_mono_stronger
+      totalp_on_mono_stronger_alt
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.
