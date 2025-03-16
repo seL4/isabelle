@@ -1021,10 +1021,8 @@ next
 qed (auto simp add: disj_def imp_def iff_def conj_def)
 
 lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
-  apply (induct p rule: simpfm.induct)
-  apply (auto simp add: Let_def)
-  apply (case_tac "simpnum a", auto)+
-  done
+  by (induct p rule: simpfm.induct) (auto simp: Let_def split: num.splits)
+
 
 fun prep :: "fm \<Rightarrow> fm"
 where
@@ -1256,17 +1254,11 @@ lemma rminusinf_inf:
 proof (induct p rule: minusinf.induct)
   case (1 p q)
   then show ?case
-    apply auto
-    apply (rule_tac x= "min z za" in exI)
-    apply auto
-    done
+    by (fastforce simp: intro: exI [where x= "min _ _"])
 next
   case (2 p q)
   then show ?case
-    apply auto
-    apply (rule_tac x= "min z za" in exI)
-    apply auto
-    done
+    by (fastforce simp: intro: exI [where x= "min _ _"])
 next
   case (3 c e)
   from 3 have nb: "numbound0 e" by simp
@@ -1386,17 +1378,11 @@ using lp
 proof (induct p rule: isrlfm.induct)
   case (1 p q)
   then show ?case
-    apply auto
-    apply (rule_tac x= "max z za" in exI)
-    apply auto
-    done
+    by (fastforce simp: intro: exI [where x= "max _ _"])
 next
   case (2 p q)
   then show ?case
-    apply auto
-    apply (rule_tac x= "max z za" in exI)
-    apply auto
-    done
+    by (fastforce simp: intro: exI [where x= "max _ _"])
 next
   case (3 c e)
   from 3 have nb: "numbound0 e" by simp
@@ -2195,12 +2181,7 @@ proof auto
       \<in> (\<lambda>((t, n), s, m). (Inum (x # bs) t / real_of_int n + Inum (x # bs) s / real_of_int m) / 2) `
          (set U \<times> set U)"
     using mnz nnz th
-    apply (auto simp add: th add_divide_distrib algebra_simps split_def image_def)
-    apply (rule_tac x="(s,m)" in bexI)
-    apply simp_all
-    apply (rule_tac x="(t,n)" in bexI)
-    apply (simp_all add: mult.commute)
-    done
+    by (force simp add: th add_divide_distrib algebra_simps split_def image_def)
 next
   fix t n s m
   assume tnU: "(t, n) \<in> set U" and smU: "(s, m) \<in> set U"
@@ -2271,10 +2252,7 @@ proof
     from tnU smU UU' have "?g ((t, n), (s, m)) \<in> ?f ` U'"
       by blast
     then have "\<exists>(t',n') \<in> U'. ?g ((t, n), (s, m)) = ?f (t', n')"
-      apply auto
-      apply (rule_tac x="(a, b)" in bexI)
-      apply auto
-      done
+      by fastforce
     then obtain t' n' where tnU': "(t',n') \<in> U'" and th: "?g ((t, n), (s, m)) = ?f (t', n')"
       by blast
     from U' tnU' have tnb': "numbound0 t'" and np': "real_of_int n' > 0"
@@ -2296,10 +2274,7 @@ proof
     from tnU' UU' have "?f (t', n') \<in> ?g ` (U \<times> U)"
       by blast
     then have "\<exists>((t,n),(s,m)) \<in> U \<times> U. ?f (t', n') = ?g ((t, n), (s, m))"
-      apply auto
-      apply (rule_tac x="(a,b)" in bexI)
-      apply auto
-      done
+      by force
     then obtain t n s m where tnU: "(t, n) \<in> U" and smU: "(s, m) \<in> U" and
       th: "?f (t', n') = ?g ((t, n), (s, m))"
       by blast
@@ -2361,10 +2336,7 @@ proof -
       from that have "(t,n) \<in> set ?SS"
         by simp
       then have "\<exists>(t',n') \<in> set ?S. simp_num_pair (t', n') = (t, n)"
-        apply (auto simp add: split_def simp del: map_map)
-        apply (rule_tac x="((aa,ba),(ab,bb))" in bexI)
-        apply simp_all
-        done
+        by (force simp add: split_def simp del: map_map)
       then obtain t' n' where tn'S: "(t', n') \<in> set ?S" and tns: "simp_num_pair (t', n') = (t, n)"
         by blast
       from tn'S Snb have tnb: "numbound0 t'" and np: "n' > 0"

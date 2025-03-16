@@ -161,7 +161,7 @@ let
    val qe_th = Drule.implies_elim_list
                   ((fconv_rule (Thm.beta_conversion true))
                    (Thm.instantiate' [] (map SOME [cU, qx, get_p1 minf_th, get_p1 pinf_th])
-                        qe))
+                        (mk_meta_eq qe)))
                   [fU, ld_th, nmi_th, npi_th, minf_th, pinf_th]
     val bex_conv =
       Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms bex_simps(1-5)})
