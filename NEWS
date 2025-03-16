@@ -86,6 +86,8 @@ New in this Isabelle version
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
 
+* Removed theory "HOL-Library.Divides" (finally).
+
 
 
 New in Isabelle2025 (March 2025)
