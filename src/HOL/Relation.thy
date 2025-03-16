@@ -316,8 +316,11 @@ lemma irreflp_onD: "irreflp_on A R \<Longrightarrow> a \<in> A \<Longrightarrow>
 lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
   by (rule irreflD[to_pred])
 
+lemma irrefl_on_bot[simp]: "irrefl_on A \<bottom>"
+  by (simp add: irrefl_on_def)
+
 lemma irreflp_on_bot[simp]: "irreflp_on A \<bottom>"
-  by (simp add: irreflp_on_def)
+  using irrefl_on_bot[to_pred] .
 
 lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<noteq> b)"
   by (auto simp add: irrefl_on_def)
@@ -385,8 +388,11 @@ lemma asymp_onD: "asymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
 
+lemma asym_on_bot[simp]: "asym_on A \<bottom>"
+  by (simp add: asym_on_def)
+
 lemma asymp_on_bot[simp]: "asymp_on A \<bottom>"
-  by (simp add: asymp_on_def)
+  using asym_on_bot[to_pred] .
 
 lemma asym_iff: "asym r \<longleftrightarrow> (\<forall>x y. (x,y) \<in> r \<longrightarrow> (y,x) \<notin> r)"
   by (blast dest: asymD)
@@ -440,8 +446,11 @@ lemma symp_on_sym_on_eq[pred_set_conv]: "symp_on A (\<lambda>x y. (x, y) \<in> r
 
 lemmas symp_sym_eq = symp_on_sym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
+lemma sym_on_bot[simp]: "sym_on A \<bottom>"
+  by (simp add: sym_on_def)
+
 lemma symp_on_bot[simp]: "symp_on A \<bottom>"
-  by (simp add: symp_on_def)
+  using sym_on_bot[to_pred] .
 
 lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
   by (auto simp: sym_on_def)
@@ -542,8 +551,11 @@ lemma antisymp_on_antisym_on_eq[pred_set_conv]:
 
 lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
+lemma antisym_on_bot[simp]: "antisym_on A \<bottom>"
+  by (simp add: antisym_on_def)
+
 lemma antisymp_on_bot[simp]: "antisymp_on A \<bottom>"
-  by (simp add: antisymp_on_def)
+  using antisym_on_bot[to_pred] .
 
 lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
   by (auto simp: antisym_on_def)
@@ -598,11 +610,11 @@ lemma antisymp_less_eq:
     
 lemma antisym_empty [simp]:
   "antisym {}"
-  unfolding antisym_def by blast
+  using antisym_on_bot .
 
 lemma antisym_bot [simp]:
   "antisymp \<bottom>"
-  by (fact antisym_empty [to_pred])
+  using antisymp_on_bot .
     
 lemma antisymp_on_equality[simp]: "antisymp_on A (=)"
   by (auto intro: antisymp_onI)
@@ -732,11 +744,14 @@ lemma transp_trans: "transp r \<longleftrightarrow> trans {(x, y). r x y}"
 lemma transp_on_equality[simp]: "transp_on A (=)"
   by (auto intro: transp_onI)
 
+lemma trans_on_bot[simp]: "trans_on A \<bottom>"
+  by (simp add: trans_on_def)
+
 lemma trans_empty [simp]: "trans {}"
-  by (blast intro: transI)
+  using trans_on_bot .
 
 lemma transp_on_bot[simp]: "transp_on A \<bottom>"
-  by (simp add: transp_on_def)
+  using trans_on_bot[to_pred] .
 
 lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
   using transp_on_bot unfolding bot_fun_def bot_bool_def .
