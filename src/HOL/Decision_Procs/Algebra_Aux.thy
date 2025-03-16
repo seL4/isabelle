@@ -259,10 +259,12 @@ lemma times_class: "x \<otimes>\<^bsub>cring_class_ops\<^esub> y = x * y"
   by (simp add: cring_class_ops_def)
 
 lemma uminus_class: "\<ominus>\<^bsub>cring_class_ops\<^esub> x = - x"
-  apply (simp add: a_inv_def m_inv_def cring_class_ops_def)
-  apply (rule the_equality)
-  apply (simp_all add: eq_neg_iff_add_eq_0)
-  done
+proof -
+  have "(THE y::'a. x + y = 0 \<and> y + x = 0) = - x"
+    by (rule the_equality) (simp_all add: eq_neg_iff_add_eq_0)
+  then show ?thesis
+    by (simp add: a_inv_def m_inv_def cring_class_ops_def)
+qed
 
 lemma minus_class: "x \<ominus>\<^bsub>cring_class_ops\<^esub> y = x - y"
   by (simp add: a_minus_def carrier_class plus_class uminus_class)
@@ -482,20 +484,11 @@ end
 lemma field_class: "field (cring_class_ops::'a::field ring)"
   apply unfold_locales
     apply (simp_all add: cring_class_ops_def)
-  apply (auto simp add: Units_def)
-  apply (rule_tac x="1 / x" in exI)
-  apply simp
-  done
+  using field_class.field_inverse by (force simp add: Units_def)
 
 lemma div_class: "(x::'a::field) \<oslash>\<^bsub>cring_class_ops\<^esub> y = x / y"
-  apply (simp add: m_div_def m_inv_def class_simps)
-  apply (rule impI)
-  apply (rule ssubst [OF the_equality, of _ "1 / y"])
-    apply simp_all
-  apply (drule conjunct2)
-  apply (drule_tac f="\<lambda>x. x / y" in arg_cong)
-  apply simp
-  done
+  by (simp add: carrier_class class_simps cring_class.comm_inv_char
+      field_class.field_divide_inverse m_div_def)
 
 interpretation field_class: field "cring_class_ops::'a::field ring"
   rewrites "(\<zero>\<^bsub>cring_class_ops\<^esub>::'a) = 0"

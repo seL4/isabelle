@@ -661,6 +661,21 @@ fun whatis x ct = case Thm.term_of ct of
      else ("Nox",[])
 | t => if t aconv Thm.term_of x then ("x",[]) else ("Nox",[]);
 
+local
+val sum_lt = mk_meta_eq @{thm sum_lt}
+val sum_le = mk_meta_eq @{thm sum_le}
+val sum_eq = mk_meta_eq @{thm sum_eq}
+val neg_prod_sum_lt = mk_meta_eq @{thm neg_prod_sum_lt}
+val pos_prod_sum_lt = mk_meta_eq @{thm pos_prod_sum_lt}
+val neg_prod_sum_le = mk_meta_eq @{thm neg_prod_sum_le}
+val pos_prod_sum_le = mk_meta_eq @{thm pos_prod_sum_le}
+val neg_prod_lt = mk_meta_eq @{thm neg_prod_lt}
+val pos_prod_lt = mk_meta_eq @{thm pos_prod_lt}
+val neg_prod_le = mk_meta_eq @{thm neg_prod_le}
+val pos_prod_le = mk_meta_eq @{thm pos_prod_le}
+val nz_prod_sum_eq = mk_meta_eq @{thm nz_prod_sum_eq}
+val nz_prod_eq = mk_meta_eq @{thm nz_prod_eq}
+in
 fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
   | xnormalize_conv ctxt (vs as (x::_)) ct =
    case Thm.term_of ct of
@@ -678,14 +693,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] (map SOME [c,x,t])
-             (mk_meta_eq(if neg then @{thm neg_prod_sum_lt} else @{thm pos_prod_sum_lt}))) cth
+             (if neg then neg_prod_sum_lt else pos_prod_sum_lt)) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
-        val th =Thm.instantiate' [SOME T] [SOME x, SOME t] (mk_meta_eq @{thm "sum_lt"})
+        val th = Thm.instantiate' [SOME T] [SOME x, SOME t] sum_lt
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
@@ -701,7 +716,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] (map SOME [c,x])
-             (mk_meta_eq(if neg then @{thm neg_prod_lt} else @{thm pos_prod_lt}))) cth
+             (if neg then neg_prod_lt else pos_prod_lt)) cth
         val rth = th
       in rth end
     | _ => Thm.reflexive ct)
@@ -723,14 +738,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (Thm.instantiate' [SOME cT] (map SOME [c,x,t])
-             (mk_meta_eq(if neg then @{thm neg_prod_sum_le} else @{thm pos_prod_sum_le}))) cth
+                 (if neg then neg_prod_sum_le else pos_prod_sum_le)) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
-        val th = Thm.instantiate' [SOME T] [SOME x, SOME t] (mk_meta_eq @{thm "sum_le"})
+        val th = Thm.instantiate' [SOME T] [SOME x, SOME t] sum_le
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
@@ -748,7 +763,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
                     else Thm.apply (Thm.apply clt cz) c))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim (Thm.instantiate' [SOME (Thm.ctyp_of_cterm x)] (map SOME [c,x])
-             (mk_meta_eq(if neg then @{thm neg_prod_le} else @{thm pos_prod_le}))) cth
+                  (if neg then neg_prod_le else pos_prod_le)) cth
         val rth = th
       in rth end
     | _ => Thm.reflexive ct)
@@ -766,14 +781,14 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
              (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val th = Thm.implies_elim
-                 (Thm.instantiate' [SOME T] (map SOME [c,x,t]) (mk_meta_eq @{thm nz_prod_sum_eq})) cth
+                 (Thm.instantiate' [SOME T] (map SOME [c,x,t]) nz_prod_sum_eq) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
       in rth end
     | ("x+t",[t]) =>
        let
         val T = Thm.ctyp_of_cterm x
-        val th = Thm.instantiate' [SOME T] [SOME x, SOME t] (mk_meta_eq @{thm "sum_eq"})
+        val th = Thm.instantiate' [SOME T] [SOME x, SOME t] sum_eq
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier_ord vs)))) th
        in  rth end
@@ -788,9 +803,10 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
              (Thm.apply \<^cterm>\<open>Not\<close> (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
         val rth = Thm.implies_elim
-                 (Thm.instantiate' [SOME T] (map SOME [c,x]) (mk_meta_eq @{thm nz_prod_eq})) cth
+                 (Thm.instantiate' [SOME T] (map SOME [c,x]) nz_prod_eq) cth
       in rth end
     | _ => Thm.reflexive ct);
+end
 
 local
   val less_iff_diff_less_0 = mk_meta_eq @{thm "less_iff_diff_less_0"}

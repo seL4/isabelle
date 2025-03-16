@@ -2648,10 +2648,7 @@ proof -
     thus ?thesis
       unfolding bl_def[symmetric] using \<open>0 < real_of_int m\<close> \<open>0 \<le> bl\<close>
       apply (simp add: ln_mult)
-      apply (cases "e=0")
-        apply (cases "bl = 0", simp_all add: powr_minus ln_inverse ln_powr)
-        apply (cases "bl = 0", simp_all add: powr_minus ln_inverse ln_powr field_simps)
-      done
+      by argo
   next
     case False
     hence "0 < -e" by auto
@@ -2788,21 +2785,23 @@ next
       using abs_real_le_2_powr_bitlen [of m] \<open>m > 0\<close>
       by (simp_all add: bitlen powr_realpow [symmetric] powr_minus powr_add field_simps)
     {
-      have "float_round_down prec (lb_ln2 prec * ?s) \<le> ln 2 * (e + (bitlen m - 1))"
-          (is "real_of_float ?lb2 \<le> _")
-        apply (rule float_round_down_le)
-        unfolding nat_0 power_0 mult_1_right times_float.rep_eq
-        using lb_ln2[of prec]
+      have "real_of_float (lb_ln2 prec) *
+    real_of_float (Float (e + (bitlen m - 1)) 0)
+    \<le> ln 2 * real_of_int (e + (bitlen m - 1))"
       proof (rule mult_mono)
         from float_gt1_scale[OF \<open>1 \<le> Float m e\<close>]
         show "0 \<le> real_of_float (Float (e + (bitlen m - 1)) 0)" by simp
-      qed auto
-      moreover
+      qed (use lb_ln2[of prec] in auto)
+      then have "float_round_down prec (lb_ln2 prec * ?s) \<le> ln 2 * (e + (bitlen m - 1))"
+           (is "real_of_float ?lb2 \<le> _")
+       by (simp add: Interval_Float.float_round_down_le)
+     moreover
       from ln_float_bounds(1)[OF x_bnds]
       have "float_round_down prec ((?x - 1) * lb_ln_horner prec (get_even prec) 1 (?x - 1)) \<le> ln ?x" (is "real_of_float ?lb_horner \<le> _")
         by (auto intro!: float_round_down_le)
       ultimately have "float_plus_down prec ?lb2 ?lb_horner \<le> ln x"
-        unfolding Float ln_shifted_float[OF \<open>0 < m\<close>, of e] by (auto intro!: float_plus_down_le)
+        unfolding Float ln_shifted_float[OF \<open>0 < m\<close>, of e] 
+        by (auto intro!: float_plus_down_le)
     }
     moreover
     {

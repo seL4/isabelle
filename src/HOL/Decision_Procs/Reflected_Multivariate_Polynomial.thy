@@ -860,11 +860,17 @@ proof (induct p arbitrary: n rule: behead.induct)
   case (1 c p n)
   then have pn: "isnpolyh p n" by simp
   from 1(1)[OF pn]
-  have th:"Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = Ipoly bs p" .
-  then show ?case using "1.hyps"
-    apply (simp add: Let_def,cases "behead p = 0\<^sub>p")
-    apply (simp_all add: th[symmetric] field_simps)
-    done
+  have *: "Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = Ipoly bs p" .
+  show ?case
+  proof (cases "behead p = 0\<^sub>p")
+    case True
+    then show ?thesis
+      using * by auto
+  next
+    case False
+    then show ?thesis
+      by (simp add: field_simps flip: *)
+  qed
 qed (auto simp add: Let_def)
 
 lemma behead_isnpolyh:
@@ -1011,7 +1017,7 @@ lemma length_le_list_ex: "length xs \<le> n \<Longrightarrow> \<exists>ys. lengt
 lemma isnpolyh_Suc_const: "isnpolyh p (Suc n) \<Longrightarrow> isconstant p"
   by (simp add: isconstant_polybound0 isnpolyh_polybound0)
 
-lemma wf_bs_polyadd: "wf_bs bs p \<and> wf_bs bs q \<longrightarrow> wf_bs bs (p +\<^sub>p q)"
+lemma wf_bs_polyadd: "\<lbrakk>wf_bs bs p; wf_bs bs q\<rbrakk> \<Longrightarrow> wf_bs bs (p +\<^sub>p q)"
   by (induct p q rule: polyadd.induct) (auto simp add: Let_def wf_bs_def)
 
 lemma wf_bs_polyul: "wf_bs bs p \<Longrightarrow> wf_bs bs q \<Longrightarrow> wf_bs bs (p *\<^sub>p q)"
@@ -1019,7 +1025,7 @@ proof (induct p q rule: polymul.induct)
   case (4 c n p c' n' p')
   then show ?case
     apply (simp add: wf_bs_def)
-    by (metis Suc_eq_plus1 max.bounded_iff max_0L maxindex.simps(2) maxindex.simps(8) wf_bs_def wf_bs_polyadd)
+    by (metis "4.prems"(1) max.bounded_iff max_0L maxindex.simps(2,8) wf_bs_def wf_bs_polyadd)
 qed (simp_all add: wf_bs_def)
 
 lemma wf_bs_polyneg: "wf_bs bs p \<Longrightarrow> wf_bs bs (~\<^sub>p p)"
@@ -1600,9 +1606,8 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
   show ?ths
   proof (cases "s = 0\<^sub>p")
     case True
-    with np show ?thesis
-      apply (clarsimp simp: polydivide_aux.simps)
-      by (metis polyadd_0(1) polymul_0(1) zero_normh)
+    with np polyadd_0 polymul_0 zero_normh show ?thesis
+      by (metis degree.simps(2) nakk' polydivide_aux.simps prod.sel order.refl)
   next
     case sz: False
     show ?thesis
@@ -1711,10 +1716,7 @@ proof (induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               by (simp add: h1)
             with sp'[symmetric] ns np nxdn polyadd_0(1)[OF polymul_normh[OF np nxdn]]
               polyadd_0(2)[OF polymul_normh[OF np nxdn]] show ?thesis
-              apply auto
-              apply (rule exI[where x="?xdn"])
-              apply (auto simp add: polymul_commute[of p])
-              done
+              using polymul_commute by auto
           qed
           then show ?thesis by blast
         qed
