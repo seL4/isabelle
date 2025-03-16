@@ -1283,6 +1283,12 @@ lemma total_on_converse [simp]: "total_on A (r\<inverse>) = total_on A r"
 lemma totalp_on_converse [simp]: "totalp_on A R\<inverse>\<inverse> = totalp_on A R"
   by (rule total_on_converse[to_pred])
 
+lemma left_unique_conversep[simp]: "left_unique A\<inverse>\<inverse> \<longleftrightarrow> right_unique A"
+  by (auto simp add: left_unique_def right_unique_def)
+
+lemma right_unique_conversep[simp]: "right_unique A\<inverse>\<inverse> \<longleftrightarrow> left_unique A"
+  by (auto simp add: left_unique_def right_unique_def)
+
 lemma conversep_noteq [simp]: "(\<noteq>)\<inverse>\<inverse> = (\<noteq>)"
   by (auto simp add: fun_eq_iff)
 

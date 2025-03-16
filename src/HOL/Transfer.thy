@@ -182,11 +182,6 @@ lemma bi_unique_alt_def2:
   unfolding bi_unique_def rel_fun_def by auto
 
 lemma [simp]:
-  shows left_unique_conversep: "left_unique A\<inverse>\<inverse> \<longleftrightarrow> right_unique A"
-    and right_unique_conversep: "right_unique A\<inverse>\<inverse> \<longleftrightarrow> left_unique A"
-  by(auto simp add: left_unique_def right_unique_def)
-
-lemma [simp]:
   shows left_total_conversep: "left_total A\<inverse>\<inverse> \<longleftrightarrow> right_total A"
     and right_total_conversep: "right_total A\<inverse>\<inverse> \<longleftrightarrow> left_total A"
   by(simp_all add: left_total_def right_total_def)
