@@ -713,11 +713,7 @@ next
     case 2
     with one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
     show ?thesis
-      apply (cases "i = 0")
-      apply (simp_all add: Let_def)
-      apply (cases "i > 0")
-      apply simp_all
-      done
+      by (cases i rule: linorder_cases) (auto simp: Let_def)
   next
     case i: 3
     consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
@@ -748,11 +744,7 @@ next
     case 2
     with one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
     show ?thesis
-      apply (cases "i = 0")
-      apply (simp_all add: Let_def)
-      apply (cases "i > 0")
-      apply simp_all
-      done
+      by (cases i rule: linorder_cases) (auto simp: Let_def)
   next
     case i: 3
     consider v where "?sa = C v" | "\<not> (\<exists>v. ?sa = C v)" by blast
@@ -814,10 +806,8 @@ next
 qed (auto simp add: disj_def imp_def iff_def conj_def not_bn)
 
 lemma simpfm_qf: "qfree p \<Longrightarrow> qfree (simpfm p)"
-  apply (induct p rule: simpfm.induct)
-  apply (auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def)
-  apply (case_tac "simpnum a", auto)+
-  done
+proof (induct p rule: simpfm.induct)
+qed (auto simp add: disj_qf imp_qf iff_qf conj_qf not_qf Let_def split: Cooper.num.splits)
 
 
 subsection \<open>Generic quantifier elimination\<close>
@@ -1076,11 +1066,7 @@ proof (induct p rule: zlfm.induct)
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 5 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto split: prod.splits dest: less_imp_Suc_add)
 next
   case (6 a)
   let ?c = "fst (zsplit0 a)"
@@ -1092,11 +1078,7 @@ next
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 6 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto simp: Let_def split_def algebra_simps dest: less_imp_Suc_add)
 next
   case (7 a)
   let ?c = "fst (zsplit0 a)"
@@ -1108,11 +1090,7 @@ next
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 7 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
 next
   case (8 a)
   let ?c = "fst (zsplit0 a)"
@@ -1124,11 +1102,7 @@ next
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 8 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
 next
   case (9 a)
   let ?c = "fst (zsplit0 a)"
@@ -1140,11 +1114,7 @@ next
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 9 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
 next
   case (10 a)
   let ?c = "fst (zsplit0 a)"
@@ -1156,11 +1126,7 @@ next
     by auto
   let ?N = "\<lambda>t. Inum (i # bs) t"
   from 10 Ia nb show ?case
-    apply (auto simp add: Let_def split_def algebra_simps)
-    apply (cases "?r")
-    apply auto
-    subgoal for nat a b by (cases nat) auto
-    done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
 next
   case (11 j a)
   let ?c = "fst (zsplit0 a)"
@@ -1183,11 +1149,7 @@ next
   next
     case 2
     with zsplit0_I[OF spl, where x="i" and bs="bs"] show ?thesis
-      apply (auto simp add: Let_def split_def algebra_simps)
-      apply (cases "?r")
-      apply auto
-      subgoal for nat a b by (cases nat) auto
-      done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
   next
     case 3
     then have l: "?L (?l (Dvd j a))"
@@ -1223,11 +1185,7 @@ next
   next
     case 2
     with zsplit0_I[OF spl, where x="i" and bs="bs"] show ?thesis
-      apply (auto simp add: Let_def split_def algebra_simps)
-      apply (cases "?r")
-      apply auto
-      subgoal for nat a b by (cases nat) auto
-      done
+    by (cases "?r") (auto simp add: Let_def split_def algebra_simps dest: less_imp_Suc_add)
   next
     case 3
     then have l: "?L (?l (Dvd j a))"
@@ -1403,15 +1361,11 @@ lemma minusinf_inf:
 proof (induct p rule: minusinf.induct)
   case (1 p q)
   then show ?case
-    apply auto
-    subgoal for z z' by (rule exI [where x = "min z z'"]) simp
-    done
+    by (fastforce simp: intro: exI [where x = "min _ _"])
 next
   case (2 p q)
   then show ?case
-    apply auto
-    subgoal for z z' by (rule exI [where x = "min z z'"]) simp
-    done
+    by (fastforce simp: intro: exI [where x = "min _ _"])
 next
   case (3 c e)
   then have c1: "c = 1" and nb: "numbound0 e"
@@ -2002,12 +1956,12 @@ next
   have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))"
     by simp
   from p have "x= - ?e"
-    by (simp add: c1) with 3(5)
-  show ?case
-    using dp apply simp
-    apply (erule ballE[where x="1"])
-    apply (simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
-    done
+    by (simp add: c1) 
+  moreover have "x \<noteq> - 1 - Inum (a # bs) e + 1"
+    using dp 3 by force
+  ultimately have False
+    using bn decrnum by fastforce
+  then show ?case ..
 next
   case (4 c e)
   then
@@ -2085,6 +2039,7 @@ proof clarify
   show "?P (x - d)" by (rule \<beta>[OF lp u d dp nb2 px])
 qed
 
+(*a duplicate in MIR.thy*)
 lemma cpmi_eq:
   fixes P P1 :: "int \<Rightarrow> bool"
   assumes "0 < D"
@@ -2092,24 +2047,22 @@ lemma cpmi_eq:
     and "\<forall>x. \<not> (\<exists>j \<in> {1..D}. \<exists>b \<in> B. P (b + j)) \<longrightarrow> P x \<longrightarrow> P (x - D)"
     and "\<forall>x k. P1 x = P1 (x - k * D)"
   shows "(\<exists>x. P x) \<longleftrightarrow> (\<exists>j \<in> {1..D}. P1 j) \<or> (\<exists>j \<in> {1..D}. \<exists>b \<in> B. P (b + j))"
-  apply (insert assms)
-  apply (rule iffI)
-  prefer 2
-  apply (drule minusinfinity)
-  apply assumption+
-  apply fastforce
-  apply clarsimp
-  apply (subgoal_tac "\<And>k. 0 \<le> k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k * D)")
-  apply (frule_tac x = x and z=z in decr_lemma)
-  apply (subgoal_tac "P1 (x - (\<bar>x - z\<bar> + 1) * D)")
-  prefer 2
-  apply (subgoal_tac "0 \<le> \<bar>x - z\<bar> + 1")
-  prefer 2 apply arith
-   apply fastforce
-  apply (drule (1)  periodic_finite_ex)
-  apply blast
-  apply (blast dest: decr_mult_lemma)
-  done
+     (is "_ = ?R")
+proof
+  assume L: "\<exists>x. P x"
+  show "(\<exists>j\<in>{1..D}. P1 j) \<or> (\<exists>j\<in>{1..D}. \<exists>b\<in>B. P (b + j))"
+  proof clarsimp
+    assume \<section>: "\<forall>j\<in>{1..D}. \<forall>b\<in>B. \<not> P (b + j)"
+    then have "\<And>k. 0\<le>k \<Longrightarrow> \<forall>x. P x \<longrightarrow> P (x - k*D)"
+      by (simp add: assms decr_mult_lemma)
+    with L \<section> assms show "\<exists>j\<in>{1..D}. P1 j"
+      using periodic_finite_ex [OF \<open>D>0\<close>, of P1]
+      by (metis abs_1 abs_add_abs abs_ge_zero decr_lemma)
+  qed
+next
+  assume ?R then show "\<exists>x. P x"
+    using decr_lemma assms by blast
+qed
 
 theorem cp_thm:
   assumes lp: "iszlfm p"
@@ -2141,22 +2094,7 @@ text \<open>Implement the right hand sides of Cooper's theorem and Ferrante and 
 lemma mirror_ex:
   assumes "iszlfm p"
   shows "(\<exists>x. Ifm bbs (x#bs) (mirror p)) \<longleftrightarrow> (\<exists>x. Ifm bbs (x#bs) p)"
-  (is "(\<exists>x. ?I x ?mp) = (\<exists>x. ?I x p)")
-proof auto
-  fix x
-  assume "?I x ?mp"
-  then have "?I (- x) p"
-    using mirror[OF assms] by blast
-  then show "\<exists>x. ?I x p"
-    by blast
-next
-  fix x
-  assume "?I x p"
-  then have "?I (- x) ?mp"
-    using mirror[OF assms, where x="- x", symmetric] by auto
-  then show "\<exists>x. ?I x ?mp"
-    by blast
-qed
+  by (metis assms minus_equation_iff mirror)
 
 lemma cp_thm':
   assumes "iszlfm p"
