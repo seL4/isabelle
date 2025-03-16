@@ -28,13 +28,19 @@ New in this Isabelle version
       antisymp_equality[simp] ~> antisymp_on_equality[simp]
       transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
+      antisymp_on_bot[simp]
+      asymp_on_bot[simp]
+      irreflp_on_bot[simp]
+      left_unique_bot[simp]
       left_unique_iff_Uniq
       reflp_on_refl_on_eq[pred_set_conv]
+      symp_on_bot[simp]
       symp_on_equality[simp]
       totalp_on_mono[mono]
       totalp_on_mono_strong
       totalp_on_mono_stronger
       totalp_on_mono_stronger_alt
+      transp_on_bot[simp]
 
 * Theory "HOL.Wellfounded":
   - Added lemmas.

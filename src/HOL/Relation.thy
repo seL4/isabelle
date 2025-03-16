@@ -316,6 +316,9 @@ lemma irreflp_onD: "irreflp_on A R \<Longrightarrow> a \<in> A \<Longrightarrow>
 lemma irreflpD: "irreflp R \<Longrightarrow> \<not> R x x"
   by (rule irreflD[to_pred])
 
+lemma irreflp_on_bot[simp]: "irreflp_on A \<bottom>"
+  by (simp add: irreflp_on_def)
+
 lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>(a, b) \<in> r. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<noteq> b)"
   by (auto simp add: irrefl_on_def)
 
@@ -382,6 +385,9 @@ lemma asymp_onD: "asymp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \
 lemma asympD: "asymp R \<Longrightarrow> R x y \<Longrightarrow> \<not> R y x"
   by (rule asymD[to_pred])
 
+lemma asymp_on_bot[simp]: "asymp_on A \<bottom>"
+  by (simp add: asymp_on_def)
+
 lemma asym_iff: "asym r \<longleftrightarrow> (\<forall>x y. (x,y) \<in> r \<longrightarrow> (y,x) \<notin> r)"
   by (blast dest: asymD)
 
@@ -433,6 +439,9 @@ lemma symp_on_sym_on_eq[pred_set_conv]: "symp_on A (\<lambda>x y. (x, y) \<in> r
   by (simp add: sym_on_def symp_on_def)
 
 lemmas symp_sym_eq = symp_on_sym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
+
+lemma symp_on_bot[simp]: "symp_on A \<bottom>"
+  by (simp add: symp_on_def)
 
 lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
   by (auto simp: sym_on_def)
@@ -532,6 +541,9 @@ lemma antisymp_on_antisym_on_eq[pred_set_conv]:
   by (simp add: antisym_on_def antisymp_on_def)
 
 lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
+
+lemma antisymp_on_bot[simp]: "antisymp_on A \<bottom>"
+  by (simp add: antisymp_on_def)
 
 lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
   by (auto simp: antisym_on_def)
@@ -723,8 +735,11 @@ lemma transp_on_equality[simp]: "transp_on A (=)"
 lemma trans_empty [simp]: "trans {}"
   by (blast intro: transI)
 
+lemma transp_on_bot[simp]: "transp_on A \<bottom>"
+  by (simp add: transp_on_def)
+
 lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
-  using trans_empty[to_pred] by (simp add: bot_fun_def)
+  using transp_on_bot unfolding bot_fun_def bot_bool_def .
 
 lemma trans_singleton [simp]: "trans {(a, a)}"
   by (blast intro: transI)
@@ -885,6 +900,9 @@ lemma left_uniqueD: "left_unique A \<Longrightarrow> A x z \<Longrightarrow> A y
 
 lemma left_unique_iff_Uniq: "left_unique r \<longleftrightarrow> (\<forall>y. \<exists>\<^sub>\<le>\<^sub>1x. r x y)"
   unfolding Uniq_def left_unique_def by blast
+
+lemma left_unique_bot[simp]: "left_unique \<bottom>"
+  by (simp add: left_unique_def)
 
 
 subsubsection \<open>Right uniqueness\<close>
