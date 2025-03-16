@@ -22,6 +22,10 @@ New in this Isabelle version
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
   - Removed predicate single_valuedp. Use predicate right_unique instead.
     INCOMPATIBILITY.
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      antisym_empty[simp] (use antisym_on_bot instead)
+      antisym_bot[simp] (use antisymp_on_bot instead)
+      trans_empty[simp] (use trans_on_bot instead)
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.

@@ -608,14 +608,6 @@ lemma antisymp_less_eq:
   "r \<le> s \<Longrightarrow> antisymp s \<Longrightarrow> antisymp r"
   by (fact antisym_subset [to_pred])
     
-lemma antisym_empty [simp]:
-  "antisym {}"
-  using antisym_on_bot .
-
-lemma antisym_bot [simp]:
-  "antisymp \<bottom>"
-  using antisymp_on_bot .
-    
 lemma antisymp_on_equality[simp]: "antisymp_on A (=)"
   by (auto intro: antisymp_onI)
 
@@ -746,9 +738,6 @@ lemma transp_on_equality[simp]: "transp_on A (=)"
 
 lemma trans_on_bot[simp]: "trans_on A \<bottom>"
   by (simp add: trans_on_def)
-
-lemma trans_empty [simp]: "trans {}"
-  using trans_on_bot .
 
 lemma transp_on_bot[simp]: "transp_on A \<bottom>"
   using trans_on_bot[to_pred] .
