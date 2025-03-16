@@ -338,6 +338,57 @@ lemma bit_mod_2_iff [simp]:
   \<open>bit (a mod 2) n \<longleftrightarrow> n = 0 \<and> odd a\<close>
   by (simp add: mod_2_eq_odd bit_simps)
 
+lemma stable_index:
+  obtains m where \<open>possible_bit TYPE('a) m\<close>
+    \<open>\<And>n. possible_bit TYPE('a) n \<Longrightarrow> n \<ge> m \<Longrightarrow> bit a n \<longleftrightarrow> bit a m\<close>
+proof -
+  have \<open>\<exists>m. possible_bit TYPE('a) m \<and> (\<forall>n\<ge>m. possible_bit TYPE('a) n \<longrightarrow> bit a n \<longleftrightarrow> bit a m)\<close>
+  proof (induction a rule: bit_induct)
+    case (stable a)
+    show ?case
+      by (rule exI [of _ \<open>0::nat\<close>]) (simp add: stable_imp_bit_iff_odd stable)
+  next
+    case (rec a b)
+    then obtain m where \<open>possible_bit TYPE('a) m\<close>
+       and hyp: \<open>\<And>n. possible_bit TYPE('a) n \<Longrightarrow> n \<ge> m \<Longrightarrow> bit a n \<longleftrightarrow> bit a m\<close>
+      by blast
+    show ?case
+    proof (cases \<open>possible_bit TYPE('a) (Suc m)\<close>)
+      case True
+      moreover have \<open>bit (of_bool b + 2 * a) n \<longleftrightarrow> bit (of_bool b + 2 * a) (Suc m)\<close>
+        if \<open>possible_bit TYPE('a) n\<close> \<open>Suc m \<le> n\<close> for n
+        using hyp [of \<open>n - 1\<close>] possible_bit_less_imp [of n \<open>n - 1\<close>] rec.hyps that
+        by (cases n) (simp_all add: bit_Suc)
+      ultimately show ?thesis
+        by blast
+    next
+      case False
+      have \<open>bit (of_bool b + 2 * a) n \<longleftrightarrow> bit (of_bool b + 2 * a) m\<close>
+        if \<open>possible_bit TYPE('a) n\<close> \<open>m \<le> n\<close> for n
+      proof (cases \<open>m = n\<close>)
+        case True
+        then show ?thesis
+          by simp
+      next
+        case False
+        with \<open>m \<le> n\<close> have \<open>m < n\<close>
+          by simp
+        with \<open>\<not> possible_bit TYPE('a) (Suc m)\<close>
+        have \<open>\<not> possible_bit TYPE('a) n\<close> using possible_bit_less_imp [of n \<open>Suc m\<close>]
+          by auto
+        with \<open>possible_bit TYPE('a) n\<close>
+        show ?thesis
+          by simp
+      qed
+      with \<open>possible_bit TYPE('a) m\<close> show ?thesis
+        by blast
+    qed
+  qed
+  with that show thesis
+    by blast
+qed
+
+
 end
 
 lemma nat_bit_induct [case_names zero even odd]:
@@ -1105,6 +1156,20 @@ next
   qed
 qed
 
+lemma impossible_bit_imp_take_bit_eq_self:
+  \<open>take_bit n a = a\<close> if \<open>\<not> possible_bit TYPE('a) n\<close>
+proof -
+  have \<open>drop_bit n a = 0\<close>
+  proof (rule bit_eqI)
+    fix m
+    show \<open>bit (drop_bit n a) m \<longleftrightarrow> bit 0 m\<close>
+      using possible_bit_less_imp [of \<open>n + m\<close> n] that
+      by (auto simp add: bit_simps dest: bit_imp_possible_bit)
+  qed
+  then show ?thesis
+    by (simp add: take_bit_eq_self_iff_drop_bit_eq_0)
+qed
+
 lemma drop_bit_exp_eq:
   \<open>drop_bit m (2 ^ n) = of_bool (m \<le> n \<and> possible_bit TYPE('a) n) * 2 ^ (n - m)\<close>
   by (auto simp: bit_eq_iff bit_simps)
@@ -1485,6 +1550,11 @@ lemma push_bit_minus_one_eq_not_mask [simp]:
 lemma take_bit_not_mask_eq_0:
   \<open>take_bit m (NOT (mask n)) = 0\<close> if \<open>n \<ge> m\<close>
   by (rule bit_eqI) (use that in \<open>simp add: bit_take_bit_iff bit_not_iff bit_mask_iff\<close>)
+
+lemma mask_eq_minus_one_if_not_possible_bit:
+  \<open>mask n = - 1\<close> if \<open>\<not> possible_bit TYPE('a) n\<close>
+  using that mask_eq_take_bit_minus_one [of n] impossible_bit_imp_take_bit_eq_self [of n \<open>- 1\<close>]
+  by simp
 
 lemma unset_bit_eq_and_not:
   \<open>unset_bit n a = a AND NOT (push_bit n 1)\<close>
