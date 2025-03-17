@@ -203,6 +203,12 @@ lemma reflpE:
   obtains "r x x"
   using assms by (auto dest: refl_onD simp add: reflp_def)
 
+lemma refl_on_top[simp]: "refl_on A \<top>"
+  by (simp add: refl_on_def)
+
+lemma reflp_on_top[simp]: "reflp_on A \<top>"
+  by (simp add: reflp_on_def)
+
 lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> reflp_on B R"
   by (auto intro: reflp_onI dest: reflp_onD)
 
@@ -451,6 +457,12 @@ lemma sym_on_bot[simp]: "sym_on A \<bottom>"
 
 lemma symp_on_bot[simp]: "symp_on A \<bottom>"
   using sym_on_bot[to_pred] .
+
+lemma sym_on_top[simp]: "sym_on A \<top>"
+  by (simp add: sym_on_def)
+
+lemma symp_on_top[simp]: "symp_on A \<top>"
+  by (simp add: symp_on_def)
 
 lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
   by (auto simp: sym_on_def)
@@ -742,6 +754,12 @@ lemma trans_on_bot[simp]: "trans_on A \<bottom>"
 lemma transp_on_bot[simp]: "transp_on A \<bottom>"
   using trans_on_bot[to_pred] .
 
+lemma trans_on_top[simp]: "trans_on A \<top>"
+  by (simp add: trans_on_def)
+
+lemma transp_on_top[simp]: "transp_on A \<top>"
+  by (simp add: transp_on_def)
+
 lemma transp_empty [simp]: "transp (\<lambda>x y. False)"
   using transp_on_bot unfolding bot_fun_def bot_bool_def .
 
@@ -806,6 +824,12 @@ lemma totalp_onD:
 
 lemma totalpD: "totalp R \<Longrightarrow> x \<noteq> y \<Longrightarrow> R x y \<or> R y x"
   by (simp add: totalp_onD)
+
+lemma total_on_top[simp]: "total_on A \<top>"
+  by (simp add: total_on_def)
+
+lemma totalp_on_top[simp]: "totalp_on A \<top>"
+  by (simp add: totalp_on_def)
 
 lemma totalp_on_mono_stronger:
   fixes
