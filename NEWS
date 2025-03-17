@@ -22,24 +22,33 @@ New in this Isabelle version
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
   - Removed predicate single_valuedp. Use predicate right_unique instead.
     INCOMPATIBILITY.
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      antisym_empty[simp] (use antisym_on_bot instead)
+      antisym_bot[simp] (use antisymp_on_bot instead)
+      trans_empty[simp] (use trans_on_bot instead)
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       antisymp_equality[simp] ~> antisymp_on_equality[simp]
       transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
+      antisym_on_bot[simp]
       antisymp_on_bot[simp]
+      asym_on_bot[simp]
       asymp_on_bot[simp]
+      irrefl_on_bot[simp]
       irreflp_on_bot[simp]
       left_unique_bot[simp]
       left_unique_iff_Uniq
       reflp_on_refl_on_eq[pred_set_conv]
+      sym_on_bot[simp]
       symp_on_bot[simp]
       symp_on_equality[simp]
       totalp_on_mono[mono]
       totalp_on_mono_strong
       totalp_on_mono_stronger
       totalp_on_mono_stronger_alt
+      trans_on_bot[simp]
       transp_on_bot[simp]
 
 * Theory "HOL.Wellfounded":
