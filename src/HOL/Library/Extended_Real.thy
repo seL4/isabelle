@@ -298,7 +298,7 @@ function real_of_ereal :: "ereal \<Rightarrow> real" where
 | "real_of_ereal \<infinity> = 0"
 | "real_of_ereal (-\<infinity>) = 0"
   by (auto intro: ereal_cases)
-termination by standard (rule wf_empty)
+termination by standard (rule wf_on_bot)
 
 lemma real_of_ereal[simp]:
   "real_of_ereal (- x :: ereal) = - (real_of_ereal x)"
@@ -327,7 +327,7 @@ function abs_ereal where
 | "\<bar>-\<infinity>\<bar> = (\<infinity>::ereal)"
 | "\<bar>\<infinity>\<bar> = (\<infinity>::ereal)"
 by (auto intro: ereal_cases)
-termination proof qed (rule wf_empty)
+termination proof qed (rule wf_on_bot)
 
 instance ..
 
@@ -377,7 +377,7 @@ proof goal_cases
   with prems show P
    by (cases rule: ereal2_cases[of a b]) auto
 qed auto
-termination by standard (rule wf_empty)
+termination by standard (rule wf_on_bot)
 
 lemma Infty_neq_0[simp]:
   "(\<infinity>::ereal) \<noteq> 0" "0 \<noteq> (\<infinity>::ereal)"
@@ -852,7 +852,7 @@ function sgn_ereal :: "ereal \<Rightarrow> ereal" where
 | "sgn (\<infinity>::ereal) = 1"
 | "sgn (-\<infinity>::ereal) = -1"
 by (auto intro: ereal_cases)
-termination by standard (rule wf_empty)
+termination by standard (rule wf_on_bot)
 
 function times_ereal where
   "ereal r * ereal p = ereal (r * p)"

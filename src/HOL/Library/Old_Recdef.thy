@@ -82,6 +82,6 @@ lemmas [recdef_wf] =
   wf_measures
   wf_pred_nat
   wf_same_fst
-  wf_empty
+  wf_on_bot
 
 end

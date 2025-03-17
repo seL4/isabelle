@@ -847,7 +847,7 @@ proof-
     moreover
     {assume Case2: "\<not> Well_order r0"
       hence "?R = {}" unfolding ordLess_def by auto
-      hence "wf ?R" using wf_empty by simp
+      hence "wf ?R" by simp
     }
     ultimately have "wf ?R" by blast
   }

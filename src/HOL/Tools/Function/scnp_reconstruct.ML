@@ -299,7 +299,7 @@ fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
       NONE => no_tac
     | SOME cert =>
         SELECT_GOAL (reconstruct_tac ctxt D cs gp cert) i
-        THEN TRY (resolve_tac ctxt @{thms wf_empty} i))
+        THEN TRY (resolve_tac ctxt @{thms wf_on_bot} i))
   end)
 
 fun gen_decomp_scnp_tac orders autom_tac ctxt =
@@ -314,7 +314,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt =
 fun gen_sizechange_tac orders autom_tac ctxt =
   TRY (Function_Common.termination_rule_tac ctxt 1)
   THEN TRY (Termination.wf_union_tac ctxt)
-  THEN (resolve_tac ctxt @{thms wf_empty} 1 ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
+  THEN (resolve_tac ctxt @{thms wf_on_bot} 1 ORELSE gen_decomp_scnp_tac orders autom_tac ctxt 1)
 
 fun sizechange_tac ctxt autom_tac =
   gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt

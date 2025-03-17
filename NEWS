@@ -60,6 +60,8 @@ New in this Isabelle version
       transp_on_top[simp]
 
 * Theory "HOL.Wellfounded":
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      wf_empty[iff] (use wf_on_bot instead)
   - Added lemmas.
       bex_rtrancl_min_element_if_wf_on
       bex_rtrancl_min_element_if_wfp_on

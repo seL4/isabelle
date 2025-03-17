@@ -536,9 +536,6 @@ lemma wf_on_bot[simp]: "wf_on A \<bottom>"
 lemma wfp_on_bot[simp]: "wfp_on A \<bottom>"
   using wf_on_bot[to_pred] .
 
-lemma wf_empty [iff]: "wf {}"
-  by (simp add: wf_def)
-
 lemma wfp_empty [iff]: "wfp (\<lambda>x y. False)"
   using wfp_on_bot by (simp add: bot_fun_def)
 
