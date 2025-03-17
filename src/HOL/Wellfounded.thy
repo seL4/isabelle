@@ -530,16 +530,17 @@ lemmas wfp_subset = wf_subset [to_pred]
 
 text \<open>Well-foundedness of the empty relation\<close>
 
+lemma wf_on_bot[simp]: "wf_on A \<bottom>"
+  by (simp add: wf_on_def)
+
+lemma wfp_on_bot[simp]: "wfp_on A \<bottom>"
+  using wf_on_bot[to_pred] .
+
 lemma wf_empty [iff]: "wf {}"
   by (simp add: wf_def)
 
 lemma wfp_empty [iff]: "wfp (\<lambda>x y. False)"
-proof -
-  have "wfp bot"
-    by (fact wf_empty[to_pred bot_empty_eq2])
-  then show ?thesis
-    by (simp add: bot_fun_def)
-qed
+  using wfp_on_bot by (simp add: bot_fun_def)
 
 lemma wf_Int1: "wf r \<Longrightarrow> wf (r \<inter> r')"
   by (erule wf_subset) (rule Int_lower1)
