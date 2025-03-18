@@ -530,10 +530,10 @@ lemmas wfp_subset = wf_subset [to_pred]
 
 text \<open>Well-foundedness of the empty relation\<close>
 
-lemma wf_on_bot[simp]: "wf_on A \<bottom>"
+lemma wf_on_bot[iff]: "wf_on A \<bottom>"
   by (simp add: wf_on_def)
 
-lemma wfp_on_bot[simp]: "wfp_on A \<bottom>"
+lemma wfp_on_bot[iff]: "wfp_on A \<bottom>"
   using wf_on_bot[to_pred] .
 
 lemma wfp_empty [iff]: "wfp (\<lambda>x y. False)"
