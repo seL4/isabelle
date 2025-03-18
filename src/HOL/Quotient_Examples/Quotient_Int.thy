@@ -51,40 +51,21 @@ fun
 where
   "times_int_raw (x, y) (u, v) = (x*u + y*v, x*v + y*u)"
 
-lemma times_int_raw_fst:
-  assumes a: "x \<approx> z"
-  shows "times_int_raw x y \<approx> times_int_raw z y"
-  using a
-  apply(cases x, cases y, cases z)
-  apply(auto simp add: times_int_raw.simps intrel.simps)
-  apply(hypsubst_thin)
-  apply(rename_tac u v w x y z)
-  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: ac_simps)
-  apply(simp add: add_mult_distrib [symmetric])
-done
-
-lemma times_int_raw_snd:
-  assumes a: "x \<approx> z"
-  shows "times_int_raw y x \<approx> times_int_raw y z"
-  using a
-  apply(cases x, cases y, cases z)
-  apply(auto simp add: times_int_raw.simps intrel.simps)
-  apply(hypsubst_thin)
-  apply(rename_tac u v w x y z)
-  apply(subgoal_tac "u*w + z*w = y*w + v*w  &  u*x + z*x = y*x + v*x")
-  apply(simp add: ac_simps)
-  apply(simp add: add_mult_distrib [symmetric])
-done
+lemma times_int_raw:
+  assumes "x \<approx> z"
+  shows "times_int_raw x y \<approx> times_int_raw z y \<and> times_int_raw y x \<approx> times_int_raw y z"
+proof (cases x, cases y, cases z)
+  fix a a' b b' c c'
+  assume \<section>: "x = (a, a')" "y = (b, b')" "z = (c, c')"
+  then obtain "a*b + c'*b = c*b + a'*b" "a*b' + c'*b' = c*b' + a'*b'"
+    by (metis add_mult_distrib assms intrel.simps)
+  then show ?thesis
+    by (simp add: \<section> algebra_simps)
+qed
 
 quotient_definition
   "((*)) :: (int \<Rightarrow> int \<Rightarrow> int)" is "times_int_raw"
-  apply(rule equivp_transp[OF int_equivp])
-  apply(rule times_int_raw_fst)
-  apply(assumption)
-  apply(rule times_int_raw_snd)
-  apply(assumption)
-done
+  by (metis Quotient_Int.int.abs_eq_iff times_int_raw)
 
 fun
   le_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> bool"
@@ -143,14 +124,14 @@ lemma plus_int_raw_rsp_aux:
      (simp)
 
 lemma add_abs_int:
-  "(abs_int (x,y)) + (abs_int (u,v)) =
-   (abs_int (x + u, y + v))"
-  apply(simp add: plus_int_def id_simps)
-  apply(fold plus_int_raw.simps)
-  apply(rule Quotient3_rel_abs[OF Quotient3_int])
-  apply(rule plus_int_raw_rsp_aux)
-  apply(simp_all add: rep_abs_rsp_left[OF Quotient3_int])
-  done
+  "(abs_int (x,y)) + (abs_int (u,v)) = (abs_int (x + u, y + v))"
+proof -
+  have "abs_int (plus_int_raw (rep_int (abs_int (x, y))) (rep_int (abs_int (u, v)))) 
+     = abs_int (plus_int_raw (x, y) (u, v))"
+  by (meson Quotient3_abs_rep Quotient3_int int.abs_eq_iff plus_int_raw_rsp_aux)
+  then show ?thesis
+    by (simp add: Quotient_Int.plus_int_def)
+qed
 
 definition int_of_nat_raw:
   "int_of_nat_raw m = (m :: nat, 0 :: nat)"
@@ -206,21 +187,24 @@ lemma zmult_zless_mono2_lemma:
   fixes i j::int
   and   k::nat
   shows "i < j \<Longrightarrow> 0 < k \<Longrightarrow> of_nat k * i < of_nat k * j"
-  apply(induct "k")
-  apply(simp)
-  apply(case_tac "k = 0")
-  apply(simp_all add: distrib_right add_strict_mono)
-  done
+proof (induction "k")
+  case 0
+  then show ?case by simp
+next
+  case (Suc k)
+  then show ?case 
+    by (cases "k = 0"; simp add: distrib_right add_strict_mono)
+qed
 
 lemma zero_le_imp_eq_int_raw:
-  fixes k::"(nat \<times> nat)"
-  shows "less_int_raw (0, 0) k \<Longrightarrow> (\<exists>n > 0. k \<approx> int_of_nat_raw n)"
-  apply(cases k)
-  apply(simp add:int_of_nat_raw)
-  apply(auto)
-  apply(rule_tac i="b" and j="a" in less_Suc_induct)
-  apply(auto)
-  done
+  assumes "less_int_raw (0, 0) u"
+  shows "(\<exists>n > 0. u \<approx> int_of_nat_raw n)"
+proof -
+  have "\<And>a b::nat. \<lbrakk>b \<le> a; b \<noteq> a\<rbrakk> \<Longrightarrow> \<exists>n>0. a = n + b"
+    by (metis add.comm_neutral add.commute gr0I le_iff_add)
+  with assms show ?thesis
+    by (cases u) (simp add:int_of_nat_raw)
+qed
 
 lemma zero_le_imp_eq_int:
   fixes k::int
@@ -230,10 +214,10 @@ lemma zero_le_imp_eq_int:
 
 lemma zmult_zless_mono2:
   fixes i j k::int
-  assumes a: "i < j" "0 < k"
+  assumes "i < j" "0 < k"
   shows "k * i < k * j"
-  using a
-  by (drule_tac zero_le_imp_eq_int) (auto simp add: zmult_zless_mono2_lemma)
+  using assms zmult_zless_mono2_lemma [of i j]
+  using Quotient_Int.zero_le_imp_eq_int by blast
 
 text\<open>The integers form an ordered integral domain\<close>
 
