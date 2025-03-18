@@ -353,7 +353,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'")),
+          args = "-a -d '~~/src/Benchmarks'",
+          count = () => 0)),
       List(
         Remote_Build("AFP macOS (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
           history_base = "build_history_base_arm",
