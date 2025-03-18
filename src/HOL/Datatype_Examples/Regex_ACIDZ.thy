@@ -216,7 +216,7 @@ next
 qed (auto simp: Let_def)
 
 lemma AA': "r ~ r' \<Longrightarrow> s ~ s' \<Longrightarrow> t = elim_zeros (Alt r' s') \<Longrightarrow> Alt r s ~ t"
-  by (auto simp del: elim_zeros.simps)
+  by blast
 
 lemma distribute_ACIDZ1: "r ~ r' \<Longrightarrow> distribute s r ~ elim_zeros (distribute s r')"
 proof (induct r r' arbitrary: s rule: ACIDZ.induct)
@@ -226,7 +226,7 @@ proof (induct r r' arbitrary: s rule: ACIDZ.induct)
 next
   case (C r r' s)
   then show ?case
-    by (smt (verit, best) ACIDZ.C distribute.simps(2,3) elim_zeros.simps(2,3) z)
+    by (metis ACIDZ.C distribute.simps(2) elim_zeros.simps(2) elim_zeros_idem z)
 qed (auto simp del: elim_zeros.simps simp: elim_zeros_distribute_idem)
 
 lemma elim_zeros_ACIDZ: "r ~ s \<Longrightarrow> (~)\<^sup>*\<^sup>* (elim_zeros r) (elim_zeros s)"
@@ -266,9 +266,7 @@ proof (rule strong_confluentpI, unfold reflclp_ACIDZ)
   next
     case (c r s)
     then show ?case
-      by (cases rule: ACIDZ.cases)
-        (auto 0 4 intro: exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ R], rotated]
-          converse_rtranclp_into_rtranclp[where r="(~)", OF ACIDZ.c])
+      by (meson ACIDZ.c R r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
   next
     case (i r)
     then show ?case
@@ -280,10 +278,11 @@ proof (rule strong_confluentpI, unfold reflclp_ACIDZ)
   next
     case (d r s t)
     then show ?case
-      by (induct "Conc r s" t rule: ACIDZ.induct)
-        (force intro: exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ z], rotated]
-          exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ z[OF elim_zeros_ACIDZ1]], rotated]
-          distribute_ACIDZ1 elim!: rtranclp_trans)+
+    proof (induct "Conc r s" t rule: ACIDZ.induct)
+      show "\<And>t. \<lbrakk>Conc r s ~ t; \<exists>u. (~)\<^sup>*\<^sup>* (distribute s r) u \<and> t ~ u\<rbrakk>
+          \<Longrightarrow> \<exists>u. (~)\<^sup>*\<^sup>* (distribute s r) u \<and> elim_zeros t ~ u"
+        by (meson R elim_zeros_ACIDZ1 rtranclp.rtrancl_into_rtrancl z)
+    qed (use distribute_ACIDZ1 ACIDZ.d in blast)+
   next
     case (R r)
     then show ?case
@@ -300,38 +299,27 @@ proof (rule strong_confluentpI, unfold reflclp_ACIDZ)
       proof (induct "Alt r'' s''" r' rule: ACIDZ.induct[consumes 1, case_names Xa1 Xa2 Xc Xi Xz Xd XR XA XC])
         case Xa1
         with A(3) show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A2[OF A2]], rotated])
-           (metis A1 a1 a2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (meson A2 a1 a2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xa2
         then show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A2[OF A2]], rotated])
-            (metis a1 A1 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (meson A2 a1 a2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xc
         then show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A2[OF A2]], rotated])
-            (metis a1 c A1 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (meson A2 a1 c r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xi
+        then have "(~)\<^sup>*\<^sup>* (Alt (Alt (Alt r'' s'') (Alt r'' s'')) s')
+                         (Alt (Alt r'' r'') (Alt (Alt s'' s'') s'))"
+          by (meson A2 a1 a2 c r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
         then show ?case
-          apply (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ ACIDZ.A[OF i ACIDZ.A[OF i]]], rotated])
-          apply (rule converse_rtranclp_into_rtranclp, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a2)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule A1, rule c)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule a2)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a2)
-          apply blast
-          done
+          using Xi by auto
       next
         case Xz
         with A show ?case
-          by (auto elim!: exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ z], rotated]
-            converse_rtranclp_into_rtranclp[rotated, OF elim_zeros_ACIDZ_rtranclp]
-            simp del: elim_zeros.simps)
+          by (meson Alt_elim_zeros(1) converse_rtranclp_into_rtranclp elim_zeros_ACIDZ_rtranclp
+              zz)
       qed auto
     next
       case inner: (a2 s'' t'')
@@ -340,41 +328,30 @@ proof (rule strong_confluentpI, unfold reflclp_ACIDZ)
       proof (induct "Alt s'' t''" s' rule: ACIDZ.induct[consumes 1, case_names Xa1 Xa2 Xc Xi Xz Xd XR XA XC])
         case Xa1
         with A(3) show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A1[OF A1]], rotated])
-            (metis a2 A2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (metis (full_types) a2 A1 A2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xa2
         then show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A1[OF A1]], rotated])
-            (metis a1 a2 A2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (metis (full_types) a1 a2 A1 A2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xc
         then show ?case
-          by (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ A1[OF A1]], rotated])
-            (metis a2 c A2 r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
+          by (metis (full_types) a1 A1 c r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
       next
         case Xi
+        then have "(~)\<^sup>*\<^sup>* (Alt r' (Alt (Alt s'' t'') (Alt s'' t'')))
+                        (Alt (Alt r' (Alt s'' s'')) (Alt t'' t''))"
+          by (meson A2 a1 a2 c r_into_rtranclp rtranclp.rtrancl_into_rtrancl)
         then show ?case
-          apply (elim exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ ACIDZ.A[OF ACIDZ.A[OF _ i] i]], rotated])
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a2)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule A1, rule c)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule A2, rule a1)
-          apply (rule converse_rtranclp_into_rtranclp, rule A2, rule a2)
-          apply (rule converse_rtranclp_into_rtranclp, rule a2)
-          apply blast
-          done
+          using Xi by auto
       next
         case Xz
         then show ?case
-          by (auto elim!: exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ z], rotated]
-            converse_rtranclp_into_rtranclp[rotated, OF elim_zeros_ACIDZ_rtranclp]
-            simp del: elim_zeros.simps)
+          by (meson Alt_elim_zeros(2) converse_rtranclp_into_rtranclp elim_zeros_ACIDZ_rtranclp zz)
       qed auto
     next
       case (z rs) with A show ?case
-        by (auto elim!: rtranclp_trans
-          intro!: exI[where P = "\<lambda>x. _ x \<and> _ ~ x", OF conjI[OF _ elim_zeros_ACIDZ1], rotated])
+        by (smt (verit, best) ACIDZ.z R elim_zeros_ACIDZ1 rtranclp.rtrancl_into_rtrancl)
     qed (auto 5 0 intro: AAA)
   next
     case (C r r' s s')
@@ -391,9 +368,9 @@ lemma confluent_quotient_ACIDZ:
      (map_rexp fst) (map_rexp snd) (map_rexp fst) (map_rexp snd)
      rel_rexp rel_rexp rel_rexp set_rexp set_rexp"
   by unfold_locales
-    (auto 4 4 dest: ACIDZ_set_rexp' simp: rexp.in_rel rexp.rel_compp dest: map_rexp_ACIDZ_inv intro: rtranclp_into_equivclp
+    (force dest: ACIDZ_set_rexp' simp: rexp.in_rel rexp.rel_compp dest: map_rexp_ACIDZ_inv intro: rtranclp_into_equivclp
       intro: equivpI reflpI sympI transpI ACIDZcl_map_respects
-      strong_confluentp_imp_confluentp[OF strong_confluentp_ACIDZ])
+      strong_confluentp_imp_confluentp[OF strong_confluentp_ACIDZ])+
 
 lemma wide_intersection_finite_ACIDZ: "wide_intersection_finite (~~) map_rexp set_rexp"
   by unfold_locales
@@ -472,9 +449,9 @@ quotient_type 'a rexp_ACIDZ = "'a rexp" / "(\<approx>)"
 
 lift_bnf 'a rexp_ACIDZ
   unfolding ACIDZEQ_alt
-  subgoal for A Q by (rule confluent_quotient.subdistributivity[OF confluent_quotient_ACIDZ])
-  subgoal for Ss by (elim wide_intersection_finite.wide_intersection[OF wide_intersection_finite_ACIDZ])
-  done
+  apply (meson confluent_quotient.subdistributivity confluent_quotient_ACIDZ)
+  by (metis wide_intersection_finite.wide_intersection
+      wide_intersection_finite_ACIDZ)
 
 datatype ldl = Prop string | And ldl ldl | Not ldl | Match "ldl rexp_ACIDZ"
 
