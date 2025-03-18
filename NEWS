@@ -110,6 +110,12 @@ New in this Isabelle version
 * Removed theory "HOL-Library.Divides" (finally).
 
 
+*** System ***
+
+* SSH connections allow both bash and zsh as remote shell. This is
+particularly important for macOS, where zsh is the default user shell.
+
+
 
 New in Isabelle2025 (March 2025)
 --------------------------------
