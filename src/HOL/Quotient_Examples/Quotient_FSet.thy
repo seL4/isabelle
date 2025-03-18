@@ -404,11 +404,9 @@ lemma Nil_rsp2 [quot_respect]:
 
 lemma Cons_rsp2 [quot_respect]:
   shows "((\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) Cons Cons"
-  apply (auto intro!: rel_funI)
-  apply (rule_tac b="x # b" in relcomppI)
-  apply auto
-  apply (rule_tac b="x # ba" in relcomppI)
-  apply auto
+  apply (clarsimp intro!: rel_funI)
+  apply (rule_tac b="x # b" in relcomppI, simp)
+  apply (rule_tac b="x # ba" in relcomppI, auto)
   done
 
 lemma Nil_prs2 [quot_preserve]:
@@ -436,37 +434,44 @@ lemma list_all2_app_l:
   using a b by (induct z) (auto elim: reflpE)
 
 lemma append_rsp2_pre0:
-  assumes a:"list_all2 (\<approx>) x x'"
+  assumes "list_all2 (\<approx>) x x'"
   shows "list_all2 (\<approx>) (x @ z) (x' @ z)"
-  using a apply (induct x x' rule: list_induct2')
-  by simp_all (rule list_all2_refl'[OF list_eq_equivp])
+  using assms 
+proof (induct x x' rule: list_induct2')
+  case 1
+  then show ?case
+    using list_all2_refl' list_eq_equivp by blast
+qed auto
 
 lemma append_rsp2_pre1:
-  assumes a:"list_all2 (\<approx>) x x'"
+  assumes "list_all2 (\<approx>) x x'"
   shows "list_all2 (\<approx>) (z @ x) (z @ x')"
-  using a apply (induct x x' arbitrary: z rule: list_induct2')
-  apply (rule list_all2_refl'[OF list_eq_equivp])
-  apply (simp_all del: list_eq_def)
-  apply (rule list_all2_app_l)
-  apply (simp_all add: reflpI)
-  done
+  using assms 
+proof (induct x x' arbitrary: z rule: list_induct2')
+  case 1
+  then show ?case
+    using list_all2_refl' list_eq_equivp by blast
+next
+  case (4 x xs y ys)
+  then show ?case
+    using list_all2_app_l list_eq_reflp by blast
+qed auto
 
 lemma append_rsp2_pre:
   assumes "list_all2 (\<approx>) x x'"
     and "list_all2 (\<approx>) z z'"
   shows "list_all2 (\<approx>) (x @ z) (x' @ z')"
-  using assms by (rule list_all2_appendI)
+  using assms list_all2_appendI by blast
 
 lemma compositional_rsp3:
   assumes "(R1 ===> R2 ===> R3) C C" and "(R4 ===> R5 ===> R6) C C"
   shows "(R1 OOO R4 ===> R2 OOO R5 ===> R3 OOO R6) C C"
-  by (auto intro!: rel_funI)
-     (metis (full_types) assms rel_funE relcomppI)
+  using assms
+  by (simp add: OO_def rel_fun_def) metis
 
 lemma append_rsp2 [quot_respect]:
   "(list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) append append"
-  by (intro compositional_rsp3)
-     (auto intro!: rel_funI simp add: append_rsp2_pre)
+  by (simp add: append_transfer compositional_rsp3 sup_fset.rsp)
 
 lemma map_rsp2 [quot_respect]:
   "(((\<approx>) ===> (\<approx>)) ===> list_all2 (\<approx>) OOO (\<approx>) ===> list_all2 (\<approx>) OOO (\<approx>)) map map"
@@ -766,9 +771,8 @@ lemma card_notin_fset:
 
 lemma card_fset_Suc: 
   shows "card_fset S = Suc n \<Longrightarrow> \<exists>x T. x |\<notin>| T \<and> S = insert_fset x T \<and> card_fset T = n"
-  apply(descending)
-  apply(auto dest!: card_eq_SucD)
-  by (metis Diff_insert_absorb set_removeAll)
+  by (metis Suc_inject card_fset_0 card_notin_fset nat.simps(3) notin_remove_fset
+      remove_fset_cases)
 
 lemma card_remove_fset_iff [simp]:
   shows "card_fset (remove_fset y S) = (if y |\<in>| S then card_fset S - 1 else card_fset S)"
@@ -776,7 +780,7 @@ lemma card_remove_fset_iff [simp]:
 
 lemma card_Suc_exists_in_fset: 
   shows "card_fset S = Suc n \<Longrightarrow> \<exists>a. a |\<in>| S"
-  by (drule card_fset_Suc) (auto)
+  using remove_fset_cases by force
 
 lemma in_card_fset_not_0: 
   shows "a |\<in>| A \<Longrightarrow> card_fset A \<noteq> 0"
@@ -804,9 +808,7 @@ lemma card_union_inter_fset:
 
 lemma card_union_disjoint_fset: 
   shows "xs |\<inter>| ys = {||} \<Longrightarrow> card_fset (xs |\<union>| ys) = card_fset xs + card_fset ys"
-  unfolding card_fset union_fset 
-  apply (rule card_Un_disjoint[OF finite_fset finite_fset])
-  by (metis inter_fset fset_simps(1))
+  by (simp add: card_union_inter_fset)
 
 lemma card_remove_fset_less1: 
   shows "x |\<in>| xs \<Longrightarrow> card_fset (remove_fset x xs) < card_fset xs"
@@ -914,12 +916,9 @@ lemma in_commute_fold_fset:
 subsection \<open>Choice in fsets\<close>
 
 lemma fset_choice: 
-  assumes a: "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
+  assumes "\<forall>x. x |\<in>| A \<longrightarrow> (\<exists>y. P x y)"
   shows "\<exists>f. \<forall>x. x |\<in>| A \<longrightarrow> P x (f x)"
-  using a
-  apply(descending)
-  using finite_set_choice
-  by (auto simp add: Ball_def)
+  using assms by metis
 
 
 section \<open>Induction and Cases rules for fsets\<close>
@@ -969,39 +968,24 @@ next
 qed
 
 lemma fset_raw_strong_cases:
-  obtains "xs = []"
-    | ys x where "\<not> List.member ys x" and "xs \<approx> x # ys"
+  obtains "xs = []" | ys x where "\<not> List.member ys x" and "xs \<approx> x # ys"
 proof (induct xs)
   case Nil
   then show thesis by simp
 next
   case (Cons a xs)
-  have a: "\<lbrakk>xs = [] \<Longrightarrow> thesis; \<And>x ys. \<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis\<rbrakk> \<Longrightarrow> thesis"
-    by (rule Cons(1))
-  have b: "\<And>x' ys'. \<lbrakk>\<not> List.member ys' x'; a # xs \<approx> x' # ys'\<rbrakk> \<Longrightarrow> thesis" by fact
-  have c: "xs = [] \<Longrightarrow> thesis" using b 
-    apply(simp)
-    by (metis list.set(1) emptyE empty_subsetI)
-  have "\<And>x ys. \<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis"
-  proof -
-    fix x :: 'a
-    fix ys :: "'a list"
-    assume d:"\<not> List.member ys x"
-    assume e:"xs \<approx> x # ys"
-    show thesis
-    proof (cases "x = a")
-      assume h: "x = a"
-      then have f: "\<not> List.member ys a" using d by simp
-      have g: "a # xs \<approx> a # ys" using e h by auto
-      show thesis using b f g by simp
-    next
-      assume h: "x \<noteq> a"
-      then have f: "\<not> List.member (a # ys) x" using d by auto
-      have g: "a # xs \<approx> x # (a # ys)" using e h by auto
-      show thesis using b f g by (simp del: List.member_def) 
-    qed
+  show ?case
+  proof (cases "xs=[]")
+    case True
+    then show ?thesis
+      using Cons.prems member_rec(2) by fastforce
+  next
+    case False
+    have "\<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis" for x ys
+      using Cons.prems by auto
+    then show ?thesis
+      using Cons.hyps False by blast 
   qed
-  then show thesis using a c by blast
 qed
 
 
@@ -1017,12 +1001,15 @@ lemma fset_induct2:
   (\<And>y ys. y |\<notin>| ys \<Longrightarrow> P {||} (insert_fset y ys)) \<Longrightarrow>
   (\<And>x xs y ys. \<lbrakk>P xs ys; x |\<notin>| xs; y |\<notin>| ys\<rbrakk> \<Longrightarrow> P (insert_fset x xs) (insert_fset y ys)) \<Longrightarrow>
   P xsa ysa"
-  apply (induct xsa arbitrary: ysa)
-  apply (induct_tac x rule: fset_induct_stronger)
-  apply simp_all
-  apply (induct_tac xa rule: fset_induct_stronger)
-  apply simp_all
-  done
+proof (induct xsa arbitrary: ysa)
+  case empty
+  then show ?case
+    by (meson fset_induct_stronger)
+next
+  case (insert x xsa)
+  then show ?case
+    by (metis fset_strong_cases)
+qed
 
 text \<open>Extensionality\<close>
 
@@ -1059,19 +1046,26 @@ lemma list_eq2_refl:
   by (induct xs) (auto intro: list_eq2.intros)
 
 lemma cons_delete_list_eq2:
-  shows "(a # (removeAll a A)) \<approx>2 (if List.member A a then A else a # A)"
-  apply (induct A)
-  apply (simp add: list_eq2_refl)
-  apply (case_tac "List.member (aa # A) a")
-  apply (simp_all)
-  apply (case_tac [!] "a = aa")
-  apply (simp_all)
-  apply (case_tac "List.member A a")
-  apply (auto)[2]
-  apply (metis list_eq2.intros(3) list_eq2.intros(4) list_eq2.intros(5) list_eq2.intros(6))
-  apply (metis list_eq2.intros(1) list_eq2.intros(5) list_eq2.intros(6))
-  apply (auto simp add: list_eq2_refl)
-  done
+  shows "(a # (removeAll a xs)) \<approx>2 (if List.member xs a then xs else a # xs)"
+proof (induct xs)
+  case Nil
+  then show ?case
+    by (simp add: list_eq2_refl)
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "a=x")
+    case True
+    with Cons show ?thesis
+      apply (simp add: split: if_splits)
+      by (metis list_eq2.simps)
+  next
+    case False
+    with Cons show ?thesis
+      apply (simp add: )
+      by (smt (verit, ccfv_SIG) list_eq2.intros)
+  qed
+qed
 
 lemma member_delete_list_eq2:
   assumes a: "List.member r e"
