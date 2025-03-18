@@ -174,9 +174,9 @@ object SSH {
       run_ssh(master = control_master, args = "printenv HOME \";\" printenv SHELL").check.out_lines
       match {
         case List(home, shell) =>
-          if (shell.endsWith("/bash")) home
+          if (shell.endsWith("/bash") || shell.endsWith("/zsh")) home
           else {
-            error("Bad SHELL for " + quote(toString) + " -- expected GNU bash, but found " + shell)
+            error("Bad SHELL for " + quote(toString) + " -- expected bash or zsh, but found " + shell)
           }
         case _ => error("Malformed remote environment for " + quote(toString))
       }
