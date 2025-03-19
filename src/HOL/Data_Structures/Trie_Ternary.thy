@@ -39,9 +39,7 @@ term size_tree
 lemma lookup_size[termination_simp]:
   fixes t :: "('a::linorder * 'a trie3) tree"
   shows "lookup t a = Some b \<Longrightarrow> size b < Suc (size_tree (\<lambda>ab. Suc (size (snd( ab)))) t)"
-apply(induction t a rule: lookup.induct)
-apply(auto split: if_splits)
-done
+  by (induction t a rule: lookup.induct)(auto split: if_splits)
 
 
 definition empty3 :: "'a trie3" where
@@ -69,35 +67,27 @@ subsection "Correctness"
 text \<open>Proof by stepwise refinement. First abs3tract to type @{typ "'a trie"}.\<close>
 
 fun abs3 :: "'a::linorder trie3 \<Rightarrow> 'a trie" where
-"abs3 (Nd3 b t) = Nd b (\<lambda>a. map_option abs3 (lookup t a))"
+  "abs3 (Nd3 b t) = Nd b (\<lambda>a. map_option abs3 (lookup t a))"
 
 fun invar3 :: "('a::linorder)trie3 \<Rightarrow> bool" where
-"invar3 (Nd3 b m) = (M.invar m \<and> (\<forall>a t. lookup m a = Some t \<longrightarrow> invar3 t))"
+  "invar3 (Nd3 b m) = (M.invar m \<and> (\<forall>a t. lookup m a = Some t \<longrightarrow> invar3 t))"
 
 lemma isin_abs3: "isin3 t xs = isin (abs3 t) xs"
-apply(induction t xs rule: isin3.induct)
-apply(auto split: option.split)
-done
+  by (induction t xs rule: isin3.induct)(auto split: option.split)
 
 lemma abs3_insert3: "invar3 t \<Longrightarrow> abs3(insert3 xs t) = insert xs (abs3 t)"
-apply(induction xs t rule: insert3.induct)
-apply(auto simp: M.map_specs Tree_Set.empty_def[symmetric] split: option.split)
-done
+proof (induction xs t rule: insert3.induct)
+qed (auto simp: M.map_specs Tree_Set.empty_def[symmetric] split: option.split)
 
 lemma abs3_delete3: "invar3 t \<Longrightarrow> abs3(delete3 xs t) = delete xs (abs3 t)"
-apply(induction xs t rule: delete3.induct)
-apply(auto simp: M.map_specs split: option.split)
-done
+  by (induction xs t rule: delete3.induct)(auto simp: M.map_specs split: option.split)
 
 lemma invar3_insert3: "invar3 t \<Longrightarrow> invar3 (insert3 xs t)"
-apply(induction xs t rule: insert3.induct)
-apply(auto simp: M.map_specs Tree_Set.empty_def[symmetric] split: option.split)
-done
+proof (induction xs t rule: insert3.induct)
+qed (auto simp: M.map_specs simp flip: Tree_Set.empty_def split: option.split)
 
 lemma invar3_delete3: "invar3 t \<Longrightarrow> invar3 (delete3 xs t)"
-apply(induction xs t rule: delete3.induct)
-apply(auto simp: M.map_specs split: option.split)
-done
+  by (induction xs t rule: delete3.induct)(auto simp: M.map_specs split: option.split)
 
 text \<open>Overall correctness w.r.t. the \<open>Set\<close> ADT:\<close>
 

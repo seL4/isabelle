@@ -100,9 +100,7 @@ subsubsection "Proofs about insertion"
 lemma avl_insert: "avl t \<Longrightarrow>
   avl(insert x t) \<and>
   height(insert x t) = height t + (if incr t (insert x t) then 1 else 0)"
-apply(induction x t rule: insert.induct)
-apply(auto split!: splits)
-done
+  by (induction x t rule: insert.induct)(auto split!: splits)
 
 text \<open>The following two auxiliary lemma merely simplify the proof of \<open>inorder_insert\<close>.\<close>
 
@@ -114,9 +112,7 @@ by(drule avl_insert[of _ x]) (auto split: splits)
 
 theorem inorder_insert:
   "\<lbrakk> avl t;  sorted(inorder t) \<rbrakk> \<Longrightarrow> inorder(insert x t) = ins_list x (inorder t)"
-apply(induction t)
-apply (auto simp: ins_list_simps split!: splits)
-done
+  by (induction t) (auto simp: ins_list_simps split!: splits)
 
 
 subsubsection "Proofs about deletion"
@@ -137,24 +133,20 @@ by(cases t) (auto split: splits prod.splits)
 lemma avl_split_max:
   "\<lbrakk> split_max t = (t',a); avl t; t \<noteq> Leaf \<rbrakk> \<Longrightarrow>
    avl t' \<and> height t = height t' + (if incr t' t then 1 else 0)"
-apply(induction t arbitrary: t' a rule: split_max_induct)
- apply(auto simp: max_absorb1 max_absorb2 height_1_iff split!: splits prod.splits)
-done
+proof (induction t arbitrary: t' a rule: split_max_induct)
+qed (auto simp: max_absorb1 max_absorb2 height_1_iff split!: splits prod.splits)
 
 lemma avl_delete: "avl t \<Longrightarrow>
   avl (delete x t) \<and>
   height t = height (delete x t) + (if decr t (delete x t) then 1 else 0)"
-apply(induction x t rule: delete.induct)
- apply(auto simp: max_absorb1 max_absorb2 height_1_iff dest: avl_split_max split!: splits prod.splits)
-done
+proof (induction x t rule: delete.induct)
+qed (auto simp: max_absorb1 max_absorb2 height_1_iff dest: avl_split_max split!: splits prod.splits)
 
 lemma inorder_split_maxD:
   "\<lbrakk> split_max t = (t',a); t \<noteq> Leaf; avl t \<rbrakk> \<Longrightarrow>
    inorder t' @ [a] = inorder t"
-apply(induction t arbitrary: t' rule: split_max.induct)
- apply(fastforce split!: splits prod.splits)
-apply simp
-done
+proof (induction t arbitrary: t' rule: split_max.induct)
+qed (auto split!: splits prod.splits)
 
 lemma neq_Leaf_if_height_neq_0: "height t \<noteq> 0 \<Longrightarrow> t \<noteq> Leaf"
 by auto
@@ -164,12 +156,16 @@ by(cases t) (auto split: splits prod.splits)
 
 theorem inorder_delete:
   "\<lbrakk> avl t; sorted(inorder t) \<rbrakk>  \<Longrightarrow> inorder (delete x t) = del_list x (inorder t)"
-apply(induction t rule: tree2_induct)
-apply(auto simp: del_list_simps inorder_balR inorder_balL avl_delete inorder_split_maxD
-                 split_max_Leaf neq_Leaf_if_height_neq_0
-           simp del: balL.simps balR.simps split!: splits prod.splits)
-done
-
+proof (induction t rule: tree2_induct)
+  case Leaf
+  then show ?case by auto
+next
+  case (Node x1 a b x3)
+  then show ?case 
+    by (auto simp: del_list_simps inorder_balR inorder_balL avl_delete inorder_split_maxD
+                   split_max_Leaf neq_Leaf_if_height_neq_0
+         simp del: balL.simps balR.simps split!: splits prod.splits)
+qed
 
 subsubsection \<open>Set Implementation\<close>
 
