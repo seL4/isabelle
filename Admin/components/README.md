@@ -47,6 +47,7 @@ machines are as follows:
       - macOS 15 Sequoia (untested)
 
   * `x86_64-windows`
+      - Windows Server 2019 (minimum for Java ZGC)
       - **Windows Server 2022** (`se0.proof.cit.tum.de`)
       - **Windows 10**
       - Windows 11

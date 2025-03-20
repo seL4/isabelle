@@ -112,6 +112,11 @@ New in this Isabelle version
 
 *** System ***
 
+* The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
+also https://wiki.openjdk.org/display/zgc). This should work uniformly
+on all platforms, but requires a reasonably new version of Windows
+(Windows 10 or Windows Server 2019).
+
 * SSH connections allow both bash and zsh as remote shell. This is
 particularly important for macOS, where zsh is the default user shell.
 
