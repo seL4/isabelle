@@ -2584,6 +2584,10 @@ proof -
     by simp
 qed
 
+lemma int_div_le_self: 
+  \<open>x div k \<le> x\<close> if \<open>0 < x\<close>  for x k :: int
+  by (metis div_by_1 int_div_less_self less_le_not_le nle_le nonneg1_imp_zdiv_pos_iff order.trans that)
+
 
 subsubsection \<open>Computing \<open>div\<close> and \<open>mod\<close> by shifting\<close>
 

@@ -245,8 +245,10 @@ proof
   ultimately show False
     using not_tendsto_and_filterlim_at_infinity trivial_limit_sequentially by blast
 qed
-  
- text \<open>The proposition
+
+subsection \<open>Isolated singularities\<close>
+
+text \<open>The proposition
               \<^term>\<open>\<exists>x. ((f::complex\<Rightarrow>complex) \<longlongrightarrow> x) (at z) \<or> is_pole f z\<close>
 can be interpreted as the complex function \<^term>\<open>f\<close> has a non-essential singularity at \<^term>\<open>z\<close>
 (i.e. the singularity is either removable or a pole).\<close>
@@ -1058,6 +1060,47 @@ lemma isolated_singularity_at_analytic:
   assumes "f analytic_on {z}"
   shows   "isolated_singularity_at f z"
   by (meson Diff_subset analytic_at assms holomorphic_on_subset isolated_singularity_at_holomorphic)
+
+lemma isolated_singularity_sum [singularity_intros]:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> isolated_singularity_at (f x) z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Sum>x\<in>A. f x w) z"
+  using assms by (induction A rule: infinite_finite_induct) (auto intro!: singularity_intros)
+
+lemma isolated_singularity_prod [singularity_intros]:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> isolated_singularity_at (f x) z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Prod>x\<in>A. f x w) z"
+  using assms by (induction A rule: infinite_finite_induct) (auto intro!: singularity_intros)
+
+lemma isolated_singularity_sum_list [singularity_intros]:
+  assumes "\<And>f. f \<in> set fs \<Longrightarrow> isolated_singularity_at f z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Sum>f\<leftarrow>fs. f w) z"
+  using assms by (induction fs) (auto intro!: singularity_intros)
+
+lemma isolated_singularity_prod_list [singularity_intros]:
+  assumes "\<And>f. f \<in> set fs \<Longrightarrow> isolated_singularity_at f z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Prod>f\<leftarrow>fs. f w) z"
+  using assms by (induction fs) (auto intro!: singularity_intros)
+
+lemma isolated_singularity_sum_mset [singularity_intros]:
+  assumes "\<And>f. f \<in># F \<Longrightarrow> isolated_singularity_at f z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Sum>f\<in>#F. f w) z"
+  using assms by (induction F) (auto intro!: singularity_intros)
+
+lemma isolated_singularity_prod_mset [singularity_intros]:
+  assumes "\<And>f. f \<in># F \<Longrightarrow> isolated_singularity_at f z"
+  shows   "isolated_singularity_at (\<lambda>w. \<Prod>f\<in>#F. f w) z"
+  using assms by (induction F) (auto intro!: singularity_intros)
+
+lemma analytic_nhd_imp_isolated_singularity:
+  assumes "f analytic_on A - {x}" "x \<in> A" "open A"
+  shows   "isolated_singularity_at f x"
+  unfolding isolated_singularity_at_def using assms
+  using analytic_imp_holomorphic isolated_singularity_at_def isolated_singularity_at_holomorphic by blast
+
+lemma isolated_singularity_at_iff_analytic_nhd:
+  "isolated_singularity_at f x \<longleftrightarrow> (\<exists>A. x \<in> A \<and> open A \<and> f analytic_on A - {x})"
+  by (meson open_ball analytic_nhd_imp_isolated_singularity
+            centre_in_ball isolated_singularity_at_def)
 
 subsection \<open>The order of non-essential singularities (i.e. removable singularities or poles)\<close>
 
