@@ -928,6 +928,12 @@ hide_const (open) of_int
 lemma quotient_of_int [code abstract]: "quotient_of (Rat.of_int a) = (a, 1)"
   by (simp add: of_int_def of_int_rat quotient_of_Fract)
 
+lemma quotient_of_rat_of_int [simp]: "quotient_of (rat_of_int i) = (i, 1)"
+  using Rat.of_int_def quotient_of_int by force
+
+lemma quotient_of_rat_of_nat [simp]: "quotient_of (rat_of_nat i) = (int i, 1)"
+  by (metis of_int_of_nat_eq quotient_of_rat_of_int)
+
 lemma [code_unfold]: "numeral k = Rat.of_int (numeral k)"
   by (simp add: Rat.of_int_def)
 

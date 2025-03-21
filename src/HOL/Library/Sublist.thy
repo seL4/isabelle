@@ -1095,6 +1095,30 @@ lemma prefix_imp_subseq [intro]: "prefix xs ys \<Longrightarrow> subseq xs ys"
 lemma suffix_imp_subseq [intro]: "suffix xs ys \<Longrightarrow> subseq xs ys"
   by (auto simp: suffix_def)
 
+text \<open>a subsequence of a sorted list\<close>
+lemma sorted_subset_imp_subseq:
+  fixes xs :: "'a::order list"
+  assumes "set xs \<subseteq> set ys" "sorted_wrt (<) xs" "sorted_wrt (\<le>) ys"
+  shows "subseq xs ys"
+  using assms
+proof (induction xs arbitrary: ys)
+  case Nil
+  then show ?case
+    by auto
+next
+  case (Cons x xs)
+  then have "x \<in> set ys"
+    by auto
+  then obtain us vs where \<section>: "ys = us @ [x] @ vs"
+    by (metis append.left_neutral append_eq_Cons_conv split_list) 
+  moreover 
+  have "set xs \<subseteq> set vs"
+    using Cons.prems by (fastforce simp: \<section> sorted_wrt_append)
+  with Cons have "subseq xs vs"
+    by (metis \<section> sorted_wrt.simps(2) sorted_wrt_append)
+  ultimately show ?case
+    by auto
+qed
 
 subsection \<open>Appending elements\<close>
 

@@ -281,6 +281,10 @@ next
     by metis
 qed
 
+lemma winding_number_offset_NO_MATCH: 
+  "NO_MATCH 0 z \<Longrightarrow> winding_number p z = winding_number (\<lambda>w. p w - z) 0"
+  using winding_number_offset by metis
+
 lemma winding_number_negatepath:
   assumes \<gamma>: "valid_path \<gamma>" and 0: "0 \<notin> path_image \<gamma>"
   shows "winding_number(uminus \<circ> \<gamma>) 0 = winding_number \<gamma> 0"
