@@ -1013,8 +1013,11 @@ lemma single_valued_Id [simp]: "single_valued Id"
 lemma irrefl_diff_Id [simp]: "irrefl (r - Id)"
   by (simp add: irrefl_def)
 
-lemma trans_diff_Id: "trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r - Id)"
-  unfolding antisym_def trans_def by blast
+lemma trans_on_diff_Id: "trans_on A r \<Longrightarrow> antisym_on A r \<Longrightarrow> trans_on A (r - Id)"
+  by (blast intro: trans_onI dest: trans_onD antisym_onD)
+
+lemma trans_diff_Id[no_atp]: "trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r - Id)"
+  using trans_on_diff_Id .
 
 lemma total_on_diff_Id [simp]: "total_on A (r - Id) = total_on A r"
   by (simp add: total_on_def)

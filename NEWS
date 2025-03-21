@@ -55,6 +55,7 @@ New in this Isabelle version
       totalp_on_mono_stronger_alt
       totalp_on_top[simp]
       trans_on_bot[simp]
+      trans_on_diff_Id
       trans_on_top[simp]
       transp_on_bot[simp]
       transp_on_top[simp]
