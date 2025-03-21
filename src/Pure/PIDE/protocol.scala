@@ -107,6 +107,12 @@ object Protocol {
 
   /* result messages */
 
+  def is_urgent(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(_, props), _) => Markup.Urgent.get(props)
+      case _ => false
+    }
+
   def is_result(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.RESULT, _), _) => true

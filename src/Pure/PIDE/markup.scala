@@ -584,6 +584,8 @@ object Markup {
 
   /* messages */
 
+  val Urgent = new Properties.Boolean("urgent")
+
   val INIT = "init"
   val STATUS = "status"
   val REPORT = "report"

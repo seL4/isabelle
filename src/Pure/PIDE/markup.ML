@@ -223,6 +223,7 @@ sig
   val consolidatingN: string val consolidating: T
   val consolidatedN: string val consolidated: T
   val exec_idN: string
+  val urgent_properties: Properties.T
   val initN: string
   val statusN: string val status: T
   val resultN: string val result: T
@@ -751,6 +752,8 @@ val (consolidatedN, consolidated) = markup_elem "consolidated";
 (* messages *)
 
 val exec_idN = "exec_id";
+
+val urgent_properties = [("urgent", "true")];
 
 val initN = "init";
 val (statusN, status) = markup_elem "status";

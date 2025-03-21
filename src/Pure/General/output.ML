@@ -23,6 +23,8 @@ sig
   exception Protocol_Message of Properties.T
   val protocol_message_undefined: protocol_message_fn
   val writelns: string list -> unit
+  val writelns_urgent: string list -> unit
+  val writeln_urgent: string -> unit
   val state: string -> unit
   val information: string -> unit
   val error_message': serial * string -> unit
@@ -39,6 +41,7 @@ signature PRIVATE_OUTPUT =
 sig
   include OUTPUT
   val writeln_fn: (output list -> unit) Unsynchronized.ref
+  val writeln_urgent_fn: (output list -> unit) Unsynchronized.ref
   val state_fn: (output list -> unit) Unsynchronized.ref
   val information_fn: (output list -> unit) Unsynchronized.ref
   val tracing_fn: (output list -> unit) Unsynchronized.ref
@@ -61,6 +64,7 @@ type output = string;  (*raw system output*)
 (* primitives -- provided via bootstrap environment *)
 
 val writeln_fn = Unsynchronized.ref Output_Primitives.writeln_fn;
+val writeln_urgent_fn = Unsynchronized.ref Output_Primitives.writeln_urgent_fn;
 val state_fn = Unsynchronized.ref Output_Primitives.state_fn;
 val information_fn = Unsynchronized.ref Output_Primitives.information_fn;
 val tracing_fn = Unsynchronized.ref Output_Primitives.tracing_fn;
@@ -94,6 +98,7 @@ val protocol_message_undefined: Output_Primitives.protocol_message_fn =
 
 fun init_channels () =
  (writeln_fn := (physical_writeln o implode);
+  writeln_urgent_fn := (fn ss => ! writeln_fn ss);
   state_fn := (fn ss => ! writeln_fn ss);
   information_fn := Output_Primitives.ignore_outputs;
   tracing_fn := (fn ss => ! writeln_fn ss);
@@ -110,6 +115,8 @@ val _ = if Thread_Data.is_virtual then () else init_channels ();
 
 fun writelns ss = ! writeln_fn ss;
 fun writeln s = writelns [s];
+fun writelns_urgent ss = ! writeln_urgent_fn ss;
+fun writeln_urgent s = writelns_urgent [s];
 fun state s = ! state_fn [s];
 fun information s = ! information_fn [s];
 fun tracing s = ! tracing_fn [s];

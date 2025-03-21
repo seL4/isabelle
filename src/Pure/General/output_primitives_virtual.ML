@@ -10,6 +10,7 @@ struct
 open Output_Primitives;
 
 fun writeln_fn x = ! Private_Output.writeln_fn x;
+fun writeln_urgent_fn x = ! Private_Output.writeln_urgent_fn x;
 fun state_fn x = ! Private_Output.state_fn x;
 fun information_fn x = ! Private_Output.information_fn x;
 fun tracing_fn x = ! Private_Output.tracing_fn x;

@@ -11,6 +11,7 @@ sig
   type properties = (string * string) list
   val ignore_outputs: output list -> unit
   val writeln_fn: output list -> unit
+  val writeln_urgent_fn: output list -> unit
   val state_fn: output list -> unit
   val information_fn: output list -> unit
   val tracing_fn: output list -> unit
@@ -38,6 +39,7 @@ type properties = (string * string) list;
 fun ignore_outputs (_: output list) = ();
 
 val writeln_fn = ignore_outputs;
+val writeln_urgent_fn = ignore_outputs;
 val state_fn = ignore_outputs;
 val information_fn = ignore_outputs;
 val tracing_fn = ignore_outputs;

@@ -122,6 +122,8 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
         (fn props => fn s => standard_message (props @ serial_props ()) Markup.resultN s) #>
       Unsynchronized.setmp Private_Output.writeln_fn
         (fn s => standard_message (serial_props ()) Markup.writelnN s) #>
+      Unsynchronized.setmp Private_Output.writeln_urgent_fn
+        (fn s => standard_message (serial_props () @ Markup.urgent_properties) Markup.writelnN s) #>
       Unsynchronized.setmp Private_Output.state_fn
         (fn s => standard_message (serial_props ()) Markup.stateN s) #>
       Unsynchronized.setmp Private_Output.information_fn

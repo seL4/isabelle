@@ -99,7 +99,9 @@ object Rendering {
     val (states, other) =
       results.iterator.map(_._2).filterNot(Protocol.is_result).toList
         .partition(Protocol.is_state)
-    (if (output_state) states else Nil) ::: other
+    val (urgent, regular) = other.partition(Protocol.is_urgent)
+
+    urgent ::: (if (output_state) states else Nil) ::: regular
   }
 
 
