@@ -306,8 +306,8 @@ object Find_Facts {
 
     def update_theory(db: Solr.Database, theory_name: String, blocks: List[Block]): Unit =
       db.transaction {
-        val delete =
-          read_domain(db, Solr.filter(Fields.theory, Solr.phrase(theory_name))) -- blocks.map(_.id)
+        val domain = read_domain(db, Solr.filter(Fields.theory_facet, Solr.phrase(theory_name)))
+        val delete = domain -- blocks.map(_.id)
 
         if (delete.nonEmpty) db.execute_batch_delete(delete.toList)
 
@@ -352,7 +352,7 @@ object Find_Facts {
 
     def delete_session(db: Solr.Database, session_name: String): Unit =
       db.transaction {
-        val delete = read_domain(db, Solr.filter(Fields.session, Solr.phrase(session_name)))
+        val delete = read_domain(db, Solr.filter(Fields.session_facet, Solr.phrase(session_name)))
         if (delete.nonEmpty) db.execute_batch_delete(delete.toList)
       }
 
