@@ -18,7 +18,7 @@ sig
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val show_results: bool Config.T
-  val print_results: {interactive: bool, pos: Position.T, proof_state: bool} -> Proof.context ->
+  val print_results: {interactive: bool, pos: Position.T} -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_theorem: Position.T -> Proof.context -> string * thm list -> unit
   val print_consts: bool -> Position.T -> Proof.context ->
@@ -317,25 +317,22 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results {interactive, pos, proof_state} ctxt ((kind, name), facts) =
-  let val print = if proof_state then Output.state o Pretty.string_of else Pretty.writeln in
-    if kind = "" orelse no_print interactive ctxt then ()
-    else if name = "" then
-      print
-        (Pretty.block (Pretty.mark_position pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
-          pretty_facts ctxt facts))
-    else
-      print
-        (case facts of
-          [fact] => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
-            Proof_Context.pretty_fact ctxt fact]
-        | _ => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
-            Pretty.block1 (Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])])
-  end;
+fun print_results {interactive, pos} ctxt ((kind, name), facts) =
+  if kind = "" orelse no_print interactive ctxt then ()
+  else if name = "" then
+    Pretty.writeln_urgent
+      (Pretty.block (Pretty.mark_position pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
+        pretty_facts ctxt facts))
+  else
+    Pretty.writeln_urgent
+      (case facts of
+        [fact] => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
+          Proof_Context.pretty_fact ctxt fact]
+      | _ => Pretty.block1 [pretty_fact_name pos (kind, name), Pretty.fbrk,
+          Pretty.block1 (Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
 
 fun print_theorem pos ctxt fact =
-  print_results {interactive = true, pos = pos, proof_state = false}
-    ctxt ((Thm.theoremK, ""), [fact]);
+  print_results {interactive = true, pos = pos} ctxt ((Thm.theoremK, ""), [fact]);
 
 end;
 

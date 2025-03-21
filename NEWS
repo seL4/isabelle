@@ -7,6 +7,16 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Isar proof results --- notably from finished 'have' or 'show' --- are
+printed as regular "writeln" message instead of "state": this follows
+toplevel results from Isabelle2023. The order of output messages has
+been fine-tuned accordingly, to show results as "urgent" message before
+state output (if enabled). This affects Isabelle/jEdit panels for Output
+vs. State in particular.
+
+
 *** HOL ***
 
 * Theory "HOL.Fun":

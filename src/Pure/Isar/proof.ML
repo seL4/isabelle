@@ -1231,8 +1231,7 @@ local
 
 fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int =
   local_goal
-    (Proof_Display.print_results
-      {interactive = int, pos = Position.thread_data (), proof_state = true})
+    (Proof_Display.print_results {interactive = int, pos = Position.thread_data ()})
     prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows;
 
 fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int state =
@@ -1244,16 +1243,15 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
       (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
-    val pos = Position.thread_data ();
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results {interactive = int, pos = pos, proof_state = true} ctxt res;
+      else Proof_Display.print_results {interactive = int, pos = Position.thread_data ()} ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then
         Proof_Display.string_of_rule ctxt "Successful" th
         |> Markup.markup Markup.text_fold
-        |> Output.state
+        |> Output.writeln_urgent
       else ();
     val test_proof =
       local_skip_proof true

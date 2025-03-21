@@ -344,8 +344,7 @@ fun gen_theorems prep_fact prep_att add_fixes
       |> Attrib.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
     val _ =
-      Proof_Display.print_results
-        {interactive = int, pos = Position.thread_data (), proof_state = false}
+      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()}
         lthy' ((kind, ""), res);
   in (res, lthy') end;
 
@@ -398,9 +397,8 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
       |> prep_statement (prep_att lthy) prep_stmt elems raw_concl;
     val atts = more_atts @ map (prep_att lthy) raw_atts;
 
-    val pos = Position.thread_data ();
     val print_results =
-      Proof_Display.print_results {interactive = int, pos = pos, proof_state = false};
+      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()};
 
     fun after_qed' results goal_ctxt' =
       let

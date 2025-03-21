@@ -617,8 +617,7 @@ fun gen_inductive_cases prep_att prep_prop args int lthy =
         args thmss;
     val (res, lthy') = lthy |> Local_Theory.notes facts
     val _ =
-      Proof_Display.print_results
-        {interactive = int, pos = Position.thread_data (), proof_state = false}
+      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()}
         lthy' ((Thm.theoremK, ""), res); 
   in (res, lthy') end;
 
@@ -680,8 +679,7 @@ fun gen_inductive_simps prep_att prep_prop args int lthy =
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
     val (res, lthy') = lthy |> Local_Theory.notes facts
     val _ =
-      Proof_Display.print_results
-        {interactive = int, pos = Position.thread_data (), proof_state = false}
+      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()}
         lthy' ((Thm.theoremK, ""), res)
   in (res, lthy') end;
 
