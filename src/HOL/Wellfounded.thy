@@ -524,7 +524,7 @@ lemma wf_converse_trancl: "wf (r\<inverse>) \<Longrightarrow> wf ((r\<^sup>+)\<i
 text \<open>Well-foundedness of subsets\<close>
 
 lemma wf_subset: "wf r \<Longrightarrow> p \<subseteq> r \<Longrightarrow> wf p"
-  by (simp add: wf_eq_minimal) fast
+  using wf_on_antimono[OF subset_UNIV, unfolded le_bool_def] ..
 
 lemmas wfp_subset = wf_subset [to_pred]
 
