@@ -346,15 +346,14 @@ object Isabelle_Cronjob {
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
-        Remote_Build("macOS 11 Big Sur (Intel)", "mini1",
+        Remote_Build("macOS 12 Monterey (Intel)", "mini1-monterey",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
             " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
-          args = "-a -d '~~/src/Benchmarks'",
-          count = () => 0)),
+          args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("AFP macOS (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
           history_base = "build_history_base_arm",
