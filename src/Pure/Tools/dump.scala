@@ -237,11 +237,9 @@ object Dump {
           def warn(msg: String): Unit =
             progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
 
-          val conditions =
-            space_explode(',', theory_options.string("condition")).
-              filter(cond => Isabelle_System.getenv(cond) == "")
-          if (conditions.nonEmpty) {
-            warn("undefined " + conditions.mkString(", "))
+          val bad_conditions = Sessions.Conditions(theory_options).bad
+          if (bad_conditions.nonEmpty) {
+            warn("undefined " + bad_conditions.mkString(", "))
             false
           }
           else if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {

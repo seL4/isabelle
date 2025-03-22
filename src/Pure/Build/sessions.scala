@@ -8,7 +8,7 @@ package isabelle
 
 import java.io.{File => JFile}
 
-import scala.collection.immutable.SortedSet
+import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.collection.mutable
 
 
@@ -552,6 +552,38 @@ object Sessions {
     Set.from(notable_groups.flatMap(g => if (g.afp) Some(g.name) else None))
 
 
+  /* conditions to load theories */
+
+  object Conditions {
+    private val empty_rep = SortedMap.empty[String, Boolean]
+    val empty: Conditions = new Conditions(empty_rep)
+    def apply(options: Options): Conditions = make(Set(options))
+    def make(opts: IterableOnce[Options]): Conditions =
+      new Conditions(
+        opts.iterator.flatMap(options => space_explode(',', options.string("condition")).iterator)
+          .foldLeft(empty_rep) {
+            case (map, a) =>
+              if (map.isDefinedAt(a)) map
+              else map + (a -> Isabelle_System.getenv(a).nonEmpty)
+          }
+      )
+  }
+
+  final class Conditions private(private val rep: SortedMap[String, Boolean]) {
+    def toList: List[(String, Boolean)] = rep.toList
+    def good: List[String] = List.from(for ((a, b) <- rep.iterator if b) yield a)
+    def bad: List[String] = List.from(for ((a, b) <- rep.iterator if !b) yield a)
+
+    override def toString: String =
+      if (rep.isEmpty) "Sessions.Conditions.empty"
+      else {
+        val a = if_proper(good, "good = " + quote(good.mkString(",")))
+        val b = if_proper(bad, "bad = " + quote(bad.mkString(",")))
+        "Sessions.Conditions(" + a + if_proper(a.nonEmpty && b.nonEmpty, ", ") + b + ")"
+      }
+  }
+
+
   /* cumulative session info */
 
   private val BUILD_PREFS_BG = "<build_prefs:"
@@ -636,9 +668,7 @@ object Sessions {
             else thy_name
           }
 
-        val conditions =
-          theories.flatMap(thys => space_explode(',', thys._1.string("condition"))).distinct.sorted.
-            map(x => (x, Isabelle_System.getenv(x) != ""))
+        val conditions = Conditions.make(theories.iterator.map(_._1)).toList
 
         val document_files =
           entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
