@@ -9,8 +9,8 @@ subsection\<open>Degree invariance mod 2 for map between pairs\<close>
 
 theorem Borsuk_odd_mapping_degree_step:
   assumes cmf: "continuous_map (nsphere n) (nsphere n) f"
-    and f: "\<And>x. x \<in> topspace(nsphere n) \<Longrightarrow> (f \<circ> (\<lambda>x i. -x i)) x = ((\<lambda>x i. -x i) \<circ> f) x"
-    and fim: "f ` (topspace(nsphere(n - Suc 0))) \<subseteq> topspace(nsphere(n - Suc 0))"
+    and f: "\<And>u. u \<in> topspace(nsphere n) \<Longrightarrow> (f \<circ> (\<lambda>x i. -x i)) u = ((\<lambda>x i. -x i) \<circ> f) u"
+    and fim: "f \<in> (topspace(nsphere(n - Suc 0))) \<rightarrow> topspace(nsphere(n - Suc 0))"
   shows "even (Brouwer_degree2 n f - Brouwer_degree2 (n - Suc 0) f)"
 proof (cases "n = 0")
   case False
@@ -24,6 +24,8 @@ proof (cases "n = 0")
     by (force simp: neg_def)
   have equator_upper: "equator n \<subseteq> upper n"
     by (force simp: equator_def upper_def)
+  then have [simp]: "id \<in> equator n \<rightarrow> upper n"
+    by force
   have upper_usphere: "subtopology (nsphere n) (upper n) = usphere n"
     by (simp add: usphere_def)
   let ?rhgn = "relative_homology_group n (nsphere n)"
@@ -41,12 +43,13 @@ proof (cases "n = 0")
   have subt_eq: "subtopology (nsphere n) {x. x n = 0} = nsphere (n - Suc 0)"
     by (metis False Suc_pred le_zero_eq not_le subtopology_nsphere_equator)
   then have equ: "subtopology (nsphere n) (equator n) = nsphere(n - Suc 0)"
-    "subtopology (lsphere n) (equator n) = nsphere(n - Suc 0)"
-    "subtopology (usphere n) (equator n) = nsphere(n - Suc 0)"
-    using False by (auto simp: lsphere_def usphere_def equator_def lower_def upper_def subtopology_subtopology simp flip: Collect_conj_eq cong: rev_conj_cong)
+                 "subtopology (lsphere n) (equator n) = nsphere(n - Suc 0)"
+                 "subtopology (usphere n) (equator n) = nsphere(n - Suc 0)"
+    using False by (auto simp: lsphere_def usphere_def equator_def lower_def upper_def 
+        subtopology_subtopology simp flip: Collect_conj_eq cong: rev_conj_cong)
   have cmr: "continuous_map (nsphere(n - Suc 0)) (nsphere(n - Suc 0)) f"
-    by (metis (no_types, lifting) IntE cmf fim continuous_map_from_subtopology continuous_map_in_subtopology equ(1) image_subset_iff topspace_subtopology)
-
+    by (metis cmf continuous_map_from_subtopology continuous_map_in_subtopology equ(1) 
+        fim subtopology_restrict topspace_subtopology)
   have "f x n = 0" if "x \<in> topspace (nsphere n)" "x n = 0" for x
   proof -
     have "x \<in> topspace (nsphere (n - Suc 0))"
@@ -56,7 +59,7 @@ proof (cases "n = 0")
     ultimately show ?thesis
       using fim by auto
   qed
-  then have fimeq: "f ` (topspace (nsphere n) \<inter> equator n) \<subseteq> topspace (nsphere n) \<inter> equator n"
+  then have fimeq: "f \<in> (topspace (nsphere n) \<inter> equator n) \<rightarrow> topspace (nsphere n) \<inter> equator n"
     using fim cmf by (auto simp: equator_def continuous_map_def image_subset_iff)
   have "\<And>k. continuous_map (powertop_real UNIV) euclideanreal (\<lambda>x. - x k)"
     by (metis UNIV_I continuous_map_product_projection continuous_map_minus)
@@ -182,13 +185,13 @@ proof (cases "n = 0")
     show "hom_induced n (lsphere n) (equator n) (nsphere n) (upper n) id
         \<in> Group.iso (relative_homology_group n (lsphere n) (equator n))
             (?rhgn (upper n))"
-      apply (simp add: lsphere_def usphere_def equator_def lower_def upper_def)
+      unfolding lsphere_def usphere_def equator_def lower_def upper_def
       using iso_relative_homology_group_lower_hemisphere by blast
     show "hom_induced n (usphere n) (equator n) (nsphere n) (lower n) id
         \<in> Group.iso (relative_homology_group n (usphere n) (equator n))
             (?rhgn (lower n))"
-      apply (simp_all add: lsphere_def usphere_def equator_def lower_def upper_def)
-      using iso_relative_homology_group_upper_hemisphere by blast+
+      unfolding lsphere_def usphere_def equator_def lower_def upper_def
+      using iso_relative_homology_group_upper_hemisphere by blast
     show "exact_seq
          ([?rhgn (lower n),
            ?rhgn (equator n),
@@ -383,7 +386,7 @@ proof (cases "n = 0")
       by (simp add: ueq poweq hom_induced_compose' cmf flip: GH_hi.hom_int_pow Brouwer_degree2)
     also have "\<dots> = hom_induced n (nsphere n) (topspace(nsphere n) \<inter> equator n) (nsphere n) (equator n) f
                      (hom_induced n (nsphere n) {} (nsphere n) (topspace(nsphere n) \<inter> equator n) id v)"
-      using fimeq by (simp add: hom_induced_compose' cmf)
+      using fimeq by (simp add: hom_induced_compose' cmf Pi_iff)
     also have "\<dots> = ?hi_ee f u"
       by (metis hom_induced inf.left_idem ueq)
     finally show ?thesis .
@@ -467,12 +470,13 @@ proof (cases "n = 0")
     let ?TE = "topspace (nsphere n) \<inter> equator n"
     have fneg: "(f \<circ> neg) x = (neg \<circ> f) x" if "x \<in> topspace (nsphere n)" for x
       using f [OF that] by (force simp: neg_def)
-    have neg_im: "neg ` (topspace (nsphere n) \<inter> equator n) \<subseteq> topspace (nsphere n) \<inter> equator n"
-      by (metis cm_neg continuous_map_image_subset_topspace equ(1) topspace_subtopology)
+    have neg_im: "neg \<in> (topspace (nsphere n) \<inter> equator n) \<rightarrow> topspace (nsphere n) \<inter> equator n"
+      using cm_neg continuous_map_image_subset_topspace equator_def
+      by fastforce
     have 1: "hom_induced n (nsphere n) ?TE (nsphere n) ?TE f \<circ> hom_induced n (nsphere n) ?TE (nsphere n) ?TE neg
            = hom_induced n (nsphere n) ?TE (nsphere n) ?TE neg \<circ> hom_induced n (nsphere n) ?TE (nsphere n) ?TE f"
-      using neg_im fimeq cm_neg cmf
-      apply (simp add: flip: hom_induced_compose del: hom_induced_restrict)
+      using neg_im fimeq cm_neg cmf fneg
+      apply (simp flip: hom_induced_compose del: hom_induced_restrict)
       using fneg by (auto intro: hom_induced_eq)
     have "(un [^]\<^bsub>?rhgn (equator n)\<^esub> a) \<otimes>\<^bsub>?rhgn (equator n)\<^esub> (up [^]\<^bsub>?rhgn (equator n)\<^esub> b)
         = un [^]\<^bsub>?rhgn (equator n)\<^esub> (Brouwer_degree2 (n - 1) neg * a * Brouwer_degree2 (n - 1) neg)
@@ -577,18 +581,25 @@ proof -
       if "squashable t U" "squashable t V" for U V t
       unfolding homotopic_with_def
     proof (intro exI conjI allI ballI)
-      let ?h = "\<lambda>(z,x). ret ((1 - z) * t + z * x n) x"
-      show "(\<lambda>x. ?h (u, x)) ` V \<subseteq> V" if "u \<in> {0..1}" for u
-        using that
+      define h where "h \<equiv> \<lambda>(z,x). ret ((1 - z) * t + z * x n) x"
+      show "(\<lambda>x. h (u, x)) ` V \<subseteq> V" if "u \<in> {0..1}" for u
+        using that unfolding h_def
         by clarsimp (metis squashableD [OF \<open>squashable t V\<close>] convex_bound_le diff_ge_0_iff_ge eq_diff_eq' le_cases less_eq_real_def segment_bound_lemma)
-      have 1: "?h ` ({0..1} \<times> ({x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U)) \<subseteq> U"
-        by clarsimp (metis squashableD [OF \<open>squashable t U\<close>] convex_bound_le diff_ge_0_iff_ge eq_diff_eq' le_cases less_eq_real_def segment_bound_lemma)
-      show "continuous_map (prod_topology (top_of_set {0..1}) (subtopology (Euclidean_space (Suc n)) U))
-                           (subtopology (Euclidean_space (Suc n)) U) ?h"
-        apply (simp add: continuous_map_in_subtopology Euclidean_space_def subtopology_subtopology 1)
-        apply (auto simp: case_prod_unfold ret_def continuous_map_componentwise_UNIV)
+      have "\<And>x y i. \<lbrakk>\<forall>k\<ge>Suc n. y k = 0; Suc n \<le> i\<rbrakk> \<Longrightarrow> ret ((1 - x) * t + x * y n) y i = 0"
+        by (simp add: ret_def)
+      then have "h \<in> {0..1} \<times> ({x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U) \<rightarrow> {x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U"
+        using  squashableD [OF \<open>squashable t U\<close>]  segment_bound_lemma
+        apply (clarsimp simp: h_def Pi_iff)
+        by (metis convex_bound_le eq_diff_eq ge_iff_diff_ge_0 linorder_le_cases)
+      moreover
+      have "continuous_map (prod_topology (top_of_set {0..1}) (subtopology (powertop_real UNIV)
+                           ({x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U))) (powertop_real UNIV) h"
+        apply (auto simp: h_def case_prod_unfold ret_def continuous_map_componentwise_UNIV)
          apply (intro continuous_map_into_fulltopology [OF continuous_map_fst] cm_snd continuous_intros)
         by (auto simp: cm_snd)
+      ultimately show "continuous_map (prod_topology (top_of_set {0..1}) (subtopology (Euclidean_space (Suc n)) U))
+                           (subtopology (Euclidean_space (Suc n)) U) h"
+        by (simp add: continuous_map_in_subtopology Euclidean_space_def subtopology_subtopology)
     qed (auto simp: ret_def)
     have cs_hi: "contractible_space(subtopology (Euclidean_space(Suc n)) hi)"
     proof -
@@ -624,7 +635,7 @@ proof -
       then have "ret 0 x \<in> topspace (Euclidean_space n)"
         if "x \<in> topspace (Euclidean_space (Suc n))" "-1 < x n" "x n < 1" for x
         using that by (metis continuous_map_image_subset_topspace image_subset_iff retraction_maps_def)
-      then show "(ret 0) ` (lo \<inter> hi) \<subseteq> topspace (Euclidean_space n) - S"
+      then show "(ret 0) \<in> (lo \<inter> hi) \<rightarrow> topspace (Euclidean_space n) - S"
         by (auto simp: local.cong ret_def hi_def lo_def)
       show "homotopic_with (\<lambda>h. h ` (lo \<inter> hi) \<subseteq> lo \<inter> hi) (Euclidean_space (Suc n)) (Euclidean_space (Suc n)) (ret 0) id"
         using hw_sub [OF squashable squashable_0_lohi] by simp
@@ -1836,11 +1847,13 @@ corollary invariance_of_domain_Euclidean_space_gen:
 proof -
   have *: "Euclidean_space n = subtopology (Euclidean_space m) (topspace(Euclidean_space n))"
     by (metis Euclidean_space_def \<open>n \<le> m\<close> inf.absorb_iff2 subset_Euclidean_space subtopology_subtopology topspace_Euclidean_space)
+  then have "openin (Euclidean_space m) (f ` U)"
+    by (metis "*" U assms(4) cmf continuous_map_in_subtopology invariance_of_domain_Euclidean_space)
   moreover have "U \<subseteq> topspace (subtopology (Euclidean_space m) U)"
     by (metis U inf.absorb_iff2 openin_subset openin_subtopology openin_topspace)
   ultimately show ?thesis
-    by (metis (no_types) U \<open>inj_on f U\<close> cmf continuous_map_in_subtopology inf.absorb_iff2
-        inf.orderE invariance_of_domain_Euclidean_space openin_imp_subset openin_subtopology openin_topspace)
+    by (metis "*" cmf continuous_map_image_subset_topspace dual_order.antisym
+        openin_imp_subset openin_topspace subset_openin_subtopology)
 qed
 
 corollary invariance_of_domain_Euclidean_space_embedding_map_gen:
@@ -2067,7 +2080,7 @@ subsection\<open> Invariance of dimension and domain\<close>
 
 lemma homeomorphic_maps_iff_homeomorphism [simp]:
    "homeomorphic_maps (top_of_set S) (top_of_set T) f g \<longleftrightarrow> homeomorphism S T f g"
-  unfolding homeomorphic_maps_def homeomorphism_def by force
+  by (force simp: Pi_iff homeomorphic_maps_def homeomorphism_def)
 
 lemma homeomorphic_space_iff_homeomorphic [simp]:
    "(top_of_set S) homeomorphic_space (top_of_set T) \<longleftrightarrow> S homeomorphic T"
@@ -2159,7 +2172,7 @@ corollary invariance_of_domain_subspaces:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes ope: "openin (top_of_set U) S"
       and "subspace U" "subspace V" and VU: "dim V \<le> dim U"
-      and contf: "continuous_on S f" and fim: "f ` S \<subseteq> V"
+      and contf: "continuous_on S f" and fim: "f \<in> S \<rightarrow> V"
       and injf: "inj_on f S"
     shows "openin (top_of_set V) (f ` S)"
 proof -
@@ -2189,26 +2202,25 @@ proof -
       have "continuous_on ({x. \<forall>i\<ge>dim U. x i = 0} \<inter> \<phi> ` S) \<phi>'"
         if "continuous_on {x. \<forall>i\<ge>dim U. x i = 0} \<phi>'"
         using that by (force elim: continuous_on_subset)
-      moreover have "\<phi>' ` ({x. \<forall>i\<ge>dim U. x i = 0} \<inter> \<phi> ` S) \<subseteq> S"
+      moreover have "\<phi>' \<in> ({x. \<forall>i\<ge>dim U. x i = 0} \<inter> \<phi> ` S) \<rightarrow> S"
         if "\<forall>x\<in>U. \<phi>' (\<phi> x) = x"
         using that \<open>S \<subseteq> U\<close> by fastforce
       ultimately show "continuous_map (subtopology (Euclidean_space (dim U)) (\<phi> ` S)) (top_of_set S) \<phi>'"
         using hom unfolding homeomorphic_maps_def
-        by (simp add:  Euclidean_space_def subtopology_subtopology euclidean_product_topology)
+        by (simp add: Euclidean_space_def subtopology_subtopology euclidean_product_topology)
       show "continuous_map (top_of_set S) (top_of_set V) f"
         by (simp add: contf fim)
       show "continuous_map (top_of_set V) (Euclidean_space (dim V)) \<psi>"
         by (simp add: \<psi> homeomorphic_imp_continuous_map)
     qed
     show "inj_on (\<psi> \<circ> f \<circ> \<phi>') (\<phi> ` S)"
-      using injf hom
-      unfolding inj_on_def homeomorphic_maps_map
-      by simp (metis \<open>S \<subseteq> U\<close> \<psi>'\<psi> fim imageI subsetD)
+      using injf hom \<open>S \<subseteq> U\<close> \<psi>'\<psi> fim
+      by (simp add: inj_on_def homeomorphic_maps_map Pi_iff) (metis subsetD)
   qed
   ultimately have "openin (Euclidean_space (dim V)) (\<psi> ` f ` S)"
     by (simp add: image_comp)
-  then show ?thesis
-    by (simp add: fim homeomorphic_map_openness_eq [OF \<psi>])
+  with fim show ?thesis
+    by (auto simp: homeomorphic_map_openness_eq [OF \<psi>])
 qed
 
 lemma invariance_of_domain:
@@ -2279,7 +2291,7 @@ proof (cases "S = {}")
       by (metis \<open>a \<in> U\<close> \<open>b \<in> V\<close> aff_dim_eq_dim affine_hull_eq aff of_nat_le_iff)
     show "continuous_on ((+) (- a) ` S) ((+) (- b) \<circ> f \<circ> (+) a)"
       by (metis contf continuous_on_compose homeomorphism_cont2 homeomorphism_translation translation_galois)
-    show "((+) (- b) \<circ> f \<circ> (+) a) ` (+) (- a) ` S \<subseteq> (+) (- b) ` V"
+    show "((+) (- b) \<circ> f \<circ> (+) a) \<in> (+) (- a) ` S \<rightarrow> (+) (- b) ` V"
       using fim by auto
     show "inj_on ((+) (- b) \<circ> f \<circ> (+) a) ((+) (- a) ` S)"
       by (auto simp: inj_on_def) (meson inj_onD injf)

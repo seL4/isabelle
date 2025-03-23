@@ -97,12 +97,23 @@ lemma retract_of_locally_compact:
   by (metis locally_compact_closedin closedin_retract)
 
 lemma homotopic_into_retract:
-   "\<lbrakk>f \<in> S \<rightarrow> T; g \<in> S \<rightarrow> T; T retract_of U; homotopic_with_canon (\<lambda>x. True) S U f g\<rbrakk>
-        \<Longrightarrow> homotopic_with_canon (\<lambda>x. True) S T f g"
-  apply (subst (asm) homotopic_with_def)
-  apply (simp add: homotopic_with retract_of_def retraction_def Pi_iff, clarify)
-  apply (rule_tac x="r \<circ> h" in exI)
-  by (smt (verit, ccfv_SIG) comp_def continuous_on_compose continuous_on_subset image_subset_iff)
+  assumes fg: "f \<in> S \<rightarrow> T" "g \<in> S \<rightarrow> T"
+  assumes "T retract_of U"
+  assumes "homotopic_with_canon (\<lambda>x. True) S U f g"
+  shows "homotopic_with_canon (\<lambda>x. True) S T f g"
+proof -
+  obtain h r where r: "retraction U T r"
+     "continuous_on ({0..1::real} \<times> S) h"
+      and h: "h \<in> {0..1} \<times> S \<rightarrow> U \<and> (\<forall>x. h (0, x) = f x) \<and> (\<forall>x. h (1, x) = g x)"
+    using assms by (auto simp: homotopic_with_def retract_of_def)
+  then have "continuous_on ({0..1} \<times> S) (r \<circ> h)"
+    by (metis continuous_on_compose continuous_on_subset funcset_image
+        retraction_def)
+  then show ?thesis
+    using r fg h
+    apply (simp add: retraction homotopic_with Pi_iff)
+    by (smt (verit, best) imageI)
+qed
 
 lemma retract_of_locally_connected:
   assumes "locally connected T" "S retract_of T"
@@ -131,7 +142,8 @@ proof -
   ultimately
   show ?thesis
     unfolding homotopy_equivalent_space_def
-    by (smt (verit, del_insts) continuous_map_id continuous_map_subtopology_eu id_def r retraction retraction_comp subset_refl) 
+    by (meson continuous_map_from_subtopology_mono continuous_map_id
+        continuous_map_subtopology_eu r retraction_def)
 qed
 
 lemma deformation_retract:
@@ -2235,7 +2247,7 @@ proof -
   have "continuous_on ({0..1} \<times> S) h"
     unfolding h_def using g by (intro continuous_intros) (auto simp: path_defs)
   moreover
-  have "h ` ({0..1} \<times> S) \<subseteq> sphere 0 1"
+  have "h \<in> ({0..1} \<times> S) \<rightarrow> sphere 0 1"
     unfolding h_def using g  by (auto simp: divide_simps path_defs)
   ultimately show ?thesis
     using g by (auto simp: h_def path_defs homotopic_with_def)

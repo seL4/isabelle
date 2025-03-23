@@ -96,7 +96,7 @@ lemma hom_boundary_reduced_hom:
    "hom_boundary p X S
   \<in> hom (relative_homology_group p X S) (reduced_homology_group (p-1) (subtopology X S))"
 proof -
-  have *: "continuous_map X (discrete_topology {()}) (\<lambda>x. ())" "(\<lambda>x. ()) ` S \<subseteq> {()}"
+  have *: "continuous_map X (discrete_topology {()}) (\<lambda>x. ())" "(\<lambda>x. ()) \<in> S \<rightarrow> {()}"
     by auto
   interpret group_hom "relative_homology_group p (discrete_topology {()}) {()}"
                       "homology_group (p-1) (discrete_topology {()})"
@@ -435,33 +435,34 @@ qed
 
 
 lemma deformation_retraction_relative_homology_group_isomorphisms:
-   "\<lbrakk>retraction_maps X Y r s; r ` U \<subseteq> V; s ` V \<subseteq> U; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X (s \<circ> r) id\<rbrakk>
+   "\<lbrakk>retraction_maps X Y r s; r \<in> U \<rightarrow> V; s \<in> V \<rightarrow> U; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X (s \<circ> r) id\<rbrakk>
     \<Longrightarrow> group_isomorphisms (relative_homology_group p X U) (relative_homology_group p Y V)
              (hom_induced p X U Y V r) (hom_induced p Y V X U s)"
   apply (simp add: retraction_maps_def)
   apply (rule homotopy_equivalence_relative_homology_group_isomorphisms)
-       apply (auto simp: image_subset_iff continuous_map_compose homotopic_with_equal)
+       apply (auto simp: image_subset_iff_funcset Pi_iff continuous_map_compose homotopic_with_equal)
   done
 
 
 lemma deformation_retract_relative_homology_group_isomorphisms:
-   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r ` U \<subseteq> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
+   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r \<in> U \<rightarrow> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
         \<Longrightarrow> group_isomorphisms (relative_homology_group p X U) (relative_homology_group p Y V)
              (hom_induced p X U Y V r) (hom_induced p Y V X U id)"
-  by (simp add: deformation_retraction_relative_homology_group_isomorphisms)
+  by (simp add: deformation_retraction_relative_homology_group_isomorphisms
+      in_mono)
 
 lemma deformation_retract_relative_homology_group_isomorphism:
-   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r ` U \<subseteq> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
+   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r \<in> U \<rightarrow> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
     \<Longrightarrow> (hom_induced p X U Y V r) \<in> iso (relative_homology_group p X U) (relative_homology_group p Y V)"
   by (metis deformation_retract_relative_homology_group_isomorphisms group_isomorphisms_imp_iso)
 
 lemma deformation_retract_relative_homology_group_isomorphism_id:
-   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r ` U \<subseteq> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
+   "\<lbrakk>retraction_maps X Y r id; V \<subseteq> U; r \<in> U \<rightarrow> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
     \<Longrightarrow> (hom_induced p Y V X U id) \<in> iso (relative_homology_group p Y V) (relative_homology_group p X U)"
   by (metis deformation_retract_relative_homology_group_isomorphisms group_isomorphisms_imp_iso group_isomorphisms_sym)
 
 lemma deformation_retraction_imp_isomorphic_relative_homology_groups:
-   "\<lbrakk>retraction_maps X Y r s; r ` U \<subseteq> V; s ` V \<subseteq> U; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X (s \<circ> r) id\<rbrakk>
+   "\<lbrakk>retraction_maps X Y r s; r \<in> U \<rightarrow> V; s ` V \<subseteq> U; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X (s \<circ> r) id\<rbrakk>
     \<Longrightarrow> relative_homology_group p X U \<cong> relative_homology_group p Y V"
   by (blast intro: is_isoI group_isomorphisms_imp_iso deformation_retraction_relative_homology_group_isomorphisms)
 
@@ -471,7 +472,7 @@ lemma deformation_retraction_imp_isomorphic_homology_groups:
   by (simp add: deformation_retraction_imp_homotopy_equivalent_space homotopy_equivalent_space_imp_isomorphic_homology_groups)
 
 lemma deformation_retract_imp_isomorphic_relative_homology_groups:
-   "\<lbrakk>retraction_maps X X' r id; V \<subseteq> U; r ` U \<subseteq> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
+   "\<lbrakk>retraction_maps X X' r id; V \<subseteq> U; r \<in> U \<rightarrow> V; homotopic_with (\<lambda>h. h ` U \<subseteq> U) X X r id\<rbrakk>
         \<Longrightarrow> relative_homology_group p X U \<cong> relative_homology_group p X' V"
   by (simp add: deformation_retraction_imp_isomorphic_relative_homology_groups)
 
@@ -482,7 +483,7 @@ lemma deformation_retract_imp_isomorphic_homology_groups:
 
 
 lemma epi_hom_induced_inclusion:
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   shows "(hom_induced p (subtopology X S) {} X {} id)
    \<in> epi (homology_group p (subtopology X S)) (homology_group p X)"
 proof (rule epi_right_invertible)
@@ -493,14 +494,20 @@ proof (rule epi_right_invertible)
       \<in> carrier (homology_group p X) \<rightarrow> carrier (homology_group p (subtopology X S))"
     by (simp add: hom_induced_carrier)
   fix x
-  assume "x \<in> carrier (homology_group p X)"
-  then show "hom_induced p (subtopology X S) {} X {} id (hom_induced p X {} (subtopology X S) {} f x) = x"
-    by (metis  assms continuous_map_id_subt continuous_map_in_subtopology hom_induced_compose' hom_induced_id homology_homotopy_empty homotopic_with_imp_continuous_maps image_empty order_refl)
+  assume x: "x \<in> carrier (homology_group p X)"
+  show "hom_induced p (subtopology X S) {} X {} id (hom_induced p X {} (subtopology X S) {} f x) = x"
+  proof (subst hom_induced_compose')
+    show "continuous_map X (subtopology X S) f"
+      by (meson assms continuous_map_into_subtopology
+          homotopic_with_imp_continuous_maps)
+    show "hom_induced p X {} X {} (id \<circ> f) x = x"
+      by (metis assms(1) hom_induced_id homology_homotopy_empty id_comp x)
+  qed (use assms in auto)
 qed
 
 
 lemma trivial_homomorphism_hom_induced_relativization:
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   shows "trivial_homomorphism (homology_group p X) (relative_homology_group p X S)
               (hom_induced p X {} X S id)"
 proof -
@@ -514,7 +521,7 @@ qed
 
 
 lemma mon_hom_boundary_inclusion:
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   shows "(hom_boundary p X S) \<in> mon
              (relative_homology_group p X S) (homology_group (p - 1) (subtopology X S))"
 proof -
@@ -528,7 +535,7 @@ proof -
 qed
 
 lemma short_exact_sequence_hom_induced_relativization:
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   shows "short_exact_sequence (homology_group (p-1) X) (homology_group (p-1) (subtopology X S)) (relative_homology_group p X S)
                    (hom_induced (p-1) (subtopology X S) {} X {} id) (hom_boundary p X S)"
   unfolding short_exact_sequence_iff
@@ -537,7 +544,7 @@ lemma short_exact_sequence_hom_induced_relativization:
 
 lemma group_isomorphisms_homology_group_prod_deformation:
   fixes p::int
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   obtains H K where
     "subgroup H (homology_group p (subtopology X S))"
     "subgroup K (homology_group p (subtopology X S))"
@@ -561,15 +568,19 @@ proof -
   have x: "short_exact_sequence (?pX) ?pXS ?rhs ?hi ?hb"
     using short_exact_sequence_hom_induced_relativization [OF assms, of "p + 1"] by simp
   have contf: "continuous_map X (subtopology X S) f"
-    by (meson assms continuous_map_in_subtopology homotopic_with_imp_continuous_maps)
+    by (metis assms continuous_map_into_subtopology homotopic_with_imp_continuous_maps)
   obtain H K where HK: "H \<lhd> ?pXS" "subgroup K ?pXS" "H \<inter> K \<subseteq> {one ?pXS}" "set_mult ?pXS H K = carrier ?pXS"
     and iso: "?hb \<in> iso ?rhs (subgroup_generated ?pXS H)" "?hi \<in> iso (subgroup_generated ?pXS K) ?pX"
-    apply (rule splitting_lemma_right [OF x, where g' = "hom_induced p X {} (subtopology X S) {} f"])
-      apply (simp add: hom_induced_empty_hom)
-     apply (simp add: contf hom_induced_compose')
-     apply (metis (full_types) assms(1) hom_induced_id homology_homotopy_empty)
-    apply blast
-    done
+  proof (rule splitting_lemma_right [OF x, where g' = "hom_induced p X {} (subtopology X S) {} f"])
+    show "hom_induced p X {} (subtopology X S) {} f \<in> hom (homology_group p X) (homology_group p (subtopology X S))"
+      using hom_induced_empty_hom by blast
+  next
+    fix z 
+    assume "z \<in> carrier (homology_group p X)"
+    then show "hom_induced p (subtopology X S) {} X {} id (hom_induced p X {} (subtopology X S) {} f z) = z"
+      using assms(1) contf hom_induced_id homology_homotopy_empty
+      by (fastforce simp add: hom_induced_compose')
+  qed blast
   show ?thesis
   proof
     show "subgroup H ?pXS"
@@ -587,7 +598,7 @@ proof -
 qed
 
 lemma iso_homology_group_prod_deformation:
-  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  assumes "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
   shows "homology_group p (subtopology X S)
       \<cong> DirProd (homology_group p X) (relative_homology_group(p + 1) X S)"
     (is "?G \<cong> DirProd ?H ?R")
@@ -613,7 +624,7 @@ lemma iso_homology_contractible_space_subtopology1:
   assumes "contractible_space X" "S \<subseteq> topspace X" "S \<noteq> {}"
   shows  "homology_group  0 (subtopology X S) \<cong> DirProd integer_group (relative_homology_group(1) X S)"
 proof -
-  obtain f where  "homotopic_with (\<lambda>x. True) X X id f" and "f ` (topspace X) \<subseteq> S"
+  obtain f where  "homotopic_with (\<lambda>x. True) X X id f" and "f \<in> topspace X \<rightarrow> S"
     using assms contractible_space_alt by fastforce
   then have "homology_group 0 (subtopology X S) \<cong> homology_group 0 X \<times>\<times> relative_homology_group 1 X S"
     using iso_homology_group_prod_deformation [of X _ S 0] by auto
@@ -911,7 +922,8 @@ proof -
   qed
   ultimately
   have cmh: "continuous_map (prod_topology ?T01 ?X12) (nsphere n) h"
-    by (subst (2) nsphere) (simp add: continuous_map_in_subtopology continuous_map_componentwise_UNIV)
+  proof (subst (2) nsphere) 
+  qed (fastforce simp add: continuous_map_in_subtopology continuous_map_componentwise_UNIV)
   have "hom_induced p (subtopology (nsphere n) {x. 0 \<le> x k})
              (topspace (subtopology (nsphere n) {x. 0 \<le> x k}) \<inter> {x. x k = 0}) ?X12
              (topspace ?X12 \<inter> {x. - 1/2 \<le> x k \<and> x k \<le> 0}) id
@@ -928,13 +940,13 @@ proof -
           apply (auto simp: h_def Let_def)
         done
       show "continuous_map (subtopology (nsphere n) {x. 0 \<le> x k}) ?X12 id"
-        by (simp add: continuous_map_in_subtopology) (auto simp: nsphere)
+        by (simp add: continuous_map_in_subtopology)
     qed (simp add: nsphere h)
   next
     have h0: "\<And>xa. \<lbrakk>xa \<in> topspace (nsphere n); - (1/2) \<le> xa k; xa k \<le> 0\<rbrakk> \<Longrightarrow> h (0, xa) k = 0"
       by (simp add: h_def Let_def)
-    show "(h \<circ> (\<lambda>x. (0,x))) ` (topspace ?X12 \<inter> {x. - 1 / 2 \<le> x k \<and> x k \<le> 0})
-        \<subseteq> topspace (subtopology (nsphere n) {x. 0 \<le> x k}) \<inter> {x. x k = 0}"
+    show "(h \<circ> (\<lambda>x. (0,x))) \<in> (topspace ?X12 \<inter> {x. - 1 / 2 \<le> x k \<and> x k \<le> 0})
+        \<rightarrow> topspace (subtopology (nsphere n) {x. 0 \<le> x k}) \<inter> {x. x k = 0}"
       apply (auto simp: h0)
       apply (rule subsetD [OF continuous_map_image_subset_topspace [OF cmh]])
       apply (force simp: nsphere)
@@ -981,9 +993,8 @@ proof -
     by (simp add: nsphere if_distrib [of "\<lambda>x. x ^ 2"] cong: if_cong)
   show ?thesis
     unfolding n
-    apply (rule iso_relative_homology_of_contractible [where p = "1 + p", simplified])
-    using contractible_space_upper_hemisphere ne apply blast+
-    done
+    using iso_relative_homology_of_contractible [where p = "1 + p", simplified]
+    by (metis contractible_space_upper_hemisphere dual_order.refl empty_iff ne)
 qed
 
 corollary iso_reduced_homology_group_upper_hemisphere:
@@ -1090,10 +1101,8 @@ lemma isomorphism_trans:
   "\<lbrakk>\<exists>f \<in> iso G1 G2. \<forall>x \<in> carrier G1. r2(f x) = f(r1 x); \<exists>f \<in> iso G2 G3. \<forall>x \<in> carrier G2. r3(f x) = f(r2 x)\<rbrakk>
    \<Longrightarrow> \<exists>f \<in> iso G1 G3. \<forall>x \<in> carrier G1. r3(f x) = f(r1 x)"
   apply clarify
-  apply (rename_tac g f)
-  apply (rule_tac x="f \<circ> g" in bexI)
-  apply (metis iso_iff comp_apply hom_in_carrier)
-  using iso_set_trans by blast
+  by (smt (verit, ccfv_threshold) Group.iso_iff hom_in_carrier iso_set_trans
+      o_apply)
 
 lemma reduced_homology_group_nsphere_step:
    "\<exists>f \<in> iso(reduced_homology_group p (nsphere n))
@@ -1106,7 +1115,9 @@ proof -
   define r where "r \<equiv> \<lambda>x::nat\<Rightarrow>real. \<lambda>i. if i = 0 then -x i else x i"
   have cmr: "continuous_map (nsphere n) (nsphere n) r" for n
     unfolding r_def by (rule continuous_map_nsphere_reflection)
-  have rsub: "r ` {x. 0 \<le> x (Suc n)} \<subseteq> {x. 0 \<le> x (Suc n)}" "r ` {x. x (Suc n) \<le> 0} \<subseteq> {x. x (Suc n) \<le> 0}" "r ` {x. x (Suc n) = 0} \<subseteq> {x. x (Suc n) = 0}"
+  have rsub: "r \<in> {x. 0 \<le> x (Suc n)} \<rightarrow> {x. 0 \<le> x (Suc n)}" 
+             "r \<in> {x. x (Suc n) \<le> 0} \<rightarrow> {x. x (Suc n) \<le> 0}" 
+             "r \<in> {x. x (Suc n) = 0} \<rightarrow> {x. x (Suc n) = 0}"
     by (force simp: r_def)+
   let ?sub = "subtopology (nsphere (Suc n)) {x. x (Suc n) \<ge> 0}"
   let ?G2 = "relative_homology_group (1 + p) ?sub {x. x (Suc n) = 0}"
@@ -1126,12 +1137,13 @@ proof -
       fix c
       assume "c \<in> carrier ?G2"
       have cmrs: "continuous_map ?sub ?sub r"
-        by (metis (mono_tags, lifting) IntE cmr continuous_map_from_subtopology continuous_map_in_subtopology image_subset_iff rsub(1) topspace_subtopology)
+        by (metis (no_types, lifting) IntE Pi_iff cmr continuous_map_from_subtopology
+            continuous_map_into_subtopology rsub(1) topspace_subtopology)
       have "hom_induced p (nsphere n) {} (nsphere n) {} r \<circ> hom_boundary (1 + p) ?sub {x. x (Suc n) = 0}
           = hom_boundary (1 + p) ?sub {x. x (Suc n) = 0} \<circ>
             hom_induced (1 + p) ?sub {x. x (Suc n) = 0} ?sub {x. x (Suc n) = 0} r"
         using naturality_hom_induced [OF cmrs rsub(3), symmetric, of "1+p", simplified]
-        by (simp add: subtopology_subtopology subtopology_nsphere_equator flip: Collect_conj_eq cong: rev_conj_cong)
+        by (simp add: Pi_iff subtopology_subtopology subtopology_nsphere_equator flip: Collect_conj_eq cong: rev_conj_cong)
       then show "?j p n (?f c) = ?f (hom_induced (1 + p) ?sub {x. x (Suc n) = 0} ?sub {x. x (Suc n) = 0} r c)"
         by (metis comp_def)
     next
@@ -1199,12 +1211,11 @@ proof (induction n arbitrary: p)
     then show ?thesis
       by (simp add: nsphere)
   qed
-  have *: "reduced_homology_group p (subtopology (powertop_real UNIV) {?a, ?b}) \<cong>
+  have "t1_space (powertop_real UNIV)"
+    using t1_space_euclidean t1_space_product_topology by blast
+  then have *: "reduced_homology_group p (subtopology (powertop_real UNIV) {?a, ?b}) \<cong>
         homology_group p (subtopology (powertop_real UNIV) {?a})"
-    apply (rule reduced_homology_group_pair)
-      apply (simp_all add: fun_eq_iff)
-    apply (simp add: open_fun_def separation_t1 t1_space_def)
-    done
+    by (intro reduced_homology_group_pair) (auto simp: fun_eq_iff)
   have "reduced_homology_group 0 (nsphere 0) \<cong> integer_group" if "p=0"
   proof -
     have "reduced_homology_group 0 (nsphere 0) \<cong> homology_group 0 (top_of_set {?a})" if "p=0"
@@ -1352,9 +1363,9 @@ proof -
     and aeq: "subgroup_generated ?G {a} = ?G"
     using cyclic_reduced_homology_group_nsphere [of p p] by (auto simp: cyclic_group_def)
   show ?thesis
-    using hi [OF a]
-    apply (simp add: Brouwer_degree2 a)
-    by (metis Brouwer_degree2_iff a aeq f group.trivial_group_subgroup_generated group_reduced_homology_group subsetI trivial_reduced_homology_group_nsphere)
+    using hi [OF a] unfolding Brouwer_degree2 a
+    by (metis Brouwer_degree2_iff a aeq f group.trivial_group_subgroup_generated
+        group_reduced_homology_group subsetI trivial_reduced_homology_group_nsphere)
 qed
 
 lemma Brouwer_degree2_unique_generator:
@@ -1487,7 +1498,7 @@ proof -
     then have he: "hom_induced p (nsphere p) {} (nsphere p) {} (\<lambda>x. a)
                  = hom_induced p (subtopology (nsphere p) {a}) {} (nsphere p) {} id \<circ>
                    hom_induced p (nsphere p) {} (subtopology (nsphere p) {a}) {} (\<lambda>x. a)"
-      by (metis continuous_map_id_subt hom_induced_compose id_comp image_empty order_refl)
+      by (metis continuous_map_id_subt fun.map_id hom_induced_compose_empty)
     have 1: "hom_induced p (nsphere p) {} (subtopology (nsphere p) {a}) {} (\<lambda>x. a) c =
              \<one>\<^bsub>reduced_homology_group (int p) (subtopology (nsphere p) {a})\<^esub>"
       using c trivial_reduced_homology_group_contractible_space [of "subtopology (nsphere p) {a}" p]
@@ -1586,11 +1597,12 @@ proof (induction p)
     obtain d d' where d: "d \<in> carrier ?P" and d': "d' \<in> carrier ?N" and eqc: "?f(d,d') = c"
       using c by (force simp flip: fim)
     let ?h = "\<lambda>xx. hom_induced 0 (subtopology (nsphere 0) {xx}) {} (discrete_topology {()}) {} (\<lambda>x. ())"
-    have "retraction_map (subtopology (nsphere 0) {pp}) (subtopology (nsphere 0) {nn}) r"
-      apply (simp add: retraction_map_def retraction_maps_def continuous_map_in_subtopology continuous_map_from_subtopology cmr image_subset_iff)
-      apply (rule_tac x=r in exI)
-      apply (force simp: retraction_map_def retraction_maps_def continuous_map_in_subtopology continuous_map_from_subtopology cmr)
-      done
+    have "continuous_map (subtopology (nsphere 0) {nn}) (nsphere 0) r"
+      using cmr continuous_map_from_subtopology by blast
+    then have "retraction_map (subtopology (nsphere 0) {pp}) (subtopology (nsphere 0) {nn}) r"
+      apply (simp add: retraction_map_def retraction_maps_def continuous_map_in_subtopology)
+      using \<open>r nn = pp\<close> \<open>r pp = nn\<close> cmr continuous_map_from_subtopology
+      by blast
     then have "carrier ?N = (hom_induced 0 (subtopology (nsphere 0) {pp}) {} (subtopology (nsphere 0) {nn}) {} r) ` carrier ?P"
       by (rule surj_hom_induced_retraction_map)
     then obtain e where e: "e \<in> carrier ?P" and eqd': "hom_induced 0 (subtopology (nsphere 0) {pp}) {} (subtopology (nsphere 0) {nn}) {} r e = d'"

@@ -1567,12 +1567,12 @@ proof -
     by (smt (verit, ccfv_threshold) assms continuous_map image_eqI image_subset_iff in_closure_of mem_Collect_eq)
 qed
 
-lemma continuous_map_subset_aux1: "continuous_map X Y f \<Longrightarrow>
-       (\<forall>S. f ` (X closure_of S) \<subseteq> Y closure_of f ` S)"
+lemma continuous_map_subset_aux1: 
+  "continuous_map X Y f \<Longrightarrow> (\<forall>S. f \<in> (X closure_of S) \<rightarrow> Y closure_of f ` S)"
   using continuous_map_image_closure_subset by blast
 
 lemma continuous_map_subset_aux2:
-  assumes "\<forall>S. S \<subseteq> topspace X \<longrightarrow> f ` (X closure_of S) \<subseteq> Y closure_of f ` S"
+  assumes "\<forall>S. S \<subseteq> topspace X \<longrightarrow> f \<in> (X closure_of S) \<rightarrow> Y closure_of f ` S"
   shows "continuous_map X Y f"
   unfolding continuous_map_closedin
 proof (intro conjI ballI allI impI)
@@ -1598,18 +1598,18 @@ next
 qed
 
 lemma continuous_map_eq_image_closure_subset:
-     "continuous_map X Y f \<longleftrightarrow> (\<forall>S. f ` (X closure_of S) \<subseteq> Y closure_of f ` S)"
+     "continuous_map X Y f \<longleftrightarrow> (\<forall>S. f \<in> (X closure_of S) \<rightarrow> Y closure_of f ` S)"
   using continuous_map_subset_aux1 continuous_map_subset_aux2 by metis
 
 lemma continuous_map_eq_image_closure_subset_alt:
-     "continuous_map X Y f \<longleftrightarrow> (\<forall>S. S \<subseteq> topspace X \<longrightarrow> f ` (X closure_of S) \<subseteq> Y closure_of f ` S)"
+     "continuous_map X Y f \<longleftrightarrow> (\<forall>S. S \<subseteq> topspace X \<longrightarrow> f \<in> (X closure_of S) \<rightarrow> Y closure_of f ` S)"
   using continuous_map_subset_aux1 continuous_map_subset_aux2 by metis
 
 lemma continuous_map_eq_image_closure_subset_gen:
      "continuous_map X Y f \<longleftrightarrow>
         f \<in> topspace X \<rightarrow> topspace Y \<and>
-        (\<forall>S. f ` (X closure_of S) \<subseteq> Y closure_of f ` S)"
-  by (meson Pi_iff continuous_map continuous_map_eq_image_closure_subset image_subset_iff)
+        (\<forall>S. f \<in> (X closure_of S) \<rightarrow> Y closure_of f ` S)"
+  by (metis continuous_map_eq_image_closure_subset continuous_map_funspace)
 
 lemma continuous_map_closure_preimage_subset:
    "continuous_map X Y f
@@ -1697,16 +1697,18 @@ lemma restrict_continuous_map [simp]:
   by (auto simp: elim!: continuous_map_eq)
 
 lemma continuous_map_in_subtopology:
-  "continuous_map X (subtopology X' S) f \<longleftrightarrow> continuous_map X X' f \<and> f ` (topspace X) \<subseteq> S"
+  "continuous_map X (subtopology X' S) f \<longleftrightarrow> continuous_map X X' f \<and> f \<in> (topspace X) \<rightarrow> S"
   (is "?lhs = ?rhs")
 proof
   assume L: ?lhs
   show ?rhs
   proof -
-    have "\<And>A. f ` (X closure_of A) \<subseteq> subtopology X' S closure_of f ` A"
-      by (meson L continuous_map_image_closure_subset)
+    have "\<And>A. f \<in> (X closure_of A) \<rightarrow> subtopology X' S closure_of f ` A"
+      by (metis L continuous_map_eq_image_closure_subset image_subset_iff_funcset)
     then show ?thesis
-      by (metis (no_types) closure_of_subset_subtopology closure_of_subtopology_subset closure_of_topspace continuous_map_eq_image_closure_subset order.trans)
+      by (metis closure_of_subset_subtopology closure_of_subtopology_subset
+          closure_of_topspace continuous_map_eq_image_closure_subset
+          image_subset_iff_funcset subset_trans)
   qed
 next
   assume R: ?rhs
@@ -3963,7 +3965,7 @@ lemma embedding_map_in_subtopology:
 proof
   show "?lhs \<Longrightarrow> ?rhs"
     unfolding embedding_map_def
-    by (metis continuous_map_in_subtopology homeomorphic_imp_continuous_map inf_absorb2 subtopology_subtopology)
+    by (metis Int_subset_iff homeomorphic_imp_surjective_map inf_le1 subtopology_restrict subtopology_subtopology topspace_subtopology)
 qed (simp add: embedding_map_def inf.absorb_iff2 subtopology_subtopology)
 
 lemma injective_open_imp_embedding_map:
@@ -4118,13 +4120,13 @@ lemma continuous_on_imp_closedin:
   using assms continuous_on_closed by blast
 
 lemma continuous_map_subtopology_eu [simp]:
-  "continuous_map (top_of_set S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h ` S \<subseteq> T"
+  "continuous_map (top_of_set S) (subtopology euclidean T) h \<longleftrightarrow> continuous_on S h \<and> h \<in> S \<rightarrow> T"
   by (simp add: continuous_map_in_subtopology)
 
 lemma continuous_map_euclidean_top_of_set:
   assumes eq: "f -` S = UNIV" and cont: "continuous_on UNIV f"
   shows "continuous_map euclidean (top_of_set S) f"
-  by (simp add: cont continuous_map_in_subtopology eq image_subset_iff_subset_vimage)
+  using cont continuous_map_iff_continuous2 continuous_map_into_subtopology eq by blast
 
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Half-global and completely global cases\<close>
@@ -4166,25 +4168,14 @@ lemma continuous_closedin_preimage_eq:
   by (metis Int_commute closedin_closed continuous_on_closed_invariant)
 
 lemma continuous_open_preimage:
-  assumes contf: "continuous_on S f" and "open S" "open T"
+  assumes "continuous_on S f" and "open S" "open T"
   shows "open (S \<inter> f -` T)"
-proof-
-  obtain U where "open U" "(S \<inter> f -` T) = S \<inter> U"
-    using continuous_openin_preimage_gen[OF contf \<open>open T\<close>]
-    unfolding openin_open by auto
-  then show ?thesis
-    using open_Int[of S U, OF \<open>open S\<close>] by auto
-qed
+  by (metis Int_commute assms continuous_on_open_vimage)
 
 lemma continuous_closed_preimage:
-  assumes contf: "continuous_on S f" and "closed S" "closed T"
+  assumes "continuous_on S f" and "closed S" "closed T"
   shows "closed (S \<inter> f -` T)"
-proof-
-  obtain U where "closed U" "(S \<inter> f -` T) = S \<inter> U"
-    using continuous_closedin_preimage[OF contf \<open>closed T\<close>]
-    unfolding closedin_closed by auto
-  then show ?thesis using closed_Int[of S U, OF \<open>closed S\<close>] by auto
-qed
+  by (metis assms closed_vimage_Int inf_commute)
 
 lemma continuous_open_vimage: "open S \<Longrightarrow> (\<And>x. continuous (at x) f) \<Longrightarrow> open (f -` S)"
   by (metis continuous_on_eq_continuous_within open_vimage) 

@@ -1815,7 +1815,7 @@ proof -
         apply (intro continuous_on_compose continuous_intros)
         apply (force intro: inV continuous_on_subset [OF contk] continuous_on_subset [OF conta])+
         done
-      show "(k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) ` ({0..1} \<times> T) \<subseteq> U"
+      show "(k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) \<in> ({0..1} \<times> T) \<rightarrow> U"
         using inV kim by auto
       show "\<forall>x\<in>T. (k \<circ> (\<lambda>z. (fst z *\<^sub>R (a \<circ> snd) z, snd z))) (0, x) = f x"
         by (simp add: B_def h'_def keq)
@@ -2211,7 +2211,7 @@ proof -
   proof (simp add: homotopic_with, intro exI conjI)
     show "continuous_on ({0..1} \<times> T') k"
       using TW continuous_on_subset contk by auto
-    show "k ` ({0..1} \<times> T') \<subseteq> U"
+    show "k \<in> ({0..1} \<times> T') \<rightarrow> U"
       using TW kim by fastforce
     have "T' \<subseteq> S"
       by (meson opeT' subsetD openin_imp_subset)
@@ -2246,7 +2246,7 @@ proof -
                   and hom: "\<And>n. homotopic_with_canon (\<lambda>x. True) (V n) T f g"
       using assms by auto 
     then obtain h where conth: "\<And>n. continuous_on ({0..1::real} \<times> V n) (h n)"
-                  and him: "\<And>n. h n ` ({0..1} \<times> V n) \<subseteq> T" 
+                  and him: "\<And>n. h n \<in> ({0..1} \<times> V n) \<rightarrow> T" 
                   and h0: "\<And>n. \<And>x. x \<in> V n \<Longrightarrow> h n (0, x) = f x" 
                   and h1: "\<And>n. \<And>x. x \<in> V n \<Longrightarrow> h n (1, x) = g x"
       by (simp add: homotopic_with) metis
@@ -2277,7 +2277,7 @@ proof -
     proof (simp add: homotopic_with eqU [symmetric], intro exI conjI ballI)
       show "continuous_on ({0..1} \<times> \<Union>\<V>) \<zeta>"
         using V eqU by (blast intro!:  continuous_on_subset [OF cont])
-      show "\<zeta>` ({0..1} \<times> \<Union>\<V>) \<subseteq> T"
+      show "\<zeta> \<in> ({0..1} \<times> \<Union>\<V>) \<rightarrow> T"
       proof clarsimp
         fix t :: real and y :: "'a" and X :: "'a set"
         assume "y \<in> X" "X \<in> \<V>" and t: "0 \<le> t" "t \<le> 1"
