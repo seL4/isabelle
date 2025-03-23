@@ -28,6 +28,7 @@ function usage()
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
   echo "    -n           no build of session image on startup"
+  echo "    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)"
   echo "    -p CMD       command prefix for ML process (e.g. NUMA policy)"
   echo "    -s           system build mode for session image (system_heaps=true)"
   echo "    -u           user build mode for session image (system_heaps=false)"
@@ -64,12 +65,13 @@ JEDIT_SESSION_DIRS="-"
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 JEDIT_NO_BUILD=""
+JEDIT_ISABELLE_OPTIONS=""
 JEDIT_BUILD_MODE="default"
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "A:BFD:J:R:bd:fi:j:l:m:np:su" OPT
+  while getopts "A:BFD:J:R:bd:fi:j:l:m:no:p:su" OPT
   do
     case "$OPT" in
       A)
@@ -118,6 +120,13 @@ function getoptions()
       n)
         JEDIT_NO_BUILD="true"
         ;;
+      o)
+        if [ -z "$JEDIT_ISABELLE_OPTIONS" ]; then
+          JEDIT_ISABELLE_OPTIONS="$OPTARG"
+        else
+          JEDIT_ISABELLE_OPTIONS="$JEDIT_ISABELLE_OPTIONS"$'\x0b'"$OPTARG"
+        fi
+        ;;
       p)
         PROCESS_POLICY="$OPTARG"
         ;;
@@ -162,7 +171,7 @@ then
   "$ISABELLE_HOME/lib/scripts/java-gui-setup"
 
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
-    JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_BUILD_MODE
+    JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_ISABELLE_OPTIONS JEDIT_BUILD_MODE
   export JEDIT_PROCESS_POLICY="$PROCESS_POLICY"
   exec isabelle java -splash:"$(platform_path "$ISABELLE_HOME/lib/logo/isabelle.gif")" \
     "${JAVA_ARGS[@]}" isabelle.jedit.JEdit_Main "${ARGS[@]}"

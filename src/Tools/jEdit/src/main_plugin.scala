@@ -60,9 +60,16 @@ object PIDE {
 class Main_Plugin extends EBPlugin {
   /* options */
 
+  private lazy val initial_options: Options = Options.init()
+
+  private lazy val more_options: List[Options.Spec] =
+    Library.space_explode('\u000b', Isabelle_System.getenv("JEDIT_ISABELLE_OPTIONS"))
+      .map(Options.Spec.make)
+
   private var _options: JEdit_Options = null
-  private def init_options(): Unit =
-    _options = new JEdit_Options(Options.init())
+  private def init_options(): Unit = {
+    _options = new JEdit_Options(initial_options ++ more_options)
+  }
   def options: JEdit_Options = _options
 
 
@@ -452,7 +459,11 @@ class Main_Plugin extends EBPlugin {
     JEdit_Lib.jedit_text_areas().foreach(Completion_Popup.Text_Area.exit)
 
     if (startup_failure.isEmpty) {
-      options.value.save_prefs()
+      val save_options =
+        more_options.foldLeft(options.value) {
+          case (opts, opt) => opts + initial_options.spec(opt.name)
+        }
+      save_options.save_prefs()
       completion_history.value.save()
     }
 

@@ -239,10 +239,11 @@ text \<open>
     -f           fresh build
     -i NAME      include session in name-space of theories
     -j OPTION    add jEdit runtime option
-                 (default $JEDIT_OPTIONS)
-    -l NAME      logic image name
+                 (default -reuseview -nobackground -nosplash -log=9)
+    -l NAME      logic session name
     -m MODE      add print mode for output
     -n           no build of session image on startup
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -p CMD       command prefix for ML process (e.g. NUMA policy)
     -s           system build mode for session image (system_heaps=true)
     -u           user build mode for session image (system_heaps=false)
@@ -285,6 +286,12 @@ text \<open>
   Isabelle/Scala/PIDE/jEdit. This is only relevant for building from sources,
   the official Isabelle release already includes a pre-built version of
   Isabelle/jEdit.
+
+  The \<^verbatim>\<open>-o\<close> option is analogous to @{tool build} \<^cite>\<open>"isabelle-system"\<close>,
+  but it takes persistent preferences into account (\secref{sec:options}).
+  When options are loaded, command-line options take precedence. When options
+  are saved, command-line options are ignored (despite subsequent changes),
+  but original preferences take precedence (including subsequent changes).
 
   \<^bigskip>
   It is also possible to connect to an already running Isabelle/jEdit process
