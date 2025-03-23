@@ -45,7 +45,7 @@ proof -
     then show ?thesis
        by (auto simp: f_def cInf_lower)
   qed
-  ultimately have fim: "f ` topspace X \<subseteq> {0..1}"
+  ultimately have fim: "f \<in> topspace X \<rightarrow> {0..1}"
     by (auto simp: f_def)
   have 0: "0 \<in> dyadics \<inter> {0..1::real}" and 1: "1 \<in> dyadics \<inter> {0..1::real}"
     by (force simp: dyadics_def)+
@@ -161,17 +161,17 @@ proof -
     qed
   qed
   then have contf: "continuous_map X (top_of_set {0..1}) f"
-    by (force simp: Met_TC.continuous_map_to_metric dist_real_def continuous_map_in_subtopology fim simp flip: mtopology_is_euclidean)
+    by (auto simp: Met_TC.continuous_map_to_metric dist_real_def continuous_map_in_subtopology fim abs_minus_commute simp flip: mtopology_is_euclidean)
   define g where "g \<equiv> \<lambda>x. a + (b - a) * f x"
   show thesis
   proof
     have "continuous_map X euclideanreal g"
       using contf \<open>a \<le> b\<close> unfolding g_def by (auto simp: continuous_intros continuous_map_in_subtopology)
-    moreover have "g ` (topspace X) \<subseteq> {a..b}"
-      using mult_left_le [of "f _" "b-a"] contf \<open>a \<le> b\<close>   
-      by (simp add: g_def add.commute continuous_map_in_subtopology image_subset_iff le_diff_eq)
+    moreover have "g \<in> (topspace X) \<rightarrow> {a..b}"
+      using mult_left_le [of "f _" "b-a"] contf \<open>a \<le> b\<close> 
+      by (simp add: g_def Pi_iff add.commute continuous_map_in_subtopology image_subset_iff le_diff_eq)
     ultimately show "continuous_map X (top_of_set {a..b}) g"
-      by (meson continuous_map_in_subtopology)
+      using continuous_map_in_subtopology by blast
     show "g ` S \<subseteq> {a}" "g ` T \<subseteq> {b}"
       using fimS fimT by (auto simp: g_def)
   qed
@@ -576,8 +576,8 @@ proof -
       where conth: "continuous_map X (top_of_set {0..1}) h" 
             and him: "h ` W \<subseteq> {0}" "h ` S \<subseteq> {1}"
       by (metis XS normal_space_iff_Urysohn) 
-    then have him01: "h ` topspace X \<subseteq> {0..1}"
-      by (meson continuous_map_in_subtopology)
+    then have him01: "h \<in> topspace X \<rightarrow> {0..1}"
+      by (metis continuous_map_in_subtopology)
     obtain z where "z \<in> T"
       using \<open>T \<noteq> {}\<close> by blast
     define g' where "g' \<equiv> \<lambda>x. z + h x * (g x - z)"
@@ -1066,7 +1066,7 @@ lemma completely_regular_imp_regular_space:
 proof -
   have *: "\<exists>U V. openin X U \<and> openin X V \<and> a \<in> U \<and> C \<subseteq> V \<and> disjnt U V"
     if contf: "continuous_map X euclideanreal f" and a: "a \<in> topspace X - C" and "closedin X C"
-      and fim: "f ` topspace X \<subseteq> {0..1}" and f0: "f a = 0" and f1: "f ` C \<subseteq> {1}"
+      and fim: "f \<in> topspace X \<rightarrow> {0..1}" and f0: "f a = 0" and f1: "f ` C \<subseteq> {1}"
     for C a f
   proof (intro exI conjI)
     show "openin X {x \<in> topspace X. f x \<in> {..<1 / 2}}" "openin X {x \<in> topspace X. f x \<in> {1 / 2<..}}"
@@ -1078,9 +1078,9 @@ proof -
       using \<open>closedin X C\<close> f1 closedin_subset by auto
   qed (auto simp: disjnt_iff)
   show ?thesis
-    using assms
+    using assms *
     unfolding completely_regular_space_def regular_space_def continuous_map_in_subtopology
-    by (meson "*")
+    by metis
 qed
 
 
@@ -4028,11 +4028,11 @@ proof -
     have "closedin X {x}"
       by (simp add: \<open>Hausdorff_space X\<close> closedin_Hausdorff_singleton \<open>x \<in> topspace X\<close>)
     then obtain f where contf: "continuous_map X euclideanreal f" 
-      and f01: "\<And>x. x \<in> topspace X \<Longrightarrow> f x \<in> {0..1}" and fxy: "f y = 0" "f x = 1"
-      using \<open>completely_regular_space X\<close> xy unfolding completely_regular_space_def
-      by (smt (verit, ccfv_threshold) Diff_iff continuous_map_in_subtopology image_subset_iff singleton_iff)
+      and f01: "f \<in> topspace X \<rightarrow> {0..1}" and fxy: "f y = 0" "f x = 1"
+      using \<open>completely_regular_space X\<close> xy unfolding completely_regular_space_def Pi_iff continuous_map_in_subtopology image_subset_iff
+      by (metis Diff_iff empty_iff insert_iff)
     then have "bounded (f ` topspace X)"
-      by (meson bounded_closed_interval bounded_subset image_subset_iff)
+      by (metis bounded_closed_interval bounded_subset image_subset_iff_funcset)
     with contf f01 have "restrict f (topspace X) \<in> K"
       by (auto simp: K_def)
     with fxy xy show ?thesis 
@@ -4047,11 +4047,13 @@ proof -
     fix x U
     assume "e x \<in> K \<rightarrow>\<^sub>E {0..1}" and "x \<in> topspace X" and "openin X U" and "x \<in> U"
     then obtain g where contg: "continuous_map X (top_of_set {0..1}) g" and "g x = 0" 
-          and gim: "g ` (topspace X - U) \<subseteq> {1::real}"
+          and gim: "g \<in> (topspace X - U) \<rightarrow> {1::real}"
       using \<open>completely_regular_space X\<close> unfolding completely_regular_space_def 
-      by (metis Diff_iff openin_closedin_eq)
+      using Diff_iff openin_closedin_eq
+      by (metis image_subset_iff_funcset)
     then have "bounded (g ` topspace X)"
-      by (meson bounded_closed_interval bounded_subset continuous_map_in_subtopology)
+      by (meson bounded_closed_interval bounded_subset continuous_map_in_subtopology
+          image_subset_iff_funcset)
     moreover have "g \<in> topspace X \<rightarrow> {0..1}"
       using contg by (simp add: continuous_map_def)
     ultimately have g_in_K: "restrict g (topspace X) \<in> K"
@@ -4067,7 +4069,7 @@ proof -
       have "e y (restrict g (topspace X)) \<in> {0..<1}"
         using ey by (smt (verit, ccfv_SIG) PiE_mem g_in_K)
     with gim g_in_K y \<open>y \<notin> U\<close> show ?thesis
-      by (fastforce simp: e_def)
+      by (fastforce simp: e_def Pi_iff)
     qed
     ultimately
     show "\<exists>W. openin (product_topology (\<lambda>f. top_of_set {0..1}) K) W \<and> e x \<in> W \<and> e' ` (e ` topspace X \<inter> W - {e x}) \<subseteq> U"
@@ -4120,7 +4122,7 @@ proof -
                   and g1: "\<And>t. t \<in> T \<Longrightarrow> g t ` S \<subseteq> {1}"
       by metis
     then have g01: "\<And>t. t \<in> T \<Longrightarrow> g t ` topspace X \<subseteq> {0..1}"
-      by (meson continuous_map_in_subtopology)
+      by (meson continuous_map_in_subtopology image_subset_iff_funcset)
     define G where "G \<equiv> \<lambda>t. {x \<in> topspace X. g t x \<in> {..<1/2}}"
     have "Ball (G`T) (openin X)"
       using contg unfolding G_def continuous_map_in_subtopology
@@ -4171,11 +4173,12 @@ proof -
   define g where "g \<equiv> \<lambda>x. a + (b - a) * f x"
   show thesis
   proof
-    have "\<forall>x\<in>topspace X. a + (b - a) * f x \<le> b"
-      using contf \<open>a \<le> b\<close> apply (simp add: continuous_map_in_subtopology image_subset_iff)
-      by (smt (verit, best) mult_right_le_one_le)
+    have "a + (b - a) * f i \<le> b" if "i \<in> topspace X" for i
+      using that contf \<open>a \<le> b\<close> affine_ineq [of "f i" a b]
+      unfolding continuous_map_in_subtopology continuous_map_upper_lower_semicontinuous_le_gen Pi_iff 
+      by (simp add: algebra_simps)
     then show "continuous_map X (top_of_set {a..b}) g"
-      using contf \<open>a \<le> b\<close> unfolding g_def continuous_map_in_subtopology image_subset_iff
+      using contf \<open>a \<le> b\<close> unfolding g_def continuous_map_in_subtopology Pi_iff
       by (intro conjI continuous_intros; simp)
     show "g ` T \<subseteq> {a}" "g ` S \<subseteq> {b}"
       using f0 f1 by (auto simp: g_def)
@@ -4193,7 +4196,7 @@ proof -
   show thesis
   proof
     show "continuous_map X (top_of_set {a..b}) (uminus \<circ> f)"
-      using contf by (auto simp: continuous_map_in_subtopology o_def)
+      using contf by (auto simp: continuous_map_in_subtopology o_def Pi_iff)
     show "(uminus o f) ` T \<subseteq> {a}" "(uminus o f) ` S \<subseteq> {b}"
       using fim by fastforce+
   qed
@@ -4256,7 +4259,7 @@ proof -
     proof
       show "continuous_map (subtopology cube (e ` S)) X e'"
         by (meson \<open>compactin X S\<close> compactin_subset_topspace conte' continuous_map_from_subtopology_mono image_mono)
-      show "e' ` topspace (subtopology cube (e ` S)) \<subseteq> S"
+      show "e' \<in> topspace (subtopology cube (e ` S)) \<rightarrow> S"
         using \<open>compactin X S\<close> compactin_subset_topspace e'e by fastforce
     qed
   qed (simp add: contf)

@@ -116,21 +116,21 @@ proof (intro exI conjI allI ballI)
     by (cases "t = 1") (simp_all add: assms)
 qed auto
 
-lemma homotopic_with_imp_subset1:
-     "homotopic_with_canon P X Y f g \<Longrightarrow> f ` X \<subseteq> Y"
-  by (meson continuous_map_subtopology_eu homotopic_with_imp_continuous_maps)
-
-lemma homotopic_with_imp_subset2:
-     "homotopic_with_canon P X Y f g \<Longrightarrow> g ` X \<subseteq> Y"
-  by (meson continuous_map_subtopology_eu homotopic_with_imp_continuous_maps)
-
 lemma homotopic_with_imp_funspace1:
      "homotopic_with_canon P X Y f g \<Longrightarrow> f \<in> X \<rightarrow> Y"
-  using homotopic_with_imp_subset1 by blast
+  using homotopic_with_imp_continuous_maps by fastforce
+
+lemma homotopic_with_imp_subset1:
+     "homotopic_with_canon P X Y f g \<Longrightarrow> f ` X \<subseteq> Y"
+  using homotopic_with_imp_funspace1 by blast
 
 lemma homotopic_with_imp_funspace2:
      "homotopic_with_canon P X Y f g \<Longrightarrow> g \<in> X \<rightarrow> Y"
-  using homotopic_with_imp_subset2 by blast
+  using homotopic_with_imp_continuous_maps by force
+
+lemma homotopic_with_imp_subset2:
+     "homotopic_with_canon P X Y f g \<Longrightarrow> g ` X \<subseteq> Y"
+  using homotopic_with_imp_funspace2 by blast
 
 lemma homotopic_with_subset_left:
      "\<lbrakk>homotopic_with_canon P X Y f g; Z \<subseteq> X\<rbrakk> \<Longrightarrow> homotopic_with_canon P Z Y f g"
@@ -485,10 +485,11 @@ lemma homotopic_paths_imp_path:
 
 lemma homotopic_paths_imp_subset:
      "homotopic_paths S p q \<Longrightarrow> path_image p \<subseteq> S \<and> path_image q \<subseteq> S"
-  by (metis (mono_tags) continuous_map_subtopology_eu homotopic_paths_def homotopic_with_imp_continuous_maps path_image_def)
+  by (simp add: homotopic_paths_def homotopic_with_imp_subset1 homotopic_with_imp_subset2
+      path_image_def)
 
 proposition homotopic_paths_refl [simp]: "homotopic_paths S p p \<longleftrightarrow> path p \<and> path_image p \<subseteq> S"
-  by (simp add: homotopic_paths_def path_def path_image_def)
+  by (auto simp add: homotopic_paths_def path_def path_image_def)
 
 proposition homotopic_paths_sym: "homotopic_paths S p q \<Longrightarrow> homotopic_paths S q p"
   by (metis (mono_tags) homotopic_paths_def homotopic_paths_imp_pathfinish homotopic_paths_imp_pathstart homotopic_with_symD)
@@ -684,7 +685,7 @@ definition\<^marker>\<open>tag important\<close> homotopic_loops :: "'a::topolog
 lemma homotopic_loops:
    "homotopic_loops S p q \<longleftrightarrow>
       (\<exists>h. continuous_on ({0..1::real} \<times> {0..1}) h \<and>
-          image h ({0..1} \<times> {0..1}) \<subseteq> S \<and>
+          h \<in> ({0..1} \<times> {0..1}) \<rightarrow> S \<and>
           (\<forall>x \<in> {0..1}. h(0,x) = p x) \<and>
           (\<forall>x \<in> {0..1}. h(1,x) = q x) \<and>
           (\<forall>t \<in> {0..1}. pathfinish(h \<circ> Pair t) = pathstart(h \<circ> Pair t)))"
@@ -702,12 +703,13 @@ proposition homotopic_loops_imp_path:
 proposition homotopic_loops_imp_subset:
      "homotopic_loops S p q \<Longrightarrow> path_image p \<subseteq> S \<and> path_image q \<subseteq> S"
   unfolding homotopic_loops_def path_image_def
-  by (meson continuous_map_subtopology_eu homotopic_with_imp_continuous_maps)
+  by (simp add: homotopic_with_imp_subset1 homotopic_with_imp_subset2)
 
 proposition homotopic_loops_refl:
      "homotopic_loops S p p \<longleftrightarrow>
       path p \<and> path_image p \<subseteq> S \<and> pathfinish p = pathstart p"
-  by (simp add: homotopic_loops_def path_image_def path_def)
+  by (metis (mono_tags, lifting) homotopic_loops_def homotopic_paths_def
+      homotopic_paths_refl homotopic_with_refl)
 
 proposition homotopic_loops_sym: "homotopic_loops S p q \<Longrightarrow> homotopic_loops S q p"
   by (simp add: homotopic_loops_def homotopic_with_sym)
@@ -726,8 +728,9 @@ proposition homotopic_loops_subset:
 proposition homotopic_loops_eq:
    "\<lbrakk>path p; path_image p \<subseteq> S; pathfinish p = pathstart p; \<And>t. t \<in> {0..1} \<Longrightarrow> p(t) = q(t)\<rbrakk>
           \<Longrightarrow> homotopic_loops S p q"
-  unfolding homotopic_loops_def path_image_def path_def pathstart_def pathfinish_def
-  by (auto intro: homotopic_with_eq [OF homotopic_with_refl [where f = p, THEN iffD2]])
+  unfolding homotopic_loops_def path_image_def path_def pathstart_def pathfinish_def image_subset_iff_funcset
+  using homotopic_with_eq [OF homotopic_with_refl [where f = p, THEN iffD2]]
+  by fastforce
 
 proposition homotopic_loops_continuous_image:
    "\<lbrakk>homotopic_loops S f g; continuous_on S h; h \<in> S \<rightarrow> t\<rbrakk> \<Longrightarrow> homotopic_loops t (h \<circ> f) (h \<circ> g)"
@@ -1247,7 +1250,7 @@ proof -
       using p1 p2 unfolding homotopic_loops
       apply clarify
       subgoal for h k
-        by (rule_tac x="\<lambda>z. (h z, k z)" in exI) (force intro: continuous_intros simp: path_defs)
+        by (rule_tac x="\<lambda>z. (h z, k z)" in exI) (auto intro: continuous_intros simp: path_defs)
       done
   qed
   with assms show ?thesis
@@ -3786,7 +3789,9 @@ abbreviation\<^marker>\<open>tag important\<close> homotopy_eqv :: "'a::topologi
 
 lemma homeomorphic_imp_homotopy_eqv: "S homeomorphic T \<Longrightarrow> S homotopy_eqv T"
   unfolding homeomorphic_def homeomorphism_def homotopy_equivalent_space_def
-  by (metis continuous_map_subtopology_eu homotopic_with_id2 openin_imp_subset openin_subtopology_self topspace_euclidean_subtopology)
+  apply (erule ex_forward)+
+  by (metis continuous_map_subtopology_eu homotopic_with_id2 openin_imp_subset openin_subtopology_self topspace_euclidean_subtopology
+      image_subset_iff_funcset)
 
 lemma homotopy_eqv_inj_linear_image:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
@@ -3963,7 +3968,8 @@ lemma homotopy_eqv_empty1 [simp]:
   shows "S homotopy_eqv ({}::'b::real_normed_vector set) \<longleftrightarrow> S = {}" (is "?lhs = ?rhs")
 proof
   assume ?lhs then show ?rhs
-    by (metis continuous_map_subtopology_eu empty_iff equalityI homotopy_equivalent_space_def image_subset_iff subsetI)
+    by (meson continuous_map_subtopology_eu equals0D equals0I funcset_mem
+        homotopy_equivalent_space_def)
 qed (use homeomorphic_imp_homotopy_eqv in force)
 
 lemma homotopy_eqv_empty2 [simp]:
@@ -5281,8 +5287,8 @@ next
     assume c: "homotopic_with_canon (\<lambda>x. True) (sphere a r) S f (\<lambda>x. c)"
     then have contf: "continuous_on (sphere a r) f" 
       by (metis homotopic_with_imp_continuous)
-    moreover have fim: "f ` sphere a r \<subseteq> S"
-      by (meson continuous_map_subtopology_eu c homotopic_with_imp_continuous_maps)
+    moreover have fim: "f \<in> sphere a r \<rightarrow> S"
+      using homotopic_with_imp_subset1 that by blast
     show ?P
       using contf fim by (auto simp: sphere_def dist_norm norm_minus_commute)
   qed
@@ -5373,7 +5379,7 @@ next
         by (intro continuous_intros)
       qed (auto simp: dist_norm norm_minus_commute mult_left_le_one_le)
     moreover
-    have "?h ` ({0..1} \<times> sphere a r) \<subseteq> S"
+    have "?h \<in> ({0..1} \<times> sphere a r) \<rightarrow> S"
       by (auto simp: dist_norm norm_minus_commute mult_left_le_one_le gim [THEN subsetD])
     moreover
     have "\<forall>x\<in>sphere a r. ?h (0, x) = g a" "\<forall>x\<in>sphere a r. ?h (1, x) = f x"

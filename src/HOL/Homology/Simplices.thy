@@ -87,7 +87,7 @@ proof -
     unfolding g_def continuous_map_componentwise
     by (force intro: continuous_intros)
   moreover
-  have "g x y ` {0..1} \<subseteq> standard_simplex p" "g x y 0 = x" "g x y 1 = y"
+  have "g x y \<in> {0..1} \<rightarrow> standard_simplex p" "g x y 0 = x" "g x y 1 = y"
     if "x \<in> standard_simplex p" "y \<in> standard_simplex p" for x y
     using that by (auto simp: convex_standard_simplex g_def)
   ultimately
@@ -183,7 +183,7 @@ lemma singular_simplex_singular_face:
   shows "singular_simplex (p - Suc 0) X (singular_face p k f)"
 proof -
   let ?PT = "(powertop_real UNIV)"
-  have 0: "simplical_face k ` standard_simplex (p - Suc 0) \<subseteq> standard_simplex p"
+  have 0: "simplical_face k \<in> standard_simplex (p - Suc 0) \<rightarrow> standard_simplex p"
     using assms simplical_face_in_standard_simplex by auto
   have 1: "continuous_map (subtopology ?PT (standard_simplex (p - Suc 0)))
                           (subtopology ?PT (standard_simplex p))
@@ -341,8 +341,8 @@ lemma mod_subset_add:
 subsection\<open>Relative cycles $Z_pX (S)$ where $X$ is a topology and $S$ a subset \<close>
 
 definition singular_relcycle :: "nat \<Rightarrow> 'a topology \<Rightarrow> 'a set \<Rightarrow> ('a chain) \<Rightarrow> bool"
-  where "singular_relcycle p X S \<equiv>
-        \<lambda>c. singular_chain p X c \<and> (chain_boundary p c, 0) \<in> mod_subset (p-1) (subtopology X S)"
+  where "singular_relcycle \<equiv>
+        \<lambda>p X S c. singular_chain p X c \<and> (chain_boundary p c, 0) \<in> mod_subset (p-1) (subtopology X S)"
 
 abbreviation singular_relcycle_set
   where "singular_relcycle_set p X S \<equiv> Collect (singular_relcycle p X S)"
@@ -357,8 +357,8 @@ proof -
 qed
 
 lemma singular_relcycle:
-   "singular_relcycle p X S c \<longleftrightarrow>
-    singular_chain p X c \<and> singular_chain (p-1) (subtopology X S) (chain_boundary p c)"
+   "singular_relcycle \<equiv>
+    \<lambda>p X S c. singular_chain p X c \<and> singular_chain (p-1) (subtopology X S) (chain_boundary p c)"
   by (simp add: singular_relcycle_def mod_subset_def)
 
 lemma singular_relcycle_0 [simp]: "singular_relcycle p X S 0"
@@ -777,7 +777,7 @@ lemma chain_map_id_gen:
     \<Longrightarrow>  chain_map p f c = c"
   unfolding singular_chain_def
   by (erule frag_induction) (auto simp: chain_map_diff simplex_map_id_gen)
-
+                                                              
 lemma chain_map_ident:
    "singular_chain p X c \<Longrightarrow> chain_map p id c = c"
   by (simp add: chain_map_id_gen)
@@ -831,19 +831,20 @@ next
 qed auto
 
 lemma singular_relcycle_chain_map:
-  assumes "singular_relcycle p X S c" "continuous_map X X' g" "g ` S \<subseteq> T"
+  assumes "singular_relcycle p X S c" "continuous_map X X' g" "g \<in> S \<rightarrow> T"
   shows "singular_relcycle p X' T (chain_map p g c)"
 proof -
   have "continuous_map (subtopology X S) (subtopology X' T) g"
     using assms
-    using continuous_map_from_subtopology continuous_map_in_subtopology topspace_subtopology by fastforce
+    by (metis Pi_anti_mono continuous_map_from_subtopology continuous_map_in_subtopology 
+        openin_imp_subset openin_topspace subsetD)
   then show ?thesis
     using chain_boundary_chain_map [of p X c g]
     by (metis One_nat_def assms(1) assms(2) singular_chain_chain_map singular_relcycle)
 qed
 
 lemma singular_relboundary_chain_map:
-  assumes "singular_relboundary p X S c" "continuous_map X X' g" "g ` S \<subseteq> T"
+  assumes "singular_relboundary p X S c" "continuous_map X X' g" "g \<in> S \<rightarrow> T"
   shows "singular_relboundary p X' T (chain_map p g c)"
 proof -
   obtain d e where d: "singular_chain (Suc p) X d"
@@ -853,10 +854,11 @@ proof -
     using assms(2) d singular_chain_chain_map by blast
   moreover have "singular_chain p (subtopology X' T) (chain_map p g e)"
   proof -
-    have "\<forall>t. g ` topspace (subtopology t S) \<subseteq> T"
-      by (metis assms(3) closure_of_subset_subtopology closure_of_topspace dual_order.trans image_mono)
+    have "\<And>Y. g \<in> topspace (subtopology Y S) \<rightarrow> T"
+      using assms(3) by auto
     then show ?thesis
-      by (meson assms(2) continuous_map_from_subtopology continuous_map_in_subtopology e singular_chain_chain_map)
+      by (metis assms(2) continuous_map_from_subtopology continuous_map_into_subtopology e
+          singular_chain_chain_map) 
   qed
   moreover have "chain_boundary (Suc p) (chain_map (Suc p) g d) + chain_map p g e =
                  chain_map p g (chain_boundary (Suc p) d + e)"
@@ -1705,7 +1707,7 @@ lemma simplicial_simplex_id [simp]:
 proof
   assume ?lhs
   then show ?rhs
-    by (simp add: simplicial_simplex_def singular_simplex_def continuous_map_in_subtopology set_mp)
+    by (simp add: simplicial_simplex)
 next
   assume R: ?rhs
   then have cm: "continuous_map
@@ -1777,7 +1779,7 @@ proof (induction c rule: frag_induction)
     have "(\<lambda>i. \<Sum>j\<le>p. m j i * x j) \<in> standard_simplex q"
       if "x \<in> standard_simplex p" for x
       using that m unfolding oriented_simplex_def singular_simplex_def
-      by (auto simp: continuous_map_in_subtopology image_subset_iff)
+      by (auto simp: continuous_map_in_subtopology Pi_iff)
     then show ?thesis
       unfolding oriented_simplex_def simplex_map_def
       apply (rule_tac x="\<lambda>j k. (\<Sum>i\<le>q. l i k * m j i)" in exI)
@@ -1785,7 +1787,7 @@ proof (induction c rule: frag_induction)
       done
   qed
   then show ?case
-    using f one
+    using f one 
     apply (simp add: simplicial_simplex_def)
     using singular_simplex_def singular_simplex_simplex_map by blast
 next
@@ -2492,7 +2494,7 @@ proposition sufficient_iterated_singular_subdivision_exists:
       and X: "topspace X \<subseteq> \<Union>\<C>"
       and p: "singular_chain p X c"
   obtains n where "\<And>m f. \<lbrakk>n \<le> m; f \<in> Poly_Mapping.keys ((singular_subdivision p ^^ m) c)\<rbrakk>
-                      \<Longrightarrow> \<exists>V \<in> \<C>. f ` (standard_simplex p) \<subseteq> V"
+                      \<Longrightarrow> \<exists>V \<in> \<C>. f \<in> (standard_simplex p) \<rightarrow> V"
 proof (cases "c = 0")
   case False
   then show ?thesis
@@ -2511,7 +2513,7 @@ proof (cases "c = 0")
       case False
       have "\<exists>e. 0 < e \<and>
                 (\<forall>K. K \<subseteq> standard_simplex p \<longrightarrow> (\<forall>x y i. x \<in> K \<and> y \<in> K \<and> i \<le> p \<longrightarrow> \<bar>x i - y i\<bar> \<le> e)
-                     \<longrightarrow> (\<exists>V. V \<in> \<C> \<and> f ` K \<subseteq> V))"
+                     \<longrightarrow> (\<exists>V. V \<in> \<C> \<and> f \<in> K \<rightarrow> V))"
         if f: "f \<in> Poly_Mapping.keys c" for f
       proof -
         have ssf: "singular_simplex p X f"
@@ -2551,19 +2553,19 @@ proof (cases "c = 0")
              and Kd: "\<forall>x y i. x \<in> K \<and> y \<in> K \<and> i \<le> p \<longrightarrow> \<bar>x i - y i\<bar> \<le> d"
           then have "\<exists>U. U \<in> g ` \<C> \<and> K \<subseteq> U"
             using d [OF K] by auto
-          then show "\<exists>V. V \<in> \<C> \<and> f ` K \<subseteq> V"
+          then show "\<exists>V. V \<in> \<C> \<and> f \<in> K \<rightarrow> V"
             using K geq by fastforce
         qed (rule \<open>d > 0\<close>)
       qed
       then obtain \<psi> where epos: "\<forall>f \<in> Poly_Mapping.keys c. 0 < \<psi> f"
                  and e: "\<And>f K. \<lbrakk>f \<in> Poly_Mapping.keys c; K \<subseteq> standard_simplex p;
                                 \<And>x y i. x \<in> K \<and> y \<in> K \<and> i \<le> p \<Longrightarrow> \<bar>x i - y i\<bar> \<le> \<psi> f\<rbrakk>
-                               \<Longrightarrow> \<exists>V. V \<in> \<C> \<and> f ` K \<subseteq> V"
+                               \<Longrightarrow> \<exists>V. V \<in> \<C> \<and> f \<in> K \<rightarrow> V"
         by metis
       obtain d where "0 < d"
                and d: "\<And>f K. \<lbrakk>f \<in> Poly_Mapping.keys c; K \<subseteq> standard_simplex p;
                               \<And>x y i. \<lbrakk>x \<in> K; y \<in> K; i \<le> p\<rbrakk> \<Longrightarrow> \<bar>x i - y i\<bar> \<le> d\<rbrakk>
-                              \<Longrightarrow> \<exists>V. V \<in> \<C> \<and> f ` K \<subseteq> V"
+                              \<Longrightarrow> \<exists>V. V \<in> \<C> \<and> f \<in> K \<rightarrow> V"
       proof
         show "Inf (\<psi> ` Poly_Mapping.keys c) > 0"
           by (simp add: finite_less_Inf_iff \<open>c \<noteq> 0\<close> epos)
@@ -2572,7 +2574,7 @@ proof (cases "c = 0")
           and le: "\<And>x y i. \<lbrakk>x \<in> K; y \<in> K; i \<le> p\<rbrakk> \<Longrightarrow> \<bar>x i - y i\<bar> \<le> Inf (\<psi> ` Poly_Mapping.keys c)"
         then have lef: "Inf (\<psi> ` Poly_Mapping.keys c) \<le> \<psi> f"
           by (auto intro: cInf_le_finite)
-        show "\<exists>V. V \<in> \<C> \<and> f ` K \<subseteq> V"
+        show "\<exists>V. V \<in> \<C> \<and> f \<in> K \<rightarrow> V"
           using le lef by (blast intro: dual_order.trans e [OF fK])
       qed
       let ?d = "\<lambda>m. (simplicial_subdivision p ^^ m) (frag_of (restrict id (standard_simplex p)))"
@@ -2626,9 +2628,9 @@ proof (cases "c = 0")
         then have "\<bar>x i - y i\<bar> \<le> d"
           if "x \<in> g ` (standard_simplex p)" "y \<in> g ` (standard_simplex p)" "i \<le> p" for i x y
           using that by blast
-        ultimately show "\<exists>V\<in>\<C>. h ` standard_simplex p \<subseteq> V"
+        ultimately show "\<exists>V\<in>\<C>. h \<in> standard_simplex p \<rightarrow> V"
           using \<open>f \<in> Poly_Mapping.keys c\<close> d [of f "g ` standard_simplex p"]
-          by (simp add: Bex_def heq image_image)
+          using heq image_subset_iff_funcset by fastforce
       qed
     qed
   qed
@@ -2640,13 +2642,13 @@ lemma small_homologous_rel_relcycle_exists:
       and X: "topspace X \<subseteq> \<Union>\<C>"
       and p: "singular_relcycle p X S c"
     obtains c' where "singular_relcycle p X S c'" "homologous_rel p X S c c'"
-                      "\<And>f. f \<in> Poly_Mapping.keys c' \<Longrightarrow> \<exists>V \<in> \<C>. f ` (standard_simplex p) \<subseteq> V"
+                      "\<And>f. f \<in> Poly_Mapping.keys c' \<Longrightarrow> \<exists>V \<in> \<C>. f \<in> (standard_simplex p) \<rightarrow> V"
 proof -
   have "singular_chain p X c"
        "(chain_boundary p c, 0) \<in> (mod_subset (p - Suc 0) (subtopology X S))"
     using p unfolding singular_relcycle_def by auto
   then obtain n where n: "\<And>m f. \<lbrakk>n \<le> m; f \<in> Poly_Mapping.keys ((singular_subdivision p ^^ m) c)\<rbrakk>
-                            \<Longrightarrow> \<exists>V \<in> \<C>. f ` (standard_simplex p) \<subseteq> V"
+                            \<Longrightarrow> \<exists>V \<in> \<C>. f \<in> (standard_simplex p) \<rightarrow> V"
     by (blast intro: sufficient_iterated_singular_subdivision_exists [OF \<C> X])
   let ?c' = "(singular_subdivision p ^^ n) c"
   show ?thesis
@@ -2665,7 +2667,7 @@ proof -
   next
     fix f :: "(nat \<Rightarrow> real) \<Rightarrow> 'a"
     assume "f \<in> Poly_Mapping.keys ?c'"
-    then show "\<exists>V\<in>\<C>. f ` standard_simplex p \<subseteq> V"
+    then show "\<exists>V\<in>\<C>. f \<in> (standard_simplex p) \<rightarrow> V"
       by (rule n [OF order_refl])
   qed
 qed
@@ -2685,7 +2687,7 @@ proof -
        for p X c S and T U :: "'a set"
   proof -
     obtain n where n: "\<And>m f. \<lbrakk>n \<le> m; f \<in> Poly_Mapping.keys ((singular_subdivision p ^^ m) c)\<rbrakk>
-                             \<Longrightarrow> \<exists>V \<in> {S \<inter> X interior_of T, S - X closure_of U}. f ` standard_simplex p \<subseteq> V"
+                             \<Longrightarrow> \<exists>V \<in> {S \<inter> X interior_of T, S - X closure_of U}. f \<in> (standard_simplex p) \<rightarrow> V"
       apply (rule sufficient_iterated_singular_subdivision_exists
                    [of "{S \<inter> X interior_of T, S - X closure_of U}"])
       using X S c
@@ -2791,7 +2793,7 @@ qed
 subsection\<open>Homotopy invariance\<close>
 
 theorem homotopic_imp_homologous_rel_chain_maps:
-  assumes hom: "homotopic_with (\<lambda>h. h ` T \<subseteq> V) S U f g" and c: "singular_relcycle p S T c"
+  assumes hom: "homotopic_with (\<lambda>h. h \<in> T \<rightarrow> V) S U f g" and c: "singular_relcycle p S T c"
   shows "homologous_rel p U V (chain_map p f c) (chain_map p g c)"
 proof -
   note sum.atMost_Suc [simp del]

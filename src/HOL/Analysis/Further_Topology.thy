@@ -2743,7 +2743,8 @@ proof -
       by (auto simp: Arg2pi_ge_0 Arg2pi_lt_2pi less_imp_le)
     also have "... \<subseteq> S"
       using him by blast
-    finally show "(\<lambda>w. h (fst w, Arg2pi (snd w) / (2 * pi))) ` ({0..1} \<times> sphere 0 1) \<subseteq> S" .
+    finally show "(\<lambda>w. h (fst w, Arg2pi (snd w) / (2 * pi))) \<in> {0..1} \<times> sphere 0 1 \<rightarrow> S"
+      by blast 
   qed (auto simp: h0 h1)
 qed
 

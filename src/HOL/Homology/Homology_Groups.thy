@@ -379,19 +379,19 @@ lemma hom_boundary_chain_boundary:
   by (metis hom_boundary)+
 
 lemma hom_chain_map:
-   "\<lbrakk>continuous_map X Y f; f ` S \<subseteq> T\<rbrakk>
+   "\<lbrakk>continuous_map X Y f; f \<in> S \<rightarrow> T\<rbrakk>
         \<Longrightarrow> (chain_map p f) \<in> hom (relcycle_group p X S) (relcycle_group p Y T)"
-  by (force simp: chain_map_add singular_relcycle_chain_map hom_def)
+  by (simp add: chain_map_add hom_def singular_relcycle_chain_map)
 
 
 lemma hom_induced1:
   "\<exists>hom_relmap.
     (\<forall>p X S Y T f.
-        continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T
+        continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T
         \<longrightarrow> (hom_relmap p X S Y T f) \<in> hom (relative_homology_group (int p) X S)
                                (relative_homology_group (int p) Y T)) \<and>
     (\<forall>p X S Y T f c.
-        continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
+        continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
         singular_relcycle p X S c
         \<longrightarrow> hom_relmap p X S Y T f (homologous_rel_set p X S c) =
             homologous_rel_set p Y T (chain_map p f c))"
@@ -399,7 +399,7 @@ proof -
   have "\<exists>y. (y \<in> hom (relative_homology_group (int p) X S) (relative_homology_group (int p) Y T)) \<and>
            (\<forall>c. singular_relcycle p X S c \<longrightarrow>
                 y (homologous_rel_set p X S c) = homologous_rel_set p Y T (chain_map p f c))"
-    if contf: "continuous_map X Y f" and fim: "f ` (topspace X \<inter> S) \<subseteq> T"
+    if contf: "continuous_map X Y f" and fim: "f \<in> (topspace X \<inter> S) \<rightarrow> T"
     for p X S Y T and f :: "'a \<Rightarrow> 'b"
   proof -
     let ?f = "(#>\<^bsub>relcycle_group p Y T\<^esub>) (singular_relboundary_set p Y T) \<circ> chain_map p f"
@@ -441,12 +441,12 @@ lemma hom_induced2:
     "\<exists>hom_relmap.
       (\<forall>p X S Y T f.
           continuous_map X Y f \<and>
-          f ` (topspace X \<inter> S) \<subseteq> T
+          f \<in> (topspace X \<inter> S) \<rightarrow> T
           \<longrightarrow> (hom_relmap p X S Y T f) \<in> hom (relative_homology_group p X S)
                                  (relative_homology_group p Y T)) \<and>
       (\<forall>p X S Y T f c.
           continuous_map X Y f \<and>
-          f ` (topspace X \<inter> S) \<subseteq> T \<and>
+          f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
           singular_relcycle p X S c
           \<longrightarrow> hom_relmap p X S Y T f (homologous_rel_set p X S c) =
               homologous_rel_set p Y T (chain_map p f c)) \<and>
@@ -464,13 +464,13 @@ qed
 lemma hom_induced3:
   "\<exists>hom_relmap.
     ((\<forall>p X S Y T f c.
-        ~(continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
+        ~(continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
           c \<in> carrier(relative_homology_group p X S))
         \<longrightarrow> hom_relmap p X S Y T f c = one(relative_homology_group p Y T)) \<and>
     (\<forall>p X S Y T f.
         hom_relmap p X S Y T f \<in> hom (relative_homology_group p X S) (relative_homology_group p Y T)) \<and>
     (\<forall>p X S Y T f c.
-        continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and> singular_relcycle p X S c
+        continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and> singular_relcycle p X S c
         \<longrightarrow> hom_relmap p X S Y T f (homologous_rel_set p X S c) =
             homologous_rel_set p Y T (chain_map p f c)) \<and>
     (\<forall>p X S Y T.
@@ -486,24 +486,24 @@ proof -
   moreover have "\<exists>x. ?P x \<and> ?Q x"
   proof -
     obtain hom_relmap:: "[int,'a topology,'a set,'b topology,'b set,'a \<Rightarrow> 'b,('a chain) set] \<Rightarrow> ('b chain) set"
-      where 1: "\<And>p X S Y T f. \<lbrakk>continuous_map X Y f; f ` (topspace X \<inter> S) \<subseteq> T\<rbrakk> \<Longrightarrow>
+      where 1: "\<And>p X S Y T f. \<lbrakk>continuous_map X Y f; f \<in> (topspace X \<inter> S) \<rightarrow> T\<rbrakk> \<Longrightarrow>
                    hom_relmap p X S Y T f
                    \<in> hom (relative_homology_group p X S) (relative_homology_group p Y T)"
         and 2: "\<And>p X S Y T f c.
-                   \<lbrakk>continuous_map X Y f; f ` (topspace X \<inter> S) \<subseteq> T; singular_relcycle p X S c\<rbrakk>
+                   \<lbrakk>continuous_map X Y f; f \<in> (topspace X \<inter> S) \<rightarrow> T; singular_relcycle p X S c\<rbrakk>
                    \<Longrightarrow>
                    hom_relmap (int p) X S Y T f (homologous_rel_set p X S c) =
                    homologous_rel_set p Y T (chain_map p f c)"
         and 3: "(\<forall>p. p < 0 \<longrightarrow> hom_relmap p = (\<lambda>X S Y T f c. undefined))"
       using hom_induced2 [where ?'a='a and ?'b='b]
-      by (metis (mono_tags, lifting))
-    have 4: "\<lbrakk>continuous_map X Y f; f ` (topspace X \<inter> S) \<subseteq> T; c \<in> carrier (relative_homology_group p X S)\<rbrakk> \<Longrightarrow>
+      by (fastforce simp: Pi_iff)
+    have 4: "\<lbrakk>continuous_map X Y f; f \<in> (topspace X \<inter> S) \<rightarrow> T; c \<in> carrier (relative_homology_group p X S)\<rbrakk> \<Longrightarrow>
         hom_relmap p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f c
            \<in> carrier (relative_homology_group p Y T)"
       for p X S Y f T c
       using hom_carrier [OF 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]] 
             continuous_map_image_subset_topspace by fastforce
-    have inhom: "(\<lambda>c. if continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
+    have inhom: "(\<lambda>c. if continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
                       c \<in> carrier (relative_homology_group p X S)
             then hom_relmap p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f c
             else \<one>\<^bsub>relative_homology_group p Y T\<^esub>)
@@ -522,16 +522,16 @@ proof -
         show ?thesis
         proof (cases "continuous_map X Y f")
           case True
-          then have "f ` (topspace X \<inter> S) \<subseteq> topspace Y"
+          then have "f \<in> (topspace X \<inter> S) \<rightarrow> topspace Y"
             using continuous_map_image_subset_topspace by blast
           then show ?thesis
             using True False that
             using 1 [of X Y f "topspace X \<inter> S" "topspace Y \<inter> T" p]
-          by (simp add: 4 continuous_map_image_subset_topspace hom_mult not_less group.is_monoid monoid.m_closed Int_left_absorb)
+            by (simp add: 4 Pi_iff continuous_map_funspace hom_mult not_less group.is_monoid monoid.m_closed Int_left_absorb)
         qed (simp add: group.is_monoid)
       qed
     qed
-    have hrel: "\<lbrakk>continuous_map X Y f; f ` (topspace X \<inter> S) \<subseteq> T; singular_relcycle p X S c\<rbrakk>
+    have hrel: "\<lbrakk>continuous_map X Y f; f \<in> (topspace X \<inter> S) \<rightarrow> T; singular_relcycle p X S c\<rbrakk>
             \<Longrightarrow> hom_relmap (int p) X (topspace X \<inter> S) Y (topspace Y \<inter> T)
               f (homologous_rel_set p X S c) = homologous_rel_set p Y T (chain_map p f c)"
         for p X S Y T f c
@@ -539,13 +539,14 @@ proof -
             continuous_map_image_subset_topspace by fastforce
     show ?thesis
       apply (rule_tac x="\<lambda>p X S Y T f c.
-               if continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and>
+               if continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
                   c \<in> carrier(relative_homology_group p X S)
                then hom_relmap p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f c
                else one(relative_homology_group p Y T)" in exI)
       apply (simp add: Int_left_absorb subtopology_restrict carrier_relative_homology_group
-          group.is_monoid group.restrict_hom_iff 4 inhom hrel cong: if_cong)
-      apply (force simp: continuous_map_def intro!: ext)
+          group.is_monoid group.restrict_hom_iff 4 inhom hrel split: if_splits)
+      apply (intro ext strip)
+      apply (auto simp: continuous_map_def)
       done
   qed
   ultimately show ?thesis
@@ -558,7 +559,7 @@ specification (hom_induced)
   hom_induced:
     "((\<forall>p X S Y T f c.
         ~(continuous_map X Y f \<and>
-          f ` (topspace X \<inter> S) \<subseteq> T \<and>
+          f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
           c \<in> carrier(relative_homology_group p X S))
         \<longrightarrow> hom_induced p X (S::'a set) Y (T::'b set) f c =
             one(relative_homology_group p Y T)) \<and>
@@ -567,7 +568,7 @@ specification (hom_induced)
                            (relative_homology_group p Y T)) \<and>
     (\<forall>p X S Y T f c.
         continuous_map X Y f \<and>
-        f ` (topspace X \<inter> S) \<subseteq> T \<and>
+        f \<in> (topspace X \<inter> S) \<rightarrow> T \<and>
         singular_relcycle p X S c
         \<longrightarrow> hom_induced p X (S::'a set) Y (T::'b set) f (homologous_rel_set p X S c) =
             homologous_rel_set p Y T (chain_map p f c)) \<and>
@@ -581,7 +582,7 @@ specification (hom_induced)
   by (fact hom_induced3)
 
 lemma hom_induced_default:
-    "~(continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and> c \<in> carrier(relative_homology_group p X S))
+    "~(continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and> c \<in> carrier(relative_homology_group p X S))
           \<Longrightarrow> hom_induced p X S Y T f c = one(relative_homology_group p Y T)"
   and hom_induced_hom:
     "hom_induced p X S Y T f \<in> hom (relative_homology_group p X S) (relative_homology_group p Y T)"
@@ -593,15 +594,15 @@ lemma hom_induced_default:
   by (metis hom_induced)+
 
 lemma hom_induced_chain_map_gen:
-  "\<lbrakk>continuous_map X Y f; f ` (topspace X \<inter> S) \<subseteq> T; singular_relcycle p X S c\<rbrakk>
+  "\<lbrakk>continuous_map X Y f; f \<in> (topspace X \<inter> S) \<rightarrow> T; singular_relcycle p X S c\<rbrakk>
   \<Longrightarrow> hom_induced p X S Y T f (homologous_rel_set p X S c) = homologous_rel_set p Y T (chain_map p f c)"
   by (metis hom_induced)
 
 lemma hom_induced_chain_map:
-   "\<lbrakk>continuous_map X Y f; f ` S \<subseteq> T; singular_relcycle p X S c\<rbrakk>
+   "\<lbrakk>continuous_map X Y f; f \<in> S \<rightarrow> T; singular_relcycle p X S c\<rbrakk>
     \<Longrightarrow> hom_induced p X S Y T f (homologous_rel_set p X S c)
       = homologous_rel_set p Y T (chain_map p f c)"
-  by (meson Int_lower2 hom_induced image_subsetI image_subset_iff subset_iff)
+  by (simp add: Pi_iff hom_induced_chain_map_gen)
 
 
 lemma hom_induced_eq:
@@ -619,10 +620,11 @@ proof -
     case 2
     have "hom_induced n X S Y T f C = hom_induced n X S Y T g C" for C
     proof -
-      have "continuous_map X Y f \<and> f ` (topspace X \<inter> S) \<subseteq> T \<and> C \<in> carrier (relative_homology_group n X S)
-        \<longleftrightarrow> continuous_map X Y g \<and> g ` (topspace X \<inter> S) \<subseteq> T \<and> C \<in> carrier (relative_homology_group n X S)"
+      have "continuous_map X Y f \<and> f \<in> (topspace X \<inter> S) \<rightarrow> T \<and> C \<in> carrier (relative_homology_group n X S)
+        \<longleftrightarrow> continuous_map X Y g \<and> g \<in> (topspace X \<inter> S) \<rightarrow> T \<and> C \<in> carrier (relative_homology_group n X S)"
         (is "?P = ?Q")
-        by (metis IntD1 assms continuous_map_eq image_cong)
+        using assms Pi_iff continuous_map_eq [of X Y]
+        by (smt (verit, ccfv_SIG) Int_iff)
       then consider "\<not> ?P \<and> \<not> ?Q" | "?P \<and> ?Q"
         by blast
       then show ?thesis
@@ -633,18 +635,18 @@ proof -
       next
         case 2
         have "homologous_rel_set n Y T (chain_map n f c) = homologous_rel_set n Y T (chain_map n g c)"
-          if "continuous_map X Y f" "f ` (topspace X \<inter> S) \<subseteq> T"
-             "continuous_map X Y g" "g ` (topspace X \<inter> S) \<subseteq> T"
+          if "continuous_map X Y f" "f \<in> (topspace X \<inter> S) \<rightarrow> T"
+             "continuous_map X Y g" "g \<in> (topspace X \<inter> S) \<rightarrow> T"
              "C = homologous_rel_set n X S c" "singular_relcycle n X S c"
           for c
         proof -
           have "chain_map n f c = chain_map n g c"
-            using assms chain_map_eq singular_relcycle that by blast
+            using assms chain_map_eq singular_relcycle that by metis
           then show ?thesis
             by simp
         qed
         with 2 show ?thesis
-          by (auto simp: relative_homology_group_def carrier_FactGroup
+          by (force simp: relative_homology_group_def carrier_FactGroup
               right_coset_singular_relboundary hom_induced_chain_map_gen)
       qed
     qed
@@ -705,7 +707,7 @@ lemma hom_induced_id:
   by (rule hom_induced_id_gen) auto
 
 lemma hom_induced_compose:
-  assumes "continuous_map X Y f" "f ` S \<subseteq> T" "continuous_map Y Z g" "g ` T \<subseteq> U"
+  assumes "continuous_map X Y f" "f \<in> S \<rightarrow> T" "continuous_map Y Z g" "g \<in> T \<rightarrow> U"
   shows "hom_induced p X S Z U (g \<circ> f) = hom_induced p Y T Z U g \<circ> hom_induced p X S Y T f"
 proof -
   consider (neg) "p < 0" | (int) n where "p = int n"
@@ -715,7 +717,7 @@ proof -
     case int
     have gf: "continuous_map X Z (g \<circ> f)"
       using assms continuous_map_compose by fastforce
-    have gfim: "(g \<circ> f) ` S \<subseteq> U"
+    have gfim: "(g \<circ> f) \<in> S \<rightarrow> U"
       unfolding o_def using assms by blast
     have sr: "\<And>a. singular_relcycle n X S a \<Longrightarrow> singular_relcycle n Y T (chain_map n f a)"
       by (simp add: assms singular_relcycle_chain_map)
@@ -727,7 +729,8 @@ proof -
         case True
         with gfim show ?thesis
           unfolding int
-          by (auto simp: carrier_relative_homology_group gf gfim assms sr chain_map_compose  hom_induced_chain_map)
+          by (auto simp: carrier_relative_homology_group gf gfim assms
+              sr chain_map_compose hom_induced_chain_map)
       next
         case False
         then show ?thesis
@@ -738,12 +741,12 @@ proof -
 qed
 
 lemma hom_induced_compose':
-  assumes "continuous_map X Y f" "f ` S \<subseteq> T" "continuous_map Y Z g" "g ` T \<subseteq> U"
+  assumes "continuous_map X Y f" "f \<in> S \<rightarrow> T" "continuous_map Y Z g" "g \<in> T \<rightarrow> U"
   shows "hom_induced p Y T Z U g (hom_induced p X S Y T f x) = hom_induced p X S Z U (g \<circ> f) x"
   using hom_induced_compose [OF assms] by simp
 
 lemma naturality_hom_induced:
-  assumes "continuous_map X Y f" "f ` S \<subseteq> T"
+  assumes "continuous_map X Y f" "f \<in> S \<rightarrow> T"
   shows "hom_boundary q Y T \<circ> hom_induced q X S Y T f
        = hom_induced (q - 1) (subtopology X S) {} (subtopology Y T) {} f \<circ> hom_boundary q X S"
 proof (cases "q \<le> 0")
@@ -767,7 +770,7 @@ proof (cases "q \<le> 0")
         using p1 by auto
       have cbm: "(chain_boundary p (chain_map p f a))
                = (chain_map (p - Suc 0) f (chain_boundary p a))"
-        using a chain_boundary_chain_map singular_relcycle by blast
+        using a chain_boundary_chain_map singular_relcycle by metis
       have contf: "continuous_map (subtopology X S) (subtopology Y T) f"
         using assms
         by (auto simp: continuous_map_in_subtopology continuous_map_from_subtopology)
@@ -838,8 +841,9 @@ proof -
     \<Longrightarrow> f ` A = f ` B" for f A B
           by blast
         have "?lhs = homologous_rel_set (Suc n) X S ` singular_relcycle_set (Suc n) X {}"
-          using hom_induced_chain_map chain_map_ident [of _ X] singular_relcycle 
-          by (smt (verit) bot.extremum comp_apply continuous_map_id image_cong image_empty mem_Collect_eq)
+          using hom_induced_chain_map chain_map_ident [of _ X] singular_relcycle
+          by (smt (verit, best) comp_apply continuous_map_id empty_iff funcsetI
+              image_cong mem_Collect_eq) 
         also have "\<dots> = homologous_rel_set (Suc n) X S `
                          (singular_relcycle_set (Suc n) X S \<inter>
                           {c. singular_relboundary n (subtopology X S) {} (chain_boundary (Suc n) c)})"
@@ -849,7 +853,9 @@ proof -
           then show "\<exists>y. y \<in> singular_relcycle_set (Suc n) X S \<inter>
                          {c. singular_relboundary n (subtopology X S) {} (chain_boundary (Suc n) c)} \<and>
                     homologous_rel_set (Suc n) X S c = homologous_rel_set (Suc n) X S y"
-            using singular_cycle singular_relcycle by (fastforce simp: singular_boundary)
+            using singular_cycle singular_relcycle
+            by (metis Int_Collect mem_Collect_eq singular_chain_0
+                singular_relboundary_0)
         next
           fix c
           assume c: "c \<in> singular_relcycle_set (Suc n) X S \<inter>
@@ -956,15 +962,21 @@ next
     have 2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> \<exists>y. y \<in> B \<and> f x = f y; \<And>x. x \<in> B \<Longrightarrow> \<exists>y. y \<in> A \<and> f x = f y\<rbrakk>
     \<Longrightarrow> f ` A = f ` B" for f A B
       by blast
-    have "?lhs = homologous_rel_set n X {} ` (singular_relcycle_set n (subtopology X S) {})"
-      by (smt (verit) chain_map_ident continuous_map_id_subt empty_subsetI hom_induced_chain_map image_cong image_empty image_image mem_Collect_eq singular_relcycle)
+    have "\<And>f. singular_chain n (subtopology X S) f \<and>
+         singular_chain (n - Suc 0) trivial_topology (chain_boundary n f) \<Longrightarrow>
+         hom_induced (int n) (subtopology X S) {} X {} id (homologous_rel_set n (subtopology X S) {} f) =
+         homologous_rel_set n X {} f"
+      by (auto simp: chain_map_ident hom_induced_chain_map singular_relcycle)
+    then have "?lhs = homologous_rel_set n X {} ` (singular_relcycle_set n (subtopology X S) {})"
+      by (simp add: singular_relcycle image_comp)
     also have "\<dots> = homologous_rel_set n X {} ` (singular_relcycle_set n X {} \<inter> singular_relboundary_set n X S)"
     proof (rule 2)
       fix c
       assume "c \<in> singular_relcycle_set n (subtopology X S) {}"
       then show "\<exists>y. y \<in> singular_relcycle_set n X {} \<inter> singular_relboundary_set n X S \<and>
             homologous_rel_set n X {} c = homologous_rel_set n X {} y"
-        using singular_chain_imp_relboundary singular_cycle singular_relboundary_imp_chain singular_relcycle by fastforce
+        using singular_chain_imp_relboundary singular_relboundary_imp_chain
+        by (fastforce simp: singular_cycle)
     next
       fix c
       assume "c \<in> singular_relcycle_set n X {} \<inter> singular_relboundary_set n X S"
@@ -1031,7 +1043,7 @@ qed
 
 
 proposition homology_homotopy_axiom:
-  assumes "homotopic_with (\<lambda>h. h ` S \<subseteq> T) X Y f g"
+  assumes "homotopic_with (\<lambda>h. h \<in> S \<rightarrow> T) X Y f g"
   shows "hom_induced p X S Y T f = hom_induced p X S Y T g"
 proof (cases "p < 0")
   case True
@@ -1043,7 +1055,7 @@ next
     by (metis int_nat_eq not_le)
   have cont: "continuous_map X Y f" "continuous_map X Y g"
     using assms homotopic_with_imp_continuous_maps by blast+
-  have im: "f ` (topspace X \<inter> S) \<subseteq> T" "g ` (topspace X \<inter> S) \<subseteq> T"
+  have im: "f \<in> (topspace X \<inter> S) \<rightarrow> T" "g \<in> (topspace X \<inter> S) \<rightarrow> T"
     using homotopic_with_imp_property assms by blast+
   show ?thesis
   proof
@@ -1073,7 +1085,7 @@ next
   then obtain n where peq: "p = int n"
     by (metis int_nat_eq not_le)
   have cont: "continuous_map (subtopology X (S - U)) (subtopology X S) id"
-    by (simp add: closure_of_subtopology_mono continuous_map_eq_image_closure_subset)
+    by (meson Diff_subset continuous_map_from_subtopology_mono continuous_map_id)
   have TU: "topspace X \<inter> (S - U) \<inter> (T - U) \<subseteq> T"
     by auto
   show ?thesis
@@ -1090,9 +1102,9 @@ next
                    (homologous_rel_set n (subtopology X (S - U)) (T - U) c)
                = hom_induced n (subtopology X (S - U)) (T - U) (subtopology X S) T id
                    (homologous_rel_set n (subtopology X (S - U)) (T - U) d)"
-      then have scc: "singular_chain n (subtopology X (S - U)) c"
+      then obtain scc: "singular_chain n (subtopology X (S - U)) c"
            and  scd: "singular_chain n (subtopology X (S - U)) d"
-        using singular_relcycle by blast+
+        using singular_relcycle by metis
       have "singular_relboundary n (subtopology X (S - U)) (T - U) c"
         if srb: "singular_relboundary n (subtopology X S) T c"
           and src: "singular_relcycle n (subtopology X (S - U)) (T - U) c" for c
@@ -1167,7 +1179,8 @@ next
                           "homologous_rel n (subtopology X S) T a c'"
         using a by (blast intro: excised_relcycle_exists [OF assms])
       then have scc': "singular_chain n (subtopology X S) c'"
-        using homologous_rel_singular_chain singular_relcycle that by blast
+        using homologous_rel_singular_chain that
+        by (force simp: singular_relcycle)
       then show ?thesis
         using scc' chain_map_ident [of _ "subtopology X S"] c' homologous_rel_set_eq
         by fastforce
@@ -1182,7 +1195,7 @@ next
           homologous_rel_set n (subtopology X (S - U)) (T - U) `
           singular_relcycle_set n (subtopology X (S - U)) (T - U)
         = homologous_rel_set n (subtopology X S) T ` singular_relcycle_set n (subtopology X S) T"
-      by (simp add: image_comp o_def hom_induced_chain_map_gen cont TU topspace_subtopology
+      by (simp add: image_comp o_def hom_induced_chain_map_gen cont TU
                        cong: image_cong_simp)
   qed
 qed
@@ -1776,10 +1789,10 @@ lemma homology_homotopy_empty:
   by (simp add: homology_homotopy_axiom)
 
 lemma homotopy_equivalence_relative_homology_group_isomorphisms:
-  assumes contf: "continuous_map X Y f" and fim: "f ` S \<subseteq> T"
-      and contg: "continuous_map Y X g" and gim: "g ` T \<subseteq> S"
-      and gf: "homotopic_with (\<lambda>h. h ` S \<subseteq> S) X X (g \<circ> f) id"
-      and fg: "homotopic_with (\<lambda>k. k ` T \<subseteq> T) Y Y (f \<circ> g) id"
+  assumes contf: "continuous_map X Y f" and fim: "f \<in> S \<rightarrow> T"
+      and contg: "continuous_map Y X g" and gim: "g \<in> T \<rightarrow> S"
+      and gf: "homotopic_with (\<lambda>h. h \<in> S \<rightarrow> S) X X (g \<circ> f) id"
+      and fg: "homotopic_with (\<lambda>k. k \<in> T \<rightarrow> T) Y Y (f \<circ> g) id"
     shows "group_isomorphisms (relative_homology_group p X S) (relative_homology_group p Y T)
                 (hom_induced p X S Y T f) (hom_induced p Y T X S g)"
   unfolding group_isomorphisms_def
@@ -1799,10 +1812,10 @@ qed (auto simp: hom_induced_hom)
 
 
 lemma homotopy_equivalence_relative_homology_group_isomorphism:
-  assumes "continuous_map X Y f" and fim: "f ` S \<subseteq> T"
-      and "continuous_map Y X g" and gim: "g ` T \<subseteq> S"
-      and "homotopic_with (\<lambda>h. h ` S \<subseteq> S) X X (g \<circ> f) id"
-      and "homotopic_with (\<lambda>k. k ` T \<subseteq> T) Y Y (f \<circ> g) id"
+  assumes "continuous_map X Y f" and fim: "f \<in> S \<rightarrow> T"
+      and "continuous_map Y X g" and gim: "g \<in> T \<rightarrow> S"
+      and "homotopic_with (\<lambda>h. h \<in> S \<rightarrow> S) X X (g \<circ> f) id"
+      and "homotopic_with (\<lambda>k. k \<in> T \<rightarrow> T) Y Y (f \<circ> g) id"
     shows "(hom_induced p X S Y T f) \<in> iso (relative_homology_group p X S) (relative_homology_group p Y T)"
   using homotopy_equivalence_relative_homology_group_isomorphisms [OF assms] group_isomorphisms_imp_iso
   by metis
@@ -1816,10 +1829,10 @@ lemma homotopy_equivalence_homology_group_isomorphism:
   using assms by (intro homotopy_equivalence_relative_homology_group_isomorphism) auto
 
 lemma homotopy_equivalent_space_imp_isomorphic_relative_homology_groups:
-  assumes "continuous_map X Y f" and fim: "f ` S \<subseteq> T"
-      and "continuous_map Y X g" and gim: "g ` T \<subseteq> S"
-      and "homotopic_with (\<lambda>h. h ` S \<subseteq> S) X X (g \<circ> f) id"
-      and "homotopic_with (\<lambda>k. k ` T \<subseteq> T) Y Y (f \<circ> g) id"
+  assumes "continuous_map X Y f" and fim: "f \<in> S \<rightarrow> T"
+      and "continuous_map Y X g" and gim: "g \<in> T \<rightarrow> S"
+      and "homotopic_with (\<lambda>h. h \<in> S \<rightarrow> S) X X (g \<circ> f) id"
+      and "homotopic_with (\<lambda>k. k \<in> T \<rightarrow> T) Y Y (f \<circ> g) id"
     shows "relative_homology_group p X S \<cong> relative_homology_group p Y T"
   using homotopy_equivalence_relative_homology_group_isomorphism [OF assms]
   unfolding is_iso_def by blast
@@ -1871,7 +1884,7 @@ lemma trivial_homology_group_empty:
   by (simp add: trivial_relative_homology_group_empty)
 
 lemma homeomorphic_maps_relative_homology_group_isomorphisms:
-  assumes "homeomorphic_maps X Y f g" and im: "f ` S \<subseteq> T" "g ` T \<subseteq> S"
+  assumes "homeomorphic_maps X Y f g" and im: "f \<in> S \<rightarrow> T" "g \<in> T \<rightarrow> S"
   shows "group_isomorphisms (relative_homology_group p X S) (relative_homology_group p Y T)
                             (hom_induced p X S Y T f) (hom_induced p Y T X S g)"
 proof -
@@ -1884,10 +1897,10 @@ proof -
          (hom_induced p X (topspace X \<inter> S) Y (topspace Y \<inter> T) f)
          (hom_induced p Y (topspace Y \<inter> T) X (topspace X \<inter> S) g)"
   proof (rule homotopy_equivalence_relative_homology_group_isomorphisms)
-    show "homotopic_with (\<lambda>h. h ` (topspace X \<inter> S) \<subseteq> topspace X \<inter> S) X X (g \<circ> f) id"
+    show "homotopic_with (\<lambda>h. h \<in> (topspace X \<inter> S) \<rightarrow> topspace X \<inter> S) X X (g \<circ> f) id"
       using fg im by (auto intro: homotopic_with_equal continuous_map_compose)
   next
-    show "homotopic_with (\<lambda>k. k ` (topspace Y \<inter> T) \<subseteq> topspace Y \<inter> T) Y Y (f \<circ> g) id"
+    show "homotopic_with (\<lambda>k. k \<in> (topspace Y \<inter> T) \<rightarrow> topspace Y \<inter> T) Y Y (f \<circ> g) id"
       using fg im by (auto intro: homotopic_with_equal continuous_map_compose)
   qed (use im fg in \<open>auto simp: continuous_map_def\<close>)
   then show ?thesis
@@ -2197,21 +2210,23 @@ lemma hom_relboundary_empty: "hom_relboundary p X S {} = hom_boundary p X S"
   by (simp add: ext hom_boundary_carrier hom_induced_id hom_relboundary_def)
 
 lemma naturality_hom_induced_relboundary:
-  assumes "continuous_map X Y f" "f ` S \<subseteq> U" "f ` T \<subseteq> V"
+  assumes "continuous_map X Y f" "f \<in> S \<rightarrow> U" "f \<in> T \<rightarrow> V"
   shows "hom_relboundary p Y U V \<circ>
          hom_induced p X S Y (U) f =
          hom_induced (p-1) (subtopology X S) T (subtopology Y U) V f \<circ>
          hom_relboundary p X S T"
 proof -
   have [simp]: "continuous_map (subtopology X S) (subtopology Y U) f"
-    using assms continuous_map_from_subtopology continuous_map_in_subtopology topspace_subtopology by fastforce
+    using assms continuous_map_from_subtopology continuous_map_in_subtopology topspace_subtopology
+    by (fastforce simp: Pi_iff)
   have "hom_induced (p-1) (subtopology Y U) {} (subtopology Y U) V id \<circ>
         hom_induced (p-1) (subtopology X S) {} (subtopology Y U) {} f
       = hom_induced (p-1) (subtopology X S) T (subtopology Y U) V f \<circ>
         hom_induced (p-1) (subtopology X S) {} (subtopology X S) T id"
     using assms by (simp flip: hom_induced_compose)
   with assms show ?thesis
-    by (metis (no_types, lifting) fun.map_comp hom_relboundary_def naturality_hom_induced)
+    unfolding hom_relboundary_def 
+    by (metis (no_types, lifting) ext fun.map_comp naturality_hom_induced)
 qed
 
 proposition homology_exactness_triple_1:
@@ -2222,7 +2237,7 @@ proposition homology_exactness_triple_1:
                     [hom_relboundary p X S T, hom_induced p X T X S id])"
     (is "exact_seq ([?G1,?G2,?G3], [?h1,?h2])")
 proof -
-  have iTS: "id ` T \<subseteq> S" and [simp]: "S \<inter> T = T"
+  have iTS: "id \<in> T \<rightarrow> S" and [simp]: "S \<inter> T = T"
     using assms by auto
   have "?h2 B \<in> kernel ?G2 ?G1 ?h1" for B
   proof -
@@ -2291,7 +2306,7 @@ proof -
       interpret comm_group "?G2"
         by (rule abelian_relative_homology_group)
       have "hom_induced p X T X S id (hom_induced p X {} X T id W) = hom_induced p X {} X S id W"
-        by (simp add: assms hom_induced_compose')
+        using assms iTS by (simp add: hom_induced_compose')
       then have "B = (?h2 \<circ> hom_induced p X {} X T id) W \<otimes>\<^bsub>?G2\<^esub> ?h2 D"
         by (simp add: Bcarr Weq hb.G.m_assoc hom_induced_carrier)
       then show "B = ?h2 ?W"
@@ -2314,14 +2329,14 @@ proposition homology_exactness_triple_2:
     (is "exact_seq ([?G1,?G2,?G3], [?h1,?h2])")
 proof -
   let ?H2 = "homology_group (p-1) (subtopology X S)"
-  have iTS: "id ` T \<subseteq> S" and [simp]: "S \<inter> T = T"
+  have iTS: "id \<in> T \<rightarrow> S" and [simp]: "S \<inter> T = T"
     using assms by auto
   have "?h2 C \<in> kernel ?G2 ?G1 ?h1" for C
   proof -
     have "?h1 (?h2 C)
        = (hom_induced (p-1) X {} X T id \<circ> hom_induced (p-1) (subtopology X S) {} X {} id \<circ> hom_boundary p X S) C"
       unfolding hom_relboundary_def
-      by (metis (no_types, lifting) comp_apply continuous_map_id continuous_map_id_subt empty_subsetI hom_induced_compose id_apply image_empty image_id order_refl)
+      by (metis Pi_empty comp_eq_dest_lhs continuous_map_id continuous_map_id_subt funcsetI hom_induced_compose' id_apply)
     also have "\<dots> = \<one>\<^bsub>?G1\<^esub>"
     proof -
       have *: "hom_boundary p X S C \<in> carrier ?H2"
@@ -2349,7 +2364,8 @@ proof -
       using that by (simp add: kernel_def)
     moreover
     have "hom_boundary (p-1) X T \<circ> hom_induced (p-1) (subtopology X S) T X T id = hom_boundary (p-1) (subtopology X S) T"
-      by (metis Int_lower2 \<open>S \<inter> T = T\<close> continuous_map_id_subt hom_relboundary_def hom_relboundary_empty id_apply image_id naturality_hom_induced subtopology_subtopology)
+      by (metis funcsetI  \<open>S \<inter> T = T\<close> continuous_map_id_subt hom_relboundary_def
+            hom_relboundary_empty id_apply naturality_hom_induced subtopology_subtopology)
     then have "hom_boundary (p-1) (subtopology X S) T x = \<one>\<^bsub>homology_group (p - 2) (subtopology (subtopology X S) T)\<^esub>"
       using naturality_hom_induced [of "subtopology X S" X id T T "p-1"] that
         hom_one [OF hom_boundary_hom group_relative_homology_group group_relative_homology_group, of "p-1" X T]
@@ -2416,14 +2432,14 @@ proposition homology_exactness_triple_3:
                     [hom_induced p X T X S id, hom_induced p (subtopology X S) T X T id])"
     (is "exact_seq ([?G1,?G2,?G3], [?h1,?h2])")
 proof -
-  have iTS: "id ` T \<subseteq> S" and [simp]: "S \<inter> T = T"
+  have iTS: "id \<in> T \<rightarrow> S" and [simp]: "S \<inter> T = T"
     using assms by auto
   have 1: "?h2 x \<in> kernel ?G2 ?G1 ?h1" for x
   proof -
     have "?h1 (?h2 x)
         = (hom_induced p (subtopology X S) S X S id \<circ>
            hom_induced p (subtopology X S) T (subtopology X S) S id) x"
-      by (metis comp_eq_dest_lhs continuous_map_id continuous_map_id_subt hom_induced_compose iTS id_apply image_subsetI)
+      by (simp add: hom_induced_compose' iTS)
     also have "\<dots> = \<one>\<^bsub>relative_homology_group p X S\<^esub>"
     proof -
       have "trivial_group (relative_homology_group p (subtopology X S) S)"
@@ -2451,7 +2467,8 @@ proof -
     have "hom_boundary p X S (hom_induced p X T X S id x)
         = hom_induced (p-1) (subtopology X T) {} (subtopology X S) {} id
             (hom_boundary p X T x)"
-      using naturality_hom_induced [of X X id T S p]  by (simp add: assms o_def) meson
+      using naturality_hom_induced [of X X id T S p] iTS
+      by (simp add: assms o_def) meson
     with bcarr have "hom_boundary p X T x \<in> hom_boundary p (subtopology X S) T ` carrier ?G3"
       using homology_exactness_axiom_2 [of p "subtopology X S" T] x
       apply (simp add: kernel_def set_eq_iff subtopology_subtopology)
@@ -2467,8 +2484,9 @@ proof -
     have yyy: "hom_boundary p X T y = \<one>\<^bsub>homology_group (p-1) (subtopology X T)\<^esub>"
       apply (simp add: y_def bcarr xcarr hom_induced_carrier hom_boundary_carrier hb.inv_solve_right')
       using naturality_hom_induced [of concl: p X T "subtopology X S" T id]
-      by (smt (verit, best) \<open>S \<inter> T = T\<close> bcarr comp_eq_dest continuous_map_id_subt hom_induced_id id_apply 
-          image_subset_iff subtopology_subtopology ueq)
+      by (metis \<open>S \<inter> T = T\<close> comp_eq_dest_lhs continuous_map_id_subt
+          hom_relboundary_def hom_relboundary_empty id_apply image_id
+          image_subset_iff_funcset subsetI subtopology_subtopology ueq)
     then have "y \<in> hom_induced p X {} X T id ` carrier (homology_group p X)"
       using homology_exactness_axiom_1 [of p X T] x ycarr by (auto simp: kernel_def)
     then obtain z where zcarr: "z \<in> carrier (homology_group p X)"
@@ -2478,7 +2496,7 @@ proof -
       by (meson group_hom_axioms_def group_hom_def group_relative_homology_group hom_induced)
 
     have "hom_induced p X {} X S id z = (hom_induced p X T X S id \<circ> hom_induced p X {} X T id) z"
-      by (simp add: assms flip: hom_induced_compose)
+      using iTS by (simp add: assms flip: hom_induced_compose)
     also have "\<dots> = \<one>\<^bsub>relative_homology_group p X S\<^esub>"
       using x 1 by (simp add: kernel_def zeq y_def)
     finally have "hom_induced p X {} X S id z = \<one>\<^bsub>relative_homology_group p X S\<^esub>" .

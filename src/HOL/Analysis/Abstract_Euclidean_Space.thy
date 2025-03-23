@@ -81,13 +81,13 @@ lemma continuous_map_Euclidean_space_add [continuous_intros]:
    "\<lbrakk>continuous_map X (Euclidean_space n) f; continuous_map X (Euclidean_space n) g\<rbrakk>
     \<Longrightarrow> continuous_map X (Euclidean_space n) (\<lambda>x i. f x i + g x i)"
   unfolding Euclidean_space_def continuous_map_in_subtopology
-  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_add)
+  by (auto simp: continuous_map_componentwise_UNIV Pi_iff continuous_map_add)
 
 lemma continuous_map_Euclidean_space_diff [continuous_intros]:
    "\<lbrakk>continuous_map X (Euclidean_space n) f; continuous_map X (Euclidean_space n) g\<rbrakk>
     \<Longrightarrow> continuous_map X (Euclidean_space n) (\<lambda>x i. f x i - g x i)"
-  unfolding Euclidean_space_def continuous_map_in_subtopology
-  by (fastforce simp add: continuous_map_componentwise_UNIV continuous_map_diff)
+  unfolding Euclidean_space_def continuous_map_in_subtopology 
+  by (auto simp: continuous_map_componentwise_UNIV Pi_iff continuous_map_diff)
 
 lemma continuous_map_Euclidean_space_iff:
   "continuous_map (Euclidean_space m) euclidean g
@@ -101,7 +101,7 @@ proof
 next
   assume "continuous_on (topspace (Euclidean_space m)) g"
   then have "continuous_map (top_of_set {f. \<forall>n\<ge>m. f n = 0}) euclidean g"
-    by (metis (lifting) continuous_map_into_fulltopology continuous_map_subtopology_eu order_refl topspace_Euclidean_space)
+    by (simp add: topspace_Euclidean_space)
   then show "continuous_map (Euclidean_space m) euclidean g"
     by (simp add: Euclidean_space_def euclidean_product_topology)
 qed
@@ -353,7 +353,7 @@ proof -
         for k
         unfolding case_prod_unfold o_def
         by (intro continuous_map_into_fulltopology [OF continuous_map_fst] continuous_intros) auto
-      moreover have "?h ` ({0..1} \<times> topspace (nsphere p)) \<subseteq> {x. \<forall>i\<ge>Suc p. x i = 0}"
+      moreover have "?h \<in> ({0..1} \<times> topspace (nsphere p)) \<rightarrow> {x. \<forall>i\<ge>Suc p. x i = 0}"
         using continuous_map_image_subset_topspace [OF f]
         by (auto simp: nsphere image_subset_iff a0)
       moreover have "(\<lambda>i. 0) \<notin> ?h ` ({0..1} \<times> topspace (nsphere p))"
@@ -376,7 +376,8 @@ proof -
           using eq unfolding * by (simp add: fun_eq_iff)
       qed
       ultimately show "continuous_map (prod_topology ?T01 (nsphere p)) ?Y ?h"
-        by (simp add: Euclidean_space_def continuous_map_in_subtopology continuous_map_componentwise_UNIV)
+        unfolding Euclidean_space_def continuous_map_in_subtopology continuous_map_componentwise_UNIV 
+        by (force simp flip: image_subset_iff_funcset)
     next
       have *: "\<lbrakk>\<forall>i\<ge>Suc p. x i = 0; x \<noteq> (\<lambda>i. 0)\<rbrakk> \<Longrightarrow> (\<Sum>j\<le>p. (x j)\<^sup>2) \<noteq> 0" for x :: "nat \<Rightarrow> real"
         by (force simp: fun_eq_iff not_less_eq_eq sum_nonneg_eq_0_iff)
