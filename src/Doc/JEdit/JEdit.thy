@@ -239,7 +239,7 @@ text \<open>
     -f           fresh build
     -i NAME      include session in name-space of theories
     -j OPTION    add jEdit runtime option
-                 (default -reuseview -nobackground -nosplash -log=9)
+                 (default $JEDIT_OPTIONS)
     -l NAME      logic session name
     -m MODE      add print mode for output
     -n           no build of session image on startup
