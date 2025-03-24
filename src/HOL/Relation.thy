@@ -932,6 +932,14 @@ lemma left_unique_iff_Uniq: "left_unique r \<longleftrightarrow> (\<forall>y. \<
 lemma left_unique_bot[simp]: "left_unique \<bottom>"
   by (simp add: left_unique_def)
 
+lemma left_unique_mono_strong:
+  "left_unique Q \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> left_unique R"
+  by (rule left_uniqueI) (auto dest: left_uniqueD)
+
+lemma left_unique_mono[mono]: "R \<le> Q \<Longrightarrow> left_unique Q \<le> left_unique R"
+  using left_unique_mono_strong[of Q R]
+  by (simp add: le_fun_def)
+
 
 subsubsection \<open>Right uniqueness\<close>
 
@@ -969,6 +977,14 @@ lemma single_valued_empty [simp]:
 
 lemma right_unique_bot[simp]: "right_unique \<bottom>"
   by (fact single_valued_empty[to_pred])
+
+lemma right_unique_mono_strong:
+  "right_unique Q \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> right_unique R"
+  by (rule right_uniqueI) (auto dest: right_uniqueD)
+
+lemma right_unique_mono[mono]: "R \<le> Q \<Longrightarrow> right_unique Q \<le> right_unique R"
+  using right_unique_mono_strong[of Q R]
+  by (simp add: le_fun_def)
 
 lemma single_valued_subset:
   "r \<subseteq> s \<Longrightarrow> single_valued s \<Longrightarrow> single_valued r"

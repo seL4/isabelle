@@ -64,9 +64,13 @@ affecting stored preferences of option "threads".
       irreflp_on_bot[simp]
       left_unique_bot[simp]
       left_unique_iff_Uniq
+      left_unique_mono[mono]
+      left_unique_mono_strong
       refl_on_top[simp]
       reflp_on_refl_on_eq[pred_set_conv]
       reflp_on_top[simp]
+      right_unique_mono[mono]
+      right_unique_mono_strong
       sym_on_bot[simp]
       sym_on_top[simp]
       symp_on_bot[simp]
