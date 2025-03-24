@@ -563,23 +563,6 @@ lemma antisymp_on_antisym_on_eq[pred_set_conv]:
 
 lemmas antisymp_antisym_eq = antisymp_on_antisym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
-lemma antisym_on_bot[simp]: "antisym_on A \<bottom>"
-  by (simp add: antisym_on_def)
-
-lemma antisymp_on_bot[simp]: "antisymp_on A \<bottom>"
-  using antisym_on_bot[to_pred] .
-
-lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
-  by (auto simp: antisym_on_def)
-
-lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
-  by (auto simp: antisymp_on_def)
-
-lemma antisymp_on_image:
-  assumes "inj_on f A"
-  shows "antisymp_on (f ` A) R \<longleftrightarrow> antisymp_on A (\<lambda>a b. R (f a) (f b))"
-  using assms by (auto simp: antisymp_on_def inj_on_def)
-
 lemma antisym_onI:
   "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r \<Longrightarrow> x = y) \<Longrightarrow> antisym_on A r"
   unfolding antisym_on_def by simp
@@ -611,6 +594,23 @@ lemma antisymp_onD:
 lemma antisympD [dest?]:
   "antisymp R \<Longrightarrow> R x y \<Longrightarrow> R y x \<Longrightarrow> x = y"
   by (rule antisymD[to_pred])
+
+lemma antisym_on_bot[simp]: "antisym_on A \<bottom>"
+  by (simp add: antisym_on_def)
+
+lemma antisymp_on_bot[simp]: "antisymp_on A \<bottom>"
+  using antisym_on_bot[to_pred] .
+
+lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
+  by (auto simp: antisym_on_def)
+
+lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
+  by (auto simp: antisymp_on_def)
+
+lemma antisymp_on_image:
+  assumes "inj_on f A"
+  shows "antisymp_on (f ` A) R \<longleftrightarrow> antisymp_on A (\<lambda>a b. R (f a) (f b))"
+  using assms by (auto simp: antisymp_on_def inj_on_def)
 
 lemma antisym_subset:
   "r \<subseteq> s \<Longrightarrow> antisym s \<Longrightarrow> antisym r"
