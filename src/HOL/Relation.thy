@@ -261,6 +261,9 @@ lemma reflp_on_mono_strong:
   "reflp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
   by (rule reflp_onI) (auto dest: reflp_onD)
 
+lemma reflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> reflp_on B R \<le> reflp_on A Q"
+  by (simp add: reflp_on_mono_strong le_fun_def)
+
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
   using reflp_on_mono_strong[OF _ subset_UNIV] .
 

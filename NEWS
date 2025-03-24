@@ -71,6 +71,7 @@ affecting stored preferences of option "threads".
       left_unique_mono[mono]
       left_unique_mono_strong
       refl_on_top[simp]
+      reflp_on_mono[mono]
       reflp_on_refl_on_eq[pred_set_conv]
       reflp_on_top[simp]
       right_unique_mono[mono]
