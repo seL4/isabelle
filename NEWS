@@ -67,6 +67,8 @@ affecting stored preferences of option "threads".
       asymp_on_bot[simp]
       irrefl_on_bot[simp]
       irreflp_on_bot[simp]
+      irreflp_on_mono[mono]
+      irreflp_on_mono_strong
       left_unique_bot[simp]
       left_unique_iff_Uniq
       left_unique_mono[mono]

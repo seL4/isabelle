@@ -333,11 +333,18 @@ lemma irrefl_on_distinct [code]: "irrefl_on A r \<longleftrightarrow> (\<forall>
 
 lemmas irrefl_distinct = irrefl_on_distinct \<comment> \<open>For backward compatibility\<close>
 
+lemma irreflp_on_mono_strong:
+  "irreflp_on B Q \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> irreflp_on A R"
+  by (rule irreflp_onI) (auto dest: irreflp_onD)
+
+lemma irreflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> irreflp_on B Q \<le> irreflp_on A R"
+  by (simp add: irreflp_on_mono_strong le_fun_def)
+
 lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irrefl_on B r"
   by (auto simp: irrefl_on_def)
 
 lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
-  by (auto simp: irreflp_on_def)
+  using irreflp_on_mono_strong .
 
 lemma irreflp_on_image: "irreflp_on (f ` A) R \<longleftrightarrow> irreflp_on A (\<lambda>a b. R (f a) (f b))"
   by (simp add: irreflp_on_def)
