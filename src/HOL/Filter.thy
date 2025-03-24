@@ -966,6 +966,8 @@ subsection \<open>Increasing finite subsets\<close>
 definition finite_subsets_at_top where
   "finite_subsets_at_top A = (\<Sqinter> X\<in>{X. finite X \<and> X \<subseteq> A}. principal {Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A})"
 
+abbreviation "finite_sets_at_top \<equiv> finite_subsets_at_top UNIV"
+
 lemma eventually_finite_subsets_at_top:
   "eventually P (finite_subsets_at_top A) \<longleftrightarrow>
      (\<exists>X. finite X \<and> X \<subseteq> A \<and> (\<forall>Y. finite Y \<and> X \<subseteq> Y \<and> Y \<subseteq> A \<longrightarrow> P Y))"

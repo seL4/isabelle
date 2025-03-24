@@ -1266,9 +1266,9 @@ lemma continuous_at_within_power_int[continuous_intros]:
 
 lemma continuous_on_power_int [continuous_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
+  assumes "continuous_on s f" and "n \<ge> 0 \<or> (\<forall>x\<in>s. f x \<noteq> 0)"
   shows "continuous_on s (\<lambda>x. power_int (f x) n)"
-  using assms unfolding continuous_on_def by (blast intro: tendsto_power_int)
+  using assms by (cases "n \<ge> 0") (auto simp: power_int_def intro!: continuous_intros)
 
 lemma tendsto_power_int' [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"

@@ -385,6 +385,43 @@ proof (induction n)
     using Suc by simp
 qed auto
 
+lemma eval_fls_eq:
+  assumes "N \<le> fls_subdegree F" "fls_subdegree F \<ge> 0 \<or> z \<noteq> 0"
+  assumes "(\<lambda>n. fls_nth F (int n + N) * z powi (int n + N)) sums S"
+  shows   "eval_fls F z = S"
+proof (cases "z = 0")
+  case [simp]: True
+  have "(\<lambda>n. fls_nth F (int n + N) * z powi (int n + N)) =
+        (\<lambda>n. if n \<in> (if N \<le> 0 then {nat (-N)} else {}) then fls_nth F (int n + N) else 0)"
+    by (auto simp: fun_eq_iff split: if_splits)
+  also have "\<dots> sums (\<Sum>n\<in>(if N \<le> 0 then {nat (-N)} else {}). fls_nth F (int n + N))"
+    by (rule sums_If_finite_set) auto
+  also have "\<dots> = fls_nth F 0"
+    using assms by auto
+  also have "\<dots> = eval_fls F z"
+    using assms by (auto simp: eval_fls_def eval_fps_at_0 power_int_0_left_if)
+  finally show ?thesis 
+    using assms by (simp add: sums_iff)
+next
+  case [simp]: False
+  define N' where "N' = fls_subdegree F"
+  define d where "d = nat (N' - N)"
+
+  have "(\<lambda>n. fls_nth F (int n + N) * z powi (int n + N)) sums S"
+    by fact
+  also have "?this \<longleftrightarrow> (\<lambda>n. fls_nth F (int (n+d) + N) * z powi (int (n+d) + N)) sums S"
+    by (rule sums_zero_iff_shift [symmetric]) (use assms in \<open>auto simp: d_def N'_def\<close>)
+  also have "(\<lambda>n. int (n+d) + N) = (\<lambda>n. int n + N')"
+    using assms by (auto simp: N'_def d_def)
+  finally have "(\<lambda>n. fls_nth F (int n + N') * z powi (int n + N')) sums S" .
+  hence "(\<lambda>n. z powi (-N') * (fls_nth F (int n + N') * z powi (int n + N'))) sums (z powi (-N') * S)"
+    by (intro sums_mult)
+  hence "(\<lambda>n. fls_nth F (int n + N') * z ^ n) sums (z powi (-N') * S)"
+    by (simp add: power_int_add power_int_minus field_simps)
+  thus ?thesis
+    by (simp add: eval_fls_def eval_fps_def sums_iff power_int_minus N'_def)
+qed
+
 lemma norm_summable_fls:
   "norm z < fls_conv_radius f \<Longrightarrow> summable (\<lambda>n. norm (fls_nth f n * z ^ n))"
   using norm_summable_fps[of z "fls_regpart f"] by (simp add: fls_conv_radius_def)

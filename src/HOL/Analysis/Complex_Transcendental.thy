@@ -2605,10 +2605,21 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma continuous_powr_complex:
-  assumes "f (netlimit F) \<notin> \<real>\<^sub>\<le>\<^sub>0" "continuous F f" "continuous F g"
+lemma continuous_powr_complex [continuous_intros]: 
+  assumes "continuous F f" "continuous F g"
+  assumes "Re (f (netlimit F)) \<ge> 0 \<or> Im (f (netlimit F)) \<noteq> 0"
+  assumes "f (netlimit F) = 0 \<longrightarrow> Re (g (netlimit F)) > 0"
   shows   "continuous F (\<lambda>z. f z powr g z :: complex)"
-  using assms unfolding continuous_def by (intro tendsto_powr_complex) simp_all
+  using assms
+  unfolding continuous_def
+  by (intro tendsto_powr_complex')
+     (auto simp: complex_nonpos_Reals_iff complex_eq_iff)
+
+lemma continuous_powr_real [continuous_intros]: 
+  assumes "continuous F f" "continuous F g"
+  assumes "f (netlimit F) = 0 \<longrightarrow> g (netlimit F) > 0 \<and> (\<forall>\<^sub>F z in F. 0 \<le> f z)"
+  shows   "continuous F (\<lambda>z. f z powr g z :: real)"
+  using assms unfolding continuous_def by (intro tendsto_intros) auto
 
 lemma isCont_powr_complex [continuous_intros]:
   assumes "f z \<notin> \<real>\<^sub>\<le>\<^sub>0" "isCont f z" "isCont g z"
@@ -2635,6 +2646,43 @@ proof
     with assms z show ?thesis
       by (auto intro!: tendsto_powr_complex_0 simp: continuous_on_def)
   qed
+qed
+
+lemma analytic_on_powr [analytic_intros]:
+  assumes "f analytic_on X" "g analytic_on X" "\<And>x. x \<in> X \<Longrightarrow> f x \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "(\<lambda>x. f x powr g x) analytic_on X"
+proof -
+  from assms(1) obtain X1 where X1: "open X1" "X \<subseteq> X1" "f analytic_on X1"
+    unfolding analytic_on_holomorphic by blast
+  from assms(2) obtain X2 where X2: "open X2" "X \<subseteq> X2" "g analytic_on X2"
+    unfolding analytic_on_holomorphic by blast
+  have X: "open (X2 \<inter> (X1 \<inter> f -` (-\<real>\<^sub>\<le>\<^sub>0)))"
+    by (rule open_Int[OF _ continuous_open_preimage])
+       (use X1 X2 in \<open>auto intro!: holomorphic_on_imp_continuous_on analytic_imp_holomorphic\<close>)
+  have X': "X \<subseteq> X2 \<inter> (X1 \<inter> f -` (-\<real>\<^sub>\<le>\<^sub>0))"
+    using assms(3) X1(2) X2(2) by blast
+  note [holomorphic_intros] =
+    analytic_imp_holomorphic[OF analytic_on_subset[OF X1(3)]]
+    analytic_imp_holomorphic[OF analytic_on_subset[OF X2(3)]]
+  have "(\<lambda>x. exp (ln (f x) * g x)) holomorphic_on (X2 \<inter> (X1 \<inter> f -` (-\<real>\<^sub>\<le>\<^sub>0)))"
+    by (intro holomorphic_intros) auto
+  also have "?this \<longleftrightarrow> (\<lambda>x. f x powr g x) holomorphic_on (X2 \<inter> (X1 \<inter> f -` (-\<real>\<^sub>\<le>\<^sub>0)))"
+    by (intro holomorphic_cong) (auto simp: powr_def mult.commute)
+  finally show ?thesis
+    using X X' unfolding analytic_on_holomorphic by blast
+qed
+
+lemma holomorphic_on_powr [holomorphic_intros]:
+  assumes "f holomorphic_on X" "g holomorphic_on X" "\<And>x. x \<in> X \<Longrightarrow> f x \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "(\<lambda>x. f x powr g x) holomorphic_on X"
+proof -
+  have [simp]: "f x \<noteq> 0" if "x \<in> X" for x
+    using assms(3)[OF that] by auto
+  have "(\<lambda>x. exp (ln (f x) * g x)) holomorphic_on X"
+    by (auto intro!: holomorphic_intros assms(1,2)) (use assms(3) in auto)
+  also have "?this \<longleftrightarrow> ?thesis"
+    by (intro holomorphic_cong) (use assms(3) in \<open>auto simp: powr_def mult_ac\<close>)
+  finally show ?thesis .
 qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Some Limits involving Logarithms\<close>

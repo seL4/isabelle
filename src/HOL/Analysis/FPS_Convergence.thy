@@ -1057,4 +1057,34 @@ proof -
     by (intro that[of ?s']) (auto simp: has_fps_expansion_def zero_ereal_def)
 qed
 
+lemma has_fps_expansionI:
+  fixes f :: "'a :: {banach, real_normed_div_algebra} \<Rightarrow> 'a"
+  assumes "eventually (\<lambda>u. (\<lambda>n. fps_nth F n * u ^ n) sums f u) (nhds 0)"
+  shows   "f has_fps_expansion F"
+proof -
+  from assms obtain X where X: "open X" "0 \<in> X" "\<And>u. u \<in> X \<Longrightarrow> (\<lambda>n. fps_nth F n * u ^ n) sums f u"
+    unfolding eventually_nhds by blast
+  obtain r where r: "r > 0" "cball 0 r \<subseteq> X"
+    using X(1,2) open_contains_cball by blast
+  have "0 < norm (of_real r :: 'a)"
+    using r(1) by simp
+  also have "fps_conv_radius F \<ge> norm (of_real r :: 'a)"
+    unfolding fps_conv_radius_def
+  proof (rule conv_radius_geI)
+    have "of_real r \<in> X"
+      using r by auto
+    from X(3)[OF this] show "summable (\<lambda>n. fps_nth F n * of_real r ^ n)"
+      by (simp add: sums_iff)
+  qed
+  finally have "fps_conv_radius F > 0"
+    by (simp_all add: zero_ereal_def)
+  moreover have "(\<forall>\<^sub>F z in nhds 0. eval_fps F z = f z)"
+    using assms by eventually_elim (auto simp: sums_iff eval_fps_def)
+  ultimately show ?thesis
+    unfolding has_fps_expansion_def ..
+qed
+
+lemma fps_mult_numeral_left [simp]: "fps_nth (numeral c * f) n = numeral c * fps_nth f n"
+  by (simp add: fps_numeral_fps_const)
+
 end

@@ -359,6 +359,35 @@ next
     by (fastforce intro: exI[of _ y] lt_ex)
 qed
 
+lemma filterlim_atLeastAtMost_at_bot_at_top:
+  fixes f g :: "'a \<Rightarrow> 'b :: linorder_topology"
+  assumes "filterlim f at_bot F" "filterlim g at_top F"
+  assumes [simp]: "\<And>a b. finite {a..b::'b}"
+  shows   "filterlim (\<lambda>x. {f x..g x}) finite_sets_at_top F"
+  unfolding filterlim_finite_subsets_at_top
+proof safe
+  fix X :: "'b set"
+  assume X: "finite X"
+  from X obtain lb where lb: "\<And>x. x \<in> X \<Longrightarrow> lb \<le> x"
+    by (metis finite_has_minimal2 nle_le)
+  from X obtain ub where ub: "\<And>x. x \<in> X \<Longrightarrow> x \<le> ub"
+    by (metis all_not_in_conv finite_has_maximal nle_le)
+  have "eventually (\<lambda>x. f x \<le> lb) F" "eventually (\<lambda>x. g x \<ge> ub) F"
+    using assms by (simp_all add: filterlim_at_bot filterlim_at_top)
+  thus "eventually (\<lambda>x. finite {f x..g x} \<and> X \<subseteq> {f x..g x} \<and> {f x..g x} \<subseteq> UNIV) F"
+  proof eventually_elim
+    case (elim x)
+    have "X \<subseteq> {f x..g x}"
+    proof
+      fix y assume "y \<in> X"
+      thus "y \<in> {f x..g x}"
+        using lb[of y] ub[of y] elim by auto
+    qed
+    thus ?case
+      by auto
+  qed
+qed
+
 
 subsection \<open>Setup some topologies\<close>
 

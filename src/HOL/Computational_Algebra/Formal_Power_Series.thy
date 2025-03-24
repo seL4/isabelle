@@ -5166,6 +5166,18 @@ lemma fps_compose_uminus':
   "fps_compose f (-fps_X :: 'a :: comm_ring_1 fps) = Abs_fps (\<lambda>n. (-1)^n * f $ n)"
   using fps_compose_linear[of f "-1"] 
   by (simp only: fps_const_neg [symmetric] fps_const_1_eq_1) simp
+lemma fps_nth_compose_linear [simp]:
+  fixes f :: "'a :: comm_ring_1 fps"
+  shows "fps_nth (fps_compose f (fps_const c * fps_X)) n = c ^ n * fps_nth f n"
+proof -
+  have "fps_nth (fps_compose f (fps_const c * fps_X)) n =
+        (\<Sum>i\<in>{n}. fps_nth f i * fps_nth ((fps_const c * fps_X) ^ i) n)"
+    unfolding fps_compose_nth
+    by (intro sum.mono_neutral_cong_right) (auto simp: power_mult_distrib)
+  also have "\<dots> = c ^ n * fps_nth f n"
+    by (simp add: power_mult_distrib)
+  finally show ?thesis .
+qed
 
 subsection \<open>Elementary series\<close>
 
