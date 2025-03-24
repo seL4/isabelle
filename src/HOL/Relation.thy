@@ -601,11 +601,40 @@ lemma antisym_on_bot[simp]: "antisym_on A \<bottom>"
 lemma antisymp_on_bot[simp]: "antisymp_on A \<bottom>"
   using antisym_on_bot[to_pred] .
 
+lemma antisymp_on_mono_stronger:
+  fixes
+    A :: "'a set" and R :: "'a \<Rightarrow> 'a \<Rightarrow> bool" and
+    B :: "'b set" and Q :: "'b \<Rightarrow> 'b \<Rightarrow> bool" and
+    f :: "'a \<Rightarrow> 'b"
+  assumes "antisymp_on B Q" and "f ` A \<subseteq> B" and
+    Q_imp_R: "\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q (f x) (f y)" and
+    inj_f: "inj_on f A"
+  shows "antisymp_on A R"
+proof (rule antisymp_onI)
+  fix x y :: 'a
+  assume "x \<in> A" and "y \<in> A" and "R x y" and "R y x"
+  hence "Q (f x) (f y)" and "Q (f y) (f x)"
+    using Q_imp_R by iprover+
+  moreover have "f x \<in> B" and "f y \<in> B"
+    using \<open>f ` A \<subseteq> B\<close> \<open>x \<in> A\<close> \<open>y \<in> A\<close> by blast+
+  ultimately have "f x = f y"
+    using \<open>antisymp_on B Q\<close>[THEN antisymp_onD] by iprover
+  thus "x = y"
+    using inj_f[THEN inj_onD] \<open>x \<in> A\<close> \<open>y \<in> A\<close> by iprover
+qed
+
+lemma antisymp_on_mono_strong:
+  "antisymp_on B Q \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> antisymp_on A R"
+  using antisymp_on_mono_stronger[of B Q "\<lambda>x. x" A R, OF _ _ _ inj_on_id2, unfolded image_ident] .
+
+lemma antisymp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> antisymp_on B Q \<le> antisymp_on A R"
+  by (simp add: antisymp_on_mono_strong le_fun_def)
+
 lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
   by (auto simp: antisym_on_def)
 
 lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
-  by (auto simp: antisymp_on_def)
+  using antisymp_on_mono_strong .
 
 lemma antisymp_on_image:
   assumes "inj_on f A"

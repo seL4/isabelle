@@ -58,6 +58,9 @@ affecting stored preferences of option "threads".
   - Added lemmas.
       antisym_on_bot[simp]
       antisymp_on_bot[simp]
+      antisymp_on_mono
+      antisymp_on_mono_strong
+      antisymp_on_mono_stronger
       asym_on_bot[simp]
       asymp_on_bot[simp]
       irrefl_on_bot[simp]
