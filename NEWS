@@ -47,8 +47,9 @@ affecting stored preferences of option "threads".
   - Removed predicate single_valuedp. Use predicate right_unique instead.
     INCOMPATIBILITY.
   - Removed lemmas. Minor INCOMPATIBILITY.
-      antisym_empty[simp] (use antisym_on_bot instead)
       antisym_bot[simp] (use antisymp_on_bot instead)
+      antisym_empty[simp] (use antisym_on_bot instead)
+      reflp_mono (use reflp_on_mono_strong instead)
       trans_empty[simp] (use trans_on_bot instead)
   - Strengthened lemmas. Minor INCOMPATIBILITY.
       refl_on_empty[simp]
