@@ -209,6 +209,13 @@ lemma refl_on_top[simp]: "refl_on A \<top>"
 lemma reflp_on_top[simp]: "reflp_on A \<top>"
   by (simp add: reflp_on_def)
 
+lemma reflp_on_mono_strong:
+  "reflp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
+  by (rule reflp_onI) (auto dest: reflp_onD)
+
+lemma reflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> reflp_on B R \<le> reflp_on A Q"
+  by (simp add: reflp_on_mono_strong le_fun_def)
+
 lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> reflp_on B R"
   by (auto intro: reflp_onI dest: reflp_onD)
 
@@ -256,13 +263,6 @@ by (blast intro: refl_onI)
 
 lemma reflp_on_equality [simp]: "reflp_on A (=)"
   by (simp add: reflp_on_def)
-
-lemma reflp_on_mono_strong:
-  "reflp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
-  by (rule reflp_onI) (auto dest: reflp_onD)
-
-lemma reflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> reflp_on B R \<le> reflp_on A Q"
-  by (simp add: reflp_on_mono_strong le_fun_def)
 
 lemma (in preorder) reflp_on_le[simp]: "reflp_on A (\<le>)"
   by (simp add: reflp_onI)
