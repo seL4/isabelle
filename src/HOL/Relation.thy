@@ -410,11 +410,18 @@ lemma asymp_on_bot[simp]: "asymp_on A \<bottom>"
 lemma asym_iff: "asym r \<longleftrightarrow> (\<forall>x y. (x,y) \<in> r \<longrightarrow> (y,x) \<notin> r)"
   by (blast dest: asymD)
 
+lemma asymp_on_mono_strong:
+  "asymp_on B Q \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> asymp_on A R"
+  by (rule asymp_onI) (auto dest: asymp_onD)
+
+lemma asymp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> asymp_on B Q \<le> asymp_on A R"
+  by (simp add: asymp_on_mono_strong le_fun_def)
+
 lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asym_on B r"
   by (auto simp: asym_on_def)
 
 lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
-  by (auto simp: asymp_on_def)
+  using asymp_on_mono_strong .
 
 lemma asymp_on_image: "asymp_on (f ` A) R \<longleftrightarrow> asymp_on A (\<lambda>a b. R (f a) (f b))"
   by (simp add: asymp_on_def)
