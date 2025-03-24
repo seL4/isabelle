@@ -217,7 +217,7 @@ lemma reflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longri
   by (simp add: reflp_on_mono_strong le_fun_def)
 
 lemma reflp_on_subset: "reflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> reflp_on B R"
-  by (auto intro: reflp_onI dest: reflp_onD)
+  using reflp_on_mono_strong .
 
 lemma reflp_on_image: "reflp_on (f ` A) R \<longleftrightarrow> reflp_on A (\<lambda>a b. R (f a) (f b))"
   by (simp add: reflp_on_def)
