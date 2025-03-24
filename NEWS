@@ -54,6 +54,7 @@ affecting stored preferences of option "threads".
       refl_on_empty[simp]
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       antisymp_equality[simp] ~> antisymp_on_equality[simp]
+      reflp_on_mono ~> reflp_on_mono_strong
       transp_equality[simp] ~> transp_on_equality[simp]
   - Added lemmas.
       antisym_on_bot[simp]

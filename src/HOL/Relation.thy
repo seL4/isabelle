@@ -257,12 +257,12 @@ by (blast intro: refl_onI)
 lemma reflp_on_equality [simp]: "reflp_on A (=)"
   by (simp add: reflp_on_def)
 
-lemma reflp_on_mono:
-  "reflp_on A R \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
-  by (auto intro: reflp_onI dest: reflp_onD)
+lemma reflp_on_mono_strong:
+  "reflp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp_on A Q"
+  by (rule reflp_onI) (auto dest: reflp_onD)
 
 lemma reflp_mono: "reflp R \<Longrightarrow> (\<And>x y. R x y \<Longrightarrow> Q x y) \<Longrightarrow> reflp Q"
-  by (rule reflp_on_mono[of UNIV R Q]) simp_all
+  using reflp_on_mono_strong[OF _ subset_UNIV] .
 
 lemma (in preorder) reflp_on_le[simp]: "reflp_on A (\<le>)"
   by (simp add: reflp_onI)
