@@ -466,27 +466,6 @@ lemma symp_on_sym_on_eq[pred_set_conv]: "symp_on A (\<lambda>x y. (x, y) \<in> r
 
 lemmas symp_sym_eq = symp_on_sym_on_eq[of UNIV] \<comment> \<open>For backward compatibility\<close>
 
-lemma sym_on_bot[simp]: "sym_on A \<bottom>"
-  by (simp add: sym_on_def)
-
-lemma symp_on_bot[simp]: "symp_on A \<bottom>"
-  using sym_on_bot[to_pred] .
-
-lemma sym_on_top[simp]: "sym_on A \<top>"
-  by (simp add: sym_on_def)
-
-lemma symp_on_top[simp]: "symp_on A \<top>"
-  by (simp add: symp_on_def)
-
-lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
-  by (auto simp: sym_on_def)
-
-lemma symp_on_subset: "symp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> symp_on B R"
-  by (auto simp: symp_on_def)
-
-lemma symp_on_image: "symp_on (f ` A) R \<longleftrightarrow> symp_on A (\<lambda>a b. R (f a) (f b))"
-  by (simp add: symp_on_def)
-
 lemma sym_onI: "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> r \<Longrightarrow> (y, x) \<in> r) \<Longrightarrow> sym_on A r"
   by (simp add: sym_on_def)
 
@@ -520,6 +499,27 @@ lemma symp_onD: "symp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y \<i
 
 lemma sympD [dest?]: "symp R \<Longrightarrow> R x y \<Longrightarrow> R y x"
   by (rule symD[to_pred])
+
+lemma sym_on_bot[simp]: "sym_on A \<bottom>"
+  by (simp add: sym_on_def)
+
+lemma symp_on_bot[simp]: "symp_on A \<bottom>"
+  using sym_on_bot[to_pred] .
+
+lemma sym_on_top[simp]: "sym_on A \<top>"
+  by (simp add: sym_on_def)
+
+lemma symp_on_top[simp]: "symp_on A \<top>"
+  by (simp add: symp_on_def)
+
+lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
+  by (auto simp: sym_on_def)
+
+lemma symp_on_subset: "symp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> symp_on B R"
+  by (auto simp: symp_on_def)
+
+lemma symp_on_image: "symp_on (f ` A) R \<longleftrightarrow> symp_on A (\<lambda>a b. R (f a) (f b))"
+  by (simp add: symp_on_def)
 
 lemma symp_on_equality[simp]: "symp_on A (=)"
   by (simp add: symp_on_def)
