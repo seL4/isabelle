@@ -452,6 +452,13 @@ fun is_useful_unnamed_local_fact ctxt =
       not (member (op aconv) named_locals (normalize_eq (Thm.prop_of th)))
   end
 
+local
+
+type lazy_facts =
+  {singletons : lazy_fact list , dotteds : lazy_fact list, collections : lazy_fact list}
+
+in
+
 fun all_facts ctxt generous keywords add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -470,7 +477,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
 
     val full_space = Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
 
-    fun add_facts global foldx facts =
+    fun add_facts global foldx facts : 'a -> lazy_facts -> lazy_facts =
       foldx (fn (name0, ths) => fn accum =>
         if name0 <> "" andalso
            (Long_Name.is_hidden (Facts.intern facts name0) orelse
@@ -489,7 +496,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths'))
           in
-            snd (fold_rev (fn th0 => fn (j, accum as {singletons, dotteds, collections}) =>
+            snd (fold_rev (fn th0 => fn (j, accum as {singletons, dotteds, collections} : lazy_facts) =>
               let val th = transfer th0 in
                 (j - 1,
                  if not (member Thm.eq_thm_prop add_ths th) andalso
@@ -535,6 +542,8 @@ fun all_facts ctxt generous keywords add_ths chained css =
        "Preferred" means "put to the front of the list". *)
     singletons @ dotteds @ collections
   end
+
+end
 
 fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts concl_t =
   if only andalso null add then
