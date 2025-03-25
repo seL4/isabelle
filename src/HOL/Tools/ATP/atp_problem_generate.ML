@@ -1935,8 +1935,7 @@ fun add_helper_facts_of_sym ctxt format type_enc lam_trans completish (s, {types
            map_filter (try (specialize_helper t)) types
          else
            [t])
-        |> tag_list 1
-        |> map (fn (k, t) => ((dub needs_sound j k, (Global, status)), t))
+        |> map_index (fn (k, t) => ((dub needs_sound j (k + 1), (Global, status)), t))
       fun make_facts type_enc = map_filter (make_fact ctxt format type_enc false)
       val sound = is_type_enc_sound type_enc
       val could_specialize = could_specialize_helpers type_enc
