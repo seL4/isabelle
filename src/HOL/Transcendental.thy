@@ -3978,11 +3978,23 @@ lemma sin_npi_numeral [simp]: "sin(Num.numeral n * pi) = 0"
 lemma sin_npi2_numeral [simp]: "sin (pi * Num.numeral n) = 0"
   by (metis of_nat_numeral sin_npi2)
 
+lemma sin_npi_complex' [simp]: "sin (of_nat n * of_real pi) = 0"
+  by (metis of_real_0 of_real_mult of_real_of_nat_eq sin_npi sin_of_real)
+
 lemma cos_npi_numeral [simp]: "cos (Num.numeral n * pi) = (- 1) ^ Num.numeral n"
   by (metis cos_npi of_nat_numeral)
 
 lemma cos_npi2_numeral [simp]: "cos (pi * Num.numeral n) = (- 1) ^ Num.numeral n"
   by (metis cos_npi2 of_nat_numeral)
+
+lemma cos_npi_complex' [simp]: "cos (of_nat n * of_real pi) = (-1) ^ n" for n
+proof -
+  have "cos (of_nat n * of_real pi :: 'a) = of_real (cos (real n * pi))"
+    by (subst cos_of_real [symmetric]) simp
+  also have "cos (real n * pi) = (-1) ^ n"
+    by simp
+  finally show ?thesis by simp
+qed
 
 lemma cos_two_pi [simp]: "cos (2 * pi) = 1"
   by (simp add: cos_double)

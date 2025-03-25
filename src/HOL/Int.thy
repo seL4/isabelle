@@ -1881,6 +1881,15 @@ lemma power_int_inverse [field_simps, field_split_simps, divide_simps]:
 lemma power_int_mult: "power_int (x :: 'a) (m * n) = power_int (power_int x m) n"
   by (auto simp: power_int_def zero_le_mult_iff simp flip: power_mult power_inverse nat_mult_distrib)
 
+lemma power_int_power: "(a ^ b :: 'a :: division_ring) powi c = a powi (int b * c)"
+  by (subst power_int_mult) simp
+
+lemma power_int_power': "(a powi b :: 'a :: division_ring) ^ c = a powi (b * int c)"
+  by (simp add: power_int_mult)
+
+lemma power_int_nonneg_exp: "n \<ge> 0 \<Longrightarrow> x powi n = x ^ nat n"
+  by (simp add: power_int_def)
+
 end
 
 context

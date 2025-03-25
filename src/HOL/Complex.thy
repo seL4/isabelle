@@ -878,6 +878,12 @@ lemma cis_inverse [simp]: "inverse (cis a) = cis (- a)"
 lemma cis_divide: "cis a / cis b = cis (a - b)"
   by (simp add: divide_complex_def cis_mult)
 
+lemma cis_power_int: "cis x powi n = cis (of_int n * x)"
+  by (auto simp: power_int_def DeMoivre)  
+
+lemma complex_cnj_power_int [simp]: "cnj (x powi n) = cnj x powi n"
+  by (auto simp: power_int_def)
+
 lemma divide_conv_cnj: "norm z = 1 \<Longrightarrow> x / z = x * cnj z"
   by (metis complex_div_cnj div_by_1 mult_1 of_real_1 power2_eq_square)
 
