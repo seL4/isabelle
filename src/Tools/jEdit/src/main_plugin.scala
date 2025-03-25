@@ -311,7 +311,7 @@ class Main_Plugin extends EBPlugin {
 
           jEdit.propertiesChanged()
 
-          val view = jEdit.getActiveView()
+          val view = jEdit.getActiveView
           init_editor(view)
 
           PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
@@ -446,7 +446,7 @@ class Main_Plugin extends EBPlugin {
 
     shutting_down.change(_ => false)
 
-    val view = jEdit.getActiveView()
+    val view = jEdit.getActiveView
     if (view != null) init_editor(view)
   }
 

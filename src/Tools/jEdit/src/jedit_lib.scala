@@ -111,7 +111,7 @@ object JEdit_Lib {
     jEdit.getViewManager().getViews().asScala.iterator
 
   def jedit_view(view: View = null): View =
-    if (view == null) jEdit.getActiveView() else view
+    if (view == null) jEdit.getActiveView else view
 
   def jedit_edit_panes(view: View): Iterator[EditPane] =
     if (view == null) Iterator.empty
@@ -406,7 +406,7 @@ object JEdit_Lib {
   /* key event handling */
 
   def request_focus_view(alt_view: View = null): Unit = {
-    val view = if (alt_view != null) alt_view else jEdit.getActiveView()
+    val view = if (alt_view != null) alt_view else jEdit.getActiveView
     if (view != null) {
       val text_area = view.getTextArea
       if (text_area != null) text_area.requestFocus()
