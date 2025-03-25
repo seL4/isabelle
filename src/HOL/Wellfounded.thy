@@ -337,7 +337,7 @@ qed
 subsubsection \<open>Antimonotonicity\<close>
 
 
-lemma wfp_on_antimono_stronger:
+lemma wfp_on_mono_stronger:
   fixes
     A :: "'a set" and B :: "'b set" and
     f :: "'a \<Rightarrow> 'b" and
@@ -363,34 +363,34 @@ proof (intro allI impI)
     using \<open>A' \<subseteq> A\<close> mono by blast
 qed
 
-lemma wf_on_antimono_stronger:
+lemma wf_on_mono_stronger:
   assumes
     "wf_on B r" and
     "f ` A \<subseteq> B" and
     "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> q \<Longrightarrow> (f x, f y) \<in> r)"
   shows "wf_on A q"
-  using assms wfp_on_antimono_stronger[to_set, of B r f A q] by blast
+  using assms wfp_on_mono_stronger[to_set, of B r f A q] by blast
 
-lemma wf_on_antimono_strong:
+lemma wf_on_mono_strong:
   assumes "wf_on B r" and "A \<subseteq> B" and "(\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> (x, y) \<in> q \<Longrightarrow> (x, y) \<in> r)"
   shows "wf_on A q"
-  using assms wf_on_antimono_stronger[of B r "\<lambda>x. x" A q] by blast
+  using assms wf_on_mono_stronger[of B r "\<lambda>x. x" A q] by blast
 
-lemma wfp_on_antimono_strong:
+lemma wfp_on_mono_strong:
   "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> (\<And>x y. x \<in> A \<Longrightarrow> y \<in> A \<Longrightarrow> Q x y \<Longrightarrow> R x y) \<Longrightarrow> wfp_on A Q"
-  using wf_on_antimono_strong[of B _ A, to_pred] .
+  using wf_on_mono_strong[of B _ A, to_pred] .
 
-lemma wf_on_antimono: "A \<subseteq> B \<Longrightarrow> q \<subseteq> r \<Longrightarrow> wf_on B r \<le> wf_on A q"
-  using wf_on_antimono_strong[of B r A q] by auto
+lemma wf_on_mono: "A \<subseteq> B \<Longrightarrow> q \<subseteq> r \<Longrightarrow> wf_on B r \<le> wf_on A q"
+  using wf_on_mono_strong[of B r A q] by auto
 
-lemma wfp_on_antimono: "A \<subseteq> B \<Longrightarrow> Q \<le> R \<Longrightarrow> wfp_on B R \<le> wfp_on A Q"
-  using wfp_on_antimono_strong[of B R A Q] by auto
+lemma wfp_on_mono: "A \<subseteq> B \<Longrightarrow> Q \<le> R \<Longrightarrow> wfp_on B R \<le> wfp_on A Q"
+  using wfp_on_mono_strong[of B R A Q] by auto
 
 lemma wf_on_subset: "wf_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> wf_on A r"
-  using wf_on_antimono_strong .
+  using wf_on_mono_strong .
 
 lemma wfp_on_subset: "wfp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> wfp_on A R"
-  using wfp_on_antimono_strong .
+  using wfp_on_mono_strong .
 
 
 subsubsection \<open>Equivalence between \<^const>\<open>wfp_on\<close> and \<^const>\<open>wfp\<close>\<close>
@@ -405,7 +405,7 @@ proof (rule iffI)
 next
   assume ?RHS
   thus ?LHS
-  proof (rule wfp_on_antimono_strong)
+  proof (rule wfp_on_mono_strong)
     show "A \<subseteq> UNIV"
       using subset_UNIV .
   next
@@ -524,7 +524,7 @@ lemma wf_converse_trancl: "wf (r\<inverse>) \<Longrightarrow> wf ((r\<^sup>+)\<i
 text \<open>Well-foundedness of subsets\<close>
 
 lemma wf_subset: "wf r \<Longrightarrow> p \<subseteq> r \<Longrightarrow> wf p"
-  using wf_on_antimono[OF subset_UNIV, unfolded le_bool_def] ..
+  using wf_on_mono[OF subset_UNIV, unfolded le_bool_def] ..
 
 lemmas wfp_subset = wf_subset [to_pred]
 

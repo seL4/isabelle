@@ -99,6 +99,13 @@ affecting stored preferences of option "threads".
       transp_on_top[simp]
 
 * Theory "HOL.Wellfounded":
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      wf_on_antimono_stronger ~> wf_on_mono_stronger
+      wf_on_antimono_strong ~> wf_on_mono_strong
+      wf_on_antimono ~> wf_on_mono
+      wfp_on_antimono_stronger ~> wfp_on_mono_stronger
+      wfp_on_antimono_strong ~> wfp_on_mono_strong
+      wfp_on_antimono ~> wfp_on_mono
   - Removed lemmas. Minor INCOMPATIBILITY.
       wf_empty[iff] (use wf_on_bot instead)
   - Added lemmas.
