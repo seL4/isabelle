@@ -23,7 +23,7 @@ import scala.annotation.tailrec
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
-import org.gjt.sp.jedit.buffer.{JEditBuffer, LineManager}
+import org.gjt.sp.jedit.buffer.{BufferListener, BufferAdapter, JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection, AntiAlias}
 
 
@@ -400,6 +400,17 @@ object JEdit_Lib {
     load_icon(name) match {
       case icon: ImageIcon => icon
       case _ => error("Bad image icon: " + name)
+    }
+
+
+  /* buffer event handling */
+
+  def buffer_listener(handle: (Buffer, Text.Edit) => Unit): BufferListener =
+    new BufferAdapter {
+      override def contentInserted(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
+        handle(buf.asInstanceOf[Buffer], Text.Edit.insert(i, buf.getText(i, n)))
+      override def preContentRemoved(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
+        handle(buf.asInstanceOf[Buffer], Text.Edit.remove(i, buf.getText(i, n)))
     }
 
 
