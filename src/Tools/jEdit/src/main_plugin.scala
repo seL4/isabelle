@@ -312,10 +312,12 @@ class Main_Plugin extends EBPlugin {
           jEdit.propertiesChanged()
 
           val view = jEdit.getActiveView
-          init_editor(view)
+          if (view != null) {
+            init_editor(view)
 
-          PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
-            JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
+            PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
+              JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
+          }
 
         case msg: ViewUpdate
         if msg.getWhat == ViewUpdate.CREATED && msg.getView != null =>
