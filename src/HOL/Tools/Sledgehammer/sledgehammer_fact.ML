@@ -489,7 +489,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths'))
           in
-            snd (fold_rev (fn th0 => fn (j, accum) =>
+            snd (fold_rev (fn th0 => fn (j, accum as {singletons, dotteds, collections}) =>
               let val th = transfer th0 in
                 (j - 1,
                  if not (member Thm.eq_thm_prop add_ths th) andalso
@@ -517,19 +517,23 @@ fun all_facts ctxt generous keywords add_ths chained css =
                      val stature = stature_of_thm global assms chained css name0 th
                      val new = ((get_name, stature), th)
                    in
-                     (if collection then apsnd o apsnd
-                      else if dotted_name then apsnd o apfst
-                      else apfst) (cons new) accum
+                     if collection then
+                       {singletons = singletons, dotteds = dotteds, collections = new :: collections}
+                      else if dotted_name then
+                       {singletons = singletons, dotteds = new :: dotteds, collections = collections}
+                      else
+                       {singletons = new :: singletons, dotteds = dotteds, collections = collections}
                    end)
               end) ths (n, accum))
           end)
+      val {singletons, dotteds, collections} =
+        {singletons = [], dotteds = [], collections = []}
+        |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+        |> add_facts true Facts.fold_static global_facts global_facts
   in
     (* Names like "xxx" are preferred to "xxx.yyy", which are preferred to "xxx(666)" and the like.
        "Preferred" means "put to the front of the list". *)
-    ([], ([], []))
-    |> add_facts false fold local_facts (unnamed_locals @ named_locals)
-    |> add_facts true Facts.fold_static global_facts global_facts
-    ||> op @ |> op @
+    singletons @ dotteds @ collections
   end
 
 fun nearly_all_facts ctxt inst_inducts {add, del, only} keywords css chained hyp_ts concl_t =
