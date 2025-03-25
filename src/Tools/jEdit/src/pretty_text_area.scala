@@ -266,7 +266,7 @@ class Pretty_Text_Area(
 
   /* search */
 
-  private val search_label: Component = new Label("Search:") {
+  private val search_label: Component = new Label(jEdit.getProperty("search.find")) {
     tooltip = "Search and highlight output via regular expression"
   }
 
