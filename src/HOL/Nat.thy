@@ -2300,7 +2300,7 @@ qed
 lemma strict_inc_induct [consumes 1, case_names base step]:
   assumes less: "i < j"
     and base: "\<And>i. j = Suc i \<Longrightarrow> P i"
-    and step: "\<And>i. i < j \<Longrightarrow> P (Suc i) \<Longrightarrow> P i"
+    and step: "\<And>i. Suc i < j \<Longrightarrow> P (Suc i) \<Longrightarrow> P i"
   shows "P i"
 using less proof (induct "j - i - 1" arbitrary: i)
   case (0 i)
@@ -2318,7 +2318,7 @@ next
   moreover from * have "j - Suc i \<noteq> 0" by auto
   then have "Suc i < j" by (simp add: not_le)
   ultimately have "P (Suc i)" by (rule Suc.hyps)
-  with \<open>i < j\<close> show "P i" by (rule step)
+  with \<open>Suc i < j\<close> show "P i" by (rule step)
 qed
 
 lemma zero_induct_lemma: "P k \<Longrightarrow> (\<And>n. P (Suc n) \<Longrightarrow> P n) \<Longrightarrow> P (k - i)"
