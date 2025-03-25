@@ -37,10 +37,12 @@ object Linear_Set extends IterableFactory[Linear_Set] {
 final class Linear_Set[A] private(
     start: Option[A],
     end: Option[A],
-    val nexts: Map[A, A], prevs: Map[A, A])
-  extends Iterable[A]
+    nexts: Map[A, A],
+    prevs: Map[A, A]
+) extends Iterable[A]
     with SetOps[A, Linear_Set, Linear_Set[A]]
     with IterableFactoryDefaults[A, Linear_Set] {
+
   /* relative addressing */
 
   def next(elem: A): Option[A] =
