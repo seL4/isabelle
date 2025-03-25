@@ -340,10 +340,10 @@ lemma irreflp_on_mono_strong:
 lemma irreflp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> irreflp_on B Q \<le> irreflp_on A R"
   by (simp add: irreflp_on_mono_strong le_fun_def)
 
-lemma irrefl_on_subset: "irrefl_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irrefl_on B r"
+lemma irrefl_on_subset: "irrefl_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> irrefl_on A r"
   by (auto simp: irrefl_on_def)
 
-lemma irreflp_on_subset: "irreflp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> irreflp_on B R"
+lemma irreflp_on_subset: "irreflp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> irreflp_on A R"
   using irreflp_on_mono_strong .
 
 lemma irreflp_on_image: "irreflp_on (f ` A) R \<longleftrightarrow> irreflp_on A (\<lambda>a b. R (f a) (f b))"
@@ -417,10 +417,10 @@ lemma asymp_on_mono_strong:
 lemma asymp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> asymp_on B Q \<le> asymp_on A R"
   by (simp add: asymp_on_mono_strong le_fun_def)
 
-lemma asym_on_subset: "asym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asym_on B r"
+lemma asym_on_subset: "asym_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> asym_on A r"
   by (auto simp: asym_on_def)
 
-lemma asymp_on_subset: "asymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> asymp_on B R"
+lemma asymp_on_subset: "asymp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> asymp_on A R"
   using asymp_on_mono_strong .
 
 lemma asymp_on_image: "asymp_on (f ` A) R \<longleftrightarrow> asymp_on A (\<lambda>a b. R (f a) (f b))"
@@ -512,10 +512,10 @@ lemma sym_on_top[simp]: "sym_on A \<top>"
 lemma symp_on_top[simp]: "symp_on A \<top>"
   by (simp add: symp_on_def)
 
-lemma sym_on_subset: "sym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> sym_on B r"
+lemma sym_on_subset: "sym_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> sym_on A r"
   by (auto simp: sym_on_def)
 
-lemma symp_on_subset: "symp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> symp_on B R"
+lemma symp_on_subset: "symp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> symp_on A R"
   by (auto simp: symp_on_def)
 
 lemma symp_on_image: "symp_on (f ` A) R \<longleftrightarrow> symp_on A (\<lambda>a b. R (f a) (f b))"
@@ -644,10 +644,10 @@ lemma antisymp_on_mono_strong:
 lemma antisymp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> R \<le> Q \<Longrightarrow> antisymp_on B Q \<le> antisymp_on A R"
   by (simp add: antisymp_on_mono_strong le_fun_def)
 
-lemma antisym_on_subset: "antisym_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisym_on B r"
+lemma antisym_on_subset: "antisym_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> antisym_on A r"
   by (auto simp: antisym_on_def)
 
-lemma antisymp_on_subset: "antisymp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> antisymp_on B R"
+lemma antisymp_on_subset: "antisymp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> antisymp_on A R"
   using antisymp_on_mono_strong .
 
 lemma antisymp_on_image:
@@ -756,10 +756,10 @@ lemma transp_onD: "transp_on A R \<Longrightarrow> x \<in> A \<Longrightarrow> y
 lemma transpD[dest?]: "transp R \<Longrightarrow> R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   by (rule transD[to_pred])
 
-lemma trans_on_subset: "trans_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> trans_on B r"
+lemma trans_on_subset: "trans_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> trans_on A r"
   by (auto simp: trans_on_def)
 
-lemma transp_on_subset: "transp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> transp_on B R"
+lemma transp_on_subset: "transp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> transp_on A R"
   by (auto simp: transp_on_def)
 
 lemma transp_on_image: "transp_on (f ` A) R \<longleftrightarrow> transp_on A (\<lambda>a b. R (f a) (f b))"
@@ -922,10 +922,10 @@ lemma totalp_on_mono_strong:
 lemma totalp_on_mono[mono]: "A \<subseteq> B \<Longrightarrow> Q \<le> R \<Longrightarrow> totalp_on B Q \<le> totalp_on A R"
   by (auto intro: totalp_on_mono_strong)
 
-lemma total_on_subset: "total_on A r \<Longrightarrow> B \<subseteq> A \<Longrightarrow> total_on B r"
+lemma total_on_subset: "total_on B r \<Longrightarrow> A \<subseteq> B \<Longrightarrow> total_on A r"
   by (auto simp: total_on_def)
 
-lemma totalp_on_subset: "totalp_on A R \<Longrightarrow> B \<subseteq> A \<Longrightarrow> totalp_on B R"
+lemma totalp_on_subset: "totalp_on B R \<Longrightarrow> A \<subseteq> B \<Longrightarrow> totalp_on A R"
   using totalp_on_mono_strong .
 
 lemma totalp_on_image:
