@@ -6,7 +6,6 @@ section \<open>Decision Procedure for Presburger Arithmetic\<close>
 
 theory Presburger
 imports Groebner_Basis Set_Interval
-keywords "try0" :: diag
 begin
 
 ML_file \<open>Tools/Qelim/qelim.ML\<close>
@@ -557,10 +556,5 @@ lemma odd_mod_4_div_2:
 lemma even_mod_4_div_2:
   "n mod 4 = Suc 0 \<Longrightarrow> even ((n - Suc 0) div 2)"
   by presburger
-
-
-subsection \<open>Try0\<close>
-
-ML_file \<open>Tools/try0.ML\<close>
 
 end
