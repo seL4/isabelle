@@ -106,8 +106,17 @@ lemma infsum_not_exists:
   shows \<open>infsum f A = 0\<close>
   by (simp add: assms infsum_def)
 
+lemma has_sum_unique:
+  fixes f :: "_ \<Rightarrow> 'a :: {topological_comm_monoid_add, t2_space}"
+  assumes "(f has_sum x) A" "(f has_sum y) A"
+  shows "x = y"
+  using assms infsumI by blast
+
 lemma summable_iff_has_sum_infsum: "f summable_on A \<longleftrightarrow> (f has_sum (infsum f A)) A"
   using infsumI summable_on_def by blast
+
+lemma has_sum_iff: "(f has_sum S) A \<longleftrightarrow> f summable_on A \<and> infsum f A = S"
+  using infsumI summable_iff_has_sum_infsum by blast
 
 lemma has_sum_infsum[simp]:
   assumes \<open>f summable_on S\<close>
@@ -387,6 +396,41 @@ lemma infsum_finite[simp]:
   assumes "finite F"
   shows "infsum f F = sum f F"
   by (simp add: assms infsumI)
+
+lemma has_sum_finiteI: "finite A \<Longrightarrow> S = sum f A \<Longrightarrow> (f has_sum S) A"
+  by simp
+
+lemma has_sum_strict_mono_neutral:
+  fixes f :: "'a \<Rightarrow> 'b :: {ordered_ab_group_add, topological_ab_group_add, linorder_topology}"
+  assumes \<open>(f has_sum a) A\<close> and "(g has_sum b) B"
+  assumes \<open>\<And>x. x \<in> A\<inter>B \<Longrightarrow> f x \<le> g x\<close>
+  assumes \<open>\<And>x. x \<in> A-B \<Longrightarrow> f x \<le> 0\<close>
+  assumes \<open>\<And>x. x \<in> B-A \<Longrightarrow> g x \<ge> 0\<close>
+  assumes \<open>x \<in> B\<close> \<open>if x \<in> A then f x < g x else 0 < g x\<close>
+  shows "a < b"
+proof -
+  define y where "y = (if x \<in> A then f x else 0)"
+  have "a - y \<le> b - g x"
+  proof (rule has_sum_mono_neutral)
+    show "(f has_sum (a - y)) (A - (if x \<in> A then {x} else {}))"
+      by (intro has_sum_Diff assms has_sum_finiteI) (auto simp: y_def)
+    show "(g has_sum (b - g x)) (B - {x})"
+      by (intro has_sum_Diff assms has_sum_finiteI) (use assms in auto)
+  qed (use assms in \<open>auto split: if_splits\<close>)
+  moreover have "y < g x"
+    using assms(3,4,5)[of x] assms(6-) by (auto simp: y_def split: if_splits)
+  ultimately show ?thesis
+    by (metis diff_strict_left_mono diff_strict_mono leD neqE)
+qed
+
+lemma has_sum_strict_mono:
+  fixes f :: "'a \<Rightarrow> 'b :: {ordered_ab_group_add, topological_ab_group_add, linorder_topology}"
+  assumes \<open>(f has_sum a) A\<close> and "(g has_sum b) A"
+  assumes \<open>\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x\<close>
+  assumes \<open>x \<in> A\<close> \<open>f x < g x\<close>
+  shows "a < b"
+  by (rule has_sum_strict_mono_neutral[OF assms(1,2), where x = x])
+     (use assms(3-) in auto)
 
 lemma has_sum_finite_approximation:
   fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add,metric_space}"
@@ -707,6 +751,39 @@ lemma norm_summable_imp_summable_on:
   shows   "f summable_on UNIV"
   using norm_summable_imp_has_sum[OF assms, of "suminf f"] assms
   by (auto simp: sums_iff summable_on_def dest: summable_norm_cancel)
+
+lemma sums_nonneg_imp_has_sum_strong:
+  assumes "f sums (S::real)" "eventually (\<lambda>n. f n \<ge> 0) sequentially"
+  shows   "(f has_sum S) UNIV"
+proof -
+  from assms(2) obtain N where N: "\<And>n. n \<ge> N \<Longrightarrow> f n \<ge> 0"
+    by (auto simp: eventually_at_top_linorder)
+  from assms(1) have "summable f"
+    by (simp add: sums_iff)
+  hence "summable (\<lambda>n. f (n + N))"
+    by (rule summable_ignore_initial_segment)
+  hence "summable (\<lambda>n. norm (f (n + N)))"
+    using N by simp
+  hence "summable (\<lambda>n. norm (f n))"
+    using summable_iff_shift by blast
+  with assms(1) show ?thesis
+    using norm_summable_imp_has_sum by blast
+qed
+
+lemma sums_nonneg_imp_has_sum:
+  assumes "f sums (S::real)" and "\<And>n. f n \<ge> 0"
+  shows   "(f has_sum S) UNIV"
+  by (rule sums_nonneg_imp_has_sum_strong) (use assms in auto)
+
+lemma summable_nonneg_imp_summable_on_strong:
+  assumes "summable f" "eventually (\<lambda>n. f n \<ge> (0::real)) sequentially"
+  shows   "f summable_on UNIV"
+  using assms has_sum_iff sums_nonneg_imp_has_sum_strong by blast
+
+lemma summable_nonneg_imp_summable_on:
+  assumes "summable f" "\<And>n. f n \<ge> (0::real)"
+  shows   "f summable_on UNIV"
+  by (rule summable_nonneg_imp_summable_on_strong) (use assms in auto)
 
 text \<open>The following lemma indeed needs a complete space (as formalized by the premise \<^term>\<open>complete UNIV\<close>).
   The following two counterexamples show this:
@@ -2759,6 +2836,15 @@ lemma has_sum_reindex_bij_witness:
   shows   "(g has_sum s) S = (h has_sum s') T"
   by (smt (verit, del_insts) assms bij_betwI' has_sum_cong has_sum_reindex_bij_betw)
 
+lemma summable_on_reindex_bij_witness:
+  assumes "\<And>a. a \<in> S \<Longrightarrow> i (j a) = a"
+  assumes "\<And>a. a \<in> S \<Longrightarrow> j a \<in> T"
+  assumes "\<And>b. b \<in> T \<Longrightarrow> j (i b) = b"
+  assumes "\<And>b. b \<in> T \<Longrightarrow> i b \<in> S"
+  assumes "\<And>a. a \<in> S \<Longrightarrow> h (j a) = g a"
+  shows   "g summable_on S \<longleftrightarrow> h summable_on T"
+  using has_sum_reindex_bij_witness[of S i j T h g, OF assms]
+  by (simp add: summable_on_def)
 
 lemma has_sum_homomorphism:
   assumes "(f has_sum S) A" "h 0 = 0" "\<And>a b. h (a + b) = h a + h b" "continuous_on UNIV h"
@@ -2835,6 +2921,19 @@ lemma infsum_bounded_linear_strong':
   shows   "infsum (\<lambda>x. mult c (f x)) A = mult c (infsum f A)"
   by (metis assms infsum_0 infsum_bounded_linear_strong)
 
+lemma has_sum_scaleR:
+  fixes f :: "'a \<Rightarrow> 'b :: real_normed_vector"
+  assumes "(f has_sum S) A"
+  shows   "((\<lambda>x. c *\<^sub>R f x) has_sum (c *\<^sub>R S)) A"
+  using has_sum_bounded_linear[OF bounded_linear_scaleR_right[of c], of f A S] assms by simp
+
+lemma has_sum_scaleR_iff:
+  fixes f :: "'a \<Rightarrow> 'b :: real_normed_vector"
+  assumes "c \<noteq> 0"
+  shows   "((\<lambda>x. c *\<^sub>R f x) has_sum S) A \<longleftrightarrow> (f has_sum (S /\<^sub>R c)) A"
+  using has_sum_scaleR[of f A "S /\<^sub>R c" c] has_sum_scaleR[of "\<lambda>x. c *\<^sub>R f x" A S "inverse c"] assms
+  by auto
+
 lemma has_sum_of_nat: "(f has_sum S) A \<Longrightarrow> ((\<lambda>x. of_nat (f x)) has_sum of_nat S) A"
   by (erule has_sum_homomorphism) (auto intro!: continuous_intros)
 
@@ -2846,6 +2945,31 @@ lemma summable_on_of_nat: "f summable_on A \<Longrightarrow> (\<lambda>x. of_nat
 
 lemma summable_on_of_int: "f summable_on A \<Longrightarrow> (\<lambda>x. of_int (f x)) summable_on A"
   by (erule summable_on_homomorphism) (auto intro!: continuous_intros)
+
+lemma summable_on_of_real:
+  "f summable_on A \<Longrightarrow> (\<lambda>x. of_real (f x) :: 'a :: real_normed_algebra_1) summable_on A"
+  using summable_on_bounded_linear[of "of_real :: real \<Rightarrow> 'a", OF bounded_linear_of_real, of f A]
+  by simp
+
+lemma has_sum_of_real_iff:
+  "((\<lambda>x. of_real (f x) :: 'a :: real_normed_div_algebra) has_sum (of_real c)) A \<longleftrightarrow> 
+   (f has_sum c) A"
+proof -
+  have "((\<lambda>x. of_real (f x) :: 'a) has_sum (of_real c)) A \<longleftrightarrow>
+        (sum (\<lambda>x. of_real (f x) :: 'a) \<longlongrightarrow> of_real c) (finite_subsets_at_top A)"
+    by (simp add: has_sum_def)
+  also have "sum (\<lambda>x. of_real (f x) :: 'a) = (\<lambda>X. of_real (sum f X))"
+    by simp
+  also have "((\<lambda>X. of_real (sum f X) :: 'a) \<longlongrightarrow> of_real c) (finite_subsets_at_top A) \<longleftrightarrow> 
+             (f has_sum c) A"
+    unfolding has_sum_def tendsto_of_real_iff ..
+  finally show ?thesis .
+qed
+
+lemma has_sum_of_real:
+  "(f has_sum S) A \<Longrightarrow> ((\<lambda>x. of_real (f x) :: 'a :: real_normed_algebra_1) has_sum of_real S) A"
+  using has_sum_bounded_linear[of "of_real :: real \<Rightarrow> 'a", OF bounded_linear_of_real, of f A S]
+  by simp
 
 lemma summable_on_discrete_iff:
   fixes f :: "'a \<Rightarrow> 'b :: {discrete_topology, topological_comm_monoid_add, cancel_comm_monoid_add}"
@@ -3027,9 +3151,6 @@ lemma summable_on_insert_iff:
   shows "f summable_on insert x A \<longleftrightarrow> f summable_on A"
   using summable_on_union[of f A "{x}"] by (auto intro: summable_on_subset)
 
-lemma has_sum_finiteI: "finite A \<Longrightarrow> S = sum f A \<Longrightarrow> (f has_sum S) A"
-  by simp
-
 lemma has_sum_insert:
   fixes f :: "'a \<Rightarrow> 'b :: topological_comm_monoid_add"
   assumes "x \<notin> A" and "(f has_sum S) A"
@@ -3131,11 +3252,32 @@ proof (safe, goal_cases)
   qed (insert Y(1,2), auto simp: Y1_def)
 qed
 
-lemma has_sum_unique:
-  fixes f :: "_ \<Rightarrow> 'a :: {topological_comm_monoid_add, t2_space}"
-  assumes "(f has_sum x) A" "(f has_sum y) A"
-  shows "x = y"
-  using assms unfolding has_sum_def using tendsto_unique finite_subsets_at_top_neq_bot by blast
+lemma has_sum_finite_iff: 
+  fixes S :: "'a :: {topological_comm_monoid_add,t2_space}"
+  assumes "finite A"
+  shows   "(f has_sum S) A \<longleftrightarrow> S = (\<Sum>x\<in>A. f x)"
+proof
+  assume "S = (\<Sum>x\<in>A. f x)"
+  thus "(f has_sum S) A"
+    by (intro has_sum_finiteI assms)
+next
+  assume "(f has_sum S) A"
+  moreover have "(f has_sum (\<Sum>x\<in>A. f x)) A"
+    by (intro has_sum_finiteI assms) auto
+  ultimately show "S = (\<Sum>x\<in>A. f x)"
+    using has_sum_unique by blast
+qed
+
+lemma has_sum_finite_neutralI:
+  assumes "finite B" "B \<subseteq> A" "\<And>x. x \<in> A - B \<Longrightarrow> f x = 0" "c = (\<Sum>x\<in>B. f x)"
+  shows   "(f has_sum c) A"
+proof -
+  have "(f has_sum c) B"
+    by (rule has_sum_finiteI) (use assms in auto)
+  also have "?this \<longleftrightarrow> (f has_sum c) A"
+    by (intro has_sum_cong_neutral) (use assms in auto)
+  finally show ?thesis .
+qed
 
 lemma has_sum_SigmaI:
   fixes f :: "_ \<Rightarrow> 'a :: {topological_comm_monoid_add, t3_space}"

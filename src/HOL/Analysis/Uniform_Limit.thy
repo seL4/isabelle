@@ -631,6 +631,22 @@ proof (rule uniform_limitI)
   qed
 qed
 
+lemma Weierstrass_m_test_general':
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: banach"
+  fixes M :: "'a \<Rightarrow> real"
+  assumes norm_le:  "\<And>x y. x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> norm (f x y) \<le> M x"
+  assumes has_sum: "\<And>y. y \<in> Y \<Longrightarrow> ((\<lambda>x. f x y) has_sum S y) X"
+  assumes summable: "M summable_on X"
+  shows "uniform_limit Y (\<lambda>X y. \<Sum>x\<in>X. f x y) S (finite_subsets_at_top X)"
+proof -
+  have "uniform_limit Y (\<lambda>X y. \<Sum>x\<in>X. f x y) (\<lambda>y. \<Sum>\<^sub>\<infinity>x\<in>X. f x y) (finite_subsets_at_top X)"
+    using norm_le summable by (rule Weierstrass_m_test_general)
+  also have "?this \<longleftrightarrow> ?thesis"
+    by (intro uniform_limit_cong refl always_eventually allI ballI)
+       (use has_sum in \<open>auto simp: has_sum_iff\<close>)
+  finally show ?thesis .
+qed
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Structural introduction rules\<close>
 

@@ -548,16 +548,14 @@ lemmas has_derivative_real_sqrt[derivative_intros] = DERIV_real_sqrt[THEN DERIV_
 
 lemma not_real_square_gt_zero [simp]: "\<not> 0 < x * x \<longleftrightarrow> x = 0"
   for x :: real
-  apply auto
-  using linorder_less_linear [where x = x and y = 0]
-  apply (simp add: zero_less_mult_iff)
-  done
+  by (metis linorder_neq_iff zero_less_mult_iff)
 
 lemma real_sqrt_abs2 [simp]: "sqrt (x * x) = \<bar>x\<bar>"
-  apply (subst power2_eq_square [symmetric])
-  apply (rule real_sqrt_abs)
-  done
+  by (simp add: real_sqrt_mult)
 
+lemma real_sqrt_abs': "sqrt \<bar>x\<bar> = \<bar>sqrt x\<bar>"
+  by (metis real_sqrt_abs2 real_sqrt_mult)
+    
 lemma real_inv_sqrt_pow2: "0 < x \<Longrightarrow> (inverse (sqrt x))\<^sup>2 = inverse x"
   by (simp add: power_inverse)
 
