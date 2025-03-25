@@ -175,8 +175,8 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
         ()
 
     fun print_used_facts used_facts used_from =
-      tag_list 1 used_from
-      |> map (fn (j, fact) => fact |> apsnd (K j))
+      used_from
+      |> map_index (fn (j, fact) => fact |> apsnd (K (j + 1)))
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
@@ -188,8 +188,8 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
           val num_used_facts = length used_facts
 
           fun find_indices facts =
-            tag_list 1 facts
-            |> map (fn (j, fact) => fact |> apsnd (K j))
+            facts
+            |> map_index (fn (j, fact) => fact |> apsnd (K (j + 1)))
             |> filter_used_facts false used_facts
             |> distinct (eq_fst (op =))
             |> map (prefix "@" o string_of_int o snd)
