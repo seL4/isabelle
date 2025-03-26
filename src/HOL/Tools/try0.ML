@@ -8,12 +8,12 @@ signature TRY0 =
 sig
   val silence_methods : bool -> Proof.context -> Proof.context
   datatype modifier = Use | Simp | Intro | Elim | Dest
-  type xthm = Facts.ref * Token.src list
-  type tagged_xthm = xthm * modifier list
+  type xref = Facts.ref * Token.src list
+  type tagged_xref = xref * modifier list
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
-  val apply_proof_method : string -> Time.time option -> (xthm * modifier list) list ->
+  val apply_proof_method : string -> Time.time option -> tagged_xref list ->
     Proof.state -> result option
-  val try0 : Time.time option -> tagged_xthm list -> Proof.state -> result list
+  val try0 : Time.time option -> tagged_xref list -> Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -48,22 +48,22 @@ fun parse_method ctxt s =
   |> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
 datatype modifier = Use | Simp | Intro | Elim | Dest
-type xthm = Facts.ref * Token.src list
-type tagged_xthm = xthm * modifier list
+type xref = Facts.ref * Token.src list
+type tagged_xref = xref * modifier list
 
-fun string_of_xthm ((xref, args) : xthm) =
+fun string_of_xref ((xref, args) : xref) =
   (case xref of
     Facts.Fact literal => literal |> Symbol_Pos.explode0 |> Symbol_Pos.implode |> cartouche
   | _ =>
       Facts.string_of_ref xref) ^ implode
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
-fun add_attr_text (tagged : tagged_xthm list) (tag, src) s =
+fun add_attr_text (tagged : tagged_xref list) (tag, src) s =
   let
-    val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map (string_of_xthm o fst)
+    val fs = tagged |> filter (fn (_, tags) => member (op =) tags tag) |> map (string_of_xref o fst)
   in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
 
-fun attrs_text tags (tagged : tagged_xthm list) =
+fun attrs_text tags (tagged : tagged_xref list) =
   "" |> fold (add_attr_text tagged) tags
 
 type result = {name: string, command: string, time: Time.time, state: Proof.state}
@@ -121,7 +121,7 @@ fun apply_raw_named_method (name, ((all_goals, _), attrs)) timeout_opt tagged st
     val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
     val num_after = num_goals st'
     val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
-    val unused = implode_space (unused |> map string_of_xthm)
+    val unused = implode_space (unused |> map string_of_xref)
     val command =
       (if unused <> "" then "using " ^ unused ^ " " else "") ^
       (if num_after = 0 then "by " else "apply ") ^
@@ -171,7 +171,7 @@ fun silence_methods debug =
       |> Config.put Unify.unify_trace false
       |> Config.put Argo_Tactic.trace "none")
 
-fun generic_try0 mode timeout_opt (tagged : tagged_xthm list) st =
+fun generic_try0 mode timeout_opt (tagged : tagged_xref list) st =
   let
     val st = Proof.map_contexts (silence_methods false) st
     fun try_method method = method mode timeout_opt tagged st
