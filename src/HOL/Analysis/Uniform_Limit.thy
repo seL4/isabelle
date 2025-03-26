@@ -41,6 +41,9 @@ lemma uniform_limitI:
   "(\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < e) \<Longrightarrow> uniform_limit S f l F"
   by (simp add: uniform_limit_iff)
 
+lemma uniform_limit_singleton [simp]: "uniform_limit {x} f g F \<longleftrightarrow> ((\<lambda>n. f n x) \<longlongrightarrow> g x) F"
+  by (simp add: uniform_limit_iff tendsto_iff)
+
 lemma uniform_limit_sequentially_iff:
   "uniform_limit S f l sequentially \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> S. dist (f n x) (l x) < e)"
   unfolding uniform_limit_iff eventually_sequentially ..
@@ -69,6 +72,19 @@ proof (rule uniform_limitI)
   show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (f (g n x)) ((f \<circ> l) x) < \<epsilon>"
     using uniform_limitD [OF ul \<open>\<delta>>0\<close>] g unfolding o_def
     by eventually_elim (use \<delta> l in blast)
+qed
+
+lemma uniform_limit_compose':
+  assumes "uniform_limit A f g F" and "h \<in> B \<rightarrow> A"
+  shows   "uniform_limit B (\<lambda>n x. f n (h x)) (\<lambda>x. g (h x)) F"
+  unfolding uniform_limit_iff
+proof (intro strip)
+  fix e :: real
+  assume e: "e > 0"
+  with assms(1) have "\<forall>\<^sub>F n in F. \<forall>x\<in>A. dist (f n x) (g x) < e"
+    by (auto simp: uniform_limit_iff)
+  thus "\<forall>\<^sub>F n in F. \<forall>x\<in>B. dist (f n (h x)) (g (h x)) < e"
+    by eventually_elim (use assms(2) in blast)
 qed
 
 lemma metric_uniform_limit_imp_uniform_limit:
@@ -982,7 +998,7 @@ lemma powser_continuous_suminf:
   shows "continuous_on (cball \<xi> r) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i))"
 apply (rule uniform_limit_theorem [OF _ powser_uniform_limit])
 apply (rule eventuallyI continuous_intros assms)+
-apply (simp add:)
+apply auto
 done
 
 lemma powser_continuous_sums:
