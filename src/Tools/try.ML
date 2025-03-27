@@ -20,11 +20,7 @@ struct
 
 (* helpers *)
 
-fun serial_commas _ [] = ["??"]
-  | serial_commas _ [s] = [s]
-  | serial_commas conj [s1, s2] = [s1, conj, s2]
-  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
-  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss;
+val serial_commas = Try0.serial_commas
 
 
 (* configuration *)

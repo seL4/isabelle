@@ -6,6 +6,8 @@ Try a combination of proof methods.
 
 signature TRY0 =
 sig
+  val serial_commas : string -> string list -> string list
+
   datatype modifier = Use | Simp | Intro | Elim | Dest
   type xref = Facts.ref * Token.src list
   type tagged_xref = xref * modifier list
@@ -16,13 +18,20 @@ sig
   val register_proof_method : string -> proof_method_options -> proof_method -> unit
   val get_proof_method : string -> proof_method option
 
+  datatype mode = Auto_Try | Try | Normal
+  val generic_try0 : mode -> Time.time option -> tagged_xref list -> Proof.state ->
+    (bool * (string * string list)) * result list
   val try0 : Time.time option -> tagged_xref list -> Proof.state -> result list
-
-  val silence_methods : bool -> Proof.context -> Proof.context
 end
 
 structure Try0 : TRY0 =
 struct
+
+fun serial_commas _ [] = ["??"]
+  | serial_commas _ [s] = [s]
+  | serial_commas conj [s1, s2] = [s1, conj, s2]
+  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
+  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss;
 
 val noneN = "none"
 
@@ -112,7 +121,7 @@ fun generic_try0 mode timeout_opt (tagged : tagged_xref list) st =
   in
     if mode = Normal then
       let val names = map quote proof_method_names in
-        writeln ("Trying " ^ implode_space (Try.serial_commas "and" names) ^ "...")
+        writeln ("Trying " ^ implode_space (serial_commas "and" names) ^ "...")
       end
     else
       ();
@@ -160,21 +169,5 @@ fun parse_attrs x =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
     (Scan.optional parse_attrs [] #>> try0_trans)
-
-val _ =
-  Try.tool_setup
-   {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => fst o generic_try0 (if auto then Auto_Try else Try) NONE []}
-
-(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
-   bound exceeded" warnings and the like. *)
-fun silence_methods debug =
-  Config.put Metis_Tactic.verbose debug
-  #> not debug ? (fn ctxt =>
-      ctxt
-      |> Simplifier_Trace.disable
-      |> Context_Position.set_visible false
-      |> Config.put Unify.unify_trace false
-      |> Config.put Argo_Tactic.trace "none")
 
 end
