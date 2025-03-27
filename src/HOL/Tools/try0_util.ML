@@ -9,13 +9,20 @@ General-purpose functions used by Try0.
 signature TRY0_UTIL =
 sig
   val string_of_xref : Try0.xref -> string
-  val full_attrs : (Try0.modifier * string) list
-  val clas_attrs : (Try0.modifier * string) list
-  val simp_attrs : (Try0.modifier * string) list
-  val metis_attrs : (Try0.modifier * string) list
-  val no_attrs : (Try0.modifier * string) list
-  val apply_raw_named_method : string -> bool -> (Try0.modifier * string) list ->
-    (Proof.context -> Proof.context) -> Time.time option -> Try0.tagged_xref list -> Proof.state ->
+
+  type facts_prefixes =
+    {usings: string,
+     simps : string,
+     intros : string,
+     elims : string,
+     dests : string}
+  val full_attrs : facts_prefixes
+  val clas_attrs : facts_prefixes
+  val simp_attrs : facts_prefixes
+  val metis_attrs : facts_prefixes
+  val no_attrs : facts_prefixes
+  val apply_raw_named_method : string -> bool -> facts_prefixes ->
+    (Proof.context -> Proof.context) -> Time.time option -> Try0.facts -> Proof.state ->
     Try0.result option
 end
 
@@ -29,26 +36,24 @@ fun string_of_xref ((xref, args) : Try0.xref) =
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
 
-val full_attrs = [(Try0.Simp, "simp"), (Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
-val clas_attrs = [(Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
-val simp_attrs = [(Try0.Simp, "add")]
-val metis_attrs = [(Try0.Simp, ""), (Try0.Intro, ""), (Try0.Elim, ""), (Try0.Dest, "")]
-val no_attrs = []
+type facts_prefixes =
+  {usings: string,
+   simps : string,
+   intros : string,
+   elims : string,
+   dests : string}
+
+val no_attrs : facts_prefixes =
+  {usings = "", simps = "", intros = "", elims = "", dests = ""}
+val full_attrs : facts_prefixes =
+  {usings = "", simps = "simp", intros = "intro", elims = "elim", dests = "dest"}
+val clas_attrs : facts_prefixes =
+  {usings = "", simps = "", intros = "intro", elims = "elim", dests = "dest"}
+val simp_attrs : facts_prefixes =
+  {usings = "", simps = "add", intros = "", elims = "", dests = ""}
+val metis_attrs : facts_prefixes = no_attrs
 
 local
-
-fun add_attr_text (tagged : Try0.tagged_xref list) (tag, src) s =
-  let
-    val fs = tagged
-      |> map_filter (fn (xref, tags) =>
-        if member (op =) tags tag then
-          SOME (string_of_xref xref)
-        else
-          NONE)
-  in if null fs then s else s ^ " " ^ (if src = "" then "" else src ^ ": ") ^ implode_space fs end
-
-fun attrs_text tags (tagged : Try0.tagged_xref list) =
-  "" |> fold (add_attr_text tagged) tags
 
 fun parse_method ctxt s =
   enclose "(" ")" s
@@ -75,21 +80,40 @@ fun apply_recursive recurse elapsed0 timeout_opt apply st =
 
 in
 
-fun apply_raw_named_method (name : string) all_goals attrs
-  (silence_methods : Proof.context -> Proof.context) timeout_opt (tagged : Try0.tagged_xref list)
+fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
+  (silence_methods : Proof.context -> Proof.context) timeout_opt (facts : Try0.facts)
   (st : Proof.state) : Try0.result option =
   let
     val st = Proof.map_contexts silence_methods st
-    val unused =
-      tagged
-      |> filter
-        (fn (_, tags) => not (null tags) andalso null (inter (op =) tags (attrs |> map fst)))
-      |> map fst
-
-    val attrs = attrs_text attrs tagged
-
     val ctxt = Proof.context_of st
 
+    val (unused_simps, simps_attrs) =
+      if #simps prefixes = "" then
+        (#simps facts, "")
+      else
+        ([], " " ^ #simps prefixes ^ ": " ^ space_implode "" (map string_of_xref (#simps facts)))
+
+    val (unused_intros, intros_attrs) =
+      if #intros prefixes = "" then
+        (#intros facts, "")
+      else
+        ([], " " ^ #intros prefixes ^ ": " ^ space_implode "" (map string_of_xref (#intros facts)))
+
+    val (unused_elims, elims_attrs) =
+      if #elims prefixes = "" then
+        (#elims facts, "")
+      else
+        ([], " " ^ #elims prefixes ^ ": " ^ space_implode "" (map string_of_xref (#elims facts)))
+
+    val (unused_dests, dests_attrs) =
+      if #dests prefixes = "" then
+        (#dests facts, "")
+      else
+        ([], " " ^ #dests prefixes ^ ": " ^ space_implode "" (map string_of_xref (#dests facts)))
+
+    val unused = #usings facts @ unused_simps @ unused_intros @ unused_elims @ unused_dests
+
+    val attrs = simps_attrs ^ intros_attrs ^ elims_attrs ^ dests_attrs
     val text =
       name ^ attrs
       |> parse_method ctxt
@@ -98,8 +122,8 @@ fun apply_raw_named_method (name : string) all_goals attrs
       |> (fn m => Method.Combinator (Method.no_combinator_info, Method.Select_Goals 1, [m]))
 
     val apply =
-      Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
-      #> Proof.refine text #> Seq.filter_results
+        Proof.using [Attrib.eval_thms ctxt unused |> map (rpair [] o single)]
+        #> Proof.refine text #> Seq.filter_results
     val num_before = num_goals st
     val multiple_goals = all_goals andalso num_before > 1
     val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st

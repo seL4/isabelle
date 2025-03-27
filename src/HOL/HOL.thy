@@ -38,7 +38,7 @@ ML \<open>
 val _ =
   Try.tool_setup
    {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => fst o Try0.generic_try0 (if auto then Try0.Auto_Try else Try0.Try) NONE []}
+    body = fn auto => fst o Try0.generic_try0 (if auto then Try0.Auto_Try else Try0.Try) NONE Try0.empty_facts}
 \<close>
 
 ML \<open>Plugin_Name.declare_setup \<^binding>\<open>extraction\<close>\<close>

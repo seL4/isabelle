@@ -1,5 +1,7 @@
-(*  Title:      HOL/Tools/try0.ML
-    Author:     Jasmin Blanchette, TU Muenchen
+(* Title:      HOL/Tools/try0.ML
+   Author:     Jasmin Blanchette, LMU Muenchen
+   Author:     Martin Desharnais, LMU Muenchen
+   Author:     Fabian Huch, TU Muenchen
 
 Try a combination of proof methods.
 *)
@@ -8,11 +10,18 @@ signature TRY0 =
 sig
   val serial_commas : string -> string list -> string list
 
-  datatype modifier = Use | Simp | Intro | Elim | Dest
   type xref = Facts.ref * Token.src list
-  type tagged_xref = xref * modifier list
+
+  type facts =
+    {usings: xref list,
+     simps : xref list,
+     intros : xref list,
+     elims : xref list,
+     dests : xref list}
+  val empty_facts : facts
+
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
-  type proof_method = Time.time option -> tagged_xref list -> Proof.state -> result option
+  type proof_method = Time.time option -> facts -> Proof.state -> result option
   type proof_method_options = {run_if_auto_try: bool}
 
   val register_proof_method : string -> proof_method_options -> proof_method -> unit
@@ -20,9 +29,9 @@ sig
   val get_all_proof_method_names : unit -> string list
 
   datatype mode = Auto_Try | Try | Normal
-  val generic_try0 : mode -> Time.time option -> tagged_xref list -> Proof.state ->
+  val generic_try0 : mode -> Time.time option -> facts -> Proof.state ->
     (bool * (string * string list)) * result list
-  val try0 : Time.time option -> tagged_xref list -> Proof.state -> result list
+  val try0 : Time.time option -> facts -> Proof.state -> result list
 end
 
 structure Try0 : TRY0 =
@@ -43,9 +52,23 @@ val default_timeout = seconds 5.0
 datatype modifier = Use | Simp | Intro | Elim | Dest
 type xref = Facts.ref * Token.src list
 type tagged_xref = xref * modifier list
+type facts =
+  {usings: xref list,
+   simps : xref list,
+   intros : xref list,
+   elims : xref list,
+   dests : xref list}
+
+val empty_facts: facts = {usings = [], simps = [], intros = [], elims = [], dests = []}
+fun union_facts (left : facts) (right : facts) : facts =
+  {usings = #usings left @ #usings right,
+   simps = #simps left @ #simps right,
+   intros = #intros left @ #intros right,
+   elims = #elims left @ #elims right,
+   dests = #dests left @ #dests right}
 
 type result = {name: string, command: string, time: Time.time, state: Proof.state}
-type proof_method = Time.time option -> tagged_xref list -> Proof.state -> result option
+type proof_method = Time.time option -> facts -> Proof.state -> result option
 type proof_method_options = {run_if_auto_try: bool}
 
 val noop_proof_method : proof_method = fn _ => fn _ => fn _ => NONE
@@ -60,7 +83,7 @@ in
 fun register_proof_method name ({run_if_auto_try} : proof_method_options) proof_method =
   let
     val () = if name = "" then error "Registering unnamed proof method" else ()
-    val () = Synchronized.change proof_methods (Symtab.update_new (name, proof_method))
+    val () = Synchronized.change proof_methods (Symtab.update (name, proof_method))
     val () =
       if run_if_auto_try then
         Synchronized.change auto_try_proof_methods_names (Symset.insert name)
@@ -99,9 +122,9 @@ fun maybe_apply_proof_method name mode : proof_method =
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
 fun tool_time_string (s, time) = s ^ ": " ^ time_string time
 
-fun generic_try0 mode timeout_opt (tagged : tagged_xref list) st =
+fun generic_try0 mode timeout_opt (facts : facts) st =
   let
-    fun try_method method = method mode timeout_opt tagged st
+    fun try_method (method : mode -> proof_method) = method mode timeout_opt facts st
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
       command ^ " (" ^ time_string time ^ ")"
     val print_step = Option.map (tap (writeln o get_message))
@@ -149,24 +172,28 @@ fun generic_try0 mode timeout_opt (tagged : tagged_xref list) st =
 
 fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 
-fun try0_trans tagged =
+fun try0_trans (facts : facts) =
   Toplevel.keep_proof
-    (ignore o generic_try0 Normal (SOME default_timeout) tagged o Toplevel.proof_of)
+    (ignore o generic_try0 Normal (SOME default_timeout) facts o Toplevel.proof_of)
 
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 
 val parse_attr =
-  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Simp]))
-  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Intro]))
-  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Elim]))
-  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (map (rpair [Dest]))
+  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
+    {usings = [], simps = xrefs, intros = [], elims = [], dests = []})
+  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
+    {usings = [], simps = [], intros = xrefs, elims = [], dests = []})
+  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
+    {usings = [], simps = [], intros = [], elims = xrefs, dests = []})
+  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
+    {usings = [], simps = [], intros = [], elims = [], dests = xrefs})
 
 fun parse_attrs x =
   (Args.parens parse_attrs
-   || Scan.repeat parse_attr >> (fn tagged => fold (curry (op @)) tagged [])) x
+   || Scan.repeat parse_attr >> (fn factss => fold union_facts factss empty_facts)) x
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
-    (Scan.optional parse_attrs [] #>> try0_trans)
+    (Scan.optional parse_attrs empty_facts #>> try0_trans)
 
 end
