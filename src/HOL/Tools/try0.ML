@@ -11,6 +11,12 @@ sig
   type xref = Facts.ref * Token.src list
   type tagged_xref = xref * modifier list
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
+  type proof_method = Time.time option -> tagged_xref list -> Proof.state -> result option
+  type proof_method_options = {run_if_auto_try: bool}
+
+  val register_proof_method : string -> proof_method_options -> proof_method -> unit
+  val get_proof_method : string -> proof_method option
+
   val apply_proof_method : string -> Time.time option -> tagged_xref list ->
     Proof.state -> result option
   val try0 : Time.time option -> tagged_xref list -> Proof.state -> result list
@@ -89,14 +95,14 @@ fun register_proof_method name ({run_if_auto_try} : proof_method_options) proof_
       else
         ()
   in () end
-val _ = Symset.dest
 
-fun get_proof_method name = Symtab.lookup (Synchronized.value proof_methods) name;
+fun get_proof_method (name : string) : proof_method option =
+  Symtab.lookup (Synchronized.value proof_methods) name;
 
-fun get_all_proof_methods () =
+fun get_all_proof_methods () : (string * proof_method) list =
   Symtab.fold (fn x => fn xs => x :: xs) (Synchronized.value proof_methods) []
 
-fun get_all_proof_method_names () =
+fun get_all_proof_method_names () : string list =
   Symtab.fold (fn (name, _) => fn names => name :: names) (Synchronized.value proof_methods) []
 
 fun get_all_auto_try_proof_method_names () : string list =
