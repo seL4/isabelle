@@ -89,8 +89,6 @@ fun get_proof_method_or_noop name =
     NONE => noop_proof_method
   | SOME proof_method => proof_method)
 
-val apply_proof_method = get_proof_method_or_noop
-
 fun maybe_apply_proof_method name mode : proof_method =
   if mode <> Auto_Try orelse should_auto_try_proof_method name then
     get_proof_method_or_noop name
