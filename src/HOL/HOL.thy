@@ -34,6 +34,12 @@ ML_file \<open>~~/src/Tools/project_rule.ML\<close>
 ML_file \<open>~~/src/Tools/subtyping.ML\<close>
 ML_file \<open>~~/src/Tools/case_product.ML\<close>
 
+ML \<open>
+val _ =
+  Try.tool_setup
+   {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
+    body = fn auto => fst o Try0.generic_try0 (if auto then Try0.Auto_Try else Try0.Try) NONE []}
+\<close>
 
 ML \<open>Plugin_Name.declare_setup \<^binding>\<open>extraction\<close>\<close>
 

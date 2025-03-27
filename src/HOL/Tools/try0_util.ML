@@ -8,24 +8,18 @@ General-purpose functions used by Try0.
 
 signature TRY0_UTIL =
 sig
-  val silence_methods : bool -> Proof.context -> Proof.context
   val string_of_xref : Try0.xref -> string
+  val full_attrs : (Try0.modifier * string) list
+  val clas_attrs : (Try0.modifier * string) list
+  val simp_attrs : (Try0.modifier * string) list
+  val metis_attrs : (Try0.modifier * string) list
+  val no_attrs : (Try0.modifier * string) list
   val apply_raw_named_method : string -> bool -> (Try0.modifier * string) list ->
-    Time.time option -> Try0.tagged_xref list -> Proof.state -> Try0.result option
+    (Proof.context -> Proof.context) -> Time.time option -> Try0.tagged_xref list -> Proof.state ->
+    Try0.result option
 end
 
 structure Try0_Util : TRY0_UTIL = struct
-
-(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
-   bound exceeded" warnings and the like. *)
-fun silence_methods debug =
-  Config.put Metis_Tactic.verbose debug
-  #> not debug ? (fn ctxt =>
-      ctxt
-      |> Simplifier_Trace.disable
-      |> Context_Position.set_visible false
-      |> Config.put Unify.unify_trace false
-      |> Config.put Argo_Tactic.trace "none")
 
 fun string_of_xref ((xref, args) : Try0.xref) =
   (case xref of
@@ -33,6 +27,13 @@ fun string_of_xref ((xref, args) : Try0.xref) =
   | _ =>
       Facts.string_of_ref xref) ^ implode
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
+
+
+val full_attrs = [(Try0.Simp, "simp"), (Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
+val clas_attrs = [(Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
+val simp_attrs = [(Try0.Simp, "add")]
+val metis_attrs = [(Try0.Simp, ""), (Try0.Intro, ""), (Try0.Elim, ""), (Try0.Dest, "")]
+val no_attrs = []
 
 local
 
@@ -74,10 +75,11 @@ fun apply_recursive recurse elapsed0 timeout_opt apply st =
 
 in
 
-fun apply_raw_named_method (name : string) all_goals attrs timeout_opt
-  (tagged : Try0.tagged_xref list) (st : Proof.state) : Try0.result option =
+fun apply_raw_named_method (name : string) all_goals attrs
+  (silence_methods : Proof.context -> Proof.context) timeout_opt (tagged : Try0.tagged_xref list)
+  (st : Proof.state) : Try0.result option =
   let
-    val st = Proof.map_contexts (silence_methods false) st
+    val st = Proof.map_contexts silence_methods st
     val unused =
       tagged
       |> filter

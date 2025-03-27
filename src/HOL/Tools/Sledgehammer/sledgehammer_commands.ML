@@ -292,7 +292,7 @@ fun get_params mode = extract_params mode o default_raw_params
 fun default_params thy = get_params Normal thy o map (apsnd single)
 
 val silence_state =
-  Proof.map_contexts (Try0_Util.silence_methods false #> Config.put SMT_Config.verbose false)
+  Proof.map_contexts (Try0_HOL.silence_methods #> Config.put SMT_Config.verbose false)
 
 (* Sledgehammer the given subgoal *)
 

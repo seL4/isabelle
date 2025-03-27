@@ -17,6 +17,7 @@ sig
 
   val register_proof_method : string -> proof_method_options -> proof_method -> unit
   val get_proof_method : string -> proof_method option
+  val get_all_proof_method_names : unit -> string list
 
   datatype mode = Auto_Try | Try | Normal
   val generic_try0 : mode -> Time.time option -> tagged_xref list -> Proof.state ->

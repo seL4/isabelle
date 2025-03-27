@@ -7,29 +7,31 @@ theory Try0_HOL
   imports Try0 Presburger
 begin
 
-
-ML_file \<open>Tools/try0_util.ML\<close>
-
 ML \<open>
-val _ =
-  Try.tool_setup
-   {name = "try0", weight = 30, auto_option = \<^system_option>\<open>auto_methods\<close>,
-    body = fn auto => fst o Try0.generic_try0 (if auto then Try0.Auto_Try else Try0.Try) NONE []}
-\<close>
+signature TRY0_HOL =
+sig
+  val silence_methods : Proof.context -> Proof.context
+end
 
-ML \<open>
+structure Try0_HOL : TRY0_HOL = struct
+
+(* Makes reconstructor tools as silent as possible. The "set_visible" calls suppresses "Unification
+   bound exceeded" warnings and the like. *)
+fun silence_methods ctxt =
+  ctxt
+  |> Config.put Metis_Tactic.verbose false
+  |> Simplifier_Trace.disable
+  |> Context_Position.set_visible false
+  |> Config.put Unify.unify_trace false
+  |> Config.put Argo_Tactic.trace "none"
+
 local
 
-val full_attrs = [(Try0.Simp, "simp"), (Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
-val clas_attrs = [(Try0.Intro, "intro"), (Try0.Elim, "elim"), (Try0.Dest, "dest")]
-val simp_attrs = [(Try0.Simp, "add")]
-val metis_attrs = [(Try0.Simp, ""), (Try0.Intro, ""), (Try0.Elim, ""), (Try0.Dest, "")]
-val no_attrs = []
+open Try0_Util
 
 (* name * (run_if_auto_try * (all_goals * tags)) *)
 val raw_named_methods =
-  [("simp", (true, (false, simp_attrs))),
-   ("auto", (true, (true, full_attrs))),
+  [("auto", (true, (true, full_attrs))),
    ("blast", (true, (false, clas_attrs))),
    ("metis", (true, (false, metis_attrs))),
    ("argo", (true, (false, no_attrs))),
@@ -47,10 +49,15 @@ in
 
 val () = raw_named_methods
   |> List.app (fn (name, (run_if_auto_try, (all_goals, tags))) =>
-    let val meth : Try0.proof_method = Try0_Util.apply_raw_named_method name all_goals tags in
+    let
+      val meth : Try0.proof_method =
+        Try0_Util.apply_raw_named_method name all_goals tags silence_methods
+    in
       Try0.register_proof_method name {run_if_auto_try = run_if_auto_try} meth
       handle Symtab.DUP _ => ()
     end)
+
+end
 
 end
 \<close>

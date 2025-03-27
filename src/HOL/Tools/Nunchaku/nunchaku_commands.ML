@@ -246,7 +246,7 @@ val parse_params = Scan.optional (\<^keyword>\<open>[\<close> |-- Parse.list par
 
 fun run_chaku override_params mode i state0 =
   let
-    val state = Proof.map_contexts (Try0_Util.silence_methods false) state0;
+    val state = Proof.map_contexts Try0_HOL.silence_methods state0;
     val thy = Proof.theory_of state;
     val ctxt = Proof.context_of state;
     val _ = List.app check_raw_param override_params;
