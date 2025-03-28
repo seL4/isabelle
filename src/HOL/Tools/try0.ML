@@ -173,8 +173,7 @@ fun generic_try0 mode timeout_opt (facts : facts) st =
 fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 
 fun try0_trans (facts : facts) =
-  Toplevel.keep_proof
-    (ignore o generic_try0 Normal (SOME default_timeout) facts o Toplevel.proof_of)
+  Toplevel.keep_proof (ignore o try0 (SOME default_timeout) facts o Toplevel.proof_of)
 
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 
