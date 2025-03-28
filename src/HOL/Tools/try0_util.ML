@@ -11,11 +11,10 @@ sig
   val string_of_xref : Try0.xref -> string
 
   type facts_prefixes =
-    {usings: string,
-     simps : string,
-     intros : string,
-     elims : string,
-     dests : string}
+    {simps : string option,
+     intros : string option,
+     elims : string option,
+     dests : string option}
   val full_attrs : facts_prefixes
   val clas_attrs : facts_prefixes
   val simp_attrs : facts_prefixes
@@ -37,21 +36,21 @@ fun string_of_xref ((xref, args) : Try0.xref) =
 
 
 type facts_prefixes =
-  {usings: string,
-   simps : string,
-   intros : string,
-   elims : string,
-   dests : string}
+  {simps : string option,
+   intros : string option,
+   elims : string option,
+   dests : string option}
 
 val no_attrs : facts_prefixes =
-  {usings = "", simps = "", intros = "", elims = "", dests = ""}
+  {simps = NONE, intros = NONE, elims = NONE, dests = NONE}
 val full_attrs : facts_prefixes =
-  {usings = "", simps = "simp", intros = "intro", elims = "elim", dests = "dest"}
+  {simps = SOME "simp: ", intros = SOME "intro: ", elims = SOME "elim: ", dests = SOME "dest: "}
 val clas_attrs : facts_prefixes =
-  {usings = "", simps = "", intros = "intro", elims = "elim", dests = "dest"}
+  {simps = NONE, intros = SOME "intro: ", elims = SOME "elim: ", dests = SOME "dest: "}
 val simp_attrs : facts_prefixes =
-  {usings = "", simps = "add", intros = "", elims = "", dests = ""}
-val metis_attrs : facts_prefixes = no_attrs
+  {simps = SOME "add: ", intros = NONE, elims = NONE, dests = NONE}
+val metis_attrs : facts_prefixes =
+  {simps = SOME "", intros = SOME "", elims = SOME "", dests = SOME ""}
 
 local
 
@@ -88,28 +87,36 @@ fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
     val ctxt = Proof.context_of st
 
     val (unused_simps, simps_attrs) =
-      if #simps prefixes = "" then
-        (#simps facts, "")
+       if null (#simps facts) then
+        ([], "")
       else
-        ([], " " ^ #simps prefixes ^ ": " ^ space_implode "" (map string_of_xref (#simps facts)))
+        (case #simps prefixes of
+          NONE =>  (#simps facts, "")
+        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#simps facts))))
 
     val (unused_intros, intros_attrs) =
-      if #intros prefixes = "" then
-        (#intros facts, "")
+      if null (#intros facts) then
+        ([], "")
       else
-        ([], " " ^ #intros prefixes ^ ": " ^ space_implode "" (map string_of_xref (#intros facts)))
+        (case #intros prefixes of
+          NONE =>  (#intros facts, "")
+        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#intros facts))))
 
     val (unused_elims, elims_attrs) =
-      if #elims prefixes = "" then
-        (#elims facts, "")
+      if null (#elims facts) then
+        ([], "")
       else
-        ([], " " ^ #elims prefixes ^ ": " ^ space_implode "" (map string_of_xref (#elims facts)))
+        (case #elims prefixes of
+          NONE =>  (#elims facts, "")
+        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#elims facts))))
 
     val (unused_dests, dests_attrs) =
-      if #dests prefixes = "" then
-        (#dests facts, "")
+      if null (#dests facts) then
+        ([], "")
       else
-        ([], " " ^ #dests prefixes ^ ": " ^ space_implode "" (map string_of_xref (#dests facts)))
+        (case #dests prefixes of
+          NONE =>  (#dests facts, "")
+        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#dests facts))))
 
     val unused = #usings facts @ unused_simps @ unused_intros @ unused_elims @ unused_dests
 
