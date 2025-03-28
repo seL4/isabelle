@@ -1178,8 +1178,7 @@ proof -
     have "(\<lambda>z. g z - g z1) holomorphic_on S"
       by (intro holomorphic_intros holg)
     then obtain r where "0 < r" "ball z2 r \<subseteq> S" "\<And>z. dist z2 z < r \<and> z \<noteq> z2 \<Longrightarrow> g z \<noteq> g z1"
-      apply (rule isolated_zeros [of "\<lambda>z. g z - g z1" S z2 z0])
-      using S \<open>z0 \<in> S\<close> z0 z12 by auto
+      using isolated_zeros [of "\<lambda>z. g z - g z1" S z2 z0] S \<open>z0 \<in> S\<close> z0 z12 by auto
     have "g z2 - g z1 \<noteq> 0"
     proof (rule Hurwitz_no_zeros [of "S - {z1}" "\<lambda>n z. \<F> n z - \<F> n z1" "\<lambda>z. g z - g z1"])
       show "open (S - {z1})"
@@ -1200,13 +1199,13 @@ proof -
         then have K: "\<forall>\<^sub>F n in sequentially. \<forall>x \<in> K. dist (\<F> n x) (g x) < e/2"
           using \<open>0 < e\<close> by (force simp: intro!: uniform_limitD)
         have "uniform_limit {z1} \<F> g sequentially"
-          by (simp add: ul_g z12)
+          by (intro ul_g) (auto simp: z12)
         then have "\<forall>\<^sub>F n in sequentially. \<forall>x \<in> {z1}. dist (\<F> n x) (g x) < e/2"
           using \<open>0 < e\<close> by (force simp: intro!: uniform_limitD)
         then have z1: "\<forall>\<^sub>F n in sequentially. dist (\<F> n z1) (g z1) < e/2"
           by simp
         show "\<forall>\<^sub>F n in sequentially. \<forall>x\<in>K. dist (\<F> n x - \<F> n z1) (g x - g z1) < e" 
-          apply (rule eventually_mono [OF  eventually_conj [OF K z1]])
+          apply (intro eventually_mono [OF  eventually_conj [OF K z1]])
           by (metis (no_types, opaque_lifting) diff_add_eq diff_diff_eq2 dist_commute dist_norm dist_triangle_add_half)
       qed
       show "\<not> (\<lambda>z. g z - g z1) constant_on S - {z1}"

@@ -41,6 +41,22 @@ lemma uniform_limitI:
   "(\<And>e. e > 0 \<Longrightarrow> \<forall>\<^sub>F n in F. \<forall>x\<in>S. dist (f n x) (l x) < e) \<Longrightarrow> uniform_limit S f l F"
   by (simp add: uniform_limit_iff)
 
+lemma uniform_limit_on_subset:
+  "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
+  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono)
+
+lemma uniformly_convergent_on_subset:
+  assumes "uniformly_convergent_on A f" "B \<subseteq> A"
+  shows   "uniformly_convergent_on B f"
+  using assms by (meson uniform_limit_on_subset uniformly_convergent_on_def)
+
+lemma uniform_limit_singleton [simp]: "uniform_limit {x} f g F \<longleftrightarrow> ((\<lambda>n. f n x) \<longlongrightarrow> g x) F"
+  by (simp add: uniform_limit_iff tendsto_iff)
+
+lemma uniformly_convergent_on_singleton:
+  "uniformly_convergent_on {x} f \<longleftrightarrow> convergent (\<lambda>n. f n x)"
+  by (auto simp: uniformly_convergent_on_def convergent_def)
+
 lemma uniform_limit_sequentially_iff:
   "uniform_limit S f l sequentially \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x \<in> S. dist (f n x) (l x) < e)"
   unfolding uniform_limit_iff eventually_sequentially ..
@@ -69,6 +85,19 @@ proof (rule uniform_limitI)
   show "\<forall>\<^sub>F n in F. \<forall>x\<in>X. dist (f (g n x)) ((f \<circ> l) x) < \<epsilon>"
     using uniform_limitD [OF ul \<open>\<delta>>0\<close>] g unfolding o_def
     by eventually_elim (use \<delta> l in blast)
+qed
+
+lemma uniform_limit_compose':
+  assumes "uniform_limit A f g F" and "h \<in> B \<rightarrow> A"
+  shows   "uniform_limit B (\<lambda>n x. f n (h x)) (\<lambda>x. g (h x)) F"
+  unfolding uniform_limit_iff
+proof (intro strip)
+  fix e :: real
+  assume e: "e > 0"
+  with assms(1) have "\<forall>\<^sub>F n in F. \<forall>x\<in>A. dist (f n x) (g x) < e"
+    by (auto simp: uniform_limit_iff)
+  thus "\<forall>\<^sub>F n in F. \<forall>x\<in>B. dist (f n (h x)) (g (h x)) < e"
+    by eventually_elim (use assms(2) in blast)
 qed
 
 lemma metric_uniform_limit_imp_uniform_limit:
@@ -378,7 +407,7 @@ proof
 qed (metis uniformly_convergent_on_sum_E)
 
 lemma uniform_limit_suminf:
-  fixes f:: "nat \<Rightarrow> 'a::{metric_space, comm_monoid_add} \<Rightarrow> 'a"
+  fixes f:: "nat \<Rightarrow> 'a :: topological_space \<Rightarrow> 'b::{metric_space, comm_monoid_add}"
   assumes "uniformly_convergent_on X (\<lambda>n x. \<Sum>k<n. f k x)" 
   shows "uniform_limit X (\<lambda>n x. \<Sum>k<n. f k x) (\<lambda>x. \<Sum>k. f k x) sequentially"
 proof -
@@ -913,10 +942,6 @@ lemma uniform_limit_on_Union:
   shows "uniform_limit (Union I) f g F"
   by (metis SUP_identity_eq assms uniform_limit_on_UNION)
 
-lemma uniform_limit_on_subset:
-  "uniform_limit J f g F \<Longrightarrow> I \<subseteq> J \<Longrightarrow> uniform_limit I f g F"
-  by (auto intro!: uniform_limitI dest!: uniform_limitD intro: eventually_mono)
-
 lemma uniform_limit_bounded:
   fixes f::"'i \<Rightarrow> 'a::topological_space \<Rightarrow> 'b::metric_space"
   assumes l: "uniform_limit S f l F"
@@ -982,7 +1007,7 @@ lemma powser_continuous_suminf:
   shows "continuous_on (cball \<xi> r) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i))"
 apply (rule uniform_limit_theorem [OF _ powser_uniform_limit])
 apply (rule eventuallyI continuous_intros assms)+
-apply (simp add:)
+apply auto
 done
 
 lemma powser_continuous_sums:

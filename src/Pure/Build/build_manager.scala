@@ -871,7 +871,10 @@ object Build_Manager {
     val rsync_context = Rsync.Context()
 
     private def sync(repository: Mercurial.Repository, rev: String, target: Path): String = {
-      repository.pull()
+      val pull_result = Exn.capture(repository.pull())
+      if (Exn.is_exn(pull_result)) {
+        echo_error_message("Could not read from repository: " + Exn.the_exn(pull_result).getMessage)
+      }
 
       if (rev.nonEmpty) repository.sync(rsync_context, target, rev = rev)
 
