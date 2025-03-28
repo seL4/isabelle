@@ -475,9 +475,10 @@ lemma [code_abbrev, simp]:
   by (rule; transfer) simp
 
 lemma [code]:
-  \<open>Word.the_signed_int w = signed_take_bit (LENGTH('a) - Suc 0) (Word.the_int w)\<close>
+  \<open>Word.the_signed_int w = (let k = Word.the_int w
+    in if bit k (LENGTH('a) - Suc 0) then k + push_bit LENGTH('a) (- 1) else k)\<close>
   for w :: \<open>'a::len word\<close>
-  by transfer (simp add: signed_take_bit_take_bit)
+  by transfer (simp add: bit_simps signed_take_bit_eq_take_bit_add)
 
 lemma [code_abbrev, simp]:
   \<open>Word.the_signed_int = sint\<close>
