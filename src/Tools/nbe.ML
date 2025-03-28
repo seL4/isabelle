@@ -153,7 +153,7 @@ end;
 (** the semantic universe **)
 
 (*
-   Functions are given by their semantical function value. To avoid
+   Functions are given by their semantic function value. To avoid
    trouble with the ML-type system, these functions have the most
    generic type, that is "Univ list -> Univ". The calling convention is
    that the arguments come as a list, the last argument first. In
