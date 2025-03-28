@@ -107,8 +107,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             let
               val xref =
                 if is_cartouche name then
-                  (* Facts.Fact (Thm.string_of_thm ctxt thm |> @{print}) *)
-                  Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm) |> @{print})
+                  Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
                 else
                   Facts.named name
             in
