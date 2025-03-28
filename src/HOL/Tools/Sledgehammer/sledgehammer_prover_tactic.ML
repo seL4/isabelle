@@ -97,13 +97,9 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
 
     fun run_try0 () : Try0.result option =
       let
-        val _ = Proof_Context.get_fact
-        val _ = Args.named_fact
-        val _ = Pretty.pure_string_of
-        val _ = Thm.pretty_thm
         val run_timeout = slice_timeout slice_size slices timeout
         fun is_cartouche str = String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
-        fun xref_of_fact (((name, (_, status)), thm) : Sledgehammer_Fact.fact) =
+        fun xref_of_fact (((name, _), thm) : Sledgehammer_Fact.fact) =
             let
               val xref =
                 if is_cartouche name then
