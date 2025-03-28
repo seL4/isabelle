@@ -1630,6 +1630,67 @@ qed
 
 subsection \<open>Ordering\<close>
 
+instance word :: (len) wellorder
+proof
+  fix P :: "'a word \<Rightarrow> bool" and a
+  assume *: "(\<And>b. (\<And>a. a < b \<Longrightarrow> P a) \<Longrightarrow> P b)"
+  have "wf (measure unat)" ..
+  moreover have "{(a, b :: ('a::len) word). a < b} \<subseteq> measure unat"
+    by (auto simp add: word_less_iff_unsigned [where ?'a = nat])
+  ultimately have "wf {(a, b :: ('a::len) word). a < b}"
+    by (rule wf_subset)
+  then show "P a" using *
+    by induction blast
+qed
+
+lemma word_m1_ge [simp]: (* FIXME: delete *)
+  "word_pred 0 \<ge> y"
+  by transfer (simp add: mask_eq_exp_minus_1)
+
+lemma word_less_alt:
+  "a < b \<longleftrightarrow> uint a < uint b"
+  by (fact word_less_def)
+
+lemma word_zero_le [simp]:
+  "0 \<le> y" for y :: "'a::len word"
+  by (fact word_coorder.extremum)
+
+lemma word_n1_ge [simp]:
+  "y \<le> - 1" for y :: "'a::len word"
+  by (fact word_order.extremum)
+
+lemmas word_not_simps [simp] =
+  word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
+
+lemma word_gt_0:
+  "0 < y \<longleftrightarrow> 0 \<noteq> y"
+  for y :: "'a::len word"
+  by (simp add: less_le)
+
+lemma word_gt_0_no [simp]:
+  \<open>(0 :: 'a::len word) < numeral y \<longleftrightarrow> (0 :: 'a::len word) \<noteq> numeral y\<close>
+  by (fact word_gt_0)
+
+lemma word_le_nat_alt:
+  "a \<le> b \<longleftrightarrow> unat a \<le> unat b"
+  by transfer (simp add: nat_le_eq_zle)
+
+lemma word_less_nat_alt:
+  "a < b \<longleftrightarrow> unat a < unat b"
+  by transfer (auto simp: less_le [of 0])
+
+lemmas unat_mono = word_less_nat_alt [THEN iffD1]
+
+lemma wi_less:
+  "(word_of_int n < (word_of_int m :: 'a::len word)) =
+    (n mod 2 ^ LENGTH('a) < m mod 2 ^ LENGTH('a))"
+  by (simp add: uint_word_of_int word_less_def)
+
+lemma wi_le:
+  "(word_of_int n \<le> (word_of_int m :: 'a::len word)) =
+    (n mod 2 ^ LENGTH('a) \<le> m mod 2 ^ LENGTH('a))"
+  by (simp add: uint_word_of_int word_le_def)
+
 lift_definition word_sle :: \<open>'a::len word \<Rightarrow> 'a word \<Rightarrow> bool\<close>
   is \<open>\<lambda>k l. signed_take_bit (LENGTH('a) - Suc 0) k \<le> signed_take_bit (LENGTH('a) - Suc 0) l\<close>
   by (simp flip: signed_take_bit_decr_length_iff)
@@ -1651,13 +1712,12 @@ lemma word_sle_eq [code]:
   \<open>a <=s b \<longleftrightarrow> sint a \<le> sint b\<close>
   by transfer simp
 
-lemma [code]:
-  \<open>a <s b \<longleftrightarrow> sint a < sint b\<close>
+lemma word_sless_alt [code]:
+  "a <s b \<longleftrightarrow> sint a < sint b"
   by transfer simp
 
 lemma signed_ordering: \<open>ordering word_sle word_sless\<close>
-  apply (standard; transfer)
-  using signed_take_bit_decr_length_iff by force+
+  by (standard; transfer) (auto simp flip: signed_take_bit_decr_length_iff)
 
 lemma signed_linorder: \<open>class.linorder word_sle word_sless\<close>
   by (standard; transfer) (auto simp: signed_take_bit_decr_length_iff)
@@ -1668,63 +1728,6 @@ interpretation signed: linorder word_sle word_sless
 lemma word_sless_eq:
   \<open>x <s y \<longleftrightarrow> x <=s y \<and> x \<noteq> y\<close>
   by (fact signed.less_le)
-
-lemma word_less_alt: "a < b \<longleftrightarrow> uint a < uint b"
-  by (fact word_less_def)
-
-lemma word_zero_le [simp]: "0 \<le> y"
-  for y :: "'a::len word"
-  by (fact word_coorder.extremum)
-
-lemma word_m1_ge [simp] : "word_pred 0 \<ge> y" (* FIXME: delete *)
-  by transfer (simp add: mask_eq_exp_minus_1)
-
-lemma word_n1_ge [simp]: "y \<le> -1"
-  for y :: "'a::len word"
-  by (fact word_order.extremum)
-
-lemmas word_not_simps [simp] =
-  word_zero_le [THEN leD] word_m1_ge [THEN leD] word_n1_ge [THEN leD]
-
-lemma word_gt_0: "0 < y \<longleftrightarrow> 0 \<noteq> y"
-  for y :: "'a::len word"
-  by (simp add: less_le)
-
-lemmas word_gt_0_no [simp] = word_gt_0 [of "numeral y"] for y
-
-lemma word_sless_alt: "a <s b \<longleftrightarrow> sint a < sint b"
-  by transfer simp
-
-lemma word_le_nat_alt: "a \<le> b \<longleftrightarrow> unat a \<le> unat b"
-  by transfer (simp add: nat_le_eq_zle)
-
-lemma word_less_nat_alt: "a < b \<longleftrightarrow> unat a < unat b"
-  by transfer (auto simp: less_le [of 0])
-
-lemmas unat_mono = word_less_nat_alt [THEN iffD1]
-
-instance word :: (len) wellorder
-proof
-  fix P :: "'a word \<Rightarrow> bool" and a
-  assume *: "(\<And>b. (\<And>a. a < b \<Longrightarrow> P a) \<Longrightarrow> P b)"
-  have "wf (measure unat)" ..
-  moreover have "{(a, b :: ('a::len) word). a < b} \<subseteq> measure unat"
-    by (auto simp: word_less_nat_alt)
-  ultimately have "wf {(a, b :: ('a::len) word). a < b}"
-    by (rule wf_subset)
-  then show "P a" using *
-    by induction blast
-qed
-
-lemma wi_less:
-  "(word_of_int n < (word_of_int m :: 'a::len word)) =
-    (n mod 2 ^ LENGTH('a) < m mod 2 ^ LENGTH('a))"
-  by (simp add: uint_word_of_int word_less_def)
-
-lemma wi_le:
-  "(word_of_int n \<le> (word_of_int m :: 'a::len word)) =
-    (n mod 2 ^ LENGTH('a) \<le> m mod 2 ^ LENGTH('a))"
-  by (simp add: uint_word_of_int word_le_def)
 
 
 subsection \<open>Bit-wise operations\<close>
