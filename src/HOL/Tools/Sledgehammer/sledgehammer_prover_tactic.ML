@@ -93,38 +93,46 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
   let
     val (basic_slice as (slice_size, _, _, _, _), No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
-    val {facts = chained, ...} = Proof.goal state
     val ctxt = Proof.context_of state
 
-    val (local_facts, global_facts) =
-      ([], [])
-      |> fold (fn ((_, (scope, _)), thm) =>
-        if scope = Global then apsnd (cons thm)
-        else if scope = Chained then I
-        else apfst (cons thm)) facts
-      |> apfst (append chained)
-
-    val run_timeout = slice_timeout slice_size slices timeout
+    fun run_try0 () : Try0.result option =
+      let
+        val _ = Proof_Context.get_fact
+        val _ = Args.named_fact
+        val _ = Pretty.pure_string_of
+        val _ = Thm.pretty_thm
+        val run_timeout = slice_timeout slice_size slices timeout
+        fun is_cartouche str = String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
+        fun xref_of_fact (((name, (_, status)), thm) : Sledgehammer_Fact.fact) =
+            let
+              val xref =
+                if is_cartouche name then
+                  (* Facts.Fact (Thm.string_of_thm ctxt thm |> @{print}) *)
+                  Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm) |> @{print})
+                else
+                  Facts.named name
+            in
+              (xref, [])
+            end
+        val xrefs = map xref_of_fact facts
+        val facts : Try0.facts = {usings = xrefs, simps = [], intros = [], elims = [], dests = []}
+      in
+        Try0.get_proof_method_or_noop name (SOME run_timeout) facts state
+      end
 
     val timer = Timer.startRealTimer ()
-
     val out =
-      (Timeout.apply run_timeout
-         (Goal.prove ctxt [] [] (Logic.get_goal (Thm.prop_of goal) subgoal))
-         (fn {context = ctxt, ...} =>
-            HEADGOAL (tac_of ctxt name (local_facts, global_facts)));
-       NONE)
+      (case run_try0 () of
+        NONE => SOME GaveUp
+      | SOME _ => NONE)
       handle ERROR _ => SOME GaveUp
            | Exn.Interrupt_Breakdown => SOME GaveUp
            | Timeout.TIMEOUT _ => SOME TimedOut
-
     val run_time = Timer.checkRealTimer timer
 
     val (outcome, used_facts) =
       (case out of
-        NONE =>
-        (found_something name;
-         (NONE, map fst facts))
+        NONE => (found_something name; (NONE, map fst facts))
       | some_failure => (some_failure, []))
 
     val message = fn _ =>

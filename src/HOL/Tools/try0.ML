@@ -26,6 +26,7 @@ sig
 
   val register_proof_method : string -> proof_method_options -> proof_method -> unit
   val get_proof_method : string -> proof_method option
+  val get_proof_method_or_noop : string -> proof_method
   val get_all_proof_method_names : unit -> string list
 
   datatype mode = Auto_Try | Try | Normal
