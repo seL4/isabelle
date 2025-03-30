@@ -8156,7 +8156,7 @@ fun implode_list t =
 fun print_list (target_fxy, target_cons) pr fxy t1 t2 =
   Code_Printer.brackify_infix (target_fxy, Code_Printer.R) fxy (
     pr (Code_Printer.INFX (target_fxy, Code_Printer.X)) t1,
-    Code_Printer.str target_cons,
+    Pretty.str target_cons,
     pr (Code_Printer.INFX (target_fxy, Code_Printer.R)) t2
   );
 

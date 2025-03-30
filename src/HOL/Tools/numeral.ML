@@ -104,7 +104,7 @@ fun add_code number_of preproc print target thy =
   let
     fun pretty literals _ thm _ _ [(t, _)] =
       case dest_num_code t of
-        SOME n => (Code_Printer.str o print literals o preproc) n
+        SOME n => (Pretty.str o print literals o preproc) n
       | NONE => Code_Printer.eqn_error thy thm "Illegal numeral expression: illegal term";
   in
     thy |> Code_Target.set_printings (Code_Symbol.Constant (number_of,

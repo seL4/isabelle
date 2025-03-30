@@ -55,7 +55,7 @@ datatype truth = Holds;
 val _ = Theory.setup
   (Code_Target.add_derived_target (target, [(Code_ML.target_SML, I)])
   #> Code_Target.set_printings (Type_Constructor (\<^type_name>\<open>prop\<close>,
-    [(target, SOME (0, (K o K o K) (Code_Printer.str truthN)))]))
+    [(target, SOME (0, (K o K o K) (Pretty.str truthN)))]))
   #> Code_Target.set_printings (Constant (\<^const_name>\<open>Code_Generator.holds\<close>,
     [(target, SOME (Code_Printer.plain_const_syntax HoldsN))]))
   #> Code_Target.add_reserved target thisN
@@ -685,7 +685,7 @@ fun add_eval_tyco (tyco, tyco') thy =
       | pr pr' _ [ty] =
           Code_Printer.concat [pr' Code_Printer.BR ty, tyco']
       | pr pr' _ tys =
-          Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
+          Code_Printer.concat [Pretty.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
     |> Code_Target.set_printings (Type_Constructor (tyco, [(target, SOME (k, pr))]))
@@ -709,9 +709,9 @@ fun process_reflection (code, (tyco_map, (constr_map, const_map))) module_name N
       thy
       |> Code_Target.add_reserved target module_name
       |> Context.theory_map (compile_ML true code)
-      |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
-      |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
-      |> fold (add_eval_const o apsnd Code_Printer.str) const_map
+      |> fold (add_eval_tyco o apsnd Pretty.str) tyco_map
+      |> fold (add_eval_constr o apsnd Pretty.str) constr_map
+      |> fold (add_eval_const o apsnd Pretty.str) const_map
   | process_reflection (code, _) _ (SOME binding) thy =
       let
         val code_binding = Path.map_binding Code_Target.code_path binding;
@@ -856,7 +856,7 @@ fun add_definiendum (ml_name, (b, T)) thy =
   |> Specification.axiomatization [(b, SOME T, NoSyn)] [] [] []
   |-> (fn ([Const (const, _)], _) =>
     Code_Target.set_printings (Constant (const,
-      [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Code_Printer.str) ml_name)))]))
+      [(target, SOME (Code_Printer.simple_const_syntax (0, (K o K o K o Pretty.str) ml_name)))]))
   #> tap (fn thy => Code_Target.produce_code (Proof_Context.init_global thy) false [const] target Code_Target.generatedN NONE []));
 
 fun process_file filepath (definienda, thy) =

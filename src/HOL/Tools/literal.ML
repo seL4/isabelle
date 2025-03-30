@@ -103,7 +103,7 @@ fun add_code target thy =
   let
     fun pretty literals _ thm _ _ [(b0, _), (b1, _), (b2, _), (b3, _), (b4, _), (b5, _), (b6, _), (t, _)] =
       case implode_literal b0 b1 b2 b3 b4 b5 b6 t of
-        SOME s => (Code_Printer.str o Code_Printer.literal_string literals) s
+        SOME s => (Pretty.str o Code_Printer.literal_string literals) s
       | NONE => Code_Printer.eqn_error thy thm "Illegal string literal expression";
   in
     thy

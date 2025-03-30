@@ -15,16 +15,11 @@ sig
 
   val @@ : 'a * 'a -> 'a list
   val @| : 'a list * 'a -> 'a list
-  val str: string -> Pretty.T
   val concat: Pretty.T list -> Pretty.T
   val brackets: Pretty.T list -> Pretty.T
-  val enclose: string -> string -> Pretty.T list -> Pretty.T
-  val commas: Pretty.T list -> Pretty.T list
-  val enum: string -> string -> string -> Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
-  val indent: int -> Pretty.T -> Pretty.T
   val markup_stmt: Code_Symbol.T -> Pretty.T -> Pretty.T
   val format: Code_Symbol.T list -> int -> Pretty.T -> Bytes.T
 
@@ -121,17 +116,13 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-val str = Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
 val commas = Pretty.commas;
-val enclose = Pretty.enclose;
-val brackets = enclose "(" ")" o Pretty.breaks;
-val enum = Pretty.enum;
-fun enum_default default sep l r [] = str default
-  | enum_default default sep l r xs = enum sep l r xs;
-fun semicolon ps = Pretty.block [concat ps, str ";"];
-fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
-val indent = Pretty.indent;
+val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
+fun enum_default default sep l r [] = Pretty.str default
+  | enum_default default sep l r xs = Pretty.enum sep l r xs;
+fun semicolon ps = Pretty.block [concat ps, Pretty.str ";"];
+fun doublesemicolon ps = Pretty.block [concat ps, Pretty.str ";;"];
 
 fun markup_stmt sym =
   Pretty.mark (Markup.code_presentationN, [(Markup.stmt_nameN, Code_Symbol.marker sym)]);
@@ -251,34 +242,34 @@ fun fixity NOBR _ = false
   | fixity _ _ = true;
 
 fun gen_brackify _ [p] = p
-  | gen_brackify true (ps as _::_) = enclose "(" ")" ps
+  | gen_brackify true (ps as _::_) = Pretty.enclose "(" ")" ps
   | gen_brackify false (ps as _::_) = Pretty.block ps;
 
 fun brackify fxy_ctxt =
   gen_brackify (fixity BR fxy_ctxt) o Pretty.breaks;
 
 fun brackify_infix infx fxy_ctxt (l, m, r) =
-  gen_brackify (fixity (INFX infx) fxy_ctxt) [l, str " ", m, Pretty.brk 1, r];
+  gen_brackify (fixity (INFX infx) fxy_ctxt) [l, Pretty.str " ", m, Pretty.brk 1, r];
 
 fun brackify_block fxy_ctxt p1 ps p2 =
   let val p = Pretty.block_enclose (p1, p2) ps
   in if fixity BR fxy_ctxt
-    then enclose "(" ")" [p]
+    then Pretty.enclose "(" ")" [p]
     else p
   end;
 
 fun gen_applify strict opn cls f fxy_ctxt p [] =
       if strict
-      then gen_brackify (fixity BR fxy_ctxt) [p, str (opn ^ cls)]
+      then gen_brackify (fixity BR fxy_ctxt) [p, Pretty.str (opn ^ cls)]
       else p
   | gen_applify strict opn cls f fxy_ctxt p ps =
-      gen_brackify (fixity BR fxy_ctxt) (p @@ enum "," opn cls (map f ps));
+      gen_brackify (fixity BR fxy_ctxt) (p @@ Pretty.enum "," opn cls (map f ps));
 
 fun applify opn = gen_applify false opn;
 
 fun tuplify _ _ [] = NONE
   | tuplify print fxy [x] = SOME (print fxy x)
-  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
+  | tuplify print _ xs = SOME (Pretty.enum "," "(" ")" (map (print NOBR) xs));
 
 
 (* generic syntax *)
@@ -337,7 +328,7 @@ fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy
     Constant name => (case const_syntax name of
       NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (_, Plain_printer s) =>
-        brackify fxy (str s :: map (print_term some_thm vars BR) ts)
+        brackify fxy (Pretty.str s :: map (print_term some_thm vars BR) ts)
     | SOME (wanted, Complex_printer print) =>
         let
           val ((vs_tys, (ts1, rty)), ts2) =
@@ -382,7 +373,7 @@ fun printer_of_mixfix prep_arg (fixity_this, mfx) =
       | fillin print (Arg fxy :: mfx) (a :: args) =
           (print fxy o prep_arg) a :: fillin print mfx args
       | fillin print (String s :: mfx) args =
-          str s :: fillin print mfx args
+          Pretty.str s :: fillin print mfx args
       | fillin print (Break :: mfx) args =
           Pretty.brk 1 :: fillin print mfx args;
   in
@@ -430,7 +421,7 @@ fun syntax_of_mixfix of_plain of_printer prep_arg (BR, [String s]) = of_plain s
       of_printer (printer_of_mixfix prep_arg (fixity, mfx));
 
 fun parse_tyco_syntax x =
-  (parse_mixfix >> syntax_of_mixfix (fn s => (0, (K o K o K o str) s)) I I) x;
+  (parse_mixfix >> syntax_of_mixfix (fn s => (0, (K o K o K o Pretty.str) s)) I I) x;
 
 val parse_const_syntax =
   parse_mixfix >> syntax_of_mixfix plain_const_syntax simple_const_syntax fst;

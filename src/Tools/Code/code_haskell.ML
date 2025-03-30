@@ -51,20 +51,20 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
       | SOME class => class;
     fun print_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
      of [] => []
-      | constraints => enum "," "(" ")" (
+      | constraints => Pretty.enum "," "(" ")" (
           map (fn (v, class) =>
-            str (class_name class ^ " " ^ lookup_var tyvars v)) constraints)
-          @@ str " => ";
+            Pretty.str (class_name class ^ " " ^ lookup_var tyvars v)) constraints)
+          @@ Pretty.str " => ";
     fun print_typforall tyvars vs = case map fst vs
      of [] => []
-      | vnames => str "forall " :: Pretty.breaks
-          (map (str o lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
+      | vnames => Pretty.str "forall " :: Pretty.breaks
+          (map (Pretty.str o lookup_var tyvars) vnames) @ Pretty.str "." @@ Pretty.brk 1;
     fun print_tyco_expr tyvars fxy (tyco, tys) =
-      brackify fxy (str tyco :: map (print_typ tyvars BR) tys)
+      brackify fxy (Pretty.str tyco :: map (print_typ tyvars BR) tys)
     and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (deresolve_tyco tyco, tys)
           | SOME (_, print) => print (print_typ tyvars) fxy tys)
-      | print_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;
+      | print_typ tyvars fxy (ITyVar v) = (Pretty.str o lookup_var tyvars) v;
     fun print_typdecl tyvars (tyco, vs) =
       print_tyco_expr tyvars NOBR (tyco, map ITyVar vs);
     fun print_typscheme tyvars (vs, ty) =
@@ -80,14 +80,14 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                   print_term tyvars some_thm vars BR t2
                 ])
       | print_term tyvars some_thm vars fxy (IVar NONE) =
-          str "_"
+          Pretty.str "_"
       | print_term tyvars some_thm vars fxy (IVar (SOME v)) =
-          (str o lookup_var vars) v
+          (Pretty.str o lookup_var vars) v
       | print_term tyvars some_thm vars fxy (t as _ `|=> _) =
           let
             val (binds, t') = Code_Thingol.unfold_pat_abs t;
             val (ps, vars') = fold_map (print_bind tyvars some_thm BR o fst) binds vars;
-          in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars some_thm vars' NOBR t') end
+          in brackets (Pretty.str "\\" :: ps @ Pretty.str "->" @@ print_term tyvars some_thm vars' NOBR t') end
       | print_term tyvars some_thm vars fxy (ICase case_expr) =
           (case Code_Thingol.unfold_const_app (#primitive case_expr)
            of SOME (app as ({ sym = Constant const, ... }, _)) =>
@@ -99,42 +99,42 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
       let
         val printed_const =
           case annotation of
-            SOME ty => brackets [(str o deresolve) sym, str "::", print_typ tyvars NOBR ty]
-          | NONE => (str o deresolve) sym
+            SOME ty => brackets [(Pretty.str o deresolve) sym, Pretty.str "::", print_typ tyvars NOBR ty]
+          | NONE => (Pretty.str o deresolve) sym
       in 
         printed_const :: map (print_term tyvars some_thm vars BR) ts
       end
     and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
     and print_case tyvars some_thm vars fxy { clauses = [], ... } =
-          (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""]
+          (brackify fxy o Pretty.breaks o map Pretty.str) ["error", "\"empty case\""]
       | print_case tyvars some_thm vars fxy (case_expr as { clauses = [(IVar _, _)], ... }) =
           let
             val (vs, body) = Code_Thingol.unfold_let_no_pat (ICase case_expr);
             fun print_assignment ((some_v, _), t) vars =
               vars
               |> print_bind tyvars some_thm BR (IVar some_v)
-              |>> (fn p => semicolon [p, str "=", print_term tyvars some_thm vars NOBR t])
+              |>> (fn p => semicolon [p, Pretty.str "=", print_term tyvars some_thm vars NOBR t])
             val (ps, vars') = fold_map print_assignment vs vars;
-          in brackify_block fxy (str "let {")
+          in brackify_block fxy (Pretty.str "let {")
             ps
-            (concat [str "}", str "in", print_term tyvars some_thm vars' NOBR body])
+            (concat [Pretty.str "}", Pretty.str "in", print_term tyvars some_thm vars' NOBR body])
           end
       | print_case tyvars some_thm vars fxy { term = t, typ = ty, clauses = clauses as _ :: _, ... } =
           let
             fun print_select (pat, body) =
               let
                 val (p, vars') = print_bind tyvars some_thm NOBR pat vars;
-              in semicolon [p, str "->", print_term tyvars some_thm vars' NOBR body] end;
+              in semicolon [p, Pretty.str "->", print_term tyvars some_thm vars' NOBR body] end;
           in Pretty.block_enclose
-            (concat [str "(case", print_term tyvars some_thm vars NOBR t, str "of", str "{"], str "})")
+            (concat [Pretty.str "(case", print_term tyvars some_thm vars NOBR t, Pretty.str "of", Pretty.str "{"], Pretty.str "})")
             (map print_select clauses)
           end;
     fun print_stmt (Constant const, Code_Thingol.Fun (((vs, ty), raw_eqs), _)) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_err n =
-              (semicolon o map str) (
+              (semicolon o map Pretty.str) (
                 deresolve_const const
                 :: replicate n "_"
                 @ "="
@@ -149,16 +149,16 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                   |> intro_vars (build (fold Code_Thingol.add_varnames ts));
               in
                 semicolon (
-                  (str o deresolve_const) const
+                  (Pretty.str o deresolve_const) const
                   :: map (print_term tyvars some_thm vars BR) ts
-                  @ str "="
+                  @ Pretty.str "="
                   @@ print_term tyvars some_thm vars NOBR t
                 )
               end;
           in
             Pretty.chunks (
               semicolon [
-                (str o suffix " ::" o deresolve_const) const,
+                (Pretty.str o suffix " ::" o deresolve_const) const,
                 print_typscheme tyvars (vs, ty)
               ]
               :: (case filter (snd o snd) raw_eqs
@@ -171,7 +171,7 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars vs reserved;
           in
             semicolon [
-              str "data",
+              Pretty.str "data",
               print_typdecl tyvars (deresolve_tyco tyco, vs)
             ]
           end
@@ -180,12 +180,12 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars vs reserved;
           in
             semicolon (
-              str "newtype"
+              Pretty.str "newtype"
               :: print_typdecl tyvars (deresolve_tyco tyco, vs)
-              :: str "="
-              :: (str o deresolve_const) co
+              :: Pretty.str "="
+              :: (Pretty.str o deresolve_const) co
               :: print_typ tyvars BR ty
-              :: (if deriving_show tyco then [str "deriving (Prelude.Read, Prelude.Show)"] else [])
+              :: (if deriving_show tyco then [Pretty.str "deriving (Prelude.Read, Prelude.Show)"] else [])
             )
           end
       | print_stmt (Type_Constructor tyco, Code_Thingol.Datatype (vs, co :: cos)) =
@@ -193,17 +193,17 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars vs reserved;
             fun print_co ((co, _), tys) =
               concat (
-                (str o deresolve_const) co
+                (Pretty.str o deresolve_const) co
                 :: map (print_typ tyvars BR) tys
               )
           in
             semicolon (
-              str "data"
+              Pretty.str "data"
               :: print_typdecl tyvars (deresolve_tyco tyco, vs)
-              :: str "="
+              :: Pretty.str "="
               :: print_co co
-              :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos
-              @ (if deriving_show tyco then [str "deriving (Prelude.Read, Prelude.Show)"] else [])
+              :: map ((fn p => Pretty.block [Pretty.str "| ", p]) o print_co) cos
+              @ (if deriving_show tyco then [Pretty.str "deriving (Prelude.Read, Prelude.Show)"] else [])
             )
           end
       | print_stmt (Type_Class class, Code_Thingol.Class (v, (classrels, classparams))) =
@@ -211,19 +211,19 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =
               semicolon [
-                (str o deresolve_const) classparam,
-                str "::",
+                (Pretty.str o deresolve_const) classparam,
+                Pretty.str "::",
                 print_typ tyvars NOBR ty
               ]
           in
             Pretty.block_enclose (
               Pretty.block [
-                str "class ",
+                Pretty.str "class ",
                 Pretty.block (print_typcontext tyvars [(v, map snd classrels)]),
-                str (deresolve_class class ^ " " ^ lookup_var tyvars v),
-                str " where {"
+                Pretty.str (deresolve_class class ^ " " ^ lookup_var tyvars v),
+                Pretty.str " where {"
               ],
-              str "};"
+              Pretty.str "};"
             ) (map print_classparam classparams)
           end
       | print_stmt (_, Code_Thingol.Classinst { class, tyco, vs, inst_params, ... }) =
@@ -232,13 +232,13 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               case const_syntax classparam of
                 NONE => semicolon [
-                    (str o Long_Name.base_name o deresolve_const) classparam,
-                    str "=",
+                    (Pretty.str o Long_Name.base_name o deresolve_const) classparam,
+                    Pretty.str "=",
                     print_app tyvars (SOME thm) reserved NOBR (const, [])
                   ]
               | SOME (_, Code_Printer.Plain_printer s) => semicolon [
-                    (str o Long_Name.base_name) s,
-                    str "=",
+                    (Pretty.str o Long_Name.base_name) s,
+                    Pretty.str "=",
                     print_app tyvars (SOME thm) reserved NOBR (const, [])
                   ]
               | SOME (wanted, Code_Printer.Complex_printer _) =>
@@ -258,20 +258,20 @@ fun print_haskell_stmt class_syntax tyco_syntax const_syntax
                   in
                     semicolon [
                       print_term tyvars (SOME thm) vars NOBR lhs,
-                      str "=",
+                      Pretty.str "=",
                       print_term tyvars (SOME thm) vars NOBR rhs
                     ]
                   end;
           in
             Pretty.block_enclose (
               Pretty.block [
-                str "instance ",
+                Pretty.str "instance ",
                 Pretty.block (print_typcontext tyvars vs),
-                str (class_name class ^ " "),
+                Pretty.str (class_name class ^ " "),
                 print_typ tyvars BR (tyco `%% map (ITyVar o fst) vs),
-                str " where {"
+                Pretty.str " where {"
               ],
-              str "};"
+              Pretty.str "};"
             ) (map print_classparam_instance inst_params)
           end;
   in print_stmt end;
@@ -368,31 +368,31 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
     fun print_module_frame module_name header exports ps =
       (module_names module_name, Pretty.chunks2 (
         header
-        @ concat [str "module",
+        @ concat [Pretty.str "module",
           case exports of
-            SOME ps => Pretty.block [str module_name, enclose "(" ")" (commas ps)]
-          | NONE => str module_name,
-          str "where {"
+            SOME ps => Pretty.block [Pretty.str module_name, Pretty.enclose "(" ")" (Pretty.commas ps)]
+          | NONE => Pretty.str module_name,
+          Pretty.str "where {"
         ]
         :: ps
-        @| str "}"
+        @| Pretty.str "}"
       ));
     fun print_qualified_import module_name =
-      semicolon [str "import qualified", str module_name];
+      semicolon [Pretty.str "import qualified", Pretty.str module_name];
     val import_common_ps =
-      enclose "import Prelude (" ");" (commas (map str
-        (map (Library.enclose "(" ")") prelude_import_operators @ prelude_import_unqualified)
-          @ map (fn (tyco, constrs) => (enclose (tyco ^ "(") ")" o commas o map str) constrs) prelude_import_unqualified_constr))
-      :: enclose "import Data.Bits (" ");" (commas
-        (map (str o Library.enclose "(" ")") data_bits_import_operators))
+      Pretty.enclose "import Prelude (" ");" (Pretty.commas (map Pretty.str
+        (map (enclose "(" ")") prelude_import_operators @ prelude_import_unqualified)
+          @ map (fn (tyco, constrs) => (Pretty.enclose (tyco ^ "(") ")" o Pretty.commas o map Pretty.str) constrs) prelude_import_unqualified_constr))
+      :: Pretty.enclose "import Data.Bits (" ");" (Pretty.commas
+        (map (Pretty.str o enclose "(" ")") data_bits_import_operators))
       :: print_qualified_import "Prelude"
       :: print_qualified_import "Data.Bits"
       :: map (print_qualified_import o fst) includes;
     fun print_module module_name (gr, imports) =
       let
         val deresolve = deresolver module_name;
-        val deresolve_import = SOME o str o deresolve;
-        val deresolve_import_attached = SOME o str o suffix "(..)" o deresolve;
+        val deresolve_import = SOME o Pretty.str o deresolve;
+        val deresolve_import_attached = SOME o Pretty.str o suffix "(..)" o deresolve;
         fun print_import (sym, (_, Code_Thingol.Fun _)) = deresolve_import sym
           | print_import (sym, (Code_Namespace.Public, Code_Thingol.Datatype _)) = deresolve_import_attached sym
           | print_import (sym, (Code_Namespace.Opaque, Code_Thingol.Datatype _)) = deresolve_import sym
@@ -409,7 +409,7 @@ fun serialize_haskell module_prefix string_classes ctxt { module_name,
           |> split_list
           |> apfst (map_filter I);
       in
-        print_module_frame module_name [str language_pragma] (SOME export_ps)
+        print_module_frame module_name [Pretty.str language_pragma] (SOME export_ps)
           ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
       end;
 
@@ -430,7 +430,7 @@ fun print_numeral typ = Library.enclose "(" (" :: " ^ typ ^ ")") o signed_string
 val literals = Literals {
   literal_string = print_haskell_string,
   literal_numeral = print_numeral "Integer",
-  literal_list = enum "," "[" "]",
+  literal_list = Pretty.enum "," "[" "]",
   infix_cons = (5, ":")
 };
 
@@ -455,22 +455,22 @@ fun pretty_haskell_monad c_bind =
           (semicolon [print_term vars NOBR t], vars)
       | print_monad print_bind print_term (SOME ((bind, _), true), t) vars = vars
           |> print_bind NOBR bind
-          |>> (fn p => semicolon [p, str "<-", print_term vars NOBR t])
+          |>> (fn p => semicolon [p, Pretty.str "<-", print_term vars NOBR t])
       | print_monad print_bind print_term (SOME ((bind, _), false), t) vars = vars
           |> print_bind NOBR bind
-          |>> (fn p => semicolon [str "let", str "{", p, str "=", print_term vars NOBR t, str "}"]);
+          |>> (fn p => semicolon [Pretty.str "let", Pretty.str "{", p, Pretty.str "=", print_term vars NOBR t, Pretty.str "}"]);
     fun pretty _ print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
           val (binds, t'') = implode_monad t'
           val (ps, vars') = fold_map (print_monad (gen_print_bind (K print_term) thm) print_term)
             (bind :: binds) vars;
         in
-          brackify_block fxy (str "do { ")
+          brackify_block fxy (Pretty.str "do { ")
             (ps @| print_term vars' NOBR t'')
-            (str " }")
+            (Pretty.str " }")
         end
       | NONE => brackify_infix (1, L) fxy
-          (print_term vars (INFX (1, L)) t1, str ">>=", print_term vars (INFX (1, X)) t2)
+          (print_term vars (INFX (1, L)) t1, Pretty.str ">>=", print_term vars (INFX (1, X)) t2)
   in (2, pretty) end;
 
 fun add_monad target' raw_c_bind thy =
@@ -499,7 +499,7 @@ val _ = Theory.setup
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
-        str "->",
+        Pretty.str "->",
         print_typ (INFX (1, R)) ty2
       )))]))
   #> fold (Code_Target.add_reserved target) [

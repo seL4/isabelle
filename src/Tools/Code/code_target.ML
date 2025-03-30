@@ -656,7 +656,7 @@ datatype target_source = Literal of string | File of Path.T
 
 local
 
-val format_source = Pretty.block0 o Pretty.fbreaks o map Code_Printer.str o split_lines;
+val format_source = Pretty.block0 o Pretty.fbreaks o map Pretty.str o split_lines;
 
 fun eval_source (Literal s) = s
   | eval_source (File p) = File.read p;
