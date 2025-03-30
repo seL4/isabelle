@@ -187,13 +187,13 @@ val unfold_app = unfoldl
     | _ => NONE);
 
 val unfold_abs = unfoldr
-  (fn (v `|=> (t, _)) => SOME (v, t)
+  (fn (v_ty `|=> (t, _)) => SOME (v_ty, t)
     | _ => NONE);
 
-fun unfold_abs_typed (v_ty `|=> body) =
+fun unfold_abs_typed (v_ty `|=> t_ty) =
       unfoldr
-        (fn (v_ty `|=> body, _) => SOME (v_ty, body)
-          | _ => NONE) body
+        (fn (v_ty `|=> t_ty, _) => SOME (v_ty, t_ty)
+          | _ => NONE) t_ty
       |> apfst (cons v_ty)
       |> SOME
   | unfold_abs_typed _ = NONE
