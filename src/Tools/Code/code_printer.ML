@@ -64,6 +64,7 @@ sig
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
+  val parse_target_source: string parser
   type raw_const_syntax
   val plain_const_syntax: string -> raw_const_syntax
   type simple_const_syntax
@@ -282,6 +283,26 @@ fun tuplify _ _ [] = NONE
 
 (* generic syntax *)
 
+local
+
+val target = Markup.language'
+  {name = "code target language", symbols = false, antiquotes = false};
+
+fun markup_target source =
+  let
+    val pos = Input.pos_of source;
+    val _ =
+      if Position.is_reported_range pos
+      then Position.report pos (target (Input.is_delimited source))
+      else ();
+  in Input.string_of source end;
+
+in
+
+val parse_target_source = Parse.input Parse.embedded >> markup_target;
+
+end
+
 type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
 
@@ -400,8 +421,8 @@ val parse_fixity =
   (\<^keyword>\<open>infix\<close> >> K X) || (\<^keyword>\<open>infixl\<close> >> K L) || (\<^keyword>\<open>infixr\<close> >> K R)
 
 fun parse_mixfix x =
-  (Parse.string >> read_mixfix
-  || parse_fixity -- Parse.nat -- Parse.string
+  (parse_target_source >> read_mixfix
+  || parse_fixity -- Parse.nat -- parse_target_source
      >> (fn ((fixity, i), s) => read_infix (fixity, i) s)) x;
 
 fun syntax_of_mixfix of_plain of_printer prep_arg (BR, [String s]) = of_plain s

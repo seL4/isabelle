@@ -762,8 +762,8 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_printing\<close> "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
-      Parse.string (Parse.minus >> K ()) (Parse.minus >> K ())
-      (Parse.embedded -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_simple_symbols) [])
+      Code_Printer.parse_target_source (Parse.minus >> K ()) (Parse.minus >> K ())
+      (Code_Printer.parse_target_source -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_simple_symbols) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =

@@ -2291,26 +2291,28 @@ text \<open>
     ;
     symbol_module: @'code_module' name
     ;
-    syntax: @{syntax string} | (@'infix' | @'infixl' | @'infixr')
-      @{syntax nat} @{syntax string}
+    target_syntax: @{syntax embedded}
+    ;
+    rich_syntax: target_syntax | (@'infix' | @'infixl' | @'infixr')
+      @{syntax nat} target_syntax
     ;
     printing_const: symbol_const ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' syntax ? + @'and')
+      ('(' target ')' rich_syntax ? + @'and')
     ;
     printing_type_constructor: symbol_type_constructor ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' syntax ? + @'and')
+      ('(' target ')' rich_syntax ? + @'and')
     ;
     printing_class: symbol_class ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' @{syntax string} ? + @'and')
+      ('(' target ')' target_syntax ? + @'and')
     ;
     printing_class_relation: symbol_class_relation ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' @{syntax string} ? + @'and')
+      ('(' target ')' target_syntax ? + @'and')
     ;
     printing_class_instance: symbol_class_instance ('\<rightharpoonup>'| '=>') \<newline>
       ('(' target ')' '-' ? + @'and')
     ;
     printing_module: symbol_module ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' (@{syntax string} for_symbol?)? + @'and')
+      ('(' target ')' (target_syntax for_symbol?)? + @'and')
     ;
     for_symbol:
       @'for'
