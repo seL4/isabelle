@@ -2312,7 +2312,8 @@ text \<open>
       ('(' target ')' '-' ? + @'and')
     ;
     printing_module: symbol_module ('\<rightharpoonup>' | '=>') \<newline>
-      ('(' target ')' (target_syntax for_symbol?)? + @'and')
+      ('(' target ')' \<newline>
+        ((target_syntax | @'file' path) for_symbol?)? + @'and')
     ;
     for_symbol:
       @'for'

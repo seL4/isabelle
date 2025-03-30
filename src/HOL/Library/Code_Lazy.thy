@@ -67,50 +67,8 @@ text \<open>
   has been evaluated to or not.
 \<close>
 
-code_printing code_module Lazy \<rightharpoonup> (SML)
-\<open>signature LAZY =
-sig
-  type 'a lazy;
-  val lazy : (unit -> 'a) -> 'a lazy;
-  val force : 'a lazy -> 'a;
-  val peek : 'a lazy -> 'a option
-  val termify_lazy : 
-   (string -> 'typerep -> 'term) -> 
-   ('term -> 'term -> 'term) -> 
-   (string -> 'typerep -> 'term -> 'term) ->
-   'typerep -> ('typerep -> 'typerep -> 'typerep) -> ('typerep -> 'typerep) ->
-   ('a -> 'term) -> 'typerep -> 'a lazy -> 'term -> 'term;
-end;
-
-structure Lazy : LAZY = 
-struct
-
-datatype 'a content =
-   Delay of unit -> 'a
- | Value of 'a 
- | Exn of exn;
-
-datatype 'a lazy = Lazy of 'a content ref;
-
-fun lazy f = Lazy (ref (Delay f));
-
-fun force (Lazy x) = case !x of
-   Delay f => (
-     let val res = f (); val _ = x := Value res; in res end
-     handle exn => (x := Exn exn; raise exn))
-  | Value x => x
-  | Exn exn => raise exn;
-
-fun peek (Lazy x) = case !x of
-    Value x => SOME x
-  | _ => NONE;
-
-fun termify_lazy const app abs unitT funT lazyT term_of T x _ =
-  app (const "Code_Lazy.delay" (funT (funT unitT T) (lazyT T))) 
-    (case peek x of SOME y => abs "_" unitT (term_of y)
-     | _ => const "Pure.dummy_pattern" (funT unitT T));
-
-end;\<close> for type_constructor lazy constant delay force termify_lazy
+code_printing code_module Lazy \<rightharpoonup> (SML) file "~~/src/HOL/Library/Tools/lazy.ML"
+    for type_constructor lazy constant delay force termify_lazy
 | type_constructor lazy \<rightharpoonup> (SML) "_ Lazy.lazy"
 | constant delay \<rightharpoonup> (SML) "Lazy.lazy"
 | constant force \<rightharpoonup> (SML) "Lazy.force"
@@ -124,17 +82,8 @@ code_printing \<comment> \<open>For code generation within the Isabelle environm
 | type_constructor lazy \<rightharpoonup> (Eval) "_ Lazy.lazy"
 | constant delay \<rightharpoonup> (Eval) "Lazy.lazy"
 | constant force \<rightharpoonup> (Eval) "Lazy.force"
-| code_module Termify_Lazy \<rightharpoonup> (Eval)
-\<open>structure Termify_Lazy = struct
-fun termify_lazy
-  (_: string -> typ -> term) (_: term -> term -> term)  (_: string -> typ -> term -> term)
-  (_: typ) (_: typ -> typ -> typ) (_: typ -> typ)
-  (term_of: 'a -> term) (T: typ) (x: 'a Lazy.lazy) (_: term) =
-  Const ("Code_Lazy.delay", (HOLogic.unitT --> T) --> Type ("Code_Lazy.lazy", [T])) $
-  (case Lazy.peek x of
-    SOME (Exn.Res x) => absdummy HOLogic.unitT (term_of x)
-  | _ => Const ("Pure.dummy_pattern", HOLogic.unitT --> T));
-end;\<close> for constant termify_lazy
+| code_module Termify_Lazy \<rightharpoonup> (Eval) file "~~/src/HOL/Library/Tools/termify_lazy.ML"
+    for constant termify_lazy
 | constant termify_lazy \<rightharpoonup> (Eval) "Termify'_Lazy.termify'_lazy"
 
 code_reserved (Eval) Termify_Lazy
@@ -143,34 +92,15 @@ code_printing
   type_constructor lazy \<rightharpoonup> (OCaml) "_ Lazy.t"
 | constant delay \<rightharpoonup> (OCaml) "Lazy.from'_fun"
 | constant force \<rightharpoonup> (OCaml) "Lazy.force"
-| code_module Termify_Lazy \<rightharpoonup> (OCaml)
-\<open>module Termify_Lazy : sig
-  val termify_lazy :
-   (string -> 'typerep -> 'term) ->
-   ('term -> 'term -> 'term) ->
-   (string -> 'typerep -> 'term -> 'term) ->
-   'typerep -> ('typerep -> 'typerep -> 'typerep) -> ('typerep -> 'typerep) ->
-   ('a -> 'term) -> 'typerep -> 'a Lazy.t -> 'term -> 'term
-end = struct
-
-let termify_lazy const app abs unitT funT lazyT term_of ty x _ =
-  app (const "Code_Lazy.delay" (funT (funT unitT ty) (lazyT ty)))
-    (if Lazy.is_val x then abs "_" unitT (term_of (Lazy.force x))
-     else const "Pure.dummy_pattern" (funT unitT ty));;
-
-end;;\<close> for constant termify_lazy
+| code_module Termify_Lazy \<rightharpoonup> (OCaml) file "~~/src/HOL/Library/Tools/termify_lazy.ocaml"
+    for constant termify_lazy
 | constant termify_lazy \<rightharpoonup> (OCaml) "Termify'_Lazy.termify'_lazy"
 
 code_reserved (OCaml) Lazy Termify_Lazy
 
-
 code_printing
-  code_module Lazy \<rightharpoonup> (Haskell) \<open>
-module Lazy(Lazy, delay, force) where
-
-newtype Lazy a = Lazy a
-delay f = Lazy (f ())
-force (Lazy x) = x\<close> for type_constructor lazy constant delay force
+  code_module Lazy \<rightharpoonup> (Haskell) file "~~/src/HOL/Library/Tools/lazy.hs"
+    for type_constructor lazy constant delay force
 | type_constructor lazy \<rightharpoonup> (Haskell) "Lazy.Lazy _"
 | constant delay \<rightharpoonup> (Haskell) "Lazy.delay"
 | constant force \<rightharpoonup> (Haskell) "Lazy.force"
@@ -178,43 +108,8 @@ force (Lazy x) = x\<close> for type_constructor lazy constant delay force
 code_reserved (Haskell) Lazy
 
 code_printing
-  code_module Lazy \<rightharpoonup> (Scala) 
-\<open>object Lazy {
-  final class Lazy[A] (f: Unit => A) {
-    var evaluated = false;
-    lazy val x: A = f(())
-
-    def get() : A = {
-      evaluated = true;
-      return x
-    }
-  }
-
-  def force[A] (x: Lazy[A]) : A = {
-    return x.get()
-  }
-
-  def delay[A] (f: Unit => A) : Lazy[A] = {
-    return new Lazy[A] (f)
-  }
-
-  def termify_lazy[Typerep, Term, A] (
-    const: String => Typerep => Term,
-    app: Term => Term => Term,
-    abs: String => Typerep => Term => Term,
-    unitT: Typerep,
-    funT: Typerep => Typerep => Typerep,
-    lazyT: Typerep => Typerep,
-    term_of: A => Term,
-    ty: Typerep,
-    x: Lazy[A],
-    dummy: Term) : Term = {
-    x.evaluated match {
-      case true => app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(abs("_")(unitT)(term_of(x.get())))
-      case false => app(const("Code_Lazy.delay")(funT(funT(unitT)(ty))(lazyT(ty))))(const("Pure.dummy_pattern")(funT(unitT)(ty)))
-    }
-  }
-}\<close> for type_constructor lazy constant delay force termify_lazy
+  code_module Lazy \<rightharpoonup> (Scala) file "~~/src/HOL/Library/Tools/lazy.scala"
+    for type_constructor lazy constant delay force termify_lazy
 | type_constructor lazy \<rightharpoonup> (Scala) "Lazy.Lazy[_]"
 | constant delay \<rightharpoonup> (Scala) "Lazy.delay"
 | constant force \<rightharpoonup> (Scala) "Lazy.force"

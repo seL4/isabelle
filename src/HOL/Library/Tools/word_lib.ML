@@ -35,7 +35,7 @@ fun mk_bitT i T =
   then Type (\<^type_name>\<open>Numeral_Type.bit0\<close>, [T])
   else Type (\<^type_name>\<open>Numeral_Type.bit1\<close>, [T])
 
-fun mk_binT size = 
+fun mk_binT size =
   if size = 0 then \<^typ>\<open>Numeral_Type.num0\<close>
   else if size = 1 then \<^typ>\<open>Numeral_Type.num1\<close>
   else let val (q, r) = Integer.div_mod size 2 in mk_bitT r (mk_binT q) end

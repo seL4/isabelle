@@ -652,7 +652,16 @@ val set_identifiers_cmd = gen_set_identifiers read_name_decls;
 
 (* custom printings *)
 
-fun arrange_printings prep_syms ctxt =
+datatype target_source = Literal of string | File of Path.T
+
+local
+
+val format_source = Pretty.block0 o Pretty.fbreaks o map Code_Printer.str o split_lines;
+
+fun eval_source (Literal s) = s
+  | eval_source (File p) = File.read p;
+
+fun arrange_printings prep_syms prep_source ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun arrange check (sym, target_syns) =
@@ -662,22 +671,25 @@ fun arrange_printings prep_syms ctxt =
     Code_Symbol.maps_attr'
       (arrange check_const_syntax) (arrange check_tyco_syntax)
         (arrange ((K o K o K) I)) (arrange ((K o K o K) I)) (arrange ((K o K o K) I))
-        (arrange (fn ctxt => fn _ => fn _ => fn (raw_content, raw_syms) =>
-          (Pretty.block0 (Pretty.fbreaks (map Code_Printer.str (split_lines raw_content))),
-            map (prep_syms ctxt) raw_syms)))
+        (arrange (fn ctxt => fn _ => fn _ => fn (source, raw_syms) =>
+          (format_source (prep_source source), map (prep_syms ctxt) raw_syms)))
   end;
 
-fun cert_printings ctxt = cert_syms' ctxt #> arrange_printings cert_syms ctxt;
+fun cert_printings ctxt = cert_syms' ctxt #> arrange_printings cert_syms I ctxt;
 
-fun read_printings ctxt = read_syms' ctxt #> arrange_printings read_syms ctxt;
+fun read_printings ctxt = read_syms' ctxt #> arrange_printings read_syms eval_source ctxt;
 
 fun set_printing (target_name, sym_syn) = map_printings target_name (Code_Symbol.set_data sym_syn);
 
 fun gen_set_printings prep_print_decl raw_print_decls thy =
   fold set_printing (prep_print_decl (Proof_Context.init_global thy) raw_print_decls) thy;
 
+in
+
 val set_printings = gen_set_printings cert_printings;
 val set_printings_cmd = gen_set_printings read_printings;
+
+end;
 
 
 (* concrete syntax *)
@@ -731,6 +743,9 @@ fun parse_symbol_pragmas parse_const parse_tyco parse_class parse_classrel parse
   Parse.enum1 "|" (Parse.group (fn () => "code symbol pragma")
     (parse_symbol_pragma parse_const parse_tyco parse_class parse_classrel parse_inst parse_module));
 
+val parse_target_source = Code_Printer.parse_target_source >> Literal
+  || \<^keyword>\<open>file\<close> |-- Parse.path >> (File o Path.explode);
+
 val code_expr_argsP = Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.args --| \<^keyword>\<open>)\<close>) [];
 
 fun code_expr_inP (all_public, raw_cs) =
@@ -763,7 +778,7 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>code_printing\<close> "declare dedicated printing for code symbols"
     (parse_symbol_pragmas (Code_Printer.parse_const_syntax) (Code_Printer.parse_tyco_syntax)
       Code_Printer.parse_target_source (Parse.minus >> K ()) (Parse.minus >> K ())
-      (Code_Printer.parse_target_source -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_simple_symbols) [])
+      (parse_target_source -- Scan.optional (\<^keyword>\<open>for\<close> |-- parse_simple_symbols) [])
       >> (Toplevel.theory o fold set_printings_cmd));
 
 val _ =

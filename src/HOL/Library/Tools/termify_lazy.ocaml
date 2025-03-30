@@ -1,0 +1,18 @@
+(* Author: Pascal Stoop, ETH Zurich
+   Author: Andreas Lochbihler, Digital Asset *)
+
+module Termify_Lazy : sig
+  val termify_lazy :
+   (string -> 'typerep -> 'term) ->
+   ('term -> 'term -> 'term) ->
+   (string -> 'typerep -> 'term -> 'term) ->
+   'typerep -> ('typerep -> 'typerep -> 'typerep) -> ('typerep -> 'typerep) ->
+   ('a -> 'term) -> 'typerep -> 'a Lazy.t -> 'term -> 'term
+end = struct
+
+let termify_lazy const app abs unitT funT lazyT term_of ty x _ =
+  app (const "Code_Lazy.delay" (funT (funT unitT ty) (lazyT ty)))
+    (if Lazy.is_val x then abs "_" unitT (term_of (Lazy.force x))
+     else const "Pure.dummy_pattern" (funT unitT ty));;
+
+end;;
