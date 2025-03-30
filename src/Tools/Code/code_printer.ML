@@ -9,7 +9,6 @@ sig
   type itype = Code_Thingol.itype
   type iterm = Code_Thingol.iterm
   type const = Code_Thingol.const
-  type dict = Code_Thingol.dict
 
   val eqn_error: theory -> thm option -> string -> 'a
 

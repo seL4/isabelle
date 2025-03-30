@@ -9,9 +9,6 @@ sig
   val cert_tyco: Proof.context -> string -> string
   val read_tyco: Proof.context -> string -> string
 
-  datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
-  val next_export: theory -> string * theory
-
   val export_code_for: ({physical: bool} * (Path.T * Position.T)) option -> string -> string
     -> int option -> Token.T list  -> Code_Thingol.program -> bool -> Code_Symbol.T list
     -> local_theory -> local_theory
@@ -47,16 +44,18 @@ sig
     -> Code_Symbol.T list -> bool -> ((string * class list) list * Code_Thingol.itype) * Code_Thingol.iterm
     -> ((string list * Bytes.T) list * string) * (Code_Symbol.T -> string option)
 
+  datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
   type serializer
-  type literals = Code_Printer.literals
   type language
   type ancestry
   val assert_target: theory -> string -> string
   val add_language: string * language -> theory -> theory
   val add_derived_target: string * ancestry -> theory -> theory
-  val the_literals: Proof.context -> string -> literals
+  val the_literals: Proof.context -> string -> Code_Printer.literals
+
   val parse_args: 'a parser -> Token.T list -> 'a
   val default_code_width: int Config.T
+  val next_export: theory -> string * theory
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
@@ -72,7 +71,6 @@ struct
 open Basic_Code_Symbol;
 open Basic_Code_Thingol;
 
-type literals = Code_Printer.literals;
 type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl =
   (string * (string * 'a option) list, string * (string * 'b option) list,
     class * (string * 'c option) list, (class * class) * (string * 'd option) list,
@@ -172,7 +170,7 @@ type serializer = Token.T list
   -> Code_Symbol.T list
   -> pretty_modules * (Code_Symbol.T -> string option);
 
-type language = {serializer: serializer, literals: literals,
+type language = {serializer: serializer, literals: Code_Printer.literals,
   check: {env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string},
   evaluation_args: Token.T list};
 
