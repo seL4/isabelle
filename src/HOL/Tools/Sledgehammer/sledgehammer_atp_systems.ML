@@ -202,26 +202,7 @@ fun make_e_config max_new_mono_insts good_slices : atp_config =
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = max_new_mono_insts}
 
-val old_e_config : atp_config = make_e_config default_max_new_mono_instances (let
-       val (format, type_enc, lam_trans, extra_options) =
-         if getenv "E_VERSION" >= "3.0" then
-           (* '$ite' support appears to be unsound. *)
-           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule=4 --serialize-schedule=true --demod-under-lambda=true")
-         else if getenv "E_VERSION" >= "2.6" then
-           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice), "mono_native_higher", keep_lamsN, "--auto-schedule")
-         else
-           (THF (Monomorphic, {with_ite = false, with_let = false}, THF_Lambda_Free), "mono_native_higher", combsN, "--auto-schedule")
-     in
-       (* FUDGE *)
-       [((1000 (* infinity *), false, false, 512, meshN), (format, type_enc, lam_trans, false, extra_options)),
-        ((1, true, false, 128, mashN), (format, type_enc, combsN, false, extra_options)),
-        ((1000 (* infinity *), false, false, 1024, meshN), (format, type_enc, lam_trans, false, extra_options)),
-        ((1000 (* infinity *), false, false, 64, mepoN), (format, type_enc, lam_trans, false, extra_options)),
-        ((1000 (* infinity *), false, false, 724, meshN), (TF0, "poly_guards??", lam_trans, false, extra_options)),
-        ((1000 (* infinity *), false, true, 256, mepoN), (format, type_enc, liftingN, false, extra_options))]
-     end)
-
-val new_e_config : atp_config =
+val e_config : atp_config =
   (* FUDGE: this solved 950/1500 (63.33 %) using MePo when testing *)
   let
     val extra_options = "--auto-schedule"
@@ -252,11 +233,7 @@ val new_e_config : atp_config =
 
 in
 
-val e = (eN, fn () =>
-  if string_ord (getenv "E_VERSION", "3.0") <> LESS then
-    new_e_config
-  else
-    old_e_config)
+val e = (eN, fn () => e_config)
 
 end
 
