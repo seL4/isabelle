@@ -301,17 +301,18 @@ class Main_Plugin extends EBPlugin {
     if (startup_failure.isEmpty) {
       message match {
         case _: EditorStarted =>
+          val view = jEdit.getActiveView
+
           try { resources.session_background.check_errors }
           catch {
             case ERROR(msg) =>
-              GUI.warning_dialog(jEdit.getActiveView,
+              GUI.warning_dialog(view,
                 "Bad session structure: may cause problems with theory imports",
                 GUI.scrollable_text(msg))
           }
 
           jEdit.propertiesChanged()
 
-          val view = jEdit.getActiveView
           if (view != null) {
             init_editor(view)
 
@@ -319,49 +320,46 @@ class Main_Plugin extends EBPlugin {
               JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
           }
 
-        case msg: ViewUpdate
-        if msg.getWhat == ViewUpdate.CREATED && msg.getView != null =>
-          init_title(msg.getView)
-
-        case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
-          if (msg.getBuffer != null) {
-            exit_models(List(msg.getBuffer))
-            PIDE.editor.invoke_generated()
+        case msg: ViewUpdate =>
+          val what = msg.getWhat
+          val view = msg.getView
+          what match {
+            case ViewUpdate.CREATED if view != null => init_title(view)
+            case _ =>
           }
 
-        case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
-          if (session.is_ready) {
-            delay_init.invoke()
-            delay_load.invoke()
+        case msg: BufferUpdate =>
+          val what = msg.getWhat
+          val buffer = msg.getBuffer
+          what match {
+            case BufferUpdate.LOAD_STARTED | BufferUpdate.CLOSING if buffer != null =>
+              exit_models(List(buffer))
+              PIDE.editor.invoke_generated()
+            case BufferUpdate.PROPERTIES_CHANGED | BufferUpdate.LOADED if session.is_ready =>
+              delay_init.invoke()
+              delay_load.invoke()
+            case _ =>
           }
 
-        case msg: EditPaneUpdate
-        if msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
-            msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-            msg.getWhat == EditPaneUpdate.CREATED ||
-            msg.getWhat == EditPaneUpdate.DESTROYED =>
+        case msg: EditPaneUpdate =>
+          val what = msg.getWhat
           val edit_pane = msg.getEditPane
-          val buffer = edit_pane.getBuffer
-          val text_area = edit_pane.getTextArea
+          val buffer = if (edit_pane == null) null else edit_pane.getBuffer
+          val text_area = if (edit_pane == null) null else edit_pane.getTextArea
 
           if (buffer != null && text_area != null) {
-            if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-                msg.getWhat == EditPaneUpdate.CREATED) {
-              if (session.is_ready)
-                init_view(buffer, text_area)
+            if (what == EditPaneUpdate.BUFFER_CHANGED || what == EditPaneUpdate.CREATED) {
+              if (session.is_ready) init_view(buffer, text_area)
             }
-            else {
+
+            if (what == EditPaneUpdate.BUFFER_CHANGING || what == EditPaneUpdate.DESTROYED) {
               Isabelle.dismissed_popups(text_area.getView)
               exit_view(buffer, text_area)
             }
 
-            if (msg.getWhat == EditPaneUpdate.CREATED)
-              Completion_Popup.Text_Area.init(text_area)
+            if (what == EditPaneUpdate.CREATED) Completion_Popup.Text_Area.init(text_area)
 
-            if (msg.getWhat == EditPaneUpdate.DESTROYED)
-              Completion_Popup.Text_Area.exit(text_area)
+            if (what == EditPaneUpdate.DESTROYED) Completion_Popup.Text_Area.exit(text_area)
           }
 
         case _: PropertiesChanged =>
