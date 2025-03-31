@@ -1986,7 +1986,7 @@ simproc_setup natdiff_cancel_sums
   ("(l::nat) + m - n" | "(l::nat) - (m + n)" | "Suc m - n" | "m - Suc n") =
   \<open>K (try o Nat_Arith.cancel_diff_conv)\<close>
 
-context order
+context preorder
 begin
 
 lemma lift_Suc_mono_le:
@@ -1996,7 +1996,7 @@ lemma lift_Suc_mono_le:
 proof (cases "n < n'")
   case True
   then show ?thesis
-    by (induct n n' rule: less_Suc_induct) (auto intro: mono)
+    by (induct n n' rule: less_Suc_induct) (auto intro: mono order.trans)
 next
   case False
   with \<open>n \<le> n'\<close> show ?thesis by auto
@@ -2009,7 +2009,7 @@ lemma lift_Suc_antimono_le:
 proof (cases "n < n'")
   case True
   then show ?thesis
-    by (induct n n' rule: less_Suc_induct) (auto intro: mono)
+    by (induct n n' rule: less_Suc_induct) (auto intro: mono order.trans)
 next
   case False
   with \<open>n \<le> n'\<close> show ?thesis by auto
@@ -2019,7 +2019,7 @@ lemma lift_Suc_mono_less:
   assumes mono: "\<And>n. f n < f (Suc n)"
     and "n < n'"
   shows "f n < f n'"
-  using \<open>n < n'\<close> by (induct n n' rule: less_Suc_induct) (auto intro: mono)
+  using \<open>n < n'\<close> by (induct n n' rule: less_Suc_induct) (auto intro: mono order.strict_trans)
 
 lemma lift_Suc_mono_less_iff: "(\<And>n. f n < f (Suc n)) \<Longrightarrow> f n < f m \<longleftrightarrow> n < m"
   by (blast intro: less_asym' lift_Suc_mono_less [of f]
