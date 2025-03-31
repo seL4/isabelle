@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_prover_tactic.ML
     Author:     Jasmin Blanchette, LMU Muenchen
+    Author:     Martin Desharnais, LMU Muenchen
 
 Isabelle tactics as Sledgehammer provers.
 *)
@@ -19,9 +20,7 @@ end;
 structure Sledgehammer_Prover_Tactic : SLEDGEHAMMER_PROVER_TACTIC =
 struct
 
-open ATP_Problem_Generate
 open ATP_Proof
-open Sledgehammer_ATP_Systems
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 
@@ -52,7 +51,7 @@ fun meth_of "algebra" = Algebra_Method
   | meth_of _ = Metis_Method (NONE, NONE, [])
 
 fun run_tactic_prover mode name ({slices, timeout, ...} : params)
-    ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
+    ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
   let
     val (basic_slice as (slice_size, _, _, _, _), No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
