@@ -220,7 +220,7 @@ fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal i n = "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
 (* FIXME *)
-fun proof_method_command meth i n used_chaineds extras =
+fun proof_method_command meth i n extras =
   let
     val (indirect_facts, direct_facts) =
       if is_proof_method_direct meth then ([], extras) else (extras, [])
@@ -247,9 +247,9 @@ val failed_command_line =
     Markup.markup (Markup.break {width = 1, indent = 2}) " ")
 
 fun one_line_proof_text ((used_facts, (meth, play)), banner, subgoal, subgoal_count) =
-  let val (chained, extra) = List.partition (fn (_, (sc, _)) => sc = Chained) used_facts in
+  let val extra = filter_out (fn (_, (sc, _)) => sc = Chained) used_facts in
     map fst extra
-    |> proof_method_command meth subgoal subgoal_count (map fst chained)
+    |> proof_method_command meth subgoal subgoal_count
     |> (if play = Play_Failed then failed_command_line else try_command_line banner play)
   end
 
