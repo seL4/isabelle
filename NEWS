@@ -35,10 +35,17 @@ affecting stored preferences of option "threads".
 
 * Theory "HOL.Fun":
   - Added lemmas.
+      mono_on_strict_invE
+	  mono_on_invE
+	  strict_mono_on_eq
+	  strict_mono_on_less_eq
+	  strict_mono_on_less
       antimonotone_on_inf_fun
       antimonotone_on_sup_fun
       monotone_on_inf_fun
       monotone_on_sup_fun
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      mono_on_greaterD (use mono_invE instead)
 
 * Theory "HOL.Relation":
   - Changed definition of predicate refl_on to not constrain the domain
