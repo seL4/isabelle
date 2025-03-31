@@ -85,9 +85,6 @@ fun meth_of name =
   else if name = simpN then Simp_Method
   else error ("Unknown tactic: " ^ quote name)
 
-fun tac_of ctxt name (local_facts, global_facts) =
-  Sledgehammer_Proof_Methods.tac_of_proof_method ctxt (local_facts, global_facts) (meth_of name)
-
 fun run_tactic_prover mode name ({slices, timeout, ...} : params)
     ({state, goal, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
   let
