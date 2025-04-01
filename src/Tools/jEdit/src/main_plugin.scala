@@ -16,8 +16,8 @@ import java.io.{File => JFile}
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
-import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged,
-  ViewUpdate}
+import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, BufferChanging, PositionChanging,
+  EditPaneUpdate, PropertiesChanged, ViewUpdate}
 import org.gjt.sp.util.Log
 
 
@@ -96,6 +96,7 @@ class Main_Plugin extends EBPlugin {
 
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
+  val navigator = new Isabelle_Navigator
 
 
   /* theory files */
@@ -331,6 +332,9 @@ class Main_Plugin extends EBPlugin {
         case msg: BufferUpdate =>
           val what = msg.getWhat
           val buffer = msg.getBuffer
+          val view = msg.getView
+          val view_edit_pane = if (view == null) null else view.getEditPane
+
           what match {
             case BufferUpdate.LOAD_STARTED | BufferUpdate.CLOSING if buffer != null =>
               exit_models(List(buffer))
@@ -339,6 +343,19 @@ class Main_Plugin extends EBPlugin {
               delay_init.invoke()
               delay_load.invoke()
             case _ =>
+          }
+
+          if (buffer != null && !buffer.isUntitled) {
+            what match {
+              case BufferUpdate.CREATED => navigator.init(Set(buffer))
+              case BufferUpdate.LOADED =>
+                if (view_edit_pane != null && view_edit_pane.getBuffer == buffer) {
+                  navigator.record(view_edit_pane)
+                }
+                else navigator.record(buffer)
+              case BufferUpdate.CLOSED => navigator.exit(Set(buffer))
+              case _ =>
+            }
           }
 
         case msg: EditPaneUpdate =>
@@ -360,6 +377,17 @@ class Main_Plugin extends EBPlugin {
             if (what == EditPaneUpdate.CREATED) Completion_Popup.Text_Area.init(text_area)
 
             if (what == EditPaneUpdate.DESTROYED) Completion_Popup.Text_Area.exit(text_area)
+          }
+
+          msg match {
+            case m: BufferChanging =>
+              val new_buffer = m.getBuffer
+              if (new_buffer != null && !new_buffer.isUntitled) {
+                if (edit_pane == null) navigator.record(new_buffer)
+                else navigator.record(edit_pane)
+              }
+            case _: PositionChanging => navigator.record(edit_pane)
+            case _ =>
           }
 
         case _: PropertiesChanged =>
@@ -428,6 +456,7 @@ class Main_Plugin extends EBPlugin {
       spell_checker.update(options.value)
 
       JEdit_Lib.jedit_views().foreach(init_title)
+      navigator.init(JEdit_Lib.jedit_buffers())
 
       Syntax_Style.set_extender(Syntax_Style.Main_Extender)
       init_mode_provider()

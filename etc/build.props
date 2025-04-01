@@ -303,6 +303,7 @@ sources = \
   src/Tools/jEdit/src/isabelle.scala \
   src/Tools/jEdit/src/isabelle_encoding.scala \
   src/Tools/jEdit/src/isabelle_export.scala \
+  src/Tools/jEdit/src/isabelle_navigator.scala \
   src/Tools/jEdit/src/isabelle_session.scala \
   src/Tools/jEdit/src/isabelle_vfs.scala \
   src/Tools/jEdit/src/jedit_bibtex.scala \

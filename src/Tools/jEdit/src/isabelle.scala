@@ -82,6 +82,12 @@ object Isabelle {
   }
 
 
+  /* navigation */
+
+  def backward(view: View): Unit = PIDE.plugin.navigator.backward(view)
+  def forward(view: View): Unit = PIDE.plugin.navigator.forward(view)
+
+
   /* text structure */
 
   def indent_rule(mode: String): Option[IndentRule] =
