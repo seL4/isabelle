@@ -188,6 +188,18 @@ instance ..
 
 end
 
+lemma compare_default_eq_Less_iff [simp]:
+  \<open>compare default x y = Less \<longleftrightarrow> x < y\<close>
+  by transfer simp
+
+lemma compare_default_eq_Equiv_iff [simp]:
+  \<open>compare default x y = Equiv \<longleftrightarrow> x = y\<close>
+  by transfer auto
+
+lemma compare_default_eq_Greater_iff [simp]:
+  \<open>compare default x y = Greater \<longleftrightarrow> x > y\<close>
+  by transfer auto
+
 text \<open>A rudimentary quickcheck setup\<close>
 
 instantiation comparator :: (enum) equal
@@ -237,6 +249,10 @@ proof -
     by standard (auto intro: trans_equiv trans_less simp: greater_iff_sym_less)
 qed
 
+lemma compare_reversed_apply [simp]:
+  \<open>compare (reversed cmp) x y = compare cmp y x\<close>
+  by transfer simp
+
 lift_definition key :: \<open>('b \<Rightarrow> 'a) \<Rightarrow> 'a comparator \<Rightarrow> 'b comparator\<close>
   is \<open>\<lambda>f cmp a b. cmp (f a) (f b)\<close>
 proof -
@@ -246,6 +262,43 @@ proof -
   show \<open>comparator (\<lambda>a b. cmp (f a) (f b))\<close>
     by standard (auto intro: trans_equiv trans_less simp: greater_iff_sym_less)
 qed
+
+lemma compare_key_apply [simp]:
+  \<open>compare (key f cmp) x y = compare cmp (f x) (f y)\<close>
+  by transfer simp
+
+lift_definition prod_lex :: \<open>'a comparator \<Rightarrow> 'b comparator \<Rightarrow> ('a \<times> 'b) comparator\<close>
+  is \<open>\<lambda>f g (a, c) (b, d). case f a b of Less \<Rightarrow> Less | Equiv \<Rightarrow> g c d | Greater \<Rightarrow> Greater\<close>
+proof -
+  fix f :: \<open>'a \<Rightarrow> 'a \<Rightarrow> comp\<close> and g :: \<open>'b \<Rightarrow> 'b \<Rightarrow> comp\<close>
+  assume \<open>comparator f\<close>
+  then interpret f: comparator f .
+  assume \<open>comparator g\<close>
+  then interpret g: comparator g .
+  define h where \<open>h = (\<lambda>(a, c) (b, d). case f a b of Less \<Rightarrow> Less | Equiv \<Rightarrow> g c d | Greater \<Rightarrow> Greater)\<close>
+  then have h_apply [simp]: \<open>h (a, c) (b, d) = (case f a b of Less \<Rightarrow> Less | Equiv \<Rightarrow> g c d | Greater \<Rightarrow> Greater)\<close> for a b c d
+    by simp
+  have h_equiv: \<open>h p q = Equiv \<longleftrightarrow> f (fst p) (fst q) = Equiv \<and> g (snd p) (snd q) = Equiv\<close> for p q
+    by (cases p; cases q) (simp split: comp.split)
+  have h_less: \<open>h p q = Less \<longleftrightarrow> f (fst p) (fst q) = Less \<or> f (fst p) (fst q) = Equiv \<and> g (snd p) (snd q) = Less\<close> for p q
+    by (cases p; cases q) (simp split: comp.split)
+  have h_greater: \<open>h p q = Greater \<longleftrightarrow> f (fst p) (fst q) = Greater \<or> f (fst p) (fst q) = Equiv \<and> g (snd p) (snd q) = Greater\<close> for p q
+    by (cases p; cases q) (simp split: comp.split)
+  have \<open>comparator h\<close>
+    apply standard
+       apply (simp_all add: h_equiv h_less h_greater f.greater_iff_sym_less g.greater_iff_sym_less f.sym g.sym)
+      apply (auto intro: f.trans_equiv g.trans_equiv f.trans_less g.trans_less f.trans_less_equiv f.trans_equiv_less)
+    done
+  then show \<open>comparator (\<lambda>(a, c) (b, d). case f a b of Less \<Rightarrow> Less
+    | Equiv \<Rightarrow> g c d
+    | Greater \<Rightarrow> Greater)\<close>
+    by (simp add: h_def)
+qed
+
+lemma compare_prod_lex_apply:
+  \<open>compare (prod_lex cmp1 cmp2) p q =
+    (case compare (key fst cmp1) p q of Less \<Rightarrow> Less | Equiv \<Rightarrow> compare (key snd cmp2) p q | Greater \<Rightarrow> Greater)\<close>
+  by transfer (simp add: split_def)
 
 
 subsection \<open>Direct implementations for linear orders on selected types\<close>
@@ -257,7 +310,7 @@ lemma compare_comparator_bool [code abstract]:
   \<open>compare comparator_bool = (\<lambda>p q.
     if p then if q then Equiv else Greater
     else if q then Less else Equiv)\<close>
-  by (auto simp add: fun_eq_iff) (transfer; simp)+
+  by (auto simp add: fun_eq_iff)
 
 definition raw_comparator_nat :: \<open>nat \<Rightarrow> nat \<Rightarrow> comp\<close>
   where [simp]: \<open>raw_comparator_nat = compare default\<close>

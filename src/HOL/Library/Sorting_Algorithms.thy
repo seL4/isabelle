@@ -667,4 +667,89 @@ qed
 
 end
 
+
+subsection \<open>Lexicographic products\<close>
+
+lemma sorted_prod_lex_imp_sorted_fst:
+  \<open>sorted (key fst cmp1) ps\<close> if \<open>sorted (prod_lex cmp1 cmp2) ps\<close>
+using that proof (induction rule: sorted_induct)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons p ps)
+  have \<open>compare (key fst cmp1) p q \<noteq> Greater\<close> if \<open>ps = q # qs\<close> for q qs
+    using that Cons.hyps(2) [of q] by (simp add: compare_prod_lex_apply split: comp.splits)
+  with Cons.IH show ?case
+    by (rule sorted_ConsI) simp
+qed
+
+lemma sorted_prod_lex_imp_sorted_snd:
+  \<open>sorted (key snd cmp2) ps\<close> if \<open>sorted (prod_lex cmp1 cmp2) ps\<close> \<open>\<And>a' b'. (a', b') \<in> set ps \<Longrightarrow> compare cmp1 a a' = Equiv\<close>
+using that proof (induction rule: sorted_induct)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons p ps)
+  then show ?case 
+    apply (cases p)
+    apply (rule sorted_ConsI)
+     apply (simp_all add: compare_prod_lex_apply)
+     apply (auto cong del: comp.case_cong_weak)
+    apply (metis comp.simps(8) compare.equiv_subst_left)
+    done
+qed
+
+lemma sort_comp_fst_snd_eq_sort_prod_lex:
+  \<open>sort (key fst cmp1) \<circ> sort (key snd cmp2) = sort (prod_lex cmp1 cmp2)\<close>  (is \<open>sort ?cmp1 \<circ> sort ?cmp2 = sort ?cmp\<close>)
+proof
+  fix ps :: \<open>('a \<times> 'b) list\<close>
+  have \<open>sort ?cmp1 (sort ?cmp2 ps) = sort ?cmp ps\<close>
+  proof (rule sort_eqI)
+    show \<open>mset (sort ?cmp2 ps) = mset (sort ?cmp ps)\<close>
+      by simp
+    show \<open>sorted ?cmp1 (sort ?cmp ps)\<close>
+      by (rule sorted_prod_lex_imp_sorted_fst [of _ cmp2]) simp
+  next
+    fix p :: \<open>'a \<times> 'b\<close>
+    define a b where ab: \<open>a = fst p\<close> \<open>b = snd p\<close>
+    moreover assume \<open>p \<in> set (sort ?cmp2 ps)\<close>
+    ultimately have \<open>(a, b) \<in> set (sort ?cmp2 ps)\<close>
+      by simp
+    let ?qs = \<open>filter (\<lambda>(a', _). compare cmp1 a a' = Equiv) ps\<close>
+    have \<open>sort ?cmp2 ?qs = sort ?cmp ?qs\<close>
+    proof (rule sort_eqI)
+      show \<open>mset ?qs = mset (sort ?cmp ?qs)\<close>
+        by simp
+      show \<open>sorted ?cmp2 (sort ?cmp ?qs)\<close>
+        by (rule sorted_prod_lex_imp_sorted_snd) auto
+    next
+      fix q :: \<open>'a \<times> 'b\<close>
+      define c d where \<open>c = fst q\<close> \<open>d = snd q\<close>
+      moreover assume \<open>q \<in> set ?qs\<close>
+      ultimately have \<open>(c, d) \<in> set ?qs\<close>
+        by simp
+      from sorted_stable_segment [of ?cmp \<open>(a, d)\<close> ps]
+      have \<open>sorted ?cmp (filter (\<lambda>(c, b). compare (prod_lex cmp1 cmp2) (a, d) (c, b) = Equiv) ps)\<close>
+        by (simp only: case_prod_unfold prod.collapse)
+      also have \<open>(\<lambda>(c, b). compare (prod_lex cmp1 cmp2) (a, d) (c, b) = Equiv) =
+        (\<lambda>(c, b). compare cmp1 a c = Equiv \<and> compare cmp2 d b = Equiv)\<close>
+        by (simp add: fun_eq_iff compare_prod_lex_apply split: comp.split)
+      finally have *: \<open>sorted ?cmp (filter (\<lambda>(c, b). compare cmp1 a c = Equiv \<and> compare cmp2 d b = Equiv) ps)\<close> .
+      let ?rs = \<open>filter (\<lambda>(_, d'). compare cmp2 d d' = Equiv) ?qs\<close>
+      have \<open>sort ?cmp ?rs = ?rs\<close>
+        by (rule sort_eqI) (use * in \<open>simp_all add: case_prod_unfold\<close>)
+      then show \<open>filter (\<lambda>r. compare ?cmp2 q r = Equiv) ?qs =
+        filter (\<lambda>r. compare ?cmp2 q r = Equiv) (sort ?cmp ?qs)\<close>
+        by (simp add: filter_sort case_prod_unfold flip: \<open>d = snd q\<close>)
+    qed      
+    then show \<open>filter (\<lambda>q. compare ?cmp1 p q = Equiv) (sort ?cmp2 ps) =
+      filter (\<lambda>q. compare ?cmp1 p q = Equiv) (sort ?cmp ps)\<close>
+      by (simp add: filter_sort case_prod_unfold flip: ab)
+  qed
+  then show \<open>(sort (key fst cmp1) \<circ> sort (key snd cmp2)) ps = sort (prod_lex cmp1 cmp2) ps\<close>
+    by simp
+qed
+
 end
