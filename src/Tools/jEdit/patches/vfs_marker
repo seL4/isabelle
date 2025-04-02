@@ -71,7 +71,16 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jE
  	{
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java	2024-08-03 19:53:14.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2024-10-29 11:50:54.062016616 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2025-04-02 21:46:10.377166514 +0200
+@@ -1553,7 +1553,7 @@
+ 		{
+ 			if (arg == null)
+ 				continue;
+-			else if (arg.startsWith("+line:") || arg.startsWith("+marker:"))
++			else if (arg.startsWith("+offset:") || arg.startsWith("+line:") || arg.startsWith("+marker:"))
+ 			{
+ 				if (lastBuffer != null)
+ 					gotoMarker(view, lastBuffer, arg);
 @@ -4233,7 +4233,7 @@
  	} //}}}
  
@@ -81,3 +90,32 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/o
  		final String marker)
  	{
  		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
+@@ -4243,8 +4243,27 @@
+ 			{
+ 				int pos;
+ 
++				// Handle offset
++				if(marker.startsWith("+offset:"))
++				{
++					try
++					{
++						String arg = marker.substring(8);
++						int offset = parseInt(arg);
++						if (0 <= offset && offset <= buffer.getLength()) {
++							pos = offset;
++						}
++						else {
++							return;
++						}
++					}
++					catch(Exception e)
++					{
++						return;
++					}
++				}
+ 				// Handle line number
+-				if(marker.startsWith("+line:"))
++				else if(marker.startsWith("+line:"))
+ 				{
+ 					try
+ 					{
