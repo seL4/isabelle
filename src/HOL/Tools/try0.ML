@@ -29,6 +29,8 @@ sig
   val get_proof_method_or_noop : string -> proof_method
   val get_all_proof_method_names : unit -> string list
 
+  val schedule : string Config.T
+
   datatype mode = Auto_Try | Try | Normal
   val generic_try0 : mode -> Time.time option -> facts -> Proof.state ->
     (bool * (string * string list)) * result list
@@ -95,14 +97,8 @@ fun register_proof_method name ({run_if_auto_try} : proof_method_options) proof_
 fun get_proof_method (name : string) : proof_method option =
   Symtab.lookup (Synchronized.value proof_methods) name;
 
-fun get_all_proof_methods () : (string * proof_method) list =
-  Symtab.fold (fn x => fn xs => x :: xs) (Synchronized.value proof_methods) []
-
 fun get_all_proof_method_names () : string list =
   Symtab.fold (fn (name, _) => fn names => name :: names) (Synchronized.value proof_methods) []
-
-fun get_all_auto_try_proof_method_names () : string list =
-  Symset.dest (Synchronized.value auto_try_proof_methods_names)
 
 fun should_auto_try_proof_method (name : string) : bool =
   Symset.member (Synchronized.value auto_try_proof_methods_names) name
@@ -120,10 +116,15 @@ fun maybe_apply_proof_method name mode : proof_method =
   else
     noop_proof_method
 
+val schedule = Attrib.setup_config_string \<^binding>\<open>try0_schedule\<close> (K "")
+
+local
+
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
 fun tool_time_string (s, time) = s ^ ": " ^ time_string time
 
-fun generic_try0 mode timeout_opt (facts : facts) st =
+fun generic_try0_step mode (timeout_opt : Time.time option) (facts : facts) (st : Proof.state)
+  (proof_methods : string list) =
   let
     fun try_method (method : mode -> proof_method) = method mode timeout_opt facts st
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
@@ -139,11 +140,10 @@ fun generic_try0 mode timeout_opt (facts : facts) st =
         methods
         |> Par_List.get_some try_method
         |> the_list
-    val proof_method_names = get_all_proof_method_names ()
-    val maybe_apply_methods = map maybe_apply_proof_method proof_method_names
+    val maybe_apply_methods = map maybe_apply_proof_method proof_methods
   in
     if mode = Normal then
-      let val names = map quote proof_method_names in
+      let val names = map quote proof_methods in
         writeln ("Trying " ^ implode_space (serial_commas "and" names) ^ "...")
       end
     else
@@ -170,6 +170,31 @@ fun generic_try0 mode timeout_opt (facts : facts) st =
         ((true, (name, if mode = Auto_Try then [message] else (writeln message; []))), results)
       end)
   end
+
+in
+
+fun generic_try0 mode (timeout_opt : Time.time option) (facts : facts) (st : Proof.state) =
+  let
+    fun some_nonempty_string sub =
+      if Substring.isEmpty sub then
+        NONE
+      else
+        SOME (Substring.string sub)
+    val schedule =
+      Config.get (Proof.context_of st) schedule
+      |> Substring.full
+      |> Substring.tokens (fn c => c = #"|")
+      |> map (map_filter some_nonempty_string o Substring.tokens Char.isSpace)
+    fun iterate [] = ((false, (noneN, [])), [])
+      | iterate (proof_methods :: proof_methodss) =
+        (case generic_try0_step mode timeout_opt facts st proof_methods of
+          (_, []) => iterate proof_methodss
+        | result as (_, _ :: _) => result)
+  in
+    iterate (if null schedule then [get_all_proof_method_names ()] else schedule)
+  end;
+
+end
 
 fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 

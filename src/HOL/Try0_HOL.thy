@@ -62,4 +62,10 @@ end
 end
 \<close>
 
+declare [[try0_schedule = "
+  satx metis |
+  order presburger linarith algebra argo |
+  simp auto blast fast fastforce force meson
+"]]
+
 end

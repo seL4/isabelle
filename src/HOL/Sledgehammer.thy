@@ -7,7 +7,15 @@
 section \<open>Sledgehammer: Isabelle--ATP Linkup\<close>
 
 theory Sledgehammer
-imports Presburger SMT Try0_HOL
+  imports
+    \<comment> \<open>FIXME: \<^theory>\<open>HOL.Try0_HOL\<close> has to be imported first so that @{attribute try0_schedule} gets
+    the value assigned value there. Otherwise, the value is the one assigned in \<^theory>\<open>HOL.Try0\<close>,
+    which is imported transitively by both \<^theory>\<open>HOL.Presburger\<close> and \<^theory>\<open>HOL.SMT\<close>. It seems
+    that, when merging the attributes from two theories, the value assigned int the leftmost theory
+    has precedence.\<close>
+    Try0_HOL
+    Presburger
+    SMT
 keywords
   "sledgehammer" :: diag and
   "sledgehammer_params" :: thy_decl
