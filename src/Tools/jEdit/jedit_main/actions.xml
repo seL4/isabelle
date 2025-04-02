@@ -2,12 +2,12 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
-	<ACTION NAME="isabelle.navigate-backwards">
+	<ACTION NAME="navigate-backwards">
 	  <CODE>
 	    isabelle.jedit.Isabelle.navigate_backwards(view);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.navigate-forwards">
+	<ACTION NAME="navigate-forwards">
 	  <CODE>
 	    isabelle.jedit.Isabelle.navigate_forwards(view);
 	  </CODE>
