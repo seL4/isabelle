@@ -62,10 +62,7 @@ object Isabelle_Navigator {
     }
 
     def goto(view: View): Unit = GUI_Thread.require {
-      JEdit_Lib.jedit_buffer(name) match {
-        case Some(buffer) => PIDE.editor.goto_buffer(true, view, buffer, offset)
-        case None => PIDE.editor.goto_file(true, view, name)
-      }
+      PIDE.editor.goto_file(true, view, name, offset = offset)
     }
   }
 

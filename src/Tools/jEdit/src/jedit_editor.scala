@@ -12,6 +12,7 @@ import isabelle._
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
+import org.gjt.sp.jedit.textarea.TextArea
 import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 
 
@@ -131,17 +132,17 @@ class JEdit_Editor extends Editor[View] {
     }
   }
 
-  def goto_file(focus: Boolean, view: View, name: String): Unit =
-    goto_file(focus, view, Line.Node_Position.offside(name))
-
-  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit = {
+  def goto_file(
+    focus: Boolean,
+    view: View,
+    name: String,
+    offset: Text.Offset = -1,
+    line: Int = -1,
+    column: Int = -1
+  ): Unit = {
     GUI_Thread.require {}
 
     record_position(view)
-
-    val name = pos.name
-    val line = pos.line
-    val column = pos.column
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
@@ -149,9 +150,12 @@ class JEdit_Editor extends Editor[View] {
         val text_area = view.getTextArea
 
         try {
-          val line_start = text_area.getBuffer.getLineStartOffset(line)
-          text_area.moveCaretPosition(line_start)
-          if (column > 0) text_area.moveCaretPosition(line_start + column)
+          if (offset >= 0) text_area.moveCaretPosition(offset)
+          else if (line >= 0) {
+            val line_start = text_area.getBuffer.getLineStartOffset(line)
+            text_area.moveCaretPosition(line_start)
+            if (column > 0) text_area.moveCaretPosition(line_start + column)
+          }
         }
         catch {
           case _: ArrayIndexOutOfBoundsException =>
@@ -170,7 +174,8 @@ class JEdit_Editor extends Editor[View] {
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
           val args =
-            if (line <= 0) Array(name)
+            if (offset >= 0) Array(name, "+offset:" + offset)
+            else if (line <= 0) Array(name)
             else if (column <= 0) Array(name, "+line:" + (line + 1))
             else Array(name, "+line:" + (line + 1) + "," + (column + 1))
           jEdit.openFiles(view, null, args)
@@ -210,13 +215,17 @@ class JEdit_Editor extends Editor[View] {
       override def toString: String = "URL " + quote(name)
     }
 
-  def hyperlink_file(focus: Boolean, name: String): Hyperlink =
-    hyperlink_file(focus, Line.Node_Position.offside(name))
-
-  def hyperlink_file(focus: Boolean, pos: Line.Node_Position): Hyperlink =
+  def hyperlink_file(
+    focus: Boolean,
+    name: String,
+    offset: Text.Offset = -1,
+    line: Int = -1,
+    column: Int = -1
+  ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit = goto_file(focus, view, pos)
-      override def toString: String = "file " + quote(pos.name)
+      def follow(view: View): Unit =
+        goto_file(focus, view, name, offset = offset, line = line, column = column)
+      override def toString: String = "file " + quote(name)
     }
 
   def hyperlink_source_file(
@@ -227,7 +236,7 @@ class JEdit_Editor extends Editor[View] {
   ) : Option[Hyperlink] = {
     for (platform_path <- PIDE.resources.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(focus, Line.Node_Position(platform_path, pos))
+        hyperlink_file(focus, platform_path, line = pos.line, column = pos.column)
 
       if (offset > 0) {
         PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
@@ -250,7 +259,10 @@ class JEdit_Editor extends Editor[View] {
     offset: Symbol.Offset = 0
   ) : Option[Hyperlink] = {
     if (snapshot.is_outdated) None
-    else snapshot.find_command_position(id, offset).map(hyperlink_file(focus, _))
+    else {
+      snapshot.find_command_position(id, offset)
+        .map(pos => hyperlink_file(focus, pos.name, line = pos.line))
+    }
   }
 
   def is_hyperlink_position(
