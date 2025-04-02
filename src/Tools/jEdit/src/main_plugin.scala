@@ -379,16 +379,7 @@ class Main_Plugin extends EBPlugin {
             if (what == EditPaneUpdate.DESTROYED) Completion_Popup.Text_Area.exit(text_area)
           }
 
-          msg match {
-            case m: BufferChanging =>
-              val new_buffer = m.getBuffer
-              if (new_buffer != null && !new_buffer.isUntitled) {
-                if (edit_pane == null) navigator.record(new_buffer)
-                else navigator.record(edit_pane)
-              }
-            case _: PositionChanging => navigator.record(edit_pane)
-            case _ =>
-          }
+          if (msg.isInstanceOf[PositionChanging]) navigator.record(edit_pane)
 
         case _: PropertiesChanged =>
           for {

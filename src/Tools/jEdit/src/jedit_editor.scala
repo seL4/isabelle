@@ -109,7 +109,8 @@ class JEdit_Editor extends Editor[View] {
 
   /* navigation */
 
-  def push_position(view: View): Unit = {
+  def record_position(view: View): Unit = {
+    PIDE.plugin.navigator.record(view)
     val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
     if (navigator != null) {
       try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
@@ -120,7 +121,7 @@ class JEdit_Editor extends Editor[View] {
   def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit = {
     GUI_Thread.require {}
 
-    push_position(view)
+    record_position(view)
 
     if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
     try { view.getTextArea.moveCaretPosition(offset) }
@@ -136,7 +137,7 @@ class JEdit_Editor extends Editor[View] {
   def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit = {
     GUI_Thread.require {}
 
-    push_position(view)
+    record_position(view)
 
     val name = pos.name
     val line = pos.line
