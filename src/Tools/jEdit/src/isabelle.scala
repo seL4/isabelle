@@ -569,7 +569,8 @@ object Isabelle {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          PIDE.editor.goto_buffer(false, view, view.getBuffer, err.range.start)
+          PIDE.editor.goto_file(
+            false, view, JEdit_Lib.buffer_name(view.getBuffer), offset = err.range.start)
         case None =>
           view.getStatus.setMessageAndClear("No " + which + "error in current document snapshot")
       }

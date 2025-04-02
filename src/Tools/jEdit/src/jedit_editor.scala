@@ -110,28 +110,6 @@ class JEdit_Editor extends Editor[View] {
 
   /* navigation */
 
-  def record_position(view: View): Unit = {
-    PIDE.plugin.navigator.record(view)
-    val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
-    if (navigator != null) {
-      try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
-      catch { case _: NoSuchMethodException => }
-    }
-  }
-
-  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit = {
-    GUI_Thread.require {}
-
-    record_position(view)
-
-    if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-    try { view.getTextArea.moveCaretPosition(offset) }
-    catch {
-      case _: ArrayIndexOutOfBoundsException =>
-      case _: IllegalArgumentException =>
-    }
-  }
-
   def goto_file(
     focus: Boolean,
     view: View,
@@ -142,7 +120,12 @@ class JEdit_Editor extends Editor[View] {
   ): Unit = {
     GUI_Thread.require {}
 
-    record_position(view)
+    PIDE.plugin.navigator.record(view)
+    val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
+    if (navigator != null) {
+      try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
+      catch { case _: NoSuchMethodException => }
+    }
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
