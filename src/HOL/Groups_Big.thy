@@ -1580,6 +1580,16 @@ next
   qed
 qed
 
+lemma prod_uminus: "(\<Prod>x\<in>A. -f x :: 'a :: comm_ring_1) = (-1) ^ card A * (\<Prod>x\<in>A. f x)"
+  by (induction A rule: infinite_finite_induct) (auto simp: algebra_simps)
+
+lemma prod_diff:
+  fixes f :: "'a \<Rightarrow> 'b :: field"
+  assumes "finite A" "B \<subseteq> A" "\<And>x. x \<in> B \<Longrightarrow> f x \<noteq> 0"
+  shows   "prod f (A - B) = prod f A / prod f B"
+  by (metis assms finite_subset nonzero_eq_divide_eq prod.subset_diff
+      prod_zero_iff)
+
 lemma sum_zero_power [simp]: "(\<Sum>i\<in>A. c i * 0^i) = (if finite A \<and> 0 \<in> A then c 0 else 0)"
   for c :: "nat \<Rightarrow> 'a::division_ring"
   by (induct A rule: infinite_finite_induct) auto
@@ -1712,9 +1722,21 @@ lemma prod_constant [simp]: "(\<Prod>x\<in> A. y) = y ^ card A"
   for y :: "'a::comm_monoid_mult"
   by (induct A rule: infinite_finite_induct) simp_all
 
+lemma prod_diff_swap:
+  fixes f :: "'a \<Rightarrow> 'b :: comm_ring_1"
+  shows "prod (\<lambda>x. f x - g x) A = (-1) ^ card A * prod (\<lambda>x. g x - f x) A"
+  using prod.distrib[of "\<lambda>_. -1" "\<lambda>x. f x - g x" A]
+  by simp
+
 lemma prod_power_distrib: "prod f A ^ n = prod (\<lambda>x. (f x) ^ n) A"
   for f :: "'a \<Rightarrow> 'b::comm_semiring_1"
   by (induct A rule: infinite_finite_induct) (auto simp add: power_mult_distrib)
+
+lemma power_inject_exp':
+  assumes "a \<noteq> 1" "a > (0 :: 'a :: linordered_semidom)"
+  shows   "a ^ m = a ^ n \<longleftrightarrow> m = n"
+  by (metis assms not_less_iff_gr_or_eq order_le_less power_decreasing_iff
+      power_inject_exp)
 
 lemma power_sum: "c ^ (\<Sum>a\<in>A. f a) = (\<Prod>a\<in>A. c ^ f a)"
   by (induct A rule: infinite_finite_induct) (simp_all add: power_add)

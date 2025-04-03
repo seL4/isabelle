@@ -368,6 +368,15 @@ lemma bij_betw_singleton_iff [simp]: "bij_betw f {x} {y} \<longleftrightarrow> f
 lemma bij_betw_singletonI [intro]: "f x = y \<Longrightarrow> bij_betw f {x} {y}"
   by auto
 
+lemma bij_betw_imp_empty_iff: "bij_betw f A B \<Longrightarrow> A = {} \<longleftrightarrow> B = {}"
+  unfolding bij_betw_def by blast
+
+lemma bij_betw_imp_Ex_iff: "bij_betw f {x. P x} {x. Q x} \<Longrightarrow> (\<exists>x. P x) \<longleftrightarrow> (\<exists>x. Q x)"
+  unfolding bij_betw_def by blast
+
+lemma bij_betw_imp_Bex_iff: "bij_betw f {x\<in>A. P x} {x\<in>B. Q x} \<Longrightarrow> (\<exists>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>B. Q x)"
+  unfolding bij_betw_def by blast
+
 lemma bij_betw_apply: "\<lbrakk>bij_betw f A B; a \<in> A\<rbrakk> \<Longrightarrow> f a \<in> B"
   unfolding bij_betw_def by auto
 
