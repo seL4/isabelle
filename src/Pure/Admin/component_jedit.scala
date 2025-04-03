@@ -89,12 +89,10 @@ object Component_JEdit {
 
   private val download_plugins: List[(String, String)] =
     List(
-      "Code2HTML" -> "0.7",
       "CommonControls" -> "1.7.4",
       "Console" -> "5.1.4",
       "ErrorList" -> "2.4.0",
       "Highlight" -> "2.5",
-      "Navigator" -> "2.7",
       "SideKick" -> "1.8")
 
   private def exclude_package(name: String): Boolean =

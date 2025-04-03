@@ -121,11 +121,6 @@ class JEdit_Editor extends Editor[View] {
     GUI_Thread.require {}
 
     PIDE.plugin.navigator.record(view)
-    val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
-    if (navigator != null) {
-      try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
-      catch { case _: NoSuchMethodException => }
-    }
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
