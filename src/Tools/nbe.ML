@@ -380,11 +380,11 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
       (fun_ident i sym,
         [([ml_list (rev (dict_params @ default_params))], apply_constr sym (dict_params @ default_params))]);
 
-    fun assemble_value_equation sym dict_params (([], args), rhs) =
+    fun assemble_value_eqn sym dict_params (([], args), rhs) =
       (fun_ident 0 sym, [([ml_list (rev (dict_params @ assemble_args args))], assemble_rhs NONE rhs)]);
 
     fun assemble_eqns (sym, (num_args, (dict_params, eqns, default_params))) =
-      (if Code_Symbol.is_value sym then [assemble_value_equation sym dict_params (the_single eqns)]
+      (if Code_Symbol.is_value sym then [assemble_value_eqn sym dict_params (the_single eqns)]
       else map_index (assemble_eqn sym dict_params default_params) eqns
         @ [assemble_default_eqn sym dict_params default_params (length eqns)],
       nbe_abss num_args (fun_ident 0 sym));
@@ -509,7 +509,7 @@ fun compile_term { ctxt, nbe_program, deps, term = (vs, t) } =
     |> (fn t => apps t (rev dict_frees))
   end;
 
-fun reconstruct_term ctxt (const_tab : Code_Symbol.T Inttab.table) t =
+fun reconstruct_term ctxt const_tab t =
   let
     fun take_until f [] = []
       | take_until f (x :: xs) = if f x then [] else x :: take_until f xs;
