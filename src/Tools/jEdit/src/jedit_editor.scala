@@ -116,30 +116,20 @@ class JEdit_Editor extends Editor[View] {
     view: View,
     name: String,
     offset: Text.Offset = -1,
-    line: Int = -1,
-    column: Int = -1
+    line: Int = -1
   ): Unit = {
     GUI_Thread.require {}
 
     PIDE.plugin.navigator.record(view)
 
+    def buffer_offset(buffer: Buffer): Text.Offset =
+      ((if (line < 0) 0 else buffer.getLineStartOffset(line min buffer.getLineCount)) +
+        (if (offset < 0) 0 else offset)) min buffer.getLength
+
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        val text_area = view.getTextArea
-
-        try {
-          if (offset >= 0) text_area.moveCaretPosition(offset)
-          else if (line >= 0) {
-            val line_start = text_area.getBuffer.getLineStartOffset(line)
-            text_area.moveCaretPosition(line_start)
-            if (column > 0) text_area.moveCaretPosition(line_start + column)
-          }
-        }
-        catch {
-          case _: ArrayIndexOutOfBoundsException =>
-          case _: IllegalArgumentException =>
-        }
+        view.getTextArea.moveCaretPosition(buffer_offset(buffer))
 
       case None =>
         val is_dir =
@@ -153,28 +143,20 @@ class JEdit_Editor extends Editor[View] {
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
           val buffer = jEdit.openFile(view, name)
-          if (buffer != null) {
-            if (offset < 0) {
-              val marker =
-                if (line <= 0) ""
-                else if (column <= 0) "+line:" + (line + 1)
-                else "+line:" + (line + 1) + "," + (column + 1)
-              if (marker.nonEmpty) jEdit.gotoMarker(view, buffer, marker)
-            }
-            else {
-              AwtRunnableQueue.INSTANCE.runAfterIoTasks(() =>
-                if (view.getBuffer == buffer) {
-                  view.getTextArea.setCaretPosition(offset)
-                  buffer.setIntegerProperty(Buffer.CARET, offset)
-                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                }
-                else {
-                  buffer.setIntegerProperty(Buffer.CARET, offset)
-                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                  buffer.unsetProperty(Buffer.SCROLL_VERT)
-                }
-              )
-            }
+          if (buffer != null && (line >= 0 || offset >= 0)) {
+            AwtRunnableQueue.INSTANCE.runAfterIoTasks({ () =>
+              val target = buffer_offset(buffer)
+              if (view.getBuffer == buffer) {
+                view.getTextArea.setCaretPosition(target)
+                buffer.setIntegerProperty(Buffer.CARET, target)
+                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+              }
+              else {
+                buffer.setIntegerProperty(Buffer.CARET, target)
+                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                buffer.unsetProperty(Buffer.SCROLL_VERT)
+              }
+            })
           }
         }
     }
@@ -215,13 +197,11 @@ class JEdit_Editor extends Editor[View] {
   def hyperlink_file(
     focus: Boolean,
     name: String,
-    offset: Text.Offset = -1,
     line: Int = -1,
-    column: Int = -1
+    offset: Text.Offset = -1
   ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit =
-        goto_file(focus, view, name, offset = offset, line = line, column = column)
+      def follow(view: View): Unit = goto_file(focus, view, name, line = line, offset = offset)
       override def toString: String = "file " + quote(name)
     }
 
@@ -233,7 +213,7 @@ class JEdit_Editor extends Editor[View] {
   ) : Option[Hyperlink] = {
     for (platform_path <- PIDE.resources.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(focus, platform_path, line = pos.line, column = pos.column)
+        hyperlink_file(focus, platform_path, line = pos.line, offset = pos.column)
 
       if (offset > 0) {
         PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
