@@ -151,12 +151,13 @@ class JEdit_Editor extends Editor[View] {
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
-          val args =
-            if (offset >= 0) Array(name, "+offset:" + offset)
-            else if (line <= 0) Array(name)
-            else if (column <= 0) Array(name, "+line:" + (line + 1))
-            else Array(name, "+line:" + (line + 1) + "," + (column + 1))
-          jEdit.openFiles(view, null, args)
+          val marker =
+            if (offset >= 0) "+offset:" + offset
+            else if (line <= 0) ""
+            else if (column <= 0) "+line:" + (line + 1)
+            else "+line:" + (line + 1) + "," + (column + 1)
+          val buffer = jEdit.openFile(view, name)
+          if (buffer != null && marker.nonEmpty) jEdit.gotoMarker(view, buffer, marker)
         }
     }
   }
