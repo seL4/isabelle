@@ -107,7 +107,7 @@ end
 
 fun get_proof_method_or_noop name =
   (case get_proof_method name of
-    NONE => noop_proof_method
+    NONE => (warning ("Proof method \"" ^ name ^ "\" is undefined"); noop_proof_method)
   | SOME proof_method => proof_method)
 
 fun maybe_apply_proof_method name mode : proof_method =
