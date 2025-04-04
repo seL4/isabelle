@@ -60,10 +60,6 @@ object Isabelle_Navigator {
       }
       else this
     }
-
-    def goto(view: View): Unit = GUI_Thread.require {
-      PIDE.editor.goto_file(true, view, name, offset = offset)
-    }
   }
 
   object History {
@@ -176,7 +172,10 @@ class Isabelle_Navigator {
   def goto_current(view: View): Unit = GUI_Thread.require {
     if (_current.defined) {
       val b = _bypass
-      try { _bypass = true; _current.goto(view) }
+      try {
+        _bypass = true
+        PIDE.editor.goto_file(true, view, _current.name, offset = _current.offset)
+      }
       finally { _bypass = b }
     }
   }
