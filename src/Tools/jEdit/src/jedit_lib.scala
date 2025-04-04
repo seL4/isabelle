@@ -405,12 +405,19 @@ object JEdit_Lib {
 
   /* buffer event handling */
 
+  private def buffer_edit(ins: Boolean, buf: JEditBuffer, i: Text.Offset, n: Int): Text.Edit = {
+    val try_range = Text.Range(i, i + n.max(0)).try_restrict(buffer_range(buf))
+    val edit_range = try_range.getOrElse(Text.Range.zero)
+    val edit_text = try_range.flatMap(get_text(buf, _)).getOrElse("")
+    Text.Edit.make(ins, edit_range.start, edit_text)
+  }
+
   def buffer_listener(handle: (Buffer, Text.Edit) => Unit): BufferListener =
     new BufferAdapter {
       override def contentInserted(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
-        handle(buf.asInstanceOf[Buffer], Text.Edit.insert(i, buf.getText(i, n)))
+        handle(buf.asInstanceOf[Buffer], buffer_edit(true, buf, i, n))
       override def preContentRemoved(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
-        handle(buf.asInstanceOf[Buffer], Text.Edit.remove(i, buf.getText(i, n)))
+        handle(buf.asInstanceOf[Buffer], buffer_edit(false, buf, i, n))
     }
 
 
