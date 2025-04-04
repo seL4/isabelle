@@ -14,6 +14,7 @@ import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
 import org.gjt.sp.jedit.textarea.TextArea
 import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
+import org.gjt.sp.util.AwtRunnableQueue
 
 
 class JEdit_Editor extends Editor[View] {
@@ -151,13 +152,30 @@ class JEdit_Editor extends Editor[View] {
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
-          val marker =
-            if (offset >= 0) "+offset:" + offset
-            else if (line <= 0) ""
-            else if (column <= 0) "+line:" + (line + 1)
-            else "+line:" + (line + 1) + "," + (column + 1)
           val buffer = jEdit.openFile(view, name)
-          if (buffer != null && marker.nonEmpty) jEdit.gotoMarker(view, buffer, marker)
+          if (buffer != null) {
+            if (offset < 0) {
+              val marker =
+                if (line <= 0) ""
+                else if (column <= 0) "+line:" + (line + 1)
+                else "+line:" + (line + 1) + "," + (column + 1)
+              if (marker.nonEmpty) jEdit.gotoMarker(view, buffer, marker)
+            }
+            else {
+              AwtRunnableQueue.INSTANCE.runAfterIoTasks(() =>
+                if (view.getBuffer == buffer) {
+                  view.getTextArea.setCaretPosition(offset)
+                  buffer.setIntegerProperty(Buffer.CARET, offset)
+                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                }
+                else {
+                  buffer.setIntegerProperty(Buffer.CARET, offset)
+                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                  buffer.unsetProperty(Buffer.SCROLL_VERT)
+                }
+              )
+            }
+          }
         }
     }
   }
