@@ -2,6 +2,16 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
+	<ACTION NAME="navigate-backwards">
+	  <CODE>
+	    isabelle.jedit.Isabelle.navigate_backwards(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="navigate-forwards">
+	  <CODE>
+	    isabelle.jedit.Isabelle.navigate_forwards(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.browser-info">
 	  <CODE>
 	    isabelle.jedit.Isabelle.open_browser_info(view);

@@ -16,8 +16,8 @@ import java.io.{File => JFile}
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, PerspectiveManager}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.syntax.ModeProvider
-import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged,
-  ViewUpdate}
+import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, BufferChanging, PositionChanging,
+  EditPaneUpdate, PropertiesChanged, ViewUpdate}
 import org.gjt.sp.util.Log
 
 
@@ -96,6 +96,7 @@ class Main_Plugin extends EBPlugin {
 
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
+  val navigator = new Isabelle_Navigator
 
 
   /* theory files */
@@ -301,66 +302,79 @@ class Main_Plugin extends EBPlugin {
     if (startup_failure.isEmpty) {
       message match {
         case _: EditorStarted =>
+          val view = jEdit.getActiveView
+
           try { resources.session_background.check_errors }
           catch {
             case ERROR(msg) =>
-              GUI.warning_dialog(jEdit.getActiveView,
+              GUI.warning_dialog(view,
                 "Bad session structure: may cause problems with theory imports",
                 GUI.scrollable_text(msg))
           }
 
           jEdit.propertiesChanged()
 
-          val view = jEdit.getActiveView()
-          init_editor(view)
+          if (view != null) {
+            init_editor(view)
 
-          PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
-            JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
-
-        case msg: ViewUpdate
-        if msg.getWhat == ViewUpdate.CREATED && msg.getView != null =>
-          init_title(msg.getView)
-
-        case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.LOAD_STARTED || msg.getWhat == BufferUpdate.CLOSING =>
-          if (msg.getBuffer != null) {
-            exit_models(List(msg.getBuffer))
-            PIDE.editor.invoke_generated()
+            PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
+              JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
           }
 
-        case msg: BufferUpdate
-        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED || msg.getWhat == BufferUpdate.LOADED =>
-          if (session.is_ready) {
-            delay_init.invoke()
-            delay_load.invoke()
+        case msg: ViewUpdate =>
+          val what = msg.getWhat
+          val view = msg.getView
+          what match {
+            case ViewUpdate.CREATED if view != null => init_title(view)
+            case _ =>
           }
 
-        case msg: EditPaneUpdate
-        if msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
-            msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-            msg.getWhat == EditPaneUpdate.CREATED ||
-            msg.getWhat == EditPaneUpdate.DESTROYED =>
+        case msg: BufferUpdate =>
+          val what = msg.getWhat
+          val buffer = msg.getBuffer
+          val view = msg.getView
+          val view_edit_pane = if (view == null) null else view.getEditPane
+
+          what match {
+            case BufferUpdate.LOAD_STARTED | BufferUpdate.CLOSING if buffer != null =>
+              exit_models(List(buffer))
+              PIDE.editor.invoke_generated()
+            case BufferUpdate.PROPERTIES_CHANGED | BufferUpdate.LOADED if session.is_ready =>
+              delay_init.invoke()
+              delay_load.invoke()
+            case _ =>
+          }
+
+          if (buffer != null && !buffer.isUntitled) {
+            what match {
+              case BufferUpdate.CREATED => navigator.init(Set(buffer))
+              case BufferUpdate.CLOSED => navigator.exit(Set(buffer))
+              case _ =>
+            }
+          }
+
+        case msg: EditPaneUpdate =>
+          val what = msg.getWhat
           val edit_pane = msg.getEditPane
-          val buffer = edit_pane.getBuffer
-          val text_area = edit_pane.getTextArea
+          val buffer = if (edit_pane == null) null else edit_pane.getBuffer
+          val text_area = if (edit_pane == null) null else edit_pane.getTextArea
 
           if (buffer != null && text_area != null) {
-            if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-                msg.getWhat == EditPaneUpdate.CREATED) {
-              if (session.is_ready)
-                init_view(buffer, text_area)
+            if (what == EditPaneUpdate.BUFFER_CHANGED || what == EditPaneUpdate.CREATED) {
+              if (session.is_ready) init_view(buffer, text_area)
             }
-            else {
+
+            if (what == EditPaneUpdate.BUFFER_CHANGING || what == EditPaneUpdate.DESTROYED) {
               Isabelle.dismissed_popups(text_area.getView)
               exit_view(buffer, text_area)
             }
 
-            if (msg.getWhat == EditPaneUpdate.CREATED)
-              Completion_Popup.Text_Area.init(text_area)
+            if (what == EditPaneUpdate.CREATED) Completion_Popup.Text_Area.init(text_area)
 
-            if (msg.getWhat == EditPaneUpdate.DESTROYED)
-              Completion_Popup.Text_Area.exit(text_area)
+            if (what == EditPaneUpdate.DESTROYED) Completion_Popup.Text_Area.exit(text_area)
           }
+
+          if (msg.isInstanceOf[PositionChanging]) navigator.record(edit_pane)
 
         case _: PropertiesChanged =>
           for {
@@ -428,6 +442,7 @@ class Main_Plugin extends EBPlugin {
       spell_checker.update(options.value)
 
       JEdit_Lib.jedit_views().foreach(init_title)
+      navigator.init(JEdit_Lib.jedit_buffers())
 
       Syntax_Style.set_extender(Syntax_Style.Main_Extender)
       init_mode_provider()
@@ -446,7 +461,7 @@ class Main_Plugin extends EBPlugin {
 
     shutting_down.change(_ => false)
 
-    val view = jEdit.getActiveView()
+    val view = jEdit.getActiveView
     if (view != null) init_editor(view)
   }
 

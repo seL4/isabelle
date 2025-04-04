@@ -89,12 +89,10 @@ object Component_JEdit {
 
   private val download_plugins: List[(String, String)] =
     List(
-      "Code2HTML" -> "0.7",
       "CommonControls" -> "1.7.4",
       "Console" -> "5.1.4",
       "ErrorList" -> "2.4.0",
       "Highlight" -> "2.5",
-      "Navigator" -> "2.7",
       "SideKick" -> "1.8")
 
   private def exclude_package(name: String): Boolean =
@@ -340,6 +338,13 @@ metal.primary.font=Isabelle DejaVu Sans
 metal.primary.fontsize=12
 metal.secondary.font=Isabelle DejaVu Sans
 metal.secondary.fontsize=12
+navigate-backwards.label=Navigate backwards
+navigate-backwards.shortcut=AS+LEFT
+navigate-backwards.icon=ArrowL.png
+navigate-forwards.label=Navigate forwards
+navigate-forwards.shortcut=AS+RIGHT
+navigate-forwards.icon=ArrowR.png
+navigate-toolbar=navigate-backwards navigate-forwards
 navigator.showOnToolbar=true
 new-file-in-mode.shortcut=
 next-bracket.shortcut2=C+e C+9
@@ -358,6 +363,7 @@ print.glyphVector=true
 recent-buffer.shortcut2=C+CIRCUMFLEX
 restore.remote=false
 restore=false
+search.find=Search:
 search.subdirs.toggle=true
 select-block.shortcut2=C+8
 sidekick-tree.dock-position=right
@@ -404,7 +410,8 @@ view.gutter.lineNumbers=false
 view.gutter.selectionAreaWidth=18
 view.height=850
 view.middleMousePaste=true
-view.showToolbar=true
+view.showSearchbar=true
+view.showToolbar=false
 view.status.memory.background=#666699
 view.status=( mode , fold , encoding ) locked wrap multiSelect rectSelect overwrite lineSep buffersets task-monitor java-status ml-status errors clock
 view.thickCaret=true

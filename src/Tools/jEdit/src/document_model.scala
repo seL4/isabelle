@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 
 
 object Document_Model {
@@ -568,6 +568,8 @@ class Buffer_Model private(
       PIDE.editor.invoke()
     }
 
+    val listener: BufferListener = JEdit_Lib.buffer_listener((_, e) => edit(List(e)))
+
 
     // blob
 
@@ -621,31 +623,6 @@ class Buffer_Model private(
   def untyped_data: AnyRef = buffer_state.untyped_data
 
 
-  /* buffer listener */
-
-  private val buffer_listener: BufferListener = new BufferAdapter {
-    override def contentInserted(
-      buffer: JEditBuffer,
-      start_line: Int,
-      offset: Int,
-      num_lines: Int,
-      length: Int
-    ): Unit = {
-      buffer_state.edit(List(Text.Edit.insert(offset, buffer.getText(offset, length))))
-    }
-
-    override def preContentRemoved(
-      buffer: JEditBuffer,
-      start_line: Int,
-      offset: Int,
-      num_lines: Int,
-      removed_length: Int
-    ): Unit = {
-      buffer_state.edit(List(Text.Edit.remove(offset, buffer.getText(offset, removed_length))))
-    }
-  }
-
-
   /* syntax */
 
   def syntax_changed(): Unit = {
@@ -681,7 +658,7 @@ class Buffer_Model private(
             Text.Edit.replace(0, file_model.content.text, JEdit_Lib.buffer_text(buffer)))
     }
 
-    buffer.addBufferListener(buffer_listener)
+    buffer.addBufferListener(buffer_state.listener)
     init_token_marker()
 
     this
@@ -691,7 +668,7 @@ class Buffer_Model private(
   /* exit */
 
   def exit(): File_Model = GUI_Thread.require {
-    buffer.removeBufferListener(buffer_listener)
+    buffer.removeBufferListener(buffer_state.listener)
     init_token_marker()
 
     File_Model.init(session,

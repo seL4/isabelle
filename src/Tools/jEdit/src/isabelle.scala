@@ -82,6 +82,12 @@ object Isabelle {
   }
 
 
+  /* navigation */
+
+  def navigate_backwards(view: View): Unit = PIDE.plugin.navigator.backward(view)
+  def navigate_forwards(view: View): Unit = PIDE.plugin.navigator.forward(view)
+
+
   /* text structure */
 
   def indent_rule(mode: String): Option[IndentRule] =
@@ -459,8 +465,7 @@ object Isabelle {
         else Symbol.cartouche(arg.get)
 
       buffer.remove(antiq_range.start, antiq_range.length)
-      text_area.moveCaretPosition(antiq_range.start)
-      text_area.selectNone
+      text_area.setCaretPosition(antiq_range.start)
       text_area.setSelectedText(op_text + arg_text)
     }
   }
@@ -563,7 +568,8 @@ object Isabelle {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          PIDE.editor.goto_buffer(false, view, view.getBuffer, err.range.start)
+          PIDE.editor.goto_file(
+            false, view, JEdit_Lib.buffer_name(view.getBuffer), offset = err.range.start)
         case None =>
           view.getStatus.setMessageAndClear("No " + which + "error in current document snapshot")
       }

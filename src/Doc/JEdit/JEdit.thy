@@ -151,11 +151,10 @@ text \<open>
   additional plugins are bundled with Isabelle/jEdit for convenience or out of
   necessity, notably \<^emph>\<open>Console\<close> with its \<^emph>\<open>Scala\<close> sub-plugin
   (\secref{sec:scala-console}) and \<^emph>\<open>SideKick\<close> with some Isabelle-specific
-  parsers for document tree structure (\secref{sec:sidekick}). The
-  \<^emph>\<open>Navigator\<close> plugin is particularly important for hyperlinks within the
-  formal document-model (\secref{sec:tooltips-hyperlinks}). Further plugins
-  (e.g.\ \<^emph>\<open>ErrorList\<close>, \<^emph>\<open>Code2HTML\<close>) are included to saturate the dependencies
-  of bundled plugins, but have no particular use in Isabelle/jEdit.
+  parsers for document tree structure (\secref{sec:sidekick}). Other plugins
+  (e.g.\ \<^emph>\<open>Console\<close>, \<^emph>\<open>ErrorList\<close>, \<^emph>\<open>SideKick\<close>) are included to saturate the
+  dependencies of bundled plugins, but have no particular use in
+  Isabelle/jEdit.
 \<close>
 
 
@@ -1267,9 +1266,17 @@ text \<open>
   \<^medskip>
   A black rectangle in the text indicates a hyperlink that may be followed by
   a mouse click (while the \<^verbatim>\<open>CONTROL\<close> or \<^verbatim>\<open>COMMAND\<close> modifier key is still
-  pressed). Such jumps to other text locations are recorded by the
-  \<^emph>\<open>Navigator\<close> plugin, which is bundled with Isabelle/jEdit and enabled by
-  default. There are usually navigation arrows in the main jEdit toolbar.
+  pressed). Such jumps to other text locations are recorded by the builtin
+  navigator, which provides actions to move backwards or forwards, with arrow
+  icons in the \<^emph>\<open>Incremental Search Bar\<close> (action @{action_ref
+  "quick-search"}). The following keyboard shortcuts are available:
+
+  \<^medskip>
+  \begin{tabular}[t]{l}
+  @{action_ref "navigate-backwards"} (\<^verbatim>\<open>AS+LEFT\<close>) \\
+  @{action_ref "navigate-forwards"} (\<^verbatim>\<open>AS+RIGHT\<close>) \\
+  \end{tabular}\quad
+  \<^medskip>
 
   Note that the link target may be a file that is itself not subject to formal
   document processing of the editor session and thus prevents further

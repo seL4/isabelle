@@ -12,7 +12,9 @@ import isabelle._
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
+import org.gjt.sp.jedit.textarea.TextArea
 import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
+import org.gjt.sp.util.AwtRunnableQueue
 
 
 class JEdit_Editor extends Editor[View] {
@@ -109,53 +111,28 @@ class JEdit_Editor extends Editor[View] {
 
   /* navigation */
 
-  def push_position(view: View): Unit = {
-    val navigator = jEdit.getPlugin("ise.plugin.nav.NavigatorPlugin")
-    if (navigator != null) {
-      try { Untyped.method(navigator.getClass, "pushPosition", view.getClass).invoke(null, view) }
-      catch { case _: NoSuchMethodException => }
-    }
-  }
-
-  def goto_buffer(focus: Boolean, view: View, buffer: Buffer, offset: Text.Offset): Unit = {
+  def goto_file(
+    focus: Boolean,
+    view: View,
+    name: String,
+    line: Int = -1,
+    offset: Text.Offset = -1,
+    at_target: (Buffer, Text.Offset) => Unit = (_, _) => ()
+  ): Unit = {
     GUI_Thread.require {}
 
-    push_position(view)
+    PIDE.plugin.navigator.record(view)
 
-    if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-    try { view.getTextArea.moveCaretPosition(offset) }
-    catch {
-      case _: ArrayIndexOutOfBoundsException =>
-      case _: IllegalArgumentException =>
-    }
-  }
-
-  def goto_file(focus: Boolean, view: View, name: String): Unit =
-    goto_file(focus, view, Line.Node_Position.offside(name))
-
-  def goto_file(focus: Boolean, view: View, pos: Line.Node_Position): Unit = {
-    GUI_Thread.require {}
-
-    push_position(view)
-
-    val name = pos.name
-    val line = pos.line
-    val column = pos.column
+    def buffer_offset(buffer: Buffer): Text.Offset =
+      ((if (line < 0) 0 else buffer.getLineStartOffset(line min buffer.getLineCount)) +
+        (if (offset < 0) 0 else offset)) min buffer.getLength
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        val text_area = view.getTextArea
-
-        try {
-          val line_start = text_area.getBuffer.getLineStartOffset(line)
-          text_area.moveCaretPosition(line_start)
-          if (column > 0) text_area.moveCaretPosition(line_start + column)
-        }
-        catch {
-          case _: ArrayIndexOutOfBoundsException =>
-          case _: IllegalArgumentException =>
-        }
+        val target = buffer_offset(buffer)
+        view.getTextArea.setCaretPosition(target)
+        at_target(buffer, target)
 
       case None =>
         val is_dir =
@@ -168,11 +145,23 @@ class JEdit_Editor extends Editor[View] {
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
-          val args =
-            if (line <= 0) Array(name)
-            else if (column <= 0) Array(name, "+line:" + (line + 1))
-            else Array(name, "+line:" + (line + 1) + "," + (column + 1))
-          jEdit.openFiles(view, null, args)
+          val buffer = jEdit.openFile(view, name)
+          if (buffer != null && (line >= 0 || offset >= 0)) {
+            AwtRunnableQueue.INSTANCE.runAfterIoTasks({ () =>
+              val target = buffer_offset(buffer)
+              if (view.getBuffer == buffer) {
+                view.getTextArea.setCaretPosition(target)
+                buffer.setIntegerProperty(Buffer.CARET, target)
+                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                at_target(buffer, target)
+              }
+              else {
+                buffer.setIntegerProperty(Buffer.CARET, target)
+                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                buffer.unsetProperty(Buffer.SCROLL_VERT)
+              }
+            })
+          }
         }
     }
   }
@@ -209,27 +198,20 @@ class JEdit_Editor extends Editor[View] {
       override def toString: String = "URL " + quote(name)
     }
 
-  def hyperlink_file(focus: Boolean, name: String): Hyperlink =
-    hyperlink_file(focus, Line.Node_Position.offside(name))
-
-  def hyperlink_file(focus: Boolean, pos: Line.Node_Position): Hyperlink =
+  def hyperlink_file(
+    focus: Boolean,
+    name: String,
+    line: Int = -1,
+    offset: Text.Offset = -1
+  ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit = goto_file(focus, view, pos)
-      override def toString: String = "file " + quote(pos.name)
-    }
-
-  def hyperlink_model(focus: Boolean, model: Document_Model, offset: Text.Offset): Hyperlink =
-    model match {
-      case file_model: File_Model =>
-        val pos =
-          try { file_model.node_position(offset) }
-          catch { case ERROR(_) => Line.Node_Position(file_model.node_name.node) }
-        hyperlink_file(focus, pos)
-      case buffer_model: Buffer_Model =>
-        new Hyperlink {
-          def follow(view: View): Unit = goto_buffer(focus, view, buffer_model.buffer, offset)
-          override def toString: String = "buffer " + quote(model.node_name.node)
-        }
+      def follow(view: View): Unit = {
+        import Isabelle_Navigator.Pos
+        PIDE.plugin.navigator.record(Pos(view))
+        goto_file(focus, view, name, line = line, offset = offset,
+          at_target = (buffer, target) => Pos.make(JEdit_Lib.buffer_name(buffer), target))
+      }
+      override def toString: String = "file " + quote(name)
     }
 
   def hyperlink_source_file(
@@ -240,7 +222,7 @@ class JEdit_Editor extends Editor[View] {
   ) : Option[Hyperlink] = {
     for (platform_path <- PIDE.resources.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(focus, Line.Node_Position(platform_path, pos))
+        hyperlink_file(focus, platform_path, line = pos.line, offset = pos.column)
 
       if (offset > 0) {
         PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
@@ -263,7 +245,10 @@ class JEdit_Editor extends Editor[View] {
     offset: Symbol.Offset = 0
   ) : Option[Hyperlink] = {
     if (snapshot.is_outdated) None
-    else snapshot.find_command_position(id, offset).map(hyperlink_file(focus, _))
+    else {
+      snapshot.find_command_position(id, offset)
+        .map(pos => hyperlink_file(focus, pos.name, line = pos.line, offset = pos.column))
+    }
   }
 
   def is_hyperlink_position(

@@ -49,7 +49,7 @@ object Font_Info {
         jEdit.setIntegerProperty("view.fontsize", size)
         jEdit.propertiesChanged()
         jEdit.saveSettings()
-        jEdit.getActiveView().getStatus.setMessageAndClear("Text font size: " + size)
+        jEdit.getActiveView.getStatus.setMessageAndClear("Text font size: " + size)
       }
     }
 

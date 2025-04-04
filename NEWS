@@ -30,6 +30,13 @@ take precedence. Example:
 This runs Isabelle/jEdit with sequential evaluation in ML, without
 affecting stored preferences of option "threads".
 
+* Isabelle/jEdit provides builtin navigation support, with actions
+navigate-backwards (AS-LEFT) and navigate-forwards (AS-RIGHT). These
+actions are available via arrow icons in the Search Bar, which is now
+enabled by default. The old plugins Navigator and Code2HTML are now
+longer included. The old-fashioned toolbar, with its old Navigator
+icons, is now disabled by default.
+
 
 *** HOL ***
 

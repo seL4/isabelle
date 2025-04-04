@@ -1,0 +1,14 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/search/SearchBar.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/search/SearchBar.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/search/SearchBar.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/search/SearchBar.java	2025-04-03 11:33:23.921426197 +0200
+@@ -51,6 +51,10 @@
+ 		setFloatable(false);
+ 		add(Box.createHorizontalStrut(2));
+ 
++		if (!jEdit.getProperty("navigate-toolbar", "").isEmpty()) {
++			add(GUIUtilities.loadToolBar("navigate-toolbar"));
++		}
++
+ 		JLabel label = new JLabel(jEdit.getProperty("view.search.find"));
+ 		add(label);
+ 		
