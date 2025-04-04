@@ -115,8 +115,8 @@ class JEdit_Editor extends Editor[View] {
     focus: Boolean,
     view: View,
     name: String,
-    offset: Text.Offset = -1,
-    line: Int = -1
+    line: Int = -1,
+    offset: Text.Offset = -1
   ): Unit = {
     GUI_Thread.require {}
 
