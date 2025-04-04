@@ -10,7 +10,9 @@ section \<open>Convergence of Formal Power Series\<close>
 theory FPS_Convergence
 imports
   Generalised_Binomial_Theorem
-  "HOL-Computational_Algebra.Formal_Power_Series"
+  "HOL-Computational_Algebra.Formal_Power_Series" 
+  "HOL-Computational_Algebra.Polynomial_FPS"
+
 begin
 
 text \<open>
@@ -593,6 +595,52 @@ text \<open>
   that is available.
 \<close>
 
+subsection \<open>FPS of a polynomial\<close>
+
+lemma fps_conv_radius_fps_of_poly [simp]:
+  fixes p :: "'a :: {banach, real_normed_div_algebra} poly"
+  shows "fps_conv_radius (fps_of_poly p) = \<infinity>"
+proof -
+  have "conv_radius (poly.coeff p) = conv_radius (\<lambda>_. 0 :: 'a)"
+    using MOST_coeff_eq_0 unfolding cofinite_eq_sequentially by (rule conv_radius_cong')
+  also have "\<dots> = \<infinity>"
+    by simp
+  finally show ?thesis
+    by (simp add: fps_conv_radius_def)
+qed
+
+lemma eval_fps_power: 
+  fixes F :: "'a :: {banach, real_normed_div_algebra, comm_ring_1} fps"
+  assumes z: "norm z < fps_conv_radius F"
+  shows      "eval_fps (F ^ n) z = eval_fps F z ^ n"
+proof (induction n)
+  case 0
+  thus ?case
+    by (auto simp: eval_fps_mult)
+next
+  case (Suc n)
+  have "eval_fps (F ^ Suc n) z = eval_fps (F * F ^ n) z"
+    by simp
+  also from z have "\<dots> = eval_fps F z * eval_fps (F ^ n) z"
+    by (subst eval_fps_mult) (auto intro!: less_le_trans[OF _ fps_conv_radius_power])
+  finally show ?case
+    using Suc.IH by simp
+qed   
+
+lemma eval_fps_of_poly [simp]: "eval_fps (fps_of_poly p) z = poly p z"
+proof -
+  have "(\<lambda>n. poly.coeff p n * z ^ n) sums poly p z"
+    unfolding poly_altdef by (rule sums_finite) (auto simp: coeff_eq_0)
+  moreover have "(\<lambda>n. poly.coeff p n * z ^ n) sums eval_fps (fps_of_poly p) z"
+    using sums_eval_fps[of z "fps_of_poly p"] by simp
+  ultimately show ?thesis
+    using sums_unique2 by blast
+qed
+
+lemma poly_holomorphic_on [holomorphic_intros]:
+  assumes [holomorphic_intros]: "f holomorphic_on A"
+  shows   "(\<lambda>z. poly p (f z)) holomorphic_on A"
+  unfolding poly_altdef by (intro holomorphic_intros)
 
 subsection \<open>Power series expansions of analytic functions\<close>
 

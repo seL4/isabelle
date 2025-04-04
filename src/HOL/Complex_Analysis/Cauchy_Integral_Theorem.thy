@@ -620,7 +620,7 @@ proof -
           have **: "\<And>f' x' f x::complex. f'*x' - f*x = f' * (x' - x) + x * (f' - f)"
             by (simp add: algebra_simps)
           have "norm (pathint (shrink u) (shrink v) - pathint u v)
-                \<le> (B*(norm y /24/C/B)*2*C + (2*C)*(norm y/24/C)) * content (cbox 0 (1::real))"
+                \<le> (B*(norm y /24/C/B)*2*C + (2*C)*(norm y/24/C)) * measure lborel (cbox 0 (1::real))"
             apply (rule has_integral_bound
                     [of _ "\<lambda>x. f(linepath (shrink u) (shrink v) x) * (shrink v - shrink u) - f(linepath u v x)*(v - u)"
                         _ 0 1])

@@ -1266,6 +1266,46 @@ lemma Re_linepath: "Re(linepath (of_real a) (of_real b) x) = (1 - x)*a + x*b"
 lemma Im_linepath: "Im(linepath (of_real a) (of_real b) x) = 0"
   by (simp add: linepath_def)
 
+lemma
+  assumes "x \<in> closed_segment y z"
+  shows in_closed_segment_imp_Re_in_closed_segment: "Re x \<in> closed_segment (Re y) (Re z)" (is ?th1)
+    and in_closed_segment_imp_Im_in_closed_segment: "Im x \<in> closed_segment (Im y) (Im z)" (is ?th2)
+proof -
+  from assms obtain t where t: "t \<in> {0..1}" "x = linepath y z t"
+    by (metis imageE linepath_image_01)
+  have "Re x = linepath (Re y) (Re z) t" "Im x = linepath (Im y) (Im z) t"
+    by (simp_all add: t Re_linepath' Im_linepath')
+  with t(1) show ?th1 ?th2
+    using linepath_in_path[of t "Re y" "Re z"] linepath_in_path[of t "Im y" "Im z"] by simp_all
+qed
+
+lemma linepath_in_open_segment: "t \<in> {0<..<1} \<Longrightarrow> x \<noteq> y \<Longrightarrow> linepath x y t \<in> open_segment x y"
+  unfolding greaterThanLessThan_iff by (metis in_segment(2) linepath_def)
+
+lemma in_open_segment_imp_Re_in_open_segment:
+  assumes "x \<in> open_segment y z" "Re y \<noteq> Re z"
+  shows   "Re x \<in> open_segment (Re y) (Re z)"
+proof -
+  from assms obtain t where t: "t \<in> {0<..<1}" "x = linepath y z t"
+    by (metis greaterThanLessThan_iff in_segment(2) linepath_def)
+  have "Re x = linepath (Re y) (Re z) t"
+    by (simp_all add: t Re_linepath')
+  with t(1) show ?thesis
+    using linepath_in_open_segment[of t "Re y" "Re z"] assms by auto
+qed
+
+lemma in_open_segment_imp_Im_in_open_segment:
+  assumes "x \<in> open_segment y z" "Im y \<noteq> Im z"
+  shows   "Im x \<in> open_segment (Im y) (Im z)"
+proof -
+  from assms obtain t where t: "t \<in> {0<..<1}" "x = linepath y z t"
+    by (metis greaterThanLessThan_iff in_segment(2) linepath_def)
+  have "Im x = linepath (Im y) (Im z) t"
+    by (simp_all add: t Im_linepath')
+  with t(1) show ?thesis
+    using linepath_in_open_segment[of t "Im y" "Im z"] assms by auto
+qed
+
 lemma bounded_linear_linepath:
   assumes "bounded_linear f"
   shows   "f (linepath a b x) = linepath (f a) (f b) x"

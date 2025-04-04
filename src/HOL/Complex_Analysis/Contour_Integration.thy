@@ -808,7 +808,7 @@ lemma has_contour_integral_bound_linepath:
           "0 \<le> B" and B: "\<And>x. x \<in> closed_segment a b \<Longrightarrow> norm(f x) \<le> B"
     shows "norm i \<le> B * norm(b - a)"
 proof -
-  have "norm i \<le> (B * norm (b - a)) * content (cbox 0 (1::real))"
+  have "norm i \<le> (B * norm (b - a)) * measure lborel (cbox 0 (1::real))"
   proof (rule has_integral_bound
        [of _ "\<lambda>x. f (linepath a b x) * vector_derivative (linepath a b) (at x within {0..1})"])
     show  "cmod (f (linepath a b x) * vector_derivative (linepath a b) (at x within {0..1}))
