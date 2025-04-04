@@ -123,9 +123,9 @@ class Isabelle_Navigator {
 
   // owned by GUI thread
   private var _bypass = false
-  var _current: Pos = Pos.none
-  var _backward = History.empty
-  var _forward = History.empty
+  private var _current: Pos = Pos.none
+  private var _backward = History.empty
+  private var _forward = History.empty
 
   override def toString: String = {
     val size = (if (_current.defined) 1 else 0) + _backward.size + _forward.size
