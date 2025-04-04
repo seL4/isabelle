@@ -3,7 +3,7 @@
 section \<open>Testing implementation of normalization by evaluation\<close>
 
 theory Normalization_by_Evaluation
-imports Complex_Main
+imports Complex_Main "HOL-Library.Word"
 begin
 
 lemma "True" by normalization
@@ -107,6 +107,9 @@ lemma "[Suc 0, 0] = [Suc 0, 0]" by normalization
 lemma "max (Suc 0) 0 = Suc 0" by normalization
 lemma "(42::rat) / 1704 = 1 / 284 + 3 / 142" by normalization
 value [nbe] "Suc 0 \<in> set ms"
+
+lemma "4 - 42 * 3 - 7 = (256 + 35) - (164 :: 8 word)"
+  by normalization
 
 (* non-left-linear patterns, equality by extensionality *)
 
