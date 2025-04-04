@@ -238,7 +238,7 @@ class JEdit_Editor extends Editor[View] {
     if (snapshot.is_outdated) None
     else {
       snapshot.find_command_position(id, offset)
-        .map(pos => hyperlink_file(focus, pos.name, line = pos.line))
+        .map(pos => hyperlink_file(focus, pos.name, line = pos.line, offset = pos.column))
     }
   }
 
