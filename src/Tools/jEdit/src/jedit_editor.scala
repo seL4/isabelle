@@ -116,7 +116,8 @@ class JEdit_Editor extends Editor[View] {
     view: View,
     name: String,
     line: Int = -1,
-    offset: Text.Offset = -1
+    offset: Text.Offset = -1,
+    at_target: (Buffer, Text.Offset) => Unit = (_, _) => ()
   ): Unit = {
     GUI_Thread.require {}
 
@@ -129,7 +130,9 @@ class JEdit_Editor extends Editor[View] {
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        view.getTextArea.setCaretPosition(buffer_offset(buffer))
+        val target = buffer_offset(buffer)
+        view.getTextArea.setCaretPosition(target)
+        at_target(buffer, target)
 
       case None =>
         val is_dir =
@@ -150,6 +153,7 @@ class JEdit_Editor extends Editor[View] {
                 view.getTextArea.setCaretPosition(target)
                 buffer.setIntegerProperty(Buffer.CARET, target)
                 buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                at_target(buffer, target)
               }
               else {
                 buffer.setIntegerProperty(Buffer.CARET, target)
@@ -201,7 +205,12 @@ class JEdit_Editor extends Editor[View] {
     offset: Text.Offset = -1
   ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit = goto_file(focus, view, name, line = line, offset = offset)
+      def follow(view: View): Unit = {
+        import Isabelle_Navigator.Pos
+        PIDE.plugin.navigator.record(Pos(view))
+        goto_file(focus, view, name, line = line, offset = offset,
+          at_target = (buffer, target) => Pos.make(JEdit_Lib.buffer_name(buffer), target))
+      }
       override def toString: String = "file " + quote(name)
     }
 
