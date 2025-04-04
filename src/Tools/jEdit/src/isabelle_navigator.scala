@@ -123,23 +123,23 @@ class Isabelle_Navigator {
 
   // owned by GUI thread
   private var _bypass = false
-  private var _current: Pos = Pos.none
   private var _backward = History.empty
   private var _forward = History.empty
 
+  def current: Pos = _backward.top
+  def recurrent: Pos = _forward.top
+
   override def toString: String = {
-    val size = (if (_current.defined) 1 else 0) + _backward.size + _forward.size
+    val size = _backward.size + _forward.size
     "Isabelle_Navigator(" + (if (size == 0) "" else size.toString) + ")"
   }
 
   private def convert(name: String, edit: Text.Edit): Unit = GUI_Thread.require {
-    _current = _current.convert(name, edit)
     _backward = _backward.convert(name, edit)
     _forward = _forward.convert(name, edit)
   }
 
   private def close(names: Set[String]): Unit = GUI_Thread.require {
-    if (names.contains(_current.name)) _current = Pos.none
     _backward = _backward.close(names)
     _forward = _forward.close(names)
   }
@@ -158,10 +158,9 @@ class Isabelle_Navigator {
   }
 
   def record(pos: Pos): Unit = GUI_Thread.require {
-    if (!_bypass && pos.defined && !pos.equiv(_current)) {
-      _backward = _backward.push(_current)
+    if (!_bypass && pos.defined && !pos.equiv(current)) {
+      _backward = _backward.push(pos)
       _forward = History.empty
-      _current = pos
     }
   }
 
@@ -170,11 +169,11 @@ class Isabelle_Navigator {
   def record(view: View): Unit = record(Pos(view))
 
   def goto_current(view: View): Unit = GUI_Thread.require {
-    if (_current.defined) {
+    if (current.defined) {
       val b = _bypass
       try {
         _bypass = true
-        PIDE.editor.goto_file(true, view, _current.name, offset = _current.offset)
+        PIDE.editor.goto_file(true, view, current.name, offset = current.offset)
       }
       finally { _bypass = b }
     }
@@ -182,26 +181,15 @@ class Isabelle_Navigator {
 
   def backward(view: View): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
-      val pos0 = _current
-      val pos1 = Pos(view)
-
-      def move(pos: Pos): Unit = {
-        _forward = _forward.push(pos)
-        _current = _backward.top
-        _backward = _backward.pop
-      }
-
-      if (pos0.defined) move(pos0)
-      if (pos1.defined && !pos1.equiv(pos0)) move(pos1)
-
+      _forward = _forward.push(current).push(Pos(view))
+      _backward = _backward.pop
       goto_current(view)
     }
   }
 
   def forward(view: View): Unit = GUI_Thread.require {
     if (!_forward.is_empty) {
-      _backward = _backward.push(_current)
-      _current = _forward.top
+      _backward = _backward.push(recurrent)
       _forward = _forward.pop
       goto_current(view)
     }
