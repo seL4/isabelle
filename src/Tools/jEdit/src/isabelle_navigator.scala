@@ -161,12 +161,6 @@ class Isabelle_Navigator {
     buffers.iterator.foreach(_.addBufferListener(buffer_listener))
   }
 
-  def reset(): Unit = GUI_Thread.require {
-    _current = Pos.none
-    _backward = History.empty
-    _forward = History.empty
-  }
-
   def record(pos: Pos): Unit = GUI_Thread.require {
     if (!_bypass && pos.defined && !pos.equiv(_current)) {
       _backward = _backward.push(_current)
