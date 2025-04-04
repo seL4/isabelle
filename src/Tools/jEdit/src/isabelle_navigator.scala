@@ -180,15 +180,6 @@ class Isabelle_Navigator {
     }
   }
 
-  def forward(view: View): Unit = GUI_Thread.require {
-    if (!_forward.is_empty) {
-      _backward = _backward.push(_current)
-      _current = _forward.top
-      _forward = _forward.pop
-      goto_current(view)
-    }
-  }
-
   def backward(view: View): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
       val pos0 = _current
@@ -203,6 +194,15 @@ class Isabelle_Navigator {
       if (pos0.defined) move(pos0)
       if (pos1.defined && !pos1.equiv(pos0)) move(pos1)
 
+      goto_current(view)
+    }
+  }
+
+  def forward(view: View): Unit = GUI_Thread.require {
+    if (!_forward.is_empty) {
+      _backward = _backward.push(_current)
+      _current = _forward.top
+      _forward = _forward.pop
       goto_current(view)
     }
   }
