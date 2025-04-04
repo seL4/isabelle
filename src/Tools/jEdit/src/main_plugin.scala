@@ -348,11 +348,6 @@ class Main_Plugin extends EBPlugin {
           if (buffer != null && !buffer.isUntitled) {
             what match {
               case BufferUpdate.CREATED => navigator.init(Set(buffer))
-              case BufferUpdate.LOADED =>
-                if (view_edit_pane != null && view_edit_pane.getBuffer == buffer) {
-                  navigator.record(view_edit_pane)
-                }
-                else navigator.record(buffer)
               case BufferUpdate.CLOSED => navigator.exit(Set(buffer))
               case _ =>
             }
