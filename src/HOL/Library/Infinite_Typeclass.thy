@@ -27,6 +27,9 @@ proof -
     by auto
 qed
 
+lemma arb_inj_on_finite_infinite: "finite(A :: 'b set) \<Longrightarrow> \<exists>f :: 'b \<Rightarrow> 'a. inj_on f A"
+by (meson arb_finite_subset card_le_inj infinite_imp_nonempty)
+
 lemma arb_countable_map: "finite Y \<Longrightarrow> \<exists>f :: (nat \<Rightarrow> 'a). inj f \<and> range f \<subseteq> UNIV - Y"
   using infinite_UNIV
   by (auto simp: infinite_countable_subset)

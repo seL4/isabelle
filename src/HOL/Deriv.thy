@@ -1130,18 +1130,19 @@ lemma DERIV_pow: "((\<lambda>x. x ^ n) has_field_derivative real n * (x ^ (n - S
   using DERIV_power [OF DERIV_ident] by simp
 
 lemma DERIV_power_int [derivative_intros]:
-  assumes [derivative_intros]: "(f has_field_derivative d) (at x within s)" and [simp]: "f x \<noteq> 0"
+  assumes [derivative_intros]: "(f has_field_derivative d) (at x within s)"
+  and "n \<ge> 0 \<or> f x \<noteq> 0"
   shows   "((\<lambda>x. power_int (f x) n) has_field_derivative
              (of_int n * power_int (f x) (n - 1) * d)) (at x within s)"
 proof (cases n rule: int_cases4)
   case (nonneg n)
   thus ?thesis 
-    by (cases "n = 0")
-       (auto intro!: derivative_eq_intros simp: field_simps power_int_diff
-             simp flip: power_Suc power_Suc2 power_add)
+    by (cases "n = 0"; cases "f x = 0")
+       (auto intro!: derivative_eq_intros simp: field_simps power_int_diff 
+                     power_diff power_int_0_left_if)
 next
   case (neg n)
-  thus ?thesis
+  thus ?thesis using assms(2)
     by (auto intro!: derivative_eq_intros simp: field_simps power_int_diff power_int_minus
              simp flip: power_Suc power_Suc2 power_add)
 qed

@@ -1132,6 +1132,38 @@ next
     by (intro exI[of _ P] exI[of _ "\<lambda>x. True"]) auto
 qed
 
+lemma eventually_eventually_prod_filter1:
+  assumes "eventually P (F \<times>\<^sub>F G)"
+  shows   "eventually (\<lambda>x. eventually (\<lambda>y. P (x, y)) G) F"
+proof -
+  from assms obtain Pf Pg where
+    *: "eventually Pf F" "eventually Pg G" "\<And>x y. Pf x \<Longrightarrow> Pg y \<Longrightarrow> P (x, y)"
+    unfolding eventually_prod_filter by auto
+  show ?thesis
+    using *(1)
+  proof eventually_elim
+    case x: (elim x)
+    show ?case
+      using *(2) by eventually_elim (use x *(3) in auto)
+  qed
+qed
+
+lemma eventually_eventually_prod_filter2:
+  assumes "eventually P (F \<times>\<^sub>F G)"
+  shows   "eventually (\<lambda>y. eventually (\<lambda>x. P (x, y)) F) G"
+proof -
+  from assms obtain Pf Pg where
+    *: "eventually Pf F" "eventually Pg G" "\<And>x y. Pf x \<Longrightarrow> Pg y \<Longrightarrow> P (x, y)"
+    unfolding eventually_prod_filter by auto
+  show ?thesis
+    using *(2)
+  proof eventually_elim
+    case y: (elim y)
+    show ?case
+      using *(1) by eventually_elim (use y *(3) in auto)
+  qed
+qed
+
 lemma INF_filter_bot_base:
   fixes F :: "'a \<Rightarrow> 'b filter"
   assumes *: "\<And>i j. i \<in> I \<Longrightarrow> j \<in> I \<Longrightarrow> \<exists>k\<in>I. F k \<le> F i \<sqinter> F j"

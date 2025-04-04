@@ -912,6 +912,9 @@ qed
 instance fls :: (comm_monoid_add) comm_monoid_add
   by (standard, transfer, auto simp: add.commute)
 
+lemma fls_nth_sum: "fls_nth (\<Sum>x\<in>A. f x) n = (\<Sum>x\<in>A. fls_nth (f x) n)"
+  by (induction A rule: infinite_finite_induct) auto
+
 
 subsubsection \<open>Subtraction and negatives\<close>
 
@@ -2921,6 +2924,20 @@ proof -
     by (simp add: fls_subdegree_pow power_inverse)
   ultimately show ?P and ?Q
     by simp_all
+qed
+
+lemma one_plus_fls_X_powi_eq:
+  "(1 + fls_X) powi n = fps_to_fls (fps_binomial (of_int n :: 'a :: field_char_0))"
+proof (cases "n \<ge> 0")
+  case True
+  thus ?thesis
+    using fps_binomial_of_nat[of "nat n", where ?'a = 'a]
+    by (simp add: power_int_def fps_to_fls_power)
+next
+  case False
+  thus ?thesis
+    using fps_binomial_minus_of_nat[of "nat (-n)", where ?'a = 'a]
+    by (simp add: power_int_def fps_to_fls_power fps_inverse_power flip: fls_inverse_fps_to_fls)
 qed
 
 instance fls :: (field) field

@@ -112,15 +112,14 @@ proof (rule uniform_limitI)
     by eventually_elim force
 qed
 
-
 subsection \<open>Exchange limits\<close>
-
-proposition swap_uniform_limit:
-  assumes f: "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) (at x within S)"
+proposition swap_uniform_limit':
+  assumes f: "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) G"
   assumes g: "(g \<longlongrightarrow> l) F"
   assumes uc: "uniform_limit S f h F"
+  assumes ev: "\<forall>\<^sub>F x in G. x \<in> S"
   assumes "\<not>trivial_limit F"
-  shows "(h \<longlongrightarrow> l) (at x within S)"
+  shows "(h \<longlongrightarrow> l) G"
 proof (rule tendstoI)
   fix e :: real
   define e' where "e' = e/3"
@@ -131,21 +130,19 @@ proof (rule tendstoI)
     by (simp add: dist_commute)
   moreover
   from f
-  have "\<forall>\<^sub>F n in F. \<forall>\<^sub>F x in at x within S. dist (g n) (f n x) < e'"
+  have "\<forall>\<^sub>F n in F. \<forall>\<^sub>F x in G. dist (g n) (f n x) < e'"
     by eventually_elim (auto dest!: tendstoD[OF _ \<open>0 < e'\<close>] simp: dist_commute)
   moreover
   from tendstoD[OF g \<open>0 < e'\<close>] have "\<forall>\<^sub>F x in F. dist l (g x) < e'"
     by (simp add: dist_commute)
   ultimately
-  have "\<forall>\<^sub>F _ in F. \<forall>\<^sub>F x in at x within S. dist (h x) l < e"
+  have "\<forall>\<^sub>F _ in F. \<forall>\<^sub>F x in G. dist (h x) l < e"
   proof eventually_elim
     case (elim n)
     note fh = elim(1)
     note gl = elim(3)
-    have "\<forall>\<^sub>F x in at x within S. x \<in> S"
-      by (auto simp: eventually_at_filter)
-    with elim(2)
     show ?case
+      using elim(2) ev
     proof eventually_elim
       case (elim x)
       from fh[rule_format, OF \<open>x \<in> S\<close>] elim(1)
@@ -155,9 +152,16 @@ proof (rule tendstoI)
       show ?case by (simp add: e'_def)
     qed
   qed
-  thus "\<forall>\<^sub>F x in at x within S. dist (h x) l < e"
+  thus "\<forall>\<^sub>F x in G. dist (h x) l < e"
     using eventually_happens by (metis \<open>\<not>trivial_limit F\<close>)
 qed
+
+corollary swap_uniform_limit:
+  assumes "\<forall>\<^sub>F n in F. (f n \<longlongrightarrow> g n) (at x within S)"
+  assumes "(g \<longlongrightarrow> l) F" "uniform_limit S f h F" "\<not>trivial_limit F"
+  shows "(h \<longlongrightarrow> l) (at x within S)"
+  using swap_uniform_limit' eventually_at_topological assms
+  by blast 
 
 
 subsection \<open>Uniform limit theorem\<close>
@@ -998,27 +1002,98 @@ lemma powser_uniform_limit:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   assumes "r < conv_radius a"
   shows "uniform_limit (cball \<xi> r) (\<lambda>n x. \<Sum>i<n. a i * (x - \<xi>) ^ i) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i)) sequentially"
-using powser_uniformly_convergent [OF assms]
-by (simp add: Uniform_Limit.uniformly_convergent_uniform_limit_iff Series.suminf_eq_lim)
+  using powser_uniformly_convergent [OF assms]
+  by (simp add: Uniform_Limit.uniformly_convergent_uniform_limit_iff Series.suminf_eq_lim)
 
 lemma powser_continuous_suminf:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   assumes "r < conv_radius a"
   shows "continuous_on (cball \<xi> r) (\<lambda>x. suminf (\<lambda>i. a i * (x - \<xi>) ^ i))"
-apply (rule uniform_limit_theorem [OF _ powser_uniform_limit])
-apply (rule eventuallyI continuous_intros assms)+
-apply auto
-done
+  apply (rule uniform_limit_theorem [OF _ powser_uniform_limit])
+    apply (rule eventuallyI continuous_intros assms)+
+  apply auto
+  done
 
 lemma powser_continuous_sums:
   fixes a :: "nat \<Rightarrow> 'a::{real_normed_div_algebra,banach}"
   assumes r: "r < conv_radius a"
-      and sm: "\<And>x. x \<in> cball \<xi> r \<Longrightarrow> (\<lambda>n. a n * (x - \<xi>) ^ n) sums (f x)"
+    and sm: "\<And>x. x \<in> cball \<xi> r \<Longrightarrow> (\<lambda>n. a n * (x - \<xi>) ^ n) sums (f x)"
   shows "continuous_on (cball \<xi> r) f"
-apply (rule continuous_on_cong [THEN iffD1, OF refl _ powser_continuous_suminf [OF r]])
-using sm sums_unique by fastforce
+  apply (rule continuous_on_cong [THEN iffD1, OF refl _ powser_continuous_suminf [OF r]])
+  using sm sums_unique by fastforce
 
 lemmas uniform_limit_subset_union = uniform_limit_on_subset[OF uniform_limit_on_Union]
+
+subsection \<open>Tannery's Theorem\<close>
+
+text \<open>
+  Tannery's Theorem proves that, under certain boundedness conditions:
+  \[ \lim_{x\to\bar x} \sum_{k=0}^\infty f(k,n) = \sum_{k=0}^\infty \lim_{x\to\bar x} f(k,n) \]
+\<close>
+lemma tannerys_theorem:
+  fixes a :: "nat \<Rightarrow> _ \<Rightarrow> 'a :: {real_normed_algebra, banach}"
+  assumes limit: "\<And>k. ((\<lambda>n. a k n) \<longlongrightarrow> b k) F"
+  assumes bound: "eventually (\<lambda>(k,n). norm (a k n) \<le> M k) (at_top \<times>\<^sub>F F)"
+  assumes "summable M"
+  assumes [simp]: "F \<noteq> bot"
+  shows   "eventually (\<lambda>n. summable (\<lambda>k. norm (a k n))) F \<and>
+           summable (\<lambda>n. norm (b n)) \<and>
+           ((\<lambda>n. suminf (\<lambda>k. a k n)) \<longlongrightarrow> suminf b) F"
+proof (intro conjI allI)
+  show "eventually (\<lambda>n. summable (\<lambda>k. norm (a k n))) F"
+  proof -
+    have "eventually (\<lambda>n. eventually (\<lambda>k. norm (a k n) \<le> M k) at_top) F"
+      using eventually_eventually_prod_filter2[OF bound] by simp
+    thus ?thesis
+    proof eventually_elim
+      case (elim n)
+      show "summable (\<lambda>k. norm (a k n))"
+      proof (rule summable_comparison_test_ev)
+        show "eventually (\<lambda>k. norm (norm (a k n)) \<le> M k) at_top"
+          using elim by auto
+      qed fact
+    qed
+  qed
+
+  have bound': "eventually (\<lambda>k. norm (b k) \<le> M k) at_top"
+  proof -
+    have "eventually (\<lambda>k. eventually (\<lambda>n. norm (a k n) \<le> M k) F) at_top"
+      using eventually_eventually_prod_filter1[OF bound] by simp
+    thus ?thesis
+    proof eventually_elim
+      case (elim k)
+      show "norm (b k) \<le> M k"
+      proof (rule tendsto_upperbound)
+        show "((\<lambda>n. norm (a k n)) \<longlongrightarrow> norm (b k)) F"
+          by (intro tendsto_intros limit)
+      qed (use elim in auto)
+    qed
+  qed
+  show "summable (\<lambda>n. norm (b n))"
+    by (rule summable_comparison_test_ev[OF _ \<open>summable M\<close>]) (use bound' in auto)
+
+  from bound obtain Pf Pg where
+    *: "eventually Pf at_top" "eventually Pg F" "\<And>k n. Pf k \<Longrightarrow> Pg n \<Longrightarrow> norm (a k n) \<le> M k"
+    unfolding eventually_prod_filter by auto
+
+  show "((\<lambda>n. \<Sum>k. a k n) \<longlongrightarrow> (\<Sum>k. b k)) F"
+  proof (rule swap_uniform_limit')
+    show "(\<lambda>K. (\<Sum>k<K. b k)) \<longlonglongrightarrow> (\<Sum>k. b k)"
+      using \<open>summable (\<lambda>n. norm (b n))\<close>
+      by (intro summable_LIMSEQ) (auto dest: summable_norm_cancel)
+    show "\<forall>\<^sub>F K in sequentially. ((\<lambda>n. \<Sum>k<K. a k n) \<longlongrightarrow> (\<Sum>k<K. b k)) F"
+      by (intro tendsto_intros always_eventually allI limit)
+    show "\<forall>\<^sub>F x in F. x \<in> {n. Pg n}"
+      using *(2) by simp
+    show "uniform_limit {n. Pg n} (\<lambda>K n. \<Sum>k<K. a k n) (\<lambda>n. \<Sum>k. a k n) sequentially"
+    proof (rule Weierstrass_m_test_ev)
+      show "\<forall>\<^sub>F k in at_top. \<forall>n\<in>{n. Pg n}. norm (a k n) \<le> M k"
+        using *(1) by eventually_elim (use *(3) in auto)
+      show "summable M"
+        by fact
+    qed
+  qed auto
+qed
 
 end
 
