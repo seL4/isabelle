@@ -40,6 +40,9 @@ icons, is now disabled by default.
 
 *** HOL ***
 
+* Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into HOL-Main.
+Minor INCOMPATIBILITY.
+
 * Theory "HOL.Fun":
   - Added lemmas.
       antimonotone_on_inf_fun

@@ -40,6 +40,12 @@ setup \<open>
   end
 \<close>
 
+code_printing
+  constant Code_Numeral.push_bit \<rightharpoonup>
+    (Haskell_Quickcheck) "Bit'_Shifts.drop'"
+| constant Code_Numeral.drop_bit \<rightharpoonup>
+    (Haskell_Quickcheck) "Bit'_Shifts.push'"
+
 
 subsubsection \<open>Narrowing's deep representation of types and terms\<close>
 

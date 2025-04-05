@@ -204,11 +204,6 @@ text \<open>
        Pattern matching with \<^term>\<open>0::nat\<close> / \<^const>\<open>Suc\<close> is eliminated
        by a preprocessor.
 
-    \item[\<open>Code_Target_Bit_Shifts\<close>] implements bit shifts on \<^typ>\<open>integer\<close>
-       by target-language operations. Combined with \<open>Code_Target_Int\<close>
-       or \<open>Code_Target_Nat\<close>, bit shifts on \<^typ>\<open>int\<close> or \<^type>\<open>nat\<close> can
-       be implemented by target-language operations.
-
     \item[\<open>Code_Target_Numeral\<close>] is a convenience theory
        containing \<open>Code_Target_Nat\<close>, \<open>Code_Target_Int\<close> and \<open>Code_Target_Bit_Shifts\<close>-
 

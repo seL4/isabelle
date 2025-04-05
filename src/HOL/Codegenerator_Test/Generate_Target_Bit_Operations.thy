@@ -5,7 +5,6 @@ section \<open>Test of target-language bit operations\<close>
 theory Generate_Target_Bit_Operations
 imports
   "HOL-Library.Code_Test"
-  "HOL-Library.Code_Target_Bit_Shifts"
 begin
 
 context
@@ -64,7 +63,7 @@ text \<open>Checking the index maximum for \<text>\<open>PolyML\<close>\<close>
 
 qualified definition \<open>check_max = ()\<close>
 
-qualified definition \<open>anchor = (Code_Target_Bit_Shifts.drop_bit, check_max)\<close>
+qualified definition \<open>anchor = (Code_Numeral.drop_bit, check_max)\<close>
 
 end
 
