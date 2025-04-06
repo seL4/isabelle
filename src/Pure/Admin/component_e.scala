@@ -10,7 +10,7 @@ package isabelle
 object Component_E {
   /* build E prover */
 
-  val default_version = "3.1"
+  val default_version = "3.2"
   val default_download_url = "https://wwwlehre.dhbw-stuttgart.de/~sschulz/WORK/E_DOWNLOAD"
 
   def build_e(
