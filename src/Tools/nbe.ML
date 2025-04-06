@@ -344,10 +344,10 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
     fun apply_constr sym = nbe_apps_constr (constr_fun_ident sym);
     fun apply_constmatch sym = nbe_apps_constmatch (constr_fun_ident sym);
 
-    fun assemble_constapp sym tys dicts ts =
+    fun assemble_constapp sym tys dictss ts =
       let
         val s_tys = map (assemble_type) tys;
-        val ts' = (maps o map) assemble_dict (map2 (fn ty => map (fn dict => (ty, dict))) tys dicts) @ ts;
+        val ts' = (maps o map) assemble_dict (map2 (fn ty => map (fn dict => (ty, dict))) tys dictss) @ ts;
       in case AList.lookup (op =) eqnss sym
        of SOME (num_args, _) => if num_args <= length ts'
             then let val (ts1, ts2) = chop num_args ts'
@@ -361,13 +361,13 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
       fold_rev (fn classrel => assemble_constapp (Class_Relation classrel) [] [] o single) classrels
     and assemble_dict (ty, Dict (classrels, x)) =
           assemble_classrels classrels (assemble_plain_dict ty x)
-    and assemble_plain_dict (_ `%% tys) (Dict_Const (inst, dicts)) =
-          assemble_constapp (Class_Instance inst) tys (map snd dicts) []
+    and assemble_plain_dict (_ `%% tys) (Dict_Const (inst, dictss)) =
+          assemble_constapp (Class_Instance inst) tys (map snd dictss) []
       | assemble_plain_dict _ (Dict_Var { var, index, ... }) =
           nbe_dict var index
 
-    fun assemble_constmatch sym _ dicts ts =
-      apply_constmatch sym ((maps o map) (K "_") dicts @ ts);
+    fun assemble_constmatch sym _ dictss ts =
+      apply_constmatch sym ((maps o map) (K "_") dictss @ ts);
 
     fun assemble_iterm constapp =
       let
@@ -375,7 +375,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
           let
             val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp match_continuation t' (fold_rev (cons o of_iterm NONE) ts []) end
-        and of_iapp match_continuation (IConst { sym, typargs = tys, dicts, ... }) ts = constapp sym tys dicts ts
+        and of_iapp match_continuation (IConst { sym, typargs = tys, dictss, ... }) ts = constapp sym tys dictss ts
           | of_iapp match_continuation (IVar v) ts = nbe_apps (nbe_bound_optional v) ts
           | of_iapp match_continuation ((v, _) `|=> (t, _)) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (of_iterm NONE t))) ts
@@ -446,8 +446,8 @@ fun compile_eqnss ctxt nbe_program raw_deps [] = []
 
 (* extraction of equations from statements *)
 
-fun dummy_const sym tys dicts =
-  IConst { sym = sym, typargs = tys, dicts = dicts,
+fun dummy_const sym tys dictss =
+  IConst { sym = sym, typargs = tys, dictss = dictss,
     dom = [], annotation = NONE, range = ITyVar "" };
 
 fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
@@ -475,8 +475,8 @@ fun eqns_of_stmt (_, Code_Thingol.NoStmt) =
       []
   | eqns_of_stmt (sym_inst, Code_Thingol.Classinst { class, tyco, vs, superinsts, inst_params, ... }) =
       [(sym_inst, (vs, [([], dummy_const (Type_Class class) [] [] `$$
-        map (fn (class, dicts) =>
-          dummy_const (Class_Instance (tyco, class)) (map (ITyVar o fst) vs) (map snd dicts)) superinsts
+        map (fn (class, dictss) =>
+          dummy_const (Class_Instance (tyco, class)) (map (ITyVar o fst) vs) (map snd dictss)) superinsts
           @ map (IConst o fst o snd o fst) inst_params)]))];
 
 

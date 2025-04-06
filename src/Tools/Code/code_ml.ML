@@ -86,10 +86,10 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
           brackify fxy [Pretty.enum " o" "(" ")" (map (Pretty.str o deresolve_classrel) classrels), brackify BR ps]
     fun print_dict is_pseudo_fun fxy (Dict (classrels, x)) =
       print_classrels fxy classrels (print_plain_dict is_pseudo_fun fxy x)
-    and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dss)) =
+    and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dictss)) =
           ((Pretty.str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [Pretty.str "()"]
-            else map_filter (print_dicts is_pseudo_fun BR o snd) dss))
+            else map_filter (print_dicts is_pseudo_fun BR o snd) dictss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           [Pretty.str (if length = 1 then Name.enforce_case true var ^ "_"
             else Name.enforce_case true var ^ string_of_int (index + 1) ^ "_")]
@@ -123,7 +123,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 then print_case is_pseudo_fun some_thm vars fxy case_expr
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts, dom, ... }, ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dictss, dom, ... }, ts)) =
       if is_constr sym then
         let val wanted = length dom in
           if wanted < 2 orelse length ts = wanted
@@ -133,7 +133,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
         end
       else if is_pseudo_fun sym
         then (Pretty.str o deresolve) sym @@ Pretty.str "()"
-      else (Pretty.str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dicts
+      else (Pretty.str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dictss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars
@@ -412,10 +412,10 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
     fun print_dict is_pseudo_fun fxy (Dict (classrels, x)) =
       print_plain_dict is_pseudo_fun fxy x
       |> print_classrels classrels
-    and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dss)) =
+    and print_plain_dict is_pseudo_fun fxy (Dict_Const (inst, dictss)) =
           brackify BR ((Pretty.str o deresolve_inst) inst ::
             (if is_pseudo_fun (Class_Instance inst) then [Pretty.str "()"]
-            else map_filter (print_dicts is_pseudo_fun BR o snd) dss))
+            else map_filter (print_dicts is_pseudo_fun BR o snd) dictss))
       | print_plain_dict is_pseudo_fun fxy (Dict_Var { var, index, length, ... }) =
           Pretty.str (if length = 1 then "_" ^ Name.enforce_case true var
             else "_" ^ Name.enforce_case true var ^ string_of_int (index + 1))
@@ -446,7 +446,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
                 then print_case is_pseudo_fun some_thm vars fxy case_expr
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dicts, dom, ... }, ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ({ sym, dictss, dom, ... }, ts)) =
       if is_constr sym then
         let val wanted = length dom in
           if length ts = wanted
@@ -456,7 +456,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
         end
       else if is_pseudo_fun sym
         then (Pretty.str o deresolve) sym @@ Pretty.str "()"
-      else (Pretty.str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dicts
+      else (Pretty.str o deresolve) sym :: map_filter (print_dicts is_pseudo_fun BR) dictss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
       (print_term is_pseudo_fun) const_syntax some_thm vars
@@ -580,11 +580,11 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
       | print_def is_pseudo_fun _ definer
           (ML_Instance (inst as (tyco, class), { vs, superinsts, inst_params, ... })) =
           let
-            fun print_super_instance (super_class, dss) =
+            fun print_super_instance (super_class, dictss) =
               concat [
                 (Pretty.str o deresolve_classrel) (class, super_class),
                 Pretty.str "=",
-                print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const ((tyco, super_class), dss)))
+                print_dict is_pseudo_fun NOBR (Dict ([], Dict_Const ((tyco, super_class), dictss)))
               ];
             fun print_classparam_instance ((classparam, (const, _)), (thm, _)) =
               concat [

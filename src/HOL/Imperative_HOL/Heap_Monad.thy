@@ -645,7 +645,7 @@ val imp_program =
     (*assumption: dummy values are not relevant for serialization*)
     val unitT = \<^type_name>\<open>unit\<close> `%% [];
     val unitt =
-      IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Unity\<close>, typargs = [], dicts = [], dom = [],
+      IConst { sym = Code_Symbol.Constant \<^const_name>\<open>Unity\<close>, typargs = [], dictss = [], dom = [],
         annotation = NONE, range = unitT };
     fun dest_abs ((v, ty) `|=> (t, _), _) = ((v, ty), t)
       | dest_abs (t, ty) =

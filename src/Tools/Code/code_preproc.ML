@@ -511,7 +511,7 @@ and ensure_fun ctxt arities eqngr c (vardeps_data as (_, (eqntab, _))) =
 
 (* applying instantiations *)
 
-fun dicts_of ctxt (proj_sort, algebra) (T, sort) =
+fun dictss_of ctxt (proj_sort, algebra) (T, sort) =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun class_relation _ (x, _) _ = x;
@@ -558,7 +558,7 @@ fun extend_arities_eqngr raw_ctxt cs ts (arities, (eqngr : code_graph)) =
     val algebra = Sorts.subalgebra (Context.Theory thy) (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);
     val (rhss, eqngr') = Symtab.fold (add_cert ctxt vardeps) eqntab ([], eqngr);
-    fun deps_of (c, rhs) = c :: maps (dicts_of ctxt algebra)
+    fun deps_of (c, rhs) = c :: maps (dictss_of ctxt algebra)
       (rhs ~~ sortargs eqngr' c);
     val eqngr'' = fold (fn (c, rhs) => fold
       (curry Graph.add_edge c) (deps_of rhs)) rhss eqngr';

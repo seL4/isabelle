@@ -24,7 +24,7 @@ sig
   and plain_dict = 
       Dict_Const of (string * class) * (itype * dict list) list
     | Dict_Var of { var: vname, index: int, length: int, class: class, unique: bool }
-  type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
+  type const = { sym: Code_Symbol.T, typargs: itype list, dictss: dict list list,
     dom: itype list, range: itype, annotation: itype option }
   datatype iterm =
       IConst of const
@@ -160,7 +160,7 @@ fun unfold_fun_n n ty =
     val (tys3, tys2) = chop n tys1;
   in (tys3, tys2 `--> ty1) end;
 
-type const = { sym: Code_Symbol.T, typargs: itype list, dicts: dict list list,
+type const = { sym: Code_Symbol.T, typargs: itype list, dictss: dict list list,
   dom: itype list, range: itype, annotation: itype option };
 
 datatype iterm =
@@ -350,11 +350,11 @@ fun distill_minimized_clause tys t =
   in distill vs_map (map IVar vs) body end;
 
 fun exists_dict_var f (Dict (_, d)) = exists_plain_dict_var_pred f d
-and exists_plain_dict_var_pred f (Dict_Const (_, dss)) = exists_dictss_var f (map snd dss)
+and exists_plain_dict_var_pred f (Dict_Const (_, dictss)) = exists_dictss_var f (map snd dictss)
   | exists_plain_dict_var_pred f (Dict_Var x) = f x
 and exists_dictss_var f = (exists o exists) (exists_dict_var f);
 
-fun contains_dict_var (IConst { dicts = dss, ... }) = exists_dictss_var (K true) dss
+fun contains_dict_var (IConst { dictss = dictss, ... }) = exists_dictss_var (K true) dictss
   | contains_dict_var (IVar _) = false
   | contains_dict_var (t1 `$ t2) = contains_dict_var t1 orelse contains_dict_var t2
   | contains_dict_var (_ `|=> (t, _)) = contains_dict_var t
@@ -560,8 +560,8 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
   let
     fun class_relation unique (Weakening (classrels, x), sub_class) super_class =
       Weakening ((sub_class, super_class) :: classrels, brand_unique unique x);
-    fun type_constructor (tyco, typs) dss class =
-      Weakening ([], Global ((tyco, class), typs ~~ (map o map) fst dss));
+    fun type_constructor (tyco, typs) dictss class =
+      Weakening ([], Global ((tyco, class), typs ~~ (map o map) fst dictss));
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
@@ -662,7 +662,7 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
     fun translate_super_instance super_class =
       ensure_class ctxt algbr eqngr permissive super_class
       ##>> translate_dicts ctxt algbr eqngr permissive NONE (arity_typ, [super_class])
-      #>> (fn (super_class, [Dict ([], Dict_Const (_, dss))]) => (super_class, dss));
+      #>> (fn (super_class, [Dict ([], Dict_Const (_, dictss))]) => (super_class, dictss));
     fun translate_classparam_instance (c, ty) =
       let
         val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
@@ -739,8 +739,8 @@ and translate_const ctxt algbr eqngr permissive some_thm some_abs (c, ty) (deps,
     ||>> fold_map (translate_typ ctxt algbr eqngr permissive) typargs
     ||>> fold_map (translate_dicts ctxt algbr eqngr permissive some_thm) (typargs ~~ sorts)
     ||>> fold_map (translate_typ ctxt algbr eqngr permissive) (range :: dom)
-    |>> (fn (((c, typargs), dss), range :: dom) =>
-      { sym = Constant c, typargs = typargs, dicts = dss,
+    |>> (fn (((c, typargs), dictss), range :: dom) =>
+      { sym = Constant c, typargs = typargs, dictss = dictss,
         dom = dom, range = range, annotation =
           if annotate then SOME (dom `--> range) else NONE })
   end
@@ -806,11 +806,11 @@ and translate_dicts ctxt algbr eqngr permissive some_thm (ty, sort) =
           fold_map (ensure_classrel ctxt algbr eqngr permissive) classrels
           ##>> translate_plain_dict d
           #>> Dict 
-    and translate_plain_dict (Global (inst, dss)) =
+    and translate_plain_dict (Global (inst, dictss)) =
           ensure_inst ctxt algbr eqngr permissive inst
-          ##>> fold_map (fn (ty, ds) =>
+          ##>> fold_map (fn (ty, dicts) =>
             translate_typ ctxt algbr eqngr permissive ty
-            ##>> fold_map translate_dict ds) dss
+            ##>> fold_map translate_dict dicts) dictss
           #>> Dict_Const
       | translate_plain_dict (Local { var, index, sort, unique }) =
           ensure_class ctxt algbr eqngr permissive (nth sort index)
