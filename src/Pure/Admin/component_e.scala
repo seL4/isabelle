@@ -54,12 +54,7 @@ object Component_E {
         }
       }
 
-      val build_options = {
-        val result = Isabelle_System.bash("./configure --help", cwd = source_dir)
-        if (result.check.out.containsSlice("--enable-ho")) " --enable-ho" else ""
-      }
-
-      val build_script = "./configure" + build_options + " && make"
+      val build_script = "./configure --enable-ho && make"
       Isabelle_System.bash(build_script, cwd = source_dir,
         progress_stdout = progress.echo(_, verbose = true),
         progress_stderr = progress.echo(_, verbose = true)).check
@@ -69,13 +64,12 @@ object Component_E {
 
       Isabelle_System.copy_file(source_dir + Path.basic("COPYING"), component_dir.LICENSE)
 
-      val install_files = List("epclextract", "eprover", "eprover-ho")
+      val install_files = List("epclextract", "eprover-ho")
       for (name <- install_files ::: install_files.map(_ + ".exe")) {
         val path = source_dir + Path.basic("PROVER") + Path.basic(name)
         if (path.is_file) Isabelle_System.copy_file(path, platform_dir)
       }
-      Isabelle_System.bash("if [ -f eprover-ho ]; then mv eprover-ho eprover; fi",
-        cwd = platform_dir).check
+      Isabelle_System.bash("mv eprover-ho eprover", cwd = platform_dir).check
 
 
       /* settings */
