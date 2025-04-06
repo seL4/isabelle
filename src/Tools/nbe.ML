@@ -214,22 +214,24 @@ fun same (Const ((k1, ts1), xs1), Const ((k2, ts2), xs2)) =
 (* abstract ML syntax *)
 
 infix 9 `$` `$$`;
-fun e1 `$` e2 = "(" ^ e1 ^ " " ^ e2 ^ ")";
+infix 8 `*`;
+fun e1 `$` e2 = enclose "(" ")" (e1 ^ " " ^ e2);
 fun e `$$` [] = e
-  | e `$$` es = "(" ^ e ^ " " ^ implode_space es ^ ")";
-fun ml_abs v e = "(fn " ^ v ^ " => " ^ e ^ ")";
+  | e `$$` es = enclose "(" ")" (e ^ " " ^ implode_space es);
+fun ml_abs v e = enclose "(" ")" ("fn " ^ v ^ " => " ^ e);
 
-fun ml_cases t cs =
-  "(case " ^ t ^ " of " ^ space_implode " | " (map (fn (p, t) => p ^ " => " ^ t) cs) ^ ")";
+fun ml_cases e cs = enclose "(" ")"
+  ("case " ^ e ^ " of " ^ space_implode " | " (map (fn (p, e) => p ^ " => " ^ e) cs));
 fun ml_Let d e = "let\n" ^ d ^ " in " ^ e ^ " end";
-fun ml_as v t = "(" ^ v ^ " as " ^ t ^ ")";
+fun ml_as v t = enclose "(" ")" (v ^ " as " ^ t);
 
 fun ml_and [] = "true"
-  | ml_and [x] = x
-  | ml_and xs = "(" ^ space_implode " andalso " xs ^ ")";
-fun ml_if b x y = "(if " ^ b ^ " then " ^ x ^ " else " ^ y ^ ")";
+  | ml_and [e] = e
+  | ml_and es = enclose "(" ")" (space_implode " andalso " es);
+fun ml_if b e1 e2 = enclose "(" ")" ("if" ^ b ^ " then " ^ e1 ^ " else " ^ e2);
 
-fun ml_list es = "[" ^ commas es ^ "]";
+fun e1 `*` e2 = enclose "(" ")" (e1 ^ ", " ^ e2);
+fun ml_list es = enclose "[" "]" (commas es);
 
 fun ml_fundefs ([(name, [([], e)])]) =
       "val " ^ name ^ " = " ^ e ^ "\n"
@@ -269,25 +271,26 @@ in
 
 val univs_cookie = (get_result, put_result, name_put);
 
-fun nbe_type n ts = name_type `$` ("(" ^ quote n ^ ", " ^ ml_list ts ^ ")")
 fun nbe_tparam v = "t_" ^ v;
 fun nbe_dict v n = "d_" ^ v ^ "_" ^ string_of_int n;
 fun nbe_bound v = "v_" ^ v;
 fun nbe_bound_optional NONE = "_"
   | nbe_bound_optional (SOME v) = nbe_bound v;
 fun nbe_default v = "w_" ^ v;
+fun nbe_type n ts = name_type `$` (quote n `*` ml_list ts);
+fun nbe_fun c tys = c `$` ml_list tys;
 
 (*note: these three are the "turning spots" where proper argument order is established!*)
 fun nbe_apps t [] = t
   | nbe_apps t ts = name_apps `$$` [t, ml_list (rev ts)];
-fun nbe_apps_local c tys ts = c `$` ml_list tys `$` ml_list (rev ts);
-fun nbe_apps_constr c tys ts = name_const `$` ("((" ^ c ^ ", " ^ ml_list tys ^ "), " ^ ml_list (rev ts) ^ ")");
-fun nbe_apps_constmatch c ts = name_const `$` ("((" ^ c ^ ", _), " ^ ml_list (rev ts) ^ ")");
+fun nbe_apps_fun c tys ts = nbe_fun c tys `$` ml_list (rev ts);
+fun nbe_apps_constr c tys ts = name_const `$` ((c `*` ml_list tys) `*` ml_list (rev ts));
+fun nbe_apps_constmatch c ts = name_const `$` ((c `*` "_") `*` ml_list (rev ts));
 
 fun nbe_abss 0 f = f `$` ml_list []
   | nbe_abss n f = name_abss `$$` [string_of_int n, f];
 
-fun nbe_same (v1, v2) = "(" ^ name_same ^ " (" ^ nbe_bound v1 ^ ", " ^ nbe_bound v2 ^ "))";
+fun nbe_same (v1, v2) = enclose "(" ")" (name_same `$` (nbe_bound v1 `*` nbe_bound v2));
 
 end;
 
@@ -335,14 +338,15 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
     fun fun_ident 0 (Code_Symbol.Constant "") = "nbe_value" 
       | fun_ident i sym = "c_" ^ string_of_int (idx_of_const sym)
           ^ "_" ^ Code_Symbol.default_base sym ^ "_" ^ string_of_int i;
-    fun constr_fun_ident c =
+    fun constr_ident c =
       if Config.get ctxt trace
       then string_of_int (idx_of_const c) ^ " (*" ^ Code_Symbol.default_base c ^ "*)"
       else string_of_int (idx_of_const c);
 
-    fun apply_local i sym = nbe_apps_local (fun_ident i sym);
-    fun apply_constr sym = nbe_apps_constr (constr_fun_ident sym);
-    fun apply_constmatch sym = nbe_apps_constmatch (constr_fun_ident sym);
+    fun assemble_fun i sym = nbe_fun (fun_ident i sym);
+    fun assemble_app_fun i sym = nbe_apps_fun (fun_ident i sym);
+    fun assemble_app_constr sym = nbe_apps_constr (constr_ident sym);
+    fun assemble_app_constmatch sym = nbe_apps_constmatch (constr_ident sym);
 
     fun assemble_constapp sym tys dictss ts =
       let
@@ -351,11 +355,11 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
       in case AList.lookup (op =) eqnss sym
        of SOME (num_args, _) => if num_args <= length ts'
             then let val (ts1, ts2) = chop num_args ts'
-            in nbe_apps (apply_local 0 sym s_tys ts1) ts2
-            end else nbe_apps (nbe_abss num_args (fun_ident 0 sym `$` ml_list s_tys)) ts'
+            in nbe_apps (assemble_app_fun 0 sym s_tys ts1) ts2
+            end else nbe_apps (nbe_abss num_args (assemble_fun 0 sym s_tys)) ts'
         | NONE => if member (op =) deps sym
-            then nbe_apps (fun_ident 0 sym `$` ml_list s_tys) ts'
-            else apply_constr sym s_tys ts'
+            then nbe_apps (assemble_fun 0 sym s_tys) ts'
+            else assemble_app_constr sym s_tys ts'
       end
     and assemble_classrels classrels =
       fold_rev (fn classrel => assemble_constapp (Class_Relation classrel) [] [] o single) classrels
@@ -367,7 +371,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
           nbe_dict var index
 
     fun assemble_constmatch sym _ dictss ts =
-      apply_constmatch sym ((maps o map) (K "_") dictss @ ts);
+      assemble_app_constmatch sym ((maps o map) (K "_") dictss @ ts);
 
     fun assemble_iterm constapp =
       let
@@ -390,7 +394,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
 
     fun assemble_eqn sym s_tparams dict_params default_params (i, ((samepairs, args), rhs)) =
       let
-        val default_rhs = apply_local (i + 1) sym s_tparams (dict_params @ default_params);
+        val default_rhs = assemble_app_fun (i + 1) sym s_tparams (dict_params @ default_params);
         val s_args = assemble_args args;
         val s_rhs = if null samepairs then assemble_rhs (SOME default_rhs) rhs
           else ml_if (ml_and (map nbe_same samepairs))
@@ -401,7 +405,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
 
     fun assemble_default_eqn sym s_tparams dict_params default_params i =
       (fun_ident i sym,
-        [([ml_list s_tparams, ml_list (rev (dict_params @ default_params))], apply_constr sym s_tparams (dict_params @ default_params))])
+        [([ml_list s_tparams, ml_list (rev (dict_params @ default_params))], assemble_app_constr sym s_tparams (dict_params @ default_params))])
 
     fun assemble_value_eqn sym s_tparams dict_params (([], args), rhs) =
       (fun_ident 0 sym,
@@ -411,7 +415,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_const deps eqnss =
       (if Code_Symbol.is_value sym then [assemble_value_eqn sym s_tparams dict_params (the_single eqns)]
       else map_index (assemble_eqn sym s_tparams dict_params default_params) eqns
         @ [assemble_default_eqn sym s_tparams dict_params default_params (length eqns)],
-      ml_abs (ml_list s_tparams) (nbe_abss num_args (fun_ident 0 sym `$` ml_list s_tparams)));
+      ml_abs (ml_list s_tparams) (nbe_abss num_args (assemble_fun 0 sym s_tparams)));
 
     val (fun_vars, fun_vals) = map_split assemble_eqns eqnss;
     val deps_vars = ml_list (map (fun_ident 0) deps);
