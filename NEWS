@@ -43,6 +43,10 @@ icons, is now disabled by default.
 * Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into HOL-Main.
 Minor INCOMPATIBILITY.
 
+* If "HOL-Library.Code_Target_Nat" is imported, bit operations on nat are
+implemented by bit operations on target-language integer.
+Minor INCOMPATIBILITY.
+
 * Theory "HOL.Fun":
   - Added lemmas.
       antimonotone_on_inf_fun

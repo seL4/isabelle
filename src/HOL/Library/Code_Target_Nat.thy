@@ -11,7 +11,7 @@ begin
 subsection \<open>Implementation for \<^typ>\<open>nat\<close>\<close>
 
 context
-includes natural.lifting and integer.lifting
+includes integer.lifting
 begin
 
 lift_definition Nat :: "integer \<Rightarrow> nat"
@@ -189,6 +189,60 @@ lemma nat_of_integer_code_post [code_post]:
   "nat_of_integer 1 = 1"
   "nat_of_integer (numeral k) = numeral k"
   including integer.lifting by (transfer, simp)+
+
+context
+  includes integer.lifting and bit_operations_syntax
+begin
+
+declare [[code drop: \<open>bit :: nat \<Rightarrow> _\<close>
+  \<open>and :: nat \<Rightarrow> _\<close> \<open>or :: nat \<Rightarrow> _\<close> \<open>xor :: nat \<Rightarrow> _\<close>
+  \<open>push_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close> \<open>drop_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close> \<open>take_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close>]]
+
+lemma [code]:
+  \<open>bit m n \<longleftrightarrow> bit (integer_of_nat m) n\<close>
+  by transfer (simp add: bit_simps)
+
+lemma [code]:
+  \<open>integer_of_nat (m AND n) = integer_of_nat m AND integer_of_nat n\<close>
+  by transfer (simp add: of_nat_and_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (m OR n) = integer_of_nat m OR integer_of_nat n\<close>
+  by transfer (simp add: of_nat_or_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (m XOR n) = integer_of_nat m XOR integer_of_nat n\<close>
+  by transfer (simp add: of_nat_xor_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (push_bit n m) = push_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_push_bit)
+
+lemma [code]:
+  \<open>integer_of_nat (drop_bit n m) = drop_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_drop_bit)
+
+lemma [code]:
+  \<open>integer_of_nat (take_bit n m) = take_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_take_bit)
+
+lemma [code]:
+  \<open>integer_of_nat (mask n) = mask n\<close>
+  by transfer (simp add: of_nat_mask_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (set_bit n m) = set_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_set_bit_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (unset_bit n m) = unset_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_unset_bit_eq)
+
+lemma [code]:
+  \<open>integer_of_nat (flip_bit n m) = flip_bit n (integer_of_nat m)\<close>
+  by transfer (simp add: of_nat_flip_bit_eq)
+
+end
 
 code_identifier
   code_module Code_Target_Nat \<rightharpoonup>
