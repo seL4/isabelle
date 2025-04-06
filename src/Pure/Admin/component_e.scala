@@ -48,6 +48,7 @@ object Component_E {
       progress.echo("Building E prover for " + platform_name + " ...")
 
       // adhoc patch wrt. https://github.com/eprover/eprover/commit/d40e1db7d786
+      // obsolete after https://github.com/eprover/eprover/commit/5ae1a2c66da6
       if (Platform.is_windows) {
         File.change_lines(source_dir + Path.explode("PROVER/eprover.c"), strict = true) {
           _.map(line => if (line.containsSlice("setpgid(0, 0)")) "" else line)
