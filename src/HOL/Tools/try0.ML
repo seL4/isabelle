@@ -30,6 +30,7 @@ sig
   val get_all_proof_method_names : unit -> string list
 
   val schedule : string Config.T
+  val get_schedule : Proof.context -> string list list
 
   datatype mode = Auto_Try | Try | Normal
   val generic_try0 : mode -> Time.time option -> facts -> Proof.state ->
@@ -118,6 +119,20 @@ fun maybe_apply_proof_method name mode : proof_method =
 
 val schedule = Attrib.setup_config_string \<^binding>\<open>try0_schedule\<close> (K "")
 
+fun get_schedule (ctxt : Proof.context) : string list list =
+  let
+    fun some_nonempty_string sub =
+      if Substring.isEmpty sub then
+        NONE
+      else
+        SOME (Substring.string sub)
+  in
+    Config.get ctxt schedule
+    |> Substring.full
+    |> Substring.tokens (fn c => c = #"|")
+    |> map (map_filter some_nonempty_string o Substring.tokens Char.isSpace)
+  end
+
 local
 
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
@@ -175,16 +190,7 @@ in
 
 fun generic_try0 mode (timeout_opt : Time.time option) (facts : facts) (st : Proof.state) =
   let
-    fun some_nonempty_string sub =
-      if Substring.isEmpty sub then
-        NONE
-      else
-        SOME (Substring.string sub)
-    val schedule =
-      Config.get (Proof.context_of st) schedule
-      |> Substring.full
-      |> Substring.tokens (fn c => c = #"|")
-      |> map (map_filter some_nonempty_string o Substring.tokens Char.isSpace)
+    val schedule = get_schedule (Proof.context_of st)
     fun iterate [] = ((false, (noneN, [])), [])
       | iterate (proof_methods :: proof_methodss) =
         (case generic_try0_step mode timeout_opt facts st proof_methods of
