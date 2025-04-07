@@ -26,14 +26,20 @@ open Sledgehammer_Prover
 
 val is_tactic_prover : string -> bool = is_some o Try0.get_proof_method
 
-val meshN = "mesh"
+local
 
-fun good_slices_of_tactic_prover _ =
-  (* FUDGE *)
-  [(1, false, false, 0, meshN),
-   (1, false, false, 2, meshN),
-   (1, false, false, 8, meshN),
-   (1, false, false, 32, meshN)]
+val slices_of_max_facts = map (fn max_facts => (1, false, false, max_facts, "mesh"))
+
+in
+
+(* FUDGE *)
+fun good_slices_of_tactic_prover "metis" = slices_of_max_facts [0, 64, 32, 8, 16, 4, 2, 1]
+  | good_slices_of_tactic_prover "fastforce" = slices_of_max_facts [0, 16, 32, 8, 4, 64, 2, 1]
+  | good_slices_of_tactic_prover "simp" = slices_of_max_facts [0, 16, 32, 8, 64, 4, 1, 2]
+  | good_slices_of_tactic_prover "auto" = slices_of_max_facts [0, 16, 32, 8, 4, 64, 2, 1]
+  | good_slices_of_tactic_prover _ = slices_of_max_facts [0, 2, 8, 16, 32, 64]
+
+end
 
 fun meth_of "algebra" = Algebra_Method
   | meth_of "argo" = Argo_Method
