@@ -388,7 +388,11 @@ fun string_of_factss factss =
   else
     cat_lines (map (fn (filter, facts) => string_of_facts filter facts) factss)
 
-val default_slice_schedule =
+local
+
+fun default_slice_schedule (ctxt : Proof.context) : string list =
+  (* We want to subsume try0. *)
+  flat (Try0.get_schedule ctxt) @
   (* FUDGE (loosely inspired by Seventeen evaluation) *)
   [cvc5N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc5N, zipperpositionN,
    cvc5N, eN, zipperpositionN, vampireN, cvc5N, cvc5N, vampireN, cvc5N, iproverN, zipperpositionN,
@@ -396,24 +400,29 @@ val default_slice_schedule =
    iproverN, spassN, zipperpositionN, vampireN, cvc5N, zipperpositionN, z3N, z3N, cvc5N,
    zipperpositionN]
 
-fun schedule_of_provers provers num_slices =
-  let
-    val (known_provers, unknown_provers) =
-      List.partition (member (op =) default_slice_schedule) provers
+in
 
-    val default_slice_schedule = filter (member (op =) known_provers) default_slice_schedule
-    val num_default_slices = length default_slice_schedule
+fun schedule_of_provers (ctxt : Proof.context) (provers : string list) num_slices =
+  let
+    val default_schedule = default_slice_schedule ctxt
+    val (known_provers, unknown_provers) =
+      List.partition (member (op =) default_schedule) provers
+
+    val default_schedule = filter (member (op =) known_provers) default_schedule
+    val num_default_slices = length default_schedule
 
     fun round_robin _ [] = []
       | round_robin 0 _ = []
       | round_robin n (prover :: provers) = prover :: round_robin (n - 1) (provers @ [prover])
   in
     if num_slices <= num_default_slices then
-      take num_slices default_slice_schedule
+      take num_slices default_schedule
     else
-      default_slice_schedule
+      default_schedule
       @ round_robin (num_slices - num_default_slices) (unknown_provers @ known_provers)
   end
+
+end
 
 fun prover_slices_of_schedule ctxt goal subgoal factss
     ({abduce, falsify, max_facts, fact_filter, type_enc, lam_trans, uncurried_aliases,
@@ -641,7 +650,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
 
             val schedule =
               if mode = Auto_Try then provers
-              else schedule_of_provers provers slices
+              else schedule_of_provers ctxt provers slices
             val prover_slices = prover_slices_of_schedule ctxt goal i factss params schedule
 
             val _ =
