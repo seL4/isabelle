@@ -43,7 +43,6 @@ val raw_named_methods =
    ("force", (false, (false, full_attrs))),
    ("meson", (false, (false, metis_attrs))),
    ("satx", (false, (false, no_attrs))),
-   ("iprover", (false, (false, no_attrs))),
    ("order", (true, (false, no_attrs)))]
 
 in
@@ -64,7 +63,7 @@ end
 \<close>
 
 declare [[try0_schedule = "
-  satx iprover metis |
+  satx metis |
   order presburger linarith algebra argo |
   simp auto blast fast fastforce force meson
 "]]
