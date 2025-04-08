@@ -305,4 +305,101 @@ lemma complex_nonpos_Reals_iff: "z \<in> \<real>\<^sub>\<le>\<^sub>0 \<longleftr
 lemma ii_not_nonpos_Reals [iff]: "\<i> \<notin> \<real>\<^sub>\<le>\<^sub>0"
   by (simp add: complex_nonpos_Reals_iff)
 
+lemma plus_one_in_nonpos_Ints_imp: "z + 1 \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0"
+  using nonpos_Ints_diff_Nats[of "z+1" "1"] by simp_all
+
+lemma of_int_in_nonpos_Ints_iff:
+  "(of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> 0"
+  by (auto simp: nonpos_Ints_def)
+
+lemma one_plus_of_int_in_nonpos_Ints_iff:
+  "(1 + of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> -1"
+proof -
+  have "1 + of_int n = (of_int (n + 1) :: 'a)" by simp
+  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n + 1 \<le> 0" by (subst of_int_in_nonpos_Ints_iff) simp_all
+  also have "\<dots> \<longleftrightarrow> n \<le> -1" by presburger
+  finally show ?thesis .
+qed
+
+lemma one_minus_of_nat_in_nonpos_Ints_iff:
+  "(1 - of_nat n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0"
+proof -
+  have "(1 - of_nat n :: 'a) = of_int (1 - int n)" by simp
+  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0" by (subst of_int_in_nonpos_Ints_iff) presburger
+  finally show ?thesis .
+qed
+
+lemma fraction_not_in_ints:
+  assumes "\<not>(n dvd m)" "n \<noteq> 0"
+  shows   "of_int m / of_int n \<notin> (\<int> :: 'a :: {division_ring,ring_char_0} set)"
+proof
+  assume "of_int m / (of_int n :: 'a) \<in> \<int>"
+  then obtain k where "of_int m / of_int n = (of_int k :: 'a)" by (elim Ints_cases)
+  with assms have "of_int m = (of_int (k * n) :: 'a)" by (auto simp add: field_split_simps)
+  hence "m = k * n" by (subst (asm) of_int_eq_iff)
+  hence "n dvd m" by simp
+  with assms(1) show False by contradiction
+qed
+
+lemma fraction_not_in_nats:
+  assumes "\<not>n dvd m" "n \<noteq> 0"
+  shows   "of_int m / of_int n \<notin> (\<nat> :: 'a :: {division_ring,ring_char_0} set)"
+proof
+  assume "of_int m / of_int n \<in> (\<nat> :: 'a set)"
+  also note Nats_subset_Ints
+  finally have "of_int m / of_int n \<in> (\<int> :: 'a set)" .
+  moreover have "of_int m / of_int n \<notin> (\<int> :: 'a set)"
+    using assms by (intro fraction_not_in_ints)
+  ultimately show False by contradiction
+qed
+
+lemma not_in_Ints_imp_not_in_nonpos_Ints: "z \<notin> \<int> \<Longrightarrow> z \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  by (auto simp: Ints_def nonpos_Ints_def)
+
+lemma double_in_nonpos_Ints_imp:
+  assumes "2 * (z :: 'a :: field_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "z \<in> \<int>\<^sub>\<le>\<^sub>0 \<or> z + 1/2 \<in> \<int>\<^sub>\<le>\<^sub>0"
+proof-
+  from assms obtain k where k: "2 * z = - of_nat k" by (elim nonpos_Ints_cases')
+  thus ?thesis by (cases "even k") (auto elim!: evenE oddE simp: field_simps)
+qed
+
+lemma fraction_numeral_Ints_iff [simp]:
+  "numeral a / numeral b \<in> (\<int> :: 'a :: {division_ring, ring_char_0} set)
+   \<longleftrightarrow> (numeral b :: int) dvd numeral a"  (is "?L=?R")
+proof
+  show "?L \<Longrightarrow> ?R"
+    by (metis fraction_not_in_ints of_int_numeral zero_neq_numeral)
+  assume ?R
+  then obtain k::int where "numeral a = numeral b * (of_int k :: 'a)"
+    unfolding dvd_def by (metis of_int_mult of_int_numeral)
+  then show ?L
+    by (metis Ints_of_int divide_eq_eq mult.commute of_int_mult of_int_numeral)
+qed
+
+lemma fraction_numeral_Ints_iff1 [simp]:
+  "1 / numeral b \<in> (\<int> :: 'a :: {division_ring, ring_char_0} set)
+   \<longleftrightarrow> b = Num.One"  (is "?L=?R")
+  using fraction_numeral_Ints_iff [of Num.One, where 'a='a] by simp
+
+lemma fraction_numeral_Nats_iff [simp]:
+  "numeral a / numeral b \<in> (\<nat> :: 'a :: {division_ring, ring_char_0} set)
+   \<longleftrightarrow> (numeral b :: int) dvd numeral a"  (is "?L=?R")
+proof
+  show "?L \<Longrightarrow> ?R"
+    using Nats_subset_Ints fraction_numeral_Ints_iff by blast
+  assume ?R
+  then obtain k::nat where "numeral a = numeral b * (of_nat k :: 'a)"
+    unfolding dvd_def
+    by (metis dvd_def int_dvd_int_iff of_nat_mult of_nat_numeral)
+  then show ?L
+    by (metis mult_of_nat_commute nonzero_divide_eq_eq of_nat_in_Nats
+        zero_neq_numeral)
+qed
+
+lemma fraction_numeral_Nats_iff1 [simp]:
+  "1 / numeral b \<in> (\<nat> :: 'a :: {division_ring, ring_char_0} set)
+   \<longleftrightarrow> b = Num.One"  (is "?L=?R")
+  using fraction_numeral_Nats_iff [of Num.One, where 'a='a] by simp
+
 end

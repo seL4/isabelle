@@ -618,6 +618,11 @@ next
     by (auto simp: isCont_def)
 qed
   
+lemma analytic_on_imp_nicely_meromorphic_on:
+  "f analytic_on A \<Longrightarrow> f nicely_meromorphic_on A"
+  by (meson analytic_at_imp_isCont analytic_on_analytic_at
+            analytic_on_imp_meromorphic_on isContD nicely_meromorphic_on_def)
+
 lemma remove_sings_meromorphic [meromorphic_intros]:
   assumes "f meromorphic_on A"
   shows   "remove_sings f meromorphic_on A"

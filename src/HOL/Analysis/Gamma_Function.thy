@@ -35,66 +35,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma plus_one_in_nonpos_Ints_imp: "z + 1 \<in> \<int>\<^sub>\<le>\<^sub>0 \<Longrightarrow> z \<in> \<int>\<^sub>\<le>\<^sub>0"
-  using nonpos_Ints_diff_Nats[of "z+1" "1"] by simp_all
-
-lemma of_int_in_nonpos_Ints_iff:
-  "(of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> 0"
-  by (auto simp: nonpos_Ints_def)
-
-lemma one_plus_of_int_in_nonpos_Ints_iff:
-  "(1 + of_int n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n \<le> -1"
-proof -
-  have "1 + of_int n = (of_int (n + 1) :: 'a)" by simp
-  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n + 1 \<le> 0" by (subst of_int_in_nonpos_Ints_iff) simp_all
-  also have "\<dots> \<longleftrightarrow> n \<le> -1" by presburger
-  finally show ?thesis .
-qed
-
-lemma one_minus_of_nat_in_nonpos_Ints_iff:
-  "(1 - of_nat n :: 'a :: ring_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0"
-proof -
-  have "(1 - of_nat n :: 'a) = of_int (1 - int n)" by simp
-  also have "\<dots> \<in> \<int>\<^sub>\<le>\<^sub>0 \<longleftrightarrow> n > 0" by (subst of_int_in_nonpos_Ints_iff) presburger
-  finally show ?thesis .
-qed
-
-lemma fraction_not_in_ints:
-  assumes "\<not>(n dvd m)" "n \<noteq> 0"
-  shows   "of_int m / of_int n \<notin> (\<int> :: 'a :: {division_ring,ring_char_0} set)"
-proof
-  assume "of_int m / (of_int n :: 'a) \<in> \<int>"
-  then obtain k where "of_int m / of_int n = (of_int k :: 'a)" by (elim Ints_cases)
-  with assms have "of_int m = (of_int (k * n) :: 'a)" by (auto simp add: field_split_simps)
-  hence "m = k * n" by (subst (asm) of_int_eq_iff)
-  hence "n dvd m" by simp
-  with assms(1) show False by contradiction
-qed
-
-lemma fraction_not_in_nats:
-  assumes "\<not>n dvd m" "n \<noteq> 0"
-  shows   "of_int m / of_int n \<notin> (\<nat> :: 'a :: {division_ring,ring_char_0} set)"
-proof
-  assume "of_int m / of_int n \<in> (\<nat> :: 'a set)"
-  also note Nats_subset_Ints
-  finally have "of_int m / of_int n \<in> (\<int> :: 'a set)" .
-  moreover have "of_int m / of_int n \<notin> (\<int> :: 'a set)"
-    using assms by (intro fraction_not_in_ints)
-  ultimately show False by contradiction
-qed
-
-lemma not_in_Ints_imp_not_in_nonpos_Ints: "z \<notin> \<int> \<Longrightarrow> z \<notin> \<int>\<^sub>\<le>\<^sub>0"
-  by (auto simp: Ints_def nonpos_Ints_def)
-
-lemma double_in_nonpos_Ints_imp:
-  assumes "2 * (z :: 'a :: field_char_0) \<in> \<int>\<^sub>\<le>\<^sub>0"
-  shows   "z \<in> \<int>\<^sub>\<le>\<^sub>0 \<or> z + 1/2 \<in> \<int>\<^sub>\<le>\<^sub>0"
-proof-
-  from assms obtain k where k: "2 * z = - of_nat k" by (elim nonpos_Ints_cases')
-  thus ?thesis by (cases "even k") (auto elim!: evenE oddE simp: field_simps)
-qed
-
-
 lemma sin_series: "(\<lambda>n. ((-1)^n / fact (2*n+1)) *\<^sub>R z^(2*n+1)) sums sin z"
 proof -
   from sin_converges[of z] have "(\<lambda>n. sin_coeff n *\<^sub>R z^n) sums sin z" .

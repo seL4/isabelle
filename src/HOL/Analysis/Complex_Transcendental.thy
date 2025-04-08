@@ -2919,6 +2919,16 @@ proof -
   qed (use z in auto)
 qed
 
+lemma has_field_derivative_csqrt' [derivative_intros]:
+  assumes "(f has_field_derivative f') (at x within A)" "f x \<notin> \<real>\<^sub>\<le>\<^sub>0"
+  shows   "((\<lambda>x. csqrt (f x)) has_field_derivative (f' / (2 * csqrt (f x)))) (at x within A)"
+proof -
+  have "((csqrt \<circ> f) has_field_derivative (inverse (2 * csqrt (f x)) * f')) (at x within A)"
+    using has_field_derivative_csqrt assms(1) by (rule DERIV_chain) fact
+  thus ?thesis
+    by (simp add: o_def field_simps)
+qed
+
 lemma field_differentiable_at_csqrt:
     "z \<notin> \<real>\<^sub>\<le>\<^sub>0 \<Longrightarrow> csqrt field_differentiable at z"
   using field_differentiable_def has_field_derivative_csqrt by blast
