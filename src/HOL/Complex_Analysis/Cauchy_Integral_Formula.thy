@@ -1173,6 +1173,99 @@ next
     by (fastforce simp add: holomorphic_on_open contg intro: that)
 qed
 
+lemma higher_deriv_complex_uniform_limit:
+  assumes ulim: "uniform_limit A f g F"
+      and f_holo: "eventually (\<lambda>n. f n holomorphic_on A) F"
+      and F: "F \<noteq> bot"
+      and A: "open A" "z \<in> A"
+    shows "((\<lambda>n. (deriv ^^ m) (f n) z) \<longlongrightarrow> (deriv ^^ m) g z) F"
+proof -
+  obtain r where r: "r > 0" "cball z r \<subseteq> A"
+    using A by (meson open_contains_cball)
+  have r': "ball z r \<subseteq> A"
+    using r by auto
+  define h where "h = (\<lambda>n z. f n z - g z)"
+  define c where "c = of_real (2*pi) * \<i> / fact m"
+  have [simp]: "c \<noteq> 0"
+    by (simp add: c_def)
+  have "g holomorphic_on ball z r \<and> continuous_on (cball z r) g"
+  proof (rule holomorphic_uniform_limit)
+    show "uniform_limit (cball z r) f g F"
+      by (rule uniform_limit_on_subset[OF ulim r(2)])
+    show "\<forall>\<^sub>F n in F. continuous_on (cball z r) (f n) \<and> f n holomorphic_on ball z r" using f_holo
+      by eventually_elim
+         (use holomorphic_on_subset[OF _ r(2)] holomorphic_on_subset[OF _ r'] 
+          in  \<open>auto intro!: holomorphic_on_imp_continuous_on\<close>)
+  qed (use F in auto)
+  hence g_holo: "g holomorphic_on ball z r" and g_cont: "continuous_on (cball z r) g"
+    by blast+
+
+  have ulim': "uniform_limit (sphere z r) (\<lambda>n x. h n x / (x - z) ^ (Suc m)) (\<lambda>_. 0) F"
+  proof -
+    have "uniform_limit (sphere z r) (\<lambda>n x. f n x / (x - z) ^ Suc m) (\<lambda>x. g x / (x - z) ^ Suc m) F"
+    proof (intro uniform_lim_divide uniform_limit_intros uniform_limit_on_subset[OF ulim])
+      have "compact (g ` sphere z r)"
+        by (intro compact_continuous_image continuous_on_subset[OF g_cont]) auto
+      thus "bounded (g ` sphere z r)"
+        by (rule compact_imp_bounded)
+      show "r ^ Suc m \<le> norm ((x - z) ^ Suc m)" if "x \<in> sphere z r" for x unfolding norm_power
+        by (intro power_mono) (use that r(1) in \<open>auto simp: dist_norm norm_minus_commute\<close>)
+    qed (use r in auto)
+    hence "uniform_limit (sphere z r) (\<lambda>n x. f n x / (x - z) ^ Suc m - g x / (x - z) ^ Suc m) 
+             (\<lambda>x. g x / (x - z) ^ Suc m - g x / (x - z) ^ Suc m) F"
+      by (intro uniform_limit_intros)
+    thus ?thesis
+      by (simp add: h_def diff_divide_distrib)
+  qed
+
+  have has_integral: "eventually (\<lambda>n. ((\<lambda>u. h n u / (u - z) ^ Suc m) has_contour_integral 
+                         c * (deriv ^^ m) (h n) z) (circlepath z r)) F"
+    using f_holo
+  proof eventually_elim
+    case (elim n)
+    show ?case
+      unfolding c_def
+    proof (rule Cauchy_has_contour_integral_higher_derivative_circlepath)
+      show "continuous_on (cball z r) (h n)" unfolding h_def 
+        by (intro continuous_intros g_cont holomorphic_on_imp_continuous_on
+                  holomorphic_on_subset[OF elim] r)
+      show "h n holomorphic_on ball z r"
+        unfolding h_def by (intro holomorphic_intros g_holo holomorphic_on_subset[OF elim] r')
+    qed (use r(1) in auto)
+  qed
+
+  have "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>u. h n u / (u - z) ^ Suc m)) \<longlongrightarrow> 
+         contour_integral (circlepath z r) (\<lambda>u. 0 / (u - z) ^ Suc m)) F"
+  proof (rule contour_integral_uniform_limit_circlepath)
+    show "\<forall>\<^sub>F n in F. (\<lambda>u. h n u / (u - z) ^ Suc m) contour_integrable_on circlepath z r"
+      using has_integral by eventually_elim (blast intro: has_contour_integral_integrable)
+  qed (use r(1) \<open>F \<noteq> bot\<close> ulim' in simp_all)
+  hence "((\<lambda>n. contour_integral (circlepath z r) (\<lambda>u. h n u / (u - z) ^ Suc m)) \<longlongrightarrow> 0) F"
+    by simp
+  also have "?this \<longleftrightarrow> ((\<lambda>n. c * (deriv ^^ m) (h n) z) \<longlongrightarrow> 0) F"
+  proof (rule tendsto_cong)
+    show "\<forall>\<^sub>F x in F. contour_integral (circlepath z r) (\<lambda>u. h x u / (u - z) ^ Suc m) =
+                       c * (deriv ^^ m) (h x) z"
+      using has_integral by eventually_elim (simp add: contour_integral_unique)
+  qed
+  finally have "((\<lambda>n. (deriv ^^ m) g z + c * (deriv ^^ m) (h n) z / c) \<longlongrightarrow> 
+                  (deriv ^^ m) g z + 0 / c) F"
+    by (intro tendsto_intros) auto
+  also have "?this \<longleftrightarrow> ((\<lambda>n. (deriv ^^ m) (f n) z) \<longlongrightarrow> (deriv ^^ m) g z) F"
+  proof (intro filterlim_cong)
+    show "\<forall>\<^sub>F n in F. (deriv ^^ m) g z + c * (deriv ^^ m) (h n) z / c = (deriv ^^ m) (f n) z"
+      using f_holo
+    proof eventually_elim
+      case (elim n)
+      have "(deriv ^^ m) (h n) z = (deriv ^^ m) (f n) z - (deriv ^^ m) g z" unfolding h_def
+        by (rule higher_deriv_diff holomorphic_on_subset[OF elim r'] g_holo A)+ (use r(1) in auto)
+      thus ?case
+        by simp
+    qed
+  qed auto
+  finally show ?thesis .
+qed
+
 
 text\<open> Version showing that the limit is the limit of the derivatives.\<close>
 
