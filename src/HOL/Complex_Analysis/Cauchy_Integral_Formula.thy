@@ -412,11 +412,87 @@ proof (induction j arbitrary: f x)
   finally show ?case by simp
 qed simp_all
 
+lemma higher_deriv_cmult':
+  assumes "f analytic_on {x}"
+  shows   "(deriv ^^ j) (\<lambda>x. c * f x) x = c * (deriv ^^ j) f x"
+  using assms higher_deriv_cmult[of f _ x j c] assms
+  using analytic_at_two by blast
+
+lemma deriv_cmult':
+  assumes "f analytic_on {x}"
+  shows   "deriv (\<lambda>x. c * f x) x = c * deriv f x"
+  using higher_deriv_cmult'[OF assms, of 1 c] by simp
+
+lemma analytic_derivI:
+  assumes "f analytic_on {z}"
+  shows   "(f has_field_derivative (deriv f z)) (at z within A)"
+  using assms holomorphic_derivI[of f _ z] analytic_at by blast
+
+lemma deriv_compose_analytic:
+  fixes f g :: "complex \<Rightarrow> complex"
+  assumes "f analytic_on {g z}" "g analytic_on {z}"
+  shows "deriv (\<lambda>x. f (g x)) z = deriv f (g z) * deriv g z"
+proof -
+  have "((f \<circ> g) has_field_derivative (deriv f (g z) * deriv g z)) (at z)"
+    by (intro DERIV_chain analytic_derivI assms)
+  thus ?thesis
+    by (auto intro!: DERIV_imp_deriv simp add: o_def)
+qed
+
 lemma valid_path_compose_holomorphic:
   assumes "valid_path g" "f holomorphic_on S" and "open S" "path_image g \<subseteq> S"
   shows "valid_path (f \<circ> g)"
   by (meson assms holomorphic_deriv holomorphic_on_imp_continuous_on holomorphic_on_imp_differentiable_at
       holomorphic_on_subset subsetD valid_path_compose)
+
+lemma valid_path_compose_analytic:
+  assumes "valid_path g" and holo:"f analytic_on S" and "path_image g \<subseteq> S"
+  shows "valid_path (f \<circ> g)"
+proof (rule valid_path_compose[OF \<open>valid_path g\<close>])
+  fix x assume "x \<in> path_image g"
+  then show "f field_differentiable at x"
+    using analytic_on_imp_differentiable_at analytic_on_open assms holo by blast
+next
+  show "continuous_on (path_image g) (deriv f)"
+    by (intro holomorphic_on_imp_continuous_on analytic_imp_holomorphic analytic_intros
+              analytic_on_subset[OF holo] assms)
+qed
+
+lemma analytic_on_deriv [analytic_intros]:
+  assumes "f analytic_on g ` A"
+  assumes "g analytic_on A"
+  shows   "(\<lambda>x. deriv f (g x)) analytic_on A"
+proof -
+  have "(deriv f \<circ> g) analytic_on A"
+    by (rule analytic_on_compose_gen[OF assms(2) analytic_deriv[OF assms(1)]]) auto
+  thus ?thesis
+    by (simp add: o_def)
+qed
+    
+lemma contour_integral_comp_analyticW:
+  assumes "f analytic_on s" "valid_path \<gamma>" "path_image \<gamma> \<subseteq> s"
+  shows "contour_integral (f \<circ> \<gamma>) g = contour_integral \<gamma> (\<lambda>w. deriv f w * g (f w))"
+proof -
+  obtain spikes where "finite spikes" and \<gamma>_diff: "\<gamma> C1_differentiable_on {0..1} - spikes"
+    using \<open>valid_path \<gamma>\<close> unfolding valid_path_def piecewise_C1_differentiable_on_def by auto  
+  show "contour_integral (f \<circ> \<gamma>) g 
+      = contour_integral \<gamma> (\<lambda>w. deriv f w * g (f w))"
+    unfolding contour_integral_integral
+  proof (rule integral_spike[rule_format,OF negligible_finite[OF \<open>finite spikes\<close>]])
+    fix t::real assume t:"t \<in> {0..1} - spikes"
+    then have "\<gamma> differentiable at t" 
+      using \<gamma>_diff unfolding C1_differentiable_on_eq by auto
+    moreover have "f field_differentiable at (\<gamma> t)" 
+    proof -
+      have "\<gamma> t \<in> s" using t assms unfolding path_image_def by auto 
+      thus ?thesis 
+        using \<open>f analytic_on s\<close>  analytic_on_imp_differentiable_at by blast
+    qed
+    ultimately show "deriv f (\<gamma> t) * g (f (\<gamma> t)) * vector_derivative \<gamma> (at t) =
+         g ((f \<circ> \<gamma>) t) * vector_derivative (f \<circ> \<gamma>) (at t)"
+      by (subst vector_derivative_chain_at_general) (simp_all add:field_simps)
+  qed
+qed
 
 subsection\<open>Morera's theorem\<close>
 
