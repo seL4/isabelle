@@ -45,7 +45,7 @@ lemma is_nth_power_1 [simp]: "is_nth_power n 1"
   by (auto simp: is_nth_power_def intro!: exI[of _ 1])
 
 lemma is_nth_power_Suc_0 [simp]: "is_nth_power n (Suc 0)"
-  by (simp add: One_nat_def [symmetric] del: One_nat_def)
+  by (metis One_nat_def is_nth_power_1)
 
 lemma is_nth_power_conv_multiplicity: 
   fixes x :: "'a :: {factorial_semiring, normalization_semidom_multiplicative}"
@@ -58,7 +58,7 @@ proof (cases "x = 0")
     fix y p :: 'a assume *: "normalize x = y ^ n" "prime p"
     with assms and False have [simp]: "y \<noteq> 0" by (auto simp: power_0_left)
     have "multiplicity p x = multiplicity p (y ^ n)"
-      by (subst *(1) [symmetric]) simp
+      by (metis "*"(1) multiplicity_normalize_right)
     with False and * and assms show "n dvd multiplicity p x"
       by (auto simp: prime_elem_multiplicity_power_distrib)
   next
@@ -88,11 +88,7 @@ lemma is_nth_power_conv_multiplicity_nat:
 lemma is_nth_power_mult:
   assumes "is_nth_power n a" "is_nth_power n b"
   shows   "is_nth_power n (a * b :: 'a :: comm_monoid_mult)"
-proof -
-  from assms obtain a' b' where "a = a' ^ n" "b = b' ^ n" by (auto elim!: is_nth_powerE)
-  hence "a * b = (a' * b') ^ n" by (simp add: power_mult_distrib)
-  thus ?thesis by (rule is_nth_powerI)
-qed
+  by (metis assms is_nth_power_def power_mult_distrib)
     
 lemma is_nth_power_mult_coprime_natD:
   fixes a b :: nat
@@ -136,12 +132,7 @@ lemma is_nth_power_prime_power_nat_iff:
 lemma is_nth_power_nth_power': 
   assumes "n dvd n'"
   shows   "is_nth_power n (m ^ n')"
-proof -
-  from assms have "n' = n' div n * n" by simp
-  also have "m ^ \<dots> = (m ^ (n' div n)) ^ n" by (simp add: power_mult)
-  also have "is_nth_power n \<dots>" by simp
-  finally show ?thesis .
-qed
+  by (metis assms dvd_div_mult_self is_nth_power_def power_mult)
 
 definition is_nth_power_nat :: "nat \<Rightarrow> nat \<Rightarrow> bool"
   where [code_abbrev]: "is_nth_power_nat = is_nth_power"
@@ -153,6 +144,36 @@ lemma is_nth_power_nat_code [code]:
       else if n = 1 then True
       else (\<exists>k\<in>{1..m}. k ^ n = m))"
   by (auto simp: is_nth_power_nat_def is_nth_power_def power_eq_iff_eq_base self_le_power)
+
+lemma is_nth_power_mult_cancel_left:
+  fixes a b :: "'a :: semiring_gcd"
+  assumes "is_nth_power n a" "a \<noteq> 0"
+  shows   "is_nth_power n (a * b) \<longleftrightarrow> is_nth_power n b"
+proof (cases "n > 0")
+  case True
+  show ?thesis
+  proof
+    assume "is_nth_power n (a * b)"
+    then obtain x where x: "a * b = x ^ n"
+      by (elim is_nth_powerE)
+    obtain y where y: "a = y ^ n"
+      using assms by (elim is_nth_powerE)
+    have "y ^ n dvd x ^ n"
+      by (simp flip: x y)
+    hence "y dvd x"
+      using \<open>n > 0\<close> by simp
+    then obtain z where z: "x = y * z"
+      by (elim dvdE)
+    with \<open>a \<noteq> 0\<close> show "is_nth_power n b"
+      by (metis  is_nth_powerI mult_left_cancel power_mult_distrib x y)
+  qed (use assms in \<open>auto intro: is_nth_power_mult\<close>)
+qed (use assms in auto)
+
+lemma is_nth_power_mult_cancel_right:
+  fixes a b :: "'a :: semiring_gcd"
+  assumes "is_nth_power n b" "b \<noteq> 0"
+  shows   "is_nth_power n (a * b) \<longleftrightarrow> is_nth_power n a"
+  by (metis assms is_nth_power_mult_cancel_left mult.commute)
 
 
 (* TODO: Harmonise with Discrete_Functions.floor_sqrt *)
@@ -201,11 +222,8 @@ lemma
 lemma nth_root_nat_less: 
   assumes "k > 0" "x ^ k > n"
   shows   "nth_root_nat k n < x"
-proof -
-  from \<open>k > 0\<close> have "nth_root_nat k n ^ k \<le> n" by (rule nth_root_nat_power_le)
-  also have "n < x ^ k" by fact
-  finally show ?thesis by (rule power_less_imp_less_base) simp_all
-qed
+  by (meson assms nth_root_nat_power_le order.strict_trans1 power_less_imp_less_base
+      zero_le)
 
 lemma nth_root_nat_unique:
   assumes "m ^ k \<le> n" "(m + 1) ^ k > n"
@@ -219,11 +237,15 @@ proof (cases "k > 0")
   ultimately show ?thesis by (rule antisym)
 qed (insert assms, auto)
 
-lemma nth_root_nat_0 [simp]: "nth_root_nat k 0 = 0" by (simp add: nth_root_nat_def)
+lemma nth_root_nat_0 [simp]: "nth_root_nat k 0 = 0" 
+  by (simp add: nth_root_nat_def)
+
 lemma nth_root_nat_1 [simp]: "k > 0 \<Longrightarrow> nth_root_nat k 1 = 1"
   by (rule nth_root_nat_unique) (auto simp del: One_nat_def)
+
 lemma nth_root_nat_Suc_0 [simp]: "k > 0 \<Longrightarrow> nth_root_nat k (Suc 0) = Suc 0"
-  using nth_root_nat_1 by (simp del: nth_root_nat_1)
+  using One_nat_def is_nth_power_nat_def nth_root_nat_1
+  by presburger
 
 lemma first_root_nat [simp]: "nth_root_nat 1 n = n"
   by (intro nth_root_nat_unique) auto
@@ -265,7 +287,8 @@ proof (induction m k "k ^ m" n rule:  nth_root_nat_aux.induct)
   proof -
     note that
     also have "k < Suc k ^ 1" by simp
-    also from \<open>m > 0\<close> have "\<dots> \<le> Suc k ^ m" by (intro power_increasing) simp_all
+    also from \<open>m > 0\<close> have "\<dots> \<le> Suc k ^ m" 
+      by (intro power_increasing) simp_all
     finally show ?thesis .
   qed
   with 1 show ?case by (auto simp: Let_def)
@@ -274,7 +297,7 @@ qed
 lemma nth_root_nat_aux_correct:
   assumes "k ^ m \<le> n" "m > 0"
   shows   "nth_root_nat_aux m k (k ^ m) n = nth_root_nat m n"
-  by (rule sym, intro nth_root_nat_unique nth_root_nat_aux_le nth_root_nat_aux_gt assms)
+  by (metis assms nth_root_nat_aux_gt nth_root_nat_aux_le nth_root_nat_unique)
 
 lemma nth_root_nat_naive_code [code]:
   "nth_root_nat m n = (if m = 0 \<or> n = 0 then 0 else if m = 1 \<or> n = 1 then n else
@@ -288,12 +311,7 @@ lemma nth_root_nat_nth_power [simp]: "k > 0 \<Longrightarrow> nth_root_nat k (n 
 lemma nth_root_nat_nth_power':
   assumes "k > 0" "k dvd m" 
   shows   "nth_root_nat k (n ^ m) = n ^ (m div k)"
-proof -
-  from assms have "m = (m div k) * k" by simp
-  also have "n ^ \<dots> = (n ^ (m div k)) ^ k" by (simp add: power_mult)
-  also from assms have "nth_root_nat k \<dots> = n ^ (m div k)" by simp
-  finally show ?thesis .
-qed
+  by (metis assms dvd_div_mult_self nth_root_nat_nth_power power_mult)
 
 lemma nth_root_nat_mono:
   assumes "m \<le> n"
