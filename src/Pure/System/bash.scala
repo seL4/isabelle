@@ -42,6 +42,9 @@ object Bash {
   def strings(ss: Iterable[String]): String =
     ss.iterator.map(Bash.string).mkString(" ")
 
+  def exports(environment: String*): String =
+    environment.iterator.map(a => "export " + string(a)).mkString("", "\n", "\n")
+
 
   /* process and result */
 

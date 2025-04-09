@@ -31,7 +31,7 @@ object Component_PolyML {
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-        setup = MinGW.environment_export,
+        setup = MinGW.env_prefix(),
         libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
 
   sealed case class Platform_Context(
