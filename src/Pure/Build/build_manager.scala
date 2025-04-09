@@ -664,7 +664,7 @@ object Build_Manager {
         val log_opts = "--graph --color always"
         val rev1 = "children(" + rev0 + ")"
         val cmd = repository.command_line("log", Mercurial.opt_rev(rev1 + ":" + rev), log_opts)
-        val log = Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
+        val log = Isabelle_System.bash(Bash.exports("HGPLAINEXCEPT=color") + cmd).check.out
         if (log.nonEmpty) File.write_gzip(dir + Path.basic(component).ext(log_ext).gz, log)
       }
 
@@ -677,7 +677,7 @@ object Build_Manager {
       if (rev0.nonEmpty && rev.nonEmpty) {
         val diff_opts = "--noprefix --nodates --ignore-all-space --color always"
         val cmd = repository.command_line("diff", Mercurial.opt_rev(rev0 + ":" + rev), diff_opts)
-        val diff = Isabelle_System.bash("export HGPLAINEXCEPT=color\n" + cmd).check.out
+        val diff = Isabelle_System.bash(Bash.exports("HGPLAINEXCEPT=color") + cmd).check.out
         if (diff.nonEmpty) File.write_gzip(dir + Path.basic(component).ext(diff_ext).gz, diff)
       }
 

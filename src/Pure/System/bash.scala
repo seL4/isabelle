@@ -53,10 +53,8 @@ object Bash {
     isabelle_identifier: String = "",
     cwd: Path = Path.current
   ): String = {
-    if_proper(user_home,
-      "export USER_HOME=" + Bash.string(user_home) + "\n") +
-    if_proper(isabelle_identifier,
-      "export ISABELLE_IDENTIFIER=" + Bash.string(isabelle_identifier) + "\n") +
+    if_proper(user_home, exports("USER_HOME=" + user_home)) +
+    if_proper(isabelle_identifier, exports("ISABELLE_IDENTIFIER=" + isabelle_identifier)) +
     (if (cwd == null || cwd.is_current) "" else "cd " + quote(cwd.implode) + "\n") +
     script
   }

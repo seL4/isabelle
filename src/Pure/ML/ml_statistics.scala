@@ -57,8 +57,7 @@ object ML_Statistics {
       if (props.nonEmpty) consume(props)
     }
 
-    val env_prefix =
-      if_proper(stats_dir, "export POLYSTATSDIR=" + Bash.string(stats_dir) + "\n")
+    val env_prefix = if_proper(stats_dir, Bash.exports("POLYSTATSDIR=" + stats_dir))
 
     Bash.process(env_prefix + "\"$POLYML_EXE\" -q --use src/Pure/ML/ml_statistics.ML --eval " +
         Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
