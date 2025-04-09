@@ -51,7 +51,7 @@ class MinGW private(val root: Option[Path]) {
     else if (root.isEmpty) error("Windows platform requires msys/mingw root specification")
     else root.get
 
-  def check: Unit = {
+  def check(): Unit = {
     if (Platform.is_windows) {
       get_root
       try { require(Isabelle_System.bash(bash_script("uname -s")).check.out.startsWith("MSYS")) }
