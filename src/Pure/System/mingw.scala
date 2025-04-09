@@ -8,12 +8,8 @@ package isabelle
 
 
 object MinGW {
-  def env_prefix(pre_path: String = "", post_path: String = ""): String = {
-    val path =
-      if_proper(pre_path, pre_path + ":") + "/usr/bin:/bin:/mingw64/bin" +
-      if_proper(post_path, ":" + post_path)
-    Bash.exports("PATH=" + path, "CONFIG_SITE=/mingw64/etc/config.site")
-  }
+  def env_prefix: String =
+    Bash.exports("PATH=/usr/bin:/bin:/mingw64/bin", "CONFIG_SITE=/mingw64/etc/config.site")
 
   val none: MinGW = new MinGW(None)
   def apply(path: Path) = new MinGW(Some(path))
@@ -38,7 +34,7 @@ class MinGW private(val root: Option[Path]) {
       case _ => File.standard_path(path)
     }
 
-  def bash_script(script: String, env_prefix: String = MinGW.env_prefix()): String =
+  def bash_script(script: String, env_prefix: String = MinGW.env_prefix): String =
     root match {
       case None => script
       case Some(msys_root) =>

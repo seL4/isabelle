@@ -31,7 +31,7 @@ object Component_PolyML {
       Platform_Info(
         options =
           List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-        setup = MinGW.env_prefix(),
+        setup = MinGW.env_prefix,
         libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
 
   sealed case class Platform_Context(
@@ -80,7 +80,9 @@ object Component_PolyML {
     /* configure and make */
 
     val configure_options = {
-      val options1 = if (gmp_root.nonEmpty) List("--with-gmp") else List("--without-gmp")
+      val options1 =
+        if (gmp_root.nonEmpty || platform.is_windows) List("--with-gmp")
+        else List("--without-gmp")
 
       val options2 =
         for (opt <- info.options) yield {
@@ -225,6 +227,7 @@ not affect the running ML session. *)
 
       val gmp_root: Option[Path] =
         if (gmp_url.isEmpty) None
+        else if (platform.is_windows) error("Bad GMP source for Windows: use MinGW version instead")
         else {
           val gmp_dir = Isabelle_System.make_directory(download_dir + Path.basic("gmp"))
 
