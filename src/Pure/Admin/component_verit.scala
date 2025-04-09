@@ -19,7 +19,7 @@ object Component_VeriT {
     target_dir: Path = Path.current,
     mingw: MinGW = MinGW.none
   ): Unit = {
-    mingw.check
+    mingw.check()
 
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */

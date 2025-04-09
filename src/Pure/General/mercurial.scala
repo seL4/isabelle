@@ -223,7 +223,8 @@ object Mercurial {
       options: String = "",
       repository: Boolean = true
     ): String = {
-      "export LANG=C HGPLAIN=\n\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
+      Bash.exports("LANG=C", "HGPLAIN=") +
+        "\"${HG:-hg}\" --config " + Bash.string("defaults." + name + "=") +
         (if (repository) " --repository " + ssh.bash_path(root) else "") +
         " --noninteractive " + name + " " + options + " " + args
     }
