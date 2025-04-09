@@ -25,6 +25,18 @@ class MinGW private(val root: Option[Path]) {
       case Some(msys_root) => "MinGW(" + msys_root.toString + ")"
     }
 
+  def standard_path(path: Path): String =
+    root match {
+      case Some(msys_root) if Platform.is_windows =>
+        val command_line =
+          java.util.List.of(
+            File.platform_path(msys_root) + "\\usr\\bin\\cygpath", "-u", File.platform_path(path))
+        val res = isabelle.setup.Environment.exec_process(command_line, null, null, false)
+        if (res.ok) Library.trim_line(res.out)
+        else error("Error: " + quote(Library.trim_line(res.err)))
+      case _ => File.standard_path(path)
+    }
+
   def bash_script(script: String): String =
     root match {
       case None => script
