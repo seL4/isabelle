@@ -385,6 +385,7 @@ follows:
     Isabelle_Tool("make_polyml_gmp", "make GMP library from existing sources", Scala_Project.here,
       { args =>
         var mingw = MinGW.none
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
@@ -395,7 +396,8 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Make GMP library in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))))
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         val (root, options) =
@@ -403,7 +405,9 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
             case root :: options => (Path.explode(root), options)
             case Nil => getopts.usage()
           }
-        make_polyml_gmp(Platform_Context(mingw = mingw, progress = new Console_Progress),
+
+        val progress = new Console_Progress(verbose = verbose)
+        make_polyml_gmp(Platform_Context(mingw = mingw, progress = progress),
           root, options = options)
       })
 
@@ -414,6 +418,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var mingw = MinGW.none
         var arch_64 = false
         var sha1_root: Option[Path] = None
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
@@ -436,7 +441,8 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
               case "64" => arch_64 = true
               case bad => error("Bad processor architecture: " + quote(bad))
             },
-          "s:" -> (arg => sha1_root = Some(Path.explode(arg))))
+          "s:" -> (arg => sha1_root = Some(Path.explode(arg))),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         val (root, options) =
@@ -444,7 +450,9 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
             case root :: options => (Path.explode(root), options)
             case Nil => getopts.usage()
           }
-        make_polyml(Platform_Context(mingw = mingw, progress = new Console_Progress),
+
+        val progress = new Console_Progress(verbose = verbose)
+        make_polyml(Platform_Context(mingw = mingw, progress = progress),
           root, gmp_root = gmp_root, sha1_root = sha1_root, arch_64 = arch_64, options = options)
       })
 
