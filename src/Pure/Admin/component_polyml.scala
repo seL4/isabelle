@@ -81,7 +81,8 @@ object Component_PolyML {
     progress.echo("Building GMP library ...")
     platform_context.execute(root,
       "[ -f Makefile ] && make distclean",
-      "./configure --enable-cxx --build=" + platform_arch + "-" + platform_os +
+      "./configure --disable-static --enable-shared --enable-cxx" +
+        " --build=" + platform_arch + "-" + platform_os +
         " --prefix=" + Bash.string(platform_context.standard_path(target_dir)) +
         if_proper(options, " " + Bash.strings(options)),
       "make",
