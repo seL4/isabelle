@@ -106,15 +106,15 @@ object Component_PolyML {
     }
 
     platform_context.bash(root,
-      info.setup + "\n" +
-      """
-        [ -f Makefile ] && make distclean
-        {
-          ./configure --prefix="$PWD/target" """ + Bash.strings(configure_options) + """
-          rm -rf target
-          make && make install
-        } || { echo "Build failed" >&2; exit 2; }
-      """, redirect = true).check
+      Library.make_lines(
+        "set -e",
+        info.setup,
+        "[ -f Makefile ] && make distclean",
+        """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
+        "rm -rf target",
+        "make",
+        "make install"
+      ), redirect = true).check
 
 
     /* sha1 library */
