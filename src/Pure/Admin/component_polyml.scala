@@ -118,14 +118,14 @@ object Component_PolyML {
     /* sha1 library */
 
     val sha1_files =
-      if (sha1_root.isDefined) {
-        val dir1 = sha1_root.get
-        platform_context.execute(dir1, "./build " + platform_context.sha1)
-
-        val dir2 = dir1 + Path.explode(platform_context.sha1)
-        File.read_dir(dir2).map(entry => dir2 + Path.basic(entry))
+      sha1_root match {
+        case Some(dir) =>
+          val platform_path = Path.explode(platform_context.sha1)
+          val platform_dir = dir + platform_path
+          platform_context.execute(dir, "./build " + File.bash_path(platform_path))
+          File.read_dir(platform_dir).map(entry => platform_dir + Path.basic(entry))
+        case None => Nil
       }
-      else Nil
 
 
     /* install */
