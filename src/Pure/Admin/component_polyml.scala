@@ -63,7 +63,7 @@ object Component_PolyML {
 
   def make_polyml_gmp(
     platform_context: Platform_Context,
-    root: Path,
+    dir: Path,
     options: List[String] = Nil
   ): Path = {
     val progress = platform_context.progress
@@ -76,6 +76,7 @@ object Component_PolyML {
       else if (platform.is_macos) """apple-darwin"$(uname -r)""""
       else error("Bad platform " + platform)
 
+    val root = dir.absolute
     val target_dir = root + Path.explode("target")
 
     progress.echo("Building GMP library ...")
@@ -148,13 +149,14 @@ object Component_PolyML {
         case Some(dir) =>
           val v = Executable.library_path_variable(platform)
           val p = Isabelle_System.getenv(v)
-          val s = platform_context.standard_path(dir)
+          val s = platform_context.standard_path(dir.absolute) + "/lib"
           Bash.exports(v + "=" + s + if_proper(p, ":" + p))
         case None => ""
       }
 
     platform_context.execute(root,
-      info.setup + gmp_setup,
+      info.setup,
+      gmp_setup,
       "[ -f Makefile ] && make distclean",
       """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
       "rm -rf target",
