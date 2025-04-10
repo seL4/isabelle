@@ -148,9 +148,8 @@ object Component_PolyML {
       gmp_root match {
         case Some(dir) =>
           val v = Executable.library_path_variable(platform)
-          val p = Isabelle_System.getenv(v)
           val s = platform_context.standard_path(dir.absolute) + "/lib"
-          Bash.exports(v + "=" + s + if_proper(p, ":" + p))
+          "export " + v + "=" + quote(s + ":" + "$" + v)
         case None => ""
       }
 
@@ -193,7 +192,7 @@ object Component_PolyML {
 
     Executable.libraries_closure(
       platform_dir + Path.basic("poly").platform_exe,
-      env_prefix = gmp_setup,
+      env_prefix = gmp_setup + "\n",
       mingw = platform_context.mingw,
       filter = info.libs)
 
