@@ -10,7 +10,7 @@ package isabelle
 
 
 object Component_PolyML {
-  /** platform-specific build **/
+  /** platform information **/
 
   sealed case class Platform_Info(
     options: List[String] = Nil,
@@ -55,6 +55,10 @@ object Component_PolyML {
       progress.bash(script1, cwd = cwd, redirect = redirect, echo = progress.verbose)
     }
   }
+
+
+
+  /** build stages **/
 
   def make_polyml(
     platform_context: Platform_Context,
