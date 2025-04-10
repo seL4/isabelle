@@ -420,8 +420,8 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
-    -G DIR       GMP library root
     -M DIR       msys/mingw root specification for Windows
+    -g DIR       GMP library root
     -m ARCH      processor architecture (32 or 64, default: """ +
         (if (arch_64) "64" else "32") + """)
     -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
@@ -429,8 +429,8 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "G:" -> (arg => gmp_root = Some(Path.explode(arg))),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "g:" -> (arg => gmp_root = Some(Path.explode(arg))),
           "m:" ->
             {
               case "32" => arch_64 = false
