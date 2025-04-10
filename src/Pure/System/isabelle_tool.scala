@@ -196,6 +196,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_PDFjs.isabelle_tool,
   Component_PolyML.isabelle_tool1,
   Component_PolyML.isabelle_tool2,
+  Component_PolyML.isabelle_tool3,
   Component_PostgreSQL.isabelle_tool,
   Component_Prismjs.isabelle_tool,
   Component_Rsync.isabelle_tool,

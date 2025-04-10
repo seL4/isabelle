@@ -8,7 +8,14 @@ package isabelle
 
 
 object Executable {
+  def library_path_variable(platform: Isabelle_Platform): String =
+    if (platform.is_linux) "LD_LIBRARY_PATH"
+    else if (platform.is_macos) "DYLD_LIBRARY_PATH"
+    else if (platform.is_windows) "PATH"
+    else error("Bad platform " + platform)
+
   def libraries_closure(path: Path,
+    env_prefix: String = "",
     mingw: MinGW = MinGW.none,
     filter: String => Boolean = _ => true
   ): List[String] = {
@@ -18,7 +25,7 @@ object Executable {
 
     val ldd_lines = {
       val ldd = if (Platform.is_macos) "otool -L" else "ldd"
-      val script = mingw.bash_script(ldd + " " + File.bash_path(exe))
+      val script = mingw.bash_script(env_prefix + ldd + " " + File.bash_path(exe))
       split_lines(Isabelle_System.bash(script, cwd = exe_dir).check.out)
     }
 
