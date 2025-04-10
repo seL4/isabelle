@@ -796,6 +796,14 @@ lemma divideR_right:
 
 class real_normed_field = real_field + real_normed_div_algebra
 
+lemma dist_mult_left:
+  "dist (a * b) (a * c :: 'a :: real_normed_field) = norm a * dist b c"
+  unfolding dist_norm right_diff_distrib [symmetric] norm_mult by simp
+
+lemma dist_mult_right:
+  "dist (b * a) (c * a :: 'a :: real_normed_field) = norm a * dist b c"
+  using dist_mult_left[of a b c] by (simp add: mult_ac)
+
 instance real_normed_div_algebra < real_normed_algebra_1
 proof
   show "norm (x * y) \<le> norm x * norm y" for x y :: 'a

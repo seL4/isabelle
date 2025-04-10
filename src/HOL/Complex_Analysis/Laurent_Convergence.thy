@@ -2356,14 +2356,6 @@ lemma zorder_eq_0_iff:
   shows   "zorder f z = 0 \<longleftrightarrow> f z \<noteq> 0"
   using assms zorder_eq_0I zorder_pos_iff' by fastforce
 
-lemma dist_mult_left:
-  "dist (a * b) (a * c :: 'a :: real_normed_field) = norm a * dist b c"
-  unfolding dist_norm right_diff_distrib [symmetric] norm_mult by simp
-
-lemma dist_mult_right:
-  "dist (b * a) (c * a :: 'a :: real_normed_field) = norm a * dist b c"
-  using dist_mult_left[of a b c] by (simp add: mult_ac)
-
 lemma zorder_scale:
   assumes "f analytic_on {a * z}" "eventually (\<lambda>w. f w \<noteq> 0) (at (a * z))" "a \<noteq> 0"
   shows "zorder (\<lambda>w. f (a * w)) z = zorder f (a * z)"

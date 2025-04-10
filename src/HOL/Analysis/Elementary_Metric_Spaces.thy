@@ -223,27 +223,17 @@ lemma cball_scale:
   assumes "a \<noteq> 0"
   shows   "(\<lambda>x. a *\<^sub>R x) ` cball c r = cball (a *\<^sub>R c :: 'a :: real_normed_vector) (\<bar>a\<bar> * r)"
 proof -
-  have 1: "(\<lambda>x. a *\<^sub>R x) ` cball c r \<subseteq> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)" if "a \<noteq> 0" for a r and c :: 'a
-  proof safe
-    fix x
-    assume x: "x \<in> cball c r"
-    have "dist (a *\<^sub>R c) (a *\<^sub>R x) = norm (a *\<^sub>R c - a *\<^sub>R x)"
-      by (auto simp: dist_norm)
-    also have "a *\<^sub>R c - a *\<^sub>R x = a *\<^sub>R (c - x)"
-      by (simp add: algebra_simps)
-    finally show "a *\<^sub>R x \<in> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
-      using that x by (auto simp: dist_norm)
-  qed
-
+  have *: "(\<lambda>x. a *\<^sub>R x) ` cball c r \<subseteq> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)" for a r and c :: 'a
+    by (auto simp: dist_norm simp flip: scaleR_right_diff_distrib intro!: mult_left_mono)
   have "cball (a *\<^sub>R c) (\<bar>a\<bar> * r) = (\<lambda>x. a *\<^sub>R x) ` (\<lambda>x. inverse a *\<^sub>R x) ` cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
     unfolding image_image using assms by simp
   also have "\<dots> \<subseteq> (\<lambda>x. a *\<^sub>R x) ` cball (inverse a *\<^sub>R (a *\<^sub>R c)) (\<bar>inverse a\<bar> * (\<bar>a\<bar> * r))"
-    using assms by (intro image_mono 1) auto
+    using "*" by blast
   also have "\<dots> = (\<lambda>x. a *\<^sub>R x) ` cball c r"
     using assms by (simp add: algebra_simps)
   finally have "cball (a *\<^sub>R c) (\<bar>a\<bar> * r) \<subseteq> (\<lambda>x. a *\<^sub>R x) ` cball c r" .
   moreover from assms have "(\<lambda>x. a *\<^sub>R x) ` cball c r \<subseteq> cball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
-    by (intro 1) auto
+    using "*" by blast
   ultimately show ?thesis by blast
 qed
 
@@ -251,27 +241,54 @@ lemma ball_scale:
   assumes "a \<noteq> 0"
   shows   "(\<lambda>x. a *\<^sub>R x) ` ball c r = ball (a *\<^sub>R c :: 'a :: real_normed_vector) (\<bar>a\<bar> * r)"
 proof -
-  have 1: "(\<lambda>x. a *\<^sub>R x) ` ball c r \<subseteq> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)" if "a \<noteq> 0" for a r and c :: 'a
-  proof safe
-    fix x
-    assume x: "x \<in> ball c r"
-    have "dist (a *\<^sub>R c) (a *\<^sub>R x) = norm (a *\<^sub>R c - a *\<^sub>R x)"
-      by (auto simp: dist_norm)
-    also have "a *\<^sub>R c - a *\<^sub>R x = a *\<^sub>R (c - x)"
-      by (simp add: algebra_simps)
-    finally show "a *\<^sub>R x \<in> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
-      using that x by (auto simp: dist_norm)
-  qed
-
+  have *: "(\<lambda>x. a *\<^sub>R x) ` ball c r \<subseteq> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)" if "a \<noteq> 0" for a r and c :: 'a
+    using that by (auto simp: dist_norm simp flip: scaleR_right_diff_distrib)
   have "ball (a *\<^sub>R c) (\<bar>a\<bar> * r) = (\<lambda>x. a *\<^sub>R x) ` (\<lambda>x. inverse a *\<^sub>R x) ` ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
     unfolding image_image using assms by simp
   also have "\<dots> \<subseteq> (\<lambda>x. a *\<^sub>R x) ` ball (inverse a *\<^sub>R (a *\<^sub>R c)) (\<bar>inverse a\<bar> * (\<bar>a\<bar> * r))"
-    using assms by (intro image_mono 1) auto
+    using assms by (intro image_mono *) auto
   also have "\<dots> = (\<lambda>x. a *\<^sub>R x) ` ball c r"
     using assms by (simp add: algebra_simps)
   finally have "ball (a *\<^sub>R c) (\<bar>a\<bar> * r) \<subseteq> (\<lambda>x. a *\<^sub>R x) ` ball c r" .
   moreover from assms have "(\<lambda>x. a *\<^sub>R x) ` ball c r \<subseteq> ball (a *\<^sub>R c) (\<bar>a\<bar> * r)"
-    by (intro 1) auto
+    by (intro *) auto
+  ultimately show ?thesis by blast
+qed
+
+lemma sphere_scale:
+  assumes "a \<noteq> 0"
+  shows   "(\<lambda>x. a *\<^sub>R x) ` sphere c r = sphere (a *\<^sub>R c :: 'a :: real_normed_vector) (\<bar>a\<bar> * r)"
+proof -
+  have *: "(\<lambda>x. a *\<^sub>R x) ` sphere c r \<subseteq> sphere (a *\<^sub>R c) (\<bar>a\<bar> * r)" for a r and c :: 'a
+    by (metis (no_types, opaque_lifting) scaleR_right_diff_distrib dist_norm image_subsetI mem_sphere norm_scaleR)
+  have "sphere (a *\<^sub>R c) (\<bar>a\<bar> * r) = (\<lambda>x. a *\<^sub>R x) ` (\<lambda>x. inverse a *\<^sub>R x) ` sphere (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    unfolding image_image using assms by simp
+  also have "\<dots> \<subseteq> (\<lambda>x. a *\<^sub>R x) ` sphere (inverse a *\<^sub>R (a *\<^sub>R c)) (\<bar>inverse a\<bar> * (\<bar>a\<bar> * r))"
+    using "*" by blast
+  also have "\<dots> = (\<lambda>x. a *\<^sub>R x) ` sphere c r"
+    using assms by (simp add: algebra_simps)
+  finally have "sphere (a *\<^sub>R c) (\<bar>a\<bar> * r) \<subseteq> (\<lambda>x. a *\<^sub>R x) ` sphere c r" .
+  moreover have "(\<lambda>x. a *\<^sub>R x) ` sphere c r \<subseteq> sphere (a *\<^sub>R c) (\<bar>a\<bar> * r)"
+    using "*" by blast
+  ultimately show ?thesis by blast
+qed
+
+text \<open>As above, but scaled by a complex number\<close>
+lemma sphere_cscale:
+  assumes "a \<noteq> 0"
+  shows   "(\<lambda>x. a * x) ` sphere c r = sphere (a * c :: complex) (cmod a * r)"
+proof -
+  have *: "(\<lambda>x. a * x) ` sphere c r \<subseteq> sphere (a * c) (cmod a * r)" for a r c
+    using dist_mult_left by fastforce
+  have "sphere (a * c) (cmod a * r) = (\<lambda>x. a * x) ` (\<lambda>x. inverse a * x) ` sphere (a * c) (cmod a * r)"
+    by (simp add: image_image inverse_eq_divide)
+  also have "\<dots> \<subseteq> (\<lambda>x. a * x) ` sphere (inverse a * (a * c)) (cmod (inverse a) * (cmod a * r))"
+    using "*" by blast
+  also have "\<dots> = (\<lambda>x. a * x) ` sphere c r"
+    using assms by (simp add: field_simps flip: norm_mult)
+  finally have "sphere (a * c) (cmod a * r) \<subseteq> (\<lambda>x. a * x) ` sphere c r" .
+  moreover have "(\<lambda>x. a * x) ` sphere c r \<subseteq> sphere (a * c) (cmod a * r)"
+    using "*" by blast
   ultimately show ?thesis by blast
 qed
 
