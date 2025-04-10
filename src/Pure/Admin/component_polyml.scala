@@ -254,18 +254,18 @@ not affect the running ML session. *)
 
     /* download and build */
 
-    Isabelle_System.with_tmp_dir("download") { download_dir =>
+    Isabelle_System.with_tmp_dir("build") { build_dir =>
       /* GMP library */
 
       val gmp_root: Option[Path] =
         if (gmp_url.isEmpty) None
         else if (platform.is_windows) error("Bad GMP source for Windows: use MinGW version instead")
         else {
-          val gmp_dir = Isabelle_System.make_directory(download_dir + Path.basic("gmp"))
+          val gmp_dir = Isabelle_System.make_directory(build_dir + Path.basic("gmp"))
 
           val archive_name =
             Url.get_base_name(gmp_url).getOrElse(error("No base name in " + quote(gmp_url)))
-          val archive = download_dir + Path.basic(archive_name)
+          val archive = build_dir + Path.basic(archive_name)
           Isabelle_System.download_file(gmp_url, archive, progress = progress)
           Isabelle_System.extract(archive, gmp_dir, strip = true)
 
@@ -281,7 +281,7 @@ not affect the running ML session. *)
             List((polyml_url, polyml_version, "src"), (sha1_url, sha1_version, "sha1"))
         } yield {
           val remote = Url.append_path(url, version + ".tar.gz")
-          val download = download_dir + Path.basic(version)
+          val download = build_dir + Path.basic(version)
           Isabelle_System.download_file(remote, download.tar.gz, progress = progress)
           Isabelle_System.extract(download.tar.gz, download, strip = true)
           Isabelle_System.extract(
