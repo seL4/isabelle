@@ -119,8 +119,14 @@ object Component_PolyML {
         if (gmp_root.nonEmpty || platform.is_windows) List("--with-gmp")
         else List("--without-gmp")
 
+      def detect_CFLAGS(s: String): Boolean = s.startsWith("CFLAGS=")
+
+      val info_options =
+        if (info.options.exists(detect_CFLAGS)) info.options
+        else "CFLAGS=" :: info.options
+
       val options2 =
-        for (opt <- info.options) yield {
+        for (opt <- info_options) yield {
           if (opt.startsWith("CFLAGS=") && gmp_root.nonEmpty) {
             val root0 = gmp_root.get.absolute
             val root1 = platform_context.standard_path(root0)
@@ -136,8 +142,18 @@ object Component_PolyML {
         options1 ::: options2 ::: options ::: options3
     }
 
+    val gmp_setup =
+      gmp_root match {
+        case Some(dir) =>
+          val v = Executable.library_path_variable(platform)
+          val p = Isabelle_System.getenv(v)
+          val s = platform_context.standard_path(dir)
+          Bash.exports(v + "=" + s + if_proper(p, ":" + p))
+        case None => ""
+      }
+
     platform_context.execute(root,
-      info.setup,
+      info.setup + gmp_setup,
       "[ -f Makefile ] && make distclean",
       """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
       "rm -rf target",
@@ -173,7 +189,9 @@ object Component_PolyML {
     for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
     Executable.libraries_closure(
-      platform_dir + Path.basic("poly").platform_exe, mingw = platform_context.mingw,
+      platform_dir + Path.basic("poly").platform_exe,
+      env_prefix = gmp_setup,
+      mingw = platform_context.mingw,
       filter = info.libs)
 
 
