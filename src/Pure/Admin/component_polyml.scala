@@ -46,13 +46,14 @@ object Component_PolyML {
 
     def sha1: String = platform.arch_64 + "-" + platform.os_name
 
-    def bash(cwd: Path, script: String, redirect: Boolean = false): Process_Result = {
+    def execute(cwd: Path, script_lines: String*): Process_Result = {
+      val script = cat_lines("set -e" :: script_lines.toList)
       val script1 =
         if (platform.is_arm && platform.is_macos) {
           "arch -arch arm64 bash -c " + Bash.string(script)
         }
         else mingw.bash_script(script)
-      progress.bash(script1, cwd = cwd, redirect = redirect, echo = progress.verbose)
+      progress.bash(script1, cwd = cwd, echo = progress.verbose).check
     }
   }
 
@@ -105,16 +106,13 @@ object Component_PolyML {
         options1 ::: options2 ::: options ::: options3
     }
 
-    platform_context.bash(root,
-      Library.make_lines(
-        "set -e",
-        info.setup,
-        "[ -f Makefile ] && make distclean",
-        """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
-        "rm -rf target",
-        "make",
-        "make install"
-      ), redirect = true).check
+    platform_context.execute(root,
+      info.setup,
+      "[ -f Makefile ] && make distclean",
+      """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
+      "rm -rf target",
+      "make",
+      "make install")
 
 
     /* sha1 library */
@@ -122,7 +120,7 @@ object Component_PolyML {
     val sha1_files =
       if (sha1_root.isDefined) {
         val dir1 = sha1_root.get
-        platform_context.bash(dir1, "./build " + platform_context.sha1, redirect = true).check
+        platform_context.execute(dir1, "./build " + platform_context.sha1)
 
         val dir2 = dir1 + Path.explode(platform_context.sha1)
         File.read_dir(dir2).map(entry => dir2 + Path.basic(entry))
@@ -249,15 +247,12 @@ not affect the running ML session. *)
             else error("Bad platform " + platform)
 
           progress.echo("Building GMP library ...")
-          platform_context.bash(gmp_dir,
-            script = Library.make_lines(
-              "set -e",
-              "./configure --enable-cxx --build=" + platform_arch + "-" + platform_os +
-                """ --prefix="$PWD/target"""",
-              "make",
-              "make check",
-              "make install"
-            )).check
+          platform_context.execute(gmp_dir,
+            "./configure --enable-cxx --build=" + platform_arch + "-" + platform_os +
+              """ --prefix="$PWD/target"""",
+            "make",
+            "make check",
+            "make install")
 
           Some(gmp_dir + Path.explode("target"))
         }
