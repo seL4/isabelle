@@ -161,19 +161,15 @@ object Component_PolyML {
     /* install */
 
     val platform_path = Path.explode(platform_context.polyml(arch_64))
-
     val platform_dir = target_dir + platform_path
+
     Isabelle_System.rm_tree(platform_dir)
     Isabelle_System.make_directory(platform_dir)
 
-    val root_platform_dir = Isabelle_System.make_directory(root + platform_path)
-    for {
-      d <- List("target/bin", "target/lib")
-      dir = root + Path.explode(d)
-      entry <- File.read_dir(dir)
-    } Isabelle_System.move_file(dir + Path.explode(entry), root_platform_dir)
+    for (d <- List("target/bin", "target/lib")) {
+      Isabelle_System.copy_dir(root + Path.explode(d), platform_dir, direct = true)
+    }
 
-    Isabelle_System.copy_dir(root_platform_dir, platform_dir, direct = true)
     for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
     Executable.libraries_closure(
