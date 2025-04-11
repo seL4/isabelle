@@ -2810,7 +2810,7 @@ proof -
         by simp
     qed
     have "\<exists>!x \<in> ?D. ?u x = x"
-    proof (rule banach_fix)
+    proof (rule Banach_fix)
       show "cball 0 \<delta> \<noteq> {}"
         using \<open>0 < \<delta>\<close> by auto
       show "(\<lambda>x. x + (y - f x)) ` cball 0 \<delta> \<subseteq> cball 0 \<delta>"
