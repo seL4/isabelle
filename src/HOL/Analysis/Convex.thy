@@ -30,7 +30,7 @@ lemma convexD:
 
 lemma convex_alt: "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
   (is "_ \<longleftrightarrow> ?alt")
-  by (smt (verit) convexD convexI)
+  by (metis convex_def diff_eq_eq diff_ge_0_iff_ge)
 
 lemma convexD_alt:
   assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
@@ -1245,19 +1245,30 @@ next
     by (simp add: pos_divide_le_eq True)
 qed
 
+text \<open>The inequality between the arithmetic mean and the root mean square\<close>
 lemma sum_squared_le_sum_of_squares:
   fixes f :: "'a \<Rightarrow> real"
-  assumes "\<And>i. i\<in>I \<Longrightarrow> f i \<ge> 0" "finite I" "I \<noteq> {}"
+  assumes "finite I"
   shows "(\<Sum>i\<in>I. f i)\<^sup>2 \<le> (\<Sum>y\<in>I. (f y)\<^sup>2) * card I"
 proof (cases "finite I \<and> I \<noteq> {}")
   case True
-  have "(\<Sum>i\<in>I. f i / real (card I))\<^sup>2 \<le> (\<Sum>i\<in>I. (f i)\<^sup>2 / real (card I))"
-    using assms convex_on_sum [OF _ _ convex_power2, where a = "\<lambda>x. 1 / real(card I)" and S=I]
+  then have "(\<Sum>i\<in>I. f i / of_nat (card I))\<^sup>2 \<le> (\<Sum>i\<in>I. (f i)\<^sup>2 / of_nat (card I))"
+    using assms convex_on_sum [OF _ _ convex_power2, where a = "\<lambda>x. 1 / of_nat(card I)" and S=I]
     by simp
   then show ?thesis
     using assms  
     by (simp add: divide_simps power2_eq_square split: if_split_asm flip: sum_divide_distrib)
 qed auto
+
+lemma sum_squared_le_sum_of_squares_2:
+  "(x+y)/2 \<le> sqrt ((x\<^sup>2 + y\<^sup>2) / 2)"
+proof -
+  have "(x + y)\<^sup>2 / 2^2 \<le> (x\<^sup>2 + y\<^sup>2) / 2"
+    using sum_squared_le_sum_of_squares [of UNIV "\<lambda>b. if b then x else y"]
+    by (simp add: UNIV_bool add.commute)
+  then show ?thesis
+    by (metis power_divide real_le_rsqrt)
+qed
 
 subsection \<open>Misc related lemmas\<close>
 
