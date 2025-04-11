@@ -271,8 +271,7 @@ next
     next
       case True
       then show ?thesis
-        using *[rule_format, of "{x, y}" "\<lambda> z. 1"] **
-        by (auto simp: field_simps real_vector.scale_left_diff_distrib)
+        by (simp add: "**")
     qed
   qed
 qed
@@ -607,12 +606,8 @@ qed
 
 lemma convex_translation:
   "convex ((+) a ` S)" if "convex S"
-proof -
-  have "(\<Union> x\<in> {a}. \<Union>y \<in> S. {x + y}) = (+) a ` S"
-    by auto
-  then show ?thesis
-    using convex_sums [OF convex_singleton [of a] that] by auto
-qed
+  using convex_sums [OF convex_singleton [of a] that]
+  by (simp add: UNION_singleton_eq_range)
 
 lemma convex_translation_subtract:
   "convex ((\<lambda>b. b - a) ` S)" if "convex S"
@@ -1248,15 +1243,13 @@ qed
 text \<open>The inequality between the arithmetic mean and the root mean square\<close>
 lemma sum_squared_le_sum_of_squares:
   fixes f :: "'a \<Rightarrow> real"
-  assumes "finite I"
   shows "(\<Sum>i\<in>I. f i)\<^sup>2 \<le> (\<Sum>y\<in>I. (f y)\<^sup>2) * card I"
 proof (cases "finite I \<and> I \<noteq> {}")
   case True
   then have "(\<Sum>i\<in>I. f i / of_nat (card I))\<^sup>2 \<le> (\<Sum>i\<in>I. (f i)\<^sup>2 / of_nat (card I))"
-    using assms convex_on_sum [OF _ _ convex_power2, where a = "\<lambda>x. 1 / of_nat(card I)" and S=I]
+    using convex_on_sum [OF _ _ convex_power2, where a = "\<lambda>x. 1 / of_nat(card I)" and S=I]
     by simp
-  then show ?thesis
-    using assms  
+  with True show ?thesis
     by (simp add: divide_simps power2_eq_square split: if_split_asm flip: sum_divide_distrib)
 qed auto
 
@@ -1264,7 +1257,7 @@ lemma sum_squared_le_sum_of_squares_2:
   "(x+y)/2 \<le> sqrt ((x\<^sup>2 + y\<^sup>2) / 2)"
 proof -
   have "(x + y)\<^sup>2 / 2^2 \<le> (x\<^sup>2 + y\<^sup>2) / 2"
-    using sum_squared_le_sum_of_squares [of UNIV "\<lambda>b. if b then x else y"]
+    using sum_squared_le_sum_of_squares [of "\<lambda>b. if b then x else y" UNIV]
     by (simp add: UNIV_bool add.commute)
   then show ?thesis
     by (metis power_divide real_le_rsqrt)
@@ -1291,8 +1284,11 @@ lemma vector_choose_size:
 proof -
   obtain a::'a where "a \<noteq> 0"
     using UNIV_not_singleton UNIV_eq_I set_zero singletonI by fastforce
-  then show ?thesis
-    by (rule_tac x="scaleR (c / norm a) a" in that) (simp add: assms)
+  show ?thesis
+  proof
+    show "norm (scaleR (c / norm a) a) = c"
+      by (simp add: \<open>a \<noteq> 0\<close> assms)
+  qed
 qed
 
 lemma vector_choose_dist:
