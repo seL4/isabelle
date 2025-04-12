@@ -90,10 +90,7 @@ qed
 end
 
 lemma module_prod_scale_eq_scaleR: "module_prod.scale (*\<^sub>R) (*\<^sub>R) = scaleR"
-  apply (rule ext) apply (rule ext)
-  apply (subst module_prod.scale_def)
-  subgoal by unfold_locales
-  by (simp add: scaleR_prod_def)
+  using module_pair_axioms module_prod.scale_def module_prod_def by fastforce
 
 interpretation real_vector?: vector_space_prod "scaleR::_\<Rightarrow>_\<Rightarrow>'a::real_vector" "scaleR::_\<Rightarrow>_\<Rightarrow>'b::real_vector"
   rewrites "scale = ((*\<^sub>R)::_\<Rightarrow>_\<Rightarrow>('a \<times> 'b))"
@@ -166,8 +163,8 @@ proof standard
       then have \<open>\<forall>\<^sub>F ((x'1, y1), (x'2, y2)) in uniformity \<times>\<^sub>F uniformity. (x'1,x'2) = x \<longrightarrow> (y1,y2) \<in> U\<close>
         by (simp add: uniformity_prod_def eventually_filtermap case_prod_unfold)
       then obtain UA UB where \<open>eventually UA uniformity\<close> and \<open>eventually UB uniformity\<close>
-               and UA_UB_U: \<open>UA (a1, a2) \<Longrightarrow> UB (b1, b2) \<Longrightarrow> (a1, b1) = x \<Longrightarrow> (a2, b2) \<in> U\<close> for a1 a2 b1 b2
-        apply atomize_elim by (simp add: case_prod_beta eventually_prod_filter)
+           and UA_UB_U: \<open>UA (a1, a2) \<Longrightarrow> UB (b1, b2) \<Longrightarrow> (a1, b1) = x \<Longrightarrow> (a2, b2) \<in> U\<close> for a1 a2 b1 b2
+         by (force simp: case_prod_beta eventually_prod_filter)
       have \<open>eventually (\<lambda>a. UA (fst x, a)) (nhds (fst x))\<close>
         using \<open>eventually UA uniformity\<close> eventually_mono eventually_nhds_uniformity by fastforce
       then obtain A where \<open>open A\<close> and A_UA: \<open>A \<subseteq> {a. UA (fst x, a)}\<close> and \<open>fst x \<in> A\<close>
@@ -190,11 +187,13 @@ next
     by (metis surj_pair uniformity_refl)
 next
   show \<open>eventually E uniformity \<Longrightarrow> \<forall>\<^sub>F (x::'a\<times>'b, y) in uniformity. E (y, x)\<close> for E
-    apply (simp only: uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter)
-    apply (erule exE, erule exE, rename_tac Pf Pg)
-    apply (rule_tac x=\<open>\<lambda>(x,y). Pf (y,x)\<close> in exI)
-    apply (rule_tac x=\<open>\<lambda>(x,y). Pg (y,x)\<close> in exI)
-    by (auto simp add: uniformity_sym)
+    unfolding uniformity_prod_def eventually_filtermap case_prod_unfold eventually_prod_filter
+    apply clarify
+    subgoal for Pf Pg
+      apply (rule_tac x=\<open>\<lambda>(x,y). Pf (y,x)\<close> in exI)
+      apply (rule_tac x=\<open>\<lambda>(x,y). Pg (y,x)\<close> in exI)
+      by (auto simp add: uniformity_sym)
+    done
 next
   show \<open>\<exists>D. eventually D uniformity \<and> (\<forall>x y z. D (x::'a\<times>'b, y) \<longrightarrow> D (y, z) \<longrightarrow> E (x, z))\<close> 
     if \<open>eventually E uniformity\<close> for E
@@ -224,11 +223,11 @@ lemma (in uniform_space) nhds_eq_comap_uniformity: "nhds x = filtercomap (\<lamb
 proof -
   have *: "eventually P (filtercomap (\<lambda>y. (x, y)) F) \<longleftrightarrow>
            eventually (\<lambda>z. fst z = x \<longrightarrow> P (snd z)) F" for P :: "'a \<Rightarrow> bool" and F
-    unfolding eventually_filtercomap  
-    by (smt (verit) eventually_elim2 fst_conv prod.collapse snd_conv)
+    unfolding eventually_filtercomap
+    by (smt (verit, best) eventually_mono split_pairs2)  
   thus ?thesis
-    unfolding filter_eq_iff
-    by (subst *) (auto simp: eventually_nhds_uniformity case_prod_unfold)
+    unfolding filter_eq_iff *
+    by (auto simp: eventually_nhds_uniformity case_prod_unfold)
 qed
 
 lemma uniformity_of_uniform_continuous_invariant:
@@ -356,8 +355,7 @@ proof
     have 1: \<open>\<exists>e\<in>{0<..}.
               {(x,y). dist x y < e} \<subseteq> {(x,y). dist x y < a} \<and>
               {(x,y). dist x y < e} \<subseteq> {(x,y). dist x y < b}\<close> if \<open>a>0\<close> \<open>b>0\<close> for a b
-      apply (rule bexI[of _ \<open>min a b\<close>])
-      using that by auto
+      using that by (auto intro: bexI[of _ \<open>min a b\<close>])
     have 2: \<open>mono (\<lambda>P. eventually (\<lambda>x. P (Q x)) F)\<close> for F :: \<open>'z filter\<close> and Q :: \<open>'z \<Rightarrow> 'y\<close>
       unfolding mono_def using eventually_mono le_funD by fastforce
     have \<open>\<forall>\<^sub>F ((x1::'a,y1),(x2::'b,y2)) in uniformity \<times>\<^sub>F uniformity. dist x1 y1 < e/2 \<and> dist x2 y2 < e/2\<close> if \<open>e>0\<close> for e
@@ -383,17 +381,18 @@ proof
     have \<open>e > 0\<close>
       using \<open>0 < e1\<close> \<open>0 < e2\<close> e_def by auto
     have \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> dist x1 y1 < e1\<close> for x1 y1 :: 'a and x2 y2 :: 'b
-      unfolding dist_prod_def e_def apply auto
-      by (smt (verit, best) real_sqrt_sum_squares_ge1)
+      unfolding dist_prod_def e_def
+      by (metis real_sqrt_sum_squares_ge1 fst_conv min_less_iff_conj order_le_less_trans snd_conv)
     moreover have \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> dist x2 y2 < e2\<close> for x1 y1 :: 'a and x2 y2 :: 'b
-      unfolding dist_prod_def e_def apply auto
-      by (smt (verit, best) real_sqrt_sum_squares_ge1)
+      unfolding dist_prod_def e_def
+      using real_sqrt_sum_squares_ge1 [of "dist x1 y1" "dist x2 y2"]
+      by (metis min_less_iff_conj order_le_less_trans real_sqrt_sum_squares_ge2 snd_conv)
     ultimately have *: \<open>dist (x1,x2) (y1,y2) < e \<Longrightarrow> P ((x1, x2), (y1, y2))\<close> for x1 y1 x2 y2
       using e1P1 e2P2 P1P2P by auto
 
     show \<open>eventually P (INF e\<in>{0<..}. principal {(x, y). dist x y < e})\<close>
-       apply (rule eventually_INF1[where i=e])
-      using \<open>e > 0\<close> * by (auto simp: eventually_principal)
+      using \<open>e > 0\<close> * 
+      by (auto simp: eventually_principal intro: eventually_INF1)
   qed
 qed
 end
@@ -421,8 +420,8 @@ next
   fix x y z :: "'a \<times> 'b"
   show "dist x y \<le> dist x z + dist y z"
     unfolding dist_prod_def
-    by (intro order_trans [OF _ real_sqrt_sum_squares_triangle_ineq]
-        real_sqrt_le_mono add_mono power_mono dist_triangle2 zero_le_dist)
+    by (meson add_mono dist_triangle2 order_trans power_mono real_sqrt_le_iff
+        real_sqrt_sum_squares_triangle_ineq zero_le_dist)
 next
   fix S :: "('a \<times> 'b) set"
   have *: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
@@ -525,8 +524,8 @@ proof (unfold uniformly_continuous_on_def, intro iffI impI allI)
     by auto
   show \<open>\<exists>d>0. \<forall>x\<in>S\<times>T. \<forall>y\<in>S\<times>T. dist y x < d \<longrightarrow> dist (f y) (f x) < e\<close>
     apply (rule exI[of _ d])
-    using \<open>d>0\<close> d[rule_format] apply auto
-    by (smt (verit, del_insts) dist_fst_le dist_snd_le fst_conv snd_conv)
+    by (metis SigmaE \<open>0 < d\<close> d dist_fst_le dist_snd_le fst_eqD order_le_less_trans
+        snd_conv)
 next
   fix e :: real 
   assume \<open>e > 0\<close> and \<open>\<forall>e>0. \<exists>d>0. \<forall>x\<in>S\<times>T. \<forall>x'\<in>S\<times>T. dist x' x < d \<longrightarrow> dist (f x') (f x) < e\<close>
@@ -559,8 +558,9 @@ proof (rule isUCont_prod_metric[THEN iffD2], intro allI impI, simp)
   fix e :: real assume \<open>0 < e\<close>
   show \<open>\<exists>d>0. \<forall>x y :: 'a. dist x y < d \<longrightarrow> (\<forall>x' y'. dist x' y' < d \<longrightarrow> dist (x + x') (y + y') < e)\<close>
     apply (rule exI[of _ \<open>e/2\<close>])
-    using \<open>0 < e\<close> apply auto
-    by (smt (verit, ccfv_SIG) dist_add_cancel dist_add_cancel2 dist_commute dist_triangle_lt)
+    using \<open>0 < e\<close>
+    by (smt (verit) dist_add_cancel dist_add_cancel2 dist_commute 
+        dist_triangle_lt field_sum_of_halves)
 qed
 
 subsection \<open>Product is a Complete Metric Space\<close>
@@ -607,10 +607,7 @@ proof
     done
   show "norm (scaleR r x) = \<bar>r\<bar> * norm x"
     unfolding norm_prod_def
-    apply (simp add: power_mult_distrib)
-    apply (simp add: distrib_left [symmetric])
-    apply (simp add: real_sqrt_mult)
-    done
+    by (simp add: power_mult_distrib real_sqrt_mult flip: distrib_left)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule sgn_prod_def)
   show "dist x y = norm (x - y)"
@@ -654,13 +651,10 @@ proof
     using f.pos_bounded by fast
   obtain Kg where "0 < Kg" and norm_g: "\<And>x. norm (g x) \<le> norm x * Kg"
     using g.pos_bounded by fast
-  have "\<forall>x. norm (f x, g x) \<le> norm x * (Kf + Kg)"
-    apply (rule allI)
-    apply (simp add: norm_Pair)
-    apply (rule order_trans [OF sqrt_add_le_add_sqrt], simp, simp)
-    apply (simp add: distrib_left)
-    apply (rule add_mono [OF norm_f norm_g])
-    done
+  have "\<And>x. sqrt ((norm (f x))\<^sup>2) + sqrt ((norm (g x))\<^sup>2) \<le> norm x * (Kf + Kg)"
+    by (simp add: add_mono distrib_left norm_f norm_g)
+  then have "\<forall>x. norm (f x, g x) \<le> norm x * (Kf + Kg)"
+    by (smt (verit) norm_ge_zero norm_prod_def prod.sel sqrt_add_le_add_sqrt zero_le_power)
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
 qed
 
@@ -730,44 +724,50 @@ lemma norm_Pair_le:
   by (metis norm_ge_zero sqrt_sum_squares_le_sum)
 
 lemma (in vector_space_prod) span_Times_sing1: "p.span ({0} \<times> B) = {0} \<times> vs2.span B"
-  apply (rule p.span_unique)
-  subgoal by (auto intro!: vs1.span_base vs2.span_base)
-  subgoal using vs1.subspace_single_0 vs2.subspace_span by (rule subspace_Times)
-  subgoal for T
-  proof safe
+proof (rule p.span_unique)
+  show "{0} \<times> B \<subseteq> {0} \<times> vs2.span B"
+    by (auto intro!: vs1.span_base vs2.span_base)
+  show "p.subspace ({0} \<times> vs2.span B)"
+    using vs1.subspace_single_0 vs2.subspace_span by (rule subspace_Times)
+  fix T :: "('b \<times> 'c) set"
+  assume subset_T: "{0} \<times> B \<subseteq> T" and subspace: "p.subspace T" 
+  show "{0} \<times> vs2.span B \<subseteq> T"
+  proof clarify
     fix b
-    assume subset_T: "{0} \<times> B \<subseteq> T" and subspace: "p.subspace T" and b_span: "b \<in> vs2.span B"
+    assume b_span: "b \<in> vs2.span B"
     then obtain t r where b: "b = (\<Sum>a\<in>t. r a *b a)" and t: "finite t" "t \<subseteq> B"
       by (auto simp: vs2.span_explicit)
     have "(0, b) = (\<Sum>b\<in>t. scale (r b) (0, b))"
-      unfolding b scale_prod sum_prod
-      by simp
+      unfolding b scale_prod sum_prod by simp
     also have "\<dots> \<in> T"
       using \<open>t \<subseteq> B\<close> subset_T
       by (auto intro!: p.subspace_sum p.subspace_scale subspace)
     finally show "(0, b) \<in> T" .
   qed
-  done
+qed
 
 lemma (in vector_space_prod) span_Times_sing2: "p.span (A \<times> {0}) = vs1.span A \<times> {0}"
-  apply (rule p.span_unique)
-  subgoal by (auto intro!: vs1.span_base vs2.span_base)
-  subgoal using vs1.subspace_span vs2.subspace_single_0 by (rule subspace_Times)
-  subgoal for T
-  proof safe
+proof (rule p.span_unique)
+  show "A \<times> {0} \<subseteq> vs1.span A \<times> {0}"
+    by (auto intro!: vs1.span_base vs2.span_base)
+  show "p.subspace (vs1.span A \<times> {0})"
+    using vs1.subspace_span vs2.subspace_single_0 by (rule subspace_Times)
+  fix T :: "('b \<times> 'c) set"
+  assume subset_T: "A \<times> {0} \<subseteq> T" and subspace: "p.subspace T"
+  show "vs1.span A \<times> {0} \<subseteq> T"
+  proof clarify
     fix a
-    assume subset_T: "A \<times> {0} \<subseteq> T" and subspace: "p.subspace T" and a_span: "a \<in> vs1.span A"
+    assume a_span: "a \<in> vs1.span A"
     then obtain t r where a: "a = (\<Sum>a\<in>t. r a *a a)" and t: "finite t" "t \<subseteq> A"
       by (auto simp: vs1.span_explicit)
     have "(a, 0) = (\<Sum>a\<in>t. scale (r a) (a, 0))"
-      unfolding a scale_prod sum_prod
-      by simp
+      unfolding a scale_prod sum_prod by simp
     also have "\<dots> \<in> T"
       using \<open>t \<subseteq> A\<close> subset_T
       by (auto intro!: p.subspace_sum p.subspace_scale subspace)
     finally show "(a, 0) \<in> T" .
   qed
-  done
+qed
 
 subsection \<open>Product is Finite Dimensional\<close>
 

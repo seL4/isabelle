@@ -66,11 +66,8 @@ lemma L2_set_right_distrib:
 
 lemma L2_set_left_distrib:
   "0 \<le> r \<Longrightarrow> L2_set f A * r = L2_set (\<lambda>x. f x * r) A"
-  unfolding L2_set_def
-  apply (simp add: power_mult_distrib)
-  apply (simp add: sum_distrib_right [symmetric])
-  apply (simp add: real_sqrt_mult sum_nonneg)
-  done
+  unfolding L2_set_def power_mult_distrib
+  by (simp add: real_sqrt_mult sum_nonneg flip: sum_distrib_right)
 
 lemma L2_set_eq_0_iff: "finite A \<Longrightarrow> L2_set f A = 0 \<longleftrightarrow> (\<forall>x\<in>A. f x = 0)"
   unfolding L2_set_def
@@ -101,44 +98,36 @@ next
   qed
 qed
 
-lemma L2_set_le_sum [rule_format]:
-  "(\<forall>i\<in>A. 0 \<le> f i) \<longrightarrow> L2_set f A \<le> sum f A"
-  apply (cases "finite A")
-  apply (induct set: finite)
-  apply simp
-  apply clarsimp
-  apply (erule order_trans [OF sqrt_sum_squares_le_sum])
-  apply simp
-  apply simp
-  apply simp
-  done
+lemma L2_set_le_sum:
+  "(\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> L2_set f A \<le> sum f A"
+proof (induction A rule: infinite_finite_induct)
+  case (insert a A)
+  with order_trans [OF sqrt_sum_squares_le_sum] show ?case by force
+qed auto
 
 lemma L2_set_le_sum_abs: "L2_set f A \<le> (\<Sum>i\<in>A. \<bar>f i\<bar>)"
-  apply (cases "finite A")
-  apply (induct set: finite)
-  apply simp
-  apply simp
-  apply (rule order_trans [OF sqrt_sum_squares_le_sum_abs])
-  apply simp
-  apply simp
-  done
+proof (induction A rule: infinite_finite_induct)
+  case (insert a A)
+  with order_trans [OF sqrt_sum_squares_le_sum_abs] show ?case by force
+qed auto
 
 lemma L2_set_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le> L2_set f A * L2_set g A"
-  apply (cases "finite A")
-  apply (induct set: finite)
-  apply simp
-  apply (rule power2_le_imp_le, simp)
-  apply (rule order_trans)
-  apply (rule power_mono)
-  apply (erule add_left_mono)
-  apply (simp add: sum_nonneg)
-  apply (simp add: power2_sum)
-  apply (simp add: power_mult_distrib)
-  apply (simp add: distrib_left distrib_right)
-  apply (rule ord_le_eq_trans)
-  apply (rule L2_set_mult_ineq_lemma)
-  apply simp_all
-  done
+proof (induction A rule: infinite_finite_induct)
+  case (insert a A)
+  have "(\<bar>f a\<bar> * \<bar>g a\<bar> + (\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>))\<^sup>2
+      \<le> (\<bar>f a\<bar> * \<bar>g a\<bar> + L2_set f A * L2_set g A)\<^sup>2"
+    by (simp add: insert.IH sum_nonneg)
+  also have "... \<le> ((f a)\<^sup>2 + (L2_set f A)\<^sup>2) * ((g a)\<^sup>2 + (L2_set g A)\<^sup>2)"
+    using L2_set_mult_ineq_lemma [of "L2_set f A" "L2_set g A" "\<bar>f a\<bar>" "\<bar>g a\<bar>"]
+    by (simp add: power2_eq_square algebra_simps)
+  also have "... = (sqrt ((f a)\<^sup>2 + (L2_set f A)\<^sup>2) * sqrt ((g a)\<^sup>2 + (L2_set g A)\<^sup>2))\<^sup>2"
+    using real_sqrt_mult real_sqrt_sum_squares_mult_squared_eq by presburger
+  finally have "(\<bar>f a\<bar> * \<bar>g a\<bar> + (\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>))\<^sup>2
+              \<le> (sqrt ((f a)\<^sup>2 + (L2_set f A)\<^sup>2) * sqrt ((g a)\<^sup>2 + (L2_set g A)\<^sup>2))\<^sup>2" .
+  then
+  show ?case
+    using power2_le_imp_le insert.hyps by fastforce
+qed auto
 
 lemma member_le_L2_set: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> f i \<le> L2_set f A"
   unfolding L2_set_def

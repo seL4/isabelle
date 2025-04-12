@@ -87,6 +87,9 @@ lemma inner_gt_zero_iff [simp]: "0 < inner x x \<longleftrightarrow> x \<noteq> 
 lemma power2_norm_eq_inner: "(norm x)\<^sup>2 = inner x x"
   by (simp add: norm_eq_sqrt_inner)
 
+lemma dot_square_norm: "inner x x = (norm x)\<^sup>2"
+  by (metis power2_norm_eq_inner) 
+
 text \<open>Identities involving real multiplication and division.\<close>
 
 lemma inner_mult_left: "inner (of_real m * a) b = m * (inner a b)"
@@ -143,15 +146,15 @@ proof
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_eq_sqrt_inner by simp
   show "norm (x + y) \<le> norm x + norm y"
-    proof (rule power2_le_imp_le)
-      have "inner x y \<le> norm x * norm y"
-        by (rule norm_cauchy_schwarz)
-      thus "(norm (x + y))\<^sup>2 \<le> (norm x + norm y)\<^sup>2"
-        unfolding power2_sum power2_norm_eq_inner
-        by (simp add: inner_add inner_commute)
-      show "0 \<le> norm x + norm y"
-        unfolding norm_eq_sqrt_inner by simp
-    qed
+  proof (rule power2_le_imp_le)
+    have "inner x y \<le> norm x * norm y"
+      by (rule norm_cauchy_schwarz)
+    thus "(norm (x + y))\<^sup>2 \<le> (norm x + norm y)\<^sup>2"
+      unfolding power2_sum power2_norm_eq_inner
+      by (simp add: inner_add inner_commute)
+    show "0 \<le> norm x + norm y"
+      unfolding norm_eq_sqrt_inner by simp
+  qed
   have "sqrt (a\<^sup>2 * inner x x) = \<bar>a\<bar> * sqrt (inner x x)"
     by (simp add: real_sqrt_mult)
   then show "norm (a *\<^sub>R x) = \<bar>a\<bar> * norm x"
@@ -184,9 +187,7 @@ lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
   by (simp add: norm_eq_sqrt_inner)
 
 lemma norm_eq: "norm x = norm y \<longleftrightarrow> inner x x = inner y y"
-  apply (subst order_eq_iff)
-  apply (auto simp: norm_le)
-  done
+  by (simp add: norm_eq_sqrt_inner)
 
 lemma norm_eq_1: "norm x = 1 \<longleftrightarrow> inner x x = 1"
   by (simp add: norm_eq_sqrt_inner)
@@ -231,10 +232,7 @@ proof
   show "inner x (scaleR r y) = scaleR r (inner x y)"
     unfolding real_scaleR_def by (rule inner_scaleR_right)
   show "\<exists>K. \<forall>x y::'a. norm (inner x y) \<le> norm x * norm y * K"
-  proof
-    show "\<forall>x y::'a. norm (inner x y) \<le> norm x * norm y * 1"
-      by (simp add: Cauchy_Schwarz_ineq2)
-  qed
+    by (metis Cauchy_Schwarz_ineq2 mult.commute mult_1 real_norm_def)
 qed
 
 lemmas tendsto_inner [tendsto_intros] =
@@ -337,7 +335,6 @@ lemma complex_inner_i_left [simp]: "inner \<i> x = Im x"
 lemma complex_inner_i_right [simp]: "inner x \<i> = Im x"
   unfolding inner_complex_def by simp
 
-
 lemma dot_square_norm: "inner x x = (norm x)\<^sup>2"
   by (simp only: power2_norm_eq_inner) (* TODO: move? *)
 
@@ -345,16 +342,10 @@ lemma norm_eq_square: "norm x = a \<longleftrightarrow> 0 \<le> a \<and> inner x
   by (auto simp add: norm_eq_sqrt_inner)
 
 lemma norm_le_square: "norm x \<le> a \<longleftrightarrow> 0 \<le> a \<and> inner x x \<le> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
+  by (metis norm_eq_sqrt_inner norm_ge_zero order_trans real_le_lsqrt sqrt_le_D)
 
 lemma norm_ge_square: "norm x \<ge> a \<longleftrightarrow> a \<le> 0 \<or> inner x x \<ge> a\<^sup>2"
-  apply (simp add: dot_square_norm abs_le_square_iff[symmetric])
-  using norm_ge_zero[of x]
-  apply arith
-  done
+  by (metis nle_le norm_eq_square norm_le_square)
 
 lemma norm_lt_square: "norm x < a \<longleftrightarrow> 0 < a \<and> inner x x < a\<^sup>2"
   by (metis not_le norm_ge_square)
@@ -368,11 +359,10 @@ lemmas inner_simps = inner_add_left inner_add_right inner_diff_right inner_diff_
   inner_scaleR_left inner_scaleR_right
 
 lemma dot_norm: "inner x y = ((norm (x + y))\<^sup>2 - (norm x)\<^sup>2 - (norm y)\<^sup>2) / 2"
-  by (simp only: power2_norm_eq_inner inner_simps inner_commute) auto
+  by (auto simp: power2_norm_eq_inner inner_simps inner_commute) 
 
 lemma dot_norm_neg: "inner x y = (((norm x)\<^sup>2 + (norm y)\<^sup>2) - (norm (x - y))\<^sup>2) / 2"
-  by (simp only: power2_norm_eq_inner inner_simps inner_commute)
-    (auto simp add: algebra_simps)
+  by (auto simp: power2_norm_eq_inner inner_simps inner_commute)
 
 lemma of_real_inner_1 [simp]: 
   "inner (of_real x) (1 :: 'a :: {real_inner, real_normed_algebra_1}) = x"
@@ -403,9 +393,7 @@ lemma GDERIV_DERIV_compose:
     "\<lbrakk>GDERIV f x :> df; DERIV g (f x) :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. g (f x)) x :> scaleR dg df"
   unfolding gderiv_def has_field_derivative_def
-  apply (drule (1) has_derivative_compose)
-  apply (simp add: ac_simps)
-  done
+  using has_derivative_compose by fastforce
 
 lemma has_derivative_subst: "\<lbrakk>FDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> FDERIV f x :> d"
   by simp
@@ -434,11 +422,7 @@ lemma GDERIV_scaleR:
     "\<lbrakk>DERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. scaleR (f x) (g x)) x
       :> (scaleR (f x) dg + scaleR df (g x))"
-  unfolding gderiv_def has_field_derivative_def inner_add_right inner_scaleR_right
-  apply (rule has_derivative_subst)
-  apply (erule (1) has_derivative_scaleR)
-  apply (simp add: ac_simps)
-  done
+  by (simp add: DERIV_mult')
 
 lemma GDERIV_mult:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
