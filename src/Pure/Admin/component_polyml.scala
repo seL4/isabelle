@@ -218,7 +218,9 @@ object Component_PolyML {
 
   /** skeleton for component **/
 
-  val standard_gmp_url = "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
+  def default_gmp_url: String =
+    if (Platform.is_windows) ""
+    else "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
 
   val default_polyml_url = "https://github.com/polyml/polyml/archive"
   val default_polyml_version = "90c0dbb2514e"
@@ -382,11 +384,11 @@ follows:
 
 * Linux and macOS
 
-  $ isabelle component_polyml -G:
+  $ isabelle component_polyml
 
 * Windows (Cygwin shell)
 
-  $ isabelle component_polyml -G: -M /cygdrive/c/msys64
+  $ isabelle component_polyml -M /cygdrive/c/msys64
 
 
         Makarius
@@ -477,7 +479,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var gmp_url = ""
+        var gmp_url = default_gmp_url
         var mingw = MinGW.none
         var component_name = ""
         var sha1_url = default_sha1_url
@@ -492,8 +494,8 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -G URL       build GMP library from source: explicit URL or ":" for
-                 """ + standard_gmp_url + """
+    -G URL       GMP library source archive, or "" for none (--without-gmp)
+                 (default """ + quote(default_gmp_url) + """)
     -M DIR       msys/mingw root specification for Windows
     -N NAME      component name (default: derived from Poly/ML version)
     -S URL       SHA1 repository archive area
@@ -509,7 +511,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
   CONFIGURE_OPTIONS.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "G:" -> (arg => gmp_url = if (arg == ":") standard_gmp_url else arg),
+          "G:" -> (arg => gmp_url = arg),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "N:" -> (arg => component_name = arg),
           "S:" -> (arg => sha1_url = arg),
