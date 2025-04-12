@@ -90,6 +90,7 @@ object Component_PolyML {
       "make check",
       "make install")
 
+    progress.echo("GMP installation directory: " + target_dir)
     target_dir
   }
 
@@ -312,7 +313,7 @@ not affect the running ML session. *)
       init_src_root(component_dir.src, "RootX86.ML", "ROOT.ML")
 
       for (arch_64 <- List(false, true)) {
-        progress.echo("Building " + platform_context.polyml(arch_64))
+        progress.echo("Building Poly/ML " + platform_context.polyml(arch_64))
         make_polyml(
           platform_context,
           root = polyml_download,
