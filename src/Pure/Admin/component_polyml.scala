@@ -252,6 +252,7 @@ not affect the running ML session. *)
     options: List[String] = Nil,
     component_name: String = "",
     gmp_url: String = "",
+    gmp_root: Option[Path] = None,
     polyml_url: String = default_polyml_url,
     polyml_version: String = default_polyml_version,
     polyml_name: String = default_polyml_name,
@@ -275,8 +276,8 @@ not affect the running ML session. *)
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       /* GMP library */
 
-      val gmp_root: Option[Path] =
-        if (gmp_url.isEmpty) None
+      val gmp_root1: Option[Path] =
+        if (gmp_url.isEmpty) gmp_root
         else if (platform.is_windows) error("Bad GMP source for Windows: use MinGW version instead")
         else {
           val gmp_dir = Isabelle_System.make_directory(build_dir + Path.basic("gmp"))
@@ -315,7 +316,7 @@ not affect the running ML session. *)
         make_polyml(
           platform_context,
           root = polyml_download,
-          gmp_root = gmp_root,
+          gmp_root = gmp_root1,
           sha1_root = Some(sha1_download),
           target_dir = component_dir.path,
           arch_64 = arch_64,
@@ -487,6 +488,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var polyml_url = default_polyml_url
         var polyml_version = default_polyml_version
         var polyml_name = default_polyml_name
+        var gmp_root: Option[Path] = None
         var verbose = false
 
         val getopts = Getopts("""
@@ -494,7 +496,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -G URL       GMP library source archive, or "" for none (--without-gmp)
+    -G URL       build GMP library from source (overrides option -g)
                  (default """ + quote(default_gmp_url) + """)
     -M DIR       msys/mingw root specification for Windows
     -N NAME      component name (default: derived from Poly/ML version)
@@ -505,13 +507,14 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
                  (default: """ + quote(default_polyml_url) + """)
     -V VERSION   Poly/ML version (default: """ + quote(default_polyml_version) + """)
     -W NAME      Poly/ML name (default: """ + quote(default_polyml_name) + """)
+    -g DIR       use existing GMP library (overrides option -G)
     -v           verbose
 
   Download and build Poly/ML component from source repositories, with additional
   CONFIGURE_OPTIONS.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "G:" -> (arg => gmp_url = arg),
+          "G:" -> (arg => { gmp_url = arg; gmp_root = None }),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "N:" -> (arg => component_name = arg),
           "S:" -> (arg => sha1_url = arg),
@@ -519,6 +522,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
           "U:" -> (arg => polyml_url = arg),
           "V:" -> (arg => polyml_version = arg),
           "W:" -> (arg => polyml_name = arg),
+          "g:" -> (arg => { gmp_root = Some(Path.explode(arg)); gmp_url = "" }),
           "v" -> (_ => verbose = true))
 
         val options = getopts(args)
@@ -527,8 +531,8 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
         val platform_context = Platform_Context(mingw = mingw, progress = progress)
 
         build_polyml(platform_context, options = options, component_name = component_name,
-          gmp_url = gmp_url, polyml_url = polyml_url, polyml_version = polyml_version,
-          polyml_name = polyml_name, sha1_url = sha1_url, sha1_version = sha1_version,
-          target_dir = target_dir)
+          gmp_url = gmp_url, gmp_root = gmp_root, polyml_url = polyml_url,
+          polyml_version = polyml_version, polyml_name = polyml_name, sha1_url = sha1_url,
+          sha1_version = sha1_version, target_dir = target_dir)
       })
 }
