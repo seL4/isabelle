@@ -84,8 +84,8 @@ object Component_PolyML {
       "[ -f Makefile ] && make distclean",
       "./configure --disable-static --enable-shared --enable-cxx" +
         " --build=" + platform_arch + "-" + platform_os +
-        " --prefix=" + Bash.string(platform_context.standard_path(target_dir)) +
-        if_proper(options, " " + Bash.strings(options)),
+        """ --prefix="$PWD/target" """ + Bash.strings(options),
+      "rm -rf target",
       "make",
       "make check",
       "make install")
