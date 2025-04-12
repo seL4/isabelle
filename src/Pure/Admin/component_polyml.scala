@@ -90,6 +90,12 @@ object Component_PolyML {
       "make check",
       "make install")
 
+    if (platform.is_windows) {
+      val bin_dir = target_dir + Path.explode("bin")
+      val lib_dir = target_dir + Path.explode("lib")
+      Isabelle_System.copy_dir(bin_dir, lib_dir, direct = true)
+    }
+
     progress.echo("GMP installation directory: " + target_dir)
     target_dir
   }
