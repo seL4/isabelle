@@ -17,28 +17,32 @@ object Component_PolyML {
     setup: String = "",
     libs: Set[String] = Set.empty)
 
-  private val platform_info = Map(
-    "linux" ->
-      Platform_Info(
-        options = List("LDFLAGS=-Wl,-rpath,_DUMMY_"),
-        libs = Set("libgmp")),
-    "darwin" ->
-      Platform_Info(
-        options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
-        setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
-        libs = Set("libpolyml", "libgmp")),
-    "windows" ->
-      Platform_Info(
-        options =
-          List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-        setup = MinGW.env_prefix,
-        libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread")))
-
   sealed case class Platform_Context(
     platform: Isabelle_Platform = Isabelle_Platform.self,
     mingw: MinGW = MinGW.none,
     progress: Progress = new Progress
   ) {
+    def info: Platform_Info =
+      if (platform.is_linux) {
+        Platform_Info(
+          options = List("LDFLAGS=-Wl,-rpath,_DUMMY_"),
+          libs = Set("libgmp"))
+      }
+      else if (platform.is_macos) {
+        Platform_Info(
+          options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
+          setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
+          libs = Set("libpolyml", "libgmp"))
+      }
+      else if (platform.is_windows) {
+        Platform_Info(
+          options =
+            List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
+          setup = MinGW.env_prefix,
+          libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread"))
+      }
+      else error("Bad platform: " + quote(platform.toString))
+
     def standard_path(path: Path): String = mingw.standard_path(path)
 
     def polyml(arch_64: Boolean): String =
@@ -114,11 +118,7 @@ object Component_PolyML {
 
     val platform = platform_context.platform
 
-    val info =
-      platform_info.getOrElse(platform.os_name,
-        error("Bad OS platform: " + quote(platform.os_name)))
-
-    if (platform.is_linux) Isabelle_System.require_command("patchelf")
+    val info = platform_context.info
 
 
     /* configure and make */
