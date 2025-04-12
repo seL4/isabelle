@@ -100,7 +100,6 @@ object Component_PolyML {
       Isabelle_System.copy_dir(bin_dir, lib_dir, direct = true)
     }
 
-    progress.echo("GMP installation directory: " + target_dir)
     target_dir
   }
 
@@ -433,8 +432,12 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
           }
 
         val progress = new Console_Progress(verbose = verbose)
-        make_polyml_gmp(Platform_Context(mingw = mingw, progress = progress),
-          root, options = options)
+
+        val target_dir =
+          make_polyml_gmp(Platform_Context(mingw = mingw, progress = progress),
+            root, options = options)
+
+        progress.echo("GMP installation directory: " + target_dir)
       })
 
   val isabelle_tool2 =
