@@ -43,13 +43,8 @@ object Executable {
       }
       else {
         val Pattern = """^.*=>\s*(/.+)\s+\(.*\)$""".r
-        val prefix =
-          mingw.root match {
-            case None => ""
-            case Some(path) => path.absolute.implode
-          }
         for { case Pattern(lib) <- ldd_lines if filter(lib_name(lib)) }
-          yield prefix + lib
+          yield File.standard_path(mingw.platform_path(lib))
       }
 
     if (libs.nonEmpty) {

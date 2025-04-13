@@ -43,7 +43,8 @@ object Component_PolyML {
       }
       else error("Bad platform: " + quote(platform.toString))
 
-    def standard_path(path: Path): String = mingw.standard_path(path)
+    def standard_path(path: Path): String =
+      mingw.standard_path(File.standard_path(path))
 
     def polyml(arch_64: Boolean): String =
       (if (arch_64) platform.arch_64 else platform.arch_64_32) + "-" + platform.os_name
@@ -124,8 +125,7 @@ object Component_PolyML {
 
     val configure_options = {
       val options1 =
-        if (gmp_root.nonEmpty || platform.is_windows) List("--with-gmp")
-        else List("--without-gmp")
+        if (gmp_root.nonEmpty) List("--with-gmp") else List("--without-gmp")
 
       def detect_CFLAGS(s: String): Boolean = s.startsWith("CFLAGS=")
 
@@ -224,9 +224,7 @@ object Component_PolyML {
 
   /** skeleton for component **/
 
-  def default_gmp_url: String =
-    if (Platform.is_windows) ""
-    else "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
+  val default_gmp_url = "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
 
   val default_polyml_url = "https://github.com/polyml/polyml/archive"
   val default_polyml_version = "90c0dbb2514e"
@@ -284,7 +282,6 @@ not affect the running ML session. *)
 
       val gmp_root1: Option[Path] =
         if (gmp_url.isEmpty) gmp_root
-        else if (platform.is_windows) error("Bad GMP source for Windows: use MinGW version instead")
         else {
           val gmp_dir = Isabelle_System.make_directory(build_dir + Path.basic("gmp"))
 
