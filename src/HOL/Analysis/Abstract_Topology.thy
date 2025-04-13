@@ -240,33 +240,19 @@ definition\<^marker>\<open>tag important\<close> subtopology :: "'a topology \<R
 lemma istopology_subtopology: "istopology (\<lambda>T. \<exists>S. T = S \<inter> V \<and> openin U S)"
   (is "istopology ?L")
 proof -
-  have "?L {}" by blast
-  {
-    fix A B
-    assume A: "?L A" and B: "?L B"
-    from A B obtain Sa and Sb where Sa: "openin U Sa" "A = Sa \<inter> V" and Sb: "openin U Sb" "B = Sb \<inter> V"
+  have "\<And>S T Sa Sb. \<lbrakk>openin U Sa; openin U Sb\<rbrakk> \<Longrightarrow> \<exists>S. Sa \<inter> V \<inter> (Sb \<inter> V) = S \<inter> V \<and> openin U S"
+    by (metis Int_assoc inf.absorb2 inf_sup_ord(2) openin_Int)
+  moreover 
+  have "\<exists>S. \<Union> \<K> = S \<inter> V \<and> openin U S"
+    if \<K>: "\<forall>K\<in>\<K>. \<exists>S. K = S \<inter> V \<and> openin U S" for \<K>
+  proof -
+    obtain f where f: "\<forall>K\<in>\<K>. K = f K \<inter> V \<and> openin U (f K)"
+      using \<K> by metis
+    with f show ?thesis
       by blast
-    have "A \<inter> B = (Sa \<inter> Sb) \<inter> V" "openin U (Sa \<inter> Sb)"
-      using Sa Sb by blast+
-    then have "?L (A \<inter> B)" by blast
-  }
-  moreover
-  {
-    fix K
-    assume K: "K \<subseteq> Collect ?L"
-    have th0: "Collect ?L = (\<lambda>S. S \<inter> V) ` Collect (openin U)"
-      by blast
-    from K[unfolded th0 subset_image_iff]
-    obtain Sk where Sk: "Sk \<subseteq> Collect (openin U)" "K = (\<lambda>S. S \<inter> V) ` Sk"
-      by blast
-    have "\<Union>K = (\<Union>Sk) \<inter> V"
-      using Sk by auto
-    moreover have "openin U (\<Union>Sk)"
-      using Sk by (auto simp: subset_eq)
-    ultimately have "?L (\<Union>K)" by blast
-  }
+  qed
   ultimately show ?thesis
-    unfolding subset_eq mem_Collect_eq istopology_def by auto
+ unfolding istopology_def by force
 qed
 
 lemma openin_subtopology: "openin (subtopology U V) S \<longleftrightarrow> (\<exists>T. openin U T \<and> S = T \<inter> V)"
@@ -346,15 +332,13 @@ lemma closedin_subtopology_alt:
 lemma subtopology_superset:
   assumes UV: "topspace U \<subseteq> V"
   shows "subtopology U V = U"
-proof -
-  { fix S
-    have "openin U S" if "openin U T" "S = T \<inter> V" for T
-      by (metis Int_subset_iff assms inf.orderE openin_subset that)
-    then have "(\<exists>T. openin U T \<and> S = T \<inter> V) \<longleftrightarrow> openin U S"
-      by (metis assms inf.orderE inf_assoc openin_subset)
-  }
-  then show ?thesis
-    unfolding topology_eq openin_subtopology by blast
+  unfolding topology_eq openin_subtopology
+proof (intro strip)
+  fix S
+  have "openin U S" if "openin U T" "S = T \<inter> V" for T
+    by (metis Int_subset_iff assms inf.orderE openin_subset that)
+  then show "(\<exists>T. openin U T \<and> S = T \<inter> V) \<longleftrightarrow> openin U S"
+    by (metis assms inf.orderE inf_assoc openin_subset)
 qed
 
 lemma subtopology_topspace[simp]: "subtopology U (topspace U) = U"
@@ -402,25 +386,25 @@ lemma openin_open_subtopology:
   by (metis inf.orderE openin_Int openin_imp_subset openin_subtopology)
 
 lemma closedin_closed_subtopology:
-     "closedin X S \<Longrightarrow> (closedin (subtopology X S) T \<longleftrightarrow> closedin X T \<and> T \<subseteq> S)"
+  "closedin X S \<Longrightarrow> (closedin (subtopology X S) T \<longleftrightarrow> closedin X T \<and> T \<subseteq> S)"
   by (metis closedin_Int closedin_imp_subset closedin_subtopology inf.orderE)
 
 lemma closedin_trans_full:
-   "\<lbrakk>closedin (subtopology X U) S; closedin X U\<rbrakk> \<Longrightarrow> closedin X S"
+  "\<lbrakk>closedin (subtopology X U) S; closedin X U\<rbrakk> \<Longrightarrow> closedin X S"
   using closedin_closed_subtopology by blast
 
 lemma openin_subtopology_Un:
-    "\<lbrakk>openin (subtopology X T) S; openin (subtopology X U) S\<rbrakk>
+  "\<lbrakk>openin (subtopology X T) S; openin (subtopology X U) S\<rbrakk>
      \<Longrightarrow> openin (subtopology X (T \<union> U)) S"
-by (simp add: openin_subtopology) blast
+  by (simp add: openin_subtopology) blast
 
 lemma closedin_subtopology_Un:
-    "\<lbrakk>closedin (subtopology X T) S; closedin (subtopology X U) S\<rbrakk>
+  "\<lbrakk>closedin (subtopology X T) S; closedin (subtopology X U) S\<rbrakk>
      \<Longrightarrow> closedin (subtopology X (T \<union> U)) S"
-by (simp add: closedin_subtopology) blast
+  by (simp add: closedin_subtopology) blast
 
 lemma openin_trans_full:
-   "\<lbrakk>openin (subtopology X U) S; openin X U\<rbrakk> \<Longrightarrow> openin X S"
+  "\<lbrakk>openin (subtopology X U) S; openin X U\<rbrakk> \<Longrightarrow> openin X S"
   by (simp add: openin_open_subtopology)
 
 
@@ -518,11 +502,12 @@ next
   have 1: "\<forall>x\<in>T. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> T"
     unfolding T_def
     apply clarsimp
-    apply (rule_tac x="d - dist x a" in exI)
-    by (metis add_0_left dist_commute dist_triangle_lt less_diff_eq)
+    subgoal for x a d
+      apply (rule_tac x="d - dist x a" in exI)
+      by (metis add_0_left dist_commute dist_triangle_lt less_diff_eq)
+    done
   assume ?rhs then have 2: "S = U \<inter> T"
-    unfolding T_def
-    by auto (metis dist_self)
+    unfolding T_def by fastforce
   from 1 2 show ?lhs
     unfolding openin_open open_dist by fast
 qed
@@ -1346,7 +1331,7 @@ lemma locally_finite_in_refinement:
 proof -
   show ?thesis
     unfolding locally_finite_in_def
-  proof safe
+  proof (intro conjI strip)
     fix x
     assume "x \<in> topspace X"
     then obtain V where "openin X V" "x \<in> V" "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
@@ -1362,8 +1347,8 @@ proof -
     then show "\<exists>V. openin X V \<and> x \<in> V \<and> finite {U \<in> f ` \<A>. U \<inter> V \<noteq> {}}"
       using \<open>openin X V\<close> \<open>x \<in> V\<close> by blast
   next
-    show "\<And>x xa. \<lbrakk>xa \<in> \<A>; x \<in> f xa\<rbrakk> \<Longrightarrow> x \<in> topspace X"
-      by (meson Sup_upper \<A> f locally_finite_in_def subset_iff)
+    show "\<Union> (f ` \<A>) \<subseteq> topspace X"
+      using \<A> f by (force simp: locally_finite_in_def image_iff)
   qed
 qed
 
@@ -1371,7 +1356,7 @@ lemma locally_finite_in_subtopology:
   assumes \<A>: "locally_finite_in X \<A>" "\<Union>\<A> \<subseteq> S"
   shows "locally_finite_in (subtopology X S) \<A>"
   unfolding locally_finite_in_def
-proof safe
+proof (intro conjI strip)
   fix x
   assume x: "x \<in> topspace (subtopology X S)"
   then obtain V where "openin X V" "x \<in> V" and fin: "finite {U \<in> \<A>. U \<inter> V \<noteq> {}}"
@@ -1388,7 +1373,7 @@ proof safe
       using x \<open>x \<in> V\<close> by (simp)
   qed
 next
-  show "\<And>x A. \<lbrakk>x \<in> A; A \<in> \<A>\<rbrakk> \<Longrightarrow> x \<in> topspace (subtopology X S)"
+  show "\<Union> \<A> \<subseteq> topspace (subtopology X S)"
     using assms unfolding locally_finite_in_def topspace_subtopology by blast
 qed
 
@@ -1552,19 +1537,26 @@ lemma continuous_map_image_closure_subset:
   assumes "continuous_map X Y f"
   shows "f ` (X closure_of S) \<subseteq> Y closure_of f ` S"
 proof -
-  have *: "f ` (topspace X) \<subseteq> topspace Y"
-    by (meson assms continuous_map)
-  have "X closure_of T \<subseteq> {x \<in> X closure_of T. f x \<in> Y closure_of (f ` T)}"
-    if "T \<subseteq> topspace X" for T
+  let ?T = "S \<inter> topspace X"
+  have *: "X closure_of ?T \<subseteq> {x \<in> X closure_of ?T. f x \<in> Y closure_of (f ` ?T)}"
   proof (rule closure_of_minimal)
-    show "T \<subseteq> {x \<in> X closure_of T. f x \<in> Y closure_of f ` T}"
-      using closure_of_subset * that  by (fastforce simp: in_closure_of)
+    have "f ` (topspace X) \<subseteq> topspace Y"
+      by (meson assms continuous_map)
+    then show "?T \<subseteq> {x \<in> X closure_of ?T. f x \<in> Y closure_of f ` ?T}"
+      using closure_of_subset by (fastforce simp: in_closure_of)
   next
-    show "closedin X {x \<in> X closure_of T. f x \<in> Y closure_of f ` T}"
+    show "closedin X {x \<in> X closure_of ?T. f x \<in> Y closure_of f ` ?T}"
       using assms closedin_continuous_map_preimage_gen by fastforce
   qed
+  have "f x \<in> Y closure_of (f ` S)" if "x \<in> X closure_of (S \<inter> topspace X)" for x
+  proof -
+    have "f x \<in> Y closure_of f ` ?T"
+      using that * by blast
+    then show ?thesis
+      by (meson closure_of_mono inf_le1 subset_eq subset_image_iff)
+  qed
   then show ?thesis
-    by (smt (verit, ccfv_threshold) assms continuous_map image_eqI image_subset_iff in_closure_of mem_Collect_eq)
+    by (metis closure_of_restrict image_subsetI inf_commute)
 qed
 
 lemma continuous_map_subset_aux1: 
@@ -1677,9 +1669,7 @@ next
   have eq: "{x \<in> topspace X. (g \<circ> f) x \<in> U} = {x \<in> topspace X. f x \<in> {y. y \<in> topspace X' \<and> g y \<in> U}}"
     using continuous_map_image_subset_topspace f by force
   show "openin X {x \<in> topspace X. (g \<circ> f) x \<in> U}"
-    unfolding eq
-    using assms unfolding continuous_map_def
-    using \<open>openin X'' U\<close> by blast
+    by (metis (no_types, lifting) ext \<open>openin X'' U\<close> continuous_map_def eq f g)
 qed
 
 lemma continuous_map_eq:
@@ -1704,11 +1694,10 @@ proof
   show ?rhs
   proof -
     have "\<And>A. f \<in> (X closure_of A) \<rightarrow> subtopology X' S closure_of f ` A"
-      by (metis L continuous_map_eq_image_closure_subset image_subset_iff_funcset)
+      by (metis L continuous_map_eq_image_closure_subset)
     then show ?thesis
-      by (metis closure_of_subset_subtopology closure_of_subtopology_subset
-          closure_of_topspace continuous_map_eq_image_closure_subset
-          image_subset_iff_funcset subset_trans)
+      by (metis closure_of_subset_subtopology closure_of_subtopology_subset closure_of_topspace
+          continuous_map_subset_aux2 image_subset_iff_funcset subset_trans)
   qed
 next
   assume R: ?rhs
@@ -1809,7 +1798,7 @@ lemma open_map_on_empty [simp]: "open_map trivial_topology Y f"
 
 lemma closed_map_on_empty:
    "closed_map trivial_topology Y f"
-  by (simp add: closed_map_def closedin_topspace_empty)
+  by (simp add: closed_map_def)
 
 lemma closed_map_const:
    "closed_map X Y (\<lambda>x. c) \<longleftrightarrow> X = trivial_topology \<or> closedin Y {c}"
@@ -1868,8 +1857,7 @@ lemma closed_map_compose:
   by (metis (no_types, lifting) closed_map_def image_comp)
 
 lemma closed_map_inclusion_eq:
-   "closed_map (subtopology X S) X id \<longleftrightarrow>
-        closedin X (topspace X \<inter> S)"
+   "closed_map (subtopology X S) X id \<longleftrightarrow> closedin X (topspace X \<inter> S)"
 proof -
   have *: "closedin X (T \<inter> S)" if "closedin X (S \<inter> topspace X)" "closedin X T" for T
     by (smt (verit, best) closedin_Int closure_of_subset_eq inf_sup_aci le_iff_inf that)
@@ -1953,7 +1941,8 @@ lemma closed_map_closure_of_image:
 proof
   assume ?lhs
   then show ?rhs
-    by (simp add: closed_map_def closed_map_imp_subset_topspace closure_of_minimal closure_of_subset image_mono)
+    by (simp add: closed_map_def closed_map_imp_subset_topspace closure_of_minimal 
+        closure_of_subset image_mono)
 next
   assume ?rhs
   then show ?lhs
@@ -2048,7 +2037,7 @@ next
     then obtain V where V: "openin Y V" 
       and sub: "topspace Y - f ` U \<subseteq> V" "{x \<in> topspace X. f x \<in> V} \<subseteq> topspace X - U"
       using R Diff_subset \<open>closedin X U\<close> unfolding closedin_def
-      by (smt (verit, ccfv_threshold) Collect_mem_eq Collect_mono_iff)
+      by blast
     then have "f ` U \<subseteq> topspace Y - V"
       using R \<open>closedin X U\<close> closedin_subset by fastforce
     with sub have "f ` U = topspace Y - V"
@@ -2084,7 +2073,6 @@ proof (intro conj_cong refl all_cong1)
     show "\<forall>T. ?P T"
     proof (cases "openin X U")
       case True
-      note [[unify_search_bound=3]]
       obtain V where V: "\<And>y. \<lbrakk>y \<in> topspace Y; {x \<in> topspace X. f x = y} \<subseteq> U\<rbrakk> \<Longrightarrow>
                        openin Y (V y) \<and> y \<in> V y \<and> {x \<in> topspace X. f x \<in> V y} \<subseteq> U"
         using R by (simp add: True) meson
@@ -2093,7 +2081,7 @@ proof (intro conj_cong refl all_cong1)
         fix T
         assume "openin X U" and "T \<subseteq> topspace Y" and "{x \<in> topspace X. f x \<in> T} \<subseteq> U"
         with V show "\<exists>V. openin Y V \<and> T \<subseteq> V \<and> {x \<in> topspace X. f x \<in> V} \<subseteq> U"
-          by (rule_tac x="\<Union>y\<in>T. V y" in exI) fastforce
+          by (intro exI [where x="\<Union>y\<in>T. V y"]) fastforce
       qed
     qed auto
   qed
@@ -2101,7 +2089,7 @@ qed
 
 lemma open_map_in_subtopology:
    "openin Y S
-        \<Longrightarrow> open_map X (subtopology Y S) f \<longleftrightarrow> open_map X Y f \<and> f \<in> topspace X \<rightarrow> S"
+     \<Longrightarrow> open_map X (subtopology Y S) f \<longleftrightarrow> open_map X Y f \<and> f \<in> topspace X \<rightarrow> S"
   by (metis image_subset_iff_funcset open_map_def open_map_into_subtopology openin_imp_subset openin_topspace openin_trans_full)
 
 lemma open_map_from_open_subtopology:
@@ -2130,7 +2118,8 @@ proof (intro strip)
     using cmf closed_map_def by blast
   moreover 
   have "\<And>y. y \<in> U \<Longrightarrow> \<exists>x \<in> topspace X. f x \<in> U \<and> g y = g (f x)"
-    by (smt (verit, ccfv_SIG) \<open>closedin Y U\<close> closedin_subset fim image_iff subsetD)
+    by (metis \<open>closedin Y U\<close> closedin_imp_subset fim image_iff insert_absorb insert_subset
+        subtopology_topspace)
   then have "(g \<circ> f) ` {x \<in> topspace X. f x \<in> U} = g`U" by auto
   ultimately show "closedin Z (g ` U)"
     by metis
@@ -2149,7 +2138,8 @@ proof (intro strip)
     using cmf open_map_def by blast
   moreover 
   have "\<And>y. y \<in> U \<Longrightarrow> \<exists>x \<in> topspace X. f x \<in> U \<and> g y = g (f x)"
-    by (smt (verit, ccfv_SIG) \<open>openin Y U\<close> openin_subset fim image_iff subsetD)
+    by (metis (no_types, lifting) \<open>openin Y U\<close> fim image_iff in_mono interior_of_eq
+        interior_of_subset_topspace)
   then have "(g \<circ> f) ` {x \<in> topspace X. f x \<in> U} = g`U" by auto
   ultimately show "openin Z (g ` U)"
     by metis
@@ -2200,7 +2190,7 @@ definition quotient_map where
 lemma quotient_map_eq:
   assumes "quotient_map X X' f" "\<And>x. x \<in> topspace X \<Longrightarrow> f x = g x"
   shows "quotient_map X X' g"
-  by (smt (verit) Collect_cong assms image_cong quotient_map_def)
+  using assms by (smt (verit) Collect_cong assms image_cong quotient_map_def)
 
 lemma quotient_map_compose:
   assumes f: "quotient_map X X' f" and g: "quotient_map X' X'' g"
@@ -2280,13 +2270,14 @@ lemma continuous_open_imp_quotient_map:
   assumes "continuous_map X X' f" and om: "open_map X X' f" and feq: "f ` (topspace X) = topspace X'"
   shows "quotient_map X X' f"
 proof -
-  { fix U
-    assume U: "U \<subseteq> topspace X'" and "openin X {x \<in> topspace X. f x \<in> U}"
-    then have ope: "openin X' (f ` {x \<in> topspace X. f x \<in> U})"
-      using om unfolding open_map_def by blast
-    then have "openin X' U"
+  have "openin X' U"
+    if U: "U \<subseteq> topspace X'" and "openin X {x \<in> topspace X. f x \<in> U}" for U
+  proof -
+    have ope: "openin X' (f ` {x \<in> topspace X. f x \<in> U})"
+      using om that unfolding open_map_def by blast
+    then show ?thesis
       using U feq by (subst openin_subopen) force
-  }
+  qed
   moreover have "openin X {x \<in> topspace X. f x \<in> U}" if "U \<subseteq> topspace X'" and "openin X' U" for U
     using that assms unfolding continuous_map_def by blast
   ultimately show ?thesis
@@ -2334,11 +2325,7 @@ proof
     by (simp add: L assms bijective_open_imp_closed_map quotient_imp_surjective_map)
   then show ?rhs
     using L om by (simp add: quotient_imp_continuous_map quotient_imp_surjective_map)
-next
-  assume ?rhs
-  then show ?lhs
-    by (simp add: continuous_closed_imp_quotient_map)
-qed
+qed (auto simp add: continuous_closed_imp_quotient_map)
 
 lemma continuous_compose_quotient_map:
   assumes f: "quotient_map X X' f" and g: "continuous_map X X'' (g \<circ> f)"
@@ -2548,7 +2535,7 @@ proof -
     show "g ` topspace Y = h ` topspace X"
       using f g by (force dest!: quotient_imp_surjective_map)
     show "continuous_map Y Z g"
-      by (smt (verit)  f g h continuous_compose_quotient_map_eq continuous_map_eq o_def)
+      by (metis comp_apply continuous_compose_quotient_map continuous_map_eq f g h)
   qed (simp add: g)
 qed
 
@@ -2942,7 +2929,9 @@ proof -
       by (meson hom homeomorphic_map_openness_eq inj inj_on_image_mem_iff that)
     moreover have "(\<exists>y. y \<noteq> x \<and> y \<in> S \<and> y \<in> T) = (\<exists>y. y \<noteq> f x \<and> y \<in> f ` S \<and> y \<in> f ` T)"  (is "?lhs = ?rhs")
       if "T \<subseteq> topspace X \<and> f x \<in> f ` T \<and> openin Y (f ` T)" for T
-      by (smt (verit, del_insts) S \<open>x \<in> topspace X\<close> image_iff inj inj_on_def subsetD that)
+      unfolding image_iff
+      using S \<open>x \<in> topspace X\<close> that 
+      by (metis (full_types) inj inj_onD [OF inj] subsetD the_inv_into_f_f)
     ultimately show ?thesis
       by (auto simp flip: fim simp: all_subset_image)
   qed
@@ -2971,14 +2960,12 @@ proof -
       using homeomorphic_eq_everything_map [THEN iffD1, OF hom] homeomorphic_map_closure_of [OF hom]
       by (metis DiffI Diff_subset S closure_of_subset_topspace inj_on_image_set_diff) }
   moreover
-  { fix x
-    assume "x \<in> topspace X"
-    then have "f x \<in> topspace Y"
-      using hom homeomorphic_imp_surjective_map by blast }
+  have "f x \<in> topspace Y" if "x \<in> topspace X" for x
+    using that hom homeomorphic_imp_surjective_map by blast 
   moreover
   { fix x
-    assume "x \<in> topspace X" and "x \<notin> X closure_of (topspace X - S)" and "f x \<in> Y closure_of (topspace Y - f ` S)"
-    then have "False"
+    assume "x \<in> topspace X" and "f x \<in> Y closure_of (topspace Y - f ` S)"
+    then have "x \<in> X closure_of (topspace X - S)"
       using homeomorphic_map_closure_of [OF hom] hom
       unfolding homeomorphic_eq_everything_map
       by (metis Diff_subset S closure_of_subset_topspace inj_on_image_mem_iff inj_on_image_set_diff)
@@ -3007,9 +2994,10 @@ next
   then obtain y where y: "x = f y" "y \<in> X closure_of S" "y \<notin> X interior_of S"
     by blast
   then show "x \<notin> Y interior_of f ` S"
-    using S hom homeomorphic_map_interior_of y(1)
+    using S hom homeomorphic_map_interior_of
     unfolding homeomorphic_map_def
-    by (smt (verit, ccfv_SIG) in_closure_of inj_on_image_mem_iff interior_of_subset_topspace) 
+    by (metis (no_types, lifting) closure_of_subset_topspace inj_on_image_mem_iff
+        interior_of_subset_closure_of subset_inj_on)
 qed
 
 lemma homeomorphic_maps_subtopologies:
@@ -3191,11 +3179,9 @@ lemma connectedin_iff_connected [simp]: "connectedin euclidean S \<longleftright
 
 lemma connectedin_closedin:
    "connectedin X S \<longleftrightarrow>
-        S \<subseteq> topspace X \<and>
-        \<not>(\<exists>E1 E2. closedin X E1 \<and> closedin X E2 \<and>
-                  S \<subseteq> (E1 \<union> E2) \<and>
-                  (E1 \<inter> E2 \<inter> S = {}) \<and>
-                  \<not>(E1 \<inter> S = {}) \<and> \<not>(E2 \<inter> S = {}))"
+      S \<subseteq> topspace X \<and>
+      \<not>(\<exists>E1 E2. closedin X E1 \<and> closedin X E2 \<and>
+                S \<subseteq> E1 \<union> E2 \<and> E1 \<inter> E2 \<inter> S = {} \<and> E1 \<inter> S \<noteq> {} \<and> E2 \<inter> S \<noteq> {})"
 proof -
   have *: "(\<exists>E1:: 'a set. \<exists>E2:: 'a set. (\<exists>T1:: 'a set. P1 T1 \<and> E1 = f1 T1) \<and> (\<exists>T2:: 'a set. P2 T2 \<and> E2 = f2 T2) \<and>
              R E1 E2) \<longleftrightarrow> (\<exists>T1 T2. P1 T1 \<and> P2 T2 \<and> R(f1 T1) (f2 T2))" for P1 f1 P2 f2 R
@@ -3271,10 +3257,6 @@ lemma connectedin_Un:
 lemma connected_space_subconnected:
   "connected_space X \<longleftrightarrow> (\<forall>x \<in> topspace X. \<forall>y \<in> topspace X. \<exists>S. connectedin X S \<and> x \<in> S \<and> y \<in> S)" (is "?lhs = ?rhs")
 proof
-  assume ?lhs
-  then show ?rhs
-    using connectedin_topspace by blast
-next
   assume R [rule_format]: ?rhs
   have False if "openin X U" "openin X V" and disj: "U \<inter> V = {}" and cover: "topspace X \<subseteq> U \<union> V"
     and "U \<noteq> {}" "V \<noteq> {}" for U V
@@ -3284,13 +3266,13 @@ next
     then obtain T where "u \<in> T" "v \<in> T" and T: "connectedin X T"
       using R [of u v] that
       by (meson \<open>openin X U\<close> \<open>openin X V\<close> subsetD openin_subset)
-    then show False
-      using that unfolding connectedin
+    with that show False
+      unfolding connectedin
       by (metis IntI \<open>u \<in> U\<close> \<open>v \<in> V\<close> empty_iff inf_bot_left subset_trans)
   qed
   then show ?lhs
     by (auto simp: connected_space_def)
-qed
+qed (use connectedin_topspace in blast)
 
 lemma connectedin_intermediate_closure_of:
   assumes "connectedin X S" "S \<subseteq> T" "T \<subseteq> X closure_of S"
@@ -3557,6 +3539,10 @@ lemma compact_space_subtopology: "compactin X S \<Longrightarrow> compact_space 
 lemma compactin_subtopology: "compactin (subtopology X S) T \<longleftrightarrow> compactin X T \<and> T \<subseteq> S"
   by (metis compactin_subspace inf.absorb_iff2 le_inf_iff subtopology_subtopology topspace_subtopology)
 
+lemma compact_imp_compactin_subtopology:
+  assumes "compactin X K" "K \<subseteq> S" shows "compactin (subtopology X S) K"
+  by (simp add: assms compactin_subtopology)
+
 lemma compactin_subset_topspace: "compactin X S \<Longrightarrow> S \<subseteq> topspace X"
   by (simp add: compactin_subspace)
 
@@ -3654,65 +3640,6 @@ qed
 lemma compactin_Union:
    "\<lbrakk>finite \<F>; \<And>S. S \<in> \<F> \<Longrightarrow> compactin X S\<rbrakk> \<Longrightarrow> compactin X (\<Union>\<F>)"
 by (induction rule: finite_induct) (simp_all add: compactin_Un)
-
-lemma compactin_subtopology_imp_compact:
-  assumes "compactin (subtopology X S) K" shows "compactin X K"
-  using assms
-proof (clarsimp simp add: compactin_def)
-  fix \<U>
-  define \<V> where "\<V> \<equiv> (\<lambda>U. U \<inter> S) ` \<U>"
-  assume "K \<subseteq> topspace X" and "K \<subseteq> S" and "\<forall>x\<in>\<U>. openin X x" and "K \<subseteq> \<Union>\<U>"
-  then have "\<forall>V \<in> \<V>. openin (subtopology X S) V" "K \<subseteq> \<Union>\<V>"
-    unfolding \<V>_def by (auto simp: openin_subtopology)
-  moreover
-  assume "\<forall>\<U>. (\<forall>x\<in>\<U>. openin (subtopology X S) x) \<and> K \<subseteq> \<Union>\<U> \<longrightarrow> (\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> K \<subseteq> \<Union>\<F>)"
-  ultimately obtain \<F> where "finite \<F>" "\<F> \<subseteq> \<V>" "K \<subseteq> \<Union>\<F>"
-    by meson
-  then have \<F>: "\<exists>U. U \<in> \<U> \<and> V = U \<inter> S" if "V \<in> \<F>" for V
-    unfolding \<V>_def using that by blast
-  let ?\<F> = "(\<lambda>F. @U. U \<in> \<U> \<and> F = U \<inter> S) ` \<F>"
-  show "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> K \<subseteq> \<Union>\<F>"
-  proof (intro exI conjI)
-    show "finite ?\<F>"
-      using \<open>finite \<F>\<close> by blast
-    show "?\<F> \<subseteq> \<U>"
-      using someI_ex [OF \<F>] by blast
-    show "K \<subseteq> \<Union>?\<F>"
-    proof clarsimp
-      fix x
-      assume "x \<in> K"
-      then show "\<exists>V \<in> \<F>. x \<in> (SOME U. U \<in> \<U> \<and> V = U \<inter> S)"
-        using \<open>K \<subseteq> \<Union>\<F>\<close> someI_ex [OF \<F>]
-        by (metis (no_types, lifting) IntD1 Union_iff subsetCE)
-    qed
-  qed
-qed
-
-lemma compact_imp_compactin_subtopology:
-  assumes "compactin X K" "K \<subseteq> S" shows "compactin (subtopology X S) K"
-  using assms
-proof (clarsimp simp add: compactin_def)
-  fix \<U> :: "'a set set"
-  define \<V> where "\<V> \<equiv> {V. openin X V \<and> (\<exists>U \<in> \<U>. U = V \<inter> S)}"
-  assume "K \<subseteq> S" and "K \<subseteq> topspace X" and "\<forall>U\<in>\<U>. openin (subtopology X S) U" and "K \<subseteq> \<Union>\<U>"
-  then have "\<forall>V \<in> \<V>. openin X V" "K \<subseteq> \<Union>\<V>"
-    unfolding \<V>_def by (fastforce simp: subset_eq openin_subtopology)+
-  moreover
-  assume "\<forall>\<U>. (\<forall>U\<in>\<U>. openin X U) \<and> K \<subseteq> \<Union>\<U> \<longrightarrow> (\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> K \<subseteq> \<Union>\<F>)"
-  ultimately obtain \<F> where "finite \<F>" "\<F> \<subseteq> \<V>" "K \<subseteq> \<Union>\<F>"
-    by meson
-  let ?\<F> = "(\<lambda>F. F \<inter> S) ` \<F>"
-  show "\<exists>\<F>. finite \<F> \<and> \<F> \<subseteq> \<U> \<and> K \<subseteq> \<Union>\<F>"
-  proof (intro exI conjI)
-    show "finite ?\<F>"
-      using \<open>finite \<F>\<close> by blast
-    show "?\<F> \<subseteq> \<U>"
-      using \<V>_def \<open>\<F> \<subseteq> \<V>\<close> by blast
-    show "K \<subseteq> \<Union>?\<F>"
-      using \<open>K \<subseteq> \<Union>\<F>\<close> assms(2) by auto
-  qed
-qed
-
 
 proposition compact_space_fip:
    "compact_space X \<longleftrightarrow>
@@ -3825,11 +3752,7 @@ proof (intro iffI conjI)
   show "finite S"
     using * [of "(\<lambda>x. {x}) ` X"] \<open>S \<subseteq> X\<close>
     by clarsimp (metis UN_singleton finite_subset_image infinite_super)
-next
-  assume ?rhs
-  then show ?lhs
-    by (simp add: finite_imp_compactin)
-qed
+qed (simp add: finite_imp_compactin)
 
 lemma compact_space_discrete_topology: "compact_space(discrete_topology X) \<longleftrightarrow> finite X"
   by (simp add: compactin_discrete_topology compact_space_def)
@@ -3987,11 +3910,10 @@ lemma embedding_map_imp_homeomorphic_space:
 
 lemma embedding_imp_closed_map:
    "\<lbrakk>embedding_map X Y f; closedin Y (f ` topspace X)\<rbrakk> \<Longrightarrow> closed_map X Y f"
-  unfolding closed_map_def
-  by (auto simp: closedin_closed_subtopology embedding_map_def homeomorphic_map_closedness_eq)
+  by (meson closed_map_from_closed_subtopology embedding_map_def homeomorphic_imp_closed_map)
 
 lemma embedding_imp_closed_map_eq:
-   "embedding_map X Y f \<Longrightarrow> (closed_map X Y f \<longleftrightarrow> closedin Y (f ` topspace X))"
+  "embedding_map X Y f \<Longrightarrow> (closed_map X Y f \<longleftrightarrow> closedin Y (f ` topspace X))"
   using closed_map_def embedding_imp_closed_map by blast
 
 
@@ -4067,7 +3989,7 @@ qed
 lemma retraction_maps_compose:
    "\<lbrakk>retraction_maps X Y f f'; retraction_maps Y Z g g'\<rbrakk> \<Longrightarrow> retraction_maps X Z (g \<circ> f) (f' \<circ> g')"
   unfolding retraction_maps_def
-  by (smt (verit, ccfv_threshold) comp_apply continuous_map_compose continuous_map_image_subset_topspace image_subset_iff)
+  by (metis comp_def continuous_map_compose continuous_map_image_subset_topspace image_subset_iff)
 
 lemma retraction_map_compose:
    "\<lbrakk>retraction_map X Y f; retraction_map Y Z g\<rbrakk> \<Longrightarrow> retraction_map X Z (g \<circ> f)"
@@ -4098,19 +4020,18 @@ lemma retraction_maps_to_retract_maps:
         \<Longrightarrow> retraction_maps X (subtopology X (s ` (topspace Y))) (s \<circ> r) id"
   unfolding retraction_maps_def
   by (auto simp: continuous_map_compose continuous_map_into_subtopology continuous_map_from_subtopology)
+
 subsection \<open>Continuity\<close>
 
 lemma continuous_on_open:
   "continuous_on S f \<longleftrightarrow>
-    (\<forall>T. openin (top_of_set (f ` S)) T \<longrightarrow>
-      openin (top_of_set S) (S \<inter> f -` T))"
+    (\<forall>T. openin (top_of_set (f ` S)) T \<longrightarrow> openin (top_of_set S) (S \<inter> f -` T))"
   unfolding continuous_on_open_invariant openin_open Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
 lemma continuous_on_closed:
   "continuous_on S f \<longleftrightarrow>
-    (\<forall>T. closedin (top_of_set (f ` S)) T \<longrightarrow>
-      closedin (top_of_set S) (S \<inter> f -` T))"
+    (\<forall>T. closedin (top_of_set (f ` S)) T \<longrightarrow> closedin (top_of_set S) (S \<inter> f -` T))"
   unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
   by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
@@ -4140,8 +4061,7 @@ proof -
   have "openin (top_of_set (f ` S)) (T \<inter> f ` S)"
     using openin_open_Int[of T "f ` S", OF assms(2)] unfolding openin_open by auto
   then show ?thesis
-    using assms(1)[unfolded continuous_on_open, THEN spec[where x="T \<inter> f ` S"]]
-    using * by auto
+    by (metis "*" assms(1) continuous_on_open)
 qed
 
 lemma continuous_closedin_preimage:
@@ -4154,8 +4074,7 @@ proof -
     using closedin_closed_Int[of T "f ` S", OF assms(2)]
     by (simp add: Int_commute)
   then show ?thesis
-    using assms(1)[unfolded continuous_on_closed, THEN spec[where x="T \<inter> f ` S"]]
-    using * by auto
+    by (metis "*" assms(1) continuous_on_closed)
 qed
 
 lemma continuous_openin_preimage_eq:
@@ -4240,7 +4159,7 @@ next
     proof (subst openin_subopen, clarify)
       show "\<exists>U. openin (top_of_set T) U \<and> y \<in> U \<and> U \<subseteq> T'" if "y \<in> T'" for y
         using that \<open>x \<in> S'\<close> Times_in_interior_subtopology [OF _ \<open>?lhs\<close>, of x y]
-        by simp (metis mem_Sigma_iff subsetD subsetI)
+        by (smt (verit) mem_Sigma_iff subset_iff)
     qed
     ultimately show ?rhs
       by simp
@@ -4281,11 +4200,11 @@ lemma continuous_on_open_gen:
 proof
   assume ?lhs
   with assms show ?rhs
-    apply (simp add: Pi_iff continuous_openin_preimage_eq openin_open)
-    by (metis inf.orderE inf_assoc subsetI vimageI vimage_Int)
+    by (metis continuous_map_openin_preimage_eq continuous_map_subtopology_eu
+        topspace_euclidean_subtopology)
 next
   assume R [rule_format]: ?rhs
-  show ?lhs
+  then show ?lhs
   proof (clarsimp simp add: continuous_openin_preimage_eq)
     show "\<And>T. open T \<Longrightarrow> openin (top_of_set S) (S \<inter> f -` T)"
       by (metis (no_types) R assms image_subset_iff_funcset image_subset_iff_subset_vimage inf.orderE inf_assoc openin_open_Int vimage_Int)
@@ -4332,56 +4251,56 @@ and is never a problem in proofs, so I prefer to write it down explicitly.
 We do not require \<open>UNIV\<close> to be an open set, as this will not be the case in applications. (We are
 thinking of a topology on a subset of \<open>UNIV\<close>, the remaining part of \<open>UNIV\<close> being irrelevant.)\<close>
 
-inductive generate_topology_on for S where
-  Empty: "generate_topology_on S {}"
-| Int: "generate_topology_on S a \<Longrightarrow> generate_topology_on S b \<Longrightarrow> generate_topology_on S (a \<inter> b)"
-| UN: "(\<And>k. k \<in> K \<Longrightarrow> generate_topology_on S k) \<Longrightarrow> generate_topology_on S (\<Union>K)"
-| Basis: "s \<in> S \<Longrightarrow> generate_topology_on S s"
+inductive generate_topology_on for \<S> where
+  Empty: "generate_topology_on \<S> {}"
+| Int: "generate_topology_on \<S> a \<Longrightarrow> generate_topology_on \<S> b \<Longrightarrow> generate_topology_on \<S> (a \<inter> b)"
+| UN: "(\<And>k. k \<in> K \<Longrightarrow> generate_topology_on \<S> k) \<Longrightarrow> generate_topology_on \<S> (\<Union>K)"
+| Basis: "s \<in> \<S> \<Longrightarrow> generate_topology_on \<S> s"
 
 lemma istopology_generate_topology_on:
-  "istopology (generate_topology_on S)"
+  "istopology (generate_topology_on \<S>)"
 unfolding istopology_def by (auto intro: generate_topology_on.intros)
 
-text \<open>The basic property of the topology generated by a set \<open>S\<close> is that it is the
-smallest topology containing all the elements of \<open>S\<close>:\<close>
+text \<open>The basic property of the topology generated by a set \<open>\<S>\<close> is that it is the
+smallest topology containing all the elements of \<open>\<S>\<close>:\<close>
 
 lemma generate_topology_on_coarsest:
-  assumes T: "istopology T" "\<And>s. s \<in> S \<Longrightarrow> T s"
-          and gen: "generate_topology_on S s0"
+  assumes T: "istopology T" "\<And>S. S \<in> \<S> \<Longrightarrow> T S"
+          and gen: "generate_topology_on \<S> s0"
   shows "T s0"
   using gen 
 by (induct rule: generate_topology_on.induct) (use T in \<open>auto simp: istopology_def\<close>)
 
 abbreviation\<^marker>\<open>tag unimportant\<close> topology_generated_by::"('a set set) \<Rightarrow> ('a topology)"
-  where "topology_generated_by S \<equiv> topology (generate_topology_on S)"
+  where "topology_generated_by \<S> \<equiv> topology (generate_topology_on \<S>)"
 
 lemma openin_topology_generated_by_iff:
-  "openin (topology_generated_by S) s \<longleftrightarrow> generate_topology_on S s"
-  using topology_inverse'[OF istopology_generate_topology_on[of S]] by simp
+  "openin (topology_generated_by \<S>) s \<longleftrightarrow> generate_topology_on \<S> s"
+  using topology_inverse'[OF istopology_generate_topology_on[of \<S>]] by simp
 
 lemma openin_topology_generated_by:
-  "openin (topology_generated_by S) s \<Longrightarrow> generate_topology_on S s"
+  "openin (topology_generated_by \<S>) s \<Longrightarrow> generate_topology_on \<S> s"
 using openin_topology_generated_by_iff by auto
 
 lemma topology_generated_by_topspace [simp]:
-  "topspace (topology_generated_by S) = (\<Union>S)"
+  "topspace (topology_generated_by \<S>) = (\<Union>\<S>)"
 proof
   {
-    fix s assume "openin (topology_generated_by S) s"
-    then have "generate_topology_on S s" by (rule openin_topology_generated_by)
-    then have "s \<subseteq> (\<Union>S)" by (induct, auto)
+    fix S assume "openin (topology_generated_by \<S>) S"
+    then have "generate_topology_on \<S> S" by (rule openin_topology_generated_by)
+    then have "S \<subseteq> (\<Union>\<S>)" by (induct, auto)
   }
-  then show "topspace (topology_generated_by S) \<subseteq> (\<Union>S)"
+  then show "topspace (topology_generated_by \<S>) \<subseteq> (\<Union>\<S>)"
     unfolding topspace_def by auto
 next
-  have "generate_topology_on S (\<Union>S)"
-    using generate_topology_on.UN[OF generate_topology_on.Basis, of S S] by simp
-  then show "(\<Union>S) \<subseteq> topspace (topology_generated_by S)"
+  have "generate_topology_on \<S> (\<Union>\<S>)"
+    using generate_topology_on.UN[OF generate_topology_on.Basis, of \<S> \<S>] by simp
+  then show "(\<Union>\<S>) \<subseteq> topspace (topology_generated_by \<S>)"
     unfolding topspace_def using openin_topology_generated_by_iff by auto
 qed
 
 lemma topology_generated_by_Basis:
-  "s \<in> S \<Longrightarrow> openin (topology_generated_by S) s"
+  "s \<in> \<S> \<Longrightarrow> openin (topology_generated_by \<S>) s"
   by (simp add: Basis openin_topology_generated_by_iff)
 
 lemma generate_topology_on_Inter:
@@ -4777,7 +4696,7 @@ proposition continuous_map_pullback [intro]:
   assumes "continuous_map T1 T2 g"
   shows "continuous_map (pullback_topology A f T1) T2 (g o f)"
 unfolding continuous_map_alt
-proof (auto)
+proof (intro conjI strip)
   fix U::"'b set" assume "openin T2 U"
   then have "openin T1 (g-`U \<inter> topspace T1)"
     using assms unfolding continuous_map_alt by auto
@@ -4790,18 +4709,16 @@ proof (auto)
   finally show "openin (pullback_topology A f T1) ((g \<circ> f) -` U \<inter> topspace (pullback_topology A f T1))"
     by auto
 next
-  fix x assume "x \<in> topspace (pullback_topology A f T1)"
-  then have "f x \<in> topspace T1"
-    unfolding topspace_pullback_topology by auto
-  then show "g (f x) \<in> topspace T2"
-    using assms unfolding continuous_map_def by auto
+  show "g \<circ> f \<in> topspace (pullback_topology A f T1) \<rightarrow> topspace T2"
+    using assms unfolding continuous_map_def topspace_pullback_topology
+    by fastforce
 qed
 
 proposition continuous_map_pullback' [intro]:
   assumes "continuous_map T1 T2 (f o g)" "topspace T1 \<subseteq> g-`A"
   shows "continuous_map T1 (pullback_topology A f T2) g"
-unfolding continuous_map_alt
-proof (auto)
+  unfolding continuous_map_alt
+proof (intro conjI strip)
   fix U assume "openin (pullback_topology A f T2) U"
   then have "\<exists>V. openin T2 V \<and> U = f-`V \<inter> A"
     unfolding openin_pullback_topology by auto
@@ -4817,15 +4734,11 @@ proof (auto)
     using assms(1) \<open>openin T2 V\<close> by auto
   finally show "openin T1 (g -` U \<inter> topspace T1)" by simp
 next
-  fix x assume "x \<in> topspace T1"
-  have "(f o g) x \<in> topspace T2"
-    using assms(1) \<open>x \<in> topspace T1\<close> unfolding continuous_map_def by auto
-  then have "g x \<in> f-`(topspace T2)"
-    unfolding comp_def by blast
-  moreover have "g x \<in> A" using assms(2) \<open>x \<in> topspace T1\<close> by blast
-  ultimately show "g x \<in> topspace (pullback_topology A f T2)"
-    unfolding topspace_pullback_topology by blast
+  show "g \<in> topspace T1 \<rightarrow> topspace (pullback_topology A f T2)"
+    using assms unfolding continuous_map_def topspace_pullback_topology
+    by fastforce
 qed
+
 subsection\<open>Proper maps (not a priori assumed continuous) \<close>
 
 definition proper_map
