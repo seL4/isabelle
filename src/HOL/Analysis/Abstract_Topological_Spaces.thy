@@ -4737,7 +4737,7 @@ proof -
     then have XKD: "compactin (subtopology X K) D"
       by (simp add: K closedin_compact_space compact_space_subtopology)
     then show "compactin X D"
-      using compactin_subtopology_imp_compact by blast
+      by (simp add: compactin_subtopology)
     show "connectedin X D"
       using D connectedin_connected_components_of connectedin_subtopology by blast
     have "K \<noteq> topspace X"
