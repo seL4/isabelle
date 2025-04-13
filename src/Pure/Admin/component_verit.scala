@@ -79,7 +79,7 @@ object Component_VeriT {
 
       val exe_path = Path.basic("veriT").platform_exe
       Isabelle_System.copy_file(source_dir + exe_path, platform_dir)
-      Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"), mingw = mingw)
+      Executable.library_closure(platform_dir + exe_path, filter = Set("libgmp"), mingw = mingw)
 
 
       /* settings */
