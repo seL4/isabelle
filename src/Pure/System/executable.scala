@@ -23,7 +23,7 @@ object Executable {
     val exe_dir = exe_path.dir
     val exe = exe_path.base
 
-    val ldd_lines = {
+    val lines = {
       val ldd = if (Platform.is_macos) "otool -L" else "ldd"
       val script = mingw.bash_script(env_prefix + ldd + " " + File.bash_path(exe))
       split_lines(Isabelle_System.bash(script, cwd = exe_dir).check.out)
@@ -37,13 +37,13 @@ object Executable {
       if (Platform.is_macos) {
         val Pattern = """^\s*(/.+)\s+\(.*\)$""".r
         for {
-          case Pattern(lib) <- ldd_lines
+          case Pattern(lib) <- lines
           if !lib.startsWith("@executable_path/") && filter(lib_name(lib))
         } yield lib
       }
       else {
         val Pattern = """^.*=>\s*(/.+)\s+\(.*\)$""".r
-        for { case Pattern(lib) <- ldd_lines if filter(lib_name(lib)) }
+        for { case Pattern(lib) <- lines if filter(lib_name(lib)) }
           yield File.standard_path(mingw.platform_path(lib))
       }
 
