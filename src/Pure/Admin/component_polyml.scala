@@ -196,7 +196,7 @@ object Component_PolyML {
 
     for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
-    Executable.libraries_closure(
+    Executable.library_closure(
       platform_dir + Path.basic("poly").platform_exe,
       env_prefix = gmp_setup + "\n",
       mingw = platform_context.mingw,

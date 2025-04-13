@@ -14,7 +14,7 @@ object Executable {
     else if (platform.is_windows) "PATH"
     else error("Bad platform " + platform)
 
-  def libraries_closure(path: Path,
+  def library_closure(path: Path,
     env_prefix: String = "",
     mingw: MinGW = MinGW.none,
     filter: String => Boolean = _ => true

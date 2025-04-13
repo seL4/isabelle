@@ -57,7 +57,7 @@ object Component_Zipperposition {
       Isabelle_System.copy_file(build_dir + Path.basic("bin") + prg_path, platform_dir + exe_path)
 
       if (!Platform.is_windows) {
-        Executable.libraries_closure(platform_dir + exe_path, filter = Set("libgmp"))
+        Executable.library_closure(platform_dir + exe_path, filter = Set("libgmp"))
       }
 
 
