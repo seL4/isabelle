@@ -9,7 +9,7 @@ package isabelle
 
 object MinGW {
   def env_prefix: String =
-    Bash.exports("PATH=/usr/bin:/bin:/mingw64/bin", "CONFIG_SITE=/mingw64/etc/config.site")
+    Bash.exports("PATH=/usr/bin:/ucrt64/bin", "CONFIG_SITE=/ucrt64/etc/config.site")
 
   val none: MinGW = new MinGW(None)
   def apply(path: Path) = new MinGW(Some(path))
