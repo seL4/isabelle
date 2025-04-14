@@ -214,6 +214,7 @@ fun same (Const ((k1, typargs1), us1), Const ((k2, typargs2), us2)) =
 
 infix 9 `$` `$$`;
 infix 8 `*`;
+
 fun e1 `$` e2 = enclose "(" ")" (e1 ^ " " ^ e2);
 fun e `$$` [] = e
   | e `$$` es = enclose "(" ")" (e ^ " " ^ implode_space es);
@@ -290,8 +291,8 @@ fun nbe_apps a_u [] = a_u
   | nbe_apps a_u a_us = name_apps `$$` [a_u, ml_list (rev a_us)];
 fun nbe_apps_fun a_sym a_typargs a_us = nbe_fun a_sym a_typargs `$` ml_list (rev a_us);
 fun nbe_apps_fallback_fun a_sym a_us = a_sym `$$` a_us;
-fun nbe_apps_constr a_sym a_typargs a_us = name_const `$` ((a_sym `*` ml_list a_typargs) `*` ml_list (rev a_us));
-fun nbe_apps_constmatch a_sym a_us = name_const `$` ((a_sym `*` "_") `*` ml_list (rev a_us));
+fun nbe_apps_const a_sym a_typargs a_us = name_const `$` ((a_sym `*` ml_list a_typargs) `*` ml_list (rev a_us));
+fun nbe_apps_constpat a_sym a_us = name_const `$` ((a_sym `*` "_") `*` ml_list (rev a_us));
 
 fun nbe_abss 0 f = f `$` ml_list []
   | nbe_abss n f = name_abss `$$` [string_of_int n, f];
@@ -342,11 +343,11 @@ fun assemble_type (tyco `%% tys) = nbe_type tyco (map assemble_type tys)
 fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
   let
     fun suffixed_fun_ident suffix sym = space_implode "_"
-      ["c", if Code_Symbol.is_value sym then "value" else string_of_int (idx_of_sym sym),
+      ["c", if Code_Symbol.is_value sym then "0" else string_of_int (idx_of_sym sym),
       Code_Symbol.default_base sym, suffix];
     val fun_ident = suffixed_fun_ident "nbe";
     fun fallback_fun_ident i = suffixed_fun_ident (string_of_int i);
-    fun constr_ident sym =
+    fun const_ident sym =
       if Config.get ctxt trace
       then string_of_int (idx_of_sym sym) ^ " (*" ^ Code_Symbol.default_base sym ^ "*)"
       else string_of_int (idx_of_sym sym);
@@ -354,8 +355,8 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
     fun assemble_fun sym = nbe_fun (fun_ident sym);
     fun assemble_app_fun sym = nbe_apps_fun (fun_ident sym);
     fun assemble_app_fallback_fun i sym = nbe_apps_fallback_fun (fallback_fun_ident i sym);
-    fun assemble_app_constr sym = nbe_apps_constr (constr_ident sym);
-    fun assemble_app_constmatch sym = nbe_apps_constmatch (constr_ident sym);
+    fun assemble_app_const sym = nbe_apps_const (const_ident sym);
+    fun assemble_app_constpat sym = nbe_apps_constpat (const_ident sym);
 
     fun assemble_constapp sym typargs dictss a_ts =
       let
@@ -368,7 +369,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
             end else nbe_apps (nbe_abss num_args (assemble_fun sym a_typargs)) a_ts'
         | NONE => if member (op =) deps sym
             then nbe_apps (assemble_fun sym a_typargs) a_ts'
-            else assemble_app_constr sym a_typargs a_ts'
+            else assemble_app_const sym a_typargs a_ts'
       end
     and assemble_classrels classrels =
       fold_rev (fn classrel => assemble_constapp (Class_Relation classrel) [] [] o single) classrels
@@ -382,7 +383,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
     fun assemble_iterm is_pat a_match_fallback t =
       let
         fun assemble_app (IConst { sym, typargs, dictss, ... }) =
-              if is_pat then fn a_ts => assemble_app_constmatch sym ((maps o map) (K "_") dictss @ a_ts)
+              if is_pat then fn a_ts => assemble_app_constpat sym ((maps o map) (K "_") dictss @ a_ts)
               else assemble_constapp sym typargs dictss
           | assemble_app (IVar v) = nbe_apps (nbe_bound_optional v)
           | assemble_app ((v, _) `|=> (t, _)) =
@@ -411,7 +412,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
             val a_fallback_syms = map_range (fn i => fallback_fun_ident i sym) (length eqns);
             val a_fallback_rhss =
               map_range (fn i => assemble_app_fallback_fun (i + 1) sym a_global_params) (length eqns - 1)
-              @ [assemble_app_constr sym a_tparams (a_dict_params @ a_global_params)];
+              @ [assemble_app_const sym a_tparams (a_dict_params @ a_global_params)];
           in
             ml_let (ml_fundefs (a_fallback_syms ~~
               map2 (assemble_fallback_fundef sym a_global_params) eqns a_fallback_rhss))
