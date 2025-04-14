@@ -14,21 +14,21 @@ sig
     SMT_Verit of string
 
   datatype proof_method =
-    Metis_Method of string option * string option * string list |
-    Meson_Method |
-    SMT_Method of SMT_backend |
-    SATx_Method |
+    Algebra_Method |
     Argo_Method |
-    Blast_Method |
-    Simp_Method |
     Auto_Method |
+    Blast_Method |
     Fastforce_Method |
     Force_Method |
-    Moura_Method |
     Linarith_Method |
+    Meson_Method |
+    Metis_Method of string option * string option * string list |
+    Moura_Method |
+    Order_Method |
     Presburger_Method |
-    Algebra_Method |
-    Order_Method
+    SATx_Method |
+    Simp_Method |
+    SMT_Method of SMT_backend
 
   datatype play_outcome =
     Played of Time.time |
