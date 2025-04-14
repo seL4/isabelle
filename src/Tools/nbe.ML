@@ -377,41 +377,35 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
     and assemble_plain_dict (_ `%% tys) (Dict_Const (inst, dictss)) =
           assemble_constapp (Class_Instance inst) tys (map snd dictss) []
       | assemble_plain_dict _ (Dict_Var { var, index, ... }) =
-          nbe_dict var index
+          nbe_dict var index;
 
-    fun assemble_constmatch sym _ dictss a_ts =
-      assemble_app_constmatch sym ((maps o map) (K "_") dictss @ a_ts);
-
-    fun assemble_iterm constapp =
+    fun assemble_iterm is_pat a_match_fallback t =
       let
-        fun of_iterm match_continuation t =
-          let
-            val (t', ts) = Code_Thingol.unfold_app t
-          in of_iapp match_continuation t' (fold_rev (cons o of_iterm NONE) ts []) end
-        and of_iapp match_continuation (IConst { sym, typargs, dictss, ... }) = constapp sym typargs dictss
-          | of_iapp match_continuation (IVar v) = nbe_apps (nbe_bound_optional v)
-          | of_iapp match_continuation ((v, _) `|=> (t, _)) =
-              nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (of_iterm NONE t)))
-          | of_iapp match_continuation (ICase { term = t, clauses = clauses, primitive = t0, ... }) =
-              nbe_apps (ml_cases (of_iterm NONE t)
-                (map (fn (p, t) => (assemble_iterm assemble_constmatch NONE p, of_iterm match_continuation t)) clauses
-                  @ [("_", case match_continuation of SOME s => s | NONE => of_iterm NONE t0)]))
-      in of_iterm end;
-
-    val assemble_args = map (assemble_iterm assemble_constmatch NONE);
-    val assemble_rhs = assemble_iterm assemble_constapp;
+        fun assemble_app (IConst { sym, typargs, dictss, ... }) =
+              if is_pat then fn a_ts => assemble_app_constmatch sym ((maps o map) (K "_") dictss @ a_ts)
+              else assemble_constapp sym typargs dictss
+          | assemble_app (IVar v) = nbe_apps (nbe_bound_optional v)
+          | assemble_app ((v, _) `|=> (t, _)) =
+              nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound_optional v]) (assemble_iterm is_pat NONE t)))
+          | assemble_app (ICase { term = t, clauses = clauses, primitive = t0, ... }) =
+              nbe_apps (ml_cases (assemble_iterm is_pat NONE t)
+                (map (fn (p, t) => (assemble_iterm true NONE p, assemble_iterm is_pat a_match_fallback t)) clauses
+                  @ [("_", case a_match_fallback of SOME s => s | NONE => assemble_iterm is_pat NONE t0)]))
+        val (t', ts) = Code_Thingol.unfold_app t;
+        val a_ts = fold_rev (cons o assemble_iterm is_pat NONE) ts [];
+      in assemble_app t' a_ts end;
 
     fun assemble_fallback_fundef sym a_global_params ((samepairs, args), rhs) a_fallback_rhs =
       let
-        val a_rhs_core = assemble_rhs (SOME a_fallback_rhs) rhs;
+        val a_rhs_core = assemble_iterm false (SOME a_fallback_rhs) rhs;
         val a_rhs = if null samepairs then a_rhs_core
           else ml_if (ml_and (map nbe_same samepairs)) a_rhs_core a_fallback_rhs;
         val a_fallback_eqn = if forall Code_Thingol.is_IVar args then NONE
           else SOME (replicate (length a_global_params) "_", a_fallback_rhs);
-      in (assemble_args args, a_rhs) :: the_list a_fallback_eqn end;
+      in (map (assemble_iterm true NONE) args, a_rhs) :: the_list a_fallback_eqn end;
 
     fun assemble_fallback_fundefs sym a_tparams a_dict_params a_global_params [(([], []), rhs)] =
-          assemble_rhs NONE rhs
+          assemble_iterm false NONE rhs
       | assemble_fallback_fundefs sym a_tparams a_dict_params a_global_params eqns =
           let
             val a_fallback_syms = map_range (fn i => fallback_fun_ident i sym) (length eqns);
