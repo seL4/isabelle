@@ -44,7 +44,7 @@ icons, is now disabled by default.
 Minor INCOMPATIBILITY.
 
 * If "HOL-Library.Code_Target_Nat" is imported, bit operations on nat are
-implemented by bit operations on target-language integer.
+implemented by bit operations on target-language integers.
 Minor INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
