@@ -40,6 +40,10 @@ icons, is now disabled by default.
 
 *** HOL ***
 
+* Normalization by evaluation (method "normalization", command value) could
+yield false positives due to incomplete handling of polymorphism in certain
+situations; this is now corrected.
+
 * Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into HOL-Main.
 Minor INCOMPATIBILITY.
 
