@@ -341,10 +341,11 @@ fun assemble_type (tyco `%% tys) = nbe_type tyco (map assemble_type tys)
 
 fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
   let
-    fun fun_ident sym = space_implode "_"
-      ["c", if Code_Symbol.is_value sym then "value" else string_of_int (idx_of_sym sym), Code_Symbol.default_base sym, "nbe"];
-    fun seq_fun_ident i sym = space_implode "_"
-      ["c", string_of_int (idx_of_sym sym), Code_Symbol.default_base sym, string_of_int i];
+    fun suffixed_fun_ident suffix sym = space_implode "_"
+      ["c", if Code_Symbol.is_value sym then "value" else string_of_int (idx_of_sym sym),
+      Code_Symbol.default_base sym, suffix];
+    val fun_ident = suffixed_fun_ident "nbe";
+    fun seq_fun_ident i = suffixed_fun_ident (string_of_int i);
     fun constr_ident sym =
       if Config.get ctxt trace
       then string_of_int (idx_of_sym sym) ^ " (*" ^ Code_Symbol.default_base sym ^ "*)"
@@ -413,7 +414,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
         (seq_fun_ident i sym, (a_args, a_rhs) :: fallback_eqn)
       end;
 
-    fun assemble_default_eqn sym a_tparams a_dict_params a_global_params i =
+    fun assemble_fallback_eqn sym a_tparams a_dict_params a_global_params i =
       (seq_fun_ident i sym,
         [(replicate (length a_global_params) "_", assemble_app_constr sym a_tparams (a_dict_params @ a_global_params))])
 
@@ -421,7 +422,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
           assemble_rhs NONE rhs
       | assemble_seq_eqns sym a_tparams a_dict_params a_global_params eqns =
           ml_let (ml_fundefs (map_index (assemble_eqn sym a_global_params) eqns
-            @ [assemble_default_eqn sym a_tparams a_dict_params a_global_params (length eqns)]))
+            @ [assemble_fallback_eqn sym a_tparams a_dict_params a_global_params (length eqns)]))
           (assemble_app_seq_fun 0 sym a_global_params);
 
     fun assemble_eqns (sym, (num_args, (a_tparams, a_dict_params, a_global_params, eqns))) =
