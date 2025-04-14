@@ -289,7 +289,7 @@ fun nbe_fun a_sym a_typargs = a_sym `$` ml_list a_typargs;
 fun nbe_apps a_u [] = a_u
   | nbe_apps a_u a_us = name_apps `$$` [a_u, ml_list (rev a_us)];
 fun nbe_apps_fun a_sym a_typargs a_us = nbe_fun a_sym a_typargs `$` ml_list (rev a_us);
-fun nbe_apps_seq_fun a_sym a_us = a_sym `$$` a_us;
+fun nbe_apps_fallback_fun a_sym a_us = a_sym `$$` a_us;
 fun nbe_apps_constr a_sym a_typargs a_us = name_const `$` ((a_sym `*` ml_list a_typargs) `*` ml_list (rev a_us));
 fun nbe_apps_constmatch a_sym a_us = name_const `$` ((a_sym `*` "_") `*` ml_list (rev a_us));
 
@@ -345,7 +345,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
       ["c", if Code_Symbol.is_value sym then "value" else string_of_int (idx_of_sym sym),
       Code_Symbol.default_base sym, suffix];
     val fun_ident = suffixed_fun_ident "nbe";
-    fun seq_fun_ident i = suffixed_fun_ident (string_of_int i);
+    fun fallback_fun_ident i = suffixed_fun_ident (string_of_int i);
     fun constr_ident sym =
       if Config.get ctxt trace
       then string_of_int (idx_of_sym sym) ^ " (*" ^ Code_Symbol.default_base sym ^ "*)"
@@ -353,7 +353,7 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
 
     fun assemble_fun sym = nbe_fun (fun_ident sym);
     fun assemble_app_fun sym = nbe_apps_fun (fun_ident sym);
-    fun assemble_app_seq_fun i sym = nbe_apps_seq_fun (seq_fun_ident i sym);
+    fun assemble_app_fallback_fun i sym = nbe_apps_fallback_fun (fallback_fun_ident i sym);
     fun assemble_app_constr sym = nbe_apps_constr (constr_ident sym);
     fun assemble_app_constmatch sym = nbe_apps_constmatch (constr_ident sym);
 
@@ -401,40 +401,39 @@ fun assemble_preprocessed_eqnss ctxt idx_of_sym deps eqnss =
     val assemble_args = map (assemble_iterm assemble_constmatch NONE);
     val assemble_rhs = assemble_iterm assemble_constapp;
 
-    fun assemble_eqn sym a_global_params (i, ((samepairs, args), rhs)) =
+    fun assemble_fallback_fundef sym a_global_params ((samepairs, args), rhs) a_fallback_rhs =
       let
-        val a_fallback_rhs = assemble_app_seq_fun (i + 1) sym a_global_params;
-        val a_args = assemble_args args;
-        val a_rhs = if null samepairs then assemble_rhs (SOME a_fallback_rhs) rhs
-          else ml_if (ml_and (map nbe_same samepairs))
-            (assemble_rhs (SOME a_fallback_rhs) rhs) a_fallback_rhs;
-        val fallback_eqn = if forall Code_Thingol.is_IVar args then []
-          else [(replicate (length a_global_params) "_", a_fallback_rhs)];
-      in
-        (seq_fun_ident i sym, (a_args, a_rhs) :: fallback_eqn)
-      end;
+        val a_rhs_core = assemble_rhs (SOME a_fallback_rhs) rhs;
+        val a_rhs = if null samepairs then a_rhs_core
+          else ml_if (ml_and (map nbe_same samepairs)) a_rhs_core a_fallback_rhs;
+        val a_fallback_eqn = if forall Code_Thingol.is_IVar args then NONE
+          else SOME (replicate (length a_global_params) "_", a_fallback_rhs);
+      in (assemble_args args, a_rhs) :: the_list a_fallback_eqn end;
 
-    fun assemble_fallback_eqn sym a_tparams a_dict_params a_global_params i =
-      (seq_fun_ident i sym,
-        [(replicate (length a_global_params) "_", assemble_app_constr sym a_tparams (a_dict_params @ a_global_params))])
-
-    fun assemble_seq_eqns sym a_tparams a_dict_params a_global_params [(([], []), rhs)] =
+    fun assemble_fallback_fundefs sym a_tparams a_dict_params a_global_params [(([], []), rhs)] =
           assemble_rhs NONE rhs
-      | assemble_seq_eqns sym a_tparams a_dict_params a_global_params eqns =
-          ml_let (ml_fundefs (map_index (assemble_eqn sym a_global_params) eqns
-            @ [assemble_fallback_eqn sym a_tparams a_dict_params a_global_params (length eqns)]))
-          (assemble_app_seq_fun 0 sym a_global_params);
+      | assemble_fallback_fundefs sym a_tparams a_dict_params a_global_params eqns =
+          let
+            val a_fallback_syms = map_range (fn i => fallback_fun_ident i sym) (length eqns);
+            val a_fallback_rhss =
+              map_range (fn i => assemble_app_fallback_fun (i + 1) sym a_global_params) (length eqns - 1)
+              @ [assemble_app_constr sym a_tparams (a_dict_params @ a_global_params)];
+          in
+            ml_let (ml_fundefs (a_fallback_syms ~~
+              map2 (assemble_fallback_fundef sym a_global_params) eqns a_fallback_rhss))
+              (assemble_app_fallback_fun 0 sym a_global_params)
+          end;
 
-    fun assemble_eqns (sym, (num_args, (a_tparams, a_dict_params, a_global_params, eqns))) =
+    fun assemble_fundef (sym, (num_args, (a_tparams, a_dict_params, a_global_params, eqns))) =
       let
         val a_lhs = [ml_list a_tparams, ml_list (rev (a_dict_params @ a_global_params))];
-        val a_rhs = assemble_seq_eqns sym a_tparams a_dict_params a_global_params eqns;
+        val a_rhs = assemble_fallback_fundefs sym a_tparams a_dict_params a_global_params eqns;
         val a_univ = ml_abs (ml_list a_tparams) (nbe_abss num_args (assemble_fun sym a_tparams));
       in
         ((fun_ident sym, [(a_lhs, a_rhs), (a_lhs, ml_exc (fun_ident sym))]), a_univ)
       end;
 
-    val (a_fun_defs, a_fun_vals) = map_split assemble_eqns eqnss;
+    val (a_fun_defs, a_fun_vals) = map_split assemble_fundef eqnss;
     val dep_params = ml_list (map fun_ident deps);
   in ml_abs dep_params (ml_let (ml_fundefs a_fun_defs) (ml_list a_fun_vals)) end;
 
