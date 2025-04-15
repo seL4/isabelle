@@ -1018,7 +1018,7 @@ val word_of_int = Word.fromLargeInt o toLarge;
 val word_max_index = word_of_int max_index;
 
 fun words_of_int k = case divMod (k, max_index)
-  of (b, s) => word_of_int s :: (replicate b word_max_index);
+  of (b, s) => word_of_int s :: replicate b word_max_index;
 
 fun push' i k = << (k, i);
 
@@ -1046,7 +1046,7 @@ let rec replicate n x = (if Z.leq n Z.zero then [] else x :: replicate (Z.pred n
 let max_index = Z.of_int max_int;;
 
 let splitIndex i = let (b, s) = Z.div_rem i max_index
-  in Z.to_int s :: (replicate b max_int);;
+  in Z.to_int s :: replicate b max_int;;
 
 let push' i k = Z.shift_left k i;;
 
