@@ -4,6 +4,22 @@ begin
 
 subsection \<open>Non-essential singular points\<close>
 
+lemma at_to_0': "NO_MATCH 0 z \<Longrightarrow> at z = filtermap (\<lambda>x. x + z) (at 0)"
+  for z :: "'a::real_normed_vector"
+  by (rule at_to_0)
+
+lemma nhds_to_0: "nhds (x :: 'a :: real_normed_vector) = filtermap ((+) x) (nhds 0)"
+proof -
+  have "(\<lambda>xa. xa - - x) = (+) x"
+    by auto
+  thus ?thesis
+    using filtermap_nhds_shift[of "-x" 0] by simp
+qed
+
+lemma nhds_to_0': "NO_MATCH 0 x \<Longrightarrow> nhds (x :: 'a :: real_normed_vector) = filtermap ((+) x) (nhds 0)"
+  by (rule nhds_to_0)
+
+
 definition\<^marker>\<open>tag important\<close>
   is_pole :: "('a::topological_space \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> bool" 
   where "is_pole f a =  (LIM x (at a). f x :> at_infinity)"
@@ -2455,7 +2471,7 @@ lemma deriv_divide_is_pole: \<comment>\<open>Generalises @{thm zorder_deriv}\<cl
   assumes f_iso: "isolated_singularity_at f z"
       and f_ness: "not_essential f z" 
       and fg_nconst: "\<exists>\<^sub>Fw in (at z). deriv f w *  f w \<noteq> 0"
-      and f_ord: "zorder f z \<noteq>0"
+      and f_ord: "zorder f z \<noteq> 0"
     shows "is_pole (\<lambda>z. deriv f z / f z) z"
 proof (rule neg_zorder_imp_is_pole)
   define ff where "ff=(\<lambda>w. deriv f w / f w)"
@@ -2490,106 +2506,6 @@ proof (rule deriv_divide_is_pole[OF f_iso])
     using isolated_pole_imp_neg_zorder assms by fastforce
 qed
 
-subsection \<open>Isolated zeroes\<close>
-
-definition isolated_zero :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> bool" where
-  "isolated_zero f z \<longleftrightarrow> f z = 0 \<and> eventually (\<lambda>z. f z \<noteq> 0) (at z)"
-
-lemma isolated_zero_altdef: "isolated_zero f z \<longleftrightarrow> f z = 0 \<and> \<not>z islimpt {z. f z = 0}"
-  unfolding isolated_zero_def eventually_at_filter eventually_nhds islimpt_def by blast
-
-lemma isolated_zero_mult1:
-  assumes "isolated_zero f x" "isolated_zero g x"
-  shows   "isolated_zero (\<lambda>x. f x * g x) x"
-proof -
-  have "\<forall>\<^sub>F x in at x. f x \<noteq> 0" "\<forall>\<^sub>F x in at x. g x \<noteq> 0"
-    using assms unfolding isolated_zero_def by auto
-  hence "eventually (\<lambda>x. f x * g x \<noteq> 0) (at x)"
-    by eventually_elim auto
-  with assms show ?thesis
-    by (auto simp: isolated_zero_def)
-qed
-
-lemma isolated_zero_mult2:
-  assumes "isolated_zero f x" "g x \<noteq> 0" "g analytic_on {x}"
-  shows   "isolated_zero (\<lambda>x. f x * g x) x"
-proof -
-  have "eventually (\<lambda>x. f x \<noteq> 0) (at x)"
-    using assms unfolding isolated_zero_def by auto
-  moreover have "eventually (\<lambda>x. g x \<noteq> 0) (at x)"
-    using analytic_at_neq_imp_eventually_neq[of g x 0] assms by auto
-  ultimately have "eventually (\<lambda>x. f x * g x \<noteq> 0) (at x)"
-    by eventually_elim auto
-  thus ?thesis
-    using assms(1) by (auto simp: isolated_zero_def)
-qed
-
-lemma isolated_zero_mult3:
-  assumes "isolated_zero f x" "g x \<noteq> 0" "g analytic_on {x}"
-  shows   "isolated_zero (\<lambda>x. g x * f x) x"
-  using isolated_zero_mult2[OF assms] by (simp add: mult_ac)
-  
-lemma isolated_zero_prod:
-  assumes "\<And>x. x \<in> I \<Longrightarrow> isolated_zero (f x) z" "I \<noteq> {}" "finite I"
-  shows   "isolated_zero (\<lambda>y. \<Prod>x\<in>I. f x y) z"
-  using assms(3,2,1) by (induction rule: finite_ne_induct) (auto intro: isolated_zero_mult1)
-
-lemma non_isolated_zero':
-  assumes "isolated_singularity_at f z" "not_essential f z" "f z = 0" "\<not>isolated_zero f z"
-  shows   "eventually (\<lambda>z. f z = 0) (at z)"
-  by (metis assms isolated_zero_def non_zero_neighbour not_eventually)
-
-lemma non_isolated_zero:
-  assumes "\<not>isolated_zero f z" "f analytic_on {z}" "f z = 0"
-  shows   "eventually (\<lambda>z. f z = 0) (nhds z)"
-proof -
-  have "eventually (\<lambda>z. f z = 0) (at z)"
-    by (rule non_isolated_zero')
-       (use assms in \<open>auto intro: not_essential_analytic isolated_singularity_at_analytic\<close>)
-  with \<open>f z = 0\<close> show ?thesis
-    unfolding eventually_at_filter by (auto elim!: eventually_mono)
-qed
-
-lemma not_essential_compose:
-  assumes "not_essential f (g z)" "g analytic_on {z}"
-  shows   "not_essential (\<lambda>x. f (g x)) z"
-proof (cases "isolated_zero (\<lambda>w. g w - g z) z")
-  case False
-  hence "eventually (\<lambda>w. g w - g z = 0) (nhds z)"
-    by (rule non_isolated_zero) (use assms in \<open>auto intro!: analytic_intros\<close>)
-  hence "not_essential (\<lambda>x. f (g x)) z \<longleftrightarrow> not_essential (\<lambda>_. f (g z)) z"
-    by (intro not_essential_cong refl)
-       (auto elim!: eventually_mono simp: eventually_at_filter)
-  thus ?thesis
-    by (simp add: not_essential_const)
-next
-  case True
-  hence ev: "eventually (\<lambda>w. g w \<noteq> g z) (at z)"
-    by (auto simp: isolated_zero_def)
-  from assms consider c where "f \<midarrow>g z\<rightarrow> c" | "is_pole f (g z)"
-    by (auto simp: not_essential_def)  
-  have "isCont g z"
-    by (rule analytic_at_imp_isCont) fact
-  hence lim: "g \<midarrow>z\<rightarrow> g z"
-    using isContD by blast
-
-  from assms(1) consider c where "f \<midarrow>g z\<rightarrow> c" | "is_pole f (g z)"
-    unfolding not_essential_def by blast
-  thus ?thesis
-  proof cases
-    fix c assume "f \<midarrow>g z\<rightarrow> c"
-    hence "(\<lambda>x. f (g x)) \<midarrow>z\<rightarrow> c"
-      by (rule filterlim_compose) (use lim ev in \<open>auto simp: filterlim_at\<close>)
-    thus ?thesis
-      by (auto simp: not_essential_def)
-  next
-    assume "is_pole f (g z)"
-    hence "is_pole (\<lambda>x. f (g x)) z"
-      by (rule is_pole_compose) fact+
-    thus ?thesis
-      by (auto simp: not_essential_def)
-  qed
-qed
   
 subsection \<open>Isolated points\<close>
 
@@ -2618,85 +2534,143 @@ lemma isolated_points_of_discrete:
 lemmas uniform_discreteI1 = uniformI1
 lemmas uniform_discreteI2 = uniformI2
 
-lemma isolated_singularity_at_compose:
-  assumes "isolated_singularity_at f (g z)" "g analytic_on {z}"
-  shows   "isolated_singularity_at (\<lambda>x. f (g x)) z"
-proof (cases "isolated_zero (\<lambda>w. g w - g z) z")
-  case False
-  hence "eventually (\<lambda>w. g w - g z = 0) (nhds z)"
-    by (rule non_isolated_zero) (use assms in \<open>auto intro!: analytic_intros\<close>)
-  hence "isolated_singularity_at (\<lambda>x. f (g x)) z \<longleftrightarrow> isolated_singularity_at (\<lambda>_. f (g z)) z"
-    by (intro isolated_singularity_at_cong refl)
-       (auto elim!: eventually_mono simp: eventually_at_filter)
-  thus ?thesis
-    by (simp add: isolated_singularity_at_const)
-next
-  case True
-  from assms(1) obtain r where r: "r > 0" "f analytic_on ball (g z) r - {g z}"
-    by (auto simp: isolated_singularity_at_def)
-  hence holo_f: "f holomorphic_on ball (g z) r - {g z}"
-    by (subst (asm) analytic_on_open) auto
-  from assms(2) obtain r' where r': "r' > 0" "g holomorphic_on ball z r'"
-    by (auto simp: analytic_on_def)
-
-  have "continuous_on (ball z r') g"
-    using holomorphic_on_imp_continuous_on r' by blast
-  hence "isCont g z"
-    using r' by (subst (asm) continuous_on_eq_continuous_at) auto
-  hence "g \<midarrow>z\<rightarrow> g z"
-    using isContD by blast
-  hence "eventually (\<lambda>w. g w \<in> ball (g z) r) (at z)"
-    using \<open>r > 0\<close> unfolding tendsto_def by force
-  moreover have "eventually (\<lambda>w. g w \<noteq> g z) (at z)" using True
-    by (auto simp: isolated_zero_def elim!: eventually_mono)
-  ultimately have "eventually (\<lambda>w. g w \<in> ball (g z) r - {g z}) (at z)"
-    by eventually_elim auto
-  then obtain r'' where r'': "r'' > 0" "\<forall>w\<in>ball z r''-{z}. g w \<in> ball (g z) r - {g z}"
-    unfolding eventually_at_filter eventually_nhds_metric ball_def
-    by (auto simp: dist_commute)
-  have "f \<circ> g holomorphic_on ball z (min r' r'') - {z}"
-  proof (rule holomorphic_on_compose_gen)
-    show "g holomorphic_on ball z (min r' r'') - {z}"
-      by (rule holomorphic_on_subset[OF r'(2)]) auto
-    show "f holomorphic_on ball (g z) r - {g z}"
-      by fact
-    show "g ` (ball z (min r' r'') - {z}) \<subseteq> ball (g z) r - {g z}"
-      using r'' by force
-  qed
-  hence "f \<circ> g analytic_on ball z (min r' r'') - {z}"
-    by (subst analytic_on_open) auto
-  thus ?thesis using \<open>r' > 0\<close> \<open>r'' > 0\<close>
-    by (auto simp: isolated_singularity_at_def o_def intro!: exI[of _ "min r' r''"])
-qed
-
-lemma is_pole_power_int_0:
-  assumes "f analytic_on {x}" "isolated_zero f x" "n < 0"
-  shows   "is_pole (\<lambda>x. f x powi n) x"
+lemma zorder_zero_eqI':
+  assumes "f analytic_on {z}"
+  assumes "\<And>i. i < nat n \<Longrightarrow> (deriv ^^ i) f z = 0"
+  assumes "(deriv ^^ nat n) f z \<noteq> 0" and "n \<ge> 0"
+  shows   "zorder f z = n"
 proof -
-  have "f \<midarrow>x\<rightarrow> f x"
-    using assms(1) by (simp add: analytic_at_imp_isCont isContD)
-  with assms show ?thesis
-    unfolding is_pole_def
-    by (intro filterlim_power_int_neg_at_infinity) (auto simp: isolated_zero_def)
+  from assms(1) obtain A where "open A" "z \<in> A" "f holomorphic_on A"
+    using analytic_at by blast
+  thus ?thesis
+    using zorder_zero_eqI[of f A z n] assms by blast
 qed
 
-lemma isolated_zero_imp_not_constant_on:
-  assumes "isolated_zero f x" "x \<in> A" "open A"
-  shows   "\<not>f constant_on A"
-proof
-  assume "f constant_on A"
-  then obtain c where c: "\<And>x. x \<in> A \<Longrightarrow> f x = c"
-    by (auto simp: constant_on_def)
-  from assms and c[of x] have [simp]: "c = 0"
-    by (auto simp: isolated_zero_def)
-  have "eventually (\<lambda>x. f x \<noteq> 0) (at x)"
-    using assms by (auto simp: isolated_zero_def)
-  moreover have "eventually (\<lambda>x. x \<in> A) (at x)"
-    using assms by (intro eventually_at_in_open') auto
-  ultimately have "eventually (\<lambda>x. False) (at x)"
-    by eventually_elim (use c in auto)
-  thus False
-    by simp
+
+subsection \<open>Isolated zeros\<close>
+
+definition isolated_zero :: "('a::topological_space \<Rightarrow> 'b::real_normed_div_algebra) \<Rightarrow> 'a \<Rightarrow> bool" where
+  "isolated_zero f a \<longleftrightarrow> f \<midarrow>a\<rightarrow> 0 \<and> eventually (\<lambda>x. f x \<noteq> 0) (at a)" 
+
+lemma isolated_zero_shift:
+  fixes z :: "'a :: real_normed_vector"
+  shows "isolated_zero f z \<longleftrightarrow> isolated_zero (\<lambda>w. f (z + w)) 0"
+  unfolding isolated_zero_def
+  by (simp add: at_to_0' eventually_filtermap filterlim_filtermap add_ac)  
+
+lemma isolated_zero_shift':
+  fixes z :: "'a :: real_normed_vector"
+  assumes "NO_MATCH 0 z"
+  shows   "isolated_zero f z \<longleftrightarrow> isolated_zero (\<lambda>w. f (z + w)) 0"
+  by (rule isolated_zero_shift)
+
+lemma isolated_zero_imp_not_essential [intro]:
+  "isolated_zero f z \<Longrightarrow> not_essential f z"
+  unfolding isolated_zero_def not_essential_def
+  using tendsto_nhds_iff by blast
+
+lemma pole_is_not_zero:
+  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_field"
+  assumes "is_pole f z" 
+  shows "\<not>isolated_zero f z"
+proof 
+  assume "isolated_zero f z"
+  then have "filterlim f (nhds 0) (at z)" 
+    unfolding isolated_zero_def using tendsto_nhds_iff by blast
+  moreover have "filterlim f at_infinity (at z)" 
+    using \<open>is_pole f z\<close> unfolding is_pole_def .
+  ultimately show False
+    using not_tendsto_and_filterlim_at_infinity[OF at_neq_bot]
+    by auto
 qed
+
+lemma isolated_zero_imp_pole_inverse:
+  fixes f :: "_ \<Rightarrow> 'b::{real_normed_div_algebra, division_ring}"
+  assumes "isolated_zero f z"
+  shows   "is_pole (\<lambda>z. inverse (f z)) z"
+proof -
+  from assms have ev: "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+    by (auto simp: isolated_zero_def)
+  have "filterlim f (nhds 0) (at z)"
+    using assms by (simp add: isolated_zero_def)
+  with ev have "filterlim f (at 0) (at z)"
+    using filterlim_atI by blast
+  also have "?this \<longleftrightarrow> filterlim (\<lambda>z. inverse (inverse (f z))) (at 0) (at z)"
+    by (rule filterlim_cong) (use ev in \<open>auto elim!: eventually_mono\<close>)
+  finally have "filterlim (\<lambda>z. inverse (f z)) at_infinity (at z)"
+    by (subst filterlim_inverse_at_iff [symmetric])
+  thus ?thesis
+    by (simp add: is_pole_def)
+qed
+
+lemma is_pole_imp_isolated_zero_inverse:
+  fixes f :: "_ \<Rightarrow> 'b::{real_normed_div_algebra, division_ring}"
+  assumes "is_pole f z"
+  shows   "isolated_zero (\<lambda>z. inverse (f z)) z"
+proof -
+  from assms have ev: "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+    by (simp add: non_zero_neighbour_pole)
+  have "filterlim f at_infinity (at z)"
+    using assms by (simp add: is_pole_def)
+  also have "?this \<longleftrightarrow> filterlim (\<lambda>z. inverse (inverse (f z))) at_infinity (at z)"
+    by (rule filterlim_cong) (use ev in \<open>auto elim!: eventually_mono\<close>)
+  finally have "filterlim (\<lambda>z. inverse (f z)) (at 0) (at z)"
+    by (subst (asm) filterlim_inverse_at_iff [symmetric]) auto
+  hence "filterlim (\<lambda>z. inverse (f z)) (nhds 0) (at z)"
+    using filterlim_at by blast
+  moreover have "eventually (\<lambda>z. inverse (f z) \<noteq> 0) (at z)"
+    using ev by eventually_elim auto
+  ultimately show ?thesis
+    by (simp add: isolated_zero_def)
+qed
+
+lemma is_pole_inverse_iff: "is_pole (\<lambda>z. inverse (f z)) z \<longleftrightarrow> isolated_zero f z"
+  using is_pole_imp_isolated_zero_inverse isolated_zero_imp_pole_inverse by fastforce
+
+lemma isolated_zero_inverse_iff: "isolated_zero (\<lambda>z. inverse (f z)) z \<longleftrightarrow> is_pole f z"
+  using is_pole_imp_isolated_zero_inverse isolated_zero_imp_pole_inverse by fastforce
+
+lemma zero_isolated_zero:
+  fixes f :: "'a :: {t2_space, perfect_space} \<Rightarrow> _"
+  assumes "isolated_zero f z" "isCont f z"
+  shows "f z = 0"
+proof (rule tendsto_unique)
+  show "f \<midarrow>z\<rightarrow> f z"
+    using assms(2) by (rule isContD)
+  show "f \<midarrow>z\<rightarrow> 0"
+    using assms(1) by (simp add: isolated_zero_def)
+qed auto
+
+lemma zero_isolated_zero_analytic:
+  assumes "isolated_zero f z" "f analytic_on {z}"
+  shows   "f z = 0"
+  using assms(1) analytic_at_imp_isCont[OF assms(2)] by (rule zero_isolated_zero)
+
+lemma isolated_zero_analytic_iff:
+  assumes "f analytic_on {z}"
+  shows   "isolated_zero f z \<longleftrightarrow> f z = 0 \<and> eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+proof safe
+  assume "f z = 0" "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+  with assms show "isolated_zero f z"
+    unfolding isolated_zero_def by (metis analytic_at_imp_isCont isCont_def)
+qed (use zero_isolated_zero_analytic[OF _ assms] in \<open>auto simp: isolated_zero_def\<close>)
+
+lemma non_isolated_zero_imp_eventually_zero:
+  assumes "f analytic_on {z}" "f z = 0" "\<not>isolated_zero f z"
+  shows   "eventually (\<lambda>z. f z = 0) (at z)"
+proof (rule not_essential_frequently_0_imp_eventually_0)
+  from assms(1) show "isolated_singularity_at f z"  "not_essential f z"
+    by (simp_all add: isolated_singularity_at_analytic not_essential_analytic)
+  from assms(1,2) have "f \<midarrow>z\<rightarrow> 0"
+    by (metis analytic_at_imp_isCont continuous_within)
+  thus "frequently (\<lambda>z. f z = 0) (at z)"
+    using assms(2,3) by (auto simp: isolated_zero_def frequently_def)
+qed
+
+lemma non_isolated_zero_imp_eventually_zero':
+  assumes "f analytic_on {z}" "f z = 0" "\<not>isolated_zero f z"
+  shows   "eventually (\<lambda>z. f z = 0) (nhds z)"
+  using non_isolated_zero_imp_eventually_zero[OF assms] assms(2)
+  using eventually_nhds_conv_at by blast
 
 end

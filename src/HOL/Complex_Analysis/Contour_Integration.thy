@@ -47,6 +47,12 @@ lemma contour_integral_unique: "(f has_contour_integral i) g \<Longrightarrow> c
   unfolding contour_integral_def has_contour_integral_def contour_integrable_on_def
   using has_integral_unique by blast
 
+lemma has_contour_integral_cong:
+  assumes "\<And>z. z \<in> path_image g \<Longrightarrow> f z = f' z" "g = g'" "c = c'"
+  shows   "(f has_contour_integral c) g \<longleftrightarrow> (f' has_contour_integral c') g'"
+  unfolding has_contour_integral_def assms(2,3)
+  by (intro has_integral_cong) (auto simp: assms path_image_def intro!: assms(1))
+
 lemma has_contour_integral_eqpath:
   "\<lbrakk>(f has_contour_integral y) p; f contour_integrable_on \<gamma>;
        contour_integral p f = contour_integral \<gamma> f\<rbrakk>

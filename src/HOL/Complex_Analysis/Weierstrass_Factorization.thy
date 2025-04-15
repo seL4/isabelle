@@ -339,8 +339,16 @@ qed
 lemma isolated_zero:
   assumes "z \<in> range a"
   shows   "isolated_zero f z"
-  using not_islimpt_range_a[of z] assms
-    by (auto simp: isolated_zero_altdef zero)
+proof -
+  have "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+    using not_islimpt_range_a[of z] by (auto simp: islimpt_iff_eventually zero)
+  moreover have "f \<midarrow>z\<rightarrow> f z"
+    by (intro isContD analytic_at_imp_isCont analytic)
+  hence "f \<midarrow>z\<rightarrow> 0"
+    using assms zero[of z] by auto
+  ultimately show ?thesis
+    by (auto simp: isolated_zero_def)
+qed
 
 lemma zorder: "zorder f z = card (a -` {z})"
 proof -
@@ -414,7 +422,7 @@ proof -
     have "zorder (\<lambda>w. weierstrass_factor (p n) (1 / a n * w)) z =
           zorder (weierstrass_factor (p n)) (1 / a n * z)"
       using a_nonzero[of n] eventually_neq_at_within[of 1 "z / a n" UNIV]
-      by (intro zorder_scale analytic_intros) auto
+      by (intro zorder_scale analytic_intros analytic_on_imp_meromorphic_on) auto
     hence "zorder (\<lambda>w. g w n) z = zorder (weierstrass_factor (p n)) 1"
       using n a_nonzero[of n] by (auto simp: g_def)
     thus "zorder (\<lambda>w. g w n) z = 1"

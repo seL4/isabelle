@@ -78,21 +78,6 @@ next
     by (auto simp: fls_subdegree_ge0I)
 qed
 
-lemma at_to_0': "NO_MATCH 0 z \<Longrightarrow> at z = filtermap (\<lambda>x. x + z) (at 0)"
-  for z :: "'a::real_normed_vector"
-  by (rule at_to_0)
-
-lemma nhds_to_0: "nhds (x :: 'a :: real_normed_vector) = filtermap ((+) x) (nhds 0)"
-proof -
-  have "(\<lambda>xa. xa - - x) = (+) x"
-    by auto
-  thus ?thesis
-    using filtermap_nhds_shift[of "-x" 0] by simp
-qed
-
-lemma nhds_to_0': "NO_MATCH 0 x \<Longrightarrow> nhds (x :: 'a :: real_normed_vector) = filtermap ((+) x) (nhds 0)"
-  by (rule nhds_to_0)
-
 
 definition%important fls_conv_radius :: "complex fls \<Rightarrow> ereal" where
   "fls_conv_radius f = fps_conv_radius (fls_regpart f)"

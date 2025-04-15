@@ -1185,6 +1185,26 @@ proof -
     by (intro winding_number_pos_lt [OF valid_path_linepath z assms]) (simp add: linepath_def algebra_simps)
 qed
 
+lemma winding_number_linepath_neg_lt:
+    assumes "0 < Im ((a - b) * cnj (a - z))"
+      shows "Re(winding_number(linepath a b) z) < 0"
+proof -
+  have z: "z \<notin> path_image (linepath a b)"
+    using assms
+    by (simp add: closed_segment_def) (force simp: algebra_simps)
+  have "Re(winding_number(linepath a b) z) = 
+          -Re(winding_number(reversepath (linepath a b)) z)"
+    by (subst winding_number_reversepath) (use z in auto)
+  also have "\<dots> = - Re(winding_number(linepath b a) z)"
+    by simp
+  finally have "Re (winding_number (linepath a b) z)  
+      = - Re (winding_number (linepath b a) z)" .
+  moreover have "0 < Re (winding_number (linepath b a) z)"
+    using winding_number_linepath_pos_lt[OF assms] .
+  ultimately show ?thesis by auto
+qed
+
+
 subsection\<^marker>\<open>tag unimportant\<close> \<open>More winding number properties\<close>
 
 text\<open>including the fact that it's +-1 inside a simple closed curve.\<close>
@@ -2183,6 +2203,12 @@ lemma simple_closed_path_winding_number_pos:
     \<Longrightarrow> winding_number \<gamma> z = 1"
 using simple_closed_path_winding_number_cases
   by fastforce
+
+lemma simple_closed_path_winding_number_neg:
+   "\<lbrakk>simple_path \<gamma>; pathfinish \<gamma> = pathstart \<gamma>; z \<notin> path_image \<gamma>; Re (winding_number \<gamma> z) < 0\<rbrakk>
+    \<Longrightarrow> winding_number \<gamma> z = -1"
+  using simple_closed_path_winding_number_cases by fastforce
+
 
 subsection \<open>Winding number for rectangular paths\<close>
 

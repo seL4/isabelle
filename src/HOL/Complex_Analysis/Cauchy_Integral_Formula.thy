@@ -468,7 +468,7 @@ proof -
   thus ?thesis
     by (simp add: o_def)
 qed
-    
+
 lemma contour_integral_comp_analyticW:
   assumes "f analytic_on s" "valid_path \<gamma>" "path_image \<gamma> \<subseteq> s"
   shows "contour_integral (f \<circ> \<gamma>) g = contour_integral \<gamma> (\<lambda>w. deriv f w * g (f w))"
