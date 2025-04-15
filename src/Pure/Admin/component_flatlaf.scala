@@ -25,7 +25,8 @@ object Component_FlatLaf {
       Lib("flatlaf/{V}/flatlaf-{V}-macos-x86_64.dylib"),
       Lib("flatlaf/{V}/flatlaf-{V}-linux-arm64.so"),
       Lib("flatlaf/{V}/flatlaf-{V}-linux-x86_64.so"),
-      Lib("flatlaf/{V}/flatlaf-{V}-windows-x86_64.dll", exe = true))
+      Lib("flatlaf/{V}/flatlaf-{V}-windows-x86_64.dll", exe = true),
+      Lib("flatlaf-extras/{V}/flatlaf-extras-{V}.jar"))
 
 
   /* build flatlaf */
@@ -81,10 +82,13 @@ isabelle_scala_service "isabelle.FlatDarkLaf"
 
     File.write(component_dir.README,
       """This is the FlatLaf Java/Swing look-and-feel from
-https://www.formdev.com/flatlaf and
 https://mvnrepository.com/artifact/com.formdev
 
 It is covered by the Apache License 2.0 license.
+
+See also https://www.formdev.com/flatlaf  and especially the demo
+application https://download.formdev.com/flatlaf/flatlaf-demo-latest.jar
+(which may be run via "java -jar ...").
 
 
         Makarius
