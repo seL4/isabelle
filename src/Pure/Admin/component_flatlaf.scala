@@ -8,22 +8,29 @@ package isabelle
 
 
 object Component_FlatLaf {
-  /* platform information */
+  /* jars and native libraries */
 
-  sealed case class Platform_Info(name: String, exe: Boolean = false)
+  sealed case class Lib(template: String, exe: Boolean = false) {
+    def path(version: String): Path =
+      Path.explode(template.replace("{V}", version))
 
-  private val platforms =
+    def jar_name(version: String): Option[String] =
+      if (File.is_jar(template)) Some(path(version).file_name) else None
+  }
+
+  private val libs =
     List(
-      Platform_Info("flatlaf-{V}-macos-arm64.dylib"),
-      Platform_Info("flatlaf-{V}-macos-x86_64.dylib"),
-      Platform_Info("flatlaf-{V}-linux-arm64.so"),
-      Platform_Info("flatlaf-{V}-linux-x86_64.so"),
-      Platform_Info("flatlaf-{V}-windows-x86_64.dll", exe = true))
+      Lib("flatlaf/{V}/flatlaf-{V}-no-natives.jar"),
+      Lib("flatlaf/{V}/flatlaf-{V}-macos-arm64.dylib"),
+      Lib("flatlaf/{V}/flatlaf-{V}-macos-x86_64.dylib"),
+      Lib("flatlaf/{V}/flatlaf-{V}-linux-arm64.so"),
+      Lib("flatlaf/{V}/flatlaf-{V}-linux-x86_64.so"),
+      Lib("flatlaf/{V}/flatlaf-{V}-windows-x86_64.dll", exe = true))
 
 
   /* build flatlaf */
 
-  val default_download_url = "https://repo1.maven.org/maven2/com/formdev/flatlaf"
+  val default_download_url = "https://repo1.maven.org/maven2/com/formdev"
   val default_version = "3.6"
 
   def build_flatlaf(
@@ -43,25 +50,27 @@ object Component_FlatLaf {
 
     Isabelle_System.make_directory(component_dir.lib)
 
-    def download(name: String, exe: Boolean = false): Unit = {
-      val download_name = name.replace("{V}", version)
-      val target = component_dir.lib + Path.basic(download_name)
+    for (lib <- libs) {
+      val lib_path = lib.path(version)
+      val target = component_dir.lib + Path.basic(lib_path.file_name)
       Isabelle_System.download_file(
-        download_url + "/" + version + "/" + download_name, target, progress = progress)
-      if (exe) File.set_executable(target)
+        download_url + "/" + lib_path.implode, target, progress = progress)
+      if (lib.exe) File.set_executable(target)
     }
 
-    download("flatlaf-{V}-no-natives.jar")
-
-    for (platform <- platforms) download(platform.name, exe = platform.exe)
+    val jar_names = libs.flatMap(_.jar_name(version))
 
 
     /* settings */
 
+    val classpath =
+      libs.flatMap(_.jar_name(version)).map(a => "$ISABELLE_FLATLAF_HOME/lib/" + a)
+        .mkString(":")
+
     component_dir.write_settings("""
 ISABELLE_FLATLAF_HOME="$COMPONENT"
 
-classpath "$ISABELLE_FLATLAF_HOME/lib/flatlaf-""" + version + """-no-natives.jar"
+classpath """ + quote(classpath) + """
 
 isabelle_scala_service "isabelle.FlatLightLaf"
 isabelle_scala_service "isabelle.FlatDarkLaf"
@@ -73,7 +82,7 @@ isabelle_scala_service "isabelle.FlatDarkLaf"
     File.write(component_dir.README,
       """This is the FlatLaf Java/Swing look-and-feel from
 https://www.formdev.com/flatlaf and
-https://mvnrepository.com/artifact/com.formdev/flatlaf
+https://mvnrepository.com/artifact/com.formdev
 
 It is covered by the Apache License 2.0 license.
 
