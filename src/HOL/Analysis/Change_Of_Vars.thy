@@ -3425,4 +3425,23 @@ lemma measure_differentiable_image_eq:
   using measurable_differentiable_image_eq [OF S der_f inj]
         assms has_measure_differentiable_image by blast
 
+lemma has_absolute_integral_reflect_real:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "uminus ` A \<subseteq> B" "uminus ` B \<subseteq> A" "A \<in> sets lebesgue"
+  shows "(\<lambda>x. f (-x)) absolutely_integrable_on A \<and> integral A (\<lambda>x. f (-x)) = b \<longleftrightarrow>
+         f absolutely_integrable_on B \<and> integral B f = b"
+proof -
+  have bij: "bij_betw uminus A B"
+    by (rule bij_betwI[of _ _ _ uminus]) (use assms(1,2) in auto)
+  have "((\<lambda>x. \<bar>-1\<bar> *\<^sub>R f (-x)) absolutely_integrable_on A \<and>
+          integral A (\<lambda>x. \<bar>-1\<bar> *\<^sub>R f (-x)) = b) \<longleftrightarrow>
+        (f absolutely_integrable_on uminus ` A \<and>
+          integral (uminus ` A) f = b)" using assms
+    by (intro has_absolute_integral_change_of_variables_1') (auto intro!: derivative_eq_intros)
+  also have "uminus ` A = B"
+    using bij by (simp add: bij_betw_def)
+  finally show ?thesis
+    by simp
+qed
+
 end

@@ -836,6 +836,19 @@ lemma square_le_1:
     using assms
     by (metis add.inverse_inverse linear mult_le_one neg_equal_0_iff_equal neg_le_iff_le power2_eq_square power_minus_Bit0)
 
+lemma power2_mono: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<Longrightarrow> x ^ 2 \<le> y ^ 2"
+  by (simp add: abs_le_square_iff)
+
+lemma power2_strict_mono: 
+  assumes "\<bar>x\<bar> < \<bar>y\<bar>"
+  shows   "x ^ 2 < y ^ 2"
+proof -
+  have "\<bar>x\<bar> ^ 2 < \<bar>y\<bar> ^ 2"
+    by (rule power_strict_mono) (use assms in auto)
+  thus ?thesis
+    by simp
+qed
+
 end
 
 subsection \<open>Miscellaneous rules\<close>

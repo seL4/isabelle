@@ -775,6 +775,55 @@ lemma frac_diff_zero: assumes "frac (x - y) = 0"
 lemma frac_neg_eq_iff: "frac (-x) = frac (-y) \<longleftrightarrow> frac x = frac y"
   using add.inverse_inverse frac_neg_frac by metis
 
+lemma frac_eqE:
+  assumes "frac x = frac y"
+  obtains n where "x = y + of_int n"
+  by (rule that[of "floor x - floor y"]) (use assms in \<open>auto simp: frac_def\<close>)
+
+lemma frac_add_of_int_right [simp]: "frac (x + of_int n) = frac x"
+  by (auto simp: frac_def)
+
+lemma frac_add_of_int_left [simp]: "frac (of_int n + x) = frac x"
+  by (auto simp: frac_def)
+
+lemma frac_add_int_right: "y \<in> \<int> \<Longrightarrow> frac (x + y) = frac x"
+  by (elim Ints_cases) auto
+
+lemma frac_add_int_left: "x \<in> \<int> \<Longrightarrow> frac (x + y) = frac y"
+  by (elim Ints_cases) auto
+
+lemma bij_betw_frac: "bij_betw frac {x..<x+1} {0..<1}"
+  unfolding bij_betw_def
+proof
+  show "inj_on frac {x..<x+1}"
+  proof
+    fix a b assume *: "a \<in> {x..<x+1}" "b \<in> {x..<x+1}" "frac a = frac b"
+    then obtain n where n: "a = b + of_int n"
+      by (elim frac_eqE)
+    have "\<bar>of_int n\<bar> = \<bar>a - b\<bar>"
+      using n by (simp add: algebra_simps)
+    also have "\<dots> < 1"
+      using * by auto
+    finally have "n = 0"
+      by (simp flip: of_int_abs)
+    with n show "a = b"
+      by auto
+  qed
+next
+  show "frac ` {x..<x + 1} = {0..<1}"
+  proof (intro equalityI subsetI)
+    fix t :: 'a assume t: "t \<in> {0..<1}"
+    have "t = frac (if t \<ge> frac x then x + t - frac x else x + t - frac x + 1)"
+      using frac_eq[of t] t by (auto simp: frac_def)
+    moreover have "(if t \<ge> frac x then x + t - frac x else x + t - frac x + 1) \<in> {x..<x+1}"
+      using frac_lt_1[of x] frac_ge_0[of x] t by (auto simp del: frac_ge_0)
+    ultimately show "t \<in> frac ` {x..<x + 1}"
+      by blast
+  qed (auto intro: frac_lt_1)
+qed
+
+
+
 subsection \<open>Rounding to the nearest integer\<close>
 
 definition round :: "'a::floor_ceiling \<Rightarrow> int"

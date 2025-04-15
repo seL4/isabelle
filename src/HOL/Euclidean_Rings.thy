@@ -1711,6 +1711,9 @@ qed (auto simp add: sgn_mult mult_sgn_abs abs_eq_iff')
 
 end
 
+lemma of_int_div: "b dvd a \<Longrightarrow> of_int (a div b) = (of_int a / of_int b :: 'a :: field_char_0)"
+  by (elim dvdE) (auto simp: divide_simps mult_ac)
+
 
 subsubsection \<open>Algebraic foundations\<close>
 

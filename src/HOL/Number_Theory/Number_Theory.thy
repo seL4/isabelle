@@ -11,6 +11,7 @@ imports
   Pocklington
   Prime_Powers
   Residue_Primitive_Roots
+  Modular_Inverse
 begin
 
 end

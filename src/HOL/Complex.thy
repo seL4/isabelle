@@ -1032,6 +1032,32 @@ proof -
     using filterlim_norm_at_top_imp_at_infinity by blast
 qed
 
+lemma tendsto_cis [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> x) F"
+  shows   "((\<lambda>u. cis (f u)) \<longlongrightarrow> cis x) F"
+  unfolding cis_conv_exp by (intro tendsto_intros assms)
+
+lemma tendsto_rcis [tendsto_intros]:
+  assumes "(f \<longlongrightarrow> r) F" "(g \<longlongrightarrow> x) F"
+  shows   "((\<lambda>u. rcis (f u) (g u)) \<longlongrightarrow> rcis r x) F"
+  unfolding rcis_def by (intro tendsto_intros assms)
+
+lemma continuous_on_rcis [continuous_intros]:
+  "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. rcis (f x) (g x))"
+  unfolding rcis_def by (intro continuous_intros)
+
+lemma has_derivative_cis [derivative_intros]:
+  assumes "(f has_derivative d) (at x within A)"
+  shows   "((\<lambda>x. cis (f x)) has_derivative (\<lambda>t. d t *\<^sub>R (\<i> * cis (f x)))) (at x within A)"
+proof (rule has_derivative_compose[OF assms])
+  have cis_eq: "cis = (\<lambda>x. cos x + \<i> * sin x)"
+    by (auto simp: complex_eq_iff cos_of_real sin_of_real)
+  have "(cis has_vector_derivative (\<i> * cis (f x))) (at (f x))"
+    unfolding cis_eq by (auto intro!: derivative_eq_intros simp: cos_of_real sin_of_real algebra_simps)
+  thus "(cis has_derivative (\<lambda>a. a *\<^sub>R (\<i> * cis (f x)))) (at (f x))"
+    by (simp add: has_vector_derivative_def)
+qed
+
 subsubsection \<open>Complex argument\<close>
 
 definition Arg :: "complex \<Rightarrow> real"
@@ -1125,6 +1151,7 @@ lemma cos_Arg: "z \<noteq> 0 \<Longrightarrow> cos (Arg z) = Re z / norm z"
 
 lemma sin_Arg: "z \<noteq> 0 \<Longrightarrow> sin (Arg z) = Im z / norm z"
   by (metis Im_sgn cis.sel(2) cis_Arg)
+
 
 subsection \<open>Complex n-th roots\<close>
 
@@ -1365,7 +1392,7 @@ lemma csqrt_unique: "w\<^sup>2 = z \<Longrightarrow> 0 < Re w \<or> Re w = 0 \<a
 
 lemma csqrt_minus [simp]:
   assumes "Im x < 0 \<or> (Im x = 0 \<and> 0 \<le> Re x)"
-  shows "csqrt (- x) = \<i> * csqrt x"
+  shows "csqrt (-x) = \<i> * csqrt x"
 proof -
   have "csqrt ((\<i> * csqrt x)^2) = \<i> * csqrt x"
   proof (rule csqrt_square)
@@ -1378,6 +1405,17 @@ proof -
     by (simp add: power_mult_distrib)
   finally show ?thesis .
 qed
+
+lemma csqrt_neq_neg_real:
+  assumes "Im x = 0" "Re x < 0"
+  shows   "csqrt z \<noteq> x"
+  using csqrt_principal[of z] assms by auto
+
+lemma csqrt_of_real: "x \<ge> 0 \<Longrightarrow> csqrt (of_real x) = of_real (sqrt x)"
+  by (rule csqrt_unique) (auto simp flip: of_real_power)
+
+lemma csqrt_of_real': "csqrt (of_real x) = of_real (sqrt \<bar>x\<bar>) * (if x \<ge> 0 then 1 else \<i>)"
+  by (rule csqrt_unique) (auto simp flip: of_real_power simp: power_mult_distrib)
 
 
 text \<open>Legacy theorem names\<close>

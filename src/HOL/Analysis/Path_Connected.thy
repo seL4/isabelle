@@ -1329,6 +1329,33 @@ lemma has_vector_derivative_linepath_within:
     "(linepath a b has_vector_derivative (b - a)) (at x within S)"
   by (force intro: derivative_eq_intros simp add: linepath_def has_vector_derivative_def algebra_simps)
 
+lemma linepath_real_ge_left:
+  fixes x y :: real
+  assumes "x \<le> y" "t \<ge> 0"
+  shows   "linepath x y t \<ge> x"
+proof -
+  have "x + 0 \<le> x + t *\<^sub>R (y - x)"
+    using assms by (intro add_left_mono) auto
+  also have "\<dots> = linepath x y t"
+    by (simp add: linepath_def algebra_simps)
+  finally show ?thesis by simp
+qed
+
+lemma linepath_real_le_right:
+  fixes x y :: real
+  assumes "x \<le> y" "t \<le> 1"
+  shows   "linepath x y t \<le> y"
+proof -
+  have "y + 0 \<ge> y + (1 - t) *\<^sub>R (x - y)"
+    using assms by (intro add_left_mono) (auto intro: mult_nonneg_nonpos)
+  also have "y + (1 - t) *\<^sub>R (x - y) = linepath x y t"
+    by (simp add: linepath_def algebra_simps)
+  finally show ?thesis by simp
+qed
+
+lemma linepath_translate: "(+) c \<circ> linepath a b = linepath (a + c) (b + c)"
+  by (auto simp: linepath_def algebra_simps)
+
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Segments via convex hulls\<close>
 

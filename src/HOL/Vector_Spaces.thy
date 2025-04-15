@@ -75,6 +75,19 @@ lemmas\<comment> \<open>from \<open>module\<close>\<close>
   and linear_scale_left = module_hom_scale_left
   and linear_uminus = module_hom_uminus
 
+lemma linear_representation:
+  assumes "independent B" "span B = UNIV"
+  shows   "linear scale (*) (\<lambda>v. representation B v b)"
+proof (unfold_locales, goal_cases)
+  case (5 x y)
+  show ?case
+    using assms by (subst representation_add) auto
+next
+  case (6 r x)
+  show ?case
+    using assms by (subst representation_scale) auto
+qed (simp_all add: algebra_simps)
+
 lemma linear_imp_scale:
   fixes D::"'a \<Rightarrow> 'b"
   assumes "linear (*) scale D"

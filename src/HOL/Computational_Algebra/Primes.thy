@@ -542,6 +542,25 @@ lemma divides_primepow_nat:
   shows "d dvd p ^ k \<longleftrightarrow> (\<exists>i\<le>k. d = p ^ i)"
   using assms divides_primepow [of p d k] by (auto intro: le_imp_power_dvd)
 
+lemma gcd_prime_int:
+  assumes "prime (p :: int)"
+  shows   "gcd p k = (if p dvd k then p else 1)"
+proof -
+  have "p \<ge> 0"
+    using assms prime_ge_0_int by auto
+  show ?thesis
+  proof (cases "p dvd k")
+    case True
+    thus ?thesis using assms \<open>p \<ge> 0\<close> by auto
+  next
+    case False
+    hence "coprime p k"
+      using assms by (simp add: prime_imp_coprime)
+    with False show ?thesis
+      by auto
+  qed
+qed
+
 
 subsection \<open>Chinese Remainder Theorem Variants\<close>
 

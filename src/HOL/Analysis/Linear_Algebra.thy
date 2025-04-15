@@ -586,6 +586,18 @@ lemma linear_imp_differentiable:
 lemma of_real_differentiable [simp,derivative_intros]: "of_real differentiable F"
   by (simp add: bounded_linear_imp_differentiable bounded_linear_of_real)
 
+lemma bounded_linear_representation:
+  fixes B :: "'a :: euclidean_space set"
+  assumes "independent B" "span B = UNIV"
+  shows   "bounded_linear (\<lambda>v. representation B v b)"
+proof -
+  have "Vector_Spaces.linear (*\<^sub>R) (*) (\<lambda>v. representation B v b)"
+    by (rule real_vector.linear_representation) fact+
+  then have "linear (\<lambda>v. representation B v b)"
+    unfolding linear_def real_scaleR_def [abs_def] .
+  thus ?thesis
+    by (simp add: linear_conv_bounded_linear)
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>We continue\<close>
 

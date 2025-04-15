@@ -2395,11 +2395,15 @@ proof -
     ultimately show ?thesis by force
   next
     case False
-    hence z: "z/2 \<notin> \<int>" "(z+1)/2 \<notin> \<int>" using Ints_diff[of "z+1" 1] by (auto elim!: Ints_cases)
+    hence z: "z/2 \<notin> \<int> \<and> (z+1)/2 \<notin> \<int>"
+      by (metis Ints_1 Ints_cases Ints_of_int add.commute
+          add_in_Ints_iff_left divide_eq_eq_numeral1(1)
+          of_int_mult one_add_one zero_neq_numeral)
     hence z': "z/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" "(z+1)/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto elim!: nonpos_Ints_cases)
     from z have "1-z/2 \<notin> \<int>" "1-((z+1)/2) \<notin> \<int>"
       using Ints_diff[of 1 "1-z/2"] Ints_diff[of 1 "1-((z+1)/2)"] by auto
-    hence z'': "1-z/2 \<notin> \<int>\<^sub>\<le>\<^sub>0" "1-((z+1)/2) \<notin> \<int>\<^sub>\<le>\<^sub>0" by (auto elim!: nonpos_Ints_cases)
+    hence z'': "1-z/2 \<notin> \<int>\<^sub>\<le>\<^sub>0 \<and> 1-((z+1)/2) \<notin> \<int>\<^sub>\<le>\<^sub>0"
+      by blast
     from z have "g (z/2) * g ((z+1)/2) =
       (Gamma (z/2) * Gamma ((z+1)/2)) * (Gamma (1-z/2) * Gamma (1-((z+1)/2))) *
       (sin (of_real pi * z/2) * sin (of_real pi * (z+1)/2))"

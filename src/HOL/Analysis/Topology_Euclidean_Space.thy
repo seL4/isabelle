@@ -363,6 +363,12 @@ lemma box_Int_box:
     box (\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)"
   unfolding set_eq_iff and Int_iff and mem_box by auto
 
+lemma cbox_prod: "cbox a b = cbox (fst a) (fst b) \<times> cbox (snd a) (snd b)"
+  by (cases a; cases b) auto
+
+lemma box_prod: "box a b = box (fst a) (fst b) \<times> box (snd a) (snd b)"
+  by (cases a; cases b) (force simp: box_def Basis_prod_def)
+
 lemma rational_boxes:
   fixes x :: "'a::euclidean_space"
   assumes "e > 0"
@@ -720,6 +726,12 @@ lemma in_box_complex_iff:
   by (cases x; cases a; cases b) (auto simp: box_Complex_eq)
 
 lemma box_complex_of_real [simp]: "box (complex_of_real x) (complex_of_real y) = {}"
+  by (auto simp: in_box_complex_iff)
+
+lemma cbox_complex_eq: "cbox a b = {x. Re x \<in> {Re a..Re b} \<and> Im x \<in> {Im a..Im b}}"
+  by (auto simp: in_cbox_complex_iff)
+
+lemma box_complex_eq: "box a b = {x. Re x \<in> {Re a<..<Re b} \<and> Im x \<in> {Im a<..<Im b}}"
   by (auto simp: in_box_complex_iff)
 
 lemma Int_interval:

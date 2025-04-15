@@ -266,6 +266,11 @@ lemma convex_closed_interval [simp]:
   using convex_box[of a b]
   by (metis interval_cbox)
 
+lemma bounded_Ico [simp]: "bounded {a..<b :: 'a :: ordered_euclidean_space}"
+  and bounded_Ioc [simp]: "bounded {a<..b :: 'a :: ordered_euclidean_space}"
+  and bounded_Ioo [simp]: "bounded {a<..<b :: 'a :: ordered_euclidean_space}"
+  by (rule bounded_subset[of "{a..b}"]; force; fail)+
+
 lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::_::ordered_euclidean_space)) ` {a .. b} =
   (if {a .. b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a .. m *\<^sub>R b} else {m *\<^sub>R b .. m *\<^sub>R a})"
   using image_smult_cbox[of m a b]

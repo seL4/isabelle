@@ -128,6 +128,46 @@ lemma mod_mult_cong_left:
   "[c mod (b * a) = d] (mod a) \<longleftrightarrow> [c = d] (mod a)"
   using mod_mult_cong_right [of c a b d] by (simp add: ac_simps)
 
+lemma cong_mod_leftI [simp]:
+  "[b = c] (mod a) \<Longrightarrow> [b mod a = c] (mod a)"
+  by (simp add: cong_def)  
+
+lemma cong_mod_rightI [simp]:
+  "[b = c] (mod a) \<Longrightarrow> [b = c mod a] (mod a)"
+  by (simp add: cong_def)  
+
+lemma cong_cmult_leftI: "[a = b] (mod m) \<Longrightarrow> [c * a = c * b] (mod (c * m))"
+  by (metis cong_def local.mult_mod_right)
+
+lemma cong_cmult_rightI: "[a = b] (mod m) \<Longrightarrow> [a * c = b * c] (mod (m * c))"
+  using cong_cmult_leftI[of a b m c] by (simp add: mult.commute)
+
+lemma cong_dvd_mono_modulus:
+  assumes "[a = b] (mod m)" "m' dvd m"
+  shows   "[a = b] (mod m')"
+  using assms by (metis cong_def local.mod_mod_cancel)
+
+lemma coprime_cong_transfer_left:
+  assumes "coprime a b" "[a = a'] (mod b)"
+  shows   "coprime a' b"
+  using assms by (metis cong_0 cong_def local.coprime_mod_left_iff)
+
+lemma coprime_cong_transfer_right:
+  assumes "coprime a b" "[b = b'] (mod a)"
+  shows   "coprime a b'"
+  using coprime_cong_transfer_left[of b a b'] assms
+  by (simp add: coprime_commute)
+
+lemma coprime_cong_cong_left:
+  assumes "[a = a'] (mod b)"
+  shows   "coprime a b \<longleftrightarrow> coprime a' b"
+  using assms cong_sym_eq coprime_cong_transfer_left by blast
+
+lemma coprime_cong_cong_right:
+  assumes "[b = b'] (mod a)"
+  shows   "coprime a b \<longleftrightarrow> coprime a b'"
+  using coprime_cong_cong_left[OF assms] by (simp add: coprime_commute)
+
 end
 
 context unique_euclidean_ring
@@ -199,6 +239,9 @@ lemma cong_dvd_modulus:
 lemma cong_modulus_mult:
   "[x = y] (mod m)" if "[x = y] (mod m * n)"
   using that by (simp add: cong_iff_dvd_diff) (rule dvd_mult_left)
+
+lemma cong_uminus: "[x = y] (mod m) \<Longrightarrow> [-x = -y] (mod m)"
+  unfolding cong_minus_minus_iff .
 
 end
 

@@ -366,6 +366,12 @@ lemma perfect_choose_dist: "0 < r \<Longrightarrow> \<exists>a. a \<noteq> x \<a
   for x :: "'a::{perfect_space,metric_space}"
   using islimpt_UNIV [of x] by (simp add: islimpt_approachable)
 
+
+lemma pointed_ball_nonempty:
+  assumes "r > 0"
+  shows   "ball x r - {x :: 'a :: {perfect_space, metric_space}} \<noteq> {}"
+  using perfect_choose_dist[of r x] assms by (auto simp: ball_def dist_commute)
+
 lemma cball_eq_sing:
   fixes x :: "'a::{metric_space,perfect_space}"
   shows "cball x e = {x} \<longleftrightarrow> e = 0"

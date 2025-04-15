@@ -2259,4 +2259,69 @@ proof -
   finally show ?thesis .
 qed
 
+lemma closure_bij_homeomorphic_image_eq:
+  assumes bij:  "bij_betw f A B"
+  assumes homo: "homeomorphism A B f g"
+  assumes cont: "continuous_on A' f" "continuous_on B' g"
+  assumes inv:  "\<And>x. x \<in> B' \<Longrightarrow> f (g x) = x"
+  assumes cl:   "closed A'" "closed B'" and X: "X \<subseteq> A" "A \<subseteq> A'" "B \<subseteq> B'"
+  shows   "closure (f ` X) = f ` closure X"
+proof -
+  have "f ` X \<subseteq> f ` A"
+    using \<open>X \<subseteq> A\<close> by blast
+  also have "f ` A = B"
+    using \<open>bij_betw f A B\<close> by (simp add: bij_betw_def)
+  finally have *: "closure (f ` X) \<subseteq> closure B"
+    by (intro closure_mono)
+
+  show ?thesis
+  proof (rule antisym)
+    have "g ` closure (f ` X) \<subseteq> closure (g ` f ` X)"
+    proof (rule continuous_image_closure_subset[OF _ *])
+      have "closure B \<subseteq> B'"
+        using X cl by (simp add: closure_minimal)
+      thus "continuous_on (closure B) g"
+        by (rule continuous_on_subset[OF cont(2)])
+    qed
+    also have "g ` f ` X = (g \<circ> f) ` X"
+      by (simp add: image_image)
+    also have "\<dots> = id ` X"
+      using homo X by (intro image_cong) (auto simp: homeomorphism_def)
+    finally have "g ` closure (f ` X) \<subseteq> closure X"
+      by simp
+    hence "f ` g ` closure (f ` X) \<subseteq> f ` closure X"
+      by (intro image_mono)
+    also have "f ` g ` closure (f ` X) = (f \<circ> g) ` closure (f ` X)"
+      by (simp add: image_image)
+    also have "\<dots> = id ` closure (f ` X)"
+    proof (rule image_cong)
+      fix x assume "x \<in> closure (f ` X)"
+      also have "closure (f ` X) \<subseteq> closure B'"
+      proof (rule closure_mono)
+        have "f ` X \<subseteq> f ` A"
+          using X by (intro image_mono) auto
+        also have "\<dots> = B"
+          using bij by (simp add: bij_betw_def)
+        also have "\<dots> \<subseteq> B'"
+          by fact
+        finally show "f ` X \<subseteq> B'" .
+      qed
+      finally have "x \<in> B'"
+        using cl by simp
+      thus "(f \<circ> g) x = id x"
+        by (auto simp: homeomorphism_def inv)
+    qed auto
+    finally show "closure (f ` X) \<subseteq> f ` closure X"
+      by simp
+  next
+    show "f ` closure X \<subseteq> closure (f ` X)"
+    proof (rule continuous_image_closure_subset)
+      show "continuous_on A' f"
+        by fact
+      show "closure X \<subseteq> A'"
+        using assms by (simp add: closure_minimal)
+    qed
+  qed
+qed  
+
 end

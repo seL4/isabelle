@@ -71,6 +71,19 @@ lemma sparse_in_union:
   using assms unfolding sparse_in_def islimpt_Un
   by (metis Int_iff open_Int)
 
+lemma sparse_in_union': "A sparse_in C \<Longrightarrow> B sparse_in C \<Longrightarrow> A \<union> B sparse_in C"
+  using sparse_in_union[of A C B C] by simp
+
+lemma sparse_in_Union_finite:
+  assumes "(\<And>A'. A' \<in> A \<Longrightarrow> A' sparse_in B)" "finite A"
+  shows   "\<Union>A sparse_in B"
+  using assms(2,1) by (induction rule: finite_induct) (auto intro!: sparse_in_union')
+
+lemma sparse_in_UN_finite:
+  assumes "(\<And>x. x \<in> A \<Longrightarrow> f x sparse_in B)" "finite A"
+  shows   "(\<Union>x\<in>A. f x) sparse_in B"
+  by (rule sparse_in_Union_finite) (use assms in auto)
+
 lemma sparse_in_compact_finite:
   assumes "pts sparse_in A" "compact A"
   shows "finite (A \<inter> pts)"
@@ -144,6 +157,44 @@ lemma sparse_disjoint:
       eventually_at_topological
   by blast
 
+lemma sparse_in_translate:
+  fixes A B :: "'a :: real_normed_vector set"
+  assumes "A sparse_in B"
+  shows   "(+) c ` A sparse_in (+) c ` B"
+  unfolding sparse_in_def
+proof safe
+  fix x assume "x \<in> B"
+  from get_sparse_in_cover[OF assms] obtain B' where B': "open B'" "B \<subseteq> B'" "\<forall>y\<in>B'. \<not>y islimpt A"
+    by blast
+  have "c + x \<in> (+) c ` B'" "open ((+) c ` B')"
+    using B' \<open>x \<in> B\<close> by (auto intro: open_translation)
+  moreover have "\<forall>y\<in>(+) c ` B'. \<not>y islimpt ((+) c ` A)"
+  proof safe
+    fix y assume y: "y \<in> B'" "c + y islimpt (+) c ` A"
+    have "(-c) + (c + y) islimpt (+) (-c) ` (+) c ` A"
+      by (intro islimpt_isCont_image[OF y(2)] continuous_intros)
+         (auto simp: algebra_simps eventually_at_topological)
+    hence "y islimpt A"
+      by (simp add: image_image)
+    with y(1) B' show False
+      by blast
+  qed
+  ultimately show "\<exists>B. c + x \<in> B \<and> open B \<and> (\<forall>y\<in>B. \<not> y islimpt (+) c ` A)"
+    by metis
+qed
+
+lemma sparse_in_translate':
+  fixes A B :: "'a :: real_normed_vector set"
+  assumes "A sparse_in B" "C \<subseteq> (+) c ` B"
+  shows   "(+) c ` A sparse_in C"
+  using sparse_in_translate[OF assms(1)] assms(2) by (rule sparse_in_subset)
+
+lemma sparse_in_translate_UNIV:
+  fixes A B :: "'a :: real_normed_vector set"
+  assumes "A sparse_in UNIV"
+  shows   "(+) c ` A sparse_in UNIV"
+  using assms by (rule sparse_in_translate') auto
+
 
 subsection \<open>Co-sparseness filter\<close>
 
@@ -174,6 +225,13 @@ syntax_consts
   "_eventually_cosparse" == eventually
 translations
   "\<forall>\<^sub>\<approx>x\<in>A. P" == "CONST eventually (\<lambda>x. P) (CONST cosparse A)"
+
+syntax
+  "_eventually_cosparse_UNIV" :: "pttrn => bool => bool"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<approx>\<close>\<close>\<forall>\<^sub>\<approx>_./ _)\<close> [0, 10] 10)
+syntax_consts
+  "_eventually_cosparse_UNIV" == eventually
+translations
+  "\<forall>\<^sub>\<approx>x. P" == "CONST eventually (\<lambda>x. P) (CONST cosparse CONST UNIV)"
 
 syntax
   "_qeventually_cosparse" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a"  (\<open>(\<open>indent=3 notation=\<open>binder \<forall>\<approx>\<close>\<close>\<forall>\<^sub>\<approx>_ | (_)./ _)\<close> [0, 0, 10] 10)

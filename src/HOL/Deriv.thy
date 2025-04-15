@@ -1067,8 +1067,8 @@ lemma DERIV_Uniq: "\<exists>\<^sub>\<le>\<^sub>1D. DERIV f x :> D"
   by (simp add: DERIV_unique Uniq_def)
 
 lemma DERIV_sum[derivative_intros]:
-  "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' x n)) F) \<Longrightarrow>
-    ((\<lambda>x. sum (f x) S) has_field_derivative sum (f' x) S) F"
+  "(\<And> n. n \<in> S \<Longrightarrow> ((\<lambda>x. f x n) has_field_derivative (f' n)) F) \<Longrightarrow>
+    ((\<lambda>x. sum (f x) S) has_field_derivative sum f' S) F"
   by (rule has_derivative_imp_has_field_derivative [OF has_derivative_sum])
      (auto simp: sum_distrib_left mult_commute_abs dest: has_field_derivative_imp_has_derivative)
 

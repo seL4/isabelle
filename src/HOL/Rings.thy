@@ -422,6 +422,15 @@ next
   then show "- x dvd y" ..
 qed
 
+lemma dvd_diff_right_iff:
+  assumes "a dvd b"
+  shows "a dvd b - c \<longleftrightarrow> a dvd c" (is "?P \<longleftrightarrow> ?Q")
+  using dvd_add_right_iff[of a b "-c"] assms by auto
+
+lemma dvd_diff_left_iff: 
+  shows "a dvd c \<Longrightarrow> a dvd b - c \<longleftrightarrow> a dvd b"
+  using dvd_add_left_iff[of a "-c" b] by auto
+
 lemma dvd_diff [simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
   using dvd_add [of x y "- z"] by simp
 
