@@ -5,7 +5,7 @@ section \<open>A huge collection of equations to generate code from\<close>
 
 theory Candidates
 imports
-  Complex_Main
+  Basic_Setup
   "HOL-Library.Library"
   "HOL-Library.Sorting_Algorithms"
   "HOL-Library.Subseq_Order"
@@ -19,16 +19,7 @@ imports
   "HOL-Examples.Gauss_Numbers"
 begin
 
-text \<open>Drop technical stuff from \<^theory>\<open>HOL.Quickcheck_Narrowing\<close> which is tailored towards Haskell\<close>
-
-setup \<open>
-fn thy =>
-let
-  val tycos = Sign.logical_types thy;
-  val consts = map_filter (try (curry (Axclass.param_of_inst thy)
-    \<^const_name>\<open>Quickcheck_Narrowing.partial_term_of\<close>)) tycos;
-in fold Code.declare_unimplemented_global consts thy end
-\<close>
+setup \<open>Codegenerator_Test.drop_partial_term_of\<close>
 
 text \<open>Simple example for the predicate compiler.\<close>
 
@@ -39,10 +30,6 @@ where
 | take: "sublist ys xs \<Longrightarrow> sublist (x # ys) (x # xs)"
 
 code_pred sublist .
-
-text \<open>Avoid popular infix.\<close>
-
-code_reserved (SML) upto
 
 text \<open>Explicit check in \<open>OCaml\<close> for correct precedence of let expressions in list expressions\<close>
 
