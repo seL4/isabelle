@@ -278,21 +278,12 @@ lemma measurable_Max_nat[measurable (raw)]:
   unfolding measurable_count_space_eq2_countable
 proof safe
   fix n
-
-  { fix x assume "\<forall>i. \<exists>n\<ge>i. P n x"
-    then have "infinite {i. P i x}"
-      unfolding infinite_nat_iff_unbounded_le by auto
-    then have "Max {i. P i x} = the None"
-      by (rule Max.infinite) }
-  note 1 = this
-
-  { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
-    then have "finite {i. P i x}"
-      by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
-    with \<open>P i x\<close> have "P (Max {i. P i x}) x" "i \<le> Max {i. P i x}" "finite {i. P i x}"
-      using Max_in[of "{i. P i x}"] by auto }
-  note 2 = this
-
+  have 1: "Max {i. P i x} = the None" if "\<forall>i. \<exists>n\<ge>i. P n x" for x
+    by (simp add: Max.infinite infinite_nat_iff_unbounded_le that)
+  have 2: "finite {i. P i x}" if "\<forall>n\<ge>j. \<not> P n x" for j x
+    by (metis bounded_nat_set_is_finite leI mem_Collect_eq that)
+  have 3: "P (Max {i. P i x}) x" "i \<le> Max {i. P i x}" if "P i x" "\<forall>n\<ge>j. \<not> P n x" for x i j
+      using that 2 Max_in[of "{i. P i x}"] by auto 
   have "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Max {i. P i x} = n}"
     by auto
   also have "\<dots> =
@@ -300,7 +291,7 @@ proof safe
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i>n. \<not> P i x)
       else Max {} = n}"
     by (intro arg_cong[where f=Collect] ext conj_cong)
-       (auto simp add: 1 2 not_le[symmetric] intro!: Max_eqI)
+       (auto simp add: 1 2 3 not_le[symmetric] intro!: Max_eqI)
   also have "\<dots> \<in> sets M"
     by measurable
   finally show "(\<lambda>x. Max {i. P i x}) -` {n} \<inter> space M \<in> sets M" .
@@ -313,20 +304,12 @@ lemma measurable_Min_nat[measurable (raw)]:
   unfolding measurable_count_space_eq2_countable
 proof safe
   fix n
-
-  { fix x assume "\<forall>i. \<exists>n\<ge>i. P n x"
-    then have "infinite {i. P i x}"
-      unfolding infinite_nat_iff_unbounded_le by auto
-    then have "Min {i. P i x} = the None"
-      by (rule Min.infinite) }
-  note 1 = this
-
-  { fix x i j assume "P i x" "\<forall>n\<ge>j. \<not> P n x"
-    then have "finite {i. P i x}"
-      by (auto simp: subset_eq not_le[symmetric] finite_nat_iff_bounded)
-    with \<open>P i x\<close> have "P (Min {i. P i x}) x" "Min {i. P i x} \<le> i" "finite {i. P i x}"
-      using Min_in[of "{i. P i x}"] by auto }
-  note 2 = this
+  have 1: "Min {i. P i x} = the None" if "\<forall>i. \<exists>n\<ge>i. P n x" for x
+    by (simp add: Min.infinite infinite_nat_iff_unbounded_le that)
+  have 2: "finite {i. P i x}" if "\<forall>n\<ge>j. \<not> P n x" for j x
+    by (metis bounded_nat_set_is_finite leI mem_Collect_eq that)
+  have 3: "P (Min {i. P i x}) x" "i \<ge> Min {i. P i x}" if "P i x" "\<forall>n\<ge>j. \<not> P n x" for x i j
+      using that 2 Min_in[of "{i. P i x}"] by auto 
 
   have "(\<lambda>x. Min {i. P i x}) -` {n} \<inter> space M = {x\<in>space M. Min {i. P i x} = n}"
     by auto
@@ -335,7 +318,7 @@ proof safe
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i<n. \<not> P i x)
       else Min {} = n}"
     by (intro arg_cong[where f=Collect] ext conj_cong)
-       (auto simp add: 1 2 not_le[symmetric] intro!: Min_eqI)
+       (auto simp add: 1 2 3 not_le[symmetric] intro!: Min_eqI)
   also have "\<dots> \<in> sets M"
     by measurable
   finally show "(\<lambda>x. Min {i. P i x}) -` {n} \<inter> space M \<in> sets M" .
@@ -365,7 +348,7 @@ proof safe
   next
     case (Suc i)
     then have "(\<lambda>x. card (S x)) -` {n} \<inter> space M =
-      (\<Union>F\<in>{A\<in>{A. finite A}. card A = n}. {x\<in>space M. (\<forall>i. i \<in> S x \<longleftrightarrow> i \<in> F)})"
+               (\<Union>F\<in>{A\<in>{A. finite A}. card A = n}. {x\<in>space M. (\<forall>i. i \<in> S x \<longleftrightarrow> i \<in> F)})"
       unfolding set_eq_iff[symmetric] Collect_bex_eq[symmetric] by (auto intro: card_ge_0_finite)
     also have "\<dots> \<in> sets M"
       by (intro sets.countable_UN' countable_Collect countable_Collect_finite) auto
@@ -398,7 +381,7 @@ lemma measurable_SUP[measurable]:
 proof (safe intro!: UNIV_I)
   fix a
   have "(\<lambda>x. SUP i\<in>I. F i x) -` {a} \<inter> space M =
-    {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
+        {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
     unfolding SUP_le_iff[symmetric] by auto
   also have "\<dots> \<in> sets M"
     by measurable
@@ -414,7 +397,7 @@ lemma measurable_INF[measurable]:
 proof (safe intro!: UNIV_I)
   fix a
   have "(\<lambda>x. INF i\<in>I. F i x) -` {a} \<inter> space M =
-    {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
+        {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
     unfolding le_INF_iff[symmetric] by auto
   also have "\<dots> \<in> sets M"
     by measurable
@@ -428,8 +411,8 @@ lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "lfp F \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from \<open>P M\<close> have "((F ^^ i) bot) \<in> measurable M (count_space UNIV)"
-      by (induct i arbitrary: M) (auto intro!: *) }
+  have "((F ^^ i) bot) \<in> measurable M (count_space UNIV)" for i
+    using \<open>P M\<close> by (induct i arbitrary: M) (auto intro!: *) 
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = lfp F"
@@ -451,8 +434,8 @@ lemma measurable_gfp_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A. P M \<Longrightarrow> (\<And>N. P N \<Longrightarrow> A \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A \<in> measurable M (count_space UNIV)"
   shows "gfp F \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from \<open>P M\<close> have "((F ^^ i) top) \<in> measurable M (count_space UNIV)"
-      by (induct i arbitrary: M) (auto intro!: *) }
+  have "((F ^^ i) top) \<in> measurable M (count_space UNIV)" for i
+    using \<open>P M\<close> by (induct i arbitrary: M) (auto intro!: *) 
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = gfp F"
@@ -474,8 +457,8 @@ lemma measurable_lfp2_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "lfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from \<open>P M s\<close> have "(\<lambda>x. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
-      by (induct i arbitrary: M s) (auto intro!: *) }
+  have "(\<lambda>x. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)" for i
+    using \<open>P M s\<close> by (induct i arbitrary: M s) (auto intro!: *) 
   then have "(\<lambda>x. SUP i. (F ^^ i) bot s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot s x) = lfp F s"
@@ -490,8 +473,8 @@ lemma measurable_gfp2_coinduct[consumes 1, case_names continuity step]:
   assumes *: "\<And>M A s. P M s \<Longrightarrow> (\<And>N t. P N t \<Longrightarrow> A t \<in> measurable N (count_space UNIV)) \<Longrightarrow> F A s \<in> measurable M (count_space UNIV)"
   shows "gfp F s \<in> measurable M (count_space UNIV)"
 proof -
-  { fix i from \<open>P M s\<close> have "(\<lambda>x. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
-      by (induct i arbitrary: M s) (auto intro!: *) }
+  have "(\<lambda>x. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)" for i
+    using \<open>P M s\<close> by (induct i arbitrary: M s) (auto intro!: *) 
   then have "(\<lambda>x. INF i. (F ^^ i) top s x) \<in> measurable M (count_space UNIV)"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top s x) = gfp F s"
@@ -511,35 +494,34 @@ proof (simp add: measurable_count_space_eq2_countable, rule )
   fix a :: enat
   have "f -` {a} \<inter> space M = {x\<in>space M. f x = a}"
     by auto
-  { fix i :: nat
-    from \<open>R f\<close> have "Measurable.pred M (\<lambda>x. f x = enat i)"
-    proof (induction i arbitrary: f)
-      case 0
-      from *[OF this] obtain g h i P
-        where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and
-          [measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
-        by auto
-      have "Measurable.pred M (\<lambda>x. P x \<and> h x = 0)"
-        by measurable
-      also have "(\<lambda>x. P x \<and> h x = 0) = (\<lambda>x. f x = enat 0)"
-        by (auto simp: f zero_enat_def[symmetric])
-      finally show ?case .
-    next
-      case (Suc n)
-      from *[OF Suc.prems] obtain g h i P
-        where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and "R g" and
-          M[measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
-        by auto
-      have "(\<lambda>x. f x = enat (Suc n)) =
+  have "Measurable.pred M (\<lambda>x. f x = enat i)" for i
+    using \<open>R f\<close>
+  proof (induction i arbitrary: f)
+    case 0
+    from *[OF this] obtain g h i P
+      where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and
+        [measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
+      by auto
+    have "Measurable.pred M (\<lambda>x. P x \<and> h x = 0)"
+      by measurable
+    also have "(\<lambda>x. P x \<and> h x = 0) = (\<lambda>x. f x = enat 0)"
+      by (auto simp: f zero_enat_def[symmetric])
+    finally show ?case .
+  next
+    case (Suc n)
+    from *[OF Suc.prems] obtain g h i P
+      where f: "f = (\<lambda>x. if P x then h x else eSuc (g (i x)))" and "R g" and
+        M[measurable]: "Measurable.pred M P" "i \<in> measurable M M" "h \<in> measurable M (count_space UNIV)"
+      by auto
+    have "(\<lambda>x. f x = enat (Suc n)) =
         (\<lambda>x. (P x \<longrightarrow> h x = enat (Suc n)) \<and> (\<not> P x \<longrightarrow> g (i x) = enat n))"
-        by (auto simp: f zero_enat_def[symmetric] eSuc_enat[symmetric])
-      also have "Measurable.pred M \<dots>"
-        by (intro pred_intros_logic measurable_compose[OF M(2)] Suc \<open>R g\<close>) measurable
-      finally show ?case .
-    qed
-    then have "f -` {enat i} \<inter> space M \<in> sets M"
-      by (simp add: pred_def Int_def conj_commute) }
-  note fin = this
+      by (auto simp: f zero_enat_def[symmetric] eSuc_enat[symmetric])
+    also have "Measurable.pred M \<dots>"
+      by (intro pred_intros_logic measurable_compose[OF M(2)] Suc \<open>R g\<close>) measurable
+    finally show ?case .
+  qed
+  then have fin: "f -` {enat i} \<inter> space M \<in> sets M" for i
+    by (simp add: pred_def Int_def conj_commute) 
   show "f -` {a} \<inter> space M \<in> sets M"
   proof (cases a)
     case infinity
@@ -562,16 +544,12 @@ proof safe
   fix X
   define f where "f x = (THE i. P i x)" for x
   define undef where "undef = (THE i::'a. False)"
-  { fix i x assume "x \<in> space M" "P i x" then have "f x = i"
-      unfolding f_def using unique by auto }
-  note f_eq = this
-  { fix x assume "x \<in> space M" "\<forall>i\<in>I. \<not> P i x"
-    then have "\<And>i. \<not> P i x"
-      using I(2)[of x] by auto
-    then have "f x = undef"
-      by (auto simp: undef_def f_def) }
-  then have "f -` X \<inter> space M = (\<Union>i\<in>I \<inter> X. {x\<in>space M. P i x}) \<union>
-     (if undef \<in> X then space M - (\<Union>i\<in>I. {x\<in>space M. P i x}) else {})"
+  have f_eq: "f x = i" if "x \<in> space M" "P i x" for i x
+    unfolding f_def using unique that by auto
+  have "f x = undef" if "x \<in> space M" "\<forall>i\<in>I. \<not> P i x" for x
+    using that I f_def undef_def by moura
+  then have "f -` X \<inter> space M = 
+             (\<Union>i\<in>I \<inter> X. {x\<in>space M. P i x}) \<union> (if undef \<in> X then space M - (\<Union>i\<in>I. {x\<in>space M. P i x}) else {})"
     by (auto dest: f_eq)
   also have "\<dots> \<in> sets M"
     by (auto intro!: sets.Diff sets.countable_UN')
@@ -628,7 +606,7 @@ proof -
   have P_f: "{x \<in> space M. P (f x)} \<in> sets M"
     unfolding pred_def[symmetric] by (rule measurable_compose[OF f]) simp
   have "pred (restrict_space M {x\<in>space M. P (f x)}) (\<lambda>x. Q (f x) x)"
-  proof (rule measurable_compose_countable'[where g=f, OF _ _ P])
+  proof (rule measurable_compose_countable'[OF _ _ P])
     show "f \<in> restrict_space M {x\<in>space M. P (f x)} \<rightarrow>\<^sub>M count_space {i. P i}"
       by (rule measurable_count_space_extend[OF subset_UNIV])
          (auto simp: space_restrict_space intro!: measurable_restrict_space1 f)
