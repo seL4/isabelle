@@ -22,11 +22,7 @@ import scala.swing.event.{ButtonClicked, SelectionChanged}
 object GUI {
   /* Swing look-and-feel */
 
-  def init_laf(): Unit = {
-    val prop = com.formdev.flatlaf.FlatSystemProperties.USE_NATIVE_LIBRARY
-    System.setProperty(prop, System.getProperty(prop, "false"))
-    com.formdev.flatlaf.FlatLightLaf.setup()
-  }
+  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
 
   def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
 

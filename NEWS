@@ -37,6 +37,9 @@ enabled by default. The old plugins Navigator and Code2HTML are now
 longer included. The old-fashioned toolbar, with its old Navigator
 icons, is now disabled by default.
 
+* Update GUI look-and-feel to current FlatLaf 3.6, with native library
+support on all Isabelle platforms (now including arm64-linux).
+
 
 *** HOL ***
 

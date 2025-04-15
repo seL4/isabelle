@@ -16,6 +16,7 @@ object Component_FlatLaf {
     List(
       Platform_Info("flatlaf-{V}-macos-arm64.dylib"),
       Platform_Info("flatlaf-{V}-macos-x86_64.dylib"),
+      Platform_Info("flatlaf-{V}-linux-arm64.so"),
       Platform_Info("flatlaf-{V}-linux-x86_64.so"),
       Platform_Info("flatlaf-{V}-windows-x86_64.dll", exe = true))
 
@@ -23,7 +24,7 @@ object Component_FlatLaf {
   /* build flatlaf */
 
   val default_download_url = "https://repo1.maven.org/maven2/com/formdev/flatlaf"
-  val default_version = "3.5.4"
+  val default_version = "3.6"
 
   def build_flatlaf(
     target_dir: Path = Path.current,
