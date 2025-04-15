@@ -642,7 +642,7 @@ lemma and_integer_code [code]:
   by (transfer; simp)+
 
 lemma or_integer_code [code]:
-  \<open>Pos Num.One AND Pos Num.One = Pos Num.One\<close>
+  \<open>Pos Num.One OR Pos Num.One = Pos Num.One\<close>
   \<open>Pos Num.One OR Pos (Num.Bit0 n) = Pos (Num.Bit1 n)\<close>
   \<open>Pos (Num.Bit0 m) OR Pos Num.One = Pos (Num.Bit1 m)\<close>
   \<open>Pos Num.One OR Pos (Num.Bit1 n) = Pos (Num.Bit1 n)\<close>
