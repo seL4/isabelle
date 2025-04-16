@@ -13,7 +13,7 @@ import java.io.{File => JFile}
 import java.awt.{Component, Container, Toolkit}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import java.awt.font.FontRenderContext
-import javax.swing.{Icon, ImageIcon, JScrollBar, JWindow}
+import javax.swing.{ImageIcon, JScrollBar, JWindow}
 
 import scala.util.parsing.input.CharSequenceReader
 import scala.util.matching.Regex
@@ -386,38 +386,8 @@ object JEdit_Lib {
 
   /* icons */
 
-  private val Icon_Spec = """^([^?]+)\?scale=(.+)$""".r
-
-  def load_icon(spec: String): Icon = {
-    val (name, scale) =
-      spec match {
-        case Icon_Spec(a, b) if Value.Double.unapply(b).isDefined =>
-          (a, Value.Double.parse(b))
-        case _ => (spec, 1.0)
-      }
-
-    val name1 =
-      if (name.startsWith("idea-icons/")) {
-        val file = File.uri(Path.explode("$ISABELLE_IDEA_ICONS")).toASCIIString
-        "jar:" + file + "!/" + name
-      }
-      else name
-
-    val icon = GUIUtilities.loadIcon(name1)
-    if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
-    else {
-      icon match {
-        case svg_icon: FlatSVGIcon if scale != 1.0 => svg_icon.derive(scale.toFloat)
-        case _ => icon
-      }
-    }
-  }
-
-  def load_image_icon(name: String): ImageIcon =
-    load_icon(name) match {
-      case icon: ImageIcon => icon
-      case _ => error("Bad image icon: " + name)
-    }
+  def load_icon(spec: String): ImageIcon =
+    GUIUtilities.loadIcon(spec).asInstanceOf[ImageIcon]
 
 
   /* buffer event handling */
