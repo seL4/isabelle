@@ -2096,7 +2096,7 @@ proof -
   } note lim = this
 
   from assms double_in_nonpos_Ints_imp[of z] have z': "2 * z \<notin> \<int>\<^sub>\<le>\<^sub>0" by auto
-  from fraction_not_in_ints[of 2 1] have "(1/2 :: 'a) \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  from fraction_not_in_Ints[of 2 1] have "(1/2 :: 'a) \<notin> \<int>\<^sub>\<le>\<^sub>0"
     by (intro not_in_Ints_imp_not_in_nonpos_Ints) simp_all
   with lim[of "1/2 :: 'a"] have "?h \<longlonglongrightarrow> 2 * Gamma (1/2 :: 'a)" by (simp add: exp_of_real)
   from LIMSEQ_unique[OF this lim[OF assms]] z' show ?thesis
@@ -2388,9 +2388,9 @@ proof -
     case True
     with that have "z = 0 \<or> z = 1" by (force elim!: Ints_cases)
     moreover have "g 0 * g (1/2) = Gamma (1/2)^2 * g 0"
-      using fraction_not_in_ints[where 'a = complex, of 2 1] by (simp add: g_def power2_eq_square)
+      using fraction_not_in_Ints[where 'a = complex, of 2 1] by (simp add: g_def power2_eq_square)
     moreover have "g (1/2) * g 1 = Gamma (1/2)^2 * g 1"
-        using fraction_not_in_ints[where 'a = complex, of 2 1]
+        using fraction_not_in_Ints[where 'a = complex, of 2 1]
         by (simp add: g_def power2_eq_square Beta_def algebra_simps)
     ultimately show ?thesis by force
   next
@@ -2457,7 +2457,7 @@ proof -
       by (subst (1 2) g_eq[symmetric]) simp
     from DERIV_cmult[OF this, of "inverse ((Gamma (1/2))^2)"]
       have "(g has_field_derivative (g z * ((h (z/2) + h ((z+1)/2))/2))) (at z)"
-      using fraction_not_in_ints[where 'a = complex, of 2 1]
+      using fraction_not_in_Ints[where 'a = complex, of 2 1]
       by (simp add: divide_simps Gamma_eq_zero_iff not_in_Ints_imp_not_in_nonpos_Ints)
     moreover have "(g has_field_derivative (g z * h z)) (at z)"
       using g_g'[of z] by (simp add: ac_simps)
@@ -2596,7 +2596,7 @@ lemma Gamma_reflection_complex':
 
 lemma Gamma_one_half_real: "Gamma (1/2 :: real) = sqrt pi"
 proof -
-  from Gamma_reflection_complex[of "1/2"] fraction_not_in_ints[where 'a = complex, of 2 1]
+  from Gamma_reflection_complex[of "1/2"] fraction_not_in_Ints[where 'a = complex, of 2 1]
     have "Gamma (1/2 :: complex)^2 = of_real pi" by (simp add: power2_eq_square)
   hence "of_real pi = Gamma (complex_of_real (1/2))^2" by simp
   also have "\<dots> = of_real ((Gamma (1/2))^2)" by (subst Gamma_complex_of_real) simp_all

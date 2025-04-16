@@ -329,19 +329,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma fraction_not_in_ints:
-  assumes "\<not>(n dvd m)" "n \<noteq> 0"
-  shows   "of_int m / of_int n \<notin> (\<int> :: 'a :: {division_ring,ring_char_0} set)"
-proof
-  assume "of_int m / (of_int n :: 'a) \<in> \<int>"
-  then obtain k where "of_int m / of_int n = (of_int k :: 'a)" by (elim Ints_cases)
-  with assms have "of_int m = (of_int (k * n) :: 'a)" by (auto simp add: field_split_simps)
-  hence "m = k * n" by (subst (asm) of_int_eq_iff)
-  hence "n dvd m" by simp
-  with assms(1) show False by contradiction
-qed
-
-lemma fraction_not_in_nats:
+lemma fraction_not_in_Nats:
   assumes "\<not>n dvd m" "n \<noteq> 0"
   shows   "of_int m / of_int n \<notin> (\<nat> :: 'a :: {division_ring,ring_char_0} set)"
 proof
@@ -349,7 +337,7 @@ proof
   also note Nats_subset_Ints
   finally have "of_int m / of_int n \<in> (\<int> :: 'a set)" .
   moreover have "of_int m / of_int n \<notin> (\<int> :: 'a set)"
-    using assms by (intro fraction_not_in_ints)
+    using assms by (intro fraction_not_in_Ints)
   ultimately show False by contradiction
 qed
 
@@ -369,7 +357,7 @@ lemma fraction_numeral_Ints_iff [simp]:
    \<longleftrightarrow> (numeral b :: int) dvd numeral a"  (is "?L=?R")
 proof
   show "?L \<Longrightarrow> ?R"
-    by (metis fraction_not_in_ints of_int_numeral zero_neq_numeral)
+    by (metis fraction_not_in_Ints of_int_numeral zero_neq_numeral)
   assume ?R
   then obtain k::int where "numeral a = numeral b * (of_int k :: 'a)"
     unfolding dvd_def by (metis of_int_mult of_int_numeral)
