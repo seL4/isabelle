@@ -148,7 +148,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java jedit5.7.0-patc
  		clear.addActionListener(this);
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props	2024-08-03 19:53:20.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-04-16 22:29:42.189691336 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-04-17 00:01:14.063978204 +0200
 @@ -8,11 +8,11 @@
  ###
  
@@ -160,9 +160,9 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 -common.clearAll.icon=22x22/actions/edit-clear.png
 +common.add.icon=32x32/actions/list-add.svg?scale=0.7
 +common.remove.icon=32x32/actions/list-remove.svg?scale=0.7
-+common.moveUp.icon=22x22/actions/go-up.svg
-+common.moveDown.icon=22x22/actions/go-down.svg
-+common.clearAll.icon=22x22/actions/edit-clear.svg
++common.moveUp.icon=32x32/actions/go-up.svg?scale=0.7
++common.moveDown.icon=32x32/actions/go-down.svg?scale=0.7
++common.clearAll.icon=32x32/actions/edit-clear.svg?scale=0.7
  logo.icon.small=16x16/apps/jedit.png
  logo.icon.medium=32x32/apps/jedit.png
  
@@ -175,7 +175,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  dropdown-arrow.icon=ToolbarMenu.gif
  #}}}
  
-@@ -39,68 +39,68 @@
+@@ -39,68 +39,69 @@
  	buffer-options combined-options - \
  	plugin-manager - help
  
@@ -198,14 +198,16 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 -copy.icon=22x22/actions/edit-copy.png
 -paste.icon=22x22/actions/edit-paste.png
 -find.icon=22x22/actions/edit-find.png
+-find-next.icon=22x22/actions/edit-find-next.png
+-new-view.icon=22x22/actions/window-new.png
 +undo.icon=32x32/actions/edit-undo.svg?scale=0.7
 +redo.icon=32x32/actions/edit-redo.svg?scale=0.7
 +cut.icon=32x32/actions/edit-cut.svg?scale=0.7
 +copy.icon=32x32/actions/edit-copy.svg?scale=0.7
 +paste.icon=32x32/actions/edit-paste.svg?scale=0.7
 +find.icon=32x32/actions/edit-find.svg?scale=0.7
- find-next.icon=22x22/actions/edit-find-next.png
--new-view.icon=22x22/actions/window-new.png
++find-prev.icon=32x32/actions/go-previous.svg?scale=0.7
++find-next.icon=32x32/actions/go-next.svg?scale=0.7
 +new-view.icon=32x32/actions/window-new.svg?scale=0.7
  unsplit.icon=22x22/actions/window-unsplit.png
  split-horizontal.icon=22x22/actions/window-split-horizontal.png
@@ -237,6 +239,10 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 -	22x22/actions/edit-paste.png \
 -	22x22/actions/edit-delete.png \
 -	22x22/actions/edit-clear.png \
+-	22x22/actions/edit-find-next.png \
+-	22x22/actions/edit-find-in-folder.png \
+-	22x22/actions/edit-find.png \
+-	22x22/actions/edit-copy.png \
 +	22x22/actions/go-down.svg \
 +	22x22/actions/go-previous.svg \
 +	22x22/actions/go-next.svg \
@@ -252,10 +258,8 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 +	32x32/actions/edit-paste.svg?scale=0.7 \
 +	scalable/actions/edit-delete.svg \
 +	22x22/actions/edit-clear.svg \
- 	22x22/actions/edit-find-next.png \
- 	22x22/actions/edit-find-in-folder.png \
--	22x22/actions/edit-find.png \
--	22x22/actions/edit-copy.png \
++	22x22/actions/go-next.svg \
++	32x32/actions/system-search.svg?scale=0.7 \
 +	32x32/actions/edit-find.svg?scale=0.7 \
 +	32x32/actions/edit-copy.svg?scale=0.7 \
  	22x22/actions/copy-to-buffer.png \
@@ -292,7 +296,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  	22x22/actions/application-run.png \
  	22x22/actions/edit-find-multiple.png \
  	22x22/actions/edit-find-single.png \
-@@ -109,18 +109,18 @@
+@@ -109,18 +110,18 @@
  	22x22/actions/window-unsplit.png \
  	22x22/actions/zoom-in.png \
  	22x22/actions/zoom-out.png \
@@ -322,7 +326,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  	Blank24.gif
  #}}}
  
-@@ -163,31 +163,31 @@
+@@ -163,31 +164,31 @@
  	 print \
  	 - \
  	 exit
@@ -373,7 +377,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  #}}}
  
  #{{{ Edit menu
-@@ -211,12 +211,12 @@
+@@ -211,12 +212,12 @@
  	 %text \
  	 %indent \
  	 %source
@@ -392,31 +396,36 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  
  #{{{ More Clipboard menu
  clipboard=cut-append \
-@@ -308,16 +308,16 @@
+@@ -308,16 +309,18 @@
  	   regexp \
  	   - \
  	   hypersearch-results
 -find.icon.small=22x22/actions/edit-find.png
-+find.icon.small=32x32/actions/edit-find.svg?scale=0.7
- find-next.icon.small=22x22/actions/edit-find-next.png
- search-in-directory.icon.small=22x22/actions/edit-find-in-folder.png
+-find-next.icon.small=22x22/actions/edit-find-next.png
+-search-in-directory.icon.small=22x22/actions/edit-find-in-folder.png
 -replace-in-selection.icon.small=22x22/actions/edit-find-replace.png
 -replace-and-find-next.icon.small=22x22/actions/edit-find-replace.png
 -replace-all.icon.small=22x22/actions/edit-find-replace.png
 -quick-search.icon.small=22x22/actions/edit-find.png
+-hypersearch.icon.small=22x22/actions/edit-find-multiple.png
+-quick-search-word.icon.small=22x22/actions/edit-find.png
+-hypersearch-word.icon.small=22x22/actions/edit-find.png
++find.icon.small=32x32/actions/edit-find.svg?scale=0.7
++find-prev.icon.small=32x32/actions/go-previous.svg?scale=0.7
++find-next.icon.small=32x32/actions/go-next.svg?scale=0.7
++search-in-open-buffers.icon.small=32x32/actions/system-search.svg?scale=0.7
++search-in-directory.icon.small=32x32/actions/system-search.svg?scale=0.7
 +replace-in-selection.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
 +replace-and-find-next.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
 +replace-all.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
 +quick-search.icon.small=32x32/actions/edit-find.svg?scale=0.7
- hypersearch.icon.small=22x22/actions/edit-find-multiple.png
--quick-search-word.icon.small=22x22/actions/edit-find.png
--hypersearch-word.icon.small=22x22/actions/edit-find.png
++hypersearch.icon.small=32x32/actions/edit-find.svg?scale=0.7
 +quick-search-word.icon.small=32x32/actions/edit-find.svg?scale=0.7
 +hypersearch-word.icon.small=32x32/actions/edit-find.svg?scale=0.7
  #}}}
  
  #{{{ Markers menu
-@@ -336,12 +336,12 @@
+@@ -336,12 +339,12 @@
  	  view-markers \
  	  -
  markers.code=new MarkersProvider();
@@ -428,14 +437,14 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 -next-marker.icon.small=22x22/actions/go-next.png
 +add-marker.icon.small=32x32/actions/bookmark-new.svg?scale=0.7
 +add-marker-shortcut.icon.small=32x32/actions/bookmark-new.svg?scale=0.7
-+remove-all-markers.icon.small=22x22/actions/edit-clear.svg
-+goto-marker.icon.small=22x22/actions/go-jump.svg
-+prev-marker.icon.small=22x22/actions/go-previous.svg
-+next-marker.icon.small=22x22/actions/go-next.svg
++remove-all-markers.icon.small=32x32/actions/edit-clear.svg?scale=0.7
++goto-marker.icon.small=32x32/actions/go-jump.svg?scale=0.7
++prev-marker.icon.small=32x32/actions/go-previous.svg?scale=0.7
++next-marker.icon.small=32x32/actions/go-next.svg?scale=0.7
  #}}}
  
  #{{{ Folding menu
-@@ -388,9 +388,9 @@
+@@ -388,9 +391,12 @@
  	 - \
  	 set-view-title \
  	 toggle-full-screen
@@ -445,10 +454,13 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 +new-view.icon.small=32x32/actions/window-new.svg?scale=0.5
 +new-plain-view.icon.small=32x32/actions/window-new.svg?scale=0.5
 +close-view.icon.small=32x32/actions/process-stop.svg?scale=0.5
++prev-buffer.icon.small=32x32/actions/go-previous.svg?scale=0.5
++next-buffer.icon.small=32x32/actions/go-next.svg?scale=0.5
++recent-buffer.icon.small=32x32/actions/go-up.svg?scale=0.5
  
  #{{{ Scrolling menu
  scrolling=scroll-to-current-line \
-@@ -454,9 +454,9 @@
+@@ -454,9 +460,9 @@
  	  - \
  	  %quick-options
  
@@ -461,7 +473,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  
  #{{{ Recent Directories menu
  recent-directories.code=new RecentDirectoriesProvider();
-@@ -518,9 +518,9 @@
+@@ -518,9 +524,9 @@
  	   rescan-macros \
  	   -
  macros.code=new MacrosProvider();
@@ -474,29 +486,27 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  #}}}
  
  #{{{ Plugins menu
-@@ -770,8 +770,8 @@
- #}}}
+@@ -771,7 +777,7 @@
  
  #{{{ HyperSearch results dialog
--hypersearch-results.clear.icon=22x22/actions/edit-clear.png
+ hypersearch-results.clear.icon=22x22/actions/edit-clear.png
 -hypersearch-results.stop.icon=22x22/actions/process-stop.png
-+hypersearch-results.clear.icon=22x22/actions/edit-clear.svg
-+hypersearch-results.stop.icon=22x22/actions/system-log-out.svg
++hypersearch-results.stop.icon=22x22/actions/system-log-out.png
  hypersearch-results.multi.multiple.icon=22x22/actions/edit-find-multiple.png
  hypersearch-results.multi.single.icon=22x22/actions/edit-find-single.png
  hypersearch-results.match.highlight.icon=22x22/actions/edit-find-highlight-match.png
-@@ -784,8 +784,8 @@
+@@ -784,8 +790,8 @@
  #}}}
  
  #{{{ Help Viewer
 -helpviewer.back.icon=22x22/actions/go-previous.png
 -helpviewer.forward.icon=22x22/actions/go-next.png
-+helpviewer.back.icon=22x22/actions/go-previous.svg
-+helpviewer.forward.icon=22x22/actions/go-next.svg
++helpviewer.back.icon=32x32/actions/go-previous.svg?scale=0.7
++helpviewer.forward.icon=32x32/actions/go-next.svg?scale=0.7
  #}}}
  
  #}}}
-@@ -809,9 +809,9 @@
+@@ -809,9 +815,9 @@
  
  #{{{ Abbreviations pane
  options.abbrevs.code=new AbbrevsOptionPane();
@@ -509,7 +519,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  #}}}
  
  #{{{ Appearance pane
-@@ -840,11 +840,11 @@
+@@ -840,11 +846,11 @@
  
  #{{{ Context Menu pane
  options.context.code=new ContextOptionPane();
@@ -520,13 +530,13 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
 -options.context.reset.icon=22x22/actions/edit-clear.png
 +options.context.add.icon=32x32/actions/list-add.svg?scale=0.7
 +options.context.remove.icon=32x32/actions/list-remove.svg?scale=0.7
-+options.context.moveUp.icon=22x22/actions/go-up.svg
-+options.context.moveDown.icon=22x22/actions/go-down.svg
-+options.context.reset.icon=22x22/actions/edit-clear.svg
++options.context.moveUp.icon=32x32/actions/go-up.svg?scale=0.7
++options.context.moveDown.icon=32x32/actions/go-down.svg?scale=0.7
++options.context.reset.icon=32x32/actions/edit-clear.svg?scale=0.7
  options.context.includeOptionsLink=true
  #}}}
  
-@@ -906,12 +906,12 @@
+@@ -906,12 +912,12 @@
  
  #{{{ Tool Bar pane
  options.toolbar.code=new ToolBarOptionPane();
@@ -545,7 +555,17 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  #}}}
  
  #{{{ View pane
-@@ -1007,13 +1007,13 @@
+@@ -949,7 +955,8 @@
+ vfs.browser.default-filter=*[^~#]
+ vfs.browser.filter-enabled=true
+ vfs.browser.file.icon=16x16/mimetypes/text-x-generic.png
+-vfs.browser.icon.small=16x16/apps/system-file-manager.png
++vfs.browser.icon=32x32/apps/system-file-manager.svg?scale=0.7
++vfs.browser.icon.small=32x32/apps/system-file-manager.svg?scale=0.5
+ vfs.browser.open-file.icon=16x16/actions/edit-select-all.png
+ vfs.browser.dir.icon=16x16/places/folder.png
+ vfs.browser.open-dir.icon=16x16/status/folder-open.png
+@@ -1007,13 +1014,13 @@
  plugin-manager.mirror-url=http://plugins.jedit.org/export/mirror_list.php
  
  #{{{ Plugin management
