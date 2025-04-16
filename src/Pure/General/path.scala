@@ -266,6 +266,7 @@ final class Path private(
   def thy: Path = ext("thy")
   def xml: Path = ext("xml")
   def xz: Path = ext("xz")
+  def zip: Path = ext("zip")
   def zst: Path = ext("zst")
 
   def backup: Path = {

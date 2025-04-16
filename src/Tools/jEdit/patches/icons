@@ -1,3 +1,22 @@
+diff -ru jedit5.7.0/jEdit/build.xml jedit5.7.0-patched/jEdit/build.xml
+--- jedit5.7.0/jEdit/build.xml	2024-08-03 19:53:28.000000000 +0200
++++ jedit5.7.0-patched/jEdit/build.xml	2025-04-16 17:20:57.401732024 +0200
+@@ -488,6 +488,7 @@
+ 				<include name="org/gjt/sp/jedit/icons/**/*.gif"/>
+ 				<include name="org/gjt/sp/jedit/icons/**/*.jpg"/>
+ 				<include name="org/gjt/sp/jedit/icons/**/*.png"/>
++				<include name="org/gjt/sp/jedit/icons/**/*.svg"/>
+ 				<include name="org/jedit/localization/*.props"/>
+ 			</fileset>
+ 		</jar>
+@@ -783,6 +784,7 @@
+ 				<include name="*.txt"/>
+ 				<include name="*.html"/>
+ 				<include name="*.png"/>
++				<include name="*.svg"/>
+ 				<include name="tips/**"/>
+ 			</fileset>
+ 		</copy>
 diff -ru jedit5.7.0/jEdit/ivy.xml jedit5.7.0-patched/jEdit/ivy.xml
 --- jedit5.7.0/jEdit/ivy.xml	2024-08-03 19:53:28.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/ivy.xml	2025-04-16 12:22:57.782535840 +0200
@@ -91,3 +110,528 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  		return icon;
  	} //}}}
  
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java	2025-04-16 21:35:23.519418287 +0200
+@@ -50,28 +50,28 @@
+ 		toolBar.add(Box.createGlue());
+ 
+ 		RolloverButton addMarker = new RolloverButton(
+-			GUIUtilities.loadIcon("Plus.png"));
++			GUIUtilities.loadIcon(jEdit.getProperty("add-marker.icon.small")));
+ 		addMarker.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("add-marker.label")));
+ 		addMarker.addActionListener(this);
+ 		addMarker.setActionCommand("add-marker");
+ 		toolBar.add(addMarker);
+ 
+-		previous = new RolloverButton(GUIUtilities.loadIcon("ArrowL.png"));
++		previous = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("prev-marker.icon.small")));
+ 		previous.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("prev-marker.label")));
+ 		previous.addActionListener(this);
+ 		previous.setActionCommand("prev-marker");
+ 		toolBar.add(previous);
+ 
+-		next = new RolloverButton(GUIUtilities.loadIcon("ArrowR.png"));
++		next = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("next-marker.icon.small")));
+ 		next.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("next-marker.label")));
+ 		next.addActionListener(this);
+ 		next.setActionCommand("next-marker");
+ 		toolBar.add(next);
+ 
+-		clear = new RolloverButton(GUIUtilities.loadIcon("Clear.png"));
++		clear = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("remove-all-markers.icon.small")));
+ 		clear.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("remove-all-markers.label")));
+ 		clear.addActionListener(this);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props	2024-08-03 19:53:20.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-04-16 22:29:42.189691336 +0200
+@@ -8,11 +8,11 @@
+ ###
+ 
+ #{{{ Common icons
+-common.add.icon=22x22/actions/list-add.png
+-common.remove.icon=22x22/actions/list-remove.png
+-common.moveUp.icon=22x22/actions/go-up.png
+-common.moveDown.icon=22x22/actions/go-down.png
+-common.clearAll.icon=22x22/actions/edit-clear.png
++common.add.icon=32x32/actions/list-add.svg?scale=0.7
++common.remove.icon=32x32/actions/list-remove.svg?scale=0.7
++common.moveUp.icon=22x22/actions/go-up.svg
++common.moveDown.icon=22x22/actions/go-down.svg
++common.clearAll.icon=22x22/actions/edit-clear.svg
+ logo.icon.small=16x16/apps/jedit.png
+ logo.icon.medium=32x32/apps/jedit.png
+ 
+@@ -28,7 +28,7 @@
+ defer=false
+ startup=true
+ 
+-broken-image.icon=22x22/status/image-missing.png
++broken-image.icon=32x32/status/image-missing.svg?scale=0.7
+ dropdown-arrow.icon=ToolbarMenu.gif
+ #}}}
+ 
+@@ -39,68 +39,68 @@
+ 	buffer-options combined-options - \
+ 	plugin-manager - help
+ 
+-new-file.icon=22x22/actions/document-new.png
+-open-file.icon=22x22/actions/document-open.png
+-save.icon=22x22/actions/document-save.png
+-close-buffer.icon=22x22/actions/document-close.png
+-global-close-buffer.icon=22x22/actions/document-close.png
+-print.icon=22x22/actions/document-print.png
++new-file.icon=32x32/actions/document-new.svg?scale=0.7
++open-file.icon=32x32/actions/document-open.svg?scale=0.7
++save.icon=32x32/actions/document-save.svg?scale=0.7
++close-buffer.icon=32x32/actions/process-stop.svg?scale=0.7
++global-close-buffer.icon=32x32/actions/process-stop.svg?scale=0.7
++print.icon=32x32/actions/document-print.svg?scale=0.7
+ page-setup.icon=22x22/actions/printer-setup.png
+-undo.icon=22x22/actions/edit-undo.png
+-redo.icon=22x22/actions/edit-redo.png
+-cut.icon=22x22/actions/edit-cut.png
+-copy.icon=22x22/actions/edit-copy.png
+-paste.icon=22x22/actions/edit-paste.png
+-find.icon=22x22/actions/edit-find.png
++undo.icon=32x32/actions/edit-undo.svg?scale=0.7
++redo.icon=32x32/actions/edit-redo.svg?scale=0.7
++cut.icon=32x32/actions/edit-cut.svg?scale=0.7
++copy.icon=32x32/actions/edit-copy.svg?scale=0.7
++paste.icon=32x32/actions/edit-paste.svg?scale=0.7
++find.icon=32x32/actions/edit-find.svg?scale=0.7
+ find-next.icon=22x22/actions/edit-find-next.png
+-new-view.icon=22x22/actions/window-new.png
++new-view.icon=32x32/actions/window-new.svg?scale=0.7
+ unsplit.icon=22x22/actions/window-unsplit.png
+ split-horizontal.icon=22x22/actions/window-split-horizontal.png
+ split-vertical.icon=22x22/actions/window-split-vertical.png
+-buffer-options.icon=22x22/actions/document-properties.png
+-global-options.icon=22x22/categories/preferences-system.png
+-combined-options.icon=22x22/categories/preferences-system.png
++buffer-options.icon=32x32/actions/document-properties.svg?scale=0.7
++global-options.icon=32x32/categories/preferences-system.svg?scale=0.7
++combined-options.icon=32x32/categories/preferences-system.svg?scale=0.7
+ plugin-manager.icon=22x22/places/plugins.png
+-help.icon=22x22/apps/help-browser.png
++help.icon=22x22/apps/help-browser.svg
+ 
+ #{{{ Icon list for tool bar editor
+ icons=22x22/actions/resize-horisontal.png \
+-	22x22/actions/go-down.png \
+-	22x22/actions/go-previous.png \
+-	22x22/actions/go-next.png \
+-	22x22/actions/go-home.png \
+-	22x22/actions/go-up.png \
+-	22x22/actions/go-first.png \
+-	22x22/actions/go-last.png \
+-	22x22/actions/go-parent.png \
+-	22x22/actions/document-close.png \
+-	22x22/actions/edit-undo.png \
+-	22x22/actions/edit-redo.png \
+-	22x22/actions/edit-cut.png \
+-	22x22/actions/edit-paste.png \
+-	22x22/actions/edit-delete.png \
+-	22x22/actions/edit-clear.png \
++	22x22/actions/go-down.svg \
++	22x22/actions/go-previous.svg \
++	22x22/actions/go-next.svg \
++	32x32/actions/go-home.svg?scale=0.7 \
++	22x22/actions/go-up.svg \
++	22x22/actions/go-first.svg \
++	22x22/actions/go-last.svg \
++	22x22/actions/go-up.svg \
++	32x32/actions/process-stop.svg?scale=0.7 \
++	32x32/actions/edit-undo.svg?scale=0.7 \
++	32x32/actions/edit-redo.svg?scale=0.7 \
++	32x32/actions/edit-cut.svg?scale=0.7 \
++	32x32/actions/edit-paste.svg?scale=0.7 \
++	scalable/actions/edit-delete.svg \
++	22x22/actions/edit-clear.svg \
+ 	22x22/actions/edit-find-next.png \
+ 	22x22/actions/edit-find-in-folder.png \
+-	22x22/actions/edit-find.png \
+-	22x22/actions/edit-copy.png \
++	32x32/actions/edit-find.svg?scale=0.7 \
++	32x32/actions/edit-copy.svg?scale=0.7 \
+ 	22x22/actions/copy-to-buffer.png \
+-	22x22/actions/list-remove.png \
+-	22x22/actions/list-add.png \
+-	22x22/actions/folder-new.png \
+-	22x22/actions/window-new.png \
+-	22x22/actions/document-new.png \
+-	22x22/actions/document-open.png \
++	32x32/actions/list-remove.svg?scale=0.7 \
++	32x32/actions/list-add.svg?scale=0.7 \
++	32x32/actions/folder-new.svg?scale=0.7 \
++	32x32/actions/document-new.svg?scale=0.7 \
++	32x32/actions/document-new.svg?scale=0.7 \
++	32x32/actions/document-open.svg?scale=0.7 \
+ 	22x22/actions/document-reload2.png \
+-	22x22/actions/document-properties.png \
+-	22x22/actions/document-save.png \
+-	22x22/actions/document-save-all.png \
+-	22x22/actions/document-save-as.png \
++	32x32/actions/document-properties.svg?scale=0.7 \
++	32x32/actions/document-save.svg?scale=0.7 \
++	32x32/actions/document-save-all.svg?scale=0.5 \
++	32x32/actions/document-save-as.svg?scale=0.7 \
+ 	22x22/actions/printer-setup.png \
+-	22x22/actions/process-stop.png \
+-	22x22/actions/media-playback-pause.png \
+-	22x22/actions/media-playback-start.png \
+-	22x22/actions/view-refresh.png \
++	22x22/actions/system-log-out.svg \
++	22x22/actions/media-playback-pause.svg \
++	22x22/actions/media-playback-start.svg \
++	22x22/actions/view-refresh.svg \
+ 	22x22/actions/application-run.png \
+ 	22x22/actions/edit-find-multiple.png \
+ 	22x22/actions/edit-find-single.png \
+@@ -109,18 +109,18 @@
+ 	22x22/actions/window-unsplit.png \
+ 	22x22/actions/zoom-in.png \
+ 	22x22/actions/zoom-out.png \
+-	22x22/apps/utilities-terminal.png \
+-	22x22/apps/system-file-manager.png \
+-	22x22/apps/internet-web-browser.png \
+-	22x22/apps/help-browser.png \
+-	22x22/apps/system-installer.png \
+-	22x22/status/image-missing.png \
+-	22x22/status/folder-visiting.png \
+-	22x22/devices/drive-harddisk.png \
+-	22x22/devices/media-floppy.png \
+-	22x22/devices/printer.png \
++	22x22/apps/utilities-terminal.svg \
++	32x32/apps/system-file-manager.svg?scale=0.7 \
++	32x32/apps/internet-web-browser.svg?scale=0.7 \
++	22x22/apps/help-browser.svg \
++	32x32/apps/system-installer.svg?scale=0.7 \
++	32x32/status/image-missing.svg?scale=0.7 \
++	32x32/status/folder-visiting.svg?scale=0.7 \
++	32x32/devices/drive-harddisk.svg?scale=0.7 \
++	22x22/devices/media-floppy.svg \
++	32x32/devices/printer.svg?scale=0.7 \
+ 	22x22/places/plugins.png \
+-	22x22/categories/preferences-system.png \
++	32x32/categories/preferences-system.svg?scale=0.7 \
+ 	Blank24.gif
+ #}}}
+ 
+@@ -163,31 +163,31 @@
+ 	 print \
+ 	 - \
+ 	 exit
+-new-file.icon.small=16x16/actions/document-new.png
+-new-file-in-mode.icon.small=16x16/actions/document-new.png
+-open-file.icon.small=16x16/actions/document-open.png
+-reload.icon.small=16x16/actions/view-refresh.png
+-reload-all.icon.small=16x16/actions/view-refresh.png
+-close-buffer.icon.small=16x16/actions/document-close.png
+-closeall-bufferset.icon.small=16x16/actions/document-close.png
+-closeall-except-active.icon.small=16x16/actions/document-close.png
+-global-close-buffer.icon.small=16x16/actions/document-close.png
+-close-all.icon.small=16x16/actions/document-close.png
+-save.icon.small=16x16/actions/document-save.png
+-save-as.icon.small=16x16/actions/document-save-as.png
+-save-a-copy-as.icon.small=16x16/actions/document-save-as.png
+-save-all.icon.small=16x16/actions/document-save-all.png
+-print.icon.small=16x16/actions/document-print.png
+-page-setup.icon.small=16x16/actions/document-properties.png
+-exit.icon.small=16x16/actions/process-stop.png
+-exit.icon.medium=22x22/actions/process-stop.png
++new-file.icon.small=32x32/actions/document-new.svg?scale=0.5
++new-file-in-mode.icon.small=32x32/actions/document-new.svg?scale=0.5
++open-file.icon.small=32x32/actions/document-open.svg?scale=0.5
++reload.icon.small=16x16/actions/view-refresh.svg
++reload-all.icon.small=16x16/actions/view-refresh.svg
++close-buffer.icon.small=32x32/actions/process-stop.svg?scale=0.5
++closeall-bufferset.icon.small=32x32/actions/process-stop.svg?scale=0.5
++closeall-except-active.icon.small=32x32/actions/process-stop.svg?scale=0.5
++global-close-buffer.icon.small=32x32/actions/process-stop.svg?scale=0.5
++close-all.icon.small=32x32/actions/process-stop.svg?scale=0.5
++save.icon.small=32x32/actions/document-save.svg?scale=0.5
++save-as.icon.small=32x32/actions/document-save-as.svg?scale=0.5
++save-a-copy-as.icon.small=32x32/actions/document-save-as.svg?scale=0.5
++save-all.icon.small=32x32/actions/document-save.svg?scale=0.5
++print.icon.small=32x32/actions/document-print.svg?scale=0.5
++page-setup.icon.small=32x32/actions/document-properties.svg?scale=0.5
++exit.icon.small=16x16/actions/system-log-out.svg
++exit.icon.medium=22x22/actions/system-log-out.svg
+ 
+ #{{{ Recent Files menu
+ recent-files.code=new RecentFilesProvider();
+ #}}}
+ 
+ reload-encoding.code=new ReloadWithEncodingProvider();
+-reload-encoding.icon.small=16x16/actions/view-refresh.png
++reload-encoding.icon.small=16x16/actions/view-refresh.svg
+ #}}}
+ 
+ #{{{ Edit menu
+@@ -211,12 +211,12 @@
+ 	 %text \
+ 	 %indent \
+ 	 %source
+-undo.icon.small=16x16/actions/edit-undo.png
+-redo.icon.small=16x16/actions/edit-redo.png
+-cut.icon.small=16x16/actions/edit-cut.png
+-copy.icon.small=16x16/actions/edit-copy.png
+-paste.icon.small=16x16/actions/edit-paste.png
+-select-all.icon.small=16x16/actions/edit-select-all.png
++undo.icon.small=32x32/actions/edit-undo.svg?scale=0.5
++redo.icon.small=32x32/actions/edit-redo.svg?scale=0.5
++cut.icon.small=32x32/actions/edit-cut.svg?scale=0.5
++copy.icon.small=32x32/actions/edit-copy.svg?scale=0.5
++paste.icon.small=32x32/actions/edit-paste.svg?scale=0.5
++select-all.icon.small=16x16/actions/edit-select-all.svg
+ 
+ #{{{ More Clipboard menu
+ clipboard=cut-append \
+@@ -308,16 +308,16 @@
+ 	   regexp \
+ 	   - \
+ 	   hypersearch-results
+-find.icon.small=22x22/actions/edit-find.png
++find.icon.small=32x32/actions/edit-find.svg?scale=0.7
+ find-next.icon.small=22x22/actions/edit-find-next.png
+ search-in-directory.icon.small=22x22/actions/edit-find-in-folder.png
+-replace-in-selection.icon.small=22x22/actions/edit-find-replace.png
+-replace-and-find-next.icon.small=22x22/actions/edit-find-replace.png
+-replace-all.icon.small=22x22/actions/edit-find-replace.png
+-quick-search.icon.small=22x22/actions/edit-find.png
++replace-in-selection.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
++replace-and-find-next.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
++replace-all.icon.small=32x32/actions/edit-find-replace.svg?scale=0.7
++quick-search.icon.small=32x32/actions/edit-find.svg?scale=0.7
+ hypersearch.icon.small=22x22/actions/edit-find-multiple.png
+-quick-search-word.icon.small=22x22/actions/edit-find.png
+-hypersearch-word.icon.small=22x22/actions/edit-find.png
++quick-search-word.icon.small=32x32/actions/edit-find.svg?scale=0.7
++hypersearch-word.icon.small=32x32/actions/edit-find.svg?scale=0.7
+ #}}}
+ 
+ #{{{ Markers menu
+@@ -336,12 +336,12 @@
+ 	  view-markers \
+ 	  -
+ markers.code=new MarkersProvider();
+-add-marker.icon.small=22x22/actions/bookmark-new.png
+-add-marker-shortcut.icon.small=22x22/actions/bookmark-new.png
+-remove-all-markers.icon.small=22x22/actions/edit-clear.png
+-goto-marker.icon.small=22x22/actions/go-jump.png
+-prev-marker.icon.small=22x22/actions/go-previous.png
+-next-marker.icon.small=22x22/actions/go-next.png
++add-marker.icon.small=32x32/actions/bookmark-new.svg?scale=0.7
++add-marker-shortcut.icon.small=32x32/actions/bookmark-new.svg?scale=0.7
++remove-all-markers.icon.small=22x22/actions/edit-clear.svg
++goto-marker.icon.small=22x22/actions/go-jump.svg
++prev-marker.icon.small=22x22/actions/go-previous.svg
++next-marker.icon.small=22x22/actions/go-next.svg
+ #}}}
+ 
+ #{{{ Folding menu
+@@ -388,9 +388,9 @@
+ 	 - \
+ 	 set-view-title \
+ 	 toggle-full-screen
+-new-view.icon.small=16x16/actions/window-new.png
+-new-plain-view.icon.small=16x16/actions/window-new.png
+-close-view.icon.small=16x16/actions/document-close.png
++new-view.icon.small=32x32/actions/window-new.svg?scale=0.5
++new-plain-view.icon.small=32x32/actions/window-new.svg?scale=0.5
++close-view.icon.small=32x32/actions/process-stop.svg?scale=0.5
+ 
+ #{{{ Scrolling menu
+ scrolling=scroll-to-current-line \
+@@ -454,9 +454,9 @@
+ 	  - \
+ 	  %quick-options
+ 
+-buffer-options.icon.small=16x16/actions/document-properties.png
+-global-options.icon.small=16x16/categories/preferences-system.png
+-combined-options.icon.small=16x16/categories/preferences-system.png
++buffer-options.icon.small=32x32/actions/document-properties.svg?scale=0.5
++global-options.icon.small=32x32/categories/preferences-system.svg?scale=0.5
++combined-options.icon.small=32x32/categories/preferences-system.svg?scale=0.5
+ 
+ #{{{ Recent Directories menu
+ recent-directories.code=new RecentDirectoriesProvider();
+@@ -518,9 +518,9 @@
+ 	   rescan-macros \
+ 	   -
+ macros.code=new MacrosProvider();
+-new-macro.icon.small=16x16/actions/document-new.png
+-record-macro.icon.small=16x16/actions/media-record.png
+-stop-recording.icon.small=16x16/actions/media-playback-stop.png
++new-macro.icon.small=32x32/actions/document-new.svg?scale=0.5
++record-macro.icon.small=16x16/actions/media-record.svg
++stop-recording.icon.small=32x32/actions/media-playback-stop.svg?scale=0.5
+ #}}}
+ 
+ #{{{ Plugins menu
+@@ -770,8 +770,8 @@
+ #}}}
+ 
+ #{{{ HyperSearch results dialog
+-hypersearch-results.clear.icon=22x22/actions/edit-clear.png
+-hypersearch-results.stop.icon=22x22/actions/process-stop.png
++hypersearch-results.clear.icon=22x22/actions/edit-clear.svg
++hypersearch-results.stop.icon=22x22/actions/system-log-out.svg
+ hypersearch-results.multi.multiple.icon=22x22/actions/edit-find-multiple.png
+ hypersearch-results.multi.single.icon=22x22/actions/edit-find-single.png
+ hypersearch-results.match.highlight.icon=22x22/actions/edit-find-highlight-match.png
+@@ -784,8 +784,8 @@
+ #}}}
+ 
+ #{{{ Help Viewer
+-helpviewer.back.icon=22x22/actions/go-previous.png
+-helpviewer.forward.icon=22x22/actions/go-next.png
++helpviewer.back.icon=22x22/actions/go-previous.svg
++helpviewer.forward.icon=22x22/actions/go-next.svg
+ #}}}
+ 
+ #}}}
+@@ -809,9 +809,9 @@
+ 
+ #{{{ Abbreviations pane
+ options.abbrevs.code=new AbbrevsOptionPane();
+-options.abbrevs.add.icon=22x22/actions/list-add.png
+-options.abbrevs.edit.icon=22x22/actions/document-properties.png
+-options.abbrevs.remove.icon=22x22/actions/list-remove.png
++options.abbrevs.add.icon=32x32/actions/list-add.svg?scale=0.7
++options.abbrevs.edit.icon=32x32/actions/document-properties.svg?scale=0.7
++options.abbrevs.remove.icon=32x32/actions/list-remove.svg?scale=0.7
+ #}}}
+ 
+ #{{{ Appearance pane
+@@ -840,11 +840,11 @@
+ 
+ #{{{ Context Menu pane
+ options.context.code=new ContextOptionPane();
+-options.context.add.icon=22x22/actions/list-add.png
+-options.context.remove.icon=22x22/actions/list-remove.png
+-options.context.moveUp.icon=22x22/actions/go-up.png
+-options.context.moveDown.icon=22x22/actions/go-down.png
+-options.context.reset.icon=22x22/actions/edit-clear.png
++options.context.add.icon=32x32/actions/list-add.svg?scale=0.7
++options.context.remove.icon=32x32/actions/list-remove.svg?scale=0.7
++options.context.moveUp.icon=22x22/actions/go-up.svg
++options.context.moveDown.icon=22x22/actions/go-down.svg
++options.context.reset.icon=22x22/actions/edit-clear.svg
+ options.context.includeOptionsLink=true
+ #}}}
+ 
+@@ -906,12 +906,12 @@
+ 
+ #{{{ Tool Bar pane
+ options.toolbar.code=new ToolBarOptionPane();
+-options.toolbar.add.icon=22x22/actions/list-add.png
+-options.toolbar.remove.icon=22x22/actions/list-remove.png
+-options.toolbar.moveUp.icon=22x22/actions/go-up.png
+-options.toolbar.moveDown.icon=22x22/actions/go-down.png
+-options.toolbar.reset.icon=22x22/actions/edit-clear.png
+-options.toolbar.edit.icon=22x22/actions/document-properties.png
++options.toolbar.add.icon=32x32/actions/list-add.svg?scale=0.7
++options.toolbar.remove.icon=32x32/actions/list-remove.svg?scale=0.7
++options.toolbar.moveUp.icon=22x22/actions/go-up.svg
++options.toolbar.moveDown.icon=22x22/actions/go-down.svg
++options.toolbar.reset.icon=22x22/actions/edit-clear.svg
++options.toolbar.edit.icon=32x32/actions/document-properties.svg?scale=0.7
+ #}}}
+ 
+ #{{{ View pane
+@@ -1007,13 +1007,13 @@
+ plugin-manager.mirror-url=http://plugins.jedit.org/export/mirror_list.php
+ 
+ #{{{ Plugin management
+-manage-plugins.restore.icon=22x22/actions/document-open.png
+-manage-plugins.save.icon=22x22/actions/document-save.png
++manage-plugins.restore.icon=32x32/actions/document-open.svg?scale=0.7
++manage-plugins.save.icon=32x32/actions/document-save.svg?scale=0.7
+ #}}}
+ 
+ #{{{ Plugin installation
+-install-plugins.choose-plugin-set.icon=22x22/actions/document-open.png
+-install-plugins.clear-plugin-set.icon=22x22/actions/edit-clear.png
++install-plugins.choose-plugin-set.icon=32x32/actions/document-open.svg?scale=0.7
++install-plugins.clear-plugin-set.icon=22x22/actions/edit-clear.svg
+ #}}}
+ 
+ #}}}
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java	2025-04-16 16:12:29.542089148 +0200
+@@ -78,12 +78,12 @@
+ 		buttons.setBorder(new EmptyBorder(3,0,0,0));
+ 		buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
+ 		ActionListener actionHandler = new ActionHandler();
+-		JButton add = new RolloverButton(GUIUtilities.loadIcon("Plus.png"));
++		JButton add = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.add.icon")));
+ 		add.setToolTipText(jEdit.getProperty("common.add"));
+ 		add.addActionListener(e -> colorsModel.add());
+ 		buttons.add(add);
+ 		buttons.add(Box.createHorizontalStrut(6));
+-		remove = new RolloverButton(GUIUtilities.loadIcon("Minus.png"));
++		remove = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.remove.icon")));
+ 		remove.setToolTipText(jEdit.getProperty("common.remove"));
+ 		remove.addActionListener(e ->
+ 		{
+@@ -93,12 +93,12 @@
+ 		});
+ 		buttons.add(remove);
+ 		buttons.add(Box.createHorizontalStrut(6));
+-		moveUp = new RolloverButton(GUIUtilities.loadIcon("ArrowU.png"));
++		moveUp = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.moveUp.icon")));
+ 		moveUp.setToolTipText(jEdit.getProperty("common.moveUp"));
+ 		moveUp.addActionListener(actionHandler);
+ 		buttons.add(moveUp);
+ 		buttons.add(Box.createHorizontalStrut(6));
+-		moveDown = new RolloverButton(GUIUtilities.loadIcon("ArrowD.png"));
++		moveDown = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.moveDown.icon")));
+ 		moveDown.setToolTipText(jEdit.getProperty("common.moveDown"));
+ 		moveDown.addActionListener(actionHandler);
+ 		buttons.add(moveDown);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java	2025-04-16 16:12:37.730958557 +0200
+@@ -160,12 +160,12 @@
+ 		buttons.setBorder(new EmptyBorder(3,0,0,0));
+ 		buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
+ 		buttons.add(Box.createHorizontalStrut(6));
+-		moveUp = new RolloverButton(GUIUtilities.loadIcon("ArrowU.png"));
++		moveUp = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.moveUp.icon")));
+ 		moveUp.setToolTipText(jEdit.getProperty("options.status.moveUp"));
+ 		moveUp.addActionListener(e -> moveUp());
+ 		buttons.add(moveUp);
+ 		buttons.add(Box.createHorizontalStrut(6));
+-		moveDown = new RolloverButton(GUIUtilities.loadIcon("ArrowD.png"));
++		moveDown = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("common.moveDown.icon")));
+ 		moveDown.setToolTipText(jEdit.getProperty("options.status.moveDown"));
+ 		moveDown.addActionListener(e -> moveDown());
+ 		buttons.add(moveDown);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java	2025-04-16 21:45:44.861713409 +0200
+@@ -54,7 +54,7 @@
+ 		toolBar.add(Box.createGlue());
+ 
+ 		RolloverButton pasteRegister = new RolloverButton(
+-			GUIUtilities.loadIcon("Paste.png"));
++			GUIUtilities.loadIcon(jEdit.getProperty("paste.icon")));
+ 		pasteRegister.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("paste-string-register.label")));
+ 		pasteRegister.addActionListener(e -> insertRegister());
+@@ -62,7 +62,7 @@
+ 		toolBar.add(pasteRegister);
+ 
+ 		RolloverButton clearRegister = new RolloverButton(
+-			GUIUtilities.loadIcon("Clear.png"));
++			GUIUtilities.loadIcon(jEdit.getProperty("common.clearAll.icon")));
+ 		clearRegister.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
+ 			jEdit.getProperty("clear-string-register.label")));
+ 		clearRegister.addActionListener(e -> clearSelectedIndex());

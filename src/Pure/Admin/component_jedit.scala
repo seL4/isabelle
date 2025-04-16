@@ -144,6 +144,15 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       Isabelle_System.extract(source_path, jedit_dir)
 
 
+      /* tango icons (SVG) */
+
+      val tango_path = Isabelle_System.make_directory(tmp_dir + Path.explode("tango"))
+      Isabelle_System.download_file(
+        "https://github.com/stephenc/tango-icon-theme/archive/41b8f6abd7eb.zip",
+        tango_path.zip, progress = progress)
+      Isabelle_System.extract(tango_path.zip, tango_path, strip = true)
+
+
       /* patched version */
 
       Isabelle_System.copy_dir(jedit_dir, jedit_patched_dir)
@@ -161,10 +170,23 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           cwd = source_dir, echo = true).check
       }
 
-      for { theme <- List("classic", "tango") } {
-        val path = Path.explode("org/gjt/sp/jedit/icons/themes/" + theme + "/32x32/apps/isabelle.gif")
+      progress.echo("Augmenting icons ...")
+
+      val jedit_icons_path = source_dir + Path.explode("org/gjt/sp/jedit/icons/themes")
+      val jedit_classic_path = jedit_icons_path + Path.basic("classic")
+      val jedit_tango_path = jedit_icons_path + Path.basic("tango")
+
+      for (theme <- List(jedit_classic_path, jedit_tango_path)) {
         Isabelle_System.copy_file(Path.explode("~~/lib/logo/isabelle_transparent-32.gif"),
-          source_dir + path)
+          theme + Path.explode("32x32/apps/isabelle.gif"))
+      }
+
+      for {
+        svg_file <- File.find_files(tango_path.file, pred = file => File.is_svg(file.getName))
+        rel_path <- File.relative_path(tango_path, File.path(svg_file))
+      } {
+        val dir = Isabelle_System.make_directory(jedit_tango_path + rel_path.dir)
+        Isabelle_System.copy_file(File.path(svg_file), dir + rel_path.base)
       }
 
       progress.echo("Building jEdit ...")
