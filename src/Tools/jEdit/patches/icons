@@ -1,18 +1,28 @@
 diff -ru jedit5.7.0/jEdit/ivy.xml jedit5.7.0-patched/jEdit/ivy.xml
 --- jedit5.7.0/jEdit/ivy.xml	2024-08-03 19:53:28.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/ivy.xml	2025-04-15 20:19:53.730502085 +0200
-@@ -94,5 +94,7 @@
++++ jedit5.7.0-patched/jEdit/ivy.xml	2025-04-16 12:22:57.782535840 +0200
+@@ -94,5 +94,8 @@
  		<dependency org="com.google.code.findbugs" name="jsr305" rev="3.0.2"/>
  
  		<dependency org="com.evolvedbinary.appbundler" name="appbundler" rev="1.3.0" conf="appbundler"/>
 +
-+                <dependency org="com.formdev" name="flatlaf-extras" rev="3.6"/>
++		<dependency org="com.formdev" name="flatlaf" rev="3.6"/>
++		<dependency org="com.formdev" name="flatlaf-extras" rev="3.6"/>
  	</dependencies>
  </ivy-module>
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-15 20:32:22.232820353 +0200
-@@ -72,6 +72,8 @@
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-16 12:21:09.744865617 +0200
+@@ -42,6 +42,8 @@
+ import java.net.URL;
+ import java.util.*;
+ import java.util.List;
++import java.util.regex.Pattern;
++import java.util.regex.Matcher;
+ import java.lang.ref.SoftReference;
+ 
+ import javax.annotation.Nonnull;
+@@ -72,6 +74,8 @@
  import java.util.concurrent.ScheduledExecutorService;
  import java.util.concurrent.TimeUnit;
  import java.util.concurrent.atomic.AtomicLong;
@@ -21,12 +31,63 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  //}}}
  
  /** Various GUI utility functions related to icons, menus, toolbars, keyboard shortcuts, etc.
-@@ -164,7 +166,7 @@
+@@ -115,14 +119,14 @@
+ 	 * @return the icon
+ 	 * @since jEdit 2.6pre7
+ 	 */
+-	public static Icon loadIcon(String iconName)
++	public static Icon loadIcon(String iconSpec)
+ 	{
+-		if(iconName == null)
++		if(iconSpec == null)
+ 			return null;
+ 
+ 		// * Enable old icon naming scheme support
+-		if(deprecatedIcons.containsKey(iconName))
+-			iconName = deprecatedIcons.get(iconName);
++		if(deprecatedIcons.containsKey(iconSpec))
++			iconSpec = deprecatedIcons.get(iconSpec);
+ 
+ 		// check if there is a cached version first
+ 		Map<String, Icon> cache = null;
+@@ -135,12 +139,25 @@
+ 			cache = new HashMap<>();
+ 			iconCache = new SoftReference<>(cache);
+ 		}
+-		Icon icon = cache.get(iconName);
++		Icon icon = cache.get(iconSpec);
+ 		if(icon != null)
+ 			return icon;
+ 
+ 		URL url;
+ 
++		float iconScale = 1.0f;
++ 		String iconName = iconSpec;
++       {
++        	Matcher matcher = Pattern.compile("^([^?]+)\\?scale=(.+)$").matcher(iconSpec);
++        	if (matcher.matches()) {
++        		try {
++        			iconScale = Float.valueOf(matcher.group(2));
++        			iconName = matcher.group(1);
++        		}
++        		catch (NumberFormatException e) { }
++        	}
++        }
++
+ 		try
+ 		{
+ 			// get the icon
+@@ -164,9 +181,11 @@
  			}
  		}
  
 -		icon = new ImageIcon(url);
-+		icon = url.toString().endsWith(".svg") ? new FlatSVGIcon(url): new ImageIcon(url);
++		icon =
++			url.toString().endsWith(".svg") ?
++				new FlatSVGIcon(url).derive(iconScale) : new ImageIcon(url);
  
- 		cache.put(iconName,icon);
+-		cache.put(iconName,icon);
++		cache.put(iconSpec,icon);
  		return icon;
+ 	} //}}}
+ 
