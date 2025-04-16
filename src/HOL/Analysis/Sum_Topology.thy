@@ -106,8 +106,7 @@ qed
 
 lemma continuous_map_component_injection:
    "i \<in> I \<Longrightarrow> continuous_map(X i) (sum_topology X I) (\<lambda>x. (i,x))"
-  apply (clarsimp simp: continuous_map_def openin_sum_topology)
-  by (smt (verit, best) Collect_cong mem_Collect_eq openin_subset subsetD)
+  by (auto simp: continuous_map_def openin_sum_topology Collect_conj_eq openin_Int)
 
 lemma subtopology_sum_topology:
   "subtopology (sum_topology X I) (Sigma I S) =
@@ -151,8 +150,12 @@ lemma topological_property_of_sum_component:
 proof -
   have "Q(X i)" if "i \<in> I" for i
   proof -
-    have "P(subtopology (sum_topology X I) (Pair i ` topspace (X i)))"
-      by (meson closed_map_component_injection closed_map_def closedin_topspace major minor open_map_component_injection open_map_def openin_topspace that)
+    have "closed_map (X i) (sum_topology X I) (Pair i)"
+      by (simp add: closed_map_component_injection that)
+    moreover have "open_map (X i) (sum_topology X I) (Pair i)"
+      by (simp add: open_map_component_injection that)
+    ultimately have "P(subtopology (sum_topology X I) (Pair i ` topspace (X i)))"
+      by (simp add: closed_map_def major minor open_map_def)
     then show ?thesis
       by (metis PQ embedding_map_component_injection embedding_map_imp_homeomorphic_space homeomorphic_space_sym that)
   qed

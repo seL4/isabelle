@@ -70,7 +70,7 @@ next
     then have "eventually (\<lambda>_. False) (atin X a)"
       by simp
     then show False
-      by (smt (verit, best) a eventually_atin in_derived_set_of insertE insert_Diff)
+      by (metis a eventually_atin in_derived_set_of insertE insert_Diff)
   qed
 qed
 
@@ -152,10 +152,10 @@ proof (cases "l \<in> S \<inter> topspace X")
     with True
     have "\<forall>\<^sub>F b in F. f b \<in> topspace X \<inter> S"
       by (metis (no_types) limitin_def openin_topspace topspace_subtopology)
-    with L show ?rhs
-      apply (clarsimp simp add: limitin_def eventually_mono openin_subtopology_alt)
-      apply (drule_tac x="S \<inter> U" in spec, force simp: elim: eventually_mono)
-      done
+    moreover have "\<And>U. \<lbrakk>openin X U; l \<in> U\<rbrakk> \<Longrightarrow> \<forall>\<^sub>F x in F. f x \<in> S \<inter> U"
+      using limitinD [OF L] True openin_subtopology_Int2 by force
+    ultimately show ?rhs
+      using True by (auto simp: limitin_def eventually_conj_iff)
   next
     assume ?rhs
     then show ?lhs
@@ -189,7 +189,7 @@ proof -
     obtain N where "\<And>n. n\<ge>N \<Longrightarrow> f (n + k) \<in> U"
       using assms U unfolding limitin_sequentially by blast
     then have "\<forall>n\<ge>N+k. f n \<in> U"
-      by (metis add_leD2 le_add_diff_inverse ordered_cancel_comm_monoid_diff_class.le_diff_conv2 add.commute)
+      by (metis add_leD2 add_le_imp_le_diff le_add_diff_inverse2)
     then show ?thesis ..
   qed
   with assms show ?thesis
@@ -264,8 +264,8 @@ proof
 next
   assume R: ?rhs
   then show ?lhs
-    apply (auto simp: continuous_map_def topcontinuous_at_def)
-    by (smt (verit, del_insts) mem_Collect_eq openin_subopen openin_subset subset_eq)
+    unfolding continuous_map_def topcontinuous_at_def Pi_iff
+    by (smt (verit, ccfv_threshold)  mem_Collect_eq openin_subopen openin_subset subset_eq)
 qed
 
 lemma continuous_map_atin:
@@ -305,10 +305,11 @@ lemma continuous_map_real_mult_left_eq:
    "continuous_map X euclideanreal (\<lambda>x. c * f x) \<longleftrightarrow> c = 0 \<or> continuous_map X euclideanreal f"
 proof (cases "c = 0")
   case False
-  have "continuous_map X euclideanreal (\<lambda>x. c * f x) \<Longrightarrow> continuous_map X euclideanreal f"
-    apply (frule continuous_map_real_mult_left [where c="inverse c"])
-    apply (simp add: field_simps False)
-    done
+  { assume "continuous_map X euclideanreal (\<lambda>x. c * f x)"
+    then have "continuous_map X euclideanreal (\<lambda>x. inverse c * (c * f x))"
+      by (simp add: continuous_map_real_mult)
+    then have "continuous_map X euclideanreal f"
+      by (simp add: field_simps False) }
   with False show ?thesis
     using continuous_map_real_mult_left by blast
 qed simp
