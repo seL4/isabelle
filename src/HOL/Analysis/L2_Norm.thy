@@ -59,10 +59,7 @@ lemma L2_set_strict_mono:
 lemma L2_set_right_distrib:
   "0 \<le> r \<Longrightarrow> r * L2_set f A = L2_set (\<lambda>x. r * f x) A"
   unfolding L2_set_def
-  apply (simp add: power_mult_distrib)
-  apply (simp add: sum_distrib_left [symmetric])
-  apply (simp add: real_sqrt_mult sum_nonneg)
-  done
+  by (simp add: power_mult_distrib real_sqrt_mult sum_nonneg flip: sum_distrib_left)
 
 lemma L2_set_left_distrib:
   "0 \<le> r \<Longrightarrow> L2_set f A * r = L2_set (\<lambda>x. f x * r) A"

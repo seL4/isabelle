@@ -58,10 +58,7 @@ lemma inner_sum_Basis[simp]: "i \<in> Basis \<Longrightarrow> inner (\<Sum>Basis
   by (simp add: inner_sum_left sum.If_cases inner_Basis)
 
 lemma (in euclidean_space) Basis_zero [simp]: "0 \<notin> Basis"
-proof
-  assume "0 \<in> Basis" thus "False"
-    using inner_Basis [of 0 0] by simp
-qed
+  using local.inner_same_Basis by fastforce
 
 lemma (in euclidean_space) nonzero_Basis: "u \<in> Basis \<Longrightarrow> u \<noteq> 0"
   by clarsimp
@@ -121,22 +118,23 @@ by (simp add: choice_Basis_iff Bex_def)
 
 lemma (in euclidean_space) euclidean_representation_sum_fun:
     "(\<lambda>x. \<Sum>b\<in>Basis. inner (f x) b *\<^sub>R b) = f"
-  by (rule ext) (simp add: euclidean_representation_sum)
+  by (force simp: euclidean_representation_sum)
 
 lemma euclidean_isCont:
   assumes "\<And>b. b \<in> Basis \<Longrightarrow> isCont (\<lambda>x. (inner (f x) b) *\<^sub>R b) x"
-    shows "isCont f x"
-  apply (subst euclidean_representation_sum_fun [symmetric])
-  apply (rule isCont_sum)
-  apply (blast intro: assms)
-  done
+  shows "isCont f x"
+proof -
+  have "isCont (\<lambda>x. \<Sum>b\<in>Basis. inner (f x) b *\<^sub>R b) x"
+    by (simp add: assms)
+  then show ?thesis
+    by (simp add: euclidean_representation)
+qed
 
 lemma DIM_positive [simp]: "0 < DIM('a::euclidean_space)"
   by (simp add: card_gt_0_iff)
 
 lemma DIM_ge_Suc0 [simp]: "Suc 0 \<le> card Basis"
   by (meson DIM_positive Suc_leI)
-
 
 lemma sum_inner_Basis_scaleR [simp]:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_vector"
@@ -160,9 +158,9 @@ next
   case False
   have "(\<Sum>k\<in>Basis. inner (if k = i then f i *\<^sub>R i else g k *\<^sub>R k) j) =
         (\<Sum>k\<in>Basis. if k = j then g k else 0)"
-    apply (rule sum.cong)
-    using False assms by (auto simp: inner_Basis)
-  also have "... = g j"
+    using False assms
+    by (intro sum.cong) (auto simp: inner_Basis)
+  also have "\<dots> = g j"
     using assms by auto
   finally show ?thesis
     using False by (auto simp: inner_sum_left)
@@ -182,10 +180,8 @@ lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrig
   by (metis Basis_le_norm le_less_trans)
 
 lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>inner x b\<bar>)"
-  apply (subst euclidean_representation[of x, symmetric])
-  apply (rule order_trans[OF norm_sum])
-  apply (auto intro!: sum_mono)
-  done
+  by (metis (no_types, lifting) order.refl euclidean_representation mult.right_neutral
+      norm_Basis norm_scaleR sum_norm_le)
 
 lemma sum_norm_allsubsets_bound:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space"
@@ -364,14 +360,14 @@ lemma finite_dimensional_vector_space_euclidean:
   "finite_dimensional_vector_space (*\<^sub>R) Basis"
 proof unfold_locales
   show "finite (Basis::'a set)" by (metis finite_Basis)
-  show "real_vector.independent (Basis::'a set)"
-    unfolding dependent_def dependent_raw_def[symmetric]
-    apply (subst span_finite)
-    apply simp
-    apply clarify
+  have "\<And>a::'a. \<And>u. \<lbrakk>a \<in> Basis; a = (\<Sum>v\<in>Basis - {a}. u v *\<^sub>R v)\<rbrakk> \<Longrightarrow> False"
     apply (drule_tac f="inner a" in arg_cong)
     apply (simp add: inner_Basis inner_sum_right eq_commute)
     done
+  then
+  show "real_vector.independent (Basis::'a set)"
+    unfolding dependent_def dependent_raw_def[symmetric]
+    by (subst span_finite) auto
   show "module.span (*\<^sub>R) Basis = UNIV"
     unfolding span_finite [OF finite_Basis] span_raw_def[symmetric]
     by (auto intro!: euclidean_representation[symmetric])

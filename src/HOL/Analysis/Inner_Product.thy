@@ -119,8 +119,6 @@ next
   also have "\<dots> = inner x x - (inner x y)\<^sup>2 / inner y y"
     by (simp add: power2_eq_square inner_commute)
   finally have "0 \<le> inner x x - (inner x y)\<^sup>2 / inner y y" .
-  hence "(inner x y)\<^sup>2 / inner y y \<le> inner x x"
-    by (simp add: le_diff_eq)
   thus "(inner x y)\<^sup>2 \<le> inner x x * inner y y"
     by (simp add: pos_divide_le_eq y)
 qed
@@ -428,10 +426,7 @@ lemma GDERIV_mult:
     "\<lbrakk>GDERIV f x :> df; GDERIV g x :> dg\<rbrakk>
      \<Longrightarrow> GDERIV (\<lambda>x. f x * g x) x :> scaleR (f x) dg + scaleR (g x) df"
   unfolding gderiv_def
-  apply (rule has_derivative_subst)
-  apply (erule (1) has_derivative_mult)
-  apply (simp add: inner_add ac_simps)
-  done
+  by (auto simp: inner_add ac_simps intro: has_derivative_subst [OF has_derivative_mult])
 
 lemma GDERIV_inverse:
     "\<lbrakk>GDERIV f x :> df; f x \<noteq> 0\<rbrakk>

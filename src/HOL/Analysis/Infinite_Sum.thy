@@ -300,15 +300,14 @@ proof -
         \<open>(\<lambda>F. sum f (F \<inter> A)) = sum f \<circ> (\<lambda>F. F \<inter> A)\<close> by fastforce
   qed
 
-  with limB have "((\<lambda>F. sum f F - sum f (F\<inter>A)) \<longlongrightarrow> b - a) (finite_subsets_at_top B)"
+  with limB have \<section>: "((\<lambda>F. sum f F - sum f (F\<inter>A)) \<longlongrightarrow> b - a) (finite_subsets_at_top B)"
     using tendsto_diff by blast
   have "sum f X - sum f (X \<inter> A) = sum f (X - A)" if "finite X" and "X \<subseteq> B" for X :: "'a set"
     using that by (metis add_diff_cancel_left' sum.Int_Diff)
   hence "\<forall>\<^sub>F x in finite_subsets_at_top B. sum f x - sum f (x \<inter> A) = sum f (x - A)"
     by (rule eventually_finite_subsets_at_top_weakI)  
   hence "((\<lambda>F. sum f (F-A)) \<longlongrightarrow> b - a) (finite_subsets_at_top B)"
-    using tendsto_cong [THEN iffD1 , rotated]
-      \<open>((\<lambda>F. sum f F - sum f (F \<inter> A)) \<longlongrightarrow> b - a) (finite_subsets_at_top B)\<close> by fastforce
+    using \<section> tendsto_cong by fastforce
   hence "(sum f \<longlongrightarrow> b - a) (filtermap (\<lambda>F. F-A) (finite_subsets_at_top B))"
     by (subst tendsto_compose_filtermap[symmetric], simp add: o_def)
   thus ?thesis
@@ -429,8 +428,7 @@ lemma has_sum_strict_mono:
   assumes \<open>\<And>x. x \<in> A \<Longrightarrow> f x \<le> g x\<close>
   assumes \<open>x \<in> A\<close> \<open>f x < g x\<close>
   shows "a < b"
-  by (rule has_sum_strict_mono_neutral[OF assms(1,2), where x = x])
-     (use assms(3-) in auto)
+  using assms has_sum_strict_mono_neutral by force
 
 lemma has_sum_finite_approximation:
   fixes f :: "'a \<Rightarrow> 'b::{comm_monoid_add,metric_space}"

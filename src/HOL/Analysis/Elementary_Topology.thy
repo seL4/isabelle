@@ -54,13 +54,8 @@ definition\<^marker>\<open>tag important\<close> "topological_basis B \<longleft
 lemma topological_basis:
   "topological_basis B \<longleftrightarrow> (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
     (is "?lhs = ?rhs")
-proof
-  show "?lhs \<Longrightarrow> ?rhs"
-    by (meson local.open_Union subsetD topological_basis_def)
-  show "?rhs \<Longrightarrow> ?lhs"
-    unfolding topological_basis_def
-    by (metis cSup_singleton empty_subsetI insert_subset)
-qed
+  by (metis bot.extremum cSup_singleton insert_subset open_Union subsetD
+      topological_basis_def)
 
 lemma topological_basis_iff:
   assumes "\<And>B'. B' \<in> B \<Longrightarrow> open B'"
@@ -69,18 +64,19 @@ lemma topological_basis_iff:
 proof safe
   fix O' and x::'a
   assume H: "topological_basis B" "open O'" "x \<in> O'"
-  then have "(\<exists>B'\<subseteq>B. \<Union>B' = O')" by (simp add: topological_basis_def)
-  then obtain B' where "B' \<subseteq> B" "O' = \<Union>B'" by auto
-  then show "\<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'" using H by auto
+  then obtain B' where "B'\<subseteq>B" "\<Union>B' = O'"
+    by (force simp add: topological_basis_def)
+  then show "\<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'" 
+    using H by auto
 next
   assume H: ?rhs
   show "topological_basis B"
-    using assms unfolding topological_basis_def
-  proof safe
+    unfolding topological_basis_def
+  proof (intro conjI strip assms)
     fix O' :: "'a set"
     assume "open O'"
     with H obtain f where "\<forall>x\<in>O'. f x \<in> B \<and> x \<in> f x \<and> f x \<subseteq> O'"
-      by (force intro: bchoice simp: Bex_def)
+      by metis
     then show "\<exists>B'\<subseteq>B. \<Union>B' = O'"
       by (auto intro: exI[where x="{f x |x. x \<in> O'}"])
   qed
@@ -156,9 +152,9 @@ proof -
     then show ?thesis
       using subset_eq by force
   qed
-  with A B show ?thesis
+  with A B open_Times show ?thesis
     unfolding topological_basis_def
-    by (smt (verit) SigmaE imageE image_mono open_Times case_prod_conv)
+    by (smt (verit) SigmaE imageE image_mono case_prod_conv)
 qed
 
 
@@ -231,7 +227,7 @@ proof atomize_elim
     "\<A> = (\<lambda>N. \<Inter>((\<lambda>n. from_nat_into \<B> n) ` N)) ` (Collect finite::nat set set)"
   then show "\<exists>\<A>. countable \<A> \<and> (\<forall>A. A \<in> \<A> \<longrightarrow> x \<in> A) \<and> (\<forall>A. A \<in> \<A> \<longrightarrow> open A) \<and>
         (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>A\<in>\<A>. A \<subseteq> S)) \<and> (\<forall>A B. A \<in> \<A> \<longrightarrow> B \<in> \<A> \<longrightarrow> A \<inter> B \<in> \<A>)"
-  proof (safe intro!: exI[where x=\<A>])
+  proof (intro exI conjI strip)
     show "countable \<A>"
       unfolding \<A>_def by (intro countable_image countable_Collect_finite)
     fix A
@@ -266,14 +262,14 @@ lemma (in topological_space) first_countableI:
     and 1: "\<And>A. A \<in> \<A> \<Longrightarrow> x \<in> A" "\<And>A. A \<in> \<A> \<Longrightarrow> open A"
     and 2: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>A\<in>\<A>. A \<subseteq> S"
   shows "\<exists>\<A>::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> \<A> i \<and> open (\<A> i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. \<A> i \<subseteq> S))"
-proof (safe intro!: exI[of _ "from_nat_into \<A>"])
+proof (intro exI[of _ "from_nat_into _"] conjI strip)
   fix i
   have "\<A> \<noteq> {}" using 2[of UNIV] by auto
   show "x \<in> from_nat_into \<A> i" "open (from_nat_into \<A> i)"
     using range_from_nat_into_subset[OF \<open>\<A> \<noteq> {}\<close>] 1 by auto
 next
   fix S
-  assume "open S" "x\<in>S" 
+  assume "open S \<and> x\<in>S" 
   then show "\<exists>i. from_nat_into \<A> i \<subseteq> S"
     by (metis "2" \<open>countable \<A>\<close> from_nat_into_surj)
 qed
@@ -331,11 +327,10 @@ proof -
   proof (intro exI conjI)
     show "countable ?B"
       by (intro countable_image countable_Collect_finite_subset B)
-    {
-      fix S
-      assume "open S"
-      then have "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. (\<Union>b\<in>B'. \<Inter>b) = S"
-        unfolding B
+    have "\<exists>B'\<subseteq>Inter ` {b. finite b \<and> b \<subseteq> B}. \<Union>B' = S" if "open S" for S
+    proof -
+      have "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. (\<Union>b\<in>B'. \<Inter>b) = S"
+        using that unfolding B 
       proof induct
         case UNIV
         show ?case by (intro exI[of _ "{{}}"]) simp
@@ -360,12 +355,12 @@ proof -
         then show ?case
           by (intro exI[of _ "{{S}}"]) auto
       qed
-      then have "(\<exists>B'\<subseteq>Inter ` {b. finite b \<and> b \<subseteq> B}. \<Union>B' = S)"
-        unfolding subset_image_iff by blast }
+      then show ?thesis
+        unfolding subset_image_iff by blast 
+    qed
     then show "topological_basis ?B"
       unfolding topological_basis_def
-      by (safe intro!: open_Inter)
-         (simp_all add: B generate_topology.Basis subset_eq)
+      by (safe intro!: open_Inter) (simp_all add: B generate_topology.Basis subset_eq)
   qed
 qed
 
@@ -394,14 +389,11 @@ proof -
     by (simp add: \<D>_def)
   then obtain G where G: "\<And>S. S \<in> \<D> \<longrightarrow> G S \<in> \<F> \<and> S \<subseteq> G S"
     by metis
-  have "\<Union>\<F> \<subseteq> \<Union>\<D>"
+  have eq1: "\<Union>\<F> = \<Union>\<D>"
     unfolding \<D>_def by (blast dest: \<F> \<B>)
-  moreover have "\<Union>\<D> \<subseteq> \<Union>\<F>"
-    using \<D>_def by blast
-  ultimately have eq1: "\<Union>\<F> = \<Union>\<D>" ..
-  moreover have "\<Union>\<D> = \<Union> (G ` \<D>)"
+  also have "\<dots> = \<Union> (G ` \<D>)"
     using G eq1 by auto
-  ultimately show ?thesis
+  finally show ?thesis
     by (metis G \<open>countable \<D>\<close> countable_image image_subset_iff that)
 qed
 
@@ -464,33 +456,30 @@ proof -
   define B2 where "B2 = {(SOME x. x \<in> U)| U. U \<in> A}"
   then have "countable B2" using \<open>countable A\<close> by (simp add: Setcompr_eq_image)
   have "\<exists>b \<in> B1 \<union> B2. x < b \<and> b \<le> y" if "x < y" for x y
-  proof (cases)
-    assume "\<exists>z. x < z \<and> z < y"
+  proof (cases "\<exists>z. x < z \<and> z < y")
+    case True
     then obtain z where z: "x < z \<and> z < y" by auto
     define U where "U = {x<..<y}"
     then have "open U" by simp
-    moreover have "z \<in> U" using z U_def by simp
-    ultimately obtain V where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
-      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    then obtain V where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>]
+      by (metis U_def greaterThanLessThan_iff z)
     define w where "w = (SOME x. x \<in> V)"
     then have "w \<in> V" using \<open>z \<in> V\<close> by (metis someI2)
-    then have "x < w \<and> w \<le> y" using \<open>w \<in> V\<close> \<open>V \<subseteq> U\<close> U_def by fastforce
-    moreover have "w \<in> B1 \<union> B2" using w_def B2_def \<open>V \<in> A\<close> by auto
-    ultimately show ?thesis by auto
+    with \<open>V \<in> A\<close> \<open>V \<subseteq> U\<close> show ?thesis
+      by (force simp: B2_def U_def w_def)
   next
-    assume "\<not>(\<exists>z. x < z \<and> z < y)"
+    case False
     then have *: "\<And>z. z > x \<Longrightarrow> z \<ge> y" by auto
     define U where "U = {x<..}"
     then have "open U" by simp
-    moreover have "y \<in> U" using \<open>x < y\<close> U_def by simp
-    ultimately obtain "V" where "V \<in> A" "y \<in> V" "V \<subseteq> U" 
-      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    then obtain "V" where "V \<in> A" "y \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] U_def \<open>x < y\<close> by blast
     have "U = {y..}" unfolding U_def using * \<open>x < y\<close> by auto
     then have "V \<subseteq> {y..}" using \<open>V \<subseteq> U\<close> by simp
     then have "(LEAST w. w \<in> V) = y" using \<open>y \<in> V\<close> by (meson Least_equality atLeast_iff subsetCE)
-    then have "y \<in> B1 \<union> B2" using \<open>V \<in> A\<close> B1_def by auto
-    moreover have "x < y \<and> y \<le> y" using \<open>x < y\<close> by simp
-    ultimately show ?thesis by auto
+    then show ?thesis
+      using B1_def \<open>V \<in> A\<close> that by blast
   qed
   moreover have "countable (B1 \<union> B2)" using \<open>countable B1\<close> \<open>countable B2\<close> by simp
   ultimately show ?thesis by auto
@@ -505,33 +494,35 @@ proof -
   define B2 where "B2 = {(SOME x. x \<in> U)| U. U \<in> A}"
   then have "countable B2" using \<open>countable A\<close> by (simp add: Setcompr_eq_image)
   have "\<exists>b \<in> B1 \<union> B2. x \<le> b \<and> b < y" if "x < y" for x y
-  proof (cases)
-    assume "\<exists>z. x < z \<and> z < y"
+  proof (cases "\<exists>z. x < z \<and> z < y")
+    case True
     then obtain z where z: "x < z \<and> z < y" by auto
     define U where "U = {x<..<y}"
     then have "open U" by simp
-    moreover have "z \<in> U" using z U_def by simp
-    ultimately obtain "V" where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
-      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    then obtain "V" where "V \<in> A" "z \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>]
+      by (metis U_def greaterThanLessThan_iff z)
     define w where "w = (SOME x. x \<in> V)"
-    then have "w \<in> V" using \<open>z \<in> V\<close> by (metis someI2)
-    then have "x \<le> w \<and> w < y" using \<open>w \<in> V\<close> \<open>V \<subseteq> U\<close> U_def by fastforce
-    moreover have "w \<in> B1 \<union> B2" using w_def B2_def \<open>V \<in> A\<close> by auto
-    ultimately show ?thesis by auto
+    then have "w \<in> V" 
+      using \<open>z \<in> V\<close> by (metis someI2)
+    then have "x \<le> w \<and> w < y" 
+      using \<open>w \<in> V\<close> \<open>V \<subseteq> U\<close> U_def by fastforce
+    then show ?thesis
+      using B2_def \<open>V \<in> A\<close> w_def by blast
   next
-    assume "\<not>(\<exists>z. x < z \<and> z < y)"
+    case False
     then have *: "\<And>z. z < y \<Longrightarrow> z \<le> x" using leI by blast
     define U where "U = {..<y}"
     then have "open U" by simp
-    moreover have "x \<in> U" using \<open>x < y\<close> U_def by simp
-    ultimately obtain "V" where "V \<in> A" "x \<in> V" "V \<subseteq> U" 
-      using topological_basisE[OF \<open>topological_basis A\<close>] by auto
+    then obtain "V" where "V \<in> A" "x \<in> V" "V \<subseteq> U" 
+      using topological_basisE[OF \<open>topological_basis A\<close>] U_def \<open>x < y\<close> by blast
     have "U = {..x}" unfolding U_def using * \<open>x < y\<close> by auto
-    then have "V \<subseteq> {..x}" using \<open>V \<subseteq> U\<close> by simp
-    then have "(GREATEST x. x \<in> V) = x" using \<open>x \<in> V\<close> by (meson Greatest_equality atMost_iff subsetCE)
-    then have "x \<in> B1 \<union> B2" using \<open>V \<in> A\<close> B1_def by auto
-    moreover have "x \<le> x \<and> x < y" using \<open>x < y\<close> by simp
-    ultimately show ?thesis by auto
+    then have "V \<subseteq> {..x}" 
+      using \<open>V \<subseteq> U\<close> by simp
+    then have "(GREATEST x. x \<in> V) = x" 
+      using \<open>x \<in> V\<close> by (meson Greatest_equality atMost_iff subsetCE)
+    then show ?thesis
+      using B1_def \<open>V \<in> A\<close> that by blast
   qed
   moreover have "countable (B1 \<union> B2)" using \<open>countable B1\<close> \<open>countable B2\<close> by simp
   ultimately show ?thesis by auto
@@ -546,8 +537,8 @@ proof -
   proof -
     obtain z where "x < z" "z < y" using \<open>x < y\<close> dense by blast
     then obtain b where "b \<in> B" "x < b \<and> b \<le> z" using B(2) by auto
-    then have "x < b \<and> b < y" using \<open>z < y\<close> by auto
-    then show ?thesis using \<open>b \<in> B\<close> by auto
+    then show ?thesis
+      using \<open>z < y\<close> by auto
   qed
   then show ?thesis using B(1) by auto
 qed
@@ -686,14 +677,11 @@ proof -
     with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially"
       by auto
     moreover
-    {
-      fix i
-      assume "Suc 0 \<le> i"
-      then have "f (r i) \<in> A i"
+    have "eventually (\<lambda>i. f (r i) \<in> A i) sequentially"
+    proof
+      fix i assume "Suc 0 \<le> i" then show "f (r i) \<in> A i"
         by (cases i) (simp_all add: r_def s)
-    }
-    then have "eventually (\<lambda>i. f (r i) \<in> A i) sequentially"
-      by (auto simp: eventually_sequentially)
+    qed
     ultimately show "eventually (\<lambda>i. f (r i) \<in> S) sequentially"
       by eventually_elim auto
   qed
@@ -710,8 +698,7 @@ lemma islimpt_range_imp_convergent_subsequence:
 
 lemma sequence_unique_limpt:
   fixes f :: "nat \<Rightarrow> 'a::t2_space"
-  assumes f: "(f \<longlongrightarrow> l) sequentially"
-    and "l' islimpt (range f)"
+  assumes f: "(f \<longlongrightarrow> l) sequentially" and l': "l' islimpt (range f)"
   shows "l' = l"
 proof (rule ccontr)
   assume "l' \<noteq> l"
@@ -722,16 +709,12 @@ proof (rule ccontr)
 
   have "UNIV = {..<N} \<union> {N..}"
     by auto
-  then have "l' islimpt (f ` ({..<N} \<union> {N..}))"
-    using assms(2) by simp
   then have "l' islimpt (f ` {..<N} \<union> f ` {N..})"
-    by (simp add: image_Un)
+    by (metis l' image_Un)
   then have "l' islimpt (f ` {N..})"
     by (simp add: islimpt_Un_finite)
   then obtain y where "y \<in> f ` {N..}" "y \<in> s" "y \<noteq> l'"
     using \<open>l' \<in> s\<close> \<open>open s\<close> by (rule islimptE)
-  then obtain n where "N \<le> n" "f n \<in> s" "f n \<noteq> l'"
-    by auto
   with \<open>\<forall>n\<ge>N. f n \<in> t\<close> \<open>s \<inter> t = {}\<close> show False
     by blast
 qed
@@ -806,7 +789,8 @@ qed
 lemma islimpt_image:
   assumes "z islimpt g -` A \<inter> B" "g z \<notin> A" "z \<in> B" "continuous_on B g"
   shows   "g z islimpt A"
-  by (smt (verit, best) IntD1 assms continuous_on_topological inf_le2 islimpt_def subset_eq vimageE)
+  using assms
+  by (simp add: islimpt_def vimage_def continuous_on_topological Bex_def) metis
   
 
 subsection \<open>Interior of a Set\<close>
@@ -865,7 +849,10 @@ lemma interior_singleton [simp]: "interior {a} = {}"
   by (meson interior_eq interior_subset not_open_singleton subset_singletonD)
 
 lemma interior_Int [simp]: "interior (S \<inter> T) = interior S \<inter> interior T"
-  by (meson Int_mono Int_subset_iff antisym_conv interior_maximal interior_subset open_Int open_interior)
+proof
+  show "interior S \<inter> interior T \<subseteq> interior (S \<inter> T)"
+    by (meson Int_mono interior_subset open_Int open_interior open_subset_interior)
+qed (simp add: interior_mono)
 
 lemma eventually_nhds_in_nhd: "x \<in> interior s \<Longrightarrow> eventually (\<lambda>y. y \<in> s) (nhds x)"
   using interior_subset[of s] by (subst eventually_nhds) blast
@@ -913,14 +900,14 @@ proof
   proof
     fix x
     assume "x \<in> interior (S \<union> T)"
-    then obtain R where "open R" "x \<in> R" "R \<subseteq> S \<union> T" ..
+    then obtain R where R: "open R" "x \<in> R" "R \<subseteq> S \<union> T" ..
     show "x \<in> interior S"
     proof (rule ccontr)
       assume "x \<notin> interior S"
       with \<open>x \<in> R\<close> \<open>open R\<close> obtain y where "y \<in> R - S"
         unfolding interior_def by fast
-      then show False
-        by (metis Diff_subset_conv \<open>R \<subseteq> S \<union> T\<close> \<open>open R\<close> cS empty_iff iT interiorI open_Diff)
+      with R show False
+        by (metis Diff_subset_conv cS empty_iff iT interiorI open_Diff)
     qed
   qed
 qed
@@ -996,9 +983,9 @@ proof (rule countable_image_inj_on)
   then show "countable (interior ` \<F>)"
     by (auto intro: countable_disjoint_open_subsets)
   show "inj_on interior \<F>"
-    using pw apply (clarsimp simp: inj_on_def pairwise_def)
-    apply (metis disjnt_def disjnt_subset1 inf.orderE int interior_subset)
-    done
+    using pw
+    unfolding inj_on_def pairwise_def disjnt_def
+    by (metis inf.idem int interior_Int interior_empty)
 qed
 
 subsection \<open>Closure of a Set\<close>
@@ -1089,21 +1076,28 @@ proof (rule closure_unique)
   show "closed (closure A \<times> closure B)"
     by (intro closed_Times closed_closure)
   fix T
-  assume "A \<times> B \<subseteq> T" and "closed T"
+  assume T: "A \<times> B \<subseteq> T" "closed T"
+  have False
+    if ab: "a \<in> closure A" "b \<in> closure B" and "(a, b) \<notin> T" for a b
+  proof -
+    obtain C D where "open C" "open D" "C \<times> D \<subseteq> - T" "a \<in> C" "b \<in> D"
+      by (metis ComplI SigmaE2 \<open>closed T\<close> \<open>(a, b) \<notin> T\<close> open_Compl open_prod_elim)
+    then obtain "\<not> C \<subseteq> - A" "\<not> D \<subseteq> - B"
+      by (meson ab disjoint_iff inf_shunt open_Int_closure_eq_empty)
+    then show False
+      using T \<open>C \<times> D \<subseteq> - T\<close> by auto
+  qed
   then show "closure A \<times> closure B \<subseteq> T"
-    apply (simp add: closed_def open_prod_def, clarify)
-    apply (rule ccontr)
-    apply (drule_tac x="(a, b)" in bspec, simp, clarify, rename_tac C D)
-    apply (simp add: closure_interior interior_def)
-    apply (drule_tac x=C in spec)
-    apply (drule_tac x=D in spec, auto)
-    done
+    by blast
 qed
 
 lemma closure_open_Int_superset:
   assumes "open S" "S \<subseteq> closure T"
   shows "closure(S \<inter> T) = closure S"
-  by (metis Int_Un_distrib Un_Int_eq(4) assms closure_Un closure_closure open_Int_closure_subset sup.orderE)
+proof
+  show "closure S \<subseteq> closure (S \<inter> T)"
+    by (metis assms closed_closure closure_minimal inf.absorb_iff1 open_Int_closure_subset)
+qed (simp add: closure_mono)
 
 lemma closure_Int: "closure (\<Inter>I) \<subseteq> \<Inter>{closure S |S. S \<in> I}"
   by (simp add: INF_greatest Inter_lower Setcompr_eq_image closure_mono)
@@ -1154,7 +1148,7 @@ lemma frontier_Int_subset: "frontier(S \<inter> T) \<subseteq> frontier S \<unio
 lemma frontier_Int_closed:
   assumes "closed S" "closed T"
   shows "frontier(S \<inter> T) = (frontier S \<inter> T) \<union> (S \<inter> frontier T)"
-  by (smt (verit, best) Diff_Int Int_Diff assms closed_Int closure_eq frontier_def inf_commute interior_Int)
+  by (simp add: Int_Un_distrib assms closed_Int frontier_closures inf_commute inf_left_commute)
 
 lemma frontier_subset_closed: "closed S \<Longrightarrow> frontier S \<subseteq> S"
   by (metis frontier_def closure_closed Diff_subset)
@@ -1209,7 +1203,7 @@ lemma not_trivial_limit_within: "\<not> trivial_limit (at x within S) = (x \<in>
 lemma not_in_closure_trivial_limitI:
   "x \<notin> closure S \<Longrightarrow> trivial_limit (at x within S)"
   using not_trivial_limit_within[of x S]
-  by safe (metis Diff_empty Diff_insert0 closure_subset contra_subsetD)
+  by (metis Diff_empty Diff_insert0 closure_subset subsetD)
 
 lemma filterlim_at_within_closure_implies_filterlim: "filterlim f l (at x within S)"
   if "x \<in> closure S \<Longrightarrow> filterlim f l (at x within S)"
@@ -1322,7 +1316,7 @@ text\<open>Useful lemmas on closure and set of possible sequential limits.\<clos
 lemma closure_sequential:
   fixes l :: "'a::first_countable_topology"
   shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x \<longlongrightarrow> l) sequentially)"
-  by (metis Diff_empty Diff_insert0 Un_iff closure_def islimpt_sequential mem_Collect_eq tendsto_const)
+  by (auto simp: closure_def islimpt_sequential)
 
 lemma closed_sequential_limits:
   fixes S :: "'a::first_countable_topology set"
@@ -1340,13 +1334,12 @@ proof -
   have *: "(S \<union> T) \<inter> {x. x \<in> S} = S" "(S \<union> T) \<inter> {x. x \<notin> S} = T - S"
     by auto
   have "(f \<longlongrightarrow> l x) (at x within S)"
-    by (rule filterlim_at_within_closure_implies_filterlim)
-       (use \<open>x \<in> _\<close> in \<open>auto simp: inf_commute closure_def intro: tendsto_within_subset[OF f]\<close>)
+    using tendsto_within_subset[OF f] \<open>x \<in> S \<union> T\<close>
+    by (metis Int_iff Un_iff Un_upper1 closure_def filterlim_at_within_closure_implies_filterlim)
   moreover
   have "(g \<longlongrightarrow> l x) (at x within T - S)"
-    by (rule filterlim_at_within_closure_implies_filterlim)
-      (use \<open>x \<in> _\<close> in
-        \<open>auto intro!: tendsto_within_subset[OF g] simp: closure_def intro: islimpt_subset\<close>)
+    using tendsto_within_subset g \<open>x \<in> S \<union> T\<close>
+    by (metis IntI Un_Diff_Int Un_iff Un_upper1 closure_def filterlim_at_within_closure_implies_filterlim) 
   ultimately show ?thesis
     by (intro filterlim_at_within_If) (simp_all only: *)
 qed
@@ -1393,12 +1386,12 @@ proof (rule ccontr)
   then have g': "\<forall>x\<in>g. \<exists>y \<in> S. x = f y"
     by auto
   have "inj_on f T"
-    by (smt (verit, best) assms(3) f inj_onI subsetD)
+    unfolding inj_on_def using \<open>T \<subseteq> S\<close> f by blast
   then have "infinite (f ` T)"
     using assms(2) using finite_imageD by auto
   moreover
-    have False if "x \<in> T" "f x \<notin> g" for x
-      by (smt (verit) UnionE assms(3) f g' g(3) subsetD that)
+  have False if "x \<in> T" "f x \<notin> g" for x
+    using \<open>T \<subseteq> S\<close>  f g' \<open>S \<subseteq> \<Union>g\<close> that by force
   then have "f ` T \<subseteq> g" by auto
   ultimately show False
     using g(2) using finite_subset by auto
@@ -1406,7 +1399,7 @@ qed
 
 lemma sequence_infinite_lemma:
   fixes f :: "nat \<Rightarrow> 'a::t1_space"
-  assumes "\<forall>n. f n \<noteq> l"
+  assumes "\<And>n. f n \<noteq> l"
     and "(f \<longlongrightarrow> l) sequentially"
   shows "infinite (range f)"
 proof
@@ -1426,22 +1419,18 @@ lemma Bolzano_Weierstrass_imp_closed:
 proof -
   {
     fix x l
-    assume as: "\<forall>n::nat. x n \<in> S" "(x \<longlongrightarrow> l) sequentially"
+    assume \<section>: "\<forall>n. x n \<in> S" "(x \<longlongrightarrow> l) sequentially"
     have "l \<in> S"
     proof (cases "\<forall>n. x n \<noteq> l")
-      case False
-      then show "l\<in>S" using as(1) by auto
-    next
       case True
-      with as(2) have "infinite (range x)"
+      with \<section> have "infinite (range x)"
         using sequence_infinite_lemma[of x l] by auto
-      then obtain l' where "l'\<in>S" "l' islimpt (range x)"
-        using as(1) assms by auto
-      then show "l\<in>S" using sequence_unique_limpt as True by auto
-    qed
+      with \<section> assms show "l\<in>S" 
+        using sequence_unique_limpt \<section> True by blast 
+    qed (use \<section> in auto)
   }
   then show ?thesis
-    unfolding closed_sequential_limits by fast
+    unfolding closed_sequential_limits by auto
 qed
 
 lemma closure_insert:
@@ -1513,20 +1502,12 @@ text\<open>Compactness expressed with filters\<close>
 
 lemma closure_iff_nhds_not_empty:
   "x \<in> closure X \<longleftrightarrow> (\<forall>A. \<forall>S\<subseteq>A. open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {})"
-proof safe
-  assume x: "x \<in> closure X"
-  fix S A
-  assume \<section>: "open S" "x \<in> S" "X \<inter> A = {}" "S \<subseteq> A"
-  then have "x \<notin> closure (-S)"
-    by (simp add: closed_open)
-  with x have "x \<in> closure X - closure (-S)"
-    by auto
-  with \<section> show False
-    by (metis Compl_iff Diff_iff closure_mono disjoint_iff subsetD subsetI)
-next
-  assume "\<forall>A S. S \<subseteq> A \<longrightarrow> open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {}"
-  then show "x \<in> closure X"
-    by (metis ComplI Compl_disjoint closure_interior interior_subset open_interior)
+proof -
+  have "\<forall>A S. S \<subseteq> A \<longrightarrow> open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {} \<Longrightarrow> x \<in> closure X"
+    by (metis ComplI Diff_disjoint Diff_eq closure_interior inf_top_left 
+        interior_subset open_interior)
+  then show ?thesis
+    using open_Int_closure_eq_empty by fastforce
 qed
 
 lemma compact_filter:
@@ -1595,7 +1576,7 @@ next
 
   { fix V assume "V \<in> A"
     then have "F \<le> principal V"
-      unfolding F_def by (intro INF_lower2[of V]) auto
+      by (metis INF_lower F_def insertCI)
     then have V: "eventually (\<lambda>x. x \<in> V) F"
       by (auto simp: le_filter_def eventually_principal)
     have "x \<in> closure V"
@@ -1628,7 +1609,7 @@ lemma countably_compactE:
   using assms unfolding countably_compact_def by metis
 
 lemma countably_compactI:
-  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union>C \<Longrightarrow> countable C \<Longrightarrow> (\<exists>C'\<subseteq>C. finite C' \<and> s \<subseteq> \<Union>C')"
+  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union>C \<Longrightarrow> countable C \<Longrightarrow> \<exists>C'\<subseteq>C. finite C' \<and> s \<subseteq> \<Union>C'"
   shows "countably_compact s"
   using assms unfolding countably_compact_def by metis
 
@@ -1651,12 +1632,10 @@ proof safe
     unfolding C_def using ccover by auto
   moreover
   have "\<Union>A \<inter> U \<subseteq> \<Union>C"
-  proof safe
+  proof clarify
     fix x a
     assume "x \<in> U" "x \<in> a" "a \<in> A"
-    with basis[of a x] A obtain b where "b \<in> B" "x \<in> b" "b \<inter> U \<subseteq> a"
-      by blast
-    with \<open>a \<in> A\<close> show "x \<in> \<Union>C"
+    with basis[of a x] A show "x \<in> \<Union>C"
       unfolding C_def by auto
   qed
   then have "U \<subseteq> \<Union>C" using \<open>U \<subseteq> \<Union>A\<close> by auto
@@ -1675,10 +1654,9 @@ proposition countably_compact_imp_compact_second_countable:
 proof (rule countably_compact_imp_compact)
   fix T and x :: 'a
   assume "open T" "x \<in> T"
-  from topological_basisE[OF is_basis this] obtain b where
-    "b \<in> (SOME B. countable B \<and> topological_basis B)" "x \<in> b" "b \<subseteq> T" .
-  then show "\<exists>b\<in>SOME B. countable B \<and> topological_basis B. x \<in> b \<and> b \<inter> U \<subseteq> T"
-    by blast
+  from topological_basisE[OF is_basis this] 
+  show "\<exists>b\<in>SOME B. countable B \<and> topological_basis B. x \<in> b \<and> b \<inter> U \<subseteq> T"
+    by (metis le_infI1)
 qed (insert countable_basis topological_basis_open[OF is_basis], auto)
 
 lemma countably_compact_eq_compact:
@@ -1726,7 +1704,7 @@ lemma seq_compact_imp_countably_compact:
   fixes U :: "'a :: first_countable_topology set"
   assumes "seq_compact U"
   shows "countably_compact U"
-proof (safe intro!: countably_compactI)
+proof (intro countably_compactI)
   fix A
   assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A" "countable A"
   have subseq: "\<And>X. range X \<subseteq> U \<Longrightarrow> \<exists>r x. x \<in> U \<and> strict_mono (r :: nat \<Rightarrow> nat) \<and> (X \<circ> r) \<longlonglongrightarrow> x"
@@ -1824,12 +1802,8 @@ proof safe
     with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially"
       by auto
     moreover
-    {
-      fix i
-      assume "Suc 0 \<le> i"
-      then have "X (r i) \<in> A i"
-        by (cases i) (simp_all add: r_def s)
-    }
+    have "X (r i) \<in> A i" if "Suc 0 \<le> i" for i
+      using that by (cases i) (simp_all add: r_def s)
     then have "eventually (\<lambda>i. X (r i) \<in> A i) sequentially"
       by (auto simp: eventually_sequentially)
     ultimately show "eventually (\<lambda>i. X (r i) \<in> S) sequentially"
@@ -1853,13 +1827,11 @@ proof (rule ccontr)
   moreover
   assume "\<not> (\<exists>x\<in>S. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> T))"
   then have S: "\<And>x. x \<in> S \<Longrightarrow> \<exists>U. x\<in>U \<and> open U \<and> finite (U \<inter> T)" by metis
-  have "S \<subseteq> \<Union>C"
-    using \<open>T \<subseteq> S\<close>
+  have "\<And>x U. \<lbrakk>T \<subseteq> S; x \<in> U; open U; finite (U \<inter> T)\<rbrakk> \<Longrightarrow> x \<in> \<Union> C"
     unfolding C_def
-    apply (safe dest!: S)
-    apply (rule_tac a="U \<inter> T" in UN_I)
-    apply (auto intro!: interiorI simp add: finite_subset)
-    done
+    by (auto intro!: UN_I [where a="U \<inter> T"] interiorI simp add: finite_subset)
+  then have "S \<subseteq> \<Union>C"
+    using \<open>T \<subseteq> S\<close> S by force
   moreover
   from \<open>countable T\<close> have "countable C"
     unfolding C_def by (auto intro: countable_Collect_finite_subset)
@@ -1975,7 +1947,7 @@ proof (rule compactI)
     moreover from D c have "(\<Inter>y\<in>D. a y) \<times> T \<subseteq> (\<Union>y\<in>D. c y)"
       by (fastforce simp: subset_eq)
     ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>\<C>. finite d \<and> a \<times> T \<subseteq> \<Union>d)"
-      using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] conjI) (auto intro!: open_INT)
+      using c exI[of _ "c`D"] exI[of _ "\<Inter>(a`D)"] by (simp add: open_INT subset_eq)
   qed
   then obtain a d where a: "\<And>x. x\<in>S \<Longrightarrow> open (a x)" "S \<subseteq> (\<Union>x\<in>S. a x)"
     and d: "\<And>x. x \<in> S \<Longrightarrow> d x \<subseteq> \<C> \<and> finite (d x) \<and> a x \<times> T \<subseteq> \<Union>(d x)"
@@ -1988,7 +1960,7 @@ proof (rule compactI)
   have "S \<times> T \<subseteq> (\<Union>x\<in>e. \<Union>(d x))"
     by (smt (verit, del_insts) S SigmaE UN_iff d e(1) mem_Sigma_iff subset_eq)
   ultimately show "\<exists>C'\<subseteq>\<C>. finite C' \<and> S \<times> T \<subseteq> \<Union>C'"
-    by (intro exI[of _ "(\<Union>x\<in>e. d x)"]) (auto simp: subset_eq)
+    by (force simp: subset_eq intro!: exI[of _ "\<Union>x\<in>e. d x"])
 qed
 
 
@@ -1998,13 +1970,8 @@ lemma tube_lemma:
   assumes "{x0} \<times> K \<subseteq> W"
   shows "\<exists>X0. x0 \<in> X0 \<and> open X0 \<and> X0 \<times> K \<subseteq> W"
 proof -
-  {
-    fix y assume "y \<in> K"
-    then have "(x0, y) \<in> W" using assms by auto
-    with \<open>open W\<close>
-    have "\<exists>X0 Y. open X0 \<and> open Y \<and> x0 \<in> X0 \<and> y \<in> Y \<and> X0 \<times> Y \<subseteq> W"
-      by (rule open_prod_elim) blast
-  }
+    have "\<exists>X0 Y. open X0 \<and> open Y \<and> x0 \<in> X0 \<and> y \<in> Y \<and> X0 \<times> Y \<subseteq> W" if "y \<in> K" for y
+      using assms open_prod_def subsetD that by fastforce
   then obtain X0 Y where
     *: "\<forall>y \<in> K. open (X0 y) \<and> open (Y y) \<and> x0 \<in> X0 y \<and> y \<in> Y y \<and> X0 y \<times> Y y \<subseteq> W"
     by metis
@@ -2014,7 +1981,7 @@ proof -
   then obtain c where c: "\<And>C. C \<in> CC \<Longrightarrow> c C \<in> K \<and> C = Y (c C)"
     by (force intro!: choice)
   with * CC show ?thesis
-    by (force intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"]) (* SLOW *)
+    by (bestsimp intro!: exI[where x="\<Inter>C\<in>CC. X0 (c C)"]) (* SLOW *)
 qed
 
 lemma continuous_on_prod_compactE:
@@ -2047,7 +2014,7 @@ proof -
     by blast
 
   have "\<forall>x\<in>X0 \<inter> U. \<forall>t \<in> C. dist (fx (x, t)) (fx (x0, t)) \<le> e"
-  proof safe
+  proof clarify
     fix x assume x: "x \<in> X0" "x \<in> U"
     fix t assume t: "t \<in> C"
     have "dist (fx (x, t)) (fx (x0, t)) = psi (x, t)"
@@ -2107,9 +2074,7 @@ qed
 
 lemma continuous_within_tendsto_compose':
   fixes f::"'a::t2_space \<Rightarrow> 'b::topological_space"
-  assumes "continuous (at a within S) f"
-    "\<And>n. x n \<in> S"
-    "(x \<longlongrightarrow> a) F "
+  assumes "continuous (at a within S) f" "\<And>n. x n \<in> S" "(x \<longlongrightarrow> a) F "
   shows "((\<lambda>n. f (x n)) \<longlongrightarrow> f a) F"
   using always_eventually assms continuous_within_tendsto_compose by blast
 
@@ -2119,7 +2084,7 @@ lemma continuous_within_sequentially:
     (\<forall>x. (\<forall>n::nat. x n \<in> S) \<and> (x \<longlongrightarrow> a) sequentially
          \<longrightarrow> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   using continuous_within_tendsto_compose'[of a S f _ sequentially]
-    continuous_within_sequentiallyI[of a S f]
+  using continuous_within_sequentiallyI[of a S f]
   by (auto simp: o_def)
 
 lemma continuous_at_sequentiallyI:
@@ -2215,7 +2180,7 @@ lemma continuous_on_translation_eq:
   shows "continuous_on A ((+) a \<circ> g) = continuous_on A g"
 proof -
   have g: "g = (\<lambda>x. -a + x) \<circ> ((\<lambda>x. a + x) \<circ> g)"
-    by (rule ext) simp
+    by force
   show ?thesis
     by (metis (no_types, opaque_lifting) g continuous_on_compose homeomorphism_def homeomorphism_translation)
 qed
@@ -2245,8 +2210,19 @@ lemma homeomorphic_minimal:
   "S homeomorphic T \<longleftrightarrow>
     (\<exists>f g. (\<forall>x\<in>S. f(x) \<in> T \<and> (g(f(x)) = x)) \<and>
            (\<forall>y\<in>T. g(y) \<in> S \<and> (f(g(y)) = y)) \<and>
-           continuous_on S f \<and> continuous_on T g)"
-  by (smt (verit, ccfv_threshold) homeomorphic_def homeomorphismI homeomorphism_def image_eqI image_subset_iff)
+           continuous_on S f \<and> continuous_on T g)" (is "?L=?R")
+proof
+  assume "S homeomorphic T"
+  then obtain f g where \<section>: "homeomorphism S T f g"
+    using homeomorphic_def by blast
+  show ?R
+  proof (intro exI conjI)
+    show "\<forall>x\<in>S. f x \<in> T \<and> g (f x) = x" "\<forall>y\<in>T. g y \<in> S \<and> f (g y) = y"
+      by (metis "\<section>" homeomorphism_def imageI)+
+    show "continuous_on S f" "continuous_on T g"
+      using "\<section>" homeomorphism_def by blast+
+  qed
+qed (force simp: homeomorphic_def homeomorphism_def image_iff)
 
 lemma homeomorphicI [intro?]:
    "\<lbrakk>f ` S = T; g ` T = S;
@@ -2291,18 +2267,21 @@ by (metis continuous_on_no_limpt islimpt_finite)
 lemma homeomorphic_finite:
   fixes S :: "'a::t1_space set" and T :: "'b::t1_space set"
   assumes "finite T"
-  shows "S homeomorphic T \<longleftrightarrow> finite S \<and> finite T \<and> card S = card T" (is "?lhs = ?rhs")
+  shows "S homeomorphic T \<longleftrightarrow> finite S \<and> card S = card T" (is "?lhs = ?rhs")
 proof
   assume "S homeomorphic T"
   with assms show ?rhs
     by (metis (full_types) card_image_le finite_imageI homeomorphic_def homeomorphism_def le_antisym)
 next
   assume R: ?rhs
-  with finite_same_card_bij obtain h where "bij_betw h S T"
+  with finite_same_card_bij assms obtain h where h: "bij_betw h S T"
     by auto
-  with R show ?lhs
-    apply (simp only: homeomorphic_def homeomorphism_def continuous_on_finite)
-    by (smt (verit, ccfv_SIG) bij_betw_imp_surj_on bij_betw_inv_into bij_betw_inv_into_left bij_betw_inv_into_right)
+  show ?lhs
+    unfolding homeomorphic_def homeomorphism_def 
+  proof (intro exI conjI)
+    show "continuous_on S h" "continuous_on T (inv_into S h)"
+      by (simp_all add: assms R continuous_on_finite)
+  qed (use h in \<open>auto simp: bij_betw_def\<close>)
 qed
 
 text \<open>Relatively weak hypotheses if a set is compact.\<close>

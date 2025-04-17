@@ -103,13 +103,10 @@ next
     qed
 qed
 
-lemma norm_lemma_xy: assumes "\<bar>b\<bar> + 1 \<le> norm(y) - a" "norm(x) \<le> a" shows "b \<le> norm(x + y)"
-proof -
-  have "b \<le> norm y - norm x"
-    using assms by linarith
-  then show ?thesis
-    by (metis (no_types) add.commute norm_diff_ineq order_trans)
-qed
+lemma norm_lemma_xy: 
+  assumes "\<bar>b\<bar> + 1 \<le> norm(y) - a" "norm(x) \<le> a" 
+  shows "b \<le> norm(x + y)"
+  by (smt (verit) add.commute assms norm_diff_ineq)
 
 proposition polyfun_extremal:
   fixes c :: "nat \<Rightarrow> 'a::real_normed_div_algebra"
@@ -142,8 +139,7 @@ next
       then have "\<bar>B\<bar> * 2 + 2 \<le> norm z ^ (Suc n) * norm (c (Suc n))"
         by (metis \<open>1 \<le> norm z\<close> order.trans mult_right_mono norm_ge_zero self_le_power zero_less_Suc)
       then show "B \<le> norm ((\<Sum>i\<le>n. c i * z^i) + c (Suc n) * (z * z ^ n))" using M les
-        apply auto
-        apply (rule norm_lemma_xy [where a = "norm (c (Suc n)) * norm z ^ (Suc n) / 2"])
+        apply (intro norm_lemma_xy [where a = "norm (c (Suc n)) * norm z ^ (Suc n) / 2"])
         apply (simp_all add: norm_mult norm_power)
         done
     qed
@@ -173,11 +169,9 @@ proof (induction n arbitrary: c)
    then have extr_prem: "\<not> (\<exists>k\<le>n. b k \<noteq> 0) \<Longrightarrow> \<exists>k. k \<noteq> 0 \<and> k \<le> Suc n \<and> c k \<noteq> 0"
      by (metis Suc.prems le0 minus_zero mult_zero_right)
    have "\<exists>k\<le>n. b k \<noteq> 0"
-     apply (rule ccontr)
-     using polyfun_extremal [OF extr_prem, of 1]
-     apply (auto simp: eventually_at_infinity b simp del: sum.atMost_Suc)
-     apply (drule_tac x="of_real ba" in spec, simp)
-     done
+     using polyfun_extremal [OF extr_prem, of 1] 
+     apply (simp add: eventually_at_infinity b del: sum.atMost_Suc)
+     by (metis norm_of_nat real_arch_simple)
    then show ?thesis using Suc.IH [of b] ins_ab
      by (auto simp: card_insert_if)
    qed simp
@@ -220,11 +214,9 @@ theorem polyfun_eq_const:
   fixes c :: "nat \<Rightarrow> 'a::{comm_ring,real_normed_div_algebra}"
     shows  "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = k) \<longleftrightarrow> c 0 = k \<and> (\<forall>k. k \<noteq> 0 \<and> k \<le> n \<longrightarrow> c k = 0)"
 proof -
-  {fix z
-    have "(\<Sum>i\<le>n. c i * z^i) = (\<Sum>i\<le>n. (if i = 0 then c 0 - k else c i) * z^i) + k"
-      by (induct n) auto
-  } then
-  have "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = k) \<longleftrightarrow> (\<forall>z. (\<Sum>i\<le>n. (if i = 0 then c 0 - k else c i) * z^i) = 0)"
+  have "\<And>z. (\<Sum>i\<le>n. c i * z^i) = (\<Sum>i\<le>n. (if i = 0 then c 0 - k else c i) * z^i) + k"
+    by (induct n) auto
+  then have "(\<forall>z. (\<Sum>i\<le>n. c i * z^i) = k) \<longleftrightarrow> (\<forall>z. (\<Sum>i\<le>n. (if i = 0 then c 0 - k else c i) * z^i) = 0)"
     by auto
   also have "... \<longleftrightarrow>  c 0 = k \<and> (\<forall>k. k \<noteq> 0 \<and> k \<le> n \<longrightarrow> c k = 0)"
     by (auto simp: polyfun_eq_0)
