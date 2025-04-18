@@ -2122,12 +2122,11 @@ lemma word_neg_numeral_alt: "- numeral b = word_of_int (- numeral b)"
 declare word_neg_numeral_alt [symmetric, code_abbrev]
 
 lemma uint_bintrunc [simp]:
-  "uint (numeral bin :: 'a word) =
-    take_bit (LENGTH('a::len)) (numeral bin)"
+  "uint (numeral bin :: 'a word) = take_bit LENGTH('a::len) (numeral bin)"
   by transfer rule
 
 lemma uint_bintrunc_neg [simp]:
-  "uint (- numeral bin :: 'a word) = take_bit (LENGTH('a::len)) (- numeral bin)"
+  "uint (- numeral bin :: 'a word) = take_bit LENGTH('a::len) (- numeral bin)"
   by transfer rule
 
 lemma sint_sbintrunc [simp]:
@@ -2139,11 +2138,11 @@ lemma sint_sbintrunc_neg [simp]:
   by transfer simp
 
 lemma unat_bintrunc [simp]:
-  "unat (numeral bin :: 'a::len word) = nat (take_bit (LENGTH('a)) (numeral bin))"
+  "unat (numeral bin :: 'a::len word) = take_bit LENGTH('a) (numeral bin)"
   by transfer simp
 
 lemma unat_bintrunc_neg [simp]:
-  "unat (- numeral bin :: 'a::len word) = nat (take_bit (LENGTH('a)) (- numeral bin))"
+  "unat (- numeral bin :: 'a::len word) = nat (take_bit LENGTH('a) (- numeral bin))"
   by transfer simp
 
 lemma size_0_eq: "size w = 0 \<Longrightarrow> v = w"
@@ -4427,6 +4426,84 @@ proof -
 qed
 
 end
+
+
+subsection \<open>Some more naive computations rules\<close>
+
+lemma drop_bit_of_minus_1_eq [simp]:
+  \<open>drop_bit n (- 1 :: 'a::len word) = mask (LENGTH('a) - n)\<close>
+  by (rule bit_word_eqI) (auto simp add: bit_simps)
+
+context
+  includes bit_operations_syntax
+begin
+
+lemma word_cat_eq_push_bit_or:
+  \<open>word_cat v w = (push_bit LENGTH('b) (ucast v) OR ucast w :: 'c::len word)\<close>
+  for v :: \<open>'a::len word\<close> and w :: \<open>'b::len word\<close>
+  by transfer (simp add: concat_bit_def ac_simps)
+
+end
+
+context semiring_bit_operations
+begin
+
+lemma of_nat_take_bit_numeral_eq [simp]:
+  \<open>of_nat (take_bit m (numeral n)) = take_bit m (numeral n)\<close>
+  by (simp add: of_nat_take_bit)
+
+end
+
+context ring_bit_operations
+begin
+
+lemma signed_take_bit_of_int:
+  \<open>signed_take_bit n (of_int k) = of_int (signed_take_bit n k)\<close>
+  by (rule bit_eqI) (simp add: bit_simps)
+
+lemma of_int_signed_take_bit:
+  \<open>of_int (signed_take_bit n k) = signed_take_bit n (of_int k)\<close>
+  by (simp add: signed_take_bit_of_int)
+
+lemma of_int_take_bit_minus_numeral_eq [simp]:
+  \<open>of_int (take_bit m (numeral n)) = take_bit m (numeral n)\<close>
+  \<open>of_int (take_bit m (- numeral n)) = take_bit m (- numeral n)\<close>
+  by (simp_all add: of_int_take_bit)
+
+end
+
+context
+  includes bit_operations_syntax
+begin
+
+lemma concat_bit_numeral_of_one_1 [simp]:
+  \<open>concat_bit (numeral m) 1 l = 1 OR push_bit (numeral m) l\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
+lemma concat_bit_of_one_2 [simp]:
+  \<open>concat_bit n k 1 = set_bit n (take_bit n k)\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
+lemma concat_bit_numeral_of_minus_one_1 [simp]:
+  \<open>concat_bit (numeral m) (- 1) l = push_bit (numeral m) l OR mask (numeral m)\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
+lemma concat_bit_numeral_of_minus_one_2 [simp]:
+  \<open>concat_bit (numeral m) k (- 1) = take_bit (numeral m) k OR NOT (mask (numeral m))\<close>
+  by (rule bit_eqI) (auto simp add: bit_simps)
+
+lemma concat_bit_numeral [simp]:
+  \<open>concat_bit (numeral m) (numeral n) (numeral q) = take_bit (numeral m) (numeral n) OR push_bit (numeral m) (numeral q)\<close>
+  \<open>concat_bit (numeral m) (- numeral n) (numeral q) = take_bit (numeral m) (- numeral n) OR push_bit (numeral m) (numeral q)\<close>
+  \<open>concat_bit (numeral m) (numeral n) (- numeral q) = take_bit (numeral m) (numeral n) OR push_bit (numeral m) (- numeral q)\<close>
+  \<open>concat_bit (numeral m) (- numeral n) (- numeral q) = take_bit (numeral m) (- numeral n) OR push_bit (numeral m) (- numeral q)\<close>
+  by (fact concat_bit_def)+
+
+end
+
+lemma word_cat_0_left [simp]:
+  \<open>word_cat 0 w = ucast w\<close>
+  by (simp add: word_cat_eq)
 
 
 subsection \<open>Tool support\<close>
