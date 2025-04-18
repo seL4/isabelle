@@ -2392,4 +2392,64 @@ lemma has_laurent_expansion_prod_mset [laurent_expansion_intros]:
   shows   "(\<lambda>y. \<Prod>x\<in>#I. f x y) has_laurent_expansion (\<Prod>x\<in>#I. F x)"
   using assms by (induction I) (auto intro!: laurent_expansion_intros)
 
+
+subsection \<open>Formal convergence versus analytic convergence\<close>
+
+
+text \<open>
+  The convergence of a sequence of formal power series and the convergence of the functions
+  in the complex plane do not imply each other:
+
+  \<^item> If we have the sequence of constant power series $(1/n)_{n\geq 0}$, this clearly converges 
+    to the zero function analytically, but as a series of formal power series it is divergent 
+    (since the 0-th coefficient never stabilises).
+
+  \<^item> Conversely, the sequence of series $(n! x^n)_{n\geq 0}$ converges formally to $0$,
+    but the corresponding sequence of functions diverges for every $x \neq 0$.
+
+  However, if the sequence of series converges to some limit series $h$ and the corresponding
+  series of functions converges uniformly to some limit function $g(x)$, then $h$ is also a
+  series expansion of $g(x)$, i.e.\ in that case, formal and analytic convergence agree.
+\<close>
+proposition uniform_limit_imp_fps_expansion_eq:
+  fixes f :: "'a \<Rightarrow> complex fps"
+  assumes lim1: "(f \<longlongrightarrow> h) F"
+  assumes lim2: "uniform_limit A (\<lambda>x z. f' x z) g' F"
+  assumes expansions: "eventually (\<lambda>x. f' x has_fps_expansion f x) F" "g' has_fps_expansion g"
+  assumes holo: "eventually (\<lambda>x. f' x holomorphic_on A) F"
+  assumes A: "open A" "0 \<in> A"
+  assumes nontriv [simp]: "F \<noteq> bot"
+  shows "g = h"
+proof (rule fps_ext)
+  fix n :: nat
+  have "eventually (\<lambda>x. fps_nth (f x) n = fps_nth h n) F"
+    using lim1 unfolding tendsto_fps_iff by blast
+  hence "eventually (\<lambda>x. (deriv ^^ n) (f' x) 0 / fact n = fps_nth h n) F"
+    using expansions(1)
+  proof eventually_elim
+    case (elim x)
+    have "fps_nth (f x) n = (deriv ^^ n) (f' x) 0 / fact n"
+      by (rule fps_nth_fps_expansion) (use elim in auto)
+    with elim show ?case
+      by simp
+  qed
+  hence "((\<lambda>x. (deriv ^^ n) (f' x) 0 / fact n) \<longlongrightarrow> fps_nth h n) F"
+    by (simp add: tendsto_eventually)
+
+  moreover have "((\<lambda>x. (deriv ^^ n) (f' x) 0) \<longlongrightarrow> (deriv ^^ n) g' 0) F"
+    using lim2
+  proof (rule higher_deriv_complex_uniform_limit)
+    show "eventually (\<lambda>x. f' x holomorphic_on A) F"
+      using holo by eventually_elim auto
+  qed (use A in auto)
+  hence "((\<lambda>x. (deriv ^^ n) (f' x) 0 / fact n) \<longlongrightarrow> (deriv ^^ n) g' 0 / fact n) F"
+    by (intro tendsto_divide) auto
+
+  ultimately have "fps_nth h n = (deriv ^^ n) g' 0 / fact n"
+    using tendsto_unique[OF nontriv] by blast
+  also have "\<dots> = fps_nth g n"
+    by (rule fps_nth_fps_expansion [symmetric]) fact
+  finally show "fps_nth g n = fps_nth h n" ..
+qed
+
 end

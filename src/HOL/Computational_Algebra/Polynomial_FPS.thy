@@ -313,4 +313,48 @@ qed (simp_all add: poly_subdegree_def prefix_length_def)
 
 end
 
+
+text \<open>
+  Truncation of formal power series: all monomials $cx^k$ with $k\geq n$ are removed;
+  the remainder is a polynomial of degree at most $n-1$.
+\<close>
+lift_definition truncate_fps :: "nat \<Rightarrow> 'a fps \<Rightarrow> 'a :: zero poly" is
+  "\<lambda>n F k. if k \<ge> n then 0 else fps_nth F k"
+proof goal_cases
+  case (1 n F)
+  have "eventually (\<lambda>k. (if n \<le> k then 0 else fps_nth F k) = 0) at_top"
+    using eventually_ge_at_top[of n] by eventually_elim auto
+  thus ?case
+    by (simp add: cofinite_eq_sequentially)
+qed
+
+lemma coeff_truncate_fps' [simp]:
+  "k \<ge> n \<Longrightarrow> coeff (truncate_fps n F) k = 0"
+  "k < n \<Longrightarrow> coeff (truncate_fps n F) k = fps_nth F k"
+  by (transfer; simp; fail)+
+
+lemma coeff_truncate_fps: "coeff (truncate_fps n F) k = (if k < n then fps_nth F k else 0)"
+  by auto
+
+lemma truncate_0_fps [simp]: "truncate_fps 0 F = 0"
+  by (rule poly_eqI) auto
+
+lemma degree_truncate_fps: "n > 0 \<Longrightarrow> degree (truncate_fps n F) < n"
+  by (rule degree_lessI) auto
+
+lemma truncate_fps_0 [simp]: "truncate_fps n 0 = 0"
+  by (rule poly_eqI) (auto simp: coeff_truncate_fps)
+
+lemma truncate_fps_add: "truncate_fps n (f + g) = truncate_fps n f + truncate_fps n g"
+  by (rule poly_eqI) (auto simp: coeff_truncate_fps)
+
+lemma truncate_fps_diff: "truncate_fps n (f - g) = truncate_fps n f - truncate_fps n g"
+  by (rule poly_eqI) (auto simp: coeff_truncate_fps)
+
+lemma truncate_fps_uminus: "truncate_fps n (-f) = -truncate_fps n f"
+  by (rule poly_eqI) (auto simp: coeff_truncate_fps)
+
+lemma fps_of_poly_truncate [simp]: "fps_of_poly (truncate_fps n f) = fps_cutoff n f"
+  by (rule fps_ext) auto
+
 end

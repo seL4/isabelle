@@ -996,25 +996,6 @@ proof
 qed simp_all
 
 
-subsection \<open>Truncation\<close>
-
-text \<open>
-  Truncation of formal power series: all monomials $cx^k$ with $k\geq n$ are removed;
-  the remainder is a polynomial of degree at most $n-1$.
-\<close>
-definition truncate_fps :: "nat \<Rightarrow> 'a fps \<Rightarrow> 'a :: zero fps" where
-  "truncate_fps n F = Abs_fps (\<lambda>k. if k \<ge> n then 0 else fps_nth F k)"
-
-lemma fps_nth_truncate' [simp]:
-  "k \<ge> n \<Longrightarrow> fps_nth (truncate_fps n F) k = 0"
-  "k < n \<Longrightarrow> fps_nth (truncate_fps n F) k = fps_nth F k"
-  by (auto simp: truncate_fps_def)
-
-lemma truncate_fps_eq_truncate_fps_iff:
-  "truncate_fps N F = truncate_fps N G \<longleftrightarrow> (\<forall>n<N. fps_nth F n = fps_nth G n)"
-  by (auto simp: fps_eq_iff truncate_fps_def)
-
-
 subsection \<open>Shifting and slicing\<close>
 
 definition fps_shift :: "nat \<Rightarrow> 'a fps \<Rightarrow> 'a fps" where
@@ -1364,6 +1345,15 @@ lemma fps_cutoff_left_mult_nth:
   "k < n \<Longrightarrow> (fps_cutoff n f * g) $ k = (f * g) $ k"
   by (simp add: fps_mult_nth)
 
+lemma fps_cutoff_add: "fps_cutoff n (f + g :: 'a :: monoid_add fps) = fps_cutoff n f + fps_cutoff n g"
+  by (auto simp: fps_eq_iff)
+
+lemma fps_cutoff_diff: "fps_cutoff n (f - g :: 'a :: group_add fps) = fps_cutoff n f - fps_cutoff n g"
+  by (auto simp: fps_eq_iff)
+
+lemma fps_cutoff_uminus: "fps_cutoff n (-f :: 'a :: group_add fps) = -fps_cutoff n f"
+  by (auto simp: fps_eq_iff)
+
 lemma fps_cutoff_right_mult_nth:
   assumes "k < n"
   shows   "(f * fps_cutoff n g) $ k = (f * g) $ k"
@@ -1371,6 +1361,22 @@ proof-
   from assms have "\<forall>i\<in>{0..k}. fps_cutoff n g $ (k - i) = g $ (k - i)" by auto
   thus ?thesis by (simp add: fps_mult_nth)
 qed
+
+lemma fps_cutoff_eq_fps_cutoff_iff:
+  "fps_cutoff n f = fps_cutoff n g \<longleftrightarrow> (\<forall>k<n. fps_nth f k = fps_nth g k)"
+  by (subst fps_eq_iff) auto
+
+lemma fps_conv_fps_X_power_mult_fps_shift: 
+  assumes "f = 0 \<or> subdegree f \<ge> n"
+  shows   "f = fps_X ^ n * fps_shift n f"
+proof -
+  have "f = fps_X ^ n * fps_shift n f + fps_cutoff n f"
+    by (auto simp: fps_eq_iff fps_X_power_mult_nth)
+  also have "fps_cutoff n f = 0"
+    by (subst fps_cutoff_zero_iff) (use assms in auto)
+  finally show ?thesis by simp
+qed
+
 
 subsection \<open>Metrizability\<close>
 
@@ -1452,10 +1458,10 @@ text \<open>
   also in it.
 \<close>
 lemma open_fps_iff:
-  "open A \<longleftrightarrow> (\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A)"
+  "open A \<longleftrightarrow> (\<forall>F\<in>A. \<exists>n. {G. fps_cutoff n G = fps_cutoff n F} \<subseteq> A)"
 proof
   assume "open A"
-  show "\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+  show "\<forall>F\<in>A. \<exists>n. {G. fps_cutoff n G = fps_cutoff n F} \<subseteq> A"
   proof
     fix F :: "'a fps"
     assume F: "F \<in> A"
@@ -1468,9 +1474,9 @@ proof
       by (simp add: power_divide)
     then obtain n where n: "1 / 2 ^ n < e"
       by (auto simp: eventually_sequentially)
-    show "\<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+    show "\<exists>n. {G. fps_cutoff n G = fps_cutoff n F} \<subseteq> A"
     proof (rule exI[of _ n], safe)
-      fix G assume *: "truncate_fps n G = truncate_fps n F"
+      fix G assume *: "fps_cutoff n G = fps_cutoff n F"
       show "G \<in> A"
       proof (cases "G = F")
         case False
@@ -1479,7 +1485,7 @@ proof
         also have "subdegree (G - F) \<ge> n"
         proof (rule subdegree_geI)
           fix i assume "i < n"
-          hence "fps_nth (G - F) i = fps_nth (truncate_fps n G - truncate_fps n F) i"
+          hence "fps_nth (G - F) i = fps_nth (fps_cutoff n G - fps_cutoff n F) i"
             by (auto simp: fps_eq_iff)
           also from * have "\<dots> = 0"
             by simp
@@ -1495,12 +1501,12 @@ proof
     qed
   qed
 next
-  assume *: "\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+  assume *: "\<forall>F\<in>A. \<exists>n. {G. fps_cutoff n G = fps_cutoff n F} \<subseteq> A"
   show "open A"
     unfolding open_fps_def
   proof safe
     fix F assume F: "F \<in> A"
-    with * obtain n where n: "\<And>G. truncate_fps n G = truncate_fps n F \<Longrightarrow> G \<in> A"
+    with * obtain n where n: "\<And>G. fps_cutoff n G = fps_cutoff n F \<Longrightarrow> G \<in> A"
       by blast
     show "\<exists>r>0. {G. dist G F < r} \<subseteq> A"
     proof (rule exI[of _ "1 / 2 ^ n"], safe)
@@ -1514,8 +1520,8 @@ next
           by (auto simp: field_simps)
         hence "fps_nth (F - G) i = 0" if "i \<le> n" for i
           using that nth_less_subdegree_zero[of i "F - G"] by simp
-        hence "truncate_fps n G = truncate_fps n F"
-          by (auto simp: fps_eq_iff truncate_fps_def)
+        hence "fps_cutoff n G = fps_cutoff n F"
+          by (auto simp: fps_eq_iff fps_cutoff_def)
         thus "G \<in> A"
           by (rule n)
       qed (use \<open>F \<in> A\<close> in auto)
@@ -1523,12 +1529,12 @@ next
   qed
 qed
 
-lemma open_truncate_fps: "open {H. truncate_fps N H = truncate_fps N G}"
+lemma open_fps_cutoff: "open {H. fps_cutoff N H = fps_cutoff N G}"
   unfolding open_fps_iff
 proof safe
-  fix F assume F: "truncate_fps N F = truncate_fps N G"
-  show "\<exists>n. {G. truncate_fps n G = truncate_fps n F}
-             \<subseteq> {H. truncate_fps N H = truncate_fps N G}"
+  fix F assume F: "fps_cutoff N F = fps_cutoff N G"
+  show "\<exists>n. {G. fps_cutoff n G = fps_cutoff n F}
+             \<subseteq> {H. fps_cutoff N H = fps_cutoff N G}"
     by (rule exI[of _ N]) (use F in \<open>auto simp: fps_eq_iff\<close>)
 qed
 
@@ -1548,13 +1554,13 @@ proof safe
   assume lim: "filterlim f (nhds (g :: 'a :: group_add fps)) F"
   show "eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F" for n
   proof -
-    define S where "S = {H. truncate_fps (n+1) H = truncate_fps (n+1) g}"
+    define S where "S = {H. fps_cutoff (n+1) H = fps_cutoff (n+1) g}"
     have S: "open S" "g \<in> S"
-      unfolding S_def using open_truncate_fps[of "n+1" g] by (auto simp: S_def)
+      unfolding S_def using open_fps_cutoff[of "n+1" g] by (auto simp: S_def)
     from lim and S have "eventually (\<lambda>x. f x \<in> S) F"
       using topological_tendstoD by blast
     thus "eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F"
-      by eventually_elim (auto simp: S_def truncate_fps_eq_truncate_fps_iff)
+      by eventually_elim (auto simp: S_def fps_cutoff_eq_fps_cutoff_iff)
   qed
 next
   assume *: "\<forall>n. eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F"
@@ -1562,12 +1568,12 @@ next
   proof (rule topological_tendstoI)
     fix S :: "'a fps set"
     assume S: "open S" "g \<in> S"
-    then obtain N where N: "{H. truncate_fps N H = truncate_fps N g} \<subseteq> S"
+    then obtain N where N: "{H. fps_cutoff N H = fps_cutoff N g} \<subseteq> S"
       unfolding open_fps_iff by blast
     have "eventually (\<lambda>x. \<forall>n\<in>{..<N}. fps_nth (f x) n = fps_nth g n) F"
       by (subst eventually_ball_finite_distrib) (use * in auto)
-    hence "eventually (\<lambda>x. f x \<in> {H. truncate_fps N H = truncate_fps N g}) F"
-      by eventually_elim (auto simp: truncate_fps_eq_truncate_fps_iff)
+    hence "eventually (\<lambda>x. f x \<in> {H. fps_cutoff N H = fps_cutoff N g}) F"
+      by eventually_elim (auto simp: fps_cutoff_eq_fps_cutoff_iff)
     thus "eventually (\<lambda>x. f x \<in> S) F"
       by eventually_elim (use N in auto)
   qed
@@ -3038,6 +3044,105 @@ next
 qed (simp_all add: fps_divide_def Let_def)
 
 end
+
+
+subsection \<open>Computing reciprocals via Hensel lifting\<close>
+
+lemma inverse_fps_hensel_lifting:
+  fixes F G :: "'a :: field fps" and n :: nat
+  assumes G_eq: "fps_cutoff n G = fps_cutoff n (inverse F)"
+  assumes unit: "fps_nth F 0 \<noteq> 0"
+  shows "fps_cutoff (2*n) (inverse F) = fps_cutoff (2*n) (G * (2 - F * G))"
+proof -
+  define R where "R = inverse F - G"
+  have eq: "G = inverse F - R"
+    by (simp add: R_def)
+  from assms have "fps_cutoff n R = 0"
+    by (simp add: R_def fps_cutoff_diff)
+  hence R: "R = 0 \<or> subdegree R \<ge> n"
+    by (simp add: fps_cutoff_zero_iff)
+
+  have "G * (2 - F * G) - inverse F = 
+         inverse F + F * inverse F * R * 2 - F * R\<^sup>2 - R * 2 - F * inverse F * inverse F"
+    by (simp add: eq algebra_simps power2_eq_square)
+  also have "F * inverse F = 1"
+    using unit by (simp add: inverse_mult_eq_1')
+  also have "inverse F + 1 * R * 2 - F * R\<^sup>2 - R * 2 - 1 * inverse F = -F * R\<^sup>2"
+    by (simp add: algebra_simps)
+  finally have "fps_cutoff (2*n) (G * (2 - F * G) - inverse F) = fps_cutoff (2*n) (-F * R\<^sup>2)"
+    by (rule arg_cong)
+  also have "\<dots> = 0"
+  proof (cases "-F * R\<^sup>2 = 0")
+    case False
+    have "2 * n \<le> subdegree (-F * R\<^sup>2)"
+      using False R unit by simp
+    thus ?thesis
+      by (simp add: fps_cutoff_zero_iff)
+  qed auto
+  finally show ?thesis
+    by (simp add: fps_cutoff_diff)
+qed
+
+lemma inverse_fps_hensel_lifting':
+  fixes F G :: "'a :: field fps" and n :: nat
+  assumes G_eq: "fps_cutoff n G = fps_cutoff n (inverse F)"
+  assumes unit: "fps_nth F 0 \<noteq> 0"
+  defines "P \<equiv> fps_shift n (F * G - 1)"
+  shows "fps_cutoff (2*n) (inverse F) = fps_cutoff (2*n) (G * (1 - fps_X ^ n * P))"
+proof -
+  define R where "R = inverse F - G"
+  have eq: "G = inverse F - R"
+    by (simp add: R_def)
+  from assms have "fps_cutoff n R = 0"
+    by (simp add: R_def fps_cutoff_diff)
+  hence R: "R = 0 \<or> subdegree R \<ge> n"
+    by (simp add: fps_cutoff_zero_iff)
+
+  have FG_eq: "F * G = 1 + fps_X ^ n * P"
+  proof (cases "F * G - 1 = 0")
+    case False
+    have eq: "F * G - 1 = F * (G - inverse F)"
+      using unit by (simp add: inverse_mult_eq_1' ring_distribs)
+    have "subdegree (F * (G - inverse F)) \<ge> n"
+    proof -
+      have "fps_cutoff n (G - inverse F) = 0"
+        using G_eq by (simp add: fps_cutoff_diff)
+      hence "n \<le> subdegree (G - inverse F)"
+        using False unfolding eq by (simp add: fps_cutoff_zero_iff)
+      also have "subdegree (G - inverse F) = subdegree (F * (G - inverse F))"
+        by (subst subdegree_mult) (use unit False in \<open>auto simp: eq\<close>)
+      finally have "n \<le> subdegree (F * (G - inverse F))" .
+      thus ?thesis
+        by blast
+    qed
+    hence "F * G - 1 = fps_X ^ n * P"
+      unfolding eq P_def by (intro fps_conv_fps_X_power_mult_fps_shift) auto
+    thus ?thesis
+      by (simp add: algebra_simps)
+  qed (auto simp: P_def)
+
+  have "G * (1 - fps_X ^ n * P) - inverse F = G * (2 - F * G) - inverse F"
+    by (auto simp: FG_eq)
+  also have "G * (2 - F * G) - inverse F = 
+         inverse F + F * inverse F * R * 2 - F * R\<^sup>2 - R * 2 - F * inverse F * inverse F"
+    by (simp add: eq algebra_simps power2_eq_square)
+  also have "F * inverse F = 1"
+    using unit by (simp add: inverse_mult_eq_1')
+  also have "inverse F + 1 * R * 2 - F * R\<^sup>2 - R * 2 - 1 * inverse F = -F * R\<^sup>2"
+    by (simp add: algebra_simps)
+  finally have "fps_cutoff (2*n) (G * (1 - fps_X ^ n * P) - inverse F) = fps_cutoff (2*n) (-F * R\<^sup>2)"
+    by (rule arg_cong)
+  also have "\<dots> = 0"
+  proof (cases "-F * R\<^sup>2 = 0")
+    case False
+    have "2 * n \<le> subdegree (-F * R\<^sup>2)"
+      using False R unit by simp
+    thus ?thesis
+      by (simp add: fps_cutoff_zero_iff)
+  qed auto
+  finally show ?thesis
+    by (simp add: fps_cutoff_diff)
+qed
 
 
 subsection \<open>Euclidean division\<close>
