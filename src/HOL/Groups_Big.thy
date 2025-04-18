@@ -1832,7 +1832,7 @@ proof (induction A rule: finite_induct)
     by (subst (asm) insert.IH [symmetric]) (use insert.hyps in simp)
 qed auto
 
-lemma prod_diff1:
+lemma prod_diff_conv_sum:
   fixes f1 f2 :: "'a \<Rightarrow> 'c :: comm_ring_1"
   assumes finite: "finite A"
   shows   "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Sum>X\<in>Pow A. (-1) ^ card X * (\<Prod>x\<in>X. f2 x) * (\<Prod>x\<in>A-X. f1 x))"
@@ -1846,7 +1846,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma prod_diff2:
+lemma prod_diff_conv_sum':
   fixes f1 f2 :: "'a \<Rightarrow> 'c :: comm_ring_1"
   assumes finite: "finite A"
   shows   "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Sum>X\<in>Pow A. (-1) ^ (card A - card X) * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
