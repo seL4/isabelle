@@ -11,6 +11,7 @@ imports
   Complex_Main
   Euclidean_Algorithm
   Primes
+  "HOL-Library.FuncSet"
 begin
 
 
@@ -748,6 +749,19 @@ proof
   from arg_cong[of _ _ "\<lambda>F. F $ 0", OF this] show False by simp
 qed 
 
+instance fps :: (semiring_char_0) semiring_char_0
+proof
+  show "inj (of_nat :: nat \<Rightarrow> 'a fps)"
+  proof
+    fix m n :: nat
+    assume "of_nat m = (of_nat n :: 'a fps)"
+    hence "fps_nth (of_nat m) 0 = (fps_nth (of_nat n) 0 :: 'a)"
+      by (simp only: )
+    thus "m = n"
+      by simp
+  qed
+qed
+
 lemma subdegree_power_ge:
   "f^n \<noteq> 0 \<Longrightarrow> subdegree (f^n) \<ge> n * subdegree f"
 proof (induct n)
@@ -800,6 +814,12 @@ qed simp
 lemma subdegree_power [simp]:
   "subdegree ((f :: ('a :: semiring_1_no_zero_divisors) fps) ^ n) = n * subdegree f"
   by (cases "f = 0"; induction n) simp_all
+
+lemma subdegree_prod:
+  fixes f :: "'a \<Rightarrow> 'b :: idom fps"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x \<noteq> 0"
+  shows   "subdegree (\<Prod>x\<in>A. f x) = (\<Sum>x\<in>A. subdegree (f x))"
+  using assms by (induction A rule: infinite_finite_induct) auto
 
 
 lemma minus_one_power_iff: "(- (1::'a::ring_1)) ^ n = (if even n then 1 else - 1)"
@@ -974,6 +994,25 @@ proof
   hence "(fps_X :: 'a fps) ^ m $ m = fps_X ^ n $ m" by (simp only:)
   thus "m = n" by (simp split: if_split_asm)
 qed simp_all
+
+
+subsection \<open>Truncation\<close>
+
+text \<open>
+  Truncation of formal power series: all monomials $cx^k$ with $k\geq n$ are removed;
+  the remainder is a polynomial of degree at most $n-1$.
+\<close>
+definition truncate_fps :: "nat \<Rightarrow> 'a fps \<Rightarrow> 'a :: zero fps" where
+  "truncate_fps n F = Abs_fps (\<lambda>k. if k \<ge> n then 0 else fps_nth F k)"
+
+lemma fps_nth_truncate' [simp]:
+  "k \<ge> n \<Longrightarrow> fps_nth (truncate_fps n F) k = 0"
+  "k < n \<Longrightarrow> fps_nth (truncate_fps n F) k = fps_nth F k"
+  by (auto simp: truncate_fps_def)
+
+lemma truncate_fps_eq_truncate_fps_iff:
+  "truncate_fps N F = truncate_fps N G \<longleftrightarrow> (\<forall>n<N. fps_nth F n = fps_nth G n)"
+  by (auto simp: fps_eq_iff truncate_fps_def)
 
 
 subsection \<open>Shifting and slicing\<close>
@@ -1401,6 +1440,144 @@ declare uniformity_Abort[where 'a="'a :: group_add fps", code]
 
 lemma open_fps_def: "open (S :: 'a::group_add fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> {y. dist y a < r} \<subseteq> S)"
   unfolding open_dist subset_eq by simp
+
+
+text \<open>Topology\<close>
+
+subsection \<open>The topology of formal power series\<close>
+
+text \<open>
+  A set of formal power series is open iff for any power series $f$ in it, there exists some
+  number $n$ such that all power series that agree with $f$ on the first $n$ components are
+  also in it.
+\<close>
+lemma open_fps_iff:
+  "open A \<longleftrightarrow> (\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A)"
+proof
+  assume "open A"
+  show "\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+  proof
+    fix F :: "'a fps"
+    assume F: "F \<in> A"
+    with \<open>open A\<close> obtain e where e: "e > 0" "\<And>G. dist G F < e \<Longrightarrow> G \<in> A"
+      by (force simp: open_fps_def)
+    thm dist_fps_def
+    have "filterlim (\<lambda>n. (1/2)^n :: real) (nhds 0) at_top"
+      by (intro LIMSEQ_realpow_zero) auto
+    from order_tendstoD(2)[OF this e(1)] have "eventually (\<lambda>n. 1 / 2 ^ n < e) at_top"
+      by (simp add: power_divide)
+    then obtain n where n: "1 / 2 ^ n < e"
+      by (auto simp: eventually_sequentially)
+    show "\<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+    proof (rule exI[of _ n], safe)
+      fix G assume *: "truncate_fps n G = truncate_fps n F"
+      show "G \<in> A"
+      proof (cases "G = F")
+        case False
+        hence "dist G F = inverse (2 ^ subdegree (G - F))"
+          by (auto simp: dist_fps_def)
+        also have "subdegree (G - F) \<ge> n"
+        proof (rule subdegree_geI)
+          fix i assume "i < n"
+          hence "fps_nth (G - F) i = fps_nth (truncate_fps n G - truncate_fps n F) i"
+            by (auto simp: fps_eq_iff)
+          also from * have "\<dots> = 0"
+            by simp
+          finally show "fps_nth (G - F) i = 0" .
+        qed (use False in auto)
+        hence "inverse (2 ^ subdegree (G - F) :: real) \<le> inverse (2 ^ n)"
+          by (intro le_imp_inverse_le power_increasing) auto
+        also have "\<dots> < e"
+          using n by (simp add: field_simps)
+        finally show "G \<in> A"
+          using e(2)[of G] by auto
+      qed (use \<open>F \<in> A\<close> in auto)
+    qed
+  qed
+next
+  assume *: "\<forall>F\<in>A. \<exists>n. {G. truncate_fps n G = truncate_fps n F} \<subseteq> A"
+  show "open A"
+    unfolding open_fps_def
+  proof safe
+    fix F assume F: "F \<in> A"
+    with * obtain n where n: "\<And>G. truncate_fps n G = truncate_fps n F \<Longrightarrow> G \<in> A"
+      by blast
+    show "\<exists>r>0. {G. dist G F < r} \<subseteq> A"
+    proof (rule exI[of _ "1 / 2 ^ n"], safe)
+      fix G assume dist: "dist G F < 1 / 2 ^ n"
+      show "G \<in> A"
+      proof (cases "G = F")
+        case False
+        hence "dist G F = inverse (2 ^ subdegree (F - G))"
+          by (simp add: dist_fps_def)
+        with dist have "n < subdegree (F - G)"
+          by (auto simp: field_simps)
+        hence "fps_nth (F - G) i = 0" if "i \<le> n" for i
+          using that nth_less_subdegree_zero[of i "F - G"] by simp
+        hence "truncate_fps n G = truncate_fps n F"
+          by (auto simp: fps_eq_iff truncate_fps_def)
+        thus "G \<in> A"
+          by (rule n)
+      qed (use \<open>F \<in> A\<close> in auto)
+    qed auto
+  qed
+qed
+
+lemma open_truncate_fps: "open {H. truncate_fps N H = truncate_fps N G}"
+  unfolding open_fps_iff
+proof safe
+  fix F assume F: "truncate_fps N F = truncate_fps N G"
+  show "\<exists>n. {G. truncate_fps n G = truncate_fps n F}
+             \<subseteq> {H. truncate_fps N H = truncate_fps N G}"
+    by (rule exI[of _ N]) (use F in \<open>auto simp: fps_eq_iff\<close>)
+qed
+
+text \<open>
+  A family of formal power series $f_x$ tends to a limit series $g$ at some filter $F$
+  iff for any $N\geq 0$, the set of $x$ for which $f_x$ and $G$ agree on the first $N$ coefficients
+  is in $F$.
+
+  For a sequence $(f_i)_{n\geq 0}$ this means that $f_i \longrightarrow G$ iff for any 
+  $N\geq 0$, $f_x$ and $G$ agree for all but finitely many $x$.
+\<close>
+
+lemma tendsto_fps_iff:
+  "filterlim f (nhds (g :: 'a :: group_add fps)) F \<longleftrightarrow>
+     (\<forall>n. eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F)"
+proof safe
+  assume lim: "filterlim f (nhds (g :: 'a :: group_add fps)) F"
+  show "eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F" for n
+  proof -
+    define S where "S = {H. truncate_fps (n+1) H = truncate_fps (n+1) g}"
+    have S: "open S" "g \<in> S"
+      unfolding S_def using open_truncate_fps[of "n+1" g] by (auto simp: S_def)
+    from lim and S have "eventually (\<lambda>x. f x \<in> S) F"
+      using topological_tendstoD by blast
+    thus "eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F"
+      by eventually_elim (auto simp: S_def truncate_fps_eq_truncate_fps_iff)
+  qed
+next
+  assume *: "\<forall>n. eventually (\<lambda>x. fps_nth (f x) n = fps_nth g n) F"
+  show "filterlim f (nhds (g :: 'a :: group_add fps)) F"
+  proof (rule topological_tendstoI)
+    fix S :: "'a fps set"
+    assume S: "open S" "g \<in> S"
+    then obtain N where N: "{H. truncate_fps N H = truncate_fps N g} \<subseteq> S"
+      unfolding open_fps_iff by blast
+    have "eventually (\<lambda>x. \<forall>n\<in>{..<N}. fps_nth (f x) n = fps_nth g n) F"
+      by (subst eventually_ball_finite_distrib) (use * in auto)
+    hence "eventually (\<lambda>x. f x \<in> {H. truncate_fps N H = truncate_fps N g}) F"
+      by eventually_elim (auto simp: truncate_fps_eq_truncate_fps_iff)
+    thus "eventually (\<lambda>x. f x \<in> S) F"
+      by eventually_elim (use N in auto)
+  qed
+qed
+
+lemma tendsto_fpsI:
+  assumes "\<And>n. eventually (\<lambda>x. fps_nth (f x) n = fps_nth G n) F"
+  shows   "filterlim f (nhds (G :: 'a :: group_add fps)) F"
+  unfolding tendsto_fps_iff using assms by blast
+
 
 text \<open>The infinite sums and justification of the notation in textbooks.\<close>
 
@@ -3447,6 +3624,333 @@ lemma fps_deriv_power:
   by (simp add: fps_deriv_power' fps_of_nat)
 
 
+subsection \<open>Finite and infinite products\<close>
+
+text \<open>
+  The following operator gives the set of all functions $A \to \mathbb{N}$ with
+  $\sum_{x\in A} f(x) = n$, i.e.\ all the different ways to put $n$ unlabelled balls into
+  the labelled bins $A$.
+\<close>
+definition nat_partitions :: "'a set \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> nat) set" where
+  "nat_partitions A n =
+     {f. finite {x. f x > 0} \<and> {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>{x\<in>A. f x > 0}. f x) = n}"
+
+lemma 
+  assumes "h \<in> nat_partitions A n"
+  shows   nat_partitions_outside: "x \<notin> A \<Longrightarrow> h x = 0"
+    and   nat_partitions_sum: "(\<Sum>x\<in>{x\<in>A. h x > 0}. h x) = n"
+    and   nat_partitions_finite_support: "finite {x. h x > 0}"
+  using assms by (auto simp: nat_partitions_def)
+
+lemma nat_partitions_finite_def:
+  assumes "finite A"
+  shows   "nat_partitions A n = {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
+proof (intro equalityI subsetI)
+  fix f assume f: "f \<in> nat_partitions A n"
+  have "(\<Sum>x\<in>A. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
+    by (rule sum.mono_neutral_right) (use assms in auto)
+  thus "f \<in> {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
+    using f nat_partitions_def by auto
+next
+  fix f assume "f \<in> {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
+  hence f: "{x. f x > 0} \<subseteq> A" "(\<Sum>x\<in>A. f x) = n"
+    by blast+
+  have "(\<Sum>x\<in>A. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
+    by (rule sum.mono_neutral_right) (use assms in auto)
+  moreover have "finite {x. f x > 0}"
+    using f(1) assms by (rule finite_subset)
+  ultimately show "f \<in> nat_partitions A n"
+    using f by (simp add: nat_partitions_def)
+qed
+
+lemma nat_partitions_subset:
+  "nat_partitions A n \<subseteq> A \<rightarrow> {0..n}"
+proof
+  fix f assume f: "f \<in> nat_partitions A n"
+  have "f x \<le> n" if x: "x \<in> A" for x
+  proof (cases "f x = 0")
+    case False
+    have "f x \<le> (\<Sum>x\<in>{x\<in>A. f x \<noteq> 0}. f x)"
+      by (rule member_le_sum) (use x False f in \<open>auto simp: nat_partitions_def\<close>)
+    also have "\<dots> = n"
+      using f by (auto simp: nat_partitions_def)
+    finally show "f x \<le> n" .
+  qed auto
+  thus "f \<in> A \<rightarrow> {0..n}"
+    using f by (auto simp: nat_partitions_def)
+qed
+
+lemma conj_mono_strong: "(P1 \<longrightarrow> Q1) \<Longrightarrow> (P1 \<longrightarrow> P2 \<longrightarrow> Q2) \<Longrightarrow> (P1 \<and> P2) \<longrightarrow> (Q1 \<and> Q2)"
+  by iprover
+
+lemma nat_partitions_mono:
+  assumes "A \<subseteq> B"
+  shows   "nat_partitions A n \<subseteq> nat_partitions B n"
+  unfolding nat_partitions_def
+proof (intro Collect_mono conj_mono_strong impI)
+  fix f :: "'a \<Rightarrow> nat"
+  assume 1: "finite {x. f x > 0}"
+  assume 2: "{x. f x > 0} \<subseteq> A"
+  thus "{x. f x > 0} \<subseteq> B"
+    using assms by blast
+  assume 3: "(\<Sum>x | x \<in> A \<and> f x > 0. f x) = n"
+  have *: "{x\<in>B. f x > 0} = {x\<in>A. f x > 0} \<union> {x\<in>B-A. f x > 0}"
+    using assms by auto
+  have "(\<Sum>x | x \<in> B \<and> f x > 0. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
+    by (intro sum.mono_neutral_right) (use assms 2 in \<open>auto intro: finite_subset[OF _ 1]\<close>)
+  with 3 show "(\<Sum>x | x \<in> B \<and> f x > 0. f x) = n"
+    by simp
+qed
+
+lemma in_nat_partitions_imp_le:
+  assumes "h \<in> nat_partitions A n" "x \<in> A"
+  shows   "h x \<le> n"
+  using nat_partitions_subset[of A n] assms by (auto simp: PiE_def Pi_def)
+
+lemma nat_partitions_0 [simp]: "nat_partitions A 0 = {\<lambda>_. 0}"
+proof (intro equalityI subsetI)
+  fix h :: "'a \<Rightarrow> nat" assume "h \<in> {\<lambda>_. 0}"
+  thus "h \<in> nat_partitions A 0"
+    by (auto simp: nat_partitions_def)
+qed (auto simp: nat_partitions_def fun_eq_iff)
+
+lemma nat_partitions_empty [simp]: "n > 0 \<Longrightarrow> nat_partitions {} n = {}"
+  by (auto simp: nat_partitions_def fun_eq_iff)
+
+lemma nat_partitions_insert:
+  assumes [simp]: "a \<notin> A"
+  shows   "bij_betw (\<lambda>(m,f). f(a := m))
+             (SIGMA m:{0..n}. nat_partitions A (n - m)) (nat_partitions (insert a A) n)"
+proof (rule bij_betwI[of _ _ _ "\<lambda>f. (f a, f(a := 0))"], goal_cases)
+  case 1
+  show ?case
+  proof safe
+    fix m f assume m: "m \<in> {0..n}" and f: "f \<in> nat_partitions A (n - m)"
+    define f' where "f' = f(a := m)"
+    have "(\<Sum>x\<in>{x\<in>insert a A. f' x > 0}. f' x) = (\<Sum>x\<in>insert a {x\<in>A. f x > 0}. f' x)"
+      by (rule sum.mono_neutral_cong_left)
+         (use f in \<open>auto simp: f'_def nat_partitions_def\<close>)
+    also have "\<dots> = m + (\<Sum>x\<in>{x\<in>A. f x > 0}. f' x)"
+      by (subst sum.insert) (use f in \<open>auto simp: nat_partitions_def f'_def\<close>)
+    also have "(\<Sum>x\<in>{x\<in>A. f x > 0}. f' x) = (\<Sum>x\<in>{x\<in>A. f x > 0}. f x)"
+      by (intro sum.cong) (auto simp: f'_def)
+    also have "\<dots> = n - m"
+      using f by (auto simp: nat_partitions_def)
+    finally have "(\<Sum>x\<in>{x\<in>insert a A. f' x > 0}. f' x) = n"
+      using m by simp
+    moreover have "finite {x. f' x > 0}"
+      by (rule finite_subset[of _ "insert a {x\<in>A. f x > 0}"])
+         (use f in \<open>auto simp: nat_partitions_def f'_def\<close>)
+    moreover have "{x. f' x > 0} \<subseteq> insert a A"
+      using f by (auto simp: f'_def nat_partitions_def)
+    ultimately show "f' \<in> nat_partitions (insert a A) n"
+      by (simp add: nat_partitions_def)
+  qed
+next
+  case 2
+  show ?case
+  proof safe
+    fix f assume "f \<in> nat_partitions (insert a A) n"
+    define f' where "f' = f(a := 0)"
+    have  fin: "finite {x. f x > 0}"
+      and subset: "{x. f x > 0} \<subseteq> insert a A"
+      and sum: "(\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x) = n"
+      using \<open>f \<in> _\<close> by (auto simp: nat_partitions_def)
+
+    show le: "f a \<in> {0..n}"
+    proof (cases "f a = 0")
+      case False
+      hence "f a \<le> (\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x)"
+        by (intro member_le_sum) (use fin in auto)
+      with sum show ?thesis
+        by simp
+    qed auto
+
+    have "n = (\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x)"
+      using sum by simp
+    also have "(\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x) = (\<Sum>x\<in>insert a {x\<in>A. f x > 0}. f x)"
+      by (rule sum.mono_neutral_left) (auto intro: finite_subset[OF _ fin])
+    also have "\<dots> = f a + (\<Sum>x\<in>{x\<in>A. f x > 0}. f x)"
+      by (subst sum.insert) (auto intro: finite_subset[OF _ fin])
+    also have "(\<Sum>x\<in>{x\<in>A. f x > 0}. f x) = (\<Sum>x\<in>{x\<in>A. f' x > 0}. f' x)"
+      by (intro sum.cong) (auto simp: f'_def)
+    finally have "(\<Sum>x\<in>{x\<in>A. f' x > 0}. f' x) = n - f a"
+      using le by simp
+
+    moreover have "finite {x. 0 < f' x}"
+      by (rule finite_subset[OF _ fin]) (auto simp: f'_def)
+    moreover have "{x. 0 < f' x} \<subseteq> A"
+      using subset by (auto simp: f'_def)
+    ultimately show "f' \<in> nat_partitions A (n - f a)"
+      by (auto simp: nat_partitions_def)
+  qed
+next
+  case (3 f)
+  thus ?case
+    by (fastforce simp: nat_partitions_def fun_eq_iff)
+qed (auto simp: nat_partitions_def)
+
+lemma finite_nat_partitions [intro]:
+  assumes "finite A"
+  shows   "finite (nat_partitions A n)"
+  using assms
+proof (induction arbitrary: n rule: finite_induct)
+  case empty
+  thus ?case
+    by (cases "n = 0") auto
+next
+  case (insert x A n)
+  have "finite (SIGMA m:{0..n}. nat_partitions A (n - m))"
+    by (auto intro: insert.IH)
+  also have "?this \<longleftrightarrow> finite (nat_partitions (insert x A) n)"
+    by (rule bij_betw_finite, rule nat_partitions_insert) fact
+  finally show ?case .
+qed
+
+lemma fps_prod_nth':
+  assumes "finite A"
+  shows   "fps_nth (\<Prod>x\<in>A. f x) n = (\<Sum>h\<in>nat_partitions A n. \<Prod>x\<in>A. fps_nth (f x) (h x))"
+  using assms
+proof (induction A arbitrary: n rule: finite_induct)
+  case (insert a A n)
+  note [simp] = \<open>a \<notin> A\<close>
+  note [intro, simp] = \<open>finite A\<close>
+  have "(\<Sum>h\<in>nat_partitions (insert a A) n. \<Prod>x\<in>insert a A. fps_nth (f x) (h x)) =
+        (\<Sum>(m,h)\<in>(SIGMA m:{0..n}. nat_partitions A (n-m)). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x))"
+    by (subst sum.reindex_bij_betw[OF nat_partitions_insert, symmetric])
+       (simp_all add: case_prod_unfold)
+  also have "\<dots> = (\<Sum>m=0..n. \<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x))"
+    by (rule sum.Sigma [symmetric]) auto
+  also have "\<dots> = (\<Sum>m=0..n. fps_nth (f a) m * fps_nth (\<Prod>x\<in>A. f x) (n - m))"
+  proof (rule sum.cong)
+    fix m
+    assume m: "m \<in> {0..n}"
+    have "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x)) =
+          fps_nth (f a) m * (\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) ((h(a := m)) x))"
+      by (simp add: sum_distrib_left)
+    also have "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) ((h(a := m)) x)) =
+               (\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) (h x))"
+      by (intro sum.cong prod.cong) auto
+    also have "\<dots> = fps_nth (\<Prod>x\<in>A. f x) (n - m)"
+      by (rule insert.IH [symmetric])
+    finally show "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x)) = 
+                    fps_nth (f a) m * fps_nth (\<Prod>x\<in>A. f x) (n - m)" .
+  qed auto
+  also have "\<dots> = fps_nth (\<Prod>x\<in>insert a A. f x) n"
+    by (simp add: fps_mult_nth)
+  finally show ?case ..
+qed auto
+
+theorem tendsto_prod_fps:
+  fixes f :: "nat \<Rightarrow> 'a :: {idom,  t2_space} fps"
+  assumes [simp]: "\<And>k. f k \<noteq> 0"
+  assumes g: "\<And>n k. k > g n \<Longrightarrow> subdegree (f k - 1) > n"
+  defines "P \<equiv> Abs_fps (\<lambda>n. (\<Sum>h\<in>nat_partitions {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (h i)))"
+  shows   "(\<lambda>n. \<Prod>k\<le>n. f k) \<longlonglongrightarrow> P"
+proof (rule tendsto_fpsI)
+  fix n :: nat
+  show "eventually (\<lambda>N. fps_nth (prod f {..N}) n = fps_nth P n) at_top"
+    using eventually_ge_at_top[of "g n"]
+  proof eventually_elim
+    case (elim N)
+    have "fps_nth (prod f {..N}) n = (\<Sum>h\<in>nat_partitions {..N} n. \<Prod>x\<le>N. fps_nth (f x) (h x))"
+      by (subst fps_prod_nth') auto
+    also have "\<dots> = (\<Sum>h | h \<in> nat_partitions {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
+                      \<Prod>x\<le>N. fps_nth (f x) (h x))"
+      by (intro sum.mono_neutral_right) auto
+
+    also have "{h. h \<in> nat_partitions {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)} =
+               {h. h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)}" (is "?lhs = ?rhs")
+    proof (intro equalityI subsetI)
+      fix h assume "h \<in> ?rhs"
+      thus "h \<in> ?lhs" using elim nat_partitions_mono[of "{..g n}" "{..N}"] by auto
+    next
+      fix h assume "h \<in> ?lhs"
+      hence h: "{x. 0 < h x} \<subseteq> {..N}" "(\<Sum>x\<le>N. h x) = n" "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (h x) \<noteq> 0"
+        by (auto simp: nat_partitions_finite_def)
+      have "{x. 0 < h x} \<subseteq> {..g n}"
+      proof
+        fix x assume *: "x \<in> {x. h x > 0}"
+        show "x \<in> {..g n}"
+        proof (rule ccontr)
+          assume "x \<notin> {..g n}"
+          hence x: "x > g n" "x \<le> N"
+            using h(1) * by auto
+          have "h x \<le> n"
+            using \<open>h \<in> ?lhs\<close> nat_partitions_subset[of "{..N}" n] x by (auto simp: Pi_def)
+          also have "n < subdegree (f x - 1)"
+            by (rule g) (use x in auto)
+          finally have "fps_nth (f x - 1) (h x) = 0"
+            by blast
+          hence "fps_nth (f x) (h x) = 0"
+            using * by simp
+          moreover have "fps_nth (f x) (h x) \<noteq> 0"
+            by (intro h(3)) (use x in auto)
+          ultimately show False by contradiction
+        qed
+      qed
+      moreover from this have "(\<Sum>x\<le>N. h x) = (\<Sum>x\<le>g n. h x)"
+        by (intro sum.mono_neutral_right) (use elim in auto)
+      ultimately show "h \<in> ?rhs" using elim h
+        by (auto simp: nat_partitions_finite_def)
+    qed
+
+    also have "(\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
+                      \<Prod>x\<le>N. fps_nth (f x) (h x)) = 
+               (\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
+                      \<Prod>i\<le>g n. fps_nth (f i) (h i))"
+    proof (intro sum.cong prod.mono_neutral_right ballI)
+      fix h i 
+      assume i: "i \<in> {..N} - {..g n}"
+      assume "h \<in> {h. h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)}"
+      hence h: "h \<in> nat_partitions {..g n} n" "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (h x) \<noteq> 0"
+        by blast+
+      have [simp]: "h i = 0"
+        using i h unfolding nat_partitions_def by auto
+      have "n < subdegree (f i - 1)"
+        by (intro g) (use i in auto)
+      moreover have "h i \<le> n"
+        by auto
+      ultimately have "fps_nth (f i - 1) (h i) = 0"
+        by (intro nth_less_subdegree_zero) auto
+      thus "fps_nth (f i) (h i) = 1"
+        using h(2) i by (auto split: if_splits)
+    qed (use elim in auto)
+
+    also have "(\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
+                   \<Prod>i\<le>g n. fps_nth (f i) (h i)) =
+               (\<Sum>h \<in> nat_partitions {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (h i))"
+    proof (intro sum.mono_neutral_left ballI)
+      fix h assume "h \<in> nat_partitions {..g n} n - {h\<in>nat_partitions {..g n} n. \<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0}"
+      then obtain i where h: "h \<in> nat_partitions {..g n} n" and i: "i \<le> N" "fps_nth (f i) (h i) = 0"
+        by blast
+      have "\<not>(i > g n)"
+      proof
+        assume i': "i > g n"
+        hence "h i = 0"
+          using h by (auto simp: nat_partitions_def)
+        have "subdegree (f i - 1) > n"
+          by (intro g) (use i' in auto)
+        hence "subdegree (f i - 1) > 0"
+          by simp
+        hence "fps_nth (f i - 1) 0 = 0"
+          by blast
+        hence "fps_nth (f i) (h i) = 1"
+          using \<open>h i = 0\<close> by simp
+        thus False using i by simp
+      qed
+      thus " (\<Prod>x\<le>g n. fps_nth (f x) (h x)) = 0"
+        using i by auto
+    qed auto
+
+    also have "\<dots> = fps_nth P n"
+      by (simp add: P_def)
+    finally show "fps_nth (\<Prod>k\<le>N. f k) n = fps_nth P n" .
+  qed
+qed
+
+
+
 subsection \<open>Integration\<close>
 
 definition fps_integral :: "'a::{semiring_1,inverse} fps \<Rightarrow> 'a \<Rightarrow> 'a fps"
@@ -4910,6 +5414,64 @@ lemma fps_compose_sub_distrib: "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b o
 
 lemma fps_X_fps_compose: "fps_X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left)
+
+lemma fps_compose_eq_0_iff:
+  fixes F G :: "'a :: idom fps"
+  assumes "fps_nth G 0 = 0"
+  shows "fps_compose F G = 0 \<longleftrightarrow> F = 0 \<or> (G = 0 \<and> fps_nth F 0 = 0)"
+proof safe
+  assume *: "fps_compose F G = 0" "F \<noteq> 0"
+  have "fps_nth (fps_compose F G) 0 = fps_nth F 0"
+    by simp
+  also have "fps_compose F G = 0"
+    by (simp add: *)
+  finally show "fps_nth F 0 = 0"
+    by simp
+  show "G = 0"
+  proof (rule ccontr)
+    assume "G \<noteq> 0"
+    hence "subdegree G > 0" using assms
+      using subdegree_eq_0_iff by blast
+    define N where "N = subdegree F * subdegree G"
+    have "fps_nth (fps_compose F G) N = (\<Sum>i = 0..N. fps_nth F i * fps_nth (G ^ i) N)"
+      unfolding fps_compose_def by (simp add: N_def)
+    also have "\<dots> = (\<Sum>i\<in>{subdegree F}. fps_nth F i * fps_nth (G ^ i) N)"
+    proof (intro sum.mono_neutral_right ballI)
+      fix i assume i: "i \<in> {0..N} - {subdegree F}"
+      show "fps_nth F i * fps_nth (G ^ i) N = 0"
+      proof (cases i "subdegree F" rule: linorder_cases)
+        assume "i > subdegree F"
+        hence "fps_nth (G ^ i) N = 0"
+          using i \<open>subdegree G > 0\<close> by (intro fps_pow_nth_below_subdegree) (auto simp: N_def)
+        thus ?thesis by simp
+      qed (use i in \<open>auto simp: N_def\<close>)
+    qed (use \<open>subdegree G > 0\<close> in \<open>auto simp: N_def\<close>)
+    also have "\<dots> = fps_nth F (subdegree F) * fps_nth (G ^ subdegree F) N"
+      by simp
+    also have "\<dots> \<noteq> 0"
+      using \<open>G \<noteq> 0\<close> \<open>F \<noteq> 0\<close> by (auto simp: N_def)
+    finally show False using * by auto
+  qed
+qed auto
+
+lemma subdegree_fps_compose [simp]:
+  fixes F G :: "'a :: idom fps"
+  assumes [simp]: "fps_nth G 0 = 0"
+  shows "subdegree (fps_compose F G) = subdegree F * subdegree G"
+proof (cases "G = 0"; cases "F = 0")
+  assume [simp]: "G \<noteq> 0" "F \<noteq> 0"
+  define m where "m = subdegree F"
+  define F' where "F' = fps_shift m F"
+  have F_eq: "F = F' * fps_X ^ m"
+    unfolding F'_def by (simp add: fps_shift_times_fps_X_power m_def)
+  have [simp]: "F' \<noteq> 0"
+    using \<open>F \<noteq> 0\<close> unfolding F_eq by auto
+  have "subdegree (fps_compose F G) = subdegree (fps_compose F' G) + m * subdegree G"
+    by (simp add: F_eq fps_compose_mult_distrib fps_compose_eq_0_iff flip: fps_compose_power)
+  also have "subdegree (fps_compose F' G) = 0"
+    by (intro subdegree_eq_0) (auto simp: F'_def m_def)
+  finally show ?thesis by (simp add: m_def)
+qed auto
 
 lemma fps_inverse_compose:
   assumes b0: "(b$0 :: 'a::field) = 0"

@@ -61,6 +61,9 @@ lemma ball_eball_mono: "ereal r \<le> r' \<Longrightarrow> ball z r \<le> eball 
 lemma open_eball [simp, intro]: "open (eball z r)" 
   by (cases r) auto
 
+lemma connected_eball [intro]: "connected (eball (z :: 'a :: real_normed_vector) r)"
+  by (cases r) auto
+
 
 subsection \<open>Basic properties of convergent power series\<close>
 

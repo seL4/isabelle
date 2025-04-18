@@ -68,6 +68,18 @@ lemma has_contour_integral_unique:
   using has_integral_unique
   by (auto simp: has_contour_integral_def)
 
+lemma has_contour_integral_translate:
+  "(f has_contour_integral I) ((+) z \<circ> g) \<longleftrightarrow> ((\<lambda>x. f (x + z)) has_contour_integral I) g"
+  by (simp add: has_contour_integral_def add_ac)
+
+lemma contour_integrable_translate:
+  "f contour_integrable_on ((+) z \<circ> g) \<longleftrightarrow> (\<lambda>x. f (x + z)) contour_integrable_on g"
+  by (simp add: contour_integrable_on_def has_contour_integral_translate)
+
+lemma contour_integral_translate:
+  "contour_integral ((+) z \<circ> g) f = contour_integral g (\<lambda>x. f (x + z))"
+  by (simp add: contour_integral_def contour_integrable_translate has_contour_integral_translate)
+
 lemma has_contour_integral_integrable: "(f has_contour_integral i) g \<Longrightarrow> f contour_integrable_on g"
   using contour_integrable_on_def by blast
 

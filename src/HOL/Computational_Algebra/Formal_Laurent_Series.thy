@@ -1165,6 +1165,58 @@ lemma fls_const_mult_const[simp]:
   shows "fls_const x * fls_const y = fls_const (x*y)"
   by    (intro fls_eqI) simp
 
+lemma fls_subdegree_add_eq1:
+  assumes "f \<noteq> 0" "fls_subdegree f < fls_subdegree g"
+  shows   "fls_subdegree (f + g) = fls_subdegree f"
+proof (intro antisym)
+  from assms have *: "fls_nth (f + g) (fls_subdegree f) \<noteq> 0"
+    by auto
+  from * show "fls_subdegree (f + g) \<le> fls_subdegree f"
+    by (rule fls_subdegree_leI)
+  from * have "f + g \<noteq> 0"
+    using fls_nonzeroI by blast
+  thus "fls_subdegree f \<le> fls_subdegree (f + g)"
+    using assms(2) fls_plus_subdegree by force
+qed
+
+lemma fls_subdegree_add_eq2:
+  assumes "g \<noteq> 0" "fls_subdegree g < fls_subdegree f"
+  shows   "fls_subdegree (f + g) = fls_subdegree g"
+proof (intro antisym)
+  from assms have *: "fls_nth (f + g) (fls_subdegree g) \<noteq> 0"
+    by auto
+  from * show "fls_subdegree (f + g) \<le> fls_subdegree g"
+    by (rule fls_subdegree_leI)
+  from * have "f + g \<noteq> 0"
+    using fls_nonzeroI by blast
+  thus "fls_subdegree g \<le> fls_subdegree (f + g)"
+    using assms(2) fls_plus_subdegree by force
+qed
+
+lemma fls_subdegree_diff_eq1:
+  assumes "f \<noteq> 0" "fls_subdegree f < fls_subdegree g"
+  shows   "fls_subdegree (f - g) = fls_subdegree f"
+  using fls_subdegree_add_eq1[of f "-g"] assms by simp
+
+lemma fls_subdegree_diff_eq2:
+  assumes "g \<noteq> 0" "fls_subdegree g < fls_subdegree f"
+  shows   "fls_subdegree (f - g) = fls_subdegree g"
+  using fls_subdegree_add_eq2[of "-g" f] assms by simp
+
+lemma nat_minus_fls_subdegree_plus_const_eq:
+  "nat (-fls_subdegree (F + fls_const c)) = nat (-fls_subdegree F)"
+proof (cases "fls_subdegree F < 0")
+  case True
+  hence "fls_subdegree (F + fls_const c) = fls_subdegree F"
+    by (intro fls_subdegree_add_eq1) auto
+  thus ?thesis
+    by simp
+next
+  case False
+  thus ?thesis
+    by (auto simp: fls_subdegree_ge0I)
+qed
+
 lemma fls_mult_subdegree_ge:
   fixes   f g :: "'a::{comm_monoid_add,mult_zero} fls"
   assumes "f*g \<noteq> 0"
@@ -1703,6 +1755,13 @@ instance fls :: ("{comm_ring_prime_char,comm_semiring_1}") comm_ring_prime_char
   by standard
 instance fls :: ("{idom_prime_char,comm_semiring_1}") idom_prime_char
   by standard
+
+
+lemma fls_subdegree_numeral [simp]: "fls_subdegree (numeral n) = 0"
+  by (metis fls_subdegree_of_nat of_nat_numeral)
+
+lemma fls_regpart_numeral [simp]: "fls_regpart (numeral n) = numeral n"
+  by (metis fls_regpart_of_nat of_nat_numeral)
 
 
 subsubsection \<open>Powers\<close>
@@ -2946,6 +3005,20 @@ instance fls :: (field) field
 instance fls :: ("{field_prime_char,comm_semiring_1}") field_prime_char
   by (rule field_prime_charI') auto
 
+instance fls :: (semiring_char_0) semiring_char_0
+proof
+  show "inj (of_nat :: nat \<Rightarrow> 'a fls)"
+    by (metis fls_regpart_of_nat injI of_nat_eq_iff)
+qed
+
+instance fls :: (field_char_0) field_char_0 ..
+
+
+lemma fls_subdegree_power_int [simp]:
+  fixes   F :: "'a :: field fls"
+  shows "fls_subdegree (F powi n) = n * fls_subdegree F"
+  by (auto simp: power_int_def fls_subdegree_pow)
+
 
 subsubsection \<open>Division\<close>
 
@@ -3440,45 +3513,6 @@ lemma fls_compose_fps_diff:
   shows   "fls_compose_fps (F - G) H = fls_compose_fps F H - fls_compose_fps G H"
   using fls_compose_fps_add[of H F "-G"] by simp
 
-lemma fps_compose_eq_0_iff:
-  fixes F G :: "'a :: idom fps"
-  assumes "fps_nth G 0 = 0"
-  shows "fps_compose F G = 0 \<longleftrightarrow> F = 0 \<or> (G = 0 \<and> fps_nth F 0 = 0)"
-proof safe
-  assume *: "fps_compose F G = 0" "F \<noteq> 0"
-  have "fps_nth (fps_compose F G) 0 = fps_nth F 0"
-    by simp
-  also have "fps_compose F G = 0"
-    by (simp add: *)
-  finally show "fps_nth F 0 = 0"
-    by simp
-  show "G = 0"
-  proof (rule ccontr)
-    assume "G \<noteq> 0"
-    hence "subdegree G > 0" using assms
-      using subdegree_eq_0_iff by blast
-    define N where "N = subdegree F * subdegree G"
-    have "fps_nth (fps_compose F G) N = (\<Sum>i = 0..N. fps_nth F i * fps_nth (G ^ i) N)"
-      unfolding fps_compose_def by (simp add: N_def)
-    also have "\<dots> = (\<Sum>i\<in>{subdegree F}. fps_nth F i * fps_nth (G ^ i) N)"
-    proof (intro sum.mono_neutral_right ballI)
-      fix i assume i: "i \<in> {0..N} - {subdegree F}"
-      show "fps_nth F i * fps_nth (G ^ i) N = 0"
-      proof (cases i "subdegree F" rule: linorder_cases)
-        assume "i > subdegree F"
-        hence "fps_nth (G ^ i) N = 0"
-          using i \<open>subdegree G > 0\<close> by (intro fps_pow_nth_below_subdegree) (auto simp: N_def)
-        thus ?thesis by simp
-      qed (use i in \<open>auto simp: N_def\<close>)
-    qed (use \<open>subdegree G > 0\<close> in \<open>auto simp: N_def\<close>)
-    also have "\<dots> = fps_nth F (subdegree F) * fps_nth (G ^ subdegree F) N"
-      by simp
-    also have "\<dots> \<noteq> 0"
-      using \<open>G \<noteq> 0\<close> \<open>F \<noteq> 0\<close> by (auto simp: N_def)
-    finally show False using * by auto
-  qed
-qed auto
-
 lemma fls_compose_fps_eq_0_iff:
   assumes "H \<noteq> 0" "fps_nth H 0 = 0"
   shows   "fls_compose_fps F H = 0 \<longleftrightarrow> F = 0"
@@ -3588,7 +3622,7 @@ lemma fls_nth_compose_power:
   assumes "d > 0"
   shows   "fls_compose_power f d $$ n = (if int d dvd n then f $$ (n div int d) else 0)"
   by (simp add: assms fls_compose_power.rep_eq)
-     
+
 
 lemma fls_compose_power_0_left [simp]: "fls_compose_power 0 d = 0"
   by transfer auto
@@ -3680,6 +3714,20 @@ lemma fls_nth_compose_power' [simp]:
   "d dvd n \<Longrightarrow> d > 0 \<Longrightarrow> fls_compose_power f d $$ int n = f $$ int (n div d)"
   by (transfer; force; fail)+
 
+lemma subdegree_fls_compose_fps [simp]:
+  fixes G :: "'a :: field fps"
+  assumes [simp]: "fps_nth G 0 = 0"
+  shows "fls_subdegree (fls_compose_fps F G) = fls_subdegree F * subdegree G"
+proof (cases "F = 0"; cases "G = 0")
+  assume [simp]: "G \<noteq> 0" "F \<noteq> 0"
+  have nz1: "fls_base_factor_to_fps F \<noteq> 0"
+    using \<open>F \<noteq> 0\<close> fls_base_factor_to_fps_nonzero by blast
+  show ?thesis
+    unfolding fls_compose_fps_def using nz1
+    by (subst fls_subdegree_mult) (simp_all add: fps_compose_eq_0_iff fls_subdegree_fls_to_fps)
+qed (auto simp: fls_compose_fps_0_right)
+
+
 subsection \<open>Formal differentiation and integration\<close>
 
 subsubsection \<open>Derivative\<close>
@@ -3746,6 +3794,9 @@ lemma fls_subdegree_deriv:
   assumes "fls_subdegree f \<noteq> 0"
   shows   "fls_subdegree (fls_deriv f) = fls_subdegree f - 1"
   by      (auto intro: fls_subdegree_deriv' simp: assms)
+
+lemma fps_deriv_fls_regpart: "fps_deriv (fls_regpart F) = fls_regpart (fls_deriv F)"
+  by (intro fps_ext) (auto simp: add_ac)
 
 text \<open>
   Shifting is like multiplying by a power of the implied variable, and so satisfies a product-like

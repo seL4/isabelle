@@ -1792,4 +1792,74 @@ next
   finally show ?case .
 qed
 
+lemma prod_add:
+  fixes f1 f2 :: "'a \<Rightarrow> 'c :: comm_semiring_1"
+  assumes finite: "finite A"
+  shows   "(\<Prod>x\<in>A. f1 x + f2 x) = (\<Sum>X\<in>Pow A. (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+  using assms
+proof (induction A rule: finite_induct)
+  case (insert x A)
+  have "(\<Sum>X\<in>Pow (insert x A). (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x)) =
+        (\<Sum>X\<in>Pow A. (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x)) +
+        (\<Sum>X\<in>insert x ` (Pow A). (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x))"
+    unfolding Pow_insert by (rule sum.union_disjoint) (use insert.hyps in auto)
+  also have "(\<Sum>X\<in>Pow A. (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x)) =
+             (\<Sum>X\<in>Pow A. f2 x * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+  proof (rule sum.cong)
+    fix X assume X: "X \<in> Pow A"
+    have "(\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x (A-X). f2 x) = f2 x * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x)"
+      by (subst prod.insert) (use insert.hyps finite_subset[of X A] X in \<open>auto simp: mult_ac\<close>)
+    also have "insert x (A - X) = insert x A - X"
+      using insert.hyps X by auto
+    finally show "(\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x) = f2 x * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x)" .
+  qed auto
+  also have "(\<Sum>X\<in>insert x ` (Pow A). (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>insert x A-X. f2 x)) = 
+             (\<Sum>X\<in>Pow A. (\<Prod>x\<in>insert x X. f1 x) * (\<Prod>x\<in>insert x A-insert x X. f2 x))"
+    by (subst sum.reindex) (use insert.hyps in \<open>auto intro!: inj_onI simp: o_def\<close>)
+  also have "(\<Sum>X\<in>Pow A. (\<Prod>x\<in>insert x X. f1 x) * (\<Prod>x\<in>insert x A-insert x X. f2 x)) =
+             (\<Sum>X\<in>Pow A. f1 x * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+  proof (rule sum.cong)
+    fix X assume X: "X \<in> Pow A"
+    show "(\<Prod>x\<in>insert x X. f1 x) * (\<Prod>x\<in>insert x A-insert x X. f2 x) = 
+          f1 x * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x)"
+      by (subst prod.insert) (use insert.hyps finite_subset[of X A] X in auto)
+  qed auto
+  also have "(\<Sum>X\<in>Pow A. f2 x * prod f1 X * prod f2 (A - X)) + 
+             (\<Sum>X\<in>Pow A. f1 x * prod f1 X * prod f2 (A - X)) =
+             (f1 x + f2 x) * (\<Sum>X\<in>Pow A. prod f1 X * prod f2 (A - X))"
+    by (simp add: algebra_simps flip: sum_distrib_left sum_distrib_right)
+  finally show ?case
+    by (subst (asm) insert.IH [symmetric]) (use insert.hyps in simp)
+qed auto
+
+lemma prod_diff1:
+  fixes f1 f2 :: "'a \<Rightarrow> 'c :: comm_ring_1"
+  assumes finite: "finite A"
+  shows   "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Sum>X\<in>Pow A. (-1) ^ card X * (\<Prod>x\<in>X. f2 x) * (\<Prod>x\<in>A-X. f1 x))"
+proof -
+  have "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Prod>x\<in>A. -f2 x + f1 x)"
+    by simp
+  also have "\<dots> = (\<Sum>X\<in>Pow A. (\<Prod>x\<in>X. - f2 x) * prod f1 (A - X))"
+    by (rule prod_add) fact+
+  also have "\<dots> = (\<Sum>X\<in>Pow A. (-1) ^ card X * (\<Prod>x\<in>X. f2 x) * prod f1 (A - X))"
+    by (simp add: prod_uminus)
+  finally show ?thesis .
+qed
+
+lemma prod_diff2:
+  fixes f1 f2 :: "'a \<Rightarrow> 'c :: comm_ring_1"
+  assumes finite: "finite A"
+  shows   "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Sum>X\<in>Pow A. (-1) ^ (card A - card X) * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+proof -
+  have "(\<Prod>x\<in>A. f1 x - f2 x) = (\<Prod>x\<in>A. f1 x + (-f2 x))"
+    by simp
+  also have "\<dots> = (\<Sum>X\<in>Pow A. (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. -f2 x))"
+    by (rule prod_add) fact+
+  also have "\<dots> = (\<Sum>X\<in>Pow A. (-1) ^ card (A - X) * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+    by (simp add: prod_uminus mult_ac)
+  also have "\<dots> = (\<Sum>X\<in>Pow A. (-1) ^ (card A - card X) * (\<Prod>x\<in>X. f1 x) * (\<Prod>x\<in>A-X. f2 x))"
+    using finite_subset[OF _ assms] by (intro sum.cong refl, subst card_Diff_subset) auto
+  finally show ?thesis .
+qed
+
 end

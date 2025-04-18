@@ -810,4 +810,37 @@ proof -
     by blast
 qed
 
+subsection \<open>Products of sums\<close>
+
+lemma prod_sum_PiE:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c :: comm_semiring_1"
+  assumes finite: "finite A" and finite: "\<And>x. x \<in> A \<Longrightarrow> finite (B x)"
+  shows   "(\<Prod>x\<in>A. \<Sum>y\<in>B x. f x y) = (\<Sum>g\<in>PiE A B. \<Prod>x\<in>A. f x (g x))"
+  using assms
+proof (induction A rule: finite_induct)
+  case empty
+  thus ?case by auto
+next
+  case (insert x A)
+  have "(\<Sum>g\<in>Pi\<^sub>E (insert x A) B. \<Prod>x\<in>insert x A. f x (g x)) =
+          (\<Sum>g\<in>Pi\<^sub>E (insert x A) B. f x (g x) * (\<Prod>x'\<in>A. f x' (g x')))"
+    using insert by simp
+  also have "(\<lambda>g. \<Prod>x'\<in>A. f x' (g x')) = (\<lambda>g. \<Prod>x'\<in>A. f x' (if x' = x then undefined else g x'))"
+    using insert by (intro ext prod.cong) auto
+  also have "(\<Sum>g\<in>Pi\<^sub>E (insert x A) B. f x (g x) * \<dots> g) =
+               (\<Sum>(y,g)\<in>B x \<times> Pi\<^sub>E A B. f x y * (\<Prod>x'\<in>A. f x' (g x')))"
+    using insert.prems insert.hyps
+    by (intro sum.reindex_bij_witness[of _ "\<lambda>(y,g). g(x := y)" "\<lambda>g. (g x, g(x := undefined))"])
+       (auto simp: PiE_def extensional_def)
+  also have "\<dots> = (\<Sum>y\<in>B x. \<Sum>g\<in>Pi\<^sub>E A B. f x y * (\<Prod>x'\<in>A. f x' (g x')))"
+    by (subst sum.cartesian_product) auto
+  also have "\<dots> = (\<Sum>y\<in>B x. f x y) * (\<Sum>g\<in>Pi\<^sub>E A B. \<Prod>x'\<in>A. f x' (g x'))"
+    using insert by (subst sum.swap) (simp add: sum_distrib_left sum_distrib_right)
+  also have "(\<Sum>g\<in>Pi\<^sub>E A B. \<Prod>x'\<in>A. f x' (g x')) = (\<Prod>x\<in>A. \<Sum>y\<in>B x. f x y)"
+    using insert.prems by (intro insert.IH [symmetric]) auto
+  also have "(\<Sum>y\<in>B x. f x y) * \<dots> = (\<Prod>x\<in>insert x A. \<Sum>y\<in>B x. f x y)"
+    using insert.hyps by simp
+  finally show ?case ..
+qed
+
 end

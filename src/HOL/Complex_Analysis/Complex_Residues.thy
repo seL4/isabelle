@@ -52,6 +52,26 @@ proof -
   with assms show ?thesis by simp
 qed
 
+lemma residue_shift_0: "residue f z = residue (\<lambda>x. f (z + x)) 0"
+proof -
+  define Q where
+    "Q = (\<lambda>r f z \<epsilon>. (f has_contour_integral complex_of_real (2 * pi) * \<i> * r) (circlepath z \<epsilon>))"
+  define P where
+    "P = (\<lambda>r f z. \<exists>e>0. \<forall>\<epsilon>>0. \<epsilon> < e \<longrightarrow> Q r f z \<epsilon>)"
+  have path_eq: "circlepath (z - w) \<epsilon> = (+) (-w) \<circ> circlepath z \<epsilon>" for z w \<epsilon>
+    by (simp add: circlepath_def o_def part_circlepath_def algebra_simps)
+  have *: "P r f z" if "P r (\<lambda>x. f (x + w)) (z - w)" for r w f z
+    using that by (auto simp: P_def Q_def path_eq has_contour_integral_translate)
+  have "(SOME r. P r f z) = (SOME r. P r (\<lambda>x. f (z + x)) 0)"
+    using *[of _ f z z] *[of _ "\<lambda>x. f (z + x)" "-z"]
+    by (intro arg_cong[where f = Eps] ext iffI) (simp_all add: add_ac)
+  thus ?thesis
+    by (simp add: residue_def P_def Q_def)
+qed
+
+lemma residue_shift_0': "NO_MATCH 0 z \<Longrightarrow> residue f z = residue (\<lambda>x. f (z + x)) 0"
+  by (rule residue_shift_0)
+
 lemma contour_integral_circlepath_eq:
   assumes "open s" and f_holo:"f holomorphic_on (s-{z})" and "0<e1" "e1\<le>e2"
     and e2_cball:"cball z e2 \<subseteq> s"

@@ -27,6 +27,7 @@ theory Infinite_Sum
     Elementary_Topology
     "HOL-Library.Extended_Nonnegative_Real"
     "HOL-Library.Complex_Order"
+    "HOL-Computational_Algebra.Formal_Power_Series"
 begin
 
 subsection \<open>Definition and syntax\<close>
@@ -3577,6 +3578,80 @@ lemma has_sum_uminusI:
   fixes f :: "'a \<Rightarrow> 'b :: {topological_semigroup_mult, ring_1}"
   shows "(f has_sum S) A \<Longrightarrow> ((\<lambda>x. -f x) has_sum (-S)) A"
   using has_sum_cmult_right[of f A S "-1"] by simp
+
+
+subsection \<open>Infinite sums of formal power series\<close>
+
+text \<open>
+  Consequently, a family $(f_x)_{x\in A}$ of formal power series sums to a series $s$ iff for
+  any $n\geq 0$, the set $A_n = \{x\in A \mid [X^n]\,f_x \neq 0\}$ is finite and
+  $[X^n]\,s = \sum_{x\in A_n} [X^n]\,f_x$.
+
+  The first condition can be rephrased as follows: for any $n\geq 0$, for all but finitely many
+  $x$, the series $f_x$ has subdegree ${>}\,n$.
+\<close>
+lemma has_sum_fpsI:
+  assumes "\<And>n. finite {x\<in>A. fps_nth (F x) n \<noteq> 0}"
+  assumes "\<And>n. fps_nth S n = (\<Sum>x | x \<in> A \<and> fps_nth (F x) n \<noteq> 0. fps_nth (F x) n)"
+  shows   "(F has_sum S) A"
+  unfolding has_sum_def
+proof (rule tendsto_fpsI)
+  fix n :: nat
+  define B where "B = {x\<in>A. fps_nth (F x) n \<noteq> 0}"
+  from assms(1) have [intro]: "finite B"
+    unfolding B_def by auto
+  moreover have "B \<subseteq> A"
+    by (auto simp: B_def)
+  ultimately have "eventually (\<lambda>X. finite X \<and> B \<subseteq> X \<and> X \<subseteq> A) (finite_subsets_at_top A)"
+    by (subst eventually_finite_subsets_at_top) blast
+  thus "eventually (\<lambda>X. fps_nth (\<Sum>x\<in>X. F x) n = fps_nth S n) (finite_subsets_at_top A)"
+  proof eventually_elim
+    case (elim X)
+    have "fps_nth (\<Sum>x\<in>X. F x) n = (\<Sum>x\<in>X. fps_nth (F x) n)"
+      by (simp add: fps_sum_nth)
+    also have "\<dots> = (\<Sum>x\<in>B. fps_nth (F x) n)"
+      by (rule sum.mono_neutral_right)  (use \<open>finite B\<close> \<open>B \<subseteq> A\<close> elim in \<open>auto simp: B_def\<close>)
+    also have "\<dots> = fps_nth S n"
+      using assms(2)[of n] by (simp add: B_def)
+    finally show "fps_nth (\<Sum>x\<in>X. F x) n = fps_nth S n" .
+  qed
+qed
+
+lemma has_sum_fpsD:
+  fixes F :: "'a \<Rightarrow> 'b :: ab_group_add fps"
+  assumes "(F has_sum S) A"
+  shows   "finite {x\<in>A. fps_nth (F x) n \<noteq> 0}"
+          "fps_nth S n = (\<Sum>x | x \<in> A \<and> fps_nth (F x) n \<noteq> 0. fps_nth (F x) n)"
+proof -
+  from assms have "\<forall>\<^sub>F X in finite_subsets_at_top A. fps_nth (sum F X) k = fps_nth S k" for k
+    unfolding has_sum_def tendsto_fps_iff by blast
+  hence "\<forall>\<^sub>F X in finite_subsets_at_top A. fps_nth (sum F X) n = fps_nth S n"
+    by eventually_elim force
+  then obtain B where [intro, simp]: "finite B" and B: "B \<subseteq> A"
+     "\<And>X. finite X \<Longrightarrow> B \<subseteq> X \<Longrightarrow> X \<subseteq> A \<Longrightarrow> fps_nth (sum F X) n = fps_nth S n"
+    unfolding eventually_finite_subsets_at_top by metis
+
+  have subset: "{x\<in>A. fps_nth (F x) n \<noteq> 0} \<subseteq> B"
+  proof safe
+    fix x assume x: "x \<in> A" "fps_nth (F x) n \<noteq> 0"
+    have "fps_nth (sum F B) n = fps_nth S n"
+      by (rule B(2)) (use B(1) in auto)
+    moreover have "fps_nth (sum F (insert x B)) n = fps_nth S n"
+      by (rule B(2)) (use B(1) x in auto)
+    ultimately show "x \<in> B"
+      using x by (auto simp: sum.insert_if split: if_splits)
+  qed
+  thus finite: "finite {x\<in>A. fps_nth (F x) n \<noteq> 0}"
+    by (rule finite_subset) auto
+
+  have "fps_nth S n = fps_nth (\<Sum>x\<in>B. F x) n"
+    by (rule sym, rule B(2)) (use B(1) in auto)
+  also have "\<dots> = (\<Sum>x\<in>B. fps_nth (F x) n)"
+    by (simp add: fps_sum_nth)
+  also have "\<dots> = (\<Sum>x | x \<in> A \<and> fps_nth (F x) n \<noteq> 0. fps_nth (F x) n)"
+    by (rule sum.mono_neutral_right) (use subset B(1) in auto)
+  finally show "fps_nth S n = (\<Sum>x | x \<in> A \<and> fps_nth (F x) n \<noteq> 0. fps_nth (F x) n)" .
+qed
 
 end
 

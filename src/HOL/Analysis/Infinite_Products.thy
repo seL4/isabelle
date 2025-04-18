@@ -846,11 +846,16 @@ proof -
       by (metis convergent_mult_const_iff \<open>C \<noteq> 0\<close> cong cf convergent_LIMSEQ_iff convergent_prod_iff_convergent convergent_prod_imp_convergent g)
   next
     assume cg: "convergent_prod g"
-    have "\<exists>a. C * a \<noteq> 0 \<and> (\<lambda>n. prod g {..n}) \<longlonglongrightarrow> a"
-      by (metis (no_types) \<open>C \<noteq> 0\<close> cg convergent_prod_iff_nz_lim divide_eq_0_iff g nonzero_mult_div_cancel_right)
+    have **: "eventually (\<lambda>n. prod g {..n} = prod f {..n} / C) sequentially"
+      using * by eventually_elim (use \<open>C \<noteq> 0\<close> in auto)
+    from cg and g have "\<not> (\<lambda>n. prod g {..n}) \<longlonglongrightarrow> 0"
+      by simp
+    then have "\<not> (\<lambda>n. prod f {..n}) \<longlonglongrightarrow> 0"
+      using ** \<open>C \<noteq> 0\<close> filterlim_cong by fastforce
     then show "convergent_prod f"
-      using "*" tendsto_mult_left filterlim_cong
-      by (fastforce simp add: convergent_prod_iff_nz_lim f)
+      by (metis \<open>C \<noteq> 0\<close> cg convergent_LIMSEQ_iff
+          convergent_mult_const_iff convergent_prod_iff_convergent
+          convergent_prod_imp_convergent f local.cong)
   qed
 qed
 
@@ -953,8 +958,14 @@ lemma convergent_prod_If_finite_set[simp, intro]:
 
 lemma convergent_prod_If_finite[simp, intro]:
   fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"
-  shows "finite {r. P r} \<Longrightarrow> convergent_prod (\<lambda>r. if P r then f r else 1)"
-  using convergent_prod_def has_prod_If_finite has_prod_def by fastforce
+  assumes "finite {r. P r}"
+  shows   "convergent_prod (\<lambda>r. if P r then f r else 1)"
+proof -
+  have "(\<lambda>r. if P r then f r else 1) has_prod (\<Prod>r | P r. f r)"
+    by (rule has_prod_If_finite) fact
+  thus ?thesis
+    by (meson convergent_prod_def has_prod_def)
+qed
 
 lemma has_prod_single:
   fixes f :: "nat \<Rightarrow> 'a::{idom,t2_space}"

@@ -1742,7 +1742,7 @@ proof -
         using islimpt_approachable_real[of x S] not_bot
         by (auto simp add: trivial_limit_within)
       then show ?thesis
-        using eq_iff_diff_eq_0 by fastforce
+        using eq_iff_diff_eq_0 by (metis add.commute diff_add_cancel)
     qed
   qed (use f' f'' in \<open>auto simp: has_vector_derivative_def\<close>)
   then show ?thesis
@@ -1776,6 +1776,17 @@ lemma vector_derivative_within:
   using y
   by (intro vector_derivative_unique_within[OF not_bot vector_derivative_works[THEN iffD1] y])
      (auto simp: differentiable_def has_vector_derivative_def)
+
+lemma vector_derivative_translate [simp]:
+  "vector_derivative ((+) z \<circ> g) (at x within A) = vector_derivative g (at x within A)"
+proof -
+  have "(((+) z \<circ> g) has_vector_derivative g') (at x within A)"
+    if "(g has_vector_derivative g') (at x within A)" for g :: "real \<Rightarrow> 'a" and z g'
+    unfolding o_def using that by (auto intro!: derivative_eq_intros)
+  from this[of g _ z] this[of "\<lambda>x. z + g x" _ "-z"] show ?thesis
+    unfolding vector_derivative_def
+    by (intro arg_cong[where f = Eps] ext) (auto simp: o_def algebra_simps)
+qed
 
 lemma deriv_of_real [simp]: 
   "at x within A \<noteq> bot \<Longrightarrow> vector_derivative of_real (at x within A) = 1"
@@ -2255,6 +2266,43 @@ subsection \<open>Field derivative\<close>
 
 definition\<^marker>\<open>tag important\<close> deriv :: "('a \<Rightarrow> 'a::real_normed_field) \<Rightarrow> 'a \<Rightarrow> 'a" where
   "deriv f x \<equiv> SOME D. DERIV f x :> D"
+
+lemma deriv_shift_0: "deriv f z = deriv (f \<circ> (\<lambda>x. z + x)) 0"
+proof -
+  have *: "(f \<circ> (+) z has_field_derivative D) (at z')"
+    if "(f has_field_derivative D) (at (z + z'))" for D z z' and f :: "'a \<Rightarrow> 'a"
+  proof -
+    have "(f \<circ> (+) z has_field_derivative D * 1) (at z')"
+      by (rule DERIV_chain that derivative_eq_intros refl)+ auto
+    thus ?thesis by simp
+  qed
+  have "(\<lambda>D. (f has_field_derivative D) (at z)) = (\<lambda> D. (f \<circ> (+) z has_field_derivative D) (at 0))"
+    using *[of f _ z 0] *[of "f \<circ> (+) z" _ "-z" z] by (intro ext iffI) (auto simp: o_def)
+  thus ?thesis
+    by (simp add: deriv_def)
+qed
+
+lemma deriv_shift_0': "NO_MATCH 0 z \<Longrightarrow> deriv f z = deriv (f \<circ> (\<lambda>x. z + x)) 0"
+  by (rule deriv_shift_0)
+
+lemma higher_deriv_shift_0: "(deriv ^^ n) f z = (deriv ^^ n) (f \<circ> (\<lambda>x. z + x)) 0"
+proof (induction n arbitrary: f)
+  case (Suc n)
+  have "(deriv ^^ Suc n) f z = (deriv ^^ n) (deriv f) z"
+    by (subst funpow_Suc_right) auto
+  also have "\<dots> = (deriv ^^ n) (\<lambda>x. deriv f (z + x)) 0"
+    by (subst Suc) (auto simp: o_def)
+  also have "\<dots> = (deriv ^^ n) (\<lambda>x. deriv (\<lambda>xa. f (z + x + xa)) 0) 0"
+    by (subst deriv_shift_0) (auto simp: o_def)
+  also have "(\<lambda>x. deriv (\<lambda>xa. f (z + x + xa)) 0) = deriv (\<lambda>x. f (z + x))"
+    by (rule ext) (simp add: deriv_shift_0' o_def add_ac)
+  also have "(deriv ^^ n) \<dots> 0 = (deriv ^^ Suc n) (f \<circ> (\<lambda>x. z + x)) 0"
+    by (subst funpow_Suc_right) (auto simp: o_def)
+  finally show ?case .
+qed auto
+
+lemma higher_deriv_shift_0': "NO_MATCH 0 z \<Longrightarrow> (deriv ^^ n) f z = (deriv ^^ n) (f \<circ> (\<lambda>x. z + x)) 0"
+  by (rule higher_deriv_shift_0)
 
 lemma DERIV_imp_deriv: "DERIV f x :> f' \<Longrightarrow> deriv f x = f'"
   unfolding deriv_def by (metis some_equality DERIV_unique)
