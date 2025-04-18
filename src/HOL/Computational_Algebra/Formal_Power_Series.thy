@@ -1538,6 +1538,18 @@ proof safe
     by (rule exI[of _ N]) (use F in \<open>auto simp: fps_eq_iff\<close>)
 qed
 
+lemma eventually_fps_nth_eq_nhds_fps_strong:
+  "eventually (\<lambda>g. \<forall>k\<le>n. fps_nth g k = fps_nth f k) (nhds f)"
+proof -
+  have "eventually (\<lambda>g. g \<in> {g. fps_cutoff (n+1) g = fps_cutoff (n+1) f}) (nhds f)"
+    by (rule eventually_nhds_in_open, rule open_fps_cutoff) auto
+  thus ?thesis
+    by eventually_elim (auto simp: fps_cutoff_eq_fps_cutoff_iff)
+qed
+
+lemma eventually_fps_nth_eq_nhds_fps: "eventually (\<lambda>g. fps_nth g k = fps_nth f k) (nhds f)"
+  using eventually_fps_nth_eq_nhds_fps_strong[of k] by eventually_elim auto
+
 text \<open>
   A family of formal power series $f_x$ tends to a limit series $g$ at some filter $F$
   iff for any $N\geq 0$, the set of $x$ for which $f_x$ and $G$ agree on the first $N$ coefficients
@@ -2213,6 +2225,9 @@ lemma fps_inverse_mult_divring:
 lemma fps_inverse_mult: "inverse (f * g :: 'a::field fps) = inverse f * inverse g"
   by (simp add: fps_inverse_mult_divring)
 
+lemma inverse_prod_fps: "inverse (prod f A) = (\<Prod>x\<in>A. inverse (f x) :: 'a :: field fps)"
+  by (induction A rule: infinite_finite_induct) (auto simp: fps_inverse_mult)
+
 lemma fps_lr_inverse_gp_ring1:
   fixes   ones ones_inv :: "'a :: ring_1 fps"
   defines "ones \<equiv> Abs_fps (\<lambda>n. 1)"
@@ -2434,6 +2449,92 @@ lemma subdegree_inverse [simp]:
   shows "subdegree (inverse f) = 0"
   using subdegree_lr_inverse(2)
   by    (simp add: fps_inverse_def)
+
+lemma fps_right_inverse_constructor_rec:
+  "n > 0 \<Longrightarrow> fps_right_inverse_constructor f a n =
+               -a * sum (\<lambda>i. fps_nth f i * fps_right_inverse_constructor f a (n - i)) {1..n}"
+  by (cases n) auto
+
+lemma fps_right_inverse_constructor_cong:
+  assumes "\<And>k. k \<le> n \<Longrightarrow> fps_nth f k = fps_nth g k"
+  shows   "fps_right_inverse_constructor f c n = fps_right_inverse_constructor g c n"
+  using assms
+proof (induction n rule: less_induct)
+  case (less n)
+  show ?case
+  proof (cases "n > 0")
+    case n: True
+    have "fps_right_inverse_constructor f c n = 
+            -c * sum (\<lambda>i. fps_nth f i * fps_right_inverse_constructor f c (n - i)) {1..n}"
+      by (subst fps_right_inverse_constructor_rec) (use n in auto)
+    also have "sum (\<lambda>i. fps_nth f i * fps_right_inverse_constructor f c (n - i)) {1..n} =
+               sum (\<lambda>i. fps_nth g i * fps_right_inverse_constructor g c (n - i)) {1..n}"
+      by (intro sum.cong refl arg_cong2[of _ _ _ _ "(*)"] less) (use assms in auto)
+    also have "-c * \<dots> = fps_right_inverse_constructor g c n"
+      by (subst (2) fps_right_inverse_constructor_rec) (use n in auto)
+    finally show ?thesis .
+  qed auto
+qed
+
+lemma fps_cutoff_inverse:
+  fixes f :: "'a :: field fps"
+  assumes "fps_nth f 0 \<noteq> 0"
+  shows   "fps_cutoff n (inverse (fps_cutoff n f)) = fps_cutoff n (inverse f)"
+proof (cases "n = 0")
+  case True
+  show ?thesis
+    by (simp add: True)
+next
+  case False
+  show ?thesis
+  proof (subst fps_cutoff_eq_fps_cutoff_iff, safe)
+    fix k assume "k < n"
+    have "fps_nth (inverse (fps_cutoff n f)) k =
+            fps_right_inverse_constructor (fps_cutoff n f) (inverse (fps_nth f 0)) k"
+      using False by (simp add: fps_inverse_def)
+    also have "\<dots> = fps_right_inverse_constructor f (inverse (fps_nth f 0)) k"
+      by (rule fps_right_inverse_constructor_cong) (use \<open>k < n\<close> in auto)
+    also have "\<dots> = fps_nth (inverse f) k"
+      using False by (simp add: fps_inverse_def)
+    finally show "fps_nth (inverse (fps_cutoff n f)) k = fps_nth (inverse f) k" .
+  qed
+qed
+
+lemma tendsto_inverse_fps_aux:
+  fixes f :: "'a :: field fps"
+  assumes "fps_nth f 0 \<noteq> 0"
+  shows   "((\<lambda>f. inverse f) \<longlongrightarrow> inverse f) (at f)"
+  unfolding tendsto_fps_iff
+proof
+  fix n :: nat
+  have "eventually (\<lambda>g. \<forall>k\<le>n. fps_nth g k = fps_nth f k) (nhds f)"
+    by (rule eventually_fps_nth_eq_nhds_fps_strong)
+  hence "eventually (\<lambda>g. \<forall>k\<le>n. fps_nth g k = fps_nth f k) (at f)"
+    using eventually_nhds_conv_at by blast
+  thus "eventually (\<lambda>g. fps_nth (inverse g) n = fps_nth (inverse f) n) (at f)"
+  proof eventually_elim
+    case (elim g)
+    from elim have "fps_nth g 0 = fps_nth f 0"
+      by auto
+    with assms have [simp]: "fps_nth g 0 \<noteq> 0"
+      by simp
+    have "fps_cutoff (n+1) (inverse f) = fps_cutoff (n+1) (inverse (fps_cutoff (n+1) f))"
+      by (rule fps_cutoff_inverse [symmetric]) fact
+    also have "fps_cutoff (n+1) f = fps_cutoff (n+1) g"
+      by (subst fps_cutoff_eq_fps_cutoff_iff) (use elim in auto)
+    also have "fps_cutoff (n+1) (inverse \<dots>) = fps_cutoff (n+1) (inverse g)"
+      by (rule fps_cutoff_inverse) auto
+    finally show ?case
+      by (subst (asm) fps_cutoff_eq_fps_cutoff_iff) auto
+  qed
+qed
+
+lemma tendsto_inverse_fps [tendsto_intros]:
+  fixes g :: "'a :: field fps"
+  assumes "(f \<longlongrightarrow> g) F"
+  assumes "fps_nth g 0 \<noteq> 0"
+  shows   "((\<lambda>x. inverse (f x)) \<longlongrightarrow> inverse g) F"
+  by (rule tendsto_compose[OF tendsto_inverse_fps_aux assms(1)]) fact
 
 lemma fps_div_zero [simp]:
   "0 div (g :: 'a :: {comm_monoid_add,inverse,mult_zero,uminus} fps) = 0"

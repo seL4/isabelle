@@ -846,6 +846,17 @@ proof -
   with radius show ?thesis by (auto simp: has_fps_expansion_def)
 qed
 
+lemma has_fps_expansion_sum [fps_expansion_intros]:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x has_fps_expansion F x"
+  shows   "(\<lambda>z. \<Sum>x\<in>A. f x z) has_fps_expansion (\<Sum>x\<in>A. F x)"
+  using assms by (induction A rule: infinite_finite_induct) (auto intro!: fps_expansion_intros)
+
+lemma has_fps_expansion_prod [fps_expansion_intros]:
+  fixes F :: "'a \<Rightarrow> 'b :: {banach, real_normed_div_algebra, comm_ring_1} fps"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x has_fps_expansion F x"
+  shows   "(\<lambda>z. \<Prod>x\<in>A. f x z) has_fps_expansion (\<Prod>x\<in>A. F x)"
+  using assms by (induction A rule: infinite_finite_induct) (auto intro!: fps_expansion_intros)
+
 lemma has_fps_expansion_exp [fps_expansion_intros]:
   fixes c :: "'a :: {banach, real_normed_field}"
   shows "(\<lambda>x. exp (c * x)) has_fps_expansion fps_exp c"
