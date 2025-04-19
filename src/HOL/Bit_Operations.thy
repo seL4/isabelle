@@ -778,6 +778,14 @@ next
     by (simp add: mask_eq_exp_minus_1)
 qed
 
+lemma mask_eq_iff_eq_exp:
+  \<open>mask n = a \<longleftrightarrow> a + 1 = 2 ^ n\<close>
+  by (auto simp flip: inc_mask_eq_exp)
+
+lemma eq_mask_iff_eq_exp:
+  \<open>a = mask n \<longleftrightarrow> a + 1 = 2 ^ n\<close>
+  by (auto simp flip: inc_mask_eq_exp)
+
 lemma mask_Suc_double:
   \<open>mask (Suc n) = 1 OR 2 * mask n\<close>
 proof -
@@ -3831,6 +3839,10 @@ lemma signed_take_bit_int_less_eq:
   for k :: int
   using that take_bit_int_less_eq [of \<open>Suc n\<close> \<open>k + 2 ^ n\<close>]
   by (simp add: signed_take_bit_eq_take_bit_shift)
+
+lemma signed_take_bit_Suc_sgn_eq [simp]:
+  \<open>signed_take_bit (Suc n) (sgn k) = sgn k\<close> for k :: int
+  by (simp add: sgn_if)
 
 lemma signed_take_bit_Suc_bit0 [simp]:
   \<open>signed_take_bit (Suc n) (numeral (Num.Bit0 k)) = signed_take_bit n (numeral k) * (2 :: int)\<close>

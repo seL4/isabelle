@@ -759,10 +759,8 @@ lemma bit_word_half_eq:
     for a :: \<open>'a::len word\<close>
 proof (cases \<open>2 \<le> LENGTH('a::len)\<close>)
   case False
-  have \<open>of_bool (odd k) < (1 :: int) \<longleftrightarrow> even k\<close> for k :: int
-    by auto
-  with False that show ?thesis
-    by transfer (simp add: eq_iff)
+  with that show ?thesis
+    by transfer simp
 next
   case True
   obtain n where length: \<open>LENGTH('a) = Suc n\<close>
@@ -1245,9 +1243,7 @@ lemma bit_signed_iff [bit_simps]:
 lemma signed_push_bit_eq:
   \<open>signed (push_bit n w) = signed_take_bit (LENGTH('b) - Suc 0) (push_bit n (signed w :: 'a))\<close>
   for w :: \<open>'b::len word\<close>
-  apply (simp add: bit_eq_iff bit_simps possible_bit_less_imp min_less_iff_disj)
-  apply (cases n, simp_all add: min_def)
-  done
+  by (simp add: bit_eq_iff bit_simps possible_bit_less_imp min_less_iff_disj) auto
 
 lemma signed_take_bit_eq:
   \<open>signed (take_bit n w) = (if n < LENGTH('b) then take_bit n (signed w) else signed w)\<close>
@@ -1728,6 +1724,14 @@ interpretation signed: linorder word_sle word_sless
 lemma word_sless_eq:
   \<open>x <s y \<longleftrightarrow> x <=s y \<and> x \<noteq> y\<close>
   by (fact signed.less_le)
+
+lemma minus_1_sless_0 [simp]:
+  \<open>- 1 <s 0\<close>
+  by transfer simp
+
+lemma minus_1_sless_eq_0 [simp]:
+  \<open>- 1 \<le>s 0\<close>
+  by transfer simp
 
 
 subsection \<open>Bit-wise operations\<close>

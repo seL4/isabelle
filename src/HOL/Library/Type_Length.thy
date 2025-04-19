@@ -101,9 +101,21 @@ instance
 
 end
 
+lemma length_less_eq_Suc_0_iff [simp]:
+  \<open>LENGTH('a::len) \<le> Suc 0 \<longleftrightarrow> LENGTH('a) = Suc 0\<close>
+  by (simp add: le_Suc_eq)
+
 lemma length_not_greater_eq_2_iff [simp]:
-  \<open>\<not> 2 \<le> LENGTH('a::len) \<longleftrightarrow> LENGTH('a) = 1\<close>
+  \<open>\<not> 2 \<le> LENGTH('a::len) \<longleftrightarrow> LENGTH('a) = Suc 0\<close>
   by (auto simp add: not_le dest: less_2_cases)
+
+lemma less_eq_decr_length_iff [simp]:
+  \<open>n \<le> LENGTH('a::len) - Suc 0 \<longleftrightarrow> n < LENGTH('a)\<close>
+  by (cases \<open>LENGTH('a)\<close>) (simp_all add: less_Suc_eq le_less)
+
+lemma decr_length_less_iff [simp]:
+  \<open>LENGTH('a::len) - Suc 0 < n \<longleftrightarrow> LENGTH('a) \<le> n\<close>
+  by (cases \<open>LENGTH('a)\<close>) auto
 
 context linordered_idom
 begin
@@ -114,13 +126,5 @@ lemma two_less_eq_exp_length [simp]:
   by (cases \<open>LENGTH('b::len)\<close>) simp_all
 
 end
-
-lemma less_eq_decr_length_iff [simp]:
-  \<open>n \<le> LENGTH('a::len) - Suc 0 \<longleftrightarrow> n < LENGTH('a)\<close>
-  by (cases \<open>LENGTH('a)\<close>) (simp_all add: less_Suc_eq le_less)
-
-lemma decr_length_less_iff [simp]:
-  \<open>LENGTH('a::len) - Suc 0 < n \<longleftrightarrow> LENGTH('a) \<le> n\<close>
-  by (cases \<open>LENGTH('a)\<close>) auto
 
 end
