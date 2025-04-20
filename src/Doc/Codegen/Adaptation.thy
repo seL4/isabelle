@@ -190,6 +190,16 @@ text \<open>
        
        Part of \<open>HOL-Main\<close>.
 
+    \item[\<^theory>\<open>HOL-Library.IArray\<close>] provides a type \<^typ>\<open>'a iarray\<close>
+       isomorphic to lists but implemented by (effectively immutable)
+       arrays \emph{in SML only}.
+
+  \end{description}
+
+  \noindent Using these adaptation setups the following extensions are provided:
+
+  \begin{description}
+
     \item[\<open>Code_Target_Int\<close>] implements type \<^typ>\<open>int\<close>
        by \<^typ>\<open>integer\<close> and thus by target-language built-in integers.
 
@@ -207,13 +217,13 @@ text \<open>
     \item[\<open>Code_Target_Numeral\<close>] is a convenience theory
        containing \<open>Code_Target_Nat\<close>, \<open>Code_Target_Int\<close> and \<open>Code_Target_Bit_Shifts\<close>-
 
+    \item[\<open>Code_Bit_Shifts_for_Arithmetic\<close>] uses the preprocessor to
+       replace arithmetic operations on numeric types by target-language
+       built-in bit shifts whenever feasible.
+
     \item[\<open>Code_Abstract_Char\<close>] implements type \<^typ>\<open>char\<close> by target language
        integers, sacrificing pattern patching in exchange for dramatically
        increased performance for comparisons.
-
-    \item[\<^theory>\<open>HOL-Library.IArray\<close>] provides a type \<^typ>\<open>'a iarray\<close>
-       isomorphic to lists but implemented by (effectively immutable)
-       arrays \emph{in SML only}.
 
   \end{description}
 \<close>
