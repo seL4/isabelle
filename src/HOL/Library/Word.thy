@@ -511,6 +511,27 @@ lemma [code]:
   by transfer simp
 
 
+subsection \<open>Elementary case distinctions\<close>
+
+lemma word_length_one [case_names zero minus_one length_beyond]:
+  fixes w :: \<open>'a::len word\<close>
+  obtains (zero) \<open>LENGTH('a) = Suc 0\<close> \<open>w = 0\<close>
+  | (minus_one) \<open>LENGTH('a) = Suc 0\<close> \<open>w = - 1\<close>
+  | (length_beyond) \<open>2 \<le> LENGTH('a)\<close>
+proof (cases \<open>2 \<le> LENGTH('a)\<close>)
+  case True
+  with length_beyond show ?thesis .
+next
+  case False
+  then have \<open>LENGTH('a) = Suc 0\<close>
+    by simp
+  then have \<open>w = 0 \<or> w = - 1\<close>
+    by transfer auto
+  with \<open>LENGTH('a) = Suc 0\<close> zero minus_one show ?thesis
+    by blast
+qed
+
+
 subsubsection \<open>Basic ordering\<close>
 
 instantiation word :: (len) linorder
