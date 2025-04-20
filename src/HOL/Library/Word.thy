@@ -1729,8 +1729,16 @@ lemma minus_1_sless_0 [simp]:
   \<open>- 1 <s 0\<close>
   by transfer simp
 
+lemma not_0_sless_minus_1 [simp]:
+  \<open>\<not> 0 <s - 1\<close>
+  by transfer simp
+
 lemma minus_1_sless_eq_0 [simp]:
   \<open>- 1 \<le>s 0\<close>
+  by transfer simp
+
+lemma not_0_sless_eq_minus_1 [simp]:
+  \<open>\<not> 0 \<le>s - 1\<close>
   by transfer simp
 
 
@@ -1750,7 +1758,7 @@ lemma take_bit_length_eq [simp]:
 
 lemma bit_word_of_int_iff:
   \<open>bit (word_of_int k :: 'a::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> bit k n\<close>
-  by (metis Word_eq_word_of_int bit_word.abs_eq)
+  by (simp add: bit_simps)
 
 lemma bit_uint_iff:
   \<open>bit (uint w) n \<longleftrightarrow> n < LENGTH('a) \<and> bit w n\<close>
@@ -1765,13 +1773,13 @@ lemma bit_sint_iff:
 lemma bit_word_ucast_iff:
   \<open>bit (ucast w :: 'b::len word) n \<longleftrightarrow> n < LENGTH('a) \<and> n < LENGTH('b) \<and> bit w n\<close>
   for w :: \<open>'a::len word\<close>
-  by (meson bit_imp_possible_bit bit_unsigned_iff possible_bit_word)
+  by (auto simp add: bit_unsigned_iff bit_imp_le_length)
 
 lemma bit_word_scast_iff:
   \<open>bit (scast w :: 'b::len word) n \<longleftrightarrow>
     n < LENGTH('b) \<and> (bit w n \<or> LENGTH('a) \<le> n \<and> bit w (LENGTH('a) - Suc 0))\<close>
   for w :: \<open>'a::len word\<close>
-  by (metis One_nat_def bit_sint_iff bit_word_of_int_iff of_int_sint)
+  by (auto simp add: bit_signed_iff bit_imp_le_length min_def le_less dest: bit_imp_possible_bit)
 
 lemma bit_word_iff_drop_bit_and [code]:
   \<open>bit a n \<longleftrightarrow> drop_bit n a AND 1 = 1\<close> for a :: \<open>'a::len word\<close>
@@ -1863,10 +1871,7 @@ lift_definition signed_drop_bit :: \<open>nat \<Rightarrow> 'a word \<Rightarrow
 lemma bit_signed_drop_bit_iff [bit_simps]:
   \<open>bit (signed_drop_bit m w) n \<longleftrightarrow> bit w (if LENGTH('a) - m \<le> n \<and> n < LENGTH('a) then LENGTH('a) - 1 else m + n)\<close>
   for w :: \<open>'a::len word\<close>
-  apply transfer
-  apply (simp add: bit_drop_bit_eq bit_signed_take_bit_iff not_le min_def)
-  by (metis add.commute add_lessD1 le_antisym less_diff_conv less_eq_decr_length_iff
-      nat_less_le)
+  by transfer (simp add: bit_drop_bit_eq bit_signed_take_bit_iff min_def le_less not_less, auto)
 
 lemma [code]:
   \<open>Word.the_int (signed_drop_bit n w) = take_bit LENGTH('a) (drop_bit n (Word.the_signed_int w))\<close>
@@ -1900,19 +1905,13 @@ lemma signed_drop_bit_0 [simp]:
 
 lemma sint_signed_drop_bit_eq:
   \<open>sint (signed_drop_bit n w) = drop_bit n (sint w)\<close>
-proof (cases \<open>LENGTH('a) = 0 \<or> n=0\<close>)
-  case False
-  then show ?thesis
-    apply simp
-    apply (rule bit_eqI)
-    by (auto simp: bit_sint_iff bit_drop_bit_eq bit_signed_drop_bit_iff dest: bit_imp_le_length)
-qed auto
+  by (rule bit_eqI; cases n) (auto simp add: bit_simps not_less)
 
 
 subsection \<open>Single-bit operations\<close>
 
 lemma set_bit_eq_idem_iff:
-  \<open>Bit_Operations.set_bit n w = w \<longleftrightarrow> bit w n \<or> n \<ge> LENGTH('a)\<close>
+  \<open>set_bit n w = w \<longleftrightarrow> bit w n \<or> n \<ge> LENGTH('a)\<close>
   for w :: \<open>'a::len word\<close>
   unfolding bit_eq_iff
   by (auto simp: bit_simps not_le)
