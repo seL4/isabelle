@@ -837,6 +837,12 @@ lemma int_of_integer_code [code]:
      in if j = 0 then l' else l' + 1)"
   by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
 
+lemma int_of_integer_code_nbe [code nbe]:
+  "int_of_integer 0 = 0"
+  "int_of_integer (Pos n) = Int.Pos n"
+  "int_of_integer (Neg n) = Int.Neg n"
+  by simp_all
+
 lemma integer_of_int_code [code]:
   "integer_of_int k = (if k < 0 then - (integer_of_int (- k))
      else if k = 0 then 0
@@ -845,6 +851,12 @@ lemma integer_of_int_code [code]:
        j = k mod 2
      in if j = 0 then l else l + 1)"
   by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
+
+lemma integer_of_int_code_nbe [code nbe]:
+  "integer_of_int 0 = 0"
+  "integer_of_int (Int.Pos n) = Pos n"
+  "integer_of_int (Int.Neg n) = Neg n"
+  by simp_all
 
 hide_const (open) Pos Neg sub dup divmod_abs
 
