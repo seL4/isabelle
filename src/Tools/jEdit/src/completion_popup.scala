@@ -403,7 +403,7 @@ object Completion_Popup {
     text_field =>
 
     // see https://forums.oracle.com/thread/1361677
-    if (GUI.is_macos_laf) text_field.setCaret(new DefaultCaret)
+    if (GUI.is_macos_laf()) text_field.setCaret(new DefaultCaret)
 
     // owned by GUI thread
     private var completion_popup: Option[Completion_Popup] = None
