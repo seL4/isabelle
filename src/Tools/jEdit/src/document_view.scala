@@ -144,6 +144,10 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
         val FOLD_MARKER_SIZE = 12
 
+        val gutter_icons =
+          !gutter.isExpanded &&
+            gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12
+
         val buffer = model.buffer
         JEdit_Lib.buffer_lock(buffer) {
           val rendering = Document_View.rendering(doc_view)
@@ -155,15 +159,14 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
               rendering.gutter_content(line_range) match {
                 case Some((icon, color)) =>
                   // icons within selection area
-                  if (!gutter.isExpanded &&
-                      gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12) {
-                    val x0 =
-                      (FOLD_MARKER_SIZE + sel_width - border_width - icon.getIconWidth) max 10
-                    val y0 =
-                      y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
+                  if (gutter_icons) {
+                    val w = icon.getIconWidth
+                    val h = icon.getIconHeight
+                    val x0 = (FOLD_MARKER_SIZE + sel_width - border_width - w) max 10
+                    val y0 = y + i * line_height + (((line_height - h) / 2) max 0)
                     icon.paintIcon(gutter, gfx, x0, y0)
                   }
-                  // background
+                  // background only
                   else {
                     val y0 = y + i * line_height
                     gfx.setColor(color)
