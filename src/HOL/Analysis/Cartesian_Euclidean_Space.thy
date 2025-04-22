@@ -202,8 +202,8 @@ lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x.
   unfolding bounded_def
   apply clarify
   apply (rule_tac x="x $ i" in exI)
-  apply (rule_tac x="e" in exI)
-  apply clarify
+  apply (rule_tac x="\<epsilon>" in exI)
+  apply clarify  
   apply (rule order_trans [OF dist_vec_nth_le], simp)
   done
 

@@ -16,21 +16,21 @@ begin
 section \<open>Open and closed balls\<close>
 
 definition\<^marker>\<open>tag important\<close> ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
-  where "ball x e = {y. dist x y < e}"
+  where "ball x \<epsilon> = {y. dist x y < \<epsilon>}"
 
 definition\<^marker>\<open>tag important\<close> cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
-  where "cball x e = {y. dist x y \<le> e}"
+  where "cball x \<epsilon> = {y. dist x y \<le> \<epsilon>}"
 
 definition\<^marker>\<open>tag important\<close> sphere :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set"
-  where "sphere x e = {y. dist x y = e}"
+  where "sphere x \<epsilon> = {y. dist x y = \<epsilon>}"
 
-lemma mem_ball [simp, metric_unfold]: "y \<in> ball x e \<longleftrightarrow> dist x y < e"
+lemma mem_ball [simp, metric_unfold]: "y \<in> ball x \<epsilon> \<longleftrightarrow> dist x y < \<epsilon>"
   by (simp add: ball_def)
 
-lemma mem_cball [simp, metric_unfold]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e"
+lemma mem_cball [simp, metric_unfold]: "y \<in> cball x \<epsilon> \<longleftrightarrow> dist x y \<le> \<epsilon>"
   by (simp add: cball_def)
 
-lemma mem_sphere [simp]: "y \<in> sphere x e \<longleftrightarrow> dist x y = e"
+lemma mem_sphere [simp]: "y \<in> sphere x \<epsilon> \<longleftrightarrow> dist x y = \<epsilon>"
   by (simp add: sphere_def)
 
 lemma ball_trivial [simp]: "ball x 0 = {}"
@@ -52,16 +52,16 @@ lemma sphere_empty [simp]: "r < 0 \<Longrightarrow> sphere a r = {}"
   for a :: "'a::metric_space"
   by auto
 
-lemma centre_in_ball [simp]: "x \<in> ball x e \<longleftrightarrow> 0 < e"
+lemma centre_in_ball [simp]: "x \<in> ball x \<epsilon> \<longleftrightarrow> 0 < \<epsilon>"
   by simp
 
-lemma centre_in_cball [simp]: "x \<in> cball x e \<longleftrightarrow> 0 \<le> e"
+lemma centre_in_cball [simp]: "x \<in> cball x \<epsilon> \<longleftrightarrow> 0 \<le> \<epsilon>"
   by simp
 
-lemma ball_subset_cball [simp, intro]: "ball x e \<subseteq> cball x e"
+lemma ball_subset_cball [simp, intro]: "ball x \<epsilon> \<subseteq> cball x \<epsilon>"
   by (simp add: subset_eq)
 
-lemma mem_ball_imp_mem_cball: "x \<in> ball y e \<Longrightarrow> x \<in> cball y e"
+lemma mem_ball_imp_mem_cball: "x \<in> ball y \<epsilon> \<Longrightarrow> x \<in> cball y \<epsilon>"
   by auto
 
 lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
@@ -70,16 +70,16 @@ lemma sphere_cball [simp,intro]: "sphere z r \<subseteq> cball z r"
 lemma cball_diff_sphere: "cball a r - sphere a r = ball a r"
   by auto
 
-lemma subset_ball[intro]: "d \<le> e \<Longrightarrow> ball x d \<subseteq> ball x e"
+lemma subset_ball[intro]: "\<delta> \<le> \<epsilon> \<Longrightarrow> ball x \<delta> \<subseteq> ball x \<epsilon>"
   by auto
 
-lemma subset_cball[intro]: "d \<le> e \<Longrightarrow> cball x d \<subseteq> cball x e"
+lemma subset_cball[intro]: "\<delta> \<le> \<epsilon> \<Longrightarrow> cball x \<delta> \<subseteq> cball x \<epsilon>"
   by auto
 
-lemma mem_ball_leI: "x \<in> ball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> ball y f"
+lemma mem_ball_leI: "x \<in> ball y \<epsilon> \<Longrightarrow> \<epsilon> \<le> f \<Longrightarrow> x \<in> ball y f"
   by auto
 
-lemma mem_cball_leI: "x \<in> cball y e \<Longrightarrow> e \<le> f \<Longrightarrow> x \<in> cball y f"
+lemma mem_cball_leI: "x \<in> cball y \<epsilon> \<Longrightarrow> \<epsilon> \<le> f \<Longrightarrow> x \<in> cball y f"
   by auto
 
 lemma cball_trans: "y \<in> cball z b \<Longrightarrow> x \<in> cball y a \<Longrightarrow> x \<in> cball z (b + a)"
@@ -100,70 +100,66 @@ lemma cball_min_Int: "cball a (min r s) = cball a r \<inter> cball a s"
 lemma cball_diff_eq_sphere: "cball a r - ball a r =  sphere a r"
   by auto
 
-lemma open_ball [intro, simp]: "open (ball x e)"
+lemma open_ball [intro, simp]: "open (ball x \<epsilon>)"
 proof -
-  have "open (dist x -` {..<e})"
+  have "open (dist x -` {..<\<epsilon>})"
     by (intro open_vimage open_lessThan continuous_intros)
-  also have "dist x -` {..<e} = ball x e"
+  also have "dist x -` {..<\<epsilon>} = ball x \<epsilon>"
     by auto
   finally show ?thesis .
 qed
 
-lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
+lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>\<epsilon>>0. ball x \<epsilon> \<subseteq> S)"
   by (simp add: open_dist subset_eq Ball_def dist_commute)
 
-lemma openI [intro?]: "(\<And>x. x\<in>S \<Longrightarrow> \<exists>e>0. ball x e \<subseteq> S) \<Longrightarrow> open S"
+lemma openI [intro?]: "(\<And>x. x\<in>S \<Longrightarrow> \<exists>\<epsilon>>0. ball x \<epsilon> \<subseteq> S) \<Longrightarrow> open S"
   by (auto simp: open_contains_ball)
 
 lemma openE[elim?]:
   assumes "open S" "x\<in>S"
-  obtains e where "e>0" "ball x e \<subseteq> S"
+  obtains \<epsilon> where "\<epsilon>>0" "ball x \<epsilon> \<subseteq> S"
   using assms unfolding open_contains_ball by auto
 
-lemma open_contains_ball_eq: "open S \<Longrightarrow> x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
+lemma open_contains_ball_eq: "open S \<Longrightarrow> x\<in>S \<longleftrightarrow> (\<exists>\<epsilon>>0. ball x \<epsilon> \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
 
-lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
+lemma ball_eq_empty[simp]: "ball x \<epsilon> = {} \<longleftrightarrow> \<epsilon> \<le> 0"
   unfolding mem_ball set_eq_iff
   by (simp add: not_less) metric
 
-lemma ball_empty: "e \<le> 0 \<Longrightarrow> ball x e = {}" 
+lemma ball_empty: "\<epsilon> \<le> 0 \<Longrightarrow> ball x \<epsilon> = {}" 
   by simp
 
-lemma closed_cball [iff]: "closed (cball x e)"
+lemma closed_cball [iff]: "closed (cball x \<epsilon>)"
 proof -
-  have "closed (dist x -` {..e})"
+  have "closed (dist x -` {..\<epsilon>})"
     by (intro closed_vimage closed_atMost continuous_intros)
-  also have "dist x -` {..e} = cball x e"
+  also have "dist x -` {..\<epsilon>} = cball x \<epsilon>"
     by auto
   finally show ?thesis .
 qed
 
-lemma open_contains_cball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0.  cball x e \<subseteq> S)"
-proof -
-  {
-    fix x and e::real
-    assume "x\<in>S" "e>0" "ball x e \<subseteq> S"
-    then have "\<exists>d>0. cball x d \<subseteq> S"
-      unfolding subset_eq by (intro exI [where x="e/2"], auto)
-  }
-  then show ?thesis
-    unfolding open_contains_ball by force
-qed
+lemma cball_subset_ball:
+  assumes "\<epsilon>>0"
+  shows "\<exists>\<delta>>0. cball x \<delta> \<subseteq> ball x \<epsilon>"
+  using assms unfolding subset_eq by (intro exI [where x="\<epsilon>/2"], auto)
 
-lemma open_contains_cball_eq: "open S \<Longrightarrow> (\<forall>x. x \<in> S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S))"
+lemma open_contains_cball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>\<epsilon>>0.  cball x \<epsilon> \<subseteq> S)"
+  by (meson ball_subset_cball cball_subset_ball open_contains_ball subset_trans)
+
+lemma open_contains_cball_eq: "open S \<Longrightarrow> (\<forall>x. x \<in> S \<longleftrightarrow> (\<exists>\<epsilon>>0. cball x \<epsilon> \<subseteq> S))"
   by (metis open_contains_cball subset_eq order_less_imp_le centre_in_cball)
 
-lemma eventually_nhds_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>x. x \<in> ball z d) (nhds z)"
+lemma eventually_nhds_ball: "\<delta> > 0 \<Longrightarrow> eventually (\<lambda>x. x \<in> ball z \<delta>) (nhds z)"
   by (rule eventually_nhds_in_open) simp_all
 
-lemma eventually_at_ball: "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z d \<and> t \<in> A) (at z within A)"
-  unfolding eventually_at by (intro exI[of _ d]) (simp_all add: dist_commute)
+lemma eventually_at_ball: "\<delta> > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z \<delta> \<and> t \<in> A) (at z within A)"
+  unfolding eventually_at by (intro exI[of _ \<delta>]) (simp_all add: dist_commute)
 
-lemma eventually_at_ball': "d > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z d \<and> t \<noteq> z \<and> t \<in> A) (at z within A)"
-  unfolding eventually_at by (intro exI[of _ d]) (simp_all add: dist_commute)
+lemma eventually_at_ball': "\<delta> > 0 \<Longrightarrow> eventually (\<lambda>t. t \<in> ball z \<delta> \<and> t \<noteq> z \<and> t \<in> A) (at z within A)"
+  unfolding eventually_at by (intro exI[of _ \<delta>]) (simp_all add: dist_commute)
 
-lemma at_within_ball: "e > 0 \<Longrightarrow> dist x y < e \<Longrightarrow> at y within ball x e = at y"
+lemma at_within_ball: "\<epsilon> > 0 \<Longrightarrow> dist x y < \<epsilon> \<Longrightarrow> at y within ball x \<epsilon> = at y"
   by (subst at_within_open) auto
 
 lemma atLeastAtMost_eq_cball:
@@ -186,30 +182,42 @@ lemma ball_eq_greaterThanLessThan:
   shows "ball a b = {a - b <..< a + b}"
   by (auto simp: dist_real_def)
 
-lemma interior_ball [simp]: "interior (ball x e) = ball x e"
+lemma interior_ball [simp]: "interior (ball x \<epsilon>) = ball x \<epsilon>"
   by (simp add: interior_open)
 
-lemma cball_eq_empty [simp]: "cball x e = {} \<longleftrightarrow> e < 0"
-  by (smt (verit, best) Diff_empty ball_eq_empty cball_diff_sphere centre_in_ball centre_in_cball sphere_empty)
+lemma cball_eq_empty [simp]: "cball x \<epsilon> = {} \<longleftrightarrow> \<epsilon> < 0"
+  by (metis centre_in_cball order.trans ex_in_conv linorder_not_le mem_cball
+      zero_le_dist)
 
-lemma cball_empty [simp]: "e < 0 \<Longrightarrow> cball x e = {}"
+lemma cball_empty [simp]: "\<epsilon> < 0 \<Longrightarrow> cball x \<epsilon> = {}"
   by simp
 
 lemma cball_sing:
   fixes x :: "'a::metric_space"
-  shows "e = 0 \<Longrightarrow> cball x e = {x}"
+  shows "\<epsilon> = 0 \<Longrightarrow> cball x \<epsilon> = {x}"
   by simp
 
-lemma ball_divide_subset: "d \<ge> 1 \<Longrightarrow> ball x (e/d) \<subseteq> ball x e"
+lemma ball_divide_subset: "\<delta> \<ge> 1 \<Longrightarrow> ball x (\<epsilon>/\<delta>) \<subseteq> ball x \<epsilon>"
   by (metis ball_eq_empty div_by_1 frac_le linear subset_ball zero_less_one)
 
-lemma ball_divide_subset_numeral: "ball x (e / numeral w) \<subseteq> ball x e"
+lemma ball_divide_subset_numeral: "ball x (\<epsilon> / numeral w) \<subseteq> ball x \<epsilon>"
   using ball_divide_subset one_le_numeral by blast
 
-lemma cball_divide_subset: "d \<ge> 1 \<Longrightarrow> cball x (e/d) \<subseteq> cball x e"
-  by (smt (verit, best) cball_empty div_by_1 frac_le subset_cball zero_le_divide_iff)
+lemma cball_divide_subset: 
+  assumes "\<delta> \<ge> 1"
+  shows "cball x (\<epsilon>/\<delta>) \<subseteq> cball x \<epsilon>"
+proof (cases "\<epsilon>\<ge>0")
+  case True
+  then show ?thesis
+    by (metis assms div_by_1 divide_mono order_le_less subset_cball zero_less_one)
+next
+  case False
+  then have "(\<epsilon>/\<delta>) < 0"
+    using assms divide_less_0_iff by fastforce
+  then show ?thesis by auto
+qed
 
-lemma cball_divide_subset_numeral: "cball x (e / numeral w) \<subseteq> cball x e"
+lemma cball_divide_subset_numeral: "cball x (\<epsilon> / numeral w) \<subseteq> cball x \<epsilon>"
   using cball_divide_subset one_le_numeral by blast
 
 lemma cball_scale:
@@ -302,21 +310,21 @@ proof -
   have "filterlim f (nhds x) sequentially"
     unfolding tendsto_iff
   proof clarify
-    fix e :: real
-    assume e: "e > 0"
-    then obtain n where n: "Suc n > 1 / e"
+    fix \<epsilon> :: real
+    assume \<epsilon>: "\<epsilon> > 0"
+    then obtain n where n: "Suc n > 1 / \<epsilon>"
       by (meson le_nat_floor lessI not_le)
-    have "dist (f k) x < e" if "k \<ge> n" for k
+    have "dist (f k) x < \<epsilon>" if "k \<ge> n" for k
     proof -
       have "dist (f k) x < 1 / real (Suc k)"
         using f[of k] by (auto simp: dist_commute)
       also have "\<dots> \<le> 1 / real (Suc n)"
         using that by (intro divide_left_mono) auto
-      also have "\<dots> < e"
-        using n e by (simp add: field_simps)
+      also have "\<dots> < \<epsilon>"
+        using n \<epsilon> by (simp add: field_simps)
       finally show ?thesis .
     qed
-    thus "\<forall>\<^sub>F k in sequentially. dist (f k) x < e"
+    thus "\<forall>\<^sub>F k in sequentially. dist (f k) x < \<epsilon>"
       unfolding eventually_at_top_linorder by blast
   qed
   moreover have "f n \<noteq> x" for n
@@ -331,10 +339,10 @@ section \<open>Limit Points\<close>
 
 lemma islimpt_approachable:
   fixes x :: "'a::metric_space"
-  shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e)"
+  shows "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < \<epsilon>)"
   unfolding islimpt_iff_eventually eventually_at by fast
 
-lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x \<le> e)"
+lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x \<le> \<epsilon>)"
   for x :: "'a::metric_space"
   unfolding islimpt_approachable
   using approachable_lt_le2 [where f="\<lambda>y. dist y x" and P="\<lambda>y. y \<notin> S \<or> y = x" and Q="\<lambda>x. True"]
@@ -351,13 +359,13 @@ lemma limpt_of_closure: "x islimpt closure S \<longleftrightarrow> x islimpt S"
   for x :: "'a::metric_space"
   by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
 
-lemma islimpt_eq_infinite_ball: "x islimpt S \<longleftrightarrow> (\<forall>e>0. infinite(S \<inter> ball x e))"
+lemma islimpt_eq_infinite_ball: "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. infinite(S \<inter> ball x \<epsilon>))"
   unfolding islimpt_eq_acc_point
   by (metis open_ball Int_commute Int_mono finite_subset open_contains_ball_eq subset_eq)
 
-lemma islimpt_eq_infinite_cball: "x islimpt S \<longleftrightarrow> (\<forall>e>0. infinite(S \<inter> cball x e))"
+lemma islimpt_eq_infinite_cball: "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. infinite(S \<inter> cball x \<epsilon>))"
   unfolding islimpt_eq_infinite_ball
-  by (metis open_ball ball_subset_cball centre_in_ball finite_Int inf.absorb_iff2 inf_assoc open_contains_cball_eq)
+  by (metis ball_subset_cball cball_subset_ball finite_Int inf.absorb_iff2 inf_assoc)
 
 
 section \<open>Perfect Metric Spaces\<close>
@@ -374,9 +382,10 @@ lemma pointed_ball_nonempty:
 
 lemma cball_eq_sing:
   fixes x :: "'a::{metric_space,perfect_space}"
-  shows "cball x e = {x} \<longleftrightarrow> e = 0"
-  by (metis cball_trivial centre_in_cball finite.emptyI finite.insertI finite_Int
-      islimpt_UNIV islimpt_eq_infinite_cball less_eq_real_def) 
+  shows "cball x \<epsilon> = {x} \<longleftrightarrow> \<epsilon> = 0"
+  using cball_eq_empty [of x \<epsilon>]
+  by (metis open_ball ball_subset_cball cball_trivial
+      centre_in_ball not_less_iff_gr_or_eq not_open_singleton subset_singleton_iff)
 
 
 section \<open>Finite and discrete\<close>
@@ -384,26 +393,26 @@ section \<open>Finite and discrete\<close>
 lemma finite_ball_include:
   fixes a :: "'a::metric_space"
   assumes "finite S" 
-  shows "\<exists>e>0. S \<subseteq> ball a e"
+  shows "\<exists>\<epsilon>>0. S \<subseteq> ball a \<epsilon>"
   using assms
 proof induction
   case (insert x S)
-  then obtain e0 where "e0>0" and e0:"S \<subseteq> ball a e0" by auto
-  define e where "e = max e0 (2 * dist a x)"
-  have "e>0" unfolding e_def using \<open>e0>0\<close> by auto
-  moreover have "insert x S \<subseteq> ball a e"
-    using e0 \<open>e>0\<close> unfolding e_def by auto
+  then obtain e0 where "e0>0" and e0:"S \<subseteq> ball a e0" by auto            
+  define \<epsilon> where "\<epsilon> = max e0 (2 * dist a x)"
+  have "\<epsilon>>0" unfolding \<epsilon>_def using \<open>e0>0\<close> by auto
+  moreover have "insert x S \<subseteq> ball a \<epsilon>"
+    using e0 \<open>\<epsilon>>0\<close> unfolding \<epsilon>_def by auto
   ultimately show ?case by auto
 qed (auto intro: zero_less_one)
 
 lemma finite_set_avoid:
   fixes a :: "'a::metric_space"
   assumes "finite S"
-  shows "\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<longrightarrow> d \<le> dist a x"
+  shows "\<exists>\<delta>>0. \<forall>x\<in>S. x \<noteq> a \<longrightarrow> \<delta> \<le> dist a x"
   using assms
 proof induction
   case (insert x S)
-  then obtain d where "d > 0" and d: "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> d \<le> dist a x"
+  then obtain \<delta> where "\<delta> > 0" and \<delta>: "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> \<delta> \<le> dist a x"
     by blast
   then show ?case
     by (metis dist_nz dual_order.strict_implies_order insertE leI order.strict_trans2)
@@ -411,17 +420,17 @@ qed (auto intro: zero_less_one)
 
 lemma discrete_imp_closed:
   fixes S :: "'a::metric_space set"
-  assumes e: "0 < e"
-    and d: "\<forall>x \<in> S. \<forall>y \<in> S. dist y x < e \<longrightarrow> y = x"
+  assumes \<epsilon>: "0 < \<epsilon>"
+    and \<delta>: "\<forall>x \<in> S. \<forall>y \<in> S. dist y x < \<epsilon> \<longrightarrow> y = x"
   shows "closed S"
 proof -
-  have False if C: "\<And>e. e>0 \<Longrightarrow> \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e" for x
+  have False if C: "\<And>\<epsilon>. \<epsilon>>0 \<Longrightarrow> \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < \<epsilon>" for x
   proof -
-    obtain y where y: "y \<in> S" "y \<noteq> x" "dist y x < e/2"
-      by (meson C e half_gt_zero)
-    then have mp: "min (e/2) (dist x y) > 0"
+    obtain y where y: "y \<in> S" "y \<noteq> x" "dist y x < \<epsilon>/2"
+      by (meson C \<epsilon> half_gt_zero)
+    then have mp: "min (\<epsilon>/2) (dist x y) > 0"
       by (simp add: dist_commute)
-    from d y C[OF mp] show ?thesis
+    from \<delta> y C[OF mp] show ?thesis
       by metric
   qed
   then show ?thesis
@@ -429,19 +438,19 @@ proof -
 qed
 
 lemma discrete_imp_not_islimpt:
-  assumes e: "0 < e"
-    and d: "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> dist y x < e \<Longrightarrow> y = x"
+  assumes \<epsilon>: "0 < \<epsilon>"
+    and \<delta>: "\<And>x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> dist y x < \<epsilon> \<Longrightarrow> y = x"
   shows "\<not> x islimpt S"
-  by (metis closed_limpt d discrete_imp_closed e islimpt_approachable)
+  by (metis closed_limpt \<delta> discrete_imp_closed \<epsilon> islimpt_approachable)
   
 
 section \<open>Interior\<close>
 
-lemma mem_interior: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
+lemma mem_interior: "x \<in> interior S \<longleftrightarrow> (\<exists>\<epsilon>>0. ball x \<epsilon> \<subseteq> S)"
   using open_contains_ball_eq [where S="interior S"]
   by (simp add: open_subset_interior)
 
-lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
+lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>\<epsilon>>0. cball x \<epsilon> \<subseteq> S)"
   by (meson ball_subset_cball interior_subset mem_interior open_contains_cball open_interior
       subset_trans)
 
@@ -453,33 +462,33 @@ section \<open>Frontier\<close>
 
 lemma frontier_straddle:
   fixes a :: "'a::metric_space"
-  shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))"
+  shows "a \<in> frontier S \<longleftrightarrow> (\<forall>\<epsilon>>0. (\<exists>x\<in>S. dist a x < \<epsilon>) \<and> (\<exists>x. x \<notin> S \<and> dist a x < \<epsilon>))"
   unfolding frontier_def closure_interior
   by (auto simp: mem_interior subset_eq ball_def)
 
 
 section \<open>Limits\<close>
 
-proposition Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+proposition Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>\<epsilon>>0. eventually (\<lambda>x. dist (f x) l < \<epsilon>) net)"
   by (auto simp: tendsto_iff trivial_limit_eq)
 
 text \<open>Show that they yield usual definitions in the various cases.\<close>
 
 proposition Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
-    (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> dist (f x) l < e)"
+    (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> \<delta> \<longrightarrow> dist (f x) l < \<epsilon>)"
   by (auto simp: tendsto_iff eventually_at_le)
 
 proposition Lim_within: "(f \<longlongrightarrow> l) (at a within S) \<longleftrightarrow>
-    (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < d \<longrightarrow> dist (f x) l < e)"
+    (\<forall>\<epsilon> >0. \<exists>\<delta>>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a  < \<delta> \<longrightarrow> dist (f x) l < \<epsilon>)"
   by (auto simp: tendsto_iff eventually_at)
 
 corollary Lim_withinI [intro?]:
-  assumes "\<And>e. e > 0 \<Longrightarrow> \<exists>d>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l \<le> e"
+  assumes "\<And>\<epsilon>. \<epsilon> > 0 \<Longrightarrow> \<exists>\<delta>>0. \<forall>x \<in> S. 0 < dist x a \<and> dist x a < \<delta> \<longrightarrow> dist (f x) l \<le> \<epsilon>"
   shows "(f \<longlongrightarrow> l) (at a within S)"
-  unfolding Lim_within by (smt (verit, ccfv_SIG) assms zero_less_dist_iff)
+  unfolding Lim_within by (smt (verit, best) assms)
 
 proposition Lim_at: "(f \<longlongrightarrow> l) (at a) \<longleftrightarrow>
-    (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d  \<longrightarrow> dist (f x) l < e)"
+    (\<forall>\<epsilon> >0. \<exists>\<delta>>0. \<forall>x. 0 < dist x a \<and> dist x a < \<delta>  \<longrightarrow> dist (f x) l < \<epsilon>)"
   by (auto simp: tendsto_iff eventually_at)
 
 lemma Lim_transform_within_set:
@@ -497,9 +506,9 @@ lemma limpt_sequential_inj:
          (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then have "\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e"
+  then have "\<forall>\<epsilon>>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < \<epsilon>"
     by (force simp: islimpt_approachable)
-  then obtain y where y: "\<And>e. e>0 \<Longrightarrow> y e \<in> S \<and> y e \<noteq> x \<and> dist (y e) x < e"
+  then obtain y where y: "\<And>\<epsilon>. \<epsilon>>0 \<Longrightarrow> y \<epsilon> \<in> S \<and> y \<epsilon> \<noteq> x \<and> dist (y \<epsilon>) x < \<epsilon>"
     by metis
   define f where "f \<equiv> rec_nat (y 1) (\<lambda>n fn. y (min (inverse(2 ^ (Suc n))) (dist fn x)))"
   have [simp]: "f 0 = y 1"
@@ -510,8 +519,13 @@ proof
     case 0 show ?case
       by (simp add: y)
   next
-    case (Suc n) then show ?case
-      by (smt (verit, best) fSuc dist_pos_lt inverse_positive_iff_positive y zero_less_power)
+    case (Suc n) 
+    then have "dist (f (Suc n)) x < inverse (2 ^ Suc n)"
+      unfolding fSuc
+      by (metis dist_nz min_less_iff_conj positive_imp_inverse_positive y zero_less_numeral
+          zero_less_power)
+      with Suc show ?case
+        by (auto simp: y fSuc)
   qed
   show ?rhs
   proof (intro exI conjI allI)
@@ -525,14 +539,15 @@ proof
       case (Suc n)
       then consider "m < n" | "m = n" using less_Suc_eq by blast
       then show ?case
-        by (smt (verit, ccfv_threshold) Suc.IH dist_nz f fSuc y)
+        unfolding fSuc
+        by (smt (verit, ccfv_threshold) Suc.IH dist_nz f y)
     qed
     then show "inj f"
       by (metis less_irrefl linorder_injI)
-    have "\<And>e n. \<lbrakk>0 < e; nat \<lceil>1 / e::real\<rceil> \<le> n\<rbrakk> \<Longrightarrow> inverse (2 ^ n) < e"
+    have "\<And>\<epsilon> n. \<lbrakk>0 < \<epsilon>; nat \<lceil>1 / \<epsilon>::real\<rceil> \<le> n\<rbrakk> \<Longrightarrow> inverse (2 ^ n) < \<epsilon>"
       by (simp add: divide_simps order_le_less_trans)
     then show "f \<longlonglongrightarrow> x"
-      by (metis dual_order.strict_trans f lim_sequentially)
+      by (meson order.strict_trans f lim_sequentially)
   qed
 next
   assume ?rhs
@@ -543,8 +558,8 @@ qed
 lemma Lim_dist_ubound:
   assumes "\<not>(trivial_limit net)"
     and "(f \<longlongrightarrow> l) net"
-    and "eventually (\<lambda>x. dist a (f x) \<le> e) net"
-  shows "dist a l \<le> e"
+    and "eventually (\<lambda>x. dist a (f x) \<le> \<epsilon>) net"
+  shows "dist a l \<le> \<epsilon>"
   using assms by (fast intro: tendsto_le tendsto_intros)
 
 
@@ -553,24 +568,24 @@ section \<open>Continuity\<close>
 text\<open>Derive the epsilon-delta forms, which we often use as "definitions"\<close>
 
 proposition continuous_within_eps_delta:
-  "continuous (at x within s) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'\<in> s.  dist x' x < d --> dist (f x') (f x) < e)"
+  "continuous (at x within s) f \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x'\<in> s.  dist x' x < \<delta> --> dist (f x') (f x) < \<epsilon>)"
   unfolding continuous_within and Lim_within  by fastforce
 
 corollary continuous_at_eps_delta:
-  "continuous (at x) f \<longleftrightarrow> (\<forall>e > 0. \<exists>d > 0. \<forall>x'. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
+  "continuous (at x) f \<longleftrightarrow> (\<forall>\<epsilon> > 0. \<exists>\<delta> > 0. \<forall>x'. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) < \<epsilon>)"
   using continuous_within_eps_delta [of x UNIV f] by simp
 
 lemma continuous_at_right_real_increasing:
   fixes f :: "real \<Rightarrow> real"
   assumes nondecF: "\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y"
-  shows "continuous (at_right a) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f (a + d) - f a < e)"
+  shows "continuous (at_right a) f \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. f (a + \<delta>) - f a < \<epsilon>)"
   apply (simp add: greaterThan_def dist_real_def continuous_within Lim_within_le)
   apply (intro all_cong ex_cong)
   by (smt (verit, best) nondecF)
 
 lemma continuous_at_left_real_increasing:
   assumes nondecF: "\<And> x y. x \<le> y \<Longrightarrow> f x \<le> ((f y) :: real)"
-  shows "(continuous (at_left (a :: real)) f) \<longleftrightarrow> (\<forall>e > 0. \<exists>delta > 0. f a - f (a - delta) < e)"
+  shows "(continuous (at_left (a :: real)) f) \<longleftrightarrow> (\<forall>\<epsilon> > 0. \<exists>\<delta> > 0. f a - f (a - \<delta>) < \<epsilon>)"
   apply (simp add: lessThan_def dist_real_def continuous_within Lim_within_le)
   apply (intro all_cong ex_cong)
   by (smt (verit) nondecF)
@@ -579,21 +594,19 @@ text\<open>Versions in terms of open balls.\<close>
 
 lemma continuous_within_ball:
   "continuous (at x within S) f \<longleftrightarrow>
-    (\<forall>e > 0. \<exists>d > 0. f ` (ball x d \<inter> S) \<subseteq> ball (f x) e)"
+    (\<forall>\<epsilon> > 0. \<exists>\<delta> > 0. f ` (ball x \<delta> \<inter> S) \<subseteq> ball (f x) \<epsilon>)"
   (is "?lhs = ?rhs")
 proof
   assume ?lhs
   {
-    fix e :: real
-    assume "e > 0"
-    then obtain d where "d>0" and d: "\<forall>y\<in>S. 0 < dist y x \<and> dist y x < d \<longrightarrow> dist (f y) (f x) < e"
+    fix \<epsilon> :: real
+    assume "\<epsilon> > 0"
+    then obtain \<delta> where "\<delta>>0" and \<delta>: "\<forall>y\<in>S. 0 < dist y x \<and> dist y x < \<delta> \<longrightarrow> dist (f y) (f x) < \<epsilon>"
       using \<open>?lhs\<close>[unfolded continuous_within Lim_within] by auto
-    { fix y
-      assume "y \<in> f ` (ball x d \<inter> S)" then have "y \<in> ball (f x) e"
-        using d \<open>e > 0\<close> by (auto simp: dist_commute)
-    }
-    then have "\<exists>d>0. f ` (ball x d \<inter> S) \<subseteq> ball (f x) e"
-      using \<open>d > 0\<close> by blast
+    have "y \<in> ball (f x) \<epsilon>" if "y \<in> f ` (ball x \<delta> \<inter> S)" for y
+        using that \<delta> \<open>\<epsilon> > 0\<close> by (auto simp: dist_commute)
+    then have "\<exists>\<delta>>0. f ` (ball x \<delta> \<inter> S) \<subseteq> ball (f x) \<epsilon>"
+      using \<open>\<delta> > 0\<close> by blast
   }
   then show ?rhs by auto
 next
@@ -603,38 +616,35 @@ next
     by (metis (mono_tags, lifting) Int_iff dist_commute mem_Collect_eq)
 qed
 
-lemma continuous_at_ball:
-  "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f ` (ball x d) \<subseteq> ball (f x) e)"
-  apply (simp add: continuous_at Lim_at subset_eq Ball_def Bex_def image_iff)
-  by (smt (verit, ccfv_threshold) dist_commute dist_self)
+corollary continuous_at_ball:
+  "continuous (at x) f \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. f ` (ball x \<delta>) \<subseteq> ball (f x) \<epsilon>)"
+  by (simp add: continuous_within_ball)
 
 
 text\<open>Define setwise continuity in terms of limits within the set.\<close>
 
 lemma continuous_on_iff:
   "continuous_on s f \<longleftrightarrow>
-    (\<forall>x\<in>s. \<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
+    (\<forall>x\<in>s. \<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x'\<in>s. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) < \<epsilon>)"
   unfolding continuous_on_def Lim_within
   by (metis dist_pos_lt dist_self)
 
 lemma continuous_within_E:
-  assumes "continuous (at x within S) f" "e>0"
-  obtains d where "d>0"  "\<And>x'. \<lbrakk>x'\<in> S; dist x' x \<le> d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  assumes "continuous (at x within S) f" "\<epsilon>>0"
+  obtains \<delta> where "\<delta>>0"  "\<And>x'. \<lbrakk>x'\<in> S; dist x' x \<le> \<delta>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>"
   using assms unfolding continuous_within_eps_delta
   by (metis dense order_le_less_trans)
 
 lemma continuous_onI [intro?]:
-  assumes "\<And>x e. \<lbrakk>e > 0; x \<in> S\<rbrakk> \<Longrightarrow> \<exists>d>0. \<forall>x'\<in>S. dist x' x < d \<longrightarrow> dist (f x') (f x) \<le> e"
+  assumes "\<And>x \<epsilon>. \<lbrakk>\<epsilon> > 0; x \<in> S\<rbrakk> \<Longrightarrow> \<exists>\<delta>>0. \<forall>x'\<in>S. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) \<le> \<epsilon>"
   shows "continuous_on S f"
-apply (simp add: continuous_on_iff, clarify)
-apply (rule ex_forward [OF assms [OF half_gt_zero]], auto)
-done
+  using assms [OF half_gt_zero] by (force simp add: continuous_on_iff)
 
 text\<open>Some simple consequential lemmas.\<close>
 
 lemma continuous_onE:
-    assumes "continuous_on s f" "x\<in>s" "e>0"
-    obtains d where "d>0"  "\<And>x'. \<lbrakk>x' \<in> s; dist x' x \<le> d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+    assumes "continuous_on s f" "x\<in>s" "\<epsilon>>0"
+    obtains \<delta> where "\<delta>>0"  "\<And>x'. \<lbrakk>x' \<in> s; dist x' x \<le> \<delta>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>"
   using assms
   unfolding continuous_on_iff by (metis dense order_le_less_trans)
 
@@ -643,9 +653,9 @@ text\<open>The usual transformation theorems.\<close>
 lemma continuous_transform_within:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::topological_space"
   assumes "continuous (at x within s) f"
-    and "0 < d"
+    and "0 < \<delta>"
     and "x \<in> s"
-    and "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < d\<rbrakk> \<Longrightarrow> f x' = g x'"
+    and "\<And>x'. \<lbrakk>x' \<in> s; dist x' x < \<delta>\<rbrakk> \<Longrightarrow> f x' = g x'"
   shows "continuous (at x within s) g"
   using assms
   unfolding continuous_within by (force intro: Lim_transform_within)
@@ -655,23 +665,23 @@ section \<open>Closure and Limit Characterization\<close>
 
 lemma closure_approachable:
   fixes S :: "'a::metric_space set"
-  shows "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e)"
+  shows "x \<in> closure S \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>y\<in>S. dist y x < \<epsilon>)"
   using dist_self by (force simp: closure_def islimpt_approachable)
 
 lemma closure_approachable_le:
   fixes S :: "'a::metric_space set"
-  shows "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x \<le> e)"
+  shows "x \<in> closure S \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>y\<in>S. dist y x \<le> \<epsilon>)"
   unfolding closure_approachable
   using dense by force
 
 lemma closure_approachableD:
-  assumes "x \<in> closure S" "e>0"
-  shows "\<exists>y\<in>S. dist x y < e"
+  assumes "x \<in> closure S" "\<epsilon>>0"
+  shows "\<exists>y\<in>S. dist x y < \<epsilon>"
   using assms unfolding closure_approachable by (auto simp: dist_commute)
 
 lemma closed_approachable:
   fixes S :: "'a::metric_space set"
-  shows "closed S \<Longrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
+  shows "closed S \<Longrightarrow> (\<forall>\<epsilon>>0. \<exists>y\<in>S. dist y x < \<epsilon>) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
 
 lemma closure_contains_Inf:
@@ -681,12 +691,12 @@ lemma closure_contains_Inf:
 proof -
   have *: "\<forall>x\<in>S. Inf S \<le> x"
     using cInf_lower[of _ S] assms by metis
-  { fix e :: real
-    assume "e > 0"
-    then have "Inf S < Inf S + e" by simp
-    with assms obtain x where "x \<in> S" "x < Inf S + e"
+  { fix \<epsilon> :: real
+    assume "\<epsilon> > 0"
+    then have "Inf S < Inf S + \<epsilon>" by simp
+    with assms obtain x where "x \<in> S" "x < Inf S + \<epsilon>"
       using cInf_lessD by blast
-    with * have "\<exists>x\<in>S. dist x (Inf S) < e"
+    with * have "\<exists>x\<in>S. dist x (Inf S) < \<epsilon>"
       using dist_real_def by force
   }
   then show ?thesis unfolding closure_approachable by auto
@@ -700,43 +710,43 @@ proof -
   have *: "\<forall>x\<in>S. x \<le> Sup S"
     using cSup_upper[of _ S] assms by metis
   {
-    fix e :: real
-    assume "e > 0"
-    then have "Sup S - e < Sup S" by simp
-    with assms obtain x where "x \<in> S" "Sup S - e < x"
+    fix \<epsilon> :: real
+    assume "\<epsilon> > 0"
+    then have "Sup S - \<epsilon> < Sup S" by simp
+    with assms obtain x where "x \<in> S" "Sup S - \<epsilon> < x"
       using less_cSupE by blast
-    with * have "\<exists>x\<in>S. dist x (Sup S) < e"
+    with * have "\<exists>x\<in>S. dist x (Sup S) < \<epsilon>"
       using dist_real_def by force
   }
   then show ?thesis unfolding closure_approachable by auto
 qed
 
 lemma not_trivial_limit_within_ball:
-  "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"
+  "\<not> trivial_limit (at x within S) \<longleftrightarrow> (\<forall>\<epsilon>>0. S \<inter> ball x \<epsilon> - {x} \<noteq> {})"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   show ?rhs if ?lhs
   proof -
-    { fix e :: real
-      assume "e > 0"
-      then obtain y where "y \<in> S - {x}" and "dist y x < e"
+    { fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      then obtain y where "y \<in> S - {x}" and "dist y x < \<epsilon>"
         using \<open>?lhs\<close> not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"]
         by auto
-      then have "y \<in> S \<inter> ball x e - {x}"
+      then have "y \<in> S \<inter> ball x \<epsilon> - {x}"
         unfolding ball_def by (simp add: dist_commute)
-      then have "S \<inter> ball x e - {x} \<noteq> {}" by blast
+      then have "S \<inter> ball x \<epsilon> - {x} \<noteq> {}" by blast
     }
     then show ?thesis by auto
   qed
   show ?lhs if ?rhs
   proof -
-    { fix e :: real
-      assume "e > 0"
-      then obtain y where "y \<in> S \<inter> ball x e - {x}"
+    { fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      then obtain y where "y \<in> S \<inter> ball x \<epsilon> - {x}"
         using \<open>?rhs\<close> by blast
-      then have "y \<in> S - {x}" and "dist y x < e"
+      then have "y \<in> S - {x}" and "dist y x < \<epsilon>"
         unfolding ball_def by (simp_all add: dist_commute)
-      then have "\<exists>y \<in> S - {x}. dist y x < e"
+      then have "\<exists>y \<in> S - {x}. dist y x < \<epsilon>"
         by auto
     }
     then show ?thesis
@@ -750,12 +760,12 @@ section \<open>Boundedness\<close>
 
   (* FIXME: This has to be unified with BSEQ!! *)
 definition\<^marker>\<open>tag important\<close> (in metric_space) bounded :: "'a set \<Rightarrow> bool"
-  where "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
+  where "bounded S \<longleftrightarrow> (\<exists>x \<epsilon>. \<forall>y\<in>S. dist x y \<le> \<epsilon>)"
 
-lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e \<and> 0 \<le> e)"
+lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>\<epsilon> x. S \<subseteq> cball x \<epsilon> \<and> 0 \<le> \<epsilon>)"
   unfolding bounded_def subset_eq  by auto (meson order_trans zero_le_dist)
 
-lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
+lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>\<epsilon>. \<forall>y\<in>S. dist a y \<le> \<epsilon>)"
   unfolding bounded_def
   by auto (metis add.commute add_le_cancel_right dist_commute dist_triangle_le)
 
@@ -806,14 +816,15 @@ qed
 lemma bounded_closure_image: "bounded (f ` closure S) \<Longrightarrow> bounded (f ` S)"
   by (simp add: bounded_subset closure_subset image_mono)
 
-lemma bounded_cball[simp,intro]: "bounded (cball x e)"
+lemma bounded_cball[simp,intro]: "bounded (cball x \<epsilon>)"
   unfolding bounded_def  using mem_cball by blast
 
-lemma bounded_ball[simp,intro]: "bounded (ball x e)"
+lemma bounded_ball[simp,intro]: "bounded (ball x \<epsilon>)"
   by (metis ball_subset_cball bounded_cball bounded_subset)
 
 lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S \<and> bounded T"
-  by (auto simp: bounded_def) (metis Un_iff bounded_any_center le_max_iff_disj)
+  unfolding bounded_def
+  by (metis Un_iff bounded_any_center order.trans linorder_linear)
 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> \<forall>S\<in>F. bounded S \<Longrightarrow> bounded (\<Union>F)"
   by (induct rule: finite_induct[of F]) auto
@@ -822,14 +833,7 @@ lemma bounded_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. bounded 
   by auto
 
 lemma bounded_insert [simp]: "bounded (insert x S) \<longleftrightarrow> bounded S"
-proof -
-  have "\<forall>y\<in>{x}. dist x y \<le> 0"
-    by simp
-  then have "bounded {x}"
-    unfolding bounded_def by fast
-  then show ?thesis
-    by (metis insert_is_Un bounded_Un)
-qed
+  by (metis bounded_Un bounded_cball cball_trivial insert_is_Un)
 
 lemma bounded_subset_ballI: "S \<subseteq> ball x r \<Longrightarrow> bounded S"
   by (meson bounded_ball bounded_subset)
@@ -837,10 +841,10 @@ lemma bounded_subset_ballI: "S \<subseteq> ball x r \<Longrightarrow> bounded S"
 lemma bounded_subset_ballD:
   assumes "bounded S" shows "\<exists>r. 0 < r \<and> S \<subseteq> ball x r"
 proof -
-  obtain e::real and y where "S \<subseteq> cball y e" "0 \<le> e"
+  obtain \<epsilon>::real and y where "S \<subseteq> cball y \<epsilon>" "0 \<le> \<epsilon>"
     using assms by (auto simp: bounded_subset_cball)
   then show ?thesis
-    by (intro exI[where x="dist x y + e + 1"]) metric
+    by (intro exI[where x="dist x y + \<epsilon> + 1"]) metric
 qed
 
 lemma finite_imp_bounded [intro]: "finite S \<Longrightarrow> bounded S"
@@ -866,12 +870,12 @@ proof -
 qed
 
 lemma bounded_Times:
-  assumes "bounded s" "bounded t"
-  shows "bounded (s \<times> t)"
+  assumes "bounded S" "bounded T"
+  shows "bounded (S \<times> T)"
 proof -
-  obtain x y a b where "\<forall>z\<in>s. dist x z \<le> a" "\<forall>z\<in>t. dist y z \<le> b"
+  obtain x y a b where "\<forall>z\<in>S. dist x z \<le> a" "\<forall>z\<in>T. dist y z \<le> b"
     using assms [unfolded bounded_def] by auto
-  then have "\<forall>z\<in>s \<times> t. dist (x, y) z \<le> sqrt (a\<^sup>2 + b\<^sup>2)"
+  then have "\<forall>z\<in>S \<times> T. dist (x, y) z \<le> sqrt (a\<^sup>2 + b\<^sup>2)"
     by (auto simp: dist_Pair_Pair real_sqrt_le_mono add_mono power_mono)
   then show ?thesis unfolding bounded_any_center [where a="(x, y)"] by auto
 qed
@@ -931,26 +935,26 @@ text \<open>
 \<close>
 lemma compact_subset_open_imp_ball_epsilon_subset:
   assumes "compact A" "open B" "A \<subseteq> B"
-  obtains e where "e > 0"  "(\<Union>x\<in>A. ball x e) \<subseteq> B"
+  obtains \<epsilon> where "\<epsilon> > 0"  "(\<Union>x\<in>A. ball x \<epsilon>) \<subseteq> B"
 proof -
-  have "\<forall>x\<in>A. \<exists>e. e > 0 \<and> ball x e \<subseteq> B"
+  have "\<forall>x\<in>A. \<exists>\<epsilon>. \<epsilon> > 0 \<and> ball x \<epsilon> \<subseteq> B"
     using assms unfolding open_contains_ball by blast
-  then obtain e where e: "\<And>x. x \<in> A \<Longrightarrow> e x > 0" "\<And>x. x \<in> A \<Longrightarrow> ball x (e x) \<subseteq> B"
+  then obtain \<epsilon> where \<epsilon>: "\<And>x. x \<in> A \<Longrightarrow> \<epsilon> x > 0" "\<And>x. x \<in> A \<Longrightarrow> ball x (\<epsilon> x) \<subseteq> B"
     by metis
-  define C where "C = e ` A"
-  obtain X where X: "X \<subseteq> A" "finite X" "A \<subseteq> (\<Union>c\<in>X. ball c (e c / 2))"
-    using assms(1)
+  define C where "C = \<epsilon> ` A"
+  obtain X where X: "X \<subseteq> A" "finite X" "A \<subseteq> (\<Union>c\<in>X. ball c (\<epsilon> c / 2))"
+    using \<open>compact A\<close>
   proof (rule compactE_image)
-    show "open (ball x (e x / 2))" if "x \<in> A" for x
+    show "open (ball x (\<epsilon> x / 2))" if "x \<in> A" for x
       by simp
-    show "A \<subseteq> (\<Union>c\<in>A. ball c (e c / 2))"
-      using e by auto
+    show "A \<subseteq> (\<Union>c\<in>A. ball c (\<epsilon> c / 2))"
+      using \<epsilon> by auto
   qed auto
 
-  define e' where "e' = Min (insert 1 ((\<lambda>x. e x / 2) ` X))"
+  define e' where "e' = Min (insert 1 ((\<lambda>x. \<epsilon> x / 2) ` X))"
   have "e' > 0"
-    unfolding e'_def using e X by (subst Min_gr_iff) auto
-  have e': "e' \<le> e x / 2" if "x \<in> X" for x
+    unfolding e'_def using \<epsilon> X by (subst Min_gr_iff) auto
+  have e': "e' \<le> \<epsilon> x / 2" if "x \<in> X" for x
     using that X unfolding e'_def by (intro Min.coboundedI) auto
 
   show ?thesis
@@ -961,20 +965,20 @@ proof -
     show "(\<Union>x\<in>A. ball x e') \<subseteq> B"
     proof clarify
       fix x y assume xy: "x \<in> A" "y \<in> ball x e'"
-      from xy(1) X obtain z where z: "z \<in> X" "x \<in> ball z (e z / 2)"
+      from xy(1) X obtain z where z: "z \<in> X" "x \<in> ball z (\<epsilon> z / 2)"
         by auto
       have "dist y z \<le> dist x y + dist z x"
         by (metis dist_commute dist_triangle)
-      also have "dist z x < e z / 2"
+      also have "dist z x < \<epsilon> z / 2"
         using xy z by auto
       also have "dist x y < e'"
         using xy by auto
-      also have "\<dots> \<le> e z / 2"
+      also have "\<dots> \<le> \<epsilon> z / 2"
         using z by (intro e') auto
-      finally have "y \<in> ball z (e z)"
+      finally have "y \<in> ball z (\<epsilon> z)"
         by (simp add: dist_commute)
       also have "\<dots> \<subseteq> B"
-        using z X by (intro e) auto
+        using z X by (intro \<epsilon>) auto
       finally show "y \<in> B" .
     qed
   qed
@@ -982,42 +986,42 @@ qed
 
 lemma compact_subset_open_imp_cball_epsilon_subset:
   assumes "compact A" "open B" "A \<subseteq> B"
-  obtains e where "e > 0"  "(\<Union>x\<in>A. cball x e) \<subseteq> B"
+  obtains \<epsilon> where "\<epsilon> > 0"  "(\<Union>x\<in>A. cball x \<epsilon>) \<subseteq> B"
 proof -
-  obtain e where "e > 0" and e: "(\<Union>x\<in>A. ball x e) \<subseteq> B"
+  obtain \<epsilon> where "\<epsilon> > 0" and \<epsilon>: "(\<Union>x\<in>A. ball x \<epsilon>) \<subseteq> B"
     using compact_subset_open_imp_ball_epsilon_subset [OF assms] by blast
-  then have "(\<Union>x\<in>A. cball x (e / 2)) \<subseteq> (\<Union>x\<in>A. ball x e)"
+  then have "(\<Union>x\<in>A. cball x (\<epsilon> / 2)) \<subseteq> (\<Union>x\<in>A. ball x \<epsilon>)"
     by auto
-  with \<open>0 < e\<close> that show ?thesis
-    by (metis e half_gt_zero_iff order_trans)
+  with \<open>0 < \<epsilon>\<close> that show ?thesis
+    by (metis \<epsilon> half_gt_zero_iff order_trans)
 qed
 
 subsubsection\<open>Totally bounded\<close>
 
 proposition seq_compact_imp_totally_bounded:
   assumes "seq_compact S"
-  shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>k. ball x e)"
+  shows "\<forall>\<epsilon>>0. \<exists>k. finite k \<and> k \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>k. ball x \<epsilon>)"
 proof -
-  { fix e::real assume "e > 0" assume *: "\<And>k. finite k \<Longrightarrow> k \<subseteq> S \<Longrightarrow> \<not> S \<subseteq> (\<Union>x\<in>k. ball x e)"
-    let ?Q = "\<lambda>x n r. r \<in> S \<and> (\<forall>m < (n::nat). \<not> (dist (x m) r < e))"
+  { fix \<epsilon>::real assume "\<epsilon> > 0" assume *: "\<And>k. finite k \<Longrightarrow> k \<subseteq> S \<Longrightarrow> \<not> S \<subseteq> (\<Union>x\<in>k. ball x \<epsilon>)"
+    let ?Q = "\<lambda>x n r. r \<in> S \<and> (\<forall>m < (n::nat). \<not> (dist (x m) r < \<epsilon>))"
     have "\<exists>x. \<forall>n::nat. ?Q x n (x n)"
     proof (rule dependent_wellorder_choice)
       fix n x assume "\<And>y. y < n \<Longrightarrow> ?Q x y (x y)"
-      then have "\<not> S \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x e)"
+      then have "\<not> S \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x \<epsilon>)"
         using *[of "x ` {0 ..< n}"] by (auto simp: subset_eq)
-      then obtain z where z:"z\<in>S" "z \<notin> (\<Union>x\<in>x ` {0..<n}. ball x e)"
+      then obtain z where z:"z\<in>S" "z \<notin> (\<Union>x\<in>x ` {0..<n}. ball x \<epsilon>)"
         unfolding subset_eq by auto
       show "\<exists>r. ?Q x n r"
         using z by auto
     qed simp
-    then obtain x where "\<forall>n::nat. x n \<in> S" and x:"\<And>n m. m < n \<Longrightarrow> \<not> (dist (x m) (x n) < e)"
+    then obtain x where "\<forall>n::nat. x n \<in> S" and x:"\<And>n m. m < n \<Longrightarrow> \<not> (dist (x m) (x n) < \<epsilon>)"
       by blast
-    then obtain l r where "l \<in> S" and r:"strict_mono  r" and "((x \<circ> r) \<longlongrightarrow> l) sequentially"
+    then obtain l r where "l \<in> S" and r:"strict_mono  r" and "(x \<circ> r) \<longlonglongrightarrow> l"
       using assms by (metis seq_compact_def)
     then have "Cauchy (x \<circ> r)"
       using LIMSEQ_imp_Cauchy by auto
-    then obtain N::nat where "\<And>m n. N \<le> m \<Longrightarrow> N \<le> n \<Longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e"
-      unfolding Cauchy_def using \<open>e > 0\<close> by blast
+    then obtain N::nat where "\<And>m n. N \<le> m \<Longrightarrow> N \<le> n \<Longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < \<epsilon>"
+      unfolding Cauchy_def using \<open>\<epsilon> > 0\<close> by blast
     then have False
       using x[of "r N" "r (N+1)"] r by (auto simp: strict_mono_def) }
   then show ?thesis
@@ -1031,39 +1035,38 @@ proposition seq_compact_imp_Heine_Borel:
   assumes "seq_compact S"
   shows "compact S"
 proof -
-  from seq_compact_imp_totally_bounded[OF \<open>seq_compact S\<close>]
-  obtain f where f: "\<forall>e>0. finite (f e) \<and> f e \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>f e. ball x e)"
-    unfolding choice_iff' ..
-  define K where "K = (\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
+  obtain f where f: "\<forall>\<epsilon>>0. finite (f \<epsilon>) \<and> f \<epsilon> \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>f \<epsilon>. ball x \<epsilon>)"
+    by (metis assms seq_compact_imp_totally_bounded)
+  define K where "K = (\<lambda>(x, r). ball x r) ` ((\<Union>\<epsilon> \<in> \<rat> \<inter> {0 <..}. f \<epsilon>) \<times> \<rat>)"
   have "countably_compact S"
     using \<open>seq_compact S\<close> by (rule seq_compact_imp_countably_compact)
   then show "compact S"
   proof (rule countably_compact_imp_compact)
     show "countable K"
       unfolding K_def using f
-      by (auto intro: countable_finite countable_subset countable_rat
-               intro!: countable_image countable_SIGMA countable_UN)
+      by (meson countable_Int1 countable_SIGMA countable_UN countable_finite 
+          countable_image countable_rat greaterThan_iff inf_le2 subset_iff)
     show "\<forall>b\<in>K. open b" by (auto simp: K_def)
   next
     fix T x
     assume T: "open T" "x \<in> T" and x: "x \<in> S"
-    from openE[OF T] obtain e where "0 < e" "ball x e \<subseteq> T"
+    from openE[OF T] obtain \<epsilon> where "0 < \<epsilon>" "ball x \<epsilon> \<subseteq> T"
       by auto
-    then have "0 < e/2" "ball x (e/2) \<subseteq> T"
+    then have "0 < \<epsilon>/2" "ball x (\<epsilon>/2) \<subseteq> T"
       by auto
-    from Rats_dense_in_real[OF \<open>0 < e/2\<close>] obtain r where "r \<in> \<rat>" "0 < r" "r < e/2"
+    from Rats_dense_in_real[OF \<open>0 < \<epsilon>/2\<close>] obtain r where "r \<in> \<rat>" "0 < r" "r < \<epsilon>/2"
       by auto
     from f[rule_format, of r] \<open>0 < r\<close> \<open>x \<in> S\<close> obtain k where "k \<in> f r" "x \<in> ball k r"
       by auto
     from \<open>r \<in> \<rat>\<close> \<open>0 < r\<close> \<open>k \<in> f r\<close> have "ball k r \<in> K"
       by (auto simp: K_def)
     then show "\<exists>b\<in>K. x \<in> b \<and> b \<inter> S \<subseteq> T"
-    proof (rule bexI[rotated], safe)
+    proof (rule rev_bexI, intro conjI subsetI)
       fix y
-      assume "y \<in> ball k r"
-      with \<open>r < e/2\<close> \<open>x \<in> ball k r\<close> have "dist x y < e"
-        by (intro dist_triangle_half_r [of k _ e]) (auto simp: dist_commute)
-      with \<open>ball x e \<subseteq> T\<close> show "y \<in> T"
+      assume "y \<in> ball k r \<inter> S"
+      with \<open>r < \<epsilon>/2\<close> \<open>x \<in> ball k r\<close> have "dist x y < \<epsilon>"
+        by (intro dist_triangle_half_r [of k _ \<epsilon>]) (auto simp: dist_commute)
+      with \<open>ball x \<epsilon> \<subseteq> T\<close> show "y \<in> T"
         by auto
     next
       show "x \<in> ball k r" by fact
@@ -1095,37 +1098,34 @@ proposition Bolzano_Weierstrass_imp_bounded:
 section \<open>Banach fixed point theorem\<close>
   
 theorem Banach_fix:
-  assumes s: "complete s" "s \<noteq> {}"
+  assumes S: "complete S" "S \<noteq> {}"
     and c: "0 \<le> c" "c < 1"
-    and f: "f ` s \<subseteq> s"
-    and lipschitz: "\<forall>x\<in>s. \<forall>y\<in>s. dist (f x) (f y) \<le> c * dist x y"
-  shows "\<exists>!x\<in>s. f x = x"
+    and f: "f ` S \<subseteq> S"
+    and lipschitz: "\<And>x y. \<lbrakk>x\<in>S; y\<in>S\<rbrakk> \<Longrightarrow> dist (f x) (f y) \<le> c * dist x y"
+  shows "\<exists>!x\<in>S. f x = x"
 proof -
-  from c have "1 - c > 0" by simp
-
-  from s(2) obtain z0 where z0: "z0 \<in> s" by blast
+  from S obtain z0 where z0: "z0 \<in> S" by blast
   define z where "z n = (f ^^ n) z0" for n
-  with f z0 have z_in_s: "z n \<in> s" for n :: nat
+  with f z0 have z_in_s: "z n \<in> S" for n :: nat
     by (induct n) auto
-  define d where "d = dist (z 0) (z 1)"
+  define \<delta> where "\<delta> = dist (z 0) (z 1)"
 
   have fzn: "f (z n) = z (Suc n)" for n
     by (simp add: z_def)
-  have cf_z: "dist (z n) (z (Suc n)) \<le> (c ^ n) * d" for n :: nat
+  have cf_z: "dist (z n) (z (Suc n)) \<le> (c ^ n) * \<delta>" for n :: nat
   proof (induct n)
     case 0
     then show ?case
-      by (simp add: d_def)
+      by (simp add: \<delta>_def)
   next
     case (Suc m)
-    with \<open>0 \<le> c\<close> have "c * dist (z m) (z (Suc m)) \<le> c ^ Suc m * d"
-      using mult_left_mono[of "dist (z m) (z (Suc m))" "c ^ m * d" c] by simp
+    with \<open>0 \<le> c\<close> have "c * dist (z m) (z (Suc m)) \<le> c ^ Suc m * \<delta>"
+      using mult_left_mono[of "dist (z m) (z (Suc m))" "c ^ m * \<delta>" c] by simp
     then show ?case
-      using lipschitz[THEN bspec[where x="z m"], OF z_in_s, THEN bspec[where x="z (Suc m)"], OF z_in_s]
-      by (simp add: fzn mult_le_cancel_left)
+      by (metis fzn lipschitz order_trans z_in_s)
   qed
 
-  have cf_z2: "(1 - c) * dist (z m) (z (m + n)) \<le> (c ^ m) * d * (1 - c ^ n)" for n m :: nat
+  have cf_z2: "(1 - c) * dist (z m) (z (m + n)) \<le> (c ^ m) * \<delta> * (1 - c ^ n)" for n m :: nat
   proof (induct n)
     case 0
     show ?case by simp
@@ -1134,100 +1134,97 @@ proof -
     from c have "(1 - c) * dist (z m) (z (m + Suc k)) \<le>
         (1 - c) * (dist (z m) (z (m + k)) + dist (z (m + k)) (z (Suc (m + k))))"
       by (simp add: dist_triangle)
-    also from c cf_z[of "m + k"] have "\<dots> \<le> (1 - c) * (dist (z m) (z (m + k)) + c ^ (m + k) * d)"
+    also from c cf_z[of "m + k"] have "\<dots> \<le> (1 - c) * (dist (z m) (z (m + k)) + c ^ (m + k) * \<delta>)"
       by simp
-    also from Suc have "\<dots> \<le> c ^ m * d * (1 - c ^ k) + (1 - c) * c ^ (m + k) * d"
+    also from Suc have "\<dots> \<le> c ^ m * \<delta> * (1 - c ^ k) + (1 - c) * c ^ (m + k) * \<delta>"
       by (simp add: field_simps)
-    also have "\<dots> = (c ^ m) * (d * (1 - c ^ k) + (1 - c) * c ^ k * d)"
+    also have "\<dots> = (c ^ m) * (\<delta> * (1 - c ^ k) + (1 - c) * c ^ k * \<delta>)"
       by (simp add: power_add field_simps)
-    also from c have "\<dots> \<le> (c ^ m) * d * (1 - c ^ Suc k)"
+    also from c have "\<dots> \<le> (c ^ m) * \<delta> * (1 - c ^ Suc k)"
       by (simp add: field_simps)
-    finally show ?case by simp
+    finally show ?case .
   qed
 
-  have "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (z m) (z n) < e" if "e > 0" for e
-  proof (cases "d = 0")
+  have "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (z m) (z n) < \<epsilon>" if "\<epsilon> > 0" for \<epsilon>
+  proof (cases "\<delta> = 0")
     case True
-    from \<open>1 - c > 0\<close> have "(1 - c) * x \<le> 0 \<longleftrightarrow> x \<le> 0" for x
-      by (simp add: mult_le_0_iff)
+    have "(1 - c) * x \<le> 0 \<longleftrightarrow> x \<le> 0" for x
+      using c mult_le_0_iff nle_le by fastforce
     with c cf_z2[of 0] True have "z n = z0" for n
       by (simp add: z_def)
-    with \<open>e > 0\<close> show ?thesis by simp
+    with \<open>\<epsilon> > 0\<close> show ?thesis by simp
   next
     case False
-    with zero_le_dist[of "z 0" "z 1"] have "d > 0"
-      by (metis d_def less_le)
-    with \<open>1 - c > 0\<close> \<open>e > 0\<close> have "0 < e * (1 - c) / d"
+    with zero_le_dist[of "z 0" "z 1"] have "\<delta> > 0"
+      by (metis \<delta>_def less_le)
+    with c \<open>\<epsilon> > 0\<close> have "0 < \<epsilon> * (1 - c) / \<delta>"
       by simp
-    with c obtain N where N: "c ^ N < e * (1 - c) / d"
-      using real_arch_pow_inv[of "e * (1 - c) / d" c] by auto
-    have *: "dist (z m) (z n) < e" if "m > n" and as: "m \<ge> N" "n \<ge> N" for m n :: nat
+    with c obtain N where N: "c ^ N < \<epsilon> * (1 - c) / \<delta>"
+      using real_arch_pow_inv[of "\<epsilon> * (1 - c) / \<delta>" c] by auto
+    have *: "dist (z m) (z n) < \<epsilon>" if "m > n" and as: "m \<ge> N" "n \<ge> N" for m n :: nat
     proof -
-      from c \<open>n \<ge> N\<close> have *: "c ^ n \<le> c ^ N"
-        using power_decreasing[OF \<open>n\<ge>N\<close>, of c] by simp
-      from c \<open>m > n\<close> have "1 - c ^ (m - n) > 0"
-        using power_strict_mono[of c 1 "m - n"] by simp
-      with \<open>d > 0\<close> \<open>0 < 1 - c\<close> have **: "d * (1 - c ^ (m - n)) / (1 - c) > 0"
+      have *: "c ^ n \<le> c ^ N"
+        using power_decreasing[OF \<open>n\<ge>N\<close>, of c] c by simp
+      have "1 - c ^ (m - n) > 0"
+        using power_strict_mono[of c 1 "m - n"] c \<open>m > n\<close> by simp
+      with \<open>\<delta> > 0\<close> c have **: "\<delta> * (1 - c ^ (m - n)) / (1 - c) > 0"
         by simp
       from cf_z2[of n "m - n"] \<open>m > n\<close>
-      have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
-        by (simp add: pos_le_divide_eq[OF \<open>1 - c > 0\<close>] mult.commute dist_commute)
-      also have "\<dots> \<le> c ^ N * d * (1 - c ^ (m - n)) / (1 - c)"
+      have "dist (z m) (z n) \<le> c ^ n * \<delta> * (1 - c ^ (m - n)) / (1 - c)"
+        by (simp add: pos_le_divide_eq c mult.commute dist_commute)
+      also have "\<dots> \<le> c ^ N * \<delta> * (1 - c ^ (m - n)) / (1 - c)"
         using mult_right_mono[OF * order_less_imp_le[OF **]]
         by (simp add: mult.assoc)
-      also have "\<dots> < (e * (1 - c) / d) * d * (1 - c ^ (m - n)) / (1 - c)"
+      also have "\<dots> < (\<epsilon> * (1 - c) / \<delta>) * \<delta> * (1 - c ^ (m - n)) / (1 - c)"
         using mult_strict_right_mono[OF N **] by (auto simp: mult.assoc)
-      also from c \<open>1 - c ^ (m - n) > 0\<close> \<open>e > 0\<close> have "\<dots> \<le> e"
-        using mult_right_le_one_le[of e "1 - c ^ (m - n)"] by auto
-      finally show ?thesis by simp
+      also from c \<open>1 - c ^ (m - n) > 0\<close> \<open>\<epsilon> > 0\<close> have "\<dots> \<le> \<epsilon>"
+        using mult_right_le_one_le[of \<epsilon> "1 - c ^ (m - n)"] by auto
+      finally show ?thesis .
     qed
-    have "dist (z n) (z m) < e" if "N \<le> m" "N \<le> n" for m n :: nat
-      using  *[of n m] *[of m n]
-      using \<open>0 < e\<close> dist_commute_lessI that by fastforce
+    have "dist (z n) (z m) < \<epsilon>" if "N \<le> m" "N \<le> n" for m n :: nat
+      using *[of n m] *[of m n]
+      using \<open>0 < \<epsilon>\<close> dist_commute_lessI that by fastforce
     then show ?thesis by auto
   qed
   then have "Cauchy z"
     by (metis metric_CauchyI)
-  then obtain x where "x\<in>s" and x:"(z \<longlongrightarrow> x) sequentially"
-    using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
+  then obtain x where "x\<in>S" and x:"(z \<longlongrightarrow> x) sequentially"
+    using \<open>complete S\<close> complete_def z_in_s by blast
 
-  define e where "e = dist (f x) x"
-  have "e = 0"
+  define \<epsilon> where "\<epsilon> = dist (f x) x"
+  have "\<epsilon> = 0"
   proof (rule ccontr)
-    assume "e \<noteq> 0"
-    then have "e > 0"
-      unfolding e_def using zero_le_dist[of "f x" x]
-      by (metis dist_eq_0_iff dist_nz e_def)
-    then obtain N where N:"\<forall>n\<ge>N. dist (z n) x < e/2"
-      using x[unfolded lim_sequentially, THEN spec[where x="e/2"]] by auto
-    then have N':"dist (z N) x < e/2" by auto
+    assume "\<epsilon> \<noteq> 0"
+    then have "\<epsilon> > 0"
+      unfolding \<epsilon>_def using zero_le_dist[of "f x" x]
+      by (metis dist_eq_0_iff dist_nz \<epsilon>_def)
+    then obtain N where N:"\<forall>n\<ge>N. dist (z n) x < \<epsilon>/2"
+      using x[unfolded lim_sequentially, THEN spec[where x="\<epsilon>/2"]] by auto
+    then have N':"dist (z N) x < \<epsilon>/2" by auto
     have *: "c * dist (z N) x \<le> dist (z N) x"
       unfolding mult_le_cancel_right2
       using zero_le_dist[of "z N" x] and c
       by (metis dist_eq_0_iff dist_nz order_less_asym less_le)
     have "dist (f (z N)) (f x) \<le> c * dist (z N) x"
-      using lipschitz[THEN bspec[where x="z N"], THEN bspec[where x=x]]
-      using z_in_s[of N] \<open>x\<in>s\<close> c
-      by auto
-    also have "\<dots> < e/2"
+      by (simp add: \<open>x \<in> S\<close> lipschitz z_in_s)
+    also have "\<dots> < \<epsilon>/2"
       using N' and c using * by auto
     finally show False
       unfolding fzn
-      using N[THEN spec[where x="Suc N"]] and dist_triangle_half_r[of "z (Suc N)" "f x" e x]
-      unfolding e_def
-      by auto
+      by (metis N \<epsilon>_def dist_commute dist_triangle_half_l le_eq_less_or_eq lessI
+          order_less_irrefl)
   qed
-  then have "f x = x" by (auto simp: e_def)
-  moreover have "y = x" if "f y = y" "y \<in> s" for y
+  then have "f x = x" by (auto simp: \<epsilon>_def)
+  moreover have "y = x" if "f y = y" "y \<in> S" for y
   proof -
-    from \<open>x \<in> s\<close> \<open>f x = x\<close> that have "dist x y \<le> c * dist x y"
+    from \<open>x \<in> S\<close> \<open>f x = x\<close> that have "dist x y \<le> c * dist x y"
       using lipschitz by fastforce
     with c and zero_le_dist[of x y] have "dist x y = 0"
       by (simp add: mult_le_cancel_right1)
     then show ?thesis by simp
   qed
   ultimately show ?thesis
-    using \<open>x\<in>s\<close> by blast
+    using \<open>x\<in>S\<close> by blast
 qed
 
 
@@ -1237,7 +1234,7 @@ theorem Edelstein_fix:
   fixes S :: "'a::metric_space set"
   assumes S: "compact S" "S \<noteq> {}"
     and gs: "(g ` S) \<subseteq> S"
-    and dist: "\<forall>x\<in>S. \<forall>y\<in>S. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
+    and dist: "\<And>x y. \<lbrakk>x\<in>S; y\<in>S\<rbrakk> \<Longrightarrow> x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>!x\<in>S. g x = x"
 proof -
   let ?D = "(\<lambda>x. (x, x)) ` S"
@@ -1245,7 +1242,7 @@ proof -
     by (rule compact_continuous_image)
        (auto intro!: S continuous_Pair continuous_ident simp: continuous_on_eq_continuous_within)
 
-  have "\<And>x y e. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> 0 < e \<Longrightarrow> dist y x < e \<Longrightarrow> dist (g y) (g x) < e"
+  have "\<And>x y \<epsilon>. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> 0 < \<epsilon> \<Longrightarrow> dist y x < \<epsilon> \<Longrightarrow> dist (g y) (g x) < \<epsilon>"
     using dist by fastforce
   then have "continuous_on S g"
     by (auto simp: continuous_on_iff)
@@ -1260,7 +1257,7 @@ proof -
   have "g a = a"
     by (metis \<open>a \<in> S\<close> dist gs image_subset_iff le order.strict_iff_not)
   moreover have "\<And>x. x \<in> S \<Longrightarrow> g x = x \<Longrightarrow> x = a"
-    using dist[THEN bspec[where x=a]] \<open>g a = a\<close> and \<open>a\<in>S\<close> by auto
+    using \<open>a \<in> S\<close> calculation dist by fastforce
   ultimately show "\<exists>!x\<in>S. g x = x"
     using \<open>a \<in> S\<close> by blast
 qed
@@ -1277,9 +1274,9 @@ lemma diameter_singleton [simp]: "diameter{x} = 0"
   by (auto simp: diameter_def)
 
 lemma diameter_le:
-  assumes "S \<noteq> {} \<or> 0 \<le> d"
-    and no: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> norm(x - y) \<le> d"
-  shows "diameter S \<le> d"
+  assumes "S \<noteq> {} \<or> 0 \<le> \<delta>"
+    and no: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> norm(x - y) \<le> \<delta>"
+  shows "diameter S \<le> \<delta>"
   using assms
   by (auto simp: dist_norm diameter_def intro: cSUP_least)
 
@@ -1288,14 +1285,14 @@ lemma diameter_bounded_bound:
   assumes S: "bounded S" "x \<in> S" "y \<in> S"
   shows "dist x y \<le> diameter S"
 proof -
-  from S obtain z d where z: "\<And>x. x \<in> S \<Longrightarrow> dist z x \<le> d"
+  from S obtain z \<delta> where z: "\<And>x. x \<in> S \<Longrightarrow> dist z x \<le> \<delta>"
     unfolding bounded_def by auto
   have "bdd_above (case_prod dist ` (S\<times>S))"
   proof (intro bdd_aboveI, safe)
     fix a b
     assume "a \<in> S" "b \<in> S"
     with z[of a] z[of b] dist_triangle[of a b z]
-    show "dist a b \<le> 2 * d"
+    show "dist a b \<le> 2 * \<delta>"
       by (simp add: dist_commute)
   qed
   moreover have "(x,y) \<in> S\<times>S" using S by auto
@@ -1308,25 +1305,25 @@ qed
 lemma diameter_lower_bounded:
   fixes S :: "'a :: metric_space set"
   assumes S: "bounded S"
-    and d: "0 < d" "d < diameter S"
-  shows "\<exists>x\<in>S. \<exists>y\<in>S. d < dist x y"
+    and \<delta>: "0 < \<delta>" "\<delta> < diameter S"
+  shows "\<exists>x\<in>S. \<exists>y\<in>S. \<delta> < dist x y"
 proof (rule ccontr)
   assume contr: "\<not> ?thesis"
   moreover have "S \<noteq> {}"
-    using d by (auto simp: diameter_def)
-  ultimately have "diameter S \<le> d"
+    using \<delta> by (auto simp: diameter_def)
+  ultimately have "diameter S \<le> \<delta>"
     by (auto simp: not_less diameter_def intro!: cSUP_least)
-  with \<open>d < diameter S\<close> show False by auto
+  with \<open>\<delta> < diameter S\<close> show False by auto
 qed
 
 lemma diameter_bounded:
   assumes "bounded S"
   shows "\<forall>x\<in>S. \<forall>y\<in>S. dist x y \<le> diameter S"
-    and "\<forall>d>0. d < diameter S \<longrightarrow> (\<exists>x\<in>S. \<exists>y\<in>S. dist x y > d)"
+    and "\<forall>\<delta>>0. \<delta> < diameter S \<longrightarrow> (\<exists>x\<in>S. \<exists>y\<in>S. dist x y > \<delta>)"
   using diameter_bounded_bound[of S] diameter_lower_bounded[of S] assms
   by auto
 
-lemma bounded_two_points: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>x\<in>S. \<forall>y\<in>S. dist x y \<le> e)"
+lemma bounded_two_points: "bounded S \<longleftrightarrow> (\<exists>\<epsilon>. \<forall>x\<in>S. \<forall>y\<in>S. dist x y \<le> \<epsilon>)"
   by (meson bounded_def diameter_bounded(1))
 
 lemma diameter_compact_attained:
@@ -1347,7 +1344,7 @@ qed
 
 lemma diameter_ge_0:
   assumes "bounded S"  shows "0 \<le> diameter S"
-  by (metis all_not_in_conv assms diameter_bounded_bound diameter_empty dist_self order_refl)
+  by (metis assms diameter_bounded(1) diameter_empty dist_self equals0I order.refl)
 
 lemma diameter_subset:
   assumes "S \<subseteq> T" "bounded T"
@@ -1361,38 +1358,43 @@ next
   then have "bdd_above ((\<lambda>x. case x of (x, xa) \<Rightarrow> dist x xa) ` (T \<times> T))"
     using \<open>bounded T\<close> diameter_bounded_bound by (force simp: bdd_above_def)
   with False \<open>S \<subseteq> T\<close> show ?thesis
-    apply (simp add: diameter_def)
-    apply (rule cSUP_subset_mono, auto)
-    done
+    by (simp add: diameter_def cSUP_subset_mono times_subset_iff)
 qed
 
 lemma diameter_closure:
   assumes "bounded S"
   shows "diameter(closure S) = diameter S"
 proof (rule order_antisym)
-  have "False" if d_less_d: "diameter S < diameter (closure S)"
+  have False if d_less_d: "diameter S < diameter (closure S)"
   proof -
-    define d where "d = diameter(closure S) - diameter(S)"
-    have "d > 0"
-      using that by (simp add: d_def)
-    then have dle: "diameter(closure(S)) - d / 2 < diameter(closure(S))"
+    define \<delta> where "\<delta> = diameter(closure S) - diameter(S)"
+    have "\<delta> > 0"
+      using that by (simp add: \<delta>_def)
+    then have dle: "diameter(closure(S)) - \<delta> / 2 < diameter(closure(S))"
       by simp
-    have dd: "diameter (closure S) - d / 2 = (diameter(closure(S)) + diameter(S)) / 2"
-      by (simp add: d_def field_split_simps)
+    have dd: "diameter (closure S) - \<delta> / 2 = (diameter(closure(S)) + diameter(S)) / 2"
+      by (simp add: \<delta>_def field_split_simps)
      have bocl: "bounded (closure S)"
       using assms by blast
-    moreover have "0 \<le> diameter S"
-      using assms diameter_ge_0 by blast
-    ultimately obtain x y where "x \<in> closure S" "y \<in> closure S" and xy: "diameter(closure(S)) - d / 2 < dist x y"
-      by (smt (verit) dle d_less_d d_def dd diameter_lower_bounded)
-    then obtain x' y' where x'y': "x' \<in> S" "dist x' x < d/4" "y' \<in> S" "dist y' y < d/4"
-      by (metis \<open>0 < d\<close> zero_less_divide_iff zero_less_numeral closure_approachable)
+    moreover 
+    have "diameter S \<noteq> 0"
+      using diameter_bounded_bound [OF assms]
+      by (metis closure_closed discrete_imp_closed dist_le_zero_iff not_less_iff_gr_or_eq
+          that)
+    then have "0 < diameter S"
+      using assms diameter_ge_0 by fastforce
+    ultimately obtain x y where "x \<in> closure S" "y \<in> closure S" and xy: "diameter(closure(S)) - \<delta> / 2 < dist x y"
+      using diameter_lower_bounded [OF bocl, of "diameter S"]
+      by (metis d_less_d diameter_bounded(2) dist_not_less_zero dist_self dle
+          not_less_iff_gr_or_eq)
+    then obtain x' y' where x'y': "x' \<in> S" "dist x' x < \<delta>/4" "y' \<in> S" "dist y' y < \<delta>/4"
+      by (metis \<open>0 < \<delta>\<close> zero_less_divide_iff zero_less_numeral closure_approachable)
     then have "dist x' y' \<le> diameter S"
       using assms diameter_bounded_bound by blast
-    with x'y' have "dist x y \<le> d / 4 + diameter S + d / 4"
+    with x'y' have "dist x y \<le> \<delta> / 4 + diameter S + \<delta> / 4"
       by (meson add_mono dist_triangle dist_triangle3 less_eq_real_def order_trans)
     then show ?thesis
-      using xy d_def by linarith
+      using xy \<delta>_def by linarith
   qed
   then show "diameter (closure S) \<le> diameter S"
     by fastforce
@@ -1410,14 +1412,9 @@ proof (cases "S = {}")
     by (metis \<open>\<C> \<noteq> {}\<close> zero_less_one empty_subsetI equals0I subset_trans that)
 next
   case False
-  { fix x assume "x \<in> S"
-    then obtain C where C: "x \<in> C" "C \<in> \<C>"
-      using \<open>S \<subseteq> \<Union>\<C>\<close> by blast
-    then obtain r where r: "r>0" "ball x (2*r) \<subseteq> C"
-      by (metis field_sum_of_halves half_gt_zero mult.commute mult_2_right ope open_contains_ball)
-    then have "\<exists>r C. r > 0 \<and> ball x (2*r) \<subseteq> C \<and> C \<in> \<C>"
-      using C by blast
-  }
+  have "\<exists>r C. r > 0 \<and> ball x (2*r) \<subseteq> C \<and> C \<in> \<C>" if "x \<in> S" for x
+    by (metis \<open>S \<subseteq> \<Union>\<C>\<close> field_sum_of_halves half_gt_zero mult.commute mult_2_right 
+        UnionE ope open_contains_ball subset_eq that)
   then obtain r where r: "\<And>x. x \<in> S \<Longrightarrow> r x > 0 \<and> (\<exists>C \<in> \<C>. ball x (2*r x) \<subseteq> C)"
     by metis
   then have "S \<subseteq> (\<Union>x \<in> S. ball x (r x))"
@@ -1437,10 +1434,6 @@ next
       by (simp add: \<open>0 < \<delta>\<close>)
     show "\<exists>B \<in> \<C>. T \<subseteq> B" if "T \<subseteq> S" and dia: "diameter T < \<delta>" for T
     proof (cases "T = {}")
-      case True
-      then show ?thesis
-        using \<open>\<C> \<noteq> {}\<close> by blast
-    next
       case False
       then obtain y where "y \<in> T" by blast
       then have "y \<in> S"
@@ -1449,7 +1442,7 @@ next
         using \<open>S \<subseteq> \<Union>\<T>\<close> S0 that by blast
       have "ball y \<delta> \<subseteq> ball y (r x)"
         by (metis \<delta>_def \<open>S0 \<noteq> {}\<close> \<open>finite S0\<close> \<open>x \<in> S0\<close> empty_is_image finite_imageI finite_less_Inf_iff imageI less_irrefl not_le subset_ball)
-      also have "... \<subseteq> ball x (2*r x)"
+      also have "\<dots> \<subseteq> ball x (2*r x)"
         using x by metric
       finally obtain C where "C \<in> \<C>" "ball y \<delta> \<subseteq> C"
         by (meson r \<open>S0 \<subseteq> S\<close> \<open>x \<in> S0\<close> dual_order.trans subsetCE)
@@ -1459,7 +1452,7 @@ next
         using \<open>y \<in> T\<close> dia diameter_bounded_bound by fastforce
       then show ?thesis
         by (meson \<open>C \<in> \<C>\<close> \<open>ball y \<delta> \<subseteq> C\<close> subset_eq)
-    qed
+    qed (use \<open>\<C> \<noteq> {}\<close> in auto)
   qed
 qed
 
@@ -1536,30 +1529,30 @@ lemma compact_lemma_general:
   fixes unproj:: "('b \<Rightarrow> 'c) \<Rightarrow> 'a"
   assumes finite_basis: "finite basis"
   assumes bounded_proj: "\<And>k. k \<in> basis \<Longrightarrow> bounded ((\<lambda>x. x proj k) ` range f)"
-  assumes proj_unproj: "\<And>e k. k \<in> basis \<Longrightarrow> (unproj e) proj k = e k"
+  assumes proj_unproj: "\<And>\<epsilon> k. k \<in> basis \<Longrightarrow> (unproj \<epsilon>) proj k = \<epsilon> k"
   assumes unproj_proj: "\<And>x. unproj (\<lambda>k. x proj k) = x"
-  shows "\<forall>d\<subseteq>basis. \<exists>l::'a. \<exists> r::nat\<Rightarrow>nat.
-    strict_mono r \<and> (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) proj i) (l proj i) < e) sequentially)"
+  shows "\<forall>\<delta>\<subseteq>basis. \<exists>l::'a. \<exists> r::nat\<Rightarrow>nat.
+    strict_mono r \<and> (\<forall>\<epsilon>>0. eventually (\<lambda>n. \<forall>i\<in>\<delta>. dist (f (r n) proj i) (l proj i) < \<epsilon>) sequentially)"
 proof safe
-  fix d :: "'b set"
-  assume d: "d \<subseteq> basis"
-  with finite_basis have "finite d"
+  fix \<delta> :: "'b set"
+  assume \<delta>: "\<delta> \<subseteq> basis"
+  with finite_basis have "finite \<delta>"
     by (blast intro: finite_subset)
-  from this d show "\<exists>l::'a. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and>
-    (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) proj i) (l proj i) < e) sequentially)"
-  proof (induct d)
+  from this \<delta> show "\<exists>l::'a. \<exists>r::nat\<Rightarrow>nat. strict_mono r \<and>
+    (\<forall>\<epsilon>>0. eventually (\<lambda>n. \<forall>i\<in>\<delta>. dist (f (r n) proj i) (l proj i) < \<epsilon>) sequentially)"
+  proof (induct \<delta>)
     case empty
     then show ?case
       unfolding strict_mono_def by auto
   next
-    case (insert k d)
+    case (insert k \<delta>)
     have k[intro]: "k \<in> basis"
       using insert by auto
     have s': "bounded ((\<lambda>x. x proj k) ` range f)"
       using k
       by (rule bounded_proj)
     obtain l1::"'a" and r1 where r1: "strict_mono r1"
-      and lr1: "\<forall>e > 0. \<forall>\<^sub>F n in sequentially. \<forall>i\<in>d. dist (f (r1 n) proj i) (l1 proj i) < e"
+      and lr1: "\<forall>\<epsilon> > 0. \<forall>\<^sub>F n in sequentially. \<forall>i\<in>\<delta>. dist (f (r1 n) proj i) (l1 proj i) < \<epsilon>"
       using insert by auto
     have f': "\<forall>n. f (r1 n) proj k \<in> (\<lambda>x. x proj k) ` range f"
       by simp
@@ -1573,15 +1566,15 @@ proof safe
       using r1 and r2 unfolding r_def o_def strict_mono_def by auto
     moreover
     define l where "l = unproj (\<lambda>i. if i = k then l2 else l1 proj i)"
-    { fix e::real
-      assume "e > 0"
-      from lr1 \<open>e > 0\<close> have N1: "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>d. dist (f (r1 n) proj i) (l1 proj i) < e"
+    { fix \<epsilon>::real
+      assume "\<epsilon> > 0"
+      from lr1 \<open>\<epsilon> > 0\<close> have N1: "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>\<delta>. dist (f (r1 n) proj i) (l1 proj i) < \<epsilon>"
         by blast
-      from lr2 \<open>e > 0\<close> have N2: "\<forall>\<^sub>F n in sequentially. dist (f (r1 (r2 n)) proj k) l2 < e"
+      from lr2 \<open>\<epsilon> > 0\<close> have N2: "\<forall>\<^sub>F n in sequentially. dist (f (r1 (r2 n)) proj k) l2 < \<epsilon>"
         by (rule tendstoD)
-      from r2 N1 have N1': "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>d. dist (f (r1 (r2 n)) proj i) (l1 proj i) < e"
+      from r2 N1 have N1': "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>\<delta>. dist (f (r1 (r2 n)) proj i) (l1 proj i) < \<epsilon>"
         by (rule eventually_subseq)
-      have "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>insert k d. dist (f (r n) proj i) (l proj i) < e"
+      have "\<forall>\<^sub>F n in sequentially. \<forall>i\<in>insert k \<delta>. dist (f (r n) proj i) (l proj i) < \<epsilon>"
         using N1' N2
         by eventually_elim (use insert.prems in \<open>auto simp: l_def r_def o_def proj_unproj\<close>)
     }
@@ -1649,37 +1642,37 @@ proof clarify
 
   note lr' = seq_suble [OF lr(2)]
   {
-    fix e :: real
-    assume "e > 0"
-    from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2"
-      unfolding Cauchy_def using \<open>e > 0\<close> by (meson half_gt_zero)
-    then obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2"
+    fix \<epsilon> :: real
+    assume "\<epsilon> > 0"
+    from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < \<epsilon>/2"
+      unfolding Cauchy_def using \<open>\<epsilon> > 0\<close> by (meson half_gt_zero)
+    then obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < \<epsilon>/2"
       by (metis dist_self lim_sequentially lr(3))
     {
       fix n :: nat
       assume n: "n \<ge> max N M"
-      have "dist ((f \<circ> r) n) l < e/2"
+      have "dist ((f \<circ> r) n) l < \<epsilon>/2"
         using n M by auto
       moreover have "r n \<ge> N"
         using lr'[of n] n by auto
-      then have "dist (f n) ((f \<circ> r) n) < e/2"
+      then have "dist (f n) ((f \<circ> r) n) < \<epsilon>/2"
         using N and n by auto
-      ultimately have "dist (f n) l < e" using n M
+      ultimately have "dist (f n) l < \<epsilon>" using n M
         by metric
     }
-    then have "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast
+    then have "\<exists>N. \<forall>n\<ge>N. dist (f n) l < \<epsilon>" by blast
   }
   then show "\<exists>l\<in>S. (f \<longlongrightarrow> l) sequentially" using \<open>l\<in>S\<close>
     unfolding lim_sequentially by auto
 qed
 
 proposition compact_eq_totally_bounded:
-  "compact S \<longleftrightarrow> complete S \<and> (\<forall>e>0. \<exists>k. finite k \<and> S \<subseteq> (\<Union>x\<in>k. ball x e))"
+  "compact S \<longleftrightarrow> complete S \<and> (\<forall>\<epsilon>>0. \<exists>k. finite k \<and> S \<subseteq> (\<Union>x\<in>k. ball x \<epsilon>))"
     (is "_ \<longleftrightarrow> ?rhs")
 proof
   assume assms: "?rhs"
-  then obtain k where k: "\<And>e. 0 < e \<Longrightarrow> finite (k e)" "\<And>e. 0 < e \<Longrightarrow> S \<subseteq> (\<Union>x\<in>k e. ball x e)"
-    by (auto simp: choice_iff')
+  then obtain k where k: "\<And>\<epsilon>. 0 < \<epsilon> \<Longrightarrow> finite (k \<epsilon>)" "\<And>\<epsilon>. 0 < \<epsilon> \<Longrightarrow> S \<subseteq> (\<Union>x\<in>k \<epsilon>. ball x \<epsilon>)"
+    by metis
 
   show "compact S"
   proof cases
@@ -1693,21 +1686,21 @@ proof
       fix f :: "nat \<Rightarrow> 'a"
       assume f: "\<forall>n. f n \<in> S"
 
-      define e where "e n = 1 / (2 * Suc n)" for n
-      then have [simp]: "\<And>n. 0 < e n" by auto
-      define B where "B n U = (SOME b. infinite {n. f n \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U))" for n U
+      define \<epsilon> where "\<epsilon> n = 1 / (2 * Suc n)" for n
+      then have [simp]: "\<And>n. 0 < \<epsilon> n" by auto
+      define B where "B n U = (SOME b. infinite {n. f n \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (\<epsilon> n) \<inter> U))" for n U
       {
         fix n U
         assume "infinite {n. f n \<in> U}"
-        then have "\<exists>b\<in>k (e n). infinite {i\<in>{n. f n \<in> U}. f i \<in> ball b (e n)}"
+        then have "\<exists>b\<in>k (\<epsilon> n). infinite {i\<in>{n. f n \<in> U}. f i \<in> ball b (\<epsilon> n)}"
           using k f by (intro pigeonhole_infinite_rel) (auto simp: subset_eq)
         then obtain a where
-          "a \<in> k (e n)"
-          "infinite {i \<in> {n. f n \<in> U}. f i \<in> ball a (e n)}" ..
-        then have "\<exists>b. infinite {i. f i \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U)"
-          by (intro exI[of _ "ball a (e n) \<inter> U"] exI[of _ a]) (auto simp: ac_simps)
+          "a \<in> k (\<epsilon> n)"
+          "infinite {i \<in> {n. f n \<in> U}. f i \<in> ball a (\<epsilon> n)}" ..
+        then have "\<exists>b. infinite {i. f i \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (\<epsilon> n) \<inter> U)"
+          by (intro exI[of _ "ball a (\<epsilon> n) \<inter> U"] exI[of _ a]) (auto simp: ac_simps)
         from someI_ex[OF this]
-        have "infinite {i. f i \<in> B n U}" "\<exists>x. B n U \<subseteq> ball x (e n) \<inter> U"
+        have "infinite {i. f i \<in> B n U}" "\<exists>x. B n U \<subseteq> ball x (\<epsilon> n) \<inter> U"
           unfolding B_def by auto
       }
       note B = this
@@ -1718,20 +1711,20 @@ proof
         have "infinite {i. f i \<in> F n}"
           by (induct n) (auto simp: F_def B)
       }
-      then have F: "\<And>n. \<exists>x. F (Suc n) \<subseteq> ball x (e n) \<inter> F n"
+      then have F: "\<And>n. \<exists>x. F (Suc n) \<subseteq> ball x (\<epsilon> n) \<inter> F n"
         using B by (simp add: F_def)
       then have F_dec: "\<And>m n. m \<le> n \<Longrightarrow> F n \<subseteq> F m"
         using decseq_SucI[of F] by (auto simp: decseq_def)
-
-      obtain sel where sel: "\<And>k i. i < sel k i" "\<And>k i. f (sel k i) \<in> F k"
-      proof (atomize_elim, unfold all_conj_distrib[symmetric], intro choice allI)
-        fix k i
+      have "\<exists>x>i. f x \<in> F k" for k i
+      proof -
         have "infinite ({n. f n \<in> F k} - {.. i})"
           using \<open>infinite {n. f n \<in> F k}\<close> by auto
         from infinite_imp_nonempty[OF this]
         show "\<exists>x>i. f x \<in> F k"
           by (simp add: set_eq_iff not_le conj_commute)
       qed
+      then obtain sel where sel: "\<And>k i. i < sel k i" "\<And>k i. f (sel k i) \<in> F k"
+        by meson
 
       define t where "t = rec_nat (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
       have "strict_mono t"
@@ -1746,11 +1739,11 @@ proof
       proof (safe intro!: metric_CauchyI exI elim!: nat_approx_posE)
         fix r :: real and N n m
         assume "1 / Suc N < r" "Suc N \<le> n" "Suc N \<le> m"
-        then have "(f \<circ> t) n \<in> F (Suc N)" "(f \<circ> t) m \<in> F (Suc N)" "2 * e N < r"
-          using F_dec t by (auto simp: e_def field_simps)
-        with F[of N] obtain x where "dist x ((f \<circ> t) n) < e N" "dist x ((f \<circ> t) m) < e N"
+        then have "(f \<circ> t) n \<in> F (Suc N)" "(f \<circ> t) m \<in> F (Suc N)" "2 * \<epsilon> N < r"
+          using F_dec t by (auto simp: \<epsilon>_def field_simps)
+        with F[of N] obtain x where "dist x ((f \<circ> t) n) < \<epsilon> N" "dist x ((f \<circ> t) m) < \<epsilon> N"
           by (auto simp: subset_eq)
-        with \<open>2 * e N < r\<close> show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
+        with \<open>2 * \<epsilon> N < r\<close> show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
           by metric
       qed
 
@@ -1758,7 +1751,10 @@ proof
         using assms unfolding complete_def by blast
     qed
   qed
-qed (metis compact_imp_complete compact_imp_seq_compact seq_compact_imp_totally_bounded)
+next
+  show "compact S \<Longrightarrow> ?rhs"
+    by (metis compact_imp_complete compact_imp_seq_compact seq_compact_imp_totally_bounded)
+qed 
 
 lemma cauchy_imp_bounded:
   assumes "Cauchy S"
@@ -1772,11 +1768,10 @@ proof -
     using finite_imp_bounded[of "S ` {1..N}"] by auto
   then obtain a where a:"\<forall>x\<in>S ` {0..N}. dist (S N) x \<le> a"
     unfolding bounded_any_center [where a="S N"] by auto
-  ultimately show "?thesis"
-    unfolding bounded_any_center [where a="S N"]
-    apply (intro exI [where x="max a 1"])
-    apply (force simp: le_max_iff_disj less_le_not_le)
-    done
+  ultimately have "\<forall>y\<in>range S. dist (S N) y \<le> max a 1"
+    by (force simp: le_max_iff_disj less_le_not_le)
+  then show ?thesis
+    unfolding bounded_any_center [where a="S N"] by blast
 qed
 
 instance heine_borel < complete_space
@@ -1805,18 +1800,12 @@ lemma complete_closed_subset:
   fixes S :: "'a::metric_space set"
   assumes "closed S" and "S \<subseteq> t" and "complete t"
   shows "complete S"
-  using assms complete_Int_closed [of t S] by (simp add: Int_absorb1)
+  by (metis assms complete_Int_closed inf.absorb_iff2)
 
 lemma complete_eq_closed:
   fixes S :: "('a::complete_space) set"
   shows "complete S \<longleftrightarrow> closed S"
-proof
-  assume "closed S" then show "complete S"
-    using subset_UNIV complete_UNIV by (rule complete_closed_subset)
-next
-  assume "complete S" then show "closed S"
-    by (rule complete_imp_closed)
-qed
+  using complete_UNIV complete_closed_subset complete_imp_closed by auto
 
 lemma convergent_eq_Cauchy:
   fixes S :: "nat \<Rightarrow> 'a::complete_space"
@@ -1856,7 +1845,8 @@ lemma continuous_closed_imp_Cauchy_continuous:
 lemma uniformly_continuous_imp_Cauchy_continuous:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   shows "uniformly_continuous_on S f \<Longrightarrow> Cauchy_continuous_on S f"
-  by (simp add: uniformly_continuous_on_def Cauchy_continuous_on_def Cauchy_def image_subset_iff) metis
+  by (metis (no_types, lifting) ext Cauchy_continuous_on_def UNIV_I image_subset_iff
+      o_apply uniformly_continuous_on_Cauchy)
 
 lemma Cauchy_continuous_on_imp_continuous:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space"
@@ -1873,14 +1863,15 @@ proof -
     have "\<sigma> \<longlonglongrightarrow> x"
       unfolding tendsto_iff
     proof (intro strip)
-      fix e :: real
-      assume "e>0"
-      then obtain N where "inverse (Suc N) < e"
+      fix \<epsilon> :: real
+      assume "\<epsilon>>0"
+      then obtain N where "inverse (Suc N) < \<epsilon>"
         using reals_Archimedean by blast
-      then have "\<forall>n. N \<le> n \<longrightarrow> dist (\<rho> n) x < e"
-        by (smt (verit, ccfv_SIG) dx inverse_Suc inverse_less_iff_less inverse_positive_iff_positive of_nat_Suc of_nat_mono)
-      with \<open>e>0\<close> show "\<forall>\<^sub>F n in sequentially. dist (\<sigma> n) x < e"
-        by (auto simp add: eventually_sequentially \<sigma>_def)
+      then have "\<forall>n. N \<le> n \<longrightarrow> dist (\<rho> n) x < \<epsilon>"
+        by (metis dx inverse_positive_iff_positive le_imp_inverse_le nless_le not_less_eq_eq
+            of_nat_mono order_le_less_trans zero_le_dist)
+      with \<open>\<epsilon>>0\<close> show "\<forall>\<^sub>F n in sequentially. dist (\<sigma> n) x < \<epsilon>"
+        by (auto simp: eventually_sequentially \<sigma>_def)
     qed
     then have "Cauchy \<sigma>"
       by (intro LIMSEQ_imp_Cauchy)
@@ -1889,15 +1880,15 @@ proof -
     have "(f \<circ> \<sigma>) \<longlonglongrightarrow> f x"
       unfolding tendsto_iff 
     proof (intro strip)
-      fix e :: real
-      assume "e>0"
-      then obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist ((f \<circ> \<sigma>) m) ((f \<circ> \<sigma>) n) < e"
+      fix \<epsilon> :: real
+      assume "\<epsilon>>0"
+      then obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist ((f \<circ> \<sigma>) m) ((f \<circ> \<sigma>) n) < \<epsilon>"
         using Cf unfolding Cauchy_def by presburger
       moreover have "(f \<circ> \<sigma>) (Suc(N+N)) = f x"
         by (simp add: \<sigma>_def)
-      ultimately have "\<forall>n\<ge>N. dist ((f \<circ> \<sigma>) n) (f x) < e"
+      ultimately have "\<forall>n\<ge>N. dist ((f \<circ> \<sigma>) n) (f x) < \<epsilon>"
         by (metis add_Suc le_add2)
-      then show "\<forall>\<^sub>F n in sequentially. dist ((f \<circ> \<sigma>) n) (f x) < e"
+      then show "\<forall>\<^sub>F n in sequentially. dist ((f \<circ> \<sigma>) n) (f x) < \<epsilon>"
         using eventually_sequentially by blast
     qed
     moreover have "\<And>n. \<not> dist (f (\<sigma> (2*n))) (f x) < \<epsilon>"
@@ -1919,13 +1910,19 @@ lemma closed_imp_fip:
   assumes "closed S"
       and T: "T \<in> \<F>" "bounded T"
       and clof: "\<And>T. T \<in> \<F> \<Longrightarrow> closed T"
-      and "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}"
+      and \<section>: "\<And>\<F>'. \<lbrakk>finite \<F>'; \<F>' \<subseteq> \<F>\<rbrakk> \<Longrightarrow> S \<inter> \<Inter>\<F>' \<noteq> {}"
     shows "S \<inter> \<Inter>\<F> \<noteq> {}"
 proof -
-  have "compact (S \<inter> T)"
-    using \<open>closed S\<close> clof compact_eq_bounded_closed T by blast
-  then have "(S \<inter> T) \<inter> \<Inter>\<F> \<noteq> {}"
-    by (smt (verit, best) Inf_insert Int_assoc assms compact_imp_fip finite_insert insert_subset)
+  have "(S \<inter> T) \<inter> \<Inter>\<F> \<noteq> {}"
+  proof (rule compact_imp_fip)
+    show "compact (S \<inter> T)"
+      using \<open>closed S\<close> clof compact_eq_bounded_closed T by blast
+  next
+    fix F'
+    assume "finite F'" and "F' \<subseteq> \<F>"
+    then show "S \<inter> T \<inter> \<Inter> F' \<noteq> {}"
+      by (metis Inf_insert Int_assoc \<open>T \<in> \<F>\<close> finite_insert insert_subset \<section>)
+  qed (simp add: clof)
   then show ?thesis by blast
 qed
 
@@ -1961,7 +1958,7 @@ section \<open>Properties of Balls and Spheres\<close>
 
 lemma compact_cball[simp]:
   fixes x :: "'a::heine_borel"
-  shows "compact (cball x e)"
+  shows "compact (cball x \<epsilon>)"
   using compact_eq_bounded_closed bounded_cball closed_cball by blast
 
 lemma compact_frontier_bounded[intro]:
@@ -2041,7 +2038,7 @@ lemma infdist_nonneg: "0 \<le> infdist x A"
 lemma infdist_le: "a \<in> A \<Longrightarrow> infdist x A \<le> dist x a"
   by (auto intro: cINF_lower simp add: infdist_def)
 
-lemma infdist_le2: "a \<in> A \<Longrightarrow> dist x a \<le> d \<Longrightarrow> infdist x A \<le> d"
+lemma infdist_le2: "a \<in> A \<Longrightarrow> dist x a \<le> \<delta> \<Longrightarrow> infdist x A \<le> \<delta>"
   by (auto intro!: cINF_lower2 simp add: infdist_def)
 
 lemma infdist_zero[simp]: "a \<in> A \<Longrightarrow> infdist a A = 0"
@@ -2063,13 +2060,13 @@ next
   proof (rule cInf_greatest)
     from \<open>A \<noteq> {}\<close> show "{dist x y + dist y a |a. a \<in> A} \<noteq> {}"
       by simp
-    fix d
-    assume "d \<in> {dist x y + dist y a |a. a \<in> A}"
-    then obtain a where d: "d = dist x y + dist y a" "a \<in> A"
+    fix \<delta>
+    assume "\<delta> \<in> {dist x y + dist y a |a. a \<in> A}"
+    then obtain a where \<delta>: "\<delta> = dist x y + dist y a" "a \<in> A"
       by auto
-    show "infdist x A \<le> d"
+    show "infdist x A \<le> \<delta>"
       using infdist_notempty[OF \<open>A \<noteq> {}\<close>]
-      by (metis d dist_commute dist_triangle3 infdist_le2)
+      by (metis \<delta> dist_commute dist_triangle3 infdist_le2)
   qed
   also have "\<dots> = dist x y + infdist y A"
   proof (rule cInf_eq, safe)
@@ -2079,7 +2076,7 @@ next
       by (auto intro: infdist_le)
   next
     fix i
-    assume inf: "\<And>d. d \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> d"
+    assume inf: "\<And>\<delta>. \<delta> \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> \<delta>"
     then have "i - dist x y \<le> infdist y A"
       unfolding infdist_notempty[OF \<open>A \<noteq> {}\<close>] using \<open>a \<in> A\<close>
       by (intro cINF_greatest) (auto simp: field_simps)
@@ -2112,12 +2109,12 @@ next
   assume x: "infdist x A = 0"
   then obtain a where "a \<in> A"
     by atomize_elim (metis all_not_in_conv assms)
-  have False if "e > 0" "\<not> (\<exists>y\<in>A. dist y x < e)" for e
+  have False if "\<epsilon> > 0" "\<not> (\<exists>y\<in>A. dist y x < \<epsilon>)" for \<epsilon>
   proof -
-    have "infdist x A \<ge> e" using \<open>a \<in> A\<close>
+    have "infdist x A \<ge> \<epsilon>" using \<open>a \<in> A\<close>
       unfolding infdist_def using that
       by (force simp: dist_commute intro: cINF_greatest)
-    with x \<open>e > 0\<close> show False by auto
+    with x \<open>\<epsilon> > 0\<close> show False by auto
   qed
   then show "x \<in> closure A"
     using closure_approachable by blast
@@ -2179,12 +2176,12 @@ proof
       fix z assume H: "dist x z * 2 < infdist x T" "dist y z * 2 < infdist y S"
       have "2 * dist x y \<le> 2 * dist x z + 2 * dist y z"
         by metric
-      also have "... < infdist x T + infdist y S"
+      also have "\<dots> < infdist x T + infdist y S"
         using H by auto
       finally have "dist x y < infdist x T \<or> dist x y < infdist y S"
         by auto
       then show False
-        using infdist_le[OF \<open>x \<in> S\<close>, of y] infdist_le[OF \<open>y \<in> T\<close>, of x] by (auto simp add: dist_commute)
+        using infdist_le[OF \<open>x \<in> S\<close>, of y] infdist_le[OF \<open>y \<in> T\<close>, of x] by (auto simp: dist_commute)
     qed
     then have E: "U \<inter> V = {}"
       unfolding U_def V_def by auto
@@ -2197,17 +2194,17 @@ lemma tendsto_infdist [tendsto_intros]:
   assumes f: "(f \<longlongrightarrow> l) F"
   shows "((\<lambda>x. infdist (f x) A) \<longlongrightarrow> infdist l A) F"
 proof (rule tendstoI)
-  fix e ::real
-  assume "e > 0"
+  fix \<epsilon> ::real
+  assume "\<epsilon> > 0"
   from tendstoD[OF f this]
-  show "eventually (\<lambda>x. dist (infdist (f x) A) (infdist l A) < e) F"
+  show "eventually (\<lambda>x. dist (infdist (f x) A) (infdist l A) < \<epsilon>) F"
   proof (eventually_elim)
     fix x
     from infdist_triangle[of l A "f x"] infdist_triangle[of "f x" A l]
     have "dist (infdist (f x) A) (infdist l A) \<le> dist (f x) l"
       by (simp add: dist_commute dist_real_def)
-    also assume "dist (f x) l < e"
-    finally show "dist (infdist (f x) A) (infdist l A) < e" .
+    also assume "dist (f x) l < \<epsilon>"
+    finally show "dist (infdist (f x) A) (infdist l A) < \<epsilon>" .
   qed
 qed
 
@@ -2225,27 +2222,27 @@ lemma compact_infdist_le:
   fixes A::"'a::heine_borel set"
   assumes "A \<noteq> {}"
   assumes "compact A"
-  assumes "e > 0"
-  shows "compact {x. infdist x A \<le> e}"
+  assumes "\<epsilon> > 0"
+  shows "compact {x. infdist x A \<le> \<epsilon>}"
 proof -
-  from continuous_closed_vimage[of "{0..e}" "\<lambda>x. infdist x A"]
+  from continuous_closed_vimage[of "{0..\<epsilon>}" "\<lambda>x. infdist x A"]
     continuous_infdist[OF continuous_ident, of _ UNIV A]
-  have "closed {x. infdist x A \<le> e}" by (auto simp: vimage_def infdist_nonneg)
+  have "closed {x. infdist x A \<le> \<epsilon>}" by (auto simp: vimage_def infdist_nonneg)
   moreover
   from assms obtain x0 b where b: "\<And>x. x \<in> A \<Longrightarrow> dist x0 x \<le> b" "closed A"
     by (auto simp: compact_eq_bounded_closed bounded_def)
   {
     fix y
-    assume "infdist y A \<le> e"
+    assume "infdist y A \<le> \<epsilon>"
     moreover
     from infdist_attains_inf[OF \<open>closed A\<close> \<open>A \<noteq> {}\<close>, of y]
     obtain z where "z \<in> A" "infdist y A = dist y z" by blast
     ultimately
-    have "dist x0 y \<le> b + e" using b by metric
+    have "dist x0 y \<le> b + \<epsilon>" using b by metric
   } then
-  have "bounded {x. infdist x A \<le> e}"
-    by (auto simp: bounded_any_center[where a=x0] intro!: exI[where x="b + e"])
-  ultimately show "compact {x. infdist x A \<le> e}"
+  have "bounded {x. infdist x A \<le> \<epsilon>}"
+    by (auto simp: bounded_any_center[where a=x0] intro!: exI[where x="b + \<epsilon>"])
+  ultimately show "compact {x. infdist x A \<le> \<epsilon>}"
     by (simp add: compact_eq_bounded_closed)
 qed
 
@@ -2255,14 +2252,14 @@ section \<open>Separation between Points and Sets\<close>
 proposition separate_point_closed:
   fixes S :: "'a::heine_borel set"
   assumes "closed S" and "a \<notin> S"
-  shows "\<exists>d>0. \<forall>x\<in>S. d \<le> dist a x"
+  shows "\<exists>\<delta>>0. \<forall>x\<in>S. \<delta> \<le> dist a x"
   by (metis assms distance_attains_inf empty_iff gt_ex zero_less_dist_iff)
 
 proposition separate_compact_closed:
   fixes S T :: "'a::heine_borel set"
   assumes "compact S"
     and T: "closed T" "S \<inter> T = {}"
-  shows "\<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>T. d \<le> dist x y"
+  shows "\<exists>\<delta>>0. \<forall>x\<in>S. \<forall>y\<in>T. \<delta> \<le> dist x y"
 proof cases
   assume "S \<noteq> {} \<and> T \<noteq> {}"
   then have "S \<noteq> {}" "T \<noteq> {}" by auto
@@ -2283,7 +2280,7 @@ proposition separate_closed_compact:
   assumes S: "closed S"
     and T: "compact T"
     and dis: "S \<inter> T = {}"
-  shows "\<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>T. d \<le> dist x y"
+  shows "\<exists>\<delta>>0. \<forall>x\<in>S. \<forall>y\<in>T. \<delta> \<le> dist x y"
   by (metis separate_compact_closed[OF T S] dis dist_commute inf_commute)
 
 proposition compact_in_open_separated:
@@ -2291,24 +2288,24 @@ proposition compact_in_open_separated:
   assumes A: "A \<noteq> {}" "compact A"
   assumes "open B"
   assumes "A \<subseteq> B"
-  obtains e where "e > 0" "{x. infdist x A \<le> e} \<subseteq> B"
+  obtains \<epsilon> where "\<epsilon> > 0" "{x. infdist x A \<le> \<epsilon>} \<subseteq> B"
 proof atomize_elim
   have "closed (- B)" "compact A" "- B \<inter> A = {}"
     using assms by (auto simp: open_Diff compact_eq_bounded_closed)
   from separate_closed_compact[OF this]
   obtain d'::real where d': "d'>0" "\<And>x y. x \<notin> B \<Longrightarrow> y \<in> A \<Longrightarrow> d' \<le> dist x y"
     by auto
-  define d where "d = d' / 2"
-  hence "d>0" "d < d'" using d' by auto
-  with d' have d: "\<And>x y. x \<notin> B \<Longrightarrow> y \<in> A \<Longrightarrow> d < dist x y"
+  define \<delta> where "\<delta> = d' / 2"
+  hence "\<delta>>0" "\<delta> < d'" using d' by auto
+  with d' have \<delta>: "\<And>x y. x \<notin> B \<Longrightarrow> y \<in> A \<Longrightarrow> \<delta> < dist x y"
     by force
-  show "\<exists>e>0. {x. infdist x A \<le> e} \<subseteq> B"
+  show "\<exists>\<epsilon>>0. {x. infdist x A \<le> \<epsilon>} \<subseteq> B"
   proof (rule ccontr)
-    assume "\<nexists>e. 0 < e \<and> {x. infdist x A \<le> e} \<subseteq> B"
-    with \<open>d > 0\<close> obtain x where x: "infdist x A \<le> d" "x \<notin> B"
+    assume "\<nexists>\<epsilon>. 0 < \<epsilon> \<and> {x. infdist x A \<le> \<epsilon>} \<subseteq> B"
+    with \<open>\<delta> > 0\<close> obtain x where x: "infdist x A \<le> \<delta>" "x \<notin> B"
       by auto
     then show False
-      by (metis A compact_eq_bounded_closed infdist_attains_inf x d linorder_not_less)
+      by (metis A compact_eq_bounded_closed infdist_attains_inf x \<delta> linorder_not_less)
   qed
 qed
 
@@ -2316,8 +2313,8 @@ qed
 section \<open>Uniform Continuity\<close>
 
 lemma uniformly_continuous_onE:
-  assumes "uniformly_continuous_on s f" "0 < e"
-  obtains d where "d>0" "\<And>x x'. \<lbrakk>x\<in>s; x'\<in>s; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  assumes "uniformly_continuous_on s f" "0 < \<epsilon>"
+  obtains \<delta> where "\<delta>>0" "\<And>x x'. \<lbrakk>x\<in>s; x'\<in>s; dist x' x < \<delta>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>"
   using assms
   by (auto simp: uniformly_continuous_on_def)
 
@@ -2332,14 +2329,14 @@ proof
       and y: "\<forall>n. y n \<in> s"
       and xy: "((\<lambda>n. dist (x n) (y n)) \<longlongrightarrow> 0) sequentially"
     {
-      fix e :: real
-      assume "e > 0"
-      then obtain d where "d > 0" and d: "\<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
+      fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      then obtain \<delta> where "\<delta> > 0" and \<delta>: "\<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) < \<epsilon>"
         by (metis \<open>?lhs\<close> uniformly_continuous_onE)
-      obtain N where N: "\<forall>n\<ge>N. dist (x n) (y n) < d"
-        using xy[unfolded lim_sequentially dist_norm] and \<open>d>0\<close> by auto
-      then have "\<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e"
-        using d x y by blast
+      obtain N where N: "\<forall>n\<ge>N. dist (x n) (y n) < \<delta>"
+        using xy[unfolded lim_sequentially dist_norm] and \<open>\<delta>>0\<close> by auto
+      then have "\<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < \<epsilon>"
+        using \<delta> x y by blast
     }
     then have "((\<lambda>n. dist (f(x n)) (f(y n))) \<longlongrightarrow> 0) sequentially"
       unfolding lim_sequentially and dist_real_def by auto
@@ -2349,32 +2346,31 @@ next
   assume ?rhs
   {
     assume "\<not> ?lhs"
-    then obtain e where "e > 0" "\<forall>d>0. \<exists>x\<in>s. \<exists>x'\<in>s. dist x' x < d \<and> \<not> dist (f x') (f x) < e"
+    then obtain \<epsilon> where "\<epsilon> > 0" "\<forall>\<delta>>0. \<exists>x\<in>s. \<exists>x'\<in>s. dist x' x < \<delta> \<and> \<not> dist (f x') (f x) < \<epsilon>"
       unfolding uniformly_continuous_on_def by auto
     then obtain fa where fa:
-      "\<forall>x. 0 < x \<longrightarrow> fst (fa x) \<in> s \<and> snd (fa x) \<in> s \<and> dist (fst (fa x)) (snd (fa x)) < x \<and> \<not> dist (f (fst (fa x))) (f (snd (fa x))) < e"
-      using choice[of "\<lambda>d x. d>0 \<longrightarrow> fst x \<in> s \<and> snd x \<in> s \<and> dist (snd x) (fst x) < d \<and> \<not> dist (f (snd x)) (f (fst x)) < e"]
+      "\<forall>x. 0 < x \<longrightarrow> fst (fa x) \<in> s \<and> snd (fa x) \<in> s \<and> dist (fst (fa x)) (snd (fa x)) < x \<and> \<not> dist (f (fst (fa x))) (f (snd (fa x))) < \<epsilon>"
+      using choice[of "\<lambda>\<delta> x. \<delta>>0 \<longrightarrow> fst x \<in> s \<and> snd x \<in> s \<and> dist (snd x) (fst x) < \<delta> \<and> \<not> dist (f (snd x)) (f (fst x)) < \<epsilon>"]
       by (auto simp: Bex_def dist_commute)
     define x where "x n = fst (fa (inverse (real n + 1)))" for n
     define y where "y n = snd (fa (inverse (real n + 1)))" for n
     have xyn: "\<forall>n. x n \<in> s \<and> y n \<in> s"
       and xy0: "\<forall>n. dist (x n) (y n) < inverse (real n + 1)"
-      and fxy:"\<forall>n. \<not> dist (f (x n)) (f (y n)) < e"
+      and fxy:"\<forall>n. \<not> dist (f (x n)) (f (y n)) < \<epsilon>"
       unfolding x_def and y_def using fa
       by auto
     {
-      fix e :: real
-      assume "e > 0"
-      then obtain N :: nat where "N \<noteq> 0" and N: "0 < inverse (real N) \<and> inverse (real N) < e"
-        unfolding real_arch_inverse[of e] by auto
-      with xy0 have "\<exists>N. \<forall>n\<ge>N. dist (x n) (y n) < e"
+      fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      then obtain N :: nat where "N \<noteq> 0" and N: "0 < inverse (real N) \<and> inverse (real N) < \<epsilon>"
+        unfolding real_arch_inverse[of \<epsilon>] by auto
+      with xy0 have "\<exists>N. \<forall>n\<ge>N. dist (x n) (y n) < \<epsilon>"
         by (metis order.strict_trans inverse_positive_iff_positive less_imp_inverse_less
             nat_le_real_less)
     }
-    then have "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < e"
-      using \<open>?rhs\<close>[THEN spec[where x=x], THEN spec[where x=y]] and xyn
-      unfolding lim_sequentially dist_real_def by auto
-    then have False using fxy and \<open>e>0\<close> by auto
+    then have "\<forall>\<epsilon>>0. \<exists>N. \<forall>n\<ge>N. dist (f (x n)) (f (y n)) < \<epsilon>"
+      using \<open>?rhs\<close> xyn by (auto simp: lim_sequentially dist_real_def)
+    then have False using fxy and \<open>\<epsilon>>0\<close> by auto
   }
   then show ?lhs
     unfolding uniformly_continuous_on_def by blast
@@ -2388,9 +2384,9 @@ J. C. Burkill and H. Burkill. A Second Course in Mathematical Analysis (CUP, 200
 
 lemma Heine_Borel_lemma:
   assumes "compact S" and Ssub: "S \<subseteq> \<Union>\<G>" and opn: "\<And>G. G \<in> \<G> \<Longrightarrow> open G"
-  obtains e where "0 < e" "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> \<G>. ball x e \<subseteq> G"
+  obtains \<epsilon> where "0 < \<epsilon>" "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> \<G>. ball x \<epsilon> \<subseteq> G"
 proof -
-  have False if neg: "\<And>e. 0 < e \<Longrightarrow> \<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x e \<subseteq> G"
+  have False if neg: "\<And>\<epsilon>. 0 < \<epsilon> \<Longrightarrow> \<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x \<epsilon> \<subseteq> G"
   proof -
     have "\<exists>x \<in> S. \<forall>G \<in> \<G>. \<not> ball x (1 / Suc n) \<subseteq> G" for n
       using neg by simp
@@ -2400,29 +2396,29 @@ proof -
       using \<open>compact S\<close> compact_def that by metis
     then obtain G where "l \<in> G" "G \<in> \<G>"
       using Ssub by auto
-    then obtain e where "0 < e" and e: "\<And>z. dist z l < e \<Longrightarrow> z \<in> G"
+    then obtain \<epsilon> where "0 < \<epsilon>" and \<epsilon>: "\<And>z. dist z l < \<epsilon> \<Longrightarrow> z \<in> G"
       using opn open_dist by blast
-    obtain N1 where N1: "\<And>n. n \<ge> N1 \<Longrightarrow> dist (f (r n)) l < e/2"
-      by (metis \<open>0 < e\<close> half_gt_zero lim_sequentially o_apply to_l)
-    obtain N2 where N2: "of_nat N2 > 2/e"
+    obtain N1 where N1: "\<And>n. n \<ge> N1 \<Longrightarrow> dist (f (r n)) l < \<epsilon>/2"
+      by (metis \<open>0 < \<epsilon>\<close> half_gt_zero lim_sequentially o_apply to_l)
+    obtain N2 where N2: "of_nat N2 > 2/\<epsilon>"
       using reals_Archimedean2 by blast
     obtain x where "x \<in> ball (f (r (max N1 N2))) (1 / real (Suc (r (max N1 N2))))" and "x \<notin> G"
       using fG [OF \<open>G \<in> \<G>\<close>, of "r (max N1 N2)"] by blast
     then have "dist (f (r (max N1 N2))) x < 1 / real (Suc (r (max N1 N2)))"
       by simp
-    also have "... \<le> 1 / real (Suc (max N1 N2))"
+    also have "\<dots> \<le> 1 / real (Suc (max N1 N2))"
       by (meson Suc_le_mono \<open>strict_mono r\<close> inverse_of_nat_le nat.discI seq_suble)
-    also have "... \<le> 1 / real (Suc N2)"
+    also have "\<dots> \<le> 1 / real (Suc N2)"
       by (simp add: field_simps)
-    also have "... < e/2"
-      using N2 \<open>0 < e\<close> by (simp add: field_simps)
-    finally have "dist (f (r (max N1 N2))) x < e/2" .
-    moreover have "dist (f (r (max N1 N2))) l < e/2"
+    also have "\<dots> < \<epsilon>/2"
+      using N2 \<open>0 < \<epsilon>\<close> by (simp add: field_simps)
+    finally have "dist (f (r (max N1 N2))) x < \<epsilon>/2" .
+    moreover have "dist (f (r (max N1 N2))) l < \<epsilon>/2"
       using N1 max.cobounded1 by blast
-    ultimately have "dist x l < e"
+    ultimately have "dist x l < \<epsilon>"
       by metric
     then show ?thesis
-      using e \<open>x \<notin> G\<close> by blast
+      using \<epsilon> \<open>x \<notin> G\<close> by blast
   qed
   then show ?thesis
     by (meson that)
@@ -2430,33 +2426,33 @@ qed
 
 lemma compact_uniformly_equicontinuous:
   assumes "compact S"
-      and cont: "\<And>x e. \<lbrakk>x \<in> S; 0 < e\<rbrakk>
-                        \<Longrightarrow> \<exists>d. 0 < d \<and>
-                                (\<forall>f \<in> \<F>. \<forall>x' \<in> S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
-      and "0 < e"
-  obtains d where "0 < d"
-                  "\<And>f x x'. \<lbrakk>f \<in> \<F>; x \<in> S; x' \<in> S; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+      and cont: "\<And>x \<epsilon>. \<lbrakk>x \<in> S; 0 < \<epsilon>\<rbrakk>
+                        \<Longrightarrow> \<exists>\<delta>. 0 < \<delta> \<and>
+                                (\<forall>f \<in> \<F>. \<forall>x' \<in> S. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) < \<epsilon>)"
+      and "0 < \<epsilon>"
+  obtains \<delta> where "0 < \<delta>"
+                  "\<And>f x x'. \<lbrakk>f \<in> \<F>; x \<in> S; x' \<in> S; dist x' x < \<delta>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>"
 proof -
-  obtain d where d_pos: "\<And>x e. \<lbrakk>x \<in> S; 0 < e\<rbrakk> \<Longrightarrow> 0 < d x e"
-     and d_dist : "\<And>x x' e f. \<lbrakk>dist x' x < d x e; x \<in> S; x' \<in> S; 0 < e; f \<in> \<F>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e"
+  obtain \<delta> where d_pos: "\<And>x \<epsilon>. \<lbrakk>x \<in> S; 0 < \<epsilon>\<rbrakk> \<Longrightarrow> 0 < \<delta> x \<epsilon>"
+     and d_dist : "\<And>x x' \<epsilon> f. \<lbrakk>dist x' x < \<delta> x \<epsilon>; x \<in> S; x' \<in> S; 0 < \<epsilon>; f \<in> \<F>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>"
     using cont by metis
-  let ?\<G> = "((\<lambda>x. ball x (d x (e/2))) ` S)"
+  let ?\<G> = "((\<lambda>x. ball x (\<delta> x (\<epsilon>/2))) ` S)"
   have Ssub: "S \<subseteq> \<Union> ?\<G>"
-    using \<open>0 < e\<close> d_pos by auto
+    using \<open>0 < \<epsilon>\<close> d_pos by auto
   then obtain k where "0 < k" and k: "\<And>x. x \<in> S \<Longrightarrow> \<exists>G \<in> ?\<G>. ball x k \<subseteq> G"
     by (rule Heine_Borel_lemma [OF \<open>compact S\<close>]) auto
-  moreover have "dist (f v) (f u) < e" if "f \<in> \<F>" "u \<in> S" "v \<in> S" "dist v u < k" for f u v
+  moreover have "dist (f v) (f u) < \<epsilon>" if "f \<in> \<F>" "u \<in> S" "v \<in> S" "dist v u < k" for f u v
   proof -
     obtain G where "G \<in> ?\<G>" "u \<in> G" "v \<in> G"
       using k that
       by (metis \<open>dist v u < k\<close> \<open>u \<in> S\<close> \<open>0 < k\<close> centre_in_ball subsetD dist_commute mem_ball)
-    then obtain w where w: "dist w u < d w (e/2)" "dist w v < d w (e/2)" "w \<in> S"
+    then obtain w where w: "dist w u < \<delta> w (\<epsilon>/2)" "dist w v < \<delta> w (\<epsilon>/2)" "w \<in> S"
       by auto
-    with that d_dist have "dist (f w) (f v) < e/2"
-      by (metis \<open>0 < e\<close> dist_commute half_gt_zero)
+    with that d_dist have "dist (f w) (f v) < \<epsilon>/2"
+      by (metis \<open>0 < \<epsilon>\<close> dist_commute half_gt_zero)
     moreover
-    have "dist (f w) (f u) < e/2"
-      using that d_dist w by (metis \<open>0 < e\<close> dist_commute divide_pos_pos zero_less_numeral)
+    have "dist (f w) (f u) < \<epsilon>/2"
+      using that d_dist w by (metis \<open>0 < \<epsilon>\<close> dist_commute divide_pos_pos zero_less_numeral)
     ultimately show ?thesis
       using dist_triangle_half_r by blast
   qed
@@ -2476,8 +2472,8 @@ section\<^marker>\<open>tag unimportant\<close>\<open> Theorems relating continu
 
 lemma continuous_on_closure:
    "continuous_on (closure S) f \<longleftrightarrow>
-    (\<forall>x e. x \<in> closure S \<and> 0 < e
-           \<longrightarrow> (\<exists>d. 0 < d \<and> (\<forall>y. y \<in> S \<and> dist y x < d \<longrightarrow> dist (f y) (f x) < e)))"
+    (\<forall>x \<epsilon>. x \<in> closure S \<and> 0 < \<epsilon>
+           \<longrightarrow> (\<exists>\<delta>. 0 < \<delta> \<and> (\<forall>y. y \<in> S \<and> dist y x < \<delta> \<longrightarrow> dist (f y) (f x) < \<epsilon>)))"
    (is "?lhs = ?rhs")
 proof
   assume ?lhs then show ?rhs
@@ -2486,27 +2482,27 @@ next
   assume R [rule_format]: ?rhs
   show ?lhs
   proof
-    fix x and e::real
-    assume "0 < e" and x: "x \<in> closure S"
+    fix x and \<epsilon>::real
+    assume "0 < \<epsilon>" and x: "x \<in> closure S"
     obtain \<delta>::real where "\<delta> > 0"
-                   and \<delta>: "\<And>y. \<lbrakk>y \<in> S; dist y x < \<delta>\<rbrakk> \<Longrightarrow> dist (f y) (f x) < e/2"
-      using R [of x "e/2"] \<open>0 < e\<close> x by auto
-    have "dist (f y) (f x) \<le> e" if y: "y \<in> closure S" and dyx: "dist y x < \<delta>/2" for y
+                   and \<delta>: "\<And>y. \<lbrakk>y \<in> S; dist y x < \<delta>\<rbrakk> \<Longrightarrow> dist (f y) (f x) < \<epsilon>/2"
+      using R [of x "\<epsilon>/2"] \<open>0 < \<epsilon>\<close> x by auto
+    have "dist (f y) (f x) \<le> \<epsilon>" if y: "y \<in> closure S" and dyx: "dist y x < \<delta>/2" for y
     proof -
       obtain \<delta>'::real where "\<delta>' > 0"
-                      and \<delta>': "\<And>z. \<lbrakk>z \<in> S; dist z y < \<delta>'\<rbrakk> \<Longrightarrow> dist (f z) (f y) < e/2"
-        using R [of y "e/2"] \<open>0 < e\<close> y by auto
+                      and \<delta>': "\<And>z. \<lbrakk>z \<in> S; dist z y < \<delta>'\<rbrakk> \<Longrightarrow> dist (f z) (f y) < \<epsilon>/2"
+        using R [of y "\<epsilon>/2"] \<open>0 < \<epsilon>\<close> y by auto
       obtain z where "z \<in> S" and z: "dist z y < min \<delta>' \<delta> / 2"
         using closure_approachable y
         by (metis \<open>0 < \<delta>'\<close> \<open>0 < \<delta>\<close> divide_pos_pos min_less_iff_conj zero_less_numeral)
-      have "dist (f z) (f y) < e/2"
+      have "dist (f z) (f y) < \<epsilon>/2"
         using \<delta>' [OF \<open>z \<in> S\<close>] z \<open>0 < \<delta>'\<close> by metric
-      moreover have "dist (f z) (f x) < e/2"
+      moreover have "dist (f z) (f x) < \<epsilon>/2"
         using \<delta>[OF \<open>z \<in> S\<close>] z dyx by metric
       ultimately show ?thesis
         by metric
     qed
-    then show "\<exists>d>0. \<forall>x'\<in>closure S. dist x' x < d \<longrightarrow> dist (f x') (f x) \<le> e"
+    then show "\<exists>\<delta>>0. \<forall>x'\<in>closure S. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) \<le> \<epsilon>"
       by (rule_tac x="\<delta>/2" in exI) (simp add: \<open>\<delta> > 0\<close>)
   qed
 qed
@@ -2519,9 +2515,9 @@ lemma continuous_on_closure_sequentially:
    (is "?lhs = ?rhs")
 proof -
   have "continuous_on (closure S) f \<longleftrightarrow>
-           (\<forall>x \<in> closure S. continuous (at x within S) f)"
+        (\<forall>x \<in> closure S. continuous (at x within S) f)"
     by (force simp: continuous_on_closure continuous_within_eps_delta)
-  also have "... = ?rhs"
+  also have "\<dots> = ?rhs"
     by (force simp: continuous_within_sequentially)
   finally show ?thesis .
 qed
@@ -2533,38 +2529,38 @@ lemma uniformly_continuous_on_closure:
     shows "uniformly_continuous_on (closure S) f"
 unfolding uniformly_continuous_on_def
 proof (intro allI impI)
-  fix e::real
-  assume "0 < e"
-  then obtain d::real
-    where "d>0"
-      and d: "\<And>x x'. \<lbrakk>x\<in>S; x'\<in>S; dist x' x < d\<rbrakk> \<Longrightarrow> dist (f x') (f x) < e/3"
-    using ucont [unfolded uniformly_continuous_on_def, rule_format, of "e/3"] by auto
-  show "\<exists>d>0. \<forall>x\<in>closure S. \<forall>x'\<in>closure S. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
-  proof (rule exI [where x="d/3"], clarsimp simp: \<open>d > 0\<close>)
+  fix \<epsilon>::real
+  assume "0 < \<epsilon>"
+  then obtain \<delta>::real
+    where "\<delta>>0"
+      and \<delta>: "\<And>x x'. \<lbrakk>x\<in>S; x'\<in>S; dist x' x < \<delta>\<rbrakk> \<Longrightarrow> dist (f x') (f x) < \<epsilon>/3"
+    using ucont [unfolded uniformly_continuous_on_def, rule_format, of "\<epsilon>/3"] by auto
+  show "\<exists>\<delta>>0. \<forall>x\<in>closure S. \<forall>x'\<in>closure S. dist x' x < \<delta> \<longrightarrow> dist (f x') (f x) < \<epsilon>"
+  proof (rule exI [where x="\<delta>/3"], clarsimp simp: \<open>\<delta> > 0\<close>)
     fix x y
-    assume x: "x \<in> closure S" and y: "y \<in> closure S" and dyx: "dist y x * 3 < d"
+    assume x: "x \<in> closure S" and y: "y \<in> closure S" and dyx: "dist y x * 3 < \<delta>"
     obtain d1::real where "d1 > 0"
-           and d1: "\<And>w. \<lbrakk>w \<in> closure S; dist w x < d1\<rbrakk> \<Longrightarrow> dist (f w) (f x) < e/3"
-      using cont [unfolded continuous_on_iff, rule_format, of "x" "e/3"] \<open>0 < e\<close> x by auto
-     obtain x' where "x' \<in> S" and x': "dist x' x < min d1 (d / 3)"
+           and d1: "\<And>w. \<lbrakk>w \<in> closure S; dist w x < d1\<rbrakk> \<Longrightarrow> dist (f w) (f x) < \<epsilon>/3"
+      using cont [unfolded continuous_on_iff, rule_format, of "x" "\<epsilon>/3"] \<open>0 < \<epsilon>\<close> x by auto
+     obtain x' where "x' \<in> S" and x': "dist x' x < min d1 (\<delta> / 3)"
         using closure_approachable [of x S]
-        by (metis \<open>0 < d1\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj x zero_less_numeral)
+        by (metis \<open>0 < d1\<close> \<open>0 < \<delta>\<close> divide_pos_pos min_less_iff_conj x zero_less_numeral)
     obtain d2::real where "d2 > 0"
-           and d2: "\<forall>w \<in> closure S. dist w y < d2 \<longrightarrow> dist (f w) (f y) < e/3"
-      using cont [unfolded continuous_on_iff, rule_format, of "y" "e/3"] \<open>0 < e\<close> y by auto
-    obtain y' where "y' \<in> S" and y': "dist y' y < min d2 (d / 3)"
+           and d2: "\<forall>w \<in> closure S. dist w y < d2 \<longrightarrow> dist (f w) (f y) < \<epsilon>/3"
+      using cont [unfolded continuous_on_iff, rule_format, of "y" "\<epsilon>/3"] \<open>0 < \<epsilon>\<close> y by auto
+    obtain y' where "y' \<in> S" and y': "dist y' y < min d2 (\<delta> / 3)"
       using closure_approachable [of y S]
-      by (metis \<open>0 < d2\<close> \<open>0 < d\<close> divide_pos_pos min_less_iff_conj y zero_less_numeral)
-    have "dist x' x < d/3" using x' by auto
-    then have "dist x' y' < d"
+      by (metis \<open>0 < d2\<close> \<open>0 < \<delta>\<close> divide_pos_pos min_less_iff_conj y zero_less_numeral)
+    have "dist x' x < \<delta>/3" using x' by auto
+    then have "dist x' y' < \<delta>"
       using dyx y' by metric
-    then have "dist (f x') (f y') < e/3"
-      by (rule d [OF \<open>y' \<in> S\<close> \<open>x' \<in> S\<close>])
-    moreover have "dist (f x') (f x) < e/3" using \<open>x' \<in> S\<close> closure_subset x' d1
+    then have "dist (f x') (f y') < \<epsilon>/3"
+      by (rule \<delta> [OF \<open>y' \<in> S\<close> \<open>x' \<in> S\<close>])
+    moreover have "dist (f x') (f x) < \<epsilon>/3" using \<open>x' \<in> S\<close> closure_subset x' d1
       by (simp add: closure_def)
-    moreover have "dist (f y') (f y) < e/3" using \<open>y' \<in> S\<close> closure_subset y' d2
+    moreover have "dist (f y') (f y) < \<epsilon>/3" using \<open>y' \<in> S\<close> closure_subset y' d2
       by (simp add: closure_def)
-    ultimately show "dist (f y) (f x) < e" by metric
+    ultimately show "dist (f y) (f x) < \<epsilon>" by metric
   qed
 qed
 
@@ -2594,28 +2590,27 @@ proof -
 
     show "(\<lambda>n. f (xs' n)) \<longlonglongrightarrow> l"
     proof (rule tendstoI)
-      fix e::real assume "e > 0"
-      define e' where "e' \<equiv> e/2"
-      have "e' > 0" using \<open>e > 0\<close> by (simp add: e'_def)
+      fix \<epsilon>::real assume "\<epsilon> > 0"
+      define e' where "e' \<equiv> \<epsilon>/2"
+      have "e' > 0" using \<open>\<epsilon> > 0\<close> by (simp add: e'_def)
 
       have "\<forall>\<^sub>F n in sequentially. dist (f (xs n)) l < e'"
         by (simp add: \<open>0 < e'\<close> l tendstoD)
       moreover
-      from uc[unfolded uniformly_continuous_on_def, rule_format, OF \<open>e' > 0\<close>]
-      obtain d where d: "d > 0" "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x x' < d \<Longrightarrow> dist (f x) (f x') < e'"
-        by auto
-      have "\<forall>\<^sub>F n in sequentially. dist (xs n) (xs' n) < d"
-        by (auto intro!: \<open>0 < d\<close> order_tendstoD tendsto_eq_intros xs xs')
+      obtain \<delta> where \<delta>: "\<delta> > 0" "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x x' < \<delta> \<Longrightarrow> dist (f x) (f x') < e'"
+        by (metis \<open>0 < e'\<close> uc uniformly_continuous_on_def)
+      have "\<forall>\<^sub>F n in sequentially. dist (xs n) (xs' n) < \<delta>"
+        by (auto intro!: \<open>0 < \<delta>\<close> order_tendstoD tendsto_eq_intros xs xs')
       ultimately
-      show "\<forall>\<^sub>F n in sequentially. dist (f (xs' n)) l < e"
+      show "\<forall>\<^sub>F n in sequentially. dist (f (xs' n)) l < \<epsilon>"
       proof eventually_elim
         case (elim n)
         have "dist (f (xs' n)) l \<le> dist (f (xs n)) (f (xs' n)) + dist (f (xs n)) l"
           by metric
         also have "dist (f (xs n)) (f (xs' n)) < e'"
-          by (auto intro!: d xs \<open>xs' _ \<in> _\<close> elim)
+          by (auto intro!: \<delta> xs \<open>xs' _ \<in> _\<close> elim)
         also note \<open>dist (f (xs n)) l < e'\<close>
-        also have "e' + e' = e" by (simp add: e'_def)
+        also have "e' + e' = \<epsilon>" by (simp add: e'_def)
         finally show ?case by simp
       qed
     qed
@@ -2638,15 +2633,14 @@ proof -
   have "uniformly_continuous_on (closure X) ?g"
     unfolding uniformly_continuous_on_def
   proof safe
-    fix e::real assume "e > 0"
-    define e' where "e' \<equiv> e / 3"
-    have "e' > 0" using \<open>e > 0\<close> by (simp add: e'_def)
-    from uc[unfolded uniformly_continuous_on_def, rule_format, OF \<open>0 < e'\<close>]
-    obtain d where "d > 0" and d: "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x' x < d \<Longrightarrow> dist (f x') (f x) < e'"
-      by auto
-    define d' where "d' = d / 3"
-    have "d' > 0" using \<open>d > 0\<close> by (simp add: d'_def)
-    show "\<exists>d>0. \<forall>x\<in>closure X. \<forall>x'\<in>closure X. dist x' x < d \<longrightarrow> dist (?g x') (?g x) < e"
+    fix \<epsilon>::real assume "\<epsilon> > 0"
+    define e' where "e' \<equiv> \<epsilon> / 3"
+    have "e' > 0" using \<open>\<epsilon> > 0\<close> by (simp add: e'_def)
+    obtain \<delta> where "\<delta> > 0" and \<delta>: "\<And>x x'. x \<in> X \<Longrightarrow> x' \<in> X \<Longrightarrow> dist x' x < \<delta> \<Longrightarrow> dist (f x') (f x) < e'"
+      using \<open>0 < e'\<close> uc uniformly_continuous_onE by blast
+    define d' where "d' = \<delta> / 3"
+    have "d' > 0" using \<open>\<delta> > 0\<close> by (simp add: d'_def)
+    show "\<exists>\<delta>>0. \<forall>x\<in>closure X. \<forall>x'\<in>closure X. dist x' x < \<delta> \<longrightarrow> dist (?g x') (?g x) < \<epsilon>"
     proof (safe intro!: exI[where x=d'] \<open>d' > 0\<close>)
       fix x x' assume x: "x \<in> closure X" and x': "x' \<in> closure X" and dist: "dist x' x < d'"
       then obtain xs xs' where xs: "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X"
@@ -2656,7 +2650,8 @@ proof -
         and "\<forall>\<^sub>F n in sequentially. dist (xs n) x < d'"
         by (auto intro!: \<open>0 < d'\<close> order_tendstoD tendsto_eq_intros xs xs')
       moreover
-      have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x" if "x \<in> closure X" "x \<notin> X" "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X" for xs x
+      have "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> y x" 
+        if "x \<in> closure X" "x \<notin> X" "xs \<longlonglongrightarrow> x" "\<And>n. xs n \<in> X" for xs x
         using that not_eventuallyD
         by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at)
       then have "(\<lambda>x. f (xs' x)) \<longlonglongrightarrow> ?g x'" "(\<lambda>x. f (xs x)) \<longlonglongrightarrow> ?g x"
@@ -2666,7 +2661,7 @@ proof -
         "\<forall>\<^sub>F n in sequentially. dist (f (xs n)) (?g x) < e'"
         by (auto intro!: \<open>0 < e'\<close> order_tendstoD tendsto_eq_intros)
       ultimately
-      have "\<forall>\<^sub>F n in sequentially. dist (?g x') (?g x) < e"
+      have "\<forall>\<^sub>F n in sequentially. dist (?g x') (?g x) < \<epsilon>"
       proof eventually_elim
         case (elim n)
         have "dist (?g x') (?g x) \<le>
@@ -2674,17 +2669,18 @@ proof -
           by (metis add.commute add_le_cancel_left dist_commute dist_triangle dist_triangle_le)
         also
         from \<open>dist (xs' n) x' < d'\<close> \<open>dist x' x < d'\<close> \<open>dist (xs n) x < d'\<close>
-        have "dist (xs' n) (xs n) < d" unfolding d'_def by metric
+        have "dist (xs' n) (xs n) < \<delta>" unfolding d'_def by metric
         with \<open>xs _ \<in> X\<close> \<open>xs' _ \<in> X\<close> have "dist (f (xs' n)) (f (xs n)) < e'"
-          by (rule d)
+          by (rule \<delta>)
         also note \<open>dist (f (xs' n)) (?g x') < e'\<close>
         also note \<open>dist (f (xs n)) (?g x) < e'\<close>
         finally show ?case by (simp add: e'_def)
       qed
-      then show "dist (?g x') (?g x) < e" by simp
+      then show "dist (?g x') (?g x) < \<epsilon>" by simp
     qed
   qed
-  moreover have "f x = ?g x" if "x \<in> X" for x using that by simp
+  moreover have "f x = ?g x" if "x \<in> X" for x
+    using that by simp
   moreover
   {
     fix Y h x
@@ -2702,8 +2698,8 @@ proof -
         using \<open>x \<notin> X\<close> not_eventuallyD xs(2)
         by (force intro!: filterlim_compose[OF y[OF \<open>x \<in> closure X\<close>]] simp: filterlim_at xs)
       with hx have "h x = y x" by (rule LIMSEQ_unique)
-    } then
-    have "h x = ?g x"
+    } 
+    then have "h x = ?g x"
       using extension by auto
   }
   ultimately show ?thesis ..
@@ -2713,28 +2709,39 @@ lemma bounded_uniformly_continuous_image:
   fixes f :: "'a :: heine_borel \<Rightarrow> 'b :: heine_borel"
   assumes "uniformly_continuous_on S f" "bounded S"
   shows "bounded(f ` S)"
-  by (metis (no_types) assms bounded_closure_image compact_closure compact_continuous_image compact_eq_bounded_closed image_cong uniformly_continuous_imp_continuous uniformly_continuous_on_extension_on_closure)
+proof -
+  obtain g where "uniformly_continuous_on (closure S) g" and g: "\<And>x. x \<in> S \<Longrightarrow> f x = g x"
+    using uniformly_continuous_on_extension_on_closure assms by metis
+  then have "compact (g ` closure S)"
+    using \<open>bounded S\<close> compact_closure compact_continuous_image
+      uniformly_continuous_imp_continuous by blast
+  then show ?thesis
+    using g bounded_closure_image compact_eq_bounded_closed
+    by auto
+qed
 
 
 section \<open>With Abstract Topology (TODO: move and remove dependency?)\<close>
 
 lemma openin_contains_ball:
     "openin (top_of_set T) S \<longleftrightarrow>
-     S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>e. 0 < e \<and> ball x e \<inter> T \<subseteq> S)"
+     S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>\<epsilon>. 0 < \<epsilon> \<and> ball x \<epsilon> \<inter> T \<subseteq> S)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then show ?rhs
     by (metis IntD2 Int_commute Int_lower1 Int_mono inf.idem openE openin_open)
 next
-  assume ?rhs
-  then show ?lhs
-    by (smt (verit) open_ball Int_commute Int_iff centre_in_ball in_mono openin_open_Int openin_subopen)
+  assume R: ?rhs
+  then have "\<forall>x\<in>S. \<exists>R. openin (top_of_set T) R \<and> x \<in> R \<and> R \<subseteq> S"
+    by (metis open_ball Int_iff centre_in_ball inf_sup_aci(1) openin_open_Int subsetD)
+  with R show ?lhs
+    using openin_subopen by auto
 qed
 
 lemma openin_contains_cball:
    "openin (top_of_set T) S \<longleftrightarrow>
-        S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>e. 0 < e \<and> cball x e \<inter> T \<subseteq> S)"
+        S \<subseteq> T \<and> (\<forall>x \<in> S. \<exists>\<epsilon>. 0 < \<epsilon> \<and> cball x \<epsilon> \<inter> T \<subseteq> S)"
   by (fastforce simp: openin_contains_ball intro: exI [where x="_/2"])
 
 
@@ -2752,7 +2759,7 @@ lemma bounded_closed_nest:
   obtains a where "\<And>n. a \<in> S n"
 proof -
   from assms(2) obtain x where x: "\<forall>n. x n \<in> S n"
-    using choice[of "\<lambda>n x. x \<in> S n"] by auto
+    by (meson ex_in_conv) 
   from assms(4,1) have "seq_compact (S 0)"
     by (simp add: bounded_closed_imp_seq_compact)
   then obtain l r where lr: "l \<in> S 0" "strict_mono r" "(x \<circ> r) \<longlonglongrightarrow> l"
@@ -2766,10 +2773,8 @@ proof -
       using x and assms(3) and lr(2) [THEN seq_suble] by auto
     then have "\<forall>i. (x \<circ> r) (i + n) \<in> S n"
       using assms(3) by (fast intro!: le_add2)
-    moreover have "(\<lambda>i. (x \<circ> r) (i + n)) \<longlonglongrightarrow> l"
-      using lr(3) by (rule LIMSEQ_ignore_initial_segment)
     ultimately show "l \<in> S n"
-      by (metis closed_sequentially)
+      by (metis LIMSEQ_ignore_initial_segment closed_sequential_limits lr(3))
   qed
   then show ?thesis 
     using that by blast
@@ -2782,7 +2787,7 @@ lemma decreasing_closed_nest:
   assumes "\<And>n. closed (S n)"
           "\<And>n. S n \<noteq> {}"
           "\<And>m n. m \<le> n \<Longrightarrow> S n \<subseteq> S m"
-          "\<And>e. e>0 \<Longrightarrow> \<exists>n. \<forall>x\<in>S n. \<forall>y\<in>S n. dist x y < e"
+          "\<And>\<epsilon>. \<epsilon>>0 \<Longrightarrow> \<exists>n. \<forall>x\<in>S n. \<forall>y\<in>S n. dist x y < \<epsilon>"
   obtains a where "\<And>n. a \<in> S n"
 proof -
   obtain t where t: "\<forall>n. t n \<in> S n"
@@ -2814,7 +2819,7 @@ proof -
       then obtain N :: nat where N: "\<forall>n\<ge>N. dist (t n) l < \<epsilon>"
         using l[unfolded lim_sequentially] by auto
       have "t (max n N) \<in> S n"
-        by (meson assms(3) contra_subsetD max.cobounded1 t)
+        by (meson assms(3) subsetD max.cobounded1 t)
       then have "\<exists>y\<in>S n. dist y l < \<epsilon>"
         using N max.cobounded2 by blast
     }
@@ -2835,11 +2840,8 @@ lemma decreasing_closed_nest_sing:
 proof -
   obtain a where a: "\<forall>n. a \<in> S n"
     using decreasing_closed_nest[of S] using assms by auto
-  { fix b
-    assume b: "b \<in> \<Inter>(range S)"
-    then have "dist a b = 0"
-      by (meson InterE a \<section> linorder_neq_iff linorder_not_less range_eqI zero_le_dist)
-  }
+  then have "dist a b = 0" if "b \<in> \<Inter>(range S)" for b
+    by (meson that InterE \<section> linorder_neq_iff linorder_not_less range_eqI zero_le_dist)
   with a have "\<Inter>(range S) = {a}"
     unfolding image_def by auto
   then show ?thesis ..
@@ -2851,26 +2853,22 @@ lemma continuous_within_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
   assumes "continuous (at x within S) f"
     and "f x \<noteq> a"
-  shows "\<exists>e>0. \<forall>y \<in> S. dist x y < e --> f y \<noteq> a"
+  shows "\<exists>\<epsilon>>0. \<forall>y \<in> S. dist x y < \<epsilon> \<longrightarrow> f y \<noteq> a"
 proof -
   obtain U where "open U" and "f x \<in> U" and "a \<notin> U"
     using t1_space [OF \<open>f x \<noteq> a\<close>] by fast
-  have "(f \<longlongrightarrow> f x) (at x within S)"
-    using assms(1) by (simp add: continuous_within)
-  then have "eventually (\<lambda>y. f y \<in> U) (at x within S)"
+  have "\<forall>\<^sub>F y in at x within S. f y \<in> U"
     using \<open>open U\<close> and \<open>f x \<in> U\<close>
-    unfolding tendsto_def by fast
-  then have "eventually (\<lambda>y. f y \<noteq> a) (at x within S)"
-    using \<open>a \<notin> U\<close> by (fast elim: eventually_mono)
-  then show ?thesis
-    using \<open>f x \<noteq> a\<close> by (auto simp: dist_commute eventually_at)
+    using assms(1) continuous_within tendsto_def by blast
+  with \<open>f x \<noteq> a\<close> \<open>a \<notin> U\<close> show ?thesis
+    by (metis (no_types, lifting) dist_commute eventually_at)
 qed
 
 lemma continuous_at_avoid:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
   assumes "continuous (at x) f"
     and "f x \<noteq> a"
-  shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
+  shows "\<exists>\<epsilon>>0. \<forall>y. dist x y < \<epsilon> \<longrightarrow> f y \<noteq> a"
   using assms continuous_within_avoid[of x UNIV f a] by simp
 
 lemma continuous_on_avoid:
@@ -2878,7 +2876,7 @@ lemma continuous_on_avoid:
   assumes "continuous_on S f"
     and "x \<in> S"
     and "f x \<noteq> a"
-  shows "\<exists>e>0. \<forall>y \<in> S. dist x y < e \<longrightarrow> f y \<noteq> a"
+  shows "\<exists>\<epsilon>>0. \<forall>y \<in> S. dist x y < \<epsilon> \<longrightarrow> f y \<noteq> a"
   using continuous_within_avoid[of x S f a] assms
   by (meson continuous_on_eq_continuous_within)
 
@@ -2888,7 +2886,7 @@ lemma continuous_on_open_avoid:
     and "open S"
     and "x \<in> S"
     and "f x \<noteq> a"
-  shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
+  shows "\<exists>\<epsilon>>0. \<forall>y. dist x y < \<epsilon> \<longrightarrow> f y \<noteq> a"
   using continuous_at_avoid[of x f a]  assms
   by (meson continuous_on_eq_continuous_at)
 
@@ -2907,7 +2905,7 @@ lemma closed_subset_contains_Inf:
 lemma closed_contains_Sup:
   fixes S :: "real set"
   shows "S \<noteq> {} \<Longrightarrow> bdd_above S \<Longrightarrow> closed S \<Longrightarrow> Sup S \<in> S"
-  by (subst closure_closed[symmetric], assumption, rule closure_contains_Sup)
+  by (metis closure_closed closure_contains_Sup)
 
 lemma closed_subset_contains_Sup:
   fixes A C :: "real set"
@@ -2917,8 +2915,8 @@ lemma closed_subset_contains_Sup:
 lemma atLeastAtMost_subset_contains_Inf:
   fixes A :: "real set" and a b :: real
   shows "A \<noteq> {} \<Longrightarrow> a \<le> b \<Longrightarrow> A \<subseteq> {a..b} \<Longrightarrow> Inf A \<in> {a..b}"
-  by (rule closed_subset_contains_Inf)
-     (auto intro: closed_real_atLeastAtMost intro!: bdd_belowI[of A a])
+  by (meson bdd_below_Icc bdd_below_mono closed_real_atLeastAtMost
+      closed_subset_contains_Inf)
 
 lemma bounded_real: "bounded (S::real set) \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. \<bar>x\<bar> \<le> a)"
   by (simp add: bounded_iff)
@@ -2966,49 +2964,49 @@ lemma Inf_insert:
   by (auto simp: bounded_imp_bdd_below inf_min cInf_insert_If)
 
 lemma open_real:
-  fixes s :: "real set"
-  shows "open s \<longleftrightarrow> (\<forall>x \<in> s. \<exists>e>0. \<forall>x'. \<bar>x' - x\<bar> < e --> x' \<in> s)"
+  fixes S :: "real set"
+  shows "open S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>\<epsilon>>0. \<forall>x'. \<bar>x' - x\<bar> < \<epsilon> --> x' \<in> S)"
   unfolding open_dist dist_norm by simp
 
 lemma islimpt_approachable_real:
-  fixes s :: "real set"
-  shows "x islimpt s \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> s. x' \<noteq> x \<and> \<bar>x' - x\<bar> < e)"
+  fixes S :: "real set"
+  shows "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>x'\<in> S. x' \<noteq> x \<and> \<bar>x' - x\<bar> < \<epsilon>)"
   unfolding islimpt_approachable dist_norm by simp
 
 lemma closed_real:
-  fixes s :: "real set"
-  shows "closed s \<longleftrightarrow> (\<forall>x. (\<forall>e>0.  \<exists>x' \<in> s. x' \<noteq> x \<and> \<bar>x' - x\<bar> < e) \<longrightarrow> x \<in> s)"
+  fixes S :: "real set"
+  shows "closed S \<longleftrightarrow> (\<forall>x. (\<forall>\<epsilon>>0.  \<exists>x' \<in> S. x' \<noteq> x \<and> \<bar>x' - x\<bar> < \<epsilon>) \<longrightarrow> x \<in> S)"
   unfolding closed_limpt islimpt_approachable dist_norm by simp
 
 lemma continuous_at_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
-  shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x'. norm(x' - x) < d --> \<bar>f x' - f x\<bar> < e)"
-  by (metis (mono_tags, opaque_lifting) LIM_eq continuous_within norm_eq_zero real_norm_def right_minus_eq)
+  shows "continuous (at x) f \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x'. norm(x' - x) < \<delta> \<longrightarrow> \<bar>f x' - f x\<bar> < \<epsilon>)"
+  by (simp add: continuous_at_eps_delta dist_norm)
 
 lemma continuous_on_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
-  shows "continuous_on s f \<longleftrightarrow>
-    (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d \<longrightarrow> \<bar>f x' - f x\<bar> < e))"
+  shows "continuous_on S f \<longleftrightarrow>
+         (\<forall>x \<in> S. \<forall>\<epsilon>>0. \<exists>\<delta>>0. (\<forall>x' \<in> S. norm(x' - x) < \<delta> \<longrightarrow> \<bar>f x' - f x\<bar> < \<epsilon>))"
   unfolding continuous_on_iff dist_norm by simp
 
 lemma continuous_on_closed_Collect_le:
   fixes f g :: "'a::topological_space \<Rightarrow> real"
-  assumes f: "continuous_on s f" and g: "continuous_on s g" and s: "closed s"
-  shows "closed {x \<in> s. f x \<le> g x}"
+  assumes f: "continuous_on S f" and g: "continuous_on S g" and S: "closed S"
+  shows "closed {x \<in> S. f x \<le> g x}"
 proof -
-  have "closed ((\<lambda>x. g x - f x) -` {0..} \<inter> s)"
+  have "closed ((\<lambda>x. g x - f x) -` {0..} \<inter> S)"
     using closed_real_atLeast continuous_on_diff [OF g f]
-    by (simp add: continuous_on_closed_vimage [OF s])
-  also have "((\<lambda>x. g x - f x) -` {0..} \<inter> s) = {x\<in>s. f x \<le> g x}"
+    by (simp add: continuous_on_closed_vimage [OF S])
+  also have "((\<lambda>x. g x - f x) -` {0..} \<inter> S) = {x\<in>S. f x \<le> g x}"
     by auto
   finally show ?thesis .
 qed
 
 lemma continuous_le_on_closure:
   fixes a::real
-  assumes f: "continuous_on (closure s) f"
-      and x: "x \<in> closure(s)"
-      and xlo: "\<And>x. x \<in> s ==> f(x) \<le> a"
+  assumes f: "continuous_on (closure S) f"
+      and x: "x \<in> closure(S)"
+      and xlo: "\<And>x. x \<in> S \<Longrightarrow> f(x) \<le> a"
     shows "f(x) \<le> a"
   using image_closure_subset [OF f, where T=" {x. x \<le> a}" ] assms
     continuous_on_closed_Collect_le[of "UNIV" "\<lambda>x. x" "\<lambda>x. a"]
@@ -3016,9 +3014,9 @@ lemma continuous_le_on_closure:
 
 lemma continuous_ge_on_closure:
   fixes a::real
-  assumes f: "continuous_on (closure s) f"
-      and x: "x \<in> closure(s)"
-      and xlo: "\<And>x. x \<in> s ==> f(x) \<ge> a"
+  assumes f: "continuous_on (closure S) f"
+      and x: "x \<in> closure S"
+      and xlo: "\<And>x. x \<in> S \<Longrightarrow> f(x) \<ge> a"
     shows "f(x) \<ge> a"
   using image_closure_subset [OF f, where T=" {x. a \<le> x}"] assms
     continuous_on_closed_Collect_le[of "UNIV" "\<lambda>x. a" "\<lambda>x. x"]
@@ -3028,33 +3026,36 @@ lemma continuous_ge_on_closure:
 section\<open>The infimum of the distance between two sets\<close>
 
 definition\<^marker>\<open>tag important\<close> setdist :: "'a::metric_space set \<Rightarrow> 'a set \<Rightarrow> real" where
-  "setdist s t \<equiv>
-       (if s = {} \<or> t = {} then 0
-        else Inf {dist x y| x y. x \<in> s \<and> y \<in> t})"
+  "setdist S T \<equiv>
+       (if S = {} \<or> T = {} then 0
+        else Inf {dist x y| x y. x \<in> S \<and> y \<in> T})"
 
-lemma setdist_empty1 [simp]: "setdist {} t = 0"
+lemma setdist_empty1 [simp]: "setdist {} T = 0"
   by (simp add: setdist_def)
 
-lemma setdist_empty2 [simp]: "setdist t {} = 0"
+lemma setdist_empty2 [simp]: "setdist T {} = 0"
   by (simp add: setdist_def)
 
-lemma setdist_pos_le [simp]: "0 \<le> setdist s t"
+lemma setdist_pos_le [simp]: "0 \<le> setdist S T"
   by (auto simp: setdist_def ex_in_conv [symmetric] intro: cInf_greatest)
 
 lemma le_setdistI:
-  assumes "s \<noteq> {}" "t \<noteq> {}" "\<And>x y. \<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> d \<le> dist x y"
-    shows "d \<le> setdist s t"
+  assumes "S \<noteq> {}" "T \<noteq> {}" "\<And>x y. \<lbrakk>x \<in> S; y \<in> T\<rbrakk> \<Longrightarrow> \<delta> \<le> dist x y"
+    shows "\<delta> \<le> setdist S T"
   using assms
   by (auto simp: setdist_def Set.ex_in_conv [symmetric] intro: cInf_greatest)
 
-lemma setdist_le_dist: "\<lbrakk>x \<in> s; y \<in> t\<rbrakk> \<Longrightarrow> setdist s t \<le> dist x y"
+lemma setdist_le_dist: "\<lbrakk>x \<in> S; y \<in> T\<rbrakk> \<Longrightarrow> setdist S T \<le> dist x y"
   unfolding setdist_def
   by (auto intro!: bdd_belowI [where m=0] cInf_lower)
 
 lemma le_setdist_iff:
-        "d \<le> setdist S T \<longleftrightarrow>
-        (\<forall>x \<in> S. \<forall>y \<in> T. d \<le> dist x y) \<and> (S = {} \<or> T = {} \<longrightarrow> d \<le> 0)"
-  by (smt (verit) le_setdistI setdist_def setdist_le_dist)
+  "\<delta> \<le> setdist S T \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y \<in> T. \<delta> \<le> dist x y) \<and> (S = {} \<or> T = {} \<longrightarrow> \<delta> \<le> 0)"
+  (is "?lhs = ?rhs")
+proof
+  show "?rhs \<Longrightarrow> ?lhs"
+    by (meson le_setdistI order_trans setdist_pos_le)
+qed (use setdist_le_dist in fastforce)
 
 lemma setdist_ltE:
   assumes "setdist S T < b" "S \<noteq> {}" "T \<noteq> {}"
@@ -3063,7 +3064,10 @@ lemma setdist_ltE:
   by (auto simp: not_le [symmetric] le_setdist_iff)
 
 lemma setdist_refl: "setdist S S = 0"
-  by (metis dist_eq_0_iff ex_in_conv order_antisym setdist_def setdist_le_dist setdist_pos_le)
+proof (rule antisym)
+  show "setdist S S \<le> 0"
+    by (metis dist_self equals0I order_refl setdist_empty1 setdist_le_dist)
+qed simp
 
 lemma setdist_sym: "setdist S T = setdist T S"
   by (force simp: setdist_def dist_commute intro!: arg_cong [where f=Inf])
@@ -3074,8 +3078,10 @@ proof (cases "S = {} \<or> T = {}")
     using setdist_pos_le by fastforce
 next
   case False
-  then have "\<And>x. x \<in> S \<Longrightarrow> setdist S T - dist x a \<le> setdist {a} T"
-    by (smt (verit, best) dist_self dist_triangle3 empty_not_insert le_setdist_iff setdist_le_dist singleton_iff)
+  then have "setdist S T - dist x a \<le> setdist {a} T" if "x \<in> S" for x
+    unfolding le_setdist_iff
+    by (metis diff_le_eq dist_commute dist_triangle3 order.trans empty_not_insert
+        setdist_le_dist singleton_iff that)
   then have "setdist S T - setdist {a} T \<le> setdist S {a}"
     using False by (fastforce intro: le_setdistI)
   then show ?thesis
@@ -3127,11 +3133,11 @@ lemma setdist_eq_0I: "\<lbrakk>x \<in> S; x \<in> T\<rbrakk> \<Longrightarrow> s
   by (metis antisym dist_self setdist_le_dist setdist_pos_le)
 
 lemma setdist_unique:
-  "\<lbrakk>a \<in> S; b \<in> T; \<And>x y. x \<in> S \<and> y \<in> T ==> dist a b \<le> dist x y\<rbrakk>
+  "\<lbrakk>a \<in> S; b \<in> T; \<And>x y. x \<in> S \<and> y \<in> T \<Longrightarrow> dist a b \<le> dist x y\<rbrakk>
    \<Longrightarrow> setdist S T = dist a b"
   by (force simp: setdist_le_dist le_setdist_iff intro: antisym)
 
-lemma setdist_le_sing: "x \<in> S ==> setdist S T \<le> setdist {x} T"
+lemma setdist_le_sing: "x \<in> S \<Longrightarrow> setdist S T \<le> setdist {x} T"
   using setdist_subset_left by auto
 
 lemma infdist_eq_setdist: "infdist x A = setdist {x} A"
@@ -3143,12 +3149,12 @@ proof -
     if "b \<in> B" "a \<in> A" for a b
   proof (rule order_antisym)
     have "Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> Inf (dist x ` B)"
-      if  "b \<in> B" "a \<in> A" "x \<in> A" for x 
+      if "b \<in> B" "a \<in> A" "x \<in> A" for x 
     proof -
       have "\<And>b'. b' \<in> B \<Longrightarrow> Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> dist x b'"
-        by (metis (mono_tags, lifting) ex_in_conv setdist_def setdist_le_dist that(3))
+        by (metis (mono_tags, lifting) ex_in_conv setdist_def setdist_le_dist \<open>x \<in> A\<close>)
       then show ?thesis
-        by (smt (verit) cINF_greatest ex_in_conv \<open>b \<in> B\<close>)
+        by (metis (lifting) cINF_greatest emptyE \<open>b \<in> B\<close>)
     qed
     then show "Inf {dist x y |x y. x \<in> A \<and> y \<in> B} \<le> (INF x\<in>A. Inf (dist x ` B))"
       by (metis (mono_tags, lifting) cINF_greatest emptyE that)
@@ -3207,11 +3213,12 @@ text \<open>taken from the AFP entry Martingales, by Ata Keskin, TU München\<cl
 
 lemma diameter_comp_strict_mono:
   fixes s :: "nat \<Rightarrow> 'a :: metric_space"
-  assumes "strict_mono r" "bounded {s i |i. r n \<le> i}"
+  assumes "strict_mono r" and bnd: "bounded {s i |i. r n \<le> i}"
   shows "diameter {s (r i) | i. n \<le> i} \<le> diameter {s i | i. r n \<le> i}"
 proof (rule diameter_subset)
-  show "{s (r i) | i. n \<le> i} \<subseteq> {s i | i. r n \<le> i}" using assms(1) monotoneD strict_mono_mono by fastforce
-qed (intro assms(2))
+  show "{s (r i) | i. n \<le> i} \<subseteq> {s i | i. r n \<le> i}" 
+    using \<open>strict_mono r\<close> monotoneD strict_mono_mono by fastforce
+qed (intro bnd)
 
 lemma diameter_bounded_bound':
   fixes S :: "'a :: metric_space set"
@@ -3227,44 +3234,63 @@ qed
 lemma bounded_imp_dist_bounded:
   assumes "bounded (range s)"
   shows "bounded ((\<lambda>(i, j). dist (s i) (s j)) ` ({n..} \<times> {n..}))"
-  using bounded_dist_comp[OF bounded_fst bounded_snd, OF bounded_Times(1,1)[OF assms(1,1)]] by (rule bounded_subset, force) 
+  unfolding image_iff case_prod_unfold
+  by (intro bounded_dist_comp; meson assms bounded_dist_comp bounded_dist_comp bounded_subset image_subset_iff rangeI)
 
-text \<open>A sequence is Cauchy, if and only if it is bounded and its diameter tends to zero. The diameter is well-defined only if the sequence is bounded.\<close>
+text \<open>A sequence is Cauchy, if and only if it is bounded and its diameter tends to zero. 
+  The diameter is well-defined only if the sequence is bounded.\<close>
 lemma cauchy_iff_diameter_tends_to_zero_and_bounded:
   fixes s :: "nat \<Rightarrow> 'a :: metric_space"
   shows "Cauchy s \<longleftrightarrow> ((\<lambda>n. diameter {s i | i. i \<ge> n}) \<longlonglongrightarrow> 0 \<and> bounded (range s))"
+         (is "_ = ?rhs")
 proof -
   have "{s i |i. N \<le> i} \<noteq> {}" for N by blast
-  hence diameter_SUP: "diameter {s i |i. N \<le> i} = (SUP (i, j) \<in> {N..} \<times> {N..}. dist (s i) (s j))" for N unfolding diameter_def by (auto intro!: arg_cong[of _ _ Sup])
+  hence diameter_SUP: "diameter {s i |i. N \<le> i} = (SUP (i, j) \<in> {N..} \<times> {N..}. dist (s i) (s j))" for N 
+    unfolding diameter_def by (auto intro!: arg_cong[of _ _ Sup])
   show ?thesis 
   proof (intro iffI)
-    assume asm: "Cauchy s"
-    have "\<exists>N. \<forall>n\<ge>N. norm (diameter {s i |i. n \<le> i}) < e" if e_pos: "e > 0" for e
+    assume "Cauchy s"
+    have "\<exists>N. \<forall>n\<ge>N. norm (diameter {s i |i. n \<le> i}) < \<epsilon>" if e_pos: "\<epsilon> > 0" for \<epsilon>
     proof -
-      obtain N where dist_less: "dist (s n) (s m) < (1/2) * e" if "n \<ge> N" "m \<ge> N" for n m using asm e_pos by (metis Cauchy_def mult_pos_pos zero_less_divide_iff zero_less_numeral zero_less_one)
-      {
-        fix r assume "r \<ge> N"
-        hence "dist (s n) (s m) < (1/2) * e" if "n \<ge> r" "m \<ge> r" for n m using dist_less that by simp
-        hence "(SUP (i, j) \<in> {r..} \<times> {r..}. dist (s i) (s j)) \<le> (1/2) * e" by (intro cSup_least) fastforce+
-        also have "... < e" using e_pos by simp
-        finally have "diameter {s i |i. r \<le> i} < e" using diameter_SUP by presburger
-      }
-      moreover have "diameter {s i |i. r \<le> i} \<ge> 0" for r unfolding diameter_SUP using bounded_imp_dist_bounded[OF cauchy_imp_bounded, THEN bounded_imp_bdd_above, OF asm] by (intro cSup_upper2, auto)
-      ultimately show ?thesis by auto
+      obtain N where dist_less: "dist (s n) (s m) < (1/2) * \<epsilon>" 
+        if "n \<ge> N" "m \<ge> N" for n m 
+        using \<open>Cauchy s\<close> e_pos
+        by (meson half_gt_zero less_numeral_extra(1) metric_CauchyD mult_pos_pos)
+      have "diameter {s i |i. r \<le> i} < \<epsilon>" 
+        if "r \<ge> N" for r
+      proof -
+        have "dist (s n) (s m) < (1/2) * \<epsilon>" if "n \<ge> r" "m \<ge> r" for n m 
+          using \<open>r \<ge> N\<close> dist_less that by simp
+        hence "(SUP (i, j) \<in> {r..} \<times> {r..}. dist (s i) (s j)) \<le> (1/2) * \<epsilon>" 
+          by (intro cSup_least) fastforce+
+        also have "\<dots> < \<epsilon>" using e_pos by simp
+        finally show ?thesis 
+          using diameter_SUP by presburger
+      qed
+      moreover have "diameter {s i |i. r \<le> i} \<ge> 0" for r 
+        unfolding diameter_SUP 
+        using bounded_imp_dist_bounded[OF cauchy_imp_bounded, THEN bounded_imp_bdd_above] \<open>Cauchy s\<close>
+        by (force intro: cSup_upper2)
+      ultimately show ?thesis 
+        by auto
     qed                 
-    thus "(\<lambda>n. diameter {s i |i. n \<le> i}) \<longlonglongrightarrow> 0 \<and> bounded (range s)" using cauchy_imp_bounded[OF asm] by (simp add: LIMSEQ_iff)
+    thus "(\<lambda>n. diameter {s i |i. n \<le> i}) \<longlonglongrightarrow> 0 \<and> bounded (range s)" 
+      using cauchy_imp_bounded[OF \<open>Cauchy s\<close>] by (simp add: LIMSEQ_iff)
   next
-    assume asm: "(\<lambda>n. diameter {s i |i. n \<le> i}) \<longlonglongrightarrow> 0 \<and> bounded (range s)"
-    have "\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. dist (s n) (s m) < e" if e_pos: "e > 0" for e
+    assume R: ?rhs
+    have "\<exists>N. \<forall>n\<ge>N. \<forall>m\<ge>N. dist (s n) (s m) < \<epsilon>" if e_pos: "\<epsilon> > 0" for \<epsilon>
     proof -
-      obtain N where diam_less: "diameter {s i |i. r \<le> i} < e" if "r \<ge> N" for r using LIMSEQ_D asm(1) e_pos by fastforce
-      {
-        fix n m assume "n \<ge> N" "m \<ge> N"
-        hence "dist (s n) (s m) < e" using cSUP_lessD[OF bounded_imp_dist_bounded[THEN bounded_imp_bdd_above], OF _ diam_less[unfolded diameter_SUP]] asm by auto
-      }
+      obtain N where diam_less: "diameter {s i |i. r \<le> i} < \<epsilon>" if "r \<ge> N" for r 
+        using LIMSEQ_D R e_pos by fastforce
+      have "dist (s n) (s m) < \<epsilon>" 
+        if "n \<ge> N" "m \<ge> N" for n m
+        using cSUP_lessD[OF bounded_imp_dist_bounded[THEN bounded_imp_bdd_above],
+            OF _ diam_less[unfolded diameter_SUP]] 
+        using R that by auto
       thus ?thesis by blast
     qed
-    then show "Cauchy s" by (simp add: Cauchy_def)
+    then show "Cauchy s" 
+      by (simp add: Cauchy_def)
   qed            
 qed
   
