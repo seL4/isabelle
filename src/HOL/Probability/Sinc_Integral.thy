@@ -128,7 +128,7 @@ proof cases
     by (auto simp: isCont_def sinc_at_0)
 next
   assume "x \<noteq> 0" show ?thesis
-    by (rule continuous_transform_within [where d = "abs x" and f = "\<lambda>x. sin x / x"])
+    by (rule continuous_transform_within [where \<delta> = "abs x" and f = "\<lambda>x. sin x / x"])
        (auto simp add: dist_real_def \<open>x \<noteq> 0\<close>)
 qed
 

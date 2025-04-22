@@ -5222,13 +5222,12 @@ proof (clarsimp simp: continuous_on_eq_continuous_within Ball_def)
   next
     case False
     show ?thesis
-    proof (rule continuous_transform_within [where f=g and d = "norm(x-a)"])
-      have "\<exists>d>0. \<forall>x'\<in>cball a r.
-                      dist x' x < d \<longrightarrow> dist (g x') (g x) < e" if "e>0" for e
+    proof (rule continuous_transform_within [where f=g and \<delta> = "norm(x-a)"])
+      have "\<exists>d>0. \<forall>x'\<in>cball a r. dist x' x < d \<longrightarrow> dist (g x') (g x) < e" 
+        if "e>0" for e
       proof -
         obtain d where "d > 0"
-           and d: "\<And>x'. \<lbrakk>dist x' a \<le> r; x' \<noteq> a; dist x' x < d\<rbrakk> \<Longrightarrow>
-                                 dist (g x') (g x) < e"
+           and d: "\<And>y. \<lbrakk>dist y a \<le> r; y \<noteq> a; dist y x < d\<rbrakk> \<Longrightarrow> dist (g y) (g x) < e"
           using contg False x \<open>e>0\<close>
           unfolding continuous_on_iff by (fastforce simp: dist_commute intro: that)
         show ?thesis

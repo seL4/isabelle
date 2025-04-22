@@ -855,7 +855,7 @@ proof -
       by (rule_tac x="min (pe/4) (e/2*pe^2/L/4)" in exI) (simp add: dist_norm cmod_wn_diff)
   qed
   then show ?thesis
-    apply (rule continuous_transform_within [where d = "min d e/2"])
+    apply (rule continuous_transform_within [where \<delta> = "min d e/2"])
     apply (auto simp: \<open>d>0\<close> \<open>e>0\<close> dist_norm wnwn)
     done
 qed

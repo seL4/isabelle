@@ -2866,7 +2866,7 @@ proof -
       have "dist (x + (y - f x)) (xh + (y - f xh)) * 2 \<le> dist x xh"
         if "norm x \<le> \<delta>" and "norm xh \<le> \<delta>" for x xh
         using that 4 [of x "xh-x"] by (auto simp: dist_norm norm_minus_commute algebra_simps)
-      then show "\<forall>x\<in>cball 0 \<delta>. \<forall>ya\<in>cball 0 \<delta>. dist (x + (y - f x)) (ya + (y - f ya)) \<le> (1/2) * dist x ya"
+      then show "\<And>x z. \<lbrakk>x\<in>cball 0 \<delta>; z\<in>cball 0 \<delta>\<rbrakk> \<Longrightarrow> dist (x + (y - f x)) (z + (y - f z)) \<le> (1/2) * dist x z"
         by auto
     qed (auto simp: complete_eq_closed)
     then show ?thesis

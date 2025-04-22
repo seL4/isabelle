@@ -81,7 +81,7 @@ proof -
   have ucontf: "uniformly_continuous_on {0..1} f"
     using compact_uniformly_continuous contf by blast
   then obtain d where d: "d>0" "\<And>x x'. \<lbrakk> x \<in> {0..1}; x' \<in> {0..1}; \<bar>x' - x\<bar> < d\<rbrakk> \<Longrightarrow> \<bar>f x' - f x\<bar> < e/2"
-     apply (rule uniformly_continuous_onE [where e = "e/2"])
+     apply (rule uniformly_continuous_onE [where \<epsilon> = "e/2"])
      using e by (auto simp: dist_norm)
   { fix n::nat and x::real
     assume n: "Suc (nat\<lceil>4*M/(e*d\<^sup>2)\<rceil>) \<le> n" and x: "0 \<le> x" "x \<le> 1"
