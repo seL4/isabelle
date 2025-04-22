@@ -397,7 +397,6 @@ print.glyphVector=true
 recent-buffer.shortcut2=C+CIRCUMFLEX
 restore.remote=false
 restore=false
-search.find=Search:
 search.subdirs.toggle=true
 select-block.shortcut2=C+8
 sidekick-tree.dock-position=right

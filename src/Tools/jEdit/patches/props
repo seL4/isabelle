@@ -1,6 +1,15 @@
 diff -ru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props
 --- jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props	2024-08-03 19:53:22.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2024-10-29 11:50:54.066016546 +0100
++++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2025-04-22 17:04:30.569235167 +0200
+@@ -70,7 +70,7 @@
+ #}}}
+ 
+ #{{{ Tool bar
+-view.search.find=Search for:
++view.search.find=Search:
+ view.search.close-tooltip=Hide search bar (ESCAPE)
+ 
+ view.action.prompt=Action:
 @@ -1282,8 +1282,7 @@
  	The most likely reason is that the JAR file is corrupt; try\n\
  	reinstalling it. See Utilities->Troubleshooting->Activity Log\n\
