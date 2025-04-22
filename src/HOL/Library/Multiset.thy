@@ -10,7 +10,7 @@
 section \<open>(Finite) Multisets\<close>
 
 theory Multiset
-  imports Cancellation FuncSet
+  imports Cancellation
 begin
 
 subsection \<open>The type of multisets\<close>
@@ -4876,29 +4876,41 @@ lemma bij_betw_multisets_of_size_insert:
   assumes "a \<notin> A"
   shows   "bij_betw (\<lambda>(m,X). X + replicate_mset m a)
              (SIGMA m:{0..n}. multisets_of_size A (n - m)) (multisets_of_size (insert a A) n)"
-proof (rule bij_betwI[of _ _ _ "\<lambda>X. (count X a, filter_mset (\<lambda>x. x \<noteq> a) X)"], goal_cases)
-  case 1
-  show ?case
-    by (auto simp: multisets_of_size_def split: if_splits)
-next
-  case 2
+proof -
+  define B where "B = (SIGMA m:{0..n}. multisets_of_size A (n - m))"
+  define C where "C = (multisets_of_size (insert a A) n)"
+  define f where "f = (\<lambda>(m,X). X + replicate_mset m a)"
+  define g where "g = (\<lambda>X. (count X a, filter_mset (\<lambda>x. x \<noteq> a) X))"
+  note defs = B_def C_def f_def g_def
+
   have *: "size (filter_mset (\<lambda>x. x \<noteq> a) X) = size X - count X a" for X
   proof -
     have "size X = size (filter_mset (\<lambda>x. x \<noteq> a) X) + count X a"
       by (induction X) auto
     thus ?thesis
       by linarith
-  qed  
-  show ?case
-    by (auto simp: multisets_of_size_def count_le_size *)
-next
-  case (3 m_X)
-  thus ?case using assms
-    by (auto simp: multisets_of_size_def multiset_eq_iff simp flip: not_in_iff)
-next
-  case (4 X)
-  thus ?case
-    by (auto simp: multisets_of_size_def multiset_eq_iff)
+  qed
+
+  have 1: "f mX \<in> C" if "mX \<in> B" for mX
+    using that by (auto simp: multisets_of_size_def defs split: if_splits)
+  
+  have 2: "g X \<in> B" if "X \<in> C" for X
+    using that by (auto simp: multisets_of_size_def count_le_size * defs)
+
+  have 3: "g (f mX) = mX" if "mX \<in> B" for mX
+    using that assms
+    by (auto simp: multisets_of_size_def multiset_eq_iff defs simp flip: not_in_iff)
+
+  have 4: "f (g X) = X" if "X \<in> C" for X
+    using that
+    by (auto simp: multisets_of_size_def multiset_eq_iff defs simp flip: not_in_iff)
+
+  have "f ` B = C"
+    using 1 2 4 unfolding set_eq_iff image_iff by metis
+  moreover have "inj_on f B"
+    using 3 unfolding inj_on_def by metis
+  ultimately show ?thesis
+    unfolding bij_betw_def defs by metis
 qed
 
 lemma multisets_of_size_insert:
