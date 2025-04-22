@@ -12,6 +12,7 @@ import isabelle._
 
 import java.awt.Graphics2D
 import java.awt.event.KeyEvent
+import java.awt.geom.AffineTransform
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.jEdit
@@ -149,6 +150,8 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         val icon_width = gutter_width - skip_left - skip_right
         val icon_height = line_height
 
+        def scale(a: Int, b: Int): Double = 0.95 * a.toDouble / b.toDouble
+
         val gutter_icons =
           !gutter.isExpanded &&
             gutter.isSelectionAreaEnabled && icon_width >= 12 && icon_height >= 12
@@ -164,12 +167,21 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
               rendering.gutter_content(line_range) match {
                 case Some((icon, color)) =>
                   // icons within selection area
-                  if (gutter_icons) {
-                    val w = icon.getIconWidth
-                    val h = icon.getIconHeight
+                  if (gutter_icons && icon.getIconWidth > 0 && icon.getIconHeight > 0) {
+                    val w0 = icon.getIconWidth
+                    val h0 = icon.getIconHeight
+                    val s = Math.min(scale(icon_width, w0), scale(icon_height, h0))
+
+                    val w = (s * w0).ceil
+                    val h = (s * h0).ceil
                     val x0 = skip_left + (((icon_width - w) / 2) max 0)
                     val y0 = y + i * line_height + (((icon_height - h) / 2) max 0)
-                    icon.paintIcon(gutter, gfx, x0, y0)
+
+                    val tr0 = gfx.getTransform
+                    val tr = new AffineTransform(tr0); tr.translate(x0, y0); tr.scale(s, s)
+                    gfx.setTransform(tr)
+                    icon.paintIcon(gutter, gfx, 0, 0)
+                    gfx.setTransform(tr0)
                   }
                   // background only
                   else {
