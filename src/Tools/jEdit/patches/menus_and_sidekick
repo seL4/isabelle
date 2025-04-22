@@ -1,17 +1,3 @@
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
---- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-10-29 11:50:54.062016616 +0100
-@@ -1094,9 +1094,7 @@
- 				return new Font("Monospaced", Font.PLAIN, 12);
- 			}
- 			else {
--				Font font2 =
--					new Font(OperatingSystem.isWindows() ? "Lucida Console" : "Monospaced",
--						Font.PLAIN, font1.getSize());
-+				Font font2 = new Font("Isabelle DejaVu Sans Mono", Font.PLAIN, font1.getSize());
- 				FontRenderContext frc = new FontRenderContext(null, true, false);
- 				float scale =
- 					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StatusBar.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StatusBar.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StatusBar.java	2024-08-03 19:53:16.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StatusBar.java	2024-11-15 20:22:26.451538237 +0100
@@ -30,9 +16,32 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StatusBar.java jedit5.7.0-patched
  
  	//{{{ setMessageComponent() method
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
---- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-11-15 18:42:41.560326356 +0100
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-11-15 20:33:52.458587638 +0100
-@@ -1617,6 +1617,21 @@
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-22 17:29:21.807286585 +0200
+@@ -1094,9 +1113,7 @@
+ 				return new Font("Monospaced", Font.PLAIN, 12);
+ 			}
+ 			else {
+-				Font font2 =
+-					new Font(OperatingSystem.isWindows() ? "Lucida Console" : "Monospaced",
+-						Font.PLAIN, font1.getSize());
++				Font font2 = new Font("Isabelle DejaVu Sans Mono", Font.PLAIN, font1.getSize());
+ 				FontRenderContext frc = new FontRenderContext(null, true, false);
+ 				float scale =
+ 					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
+@@ -1107,6 +1124,11 @@
+ 
+ 	//{{{ Colors and styles
+ 
++	public static boolean isDarkLaf()
++	{
++		return com.formdev.flatlaf.FlatLaf.isLafDark();
++	}
++
+ 	//{{{ getStyleString() method
+ 	/**
+ 	 * Converts a style into it's string representation.
+@@ -1619,6 +1641,21 @@
  	}
  	//}}}
  
