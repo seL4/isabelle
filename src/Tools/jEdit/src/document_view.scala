@@ -17,7 +17,8 @@ import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter,
+  Gutter}
 
 
 object Document_View {
@@ -144,8 +145,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         val gutter_width = gutter.getWidth
         val gutter_insets = gutter.getBorder.getBorderInsets(gutter)
 
-        // org.gjt.sp.jedit.textarea.Gutter.FOLD_MARKER_SIZE = 12
-        val skip_left = gutter_insets.left + 12
+        val skip_left = gutter_insets.left + Gutter.FOLD_MARKER_SIZE
         val skip_right = gutter_insets.right
         val icon_width = gutter_width - skip_left - skip_right
         val icon_height = line_height
