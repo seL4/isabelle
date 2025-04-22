@@ -18,19 +18,21 @@ import javax.swing.{ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
 import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
+import com.formdev.flatlaf
+import com.formdev.flatlaf.FlatLaf
+
 
 object GUI {
   /* Swing look-and-feel */
 
-  def init_laf(): Unit = com.formdev.flatlaf.FlatLightLaf.setup()
+  def init_laf(): Unit = flatlaf.FlatLightLaf.setup()
 
   def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
 
   def is_macos_laf(): Boolean =
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
-  def is_dark_laf(): Boolean =
-    com.formdev.flatlaf.FlatLaf.isLafDark
+  def is_dark_laf(): Boolean = FlatLaf.isLafDark()
 
   class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
     def info: UIManager.LookAndFeelInfo =
@@ -540,5 +542,5 @@ object GUI {
   }
 }
 
-class FlatLightLaf extends GUI.Look_And_Feel(new com.formdev.flatlaf.FlatLightLaf)
-class FlatDarkLaf extends GUI.Look_And_Feel(new com.formdev.flatlaf.FlatDarkLaf)
+class FlatLightLaf extends GUI.Look_And_Feel(new flatlaf.FlatLightLaf)
+class FlatDarkLaf extends GUI.Look_And_Feel(new flatlaf.FlatDarkLaf)
