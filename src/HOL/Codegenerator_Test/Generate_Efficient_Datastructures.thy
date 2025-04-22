@@ -30,6 +30,7 @@ declare [[code drop:
   "Gcd :: _ poly set \<Rightarrow> _"
   "Lcm :: _ poly set \<Rightarrow> _"
   nlists
+  Multiset.multisets_of_size
 ]]
 
 text \<open>
