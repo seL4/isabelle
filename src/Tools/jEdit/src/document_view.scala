@@ -140,13 +140,18 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         GUI_Thread.assert {}
 
         val gutter = text_area.getGutter
-        val sel_width = GutterOptionPane.getSelectionAreaWidth
-        val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
-        val FOLD_MARKER_SIZE = 12
+        val gutter_width = gutter.getWidth
+        val gutter_insets = gutter.getBorder.getBorderInsets(gutter)
+
+        // org.gjt.sp.jedit.textarea.Gutter.FOLD_MARKER_SIZE = 12
+        val skip_left = gutter_insets.left + 12
+        val skip_right = gutter_insets.right
+        val icon_width = gutter_width - skip_left - skip_right
+        val icon_height = line_height
 
         val gutter_icons =
           !gutter.isExpanded &&
-            gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12
+            gutter.isSelectionAreaEnabled && icon_width >= 12 && icon_height >= 12
 
         val buffer = model.buffer
         JEdit_Lib.buffer_lock(buffer) {
@@ -162,15 +167,15 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
                   if (gutter_icons) {
                     val w = icon.getIconWidth
                     val h = icon.getIconHeight
-                    val x0 = (FOLD_MARKER_SIZE + sel_width - border_width - w) max 10
-                    val y0 = y + i * line_height + (((line_height - h) / 2) max 0)
+                    val x0 = skip_left + (((icon_width - w) / 2) max 0)
+                    val y0 = y + i * line_height + (((icon_height - h) / 2) max 0)
                     icon.paintIcon(gutter, gfx, x0, y0)
                   }
                   // background only
                   else {
                     val y0 = y + i * line_height
                     gfx.setColor(color)
-                    gfx.fillRect(0, y0, gutter.getWidth, line_height)
+                    gfx.fillRect(0, y0, gutter_width, line_height)
                   }
                 case None =>
               }
