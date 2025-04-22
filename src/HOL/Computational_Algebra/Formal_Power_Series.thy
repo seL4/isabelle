@@ -12,6 +12,7 @@ imports
   Euclidean_Algorithm
   Primes
   "HOL-Library.FuncSet"
+  "HOL-Library.Multiset"
 begin
 
 
@@ -3832,214 +3833,44 @@ lemma fps_deriv_power:
 
 subsection \<open>Finite and infinite products\<close>
 
-text \<open>
-  The following operator gives the set of all functions $A \to \mathbb{N}$ with
-  $\sum_{x\in A} f(x) = n$, i.e.\ all the different ways to put $n$ unlabelled balls into
-  the labelled bins $A$.
-\<close>
-definition nat_partitions :: "'a set \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> nat) set" where
-  "nat_partitions A n =
-     {f. finite {x. f x > 0} \<and> {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>{x\<in>A. f x > 0}. f x) = n}"
-
-lemma 
-  assumes "h \<in> nat_partitions A n"
-  shows   nat_partitions_outside: "x \<notin> A \<Longrightarrow> h x = 0"
-    and   nat_partitions_sum: "(\<Sum>x\<in>{x\<in>A. h x > 0}. h x) = n"
-    and   nat_partitions_finite_support: "finite {x. h x > 0}"
-  using assms by (auto simp: nat_partitions_def)
-
-lemma nat_partitions_finite_def:
-  assumes "finite A"
-  shows   "nat_partitions A n = {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
-proof (intro equalityI subsetI)
-  fix f assume f: "f \<in> nat_partitions A n"
-  have "(\<Sum>x\<in>A. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
-    by (rule sum.mono_neutral_right) (use assms in auto)
-  thus "f \<in> {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
-    using f nat_partitions_def by auto
-next
-  fix f assume "f \<in> {f. {x. f x > 0} \<subseteq> A \<and> (\<Sum>x\<in>A. f x) = n}"
-  hence f: "{x. f x > 0} \<subseteq> A" "(\<Sum>x\<in>A. f x) = n"
-    by blast+
-  have "(\<Sum>x\<in>A. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
-    by (rule sum.mono_neutral_right) (use assms in auto)
-  moreover have "finite {x. f x > 0}"
-    using f(1) assms by (rule finite_subset)
-  ultimately show "f \<in> nat_partitions A n"
-    using f by (simp add: nat_partitions_def)
-qed
-
-lemma nat_partitions_subset:
-  "nat_partitions A n \<subseteq> A \<rightarrow> {0..n}"
-proof
-  fix f assume f: "f \<in> nat_partitions A n"
-  have "f x \<le> n" if x: "x \<in> A" for x
-  proof (cases "f x = 0")
-    case False
-    have "f x \<le> (\<Sum>x\<in>{x\<in>A. f x \<noteq> 0}. f x)"
-      by (rule member_le_sum) (use x False f in \<open>auto simp: nat_partitions_def\<close>)
-    also have "\<dots> = n"
-      using f by (auto simp: nat_partitions_def)
-    finally show "f x \<le> n" .
-  qed auto
-  thus "f \<in> A \<rightarrow> {0..n}"
-    using f by (auto simp: nat_partitions_def)
-qed
-
-lemma conj_mono_strong: "(P1 \<longrightarrow> Q1) \<Longrightarrow> (P1 \<longrightarrow> P2 \<longrightarrow> Q2) \<Longrightarrow> (P1 \<and> P2) \<longrightarrow> (Q1 \<and> Q2)"
-  by iprover
-
-lemma nat_partitions_mono:
-  assumes "A \<subseteq> B"
-  shows   "nat_partitions A n \<subseteq> nat_partitions B n"
-  unfolding nat_partitions_def
-proof (intro Collect_mono conj_mono_strong impI)
-  fix f :: "'a \<Rightarrow> nat"
-  assume 1: "finite {x. f x > 0}"
-  assume 2: "{x. f x > 0} \<subseteq> A"
-  thus "{x. f x > 0} \<subseteq> B"
-    using assms by blast
-  assume 3: "(\<Sum>x | x \<in> A \<and> f x > 0. f x) = n"
-  have *: "{x\<in>B. f x > 0} = {x\<in>A. f x > 0} \<union> {x\<in>B-A. f x > 0}"
-    using assms by auto
-  have "(\<Sum>x | x \<in> B \<and> f x > 0. f x) = (\<Sum>x | x \<in> A \<and> f x > 0. f x)"
-    by (intro sum.mono_neutral_right) (use assms 2 in \<open>auto intro: finite_subset[OF _ 1]\<close>)
-  with 3 show "(\<Sum>x | x \<in> B \<and> f x > 0. f x) = n"
-    by simp
-qed
-
-lemma in_nat_partitions_imp_le:
-  assumes "h \<in> nat_partitions A n" "x \<in> A"
-  shows   "h x \<le> n"
-  using nat_partitions_subset[of A n] assms by (auto simp: PiE_def Pi_def)
-
-lemma nat_partitions_0 [simp]: "nat_partitions A 0 = {\<lambda>_. 0}"
-proof (intro equalityI subsetI)
-  fix h :: "'a \<Rightarrow> nat" assume "h \<in> {\<lambda>_. 0}"
-  thus "h \<in> nat_partitions A 0"
-    by (auto simp: nat_partitions_def)
-qed (auto simp: nat_partitions_def fun_eq_iff)
-
-lemma nat_partitions_empty [simp]: "n > 0 \<Longrightarrow> nat_partitions {} n = {}"
-  by (auto simp: nat_partitions_def fun_eq_iff)
-
-lemma nat_partitions_insert:
-  assumes [simp]: "a \<notin> A"
-  shows   "bij_betw (\<lambda>(m,f). f(a := m))
-             (SIGMA m:{0..n}. nat_partitions A (n - m)) (nat_partitions (insert a A) n)"
-proof (rule bij_betwI[of _ _ _ "\<lambda>f. (f a, f(a := 0))"], goal_cases)
-  case 1
-  show ?case
-  proof safe
-    fix m f assume m: "m \<in> {0..n}" and f: "f \<in> nat_partitions A (n - m)"
-    define f' where "f' = f(a := m)"
-    have "(\<Sum>x\<in>{x\<in>insert a A. f' x > 0}. f' x) = (\<Sum>x\<in>insert a {x\<in>A. f x > 0}. f' x)"
-      by (rule sum.mono_neutral_cong_left)
-         (use f in \<open>auto simp: f'_def nat_partitions_def\<close>)
-    also have "\<dots> = m + (\<Sum>x\<in>{x\<in>A. f x > 0}. f' x)"
-      by (subst sum.insert) (use f in \<open>auto simp: nat_partitions_def f'_def\<close>)
-    also have "(\<Sum>x\<in>{x\<in>A. f x > 0}. f' x) = (\<Sum>x\<in>{x\<in>A. f x > 0}. f x)"
-      by (intro sum.cong) (auto simp: f'_def)
-    also have "\<dots> = n - m"
-      using f by (auto simp: nat_partitions_def)
-    finally have "(\<Sum>x\<in>{x\<in>insert a A. f' x > 0}. f' x) = n"
-      using m by simp
-    moreover have "finite {x. f' x > 0}"
-      by (rule finite_subset[of _ "insert a {x\<in>A. f x > 0}"])
-         (use f in \<open>auto simp: nat_partitions_def f'_def\<close>)
-    moreover have "{x. f' x > 0} \<subseteq> insert a A"
-      using f by (auto simp: f'_def nat_partitions_def)
-    ultimately show "f' \<in> nat_partitions (insert a A) n"
-      by (simp add: nat_partitions_def)
-  qed
-next
-  case 2
-  show ?case
-  proof safe
-    fix f assume "f \<in> nat_partitions (insert a A) n"
-    define f' where "f' = f(a := 0)"
-    have  fin: "finite {x. f x > 0}"
-      and subset: "{x. f x > 0} \<subseteq> insert a A"
-      and sum: "(\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x) = n"
-      using \<open>f \<in> _\<close> by (auto simp: nat_partitions_def)
-
-    show le: "f a \<in> {0..n}"
-    proof (cases "f a = 0")
-      case False
-      hence "f a \<le> (\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x)"
-        by (intro member_le_sum) (use fin in auto)
-      with sum show ?thesis
-        by simp
-    qed auto
-
-    have "n = (\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x)"
-      using sum by simp
-    also have "(\<Sum>x\<in>{x\<in>insert a A. f x > 0}. f x) = (\<Sum>x\<in>insert a {x\<in>A. f x > 0}. f x)"
-      by (rule sum.mono_neutral_left) (auto intro: finite_subset[OF _ fin])
-    also have "\<dots> = f a + (\<Sum>x\<in>{x\<in>A. f x > 0}. f x)"
-      by (subst sum.insert) (auto intro: finite_subset[OF _ fin])
-    also have "(\<Sum>x\<in>{x\<in>A. f x > 0}. f x) = (\<Sum>x\<in>{x\<in>A. f' x > 0}. f' x)"
-      by (intro sum.cong) (auto simp: f'_def)
-    finally have "(\<Sum>x\<in>{x\<in>A. f' x > 0}. f' x) = n - f a"
-      using le by simp
-
-    moreover have "finite {x. 0 < f' x}"
-      by (rule finite_subset[OF _ fin]) (auto simp: f'_def)
-    moreover have "{x. 0 < f' x} \<subseteq> A"
-      using subset by (auto simp: f'_def)
-    ultimately show "f' \<in> nat_partitions A (n - f a)"
-      by (auto simp: nat_partitions_def)
-  qed
-next
-  case (3 f)
-  thus ?case
-    by (fastforce simp: nat_partitions_def fun_eq_iff)
-qed (auto simp: nat_partitions_def)
-
-lemma finite_nat_partitions [intro]:
-  assumes "finite A"
-  shows   "finite (nat_partitions A n)"
-  using assms
-proof (induction arbitrary: n rule: finite_induct)
-  case empty
-  thus ?case
-    by (cases "n = 0") auto
-next
-  case (insert x A n)
-  have "finite (SIGMA m:{0..n}. nat_partitions A (n - m))"
-    by (auto intro: insert.IH)
-  also have "?this \<longleftrightarrow> finite (nat_partitions (insert x A) n)"
-    by (rule bij_betw_finite, rule nat_partitions_insert) fact
-  finally show ?case .
-qed
-
 lemma fps_prod_nth':
   assumes "finite A"
-  shows   "fps_nth (\<Prod>x\<in>A. f x) n = (\<Sum>h\<in>nat_partitions A n. \<Prod>x\<in>A. fps_nth (f x) (h x))"
+  shows   "fps_nth (\<Prod>x\<in>A. f x) n = (\<Sum>X\<in>multisets_of_size A n. \<Prod>x\<in>A. fps_nth (f x) (count X x))"
   using assms
 proof (induction A arbitrary: n rule: finite_induct)
   case (insert a A n)
   note [simp] = \<open>a \<notin> A\<close>
   note [intro, simp] = \<open>finite A\<close>
-  have "(\<Sum>h\<in>nat_partitions (insert a A) n. \<Prod>x\<in>insert a A. fps_nth (f x) (h x)) =
-        (\<Sum>(m,h)\<in>(SIGMA m:{0..n}. nat_partitions A (n-m)). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x))"
-    by (subst sum.reindex_bij_betw[OF nat_partitions_insert, symmetric])
+  have "(\<Sum>X\<in>multisets_of_size (insert a A) n. \<Prod>x\<in>insert a A. fps_nth (f x) (count X x)) =
+        (\<Sum>(m,X)\<in>(SIGMA m:{0..n}. multisets_of_size A (n-m)). 
+           \<Prod>x\<in>insert a A. fps_nth (f x) (count (X + replicate_mset m a) x))"
+    by (subst sum.reindex_bij_betw[OF bij_betw_multisets_of_size_insert, symmetric])
        (simp_all add: case_prod_unfold)
-  also have "\<dots> = (\<Sum>m=0..n. \<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x))"
+  also have "\<dots> = (\<Sum>m=0..n. \<Sum>X\<in>multisets_of_size A (n-m). 
+                    \<Prod>x\<in>insert a A. fps_nth (f x) (count (X + replicate_mset m a) x))"
     by (rule sum.Sigma [symmetric]) auto
   also have "\<dots> = (\<Sum>m=0..n. fps_nth (f a) m * fps_nth (\<Prod>x\<in>A. f x) (n - m))"
   proof (rule sum.cong)
     fix m
     assume m: "m \<in> {0..n}"
-    have "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x)) =
-          fps_nth (f a) m * (\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) ((h(a := m)) x))"
+    have "(\<Sum>X\<in>multisets_of_size A (n-m). 
+              \<Prod>x\<in>insert a A. fps_nth (f x) (count (X + replicate_mset m a) x)) =
+          (\<Sum>X\<in>multisets_of_size A (n-m). fps_nth (f a) (count X a + m) *
+              (\<Prod>x\<in>A. fps_nth (f x) (count (X + replicate_mset m a) x)))"
+      by simp
+    also have "\<dots> = (\<Sum>X\<in>multisets_of_size A (n-m). fps_nth (f a) m *
+                      (\<Prod>x\<in>A. fps_nth (f x) (count (X + replicate_mset m a) x)))"
+      by (intro sum.cong arg_cong2[of _ _ _ _ "(*)"] arg_cong2[of _ _ _ _ fps_nth] refl)
+         (auto simp: multisets_of_size_def simp flip: not_in_iff)
+    also have "\<dots> = fps_nth (f a) m * (\<Sum>X\<in>multisets_of_size A (n-m). 
+                      (\<Prod>x\<in>A. fps_nth (f x) (count (X + replicate_mset m a) x)))"
       by (simp add: sum_distrib_left)
-    also have "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) ((h(a := m)) x)) =
-               (\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>A. fps_nth (f x) (h x))"
+    also have "(\<Sum>X\<in>multisets_of_size A (n-m). \<Prod>x\<in>A. fps_nth (f x) (count (X + replicate_mset m a) x)) =
+               (\<Sum>X\<in>multisets_of_size A (n-m). \<Prod>x\<in>A. fps_nth (f x) (count X x))"
       by (intro sum.cong prod.cong) auto
     also have "\<dots> = fps_nth (\<Prod>x\<in>A. f x) (n - m)"
       by (rule insert.IH [symmetric])
-    finally show "(\<Sum>h\<in>nat_partitions A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) ((h(a := m)) x)) = 
+    finally show "(\<Sum>X\<in>multisets_of_size A (n-m). \<Prod>x\<in>insert a A. fps_nth (f x) (count (X + replicate_mset m a) x)) = 
                     fps_nth (f a) m * fps_nth (\<Prod>x\<in>A. f x) (n - m)" .
   qed auto
   also have "\<dots> = fps_nth (\<Prod>x\<in>insert a A. f x) n"
@@ -4051,7 +3882,7 @@ theorem tendsto_prod_fps:
   fixes f :: "nat \<Rightarrow> 'a :: {idom,  t2_space} fps"
   assumes [simp]: "\<And>k. f k \<noteq> 0"
   assumes g: "\<And>n k. k > g n \<Longrightarrow> subdegree (f k - 1) > n"
-  defines "P \<equiv> Abs_fps (\<lambda>n. (\<Sum>h\<in>nat_partitions {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (h i)))"
+  defines "P \<equiv> Abs_fps (\<lambda>n. (\<Sum>X\<in>multisets_of_size {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (count X i)))"
   shows   "(\<lambda>n. \<Prod>k\<le>n. f k) \<longlonglongrightarrow> P"
 proof (rule tendsto_fpsI)
   fix n :: nat
@@ -4059,93 +3890,95 @@ proof (rule tendsto_fpsI)
     using eventually_ge_at_top[of "g n"]
   proof eventually_elim
     case (elim N)
-    have "fps_nth (prod f {..N}) n = (\<Sum>h\<in>nat_partitions {..N} n. \<Prod>x\<le>N. fps_nth (f x) (h x))"
+    have "fps_nth (prod f {..N}) n = (\<Sum>X\<in>multisets_of_size {..N} n. \<Prod>x\<le>N. fps_nth (f x) (count X x))"
       by (subst fps_prod_nth') auto
-    also have "\<dots> = (\<Sum>h | h \<in> nat_partitions {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
-                      \<Prod>x\<le>N. fps_nth (f x) (h x))"
+    also have "\<dots> = (\<Sum>X | X \<in> multisets_of_size {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0). 
+                      \<Prod>x\<le>N. fps_nth (f x) (count X x))"
       by (intro sum.mono_neutral_right) auto
 
-    also have "{h. h \<in> nat_partitions {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)} =
-               {h. h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)}" (is "?lhs = ?rhs")
+    also have "{X. X \<in> multisets_of_size {..N} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0)} =
+               {X. X \<in> multisets_of_size {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0)}" 
+      (is "?lhs = ?rhs")
     proof (intro equalityI subsetI)
-      fix h assume "h \<in> ?rhs"
-      thus "h \<in> ?lhs" using elim nat_partitions_mono[of "{..g n}" "{..N}"] by auto
+      fix X assume "X \<in> ?rhs"
+      thus "X \<in> ?lhs" using elim multisets_of_size_mono[of "{..g n}" "{..N}"] by auto
     next
-      fix h assume "h \<in> ?lhs"
-      hence h: "{x. 0 < h x} \<subseteq> {..N}" "(\<Sum>x\<le>N. h x) = n" "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (h x) \<noteq> 0"
-        by (auto simp: nat_partitions_finite_def)
-      have "{x. 0 < h x} \<subseteq> {..g n}"
+      fix X assume "X \<in> ?lhs"
+      hence X: "set_mset X \<subseteq> {..N}" "size X = n"  "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (count X x) \<noteq> 0"
+        by (auto simp: multisets_of_size_def)
+      have "set_mset X \<subseteq> {..g n}"
       proof
-        fix x assume *: "x \<in> {x. h x > 0}"
+        fix x assume *: "x \<in> set_mset X"
         show "x \<in> {..g n}"
         proof (rule ccontr)
           assume "x \<notin> {..g n}"
           hence x: "x > g n" "x \<le> N"
-            using h(1) * by auto
-          have "h x \<le> n"
-            using \<open>h \<in> ?lhs\<close> nat_partitions_subset[of "{..N}" n] x by (auto simp: Pi_def)
+            using X(1) * by auto
+          have "count X x \<le> n"
+            using X x count_le_size[of X x] by (auto simp: Pi_def)
           also have "n < subdegree (f x - 1)"
             by (rule g) (use x in auto)
-          finally have "fps_nth (f x - 1) (h x) = 0"
+          finally have "fps_nth (f x - 1) (count X x) = 0"
             by blast
-          hence "fps_nth (f x) (h x) = 0"
+          hence "fps_nth (f x) (count X x) = 0"
             using * by simp
-          moreover have "fps_nth (f x) (h x) \<noteq> 0"
-            by (intro h(3)) (use x in auto)
+          moreover have "fps_nth (f x) (count X x) \<noteq> 0"
+            by (intro X(3)) (use x in auto)
           ultimately show False by contradiction
         qed
       qed
-      moreover from this have "(\<Sum>x\<le>N. h x) = (\<Sum>x\<le>g n. h x)"
-        by (intro sum.mono_neutral_right) (use elim in auto)
-      ultimately show "h \<in> ?rhs" using elim h
-        by (auto simp: nat_partitions_finite_def)
+      thus "X \<in> ?rhs" using X
+        by (auto simp: multisets_of_size_def)
     qed
 
-    also have "(\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
-                      \<Prod>x\<le>N. fps_nth (f x) (h x)) = 
-               (\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
-                      \<Prod>i\<le>g n. fps_nth (f i) (h i))"
+    also have "(\<Sum>X | X \<in> multisets_of_size {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0). 
+                      \<Prod>x\<le>N. fps_nth (f x) (count X x)) = 
+               (\<Sum>X | X \<in> multisets_of_size {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0). 
+                      \<Prod>i\<le>g n. fps_nth (f i) (count X i))"
     proof (intro sum.cong prod.mono_neutral_right ballI)
-      fix h i 
+      fix X i 
       assume i: "i \<in> {..N} - {..g n}"
-      assume "h \<in> {h. h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0)}"
-      hence h: "h \<in> nat_partitions {..g n} n" "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (h x) \<noteq> 0"
+      assume "X \<in> {X. X \<in> multisets_of_size {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0)}"
+      hence h: "X \<in> multisets_of_size {..g n} n" "\<And>x. x \<le> N \<Longrightarrow> fps_nth (f x) (count X x) \<noteq> 0"
         by blast+
-      have [simp]: "h i = 0"
-        using i h unfolding nat_partitions_def by auto
+      have "i \<notin># X"
+        using i h unfolding multisets_of_size_def by auto
       have "n < subdegree (f i - 1)"
         by (intro g) (use i in auto)
-      moreover have "h i \<le> n"
-        by auto
-      ultimately have "fps_nth (f i - 1) (h i) = 0"
+      moreover have "count X i \<le> n"
+        using \<open>i \<notin># X\<close> by (simp add: not_in_iff)
+      ultimately have "fps_nth (f i - 1) (count X i) = 0"
         by (intro nth_less_subdegree_zero) auto
-      thus "fps_nth (f i) (h i) = 1"
-        using h(2) i by (auto split: if_splits)
+      thus "fps_nth (f i) (count X i) = 1"
+        using h(2) i \<open>i \<notin># X\<close> by (auto split: if_splits)
     qed (use elim in auto)
 
-    also have "(\<Sum>h | h \<in> nat_partitions {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0). 
-                   \<Prod>i\<le>g n. fps_nth (f i) (h i)) =
-               (\<Sum>h \<in> nat_partitions {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (h i))"
+    also have "(\<Sum>X | X \<in> multisets_of_size {..g n} n \<and> (\<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0). 
+                   \<Prod>i\<le>g n. fps_nth (f i) (count X i)) =
+               (\<Sum>X \<in> multisets_of_size {..g n} n. \<Prod>i\<le>g n. fps_nth (f i) (count X i))"
     proof (intro sum.mono_neutral_left ballI)
-      fix h assume "h \<in> nat_partitions {..g n} n - {h\<in>nat_partitions {..g n} n. \<forall>x\<le>N. fps_nth (f x) (h x) \<noteq> 0}"
-      then obtain i where h: "h \<in> nat_partitions {..g n} n" and i: "i \<le> N" "fps_nth (f i) (h i) = 0"
+      fix X assume "X \<in> multisets_of_size {..g n} n - 
+                      {X\<in>multisets_of_size {..g n} n. \<forall>x\<le>N. fps_nth (f x) (count X x) \<noteq> 0}"
+      then obtain i
+        where h: "X \<in> multisets_of_size {..g n} n" 
+        and i: "i \<le> N" "fps_nth (f i) (count X i) = 0"
         by blast
       have "\<not>(i > g n)"
       proof
         assume i': "i > g n"
-        hence "h i = 0"
-          using h by (auto simp: nat_partitions_def)
+        hence "count X i = 0"
+          using h by (auto simp: multisets_of_size_def simp flip: not_in_iff)
         have "subdegree (f i - 1) > n"
           by (intro g) (use i' in auto)
         hence "subdegree (f i - 1) > 0"
           by simp
         hence "fps_nth (f i - 1) 0 = 0"
           by blast
-        hence "fps_nth (f i) (h i) = 1"
-          using \<open>h i = 0\<close> by simp
+        hence "fps_nth (f i) (count X i) = 1"
+          using \<open>count X i = 0\<close> by simp
         thus False using i by simp
       qed
-      thus " (\<Prod>x\<le>g n. fps_nth (f x) (h x)) = 0"
+      thus " (\<Prod>x\<le>g n. fps_nth (f x) (count X x)) = 0"
         using i by auto
     qed auto
 
