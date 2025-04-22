@@ -75,6 +75,8 @@ classpath """ + quote(classpath) + """
 
 isabelle_scala_service "isabelle.FlatLightLaf"
 isabelle_scala_service "isabelle.FlatDarkLaf"
+isabelle_scala_service "isabelle.FlatMacLightLaf"
+isabelle_scala_service "isabelle.FlatMacDarkLaf"
 """)
 
 

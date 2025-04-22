@@ -544,3 +544,5 @@ object GUI {
 
 class FlatLightLaf extends GUI.Look_And_Feel(new flatlaf.FlatLightLaf)
 class FlatDarkLaf extends GUI.Look_And_Feel(new flatlaf.FlatDarkLaf)
+class FlatMacLightLaf extends GUI.Look_And_Feel(new flatlaf.themes.FlatMacLightLaf)
+class FlatMacDarkLaf extends GUI.Look_And_Feel(new flatlaf.themes.FlatMacDarkLaf)
