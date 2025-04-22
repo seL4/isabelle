@@ -1555,6 +1555,19 @@ lemma fps_expansion_eqI:
   using assms unfolding fps_eq_iff
   by (auto simp: fps_eq_iff fps_nth_fps_expansion fps_expansion_def)
 
+lemma holomorphic_on_imp_fps_conv_radius_ge:
+  assumes "f has_fps_expansion F" "f holomorphic_on eball 0 r"
+  shows   "fps_conv_radius F \<ge> r"
+proof -
+  define n where "n = subdegree F"
+  have "fps_conv_radius (fps_expansion f 0) \<ge> r"
+    by (intro conv_radius_fps_expansion assms)
+  also have "fps_expansion f 0 = F"
+    using assms by (intro fps_expansion_eqI)
+  finally show ?thesis
+    by simp
+qed
+
 lemma has_fps_expansion_imp_eval_fps_eq:
   assumes "f has_fps_expansion F" "norm z < r"
   assumes "f holomorphic_on ball 0 r"
@@ -1570,6 +1583,31 @@ proof -
     by (rule eval_fps_expansion'[OF *]) (use assms in auto)
   thus ?thesis
     by simp
+qed
+
+lemma has_fps_expansion_imp_sums_complex:
+  fixes F :: "complex fps"
+  assumes "f has_fps_expansion F" "f holomorphic_on eball 0 r" "ereal (norm z) < r"
+  shows   "(\<lambda>n. fps_nth F n * z ^ n) sums f z"
+proof -
+  have r: "fps_conv_radius F \<ge> r"
+    using assms(1,2) by (rule holomorphic_on_imp_fps_conv_radius_ge)
+  from assms obtain R where R: "norm z < R" "ereal R < r"
+    using ereal_dense2 less_ereal.simps(1) by blast
+  have z: "norm z < fps_conv_radius F"
+    using r R assms(3) by order
+
+  have "summable (\<lambda>n. fps_nth F n * z ^ n)"
+    by (rule summable_fps) (use z in auto)
+  moreover have "eval_fps F z = f z"
+  proof (rule has_fps_expansion_imp_eval_fps_eq[where r = R])
+    have *: "ereal (norm z) < r" if "norm z < R" for z :: complex
+      using that R ereal_le_less less_imp_le by blast
+    show "f holomorphic_on ball 0 R"
+      using assms(2) by (rule holomorphic_on_subset) (use * in auto)
+  qed (use R assms(1) in auto)
+  ultimately show ?thesis
+    unfolding eval_fps_def sums_iff by simp
 qed
 
 lemma fls_conv_radius_ge:

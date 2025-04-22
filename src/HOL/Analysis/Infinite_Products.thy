@@ -280,6 +280,7 @@ proof -
     by linarith
 qed
 
+
 subsection\<open>Absolutely convergent products\<close>
 
 definition\<^marker>\<open>tag important\<close> abs_convergent_prod :: "(nat \<Rightarrow> _) \<Rightarrow> bool" where
@@ -1775,6 +1776,26 @@ proof -
     using assms continuous_on_ln [of "{0<..}" "\<lambda>x. x"]
     using continuous_on_tendsto_compose [of "{0<..}" ln "(\<lambda>n. prod f {..n})" p]
     by (auto simp: prod_defs sums_def_le ln_prod order_tendstoD)
+qed
+
+lemma has_prod_imp_sums_ln_real':
+  fixes P :: real
+  assumes "f has_prod P" "\<And>n. f n > 0"
+  shows   "(\<lambda>n. ln (f n)) sums (ln P)"
+proof -
+  have nz: "f n \<noteq> 0" for n
+    using assms(2)[of n] by simp
+  have "P \<noteq> 0"
+    using has_prod_eq_0_iff[OF assms(1)] by (auto simp: nz)
+
+  have "(\<lambda>n. \<Prod>k<n. f k) \<longlonglongrightarrow> P"
+    using has_prod_imp_tendsto'[OF assms(1)] by simp
+  hence "(\<lambda>n. ln (\<Prod>k<n. f k)) \<longlonglongrightarrow> ln P"
+    by (intro tendsto_intros \<open>P \<noteq> 0\<close>)
+  also have "(\<lambda>n. ln (\<Prod>k<n. f k)) = (\<lambda>n. \<Sum>k<n. ln (f k))"
+    by (subst ln_prod) (auto simp: nz)
+  finally show ?thesis
+    by (simp add: sums_def)
 qed
 
 lemma summable_ln_real: 

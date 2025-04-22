@@ -287,6 +287,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma summable_power_int_real_iff:
+  "summable (\<lambda>n. real n powi c) \<longleftrightarrow> c < -1"
+proof -
+  have "summable (\<lambda>n. real n powi c) \<longleftrightarrow> summable (\<lambda>n. real (Suc n) powi c)"
+    by (subst summable_Suc_iff) auto
+  also have "(\<lambda>n. real (Suc n) powi c) = (\<lambda>n. real (Suc n) powr of_int c)"
+    by (subst powr_real_of_int') auto
+  also have "summable \<dots> \<longleftrightarrow> summable (\<lambda>n. real n powr of_int c)"
+    by (subst summable_Suc_iff) auto
+  also have "\<dots> \<longleftrightarrow> c < -1"
+    by (subst summable_real_powr_iff) auto
+  finally show ?thesis .
+qed
+
 lemma inverse_power_summable:
   assumes s: "s \<ge> 2"
   shows "summable (\<lambda>n. inverse (of_nat n ^ s :: 'a :: {real_normed_div_algebra,banach}))"

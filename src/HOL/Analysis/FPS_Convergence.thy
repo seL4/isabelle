@@ -691,6 +691,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma eval_fps_has_fps_expansion:
+  "fps_conv_radius F > 0 \<Longrightarrow> eval_fps F has_fps_expansion F"
+  unfolding has_fps_expansion_def by simp
+
 lemma has_fps_expansion_imp_continuous:
   fixes F :: "'a::{real_normed_field,banach} fps"
   assumes "f has_fps_expansion F"
