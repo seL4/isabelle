@@ -29,6 +29,9 @@ object GUI {
   def is_macos_laf(): Boolean =
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
+  def is_dark_laf(): Boolean =
+    com.formdev.flatlaf.FlatLaf.isLafDark
+
   class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
     def info: UIManager.LookAndFeelInfo =
       new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName)
