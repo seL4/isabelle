@@ -211,7 +211,7 @@ fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 t
             val _ =
               if exists is_some (map th_name used_ths) then
                 infer_params := SOME ({
-                  ctxt = ctxt',
+                  infer_ctxt = ctxt',
                   type_enc = type_enc_str,
                   lam_trans = lam_trans,
                   th_name = th_name,
@@ -308,7 +308,7 @@ fun metis_tac' th_name type_encs lam_trans ctxt ths i =
     val instantiate_tac =
       if instantiate then
         (fn (NONE, st) => st
-          | (SOME infer_params, st) => tap (instantiate_call infer_params) st)
+          | (SOME infer_params, st) => tap (instantiate_call ctxt infer_params) st)
       else
         snd
   in
@@ -356,7 +356,7 @@ fun metis_infer_thm_insts ((override_type_encs, lam_trans), ths) ctxt facts i =
         (the_default default_metis_lam_trans lam_trans) false ctxt (schem_facts @ ths) i
   in
     Seq.THEN (insert_tac, metis_tac)
-    #> Seq.map (Option.mapPartial infer_thm_insts o fst)
+    #> Seq.map (Option.mapPartial (infer_thm_insts ctxt) o fst)
     #> Option.mapPartial fst o Seq.pull
   end
 

@@ -9,7 +9,7 @@ sig
   type inst
 
   type infer_params = {
-    ctxt : Proof.context,
+    infer_ctxt : Proof.context,
     type_enc : string,
     lam_trans : string,
     th_name : thm -> string option,
@@ -27,8 +27,8 @@ sig
   val table_of_thm_inst : thm * inst -> cterm Vars.table
   val pretty_name_inst : Proof.context -> string * inst -> Pretty.T
   val string_of_name_inst : Proof.context -> string * inst -> string
-  val infer_thm_insts : infer_params -> (thm * inst) list option
-  val instantiate_call : infer_params -> thm -> unit
+  val infer_thm_insts : Proof.context -> infer_params -> (thm * inst) list option
+  val instantiate_call : Proof.context -> infer_params -> thm -> unit
 end;
 
 structure Metis_Instantiations : METIS_INSTANTIATIONS =
@@ -45,7 +45,7 @@ type inst = cterm list
 
 (* Params needed for inference of variable instantiations *)
 type infer_params = {
-  ctxt : Proof.context,
+  infer_ctxt : Proof.context,
   type_enc : string,
   lam_trans : string,
   th_name : thm -> string option,
@@ -149,7 +149,7 @@ fun import_export_thm ctxt th =
 (* Find the theorem corresponding to a Metis axiom if it has a name.
  * "Theorems" are Isabelle theorems given to the metis tactic.
  * "Axioms" are clauses given to the Metis prover. *)
-fun metis_axiom_to_thm {ctxt, th_name, th_cls_pairs, axioms, ...} (msubst, maxiom) =
+fun metis_axiom_to_thm ctxt {th_name, th_cls_pairs, axioms, ...} (msubst, maxiom) =
   let
     val axiom = lookth axioms maxiom
   in
@@ -161,7 +161,8 @@ fun metis_axiom_to_thm {ctxt, th_name, th_cls_pairs, axioms, ...} (msubst, maxio
 (* Build a table : term Vartab.table list Thmtab.table that maps a theorem to a
  * list of variable substitutions (theorems can be instantiated multiple times)
  * from Metis substitutions *)
-fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_of_vars th_msubsts =
+fun metis_substs_to_table ctxt {infer_ctxt, type_enc, lifted, new_skolem, sym_tab, ...}
+    th_of_vars th_msubsts =
   let
     val _ = trace_msg ctxt (K "AXIOM SUBSTITUTIONS")
     val type_enc = type_enc_of_string Strict type_enc
@@ -179,7 +180,7 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
     (* Infer types and replace "_" terms/types with schematic variables *)
     val infer_types_pattern =
       singleton (Type_Infer_Context.infer_types_finished
-        (Proof_Context.set_mode Proof_Context.mode_pattern ctxt))
+        (Proof_Context.set_mode Proof_Context.mode_pattern infer_ctxt))
 
     (* "undefined" if allowed and not using new_skolem, "_" otherwise. *)
     val undefined_pattern =
@@ -192,11 +193,16 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
     (* Instantiate schematic and free variables *)
     val inst_vars_frees = map_aterms
       (fn t as Free (x, T) =>
-        (* an unfixed/internal free variable is unknown/inaccessible to the user,
+        (* an undeclared/internal free variable is unknown/inaccessible to the user,
          * so we replace it with "_" *)
-        if not (Variable.is_fixed ctxt x) orelse Name.is_internal (Variable.revert_fixed ctxt x)
-        then Term.dummy_pattern T
-        else t
+        let
+          val x' = Variable.revert_fixed ctxt x
+        in
+          if not (Variable.is_declared ctxt x') orelse Name.is_internal x' then
+            Term.dummy_pattern T
+          else
+            t
+        end
       | Var (_, T) =>
         (* a schematic variable can be replaced with any term,
          * so we replace it with "undefined" *)
@@ -237,7 +243,7 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
       let
         val _ = trace_msg ctxt (fn () => "Metis axiom: " ^ Metis_Thm.toString maxiom)
         val _ = trace_msg ctxt (fn () => "Metis substitution: " ^ Metis_Subst.toString msubst)
-        val _ = trace_msg ctxt (fn () => "Isabelle axiom: " ^ Thm.string_of_thm ctxt axiom)
+        val _ = trace_msg ctxt (fn () => "Isabelle axiom: " ^ Thm.string_of_thm infer_ctxt axiom)
         val _ = trace_msg ctxt (fn () => "Isabelle theorem: " ^
           Thm.string_of_thm ctxt th ^ " (" ^ name ^ ")")
 
@@ -255,7 +261,7 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
           (* cf. find_var in Metis_Reconstruct.inst_inference *)
           |> Option.mapPartial (fn name => List.find (fn (a, _) => a = name) vars)
           (* cf. subst_translation in Metis_Reconstruct.inst_inference *)
-          |> Option.map (fn var => (var, hol_term_of_metis ctxt type_enc sym_tab mt))
+          |> Option.map (fn var => (var, hol_term_of_metis infer_ctxt type_enc sym_tab mt))
 
         (* Build the substitution table and instantiate the remaining schematic variables *)
         fun build_subst_table substs =
@@ -275,7 +281,7 @@ fun metis_substs_to_table {ctxt, type_enc, lifted, new_skolem, sym_tab, ...} th_
           trace_msg ctxt (fn () => cat_lines ("Raw Isabelle substitution:" ::
             (raw_substs |> map (fn (var, t) =>
               Term.string_of_vname var ^ " |-> " ^
-              Syntax.string_of_term ctxt t))))
+              Syntax.string_of_term infer_ctxt t))))
 
         val subst = raw_substs
           |> map (apsnd polish_term)
@@ -319,16 +325,16 @@ fun table_to_thm_insts ctxt th_of_vars th_substs_table =
         (t', Sign.typ_unify thy (T, U) (tyenv, maxidx'))
       end
 
-    (* Instantiate type variables with a type unifier or a dummy type
+    (* Instantiate type variables with a type unifier and import remaining ones
      * (cf. Drule.infer_instantiate_types) *)
     fun inst_unifier (ts, tyenv) =
       let
         val instT =
           TVars.build (tyenv |> Vartab.fold (fn (xi, (S, T)) =>
             TVars.add ((xi, S), Envir.norm_type tyenv T)))
-        val dummy_tvars = Term.map_types (map_type_tvar (K Term.dummyT))
+        val ts' = map (Term_Subst.instantiate (instT, Vars.empty)) ts
       in
-        map (dummy_tvars o Term_Subst.instantiate (instT, Vars.empty)) ts
+        Variable.importT_terms ts' ctxt |> fst
       end
 
     (* Build variable instantiations from a substitution table and instantiate
@@ -351,7 +357,7 @@ fun table_to_thm_insts ctxt th_of_vars th_substs_table =
     Thmtab.fold_rev (fn (th, substs) => fold (add_subst th) substs) th_substs_table []
   end
 
-fun really_infer_thm_insts (infer_params as {ctxt, th_name, th_cls_pairs, mth, ...}) =
+fun really_infer_thm_insts ctxt (infer_params as {th_name, th_cls_pairs, mth, ...}) =
   let
     (* Compute the theorem variables ordered as in of-instantiations.
      * import_export_thm is used to get the same variables as in axioms. *)
@@ -361,8 +367,8 @@ fun really_infer_thm_insts (infer_params as {ctxt, th_name, th_cls_pairs, mth, .
 
     val th_insts =
       infer_metis_axiom_substs mth
-      |> map_filter (metis_axiom_to_thm infer_params)
-      |> metis_substs_to_table infer_params th_of_vars
+      |> map_filter (metis_axiom_to_thm ctxt infer_params)
+      |> metis_substs_to_table ctxt infer_params th_of_vars
       |> table_to_thm_insts ctxt th_of_vars
 
     val _ = trace_msg ctxt (fn () => cat_lines ("THEOREM INSTANTIATIONS" ::
@@ -386,12 +392,12 @@ fun really_infer_thm_insts (infer_params as {ctxt, th_name, th_cls_pairs, mth, .
   end
 
 (* Infer variable instantiations *)
-fun infer_thm_insts (infer_params as {ctxt, ...}) =
-  \<^try>\<open>SOME (really_infer_thm_insts infer_params)
+fun infer_thm_insts ctxt infer_params =
+  \<^try>\<open>SOME (really_infer_thm_insts ctxt infer_params)
     catch exn => (trace_msg ctxt (fn () => Runtime.exn_message exn); NONE)\<close>
 
 (* Write suggested command with of-instantiations *)
-fun write_command {ctxt, type_enc, lam_trans, th_name, ...} st th_insts =
+fun write_command ctxt {type_enc, lam_trans, th_name, ...} st th_insts =
   let
     val _ = trace_msg ctxt (K "SUGGEST OF-INSTANTIATIONS")
     val apply_str = if Thm.nprems_of st = 0 then "by" else "apply"
@@ -408,9 +414,9 @@ fun write_command {ctxt, type_enc, lam_trans, th_name, ...} st th_insts =
   end
 
 (* Infer variable instantiations and suggest of-instantiations *)
-fun instantiate_call infer_params st =
-  infer_thm_insts infer_params
+fun instantiate_call ctxt infer_params st =
+  infer_thm_insts ctxt infer_params
   |> Option.mapPartial (Option.filter (not o thm_insts_trivial))
-  |> Option.app (write_command infer_params st)
+  |> Option.app (write_command ctxt infer_params st)
 
 end;
