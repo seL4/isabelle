@@ -1266,6 +1266,58 @@ proof -
   finally show ?thesis .
 qed
 
+lemma deriv_complex_uniform_limit:
+  assumes ulim: "uniform_limit A f g F"
+      and f_holo: "eventually (\<lambda>n. f n holomorphic_on A) F"
+      and F: "F \<noteq> bot"
+      and A: "open A" "z \<in> A"
+    shows "((\<lambda>n. deriv (f n) z) \<longlongrightarrow> deriv g z) F"
+  using higher_deriv_complex_uniform_limit[OF assms, of 1] by simp
+
+lemma logderiv_prodinf_complex_uniform_limit:
+  fixes f :: "nat \<Rightarrow> complex \<Rightarrow> complex"
+  assumes lim: "uniform_limit A (\<lambda>n x. \<Prod>k<n. f k x) P sequentially"
+  assumes holo: "\<And>k. f k holomorphic_on A"
+  assumes nz: "P z \<noteq> 0"
+  assumes A: "open A" "z \<in> A"
+  shows   "(\<lambda>k. deriv (f k) z / f k z) sums (deriv P z / P z)"
+proof -
+  define f' where "f' = (\<lambda>k. deriv (f k))"
+  note [derivative_intros] = has_field_derivative_prod'
+  have [derivative_intros]: 
+    "(f k has_field_derivative f' k z) (at z within B)" if "z \<in> A" for B z k
+    using that holomorphic_derivI[OF holo[of k],  of z B] A unfolding f'_def by auto
+  have lim': "(\<lambda>n. \<Prod>k<n. f k z) \<longlonglongrightarrow> P z"
+    using lim by (rule tendsto_uniform_limitI) fact+
+
+  have nz': "f k z \<noteq> 0" for k
+  proof
+    assume "f k z = 0"
+    have "eventually (\<lambda>n. (\<Prod>k<n. f k z) = 0) sequentially"
+      using eventually_gt_at_top[of k] by eventually_elim (use \<open>f k z = 0\<close> in auto)
+    hence "(\<lambda>n. (\<Prod>k<n. f k z)) \<longlonglongrightarrow> 0"
+      by (rule tendsto_eventually)
+    with lim' have "P z = 0"
+      using tendsto_unique sequentially_bot by blast
+    with nz show False
+      by simp
+  qed
+
+  from lim have "(\<lambda>n. deriv (\<lambda>x. \<Prod>k<n. f k x) z) \<longlonglongrightarrow> deriv P z"
+    by (rule deriv_complex_uniform_limit)
+       (use A in \<open>auto intro!: always_eventually holomorphic_intros holo\<close>)
+  also have "(\<lambda>n. deriv (\<lambda>x. \<Prod>k<n. f k x) z) = (\<lambda>n. (\<Prod>k<n. f k z) * (\<Sum>k<n. f' k z / f k z))"
+    using \<open>z \<in> A\<close> by (auto intro!: ext DERIV_imp_deriv derivative_eq_intros simp: nz')
+  finally have "(\<lambda>n. (\<Prod>k<n. f k z) * (\<Sum>k<n. f' k z / f k z)) \<longlonglongrightarrow> deriv P z" .
+  hence "(\<lambda>n. (\<Prod>k<n. f k z) * (\<Sum>k<n. f' k z / f k z) / (\<Prod>k<n. f k z)) \<longlonglongrightarrow> deriv P z / P z"
+    by (intro tendsto_intros) (use nz lim' in auto)
+  also have "(\<lambda>n. (\<Prod>k<n. f k z) * (\<Sum>k<n. f' k z / f k z) / (\<Prod>k<n. f k z)) =
+             (\<lambda>n. (\<Sum>k<n. f' k z / f k z))"
+    by (simp add: nz')
+  finally show "(\<lambda>k. f' k z / f k z) sums (deriv P z / P z)"
+    unfolding sums_def .
+qed
+
 
 text\<open> Version showing that the limit is the limit of the derivatives.\<close>
 

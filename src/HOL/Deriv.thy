@@ -1156,6 +1156,35 @@ corollary DERIV_chain2: "DERIV f (g x) :> Da \<Longrightarrow> (g has_field_deri
   ((\<lambda>x. f (g x)) has_field_derivative Da * Db) (at x within s)"
   by (rule DERIV_chain')
 
+text \<open>Derivative of a finite product\<close>
+
+lemma has_field_derivative_prod:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> (f x has_field_derivative f' x) (at z)"
+  shows   "((\<lambda>u. \<Prod>x\<in>A. f x u) has_field_derivative (\<Sum>x\<in>A. f' x * (\<Prod>y\<in>A-{x}. f y z))) (at z)"
+  using assms
+proof (induction A rule: infinite_finite_induct)
+  case (insert x A)
+  have eq: "insert x A - {y} = insert x (A - {y})" if "y \<in> A" for y
+    using insert.hyps that by auto
+  show ?case
+    using insert.hyps
+    by (auto intro!: derivative_eq_intros insert.prems insert.IH sum.cong
+             simp: sum_distrib_left sum_distrib_right eq)
+qed auto
+
+lemma has_field_derivative_prod':
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x z \<noteq> 0"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> (f x has_field_derivative f' x) (at z)"
+  defines "P \<equiv> (\<lambda>A u. \<Prod>x\<in>A. f x u)"
+  shows   "(P A has_field_derivative (P A z * (\<Sum>x\<in>A. f' x / f x z))) (at z)"
+proof (cases "finite A")
+  case True
+  note [derivative_intros] = has_field_derivative_prod
+  show ?thesis using assms True
+    by (auto intro!: derivative_eq_intros
+             simp: prod_diff1 sum_distrib_left sum_distrib_right mult_ac)
+qed (auto simp: P_def)
+
 text \<open>Standard version\<close>
 
 lemma DERIV_chain:
