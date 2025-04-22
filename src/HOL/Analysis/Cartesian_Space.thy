@@ -205,10 +205,13 @@ lemma matrix_right_invertible_surjective:
 proof -
   have "\<And>B x. A ** B = mat 1 \<Longrightarrow> \<exists>y. x = A *v y"
     by (metis matrix_vector_mul_assoc matrix_vector_mul_lid)
-  moreover have "\<forall>x. \<exists>xa. x = A *v xa \<Longrightarrow> \<exists>B. A ** B = mat 1"
-    by (metis (mono_tags, lifting) matrix_compose_gen matrix_id_mat_1 matrix_of_matrix_vector_mul surj_def vec.linear_axioms vec.linear_surjective_right_inverse)
+  moreover 
+  have "\<exists>B. A ** B = mat 1" if "surj ((*v) A)"
+      by (metis (no_types, opaque_lifting) matrix_compose_gen matrix_id_mat_1
+          matrix_of_matrix_vector_mul vec.linear_axioms
+          vec.linear_surjective_right_inverse that)
   ultimately show ?thesis
-    by (auto simp: image_def set_eq_iff)
+    by (auto simp: image_def set_eq_iff surj_def)
 qed
 
 lemma matrix_left_invertible_independent_columns:
@@ -301,24 +304,27 @@ lemma matrix_left_invertible_span_rows:
   "(\<exists>(B::real^'m^'n). B ** (A::real^'n^'m) = mat 1) \<longleftrightarrow> span (rows A) = UNIV"
   using matrix_left_invertible_span_rows_gen[of A] by (simp add: span_vec_eq)
 
+
+lemma matrix_left_right_inverse1:
+  fixes A A' :: "'a::{field}^'n^'n"
+  assumes AA': "A ** A' = mat 1"
+  shows "A' ** A = mat 1"
+proof -
+  have sA: "surj ((*v) A)"
+    using AA' matrix_right_invertible_surjective by auto
+  obtain f' :: "'a ^'n \<Rightarrow> 'a ^'n"
+    where f': "Vector_Spaces.linear (*s) (*s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x"
+    using sA vec.linear_surjective_isomorphism by blast 
+  have "matrix f' ** A = mat 1"
+    by (metis f' matrix_eq matrix_vector_mul_assoc matrix_vector_mul_lid matrix_works)
+  thus "A' ** A = mat 1"
+    by (metis AA' matrix_mul_assoc matrix_mul_lid)
+qed 
+
 lemma matrix_left_right_inverse:
   fixes A A' :: "'a::{field}^'n^'n"
   shows "A ** A' = mat 1 \<longleftrightarrow> A' ** A = mat 1"
-proof -
-  { fix A A' :: "'a ^'n^'n"
-    assume AA': "A ** A' = mat 1"
-    have sA: "surj ((*v) A)"
-      using AA' matrix_right_invertible_surjective by auto
-    obtain f' :: "'a ^'n \<Rightarrow> 'a ^'n"
-      where f': "Vector_Spaces.linear (*s) (*s) f'" "\<forall>x. f' (A *v x) = x" "\<forall>x. A *v f' x = x"
-      using sA vec.linear_surjective_isomorphism by blast 
-    have "matrix f' ** A = mat 1"
-      by (metis f' matrix_eq matrix_vector_mul_assoc matrix_vector_mul_lid matrix_works)
-    hence "A' ** A = mat 1"
-      by (metis AA' matrix_mul_assoc matrix_mul_lid)
-  }
-  then show ?thesis by blast
-qed
+  using matrix_left_right_inverse1 by blast
 
 lemma invertible_left_inverse:
   fixes A :: "'a::{field}^'n^'n"
@@ -445,8 +451,8 @@ next
   then obtain i where "v = row i A"
     by (auto simp: rows_def)
   with 0 show ?case
-    unfolding orthogonal_def inner_vec_def matrix_vector_mult_def row_def
-    by (simp add: mult.commute) (metis (no_types) vec_lambda_beta zero_index)
+    by (metis inner_commute matrix_vector_mul_component orthogonal_def row_def vec_lambda_eta
+        zero_index)
 qed
 
 lemma nullspace_inter_rowspace:
@@ -490,7 +496,7 @@ proof -
     finally show ?thesis .
   qed
   then show ?thesis
-    by (simp)
+    by simp
 qed
 
 lemma column_rank_def:
@@ -612,15 +618,15 @@ lemma forall_4: "(\<forall>i::4. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and
   by (metis exhaust_4)
 
 lemma UNIV_1 [simp]: "UNIV = {1::1}"
-  by (auto simp add: num1_eq_iff)
+  by auto
 
-lemma UNIV_2: "UNIV = {1::2, 2::2}"
+lemma UNIV_2: "UNIV = {1, 2::2}"
   using exhaust_2 by auto
 
-lemma UNIV_3: "UNIV = {1::3, 2::3, 3::3}"
+lemma UNIV_3: "UNIV = {1, 2, 3::3}"
   using exhaust_3 by auto
 
-lemma UNIV_4: "UNIV = {1::4, 2::4, 3::4, 4::4}"
+lemma UNIV_4: "UNIV = {1, 2, 3, 4::4}"
   using exhaust_4 by auto
 
 lemma sum_1: "sum f (UNIV::1 set) = f 1"
@@ -715,7 +721,7 @@ proof -
   have "P v" if "\<And>x y. P (vector [x, y])" for v
   proof -
     have "vector [v$1, v$2] = v"
-      by (smt (verit, best) exhaust_2 vec_eq_iff vector_2)
+      unfolding vec_eq_iff by (metis (mono_tags) exhaust_2 vector_2)
     then show ?thesis
       by (metis that)
   qed
@@ -727,7 +733,7 @@ proof -
   have "P v" if "\<And>x y z. P (vector [x, y, z])" for v
   proof -
     have "vector [v$1, v$2, v$3] = v"
-      by (smt (verit, best) exhaust_3 vec_eq_iff vector_3)
+      unfolding vec_eq_iff by (metis (mono_tags) exhaust_3 vector_3)
     then show ?thesis
       by (metis that)
   qed
@@ -825,8 +831,7 @@ lemma vector_eq_affinity:
 lemma vector_cart:
   fixes f :: "real^'n \<Rightarrow> real"
   shows "(\<chi> i. f (axis i 1)) = (\<Sum>i\<in>Basis. f i *\<^sub>R i)"
-  unfolding euclidean_eq_iff[where 'a="real^'n"]
-  by simp (simp add: Basis_vec_def inner_axis)
+  by (simp add: euclidean_eq_iff[where 'a="real^'n"]) (simp add: Basis_vec_def inner_axis)
 
 lemma const_vector_cart:"((\<chi> i. d)::real^'n) = (\<Sum>i\<in>Basis. d *\<^sub>R i)"
   by (rule vector_cart)
@@ -1258,10 +1263,9 @@ proof -
   next
     fix A :: "real^'n^'n" and i
     assume "row i A = 0"
-    show "P ((*v) A)"
-      using matrix_vector_mul_linear
-      by (rule zeroes[where i=i])
-        (metis \<open>row i A = 0\<close> inner_zero_left matrix_vector_mul_component row_def vec_lambda_eta)
+    with matrix_vector_mul_linear show "P ((*v) A)"
+      by (metis matrix_vector_mul_component matrix_vector_mult_0 row_def
+          vec_lambda_eta zero_index zeroes)
   next
     fix A :: "real^'n^'n"
     assume 0: "\<And>i j. i \<noteq> j \<Longrightarrow> A $ i $ j = 0"

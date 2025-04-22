@@ -1703,7 +1703,7 @@ proof -
       then have [simp]: "closure {r'<..<r} = {r'..r}" by simp
       show ?thesis
         apply (rule continuous_ge_on_closure
-                 [where f = "\<lambda>r. norm z / (r - norm z) * C" and s = "{r'<..<r}",
+                 [where f = "\<lambda>r. norm z / (r - norm z) * C" and S = "{r'<..<r}",
                   OF _ _ T1])
         using that r'
         by (auto simp: not_le intro!: continuous_intros)

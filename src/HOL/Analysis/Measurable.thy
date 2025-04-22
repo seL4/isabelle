@@ -290,7 +290,7 @@ proof safe
     {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i>n. \<not> P i x)
       else Max {} = n}"
-    by (intro arg_cong[where f=Collect] ext conj_cong)
+    by (intro arg_cong[where f=Collect] ext)
        (auto simp add: 1 2 3 not_le[symmetric] intro!: Max_eqI)
   also have "\<dots> \<in> sets M"
     by measurable
@@ -317,7 +317,7 @@ proof safe
     {x\<in>space M. if (\<forall>i. \<exists>n\<ge>i. P n x) then the None = n else
       if (\<exists>i. P i x) then P n x \<and> (\<forall>i<n. \<not> P i x)
       else Min {} = n}"
-    by (intro arg_cong[where f=Collect] ext conj_cong)
+    by (intro arg_cong[where f=Collect] ext)
        (auto simp add: 1 2 3 not_le[symmetric] intro!: Min_eqI)
   also have "\<dots> \<in> sets M"
     by measurable
@@ -378,7 +378,7 @@ lemma measurable_SUP[measurable]:
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
   shows "(\<lambda>x. SUP i\<in>I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
-proof (safe intro!: UNIV_I)
+proof (intro conjI strip)
   fix a
   have "(\<lambda>x. SUP i\<in>I. F i x) -` {a} \<inter> space M =
         {x\<in>space M. (\<forall>i\<in>I. F i x \<le> a) \<and> (\<forall>b. (\<forall>i\<in>I. F i x \<le> b) \<longrightarrow> a \<le> b)}"
@@ -386,7 +386,7 @@ proof (safe intro!: UNIV_I)
   also have "\<dots> \<in> sets M"
     by measurable
   finally show "(\<lambda>x. SUP i\<in>I. F i x) -` {a} \<inter> space M \<in> sets M" .
-qed
+qed auto
 
 lemma measurable_INF[measurable]:
   fixes F :: "'i \<Rightarrow> 'a \<Rightarrow> 'b::{complete_lattice, countable}"
@@ -394,7 +394,7 @@ lemma measurable_INF[measurable]:
   assumes [measurable]: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> measurable M (count_space UNIV)"
   shows "(\<lambda>x. INF i\<in>I. F i x) \<in> measurable M (count_space UNIV)"
   unfolding measurable_count_space_eq2_countable
-proof (safe intro!: UNIV_I)
+proof (intro conjI strip)
   fix a
   have "(\<lambda>x. INF i\<in>I. F i x) -` {a} \<inter> space M =
         {x\<in>space M. (\<forall>i\<in>I. a \<le> F i x) \<and> (\<forall>b. (\<forall>i\<in>I. b \<le> F i x) \<longrightarrow> b \<le> a)}"
@@ -402,7 +402,7 @@ proof (safe intro!: UNIV_I)
   also have "\<dots> \<in> sets M"
     by measurable
   finally show "(\<lambda>x. INF i\<in>I. F i x) -` {a} \<inter> space M \<in> sets M" .
-qed
+qed auto
 
 lemma measurable_lfp_coinduct[consumes 1, case_names continuity step]:
   fixes F :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b::{complete_lattice, countable})"
@@ -628,10 +628,10 @@ by (subst liminf_SUP_INF, auto)
 lemma measurable_case_enat[measurable (raw)]:
   assumes f: "f \<in> M \<rightarrow>\<^sub>M count_space UNIV" and g: "\<And>i. g i \<in> M \<rightarrow>\<^sub>M N" and h: "h \<in> M \<rightarrow>\<^sub>M N"
   shows "(\<lambda>x. case f x of enat i \<Rightarrow> g i x | \<infinity> \<Rightarrow> h x) \<in> M \<rightarrow>\<^sub>M N"
-  apply (rule measurable_compose_countable[OF _ f])
-  subgoal for i
+proof (rule measurable_compose_countable[OF _ f])
+  show "(\<lambda>x. case i of enat i \<Rightarrow> g i x | \<infinity> \<Rightarrow> h x) \<in> M \<rightarrow>\<^sub>M N" for i
     by (cases i) (auto intro: g h)
-  done
+qed
 
 hide_const (open) pred
 

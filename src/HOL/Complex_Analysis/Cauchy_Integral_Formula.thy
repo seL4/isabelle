@@ -1835,7 +1835,7 @@ proof -
         and \<eta>: "\<And>x x'. \<lbrakk>x\<in>?TZ; x'\<in>?TZ; dist x' x < \<eta>\<rbrakk> \<Longrightarrow>
                          dist ((\<lambda>(x,y). F x y) x') ((\<lambda>(x,y). F x y) x) < \<epsilon>/norm(b-a)"
       using \<open>0 < \<epsilon>\<close> \<open>a \<noteq> b\<close>
-      by (auto elim: uniformly_continuous_onE [where e = "\<epsilon>/norm(b-a)"])
+      by (auto elim: uniformly_continuous_onE [where \<epsilon> = "\<epsilon>/norm(b-a)"])
     have \<eta>: "\<lbrakk>norm (w - x1) \<le> \<delta>;   x2 \<in> closed_segment a b;
               norm (w - x1') \<le> \<delta>;  x2' \<in> closed_segment a b; norm ((x1', x2') - (x1, x2)) < \<eta>\<rbrakk>
               \<Longrightarrow> norm (F x1' x2' - F x1 x2) \<le> \<epsilon> / cmod (b-a)"
@@ -2187,7 +2187,7 @@ proof -
           then obtain kk where "kk>0"
             and kk: "\<And>x x'. \<lbrakk>x \<in> ?ddpa; x' \<in> ?ddpa; dist x' x < kk\<rbrakk> \<Longrightarrow>
                              dist ((\<lambda>(x,y). d x y) x') ((\<lambda>(x,y). d x y) x) < ee"
-            by (rule uniformly_continuous_onE [where e = ee]) (use \<open>0 < ee\<close> in auto)
+            by (rule uniformly_continuous_onE [where \<epsilon> = ee]) (use \<open>0 < ee\<close> in auto)
           have kk: "\<lbrakk>norm (w-x) \<le> dd; z \<in> path_image \<gamma>; norm ((w, z) - (x, z)) < kk\<rbrakk> \<Longrightarrow> norm (d w z - d x z) < ee"
             for  w z
             using \<open>dd>0\<close> kk [of "(x,z)" "(w,z)"] by (force simp: norm_minus_commute dist_norm)
