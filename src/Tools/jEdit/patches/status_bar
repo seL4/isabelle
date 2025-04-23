@@ -1,0 +1,17 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StatusBar.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StatusBar.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StatusBar.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StatusBar.java	2024-11-15 20:22:26.451538237 +0100
+@@ -225,8 +225,11 @@
+ 			else
+ 				this.message.setText(" ");
+ 		}
+-		else
+-			this.message.setText(message);
++		else {
++			Exception exn = new Exception();
++			if (!exn.getStackTrace()[1].getClassName().startsWith("sidekick."))
++				this.message.setText(message);
++		}
+ 	} //}}}
+ 
+ 	//{{{ setMessageComponent() method

@@ -1,0 +1,126 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-22 22:11:53.770185212 +0200
+@@ -42,6 +42,8 @@
+ import java.net.URL;
+ import java.util.*;
+ import java.util.List;
++import java.util.regex.Pattern;
++import java.util.regex.Matcher;
+ import java.lang.ref.SoftReference;
+ 
+ import javax.annotation.Nonnull;
+@@ -72,6 +74,8 @@
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicLong;
++
++import com.formdev.flatlaf.extras.FlatSVGIcon;
+ //}}}
+ 
+ /** Various GUI utility functions related to icons, menus, toolbars, keyboard shortcuts, etc.
+@@ -115,14 +119,14 @@
+ 	 * @return the icon
+ 	 * @since jEdit 2.6pre7
+ 	 */
+-	public static Icon loadIcon(String iconName)
++	public static Icon loadIcon(String iconSpec)
+ 	{
+-		if(iconName == null)
++		if(iconSpec == null)
+ 			return null;
+ 
+ 		// * Enable old icon naming scheme support
+-		if(deprecatedIcons.containsKey(iconName))
+-			iconName = deprecatedIcons.get(iconName);
++		if(deprecatedIcons.containsKey(iconSpec))
++			iconSpec = deprecatedIcons.get(iconSpec);
+ 
+ 		// check if there is a cached version first
+ 		Map<String, Icon> cache = null;
+@@ -135,12 +139,25 @@
+ 			cache = new HashMap<>();
+ 			iconCache = new SoftReference<>(cache);
+ 		}
+-		Icon icon = cache.get(iconName);
++		Icon icon = cache.get(iconSpec);
+ 		if(icon != null)
+ 			return icon;
+ 
+ 		URL url;
+ 
++		float iconScale = 1.0f;
++ 		String iconName = iconSpec;
++       {
++        	Matcher matcher = Pattern.compile("^([^?]+)\\?scale=(.+)$").matcher(iconSpec);
++        	if (matcher.matches()) {
++        		try {
++        			iconScale = Float.valueOf(matcher.group(2));
++        			iconName = matcher.group(1);
++        		}
++        		catch (NumberFormatException e) { }
++        	}
++        }
++
+ 		try
+ 		{
+ 			// get the icon
+@@ -164,9 +181,11 @@
+ 			}
+ 		}
+ 
+-		icon = new ImageIcon(url);
++		icon =
++			url.toString().endsWith(".svg") ?
++				new FlatSVGIcon(url).derive(iconScale) : new ImageIcon(url);
+ 
+-		cache.put(iconName,icon);
++		cache.put(iconSpec,icon);
+ 		return icon;
+ 	} //}}}
+ 
+@@ -1094,9 +1113,7 @@
+ 				return new Font("Monospaced", Font.PLAIN, 12);
+ 			}
+ 			else {
+-				Font font2 =
+-					new Font(OperatingSystem.isWindows() ? "Lucida Console" : "Monospaced",
+-						Font.PLAIN, font1.getSize());
++				Font font2 = new Font("Isabelle DejaVu Sans Mono", Font.PLAIN, font1.getSize());
+ 				FontRenderContext frc = new FontRenderContext(null, true, false);
+ 				float scale =
+ 					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
+@@ -1107,6 +1124,11 @@
+ 
+ 	//{{{ Colors and styles
+ 
++	public static boolean isDarkLaf()
++	{
++		return com.formdev.flatlaf.FlatLaf.isLafDark();
++	}
++
+ 	//{{{ getStyleString() method
+ 	/**
+ 	 * Converts a style into it's string representation.
+@@ -1619,6 +1641,21 @@
+ 	}
+ 	//}}}
+ 
++	//{{{ isPopupTrigger() method
++	/**
++	 * Returns if the specified event is the popup trigger event.
++	 * This implements precisely defined behavior, as opposed to
++	 * MouseEvent.isPopupTrigger().
++	 * @param evt The event
++	 * @since jEdit 3.2pre8
++	 * @deprecated use {@link GenericGUIUtilities#requestFocus(Window, Component)}
++	 */
++	@Deprecated
++	public static boolean isPopupTrigger(MouseEvent evt)
++	{
++		return GenericGUIUtilities.isPopupTrigger(evt);
++	} //}}}
++
+ 	//{{{ init() method
+ 	static void init()
+ 	{
