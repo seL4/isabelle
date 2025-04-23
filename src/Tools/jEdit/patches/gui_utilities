@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-22 22:11:53.770185212 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-23 14:28:53.149349418 +0200
 @@ -42,6 +42,8 @@
  import java.net.URL;
  import java.util.*;
@@ -90,10 +90,21 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  				FontRenderContext frc = new FontRenderContext(null, true, false);
  				float scale =
  					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
-@@ -1107,6 +1124,11 @@
+@@ -1107,6 +1124,22 @@
  
  	//{{{ Colors and styles
  
++	public static Color menuAcceleratorForeground(boolean selection) {
++		Color color =
++			UIManager.getColor(selection ?
++				"MenuItem.acceleratorSelectionForeground" :
++				"MenuItem.acceleratorForeground");
++
++		if (color == null) color = Color.black;
++
++		return color;
++	}
++
 +	public static boolean isDarkLaf()
 +	{
 +		return com.formdev.flatlaf.FlatLaf.isLafDark();
@@ -102,7 +113,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  	//{{{ getStyleString() method
  	/**
  	 * Converts a style into it's string representation.
-@@ -1619,6 +1641,21 @@
+@@ -1619,6 +1652,21 @@
  	}
  	//}}}
  
