@@ -238,4 +238,90 @@ lemma rcong_divide_modulus:
   shows   "[a / c = b / c] (rmod m)"
   using rcong_mult_modulus[of a b m "1 / c"] assms by (auto simp: field_simps)
 
+lemma sin_rmod [simp]: "sin (x rmod (2*pi)) = sin x"
+  and cos_rmod [simp]: "cos (x rmod (2*pi)) = cos x"
+  by (simp_all add: rmod_def sin_diff cos_diff)
+
+lemma tan_rmod [simp]: "tan (x rmod (2*pi)) = tan x"
+  and cot_rmod [simp]: "cot (x rmod (2*pi)) = cot x"
+  and cis_rmod [simp]: "cis (x rmod (2*pi)) = cis x"
+  and rcis_rmod [simp]: "rcis r (x rmod (2*pi)) = rcis r x"
+  by (simp_all add: tan_def cot_def complex_eq_iff)
+
+lemma cis_eq_iff: "cis a = cis b \<longleftrightarrow> [a = b] (rmod (2 * pi))"
+proof -
+  have "cis a = cis b \<longleftrightarrow> sin a = sin b \<and> cos a = cos b"
+    by (auto simp: complex_eq_iff)
+  also have "\<dots> \<longleftrightarrow> (\<exists>x. a = b + 2 * pi * real_of_int x)"
+    by (rule sin_cos_eq_iff)
+  also have "\<dots> \<longleftrightarrow> [b = a] (rmod (2 * pi))"
+    by (simp add: rcong_altdef mult_ac)
+  finally show ?thesis
+    by (simp add: rcong_sym_iff)
+qed
+
+lemma cis_eq_1_iff: "cis a = 1 \<longleftrightarrow> (\<exists>n. a = of_int n * (2 * pi))"
+proof -
+  have "cis 0 = cis a \<longleftrightarrow> [0 = a] (rmod (2 * pi))"
+    by (rule cis_eq_iff)
+  also have "\<dots> \<longleftrightarrow> (\<exists>n. a = of_int n * (2 * pi))"
+    unfolding rcong_altdef by simp
+  finally show ?thesis
+    by simp
+qed
+
+lemma cis_cong:
+  assumes "[a = b] (rmod 2 * pi)"
+  shows   "cis a = cis b"
+  using cis_eq_iff assms by blast
+
+lemma rcis_cong:
+  assumes "[a = b] (rmod 2 * pi)"
+  shows   "rcis r a = rcis r b"
+  using assms by (auto simp: rcis_def intro!: cis_cong)
+
+lemma sin_rcong: "[x = y] (rmod (2 * pi)) \<Longrightarrow> sin x = sin y"
+  and cos_rcong: "[x = y] (rmod (2 * pi)) \<Longrightarrow> cos x = cos y"
+  using cis_cong[of x y] by (simp_all add: complex_eq_iff)
+
+lemma sin_eq_sin_conv_rmod:
+  assumes "sin x = sin y"
+  shows   "[x = y] (rmod 2 * pi) \<or> [x = pi - y] (rmod 2 * pi)"
+proof -
+  have "0 = sin y - sin x"
+    using assms by simp
+  hence "sin ((y - x) / 2) = 0 \<or> cos ((y + x) / 2) = 0"
+    unfolding sin_diff_sin by simp
+  hence "(\<exists>i. y = x + real_of_int i * (2 * pi)) \<or>
+         (\<exists>i. pi - y = x + real_of_int (-i) * (2 * pi))"
+    unfolding sin_zero_iff_int2 cos_zero_iff_int2
+    by (auto simp: algebra_simps)
+  thus ?thesis
+    unfolding rcong_altdef by blast
+qed
+
+lemma cos_eq_cos_conv_rmod:
+  assumes "cos x = cos y"
+  shows   "[x = y] (rmod 2 * pi) \<or> [x = -y] (rmod 2 * pi)"
+proof -
+  have "0 = cos y - cos x"
+    using assms by simp
+  hence "sin ((y + x) / 2) = 0 \<or> sin ((x - y) / 2) = 0"
+    unfolding cos_diff_cos by simp
+  hence "(\<exists>i. -y = x + real_of_int (-i) * (2 * pi)) \<or>
+         (\<exists>i. y = x + real_of_int (-i) * (2 * pi))"
+    unfolding sin_zero_iff_int2
+    by (auto simp: algebra_simps)
+  thus ?thesis
+    unfolding rcong_altdef by blast
+qed
+
+lemma sin_eq_sin_conv_rmod_iff:
+  "sin x = sin y \<longleftrightarrow> [x = y] (rmod 2 * pi) \<or> [x = pi - y] (rmod 2 * pi)"
+  by (metis sin_eq_sin_conv_rmod sin_pi_minus sin_rcong)
+
+lemma cos_eq_cos_conv_rmod_iff:
+  "cos x = cos y \<longleftrightarrow> [x = y] (rmod 2 * pi) \<or> [x = -y] (rmod 2 * pi)"
+  by (metis cos_eq_cos_conv_rmod cos_minus cos_rcong)
+
 end
