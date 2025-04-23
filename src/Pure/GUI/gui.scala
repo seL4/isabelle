@@ -25,8 +25,6 @@ import com.formdev.flatlaf.FlatLaf
 object GUI {
   /* Swing look-and-feel */
 
-  def init_laf(): Unit = flatlaf.FlatLightLaf.setup()
-
   def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
 
   def is_macos_laf(): Boolean =
@@ -55,6 +53,11 @@ object GUI {
 
     // see https://www.formdev.com/flatlaf/customizing
     UIManager.put("Component.arrowType", "triangle")
+  }
+
+  def init_laf(): Unit = {
+    init_lafs()
+    flatlaf.FlatLightLaf.setup()
   }
 
 
