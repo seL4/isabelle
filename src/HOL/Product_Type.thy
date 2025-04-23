@@ -1316,6 +1316,11 @@ next
     by auto
 qed
 
+lemma bij_betw_map_prod:
+  assumes "bij_betw f A C" "bij_betw g B D"
+  shows   "bij_betw (map_prod f g) (A \<times> B) (C \<times> D)"
+  using assms unfolding bij_betw_def inj_on_def by auto
+
 
 subsection \<open>Simproc for rewriting a set comprehension into a pointfree expression\<close>
 

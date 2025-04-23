@@ -705,6 +705,9 @@ lemma frac_unique_iff: "frac x = a \<longleftrightarrow> x - a \<in> \<int> \<an
 lemma frac_eq: "frac x = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   by (simp add: frac_unique_iff)
 
+lemma frac_eq_id [simp]: "x \<in> {0..<1} \<Longrightarrow> frac x = x"
+  by (simp add: frac_eq)
+
 lemma frac_neg: "frac (- x) = (if x \<in> \<int> then 0 else 1 - frac x)"
   for x :: "'a::floor_ceiling"
   apply (auto simp add: frac_unique_iff)

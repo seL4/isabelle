@@ -2845,6 +2845,31 @@ lemma summable_on_reindex_bij_witness:
   using has_sum_reindex_bij_witness[of S i j T h g, OF assms]
   by (simp add: summable_on_def)
 
+lemma infsum_reindex_bij_witness:
+  assumes "\<And>a. a \<in> S \<Longrightarrow> i (j a) = a"
+  assumes "\<And>a. a \<in> S \<Longrightarrow> j a \<in> T"
+  assumes "\<And>b. b \<in> T \<Longrightarrow> j (i b) = b"
+  assumes "\<And>b. b \<in> T \<Longrightarrow> i b \<in> S"
+  assumes "\<And>a. a \<in> S \<Longrightarrow> h (j a) = g a"
+  shows   "infsum g S = infsum h T"
+proof (cases "g summable_on S")
+  case True
+  then obtain s where s: "(g has_sum s) S"
+    by (auto simp: summable_on_def)
+  also have "?this \<longleftrightarrow> (h has_sum s) T"
+    by (rule has_sum_reindex_bij_witness[of _ i j]) (use assms in auto)
+  finally have s': "(h has_sum s) T" .
+  show ?thesis
+    using infsumI[OF s] infsumI[OF s'] by simp
+next
+  case False
+  note \<open>\<not>g summable_on S\<close>
+  also have "g summable_on S \<longleftrightarrow> h summable_on T"
+    by (rule summable_on_reindex_bij_witness[of _ i j]) (use assms in auto)
+  finally show ?thesis
+    using False by (simp add: infsum_not_exists)
+qed
+
 lemma has_sum_homomorphism:
   assumes "(f has_sum S) A" "h 0 = 0" "\<And>a b. h (a + b) = h a + h b" "continuous_on UNIV h"
   shows   "((\<lambda>x. h (f x)) has_sum (h S)) A"
