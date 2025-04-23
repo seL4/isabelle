@@ -1,0 +1,12 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/Gutter.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/Gutter.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/Gutter.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/Gutter.java	2025-04-22 22:08:05.106604316 +0200
+@@ -682,7 +682,7 @@
+ 	//{{{ Private members
+ 
+ 	//{{{ Instance variables
+-	private static final int FOLD_MARKER_SIZE = 12;
++	public static final int FOLD_MARKER_SIZE = 12;
+ 	private static final int SELECTION_GUTTER_WIDTH = 12;
+ 		// The selection gutter exists only if the gutter is not expanded
+ 

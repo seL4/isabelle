@@ -37,6 +37,27 @@ enabled by default. The old plugins Navigator and Code2HTML are now
 longer included. The old-fashioned toolbar, with its old Navigator
 icons, is now disabled by default.
 
+* Update GUI look-and-feel to current FlatLaf 3.6, with native library
+support on all Isabelle platforms (now including arm64-linux).
+
+* Additional look-and-feels "FlatLaf macOS Light" and "FlatLaf macOS
+Dark" imitate original macOS more closely. This is the default for the
+bundled application on macOS.
+
+* GUI rendering of the gutter is now more accurate, using scaled icons
+to fit precisely into the available space.
+
+* GUI rendering for dark look-and-feels has been slightly improved, e.g.
+menu accelerator font/color.
+
+* Provide scalable icons for old-fashioned "tango" (from early Gnome or
+KDE), and "idea-icons" from current IntelliJ IDEA community edition. All
+icons are available for jEdit and Isabelle/jEdit add-ons. The special
+notation "myicon.svg?scale=0.5" allows to resize icons as specified in
+jEdit properties. The default properties of Isabelle/jEdit usually
+prefer scalable icons over fixed old bitmaps, but some notable icons are
+not available as SVG.
+
 
 *** HOL ***
 
@@ -190,6 +211,10 @@ on all platforms, but requires a reasonably new version of Windows
 
 * SSH connections allow both bash and zsh as remote shell. This is
 particularly important for macOS, where zsh is the default user shell.
+
+* Isabelle/Scala supports SVG via the "jsvg" library
+(com.github.weisj.jsvg.SVGDocument), as well as the "flatlaf-extras"
+library (com.formdev.flatlaf.extras.FlatSVGIcon).
 
 
 

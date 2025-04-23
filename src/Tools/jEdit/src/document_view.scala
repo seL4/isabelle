@@ -12,11 +12,13 @@ import isabelle._
 
 import java.awt.Graphics2D
 import java.awt.event.KeyEvent
+import java.awt.geom.AffineTransform
 import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.jedit.options.GutterOptionPane
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter,
+  Gutter}
 
 
 object Document_View {
@@ -140,9 +142,19 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
         GUI_Thread.assert {}
 
         val gutter = text_area.getGutter
-        val sel_width = GutterOptionPane.getSelectionAreaWidth
-        val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
-        val FOLD_MARKER_SIZE = 12
+        val gutter_width = gutter.getWidth
+        val gutter_insets = gutter.getBorder.getBorderInsets(gutter)
+
+        val skip_left = gutter_insets.left + Gutter.FOLD_MARKER_SIZE
+        val skip_right = gutter_insets.right
+        val icon_width = gutter_width - skip_left - skip_right
+        val icon_height = line_height
+
+        def scale(a: Int, b: Int): Double = 0.95 * a.toDouble / b.toDouble
+
+        val gutter_icons =
+          !gutter.isExpanded &&
+            gutter.isSelectionAreaEnabled && icon_width >= 12 && icon_height >= 12
 
         val buffer = model.buffer
         JEdit_Lib.buffer_lock(buffer) {
@@ -155,19 +167,27 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
               rendering.gutter_content(line_range) match {
                 case Some((icon, color)) =>
                   // icons within selection area
-                  if (!gutter.isExpanded &&
-                      gutter.isSelectionAreaEnabled && sel_width >= 12 && line_height >= 12) {
-                    val x0 =
-                      (FOLD_MARKER_SIZE + sel_width - border_width - icon.getIconWidth) max 10
-                    val y0 =
-                      y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
-                    icon.paintIcon(gutter, gfx, x0, y0)
+                  if (gutter_icons && icon.getIconWidth > 0 && icon.getIconHeight > 0) {
+                    val w0 = icon.getIconWidth
+                    val h0 = icon.getIconHeight
+                    val s = Math.min(scale(icon_width, w0), scale(icon_height, h0))
+
+                    val w = (s * w0).ceil
+                    val h = (s * h0).ceil
+                    val x0 = skip_left + (((icon_width - w) / 2) max 0)
+                    val y0 = y + i * line_height + (((icon_height - h) / 2) max 0)
+
+                    val tr0 = gfx.getTransform
+                    val tr = new AffineTransform(tr0); tr.translate(x0, y0); tr.scale(s, s)
+                    gfx.setTransform(tr)
+                    icon.paintIcon(gutter, gfx, 0, 0)
+                    gfx.setTransform(tr0)
                   }
-                  // background
+                  // background only
                   else {
                     val y0 = y + i * line_height
                     gfx.setColor(color)
-                    gfx.fillRect(0, y0, gutter.getWidth, line_height)
+                    gfx.fillRect(0, y0, gutter_width, line_height)
                   }
                 case None =>
               }

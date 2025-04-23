@@ -189,6 +189,7 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_JDK.isabelle_tool,
   Component_JEdit.isabelle_tool,
   Component_Jsoup.isabelle_tool,
+  Component_JSVG.isabelle_tool,
   Component_LIPIcs.isabelle_tool,
   Component_LLNCS.isabelle_tool,
   Component_Minisat.isabelle_tool,
