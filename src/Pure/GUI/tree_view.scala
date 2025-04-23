@@ -80,7 +80,7 @@ class Tree_View(
   }
 
   // follow jEdit
-  if (!GUI.is_macos_laf) {
+  if (!GUI.is_macos_laf()) {
     putClientProperty("JTree.lineStyle", "Angled")
   }
 }

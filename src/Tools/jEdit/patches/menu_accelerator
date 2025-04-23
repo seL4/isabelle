@@ -1,0 +1,144 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java	2025-04-23 14:40:22.714447724 +0200
+@@ -99,7 +99,7 @@
+ 
+ 		if(shortcut != null)
+ 		{
+-			FontMetrics fm = getFontMetrics(EnhancedMenuItem.acceleratorFont);
++			FontMetrics fm = getFontMetrics(GUIUtilities.menuAcceleratorFont());
+ 			d.width += (fm.stringWidth(shortcut) + fm.stringWidth("AAAA"));
+ 		}
+ 		return d;
+@@ -114,11 +114,9 @@
+ 		if(shortcut != null)
+ 		{
+ 			Graphics2D g2 = (Graphics2D)g;
+-			g.setFont(EnhancedMenuItem.acceleratorFont);
++			g.setFont(GUIUtilities.menuAcceleratorFont());
+ 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+-			g.setColor(getModel().isArmed() ?
+-				EnhancedMenuItem.acceleratorSelectionForeground :
+-				EnhancedMenuItem.acceleratorForeground);
++			g.setColor(GUIUtilities.menuAcceleratorForeground(getModel().isArmed()));
+ 			FontMetrics fm = g.getFontMetrics();
+ 			Insets insets = getInsets();
+ 			g.drawString(shortcut,getWidth() - (fm.stringWidth(
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java	2025-04-23 14:26:16.757848751 +0200
+@@ -94,7 +94,7 @@
+ 
+ 		if(shortcut != null)
+ 		{
+-			FontMetrics fm = getFontMetrics(acceleratorFont);
++			FontMetrics fm = getFontMetrics(GUIUtilities.menuAcceleratorFont());
+ 			d.width += (fm.stringWidth(shortcut) + fm.stringWidth("AAAA"));
+ 		}
+ 		return d;
+@@ -109,11 +109,9 @@
+ 		if(shortcut != null)
+ 		{
+ 			Graphics2D g2 = (Graphics2D)g;
+-			g.setFont(acceleratorFont);
++			g.setFont(GUIUtilities.menuAcceleratorFont());
+ 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+-			g.setColor(getModel().isArmed() ?
+-				acceleratorSelectionForeground :
+-				acceleratorForeground);
++			g.setColor(GUIUtilities.menuAcceleratorForeground(getModel().isArmed()));
+ 			FontMetrics fm = g.getFontMetrics();
+ 			Insets insets = getInsets();
+ 			g.drawString(shortcut,getWidth() - (fm.stringWidth(
+@@ -122,12 +120,6 @@
+ 		}
+ 	} //}}}
+ 
+-	//{{{ Package-private members
+-	static Font acceleratorFont;
+-	static Color acceleratorForeground;
+-	static Color acceleratorSelectionForeground;
+-	//}}}
+-
+ 	//{{{ Private members
+ 
+ 	//{{{ Instance variables
+@@ -135,25 +127,5 @@
+ 	private String shortcut;
+ 	//}}}
+ 
+-	//{{{ Class initializer
+-	static
+-	{
+-		acceleratorFont = GUIUtilities.menuAcceleratorFont();
+-
+-		acceleratorForeground = UIManager
+-			.getColor("MenuItem.acceleratorForeground");
+-		if(acceleratorForeground == null)
+-		{
+-			acceleratorForeground = Color.black;
+-		}
+-
+-		acceleratorSelectionForeground = UIManager
+-			.getColor("MenuItem.acceleratorSelectionForeground");
+-		if(acceleratorSelectionForeground == null)
+-		{
+-			acceleratorSelectionForeground = Color.black;
+-		}
+-	} //}}}
+-
+ 	//}}}
+ }
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/MarkersProvider.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/MarkersProvider.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/MarkersProvider.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/MarkersProvider.java	2025-04-23 14:27:48.829375470 +0200
+@@ -107,7 +107,7 @@
+ 
+ 			if(shortcut != null)
+ 			{
+-				FontMetrics fm = getFontMetrics(acceleratorFont);
++				FontMetrics fm = getFontMetrics(GUIUtilities.menuAcceleratorFont());
+ 				d.width += (fm.stringWidth(shortcut) + fm.stringWidth("AAAA"));
+ 			}
+ 			return d;
+@@ -124,11 +124,9 @@
+ 			if(shortcut != null)
+ 			{
+ 				Graphics2D g2 = (Graphics2D)g;
+-				g.setFont(acceleratorFont);
++				g.setFont(GUIUtilities.menuAcceleratorFont());
+ 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+-				g.setColor(getModel().isArmed() ?
+-					acceleratorSelectionForeground :
+-					acceleratorForeground);
++				g.setColor(GUIUtilities.menuAcceleratorForeground(getModel().isArmed()));
+ 				FontMetrics fm = g.getFontMetrics();
+ 				Insets insets = getInsets();
+ 				g.drawString(shortcut,getWidth() - (fm.stringWidth(
+@@ -140,9 +138,6 @@
+ 		//{{{ Private members
+ 		private final String shortcutProp;
+ 		private final char shortcut;
+-		private static final Font acceleratorFont;
+-		private static final Color acceleratorForeground;
+-		private static final Color acceleratorSelectionForeground;
+ 
+ 		//{{{ getShortcut() method
+ 		private String getShortcut()
+@@ -162,16 +157,6 @@
+ 			}
+ 		} //}}}
+ 
+-		//{{{ Class initializer
+-		static
+-		{
+-			acceleratorFont = GUIUtilities.menuAcceleratorFont();
+-			acceleratorForeground = UIManager
+-				.getColor("MenuItem.acceleratorForeground");
+-			acceleratorSelectionForeground = UIManager
+-				.getColor("MenuItem.acceleratorSelectionForeground");
+-		} //}}}
+-
+ 		//}}}
+ 	} //}}}
+ }

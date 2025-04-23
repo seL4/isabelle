@@ -691,7 +691,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           case Platform.Family.macos =>
             File.change(isabelle_target + jedit_props) {
-              _.replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
+              _.replaceAll("lookAndFeel=.*", "lookAndFeel=com.formdev.flatlaf.themes.FlatMacLightLaf")
+               .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d")
                .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d")
             }
 
