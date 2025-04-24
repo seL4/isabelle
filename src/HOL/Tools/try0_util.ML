@@ -11,7 +11,8 @@ sig
   val string_of_xref : Try0.xref -> string
 
   type facts_config =
-    {simps_prefix : string option,
+    {usings_as_params : bool,
+     simps_prefix : string option,
      intros_prefix : string option,
      elims_prefix : string option,
      dests_prefix : string option}
@@ -35,33 +36,39 @@ fun string_of_xref ((xref, args) : Try0.xref) =
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
 type facts_config =
-  {simps_prefix : string option,
+  {usings_as_params : bool,
+   simps_prefix : string option,
    intros_prefix : string option,
    elims_prefix : string option,
    dests_prefix : string option}
 
 val no_attrs : facts_config =
-  {simps_prefix = NONE,
+  {usings_as_params = false,
+   simps_prefix = NONE,
    intros_prefix = NONE,
    elims_prefix = NONE,
    dests_prefix = NONE}
 val full_attrs : facts_config =
-  {simps_prefix = SOME "simp: ",
+  {usings_as_params = false,
+   simps_prefix = SOME "simp: ",
    intros_prefix = SOME "intro: ",
    elims_prefix = SOME "elim: ",
    dests_prefix = SOME "dest: "}
 val clas_attrs : facts_config =
-  {simps_prefix = NONE,
+  {usings_as_params = false,
+   simps_prefix = NONE,
    intros_prefix = SOME "intro: ",
    elims_prefix = SOME "elim: ",
    dests_prefix = SOME "dest: "}
 val simp_attrs : facts_config =
-  {simps_prefix = SOME "add: ",
+  {usings_as_params = false,
+   simps_prefix = SOME "add: ",
    intros_prefix = NONE,
    elims_prefix = NONE,
    dests_prefix = NONE}
 val metis_attrs : facts_config =
-  {simps_prefix = SOME "",
+  {usings_as_params = true,
+   simps_prefix = SOME "",
    intros_prefix = SOME "",
    elims_prefix = SOME "",
    dests_prefix = SOME ""}
@@ -106,7 +113,7 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
       else
         (case #simps_prefix facts_config of
           NONE =>  (#simps facts, "")
-        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#simps facts))))
+        | SOME prefix => ([], " " ^ prefix ^ implode_space (map string_of_xref (#simps facts))))
 
     val (unused_intros, intros_attrs) =
       if null (#intros facts) then
@@ -114,7 +121,7 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
       else
         (case #intros_prefix facts_config of
           NONE =>  (#intros facts, "")
-        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#intros facts))))
+        | SOME prefix => ([], " " ^ prefix ^ implode_space (map string_of_xref (#intros facts))))
 
     val (unused_elims, elims_attrs) =
       if null (#elims facts) then
@@ -122,7 +129,7 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
       else
         (case #elims_prefix facts_config of
           NONE =>  (#elims facts, "")
-        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#elims facts))))
+        | SOME prefix => ([], " " ^ prefix ^ implode_space (map string_of_xref (#elims facts))))
 
     val (unused_dests, dests_attrs) =
       if null (#dests facts) then
@@ -130,11 +137,19 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
       else
         (case #dests_prefix facts_config of
           NONE =>  (#dests facts, "")
-        | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#dests facts))))
+        | SOME prefix => ([], " " ^ prefix ^ implode_space (map string_of_xref (#dests facts))))
 
-    val unused = #usings facts @ unused_simps @ unused_intros @ unused_elims @ unused_dests
+    val (unused_usings, using_attrs) =
+      if null (#usings facts) then
+        ([], "")
+      else if #usings_as_params facts_config then
+        ([], " " ^ implode_space (map string_of_xref (#usings facts)))
+      else
+        (#usings facts, "")
 
-    val attrs = simps_attrs ^ intros_attrs ^ elims_attrs ^ dests_attrs
+    val unused = unused_simps @ unused_intros @ unused_elims @ unused_dests @ unused_usings
+
+    val attrs = simps_attrs ^ intros_attrs ^ elims_attrs ^ dests_attrs ^ using_attrs
     val text =
       name ^ attrs
       |> parse_method ctxt
