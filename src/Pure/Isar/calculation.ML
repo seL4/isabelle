@@ -160,7 +160,7 @@ fun maintain_calculation int final calc state =
       if int then
         Proof_Context.pretty_fact ctxt'
           (Proof_Context.full_name ctxt' (Binding.name calculationN), calc)
-        |> Pretty.string_of |> writeln
+        |> Pretty.writeln
       else ();
   in state' |> final ? (update_calculation NONE #> Proof.chain_facts calc) end;
 
