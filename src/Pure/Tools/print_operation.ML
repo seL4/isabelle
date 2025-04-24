@@ -40,7 +40,7 @@ fun register name description pr =
 
 val _ =
   Query_Operation.register {name = "print_operation", pri = Task_Queue.urgent_pri}
-    (fn {state, args, writeln_result, ...} =>
+    (fn {state, args, writelns_result, ...} =>
       let
         val _ = Toplevel.context_of state handle Toplevel.UNDEF => error "Unknown context";
         fun err s = Pretty.mark_str (Markup.bad (), s);
@@ -48,7 +48,7 @@ val _ =
           (case AList.lookup (op =) (Synchronized.value print_operations) name of
             SOME (_, pr) => (pr state handle Toplevel.UNDEF => [err "Unknown context"])
           | NONE => [err ("Unknown print operation: " ^ quote name)]);
-      in writeln_result (Pretty.string_of (Pretty.chunks (maps print args))) end);
+      in writelns_result (Pretty.strings_of (Pretty.chunks (maps print args))) end);
 
 end;
 

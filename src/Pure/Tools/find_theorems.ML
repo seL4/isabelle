@@ -536,7 +536,7 @@ fun proof_state st =
 
 val _ =
   Query_Operation.register {name = "find_theorems", pri = Task_Queue.urgent_pri}
-    (fn {state = st, args, writeln_result, ...} =>
+    (fn {state = st, args, writelns_result, ...} =>
       if can Toplevel.context_of st then
         let
           val [limit_arg, allow_dups_arg, query_arg] = args;
@@ -544,7 +544,7 @@ val _ =
           val opt_limit = Int.fromString limit_arg;
           val rem_dups = allow_dups_arg = "false";
           val criteria = read_query Position.none query_arg;
-        in writeln_result (Pretty.string_of (pretty_theorems state opt_limit rem_dups criteria)) end
+        in writelns_result (Pretty.strings_of (pretty_theorems state opt_limit rem_dups criteria)) end
       else error "Unknown context");
 
 end;
