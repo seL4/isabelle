@@ -10,17 +10,17 @@ signature TRY0_UTIL =
 sig
   val string_of_xref : Try0.xref -> string
 
-  type facts_prefixes =
-    {simps : string option,
-     intros : string option,
-     elims : string option,
-     dests : string option}
-  val full_attrs : facts_prefixes
-  val clas_attrs : facts_prefixes
-  val simp_attrs : facts_prefixes
-  val metis_attrs : facts_prefixes
-  val no_attrs : facts_prefixes
-  val apply_raw_named_method : string -> bool -> facts_prefixes ->
+  type facts_config =
+    {simps_prefix : string option,
+     intros_prefix : string option,
+     elims_prefix : string option,
+     dests_prefix : string option}
+  val full_attrs : facts_config
+  val clas_attrs : facts_config
+  val simp_attrs : facts_config
+  val metis_attrs : facts_config
+  val no_attrs : facts_config
+  val apply_raw_named_method : string -> bool -> facts_config ->
     (Proof.context -> Proof.context) -> Time.time option -> Try0.facts -> Proof.state ->
     Try0.result option
 end
@@ -34,23 +34,37 @@ fun string_of_xref ((xref, args) : Try0.xref) =
       Facts.string_of_ref xref) ^ implode
         (map (enclose "[" "]" o Pretty.unformatted_string_of o Token.pretty_src \<^context>) args)
 
+type facts_config =
+  {simps_prefix : string option,
+   intros_prefix : string option,
+   elims_prefix : string option,
+   dests_prefix : string option}
 
-type facts_prefixes =
-  {simps : string option,
-   intros : string option,
-   elims : string option,
-   dests : string option}
-
-val no_attrs : facts_prefixes =
-  {simps = NONE, intros = NONE, elims = NONE, dests = NONE}
-val full_attrs : facts_prefixes =
-  {simps = SOME "simp: ", intros = SOME "intro: ", elims = SOME "elim: ", dests = SOME "dest: "}
-val clas_attrs : facts_prefixes =
-  {simps = NONE, intros = SOME "intro: ", elims = SOME "elim: ", dests = SOME "dest: "}
-val simp_attrs : facts_prefixes =
-  {simps = SOME "add: ", intros = NONE, elims = NONE, dests = NONE}
-val metis_attrs : facts_prefixes =
-  {simps = SOME "", intros = SOME "", elims = SOME "", dests = SOME ""}
+val no_attrs : facts_config =
+  {simps_prefix = NONE,
+   intros_prefix = NONE,
+   elims_prefix = NONE,
+   dests_prefix = NONE}
+val full_attrs : facts_config =
+  {simps_prefix = SOME "simp: ",
+   intros_prefix = SOME "intro: ",
+   elims_prefix = SOME "elim: ",
+   dests_prefix = SOME "dest: "}
+val clas_attrs : facts_config =
+  {simps_prefix = NONE,
+   intros_prefix = SOME "intro: ",
+   elims_prefix = SOME "elim: ",
+   dests_prefix = SOME "dest: "}
+val simp_attrs : facts_config =
+  {simps_prefix = SOME "add: ",
+   intros_prefix = NONE,
+   elims_prefix = NONE,
+   dests_prefix = NONE}
+val metis_attrs : facts_config =
+  {simps_prefix = SOME "",
+   intros_prefix = SOME "",
+   elims_prefix = SOME "",
+   dests_prefix = SOME ""}
 
 local
 
@@ -79,7 +93,7 @@ fun apply_recursive recurse elapsed0 timeout_opt apply st =
 
 in
 
-fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
+fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config)
   (silence_methods : Proof.context -> Proof.context) timeout_opt (facts : Try0.facts)
   (st : Proof.state) : Try0.result option =
   let
@@ -90,7 +104,7 @@ fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
        if null (#simps facts) then
         ([], "")
       else
-        (case #simps prefixes of
+        (case #simps_prefix facts_config of
           NONE =>  (#simps facts, "")
         | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#simps facts))))
 
@@ -98,7 +112,7 @@ fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
       if null (#intros facts) then
         ([], "")
       else
-        (case #intros prefixes of
+        (case #intros_prefix facts_config of
           NONE =>  (#intros facts, "")
         | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#intros facts))))
 
@@ -106,7 +120,7 @@ fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
       if null (#elims facts) then
         ([], "")
       else
-        (case #elims prefixes of
+        (case #elims_prefix facts_config of
           NONE =>  (#elims facts, "")
         | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#elims facts))))
 
@@ -114,7 +128,7 @@ fun apply_raw_named_method (name : string) all_goals (prefixes: facts_prefixes)
       if null (#dests facts) then
         ([], "")
       else
-        (case #dests prefixes of
+        (case #dests_prefix facts_config of
           NONE =>  (#dests facts, "")
         | SOME prefix => ([], " " ^ prefix ^ space_implode "" (map string_of_xref (#dests facts))))
 
