@@ -84,25 +84,23 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
       end
 
     val timer = Timer.startRealTimer ()
-    val out =
+    val (outcome, command) =
       (case run_try0 () of
-        NONE => SOME GaveUp
-      | SOME _ => NONE)
-      handle ERROR _ => SOME GaveUp
-           | Exn.Interrupt_Breakdown => SOME GaveUp
-           | Timeout.TIMEOUT _ => SOME TimedOut
+        NONE => (SOME GaveUp, "")
+      | SOME {command, ...} => (NONE, command))
+      handle ERROR _ => (SOME GaveUp, "")
+           | Exn.Interrupt_Breakdown => (SOME GaveUp, "")
+           | Timeout.TIMEOUT _ => (SOME TimedOut, "")
     val run_time = Timer.checkRealTimer timer
 
-    val (outcome, used_facts) =
-      (case out of
-        NONE => (found_something name; (NONE, map fst facts))
-      | some_failure => (some_failure, []))
+    val used_facts =
+      (case outcome of
+        NONE => (found_something name; map fst facts)
+      | SOME _ => [])
 
     val message = fn _ =>
       (case outcome of
-        NONE =>
-        one_line_proof_text ((map (apfst Pretty.str) used_facts, (meth_of name, Played run_time)),
-          proof_banner mode name, subgoal, subgoal_count)
+        NONE => try_command_line (proof_banner mode name) (Played run_time) command
       | SOME failure => string_of_atp_failure failure)
   in
     {outcome = outcome, used_facts = used_facts, used_from = facts,
