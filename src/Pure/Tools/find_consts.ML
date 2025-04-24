@@ -159,13 +159,13 @@ end;
 
 val _ =
   Query_Operation.register {name = "find_consts", pri = Task_Queue.urgent_pri}
-    (fn {state, args, writeln_result, ...} =>
+    (fn {state, args, writelns_result, ...} =>
       (case try Toplevel.context_of state of
         SOME ctxt =>
           let
             val [query_arg] = args;
             val query = read_query Position.none query_arg;
-          in writeln_result (Pretty.string_of (pretty_consts ctxt query)) end
+          in writelns_result (Pretty.strings_of (pretty_consts ctxt query)) end
       | NONE => error "Unknown context"));
 
 end;

@@ -293,6 +293,7 @@ sig
   val no_output: output
   val output: T -> output
   val markup: T -> string -> string
+  val markup_strings: T -> string list -> string list
   val markups: T list -> string -> string
   val markup_report: string -> string
 end;
@@ -897,6 +898,10 @@ fun output m =
   then YXML.output_markup m else no_output;
 
 fun markup m = output m |-> Library.enclose;
+
+fun markup_strings m =
+  let val (bg, en) = output m
+  in fn ss => [bg] @ ss @ [en] end;
 
 val markups = fold_rev markup;
 

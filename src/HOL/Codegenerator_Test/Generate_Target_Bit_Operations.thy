@@ -59,7 +59,7 @@ lemma check
 
 test_code check in Scala
 
-text \<open>Checking the index maximum for \<text>\<open>PolyML\<close>\<close>
+text \<open>Checking the index maximum for \<^verbatim>\<open>PolyML\<close>.\<close>
 
 qualified definition \<open>check_max = ()\<close>
 

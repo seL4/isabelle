@@ -87,6 +87,7 @@ sig
   val output: output_ops -> T -> Bytes.T
   val string_of_ops: output_ops -> T -> string
   val string_of: T -> string
+  val strings_of: T -> string list
   val pure_string_of: T -> string
   val writeln: T -> unit
   val writeln_urgent: T -> unit
@@ -526,6 +527,8 @@ fun output ops = if #symbolic ops then symbolic_output else format_tree ops;
 
 fun string_of_ops ops = Bytes.content o output ops;
 fun string_of prt = string_of_ops (output_ops NONE) prt;
+
+fun strings_of prt = Bytes.contents (output (output_ops NONE) prt);
 
 val pure_string_of = string_of_ops (pure_output_ops NONE);
 

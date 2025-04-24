@@ -244,55 +244,53 @@ fun pretty_theorems verbose st =
 
 local
 
-fun string_of_stmts ctxt args =
+fun pretty_stmts ctxt args =
   Attrib.eval_thms ctxt args
   |> map (Element.pretty_statement ctxt Thm.theoremK)
-  |> Pretty.chunks2 |> Pretty.string_of;
+  |> Pretty.chunks2;
 
-fun string_of_thms ctxt args =
-  Pretty.string_of (Proof_Context.pretty_fact ctxt ("", Attrib.eval_thms ctxt args));
+fun pretty_thms ctxt args =
+  Proof_Context.pretty_fact ctxt ("", Attrib.eval_thms ctxt args);
 
-fun string_of_prfs full state arg =
-  Pretty.string_of
-    (case arg of
-      NONE =>
-        let
-          val {context = ctxt, goal = thm} = Proof.simple_goal (Toplevel.proof_of state);
-          val thy = Proof_Context.theory_of ctxt;
-          val prf = Thm.proof_of thm;
-          val prop = Thm.full_prop_of thm;
-          val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
-        in
-          Proof_Syntax.pretty_proof ctxt
-            (if full then Proofterm.reconstruct_proof thy prop prf' else prf')
-        end
-    | SOME srcs =>
-        let
-          val ctxt = Toplevel.context_of state;
-          val pretty_proof = Proof_Syntax.pretty_standard_proof_of ctxt full;
-        in Pretty.chunks (map pretty_proof (Attrib.eval_thms ctxt srcs)) end);
+fun pretty_prfs full state arg =
+  (case arg of
+    NONE =>
+      let
+        val {context = ctxt, goal = thm} = Proof.simple_goal (Toplevel.proof_of state);
+        val thy = Proof_Context.theory_of ctxt;
+        val prf = Thm.proof_of thm;
+        val prop = Thm.full_prop_of thm;
+        val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;
+      in
+        Proof_Syntax.pretty_proof ctxt
+          (if full then Proofterm.reconstruct_proof thy prop prf' else prf')
+      end
+  | SOME srcs =>
+      let
+        val ctxt = Toplevel.context_of state;
+        val pretty_proof = Proof_Syntax.pretty_standard_proof_of ctxt full;
+      in Pretty.chunks (map pretty_proof (Attrib.eval_thms ctxt srcs)) end);
 
-fun string_of_prop ctxt s =
+fun pretty_prop ctxt s =
   let
     val prop = Syntax.read_prop ctxt s;
     val ctxt' = Proof_Context.augment prop ctxt;
-  in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt' prop)) end;
+  in Pretty.quote (Syntax.pretty_term ctxt' prop) end;
 
-fun string_of_term ctxt s =
+fun pretty_term ctxt s =
   let
     val t = Syntax.read_term ctxt s;
     val T = Term.type_of t;
     val ctxt' = Proof_Context.augment t ctxt;
   in
-    Pretty.string_of
-      (Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' T)])
+    Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t), Pretty.fbrk,
+      Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' T)]
   end;
 
-fun string_of_type ctxt (s, NONE) =
+fun pretty_type ctxt (s, NONE) =
       let val T = Syntax.read_typ ctxt s
-      in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end
-  | string_of_type ctxt (s1, SOME s2) =
+      in Pretty.quote (Syntax.pretty_typ ctxt T) end
+  | pretty_type ctxt (s1, SOME s2) =
       let
         val ctxt' = Config.put show_sorts true ctxt;
         val raw_T = Syntax.parse_typ ctxt' s1;
@@ -301,19 +299,19 @@ fun string_of_type ctxt (s, NONE) =
           Syntax.check_term ctxt'
             (Logic.mk_type raw_T |> Type.constraint (Term.itselfT (Type_Infer.anyT S)))
           |> Logic.dest_type;
-      in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt' T)) end;
+      in Pretty.quote (Syntax.pretty_typ ctxt' T) end;
 
-fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
-  Print_Mode.with_modes modes (fn () => writeln (string_of state arg)) ());
+fun print_item pretty (modes, arg) = Toplevel.keep (fn state =>
+  Print_Mode.with_modes modes (fn () => Pretty.writeln (pretty state arg)) ());
 
 in
 
-val print_stmts = print_item (string_of_stmts o Toplevel.context_of);
-val print_thms = print_item (string_of_thms o Toplevel.context_of);
-val print_prfs = print_item o string_of_prfs;
-val print_prop = print_item (string_of_prop o Toplevel.context_of);
-val print_term = print_item (string_of_term o Toplevel.context_of);
-val print_type = print_item (string_of_type o Toplevel.context_of);
+val print_stmts = print_item (pretty_stmts o Toplevel.context_of);
+val print_thms = print_item (pretty_thms o Toplevel.context_of);
+val print_prfs = print_item o pretty_prfs;
+val print_prop = print_item (pretty_prop o Toplevel.context_of);
+val print_term = print_item (pretty_term o Toplevel.context_of);
+val print_type = print_item (pretty_type o Toplevel.context_of);
 
 end;
 

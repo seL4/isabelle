@@ -1,0 +1,24 @@
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-04-24 11:45:26.809862122 +0200
+@@ -43,6 +43,7 @@
+ import org.gjt.sp.jedit.msg.BufferChanging;
+ import org.gjt.sp.jedit.msg.BufferUpdate;
+ import org.gjt.sp.jedit.msg.EditPaneUpdate;
++import org.gjt.sp.jedit.msg.PositionChanging;
+ import org.gjt.sp.jedit.msg.PropertiesChanged;
+ import org.gjt.sp.jedit.options.GeneralOptionPane;
+ import org.gjt.sp.jedit.options.GutterOptionPane;
+@@ -380,9 +381,11 @@
+ 		buffer.unsetProperty(Buffer.CARET_POSITIONED);
+ 
+ 
+-		if(caret != -1)
++		if(caret != -1) {
+ 			textArea.setCaretPosition(Math.min(caret,
+ 				buffer.getLength()));
++			EditBus.send(new PositionChanging(this));
++		}
+ 
+ 		// set any selections
+ 		Selection[] selection = caretInfo.selection;
