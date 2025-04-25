@@ -262,7 +262,7 @@ fun print_codeproc ctxt =
     val post = (#post o the_thmproc) thy;
     val functrans = (map fst o #functrans o the_thmproc) thy;
   in
-    Pretty.writeln_chunks [
+    Pretty.writeln (Pretty.chunks [
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,
@@ -278,7 +278,7 @@ fun print_codeproc ctxt =
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map Pretty.str) functrans
       )
-    ]
+    ])
   end;
 
 fun simple_functrans f ctxt eqns = case f ctxt (map fst eqns)

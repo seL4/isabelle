@@ -1252,7 +1252,7 @@ fun print_codesetup thy =
       |> filter (fn (_, No_Case) => false | _ => true)
       |> sort (string_ord o apply2 fst);
   in
-    Pretty.writeln_chunks [
+    Pretty.writeln (Pretty.chunks [
       Pretty.block (
         Pretty.str "types:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_type_spec) types
@@ -1265,7 +1265,7 @@ fun print_codesetup thy =
         Pretty.str "cases:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_case) cases
       )
-    ]
+    ])
   end;
 
 

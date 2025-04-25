@@ -110,8 +110,8 @@ fun pretty_bundle ctxt (markup_name, bundle) =
   end;
 
 fun print_bundles verbose ctxt =
-  Pretty.writeln_chunks
-    (map (pretty_bundle ctxt) (Name_Space.markup_table verbose ctxt (get_all ctxt)));
+  Pretty.writeln (Pretty.chunks
+    (map (pretty_bundle ctxt) (Name_Space.markup_table verbose ctxt (get_all ctxt))));
 
 
 

@@ -114,7 +114,7 @@ fun print_attributes verbose ctxt =
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
     [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table verbose ctxt attribs))]
-    |> Pretty.writeln_chunks
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 val attribute_space = Name_Space.space_of_table o Attributes.get;

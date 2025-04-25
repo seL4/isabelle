@@ -396,7 +396,7 @@ fun print_methods verbose ctxt =
             (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
     [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table verbose ctxt meths))]
-    |> Pretty.writeln_chunks
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 

@@ -1155,7 +1155,7 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_context\<close>
     "print context of local theory target"
-    (Scan.succeed (Toplevel.keep (Pretty.writeln_chunks o Toplevel.pretty_context)));
+    (Scan.succeed (Toplevel.keep (Pretty.writeln o Pretty.chunks o Toplevel.pretty_context)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_theory\<close>
@@ -1275,7 +1275,7 @@ val _ =
     "print term bindings of proof context"
     (Scan.succeed
       (Toplevel.keep
-        (Pretty.writeln_chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
+        (Pretty.writeln o Pretty.chunks o Proof_Context.pretty_term_bindings o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_facts\<close> "print facts of proof context"
@@ -1285,7 +1285,8 @@ val _ =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_cases\<close> "print cases of proof context"
     (Scan.succeed
-      (Toplevel.keep (Pretty.writeln_chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
+      (Toplevel.keep
+        (Pretty.writeln o Pretty.chunks o Proof_Context.pretty_cases o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_statement\<close>
@@ -1411,7 +1412,7 @@ val _ =
                 NONE => (Theory.parents_of thy, [thy])
               | SOME (xs, NONE) => (map check xs, [thy])
               | SOME (xs, SOME ys) => (map check xs, map check ys))
-            |> map pretty_thm |> Pretty.writeln_chunks
+            |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
           end)));
 
 in end\<close>

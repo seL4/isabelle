@@ -95,8 +95,6 @@ sig
   val chunks: T list -> T
   val chunks2: T list -> T
   val block_enclose: T * T -> T list -> T
-  val writeln_chunks: T list -> unit
-  val writeln_chunks2: T list -> unit
 end;
 
 structure Pretty: PRETTY =
@@ -552,19 +550,6 @@ fun chunks2 prts =
       block0 (maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
-
-fun string_of_text_fold prt = string_of prt |> Markup.markup Markup.text_fold;
-
-fun writeln_chunks prts =
-  Output.writelns (Library.separate "\n" (map string_of_text_fold prts));
-
-fun writeln_chunks2 prts =
-  (case try split_last prts of
-    NONE => ()
-  | SOME (prefix, last) =>
-      (map (fn prt => Markup.markup Markup.text_fold (string_of prt ^ "\n") ^ "\n") prefix @
-        [string_of_text_fold last])
-      |> Output.writelns);
 
 end;
 

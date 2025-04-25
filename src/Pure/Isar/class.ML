@@ -210,7 +210,8 @@ fun print_classes ctxt =
     Sorts.all_classes algebra
     |> sort (Name_Space.extern_ord ctxt class_space)
     |> map prt_entry
-    |> Pretty.writeln_chunks2
+    |> Pretty.chunks2
+    |> Pretty.writeln
   end;
 
 
