@@ -482,6 +482,7 @@ val _ =
       then
         SOME {delay = NONE, pri = Task_Queue.urgent_pri + 1, persistent = false, strict = false,
           print_fn = fn _ => fn st =>
-            if Toplevel.is_proof st then Output.state (Toplevel.string_of_state st)
+            if Toplevel.is_proof st
+            then Output.state (Pretty.strings_of (Pretty.chunks (Toplevel.pretty_state st)))
             else ()}
       else NONE);

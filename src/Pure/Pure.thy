@@ -1341,7 +1341,9 @@ val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_state\<close>
     "print current proof state (if present)"
     (opt_modes >> (fn modes =>
-      Toplevel.keep (Print_Mode.with_modes modes (Output.writeln o Toplevel.string_of_state))));
+      Toplevel.keep
+        (Print_Mode.with_modes modes
+          (Output.writelns o Pretty.strings_of o Pretty.chunks o Toplevel.pretty_state))));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>welcome\<close> "print welcome message"
