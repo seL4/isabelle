@@ -145,7 +145,7 @@ fun new_timeout timeout run_time =
    of the facts are actually needed. The binary algorithm is much more
    appropriate for provers that cannot return the list of used facts and hence
    returns all facts as used. Since we cannot know in advance how many facts are
-   actually needed, we heuristically set the threshold to 10 facts. *)
+   actually needed, we heuristically set the threshold. *)
 val binary_min_facts =
   Attrib.setup_config_int \<^binding>\<open>sledgehammer_minimize_binary_min_facts\<close> (K 20)
 
@@ -153,11 +153,11 @@ fun linear_minimize test timeout result xs =
   let
     fun min _ [] p = p
       | min timeout (x :: xs) (seen, result) =
-        (case test timeout (xs @ seen) of
+        (case test timeout (seen @ xs) of
           result as {outcome = NONE, used_facts, run_time, ...} : prover_result =>
           min (new_timeout timeout run_time) (filter_used_facts true used_facts xs)
             (filter_used_facts false used_facts seen, result)
-        | _ => min timeout xs (x :: seen, result))
+        | _ => min timeout xs (seen @ [x], result))
   in
     min timeout xs ([], result)
   end
