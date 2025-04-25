@@ -11,7 +11,7 @@ sig
   val show_main_goal: bool Config.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goal: Proof.context -> thm -> Pretty.T
-  val string_of_goal: Proof.context -> thm -> string
+  val print_goal: Proof.context -> string -> thm -> string
 end;
 
 structure Goal_Display: GOAL_DISPLAY =
@@ -117,7 +117,10 @@ fun pretty_goals ctxt0 state =
   end;
 
 val pretty_goal = Pretty.chunks oo pretty_goals;
-val string_of_goal = Pretty.string_of oo pretty_goal;
+
+fun print_goal ctxt header state =
+  (Pretty.string_of o Pretty.chunks)
+    ((if header = "" then [] else [Pretty.str header]) @ pretty_goals ctxt state);
 
 end;
 

@@ -176,7 +176,7 @@ fun RANGE [] _ = all_tac
 
 (*Print the current proof state and pass it on.*)
 fun print_tac ctxt msg st =
-  (tracing (msg ^ "\n" ^ Goal_Display.string_of_goal ctxt st); Seq.single st);
+  (tracing (Goal_Display.print_goal ctxt msg st); Seq.single st);
 
 
 (*Deterministic REPEAT: only retains the first outcome;

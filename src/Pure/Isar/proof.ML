@@ -492,7 +492,8 @@ fun conclude_goal ctxt goal propss =
     val _ =
       Context.subthy_id (Thm.theory_id goal, Context.theory_id thy) orelse
         error "Bad background theory of goal state";
-    val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
+    val _ = Thm.no_prems goal orelse
+      error (Pretty.string_of (Proof_Display.pretty_goal ctxt goal));
 
     fun err_lost () = error ("Lost goal structure:\n" ^ Thm.string_of_thm ctxt goal);
 
@@ -521,13 +522,16 @@ fun conclude_goal ctxt goal propss =
 
 val finished_goal_error = "Failed to finish proof";
 
+fun finished_goal_error_pos pos =
+  Pretty.block0 (Pretty.str finished_goal_error :: Pretty.here pos @ [Pretty.str ":"]);
+
 fun finished_goal pos state =
   let val (ctxt, {goal, ...}) = find_goal state in
     if Thm.no_prems goal then Seq.Result state
     else
       Seq.Error (fn () =>
-        finished_goal_error ^ Position.here pos ^ ":\n" ^
-          Proof_Display.string_of_goal ctxt goal)
+        Pretty.string_of (Pretty.chunks
+          [finished_goal_error_pos pos, Proof_Display.pretty_goal ctxt goal]))
   end;
 
 
