@@ -1111,8 +1111,9 @@ fun rewrite_eqn conv ctxt =
 
 fun apply_functrans ctxt functrans =
   let
-    fun trace_eqns s eqns = (Pretty.writeln o Pretty.chunks)
-      (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns);
+    fun trace_eqns s eqns =
+      Pretty.writeln (Pretty.chunks
+        (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns));
     val tracing = if Config.get ctxt simp_trace then trace_eqns else (K o K) ();
   in
     tap (tracing "before function transformation")
