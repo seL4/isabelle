@@ -237,6 +237,17 @@ val unbreakable =
 
 (** formatting **)
 
+(* robust string output, with potential data loss *)
+
+fun robust_string_of out prt =
+  let
+    val bs = out prt;
+    val bs' =
+      if Bytes.size bs <= String.maxSize then bs
+      else out (from_ML (ML_Pretty.no_markup (to_ML prt)));
+  in Bytes.content bs' end;
+
+
 (* output operations *)
 
 type output_ops =
@@ -501,7 +512,7 @@ val symbolic_output =
       | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
-val symbolic_string_of = Bytes.content o symbolic_output;
+val symbolic_string_of = robust_string_of symbolic_output;
 
 
 (* unformatted output: other markup only *)
@@ -516,14 +527,14 @@ fun unformatted ops =
   in Bytes.build o output o output_tree ops false end;
 
 fun unformatted_string_of prt =
-  Bytes.content (unformatted (output_ops NONE) prt);
+  robust_string_of (unformatted (output_ops NONE)) prt;
 
 
 (* output interfaces *)
 
 fun output ops = if #symbolic ops then symbolic_output else format_tree ops;
 
-fun string_of_ops ops = Bytes.content o output ops;
+fun string_of_ops ops = robust_string_of (output ops);
 fun string_of prt = string_of_ops (output_ops NONE) prt;
 
 fun strings_of prt = Bytes.contents (output (output_ops NONE) prt);
