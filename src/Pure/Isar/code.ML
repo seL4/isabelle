@@ -1390,10 +1390,7 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
     fun matches_args args' =
       let
         val k = length args' - length args
-      in if k >= 0
-        then Pattern.matchess thy (args, (map incr_idx o drop k) args')
-        else false
-      end;
+      in k >= 0 andalso Pattern.matchess thy (args, (map incr_idx o drop k) args') end;
     fun drop (thm', proper') = if (proper orelse not proper')
       andalso matches_args (args_of thm') then
         (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
