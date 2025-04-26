@@ -95,7 +95,8 @@ fun help thy pats =
   dest_commands thy
   |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
   |> map pretty_command
-  |> Pretty.writeln_chunks;
+  |> Pretty.chunks
+  |> Pretty.writeln;
 
 fun print_commands thy =
   let
@@ -105,7 +106,8 @@ fun print_commands thy =
   in
     [Pretty.strs ("keywords:" :: map quote minor),
       Pretty.big_list "commands:" (map pretty_command commands)]
-    |> Pretty.writeln_chunks
+    |> Pretty.chunks
+    |> Pretty.writeln
   end;
 
 

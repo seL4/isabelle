@@ -114,7 +114,7 @@ fun print_unused_assms ctxt opt_thy_name =
     [Pretty.str (msg ^ ":"), Pretty.str ""] @
     map (pretty_thm ctxt) with_superfluous_assumptions @
     [Pretty.str "", Pretty.str end_msg]
-  end |> Pretty.writeln_chunks
+  end |> Pretty.chunks |> Pretty.writeln
 
 end
 

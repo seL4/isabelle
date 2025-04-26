@@ -714,9 +714,9 @@ fun pretty_trans (Syntax (tabs, _)) =
 
 in
 
-fun print_gram syn = Pretty.writeln_chunks (pretty_gram syn);
-fun print_trans syn = Pretty.writeln_chunks (pretty_trans syn);
-fun print_syntax syn = Pretty.writeln_chunks (pretty_gram syn @ pretty_trans syn);
+fun print_gram syn = Pretty.writeln (Pretty.chunks (pretty_gram syn));
+fun print_trans syn = Pretty.writeln (Pretty.chunks (pretty_trans syn));
+fun print_syntax syn = Pretty.writeln (Pretty.chunks (pretty_gram syn @ pretty_trans syn));
 
 end;
 

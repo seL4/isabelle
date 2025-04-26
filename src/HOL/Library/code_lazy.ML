@@ -629,7 +629,7 @@ fun print_lazy_types thy =
     fun cmp ((name1, _), (name2, _)) = string_ord (name1, name2)
     val infos = Laziness_Data.get thy |> Symtab.dest |> map (apfst Long_Name.base_name) |> sort cmp
   in
-    Pretty.writeln_chunks (map (print_lazy_type thy) infos)
+    Pretty.writeln (Pretty.chunks (map (print_lazy_type thy) infos))
   end;
 
 

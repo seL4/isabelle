@@ -116,7 +116,7 @@ fun print_antiquotations verbose ctxt =
   in
     [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
      Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]
-  end |> Pretty.writeln_chunks;
+  end |> Pretty.chunks |> Pretty.writeln;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt));
 fun check_option ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#2 (get_antiquotations ctxt));

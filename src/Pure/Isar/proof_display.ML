@@ -12,7 +12,7 @@ sig
   val pretty_theorems: bool -> Proof.context -> Pretty.T list
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
-  val string_of_goal: Proof.context -> thm -> string
+  val pretty_goal: Proof.context -> thm -> Pretty.T
   val pretty_goal_facts: Proof.context -> string -> thm list option -> Pretty.T list
   val pretty_goal_inst: Proof.context -> term list list -> thm -> Pretty.T list
   val method_error: string -> Position.T ->
@@ -200,10 +200,10 @@ in
 fun pretty_goal_header goal =
   Pretty.block ([Pretty.keyword1 "goal"] @ subgoals (Thm.nprems_of goal) @ [Pretty.str ":"]);
 
-end;
+fun pretty_goal ctxt goal =
+  Pretty.chunks [pretty_goal_header goal, Goal_Display.pretty_goal ctxt goal];
 
-fun string_of_goal ctxt goal =
-  Pretty.string_of (Pretty.chunks [pretty_goal_header goal, Goal_Display.pretty_goal ctxt goal]);
+end;
 
 
 (* goal facts *)
@@ -282,13 +282,14 @@ fun pretty_goal_inst ctxt propss goal =
 fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
   let
     val pr_header =
-      "Failed to apply " ^ (if kind = "" then "" else kind ^ " ") ^
-      "proof method" ^ Position.here pos ^ ":\n";
+      Pretty.block0
+       ([Pretty.str ("Failed to apply " ^ (if kind = "" then "" else kind ^ " ") ^ "proof method")]
+         @ Pretty.here pos @ [Pretty.str ":"]);
     val pr_facts =
-      if null facts then ""
-      else Pretty.string_of (Pretty.chunks (pretty_goal_facts ctxt "using" (SOME facts))) ^ "\n";
-    val pr_goal = string_of_goal ctxt goal;
-  in pr_header ^ pr_facts ^ pr_goal end);
+      if null facts then []
+      else [Pretty.chunks (pretty_goal_facts ctxt "using" (SOME facts))];
+    val pr_goal = pretty_goal ctxt goal;
+  in Pretty.string_of (Pretty.chunks ([pr_header] @ pr_facts @ [pr_goal])) end);
 
 
 (* results *)

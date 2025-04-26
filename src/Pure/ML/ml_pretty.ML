@@ -9,9 +9,11 @@ sig
   datatype context = datatype PolyML.context
   val markup_get: PolyML.context list -> string * string
   val markup_context: string * string -> PolyML.context list
+  val no_markup_context: PolyML.context list -> PolyML.context list
   val open_block_detect: PolyML.context list -> bool
   val open_block_context: bool -> PolyML.context list
   datatype pretty = datatype PolyML.pretty
+  val no_markup: pretty -> pretty
   val block: pretty list -> pretty
   val str: string -> pretty
   val brk: FixedInt.int -> pretty
@@ -58,6 +60,9 @@ fun markup_context (bg, en) =
   (if bg = "" then [] else [ContextProperty (markup_bg, bg)]) @
   (if en = "" then [] else [ContextProperty (markup_en, en)]);
 
+val no_markup_context =
+  List.filter (fn ContextProperty (a, _) => a <> markup_bg andalso a <> markup_en | _ => true);
+
 
 (* open_block flag *)
 
@@ -76,6 +81,9 @@ fun open_block_context true = [open_block]
 (* datatype pretty with derived operations *)
 
 datatype pretty = datatype PolyML.pretty;
+
+fun no_markup (PrettyBlock (a, b, c, d)) = PrettyBlock (a, b, no_markup_context c, map no_markup d)
+  | no_markup a = a;
 
 fun block prts = PrettyBlock (2, false, [], prts);
 val str = PrettyString;

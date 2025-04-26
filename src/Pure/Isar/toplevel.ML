@@ -27,7 +27,6 @@ sig
   val presentation_state: Proof.context -> state
   val pretty_context: state -> Pretty.T list
   val pretty_state: state -> Pretty.T list
-  val string_of_state: state -> string
   val pretty_abstract: state -> Pretty.T
   type presentation = state -> Latex.text
   type transition
@@ -242,8 +241,6 @@ fun pretty_state state =
   | Theory _ => []
   | Proof (prf, _) => Proof.pretty_state (Proof_Node.current prf)
   | Skipped_Proof (d, _) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
-
-val string_of_state = pretty_state #> Pretty.chunks #> Pretty.string_of;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
@@ -624,7 +621,7 @@ fun show_state (st', opt_err) =
     val enabled = is_none opt_err andalso Options.default_bool \<^system_option>\<open>show_states\<close>;
     val opt_err' =
       if enabled then
-        (case Exn.capture (Output.state o string_of_state) st' of
+        (case Exn.capture (Output.state o Pretty.strings_of o Pretty.chunks o pretty_state) st' of
           Exn.Exn exn => SOME exn
         | Exn.Res _ => opt_err)
       else opt_err;

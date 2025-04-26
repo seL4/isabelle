@@ -1111,8 +1111,9 @@ fun rewrite_eqn conv ctxt =
 
 fun apply_functrans ctxt functrans =
   let
-    fun trace_eqns s eqns = (Pretty.writeln o Pretty.chunks)
-      (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns);
+    fun trace_eqns s eqns =
+      Pretty.writeln (Pretty.chunks
+        (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns));
     val tracing = if Config.get ctxt simp_trace then trace_eqns else (K o K) ();
   in
     tap (tracing "before function transformation")
@@ -1252,7 +1253,7 @@ fun print_codesetup thy =
       |> filter (fn (_, No_Case) => false | _ => true)
       |> sort (string_ord o apply2 fst);
   in
-    Pretty.writeln_chunks [
+    Pretty.writeln (Pretty.chunks [
       Pretty.block (
         Pretty.str "types:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_type_spec) types
@@ -1265,7 +1266,7 @@ fun print_codesetup thy =
         Pretty.str "cases:" :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_case) cases
       )
-    ]
+    ])
   end;
 
 

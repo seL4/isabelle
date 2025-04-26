@@ -124,16 +124,12 @@ fun col_index j = string_of_int (j + 1)  (* FIXME not scalable wrt. table layout
 
 fun pr_unprovable_cell _ ((i,j), Less _) = []
   | pr_unprovable_cell ctxt ((i,j), LessEq (_, st)) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
-       Goal_Display.string_of_goal ctxt st]
+      [Goal_Display.print_goal ctxt ("(" ^ row_index i ^ ", " ^ col_index j ^ ", <):") st]
   | pr_unprovable_cell ctxt ((i,j), None (st_leq, st_less)) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
-       Goal_Display.string_of_goal ctxt st_less ^
-       "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^
-       Goal_Display.string_of_goal ctxt st_leq]
+      [Goal_Display.print_goal ctxt ("(" ^ row_index i ^ ", " ^ col_index j ^ ", <):") st_less ^ "\n" ^
+       Goal_Display.print_goal ctxt ("(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):") st_leq]
   | pr_unprovable_cell ctxt ((i,j), False st) =
-      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^
-       Goal_Display.string_of_goal ctxt st]
+      [Goal_Display.print_goal ctxt ("(" ^ row_index i ^ ", " ^ col_index j ^ ", <):") st]
 
 fun pr_unprovable_subgoals ctxt table =
   table

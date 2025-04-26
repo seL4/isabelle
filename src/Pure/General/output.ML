@@ -25,7 +25,7 @@ sig
   val writelns: string list -> unit
   val writelns_urgent: string list -> unit
   val writeln_urgent: string -> unit
-  val state: string -> unit
+  val state: string list-> unit
   val information: string -> unit
   val error_message': serial * string -> unit
   val error_message: string -> unit
@@ -117,7 +117,7 @@ fun writelns ss = ! writeln_fn ss;
 fun writeln s = writelns [s];
 fun writelns_urgent ss = ! writeln_urgent_fn ss;
 fun writeln_urgent s = writelns_urgent [s];
-fun state s = ! state_fn [s];
+fun state ss = ! state_fn ss;
 fun information s = ! information_fn [s];
 fun tracing s = ! tracing_fn [s];
 fun warning s = ! warning_fn [s];

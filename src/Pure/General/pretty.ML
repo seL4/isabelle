@@ -95,8 +95,6 @@ sig
   val chunks: T list -> T
   val chunks2: T list -> T
   val block_enclose: T * T -> T list -> T
-  val writeln_chunks: T list -> unit
-  val writeln_chunks2: T list -> unit
 end;
 
 structure Pretty: PRETTY =
@@ -238,6 +236,17 @@ val unbreakable =
 
 
 (** formatting **)
+
+(* robust string output, with potential data loss *)
+
+fun robust_string_of out prt =
+  let
+    val bs = out prt;
+    val bs' =
+      if Bytes.size bs <= String.maxSize then bs
+      else out (from_ML (ML_Pretty.no_markup (to_ML prt)));
+  in Bytes.content bs' end;
+
 
 (* output operations *)
 
@@ -503,7 +512,7 @@ val symbolic_output =
       | output (Str (s, _)) = Bytes.add s;
   in Bytes.build o output o output_tree ops false end;
 
-val symbolic_string_of = Bytes.content o symbolic_output;
+val symbolic_string_of = robust_string_of symbolic_output;
 
 
 (* unformatted output: other markup only *)
@@ -518,14 +527,14 @@ fun unformatted ops =
   in Bytes.build o output o output_tree ops false end;
 
 fun unformatted_string_of prt =
-  Bytes.content (unformatted (output_ops NONE) prt);
+  robust_string_of (unformatted (output_ops NONE)) prt;
 
 
 (* output interfaces *)
 
 fun output ops = if #symbolic ops then symbolic_output else format_tree ops;
 
-fun string_of_ops ops = Bytes.content o output ops;
+fun string_of_ops ops = robust_string_of (output ops);
 fun string_of prt = string_of_ops (output_ops NONE) prt;
 
 fun strings_of prt = Bytes.contents (output (output_ops NONE) prt);
@@ -552,19 +561,6 @@ fun chunks2 prts =
       block0 (maps (fn prt => [text_fold [prt, fbrk], fbrk]) prefix @ [text_fold [last]]));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
-
-fun string_of_text_fold prt = string_of prt |> Markup.markup Markup.text_fold;
-
-fun writeln_chunks prts =
-  Output.writelns (Library.separate "\n" (map string_of_text_fold prts));
-
-fun writeln_chunks2 prts =
-  (case try split_last prts of
-    NONE => ()
-  | SOME (prefix, last) =>
-      (map (fn prt => Markup.markup Markup.text_fold (string_of prt ^ "\n") ^ "\n") prefix @
-        [string_of_text_fold last])
-      |> Output.writelns);
 
 end;
 

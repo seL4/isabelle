@@ -1563,7 +1563,7 @@ fun pretty_abbrevs verbose show_globals ctxt =
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]
   end;
 
-fun print_abbrevs verbose = Pretty.writeln_chunks o pretty_abbrevs verbose true;
+fun print_abbrevs verbose = Pretty.writeln o Pretty.chunks o pretty_abbrevs verbose true;
 
 
 (* term bindings *)
@@ -1595,7 +1595,7 @@ fun pretty_local_facts verbose ctxt =
   end;
 
 fun print_local_facts verbose ctxt =
-  Pretty.writeln_chunks (pretty_local_facts verbose ctxt);
+  Pretty.writeln (Pretty.chunks (pretty_local_facts verbose ctxt));
 
 
 (* named local contexts *)

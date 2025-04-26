@@ -110,7 +110,7 @@ fun REPEAT_TRY_ELSE_DEFER tac st =
 (* Tactics  *)
 (* helper tactics for printing *)
 fun error_tac ctxt msg st =
-  (error (msg ^ "\n" ^ Goal_Display.string_of_goal ctxt st); Seq.single st);
+  (error (Goal_Display.print_goal ctxt msg st); Seq.single st);
 
 fun error_tac' ctxt msg = SELECT_GOAL (error_tac ctxt msg);
 

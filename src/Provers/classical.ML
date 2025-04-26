@@ -643,7 +643,7 @@ fun print_claset ctxt =
       Pretty.big_list "elimination rules (elim):" (pretty_thms unsafeEs),
       Pretty.strs ("safe wrappers:" :: map #1 swrappers),
       Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)]
-    |> Pretty.writeln_chunks
+    |> Pretty.chunks |> Pretty.writeln
   end;
 
 
