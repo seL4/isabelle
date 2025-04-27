@@ -4339,7 +4339,8 @@ proof -
     using sin_gt_zero by auto
   then have "cos x - cos y < 0"
     unfolding cos_diff minus_mult_commute[symmetric]
-    using \<open>- (x - y) < 0\<close> by (rule mult_pos_neg2)
+    using \<open>- (x - y) < 0\<close>
+    using mult_neg_pos by blast
   then show ?thesis by auto
 qed
 

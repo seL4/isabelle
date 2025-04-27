@@ -463,12 +463,11 @@ lemma positive_zero: "\<not> positive 0"
 
 lemma positive_add: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x + y)"
   apply transfer
-     apply (auto simp add: zero_less_mult_iff add_pos_pos add_neg_neg mult_pos_neg mult_neg_pos mult_neg_neg)
-  done
+  by (metis add_neg_neg fst_eqD mult_less_0_iff pos_add_strict snd_eqD zero_less_mult_iff)
 
 lemma positive_mult: "positive x \<Longrightarrow> positive y \<Longrightarrow> positive (x * y)"
   apply transfer
-  by (metis fst_conv mult.commute mult_pos_neg2 snd_conv zero_less_mult_iff)
+  by (metis mult_less_0_iff split_pairs zero_less_mult_iff)
 
 lemma positive_minus: "\<not> positive x \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> positive (- x)"
   by transfer (auto simp: neq_iff zero_less_mult_iff mult_less_0_iff)

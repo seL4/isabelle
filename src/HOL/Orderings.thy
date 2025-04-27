@@ -1307,6 +1307,9 @@ class no_bot = order +
 
 class unbounded_dense_linorder = dense_linorder + no_top + no_bot
 
+class unbounded_dense_order = dense_order + no_top + no_bot
+
+instance unbounded_dense_linorder \<subseteq> unbounded_dense_order ..
 
 subsection \<open>Wellorders\<close>
 
