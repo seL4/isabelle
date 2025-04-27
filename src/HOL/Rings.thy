@@ -1953,6 +1953,21 @@ lemma split_mult_neg_le: "(0 \<le> a \<and> b \<le> 0) \<or> (a \<le> 0 \<and> 0
 
 end
 
+class ordered_semiring_1 = ordered_semiring + semiring_1 + zero_neq_one
+begin
+
+lemma convex_bound_le:
+  assumes "x \<le> a" and "y \<le> a" and "0 \<le> u" and "0 \<le> v" and "u + v = 1"
+  shows "u * x + v * y \<le> a"
+proof-
+  from assms have "u * x + v * y \<le> u * a + v * a"
+    by (simp add: add_mono mult_left_mono)
+  with assms show ?thesis
+    unfolding distrib_right[symmetric] by simp
+qed
+
+end
+
 class ordered_cancel_semiring = ordered_semiring + cancel_comm_monoid_add
 begin
 
@@ -1991,6 +2006,77 @@ lemma zero_le_one [simp]:
 
 end
 
+
+class ordered_semiring_strict = semiring + comm_monoid_add + ordered_cancel_ab_semigroup_add +
+  assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+  assumes mult_strict_right_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> a * c < b * c"
+begin
+
+subclass semiring_0_cancel ..
+
+subclass ordered_semiring
+proof
+  fix a b c :: 'a
+  assume \<section>: "a \<le> b" "0 \<le> c"
+  thus "c * a \<le> c * b"
+    unfolding le_less
+    using mult_strict_left_mono by (cases "c = 0") auto
+  show "a * c \<le> b * c"
+    using \<section> by (force simp: le_less intro: mult_strict_right_mono dest: sym)
+qed
+
+lemma mult_pos_pos[simp]: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
+  using mult_strict_left_mono [of 0 b a] by simp
+
+lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
+  using mult_strict_left_mono [of b 0 a] by simp
+
+lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
+  using mult_strict_right_mono [of a 0 b] by simp
+
+text \<open>Strict monotonicity in both arguments\<close>
+lemma mult_strict_mono:
+  assumes "a < b" "c < d" "0 < b" "0 \<le> c"
+  shows "a * c < b * d"
+proof-
+  have "a * c \<le> b * c"
+    using assms by (intro mult_right_mono) auto
+  also have "... < b * d"
+    using assms by (intro mult_strict_left_mono) auto
+  finally show ?thesis .
+qed
+
+
+text \<open>This weaker variant has more natural premises\<close>
+lemma mult_strict_mono':
+  assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
+  shows "a * c < b * d"
+  using assms by (intro mult_strict_mono) auto
+
+lemma mult_less_le_imp_less:
+  assumes "a < b" "c \<le> d" "0 \<le> a" "0 < c"
+  shows "a * c < b * d"
+proof-
+  have "a * c < b * c"
+    using assms by (intro mult_strict_right_mono) auto
+  also have "... \<le> b * d"
+    using assms by (intro mult_left_mono) auto
+  finally show ?thesis .
+qed
+
+lemma mult_le_less_imp_less:
+  assumes "a \<le> b" and "c < d" and "0 < a" and "0 \<le> c"
+  shows "a * c < b * d"
+proof-
+  have "a * c \<le> b * c"
+    using assms by (intro mult_right_mono) auto
+  also have "... < b * d"
+    using assms by (intro mult_strict_left_mono) auto
+  finally show ?thesis .
+qed
+
+end
+
 class linordered_semiring_1 = linordered_semiring + semiring_1 + zero_less_one
 begin
 
@@ -2005,6 +2091,8 @@ proof-
 qed
 
 end
+                                        
+subclass (in linordered_semiring_1) ordered_semiring_1 ..
 
 class linordered_semiring_strict = semiring + comm_monoid_add + linordered_cancel_ab_semigroup_add +
   assumes mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
@@ -2025,24 +2113,14 @@ proof
     using mult_strict_right_mono by (cases "c = 0") auto
 qed
 
+subclass (in linordered_semiring_strict) ordered_semiring_strict
+proof qed (auto simp: mult_strict_left_mono mult_strict_right_mono)
+
 lemma mult_left_le_imp_le: "c * a \<le> c * b \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
-  by (auto simp add: mult_strict_left_mono _not_less [symmetric])
+  by (auto simp add: mult_strict_left_mono simp flip: not_less)
 
 lemma mult_right_le_imp_le: "a * c \<le> b * c \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
   by (auto simp add: mult_strict_right_mono not_less [symmetric])
-
-lemma mult_pos_pos[simp]: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
-  using mult_strict_left_mono [of 0 b a] by simp
-
-lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
-  using mult_strict_left_mono [of b 0 a] by simp
-
-lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
-  using mult_strict_right_mono [of a 0 b] by simp
-
-text \<open>Legacy -- use @{thm [source] mult_neg_pos}.\<close>
-lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0"
-  by (drule mult_strict_right_mono [of b 0]) auto
 
 lemma zero_less_mult_pos: 
   assumes "0 < a * b" "0 < a" shows "0 < b"
@@ -2052,59 +2130,13 @@ proof (cases "b \<le> 0")
     using assms by (auto simp: le_less dest: less_not_sym mult_pos_neg [of a b])
 qed (auto simp add: le_less not_less)
 
-
 lemma zero_less_mult_pos2: 
   assumes "0 < b * a" "0 < a" shows "0 < b"
 proof (cases "b \<le> 0")
   case True
   then show ?thesis
-    using assms by (auto simp: le_less dest: less_not_sym mult_pos_neg2 [of a b])
+    using assms by (auto simp: le_less dest: less_not_sym mult_neg_pos)
 qed (auto simp add: le_less not_less)
-
-text \<open>Strict monotonicity in both arguments\<close>
-lemma mult_strict_mono:
-  assumes "a < b" "c < d" "0 < b" "0 \<le> c"
-  shows "a * c < b * d"
-proof (cases "c = 0")
-  case True
-  with assms show ?thesis
-    by simp
-next
-  case False
-  with assms have "a*c < b*c"
-    by (simp add: mult_strict_right_mono [OF \<open>a < b\<close>])
-  also have "\<dots> < b*d"
-    by (simp add: assms mult_strict_left_mono)
-  finally show ?thesis .
-qed
-
-text \<open>This weaker variant has more natural premises\<close>
-lemma mult_strict_mono':
-  assumes "a < b" and "c < d" and "0 \<le> a" and "0 \<le> c"
-  shows "a * c < b * d"
-  using assms by (auto simp add: mult_strict_mono)
-
-lemma mult_less_le_imp_less:
-  assumes "a < b" and "c \<le> d" and "0 \<le> a" and "0 < c"
-  shows "a * c < b * d"
-proof -
-  have "a * c < b * c"
-    by (simp add: assms mult_strict_right_mono)
-  also have "... \<le> b * d"
-    by (intro mult_left_mono) (use assms in auto)
-  finally show ?thesis .
-qed
-
-lemma mult_le_less_imp_less:
-  assumes "a \<le> b" and "c < d" and "0 < a" and "0 \<le> c"
-  shows "a * c < b * d"
-proof -
-  have "a * c \<le> b * c"
-    by (simp add: assms mult_right_mono)
-  also have "... < b * d"
-    by (intro mult_strict_left_mono) (use assms in auto)
-  finally show ?thesis .
-qed
 
 end
 
@@ -2124,6 +2156,26 @@ proof -
 qed
 
 end
+
+class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1
+  \<comment> \<open>analogous to \<^class>\<open>linordered_semiring_1_strict\<close> not requiring a total order\<close>
+begin
+
+subclass ordered_semiring_1 ..
+
+lemma convex_bound_lt:
+  assumes "x < a" and "y < a" and "0 \<le> u" and "0 \<le> v" and "u + v = 1"
+  shows "u * x + v * y < a"
+proof -
+  from assms have "u * x + v * y < u * a + v * a"
+    by (cases "u = 0") (auto intro!: add_less_le_mono mult_strict_left_mono mult_left_mono)
+  with assms show ?thesis
+    unfolding distrib_right[symmetric] by simp
+qed
+
+end
+
+subclass (in linordered_semiring_1_strict) ordered_semiring_1_strict ..
 
 class ordered_comm_semiring = comm_semiring_0 + ordered_ab_semigroup_add +
   assumes comm_mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
@@ -2172,6 +2224,35 @@ proof
 qed
 
 end
+
+class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigroup_add +
+  \<comment> \<open>analogous to \<^class>\<open>linordered_comm_semiring_strict\<close> not requiring a total order\<close>
+  assumes comm_mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+begin
+
+subclass ordered_semiring_strict
+proof
+  fix a b c :: 'a
+  assume "a < b" and "0 < c"
+  thus "c * a < c * b"
+    by (rule comm_mult_strict_left_mono)
+  thus "a * c < b * c"
+    by (simp only: mult.commute)
+qed
+
+subclass ordered_cancel_comm_semiring
+proof
+  fix a b c :: 'a
+  assume "a \<le> b" and "0 \<le> c"
+  thus "c * a \<le> c * b"
+    unfolding le_less
+    using mult_strict_left_mono by (cases "c = 0") auto
+qed
+
+end
+
+subclass (in linordered_comm_semiring_strict) ordered_comm_semiring_strict
+proof qed (simp add: local.mult_strict_left_mono)
 
 class ordered_ring = ring + ordered_cancel_semiring
 begin
