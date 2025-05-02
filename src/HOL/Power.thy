@@ -426,11 +426,8 @@ end
 
 subsection \<open>Exponentiation on ordered types\<close>
 
-context linordered_semidom
+context ordered_semiring_1
 begin
-
-lemma zero_less_power [simp]: "0 < a \<Longrightarrow> 0 < a ^ n"
-  by (induct n) simp_all
 
 lemma zero_le_power [simp]: "0 \<le> a \<Longrightarrow> 0 \<le> a ^ n"
   by (induct n) simp_all
@@ -462,6 +459,42 @@ lemma power_gt1: "1 < a \<Longrightarrow> 1 < a ^ Suc n"
 lemma one_less_power [simp]: "1 < a \<Longrightarrow> 0 < n \<Longrightarrow> 1 < a ^ n"
   by (cases n) (simp_all add: power_gt1_lemma)
 
+text \<open>Proof resembles that of \<open>power_strict_decreasing\<close>.\<close>
+lemma power_increasing: "n \<le> N \<Longrightarrow> 1 \<le> a \<Longrightarrow> a ^ n \<le> a ^ N"
+proof (induct N)
+  case 0
+  then show ?case by simp
+next
+  case (Suc N)
+  then show ?case
+    using mult_mono[of 1 a "a ^ n" "a ^ N"]
+    by (auto simp add: le_Suc_eq order_trans [OF zero_le_one])
+qed
+
+text \<open>Proof resembles that of \<open>power_strict_decreasing\<close>.\<close>
+lemma power_decreasing: "n \<le> N \<Longrightarrow> 0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ N \<le> a ^ n"
+proof (induction N)
+  case 0
+  then show ?case by simp
+next
+  case (Suc N)
+  then show ?case
+    using mult_mono[of a 1 "a^N" "a ^ n"]
+    by (auto simp add: le_Suc_eq)
+qed
+
+lemma power_Suc_le_self: "0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ Suc n \<le> a"
+  using power_decreasing [of 1 "Suc n" a] by simp
+
+end
+
+
+context linordered_semidom
+begin
+
+lemma zero_less_power [simp]: "0 < a \<Longrightarrow> 0 < a ^ n"
+  by (induct n) simp_all
+
 lemma power_le_imp_le_exp:
   assumes gt1: "1 < a"
   shows "a ^ m \<le> a ^ n \<Longrightarrow> m \<le> n"
@@ -485,18 +518,6 @@ qed
 
 lemma of_nat_zero_less_power_iff [simp]: "of_nat x ^ n > 0 \<longleftrightarrow> x > 0 \<or> n = 0"
   by (induct n) auto
-
-text \<open>Surely we can strengthen this? It holds for \<open>0<a<1\<close> too.\<close>
-lemma power_inject_exp [simp]:
-  \<open>a ^ m = a ^ n \<longleftrightarrow> m = n\<close> if \<open>1 < a\<close>
-  using that by (force simp add: order_class.order.antisym power_le_imp_le_exp)
-
-text \<open>
-  Can relax the first premise to \<^term>\<open>0<a\<close> in the case of the
-  natural numbers.
-\<close>
-lemma power_less_imp_less_exp: "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"
-  by (simp add: order_less_le [of m n] less_le [of "a^m" "a^n"] power_le_imp_le_exp)
                                
 lemma power_strict_mono: "a < b \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 < n \<Longrightarrow> a ^ n < b ^ n"
 proof (induct n)
@@ -527,18 +548,6 @@ proof (induction N)
      by (auto simp add: power_Suc_less less_Suc_eq)
  qed
 
-text \<open>Proof resembles that of \<open>power_strict_decreasing\<close>.\<close>
-lemma power_decreasing: "n \<le> N \<Longrightarrow> 0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ N \<le> a ^ n"
-proof (induction N)
-  case 0
-  then show ?case by simp
-next
-  case (Suc N)
-  then show ?case
-    using mult_mono[of a 1 "a^N" "a ^ n"]
-    by (auto simp add: le_Suc_eq)
-qed
-
 lemma power_decreasing_iff [simp]: "\<lbrakk>0 < b; b < 1\<rbrakk> \<Longrightarrow> b ^ m \<le> b ^ n \<longleftrightarrow> n \<le> m"
   using power_strict_decreasing [of m n b]
   by (auto intro: power_decreasing ccontr)
@@ -549,18 +558,6 @@ lemma power_strict_decreasing_iff [simp]: "\<lbrakk>0 < b; b < 1\<rbrakk> \<Long
 
 lemma power_Suc_less_one: "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> a ^ Suc n < 1"
   using power_strict_decreasing [of 0 "Suc n" a] by simp
-
-text \<open>Proof again resembles that of \<open>power_strict_decreasing\<close>.\<close>
-lemma power_increasing: "n \<le> N \<Longrightarrow> 1 \<le> a \<Longrightarrow> a ^ n \<le> a ^ N"
-proof (induct N)
-  case 0
-  then show ?case by simp
-next
-  case (Suc N)
-  then show ?case
-    using mult_mono[of 1 a "a ^ n" "a ^ N"]
-    by (auto simp add: le_Suc_eq order_trans [OF zero_le_one])
-qed
 
 text \<open>Lemma for \<open>power_strict_increasing\<close>.\<close>
 lemma power_less_power_Suc: "1 < a \<Longrightarrow> a ^ n < a * a ^ n"
@@ -576,6 +573,23 @@ next
     using mult_strict_mono[of 1 a "a^n" "a^N"]
     by (auto simp add: power_less_power_Suc less_Suc_eq less_trans [OF zero_less_one] less_imp_le)
 qed
+
+text \<open>Surely we can strengthen this? It holds for \<open>0<a<1\<close> too.\<close>
+lemma power_inject_exp [simp]:
+  \<open>a ^ m = a ^ n \<longleftrightarrow> m = n\<close> if \<open>1 < a\<close>
+  using that by (force simp add: order_class.order.antisym power_le_imp_le_exp)
+
+lemma power_inject_exp':
+  \<open>a ^ m = a ^ n \<longleftrightarrow> m = n\<close> if \<open>a\<noteq>1\<close> \<open>a>0\<close>
+  using that
+  by (metis linorder_neqE_nat not_less_iff_gr_or_eq power_inject_exp power_strict_decreasing)
+
+text \<open>
+  Can relax the first premise to \<^term>\<open>0<a\<close> in the case of the
+  natural numbers.
+\<close>
+lemma power_less_imp_less_exp: "1 < a \<Longrightarrow> a ^ m < a ^ n \<Longrightarrow> m < n"
+  by (simp add: order_less_le [of m n] less_le [of "a^m" "a^n"] power_le_imp_le_exp)
 
 lemma power_increasing_iff [simp]: "1 < b \<Longrightarrow> b ^ x \<le> b ^ y \<longleftrightarrow> x \<le> y"
   by (blast intro: power_le_imp_le_exp power_increasing less_imp_le)
@@ -624,9 +638,6 @@ lemma power2_less_imp_less: "x\<^sup>2 < y\<^sup>2 \<Longrightarrow> 0 \<le> y \
 
 lemma power2_eq_imp_eq: "x\<^sup>2 = y\<^sup>2 \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
   unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base) simp
-
-lemma power_Suc_le_self: "0 \<le> a \<Longrightarrow> a \<le> 1 \<Longrightarrow> a ^ Suc n \<le> a"
-  using power_decreasing [of 1 "Suc n" a] by simp
 
 lemma power2_eq_iff_nonneg [simp]:
   assumes "0 \<le> x" "0 \<le> y"

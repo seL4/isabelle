@@ -1953,7 +1953,19 @@ lemma split_mult_neg_le: "(0 \<le> a \<and> b \<le> 0) \<or> (a \<le> 0 \<and> 0
 
 end
 
-class ordered_semiring_1 = ordered_semiring + semiring_1 + zero_neq_one
+class zero_less_one = order + zero + one +
+  assumes zero_less_one [simp]: "0 < 1"
+begin
+
+subclass zero_neq_one
+  by standard (simp add: less_imp_neq)
+
+lemma zero_le_one [simp]:
+  \<open>0 \<le> 1\<close> by (rule less_imp_le) simp
+
+end
+
+class ordered_semiring_1 = ordered_semiring_0 + semiring_1 + zero_less_one
 begin
 
 lemma convex_bound_le:
@@ -1991,18 +2003,6 @@ lemma mult_left_less_imp_less: "c * a < c * b \<Longrightarrow> 0 \<le> c \<Long
 
 lemma mult_right_less_imp_less: "a * c < b * c \<Longrightarrow> 0 \<le> c \<Longrightarrow> a < b"
   by (force simp add: mult_right_mono not_le [symmetric])
-
-end
-
-class zero_less_one = order + zero + one +
-  assumes zero_less_one [simp]: "0 < 1"
-begin
-
-subclass zero_neq_one
-  by standard (simp add: less_imp_neq)
-
-lemma zero_le_one [simp]:
-  \<open>0 \<le> 1\<close> by (rule less_imp_le) simp
 
 end
 
@@ -2157,7 +2157,7 @@ qed
 
 end
 
-class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1
+class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1 + zero_less_one
   \<comment> \<open>analogous to \<^class>\<open>linordered_semiring_1_strict\<close> not requiring a total order\<close>
 begin
 
@@ -2500,14 +2500,12 @@ class linordered_nonzero_semiring = ordered_comm_semiring + monoid_mult + linord
   assumes add_mono1: "a < b \<Longrightarrow> a + 1 < b + 1"
 begin
 
-subclass zero_neq_one
-  by standard
+subclass zero_neq_one ..
 
 subclass comm_semiring_1
   by standard (rule mult_1_left)
 
-lemma zero_le_one [simp]: "0 \<le> 1"
-  by (rule zero_less_one [THEN less_imp_le])
+subclass ordered_semiring_1 ..
 
 lemma not_one_le_zero [simp]: "\<not> 1 \<le> 0"
   by (simp add: not_le)

@@ -717,7 +717,7 @@ definition construct :: "'b set \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow
       vs1.representation (vs1.extend_basis B) v b *b (if b \<in> B then g b else 0))"
 
 lemma construct_cong: "(\<And>b. b \<in> B \<Longrightarrow> f b = g b) \<Longrightarrow> construct B f = construct B g"
-  unfolding construct_def by (rule ext, auto intro!: sum.cong)
+  unfolding construct_def by (auto intro!: sum.cong)
 
 lemma linear_construct:
   assumes B[simp]: "vs1.independent B"
