@@ -37,6 +37,10 @@ lemma alist_eq_iff: "xs = ys \<longleftrightarrow> impl_of xs = impl_of ys"
 lemma impl_of_distinct [simp, intro]: "distinct (map fst (impl_of xs))"
   using impl_of[of xs] by simp
 
+lemma impl_of_Alist:
+  \<open>impl_of (Alist xs) = xs\<close> if \<open>distinct (map fst xs)\<close>
+  using Alist_inverse [of xs] that by simp
+
 lemma Alist_impl_of [code abstype]: "Alist (impl_of xs) = xs"
   by (rule impl_of_inverse)
 

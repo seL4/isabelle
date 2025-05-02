@@ -2299,6 +2299,10 @@ lemma set_sorted_list_of_multiset [simp]:
   "set (sorted_list_of_multiset M) = set_mset M"
   by (induct M) (simp_all add: set_insort_key)
 
+lemma sorted_sorted_list_of_multiset [iff]:
+  \<open>sorted (sorted_list_of_multiset M)\<close>
+  by (induction M) (simp_all add: sorted_insort)
+
 lemma sorted_list_of_mset_set [simp]:
   "sorted_list_of_multiset (mset_set A) = sorted_list_of_set A"
   by (cases "finite A") (induct A rule: finite_induct, simp_all)
@@ -3212,6 +3216,10 @@ qed
 end
 
 hide_const (open) part
+
+lemma sort_sorted_list_of_multiset_eq [simp]:
+  \<open>sort (sorted_list_of_multiset M) = sorted_list_of_multiset M\<close> for M :: \<open>'a::linorder multiset\<close>
+  by (rule properties_for_sort) simp_all
 
 lemma mset_remdups_subset_eq: "mset (remdups xs) \<subseteq># mset xs"
   by (induct xs) (auto intro: subset_mset.order_trans)

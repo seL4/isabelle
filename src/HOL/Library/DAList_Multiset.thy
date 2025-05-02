@@ -157,6 +157,26 @@ code_datatype Bag
 lemma count_Bag [simp, code]: "count (Bag xs) = count_of (DAList.impl_of xs)"
   by (simp add: Bag_def count_of_multiset)
 
+lemma Bag_eq:
+  \<open>Bag ms = (\<Sum>(a, n)\<leftarrow>alist.impl_of ms. replicate_mset n a)\<close>
+  for ms :: \<open>('a, nat) alist\<close>
+proof -
+  have *: \<open>count_of xs a = count (\<Sum>(a, n)\<leftarrow>xs. replicate_mset n a) a\<close>
+    if \<open>distinct (map fst xs)\<close>
+    for xs and a :: 'a
+  using that proof (induction xs)
+    case Nil
+    then show ?case
+      by simp
+  next
+    case (Cons xn xs)
+    then show ?case by (cases xn)
+      (auto simp add: count_eq_zero_iff if_split_mem2 image_iff)
+  qed
+  show ?thesis
+    by (rule multiset_eqI) (simp add: *)
+qed
+
 lemma Mempty_Bag [code]: "{#} = Bag (DAList.empty)"
   by (simp add: multiset_eq_iff alist.Alist_inverse DAList.empty_def)
 
@@ -426,6 +446,23 @@ proof (rule comp_fun_commute.DAList_Multiset_fold, unfold_locales, (auto simp: a
   qed
 qed
 
+lemma sorted_list_of_multiset_Bag [code]:
+  \<open>sorted_list_of_multiset (Bag ms) = concat (map (\<lambda>(a, n). replicate n a)
+    (sort_key fst (DAList.impl_of ms)))\<close>  (is \<open>?lhs = ?rhs\<close>)
+proof -
+  have *: \<open>sorted (concat (map (\<lambda>(a, n). replicate n a) ans))\<close>
+    if \<open>sorted (map fst ans)\<close>
+    for ans :: \<open>('a \<times> nat) list\<close>
+    using that by (induction ans) (auto simp add: sorted_append)
+  have \<open>mset ?rhs = mset ?lhs\<close>
+    by (simp add: Bag_eq mset_concat comp_def split_def flip: sum_mset_sum_list)
+  moreover have \<open>sorted ?rhs\<close>
+    by (rule *) simp
+  ultimately have \<open>sort ?lhs = ?rhs\<close>
+    by (rule properties_for_sort)
+  then show ?thesis
+    by simp
+qed
 
 instantiation multiset :: (exhaustive) exhaustive
 begin
