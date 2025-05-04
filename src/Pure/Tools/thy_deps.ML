@@ -36,6 +36,6 @@ val thy_deps =
     let val thy0 = Proof_Context.theory_of ctxt
     in if Context.subthy (thy, thy0) then thy else raise THEORY ("Bad theory", [thy, thy0]) end);
 
-val thy_deps_cmd = Graph_Display.display_graph oo gen_thy_deps (Theory.check {long = false});
+val thy_deps_cmd = Graph_Display.display_graph oo gen_thy_deps (Theory.check {long = true});
 
 end;

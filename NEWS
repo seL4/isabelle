@@ -59,6 +59,12 @@ prefer scalable icons over fixed old bitmaps, but some notable icons are
 not available as SVG.
 
 
+*** Pure ***
+
+* Command 'thy_deps' expects optional theory arguments as long theory names,
+the same way as the 'imports' clause. Minor INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Normalization by evaluation (method "normalization", command value) could
