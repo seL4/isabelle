@@ -2606,6 +2606,10 @@ qed
 lemma less_1_mult: "1 < m \<Longrightarrow> 1 < n \<Longrightarrow> 1 < m * n"
   using mult_strict_mono [of 1 m 1 n] by (simp add: less_trans [OF zero_less_one])
 
+lemma less_1_mult': 
+  shows "1 < a \<Longrightarrow> 1 \<le> b \<Longrightarrow> 1 < a * b"
+  by (cases "b=1") (auto simp: le_less less_1_mult)
+
 end
 
 class linordered_idom = comm_ring_1 + linordered_comm_semiring_strict +
