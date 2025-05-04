@@ -2650,6 +2650,11 @@ lemma abs_Gcd_eq [simp]:
   "\<bar>Gcd K\<bar> = Gcd K" for K :: "int set"
   by (simp only: Gcd_int_def)
 
+lemma uminus_Gcd_eq [simp]: 
+  fixes K::"int set"
+  shows "Gcd (uminus ` K) = Gcd K"
+  unfolding Gcd_int_def o_def by (simp add: image_image)
+
 lemma Gcd_int_greater_eq_0 [simp]:
   "Gcd K \<ge> 0"
   for K :: "int set"
