@@ -2440,6 +2440,19 @@ qed auto
 lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
   by (simp add: set_conv_nth) force
 
+lemma set_list_update:
+  "set (xs [i := k]) = insert k (set (take i xs) \<union> set (drop (Suc i) xs))"
+  if \<open>i < length xs\<close>
+using that proof (induct xs arbitrary: i)
+  case Nil
+  then show ?case
+    by simp
+next
+  case (Cons x xs i)
+  then show ?case
+    by (cases i) (simp_all add: insert_commute)
+qed
+
 
 subsubsection \<open>\<^const>\<open>takeWhile\<close> and \<^const>\<open>dropWhile\<close>\<close>
 
