@@ -665,4 +665,7 @@ lemma prod_list_zero_iff:
   "prod_list xs = 0 \<longleftrightarrow> (0 :: 'a :: {semiring_no_zero_divisors, semiring_1}) \<in> set xs"
   by (induction xs) simp_all
 
+lemma prod_list_nonneg: "(\<And> x. (x :: 'a :: ordered_semiring_1) \<in> set xs \<Longrightarrow> x \<ge> 0) \<Longrightarrow> prod_list xs \<ge> 0"
+  by (induct xs) auto
+
 end

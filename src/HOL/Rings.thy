@@ -1987,6 +1987,8 @@ subclass semiring_0_cancel ..
 
 subclass ordered_semiring_0 ..
 
+subclass ordered_cancel_ab_semigroup_add ..
+
 end
 
 class linordered_semiring = ordered_semiring + linordered_cancel_ab_semigroup_add
