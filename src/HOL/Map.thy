@@ -297,6 +297,10 @@ lemma map_of_map:
   "map_of (map (\<lambda>(k, v). (k, f v)) xs) = map_option f \<circ> map_of xs"
   by (induct xs) (auto simp: fun_eq_iff)
 
+lemma map_of_filter:
+  "map_of (filter (\<lambda>x. P (fst x)) xs) = map_of xs |` Collect P"
+  by (induct xs) (simp_all add: fun_eq_iff restrict_map_def)
+
 lemma dom_map_option:
   "dom (\<lambda>k. map_option (f k) (m k)) = dom m"
   by (simp add: dom_def)
