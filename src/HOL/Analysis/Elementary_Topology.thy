@@ -40,7 +40,27 @@ lemma real_affinity_eq: "m \<noteq> 0 \<Longrightarrow> m * x + c = y \<longleft
 
 lemma real_eq_affinity: "m \<noteq> 0 \<Longrightarrow> y = m * x + c  \<longleftrightarrow> inverse m * y + - (c / m) = x"
   for m :: "'a::linordered_field"
-  by (simp add: field_simps)
+  by (metis real_affinity_eq)
+
+lemma image_linear_greaterThan:
+  fixes x::"'a::linordered_field"
+  assumes "c\<noteq>0"
+  shows "((\<lambda>x. c*x+b) ` {x<..}) = (if c>0 then {c*x+b <..} else {..< c*x+b})"
+using  \<open>c\<noteq>0\<close>
+  apply (auto simp add:image_iff field_simps)    
+  subgoal for y by (rule bexI[where x="(y-b)/c"],auto simp add:field_simps)
+  subgoal for y by (rule bexI[where x="(y-b)/c"],auto simp add:field_simps)
+done
+
+lemma image_linear_lessThan:
+  fixes x::"'a::linordered_field"
+  assumes "c\<noteq>0"
+  shows "((\<lambda>x. c*x+b) ` {..<x}) = (if c>0 then {..<c*x+b} else {c*x+b<..})"
+using \<open>c\<noteq>0\<close>
+  apply (auto simp add:image_iff field_simps)    
+  subgoal for y by (rule bexI[where x="(y-b)/c"],auto simp add:field_simps)
+  subgoal for y by (rule bexI[where x="(y-b)/c"],auto simp add:field_simps)
+done
 
 
 subsection \<open>Topological Basis\<close>
@@ -2112,26 +2132,6 @@ lemma continuous_on_sequentially:
     (\<forall>x. \<forall>a \<in> S. (\<forall>n. x(n) \<in> S) \<and> (x \<longlongrightarrow> a) sequentially
       \<longrightarrow> ((f \<circ> x) \<longlongrightarrow> f a) sequentially)"
   by (meson continuous_on_eq_continuous_within continuous_within_sequentially)
-
-text \<open>Continuity in terms of open preimages.\<close>
-
-lemma continuous_at_open:
-  "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t \<longrightarrow> (\<exists>S. open S \<and> x \<in> S \<and> (\<forall>x' \<in> S. (f x') \<in> t)))"
-  by (metis UNIV_I continuous_within_topological)
-
-lemma continuous_imp_tendsto:
-  assumes "continuous (at x0) f" and "x \<longlonglongrightarrow> x0"
-  shows "(f \<circ> x) \<longlonglongrightarrow> (f x0)"
-proof (rule topological_tendstoI)
-  fix S
-  assume "open S" "f x0 \<in> S"
-  then obtain T where T_def: "open T" "x0 \<in> T" "\<forall>x\<in>T. f x \<in> S"
-     using assms continuous_at_open by metis
-  then have "eventually (\<lambda>n. x n \<in> T) sequentially"
-    using assms T_def by (auto simp: tendsto_def)
-  then show "eventually (\<lambda>n. (f \<circ> x) n \<in> S) sequentially"
-    using T_def by (auto elim!: eventually_mono)
-qed
 
 subsection \<open>Homeomorphisms\<close>
 

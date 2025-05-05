@@ -884,6 +884,12 @@ lemma eventually_at_bot_linorder:
   unfolding at_bot_def
   by (subst eventually_INF_base) (auto simp: eventually_principal intro: min.cobounded1 min.cobounded2)
 
+lemma eventually_at_bot_linorderI:
+  fixes c::"'a::linorder"
+  assumes "\<And>x. x \<le> c \<Longrightarrow> P x"
+  shows "eventually P at_bot"
+  using assms by (auto simp: eventually_at_bot_linorder)     
+
 lemma eventually_filtercomap_at_bot_linorder: 
   "eventually P (filtercomap f at_bot) \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>x. f x \<le> N \<longrightarrow> P x)"
   by (auto simp: eventually_filtercomap eventually_at_bot_linorder)
