@@ -2319,6 +2319,26 @@ lemma continuous_discrete [simp]:
   "continuous (at x within A) (f :: 'a :: discrete_topology \<Rightarrow> _)"
   by (auto simp: continuous_def at_discrete)
 
+text \<open>Continuity in terms of open preimages.\<close>
+
+lemma continuous_at_open:
+  "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t \<longrightarrow> (\<exists>S. open S \<and> x \<in> S \<and> (\<forall>x' \<in> S. (f x') \<in> t)))"
+  by (metis UNIV_I continuous_within_topological)
+
+lemma continuous_imp_tendsto:
+  assumes "continuous (at x0) f" and "x \<longlonglongrightarrow> x0"
+  shows "(f \<circ> x) \<longlonglongrightarrow> (f x0)"
+proof (rule topological_tendstoI)
+  fix S
+  assume "open S" "f x0 \<in> S"
+  then obtain T where T_def: "open T" "x0 \<in> T" "\<forall>x\<in>T. f x \<in> S"
+     using assms continuous_at_open by metis
+  then have "eventually (\<lambda>n. x n \<in> T) sequentially"
+    using assms T_def by (auto simp: tendsto_def)
+  then show "eventually (\<lambda>n. (f \<circ> x) n \<in> S) sequentially"
+    using T_def by (auto elim!: eventually_mono)
+qed
+
 abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> bool"
   where "isCont f a \<equiv> continuous (at a) f"
 

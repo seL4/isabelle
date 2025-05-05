@@ -1150,36 +1150,49 @@ lemma uniformly_continuous_on_sum [continuous_intros]:
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Arithmetic Preserves Topological Properties\<close>
 
 lemma open_scaling[intro]:
-  fixes s :: "'a::real_normed_vector set"
+  fixes S :: "'a::real_normed_vector set"
   assumes "c \<noteq> 0"
-    and "open s"
-  shows "open((\<lambda>x. c *\<^sub>R x) ` s)"
+    and "open S"
+  shows "open((\<lambda>x. c *\<^sub>R x) ` S)"
 proof -
   {
     fix x
-    assume "x \<in> s"
-    then obtain e where "e>0"
-      and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
+    assume "x \<in> S"
+    then obtain \<epsilon> where "\<epsilon>>0"
+      and \<epsilon>: "\<forall>x'. dist x' x < \<epsilon> \<longrightarrow> x' \<in> S" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
       by auto
-    have "e * \<bar>c\<bar> > 0"
-      using assms(1)[unfolded zero_less_abs_iff[symmetric]] \<open>e>0\<close> by auto
+    have "\<epsilon> * \<bar>c\<bar> > 0"
+      using assms(1)[unfolded zero_less_abs_iff[symmetric]] \<open>\<epsilon>>0\<close> by auto
     moreover
     {
       fix y
-      assume "dist y (c *\<^sub>R x) < e * \<bar>c\<bar>"
-      then have "norm (c *\<^sub>R ((1 / c) *\<^sub>R y - x)) < e * norm c"
+      assume "dist y (c *\<^sub>R x) < \<epsilon> * \<bar>c\<bar>"
+      then have "norm (c *\<^sub>R ((1 / c) *\<^sub>R y - x)) < \<epsilon> * norm c"
         by (simp add: \<open>c \<noteq> 0\<close> dist_norm scale_right_diff_distrib)
-      then have "norm ((1 / c) *\<^sub>R y - x) < e"
+      then have "norm ((1 / c) *\<^sub>R y - x) < \<epsilon>"
         by (simp add: \<open>c \<noteq> 0\<close>)
-      then have "y \<in> (*\<^sub>R) c ` s"
-        using rev_image_eqI[of "(1 / c) *\<^sub>R y" s y "(*\<^sub>R) c"]
-        by (simp add: \<open>c \<noteq> 0\<close> dist_norm e)
+      then have "y \<in> (*\<^sub>R) c ` S"
+        using rev_image_eqI[of "(1 / c) *\<^sub>R y" S y "(*\<^sub>R) c"]
+        by (simp add: \<open>c \<noteq> 0\<close> dist_norm \<epsilon>)
     }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` s"
-      by (rule_tac x="e * \<bar>c\<bar>" in exI, auto)
+    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` S"
+      by (rule_tac x="\<epsilon> * \<bar>c\<bar>" in exI, auto)
   }
   then show ?thesis unfolding open_dist by auto
 qed
+
+lemma open_times_image:
+  fixes S::"'a::real_normed_field set"
+  assumes "c\<noteq>0" "open S"
+  shows "open (((*) c) ` S)" 
+proof -
+  let ?f = "\<lambda>x. x/c" and ?g="((*) c)"
+  have "continuous_on UNIV ?f" using \<open>c\<noteq>0\<close> by (auto intro:continuous_intros)
+  then have "open (?f -` S)" using \<open>open S\<close> by (auto elim:open_vimage)
+  moreover have "?g ` S = ?f -` S" using \<open>c\<noteq>0\<close>
+    using image_iff by fastforce
+  ultimately show ?thesis by auto
+qed   
 
 lemma minus_image_eq_vimage:
   fixes A :: "'a::ab_group_add set"
