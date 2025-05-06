@@ -16,22 +16,18 @@ object Isabelle_Platform {
       "ISABELLE_WINDOWS_PLATFORM64",
       "ISABELLE_APPLE_PLATFORM64")
 
-  def apply(ssh: Option[SSH.Session] = None): Isabelle_Platform = {
-    ssh match {
-      case None =>
-        new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
-      case Some(ssh) =>
-        val script =
-          File.read(Path.explode("~~/lib/scripts/isabelle-platform")) + "\n" +
-            settings.map(a => "echo \"" + Bash.string(a) + "=$" + Bash.string(a) + "\"").mkString("\n")
-        val result = ssh.execute("bash -c " + Bash.string(script)).check
-        new Isabelle_Platform(
-          result.out_lines.map(line =>
-            Properties.Eq.unapply(line) getOrElse error("Bad output: " + quote(result.out))))
-    }
-  }
+  lazy val local: Isabelle_Platform =
+    new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
 
-  lazy val self: Isabelle_Platform = apply()
+  def remote(ssh: SSH.Session): Isabelle_Platform = {
+    val script =
+      File.read(Path.explode("~~/lib/scripts/isabelle-platform")) + "\n" +
+        settings.map(a => "echo \"" + Bash.string(a) + "=$" + Bash.string(a) + "\"").mkString("\n")
+    val result = ssh.execute("bash -c " + Bash.string(script)).check
+    new Isabelle_Platform(
+      result.out_lines.map(line =>
+        Properties.Eq.unapply(line) getOrElse error("Bad output: " + quote(result.out))))
+  }
 }
 
 class Isabelle_Platform private(val settings: List[(String, String)]) {

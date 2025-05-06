@@ -18,7 +18,7 @@ object Component_PolyML {
     libs: Set[String] = Set.empty)
 
   sealed case class Platform_Context(
-    platform: Isabelle_Platform = Isabelle_Platform.self,
+    platform: Isabelle_Platform = Isabelle_Platform.local,
     mingw: MinGW = MinGW.none,
     progress: Progress = new Progress
   ) {

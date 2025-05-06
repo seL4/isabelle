@@ -255,7 +255,8 @@ object SSH {
         progress_stderr = progress.echo(_)).check
     }
 
-    override lazy val isabelle_platform: Isabelle_Platform = Isabelle_Platform(ssh = Some(ssh))
+    override lazy val isabelle_platform: Isabelle_Platform =
+      Isabelle_Platform.remote(ssh)
 
 
     /* remote file-system */
@@ -595,7 +596,7 @@ object SSH {
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(url_name, file, progress = progress)
 
-    def isabelle_platform: Isabelle_Platform = Isabelle_Platform()
+    def isabelle_platform: Isabelle_Platform = Isabelle_Platform.local
 
     def isabelle_platform_family: Platform.Family =
       Platform.Family.parse(isabelle_platform.ISABELLE_PLATFORM_FAMILY)
