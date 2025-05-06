@@ -1303,6 +1303,41 @@ next
   qed
 qed
 
+lemma Lim_left_bound:
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder, no_bot} \<Rightarrow>
+    'b :: {linorder_topology, conditionally_complete_linorder}"
+  assumes mono: "\<And>a b. a \<in> I \<Longrightarrow> b \<in> I \<Longrightarrow> b < x \<Longrightarrow> a \<le> b \<Longrightarrow> f a \<le> f b"
+    and bnd: "\<And>b. b \<in> I \<Longrightarrow> b < x \<Longrightarrow> f b \<le> K"
+  shows "(f \<longlongrightarrow> Sup (f ` ({..<x} \<inter> I))) (at x within ({..<x} \<inter> I))"
+proof (cases "{..<x} \<inter> I = {}")
+  case True
+  then show ?thesis by simp
+next
+  case False
+  show ?thesis
+  proof (rule order_tendstoI)
+    fix b
+    assume b: "Sup (f ` ({..<x} \<inter> I)) < b"
+    {
+      fix y
+      assume "y \<in> {..<x} \<inter> I"
+      with False bnd have "f y \<le> Sup (f ` ({..<x} \<inter> I))" by (auto intro!: cSup_upper bdd_aboveI2)
+      with b have "f y < b" by order
+    }
+    then show "eventually (\<lambda>x. f x < b) (at x within ({..<x} \<inter> I))"
+      by (auto simp: eventually_at_filter intro: exI[of _ 1] zero_less_one)
+  next
+    fix b
+    assume "b < Sup (f ` ({..<x} \<inter> I))"
+    from less_cSupD[OF _ this] False obtain y where y: "y < x" "y \<in> I" "b < f y" by auto
+    then have "eventually (\<lambda>x. x \<in> I \<longrightarrow> b < f x) (at_left x)"
+      unfolding eventually_at_left[OF \<open>y < x\<close>] by (metis mono order_less_le order_less_le_trans)
+    then show "eventually (\<lambda>x. b < f x) (at x within ({..<x} \<inter> I))"
+      unfolding eventually_at_filter by eventually_elim simp
+  qed
+qed
+
+
 text\<open>These are special for limits out of the same topological space.\<close>
 
 lemma Lim_within_id: "(id \<longlongrightarrow> a) (at a within s)"

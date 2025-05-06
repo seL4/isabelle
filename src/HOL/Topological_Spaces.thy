@@ -230,7 +230,7 @@ lemma (in perfect_space) UNIV_not_singleton: "UNIV \<noteq> {x}"
   by (metis (no_types) open_UNIV not_open_singleton)
 
 
-subsection \<open>Generators for toplogies\<close>
+subsection \<open>Generators for topologies\<close>
 
 inductive generate_topology :: "'a set set \<Rightarrow> 'a set \<Rightarrow> bool" for S :: "'a set set"
   where
