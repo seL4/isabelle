@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/isabelle_platform.scala
     Author:     Makarius
 
-General hardware and operating system type for Isabelle system tools.
+Isabelle/Scala platform information, based on settings environment.
 */
 
 package isabelle

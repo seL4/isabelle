@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/platform.scala
     Author:     Makarius
 
-System platform identification.
+Java platform information, based on system properties.
 */
 
 package isabelle
