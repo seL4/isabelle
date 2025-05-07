@@ -2427,6 +2427,83 @@ lemma antimono_funpow: "mono Q \<Longrightarrow> antimono (\<lambda>i. (Q ^^ i) 
   by (auto intro!: funpow_increasing simp: antimono_def)
 
 
+subsection \<open>Kleene's fixed point theorem for continuous functions\<close>
+
+text \<open>Kleene's fixed point theorem shows that the \<open>lfp\<close> of a omega-continuous function
+can be obtained as the supremum of an omega chain. It only requires an omega-complete partial order.
+We prove it here for complete lattices because the latter structures are not defined in Main
+but the theorem is also useful for complete lattices.\<close>
+
+definition omega_chain :: "(nat \<Rightarrow> ('a::complete_lattice)) \<Rightarrow> bool" where
+"omega_chain C = (\<forall>i. C i \<le> C(Suc i))"
+
+definition omega_cont :: "(('a::complete_lattice) \<Rightarrow> ('b::complete_lattice)) \<Rightarrow> bool" where
+"omega_cont f = (\<forall>C. omega_chain C \<longrightarrow> f(SUP n. C n) = (SUP n. f(C n)))"
+
+lemma omega_chain_mono: "omega_chain C \<Longrightarrow> i \<le> j \<Longrightarrow> C i \<le> C j"
+unfolding omega_chain_def using lift_Suc_mono_le[of C]  
+by(induction "j-i" arbitrary: i j)auto
+
+lemma mono_if_omega_cont: fixes f :: "('a::complete_lattice) \<Rightarrow> ('b::complete_lattice)"
+  assumes "omega_cont f" shows "mono f"
+proof
+  fix a b :: "'a" assume "a \<le> b"
+  let ?C = "\<lambda>n::nat. if n=0 then a else b"
+  have *: "omega_chain ?C" using \<open>a \<le> b\<close> by(auto simp: omega_chain_def)
+  have "f a \<le> sup (f a) (SUP n. f(?C n))" by(rule sup.cobounded1)
+  also have "\<dots> = sup (f(?C 0)) (SUP n. f(?C n))" by (simp)
+  also have "\<dots> = (SUP n. f (?C n))" using SUP_absorb[OF UNIV_I] .
+  also have "\<dots> = f (SUP n. ?C n)"
+    using assms * by (simp add: omega_cont_def del: if_image_distrib)
+  also have "f (SUP n. ?C n) = f b"
+    using \<open>a \<le> b\<close> by (auto simp add: gt_ex sup.absorb2 split: if_splits)
+  finally show "f a \<le> f b" .
+qed
+
+lemma omega_chain_iterates: fixes f :: "('a::complete_lattice) \<Rightarrow> 'a"
+  assumes "mono f" shows "omega_chain(\<lambda>n. (f^^n) bot)"
+proof-
+  have "(f ^^ n) bot \<le> (f ^^ Suc n) bot" for n
+  proof (induction n)
+    case 0 show ?case by simp
+  next
+    case (Suc n) thus ?case using assms by (auto simp: mono_def)
+  qed
+  thus ?thesis by(auto simp: omega_chain_def assms)
+qed
+
+theorem Kleene_lfp:
+  assumes "omega_cont f" shows "lfp f = (SUP n. (f^^n) bot)" (is "_ = ?U")
+proof(rule Orderings.antisym)
+  from assms mono_if_omega_cont
+  have mono: "(f ^^ n) bot \<le> (f ^^ Suc n) bot" for n
+    using funpow_decreasing [of n "Suc n"] by auto
+  show "lfp f \<le> ?U"
+  proof (rule lfp_lowerbound)
+    have "f ?U = (SUP n. (f^^Suc n) bot)"
+      using omega_chain_iterates[OF mono_if_omega_cont[OF assms]] assms
+      by(simp add: omega_cont_def)
+    also have "\<dots> = ?U" using mono by(blast intro: SUP_eq)
+    finally show "f ?U \<le> ?U" by simp
+  qed
+next
+  have "(f^^n) bot \<le> p" if "f p \<le> p" for n p
+  proof -
+    show ?thesis
+    proof(induction n)
+      case 0 show ?case by simp
+    next
+      case Suc
+      from monoD[OF mono_if_omega_cont[OF assms] Suc] \<open>f p \<le> p\<close>
+      show ?case by simp
+    qed
+  qed
+  thus "?U \<le> lfp f"
+    using lfp_unfold[OF mono_if_omega_cont[OF assms]]
+    by (simp add: SUP_le_iff)
+qed
+
+
 subsection \<open>The divides relation on \<^typ>\<open>nat\<close>\<close>
 
 lemma dvd_1_left [iff]: "Suc 0 dvd k"
