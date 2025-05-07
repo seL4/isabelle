@@ -218,6 +218,7 @@ sources = \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
   src/Pure/Thy/thy_syntax.scala \
+  src/Pure/Tools/caddy_setup.scala \
   src/Pure/Tools/check_keywords.scala \
   src/Pure/Tools/debugger.scala \
   src/Pure/Tools/doc.scala \
@@ -351,6 +352,7 @@ services = \
   isabelle.Bibtex$File_Format \
   isabelle.Build$Engine$Default \
   isabelle.Build_Schedule$Build_Engine \
+  isabelle.Caddy_Setup \
   isabelle.CI_Jobs \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \
