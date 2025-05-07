@@ -71,6 +71,8 @@ the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 yield false positives due to incomplete handling of polymorphism in certain
 situations; this is now corrected.
 
+* Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
+
 * Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into HOL-Main.
 Minor INCOMPATIBILITY.
 
