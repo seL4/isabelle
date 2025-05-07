@@ -46,8 +46,6 @@ object Component_PolyML {
   ) {
     def polyml(arch_64: Boolean): String =
       (if (arch_64) platform.arch_64 else platform.arch_64_32) + "-" + platform.os_name
-
-    def sha1: String = platform.arch_64 + "-" + platform.os_name
   }
 
 
@@ -160,7 +158,7 @@ object Component_PolyML {
     val sha1_files =
       sha1_root match {
         case Some(dir) =>
-          val platform_path = Path.explode(platform_info.sha1)
+          val platform_path = Path.explode(platform.ISABELLE_PLATFORM(windows = true, apple = true))
           val platform_dir = dir + platform_path
           platform_context.execute(dir, "./build " + File.bash_path(platform_path))
           File.read_dir(platform_dir).map(entry => platform_dir + Path.basic(entry))
