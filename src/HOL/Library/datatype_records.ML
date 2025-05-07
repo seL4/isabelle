@@ -173,7 +173,7 @@ fun mk_update_defs typ_name lthy =
       end
 
     fun define name t =
-      Local_Theory.define ((name, NoSyn), ((Binding.empty, @{attributes [datatype_record_update, code]}),t))
+      Local_Theory.define ((name, NoSyn), ((Binding.empty, @{attributes [datatype_record_update, code equation]}),t))
       #> apfst (apsnd snd)
 
     val (updates, (lthy'', lthy')) =
