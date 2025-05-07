@@ -48,7 +48,7 @@ object Component_Vampire {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.self.ISABELLE_PLATFORM()
+      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM()
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 

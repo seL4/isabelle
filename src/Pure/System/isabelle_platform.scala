@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/isabelle_platform.scala
     Author:     Makarius
 
-General hardware and operating system type for Isabelle system tools.
+Isabelle/Scala platform information, based on settings environment.
 */
 
 package isabelle
@@ -16,22 +16,57 @@ object Isabelle_Platform {
       "ISABELLE_WINDOWS_PLATFORM64",
       "ISABELLE_APPLE_PLATFORM64")
 
-  def apply(ssh: Option[SSH.Session] = None): Isabelle_Platform = {
-    ssh match {
-      case None =>
-        new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
-      case Some(ssh) =>
-        val script =
-          File.read(Path.explode("~~/lib/scripts/isabelle-platform")) + "\n" +
-            settings.map(a => "echo \"" + Bash.string(a) + "=$" + Bash.string(a) + "\"").mkString("\n")
-        val result = ssh.execute("bash -c " + Bash.string(script)).check
-        new Isabelle_Platform(
-          result.out_lines.map(line =>
-            Properties.Eq.unapply(line) getOrElse error("Bad output: " + quote(result.out))))
+  lazy val local: Isabelle_Platform =
+    new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
+
+  def remote(ssh: SSH.Session): Isabelle_Platform = {
+    val script =
+      File.read(Path.explode("~~/lib/scripts/isabelle-platform")) + "\n" +
+        settings.map(a => "echo \"" + Bash.string(a) + "=$" + Bash.string(a) + "\"").mkString("\n")
+    val result = ssh.execute("bash -c " + Bash.string(script)).check
+    new Isabelle_Platform(
+      result.out_lines.map(line =>
+        Properties.Eq.unapply(line) getOrElse error("Bad output: " + quote(result.out))))
+  }
+
+
+  /* system context for progress/process */
+
+  object Context {
+    def apply(
+      isabelle_platform: Isabelle_Platform = local,
+      mingw: MinGW = MinGW.none,
+      progress: Progress = new Progress
+    ): Context = {
+      val context_platform = isabelle_platform
+      val context_mingw = mingw
+      val context_progress = progress
+      new Context {
+        override def isabelle_platform: Isabelle_Platform = context_platform
+        override def mingw: MinGW = context_mingw
+        override def progress: Progress = context_progress
+      }
     }
   }
 
-  lazy val self: Isabelle_Platform = apply()
+  trait Context {
+    def isabelle_platform: Isabelle_Platform
+    def mingw: MinGW
+    def progress: Progress
+
+    def standard_path(path: Path): String =
+      mingw.standard_path(File.standard_path(path))
+
+    def execute(cwd: Path, script_lines: String*): Process_Result = {
+      val script = cat_lines("set -e" :: script_lines.toList)
+      val script1 =
+        if (isabelle_platform.is_arm && isabelle_platform.is_macos) {
+          "arch -arch arm64 bash -c " + Bash.string(script)
+        }
+        else mingw.bash_script(script)
+      progress.bash(script1, cwd = cwd, echo = progress.verbose).check
+    }
+  }
 }
 
 class Isabelle_Platform private(val settings: List[(String, String)]) {

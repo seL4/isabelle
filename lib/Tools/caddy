@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: invoke caddy within the Isabelle environment
+
+if [ -z "$ISABELLE_CADDY" ]; then
+  echo "Missing Caddy installation: need to run \"isabelle caddy_setup\" first" >&2
+  exit 2
+else
+  exec "$ISABELLE_CADDY" "$@"
+fi

@@ -12,7 +12,7 @@ object Component_Windows_App {
 
   def tool_platform(): String = {
     require(Platform.is_unix, "Linux or macOS platform required")
-    Isabelle_Platform.self.ISABELLE_PLATFORM64
+    Isabelle_Platform.local.ISABELLE_PLATFORM64
   }
 
   def tool_platform_path(): Path = Path.basic(tool_platform())

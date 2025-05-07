@@ -183,14 +183,17 @@ ISABELLE_GHC_VERSION="ghc-9.6.6"
 ### .Net / Fsharp
 ###
 
-ISABELLE_DOTNET_VERSION="8.0.203"
+ISABELLE_DOTNET_SETUP_VERSION="8.0.203"
 
 
 ###
-### Go
+### Go and Caddy
 ###
 
-ISABELLE_GO_VERSION="1.22.1"
+ISABELLE_GO_SETUP_VERSION="1.24.1"
+
+ISABELLE_CADDY_SETUP_VERSION="2.10.0"
+ISABELLE_CADDY_SETUP_MODULES="github.com/jasonlovesdoggo/caddy-defender github.com/mholt/caddy-ratelimit"
 
 
 ###

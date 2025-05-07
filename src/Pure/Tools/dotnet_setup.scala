@@ -36,10 +36,10 @@ object Dotnet_Setup {
   /* dotnet download and setup */
 
   def default_platform: String =
-    Isabelle_Platform.self.ISABELLE_PLATFORM(windows = true, apple = true)
+    Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true, apple = true)
   def default_target_dir: Path = Components.default_components_base
   def default_install_url: String = "https://dot.net/v1/dotnet-install"
-  def default_version: String = Isabelle_System.getenv_strict("ISABELLE_DOTNET_VERSION")
+  def default_version: String = Isabelle_System.getenv_strict("ISABELLE_DOTNET_SETUP_VERSION")
 
   def dotnet_setup(
     platforms: List[String] = List(default_platform),
@@ -151,7 +151,7 @@ Usage: isabelle dotnet_setup [OPTIONS]
     -I URL       URL for install script without extension
                  (default: """ + quote(default_install_url) + """)
     -V VERSION   version: empty means "latest"
-                 (default: ISABELLE_DOTNET_VERSION=""" + quote(default_version) + """)
+                 (default: ISABELLE_DOTNET_SETUP_VERSION=""" + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -n           dry run: try download without installation
     -p PLATFORMS comma-separated list of platform specifications: "all" or
