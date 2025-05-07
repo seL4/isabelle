@@ -37,7 +37,7 @@ object Go_Setup {
     Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true, apple = true)
   def default_target_dir: Path = Components.default_components_base
   val default_url = "https://go.dev/dl"
-  def default_version: String = Isabelle_System.getenv_strict("ISABELLE_GO_VERSION")
+  def default_version: String = Isabelle_System.getenv_strict("ISABELLE_GO_SETUP_VERSION")
 
   def go_setup(
     platforms: List[String] = List(default_platform),
@@ -146,7 +146,7 @@ Usage: isabelle go_setup [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -U URL       download URL (default: """" + default_url + """")
-    -V VERSION   version (default: """" + default_version + """")
+    -V VERSION   version (default: ISABELLE_GO_SETUP_VERSION=""" + quote(default_version) + """)
     -f           force fresh installation of specified platforms
     -p PLATFORMS comma-separated list of platform specifications: "all" or
                  as family or formal name (default: """ + quote(default_platform) + """)
