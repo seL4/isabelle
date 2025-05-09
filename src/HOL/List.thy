@@ -1330,11 +1330,16 @@ by (induct xs) auto
 
 lemmas set_empty2[iff] = set_empty[THEN eq_iff_swap]
 
+lemma append_eq_append_conv_if_disj:
+  "(set xs \<union> set xs') \<inter> (set ys \<union> set ys') = {}
+  \<Longrightarrow>  xs @ ys = xs' @ ys' \<longleftrightarrow> xs = xs' \<and> ys = ys'"
+by (auto simp: all_conj_distrib disjoint_iff append_eq_append_conv2)
+
 lemma set_rev [simp]: "set (rev xs) = set xs"
 by (induct xs) auto
 
 lemma set_map [simp]: "set (map f xs) = f`(set xs)"
-by (induct xs) auto
+by (rule list.set_map)
 
 lemma set_filter [simp]: "set (filter P xs) = {x. x \<in> set xs \<and> P x}"
 by (induct xs) auto
