@@ -147,12 +147,12 @@ class Isabelle_Navigator {
   private val buffer_listener =
     JEdit_Lib.buffer_listener((buffer, edit) => convert(JEdit_Lib.buffer_name(buffer), edit))
 
-  def exit(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.require {
+  def exit(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
     buffers.iterator.foreach(_.removeBufferListener(buffer_listener))
     close(buffers.iterator.map(JEdit_Lib.buffer_name).toSet)
   }
 
-  def init(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.require {
+  def init(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
     exit(buffers)
     buffers.iterator.foreach(_.addBufferListener(buffer_listener))
   }
