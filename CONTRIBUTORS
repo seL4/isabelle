@@ -6,6 +6,8 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2025: Benoit Ballenghien contributed the simproc apply_cont to HOLCF
+
 
 Contributions to Isabelle2025
 -----------------------------
