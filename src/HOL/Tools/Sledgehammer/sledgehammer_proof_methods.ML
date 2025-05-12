@@ -220,7 +220,6 @@ fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal 1 _ = "apply "
   | apply_on_subgoal i n = "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal 1 n
 
-(* FIXME *)
 fun proof_method_command meth i n extras =
   let
     val (indirect_facts, direct_facts) =

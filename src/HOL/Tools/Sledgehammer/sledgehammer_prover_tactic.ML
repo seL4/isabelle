@@ -98,9 +98,17 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
         NONE => (found_something name; map fst facts)
       | SOME _ => [])
 
-    val message = fn _ =>
+    val message = fn preplay_outcome =>
       (case outcome of
-        NONE => try_command_line (proof_banner mode name) (Played run_time) command
+        NONE =>
+        let
+          val banner = proof_banner mode name
+        in
+          (case preplay_outcome of
+            NONE => try_command_line banner (Played run_time) command
+          | SOME preplay_result =>
+              one_line_proof_text (preplay_result, banner, subgoal, subgoal_count))
+        end
       | SOME failure => string_of_atp_failure failure)
   in
     {outcome = outcome, used_facts = used_facts, used_from = facts,

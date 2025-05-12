@@ -82,7 +82,7 @@ sig
      used_from : fact list,
      preferred_methss : proof_method * proof_method list list,
      run_time : Time.time,
-     message : (unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string}
+     message : ((Pretty.T * stature) list * (proof_method * play_outcome)) option -> string}
 
   type prover = params -> prover_problem -> prover_slice -> prover_result
 
@@ -210,7 +210,7 @@ type prover_result =
    used_from : fact list,
    preferred_methss : proof_method * proof_method list list,
    run_time : Time.time,
-   message : (unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string}
+   message : ((Pretty.T * stature) list * (proof_method * play_outcome)) option -> string}
 
 type prover = params -> prover_problem -> prover_slice -> prover_result
 

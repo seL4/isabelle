@@ -153,7 +153,7 @@ fun run_smt_solver mode name
               bunches_of_metis_methods ctxt false true
         in
           ((preferred, methss),
-           fn preplay =>
+           fn preplay_outcome =>
              let
                val _ = if verbose then writeln "Generating proof text..." else ()
 
@@ -161,7 +161,11 @@ fun run_smt_solver mode name
                  (verbose, (NONE, NONE, []), preplay_timeout, compress, try0, minimize,
                   atp_proof (), goal)
 
-               val one_line_params = (preplay (), proof_banner mode name, subgoal, subgoal_count)
+                val preplay_result = preplay_outcome
+                  |> the_default
+                    (map (apfst Pretty.str) used_facts,
+                     (preferred, Play_Timed_Out Time.zeroTime))
+               val one_line_params = (preplay_result, proof_banner mode name, subgoal, subgoal_count)
                val num_chained = length (#facts (Proof.goal state))
              in
                proof_text ctxt debug isar_proofs smt_proofs isar_params num_chained one_line_params

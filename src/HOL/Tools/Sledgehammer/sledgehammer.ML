@@ -145,17 +145,15 @@ fun play_one_line_proofs minimize timeout used_facts state goal i methss : prepl
      end)
   |> sort (play_outcome_ord o apply2 (fn (_, (play_outcome, _)) => play_outcome))
 
-fun select_one_line_proof used_facts preferred_meth preplay_results =
+fun select_one_line_proof preferred_meth preplay_results =
   (case preplay_results of
     (* Select best method if preplay succeeded *)
     (best_meth, (best_outcome as Played _, best_used_facts)) :: _ =>
-    (best_used_facts, (best_meth, best_outcome))
+    SOME (best_used_facts, (best_meth, best_outcome))
     (* Otherwise select preferred method *)
   | _ =>
-    (used_facts, (preferred_meth,
-       (case AList.lookup (op =) preplay_results preferred_meth of
-         SOME (outcome, _) => outcome
-       | NONE => Play_Timed_Out Time.zeroTime))))
+    AList.lookup (op =) preplay_results preferred_meth
+    |> Option.map (fn (outcome, used_facts) => (used_facts, (preferred_meth, outcome))))
 
 fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
     (problem as {state, subgoal, factss, ...} : prover_problem)
@@ -225,55 +223,59 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
 fun preplay_prover_result ({verbose, instantiate, minimize, preplay_timeout, ...} : params)
     state goal subgoal
     (result as {outcome, used_facts, preferred_methss, message, ...} : prover_result) =
-  let
-    val used_facts0 = filter_out (fn (_, (sc, _)) => sc = Chained) used_facts
-    val pretty_used_facts0 = map (apfst Pretty.str) used_facts0
-    val (output, pretty_used_facts, preplay_results) =
-      if outcome = SOME ATP_Proof.TimedOut then
-        (SH_TimeOut, pretty_used_facts0, [])
-      else if outcome = SOME ATP_Proof.OutOfResources then
-        (SH_ResourcesOut, pretty_used_facts0, [])
-      else if is_some outcome then
-        (SH_None, pretty_used_facts0, [])
-      else
-        let
-          val preplay = `(fn pretty_used_facts =>
-            play_one_line_proofs minimize preplay_timeout pretty_used_facts
-              state goal subgoal (snd preferred_methss))
-          fun preplay_succeeded ((_, (Played _, _)) :: _, _) _ = true
-            | preplay_succeeded _ [] = true
-            | preplay_succeeded _ _ = false
-          val instantiate_timeout = Time.scale 5.0 preplay_timeout
-          val instantiate = if null used_facts0 then SOME false else instantiate
-          val (preplay_results, pretty_used_facts) =
-            (case instantiate of
-              SOME false => preplay pretty_used_facts0
-            | SOME true =>
-              (* Always try to infer variable instantiations *)
+  if outcome = SOME ATP_Proof.TimedOut then
+    (SH_TimeOut, fn () => message NONE)
+  else if outcome = SOME ATP_Proof.OutOfResources then
+    (SH_ResourcesOut, fn () => message NONE)
+  else if is_some outcome then
+    (SH_None, fn () => message NONE)
+  else
+    let
+      val used_facts0 = filter_out (fn (_, (sc, _)) => sc = Chained) used_facts
+      val pretty_used_facts0 = map (apfst Pretty.str) used_facts0
+      fun preplay methss pretty_used_facts =
+        play_one_line_proofs minimize preplay_timeout pretty_used_facts state goal subgoal methss
+      fun preplay_succeeded ((_, (Played _, _)) :: _) = true
+        | preplay_succeeded _ = false
+      val instantiate_timeout =
+        if preplay_timeout = Time.zeroTime then
+          Time.fromSeconds 5
+        else
+          Time.scale 5.0 preplay_timeout
+      val instantiate = if null used_facts0 then SOME false else instantiate
+      val preplay_results =
+        (case instantiate of
+          SOME false => preplay (snd preferred_methss) pretty_used_facts0
+        | SOME true =>
+          (* Always try to infer variable instantiations *)
+          (case instantiate_facts state verbose instantiate_timeout goal subgoal used_facts0 of
+            NONE => preplay (snd preferred_methss) pretty_used_facts0
+          | SOME pretty_used_facts =>
+            if preplay_timeout = Time.zeroTime then
+              [(fst preferred_methss, (Play_Timed_Out Time.zeroTime, pretty_used_facts))]
+            else if null (snd preferred_methss) then
+              preplay [[fst preferred_methss]] pretty_used_facts
+            else
+              preplay (snd preferred_methss) pretty_used_facts)
+        | NONE =>
+          let
+            val preplay_results0 = preplay (snd preferred_methss) pretty_used_facts0
+            val preplay_disabled =
+              preplay_timeout = Time.zeroTime orelse null (snd preferred_methss)
+          in
+            if preplay_succeeded preplay_results0 orelse preplay_disabled then
+              preplay_results0
+            else
+              (* Preplay failed, now try to infer variable instantiations *)
               instantiate_facts state verbose instantiate_timeout goal subgoal used_facts0
-              |> the_default pretty_used_facts0
-              |> preplay
-            | NONE =>
-              let
-                val preplay_results0 = preplay pretty_used_facts0
-              in
-                if preplay_succeeded preplay_results0 (snd preferred_methss) then
-                  preplay_results0
-                else
-                  (* Preplay failed, now try to infer variable instantiations *)
-                  instantiate_facts state verbose instantiate_timeout goal subgoal used_facts0
-                  |> Option.map preplay
-                  |> the_default preplay_results0
-              end)
-        in
-          (SH_Some (result, preplay_results), pretty_used_facts, preplay_results)
-        end
-    fun chosen_preplay_outcome () =
-      select_one_line_proof pretty_used_facts (fst preferred_methss) preplay_results
-    fun output_message () = message chosen_preplay_outcome
-  in
-    (output, output_message)
-  end
+              |> Option.map (preplay (snd preferred_methss))
+              |> the_default preplay_results0
+          end)
+      fun output_message () =
+        message (select_one_line_proof (fst preferred_methss) preplay_results)
+    in
+      (SH_Some (result, preplay_results), output_message)
+    end
 
 fun analyze_prover_result_for_inconsistency (result as {outcome, used_facts, ...} : prover_result) =
   if outcome = SOME ATP_Proof.TimedOut then

@@ -25,7 +25,7 @@ sig
   val minimize_facts : (thm list -> unit) -> string -> params -> prover_slice -> bool -> int ->
     int -> Proof.state -> thm -> ((string * stature) * thm list) list -> prover_result ->
     ((string * stature) * thm list) list option
-    * ((unit -> (Pretty.T * stature) list * (proof_method * play_outcome)) -> string)
+    * (((Pretty.T * stature) list * (proof_method * play_outcome)) option -> string)
   val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
 end;
 
