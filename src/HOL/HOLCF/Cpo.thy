@@ -1104,6 +1104,26 @@ lemma cont2cont_fun: "cont f \<Longrightarrow> cont (\<lambda>x. f x y)"
 lemma cont_fun: "cont (\<lambda>f. f x)"
   using cont_id by (rule cont2cont_fun)
 
+simproc_setup apply_cont (\<open>cont (\<lambda>f. E f)\<close>) = \<open>
+  K (fn ctxt => fn ct =>
+     let val t = Thm.term_of ct
+         val foo = case t of _ $ foo => foo
+     in  case foo of Abs (_, _, expr) =>
+              if   fst (strip_comb expr) = Bound 0
+              (* since \<open>\<lambda>f. E f\<close> is too permissive, we ensure that the term is of the
+                 form \<open>\<lambda>f. f ...\<close> (for example \<open>\<lambda>f. f x\<close>, or \<open>\<lambda>f. f x y\<close>, etc.) *)
+              then let val tac = Metis_Tactic.metis_tac ["no_types"] "combs" ctxt
+                                 @{thms cont2cont_fun cont_id}
+                       val rwrt_ct  = HOLogic.mk_judgment (Thm.apply \<^cterm>\<open>\<lambda>lhs. lhs = True\<close> ct)
+                       val rwrt_thm = Goal.prove_internal ctxt [] rwrt_ct (fn _ => tac 1)
+                   in  SOME (mk_meta_eq rwrt_thm)
+                   end
+              else NONE
+            | _ => NONE
+     end
+    )
+\<close>
+
 text \<open>
   Lambda abstraction preserves monotonicity and continuity.
   (Note \<open>(\<lambda>x. \<lambda>y. f x y) = f\<close>.)
