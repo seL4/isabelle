@@ -69,15 +69,3 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jE
  	//{{{ getPath() method
  	public String getPath()
  	{
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
---- jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java	2024-08-03 19:53:14.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2024-10-29 11:50:54.062016616 +0100
-@@ -4233,7 +4233,7 @@
- 	} //}}}
- 
- 	//{{{ gotoMarker() method
--	private static void gotoMarker(final View view, final Buffer buffer,
-+	public static void gotoMarker(final View view, final Buffer buffer,
- 		final String marker)
- 	{
- 		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()

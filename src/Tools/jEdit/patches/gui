@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-04-23 14:28:53.149349418 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-05-14 11:07:16.919569611 +0200
 @@ -42,6 +42,8 @@
  import java.net.URL;
  import java.util.*;
@@ -90,7 +90,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  				FontRenderContext frc = new FontRenderContext(null, true, false);
  				float scale =
  					font1.getLineMetrics("", frc).getHeight() / font2.getLineMetrics("", frc).getHeight();
-@@ -1107,6 +1124,22 @@
+@@ -1107,6 +1124,48 @@
  
  	//{{{ Colors and styles
  
@@ -100,7 +100,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
 +				"MenuItem.acceleratorSelectionForeground" :
 +				"MenuItem.acceleratorForeground");
 +
-+		if (color == null) color = Color.black;
++		if (color == null) color = defaultFgColor();
 +
 +		return color;
 +	}
@@ -110,10 +110,47 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
 +		return com.formdev.flatlaf.FlatLaf.isLafDark();
 +	}
 +
++	public static Color defaultBgColor()
++	{
++		return isDarkLaf() ? Color.BLACK : Color.WHITE;
++	}
++
++	public static Color defaultFgColor()
++	{
++		return isDarkLaf() ? Color.WHITE : Color.BLACK;
++	}
++
++	public static String getTheme()
++	{
++		return isDarkLaf() ? "dark" : "";
++	}
++
++	public static String getThemeSuffix()
++	{
++		return getThemeSuffix(".");
++	}
++
++	public static String getThemeSuffix(String s)
++	{
++		String t = getTheme();
++		return t.isEmpty() ? t : s + t;
++	}
++
  	//{{{ getStyleString() method
  	/**
  	 * Converts a style into it's string representation.
-@@ -1619,6 +1652,21 @@
+@@ -1407,8 +1466,8 @@
+ 	{
+ 		for (Component child: win.getComponents())
+ 		{
+-			child.setBackground(jEdit.getColorProperty("view.bgColor", Color.WHITE));
+-			child.setForeground(jEdit.getColorProperty("view.fgColor", Color.BLACK));
++			child.setBackground(jEdit.getColorProperty("view.bgColor", defaultBgColor()));
++			child.setForeground(jEdit.getColorProperty("view.fgColor"));
+ 			if (child instanceof JTextPane)
+ 				((JTextPane)child).setUI(new javax.swing.plaf.basic.BasicEditorPaneUI());
+ 			if (child instanceof Container)
+@@ -1619,6 +1678,21 @@
  	}
  	//}}}
  
@@ -645,7 +682,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  #}}}
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java	2025-04-16 16:12:29.542089148 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java	2025-05-14 10:51:38.322378673 +0200
 @@ -78,12 +78,12 @@
  		buttons.setBorder(new EmptyBorder(3,0,0,0));
  		buttons.setLayout(new BoxLayout(buttons,BoxLayout.X_AXIS));
@@ -676,6 +713,16 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/BrowserColorsOptionPane.java 
  		moveDown.setToolTipText(jEdit.getProperty("common.moveDown"));
  		moveDown.addActionListener(actionHandler);
  		buttons.add(moveDown);
+@@ -209,8 +209,7 @@
+ 			{
+ 				entries.add(new Entry(glob,
+ 					jEdit.getColorProperty(
+-						"vfs.browser.colors." + i + ".color",
+-						Color.black)));
++						"vfs.browser.colors." + i + ".color")));
+ 				i++;
+ 			}
+ 		} //}}}
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java	2024-08-03 19:53:15.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/StatusBarOptionPane.java	2025-04-16 16:12:37.730958557 +0200
@@ -715,3 +762,330 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java jedit5.7.0-pa
  		clearRegister.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
  			jEdit.getProperty("clear-string-register.label")));
  		clearRegister.addActionListener(e -> clearSelectedIndex());
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java	2024-08-03 19:53:14.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2025-05-15 21:20:18.075698848 +0200
+@@ -674,6 +674,12 @@
+ 			return value;
+ 	} //}}}
+ 
++	public static String getThemeProperty(String name)
++	{
++		String s = GUIUtilities.getThemeSuffix();
++		return s.isEmpty() ? getProperty(name) : getProperty(name + s, getProperty(name));
++	}
++
+ 	//{{{ getProperty() method
+ 	/**
+ 	 * Returns the property with the specified name.<p>
+@@ -859,7 +865,7 @@
+ 	 */
+ 	public static Color getColorProperty(String name)
+ 	{
+-		return getColorProperty(name,Color.black);
++		return getColorProperty(name, GUIUtilities.defaultFgColor());
+ 	}
+ 
+ 	/**
+@@ -870,7 +876,7 @@
+ 	 */
+ 	public static Color getColorProperty(String name, Color def)
+ 	{
+-		String value = getProperty(name);
++		String value = getThemeProperty(name);
+ 		if(value == null)
+ 			return def;
+ 		else
+@@ -886,7 +892,7 @@
+ 	 */
+ 	public static void setColorProperty(String name, Color value)
+ 	{
+-		setProperty(name, SyntaxUtilities.getColorHexString(value));
++		setThemeProperty(name, SyntaxUtilities.getColorHexString(value));
+ 	} //}}}
+ 
+ 	//{{{ getColorMatrixProperty() method
+@@ -936,6 +942,11 @@
+ 	public static void setProperty(String name, String value)
+ 	{
+ 		propMgr.setProperty(name,value);
++	}
++
++	public static void setThemeProperty(String name, String value)
++	{
++		setProperty(name + GUIUtilities.getThemeSuffix(), value);
+ 	} //}}}
+ 
+ 	//{{{ setTemporaryProperty() method
+@@ -4233,7 +4244,7 @@
+ 	} //}}}
+ 
+ 	//{{{ gotoMarker() method
+-	private static void gotoMarker(final View view, final Buffer buffer,
++	public static void gotoMarker(final View view, final Buffer buffer,
+ 		final String marker)
+ 	{
+ 		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java	2025-05-13 16:29:14.196283445 +0200
+@@ -58,7 +58,7 @@
+ 	public static final DataFlavor BufferDataFlavor = new DataFlavor(BufferTransferableData.class, DataFlavor.javaJVMLocalObjectMimeType);
+ 
+ 	// actual colors will be set in constructor, here are just fallback values
+-	static Color defaultColor   = Color.BLACK;
++	static Color defaultColor   = GUIUtilities.defaultFgColor();
+ 	static Color defaultBGColor = Color.LIGHT_GRAY;
+ 
+ 	public BufferSwitcher(final EditPane editPane)
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/LogViewer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/LogViewer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/LogViewer.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/LogViewer.java	2025-05-14 11:05:39.544481221 +0200
+@@ -413,7 +413,7 @@
+ 		{
+ 			this.list = list;
+ 			debugColor = jEdit.getColorProperty("log-viewer.message.debug.color", Color.BLUE);
+-			messageColor = jEdit.getColorProperty("log-viewer.message.message.color", Color.BLACK);
++			messageColor = jEdit.getColorProperty("log-viewer.message.message.color");
+ 			noticeColor = jEdit.getColorProperty("log-viewer.message.notice.color", Color.GREEN);
+ 			warningColor = jEdit.getColorProperty("log-viewer.message.warning.color", Color.ORANGE);
+ 			errorColor = jEdit.getColorProperty("log-viewer.message.error.color", Color.RED);
+diff -ru /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFS.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFS.java
+--- /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFS.java	2024-08-03 19:53:14.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFS.java	2025-05-14 10:51:16.530755624 +0200
+@@ -1302,8 +1302,7 @@
+ 					colors.add(new ColorEntry(
+ 						Pattern.compile(StandardUtilities.globToRE(glob)),
+ 						jEdit.getColorProperty(
+-						"vfs.browser.colors." + i + ".color",
+-						Color.black)));
++						"vfs.browser.colors." + i + ".color")));
+ 				}
+ 				catch(PatternSyntaxException e)
+ 				{
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java
+--- jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2024-08-03 19:53:21.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/util/SyntaxUtilities.java	2025-05-14 15:20:40.515623017 +0200
+@@ -35,6 +35,7 @@
+ import org.gjt.sp.jedit.syntax.SyntaxStyle;
+ import org.gjt.sp.jedit.syntax.Token;
+ import org.gjt.sp.jedit.IPropertyManager;
++import org.gjt.sp.jedit.GUIUtilities;
+ 
+ import static java.util.stream.Collectors.joining;
+ //}}}
+@@ -49,6 +50,15 @@
+ public class SyntaxUtilities
+ {
+ 	public static IPropertyManager propertyManager;
++
++	public static String getThemeProperty(String name)
++	{
++		String s = GUIUtilities.getThemeSuffix();
++		String a = propertyManager.getProperty(name);
++		String b = propertyManager.getProperty(name + s);
++		return b == null ? a : b;
++	}
++
+ 	private static final Pattern COLOR_MATRIX_PATTERN = Pattern.compile("(?x)\n" +
+ 			"^\n" +
+ 			"\\s*+ # optionally preceded by whitespace\n" +
+@@ -125,7 +135,7 @@
+  	 */
+ 	public static Color parseColor(String name)
+ 	{
+-		return parseColor(name, Color.black);	
++		return parseColor(name, GUIUtilities.defaultFgColor());	
+ 	} //}}}
+ 	
+ 	//{{{ parseColor() method
+@@ -267,7 +277,7 @@
+ 			if(s.startsWith("color:"))
+ 			{
+ 				if(color)
+-					fgColor = parseColor(s.substring(6), Color.black);
++					fgColor = parseColor(s.substring(6), GUIUtilities.defaultFgColor());
+ 			}
+ 			else if(s.startsWith("bgColor:"))
+ 			{
+@@ -311,7 +321,7 @@
+ 		boolean color)
+ 		throws IllegalArgumentException
+ 	{
+-		return parseStyle(str, family, size, color, Color.black);
++		return parseStyle(str, family, size, color, GUIUtilities.defaultFgColor());
+ 	} //}}}
+ 
+ 	//{{{ loadStyles() methods
+@@ -347,9 +357,7 @@
+ 				String styleName = "view.style."
+ 					+ Token.tokenToString((byte)i)
+ 					.toLowerCase(Locale.ENGLISH);
+-				styles[i] = parseStyle(
+-					propertyManager.getProperty(styleName),
+-					family,size,color);
++				styles[i] = parseStyle(getThemeProperty(styleName),family,size,color);
+ 			}
+ 			catch(Exception e)
+ 			{
+@@ -357,8 +365,28 @@
+ 			}
+ 		}
+ 
+-		return styles;
++		styles[0] =
++			new SyntaxStyle(org.gjt.sp.jedit.jEdit.getColorProperty("view.fgColor", GUIUtilities.defaultFgColor()),
++				null, new Font(family, 0, size));
++		return _styleExtender.extendStyles(styles);
+ 	} //}}}
+ 
++	/**
++	 * Extended styles derived from the user-specified style array.
++	 */
++
++	public static class StyleExtender
++	{
++		public SyntaxStyle[] extendStyles(SyntaxStyle[] styles)
++		{
++			return styles;
++		}
++	}
++	volatile private static StyleExtender _styleExtender = new StyleExtender();
++	public static void setStyleExtender(StyleExtender ext)
++	{
++		_styleExtender = ext;
++	}
++
+ 	private SyntaxUtilities(){}
+ }
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-05-14 15:46:36.934878462 +0200
+@@ -43,6 +43,7 @@
+ import org.gjt.sp.jedit.msg.BufferChanging;
+ import org.gjt.sp.jedit.msg.BufferUpdate;
+ import org.gjt.sp.jedit.msg.EditPaneUpdate;
++import org.gjt.sp.jedit.msg.PositionChanging;
+ import org.gjt.sp.jedit.msg.PropertiesChanged;
+ import org.gjt.sp.jedit.options.GeneralOptionPane;
+ import org.gjt.sp.jedit.options.GutterOptionPane;
+@@ -380,9 +381,11 @@
+ 		buffer.unsetProperty(Buffer.CARET_POSITIONED);
+ 
+ 
+-		if(caret != -1)
++		if(caret != -1) {
+ 			textArea.setCaretPosition(Math.min(caret,
+ 				buffer.getLength()));
++			EditBus.send(new PositionChanging(this));
++		}
+ 
+ 		// set any selections
+ 		Selection[] selection = caretInfo.selection;
+@@ -1029,7 +1032,7 @@
+ 		for(int i = 0; i <= 3; i++)
+ 		{
+ 			foldLineStyle[i] = SyntaxUtilities.parseStyle(
+-				jEdit.getProperty("view.style.foldLine." + i),
++				jEdit.getThemeProperty("view.style.foldLine." + i),
+ 				defaultFont,defaultFontSize, true);
+ 		}
+ 		painter.setFoldLineStyle(foldLineStyle);
+diff -ru /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java
+--- /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java	2025-05-14 15:46:44.805742407 +0200
+@@ -95,7 +95,7 @@
+ 		Font font = getFont();
+ 		String family = font.getFamily();
+ 		int size = font.getSize();
+-		invalidStyle = SyntaxUtilities.parseStyle(jEdit.getProperty("view.style.invalid"), family, size, true);
++		invalidStyle = SyntaxUtilities.parseStyle(jEdit.getThemeProperty("view.style.invalid"), family, size, true);
+ 		defaultForeground = getForeground();
+ 		defaultBackground = getBackground();
+ 	}
+diff -ru /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/statusbar/ErrorsWidgetFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/statusbar/ErrorsWidgetFactory.java
+--- /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/statusbar/ErrorsWidgetFactory.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/statusbar/ErrorsWidgetFactory.java	2025-05-14 15:46:52.413610804 +0200
+@@ -102,7 +102,7 @@
+ 			String defaultFont = jEdit.getProperty("view.font");
+ 			int defaultFontSize = jEdit.getIntegerProperty("view.fontsize", 12);
+ 			SyntaxStyle invalid = SyntaxUtilities.parseStyle(
+-				jEdit.getProperty("view.style.invalid"),
++				jEdit.getThemeProperty("view.style.invalid"),
+ 				defaultFont,defaultFontSize, true);
+ 			foregroundColor = invalid.getForegroundColor();
+ 			setForeground(foregroundColor);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/SyntaxHiliteOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/SyntaxHiliteOptionPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/SyntaxHiliteOptionPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/SyntaxHiliteOptionPane.java	2025-05-15 21:23:50.047418219 +0200
+@@ -222,8 +222,7 @@
+ 		{
+ 			for (StyleChoice ch : styleChoices)
+ 			{
+-				jEdit.setProperty(ch.property,
+-					GUIUtilities.getStyleString(ch.style));
++				jEdit.setThemeProperty(ch.property,GUIUtilities.getStyleString(ch.style));
+ 			}
+ 		} //}}}
+ 
+@@ -233,7 +232,7 @@
+ 			Font font = new JLabel().getFont();
+ 			styleChoices.add(new StyleChoice(label,
+ 			                                 property,
+-			                                 SyntaxUtilities.parseStyle(jEdit.getProperty(property),
++			                                 SyntaxUtilities.parseStyle(jEdit.getThemeProperty(property),
+ 			                                                         font.getFamily(), font.getSize(), true)));
+ 		} //}}}
+ 
+@@ -289,8 +288,8 @@
+ 					else
+ 					{
+ 						// this part sucks
+-						setBackground(jEdit.getColorProperty(
+-							"view.bgColor"));
++						setBackground(
++							jEdit.getColorProperty("view.bgColor", GUIUtilities.defaultBgColor()));
+ 					}
+ 					setFont(style.getFont());
+ 				}
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/StyleEditor.java	2025-05-14 15:48:00.821423396 +0200
+@@ -90,12 +90,12 @@
+ 		String property = "view.style." + typeName.toLowerCase();
+ 		Font font = new JLabel().getFont();
+ 		SyntaxStyle currentStyle = SyntaxUtilities.parseStyle(
+-				jEdit.getProperty(property), font.getFamily(), font.getSize(), true);
++				jEdit.getThemeProperty(property), font.getFamily(), font.getSize(), true);
+ 		SyntaxStyle style = new StyleEditor(textArea.getView(),
+ 				currentStyle, typeName).getStyle();
+ 		if(style != null)
+ 		{
+-			jEdit.setProperty(property, GUIUtilities.getStyleString(style));
++			jEdit.setProperty(property + GUIUtilities.getThemeSuffix(), GUIUtilities.getStyleString(style));
+ 			jEdit.propertiesChanged();
+ 		}
+ 	} //}}}
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/search/SearchBar.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/search/SearchBar.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/search/SearchBar.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/search/SearchBar.java	2025-05-14 15:49:19.228054251 +0200
+@@ -51,6 +51,10 @@
+ 		setFloatable(false);
+ 		add(Box.createHorizontalStrut(2));
+ 
++		if (!jEdit.getProperty("navigate-toolbar", "").isEmpty()) {
++			add(GUIUtilities.loadToolBar("navigate-toolbar"));
++		}
++
+ 		JLabel label = new JLabel(jEdit.getProperty("view.search.find"));
+ 		add(label);
+ 		
+@@ -59,7 +63,7 @@
+ 		add(find = new HistoryTextField("find"));
+ 		find.setSelectAllOnFocus(true);
+ 
+-		SyntaxStyle style = SyntaxUtilities.parseStyle(jEdit.getProperty("view.style.invalid"), "Dialog", 12, true);
++		SyntaxStyle style = SyntaxUtilities.parseStyle(jEdit.getThemeProperty("view.style.invalid"), "Dialog", 12, true);
+ 		errorBackground = style.getBackgroundColor();
+ 		errorForeground = style.getForegroundColor();
+ 		defaultBackground = find.getBackground();

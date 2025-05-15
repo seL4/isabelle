@@ -111,6 +111,9 @@ object Options {
   val TAG_COLOR_DIALOG = "color_dialog"  // special color selection dialog
   val TAG_VSCODE = "vscode"      // relevant for "isabelle vscode" and "isabelle vscode_server"
 
+  val SUFFIX_DARK = "_dark"
+  def theme_suffix(): String = if (GUI.is_dark_laf()) SUFFIX_DARK else ""
+
   case class Entry(
     public: Boolean,
     pos: Position.T,
@@ -158,6 +161,8 @@ object Options {
     def for_color_dialog: Boolean = for_tag(TAG_COLOR_DIALOG)
     def for_build_sync: Boolean = for_tag(TAG_BUILD_SYNC)
     def for_vscode: Boolean = for_tag(TAG_VSCODE)
+
+    def is_dark: Boolean = name.endsWith(SUFFIX_DARK)
 
     def session_content: Boolean = for_content || for_document
   }

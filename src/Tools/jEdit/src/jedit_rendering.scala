@@ -166,7 +166,7 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   def color(s: String): Color =
     if (s == "main_color") main_color
-    else Color_Value(options.string(s))
+    else Color_Value(options.string(s + Options.theme_suffix()))
 
   def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
 

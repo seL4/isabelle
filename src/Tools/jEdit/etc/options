@@ -156,6 +156,75 @@ option markdown_bullet2_color : string = "FFF0CCFF" for color_dialog
 option markdown_bullet3_color : string = "E7E7FFFF" for color_dialog
 option markdown_bullet4_color : string = "FFE0F0FF" for color_dialog
 
+option outdated_color_dark : string = "B0B0B0FF" for color_dialog
+option unprocessed_color_dark : string = "D89090FF" for color_dialog
+option unprocessed1_color_dark : string = "330033FF" for color_dialog
+option running_color_dark : string = "7FBFFF00" for color_dialog
+option running1_color_dark : string = "590259FF" for color_dialog
+option bullet_color_dark : string = "EAEAEAFF" for color_dialog
+option tooltip_color_dark : string = "FFFFE9FF" for color_dialog
+option writeln_color_dark : string = "9C9C9CFF" for color_dialog
+option information_color_dark : string = "77B800FF" for color_dialog
+option warning_color_dark : string = "FF8C00FF" for color_dialog
+option legacy_color_dark : string = "FF8C00FF" for color_dialog
+option error_color_dark : string = "FF7070FF" for color_dialog
+option ok_color_dark : string = "FFFFFFFF" for color_dialog
+option failed_color_dark : string = "FF6B6BFF" for color_dialog
+option writeln_message_color_dark : string = "444444FF" for color_dialog
+option information_message_color_dark : string = "221E40FF" for color_dialog
+option tracing_message_color_dark : string = "6969A749" for color_dialog
+option warning_message_color_dark : string = "FF7A007F" for color_dialog
+option legacy_message_color_dark : string = "716D4BFF" for color_dialog
+option error_message_color_dark : string = "5B1220FF" for color_dialog
+option spell_checker_color_dark : string = "589EF9FF" for color_dialog
+option bad_color_dark : string = "620909FF" for color_dialog
+option canceled_color_dark : string = "F67979FF" for color_dialog
+option intensify_color_dark : string = "FFCC6664" for color_dialog
+option entity_color_dark : string = "330033FF" for color_dialog
+option entity_ref_color_dark : string = "E071DEFF" for color_dialog
+option breakpoint_disabled_color_dark : string = "CCCC0080" for color_dialog
+option breakpoint_enabled_color_dark : string = "FF9966FF" for color_dialog
+option quoted_color_dark : string = "FFFFFF0C" for color_dialog
+option antiquoted_color_dark : string = "EDEDED1B" for color_dialog
+option antiquote_color_dark : string = "FFE4E1FF" for color_dialog
+option raw_text_color_dark : string = "FFFFCCFF" for color_dialog
+option plain_text_color_dark : string = "F2A558FF" for color_dialog
+option highlight_color_dark : string = "50505032" for color_dialog
+option hyperlink_color_dark : string = "4DD2FFFF" for color_dialog
+option active_color_dark : string = "454594FF" for color_dialog
+option active_hover_color_dark : string = "4A4AC9FF" for color_dialog
+option active_result_color_dark : string = "A7A77BFF" for color_dialog
+option keyword1_color_dark : string = "2FAEF9FF" for color_dialog
+option keyword2_color_dark : string = "0EF1C9FF" for color_dialog
+option keyword3_color_dark : string = "92D8FAFF" for color_dialog
+option quasi_keyword_color_dark : string = "9999FFFF" for color_dialog
+option improper_color_dark : string = "F99F9FFF" for color_dialog
+option operator_color_dark : string = "DBDBDBFF" for color_dialog
+option comment1_color_dark : string = "A7D3A2FF" for color_dialog
+option comment2_color_dark : string = "E2A05AFF" for color_dialog
+option comment3_color_dark : string = "75BDB3FF" for color_dialog
+option caret_debugger_color_dark : string = "FF9966FF" for color_dialog
+option caret_invisible_color_dark : string = "FFB8B880" for color_dialog
+option completion_color_dark : string = "4BBDF7FF" for color_dialog
+option search_color_dark : string = "66FFFF64" for color_dialog
+
+option tfree_color_dark : string = "C68CFDFF" for color_dialog
+option tvar_color_dark : string = "CE8DF7FF" for color_dialog
+option free_color_dark : string = "80B1FEFF" for color_dialog
+option skolem_color_dark : string = "FF99FFFF" for color_dialog
+option bound_color_dark : string = "76E9C6FF" for color_dialog
+option var_color_dark : string = "F0A860FF" for color_dialog
+option inner_numeral_color_dark : string = "FF8A8AFF" for color_dialog
+option inner_quoted_color_dark : string = "FF7AE4FF" for color_dialog
+option inner_cartouche_color_dark : string = "FF8A14FF" for color_dialog
+option dynamic_color_dark : string = "80CB8DFF" for color_dialog
+option class_parameter_color_dark : string = "E58948FF" for color_dialog
+
+option markdown_bullet1_color_dark : string = "181719FF" for color_dialog
+option markdown_bullet2_color_dark : string = "333333FF" for color_dialog
+option markdown_bullet3_color_dark : string = "000022FF" for color_dialog
+option markdown_bullet4_color_dark : string = "1B000DFF" for color_dialog
+
 
 section "Icons"
 
