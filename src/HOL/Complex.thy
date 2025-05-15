@@ -1417,12 +1417,9 @@ lemma csqrt_of_real: "x \<ge> 0 \<Longrightarrow> csqrt (of_real x) = of_real (s
 lemma csqrt_of_real': "csqrt (of_real x) = of_real (sqrt \<bar>x\<bar>) * (if x \<ge> 0 then 1 else \<i>)"
   by (rule csqrt_unique) (auto simp flip: of_real_power simp: power_mult_distrib)
 
-
-text \<open>Legacy theorem names\<close>
-
 lemmas cmod_def = norm_complex_def
 
-lemma legacy_Complex_simps:
+lemma Complex_simps:
   shows Complex_eq_0: "Complex a b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
     and complex_add: "Complex a b + Complex c d = Complex (a + c) (b + d)"
     and complex_minus: "- (Complex a b) = Complex (- a) (- b)"
@@ -1453,6 +1450,12 @@ lemma legacy_Complex_simps:
 
 lemma Complex_in_Reals: "Complex x 0 \<in> \<real>"
   by (metis Reals_of_real complex_of_real_def)
+
+lemma Complex_divide_complex_of_real: "Complex x y / of_real r = Complex (x/r) (y/r)"
+  by (metis complex_of_real_mult_Complex divide_inverse mult.commute of_real_inverse)
+
+lemma cmod_neg_real: "cmod (Complex (-x) y) = cmod (Complex x y)"
+  by (metis complex_cnj complex_minus complex_mod_cnj norm_minus_cancel)
 
 text \<open>Express a complex number as a linear combination of two others, not collinear with the origin\<close>
 lemma complex_axes:
