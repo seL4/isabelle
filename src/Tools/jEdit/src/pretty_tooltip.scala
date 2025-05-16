@@ -194,7 +194,8 @@ class Pretty_Tooltip private(
   }
 
   private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach) {
-    background = rendering.tooltip_color
+    foreground = rendering.tooltip_foreground_color
+    background = rendering.tooltip_background_color
   }
 
 
@@ -202,7 +203,7 @@ class Pretty_Tooltip private(
 
   val pretty_text_area: Pretty_Text_Area =
     new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(pretty_tooltip), true) {
-      override def get_background(): Option[Color] = Some(rendering.tooltip_color)
+      override def get_background(): Option[Color] = Some(rendering.tooltip_background_color)
     }
 
   pretty_text_area.addFocusListener(new FocusAdapter {
@@ -222,13 +223,14 @@ class Pretty_Tooltip private(
   /* main content */
 
   def tip_border(has_focus: Boolean): Unit = {
-    pretty_tooltip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
+    val color = if (has_focus) GUI.default_background_color() else GUI.default_intermediate_color()
+    pretty_tooltip.setBorder(new LineBorder(color))
     pretty_tooltip.repaint()
   }
   tip_border(true)
 
   override def getFocusTraversalKeysEnabled = false
-  pretty_tooltip.setBackground(rendering.tooltip_color)
+  pretty_tooltip.setBackground(rendering.tooltip_background_color)
   pretty_tooltip.add(controls.peer, BorderLayout.NORTH)
   pretty_tooltip.add(pretty_text_area)
 

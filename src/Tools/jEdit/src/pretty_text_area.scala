@@ -156,7 +156,7 @@ class Pretty_Text_Area(
     for (i <- 0 to 3) {
       fold_line_style(i) =
         SyntaxUtilities.parseStyle(
-          jEdit.getProperty("view.style.foldLine." + i),
+          jEdit.getThemeProperty("view.style.foldLine." + i),
           current_font_info.family, current_font_info.size.round, true)
     }
     getPainter.setFoldLineStyle(fold_line_style)

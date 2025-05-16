@@ -50,6 +50,14 @@ to fit precisely into the available space.
 * GUI rendering for dark look-and-feels has been slightly improved, e.g.
 menu accelerator font/color.
 
+* Explicit support for dark GUI themes: FlatLaf tells wether a Swing
+look & feel is dark or non-dark (default); jEdit options with suffix
+".dark" and Isabelle options with suffix "_dark" determine GUI rendering
+in dark mode. The panels for "Global Options" and "Plugin Options /
+Isabelle / Rendering" operate on options according to the current Swing
+look & feel, e.g. on "view.fgColor.dark" in dark mode vs. "view.fgColor"
+in non-dark mode.
+
 * Provide scalable icons for old-fashioned "tango" (from early Gnome or
 KDE), and "idea-icons" from current IntelliJ IDEA community edition. All
 icons are available for jEdit and Isabelle/jEdit add-ons. The special
