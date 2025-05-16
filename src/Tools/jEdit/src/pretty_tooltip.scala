@@ -222,7 +222,8 @@ class Pretty_Tooltip private(
   /* main content */
 
   def tip_border(has_focus: Boolean): Unit = {
-    pretty_tooltip.setBorder(new LineBorder(if (has_focus) Color.BLACK else Color.GRAY))
+    val color = if (has_focus) GUI.default_foreground_color() else GUI.default_intermediate_color()
+    pretty_tooltip.setBorder(new LineBorder(color))
     pretty_tooltip.repaint()
   }
   tip_border(true)

@@ -7,8 +7,8 @@ Basic GUI tools (for AWT/Swing).
 package isabelle
 
 import java.util.{Map => JMap}
-import java.awt.{Component, Container, Font, Image, Insets, KeyboardFocusManager, Window, Point,
-  Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
+import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocusManager, Window,
+  Point, Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
 import java.awt.event.{KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
@@ -31,6 +31,10 @@ object GUI {
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
 
   def is_dark_laf(): Boolean = FlatLaf.isLafDark()
+
+  def default_foreground_color(): Color = if (is_dark_laf()) Color.BLACK else Color.WHITE
+  def default_background_color(): Color = if (is_dark_laf()) Color.WHITE else Color.BLACK
+  def default_intermediate_color(): Color = if (is_dark_laf()) Color.LIGHT_GRAY else Color.GRAY
 
   class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
     def info: UIManager.LookAndFeelInfo =

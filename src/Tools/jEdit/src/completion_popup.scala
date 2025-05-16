@@ -643,7 +643,7 @@ class Completion_Popup private(
   /* main content */
 
   override def getFocusTraversalKeysEnabled = false
-  completion.setBorder(new LineBorder(Color.BLACK))
+  completion.setBorder(new LineBorder(GUI.default_foreground_color()))
   completion.add((new ScrollPane(list_view)).peer.asInstanceOf[JComponent])
 
 
