@@ -11,7 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.Color
-import javax.swing.Icon
+import javax.swing.{Icon, UIManager}
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import org.gjt.sp.jedit.jEdit
@@ -177,7 +177,6 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   val outdated_color = color("outdated_color")
   val bullet_color = color("bullet_color")
-  val tooltip_color = color("tooltip_color")
   val spell_checker_color = color("spell_checker_color")
   val entity_ref_color = color("entity_ref_color")
   val breakpoint_disabled_color = color("breakpoint_disabled_color")
@@ -189,6 +188,12 @@ extends Rendering(snapshot, options, PIDE.session) {
   val caret_invisible_color = color("caret_invisible_color")
   val completion_color = color("completion_color")
   val search_color = color("search_color")
+
+  lazy val tooltip_foreground_color: Color =
+    Option(UIManager.getColor("ToolTip.foreground")).getOrElse(GUI.default_foreground_color())
+
+  lazy val tooltip_background_color: Color =
+    Option(UIManager.getColor("ToolTip.background")).getOrElse(GUI.default_background_color())
 
 
   /* indentation */
