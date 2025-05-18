@@ -98,11 +98,11 @@ fun mk_comp_map_cong0_tac ctxt set'_eq_sets comp_set_alts map_cong0 map_cong0s =
       EVERY' (map_index (fn (i, map_cong0) =>
         rtac ctxt map_cong0 THEN' EVERY' (map_index (fn (k, set_alt) =>
           EVERY' [select_prem_tac ctxt n (dtac ctxt @{thm meta_spec}) (k + 1), etac ctxt meta_mp,
-            rtac ctxt (equalityD2 RS set_mp), rtac ctxt (set_alt RS fun_cong RS trans),
+            rtac ctxt (@{thm equalityD2} RS set_mp), rtac ctxt (set_alt RS fun_cong RS trans),
             rtac ctxt trans_o_apply, rtac ctxt (@{thm collect_def} RS arg_cong_Union),
             rtac ctxt @{thm UnionI}, rtac ctxt @{thm UN_I},
             REPEAT_DETERM_N i o rtac ctxt @{thm insertI2}, rtac ctxt @{thm insertI1},
-            rtac ctxt (o_apply RS equalityD2 RS set_mp), etac ctxt @{thm imageI}, assume_tac ctxt])
+            rtac ctxt (o_apply RS @{thm equalityD2} RS set_mp), etac ctxt @{thm imageI}, assume_tac ctxt])
           comp_set_alts))
       map_cong0s) 1)
   end;
@@ -211,7 +211,7 @@ fun mk_comp_wit_tac ctxt set'_eq_sets Gwit_thms collect_set_map Fwit_thms =
   unfold_thms_tac ctxt comp_wit_thms THEN
   REPEAT_DETERM ((assume_tac ctxt ORELSE'
     REPEAT_DETERM o eresolve_tac ctxt @{thms UnionE UnE} THEN'
-    etac ctxt imageE THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
+    etac ctxt @{thm imageE} THEN' TRY o dresolve_tac ctxt Gwit_thms THEN'
     (etac ctxt FalseE ORELSE'
     hyp_subst_tac ctxt THEN'
     dresolve_tac ctxt Fwit_thms THEN'
@@ -232,7 +232,7 @@ fun kill_in_alt_tac ctxt =
   (rtac ctxt subset_UNIV ORELSE' assume_tac ctxt) 1 THEN
   REPEAT_DETERM (CHANGED (etac ctxt conjE 1)) THEN
   REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE' assume_tac ctxt) 1))) ORELSE
-  ((rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
+  ((rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt @{thm CollectI}) 1 THEN
     REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt subset_UNIV 1));
 
 
@@ -251,7 +251,7 @@ fun lift_in_alt_tac ctxt =
   REPEAT_DETERM (CHANGED ((etac ctxt conjI ORELSE'
     rtac ctxt conjI THEN' rtac ctxt @{thm empty_subsetI}) 1)) THEN
   (rtac ctxt @{thm empty_subsetI} ORELSE' assume_tac ctxt) 1) ORELSE
-  ((rtac ctxt sym THEN' rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt CollectI) 1 THEN
+  ((rtac ctxt sym THEN' rtac ctxt @{thm UNIV_eq_I} THEN' rtac ctxt @{thm CollectI}) 1 THEN
     REPEAT_DETERM (TRY (rtac ctxt conjI 1) THEN rtac ctxt @{thm empty_subsetI} 1));
 
 

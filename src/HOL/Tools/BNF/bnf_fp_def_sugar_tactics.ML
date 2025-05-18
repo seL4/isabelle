@@ -506,7 +506,7 @@ fun mk_set0_tac ctxt abs_inverses pre_set_defs dtor_ctor fp_sets fp_nesting_set_
     live_nesting_set_maps @ extra_unfolds @ basic_sumprod_thms_set @
     @{thms UN_UN_flatten UN_Un_distrib UN_Un sup_assoc[THEN sym]}) THEN
   ALLGOALS (rtac ctxt @{thm set_eqI[OF iffI]}) THEN
-  ALLGOALS (REPEAT_DETERM o etac ctxt UnE) THEN
+  ALLGOALS (REPEAT_DETERM o etac ctxt @{thm UnE}) THEN
   ALLGOALS (REPEAT o resolve_tac ctxt @{thms UnI1 UnI2} THEN' assume_tac ctxt);
 
 fun mk_set_sel_tac ctxt ct exhaust discs sels sets =

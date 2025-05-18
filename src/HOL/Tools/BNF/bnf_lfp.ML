@@ -214,7 +214,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       end;
 
     val map_cong0L_thms = @{map 5} mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_ids;
-    val in_mono'_thms = map (fn bnf => in_mono_of_bnf bnf OF (replicate m subset_refl)) bnfs;
+    val in_mono'_thms = map (fn bnf => in_mono_of_bnf bnf OF (replicate m @{thm subset_refl})) bnfs;
     val in_cong'_thms = map (fn bnf => in_cong_of_bnf bnf OF (replicate m refl)) bnfs;
 
     val timer = time (timer "Derived simple theorems");
@@ -461,7 +461,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
             typedef (sbdT_bind, sum_bdT_params', NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (fn ctxt =>
-                EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+                EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
           val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
@@ -751,12 +751,12 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
       typedef (IIT_bind, params, NoSyn)
-        (HOLogic.mk_UNIV II_repT) NONE (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+        (HOLogic.mk_UNIV II_repT) NONE (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
     val IIT = Type (IIT_name, params');
     val Abs_IIT = Const (#Abs_name IIT_glob_info, II_repT --> IIT);
     val Rep_IIT = Const (#Rep_name IIT_glob_info, IIT --> II_repT);
-    val Abs_IIT_inverse_thm = UNIV_I RS #Abs_inverse IIT_loc_info;
+    val Abs_IIT_inverse_thm = @{thm UNIV_I} RS #Abs_inverse IIT_loc_info;
 
     val initT = IIT --> Asuc_bdT;
     val active_initTs = replicate n initT;
@@ -1080,7 +1080,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       end;
 
     val ctor_fold_thms = map (fn morE => rule_by_tactic lthy
-      ((rtac lthy CollectI THEN' CONJ_WRAP' (K (rtac lthy @{thm subset_UNIV})) (1 upto m + n)) 1)
+      ((rtac lthy @{thm CollectI} THEN' CONJ_WRAP' (K (rtac lthy @{thm subset_UNIV})) (1 upto m + n)) 1)
       (mor_fold_thm RS morE)) morE_thms;
 
     val (fold_unique_mor_thms, fold_unique_mor_thm) =
@@ -1389,7 +1389,7 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
               val ((sbd0T_name, (sbd0T_glob_info, sbd0T_loc_info)), lthy) =
                 typedef (sbd0T_bind, sum_bd0T_params', NoSyn)
                   (HOLogic.mk_UNIV sum_bd0T) NONE (fn ctxt =>
-                    EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+                    EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
               val sbd0T = Type (sbd0T_name, sum_bd0T_params);
               val Abs_sbd0T = Const (#Abs_name sbd0T_glob_info, sum_bd0T --> sbd0T);
@@ -1564,8 +1564,8 @@ fun construct_lfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
         fun mk_set_thms ctor_set = (@{thm xt1(3)} OF [ctor_set, @{thm Un_upper1}]) ::
           map (fn i => (@{thm xt1(3)} OF [ctor_set, @{thm Un_upper2}]) RS
-            (mk_Un_upper n i RS subset_trans) RSN
-            (2, @{thm UN_upper} RS subset_trans))
+            (mk_Un_upper n i RS @{thm subset_trans}) RSN
+            (2, @{thm UN_upper} RS @{thm subset_trans}))
             (1 upto n);
         val set_Iset_thmsss = transpose (map (map mk_set_thms) ctor_Iset_thmss);
 

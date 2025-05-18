@@ -86,7 +86,7 @@ fun get_typedef_info tyco vs
     (({rep_type, Abs_name, ...}, {Rep_inject, Abs_inverse, ... }) : Typedef.info) thy =
   let
     val exists_thm =
-      UNIV_I
+      @{thm UNIV_I}
       |> Thm.instantiate' [SOME (Thm.global_ctyp_of thy (Logic.varifyT_global rep_type))] [];
     val proj_constr = Abs_inverse OF [exists_thm];
     val absT = Type (tyco, map TFree vs);
@@ -103,7 +103,7 @@ fun do_typedef overloaded raw_tyco repT raw_vs thy =
     thy
     |> Named_Target.theory_map_result (apsnd o Typedef.transform_info)
         (Typedef.add_typedef overloaded (raw_tyco, vs, NoSyn)
-          (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' [UNIV_witness] 1))
+          (HOLogic.mk_UNIV repT) NONE (fn ctxt' => resolve_tac ctxt' @{thms UNIV_witness} 1))
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 

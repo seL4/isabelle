@@ -105,14 +105,11 @@ val [cpmi, cppi] = [@{thm "cpmi"}, @{thm "cppi"}];
 
 val unity_coeff_ex = Thm.instantiate' [SOME \<^ctyp>\<open>int\<close>] [] @{thm "unity_coeff_ex"};
 
-val [zdvd_mono,simp_from_to,all_not_ex] =
-     [@{thm "zdvd_mono"}, @{thm "simp_from_to"}, @{thm "all_not_ex"}];
-
 val [dvd_uminus, dvd_uminus'] = @{thms "uminus_dvd_conv"};
 
 val eval_ss =
   simpset_of (put_simpset presburger_ss \<^context>
-    addsimps [simp_from_to] delsimps [insert_iff, bex_triv]);
+    addsimps @{thms simp_from_to} delsimps @{thms insert_iff bex_triv});
 fun eval_conv ctxt = Simplifier.rewrite (put_simpset eval_ss ctxt);
 
 (* recognising cterm without moving to terms *)
@@ -408,7 +405,7 @@ fun unify ctxt q =
        val k = l div dest_number c
        val kt = HOLogic.mk_number iT k
        val th1 = inst' [Thm.dest_arg1 t, Thm.dest_arg t]
-             ((Thm.dest_arg t |> funpow 2 Thm.dest_arg1 |> notz) RS zdvd_mono)
+             ((Thm.dest_arg t |> funpow 2 Thm.dest_arg1 |> notz) RS @{thm zdvd_mono})
        val (d',t') = (mulC$kt$d, mulC$kt$r)
        val thc = (provelin ctxt ((HOLogic.eq_const iT)$d'$(lint [] d') |> HOLogic.mk_Trueprop))
                    RS eq_reflection
@@ -571,7 +568,7 @@ fun integer_nnf_conv ctxt env =
 val conv_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
     addsimps (@{thms simp_thms} @ take 4 @{thms ex_simps} @
-      [not_all, all_not_ex, @{thm ex_disj_distrib}]));
+      [not_all, @{thm all_not_ex}, @{thm ex_disj_distrib}]));
 
 fun conv ctxt p =
   Qelim.gen_qelim_conv ctxt

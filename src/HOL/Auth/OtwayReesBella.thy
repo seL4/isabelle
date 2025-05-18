@@ -239,8 +239,8 @@ struct
 
 val analz_image_freshK_ss =
   simpset_of
-   (\<^context> delsimps [image_insert, image_Un]
-      delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
+   (\<^context> delsimps @{thms image_insert image_Un}
+      delsimps @{thms imp_disjL}    (*reduces blow-up*)
       addsimps @{thms analz_image_freshK_simps})
 
 end
@@ -249,7 +249,7 @@ end
 method_setup analz_freshCryptK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
-      (EVERY [REPEAT_FIRST (resolve_tac ctxt [allI, ballI, impI]),
+      (EVERY [REPEAT_FIRST (resolve_tac ctxt @{thms allI ballI impI}),
           REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshCryptK_lemma}),
           ALLGOALS (asm_simp_tac
             (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))])))\<close>

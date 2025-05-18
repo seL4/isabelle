@@ -569,7 +569,7 @@ and constr qty (quot_thm, (lthy0, rel_eq_onps)) =
 
         fun non_empty_typedef_tac non_empty_pred ctxt i =
           (Method.insert_tac ctxt [non_empty_pred] THEN' 
-            SELECT_GOAL (Local_Defs.unfold0_tac ctxt [mem_Collect_eq]) THEN' assume_tac ctxt) i
+            SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms mem_Collect_eq}) THEN' assume_tac ctxt) i
         val uTname = unique_Tname (rty, qty)
         val Tdef_set = HOLogic.mk_Collect ("x", rty, pred $ Free("x", rty));
         val ((_, tcode_dt), lthy2) = lthy1

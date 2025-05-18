@@ -830,7 +830,7 @@ fun spy_analz_tac ctxt i =
       [  (*push in occurrences of X...*)
        (REPEAT o CHANGED)
          (Rule_Insts.res_inst_tac ctxt [((("x", 1), Position.none), "X")] []
-           (insert_commute RS ssubst) 1),
+           (@{thm insert_commute} RS ssubst) 1),
        (*...allowing further simplifications*)
        simp_tac ctxt 1,
        REPEAT (FIRSTGOAL (resolve_tac ctxt [allI,impI,notI,conjI,iffI])),

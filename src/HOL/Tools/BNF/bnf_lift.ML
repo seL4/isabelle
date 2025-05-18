@@ -623,14 +623,14 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
 
             fun rel_OO_Grp_tac ctxt =
               HEADGOAL (EVERY' ([SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt ext))),
-                SELECT_GOAL (unfold_thms_tac ctxt [@{thm OO_Grp_alt}, mem_Collect_eq,
-                  o_apply, @{thm vimage2p_def}, in_rel_of_bnf bnf_F, Bex_def, mem_Collect_eq]),
+                SELECT_GOAL (unfold_thms_tac ctxt (@{thms OO_Grp_alt mem_Collect_eq
+                  o_apply vimage2p_def} @ in_rel_of_bnf bnf_F :: @{thms Bex_def mem_Collect_eq})),
                 rtac ctxt iffI,
                 SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve_tac ctxt [exE, conjE]))),
                 forward_tac ctxt
                   [zip_closed_thm OF (replicate 2 (Rep_thm RSN (2, @{thm ssubst_mem})))],
                 assume_tac ctxt,
-                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve_tac ctxt [bexE, conjE]))),
+                SELECT_GOAL (REPEAT_DETERM (HEADGOAL (eresolve_tac ctxt @{thms bexE conjE}))),
                 etac ctxt Rep_cases_thm,
                 hyp_subst_tac ctxt,
                 SELECT_GOAL (REPEAT_DETERM (HEADGOAL (rtac ctxt exI))),
@@ -813,11 +813,11 @@ fun mk_quotient_transfer_tacs bnf_F Tss live qthms thms set_F'_thmss old_defs
           REPEAT_DETERM o eresolve_tac ctxt [exE, conjE],
           REPEAT_DETERM o dtac ctxt (mk_sym set_F'_rsp),
           SELECT_GOAL (unfold_thms_tac ctxt [#set_map_F' set_F'_thms]),
-          rtac ctxt ballI, dtac ctxt @{thm equalityD1[THEN subsetD]}, assume_tac ctxt,
+          rtac ctxt @{thm ballI}, dtac ctxt @{thm equalityD1[THEN subsetD]}, assume_tac ctxt,
           SELECT_GOAL (unfold_thms_tac ctxt @{thms image_iff}),
-          etac ctxt bexE, dtac ctxt set_mp, assume_tac ctxt,
+          etac ctxt @{thm bexE}, dtac ctxt set_mp, assume_tac ctxt,
           SELECT_GOAL (unfold_thms_tac ctxt @{thms mem_Collect_eq case_prod_beta}),
-          rtac ctxt bexI, hyp_subst_tac ctxt, assume_tac ctxt, etac ctxt @{thm hypsubst},
+          rtac ctxt @{thm bexI}, hyp_subst_tac ctxt, assume_tac ctxt, etac ctxt @{thm hypsubst},
           etac ctxt @{thm imageI}, assume_tac ctxt]
       end;
   in
@@ -1132,10 +1132,10 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 replicate live @{thm Grp_conversep_nonempty} RS rev_mp),
               rtac ctxt impI, dtac ctxt @{thm predicate2D}, etac ctxt @{thm relcomppI2[rotated]},
               rtac ctxt (rel_Grp RS @{thm predicate2_eqD} RS iffD2), rtac ctxt @{thm GrpI[OF refl]},
-              REPEAT_DETERM o resolve_tac ctxt [CollectI, conjI, subset_UNIV],
+              REPEAT_DETERM o resolve_tac ctxt @{thms CollectI conjI subset_UNIV},
               rtac ctxt (rel_flip RS iffD2),
               rtac ctxt (rel_Grp RS @{thm predicate2_eqD} RS iffD2), rtac ctxt @{thm GrpI[OF refl]},
-              REPEAT_DETERM o resolve_tac ctxt [CollectI, conjI, subset_UNIV],
+              REPEAT_DETERM o resolve_tac ctxt @{thms CollectI conjI subset_UNIV},
               SELECT_GOAL (unfold_thms_tac ctxt (rel_eq_onp :: @{thms Grp_conversep_eq_onp})),
               etac ctxt @{thm predicate2D[OF rel_conj_eq_onp, rotated]},
               rtac ctxt equiv_thm']);
@@ -1204,21 +1204,21 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
               fun F_in'_mono_tac ctxt =
                 unfold_thms_tac ctxt [#def F_in', #def F_in] THEN
                 HEADGOAL (EVERY'
-                  [rtac ctxt subsetI,
-                  etac ctxt vimageE,
+                  [rtac ctxt @{thm subsetI},
+                  etac ctxt @{thm vimageE},
                   etac ctxt @{thm ImageE},
-                  etac ctxt CollectE,
-                  etac ctxt CollectE,
+                  etac ctxt @{thm CollectE},
+                  etac ctxt @{thm CollectE},
                   dtac ctxt @{thm case_prodD},
                   hyp_subst_tac ctxt,
-                  rtac ctxt (vimageI OF [refl]),
+                  rtac ctxt @{thm vimageI [OF refl]},
                   rtac ctxt @{thm ImageI},
-                  rtac ctxt CollectI,
+                  rtac ctxt @{thm CollectI},
                   rtac ctxt @{thm case_prodI},
                   assume_tac ctxt ORELSE' rtac ctxt refl,
-                  rtac ctxt CollectI,
-                  etac ctxt subset_trans,
-                  etac ctxt (@{thm insert_mono} OF [@{thm image_mono}])]);
+                  rtac ctxt @{thm CollectI},
+                  etac ctxt @{thm subset_trans},
+                  etac ctxt @{thm insert_mono [OF image_mono]}]);
               val F_in'_mono_thm = prove lthy [var_A, var_A'] F_in'_mono_tm F_in'_mono_tac;
 
               (* F_in'_Inter: F_in' (\<Inter>S) = (\<Inter>A\<in>S. F_in' A) *)
@@ -1234,13 +1234,13 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                       (unfold_thms_tac ctxt @{thms Inter_empty INT_empty UNIV_sum_unit_conv}),
                     rtac ctxt @{thm set_eqI},
                     rtac ctxt iffI,
-                    rtac ctxt UNIV_I,
-                    rtac ctxt (vimageI OF [refl]),
+                    rtac ctxt @{thm UNIV_I},
+                    rtac ctxt @{thm vimageI [OF refl]},
                     rtac ctxt @{thm ImageI},
-                    rtac ctxt CollectI,
+                    rtac ctxt @{thm CollectI},
                     rtac ctxt @{thm case_prodI},
                     rtac ctxt (#reflp qthms),
-                    rtac ctxt CollectI,
+                    rtac ctxt @{thm CollectI},
                     rtac ctxt subset_UNIV,
                     etac ctxt @{thm exE[OF ex_in_conv[THEN iffD2]]},
                     EqSubst.eqsubst_tac ctxt [0] @{thms image_INT[of _ UNIV _ id, simplified]},
@@ -1248,31 +1248,31 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                     assume_tac ctxt,
                     SELECT_GOAL (unfold_thms_tac ctxt @{thms INT_extend_simps vimage_INT[symmetric]}),
                     rtac ctxt @{thm arg_cong2[where f=vimage, OF refl]},
-                    rtac ctxt equalityI,
-                    rtac ctxt subsetI,
+                    rtac ctxt @{thm equalityI},
+                    rtac ctxt @{thm subsetI},
                     rtac ctxt @{thm InterI},
-                    etac ctxt imageE,
+                    etac ctxt @{thm imageE},
                     etac ctxt @{thm ImageE},
-                    etac ctxt CollectE,
-                    etac ctxt CollectE,
+                    etac ctxt @{thm CollectE},
+                    etac ctxt @{thm CollectE},
                     dtac ctxt @{thm case_prodD},
                     hyp_subst_tac ctxt,
                     rtac ctxt @{thm ImageI[OF CollectI]},
                     etac ctxt @{thm case_prodI} ORELSE' (SELECT_GOAL
                       (unfold_thms_tac ctxt @{thms prod.case}) THEN' rtac ctxt @{thm refl}),
-                    rtac ctxt CollectI,
-                    etac ctxt subset_trans,
+                    rtac ctxt @{thm CollectI},
+                    etac ctxt @{thm subset_trans},
                     etac ctxt @{thm INT_lower[OF imageI]},
                     rtac ctxt (@{thm subset_trans} OF [asm_rl, rel_Inter_thm]),
                     K (unfold_thms_tac ctxt @{thms image_image}),
-                    rtac ctxt subset_refl,
+                    rtac ctxt @{thm subset_refl},
                     K (unfold_thms_tac ctxt @{thms INT_extend_simps ex_in_conv[symmetric]}),
                     rtac ctxt exI,
-                    rtac ctxt imageI,
+                    rtac ctxt @{thm imageI},
                     assume_tac ctxt,
                     rtac ctxt exI,
                     rtac ctxt @{thm InterI},
-                    etac ctxt imageE,
+                    etac ctxt @{thm imageE},
                     hyp_subst_tac ctxt,
                     rtac ctxt @{thm insertI1}]);
 
@@ -1298,22 +1298,22 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
               (* F_in'_alt2: F_in' A = {x. set_F' x \<subseteq> A} *)
               val F_in'_alt2_tm = mk_Trueprop_eq
                 (#tm F_in' $ var_A, mk_in [var_A] [#tm set_F'] typ_aF);
-              fun F_in'_alt2_tac ctxt = HEADGOAL (rtac ctxt equalityI THEN'
+              fun F_in'_alt2_tac ctxt = HEADGOAL (rtac ctxt @{thm equalityI} THEN'
                 (Subgoal.FOCUS o K) (unfold_thms_tac ctxt (map #def [set_F', F_in', F_in])) ctxt
                 THEN' EVERY'
-                  [rtac ctxt subsetI,
-                  rtac ctxt CollectI,
-                  rtac ctxt subsetI,
-                  dtac ctxt vimageD,
+                  [rtac ctxt @{thm subsetI},
+                  rtac ctxt @{thm CollectI},
+                  rtac ctxt @{thm subsetI},
+                  dtac ctxt @{thm vimageD},
                   etac ctxt @{thm ImageE},
-                  etac ctxt CollectE,
-                  etac ctxt CollectE,
+                  etac ctxt @{thm CollectE},
+                  etac ctxt @{thm CollectE},
                   dtac ctxt @{thm case_prodD},
                   dtac ctxt @{thm InterD},
                   rtac ctxt @{thm imageI[OF CollectI]},
                   etac ctxt (#symp qthms),
                   etac ctxt @{thm UnionE},
-                  etac ctxt imageE,
+                  etac ctxt @{thm imageE},
                   hyp_subst_tac ctxt,
                   etac ctxt @{thm subset_lift_sum_unitD},
                   etac ctxt @{thm setr.cases},
@@ -1321,28 +1321,28 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   assume_tac ctxt])
                 THEN unfold_thms_tac ctxt [#def set_F'] THEN
                 (HEADGOAL o EVERY')
-                  [rtac ctxt subsetI,
-                  etac ctxt CollectE,
-                  etac ctxt (subsetD OF [F_in'_mono_thm]),
+                  [rtac ctxt @{thm subsetI},
+                  etac ctxt @{thm CollectE},
+                  etac ctxt (@{thm subsetD} OF [F_in'_mono_thm]),
                   EqSubst.eqsubst_tac ctxt [0] [F_in'_Inter_thm],
                   rtac ctxt @{thm InterI}] THEN
                 REPEAT_DETERM (HEADGOAL (etac ctxt @{thm imageE} THEN' hyp_subst_tac ctxt)) THEN
                 (HEADGOAL o EVERY')
-                  [etac ctxt CollectE,
+                  [etac ctxt @{thm CollectE},
                   SELECT_GOAL (unfold_thms_tac ctxt (map #def [F_in', F_in])),
                   rtac ctxt @{thm vimageI[OF refl]},
                   rtac ctxt @{thm ImageI},
-                  rtac ctxt CollectI,
+                  rtac ctxt @{thm CollectI},
                   rtac ctxt @{thm case_prodI},
                   etac ctxt (#symp qthms),
-                  rtac ctxt CollectI,
-                  rtac ctxt subsetI,
+                  rtac ctxt @{thm CollectI},
+                  rtac ctxt @{thm subsetI},
                   rtac ctxt @{thm sum_insert_Inl_unit},
                   assume_tac ctxt,
                   hyp_subst_tac ctxt,
-                  rtac ctxt imageI,
+                  rtac ctxt @{thm imageI},
                   rtac ctxt @{thm UnionI},
-                  rtac ctxt imageI,
+                  rtac ctxt @{thm imageI},
                   assume_tac ctxt,
                   rtac ctxt @{thm setr.intros[OF refl]}];
               val F_in'_alt2_thm = prove lthy [var_A] F_in'_alt2_tm F_in'_alt2_tac;
@@ -1355,22 +1355,22 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   [rtac ctxt @{thm set_eqI},
                   rtac ctxt iffI,
                   rtac ctxt @{thm InterI},
-                  etac ctxt CollectE,
-                  etac ctxt CollectE,
-                  dtac ctxt subsetD,
+                  etac ctxt @{thm CollectE},
+                  etac ctxt @{thm CollectE},
+                  dtac ctxt @{thm subsetD},
                   assume_tac ctxt,
                   assume_tac ctxt,
                   etac ctxt @{thm InterD},
-                  rtac ctxt CollectI,
-                  rtac ctxt CollectI,
-                  rtac ctxt subset_refl]);
+                  rtac ctxt @{thm CollectI},
+                  rtac ctxt @{thm CollectI},
+                  rtac ctxt @{thm subset_refl}]);
               val set_F'_alt_thm = prove lthy [var_x] set_F'_alt_tm set_F'_alt_tac;
 
               (* map_F_in_F_in'I: x \<in> F_in' B \<Longrightarrow> map_F f x \<in> F_in' (f ` B) *)
               val map_F_in_F_in'I_tm = mk_Trueprop_implies ([HOLogic.mk_mem (var_x, #tm F_in' $ var_A')],
                 HOLogic.mk_mem (map_F_fs_x, subst_b (#tm F_in') $ (mk_image var_f $ var_A')));
               fun map_F_in_F_in'I_tac ctxt =
-                Local_Defs.unfold_tac ctxt ([#def F_in', #def F_in, Bex_def] @ @{thms vimage_def Image_iff}) THEN
+                Local_Defs.unfold_tac ctxt (#def F_in' :: #def F_in :: @{thms Bex_def vimage_def Image_iff}) THEN
                 HEADGOAL (EVERY'
                   [etac ctxt @{thm CollectE},
                   etac ctxt exE,
@@ -1386,7 +1386,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   dtac ctxt (map_F_rsp_of (map mk_Maybe_map var_fs) ctxt),
                   SELECT_GOAL (unfold_thms_tac ctxt (map_F_comp :: @{thms o_def map_sum.simps})),
                   assume_tac ctxt,
-                  rtac ctxt CollectI,
+                  rtac ctxt @{thm CollectI},
                   SELECT_GOAL (unfold_thms_tac ctxt set_map_thms),
                   etac ctxt @{thm image_map_sum_unit_subset}]);
               val map_F_in_F_in'I_thm =
@@ -1422,7 +1422,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   fun subset_UNIVs n = fold (fn a => fn b => conjI OF [a, b]) (replicate (n-1)
                     @{thm subset_UNIV}) @{thm subset_UNIV};
                   val GrpI_inst = infer_instantiate' ctxt (map SOME [Thm.cterm_of ctxt map_F_fs, x])
-                    @{thm GrpI} OF [refl, CollectI] OF [subset_UNIVs live];
+                    @{thm GrpI} OF @{thms refl CollectI} OF [subset_UNIVs live];
 
                 in EVERY [
                   HEADGOAL (Method.insert_tac ctxt [rel_pos_distr_thm_inst]),
@@ -1437,7 +1437,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                     rtac ctxt @{thm relcomppI},
                     rtac ctxt rel_refl_strong]),
                   REPEAT_DETERM_N idx (HEADGOAL (rtac ctxt refl)),
-                  HEADGOAL (rtac ctxt conjI THEN' TWICE (etac ctxt subsetD THEN' assume_tac ctxt)),
+                  HEADGOAL (rtac ctxt conjI THEN' TWICE (etac ctxt @{thm subsetD} THEN' assume_tac ctxt)),
                   REPEAT_DETERM_N (live-idx-1) (HEADGOAL (rtac ctxt refl)),
                   HEADGOAL (EVERY'
                     [rtac ctxt @{thm relcomppI},
@@ -1453,24 +1453,24 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                     etac ctxt @{thm GrpE},
                     hyp_subst_tac ctxt,
                     rtac ctxt @{thm ImageI},
-                    rtac ctxt CollectI,
+                    rtac ctxt @{thm CollectI},
                     rtac ctxt @{thm case_prodI},
                     assume_tac ctxt,
                     EqSubst.eqsubst_asm_tac ctxt [1] rel_map,
                     EqSubst.eqsubst_asm_tac ctxt [1] [in_rel_of_bnf bnf_F],
                     etac ctxt exE,
-                    etac ctxt CollectE,
+                    etac ctxt @{thm CollectE},
                     etac ctxt conjE,
                     etac ctxt conjE,
-                    etac ctxt CollectE,
+                    etac ctxt @{thm CollectE},
                     hyp_subst_tac ctxt,
-                    rtac ctxt CollectI]),
+                    rtac ctxt @{thm CollectI}]),
                   unfold_thms_tac ctxt set_map_thms,
-                  HEADGOAL (rtac ctxt (subsetI OF [vimageI] OF [refl]) THEN'
+                  HEADGOAL (rtac ctxt (@{thm subsetI} OF @{thms vimageI} OF [refl]) THEN'
                             etac ctxt @{thm imageE} THEN' hyp_subst_tac ctxt),
                   REPEAT_DETERM_N 6 (HEADGOAL (etac ctxt Drule.thin_rl)),
                   REPEAT_DETERM_N (live-1) (HEADGOAL (etac ctxt conjE)),
-                  HEADGOAL (EVERY' [dtac ctxt subsetD, assume_tac ctxt, etac ctxt CollectE]),
+                  HEADGOAL (EVERY' [dtac ctxt @{thm subsetD}, assume_tac ctxt, etac ctxt @{thm CollectE}]),
                   unfold_thms_tac ctxt @{thms split_beta},
                   HEADGOAL (etac ctxt conjunct2)] end;
 
@@ -1478,20 +1478,20 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 [rtac ctxt @{thm set_eqI},
                 rtac ctxt iffI,
                 etac ctxt @{thm ImageE},
-                etac ctxt CollectE,
-                etac ctxt CollectE,
+                etac ctxt @{thm CollectE},
+                etac ctxt @{thm CollectE},
                 dtac ctxt @{thm case_prodD},
-                rtac ctxt (vimageI OF [refl]),
+                rtac ctxt @{thm vimageI [OF refl]},
                 rtac ctxt @{thm ImageI},
-                rtac ctxt CollectI,
+                rtac ctxt @{thm CollectI},
                 rtac ctxt @{thm case_prodI},
                 etac ctxt map_F_rsp,
-                rtac ctxt CollectI,
+                rtac ctxt @{thm CollectI},
                 EqSubst.eqsubst_tac ctxt [0] [set_map_F_thm],
                 etac ctxt @{thm subset_vimage_image_subset},
-                etac ctxt vimageE,
+                etac ctxt @{thm vimageE},
                 etac ctxt @{thm ImageE},
-                TWICE (etac ctxt CollectE),
+                TWICE (etac ctxt @{thm CollectE}),
                 dtac ctxt @{thm case_prodD},
                 hyp_subst_tac ctxt,
                 Subgoal.FOCUS_PARAMS subgoal_tac ctxt]);
@@ -1506,18 +1506,18 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   rtac ctxt iffI,
                   EqSubst.eqsubst_asm_tac ctxt [0] [set_F'_alt_thm],
                   etac ctxt @{thm InterD},
-                  rtac ctxt CollectI,
+                  rtac ctxt @{thm CollectI},
                   rtac ctxt map_F_in_F_in'I_thm,
                   SELECT_GOAL (unfold_thms_tac ctxt [F_in'_alt2_thm]),
-                  rtac ctxt CollectI,
-                  rtac ctxt subset_refl,
+                  rtac ctxt @{thm CollectI},
+                  rtac ctxt @{thm subset_refl},
                   SELECT_GOAL (unfold_thms_tac ctxt [set_F'_alt_thm]),
                   rtac ctxt @{thm InterI},
-                  etac ctxt imageE,
-                  etac ctxt CollectE,
+                  etac ctxt @{thm imageE},
+                  etac ctxt @{thm CollectE},
                   hyp_subst_tac ctxt,
                   etac ctxt @{thm vimageD[OF InterD]},
-                  rtac ctxt CollectI]) THEN
+                  rtac ctxt @{thm CollectI}]) THEN
                   (* map_F f x \<in> F_in' X \<Longrightarrow> x \<in> F_in' (f -` X) *)
                   HEADGOAL (Subgoal.FOCUS_PARAMS (fn {context = ctxt, params, ...} =>
                     let
@@ -1534,7 +1534,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                           @{thms lift_sum_unit_vimage_commute vimage_comp o_def map_sum.simps}),
                       unfold_thms_tac ctxt [@{thm o_def[symmetric]}, map_F_comp0],
                       Local_Defs.fold_tac ctxt @{thms vimage_comp},
-                      HEADGOAL (etac ctxt (vimageI OF [refl]))] end) ctxt);
+                      HEADGOAL (etac ctxt @{thm vimageI [OF refl]})] end) ctxt);
 
               (* set_F'_subset: set_F' x \<subseteq> set_F x *)
               val set_F'_subset_tm = HOLogic.mk_Trueprop (mk_leq (#tm set_F' $ var_x) (set_F $ var_x));
@@ -1542,17 +1542,17 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 let val int_e_thm = infer_instantiate' ctxt
                   (replicate 3 NONE @ [SOME (Thm.cterm_of ctxt (map_F_Just $ var_x))]) @{thm INT_E};
                 in HEADGOAL (EVERY' [SELECT_GOAL (Local_Defs.unfold_tac ctxt [#def set_F']),
-                  rtac ctxt subsetI,
+                  rtac ctxt @{thm subsetI},
                   etac ctxt int_e_thm,
                   SELECT_GOAL (unfold_thms_tac ctxt [set_map_F_thm]),
                   etac ctxt @{thm UN_E},
-                  etac ctxt imageE,
+                  etac ctxt @{thm imageE},
                   hyp_subst_tac ctxt,
                   SELECT_GOAL (unfold_thms_tac ctxt @{thms sum_set_simps singleton_iff}),
                   hyp_subst_tac ctxt,
                   assume_tac ctxt,
                   etac ctxt notE,
-                  rtac ctxt CollectI,
+                  rtac ctxt @{thm CollectI},
                   rtac ctxt (#reflp qthms)])
                 end;
             in
@@ -1594,9 +1594,9 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 (unfold_thms_tac ctxt
                   (maps (fn {F_in'_def, F_in_def, ...} => [F_in'_def, F_in_def]) set_F'_thmss) ::
                 map (REPEAT_DETERM_N live o HEADGOAL)
-                  [etac ctxt vimageE,
+                  [etac ctxt @{thm vimageE},
                   etac ctxt @{thm ImageE},
-                  etac ctxt CollectE THEN' etac ctxt CollectE,
+                  etac ctxt @{thm CollectE} THEN' etac ctxt @{thm CollectE},
                   dtac ctxt @{thm case_prodD}] @
                 HEADGOAL (hyp_subst_tac ctxt THEN' rotate_tac (~live)) ::
                 map (fn i => (HEADGOAL o EVERY')
@@ -1610,7 +1610,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   SELECT_GOAL (unfold_thms_tac ctxt (map_F_comp :: @{thms case_sum_o_inj(2)})),
                   EqSubst.eqsubst_tac ctxt [0] [map_F_cong OF replicate i refl @ asm_rl :: replicate (live-i) refl],
                   rtac ctxt @{thm sum.case_cong[OF refl refl]},
-                  etac ctxt bspec,
+                  etac ctxt @{thm bspec},
                   hyp_subst_tac ctxt,
                   etac ctxt @{thm subset_lift_sum_unitD},
                   assume_tac ctxt,
@@ -1641,9 +1641,9 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   EVERY (map (fn {F_in'_alt2, ...} =>
                     unfold_thms_tac ctxt [F_in'_alt2] THEN
                     HEADGOAL (EVERY'
-                      [rtac ctxt CollectI,
-                      rtac ctxt subset_refl,
-                      rtac ctxt ballI,
+                      [rtac ctxt @{thm CollectI},
+                      rtac ctxt @{thm subset_refl},
+                      rtac ctxt @{thm ballI},
                       SELECT_GOAL (unfold_thms_tac ctxt [o_apply]),
                       rtac ctxt @{thm arg_cong[where f=Inr]},
                       asm_full_simp_tac ctxt])) set_F'_thmss) end;
@@ -1750,7 +1750,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 [dtac ctxt (in_rel RS iffD1),
                 etac ctxt exE,
                 TWICE (etac ctxt conjE),
-                etac ctxt CollectE,
+                etac ctxt @{thm CollectE},
                 hyp_subst_tac ctxt]),
               (REPEAT_DETERM_N (live-1) o HEADGOAL) (etac ctxt conjE),
               HEADGOAL (Subgoal.FOCUS_PARAMS subgoal1_tac ctxt THEN' etac ctxt exE),
@@ -1834,7 +1834,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
               REPEAT_FIRST (resolve_tac ctxt [conjI]),
               HEADGOAL (EVERY' (maps (fn {set_F'_respect, ...} =>
                 [etac ctxt @{thm subset_trans[rotated]},
-                rtac ctxt equalityD1,
+                rtac ctxt @{thm equalityD1},
                 rtac ctxt (@{thm rel_funD} OF [set_F'_respect]),
                 rtac ctxt (#rep_abs qthms),
                 rtac ctxt (#reflp qthms)]) set_F'_thmss)),
@@ -1927,9 +1927,9 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                 HEADGOAL (rtac ctxt exI),
                 HEADGOAL (EVERY' (maps (fn thms =>
                   [rtac ctxt conjI,
-                  rtac ctxt subsetI,
+                  rtac ctxt @{thm subsetI},
                   dtac ctxt (set_mp OF [#set_F'_subset thms]),
-                  dtac ctxt subsetD,
+                  dtac ctxt @{thm subsetD},
                   assume_tac ctxt, assume_tac ctxt]) set_F'_thmss)),
                 (REPEAT_DETERM o HEADGOAL)
                   (rtac ctxt conjI ORELSE' hyp_subst_tac ctxt THEN' rtac ctxt (#reflp qthms))]
@@ -2059,7 +2059,7 @@ fun lift_bnf args tacs =
   prepare_solve (K I) (K I) (K I) (K I) (K tacs) args;
 
 fun copy_bnf_tac {context = ctxt, prems = _} =
-  REPEAT_DETERM (resolve_tac ctxt [bexI, conjI, UNIV_I, refl, subset_refl] 1);
+  REPEAT_DETERM (resolve_tac ctxt @{thms bexI conjI UNIV_I refl subset_refl} 1);
 
 val copy_bnf =
   apfst (apfst (rpair NONE))

@@ -868,7 +868,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
        else inter (op =) repTA_tfrees all_TA_params_in_order);
     val ((TA, (Rep_name, Abs_name, type_definition, Abs_inverse, Abs_inject, _)), lthy) =
       maybe_typedef force_out_of_line (T_bind, TA_params, NoSyn) (HOLogic.mk_UNIV repTA) NONE
-        (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+        (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
     val repTB = mk_T_of_bnf Ds Bs bnf;
     val TB = Term.typ_subst_atomic (As ~~ Bs) TA;
@@ -900,7 +900,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
 
     val ((bdT, (_, Abs_bd_name, _, _, Abs_bdT_inject, Abs_bdT_cases)), lthy) =
       maybe_typedef false (bdT_bind, params, NoSyn) (HOLogic.mk_UNIV bd_repT) NONE
-        (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+        (fn ctxt => EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
     val (bnf_bd', bd_ordIso, bd_card_order, bd_cinfinite, bd_regularCard) =
       if bdT = bd_repT then (bnf_bd, bd_Card_order_of_bnf bnf RS @{thm ordIso_refl},
@@ -930,7 +930,7 @@ fun seal_bnf qualify (unfold_set : unfold_set) b force_out_of_line Ds all_Ds bnf
     fun map_cong0_tac ctxt =
       EVERY' (rtac ctxt @{thm type_copy_map_cong0} :: rtac ctxt (map_cong0_of_bnf bnf) ::
         map (fn i => EVERY' [select_prem_tac ctxt live (dtac ctxt meta_spec) i, etac ctxt meta_mp,
-          etac ctxt (o_apply RS equalityD2 RS set_mp)]) (1 upto live)) 1;
+          etac ctxt (o_apply RS @{thm equalityD2} RS set_mp)]) (1 upto live)) 1;
     fun set_map0_tac thm ctxt =
       rtac ctxt (@{thm type_copy_set_map0} OF [type_definition, thm]) 1;
     val set_bd_tacs = map (fn thm => fn ctxt => rtac ctxt (@{thm ordLess_ordIso_trans} OF

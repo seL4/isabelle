@@ -75,6 +75,15 @@ the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* ML bindings for theorms Ball_def, Bex_def, CollectD, CollectE, CollectI,
+Collect_conj_eq, Collect_mem_eq, IntD1, IntD2, IntE, IntI, Int_Collect, UNIV_I,
+UNIV_witness, UnE, UnI1, UnI2, ballE, ballI, bexCI, bexE, bexI, bex_triv, bspec,
+contra_subsetD, equalityCE, equalityD1, equalityD2, equalityE, equalityI,
+imageE, imageI, image_Un, image_insert, insert_commute, insert_iff,
+mem_Collect_eq, rangeE, rangeI, range_eqI, subsetCE, subsetD, subsetI,
+subset_refl, subset_trans, vimageD, vimageE, vimageI, vimageI2, vimage_Collect,
+vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation instead.
+
 * Normalization by evaluation (method "normalization", command value) could
 yield false positives due to incomplete handling of polymorphism in certain
 situations; this is now corrected.

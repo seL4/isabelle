@@ -238,7 +238,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
 
     val map_cong0L_thms = @{map 5} mk_map_cong0L xFs mapsAsAs setssAs map_cong0s map_ids;
     val in_mono'_thms = map (fn thm =>
-      (thm OF (replicate m subset_refl)) RS @{thm set_mp}) in_monos;
+      (thm OF (replicate m @{thm subset_refl})) RS @{thm set_mp}) in_monos;
 
     val map_arg_cong_thms =
       let
@@ -306,7 +306,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val coalg_prem = HOLogic.mk_Trueprop (mk_coalg Bs ss);
 
     val coalg_in_thms = map (fn i =>
-      coalg_def RS iffD1 RS mk_conjunctN n i RS bspec) ks
+      coalg_def RS iffD1 RS mk_conjunctN n i RS @{thm bspec}) ks
 
     val coalg_set_thmss =
       let
@@ -336,7 +336,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       in
         Goal.prove_sorry lthy vars [] goal
           (fn {context = ctxt, prems = _} => (rtac ctxt (coalg_def RS iffD2) 1 THEN CONJ_WRAP
-            (K (EVERY' [rtac ctxt ballI, rtac ctxt CollectI,
+            (K (EVERY' [rtac ctxt @{thm ballI}, rtac ctxt @{thm CollectI},
               CONJ_WRAP' (K (EVERY' [rtac ctxt @{thm subset_UNIV}])) allAs] 1)) ss))
         |> Thm.close_derivation \<^here>
       end;
@@ -423,7 +423,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         (map prove image_goals, map prove elim_goals)
       end;
 
-    val mor_image'_thms = map (fn thm => @{thm set_mp} OF [thm, imageI]) mor_image_thms;
+    val mor_image'_thms = map (fn thm => @{thm set_mp} OF [thm, @{thm imageI}]) mor_image_thms;
 
     val mor_incl_thm =
       let
@@ -436,7 +436,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
         |> Thm.close_derivation \<^here>
       end;
 
-    val mor_id_thm = mor_incl_thm OF (replicate n subset_refl);
+    val mor_id_thm = mor_incl_thm OF (replicate n @{thm subset_refl});
 
     val mor_comp_thm =
       let
@@ -757,7 +757,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
             typedef (sbdT_bind, sum_bdT_params', NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (fn ctxt =>
-                EVERY' [rtac ctxt exI, rtac ctxt UNIV_I] 1) lthy;
+                EVERY' [rtac ctxt exI, rtac ctxt @{thm UNIV_I}] 1) lthy;
 
           val sbdT = Type (sbdT_name, sum_bdT_params);
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
@@ -1341,7 +1341,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
       |> Thm.close_derivation \<^here>;
 
     val mor_final_thm = mor_comp_thm OF [mor_beh_thm, mor_T_final_thm];
-    val in_car_final_thms = map (fn thm => thm OF [mor_final_thm, UNIV_I]) mor_image'_thms;
+    val in_car_final_thms = map (fn thm => thm OF [mor_final_thm, @{thm UNIV_I}]) mor_image'_thms;
 
     val timer = time (timer "Final coalgebra");
 
@@ -1467,7 +1467,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
     val mor_unfold_thm =
       let
         val Abs_inverses' = map2 (curry op RS) in_car_final_thms Abs_inverses;
-        val morEs' = map (fn thm => (thm OF [mor_final_thm, UNIV_I]) RS sym) morE_thms;
+        val morEs' = map (fn thm => (thm OF [mor_final_thm, @{thm UNIV_I}]) RS sym) morE_thms;
         val goal = HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs dtors (map (mk_unfold Ts ss) ks));
         val vars = Variable.add_free_names lthy goal [];
       in
@@ -1476,7 +1476,7 @@ fun construct_gfp mixfixes map_bs rel_bs pred_bs set_bss0 bs resBs (resDs, Dss) 
             unfold_defs Abs_inverses' morEs' map_comp_id_thms map_cong0s)
         |> Thm.close_derivation \<^here>
       end;
-    val dtor_unfold_thms = map (fn thm => (thm OF [mor_unfold_thm, UNIV_I]) RS sym) morE_thms;
+    val dtor_unfold_thms = map (fn thm => (thm OF [mor_unfold_thm, @{thm UNIV_I}]) RS sym) morE_thms;
 
     val (raw_coind_thms, raw_coind_thm) =
       let
@@ -2008,7 +2008,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
               ((set_minimal
                 |> Thm.instantiate' cTs (mk_induct_tinst phis jsets y y')
                 |> unfold_thms lthy incls) OF
-                (replicate n ballI @
+                (replicate n @{thm ballI} @
                   maps (map (fn thm => thm RS @{thm subset_CollectI})) set_set_inclss))
               |> singleton (Proof_Context.export names_lthy lthy)
               |> rule_by_tactic lthy (ALLGOALS (TRY o etac lthy asm_rl)))
@@ -2049,7 +2049,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
                 |> Thm.close_derivation \<^here>))
               ge_goalss set_incl_Jset_thmss' set_Jset_incl_Jset_thmsss'
           in
-            map2 (map2 (fn le => fn ge => equalityI OF [le, ge])) set_le_thmss set_ge_thmss
+            map2 (map2 (fn le => fn ge => @{thm equalityI} OF [le, ge])) set_le_thmss set_ge_thmss
             |> `transpose
           end;
 
@@ -2451,7 +2451,7 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
             goals dtor_Jset_induct_thms
             |> map split_conj_thm
             |> transpose
-            |> map (map_filter (try (fn thm => thm RS bspec RS mp)))
+            |> map (map_filter (try (fn thm => thm RS @{thm bspec} RS mp)))
             |> curry op ~~ (map_index Library.I (map (close_wit I) wits))
             |> filter (fn (_, thms) => length thms = m)
           end;

@@ -133,7 +133,7 @@ val at_fin_set_supp = @{thm at_fin_set_supp};
 val at_fin_set_fresh = @{thm at_fin_set_fresh};
 val abs_fun_eq1 = @{thm abs_fun_eq1};
 
-fun collect_simp ctxt = rewrite_rule ctxt [mk_meta_eq mem_Collect_eq];
+fun collect_simp ctxt = rewrite_rule ctxt [mk_meta_eq @{thm mem_Collect_eq}];
 
 fun mk_perm Ts t u =
   let
@@ -587,7 +587,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
                Const (cname, U --> HOLogic.boolT)) NONE
             (fn ctxt =>
               resolve_tac ctxt [exI] 1 THEN
-              resolve_tac ctxt [CollectI] 1 THEN
+              resolve_tac ctxt @{thms CollectI} 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
               (resolve_tac ctxt rep_intrs 1))) thy |> (fn ((_, r), thy) =>
         let

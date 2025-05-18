@@ -306,9 +306,9 @@ ML \<open>
 (*Splits up conjunctions & intersections: like CONJUNCTS in the HOL system*)
 fun list_of_Int th =
     (list_of_Int (th RS conjunct1) @ list_of_Int (th RS conjunct2))
-    handle THM _ => (list_of_Int (th RS IntD1) @ list_of_Int (th RS IntD2))
+    handle THM _ => (list_of_Int (th RS @{thm IntD1}) @ list_of_Int (th RS @{thm IntD2}))
     handle THM _ => (list_of_Int (th RS @{thm INT_D}))
-    handle THM _ => (list_of_Int (th RS bspec))
+    handle THM _ => (list_of_Int (th RS @{thm bspec}))
     handle THM _ => [th];
 \<close>
 
@@ -319,7 +319,7 @@ let
   fun normalized th =
     normalized (th RS spec
       handle THM _ => th RS @{thm lessThanBspec}
-      handle THM _ => th RS bspec
+      handle THM _ => th RS @{thm bspec}
       handle THM _ => th RS (@{thm guarantees_INT_right_iff} RS iffD1))
     handle THM _ => th;
 in

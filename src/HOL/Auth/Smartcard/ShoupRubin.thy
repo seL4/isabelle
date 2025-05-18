@@ -817,7 +817,7 @@ method_setup sc_analz_freshK = \<open>
     Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST
-       (resolve_tac ctxt [allI, ballI, impI]),
+       (resolve_tac ctxt @{thms allI ballI impI}),
         REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshK_lemma}),
         ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt
           addsimps [@{thm knows_Spy_Inputs_secureM_sr_Spy},

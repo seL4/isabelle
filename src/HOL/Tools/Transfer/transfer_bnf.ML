@@ -153,10 +153,10 @@ fun Domainp_tac bnf pred_def ctxt =
   in
     EVERY' [rtac ctxt ext, SELECT_GOAL (Local_Defs.unfold0_tac ctxt [@{thm Domainp.simps},
         in_rel_of_bnf bnf, pred_def]), rtac ctxt iffI,
-        REPEAT_DETERM o eresolve_tac ctxt [exE, conjE, CollectE], hyp_subst_tac ctxt,
-        CONJ_WRAP' (fn set_map => EVERY' [rtac ctxt ballI, dtac ctxt (set_map RS equalityD1 RS set_mp),
-          etac ctxt imageE, dtac ctxt set_rev_mp, assume_tac ctxt,
-          REPEAT_DETERM o eresolve_tac ctxt [CollectE, @{thm case_prodE}],
+        REPEAT_DETERM o eresolve_tac ctxt @{thms exE conjE CollectE}, hyp_subst_tac ctxt,
+        CONJ_WRAP' (fn set_map => EVERY' [rtac ctxt @{thm ballI}, dtac ctxt (set_map RS @{thm equalityD1} RS set_mp),
+          etac ctxt @{thm imageE}, dtac ctxt set_rev_mp, assume_tac ctxt,
+          REPEAT_DETERM o eresolve_tac ctxt @{thms CollectE case_prodE},
           hyp_subst_tac ctxt, rtac ctxt @{thm iffD2[OF arg_cong2[of _ _ _ _ Domainp, OF refl fst_conv]]},
           etac ctxt @{thm DomainPI}]) set_map's,
         REPEAT_DETERM o etac ctxt conjE,
@@ -164,10 +164,10 @@ fun Domainp_tac bnf pred_def ctxt =
         rtac ctxt refl, rtac ctxt (box_equals OF [map_cong0_of_bnf bnf, map_comp_of_bnf bnf RS sym,
           map_id_of_bnf bnf]),
         REPEAT_DETERM_N n o (EVERY' [rtac ctxt @{thm box_equals[OF _ sym[OF o_apply] sym[OF id_apply]]},
-          rtac ctxt @{thm fst_conv}]), rtac ctxt CollectI,
+          rtac ctxt @{thm fst_conv}]), rtac ctxt @{thm CollectI},
         CONJ_WRAP' (fn set_map => EVERY' [rtac ctxt (set_map RS @{thm ord_eq_le_trans}),
-          REPEAT_DETERM o resolve_tac ctxt [@{thm image_subsetI}, CollectI, @{thm case_prodI}],
-          dtac ctxt (rotate_prems 1 bspec), assume_tac ctxt,
+          REPEAT_DETERM o resolve_tac ctxt @{thms image_subsetI CollectI case_prodI},
+          dtac ctxt (rotate_prems 1 @{thm bspec}), assume_tac ctxt,
           etac ctxt @{thm DomainpE}, etac ctxt @{thm someI}]) set_map's
       ]
   end

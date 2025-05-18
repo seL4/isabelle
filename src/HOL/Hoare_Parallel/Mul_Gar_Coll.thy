@@ -1188,7 +1188,7 @@ apply(tactic \<open>TRYALL (eresolve_tac \<^context> [disjE])\<close>)
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 \<comment> \<open>35 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI1],
-    resolve_tac \<^context> [subset_trans],
+    resolve_tac \<^context> @{thms subset_trans},
     eresolve_tac \<^context> @{thms Graph3},
     force_tac \<^context>,
     assume_tac \<^context>])\<close>)
