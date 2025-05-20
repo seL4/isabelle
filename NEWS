@@ -47,8 +47,8 @@ bundled application on macOS.
 * GUI rendering of the gutter is now more accurate, using scaled icons
 to fit precisely into the available space.
 
-* GUI rendering for dark look-and-feels has been slightly improved, e.g.
-menu accelerator font/color.
+* GUI rendering for dark look-and-feels has been slightly improved:
+colors and icons, notably the menu accelerator font/color.
 
 * Explicit support for dark GUI themes: FlatLaf tells wether a Swing
 look & feel is dark or non-dark (default); jEdit options with suffix
