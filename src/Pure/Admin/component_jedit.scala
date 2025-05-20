@@ -176,7 +176,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         if !File.is_backup(name)
       } {
         progress.bash("patch -p2 < " + File.bash_path(File.path(file)),
-          cwd = source_dir, echo = true).check
+          cwd = source_dir, echo = progress.verbose).check
       }
 
       progress.echo("Augmenting icons ...")
@@ -205,7 +205,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       progress.echo("Building jEdit ...")
       Isabelle_System.copy_dir(source_dir, tmp_source_dir)
-      progress.bash("ant", cwd = tmp_source_dir, echo = true).check
+      progress.bash("ant", cwd = tmp_source_dir, echo = progress.verbose).check
       Isabelle_System.copy_file(tmp_source_dir + Path.explode("build/jedit.jar"), jedit_patched_dir)
 
       val java_sources =
@@ -610,6 +610,7 @@ https://sourceforge.net/projects/jedit-plugins/files
         var target_dir = Path.current
         var original = false
         var version = default_version
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: isabelle component_jedit [OPTIONS]
@@ -618,18 +619,20 @@ Usage: isabelle component_jedit [OPTIONS]
     -D DIR       target directory (default ".")
     -O           retain copy of original jEdit directory
     -V VERSION   jEdit version (default: """ + quote(default_version) + """)
+    -v           verbose
 
   Build auxiliary jEdit component from original sources, with some patches.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "O" -> (_ => original = true),
-          "V:" -> (arg => version = arg))
+          "V:" -> (arg => version = arg),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val component_dir = target_dir + Path.basic("jedit-" + Date.Format.alt_date(Date.now()))
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
         build_jedit(component_dir, version, original = original, progress = progress)
       })
