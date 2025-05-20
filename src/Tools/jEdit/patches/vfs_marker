@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-10-29 11:50:54.058016686 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2025-05-20 15:21:39.685949775 +0200
 @@ -1195,6 +1195,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
@@ -53,6 +53,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-pa
  		}
  
  		Object[] listeners = listenerList.getListenerList();
+@@ -1751,7 +1764,7 @@
+ 		//{{{ MenuButton constructor
+ 		MenuButton()
+ 		{
+-			setIcon(GUIUtilities.loadIcon(jEdit.getProperty("dropdown-arrow.icon")));
++			setIcon(GUIUtilities.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon")));
+ 			setHorizontalTextPosition(SwingConstants.LEADING);
+ 
+ 	//		setRequestFocusEnabled(false);
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-08-03 19:53:14.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-10-29 11:50:54.062016616 +0100

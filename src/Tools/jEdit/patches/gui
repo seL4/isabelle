@@ -241,7 +241,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java jedit5.7.0-patc
  		clear.addActionListener(this);
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props	2024-08-03 19:53:20.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-04-17 00:11:31.583536114 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-05-20 13:46:50.541586193 +0200
 @@ -8,13 +8,15 @@
  ###
  
@@ -263,15 +263,17 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jE
  
  #}}}
  
-@@ -28,7 +30,7 @@
+@@ -28,8 +30,8 @@
  defer=false
  startup=true
  
 -broken-image.icon=22x22/status/image-missing.png
+-dropdown-arrow.icon=ToolbarMenu.gif
 +broken-image.icon=32x32/status/image-missing.svg?scale=0.7
- dropdown-arrow.icon=ToolbarMenu.gif
++dropdown-arrow.icon=idea-icons/general/buttonDropTriangle.svg
  #}}}
  
+ #{{{ Tool bar
 @@ -39,68 +41,69 @@
  	buffer-options combined-options - \
  	plugin-manager - help
@@ -1089,3 +1091,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/search/SearchBar.java jedit5.7.0-patc
  		errorBackground = style.getBackgroundColor();
  		errorForeground = style.getForegroundColor();
  		defaultBackground = find.getBackground();
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/help/HistoryButton.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/help/HistoryButton.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/help/HistoryButton.java	2024-08-03 19:53:20.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/help/HistoryButton.java	2025-05-20 15:21:59.692613480 +0200
+@@ -61,7 +61,7 @@
+ 						? "helpviewer.back.label"
+ 						: "helpviewer.forward.label"));
+ 		Box box = new Box(BoxLayout.X_AXIS);
+-		drop_button = new RolloverButton(GUIUtilities.loadIcon(jEdit.getProperty("dropdown-arrow.icon")));
++		drop_button = new RolloverButton(GUIUtilities.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon")));
+ 		drop_button.addActionListener(new DropActionHandler());
+ 		box.add(arrow_button);
+ 		box.add(drop_button);

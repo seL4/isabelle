@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2024-08-03 19:53:16.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2024-10-29 11:50:54.062016616 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2025-05-20 15:21:53.380719554 +0200
 @@ -53,6 +53,7 @@
  import javax.swing.JComponent;
  import javax.swing.JPanel;
@@ -9,6 +9,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.
  import javax.swing.JToggleButton;
  import javax.swing.UIManager;
  import javax.swing.border.Border;
+@@ -99,7 +100,7 @@
+ 
+ 		closeBox.addActionListener(e -> show((DockableWindowManagerImpl.Entry)null));
+ 
+-		menuBtn = new JButton(GUIUtilities.loadIcon(jEdit.getProperty("dropdown-arrow.icon")));
++		menuBtn = new JButton(GUIUtilities.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon")));
+ 		menuBtn.setRequestFocusEnabled(false);
+ 		menuBtn.setToolTipText(jEdit.getProperty("view.docking.menu-tooltip"));
+ 		if(OperatingSystem.isMacOSLF())
 @@ -164,6 +165,7 @@
  		{
  			button = new JToggleButton();	

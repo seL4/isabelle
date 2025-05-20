@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2024-08-03 19:53:18.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2024-10-29 11:50:54.062016616 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2025-05-20 15:21:47.892811800 +0200
 @@ -45,14 +45,15 @@
   * @version $Id: FloatingWindowContainer.java 25333 2020-05-10 09:40:02Z kpouer $
   * @since jEdit 4.0pre1
@@ -19,6 +19,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jedi
  		this.dockableWindowManager = dockableWindowManager;
  
  		dockableWindowManager.addPropertyChangeListener(this);
+@@ -62,7 +63,7 @@
+ 
+ 		Box caption = new Box(BoxLayout.X_AXIS);
+ 		caption.add(menu = new RolloverButton(GUIUtilities
+-			.loadIcon(jEdit.getProperty("dropdown-arrow.icon"))));
++			.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon"))));
+ 		menu.addMouseListener(new MouseHandler());
+ 		menu.setToolTipText(jEdit.getProperty("docking.menu.label"));
+ 		Box separatorBox = new Box(BoxLayout.Y_AXIS);
 @@ -87,7 +88,6 @@
  		pack();
  		Container parent = dockableWindowManager.getView();
