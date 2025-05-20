@@ -1112,3 +1112,25 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/help/HistoryButton.java jedit5.7.0-pa
  		drop_button.addActionListener(new DropActionHandler());
  		box.add(arrow_button);
  		box.add(drop_button);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/OptionsDialog.java	2025-05-20 16:27:48.111088672 +0200
+@@ -191,6 +191,7 @@
+ 
+ 						if(optionPane != null)
+ 						{
++							deferredOptionPanes.clear();
+ 							deferredOptionPanes.put(
+ 								node,optionPane);
+ 						}
+diff -ru jedit5.7.0/jEdit/org/jedit/options/OptionGroupPane.java jedit5.7.0-patched/jEdit/org/jedit/options/OptionGroupPane.java
+--- jedit5.7.0/jEdit/org/jedit/options/OptionGroupPane.java	2024-08-03 19:53:23.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/jedit/options/OptionGroupPane.java	2025-05-20 16:34:10.010928214 +0200
+@@ -151,6 +151,7 @@
+ 
+ 						if (optionPane != null)
+ 						{
++							deferredOptionPanes.clear();
+ 							deferredOptionPanes.put(node, optionPane);
+ 						}
+ 						else
