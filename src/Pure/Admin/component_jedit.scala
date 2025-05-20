@@ -268,6 +268,7 @@ console.dock-position=floating
 console.encoding=UTF-8
 console.font=Isabelle DejaVu Sans Mono
 console.fontsize=14
+console.shell.default=Scala
 delete-line.shortcut=A+d
 delete.shortcut2=C+d
 """ + drop_encodings.map(a => "encoding.opt-out." + a + "=true").mkString("\n") + """
@@ -452,6 +453,12 @@ view.width=1200
 xml-insert-closing-tag.shortcut=
 
 #dark theme
+console.bgColor.dark=\#ff000000
+console.plainColor.dark=\#ffffffff
+console.caretColor.dark=\#ffffffff
+console.infoColor.dark=\#ffc1dfee
+console.warningColor.dark=\#ffff8c00
+console.errorColor.dark=\#ffb22222
 view.bgColor.dark=\#ff2b2b2b
 view.caretColor.dark=\#ff99ff99
 view.eolMarkerColor.dark=\#ffffcc00
