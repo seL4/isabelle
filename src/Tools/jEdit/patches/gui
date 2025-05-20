@@ -1,6 +1,6 @@
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-05-14 11:07:16.919569611 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-05-20 15:40:14.181962645 +0200
 @@ -42,6 +42,8 @@
  import java.net.URL;
  import java.util.*;
@@ -150,6 +150,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  			if (child instanceof JTextPane)
  				((JTextPane)child).setUI(new javax.swing.plaf.basic.BasicEditorPaneUI());
  			if (child instanceof Container)
+@@ -1596,7 +1655,7 @@
+ 		deprecatedIcons.put("NextFile.png",    "22x22/go-last.png");
+ 		deprecatedIcons.put("PreviousFile.png","22x22/go-first.png");
+ 
+-		deprecatedIcons.put("closebox.gif",   "10x10/actions/close.png");
++		deprecatedIcons.put("closebox.gif",   "32x32/actions/process-stop.svg?scale=0.33");
+ 		deprecatedIcons.put("normal.gif",   "10x10/status/document-unmodified.png");
+ 		deprecatedIcons.put("readonly.gif",   "10x10/emblem/emblem-readonly.png");
+ 		deprecatedIcons.put("dirty.gif",    "10x10/status/document-modified.png");
 @@ -1619,6 +1678,21 @@
  	}
  	//}}}
