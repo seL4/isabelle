@@ -453,7 +453,7 @@ view.width=1200
 xml-insert-closing-tag.shortcut=
 
 #dark theme
-console.bgColor.dark=\#ff000000
+console.bgColor.dark=\#ff2b2b2b
 console.plainColor.dark=\#ffffffff
 console.caretColor.dark=\#ffffffff
 console.infoColor.dark=\#ffc1dfee
