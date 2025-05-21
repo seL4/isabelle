@@ -1303,3 +1303,26 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jE
  	//{{{ getPath() method
  	public String getPath()
  	{
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java	2025-05-21 15:34:14.464265550 +0200
+@@ -93,7 +93,7 @@
+ 		/* Icon Theme */
+ 		String[] themes = IconTheme.builtInNames();
+ 		iconThemes = new JComboBox<String>(themes);
+-		addComponent(jEdit.getProperty("options.appearance.iconTheme"), iconThemes);
++		//addComponent(jEdit.getProperty("options.appearance.iconTheme"), iconThemes);
+ 		String oldTheme = IconTheme.get();
+ 		for (int i=0; i<themes.length; ++i)
+ 		{
+@@ -414,7 +414,9 @@
+ 
+ 		// adjust swing properties for button, menu, and label, and list and
+ 		// textfield fonts
+-		setFonts();
++		if (!jEdit.getProperty("lookAndFeel").startsWith("com.formdev.flatlaf.")) {
++			setFonts();
++		}
+ 
+ 		// This is handled a little differently from other jEdit settings
+ 		// as this flag needs to be known very early in the
