@@ -84,8 +84,11 @@ sig
   val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
   val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
     Proof.context -> Proof.context
+  val add_simps: thm list -> Proof.context -> Proof.context
   val add_simp: thm -> Proof.context -> Proof.context
+  val del_simps: thm list -> Proof.context -> Proof.context
   val del_simp: thm -> Proof.context -> Proof.context
+  val flip_simps: thm list -> Proof.context -> Proof.context
   val flip_simp: thm -> Proof.context -> Proof.context
   val mk_cong: Proof.context -> thm -> thm
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
@@ -664,29 +667,35 @@ fun sym_present ctxt thms =
 *)
 in
 
-fun ctxt addsimps thms =
+fun add_simps thms ctxt =
   comb_simps insert_rrule (mk_rrule ctxt) false thms ctxt;
 
 fun add_flipped_simps thms ctxt =
   comb_simps insert_rrule (mk_rrule ctxt) true thms ctxt;
 
-fun ctxt delsimps thms =
+fun ctxt addsimps thms = ctxt |> add_simps thms;
+
+fun add_simp thm = add_simps [thm];
+
+fun del_simps thms ctxt =
   comb_simps (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
 
 fun del_simps_quiet thms ctxt =
   comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
 
-fun add_simp thm ctxt = ctxt addsimps [thm];
+fun ctxt delsimps thms = ctxt |> del_simps thms;
 
-fun del_simp thm ctxt = ctxt delsimps [thm];
+fun del_simp thm = del_simps [thm];
 
-fun flip_simp thm = del_simps_quiet [thm] #> add_flipped_simps [thm];
+fun flip_simps thms = del_simps_quiet thms #> add_flipped_simps thms;
 (*
 with check for presence of symmetric version:
   if sym_present ctxt [thm]
   then (cond_warning ctxt (fn () => print_thm0 ctxt "Ignoring rewrite rule:" thm); ctxt)
   else ctxt addsimps [thm];
 *)
+
+fun flip_simp thm = flip_simps [thm];
 
 end;
 
