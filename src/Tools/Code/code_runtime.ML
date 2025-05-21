@@ -362,7 +362,7 @@ in
 fun preprocess_conv { ctxt } = 
   let
     val rules = get ctxt;
-  in fn ctxt' => Raw_Simplifier.rewrite ctxt' false rules end;
+  in fn ctxt' => Raw_Simplifier.rewrite_wrt ctxt' false rules end;
 
 fun preprocess_term { ctxt } =
   let

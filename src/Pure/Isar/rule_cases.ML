@@ -184,14 +184,14 @@ local
 
 fun unfold_prems ctxt n defs th =
   if null defs then th
-  else Conv.fconv_rule (Conv.prems_conv n (Raw_Simplifier.rewrite ctxt true defs)) th;
+  else Conv.fconv_rule (Conv.prems_conv n (Raw_Simplifier.rewrite_wrt ctxt true defs)) th;
 
 fun unfold_prems_concls ctxt defs th =
   if null defs orelse not (can Logic.dest_conjunction (Thm.concl_of th)) then th
   else
     Conv.fconv_rule
       (Conv.concl_conv ~1 (Conjunction.convs
-        (Conv.prems_conv ~1 (Raw_Simplifier.rewrite ctxt true defs)))) th;
+        (Conv.prems_conv ~1 (Raw_Simplifier.rewrite_wrt ctxt true defs)))) th;
 
 in
 

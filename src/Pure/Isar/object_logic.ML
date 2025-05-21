@@ -203,7 +203,7 @@ fun atomize_term ctxt =
   drop_judgment ctxt o
     Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctxt) (get_atomize ctxt) [];
 
-fun atomize ctxt = Raw_Simplifier.rewrite ctxt true (get_atomize ctxt);
+fun atomize ctxt = Raw_Simplifier.rewrite_wrt ctxt true (get_atomize ctxt);
 
 fun atomize_prems ctxt ct =
   if Logic.has_meta_prems (Thm.term_of ct) then
@@ -222,7 +222,7 @@ fun rulify_term ctxt =
 fun rulify_tac ctxt = rewrite_goal_tac ctxt (get_rulify ctxt);
 
 fun gen_rulify full ctxt =
-  Conv.fconv_rule (Raw_Simplifier.rewrite ctxt full (get_rulify ctxt))
+  Conv.fconv_rule (Raw_Simplifier.rewrite_wrt ctxt full (get_rulify ctxt))
   #> Variable.gen_all ctxt
   #> Thm.strip_shyps
   #> Drule.zero_var_indexes;

@@ -178,7 +178,7 @@ fun specialize_fixp_induct ctxt fT fT_uc curry uncurry mono_thm f_def rule =
        THEN Simplifier.full_simp_tac (put_simpset curry_uncurry_ss ctxt) 5) (* simplify induction step *)
     |> (fn thm => thm OF [mono_thm, f_def])
     |> Conv.fconv_rule (Conv.concl_conv ~1    (* simplify conclusion *)
-         (Raw_Simplifier.rewrite ctxt false [mk_meta_eq @{thm Product_Type.curry_case_prod}]))
+         (Raw_Simplifier.rewrite_wrt ctxt false [mk_meta_eq @{thm Product_Type.curry_case_prod}]))
     |> singleton (Variable.export ctxt' ctxt)
   end
 

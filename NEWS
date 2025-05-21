@@ -72,6 +72,9 @@ not available as SVG.
 * Command 'thy_deps' expects optional theory arguments as long theory names,
 the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
+* ML function 'Raw_Simplifier.rewrite' renamed to 'Raw_Simplifier.rewrite_wrt',
+to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
+
 
 *** HOL ***
 

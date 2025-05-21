@@ -358,7 +358,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = fold Logic.all frees (Logic.list_implies (prems, mk_prop' t'))
     val prop2 = Logic.list_rename_params (rev names) prop1
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite ctxt false [Domainp_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite_wrt ctxt false [Domainp_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm;
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
@@ -412,7 +412,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
     val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite ctxt false [is_equality_lemma] cprop
+    val equal_thm = Raw_Simplifier.rewrite_wrt ctxt false [is_equality_lemma] cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))

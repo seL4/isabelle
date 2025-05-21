@@ -1369,7 +1369,7 @@ fun derive_map_set_rel_pred_thms plugins fp live As Bs C E abs_inverses ctr_defs
                 rel_inject
                 |> Thm.instantiate' cTs cts
                 |> Conv.fconv_rule (HOLogic.Trueprop_conv (Conv.arg_conv
-                  (Raw_Simplifier.rewrite lthy false
+                  (Raw_Simplifier.rewrite_wrt lthy false
                      @{thms eq_onp_top_eq_eq[symmetric, THEN eq_reflection]})))
                 |> unfold_thms lthy eq_onps
                 |> postproc

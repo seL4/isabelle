@@ -168,7 +168,7 @@ fun export_cterm inner outer ct =
   export inner outer (Drule.mk_term ct) ||> Drule.dest_term;
 
 fun contract ctxt defs ct th =
-  th COMP (Raw_Simplifier.rewrite ctxt true defs ct COMP_INCR Drule.equal_elim_rule2);
+  th COMP (Raw_Simplifier.rewrite_wrt ctxt true defs ct COMP_INCR Drule.equal_elim_rule2);
 
 
 

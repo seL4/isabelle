@@ -117,11 +117,17 @@ sig
   val generic_rewrite_goal_tac: bool * bool * bool ->
     (Proof.context -> tactic) -> Proof.context -> int -> tactic
   val rewrite0: Proof.context -> bool -> conv
-  val rewrite: Proof.context -> bool -> thm list -> conv
+  val rewrite_wrt: Proof.context -> bool -> thm list -> conv
   val rewrite0_rule: Proof.context -> thm -> thm
 end;
 
-structure Raw_Simplifier: RAW_SIMPLIFIER =
+signature LEGACY_RAW_SIMPLIFIER =
+sig
+  include RAW_SIMPLIFIER
+  val rewrite: Proof.context -> bool -> thm list -> conv
+end
+
+structure Raw_Simplifier: LEGACY_RAW_SIMPLIFIER =
 struct
 
 (** datatype simpset **)
@@ -1484,11 +1490,13 @@ val simple_prover =
 
 fun rewrite0 ctxt full = rewrite_cterm (full, false, false) simple_prover ctxt;
 
-fun rewrite _ _ [] = Thm.reflexive
-  | rewrite ctxt full thms = rewrite0 (init_simpset thms ctxt) full;
+fun rewrite_wrt _ _ [] = Thm.reflexive
+  | rewrite_wrt ctxt full thms = rewrite0 (init_simpset thms ctxt) full;
+
+val rewrite = rewrite_wrt;
 
 fun rewrite0_rule ctxt = Conv.fconv_rule (rewrite0 ctxt true);
-fun rewrite_rule ctxt = Conv.fconv_rule o rewrite ctxt true;
+fun rewrite_rule ctxt = Conv.fconv_rule o rewrite_wrt ctxt true;
 
 (*simple term rewriting -- no proof*)
 fun rewrite_term thy rules procs =
