@@ -12,4 +12,3 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jed
  
  		// This is handled a little differently from other jEdit settings
  		// as this flag needs to be known very early in the
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java
