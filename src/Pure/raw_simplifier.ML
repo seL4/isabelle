@@ -102,10 +102,13 @@ sig
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val prems_of: Proof.context -> thm list
   val add_prems: thm list -> Proof.context -> Proof.context
+  val loop_tac: Proof.context -> int -> tactic
+  val set_loop: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
+  val add_loop: string * (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
+  val del_loop: string -> Proof.context -> Proof.context
   val solvers: Proof.context -> solver list * solver list
   val solver: Proof.context -> solver -> int -> tactic
   val set_solvers: solver list -> Proof.context -> Proof.context
-  val loop_tac: Proof.context -> int -> tactic
   val default_mk_sym: Proof.context -> thm -> thm option
   val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
     Proof.context -> Proof.context
@@ -868,21 +871,27 @@ fun set_subgoaler subgoal_tac =
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, _, loop_tacs, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
-fun ctxt setloop tac = ctxt |>
+fun set_loop tac =
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, _, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, [("", tac)], solvers));
 
-fun ctxt addloop (name, tac) = ctxt |>
+fun ctxt setloop tac = ctxt |> set_loop tac;
+
+fun add_loop (name, tac) =
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac,
      AList.update (op =) (name, tac) loop_tacs, solvers));
 
-fun ctxt delloop name = ctxt |>
+fun ctxt addloop tac = ctxt |> add_loop tac;
+
+fun del_loop name ctxt = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac,
      (if AList.defined (op =) loop_tacs name then ()
       else cond_warning ctxt (fn () => "No such looper in simpset: " ^ quote name);
       AList.delete (op =) name loop_tacs), solvers));
+
+fun ctxt delloop name = ctxt |> del_loop name;
 
 fun ctxt setSSolver solver = ctxt |> map_simpset2
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>

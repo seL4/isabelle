@@ -1038,12 +1038,11 @@ subsubsection \<open>The looper\<close>
 
 text \<open>
   \begin{mldecls}
-  @{define_ML_infix setloop: "Proof.context *
-  (Proof.context -> int -> tactic) -> Proof.context"} \\
-  @{define_ML_infix addloop: "Proof.context *
-  (string * (Proof.context -> int -> tactic))
-  -> Proof.context"} \\
-  @{define_ML_infix delloop: "Proof.context * string -> Proof.context"} \\
+  @{define_ML Simplifier.set_loop: "(Proof.context -> int -> tactic) ->
+  Proof.context -> Proof.context"} \\
+  @{define_ML Simplifier.add_loop: "string * (Proof.context -> int -> tactic) ->
+  Proof.context -> Proof.context"} \\
+  @{define_ML Simplifier.del_loop: "string -> Proof.context -> Proof.context"} \\
   @{define_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
   @{define_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
   @{define_ML Splitter.add_split_bang: "
@@ -1060,14 +1059,14 @@ text \<open>
   Another possibility is to apply an elimination rule on the assumptions. More
   adventurous loopers could start an induction.
 
-    \<^descr> \<open>ctxt setloop tac\<close> installs \<open>tac\<close> as the only looper tactic of \<open>ctxt\<close>.
+    \<^descr> \<^ML>\<open>Simplifier.set_loop\<close>~\<open>tac ctxt\<close> installs \<open>tac\<close> as the only looper tactic of \<open>ctxt\<close>.
 
-    \<^descr> \<open>ctxt addloop (name, tac)\<close> adds \<open>tac\<close> as an additional looper tactic
+    \<^descr> \<^ML>\<open>Simplifier.add_loop\<close>~\<open>(name, tac) ctxt\<close> adds \<open>tac\<close> as an additional looper tactic
     with name \<open>name\<close>, which is significant for managing the collection of
     loopers. The tactic will be tried after the looper tactics that had
     already been present in \<open>ctxt\<close>.
 
-    \<^descr> \<open>ctxt delloop name\<close> deletes the looper tactic that was associated with
+    \<^descr> \<^ML>\<open>Simplifier.del_loop\<close>~\<open>name ctxt\<close> deletes the looper tactic that was associated with
     \<open>name\<close> from \<open>ctxt\<close>.
 
     \<^descr> \<^ML>\<open>Splitter.add_split\<close>~\<open>thm ctxt\<close> adds split tactic
