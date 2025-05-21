@@ -155,6 +155,21 @@ lemma
   by (intro is_pole_cong eventually_remove_sings_eq_at refl zorder_cong
             zor_poly_cong has_laurent_expansion_cong' tendsto_cong assms)+
 
+lemma remove_sings_has_laurent_expansion [laurent_expansion_intros]:
+  assumes "f has_laurent_expansion F"
+  shows   "remove_sings f has_laurent_expansion F"
+proof -
+  have "remove_sings f has_laurent_expansion F \<longleftrightarrow> f has_laurent_expansion F"
+  proof (rule has_laurent_expansion_cong)
+    have "isolated_singularity_at f 0"
+      using assms by (metis has_laurent_expansion_isolated_0)
+    thus "eventually (\<lambda>x. remove_sings f x = f x) (at 0)"
+      by (rule eventually_remove_sings_eq_at)
+  qed auto
+  with assms show ?thesis
+    by simp
+qed
+
 lemma get_all_poles_from_remove_sings:
   fixes f:: "complex \<Rightarrow> complex"
   defines "ff\<equiv>remove_sings f"
@@ -242,7 +257,7 @@ proof (cases "is_pole f w")
     using False remove_sings_eqI by auto
 qed simp
 
-lemma remove_sings_analytic_on:
+lemma remove_sings_analytic_at:
   assumes "isolated_singularity_at f z" "f \<midarrow>z\<rightarrow> c"
   shows   "remove_sings f analytic_on {z}"
 proof -
@@ -268,6 +283,24 @@ proof -
   qed (use A(1) in auto)
   thus ?thesis
     using A(1,2) analytic_at by blast
+qed
+
+lemma remove_sings_analytic_on:
+  assumes "f analytic_on A"
+  shows   "remove_sings f analytic_on A"
+proof -
+  from assms obtain B where B: "open B" "A \<subseteq> B" "f holomorphic_on B"
+    by (metis analytic_on_holomorphic)
+  have "remove_sings f holomorphic_on B \<longleftrightarrow> f holomorphic_on B"
+  proof (rule holomorphic_cong)
+    fix z assume "z \<in> B"
+    have "f analytic_on {z}"
+      using \<open>z \<in> B\<close> B holomorphic_on_imp_analytic_at by blast
+    thus "remove_sings f z = f z"
+      by (rule remove_sings_at_analytic)
+  qed auto
+  thus ?thesis
+    using B analytic_on_holomorphic by blast
 qed
 
 lemma residue_remove_sings [simp]:
@@ -1585,7 +1618,7 @@ proof -
   from assms(1) have "f \<midarrow>z\<rightarrow> 0"
     by (simp add: isolated_zero_def)
   with assms(2) have "remove_sings f analytic_on {z}"
-    by (intro remove_sings_analytic_on)
+    by (intro remove_sings_analytic_at)
   hence "zorder (remove_sings f) z > 0"
     using assms by (intro zorder_isolated_zero_pos) auto
   thus ?thesis
@@ -1714,7 +1747,7 @@ lemma not_pole_not_isolated_zero_imp_zorder_eq_0:
   shows   "zorder f z = 0"
 proof -
   have "remove_sings f analytic_on {z}"
-    using assms meromorphic_at_iff not_essential_def remove_sings_analytic_on by blast
+    using assms meromorphic_at_iff not_essential_def remove_sings_analytic_at by blast
   moreover from this and assms have "remove_sings f z \<noteq> 0"
     using isolated_zero_def meromorphic_at_iff non_zero_neighbour remove_sings_eq_0_iff by blast
   moreover have "frequently (\<lambda>z. remove_sings f z \<noteq> 0) (at z)"

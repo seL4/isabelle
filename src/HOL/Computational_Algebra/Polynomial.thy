@@ -2042,6 +2042,42 @@ proof (rule ccontr)
   ultimately show False by linarith
 qed
 
+lemma poly_eqI_degree_lead_coeff:
+  fixes p q :: "'a :: {comm_ring_1, ring_no_zero_divisors} poly"
+  assumes "poly.coeff p n = poly.coeff q n" "card A \<ge> n" "degree p \<le> n" "degree q \<le> n"
+  assumes "\<And>z. z \<in> A \<Longrightarrow> poly p z = poly q z"
+  shows   "p = q"
+proof (rule ccontr)
+  assume "p \<noteq> q"
+
+  have "n > 0"
+  proof (rule ccontr)
+    assume "\<not>(n > 0)"
+    thus False
+      using assms \<open>p \<noteq> q\<close> by (auto elim!: degree_eq_zeroE)
+  qed
+
+  have "n \<le> card A"
+    by fact
+  also have "card A \<le> card {x. poly (p - q) x = 0}"
+    by (intro card_mono poly_roots_finite) (use \<open>p \<noteq> q\<close> assms in auto)
+  also have "card {x. poly (p - q) x = 0} \<le> degree (p - q)"
+    by (rule card_poly_roots_bound) (use \<open>p \<noteq> q\<close> in auto)
+  also have "degree (p - q) < n"
+  proof (intro degree_lessI allI impI)
+    fix k assume "k \<ge> n"
+    show "poly.coeff (p - q) k = 0"
+    proof (cases "k = n")
+      case False
+      hence "poly.coeff p k = 0" "poly.coeff q k = 0"
+        using assms \<open>k \<ge> n\<close> by (auto simp: coeff_eq_0)
+      thus ?thesis
+        by simp
+    qed (use assms in auto)
+  qed (use \<open>n > 0\<close> in auto)
+  finally show False
+    by simp
+qed
 
 
 subsubsection \<open>Order of polynomial roots\<close>
