@@ -1917,13 +1917,10 @@ lemma ASSUMPTION_D: "ASSUMPTION A \<Longrightarrow> A"
   by (simp add: ASSUMPTION_def)
 
 setup \<open>
-let
-  val asm_sol = mk_solver "ASSUMPTION" (fn ctxt =>
-    resolve_tac ctxt [@{thm ASSUMPTION_I}] THEN'
-    resolve_tac ctxt (Simplifier.prems_of ctxt))
-in
-  map_theory_simpset (fn ctxt => Simplifier.addSolver (ctxt,asm_sol))
-end
+  (map_theory_simpset o Simplifier.add_unsafe_solver) (
+    mk_solver "ASSUMPTION" (fn ctxt =>
+      resolve_tac ctxt @{thms ASSUMPTION_I} THEN'
+      resolve_tac ctxt (Simplifier.prems_of ctxt)))
 \<close>
 
 

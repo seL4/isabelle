@@ -438,7 +438,7 @@ fun string_of_typ T =
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
-fun gen_add_split bang split ctxt =
+fun gen_add_split bang split =
   let
     val (name, asm) = split_thm_info split
     val split0 = Thm.trim_context split
@@ -450,14 +450,14 @@ fun gen_add_split bang split ctxt =
                    TRY o (SELECT_GOAL (Data.safe_tac ctxt'))
               else split_tac ctxt' [split'])
       end
-  in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
+  in Simplifier.add_loop (split_name name asm, tac) end;
 
 val add_split = gen_add_split false;
 val add_split_bang = gen_add_split true;
 
-fun del_split split ctxt =
+fun del_split split =
   let val (name, asm) = split_thm_info split
-  in Simplifier.delloop (ctxt, split_name name asm) end;
+  in Simplifier.del_loop (split_name name asm) end;
 
 
 (* attributes *)

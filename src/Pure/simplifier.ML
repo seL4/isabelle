@@ -425,8 +425,8 @@ in
 
 val simplified = conv_mode -- Attrib.thms >>
   (fn (f, ths) => Thm.rule_attribute ths (fn context =>
-    f ((if null ths then I else clear_simpset)
-        (Context.proof_of context) addsimps ths)));
+    f (Context.proof_of context |>
+      (if null ths then I else clear_simpset #> add_simps ths))));
 
 end;
 
@@ -510,11 +510,11 @@ val safe_solver = mk_solver "Pure safe" safe_solver_tac;
 
 val _ =
   Theory.setup
-    (method_setup [] #> Context.theory_map (map_ss (fn ctxt =>
-      empty_simpset ctxt
-      setSSolver safe_solver
-      setSolver unsafe_solver
-      |> set_subgoaler asm_simp_tac)));
+    (method_setup [] #> Context.theory_map (map_ss (
+      empty_simpset
+      #> set_safe_solver safe_solver
+      #> set_unsafe_solver unsafe_solver
+      #> set_subgoaler asm_simp_tac)));
 
 end;
 
