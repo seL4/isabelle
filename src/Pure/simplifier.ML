@@ -7,7 +7,6 @@ raw_simplifier.ML for the actual meta-level rewriting engine).
 
 signature BASIC_SIMPLIFIER =
 sig
-  include BASIC_RAW_SIMPLIFIER
   val simp_tac: Proof.context -> int -> tactic
   val asm_simp_tac: Proof.context -> int -> tactic
   val full_simp_tac: Proof.context -> int -> tactic
@@ -28,9 +27,7 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
-  val dest_simps: simpset -> (Thm_Name.T * thm) list
-  val dest_congs: simpset -> (cong_name * thm) list
-  val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
+  include RAW_SIMPLIFIER
   val attrib: (thm -> Proof.context -> Proof.context) -> attribute
   val simp_add: attribute
   val simp_del: attribute
@@ -51,32 +48,8 @@ sig
   val simproc_setup: (term, morphism -> proc, thm list) simproc_spec -> simproc
   val simproc_setup_cmd: (string, morphism -> proc, thm list) simproc_spec -> simproc
   val simproc_setup_command: (local_theory -> local_theory) parser
-  val add_proc: simproc -> Proof.context -> Proof.context
-  val del_proc: simproc -> Proof.context -> Proof.context
   val pretty_simpset: bool -> Proof.context -> Pretty.T
-  val default_mk_sym: Proof.context -> thm -> thm option
-  val prems_of: Proof.context -> thm list
-  val add_simp: thm -> Proof.context -> Proof.context
-  val del_simp: thm -> Proof.context -> Proof.context
-  val init_simpset: thm list -> Proof.context -> Proof.context
-  val mk_cong: Proof.context -> thm -> thm
-  val add_eqcong: thm -> Proof.context -> Proof.context
-  val del_eqcong: thm -> Proof.context -> Proof.context
-  val add_cong: thm -> Proof.context -> Proof.context
-  val del_cong: thm -> Proof.context -> Proof.context
-  val add_prems: thm list -> Proof.context -> Proof.context
-  val mksimps: Proof.context -> thm -> thm list
-  val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
-  val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
-    Proof.context -> Proof.context
   val set_mksimps: (Proof.context -> thm -> thm list) -> Proof.context -> Proof.context
-  val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
-  val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_term_ord: term ord -> Proof.context -> Proof.context
-  val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
-  type trace_ops
-  val set_trace_ops: trace_ops -> theory -> theory
   val rewrite: Proof.context -> conv
   val asm_rewrite: Proof.context -> conv
   val full_rewrite: Proof.context -> conv
