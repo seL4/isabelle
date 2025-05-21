@@ -76,39 +76,39 @@ sig
     loopers: string list,
     unsafe_solvers: string list,
     safe_solvers: string list}
-  val add_proc: simproc -> Proof.context -> Proof.context
-  val del_proc: simproc -> Proof.context -> Proof.context
+  val init_simpset: thm list -> Proof.context -> Proof.context
   type trace_ops
   val set_trace_ops: trace_ops -> theory -> theory
-  val subgoal_tac: Proof.context -> int -> tactic
-  val loop_tac: Proof.context -> int -> tactic
-  val solvers: Proof.context -> solver list * solver list
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
-  val prems_of: Proof.context -> thm list
-  val add_simp: thm -> Proof.context -> Proof.context
-  val del_simp: thm -> Proof.context -> Proof.context
-  val flip_simp: thm -> Proof.context -> Proof.context
-  val init_simpset: thm list -> Proof.context -> Proof.context
-  val mk_cong: Proof.context -> thm -> thm
-  val add_eqcong: thm -> Proof.context -> Proof.context
-  val del_eqcong: thm -> Proof.context -> Proof.context
-  val add_cong: thm -> Proof.context -> Proof.context
-  val del_cong: thm -> Proof.context -> Proof.context
   val mksimps: Proof.context -> thm -> thm list
   val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
   val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
     Proof.context -> Proof.context
+  val add_simp: thm -> Proof.context -> Proof.context
+  val del_simp: thm -> Proof.context -> Proof.context
+  val flip_simp: thm -> Proof.context -> Proof.context
+  val mk_cong: Proof.context -> thm -> thm
   val set_mkcong: (Proof.context -> thm -> thm) -> Proof.context -> Proof.context
+  val add_eqcong: thm -> Proof.context -> Proof.context
+  val del_eqcong: thm -> Proof.context -> Proof.context
+  val add_cong: thm -> Proof.context -> Proof.context
+  val del_cong: thm -> Proof.context -> Proof.context
+  val add_proc: simproc -> Proof.context -> Proof.context
+  val del_proc: simproc -> Proof.context -> Proof.context
   val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
   val set_term_ord: term ord -> Proof.context -> Proof.context
+  val subgoal_tac: Proof.context -> int -> tactic
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
-  val solver: Proof.context -> solver -> int -> tactic
-  val default_mk_sym: Proof.context -> thm -> thm option
+  val prems_of: Proof.context -> thm list
   val add_prems: thm list -> Proof.context -> Proof.context
+  val solvers: Proof.context -> solver list * solver list
+  val solver: Proof.context -> solver -> int -> tactic
+  val set_solvers: solver list -> Proof.context -> Proof.context
+  val loop_tac: Proof.context -> int -> tactic
+  val default_mk_sym: Proof.context -> thm -> thm option
   val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
     Proof.context -> Proof.context
-  val set_solvers: solver list -> Proof.context -> Proof.context
   val rewrite_cterm: bool * bool * bool ->
     (Proof.context -> thm -> thm option) -> Proof.context -> conv
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
