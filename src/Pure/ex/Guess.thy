@@ -152,7 +152,7 @@ fun gen_guess prep_var raw_vars int state =
         ctxt' (k, [(s, [th])]);
     val before_qed =
       Method.primitive_text (fn ctxt =>
-        Goal.conclude #> Raw_Simplifier.norm_hhf ctxt #>
+        Goal.conclude #> Simplifier.norm_hhf ctxt #>
           (fn th => Goal.protect 0 (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th)));
     fun after_qed (result_ctxt, results) state' =
       let

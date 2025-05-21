@@ -54,7 +54,7 @@ fun rearrange_prems_conv pi ct =
 *)
 fun atomize_elim_conv ctxt ct =
     (forall_conv (prems_conv ~1 o Object_Logic.atomize_prems o snd) ctxt
-    then_conv Raw_Simplifier.rewrite_wrt ctxt true (Named_Theorems.get ctxt named_theorems)
+    then_conv Simplifier.rewrite_wrt ctxt true (Named_Theorems.get ctxt named_theorems)
     then_conv (fn ct' => if can (Object_Logic.dest_judgment ctxt) ct'
                          then all_conv ct'
                          else raise CTERM ("atomize_elim", [ct', ct])))

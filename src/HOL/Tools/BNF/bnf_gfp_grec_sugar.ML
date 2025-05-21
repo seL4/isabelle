@@ -83,8 +83,8 @@ val unfold_id_thms1 =
 
 fun unfold_id_bnf_etc lthy =
   let val thy = Proof_Context.theory_of lthy in
-    Raw_Simplifier.rewrite_term thy unfold_id_thms1 []
-    #> Raw_Simplifier.rewrite_term thy @{thms BNF_Composition.id_bnf_def} []
+    Simplifier.rewrite_term thy unfold_id_thms1 []
+    #> Simplifier.rewrite_term thy @{thms BNF_Composition.id_bnf_def} []
   end;
 
 datatype corec_option =
@@ -242,7 +242,7 @@ fun derive_case_dtor ctxt fpT_name =
 
     val goal = mk_Trueprop_eq (list_comb (casex, fs) $ u,
         mk_case_absumprod absT rep fs xss xss $ u')
-      |> Raw_Simplifier.rewrite_term thy @{thms comp_def[THEN eq_reflection]} [];
+      |> Simplifier.rewrite_term thy @{thms comp_def[THEN eq_reflection]} [];
     val vars = map (fst o dest_Free) (u :: fs);
 
     val dtor_ctor = nth dtor_ctors fp_res_index;
@@ -553,7 +553,7 @@ fun prime_rho_transfer_goal ctxt fpT_name rho_def goal =
         unfold_thms_tac ctxt simps THEN HEADGOAL (rtac ctxt rho_transfer')))
       |> Thm.close_derivation \<^here>;
 
-    val goal' = Raw_Simplifier.rewrite_term thy simps [] goal;
+    val goal' = Simplifier.rewrite_term thy simps [] goal;
   in
     if null abs_rep_transfers then (goal', derive_unprimed #> fold_rho)
     else (goal, fold_rho)

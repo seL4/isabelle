@@ -43,7 +43,7 @@ fun unskolemize_names ctxt =
 
 fun postprocess_step_conclusion ctxt rewrite_rules ll_defs =
   let val thy = Proof_Context.theory_of ctxt in
-    Raw_Simplifier.rewrite_term thy rewrite_rules []
+    Simplifier.rewrite_term thy rewrite_rules []
     #> Object_Logic.atomize_term ctxt
     #> not (null ll_defs) ? unlift_term ll_defs
     #> simplify_bool

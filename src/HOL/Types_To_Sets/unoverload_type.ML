@@ -47,7 +47,7 @@ fun unoverload_single_type context tvar thm =
         |> map varify_const
     in
       fold Unoverloading.unoverload consts thm''
-      |> Raw_Simplifier.norm_hhf (Context.proof_of context)
+      |> Simplifier.norm_hhf (Context.proof_of context)
     end
   end
 

@@ -196,7 +196,7 @@ fun generate_parametric_transfer_rule ctxt0 transfer_rule parametric_transfer_ru
         Conv.fconv_rule
           ((Conv.concl_conv (Thm.nprems_of inst_thm) o
             HOLogic.Trueprop_conv o Conv.fun2_conv o Conv.arg1_conv)
-            (Raw_Simplifier.rewrite_wrt ctxt false (Transfer.get_sym_relator_eq ctxt))) inst_thm
+            (Simplifier.rewrite_wrt ctxt false (Transfer.get_sym_relator_eq ctxt))) inst_thm
       end
 
     fun inst_relcomppI ctxt ant1 ant2 =
@@ -629,7 +629,7 @@ fun prepare_lift_def add_lift_def var qty rhs par_thms ctxt =
     val rty_forced = (domain_type o fastype_of) rsp_rel;
     val forced_rhs = force_rty_type ctxt rty_forced rhs;
     val cr_to_pcr_conv = HOLogic.Trueprop_conv (Conv.fun2_conv
-      (Raw_Simplifier.rewrite_wrt ctxt false (get_cr_pcr_eqs ctxt)))
+      (Simplifier.rewrite_wrt ctxt false (get_cr_pcr_eqs ctxt)))
     val (prsp_tm, rsp_prsp_eq) = HOLogic.mk_Trueprop (rsp_rel $ forced_rhs $ forced_rhs)
       |> Thm.cterm_of ctxt
       |> cr_to_pcr_conv

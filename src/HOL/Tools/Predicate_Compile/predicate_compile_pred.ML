@@ -97,7 +97,7 @@ fun flatten constname atom (defs, thy) =
       (Const (\<^const_name>\<open>If\<close>, _)) =>
         let
           val if_beta = @{lemma "(if c then x else y) z = (if c then x z else y z)" by simp}
-          val atom' = Raw_Simplifier.rewrite_term thy
+          val atom' = Simplifier.rewrite_term thy
             (map (fn th => th RS @{thm eq_reflection}) [@{thm if_bool_eq_disj}, if_beta]) [] atom
           val _ = \<^assert> (not (atom = atom'))
         in

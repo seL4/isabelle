@@ -955,7 +955,7 @@ fun case_betapply thy t =
     val Tcon = datatype_name_of_case_name thy case_name
     val th = instantiated_case_rewrite thy Tcon
   in
-    Raw_Simplifier.rewrite_term thy [th RS @{thm eq_reflection}] [] t
+    Simplifier.rewrite_term thy [th RS @{thm eq_reflection}] [] t
   end
 
 

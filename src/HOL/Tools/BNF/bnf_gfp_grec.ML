@@ -527,7 +527,7 @@ fun bnf_with_deads_and_lives dead_Es live_As Y fpT T lthy =
           end);
 
     val phi =
-      Morphism.term_morphism "BNF" (Raw_Simplifier.rewrite_term (Proof_Context.theory_of lthy)
+      Morphism.term_morphism "BNF" (Simplifier.rewrite_term (Proof_Context.theory_of lthy)
         @{thms BNF_Composition.id_bnf_def} [])
       $> Morphism.thm_morphism "BNF" (unfold_thms lthy @{thms BNF_Composition.id_bnf_def});
   in

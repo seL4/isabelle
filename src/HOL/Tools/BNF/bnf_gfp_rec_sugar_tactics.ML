@@ -79,7 +79,7 @@ fun mk_primcorec_assumption_tac ctxt discIs =
     etac ctxt disjE))));
 
 fun ss_fst_snd_conv ctxt =
-  Raw_Simplifier.simpset_of (ss_only @{thms fst_conv snd_conv} ctxt);
+  Simplifier.simpset_of (ss_only @{thms fst_conv snd_conv} ctxt);
 
 fun case_atac ctxt =
   Simplifier.full_simp_tac (put_simpset (ss_fst_snd_conv ctxt) ctxt);

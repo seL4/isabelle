@@ -1230,7 +1230,7 @@ fun SUBS ctxt thl =
   rewrite_rule ctxt (map (fn th => th RS eq_reflection handle THM _ => th) thl);
 
 fun rew_conv ctxt ctm =
-  Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
+  Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
     (Variable.declare_term (Thm.term_of ctm) ctxt) ctm;
 
 fun simpl_conv ctxt thl ctm =
@@ -1467,7 +1467,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
                      val ctxt' = Simplifier.add_prems (map ASSUME ants) ctxt
-                     val lhs_eq_lhs1 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used) ctxt' lhs
+                     val lhs_eq_lhs1 = Simplifier.rewrite_cterm (false,true,false) (prover used) ctxt' lhs
                        handle Utils.ERR _ => Thm.reflexive lhs
                      val _ = print_thms ctxt' "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
@@ -1488,7 +1488,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(Dcterm.dest_eq(cconcl QeqQ1))
                   val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
-                  val Q1eeqQ2 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used') ctxt' Q1
+                  val Q1eeqQ2 = Simplifier.rewrite_cterm (false,true,false) (prover used') ctxt' Q1
                                 handle Utils.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
@@ -1513,7 +1513,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
                  let val tych = Thm.cterm_of ctxt
                      val ants1 = map tych ants
                      val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
-                     val Q_eeq_Q1 = Raw_Simplifier.rewrite_cterm
+                     val Q_eeq_Q1 = Simplifier.rewrite_cterm
                         (false,true,false) (prover used') ctxt' (tych Q)
                       handle Utils.ERR _ => Thm.reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
@@ -1581,7 +1581,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
     val ctm = Thm.cprop_of th
     val names = Misc_Legacy.add_term_names (Thm.term_of ctm, [])
     val th1 =
-      Raw_Simplifier.rewrite_cterm (false, true, false)
+      Simplifier.rewrite_cterm (false, true, false)
         (prover names) (ctxt0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm
     val th2 = Thm.equal_elim th1 th
  in

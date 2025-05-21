@@ -991,7 +991,7 @@ fun ite_intro ctxt _ t =
       |> empty_simpset
       |> put_simpset HOL_basic_ss
       |> (fn ctxt => ctxt addsimps thms @ @{thms if_True if_False refl simp_thms if_cancel})
-      |> Raw_Simplifier.add_eqcong @{thm verit_ite_if_cong}
+      |> Simplifier.add_eqcong @{thm verit_ite_if_cong}
       |> Simplifier.full_simp_tac
   in
     SMT_Replay_Methods.prove ctxt t (fn _ => simplify_ite ctxt []
@@ -1128,7 +1128,7 @@ local
     ctxt
     |> empty_simpset
     |> put_simpset HOL_basic_ss
-    |> Raw_Simplifier.add_eqcong @{thm eq_reflection[OF imp_cong]}
+    |> Simplifier.add_eqcong @{thm eq_reflection[OF imp_cong]}
     |> (fn ctxt => ctxt addsimps thms addsimps @{thms simp_thms})
     |> Simplifier.full_simp_tac
 

@@ -38,7 +38,7 @@ fun cvc_matching_assms ctxt rewrite_rules ll_defs th th' =
        #> Thm.eta_long_conversion
        #> Thm.prop_of
        #> snd o Logic.dest_equals
-       #> Raw_Simplifier.rewrite_term (Proof_Context.theory_of
+       #> Simplifier.rewrite_term (Proof_Context.theory_of
           (empty_simpset ctxt addsimps rewrite_rules (*@ @{thms eq_True} still useful?*))) rewrite_rules []
 
 
@@ -47,7 +47,7 @@ fun cvc_matching_assms ctxt rewrite_rules ll_defs th th' =
        #> Thm.eta_long_conversion
        #> Thm.prop_of
        #> snd o Logic.dest_equals
-       #> Raw_Simplifier.rewrite_term (Proof_Context.theory_of
+       #> Simplifier.rewrite_term (Proof_Context.theory_of
           (empty_simpset ctxt addsimps rewrite_rules @ @{thms eq_True})) rewrite_rules []
   in (expand th) aconv (normalize th') end
 

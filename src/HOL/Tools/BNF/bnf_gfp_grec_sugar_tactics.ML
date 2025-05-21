@@ -133,7 +133,7 @@ fun mk_eq_algrho_tac ctxt fpsig_nesting_maps abs rep ctor ssig_map eval pre_map_
     val simp_ctxt = (ctxt
         |> Context_Position.set_visible false
         |> put_simpset (simpset_of (Proof_Context.init_global \<^theory>\<open>Main\<close>))
-        |> Raw_Simplifier.add_cong @{thm if_cong})
+        |> Simplifier.add_cong @{thm if_cong})
       addsimps pre_map_def :: abs_inverse :: fp_map_ident :: dtor_ctor :: rho_def ::
         @{thm convol_def} :: fpsig_nesting_map_ident0s @ fpsig_nesting_map_comps @
         fpsig_nesting_map_thms @ live_nesting_map_ident0s @ ctr_defs @ disc_sel_eq_cases' @

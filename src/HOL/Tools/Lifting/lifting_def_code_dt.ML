@@ -418,7 +418,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
          rtac ctxt unfold_lift_sel_rsp THEN'
          case_tac exhaust_rule ctxt THEN_ALL_NEW (
         EVERY' [hyp_subst_tac ctxt, (* does not kill wits because = was rewritten to eq_onp top *)
-        Raw_Simplifier.rewrite_goal_tac ctxt (map safe_mk_meta_eq dt_rules), 
+        Simplifier.rewrite_goal_tac ctxt (map safe_mk_meta_eq dt_rules), 
         REPEAT_DETERM o etac ctxt conjE, assume_tac ctxt])) i
     val pred_simps = Transfer.lookup_pred_data lthy5 (Tname rty) |> the |> Transfer.pred_simps
     val sel_tac = lift_sel_tac (#exhaust ctr_sugar) (#case_thms ctr_sugar @ pred_simps)
@@ -439,7 +439,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       EVERY' [ SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms type_definition_def}),
         DETERM o Transfer.transfer_tac true ctxt,
           SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms eq_onp_top_eq_eq}) (* normalize *), 
-          Raw_Simplifier.rewrite_goal_tac ctxt 
+          Simplifier.rewrite_goal_tac ctxt 
           (map safe_mk_meta_eq @{thms id_apply simp_thms Ball_def}),
          rtac ctxt TrueI] i;
 
@@ -515,7 +515,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
         in
           EVERY' [Transfer.gen_frees_tac [] ctxt, DETERM o (Transfer.transfer_tac true ctxt),
             case_tac exhaust ctxt THEN_ALL_NEW EVERY' [hyp_subst_tac ctxt,
-              Raw_Simplifier.rewrite_goal_tac ctxt simp_rules, rtac ctxt TrueI ]] i
+              Simplifier.rewrite_goal_tac ctxt simp_rules, rtac ctxt TrueI ]] i
         end
     end
     

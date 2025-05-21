@@ -519,7 +519,7 @@ fun mk_tupled_allIN_balanced 0 = @{thm unit_all_impI}
     in
       @{thm asm_rl[of "\<forall>x. P x \<longrightarrow> Q x" for P Q]}
       |> Thm.instantiate' [SOME (Thm.ctyp_of \<^context> T)] []
-      |> Raw_Simplifier.rewrite_goals_rule \<^context> @{thms split_paired_All[THEN eq_reflection]}
+      |> Simplifier.rewrite_goals_rule \<^context> @{thms split_paired_All[THEN eq_reflection]}
       |> (fn thm => impI RS funpow n (fn th => allI RS th) thm)
       |> Thm.varifyT_global
     end;

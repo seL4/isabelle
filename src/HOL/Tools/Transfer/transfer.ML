@@ -246,7 +246,7 @@ fun gen_abstract_equalities ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
     val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite_wrt ctxt false @{thms is_equality_lemma} cprop
+    val equal_thm = Simplifier.rewrite_wrt ctxt false @{thms is_equality_lemma} cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
@@ -333,7 +333,7 @@ fun gen_abstract_domains ctxt (dest : term -> term * (term -> term)) thm =
     val prop1 = fold Logic.all frees (Logic.list_implies (prems, mk_prop' t'))
     val prop2 = Logic.list_rename_params (rev names) prop1
     val cprop = Thm.cterm_of ctxt prop2
-    val equal_thm = Raw_Simplifier.rewrite_wrt ctxt false @{thms Domainp_lemma} cprop
+    val equal_thm = Simplifier.rewrite_wrt ctxt false @{thms Domainp_lemma} cprop
     fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm;
   in
     forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
@@ -693,7 +693,7 @@ fun transferred ctxt extra_rules thm =
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
       |> Thm.instantiate (TVars.make instT, Vars.empty)
-      |> Raw_Simplifier.rewrite_rule ctxt pre_simps
+      |> Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val rule = transfer_rule_of_lhs ctxt' (HOLogic.dest_Trueprop (Thm.concl_of thm2))
   in
@@ -707,7 +707,7 @@ fun transferred ctxt extra_rules thm =
               THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
           handle TERM (_, ts) =>
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
-    |> Raw_Simplifier.rewrite_rule ctxt' post_simps
+    |> Simplifier.rewrite_rule ctxt' post_simps
     |> Simplifier.norm_hhf ctxt'
     |> Drule.generalize
         (Names.make_set (map (fst o dest_TFree o Thm.typ_of o snd) instT), Names.empty)
@@ -728,7 +728,7 @@ fun untransferred ctxt extra_rules thm =
       |> map (fn v as ((a, _), S) => (v, Thm.ctyp_of ctxt (TFree (a, S))))
     val thm2 = thm1
       |> Thm.instantiate (TVars.make instT, Vars.empty)
-      |> Raw_Simplifier.rewrite_rule ctxt pre_simps
+      |> Simplifier.rewrite_rule ctxt pre_simps
     val ctxt' = Variable.declare_names (Thm.full_prop_of thm2) ctxt
     val t = HOLogic.dest_Trueprop (Thm.concl_of thm2)
     val rule = transfer_rule_of_term ctxt' true t
@@ -743,7 +743,7 @@ fun untransferred ctxt extra_rules thm =
               THEN_ALL_NEW (DETERM o eq_rules_tac ctxt' eq_rules)))) 1
           handle TERM (_, ts) =>
             raise TERM ("Transfer failed to convert goal to an object-logic formula", ts))
-    |> Raw_Simplifier.rewrite_rule ctxt' post_simps
+    |> Simplifier.rewrite_rule ctxt' post_simps
     |> Simplifier.norm_hhf ctxt'
     |> Drule.generalize
         (Names.make_set (map (fst o dest_TFree o Thm.typ_of o snd) instT), Names.empty)

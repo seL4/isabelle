@@ -157,10 +157,10 @@ fun define_simproc {passive, name, kind, lhss, proc, identifier} lthy =
 (* simproc_setup with concrete syntax *)
 
 val simproc_setup =
-  Named_Target.setup_result Raw_Simplifier.transform_simproc o define_simproc;
+  Named_Target.setup_result transform_simproc o define_simproc;
 
 fun simproc_setup_cmd args =
-  Named_Target.setup_result Raw_Simplifier.transform_simproc
+  Named_Target.setup_result transform_simproc
     (fn lthy => lthy |> define_simproc (read_simproc_spec lthy args));
 
 val parse_proc_kind =
@@ -310,20 +310,20 @@ fun pretty_simpset verbose ctxt =
 
 fun solve_all_tac solvers ctxt =
   let
-    val subgoal_tac = Raw_Simplifier.subgoal_tac (Raw_Simplifier.set_solvers solvers ctxt);
+    val subgoal_tac = subgoal_tac (set_solvers solvers ctxt);
     val solve_tac = subgoal_tac THEN_ALL_NEW (K no_tac);
   in DEPTH_SOLVE (solve_tac 1) end;
 
 (*NOTE: may instantiate unknowns that appear also in other subgoals*)
 fun generic_simp_tac safe mode ctxt =
   let
-    val loop_tac = Raw_Simplifier.loop_tac ctxt;
-    val (unsafe_solvers, solvers) = Raw_Simplifier.solvers ctxt;
-    val solve_tac = FIRST' (map (Raw_Simplifier.solver ctxt)
+    val loop_tac = loop_tac ctxt;
+    val (unsafe_solvers, solvers) = solvers ctxt;
+    val solve_tac = FIRST' (map (solver ctxt)
       (rev (if safe then solvers else unsafe_solvers)));
 
     fun simp_loop_tac i =
-      Raw_Simplifier.generic_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ctxt i THEN
+      generic_rewrite_goal_tac mode (solve_all_tac unsafe_solvers) ctxt i THEN
       (solve_tac i ORELSE TRY ((loop_tac THEN_ALL_NEW simp_loop_tac) i));
   in PREFER_GOAL (simp_loop_tac 1) end;
 
@@ -331,15 +331,15 @@ local
 
 fun simp rew mode ctxt thm =
   let
-    val (unsafe_solvers, _) = Raw_Simplifier.solvers ctxt;
+    val (unsafe_solvers, _) = solvers ctxt;
     val tacf = solve_all_tac (rev unsafe_solvers);
     fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ctxt thm end;
 
 in
 
-val simp_thm = simp Raw_Simplifier.rewrite_thm;
-val simp_cterm = simp Raw_Simplifier.rewrite_cterm;
+val simp_thm = simp rewrite_thm;
+val simp_cterm = simp rewrite_cterm;
 
 end;
 
@@ -398,7 +398,7 @@ val add_del =
   (Args.del -- Args.colon >> K del_proc ||
     Scan.option (Args.add -- Args.colon) >> K add_proc)
   >> (fn f => fn simproc => Morphism.entity (fn phi => Thm.declaration_attribute
-      (K (Raw_Simplifier.map_ss (f (transform_simproc phi simproc))))));
+      (K (map_ss (f (transform_simproc phi simproc))))));
 
 in
 
@@ -425,7 +425,7 @@ in
 
 val simplified = conv_mode -- Attrib.thms >>
   (fn (f, ths) => Thm.rule_attribute ths (fn context =>
-    f ((if null ths then I else Raw_Simplifier.clear_simpset)
+    f ((if null ths then I else clear_simpset)
         (Context.proof_of context) addsimps ths)));
 
 end;
@@ -460,7 +460,7 @@ val simp_modifiers =
   Args.$$$ simpN -- Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
   Args.$$$ simpN -- Args.$$$ flipN -- Args.colon >> K (Method.modifier simp_flip \<^here>),
   Args.$$$ simpN -- Args.$$$ onlyN -- Args.colon >>
-    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
+    K {init = clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;
 
 val simp_modifiers' =
@@ -468,7 +468,7 @@ val simp_modifiers' =
   Args.del -- Args.colon >> K (Method.modifier simp_del \<^here>),
   Args.$$$ flipN -- Args.colon >> K (Method.modifier simp_flip \<^here>),
   Args.$$$ onlyN -- Args.colon >>
-    K {init = Raw_Simplifier.clear_simpset, attribute = simp_add, pos = \<^here>}]
+    K {init = clear_simpset, attribute = simp_add, pos = \<^here>}]
    @ cong_modifiers;
 
 val simp_options =
@@ -500,12 +500,12 @@ fun method_setup more_mods =
     "simplification (all goals)";
 
 fun unsafe_solver_tac ctxt =
-  FIRST' [resolve_tac ctxt (Drule.reflexive_thm :: Raw_Simplifier.prems_of ctxt), assume_tac ctxt];
+  FIRST' [resolve_tac ctxt (Drule.reflexive_thm :: prems_of ctxt), assume_tac ctxt];
 val unsafe_solver = mk_solver "Pure unsafe" unsafe_solver_tac;
 
 (*no premature instantiation of variables during simplification*)
 fun safe_solver_tac ctxt =
-  FIRST' [match_tac ctxt (Drule.reflexive_thm :: Raw_Simplifier.prems_of ctxt), eq_assume_tac];
+  FIRST' [match_tac ctxt (Drule.reflexive_thm :: prems_of ctxt), eq_assume_tac];
 val safe_solver = mk_solver "Pure safe" safe_solver_tac;
 
 val _ =

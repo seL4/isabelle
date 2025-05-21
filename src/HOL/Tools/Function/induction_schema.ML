@@ -37,12 +37,12 @@ datatype ind_scheme = IndScheme of
   branches: scheme_branch list,
   cases: scheme_case list}
 
-fun ind_atomize ctxt = Raw_Simplifier.rewrite_wrt ctxt true @{thms induct_atomize}
-fun ind_rulify ctxt = Raw_Simplifier.rewrite_wrt ctxt true @{thms induct_rulify}
+fun ind_atomize ctxt = Simplifier.rewrite_wrt ctxt true @{thms induct_atomize}
+fun ind_rulify ctxt = Simplifier.rewrite_wrt ctxt true @{thms induct_rulify}
 
 fun meta thm = thm RS eq_reflection
 
-fun sum_prod_conv ctxt = Raw_Simplifier.rewrite_wrt ctxt true
+fun sum_prod_conv ctxt = Simplifier.rewrite_wrt ctxt true
   (map meta (@{thm split_conv} :: @{thms sum.case}))
 
 fun term_conv ctxt cv t =

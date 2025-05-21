@@ -652,7 +652,7 @@ fun reassociate_conjs_tac ctxt =
   asm_full_simp_tac
    (Simplifier.add_simp
     @{lemma "(A & B) & C == A & B & C" by auto} (*FIXME duplicates @{thm simp_meta(3)}*)
-    (Raw_Simplifier.empty_simpset ctxt))
+    (Simplifier.empty_simpset ctxt))
   #> CHANGED
   #> REPEAT_DETERM
 

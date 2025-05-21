@@ -79,7 +79,7 @@ fun asm_full_var_simplify ctxt thm =
   end
 
 fun var_simplify_only ctxt ths thm =
-  asm_full_var_simplify (Raw_Simplifier.clear_simpset ctxt addsimps ths) thm
+  asm_full_var_simplify (Simplifier.clear_simpset ctxt addsimps ths) thm
 
 val var_simplified = Attrib.thms >>
   (fn ths => Thm.rule_attribute ths

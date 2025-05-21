@@ -19,7 +19,7 @@ val norm_rules = map mk_meta_eq @{thms add_0_left add_0_right}
 
 fun move_to_front ctxt path = Conv.every_conv
     [Conv.rewr_conv (Library.foldl (op RS) (@{thm nat_arith.rule0}, path)),
-     Conv.arg_conv (Raw_Simplifier.rewrite_wrt ctxt false norm_rules)]
+     Conv.arg_conv (Simplifier.rewrite_wrt ctxt false norm_rules)]
 
 fun add_atoms path \<^Const_>\<open>plus _ for x y\<close> =
       add_atoms (@{thm nat_arith.add1}::path) x #>

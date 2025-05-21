@@ -438,7 +438,7 @@ fun conv ctxt t =
     val (t', ctxt') = yield_singleton (Variable.import_terms true) t (Variable.declare_term t ctxt)
     val ct = Thm.cterm_of ctxt' t'
     fun unfold_conv thms =
-      Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
+      Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
         (empty_simpset ctxt' addsimps thms)
     val prep_eq = (comprehension_conv ctxt' then_conv unfold_conv prep_thms) ct
     val t'' = Thm.term_of (Thm.rhs_of prep_eq)
@@ -476,7 +476,7 @@ fun proc ctxt redex =
 fun code_proc ctxt redex =
   let
     fun unfold_conv thms =
-      Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
+      Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
         (empty_simpset ctxt addsimps thms)
     val prep_thm = unfold_conv @{thms eq_equal[symmetric]} redex
   in

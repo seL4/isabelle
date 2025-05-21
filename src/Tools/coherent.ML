@@ -42,7 +42,7 @@ fun rulify_elim_conv ctxt ct =
   if is_atomic (Logic.strip_imp_concl (Thm.term_of ct)) then Conv.all_conv ct
   else Conv.concl_conv (length (Logic.strip_imp_prems (Thm.term_of ct)))
     (Conv.rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
-     Raw_Simplifier.rewrite_wrt ctxt true (map Thm.symmetric
+     Simplifier.rewrite_wrt ctxt true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
 
 fun rulify_elim ctxt th = Simplifier.norm_hhf ctxt (Conv.fconv_rule (rulify_elim_conv ctxt) th);
