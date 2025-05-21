@@ -78,7 +78,7 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
 
 *** HOL ***
 
-* ML bindings for theorms Ball_def, Bex_def, CollectD, CollectE, CollectI,
+* ML bindings for theorems Ball_def, Bex_def, CollectD, CollectE, CollectI,
 Collect_conj_eq, Collect_mem_eq, IntD1, IntD2, IntE, IntI, Int_Collect, UNIV_I,
 UNIV_witness, UnE, UnI1, UnI2, ballE, ballI, bexCI, bexE, bexI, bex_triv, bspec,
 contra_subsetD, equalityCE, equalityD1, equalityD2, equalityE, equalityI,
