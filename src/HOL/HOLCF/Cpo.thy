@@ -1105,8 +1105,8 @@ lemma cont_fun: "cont (\<lambda>f. f x)"
   using cont_id by (rule cont2cont_fun)
 
 simproc_setup apply_cont (\<open>cont (\<lambda>f. E f)\<close>) = \<open>
-  fn _ => fn ctxt => fn ct =>
-    (case Thm.term_of ct of
+  fn _ => fn ctxt => fn lhs =>
+    (case Thm.term_of lhs of
       \<^Const_>\<open>cont _ _ for \<open>Abs (_, _, expr)\<close>\<close> =>
         if Term.head_of expr = Bound 0
         (* since \<open>\<lambda>f. E f\<close> is too permissive, we ensure that the term is of the
@@ -1114,9 +1114,10 @@ simproc_setup apply_cont (\<open>cont (\<lambda>f. E f)\<close>) = \<open>
         then
           let
             val tac = Metis_Tactic.metis_tac ["no_types"] "combs" ctxt @{thms cont2cont_fun cont_id}
-            val rwrt_ct  = HOLogic.mk_judgment (Thm.apply \<^cterm>\<open>\<lambda>lhs. lhs = True\<close> ct)
-            val rwrt_thm = Goal.prove_internal ctxt [] rwrt_ct (fn _ => tac 1)
-          in SOME (mk_meta_eq rwrt_thm) end
+            val thm =
+              Goal.prove_internal ctxt [] \<^instantiate>\<open>lhs in cprop \<open>lhs = True\<close>\<close>
+                (fn _ => tac 1)
+          in SOME (mk_meta_eq thm) end
         else NONE
     | _ => NONE)
 \<close>
