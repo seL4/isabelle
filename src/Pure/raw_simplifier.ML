@@ -1575,5 +1575,5 @@ end;
 
 end;
 
-structure Basic_Meta_Simplifier: BASIC_RAW_SIMPLIFIER = Raw_Simplifier;
-open Basic_Meta_Simplifier;
+structure Basic_Raw_Simplifier: BASIC_RAW_SIMPLIFIER = Raw_Simplifier;
+open Basic_Raw_Simplifier;
