@@ -6,10 +6,11 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* May 2025: Benoît Ballenghien, Université Paris-Saclay.
+  Simproc "apply_cont" for HOLCF.
+
 * February 2025: Kai Naumann and Balazs Toth, LMU München
   Initial design and implementation of dark mode for Isabelle/jEdit.
-
-* May 2025: Benoit Ballenghien contributed the simproc apply_cont to HOLCF
 
 
 Contributions to Isabelle2025

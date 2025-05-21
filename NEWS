@@ -230,6 +230,12 @@ Minor INCOMPATIBILITY.
 * Removed theory "HOL-Library.Divides" (finally).
 
 
+*** HOLCF ***
+
+* Theory "HOLCF.Cpo": simproc "apply_cont" solves "cont (\<lambda>f. f x y z)"
+etc.
+
+
 *** System ***
 
 * The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
