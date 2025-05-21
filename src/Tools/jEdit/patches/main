@@ -1134,3 +1134,172 @@ diff -ru jedit5.7.0/jEdit/org/jedit/options/OptionGroupPane.java jedit5.7.0-patc
  							deferredOptionPanes.put(node, optionPane);
  						}
  						else
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/FloatingWindowContainer.java	2025-05-20 15:21:47.892811800 +0200
+@@ -45,14 +45,15 @@
+  * @version $Id: FloatingWindowContainer.java 25333 2020-05-10 09:40:02Z kpouer $
+  * @since jEdit 4.0pre1
+  */
+-public class FloatingWindowContainer extends JFrame implements DockableWindowContainer, PropertyChangeListener
+-{
++public class FloatingWindowContainer extends JDialog implements DockableWindowContainer, PropertyChangeListener {
+ 	private String dockableName;
+ 
+ 	//{{{ FloatingWindowContainer constructor
+ 	public FloatingWindowContainer(DockableWindowManagerImpl dockableWindowManager,
+ 		boolean clone)
+ 	{
++		super(dockableWindowManager.getView());
++
+ 		this.dockableWindowManager = dockableWindowManager;
+ 
+ 		dockableWindowManager.addPropertyChangeListener(this);
+@@ -62,7 +63,7 @@
+ 
+ 		Box caption = new Box(BoxLayout.X_AXIS);
+ 		caption.add(menu = new RolloverButton(GUIUtilities
+-			.loadIcon(jEdit.getProperty("dropdown-arrow.icon"))));
++			.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon"))));
+ 		menu.addMouseListener(new MouseHandler());
+ 		menu.setToolTipText(jEdit.getProperty("docking.menu.label"));
+ 		Box separatorBox = new Box(BoxLayout.Y_AXIS);
+@@ -87,7 +88,6 @@
+ 		pack();
+ 		Container parent = dockableWindowManager.getView();
+ 		GUIUtilities.loadGeometry(this, parent, dockableName);
+-		GUIUtilities.addSizeSaver(this, parent, dockableName);
+ 		KeyListener listener = dockableWindowManager.closeListener(dockableName);
+ 		addKeyListener(listener);
+ 		getContentPane().addKeyListener(listener);
+@@ -154,8 +154,11 @@
+ 	@Override
+ 	public void dispose()
+ 	{
+-		entry.container = null;
+-		entry.win = null;
++		GUIUtilities.saveGeometry(this, dockableWindowManager.getView(), dockableName);
++		if (entry != null) {
++			entry.container = null;
++			entry.win = null;
++		}
+ 		super.dispose();
+ 	} //}}}
+ 
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2024-08-03 19:53:16.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2025-05-20 15:21:53.380719554 +0200
+@@ -53,6 +53,7 @@
+ import javax.swing.JComponent;
+ import javax.swing.JPanel;
+ import javax.swing.JPopupMenu;
++import javax.swing.JMenuItem;
+ import javax.swing.JToggleButton;
+ import javax.swing.UIManager;
+ import javax.swing.border.Border;
+@@ -99,7 +100,7 @@
+ 
+ 		closeBox.addActionListener(e -> show((DockableWindowManagerImpl.Entry)null));
+ 
+-		menuBtn = new JButton(GUIUtilities.loadIcon(jEdit.getProperty("dropdown-arrow.icon")));
++		menuBtn = new JButton(GUIUtilities.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon")));
+ 		menuBtn.setRequestFocusEnabled(false);
+ 		menuBtn.setToolTipText(jEdit.getProperty("view.docking.menu-tooltip"));
+ 		if(OperatingSystem.isMacOSLF())
+@@ -164,6 +165,7 @@
+ 		{
+ 			button = new JToggleButton();	
+ 			button.setMargin(new Insets(1,1,1,1));
++            button.setFont(new JMenuItem().getFont());
+ 		}
+ 		GenericGUIUtilities.setButtonContentMargin(button, new Insets(6,6,6,6));
+ 		button.setRequestFocusEnabled(false);
+@@ -683,8 +685,6 @@
+ 			renderHints = new RenderingHints(
+ 				RenderingHints.KEY_ANTIALIASING,
+ 				RenderingHints.VALUE_ANTIALIAS_ON);
+-			renderHints.put(RenderingHints.KEY_FRACTIONALMETRICS,
+-				RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+ 			renderHints.put(RenderingHints.KEY_RENDERING,
+ 				RenderingHints.VALUE_RENDER_QUALITY);
+ 		} //}}}
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2025-05-20 15:21:39.685949775 +0200
+@@ -1195,6 +1195,7 @@
+ 		VFSFile[] selectedFiles = browserView.getSelectedFiles();
+ 
+ 		Buffer buffer = null;
++		String bufferMarker = null;
+ 
+ check_selected:
+ 		for (VFSFile file : selectedFiles)
+@@ -1244,7 +1245,10 @@
+ 				}
+ 
+ 				if (_buffer != null)
++				{
+ 					buffer = _buffer;
++					bufferMarker = file.getPathMarker();
++				}
+ 			}
+ 			// otherwise if a file is selected in OPEN_DIALOG or
+ 			// SAVE_DIALOG mode, just let the listener(s)
+@@ -1253,21 +1257,30 @@
+ 
+ 		if(buffer != null)
+ 		{
++			View gotoView = null;
++
+ 			switch(mode)
+ 			{
+ 			case M_OPEN:
+ 				view.setBuffer(buffer);
++				gotoView = view;
+ 				break;
+ 			case M_OPEN_NEW_VIEW:
+-				jEdit.newView(view,buffer,false);
++				gotoView = jEdit.newView(view,buffer,false);
+ 				break;
+ 			case M_OPEN_NEW_PLAIN_VIEW:
+-				jEdit.newView(view,buffer,true);
++				gotoView = jEdit.newView(view,buffer,true);
+ 				break;
+ 			case M_OPEN_NEW_SPLIT:
+ 				view.splitHorizontally().setBuffer(buffer);
++				gotoView = view;
+ 				break;
+ 			}
++
++			if (gotoView != null && bufferMarker != null)
++			{
++				jEdit.gotoMarker(gotoView, buffer, bufferMarker);
++			}
+ 		}
+ 
+ 		Object[] listeners = listenerList.getListenerList();
+@@ -1751,7 +1764,7 @@
+ 		//{{{ MenuButton constructor
+ 		MenuButton()
+ 		{
+-			setIcon(GUIUtilities.loadIcon(jEdit.getProperty("dropdown-arrow.icon")));
++			setIcon(GUIUtilities.loadIcon(jEdit.getThemeProperty("dropdown-arrow.icon")));
+ 			setHorizontalTextPosition(SwingConstants.LEADING);
+ 
+ 	//		setRequestFocusEnabled(false);
+diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-08-03 19:53:14.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/io/VFSFile.java	2024-10-29 11:50:54.062016616 +0100
+@@ -302,6 +302,12 @@
+ 		}
+ 	} //}}}
+ 
++	//{{{ getPathMarker() method (for jEdit.gotoMarker)
++	public String getPathMarker()
++	{
++		return null;
++	} //}}}
++
+ 	//{{{ getPath() method
+ 	public String getPath()
+ 	{
