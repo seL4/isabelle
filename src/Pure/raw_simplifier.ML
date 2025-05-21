@@ -108,6 +108,10 @@ sig
   val del_loop: string -> Proof.context -> Proof.context
   val solvers: Proof.context -> solver list * solver list
   val solver: Proof.context -> solver -> int -> tactic
+  val set_safe_solver: solver -> Proof.context -> Proof.context
+  val add_safe_solver: solver -> Proof.context -> Proof.context
+  val set_unsafe_solver: solver -> Proof.context -> Proof.context
+  val add_unsafe_solver: solver -> Proof.context -> Proof.context
   val set_solvers: solver list -> Proof.context -> Proof.context
   val default_mk_sym: Proof.context -> thm -> thm option
   val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
@@ -893,21 +897,29 @@ fun del_loop name ctxt = ctxt |>
 
 fun ctxt delloop name = ctxt |> del_loop name;
 
-fun ctxt setSSolver solver = ctxt |> map_simpset2
+fun set_safe_solver solver = map_simpset2
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
 
-fun ctxt addSSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun ctxt setSSolver solver = ctxt |> set_safe_solver solver;
+
+fun add_safe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (unsafe_solvers, insert eq_solver solver solvers)));
 
-fun ctxt setSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun ctxt addSSolver solver = ctxt |> add_safe_solver solver;
+
+fun set_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, ([solver], solvers)));
 
-fun ctxt addSolver solver = ctxt |> map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun ctxt setSolver solver = ctxt |> set_unsafe_solver solver;
+
+fun add_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (insert eq_solver solver unsafe_solvers, solvers)));
+
+fun ctxt addSolver solver = ctxt |> add_unsafe_solver solver;
 
 fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, term_ord,
