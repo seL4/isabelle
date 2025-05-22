@@ -147,6 +147,9 @@ lemma sum_list_of_nat: "sum_list (map of_nat xs) = of_nat (sum_list xs)"
 lemma sum_list_of_int: "sum_list (map of_int xs) = of_int (sum_list xs)"
   by (induction xs) auto
 
+lemma count_list_concat: "count_list (concat xss) x = sum_list (map (\<lambda>xs. count_list xs x) xss)"
+by(induction xss) auto
+
 lemma (in comm_monoid_add) sum_list_map_remove1:
   "x \<in> set xs \<Longrightarrow> sum_list (map f xs) = f x + sum_list (map f (remove1 x xs))"
   by (induct xs) (auto simp add: ac_simps)

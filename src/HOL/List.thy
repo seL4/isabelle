@@ -3769,6 +3769,9 @@ next
   case False with d show ?thesis by auto
 qed
 
+lemma distinct_concat_rev[simp]: "distinct (concat (rev xs)) = distinct (concat xs)"
+by (induction xs) auto
+
 lemma distinct_concat:
   "\<lbrakk> distinct xs;
      \<And> ys. ys \<in> set xs \<Longrightarrow> distinct ys;
@@ -4284,6 +4287,7 @@ next
       by (metis Cons remdups_append2 concat.simps(2) remdups.simps(2))
   qed
 qed
+
 
 subsection \<open>@{const distinct_adj}\<close>
 
