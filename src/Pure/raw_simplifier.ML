@@ -4,11 +4,6 @@
 Higher-order Simplification.
 *)
 
-infix 4
-  addsimps delsimps addsimprocs delsimprocs
-  setloop addloop delloop
-  setSSolver addSSolver setSolver addSolver;
-
 signature BASIC_RAW_SIMPLIFIER =
 sig
   val simp_depth_limit: int Config.T
@@ -38,17 +33,6 @@ sig
   val map_theory_simpset: (Proof.context -> Proof.context) -> theory -> theory
   val empty_simpset: Proof.context -> Proof.context
   val clear_simpset: Proof.context -> Proof.context
-  val addsimps: Proof.context * thm list -> Proof.context
-  val delsimps: Proof.context * thm list -> Proof.context
-  val addsimprocs: Proof.context * simproc list -> Proof.context
-  val delsimprocs: Proof.context * simproc list -> Proof.context
-  val setloop: Proof.context * (Proof.context -> int -> tactic) -> Proof.context
-  val addloop: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
-  val delloop: Proof.context * string -> Proof.context
-  val setSSolver: Proof.context * solver -> Proof.context
-  val addSSolver: Proof.context * solver -> Proof.context
-  val setSolver: Proof.context * solver -> Proof.context
-  val addSolver: Proof.context * solver -> Proof.context
 
   val rewrite_rule: Proof.context -> thm list -> thm -> thm
   val rewrite_goals_rule: Proof.context -> thm list -> thm -> thm
@@ -673,8 +657,6 @@ fun add_simps thms ctxt =
 fun add_flipped_simps thms ctxt =
   comb_simps insert_rrule (mk_rrule ctxt) true thms ctxt;
 
-fun ctxt addsimps thms = ctxt |> add_simps thms;
-
 fun add_simp thm = add_simps [thm];
 
 fun del_simps thms ctxt =
@@ -682,8 +664,6 @@ fun del_simps thms ctxt =
 
 fun del_simps_quiet thms ctxt =
   comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
-
-fun ctxt delsimps thms = ctxt |> del_simps thms;
 
 fun del_simp thm = del_simps [thm];
 
@@ -828,9 +808,6 @@ in
 val add_proc = fold add_proc1 o split_proc;
 val del_proc = fold del_proc1 o split_proc;
 
-fun ctxt addsimprocs ps = fold add_proc ps ctxt;
-fun ctxt delsimprocs ps = fold del_proc ps ctxt;
-
 end;
 
 
@@ -888,14 +865,10 @@ fun set_loop tac =
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, _, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, [("", tac)], solvers));
 
-fun ctxt setloop tac = ctxt |> set_loop tac;
-
 fun add_loop (name, tac) =
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac,
      AList.update (op =) (name, tac) loop_tacs, solvers));
-
-fun ctxt addloop tac = ctxt |> add_loop tac;
 
 fun del_loop name ctxt = ctxt |>
   map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
@@ -904,31 +877,21 @@ fun del_loop name ctxt = ctxt |>
       else cond_warning ctxt (fn () => "No such looper in simpset: " ^ quote name);
       AList.delete (op =) name loop_tacs), solvers));
 
-fun ctxt delloop name = ctxt |> del_loop name;
-
 fun set_safe_solver solver = map_simpset2
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
-
-fun ctxt setSSolver solver = ctxt |> set_safe_solver solver;
 
 fun add_safe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (unsafe_solvers, insert eq_solver solver solvers)));
 
-fun ctxt addSSolver solver = ctxt |> add_safe_solver solver;
-
 fun set_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, ([solver], solvers)));
 
-fun ctxt setSolver solver = ctxt |> set_unsafe_solver solver;
-
 fun add_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (insert eq_solver solver unsafe_solvers, solvers)));
-
-fun ctxt addSolver solver = ctxt |> add_unsafe_solver solver;
 
 fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, term_ord,
