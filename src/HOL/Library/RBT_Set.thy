@@ -90,8 +90,8 @@ definition rbt_filter :: "('a :: linorder \<Rightarrow> bool) \<Rightarrow> ('a,
 
 lemma Set_filter_rbt_filter:
   "Set.filter P (Set t) = rbt_filter P t"
-by (simp add: fold_keys_def Set_filter_fold rbt_filter_def 
-  finite_fold_fold_keys[OF comp_fun_commute_filter_fold])
+  by (subst Set_filter_fold)
+    (simp_all add: fold_keys_def rbt_filter_def finite_fold_fold_keys [OF comp_fun_commute_filter_fold])
 
 
 subsection \<open>foldi and Ball\<close>
@@ -449,7 +449,7 @@ by (auto simp: Set_def)
 
 lemma is_empty_Set [code]:
   "Set.is_empty (Set t) = RBT.is_empty t"
-  unfolding Set.is_empty_def by (auto simp: fun_eq_iff Set_def intro: lookup_empty_empty[THEN iffD1])
+  using non_empty_keys [of t] by (auto simp add: set_keys)
 
 lemma compl_code [code]:
   "- Set xs = Coset xs"
@@ -482,7 +482,7 @@ qed
 
 lemma inter_Set [code]:
   "A \<inter> Set t = rbt_filter (\<lambda>k. k \<in> A) t"
-by (simp add: inter_Set_filter Set_filter_rbt_filter)
+  by (auto simp flip: Set_filter_rbt_filter)
 
 lemma minus_Set [code]:
   "A - Set t = fold_keys Set.remove t A"
@@ -517,8 +517,8 @@ lemma minus_Coset [code]:
 by (simp add: inter_Set[simplified Int_commute])
 
 lemma filter_Set [code]:
-  "Set.filter P (Set t) = (rbt_filter P t)"
-by (auto simp add: Set_filter_rbt_filter)
+  "Set.filter P (Set t) = rbt_filter P t"
+  by (fact Set_filter_rbt_filter)
 
 lemma image_Set [code]:
   "image f (Set t) = fold_keys (\<lambda>k A. Set.insert (f k) A) t {}"

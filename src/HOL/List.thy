@@ -8257,7 +8257,7 @@ subsubsection \<open>Implementation of sets by lists\<close>
 
 lemma is_empty_set [code]:
   "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
-  by (simp add: Set.is_empty_def null_def)
+  by (simp add: null_def)
 
 lemma empty_set [code]:
   "{} = set []"
@@ -8288,7 +8288,7 @@ lemma insert_code [code]:
 lemma remove_code [code]:
   "Set.remove x (set xs) = set (removeAll x xs)"
   "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
-  by (simp_all add: remove_def Compl_insert)
+  by (simp_all add: set_eq_iff ac_simps)
 
 lemma filter_set [code]:
   "Set.filter P (set xs) = set (filter P xs)"

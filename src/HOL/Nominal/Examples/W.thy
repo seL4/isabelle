@@ -478,7 +478,8 @@ proof -
     using freshs_mem [OF _ pi1'] subsetD [OF pi2] ftv_Ctxt fresh_def by fastforce
   have "\<And>x y. \<lbrakk>x \<in> set (ftv T\<^sub>1 - ftv \<Gamma>); y \<in> pi \<bullet> set (ftv T\<^sub>1 - ftv \<Gamma>)\<rbrakk>
               \<Longrightarrow> x \<sharp> close \<Gamma> T\<^sub>1 \<and> y \<sharp> close \<Gamma> T\<^sub>1"
-    by (metis DiffE filter_set fresh_def fresh_gen_set freshs_mem ftv_Ctxt ftv_ty gen_supp member_filter pi1')
+    using pi1' fresh_def fresh_gen_set freshs_mem ftv_Ctxt ftv_ty gen_supp
+    by (metis (lifting) DiffE mem_Collect_eq set_filter)
   then have close_fresh': "\<forall>(x, y)\<in>set pi. x \<sharp> close \<Gamma> T\<^sub>1 \<and> y \<sharp> close \<Gamma> T\<^sub>1"
     using pi2 by auto
   note x

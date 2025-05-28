@@ -2913,8 +2913,8 @@ next
         using homeomorphism_apply1 [OF gh] SU
         by (fastforce simp add: image_iff image_subset_iff)
       show "S - {b} \<subseteq> h ` g ` (S - {b})"
-        apply clarify
-        by  (metis SU subsetD homeomorphism_apply1 [OF gh] image_iff member_remove remove_def)
+        using SU gh homeomorphism_apply1 [of \<open>(rel_frontier U - {b})\<close> V g h]
+        by (auto simp add: image_iff) (metis DiffI singletonD subsetD)
     qed
     then show ?thesis
       by (metis image_comp)
@@ -2927,8 +2927,8 @@ next
         using homeomorphism_apply1 [OF jk] SU
         by (fastforce simp add: image_iff image_subset_iff)
       show "S - {c} \<subseteq> k ` j ` (S - {c})"
-        apply clarify
-        by  (metis SU subsetD homeomorphism_apply1 [OF jk] image_iff member_remove remove_def)
+        using SU jk homeomorphism_apply1 [of \<open>(rel_frontier U - {c})\<close> V j k]
+        by (auto simp add: image_iff) (metis DiffI singletonD subsetD)
     qed
     then show ?thesis
       by (metis image_comp)

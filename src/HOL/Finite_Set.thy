@@ -556,7 +556,7 @@ lemma finite_bind:
 using assms by (simp add: bind_UNION)
 
 lemma finite_filter [simp]: "finite S \<Longrightarrow> finite (Set.filter P S)"
-unfolding Set.filter_def by simp
+  by (simp add:)
 
 lemma finite_set_of_finite_funs:
   assumes "finite A" "finite B"
@@ -1341,14 +1341,13 @@ proof -
   interpret commute_insert: comp_fun_commute "(\<lambda>x A'. if P x then Set.insert x A' else A')"
     by (fact comp_fun_commute_filter_fold)
   from \<open>finite A\<close> show ?thesis
-    by induct (auto simp add: Set.filter_def)
+    by induct (auto simp add: set_eq_iff)
 qed
 
 lemma inter_Set_filter:
   assumes "finite B"
   shows "A \<inter> B = Set.filter (\<lambda>x. x \<in> A) B"
-  using assms
-  by induct (auto simp: Set.filter_def)
+  using assms by (simp add: set_eq_iff ac_simps)
 
 lemma image_fold_insert:
   assumes "finite A"

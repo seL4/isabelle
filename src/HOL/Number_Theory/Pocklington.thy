@@ -516,7 +516,8 @@ proof (cases "coprime n a \<and> n > 0")
   hence "Min A \<le> k" by (intro Min_le) (auto simp: \<open>finite A\<close>)
   moreover from * have "k \<le> Min A"
     unfolding k_def by (intro Least_le) (auto simp: A_def)
-  ultimately show ?thesis using True by (simp add: ord_def k_def A_def Set.filter_def)
+  ultimately show ?thesis using True
+    by (simp add: ord_def k_def A_def)
 qed auto
 
 theorem ord_modulus_mult_coprime:

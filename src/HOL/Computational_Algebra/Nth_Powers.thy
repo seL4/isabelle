@@ -70,7 +70,7 @@ proof (cases "x = 0")
       have "multiplicity p x = 0" if "p \<notin> prime_factors x"
         using that and \<open>prime p\<close> by (simp add: prime_factors_multiplicity)
       with that and * and assms show ?thesis unfolding prod_power_distrib power_mult [symmetric]
-        by (subst multiplicity_prod_prime_powers) (auto simp: in_prime_factors_imp_prime elim: dvdE)
+        by (subst multiplicity_prod_prime_powers) (auto simp: in_prime_factors_imp_prime)
     qed
     with assms False 
       have "normalize x = normalize ((\<Prod>p\<in>prime_factors x. p ^ (multiplicity p x div n)) ^ n)"
@@ -253,15 +253,15 @@ lemma first_root_nat [simp]: "nth_root_nat 1 n = n"
 lemma first_root_nat' [simp]: "nth_root_nat (Suc 0) n = n"
   by (intro nth_root_nat_unique) auto
 
-
 lemma nth_root_nat_code_naive':
   "nth_root_nat k n = (if k = 0 then 0 else Max (Set.filter (\<lambda>m. m ^ k \<le> n) {..n}))"
 proof (cases "k > 0")
   case True
-  hence "{m. m ^ k \<le> n} \<subseteq> {..n}" by (rule nth_root_nat_aux1)
-  hence "Set.filter (\<lambda>m. m ^ k \<le> n) {..n} = {m. m ^ k \<le> n}"
-    by (auto simp: Set.filter_def)
-  with True show ?thesis by (simp add: nth_root_nat_def Set.filter_def)
+  then have "{m. m ^ k \<le> n} \<subseteq> {..n}" by (rule nth_root_nat_aux1)
+  then have "Set.filter (\<lambda>m. m ^ k \<le> n) {..n} = {m. m ^ k \<le> n}"
+    by (auto simp:)
+  with True show ?thesis
+    by (simp add: nth_root_nat_def)
 qed simp
 
 function nth_root_nat_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where

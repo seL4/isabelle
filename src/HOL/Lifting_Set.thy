@@ -258,7 +258,7 @@ lemma Inter_transfer [transfer_rule]:
 lemma filter_transfer [transfer_rule]:
   assumes [transfer_rule]: "bi_unique A"
   shows "((A ===> (=)) ===> rel_set A ===> rel_set A) Set.filter Set.filter"
-  unfolding Set.filter_def[abs_def] rel_fun_def rel_set_def by blast
+  by (simp add: rel_fun_def rel_set_def) blast
 
 lemma finite_transfer [transfer_rule]:
   "bi_unique A \<Longrightarrow> (rel_set A ===> (=)) finite finite"

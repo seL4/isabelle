@@ -1876,33 +1876,32 @@ lemma bind_singleton_conv_image: "Set.bind A (\<lambda>x. {f x}) = f ` A"
 
 subsubsection \<open>Operations for execution\<close>
 
-definition is_empty :: "'a set \<Rightarrow> bool"
-  where [code_abbrev]: "is_empty A \<longleftrightarrow> A = {}"
+text \<open>
+  Use those operations only for generating executable / efficient code.
+  Otherwise use the RHSs directly.
+\<close>
 
-hide_const (open) is_empty
+context
+begin
 
-definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  where [code_abbrev]: "remove x A = A - {x}"
+qualified definition is_empty :: "'a set \<Rightarrow> bool"
+  where is_empty_iff [code_abbrev, simp]: "is_empty A \<longleftrightarrow> A = {}"
 
-hide_const (open) remove
+qualified definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  where remove_eq [code_abbrev, simp]: "remove x A = A - {x}"
 
-lemma member_remove [simp]: "x \<in> Set.remove y A \<longleftrightarrow> x \<in> A \<and> x \<noteq> y"
-  by (simp add: remove_def)
+qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"
+  where filter_eq [code_abbrev, simp]: "filter P A = {a \<in> A. P a}"
 
-definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"
-  where [code_abbrev]: "filter P A = {a \<in> A. P a}"
-
-hide_const (open) filter
-
-lemma member_filter [simp]: "x \<in> Set.filter P A \<longleftrightarrow> x \<in> A \<and> P x"
-  by (simp add: filter_def)
+end
 
 instantiation set :: (equal) equal
 begin
 
 definition "HOL.equal A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
 
-instance by standard (auto simp add: equal_set_def)
+instance
+  by standard (auto simp add: equal_set_def)
 
 end
 

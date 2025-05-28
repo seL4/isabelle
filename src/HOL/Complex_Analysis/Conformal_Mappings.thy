@@ -723,7 +723,7 @@ proof -
     then have "(\<lambda>z. if z = \<xi> then deriv g \<xi> else (g z - g \<xi>) / (z - \<xi>)) holomorphic_on S"
       using \<xi> pole_lemma by blast
     then show ?thesis
-      using "\<section>" remove_def by fastforce
+      using "\<section>" by (smt (verit, best) DiffD2 singletonI) 
     qed
   ultimately show "?P = ?Q" and "?P = ?R"
     by meson+

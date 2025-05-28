@@ -78,6 +78,25 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
 
 *** HOL ***
 
+* Consolidated auxiliary operations intended for code generation:
+
+    const Set.is_empty
+    thm is_empty_def ~> Set.is_empty_iff [simp]
+
+    const Set.remove
+    thm remove_def ~> Set.remove_eq [simp]
+
+    const Set.filter
+    thm filter_def → Set.filter_eq [simp]
+
+The _def suffix for characteristic theorems is avoided to emphasize that these
+auxiliary operations are candidates for unfolding since they are variants
+of existing logical concepts. The [simp] declarations try to move the attention
+of the casual user ways from these auxiliary operations; if they pose problems
+in existing applications, the can be removed using [simp del] – the regular
+theory merge will make sure that this deviant setup will not persist in bigger
+developments. INCOMPATIBILITY.
+
 * ML bindings for theorems Ball_def, Bex_def, CollectD, CollectE, CollectI,
 Collect_conj_eq, Collect_mem_eq, IntD1, IntD2, IntE, IntI, Int_Collect, UNIV_I,
 UNIV_witness, UnE, UnI1, UnI2, ballE, ballI, bexCI, bexE, bexI, bex_triv, bspec,

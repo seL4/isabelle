@@ -81,12 +81,10 @@ lemma map_filter_finite[intro]:
   assumes "finite (dom m)"
   shows "finite (dom (map_filter P m))"
 proof -
-  have "dom (map_filter P m) = Set.filter P (dom m)"
-    unfolding map_filter_def Set.filter_def dom_def
-    by auto
+  from assms have \<open>finite (dom (\<lambda>x. if P x then m x else None))\<close>
+    by (rule rev_finite_subset) (auto split: if_splits)
   then show ?thesis
-    using assms
-    by (simp add: Set.filter_def)
+    by (simp add: map_filter_def)
 qed
 
 definition map_drop :: "'a \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
@@ -269,10 +267,10 @@ lift_definition fmfilter :: "('a \<Rightarrow> bool) \<Rightarrow> ('a, 'b) fmap
 by auto
 
 lemma fmdom_filter[simp]: "fmdom (fmfilter P m) = ffilter P (fmdom m)"
-by transfer' (auto simp: map_filter_def Set.filter_def split: if_splits)
+by transfer' (auto simp: map_filter_def split: if_splits)
 
 lemma fmdom'_filter[simp]: "fmdom' (fmfilter P m) = Set.filter P (fmdom' m)"
-by transfer' (auto simp: map_filter_def Set.filter_def split: if_splits)
+by transfer' (auto simp: map_filter_def split: if_splits)
 
 lemma fmlookup_filter[simp]: "fmlookup (fmfilter P m) x = (if P x then fmlookup m x else None)"
 by transfer' (auto simp: map_filter_def)

@@ -20,7 +20,7 @@ lemma in_totatives_iff: "k \<in> totatives n \<longleftrightarrow> k > 0 \<and> 
   by (simp add: totatives_def)
   
 lemma totatives_code [code]: "totatives n = Set.filter (\<lambda>k. coprime k n) {0<..n}"
-  by (simp add: totatives_def Set.filter_def)
+  by (simp add: totatives_def)
   
 lemma finite_totatives [simp]: "finite (totatives n)"
   by (simp add: totatives_def)

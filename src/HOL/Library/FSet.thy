@@ -256,7 +256,7 @@ lemma fBex_transfer0[transfer_rule]:
   by transfer_prover
 
 lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Set.filter
-  parametric Lifting_Set.filter_transfer unfolding Set.filter_def by simp
+  parametric Lifting_Set.filter_transfer by simp
 
 lift_definition fPow :: "'a fset \<Rightarrow> 'a fset fset" is Pow parametric Pow_transfer
 by (simp add: finite_subset)
@@ -1015,7 +1015,7 @@ lemma fbind_const: "fbind A (\<lambda>_. B) = (if A = {||} then {||} else B)"
   by (rule bind_const[Transfer.transferred])
 
 lemma ffmember_filter[simp]: "(x |\<in>| ffilter P A) = (x |\<in>| A \<and> P x)"
-  by (rule member_filter[Transfer.transferred])
+  by transfer simp
 
 lemma fequalityI: "A |\<subseteq>| B \<Longrightarrow> B |\<subseteq>| A \<Longrightarrow> A = B"
   by (rule equalityI[Transfer.transferred])
@@ -1112,7 +1112,7 @@ subsubsection \<open>\<open>fset_of_list\<close>\<close>
 
 lemma fset_of_list_filter[simp]:
   "fset_of_list (filter P xs) = ffilter P (fset_of_list xs)"
-  by transfer (auto simp: Set.filter_def)
+  by transfer auto
 
 lemma fset_of_list_subset[intro]:
   "set xs \<subseteq> set ys \<Longrightarrow> fset_of_list xs |\<subseteq>| fset_of_list ys"

@@ -200,8 +200,10 @@ qed
 
 lemma floor_sqrt_code[code]: "floor_sqrt n = Max (Set.filter (\<lambda>m. m\<^sup>2 \<le> n) {0..n})"
 proof -
-  from power2_nat_le_imp_le [of _ n] have "{m. m \<le> n \<and> m\<^sup>2 \<le> n} = {m. m\<^sup>2 \<le> n}" by auto
-  then show ?thesis by (simp add: floor_sqrt_def Set.filter_def)
+  from power2_nat_le_imp_le [of _ n]
+    have "{m. m \<le> n \<and> m\<^sup>2 \<le> n} = {m. m\<^sup>2 \<le> n}" by auto
+    then show ?thesis
+    by (simp add: floor_sqrt_def)
 qed
 
 lemma floor_sqrt_inverse_power2 [simp]: "floor_sqrt (n\<^sup>2) = n"

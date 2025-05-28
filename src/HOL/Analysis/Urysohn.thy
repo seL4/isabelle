@@ -5516,9 +5516,8 @@ next
             moreover have "\<Union>\<V> = topspace X"
               using ABC UU \<V>_def by auto
             moreover have "pairwise (separatedin X) \<V>"
-              using pwU sep ABC unfolding  \<V>_def
-              apply (simp add: separatedin_sym pairwise_def)
-              by (metis member_remove remove_def separatedin_Un(1))
+              using pwU sep ABC separatedin_Un(1) [of X _ A B]
+              by (simp add: separatedin_sym pairwise_def \<V>_def) (metis DiffD1 DiffD2 singleton_iff)
             ultimately show ?thesis
               by blast
           qed

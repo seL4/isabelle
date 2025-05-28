@@ -169,6 +169,10 @@ lemma lookup_empty_empty [simp]:
   "lookup t = Map.empty \<longleftrightarrow> t = empty"
   by transfer (rule RBT_lookup_empty)
 
+lemma keys_empty_eq [simp]:
+  \<open>keys empty = []\<close>
+  by transfer simp
+
 lemma sorted_keys [iff]:
   "sorted (keys t)"
   by transfer (simp add: RBT_Impl.keys_def rbt_sorted_entries)

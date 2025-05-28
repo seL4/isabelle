@@ -783,7 +783,7 @@ proof (induction rule: finite_psubset_induct)
     then obtain a where "f a = Max (f ` A)" and "a \<in> A"
       by (metis Max_in[of "f ` A"] imageE)
     then have "P (A - {a})"
-      using psubset member_remove by blast 
+      using psubset(2) [of \<open>A - {a}\<close>] by auto
     moreover 
     have "\<And>y. y \<in> A \<Longrightarrow> f y \<le> f a"
       using \<open>f a = Max (f ` A)\<close> \<open>finite (f ` A)\<close> by simp
