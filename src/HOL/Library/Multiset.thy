@@ -2171,6 +2171,10 @@ lemma mset_insort [simp]: "mset (insort x xs) = add_mset x (mset xs)"
 lemma mset_map[simp]: "mset (map f xs) = image_mset f (mset xs)"
   by (induct xs) simp_all
 
+lemma mset_removeAll_eq:
+  \<open>mset (removeAll x xs) = filter_mset ((\<noteq>) x) (mset xs)\<close>
+  by (induction xs) auto
+
 global_interpretation mset_set: folding add_mset "{#}"
   defines mset_set = "folding_on.F add_mset {#}"
   by standard (simp add: fun_eq_iff)
