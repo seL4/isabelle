@@ -1884,13 +1884,13 @@ text \<open>
 context
 begin
 
-qualified definition is_empty :: "'a set \<Rightarrow> bool"
+qualified definition is_empty :: "'a set \<Rightarrow> bool" \<comment> \<open>only for code generation\<close>
   where is_empty_iff [code_abbrev, simp]: "is_empty A \<longleftrightarrow> A = {}"
 
-qualified definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set"
+qualified definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" \<comment> \<open>only for code generation\<close>
   where remove_eq [code_abbrev, simp]: "remove x A = A - {x}"
 
-qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set"
+qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" \<comment> \<open>only for code generation\<close>
   where filter_eq [code_abbrev, simp]: "filter P A = {a \<in> A. P a}"
 
 end
