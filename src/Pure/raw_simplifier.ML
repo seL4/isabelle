@@ -625,8 +625,32 @@ fun mk_rrules ctxt thm =
 local
 
 fun comb_simps comb mk_rrule sym thms ctxt =
-  let val rews = maps (fn thm => #1 (extract_rews sym (Thm.transfer' ctxt thm) ctxt)) thms;
+  let
+    val rews = thms
+      |> maps (fn thm => #1 (extract_rews sym (Thm.transfer' ctxt thm) ctxt));
   in fold (fold comb o mk_rrule) rews ctxt end;
+
+in
+
+fun add_simps thms ctxt =
+  comb_simps insert_rrule (mk_rrule ctxt) false thms ctxt;
+
+fun add_flipped_simps thms ctxt =
+  comb_simps insert_rrule (mk_rrule ctxt) true thms ctxt;
+
+fun add_simp thm = add_simps [thm];
+
+fun del_simps thms ctxt =
+  comb_simps (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
+
+fun del_simps_quiet thms ctxt =
+  comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
+
+fun del_simp thm = del_simps [thm];
+
+fun flip_simps thms = del_simps_quiet thms #> add_flipped_simps thms;
+
+fun flip_simp thm = flip_simps [thm];
 
 (*
 This code checks if the symetric version of a rule is already in the simpset.
@@ -649,33 +673,13 @@ fun sym_present ctxt thms =
     val Simpset({rules, ...},_) = simpset_of ctxt
   in exists (present ctxt rules) rrules end
 *)
-in
 
-fun add_simps thms ctxt =
-  comb_simps insert_rrule (mk_rrule ctxt) false thms ctxt;
-
-fun add_flipped_simps thms ctxt =
-  comb_simps insert_rrule (mk_rrule ctxt) true thms ctxt;
-
-fun add_simp thm = add_simps [thm];
-
-fun del_simps thms ctxt =
-  comb_simps (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
-
-fun del_simps_quiet thms ctxt =
-  comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
-
-fun del_simp thm = del_simps [thm];
-
-fun flip_simps thms = del_simps_quiet thms #> add_flipped_simps thms;
 (*
 with check for presence of symmetric version:
   if sym_present ctxt [thm]
   then (cond_warning ctxt (fn () => print_thm0 ctxt "Ignoring rewrite rule:" thm); ctxt)
   else ctxt addsimps [thm];
 *)
-
-fun flip_simp thm = flip_simps [thm];
 
 end;
 
