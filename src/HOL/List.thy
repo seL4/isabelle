@@ -7890,6 +7890,18 @@ lemma list_ex_cong [fundef_cong]:
   if \<open>xs = ys\<close> \<open>(\<And>x. x \<in> set ys \<Longrightarrow> f x = g x)\<close>
   using that by (simp add: list_ex_iff)
 
+context
+begin
+
+qualified definition superset :: \<open>'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+  where superset_iff [code_abbrev, simp]: \<open>superset ys xs \<longleftrightarrow> set xs \<subseteq> set ys\<close>
+
+lemma [code, no_atp]:
+  \<open>superset xs = list_all (\<lambda>x. x \<in> set xs)\<close>
+  by (auto simp: fun_eq_iff list_all_iff)
+
+end
+
 
 text \<open>Executable checks for relations on sets\<close>
 
@@ -8218,11 +8230,6 @@ lemma subset_code [code]:
   "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
   "List.coset [] \<subseteq> set [] \<longleftrightarrow> False"
   by auto
-
-text \<open>A frequent case -- avoid intermediate sets\<close>
-lemma [code_unfold]:
-  "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
-  by (auto simp: list_all_iff)
 
 lemma Ball_set [code]:
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
