@@ -7808,29 +7808,10 @@ lemma set_list_bind: "set (List.bind xs f) = (\<Union>x\<in>set xs. set (f x))"
 
 subsection \<open>Code generation\<close>
 
-text\<open>Optional tail recursive version of \<^const>\<open>map\<close>. Can avoid
-stack overflow in some target languages.\<close>
-
-fun map_tailrec_rev ::  "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-  "map_tailrec_rev f [] bs = bs" |
-  "map_tailrec_rev f (a#as) bs = map_tailrec_rev f as (f a # bs)"
-
-lemma map_tailrec_rev:
-  "map_tailrec_rev f as bs = rev(map f as) @ bs"
-  by(induction as arbitrary: bs) simp_all
-
-definition map_tailrec :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-  "map_tailrec f as = rev (map_tailrec_rev f as [])"
-
-text\<open>Code equation:\<close>
-lemma map_eq_map_tailrec: "map = map_tailrec"
-  by(simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
-
-
 subsubsection \<open>Counterparts for set-related operations\<close>
 
-definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-[code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
+definition member :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> bool\<close>
+  where [code_abbrev]: \<open>member xs x \<longleftrightarrow> x \<in> set xs\<close>
 
 text \<open>
   Use \<open>member\<close> only for generating executable code.  Otherwise use
@@ -7838,21 +7819,21 @@ text \<open>
 \<close>
 
 lemma member_rec [code]:
-  "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
-  "member [] y \<longleftrightarrow> False"
+  \<open>member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y\<close>
+  \<open>member [] y \<longleftrightarrow> False\<close>
   by (auto simp add: member_def)
 
-lemma in_set_member (* FIXME delete candidate *):
-  "x \<in> set xs \<longleftrightarrow> member xs x"
-  by (simp add: member_def)
+hide_const (open) member
 
-lemmas list_all_iff [code_abbrev] = fun_cong[OF list.pred_set]
+lemma list_all_iff [code_abbrev]:
+  \<open>list_all P xs \<longleftrightarrow> Ball (set xs) P\<close>
+  by (simp add: list.pred_set)
 
-definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
+definition list_ex :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+  where list_ex_iff [code_abbrev]: \<open>list_ex P xs \<longleftrightarrow> Bex (set xs) P\<close>
 
-definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> Set.can_select P (set xs)"
+definition list_ex1 :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+  where list_ex1_iff [code_abbrev]: \<open>list_ex1 P xs \<longleftrightarrow> Set.can_select P (set xs)\<close>
 
 text \<open>
   Usually you should prefer \<open>\<forall>x\<in>set xs\<close>, \<open>\<exists>x\<in>set xs\<close>
@@ -7861,108 +7842,103 @@ text \<open>
 \<close>
 
 lemma list_all_simps [code]:
-  "list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs"
-  "list_all P [] \<longleftrightarrow> True"
+  \<open>list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs\<close>
+  \<open>list_all P [] \<longleftrightarrow> True\<close>
   by (simp_all add: list_all_iff)
 
 lemma list_ex_simps [simp, code]:
-  "list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs"
-  "list_ex P [] \<longleftrightarrow> False"
+  \<open>list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs\<close>
+  \<open>list_ex P [] \<longleftrightarrow> False\<close>
   by (simp_all add: list_ex_iff)
 
 lemma list_ex1_simps [simp, code]:
-  "list_ex1 P [] = False"
-  "list_ex1 P (x # xs) = (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)"
+  \<open>list_ex1 P [] = False\<close>
+  \<open>list_ex1 P (x # xs) = (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)\<close>
   by (auto simp add: list_ex1_iff list_all_iff)
 
-lemma Ball_set_list_all: (* FIXME delete candidate *)
-  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
-  by (simp add: list_all_iff)
-
-lemma Bex_set_list_ex: (* FIXME delete candidate *)
-  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
-  by (simp add: list_ex_iff)
-
 lemma list_all_append [simp]:
-  "list_all P (xs @ ys) \<longleftrightarrow> list_all P xs \<and> list_all P ys"
+  \<open>list_all P (xs @ ys) \<longleftrightarrow> list_all P xs \<and> list_all P ys\<close>
   by (auto simp add: list_all_iff)
 
 lemma list_ex_append [simp]:
-  "list_ex P (xs @ ys) \<longleftrightarrow> list_ex P xs \<or> list_ex P ys"
+  \<open>list_ex P (xs @ ys) \<longleftrightarrow> list_ex P xs \<or> list_ex P ys\<close>
   by (auto simp add: list_ex_iff)
 
 lemma list_all_rev [simp]:
-  "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
+  \<open>list_all P (rev xs) \<longleftrightarrow> list_all P xs\<close>
   by (simp add: list_all_iff)
 
 lemma list_ex_rev [simp]:
-  "list_ex P (rev xs) \<longleftrightarrow> list_ex P xs"
+  \<open>list_ex P (rev xs) \<longleftrightarrow> list_ex P xs\<close>
   by (simp add: list_ex_iff)
 
 lemma list_all_length:
-  "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
+  \<open>list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))\<close>
   by (auto simp add: list_all_iff set_conv_nth)
 
 lemma list_ex_length:
-  "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
+  \<open>list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))\<close>
   by (auto simp add: list_ex_iff set_conv_nth)
 
-lemmas list_all_cong [fundef_cong] = list.pred_cong
+lemma list_all_cong [fundef_cong]:
+  \<open>list_all f xs = list_all g ys\<close>
+  if \<open>xs = ys\<close> \<open>(\<And>x. x \<in> set ys \<Longrightarrow> f x = g x)\<close>
+  using that by (rule list.pred_cong)
 
 lemma list_ex_cong [fundef_cong]:
-  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
-by (simp add: list_ex_iff)
-
-lemma can_select_set_list_ex1 [code]:
-  "Set.can_select P (set A) = list_ex1 P A"
-  by (simp add: list_ex1_iff Set.can_select_iff)
+  \<open>list_ex f xs = list_ex g ys\<close>
+  if \<open>xs = ys\<close> \<open>(\<And>x. x \<in> set ys \<Longrightarrow> f x = g x)\<close>
+  using that by (simp add: list_ex_iff)
 
 
 text \<open>Executable checks for relations on sets\<close>
 
-definition listrel1p :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-"listrel1p r xs ys = ((xs, ys) \<in> listrel1 {(x, y). r x y})"
+definition listrel1p :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+  where \<open>listrel1p r xs ys \<longleftrightarrow> (xs, ys) \<in> listrel1 {(x, y). r x y}\<close>
 
 lemma [code_unfold]:
-  "(xs, ys) \<in> listrel1 r = listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys"
-unfolding listrel1p_def by auto
+  \<open>(xs, ys) \<in> listrel1 r \<longleftrightarrow> listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys\<close>
+  by (simp add: listrel1p_def)
 
 lemma [code]:
-  "listrel1p r [] xs = False"
-  "listrel1p r xs [] =  False"
-  "listrel1p r (x # xs) (y # ys) \<longleftrightarrow>
-     r x y \<and> xs = ys \<or> x = y \<and> listrel1p r xs ys"
-by (simp add: listrel1p_def)+
+  \<open>listrel1p r [] xs \<longleftrightarrow> False\<close>
+  \<open>listrel1p r xs [] \<longleftrightarrow>  False\<close>
+  \<open>listrel1p r (x # xs) (y # ys) \<longleftrightarrow>
+     r x y \<and> xs = ys \<or> x = y \<and> listrel1p r xs ys\<close>
+  by (simp_all add: listrel1p_def)
 
-definition
-  lexordp :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-  "lexordp r xs ys = ((xs, ys) \<in> lexord {(x, y). r x y})"
+definition lexordp :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+  where \<open>lexordp r xs ys \<longleftrightarrow> (xs, ys) \<in> lexord {(x, y). r x y}\<close>
 
 lemma [code_unfold]:
-  "(xs, ys) \<in> lexord r = lexordp (\<lambda>x y. (x, y) \<in> r) xs ys"
-unfolding lexordp_def by auto
+  \<open>(xs, ys) \<in> lexord r = lexordp (\<lambda>x y. (x, y) \<in> r) xs ys\<close>
+  by (simp add: lexordp_def)
 
 lemma [code]:
-  "lexordp r xs [] = False"
-  "lexordp r [] (y#ys) = True"
-  "lexordp r (x # xs) (y # ys) = (r x y \<or> (x = y \<and> lexordp r xs ys))"
-unfolding lexordp_def by auto
+  \<open>lexordp r xs [] \<longleftrightarrow> False\<close>
+  \<open>lexordp r [] (y # ys) \<longleftrightarrow> True\<close>
+  \<open>lexordp r (x # xs) (y # ys) \<longleftrightarrow> 
+     r x y \<or> (x = y \<and> lexordp r xs ys)\<close>
+  by (simp_all add: add: lexordp_def)
 
-text \<open>Bounded quantification and summation over nats.\<close>
+
+text \<open>Intervals over \<^typ>\<open>nat\<close>.\<close>
 
 lemma atMost_upto [code_unfold]:
-  "{..n} = set [0..<Suc n]"
+  \<open>{..n} = set [0..<Suc n]\<close>
   by auto
 
 lemma atLeast_upt [code_unfold]:
-  "{..<n} = set [0..<n]"
+  \<open>{..<n} = set [0..<n]\<close>
   by auto
 
 lemma greaterThanLessThan_upt [code_unfold]:
-  "{n<..<m} = set [Suc n..<m]"
+  \<open>{n<..<m} = set [Suc n..<m]\<close>
   by auto
 
-lemmas atLeastLessThan_upt [code_unfold] = set_upt [symmetric]
+lemma atLeastLessThan_upt [code_unfold]:
+  \<open>{i..<j} = set [i..<j]\<close>
+  by auto
 
 lemma greaterThanAtMost_upt [code_unfold]:
   "{n<..m} = set [Suc n..<Suc m]"
@@ -7971,6 +7947,31 @@ lemma greaterThanAtMost_upt [code_unfold]:
 lemma atLeastAtMost_upt [code_unfold]:
   "{n..m} = set [n..<Suc m]"
   by auto
+
+
+text \<open>Optimized code for \<open>\<forall>n:{a..<b::nat}\<close> and similiarly for \<open>\<exists>\<close>.\<close>
+
+definition all_interval_nat :: \<open>(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool\<close>
+  where \<open>all_interval_nat P i j \<longleftrightarrow> (\<forall>n \<in> {i..<j}. P n)\<close>
+
+lemma [code]:
+  \<open>all_interval_nat P i j \<longleftrightarrow> i \<ge> j \<or> P i \<and> all_interval_nat P (Suc i) j\<close>
+proof -
+  have *: \<open>\<And>n. P i \<Longrightarrow> \<forall>n\<in>{Suc i..<j}. P n \<Longrightarrow> i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n\<close>
+    using le_less_Suc_eq by fastforce
+  then show ?thesis
+    by (auto simp add: all_interval_nat_def)
+qed
+
+lemma list_all_iff_all_interval_nat [code_unfold]:
+  \<open>list_all P [i..<j] \<longleftrightarrow> all_interval_nat P i j\<close>
+  by (simp add: list_all_iff all_interval_nat_def)
+
+lemma list_ex_iff_not_all_inverval_nat [code_unfold]:
+  \<open>list_ex P [i..<j] \<longleftrightarrow> \<not> (all_interval_nat (Not \<circ> P) i j)\<close>
+  by (simp add: list_ex_iff all_interval_nat_def)
+
+hide_const (open) all_interval_nat
 
 lemma all_nat_less_eq [code_unfold]:
   "(\<forall>m<n::nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
@@ -7988,18 +7989,67 @@ lemma ex_nat_less [code_unfold]:
   "(\<exists>m\<le>n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
   by auto
 
-text\<open>Bounded \<open>LEAST\<close> operator:\<close>
 
-definition "Bleast S P = (LEAST x. x \<in> S \<and> P x)"
+text \<open>Intervals over \<^typ>\<open>int\<close>.\<close>
 
-definition "abort_Bleast S P = (LEAST x. x \<in> S \<and> P x)"
+lemma greaterThanLessThan_upto [code_unfold]:
+  \<open>{i<..<j::int} = set [i + 1..j - 1]\<close>
+  by auto
+
+lemma atLeastLessThan_upto [code_unfold]:
+  \<open>{i..<j::int} = set [i..j - 1]\<close>
+  by auto
+
+lemma greaterThanAtMost_upto [code_unfold]:
+  \<open>{i<..j::int} = set [i+1..j]\<close>
+  by auto
+
+lemma atLeastAtMost_upto [code_unfold]:
+  \<open>{i..j} = set [i..j]\<close>
+  by auto
+
+
+text \<open>Optimized code for \<open>\<forall>i\<in>{a..b::int}\<close> and similiarly for \<open>\<exists>\<close>.\<close>
+
+definition all_interval_int :: \<open>(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool\<close>
+  where \<open>all_interval_int P i j \<longleftrightarrow> (\<forall>k \<in> {i..j}. P k)\<close>
+
+lemma [code]:
+  \<open>all_interval_int P i j \<longleftrightarrow> i > j \<or> P i \<and> all_interval_int P (i + 1) j\<close>
+proof -
+  have *: \<open>\<And>k. P i \<Longrightarrow> \<forall>k\<in>{i+1..j}. P k \<Longrightarrow> i \<le> k \<Longrightarrow> k \<le> j \<Longrightarrow> P k\<close>
+    by (smt (verit, best) atLeastAtMost_iff)
+  show ?thesis
+    by (auto simp add: all_interval_int_def intro: *)
+qed
+
+lemma list_all_iff_all_interval_int [code_unfold]:
+  \<open>list_all P [i..j] \<longleftrightarrow> all_interval_int P i j\<close>
+  by (simp add: list_all_iff all_interval_int_def)
+
+lemma list_ex_iff_not_all_inverval_int [code_unfold]:
+  \<open>list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)\<close>
+  by (simp add: list_ex_iff all_interval_int_def)
+
+hide_const (open) all_interval_int
+
+
+text \<open>Bounded \<open>LEAST\<close> operator.\<close>
+
+definition Bleast :: \<open>'a::ord set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a\<close>
+  where \<open>Bleast S P = (LEAST x. x \<in> S \<and> P x)\<close>
+
+declare Bleast_def [symmetric, code_unfold]
+
+definition abort_Bleast :: \<open>'a::ord set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a\<close>
+  where \<open>abort_Bleast S P = (LEAST x. x \<in> S \<and> P x)\<close>
 
 declare [[code abort: abort_Bleast]]
 
 lemma Bleast_code [code]:
- "Bleast (set xs) P = (case filter P (sort xs) of
-    x#xs \<Rightarrow> x |
-    [] \<Rightarrow> abort_Bleast (set xs) P)"
+  \<open>Bleast (set xs) P = (case filter P (sort xs) of
+    x # xs \<Rightarrow> x |
+    [] \<Rightarrow> abort_Bleast (set xs) P)\<close>
 proof (cases "filter P (sort xs)")
   case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
 next
@@ -8017,134 +8067,223 @@ next
   thus ?thesis using Cons by (simp add: Bleast_def)
 qed
 
-declare Bleast_def[symmetric, code_unfold]
 
-text \<open>Summation over ints.\<close>
+subsubsection \<open>Special implementations\<close>
 
-lemma greaterThanLessThan_upto [code_unfold]:
-  "{i<..<j::int} = set [i+1..j - 1]"
-by auto
+text \<open>
+  Optional tail recursive version of \<^const>\<open>map\<close>. Can avoid
+  stack overflow in some target languages. Do not use for proving.
+\<close>
 
-lemma atLeastLessThan_upto [code_unfold]:
-  "{i..<j::int} = set [i..j - 1]"
-by auto
+fun map_tailrec_rev :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list\<close>
+  where
+    \<open>map_tailrec_rev f [] bs = bs\<close>
+  | \<open>map_tailrec_rev f (a # as) bs = map_tailrec_rev f as (f a # bs)\<close>
 
-lemma greaterThanAtMost_upto [code_unfold]:
-  "{i<..j::int} = set [i+1..j]"
-by auto
+lemma map_tailrec_rev:
+  \<open>map_tailrec_rev f as bs = rev(map f as) @ bs\<close>
+  by (induction as arbitrary: bs) simp_all
 
-lemmas atLeastAtMost_upto [code_unfold] = set_upto [symmetric]
+definition map_tailrec :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
+  where \<open>map_tailrec f as = rev (map_tailrec_rev f as [])\<close>
+
+text\<open>Code equation:\<close>
+lemma map_eq_map_tailrec:
+  \<open>map = map_tailrec\<close>
+  by (simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
+
+definition map_filter :: \<open>('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
+  where [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
+
+text \<open>
+  Operation \<^const>\<open>map_filter\<close> avoids
+  intermediate lists on execution -- do not use for proving.
+\<close>
+
+lemma map_filter_simps [code]:
+  \<open>map_filter f (x # xs) = (case f x of None \<Rightarrow> map_filter f xs | Some y \<Rightarrow> y # map_filter f xs)\<close>
+  \<open>map_filter f [] = []\<close>
+  by (simp_all add: map_filter_def split: option.split)
+
+lemma map_filter_map_filter [code_unfold]:
+  \<open>map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs\<close>
+  by (simp add: map_filter_def)
+
+hide_const (open) map_filter
 
 
-subsubsection \<open>Optimizing by rewriting\<close>
+subsubsection \<open>Operations for optimization and efficiency\<close>
 
-definition null :: "'a list \<Rightarrow> bool" where
-  [code_abbrev]: "null xs \<longleftrightarrow> xs = []"
+definition null :: \<open>'a list \<Rightarrow> bool\<close>
+  where [code_abbrev]: \<open>null xs \<longleftrightarrow> xs = []\<close>
 
 text \<open>
   Efficient emptyness check is implemented by \<^const>\<open>null\<close>.
 \<close>
 
 lemma null_rec [code]:
-  "null (x # xs) \<longleftrightarrow> False"
-  "null [] \<longleftrightarrow> True"
+  \<open>null (x # xs) \<longleftrightarrow> False\<close>
+  \<open>null [] \<longleftrightarrow> True\<close>
   by (simp_all add: null_def)
 
-lemma eq_Nil_null: (* FIXME delete candidate *)
-  "xs = [] \<longleftrightarrow> null xs"
-  by (simp add: null_def)
-
 lemma equal_Nil_null [code_unfold]:
-  "HOL.equal xs [] \<longleftrightarrow> null xs"
-  "HOL.equal [] = null"
+  \<open>HOL.equal xs [] \<longleftrightarrow> null xs\<close>
+  \<open>HOL.equal [] = null\<close>
   by (auto simp add: equal null_def)
 
-definition maps :: "('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-  [code_abbrev]: "maps f xs = concat (map f xs)"
+hide_const (open) null
 
-definition map_filter :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-  [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
+
+text \<open>optimized code (tail-recursive) for \<^term>\<open>length\<close>\<close>
+
+definition gen_length :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> nat\<close>
+  where \<open>gen_length n xs = n + length xs\<close>
+
+lemma gen_length_code [code]:
+  \<open>gen_length n [] = n\<close>
+  \<open>gen_length n (x # xs) = gen_length (Suc n) xs\<close>
+  by (simp_all add: gen_length_def)
+
+lemma length_code [code]:
+  \<open>length = gen_length 0\<close>
+  by (simp add: gen_length_def fun_eq_iff)
+
+hide_const (open) gen_length
+
+
+definition maps :: \<open>('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
+  where [code_abbrev]: \<open>maps f xs = concat (map f xs)\<close>
+
 
 text \<open>
-  Operations \<^const>\<open>maps\<close> and \<^const>\<open>map_filter\<close> avoid
+  Operation \<^const>\<open>maps\<close> avoids
   intermediate lists on execution -- do not use for proving.
 \<close>
 
 lemma maps_simps [code]:
-  "maps f (x # xs) = f x @ maps f xs"
-  "maps f [] = []"
+  \<open>maps f (x # xs) = f x @ maps f xs\<close>
+  \<open>maps f [] = []\<close>
   by (simp_all add: maps_def)
 
-lemma map_filter_simps [code]:
-  "map_filter f (x # xs) = (case f x of None \<Rightarrow> map_filter f xs | Some y \<Rightarrow> y # map_filter f xs)"
-  "map_filter f [] = []"
-  by (simp_all add: map_filter_def split: option.split)
+hide_const (open) maps
 
-lemma concat_map_maps: (* FIXME delete candidate *)
-  "concat (map f xs) = maps f xs"
-  by (simp add: maps_def)
 
-lemma map_filter_map_filter [code_unfold]:
-  "map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs"
-  by (simp add: map_filter_def)
+subsubsection \<open>Implementation of sets by lists\<close>
 
-text \<open>Optimized code for \<open>\<forall>i\<in>{a..b::int}\<close> and \<open>\<forall>n:{a..<b::nat}\<close>
-and similiarly for \<open>\<exists>\<close>.\<close>
+lemma is_empty_set [code]:
+  "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
+  by (simp add: null_def)
 
-definition all_interval_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
-  "all_interval_nat P i j \<longleftrightarrow> (\<forall>n \<in> {i..<j}. P n)"
+lemma empty_set [code]:
+  "{} = set []"
+  by simp
 
-lemma [code]:
-  "all_interval_nat P i j \<longleftrightarrow> i \<ge> j \<or> P i \<and> all_interval_nat P (Suc i) j"
-proof -
-  have *: "\<And>n. P i \<Longrightarrow> \<forall>n\<in>{Suc i..<j}. P n \<Longrightarrow> i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n"
-    using le_less_Suc_eq by fastforce
-  show ?thesis by (auto simp add: all_interval_nat_def intro: *)
-qed
+lemma UNIV_coset [code]:
+  "UNIV = List.coset []"
+  by simp
 
-lemma list_all_iff_all_interval_nat [code_unfold]:
-  "list_all P [i..<j] \<longleftrightarrow> all_interval_nat P i j"
-  by (simp add: list_all_iff all_interval_nat_def)
+lemma compl_set [code]:
+  "- set xs = List.coset xs"
+  by simp
 
-lemma list_ex_iff_not_all_inverval_nat [code_unfold]:
-  "list_ex P [i..<j] \<longleftrightarrow> \<not> (all_interval_nat (Not \<circ> P) i j)"
-  by (simp add: list_ex_iff all_interval_nat_def)
-
-definition all_interval_int :: "(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
-  "all_interval_int P i j \<longleftrightarrow> (\<forall>k \<in> {i..j}. P k)"
+lemma compl_coset [code]:
+  "- List.coset xs = set xs"
+  by simp
 
 lemma [code]:
-  "all_interval_int P i j \<longleftrightarrow> i > j \<or> P i \<and> all_interval_int P (i + 1) j"
-proof -
-  have *: "\<And>k. P i \<Longrightarrow> \<forall>k\<in>{i+1..j}. P k \<Longrightarrow> i \<le> k \<Longrightarrow> k \<le> j \<Longrightarrow> P k"
-    by (smt (verit, best) atLeastAtMost_iff)
-  show ?thesis by (auto simp add: all_interval_int_def intro: *)
-qed
+  "x \<in> set xs \<longleftrightarrow> List.member xs x"
+  "x \<in> List.coset xs \<longleftrightarrow> \<not> List.member xs x"
+  by (simp_all add: member_def)
 
-lemma list_all_iff_all_interval_int [code_unfold]:
-  "list_all P [i..j] \<longleftrightarrow> all_interval_int P i j"
-  by (simp add: list_all_iff all_interval_int_def)
+lemma insert_code [code]:
+  "insert x (set xs) = set (List.insert x xs)"
+  "insert x (List.coset xs) = List.coset (removeAll x xs)"
+  by simp_all
 
-lemma list_ex_iff_not_all_inverval_int [code_unfold]:
-  "list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)"
-  by (simp add: list_ex_iff all_interval_int_def)
+lemma remove_code [code]:
+  "Set.remove x (set xs) = set (removeAll x xs)"
+  "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
+  by (simp_all add: set_eq_iff ac_simps)
 
-text \<open>optimized code (tail-recursive) for \<^term>\<open>length\<close>\<close>
+lemma filter_set [code]:
+  "Set.filter P (set xs) = set (filter P xs)"
+  by auto
 
-definition gen_length :: "nat \<Rightarrow> 'a list \<Rightarrow> nat"
-where "gen_length n xs = n + length xs"
+lemma image_set [code]:
+  "image f (set xs) = set (map f xs)"
+  by simp
 
-lemma gen_length_code [code]:
-  "gen_length n [] = n"
-  "gen_length n (x # xs) = gen_length (Suc n) xs"
-by(simp_all add: gen_length_def)
+lemma subset_code [code]:
+  "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
+  "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
+  "List.coset [] \<subseteq> set [] \<longleftrightarrow> False"
+  by auto
 
-declare list.size(3-4)[code del]
+text \<open>A frequent case -- avoid intermediate sets\<close>
+lemma [code_unfold]:
+  "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
+  by (auto simp: list_all_iff)
 
-lemma length_code [code]: "length = gen_length 0"
-by(simp add: gen_length_def fun_eq_iff)
+lemma Ball_set [code]:
+  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
 
-hide_const (open) member null maps map_filter all_interval_nat all_interval_int gen_length
+lemma Bex_set [code]:
+  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
+
+lemma card_set [code]:
+  "card (set xs) = length (remdups xs)"
+  by (simp add: length_remdups_card_conv)
+
+lemma the_elem_set [code]:
+  "the_elem (set [x]) = x"
+  by simp
+
+lemma Pow_set [code]:
+  "Pow (set []) = {{}}"
+  "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
+  by (simp_all add: Pow_insert Let_def)
+
+definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set" where
+  "map_project f A = {b. \<exists> a \<in> A. f a = Some b}"
+
+lemma [code]:
+  "map_project f (set xs) = set (List.map_filter f xs)"
+  by (auto simp add: map_project_def map_filter_def image_def)
+
+hide_const (open) map_project
+
+lemma can_select_set_list_ex1 [code]:
+  "Set.can_select P (set A) = list_ex1 P A"
+  by (simp add: list_ex1_iff)
+
+lemma product_code [code]:
+  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: Product_Type.product_def)
+
+lemma Id_on_set [code]:
+  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
+  by (auto simp add: Id_on_def)
+
+lemma [code]:
+  "R `` S = List.map_project (\<lambda>(x, y). if x \<in> S then Some y else None) R"
+  unfolding map_project_def by (auto split: prod.split if_split_asm)
+
+lemma trancl_set_ntrancl [code]:
+  "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
+  by (simp add: finite_trancl_ntranl)
+
+lemma set_relcomp [code]:
+  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+  by auto (auto simp add: Bex_def image_def)
+
+lemma wf_set:
+  "wf (set xs) = acyclic (set xs)"
+  by (simp add: wf_iff_acyclic_if_finite)
+
+lemma wf_code_set[code]: "wf_code (set xs) = acyclic (set xs)"
+  unfolding wf_code_def using wf_set .
 
 
 subsubsection \<open>Pretty lists\<close>
@@ -8250,123 +8389,6 @@ code_printing
     (Haskell) "any"
 
 
-subsubsection \<open>Implementation of sets by lists\<close>
-
-lemma is_empty_set [code]:
-  "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
-  by (simp add: null_def)
-
-lemma empty_set [code]:
-  "{} = set []"
-  by simp
-
-lemma UNIV_coset [code]:
-  "UNIV = List.coset []"
-  by simp
-
-lemma compl_set [code]:
-  "- set xs = List.coset xs"
-  by simp
-
-lemma compl_coset [code]:
-  "- List.coset xs = set xs"
-  by simp
-
-lemma [code]:
-  "x \<in> set xs \<longleftrightarrow> List.member xs x"
-  "x \<in> List.coset xs \<longleftrightarrow> \<not> List.member xs x"
-  by (simp_all add: member_def)
-
-lemma insert_code [code]:
-  "insert x (set xs) = set (List.insert x xs)"
-  "insert x (List.coset xs) = List.coset (removeAll x xs)"
-  by simp_all
-
-lemma remove_code [code]:
-  "Set.remove x (set xs) = set (removeAll x xs)"
-  "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
-  by (simp_all add: set_eq_iff ac_simps)
-
-lemma filter_set [code]:
-  "Set.filter P (set xs) = set (filter P xs)"
-  by auto
-
-lemma image_set [code]:
-  "image f (set xs) = set (map f xs)"
-  by simp
-
-lemma subset_code [code]:
-  "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
-  "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
-  "List.coset [] \<subseteq> set [] \<longleftrightarrow> False"
-  by auto
-
-text \<open>A frequent case -- avoid intermediate sets\<close>
-lemma [code_unfold]:
-  "set xs \<subseteq> set ys \<longleftrightarrow> list_all (\<lambda>x. x \<in> set ys) xs"
-  by (auto simp: list_all_iff)
-
-lemma Ball_set [code]:
-  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
-  by (simp add: list_all_iff)
-
-lemma Bex_set [code]:
-  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
-  by (simp add: list_ex_iff)
-
-lemma card_set [code]:
-  "card (set xs) = length (remdups xs)"
-  by (simp add: length_remdups_card_conv)
-
-lemma the_elem_set [code]:
-  "the_elem (set [x]) = x"
-  by simp
-
-lemma Pow_set [code]:
-  "Pow (set []) = {{}}"
-  "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
-  by (simp_all add: Pow_insert Let_def)
-
-definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set" where
-  "map_project f A = {b. \<exists> a \<in> A. f a = Some b}"
-
-lemma [code]:
-  "map_project f (set xs) = set (List.map_filter f xs)"
-  by (auto simp add: map_project_def map_filter_def image_def)
-
-hide_const (open) map_project
-
-
-text \<open>Operations on relations\<close>
-
-lemma product_code [code]:
-  "Product_Type.product (set xs) (set ys) = set [(x, y). x \<leftarrow> xs, y \<leftarrow> ys]"
-  by (auto simp add: Product_Type.product_def)
-
-lemma Id_on_set [code]:
-  "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
-  by (auto simp add: Id_on_def)
-
-lemma [code]:
-  "R `` S = List.map_project (\<lambda>(x, y). if x \<in> S then Some y else None) R"
-unfolding map_project_def by (auto split: prod.split if_split_asm)
-
-lemma trancl_set_ntrancl [code]:
-  "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
-  by (simp add: finite_trancl_ntranl)
-
-lemma set_relcomp [code]:
-  "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
-  by auto (auto simp add: Bex_def image_def)
-
-lemma wf_set:
-  "wf (set xs) = acyclic (set xs)"
-  by (simp add: wf_iff_acyclic_if_finite)
-
-lemma wf_code_set[code]: "wf_code (set xs) = acyclic (set xs)"
-  unfolding wf_code_def using wf_set .
-
-
 subsection \<open>Setup for Lifting/Transfer\<close>
 
 subsubsection \<open>Transfer rules for the Transfer package\<close>
@@ -8381,9 +8403,6 @@ lemma tl_transfer [transfer_rule]:
 lemma butlast_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A) butlast butlast"
   by (rule rel_funI, erule list_all2_induct, auto)
-
-lemma map_rec: "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
-  by (induct xs) auto
 
 lemma append_transfer [transfer_rule]:
   "(list_all2 A ===> list_all2 A ===> list_all2 A) append append"
@@ -8618,5 +8637,32 @@ lemma fun_lub_parametric [transfer_rule]:
 unfolding fun_lub_def[abs_def] by transfer_prover
 
 end
+
+
+subsection \<open>Misc\<close>
+
+lemma map_rec:
+  "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
+  by (induct xs) auto
+
+lemma in_set_member (* FIXME delete candidate *):
+  "x \<in> set xs \<longleftrightarrow> List.member xs x"
+  by (simp add: member_def)
+
+lemma eq_Nil_null: (* FIXME delete candidate *)
+  "xs = [] \<longleftrightarrow> List.null xs"
+  by (simp add: null_def)
+
+lemma concat_map_maps: (* FIXME delete candidate *)
+  "concat (map f xs) = List.maps f xs"
+  by (simp add: maps_def)
+
+lemma Ball_set_list_all: (* FIXME delete candidate *)
+  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma Bex_set_list_ex: (* FIXME delete candidate *)
+  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
 
 end
