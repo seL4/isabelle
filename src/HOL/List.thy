@@ -3266,8 +3266,17 @@ lemma inter_coset_fold [code]:
   "A \<inter> List.coset xs = fold Set.remove xs A"
   by (simp add: Diff_eq [symmetric] minus_set_fold)
 
+definition abort_empty_set :: \<open>('a set \<Rightarrow> 'a) \<Rightarrow> 'a\<close>
+  where [simp]: \<open>abort_empty_set F = F {}\<close>
+
+declare [[code abort: abort_empty_set]]
+
+lemma (in semilattice_set) set_empty_abort [code]:
+  \<open>F (set []) = abort_empty_set F\<close>
+  by simp
+
 lemma (in semilattice_set) set_eq_fold [code]:
-  "F (set (x # xs)) = fold f xs x"
+  \<open>F (set (x # xs)) = fold f xs x\<close>
 proof -
   interpret comp_fun_idem f
     by standard (simp_all add: fun_eq_iff left_commute)
