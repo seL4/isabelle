@@ -29,7 +29,7 @@ section \<open>Deletion of already existing code equations\<close>
 
 declare [[code drop: Set.empty Set.is_empty uminus_set_inst.uminus_set
   Set.member Set.insert Set.remove UNIV Set.filter image
-  Set.subset_eq Ball Bex can_select Set.union minus_set_inst.minus_set Set.inter
+  Set.subset_eq Ball Bex Set.can_select Set.union minus_set_inst.minus_set Set.inter
   card the_elem Pow sum prod Product_Type.product Id_on
   Image trancl relcomp wf_on wf_code Min Inf_fin Max Sup_fin
   "(Inf :: 'a set set \<Rightarrow> 'a set)" "(Sup :: 'a set set \<Rightarrow> 'a set)"

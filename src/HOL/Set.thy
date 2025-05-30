@@ -1893,6 +1893,9 @@ qualified definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" \<
 qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" \<comment> \<open>only for code generation\<close>
   where filter_eq [code_abbrev, simp]: "filter P A = {a \<in> A. P a}"
 
+qualified definition can_select :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> \<open>only for code generation\<close>
+  where can_select_iff [code_abbrev, simp]: "can_select P A = (\<exists>!x\<in>A. P x)"
+
 end
 
 instantiation set :: (equal) equal

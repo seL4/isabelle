@@ -7852,7 +7852,7 @@ definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarro
 list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
 
 definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
+list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> Set.can_select P (set xs)"
 
 text \<open>
   Usually you should prefer \<open>\<forall>x\<in>set xs\<close>, \<open>\<exists>x\<in>set xs\<close>
@@ -7913,12 +7913,9 @@ lemma list_ex_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
 by (simp add: list_ex_iff)
 
-definition can_select :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
-[code_abbrev]: "can_select P A = (\<exists>!x\<in>A. P x)"
-
 lemma can_select_set_list_ex1 [code]:
-  "can_select P (set A) = list_ex1 P A"
-  by (simp add: list_ex1_iff can_select_def)
+  "Set.can_select P (set A) = list_ex1 P A"
+  by (simp add: list_ex1_iff Set.can_select_iff)
 
 
 text \<open>Executable checks for relations on sets\<close>

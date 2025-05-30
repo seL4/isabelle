@@ -66,7 +66,7 @@ lemma vimage_code [code]:
 
 definition card_UNIV :: "'a itself \<Rightarrow> nat"
 where
-  [code del]: "card_UNIV TYPE('a) = card (UNIV :: 'a set)"
+  "card_UNIV TYPE('a) = card (UNIV :: 'a set)"
 
 lemma [code]:
   "card_UNIV TYPE('a :: enum) = card (set (Enum.enum :: 'a list))"
@@ -79,13 +79,13 @@ lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> enum_ex P"
   by simp
 
 lemma exists1_code [code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
-  by (auto simp add: list_ex1_iff enum_UNIV)
+  by (simp add: list_ex1_iff enum_UNIV)
 
 
 subsubsection \<open>An executable choice operator\<close>
 
 definition
-  [code del]: "enum_the = The"
+  "enum_the = The"
 
 lemma [code]:
   "The P = (case filter P enum of [x] \<Rightarrow> x | _ \<Rightarrow> enum_the P)"

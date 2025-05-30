@@ -89,6 +89,9 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     const Set.filter
     thm filter_def → Set.filter_eq [simp]
 
+    const [List.]can_select ~> Set.can_select
+    thm can_select_def ~> Set.can_select_iff [simp]
+
 The _def suffix for characteristic theorems is avoided to emphasize that these
 auxiliary operations are candidates for unfolding since they are variants
 of existing logical concepts. The [simp] declarations try to move the attention
