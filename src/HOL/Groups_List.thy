@@ -57,6 +57,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma atLeastLessThan_conv_list [code_unfold]:
+  \<open>set.F g {a..<b} = list.F (map g (List.range a b))\<close>
+  using List.atLeastLessThan_eq_range
+  by (simp flip: List.set_range_eq add: distinct_set_conv_list)
+
+lemma atLeastAtMost_conv_list [code_unfold]:
+  \<open>set.F g {a..b} = list.F (map g (List.range a (b + 1)))\<close>
+  by (simp flip: List.set_range_eq add: List.atLeastAtMost_eq_range distinct_set_conv_list)
+
+lemma greaterThanLessThan_conv_list [code_unfold]:
+  \<open>set.F g {a<..<b} = list.F (map g (List.range (a + 1) b))\<close>
+  by (simp flip: List.set_range_eq add: List.greaterThanLessThan_eq_range distinct_set_conv_list)
+
+lemma greaterThanAtMost_conv_list [code_unfold]:
+  \<open>set.F g {a<..b} = list.F (map g (List.range (a + 1) (b + 1)))\<close>
+  by (simp flip: List.set_range_eq add: List.greaterThanAtMost_eq_range distinct_set_conv_list)
+
 end
 
 
@@ -591,11 +608,11 @@ subsection \<open>Tools setup\<close>
 
 lemmas sum_code = sum.set_conv_list
 
-lemma sum_set_upto_conv_sum_list_int [code_unfold]:
+lemma sum_set_upto_conv_sum_list_int:
   "sum f (set [i..j::int]) = sum_list (map f [i..j])"
   by (simp add: interv_sum_list_conv_sum_set_int)
 
-lemma sum_set_upt_conv_sum_list_nat [code_unfold]:
+lemma sum_set_upt_conv_sum_list_nat:
   "sum f (set [m..<n]) = sum_list (map f [m..<n])"
   by (simp add: interv_sum_list_conv_sum_set_nat)
 

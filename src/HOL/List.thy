@@ -1345,8 +1345,31 @@ lemma set_filter [simp]: "set (filter P xs) = {x. x \<in> set xs \<and> P x}"
 by (induct xs) auto
 
 lemma set_upt [simp]: "set[i..<j] = {i..<j}"
-by (induct j) auto
+  by (induct j) auto
 
+lemma atMost_upto:
+  \<open>{..n} = set [0..<Suc n]\<close>
+  by auto
+
+lemma atLeast_upt:
+  \<open>{..<n} = set [0..<n]\<close>
+  by auto
+
+lemma greaterThanLessThan_upt:
+  \<open>{n<..<m} = set [Suc n..<m]\<close>
+  by auto
+
+lemma atLeastLessThan_upt:
+  \<open>{i..<j} = set [i..<j]\<close>
+  by auto
+
+lemma greaterThanAtMost_upt:
+  "{n<..m} = set [Suc n..<Suc m]"
+  by auto
+
+lemma atLeastAtMost_upt:
+  "{n..m} = set [n..<Suc m]"
+  by auto
 
 lemma split_list: "x \<in> set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
 proof (induct xs)
@@ -6585,6 +6608,10 @@ lemma sorted_list_of_set_atMost_Suc [simp]:
   "sorted_list_of_set {..Suc k} = sorted_list_of_set {..k} @ [Suc k]"
   using lessThan_Suc_atMost sorted_list_of_set_lessThan_Suc by fastforce
 
+lemma sorted_lift_of_set_eq_upto [simp]:
+  \<open>sorted_list_of_set {k..l} = [k..l]\<close>
+  by (rule sorted_distinct_set_unique) simp_all
+
 lemma sorted_list_of_set_nonempty:
   assumes "finite A" "A \<noteq> {}"
   shows "sorted_list_of_set A = Min A # sorted_list_of_set (A - {Min A})"
@@ -7943,116 +7970,133 @@ lemma [code]:
   by (simp_all add: add: lexordp_def)
 
 
-text \<open>Intervals over \<^typ>\<open>nat\<close>.\<close>
+text \<open>Executable ranges\<close>
 
-lemma atMost_upto [code_unfold]:
-  \<open>{..n} = set [0..<Suc n]\<close>
-  by auto
+class discrete_linordered_semidom_with_range = discrete_linordered_semidom +
+  assumes finite_atLeastLessThan: \<open>finite {a..<b}\<close>
+begin
 
-lemma atLeast_upt [code_unfold]:
-  \<open>{..<n} = set [0..<n]\<close>
-  by auto
+context
+begin
 
-lemma greaterThanLessThan_upt [code_unfold]:
-  \<open>{n<..<m} = set [Suc n..<m]\<close>
-  by auto
+qualified definition range :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a list\<close> \<comment> \<open>only for code generation\<close>
+  where range_eq: \<open>range a b = sorted_list_of_set {a..<b}\<close>
 
-lemma atLeastLessThan_upt [code_unfold]:
-  \<open>{i..<j} = set [i..<j]\<close>
-  by auto
+qualified lemma set_range_eq [simp]:
+  \<open>set (range a b) = {a..<b}\<close>
+  using finite_atLeastLessThan by (simp add: range_eq)
 
-lemma greaterThanAtMost_upt [code_unfold]:
-  "{n<..m} = set [Suc n..<Suc m]"
-  by auto
+qualified lemma distinct_range [simp]:
+  \<open>distinct (range a b)\<close>
+  by (simp add: range_eq)
 
-lemma atLeastAtMost_upt [code_unfold]:
-  "{n..m} = set [n..<Suc m]"
-  by auto
-
-
-text \<open>Optimized code for \<open>\<forall>n:{a..<b::nat}\<close> and similiarly for \<open>\<exists>\<close>.\<close>
-
-definition all_interval_nat :: \<open>(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool\<close>
-  where \<open>all_interval_nat P i j \<longleftrightarrow> (\<forall>n \<in> {i..<j}. P n)\<close>
-
-lemma [code]:
-  \<open>all_interval_nat P i j \<longleftrightarrow> i \<ge> j \<or> P i \<and> all_interval_nat P (Suc i) j\<close>
-proof -
-  have *: \<open>\<And>n. P i \<Longrightarrow> \<forall>n\<in>{Suc i..<j}. P n \<Longrightarrow> i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n\<close>
-    using le_less_Suc_eq by fastforce
+qualified lemma range_code [code]:
+  \<open>range a b = (if a < b then a # range (a + 1) b else [])\<close>
+proof (cases \<open>a < b\<close>)
+  case True
+  then have \<open>{a..<b} = insert a {a + 1..<b}\<close>
+    by (auto simp flip: less_iff_succ_less_eq less_eq_iff_succ_less)
   then show ?thesis
-    by (auto simp add: all_interval_nat_def)
+    by (auto simp add: range_eq finite_atLeastLessThan intro!: insort_is_Cons)
+next
+  case False
+  then show ?thesis
+    by (simp add: range_eq)
 qed
 
-lemma list_all_iff_all_interval_nat [code_unfold]:
-  \<open>list_all P [i..<j] \<longleftrightarrow> all_interval_nat P i j\<close>
-  by (simp add: list_all_iff all_interval_nat_def)
+qualified lemma atLeastLessThan_eq_range [code]:
+  \<open>{a..<b} = set (range a b)\<close>
+  by simp
 
-lemma list_ex_iff_not_all_inverval_nat [code_unfold]:
-  \<open>list_ex P [i..<j] \<longleftrightarrow> \<not> (all_interval_nat (Not \<circ> P) i j)\<close>
-  by (simp add: list_ex_iff all_interval_nat_def)
+qualified lemma atLeastAtMost_eq_range [code]:
+  \<open>{a..b} = set (range a (b + 1))\<close>
+  by (auto simp flip: less_eq_iff_succ_less)
 
-hide_const (open) all_interval_nat
+qualified lemma greaterThanLessThan_eq_range [code]:
+  \<open>{a<..<b} = set (range (a + 1) b)\<close>
+  by (auto simp add: less_eq_iff_succ_less)
+
+qualified lemma greaterThanAtMost_eq_range [code]:
+  \<open>{a<..b} = set (range (a + 1) (b + 1))\<close>
+  by (auto simp add: less_eq_iff_succ_less)
+
+qualified definition all_range :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
+  where all_range_iff [code_abbrev, simp]: \<open>all_range P a b \<longleftrightarrow> (\<forall>n\<in>{a..<b}. P n)\<close>
+
+qualified lemma all_range_code [code]:
+  \<open>all_range P a b \<longleftrightarrow> (a < b \<longrightarrow> P a \<and> all_range P (a + 1) b)\<close>
+  by (auto simp add: Ball_def simp flip: less_iff_succ_less_eq)
+    (auto simp add: le_less)
+
+lemma forall_atLeastAtMost_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a..b}. P n) \<longleftrightarrow> all_range P a (b + 1)\<close>
+  by (simp add: atLeastAtMost_eq_range all_range_iff)
+
+lemma forall_greaterThanLessThan_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a<..<b}. P n) \<longleftrightarrow> all_range P (a + 1) b\<close>
+  by (simp add: greaterThanLessThan_eq_range)
+
+lemma forall_greaterThanAtMost_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a<..b}. P n) \<longleftrightarrow> all_range P (a + 1) (b + 1)\<close>
+  by (simp add: greaterThanAtMost_eq_range)
+
+lemma exists_atLeastLessThan [code_unfold]:
+  \<open>(\<exists>n\<in>{a..<b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) a b\<close>
+  by simp
+
+lemma exists_atLeastAtMost_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a..b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) a (b + 1)\<close>
+  by (simp add: atLeastAtMost_eq_range)
+
+lemma exists_greaterThanLessThan_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a<..<b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) (a + 1) b\<close>
+  by (simp add: greaterThanLessThan_eq_range)
+
+lemma exists_greaterThanAtMost_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a<..b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) (a + 1) (b + 1)\<close>
+  by (simp add: greaterThanAtMost_eq_range)
+
+end
+
+end
+
+hide_const (open) range \<comment> \<open>TODO: should not be necessary\<close>
+
+instance nat :: discrete_linordered_semidom_with_range
+  by standard auto
+
+instance int :: discrete_linordered_semidom_with_range
+  by standard auto
 
 lemma all_nat_less_eq [code_unfold]:
-  "(\<forall>m<n::nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
-  by auto
-
-lemma ex_nat_less_eq [code_unfold]:
-  "(\<exists>m<n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
+  "(\<forall>m<n. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)" for n :: nat
   by auto
 
 lemma all_nat_less [code_unfold]:
-  "(\<forall>m\<le>n::nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
+  "(\<forall>m\<le>n. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)" for n :: nat
+  by auto
+
+lemma ex_nat_less_eq [code_unfold]:
+  "(\<exists>m<n. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)" for n :: nat
   by auto
 
 lemma ex_nat_less [code_unfold]:
-  "(\<exists>m\<le>n::nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
+  "(\<exists>m\<le>n. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)" for n :: nat
   by auto
 
+context
+begin
 
-text \<open>Intervals over \<^typ>\<open>int\<close>.\<close>
+qualified lemma range_eq_upt [simp]:
+  \<open>List.range m n = [m..<n]\<close>
+  by (simp add: List.range_eq)
 
-lemma greaterThanLessThan_upto [code_unfold]:
-  \<open>{i<..<j::int} = set [i + 1..j - 1]\<close>
-  by auto
+qualified lemma range_eq_upto [simp]:
+  \<open>List.range i k = [i..k - 1]\<close>
+  using atLeastLessThanPlusOne_atLeastAtMost_int [of i \<open>k - 1\<close>]
+  by (simp add: List.range_eq)
 
-lemma atLeastLessThan_upto [code_unfold]:
-  \<open>{i..<j::int} = set [i..j - 1]\<close>
-  by auto
-
-lemma greaterThanAtMost_upto [code_unfold]:
-  \<open>{i<..j::int} = set [i+1..j]\<close>
-  by auto
-
-lemma atLeastAtMost_upto [code_unfold]:
-  \<open>{i..j} = set [i..j]\<close>
-  by auto
-
-
-text \<open>Optimized code for \<open>\<forall>i\<in>{a..b::int}\<close> and similiarly for \<open>\<exists>\<close>.\<close>
-
-definition all_interval_int :: \<open>(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool\<close>
-  where \<open>all_interval_int P i j \<longleftrightarrow> (\<forall>k \<in> {i..j}. P k)\<close>
-
-lemma [code]:
-  \<open>all_interval_int P i j \<longleftrightarrow> i > j \<or> P i \<and> all_interval_int P (i + 1) j\<close>
-proof -
-  have *: \<open>\<And>k. P i \<Longrightarrow> \<forall>k\<in>{i+1..j}. P k \<Longrightarrow> i \<le> k \<Longrightarrow> k \<le> j \<Longrightarrow> P k\<close>
-    by (smt (verit, best) atLeastAtMost_iff)
-  show ?thesis
-    by (auto simp add: all_interval_int_def intro: *)
-qed
-
-lemma list_all_iff_all_interval_int [code_unfold]:
-  \<open>list_all P [i..j] \<longleftrightarrow> all_interval_int P i j\<close>
-  by (simp add: list_all_iff all_interval_int_def)
-
-lemma list_ex_iff_not_all_inverval_int [code_unfold]:
-  \<open>list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)\<close>
-  by (simp add: list_ex_iff all_interval_int_def)
-
-hide_const (open) all_interval_int
+end
 
 
 text \<open>Bounded \<open>LEAST\<close> operator.\<close>
