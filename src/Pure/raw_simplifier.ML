@@ -603,7 +603,7 @@ fun orient_rrule ctxt (thm, name) =
     else rrule_eq_True ctxt thm name lhs elhs rhs thm
   end;
 
-fun extract_rews sym thm ctxt =
+fun extract_rews {sym} thm ctxt =
   let
     val mk = #mk (get_mk_rews ctxt);
     val (rews, ctxt') = mk thm ctxt;
@@ -611,11 +611,11 @@ fun extract_rews sym thm ctxt =
   in (map (rpair (Thm.get_name_hint thm)) rews', ctxt') end;
 
 fun extract_safe_rrules thm ctxt =
-  extract_rews false thm ctxt |>> maps (orient_rrule ctxt);
+  extract_rews {sym = false} thm ctxt |>> maps (orient_rrule ctxt);
 
 fun mk_rrules ctxt thm =
   let
-    val rews = #1 (extract_rews false thm ctxt);
+    val rews = #1 (extract_rews {sym = false} thm ctxt);
     val raw_rrules = maps (mk_rrule ctxt) rews;
   in map mk_rrule2 raw_rrules end;
 
@@ -633,18 +633,18 @@ fun comb_simps comb mk_rrule sym thms ctxt =
 in
 
 fun add_simps thms ctxt =
-  comb_simps insert_rrule (mk_rrule ctxt) false thms ctxt;
+  comb_simps insert_rrule (mk_rrule ctxt) {sym = false} thms ctxt;
 
 fun add_flipped_simps thms ctxt =
-  comb_simps insert_rrule (mk_rrule ctxt) true thms ctxt;
+  comb_simps insert_rrule (mk_rrule ctxt) {sym = true} thms ctxt;
 
 fun add_simp thm = add_simps [thm];
 
 fun del_simps thms ctxt =
-  comb_simps (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
+  comb_simps (del_rrule true) (map mk_rrule2 o mk_rrule ctxt) {sym = false} thms ctxt;
 
 fun del_simps_quiet thms ctxt =
-  comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) false thms ctxt;
+  comb_simps (del_rrule false) (map mk_rrule2 o mk_rrule ctxt) {sym = false} thms ctxt;
 
 fun del_simp thm = del_simps [thm];
 
