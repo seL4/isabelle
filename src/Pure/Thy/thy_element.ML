@@ -11,6 +11,8 @@ sig
   val map_element: ('a -> 'b) -> 'a element -> 'b element
   val flat_element: 'a element -> 'a list
   val last_element: 'a element -> 'a
+  val parse_elements_generic: Keyword.keywords -> ('a -> Command_Span.span) -> 'a Scan.stopper ->
+    'a list -> 'a element list
   val parse_elements: Keyword.keywords -> Command_Span.span list -> Command_Span.span element list
 end;
 
@@ -35,29 +37,18 @@ fun last_element (Element (a, NONE)) = a
   | last_element (Element (_, SOME (_, b))) = b;
 
 
-(* scanning spans *)
-
-val eof = Command_Span.Span (Command_Span.Command_Span ("", Position.none), []);
-
-fun is_eof (Command_Span.Span (Command_Span.Command_Span ("", _), _)) = true
-  | is_eof _ = false;
-
-val not_eof = not o is_eof;
-
-val stopper = Scan.stopper (K eof) is_eof;
-
 
 (* parse *)
 
-local
-
-fun parse_element keywords =
+fun parse_elements_generic keywords get_span stopper =
   let
+    val not_eof = not o Scan.is_stopper stopper;
+
     fun category pred other =
-      Scan.one
-        (fn (Command_Span.Span (Command_Span.Command_Span (name, _), _)) =>
-            pred keywords name
-          | _ => other);
+      Scan.one (fn x =>
+        (case get_span x of
+          Command_Span.Span (Command_Span.Command_Span (name, _), _) => pred keywords name
+        | _ => other));
 
     fun theory_element x =
       (category Keyword.is_theory_goal false -- proof >> element) x
@@ -67,15 +58,15 @@ fun parse_element keywords =
     and proof x = (Scan.repeat proof_element -- category Keyword.is_qed false) x;
 
     val default_element = Scan.one not_eof >> atom;
-  in theory_element || default_element end;
 
-in
+    val parse_element = theory_element || default_element
+  in
+    Source.of_list #>
+    Source.source stopper (Scan.bulk parse_element) #>
+    Source.exhaust
+  end;
 
 fun parse_elements keywords =
-  Source.of_list #>
-  Source.source stopper (Scan.bulk (parse_element keywords)) #>
-  Source.exhaust;
-
-end;
+  parse_elements_generic keywords I Command_Span.stopper;
 
 end;

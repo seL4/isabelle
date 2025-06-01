@@ -153,7 +153,6 @@ text %mlref \<open>
   @{define_ML use_thy: "string -> unit"} \\
   @{define_ML Thy_Info.get_theory: "string -> theory"} \\
   @{define_ML Thy_Info.remove_thy: "string -> unit"} \\
-  @{define_ML Thy_Info.register_thy: "theory -> unit"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>use_thy\<close>~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the
@@ -165,10 +164,6 @@ text %mlref \<open>
 
   \<^descr> \<^ML>\<open>Thy_Info.remove_thy\<close>~\<open>A\<close> deletes theory \<open>A\<close> and all descendants from
   the theory database.
-
-  \<^descr> \<^ML>\<open>Thy_Info.register_thy\<close>~\<open>text thy\<close> registers an existing theory value
-  with the theory loader database and updates source version information
-  according to the file store.
 \<close>
 
 end
