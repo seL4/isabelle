@@ -196,7 +196,7 @@ fun update deps (res as (theory, _)) thys =
     val parents = map Context.theory_long_name (Theory.parents_of theory);
 
     val thys' = remove name thys;
-    val _ = map (get thys') parents;
+    val _ = List.app (ignore o get thys') parents;
   in new_entry name parents (SOME deps, SOME res) thys' end;
 
 fun update_thy deps res = change_thys (update deps res);
