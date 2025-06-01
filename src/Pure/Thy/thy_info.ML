@@ -166,8 +166,7 @@ fun get_theory_segments name =
 
 fun get_theory_elements name =
   let
-    val theory = get_theory name;
-    val keywords = Thy_Header.get_keywords theory;
+    val keywords = Thy_Header.get_keywords (get_theory name);
     val stopper = Document_Output.segment_stopper;
     val segments = get_theory_segments name;
   in Thy_Element.parse_elements_generic keywords #span stopper segments end;
@@ -207,7 +206,7 @@ fun update deps (res as (theory, _)) thys =
     val _ = List.app (ignore o get thys') parents;
   in new_entry name parents (SOME deps, SOME res) thys' end;
 
-fun update_thy deps res = change_thys (update deps res);
+val update_thy = change_thys oo update;
 
 
 (* scheduling loader tasks *)
