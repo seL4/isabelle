@@ -17,7 +17,7 @@ typedecl 'a set
 axiomatization Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" \<comment> \<open>comprehension\<close>
   and member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> \<open>membership\<close>
   where mem_Collect_eq [iff, code_unfold]: "member a (Collect P) = P a"
-    and Collect_mem_eq [simp]: "Collect (\<lambda>x. member x A) = A"
+    and Collect_mem_eq [simp, code_unfold]: "Collect (\<lambda>x. member x A) = A"
 
 notation
   member  (\<open>'(\<in>')\<close>) and
