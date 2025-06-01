@@ -17,6 +17,7 @@ sig
   val lookup_theory: string -> theory option
   val defined_theory: string -> bool
   val get_theory: string -> theory
+  val get_theory_segments: string -> Document_Output.segment list
   val check_theory: Proof.context -> string * Position.T -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
@@ -105,9 +106,8 @@ fun master_dir_deps (d: deps option) =
   the_default Path.current (Option.map (Path.dir o #1 o #master) d);
 
 local
-  val global_thys =
-    Synchronized.var "Thy_Info.thys"
-      (String_Graph.empty: (deps option * theory option) String_Graph.T);
+  type thy = deps option * (theory * Document_Output.segment list) option;
+  val global_thys = Synchronized.var "Thy_Info.thys" (String_Graph.empty: thy String_Graph.T);
 in
   fun get_thys () = Synchronized.value global_thys;
   fun change_thys f = Synchronized.change global_thys f;
@@ -140,7 +140,7 @@ val master_directory = master_dir_deps o #1 o get_thy;
 
 fun lookup_theory name =
   (case lookup_thy name of
-    SOME (_, SOME theory) => SOME theory
+    SOME (_, SOME (theory, _)) => SOME theory
   | _ => NONE);
 
 val defined_theory = is_some o lookup_theory;
@@ -149,6 +149,21 @@ fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
   | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
+
+fun get_theory_segments name =
+  let
+    val _ = get_theory name;
+    val segments =
+      (case lookup_thy name of
+        SOME (_, SOME (_, segments)) => segments
+      | _ => []);
+  in
+    if null segments then
+      error ("Theory loader: no theory segments for theory " ^ quote name ^
+        "\n Need to build with option " ^ quote \<^system_option>\<open>record_theories\<close>)
+    else segments
+  end;
+
 
 val get_imports = Resources.imports_of o get_theory;
 
@@ -175,16 +190,16 @@ val remove_thy = change_thys o remove;
 
 (* update *)
 
-fun update deps theory thys =
+fun update deps (res as (theory, _)) thys =
   let
     val name = Context.theory_long_name theory;
     val parents = map Context.theory_long_name (Theory.parents_of theory);
 
     val thys' = remove name thys;
     val _ = map (get thys') parents;
-  in new_entry name parents (SOME deps, SOME theory) thys' end;
+  in new_entry name parents (SOME deps, SOME res) thys' end;
 
-fun update_thy deps theory = change_thys (update deps theory);
+fun update_thy deps res = change_thys (update deps res);
 
 
 (* scheduling loader tasks *)
@@ -194,14 +209,14 @@ datatype result =
    {theory: theory,
     exec_id: Document_ID.exec,
     present: unit -> presentation_context option,
-    commit: unit -> unit};
+    commit: Document_Output.segment list -> unit};
 
 fun theory_result theory =
   Result
    {theory = theory,
     exec_id = Document_ID.none,
     present = K NONE,
-    commit = I};
+    commit = K ()};
 
 fun result_theory (Result {theory, ...}) = theory;
 fun result_commit (Result {commit, ...}) = commit;
@@ -220,12 +235,10 @@ fun consolidate_theory (Exn.Exn exn) = [Exn.Exn exn]
         val exns = maps Task_Queue.group_status (Execution.peek exec_id);
       in result :: map Exn.Exn exns end;
 
-fun present_theory (Exn.Exn exn) = [Exn.Exn exn]
+fun present_theory (Exn.Exn exn) = SOME (Exn.Exn exn)
   | present_theory (Exn.Res (Result {theory, present, ...})) =
-      (case present () of
-        NONE => []
-      | SOME (context as {segments, ...}) =>
-          [Exn.capture_body (fn () => (apply_presentation context theory; (theory, segments)))]);
+      present () |> Option.map (fn context as {segments, ...} =>
+        Exn.capture_body (fn () => (apply_presentation context theory; (theory, segments))));
 
 in
 
@@ -252,11 +265,14 @@ val schedule_theories = Thread_Attributes.uninterruptible (fn _ => fn tasks =>
 
     val results1 = futures |> maps (consolidate_theory o Future.join_result);
 
-    val present_results = futures |> maps (present_theory o Future.join_result);
+    val presented_results = futures |> map (present_theory o Future.join_result);
+    val present_results = map_filter I presented_results;
+
     val results2 = (map o Exn.map_res) (K ()) present_results;
 
-    val results3 = futures
-      |> map (fn future => Exn.capture_body (fn () => result_commit (Future.join future) ()));
+    val results3 = (futures, presented_results) |> ListPair.map (fn (future, presented) =>
+      let val segments = (case presented of SOME (Exn.Res (_, segments)) => segments | _ => []);
+      in Exn.capture_body (fn () => result_commit (Future.join future) segments) end);
 
     val results4 = map Exn.Exn (maps Task_Queue.group_status (Execution.reset ()));
 
@@ -357,7 +373,9 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
     val timing_props = [Markup.theory_timing, (Markup.nameN, name)];
     val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
-    fun commit () = update_thy deps theory;
+    fun commit segments =
+      update_thy deps (theory,
+        if Options.bool options \<^system_option>\<open>record_theories\<close> then segments else []);
   in Result {theory = theory, exec_id = exec_id, present = SOME o present, commit = commit} end;
 
 fun check_thy_deps dir name =
@@ -456,7 +474,7 @@ fun register_thy theory =
       let
         val thys' = remove name thys;
         val _ = writeln ("Registering theory " ^ quote name);
-      in update (make_deps master imports) theory thys' end)
+      in update (make_deps master imports) (theory, []) thys' end)
   end;
 
 

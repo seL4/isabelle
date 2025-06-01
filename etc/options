@@ -121,7 +121,10 @@ option context_proof_tracing : bool = false for build
   -- "tracing of persistent Proof.context values within ML heap"
 
 
-section "Detail of Proof Checking"
+section "Detail of Theory and Proof Processing"
+
+option record_theories : bool = false for content
+  -- "record intermediate theory commands and results"
 
 option record_proofs : int = -1 for content
   -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"

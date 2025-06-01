@@ -260,6 +260,11 @@ etc.
 
 *** System ***
 
+* System option "record_theories" tells "isabelle build" to record
+intermediate theory commands and results, at the cost of approx. 5 times
+larger ML heap images. This allows to retrieve fine-grained semantic
+information later on, using Thy_Info.get_theory_segments in Isabelle/ML.
+
 * The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
 also https://wiki.openjdk.org/display/zgc). This should work uniformly
 on all platforms, but requires a reasonably new version of Windows
