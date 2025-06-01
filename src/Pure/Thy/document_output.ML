@@ -16,6 +16,8 @@ sig
   type segment =
     {span: Command_Span.span, command: Toplevel.transition,
      prev_state: Toplevel.state, state: Toplevel.state}
+  val segment_eof: segment
+  val segment_stopper: segment Scan.stopper
   val present_thy: Options.T -> Keyword.keywords -> string -> segment list -> Latex.text
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -370,6 +372,14 @@ end;
 type segment =
   {span: Command_Span.span, command: Toplevel.transition,
    prev_state: Toplevel.state, state: Toplevel.state};
+
+val segment_eof: segment =
+  {span = Command_Span.eof, command = Toplevel.empty,
+   prev_state = Toplevel.make_state NONE, state = Toplevel.make_state NONE};
+
+val segment_stopper =
+  Scan.stopper (K segment_eof) (Command_Span.is_eof o #span);
+
 
 local
 

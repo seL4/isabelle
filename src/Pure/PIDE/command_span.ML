@@ -12,6 +12,9 @@ sig
   val kind: span -> kind
   val content: span -> Token.T list
   val symbol_length: span -> int option
+  val eof: span
+  val is_eof: span -> bool
+  val stopper: span Scan.stopper
   val adjust_offsets_kind: (int -> int option) -> kind -> kind
   val adjust_offsets: (int -> int option) -> span -> span
 end;
@@ -32,6 +35,16 @@ datatype span = Span of kind * Token.T list;
 fun kind (Span (k, _)) = k;
 fun content (Span (_, toks)) = toks;
 val symbol_length = Position.distance_of o Token.range_of o content;
+
+
+(* stopper *)
+
+val eof = Span (Command_Span ("", Position.none), []);
+
+fun is_eof (Span (Command_Span ("", _), _)) = true
+  | is_eof _ = false;
+
+val stopper = Scan.stopper (K eof) is_eof;
 
 
 (* presentation positions *)

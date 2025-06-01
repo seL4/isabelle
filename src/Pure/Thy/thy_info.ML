@@ -18,6 +18,7 @@ sig
   val defined_theory: string -> bool
   val get_theory: string -> theory
   val get_theory_segments: string -> Document_Output.segment list
+  val get_theory_elements: string -> Document_Output.segment Thy_Element.element list
   val check_theory: Proof.context -> string * Position.T -> theory
   val master_directory: string -> Path.T
   val remove_thy: string -> unit
@@ -163,6 +164,14 @@ fun get_theory_segments name =
         "\n Need to build with option " ^ quote \<^system_option>\<open>record_theories\<close>)
     else segments
   end;
+
+fun get_theory_elements name =
+  let
+    val theory = get_theory name;
+    val keywords = Thy_Header.get_keywords theory;
+    val stopper = Document_Output.segment_stopper;
+    val segments = get_theory_segments name;
+  in Thy_Element.parse_elements_generic keywords #span stopper segments end;
 
 
 val get_imports = Resources.imports_of o get_theory;
