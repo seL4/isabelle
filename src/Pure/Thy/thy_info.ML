@@ -26,7 +26,6 @@ sig
     (theory * Document_Output.segment list) list
   val use_thy: string -> unit
   val script_thy: Position.T -> string -> theory -> theory
-  val register_thy: theory -> unit
   val finish: unit -> unit
 end;
 
@@ -469,22 +468,6 @@ fun script_thy pos txt thy =
     val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
     val end_state = fold (Toplevel.command_exception true) trs (Toplevel.make_state NONE);
   in Toplevel.end_theory end_pos end_state end;
-
-
-(* register theory *)
-
-fun register_thy theory =
-  let
-    val name = Context.theory_long_name theory;
-    val {master, ...} = Resources.check_thy (Resources.master_directory theory) name;
-    val imports = Resources.imports_of theory;
-  in
-    change_thys (fn thys =>
-      let
-        val thys' = remove name thys;
-        val _ = writeln ("Registering theory " ^ quote name);
-      in update (make_deps master imports) (theory, []) thys' end)
-  end;
 
 
 (* finish all theories *)
