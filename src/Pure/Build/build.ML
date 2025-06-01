@@ -83,13 +83,13 @@ val _ =
             let
               val res =
                 theories |>
-                  (map (build_theories session_name)
+                  (maps (build_theories session_name)
                     |> session_timing
                     |> Exn.capture);
               val res1 =
                 (case res of
                   Exn.Res loaded_theories =>
-                    Exn.capture (apply_hooks session_name) (flat loaded_theories)
+                    Exn.capture (apply_hooks session_name) loaded_theories
                 | Exn.Exn exn => Exn.Exn exn);
               val res2 = Exn.capture_body Session.finish;
 
