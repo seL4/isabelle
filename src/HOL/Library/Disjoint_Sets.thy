@@ -450,6 +450,67 @@ qed
 lemma partition_on_alt: "partition_on A P \<longleftrightarrow> (\<exists>r. equiv A r \<and> P = A // r)"
   by (auto simp: partition_on_eq_quotient intro!: partition_on_quotient intro: equiv_partition_on)
 
+lemma (in comm_monoid_set) partition:
+  assumes "finite X" "partition_on X A"
+  shows   "F g X = F (\<lambda>B. F g B) A"
+proof -
+  have "finite A"
+    using assms finite_UnionD partition_onD1 by auto
+  have [intro]: "finite B" if "B \<in> A" for B
+    by (rule finite_subset[OF _ assms(1)])
+       (use assms that in \<open>auto simp: partition_on_def\<close>)
+  have "F g X = F g (\<Union>A)"
+    using assms by (simp add: partition_on_def)
+  also have "\<dots> = (F \<circ> F) g A"
+    by (rule Union_disjoint) (use assms \<open>finite A\<close> in \<open>auto simp: partition_on_def disjoint_def\<close>)
+  finally show ?thesis
+    by simp
+qed
+
+
+text \<open>
+  If $h$ is an involution on $X$ with no fixed points in $X$ and
+  $f(h(x)) = -f(x)$ then $\sum_{x\in X} f(x) = 0$.
+  
+  This is easy to show in a ring with characteristic not equal to $2", since then we can do
+  \[\sum_{x\in X} f(x) = \sum_{x\in X} f(h(x)) = -\sum_{x\in X} f(x)\]
+  and therefore $2 \sum_{x\in X} f(x) = 0$.
+
+  However, the following proof also works in rings of characteristic 2.
+  The idea is to simply partition $X$ into a disjoint union of doubleton sets of the form
+  $\{x, h(x)\}$.
+\<close>
+lemma sum_involution_eq_0:
+  assumes f_h: "\<And>x. x \<in> X \<Longrightarrow> f (h x) + f x = 0"
+  assumes h:   "\<And>x. x \<in> X \<Longrightarrow> h x \<in> X" "\<And>x. x \<in> X \<Longrightarrow> h (h x) = x" "\<And>x. x \<in> X \<Longrightarrow> h x \<noteq> x"
+  shows   "(\<Sum>x\<in>X. f x) = 0"
+proof (cases "finite X")
+  assume fin: "finite X"
+  define R where "R = {(x,y). x \<in> X \<and> y \<in> X \<and> (x = y \<or> h x = y)}"
+  have R: "equiv X R"
+    unfolding equiv_def R_def using h(2,3)
+    by (auto simp: refl_on_def sym_def trans_def)
+  define A where "A = X // R"
+  have partition: "partition_on X A"
+    unfolding A_def using R by (rule partition_on_quotient)
+
+  have "(\<Sum>x\<in>X. f x) = (\<Sum>B\<in>A. \<Sum>x\<in>B. f x)"
+    by (subst sum.partition[OF fin partition]) auto
+  also have "\<dots> = (\<Sum>B\<in>A. 0)"
+  proof (rule sum.cong)
+    fix B assume B: "B \<in> A"
+    then obtain x where x: "x \<in> X" and [simp]: "B = R `` {x}"
+      using R by (metis A_def quotientE)
+    have "R `` {x} = {x, h x}" "h x \<noteq> x"
+      using h x(1) by (auto simp: R_def)
+    thus "(\<Sum>x\<in>B. f x) = 0"
+      using x f_h[of x] by (simp add: add.commute)
+  qed auto
+  finally show ?thesis
+    by simp
+qed auto
+
+
 subsection \<open>Refinement of partitions\<close>
 
 definition refines :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set \<Rightarrow> bool"
