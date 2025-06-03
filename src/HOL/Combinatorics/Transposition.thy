@@ -10,7 +10,7 @@ definition transpose :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow
 lemma transpose_apply_first [simp]:
   \<open>transpose a b a = b\<close>
   by (simp add: transpose_def)
-
+                           
 lemma transpose_apply_second [simp]:
   \<open>transpose a b b = a\<close>
   by (simp add: transpose_def)
@@ -42,6 +42,9 @@ lemma transpose_involutory [simp]:
 lemma transpose_comp_involutory [simp]:
   \<open>transpose a b \<circ> transpose a b = id\<close>
   by (rule ext) simp
+
+lemma transpose_eq_id_iff: "Transposition.transpose x y = id \<longleftrightarrow> x = y"
+  by (auto simp: fun_eq_iff Transposition.transpose_def)
 
 lemma transpose_triple:
   \<open>transpose a b (transpose b c (transpose a b d)) = transpose a c d\<close>

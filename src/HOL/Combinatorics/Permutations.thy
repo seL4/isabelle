@@ -1,4 +1,6 @@
 (*  Author:     Amine Chaieb, University of Cambridge
+    
+    With various additions by Manuel Eberl
 *)
 
 section \<open>Permutations, both general and specifically on finite sets.\<close>
@@ -41,6 +43,33 @@ proof -
     by (simp add: bij_iff)
   with stable show ?thesis
     by (simp add: permutes_def)
+qed
+
+lemma inj_imp_permutes:
+  assumes i: "inj_on f S" and fin: "finite S"
+  and fS: "\<And>x. x \<in> S \<Longrightarrow> f x \<in> S"
+  and f:  "\<And>i. i \<notin> S \<Longrightarrow> f i = i"
+  shows "f permutes S"
+  unfolding permutes_def
+proof (intro conjI allI impI, rule f)
+  fix y
+  from endo_inj_surj[OF fin _ i] fS have fs: "f ` S = S" by auto
+  show "\<exists>!x. f x = y"
+  proof (cases "y \<in> S")
+    case False
+    thus ?thesis by (intro ex1I[of _ y], insert fS f) force+
+  next
+    case True
+    with fs obtain x where x: "x \<in> S" and fx: "f x = y" by force
+    show ?thesis
+    proof (rule ex1I, rule fx)
+      fix x'
+      assume fx': "f x' = y"
+      with True f[of x'] have "x' \<in> S" by metis
+      from inj_onD[OF i fx[folded fx'] x this]
+      show "x' = x" by simp
+    qed
+  qed
 qed
 
 context
@@ -184,6 +213,10 @@ lemma permutes_univ: "p permutes UNIV \<longleftrightarrow> (\<forall>y. \<exist
 lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> transpose a b permutes S"
   by (rule bij_imp_permutes) (auto intro: transpose_apply_other)
 
+lemma permutes_altdef: "p permutes A \<longleftrightarrow> bij_betw p A A \<and> {x. p x \<noteq> x} \<subseteq> A"
+  using permutes_not_in[of p A]
+  by (auto simp: permutes_imp_bij intro!: bij_imp_permutes)
+
 lemma permutes_superset:
   \<open>p permutes T\<close> if \<open>p permutes S\<close> \<open>\<And>x. x \<in> S - T \<Longrightarrow> p x = x\<close>
 proof -
@@ -296,7 +329,252 @@ lemma permutes_vimage: "f permutes A \<Longrightarrow> f -` A = A"
   by (simp add: bij_vimage_eq_inv_image permutes_bij permutes_image[OF permutes_inv])
 
 
-subsection \<open>Mapping permutations with bijections\<close>
+subsection \<open>Restricting a permutation to a subset\<close>
+
+definition restrict_id :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> 'a"
+  where "restrict_id f A = (\<lambda>x. if x \<in> A then f x else x)"
+
+lemma restrict_id_cong [cong]:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> f x = g x" "A = B"
+  shows   "restrict_id f A = restrict_id g B"
+  using assms unfolding restrict_id_def by auto
+
+lemma restrict_id_cong':
+  assumes "x \<in> A \<Longrightarrow> f x = g x" "A = B"
+  shows   "restrict_id f A x = restrict_id g B x"
+  using assms unfolding restrict_id_def by auto
+
+lemma restrict_id_simps [simp]:
+  "x \<in> A \<Longrightarrow> restrict_id f A x = f x"
+  "x \<notin> A \<Longrightarrow> restrict_id f A x = x"
+  by (auto simp: restrict_id_def)
+
+lemma bij_betw_restrict_id:
+  assumes "bij_betw f A A" "A \<subseteq> B"
+  shows   "bij_betw (restrict_id f A) B B"
+proof -
+  have "bij_betw (restrict_id f A) (A \<union> (B - A)) (A \<union> (B - A))"
+    unfolding restrict_id_def
+    by (rule bij_betw_disjoint_Un) (use assms in \<open>auto intro: bij_betwI\<close>)
+  also have "A \<union> (B - A) = B"
+    using assms(2) by blast
+  finally show ?thesis .
+qed
+
+lemma permutes_restrict_id:
+  assumes "bij_betw f A A"
+  shows   "restrict_id f A permutes A"
+  by (intro bij_imp_permutes bij_betw_restrict_id assms) auto
+
+
+subsection \<open>Mapping a permutation\<close>
+
+definition map_permutation :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b" where
+  "map_permutation A f p = restrict_id (f \<circ> p \<circ> inv_into A f) (f ` A)"
+
+lemma map_permutation_cong_strong:
+  assumes "A = B" "\<And>x. x \<in> A \<Longrightarrow> f x = g x" "\<And>x. x \<in> A \<Longrightarrow> p x = q x"
+  assumes "p ` A \<subseteq> A" "inj_on f A"
+  shows   "map_permutation A f p = map_permutation B g q"
+proof -
+  have fg: "f x = g y" if "x \<in> A" "x = y" for x y
+    using assms(2) that by simp
+  have pq: "p x = q y" if "x \<in> A" "x = y" for x y
+    using assms(3) that by simp
+  have p: "p x \<in> A" if "x \<in> A" for x
+    using assms(4) that by blast
+  have inv: "inv_into A f x = inv_into B g y" if "x \<in> f ` A" "x = y" for x y
+  proof -
+    from that obtain u where u: "u \<in> A" "x = f u"
+      by blast
+    have "inv_into A f (f u) = inv_into A g (f u)"
+      using \<open>inj_on f A\<close> u(1) by (metis assms(2) inj_on_cong inv_into_f_f)
+    thus ?thesis
+      using u \<open>x = y\<close> \<open>A = B\<close> by simp
+  qed
+
+  show ?thesis
+    unfolding map_permutation_def o_def
+    by (intro restrict_id_cong image_cong fg pq inv_into_into p inv) (auto simp: \<open>A = B\<close>)
+qed
+
+lemma map_permutation_cong:
+  assumes "inj_on f A" "p permutes A"
+  assumes "A = B" "\<And>x. x \<in> A \<Longrightarrow> f x = g x" "\<And>x. x \<in> A \<Longrightarrow> p x = q x"
+  shows   "map_permutation A f p = map_permutation B g q"
+proof (intro map_permutation_cong_strong assms)
+  show "p ` A \<subseteq> A"
+    using \<open>p permutes A\<close> by (simp add: permutes_image)
+qed auto
+
+lemma inv_into_id [simp]: "x \<in> A \<Longrightarrow> inv_into A id x = x"
+  by (metis f_inv_into_f id_apply image_eqI)
+
+lemma inv_into_ident [simp]: "x \<in> A \<Longrightarrow> inv_into A (\<lambda>x. x) x = x"
+  by (metis f_inv_into_f image_eqI)
+
+lemma map_permutation_id [simp]: "p permutes A \<Longrightarrow> map_permutation A id p = p"
+  by (auto simp: fun_eq_iff map_permutation_def restrict_id_def permutes_not_in)
+
+lemma map_permutation_ident [simp]: "p permutes A \<Longrightarrow> map_permutation A (\<lambda>x. x) p = p"
+  by (auto simp: fun_eq_iff map_permutation_def restrict_id_def permutes_not_in)
+
+lemma map_permutation_id': "inj_on f A \<Longrightarrow> map_permutation A f id = id"
+  unfolding map_permutation_def by (auto simp: restrict_id_def fun_eq_iff)
+
+lemma map_permutation_ident': "inj_on f A \<Longrightarrow> map_permutation A f (\<lambda>x. x) = (\<lambda>x. x)"
+  unfolding map_permutation_def by (auto simp: restrict_id_def fun_eq_iff)
+
+lemma map_permutation_permutes:
+  assumes "bij_betw f A B" "p permutes A"
+  shows   "map_permutation A f p permutes B"
+proof (rule bij_imp_permutes)
+  have f_A: "f ` A = B"
+    using assms(1) by (auto simp: bij_betw_def)
+  from assms(2) have "bij_betw p A A"
+    by (simp add: permutes_imp_bij)
+  show "bij_betw (map_permutation A f p) B B"
+    unfolding map_permutation_def f_A
+    by (rule bij_betw_restrict_id bij_betw_trans bij_betw_inv_into assms(1)
+             permutes_imp_bij[OF assms(2)] order.refl)+
+  show "map_permutation A f p x = x" if "x \<notin> B" for x
+    using that unfolding map_permutation_def f_A by simp
+qed
+                                                        
+lemma map_permutation_compose:
+  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'c"
+  assumes "bij_betw f A B" "inj_on g B"
+  shows   "map_permutation B g (map_permutation A f p) = map_permutation A (g \<circ> f) p"
+proof
+  fix c :: 'c
+  have bij_g: "bij_betw g B (g ` B)"
+    using \<open>inj_on g B\<close> unfolding bij_betw_def by blast
+  have [simp]: "f x = f y \<longleftrightarrow> x = y" if "x \<in> A" "y \<in> A" for x y
+    using assms(1) that by (auto simp: bij_betw_def inj_on_def)
+  have [simp]: "g x = g y \<longleftrightarrow> x = y" if "x \<in> B" "y \<in> B" for x y
+    using assms(2) that by (auto simp: bij_betw_def inj_on_def)
+  show "map_permutation B g (map_permutation A f p) c = map_permutation A (g \<circ> f) p c"
+  proof (cases "c \<in> g ` B")
+    case c: True
+    then obtain a where a: "a \<in> A" "c = g (f a)"
+      using assms(1,2) unfolding bij_betw_def by auto
+    have "map_permutation B g (map_permutation A f p) c = g (f (p a))"
+      using a assms by (auto simp: map_permutation_def restrict_id_def bij_betw_def)
+    also have "\<dots> = map_permutation A (g \<circ> f) p c"
+      using a bij_betw_inv_into_left[OF bij_betw_trans[OF assms(1) bij_g]]
+      by (auto simp: map_permutation_def restrict_id_def bij_betw_def)
+    finally show ?thesis .
+  next
+    case c: False
+    thus ?thesis using assms
+      by (auto simp: map_permutation_def bij_betw_def restrict_id_def)
+  qed
+qed
+
+lemma map_permutation_compose_inv:
+  assumes "bij_betw f A B" "p permutes A" "\<And>x. x \<in> A \<Longrightarrow> g (f x) = x"
+  shows   "map_permutation B g (map_permutation A f p) = p"
+proof -
+  have "inj_on g B"
+  proof
+    fix x y assume "x \<in> B" "y \<in> B" "g x = g y"
+    then obtain x' y' where *: "x' \<in> A" "y' :  A" "x = f x'" "y = f y'"
+      using assms(1) unfolding bij_betw_def by blast
+    thus "x = y"
+      using assms(3)[of x'] assms(3)[of y'] \<open>g x = g y\<close> by simp
+  qed
+
+  have "map_permutation B g (map_permutation A f p) = map_permutation A (g \<circ> f) p"
+    by (rule map_permutation_compose) (use assms \<open>inj_on g B\<close> in auto)
+  also have "\<dots> = map_permutation A id p"
+    by (intro map_permutation_cong assms comp_inj_on)
+       (use \<open>inj_on g B\<close> assms(1,3) in \<open>auto simp: bij_betw_def\<close>)
+  also have "\<dots> = p"
+    by (rule map_permutation_id) fact
+  finally show ?thesis .
+qed
+
+lemma map_permutation_apply:
+  assumes "inj_on f A" "x \<in> A"
+  shows   "map_permutation A f h (f x) = f (h x)"
+  using assms by (auto simp: map_permutation_def inj_on_def)
+
+lemma map_permutation_compose':
+  fixes f :: "'a \<Rightarrow> 'b"
+  assumes "inj_on f A" "q permutes A"
+  shows   "map_permutation A f (p \<circ> q) = map_permutation A f p \<circ> map_permutation A f q"
+proof
+  fix y :: 'b
+  show "map_permutation A f (p \<circ> q) y = (map_permutation A f p \<circ> map_permutation A f q) y"
+  proof (cases "y \<in> f ` A")
+    case True
+    then obtain x where x: "x \<in> A" "y = f x"
+      by blast
+    have "map_permutation A f (p \<circ> q) y = f (p (q x))"
+      unfolding x(2) by (subst map_permutation_apply) (use assms x in auto)
+    also have "\<dots> = (map_permutation A f p \<circ> map_permutation A f q) y"
+      unfolding x o_apply using x(1) assms
+      by (simp add: map_permutation_apply permutes_in_image)
+    finally show ?thesis .
+  next
+    case False
+    thus ?thesis
+      using False by (simp add: map_permutation_def)
+  qed
+qed
+
+lemma map_permutation_transpose:
+  assumes "inj_on f A" "a \<in> A" "b \<in> A"
+  shows   "map_permutation A f (Transposition.transpose a b) = Transposition.transpose (f a) (f b)"
+proof
+  fix y :: 'b
+  show "map_permutation A f (Transposition.transpose a b) y = Transposition.transpose (f a) (f b) y"
+  proof (cases "y \<in> f ` A")
+    case False
+    hence "map_permutation A f (Transposition.transpose a b) y = y"
+      unfolding map_permutation_def by (intro restrict_id_simps)
+    moreover have "Transposition.transpose (f a) (f b) y = y"
+      using False assms by (intro transpose_apply_other) auto
+    ultimately show ?thesis
+      by simp
+  next
+    case True
+    then obtain x where x: "x \<in> A" "y = f x"
+      by blast
+    have "map_permutation A f (Transposition.transpose a b) y =
+            f (Transposition.transpose a b x)"
+      unfolding x by (subst map_permutation_apply) (use x assms in auto)
+    also have "\<dots> = Transposition.transpose (f a) (f b) y"
+      using assms(2,3) x
+      by (auto simp: Transposition.transpose_def inj_on_eq_iff[OF assms(1)])
+    finally show ?thesis .
+  qed
+qed
+
+lemma map_permutation_permutes_iff:
+  assumes "bij_betw f A B" "p ` A \<subseteq> A" "\<And>x. x \<notin> A \<Longrightarrow> p x = x"
+  shows   "map_permutation A f p permutes B \<longleftrightarrow> p permutes A"
+proof
+  assume "p permutes A"
+  thus "map_permutation A f p permutes B"
+    by (intro map_permutation_permutes assms)
+next
+  assume *: "map_permutation A f p permutes B"
+  hence "map_permutation B (inv_into A f) (map_permutation A f p) permutes A"
+    by (rule map_permutation_permutes[OF bij_betw_inv_into[OF assms(1)]])
+  also have "map_permutation B (inv_into A f) (map_permutation A f p) = 
+             map_permutation A (inv_into A f \<circ> f) p"
+    by (rule map_permutation_compose[OF _ inj_on_inv_into]) 
+       (use assms in \<open>auto simp: bij_betw_def\<close>)
+  also have "\<dots> = map_permutation A id p"
+    unfolding o_def id_def
+    by (rule sym, intro map_permutation_cong_strong inv_into_f_f[symmetric]
+          assms(2) bij_betw_imp_inj_on[OF assms(1)]) auto
+  also have "\<dots> = p"
+    unfolding map_permutation_def using assms(3)
+    by (auto simp: restrict_id_def fun_eq_iff split: if_splits)
+  finally show "p permutes A" .
+qed
 
 lemma bij_betw_permutations:
   assumes "bij_betw f A B"
@@ -495,56 +773,19 @@ lemma finite_permutations:
   shows "finite {p. p permutes S}"
   using card_permutations[OF refl assms] by (auto intro: card_ge_0_finite)
 
-
-subsection \<open>Hence a sort of induction principle composing by swaps\<close>
-
-lemma permutes_induct [consumes 2, case_names id swap]:
-  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
-  and id: \<open>P id\<close>
-  and swap: \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> p permutes S \<Longrightarrow> P p \<Longrightarrow> P (transpose a b \<circ> p)\<close>
-using \<open>finite S\<close> \<open>p permutes S\<close> swap proof (induction S arbitrary: p)
-  case empty
-  with id show ?case
-    by (simp only: permutes_empty)
-next
-  case (insert x S p)
-  define q where \<open>q = transpose x (p x) \<circ> p\<close>
-  then have swap_q: \<open>transpose x (p x) \<circ> q = p\<close>
-    by (simp add: o_assoc)
-  from \<open>p permutes insert x S\<close> have \<open>q permutes S\<close>
-    by (simp add: q_def permutes_insert_lemma)
-  then have \<open>q permutes insert x S\<close>
-    by (simp add: permutes_imp_permutes_insert)
-  from \<open>q permutes S\<close> have \<open>P q\<close>
-    by (auto intro: insert.IH insert.prems(2) permutes_imp_permutes_insert)
-  have \<open>x \<in> insert x S\<close>
-    by simp
-  moreover from \<open>p permutes insert x S\<close> have \<open>p x \<in> insert x S\<close>
-    using permutes_in_image [of p \<open>insert x S\<close> x] by simp
-  ultimately have \<open>P (transpose x (p x) \<circ> q)\<close>
-    using \<open>q permutes insert x S\<close> \<open>P q\<close>
-    by (rule insert.prems(2))
-  then show ?case
-    by (simp add: swap_q)
-qed
-
-lemma permutes_rev_induct [consumes 2, case_names id swap]:
-  \<open>P p\<close> if \<open>p permutes S\<close> \<open>finite S\<close>
-  and id': \<open>P id\<close>
-  and swap': \<open>\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> p permutes S \<Longrightarrow> P p \<Longrightarrow> P (p \<circ> transpose a b)\<close>
-using \<open>p permutes S\<close> \<open>finite S\<close> proof (induction rule: permutes_induct)
-  case id
-  from id' show ?case .
-next
-  case (swap a b p)
-  then have \<open>bij p\<close>
-    using permutes_bij by blast
-  have \<open>P (p \<circ> transpose (inv p a) (inv p b))\<close>
-    by (rule swap') (auto simp add: swap permutes_in_image permutes_inv)
-  also have \<open>p \<circ> transpose (inv p a) (inv p b) = transpose a b \<circ> p\<close>
-    using \<open>bij p\<close> by (rule transpose_comp_eq [symmetric])
-  finally show ?case .
-qed
+lemma permutes_doubleton_iff: "f permutes {a, b} \<longleftrightarrow> f = id \<or> f = Transposition.transpose a b"
+proof (cases "a = b")
+  case False
+  have "{id, Transposition.transpose a b} \<subseteq> {f. f permutes {a, b}}"
+    by (auto simp: permutes_id permutes_swap_id)
+  moreover have "id \<noteq> Transposition.transpose a b"
+    using False by (auto simp: fun_eq_iff Transposition.transpose_def)
+  hence "card {id, Transposition.transpose a b} = card {f. f permutes {a, b}}"
+    using False by (simp add: card_permutations)
+  ultimately have "{id, Transposition.transpose a b} = {f. f permutes {a, b}}"
+    by (intro card_subset_eq finite_permutations) auto
+  thus ?thesis by auto
+qed auto
 
 
 subsection \<open>Permutations of index set for iterated operations\<close>
@@ -922,7 +1163,7 @@ lemma permutation_permutes: "permutation p \<longleftrightarrow> (\<exists>S. fi
   by (auto elim: permutation_permutesE intro: permutes_imp_permutation)
 
 
-subsection \<open>Sign of a permutation as a real number\<close>
+subsection \<open>Sign of a permutation\<close>
 
 definition sign :: \<open>('a \<Rightarrow> 'a) \<Rightarrow> int\<close> \<comment> \<open>TODO: prefer less generic name\<close>
   where \<open>sign p = (if evenperm p then 1 else - 1)\<close>
@@ -957,7 +1198,444 @@ lemma sign_left_idempotent [simp]:
   \<open>sign p * (sign p * sign q) = sign q\<close>
   by (simp add: sign_def)
 
-term "(bij, bij_betw, permutation)"
+lemma abs_sign [simp]: "\<bar>sign p\<bar> = 1"
+  by (simp add: sign_def)
+
+
+subsection \<open>An induction principle in terms of transpositions\<close>
+
+definition apply_transps :: "('a \<times> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "apply_transps xs = foldr (\<circ>) (map (\<lambda>(a,b). Transposition.transpose a b) xs) id"
+
+lemma apply_transps_Nil [simp]: "apply_transps [] = id"
+  by (simp add: apply_transps_def)
+
+lemma apply_transps_Cons [simp]:
+  "apply_transps (x # xs) = Transposition.transpose (fst x) (snd x) \<circ> apply_transps xs"
+  by (simp add: apply_transps_def case_prod_unfold)
+
+lemma apply_transps_append [simp]:
+  "apply_transps (xs @ ys) = apply_transps xs \<circ> apply_transps ys"
+  by (induction xs) auto
+
+lemma permutation_apply_transps [simp, intro]: "permutation (apply_transps xs)"
+proof (induction xs)
+  case (Cons x xs)
+  thus ?case
+    unfolding apply_transps_Cons by (intro permutation_compose permutation_swap_id)
+qed auto
+
+lemma permutes_apply_transps:
+  assumes "\<forall>(a,b)\<in>set xs. a \<in> A \<and> b \<in> A"
+  shows   "apply_transps xs permutes A"
+  using assms
+proof (induction xs)
+  case (Cons x xs)
+  from Cons.prems show ?case
+    unfolding apply_transps_Cons
+    by (intro permutes_compose permutes_swap_id Cons) auto
+qed (auto simp: permutes_id)
+
+
+lemma permutes_induct [consumes 2, case_names id swap]: 
+  assumes "p permutes S" "finite S"
+  assumes "P id"
+  assumes "\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> a \<noteq> b \<Longrightarrow> P p \<Longrightarrow> p permutes S
+             \<Longrightarrow> P (Transposition.transpose a b \<circ> p)"
+  shows   "P p"
+  using assms(2,1,4)
+proof (induct S arbitrary: p rule: finite_induct)
+  case empty
+  then show ?case using assms by (auto simp: id_def)
+next
+  case (insert x F p)
+  let ?r = "Transposition.transpose x (p x) \<circ> p"
+  let ?q = "Transposition.transpose x (p x) \<circ> ?r"
+  have qp: "?q = p"
+    by (simp add: o_assoc)
+  have "?r permutes F"
+    using permutes_insert_lemma[OF insert.prems(1)] .
+  have "P ?r"
+    by (rule insert(3)[OF \<open>?r permutes F\<close>], rule insert(5)) (auto intro: permutes_subset)
+  show ?case
+  proof (cases "x = p x")
+    case False
+    have "p x \<in> F"
+      using permutes_in_image[OF \<open>p permutes _\<close>, of x] False by auto
+    have "P ?q"
+      by (rule insert(5))
+         (use \<open>P ?r\<close> \<open>p x \<in> F\<close> \<open>?r permutes F\<close> False in \<open>auto simp: o_def intro: permutes_subset\<close>)
+    thus "P p"
+      by (simp add: qp)
+  qed (use \<open>P ?r\<close> in simp)
+qed
+
+lemma permutes_rev_induct[consumes 2, case_names id swap]: 
+  assumes "finite S" "p permutes S"
+  assumes "P id"
+  assumes "\<And>a b p. a \<in> S \<Longrightarrow> b \<in> S \<Longrightarrow> a \<noteq> b \<Longrightarrow> P p \<Longrightarrow> p permutes S
+             \<Longrightarrow> P (p \<circ> Transposition.transpose a b)"
+  shows   "P p"
+proof -
+  have "inv_into UNIV p permutes S"
+    using assms by (intro permutes_inv)
+  from this and assms(1,2) show ?thesis
+  proof (induction "inv_into UNIV p" arbitrary: p rule: permutes_induct)
+    case id
+    hence "p = id"
+      by (metis inv_id permutes_inv_inv)
+    thus ?case using \<open>P id\<close> by (auto simp: id_def)
+  next
+    case (swap a b p p')
+    have "p = Transposition.transpose a b \<circ> (Transposition.transpose a b \<circ> p)"
+      by (simp add: o_assoc)
+    also have "\<dots> = Transposition.transpose a b \<circ> inv_into UNIV p'"
+      by (subst swap.hyps) auto
+    also have "Transposition.transpose a b = inv_into UNIV (Transposition.transpose a b)"
+      by (simp add: inv_swap_id)
+    also have "\<dots> \<circ> inv_into UNIV p' = inv_into UNIV (p' \<circ> Transposition.transpose a b)"
+      using swap \<open>finite S\<close>
+      by (intro permutation_inverse_compose [symmetric] permutation_swap_id permutation_inverse)
+         (auto simp: permutation_permutes)
+    finally have "p = inv (p' \<circ> Transposition.transpose a b)" .
+    moreover have "p' \<circ> Transposition.transpose a b permutes S"
+      by (intro permutes_compose permutes_swap_id swap)
+    ultimately have *: "P (p' \<circ> Transposition.transpose a b)"
+      by (rule swap(4))
+    have "P (p' \<circ> Transposition.transpose a b \<circ> Transposition.transpose a b)"
+      by (rule assms; intro * swap permutes_compose permutes_swap_id)
+    also have "p' \<circ> Transposition.transpose a b \<circ> Transposition.transpose a b = p'"
+      by (simp flip: o_assoc)
+    finally show ?case .
+  qed
+qed
+
+lemma map_permutation_apply_transps:
+  assumes f: "inj_on f A" and "set ts \<subseteq> A \<times> A"
+  shows   "map_permutation A f (apply_transps ts) = apply_transps (map (map_prod f f) ts)"
+  using assms(2)
+proof (induction ts)
+  case (Cons t ts)
+  obtain a b where [simp]: "t = (a, b)"
+    by (cases t)
+  have "map_permutation A f (apply_transps (t # ts)) = 
+          map_permutation A f (Transposition.transpose a b \<circ> apply_transps ts)"
+    by simp
+  also have "\<dots> = map_permutation A f (Transposition.transpose a b) \<circ>
+                  map_permutation A f (apply_transps ts)"
+    by (subst map_permutation_compose') 
+       (use f Cons.prems in \<open>auto intro!: permutes_apply_transps\<close>)
+  also have "map_permutation A f (Transposition.transpose a b) =
+             Transposition.transpose (f a) (f b)"
+    by (intro map_permutation_transpose f) (use Cons.prems in auto)
+  also have "map_permutation A f (apply_transps ts) = apply_transps (map (map_prod f f) ts)"
+    by (intro Cons.IH) (use Cons.prems in auto)
+  also have "Transposition.transpose (f a) (f b) \<circ> apply_transps (map (map_prod f f) ts) =
+             apply_transps (map (map_prod f f) (t # ts))"
+    by simp
+  finally show ?case .
+qed (use f in \<open>auto simp: map_permutation_id'\<close>)
+
+
+lemma permutes_from_transpositions:
+  assumes "p permutes A" "finite A"
+  shows   "\<exists>xs. (\<forall>(a,b)\<in>set xs. a \<noteq> b \<and> a \<in> A \<and> b \<in> A) \<and> apply_transps xs = p"
+  using assms
+proof (induction rule: permutes_induct)
+  case id
+  thus ?case by (intro exI[of _ "[]"]) auto
+next
+  case (swap a b p)
+  from swap.IH obtain xs where
+    xs: "(\<forall>(a,b)\<in>set xs. a \<noteq> b \<and> a \<in> A \<and> b \<in> A)" "apply_transps xs = p"
+    by blast
+  thus ?case
+    using swap.hyps by (intro exI[of _ "(a,b) # xs"]) auto
+qed
+
+
+subsection \<open>More on the sign of permutations\<close>
+
+lemma evenperm_apply_transps_iff:
+  assumes "\<forall>(a,b)\<in>set xs. a \<noteq> b"
+  shows   "evenperm (apply_transps xs) \<longleftrightarrow> even (length xs)"
+  using assms
+  by (induction xs)
+     (simp_all add: case_prod_unfold evenperm_comp permutation_swap_id evenperm_swap)
+
+lemma evenperm_map_permutation:
+  assumes f: "inj_on f A" and "p permutes A" "finite A"
+  shows   "evenperm (map_permutation A f p) \<longleftrightarrow> evenperm p"
+proof -
+  note [simp] = inj_on_eq_iff[OF f]
+  obtain ts where ts: "\<forall>(a, b)\<in>set ts. a \<noteq> b \<and> a \<in> A \<and> b \<in> A" "apply_transps ts = p"
+    using permutes_from_transpositions[OF assms(2,3)] by blast
+  have "evenperm p \<longleftrightarrow> even (length ts)"
+    by (subst ts(2) [symmetric], subst evenperm_apply_transps_iff) (use ts(1) in auto)
+  also have "\<dots> \<longleftrightarrow> even (length (map (map_prod f f) ts))"
+    by simp
+  also have "\<dots> \<longleftrightarrow> evenperm (apply_transps (map (map_prod f f) ts))"
+    by (subst evenperm_apply_transps_iff) (use ts(1) in auto)
+  also have "apply_transps (map (map_prod f f) ts) = map_permutation A f p"
+    unfolding ts(2)[symmetric] 
+    by (rule map_permutation_apply_transps [symmetric]) (use f ts(1) in auto)
+  finally show ?thesis ..
+qed
+
+lemma sign_map_permutation:
+  assumes "inj_on f A" "p permutes A" "finite A"
+  shows   "sign (map_permutation A f p) = sign p"
+  unfolding sign_def by (subst evenperm_map_permutation) (use assms in auto)
+
+
+text \<open>
+  Sometimes it can be useful to consider the sign of a function that is not a permutation in the
+  Isabelle/HOL sense, but its restriction to some finite subset is.
+\<close>
+definition sign_on :: "'a set \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> int"
+  where "sign_on A f = sign (restrict_id f A)"
+
+lemma sign_on_cong [cong]:
+  assumes "A = B" "\<And>x. x \<in> A \<Longrightarrow> f x = g x"
+  shows   "sign_on A f = sign_on B g"
+  unfolding sign_on_def using assms
+  by (intro arg_cong[of _ _ sign] restrict_id_cong)
+
+lemma sign_on_permutes:
+  assumes "f permutes A" "A \<subseteq> B"
+  shows   "sign_on B f = sign f"
+proof -
+  have f: "f permutes B"
+    using assms permutes_subset by blast
+  have "sign_on B f = sign (restrict_id f B)"
+    by (simp add: sign_on_def)
+  also have "restrict_id f B = f"
+    using f by (auto simp: fun_eq_iff permutes_not_in restrict_id_def)
+  finally show ?thesis .
+qed
+
+lemma sign_on_id [simp]: "sign_on A id = 1"
+  by (subst sign_on_permutes[of _ A]) auto
+
+lemma sign_on_ident [simp]: "sign_on A (\<lambda>x. x) = 1"
+  using sign_on_id[of A] unfolding id_def by simp
+
+lemma sign_on_transpose:
+  assumes "a \<in> A" "b \<in> A" "a \<noteq> b"
+  shows   "sign_on A (Transposition.transpose a b) = -1"
+  by (subst sign_on_permutes[of _ A])
+     (use assms in \<open>auto simp: permutes_swap_id sign_swap_id\<close>)
+
+lemma sign_on_compose:
+  assumes "bij_betw f A A" "bij_betw g A A" "finite A"
+  shows   "sign_on A (f \<circ> g) = sign_on A f * sign_on A g"
+proof -
+  define restr where "restr = (\<lambda>f. restrict_id f A)"
+  have "sign_on A (f \<circ> g) = sign (restr (f \<circ> g))"
+    by (simp add: sign_on_def restr_def)
+  also have "restr (f \<circ> g) = restr f \<circ> restr g"
+    using assms(2) by (auto simp: restr_def fun_eq_iff bij_betw_def restrict_id_def)
+  also have "sign \<dots> = sign (restr f) * sign (restr g)" unfolding restr_def
+    by (rule sign_compose) (auto intro!: permutes_imp_permutation[of A] permutes_restrict_id assms)
+  also have "\<dots> = sign_on A f * sign_on A g"
+    by (simp add: sign_on_def restr_def)
+  finally show ?thesis .
+qed
+
+
+
+subsection \<open>Transpositions of adjacent elements\<close>
+
+text \<open>
+  We have shown above that every permutation can be written as a product of transpositions.
+  We will now furthermore show that any transposition of successive natural numbers
+  $\{m, \ldots, n\}$ can be written as a product of transpositions of \<^emph>\<open>adjacent\<close> elements,
+  i.e.\ transpositions of the form $i \leftrightarrow i+1$.
+\<close>
+
+function adj_transp_seq :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
+  "adj_transp_seq a b =
+     (if a \<ge> b then []
+      else if b = a + 1 then [a]
+      else a # adj_transp_seq (a+1) b @ [a])"
+  by auto
+termination by (relation "measure (\<lambda>(a,b). b - a)") auto
+
+lemmas [simp del] = adj_transp_seq.simps
+
+lemma length_adj_transp_seq:
+  "a < b \<Longrightarrow> length (adj_transp_seq a b) = 2 * (b - a) - 1"
+  by (induction a b rule: adj_transp_seq.induct; subst adj_transp_seq.simps) auto
+
+
+definition apply_adj_transps :: "nat list \<Rightarrow> nat \<Rightarrow> nat"
+  where "apply_adj_transps xs = foldl (\<circ>) id (map (\<lambda>x. Transposition.transpose x (x+1)) xs)"
+
+lemma apply_adj_transps_aux:
+  "f \<circ> foldl (\<circ>) g (map (\<lambda>x. Transposition.transpose x (Suc x)) xs) =
+   foldl (\<circ>) (f \<circ> g) (map (\<lambda>x. Transposition.transpose x (Suc x)) xs)"
+  by (induction xs arbitrary: f g) (auto simp: o_assoc)
+
+lemma apply_adj_transps_Nil [simp]: "apply_adj_transps [] = id"
+  and apply_adj_transps_Cons [simp]:
+        "apply_adj_transps (x # xs) = Transposition.transpose x (x+1) \<circ> apply_adj_transps xs"
+  and apply_adj_transps_snoc [simp]:
+        "apply_adj_transps (xs @ [x]) = apply_adj_transps xs \<circ> Transposition.transpose x (x+1)"
+   by (simp_all add: apply_adj_transps_def apply_adj_transps_aux)
+
+lemma adj_transp_seq_correct:
+  assumes "a < b"
+  shows   "apply_adj_transps (adj_transp_seq a b) = Transposition.transpose a b"
+  using assms
+proof (induction a b rule: adj_transp_seq.induct)
+  case (1 a b)
+  show ?case
+  proof (cases "b = a + 1")
+    case True
+    thus ?thesis
+      by (subst adj_transp_seq.simps) (auto simp: o_def Transposition.transpose_def apply_adj_transps_def)
+  next
+    case False
+    hence "apply_adj_transps (adj_transp_seq a b) = 
+            Transposition.transpose a (Suc a) \<circ> Transposition.transpose (Suc a) b \<circ> Transposition.transpose a (Suc a)"
+      using 1 by (subst adj_transp_seq.simps)
+                 (simp add: o_assoc swap_id_common swap_id_common' id_def o_def)
+    also have "\<dots> = Transposition.transpose a b"
+      using False 1 by (simp add: Transposition.transpose_def fun_eq_iff)
+    finally show ?thesis .
+  qed
+qed
+
+lemma permutation_apply_adj_transps: "permutation (apply_adj_transps xs)"
+proof (induction xs)
+  case (Cons x xs)
+  have "permutation (Transposition.transpose x (Suc x) \<circ> apply_adj_transps xs)"
+    by (intro permutation_compose permutation_swap_id Cons)
+  thus ?case by (simp add: o_def)
+qed auto
+
+lemma permutes_apply_adj_transps:
+  assumes "\<forall>x\<in>set xs. x \<in> A \<and> Suc x \<in> A"
+  shows   "apply_adj_transps xs permutes A"
+  using assms
+  by (induction xs) (auto intro!: permutes_compose permutes_swap_id permutes_id)
+
+lemma set_adj_transp_seq:
+  "a < b \<Longrightarrow> set (adj_transp_seq a b) = {a..<b}"
+  by (induction a b rule: adj_transp_seq.induct, subst adj_transp_seq.simps) auto
+
+
+
+subsection \<open>Transferring properties of permutations along bijections\<close>
+
+locale permutes_bij =
+  fixes p :: "'a \<Rightarrow> 'a" and A :: "'a set" and B :: "'b set"
+  fixes f :: "'a \<Rightarrow> 'b" and f' :: "'b \<Rightarrow> 'a"
+  fixes p' :: "'b \<Rightarrow> 'b"
+  defines "p' \<equiv> (\<lambda>x. if x \<in> B then f (p (f' x)) else x)"
+  assumes permutes_p: "p permutes A"
+  assumes bij_f: "bij_betw f A B"
+  assumes f'_f: "x \<in> A \<Longrightarrow> f' (f x) = x"
+begin
+
+lemma bij_f': "bij_betw f' B A"
+  using bij_f f'_f by (auto simp: bij_betw_def) (auto simp: inj_on_def image_image)
+
+lemma f_f': "x \<in> B \<Longrightarrow> f (f' x) = x"
+  using f'_f bij_f by (auto simp: bij_betw_def)
+
+lemma f_in_B: "x \<in> A \<Longrightarrow> f x \<in> B"
+  using bij_f by (auto simp: bij_betw_def)
+
+lemma f'_in_A: "x \<in> B \<Longrightarrow> f' x \<in> A"
+  using bij_f' by (auto simp: bij_betw_def)
+
+lemma permutes_p': "p' permutes B"
+proof -
+  have p': "p' x = x" if "x \<notin> B" for x
+    using that by (simp add: p'_def)
+  have bij_p: "bij_betw p A A"
+    using permutes_p by (simp add: permutes_imp_bij)
+  have "bij_betw (f \<circ> p \<circ> f') B B"
+    by (rule bij_betw_trans bij_f bij_f' bij_p)+
+  also have "?this \<longleftrightarrow> bij_betw p' B B"
+    by (intro bij_betw_cong) (auto simp: p'_def)
+  finally show ?thesis
+    using p' by (rule bij_imp_permutes)
+qed
+
+lemma f_eq_iff [simp]: "f x = f y \<longleftrightarrow> x = y" if "x \<in> A" "y \<in> A" for x y
+  using that bij_f by (auto simp: bij_betw_def inj_on_def)
+
+lemma apply_transps_map_f_aux:
+  assumes "\<forall>(a,b)\<in>set xs. a \<in> A \<and> b \<in> A" "y \<in> B"
+  shows   "apply_transps (map (map_prod f f) xs) y = f (apply_transps xs (f' y))"
+  using assms
+proof (induction xs arbitrary: y)
+  case Nil
+  thus ?case by (auto simp: f_f')
+next
+  case (Cons x xs y)
+  from Cons.prems have "apply_transps xs permutes A"
+    by (intro permutes_apply_transps) auto
+  hence [simp]: "apply_transps xs z \<in> A \<longleftrightarrow> z \<in> A" for z
+    by (simp add: permutes_in_image)
+  from Cons show ?case
+    by (auto simp: Transposition.transpose_def f_f' f'_f case_prod_unfold f'_in_A)
+qed
+
+lemma apply_transps_map_f:
+  assumes "\<forall>(a,b)\<in>set xs. a \<in> A \<and> b \<in> A"
+  shows   "apply_transps (map (map_prod f f) xs) =
+             (\<lambda>y. if y \<in> B then f (apply_transps xs (f' y)) else y)"
+proof
+  fix y
+  show "apply_transps (map (map_prod f f) xs) y =
+          (if y \<in> B then f (apply_transps xs (f' y)) else y)"
+  proof (cases "y \<in> B")
+    case True
+    thus ?thesis
+      using apply_transps_map_f_aux[OF assms] by simp
+  next
+    case False
+    have "apply_transps (map (map_prod f f) xs) permutes B"
+      using assms by (intro permutes_apply_transps) (auto simp: case_prod_unfold f_in_B)
+    with False have "apply_transps (map (map_prod f f) xs) y = y"
+      by (intro permutes_not_in)
+    with False show ?thesis
+      by simp
+  qed
+qed
+
+end
+
+
+locale permutes_bij_finite = permutes_bij +
+  assumes finite_A: "finite A"
+begin
+
+lemma evenperm_p'_iff: "evenperm p' \<longleftrightarrow> evenperm p"
+proof -
+  obtain xs where xs: "\<forall>(a,b)\<in>set xs. a \<in> A \<and> b \<in> A \<and> a \<noteq> b" "apply_transps xs = p"
+    using permutes_from_transpositions[OF permutes_p finite_A] by blast
+  have "evenperm p \<longleftrightarrow> evenperm (apply_transps xs)"
+    using xs by simp
+  also have "\<dots> \<longleftrightarrow> even (length xs)"
+    using xs by (intro evenperm_apply_transps_iff) auto
+  also have "\<dots> \<longleftrightarrow> even (length (map (map_prod f f) xs))"
+    by simp
+  also have "\<dots> \<longleftrightarrow> evenperm (apply_transps (map (map_prod f f) xs))" using xs
+    by (intro evenperm_apply_transps_iff [symmetric]) (auto simp: case_prod_unfold)
+  also have "apply_transps (map (map_prod f f) xs) = p'"
+    using xs unfolding p'_def by (subst apply_transps_map_f) auto
+  finally show ?thesis ..
+qed
+
+lemma sign_p': "sign p' = sign p"
+  by (auto simp: sign_def evenperm_p'_iff)
+
+end
+
 
 
 subsection \<open>Permuting a list\<close>
