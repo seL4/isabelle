@@ -8279,8 +8279,8 @@ lemma image_set [code]:
   by simp
 
 lemma subset_code [code]:
-  "set xs \<le> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
-  "A \<le> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
+  "set xs \<subseteq> B \<longleftrightarrow> (\<forall>x\<in>set xs. x \<in> B)"
+  "A \<subseteq> List.coset ys \<longleftrightarrow> (\<forall>y\<in>set ys. y \<notin> A)"
   "List.coset [] \<subseteq> set [] \<longleftrightarrow> False"
   by auto
 
