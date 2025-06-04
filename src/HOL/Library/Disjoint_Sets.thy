@@ -472,7 +472,7 @@ text \<open>
   If $h$ is an involution on $X$ with no fixed points in $X$ and
   $f(h(x)) = -f(x)$ then $\sum_{x\in X} f(x) = 0$.
   
-  This is easy to show in a ring with characteristic not equal to $2", since then we can do
+  This is easy to show in a ring with characteristic not equal to $2$, since then we can do
   \[\sum_{x\in X} f(x) = \sum_{x\in X} f(h(x)) = -\sum_{x\in X} f(x)\]
   and therefore $2 \sum_{x\in X} f(x) = 0$.
 
