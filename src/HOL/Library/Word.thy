@@ -3180,6 +3180,40 @@ lemma inc_le: "i < m \<Longrightarrow> i + 1 \<le> m"
   for i m :: "'a::len word"
   by uint_arith
 
+lemma less_imp_less_eq_dec:
+  \<open>v \<le> w - 1\<close> if \<open>v < w\<close> for v w :: \<open>'a::len word\<close>
+using that proof transfer
+  show \<open>take_bit LENGTH('a) k \<le> take_bit LENGTH('a) (l - 1)\<close>
+    if \<open>take_bit LENGTH('a) k < take_bit LENGTH('a) l\<close>
+    for k l :: int
+    using that by (cases \<open>take_bit LENGTH('a) l = 0\<close>)
+      (auto simp add: take_bit_decr_eq)
+qed
+
+lemma inc_less_eq_triv_imp:
+  \<open>w = - 1\<close> if \<open>w + 1 \<le> w\<close> for w :: \<open>'a::len word\<close>
+proof (rule ccontr)
+  assume \<open>w \<noteq> - 1\<close>
+  with that show False
+    by transfer (auto simp add: take_bit_eq_mask_iff dest: take_bit_decr_eq)
+qed
+
+lemma less_eq_dec_triv_imp:
+  \<open>w = 0\<close> if \<open>w \<le> w - 1\<close> for w :: \<open>'a::len word\<close>
+proof (rule ccontr)
+  assume \<open>w \<noteq> 0\<close>
+  with that show False
+    by transfer (auto simp add: take_bit_eq_mask_iff dest: take_bit_decr_eq)
+qed
+
+lemma inc_less_eq_iff:
+  \<open>v + 1 \<le> w \<longleftrightarrow> v = - 1 \<or> v < w\<close> for v w :: \<open>'a::len word\<close>
+  by (auto intro: inc_less_eq_triv_imp inc_le)
+
+lemma less_eq_dec_iff:
+  \<open>v \<le> w - 1 \<longleftrightarrow> w = 0 \<or> v < w\<close> for v w :: \<open>'a::len word\<close>
+  by (auto intro: less_eq_dec_triv_imp less_imp_less_eq_dec)
+
 lemma inc_i: "1 \<le> i \<Longrightarrow> i < m \<Longrightarrow> 1 \<le> i + 1 \<and> i + 1 \<le> m"
   for i m :: "'a::len word"
   by uint_arith
