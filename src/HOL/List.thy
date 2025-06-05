@@ -8099,40 +8099,6 @@ qualified lemma range_eq_upto [simp]:
 end
 
 
-text \<open>Bounded \<open>LEAST\<close> operator.\<close>
-
-definition Bleast :: \<open>'a::ord set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a\<close>
-  where \<open>Bleast S P = (LEAST x. x \<in> S \<and> P x)\<close>
-
-declare Bleast_def [symmetric, code_unfold]
-
-definition abort_Bleast :: \<open>'a::ord set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a\<close>
-  where \<open>abort_Bleast S P = (LEAST x. x \<in> S \<and> P x)\<close>
-
-declare [[code abort: abort_Bleast]]
-
-lemma Bleast_code [code]:
-  \<open>Bleast (set xs) P = (case filter P (sort xs) of
-    x # xs \<Rightarrow> x |
-    [] \<Rightarrow> abort_Bleast (set xs) P)\<close>
-proof (cases "filter P (sort xs)")
-  case Nil thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
-next
-  case (Cons x ys)
-  have "(LEAST x. x \<in> set xs \<and> P x) = x"
-  proof (rule Least_equality)
-    show "x \<in> set xs \<and> P x"
-      by (metis Cons Cons_eq_filter_iff in_set_conv_decomp set_sort)
-    next
-      fix y assume "y \<in> set xs \<and> P y"
-      hence "y \<in> set (filter P xs)" by auto
-      thus "x \<le> y"
-        by (metis Cons eq_iff filter_sort set_ConsD set_sort sorted_wrt.simps(2) sorted_sort)
-  qed
-  thus ?thesis using Cons by (simp add: Bleast_def)
-qed
-
-
 subsubsection \<open>Special implementations\<close>
 
 text \<open>
@@ -8344,6 +8310,45 @@ lemma wf_set:
 
 lemma wf_code_set[code]: "wf_code (set xs) = acyclic (set xs)"
   unfolding wf_code_def using wf_set .
+
+text \<open>\<open>LEAST\<close> and \<open>GREATEST\<close> operator.\<close>
+
+context
+begin
+
+qualified definition Least :: \<open>'a::linorder set \<Rightarrow> 'a\<close> \<comment> \<open>only for code generation\<close>
+  where Least_eq [code_abbrev, simp]: \<open>Least S = (LEAST x. x \<in> S)\<close>
+
+qualified lemma Min_filter_eq [code_abbrev]:
+  \<open>Least (Set.filter P S) = (LEAST x. x \<in> S \<and> P x)\<close>
+  by simp
+
+qualified definition Least_abort :: \<open>'a set \<Rightarrow> 'a::linorder\<close>
+  where \<open>Least_abort = Least\<close>
+
+declare [[code abort: Least_abort]]
+
+qualified lemma Least_code [code]:
+  \<open>Least A = (if finite A \<longrightarrow> Set.is_empty A then Least_abort A else Min A)\<close>
+  using Least_Min [of \<open>\<lambda>x. x \<in> A\<close>] by (auto simp add: Least_abort_def)
+
+qualified definition Greatest :: \<open>'a::linorder set \<Rightarrow> 'a\<close> \<comment> \<open>only for code generation\<close>
+  where Greatest_eq [code_abbrev, simp]: \<open>Greatest S = (GREATEST x. x \<in> S)\<close>
+
+qualified lemma Greatest_filter_eq [code_abbrev]:
+  \<open>Greatest (Set.filter P S) = (GREATEST x. x \<in> S \<and> P x)\<close>
+  by simp
+
+qualified definition Greatest_abort :: \<open>'a set \<Rightarrow> 'a::linorder\<close>
+  where \<open>Greatest_abort = Greatest\<close>
+
+declare [[code abort: Greatest_abort]]
+
+qualified lemma Greatest_code [code]:
+  \<open>Greatest A = (if finite A \<longrightarrow> Set.is_empty A then Greatest_abort A else Max A)\<close>
+  using Greatest_Max [of \<open>\<lambda>x. x \<in> A\<close>] by (auto simp add: Greatest_abort_def)
+
+end
 
 
 subsubsection \<open>Pretty lists\<close>

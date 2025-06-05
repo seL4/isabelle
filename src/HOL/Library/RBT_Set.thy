@@ -33,7 +33,7 @@ declare [[code drop: Set.empty Set.is_empty uminus_set_inst.uminus_set
   card the_elem Pow sum prod Product_Type.product Id_on
   Image trancl relcomp wf_on wf_code Min Inf_fin Max Sup_fin
   "(Inf :: 'a set set \<Rightarrow> 'a set)" "(Sup :: 'a set set \<Rightarrow> 'a set)"
-  sorted_list_of_set List.map_project List.Bleast]]
+  sorted_list_of_set List.map_project List.Least List.Greatest]]
 
 
 section \<open>Lemmas\<close>
@@ -769,34 +769,24 @@ lemma Sup'_Set_fold [code]:
 
 end
 
-lemma sorted_list_set[code]: "sorted_list_of_set (Set t) = RBT.keys t"
+lemma sorted_list_set [code]: "sorted_list_of_set (Set t) = RBT.keys t"
   by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
-lemma Bleast_code [code]:
-  "Bleast (Set t) P =
-    (case List.filter P (RBT.keys t) of
-      x # xs \<Rightarrow> x
-    | [] \<Rightarrow> abort_Bleast (Set t) P)"
-proof (cases "List.filter P (RBT.keys t)")
-  case Nil
-  thus ?thesis by (simp add: Bleast_def abort_Bleast_def)
-next
-  case (Cons x ys)
-  have "(LEAST x. x \<in> Set t \<and> P x) = x"
-  proof (rule Least_equality)
-    show "x \<in> Set t \<and> P x"
-      using Cons[symmetric]
-      by (auto simp add: set_keys Cons_eq_filter_iff)
-    next
-      fix y
-      assume "y \<in> Set t \<and> P y"
-      then show "x \<le> y"
-        using Cons[symmetric]
-        by(auto simp add: set_keys Cons_eq_filter_iff)
-          (metis sorted_wrt.simps(2) sorted_append sorted_keys)
-  qed
-  thus ?thesis using Cons by (simp add: Bleast_def)
-qed
+lemma Least_code [code]:
+  \<open>List.Least (Set t) = (if RBT.is_empty t then List.Least_abort {} else Min (Set t))\<close>
+  apply (auto simp add: List.Least_abort_def simp flip: empty_Set)
+  apply (subst Least_Min)
+  using is_empty_Set
+    apply auto
+  done
+
+lemma Greatest_code [code]:
+  \<open>List.Greatest (Set t) = (if RBT.is_empty t then List.Greatest_abort {} else Max (Set t))\<close>
+  apply (auto simp add: List.Greatest_abort_def simp flip: empty_Set)
+  apply (subst Greatest_Max)
+  using is_empty_Set
+    apply auto
+  done
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset
 

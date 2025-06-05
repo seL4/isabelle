@@ -813,6 +813,24 @@ proof -
   } from this [of "{a. P a}"] assms show ?thesis by simp
 qed
 
+lemma Greatest_Max:
+  assumes "finite {a. P a}" and "\<exists>a. P a"
+  shows "(GREATEST a. P a) = Max {a. P a}"
+proof -
+  { fix A :: "'a set"
+    assume A: "finite A" "A \<noteq> {}"
+    have "(GREATEST a. a \<in> A) = Max A"
+    using A proof (induct A rule: finite_ne_induct)
+      case singleton show ?case by (rule Greatest_equality) simp_all
+    next
+      case (insert a A)
+      have "(GREATEST b. b = a \<or> b \<in> A) = max a (GREATEST a. a \<in> A)"
+        by (auto intro!: Greatest_equality simp add: max_def not_le insert.hyps)
+      with insert show ?case by simp
+    qed
+  } from this [of "{a. P a}"] assms show ?thesis by simp
+qed
+
 lemma infinite_growing:
   assumes "X \<noteq> {}"
   assumes *: "\<And>x. x \<in> X \<Longrightarrow> \<exists>y\<in>X. y > x"
