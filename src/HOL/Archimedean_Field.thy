@@ -212,7 +212,7 @@ lemma floor_unique: "of_int z \<le> x \<Longrightarrow> x < of_int z + 1 \<Longr
   using floor_correct [of x] floor_exists1 [of x] by auto
 
 lemma floor_eq_iff: "\<lfloor>x\<rfloor> = a \<longleftrightarrow> of_int a \<le> x \<and> x < of_int a + 1"
-using floor_correct floor_unique by auto
+  using floor_correct floor_unique by auto
 
 lemma of_int_floor_le [simp]: "of_int \<lfloor>x\<rfloor> \<le> x"
   using floor_correct ..
@@ -241,14 +241,13 @@ lemma floor_le_iff: "\<lfloor>x\<rfloor> \<le> z \<longleftrightarrow> x < of_in
 lemma floor_split[linarith_split]: "P \<lfloor>t\<rfloor> \<longleftrightarrow> (\<forall>i. of_int i \<le> t \<and> t < of_int i + 1 \<longrightarrow> P i)"
   by (metis floor_correct floor_unique less_floor_iff not_le order_refl)
 
+lemma floor_eq_imp_diff_1: "\<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<Longrightarrow> \<bar>x-y\<bar> < 1"
+  unfolding floor_eq_iff by linarith
+
 lemma floor_mono:
   assumes "x \<le> y"
   shows "\<lfloor>x\<rfloor> \<le> \<lfloor>y\<rfloor>"
-proof -
-  have "of_int \<lfloor>x\<rfloor> \<le> x" by (rule of_int_floor_le)
-  also note \<open>x \<le> y\<close>
-  finally show ?thesis by (simp add: le_floor_iff)
-qed
+  using assms le_floor_iff of_int_floor_le order.trans by blast
 
 lemma floor_less_cancel: "\<lfloor>x\<rfloor> < \<lfloor>y\<rfloor> \<Longrightarrow> x < y"
   by (auto simp add: not_le [symmetric] floor_mono)
@@ -590,17 +589,14 @@ lemma ceiling_diff_one [simp]: "\<lceil>x - 1\<rceil> = \<lceil>x\<rceil> - 1"
 lemma ceiling_split[linarith_split]: "P \<lceil>t\<rceil> \<longleftrightarrow> (\<forall>i. of_int i - 1 < t \<and> t \<le> of_int i \<longrightarrow> P i)"
   by (auto simp add: ceiling_unique ceiling_correct)
 
+lemma ceiling_eq_imp_diff_1: "\<lceil>x\<rceil> = \<lceil>y\<rceil> \<Longrightarrow> \<bar>x-y\<bar> < 1"
+  unfolding ceiling_eq_iff by linarith
+
 lemma ceiling_diff_floor_le_1: "\<lceil>x\<rceil> - \<lfloor>x\<rfloor> \<le> 1"
-proof -
-  have "of_int \<lceil>x\<rceil> - 1 < x"
-    using ceiling_correct[of x] by simp
-  also have "x < of_int \<lfloor>x\<rfloor> + 1"
-    using floor_correct[of x] by simp_all
-  finally have "of_int (\<lceil>x\<rceil> - \<lfloor>x\<rfloor>) < (of_int 2::'a)"
-    by simp
-  then show ?thesis
-    unfolding of_int_less_iff by simp
-qed
+  by (simp add: ceiling_altdef)
+
+lemma floor_eq_ceiling_imp_diff_2: "\<lfloor>x\<rfloor> = \<lceil>y\<rceil> \<Longrightarrow> \<bar>x-y\<bar> < 2"
+  unfolding floor_eq_iff by linarith
 
 lemma nat_approx_posE:
   fixes e:: "'a::{archimedean_field,floor_ceiling}"
@@ -698,9 +694,7 @@ lemma frac_add:
 
 lemma frac_unique_iff: "frac x = a \<longleftrightarrow> x - a \<in> \<int> \<and> 0 \<le> a \<and> a < 1"
   for x :: "'a::floor_ceiling"
-  apply (auto simp: Ints_def frac_def algebra_simps floor_unique)
-   apply linarith+
-  done
+  by (auto simp: Ints_def frac_def algebra_simps floor_unique; linarith)
 
 lemma frac_eq: "frac x = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
   by (simp add: frac_unique_iff)
@@ -708,20 +702,14 @@ lemma frac_eq: "frac x = x \<longleftrightarrow> 0 \<le> x \<and> x < 1"
 lemma frac_eq_id [simp]: "x \<in> {0..<1} \<Longrightarrow> frac x = x"
   by (simp add: frac_eq)
 
+lemma frac_in_Ints_iff [simp]: "frac x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
+  by (metis frac_eq_0_iff frac_frac)
+
 lemma frac_neg: "frac (- x) = (if x \<in> \<int> then 0 else 1 - frac x)"
   for x :: "'a::floor_ceiling"
-  apply (auto simp add: frac_unique_iff)
-   apply (simp add: frac_def)
-  apply (meson frac_lt_1 less_iff_diff_less_0 not_le not_less_iff_gr_or_eq)
-  done
-
-lemma frac_in_Ints_iff [simp]: "frac x \<in> \<int> \<longleftrightarrow> x \<in> \<int>"
-proof safe
-  assume "frac x \<in> \<int>"
-  hence "of_int \<lfloor>x\<rfloor> + frac x \<in> \<int>" by auto
-  also have "of_int \<lfloor>x\<rfloor> + frac x = x" by (simp add: frac_def)
-  finally show "x \<in> \<int>" .
-qed (auto simp: frac_def)
+  unfolding frac_unique_iff using frac_lt_1 [of x]
+  apply (simp add: frac_def)
+  by (metis Ints_of_int floor_eq_iff nless_le)
 
 lemma frac_1_eq: "frac (x+1) = frac x"
   by (simp add: frac_def)
@@ -826,11 +814,14 @@ next
 qed
 
 
-
 subsection \<open>Rounding to the nearest integer\<close>
 
 definition round :: "'a::floor_ceiling \<Rightarrow> int"
   where "round x = \<lfloor>x + 1/2\<rfloor>"
+
+lemma round_eq_imp_diff_1: "round x = round y \<Longrightarrow> \<bar>x-y\<bar> < 1"
+  unfolding round_def
+  using floor_eq_imp_diff_1 by fastforce
 
 lemma of_int_round_ge: "of_int (round x) \<ge> x - 1/2"
   and of_int_round_le: "of_int (round x) \<le> x + 1/2"
