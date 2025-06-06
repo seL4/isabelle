@@ -1392,6 +1392,10 @@ next
   with LeastI_ex[OF H] show ?rhs by blast
 qed
 
+lemma exists_least_iff': 
+  shows "(\<exists>n. P n) \<longleftrightarrow> P (Least P) \<and> (\<forall>m < (Least P). \<not> P m)"
+  using LeastI_ex not_less_Least by auto
+
 end
 
 

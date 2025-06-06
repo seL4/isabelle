@@ -1004,7 +1004,7 @@ lemma Least_Suc2: "P n \<Longrightarrow> Q m \<Longrightarrow> \<not> P 0 \<Long
 
 lemma ex_least_nat_le:
   fixes P :: "nat \<Rightarrow> bool"
-  assumes "P n" "\<not> P 0" 
+  assumes "P n"
   shows "\<exists>k\<le>n. (\<forall>i<k. \<not> P i) \<and> P k"
 proof (cases n)
   case (Suc m)
@@ -1019,7 +1019,7 @@ lemma ex_least_nat_less:
 proof (cases n)
   case (Suc m)
   then obtain k where k: "k \<le> n" "\<forall>i<k. \<not> P i" "P k"
-    using ex_least_nat_le [OF assms] by blast
+    using ex_least_nat_le \<open>P n\<close> by blast
   show ?thesis 
     by (cases k) (use assms k less_eq_Suc_le in auto)
 qed (use assms in auto)

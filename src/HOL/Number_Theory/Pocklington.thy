@@ -11,11 +11,14 @@ begin
 subsection \<open>Lemmas about previously defined terms\<close>
 
 lemma prime_nat_iff'': "prime (p::nat) \<longleftrightarrow> p \<noteq> 0 \<and> p \<noteq> 1 \<and> (\<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m)"
-  apply (auto simp add: prime_nat_iff)
-   apply (rule coprimeI)
-   apply (auto dest: nat_dvd_not_less simp add: ac_simps)
-  apply (metis One_nat_def dvd_1_iff_1 dvd_pos_nat gcd_nat.order_iff is_unit_gcd linorder_neqE_nat nat_dvd_not_less)
-  done
+proof -
+have \<section>: "\<And>m. \<lbrakk>0 < p; \<forall>m. 0 < m \<and> m < p \<longrightarrow> coprime p m; m dvd p; m \<noteq> p\<rbrakk>
+         \<Longrightarrow> m = Suc 0"
+  by (metis One_nat_def coprime_absorb_right dvd_1_iff_1 dvd_nat_bounds
+      nless_le)
+  show ?thesis
+    by (auto simp: nat_dvd_not_less prime_imp_coprime_nat prime_nat_iff elim!: \<section>)
+qed
 
 lemma finite_number_segment: "card { m. 0 < m \<and> m < n } = n - 1"
 proof -
@@ -38,7 +41,7 @@ next
   case False
   from bezout_add_strong_nat [OF this]
   obtain d x y where dxy: "d dvd a" "d dvd n" "a * x = n * y + d" by blast
-  from dxy(1,2) have d1: "d = 1"
+  then have d1: "d = 1"
     using assms coprime_common_divisor [of a n d] by simp
   with dxy(3) have "a * x * b = (n * y + 1) * b"
     by simp
@@ -181,25 +184,6 @@ proof (rule totient_imp_prime)
   qed
 qed (use n in auto)
 
-lemma nat_exists_least_iff: "(\<exists>(n::nat). P n) \<longleftrightarrow> (\<exists>n. P n \<and> (\<forall>m < n. \<not> P m))"
-  by (metis ex_least_nat_le not_less0)
-
-lemma nat_exists_least_iff': "(\<exists>(n::nat). P n) \<longleftrightarrow> P (Least P) \<and> (\<forall>m < (Least P). \<not> P m)"
-  (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  show ?lhs if ?rhs
-    using that by blast
-  show ?rhs if ?lhs
-  proof -
-    from \<open>?lhs\<close> obtain n where n: "P n" by blast
-    let ?x = "Least P"
-    have "\<not> P m" if "m < ?x" for m
-      by (rule not_less_Least[OF that])
-    with LeastI_ex[OF \<open>?lhs\<close>] show ?thesis
-      by blast
-  qed
-qed
-
 theorem lucas:
   assumes n2: "n \<ge> 2" and an1: "[a^(n - 1) = 1] (mod n)"
     and pn: "\<forall>p. prime p \<and> p dvd n - 1 \<longrightarrow> [a^((n - 1) div p) \<noteq> 1] (mod n)"
@@ -214,7 +198,7 @@ proof-
     using \<open>n \<ge> 2\<close> by simp_all
   have False if H0: "\<exists>m. 0 < m \<and> m < n - 1 \<and> [a ^ m = 1] (mod n)" (is "\<exists>m. ?P m")
   proof -
-    from H0[unfolded nat_exists_least_iff[of ?P]] obtain m where
+    from H0[unfolded exists_least_iff[of ?P]] obtain m where
       m: "0 < m" "m < n - 1" "[a ^ m = 1] (mod n)" "\<forall>k <m. \<not>?P k"
       by blast
     have False if nm1: "(n - 1) mod m > 0"
@@ -302,7 +286,7 @@ proof-
     with assms show ?thesis
       by auto
   qed
-  from nat_exists_least_iff'[of ?P] ex assms show ?thesis
+  from exists_least_iff'[of ?P] ex assms show ?thesis
     unfolding o[symmetric] by auto
 qed
 
