@@ -286,7 +286,7 @@ lemma REPLICATE[import_const REPLICATE : replicate]:
 
 lemma NULL[import_const NULL : List.null]:
   "List.null ([]::'t18373 list) = True \<and> List.null ((h::'t18373) # t) = False"
-  unfolding null_def by simp
+  by simp
 
 lemma ALL[import_const ALL : list_all]:
   "list_all (P::'t18393 \<Rightarrow> bool) [] = True \<and>

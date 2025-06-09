@@ -4318,7 +4318,7 @@ lemma [code]: "add_mset x (mset xs) = mset (x # xs)"
   by simp
 
 lemma [code]: "Multiset.is_empty (mset xs) \<longleftrightarrow> List.null xs"
-  by (simp add: Multiset.is_empty_def List.null_def)
+  by (simp add: Multiset.is_empty_def)
 
 lemma union_code [code]: "mset xs + mset ys = mset (xs @ ys)"
   by simp

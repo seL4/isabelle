@@ -220,15 +220,17 @@ qed
 
 subsection \<open>Alternative rules for membership in lists\<close>
 
-declare in_set_member[code_pred_inline]
+lemma in_set_member [code_pred_inline]:
+  "x \<in> set xs \<longleftrightarrow> List.member xs x"
+  by simp
 
 lemma member_intros [code_pred_intro]:
   "List.member (x#xs) x"
   "List.member xs x \<Longrightarrow> List.member (y#xs) x"
-by(simp_all add: List.member_def)
+  by simp_all
 
 code_pred List.member
-  by(auto simp add: List.member_def elim: list.set_cases)
+  by(auto simp add: elim: list.set_cases)
 
 code_identifier constant member_i_i
    \<rightharpoonup> (SML) "List.member_i_i"

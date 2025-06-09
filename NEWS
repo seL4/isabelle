@@ -87,10 +87,16 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     thm remove_def ~> Set.remove_eq [simp]
 
     const Set.filter
-    thm filter_def → Set.filter_eq [simp]
+    thm filter_def ~> Set.filter_eq [simp]
 
     const [List.]can_select ~> Set.can_select
     thm can_select_def ~> Set.can_select_iff [simp]
+
+    const member ~> List.member
+    thm member_def ~> List.member_iff [simp]
+
+    const null ~> List.null
+    thm null_def ~> List.null_iff [simp]
 
     const List.all_interval_nat List.all_interval_int
     discontinued in favour of a generic List.all_range

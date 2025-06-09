@@ -54,8 +54,6 @@ text \<open>
   lists.
 \<close>
 
-declare List.member_def [simp]
-
 definition
   sub_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
 where 
@@ -978,7 +976,7 @@ next
   proof (cases "xs=[]")
     case True
     then show ?thesis
-      using Cons.prems member_rec(2) by fastforce
+      using Cons.prems by auto (metis empty_iff empty_subsetI list.set(1)) 
   next
     case False
     have "\<lbrakk>\<not> List.member ys x; xs \<approx> x # ys\<rbrakk> \<Longrightarrow> thesis" for x ys
@@ -1091,8 +1089,8 @@ proof
     have d: "card_list l = Suc m" by fact
     then have "\<exists>a. List.member l a" by (auto dest: card_eq_SucD)
     then obtain a where e: "List.member l a" by auto
-    then have e': "List.member r a" using list_eq_def [simplified List.member_def [symmetric], of l r] b 
-      by auto
+    then have e': "List.member r a" using list_eq_def [of l r] b 
+      by simp
     have f: "card_list (removeAll a l) = m" using e d by (simp)
     have g: "removeAll a l \<approx> removeAll a r" using remove_fset.rsp b by simp
     have "(removeAll a l) \<approx>2 (removeAll a r)" by (rule Suc.hyps[OF f g])

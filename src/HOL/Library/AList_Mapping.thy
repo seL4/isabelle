@@ -22,7 +22,7 @@ lemma empty_Mapping [code]: "Mapping.empty = Mapping []"
   by transfer simp
 
 lemma is_empty_Mapping [code]: "Mapping.is_empty (Mapping xs) \<longleftrightarrow> List.null xs"
-  by (cases xs) (simp_all add: is_empty_def null_def)
+  by (cases xs) (simp_all add: is_empty_def)
 
 lemma update_Mapping [code]: "Mapping.update k v (Mapping xs) = Mapping (AList.update k v xs)"
   by transfer (simp add: update_conv')

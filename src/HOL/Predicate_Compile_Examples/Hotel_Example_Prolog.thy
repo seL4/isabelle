@@ -57,10 +57,10 @@ lemma [code_pred_def]:
 unfolding hotel.simps issuedp_def cardsp_def isinp_def
 by (auto split: event.split)
 
-declare List.member_rec[code_pred_def]
+declare List.member_code [code_pred_def]
 
 lemma [code_pred_def]: "no_Check_in s r = (\<not> (\<exists>g c. List.member s (Check_in g r c)))"
-unfolding no_Check_in_def member_def by auto
+  by (simp add: no_Check_in_def)
 
 lemma [code_pred_def]: "feels_safe s r =
 (\<exists>s\<^sub>1 s\<^sub>2 s\<^sub>3 g c c'.

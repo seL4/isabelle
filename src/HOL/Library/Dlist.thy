@@ -189,7 +189,7 @@ proof (cases dxs)
   next
     case (Cons x xs)
     then have "\<not> Dlist.member (Dlist xs) x" and "P (Dlist xs)"
-      by (simp_all add: Dlist.member_def List.member_def)
+      by (simp_all add: Dlist.member_def)
     with insrt have "P (Dlist.insert x (Dlist xs))" .
     with Cons show ?case by (simp add: Dlist.insert_def distinct_remdups_id)
   qed
@@ -212,7 +212,7 @@ proof (cases dxs)
     case (Cons x xs)
     with dxs distinct have "\<not> Dlist.member (Dlist xs) x"
       and "dxs = Dlist.insert x (Dlist xs)"
-      by (simp_all add: Dlist.member_def List.member_def Dlist.insert_def distinct_remdups_id)
+      by (simp_all add: Dlist.member_def Dlist.insert_def distinct_remdups_id)
     with insert show ?thesis .
   qed
 qed

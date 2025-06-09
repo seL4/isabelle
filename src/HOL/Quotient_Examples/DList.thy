@@ -60,11 +60,12 @@ lemma remdups_eq_map_eq:
 
 lemma remdups_eq_member_eq:
   assumes "remdups xa = remdups ya"
-    shows "List.member xa = List.member ya"
-  using assms
-  unfolding fun_eq_iff List.member_def
-  by (induct xa ya rule: list_induct2')
-     (metis remdups_nil_noteq_cons set_remdups)+
+  shows "List.member xa = List.member ya"
+proof -
+  from assms have \<open>set (remdups xa) = set (remdups ya)\<close>
+    by simp
+  then show ?thesis by (simp add: fun_eq_iff)
+qed
 
 text \<open>Setting up the quotient type\<close>
 
@@ -129,11 +130,11 @@ text \<open>lifted theorems\<close>
 
 lemma dlist_member_insert:
   "member dl x \<Longrightarrow> insert x dl = dl"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_member_insert_eq:
   "member (insert y dl) x = (x = y \<or> member dl x)"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_insert_idem:
   "insert x (insert x dl) = insert x dl"
@@ -145,23 +146,23 @@ lemma dlist_insert_not_empty:
 
 lemma not_dlist_member_empty:
   "\<not> member empty x"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma not_dlist_member_remove:
   "\<not> member (remove x dl) x"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_in_remove:
   "a \<noteq> b \<Longrightarrow> member (remove b dl) a = member dl a"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_not_memb_remove:
   "\<not> member dl x \<Longrightarrow> remove x dl = dl"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_no_memb_remove_insert:
   "\<not> member dl x \<Longrightarrow> remove x (insert x dl) = dl"
-  by descending (simp add: List.member_def)
+  by descending simp
 
 lemma dlist_remove_empty:
   "remove x empty = empty"
@@ -182,12 +183,12 @@ lemma dlist_foldr_empty:
 lemma dlist_no_memb_foldr:
   assumes "\<not> member dl x"
   shows "foldr f (insert x dl) e = f x (foldr f dl e)"
-  using assms by descending (simp add: List.member_def)
+  using assms by descending simp
 
 lemma dlist_foldr_insert_not_memb:
   assumes "\<not>member t h"
   shows "foldr f (insert h t) e = f h (foldr f t e)"
-  using assms by descending (simp add: List.member_def)
+  using assms by descending simp
 
 lemma list_of_dlist_empty[simp]:
   "list_of_dlist empty = []"
@@ -197,7 +198,7 @@ lemma list_of_dlist_insert[simp]:
   "list_of_dlist (insert x xs) =
     (if member xs x then (remdups (list_of_dlist xs))
     else x # (remdups (list_of_dlist xs)))"
-  by descending (simp add: List.member_def remdups_remdups)
+  by descending (simp add: remdups_remdups)
 
 lemma list_of_dlist_remove[simp]:
   "list_of_dlist (remove x dxs) = remove1 x (list_of_dlist dxs)"
@@ -280,8 +281,10 @@ lemma dlist_card_induct:
 
 lemma dlist_cases:
   "dl = empty \<or> (\<exists>h t. dl = insert h t \<and> \<not> member t h)"
-  by descending
-    (metis List.member_def dlist_eq_def hd_Cons_tl list_of_dlist_dlist remdups_hd_notin_tl remdups_list_of_dlist)
+  apply descending
+  apply auto
+  apply (metis neq_Nil_conv remdups_eq_nil_right_iff remdups_hd_notin_tl remdups_repeat)
+  done
 
 lemma dlist_exhaust:
   obtains "y = empty" | a dl where "y = insert a dl"

@@ -66,7 +66,7 @@ lemma valuesum_rec_Mapping:
   shows [code]: "valuesum (Mapping []) = 0"
   and "valuesum (Mapping (x # xs)) = (let l = (SOME l. l \<in> Mapping.keys (Mapping (x # xs))) in
     the (Mapping.lookup (Mapping (x # xs)) l) + valuesum (Mapping.delete l (Mapping (x # xs))))"
-  by (simp_all add: valuesum_rec finite_dom_map_of is_empty_Mapping null_def)
+  by (simp_all add: valuesum_rec finite_dom_map_of is_empty_Mapping)
 
 text \<open>
   As a side effect the precondition disappears (but note this has nothing to do with choice!).

@@ -550,7 +550,7 @@ definition is_zero :: "'a::zero poly \<Rightarrow> bool"
   where [code]: "is_zero p \<longleftrightarrow> List.null (coeffs p)"
 
 lemma is_zero_null [code_abbrev]: "is_zero p \<longleftrightarrow> p = 0"
-  by (simp add: is_zero_def null_def)
+  by (simp add: is_zero_def)
 
 
 text \<open>Reconstructing the polynomial from the list\<close>

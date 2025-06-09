@@ -7846,20 +7846,23 @@ subsection \<open>Code generation\<close>
 
 subsubsection \<open>Counterparts for set-related operations\<close>
 
-definition member :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> bool\<close>
-  where [code_abbrev]: \<open>member xs x \<longleftrightarrow> x \<in> set xs\<close>
+context
+begin
+
+qualified definition member :: \<open>'a list \<Rightarrow> 'a \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
+  where member_iff [code_abbrev, simp]: \<open>member xs x \<longleftrightarrow> x \<in> set xs\<close>
 
 text \<open>
   Use \<open>member\<close> only for generating executable code.  Otherwise use
   \<^prop>\<open>x \<in> set xs\<close> instead --- it is much easier to reason about.
 \<close>
 
-lemma member_rec [code]:
-  \<open>member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y\<close>
+qualified lemma member_code [code, no_atp]:
   \<open>member [] y \<longleftrightarrow> False\<close>
-  by (auto simp add: member_def)
+  \<open>member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y\<close>
+  by auto
 
-hide_const (open) member
+end
 
 lemma list_all_iff [code_abbrev]:
   \<open>list_all P xs \<longleftrightarrow> Ball (set xs) P\<close>
@@ -7941,8 +7944,8 @@ end
 
 text \<open>Executable checks for relations on sets\<close>
 
-definition listrel1p :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close>
-  where \<open>listrel1p r xs ys \<longleftrightarrow> (xs, ys) \<in> listrel1 {(x, y). r x y}\<close>
+definition listrel1p :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
+  where  \<open>listrel1p r xs ys \<longleftrightarrow> (xs, ys) \<in> listrel1 {(x, y). r x y}\<close>
 
 lemma [code_unfold]:
   \<open>(xs, ys) \<in> listrel1 r \<longleftrightarrow> listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys\<close>
@@ -7955,7 +7958,7 @@ lemma [code]:
      r x y \<and> xs = ys \<or> x = y \<and> listrel1p r xs ys\<close>
   by (simp_all add: listrel1p_def)
 
-definition lexordp :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close>
+definition lexordp :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
   where \<open>lexordp r xs ys \<longleftrightarrow> (xs, ys) \<in> lexord {(x, y). r x y}\<close>
 
 lemma [code_unfold]:
@@ -8145,24 +8148,23 @@ hide_const (open) map_filter
 
 subsubsection \<open>Operations for optimization and efficiency\<close>
 
-definition null :: \<open>'a list \<Rightarrow> bool\<close>
-  where [code_abbrev]: \<open>null xs \<longleftrightarrow> xs = []\<close>
+context
+begin
 
-text \<open>
-  Efficient emptyness check is implemented by \<^const>\<open>null\<close>.
-\<close>
+qualified definition null :: \<open>'a list \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
+  where null_iff [code_abbrev, simp]: \<open>null xs \<longleftrightarrow> xs = []\<close>
 
-lemma null_rec [code]:
-  \<open>null (x # xs) \<longleftrightarrow> False\<close>
+lemma null_code [code, no_atp]:
   \<open>null [] \<longleftrightarrow> True\<close>
-  by (simp_all add: null_def)
+  \<open>null (x # xs) \<longleftrightarrow> False\<close>
+  by simp_all
 
-lemma equal_Nil_null [code_unfold]:
+lemma equal_Nil_null [code_unfold, no_atp]:
   \<open>HOL.equal xs [] \<longleftrightarrow> null xs\<close>
   \<open>HOL.equal [] = null\<close>
-  by (auto simp add: equal null_def)
+  by (auto simp add: equal)
 
-hide_const (open) null
+end
 
 
 text \<open>optimized code (tail-recursive) for \<^term>\<open>length\<close>\<close>
@@ -8185,7 +8187,6 @@ hide_const (open) gen_length
 definition maps :: \<open>('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
   where [code_abbrev]: \<open>maps f xs = concat (map f xs)\<close>
 
-
 text \<open>
   Operation \<^const>\<open>maps\<close> avoids
   intermediate lists on execution -- do not use for proving.
@@ -8203,7 +8204,7 @@ subsubsection \<open>Implementation of sets by lists\<close>
 
 lemma is_empty_set [code]:
   "Set.is_empty (set xs) \<longleftrightarrow> List.null xs"
-  by (simp add: null_def)
+  by simp
 
 lemma empty_set [code]:
   "{} = set []"
@@ -8224,7 +8225,7 @@ lemma compl_coset [code]:
 lemma [code]:
   "x \<in> set xs \<longleftrightarrow> List.member xs x"
   "x \<in> List.coset xs \<longleftrightarrow> \<not> List.member xs x"
-  by (simp_all add: member_def)
+  by simp_all
 
 lemma insert_code [code]:
   "insert x (set xs) = set (List.insert x xs)"
@@ -8238,7 +8239,7 @@ lemma remove_code [code]:
 
 lemma filter_set [code]:
   "Set.filter P (set xs) = set (filter P xs)"
-  by auto
+  by simp
 
 lemma image_set [code]:
   "image f (set xs) = set (map f xs)"
@@ -8294,7 +8295,7 @@ lemma Id_on_set [code]:
 
 lemma [code]:
   "R `` S = List.map_project (\<lambda>(x, y). if x \<in> S then Some y else None) R"
-  unfolding map_project_def by (auto split: prod.split if_split_asm)
+  by (auto simp add: map_project_def split: prod.split if_split_asm)
 
 lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"
@@ -8302,13 +8303,14 @@ lemma trancl_set_ntrancl [code]:
 
 lemma set_relcomp [code]:
   "set xys O set yzs = set ([(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
-  by auto (auto simp add: Bex_def image_def)
+  by simp (auto simp add: Bex_def image_def)
 
 lemma wf_set:
   "wf (set xs) = acyclic (set xs)"
   by (simp add: wf_iff_acyclic_if_finite)
 
-lemma wf_code_set[code]: "wf_code (set xs) = acyclic (set xs)"
+lemma wf_code_set [code]:
+  "wf_code (set xs) = acyclic (set xs)"
   unfolding wf_code_def using wf_set .
 
 text \<open>\<open>LEAST\<close> and \<open>GREATEST\<close> operator.\<close>
@@ -8644,7 +8646,7 @@ lemma listset_transfer [transfer_rule]:
 
 lemma null_transfer [transfer_rule]:
   "(list_all2 A ===> (=)) List.null List.null"
-  unfolding rel_fun_def List.null_def by auto
+  unfolding rel_fun_def by auto
 
 lemma list_all_transfer [transfer_rule]:
   "((A ===> (=)) ===> list_all2 A ===> (=)) list_all list_all"
@@ -8709,14 +8711,6 @@ subsection \<open>Misc\<close>
 lemma map_rec:
   "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
   by (induct xs) auto
-
-lemma in_set_member (* FIXME delete candidate *):
-  "x \<in> set xs \<longleftrightarrow> List.member xs x"
-  by (simp add: member_def)
-
-lemma eq_Nil_null: (* FIXME delete candidate *)
-  "xs = [] \<longleftrightarrow> List.null xs"
-  by (simp add: null_def)
 
 lemma concat_map_maps: (* FIXME delete candidate *)
   "concat (map f xs) = List.maps f xs"

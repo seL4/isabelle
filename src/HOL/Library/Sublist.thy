@@ -1462,7 +1462,7 @@ proof (intro ext, goal_cases)
   case (1 P xs ys)
   show ?case
     by (induction ys arbitrary: xs)
-       (auto simp: list_emb_code List.null_def split: list.splits)
+       (auto simp: list_emb_code split: list.splits)
 qed
 
 lemma prefix_transfer [transfer_rule]:
