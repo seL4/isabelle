@@ -9,7 +9,6 @@ theory IFOLP
 imports Pure
 begin
 
-ML_file \<open>~~/src/Tools/simp_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 
 setup Pure_Thy.old_appl_syntax_setup
