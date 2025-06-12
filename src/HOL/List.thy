@@ -7945,7 +7945,7 @@ end
 text \<open>Executable checks for relations on sets\<close>
 
 definition listrel1p :: \<open>('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
-  where  \<open>listrel1p r xs ys \<longleftrightarrow> (xs, ys) \<in> listrel1 {(x, y). r x y}\<close>
+  where \<open>listrel1p r xs ys \<longleftrightarrow> (xs, ys) \<in> listrel1 {(x, y). r x y}\<close>
 
 lemma [code_unfold]:
   \<open>(xs, ys) \<in> listrel1 r \<longleftrightarrow> listrel1p (\<lambda>x y. (x, y) \<in> r) xs ys\<close>
