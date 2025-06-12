@@ -197,7 +197,7 @@ declare if_split     [split del] if_split_asm     [split del]
         option.split [split del] option.split_asm [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
 
 inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
 
@@ -238,7 +238,7 @@ declare if_split     [split] if_split_asm     [split]
         option.split [split] option.split_asm [split]
         not_None_eq [simp] 
         split_paired_All [simp] split_paired_Ex [simp]
-declaration \<open>K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac)))\<close>
+declaration \<open>K (Simplifier.map_ss (fn ss => ss |> Simplifier.add_loop ("split_all_tac", split_all_tac)))\<close>
 
 lemma evaln_Inj_elim: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (w,s') \<Longrightarrow> case t of In1 ec \<Rightarrow>  
   (case ec of Inl e \<Rightarrow> (\<exists>v. w = In1 v) | Inr c \<Rightarrow> w = \<diamondsuit>)  

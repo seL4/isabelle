@@ -468,7 +468,7 @@ done
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 inductive

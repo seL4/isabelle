@@ -202,7 +202,7 @@ fun possibility_tac ctxt =
    (REPEAT 
     (ALLGOALS (simp_tac (ctxt
           delsimps [@{thm used_Says}, @{thm used_Notes}, @{thm used_Gets}] 
-          setSolver safe_solver))
+          |> Simplifier.set_unsafe_solver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}])))
@@ -211,7 +211,7 @@ fun possibility_tac ctxt =
   nonces and keys initially*)
 fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (ctxt setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (ctxt |> Simplifier.set_unsafe_solver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac ctxt [refl, conjI]))
 

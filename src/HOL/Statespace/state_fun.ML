@@ -92,7 +92,7 @@ val lookup_ss =
       @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
         @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
     |> Simplifier.add_proc lazy_conj_simproc)
-    addSolver StateSpace.distinctNameSolver
+    |> Simplifier.add_unsafe_solver StateSpace.distinctNameSolver
     |> fold Simplifier.add_cong @{thms block_conj_cong});
 
 val ex_lookup_ss =

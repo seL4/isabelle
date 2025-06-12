@@ -152,7 +152,8 @@ fun regularize_tac ctxt =
       (mk_minimal_simpset ctxt
         addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
         |> Simplifier.add_proc regularize_simproc)
-      addSolver equiv_solver addSolver quotient_solver
+      |> Simplifier.add_unsafe_solver equiv_solver
+      |> Simplifier.add_unsafe_solver quotient_solver
     val eq_eqvs = eq_imp_rel_get ctxt
   in
     simp_tac simpset THEN'
@@ -509,7 +510,9 @@ fun clean_tac ctxt =
     val thms =
       @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
-    val simpset = (mk_minimal_simpset ctxt) addsimps thms addSolver quotient_solver
+    val simpset =
+      (mk_minimal_simpset ctxt) addsimps thms
+      |> Simplifier.add_unsafe_solver quotient_solver
   in
     EVERY' [
       map_fun_tac ctxt,
