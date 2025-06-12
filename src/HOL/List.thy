@@ -5872,7 +5872,7 @@ using sorted_map_remove1 [of "\<lambda>x. x"] by simp
 lemma sorted_butlast:
   assumes "sorted xs"
   shows "sorted (butlast xs)"
-  by (simp add: assms butlast_conv_take sorted_wrt_take)
+  by (simp add: assms butlast_conv_take)
 
 lemma sorted_replicate [simp]: "sorted(replicate n x)"
 by(induction n) (auto)
@@ -7279,7 +7279,7 @@ lemma asym_lex: "asym R \<Longrightarrow> asym (lex R)"
   by (meson asymI asymD irrefl_lex lexord_asym lexord_lex)
 
 lemma asym_lenlex: "asym R \<Longrightarrow> asym (lenlex R)"
-  by (simp add: lenlex_def asym_inv_image asym_less_than asym_lex asym_lex_prod)
+  by (simp add: lenlex_def asym_inv_image asym_less_than asym_lex)
 
 lemma lenlex_append1:
   assumes len: "(us,xs) \<in> lenlex R" and eq: "length vs = length ys"
@@ -8033,7 +8033,7 @@ qualified lemma all_range_code [code]:
 
 lemma forall_atLeastAtMost_iff [code_unfold]:
   \<open>(\<forall>n\<in>{a..b}. P n) \<longleftrightarrow> all_range P a (b + 1)\<close>
-  by (simp add: atLeastAtMost_eq_range all_range_iff)
+  by (simp add: atLeastAtMost_eq_range)
 
 lemma forall_greaterThanLessThan_iff [code_unfold]:
   \<open>(\<forall>n\<in>{a<..<b}. P n) \<longleftrightarrow> all_range P (a + 1) b\<close>
@@ -8104,27 +8104,36 @@ end
 
 subsubsection \<open>Special implementations\<close>
 
+context
+begin
+
+qualified definition map_tailrec_rev :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list\<close> \<comment> \<open>only for code generation\<close>
+  where map_tailrec_rev [simp]: \<open>map_tailrec_rev f as bs = rev (map f as) @ bs\<close>
+
 text \<open>
   Optional tail recursive version of \<^const>\<open>map\<close>. Can avoid
   stack overflow in some target languages. Do not use for proving.
 \<close>
 
-fun map_tailrec_rev :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list\<close>
-  where
-    \<open>map_tailrec_rev f [] bs = bs\<close>
-  | \<open>map_tailrec_rev f (a # as) bs = map_tailrec_rev f as (f a # bs)\<close>
+qualified lemma map_tailrec_rev_code [code, no_atp]:
+  \<open>map_tailrec_rev f [] bs = bs\<close>
+  \<open>map_tailrec_rev f (a # as) bs = map_tailrec_rev f as (f a # bs)\<close>
+  by simp_all
 
-lemma map_tailrec_rev:
-  \<open>map_tailrec_rev f as bs = rev(map f as) @ bs\<close>
-  by (induction as arbitrary: bs) simp_all
+qualified definition map_tailrec :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> \<comment> \<open>only for code generation\<close>
+  where map_tailrec_eq [simp]: \<open>map_tailrec = map\<close>
 
-definition map_tailrec :: \<open>('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
-  where \<open>map_tailrec f as = rev (map_tailrec_rev f as [])\<close>
+qualified lemma map_tailrec_code [code, no_atp]:
+  \<open>map_tailrec f as = rev (map_tailrec_rev f as [])\<close>
+  by simp
 
-text\<open>Code equation:\<close>
-lemma map_eq_map_tailrec:
+text \<open>Potential code equation:\<close>
+
+qualified lemma map_eq_map_tailrec:
   \<open>map = map_tailrec\<close>
-  by (simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
+  by simp
+
+end
 
 definition map_filter :: \<open>('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
   where [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
@@ -8154,50 +8163,44 @@ begin
 qualified definition null :: \<open>'a list \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
   where null_iff [code_abbrev, simp]: \<open>null xs \<longleftrightarrow> xs = []\<close>
 
-lemma null_code [code, no_atp]:
+qualified lemma null_code [code, no_atp]:
   \<open>null [] \<longleftrightarrow> True\<close>
   \<open>null (x # xs) \<longleftrightarrow> False\<close>
   by simp_all
 
-lemma equal_Nil_null [code_unfold, no_atp]:
+qualified lemma equal_Nil_null [code_unfold, no_atp]:
   \<open>HOL.equal xs [] \<longleftrightarrow> null xs\<close>
   \<open>HOL.equal [] = null\<close>
   by (auto simp add: equal)
 
-end
-
+qualified definition length_tailrec :: \<open>'a list \<Rightarrow> nat \<Rightarrow> nat\<close> \<comment> \<open>only for code generation\<close>
+  where length_tailrec_eq [simp]: \<open>length_tailrec xs = (+) (length xs)\<close>
 
 text \<open>optimized code (tail-recursive) for \<^term>\<open>length\<close>\<close>
 
-definition gen_length :: \<open>nat \<Rightarrow> 'a list \<Rightarrow> nat\<close>
-  where \<open>gen_length n xs = n + length xs\<close>
+qualified lemma length_tailrec_code [code, no_atp]:
+  \<open>length_tailrec [] n = n\<close>
+  \<open>length_tailrec (x # xs) n = length_tailrec xs (Suc n)\<close>
+  by simp_all
 
-lemma gen_length_code [code]:
-  \<open>gen_length n [] = n\<close>
-  \<open>gen_length n (x # xs) = gen_length (Suc n) xs\<close>
-  by (simp_all add: gen_length_def)
+qualified lemma length_code [code, no_atp]:
+  \<open>length xs = length_tailrec xs 0\<close>
+  by simp
 
-lemma length_code [code]:
-  \<open>length = gen_length 0\<close>
-  by (simp add: gen_length_def fun_eq_iff)
-
-hide_const (open) gen_length
-
-
-definition maps :: \<open>('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close>
-  where [code_abbrev]: \<open>maps f xs = concat (map f xs)\<close>
+qualified definition maps :: \<open>('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list\<close> \<comment> \<open>only for code generation\<close>
+  where maps_eq [code_abbrev, simp]: \<open>maps f xs = concat (map f xs)\<close>
 
 text \<open>
   Operation \<^const>\<open>maps\<close> avoids
   intermediate lists on execution -- do not use for proving.
 \<close>
 
-lemma maps_simps [code]:
-  \<open>maps f (x # xs) = f x @ maps f xs\<close>
+qualified lemma maps_code [code, no_atp]:
   \<open>maps f [] = []\<close>
-  by (simp_all add: maps_def)
+  \<open>maps f (x # xs) = f x @ maps f xs\<close>
+  by simp_all
 
-hide_const (open) maps
+end
 
 
 subsubsection \<open>Implementation of sets by lists\<close>
@@ -8712,16 +8715,12 @@ lemma map_rec:
   "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
   by (induct xs) auto
 
-lemma concat_map_maps: (* FIXME delete candidate *)
-  "concat (map f xs) = List.maps f xs"
-  by (simp add: maps_def)
-
 lemma Ball_set_list_all: (* FIXME delete candidate *)
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
-  by (simp add: list_all_iff)
+  by (fact Ball_set)
 
 lemma Bex_set_list_ex: (* FIXME delete candidate *)
   "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
-  by (simp add: list_ex_iff)
+  by (fact Bex_set)
 
 end

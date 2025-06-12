@@ -104,6 +104,15 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     const List.Bleast
     discontinued in favour of more concise List.Least as variant of Min
 
+    const [List.]map_tailrec ~ List.map_tailrec
+    thm List.map_tailrec_eq [simp]
+
+    const [List.]gen_length → List.length_tailrec
+    thm List.length_tailrec_eq [simp]
+
+    const [List.]maps → List.maps
+    thm maps_def → List.maps_eq [simp]
+
 The _def suffix for characteristic theorems is avoided to emphasize that these
 auxiliary operations are candidates for unfolding since they are variants
 of existing logical concepts. The [simp] declarations try to move the attention
