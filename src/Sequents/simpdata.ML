@@ -85,7 +85,8 @@ val LK_simps =
     @{thms LK_extra_simps};
 
 val LK_ss =
-  put_simpset LK_basic_ss \<^context> addsimps LK_simps
+  put_simpset LK_basic_ss \<^context>
+  |> Simplifier.add_simps LK_simps
   |> Simplifier.add_eqcong @{thm left_cong}
   |> Simplifier.add_cong @{thm imp_cong}
   |> simpset_of;
