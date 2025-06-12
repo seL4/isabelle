@@ -8711,10 +8711,6 @@ end
 
 subsection \<open>Misc\<close>
 
-lemma map_rec:
-  "map f xs = rec_list Nil (%x _ y. Cons (f x) y) xs"
-  by (induct xs) auto
-
 lemma Ball_set_list_all: (* FIXME delete candidate *)
   "Ball (set xs) P \<longleftrightarrow> list_all P xs"
   by (fact Ball_set)
