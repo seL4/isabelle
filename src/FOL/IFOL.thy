@@ -9,7 +9,6 @@ theory IFOL
   abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
 begin
 
-ML_file \<open>~~/src/Tools/simp_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 ML_file \<open>~~/src/Provers/splitter.ML\<close>
 ML_file \<open>~~/src/Provers/hypsubst.ML\<close>

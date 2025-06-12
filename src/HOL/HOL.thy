@@ -13,7 +13,6 @@ keywords
 abbrevs "?<" = "\<exists>\<^sub>\<le>\<^sub>1"
 begin
 
-ML_file \<open>~~/src/Tools/simp_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/misc_legacy.ML\<close>
 ML_file \<open>~~/src/Tools/try.ML\<close>
 ML_file \<open>~~/src/Tools/quickcheck.ML\<close>

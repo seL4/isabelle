@@ -279,6 +279,21 @@ Minor INCOMPATIBILITY.
 etc.
 
 
+*** ML ***
+
+* Some old infix operations have been removed. INCOMPATIBILITY. The
+subsequent replacements have slightly different syntactic precedence and
+may require change of parentheses:
+
+  setloop       |> Simplifier.set_loop
+  addloop       |> Simplifier.add_loop
+  delloop       |> Simplifier.del_loop
+  setSSolver    |> Simplifier.set_safe_solver
+  addSSolver    |> Simplifier.add_safe_solver
+  setSolver     |> Simplifier.set_unsafe_solver
+  addSolver     |> Simplifier.add_unsafe_solver
+
+
 *** System ***
 
 * System option "record_theories" tells "isabelle build" to record

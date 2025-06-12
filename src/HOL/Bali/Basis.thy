@@ -12,7 +12,7 @@ subsubsection "misc"
 ML \<open>fun strip_tac ctxt i = REPEAT (resolve_tac ctxt [impI, allI] i)\<close>
 
 declare if_split_asm  [split] option.split [split] option.split_asm [split]
-setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
 declare if_weak_cong [cong del] option.case_cong_weak [cong del]
 declare length_Suc_conv [iff]
 

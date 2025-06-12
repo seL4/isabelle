@@ -726,7 +726,7 @@ qed
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma FVar_lemma: 
@@ -756,7 +756,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
-setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
 
 
 lemma AVar_lemma1: "\<lbrakk>globs s (Inl a) = Some obj;tag obj=Arr ty i; 
@@ -871,7 +871,7 @@ by (auto simp add: abrupt_if_def)
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare if_split     [split del] if_split_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
 setup \<open>map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac")\<close>
 
 lemma conforms_init_lvars: 
@@ -925,7 +925,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac))\<close>
-setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
 
 
 subsection "accessibility"

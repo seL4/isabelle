@@ -186,8 +186,8 @@ val mksimps_pairs =
 
 val HOL_basic_ss =
   empty_simpset \<^context>
-  setSSolver safe_solver
-  setSolver unsafe_solver
+  |> Simplifier.set_safe_solver safe_solver
+  |> Simplifier.set_unsafe_solver unsafe_solver
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps mksimps_pairs)
   |> Simplifier.set_mkeqTrue mk_eq_True

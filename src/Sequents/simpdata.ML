@@ -68,8 +68,8 @@ fun safe_solver ctxt =
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
   empty_simpset \<^context>
-  setSSolver (mk_solver "safe" safe_solver)
-  setSolver (mk_solver "unsafe" unsafe_solver)
+  |> Simplifier.set_safe_solver (mk_solver "safe" safe_solver)
+  |> Simplifier.set_unsafe_solver (mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (fn ctxt => map (mk_meta_eq ctxt) o atomize o Variable.gen_all ctxt)
   |> Simplifier.set_mkcong mk_meta_cong
@@ -85,7 +85,8 @@ val LK_simps =
     @{thms LK_extra_simps};
 
 val LK_ss =
-  put_simpset LK_basic_ss \<^context> addsimps LK_simps
+  put_simpset LK_basic_ss \<^context>
+  |> Simplifier.add_simps LK_simps
   |> Simplifier.add_eqcong @{thm left_cong}
   |> Simplifier.add_cong @{thm imp_cong}
   |> simpset_of;

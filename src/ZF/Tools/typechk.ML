@@ -107,7 +107,8 @@ val type_solver =
   Simplifier.mk_solver "ZF typecheck" (fn ctxt =>
     type_solver_tac ctxt (Simplifier.prems_of ctxt));
 
-val _ = Theory.setup (map_theory_simpset (fn ctxt => ctxt setSolver type_solver));
+val _ =
+  Theory.setup (map_theory_simpset (fn ctxt => ctxt |> Simplifier.set_unsafe_solver type_solver));
 
 
 (* concrete syntax *)

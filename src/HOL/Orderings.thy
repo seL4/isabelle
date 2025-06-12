@@ -653,8 +653,8 @@ local_setup \<open>
 end
 
 setup \<open>
-  map_theory_simpset (fn ctxt0 => ctxt0 addSolver
-    mk_solver "partial and linear orders" (fn ctxt => HOL_Order_Tac.tac (Simplifier.prems_of ctxt) ctxt))
+  map_theory_simpset (fn ctxt0 => ctxt0 |> Simplifier.add_unsafe_solver
+    (mk_solver "partial and linear orders" (fn ctxt => HOL_Order_Tac.tac (Simplifier.prems_of ctxt) ctxt)))
 \<close>
 
 ML \<open>

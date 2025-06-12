@@ -353,7 +353,7 @@ fun possibility_tac ctxt =
   nonces and keys initially*)
 fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (ctxt setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (ctxt |> Simplifier.set_unsafe_solver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac ctxt [refl, conjI]))
 \<close>

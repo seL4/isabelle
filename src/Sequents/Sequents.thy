@@ -10,8 +10,6 @@ imports Pure
 keywords "print_pack" :: diag
 begin
 
-ML_file \<open>~~/src/Tools/simp_legacy.ML\<close>
-
 setup Pure_Thy.old_appl_syntax_setup
 
 declare [[unify_trace_bound = 20, unify_search_bound = 40]]

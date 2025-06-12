@@ -202,10 +202,12 @@ lemmas rawBs = caseBs applyB applyBbot
 
 method_setup beta_rl = \<open>
   Scan.succeed (fn ctxt =>
-    let val ctxt' = Context_Position.set_visible false ctxt in
-      SIMPLE_METHOD' (CHANGED o
-        simp_tac (ctxt' addsimps @{thms rawBs} setloop (fn _ => stac ctxt @{thm letrecB})))
-    end)
+    let
+      val ctxt' = ctxt
+        |> Context_Position.set_visible false
+        |> Simplifier.add_simps @{thms rawBs}
+        |> Simplifier.set_loop (fn _ => stac ctxt @{thm letrecB});
+    in SIMPLE_METHOD' (CHANGED o simp_tac ctxt') end)
 \<close>
 
 lemma ifBtrue: "if true then t else u = t"

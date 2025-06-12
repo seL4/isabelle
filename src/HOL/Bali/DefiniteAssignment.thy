@@ -809,7 +809,7 @@ where
 declare inj_term_sym_simps [simp]
 declare assigns_if.simps [simp del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac")\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
 
 inductive_cases da_elim_cases [cases set]:
   "Env\<turnstile> B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A" 
@@ -875,7 +875,7 @@ inductive_cases da_elim_cases [cases set]:
 declare inj_term_sym_simps [simp del]
 declare assigns_if.simps [simp]
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup \<open>map_theory_simpset (fn ctxt => ctxt addloop ("split_all_tac", split_all_tac))\<close>
+setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
 
 (* To be able to eliminate both the versions with the overloaded brackets: 
    (B \<guillemotright>\<langle>Skip\<rangle>\<guillemotright> A) and with the explicit constructor (B \<guillemotright>In1r Skip\<guillemotright> A), 
