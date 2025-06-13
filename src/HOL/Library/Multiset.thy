@@ -2231,6 +2231,9 @@ proof -
   finally show ?thesis by simp
 qed
 
+lemma mset_minus_list_mset: "mset(minus_list_mset xs ys) = mset xs - mset ys"
+by(induction ys) (auto)
+
 lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
   by (induction xs) simp_all
 

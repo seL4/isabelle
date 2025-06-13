@@ -238,6 +238,12 @@ primrec removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "removeAll x [] = []" |
 "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
 
+definition minus_list_mset :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"minus_list_mset xs ys \<equiv> foldr remove1 ys xs"
+
+definition minus_list_set :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"minus_list_set xs ys \<equiv> foldr removeAll ys xs"
+
 primrec distinct :: "'a list \<Rightarrow> bool" where
 "distinct [] \<longleftrightarrow> True" |
 "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
@@ -4612,6 +4618,7 @@ lemma remove1_split:
   "a \<in> set xs \<Longrightarrow> remove1 a xs = ys \<longleftrightarrow> (\<exists>ls rs. xs = ls @ a # rs \<and> a \<notin> set ls \<and> ys = ls @ rs)"
   by (metis remove1.simps(2) remove1_append split_list_first)
 
+
 subsubsection \<open>\<^const>\<open>removeAll\<close>\<close>
 
 lemma removeAll_filter_not_eq:
@@ -4626,16 +4633,18 @@ lemma removeAll_append[simp]:
   "removeAll x (xs @ ys) = removeAll x xs @ removeAll x ys"
 by (induct xs) auto
 
+lemma removeAll_commute: "removeAll x (removeAll y zs) = removeAll y (removeAll x zs)"
+by (induct zs) auto
+
 lemma set_removeAll[simp]: "set(removeAll x xs) = set xs - {x}"
 by (induct xs) auto
 
 lemma removeAll_id[simp]: "x \<notin> set xs \<Longrightarrow> removeAll x xs = xs"
 by (induct xs) auto
 
-(* Needs count:: 'a \<Rightarrow> 'a list \<Rightarrow> nat
 lemma length_removeAll:
-  "length(removeAll x xs) = length xs - count x xs"
-*)
+  "length(removeAll x xs) = length xs - count_list xs x"
+by(induction xs)(auto simp: Suc_diff_le count_le_length)
 
 lemma removeAll_filter_not[simp]:
   "\<not> P x \<Longrightarrow> removeAll x (filter P xs) = filter P xs"
@@ -4679,6 +4688,87 @@ next
   then show ?case
     by (auto simp: Cons)
 qed
+
+
+subsubsection \<open>\<^const>\<open>minus_list_mset\<close>\<close>
+
+text \<open>Conceptually, the result of \<^const>\<open>minus_list_mset\<close> is only determined up to permutation,
+i.e. up to the multiset of elements. Thus this function comes into its own in connection
+with multisets where \<open>mset(minus_list_mset xs ys) = mset xs - mset ys\<close> is proved.\<close>
+
+(* In Multiset:
+lemma "mset(minus_list_mset xs ys) = mset xs - mset ys"
+apply(induction ys)
+apply (auto simp: minus_list_mset_def)
+done
+*)
+
+lemma minus_list_mset_Nil2 [simp]: "minus_list_mset xs [] = xs"
+by (simp add: minus_list_mset_def)
+
+lemma minus_list_mset_Cons2 [simp]: "minus_list_mset xs (y#ys) = remove1 y (minus_list_mset xs ys)"
+by (simp add: minus_list_mset_def)
+
+lemma minus_list_mset_remove1_commute:
+  "minus_list_mset (remove1 x xs) ys = remove1 x (minus_list_mset xs ys)"
+by (induction ys) (auto simp: remove1_commute)
+
+lemma minus_list_mset_append [simp]:
+  "minus_list_mset xs (ys@zs) = minus_list_mset (minus_list_mset xs ys) zs"
+by (induction ys) (auto simp add: minus_list_mset_remove1_commute)
+
+lemma minus_list_mset_Nil1 [simp]: "minus_list_mset [] xs = []"
+by (induction xs) auto
+
+lemma minus_list_mset_Cons1: "minus_list_mset (x#xs) ys =
+  (if x \<in> set ys then minus_list_mset xs (remove1 x ys) else x # (minus_list_mset xs ys))"
+proof (induction ys)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a ys)
+  then show ?case
+    by (metis list.set_intros(1,2) minus_list_mset_Cons2 minus_list_mset_remove1_commute remove1.simps(2)
+        set_ConsD)
+qed
+
+lemma length_minus_list_mset: "length(minus_list_mset xs ys) \<le> length xs"
+by (induction ys) (auto simp: le_diff_conv length_remove1)
+
+
+subsubsection \<open>\<^const>\<open>minus_list_set\<close>\<close>
+
+text \<open>Conceptually, the result of \<^const>\<open>minus_list_set\<close> is only determined up to the set of elements:\<close>
+
+lemma set_minus_list_set: "set(minus_list_set xs ys) = set xs - set ys"
+by(induction ys) (auto simp: minus_list_set_def)
+
+lemma minus_list_set_Nil2[simp]: "minus_list_set xs [] = xs"
+by(simp add: minus_list_set_def)
+
+lemma minus_list_set_Cons2[simp]: "minus_list_set xs (y#ys) = removeAll y (minus_list_set xs ys)"
+by(simp add: minus_list_set_def)
+
+lemma minus_list_set_eq_filter: "minus_list_set xs ys = filter (\<lambda>x. x \<notin>  set ys) xs"
+by(induction ys arbitrary: xs) (auto simp: removeAll_filter_not_eq intro: filter_cong)
+
+lemma minus_list_set_removeAll_commute:
+  "minus_list_set (removeAll x xs) ys = removeAll x (minus_list_set xs ys)"
+by (induction ys) (auto simp: removeAll_commute)
+
+lemma minus_list_set_Nil1 [simp]: "minus_list_set [] xs = []"
+by (simp add: minus_list_set_eq_filter)
+
+lemma minus_list_set_Cons1: "minus_list_set (x#xs) ys =
+  (if x \<in> set ys then minus_list_set xs ys else x # (minus_list_set xs ys))"
+by(simp add:minus_list_set_eq_filter)
+
+lemma minus_list_set_append2[simp]:
+  "minus_list_set xs (ys @ zs) = minus_list_set (minus_list_set xs ys) zs"
+by (induction ys ) (auto simp: minus_list_set_removeAll_commute)
+
+lemma length_minus_list_set: "length(minus_list_set xs ys) \<le> length xs"
+by (simp add: minus_list_set_eq_filter)
 
 
 subsubsection \<open>\<^const>\<open>replicate\<close>\<close>
