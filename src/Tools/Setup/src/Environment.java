@@ -30,6 +30,8 @@ public class Environment
     {
         return System.getProperty("os.name", "").startsWith("Windows");
     }
+    public static Boolean is_linux() { return System.getProperty("os.name", "").equals("Linux"); }
+    public static Boolean is_macos() { return System.getProperty("os.name", "").equals("Mac OS X"); }
 
 
 

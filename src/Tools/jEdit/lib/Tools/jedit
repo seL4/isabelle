@@ -168,7 +168,7 @@ isabelle scala_build $BUILD_OPTIONS || exit $?
 
 if [ "$BUILD_ONLY" = false ]
 then
-  "$ISABELLE_HOME/lib/scripts/java-gui-setup"
+  eval $(isabelle java isabelle.setup.Setup gui_setup)
 
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_LOGIC_ANCESTOR JEDIT_LOGIC_REQUIREMENTS \
     JEDIT_INCLUDE_SESSIONS JEDIT_PRINT_MODE JEDIT_NO_BUILD JEDIT_ISABELLE_OPTIONS JEDIT_BUILD_MODE

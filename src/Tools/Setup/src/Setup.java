@@ -48,6 +48,11 @@ class Setup
                     check_args(n == 1);
                     echo(Environment.join_standard_paths(Build.classpath()));
                     break;
+                case "gui_setup":
+                    check_args(n == 1);
+                    String msg = GUI_Setup.gui_setup();
+                    if (msg != null && !msg.isEmpty()) { echo(msg); }
+                    break;
                 case "services":
                     check_args(n == 1);
                     for (String s : Build.services()) { echo(s); }

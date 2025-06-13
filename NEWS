@@ -44,6 +44,12 @@ support on all Isabelle platforms (now including arm64-linux).
 Dark" imitate original macOS more closely. This is the default for the
 bundled application on macOS.
 
+* Automatic GUI scaling on Linux, based on global GDK_SCALE for Java.
+This is only an approximation: an integer factor that applies uniformly
+to all displays. In contrast, Windows and macOS work with accurate GUI
+scaling for each individual display, based on operating system settings
+and FlatLaf defaults.
+
 * GUI rendering of the gutter is now more accurate, using scaled icons
 to fit precisely into the available space.
 
