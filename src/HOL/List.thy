@@ -4740,7 +4740,7 @@ subsubsection \<open>\<^const>\<open>minus_list_set\<close>\<close>
 
 text \<open>Conceptually, the result of \<^const>\<open>minus_list_set\<close> is only determined up to the set of elements:\<close>
 
-lemma set_minus_list_set: "set(minus_list_set xs ys) = set xs - set ys"
+lemma set_minus_list_set[simp]: "set(minus_list_set xs ys) = set xs - set ys"
 by(induction ys) (auto simp: minus_list_set_def)
 
 lemma minus_list_set_Nil2[simp]: "minus_list_set xs [] = xs"
