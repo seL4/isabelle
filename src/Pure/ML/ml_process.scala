@@ -11,6 +11,14 @@ import java.util.{Map => JMap, HashMap}
 
 
 object ML_Process {
+  /* settings */
+
+  def ml_identifier(env: Isabelle_System.Settings = Isabelle_System.Settings()): String =
+    Isabelle_System.getenv("ML_IDENTIFIER", env = env)
+
+
+  /* heaps */
+
   def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
     if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
     else SHA1.flat_shasum(ancestors)
@@ -26,6 +34,9 @@ object ML_Process {
       build_requirements(List(logic_name)).
       map(name => store.get_session(name).the_heap)
   }
+
+
+  /* process */
 
   def apply(
     options: Options,

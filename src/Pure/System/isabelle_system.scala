@@ -51,8 +51,6 @@ object Isabelle_System {
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
-  def ml_identifier(): String = getenv("ML_IDENTIFIER")
-
   def hostname(default: String = ""): String =
     proper_string(default) getOrElse getenv_strict("ISABELLE_HOSTNAME")
 

@@ -409,7 +409,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       progress.echo(
         "Started at " + Build_Log.print_date(progress.start) +
-          " (" + Isabelle_System.ml_identifier() + " on " + hostname(options) +")",
+          " (" + ML_Process.ml_identifier() + " on " + hostname(options) +")",
         verbose = true)
       progress.echo(Build_Log.Settings.show() + "\n", verbose = true)
 
