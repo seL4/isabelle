@@ -31,7 +31,6 @@ object Build {
     engine: Engine = Engine.Default,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
-    ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
     numa_nodes: List[Int] = Nil,
@@ -46,6 +45,8 @@ object Build {
     master: Boolean = false
   ) {
     def build_options: Options = store.options
+
+    def ml_platform: String = store.ml_platform
 
     def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 

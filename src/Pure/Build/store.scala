@@ -14,8 +14,9 @@ object Store {
   def apply(
     options: Options,
     build_cluster: Boolean = false,
-    cache: Term.Cache = Term.Cache.make()
-  ): Store = new Store(options, build_cluster, cache)
+    cache: Term.Cache = Term.Cache.make(),
+    other_ml_platform: Option[String] = None
+  ): Store = new Store(options, build_cluster, cache, other_ml_platform)
 
 
   /* file names */
@@ -277,17 +278,25 @@ object Store {
 class Store private(
     val options: Options,
     val build_cluster: Boolean,
-    val cache: Term.Cache
+    val cache: Term.Cache,
+    other_ml_platform: Option[String]
   ) {
   store =>
 
   override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
 
 
+  /* ML system */
+
+  def ml_system: String = Isabelle_System.getenv_strict("ML_SYSTEM")
+  def ml_platform: String = other_ml_platform getOrElse Isabelle_System.getenv_strict("ML_PLATFORM")
+  def ml_identifier: String = ml_system + "_" + ml_platform
+
+
   /* directories */
 
-  val system_output_dir: Path = Path.explode("$ISABELLE_HEAPS_SYSTEM/$ML_IDENTIFIER")
-  val user_output_dir: Path = Path.explode("$ISABELLE_HEAPS/$ML_IDENTIFIER")
+  val system_output_dir: Path = Path.variable("ISABELLE_HEAPS_SYSTEM") + Path.basic(ml_identifier)
+  val user_output_dir: Path = Path.variable("ISABELLE_HEAPS") + Path.basic(ml_identifier)
 
   def system_heaps: Boolean = options.bool("system_heaps")
 

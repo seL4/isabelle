@@ -14,7 +14,8 @@ object ML_Process {
   /* settings */
 
   def ml_identifier(env: Isabelle_System.Settings = Isabelle_System.Settings()): String =
-    Isabelle_System.getenv("ML_IDENTIFIER", env = env)
+    Isabelle_System.getenv_strict("ML_SYSTEM", env = env) + "_" +
+    Isabelle_System.getenv_strict("ML_PLATFORM", env = env)
 
 
   /* heaps */

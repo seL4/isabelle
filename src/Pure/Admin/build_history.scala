@@ -204,9 +204,7 @@ object Build_History {
       File.write(other_isabelle.etc_preferences,
         cat_lines("build_log_verbose = true" :: more_preferences))
 
-      val isabelle_output =
-        other_isabelle.expand_path(
-          Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER"))
+      val isabelle_output = other_isabelle.user_output_dir
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 

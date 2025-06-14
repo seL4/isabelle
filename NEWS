@@ -302,6 +302,11 @@ may require change of parentheses:
 
 *** System ***
 
+* The traditional ML system settings have been reconsidered: this
+affects ML_IDENTIFIER (discontinued). Potential INCOMPATIBILITY for old
+shell scripts --- better use Isabelle/Scala operations from module
+ML_Process or Store.
+
 * System option "record_theories" tells "isabelle build" to record
 intermediate theory commands and results, at the cost of approx. 5 times
 larger ML heap images. This allows to retrieve fine-grained semantic

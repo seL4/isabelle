@@ -138,18 +138,13 @@ text \<open>
   Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2025\<close>''.
 
   \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
-  ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]
-  specify the underlying ML system to be used for Isabelle. There is only a
-  fixed set of admissable @{setting ML_SYSTEM} names (see the
-  \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file of the distribution).
+  ML_OPTIONS}, @{setting_def ML_PLATFORM}] specify the underlying ML system of
+  Isabelle.
 
   The actual compiler binary will be run from the directory @{setting
   ML_HOME}, with @{setting ML_OPTIONS} as first arguments on the command line.
   The optional @{setting ML_PLATFORM} may specify the binary format of ML heap
-  images, which is useful for cross-platform installations. The value of
-  @{setting ML_IDENTIFIER} is automatically obtained by composing the values
-  of @{setting ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version
-  values.
+  images, which is useful for cross-platform installations.
 
   \<^descr>[@{setting_def ISABELLE_JDK_HOME}] points to a full JDK (Java Development
   Kit) installation with \<^verbatim>\<open>javac\<close> and \<^verbatim>\<open>jar\<close> executables. Note that

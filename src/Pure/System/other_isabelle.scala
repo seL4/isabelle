@@ -73,7 +73,11 @@ final class Other_Isabelle private(
   def expand_path(path: Path): Path = path.expand_env(settings)
   def bash_path(path: Path): String = Bash.string(expand_path(path).implode)
 
+  def ml_identifier: String = ML_Process.ml_identifier(env = settings)
+
   val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
+
+  def user_output_dir: Path = isabelle_home_user + Path.basic("heaps") + Path.basic(ml_identifier)
 
   def host_db: Path = isabelle_home_user + Path.explode("host.db")
 
