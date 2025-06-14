@@ -14,9 +14,8 @@ object Store {
   def apply(
     options: Options,
     build_cluster: Boolean = false,
-    cache: Term.Cache = Term.Cache.make(),
-    other_ml_platform: Option[String] = None
-  ): Store = new Store(options, build_cluster, cache, other_ml_platform)
+    cache: Term.Cache = Term.Cache.make()
+  ): Store = new Store(options, build_cluster, cache)
 
 
   /* file names */
@@ -278,8 +277,7 @@ object Store {
 class Store private(
     val options: Options,
     val build_cluster: Boolean,
-    val cache: Term.Cache,
-    other_ml_platform: Option[String]
+    val cache: Term.Cache
   ) {
   store =>
 
@@ -289,7 +287,7 @@ class Store private(
   /* ML system */
 
   def ml_system: String = Isabelle_System.getenv_strict("ML_SYSTEM")
-  def ml_platform: String = other_ml_platform getOrElse Isabelle_System.getenv_strict("ML_PLATFORM")
+  def ml_platform: String = Isabelle_System.getenv_strict("ML_PLATFORM")
   def ml_identifier: String = ml_system + "_" + ml_platform
 
 
