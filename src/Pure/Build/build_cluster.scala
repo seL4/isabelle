@@ -208,7 +208,7 @@ object Build_Cluster {
     }
 
     def start(): Process_Result = {
-      val build_cluster_ml_platform = build_cluster_isabelle.getenv("ML_PLATFORM")
+      val build_cluster_ml_platform = build_cluster_isabelle.ml_platform
       if (build_cluster_ml_platform != build_context.ml_platform) {
         error("Bad ML_PLATFORM: found " + build_cluster_ml_platform +
           ", but expected " + build_context.ml_platform)

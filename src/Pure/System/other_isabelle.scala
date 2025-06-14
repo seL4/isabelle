@@ -68,12 +68,19 @@ final class Other_Isabelle private(
     ssh.execute(bash_context("bin/isabelle getenv -b " + Bash.string(name)),
       settings = false).check.out
 
+  def getenv_strict(name: String): String =
+    proper_string(getenv(name)) getOrElse
+      error("Undefined Isabelle environment variable: " + quote(name) +
+        "\nISABELLE_HOME=" + isabelle_home)
+
   val settings: Isabelle_System.Settings = (name: String) => getenv(name)
 
   def expand_path(path: Path): Path = path.expand_env(settings)
   def bash_path(path: Path): String = Bash.string(expand_path(path).implode)
 
-  def ml_identifier: String = ML_Process.ml_identifier(env = settings)
+  def ml_system: String = getenv_strict("ML_SYSTEM")
+  def ml_platform: String = getenv_strict("ML_PLATFORM")
+  def ml_identifier: String = ml_system + "_" + ml_platform
 
   val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
 
