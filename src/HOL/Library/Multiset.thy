@@ -4332,8 +4332,8 @@ lemma [code]: "image_mset f (mset xs) = mset (map f xs)"
 lemma [code]: "filter_mset f (mset xs) = mset (filter f xs)"
   by simp
 
-lemma [code]: "mset xs - mset ys = mset (fold remove1 ys xs)"
-  by (rule sym, induct ys arbitrary: xs) (simp_all add: diff_add diff_right_commute diff_diff_add)
+lemma [code]: "mset xs - mset ys = mset (minus_list_mset xs ys)"
+  by simp
 
 lemma [code]:
   "mset xs \<inter># mset ys =

@@ -4618,6 +4618,9 @@ lemma remove1_split:
   "a \<in> set xs \<Longrightarrow> remove1 a xs = ys \<longleftrightarrow> (\<exists>ls rs. xs = ls @ a # rs \<and> a \<notin> set ls \<and> ys = ls @ rs)"
   by (metis remove1.simps(2) remove1_append split_list_first)
 
+lemma foldr_fold_remove1[code_unfold]: "foldr remove1 = fold remove1"
+using foldr_fold[of _ remove1] remove1_commute by fastforce
+
 
 subsubsection \<open>\<^const>\<open>removeAll\<close>\<close>
 
@@ -4689,6 +4692,9 @@ next
     by (auto simp: Cons)
 qed
 
+lemma foldr_fold_removeAll[code_unfold]: "foldr removeAll = fold removeAll"
+using foldr_fold[of _ removeAll] removeAll_commute by fastforce
+
 
 subsubsection \<open>\<^const>\<open>minus_list_mset\<close>\<close>
 
@@ -4696,18 +4702,14 @@ text \<open>Conceptually, the result of \<^const>\<open>minus_list_mset\<close> 
 i.e. up to the multiset of elements. Thus this function comes into its own in connection
 with multisets where \<open>mset(minus_list_mset xs ys) = mset xs - mset ys\<close> is proved.\<close>
 
-(* In Multiset:
-lemma "mset(minus_list_mset xs ys) = mset xs - mset ys"
-apply(induction ys)
-apply (auto simp: minus_list_mset_def)
-done
-*)
-
 lemma minus_list_mset_Nil2 [simp]: "minus_list_mset xs [] = xs"
 by (simp add: minus_list_mset_def)
 
 lemma minus_list_mset_Cons2 [simp]: "minus_list_mset xs (y#ys) = remove1 y (minus_list_mset xs ys)"
 by (simp add: minus_list_mset_def)
+
+lemma minus_list_set_subset_minus_list_mset: "set xs - set ys \<subseteq> set(minus_list_mset xs ys)"
+by(induction ys arbitrary: xs)(simp, fastforce)
 
 lemma minus_list_mset_remove1_commute:
   "minus_list_mset (remove1 x xs) ys = remove1 x (minus_list_mset xs ys)"
@@ -4734,6 +4736,19 @@ qed
 
 lemma length_minus_list_mset: "length(minus_list_mset xs ys) \<le> length xs"
 by (induction ys) (auto simp: le_diff_conv length_remove1)
+
+lemma minus_list_mset_subset:
+  "set (minus_list_mset xs ys) \<subseteq> set xs"
+by (induction ys) (simp, force)
+
+lemma distinct_minus_list_mset:
+  assumes "distinct xs"
+  shows "distinct (minus_list_mset xs ys)"
+by (induction ys) (use assms in auto)
+
+lemma set_minus_list_mset_distinct:
+  assumes "distinct xs" shows "set (minus_list_mset xs ys) = set xs - set ys"
+by (induction ys) (use assms distinct_minus_list_mset[of xs] in auto)
 
 
 subsubsection \<open>\<^const>\<open>minus_list_set\<close>\<close>
@@ -4768,6 +4783,9 @@ lemma minus_list_set_append2[simp]:
 by (induction ys ) (auto simp: minus_list_set_removeAll_commute)
 
 lemma length_minus_list_set: "length(minus_list_set xs ys) \<le> length xs"
+by (simp add: minus_list_set_eq_filter)
+
+lemma distinct_minus_list_set: "distinct xs \<Longrightarrow> distinct (minus_list_set xs ys)"
 by (simp add: minus_list_set_eq_filter)
 
 
