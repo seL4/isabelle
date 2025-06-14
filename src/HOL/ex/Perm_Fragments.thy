@@ -261,36 +261,4 @@ where
 
 end
 
-
-text \<open>Misc\<close>
-
-lemma (in comm_monoid_list_set) sorted_list_of_set:
-  assumes "finite A"
-  shows "list.F (map h (sorted_list_of_set A)) = set.F h A"
-proof -
-  from distinct_sorted_list_of_set
-  have "set.F h (set (sorted_list_of_set A)) = list.F (map h (sorted_list_of_set A))"
-    by (rule distinct_set_conv_list)
-  with \<open>finite A\<close> show ?thesis
-    by (simp)
-qed
-
-primrec subtract :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-where
-  "subtract [] ys = ys"
-| "subtract (x # xs) ys = subtract xs (removeAll x ys)"
-
-lemma length_subtract_less_eq [simp]:
-  "length (subtract xs ys) \<le> length ys"
-proof (induct xs arbitrary: ys)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  then have "length (subtract xs (removeAll x ys)) \<le> length (removeAll x ys)" .
-  also have "length (removeAll x ys) \<le> length ys"
-    by simp
-  finally show ?case
-    by simp
-qed
-
 end
