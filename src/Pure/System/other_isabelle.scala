@@ -52,6 +52,7 @@ final class Other_Isabelle private(
   def bash(
     script: String,
     cwd: Path = isabelle_home,
+    input: String = "",
     redirect: Boolean = false,
     echo: Boolean = false,
     strict: Boolean = true
@@ -59,6 +60,7 @@ final class Other_Isabelle private(
     ssh.bash(bash_context(script, cwd = cwd),
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
+      input = input,
       redirect = redirect,
       settings = false,
       strict = strict)
@@ -79,7 +81,17 @@ final class Other_Isabelle private(
   def bash_path(path: Path): String = Bash.string(expand_path(path).implode)
 
   def ml_system: String = getenv_strict("ML_SYSTEM")
-  def ml_platform: String = getenv_strict("ML_PLATFORM")
+  def ml_platform: String = {
+    val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
+    val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
+    val result = bash("bin/isabelle console -r", input = input)
+    result.out match {
+      case Pattern(a) if result.ok => a
+      case _ =>
+        error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
+          if_proper(result.err, "\n" + result.err))
+    }
+  }
   def ml_identifier: String = ml_system + "_" + ml_platform
 
   val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
