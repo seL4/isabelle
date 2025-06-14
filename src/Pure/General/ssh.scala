@@ -556,7 +556,7 @@ object SSH {
         cleanup: () => Unit = () => ()
     ): Bash.Process = {
       Bash.process(script, description = description, cwd = cwd, redirect = redirect,
-        env = if (settings) Isabelle_System.settings() else null,
+        env = if (settings) Isabelle_System.Settings.env() else null,
         cleanup = cleanup)
     }
 

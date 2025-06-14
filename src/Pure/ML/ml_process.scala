@@ -36,7 +36,7 @@ object ML_Process {
     args: List[String] = Nil,
     modes: List[String] = Nil,
     cwd: Path = Path.current,
-    env: JMap[String, String] = Isabelle_System.settings(),
+    env: JMap[String, String] = Isabelle_System.Settings.env(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
   ): Bash.Process = {

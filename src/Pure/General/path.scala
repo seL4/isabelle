@@ -315,7 +315,7 @@ final class Path private(
     new Path(Path.norm_elems(elems.flatMap(eval)))
   }
 
-  def expand: Path = expand_env(Isabelle_System.settings_env())
+  def expand: Path = expand_env(Isabelle_System.Settings())
 
   def file_name: String = expand.base.implode
 

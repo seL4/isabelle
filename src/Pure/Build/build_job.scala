@@ -128,7 +128,7 @@ object Build_Job {
             Store.Sources.load(session_background.base, cache = store.cache.compress)
 
           val env =
-            Isabelle_System.settings(
+            Isabelle_System.Settings.env(
               List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
           val session_heaps =

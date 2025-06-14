@@ -30,22 +30,24 @@ object Isabelle_System {
 
   object No_Env extends Env(JMap.of())
 
-  def settings(putenv: List[(String, String)] = Nil): JMap[String, String] = {
-    val env0 = isabelle.setup.Environment.settings()
-    if (putenv.isEmpty) env0
-    else {
-      val env = new HashMap(env0)
-      for ((a, b) <- putenv) env.put(a, b)
-      env
+  object Settings {
+    def env(putenv: List[(String, String)] = Nil): JMap[String, String] = {
+      val env0 = isabelle.setup.Environment.settings()
+      if (putenv.isEmpty) env0
+      else {
+        val env = new HashMap(env0)
+        for ((a, b) <- putenv) env.put(a, b)
+        env
+      }
     }
+
+    def apply(putenv: List[(String, String)] = Nil): Settings_Env =
+      new Env(env(putenv = putenv))
   }
 
-  def settings_env(putenv: List[(String, String)] = Nil): Settings_Env =
-    new Env(settings(putenv = putenv))
+  def getenv(name: String, env: Settings = Settings()): String = env.get(name)
 
-  def getenv(name: String, env: Settings = settings_env()): String = env.get(name)
-
-  def getenv_strict(name: String, env: Settings = settings_env()): String =
+  def getenv_strict(name: String, env: Settings = Settings()): String =
     proper_string(getenv(name, env)) getOrElse
       error("Undefined Isabelle environment variable: " + quote(name))
 
@@ -413,7 +415,7 @@ object Isabelle_System {
     description: String = "",
     ssh: SSH.System = SSH.Local,
     cwd: Path = Path.current,
-    env: JMap[String, String] = settings(),  // ignored for remote ssh
+    env: JMap[String, String] = Settings.env(),  // ignored for remote ssh
     redirect: Boolean = false,
     input: String = "",
     progress_stdout: String => Unit = (_: String) => (),

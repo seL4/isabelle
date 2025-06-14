@@ -87,7 +87,7 @@ object Profiling {
           val session_heaps =
             ML_Process.session_heaps(store, session_background, logic = session_name)
           ML_Process(store.options, session_background, session_heaps, args = eval_args,
-            env = Isabelle_System.settings(put_env)).result().check
+            env = Isabelle_System.Settings.env(put_env)).result().check
           decode_result(YXML.parse_body(Bytes.read(dir + Path.explode("result.yxml"))))
         }
       }
