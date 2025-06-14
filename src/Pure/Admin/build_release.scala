@@ -317,7 +317,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   """ + script_classpath + """ \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
-""" else "") + """isabelle.jedit.JEdit_Main "$@"
+""" else "") + """  isabelle.jedit.JEdit_Main "$@"
 """
     val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
     File.write(script_path, script)
