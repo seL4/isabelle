@@ -93,6 +93,14 @@ final class Other_Isabelle private(
 
   val ml_settings: ML_Settings =
     new ML_Settings {
+      override def polyml_home: Path =
+        getenv("POLYML_HOME") match {
+          case "" =>
+            try { expand_path(Path.variable("ML_HOME")).dir }
+            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
+          case s => Path.explode(s)
+        }
+
       override def ml_system: String = getenv_strict("ML_SYSTEM")
 
       override def ml_platform: String =
@@ -108,6 +116,10 @@ final class Other_Isabelle private(
           }
         }
         else getenv("ML_PLATFORM")
+
+      override def ml_options: String =
+        proper_string(getenv("ML_OPTIONS")) getOrElse
+          getenv(if (ml_platform_is_64_32) "ML_OPTIONS32" else "ML_OPTIONS64")
     }
 
   def user_output_dir: Path =

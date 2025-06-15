@@ -57,15 +57,20 @@ object Build_Log {
       def unapply(s: String): Option[Entry] =
         for { (a, b) <- Properties.Eq.unapply(s) }
         yield (a, Library.perhaps_unquote(b))
-      def getenv(a: String): String =
-        Properties.Eq(a, quote(Isabelle_System.getenv(a)))
+      def show(a: String, b: String): String = Properties.Eq(a, quote(b))
+      def getenv(a: String): String = show(a, Isabelle_System.getenv(a))
     }
 
-    def show(): String =
+    def show(ml_settings: ML_Settings): String =
       cat_lines(
-        List(Entry.getenv("ISABELLE_TOOL_JAVA_OPTIONS"),
-          Entry.getenv(ISABELLE_BUILD_OPTIONS.name), "") :::
-        ml_settings.map(c => Entry.getenv(c.name)))
+        List(
+          Entry.getenv("ISABELLE_TOOL_JAVA_OPTIONS"),
+          Entry.getenv(ISABELLE_BUILD_OPTIONS.name),
+          "",
+          Entry.show(ML_PLATFORM.name, ml_settings.ml_platform),
+          Entry.show(ML_HOME.name, ml_settings.ml_home.implode),
+          Entry.show(ML_SYSTEM.name, ml_settings.ml_system),
+          Entry.show(ML_OPTIONS.name, ml_settings.ml_options)))
   }
 
 

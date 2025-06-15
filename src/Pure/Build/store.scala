@@ -286,7 +286,7 @@ class Store private(
 
   /* ML system settings */
 
-  val ml_settings: ML_Settings = ML_Settings.system()
+  val ml_settings: ML_Settings = ML_Settings.system(options)
 
   val system_output_dir: Path =
     Path.variable("ISABELLE_HEAPS_SYSTEM") + Path.basic(ml_settings.ml_identifier)

@@ -93,16 +93,6 @@ else
   chmod $(umask -S) "$ISABELLE_HOME_USER"
 fi
 
-#POLYML_EXE
-case "$ISABELLE_PLATFORM_FAMILY" in
-  windows*)
-    POLYML_EXE="$ML_HOME/poly.exe"
-    ;;
-  *)
-    POLYML_EXE="$ML_HOME/poly"
-    ;;
-esac
-
 #enforce ISABELLE_OCAMLFIND
 if [ -d "$ISABELLE_OPAM_ROOT/$ISABELLE_OCAML_VERSION/bin" ]; then
   ISABELLE_OCAMLFIND="$ISABELLE_HOME/lib/scripts/ocamlfind"
