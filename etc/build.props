@@ -158,6 +158,7 @@ sources = \
   src/Pure/ML/ml_lex.scala \
   src/Pure/ML/ml_process.scala \
   src/Pure/ML/ml_profiling.scala \
+  src/Pure/ML/ml_settings.scala \
   src/Pure/ML/ml_statistics.scala \
   src/Pure/ML/ml_syntax.scala \
   src/Pure/PIDE/byte_message.scala \

@@ -278,17 +278,10 @@ class Store private(
     val options: Options,
     val build_cluster: Boolean,
     val cache: Term.Cache
-  ) {
+  ) extends ML_Settings.System() {
   store =>
 
   override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
-
-
-  /* ML system */
-
-  def ml_system: String = Isabelle_System.getenv_strict("ML_SYSTEM")
-  def ml_platform: String = Isabelle_System.getenv_strict("ML_PLATFORM")
-  def ml_identifier: String = ml_system + "_" + ml_platform
 
 
   /* directories */

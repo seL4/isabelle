@@ -11,13 +11,6 @@ import java.util.{Map => JMap, HashMap}
 
 
 object ML_Process {
-  /* settings */
-
-  def ml_identifier(env: Isabelle_System.Settings = Isabelle_System.Settings()): String =
-    Isabelle_System.getenv_strict("ML_SYSTEM", env = env) + "_" +
-    Isabelle_System.getenv_strict("ML_PLATFORM", env = env)
-
-
   /* heaps */
 
   def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
