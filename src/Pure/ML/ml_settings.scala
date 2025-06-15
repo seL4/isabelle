@@ -29,7 +29,7 @@ object ML_Settings {
     }
 }
 
-trait ML_Settings {
+abstract class ML_Settings {
   def polyml_home: Path
   def ml_system: String
   def ml_platform: String
@@ -48,4 +48,6 @@ trait ML_Settings {
 
   def polyml_exe: Path =
     ml_home + Path.basic("poly").exe_if(ml_platform_is_windows)
+
+  override def toString: String = ml_identifier
 }
