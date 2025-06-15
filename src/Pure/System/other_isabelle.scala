@@ -35,7 +35,7 @@ final class Other_Isabelle private(
   isabelle_home_url: String,
   val ssh: SSH.System,
   val progress: Progress
-) extends ML_Settings {
+) {
   other_isabelle =>
 
   override def toString: String = isabelle_home_url
@@ -82,8 +82,6 @@ final class Other_Isabelle private(
 
   val isabelle_home_user: Path = expand_path(Path.explode("$ISABELLE_HOME_USER"))
 
-  def user_output_dir: Path = isabelle_home_user + Path.basic("heaps") + Path.basic(ml_identifier)
-
   def host_db: Path = isabelle_home_user + Path.explode("host.db")
 
   def etc: Path = isabelle_home_user + Path.explode("etc")
@@ -91,23 +89,29 @@ final class Other_Isabelle private(
   def etc_preferences: Path = etc + Path.explode("preferences")
 
 
-  /* ML system */
+  /* ML system settings */
 
-  override def ml_system: String = getenv_strict("ML_SYSTEM")
+  val ml_settings: ML_Settings =
+    new ML_Settings {
+      override def ml_system: String = getenv_strict("ML_SYSTEM")
 
-  override def ml_platform: String =
-    if ((isabelle_home + Path.explode("lib/Tools/console")).is_file) {
-      val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
-      val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
-      val result = bash("bin/isabelle console -r", input = input)
-      result.out match {
-        case Pattern(a) if result.ok => a
-        case _ =>
-          error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
-            if_proper(result.err, "\n" + result.err))
-      }
+      override def ml_platform: String =
+        if ((isabelle_home + Path.explode("lib/Tools/console")).is_file) {
+          val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
+          val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
+          val result = bash("bin/isabelle console -r", input = input)
+          result.out match {
+            case Pattern(a) if result.ok => a
+            case _ =>
+              error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
+                if_proper(result.err, "\n" + result.err))
+          }
+        }
+        else getenv("ML_PLATFORM")
     }
-    else getenv("ML_PLATFORM")
+
+  def user_output_dir: Path =
+    isabelle_home_user + Path.basic("heaps") + Path.basic(ml_settings.ml_identifier)
 
 
   /* components */

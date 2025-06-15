@@ -46,7 +46,7 @@ object Build {
   ) {
     def build_options: Options = store.options
 
-    def ml_platform: String = store.ml_platform
+    def ml_platform: String = store.ml_settings.ml_platform
 
     def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 

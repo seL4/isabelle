@@ -278,16 +278,24 @@ class Store private(
     val options: Options,
     val build_cluster: Boolean,
     val cache: Term.Cache
-  ) extends ML_Settings.System() {
+  ) {
   store =>
 
   override def toString: String = "Store(output_dir = " + output_dir.absolute + ")"
 
 
-  /* directories */
+  /* ML system settings */
 
-  val system_output_dir: Path = Path.variable("ISABELLE_HEAPS_SYSTEM") + Path.basic(ml_identifier)
-  val user_output_dir: Path = Path.variable("ISABELLE_HEAPS") + Path.basic(ml_identifier)
+  val ml_settings: ML_Settings = ML_Settings.system()
+
+  val system_output_dir: Path =
+    Path.variable("ISABELLE_HEAPS_SYSTEM") + Path.basic(ml_settings.ml_identifier)
+
+  val user_output_dir: Path =
+    Path.variable("ISABELLE_HEAPS") + Path.basic(ml_settings.ml_identifier)
+
+
+  /* directories */
 
   def system_heaps: Boolean = options.bool("system_heaps")
 
