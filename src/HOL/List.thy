@@ -7988,19 +7988,28 @@ text \<open>
   and \<^const>\<open>list_ex1\<close> in specifications.
 \<close>
 
-lemma list_all_simps [code]:
-  \<open>list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs\<close>
+lemma list_all_Nil_iff [code, no_atp]:
   \<open>list_all P [] \<longleftrightarrow> True\<close>
-  by (simp_all add: list_all_iff)
+  by (simp add: list_all_iff)
 
-lemma list_ex_simps [simp, code]:
-  \<open>list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs\<close>
+lemma list_all_Cons_iff [code, no_atp]:
+  \<open>list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs\<close>
+  by (simp add: list_all_iff)
+
+lemma list_ex_Nil_iff [simp, code, no_atp]:
   \<open>list_ex P [] \<longleftrightarrow> False\<close>
-  by (simp_all add: list_ex_iff)
+  by (simp add: list_ex_iff)
 
-lemma list_ex1_simps [simp, code]:
-  \<open>list_ex1 P [] = False\<close>
-  \<open>list_ex1 P (x # xs) = (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)\<close>
+lemma list_ex_Cons_iff [simp, code, no_atp]:
+  \<open>list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs\<close>
+  by (simp add: list_ex_iff)
+
+lemma list_ex1_Nil_iff [simp, code, no_atp]:
+  \<open>list_ex1 P [] \<longleftrightarrow> False\<close>
+  by (auto simp add: list_ex1_iff)
+
+lemma list_ex1_Cons_iff [simp, code, no_atp]:
+  \<open>list_ex1 P (x # xs) \<longleftrightarrow> (if P x then list_all (\<lambda>y. \<not> P y \<or> x = y) xs else list_ex1 P xs)\<close>
   by (auto simp add: list_ex1_iff list_all_iff)
 
 lemma list_all_append [simp]:
