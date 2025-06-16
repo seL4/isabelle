@@ -106,7 +106,7 @@ final class Other_Isabelle private(
       override def ml_system: String = getenv_strict("ML_SYSTEM")
 
       override def ml_platform: String =
-        if ((isabelle_home + Path.explode("lib/Tools/console")).is_file) {
+        if (ssh.is_file(isabelle_home + Path.explode("lib/Tools/console"))) {
           val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
           val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
           val result = bash("bin/isabelle console -r", input = input)
