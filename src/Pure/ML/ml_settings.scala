@@ -15,6 +15,7 @@ object ML_Settings {
       override def polyml_home: Path = Path.variable("POLYML_HOME").expand_env(env)
       override def ml_system: String = Isabelle_System.getenv_strict("ML_SYSTEM", env = env)
       override def ml_platform: String = {
+        proper_string(options.string("ML_platform")) orElse
         proper_string(Isabelle_System.getenv("ML_PLATFORM", env = env)) getOrElse {
           val platform_64 =
             Isabelle_Platform.make(env = env)

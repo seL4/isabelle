@@ -180,6 +180,9 @@ public option ML_exception_debugger : bool = false
 public option ML_debugger : bool = false
   -- "ML debugger instrumentation for newly compiled code"
 
+public option ML_platform : string = "" for build build_sync
+  -- "explicit ML platform identifier"
+
 public option ML_system_64 : bool = false for build build_sync
   -- "prefer native 64bit platform (change requires restart)"
 

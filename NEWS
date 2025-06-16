@@ -322,6 +322,10 @@ Examples:
     isabelle build -o ML_system_64 -b HOL
     isabelle jedit -o ML_system_64
 
+* System option "ML_platform" specifies the underlying Poly/ML platform
+identifier explicitly: it takes precedence over all other options and
+settings to determine the ML_PLATFORM (see above).
+
 * System option "record_theories" tells "isabelle build" to record
 intermediate theory commands and results, at the cost of approx. 5 times
 larger ML heap images. This allows to retrieve fine-grained semantic
