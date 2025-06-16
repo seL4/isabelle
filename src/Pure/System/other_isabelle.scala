@@ -111,7 +111,7 @@ final class Other_Isabelle private(
           val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
           val result = bash("bin/isabelle console -r", input = input)
           result.out match {
-            case Pattern(a) if result.ok => a
+            case Pattern(a) if result.ok && a.nonEmpty => a
             case _ =>
               error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
                 if_proper(result.err, "\n" + result.err) + error_context)
