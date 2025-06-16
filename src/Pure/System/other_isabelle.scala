@@ -117,7 +117,7 @@ final class Other_Isabelle private(
                 if_proper(result.err, "\n" + result.err) + error_context)
           }
         }
-        else getenv("ML_PLATFORM")
+        else getenv_strict("ML_PLATFORM")
 
       override def ml_options: String =
         proper_string(getenv("ML_OPTIONS")) getOrElse
