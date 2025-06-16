@@ -20,7 +20,9 @@ object Other_Isabelle {
         case session: SSH.Session => (ssh.absolute_path(root), session.rsync_prefix)
         case _ =>
           if (proper_string(System.getenv("ISABELLE_SETTINGS_PRESENT")).isDefined) {
-            error("Cannot manage other Isabelle distribution: global ISABELLE_SETTINGS_PRESENT")
+            error(
+              "Cannot manage other Isabelle distribution: ISABELLE_SETTINGS_PRESENT " +
+                "-- consider using SSH")
           }
           (root.canonical, "")
       }
@@ -39,6 +41,7 @@ final class Other_Isabelle private(
   other_isabelle =>
 
   override def toString: String = isabelle_home_url
+  def error_context: String = "\nThe error(s) above occurred for other Isabelle " + toString
 
 
   /* static system */
@@ -72,8 +75,7 @@ final class Other_Isabelle private(
 
   def getenv_strict(name: String): String =
     proper_string(getenv(name)) getOrElse
-      error("Undefined Isabelle environment variable: " + quote(name) +
-        "\nISABELLE_HOME=" + isabelle_home)
+      error("Undefined Isabelle environment variable: " + quote(name) + error_context)
 
   val settings: Isabelle_System.Settings = (name: String) => getenv(name)
 
@@ -97,7 +99,7 @@ final class Other_Isabelle private(
         getenv("POLYML_HOME") match {
           case "" =>
             try { expand_path(Path.variable("ML_HOME")).dir }
-            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
+            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg + error_context) }
           case s => Path.explode(s)
         }
 
@@ -112,7 +114,7 @@ final class Other_Isabelle private(
             case Pattern(a) if result.ok => a
             case _ =>
               error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
-                if_proper(result.err, "\n" + result.err))
+                if_proper(result.err, "\n" + result.err) + error_context)
           }
         }
         else getenv("ML_PLATFORM")
@@ -174,7 +176,10 @@ final class Other_Isabelle private(
         "export CLASSPATH=" + Bash.string(getenv("ISABELLE_CLASSPATH")) + "\n" +
         "bin/isabelle jedit -b", echo = echo).check
     }
-    catch { case ERROR(msg) => cat_error("Failed to build Isabelle/Scala/Java modules:", msg) }
+    catch {
+      case ERROR(msg) =>
+        error("Failed to build Isabelle/Scala/Java modules:\n" + msg + error_context)
+    }
   }
 
 
@@ -196,7 +201,7 @@ final class Other_Isabelle private(
         "#-*- shell-script -*- :mode=shellscript:\n" +
         settings.mkString("\n", "\n", "\n"))
     }
-    else error("Cannot proceed with existing user settings file: " + etc_settings)
+    else error("Cannot proceed with existing user settings file: " + etc_settings + error_context)
   }
 
   def debug_settings(): List[String] = {
