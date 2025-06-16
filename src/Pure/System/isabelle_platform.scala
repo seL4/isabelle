@@ -16,8 +16,10 @@ object Isabelle_Platform {
       "ISABELLE_WINDOWS_PLATFORM64",
       "ISABELLE_APPLE_PLATFORM64")
 
-  lazy val local: Isabelle_Platform =
-    new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a))))
+  def make(env: Isabelle_System.Settings = Isabelle_System.Settings()): Isabelle_Platform =
+    new Isabelle_Platform(settings.map(a => (a, Isabelle_System.getenv(a, env = env))))
+
+  lazy val local: Isabelle_Platform = make()
 
   def remote(ssh: SSH.Session): Isabelle_Platform = {
     val script =

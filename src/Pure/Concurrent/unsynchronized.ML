@@ -50,7 +50,7 @@ fun setmp flag value f x =
 
 (* weak references *)
 
-(*see also $ML_SOURCES/basis/Weak.sml*)
+(*see also $POLYML_HOME/src/basis/Weak.sml*)
 
 type 'a weak_ref = 'a ref option ref;
 

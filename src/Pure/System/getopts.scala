@@ -11,7 +11,7 @@ import scala.annotation.tailrec
 
 
 object Getopts {
-  def apply(usage_text: String, option_specs: (String, String => Unit)*): Getopts = {
+  def apply(usage_text: => String, option_specs: (String, String => Unit)*): Getopts = {
     val options =
       option_specs.foldLeft(Map.empty[Char, (Boolean, String => Unit)]) {
         case (m, (s, f)) =>
@@ -26,7 +26,7 @@ object Getopts {
   }
 }
 
-class Getopts private(usage_text: String, options: Map[Char, (Boolean, String => Unit)]) {
+class Getopts private(usage_text: => String, options: Map[Char, (Boolean, String => Unit)]) {
   def usage(): Nothing = {
     Output.writeln(usage_text, stdout = true)
     sys.exit(Process_Result.RC.error)

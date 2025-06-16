@@ -2,8 +2,8 @@
     Author:     Makarius
 
 Multithreading in Poly/ML, see also
-  - $ML_SOURCES/basis/Thread.sml: numPhysicalProcessors
-  - $ML_SOURCES/libpolyml/processes.cpp: PolyThreadNumPhysicalProcessors
+  - $POLYML_HOME/src/basis/Thread.sml: numPhysicalProcessors
+  - $POLYML_HOME/src/libpolyml/processes.cpp: PolyThreadNumPhysicalProcessors
 *)
 
 signature MULTITHREADING =

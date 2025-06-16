@@ -95,7 +95,7 @@ class Progress {
   final def bash(script: String,
     ssh: SSH.System = SSH.Local,
     cwd: Path = Path.current,
-    env: JMap[String, String] = Isabelle_System.settings(),  // ignored for remote ssh
+    env: JMap[String, String] = Isabelle_System.Settings.env(),  // ignored for remote ssh
     redirect: Boolean = false,
     echo: Boolean = false,
     watchdog_time: Time = Time.zero,

@@ -20,7 +20,7 @@ text \<open>
   Isabelle executables may depend on the \<^emph>\<open>Isabelle settings\<close> within the
   process environment. This is a statically scoped collection of environment
   variables, such as @{setting ISABELLE_HOME}, @{setting ML_SYSTEM}, @{setting
-  ML_HOME}. These variables are \<^emph>\<open>not\<close> intended to be set directly from the
+  POLYML_HOME}. These variables are \<^emph>\<open>not\<close> intended to be set directly from the
   shell, but are provided by Isabelle \<^emph>\<open>components\<close> within their \<^emph>\<open>settings
   files\<close>, as explained below.
 \<close>
@@ -50,8 +50,7 @@ text \<open>
     This file holds a rather long list of shell variable assignments, thus
     providing the site-wide default settings. The Isabelle distribution
     already contains a global settings file with sensible defaults for most
-    variables. When installing the system, only a few of these may have to be
-    adapted (probably @{setting ML_SYSTEM} etc.).
+    variables.
 
     \<^enum> The file \<^path>\<open>$ISABELLE_HOME_USER/etc/settings\<close> (if it
     exists) is run in the same way as the site default settings. Note that the
@@ -137,19 +136,12 @@ text \<open>
   \<^descr>[@{setting_def ISABELLE_IDENTIFIER}\<open>\<^sup>*\<close>] refers to the name of this
   Isabelle distribution, e.g.\ ``\<^verbatim>\<open>Isabelle2025\<close>''.
 
-  \<^descr>[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME}, @{setting_def
-  ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def ML_IDENTIFIER}\<open>\<^sup>*\<close>]
-  specify the underlying ML system to be used for Isabelle. There is only a
-  fixed set of admissable @{setting ML_SYSTEM} names (see the
-  \<^file>\<open>$ISABELLE_HOME/etc/settings\<close> file of the distribution).
-
-  The actual compiler binary will be run from the directory @{setting
-  ML_HOME}, with @{setting ML_OPTIONS} as first arguments on the command line.
-  The optional @{setting ML_PLATFORM} may specify the binary format of ML heap
-  images, which is useful for cross-platform installations. The value of
-  @{setting ML_IDENTIFIER} is automatically obtained by composing the values
-  of @{setting ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version
-  values.
+  \<^descr>[@{setting ML_OPTIONS}, @{setting ML_OPTIONS32}, @{setting ML_OPTIONS64}]
+  provide command-line options to the underlying ML system of Isabelle.
+  @{setting ML_OPTIONS} is empty by default, but if a proper value is provided
+  (e.g.\ via user settings) that takes precedence. Otherwise, @{setting
+  ML_OPTIONS32} or @{setting ML_OPTIONS64} will be used, depending on the
+  system option @{system_option_ref ML_system_64}.
 
   \<^descr>[@{setting_def ISABELLE_JDK_HOME}] points to a full JDK (Java Development
   Kit) installation with \<^verbatim>\<open>javac\<close> and \<^verbatim>\<open>jar\<close> executables. Note that

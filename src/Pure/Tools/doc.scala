@@ -24,13 +24,17 @@ object Doc {
       else name
   }
 
-  def plain_file(path: Path): Option[Entry] =
-    if (path.is_file && !path.is_pdf) {
-      val a = path.implode
+  def plain_file(path0: Path,
+    env: Isabelle_System.Settings = Isabelle_System.Settings()
+  ): Option[Entry] = {
+    val path1 = path0.expand_env(env)
+    if (path1.is_file && !path1.is_pdf) {
+      val a = path0.implode
       val b = Library.try_unprefix("$ISABELLE_HOME/", a).getOrElse(a)
-      Some(Entry(b, path))
+      Some(Entry(b, path1))
     }
     else None
+  }
 
 
   /* contents */
@@ -60,15 +64,19 @@ object Doc {
 
   def release_notes(): Contents =
     Contents.section("Release Notes", true,
-      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES")).flatMap(plain_file))
+      Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES"))
+        .flatMap(plain_file(_)))
 
-  def examples(): Contents =
+  def examples(): Contents = {
+    val ml_settings = ML_Settings.system(Options.init())
+    val env = Isabelle_System.Settings(putenv = List(ml_settings.ml_sources_root))
     Contents.section("Examples", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
-        plain_file(file) match {
+        plain_file(file, env = env) match {
           case Some(entry) => entry
           case None => error("Bad entry in ISABELLE_DOCS_EXAMPLES: " + file)
         }))
+  }
 
   def main_contents(): Contents = {
     val result = new mutable.ListBuffer[Section]

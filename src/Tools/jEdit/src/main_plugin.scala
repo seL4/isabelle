@@ -54,6 +54,8 @@ object PIDE {
   def session: Session = plugin.session
   def cache: Rich_Text.Cache = session.cache.asInstanceOf[Rich_Text.Cache]
 
+  def ml_settings: ML_Settings = ML_Settings.system(plugin.startup_options)
+
   object editor extends JEdit_Editor
 }
 
@@ -66,9 +68,11 @@ class Main_Plugin extends EBPlugin {
     Library.space_explode('\u000b', Isabelle_System.getenv("JEDIT_ISABELLE_OPTIONS"))
       .map(Options.Spec.make)
 
+  lazy val startup_options: Options = initial_options ++ more_options
+
   private var _options: JEdit_Options = null
   private def init_options(): Unit = {
-    _options = new JEdit_Options(initial_options ++ more_options)
+    _options = new JEdit_Options(startup_options)
   }
   def options: JEdit_Options = _options
 

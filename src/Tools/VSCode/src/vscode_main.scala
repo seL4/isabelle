@@ -50,7 +50,7 @@ object VSCode_Main {
       JSON.optional("verbose" -> proper_bool(verbose))
 
     val env =
-      Isabelle_System.settings(environment ::: List(
+      Isabelle_System.Settings.env(environment ::: List(
         "ISABELLE_VSCODIUM_ARGS" -> JSON.Format(args_json),
         "ISABELLE_VSCODIUM_APP" -> platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium"),
         "ELECTRON_RUN_AS_NODE" -> "1"))

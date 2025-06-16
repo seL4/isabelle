@@ -316,42 +316,16 @@ not affect the running ML session. *)
 
     /* settings */
 
-    component_dir.write_settings("""# -*- shell-script -*- :mode=shellscript:
-
+    component_dir.write_settings("""
 POLYML_HOME="$COMPONENT"
 
-if [ -n "$ISABELLE_APPLE_PLATFORM64" ]
-then
-  if grep "ML_system_apple.*=.*false" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
-  then
-    ML_PLATFORM="$ISABELLE_PLATFORM64"
-  else
-    ML_PLATFORM="$ISABELLE_APPLE_PLATFORM64"
-  fi
-else
-  ML_PLATFORM="${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
-fi
-
-if grep "ML_system_64.*=.*true" "$ISABELLE_HOME_USER/etc/preferences" >/dev/null 2>/dev/null
-then
-  ML_OPTIONS="--minheap 1000"
-else
-  ML_PLATFORM="${ML_PLATFORM/64/64_32}"
-  ML_OPTIONS="--minheap 500"
-fi
-
 ML_SYSTEM=""" + Bash.string(polyml_name) + """
-ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-ML_SOURCES="$POLYML_HOME/src"
+ML_OPTIONS32="--minheap 500"
+ML_OPTIONS64="--minheap 1000"
+ML_OPTIONS=""
+ML_PLATFORM=""
 
-case "$ML_PLATFORM" in
-  *arm64*)
-    ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT0.ML"
-    ;;
-  *)
-    ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$ML_SOURCES/ROOT.ML"
-    ;;
-esac
+ISABELLE_DOCS_EXAMPLES="$ISABELLE_DOCS_EXAMPLES:\$POLYML_HOME/\$ML_SOURCES_ROOT"
 """)
 
 

@@ -52,6 +52,7 @@ final class Other_Isabelle private(
   def bash(
     script: String,
     cwd: Path = isabelle_home,
+    input: String = "",
     redirect: Boolean = false,
     echo: Boolean = false,
     strict: Boolean = true
@@ -59,6 +60,7 @@ final class Other_Isabelle private(
     ssh.bash(bash_context(script, cwd = cwd),
       progress_stdout = progress.echo_if(echo, _),
       progress_stderr = progress.echo_if(echo, _),
+      input = input,
       redirect = redirect,
       settings = false,
       strict = strict)
@@ -67,6 +69,11 @@ final class Other_Isabelle private(
   def getenv(name: String): String =
     ssh.execute(bash_context("bin/isabelle getenv -b " + Bash.string(name)),
       settings = false).check.out
+
+  def getenv_strict(name: String): String =
+    proper_string(getenv(name)) getOrElse
+      error("Undefined Isabelle environment variable: " + quote(name) +
+        "\nISABELLE_HOME=" + isabelle_home)
 
   val settings: Isabelle_System.Settings = (name: String) => getenv(name)
 
@@ -80,6 +87,43 @@ final class Other_Isabelle private(
   def etc: Path = isabelle_home_user + Path.explode("etc")
   def etc_settings: Path = etc + Path.explode("settings")
   def etc_preferences: Path = etc + Path.explode("preferences")
+
+
+  /* ML system settings */
+
+  val ml_settings: ML_Settings =
+    new ML_Settings {
+      override def polyml_home: Path =
+        getenv("POLYML_HOME") match {
+          case "" =>
+            try { expand_path(Path.variable("ML_HOME")).dir }
+            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
+          case s => Path.explode(s)
+        }
+
+      override def ml_system: String = getenv_strict("ML_SYSTEM")
+
+      override def ml_platform: String =
+        if ((isabelle_home + Path.explode("lib/Tools/console")).is_file) {
+          val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
+          val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
+          val result = bash("bin/isabelle console -r", input = input)
+          result.out match {
+            case Pattern(a) if result.ok => a
+            case _ =>
+              error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
+                if_proper(result.err, "\n" + result.err))
+          }
+        }
+        else getenv("ML_PLATFORM")
+
+      override def ml_options: String =
+        proper_string(getenv("ML_OPTIONS")) getOrElse
+          getenv(if (ml_platform_is_64_32) "ML_OPTIONS32" else "ML_OPTIONS64")
+    }
+
+  def user_output_dir: Path =
+    isabelle_home_user + Path.basic("heaps") + Path.basic(ml_settings.ml_identifier)
 
 
   /* components */

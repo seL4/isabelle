@@ -39,10 +39,7 @@ object Build_History {
       val platform_apple_64 = other_isabelle.getenv("ISABELLE_APPLE_PLATFORM64")
       val platform_apple_64_32 = make_64_32(platform_apple_64)
 
-      val polyml_home =
-        try { Path.explode(other_isabelle.getenv("ML_HOME")).dir }
-        catch { case ERROR(msg) => error("Bad ML_HOME: " + msg) }
-
+      val polyml_home = other_isabelle.ml_settings.polyml_home
       def ml_home(platform: String): Path = polyml_home + Path.explode(platform)
 
       def err(platform: String): Nothing =
@@ -204,9 +201,7 @@ object Build_History {
       File.write(other_isabelle.etc_preferences,
         cat_lines("build_log_verbose = true" :: more_preferences))
 
-      val isabelle_output =
-        other_isabelle.expand_path(
-          Path.explode("$ISABELLE_HOME_USER/heaps/$ML_IDENTIFIER"))
+      val isabelle_output = other_isabelle.user_output_dir
       val isabelle_output_log = isabelle_output + Path.explode("log")
       val isabelle_base_log = isabelle_output + Path.explode("../base_log")
 

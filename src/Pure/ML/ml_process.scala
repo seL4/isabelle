@@ -11,8 +11,10 @@ import java.util.{Map => JMap, HashMap}
 
 
 object ML_Process {
-  def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
-    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(Path.explode("$POLYML_EXE")))
+  /* heaps */
+
+  def make_shasum(store: Store, ancestors: List[SHA1.Shasum]): SHA1.Shasum =
+    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(store.ml_settings.polyml_exe))
     else SHA1.flat_shasum(ancestors)
 
   def session_heaps(
@@ -27,6 +29,9 @@ object ML_Process {
       map(name => store.get_session(name).the_heap)
   }
 
+
+  /* process */
+
   def apply(
     options: Options,
     session_background: Sessions.Background,
@@ -36,11 +41,12 @@ object ML_Process {
     args: List[String] = Nil,
     modes: List[String] = Nil,
     cwd: Path = Path.current,
-    env: JMap[String, String] = Isabelle_System.settings(),
+    env: JMap[String, String] = Isabelle_System.Settings.env(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
   ): Bash.Process = {
     val ml_options = options.standard_ml()
+    val ml_settings = ML_Settings.system(ml_options)
 
     val eval_init =
       if (session_heaps.isEmpty) {
@@ -100,7 +106,7 @@ object ML_Process {
     val isabelle_tmp = Isabelle_System.tmp_dir("process")
 
     val ml_runtime_options = {
-      val ml_options0 = Word.explode(Isabelle_System.getenv("ML_OPTIONS"))
+      val ml_options0 = Word.explode(ml_settings.ml_options)
       val ml_options1 =
         if (ml_options0.exists(_.containsSlice("gcthreads"))) ml_options0
         else ml_options0 ::: List("--gcthreads", ml_options.threads().toString)
@@ -117,6 +123,8 @@ object ML_Process {
       use_prelude.flatMap(List("--use", _)) ::: List("--eval", eval_process) ::: args
 
     val bash_env = new HashMap(env)
+    bash_env.put("ML_PLATFORM", ml_settings.ml_platform)
+    bash_env.put("ML_HOME", File.standard_path(ml_settings.ml_home))
     bash_env.put("ISABELLE_PROCESS_OPTIONS", File.standard_path(isabelle_process_options))
     bash_env.put("ISABELLE_INIT_SESSION", File.standard_path(init_session))
     bash_env.put("ISABELLE_TMP", File.standard_path(isabelle_tmp))
@@ -125,7 +133,8 @@ object ML_Process {
     val process_policy = ml_options.string("process_policy")
     val process_prefix = if_proper(process_policy, process_policy + " ")
 
-    Bash.process(process_prefix + "\"$POLYML_EXE\" -q " + Bash.strings(bash_args),
+    Bash.process(
+      process_prefix + File.bash_path(ml_settings.polyml_exe) + " -q " + Bash.strings(bash_args),
       cwd = cwd,
       env = bash_env,
       redirect = redirect,

@@ -31,7 +31,6 @@ object Build {
     engine: Engine = Engine.Default,
     afp_root: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
-    ml_platform: String = Isabelle_System.getenv("ML_PLATFORM"),
     hostname: String = Isabelle_System.hostname(),
     numa_shuffling: Boolean = false,
     numa_nodes: List[Int] = Nil,
@@ -46,6 +45,8 @@ object Build {
     master: Boolean = false
   ) {
     def build_options: Options = store.options
+
+    def ml_platform: String = store.ml_settings.ml_platform
 
     def sessions_structure: isabelle.Sessions.Structure = deps.sessions_structure
 
@@ -379,7 +380,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Notable system options: see "isabelle options -l -t build"
 
   Notable system settings:
-""" + Library.indent_lines(4, Build_Log.Settings.show()) + "\n",
+""" + Library.indent_lines(4, Build_Log.Settings.show(ML_Settings.system(options))) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
@@ -407,11 +408,13 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
+      val ml_settings = ML_Settings.system(options)
+
       progress.echo(
         "Started at " + Build_Log.print_date(progress.start) +
-          " (" + Isabelle_System.ml_identifier() + " on " + hostname(options) +")",
+          " (" + ml_settings.ml_identifier + " on " + hostname(options) +")",
         verbose = true)
-      progress.echo(Build_Log.Settings.show() + "\n", verbose = true)
+      progress.echo(Build_Log.Settings.show(ml_settings) + "\n", verbose = true)
 
       val results =
         progress.interrupt_handler {

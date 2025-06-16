@@ -279,7 +279,10 @@ directory individually.
     isabelle_name: String,
     jdk_component: String,
     classpath: List[Path],
-    dock_icon: Boolean = false): Unit = {
+    dock_icon: Boolean = false
+  ): Unit = {
+    val script_classpath =
+      "-classpath " + quote(classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":"))
     val script = """#!/usr/bin/env bash
 #
 # Author: Makarius
@@ -306,14 +309,15 @@ source "$COMPONENT/etc/settings"
 
 declare -a JAVA_OPTIONS=($(grep -v '^#' "$ISABELLE_HOME/Isabelle.options"))
 
-eval $(isabelle java isabelle.setup.Setup gui_setup)
+eval $("$ISABELLE_JDK_HOME/bin/java" "${JAVA_OPTIONS[@]}" """ + script_classpath +
+  """ isabelle.setup.Setup gui_setup)
 
 exec "$ISABELLE_JDK_HOME/bin/java" \
   "-Disabelle.root=$ISABELLE_HOME" "${JAVA_OPTIONS[@]}" \
-  -classpath """" + classpath.map(p => "$ISABELLE_HOME/" + p.implode).mkString(":") + """" \
+  """ + script_classpath + """ \
   "-splash:$ISABELLE_HOME/lib/logo/isabelle.gif" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
-""" else "") + """isabelle.jedit.JEdit_Main "$@"
+""" else "") + """  isabelle.jedit.JEdit_Main "$@"
 """
     val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
     File.write(script_path, script)

@@ -302,6 +302,26 @@ may require change of parentheses:
 
 *** System ***
 
+* The traditional ML system settings have been reconsidered, and mostly
+replaced by ML_Settings in Isabelle/Scala (e.g. via
+ML_Settings.system(Options.init())). Potential INCOMPATIBILITY for old
+shell scripts, which should be replaced by proper Isabelle/Scala tools
+anyway. The following environment variables still have a purpose:
+
+  - ML_SYSTEM, ML_PLATFORM, ML_HOME as provided to Isabelle/ML (see also
+    structure ML_System).
+
+  - Optional ML_PLATFORM or ML_OPTIONS as input in user settings, which
+    take precedence if assigned to a proper value. Otherwise,
+    ML_PLATFORM is derived from system options ML_system_64 and
+    ML_system_apple, and ML_OPTIONS is taken from ML_OPTIONS32 or
+    ML_OPTIONS64 (depending on the effective ML_PLATFORM).
+
+Examples:
+
+    isabelle build -o ML_system_64 -b HOL
+    isabelle jedit -o ML_system_64
+
 * System option "record_theories" tells "isabelle build" to record
 intermediate theory commands and results, at the cost of approx. 5 times
 larger ML heap images. This allows to retrieve fine-grained semantic
