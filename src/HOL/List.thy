@@ -239,10 +239,13 @@ primrec removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
 
 definition minus_list_mset :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"minus_list_mset xs ys \<equiv> foldr remove1 ys xs"
+"minus_list_mset xs ys = foldr remove1 ys xs"
 
 definition minus_list_set :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-"minus_list_set xs ys \<equiv> foldr removeAll ys xs"
+"minus_list_set xs ys = foldr removeAll ys xs"
+
+definition inter_list_set :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"inter_list_set xs ys = filter (\<lambda>x. x \<in> set ys) xs"
 
 primrec distinct :: "'a list \<Rightarrow> bool" where
 "distinct [] \<longleftrightarrow> True" |
@@ -4705,7 +4708,8 @@ using foldr_fold[of _ removeAll] removeAll_commute by fastforce
 
 subsubsection \<open>\<^const>\<open>minus_list_mset\<close>\<close>
 
-text \<open>Conceptually, the result of \<^const>\<open>minus_list_mset\<close> is only determined up to permutation,
+text \<open>The difference of two lists viewed as multisets.
+Conceptually, the result of \<^const>\<open>minus_list_mset\<close> is only determined up to permutation,
 i.e. up to the multiset of elements. Thus this function comes into its own in connection
 with multisets where \<open>mset(minus_list_mset xs ys) = mset xs - mset ys\<close> is proved. Lemma
 \<open>count_list_minus_list_mset\<close> is the equivalent on the list level.\<close>
@@ -4765,7 +4769,8 @@ by (induction ys) (use assms distinct_minus_list_mset[of xs] in auto)
 
 subsubsection \<open>\<^const>\<open>minus_list_set\<close>\<close>
 
-text \<open>Conceptually, the result of \<^const>\<open>minus_list_set\<close> is only determined up to the set of elements:\<close>
+text \<open>The difference of two lists viewed as sets.
+Conceptually, the result of \<^const>\<open>minus_list_set\<close> is only determined up to the set of elements:\<close>
 
 lemma set_minus_list_set[simp]: "set(minus_list_set xs ys) = set xs - set ys"
 by(induction ys) (auto simp: minus_list_set_def)
@@ -4799,6 +4804,35 @@ by (simp add: minus_list_set_eq_filter)
 
 lemma distinct_minus_list_set: "distinct xs \<Longrightarrow> distinct (minus_list_set xs ys)"
 by (simp add: minus_list_set_eq_filter)
+
+
+subsubsection \<open>\<^const>\<open>inter_list_set\<close>\<close>
+
+text \<open>The intersection of two lists viewed as sets.
+Conceptually, the result of \<^const>\<open>inter_list_set\<close> is only determined up to the set of elements:\<close>
+
+lemma set_inter_list_set[simp]: "set(inter_list_set xs ys) = set xs \<inter> set ys"
+by(auto simp add: inter_list_set_def)
+
+lemma inter_list_set_Nil[simp]: "inter_list_set [] xs = []"
+by (simp add: inter_list_set_def)
+
+lemma inter_list_set_Cons[simp]: "inter_list_set (x#xs) ys =
+  (if x \<in> set ys then x # inter_list_set xs ys else inter_list_set xs ys)"
+by(simp add:inter_list_set_def)
+
+lemma inter_list_set_Nil2[simp]: "inter_list_set xs [] = []"
+by(simp add: inter_list_set_def)
+
+lemma distinct_inter_list_set[simp]: "distinct xs \<Longrightarrow> distinct (inter_list_set xs ys)"
+by (simp add: inter_list_set_def)
+
+lemma inter_list_set_append[simp]:
+  "inter_list_set (xs @ ys) zs = inter_list_set xs zs @ inter_list_set ys zs"
+by (simp add: inter_list_set_def)
+
+lemma length_inter_list_set: "length(inter_list_set xs ys) \<le> length xs"
+by (simp add: inter_list_set_def)
 
 
 subsubsection \<open>\<^const>\<open>replicate\<close>\<close>
