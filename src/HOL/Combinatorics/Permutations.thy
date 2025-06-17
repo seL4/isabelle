@@ -1688,7 +1688,7 @@ proof (rule multiset_eqI)
   also from assms have "card \<dots> = card {i. i < length xs \<and> y = xs ! i}"
     by (intro card_vimage_inj) (auto simp: permutes_inj permutes_surj)
   also have "\<dots> = count (mset xs) y"
-    by (simp add: count_mset length_filter_conv_card)
+    by (simp add: count_mset count_list_eq_length_filter length_filter_conv_card)
   finally show "count (mset (permute_list f xs)) y = count (mset xs) y"
     by simp
 qed
