@@ -1998,7 +1998,7 @@ lemma in_multiset_in_set:
   by (induct xs) simp_all
 
 lemma count_mset:
-  "count (mset xs) x = length (filter (\<lambda>y. x = y) xs)"
+  "count (mset xs) x = count_list xs x"
   by (induct xs) simp_all
 
 lemma mset_zero_iff[simp]: "(mset x = {#}) = (x = [])"
@@ -2107,7 +2107,7 @@ lemma mset_eq_length:
 
 lemma mset_eq_length_filter:
   assumes "mset xs = mset ys"
-  shows "length (filter (\<lambda>x. z = x) xs) = length (filter (\<lambda>y. z = y) ys)"
+  shows "count_list xs z = count_list ys z"
   using assms by (metis count_mset)
 
 lemma fold_multiset_equiv:
@@ -2232,7 +2232,7 @@ proof -
 qed
 
 lemma mset_minus_list_mset[simp]: "mset(minus_list_mset xs ys) = mset xs - mset ys"
-by(induction ys) (auto)
+by (simp add: count_mset multiset_eq_iff)
 
 lemma mset_set_set: "distinct xs \<Longrightarrow> mset_set (set xs) = mset xs"
   by (induction xs) simp_all
@@ -3075,7 +3075,7 @@ proof (rule properties_for_sort_key)
   from multiset show "mset ys = mset xs" .
   from \<open>sorted ys\<close> show "sorted (map (\<lambda>x. x) ys)" by simp
   from multiset have "length (filter (\<lambda>y. k = y) ys) = length (filter (\<lambda>x. k = x) xs)" for k
-    by (rule mset_eq_length_filter)
+    by (metis mset_filter size_mset)
   then have "replicate (length (filter (\<lambda>y. k = y) ys)) k =
     replicate (length (filter (\<lambda>x. k = x) xs)) k" for k
     by simp

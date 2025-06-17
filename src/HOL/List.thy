@@ -4521,6 +4521,9 @@ proof -
   with 1 2 show ?thesis by blast
 qed
 
+lemma count_list_eq_length_filter: "count_list xs y = length(filter ((=) y) xs)"
+by (induction xs) auto
+
 lemma split_list_cycles:
   "\<exists>pref xss. xs = pref @ concat xss \<and> x \<notin> set pref \<and> (\<forall>ys \<in> set xss. \<exists>zs. ys = x # zs)"
 proof (induction "count_list xs x" arbitrary: xs)
@@ -4570,6 +4573,10 @@ by(auto simp add: extract_def comp_def split: list.splits)
 
 
 subsubsection \<open>\<^const>\<open>remove1\<close>\<close>
+
+lemma count_list_remove1[simp]:
+  "count_list (remove1 a xs) b = count_list xs b - (if a=b then 1 else 0)"
+by(induction xs) auto
 
 lemma remove1_append:
   "remove1 x (xs @ ys) =
@@ -4700,7 +4707,8 @@ subsubsection \<open>\<^const>\<open>minus_list_mset\<close>\<close>
 
 text \<open>Conceptually, the result of \<^const>\<open>minus_list_mset\<close> is only determined up to permutation,
 i.e. up to the multiset of elements. Thus this function comes into its own in connection
-with multisets where \<open>mset(minus_list_mset xs ys) = mset xs - mset ys\<close> is proved.\<close>
+with multisets where \<open>mset(minus_list_mset xs ys) = mset xs - mset ys\<close> is proved. Lemma
+\<open>count_list_minus_list_mset\<close> is the equivalent on the list level.\<close>
 
 lemma minus_list_mset_Nil2 [simp]: "minus_list_mset xs [] = xs"
 by (simp add: minus_list_mset_def)
@@ -4708,8 +4716,12 @@ by (simp add: minus_list_mset_def)
 lemma minus_list_mset_Cons2 [simp]: "minus_list_mset xs (y#ys) = remove1 y (minus_list_mset xs ys)"
 by (simp add: minus_list_mset_def)
 
+lemma count_list_minus_list_mset[simp]:
+  "count_list (minus_list_mset xs ys) a = count_list xs a - count_list ys a"
+by(induction ys arbitrary: xs) auto
+
 lemma minus_list_set_subset_minus_list_mset: "set xs - set ys \<subseteq> set(minus_list_mset xs ys)"
-by(induction ys arbitrary: xs)(simp, fastforce)
+by(induction ys)(simp, fastforce)
 
 lemma minus_list_mset_remove1_commute:
   "minus_list_mset (remove1 x xs) ys = remove1 x (minus_list_mset xs ys)"

@@ -238,7 +238,7 @@ lemma t_eq_imp_bij_func:
   shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
 proof -
   from assms have \<open>mset xs = mset ys\<close>
-    using assms by (simp add: fun_eq_iff t_def multiset_eq_iff flip: count_mset)
+    using assms by (simp add: fun_eq_iff t_def multiset_eq_iff count_mset count_list_eq_length_filter)
   then obtain p where \<open>p permutes {..<length ys}\<close> \<open>permute_list p ys = xs\<close>
     by (rule mset_eq_permutation)
   then have \<open>bij_betw p {..<length xs} {..<length ys}\<close> \<open>\<forall>i<length xs. xs ! i = ys ! p i\<close>
