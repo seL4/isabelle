@@ -8306,9 +8306,9 @@ text \<open>
   intermediate lists on execution -- do not use for proving.
 \<close>
 
-lemma map_filter_simps [code]:
-  \<open>map_filter f (x # xs) = (case f x of None \<Rightarrow> map_filter f xs | Some y \<Rightarrow> y # map_filter f xs)\<close>
+lemma map_filter_simps [simp, code, no_atp]:
   \<open>map_filter f [] = []\<close>
+  \<open>map_filter f (x # xs) = (case f x of None \<Rightarrow> map_filter f xs | Some y \<Rightarrow> y # map_filter f xs)\<close>
   by (simp_all add: map_filter_def split: option.split)
 
 lemma map_filter_map_filter [code_unfold]:
