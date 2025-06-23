@@ -177,7 +177,7 @@ object Build_Job {
 
           val session =
             new Session(options, resources) {
-              override val cache: Term.Cache = store.cache
+              override val cache: Rich_Text.Cache = store.cache
 
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
                 Command.Blobs_Info.make(session_blobs(node_name))

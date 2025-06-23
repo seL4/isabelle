@@ -77,7 +77,7 @@ object Build {
     results: Map[String, Process_Result],
     other_rc: Int
   ) {
-    def cache: Term.Cache = store.cache
+    def cache: Rich_Text.Cache = store.cache
 
     def sessions_ok: List[String] =
       List.from(
@@ -127,7 +127,7 @@ object Build {
 
     final def build_store(options: Options,
       build_cluster: Boolean = false,
-      cache: Term.Cache = Term.Cache.make()
+      cache: Rich_Text.Cache = Rich_Text.Cache.make()
     ): Store = {
       val build_options = engine.build_options(options, build_cluster = build_cluster)
       val store = Store(build_options, build_cluster = build_cluster, cache = cache)
@@ -182,7 +182,7 @@ object Build {
     export_files: Boolean = false,
     augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => (),
-    cache: Term.Cache = Term.Cache.make()
+    cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Results = {
     val engine = Engine(engine_name(options))
     val store = engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)

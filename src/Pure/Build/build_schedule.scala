@@ -1490,7 +1490,7 @@ object Build_Schedule {
     numa_shuffling: Boolean = false,
     augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => (),
-    cache: Term.Cache = Term.Cache.make()
+    cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Schedule = {
     Build.build_process(options, build_cluster = true, remove_builds = true)
 

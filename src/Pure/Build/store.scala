@@ -14,7 +14,7 @@ object Store {
   def apply(
     options: Options,
     build_cluster: Boolean = false,
-    cache: Term.Cache = Term.Cache.make()
+    cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Store = new Store(options, build_cluster, cache)
 
 
@@ -277,7 +277,7 @@ object Store {
 class Store private(
     val options: Options,
     val build_cluster: Boolean,
-    val cache: Term.Cache
+    val cache: Rich_Text.Cache
   ) {
   store =>
 

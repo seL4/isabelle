@@ -87,12 +87,7 @@ class Main_Plugin extends EBPlugin {
   /* session */
 
   private var _session: Session = null
-  private def init_session(): Unit = {
-    _session =
-      new Session(options.value, resources) {
-        override val cache: Term.Cache = Rich_Text.Cache.make()
-      }
-  }
+  private def init_session(): Unit = { _session = new Session(options.value, resources) }
   def session: Session = _session
 
 
