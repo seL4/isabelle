@@ -120,8 +120,7 @@ class Pretty_Text_Area(
   private var current_output: List[XML.Elem] = Nil
   private var current_base_snapshot = Document.Snapshot.init
   private var current_base_results = Command.Results.empty
-  private var current_rendering: JEdit_Rendering =
-    JEdit_Rendering(current_base_snapshot, Nil, Command.Results.empty)
+  private var current_rendering: JEdit_Rendering = JEdit_Rendering.make(current_base_snapshot)
 
   private val future_refresh = Synchronized[Option[Future[Unit]]](None)
   private def fork_refresh(body: => Unit): Future[Unit] =
@@ -186,7 +185,8 @@ class Pretty_Text_Area(
           val (rich_texts, rendering) =
             try {
               val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.cache)
-              val rendering = JEdit_Rendering(snapshot, rich_texts, results)
+              val rendering =
+                JEdit_Rendering.make(snapshot, rich_texts = rich_texts, results = results)
               (rich_texts, rendering)
             }
             catch {

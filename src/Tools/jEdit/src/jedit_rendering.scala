@@ -23,10 +23,10 @@ object JEdit_Rendering {
   def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
     new JEdit_Rendering(snapshot, model, options)
 
-  def apply(
+  def make(
     snapshot: Document.Snapshot,
-    rich_texts: List[Rich_Text.Formatted],
-    results: Command.Results
+    rich_texts: List[Rich_Text.Formatted] = Nil,
+    results: Command.Results = Command.Results.empty
   ): JEdit_Rendering = {
     val snapshot1 =
       if (rich_texts.isEmpty) snapshot
