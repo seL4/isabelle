@@ -264,7 +264,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
     range: Symbol.Range
   ): Option[Line.Node_Range] = {
     for {
-      platform_path <- resources.source_file(model.session.resources.ml_settings, source_name)
+      platform_path <- resources.source_file(resources.ml_settings, source_name)
       file <-
         (try { Some(File.absolute(new JFile(platform_path))) }
          catch { case ERROR(_) => None })
