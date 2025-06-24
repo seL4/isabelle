@@ -124,7 +124,7 @@ object JEdit_Options {
   }
 
   class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
-    val is_dark = GUI.is_dark_laf()
+    private val is_dark = GUI.is_dark_laf()
 
     private val predefined =
       (for {
