@@ -786,8 +786,8 @@ Usage: isabelle build_worker [OPTIONS]
     metric: Pretty.Metric = Symbol.Metric,
     unicode_symbols: Boolean = false
   ): Unit = {
-    val store = Store(options)
     val session = new Session(options)
+    val store = session.store
 
     def check(filter: List[Regex], make_string: => String): Boolean =
       filter.isEmpty || {

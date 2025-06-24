@@ -625,7 +625,6 @@ object Find_Facts {
     browser_info: Boolean = true,
     progress: Progress = new Progress
   ): Unit = {
-    val store = Store(options)
     val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
     val session = Session(options)
@@ -643,7 +642,7 @@ object Find_Facts {
         val props = meta_info(if (browser_info) Some(Path.basic("browser_info.db")) else None)
         val stats =
           using(solr.init_database(database, Find_Facts.private_data, props, clean = true)) { db =>
-            using(Export.open_database_context(store)) { database_context =>
+            using(Export.open_database_context(session.store)) { database_context =>
               val document_info = Document_Info.read(database_context, deps, sessions)
               val context1 =
                 Browser_Info.context(sessions_structure, root_dir = root_dir,
