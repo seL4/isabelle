@@ -44,17 +44,6 @@ object JEdit_Session {
   }
 
 
-  /* database store */
-
-  def open_session_context(
-    session_background: Sessions.Background = PIDE.resources.session_background,
-    document_snapshot: Option[Document.Snapshot] = None
-  ): Export.Session_Context = {
-    Export.open_session_context(
-      PIDE.session.store, session_background, document_snapshot = document_snapshot)
-  }
-
-
   /* raw logic info */
 
   private val jedit_logic_option = "jedit_logic"

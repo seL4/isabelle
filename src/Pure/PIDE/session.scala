@@ -136,6 +136,16 @@ class Session(_session_options: => Options) extends Document.Session {
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
 
 
+  /* session exports */
+
+  def open_session_context(
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Export.Session_Context = {
+    Export.open_session_context(
+      store, resources.session_background, document_snapshot = document_snapshot)
+  }
+
+
   /* global flags */
 
   @volatile var timing: Boolean = false
