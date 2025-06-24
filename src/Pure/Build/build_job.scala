@@ -172,13 +172,12 @@ object Build_Job {
 
           val session =
             new Session(options) {
+              override val store: Store = store
+
               override val resources: Resources =
                 new Resources(session_background, log = log,
                   command_timings =
-                    Properties.uncompress(
-                      session_context.old_command_timings_blob, cache = store.cache))
-
-              override val cache: Rich_Text.Cache = store.cache
+                    Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
                 Command.Blobs_Info.make(session_blobs(node_name))

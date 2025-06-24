@@ -46,15 +46,12 @@ object JEdit_Session {
 
   /* database store */
 
-  def sessions_store(): Store =
-    Store(session_options(PIDE.options.value), cache = PIDE.session.cache)
-
   def open_session_context(
-    store: Store = sessions_store(),
     session_background: Sessions.Background = PIDE.resources.session_background,
     document_snapshot: Option[Document.Snapshot] = None
   ): Export.Session_Context = {
-    Export.open_session_context(store, session_background, document_snapshot = document_snapshot)
+    Export.open_session_context(
+      PIDE.session.store, session_background, document_snapshot = document_snapshot)
   }
 
 
@@ -164,19 +161,21 @@ object JEdit_Session {
     val options = PIDE.options.value
     val session = PIDE.session
     val session_background = PIDE.resources.session_background
-    val store = sessions_store()
     val session_heaps =
-      ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
+      ML_Process.session_heaps(session.store, session_background,
+        logic = session_background.session_name)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process.start(store.options, session, session_background, session_heaps,
+    Isabelle_Process.start(session.store.options, session, session_background, session_heaps,
       modes =
-        (space_explode(',', store.options.string("jedit_print_mode")) :::
+        (space_explode(',', session.store.options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
   }
 }
 
 class JEdit_Session(_session_options: => Options) extends Session(_session_options) {
   override val resources: JEdit_Resources = JEdit_Resources(_session_options)
+
+  override val store: Store = Store(JEdit_Session.session_options(_session_options))
 }

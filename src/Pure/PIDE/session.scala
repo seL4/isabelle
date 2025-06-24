@@ -129,7 +129,8 @@ class Session(_session_options: => Options) extends Document.Session {
   val init_time: Time = Time.now()
   def print_now(): String = (Time.now() - init_time).toString
 
-  val cache: Rich_Text.Cache = Rich_Text.Cache.make()
+  val store: Store = Store(_session_options)
+  def cache: Rich_Text.Cache = store.cache
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
