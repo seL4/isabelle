@@ -184,7 +184,7 @@ class Pretty_Text_Area(
         {
           val (rich_texts, rendering) =
             try {
-              val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.cache)
+              val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
               val rendering =
                 JEdit_Rendering.make(snapshot, rich_texts = rich_texts, results = results)
               (rich_texts, rendering)

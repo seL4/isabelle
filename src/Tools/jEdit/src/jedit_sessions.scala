@@ -47,7 +47,7 @@ object JEdit_Sessions {
   /* database store */
 
   def sessions_store(options: Options = PIDE.options.value): Store =
-    Store(session_options(options), cache = PIDE.cache)
+    Store(session_options(options), cache = PIDE.session.cache)
 
   def open_session_context(
     store: Store = sessions_store(),

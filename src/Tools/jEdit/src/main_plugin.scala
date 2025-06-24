@@ -52,7 +52,6 @@ object PIDE {
   def options: JEdit_Options = plugin.options
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
-  def cache: Rich_Text.Cache = session.cache.asInstanceOf[Rich_Text.Cache]
 
   def ml_settings: ML_Settings = ML_Settings.system(plugin.startup_options)
 
