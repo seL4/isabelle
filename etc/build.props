@@ -320,7 +320,6 @@ sources = \
   src/Tools/jEdit/src/jedit_rendering.scala \
   src/Tools/jEdit/src/jedit_resources.scala \
   src/Tools/jEdit/src/jedit_session.scala \
-  src/Tools/jEdit/src/jedit_sessions.scala \
   src/Tools/jEdit/src/jedit_spell_checker.scala \
   src/Tools/jEdit/src/keymap_merge.scala \
   src/Tools/jEdit/src/main_plugin.scala \

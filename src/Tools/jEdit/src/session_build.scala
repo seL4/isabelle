@@ -22,9 +22,9 @@ object Session_Build {
     val options = PIDE.options.value
     Isabelle_Thread.fork() {
       try {
-        if (JEdit_Sessions.session_no_build ||
-          JEdit_Sessions.session_build(options, no_build = true) == 0)
-          JEdit_Sessions.session_start(options)
+        if (JEdit_Session.session_no_build ||
+          JEdit_Session.session_build(options, no_build = true) == 0)
+          JEdit_Session.session_start(options)
         else GUI_Thread.later { new Dialog(view) }
       }
       catch {
@@ -158,7 +158,7 @@ object Session_Build {
         PIDE.resources.session_base.session_name + " ...")
 
       val (out, rc) =
-        try { ("", JEdit_Sessions.session_build(options, progress = progress)) }
+        try { ("", JEdit_Session.session_build(options, progress = progress)) }
         catch {
           case exn: Throwable =>
             (Output.error_message_text(Exn.message(exn)) + "\n", Exn.failure_rc(exn))
@@ -167,7 +167,7 @@ object Session_Build {
       val ok = rc == Process_Result.RC.ok
       progress.echo(out + (if (ok) "OK" else Process_Result.RC.print_long(rc)) + "\n")
 
-      if (ok) JEdit_Sessions.session_start(options)
+      if (ok) JEdit_Session.session_start(options)
       else progress.echo("Session build failed -- prover process remains inactive!")
 
       return_code(rc)
