@@ -46,10 +46,11 @@ object Headless {
   class Session private[Headless](
     session_name: String,
     _session_options: => Options,
-    override val resources: Resources)
-  extends isabelle.Session(_session_options, resources) {
+    _resources: Headless.Resources)
+  extends isabelle.Session(_session_options) {
     session =>
 
+    override def resources: Headless.Resources = _resources
 
     private def loaded_theory(name: Document.Node.Name): Boolean =
       resources.session_base.loaded_theory(name.theory)
@@ -619,6 +620,7 @@ object Headless {
     ): Session = {
       val session_name = session_background.session_name
       val session = new Session(session_name, options, resources)
+
       val session_heaps = ML_Process.session_heaps(store, session_background, logic = session_name)
 
       progress.echo("Starting session " + session_name + " ...")

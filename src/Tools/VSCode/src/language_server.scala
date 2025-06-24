@@ -114,9 +114,9 @@ class Language_Server(
 
   /* prover session */
 
-  private val session_ = Synchronized(None: Option[Session])
-  def session: Session = session_.value getOrElse error("Server inactive")
-  def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
+  private val session_ = Synchronized(None: Option[VSCode_Session])
+  def session: VSCode_Session = session_.value getOrElse error("Server inactive")
+  def resources: VSCode_Resources = session.resources
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
@@ -285,7 +285,7 @@ class Language_Server(
           }
 
         val session_options = options.bool.update("editor_output_state", true)
-        val session = new Session(session_options, resources)
+        val session = new VSCode_Session(session_options, resources)
 
         Some((session_background, session))
       }
@@ -562,7 +562,7 @@ class Language_Server(
   object editor extends Language_Server.Editor {
     /* PIDE session and document model */
 
-    override def session: Session = server.session
+    override def session: VSCode_Session = server.session
     override def flush(): Unit = resources.flush_input(session, channel)
     override def invoke(): Unit = delay_input.invoke()
 

@@ -628,7 +628,7 @@ object Find_Facts {
     val store = Store(options)
     val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
-    val session = Session(options, Resources.bootstrap)
+    val session = Session(options)
 
     val selection = Sessions.Selection(sessions = sessions)
     val sessions_structure =

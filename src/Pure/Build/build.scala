@@ -787,7 +787,7 @@ Usage: isabelle build_worker [OPTIONS]
     unicode_symbols: Boolean = false
   ): Unit = {
     val store = Store(options)
-    val session = new Session(options, Resources.bootstrap)
+    val session = new Session(options)
 
     def check(filter: List[Regex], make_string: => String): Boolean =
       filter.isEmpty || {

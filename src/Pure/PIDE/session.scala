@@ -121,8 +121,10 @@ object Session {
 }
 
 
-class Session(_session_options: => Options, val resources: Resources) extends Document.Session {
+class Session(_session_options: => Options) extends Document.Session {
   session =>
+
+  def resources: Resources = Resources.bootstrap
 
   val init_time: Time = Time.now()
   def print_now(): String = (Time.now() - init_time).toString

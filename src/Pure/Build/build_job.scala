@@ -170,13 +170,14 @@ object Build_Job {
 
           /* session */
 
-          val resources =
-            new Resources(session_background, log = log,
-              command_timings =
-                Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache))
-
           val session =
-            new Session(options, resources) {
+            new Session(options) {
+              override val resources: Resources =
+                new Resources(session_background, log = log,
+                  command_timings =
+                    Properties.uncompress(
+                      session_context.old_command_timings_blob, cache = store.cache))
+
               override val cache: Rich_Text.Cache = store.cache
 
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
@@ -321,7 +322,7 @@ object Build_Job {
           session.all_messages += Session.Consumer[Any]("build_session_output") {
             case msg: Prover.Output =>
               val message = msg.message
-              if (msg.is_system) resources.log(Protocol.message_text(message))
+              if (msg.is_system) session.resources.log(Protocol.message_text(message))
 
               if (msg.is_stdout) {
                 stdout ++= Symbol.encode(XML.content(message))
@@ -360,7 +361,7 @@ object Build_Job {
             Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
-                  val resources_xml = resources.init_session_xml
+                  val resources_xml = session.resources.init_session_xml
                   val encode_options: XML.Encode.T[Options] =
                     options => session.prover_options(options).encode
                   val args_xml =
