@@ -19,12 +19,11 @@ import org.gjt.sp.jedit.View
 
 object Session_Build {
   def check_dialog(view: View): Unit = {
-    val options = PIDE.options.value
     Isabelle_Thread.fork() {
       try {
         if (JEdit_Session.session_no_build ||
-          JEdit_Session.session_build(options, no_build = true) == 0)
-          JEdit_Session.session_start(options)
+          JEdit_Session.session_build(no_build = true) == 0)
+          JEdit_Session.session_start()
         else GUI_Thread.later { new Dialog(view) }
       }
       catch {
@@ -35,9 +34,6 @@ object Session_Build {
   }
 
   private class Dialog(view: View) extends JDialog(view) {
-    val options: Options = PIDE.options.value
-
-
     /* text */
 
     private val text = new TextArea
@@ -158,7 +154,7 @@ object Session_Build {
         PIDE.resources.session_base.session_name + " ...")
 
       val (out, rc) =
-        try { ("", JEdit_Session.session_build(options, progress = progress)) }
+        try { ("", JEdit_Session.session_build(progress = progress)) }
         catch {
           case exn: Throwable =>
             (Output.error_message_text(Exn.message(exn)) + "\n", Exn.failure_rc(exn))
@@ -167,7 +163,7 @@ object Session_Build {
       val ok = rc == Process_Result.RC.ok
       progress.echo(out + (if (ok) "OK" else Process_Result.RC.print_long(rc)) + "\n")
 
-      if (ok) JEdit_Session.session_start(options)
+      if (ok) JEdit_Session.session_start()
       else progress.echo("Session build failed -- prover process remains inactive!")
 
       return_code(rc)

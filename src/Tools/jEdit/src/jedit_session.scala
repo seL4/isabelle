@@ -46,8 +46,8 @@ object JEdit_Session {
 
   /* database store */
 
-  def sessions_store(options: Options = PIDE.options.value): Store =
-    Store(session_options(options), cache = PIDE.session.cache)
+  def sessions_store(): Store =
+    Store(session_options(PIDE.options.value), cache = PIDE.session.cache)
 
   def open_session_context(
     store: Store = sessions_store(),
@@ -150,20 +150,21 @@ object JEdit_Session {
       session_requirements = logic_requirements)
 
   def session_build(
-    options: Options,
     progress: Progress = new Progress,
     no_build: Boolean = false
   ): Int = {
+    val options = PIDE.options.value
     Build.build(session_options(options),
       selection = Sessions.Selection.session(PIDE.resources.session_base.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
       infos = PIDE.resources.session_background.infos).rc
   }
 
-  def session_start(options: Options): Unit = {
+  def session_start(): Unit = {
+    val options = PIDE.options.value
     val session = PIDE.session
     val session_background = PIDE.resources.session_background
-    val store = sessions_store(options = options)
+    val store = sessions_store()
     val session_heaps =
       ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
 
