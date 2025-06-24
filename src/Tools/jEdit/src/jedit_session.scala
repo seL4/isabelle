@@ -158,17 +158,17 @@ object JEdit_Session {
   }
 
   def session_start(): Unit = {
-    val options = PIDE.session.store.options
     val session = PIDE.session
+    val store = session.store
     val session_background = PIDE.resources.session_background
     val session_heaps =
-      session.store.session_heaps(session_background, logic = session_background.session_name)
+      store.session_heaps(session_background, logic = session_background.session_name)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process.start(options, session, session_background, session_heaps,
+    Isabelle_Process.start(store.options, session, session_background, session_heaps,
       modes =
-        (space_explode(',', options.string("jedit_print_mode")) :::
+        (space_explode(',', store.options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
   }
 }
