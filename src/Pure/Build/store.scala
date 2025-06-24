@@ -323,7 +323,7 @@ class Store private(
   def output_log_gz(name: String): Path = output_dir + Store.log_gz(name)
 
 
-  /* session */
+  /* session heaps */
 
   def get_session(name: String): Store.Session = {
     val heap = input_dirs.view.map(_ + Store.heap(name)).find(_.is_file)
@@ -337,8 +337,23 @@ class Store private(
     new Store.Session(name, heap, log_db, List(output_dir))
   }
 
+  def session_heaps(
+    session_background: Sessions.Background,
+    logic: String = ""
+  ): List[Path] = {
+    val logic_name = Isabelle_System.default_logic(logic)
 
-  /* heap */
+    session_background.sessions_structure.selection(logic_name).
+      build_requirements(List(logic_name)).
+      map(name => store.get_session(name).the_heap)
+  }
+
+
+  /* heap shasum */
+
+  def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
+    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(ml_settings.polyml_exe))
+    else SHA1.flat_shasum(ancestors)
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
     def get_database: Option[SHA1.Digest] = {

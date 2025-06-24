@@ -621,7 +621,7 @@ object Headless {
       val session_name = session_background.session_name
       val session = new Session(session_name, options, resources)
 
-      val session_heaps = ML_Process.session_heaps(store, session_background, logic = session_name)
+      val session_heaps = store.session_heaps(session_background, logic = session_name)
 
       progress.echo("Starting session " + session_name + " ...")
       Isabelle_Process.start(

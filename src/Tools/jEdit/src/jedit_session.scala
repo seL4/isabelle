@@ -162,8 +162,7 @@ object JEdit_Session {
     val session = PIDE.session
     val session_background = PIDE.resources.session_background
     val session_heaps =
-      ML_Process.session_heaps(session.store, session_background,
-        logic = session_background.session_name)
+      session.store.session_heaps(session_background, logic = session_background.session_name)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 

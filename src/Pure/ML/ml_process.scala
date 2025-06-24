@@ -11,25 +11,6 @@ import java.util.{Map => JMap, HashMap}
 
 
 object ML_Process {
-  /* heaps */
-
-  def make_shasum(store: Store, ancestors: List[SHA1.Shasum]): SHA1.Shasum =
-    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(store.ml_settings.polyml_exe))
-    else SHA1.flat_shasum(ancestors)
-
-  def session_heaps(
-    store: Store,
-    session_background: Sessions.Background,
-    logic: String = ""
-  ): List[Path] = {
-    val logic_name = Isabelle_System.default_logic(logic)
-
-    session_background.sessions_structure.selection(logic_name).
-      build_requirements(List(logic_name)).
-      map(name => store.get_session(name).the_heap)
-  }
-
-
   /* process */
 
   def apply(
@@ -186,7 +167,7 @@ Usage: isabelle process [OPTIONS]
 
       val store = Store(options)
       val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
-      val session_heaps = ML_Process.session_heaps(store, session_background, logic = logic)
+      val session_heaps = store.session_heaps(session_background, logic = logic)
       val result =
         ML_Process(options, session_background, session_heaps, args = eval_args, modes = modes)
           .result(

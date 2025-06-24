@@ -294,7 +294,7 @@ class Language_Server(
     for ((session_background, session) <- try_session) {
       val store = Store(options)
       val session_heaps =
-        ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
+        store.session_heaps(session_background, logic = session_background.session_name)
 
       session_.change(_ => Some(session))
 

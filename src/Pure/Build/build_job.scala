@@ -134,7 +134,7 @@ object Build_Job {
           val session_heaps =
             session_background.info.parent match {
               case None => Nil
-              case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
+              case Some(logic) => store.session_heaps(session_background, logic = logic)
             }
 
           val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
