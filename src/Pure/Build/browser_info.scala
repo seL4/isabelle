@@ -699,7 +699,7 @@ object Browser_Info {
       val sessions1 =
         deps.sessions_structure.build_requirements(sessions).filter { session_name =>
           using(database_context.open_database(session_name)) { session_database =>
-            database_context.store.read_build(session_database.db, session_name) match {
+            store.read_build(session_database.db, session_name) match {
               case None => false
               case Some(build) =>
                 val session_dir = context0.session_dir(session_name)

@@ -114,9 +114,9 @@ class Language_Server(
 
   /* prover session */
 
-  private val session_ = Synchronized(None: Option[Session])
-  def session: Session = session_.value getOrElse error("Server inactive")
-  def resources: VSCode_Resources = session.resources.asInstanceOf[VSCode_Resources]
+  private val session_ = Synchronized(None: Option[VSCode_Session])
+  def session: VSCode_Session = session_.value getOrElse error("Server inactive")
+  def resources: VSCode_Resources = session.resources
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
@@ -274,10 +274,8 @@ class Language_Server(
           if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val ml_settings = ML_Settings.system(options)
-
         val resources =
-          new VSCode_Resources(options, ml_settings, session_background, log) {
+          new VSCode_Resources(options, session_background, log) {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version).nonEmpty) {
                 delay_load.invoke()
@@ -285,7 +283,7 @@ class Language_Server(
           }
 
         val session_options = options.bool.update("editor_output_state", true)
-        val session = new Session(session_options, resources)
+        val session = new VSCode_Session(session_options, resources)
 
         Some((session_background, session))
       }
@@ -294,7 +292,7 @@ class Language_Server(
     for ((session_background, session) <- try_session) {
       val store = Store(options)
       val session_heaps =
-        ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
+        store.session_heaps(session_background, logic = session_background.session_name)
 
       session_.change(_ => Some(session))
 
@@ -562,7 +560,7 @@ class Language_Server(
   object editor extends Language_Server.Editor {
     /* PIDE session and document model */
 
-    override def session: Session = server.session
+    override def session: VSCode_Session = server.session
     override def flush(): Unit = resources.flush_input(session, channel)
     override def invoke(): Unit = delay_input.invoke()
 

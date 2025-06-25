@@ -114,8 +114,8 @@ object JEdit_Options {
 
     private val predefined =
       List(
-        JEdit_Sessions.logic_selector(options),
-        JEdit_Sessions.document_selector(options),
+        JEdit_Session.logic_selector(options),
+        JEdit_Session.document_selector(options),
         JEdit_Spell_Checker.dictionaries_selector())
 
     protected val components: List[(String, List[Entry])] =
@@ -124,7 +124,7 @@ object JEdit_Options {
   }
 
   class Isabelle_Rendering_Options extends Isabelle_Options("isabelle-rendering") {
-    val is_dark = GUI.is_dark_laf()
+    private val is_dark = GUI.is_dark_laf()
 
     private val predefined =
       (for {

@@ -258,9 +258,9 @@ object Command {
       else None
 
     private def add_markup(
-      status: Boolean,
-      chunk_name: Symbol.Text_Chunk.Name,
-      m: Text.Markup
+      m: Text.Markup,
+      chunk_name: Symbol.Text_Chunk.Name = Symbol.Text_Chunk.Default,
+      status: Boolean = false
     ): State = {
       val markups1 =
         if (status || Document_Status.Command_Status.liberal_elements(m.info.name))
@@ -285,7 +285,7 @@ object Command {
                   case elem @ XML.Elem(markup, Nil) =>
                     state.
                       add_status(markup).
-                      add_markup(true, Symbol.Text_Chunk.Default, Text.Info(command.core_range, elem))
+                      add_markup(Text.Info(command.core_range, elem), status = true)
                   case _ =>
                     Output.warning("Ignored status message: " + msg)
                     state
@@ -316,7 +316,7 @@ object Command {
                             case Some(range) =>
                               val props = atts.filterNot(Markup.position_property)
                               val elem = cache.elem(XML.Elem(Markup(name, props), args))
-                              state.add_markup(false, target_name, Text.Info(range, elem))
+                              state.add_markup(Text.Info(range, elem), chunk_name = target_name)
                             case None => bad(); state
                           }
                         case _ =>
@@ -341,7 +341,7 @@ object Command {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
                   range <- command.message_positions(self_id, chunk_name, chunk, message)
-                } st = st.add_markup(false, chunk_name, Text.Info(range, message_markup))
+                } st = st.add_markup(Text.Info(range, message_markup), chunk_name = chunk_name)
               }
               st
 

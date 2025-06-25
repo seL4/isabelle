@@ -67,10 +67,10 @@ object VSCode_Rendering {
 }
 
 class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
-extends Rendering(snapshot, model.resources.options, model.session) {
+extends Rendering(snapshot, model.session.resources.options, model.session) {
   rendering =>
 
-  def resources: VSCode_Resources = model.resources
+  def resources: VSCode_Resources = model.session.resources
 
   override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
@@ -264,7 +264,7 @@ extends Rendering(snapshot, model.resources.options, model.session) {
     range: Symbol.Range
   ): Option[Line.Node_Range] = {
     for {
-      platform_path <- resources.source_file(model.resources.ml_settings, source_name)
+      platform_path <- model.session.store.source_file(source_name)
       file <-
         (try { Some(File.absolute(new JFile(platform_path))) }
          catch { case ERROR(_) => None })

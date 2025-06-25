@@ -1,8 +1,8 @@
-/*  Title:      Tools/jEdit/src/jedit_sessions.scala
+/*  Title:      Tools/jEdit/src/jedit_session.scala
     Author:     Makarius
 
-Isabelle/jEdit session information, based on implicit process environment
-and explicit options.
+PIDE editor session for Isabelle/jEdit, with specific information based on
+implicit process environment and explicit options.
 */
 
 package isabelle.jedit
@@ -11,7 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 
-object JEdit_Sessions {
+object JEdit_Session {
   /* session options */
 
   def session_dirs: List[Path] =
@@ -41,20 +41,6 @@ object JEdit_Sessions {
     dirs: List[Path] = session_dirs
   ): Sessions.Structure = {
     Sessions.load_structure(session_options(options), dirs = dirs)
-  }
-
-
-  /* database store */
-
-  def sessions_store(options: Options = PIDE.options.value): Store =
-    Store(session_options(options))
-
-  def open_session_context(
-    store: Store = sessions_store(),
-    session_background: Sessions.Background = PIDE.resources.session_background,
-    document_snapshot: Option[Document.Snapshot] = None
-  ): Export.Session_Context = {
-    Export.open_session_context(store, session_background, document_snapshot = document_snapshot)
   }
 
 
@@ -143,29 +129,24 @@ object JEdit_Sessions {
 
   def session_background(options: Options): Sessions.Background =
     Sessions.background(options,
-      dirs = JEdit_Sessions.session_dirs,
+      dirs = session_dirs,
       include_sessions = logic_include_sessions,
       session = logic_name(options),
       session_ancestor = logic_ancestor,
       session_requirements = logic_requirements)
 
-  def session_build(
-    options: Options,
-    progress: Progress = new Progress,
-    no_build: Boolean = false
-  ): Int = {
-    Build.build(session_options(options),
-      selection = Sessions.Selection.session(PIDE.resources.session_base.session_name),
-      progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
-      infos = PIDE.resources.session_background.infos).rc
-  }
+  def session_build(progress: Progress): Int =
+    PIDE.session.build(progress = progress, dirs = session_dirs).rc
 
-  def session_start(options: Options): Unit = {
+  def session_build_ok(): Boolean =
+    session_no_build || PIDE.session.build_ok(dirs = session_dirs)
+
+  def session_start(): Unit = {
     val session = PIDE.session
+    val store = session.store
     val session_background = PIDE.resources.session_background
-    val store = sessions_store(options = options)
     val session_heaps =
-      ML_Process.session_heaps(store, session_background, logic = session_background.session_name)
+      store.session_heaps(session_background, logic = session_background.session_name)
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
@@ -174,4 +155,10 @@ object JEdit_Sessions {
         (space_explode(',', store.options.string("jedit_print_mode")) :::
          space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
   }
+}
+
+class JEdit_Session(_session_options: => Options) extends Session(_session_options) {
+  override val resources: JEdit_Resources = JEdit_Resources(_session_options)
+
+  override val store: Store = Store(JEdit_Session.session_options(_session_options))
 }

@@ -62,7 +62,7 @@ class State_Panel private(val server: Language_Server) {
   private val output_active = Synchronized(true)
   private val pretty_panel =
     Synchronized(Pretty_Text_Panel(
-      server.resources,
+      server.session,
       server.channel,
       (content, decorations) =>
         LSP.State_Output(id, content, auto_update_enabled.value, decorations)

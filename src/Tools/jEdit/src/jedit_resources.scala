@@ -22,7 +22,7 @@ import org.gjt.sp.jedit.bufferio.BufferIORequest
 
 object JEdit_Resources {
   def apply(options: Options): JEdit_Resources =
-    new JEdit_Resources(JEdit_Sessions.session_background(options))
+    new JEdit_Resources(JEdit_Session.session_background(options))
 }
 
 class JEdit_Resources private(session_background: Sessions.Background)

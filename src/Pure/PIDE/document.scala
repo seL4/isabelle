@@ -626,7 +626,7 @@ object Document {
       } yield convert(cmd.core_range + start)).toList
 
 
-    /* command as add-on snippet */
+    /* add-on snippet via pro-forma commands */
 
     def snippet(commands: List[Command], doc_blobs: Blobs): Snapshot = {
       require(commands.nonEmpty, "no snippet commands")

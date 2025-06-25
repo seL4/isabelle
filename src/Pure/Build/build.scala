@@ -77,7 +77,7 @@ object Build {
     results: Map[String, Process_Result],
     other_rc: Int
   ) {
-    def cache: Term.Cache = store.cache
+    def cache: Rich_Text.Cache = store.cache
 
     def sessions_ok: List[String] =
       List.from(
@@ -127,7 +127,7 @@ object Build {
 
     final def build_store(options: Options,
       build_cluster: Boolean = false,
-      cache: Term.Cache = Term.Cache.make()
+      cache: Rich_Text.Cache = Rich_Text.Cache.make()
     ): Store = {
       val build_options = engine.build_options(options, build_cluster = build_cluster)
       val store = Store(build_options, build_cluster = build_cluster, cache = cache)
@@ -182,7 +182,7 @@ object Build {
     export_files: Boolean = false,
     augment_options: String => List[Options.Spec] = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => (),
-    cache: Term.Cache = Term.Cache.make()
+    cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Results = {
     val engine = Engine(engine_name(options))
     val store = engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
@@ -380,7 +380,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Notable system options: see "isabelle options -l -t build"
 
   Notable system settings:
-""" + Library.indent_lines(4, Build_Log.Settings.show(ML_Settings.system(options))) + "\n",
+""" + Library.indent_lines(4, Build_Log.Settings.show(ML_Settings(options))) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
@@ -408,7 +408,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val ml_settings = ML_Settings.system(options)
+      val ml_settings = ML_Settings(options)
 
       progress.echo(
         "Started at " + Build_Log.print_date(progress.start) +
@@ -786,8 +786,8 @@ Usage: isabelle build_worker [OPTIONS]
     metric: Pretty.Metric = Symbol.Metric,
     unicode_symbols: Boolean = false
   ): Unit = {
-    val store = Store(options)
-    val session = new Session(options, Resources.bootstrap)
+    val session = new Session(options)
+    val store = session.store
 
     def check(filter: List[Regex], make_string: => String): Boolean =
       filter.isEmpty || {

@@ -47,7 +47,7 @@ object ML_Statistics {
 
   /* monitor process */
 
-  def monitor(options: Options, pid: Long,
+  def monitor(ml_settings: ML_Settings, pid: Long,
     stats_dir: String = "",
     delay: Time = Time.seconds(0.5),
     consume: Properties.T => Unit = Console.println
@@ -59,9 +59,7 @@ object ML_Statistics {
 
     val env_prefix = if_proper(stats_dir, Bash.exports("POLYSTATSDIR=" + stats_dir))
 
-    val polyml_exe = ML_Settings.system(options).polyml_exe
-
-    Bash.process(env_prefix + File.bash_path(polyml_exe) +
+    Bash.process(env_prefix + File.bash_path(ml_settings.polyml_exe) +
         " -q --use src/Pure/ML/ml_statistics.ML --eval " +
         Bash.string("ML_Statistics.monitor " + ML_Syntax.print_long(pid) + " " +
           ML_Syntax.print_double(delay.seconds)),
@@ -97,7 +95,7 @@ object ML_Statistics {
         case Markup.ML_Statistics(pid, stats_dir) =>
           monitoring =
             Future.thread("ML_statistics") {
-              monitor(session.session_options, pid, stats_dir = stats_dir, consume = consume)
+              monitor(session.store.ml_settings, pid, stats_dir = stats_dir, consume = consume)
             }
           true
         case _ => false

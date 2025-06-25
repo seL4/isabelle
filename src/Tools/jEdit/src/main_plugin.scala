@@ -50,11 +50,9 @@ object PIDE {
     else _plugin
 
   def options: JEdit_Options = plugin.options
-  def resources: JEdit_Resources = plugin.resources
-  def session: Session = plugin.session
-  def cache: Rich_Text.Cache = session.cache.asInstanceOf[Rich_Text.Cache]
-
-  def ml_settings: ML_Settings = ML_Settings.system(plugin.startup_options)
+  def session: JEdit_Session = plugin.session
+  def resources: JEdit_Resources = session.resources
+  def ml_settings: ML_Settings = session.store.ml_settings
 
   object editor extends JEdit_Editor
 }
@@ -77,23 +75,11 @@ class Main_Plugin extends EBPlugin {
   def options: JEdit_Options = _options
 
 
-  /* resources */
-
-  private var _resources: JEdit_Resources = null
-  private def init_resources(): Unit = _resources = JEdit_Resources(options.value)
-  def resources: JEdit_Resources = _resources
-
-
   /* session */
 
-  private var _session: Session = null
-  private def init_session(): Unit = {
-    _session =
-      new Session(options.value, resources) {
-        override val cache: Term.Cache = Rich_Text.Cache.make()
-      }
-  }
-  def session: Session = _session
+  private var _session: JEdit_Session = null
+  private def init_session(): Unit = { _session = new JEdit_Session(options.value) }
+  def session: JEdit_Session = _session
 
 
   /* misc support */
@@ -130,12 +116,12 @@ class Main_Plugin extends EBPlugin {
       val models = Document_Model.get_models_map()
 
       val thy_files =
-        resources.resolve_dependencies(models.values, PIDE.editor.document_required())
+        session.resources.resolve_dependencies(models.values, PIDE.editor.document_required())
 
       val aux_files =
-        if (resources.auto_resolve) {
+        if (session.resources.auto_resolve) {
           session.stable_tip_version(models.values) match {
-            case Some(version) => resources.undefined_blobs(version)
+            case Some(version) => session.resources.undefined_blobs(version)
             case None => delay_load.invoke(); Nil
           }
         }
@@ -149,7 +135,7 @@ class Main_Plugin extends EBPlugin {
           val loaded_files =
             for {
               name <- required_files
-              text <- resources.read_file_content(name)
+              text <- session.resources.read_file_content(name)
             } yield (name, text)
 
           GUI_Thread.later {
@@ -234,7 +220,7 @@ class Main_Plugin extends EBPlugin {
       } {
         if (buffer.isLoaded) {
           JEdit_Lib.buffer_lock(buffer) {
-            val node_name = resources.node_name(buffer)
+            val node_name = session.resources.node_name(buffer)
             val model = Document_Model.init(session, node_name, buffer)
             for {
               text_area <- JEdit_Lib.jedit_text_areas(buffer)
@@ -308,7 +294,7 @@ class Main_Plugin extends EBPlugin {
         case _: EditorStarted =>
           val view = jEdit.getActiveView
 
-          try { resources.session_background.check_errors }
+          try { session.resources.session_background.check_errors }
           catch {
             case ERROR(msg) =>
               GUI.warning_dialog(view,
@@ -322,7 +308,7 @@ class Main_Plugin extends EBPlugin {
             init_editor(view)
 
             PIDE.editor.hyperlink_position(true, Document.Snapshot.init,
-              JEdit_Sessions.logic_root(options.value)).foreach(_.follow(view))
+              JEdit_Session.logic_root(options.value)).foreach(_.follow(view))
           }
 
         case msg: ViewUpdate =>
@@ -434,7 +420,6 @@ class Main_Plugin extends EBPlugin {
     /* strict initialization */
 
     init_options()
-    init_resources()
     init_session()
     PIDE._plugin = this
 

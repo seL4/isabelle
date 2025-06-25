@@ -84,8 +84,7 @@ object Profiling {
         Isabelle_System.with_tmp_dir("profiling") { dir =>
           val putenv = List("ISABELLE_PROFILING" -> dir.implode)
           File.write(dir + Path.explode("args.yxml"), YXML.string_of_body(encode_args(args)))
-          val session_heaps =
-            ML_Process.session_heaps(store, session_background, logic = session_name)
+          val session_heaps = store.session_heaps(session_background, logic = session_name)
           ML_Process(store.options, session_background, session_heaps, args = eval_args,
             env = Isabelle_System.Settings.env(putenv)).result().check
           decode_result(YXML.parse_body(Bytes.read(dir + Path.explode("result.yxml"))))

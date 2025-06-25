@@ -8,7 +8,7 @@ package isabelle
 
 
 object ML_Settings {
-  def system(options: Options,
+  def apply(options: Options,
     env: Isabelle_System.Settings = Isabelle_System.Settings()
   ): ML_Settings =
     new ML_Settings {
@@ -28,6 +28,10 @@ object ML_Settings {
         proper_string(Isabelle_System.getenv("ML_OPTIONS", env = env)) getOrElse
           Isabelle_System.getenv(if (ml_platform_is_64_32) "ML_OPTIONS32" else "ML_OPTIONS64")
     }
+
+  def init(ml_platform: String = ""): ML_Settings =
+    apply(Options.init(specs =
+      if (ml_platform.isEmpty) Nil else List(Options.Spec("ML_platform", Some(ml_platform)))))
 }
 
 abstract class ML_Settings {

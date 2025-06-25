@@ -170,7 +170,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
       try {
         val session_background =
           Document_Build.session_background(
-            options, session, dirs = JEdit_Sessions.session_dirs)
+            options, session, dirs = JEdit_Session.session_dirs)
         PIDE.editor.document_setup(Some(session_background))
 
         finish_process(Nil)
@@ -198,7 +198,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
 
         val result = Exn.capture {
           val snapshot = document_session.get_snapshot
-          using(JEdit_Sessions.open_session_context(document_snapshot = Some(snapshot)))(
+          using(PIDE.session.open_session_context(document_snapshot = Some(snapshot)))(
             Document_Editor.build(_, document_session, progress))
         }
         val msgs =
@@ -241,7 +241,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   /* controls */
 
   private val document_session =
-    JEdit_Sessions.document_selector(PIDE.options, standalone = true)
+    JEdit_Session.document_selector(PIDE.options, standalone = true)
 
   private lazy val delay_load: Delay =
     Delay.last(PIDE.session.load_delay, gui = true) {

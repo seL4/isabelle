@@ -67,8 +67,7 @@ object Doc {
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_RELEASE_NOTES"))
         .flatMap(plain_file(_)))
 
-  def examples(): Contents = {
-    val ml_settings = ML_Settings.system(Options.init())
+  def examples(ml_settings: ML_Settings): Contents = {
     val env = Isabelle_System.Settings(putenv = List(ml_settings.ml_sources_root))
     Contents.section("Examples", true,
       Path.split(Isabelle_System.getenv_strict("ISABELLE_DOCS_EXAMPLES")).map(file =>
@@ -116,15 +115,16 @@ object Doc {
     Contents(result.toList)
   }
 
-  def contents(): Contents = {
-    examples() ++ release_notes() ++ main_contents()
+  def contents(ml_settings: ML_Settings): Contents = {
+    examples(ml_settings) ++ release_notes() ++ main_contents()
   }
 
   object Doc_Names extends Scala.Fun_String("doc_names") {
     val here = Scala_Project.here
-    def apply(arg: String): String =
-      if (arg.nonEmpty) error("Bad argument: " + quote(arg))
-      else cat_lines((for (entry <- contents().entries(pdf = true)) yield entry.name).sorted)
+    def apply(arg: String): String = {
+      val ml_settings = ML_Settings.init(ml_platform = arg)
+      cat_lines((for (entry <- contents(ml_settings).entries(pdf = true)) yield entry.name).sorted)
+    }
   }
 
 
@@ -149,10 +149,12 @@ Usage: isabelle doc [DOC ...]
 """)
       val docs = getopts(args)
 
+      val ml_settings = ML_Settings.init()
+
       if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
       else {
         docs.foreach(name =>
-          contents().entries(name = docs.contains).headOption match {
+          contents(ml_settings).entries(name = docs.contains).headOption match {
             case Some(entry) => entry.view()
             case None => error("No Isabelle documentation entry: " + quote(name))
           }

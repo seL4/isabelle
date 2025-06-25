@@ -40,7 +40,7 @@ object Document_Model {
         (for {
           (node_name, model) <- models.iterator
           blob <- model.get_blob
-        } yield (node_name -> blob)).toMap)
+        } yield (node_name, blob)).toMap)
 
     def open_buffer(
       session: Session,
@@ -139,9 +139,10 @@ object Document_Model {
     GUI_Thread.require {}
 
     val models = state.value.models
-    for (name <- names.iterator; model <- models.get(name)) {
-      model match { case buffer_model: Buffer_Model => buffer_model.syntax_changed() case _ => }
-    }
+    for {
+      name <- names.iterator
+      case buffer_model: Buffer_Model <- models.get(name)
+    } buffer_model.syntax_changed()
   }
 
 

@@ -69,7 +69,6 @@ object VSCode_Resources {
 
 class VSCode_Resources(
   val options: Options,
-  val ml_settings: ML_Settings,
   session_background: Sessions.Background,
   log: Logger = new Logger)
 extends Resources(session_background, log = log) {
@@ -185,7 +184,7 @@ extends Resources(session_background, log = log) {
     }
 
   def change_model(
-    session: Session,
+    session: VSCode_Session,
     editor: Language_Server.Editor,
     file: JFile,
     version: Long,
@@ -235,7 +234,7 @@ extends Resources(session_background, log = log) {
   /* resolve dependencies */
 
   def resolve_dependencies(
-    session: Session,
+    session: VSCode_Session,
     editor: Language_Server.Editor,
     file_watcher: File_Watcher
   ): (Boolean, Boolean) = {
@@ -270,7 +269,7 @@ extends Resources(session_background, log = log) {
 
   /* pending input */
 
-  def flush_input(session: Session, channel: Channel): Unit = {
+  def flush_input(session: VSCode_Session, channel: Channel): Unit = {
     state.change { st =>
       val changed_models =
         (for {

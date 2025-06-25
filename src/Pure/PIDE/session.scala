@@ -121,16 +121,29 @@ object Session {
 }
 
 
-class Session(_session_options: => Options, val resources: Resources) extends Document.Session {
+class Session(_session_options: => Options) extends Document.Session {
   session =>
+
+  def resources: Resources = Resources.bootstrap
 
   val init_time: Time = Time.now()
   def print_now(): String = (Time.now() - init_time).toString
 
-  val cache: Term.Cache = Term.Cache.make()
+  val store: Store = Store(_session_options)
+  def cache: Rich_Text.Cache = if (store == null) Rich_Text.Cache.make() else store.cache
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
+
+
+  /* session exports */
+
+  def open_session_context(
+    document_snapshot: Option[Document.Snapshot] = None
+  ): Export.Session_Context = {
+    Export.open_session_context(
+      store, resources.session_background, document_snapshot = document_snapshot)
+  }
 
 
   /* global flags */
@@ -713,6 +726,20 @@ class Session(_session_options: => Options, val resources: Resources) extends Do
     }
     else snapshot
   }
+
+  def build(
+    progress: Progress = new Progress,
+    dirs: List[Path] = Nil,
+    no_build: Boolean = false
+  ): Build.Results = {
+    Build.build(store.options,
+      selection = Sessions.Selection.session(resources.session_base.session_name),
+      progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
+      infos = resources.session_background.infos)
+  }
+
+  def build_ok(dirs: List[Path] = Nil): Boolean =
+    build(dirs = dirs, no_build = true).ok
 
   def start(start_prover: Prover.Receiver => Prover): Unit = {
     file_formats

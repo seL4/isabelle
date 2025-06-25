@@ -73,7 +73,7 @@ Usage: isabelle console [OPTIONS]
 
       val session_heaps =
         if (raw_ml_system) Nil
-        else ML_Process.session_heaps(store, session_background, logic = logic)
+        else store.session_heaps(session_background, logic = logic)
 
       // process loop
       val process =

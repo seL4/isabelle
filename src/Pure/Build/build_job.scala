@@ -134,7 +134,7 @@ object Build_Job {
           val session_heaps =
             session_background.info.parent match {
               case None => Nil
-              case Some(logic) => ML_Process.session_heaps(store, session_background, logic = logic)
+              case Some(logic) => store.session_heaps(session_background, logic = logic)
             }
 
           val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
@@ -170,14 +170,14 @@ object Build_Job {
 
           /* session */
 
-          val resources =
-            new Resources(session_background, log = log,
-              command_timings =
-                Properties.uncompress(session_context.old_command_timings_blob, cache = store.cache))
-
           val session =
-            new Session(options, resources) {
-              override val cache: Term.Cache = store.cache
+            new Session(options) {
+              override val store: Store = store
+
+              override val resources: Resources =
+                new Resources(session_background, log = log,
+                  command_timings =
+                    Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
                 Command.Blobs_Info.make(session_blobs(node_name))
@@ -300,6 +300,7 @@ object Build_Job {
                 def export_text(name: String, text: String, compress: Boolean = true): Unit =
                   export_(name, List(XML.Text(text)), compress = compress)
 
+                assert(snapshot.snippet_commands.length == 1)
                 for (command <- snapshot.snippet_commands) {
                   export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
                 }
@@ -320,7 +321,7 @@ object Build_Job {
           session.all_messages += Session.Consumer[Any]("build_session_output") {
             case msg: Prover.Output =>
               val message = msg.message
-              if (msg.is_system) resources.log(Protocol.message_text(message))
+              if (msg.is_system) session.resources.log(Protocol.message_text(message))
 
               if (msg.is_stdout) {
                 stdout ++= Symbol.encode(XML.content(message))
@@ -359,7 +360,7 @@ object Build_Job {
             Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
-                  val resources_xml = resources.init_session_xml
+                  val resources_xml = session.resources.init_session_xml
                   val encode_options: XML.Encode.T[Options] =
                     options => session.prover_options(options).encode
                   val args_xml =

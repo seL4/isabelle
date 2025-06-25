@@ -288,6 +288,7 @@ sources = \
   src/Tools/VSCode/src/vscode_model.scala \
   src/Tools/VSCode/src/vscode_rendering.scala \
   src/Tools/VSCode/src/vscode_resources.scala \
+  src/Tools/VSCode/src/vscode_session.scala \
   src/Tools/VSCode/src/vscode_spell_checker.scala \
   src/Tools/jEdit/src/active.scala \
   src/Tools/jEdit/src/base_plugin.scala \
@@ -318,7 +319,7 @@ sources = \
   src/Tools/jEdit/src/jedit_plugins.scala \
   src/Tools/jEdit/src/jedit_rendering.scala \
   src/Tools/jEdit/src/jedit_resources.scala \
-  src/Tools/jEdit/src/jedit_sessions.scala \
+  src/Tools/jEdit/src/jedit_session.scala \
   src/Tools/jEdit/src/jedit_spell_checker.scala \
   src/Tools/jEdit/src/keymap_merge.scala \
   src/Tools/jEdit/src/main_plugin.scala \
