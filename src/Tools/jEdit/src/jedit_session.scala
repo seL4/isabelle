@@ -129,7 +129,7 @@ object JEdit_Session {
 
   def session_background(options: Options): Sessions.Background =
     Sessions.background(options,
-      dirs = JEdit_Session.session_dirs,
+      dirs = session_dirs,
       include_sessions = logic_include_sessions,
       session = logic_name(options),
       session_ancestor = logic_ancestor,
