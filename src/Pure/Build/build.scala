@@ -380,7 +380,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
   Notable system options: see "isabelle options -l -t build"
 
   Notable system settings:
-""" + Library.indent_lines(4, Build_Log.Settings.show(ML_Settings.system(options))) + "\n",
+""" + Library.indent_lines(4, Build_Log.Settings.show(ML_Settings(options))) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "D:" -> (arg => select_dirs += Path.explode(arg)),
@@ -408,7 +408,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val progress = new Console_Progress(verbose = verbose)
 
-      val ml_settings = ML_Settings.system(options)
+      val ml_settings = ML_Settings(options)
 
       progress.echo(
         "Started at " + Build_Log.print_date(progress.start) +

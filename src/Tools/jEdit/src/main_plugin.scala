@@ -53,7 +53,7 @@ object PIDE {
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
 
-  def ml_settings: ML_Settings = ML_Settings.system(plugin.startup_options)
+  def ml_settings: ML_Settings = ML_Settings(plugin.startup_options)
 
   object editor extends JEdit_Editor
 }

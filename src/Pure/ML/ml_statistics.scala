@@ -59,7 +59,7 @@ object ML_Statistics {
 
     val env_prefix = if_proper(stats_dir, Bash.exports("POLYSTATSDIR=" + stats_dir))
 
-    val polyml_exe = ML_Settings.system(options).polyml_exe
+    val polyml_exe = ML_Settings(options).polyml_exe
 
     Bash.process(env_prefix + File.bash_path(polyml_exe) +
         " -q --use src/Pure/ML/ml_statistics.ML --eval " +

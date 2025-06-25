@@ -122,7 +122,7 @@ object Doc {
   object Doc_Names extends Scala.Fun_String("doc_names") {
     val here = Scala_Project.here
     def apply(arg: String): String = {
-      val ml_settings = ML_Settings.system(Options.init() + ("ML_platform=" + arg))
+      val ml_settings = ML_Settings(Options.init() + ("ML_platform=" + arg))
       cat_lines((for (entry <- contents(ml_settings).entries(pdf = true)) yield entry.name).sorted)
     }
   }
@@ -149,7 +149,7 @@ Usage: isabelle doc [DOC ...]
 """)
       val docs = getopts(args)
 
-      val ml_settings = ML_Settings.system(Options.init())
+      val ml_settings = ML_Settings(Options.init())
 
       if (docs.isEmpty) Output.writeln(cat_lines(contents_lines().map(_._2)), stdout = true)
       else {

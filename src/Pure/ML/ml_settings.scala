@@ -8,7 +8,7 @@ package isabelle
 
 
 object ML_Settings {
-  def system(options: Options,
+  def apply(options: Options,
     env: Isabelle_System.Settings = Isabelle_System.Settings()
   ): ML_Settings =
     new ML_Settings {

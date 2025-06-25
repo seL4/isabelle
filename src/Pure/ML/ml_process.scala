@@ -27,7 +27,7 @@ object ML_Process {
     cleanup: () => Unit = () => ()
   ): Bash.Process = {
     val ml_options = options.standard_ml()
-    val ml_settings = ML_Settings.system(ml_options)
+    val ml_settings = ML_Settings(ml_options)
 
     val eval_init =
       if (session_heaps.isEmpty) {
