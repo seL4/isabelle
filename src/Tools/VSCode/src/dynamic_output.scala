@@ -58,7 +58,7 @@ class Dynamic_Output private(server: Language_Server) {
     server.session.caret_focus += main
     pretty_panel_.change(_ =>
       Some(Pretty_Text_Panel(
-        server.resources,
+        server.session,
         server.channel,
         LSP.Dynamic_Output.apply)))
     handle_update(None)

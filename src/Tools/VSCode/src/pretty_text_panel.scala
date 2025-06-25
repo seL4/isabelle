@@ -12,14 +12,14 @@ import isabelle._
 
 object Pretty_Text_Panel {
   def apply(
-    resources: VSCode_Resources,
+    session: VSCode_Session,
     channel: Channel,
     output: (String, Option[LSP.Decoration]) => JSON.T
-  ): Pretty_Text_Panel = new Pretty_Text_Panel(resources, channel, output)
+  ): Pretty_Text_Panel = new Pretty_Text_Panel(session, channel, output)
 }
 
 class Pretty_Text_Panel private(
-  resources: VSCode_Resources,
+  session: VSCode_Session,
   channel: Channel,
   output_json: (String, Option[LSP.Decoration]) => JSON.T
 ) {
@@ -30,6 +30,8 @@ class Pretty_Text_Panel private(
   private val delay_margin = Delay.last(resources.output_delay, channel.Error_Logger) {
     refresh(current_output)
   }
+
+  def resources: VSCode_Resources = session.resources
 
   def update_margin(new_margin: Double): Unit = {
     margin = new_margin
@@ -51,7 +53,7 @@ class Pretty_Text_Panel private(
               for {
                 thy_file <- Position.Def_File.unapply(props)
                 def_line <- Position.Def_Line.unapply(props)
-                platform_path <- resources.source_file(resources.ml_settings, thy_file)
+                platform_path <- resources.source_file(session.store.ml_settings, thy_file)
                 uri = File.uri(Path.explode(File.standard_path(platform_path)).absolute_file)
               } yield HTML.link(uri.toString + "#" + def_line, body)
           }

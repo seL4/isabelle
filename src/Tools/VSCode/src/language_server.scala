@@ -274,10 +274,8 @@ class Language_Server(
           if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val ml_settings = ML_Settings.system(options)
-
         val resources =
-          new VSCode_Resources(options, ml_settings, session_background, log) {
+          new VSCode_Resources(options, session_background, log) {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version).nonEmpty) {
                 delay_load.invoke()

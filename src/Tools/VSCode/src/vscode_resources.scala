@@ -69,7 +69,6 @@ object VSCode_Resources {
 
 class VSCode_Resources(
   val options: Options,
-  val ml_settings: ML_Settings,
   session_background: Sessions.Background,
   log: Logger = new Logger)
 extends Resources(session_background, log = log) {
