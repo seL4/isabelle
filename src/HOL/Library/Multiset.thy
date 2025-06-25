@@ -2175,6 +2175,27 @@ lemma mset_removeAll_eq:
   \<open>mset (removeAll x xs) = filter_mset ((\<noteq>) x) (mset xs)\<close>
   by (induction xs) auto
 
+lemma singleton_set_mset_subset: fixes X Y :: "'a list set"
+  assumes "\<forall>xs \<in> X. set xs \<subseteq> {a}" "mset ` X \<subseteq> mset ` Y"
+  shows "X \<subseteq> Y"
+proof
+  fix xs assume "xs \<in> X"
+  obtain ys where ys: "ys \<in> Y" "mset xs = mset ys"
+    using \<open>xs \<in> X\<close> assms(2) by auto
+  then show "xs \<in> Y" using \<open>xs \<in> X\<close> assms(1) ys
+    by (metis singleton_iff mset_eq_setD replicate_eqI set_empty subset_singletonD size_mset)
+qed
+
+lemma singleton_set_mset_eq: fixes X Y :: "'a list set"
+  assumes "\<forall>xs \<in> X. set xs \<subseteq> {a}" "mset ` X = mset ` Y"
+  shows "X = Y"
+proof -
+  have "\<forall>ys \<in> Y. set ys \<subseteq> {a}"
+    by (metis (mono_tags, lifting) assms image_iff mset_eq_setD)
+  thus ?thesis
+    by (metis antisym assms(1,2) singleton_set_mset_subset subset_refl)
+qed
+
 global_interpretation mset_set: folding add_mset "{#}"
   defines mset_set = "folding_on.F add_mset {#}"
   by standard (simp add: fun_eq_iff)
