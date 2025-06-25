@@ -295,6 +295,30 @@ class Store private(
     Path.variable("ISABELLE_HEAPS") + Path.basic(ml_settings.ml_identifier)
 
 
+  /* source files of Isabelle/ML bootstrap */
+
+  def source_file(raw_name: String): Option[String] = {
+    if (Path.is_wellformed(raw_name)) {
+      if (Path.is_valid(raw_name)) {
+        def check(p: Path): Option[Path] = if (p.is_file) Some(p) else None
+
+        val path = Path.explode(raw_name)
+        val path1 =
+          if (path.is_absolute || path.is_current) check(path)
+          else {
+            check(Path.explode("~~/src/Pure") + path) orElse {
+              val ml_sources = ml_settings.ml_sources
+              if (ml_sources.is_dir) check(ml_sources + path) else None
+            }
+          }
+        Some(File.platform_path(path1 getOrElse path))
+      }
+      else None
+    }
+    else Some(raw_name)
+  }
+
+
   /* directories */
 
   def system_heaps: Boolean = options.bool("system_heaps")
