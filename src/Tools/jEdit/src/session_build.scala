@@ -21,9 +21,7 @@ object Session_Build {
   def check_dialog(view: View): Unit = {
     Isabelle_Thread.fork() {
       try {
-        if (JEdit_Session.session_no_build ||
-          JEdit_Session.session_build(no_build = true) == 0)
-          JEdit_Session.session_start()
+        if (JEdit_Session.session_build_ok()) JEdit_Session.session_start()
         else GUI_Thread.later { new Dialog(view) }
       }
       catch {
@@ -154,7 +152,7 @@ object Session_Build {
         PIDE.resources.session_base.session_name + " ...")
 
       val (out, rc) =
-        try { ("", JEdit_Session.session_build(progress = progress)) }
+        try { ("", JEdit_Session.session_build(progress)) }
         catch {
           case exn: Throwable =>
             (Output.error_message_text(Exn.message(exn)) + "\n", Exn.failure_rc(exn))

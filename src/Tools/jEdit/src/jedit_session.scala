@@ -135,16 +135,11 @@ object JEdit_Session {
       session_ancestor = logic_ancestor,
       session_requirements = logic_requirements)
 
-  def session_build(
-    progress: Progress = new Progress,
-    no_build: Boolean = false
-  ): Int = {
-    val options = PIDE.session.store.options
-    Build.build(options,
-      selection = Sessions.Selection.session(PIDE.resources.session_base.session_name),
-      progress = progress, build_heap = true, no_build = no_build, dirs = session_dirs,
-      infos = PIDE.resources.session_background.infos).rc
-  }
+  def session_build(progress: Progress): Int =
+    PIDE.session.build(progress = progress, dirs = session_dirs).rc
+
+  def session_build_ok(): Boolean =
+    session_no_build || PIDE.session.build_ok(dirs = session_dirs)
 
   def session_start(): Unit = {
     val session = PIDE.session

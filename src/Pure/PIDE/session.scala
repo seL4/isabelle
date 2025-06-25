@@ -727,6 +727,20 @@ class Session(_session_options: => Options) extends Document.Session {
     else snapshot
   }
 
+  def build(
+    progress: Progress = new Progress,
+    dirs: List[Path] = Nil,
+    no_build: Boolean = false
+  ): Build.Results = {
+    Build.build(store.options,
+      selection = Sessions.Selection.session(resources.session_base.session_name),
+      progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
+      infos = resources.session_background.infos)
+  }
+
+  def build_ok(dirs: List[Path] = Nil): Boolean =
+    build(dirs = dirs, no_build = true).ok
+
   def start(start_prover: Prover.Receiver => Prover): Unit = {
     file_formats
     _phase.change(
