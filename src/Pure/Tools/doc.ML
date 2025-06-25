@@ -14,7 +14,7 @@ struct
 
 fun check ctxt arg =
   Completion.check_item "documentation" (Markup.doc o #1)
-    (\<^scala>\<open>doc_names\<close> "" |> split_lines |> map (rpair ())) ctxt arg;
+    (\<^scala>\<open>doc_names\<close> ML_System.platform |> split_lines |> map (rpair ())) ctxt arg;
 
 val _ =
   Theory.setup

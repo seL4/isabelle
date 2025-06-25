@@ -175,7 +175,7 @@ class JEdit_Editor extends Editor[View] {
   /* hyperlinks */
 
   def hyperlink_doc(name: String): Option[Hyperlink] =
-    Doc.contents().entries(name = _ == name).headOption.map(entry =>
+    Doc.contents(PIDE.ml_settings).entries(name = _ == name).headOption.map(entry =>
       new Hyperlink {
         override val external: Boolean = !entry.path.is_file
         def follow(view: View): Unit = goto_doc(view, entry.path)
