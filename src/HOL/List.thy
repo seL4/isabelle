@@ -3254,6 +3254,14 @@ lemma rev_conv_fold [code]: "rev xs = fold Cons xs []"
 lemma fold_append_concat_rev: "fold append xss = append (concat (rev xss))"
   by (induct xss) simp_all
 
+lemma fold_inject:
+  assumes
+    "\<And>w x y z. f w x = f y z \<longleftrightarrow> w = y \<and> x = z" and
+    "\<And>x y. f x y \<noteq> a" and
+    "\<And>x y. f x y \<noteq> b"
+  shows "fold f xs a = fold f ys b \<longleftrightarrow> xs = ys \<and> a = b"
+by (induction xs ys rule: List.rev_induct2) (use assms(2,3,1) in auto)
+
 text \<open>\<^const>\<open>Finite_Set.fold\<close> and \<^const>\<open>fold\<close>\<close>
 
 lemma (in comp_fun_commute_on) fold_set_fold_remdups:
@@ -3395,6 +3403,22 @@ lemma foldl_map [code_unfold]:
 lemma concat_conv_foldr [code]:
   "concat xss = foldr append xss []"
   by (simp add: fold_append_concat_rev foldr_conv_fold)
+
+lemma foldl_inject:
+  assumes
+    "\<And>w x y z. f w x = f y z \<longleftrightarrow> w = y \<and> x = z" and
+    "\<And>x y. f x y \<noteq> a" and
+    "\<And>x y. f x y \<noteq> b"
+  shows "foldl f a xs = foldl f b ys \<longleftrightarrow> a = b \<and> xs = ys"
+by (induction xs ys rule: rev_induct2) (use assms(2,3,1) in auto)
+
+lemma foldr_inject:
+  assumes
+    "\<And>w x y z. f w x = f y z \<longleftrightarrow> w = y \<and> x = z" and
+    "\<And>x y. f x y \<noteq> a" and
+    "\<And>x y. f x y \<noteq> b"
+  shows "foldr f xs a = foldr f ys b \<longleftrightarrow> a = b \<and> xs = ys"
+by (induction xs ys rule: list_induct2') (use assms(2,3,1) in auto)
 
 
 subsubsection \<open>\<^const>\<open>upt\<close>\<close>
