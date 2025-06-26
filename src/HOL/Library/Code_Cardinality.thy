@@ -16,7 +16,7 @@ context
 begin
 
 qualified definition card_UNIV' :: "'a card_UNIV"
-where [code del]: "card_UNIV' = Phantom('a) CARD('a)"
+where "card_UNIV' = Phantom('a) CARD('a)"
 
 lemma CARD_code [code_unfold]:
   "CARD('a) = of_phantom (card_UNIV' :: 'a card_UNIV)"
@@ -36,7 +36,7 @@ context fixes xs :: "'a :: finite_UNIV list"
 begin
 
 qualified definition finite' :: "'a set \<Rightarrow> bool"
-where [simp, code del, code_abbrev]: "finite' = finite"
+where [simp, code_abbrev]: "finite' = finite"
 
 lemma finite'_code [code]:
   "finite' (set xs) \<longleftrightarrow> True"
@@ -49,7 +49,7 @@ context fixes xs :: "'a :: card_UNIV list"
 begin
 
 qualified definition card' :: "'a set \<Rightarrow> nat" 
-where [simp, code del, code_abbrev]: "card' = card"
+where [simp, code_abbrev]: "card' = card"
  
 lemma card'_code [code]:
   "card' (set xs) = length (remdups xs)"
@@ -58,7 +58,7 @@ by(simp_all add: List.card_set card_Compl card_UNIV)
 
 
 qualified definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-where [simp, code del, code_abbrev]: "subset' = (\<subseteq>)"
+where [simp, code_abbrev]: "subset' = (\<subseteq>)"
 
 lemma subset'_code [code]:
   "subset' A (List.coset ys) \<longleftrightarrow> (\<forall>y \<in> set ys. y \<notin> A)"
@@ -68,7 +68,7 @@ by(auto simp add: Let_def card_gt_0_iff dest: card_eq_UNIV_imp_eq_UNIV intro: ar
   (metis finite_compl finite_set rev_finite_subset)
 
 qualified definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
-where [simp, code del, code_abbrev]: "eq_set = (=)"
+where [simp, code_abbrev]: "eq_set = (=)"
 
 lemma eq_set_code [code]:
   fixes ys
@@ -122,19 +122,22 @@ text \<open>
   Constrain the element type with sort \<^class>\<open>card_UNIV\<close> to change this.
 \<close>
 
-lemma card_coset_error [code]:
-  "card (List.coset xs) = 
+lemma card_code [code]:
+  "card (set xs) = length (remdups xs)"
+  "card (List.coset xs) =
    Code.abort (STR ''card (List.coset _) requires type class instance card_UNIV'')
      (\<lambda>_. card (List.coset xs))"
-by(simp)
+  by (simp_all add: length_remdups_card_conv)
 
 lemma coset_subseteq_set_code [code]:
+  "set xs \<subseteq> B = list_all (\<lambda>x. x \<in> B) xs"
+  "A \<subseteq> List.coset ys = list_all (\<lambda>y. y \<notin> A) ys"
   "List.coset xs \<subseteq> set ys \<longleftrightarrow> 
   (if xs = [] \<and> ys = [] then False 
    else Code.abort
      (STR ''subset_eq (List.coset _) (List.set _) requires type class instance card_UNIV'')
      (\<lambda>_. List.coset xs \<subseteq> set ys))"
-by simp
+  by (auto simp add: list_all_iff)
 
 notepad begin \<comment> \<open>test code setup\<close>
 have "List.coset [True] = set [False] \<and> 

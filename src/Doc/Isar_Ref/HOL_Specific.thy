@@ -2383,6 +2383,24 @@ text \<open>
 
   Variant \<open>code equation\<close> declares a conventional equation as code equation.
 
+  Variant \<open>code nbe\<close> accepts also non-left-linear equations for
+  \<^emph>\<open>normalization by evaluation\<close> only.
+
+  Variant \<open>code del\<close> deselects a code equation for code generation.
+
+  Multiple \<open>code equation\<close> / \<open>code nbe\<close> declarations referring to the same
+  constant within the same theory are handled as \<^emph>\<open>one\<close> function declaration
+  for that particular constant: the first code declaration within a theory
+  disregards any previous function declaration and superseedes any equations
+  from preceeding theories.
+
+  Each code equation is prepended to existing code equations declared in
+  the same theory, with syntactically subsumed equations removed.
+
+  Packages usually provide reasonable default code equations; an explicit
+  declaration of a code equation superseedes any preceeding default code
+  equations.
+
   Variants \<open>code abstype\<close> and \<open>code abstract\<close> declare abstract datatype
   certificates or code equations on abstract datatype representations
   respectively.
@@ -2390,18 +2408,10 @@ text \<open>
   Vanilla \<open>code\<close> falls back to \<open>code equation\<close> or \<open>code abstract\<close>
   depending on the syntactic shape of the underlying equation.
 
-  Variant \<open>code del\<close> deselects a code equation for code generation.
-
-  Variant \<open>code nbe\<close> accepts also non-left-linear equations for
-  \<^emph>\<open>normalization by evaluation\<close> only.
-
   Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constants as arguments
   and drop all code equations declared for them. In the case of \<open>abort\<close>,
   these constants if needed are implemented by program abort
   (exception).
-
-  Packages declaring code equations usually provide a reasonable default
-  setup.
 
   \<^descr> @{command (HOL) "code_datatype"} specifies a constructor set for a logical
   type.

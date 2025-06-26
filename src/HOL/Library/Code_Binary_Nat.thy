@@ -43,8 +43,6 @@ subsection \<open>Basic arithmetic\<close>
 context
 begin
 
-declare [[code drop: "plus :: nat \<Rightarrow> _"]]  
-
 lemma plus_nat_code [code]:
   "nat_of_num k + nat_of_num l = nat_of_num (k + l)"
   "m + 0 = (m::nat)"
@@ -79,23 +77,17 @@ lemma sub_code [code]:
     Let_def le_imp_diff_is_add BitM_plus_one sub_def dup_def 
     sub_non_positive nat_add_distrib sub_non_negative)
 
-declare [[code drop: "minus :: nat \<Rightarrow> _"]]
-
 lemma minus_nat_code [code]:
   "nat_of_num k - nat_of_num l = (case sub k l of None \<Rightarrow> 0 | Some j \<Rightarrow> j)"
   "m - 0 = (m::nat)"
   "0 - n = (0::nat)"
   by (simp_all add: nat_of_num_numeral sub_non_positive sub_def)
 
-declare [[code drop: "times :: nat \<Rightarrow> _"]]
-
 lemma times_nat_code [code]:
   "nat_of_num k * nat_of_num l = nat_of_num (k * l)"
   "m * 0 = (0::nat)"
   "0 * n = (0::nat)"
   by (simp_all add: nat_of_num_numeral)
-
-declare [[code drop: "HOL.equal :: nat \<Rightarrow> _"]]
 
 lemma equal_nat_code [code]:
   "HOL.equal 0 (0::nat) \<longleftrightarrow> True"
@@ -108,15 +100,11 @@ lemma equal_nat_refl [code nbe]:
   "HOL.equal (n::nat) n \<longleftrightarrow> True"
   by (rule equal_refl)
 
-declare [[code drop: "less_eq :: nat \<Rightarrow> _"]]
-
 lemma less_eq_nat_code [code]:
   "0 \<le> (n::nat) \<longleftrightarrow> True"
   "nat_of_num k \<le> 0 \<longleftrightarrow> False"
   "nat_of_num k \<le> nat_of_num l \<longleftrightarrow> k \<le> l"
   by (simp_all add: nat_of_num_numeral)
-
-declare [[code drop: "less :: nat \<Rightarrow> _"]]
 
 lemma less_nat_code [code]:
   "(m::nat) < 0 \<longleftrightarrow> False"
@@ -124,8 +112,6 @@ lemma less_nat_code [code]:
   "nat_of_num k < nat_of_num l \<longleftrightarrow> k < l"
   by (simp_all add: nat_of_num_numeral)
 
-declare [[code drop: Euclidean_Rings.divmod_nat]]
-  
 lemma divmod_nat_code [code]:
   "Euclidean_Rings.divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
   "Euclidean_Rings.divmod_nat m 0 = (0, m)"
@@ -136,8 +122,6 @@ end
 
 
 subsection \<open>Conversions\<close>
-
-declare [[code drop: of_nat]]
 
 lemma of_nat_code [code]:
   "of_nat 0 = 0"

@@ -2088,9 +2088,7 @@ code_datatype principal abstract_filter
 
 hide_const (open) abstract_filter
 
-declare [[code drop: filterlim prod_filter filtermap eventually
-  "inf :: _ filter \<Rightarrow> _" "sup :: _ filter \<Rightarrow> _" "less_eq :: _ filter \<Rightarrow> _"
-  Abs_filter]]
+declare [[code drop: Abs_filter]]
 
 declare filterlim_principal [code]
 declare principal_prod_principal [code]

@@ -112,7 +112,6 @@ subsection \<open>Pattern-matching tests\<close>
 definition f1 :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> nat llist \<Rightarrow> unit" where
   "f1 _ _ _ _ = ()"
 
-declare [[code drop: f1]]
 lemma f1_code1 [code]: 
   "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())" 
   "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())" 
@@ -167,7 +166,6 @@ value [code] "f1 False True True \<^bold>[\<^bold>]"
 
 definition f2 :: "nat llist llist list \<Rightarrow> unit" where "f2 _ = ()"
 
-declare [[code drop: f2]]
 lemma f2_code1 [code]:
   "f2 xs = Code.abort (STR ''a'') (\<lambda>_. ())"
   "f2 [\<^bold>[\<^bold>[\<^bold>]\<^bold>]] = ()"
@@ -182,7 +180,6 @@ ML_val \<open> (@{code f2} []; error "Fail expected") handle Fail _ => () \<clos
 
 definition f3 :: "nat set llist \<Rightarrow> unit" where "f3 _ = ()"
 
-declare [[code drop: f3]]
 lemma f3_code1 [code]:
   "f3 \<^bold>[\<^bold>] = ()"
   "f3 \<^bold>[A\<^bold>] = ()"

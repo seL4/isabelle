@@ -456,15 +456,8 @@ end; (*local*)
    declarations as "pending" and historize them as proper declarations
    at the end of each theory. *)
 
-fun modify_pending_eqns c f specs =
-  let
-    val existing_eqns = case History.lookup (functions_of specs) c of
-        SOME (Eqns (false, eqns)) => eqns
-      | _ => [];
-  in
-    specs
-    |> map_pending_eqns (Symtab.map_default (c, existing_eqns) f)
-  end;
+fun modify_pending_eqns c f =
+  map_pending_eqns (Symtab.map_default (c, []) f);
 
 fun register_fun_spec c spec =
   map_pending_eqns (Symtab.delete_safe c)

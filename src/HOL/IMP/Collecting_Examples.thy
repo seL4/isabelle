@@ -7,9 +7,9 @@ begin
 subsubsection "Pretty printing state sets"
 
 text\<open>Tweak code generation to work with sets of non-equality types:\<close>
-declare insert_code[code del] union_coset_filter[code del]
-lemma insert_code [code]:  "insert x (set xs) = set (x#xs)"
-by simp
+lemma insert_code [code]: "insert x (set xs) = set (x#xs)"
+  and union_code [code]: "set xs \<union> A = fold insert xs A"
+  by (simp_all add: union_set_fold)
 
 text\<open>Compensate for the fact that sets may now have duplicates:\<close>
 definition compact :: "'a set \<Rightarrow> 'a set" where

@@ -271,8 +271,6 @@ instance ..
 
 end
 
-declare [[code drop: "partial_term_of :: int itself \<Rightarrow> _"]]
-
 lemma [code]:
   "partial_term_of (ty :: int itself) (Narrowing_variable p t) \<equiv>
     Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Int.int'') [])"
@@ -292,8 +290,6 @@ definition
 instance ..
 
 end
-
-declare [[code drop: "partial_term_of :: integer itself \<Rightarrow> _"]]  
 
 lemma [code]:
   "partial_term_of (ty :: integer itself) (Narrowing_variable p t) \<equiv>

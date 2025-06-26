@@ -10,8 +10,6 @@ begin
 
 code_datatype int_of_integer
 
-declare [[code drop: integer_of_int]]
-
 context
 includes integer.lifting
 begin
@@ -112,8 +110,6 @@ lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
   by transfer rule
 
-declare [[code drop: "gcd :: int \<Rightarrow> _" "lcm :: int \<Rightarrow> _"]]
-
 lemma gcd_int_of_integer [code]:
   "gcd (int_of_integer x) (int_of_integer y) = int_of_integer (gcd x y)"
   by transfer rule
@@ -162,10 +158,6 @@ lemma [code]:
 context
   includes integer.lifting and bit_operations_syntax
 begin
-
-declare [[code drop: \<open>bit :: int \<Rightarrow> _\<close> \<open>not :: int \<Rightarrow> _\<close>
-  \<open>and :: int \<Rightarrow> _\<close> \<open>or :: int \<Rightarrow> _\<close> \<open>xor :: int \<Rightarrow> _\<close>
-  \<open>push_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close> \<open>drop_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close> \<open>take_bit :: _ \<Rightarrow> _ \<Rightarrow> int\<close>]]
 
 lemma [code]:
   \<open>bit (int_of_integer k) n \<longleftrightarrow> bit k n\<close>

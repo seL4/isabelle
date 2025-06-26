@@ -25,17 +25,6 @@ definition Coset :: "('a::linorder, unit) rbt \<Rightarrow> 'a set"
   where [simp]: "Coset t = - Set t"
 
 
-section \<open>Deletion of already existing code equations\<close>
-
-declare [[code drop: Set.empty Set.is_empty uminus_set_inst.uminus_set
-  Set.member Set.insert Set.remove UNIV Set.filter image
-  Set.subset_eq Ball Bex Set.can_select Set.union minus_set_inst.minus_set Set.inter
-  card the_elem Pow sum prod Product_Type.product Id_on
-  Image trancl relcomp wf_on wf_code Min Inf_fin Max Sup_fin
-  "(Inf :: 'a set set \<Rightarrow> 'a set)" "(Sup :: 'a set set \<Rightarrow> 'a set)"
-  sorted_list_of_set List.map_project List.Least List.Greatest]]
-
-
 section \<open>Lemmas\<close>
 
 subsection \<open>Auxiliary lemmas\<close>
@@ -582,6 +571,15 @@ proof -
     by (auto simp add: sum.eq_fold finite_fold_fold_keys o_def)
 qed
 
+lemma prod_Set [code]:
+  "prod f (Set xs) = fold_keys (times \<circ> f) xs 1"
+proof -
+  have "comp_fun_commute (\<lambda>x. (*) (f x))"
+    by standard (auto simp: ac_simps)
+  then show ?thesis 
+    by (auto simp add: prod.eq_fold finite_fold_fold_keys o_def)
+qed
+
 lemma the_elem_set [code]:
   fixes t :: "('a :: linorder, unit) rbt"
   shows "the_elem (Set t) = (case RBT.impl_of t of 
@@ -666,6 +664,8 @@ lemma Inf_fin_set_fold [code]:
   "Inf_fin (Set t) = Min (Set t)"
 by (simp add: inf_min Inf_fin_def Min_def)
 
+declare [[code drop: "Inf :: _ \<Rightarrow> 'a set"]]
+
 lemma Inf_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
   shows "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
@@ -695,6 +695,8 @@ lemma Sup_fin_set_fold [code]:
   "Sup_fin (Set t) = Max (Set t)"
 by (simp add: sup_max Sup_fin_def Max_def)
 
+declare [[code drop: "Sup :: _ \<Rightarrow> 'a set"]]
+
 lemma Sup_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
   shows "Sup (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
@@ -711,7 +713,21 @@ qed
 context
 begin
 
-declare [[code drop: Gcd_fin Lcm_fin \<open>Gcd :: _ \<Rightarrow> nat\<close> \<open>Gcd :: _ \<Rightarrow> int\<close> \<open>Lcm :: _ \<Rightarrow> nat\<close> \<open>Lcm :: _ \<Rightarrow> int\<close>]]
+qualified definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
+  where [code_abbrev]: "Inf' = Inf"
+
+lemma Inf'_Set_fold [code]:
+  "Inf' (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
+  by (simp add: Inf'_def Inf_Set_fold)
+
+qualified definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
+  where [code_abbrev]: "Sup' = Sup"
+
+lemma Sup'_Set_fold [code]:
+  "Sup' (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
+  by (simp add: Sup'_def Sup_Set_fold)
+
+end
 
 lemma [code]:
   "Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys gcd t (0::'a::{semiring_gcd, linorder})"
@@ -724,7 +740,7 @@ proof -
   then show ?thesis
     by (simp add: Gcd_fin.eq_fold)
 qed
-    
+
 lemma [code]:
   "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
   by simp
@@ -745,29 +761,13 @@ proof -
     by (simp add: Lcm_fin.eq_fold)
 qed
 
-lemma [code drop: "Lcm :: _ \<Rightarrow> nat", code]:
+lemma [code]:
   "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
   by simp
 
-lemma [code drop: "Lcm :: _ \<Rightarrow> int", code]:
+lemma [code]:
   "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
   by simp
-
-qualified definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
-  where [code_abbrev]: "Inf' = Inf"
-
-lemma Inf'_Set_fold [code]:
-  "Inf' (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
-  by (simp add: Inf'_def Inf_Set_fold)
-
-qualified definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
-  where [code_abbrev]: "Sup' = Sup"
-
-lemma Sup'_Set_fold [code]:
-  "Sup' (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
-  by (simp add: Sup'_def Sup_Set_fold)
-
-end
 
 lemma sorted_list_set [code]: "sorted_list_of_set (Set t) = RBT.keys t"
   by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
@@ -787,6 +787,9 @@ lemma Greatest_code [code]:
   using is_empty_Set
     apply auto
   done
+
+declare [[code drop: Set.can_select List.map_project Wellfounded.acc pred_of_set
+  \<open>Inf :: _ \<Rightarrow> 'a Predicate.pred\<close> \<open>Sup :: _ \<Rightarrow> 'a Predicate.pred\<close>]]
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset
 

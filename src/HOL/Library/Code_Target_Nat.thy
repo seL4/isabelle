@@ -194,10 +194,6 @@ context
   includes integer.lifting and bit_operations_syntax
 begin
 
-declare [[code drop: \<open>bit :: nat \<Rightarrow> _\<close>
-  \<open>and :: nat \<Rightarrow> _\<close> \<open>or :: nat \<Rightarrow> _\<close> \<open>xor :: nat \<Rightarrow> _\<close>
-  \<open>push_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close> \<open>drop_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close> \<open>take_bit :: _ \<Rightarrow> _ \<Rightarrow> nat\<close>]]
-
 lemma [code]:
   \<open>bit m n \<longleftrightarrow> bit (integer_of_nat m) n\<close>
   by transfer (simp add: bit_simps)
