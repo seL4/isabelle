@@ -3417,7 +3417,7 @@ lemma foldr_inject:
     "\<And>w x y z. f w x = f y z \<longleftrightarrow> w = y \<and> x = z" and
     "\<And>x y. f x y \<noteq> a" and
     "\<And>x y. f x y \<noteq> b"
-  shows "foldr f xs a = foldr f ys b \<longleftrightarrow> a = b \<and> xs = ys"
+  shows "foldr f xs a = foldr f ys b \<longleftrightarrow> xs = ys \<and> a = b"
 by (induction xs ys rule: list_induct2') (use assms(2,3,1) in auto)
 
 
