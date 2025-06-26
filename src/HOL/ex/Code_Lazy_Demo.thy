@@ -122,8 +122,6 @@ fun mk_tree :: "nat \<Rightarrow> tree" where mk_tree_0:
   "mk_tree 0 = \<spadesuit>"
 | "mk_tree (Suc n) = (let t = mk_tree n in t \<triangle> t)"
 
-declare mk_tree.simps [code]
-
 code_thms mk_tree
 
 function subtree :: "bool list \<Rightarrow> tree \<Rightarrow> tree" where
@@ -140,6 +138,8 @@ value [code] "let t = mk_tree 10; _ = subtree [True, True, False, False] t in t"
       digging into one subtree spreads to the whole tree.\<close>
 value [code] "let t = mk_tree 3; _ = subtree [True, True, False, False] t in t"
 
+declare mk_tree.simps(1) [code]
+
 lemma mk_tree_Suc_debug [code]: \<comment> \<open>Make the evaluation visible with tracing.\<close>
   "mk_tree (Suc n) = 
   (let _ = Debug.flush (STR ''tick''); t = mk_tree n in t \<triangle> t)"
@@ -149,12 +149,16 @@ value [code] "mk_tree 10"
   \<comment> \<open>The recursive call to \<^const>\<open>mk_tree\<close> is not guarded by a lazy constructor,
       so all the suspensions are built up immediately.\<close>
 
+declare [[code drop: mk_tree]] mk_tree.simps(1) [code]
+
 lemma mk_tree_Suc [code]: "mk_tree (Suc n) = mk_tree n \<triangle> mk_tree n"
   \<comment> \<open>In this code equation, there is no sharing and the recursive calls are guarded by a constructor.\<close>
   by(simp add: Let_def)
 
 value [code] "mk_tree 10"
 value [code] "let t = mk_tree 10; _ = subtree [True, True, False, False] t in t"
+
+declare [[code drop: mk_tree]] mk_tree.simps(1) [code]
 
 lemma mk_tree_Suc_debug' [code]: 
   "mk_tree (Suc n) = (let _ = Debug.flush (STR ''tick'') in mk_tree n \<triangle> mk_tree n)"

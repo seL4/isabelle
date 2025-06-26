@@ -44,9 +44,9 @@ context
 begin
 
 lemma plus_nat_code [code]:
-  "nat_of_num k + nat_of_num l = nat_of_num (k + l)"
-  "m + 0 = (m::nat)"
   "0 + n = (n::nat)"
+  "m + 0 = (m::nat)"
+  "nat_of_num k + nat_of_num l = nat_of_num (k + l)"
   by (simp_all add: nat_of_num_numeral)
 
 text \<open>Bounded subtraction needs some auxiliary\<close>
@@ -78,15 +78,15 @@ lemma sub_code [code]:
     sub_non_positive nat_add_distrib sub_non_negative)
 
 lemma minus_nat_code [code]:
-  "nat_of_num k - nat_of_num l = (case sub k l of None \<Rightarrow> 0 | Some j \<Rightarrow> j)"
-  "m - 0 = (m::nat)"
   "0 - n = (0::nat)"
+  "m - 0 = (m::nat)"
+  "nat_of_num k - nat_of_num l = (case sub k l of None \<Rightarrow> 0 | Some j \<Rightarrow> j)"
   by (simp_all add: nat_of_num_numeral sub_non_positive sub_def)
 
 lemma times_nat_code [code]:
-  "nat_of_num k * nat_of_num l = nat_of_num (k * l)"
-  "m * 0 = (0::nat)"
   "0 * n = (0::nat)"
+  "m * 0 = (0::nat)"
+  "nat_of_num k * nat_of_num l = nat_of_num (k * l)"
   by (simp_all add: nat_of_num_numeral)
 
 lemma equal_nat_code [code]:
@@ -113,9 +113,9 @@ lemma less_nat_code [code]:
   by (simp_all add: nat_of_num_numeral)
 
 lemma divmod_nat_code [code]:
-  "Euclidean_Rings.divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
-  "Euclidean_Rings.divmod_nat m 0 = (0, m)"
   "Euclidean_Rings.divmod_nat 0 n = (0, 0)"
+  "Euclidean_Rings.divmod_nat m 0 = (0, m)"
+  "Euclidean_Rings.divmod_nat (nat_of_num k) (nat_of_num l) = divmod k l"
   by (simp_all add: Euclidean_Rings.divmod_nat_def nat_of_num_numeral)
 
 end

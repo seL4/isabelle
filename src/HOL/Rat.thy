@@ -1100,8 +1100,6 @@ end
 instance rat :: partial_term_of ..
 
 lemma [code]:
-  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Narrowing_variable p tt) \<equiv>
-    Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
   "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Narrowing_constructor 0 [l, k]) \<equiv>
     Code_Evaluation.App
       (Code_Evaluation.Const (STR ''Rat.Frct'')
@@ -1119,6 +1117,8 @@ lemma [code]:
                  Typerep.Typerep (STR ''Product_Type.prod'')
                  [Typerep.Typerep (STR ''Int.int'') [], Typerep.Typerep (STR ''Int.int'') []]]]))
           (partial_term_of (TYPE(int)) l)) (partial_term_of (TYPE(int)) k))"
+  "partial_term_of (ty :: rat itself) (Quickcheck_Narrowing.Narrowing_variable p tt) \<equiv>
+    Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Rat.rat'') [])"
   by (rule partial_term_of_anything)+
 
 instantiation rat :: narrowing

@@ -215,7 +215,7 @@ begin
 
 primrec plus_nat
   where
-    add_0: "0 + n = (n::nat)"
+    add_0 [code]: "0 + n = (n::nat)"
   | add_Suc: "Suc m + n = Suc (m + n)"
 
 lemma add_0_right [simp]: "m + 0 = m"
@@ -224,8 +224,6 @@ lemma add_0_right [simp]: "m + 0 = m"
 
 lemma add_Suc_right [simp]: "m + Suc n = Suc (m + n)"
   by (induct m) simp_all
-
-declare add_0 [code]
 
 lemma add_Suc_shift [code]: "Suc m + n = m + Suc n"
   by simp
@@ -1501,8 +1499,8 @@ qualified definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Righta
   where funpow_code_def [code_abbrev]: "funpow = compow"
 
 lemma [code]:
-  "funpow (Suc n) f = f \<circ> funpow n f"
   "funpow 0 f = id"
+  "funpow (Suc n) f = f \<circ> funpow n f"
   by (simp_all add: funpow_code_def)
 
 end

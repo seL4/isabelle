@@ -39,8 +39,8 @@ lemma holds: "PROP holds"
 code_datatype holds
 
 lemma implies_code [code]:
-  "(PROP holds \<Longrightarrow> PROP P) \<equiv> PROP P"
   "(PROP P \<Longrightarrow> PROP holds) \<equiv> PROP holds"
+  "(PROP holds \<Longrightarrow> PROP P) \<equiv> PROP P"
 proof -
   show "(PROP holds \<Longrightarrow> PROP P) \<equiv> PROP P"
   proof

@@ -136,8 +136,11 @@ mem_Collect_eq, rangeE, rangeI, range_eqI, subsetCE, subsetD, subsetI,
 subset_refl, subset_trans, vimageD, vimageE, vimageI, vimageI2, vimage_Collect,
 vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation instead.
 
-* Clarified semantics for adding code equations: code equations from preceeding
-theories are superseded. Minor INCOMPATIBILITY.
+* Clarified semantics for adding code equations
+  * Code equations from preceeding theories are superseded.
+  * Code equations declared in the course of a theory are appended, not
+    prepended.
+INCOMPATIBILITY.
 
 * Normalization by evaluation (method "normalization", command value) could
 yield false positives due to incomplete handling of polymorphism in certain

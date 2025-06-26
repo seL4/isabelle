@@ -4587,10 +4587,10 @@ lemma extract_Some_iff:
    xs = ys @ y # zs \<and> P y \<and> \<not> (\<exists> y \<in> set ys. P y)"
 by(auto simp: extract_def dropWhile_eq_Cons_conv dest: set_takeWhileD split: list.splits)
 
-lemma extract_Nil_code[code]: "List.extract P [] = None"
+lemma extract_Nil_code [code]: "List.extract P [] = None"
 by(simp add: extract_def)
 
-lemma extract_Cons_code[code]:
+lemma extract_Cons_code [code]:
   "List.extract P (x # xs) = (if P x then Some ([], x, xs) else
    (case List.extract P xs of
       None \<Rightarrow> None |
@@ -7508,8 +7508,8 @@ where
 end
 
 lemma lexordp_simps [simp, code]:
-  "lexordp [] ys = (ys \<noteq> [])"
-  "lexordp xs [] = False"
+  "lexordp [] ys \<longleftrightarrow> ys \<noteq> []"
+  "lexordp xs [] \<longleftrightarrow> False"
   "lexordp (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp xs ys"
 by(subst lexordp.simps, fastforce simp add: neq_Nil_conv)+
 
@@ -7519,9 +7519,8 @@ inductive lexordp_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
 | Cons_eq: "\<lbrakk> \<not> x < y; \<not> y < x; lexordp_eq xs ys \<rbrakk> \<Longrightarrow> lexordp_eq (x # xs) (y # ys)"
 
 lemma lexordp_eq_simps [simp, code]:
-  "lexordp_eq [] ys = True"
+  "lexordp_eq [] ys \<longleftrightarrow> True"
   "lexordp_eq xs [] \<longleftrightarrow> xs = []"
-  "lexordp_eq (x # xs) [] = False"
   "lexordp_eq (x # xs) (y # ys) \<longleftrightarrow> x < y \<or> \<not> y < x \<and> lexordp_eq xs ys"
 by(subst lexordp_eq.simps, fastforce)+
 

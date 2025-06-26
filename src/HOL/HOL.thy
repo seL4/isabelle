@@ -1943,26 +1943,82 @@ setup \<open>
 \<close>
 
 
+subsubsection \<open>Generic code generator foundation\<close>
+
+text \<open>Datatype \<^typ>\<open>bool\<close>\<close>
+
+code_datatype True False
+
+lemma [code]:
+  "P \<and> True \<longleftrightarrow> P"
+  "P \<and> False \<longleftrightarrow> False"
+  "True \<and> P \<longleftrightarrow> P"
+  "False \<and> P \<longleftrightarrow> False"
+  by simp_all
+
+lemma [code]:
+  "P \<or> True \<longleftrightarrow> True"
+  "P \<or> False \<longleftrightarrow> P"
+  "True \<or> P \<longleftrightarrow> True"
+  "False \<or> P \<longleftrightarrow> P"
+  by simp_all
+
+lemma [code]:
+  "(P \<longrightarrow> True) \<longleftrightarrow> True"
+  "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
+  "(True \<longrightarrow> P) \<longleftrightarrow> P"
+  "(False \<longrightarrow> P) \<longleftrightarrow> True"
+  by simp_all
+
+text \<open>More about \<^typ>\<open>prop\<close>\<close>
+
+lemma [code nbe]:
+  "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)"
+  "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
+  "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q"
+  by (auto intro!: equal_intr_rule)
+
+lemma Trueprop_code [code]: "Trueprop True \<equiv> Code_Generator.holds"
+  by (auto intro!: equal_intr_rule holds)
+
+declare Trueprop_code [symmetric, code_post]
+
+text \<open>Cases\<close>
+
+lemma Let_case_cert:
+  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
+  shows "CASE x \<equiv> f x"
+  using assms by simp_all
+
+setup \<open>
+  Code.declare_case_global @{thm Let_case_cert} #>
+  Code.declare_undefined_global \<^const_name>\<open>undefined\<close>
+\<close>
+
+declare [[code abort: undefined]]
+
+
 subsubsection \<open>Equality\<close>
+
+lemma [code nbe]:
+  \<open>x = x \<longleftrightarrow> True\<close>
+  by iprover
 
 class equal =
   fixes equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   assumes equal_eq: "equal x y \<longleftrightarrow> x = y"
 begin
 
-lemma equal: "equal = (=)"
+lemma eq_equal [code]: "(=) \<equiv> equal"
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule equal_eq)
+
+lemma equal [code_post]: "equal = (=)"
   by (rule ext equal_eq)+
 
 lemma equal_refl: "equal x x \<longleftrightarrow> True"
   unfolding equal by (rule iffI TrueI refl)+
 
-lemma eq_equal: "(=) \<equiv> equal"
-  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule equal_eq)
-
 end
-
-declare eq_equal [symmetric, code_post]
-declare eq_equal [code]
 
 simproc_setup passive equal (HOL.eq) =
   \<open>fn _ => fn _ => fn ct =>
@@ -1971,51 +2027,6 @@ simproc_setup passive equal (HOL.eq) =
     | _ => NONE)\<close>
 
 setup \<open>Code_Preproc.map_pre (Simplifier.add_proc \<^simproc>\<open>equal\<close>)\<close>
-
-
-subsubsection \<open>Generic code generator foundation\<close>
-
-text \<open>Datatype \<^typ>\<open>bool\<close>\<close>
-
-code_datatype True False
-
-lemma [code]:
-  shows "False \<and> P \<longleftrightarrow> False"
-    and "True \<and> P \<longleftrightarrow> P"
-    and "P \<and> False \<longleftrightarrow> False"
-    and "P \<and> True \<longleftrightarrow> P"
-  by simp_all
-
-lemma [code]:
-  shows "False \<or> P \<longleftrightarrow> P"
-    and "True \<or> P \<longleftrightarrow> True"
-    and "P \<or> False \<longleftrightarrow> P"
-    and "P \<or> True \<longleftrightarrow> True"
-  by simp_all
-
-lemma [code]:
-  shows "(False \<longrightarrow> P) \<longleftrightarrow> True"
-    and "(True \<longrightarrow> P) \<longleftrightarrow> P"
-    and "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
-    and "(P \<longrightarrow> True) \<longleftrightarrow> True"
-  by simp_all
-
-text \<open>More about \<^typ>\<open>prop\<close>\<close>
-
-lemma [code nbe]:
-  shows "(True \<Longrightarrow> PROP Q) \<equiv> PROP Q"
-    and "(PROP Q \<Longrightarrow> True) \<equiv> Trueprop True"
-    and "(P \<Longrightarrow> R) \<equiv> Trueprop (P \<longrightarrow> R)"
-  by (auto intro!: equal_intr_rule)
-
-lemma Trueprop_code [code]: "Trueprop True \<equiv> Code_Generator.holds"
-  by (auto intro!: equal_intr_rule holds)
-
-declare Trueprop_code [symmetric, code_post]
-
-text \<open>Equality\<close>
-
-declare simp_thms(6) [code nbe]
 
 instantiation itself :: (type) equal
 begin
@@ -2049,20 +2060,6 @@ qed
 setup \<open>Sign.add_const_constraint (\<^const_name>\<open>equal\<close>, SOME \<^typ>\<open>'a::equal \<Rightarrow> 'a \<Rightarrow> bool\<close>)\<close>
 
 setup \<open>Nbe.add_const_alias @{thm equal_alias_cert}\<close>
-
-text \<open>Cases\<close>
-
-lemma Let_case_cert:
-  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
-  shows "CASE x \<equiv> f x"
-  using assms by simp_all
-
-setup \<open>
-  Code.declare_case_global @{thm Let_case_cert} #>
-  Code.declare_undefined_global \<^const_name>\<open>undefined\<close>
-\<close>
-
-declare [[code abort: undefined]]
 
 
 subsubsection \<open>Generic code generator target languages\<close>

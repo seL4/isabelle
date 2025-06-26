@@ -19,12 +19,12 @@ inductive_set setl :: "'a + 'b \<Rightarrow> 'a set" for s :: "'a + 'b" where
 inductive_set setr :: "'a + 'b \<Rightarrow> 'b set" for s :: "'a + 'b" where
   "s = Inr x \<Longrightarrow> x \<in> setr s"
 
-lemma sum_set_defs[code]:
+lemma sum_set_defs [code]:
   "setl = (\<lambda>x. case x of Inl z \<Rightarrow> {z} | _ \<Rightarrow> {})"
   "setr = (\<lambda>x. case x of Inr z \<Rightarrow> {z} | _ \<Rightarrow> {})"
   by (auto simp: fun_eq_iff intro: setl.intros setr.intros elim: setl.cases setr.cases split: sum.splits)
 
-lemma rel_sum_simps[code, simp]:
+lemma rel_sum_simps [code, simp]:
   "rel_sum R1 R2 (Inl a1) (Inl b1) = R1 a1 b1"
   "rel_sum R1 R2 (Inl a1) (Inr b2) = False"
   "rel_sum R1 R2 (Inr a2) (Inl b1) = False"
@@ -37,7 +37,7 @@ where
   "P1 a \<Longrightarrow> pred_sum P1 P2 (Inl a)"
 | "P2 b \<Longrightarrow> pred_sum P1 P2 (Inr b)"
 
-lemma pred_sum_inject[code, simp]:
+lemma pred_sum_inject [code, simp]:
   "pred_sum P1 P2 (Inl a) \<longleftrightarrow> P1 a"
   "pred_sum P1 P2 (Inr b) \<longleftrightarrow> P2 b"
   by (simp add: pred_sum.simps)+

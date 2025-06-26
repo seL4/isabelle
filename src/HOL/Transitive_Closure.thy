@@ -951,13 +951,13 @@ definition relpowp :: "nat \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool
   where relpowp_code_def [code_abbrev]: "relpowp = compow"
 
 lemma [code]:
-  "relpow (Suc n) R = (relpow n R) O R"
   "relpow 0 R = Id"
+  "relpow (Suc n) R = relpow n R O R"
   by (simp_all add: relpow_code_def)
 
 lemma [code]:
-  "relpowp (Suc n) R = (R ^^ n) OO R"
   "relpowp 0 R = HOL.eq"
+  "relpowp (Suc n) R = relpowp n R OO R"
   by (simp_all add: relpowp_code_def)
 
 hide_const (open) relpow

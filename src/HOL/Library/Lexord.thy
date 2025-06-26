@@ -173,8 +173,6 @@ qed
 instance list :: (order) order
   by (rule order.intro_of_class, rule ordering_orderI, fact lex.ordering)
 
-export_code \<open>(\<le>) :: _ list \<Rightarrow> _ list \<Rightarrow> bool\<close> \<open>(<) :: _ list \<Rightarrow> _ list \<Rightarrow> bool\<close> in Haskell
-
 
 subsection \<open>Non-canonical instance\<close>
 
@@ -193,11 +191,5 @@ global_interpretation dvd: lex_preordering \<open>(dvd) :: 'a::comm_monoid_mult 
 
 global_interpretation lex_dvd: preordering lex_dvd lex_dvd_strict
   by (fact dvd.preordering)
-
-definition \<open>example = lex_dvd [(4::int), - 7, 8] [- 8, 13, 5]\<close>
-
-export_code example in Haskell
-
-value example
 
 end

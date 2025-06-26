@@ -1774,7 +1774,7 @@ proof -
     by transfer (simp add: plus_down_def ac_simps Let_def)
 qed
 
-lemma compute_float_plus_down_naive[code]: "float_plus_down p x y = float_round_down p (x + y)"
+lemma compute_float_plus_down_naive: "float_plus_down p x y = float_round_down p (x + y)"
   by transfer (auto simp: plus_down_def)
 
 qualified lemma compute_float_plus_down[code]:

@@ -26,12 +26,13 @@ primrec add2 :: "n \<Rightarrow> n \<Rightarrow> n" where
  | "add2 (S m) n = S(add2 m n)"
 
 declare add2.simps [code]
-lemma [code nbe]: "add2 (add2 n m) k = add2 n (add2 m k)"
-  by (induct n) auto
-lemma [code]: "add2 n (S m) =  S (add2 n m)"
-  by(induct n) auto
 lemma [code]: "add2 n Z = n"
   by(induct n) auto
+lemma [code]: "add2 n (S m) =  S (add2 n m)"
+  by(induct n) auto
+lemma [code nbe]: "add2 (add2 n m) k = add2 n (add2 m k)"
+  by (induct n) auto
+
 
 lemma "add2 (add2 n m) k = add2 n (add2 m k)" by normalization
 lemma "add2 (add2 (S n) (S m)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization

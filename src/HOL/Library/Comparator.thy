@@ -213,13 +213,13 @@ instance
 
 end
 
-lemma [code]:
-  \<open>HOL.equal cmp1 cmp2 \<longleftrightarrow> Enum.enum_all (\<lambda>x. compare cmp1 x = compare cmp2 x)\<close>
-  by transfer (simp add: enum_UNIV)
-
 lemma [code nbe]:
   \<open>HOL.equal (cmp :: 'a::enum comparator) cmp \<longleftrightarrow> True\<close>
   by (fact equal_refl)
+
+lemma [code]:
+  \<open>HOL.equal cmp1 cmp2 \<longleftrightarrow> Enum.enum_all (\<lambda>x. compare cmp1 x = compare cmp2 x)\<close>
+  by transfer (simp add: enum_UNIV)
 
 instantiation comparator :: ("{linorder, typerep}") full_exhaustive
 begin

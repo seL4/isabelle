@@ -23,7 +23,9 @@ lemma sparse_row_vector_empty [simp]: "sparse_row_vector [] = 0"
 lemma sparse_row_matrix_empty [simp]: "sparse_row_matrix [] = 0"
   by (simp add: sparse_row_matrix_def)
 
-lemmas [code] = sparse_row_vector_empty [symmetric]
+lemma [code]:
+  \<open>0 = sparse_row_vector []\<close>
+  by simp
 
 lemma foldl_distrstart: "\<forall>a x y. (f (g x y) a = g x (f y a)) \<Longrightarrow> (foldl f (g x y) l = g x (foldl f y l))"
   by (induct l arbitrary: x y, auto)
@@ -373,8 +375,10 @@ by(cases as) auto
 lemma sparse_row_add_spmat: "sparse_row_matrix (add_spmat A B) = (sparse_row_matrix A) + (sparse_row_matrix B)"
   by (induct A B rule: add_spmat.induct) (auto simp: sparse_row_matrix_cons sparse_row_vector_add move_matrix_add)
 
-lemmas [code] = sparse_row_add_spmat [symmetric]
-lemmas [code] = sparse_row_vector_add [symmetric]
+lemma [code]:
+  \<open>sparse_row_matrix A + sparse_row_matrix B = sparse_row_matrix (add_spmat A B)\<close>
+  \<open>sparse_row_vector a + sparse_row_vector b = sparse_row_vector (add_spvec a b)\<close>
+  by (simp_all add: sparse_row_add_spmat sparse_row_vector_add)
 
 lemma sorted_add_spvec_helper1[rule_format]: "add_spvec ((a,b)#arr) brr = (ab, bb) # list \<longrightarrow> (ab = a | (brr \<noteq> [] & ab = fst (hd brr)))"
 proof - 

@@ -86,6 +86,6 @@ section \<open>Some setup\<close>
 lemma issued_nil: "issued [] = {Key0}"
 by (auto simp add: initk_def)
 
-lemmas issued_simps[code, code_pred_def] = issued_nil issued.simps(2)
+lemmas issued_simps [code, code_pred_def] = issued_nil issued.simps(2)
 
 end

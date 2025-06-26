@@ -273,9 +273,9 @@ definition %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue
     of (Some x, q') \<Rightarrow> (x, q'))"
 
 lemma %quote strict_dequeue_AQueue [code]:
-  "strict_dequeue (AQueue xs (y # ys)) = (y, AQueue xs ys)"
   "strict_dequeue (AQueue xs []) =
     (case rev xs of y # ys \<Rightarrow> (y, AQueue [] ys))"
+  "strict_dequeue (AQueue xs (y # ys)) = (y, AQueue xs ys)"
   by (simp_all add: strict_dequeue_def) (cases xs, simp_all split: list.split)
 
 text \<open>

@@ -673,10 +673,10 @@ lemma xor_integer_code [code]:
   \<open>Pos (Num.Bit0 m) XOR Pos (Num.Bit1 n) = Pos Num.One + dup (Pos m XOR Pos n)\<close>
   \<open>Pos (Num.Bit1 m) XOR Pos (Num.Bit0 n) = Pos Num.One + dup (Pos m XOR Pos n)\<close>
   \<open>Pos (Num.Bit1 m) XOR Pos (Num.Bit1 n) = dup (Pos m XOR Pos n)\<close>
-  \<open>Neg m XOR k = NOT (sub m num.One XOR k)\<close>
-  \<open>k XOR Neg n = NOT (k XOR (sub n num.One))\<close>
   \<open>Neg Num.One XOR k = NOT k\<close>
   \<open>k XOR Neg Num.One = NOT k\<close>
+  \<open>Neg m XOR k = NOT (sub m num.One XOR k)\<close>
+  \<open>k XOR Neg n = NOT (k XOR (sub n num.One))\<close>
   \<open>0 XOR k = k\<close>
   \<open>k XOR 0 = k\<close>
     for k :: integer
@@ -705,14 +705,6 @@ lemma [code]:
 lemma [code]:
   \<open>flip_bit n k = k XOR push_bit n 1\<close> for k :: integer
   by (fact flip_bit_def)
-
-lemma [code]:
-  \<open>push_bit n k = k * 2 ^ n\<close> for k :: integer
-  by (fact push_bit_eq_mult)
-
-lemma [code]:
-  \<open>drop_bit n k = k div  2 ^ n\<close> for k :: integer
-  by (fact drop_bit_eq_div)
 
 lemma [code]:
   \<open>take_bit n k = k AND mask n\<close> for k :: integer
@@ -828,6 +820,12 @@ proof -
       minus_mod_eq_mult_div [symmetric] *)
 qed
 
+lemma int_of_integer_code_nbe [code nbe]:
+  "int_of_integer 0 = 0"
+  "int_of_integer (Pos n) = Int.Pos n"
+  "int_of_integer (Neg n) = Int.Neg n"
+  by simp_all
+
 lemma int_of_integer_code [code]:
   "int_of_integer k = (if k < 0 then - (int_of_integer (- k))
      else if k = 0 then 0
@@ -837,10 +835,10 @@ lemma int_of_integer_code [code]:
      in if j = 0 then l' else l' + 1)"
   by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
 
-lemma int_of_integer_code_nbe [code nbe]:
-  "int_of_integer 0 = 0"
-  "int_of_integer (Pos n) = Int.Pos n"
-  "int_of_integer (Neg n) = Int.Neg n"
+lemma integer_of_int_code_nbe [code nbe]:
+  "integer_of_int 0 = 0"
+  "integer_of_int (Int.Pos n) = Pos n"
+  "integer_of_int (Int.Neg n) = Neg n"
   by simp_all
 
 lemma integer_of_int_code [code]:
@@ -851,12 +849,6 @@ lemma integer_of_int_code [code]:
        j = k mod 2
      in if j = 0 then l else l + 1)"
   by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
-
-lemma integer_of_int_code_nbe [code nbe]:
-  "integer_of_int 0 = 0"
-  "integer_of_int (Int.Pos n) = Pos n"
-  "integer_of_int (Int.Neg n) = Neg n"
-  by simp_all
 
 hide_const (open) Pos Neg sub dup divmod_abs
 
@@ -1550,12 +1542,12 @@ lemma [code abstract]:
   "integer_of_natural (m mod n) = integer_of_natural m mod integer_of_natural n"
   by transfer (simp add: zmod_int)
 
+lemma [code nbe]: "HOL.equal n (n::natural) \<longleftrightarrow> True"
+  by (rule equal_class.equal_refl)
+
 lemma [code]:
   "HOL.equal m n \<longleftrightarrow> HOL.equal (integer_of_natural m) (integer_of_natural n)"
   by transfer (simp add: equal)
-
-lemma [code nbe]: "HOL.equal n (n::natural) \<longleftrightarrow> True"
-  by (rule equal_class.equal_refl)
 
 lemma [code]: "m \<le> n \<longleftrightarrow> integer_of_natural m \<le> integer_of_natural n"
   by transfer simp

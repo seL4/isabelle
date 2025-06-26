@@ -37,11 +37,15 @@ setup \<open>Sign.parent_path\<close>
 declare case_split [cases type: bool]
   \<comment> \<open>prefer plain propositional version\<close>
 
-lemma [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
-  and [code]: "HOL.equal True P \<longleftrightarrow> P"
-  and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P"
-  and [code]: "HOL.equal P True \<longleftrightarrow> P"
-  and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
+lemma [code]:
+  "HOL.equal False P \<longleftrightarrow> \<not> P"
+  "HOL.equal True P \<longleftrightarrow> P"
+  "HOL.equal P False \<longleftrightarrow> \<not> P"
+  "HOL.equal P True \<longleftrightarrow> P"
+  by (simp_all add: equal)
+
+lemma [code nbe]:
+  "HOL.equal P P \<longleftrightarrow> True" for P :: bool
   by (simp_all add: equal)
 
 lemma If_case_cert:

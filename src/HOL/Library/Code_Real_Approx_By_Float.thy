@@ -61,12 +61,6 @@ qualified definition tan_real :: \<open>real \<Rightarrow> real\<close>
 
 end
 
-lemma [code]: \<open>Ratreal r = (case quotient_of r of (p, q) \<Rightarrow> real_of_int p / real_of_int q)\<close>
-  by (cases r) (simp add: quotient_of_Fract of_rat_rat)
-
-lemma [code]: \<open>inverse r = 1 / r\<close> for r :: real
-  by (fact inverse_eq_divide)
-
 declare [[code drop: \<open>HOL.equal :: real \<Rightarrow> real \<Rightarrow> bool\<close>
   \<open>(\<le>) :: real \<Rightarrow> real \<Rightarrow> bool\<close>
   \<open>(<) :: real \<Rightarrow> real \<Rightarrow> bool\<close>
@@ -75,12 +69,19 @@ declare [[code drop: \<open>HOL.equal :: real \<Rightarrow> real \<Rightarrow> b
   \<open>uminus :: real \<Rightarrow> real\<close>
   \<open>minus :: real \<Rightarrow> real \<Rightarrow> real\<close>
   \<open>divide :: real \<Rightarrow> real \<Rightarrow> real\<close>
+  \<open>inverse :: real \<Rightarrow> real\<close>
   sqrt
   \<open>ln :: real \<Rightarrow> real\<close>
   pi
   arcsin
   arccos
   arctan]]
+
+lemma [code]: \<open>Ratreal r = (case quotient_of r of (p, q) \<Rightarrow> real_of_int p / real_of_int q)\<close>
+  by (cases r) (simp add: quotient_of_Fract of_rat_rat)
+
+lemma [code]: \<open>inverse r = 1 / r\<close> for r :: real
+  by (fact inverse_eq_divide)
 
 code_reserved (SML) Real
 

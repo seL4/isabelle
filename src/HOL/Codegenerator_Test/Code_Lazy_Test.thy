@@ -93,9 +93,6 @@ termination by lexicographic_order
 value [code] "mk_tree 10"
 value [code] "let t = mk_tree 10; _ = subtree [True, True, False, False] t in t"
 
-lemma mk_tree_Suc: "mk_tree (Suc n) = mk_tree n \<triangle> mk_tree n"
-  by(simp add: Let_def)
-lemmas [code] = mk_tree_0 mk_tree_Suc
 value [code] "let t = mk_tree 10; _ = subtree [True, True, False, False] t in t"
 value [code] "let t = mk_tree 4; _ = subtree [True, True, False, False] t in t"
 
@@ -113,51 +110,51 @@ definition f1 :: "bool \<Rightarrow> bool \<Rightarrow> bool \<Rightarrow> nat l
   "f1 _ _ _ _ = ()"
 
 lemma f1_code1 [code]: 
-  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())" 
-  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())" 
-  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())" 
   "f1 True c d \<^bold>[\<^bold>]     = ()"
-  by(simp_all add: f1_def)
+  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())"
+  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())"
+  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())" 
+  by (simp_all add: f1_def)
 
 value [code] "f1 True False False \<^bold>[\<^bold>]"
 deactivate_lazy_type llist
 value [code] "f1 True False False \<^bold>[\<^bold>]"
-declare f1_code1(1) [code del]
+declare f1_code1(4) [code del]
 value [code] "f1 True False False \<^bold>[\<^bold>]"
 activate_lazy_type llist
 value [code] "f1 True False False \<^bold>[\<^bold>]"
 
 declare [[code drop: f1]]
-lemma f1_code2 [code]: 
-  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())" 
-  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())" 
-  "f1 b True d \<^bold>[n\<^bold>]    = ()"
+lemma f1_code2 [code]:
   "f1 True c d \<^bold>[\<^bold>]     = Code.abort (STR ''1'') (\<lambda>_. ())"
-  by(simp_all add: f1_def)
+  "f1 b True d \<^bold>[n\<^bold>]    = ()"
+  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())"
+  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())" 
+  by (simp_all add: f1_def)
 
 value [code] "f1 True True True \<^bold>[0\<^bold>]"
-declare f1_code2(1)[code del]
+declare f1_code2(4)[code del]
 value [code] "f1 True True True \<^bold>[0\<^bold>]"
 
 declare [[code drop: f1]]
 lemma f1_code3 [code]:
-  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())"
-  "f1 b c True \<^bold>[n, m\<^bold>] = ()" 
-  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())"
   "f1 True c d \<^bold>[\<^bold>]     = Code.abort (STR ''1'') (\<lambda>_. ())"
-  by(simp_all add: f1_def)
+  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())"
+  "f1 b c True \<^bold>[n, m\<^bold>] = ()"
+  "f1 b c d    ns     = Code.abort (STR ''4'') (\<lambda>_. ())"
+  by (simp_all add: f1_def)
 
 value [code] "f1 True True True \<^bold>[0, 1\<^bold>]"
-declare f1_code3(1)[code del]
+declare f1_code3(4)[code del]
 value [code] "f1 True True True \<^bold>[0, 1\<^bold>]"
 
 declare [[code drop: f1]]
 lemma f1_code4 [code]:
-  "f1 b c d    ns     = ()" 
-  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())"
-  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())" 
   "f1 True c d \<^bold>[\<^bold>]     = Code.abort (STR ''1'') (\<lambda>_. ())"
-  by(simp_all add: f1_def)
+  "f1 b True d \<^bold>[n\<^bold>]    = Code.abort (STR ''2'') (\<lambda>_. ())" 
+  "f1 b c True \<^bold>[n, m\<^bold>] = Code.abort (STR ''3'') (\<lambda>_. ())"
+  "f1 b c d    ns     = ()" 
+  by (simp_all add: f1_def)
 
 value [code] "f1 True True True \<^bold>[0, 1, 2\<^bold>]"
 value [code] "f1 True True False \<^bold>[0, 1\<^bold>]"
@@ -167,11 +164,11 @@ value [code] "f1 False True True \<^bold>[\<^bold>]"
 definition f2 :: "nat llist llist list \<Rightarrow> unit" where "f2 _ = ()"
 
 lemma f2_code1 [code]:
-  "f2 xs = Code.abort (STR ''a'') (\<lambda>_. ())"
   "f2 [\<^bold>[\<^bold>[\<^bold>]\<^bold>]] = ()"
   "f2 [\<^bold>[\<^bold>[Suc n\<^bold>]\<^bold>]] = ()"
   "f2 [\<^bold>[\<^bold>[0, Suc n\<^bold>]\<^bold>]] = ()"
-  by(simp_all add: f2_def)
+  "f2 xs = Code.abort (STR ''a'') (\<lambda>_. ())"
+  by (simp_all add: f2_def)
 
 value [code] "f2 [\<^bold>[\<^bold>[\<^bold>]\<^bold>]]"
 value [code] "f2 [\<^bold>[\<^bold>[4\<^bold>]\<^bold>]]"
@@ -183,7 +180,7 @@ definition f3 :: "nat set llist \<Rightarrow> unit" where "f3 _ = ()"
 lemma f3_code1 [code]:
   "f3 \<^bold>[\<^bold>] = ()"
   "f3 \<^bold>[A\<^bold>] = ()"
-  by(simp_all add: f3_def)
+  by (simp_all add: f3_def)
 
 value [code] "f3 \<^bold>[\<^bold>]"
 value [code] "f3 \<^bold>[{}\<^bold>]"

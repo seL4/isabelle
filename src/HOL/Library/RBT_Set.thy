@@ -460,6 +460,14 @@ lemma remove_code [code]:
   "Set.remove x (Coset t) = Coset (RBT.insert x () t)"
 by (auto simp: Set_def)
 
+lemma inter_Set [code]:
+  "A \<inter> Set t = rbt_filter (\<lambda>k. k \<in> A) t"
+by (simp flip: Set_filter_rbt_filter add: inter_Set_filter)
+
+lemma union_Set_Set [code]:
+  "Set t1 \<union> Set t2 = Set (RBT.union t1 t2)"
+by (auto simp add: lookup_union map_add_Some_iff Set_def)
+
 lemma union_Set [code]:
   "Set t \<union> A = fold_keys Set.insert t A"
 proof -
@@ -468,10 +476,6 @@ proof -
   from finite_fold_fold_keys[OF comp_fun_commute_axioms]
   show ?thesis by (auto simp add: union_fold_insert)
 qed
-
-lemma inter_Set [code]:
-  "A \<inter> Set t = rbt_filter (\<lambda>k. k \<in> A) t"
-  by (auto simp flip: Set_filter_rbt_filter)
 
 lemma minus_Set [code]:
   "A - Set t = fold_keys Set.remove t A"
@@ -482,24 +486,20 @@ proof -
   show ?thesis by (auto simp add: minus_fold_remove)
 qed
 
-lemma union_Coset [code]:
-  "Coset t \<union> A = - rbt_filter (\<lambda>k. k \<notin> A) t"
-proof -
-  have *: "\<And>A B. (-A \<union> B) = -(-B \<inter> A)" by blast
-  show ?thesis by (simp del: boolean_algebra_class.compl_inf add: * inter_Set)
-qed
- 
-lemma union_Set_Set [code]:
-  "Set t1 \<union> Set t2 = Set (RBT.union t1 t2)"
+lemma inter_Coset_Coset [code]:
+  "Coset t1 \<inter> Coset t2 = Coset (RBT.union t1 t2)"
 by (auto simp add: lookup_union map_add_Some_iff Set_def)
 
 lemma inter_Coset [code]:
   "A \<inter> Coset t = fold_keys Set.remove t A"
 by (simp add: Diff_eq [symmetric] minus_Set)
 
-lemma inter_Coset_Coset [code]:
-  "Coset t1 \<inter> Coset t2 = Coset (RBT.union t1 t2)"
-by (auto simp add: lookup_union map_add_Some_iff Set_def)
+lemma union_Coset [code]:
+  "Coset t \<union> A = - rbt_filter (\<lambda>k. k \<notin> A) t"
+proof -
+  have *: "\<And>A B. (-A \<union> B) = -(-B \<inter> A)" by blast
+  show ?thesis by (simp del: boolean_algebra_class.compl_inf add: * inter_Set)
+qed
 
 lemma minus_Coset [code]:
   "A - Coset t = rbt_filter (\<lambda>k. k \<in> A) t"

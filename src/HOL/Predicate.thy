@@ -533,14 +533,14 @@ definition equal_pred
 instance by standard simp
 
 end
-    
-lemma [code]:
-  "HOL.equal P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P" for P Q :: "'a pred"
-  by auto
 
 lemma [code nbe]:
   "HOL.equal P P \<longleftrightarrow> True" for P :: "'a pred"
   by (fact equal_refl)
+
+lemma [code]:
+  "HOL.equal P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P" for P Q :: "'a pred"
+  by auto
 
 lemma [code]:
   "case_pred f P = f (eval P)"

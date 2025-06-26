@@ -45,7 +45,7 @@ where
 definition keys :: "('a, 'b) rbt \<Rightarrow> 'a list" where
   "keys t = map fst (entries t)"
 
-lemma keys_simps [simp, code]:
+lemma keys_simps [simp]:
   "keys Empty = []"
   "keys (Branch c l k v r) = keys l @ k # keys r"
   by (simp_all add: keys_def)

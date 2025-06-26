@@ -188,8 +188,8 @@ lemma is_none_simps [simp]:
   by (simp_all add: is_none_def)
 
 lemma is_none_code [code]:
-  "is_none None = True"
-  "is_none (Some x) = False"
+  "is_none None \<longleftrightarrow> True"
+  "is_none (Some x) \<longleftrightarrow> False"
   by simp_all
 
 lemma rel_option_unfold:

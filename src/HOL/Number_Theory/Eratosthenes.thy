@@ -223,7 +223,7 @@ next
     from 1 have *: "\<And>q. Suc n < q \<Longrightarrow> q \<le> Suc (n + length bs) \<Longrightarrow>
       bs ! (q - Suc (Suc n)) \<Longrightarrow> \<not> Suc n dvd q \<Longrightarrow> q dvd m \<Longrightarrow> m dvd q"
       by auto
-    from 2 have "\<not> Suc n dvd q" by (auto elim: dvdE)
+    from 2 have "\<not> Suc n dvd q" by auto
     moreover note 3
     moreover note \<open>q dvd m\<close>
     ultimately show ?thesis by (auto intro: *)

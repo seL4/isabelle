@@ -8,16 +8,6 @@ theory DAList_Multiset
 imports Multiset DAList
 begin
 
-text \<open>Delete prexisting code equations\<close>
-
-declare [[code drop: "{#}" Multiset.is_empty add_mset
-  "plus :: 'a multiset \<Rightarrow> _" "minus :: 'a multiset \<Rightarrow> _"
-  inter_mset union_mset image_mset filter_mset count
-  "size :: _ multiset \<Rightarrow> nat" sum_mset prod_mset
-  set_mset sorted_list_of_multiset subset_mset subseteq_mset
-  equal_multiset_inst.equal_multiset]]
-    
-
 text \<open>Raw operations on lists\<close>
 
 definition join_raw ::

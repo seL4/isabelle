@@ -39,7 +39,7 @@ where
 
 partial_function (heap) traverse :: "'a::heap node \<Rightarrow> 'a list Heap"
 where
-  [code del]: "traverse l =
+  "traverse l =
     (case l of Empty \<Rightarrow> return []
      | Node x r \<Rightarrow> do { tl \<leftarrow> Ref.lookup r;
                               xs \<leftarrow> traverse tl;

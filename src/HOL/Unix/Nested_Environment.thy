@@ -516,46 +516,4 @@ next
   qed
 qed
 
-
-subsection \<open>Code generation\<close>
-
-lemma equal_env_code [code]:
-  fixes x y :: "'a::equal"
-    and f g :: "'c::{equal, finite} \<Rightarrow> ('b::equal, 'a, 'c) env option"
-  shows
-    "HOL.equal (Env x f) (Env y g) \<longleftrightarrow>
-      HOL.equal x y \<and> (\<forall>z \<in> UNIV.
-        case f z of
-          None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-        | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> HOL.equal a b))" (is ?env)
-    and "HOL.equal (Val a) (Val b) \<longleftrightarrow> HOL.equal a b"
-    and "HOL.equal (Val a) (Env y g) \<longleftrightarrow> False"
-    and "HOL.equal (Env x f) (Val b) \<longleftrightarrow> False"
-proof (unfold equal)
-  have "f = g \<longleftrightarrow>
-    (\<forall>z. case f z of
-      None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-    | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" (is "?lhs = ?rhs")
-  proof
-    assume ?lhs
-    then show ?rhs by (auto split: option.splits)
-  next
-    assume ?rhs (is "\<forall>z. ?prop z")
-    show ?lhs
-    proof
-      fix z
-      from \<open>?rhs\<close> have "?prop z" ..
-      then show "f z = g z" by (auto split: option.splits)
-    qed
-  qed
-  then show "Env x f = Env y g \<longleftrightarrow>
-    x = y \<and> (\<forall>z \<in> UNIV.
-      case f z of
-        None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
-      | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
-qed simp_all
-
-lemma [code nbe]: "HOL.equal (x :: (_, _, _) env) x \<longleftrightarrow> True"
-  by (fact equal_refl)
-
 end

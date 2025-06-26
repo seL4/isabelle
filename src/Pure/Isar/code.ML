@@ -62,6 +62,10 @@ sig
   val get_case_cong: theory -> string -> thm option
   val is_undefined: theory -> string -> bool
   val print_codesetup: theory -> unit
+
+  (*transitional*)
+  val only_single_equation: bool Config.T
+  val prepend_allowed: bool Config.T
 end;
 
 signature CODE_DATA_ARGS =
@@ -103,6 +107,16 @@ fun string_of_const thy c =
           (Proof_Context.extern_type ctxt tyco)
     | NONE => Proof_Context.extern_const ctxt c
   end;
+
+
+(* transitional *)
+
+val only_single_equation = Attrib.setup_config_bool \<^binding>\<open>code_only_single_equation\<close> (K false);
+val prepend_allowed = Attrib.setup_config_bool \<^binding>\<open>code_prepend_allowed\<close> (K false);
+
+val _ = Theory.setup (Theory.at_end ((fn thy => if Config.get_global thy prepend_allowed
+  then thy |> Config.put_global prepend_allowed false |> SOME
+  else NONE)));
 
 
 (* constants *)
@@ -456,8 +470,12 @@ end; (*local*)
    declarations as "pending" and historize them as proper declarations
    at the end of each theory. *)
 
-fun modify_pending_eqns c f =
-  map_pending_eqns (Symtab.map_default (c, []) f);
+fun modify_pending_eqns thy { check_singleton } c f =
+  map_pending_eqns (Symtab.map_default (c, []) (fn eqns =>
+    if null eqns orelse not check_singleton orelse not (Config.get_global thy only_single_equation)
+    then f eqns
+    else error ("Only a single code equation is allowed for " ^ string_of_const thy c)
+  ));
 
 fun register_fun_spec c spec =
   map_pending_eqns (Symtab.delete_safe c)
@@ -497,7 +515,7 @@ fun historize_pending_fun_specs thy =
       |> SOME
   end;
 
-val _ = Theory.setup (Theory.at_end historize_pending_fun_specs);
+val _ = Theory.setup (Theory.at_end (historize_pending_fun_specs));
 
 
 (** foundation **)
@@ -1374,7 +1392,29 @@ val declare_abstype = code_declaration Liberal Morphism.thm generic_declare_abst
 
 local
 
-fun subsumptive_add thy verbose (thm, proper) eqns =
+fun subsumptive_append thy { verbose } (thm, proper) eqns =
+  let
+    val args_of = drop_prefix is_Var o rev o snd o strip_comb
+      o Term.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
+      o Thm.transfer thy;
+    val args = args_of thm;
+    val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
+    fun matches_args args' =
+      let
+        val k = length args - length args'
+      in k >= 0 andalso Pattern.matchess thy (map incr_idx args', drop k args) end;
+    fun matches (thm', proper') =
+      (not proper orelse proper') andalso matches_args (args_of thm');
+  in
+    if exists matches eqns then
+      (if verbose then warning ("Code generator: ignoring syntactically subsumed code equation\n" ^
+        Thm.string_of_thm_global thy thm) else ();
+      eqns)
+    else
+      eqns @ [(thm |> Thm.close_derivation \<^here> |> Thm.trim_context, proper)]
+  end;
+
+fun subsumptive_prepend thy { verbose } (thm, proper) eqns =
   let
     val args_of = drop_prefix is_Var o rev o snd o strip_comb
       o Term.strip_sorts o fst o Logic.dest_equals o Thm.plain_prop_of
@@ -1387,21 +1427,30 @@ fun subsumptive_add thy verbose (thm, proper) eqns =
       in k >= 0 andalso Pattern.matchess thy (args, (map incr_idx o drop k) args') end;
     fun drop (thm', proper') = if (proper orelse not proper')
       andalso matches_args (args_of thm') then
-        (if verbose then warning ("Code generator: dropping subsumed code equation\n" ^
-            Thm.string_of_thm_global thy thm') else (); true)
+        (if verbose then warning ("Code generator: dropping syntactically subsumed code equation\n" ^
+          Thm.string_of_thm_global thy thm') else (); true)
       else false;
   in (thm |> Thm.close_derivation \<^here> |> Thm.trim_context, proper) :: filter_out drop eqns end;
 
-fun add_eqn_for (c, eqn) thy =
-  thy |> modify_specs (modify_pending_eqns c (subsumptive_add thy true eqn));
+fun subsumptive_add thy { verbose, prepend } =
+  if prepend then
+    if Config.get_global thy prepend_allowed
+    then subsumptive_prepend thy { verbose = verbose }
+    else error "Not allowed to prepend code equation"
+  else
+    subsumptive_append thy { verbose = verbose };
 
-fun add_eqns_for default (c, proto_eqns) thy =
+fun add_eqn_for { check_singleton, prepend } (c, eqn) thy =
+  thy |> (modify_specs o modify_pending_eqns thy { check_singleton = check_singleton } c)
+    (subsumptive_add thy { verbose = true, prepend = prepend } eqn);
+
+fun add_eqns_for { default } (c, proto_eqns) thy =
   thy |> modify_specs (fn specs =>
     if is_default (lookup_fun_spec specs c) orelse not default
     then
       let
         val eqns = []
-          |> fold_rev (subsumptive_add thy (not default)) proto_eqns;
+          |> fold (subsumptive_append thy { verbose = not default }) proto_eqns;
       in specs |> register_fun_spec c (Eqns (default, eqns)) end
     else specs);
 
@@ -1411,35 +1460,38 @@ fun add_abstract_for (c, (thm, tyco_abs as (tyco, _))) =
 
 in
 
-fun generic_declare_eqns default strictness raw_eqns thy =
-  fold (add_eqns_for default) (prep_eqns strictness thy raw_eqns) thy;
+fun generic_declare_eqns { default } strictness raw_eqns thy =
+  fold (add_eqns_for { default = default }) (prep_eqns strictness thy raw_eqns) thy;
 
-fun generic_add_eqn strictness raw_eqn thy =
-  fold add_eqn_for (the_list (prep_eqn strictness thy raw_eqn)) thy;
+fun generic_add_eqn { strictness, prepend } raw_eqn thy =
+  fold (add_eqn_for { check_singleton = false, prepend = prepend }) (the_list (prep_eqn strictness thy raw_eqn)) thy;
 
 fun generic_declare_abstract_eqn strictness raw_abs_eqn thy =
   fold add_abstract_for (the_list (prep_abs_eqn strictness thy raw_abs_eqn)) thy;
 
 fun add_maybe_abs_eqn_liberal thm thy =
   case prep_maybe_abs_eqn thy thm
-   of SOME (c, (eqn, NONE)) => add_eqn_for (c, eqn) thy
+   of SOME (c, (eqn, NONE)) => add_eqn_for { check_singleton = true, prepend = false } (c, eqn) thy
     | SOME (c, ((thm, _), SOME tyco)) => add_abstract_for (c, (thm, tyco)) thy
     | NONE => thy;
 
 end;
 
-val declare_default_eqns_global = generic_declare_eqns true Silent;
-val declare_default_eqns = code_declaration Silent (map o apfst o Morphism.thm) (generic_declare_eqns true);
+val declare_default_eqns_global = generic_declare_eqns { default = true } Silent;
+val declare_default_eqns = code_declaration Silent (map o apfst o Morphism.thm)
+  (generic_declare_eqns { default = true });
 
-val declare_eqns_global = generic_declare_eqns false Strict;
-val declare_eqns = code_declaration Liberal (map o apfst o Morphism.thm) (generic_declare_eqns false);
+val declare_eqns_global = generic_declare_eqns { default = false } Strict;
+val declare_eqns = code_declaration Liberal (map o apfst o Morphism.thm)
+  (generic_declare_eqns  { default = false });
 
-val add_eqn_global = generic_add_eqn Strict;
+val add_eqn_global = generic_add_eqn { strictness = Strict, prepend = false };
 
 fun del_eqn_global thm thy =
   case prep_eqn Liberal thy (thm, false) of
     SOME (c, (thm, _)) =>
-      modify_specs (modify_pending_eqns c (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm')))) thy
+      (modify_specs o modify_pending_eqns thy { check_singleton = false } c)
+        (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm'))) thy
   | NONE => thy;
 
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
@@ -1514,9 +1566,11 @@ val _ = Theory.setup
   (let
     val code_attribute_parser =
       code_thm_attribute (Args.$$$ "equation")
-        (fn thm => generic_add_eqn Liberal (thm, true))
+        (fn thm => generic_add_eqn { strictness = Liberal, prepend = false } (thm, true))
+      || code_thm_attribute (Args.$$$ "prepend")
+          (fn thm => generic_add_eqn { strictness = Liberal, prepend = true } (thm, true))
       || code_thm_attribute (Args.$$$ "nbe")
-          (fn thm => generic_add_eqn Liberal (thm, false))
+          (fn thm => generic_add_eqn { strictness = Liberal, prepend = false } (thm, false))
       || code_thm_attribute (Args.$$$ "abstract")
           (generic_declare_abstract_eqn Liberal)
       || code_thm_attribute (Args.$$$ "abstype")
