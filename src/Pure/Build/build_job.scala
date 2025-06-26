@@ -172,7 +172,7 @@ object Build_Job {
 
           val session =
             new Session(options) {
-              override val store: Store = store
+              override val store: Store = build_context.store
 
               override val resources: Resources =
                 new Resources(session_background, log = log,
