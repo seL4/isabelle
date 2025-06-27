@@ -128,9 +128,6 @@ abstract class Session extends Document.Session {
 
   def resources: Resources = Resources.bootstrap
 
-  val init_time: Time = Time.now()
-  def print_now(): String = (Time.now() - init_time).toString
-
   val store: Store = Store(session_options)
   def cache: Rich_Text.Cache = store.cache
 
@@ -803,4 +800,10 @@ abstract class Session extends Document.Session {
 
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String): Unit =
     manager.send(Session.Dialog_Result(id, serial, result))
+
+
+  /* diagnostics */
+
+  val init_time: Time = Time.now()
+  def print_now(): String = (Time.now() - init_time).toString
 }
