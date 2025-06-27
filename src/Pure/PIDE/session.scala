@@ -273,11 +273,6 @@ abstract class Session extends Document.Session {
   def auto_resolve: Boolean = true
   def deps_changed(): Unit = {}
 
-  def commit_change(change: Session.Change): Unit =
-    if (change.deps_changed || auto_resolve && resources.undefined_blobs(change.version).nonEmpty) {
-      deps_changed()
-    }
-
 
   /* buffered changes */
 
@@ -467,7 +462,10 @@ abstract class Session extends Document.Session {
       global_state.change(_.define_version(change.version, assignment))
 
       prover.get.update(change.previous.id, change.version.id, change.doc_edits, change.consolidate)
-      commit_change(change)
+
+      if (change.deps_changed || auto_resolve && resources.undefined_blobs(change.version).nonEmpty) {
+        deps_changed()
+      }
     //}}}
     }
 
