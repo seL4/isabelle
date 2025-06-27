@@ -274,16 +274,15 @@ class Language_Server(
           if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
         }
 
-        val resources =
+        val session_resources =
           new VSCode_Resources(options, session_background, log) {
             override def commit(change: Session.Change): Unit =
               if (change.deps_changed || undefined_blobs(change.version).nonEmpty) {
                 delay_load.invoke()
               }
           }
-
         val session_options = options.bool.update("editor_output_state", true)
-        val session = new VSCode_Session(session_options, resources)
+        val session = new VSCode_Session(session_options, session_resources)
 
         Some((session_background, session))
       }
