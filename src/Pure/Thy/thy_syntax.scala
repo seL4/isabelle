@@ -67,7 +67,7 @@ object Thy_Syntax {
   /** header edits: graph structure and outer syntax **/
 
   private def header_edits(
-    resources: Resources,
+    session_base: Sessions.Base,
     previous: Document.Version,
     edits: List[Document.Edit_Text]
   ): (List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) = {
@@ -102,9 +102,9 @@ object Thy_Syntax {
           val header = node.header
           val imports_syntax =
             if (header.imports.nonEmpty) {
-              Outer_Syntax.merge(header.imports.map(resources.session_base.node_syntax(nodes, _)))
+              Outer_Syntax.merge(header.imports.map(session_base.node_syntax(nodes, _)))
             }
-            else resources.session_base.overall_syntax
+            else session_base.overall_syntax
           Some(imports_syntax + header)
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -301,13 +301,15 @@ object Thy_Syntax {
     edits: List[Document.Edit_Text],
     consolidate: List[Document.Node.Name]
   ): Session.Change = {
-    val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
+    val session_base = resources.session_base
+
+    val (syntax_changed, nodes0, doc_edits0) = header_edits(session_base, previous, edits)
 
     def get_blob(name: Document.Node.Name): Option[Document.Blobs.Item] =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =
-      resources.session_base.loaded_theory(name) || nodes0(name).has_header
+      session_base.loaded_theory(name) || nodes0(name).has_header
 
     val (doc_edits, version) =
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
@@ -332,7 +334,7 @@ object Thy_Syntax {
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
-            val syntax = resources.session_base.node_syntax(nodes, name)
+            val syntax = session_base.node_syntax(nodes, name)
             val commands = node.commands
 
             val node1 =
