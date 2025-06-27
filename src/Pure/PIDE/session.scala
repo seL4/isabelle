@@ -265,7 +265,7 @@ class Session(_session_options: => Options) extends Document.Session {
       val prev = previous.get_finished
       val change =
         Timing.timeit(
-          resources.parse_change(reparse_limit, prev, doc_blobs, text_edits, consolidate),
+          Thy_Syntax.parse_change(resources, reparse_limit, prev, doc_blobs, text_edits, consolidate),
           message = _ => "parse_change",
           enabled = timing)
       version_result.fulfill(change.version)

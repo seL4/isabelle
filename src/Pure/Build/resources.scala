@@ -242,17 +242,6 @@ class Resources(
     } yield name).toList
 
 
-  /* document changes */
-
-  def parse_change(
-      reparse_limit: Int,
-      previous: Document.Version,
-      doc_blobs: Document.Blobs,
-      edits: List[Document.Edit_Text],
-      consolidate: List[Document.Node.Name]): Session.Change =
-    Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits, consolidate)
-
-
   /* theory and file dependencies */
 
   def dependencies(
