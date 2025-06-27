@@ -125,7 +125,7 @@ object JEdit_Session {
     }
 
 
-  /* session build process */
+  /* build session */
 
   def session_background(options: Options): Sessions.Background =
     Sessions.background(options,
@@ -141,24 +141,27 @@ object JEdit_Session {
   def session_build_ok(): Boolean =
     session_no_build || PIDE.session.build_ok(dirs = session_dirs)
 
+
+  /* start session */
+
+  def session_modes(options: Options): List[String] =
+    (space_explode(',', options.string("jedit_print_mode")) :::
+     space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse
+
   def session_start(): Unit = {
     val session = PIDE.session
     val store = session.store
-    val session_background = PIDE.resources.session_background
-    val session_heaps =
-      store.session_heaps(session_background, logic = session_background.session_name)
+    val session_background = session.resources.session_background
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 
-    Isabelle_Process.start(store.options, session, session_background, session_heaps,
-      modes =
-        (space_explode(',', store.options.string("jedit_print_mode")) :::
-         space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE"))).reverse)
+    Isabelle_Process.start(store.options, session, session_background,
+      store.session_heaps(session_background, logic = session_background.session_name),
+      modes = session_modes(store.options))
   }
 }
 
 class JEdit_Session(_session_options: => Options) extends Session(_session_options) {
   override val resources: JEdit_Resources = JEdit_Resources(_session_options)
-
   override val store: Store = Store(JEdit_Session.session_options(_session_options))
 }
