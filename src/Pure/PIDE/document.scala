@@ -818,7 +818,9 @@ object Document {
   /* model */
 
   trait Session {
+    def session_options: Options
     def resources: Resources
+    def store: Store
   }
 
   trait Model {
