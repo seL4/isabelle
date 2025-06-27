@@ -118,6 +118,15 @@ object Session {
     def functions: Protocol_Functions = Nil
     def prover_options(options: Options): Options = options
   }
+
+
+  /* bootstrap session */
+
+  def bootstrap(options: Options): Session =
+    new Session {
+      override def session_options: Options = options
+      override def resources: Resources = Resources.bootstrap
+    }
 }
 
 
@@ -125,8 +134,7 @@ abstract class Session extends Document.Session {
   session =>
 
   def session_options: Options
-
-  def resources: Resources = Resources.bootstrap
+  def resources: Resources
 
   val store: Store = Store(session_options)
   def cache: Rich_Text.Cache = store.cache
