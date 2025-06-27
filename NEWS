@@ -137,7 +137,7 @@ subset_refl, subset_trans, vimageD, vimageE, vimageI, vimageI2, vimage_Collect,
 vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation instead.
 
 * Clarified semantics for adding code equations
-  * Code equations from preceeding theories are superseded.
+  * Code equations from preceding theories are superseded.
   * Code equations declared in the course of a theory are appended, not
     prepended.
 INCOMPATIBILITY.
