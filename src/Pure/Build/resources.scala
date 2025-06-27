@@ -252,8 +252,6 @@ class Resources(
       consolidate: List[Document.Node.Name]): Session.Change =
     Thy_Syntax.parse_change(resources, reparse_limit, previous, doc_blobs, edits, consolidate)
 
-  def commit(change: Session.Change): Unit = {}
-
 
   /* theory and file dependencies */
 

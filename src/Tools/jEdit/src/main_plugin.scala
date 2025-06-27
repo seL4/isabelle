@@ -78,7 +78,12 @@ class Main_Plugin extends EBPlugin {
   /* session */
 
   private var _session: JEdit_Session = null
-  private def init_session(): Unit = { _session = new JEdit_Session(options.value) }
+  private def init_session(): Unit = {
+    _session =
+      new JEdit_Session(options.value) {
+        override def deps_changed(): Unit = delay_load.invoke()
+      }
+  }
   def session: JEdit_Session = _session
 
 
@@ -104,8 +109,6 @@ class Main_Plugin extends EBPlugin {
       }
     }
 
-  def deps_changed(): Unit = delay_load.invoke()
-
   private val delay_load_active = Synchronized(false)
   private def delay_load_finished(): Unit = delay_load_active.change(_ => false)
   private def delay_load_activated(): Boolean =
@@ -119,7 +122,7 @@ class Main_Plugin extends EBPlugin {
         session.resources.resolve_dependencies(models.values, PIDE.editor.document_required())
 
       val aux_files =
-        if (session.resources.auto_resolve) {
+        if (session.auto_resolve) {
           session.stable_tip_version(models.values) match {
             case Some(version) => session.resources.undefined_blobs(version)
             case None => delay_load.invoke(); Nil

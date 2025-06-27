@@ -53,7 +53,7 @@ object JEdit_Options {
   object continuous_checking extends Bool_Access("editor_continuous_checking") {
     override def changed(): Unit = {
       super.changed()
-      PIDE.plugin.deps_changed()
+      PIDE.session.deps_changed()
     }
 
     class GUI extends Bool_GUI(this, "Continuous checking") {

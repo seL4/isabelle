@@ -60,7 +60,7 @@ class JEdit_Editor extends Editor[View] {
 
   def state_changed(): Unit = {
     GUI_Thread.later { flush() }
-    PIDE.plugin.deps_changed()
+    PIDE.session.deps_changed()
     session.global_options.post(Session.Global_Options(PIDE.options.value))
   }
 

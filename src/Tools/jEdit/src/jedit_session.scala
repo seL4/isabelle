@@ -164,4 +164,6 @@ object JEdit_Session {
 class JEdit_Session(_session_options: => Options) extends Session(_session_options) {
   override val resources: JEdit_Resources = JEdit_Resources(_session_options)
   override val store: Store = Store(JEdit_Session.session_options(_session_options))
+
+  override def auto_resolve: Boolean = session_options.bool("jedit_auto_resolve")
 }

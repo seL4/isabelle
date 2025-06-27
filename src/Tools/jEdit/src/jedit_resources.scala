@@ -129,18 +129,4 @@ extends Resources(session_background) {
   }
 
   def make_file_content(buffer: Buffer): Bytes = (new File_Content_Request(buffer)).content()
-
-
-  /* theory text edits */
-
-  def auto_resolve: Boolean = PIDE.options.bool("jedit_auto_resolve")
-
-  override def commit(change: Session.Change): Unit = {
-    if (change.syntax_changed.nonEmpty) {
-      GUI_Thread.later { Document_Model.syntax_changed(change.syntax_changed) }
-    }
-    if (change.deps_changed || auto_resolve && undefined_blobs(change.version).nonEmpty) {
-      PIDE.plugin.deps_changed()
-    }
-  }
 }
