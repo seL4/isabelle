@@ -121,15 +121,17 @@ object Session {
 }
 
 
-class Session(_session_options: => Options) extends Document.Session {
+abstract class Session extends Document.Session {
   session =>
+
+  def session_options: Options
 
   def resources: Resources = Resources.bootstrap
 
   val init_time: Time = Time.now()
   def print_now(): String = (Time.now() - init_time).toString
 
-  val store: Store = Store(_session_options)
+  val store: Store = Store(session_options)
   def cache: Rich_Text.Cache = store.cache
 
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
@@ -153,8 +155,6 @@ class Session(_session_options: => Options) extends Document.Session {
 
 
   /* dynamic session options */
-
-  def session_options: Options = _session_options
 
   def load_delay: Time = session_options.seconds("editor_load_delay")
   def input_delay: Time = session_options.seconds("editor_input_delay")

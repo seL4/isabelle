@@ -47,8 +47,10 @@ object Headless {
     session_name: String,
     _session_options: => Options,
     _resources: Headless.Resources)
-  extends isabelle.Session(_session_options) {
+  extends isabelle.Session {
     session =>
+
+    override def session_options: Options = _session_options
 
     override def resources: Headless.Resources = _resources
 

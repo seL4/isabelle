@@ -171,7 +171,9 @@ object Build_Job {
           /* session */
 
           val session =
-            new Session(options) {
+            new Session {
+              override def session_options: Options = options
+
               override val store: Store = build_context.store
 
               override val resources: Resources =

@@ -627,7 +627,7 @@ object Find_Facts {
   ): Unit = {
     val solr = Solr.init(solr_data_dir)
     val database = options.string("find_facts_database_name")
-    val session = Session(options)
+    val session = new Session { override def session_options: Options = options }
 
     val selection = Sessions.Selection(sessions = sessions)
     val sessions_structure =

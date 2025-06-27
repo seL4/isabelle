@@ -13,6 +13,7 @@ import isabelle._
 class VSCode_Session(
   _session_options: => Options,
   _resources: VSCode_Resources
-) extends Session(_session_options) {
+) extends Session {
+  override def session_options: Options = _session_options
   override def resources: VSCode_Resources = _resources
 }
