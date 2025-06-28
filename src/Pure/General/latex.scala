@@ -254,7 +254,7 @@ object Latex {
     ): String = {
       var line = 1
       val result = new mutable.ListBuffer[String]
-      val positions = new mutable.ListBuffer[String] ++= init_position(file_pos)
+      val positions = mutable.ListBuffer.from(init_position(file_pos))
 
       val file_position = if (file_pos.isEmpty) Position.none else Position.File(file_pos)
 

@@ -326,7 +326,7 @@ object Thy_Syntax {
         val reparse_set = reparse.toSet
 
         var nodes = nodes0
-        val doc_edits = new mutable.ListBuffer[Document.Edit_Command]; doc_edits ++= doc_edits0
+        val doc_edits = mutable.ListBuffer.from(doc_edits0)
 
         val node_edits =
           (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
