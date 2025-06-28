@@ -169,7 +169,8 @@ object Thy_Syntax {
     can_import: Document.Node.Name => Boolean,
     node_name: Document.Node.Name,
     commands: Linear_Set[Command],
-    first: Command, last: Command
+    first: Command,
+    last: Command
   ): Linear_Set[Command] = {
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
@@ -345,7 +346,7 @@ object Thy_Syntax {
               edits.foldLeft(node1)(
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
-              if (reparse_set.contains(name)) {
+              if (reparse_set(name)) {
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit,
                   node2, (name, node2.edit_perspective))
               }
