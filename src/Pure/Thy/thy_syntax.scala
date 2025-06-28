@@ -294,13 +294,14 @@ object Thy_Syntax {
   }
 
   def parse_change(
-    resources: Resources,
+    session: Session,
     reparse_limit: Int,
     previous: Document.Version,
     doc_blobs: Document.Blobs,
     edits: List[Document.Edit_Text],
     consolidate: List[Document.Node.Name]
   ): Session.Change = {
+    val resources = session.resources
     val session_base = resources.session_base
 
     val (syntax_changed, nodes0, doc_edits0) = header_edits(session_base, previous, edits)
