@@ -120,13 +120,13 @@ object Thy_Syntax {
   /* edit individual command source */
 
   @tailrec def edit_text(
-    eds: List[Text.Edit],
+    text_edits: List[Text.Edit],
     commands: Linear_Set[Command]
   ): Linear_Set[Command] = {
-    eds match {
+    text_edits match {
       case e :: es =>
         def insert_text(cmd: Option[Command], text: String): Linear_Set[Command] =
-          if (text == "") commands else commands.insert_after(cmd, Command.unparsed(text))
+          if (text.isEmpty) commands else commands.insert_after(cmd, Command.unparsed(text))
 
         Document.Node.Commands.starts(commands.iterator).find {
           case (cmd, cmd_start) =>
@@ -135,8 +135,7 @@ object Thy_Syntax {
         } match {
           case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
             val (rest, text) = e.edit(cmd.source, cmd_start)
-            val new_commands = insert_text(Some(cmd), text) - cmd
-            edit_text(rest.toList ::: es, new_commands)
+            edit_text(rest.toList ::: es, insert_text(Some(cmd), text) - cmd)
 
           case Some((cmd, _)) =>
             edit_text(es, insert_text(Some(cmd), e.text))
@@ -249,8 +248,7 @@ object Thy_Syntax {
 
       case (name, Document.Node.Edits(text_edits)) =>
         if (name.is_theory) {
-          val commands0 = node.commands
-          val commands1 = edit_text(text_edits, commands0)
+          val commands1 = edit_text(text_edits, node.commands)
           val commands2 = recover_spans(name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
