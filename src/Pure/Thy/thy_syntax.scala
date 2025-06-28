@@ -328,9 +328,7 @@ object Thy_Syntax {
         var nodes = nodes0
         val doc_edits = mutable.ListBuffer.from(doc_edits0)
 
-        val node_edits =
-          (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
-            .asInstanceOf[Map[Document.Node.Name, List[Document.Edit_Text]]]  // FIXME ???
+        val node_edits = (edits ::: reparse.map((_, Document.Node.Edits(Nil)))).groupBy(_._1)
 
         node_edits foreach {
           case (name, edits) =>
