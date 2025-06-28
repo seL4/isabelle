@@ -49,7 +49,7 @@ object Document {
       changed: Boolean
     ) {
       def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
-      def unchanged: Item = copy(changed = false)
+      def unchanged: Item = if (changed) copy(changed = false) else this
     }
 
     def apply(blobs: Map[Node.Name, Item]): Blobs = new Blobs(blobs)
