@@ -295,7 +295,6 @@ object Thy_Syntax {
 
   def parse_change(
     session: Session,
-    reparse_limit: Int,
     previous: Document.Version,
     doc_blobs: Document.Blobs,
     edits: List[Document.Edit_Text],
@@ -303,6 +302,7 @@ object Thy_Syntax {
   ): Session.Change = {
     val resources = session.resources
     val session_base = resources.session_base
+    val reparse_limit = session.reparse_limit
 
     val (syntax_changed, nodes0, doc_edits0) = header_edits(session_base, previous, edits)
 

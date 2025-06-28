@@ -269,8 +269,7 @@ abstract class Session extends Document.Session {
     case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
       val prev = previous.get_finished
       val change =
-        Timing.timeit(
-          Thy_Syntax.parse_change(session, reparse_limit, prev, doc_blobs, text_edits, consolidate),
+        Timing.timeit(Thy_Syntax.parse_change(session, prev, doc_blobs, text_edits, consolidate),
           message = _ => "parse_change",
           enabled = timing)
       version_result.fulfill(change.version)
