@@ -626,6 +626,14 @@ object Markup {
   val NO_REPORT = "no_report"
 
   val BAD = "bad"
+  object Bad {
+    def apply(serial: Long): Markup = Markup(BAD, Serial(serial))
+    def unapply(markup: Markup): Option[Long] =
+      markup match {
+        case Markup(BAD, Serial(i)) => Some(i)
+        case _ => None
+      }
+  }
 
   val INTENSIFY = "intensify"
 

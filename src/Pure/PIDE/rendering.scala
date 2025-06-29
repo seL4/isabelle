@@ -454,7 +454,7 @@ class Rendering(
               case ((markups, color), Text.Info(_, XML.Elem(markup, _)))
               if markups.nonEmpty && Document_Status.Command_Status.proper_elements(markup.name) =>
                 Some((markup :: markups, color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
+              case (_, Text.Info(_, XML.Elem(Markup.Bad(_), _))) =>
                 Some((Nil, Some(Rendering.Color.bad)))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 Some((Nil, Some(Rendering.Color.intensify)))
@@ -666,7 +666,7 @@ class Rendering(
         {
           case (info, Text.Info(_, XML.Elem(Markup.Timing(t), _))) => Some(info.add_timing(t))
 
-          case (info, Text.Info(r0, msg @ XML.Elem(Markup(Markup.BAD, Markup.Serial(i)), body)))
+          case (info, Text.Info(r0, msg @ XML.Elem(Markup.Bad(i), body)))
           if body.nonEmpty => Some(info.add_message(r0, i, msg))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, props), _)))

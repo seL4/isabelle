@@ -142,7 +142,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       model.content.text_range, Command.Results.empty, VSCode_Rendering.diagnostics_elements,
         command_states =>
           {
-            case (res, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, Markup.Serial(i)), body)))
+            case (res, Text.Info(_, msg @ XML.Elem(Markup.Bad(i), body)))
             if body.nonEmpty => Some(res + (i -> msg))
 
             case (res, Text.Info(_, msg)) =>
