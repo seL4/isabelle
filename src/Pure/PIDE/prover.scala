@@ -59,6 +59,9 @@ object Prover {
       case _ => throw new Malformed("single chunk expected: " + print)
     }
 
+  class System_Output(text: String) extends
+    Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
+
   class Protocol_Output(props: Properties.T, val chunks: List[Bytes])
   extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil)) {
     def chunk: Bytes = the_chunk(chunks, toString)
@@ -75,13 +78,11 @@ class Prover(
 ) extends Protocol {
   /** receiver output **/
 
-  private def system_output(text: String): Unit = {
-    receiver(new Prover.Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
-  }
+  private def system_output(text: String): Unit =
+    receiver(new Prover.System_Output(text))
 
-  private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit = {
+  private def protocol_output(props: Properties.T, chunks: List[Bytes]): Unit =
     receiver(new Prover.Protocol_Output(props, chunks))
-  }
 
   private def output(kind: String, props: Properties.T, body: XML.Body): Unit = {
     val main = XML.Elem(Markup(kind, props), Protocol_Message.clean_reports(body))
