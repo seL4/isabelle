@@ -157,22 +157,27 @@ object Thy_Syntax {
     theory_name: String,
     theory_node: Document.Node,
   ): Document.Node = {
-    val command = session.read_theory(theory_name)  // FIXME handle errors
+    Exn.capture(session.read_theory(theory_name)) match {
+      case Exn.Res(command) =>
+        val thy_ok = command.source == theory_node.source
+        val blobs_changed =
+          for {
+            case Exn.Res(blob) <- command.blobs
+            (digest, _) <- blob.content
+            doc_blob <- doc_blobs.get(blob.name)
+            if digest != doc_blob.bytes.sha1_digest
+          } yield blob.name
 
-    val thy_ok = command.source == theory_node.source
-    val blobs_changed =
-      for {
-        case Exn.Res(blob) <- command.blobs
-        (digest, _) <- blob.content
-        doc_blob <- doc_blobs.get(blob.name)
-        if digest != doc_blob.bytes.sha1_digest
-      } yield blob.name
+        val command1 =
+          if (thy_ok && blobs_changed.isEmpty) command
+          else command // FIXME errors as markup
 
-    val command1 =
-      if (thy_ok && blobs_changed.isEmpty) command
-      else command // FIXME errors as markup
+        theory_node.update_commands(Linear_Set(command1))
 
-    theory_node.update_commands(Linear_Set(command1))
+      case Exn.Exn(exn) =>
+        session.system_output(Output.error_message_text(Exn.print(exn)))
+        theory_node
+    }
   }
 
 
