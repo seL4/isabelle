@@ -707,7 +707,8 @@ Usage: isabelle build_worker [OPTIONS]
 
   def read_theory(
     theory_context: Export.Theory_Context,
-    unicode_symbols: Boolean = false
+    unicode_symbols: Boolean = false,
+    migrate_file: String => String = identity
   ): Option[Document.Snapshot] = {
     def decode(str: String): String = Symbol.output(unicode_symbols, str)
 
@@ -721,19 +722,22 @@ Usage: isabelle build_worker [OPTIONS]
 
     for {
       id <- theory_context.document_id()
-      (thy_file, blobs_files) <- theory_context.files(permissive = true)
+      (thy_file0, blobs_files0) <- theory_context.files(permissive = true)
     }
     yield {
+      val thy_file = migrate_file(thy_file0)
+
       val master_dir =
         Path.explode(Url.strip_base_name(thy_file).getOrElse(
           error("Cannot determine theory master directory: " + quote(thy_file))))
 
       val blobs =
-        blobs_files.map { name =>
+        blobs_files0.map { name0 =>
+          val name = migrate_file(name0)
           val path = Path.explode(name)
           val src_path = File.perhaps_relative_path(master_dir, path)
 
-          val file = read_source_file(name)
+          val file = read_source_file(name0)
           val bytes = file.bytes
           val text = decode(bytes.text)
           val chunk = Symbol.Text_Chunk(text)
@@ -742,7 +746,7 @@ Usage: isabelle build_worker [OPTIONS]
             Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
 
-      val thy_source = decode(read_source_file(thy_file).bytes.text)
+      val thy_source = decode(read_source_file(thy_file0).bytes.text)
       val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)

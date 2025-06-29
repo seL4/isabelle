@@ -76,7 +76,7 @@ object Thy_Syntax {
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
 
     edits foreach {
-      case (name, Document.Node.Deps(header)) =>
+      case (name, Document.Node.Deps(header)) if !session_base.loaded_theory(name) =>
         val node = nodes(name)
         val update_header =
           node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
@@ -149,6 +149,33 @@ object Thy_Syntax {
   }
 
 
+  /* reload theory from session store */
+
+  def reload_theory(
+    session: Session,
+    doc_blobs: Document.Blobs,
+    theory_name: String,
+    theory_node: Document.Node,
+  ): Document.Node = {
+    val command = session.read_theory(theory_name)  // FIXME handle errors
+
+    val thy_ok = command.source == theory_node.source
+    val blobs_changed =
+      for {
+        case Exn.Res(blob) <- command.blobs
+        (digest, _) <- blob.content
+        doc_blob <- doc_blobs.get(blob.name)
+        if digest != doc_blob.bytes.sha1_digest
+      } yield blob.name
+
+    val command1 =
+      if (thy_ok && blobs_changed.isEmpty) command
+      else command // FIXME errors as markup
+
+    theory_node.update_commands(Linear_Set(command1))
+  }
+
+
   /* reparse range of command spans */
 
   @tailrec private def chop_common(
@@ -172,6 +199,8 @@ object Thy_Syntax {
     first: Command,
     last: Command
   ): Linear_Set[Command] = {
+    require(!resources.session_base.loaded_theory(node_name))
+
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
       syntax.parse_spans(cmds0.iterator.map(_.source).mkString).map(span =>
@@ -219,6 +248,8 @@ object Thy_Syntax {
     node: Document.Node,
     edit: Document.Edit_Text
   ): Document.Node = {
+    val session_base = resources.session_base
+
     /* recover command spans after edits */
     // FIXME somewhat slow
     def recover_spans(
@@ -250,12 +281,16 @@ object Thy_Syntax {
       case (name, Document.Node.Edits(text_edits)) =>
         if (name.is_theory) {
           val commands1 = edit_text(text_edits, node.commands)
-          val commands2 = recover_spans(name, node.perspective.visible, commands1)
+          val commands2 =
+            if (session_base.loaded_theory(name)) commands1
+            else recover_spans(name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
         else node
 
       case (_, Document.Node.Deps(_)) => node
+
+      case (name, Document.Node.Perspective(_, _, _)) if session_base.loaded_theory(name) => node
 
       case (name, Document.Node.Perspective(required, text_perspective, overlays)) =>
         val (visible, visible_overlay) = command_perspective(node, text_perspective, overlays)
@@ -336,17 +371,20 @@ object Thy_Syntax {
             val commands = node.commands
 
             val node1 =
-              if (reparse_set(name) && commands.nonEmpty) {
+              if (!session_base.loaded_theory(name) && reparse_set(name) && commands.nonEmpty) {
                 node.update_commands(
                   reparse_spans(resources, syntax, get_blob, can_import, name,
-                    commands, commands.head, commands.last))
+                  commands, commands.head, commands.last))
               }
               else node
             val node2 =
               edits.foldLeft(node1)(
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
-              if (reparse_set(name)) {
+              if (session_base.loaded_theory(name)) {
+                reload_theory(session, doc_blobs, name.theory, node)
+              }
+              else if (reparse_set(name)) {
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit,
                   node2, (name, node2.edit_perspective))
               }
@@ -356,7 +394,9 @@ object Thy_Syntax {
               doc_edits += (name -> node3.perspective)
             }
 
-            doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))
+            if (!session_base.loaded_theory(name)) {
+              doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))
+            }
 
             nodes += (name -> node3)
         }

@@ -12,6 +12,9 @@ import scala.collection.immutable.Queue
 import scala.collection.mutable
 import scala.annotation.tailrec
 
+import java.util.{Collections, WeakHashMap, Map => JMap}
+import java.lang.ref.WeakReference
+
 
 object Session {
   /* outlets */
@@ -151,6 +154,28 @@ abstract class Session extends Document.Session {
     Export.open_session_context(
       store, resources.session_background, document_snapshot = document_snapshot)
   }
+
+  private val read_theory_cache = new WeakHashMap[String, WeakReference[Command]]
+
+  def read_theory(name: String): Command =
+    read_theory_cache.synchronized {
+      Option(read_theory_cache.get(name)).map(_.get) match {
+        case Some(command: Command) => command
+        case _ =>
+          val snapshot =
+            using(open_session_context()) { session_context =>
+              Build.read_theory(session_context.theory(name),
+                unicode_symbols = true,
+                migrate_file = (a: String) => session.resources.append_path("", Path.explode(a)))
+            }
+          snapshot.map(_.snippet_commands) match {
+            case Some(List(command)) =>
+              read_theory_cache.put(name, new WeakReference(command))
+              command
+            case _ => error("Failed to load theory " + quote(name) + " from session database")
+          }
+      }
+    }
 
 
   /* global flags */
@@ -452,7 +477,7 @@ abstract class Session extends Document.Session {
             }
           }
 
-          if (!global_state.value.defined_command(command.id)) {
+          if (!command.span.is_theory && !global_state.value.defined_command(command.id)) {
             global_state.change(_.define_command(command))
             id_commands += command
           }
