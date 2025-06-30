@@ -727,10 +727,6 @@ Usage: isabelle build_worker [OPTIONS]
     yield {
       val thy_file = migrate_file(thy_file0)
 
-      val master_dir =
-        Path.explode(Url.strip_base_name(thy_file).getOrElse(
-          error("Cannot determine theory master directory: " + quote(thy_file))))
-
       val blobs =
         blobs_files0.map { name0 =>
           val name = migrate_file(name0)
