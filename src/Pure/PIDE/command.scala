@@ -133,6 +133,8 @@ object Command {
     def apply(index: Markup_Index): Markup_Tree =
       rep.getOrElse(index, Markup_Tree.empty)
 
+    def add(markup: Text.Markup): Markups = add(Markup_Index.markup, markup)
+
     def add(index: Markup_Index, markup: Text.Markup): Markups =
       new Markups(rep + (index -> (this(index) + markup)))
 

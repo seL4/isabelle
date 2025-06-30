@@ -154,29 +154,44 @@ object Thy_Syntax {
   def reload_theory(
     session: Session,
     doc_blobs: Document.Blobs,
-    theory_name: String,
-    theory_node: Document.Node,
+    node_name: Document.Node.Name,
+    node: Document.Node,
   ): Document.Node = {
-    Exn.capture(session.read_theory(theory_name)) match {
+    require(node_name.is_theory)
+    val theory = node_name.theory
+
+    Exn.capture(session.read_theory(theory)) match {
       case Exn.Res(command) =>
-        val thy_ok = command.source == theory_node.source
+        val thy_changed =
+          if (node.source.isEmpty || node.source == command.source) Nil
+          else List(node_name.node)
         val blobs_changed =
           for {
             case Exn.Res(blob) <- command.blobs
             (digest, _) <- blob.content
             doc_blob <- doc_blobs.get(blob.name)
             if digest != doc_blob.bytes.sha1_digest
-          } yield blob.name
+          } yield blob.name.node
 
+        val changed = thy_changed ::: blobs_changed
         val command1 =
-          if (thy_ok && blobs_changed.isEmpty) command
-          else command // FIXME errors as markup
+          if (changed.isEmpty) command
+          else {
+            val node_range = Text.Range(0, Symbol.length(node.source))
+            val msg =
+              XML.Elem(Markup.Bad(Document_ID.make()),
+                XML.string("Changed sources for loaded theory " + quote(theory) +
+                  ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
+            Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
+              blobs_info = command.blobs_info,
+              markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
+          }
 
-        theory_node.update_commands(Linear_Set(command1))
+        node.update_commands(Linear_Set(command1))
 
       case Exn.Exn(exn) =>
         session.system_output(Output.error_message_text(Exn.print(exn)))
-        theory_node
+        node
     }
   }
 
@@ -387,7 +402,7 @@ object Thy_Syntax {
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
               if (session_base.loaded_theory(name)) {
-                reload_theory(session, doc_blobs, name.theory, node)
+                reload_theory(session, doc_blobs, name, node2)
               }
               else if (reparse_set(name)) {
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit,
