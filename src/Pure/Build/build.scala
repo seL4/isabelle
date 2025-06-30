@@ -734,15 +734,13 @@ Usage: isabelle build_worker [OPTIONS]
       val blobs =
         blobs_files0.map { name0 =>
           val name = migrate_file(name0)
-          val path = Path.explode(name)
-          val src_path = File.perhaps_relative_path(master_dir, path)
 
           val file = read_source_file(name0)
           val bytes = file.bytes
           val text = decode(bytes.text)
           val chunk = Symbol.Text_Chunk(text)
 
-          Command.Blob(Document.Node.Name(name), src_path, Some((file.digest, chunk))) ->
+          Command.Blob(Document.Node.Name(name), Path.explode(name), Some((file.digest, chunk))) ->
             Document.Blobs.Item(bytes, text, chunk, changed = false)
         }
 
