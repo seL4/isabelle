@@ -478,6 +478,19 @@ val semidom_int =
     semiring_1_no_zero_divisors_semidom = semiring_1_no_zero_divisors_int}
   : inta semidom;
 
+type 'a divide_trivial =
+  {one_divide_trivial : 'a one, zero_divide_trivial : 'a zero,
+    divide_divide_trivial : 'a divide};
+val one_divide_trivial = #one_divide_trivial : 'a divide_trivial -> 'a one;
+val zero_divide_trivial = #zero_divide_trivial : 'a divide_trivial -> 'a zero;
+val divide_divide_trivial = #divide_divide_trivial :
+  'a divide_trivial -> 'a divide;
+
+val divide_trivial_int =
+  {one_divide_trivial = one_int, zero_divide_trivial = zero_int,
+    divide_divide_trivial = divide_int}
+  : inta divide_trivial;
+
 type 'a semiring_no_zero_divisors_cancel =
   {semiring_no_zero_divisors_semiring_no_zero_divisors_cancel :
      'a semiring_no_zero_divisors};
@@ -486,11 +499,12 @@ val semiring_no_zero_divisors_semiring_no_zero_divisors_cancel =
   'a semiring_no_zero_divisors_cancel -> 'a semiring_no_zero_divisors;
 
 type 'a semidom_divide =
-  {divide_semidom_divide : 'a divide, semidom_semidom_divide : 'a semidom,
+  {divide_trivial_semidom_divide : 'a divide_trivial,
+    semidom_semidom_divide : 'a semidom,
     semiring_no_zero_divisors_cancel_semidom_divide :
       'a semiring_no_zero_divisors_cancel};
-val divide_semidom_divide = #divide_semidom_divide :
-  'a semidom_divide -> 'a divide;
+val divide_trivial_semidom_divide = #divide_trivial_semidom_divide :
+  'a semidom_divide -> 'a divide_trivial;
 val semidom_semidom_divide = #semidom_semidom_divide :
   'a semidom_divide -> 'a semidom;
 val semiring_no_zero_divisors_cancel_semidom_divide =
@@ -503,15 +517,11 @@ val semiring_no_zero_divisors_cancel_int =
   : inta semiring_no_zero_divisors_cancel;
 
 val semidom_divide_int =
-  {divide_semidom_divide = divide_int, semidom_semidom_divide = semidom_int,
+  {divide_trivial_semidom_divide = divide_trivial_int,
+    semidom_semidom_divide = semidom_int,
     semiring_no_zero_divisors_cancel_semidom_divide =
       semiring_no_zero_divisors_cancel_int}
   : inta semidom_divide;
-
-type 'a algebraic_semidom =
-  {semidom_divide_algebraic_semidom : 'a semidom_divide};
-val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
-  'a algebraic_semidom -> 'a semidom_divide;
 
 type 'a semiring_modulo =
   {comm_semiring_1_cancel_semiring_modulo : 'a comm_semiring_1_cancel,
@@ -522,26 +532,47 @@ val comm_semiring_1_cancel_semiring_modulo =
 val modulo_semiring_modulo = #modulo_semiring_modulo :
   'a semiring_modulo -> 'a modulo;
 
+type 'a semiring_modulo_trivial =
+  {divide_trivial_semiring_modulo_trivial : 'a divide_trivial,
+    semiring_modulo_semiring_modulo_trivial : 'a semiring_modulo};
+val divide_trivial_semiring_modulo_trivial =
+  #divide_trivial_semiring_modulo_trivial :
+  'a semiring_modulo_trivial -> 'a divide_trivial;
+val semiring_modulo_semiring_modulo_trivial =
+  #semiring_modulo_semiring_modulo_trivial :
+  'a semiring_modulo_trivial -> 'a semiring_modulo;
+
+type 'a algebraic_semidom =
+  {semidom_divide_algebraic_semidom : 'a semidom_divide};
+val semidom_divide_algebraic_semidom = #semidom_divide_algebraic_semidom :
+  'a algebraic_semidom -> 'a semidom_divide;
+
 type 'a semidom_modulo =
   {algebraic_semidom_semidom_modulo : 'a algebraic_semidom,
-    semiring_modulo_semidom_modulo : 'a semiring_modulo};
+    semiring_modulo_trivial_semidom_modulo : 'a semiring_modulo_trivial};
 val algebraic_semidom_semidom_modulo = #algebraic_semidom_semidom_modulo :
   'a semidom_modulo -> 'a algebraic_semidom;
-val semiring_modulo_semidom_modulo = #semiring_modulo_semidom_modulo :
-  'a semidom_modulo -> 'a semiring_modulo;
-
-val algebraic_semidom_int =
-  {semidom_divide_algebraic_semidom = semidom_divide_int} :
-  inta algebraic_semidom;
+val semiring_modulo_trivial_semidom_modulo =
+  #semiring_modulo_trivial_semidom_modulo :
+  'a semidom_modulo -> 'a semiring_modulo_trivial;
 
 val semiring_modulo_int =
   {comm_semiring_1_cancel_semiring_modulo = comm_semiring_1_cancel_int,
     modulo_semiring_modulo = modulo_int}
   : inta semiring_modulo;
 
+val semiring_modulo_trivial_int =
+  {divide_trivial_semiring_modulo_trivial = divide_trivial_int,
+    semiring_modulo_semiring_modulo_trivial = semiring_modulo_int}
+  : inta semiring_modulo_trivial;
+
+val algebraic_semidom_int =
+  {semidom_divide_algebraic_semidom = semidom_divide_int} :
+  inta algebraic_semidom;
+
 val semidom_modulo_int =
   {algebraic_semidom_semidom_modulo = algebraic_semidom_int,
-    semiring_modulo_semidom_modulo = semiring_modulo_int}
+    semiring_modulo_trivial_semidom_modulo = semiring_modulo_trivial_int}
   : inta semidom_modulo;
 
 datatype nat = Nat of int;
@@ -1160,7 +1191,11 @@ fun abs_int i = (if less_int i zero_inta then uminus_int i else i);
 
 fun dvd (A1_, A2_) a b =
   eq A1_
-    (modulo ((modulo_semiring_modulo o semiring_modulo_semidom_modulo) A2_) b a)
+    (modulo
+      ((modulo_semiring_modulo o semiring_modulo_semiring_modulo_trivial o
+         semiring_modulo_trivial_semidom_modulo)
+        A2_)
+      b a)
     (zero ((zero_mult_zero o mult_zero_semiring_0 o semiring_0_semiring_1 o
              semiring_1_comm_semiring_1 o
              comm_semiring_1_comm_semiring_1_cancel o
@@ -1389,10 +1424,10 @@ fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
   | simpfm (Closed v) = Closed v
   | simpfm (NClosed v) = NClosed v;
 
-fun gen_length n (x :: xs) = gen_length (suc n) xs
-  | gen_length n [] = n;
+fun length_tailrec [] n = n
+  | length_tailrec (x :: xs) n = length_tailrec xs (suc n);
 
-fun size_list x = gen_length zero_nat x;
+fun size_list xs = length_tailrec xs zero_nat;
 
 fun a_beta (And (p, q)) k = And (a_beta p k, a_beta q k)
   | a_beta (Or (p, q)) k = Or (a_beta p k, a_beta q k)
