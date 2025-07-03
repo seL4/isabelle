@@ -174,7 +174,7 @@ fun fast_tac ctxt cs = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt cs 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt cs = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac ctxt cs 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, sizef) (step_tac ctxt cs 1));
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)

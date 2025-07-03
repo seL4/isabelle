@@ -223,7 +223,7 @@ fun fast_tac ctxt =
   SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 fun best_tac ctxt  =
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, size_of_thm) (step_tac ctxt 1));
 
 val _ = Theory.setup
   (Method.setup \<^binding>\<open>safe\<close> (method safe_tac) "" #>

@@ -90,11 +90,11 @@ fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt =
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, size_of_thm) (step_tac ctxt 1));
 
 (*Uses all_dupE: allows multiple use of universal assumptions.  VERY slow.*)
 fun best_dup_tac ctxt =
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_dup_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, size_of_thm) (step_dup_tac ctxt 1));
 
 
 end;

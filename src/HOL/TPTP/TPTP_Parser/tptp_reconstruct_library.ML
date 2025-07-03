@@ -603,7 +603,7 @@ fun ASAP wittler (tac : int -> tactic) (i : int) = fn st =>
     val pulled_tac_result = Seq.pull tac_result
     val tac_failed =
       is_none pulled_tac_result orelse
-       not (has_fewer_prems 1 (fst (the pulled_tac_result)))
+       not (Thm.no_prems (fst (the pulled_tac_result)))
   in
     if tac_failed then (wittler THEN' ASAP wittler tac) i st
     else tac_result

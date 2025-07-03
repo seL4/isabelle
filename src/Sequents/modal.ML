@@ -83,7 +83,7 @@ fun solve_tac ctxt d =
   rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac ctxt d 1;
 
 fun step_tac ctxt n =
-  COND (has_fewer_prems 1) all_tac
+  COND Thm.no_prems all_tac
        (DETERM(fres_safe_tac ctxt n) ORELSE
         (fres_unsafe_tac ctxt n APPEND fres_bound_tac ctxt n));
 

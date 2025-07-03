@@ -287,7 +287,7 @@ fun delete x = delete_tagged_list (joinrules x);
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
 fun make_elim ctxt th =
-  if has_fewer_prems 1 th then bad_thm ctxt "Ill-formed destruction rule" th
+  if Thm.no_prems th then bad_thm ctxt "Ill-formed destruction rule" th
   else Tactic.make_elim th;
 
 fun warn_thm ctxt msg th =
@@ -423,7 +423,7 @@ fun addSI w ctxt th (cs as CS {safeIs, ...}) =
 
 fun addSE w ctxt th (cs as CS {safeEs, ...}) =
   let
-    val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val rl = (th', []);
     val r = trim_context (th, rl, rl);
@@ -446,7 +446,7 @@ fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
 
 fun addE w ctxt th (cs as CS {unsafeEs, ...}) =
   let
-    val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
     val r = trim_context (th, (th', []), (dup_th', []));
@@ -804,12 +804,12 @@ fun fast_tac ctxt =
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (step_tac ctxt 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (FIRSTGOAL (step_tac ctxt)));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (FIRSTGOAL (step_tac ctxt)));
 
 fun slow_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
@@ -817,7 +817,7 @@ fun slow_tac ctxt =
 
 fun slow_best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (slow_step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (slow_step_tac ctxt 1));
 
 
 (***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
@@ -827,13 +827,13 @@ val weight_ASTAR = 5;
 fun astar_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
+    (ASTAR (Thm.no_prems, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (step_tac ctxt 1));
 
 fun slow_astar_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
+    (ASTAR (Thm.no_prems, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (slow_step_tac ctxt 1));
 
 

@@ -64,7 +64,7 @@ done
 (*backtracking version*)
 ML \<open>
 fun prolog_tac ctxt =
-  DEPTH_FIRST (has_fewer_prems 1) (resolve_tac ctxt @{thms rules} 1)
+  DEPTH_FIRST Thm.no_prems (resolve_tac ctxt @{thms rules} 1)
 \<close>
 
 schematic_goal \<open>rev(?x, a:b:c:Nil)\<close>
