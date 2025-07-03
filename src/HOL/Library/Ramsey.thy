@@ -194,7 +194,7 @@ proof
   then show "A Int (f -` X) \<in> [A]\<^bsup>k\<^esup>"
     using assms
     unfolding nsets_def mem_Collect_eq
-    by (metis card_image finite_image_iff inf_le1 subset_inj_on)
+    by (metis card_image finite_image_iff inf_le1 inj_on_subset)
 qed
 
 lemma nsets_image_funcset:
@@ -1016,7 +1016,7 @@ next
       from pg show "?gy ` {n. ?gt n = s'} \<subseteq> YY"
         by (auto simp add: Let_def split_beta)
       from infeqs' show "infinite (?gy ` {n. ?gt n = s'})"
-        by (blast intro: inj_gy [THEN subset_inj_on] dest: finite_imageD)
+        by (blast intro: inj_gy [THEN inj_on_subset] dest: finite_imageD)
       show "s' < s" by (rule less')
       show "\<forall>X. X \<subseteq> ?gy ` {n. ?gt n = s'} \<and> finite X \<and> card X = Suc r \<longrightarrow> f X = s'"
       proof -

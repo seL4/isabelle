@@ -467,7 +467,7 @@ proof (rule exI, rule bij_betw_imageI)
   show "inj_on ?h A"
   proof -
     from inj1 X_sub have on_X: "inj_on f X"
-      by (rule subset_inj_on)
+      by (rule inj_on_subset)
 
     have on_X_compl: "inj_on g' (A - X)"
       unfolding g'_def X_compl

@@ -797,7 +797,7 @@ proof -
   from \<open>p permutes S\<close> have "inj p"
     by (rule permutes_inj)
   then have "inj_on p S"
-    by (auto intro: subset_inj_on)
+    by (auto intro: inj_on_subset)
   then have "F g (p ` S) = F (g \<circ> p) S"
     by (rule reindex)
   moreover from \<open>p permutes S\<close> have "p ` S = S"

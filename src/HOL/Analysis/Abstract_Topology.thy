@@ -2997,7 +2997,7 @@ next
     using S hom homeomorphic_map_interior_of
     unfolding homeomorphic_map_def
     by (metis (no_types, lifting) closure_of_subset_topspace inj_on_image_mem_iff
-        interior_of_subset_closure_of subset_inj_on)
+        interior_of_subset_closure_of inj_on_subset)
 qed
 
 lemma homeomorphic_maps_subtopologies:

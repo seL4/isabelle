@@ -1863,7 +1863,7 @@ corollary invariance_of_domain_Euclidean_space_embedding_map_gen:
   shows "embedding_map(subtopology (Euclidean_space m) U) (Euclidean_space n) f"
   proof (rule injective_open_imp_embedding_map [OF cmf])
   show "open_map (subtopology (Euclidean_space m) U) (Euclidean_space n) f"
-    by (meson U \<open>n \<le> m\<close> \<open>inj_on f U\<close> cmf continuous_map_from_subtopology_mono invariance_of_domain_Euclidean_space_gen open_map_def openin_open_subtopology subset_inj_on)
+    by (meson U \<open>n \<le> m\<close> \<open>inj_on f U\<close> cmf continuous_map_from_subtopology_mono invariance_of_domain_Euclidean_space_gen open_map_def openin_open_subtopology inj_on_subset)
   show "inj_on f (topspace (subtopology (Euclidean_space m) U))"
     using assms openin_subset topspace_subtopology_subset by fastforce
 qed
@@ -2412,7 +2412,7 @@ lemma injective_into_1d_imp_open_map_UNIV:
   assumes "open T" "continuous_on S f" "inj_on f S" "T \<subseteq> S"
     shows "open (f ` T)"
   apply (rule invariance_of_domain_gen [OF \<open>open T\<close>])
-  using assms apply (auto simp: elim: continuous_on_subset subset_inj_on)
+  using assms apply (auto simp: elim: continuous_on_subset inj_on_subset)
   done
 
 lemma continuous_on_inverse_open:
@@ -2460,7 +2460,7 @@ proof (rule interior_maximal)
     by (simp add: image_mono interior_subset)
   show "open (f ` interior S)"
     using assms
-    by (auto simp: subset_inj_on interior_subset continuous_on_subset invariance_of_domain_gen)
+    by (auto simp: inj_on_subset interior_subset continuous_on_subset invariance_of_domain_gen)
 qed
 
 lemma homeomorphic_interiors_same_dimension:

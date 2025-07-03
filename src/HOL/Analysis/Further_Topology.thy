@@ -2264,7 +2264,7 @@ proof -
   have "DIM(real) \<le> DIM('a)"
     by simp
   then show ?thesis
-    using invariance_of_domain_gen assms continuous_on_subset subset_inj_on by metis
+    using invariance_of_domain_gen assms continuous_on_subset inj_on_subset by metis
 qed
 
 lemma continuous_on_inverse_open:
@@ -2308,7 +2308,7 @@ lemma continuous_image_subset_interior:
 proof -
   have "open (f ` interior S)"
     using assms
-    by (intro invariance_of_domain_gen) (auto simp: subset_inj_on interior_subset continuous_on_subset)
+    by (intro invariance_of_domain_gen) (auto simp: inj_on_subset interior_subset continuous_on_subset)
   then show ?thesis
     by (simp add: image_mono interiorI interior_subset)
 qed

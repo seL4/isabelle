@@ -54,7 +54,7 @@ proof -
   have "inj_on (inv_into A g) (g ` A)" by (simp add: inj_on_inv_into)
   then have injw: "inj_on ?w (g ` A)"
     apply (rule comp_inj_on)
-    apply (rule subset_inj_on[where B=A])
+    apply (rule inj_on_subset[where A=A])
     apply (auto simp add: subset injf)
     done
   show ?thesis

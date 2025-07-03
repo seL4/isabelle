@@ -175,6 +175,7 @@ Minor INCOMPATIBILITY.
       strict_mono_on_less_eq
   - Removed lemmas. Minor INCOMPATIBILITY.
       mono_on_greaterD (use mono_invE instead)
+      subset_inj_on (use inj_on_subset)
 
 * Theory "HOL.Relation":
   - Changed definition of predicate refl_on to not constrain the domain

@@ -408,6 +408,30 @@ proof (rule Union_quotient [THEN subst])
 qed (use assms in blast)
 
 
+subsection \<open>Kernel of a Function\<close>
+
+definition kernel :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a * 'a) set" where
+"kernel f = {(x,y). f x = f y}"
+
+lemma equiv_kernel: "equiv UNIV (kernel f)"
+unfolding kernel_def equiv_def refl_on_def sym_def trans_def by auto
+
+lemma respects_kernel: "f respects (kernel f)"
+by (simp add: congruent_def kernel_def)
+
+lemma inj_on_vimage_image: "inj_on (\<lambda>b. f -` {b}) (f ` A)"
+using inj_on_def by fastforce
+
+lemma kernel_Image: "kernel f `` A = f -` (f ` A)"
+unfolding kernel_def by (auto simp add: rev_image_eqI)
+
+lemma quotient_kernel_eq_image: "A // kernel f = (\<lambda>b. f -` {b}) ` f ` A"
+by(auto simp: quotient_def kernel_Image)
+
+lemma bij_betw_image_quotient_kernel: "bij_betw (\<lambda>b. f -` {b}) (f ` A) (A // kernel f)"
+by (simp add: bij_betw_def inj_on_vimage_image quotient_kernel_eq_image)
+
+
 subsection \<open>Projection\<close>
 
 definition proj :: "('b \<times> 'a) set \<Rightarrow> 'b \<Rightarrow> 'a set"

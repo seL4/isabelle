@@ -47,7 +47,7 @@ lemma countable_iff_bij[simp]: "bij_betw f A B \<Longrightarrow> countable A \<l
   by (blast intro: countableI_bij1 countableI_bij2)
 
 lemma countable_subset: "A \<subseteq> B \<Longrightarrow> countable B \<Longrightarrow> countable A"
-  by (auto simp: countable_def intro: subset_inj_on)
+  by (auto simp: countable_def intro: inj_on_subset)
 
 lemma countableI_type[intro, simp]: "countable (A:: 'a :: countable set)"
   using countableI[of to_nat A] by auto
@@ -211,7 +211,7 @@ proof -
   moreover have "inj_on (inv_into A f) (f`A)" "inv_into A f ` f ` A \<subseteq> A"
     by (auto intro: inj_on_inv_into inv_into_into)
   ultimately show ?thesis
-    by (blast dest: comp_inj_on subset_inj_on intro: countableI)
+    by (blast dest: comp_inj_on inj_on_subset intro: countableI)
 qed
 
 lemma countable_image_inj_on: "countable (f ` A) \<Longrightarrow> inj_on f A \<Longrightarrow> countable A"

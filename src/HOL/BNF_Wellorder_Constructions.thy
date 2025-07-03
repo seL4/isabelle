@@ -1017,7 +1017,7 @@ lemma Well_order_dir_image:
   unfolding well_order_on_def
   using Linear_order_dir_image[of r f] wf_dir_image[of "r - Id" f]
     dir_image_minus_Id[of f r]
-    subset_inj_on[of f "Field r" "Field(r - Id)"]
+    inj_on_subset[of f "Field r" "Field(r - Id)"]
     mono_Field[of "r - Id" r] by auto
 
 lemma dir_image_bij_betw:

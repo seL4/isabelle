@@ -295,7 +295,7 @@ proof -
       have 2: "\<And>z. z \<in> S \<Longrightarrow> (h \<circ> f) z \<noteq> 0"
         by (metis \<open>h a = 0\<close> a comp_eq_dest_lhs nf1 kh mem_ball_0 that)
       have 3: "inj_on (h \<circ> f) S"
-        by (metis (no_types, lifting) F_def \<open>f \<in> F\<close> comp_inj_on inj_on_inverseI injf kh mem_Collect_eq subset_inj_on)
+        by (metis (no_types, lifting) F_def \<open>f \<in> F\<close> comp_inj_on inj_on_inverseI injf kh mem_Collect_eq inj_on_subset)
       obtain \<psi> where hol\<psi>: "\<psi> holomorphic_on ((h \<circ> f) ` S)"
         and \<psi>2: "\<And>z. z \<in> S  \<Longrightarrow> \<psi>(h (f z)) ^ 2 = h(f z)"
       proof (rule exE [OF prev [OF 1 2 3]], safe)

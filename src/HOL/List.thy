@@ -4701,7 +4701,7 @@ by (induct xs) (simp_all add:inj_on_def)
 
 lemma map_removeAll_inj: "inj f \<Longrightarrow>
   map f (removeAll x xs) = removeAll (f x) (map f xs)"
-by (rule map_removeAll_inj_on, erule subset_inj_on, rule subset_UNIV)
+by (rule map_removeAll_inj_on, erule inj_on_subset, rule subset_UNIV)
 
 lemma length_removeAll_less_eq [simp]:
   "length (removeAll x xs) \<le> length xs"
@@ -6653,7 +6653,7 @@ proof (cases "finite A")
   case True
   with assms inj_on show ?thesis
     using distinct_card[symmetric, OF distinct_sorted_key_list_of_set]
-    by (auto simp: subset_inj_on intro!: card_image)
+    by (auto simp: inj_on_subset intro!: card_image)
 qed auto
 
 lemmas sorted_key_list_of_set =
@@ -6672,7 +6672,7 @@ qed
 
 lemma strict_sorted_key_list_of_set [simp]:
   "A \<subseteq> S \<Longrightarrow> sorted_wrt (\<prec>) (map f (sorted_key_list_of_set f A))"
-  by (cases "finite A") (auto simp: strict_sorted_iff subset_inj_on[OF inj_on])
+  by (cases "finite A") (auto simp: strict_sorted_iff inj_on_subset[OF inj_on])
 
 lemma finite_set_strict_sorted:
   assumes "A \<subseteq> S" and "finite A"

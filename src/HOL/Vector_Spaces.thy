@@ -1388,7 +1388,7 @@ proof -
   then have "vs1.span S = vs1.span B"
     using vs1.span_mono[of B S] vs1.span_mono[of S "vs1.span B"] vs1.span_span[of B] by auto
   moreover have "card (f ` B) = card B"
-    using assms card_image[of f B] subset_inj_on[of f "vs1.span S" B] B vs1.span_superset by auto
+    using assms card_image[of f B] inj_on_subset[of f "vs1.span S" B] B vs1.span_superset by auto
   moreover have "(f ` B) \<subseteq> (f ` S)"
     using B by auto
   ultimately show ?thesis

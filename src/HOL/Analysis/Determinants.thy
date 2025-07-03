@@ -56,7 +56,7 @@ proof -
       by (metis sign_inverse fU p mem_Collect_eq permutation_permutes)
     from permutes_inj[OF pU]
     have pi: "inj_on p ?U"
-      by (blast intro: subset_inj_on)
+      by (blast intro: inj_on_subset)
     from permutes_image[OF pU]
     have "prod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U =
       prod (\<lambda>i. ?di (transpose A) i (inv p i)) (p ` ?U)"

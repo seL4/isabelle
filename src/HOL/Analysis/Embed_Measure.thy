@@ -132,7 +132,7 @@ lemma nn_integral_embed_measure':
 lemma nn_integral_embed_measure:
   "inj f \<Longrightarrow> g \<in> borel_measurable (embed_measure M f) \<Longrightarrow>
   nn_integral (embed_measure M f) g = nn_integral M (\<lambda>x. g (f x))"
-  by(erule nn_integral_embed_measure'[OF subset_inj_on]) simp
+  by(erule nn_integral_embed_measure'[OF inj_on_subset]) simp
 
 lemma emeasure_embed_measure':
     assumes "inj_on f (space M)" "A \<in> sets (embed_measure M f)"
@@ -196,7 +196,7 @@ lemma embed_measure_count_space':
 
 lemma embed_measure_count_space:
     "inj f \<Longrightarrow> embed_measure (count_space A) f = count_space (f`A)"
-  by(rule embed_measure_count_space')(erule subset_inj_on, simp)
+  by(rule embed_measure_count_space')(erule inj_on_subset, simp)
 
 lemma sets_embed_measure_alt:
     "inj f \<Longrightarrow> sets (embed_measure M f) = ((`) f) ` sets M"

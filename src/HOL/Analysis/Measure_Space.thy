@@ -2365,7 +2365,7 @@ proof (rule measure_eqI)
   moreover have "inj_on (the_inv_into A f) B"
     using X f by (auto simp: bij_betw_def inj_on_the_inv_into)
   with X have "inj_on (the_inv_into A f) X"
-    by (auto intro: subset_inj_on)
+    by (auto intro: inj_on_subset)
   ultimately show "emeasure (distr (count_space A) (count_space B) f) X = emeasure (count_space B) X"
     using f unfolding emeasure_distr[OF f' X]
     by (subst (1 2) emeasure_count_space) (auto simp: card_image dest: finite_imageD)

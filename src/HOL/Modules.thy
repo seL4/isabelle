@@ -872,7 +872,7 @@ lemmas independent_inj_on_image = independent_injective_image
 
 lemma independent_inj_image:
   "m1.independent S \<Longrightarrow> inj f \<Longrightarrow> m2.independent (f ` S)"
-  using independent_inj_on_image[of S] by (auto simp: subset_inj_on)
+  using independent_inj_on_image[of S] by (auto simp: inj_on_subset)
 
 end
 

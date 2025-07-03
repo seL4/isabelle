@@ -688,7 +688,7 @@ lemma pair_return_pmf [simp]: "pair_pmf (return_pmf x) (return_pmf y) = return_p
 
 lemma pmf_map_inj': "inj f \<Longrightarrow> pmf (map_pmf f M) (f x) = pmf M x"
 apply(cases "x \<in> set_pmf M")
- apply(simp add: pmf_map_inj[OF subset_inj_on])
+ apply(simp add: pmf_map_inj[OF inj_on_subset])
 apply(simp add: pmf_eq_0_set_pmf[symmetric])
 apply(auto simp add: pmf_eq_0_set_pmf dest: injD)
 done

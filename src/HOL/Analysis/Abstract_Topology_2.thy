@@ -1384,7 +1384,7 @@ next
   show "subtopology Y (f ` U) homeomorphic_space subtopology X U"
     using assms unfolding homeomorphic_eq_everything_map
     by (metis Int_absorb1 assms(1) homeomorphic_map_subtopologies homeomorphic_space 
-        homeomorphic_space_sym subset_image_inj subset_inj_on)
+        homeomorphic_space_sym subset_image_inj inj_on_subset)
 qed
 
 lemma homeomorphic_map_path_connectedness_eq:

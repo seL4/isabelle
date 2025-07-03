@@ -95,7 +95,7 @@ lemma (in group) inj_on_f':
 
 lemma (in group) inj_on_f'':
     "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. inv a \<otimes> y) (a <# H)"
-  by (meson inj_on_cmult inv_closed l_coset_subset_G subset_inj_on)
+  by (meson inj_on_cmult inv_closed l_coset_subset_G inj_on_subset)
 
 lemma (in group) inj_on_g':
     "\<lbrakk>H \<subseteq> carrier G;  a \<in> carrier G\<rbrakk> \<Longrightarrow> inj_on (\<lambda>y. a \<otimes> y) H"

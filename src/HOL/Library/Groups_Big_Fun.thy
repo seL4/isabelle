@@ -74,7 +74,7 @@ lemma reindex_cong:
 proof -
   from assms have unfold: "h = g \<circ> l" by simp
   from \<open>bij l\<close> have "inj l" by (rule bij_is_inj)
-  then have "inj_on l {a. h a \<noteq> \<^bold>1}" by (rule subset_inj_on) simp
+  then have "inj_on l {a. h a \<noteq> \<^bold>1}" by (rule inj_on_subset) simp
   moreover from \<open>bij l\<close> have "{a. g a \<noteq> \<^bold>1} = l ` {a. h a \<noteq> \<^bold>1}"
     by (auto simp add: image_Collect unfold elim: bij_pointE)
   moreover have "\<And>x. x \<in> {a. h a \<noteq> \<^bold>1} \<Longrightarrow> g (l x) = h x"

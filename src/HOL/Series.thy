@@ -1164,7 +1164,7 @@ lemma
     and suminf_reindex: "(\<And>x. x \<notin> range g \<Longrightarrow> f x = 0) \<Longrightarrow> suminf (f \<circ> g) = suminf f"
 proof -
   from \<open>inj g\<close> have [simp]: "\<And>A. inj_on g A"
-    by (rule subset_inj_on) simp
+    by (rule inj_on_subset) simp
 
   have smaller: "\<forall>n. (\<Sum>i<n. (f \<circ> g) i) \<le> suminf f"
   proof

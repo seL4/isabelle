@@ -2380,7 +2380,7 @@ qed (use assms in auto)
 
 lemma card_vimage_inj: "inj f \<Longrightarrow> A \<subseteq> range f \<Longrightarrow> card (f -` A) = card A"
   by (auto 4 3 simp: subset_image_iff inj_vimage_image_eq
-      intro: card_image[symmetric, OF subset_inj_on])
+      intro: card_image[symmetric, OF inj_on_subset])
 
 lemma card_inverse[simp]: "card (R\<inverse>) = card R"
 proof -
@@ -3053,7 +3053,7 @@ unfolding Fpow_def Pow_def by blast
 lemma inj_on_image_Fpow:
   assumes "inj_on f A"
   shows "inj_on (image f) (Fpow A)"
-  using assms Fpow_subset_Pow[of A] subset_inj_on[of "image f" "Pow A"]
+  using assms Fpow_subset_Pow[of A] inj_on_subset[of "image f" "Pow A"]
     inj_on_image_Pow by blast
 
 lemma image_Fpow_mono:

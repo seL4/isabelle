@@ -300,7 +300,7 @@ proof(auto simp add: embed_compat embed_inj_on embed_Field_ofilter,
       (* Main proof *)
   show "bij_betw f (under r a) (under r' (f a))"
   proof(unfold bij_betw_def, auto)
-    show  "inj_on f (under r a)" by (rule subset_inj_on[OF * under_Field])
+    show  "inj_on f (under r a)" by (rule inj_on_subset[OF * under_Field])
   next
     fix b assume "b \<in> under r a"
     thus "f b \<in> under r' (f a)"

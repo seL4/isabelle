@@ -746,7 +746,7 @@ lemma rel_interior_injective_linear_image:
     and "inj f"
   shows "rel_interior (f ` S) = f ` (rel_interior S)"
   using assms rel_interior_injective_on_span_linear_image[of f S]
-    subset_inj_on[of f "UNIV" "span S"]
+    inj_on_subset[of f "UNIV" "span S"]
   by auto
 
 

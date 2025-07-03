@@ -229,18 +229,8 @@ lemma inj_onD: "inj_on f A \<Longrightarrow> f x = f y \<Longrightarrow> x \<in>
   unfolding inj_on_def by blast
 
 lemma inj_on_subset:
-  assumes "inj_on f A"
-    and "B \<subseteq> A"
-  shows "inj_on f B"
-proof (rule inj_onI)
-  fix a b
-  assume "a \<in> B" and "b \<in> B"
-  with assms have "a \<in> A" and "b \<in> A"
-    by auto
-  moreover assume "f a = f b"
-  ultimately show "a = b"
-    using assms by (auto dest: inj_onD)
-qed
+  "\<lbrakk> inj_on f A; B \<subseteq> A \<rbrakk> \<Longrightarrow> inj_on f B"
+unfolding inj_on_def by blast
 
 lemma comp_inj_on: "inj_on f A \<Longrightarrow> inj_on g (f ` A) \<Longrightarrow> inj_on (g \<circ> f) A"
   by (simp add: comp_def inj_on_def)
@@ -260,9 +250,6 @@ lemma inj_singleton [simp]: "inj_on (\<lambda>x. {x}) A"
 
 lemma inj_on_empty[iff]: "inj_on f {}"
   by (simp add: inj_on_def)
-
-lemma subset_inj_on: "inj_on f B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> inj_on f A"
-  unfolding inj_on_def by blast
 
 lemma inj_on_Un: "inj_on f (A \<union> B) \<longleftrightarrow> inj_on f A \<and> inj_on f B \<and> f ` (A - B) \<inter> f ` (B - A) = {}"
   unfolding inj_on_def by (blast intro: sym)
@@ -318,6 +305,9 @@ using assms by (simp add: linorder_inj_onI')
 
 lemma inj_on_image_Pow: "inj_on f A \<Longrightarrow>inj_on (image f) (Pow A)"
   unfolding Pow_def inj_on_def by blast
+
+lemma inj_on_vimage_image: "inj_on (\<lambda>b. f -` {b}) (f ` A)"
+using inj_on_def by fastforce
 
 lemma bij_betw_image_Pow: "bij_betw f A B \<Longrightarrow> bij_betw (image f) (Pow A) (Pow B)"
   by (auto simp add: bij_betw_def inj_on_image_Pow image_Pow_surj)

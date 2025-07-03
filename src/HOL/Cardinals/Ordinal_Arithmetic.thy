@@ -1302,7 +1302,7 @@ proof -
         unfolding F_def fun_eq_iff FinFunc_def Func_def Let_def t.ofilter_def under_def by auto
       moreover from gh(2) *(1,3) have "(\<lambda>x. if x \<in> Field s then h (f x) else undefined) \<in> FinFunc r s"
         unfolding FinFunc_def Func_def fin_support_def support_def t.ofilter_def under_def
-        by (auto intro: subset_inj_on elim!: finite_imageD[OF finite_subset[rotated]])
+        by (auto intro: inj_on_subset elim!: finite_imageD[OF finite_subset[rotated]])
       ultimately show "?thesis" by (rule image_eqI)
     qed simp
   qed

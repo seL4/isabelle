@@ -1119,7 +1119,7 @@ proof -
   also have \<open>\<dots> \<longleftrightarrow> (sum (g \<circ> h) \<longlongrightarrow> x) (finite_subsets_at_top A)\<close>
   proof (intro tendsto_cong eventually_finite_subsets_at_top_weakI sum.reindex)
     show "\<And>X. \<lbrakk>finite X; X \<subseteq> A\<rbrakk> \<Longrightarrow> inj_on h X"
-      using assms subset_inj_on by blast
+      using assms inj_on_subset by blast
   qed
   also have \<open>\<dots> \<longleftrightarrow> ((g \<circ> h) has_sum x) A\<close>
     by (simp add: has_sum_def)
