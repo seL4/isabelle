@@ -807,6 +807,10 @@ lemma complex_is_Int_iff: "z \<in> \<int> \<longleftrightarrow> Im z = 0 \<and> 
 lemma complex_is_Real_iff: "z \<in> \<real> \<longleftrightarrow> Im z = 0"
   by (auto simp: Reals_def complex_eq_iff)
 
+lemma sgn_complex_iff: "sgn x = sgn (Re x) \<longleftrightarrow> x \<in> \<real>"
+  by (metis Im_complex_of_real Im_sgn Reals_0 complex_is_Real_iff divide_eq_0_iff 
+      norm_eq_zero of_real_Re sgn_of_real)
+
 lemma Reals_cnj_iff: "z \<in> \<real> \<longleftrightarrow> cnj z = z"
   by (auto simp: complex_is_Real_iff complex_eq_iff)
 
@@ -1416,6 +1420,21 @@ lemma csqrt_of_real: "x \<ge> 0 \<Longrightarrow> csqrt (of_real x) = of_real (s
 
 lemma csqrt_of_real': "csqrt (of_real x) = of_real (sqrt \<bar>x\<bar>) * (if x \<ge> 0 then 1 else \<i>)"
   by (rule csqrt_unique) (auto simp flip: of_real_power simp: power_mult_distrib)
+
+lemma csqrt_minus_Reals:
+  assumes "x \<in> \<real>"
+  shows "csqrt (- x) = sgn (Re x) * \<i> * csqrt x"
+proof (cases "Re x \<ge> 0")
+  case True
+  then show ?thesis
+    using assms complex_is_Real_iff sgn_1_pos by force
+next
+  case False
+  then obtain "Im x = 0" "sgn (Re x) = -1"
+    using assms complex_is_Real_iff by auto
+  with False show ?thesis
+    by auto
+qed
 
 lemmas cmod_def = norm_complex_def
 

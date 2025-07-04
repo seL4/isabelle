@@ -87,6 +87,8 @@ proof -
   qed (use \<open>a < b\<close> in auto)
 qed
 
+text \<open>Theorem references below referr to Apostol, 
+  \emph{Modular Functions and Dirichlet Series in Number Theory}\<close>
 
 text \<open>Theorem 7.1\<close>
 corollary Dirichlet_approx:
