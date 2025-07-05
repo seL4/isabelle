@@ -16,7 +16,6 @@ sig
   val insert_tagged_rules: ('a * rule) list -> 'a netpair -> 'a netpair
   val delete_tagged_rule: rule -> 'a netpair -> 'a netpair
   val delete_tagged_rules: rule list -> 'a netpair -> 'a netpair
-  val eq_kbrl: ('a * rule) * ('a * rule) -> bool
   val build_net: thm list -> (int * thm) Net.net
   val biresolution_from_nets_tac: Proof.context ->
     ('a list -> rule list) -> bool -> 'a Net.net * 'a Net.net -> int -> tactic
@@ -59,7 +58,9 @@ fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
 
 
 (*delete one kbrl from the pair of nets*)
-fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
+local
+  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
+in
 
 fun delete_tagged_rule (brl as (eres, th)) (inet, enet) =
   (if eres then
@@ -71,6 +72,7 @@ fun delete_tagged_rule (brl as (eres, th)) (inet, enet) =
 
 fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
 
+end;
 
 (*biresolution using a pair of nets rather than rules.
     function "order" must sort and possibly filter the list of brls.
