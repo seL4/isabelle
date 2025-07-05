@@ -7,7 +7,7 @@ Provers/classical.ML for a more specialized version of the same idea).
 
 signature CONTEXT_RULES =
 sig
-  type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net
+  type netpair = (int * int) Bires.netpair
   val netpair_bang: Proof.context -> netpair
   val netpair: Proof.context -> netpair
   val orderlist: ((int * int) * 'a) list -> 'a list
@@ -61,7 +61,7 @@ val rule_indexes = distinct (op =) (map #1 rule_kinds);
 
 (* context data *)
 
-type netpair = ((int * int) * (bool * thm)) Net.net * ((int * int) * (bool * thm)) Net.net;
+type netpair = (int * int) Bires.netpair;
 val empty_netpairs: netpair list = replicate (length rule_indexes) (Net.empty, Net.empty);
 
 datatype rules = Rules of

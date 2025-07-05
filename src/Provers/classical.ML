@@ -97,7 +97,7 @@ sig
   include BASIC_CLASSICAL
   val classical_rule: Proof.context -> thm -> thm
   type rule = thm * (thm * thm list) * (thm * thm list)
-  type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net
+  type netpair = int Bires.netpair
   val rep_cs: claset ->
    {safeIs: rule Item_Net.T,
     safeEs: rule Item_Net.T,
@@ -217,7 +217,7 @@ fun dup_elim ctxt th =
 type rule = thm * (thm * thm list) * (thm * thm list);
   (*external form, internal form (possibly swapped), dup form (possibly swapped)*)
 
-type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
+type netpair = int Bires.netpair;
 type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =

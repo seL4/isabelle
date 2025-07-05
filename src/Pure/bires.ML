@@ -1,25 +1,22 @@
 (*  Title:      Pure/bires.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Makarius
 
 Biresolution and resolution using nets.
 *)
 
 signature BIRES =
 sig
-  val insert_tagged_brl: 'a * (bool * thm) ->
-    ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
-      ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
-  val delete_tagged_brl: bool * thm ->
-    ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
-      ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
-  val eq_kbrl: ('a * (bool * thm)) * ('a * (bool * thm)) -> bool
+  type rule = bool * thm
+  type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
+  val insert_tagged_brl: 'a * rule -> 'a netpair -> 'a netpair
+  val delete_tagged_brl: rule -> 'a netpair -> 'a netpair
+  val eq_kbrl: ('a * rule) * ('a * rule) -> bool
   val build_net: thm list -> (int * thm) Net.net
   val biresolution_from_nets_tac: Proof.context ->
-    ('a list -> (bool * thm) list) -> bool -> 'a Net.net * 'a Net.net -> int -> tactic
-  val biresolve_from_nets_tac: Proof.context ->
-    (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net -> int -> tactic
-  val bimatch_from_nets_tac: Proof.context ->
-    (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net -> int -> tactic
+    ('a list -> rule list) -> bool -> 'a Net.net * 'a Net.net -> int -> tactic
+  val biresolve_from_nets_tac: Proof.context -> int netpair -> int -> tactic
+  val bimatch_from_nets_tac: Proof.context -> int netpair -> int -> tactic
   val filt_resolve_from_net_tac: Proof.context -> int -> (int * thm) Net.net -> int -> tactic
   val resolve_from_net_tac: Proof.context -> (int * thm) Net.net -> int -> tactic
   val match_from_net_tac: Proof.context -> (int * thm) Net.net -> int -> tactic
@@ -27,6 +24,11 @@ end
 
 structure Bires: BIRES =
 struct
+
+type rule = bool * thm;  (*eres flag, see Thm.biresolution*)
+
+type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
+
 
 (** To preserve the order of the rules, tag them with increasing integers **)
 
