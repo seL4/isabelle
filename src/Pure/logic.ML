@@ -27,6 +27,7 @@ sig
   val strip_prems: int * term list * term -> term list * term
   val count_prems: term -> int
   val no_prems: term -> bool
+  val one_prem: term -> bool
   val nth_prem: int * term -> term
   val close_term: (string * term) list -> term -> term
   val close_prop: (string * term) list -> term list -> term -> term
@@ -220,6 +221,9 @@ fun count_prems (Const ("Pure.imp", _) $ _ $ B) = 1 + count_prems B
 
 fun no_prems (Const ("Pure.imp", _) $ _ $ _) = false
   | no_prems _ = true;
+
+fun one_prem (Const ("Pure.imp", _) $ _ $ B) = no_prems B
+  | one_prem _ = false;
 
 (*Select Ai from A1\<Longrightarrow>...Ai\<Longrightarrow>B*)
 fun nth_prem (1, Const ("Pure.imp", _) $ A $ _) = A

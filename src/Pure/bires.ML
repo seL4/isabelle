@@ -41,7 +41,8 @@ fun subgoals_of (true, thm) = Thm.nprems_of thm - 1
 
 val subgoals_ord = int_ord o apply2 subgoals_of;
 
-fun no_subgoals rl = subgoals_of rl = 0;
+fun no_subgoals (true, thm) = Thm.one_prem thm
+  | no_subgoals (false, thm) = Thm.no_prems thm;
 
 
 (** To preserve the order of the rules, tag them with increasing integers **)

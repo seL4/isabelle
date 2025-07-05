@@ -337,7 +337,7 @@ fun add_safe_elim w r
     let
       val (th, rl, _) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-        List.partition (fn (rl, _) => Thm.nprems_of rl = 1) [rl];
+        List.partition (Thm.one_prem o #1) [rl];
       val nI = Item_Net.length safeIs;
       val nE = Item_Net.length safeEs + 1;
     in
@@ -485,7 +485,7 @@ fun del_safe_elim (r: rule)
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
     val (th, rl, _) = r;
-    val (safe0_rls, safep_rls) = List.partition (fn (rl, _) => Thm.nprems_of rl = 1) [rl];
+    val (safe0_rls, safep_rls) = List.partition (Thm.one_prem o #1) [rl];
   in
     CS
      {safe0_netpair = delete ([], map fst safe0_rls) safe0_netpair,

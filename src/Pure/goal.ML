@@ -268,7 +268,7 @@ fun unrestrict i = conclude #> rotate_prems (1 - i);
 
 (*with structural marker*)
 fun SELECT_GOAL tac i st =
-  if Thm.nprems_of st = 1 andalso i = 1 then tac st
+  if Thm.one_prem st andalso i = 1 then tac st
   else (PRIMITIVE (restrict i 1) THEN tac THEN PRIMITIVE (unrestrict i)) st;
 
 (*without structural marker*)
