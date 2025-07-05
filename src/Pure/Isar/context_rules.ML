@@ -81,13 +81,13 @@ fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
     val th' = Thm.trim_context th;
   in
     make_rules (next - 1) ((w, ((i, b), th')) :: rules)
-      (nth_map i (Bires.insert_tagged_brl ((w, next), (b, th'))) netpairs) wrappers
+      (nth_map i (Bires.insert_tagged_rule ((w, next), (b, th'))) netpairs) wrappers
   end;
 
 fun del_rule0 th (rs as Rules {next, rules, netpairs, wrappers}) =
   let
     fun eq_th (_, (_, th')) = Thm.eq_thm_prop (th, th');
-    fun del b netpair = Bires.delete_tagged_brl (b, th) netpair handle Net.DELETE => netpair;
+    fun del b netpair = Bires.delete_tagged_rule (b, th) netpair handle Net.DELETE => netpair;
   in
     if not (exists eq_th rules) then rs
     else make_rules next (filter_out eq_th rules) (map (del false o del true) netpairs) wrappers
@@ -109,7 +109,7 @@ structure Rules = Generic_Data
           k1 = k2 andalso Thm.eq_thm_prop (th1, th2)) (rules1, rules2);
       val next = ~ (length rules);
       val netpairs = fold (fn (n, (w, ((i, b), th))) =>
-          nth_map i (Bires.insert_tagged_brl ((w, n), (b, th))))
+          nth_map i (Bires.insert_tagged_rule ((w, n), (b, th))))
         (next upto ~1 ~~ rules) empty_netpairs;
     in make_rules (next - 1) rules netpairs wrappers end;
 );

@@ -9,8 +9,10 @@ signature BIRES =
 sig
   type rule = bool * thm
   type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
-  val insert_tagged_brl: 'a * rule -> 'a netpair -> 'a netpair
-  val delete_tagged_brl: rule -> 'a netpair -> 'a netpair
+  val insert_tagged_rule: 'a * rule -> 'a netpair -> 'a netpair
+  val insert_tagged_rules: ('a * rule) list -> 'a netpair -> 'a netpair
+  val delete_tagged_rule: rule -> 'a netpair -> 'a netpair
+  val delete_tagged_rules: rule list -> 'a netpair -> 'a netpair
   val eq_kbrl: ('a * rule) * ('a * rule) -> bool
   val build_net: thm list -> (int * thm) Net.net
   val biresolution_from_nets_tac: Proof.context ->
@@ -33,23 +35,28 @@ type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
 (** To preserve the order of the rules, tag them with increasing integers **)
 
 (*insert one tagged brl into the pair of nets*)
-fun insert_tagged_brl (kbrl as (k, (eres, th))) (inet, enet) =
+fun insert_tagged_rule (kbrl as (k, (eres, th))) (inet, enet) =
   if eres then
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.insert_term (K false) (prem, kbrl) enet)
-    | NONE => error "insert_tagged_brl: elimination rule with no premises")
+    | NONE => error "insert_tagged_rule: elimination rule with no premises")
   else (Net.insert_term (K false) (Thm.concl_of th, kbrl) inet, enet);
+
+fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
+
 
 (*delete one kbrl from the pair of nets*)
 fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
 
-fun delete_tagged_brl (brl as (eres, th)) (inet, enet) =
+fun delete_tagged_rule (brl as (eres, th)) (inet, enet) =
   (if eres then
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
     | NONE => (inet, enet))  (*no major premise: ignore*)
   else (Net.delete_term eq_kbrl (Thm.concl_of th, ((), brl)) inet, enet))
   handle Net.DELETE => (inet,enet);
+
+fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
 
 
 (*biresolution using a pair of nets rather than rules.

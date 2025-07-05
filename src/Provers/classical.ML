@@ -273,16 +273,13 @@ fun tag_brls k [] = []
 fun tag_brls' _ _ [] = []
   | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
-fun insert_tagged_list rls = fold_rev Bires.insert_tagged_brl rls;
-
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
   new insertions the lowest priority.*)
-fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
-fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules;
+fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
+fun insert' w (nI, nE) = Bires.insert_tagged_rules o tag_brls' w (~(nI + nE)) o joinrules;
 
-fun delete_tagged_list rls = fold_rev Bires.delete_tagged_brl rls;
-fun delete x = delete_tagged_list (joinrules x);
+fun delete x = Bires.delete_tagged_rules (joinrules x);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
