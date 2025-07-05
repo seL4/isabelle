@@ -739,7 +739,7 @@ fun depth_meson_tac ctxt =
 fun prolog_step_tac' ctxt horns =
     let val horn0s = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
-        val nrtac = resolve_from_net_tac ctxt (Tactic.build_net horns)
+        val nrtac = Bires.resolve_from_net_tac ctxt (Bires.build_net horns)
     in  fn i => eq_assume_tac i ORELSE
                 match_tac ctxt horn0s i ORELSE  (*no backtracking if unit MATCHES*)
                 ((assume_tac ctxt i APPEND nrtac i) THEN check_tac)

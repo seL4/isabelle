@@ -25,7 +25,7 @@ fun remdups_tac ctxt = SUBGOAL (fn (g, i) =>
 
 fun REMDUPS tac ctxt = tac ctxt THEN_ALL_NEW remdups_tac ctxt;
 
-fun bires_tac ctxt = Tactic.biresolution_from_nets_tac ctxt Context_Rules.orderlist;
+fun bires_tac ctxt = Bires.biresolution_from_nets_tac ctxt Context_Rules.orderlist;
 
 fun safe_step_tac ctxt =
   Context_Rules.Swrap ctxt

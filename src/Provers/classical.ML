@@ -273,7 +273,7 @@ fun tag_brls k [] = []
 fun tag_brls' _ _ [] = []
   | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
 
-fun insert_tagged_list rls = fold_rev Tactic.insert_tagged_brl rls;
+fun insert_tagged_list rls = fold_rev Bires.insert_tagged_brl rls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
@@ -281,7 +281,7 @@ fun insert_tagged_list rls = fold_rev Tactic.insert_tagged_brl rls;
 fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
 fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules;
 
-fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
+fun delete_tagged_list rls = fold_rev Bires.delete_tagged_brl rls;
 fun delete x = delete_tagged_list (joinrules x);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
@@ -721,9 +721,9 @@ fun safe_step_tac ctxt =
       (FIRST'
        [eq_assume_tac,
         eq_mp_tac ctxt,
-        bimatch_from_nets_tac ctxt safe0_netpair,
+        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
-        bimatch_from_nets_tac ctxt safep_netpair])
+        Bires.bimatch_from_nets_tac ctxt safep_netpair])
   end;
 
 (*Repeatedly attack a subgoal using safe inferences -- it's deterministic!*)
@@ -738,10 +738,10 @@ fun safe_tac ctxt = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac ctxt));
 
 fun nsubgoalsP n (k, brl) = (subgoals_of_brl brl = n);
 
-(*version of bimatch_from_nets_tac that only applies rules that
+(*version of Bires.bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac ctxt n =
-  biresolution_from_nets_tac ctxt (order_list o filter (nsubgoalsP n)) true;
+  Bires.biresolution_from_nets_tac ctxt (order_list o filter (nsubgoalsP n)) true;
 
 fun eq_contr_tac ctxt i = ematch_tac ctxt [Data.not_elim] i THEN eq_assume_tac i;
 fun eq_assume_contr_tac ctxt = eq_assume_tac ORELSE' eq_contr_tac ctxt;
@@ -757,7 +757,7 @@ fun clarify_step_tac ctxt =
     appSWrappers ctxt
      (FIRST'
        [eq_assume_contr_tac ctxt,
-        bimatch_from_nets_tac ctxt safe0_netpair,
+        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         n_bimatch_from_nets_tac ctxt 1 safep_netpair,
         bimatch2_tac ctxt safep_netpair])
@@ -773,17 +773,17 @@ fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 fun inst0_step_tac ctxt =
   assume_tac ctxt APPEND'
   contr_tac ctxt APPEND'
-  biresolve_from_nets_tac ctxt (#safe0_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#safe0_netpair (rep_claset_of ctxt));
 
 (*These unsafe steps could generate more subgoals.*)
 fun instp_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#safep_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#safep_netpair (rep_claset_of ctxt));
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac ctxt = inst0_step_tac ctxt APPEND' instp_step_tac ctxt;
 
 fun unsafe_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#unsafe_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#unsafe_netpair (rep_claset_of ctxt));
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
 fun step_tac ctxt i =
@@ -846,7 +846,7 @@ fun slow_astar_tac ctxt =
   That's hard to implement and did not perform better in experiments, due to
   greater search depth required.*)
 fun dup_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#dup_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#dup_netpair (rep_claset_of ctxt));
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
 local
