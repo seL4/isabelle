@@ -16,14 +16,16 @@ sig
   val insert_tagged_rules: ('a * rule) list -> 'a netpair -> 'a netpair
   val delete_tagged_rule: rule -> 'a netpair -> 'a netpair
   val delete_tagged_rules: rule list -> 'a netpair -> 'a netpair
-  val build_net: thm list -> (int * thm) Net.net
   val biresolution_from_nets_tac: Proof.context ->
     ('a list -> rule list) -> bool -> 'a Net.net * 'a Net.net -> int -> tactic
   val biresolve_from_nets_tac: Proof.context -> int netpair -> int -> tactic
   val bimatch_from_nets_tac: Proof.context -> int netpair -> int -> tactic
-  val filt_resolve_from_net_tac: Proof.context -> int -> (int * thm) Net.net -> int -> tactic
-  val resolve_from_net_tac: Proof.context -> (int * thm) Net.net -> int -> tactic
-  val match_from_net_tac: Proof.context -> (int * thm) Net.net -> int -> tactic
+
+  type net = (int * thm) Net.net
+  val build_net: thm list -> net
+  val filt_resolve_from_net_tac: Proof.context -> int -> net -> int -> tactic
+  val resolve_from_net_tac: Proof.context -> net -> int -> tactic
+  val match_from_net_tac: Proof.context -> net -> int -> tactic
 end
 
 structure Bires: BIRES =
@@ -93,13 +95,12 @@ fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt order_list true
 
 (*** Simpler version for resolve_tac -- only one net, and no hyps ***)
 
-(*insert one tagged rl into the net*)
-fun insert_krl (krl as (k,th)) =
-  Net.insert_term (K false) (Thm.concl_of th, krl);
+type net = (int * thm) Net.net;
 
 (*build a net of rules for resolution*)
-fun build_net rls =
-  fold_rev insert_krl (tag_list 1 rls) Net.empty;
+fun build_net rls : net =
+  fold_rev (fn (k, th) => Net.insert_term (K false) (Thm.concl_of th, (k, th)))
+    (tag_list 1 rls) Net.empty;
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac ctxt match pred net =
