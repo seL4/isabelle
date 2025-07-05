@@ -111,11 +111,11 @@ fun joinrules (intrs,elims) =
 (*Note that allE precedes exI in haz_brls*)
 fun make_cs {safeIs,safeEs,hazIs,hazEs} =
   let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
-          List.partition (curry (op =) 0 o subgoals_of_brl) 
-             (sort (make_ord lessb) (joinrules(safeIs, safeEs)))
+          List.partition Bires.no_subgoals
+             (sort Bires.subgoals_ord (joinrules(safeIs, safeEs)))
   in CS{safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs,
         safe0_brls=safe0_brls, safep_brls=safep_brls,
-        haz_brls = sort (make_ord lessb) (joinrules(hazIs, hazEs))}
+        haz_brls = sort Bires.subgoals_ord (joinrules(hazIs, hazEs))}
   end;
 
 (*** Manipulation of clasets ***)

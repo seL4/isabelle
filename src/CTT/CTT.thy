@@ -421,7 +421,7 @@ fun add_mp_tac ctxt i =
 fun mp_tac ctxt i = eresolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i
 
 (*"safe" when regarded as predicate calculus rules*)
-val safe_brls = sort (make_ord lessb)
+val safe_brls = sort Bires.subgoals_ord
     [ (true, @{thm FE}), (true,asm_rl),
       (false, @{thm ProdI}), (true, @{thm SumE}), (true, @{thm PlusE}) ]
 
@@ -431,7 +431,7 @@ val unsafe_brls =
 
 (*0 subgoals vs 1 or more*)
 val (safe0_brls, safep_brls) =
-    List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls
+    List.partition Bires.no_subgoals safe_brls
 
 fun safestep_tac ctxt thms i =
     form_tac ctxt ORELSE

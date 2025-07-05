@@ -267,7 +267,7 @@ fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
   then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
-      (1000000*subgoals_of_brl brl + k, brl) ::
+      (1000000*Bires.subgoals_of brl + k, brl) ::
       tag_brls (k+1) brls;
 
 fun tag_brls' _ _ [] = []
@@ -733,12 +733,11 @@ fun safe_tac ctxt = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac ctxt));
 
 (*** Clarify_tac: do safe steps without causing branching ***)
 
-fun nsubgoalsP n (k, brl) = (subgoals_of_brl brl = n);
-
 (*version of Bires.bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac ctxt n =
-  Bires.biresolution_from_nets_tac ctxt (order_list o filter (nsubgoalsP n)) true;
+  Bires.biresolution_from_nets_tac ctxt
+    (order_list o filter (fn (_, rl) => Bires.subgoals_of rl = n)) true;
 
 fun eq_contr_tac ctxt i = ematch_tac ctxt [Data.not_elim] i THEN eq_assume_tac i;
 fun eq_assume_contr_tac ctxt = eq_assume_tac ORELSE' eq_contr_tac ctxt;

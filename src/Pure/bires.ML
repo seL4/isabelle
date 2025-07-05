@@ -9,6 +9,9 @@ signature BIRES =
 sig
   type rule = bool * thm
   type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
+  val subgoals_of: rule -> int
+  val subgoals_ord: rule ord
+  val no_subgoals: rule -> bool
   val insert_tagged_rule: 'a * rule -> 'a netpair -> 'a netpair
   val insert_tagged_rules: ('a * rule) list -> 'a netpair -> 'a netpair
   val delete_tagged_rule: rule -> 'a netpair -> 'a netpair
@@ -27,9 +30,18 @@ end
 structure Bires: BIRES =
 struct
 
-type rule = bool * thm;  (*eres flag, see Thm.biresolution*)
+(** Natural Deduction using (bires_flg, rule) pairs **)
+
+type rule = bool * thm;  (*see Thm.biresolution*)
 
 type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
+
+fun subgoals_of (true, thm) = Thm.nprems_of thm - 1
+  | subgoals_of (false, thm) = Thm.nprems_of thm;
+
+val subgoals_ord = int_ord o apply2 subgoals_of;
+
+fun no_subgoals rl = subgoals_of rl = 0;
 
 
 (** To preserve the order of the rules, tag them with increasing integers **)

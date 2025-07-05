@@ -33,8 +33,6 @@ sig
   val cut_rules_tac: thm list -> int -> tactic
   val cut_facts_tac: thm list -> int -> tactic
   val filter_thms: (term * term -> bool) -> int * term * thm list -> thm list
-  val subgoals_of_brl: bool * thm -> int
-  val lessb: (bool * thm) * (bool * thm) -> bool
   val rename_tac: string list -> int -> tactic
   val rotate_tac: int -> int -> tactic
   val defer_tac: int -> tactic
@@ -184,16 +182,6 @@ fun filter_thms could (limit, prem, ths) =
             else if could(pb, Thm.concl_of th)  then th :: filtr(limit-1, ths)
             else filtr(limit,ths)
   in  filtr(limit,ths)  end;
-
-
-(*** For Natural Deduction using (bires_flg, rule) pairs ***)
-
-(*The number of new subgoals produced by the brule*)
-fun subgoals_of_brl (true, rule) = Thm.nprems_of rule - 1
-  | subgoals_of_brl (false, rule) = Thm.nprems_of rule;
-
-(*Less-than test: for sorting to minimize number of new subgoals*)
-fun lessb (brl1,brl2) = subgoals_of_brl brl1 < subgoals_of_brl brl2;
 
 
 (*Renaming of parameters in a subgoal*)
