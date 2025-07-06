@@ -89,7 +89,7 @@ type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
 val empty_netpair: netpair = (Net.empty, Net.empty);
 
 
-(** To preserve the order of the rules, tag them with increasing integers **)
+(** To preserve the order of the rules, tag them with decreasing integers **)
 
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) =
@@ -172,7 +172,7 @@ fun kind_title kind =
   in a ^ " rules " ^ b end;
 
 
-(*** Simpler version for resolve_tac -- only one net, and no hyps ***)
+(** Simpler version for resolve_tac -- only one net, and no hyps **)
 
 type net = (int * thm) Net.net;
 
