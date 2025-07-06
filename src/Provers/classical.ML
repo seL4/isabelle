@@ -263,7 +263,7 @@ fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
   then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
-      ({weight = 0, index = 1000000*Bires.subgoals_of brl + k}, brl) ::
+      ({weight = Bires.subgoals_of brl, index = k}, brl) ::
       tag_brls (k+1) brls;
 
 fun tag_brls' _ _ [] = []
