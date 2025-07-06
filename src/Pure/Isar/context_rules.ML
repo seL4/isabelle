@@ -1,5 +1,6 @@
 (*  Title:      Pure/Isar/context_rules.ML
-    Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
+    Author:     Makarius
 
 Declarations of intro/elim/dest rules in Pure (see also
 Provers/classical.ML for a more specialized version of the same idea).
@@ -94,7 +95,7 @@ fun del_rule0 th (rs as Rules {next, rules, netpairs, wrappers}) =
 
 fun del_rule th = del_rule0 th o del_rule0 (Tactic.make_elim th);
 
-structure Rules = Generic_Data
+structure Data = Generic_Data
 (
   type T = rules;
   val empty = make_rules ~1 [] empty_netpairs ([], []);
@@ -115,7 +116,7 @@ structure Rules = Generic_Data
 
 fun print_rules ctxt =
   let
-    val Rules {rules, ...} = Rules.get (Context.Proof ctxt);
+    val Rules {rules, ...} = Data.get (Context.Proof ctxt);
     fun prt_kind (i, b) =
       Pretty.big_list ((the o AList.lookup (op =) kind_names) (i, b) ^ ":")
         (map_filter (fn (_, (k, th)) =>
@@ -126,7 +127,7 @@ fun print_rules ctxt =
 
 (* access data *)
 
-fun netpairs ctxt = let val Rules {netpairs, ...} = Rules.get (Context.Proof ctxt) in netpairs end;
+fun netpairs ctxt = let val Rules {netpairs, ...} = Data.get (Context.Proof ctxt) in netpairs end;
 val netpair_bang = hd o netpairs;
 val netpair = hd o tl o netpairs;
 
@@ -161,7 +162,7 @@ end;
 (* wrappers *)
 
 fun gen_add_wrapper upd w =
-  Context.theory_map (Rules.map (fn Rules {next, rules, netpairs, wrappers} =>
+  Context.theory_map (Data.map (fn Rules {next, rules, netpairs, wrappers} =>
     make_rules next rules netpairs (upd (fn ws => (w, stamp ()) :: ws) wrappers)));
 
 val addSWrapper = gen_add_wrapper Library.apfst;
@@ -169,7 +170,7 @@ val addWrapper = gen_add_wrapper Library.apsnd;
 
 
 fun gen_wrap which ctxt =
-  let val Rules {wrappers, ...} = Rules.get (Context.Proof ctxt)
+  let val Rules {wrappers, ...} = Data.get (Context.Proof ctxt)
   in fold_rev (fn (w, _) => w ctxt) (which wrappers) end;
 
 val Swrap = gen_wrap #1;
@@ -182,10 +183,10 @@ val wrap = gen_wrap #2;
 (* add and del rules *)
 
 
-val rule_del = Thm.declaration_attribute (Rules.map o del_rule);
+val rule_del = Thm.declaration_attribute (Data.map o del_rule);
 
 fun rule_add k view opt_w =
-  Thm.declaration_attribute (fn th => Rules.map (add_rule k opt_w (view th) o del_rule th));
+  Thm.declaration_attribute (fn th => Data.map (add_rule k opt_w (view th) o del_rule th));
 
 val intro_bang  = rule_add intro_bangK I;
 val elim_bang   = rule_add elim_bangK I;
