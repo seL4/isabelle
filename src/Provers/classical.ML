@@ -97,7 +97,6 @@ sig
   include BASIC_CLASSICAL
   val classical_rule: Proof.context -> thm -> thm
   type rule = thm * (thm * thm list) * (thm * thm list)
-  type netpair = int Bires.netpair
   val rep_cs: claset ->
    {safeIs: rule Item_Net.T,
     safeEs: rule Item_Net.T,
@@ -105,11 +104,11 @@ sig
     unsafeEs: rule Item_Net.T,
     swrappers: (string * (Proof.context -> wrapper)) list,
     uwrappers: (string * (Proof.context -> wrapper)) list,
-    safe0_netpair: netpair,
-    safep_netpair: netpair,
-    unsafe_netpair: netpair,
-    dup_netpair: netpair,
-    extra_netpair: Context_Rules.netpair}
+    safe0_netpair: Bires.netpair,
+    safep_netpair: Bires.netpair,
+    unsafe_netpair: Bires.netpair,
+    dup_netpair: Bires.netpair,
+    extra_netpair: Bires.netpair}
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -217,7 +216,6 @@ fun dup_elim ctxt th =
 type rule = thm * (thm * thm list) * (thm * thm list);
   (*external form, internal form (possibly swapped), dup form (possibly swapped)*)
 
-type netpair = int Bires.netpair;
 type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =
@@ -228,16 +226,14 @@ datatype claset =
     unsafeEs: rule Item_Net.T,  (*unsafe elimination rules*)
     swrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming safe_step_tac*)
     uwrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming step_tac*)
-    safe0_netpair: netpair,  (*nets for trivial cases*)
-    safep_netpair: netpair,  (*nets for >0 subgoals*)
-    unsafe_netpair: netpair,  (*nets for unsafe rules*)
-    dup_netpair: netpair,  (*nets for duplication*)
-    extra_netpair: Context_Rules.netpair};  (*nets for extra rules*)
+    safe0_netpair: Bires.netpair,  (*nets for trivial cases*)
+    safep_netpair: Bires.netpair,  (*nets for >0 subgoals*)
+    unsafe_netpair: Bires.netpair,  (*nets for unsafe rules*)
+    dup_netpair: Bires.netpair,  (*nets for duplication*)
+    extra_netpair: Bires.netpair};  (*nets for extra rules*)
 
 val empty_rules: rule Item_Net.T =
   Item_Net.init (Thm.eq_thm_prop o apply2 #1) (single o Thm.full_prop_of o #1);
-
-val empty_netpair = (Net.empty, Net.empty);
 
 val empty_cs =
   CS
@@ -247,11 +243,11 @@ val empty_cs =
     unsafeEs = empty_rules,
     swrappers = [],
     uwrappers = [],
-    safe0_netpair = empty_netpair,
-    safep_netpair = empty_netpair,
-    unsafe_netpair = empty_netpair,
-    dup_netpair = empty_netpair,
-    extra_netpair = empty_netpair};
+    safe0_netpair = Bires.empty_netpair,
+    safep_netpair = Bires.empty_netpair,
+    unsafe_netpair = Bires.empty_netpair,
+    dup_netpair = Bires.empty_netpair,
+    extra_netpair = Bires.empty_netpair};
 
 fun rep_cs (CS args) = args;
 
@@ -267,11 +263,11 @@ fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
   then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
-      (1000000*Bires.subgoals_of brl + k, brl) ::
+      ({weight = 0, index = 1000000*Bires.subgoals_of brl + k}, brl) ::
       tag_brls (k+1) brls;
 
 fun tag_brls' _ _ [] = []
-  | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
+  | tag_brls' w k (brl::brls) = ({weight = w, index = k}, brl) :: tag_brls' w (k + 1) brls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
@@ -736,8 +732,8 @@ fun safe_tac ctxt = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac ctxt));
 (*version of Bires.bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac ctxt n =
-  Bires.biresolution_from_nets_tac ctxt
-    (order_list o filter (fn (_, rl) => Bires.subgoals_of rl = n)) true;
+  Bires.biresolution_from_nets_tac ctxt Bires.tag_ord
+    (SOME (fn rl => Bires.subgoals_of rl = n)) true;
 
 fun eq_contr_tac ctxt i = ematch_tac ctxt [Data.not_elim] i THEN eq_assume_tac i;
 fun eq_assume_contr_tac ctxt = eq_assume_tac ORELSE' eq_contr_tac ctxt;

@@ -219,7 +219,8 @@ sig
   val sort_strings: string list -> string list
   val sort_by: ('a -> string) -> 'a list -> 'a list
   val tag_list: int -> 'a list -> (int * 'a) list
-  val untag_list: (int * 'a) list -> 'a list
+  val untag_list: (''tag * 'a) list -> 'a list
+  val make_order_list: ''tag ord -> ('a -> bool) option -> (''tag * 'a) list -> 'a list
   val order_list: (int * 'a) list -> 'a list
 
   (*misc*)
@@ -1047,13 +1048,18 @@ fun tag_list k [] = []
 
 (*remove tags and suppress duplicates -- list is assumed sorted!*)
 fun untag_list [] = []
-  | untag_list [(k: int, x)] = [x]
-  | untag_list ((k, x) :: (rest as (k', x') :: _)) =
-      if k = k' then untag_list rest
+  | untag_list [(_, x)] = [x]
+  | untag_list ((tag, x) :: (rest as (tag', _) :: _)) =
+      if tag = tag' then untag_list rest
       else x :: untag_list rest;
 
-(*return list elements in original order*)
-fun order_list list = untag_list (sort (int_ord o apply2 fst) list);
+fun make_order_list ord pred list =
+  list
+  |> (case pred of NONE => I | SOME p => filter (p o snd))
+  |> sort (ord o apply2 fst)
+  |> untag_list;
+
+fun order_list list = make_order_list int_ord NONE list;
 
 
 

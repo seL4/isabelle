@@ -8,18 +8,27 @@ Biresolution and resolution using nets.
 signature BIRES =
 sig
   type rule = bool * thm
-  type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
   val subgoals_of: rule -> int
   val subgoals_ord: rule ord
   val no_subgoals: rule -> bool
-  val insert_tagged_rule: 'a * rule -> 'a netpair -> 'a netpair
-  val insert_tagged_rules: ('a * rule) list -> 'a netpair -> 'a netpair
-  val delete_tagged_rule: rule -> 'a netpair -> 'a netpair
-  val delete_tagged_rules: rule list -> 'a netpair -> 'a netpair
-  val biresolution_from_nets_tac: Proof.context ->
-    ('a list -> rule list) -> bool -> 'a Net.net * 'a Net.net -> int -> tactic
-  val biresolve_from_nets_tac: Proof.context -> int netpair -> int -> tactic
-  val bimatch_from_nets_tac: Proof.context -> int netpair -> int -> tactic
+
+  type tag = {weight: int, index: int}
+  val tag0_ord: tag ord
+  val tag_ord: tag ord
+  val weighted_tag_ord: bool -> tag ord
+  val tag_order: (tag * 'a) list -> 'a list
+
+  type netpair = (tag * rule) Net.net * (tag * rule) Net.net
+  val empty_netpair: netpair
+
+  val insert_tagged_rule: tag * rule -> netpair -> netpair
+  val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
+  val delete_tagged_rule: rule -> netpair -> netpair
+  val delete_tagged_rules: rule list -> netpair -> netpair
+  val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
+    bool -> netpair -> int -> tactic
+  val biresolve_from_nets_tac: Proof.context -> netpair -> int -> tactic
+  val bimatch_from_nets_tac: Proof.context -> netpair -> int -> tactic
 
   type net = (int * thm) Net.net
   val build_net: thm list -> net
@@ -33,9 +42,9 @@ struct
 
 (** Natural Deduction using (bires_flg, rule) pairs **)
 
-type rule = bool * thm;  (*see Thm.biresolution*)
+(* type rule *)
 
-type 'a netpair = ('a * rule) Net.net * ('a * rule) Net.net;
+type rule = bool * thm;  (*see Thm.biresolution*)
 
 fun subgoals_of (true, thm) = Thm.nprems_of thm - 1
   | subgoals_of (false, thm) = Thm.nprems_of thm;
@@ -46,15 +55,34 @@ fun no_subgoals (true, thm) = Thm.one_prem thm
   | no_subgoals (false, thm) = Thm.no_prems thm;
 
 
+(* tagged rules *)
+
+type tag = {weight: int, index: int};
+
+val tag0_ord: tag ord = int_ord o apply2 #index;
+val tag_ord: tag ord = int_ord o apply2 #weight ||| tag0_ord;
+
+fun weighted_tag_ord weighted = if weighted then tag_ord else tag0_ord;
+
+fun tag_order list = make_order_list tag_ord NONE list;
+
+
+(* discrimination nets for intr/elim rules *)
+
+type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
+
+val empty_netpair: netpair = (Net.empty, Net.empty);
+
+
 (** To preserve the order of the rules, tag them with increasing integers **)
 
 (*insert one tagged brl into the pair of nets*)
-fun insert_tagged_rule (kbrl as (k, (eres, th))) (inet, enet) =
+fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) =
   if eres then
     (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.insert_term (K false) (prem, kbrl) enet)
+      SOME prem => (inet, Net.insert_term (K false) (prem, tagged_rule) enet)
     | NONE => error "insert_tagged_rule: elimination rule with no premises")
-  else (Net.insert_term (K false) (Thm.concl_of th, kbrl) inet, enet);
+  else (Net.insert_term (K false) (Thm.concl_of th, tagged_rule) inet, enet);
 
 fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
 
@@ -64,7 +92,7 @@ local
   fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
 in
 
-fun delete_tagged_rule (brl as (eres, th)) (inet, enet) =
+fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
   (if eres then
     (case try Thm.major_prem_of th of
       SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
@@ -76,21 +104,21 @@ fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
 
 end;
 
-(*biresolution using a pair of nets rather than rules.
-    function "order" must sort and possibly filter the list of brls.
-    boolean "match" indicates matching or unification.*)
-fun biresolution_from_nets_tac ctxt order match (inet, enet) =
+(*biresolution using a pair of nets rather than rules:
+   boolean "match" indicates matching or unification.*)
+fun biresolution_from_nets_tac ctxt ord pred match ((inet, enet): netpair) =
   SUBGOAL
     (fn (prem, i) =>
       let
         val hyps = Logic.strip_assums_hyp prem;
         val concl = Logic.strip_assums_concl prem;
-        val kbrls = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps;
-      in PRIMSEQ (Thm.biresolution (SOME ctxt) match (order kbrls) i) end);
+        val tagged_rules = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps;
+        val order = make_order_list ord pred;
+      in PRIMSEQ (Thm.biresolution (SOME ctxt) match (order tagged_rules) i) end);
 
 (*versions taking pre-built nets.  No filtering of brls*)
-fun biresolve_from_nets_tac ctxt = biresolution_from_nets_tac ctxt order_list false;
-fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt order_list true;
+fun biresolve_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE false;
+fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE true;
 
 
 (*** Simpler version for resolve_tac -- only one net, and no hyps ***)

@@ -566,18 +566,18 @@ fun isVarForm (Var _) = true
   | isVarForm (Const (c, _) $ Var _) = (c = Data.not_name)
   | isVarForm _ = false;
 
-fun netMkRules state P vars (nps: Classical.netpair list) =
+fun netMkRules state P vars (nps: Bires.netpair list) =
   case P of
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)
             val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
-        in  map (fromIntrRule state vars o #2) (order_list intrs)  end
+        in  map (fromIntrRule state vars o #2) (Bires.tag_order intrs)  end
     | _ =>
         if isVarForm P then [] (*The formula is too flexible, reject*)
         else
         let val pP = mk_Trueprop (toTerm 3 P)
             val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
-        in  map_filter (fromRule state vars o #2) (order_list elims)  end;
+        in  map_filter (fromRule state vars o #2) (Bires.tag_order elims)  end;
 
 
 (*Normalize a branch--for tracing*)

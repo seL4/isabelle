@@ -7,11 +7,9 @@ Provers/classical.ML for a more specialized version of the same idea).
 
 signature CONTEXT_RULES =
 sig
-  type netpair = (int * int) Bires.netpair
-  val netpair_bang: Proof.context -> netpair
-  val netpair: Proof.context -> netpair
-  val orderlist: ((int * int) * 'a) list -> 'a list
-  val find_rules_netpair: Proof.context -> bool -> thm list -> term -> netpair -> thm list
+  val netpair_bang: Proof.context -> Bires.netpair
+  val netpair: Proof.context -> Bires.netpair
+  val find_rules_netpair: Proof.context -> bool -> thm list -> term -> Bires.netpair -> thm list
   val find_rules: Proof.context -> bool -> thm list -> term -> thm list list
   val print_rules: Proof.context -> unit
   val addSWrapper: (Proof.context -> (int -> tactic) -> int -> tactic) -> theory -> theory
@@ -61,13 +59,13 @@ val rule_indexes = distinct (op =) (map #1 rule_kinds);
 
 (* context data *)
 
-type netpair = (int * int) Bires.netpair;
-val empty_netpairs: netpair list = replicate (length rule_indexes) (Net.empty, Net.empty);
+val empty_netpairs: Bires.netpair list =
+  replicate (length rule_indexes) Bires.empty_netpair;
 
 datatype rules = Rules of
  {next: int,
   rules: (int * ((int * bool) * thm)) list,
-  netpairs: netpair list,
+  netpairs: Bires.netpair list,
   wrappers:
     ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list *
     ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list};
@@ -75,13 +73,14 @@ datatype rules = Rules of
 fun make_rules next rules netpairs wrappers =
   Rules {next = next, rules = rules, netpairs = netpairs, wrappers = wrappers};
 
-fun add_rule (i, b) opt_w th (Rules {next, rules, netpairs, wrappers}) =
+fun add_rule (i, b) opt_weight th (Rules {next, rules, netpairs, wrappers}) =
   let
-    val w = opt_w |> \<^if_none>\<open>Bires.subgoals_of (b, th)\<close>;
+    val weight = opt_weight |> \<^if_none>\<open>Bires.subgoals_of (b, th)\<close>;
+    val tag = {weight = weight, index = next};
     val th' = Thm.trim_context th;
   in
-    make_rules (next - 1) ((w, ((i, b), th')) :: rules)
-      (nth_map i (Bires.insert_tagged_rule ((w, next), (b, th'))) netpairs) wrappers
+    make_rules (next - 1) ((weight, ((i, b), th')) :: rules)
+      (nth_map i (Bires.insert_tagged_rule (tag, (b, th'))) netpairs) wrappers
   end;
 
 fun del_rule0 th (rs as Rules {next, rules, netpairs, wrappers}) =
@@ -108,8 +107,8 @@ structure Rules = Generic_Data
       val rules = Library.merge (fn ((_, (k1, th1)), (_, (k2, th2))) =>
           k1 = k2 andalso Thm.eq_thm_prop (th1, th2)) (rules1, rules2);
       val next = ~ (length rules);
-      val netpairs = fold (fn (n, (w, ((i, b), th))) =>
-          nth_map i (Bires.insert_tagged_rule ((w, n), (b, th))))
+      val netpairs = fold (fn (index, (weight, ((i, b), th))) =>
+          nth_map i (Bires.insert_tagged_rule ({weight = weight, index = index}, (b, th))))
         (next upto ~1 ~~ rules) empty_netpairs;
     in make_rules (next - 1) rules netpairs wrappers end;
 );
@@ -134,22 +133,13 @@ val netpair = hd o tl o netpairs;
 
 (* retrieving rules *)
 
-fun untaglist [] = []
-  | untaglist [(_ : int * int, x)] = [x]
-  | untaglist ((k, x) :: (rest as (k', _) :: _)) =
-      if k = k' then untaglist rest
-      else x :: untaglist rest;
-
-fun orderlist brls =
-  untaglist (sort (prod_ord int_ord int_ord o apply2 fst) brls);
-
-fun orderlist_no_weight brls =
-  untaglist (sort (int_ord o apply2 (snd o fst)) brls);
-
 local
 
+fun order weighted =
+  make_order_list (Bires.weighted_tag_ord weighted) NONE;
+
 fun may_unify weighted t net =
-  map snd ((if weighted then orderlist else orderlist_no_weight) (Net.unify_term net t));
+  map snd (order weighted (Net.unify_term net t));
 
 fun find_erules _ [] = K []
   | find_erules w (fact :: _) = may_unify w (Logic.strip_assums_concl (Thm.prop_of fact));
