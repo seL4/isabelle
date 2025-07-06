@@ -263,17 +263,19 @@ fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
   then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
-      ({weight = Bires.subgoals_of brl, index = k}, brl) ::
-      tag_brls (k+1) brls;
+      ({weight = Bires.subgoals_of brl, index = k}, brl) :: tag_brls (k + 1) brls;
 
-fun tag_brls' _ _ [] = []
-  | tag_brls' w k (brl::brls) = ({weight = w, index = k}, brl) :: tag_brls' w (k + 1) brls;
+fun tag_weight_brls _ _ [] = []
+  | tag_weight_brls w k (brl::brls) =
+      ({weight = w, index = k}, brl) :: tag_weight_brls w (k + 1) brls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
   new insertions the lowest priority.*)
 fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
-fun insert' w (nI, nE) = Bires.insert_tagged_rules o tag_brls' w (~(nI + nE)) o joinrules;
+
+fun insert_default_weight w0 w (nI, nE) =
+  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) (~(nI + nE)) o joinrules;
 
 fun delete x = Bires.delete_tagged_rules (joinrules x);
 
@@ -322,7 +324,7 @@ fun add_safe_intro w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) ([th], []) extra_netpair}
     end;
 
 fun add_safe_elim w r
@@ -348,7 +350,7 @@ fun add_safe_elim w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) ([], [th]) extra_netpair}
     end;
 
 fun add_unsafe_intro w r
@@ -372,7 +374,7 @@ fun add_unsafe_intro w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert' (the_default 1 w) (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) ([th], []) extra_netpair}
     end;
 
 fun add_unsafe_elim w r
@@ -396,7 +398,7 @@ fun add_unsafe_elim w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) ([], [th]) extra_netpair}
     end;
 
 fun trim_context (th, (th1, ths1), (th2, ths2)) =
