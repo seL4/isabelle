@@ -190,12 +190,12 @@ fun add a b c x =
 
 val _ = Theory.setup
  (Attrib.setup \<^binding>\<open>intro\<close> (add intro_bang intro intro_query)
-    "declaration of introduction rule" #>
+    "declaration of Pure introduction rule" #>
   Attrib.setup \<^binding>\<open>elim\<close> (add elim_bang elim elim_query)
-    "declaration of elimination rule" #>
+    "declaration of Pure elimination rule" #>
   Attrib.setup \<^binding>\<open>dest\<close> (add dest_bang dest dest_query)
-    "declaration of destruction rule" #>
+    "declaration of Pure destruction rule" #>
   Attrib.setup \<^binding>\<open>rule\<close> (Scan.lift Args.del >> K rule_del)
-    "remove declaration of intro/elim/dest rule");
+    "remove declaration of Pure intro/elim/dest rule");
 
 end;

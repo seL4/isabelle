@@ -904,7 +904,7 @@ val _ =
     Attrib.setup \<^binding>\<open>intro\<close> (Context_Rules.add safe_intro unsafe_intro Context_Rules.intro_query)
       "declaration of Classical introduction rule" #>
     Attrib.setup \<^binding>\<open>rule\<close> (Scan.lift Args.del >> K rule_del)
-      "remove declaration of intro/elim/dest rule");
+      "remove declaration of Classical intro/elim/dest rule");
 
 
 
