@@ -35,6 +35,21 @@ sig
   val filt_resolve_from_net_tac: Proof.context -> int -> net -> int -> tactic
   val resolve_from_net_tac: Proof.context -> net -> int -> tactic
   val match_from_net_tac: Proof.context -> net -> int -> tactic
+
+  eqtype kind
+  val intro_bang_kind: kind
+  val elim_bang_kind: kind
+  val intro_kind: kind
+  val elim_kind: kind
+  val intro_query_kind: kind
+  val elim_query_kind: kind
+  val kind_index: kind -> int
+  val kind_elim: kind -> bool
+  val kind_domain: kind list
+  val kind_netpairs: netpair list
+  val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
+  val kind_rule: kind -> thm -> rule
+  val kind_title: kind -> string
 end
 
 structure Bires: BIRES =
@@ -121,6 +136,42 @@ fun biresolve_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE 
 fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE true;
 
 
+(** Rule kinds and declarations **)
+
+datatype kind = Kind of int * bool;
+
+val intro_bang_kind = Kind (0, false);
+val elim_bang_kind = Kind (0, true);
+val intro_kind = Kind (1, false);
+val elim_kind = Kind (1, true);
+val intro_query_kind = Kind (2, false);
+val elim_query_kind = Kind (2, true);
+
+val kind_infos =
+ [(intro_bang_kind, ("safe introduction", "(intro!)")),
+  (elim_bang_kind, ("safe elimination", "(elim!)")),
+  (intro_kind, ("introduction", "(intro)")),
+  (elim_kind, ("elimination", "(elim)")),
+  (intro_query_kind, ("extra introduction", "(intro?)")),
+  (elim_query_kind, ("extra elimination", "(elim?)"))];
+
+fun kind_index (Kind (i, _)) = i;
+fun kind_elim (Kind (_, b)) = b;
+
+val kind_domain = map #1 kind_infos;
+val kind_netpairs =
+  replicate (length (distinct (op =) (map kind_index kind_domain))) empty_netpair;
+
+fun kind_map kind f = nth_map (kind_index kind) f;
+fun kind_rule kind thm : rule = (kind_elim kind, thm);
+
+val the_kind_info = the o AList.lookup (op =) kind_infos;
+
+fun kind_title kind =
+  let val (a, b) = the_kind_info kind
+  in a ^ " rules " ^ b end;
+
+
 (*** Simpler version for resolve_tac -- only one net, and no hyps ***)
 
 type net = (int * thm) Net.net;
@@ -150,4 +201,3 @@ fun resolve_from_net_tac ctxt = filt_resolution_from_net_tac ctxt false (K true)
 fun match_from_net_tac ctxt = filt_resolution_from_net_tac ctxt true (K true);
 
 end;
-
