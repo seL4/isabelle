@@ -8510,7 +8510,7 @@ begin
 qualified definition Least :: \<open>'a::linorder set \<Rightarrow> 'a\<close> \<comment> \<open>only for code generation\<close>
   where Least_eq [code_abbrev, simp]: \<open>Least S = (LEAST x. x \<in> S)\<close>
 
-qualified lemma Min_filter_eq [code_abbrev]:
+qualified lemma Least_filter_eq [code_abbrev]:
   \<open>Least (Set.filter P S) = (LEAST x. x \<in> S \<and> P x)\<close>
   by simp
 
