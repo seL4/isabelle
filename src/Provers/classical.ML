@@ -275,7 +275,7 @@ fun tag_weight_brls _ _ [] = []
 fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
 
 fun insert_default_weight w0 w (nI, nE) =
-  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) (~(nI + nE)) o joinrules;
+  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) (~(nI + nE)) o single;
 
 fun delete x = Bires.delete_tagged_rules (joinrules x);
 
@@ -324,7 +324,7 @@ fun add_safe_intro w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) (false, th) extra_netpair}
     end;
 
 fun add_safe_elim w r
@@ -350,7 +350,7 @@ fun add_safe_elim w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) (true, th) extra_netpair}
     end;
 
 fun add_unsafe_intro w r
@@ -374,7 +374,7 @@ fun add_unsafe_intro w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) (false, th) extra_netpair}
     end;
 
 fun add_unsafe_elim w r
@@ -398,7 +398,7 @@ fun add_unsafe_elim w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) (true, th) extra_netpair}
     end;
 
 fun trim_context (th, (th1, ths1), (th2, ths2)) =
