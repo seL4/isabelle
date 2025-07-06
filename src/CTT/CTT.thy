@@ -328,18 +328,18 @@ lemmas routine_rls = form_rls formL_rls refl_type element_rls
 
 ML \<open>
 fun routine_tac rls ctxt prems =
-  ASSUME ctxt (filt_resolve_from_net_tac ctxt 4 (Tactic.build_net (prems @ rls)));
+  ASSUME ctxt (Bires.filt_resolve_from_net_tac ctxt 4 (Bires.build_net (prems @ rls)));
 
 (*Solve all subgoals "A type" using formation rules. *)
-val form_net = Tactic.build_net @{thms form_rls};
+val form_net = Bires.build_net @{thms form_rls};
 fun form_tac ctxt =
-  REPEAT_FIRST (ASSUME ctxt (filt_resolve_from_net_tac ctxt 1 form_net));
+  REPEAT_FIRST (ASSUME ctxt (Bires.filt_resolve_from_net_tac ctxt 1 form_net));
 
 (*Type checking: solve a:A (a rigid, A flexible) by intro and elim rules. *)
 fun typechk_tac ctxt thms =
   let val tac =
-    filt_resolve_from_net_tac ctxt 3
-      (Tactic.build_net (thms @ @{thms form_rls} @ @{thms element_rls}))
+    Bires.filt_resolve_from_net_tac ctxt 3
+      (Bires.build_net (thms @ @{thms form_rls} @ @{thms element_rls}))
   in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Solve a:A (a flexible, A rigid) by introduction rules.
@@ -347,16 +347,16 @@ fun typechk_tac ctxt thms =
   goals like ?a:SUM(A,B) have a trivial head-string *)
 fun intr_tac ctxt thms =
   let val tac =
-    filt_resolve_from_net_tac ctxt 1
-      (Tactic.build_net (thms @ @{thms form_rls} @ @{thms intr_rls}))
+    Bires.filt_resolve_from_net_tac ctxt 1
+      (Bires.build_net (thms @ @{thms form_rls} @ @{thms intr_rls}))
   in  REPEAT_FIRST (ASSUME ctxt tac)  end
 
 (*Equality proving: solve a=b:A (where a is rigid) by long rules. *)
 fun equal_tac ctxt thms =
   REPEAT_FIRST
     (ASSUME ctxt
-      (filt_resolve_from_net_tac ctxt 3
-        (Tactic.build_net (thms @ @{thms form_rls element_rls intrL_rls elimL_rls refl_elem}))))
+      (Bires.filt_resolve_from_net_tac ctxt 3
+        (Bires.build_net (thms @ @{thms form_rls element_rls intrL_rls elimL_rls refl_elem}))))
 \<close>
 
 method_setup form = \<open>Scan.succeed (fn ctxt => SIMPLE_METHOD (form_tac ctxt))\<close>
@@ -391,9 +391,9 @@ lemmas reduction_rls = comp_rls [THEN trans_elem]
 ML \<open>
 (*Converts each goal "e : Eq(A,a,b)" into "a=b:A" for simplification.
   Uses other intro rules to avoid changing flexible goals.*)
-val eqintr_net = Tactic.build_net @{thms EqI intr_rls}
+val eqintr_net = Bires.build_net @{thms EqI intr_rls}
 fun eqintr_tac ctxt =
-  REPEAT_FIRST (ASSUME ctxt (filt_resolve_from_net_tac ctxt 1 eqintr_net))
+  REPEAT_FIRST (ASSUME ctxt (Bires.filt_resolve_from_net_tac ctxt 1 eqintr_net))
 
 (** Tactics that instantiate CTT-rules.
     Vars in the given terms will be incremented!
@@ -421,7 +421,7 @@ fun add_mp_tac ctxt i =
 fun mp_tac ctxt i = eresolve_tac ctxt @{thms subst_prodE} i  THEN  assume_tac ctxt i
 
 (*"safe" when regarded as predicate calculus rules*)
-val safe_brls = sort (make_ord lessb)
+val safe_brls = sort Bires.subgoals_ord
     [ (true, @{thm FE}), (true,asm_rl),
       (false, @{thm ProdI}), (true, @{thm SumE}), (true, @{thm PlusE}) ]
 
@@ -431,7 +431,7 @@ val unsafe_brls =
 
 (*0 subgoals vs 1 or more*)
 val (safe0_brls, safep_brls) =
-    List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls
+    List.partition Bires.no_subgoals safe_brls
 
 fun safestep_tac ctxt thms i =
     form_tac ctxt ORELSE

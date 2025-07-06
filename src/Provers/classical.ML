@@ -97,7 +97,6 @@ sig
   include BASIC_CLASSICAL
   val classical_rule: Proof.context -> thm -> thm
   type rule = thm * (thm * thm list) * (thm * thm list)
-  type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net
   val rep_cs: claset ->
    {safeIs: rule Item_Net.T,
     safeEs: rule Item_Net.T,
@@ -105,11 +104,11 @@ sig
     unsafeEs: rule Item_Net.T,
     swrappers: (string * (Proof.context -> wrapper)) list,
     uwrappers: (string * (Proof.context -> wrapper)) list,
-    safe0_netpair: netpair,
-    safep_netpair: netpair,
-    unsafe_netpair: netpair,
-    dup_netpair: netpair,
-    extra_netpair: Context_Rules.netpair}
+    safe0_netpair: Bires.netpair,
+    safep_netpair: Bires.netpair,
+    unsafe_netpair: Bires.netpair,
+    dup_netpair: Bires.netpair,
+    extra_netpair: Bires.netpair}
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -217,7 +216,6 @@ fun dup_elim ctxt th =
 type rule = thm * (thm * thm list) * (thm * thm list);
   (*external form, internal form (possibly swapped), dup form (possibly swapped)*)
 
-type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
 type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =
@@ -228,16 +226,14 @@ datatype claset =
     unsafeEs: rule Item_Net.T,  (*unsafe elimination rules*)
     swrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming safe_step_tac*)
     uwrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming step_tac*)
-    safe0_netpair: netpair,  (*nets for trivial cases*)
-    safep_netpair: netpair,  (*nets for >0 subgoals*)
-    unsafe_netpair: netpair,  (*nets for unsafe rules*)
-    dup_netpair: netpair,  (*nets for duplication*)
-    extra_netpair: Context_Rules.netpair};  (*nets for extra rules*)
+    safe0_netpair: Bires.netpair,  (*nets for trivial cases*)
+    safep_netpair: Bires.netpair,  (*nets for >0 subgoals*)
+    unsafe_netpair: Bires.netpair,  (*nets for unsafe rules*)
+    dup_netpair: Bires.netpair,  (*nets for duplication*)
+    extra_netpair: Bires.netpair};  (*nets for extra rules*)
 
 val empty_rules: rule Item_Net.T =
   Item_Net.init (Thm.eq_thm_prop o apply2 #1) (single o Thm.full_prop_of o #1);
-
-val empty_netpair = (Net.empty, Net.empty);
 
 val empty_cs =
   CS
@@ -247,11 +243,11 @@ val empty_cs =
     unsafeEs = empty_rules,
     swrappers = [],
     uwrappers = [],
-    safe0_netpair = empty_netpair,
-    safep_netpair = empty_netpair,
-    unsafe_netpair = empty_netpair,
-    dup_netpair = empty_netpair,
-    extra_netpair = empty_netpair};
+    safe0_netpair = Bires.empty_netpair,
+    safep_netpair = Bires.empty_netpair,
+    unsafe_netpair = Bires.empty_netpair,
+    dup_netpair = Bires.empty_netpair,
+    extra_netpair = Bires.empty_netpair};
 
 fun rep_cs (CS args) = args;
 
@@ -267,27 +263,26 @@ fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
   then rules added most recently (preferring the head of the list).*)
 fun tag_brls k [] = []
   | tag_brls k (brl::brls) =
-      (1000000*subgoals_of_brl brl + k, brl) ::
-      tag_brls (k+1) brls;
+      ({weight = Bires.subgoals_of brl, index = k}, brl) :: tag_brls (k + 1) brls;
 
-fun tag_brls' _ _ [] = []
-  | tag_brls' w k (brl::brls) = ((w, k), brl) :: tag_brls' w (k + 1) brls;
-
-fun insert_tagged_list rls = fold_rev Tactic.insert_tagged_brl rls;
+fun tag_weight_brls _ _ [] = []
+  | tag_weight_brls w k (brl::brls) =
+      ({weight = w, index = k}, brl) :: tag_weight_brls w (k + 1) brls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
   Count the intr rules double (to account for swapify).  Negate to give the
   new insertions the lowest priority.*)
-fun insert (nI, nE) = insert_tagged_list o (tag_brls (~(2*nI+nE))) o joinrules;
-fun insert' w (nI, nE) = insert_tagged_list o tag_brls' w (~(nI + nE)) o joinrules;
+fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
 
-fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
-fun delete x = delete_tagged_list (joinrules x);
+fun insert_default_weight w0 w (nI, nE) =
+  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) (~(nI + nE)) o single;
+
+fun delete x = Bires.delete_tagged_rules (joinrules x);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
 fun make_elim ctxt th =
-  if has_fewer_prems 1 th then bad_thm ctxt "Ill-formed destruction rule" th
+  if Thm.no_prems th then bad_thm ctxt "Ill-formed destruction rule" th
   else Tactic.make_elim th;
 
 fun warn_thm ctxt msg th =
@@ -329,7 +324,7 @@ fun add_safe_intro w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) (false, th) extra_netpair}
     end;
 
 fun add_safe_elim w r
@@ -340,7 +335,7 @@ fun add_safe_elim w r
     let
       val (th, rl, _) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-        List.partition (fn (rl, _) => Thm.nprems_of rl = 1) [rl];
+        List.partition (Thm.one_prem o #1) [rl];
       val nI = Item_Net.length safeIs;
       val nE = Item_Net.length safeEs + 1;
     in
@@ -355,7 +350,7 @@ fun add_safe_elim w r
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert' (the_default 0 w) (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 0 w (nI, nE) (true, th) extra_netpair}
     end;
 
 fun add_unsafe_intro w r
@@ -379,7 +374,7 @@ fun add_unsafe_intro w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert' (the_default 1 w) (nI, nE) ([th], []) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) (false, th) extra_netpair}
     end;
 
 fun add_unsafe_elim w r
@@ -403,7 +398,7 @@ fun add_unsafe_elim w r
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert' (the_default 1 w) (nI, nE) ([], [th]) extra_netpair}
+        extra_netpair = insert_default_weight 1 w (nI, nE) (true, th) extra_netpair}
     end;
 
 fun trim_context (th, (th1, ths1), (th2, ths2)) =
@@ -423,7 +418,7 @@ fun addSI w ctxt th (cs as CS {safeIs, ...}) =
 
 fun addSE w ctxt th (cs as CS {safeEs, ...}) =
   let
-    val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val rl = (th', []);
     val r = trim_context (th, rl, rl);
@@ -446,7 +441,7 @@ fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
 
 fun addE w ctxt th (cs as CS {unsafeEs, ...}) =
   let
-    val _ = has_fewer_prems 1 th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
     val r = trim_context (th, (th', []), (dup_th', []));
@@ -488,7 +483,7 @@ fun del_safe_elim (r: rule)
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
     val (th, rl, _) = r;
-    val (safe0_rls, safep_rls) = List.partition (fn (rl, _) => Thm.nprems_of rl = 1) [rl];
+    val (safe0_rls, safep_rls) = List.partition (Thm.one_prem o #1) [rl];
   in
     CS
      {safe0_netpair = delete ([], map fst safe0_rls) safe0_netpair,
@@ -721,9 +716,9 @@ fun safe_step_tac ctxt =
       (FIRST'
        [eq_assume_tac,
         eq_mp_tac ctxt,
-        bimatch_from_nets_tac ctxt safe0_netpair,
+        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
-        bimatch_from_nets_tac ctxt safep_netpair])
+        Bires.bimatch_from_nets_tac ctxt safep_netpair])
   end;
 
 (*Repeatedly attack a subgoal using safe inferences -- it's deterministic!*)
@@ -736,12 +731,11 @@ fun safe_tac ctxt = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac ctxt));
 
 (*** Clarify_tac: do safe steps without causing branching ***)
 
-fun nsubgoalsP n (k, brl) = (subgoals_of_brl brl = n);
-
-(*version of bimatch_from_nets_tac that only applies rules that
+(*version of Bires.bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
 fun n_bimatch_from_nets_tac ctxt n =
-  biresolution_from_nets_tac ctxt (order_list o filter (nsubgoalsP n)) true;
+  Bires.biresolution_from_nets_tac ctxt Bires.tag_ord
+    (SOME (fn rl => Bires.subgoals_of rl = n)) true;
 
 fun eq_contr_tac ctxt i = ematch_tac ctxt [Data.not_elim] i THEN eq_assume_tac i;
 fun eq_assume_contr_tac ctxt = eq_assume_tac ORELSE' eq_contr_tac ctxt;
@@ -757,7 +751,7 @@ fun clarify_step_tac ctxt =
     appSWrappers ctxt
      (FIRST'
        [eq_assume_contr_tac ctxt,
-        bimatch_from_nets_tac ctxt safe0_netpair,
+        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
         FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         n_bimatch_from_nets_tac ctxt 1 safep_netpair,
         bimatch2_tac ctxt safep_netpair])
@@ -773,17 +767,17 @@ fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 fun inst0_step_tac ctxt =
   assume_tac ctxt APPEND'
   contr_tac ctxt APPEND'
-  biresolve_from_nets_tac ctxt (#safe0_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#safe0_netpair (rep_claset_of ctxt));
 
 (*These unsafe steps could generate more subgoals.*)
 fun instp_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#safep_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#safep_netpair (rep_claset_of ctxt));
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac ctxt = inst0_step_tac ctxt APPEND' instp_step_tac ctxt;
 
 fun unsafe_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#unsafe_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#unsafe_netpair (rep_claset_of ctxt));
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
 fun step_tac ctxt i =
@@ -804,12 +798,12 @@ fun fast_tac ctxt =
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (step_tac ctxt 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (FIRSTGOAL (step_tac ctxt)));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (FIRSTGOAL (step_tac ctxt)));
 
 fun slow_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
@@ -817,7 +811,7 @@ fun slow_tac ctxt =
 
 fun slow_best_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (slow_step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (slow_step_tac ctxt 1));
 
 
 (***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
@@ -827,13 +821,13 @@ val weight_ASTAR = 5;
 fun astar_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
+    (ASTAR (Thm.no_prems, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (step_tac ctxt 1));
 
 fun slow_astar_tac ctxt =
   Object_Logic.atomize_prems_tac ctxt THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
+    (ASTAR (Thm.no_prems, fn lev => fn thm => Data.sizef thm + weight_ASTAR * lev)
       (slow_step_tac ctxt 1));
 
 
@@ -846,7 +840,7 @@ fun slow_astar_tac ctxt =
   That's hard to implement and did not perform better in experiments, due to
   greater search depth required.*)
 fun dup_step_tac ctxt =
-  biresolve_from_nets_tac ctxt (#dup_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (#dup_netpair (rep_claset_of ctxt));
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
 local
@@ -910,7 +904,7 @@ val _ =
     Attrib.setup \<^binding>\<open>intro\<close> (Context_Rules.add safe_intro unsafe_intro Context_Rules.intro_query)
       "declaration of Classical introduction rule" #>
     Attrib.setup \<^binding>\<open>rule\<close> (Scan.lift Args.del >> K rule_del)
-      "remove declaration of intro/elim/dest rule");
+      "remove declaration of Classical intro/elim/dest rule");
 
 
 

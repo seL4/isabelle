@@ -59,8 +59,8 @@ fun fresolve_tac ctxt rls n = filseq_resolve_tac ctxt rls 999 n;
 
 (* NB No back tracking possible with aside rules *)
 
-val aside_net = Tactic.build_net Modal_Rule.aside_rls;
-fun aside_tac ctxt n = DETERM (REPEAT (filt_resolve_from_net_tac ctxt 999 aside_net n));
+val aside_net = Bires.build_net Modal_Rule.aside_rls;
+fun aside_tac ctxt n = DETERM (REPEAT (Bires.filt_resolve_from_net_tac ctxt 999 aside_net n));
 fun rule_tac ctxt rls n = fresolve_tac ctxt rls n THEN aside_tac ctxt n;
 
 fun fres_safe_tac ctxt = fresolve_tac ctxt Modal_Rule.safe_rls;
@@ -83,7 +83,7 @@ fun solve_tac ctxt d =
   rewrite_goals_tac ctxt Modal_Rule.rewrite_rls THEN solven_tac ctxt d 1;
 
 fun step_tac ctxt n =
-  COND (has_fewer_prems 1) all_tac
+  COND Thm.no_prems all_tac
        (DETERM(fres_safe_tac ctxt n) ORELSE
         (fres_unsafe_tac ctxt n APPEND fres_bound_tac ctxt n));
 
