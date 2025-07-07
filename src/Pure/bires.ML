@@ -13,10 +13,12 @@ sig
   val no_subgoals: rule -> bool
 
   type tag = {weight: int, index: int}
-  val tag0_ord: tag ord
+  val tag_weight_ord: tag ord
+  val tag_index_ord: tag ord
   val tag_ord: tag ord
   val weighted_tag_ord: bool -> tag ord
   val tag_order: (tag * 'a) list -> 'a list
+  val weight_tag: int -> tag
 
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
@@ -50,6 +52,19 @@ sig
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
   val kind_rule: kind -> thm -> rule
   val kind_title: kind -> string
+
+  type decl = {kind: kind, tag: tag, implicit: bool}
+  val decl_ord: decl ord
+  val insert_rule: thm * decl -> netpair -> netpair
+  val remove_rule: thm -> netpair -> netpair
+  type decls
+  val has_decls: decls -> thm -> bool
+  val list_decls: (thm * decl -> bool) -> decls -> (thm * decl) list
+  val print_decls: kind -> decls -> (thm * decl) list
+  val merge_decls: decls * decls -> (thm * decl) list * decls
+  val extend_decls: thm * decl -> decls -> ((thm * decl) * decls) option
+  val remove_decls: thm -> decls -> decls option
+  val empty_decls: decls
 end
 
 structure Bires: BIRES =
@@ -74,12 +89,18 @@ fun no_subgoals (true, thm) = Thm.one_prem thm
 
 type tag = {weight: int, index: int};
 
-val tag0_ord: tag ord = int_ord o apply2 #index;
-val tag_ord: tag ord = int_ord o apply2 #weight ||| tag0_ord;
+val tag_weight_ord: tag ord = int_ord o apply2 #weight;
+val tag_index_ord: tag ord = int_ord o apply2 #index;
 
-fun weighted_tag_ord weighted = if weighted then tag_ord else tag0_ord;
+val tag_ord: tag ord = tag_weight_ord ||| tag_index_ord;
+
+fun weighted_tag_ord weighted = if weighted then tag_ord else tag_index_ord;
 
 fun tag_order list = make_order_list tag_ord NONE list;
+
+fun weight_tag weight : tag = {weight = weight, index = 0};
+
+fun next_tag next ({weight, ...}: tag) = {weight = weight, index = next};
 
 
 (* discrimination nets for intr/elim rules *)
@@ -138,6 +159,8 @@ fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE tr
 
 (** Rule kinds and declarations **)
 
+(* kind: intro! / elim! / intro / elim / intro? / elim? *)
+
 datatype kind = Kind of int * bool;
 
 val intro_bang_kind = Kind (0, false);
@@ -170,6 +193,75 @@ val the_kind_info = the o AList.lookup (op =) kind_infos;
 fun kind_title kind =
   let val (a, b) = the_kind_info kind
   in a ^ " rules " ^ b end;
+
+
+(* rule declarations in canonical order *)
+
+type decl = {kind: kind, tag: tag, implicit: bool};
+
+val decl_ord: decl ord = tag_index_ord o apply2 #tag;
+
+fun decl_equiv (decl1: decl, decl2: decl) =
+  #kind decl1 = #kind decl2 andalso
+  is_equal (tag_weight_ord (#tag decl1, #tag decl2));
+
+fun next_decl next ({kind, tag, implicit}: decl) : decl =
+  {kind = kind, tag = next_tag next tag, implicit = implicit};
+
+fun insert_rule (thm, {kind, tag, ...}: decl) netpair =
+  insert_tagged_rule (tag, kind_rule kind thm) netpair;
+
+fun remove_rule thm =
+  let fun del b netpair = delete_tagged_rule (b, thm) netpair handle Net.DELETE => netpair
+  in del false o del true end;
+
+
+abstype decls = Decls of {next: int, rules: decl list Thmtab.table}
+with
+
+local
+
+fun dest_decls pred (Decls {rules, ...}) =
+  build (rules |> Thmtab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))));
+
+fun dup_decls (Decls {rules, ...}) (thm, decl) =
+  member decl_equiv (Thmtab.lookup_list rules thm) decl;
+
+fun add_decls (thm, decl) (Decls {next, rules}) =
+  let
+    val decl' = next_decl next decl;
+    val decls' = Decls {next = next - 1, rules = Thmtab.cons_list (thm, decl') rules};
+  in ((thm, decl'), decls') end;
+
+in
+
+fun has_decls (Decls {rules, ...}) = Thmtab.defined rules;
+
+fun list_decls pred =
+  dest_decls pred #> sort (rev_order o decl_ord o apply2 #2);
+
+fun print_decls kind =
+  dest_decls (fn (_, {kind = kind', implicit, ...}) => kind = kind' andalso not implicit)
+  #> sort (tag_ord o apply2 (#tag o #2));
+
+fun merge_decls (decls1, decls2) =
+  decls1 |> fold_map add_decls (list_decls (not o dup_decls decls1) decls2);
+
+fun extend_decls (thm, decl) decls =
+  if dup_decls decls (thm, decl) then NONE
+  else SOME (add_decls (thm, decl) decls);
+
+fun remove_decls thm (decls as Decls {next, rules}) =
+  if has_decls decls thm
+  then SOME (Decls {next = next, rules = Thmtab.delete thm rules})
+  else NONE;
+
+val empty_decls = Decls {next = ~1, rules = Thmtab.empty};
+
+end;
+
+end;
+
 
 
 (** Simpler version for resolve_tac -- only one net, and no hyps **)
