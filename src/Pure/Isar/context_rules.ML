@@ -73,7 +73,7 @@ fun del_rule th = del_rule0 th o del_rule0 (Tactic.make_elim th);
 structure Data = Generic_Data
 (
   type T = rules;
-  val empty = make_rules Bires.empty_decls Bires.kind_netpairs ([], []);
+  val empty = make_rules Bires.empty_decls (Bires.kind_values Bires.empty_netpair) ([], []);
   fun merge
     (Rules {decls = decls1, netpairs = netpairs1, wrappers = (ws1, ws1')},
      Rules {decls = decls2, netpairs = _, wrappers = (ws2, ws2')}) =

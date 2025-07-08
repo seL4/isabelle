@@ -30,6 +30,7 @@ sig
   val kind_index: kind -> int
   val kind_elim: kind -> bool
   val kind_domain: kind list
+  val kind_values: 'a -> 'a list
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
   val kind_rule: kind -> thm -> rule
   val kind_title: kind -> string
@@ -47,7 +48,6 @@ sig
 
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
-  val kind_netpairs: netpair list
   val insert_tagged_rule: tag * rule -> netpair -> netpair
   val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
   val delete_tagged_rule: rule -> netpair -> netpair
@@ -127,6 +127,9 @@ fun kind_elim (Kind (_, b)) = b;
 
 val kind_domain = map #1 kind_infos;
 
+fun kind_values x =
+  replicate (length (distinct (op =) (map kind_index kind_domain))) x;
+
 fun kind_map kind f = nth_map (kind_index kind) f;
 fun kind_rule kind thm : rule = (kind_elim kind, thm);
 
@@ -203,9 +206,6 @@ end;
 type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
 
 val empty_netpair: netpair = (Net.empty, Net.empty);
-
-val kind_netpairs =
-  replicate (length (distinct (op =) (map kind_index kind_domain))) empty_netpair;
 
 
 (** Natural Deduction using (bires_flg, rule) pairs **)
