@@ -773,16 +773,16 @@ lemma sorted_list_set [code]: "sorted_list_of_set (Set t) = RBT.keys t"
   by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
 lemma Least_code [code]:
-  \<open>List.Least (Set t) = (if RBT.is_empty t then List.Least_abort {} else Min (Set t))\<close>
-  apply (auto simp add: List.Least_abort_def simp flip: empty_Set)
+  \<open>Lattices_Big.Least (Set t) = (if RBT.is_empty t then Lattices_Big.Least_abort {} else Min (Set t))\<close>
+  apply (auto simp add: Lattices_Big.Least_abort_def simp flip: empty_Set)
   apply (subst Least_Min)
   using is_empty_Set
     apply auto
   done
 
 lemma Greatest_code [code]:
-  \<open>List.Greatest (Set t) = (if RBT.is_empty t then List.Greatest_abort {} else Max (Set t))\<close>
-  apply (auto simp add: List.Greatest_abort_def simp flip: empty_Set)
+  \<open>Lattices_Big.Greatest (Set t) = (if RBT.is_empty t then Lattices_Big.Greatest_abort {} else Max (Set t))\<close>
+  apply (auto simp add: Lattices_Big.Greatest_abort_def simp flip: empty_Set)
   apply (subst Greatest_Max)
   using is_empty_Set
     apply auto

@@ -115,7 +115,7 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     discontinued in favour of a generic List.all_range
 
     const List.Bleast
-    discontinued in favour of more concise List.Least as variant of Min
+    discontinued in favour of more concise Lattices_Big.Least
 
     const [List.]map_tailrec ~ List.map_tailrec
     thm List.map_tailrec_eq [simp]
