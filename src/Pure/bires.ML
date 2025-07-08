@@ -20,24 +20,6 @@ sig
   val tag_order: (tag * 'a) list -> 'a list
   val weight_tag: int -> tag
 
-  type netpair = (tag * rule) Net.net * (tag * rule) Net.net
-  val empty_netpair: netpair
-
-  val insert_tagged_rule: tag * rule -> netpair -> netpair
-  val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
-  val delete_tagged_rule: rule -> netpair -> netpair
-  val delete_tagged_rules: rule list -> netpair -> netpair
-  val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
-    bool -> netpair -> int -> tactic
-  val biresolve_from_nets_tac: Proof.context -> netpair -> int -> tactic
-  val bimatch_from_nets_tac: Proof.context -> netpair -> int -> tactic
-
-  type net = (int * thm) Net.net
-  val build_net: thm list -> net
-  val filt_resolve_from_net_tac: Proof.context -> int -> net -> int -> tactic
-  val resolve_from_net_tac: Proof.context -> net -> int -> tactic
-  val match_from_net_tac: Proof.context -> net -> int -> tactic
-
   eqtype kind
   val intro_bang_kind: kind
   val elim_bang_kind: kind
@@ -48,15 +30,12 @@ sig
   val kind_index: kind -> int
   val kind_elim: kind -> bool
   val kind_domain: kind list
-  val kind_netpairs: netpair list
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
   val kind_rule: kind -> thm -> rule
   val kind_title: kind -> string
 
   type decl = {kind: kind, tag: tag, implicit: bool}
   val decl_ord: decl ord
-  val insert_rule: thm * decl -> netpair -> netpair
-  val remove_rule: thm -> netpair -> netpair
   type decls
   val has_decls: decls -> thm -> bool
   val list_decls: (thm * decl -> bool) -> decls -> (thm * decl) list
@@ -65,12 +44,33 @@ sig
   val extend_decls: thm * decl -> decls -> ((thm * decl) * decls) option
   val remove_decls: thm -> decls -> decls option
   val empty_decls: decls
+
+  type netpair = (tag * rule) Net.net * (tag * rule) Net.net
+  val empty_netpair: netpair
+  val kind_netpairs: netpair list
+  val insert_tagged_rule: tag * rule -> netpair -> netpair
+  val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
+  val delete_tagged_rule: rule -> netpair -> netpair
+  val delete_tagged_rules: rule list -> netpair -> netpair
+  val insert_rule: thm * decl -> netpair -> netpair
+  val remove_rule: thm -> netpair -> netpair
+
+  val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
+    bool -> netpair -> int -> tactic
+  val biresolve_from_nets_tac: Proof.context -> netpair -> int -> tactic
+  val bimatch_from_nets_tac: Proof.context -> netpair -> int -> tactic
+
+  type net = (int * thm) Net.net
+  val build_net: thm list -> net
+  val filt_resolve_from_net_tac: Proof.context -> int -> net -> int -> tactic
+  val resolve_from_net_tac: Proof.context -> net -> int -> tactic
+  val match_from_net_tac: Proof.context -> net -> int -> tactic
 end
 
 structure Bires: BIRES =
 struct
 
-(** Natural Deduction using (bires_flg, rule) pairs **)
+(** Rule kinds and declarations **)
 
 (* type rule *)
 
@@ -103,62 +103,6 @@ fun weight_tag weight : tag = {weight = weight, index = 0};
 fun next_tag next ({weight, ...}: tag) = {weight = weight, index = next};
 
 
-(* discrimination nets for intr/elim rules *)
-
-type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
-
-val empty_netpair: netpair = (Net.empty, Net.empty);
-
-
-(** To preserve the order of the rules, tag them with decreasing integers **)
-
-(*insert one tagged brl into the pair of nets*)
-fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) =
-  if eres then
-    (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.insert_term (K false) (prem, tagged_rule) enet)
-    | NONE => error "insert_tagged_rule: elimination rule with no premises")
-  else (Net.insert_term (K false) (Thm.concl_of th, tagged_rule) inet, enet);
-
-fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
-
-
-(*delete one kbrl from the pair of nets*)
-local
-  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
-in
-
-fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
-  (if eres then
-    (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
-    | NONE => (inet, enet))  (*no major premise: ignore*)
-  else (Net.delete_term eq_kbrl (Thm.concl_of th, ((), brl)) inet, enet))
-  handle Net.DELETE => (inet,enet);
-
-fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
-
-end;
-
-(*biresolution using a pair of nets rather than rules:
-   boolean "match" indicates matching or unification.*)
-fun biresolution_from_nets_tac ctxt ord pred match ((inet, enet): netpair) =
-  SUBGOAL
-    (fn (prem, i) =>
-      let
-        val hyps = Logic.strip_assums_hyp prem;
-        val concl = Logic.strip_assums_concl prem;
-        val tagged_rules = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps;
-        val order = make_order_list ord pred;
-      in PRIMSEQ (Thm.biresolution (SOME ctxt) match (order tagged_rules) i) end);
-
-(*versions taking pre-built nets.  No filtering of brls*)
-fun biresolve_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE false;
-fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE true;
-
-
-(** Rule kinds and declarations **)
-
 (* kind: intro! / elim! / intro / elim / intro? / elim? *)
 
 datatype kind = Kind of int * bool;
@@ -182,8 +126,6 @@ fun kind_index (Kind (i, _)) = i;
 fun kind_elim (Kind (_, b)) = b;
 
 val kind_domain = map #1 kind_infos;
-val kind_netpairs =
-  replicate (length (distinct (op =) (map kind_index kind_domain))) empty_netpair;
 
 fun kind_map kind f = nth_map (kind_index kind) f;
 fun kind_rule kind thm : rule = (kind_elim kind, thm);
@@ -207,13 +149,6 @@ fun decl_equiv (decl1: decl, decl2: decl) =
 
 fun next_decl next ({kind, tag, implicit}: decl) : decl =
   {kind = kind, tag = next_tag next tag, implicit = implicit};
-
-fun insert_rule (thm, {kind, tag, ...}: decl) netpair =
-  insert_tagged_rule (tag, kind_rule kind thm) netpair;
-
-fun remove_rule thm =
-  let fun del b netpair = delete_tagged_rule (b, thm) netpair handle Net.DELETE => netpair
-  in del false o del true end;
 
 
 abstype decls = Decls of {next: int, rules: decl list Thmtab.table}
@@ -262,6 +197,71 @@ end;
 
 end;
 
+
+(* discrimination nets for intr/elim rules *)
+
+type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
+
+val empty_netpair: netpair = (Net.empty, Net.empty);
+
+val kind_netpairs =
+  replicate (length (distinct (op =) (map kind_index kind_domain))) empty_netpair;
+
+
+(** Natural Deduction using (bires_flg, rule) pairs **)
+
+(** To preserve the order of the rules, tag them with decreasing integers **)
+
+fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) =
+  if eres then
+    (case try Thm.major_prem_of th of
+      SOME prem => (inet, Net.insert_term (K false) (prem, tagged_rule) enet)
+    | NONE => error "insert_tagged_rule: elimination rule with no premises")
+  else (Net.insert_term (K false) (Thm.concl_of th, tagged_rule) inet, enet);
+
+fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
+
+
+local
+  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
+in
+
+fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
+  (if eres then
+    (case try Thm.major_prem_of th of
+      SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
+    | NONE => (inet, enet))  (*no major premise: ignore*)
+  else (Net.delete_term eq_kbrl (Thm.concl_of th, ((), brl)) inet, enet))
+  handle Net.DELETE => (inet,enet);
+
+end;
+
+fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
+
+
+fun insert_rule (thm, {kind, tag, ...}: decl) netpair =
+  insert_tagged_rule (tag, kind_rule kind thm) netpair;
+
+fun remove_rule thm =
+  let fun del b netpair = delete_tagged_rule (b, thm) netpair handle Net.DELETE => netpair
+  in del false o del true end;
+
+
+(*biresolution using a pair of nets rather than rules:
+   boolean "match" indicates matching or unification.*)
+fun biresolution_from_nets_tac ctxt ord pred match ((inet, enet): netpair) =
+  SUBGOAL
+    (fn (prem, i) =>
+      let
+        val hyps = Logic.strip_assums_hyp prem;
+        val concl = Logic.strip_assums_concl prem;
+        val tagged_rules = Net.unify_term inet concl @ maps (Net.unify_term enet) hyps;
+        val order = make_order_list ord pred;
+      in PRIMSEQ (Thm.biresolution (SOME ctxt) match (order tagged_rules) i) end);
+
+(*versions taking pre-built nets.  No filtering of brls*)
+fun biresolve_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE false;
+fun bimatch_from_nets_tac ctxt = biresolution_from_nets_tac ctxt tag_ord NONE true;
 
 
 (** Simpler version for resolve_tac -- only one net, and no hyps **)
