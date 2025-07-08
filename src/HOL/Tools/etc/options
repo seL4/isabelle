@@ -32,6 +32,9 @@ public option sledgehammer_provers : string = "cvc5 verit z3 e spass vampire zip
 public option sledgehammer_timeout : int = 30
   -- "provers will be interrupted after this time (in seconds)"
 
+public option sledgehammer_persistent_data_dir : string = ""
+  -- "Directory where the automatic provers called by Sledgehammer will save persistent data"
+
 public option SystemOnTPTP : string = "https://tptp.org/cgi-bin/SystemOnTPTPFormReply"
   -- "URL for SystemOnTPTP service"
 

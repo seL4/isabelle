@@ -98,6 +98,17 @@ fun suffix_of_mode Auto_Try = "_try"
   | suffix_of_mode MaSh = ""
   | suffix_of_mode Minimize = "_min"
 
+fun tptp_logic_of_atp_format CNF = "CNF"
+  | tptp_logic_of_atp_format CNF_UEQ = "CNF"
+  | tptp_logic_of_atp_format FOF = "FOF"
+  | tptp_logic_of_atp_format (TFF (Monomorphic, Without_FOOL)) = "TF0"
+  | tptp_logic_of_atp_format (TFF (Polymorphic, Without_FOOL)) = "TF1"
+  | tptp_logic_of_atp_format (TFF (Monomorphic, With_FOOL _)) = "TX0"
+  | tptp_logic_of_atp_format (TFF (Polymorphic, With_FOOL _)) = "TX1"
+  | tptp_logic_of_atp_format (THF (Monomorphic, _, _)) = "TH0"
+  | tptp_logic_of_atp_format (THF (Polymorphic, _, _)) = "TH1"
+  | tptp_logic_of_atp_format (DFG _) = "DFG"
+
 fun run_atp mode name
     ({debug, verbose, overlord, abduce = abduce_max_candidates, strict, max_mono_iters,
       max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
@@ -231,13 +242,32 @@ fun run_atp mode name
 
         fun run_command () =
           let
+            val sledgehammer_persistent_data_dir =
+              Options.default_string \<^system_option>\<open>sledgehammer_persistent_data_dir\<close>
+            val env =
+              if sledgehammer_persistent_data_dir = "" then
+                []
+              else
+                let
+                  val tptp_logic = tptp_logic_of_atp_format good_format
+                  val thy_long_name = Context.theory_long_name thy
+                  val session_name = Long_Name.qualifier thy_long_name
+                  val dir =
+                    Path.expand (Path.explode sledgehammer_persistent_data_dir +
+                      Path.explode (name ^ "-" ^ session_name) +
+                      Path.explode tptp_logic)
+                in [("SLH_PERSISTENT_DATA_DIR", Path.implode dir)] end
+
             val f = fn _ =>
               if exec = isabelle_scala_function then
                 let val {output, ...} = SystemOnTPTP.run_system_encoded args
                 in output end
               else
-                let val res = Isabelle_System.bash_process (Bash.script command |> Bash.redirect)
-                in Process_Result.out res end
+                Bash.script command
+                  |> Bash.putenv env
+                  |> Bash.redirect
+                  |> Isabelle_System.bash_process
+                  |> Process_Result.out
             (* Hackish: The following lines try to make the TPTP problem and command line more
             deterministic and constant. *)
             val hackish_lines = drop 2 lines_of_atp_problem
