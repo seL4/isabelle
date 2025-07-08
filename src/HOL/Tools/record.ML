@@ -71,7 +71,7 @@ struct
 val isoN = "_Tuple_Iso";
 
 val iso_tuple_intro = @{thm isomorphic_tuple_intro};
-val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
+val iso_tuple_intros = Bires.build_net @{thms isomorphic_tuple.intros};
 
 val tuple_iso_tuple = (\<^const_name>\<open>Record.tuple_iso_tuple\<close>, @{thm tuple_iso_tuple});
 
@@ -154,7 +154,7 @@ fun add_iso_tuple_type overloaded (b, alphas) (leftT, rightT) thy =
   end;
 
 fun iso_tuple_intros_tac ctxt =
-  resolve_from_net_tac ctxt iso_tuple_intros THEN'
+  Bires.resolve_from_net_tac ctxt iso_tuple_intros THEN'
   CSUBGOAL (fn (cgoal, i) =>
     let
       val goal = Thm.term_of cgoal;

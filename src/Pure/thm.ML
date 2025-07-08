@@ -82,6 +82,7 @@ sig
   val take_prems_of: int -> thm -> term list
   val nprems_of: thm -> int
   val no_prems: thm -> bool
+  val one_prem: thm -> bool
   val prem_of: thm -> int -> term
   val major_prem_of: thm -> term
   val cprop_of: thm -> cterm
@@ -532,6 +533,7 @@ val prems_of = Logic.strip_imp_prems o prop_of;
 fun take_prems_of n = Logic.take_imp_prems n o prop_of;
 val nprems_of = Logic.count_prems o prop_of;
 val no_prems = Logic.no_prems o prop_of;
+val one_prem = Logic.one_prem o prop_of;
 
 fun prem_of th i =
   Logic.nth_prem (i, prop_of th) handle TERM _ => raise THM ("prem_of", i, [th]);

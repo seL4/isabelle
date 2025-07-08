@@ -111,11 +111,11 @@ fun joinrules (intrs,elims) =
 (*Note that allE precedes exI in haz_brls*)
 fun make_cs {safeIs,safeEs,hazIs,hazEs} =
   let val (safe0_brls, safep_brls) = (*0 subgoals vs 1 or more*)
-          List.partition (curry (op =) 0 o subgoals_of_brl) 
-             (sort (make_ord lessb) (joinrules(safeIs, safeEs)))
+          List.partition Bires.no_subgoals
+             (sort Bires.subgoals_ord (joinrules(safeIs, safeEs)))
   in CS{safeIs=safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs,
         safe0_brls=safe0_brls, safep_brls=safep_brls,
-        haz_brls = sort (make_ord lessb) (joinrules(hazIs, hazEs))}
+        haz_brls = sort Bires.subgoals_ord (joinrules(hazIs, hazEs))}
   end;
 
 (*** Manipulation of clasets ***)
@@ -174,7 +174,7 @@ fun fast_tac ctxt cs = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt cs 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt cs = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac ctxt cs 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, sizef) (step_tac ctxt cs 1));
 
 (*Using a "safe" rule to instantiate variables is unsafe.  This tactic
   allows backtracking from "safe" rules to "unsafe" rules here.*)

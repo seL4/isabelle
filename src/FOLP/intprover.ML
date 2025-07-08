@@ -34,7 +34,7 @@ struct
   (handles double negations).  Could instead rewrite by not_def as the first
   step of an intuitionistic proof.
 *)
-val safe_brls = sort (make_ord lessb)
+val safe_brls = sort Bires.subgoals_ord
     [ (true, @{thm FalseE}), (false, @{thm TrueI}), (false, @{thm refl}),
       (false, @{thm impI}), (false, @{thm notI}), (false, @{thm allI}),
       (true, @{thm conjE}), (true, @{thm exE}),
@@ -49,7 +49,7 @@ val haz_brls =
 
 (*0 subgoals vs 1 or more: the p in safep is for positive*)
 val (safe0_brls, safep_brls) =
-    List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls;
+    List.partition Bires.no_subgoals safe_brls;
 
 (*Attack subgoals using safe inferences*)
 fun safe_step_tac ctxt = FIRST' [uniq_assume_tac ctxt,
@@ -72,6 +72,6 @@ fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 (*Slower but smarter than fast_tac*)
 fun best_tac ctxt =
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
+  SELECT_GOAL (BEST_FIRST (Thm.no_prems, size_of_thm) (step_tac ctxt 1));
 
 end;

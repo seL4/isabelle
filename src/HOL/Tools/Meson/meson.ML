@@ -685,10 +685,10 @@ fun make_horns ths =
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)
 
 fun best_prolog_tac ctxt sizef horns =
-    BEST_FIRST (has_fewer_prems 1, sizef) (prolog_step_tac ctxt horns 1);
+    BEST_FIRST (Thm.no_prems, sizef) (prolog_step_tac ctxt horns 1);
 
 fun depth_prolog_tac ctxt horns =
-    DEPTH_FIRST (has_fewer_prems 1) (prolog_step_tac ctxt horns 1);
+    DEPTH_FIRST Thm.no_prems (prolog_step_tac ctxt horns 1);
 
 (*Return all negative clauses, as possible goal clauses*)
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
@@ -717,7 +717,7 @@ fun best_meson_tac sizef ctxt =
   MESON all_tac (make_clauses ctxt)
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac ctxt (gocls cls) 1)
-                         (has_fewer_prems 1, sizef)
+                         (Thm.no_prems, sizef)
                          (prolog_step_tac ctxt (make_horns cls) 1))
     ctxt
 
@@ -739,14 +739,14 @@ fun depth_meson_tac ctxt =
 fun prolog_step_tac' ctxt horns =
     let val horn0s = (*0 subgoals vs 1 or more*)
             take_prefix Thm.no_prems horns
-        val nrtac = resolve_from_net_tac ctxt (Tactic.build_net horns)
+        val nrtac = Bires.resolve_from_net_tac ctxt (Bires.build_net horns)
     in  fn i => eq_assume_tac i ORELSE
                 match_tac ctxt horn0s i ORELSE  (*no backtracking if unit MATCHES*)
                 ((assume_tac ctxt i APPEND nrtac i) THEN check_tac)
     end;
 
 fun iter_deepen_prolog_tac ctxt horns =
-    ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' ctxt horns);
+    ITER_DEEPEN iter_deepen_limit Thm.no_prems (prolog_step_tac' ctxt horns);
 
 fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
   (fn cls =>
@@ -761,7 +761,7 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac (make_clauses ctxt)
               ["clauses:"] @ map (Thm.string_of_thm ctxt) horns))
         in
           THEN_ITER_DEEPEN iter_deepen_limit
-            (resolve_tac ctxt goes 1) (has_fewer_prems 1) (prolog_step_tac' ctxt horns)
+            (resolve_tac ctxt goes 1) Thm.no_prems (prolog_step_tac' ctxt horns)
         end));
 
 fun meson_tac ctxt ths =

@@ -588,7 +588,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
             (fn ctxt =>
               resolve_tac ctxt [exI] 1 THEN
               resolve_tac ctxt @{thms CollectI} 1 THEN
-              QUIET_BREADTH_FIRST (has_fewer_prems 1)
+              QUIET_BREADTH_FIRST Thm.no_prems
               (resolve_tac ctxt rep_intrs 1))) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT

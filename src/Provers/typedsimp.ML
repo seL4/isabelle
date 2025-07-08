@@ -79,26 +79,26 @@ fun process_rewrites rls =
 
 (*Process the default rewrite rules*)
 val simp_rls = process_rewrites default_rls;
-val simp_net = Tactic.build_net simp_rls;
+val simp_net = Bires.build_net simp_rls;
 
 (*If subgoal is too flexible (e.g. ?a=?b or just ?P) then filt_resolve_tac
   will fail!  The filter will pass all the rules, and the bound permits
   no ambiguity.*)
 
 (*Resolution with rewrite/sub rules.  Builds the tree for filt_resolve_tac.*)
-fun rewrite_res_tac ctxt = filt_resolve_from_net_tac ctxt 2 simp_net;
+fun rewrite_res_tac ctxt = Bires.filt_resolve_from_net_tac ctxt 2 simp_net;
 
 (*The congruence rules for simplifying subterms.  If subgoal is too flexible
     then only refl,refl_red will be used (if even them!). *)
 fun subconv_res_tac ctxt congr_rls =
-  filt_resolve_from_net_tac ctxt 2 (Tactic.build_net (map subconv_rule congr_rls))
-  ORELSE'  filt_resolve_from_net_tac ctxt 1 (Tactic.build_net [refl, refl_red]);
+  Bires.filt_resolve_from_net_tac ctxt 2 (Bires.build_net (map subconv_rule congr_rls))
+  ORELSE'  Bires.filt_resolve_from_net_tac ctxt 1 (Bires.build_net [refl, refl_red]);
 
 (*Resolve with asms, whether rewrites or not*)
 fun asm_res_tac ctxt asms =
     let val (xsimp_rls, xother_rls) = process_rules asms
     in  routine_tac ctxt xother_rls  ORELSE'
-        filt_resolve_from_net_tac ctxt 2 (Tactic.build_net xsimp_rls)
+        Bires.filt_resolve_from_net_tac ctxt 2 (Bires.build_net xsimp_rls)
     end;
 
 (*Single step for simple rewriting*)
