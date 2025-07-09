@@ -95,7 +95,9 @@ signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
   val classical_rule: Proof.context -> thm -> thm
-  type rule = thm * (thm * thm list) * (thm * thm list)
+  type rl = thm * thm option
+  type info = {rl: rl, dup_rl: rl}
+  type rule = thm * info
   val rep_cs: claset ->
    {safeIs: rule Item_Net.T,
     safeEs: rule Item_Net.T,
@@ -188,10 +190,10 @@ fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun maybe_swap_rule th =
-  let val res = [th] RLN (2, [Data.swap]) in
-    if length res <= 1 then res
-    else raise THM ("RSN: multiple unifiers", 2, [th, Data.swap])
-  end;
+  (case [th] RLN (2, [Data.swap]) of
+    [] => NONE
+  | [res] => SOME res
+  | _ => raise THM ("RSN: multiple unifiers", 2, [th, Data.swap]));
 
 fun swap_rule intr = intr RSN (2, Data.swap);
 val swapped = Thm.rule_attribute [] (K swap_rule);
@@ -217,8 +219,15 @@ fun dup_elim ctxt th =
 
 (**** Classical rule sets ****)
 
-type rule = thm * (thm * thm list) * (thm * thm list);
-  (*external form, internal form (possibly swapped), dup form (possibly swapped)*)
+type rl = thm * thm option;  (*internal form, with possibly swapped version*)
+type info = {rl: rl, dup_rl: rl};
+type rule = thm * info;  (*external form, internal forms*)
+
+fun maybe_swapped_rl th : rl = (th, maybe_swap_rule th);
+fun no_swapped_rl th : rl = (th, NONE);
+
+fun make_info rl dup_rl : info = {rl = rl, dup_rl = dup_rl};
+fun make_info1 rl : info = make_info rl rl;
 
 type wrapper = (int -> tactic) -> int -> tactic;
 
@@ -305,13 +314,13 @@ fun warn_claset ctxt r (CS {safeIs, safeEs, unsafeIs, unsafeEs, ...}) =
 
 (*** add rules ***)
 
-fun add_safe_intro w r
+fun add_safe_intro w (r: rule)
     (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeIs r then cs
   else
     let
-      val (th, rl, _) = r;
+      val (th, {rl, ...}) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (Thm.no_prems o fst) [rl];
       val nI = Item_Net.length safeIs + 1;
@@ -319,8 +328,8 @@ fun add_safe_intro w r
     in
       CS
        {safeIs = Item_Net.update r safeIs,
-        safe0_netpair = insert (nI, nE) (map fst safe0_rls, maps snd safe0_rls) safe0_netpair,
-        safep_netpair = insert (nI, nE) (map fst safep_rls, maps snd safep_rls) safep_netpair,
+        safe0_netpair = insert (nI, nE) (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
+        safep_netpair = insert (nI, nE) (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
         safeEs = safeEs,
         unsafeIs = unsafeIs,
         unsafeEs = unsafeEs,
@@ -331,13 +340,13 @@ fun add_safe_intro w r
         extra_netpair = insert_default_weight 0 w (nI, nE) (false, th) extra_netpair}
     end;
 
-fun add_safe_elim w r
+fun add_safe_elim w (r: rule)
     (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeEs r then cs
   else
     let
-      val (th, rl, _) = r;
+      val (th, {rl, ...}) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (Thm.one_prem o #1) [rl];
       val nI = Item_Net.length safeIs;
@@ -357,20 +366,20 @@ fun add_safe_elim w r
         extra_netpair = insert_default_weight 0 w (nI, nE) (true, th) extra_netpair}
     end;
 
-fun add_unsafe_intro w r
+fun add_unsafe_intro w (r: rule)
     (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member unsafeIs r then cs
   else
     let
-      val (th, rl, dup_rl) = r;
+      val (th, {rl, dup_rl}) = r;
       val nI = Item_Net.length unsafeIs + 1;
       val nE = Item_Net.length unsafeEs;
     in
       CS
        {unsafeIs = Item_Net.update r unsafeIs,
-        unsafe_netpair = insert (nI, nE) ([fst rl], snd rl) unsafe_netpair,
-        dup_netpair = insert (nI, nE) ([fst dup_rl], snd dup_rl) dup_netpair,
+        unsafe_netpair = insert (nI, nE) ([fst rl], the_list (snd rl)) unsafe_netpair,
+        dup_netpair = insert (nI, nE) ([fst dup_rl], the_list (snd dup_rl)) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         unsafeEs = unsafeEs,
@@ -381,13 +390,13 @@ fun add_unsafe_intro w r
         extra_netpair = insert_default_weight 1 w (nI, nE) (false, th) extra_netpair}
     end;
 
-fun add_unsafe_elim w r
+fun add_unsafe_elim w (r: rule)
     (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member unsafeEs r then cs
   else
     let
-      val (th, rl, dup_rl) = r;
+      val (th, {rl, dup_rl}) = r;
       val nI = Item_Net.length unsafeIs;
       val nE = Item_Net.length unsafeEs + 1;
     in
@@ -405,16 +414,16 @@ fun add_unsafe_elim w r
         extra_netpair = insert_default_weight 1 w (nI, nE) (true, th) extra_netpair}
     end;
 
-fun trim_context (th, (th1, ths1), (th2, ths2)) =
-  (Thm.trim_context th,
-    (Thm.trim_context th1, map Thm.trim_context ths1),
-    (Thm.trim_context th2, map Thm.trim_context ths2));
+fun trim_context_rl (th1, opt_th2) =
+  (Thm.trim_context th1, Option.map Thm.trim_context opt_th2);
+
+fun trim_context (th, {rl, dup_rl}) : rule =
+  (Thm.trim_context th, {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl});
 
 fun addSI w ctxt th (cs as CS {safeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
-    val rl = (th', maybe_swap_rule th');
-    val r = trim_context (th, rl, rl);
+    val r = trim_context (th, make_info1 (maybe_swapped_rl th'));
     val _ =
       warn_rules ctxt "Ignoring duplicate safe introduction (intro!)\n" safeIs r orelse
       warn_claset ctxt r cs;
@@ -424,8 +433,7 @@ fun addSE w ctxt th (cs as CS {safeEs, ...}) =
   let
     val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
-    val rl = (th', []);
-    val r = trim_context (th, rl, rl);
+    val r = trim_context (th, make_info1 (no_swapped_rl th'));
     val _ =
       warn_rules ctxt "Ignoring duplicate safe elimination (elim!)\n" safeEs r orelse
       warn_claset ctxt r cs;
@@ -437,7 +445,7 @@ fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
     val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
-    val r = trim_context (th, (th', maybe_swap_rule th'), (dup_th', maybe_swap_rule dup_th'));
+    val r = trim_context (th, make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th'));
     val _ =
       warn_rules ctxt "Ignoring duplicate introduction (intro)\n" unsafeIs r orelse
       warn_claset ctxt r cs;
@@ -448,7 +456,7 @@ fun addE w ctxt th (cs as CS {unsafeEs, ...}) =
     val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
-    val r = trim_context (th, (th', []), (dup_th', []));
+    val r = trim_context (th, make_info (no_swapped_rl th') (no_swapped_rl dup_th'));
     val _ =
       warn_rules ctxt "Ignoring duplicate elimination (elim)\n" unsafeEs r orelse
       warn_claset ctxt r cs;
@@ -465,12 +473,12 @@ fun del_safe_intro (r: rule)
   (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
-    val (th, rl, _) = r;
+    val (th, {rl, ...}) = r;
     val (safe0_rls, safep_rls) = List.partition (Thm.no_prems o fst) [rl];
   in
     CS
-     {safe0_netpair = delete (map fst safe0_rls, maps snd safe0_rls) safe0_netpair,
-      safep_netpair = delete (map fst safep_rls, maps snd safep_rls) safep_netpair,
+     {safe0_netpair = delete (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
+      safep_netpair = delete (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
       safeIs = Item_Net.remove r safeIs,
       safeEs = safeEs,
       unsafeIs = unsafeIs,
@@ -486,7 +494,7 @@ fun del_safe_elim (r: rule)
   (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
-    val (th, rl, _) = r;
+    val (th, {rl, ...}) = r;
     val (safe0_rls, safep_rls) = List.partition (Thm.one_prem o #1) [rl];
   in
     CS
@@ -503,12 +511,12 @@ fun del_safe_elim (r: rule)
       extra_netpair = delete ([], [th]) extra_netpair}
   end;
 
-fun del_unsafe_intro (r as (th, (th', swapped_th'), (dup_th', swapped_dup_th')))
+fun del_unsafe_intro (r as (th, {rl = (th', swapped_th'), dup_rl = (dup_th', swapped_dup_th')}))
   (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   CS
-   {unsafe_netpair = delete ([th'], swapped_th') unsafe_netpair,
-    dup_netpair = delete ([dup_th'], swapped_dup_th') dup_netpair,
+   {unsafe_netpair = delete ([th'], the_list swapped_th') unsafe_netpair,
+    dup_netpair = delete ([dup_th'], the_list swapped_dup_th') dup_netpair,
     safeIs = safeIs,
     safeEs = safeEs,
     unsafeIs = Item_Net.remove r unsafeIs,
@@ -519,7 +527,7 @@ fun del_unsafe_intro (r as (th, (th', swapped_th'), (dup_th', swapped_dup_th')))
     safep_netpair = safep_netpair,
     extra_netpair = delete ([th], []) extra_netpair};
 
-fun del_unsafe_elim (r as (th, (th', _), (dup_th', _)))
+fun del_unsafe_elim (r as (th, {rl = (th', _), dup_rl = (dup_th', _)}))
   (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   CS
@@ -536,15 +544,15 @@ fun del_unsafe_elim (r as (th, (th', _), (dup_th', _)))
     extra_netpair = delete ([], [th]) extra_netpair};
 
 fun del f rules th cs =
-  fold f (Item_Net.lookup rules (th, (th, []), (th, []))) cs;
+  fold f (Item_Net.lookup rules (th, make_info1 (no_swapped_rl th))) cs;
 
 in
 
 fun delrule ctxt th (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, ...}) =
   let
     val th' = Tactic.make_elim th;
-    val r = (th, (th, []), (th, []));
-    val r' = (th', (th', []), (th', []));
+    val r = (th, make_info1 (no_swapped_rl th));
+    val r' = (th', make_info1 (no_swapped_rl th'));
   in
     if Item_Net.member safeIs r orelse Item_Net.member safeEs r orelse
       Item_Net.member unsafeIs r orelse Item_Net.member unsafeEs r orelse
