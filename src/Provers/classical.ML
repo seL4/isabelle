@@ -85,7 +85,6 @@ sig
   val clarify_step_tac: Proof.context -> int -> tactic
   val step_tac: Proof.context -> int -> tactic
   val slow_step_tac: Proof.context -> int -> tactic
-  val swapify: thm list -> thm list
   val swap_res_tac: Proof.context -> thm list -> int -> tactic
   val inst_step_tac: Proof.context -> int -> tactic
   val inst0_step_tac: Proof.context -> int -> tactic
@@ -188,7 +187,12 @@ fun mp_tac ctxt i =
 fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
-fun swapify intrs = intrs RLN (2, [Data.swap]);
+fun maybe_swap_rule th =
+  let val res = [th] RLN (2, [Data.swap]) in
+    if length res <= 1 then res
+    else raise THM ("RSN: multiple unifiers", 2, [th, Data.swap])
+  end;
+
 fun swap_rule intr = intr RSN (2, Data.swap);
 val swapped = Thm.rule_attribute [] (K swap_rule);
 
@@ -270,7 +274,7 @@ fun tag_weight_brls _ _ [] = []
       ({weight = w, index = k}, brl) :: tag_weight_brls w (k + 1) brls;
 
 (*Insert into netpair that already has nI intr rules and nE elim rules.
-  Count the intr rules double (to account for swapify).  Negate to give the
+  Count the intr rules double (to account for swapped rules).  Negate to give the
   new insertions the lowest priority.*)
 fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
 
@@ -409,7 +413,7 @@ fun trim_context (th, (th1, ths1), (th2, ths2)) =
 fun addSI w ctxt th (cs as CS {safeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
-    val rl = (th', swapify [th']);
+    val rl = (th', maybe_swap_rule th');
     val r = trim_context (th, rl, rl);
     val _ =
       warn_rules ctxt "Ignoring duplicate safe introduction (intro!)\n" safeIs r orelse
@@ -433,7 +437,7 @@ fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
   let
     val th' = flat_rule ctxt th;
     val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
-    val r = trim_context (th, (th', swapify [th']), (dup_th', swapify [dup_th']));
+    val r = trim_context (th, (th', maybe_swap_rule th'), (dup_th', maybe_swap_rule dup_th'));
     val _ =
       warn_rules ctxt "Ignoring duplicate introduction (intro)\n" unsafeIs r orelse
       warn_claset ctxt r cs;
