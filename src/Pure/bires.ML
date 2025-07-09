@@ -35,16 +35,16 @@ sig
   val kind_rule: kind -> thm -> rule
   val kind_title: kind -> string
 
-  type decl = {kind: kind, tag: tag, implicit: bool}
-  val decl_ord: decl ord
-  type decls
-  val has_decls: decls -> thm -> bool
-  val list_decls: (thm * decl -> bool) -> decls -> (thm * decl) list
-  val print_decls: kind -> decls -> (thm * decl) list
-  val merge_decls: decls * decls -> (thm * decl) list * decls
-  val extend_decls: thm * decl -> decls -> ((thm * decl) * decls) option
-  val remove_decls: thm -> decls -> decls option
-  val empty_decls: decls
+  type 'a decl = {kind: kind, tag: tag, info: 'a}
+  val decl_ord: 'a decl ord
+  type 'a decls
+  val has_decls: 'a decls -> thm -> bool
+  val list_decls: (thm * 'a decl -> bool) -> 'a decls -> (thm * 'a decl) list
+  val print_decls: kind -> 'a decls -> (thm * 'a decl) list
+  val merge_decls: 'a decls * 'a decls -> (thm * 'a decl) list * 'a decls
+  val extend_decls: thm * 'a decl -> 'a decls -> ((thm * 'a decl) * 'a decls) option
+  val remove_decls: thm -> 'a decls -> 'a decls option
+  val empty_decls: 'a decls
 
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
@@ -52,7 +52,7 @@ sig
   val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
   val delete_tagged_rule: rule -> netpair -> netpair
   val delete_tagged_rules: rule list -> netpair -> netpair
-  val insert_rule: thm * decl -> netpair -> netpair
+  val insert_rule: thm * 'a decl -> netpair -> netpair
   val remove_rule: thm -> netpair -> netpair
 
   val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
@@ -142,19 +142,19 @@ fun kind_title kind =
 
 (* rule declarations in canonical order *)
 
-type decl = {kind: kind, tag: tag, implicit: bool};
+type 'a decl = {kind: kind, tag: tag, info: 'a};
 
-val decl_ord: decl ord = tag_index_ord o apply2 #tag;
+fun decl_ord (args: 'a decl * 'a decl) = tag_index_ord (apply2 #tag args);
 
-fun decl_equiv (decl1: decl, decl2: decl) =
+fun decl_equiv (decl1: 'a decl, decl2: 'a decl) =
   #kind decl1 = #kind decl2 andalso
   is_equal (tag_weight_ord (#tag decl1, #tag decl2));
 
-fun next_decl next ({kind, tag, implicit}: decl) : decl =
-  {kind = kind, tag = next_tag next tag, implicit = implicit};
+fun next_decl next ({kind, tag, info}: 'a decl) : 'a decl =
+  {kind = kind, tag = next_tag next tag, info = info};
 
 
-abstype decls = Decls of {next: int, rules: decl list Thmtab.table}
+abstype 'a decls = Decls of {next: int, rules: 'a decl list Thmtab.table}
 with
 
 local
@@ -179,8 +179,8 @@ fun list_decls pred =
   dest_decls pred #> sort (rev_order o decl_ord o apply2 #2);
 
 fun print_decls kind =
-  dest_decls (fn (_, {kind = kind', implicit, ...}) => kind = kind' andalso not implicit)
-  #> sort (tag_ord o apply2 (#tag o #2));
+  dest_decls (fn (_, {kind = kind', ...}) => kind = kind') #>
+  sort (tag_ord o apply2 (#tag o #2));
 
 fun merge_decls (decls1, decls2) =
   decls1 |> fold_map add_decls (list_decls (not o dup_decls decls1) decls2);
@@ -239,7 +239,7 @@ end;
 fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
 
 
-fun insert_rule (thm, {kind, tag, ...}: decl) netpair =
+fun insert_rule (thm, {kind, tag, ...}: 'a decl) netpair =
   insert_tagged_rule (tag, kind_rule kind thm) netpair;
 
 fun remove_rule thm =

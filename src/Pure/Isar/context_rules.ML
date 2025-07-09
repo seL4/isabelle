@@ -40,7 +40,7 @@ struct
 (* context data *)
 
 datatype rules = Rules of
- {decls: Bires.decls,
+ {decls: unit Bires.decls,
   netpairs: Bires.netpair list,
   wrappers:
     ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list *
@@ -52,7 +52,7 @@ fun make_rules decls netpairs wrappers =
 fun add_rule kind opt_weight th (rules as Rules {decls, netpairs, wrappers}) =
   let
     val weight = opt_weight |> \<^if_none>\<open>Bires.subgoals_of (Bires.kind_rule kind th)\<close>;
-    val decl = {kind = kind, tag = Bires.weight_tag weight, implicit = false};
+    val decl = {kind = kind, tag = Bires.weight_tag weight, info = ()};
   in
     (case Bires.extend_decls (Thm.trim_context th, decl) decls of
       NONE => rules
