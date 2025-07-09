@@ -243,8 +243,7 @@ fun insert_rule (thm, {kind, tag, ...}: 'a decl) netpair =
   insert_tagged_rule (tag, kind_rule kind thm) netpair;
 
 fun remove_rule thm =
-  let fun del b netpair = delete_tagged_rule (b, thm) netpair handle Net.DELETE => netpair
-  in del false o del true end;
+  delete_tagged_rule (false, thm) o delete_tagged_rule (true, thm);
 
 
 (*biresolution using a pair of nets rather than rules:
