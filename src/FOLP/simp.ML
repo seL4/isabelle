@@ -267,10 +267,8 @@ end;
 
 (** Deletion of congruences and rewrites **)
 
-(*delete a thm from a thm net*)
 fun delete_thm th net =
-  Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net
-    handle Net.DELETE => net;
+  Net.delete_term_safe Thm.eq_thm_prop (Thm.concl_of th, th) net;
 
 val delete_thms = fold_rev delete_thm;
 
