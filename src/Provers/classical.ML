@@ -195,12 +195,11 @@ val swapped = Thm.rule_attribute [] (fn _ => fn th => th RSN (2, Data.swap));
   trying rules in order. *)
 fun swap_res_tac ctxt rls =
   let
-    val transfer = Thm.transfer' ctxt;
-    fun addrl rl brls = (false, transfer rl) :: (true, transfer rl RSN (2, Data.swap)) :: brls;
+    fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls;
   in
     assume_tac ctxt ORELSE'
     contr_tac ctxt ORELSE'
-    biresolve_tac ctxt (fold_rev addrl rls [])
+    biresolve_tac ctxt (fold_rev (addrl o Thm.transfer' ctxt) rls [])
   end;
 
 (*Duplication of unsafe rules, for complete provers*)
