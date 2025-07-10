@@ -90,12 +90,8 @@ structure Data = Generic_Data
 );
 
 fun print_rules ctxt =
-  let
-    val Rules {decls, ...} = Data.get (Context.Proof ctxt);
-    fun prt_kind kind =
-      Pretty.big_list (Bires.kind_title kind ^ ":")
-        (Bires.print_decls kind decls |> map (fn (th, _) => Thm.pretty_thm_item ctxt th));
-  in Pretty.writeln (Pretty.chunks (map prt_kind Bires.kind_domain)) end;
+  let val Rules {decls, ...} = Data.get (Context.Proof ctxt)
+  in Pretty.writeln (Pretty.chunks (Bires.pretty_decls ctxt Bires.kind_domain decls)) end;
 
 
 (* access data *)
