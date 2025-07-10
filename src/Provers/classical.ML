@@ -99,7 +99,8 @@ sig
   type info = {rl: rl, dup_rl: rl}
   type rule = thm * info
   val rep_cs: claset ->
-   {safeIs: rule Item_Net.T,
+   {next: int,
+    safeIs: rule Item_Net.T,
     safeEs: rule Item_Net.T,
     unsafeIs: rule Item_Net.T,
     unsafeEs: rule Item_Net.T,
@@ -233,7 +234,8 @@ type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =
   CS of
-   {safeIs: rule Item_Net.T,  (*safe introduction rules*)
+   {next: int,  (*index for next rule: decreasing*)
+    safeIs: rule Item_Net.T,  (*safe introduction rules*)
     safeEs: rule Item_Net.T,  (*safe elimination rules*)
     unsafeIs: rule Item_Net.T,  (*unsafe introduction rules*)
     unsafeEs: rule Item_Net.T,  (*unsafe elimination rules*)
@@ -250,7 +252,8 @@ val empty_rules: rule Item_Net.T =
 
 val empty_cs =
   CS
-   {safeIs = empty_rules,
+   {next = ~1,
+    safeIs = empty_rules,
     safeEs = empty_rules,
     unsafeIs = empty_rules,
     unsafeEs = empty_rules,
@@ -282,13 +285,12 @@ fun tag_weight_brls _ _ [] = []
   | tag_weight_brls w k (brl::brls) =
       ({weight = w, index = k}, brl) :: tag_weight_brls w (k + 1) brls;
 
-(*Insert into netpair that already has nI intr rules and nE elim rules.
-  Count the intr rules double (to account for swapped rules).  Negate to give the
+(*Insert into netpair from next index, which is negative to give the
   new insertions the lowest priority.*)
-fun insert (nI, nE) = Bires.insert_tagged_rules o (tag_brls (~(2*nI+nE))) o joinrules;
+fun insert k = Bires.insert_tagged_rules o (tag_brls (2 * k)) o joinrules;
 
-fun insert_default_weight w0 w (nI, nE) =
-  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) (~(nI + nE)) o single;
+fun insert_default_weight w0 w k =
+  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) k o single;
 
 fun delete x = Bires.delete_tagged_rules (joinrules x);
 
@@ -315,7 +317,7 @@ fun warn_claset ctxt r (CS {safeIs, safeEs, unsafeIs, unsafeEs, ...}) =
 (*** add rules ***)
 
 fun add_safe_intro w (r: rule)
-    (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeIs r then cs
   else
@@ -323,13 +325,12 @@ fun add_safe_intro w (r: rule)
       val (th, {rl, ...}) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (Thm.no_prems o fst) [rl];
-      val nI = Item_Net.length safeIs + 1;
-      val nE = Item_Net.length safeEs;
     in
       CS
-       {safeIs = Item_Net.update r safeIs,
-        safe0_netpair = insert (nI, nE) (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
-        safep_netpair = insert (nI, nE) (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
+       {next = next - 1,
+        safeIs = Item_Net.update r safeIs,
+        safe0_netpair = insert next (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
+        safep_netpair = insert next (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
         safeEs = safeEs,
         unsafeIs = unsafeIs,
         unsafeEs = unsafeEs,
@@ -337,11 +338,11 @@ fun add_safe_intro w (r: rule)
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w (nI, nE) (false, th) extra_netpair}
+        extra_netpair = insert_default_weight 0 w next (false, th) extra_netpair}
     end;
 
 fun add_safe_elim w (r: rule)
-    (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member safeEs r then cs
   else
@@ -349,13 +350,12 @@ fun add_safe_elim w (r: rule)
       val (th, {rl, ...}) = r;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (Thm.one_prem o #1) [rl];
-      val nI = Item_Net.length safeIs;
-      val nE = Item_Net.length safeEs + 1;
     in
       CS
-       {safeEs = Item_Net.update r safeEs,
-        safe0_netpair = insert (nI, nE) ([], map fst safe0_rls) safe0_netpair,
-        safep_netpair = insert (nI, nE) ([], map fst safep_rls) safep_netpair,
+       {next = next - 1,
+        safeEs = Item_Net.update r safeEs,
+        safe0_netpair = insert next ([], map fst safe0_rls) safe0_netpair,
+        safep_netpair = insert next ([], map fst safep_rls) safep_netpair,
         safeIs = safeIs,
         unsafeIs = unsafeIs,
         unsafeEs = unsafeEs,
@@ -363,23 +363,22 @@ fun add_safe_elim w (r: rule)
         uwrappers = uwrappers,
         unsafe_netpair = unsafe_netpair,
         dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w (nI, nE) (true, th) extra_netpair}
+        extra_netpair = insert_default_weight 0 w next (true, th) extra_netpair}
     end;
 
 fun add_unsafe_intro w (r: rule)
-    (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member unsafeIs r then cs
   else
     let
       val (th, {rl, dup_rl}) = r;
-      val nI = Item_Net.length unsafeIs + 1;
-      val nE = Item_Net.length unsafeEs;
     in
       CS
-       {unsafeIs = Item_Net.update r unsafeIs,
-        unsafe_netpair = insert (nI, nE) ([fst rl], the_list (snd rl)) unsafe_netpair,
-        dup_netpair = insert (nI, nE) ([fst dup_rl], the_list (snd dup_rl)) dup_netpair,
+       {next = next - 1,
+        unsafeIs = Item_Net.update r unsafeIs,
+        unsafe_netpair = insert next ([fst rl], the_list (snd rl)) unsafe_netpair,
+        dup_netpair = insert next ([fst dup_rl], the_list (snd dup_rl)) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         unsafeEs = unsafeEs,
@@ -387,23 +386,22 @@ fun add_unsafe_intro w (r: rule)
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w (nI, nE) (false, th) extra_netpair}
+        extra_netpair = insert_default_weight 1 w next (false, th) extra_netpair}
     end;
 
 fun add_unsafe_elim w (r: rule)
-    (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   if Item_Net.member unsafeEs r then cs
   else
     let
       val (th, {rl, dup_rl}) = r;
-      val nI = Item_Net.length unsafeIs;
-      val nE = Item_Net.length unsafeEs + 1;
     in
       CS
-       {unsafeEs = Item_Net.update r unsafeEs,
-        unsafe_netpair = insert (nI, nE) ([], [fst rl]) unsafe_netpair,
-        dup_netpair = insert (nI, nE) ([], [fst dup_rl]) dup_netpair,
+       {next = next - 1,
+        unsafeEs = Item_Net.update r unsafeEs,
+        unsafe_netpair = insert next ([], [fst rl]) unsafe_netpair,
+        dup_netpair = insert next ([], [fst dup_rl]) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
         unsafeIs = unsafeIs,
@@ -411,7 +409,7 @@ fun add_unsafe_elim w (r: rule)
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
         safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w (nI, nE) (true, th) extra_netpair}
+        extra_netpair = insert_default_weight 1 w next (true, th) extra_netpair}
     end;
 
 fun trim_context_rl (th1, opt_th2) =
@@ -470,14 +468,15 @@ fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
 local
 
 fun del_safe_intro (r: rule)
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
     val (th, {rl, ...}) = r;
     val (safe0_rls, safep_rls) = List.partition (Thm.no_prems o fst) [rl];
   in
     CS
-     {safe0_netpair = delete (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
+     {next = next,
+      safe0_netpair = delete (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
       safep_netpair = delete (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
       safeIs = Item_Net.remove r safeIs,
       safeEs = safeEs,
@@ -491,14 +490,15 @@ fun del_safe_intro (r: rule)
   end;
 
 fun del_safe_elim (r: rule)
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   let
     val (th, {rl, ...}) = r;
     val (safe0_rls, safep_rls) = List.partition (Thm.one_prem o #1) [rl];
   in
     CS
-     {safe0_netpair = delete ([], map fst safe0_rls) safe0_netpair,
+     {next = next,
+      safe0_netpair = delete ([], map fst safe0_rls) safe0_netpair,
       safep_netpair = delete ([], map fst safep_rls) safep_netpair,
       safeIs = safeIs,
       safeEs = Item_Net.remove r safeEs,
@@ -512,10 +512,11 @@ fun del_safe_elim (r: rule)
   end;
 
 fun del_unsafe_intro (r as (th, {rl = (th', swapped_th'), dup_rl = (dup_th', swapped_dup_th')}))
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   CS
-   {unsafe_netpair = delete ([th'], the_list swapped_th') unsafe_netpair,
+   {next = next,
+    unsafe_netpair = delete ([th'], the_list swapped_th') unsafe_netpair,
     dup_netpair = delete ([dup_th'], the_list swapped_dup_th') dup_netpair,
     safeIs = safeIs,
     safeEs = safeEs,
@@ -528,10 +529,11 @@ fun del_unsafe_intro (r as (th, {rl = (th', swapped_th'), dup_rl = (dup_th', swa
     extra_netpair = delete ([th], []) extra_netpair};
 
 fun del_unsafe_elim (r as (th, {rl = (th', _), dup_rl = (dup_th', _)}))
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
   CS
-   {unsafe_netpair = delete ([], [th']) unsafe_netpair,
+   {next = next,
+    unsafe_netpair = delete ([], [th']) unsafe_netpair,
     dup_netpair = delete ([], [dup_th']) dup_netpair,
     safeIs = safeIs,
     safeEs = safeEs,
@@ -577,17 +579,17 @@ end;
 (* wrappers *)
 
 fun map_swrappers f
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
+  CS {next = next, safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
     swrappers = f swrappers, uwrappers = uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
     unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 fun map_uwrappers f
-  (CS {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
+  CS {next = next, safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
     swrappers = swrappers, uwrappers = f uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
     unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
