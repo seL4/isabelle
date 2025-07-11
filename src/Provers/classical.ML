@@ -444,7 +444,7 @@ end;
 
 fun delrule ctxt th cs =
   let
-    val ths = th :: ([Tactic.make_elim th] handle THM _ => []);
+    val ths = th :: the_list (try Tactic.make_elim th);
     val CS {decls, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair} = cs;
     val (old_decls, decls') = fold_map Bires.remove_decls ths decls |>> flat;
