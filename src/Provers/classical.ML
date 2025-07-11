@@ -37,7 +37,6 @@ signature BASIC_CLASSICAL =
 sig
   type wrapper = (int -> tactic) -> int -> tactic
   type claset
-  val print_claset: Proof.context -> unit
   val addDs: Proof.context * thm list -> Proof.context
   val addEs: Proof.context * thm list -> Proof.context
   val addIs: Proof.context * thm list -> Proof.context
@@ -93,6 +92,8 @@ sig
   val inst_step_tac: Proof.context -> int -> tactic
   val inst0_step_tac: Proof.context -> int -> tactic
   val instp_step_tac: Proof.context -> int -> tactic
+
+  val print_claset: Proof.context -> unit
 end;
 
 signature CLASSICAL =
@@ -262,7 +263,7 @@ val empty_cs =
 fun rep_cs (CS args) = args;
 
 
-(* insert / delete rules in underlying netpairs *)
+(* netpair primitives to insert / delete rules *)
 
 fun insert_brl i brl =
   Bires.insert_tagged_rule ({weight = Bires.subgoals_of brl, index = i}, brl);
@@ -281,10 +282,13 @@ fun insert_plain_rule ({kind, tag, info = {plain = th, ...}}: decl) =
 fun delete_plain_rule ({tag = {index, ...}, info = {plain = th, ...}, ...}: decl) =
   Bires.delete_tagged_rule (index, th);
 
-fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
+
+(* erros and warnings *)
+
+fun err_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
 fun make_elim ctxt th =
-  if Thm.no_prems th then bad_thm ctxt "Ill-formed destruction rule" th
+  if Thm.no_prems th then err_thm ctxt "Ill-formed destruction rule" th
   else Tactic.make_elim th;
 
 fun init_decl kind opt_weight info : decl =
@@ -309,23 +313,6 @@ fun warn_other_kinds ctxt decls th =
     warn Bires.intro_kind orelse
     warn Bires.elim_kind
   end;
-
-
-(* update wrappers *)
-
-fun map_swrappers f
-  (CS {decls, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {decls = decls, swrappers = f swrappers, uwrappers = uwrappers,
-    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
-
-fun map_uwrappers f
-  (CS {decls, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {decls = decls, swrappers = swrappers, uwrappers = f uwrappers,
-    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
-    unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 
 (* extend and merge rules *)
@@ -418,7 +405,7 @@ fun addSI w ctxt th cs =
     (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th) cs;
 
 fun addSE w ctxt th cs =
-  if Thm.no_prems th then bad_thm ctxt "Ill-formed elimination rule" th
+  if Thm.no_prems th then err_thm ctxt "Ill-formed elimination rule" th
   else
     let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th
     in extend_rules ctxt Bires.elim_bang_kind w (th, info) cs end;
@@ -428,15 +415,15 @@ fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
 fun addI w ctxt th cs =
   let
     val th' = flat_rule ctxt th;
-    val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
+    val dup_th' = dup_intr th' handle THM _ => err_thm ctxt "Ill-formed introduction rule" th;
     val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th;
   in extend_rules ctxt Bires.intro_kind w (th, info) cs end;
 
 fun addE w ctxt th cs =
   let
-    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val _ = Thm.no_prems th andalso err_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
-    val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
+    val dup_th' = dup_elim ctxt th' handle THM _ => err_thm ctxt "Ill-formed elimination rule" th;
     val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th') th;
   in extend_rules ctxt Bires.elim_kind w (th, info) cs end;
 
@@ -509,17 +496,6 @@ fun map_theory_claset f thy =
 fun map_claset f = Context.proof_map (map_cs f);
 fun put_claset cs = map_claset (K cs);
 
-fun print_claset ctxt =
-  let
-    val {decls, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val prt_rules =
-      Bires.pretty_decls ctxt
-        [Bires.intro_bang_kind, Bires.intro_kind, Bires.elim_bang_kind, Bires.elim_kind] decls;
-    val prt_wrappers =
-     [Pretty.strs ("safe wrappers:" :: map #1 swrappers),
-      Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)];
-  in Pretty.writeln (Pretty.chunks (prt_rules @ prt_wrappers)) end;
-
 
 (* old-style declarations *)
 
@@ -536,6 +512,20 @@ val op delrules = decl delrule;
 
 
 (** Modifying the wrapper tacticals **)
+
+fun map_swrappers f
+  (CS {decls, swrappers, uwrappers,
+    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
+  CS {decls = decls, swrappers = f swrappers, uwrappers = uwrappers,
+    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
+    unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
+
+fun map_uwrappers f
+  (CS {decls, swrappers, uwrappers,
+    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
+  CS {decls = decls, swrappers = swrappers, uwrappers = f uwrappers,
+    safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
+    unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 fun appSWrappers ctxt = fold (fn (_, w) => w ctxt) (#swrappers (rep_claset_of ctxt));
 fun appWrappers ctxt = fold (fn (_, w) => w ctxt) (#uwrappers (rep_claset_of ctxt));
@@ -867,6 +857,17 @@ val _ =
 
 
 (** outer syntax commands **)
+
+fun print_claset ctxt =
+  let
+    val {decls, swrappers, uwrappers, ...} = rep_claset_of ctxt;
+    val prt_rules =
+      Bires.pretty_decls ctxt
+        [Bires.intro_bang_kind, Bires.intro_kind, Bires.elim_bang_kind, Bires.elim_kind] decls;
+    val prt_wrappers =
+     [Pretty.strs ("safe wrappers:" :: map #1 swrappers),
+      Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)];
+  in Pretty.writeln (Pretty.chunks (prt_rules @ prt_wrappers)) end;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_claset\<close> "print context of Classical Reasoner"
