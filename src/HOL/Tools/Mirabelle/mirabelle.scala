@@ -113,6 +113,7 @@ object Mirabelle {
       val mirabelle_timeout = options.check_name("mirabelle_timeout")
       val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
       val mirabelle_parallel_group_size = options.check_name("mirabelle_parallel_group_size")
+      val mirabelle_subgoals = options.check_name("mirabelle_subgoals")
 
       var actions: List[String] = Nil
       var base_sessions: List[String] = Nil
@@ -137,6 +138,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -O DIR       """ + mirabelle_output_dir.description + " (default: " + mirabelle_output_dir.default_value + """)
+    -S SUBGOAL   """ + mirabelle_subgoals.description + " (default: " + mirabelle_subgoals.default_value + """)
     -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
@@ -171,6 +173,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         "D:" -> (arg => select_dirs = select_dirs ::: List(Path.explode(arg))),
         "N" -> (_ => numa_shuffling = true),
         "O:" -> (arg => output_dir = Path.explode(arg)),
+        "S:" -> (arg => options = options + ("mirabelle_subgoals=" + arg)),
         "T:" -> (arg => theories = theories ::: List(arg)),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),

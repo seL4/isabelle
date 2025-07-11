@@ -76,3 +76,6 @@ option mirabelle_actions : string = ""
 
 option mirabelle_theories : string = ""
   -- "Mirabelle theories (names with optional line range, separated by commas)"
+
+option mirabelle_subgoals : string = "apply,by,proof,unfolding,using"
+  -- "comma-separated list of subgoal classes to consider"

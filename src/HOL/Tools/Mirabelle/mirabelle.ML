@@ -185,8 +185,6 @@ fun check_theories strs =
 
 (* presentation hook *)
 
-val whitelist = ["apply", "by", "proof", "unfolding", "using"];
-
 val _ =
   Build.add_hook (fn qualifier => fn loaded_theories =>
     let
@@ -209,6 +207,8 @@ val _ =
           val mirabelle_output_dir = Options.default_string \<^system_option>\<open>mirabelle_output_dir\<close>;
           val mirabelle_parallel_group_size = Options.default_int \<^system_option>\<open>mirabelle_parallel_group_size\<close>;
           val check_theory = check_theories (space_explode "," mirabelle_theories);
+          val mirabelle_subgoals = Options.default_string \<^system_option>\<open>mirabelle_subgoals\<close>;
+          val considered_subgoals = space_explode "," mirabelle_subgoals;
 
           fun parallel_app (f : 'a -> unit) (xs : 'a list) : unit =
             chop_groups mirabelle_parallel_group_size xs
@@ -225,7 +225,7 @@ val _ =
                 in
                   if Context.proper_subthy (\<^theory>, thy) andalso
                     can (Proof.assert_backward o Toplevel.proof_of) st andalso
-                    member (op =) whitelist name andalso check_thy pos
+                    member (op =) considered_subgoals name andalso check_thy pos
                   then SOME {theory_index = thy_index, name = name, pos = pos,
                     pre = Toplevel.proof_of st, post = st'}
                   else NONE
