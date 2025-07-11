@@ -1,5 +1,6 @@
 (*  Title:      Provers/classical.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Makarius
 
 Theorem prover for classical reasoning, including predicate calculus, set
 theory, etc.
@@ -10,6 +11,9 @@ A rule is unsafe unless it can be applied blindly without harmful results.
 For a rule to be safe, its premises and conclusion should be logically
 equivalent.  There should be no variables in the premises that are not in
 the conclusion.
+
+Rules are maintained in "canonical reverse order", meaning that later
+declarations take precedence.
 *)
 
 (*higher precedence than := facilitates use of references*)
@@ -20,13 +24,13 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
 
 signature CLASSICAL_DATA =
 sig
-  val imp_elim: thm  (* P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R *)
-  val not_elim: thm  (* ~P ==> P ==> R *)
-  val swap: thm  (* ~ P ==> (~ R ==> P) ==> R *)
-  val classical: thm  (* (~ P ==> P) ==> P *)
-  val sizef: thm -> int  (* size function for BEST_FIRST, typically size_of_thm *)
-  val hyp_subst_tacs: (Proof.context -> int -> tactic) list (* optional tactics for
-    substitution in the hypotheses; assumed to be safe! *)
+  val imp_elim: thm  (* P \<longrightarrow> Q \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R *)
+  val not_elim: thm  (* \<not> P \<Longrightarrow> P \<Longrightarrow> R *)
+  val swap: thm  (* \<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R *)
+  val classical: thm  (* (\<not> P \<Longrightarrow> P) \<Longrightarrow> P *)
+  val sizef: thm -> int  (*size function for BEST_FIRST, typically size_of_thm*)
+  val hyp_subst_tacs: (Proof.context -> int -> tactic) list
+    (*optional tactics for substitution in the hypotheses; assumed to be safe!*)
 end;
 
 signature BASIC_CLASSICAL =
@@ -127,18 +131,19 @@ end;
 functor Classical(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
-(** classical elimination rules **)
+(** Support for classical reasoning **)
 
-(*
-Classical reasoning requires stronger elimination rules.  For
-instance, make_elim of Pure transforms the HOL rule injD into
+(* classical elimination rules *)
 
-    [| inj f; f x = f y; x = y ==> PROP W |] ==> PROP W
+(*Classical reasoning requires stronger elimination rules.  For
+  instance, make_elim of Pure transforms the HOL rule injD into
 
-Such rules can cause fast_tac to fail and blast_tac to report "PROOF
-FAILED"; classical_rule will strengthen this to
+    \<lbrakk>inj f; f x = f y; x = y \<Longrightarrow> PROP W\<rbrakk> \<Longrightarrow> PROP W
 
-    [| inj f; ~ W ==> f x = f y; x = y ==> W |] ==> W
+  Such rules can cause fast_tac to fail and blast_tac to report "PROOF
+  FAILED"; classical_rule will strengthen this to
+
+    \<lbrakk>inj f; \<not> W \<Longrightarrow> f x = f y; x = y \<Longrightarrow> W\<rbrakk> \<Longrightarrow> W
 *)
 
 fun classical_rule ctxt rule =
@@ -162,28 +167,30 @@ fun classical_rule ctxt rule =
     in if Thm.equiv_thm thy (rule, rule'') then rule else rule'' end
   else rule;
 
-(*flatten nested meta connectives in prems*)
+
+(* flatten nested meta connectives in prems *)
+
 fun flat_rule ctxt =
   Conv.fconv_rule (Conv.prems_conv ~1 (Object_Logic.atomize_prems ctxt));
 
 
-(*** Useful tactics for classical reasoning ***)
+(* Useful tactics for classical reasoning *)
 
-(*Prove goal that assumes both P and ~P.
+(*Prove goal that assumes both P and \<not> P.
   No backtracking if it finds an equal assumption.  Perhaps should call
   ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
 fun contr_tac ctxt =
   eresolve_tac ctxt [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac ctxt);
 
-(*Finds P-->Q and P in the assumptions, replaces implication by Q.
-  Could do the same thing for P<->Q and P... *)
+(*Finds P \<longrightarrow> Q and P in the assumptions, replaces implication by Q.
+  Could do the same thing for P \<longleftrightarrow> Q and P.*)
 fun mp_tac ctxt i =
   eresolve_tac ctxt [Data.not_elim, Data.imp_elim] i THEN assume_tac ctxt i;
 
 (*Like mp_tac but instantiates no variables*)
 fun eq_mp_tac ctxt i = ematch_tac ctxt [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
 
-(*Creates rules to eliminate ~A, from rules to introduce A*)
+(*Creates rules to eliminate \<not> A, from rules to introduce A*)
 fun maybe_swap_rule th =
   (case [th] RLN (2, [Data.swap]) of
     [] => NONE
@@ -212,7 +219,8 @@ fun dup_elim ctxt th =
   in rule_by_tactic ctxt (TRYALL (eresolve_tac ctxt [revcut_rl])) rl end;
 
 
-(**** Classical rule sets ****)
+
+(** Classical rule sets **)
 
 type rl = thm * thm option;  (*internal form, with possibly swapped version*)
 type info = {rl: rl, dup_rl: rl, plain: thm};
@@ -254,10 +262,7 @@ val empty_cs =
 fun rep_cs (CS args) = args;
 
 
-(*** Adding (un)safe introduction or elimination rules.
-
-    In case of overlap, new rules are tried BEFORE old ones!!
-***)
+(* insert / delete rules in underlying netpairs *)
 
 fun insert_brl i brl =
   Bires.insert_tagged_rule ({weight = Bires.subgoals_of brl, index = i}, brl);
@@ -306,7 +311,7 @@ fun warn_other_kinds ctxt decls th =
   end;
 
 
-(* wrappers *)
+(* update wrappers *)
 
 fun map_swrappers f
   (CS {decls, swrappers, uwrappers,
@@ -323,7 +328,7 @@ fun map_uwrappers f
     unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 
-(*** extend and merge rules ***)
+(* extend and merge rules *)
 
 local
 
@@ -440,7 +445,7 @@ fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
 end;
 
 
-(*** delete rules ***)
+(* delete rules *)
 
 fun delrule ctxt th cs =
   let
@@ -472,7 +477,7 @@ fun delrule ctxt th cs =
   end;
 
 
-(** context data **)
+(* Claset context data *)
 
 structure Claset = Generic_Data
 (
@@ -530,7 +535,7 @@ val op delrules = decl delrule;
 
 
 
-(*** Modifying the wrapper tacticals ***)
+(** Modifying the wrapper tacticals **)
 
 fun appSWrappers ctxt = fold (fn (_, w) => w ctxt) (#swrappers (rep_claset_of ctxt));
 fun appWrappers ctxt = fold (fn (_, w) => w ctxt) (#uwrappers (rep_claset_of ctxt));
@@ -558,13 +563,13 @@ fun ctxt delSWrapper name = ctxt |> map_claset
 fun ctxt delWrapper name = ctxt |> map_claset
   (map_uwrappers (delete_warn ("No such unsafe wrapper in claset: " ^ name) name));
 
-(* compose a safe tactic alternatively before/after safe_step_tac *)
+(*compose a safe tactic alternatively before/after safe_step_tac*)
 fun ctxt addSbefore (name, tac1) =
   ctxt addSWrapper (name, fn ctxt => fn tac2 => tac1 ctxt ORELSE' tac2);
 fun ctxt addSafter (name, tac2) =
   ctxt addSWrapper (name, fn ctxt => fn tac1 => tac1 ORELSE' tac2 ctxt);
 
-(*compose a tactic alternatively before/after the step tactic *)
+(*compose a tactic alternatively before/after the step tactic*)
 fun ctxt addbefore (name, tac1) =
   ctxt addWrapper (name, fn ctxt => fn tac2 => tac1 ctxt APPEND' tac2);
 fun ctxt addafter (name, tac2) =
@@ -581,7 +586,7 @@ fun ctxt addSE2 (name, thm) =
 
 
 
-(**** Simple tactics for theorem proving ****)
+(** Simple tactics for theorem proving **)
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun safe_step_tac ctxt =
@@ -601,7 +606,8 @@ fun safe_steps_tac ctxt =
 fun safe_tac ctxt = REPEAT_DETERM1 (FIRSTGOAL (safe_steps_tac ctxt));
 
 
-(*** Clarify_tac: do safe steps without causing branching ***)
+
+(** Clarify_tac: do safe steps without causing branching **)
 
 (*version of Bires.bimatch_from_nets_tac that only applies rules that
   create precisely n subgoals.*)
@@ -630,7 +636,8 @@ fun clarify_step_tac ctxt =
 fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 
 
-(*** Unsafe steps instantiate variables or lose information ***)
+
+(** Unsafe steps instantiate variables or lose information **)
 
 (*Backtracking is allowed among the various these unsafe ways of
   proving a subgoal.  *)
@@ -659,7 +666,7 @@ fun slow_step_tac ctxt i =
   safe_tac ctxt ORELSE appWrappers ctxt (inst_step_tac ctxt APPEND' unsafe_step_tac ctxt) i;
 
 
-(**** The following tactics all fail unless they solve one goal ****)
+(** The following tactics all fail unless they solve one goal **)
 
 (*Dumb but fast*)
 fun fast_tac ctxt =
@@ -684,7 +691,7 @@ fun slow_best_tac ctxt =
   SELECT_GOAL (BEST_FIRST (Thm.no_prems, Data.sizef) (slow_step_tac ctxt 1));
 
 
-(***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
+(** ASTAR with weight weight_ASTAR, by Norbert Voelker **)
 
 val weight_ASTAR = 5;
 
@@ -701,10 +708,10 @@ fun slow_astar_tac ctxt =
       (slow_step_tac ctxt 1));
 
 
-(**** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
+(** Complete tactic, loosely based upon LeanTaP.  This tactic is the outcome
   of much experimentation!  Changing APPEND to ORELSE below would prove
   easy theorems faster, but loses completeness -- and many of the harder
-  theorems such as 43. ****)
+  theorems such as 43. **)
 
 (*Non-deterministic!  Could always expand the first unsafe connective.
   That's hard to implement and did not perform better in experiments, due to
@@ -736,7 +743,10 @@ fun safe_depth_tac ctxt m = SUBGOAL (fn (prem, i) =>
 fun deepen_tac ctxt = DEEPEN (2, 10) (safe_depth_tac ctxt);
 
 
-(* attributes *)
+
+(** attributes **)
+
+(* declarations *)
 
 fun attrib f =
   Thm.declaration_attribute (fn th => fn context =>
@@ -756,8 +766,7 @@ val rule_del =
     |> Thm.attribute_declaration Context_Rules.rule_del th);
 
 
-
-(** concrete syntax of attributes **)
+(* concrete syntax *)
 
 val introN = "intro";
 val elimN = "elim";
@@ -821,8 +830,7 @@ fun cla_method tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD o tac);
 fun cla_method' tac = Method.sections cla_modifiers >> K (SIMPLE_METHOD' o tac);
 
 
-
-(** method setup **)
+(* method setup *)
 
 val _ =
   Theory.setup
@@ -857,7 +865,8 @@ val _ =
       "single classical step (safe rules, without splitting)");
 
 
-(** outer syntax **)
+
+(** outer syntax commands **)
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_claset\<close> "print context of Classical Reasoner"
