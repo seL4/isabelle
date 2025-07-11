@@ -99,15 +99,11 @@ sig
   type info = {rl: rl, dup_rl: rl}
   type decl = info Bires.decl
   type decls = info Bires.decls
-  val rep_cs: claset ->
-   {decls: decls,
-    swrappers: (string * (Proof.context -> wrapper)) list,
-    uwrappers: (string * (Proof.context -> wrapper)) list,
-    safe0_netpair: Bires.netpair,
-    safep_netpair: Bires.netpair,
-    unsafe_netpair: Bires.netpair,
-    dup_netpair: Bires.netpair,
-    extra_netpair: Bires.netpair}
+  val safe0_netpair_of: Proof.context -> Bires.netpair
+  val safep_netpair_of: Proof.context -> Bires.netpair
+  val unsafe_netpair_of: Proof.context -> Bires.netpair
+  val dup_netpair_of: Proof.context -> Bires.netpair
+  val extra_netpair_of: Proof.context -> Bires.netpair
   val dest_decls: Proof.context -> ((thm * decl) -> bool) -> (thm * decl) list
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
@@ -490,6 +486,12 @@ val rep_claset_of = rep_cs o claset_of;
 
 val dest_decls = Bires.dest_decls o #decls o rep_claset_of;
 
+val safe0_netpair_of = #safe0_netpair o rep_claset_of;
+val safep_netpair_of = #safep_netpair o rep_claset_of;
+val unsafe_netpair_of = #unsafe_netpair o rep_claset_of;
+val dup_netpair_of = #dup_netpair o rep_claset_of;
+val extra_netpair_of = #extra_netpair o rep_claset_of;
+
 val get_cs = Claset.get;
 val map_cs = Claset.map;
 
@@ -583,15 +585,13 @@ fun ctxt addSE2 (name, thm) =
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun safe_step_tac ctxt =
-  let val {safe0_netpair, safep_netpair, ...} = rep_claset_of ctxt in
-    appSWrappers ctxt
-      (FIRST'
-       [eq_assume_tac,
-        eq_mp_tac ctxt,
-        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
-        FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
-        Bires.bimatch_from_nets_tac ctxt safep_netpair])
-  end;
+  appSWrappers ctxt
+    (FIRST'
+     [eq_assume_tac,
+      eq_mp_tac ctxt,
+      Bires.bimatch_from_nets_tac ctxt (safe0_netpair_of ctxt),
+      FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
+      Bires.bimatch_from_nets_tac ctxt (safep_netpair_of ctxt)]);
 
 (*Repeatedly attack a subgoal using safe inferences -- it's deterministic!*)
 fun safe_steps_tac ctxt =
@@ -619,15 +619,13 @@ fun bimatch2_tac ctxt netpair i =
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
 fun clarify_step_tac ctxt =
-  let val {safe0_netpair, safep_netpair, ...} = rep_claset_of ctxt in
-    appSWrappers ctxt
-     (FIRST'
-       [eq_assume_contr_tac ctxt,
-        Bires.bimatch_from_nets_tac ctxt safe0_netpair,
-        FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
-        n_bimatch_from_nets_tac ctxt 1 safep_netpair,
-        bimatch2_tac ctxt safep_netpair])
-  end;
+  appSWrappers ctxt
+   (FIRST'
+     [eq_assume_contr_tac ctxt,
+      Bires.bimatch_from_nets_tac ctxt (safe0_netpair_of ctxt),
+      FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
+      n_bimatch_from_nets_tac ctxt 1 (safep_netpair_of ctxt),
+      bimatch2_tac ctxt (safep_netpair_of ctxt)]);
 
 fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 
@@ -639,17 +637,17 @@ fun clarify_tac ctxt = SELECT_GOAL (REPEAT_DETERM (clarify_step_tac ctxt 1));
 fun inst0_step_tac ctxt =
   assume_tac ctxt APPEND'
   contr_tac ctxt APPEND'
-  Bires.biresolve_from_nets_tac ctxt (#safe0_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (safe0_netpair_of ctxt);
 
 (*These unsafe steps could generate more subgoals.*)
 fun instp_step_tac ctxt =
-  Bires.biresolve_from_nets_tac ctxt (#safep_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (safep_netpair_of ctxt);
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 fun inst_step_tac ctxt = inst0_step_tac ctxt APPEND' instp_step_tac ctxt;
 
 fun unsafe_step_tac ctxt =
-  Bires.biresolve_from_nets_tac ctxt (#unsafe_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (unsafe_netpair_of ctxt);
 
 (*Single step for the prover.  FAILS unless it makes progress. *)
 fun step_tac ctxt i =
@@ -712,7 +710,7 @@ fun slow_astar_tac ctxt =
   That's hard to implement and did not perform better in experiments, due to
   greater search depth required.*)
 fun dup_step_tac ctxt =
-  Bires.biresolve_from_nets_tac ctxt (#dup_netpair (rep_claset_of ctxt));
+  Bires.biresolve_from_nets_tac ctxt (dup_netpair_of ctxt);
 
 (*Searching to depth m. A variant called nodup_depth_tac appears in clasimp.ML*)
 local
@@ -787,8 +785,7 @@ local
 fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val [rules1, rules2, rules4] = Context_Rules.find_rules ctxt false facts goal;
-    val {extra_netpair, ...} = rep_claset_of ctxt;
-    val rules3 = Context_Rules.find_rules_netpair ctxt true facts goal extra_netpair;
+    val rules3 = Context_Rules.find_rules_netpair ctxt true facts goal (extra_netpair_of ctxt);
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves (SOME ctxt) facts rules;
     val _ = Method.trace ctxt rules;
