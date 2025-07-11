@@ -27,12 +27,16 @@ sig
   val elim_kind: kind
   val intro_query_kind: kind
   val elim_query_kind: kind
+  val kind_safe: kind -> bool
+  val kind_unsafe: kind -> bool
+  val kind_extra: kind -> bool
   val kind_index: kind -> int
   val kind_elim: kind -> bool
   val kind_domain: kind list
   val kind_values: 'a -> 'a list
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
   val kind_rule: kind -> thm -> rule
+  val kind_description: kind -> string
   val kind_title: kind -> string
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
@@ -119,6 +123,9 @@ val kind_infos =
   (intro_query_kind, ("extra introduction", "(intro?)")),
   (elim_query_kind, ("extra elimination", "(elim?)"))];
 
+fun kind_safe (Kind (i, _)) = i = 0;
+fun kind_unsafe (Kind (i, _)) = i = 1;
+fun kind_extra (Kind (i, _)) = i = 2;
 fun kind_index (Kind (i, _)) = i;
 fun kind_elim (Kind (_, b)) = b;
 
@@ -131,6 +138,10 @@ fun kind_map kind f = nth_map (kind_index kind) f;
 fun kind_rule kind thm : rule = (kind_elim kind, thm);
 
 val the_kind_info = the o AList.lookup (op =) kind_infos;
+
+fun kind_description kind =
+  let val (a, b) = the_kind_info kind
+  in a ^ " " ^ b end;
 
 fun kind_title kind =
   let val (a, b) = the_kind_info kind

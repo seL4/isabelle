@@ -307,12 +307,16 @@ fun clasimpset_rule_table_of ctxt =
       let
         fun add stature th = Termtab.update (normalize_vars (Thm.prop_of th), stature)
 
-        val {safeIs, (* safeEs, *) unsafeIs, (* unsafeEs, *) ...} =
-          ctxt |> claset_of |> Classical.rep_cs
-        val intros = map #1 (Item_Net.content safeIs @ Item_Net.content unsafeIs)
+        val claset_decls = Classical.get_decls ctxt;
+        fun claset_rules kind =
+          Bires.list_decls (fn (_, {kind = kind', ...}) => kind = kind') claset_decls
+          |> map #1 |> rev;
+
+        val intros = claset_rules Bires.intro_bang_kind @ claset_rules Bires.intro_kind;
 (* Add once it is used:
-        val elims = Item_Net.content safeEs @ Item_Net.content unsafeEs
-          |> map Classical.classical_rule
+        val elims =
+          (claset_rules Bires.elim_bang_kind @ claset_rules Bires.elim_kind)
+          |> map (Classical.classical_rule ctxt);
 *)
         val specs = Spec_Rules.get ctxt
         val (rec_defs, nonrec_defs) = specs

@@ -97,13 +97,10 @@ sig
   val classical_rule: Proof.context -> thm -> thm
   type rl = thm * thm option
   type info = {rl: rl, dup_rl: rl}
-  type rule = thm * info
+  type decl = info Bires.decl
+  type decls = info Bires.decls
   val rep_cs: claset ->
-   {next: int,
-    safeIs: rule Item_Net.T,
-    safeEs: rule Item_Net.T,
-    unsafeIs: rule Item_Net.T,
-    unsafeEs: rule Item_Net.T,
+   {decls: decls,
     swrappers: (string * (Proof.context -> wrapper)) list,
     uwrappers: (string * (Proof.context -> wrapper)) list,
     safe0_netpair: Bires.netpair,
@@ -111,6 +108,7 @@ sig
     unsafe_netpair: Bires.netpair,
     dup_netpair: Bires.netpair,
     extra_netpair: Bires.netpair}
+  val get_decls: Proof.context -> decls
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -224,6 +222,9 @@ type rl = thm * thm option;  (*internal form, with possibly swapped version*)
 type info = {rl: rl, dup_rl: rl};
 type rule = thm * info;  (*external form, internal forms*)
 
+type decl = info Bires.decl;
+type decls = info Bires.decls;
+
 fun maybe_swapped_rl th : rl = (th, maybe_swap_rule th);
 fun no_swapped_rl th : rl = (th, NONE);
 
@@ -234,11 +235,7 @@ type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =
   CS of
-   {next: int,  (*index for next rule: decreasing*)
-    safeIs: rule Item_Net.T,  (*safe introduction rules*)
-    safeEs: rule Item_Net.T,  (*safe elimination rules*)
-    unsafeIs: rule Item_Net.T,  (*unsafe introduction rules*)
-    unsafeEs: rule Item_Net.T,  (*unsafe elimination rules*)
+   {decls: decls,  (*rule declarations in canonical order*)
     swrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming safe_step_tac*)
     uwrappers: (string * (Proof.context -> wrapper)) list,  (*for transforming step_tac*)
     safe0_netpair: Bires.netpair,  (*nets for trivial cases*)
@@ -247,16 +244,9 @@ datatype claset =
     dup_netpair: Bires.netpair,  (*nets for duplication*)
     extra_netpair: Bires.netpair};  (*nets for extra rules*)
 
-val empty_rules: rule Item_Net.T =
-  Item_Net.init (Thm.eq_thm_prop o apply2 #1) (single o Thm.full_prop_of o #1);
-
 val empty_cs =
   CS
-   {next = ~1,
-    safeIs = empty_rules,
-    safeEs = empty_rules,
-    unsafeIs = empty_rules,
-    unsafeEs = empty_rules,
+   {decls = Bires.empty_decls,
     swrappers = [],
     uwrappers = [],
     safe0_netpair = Bires.empty_netpair,
@@ -273,26 +263,22 @@ fun rep_cs (CS args) = args;
     In case of overlap, new rules are tried BEFORE old ones!!
 ***)
 
-fun joinrules (intrs, elims) = map (pair true) elims @ map (pair false) intrs;
+fun insert_brl i brl =
+  Bires.insert_tagged_rule ({weight = Bires.subgoals_of brl, index = i}, brl);
 
-(*Priority: prefer rules with fewest subgoals,
-  then rules added most recently (preferring the head of the list).*)
-fun tag_brls k [] = []
-  | tag_brls k (brl::brls) =
-      ({weight = Bires.subgoals_of brl, index = k}, brl) :: tag_brls (k + 1) brls;
+fun insert_rl kind k ((th, swapped): rl) =
+  insert_brl (2 * k + 1) (Bires.kind_rule kind th) #>
+  (case swapped of NONE => I | SOME th' => insert_brl (2 * k) (true, th'));
 
-fun tag_weight_brls _ _ [] = []
-  | tag_weight_brls w k (brl::brls) =
-      ({weight = w, index = k}, brl) :: tag_weight_brls w (k + 1) brls;
+fun delete_rl kind ((th, swapped): rl) =
+  Bires.delete_tagged_rule (Bires.kind_rule kind th) #>
+  (case swapped of NONE => I | SOME th' => Bires.delete_tagged_rule (true, th'));
 
-(*Insert into netpair from next index, which is negative to give the
-  new insertions the lowest priority.*)
-fun insert k = fold Bires.insert_tagged_rule o (tag_brls (2 * k)) o joinrules;
+fun insert_plain_rule ({kind, tag, info = {rl = (th, _), ...}}: decl) =
+  Bires.insert_tagged_rule (tag, (Bires.kind_elim kind, th));
 
-fun insert_default_weight w0 w k =
-  fold Bires.insert_tagged_rule o tag_weight_brls (the_default w0 w) k o single;
-
-fun delete x = fold Bires.delete_tagged_rule (joinrules x);
+fun delete_plain_rule ({kind, info = {rl = (th, _), ...}, ...}: decl) =
+  Bires.delete_tagged_rule (Bires.kind_rule kind th);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
@@ -300,324 +286,197 @@ fun make_elim ctxt th =
   if Thm.no_prems th then bad_thm ctxt "Ill-formed destruction rule" th
   else Tactic.make_elim th;
 
+fun init_decl kind opt_weight info : decl =
+  let val weight = the_default (Bires.kind_index kind) opt_weight
+  in {kind = kind, tag = Bires.weight_tag weight, info = info} end;
+
+fun is_declared decls th kind =
+  exists (fn {kind = kind', ...} => kind = kind') (Bires.get_decls decls th);
+
 fun warn_thm ctxt msg th =
   if Context_Position.is_really_visible ctxt
-  then warning (msg ^ Thm.string_of_thm ctxt th) else ();
+  then warning (msg () ^ Thm.string_of_thm ctxt th) else ();
 
-fun warn_rules ctxt msg rules (r: rule) =
-  Item_Net.member rules r andalso (warn_thm ctxt msg (#1 r); true);
+fun warn_kind ctxt decls prefix th kind =
+  is_declared decls th kind andalso
+    (warn_thm ctxt (fn () => prefix ^ Bires.kind_description kind ^ "\n") th; true);
 
-fun warn_claset ctxt r (CS {safeIs, safeEs, unsafeIs, unsafeEs, ...}) =
-  warn_rules ctxt "Rule already declared as safe introduction (intro!)\n" safeIs r orelse
-  warn_rules ctxt "Rule already declared as safe elimination (elim!)\n" safeEs r orelse
-  warn_rules ctxt "Rule already declared as introduction (intro)\n" unsafeIs r orelse
-  warn_rules ctxt "Rule already declared as elimination (elim)\n" unsafeEs r;
-
-
-(*** add rules ***)
-
-fun add_safe_intro w (r: rule)
-    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  if Item_Net.member safeIs r then cs
-  else
-    let
-      val (th, {rl, ...}) = r;
-      val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-        List.partition (Thm.no_prems o fst) [rl];
-    in
-      CS
-       {next = next - 1,
-        safeIs = Item_Net.update r safeIs,
-        safe0_netpair = insert next (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
-        safep_netpair = insert next (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
-        safeEs = safeEs,
-        unsafeIs = unsafeIs,
-        unsafeEs = unsafeEs,
-        swrappers = swrappers,
-        uwrappers = uwrappers,
-        unsafe_netpair = unsafe_netpair,
-        dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w next (false, th) extra_netpair}
-    end;
-
-fun add_safe_elim w (r: rule)
-    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  if Item_Net.member safeEs r then cs
-  else
-    let
-      val (th, {rl, ...}) = r;
-      val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
-        List.partition (Thm.one_prem o #1) [rl];
-    in
-      CS
-       {next = next - 1,
-        safeEs = Item_Net.update r safeEs,
-        safe0_netpair = insert next ([], map fst safe0_rls) safe0_netpair,
-        safep_netpair = insert next ([], map fst safep_rls) safep_netpair,
-        safeIs = safeIs,
-        unsafeIs = unsafeIs,
-        unsafeEs = unsafeEs,
-        swrappers = swrappers,
-        uwrappers = uwrappers,
-        unsafe_netpair = unsafe_netpair,
-        dup_netpair = dup_netpair,
-        extra_netpair = insert_default_weight 0 w next (true, th) extra_netpair}
-    end;
-
-fun add_unsafe_intro w (r: rule)
-    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  if Item_Net.member unsafeIs r then cs
-  else
-    let
-      val (th, {rl, dup_rl}) = r;
-    in
-      CS
-       {next = next - 1,
-        unsafeIs = Item_Net.update r unsafeIs,
-        unsafe_netpair = insert next ([fst rl], the_list (snd rl)) unsafe_netpair,
-        dup_netpair = insert next ([fst dup_rl], the_list (snd dup_rl)) dup_netpair,
-        safeIs = safeIs,
-        safeEs = safeEs,
-        unsafeEs = unsafeEs,
-        swrappers = swrappers,
-        uwrappers = uwrappers,
-        safe0_netpair = safe0_netpair,
-        safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w next (false, th) extra_netpair}
-    end;
-
-fun add_unsafe_elim w (r: rule)
-    (cs as CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-      safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  if Item_Net.member unsafeEs r then cs
-  else
-    let
-      val (th, {rl, dup_rl}) = r;
-    in
-      CS
-       {next = next - 1,
-        unsafeEs = Item_Net.update r unsafeEs,
-        unsafe_netpair = insert next ([], [fst rl]) unsafe_netpair,
-        dup_netpair = insert next ([], [fst dup_rl]) dup_netpair,
-        safeIs = safeIs,
-        safeEs = safeEs,
-        unsafeIs = unsafeIs,
-        swrappers = swrappers,
-        uwrappers = uwrappers,
-        safe0_netpair = safe0_netpair,
-        safep_netpair = safep_netpair,
-        extra_netpair = insert_default_weight 1 w next (true, th) extra_netpair}
-    end;
-
-fun trim_context_rl (th1, opt_th2) =
-  (Thm.trim_context th1, Option.map Thm.trim_context opt_th2);
-
-fun trim_context (th, {rl, dup_rl}) : rule =
-  (Thm.trim_context th, {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl});
-
-fun addSI w ctxt th (cs as CS {safeIs, ...}) =
-  let
-    val th' = flat_rule ctxt th;
-    val r = trim_context (th, make_info1 (maybe_swapped_rl th'));
-    val _ =
-      warn_rules ctxt "Ignoring duplicate safe introduction (intro!)\n" safeIs r orelse
-      warn_claset ctxt r cs;
-  in add_safe_intro w r cs end;
-
-fun addSE w ctxt th (cs as CS {safeEs, ...}) =
-  let
-    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
-    val th' = classical_rule ctxt (flat_rule ctxt th);
-    val r = trim_context (th, make_info1 (no_swapped_rl th'));
-    val _ =
-      warn_rules ctxt "Ignoring duplicate safe elimination (elim!)\n" safeEs r orelse
-      warn_claset ctxt r cs;
-  in add_safe_elim w r cs end;
-
-fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
-
-fun addI w ctxt th (cs as CS {unsafeIs, ...}) =
-  let
-    val th' = flat_rule ctxt th;
-    val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
-    val r = trim_context (th, make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th'));
-    val _ =
-      warn_rules ctxt "Ignoring duplicate introduction (intro)\n" unsafeIs r orelse
-      warn_claset ctxt r cs;
-  in add_unsafe_intro w r cs end;
-
-fun addE w ctxt th (cs as CS {unsafeEs, ...}) =
-  let
-    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
-    val th' = classical_rule ctxt (flat_rule ctxt th);
-    val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
-    val r = trim_context (th, make_info (no_swapped_rl th') (no_swapped_rl dup_th'));
-    val _ =
-      warn_rules ctxt "Ignoring duplicate elimination (elim)\n" unsafeEs r orelse
-      warn_claset ctxt r cs;
-  in add_unsafe_elim w r cs end;
-
-fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
-
-
-(*** delete rules ***)
-
-local
-
-fun del_safe_intro (r: rule)
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  let
-    val (th, {rl, ...}) = r;
-    val (safe0_rls, safep_rls) = List.partition (Thm.no_prems o fst) [rl];
-  in
-    CS
-     {next = next,
-      safe0_netpair = delete (map fst safe0_rls, maps (the_list o snd) safe0_rls) safe0_netpair,
-      safep_netpair = delete (map fst safep_rls, maps (the_list o snd) safep_rls) safep_netpair,
-      safeIs = Item_Net.remove r safeIs,
-      safeEs = safeEs,
-      unsafeIs = unsafeIs,
-      unsafeEs = unsafeEs,
-      swrappers = swrappers,
-      uwrappers = uwrappers,
-      unsafe_netpair = unsafe_netpair,
-      dup_netpair = dup_netpair,
-      extra_netpair = delete ([th], []) extra_netpair}
+fun warn_other_kinds ctxt decls th =
+  let val warn = warn_kind ctxt decls "Rule already declared as " th in
+    warn Bires.intro_bang_kind orelse
+    warn Bires.elim_bang_kind orelse
+    warn Bires.intro_kind orelse
+    warn Bires.elim_kind
   end;
 
-fun del_safe_elim (r: rule)
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  let
-    val (th, {rl, ...}) = r;
-    val (safe0_rls, safep_rls) = List.partition (Thm.one_prem o #1) [rl];
-  in
-    CS
-     {next = next,
-      safe0_netpair = delete ([], map fst safe0_rls) safe0_netpair,
-      safep_netpair = delete ([], map fst safep_rls) safep_netpair,
-      safeIs = safeIs,
-      safeEs = Item_Net.remove r safeEs,
-      unsafeIs = unsafeIs,
-      unsafeEs = unsafeEs,
-      swrappers = swrappers,
-      uwrappers = uwrappers,
-      unsafe_netpair = unsafe_netpair,
-      dup_netpair = dup_netpair,
-      extra_netpair = delete ([], [th]) extra_netpair}
-  end;
-
-fun del_unsafe_intro (r as (th, {rl = (th', swapped_th'), dup_rl = (dup_th', swapped_dup_th')}))
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS
-   {next = next,
-    unsafe_netpair = delete ([th'], the_list swapped_th') unsafe_netpair,
-    dup_netpair = delete ([dup_th'], the_list swapped_dup_th') dup_netpair,
-    safeIs = safeIs,
-    safeEs = safeEs,
-    unsafeIs = Item_Net.remove r unsafeIs,
-    unsafeEs = unsafeEs,
-    swrappers = swrappers,
-    uwrappers = uwrappers,
-    safe0_netpair = safe0_netpair,
-    safep_netpair = safep_netpair,
-    extra_netpair = delete ([th], []) extra_netpair};
-
-fun del_unsafe_elim (r as (th, {rl = (th', _), dup_rl = (dup_th', _)}))
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
-    safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS
-   {next = next,
-    unsafe_netpair = delete ([], [th']) unsafe_netpair,
-    dup_netpair = delete ([], [dup_th']) dup_netpair,
-    safeIs = safeIs,
-    safeEs = safeEs,
-    unsafeIs = unsafeIs,
-    unsafeEs = Item_Net.remove r unsafeEs,
-    swrappers = swrappers,
-    uwrappers = uwrappers,
-    safe0_netpair = safe0_netpair,
-    safep_netpair = safep_netpair,
-    extra_netpair = delete ([], [th]) extra_netpair};
-
-fun del f rules th cs =
-  fold f (Item_Net.lookup rules (th, make_info1 (no_swapped_rl th))) cs;
-
-in
-
-fun delrule ctxt th (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, ...}) =
-  let
-    val th' = Tactic.make_elim th;
-    val r = (th, make_info1 (no_swapped_rl th));
-    val r' = (th', make_info1 (no_swapped_rl th'));
-  in
-    if Item_Net.member safeIs r orelse Item_Net.member safeEs r orelse
-      Item_Net.member unsafeIs r orelse Item_Net.member unsafeEs r orelse
-      Item_Net.member safeEs r' orelse Item_Net.member unsafeEs r'
-    then
-      cs
-      |> del del_safe_intro safeIs th
-      |> del del_safe_elim safeEs th
-      |> del del_safe_elim safeEs th'
-      |> del del_unsafe_intro unsafeIs th
-      |> del del_unsafe_elim unsafeEs th
-      |> del del_unsafe_elim unsafeEs th'
-    else (warn_thm ctxt "Undeclared classical rule\n" th; cs)
-  end;
-
-end;
-
-
-
-(** claset data **)
 
 (* wrappers *)
 
 fun map_swrappers f
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {decls, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {next = next, safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
-    swrappers = f swrappers, uwrappers = uwrappers,
+  CS {decls = decls, swrappers = f swrappers, uwrappers = uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
     unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 fun map_uwrappers f
-  (CS {next, safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers,
+  (CS {decls, swrappers, uwrappers,
     safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair}) =
-  CS {next = next, safeIs = safeIs, safeEs = safeEs, unsafeIs = unsafeIs, unsafeEs = unsafeEs,
-    swrappers = swrappers, uwrappers = f uwrappers,
+  CS {decls = decls, swrappers = swrappers, uwrappers = f uwrappers,
     safe0_netpair = safe0_netpair, safep_netpair = safep_netpair,
     unsafe_netpair = unsafe_netpair, dup_netpair = dup_netpair, extra_netpair = extra_netpair};
 
 
-(* merge_cs *)
+(*** extend and merge rules ***)
 
-(*Merge works by adding all new rules of the 2nd claset into the 1st claset,
-  in order to preserve priorities reliably.*)
+local
 
-fun merge_thms add thms1 thms2 =
-  fold_rev (fn thm => if Item_Net.member thms1 thm then I else add thm) (Item_Net.content thms2);
+type netpairs = (Bires.netpair * Bires.netpair) * (Bires.netpair * Bires.netpair);
 
-fun merge_cs (cs as CS {safeIs, safeEs, unsafeIs, unsafeEs, ...},
-    cs' as CS {safeIs = safeIs2, safeEs = safeEs2, unsafeIs = unsafeIs2, unsafeEs = unsafeEs2,
-      swrappers, uwrappers, ...}) =
-  if pointer_eq (cs, cs') then cs
+fun add_safe_rule (decl: decl) (netpairs: netpairs) =
+  let
+    val {kind, tag = {index, ...}, info = {rl, ...}} = decl;
+    val no_subgoals = Bires.no_subgoals (Bires.kind_rule kind (#1 rl));
+  in (apfst o (if no_subgoals then apfst else apsnd)) (insert_rl kind index rl) netpairs end;
+
+fun add_unsafe_rule (decl: decl) ((safe_netpairs, (unsafe_netpair, dup_netpair)): netpairs) =
+  let
+    val {kind, tag = {index, ...}, info = {rl, dup_rl}} = decl;
+    val unsafe_netpair' = insert_rl kind index rl unsafe_netpair;
+    val dup_netpair' = insert_rl kind index dup_rl dup_netpair;
+  in (safe_netpairs, (unsafe_netpair', dup_netpair')) end;
+
+fun add_rule (decl as {kind, ...}: decl) =
+  if Bires.kind_safe kind then add_safe_rule decl
+  else if Bires.kind_unsafe kind then add_unsafe_rule decl
+  else I;
+
+
+fun trim_context_rl (th1, opt_th2) =
+  (Thm.trim_context th1, Option.map Thm.trim_context opt_th2);
+
+fun trim_context_info {rl, dup_rl} : info =
+  {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl};
+
+fun extend_rules ctxt kind opt_weight (th, info) cs =
+  let
+    val th' = Thm.trim_context th;
+    val decl' = init_decl kind opt_weight (trim_context_info info);
+    val CS {decls, swrappers, uwrappers, safe0_netpair, safep_netpair,
+      unsafe_netpair, dup_netpair, extra_netpair} = cs;
+  in
+    (case Bires.extend_decls (th', decl') decls of
+      (NONE, _) => (warn_kind ctxt decls "Ignoring duplicate " th kind; cs)
+    | (SOME new_decl, decls') =>
+        let
+          val _ = warn_other_kinds ctxt decls th;
+          val ((safe0_netpair', safep_netpair'), (unsafe_netpair', dup_netpair')) =
+            add_rule new_decl ((safe0_netpair, safep_netpair), (unsafe_netpair, dup_netpair));
+          val extra_netpair' = insert_plain_rule new_decl extra_netpair;
+        in
+          CS {
+            decls = decls',
+            swrappers = swrappers,
+            uwrappers = uwrappers,
+            safe0_netpair = safe0_netpair',
+            safep_netpair = safep_netpair',
+            unsafe_netpair = unsafe_netpair',
+            dup_netpair = dup_netpair',
+            extra_netpair = extra_netpair'}
+        end)
+  end;
+
+in
+
+fun merge_cs (cs, cs2) =
+  if pointer_eq (cs, cs2) then cs
   else
-    cs
-    |> merge_thms (add_safe_intro NONE) safeIs safeIs2
-    |> merge_thms (add_safe_elim NONE) safeEs safeEs2
-    |> merge_thms (add_unsafe_intro NONE) unsafeIs unsafeIs2
-    |> merge_thms (add_unsafe_elim NONE) unsafeEs unsafeEs2
-    |> map_swrappers (fn ws => AList.merge (op =) (K true) (ws, swrappers))
-    |> map_uwrappers (fn ws => AList.merge (op =) (K true) (ws, uwrappers));
+    let
+      val CS {decls, swrappers, uwrappers, safe0_netpair, safep_netpair,
+        unsafe_netpair, dup_netpair, extra_netpair} = cs;
+      val CS {decls = decls2, swrappers = swrappers2, uwrappers = uwrappers2, ...} = cs2;
+
+      val (new_decls, decls') = Bires.merge_decls (decls, decls2);
+      val ((safe0_netpair', safep_netpair'), (unsafe_netpair', dup_netpair')) =
+        fold add_rule new_decls ((safe0_netpair, safep_netpair), (unsafe_netpair, dup_netpair));
+      val extra_netpair' = fold insert_plain_rule new_decls extra_netpair;
+    in
+      CS {
+        decls = decls',
+        swrappers = AList.merge (op =) (K true) (swrappers, swrappers2),
+        uwrappers = AList.merge (op =) (K true) (uwrappers, uwrappers2),
+        safe0_netpair = safe0_netpair',
+        safep_netpair = safep_netpair',
+        unsafe_netpair = unsafe_netpair',
+        dup_netpair = dup_netpair',
+        extra_netpair = extra_netpair'}
+    end;
+
+fun addSI w ctxt th cs =
+  extend_rules ctxt Bires.intro_bang_kind w
+    (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th))) cs;
+
+fun addSE w ctxt th cs =
+  if Thm.no_prems th then bad_thm ctxt "Ill-formed elimination rule" th
+  else
+    let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th)))
+    in extend_rules ctxt Bires.elim_bang_kind w (th, info) cs end;
+
+fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
+
+fun addI w ctxt th cs =
+  let
+    val th' = flat_rule ctxt th;
+    val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
+    val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th');
+  in extend_rules ctxt Bires.intro_kind w (th, info) cs end;
+
+fun addE w ctxt th cs =
+  let
+    val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
+    val th' = classical_rule ctxt (flat_rule ctxt th);
+    val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
+    val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th');
+  in extend_rules ctxt Bires.elim_kind w (th, info) cs end;
+
+fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
+
+end;
 
 
-(* data *)
+(*** delete rules ***)
+
+fun delrule ctxt th cs =
+  let
+    val ths = th :: ([Tactic.make_elim th] handle THM _ => []);
+    val CS {decls, swrappers, uwrappers,
+      safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair} = cs;
+    val (old_decls, decls') = fold_map Bires.remove_decls ths decls |>> flat;
+  in
+    if null old_decls then (warn_thm ctxt (fn () => "Undeclared classical rule\n") th; cs)
+    else
+      let
+        fun del which ({kind, info, ...}: decl) = delete_rl kind (which info);
+        val safe0_netpair' = fold (del #rl) old_decls safe0_netpair;
+        val safep_netpair' = fold (del #rl) old_decls safep_netpair;
+        val unsafe_netpair' = fold (del #rl) old_decls unsafe_netpair;
+        val dup_netpair' = fold (del #dup_rl) old_decls dup_netpair;
+        val extra_netpair' = fold delete_plain_rule old_decls extra_netpair;
+      in
+        CS {
+          decls = decls',
+          swrappers = swrappers,
+          uwrappers = uwrappers,
+          safe0_netpair = safe0_netpair',
+          safep_netpair = safep_netpair',
+          unsafe_netpair = unsafe_netpair',
+          dup_netpair = dup_netpair',
+          extra_netpair = extra_netpair'}
+      end
+  end;
+
+
+(** context data **)
 
 structure Claset = Generic_Data
 (
@@ -628,6 +487,8 @@ structure Claset = Generic_Data
 
 val claset_of = Claset.get o Context.Proof;
 val rep_claset_of = rep_cs o claset_of;
+
+val get_decls = #decls o rep_claset_of;
 
 val get_cs = Claset.get;
 val map_cs = Claset.map;
@@ -643,17 +504,14 @@ fun put_claset cs = map_claset (K cs);
 
 fun print_claset ctxt =
   let
-    val {safeIs, safeEs, unsafeIs, unsafeEs, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val pretty_thms = map (Thm.pretty_thm_item ctxt o #1) o Item_Net.content;
-  in
-    [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
-      Pretty.big_list "introduction rules (intro):" (pretty_thms unsafeIs),
-      Pretty.big_list "safe elimination rules (elim!):" (pretty_thms safeEs),
-      Pretty.big_list "elimination rules (elim):" (pretty_thms unsafeEs),
-      Pretty.strs ("safe wrappers:" :: map #1 swrappers),
-      Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+    val {decls, swrappers, uwrappers, ...} = rep_claset_of ctxt;
+    val prt_rules =
+      Bires.pretty_decls ctxt
+        [Bires.intro_bang_kind, Bires.intro_kind, Bires.elim_bang_kind, Bires.elim_kind] decls;
+    val prt_wrappers =
+     [Pretty.strs ("safe wrappers:" :: map #1 swrappers),
+      Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)];
+  in Pretty.writeln (Pretty.chunks (prt_rules @ prt_wrappers)) end;
 
 
 (* old-style declarations *)
