@@ -49,8 +49,8 @@ fun init_decl kind opt_weight th : decl =
 fun insert_decl ({kind, tag, info = th}: decl) =
   Bires.insert_tagged_rule (tag, Bires.kind_rule kind th);
 
-fun remove_decl ({info = th, ...}: decl) =
-  Bires.delete_tagged_rule (false, th) o Bires.delete_tagged_rule (true, th);
+fun remove_decl ({tag = {index, ...}, info = th, ...}: decl) =
+  Bires.delete_tagged_rule (index, th);
 
 
 (* context data *)

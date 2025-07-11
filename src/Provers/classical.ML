@@ -266,15 +266,15 @@ fun insert_rl kind k ((th, swapped): rl) =
   insert_brl (2 * k + 1) (Bires.kind_rule kind th) #>
   (case swapped of NONE => I | SOME th' => insert_brl (2 * k) (true, th'));
 
-fun delete_rl kind ((th, swapped): rl) =
-  Bires.delete_tagged_rule (Bires.kind_rule kind th) #>
-  (case swapped of NONE => I | SOME th' => Bires.delete_tagged_rule (true, th'));
+fun delete_rl k ((th, swapped): rl) =
+  Bires.delete_tagged_rule (2 * k + 1, th) #>
+  (case swapped of NONE => I | SOME th' => Bires.delete_tagged_rule (2 * k, th'));
 
 fun insert_plain_rule ({kind, tag, info = {rl = (th, _), ...}}: decl) =
   Bires.insert_tagged_rule (tag, (Bires.kind_elim kind, th));
 
-fun delete_plain_rule ({kind, info = {rl = (th, _), ...}, ...}: decl) =
-  Bires.delete_tagged_rule (Bires.kind_rule kind th);
+fun delete_plain_rule ({tag = {index, ...}, info = {rl = (th, _), ...}, ...}: decl) =
+  Bires.delete_tagged_rule (index, th);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
@@ -452,7 +452,7 @@ fun delrule ctxt th cs =
     if null old_decls then (warn_thm ctxt (fn () => "Undeclared classical rule\n") th; cs)
     else
       let
-        fun del which ({kind, info, ...}: decl) = delete_rl kind (which info);
+        fun del which ({tag = {index, ...}, info, ...}: decl) = delete_rl index (which info);
         val safe0_netpair' = fold (del #rl) old_decls safe0_netpair;
         val safep_netpair' = fold (del #rl) old_decls safep_netpair;
         val unsafe_netpair' = fold (del #rl) old_decls unsafe_netpair;

@@ -54,7 +54,7 @@ sig
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
   val insert_tagged_rule: tag * rule -> netpair -> netpair
-  val delete_tagged_rule: rule -> netpair -> netpair
+  val delete_tagged_rule: int * thm -> netpair -> netpair
 
   val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
     bool -> netpair -> int -> tactic
@@ -229,19 +229,15 @@ fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) 
     | NONE => error "insert_tagged_rule: elimination rule with no premises")
   else (Net.insert_term (K false) (Thm.concl_of th, tagged_rule) inet, enet);
 
-local
-  fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
-in
-
-fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
-  (if eres then
-    (case try Thm.major_prem_of th of
-      SOME prem => (inet, Net.delete_term eq_kbrl (prem, ((), brl)) enet)
-    | NONE => (inet, enet))  (*no major premise: ignore*)
-  else (Net.delete_term eq_kbrl (Thm.concl_of th, ((), brl)) inet, enet))
-  handle Net.DELETE => (inet,enet);
-
-end;
+fun delete_tagged_rule (index, th) ((inet, enet): netpair) =
+  let
+    fun eq ((), ({index = index', ...}, _)) = index = index';
+    val inet' = Net.delete_term_safe eq (Thm.concl_of th, ()) inet;
+    val enet' =
+      (case try Thm.major_prem_of th of
+        SOME prem => Net.delete_term_safe eq (prem, ()) enet
+      | NONE => enet);
+  in (inet', enet') end;
 
 
 (*biresolution using a pair of nets rather than rules:
