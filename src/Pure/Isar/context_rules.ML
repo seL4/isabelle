@@ -93,10 +93,12 @@ structure Data = Generic_Data
 (
   type T = rules;
   val empty = make_rules Bires.empty_decls (Bires.kind_values Bires.empty_netpair) ([], []);
-  fun merge
-    (Rules {decls = decls1, netpairs = netpairs1, wrappers = (ws1, ws1')},
-     Rules {decls = decls2, netpairs = _, wrappers = (ws2, ws2')}) =
+  fun merge (rules1, rules2) =
+    if pointer_eq (rules1, rules2) then rules1
+    else
     let
+      val Rules {decls = decls1, netpairs = netpairs1, wrappers = (ws1, ws1')} = rules1;
+      val Rules {decls = decls2, netpairs = _, wrappers = (ws2, ws2')} = rules2;
       val (new_rules, decls) = Bires.merge_decls (decls1, decls2);
       val netpairs =
         netpairs1 |> map_index (uncurry (fn i =>
