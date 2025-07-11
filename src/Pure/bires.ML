@@ -44,7 +44,7 @@ sig
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
   val get_decls: 'a decls -> thm -> 'a decl list
-  val list_decls: (thm * 'a decl -> bool) -> 'a decls -> (thm * 'a decl) list
+  val dest_decls: 'a decls -> (thm * 'a decl -> bool) -> (thm * 'a decl) list
   val pretty_decls: Proof.context -> kind list -> 'a decls -> Pretty.T list
   val merge_decls: 'a decls * 'a decls -> 'a decl list * 'a decls
   val extend_decls: thm * 'a decl -> 'a decls -> 'a decl option * 'a decls
@@ -167,9 +167,6 @@ with
 
 local
 
-fun dest_decls pred (Decls {rules, ...}) =
-  build (rules |> Thmtab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))));
-
 fun dup_decls (Decls {rules, ...}) (thm, decl) =
   member decl_equiv (Thmtab.lookup_list rules thm) decl;
 
@@ -185,18 +182,18 @@ fun has_decls (Decls {rules, ...}) = Thmtab.defined rules;
 
 fun get_decls (Decls {rules, ...}) = Thmtab.lookup_list rules;
 
-fun list_decls pred =
-  dest_decls pred #> sort (rev_order o decl_ord o apply2 #2);
+fun dest_decls (Decls {rules, ...}) pred =
+  build (rules |> Thmtab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
+  |> sort (decl_ord o apply2 #2);
 
 fun pretty_decls ctxt kinds decls =
   kinds |> map (fn kind =>
     Pretty.big_list (kind_title kind ^ ":")
-      (dest_decls (fn (_, {kind = kind', ...}) => kind = kind') decls
-        |> sort (decl_ord o apply2 #2)
+      (dest_decls decls (fn (_, {kind = kind', ...}) => kind = kind')
         |> map (fn (th, _) => Thm.pretty_thm_item ctxt th)));
 
 fun merge_decls (decls1, decls2) =
-  decls1 |> fold_map add_decls (list_decls (not o dup_decls decls1) decls2);
+  decls1 |> fold_map add_decls (rev (dest_decls decls2 (not o dup_decls decls1)));
 
 fun extend_decls (thm, decl) decls =
   if dup_decls decls (thm, decl) then (NONE, decls)

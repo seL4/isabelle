@@ -309,8 +309,7 @@ fun clasimpset_rule_table_of ctxt =
 
         val claset_decls = Classical.get_decls ctxt;
         fun claset_rules kind =
-          Bires.list_decls (fn (_, {kind = kind', ...}) => kind = kind') claset_decls
-          |> map #1 |> rev;
+          map #1 (Bires.dest_decls claset_decls (fn (_, {kind = kind', ...}) => kind = kind'));
 
         val intros = claset_rules Bires.intro_bang_kind @ claset_rules Bires.intro_kind;
 (* Add once it is used:
