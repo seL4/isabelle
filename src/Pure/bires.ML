@@ -39,11 +39,12 @@ sig
   val decl_ord: 'a decl ord
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
+  val get_decls: 'a decls -> thm -> 'a decl list
   val list_decls: (thm * 'a decl -> bool) -> 'a decls -> (thm * 'a decl) list
   val pretty_decls: Proof.context -> kind list -> 'a decls -> Pretty.T list
-  val merge_decls: 'a decls * 'a decls -> (thm * 'a decl) list * 'a decls
-  val extend_decls: thm * 'a decl -> 'a decls -> ((thm * 'a decl) * 'a decls) option
-  val remove_decls: thm -> 'a decls -> 'a decls option
+  val merge_decls: 'a decls * 'a decls -> 'a decl list * 'a decls
+  val extend_decls: thm * 'a decl -> 'a decls -> 'a decl option * 'a decls
+  val remove_decls: thm -> 'a decls -> 'a decl list * 'a decls
   val empty_decls: 'a decls
 
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
@@ -52,8 +53,6 @@ sig
   val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
   val delete_tagged_rule: rule -> netpair -> netpair
   val delete_tagged_rules: rule list -> netpair -> netpair
-  val insert_rule: thm * 'a decl -> netpair -> netpair
-  val remove_rule: thm -> netpair -> netpair
 
   val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
     bool -> netpair -> int -> tactic
@@ -169,11 +168,13 @@ fun add_decls (thm, decl) (Decls {next, rules}) =
   let
     val decl' = next_decl next decl;
     val decls' = Decls {next = next - 1, rules = Thmtab.cons_list (thm, decl') rules};
-  in ((thm, decl'), decls') end;
+  in (decl', decls') end;
 
 in
 
 fun has_decls (Decls {rules, ...}) = Thmtab.defined rules;
+
+fun get_decls (Decls {rules, ...}) = Thmtab.lookup_list rules;
 
 fun list_decls pred =
   dest_decls pred #> sort (rev_order o decl_ord o apply2 #2);
@@ -189,13 +190,13 @@ fun merge_decls (decls1, decls2) =
   decls1 |> fold_map add_decls (list_decls (not o dup_decls decls1) decls2);
 
 fun extend_decls (thm, decl) decls =
-  if dup_decls decls (thm, decl) then NONE
-  else SOME (add_decls (thm, decl) decls);
+  if dup_decls decls (thm, decl) then (NONE, decls)
+  else add_decls (thm, decl) decls |>> SOME;
 
 fun remove_decls thm (decls as Decls {next, rules}) =
-  if has_decls decls thm
-  then SOME (Decls {next = next, rules = Thmtab.delete thm rules})
-  else NONE;
+  (case get_decls decls thm of
+    [] => ([], decls)
+  | old_decls => (old_decls, Decls {next = next, rules = Thmtab.delete thm rules}));
 
 val empty_decls = Decls {next = ~1, rules = Thmtab.empty};
 
@@ -240,13 +241,6 @@ fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
 end;
 
 fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
-
-
-fun insert_rule (thm, {kind, tag, ...}: 'a decl) netpair =
-  insert_tagged_rule (tag, kind_rule kind thm) netpair;
-
-fun remove_rule thm =
-  delete_tagged_rule (false, thm) o delete_tagged_rule (true, thm);
 
 
 (*biresolution using a pair of nets rather than rules:

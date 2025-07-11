@@ -37,10 +37,26 @@ struct
 
 (** rule declaration contexts **)
 
+(* rule declarations *)
+
+type decl = thm Bires.decl;
+type decls = thm Bires.decls;
+
+fun init_decl kind opt_weight th : decl =
+  let val weight = opt_weight |> \<^if_none>\<open>Bires.subgoals_of (Bires.kind_rule kind th)\<close>;
+  in {kind = kind, tag = Bires.weight_tag weight, info = th} end;
+
+fun insert_decl ({kind, tag, info = th}: decl) =
+  Bires.insert_tagged_rule (tag, Bires.kind_rule kind th);
+
+fun remove_decl ({info = th, ...}: decl) =
+  Bires.delete_tagged_rule (false, th) o Bires.delete_tagged_rule (true, th);
+
+
 (* context data *)
 
 datatype rules = Rules of
- {decls: unit Bires.decls,
+ {decls: decls,
   netpairs: Bires.netpair list,
   wrappers:
     ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list *
@@ -51,21 +67,24 @@ fun make_rules decls netpairs wrappers =
 
 fun add_rule kind opt_weight th (rules as Rules {decls, netpairs, wrappers}) =
   let
-    val weight = opt_weight |> \<^if_none>\<open>Bires.subgoals_of (Bires.kind_rule kind th)\<close>;
-    val decl = {kind = kind, tag = Bires.weight_tag weight, info = ()};
+    val th' = Thm.trim_context th;
+    val decl' = init_decl kind opt_weight th';
   in
-    (case Bires.extend_decls (Thm.trim_context th, decl) decls of
-      NONE => rules
-    | SOME (new_rule, decls') =>
-        let val netpairs' = netpairs |> Bires.kind_map kind (Bires.insert_rule new_rule)
+    (case Bires.extend_decls (th', decl') decls of
+      (NONE, _) => rules
+    | (SOME new_decl, decls') =>
+        let val netpairs' = Bires.kind_map kind (insert_decl new_decl) netpairs
         in make_rules decls' netpairs' wrappers end)
   end;
 
 fun del_rule0 th (rules as Rules {decls, netpairs, wrappers}) =
   (case Bires.remove_decls th decls of
-    NONE => rules
-  | SOME decls' =>
-      let val netpairs' = map (Bires.remove_rule th) netpairs
+    ([], _) => rules
+  | (old_decls, decls') =>
+      let
+        val netpairs' =
+          fold (fn decl as {kind, ...} => Bires.kind_map kind (remove_decl decl))
+            old_decls netpairs;
       in make_rules decls' netpairs' wrappers end);
 
 fun del_rule th = del_rule0 th o del_rule0 (Tactic.make_elim th);
@@ -81,8 +100,8 @@ structure Data = Generic_Data
       val (new_rules, decls) = Bires.merge_decls (decls1, decls2);
       val netpairs =
         netpairs1 |> map_index (uncurry (fn i =>
-          new_rules |> fold (fn (th, decl) =>
-            Bires.kind_index (#kind decl) = i ? Bires.insert_rule (th, decl))));
+          new_rules |> fold (fn decl =>
+            if Bires.kind_index (#kind decl) = i then insert_decl decl else I)))
       val wrappers =
        (Library.merge (eq_snd (op =)) (ws1, ws2),
         Library.merge (eq_snd (op =)) (ws1', ws2'));
