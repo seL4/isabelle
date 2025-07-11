@@ -50,9 +50,7 @@ sig
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
   val insert_tagged_rule: tag * rule -> netpair -> netpair
-  val insert_tagged_rules: (tag * rule) list -> netpair -> netpair
   val delete_tagged_rule: rule -> netpair -> netpair
-  val delete_tagged_rules: rule list -> netpair -> netpair
 
   val biresolution_from_nets_tac: Proof.context -> tag ord -> (rule -> bool) option ->
     bool -> netpair -> int -> tactic
@@ -223,9 +221,6 @@ fun insert_tagged_rule (tagged_rule as (_, (eres, th))) ((inet, enet): netpair) 
     | NONE => error "insert_tagged_rule: elimination rule with no premises")
   else (Net.insert_term (K false) (Thm.concl_of th, tagged_rule) inet, enet);
 
-fun insert_tagged_rules rls = fold_rev insert_tagged_rule rls;
-
-
 local
   fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
 in
@@ -239,8 +234,6 @@ fun delete_tagged_rule (brl as (eres, th)) ((inet, enet): netpair) =
   handle Net.DELETE => (inet,enet);
 
 end;
-
-fun delete_tagged_rules rls = fold_rev delete_tagged_rule rls;
 
 
 (*biresolution using a pair of nets rather than rules:

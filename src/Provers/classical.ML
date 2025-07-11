@@ -287,12 +287,12 @@ fun tag_weight_brls _ _ [] = []
 
 (*Insert into netpair from next index, which is negative to give the
   new insertions the lowest priority.*)
-fun insert k = Bires.insert_tagged_rules o (tag_brls (2 * k)) o joinrules;
+fun insert k = fold_rev Bires.insert_tagged_rule o (tag_brls (2 * k)) o joinrules;
 
 fun insert_default_weight w0 w k =
-  Bires.insert_tagged_rules o tag_weight_brls (the_default w0 w) k o single;
+  fold_rev Bires.insert_tagged_rule o tag_weight_brls (the_default w0 w) k o single;
 
-fun delete x = Bires.delete_tagged_rules (joinrules x);
+fun delete x = fold_rev Bires.delete_tagged_rule (joinrules x);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
