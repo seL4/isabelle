@@ -192,7 +192,7 @@ fun pretty_decls ctxt kinds decls =
   kinds |> map (fn kind =>
     Pretty.big_list (kind_title kind ^ ":")
       (dest_decls (fn (_, {kind = kind', ...}) => kind = kind') decls
-        |> sort (tag_ord o apply2 (#tag o #2))
+        |> sort (decl_ord o apply2 #2)
         |> map (fn (th, _) => Thm.pretty_thm_item ctxt th)));
 
 fun merge_decls (decls1, decls2) =
