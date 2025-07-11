@@ -87,7 +87,8 @@ fun del_rule0 th (rules as Rules {decls, netpairs, wrappers}) =
             old_decls netpairs;
       in make_rules decls' netpairs' wrappers end);
 
-fun del_rule th = del_rule0 th o del_rule0 (Tactic.make_elim th);
+fun del_rule th =
+  fold del_rule0 (th :: the_list (try Tactic.make_elim th));
 
 structure Data = Generic_Data
 (
