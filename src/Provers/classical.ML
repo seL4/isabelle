@@ -96,7 +96,7 @@ sig
   include BASIC_CLASSICAL
   val classical_rule: Proof.context -> thm -> thm
   type rl = thm * thm option
-  type info = {rl: rl, dup_rl: rl}
+  type info = {rl: rl, dup_rl: rl, plain: thm}
   type decl = info Bires.decl
   type decls = info Bires.decls
   val safe0_netpair_of: Proof.context -> Bires.netpair
@@ -215,7 +215,7 @@ fun dup_elim ctxt th =
 (**** Classical rule sets ****)
 
 type rl = thm * thm option;  (*internal form, with possibly swapped version*)
-type info = {rl: rl, dup_rl: rl};
+type info = {rl: rl, dup_rl: rl, plain: thm};
 type rule = thm * info;  (*external form, internal forms*)
 
 type decl = info Bires.decl;
@@ -224,8 +224,8 @@ type decls = info Bires.decls;
 fun maybe_swapped_rl th : rl = (th, maybe_swap_rule th);
 fun no_swapped_rl th : rl = (th, NONE);
 
-fun make_info rl dup_rl : info = {rl = rl, dup_rl = dup_rl};
-fun make_info1 rl : info = make_info rl rl;
+fun make_info rl dup_rl plain : info = {rl = rl, dup_rl = dup_rl, plain = plain};
+fun make_info1 rl plain : info = make_info rl rl plain;
 
 type wrapper = (int -> tactic) -> int -> tactic;
 
@@ -270,10 +270,10 @@ fun delete_rl k ((th, swapped): rl) =
   Bires.delete_tagged_rule (2 * k + 1, th) #>
   (case swapped of NONE => I | SOME th' => Bires.delete_tagged_rule (2 * k, th'));
 
-fun insert_plain_rule ({kind, tag, info = {rl = (th, _), ...}}: decl) =
-  Bires.insert_tagged_rule (tag, (Bires.kind_elim kind, th));
+fun insert_plain_rule ({kind, tag, info = {plain = th, ...}}: decl) =
+  Bires.insert_tagged_rule (tag, (Bires.kind_rule kind th));
 
-fun delete_plain_rule ({tag = {index, ...}, info = {rl = (th, _), ...}, ...}: decl) =
+fun delete_plain_rule ({tag = {index, ...}, info = {plain = th, ...}, ...}: decl) =
   Bires.delete_tagged_rule (index, th);
 
 fun bad_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
@@ -337,7 +337,7 @@ fun add_safe_rule (decl: decl) (netpairs: netpairs) =
 
 fun add_unsafe_rule (decl: decl) ((safe_netpairs, (unsafe_netpair, dup_netpair)): netpairs) =
   let
-    val {kind, tag = {index, ...}, info = {rl, dup_rl}} = decl;
+    val {kind, tag = {index, ...}, info = {rl, dup_rl, ...}} = decl;
     val unsafe_netpair' = insert_rl kind index rl unsafe_netpair;
     val dup_netpair' = insert_rl kind index dup_rl dup_netpair;
   in (safe_netpairs, (unsafe_netpair', dup_netpair')) end;
@@ -351,8 +351,8 @@ fun add_rule (decl as {kind, ...}: decl) =
 fun trim_context_rl (th1, opt_th2) =
   (Thm.trim_context th1, Option.map Thm.trim_context opt_th2);
 
-fun trim_context_info {rl, dup_rl} : info =
-  {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl};
+fun trim_context_info {rl, dup_rl, plain} : info =
+  {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl, plain = Thm.trim_context plain};
 
 fun extend_rules ctxt kind opt_weight (th, info) cs =
   let
@@ -410,12 +410,12 @@ fun merge_cs (cs, cs2) =
 
 fun addSI w ctxt th cs =
   extend_rules ctxt Bires.intro_bang_kind w
-    (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th))) cs;
+    (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th) cs;
 
 fun addSE w ctxt th cs =
   if Thm.no_prems th then bad_thm ctxt "Ill-formed elimination rule" th
   else
-    let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th)))
+    let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th
     in extend_rules ctxt Bires.elim_bang_kind w (th, info) cs end;
 
 fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
@@ -424,7 +424,7 @@ fun addI w ctxt th cs =
   let
     val th' = flat_rule ctxt th;
     val dup_th' = dup_intr th' handle THM _ => bad_thm ctxt "Ill-formed introduction rule" th;
-    val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th');
+    val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th;
   in extend_rules ctxt Bires.intro_kind w (th, info) cs end;
 
 fun addE w ctxt th cs =
@@ -432,7 +432,7 @@ fun addE w ctxt th cs =
     val _ = Thm.no_prems th andalso bad_thm ctxt "Ill-formed elimination rule" th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
     val dup_th' = dup_elim ctxt th' handle THM _ => bad_thm ctxt "Ill-formed elimination rule" th;
-    val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th');
+    val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th') th;
   in extend_rules ctxt Bires.elim_kind w (th, info) cs end;
 
 fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
