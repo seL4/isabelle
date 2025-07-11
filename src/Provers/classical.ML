@@ -108,7 +108,7 @@ sig
     unsafe_netpair: Bires.netpair,
     dup_netpair: Bires.netpair,
     extra_netpair: Bires.netpair}
-  val get_decls: Proof.context -> decls
+  val dest_decls: Proof.context -> ((thm * decl) -> bool) -> (thm * decl) list
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -488,7 +488,7 @@ structure Claset = Generic_Data
 val claset_of = Claset.get o Context.Proof;
 val rep_claset_of = rep_cs o claset_of;
 
-val get_decls = #decls o rep_claset_of;
+val dest_decls = Bires.dest_decls o #decls o rep_claset_of;
 
 val get_cs = Claset.get;
 val map_cs = Claset.map;
