@@ -43,6 +43,12 @@ val add_frees = Thm.fold_atomic_cterms {hyps = true} (K Term.is_Free) add_set;
 end;
 
 
+structure Proptab = Table
+(
+  type key = thm
+  val ord = pointer_eq_ord (Term_Ord.fast_term_ord o apply2 Thm.full_prop_of)
+);
+
 structure Thmtab:
 sig
   include TABLE

@@ -161,28 +161,28 @@ fun next_decl next ({kind, tag, info}: 'a decl) : 'a decl =
   {kind = kind, tag = next_tag next tag, info = info};
 
 
-abstype 'a decls = Decls of {next: int, rules: 'a decl list Thmtab.table}
+abstype 'a decls = Decls of {next: int, rules: 'a decl list Proptab.table}
 with
 
 local
 
 fun dup_decls (Decls {rules, ...}) (thm, decl) =
-  member decl_eq_kind (Thmtab.lookup_list rules thm) decl;
+  member decl_eq_kind (Proptab.lookup_list rules thm) decl;
 
 fun add_decls (thm, decl) (Decls {next, rules}) =
   let
     val decl' = next_decl next decl;
-    val decls' = Decls {next = next - 1, rules = Thmtab.cons_list (thm, decl') rules};
+    val decls' = Decls {next = next - 1, rules = Proptab.cons_list (thm, decl') rules};
   in (decl', decls') end;
 
 in
 
-fun has_decls (Decls {rules, ...}) = Thmtab.defined rules;
+fun has_decls (Decls {rules, ...}) = Proptab.defined rules;
 
-fun get_decls (Decls {rules, ...}) = Thmtab.lookup_list rules;
+fun get_decls (Decls {rules, ...}) = Proptab.lookup_list rules;
 
 fun dest_decls (Decls {rules, ...}) pred =
-  build (rules |> Thmtab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
+  build (rules |> Proptab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
   |> sort (decl_ord o apply2 #2);
 
 fun pretty_decls ctxt kinds decls =
@@ -201,9 +201,9 @@ fun extend_decls (thm, decl) decls =
 fun remove_decls thm (decls as Decls {next, rules}) =
   (case get_decls decls thm of
     [] => ([], decls)
-  | old_decls => (old_decls, Decls {next = next, rules = Thmtab.delete thm rules}));
+  | old_decls => (old_decls, Decls {next = next, rules = Proptab.delete thm rules}));
 
-val empty_decls = Decls {next = ~1, rules = Thmtab.empty};
+val empty_decls = Decls {next = ~1, rules = Proptab.empty};
 
 end;
 
