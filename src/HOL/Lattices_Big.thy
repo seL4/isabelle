@@ -938,9 +938,7 @@ qualified lemma Least_filter_eq [code_abbrev]:
 qualified definition Least_abort :: \<open>'a set \<Rightarrow> 'a::linorder\<close>
   where \<open>Least_abort = Least\<close>
 
-declare [[code abort: Least_abort]]
-
-qualified lemma Least_code [code]:
+qualified lemma Least_code [code abort: Lattices_Big.Least_abort, code]:
   \<open>Least A = (if finite A \<longrightarrow> Set.is_empty A then Least_abort A else Min A)\<close>
   using Least_Min [of \<open>\<lambda>x. x \<in> A\<close>] by (auto simp add: Least_abort_def)
 
@@ -954,9 +952,7 @@ qualified lemma Greatest_filter_eq [code_abbrev]:
 qualified definition Greatest_abort :: \<open>'a set \<Rightarrow> 'a::linorder\<close>
   where \<open>Greatest_abort = Greatest\<close>
 
-declare [[code abort: Greatest_abort]]
-
-qualified lemma Greatest_code [code]:
+qualified lemma Greatest_code [code abort: Lattices_Big.Greatest_abort, code]:
   \<open>Greatest A = (if finite A \<longrightarrow> Set.is_empty A then Greatest_abort A else Max A)\<close>
   using Greatest_Max [of \<open>\<lambda>x. x \<in> A\<close>] by (auto simp add: Greatest_abort_def)
 

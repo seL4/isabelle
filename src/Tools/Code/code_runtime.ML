@@ -727,10 +727,10 @@ fun gen_code_reflect prep_type prep_const raw_datatypes raw_functions module_nam
   let
     val ctxt = Proof_Context.init_global thy;
     val datatypes = map (fn (raw_tyco, raw_cos) =>
-      (prep_type ctxt raw_tyco, (Option.map o map) (prep_const thy) raw_cos)) raw_datatypes;
+      (prep_type ctxt raw_tyco, (Option.map o map) (prep_const ctxt) raw_cos)) raw_datatypes;
     val (tycos, constrs) = map_split (uncurry (check_datatype thy)) datatypes
       |> apsnd flat;
-    val functions = map (prep_const thy) raw_functions;
+    val functions = map (prep_const ctxt) raw_functions;
     val consts = constrs @ functions;
     val program = Code_Thingol.consts_program ctxt consts;
     val result = runtime_code'' ctxt module_name program tycos consts

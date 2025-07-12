@@ -995,8 +995,8 @@ fun read_const_exprs_internal ctxt =
       | SOME s =>
           (case try (unsuffix "._") s of
             SOME name => ([], consts_of_select (this_theory name))
-          | NONE => ([Code.read_const thy str], []))
-      | NONE => ([Code.read_const thy str], []));
+          | NONE => ([Code.read_const ctxt str], []))
+      | NONE => ([Code.read_const ctxt str], []));
   in apply2 flat o split_list o map read_const_expr end;
 
 fun read_const_exprs_all ctxt = op @ o read_const_exprs_internal ctxt;

@@ -329,7 +329,7 @@ val trace_all = Trace_Switch.put NONE;
 
 fun gen_trace_only prep_const raw_cs context =
   let
-    val cs = map (prep_const (Context.theory_of context)) raw_cs;
+    val cs = map (prep_const (Context.proof_of context)) raw_cs;
   in Trace_Switch.put (SOME cs) context end;
 
 val trace_only = gen_trace_only (K I);

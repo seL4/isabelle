@@ -1623,8 +1623,7 @@ val _ =
 (* FIXME ... this is important to avoid changing the background theory below *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
-    val thy = Proof_Context.theory_of lthy
-    val const = prep_const thy raw_const
+    val const = prep_const lthy raw_const
     val lthy' = Local_Theory.background_theory (Core_Data.extend_intro_graph [const]) lthy
     val thy' = Proof_Context.theory_of lthy'
     val ctxt' = Proof_Context.init_global thy'

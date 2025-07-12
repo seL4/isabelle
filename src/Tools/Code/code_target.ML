@@ -89,8 +89,6 @@ fun cert_const ctxt const =
       else error ("No such constant: " ^ quote const);
   in const end;
 
-fun read_const ctxt = Code.read_const (Proof_Context.theory_of ctxt);
-
 fun cert_tyco ctxt tyco =
   let
     val _ = if Sign.declared_tyname (Proof_Context.theory_of ctxt) tyco then ()
@@ -120,7 +118,7 @@ fun cert_syms ctxt =
     (cert_class ctxt) (apply2 (cert_class ctxt)) (cert_inst ctxt) I;
 
 fun read_syms ctxt =
-  Code_Symbol.map_attr (read_const ctxt) (read_tyco ctxt)
+  Code_Symbol.map_attr (Code.read_const ctxt) (read_tyco ctxt)
     (Proof_Context.read_class ctxt) (apply2 (Proof_Context.read_class ctxt)) (read_inst ctxt) I;
 
 fun cert_syms' ctxt =
@@ -128,7 +126,7 @@ fun cert_syms' ctxt =
     (apfst (cert_class ctxt)) ((apfst o apply2) (cert_class ctxt)) (apfst (cert_inst ctxt)) I;
 
 fun read_syms' ctxt =
-  Code_Symbol.map_attr (apfst (read_const ctxt)) (apfst (read_tyco ctxt))
+  Code_Symbol.map_attr (apfst (Code.read_const ctxt)) (apfst (read_tyco ctxt))
     (apfst (Proof_Context.read_class ctxt)) ((apfst o apply2) (Proof_Context.read_class ctxt)) (apfst (read_inst ctxt)) I;
 
 fun check_name is_module s =

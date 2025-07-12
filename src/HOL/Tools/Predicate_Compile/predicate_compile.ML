@@ -158,7 +158,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
       (case proposed_modes of
         Single_Pred proposed_modes => [(const, proposed_modes)]
       | Multiple_Preds proposed_modes =>
-          map (apfst (Code.read_const (Proof_Context.theory_of lthy))) proposed_modes)
+          map (apfst (Code.read_const lthy)) proposed_modes)
   in
     Options {
       expected_modes = Option.map (pair const) expected_modes,
@@ -191,7 +191,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
 fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) lthy =
   let
      val thy = Proof_Context.theory_of lthy
-     val const = Code.read_const thy raw_const
+     val const = Code.read_const lthy raw_const
      val T = Sign.the_const_type thy const
      val t = Const (const, T)
      val options = extract_options lthy (((expected_modes, proposed_modes), raw_options), const)

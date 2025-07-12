@@ -10,7 +10,7 @@ signature CODE =
 sig
   (*constants*)
   val check_const: theory -> term -> string
-  val read_const: theory -> string -> string
+  val read_const: Proof.context -> string -> string
   val string_of_const: theory -> string -> string
   val args_number: theory -> string -> int
 
@@ -138,6 +138,8 @@ fun typscheme thy (c, ty) =
 fun typscheme_equiv (ty1, ty2) =
   Type.raw_instance (devarify ty1, ty2) andalso Type.raw_instance (devarify ty2, ty1);
 
+local
+
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
@@ -156,11 +158,38 @@ fun check_unoverload thy (c, ty) =
         string_of_typ thy ty_decl)
   end;
 
-fun check_const thy = check_unoverload thy o check_bare_const thy;
+fun export_global ctxt thy =
+  Variable.export_terms ctxt (Proof_Context.init_global thy);
 
-fun read_bare_const thy = check_bare_const thy o Syntax.read_term_global thy;
+in
 
-fun read_const thy = check_unoverload thy o read_bare_const thy;
+fun check_const thy =
+  check_bare_const thy #> check_unoverload thy;
+
+fun read_bare_const thy =
+  Syntax.read_term (Proof_Context.init_global thy) #> check_bare_const thy;
+
+fun read_const ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+  in
+    Syntax.read_term ctxt
+    #> singleton (export_global ctxt thy)
+    #> Logic.unvarify_types_global
+    #> check_bare_const thy
+    #> check_unoverload thy
+  end;
+
+fun prospective_check_consts ctxt ts thy =
+  ts
+  |> export_global ctxt thy
+  |> map Logic.unvarify_types_global
+  |> map (check_const thy);
+
+val prospective_const_args = Args.context :|--
+  (fn ctxt => Scan.repeat1 Args.term >> prospective_check_consts ctxt);
+
+end;
 
 
 (** executable specifications **)
@@ -1552,15 +1581,15 @@ fun declare_undefined_global c =
 
 (* attributes *)
 
-fun code_attribute f = Thm.declaration_attribute
-  (fn thm => Context.mapping (f thm) I);
+fun code_attribute decl = Thm.declaration_attribute
+  (fn thm => Context.mapping (decl thm) I);
 
-fun code_thm_attribute g f =
-  Scan.lift (g |-- Scan.succeed (code_attribute f));
+fun code_thm_attribute qualifier decl =
+  Scan.lift (qualifier |-- Scan.succeed (code_attribute decl));
 
-fun code_const_attribute g f =
-  Scan.lift (g -- Args.colon) |-- Scan.repeat1 Args.term
-    >> (fn ts => code_attribute (K (fold (fn t => fn thy => f ((check_const thy o Logic.unvarify_types_global) t) thy) ts)));
+fun code_const_attribute qualifier decl =
+  Scan.lift (qualifier -- Args.colon) |-- prospective_const_args
+  >> (fn prospective_cs => code_attribute (fn _ => fn thy => fold decl (prospective_cs thy) thy));
 
 val _ = Theory.setup
   (let
