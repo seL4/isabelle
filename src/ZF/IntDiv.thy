@@ -304,8 +304,7 @@ apply (auto simp add: neq_iff_zless zmult_zless_mono1 zmult_zless_mono1_neg)
 apply (auto simp add: not_zless_iff_zle
                       not_zle_iff_zless [THEN iff_sym, of "m$*k"]
                       not_zle_iff_zless [THEN iff_sym, of m])
-apply (auto elim: notE
-            simp add: zless_imp_zle zmult_zle_mono1 zmult_zle_mono1_neg)
+apply (auto simp add: zless_imp_zle zmult_zle_mono1 zmult_zle_mono1_neg)
 done
 
 lemma zmult_zless_cancel2:

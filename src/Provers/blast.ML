@@ -933,10 +933,8 @@ fun prove (state, start, brs, cont) =
  let val State {ctxt, ntrail, nclosed, ntried, ...} = state;
      val trace = Config.get ctxt trace;
      val stats = Config.get ctxt stats;
-     val {safe0_netpair, safep_netpair, unsafe_netpair, ...} =
-       Classical.rep_cs (Classical.claset_of ctxt);
-     val safeList = [safe0_netpair, safep_netpair];
-     val unsafeList = [unsafe_netpair];
+     val safeList = [Classical.safe0_netpair_of ctxt, Classical.safep_netpair_of ctxt];
+     val unsafeList = [Classical.unsafe_netpair_of ctxt];
      fun prv (tacs, trs, choices, []) =
                 (printStats state (trace orelse stats, start, tacs);
                  cont (tacs, trs, choices))   (*all branches closed!*)
