@@ -41,6 +41,7 @@ sig
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
   val decl_ord: 'a decl ord
+  val decl_eq_kind: 'a decl * 'a decl -> bool
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
   val get_decls: 'a decls -> thm -> 'a decl list
@@ -154,9 +155,7 @@ type 'a decl = {kind: kind, tag: tag, info: 'a};
 
 fun decl_ord (args: 'a decl * 'a decl) = tag_index_ord (apply2 #tag args);
 
-fun decl_equiv (decl1: 'a decl, decl2: 'a decl) =
-  #kind decl1 = #kind decl2 andalso
-  is_equal (tag_weight_ord (#tag decl1, #tag decl2));
+fun decl_eq_kind ({kind, ...}: 'a decl, {kind = kind', ...}: 'a decl) = kind = kind';
 
 fun next_decl next ({kind, tag, info}: 'a decl) : 'a decl =
   {kind = kind, tag = next_tag next tag, info = info};
@@ -168,7 +167,7 @@ with
 local
 
 fun dup_decls (Decls {rules, ...}) (thm, decl) =
-  member decl_equiv (Thmtab.lookup_list rules thm) decl;
+  member decl_eq_kind (Thmtab.lookup_list rules thm) decl;
 
 fun add_decls (thm, decl) (Decls {next, rules}) =
   let
