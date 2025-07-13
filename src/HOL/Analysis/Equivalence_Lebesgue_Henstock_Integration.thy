@@ -3308,6 +3308,73 @@ lemma absolutely_integrable_component:
   by (drule absolutely_integrable_linear[OF _ bounded_linear_inner_left[of b]]) (simp add: o_def)
 
 
+lemma integrable_on_iff_component:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^'n"
+  shows "f integrable_on S \<longleftrightarrow> (\<forall>i::'n. (\<lambda>x. f x $ i) integrable_on S)"
+proof (intro iffI strip)
+  assume "\<forall>i. (\<lambda>x. f x $ i) integrable_on S"
+  then have "\<And>b. b \<in> Basis \<Longrightarrow> (\<lambda>x. f x \<bullet> b) integrable_on S"
+    by (metis (no_types, lifting) axis_inverse cart_eq_inner_axis integrable_eq)
+  then show "f integrable_on S"
+    using integrable_componentwise by blast
+qed (simp add: cart_eq_inner_axis integrable_component)
+
+lemma integrable_iff_component:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^'n"
+  assumes "S \<in> sets lebesgue"
+  shows "integrable (lebesgue_on S) f \<longleftrightarrow> (\<forall>i::'n. integrable (lebesgue_on S) (\<lambda>x. f x $ i))"
+proof (intro iffI strip)
+  fix i :: 'n
+  assume f: "integrable (lebesgue_on S) f"
+  then have "(\<lambda>x. norm (f x)) integrable_on S"
+    by (simp add: assms integrable_on_lebesgue_on)
+  with f have "(\<lambda>x. f x $ i) absolutely_integrable_on S"
+    by (metis Finite_Cartesian_Product.norm_nth_le absolutely_integrable_integrable_bound
+        assms integrable_on_iff_component integrable_on_lebesgue_on)
+  then show "integrable (lebesgue_on S) (\<lambda>x. f x $ i)"
+    by (simp add: absolutely_integrable_imp_integrable assms)
+next
+  assume \<section>: "\<forall>i. integrable (lebesgue_on S) (\<lambda>x. f x $ i)"
+  then obtain "f integrable_on S"
+    by (simp add: assms integrable_on_iff_component integrable_on_lebesgue_on)
+  moreover have "norm (f x) \<le> (\<Sum>i\<in>UNIV. \<bar>f x $ i\<bar>)" for x
+      using norm_le_l1_cart by blast
+  moreover
+  have "integrable (lebesgue_on S) (\<lambda>x. \<Sum>i\<in>UNIV. \<bar>f x $ i\<bar>)"
+    by (auto simp: absolutely_integrable_imp_integrable "\<section>" assms absolutely_integrable_on_def 
+        integrable_on_lebesgue_on)
+  ultimately show "integrable (lebesgue_on S) f"
+    by (metis (no_types, lifting) absolutely_integrable_imp_integrable
+        absolutely_integrable_integrable_bound assms integrable_on_lebesgue_on)
+qed
+
+lemma absolutely_integrable_on_iff_component:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real^'n"
+  assumes "S \<in> sets lebesgue"
+  shows "f absolutely_integrable_on S \<longleftrightarrow> (\<forall>i::'n. (\<lambda>x. vec_nth (f x) i) absolutely_integrable_on S)"
+proof (intro iffI allI)
+  assume f: "f absolutely_integrable_on S"
+  then have "(\<lambda>x. norm (f x)) integrable_on S"
+    using absolutely_integrable_on_def by blast
+  moreover have "(\<lambda>x. f x $ i) integrable_on S" for i
+    using absolutely_integrable_on_def f integrable_on_iff_component
+    by blast
+  ultimately
+  show "(\<lambda>x. f x $ i) absolutely_integrable_on S" for i
+    by (metis Finite_Cartesian_Product.norm_nth_le absolutely_integrable_integrable_bound)+
+next
+  assume \<section>: "\<forall>i. (\<lambda>x. f x $ i) absolutely_integrable_on S"
+  then have "f integrable_on S"
+    unfolding absolutely_integrable_on_def
+    using integrable_on_iff_component by blast
+  moreover have "integrable (lebesgue_on S) f"
+    by (meson "\<section>" absolutely_integrable_imp_integrable assms integrable_iff_component)
+  then have "(\<lambda>x. norm (f x)) integrable_on S"
+    by (simp add: assms integrable_on_lebesgue_on)
+  ultimately show "f absolutely_integrable_on S"
+    using absolutely_integrable_onI by blast
+qed
+
 lemma absolutely_integrable_scaleR_left:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
     assumes "f absolutely_integrable_on S"
@@ -3386,7 +3453,6 @@ proof -
   then show ?thesis
     by (simp add: euclidean_representation)
 qed
-
 
 lemma absolutely_integrable_abs_iff:
    "f absolutely_integrable_on S \<longleftrightarrow>
