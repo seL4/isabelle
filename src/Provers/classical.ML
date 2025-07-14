@@ -867,13 +867,10 @@ val _ =
 fun print_claset ctxt =
   let
     val {decls, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val prt_rules =
-      Bires.pretty_decls ctxt
-        [Bires.intro_bang_kind, Bires.intro_kind, Bires.elim_bang_kind, Bires.elim_kind] decls;
     val prt_wrappers =
      [Pretty.strs ("safe wrappers:" :: map #1 swrappers),
       Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)];
-  in Pretty.writeln (Pretty.chunks (prt_rules @ prt_wrappers)) end;
+  in Pretty.writeln (Pretty.chunks (Bires.pretty_decls ctxt decls @ prt_wrappers)) end;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_claset\<close> "print context of Classical Reasoner"

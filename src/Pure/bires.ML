@@ -47,7 +47,7 @@ sig
   val has_decls: 'a decls -> thm -> bool
   val get_decls: 'a decls -> thm -> 'a decl list
   val dest_decls: 'a decls -> (thm * 'a decl -> bool) -> (thm * 'a decl) list
-  val pretty_decls: Proof.context -> kind list -> 'a decls -> Pretty.T list
+  val pretty_decls: Proof.context -> 'a decls -> Pretty.T list
   val merge_decls: 'a decls * 'a decls -> 'a decl list * 'a decls
   val extend_decls: thm * 'a decl -> 'a decls -> 'a decl option * 'a decls
   val remove_decls: thm -> 'a decls -> 'a decl list * 'a decls
@@ -120,8 +120,8 @@ val elim_query_kind = Kind (2, true);
 val kind_infos =
  [(intro_bang_kind, ("safe introduction", "(intro!)")),
   (elim_bang_kind, ("safe elimination", "(elim!)")),
-  (intro_kind, ("introduction", "(intro)")),
-  (elim_kind, ("elimination", "(elim)")),
+  (intro_kind, ("unsafe introduction", "(intro)")),
+  (elim_kind, ("unsafe elimination", "(elim)")),
   (intro_query_kind, ("extra introduction", "(intro?)")),
   (elim_query_kind, ("extra elimination", "(elim?)"))];
 
@@ -189,11 +189,13 @@ fun dest_decls (Decls {rules, ...}) pred =
   build (rules |> Proptab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
   |> sort (decl_ord o apply2 #2);
 
-fun pretty_decls ctxt kinds decls =
-  kinds |> map (fn kind =>
-    Pretty.big_list (kind_title kind ^ ":")
-      (dest_decls decls (fn (_, {kind = kind', ...}) => kind = kind')
-        |> map (fn (th, _) => Thm.pretty_thm_item ctxt th)));
+fun pretty_decls ctxt decls =
+  kind_domain |> map_filter (fn kind =>
+    (case dest_decls decls (fn (_, {kind = kind', ...}) => kind = kind') of
+      [] => NONE
+    | ds =>
+        SOME (Pretty.big_list (kind_title kind ^ ":")
+          (map (Thm.pretty_thm_item ctxt o #1) ds))));
 
 fun merge_decls (decls1, decls2) =
   decls1 |> fold_map add_decls (rev (dest_decls decls2 (not o dup_decls decls1)));

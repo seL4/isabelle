@@ -113,7 +113,7 @@ structure Data = Generic_Data
 
 fun print_rules ctxt =
   let val Rules {decls, ...} = Data.get (Context.Proof ctxt)
-  in Pretty.writeln (Pretty.chunks (Bires.pretty_decls ctxt Bires.kind_domain decls)) end;
+  in Pretty.writeln (Pretty.chunks (Bires.pretty_decls ctxt decls)) end;
 
 
 (* access data *)
