@@ -287,6 +287,9 @@ fun delete_plain_rule ({tag = {index, ...}, info = {plain = th, ...}, ...}: decl
 
 fun err_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
 
+fun err_thm_illformed ctxt kind th =
+  err_thm ctxt ("Ill-formed " ^ Bires.kind_name kind) th;
+
 fun make_elim ctxt th =
   if Thm.no_prems th then err_thm ctxt "Ill-formed destruction rule" th
   else Tactic.make_elim th;
@@ -405,27 +408,30 @@ fun addSI w ctxt th cs =
     (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th) cs;
 
 fun addSE w ctxt th cs =
-  if Thm.no_prems th then err_thm ctxt "Ill-formed elimination rule" th
-  else
-    let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th
-    in extend_rules ctxt Bires.elim_bang_kind w (th, info) cs end;
+  let
+    val kind = Bires.elim_bang_kind;
+    val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
+    val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th;
+  in extend_rules ctxt kind w (th, info) cs end;
 
 fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
 
 fun addI w ctxt th cs =
   let
+    val kind = Bires.intro_kind;
     val th' = flat_rule ctxt th;
-    val dup_th' = dup_intr th' handle THM _ => err_thm ctxt "Ill-formed introduction rule" th;
+    val dup_th' = dup_intr th' handle THM _ => err_thm_illformed ctxt kind th;
     val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th;
-  in extend_rules ctxt Bires.intro_kind w (th, info) cs end;
+  in extend_rules ctxt kind w (th, info) cs end;
 
 fun addE w ctxt th cs =
   let
-    val _ = Thm.no_prems th andalso err_thm ctxt "Ill-formed elimination rule" th;
+    val kind = Bires.elim_kind;
+    val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
     val th' = classical_rule ctxt (flat_rule ctxt th);
-    val dup_th' = dup_elim ctxt th' handle THM _ => err_thm ctxt "Ill-formed elimination rule" th;
+    val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th th;
     val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th') th;
-  in extend_rules ctxt Bires.elim_kind w (th, info) cs end;
+  in extend_rules ctxt kind w (th, info) cs end;
 
 fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
 

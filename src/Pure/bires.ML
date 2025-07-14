@@ -32,6 +32,7 @@ sig
   val kind_extra: kind -> bool
   val kind_index: kind -> int
   val kind_elim: kind -> bool
+  val kind_name: kind -> string
   val kind_domain: kind list
   val kind_values: 'a -> 'a list
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
@@ -129,6 +130,9 @@ fun kind_unsafe (Kind (i, _)) = i = 1;
 fun kind_extra (Kind (i, _)) = i = 2;
 fun kind_index (Kind (i, _)) = i;
 fun kind_elim (Kind (_, b)) = b;
+
+fun kind_name kind =
+  if kind_elim kind then "elimination rule" else "introduction rule";
 
 val kind_domain = map #1 kind_infos;
 
