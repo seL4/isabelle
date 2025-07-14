@@ -364,7 +364,7 @@ fun ext_info ctxt kind th =
     let
       val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
       val th' = classical_rule ctxt (flat_rule ctxt th);
-      val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th th;
+      val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th;
     in make_info (no_swapped_rl th') (no_swapped_rl dup_th') th end
   else raise Fail "Bad rule kind";
 
