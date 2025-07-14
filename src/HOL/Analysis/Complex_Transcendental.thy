@@ -284,6 +284,12 @@ lemma exp_integer_2pi:
 lemma exp_plus_2pin [simp]: "exp (z + \<i> * (of_int n * (of_real pi * 2))) = exp z"
   by (simp add: exp_eq)
 
+lemma exp_2pi_1_int [simp]: "exp (\<i> * (of_int j * (of_real pi * 2))) = 1"
+  by (metis exp_add exp_not_eq_zero exp_plus_2pin mult_cancel_left1)
+
+lemma exp_2pi_1_nat [simp]: "exp (\<i> * (of_nat j * (of_real pi * 2))) = 1"
+  by (metis exp_2pi_1_int of_int_of_nat_eq)
+
 lemma exp_integer_2pi_plus1:
   assumes "n \<in> \<int>"
   shows "exp(((2 * n + 1) * pi) * \<i>) = - 1"
@@ -2408,6 +2414,24 @@ lemma powr_complexnumeral [simp]:
   fixes x::complex shows "x powr (numeral n) = x ^ (numeral n)"
   by (metis of_nat_numeral power_zero_numeral powr_nat)
 
+lemma powr_times_real_left:
+  assumes "x \<in> \<real>" "Re x \<ge> 0"
+  shows   "(x * y) powr z = x powr z * y powr z"
+proof (cases "x = 0 \<or> y = 0")
+  case nz: False
+  from assms obtain t where x_eq: "x = of_real t" and "t \<ge> 0"  "t \<noteq> 0"
+    by (metis nz of_real_0 of_real_Re)
+  with \<open>t \<ge> 0\<close> have t: "t > 0"
+    by simp
+  have "(x * y) powr z = exp (z * ln (of_real t * y))"
+    using nz by (simp add: powr_def x_eq)
+  also have "ln (of_real t * y) = ln x + ln y"
+    by (subst Ln_times_of_real) (use t nz in \<open>auto simp: x_eq\<close>)
+  also have "exp (z * \<dots>) = x powr z * y powr z"
+    using nz by (simp add: powr_def ring_distribs exp_add)
+  finally show ?thesis .
+qed auto
+
 lemma cnj_powr:
   assumes "Im a = 0 \<Longrightarrow> Re a \<ge> 0"
   shows   "cnj (a powr b) = cnj a powr cnj b"
@@ -2441,7 +2465,26 @@ lemma powr_of_int:
 lemma complex_powr_of_int: "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_int n = (z :: complex) powi n"
   by (cases "z = 0 \<or> n = 0")
      (auto simp: power_int_def powr_minus powr_nat powr_of_int power_0_left power_inverse)
-  
+lemma powr_of_neg_real:
+  fixes x::real and y::real
+  assumes "x<0"
+  shows "(complex_of_real x) powr (complex_of_real y) = of_real (\<bar>x\<bar> powr y) * exp (\<i> * pi * y)"
+proof -
+  have "complex_of_real x powr (complex_of_real y) = (\<bar>x\<bar> * exp (\<i> * pi)) powr y"
+    using assms by auto
+  also have "... = of_real (\<bar>x\<bar> powr y) * exp (\<i> * pi) powr y"
+    by (metis Re_complex_of_real Reals_of_real abs_ge_zero powr_of_real powr_times_real_left)
+  also have "... = of_real (\<bar>x\<bar> powr y) * exp (\<i> * pi * y)"
+    by (simp add: mult.commute powr_def)
+  finally show ?thesis .
+qed
+
+lemma powr_of_real_if:
+  fixes x::real and y::real
+  shows "complex_of_real x powr (complex_of_real y) = 
+           (if x<0 then of_real (\<bar>x\<bar> powr y) * exp (\<i> * pi * y) else of_real (x powr y))"
+  by (simp add: powr_of_neg_real powr_of_real)
+
 lemma powr_Reals_eq: "\<lbrakk>x \<in> \<real>; y \<in> \<real>; Re x \<ge> 0\<rbrakk> \<Longrightarrow> x powr y = of_real (Re x powr Re y)"
   by (metis of_real_Re powr_of_real)
 

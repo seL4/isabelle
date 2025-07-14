@@ -956,6 +956,18 @@ lemma norm_add_less: "norm x < r \<Longrightarrow> norm y < s \<Longrightarrow> 
 
 end
 
+lemma dist_sum_le:
+  fixes f :: "'a \<Rightarrow> 'b :: real_normed_vector"
+  shows "dist (\<Sum>x\<in>A. f x) (\<Sum>x\<in>A. g x) \<le> (\<Sum>x\<in>A. dist (f x) (g x))"
+proof -
+  have "dist (\<Sum>x\<in>A. f x) (\<Sum>x\<in>A. g x) = norm (\<Sum>x\<in>A. f x - g x)"
+    by (simp add: dist_norm sum_subtractf)
+  also have "\<dots> \<le> (\<Sum>x\<in>A. norm (f x - g x))"
+    by (rule norm_sum)
+  finally show ?thesis
+    by (simp add: dist_norm)
+qed
+
 lemma dist_scaleR [simp]: "dist (x *\<^sub>R a) (y *\<^sub>R a) = \<bar>x - y\<bar> * norm a"
   for a :: "'a::real_normed_vector"
   by (metis dist_norm norm_scaleR scaleR_left.diff)
