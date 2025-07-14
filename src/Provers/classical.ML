@@ -349,10 +349,31 @@ fun trim_context_rl (th1, opt_th2) =
 fun trim_context_info {rl, dup_rl, plain} : info =
   {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl, plain = Thm.trim_context plain};
 
-fun extend_rules ctxt kind opt_weight (th, info) cs =
+fun ext_info ctxt kind th =
+  if kind = Bires.intro_bang_kind then
+    make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th
+  else if kind = Bires.elim_bang_kind then
+    let val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th
+    in make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th end
+  else if kind = Bires.intro_kind then
+    let
+      val th' = flat_rule ctxt th;
+      val dup_th' = dup_intr th' handle THM _ => err_thm_illformed ctxt kind th;
+    in make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th end
+  else if kind = Bires.elim_kind then
+    let
+      val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
+      val th' = classical_rule ctxt (flat_rule ctxt th);
+      val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th th;
+    in make_info (no_swapped_rl th') (no_swapped_rl dup_th') th end
+  else raise Fail "Bad rule kind";
+
+in
+
+fun extend_rules ctxt kind opt_weight th cs =
   let
     val th' = Thm.trim_context th;
-    val decl' = init_decl kind opt_weight (trim_context_info info);
+    val decl' = init_decl kind opt_weight (trim_context_info (ext_info ctxt kind th));
     val CS {decls, swrappers, uwrappers, safe0_netpair, safep_netpair,
       unsafe_netpair, dup_netpair, extra_netpair} = cs;
   in
@@ -377,8 +398,6 @@ fun extend_rules ctxt kind opt_weight (th, info) cs =
         end)
   end;
 
-in
-
 fun merge_cs (cs, cs2) =
   if pointer_eq (cs, cs2) then cs
   else
@@ -402,38 +421,6 @@ fun merge_cs (cs, cs2) =
         dup_netpair = dup_netpair',
         extra_netpair = extra_netpair'}
     end;
-
-fun addSI w ctxt th cs =
-  extend_rules ctxt Bires.intro_bang_kind w
-    (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th) cs;
-
-fun addSE w ctxt th cs =
-  let
-    val kind = Bires.elim_bang_kind;
-    val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
-    val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th;
-  in extend_rules ctxt kind w (th, info) cs end;
-
-fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
-
-fun addI w ctxt th cs =
-  let
-    val kind = Bires.intro_kind;
-    val th' = flat_rule ctxt th;
-    val dup_th' = dup_intr th' handle THM _ => err_thm_illformed ctxt kind th;
-    val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th;
-  in extend_rules ctxt kind w (th, info) cs end;
-
-fun addE w ctxt th cs =
-  let
-    val kind = Bires.elim_kind;
-    val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
-    val th' = classical_rule ctxt (flat_rule ctxt th);
-    val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th th;
-    val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th') th;
-  in extend_rules ctxt kind w (th, info) cs end;
-
-fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
 
 end;
 
@@ -503,17 +490,19 @@ fun map_claset f = Context.proof_map (map_cs f);
 fun put_claset cs = map_claset (K cs);
 
 
-(* old-style declarations *)
+(* old-style ML declarations *)
 
-fun decl f (ctxt, ths) = map_claset (fold_rev (f ctxt) ths) ctxt;
+fun ml_decl kind view (ctxt, ths) =
+  map_claset (fold_rev (extend_rules ctxt kind NONE o view ctxt) ths) ctxt;
 
-val op addSIs = decl (addSI NONE);
-val op addSEs = decl (addSE NONE);
-val op addSDs = decl (addSD NONE);
-val op addIs = decl (addI NONE);
-val op addEs = decl (addE NONE);
-val op addDs = decl (addD NONE);
-val op delrules = decl delrule;
+val op addSIs = ml_decl Bires.intro_bang_kind (K I);
+val op addSEs = ml_decl Bires.elim_bang_kind (K I);
+val op addSDs = ml_decl Bires.elim_bang_kind make_elim;
+val op addIs = ml_decl Bires.intro_kind (K I);
+val op addEs = ml_decl Bires.elim_kind (K I);
+val op addDs = ml_decl Bires.elim_kind make_elim;
+
+fun ctxt delrules ths = map_claset (fold_rev (delrule ctxt) ths) ctxt;
 
 
 
@@ -744,16 +733,17 @@ fun deepen_tac ctxt = DEEPEN (2, 10) (safe_depth_tac ctxt);
 
 (* declarations *)
 
-fun attrib f =
+fun attrib kind view w =
   Thm.declaration_attribute (fn th => fn context =>
-    map_cs (f (Context.proof_of context) th) context);
+    let val ctxt = Context.proof_of context
+    in map_cs (extend_rules ctxt kind w (view ctxt th)) context end);
 
-val safe_elim = attrib o addSE;
-val safe_intro = attrib o addSI;
-val safe_dest = attrib o addSD;
-val unsafe_elim = attrib o addE;
-val unsafe_intro = attrib o addI;
-val unsafe_dest = attrib o addD;
+val safe_intro = attrib Bires.intro_bang_kind (K I);
+val safe_elim = attrib Bires.elim_bang_kind (K I);
+val safe_dest = attrib Bires.elim_bang_kind make_elim;
+val unsafe_intro = attrib Bires.intro_kind (K I);
+val unsafe_elim = attrib Bires.elim_kind (K I);
+val unsafe_dest = attrib Bires.elim_kind make_elim;
 
 val rule_del =
   Thm.declaration_attribute (fn th => fn context =>
