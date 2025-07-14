@@ -29,9 +29,7 @@ definition suminf :: "(nat \<Rightarrow> 'a::{topological_space, comm_monoid_add
 text\<open>Variants of the definition\<close>
 lemma sums_def': "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i = 0..n. f i) \<longlonglongrightarrow> s"
   unfolding sums_def
-  apply (subst filterlim_sequentially_Suc [symmetric])
-  apply (simp only: lessThan_Suc_atMost atLeast0AtMost)
-  done
+  using LIMSEQ_lessThan_iff_atMost atMost_atLeast0 by auto
 
 lemma sums_def_le: "f sums s \<longleftrightarrow> (\<lambda>n. \<Sum>i\<le>n. f i) \<longlonglongrightarrow> s"
   by (simp add: sums_def' atMost_atLeast0)
@@ -1034,13 +1032,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma norm_sums_le:
+  assumes "f sums F" "g sums G"
+  assumes "\<And>n. norm (f n :: 'a :: banach) \<le> g n"
+  shows   "norm F \<le> G"
+  using assms by (metis norm_suminf_le sums_iff)
+
 lemma summable_zero_power [simp]: "summable (\<lambda>n. 0 ^ n :: 'a::{comm_ring_1,topological_space})"
-proof -
-  have "(\<lambda>n. 0 ^ n :: 'a) = (\<lambda>n. if n = 0 then 0^0 else 0)"
-    by (intro ext) (simp add: zero_power)
-  moreover have "summable \<dots>" by simp
-  ultimately show ?thesis by simp
-qed
+  by (simp add: power_0_left)
 
 lemma summable_zero_power' [simp]: "summable (\<lambda>n. f n * 0 ^ n :: 'a::{ring_1,topological_space})"
 proof -

@@ -2465,6 +2465,7 @@ lemma powr_of_int:
 lemma complex_powr_of_int: "z \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_int n = (z :: complex) powi n"
   by (cases "z = 0 \<or> n = 0")
      (auto simp: power_int_def powr_minus powr_nat powr_of_int power_0_left power_inverse)
+
 lemma powr_of_neg_real:
   fixes x::real and y::real
   assumes "x<0"

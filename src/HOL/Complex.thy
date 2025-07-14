@@ -349,6 +349,12 @@ end
 
 declare uniformity_Abort[where 'a = complex, code]
 
+lemma Re_divide': "Re (x / y) = (Re x * Re y + Im x * Im y) / (norm y)\<^sup>2"
+  by (simp add: Re_divide norm_complex_def)
+
+lemma Im_divide': "Im (x / y) = (Im x * Re y - Re x * Im y) / (norm y)\<^sup>2"
+  by (simp add: Im_divide norm_complex_def)
+
 lemma norm_ii [simp]: "norm \<i> = 1"
   by (simp add: norm_complex_def)
 
