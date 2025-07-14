@@ -151,7 +151,7 @@ proof -
   then show ?thesis unfolding fn_norm_def by (rule the_lubI_ex)
 qed
 
-lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
+lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [intro?]:
   assumes "continuous V f norm"
   assumes b: "b \<in> B V f"
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"

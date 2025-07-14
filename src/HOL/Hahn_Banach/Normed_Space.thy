@@ -19,9 +19,9 @@ text \<open>
 locale seminorm =
   fixes V :: "'a::{minus, plus, zero, uminus} set"
   fixes norm :: "'a \<Rightarrow> real"    (\<open>\<parallel>_\<parallel>\<close>)
-  assumes ge_zero [iff?]: "x \<in> V \<Longrightarrow> 0 \<le> \<parallel>x\<parallel>"
-    and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
-    and subadditive [iff?]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
+  assumes ge_zero [intro?]: "x \<in> V \<Longrightarrow> 0 \<le> \<parallel>x\<parallel>"
+    and abs_homogenous [intro?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
+    and subadditive [intro?]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 
 declare seminorm.intro [intro?]
 
