@@ -243,7 +243,7 @@ fun robust_string_of out prt =
   let
     val bs = out prt;
     val bs' =
-      if Bytes.size bs <= String.maxSize then bs
+      if Bytes.size bs + 8000 <= String.maxSize then bs
       else out (from_ML (ML_Pretty.no_markup (to_ML prt)));
   in Bytes.content bs' end;
 
