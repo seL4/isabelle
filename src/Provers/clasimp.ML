@@ -43,13 +43,15 @@ structure Blast = Data.Blast;
 
 (* simp as classical wrapper *)
 
-(* FIXME !? *)
-fun clasimp f name tac ctxt = f (ctxt, (name, fn _ => CHANGED o tac ctxt));
-
-(*Add a simpset to the claset!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-val addSss = clasimp Classical.addSafter "safe_asm_full_simp_tac" Simplifier.safe_asm_full_simp_tac;
-val addss = clasimp Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
+local
+  fun add_wrapper f name tac ctxt = f (ctxt, (name, fn _ => CHANGED o tac ctxt));
+in
+  val addSss =
+    add_wrapper Classical.addSafter "safe_asm_full_simp_tac" Simplifier.safe_asm_full_simp_tac;
+  val addss =
+    add_wrapper Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
+end;
 
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
