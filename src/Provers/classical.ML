@@ -428,13 +428,14 @@ end;
 
 (* delete rules *)
 
-fun delrule ctxt th cs =
+fun delrule ctxt warn th cs =
   let
     val CS {decls, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair} = cs;
     val (old_decls, decls') = Bires.remove_decls th decls;
   in
-    if null old_decls then (warn_thm ctxt (fn () => "Undeclared classical rule\n") th; cs)
+    if null old_decls then
+      (if warn then warn_thm ctxt (fn () => "Undeclared classical rule\n") th else (); cs)
     else
       let
         fun del which ({tag = {index, ...}, info, ...}: decl) = delete_rl index (which info);
@@ -502,7 +503,7 @@ val op addIs = ml_decl Bires.intro_kind;
 val op addEs = ml_decl Bires.elim_kind;
 val op addDs = ml_decl Bires.dest_kind;
 
-fun ctxt delrules ths = map_claset (fold_rev (delrule ctxt) ths) ctxt;
+fun ctxt delrules ths = map_claset (fold_rev (delrule ctxt true) ths) ctxt;
 
 
 
@@ -747,7 +748,7 @@ val unsafe_dest = attrib Bires.dest_kind;
 val rule_del =
   Thm.declaration_attribute (fn th => fn context =>
     context
-    |> map_cs (delrule (Context.proof_of context) th)
+    |> map_cs (delrule (Context.proof_of context) (not (Context_Rules.declared_rule context th)) th)
     |> Thm.attribute_declaration Context_Rules.rule_del th);
 
 

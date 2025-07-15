@@ -12,6 +12,7 @@ sig
   val netpair: Proof.context -> Bires.netpair
   val find_rules_netpair: Proof.context -> bool -> thm list -> term -> Bires.netpair -> thm list
   val find_rules: Proof.context -> bool -> thm list -> term -> thm list list
+  val declared_rule: Context.generic -> thm -> bool
   val print_rules: Proof.context -> unit
   val addSWrapper: (Proof.context -> (int -> tactic) -> int -> tactic) -> theory -> theory
   val addWrapper: (Proof.context -> (int -> tactic) -> int -> tactic) -> theory -> theory
@@ -88,6 +89,7 @@ fun del_rule th (rules as Rules {decls, netpairs, wrappers}) =
             old_decls netpairs;
       in make_rules decls' netpairs' wrappers end);
 
+
 structure Data = Generic_Data
 (
   type T = rules;
@@ -108,6 +110,10 @@ structure Data = Generic_Data
         Library.merge (eq_snd (op =)) (ws1', ws2'));
     in make_rules decls netpairs wrappers end;
 );
+
+fun declared_rule context =
+  let val Rules {decls, ...} =  Data.get context
+  in Bires.has_decls decls end;
 
 fun print_rules ctxt =
   let val Rules {decls, ...} = Data.get (Context.Proof ctxt)
