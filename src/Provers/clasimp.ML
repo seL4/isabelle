@@ -195,12 +195,12 @@ val _ =
 
 (* method modifiers *)
 
-val iffN = "iff";
+val iff_token = Args.$$$ "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add_pure \<^here>),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
+ [iff_token -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
+  iff_token -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add_pure \<^here>),
+  iff_token -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @
