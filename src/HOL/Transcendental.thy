@@ -2133,11 +2133,16 @@ qed
 
 lemma ln_le_minus_one: "0 < x \<Longrightarrow> ln x \<le> x - 1"
   for x :: real
-  using exp_ge_add_one_self[of "ln x"] by simp
+using exp_ge_add_one_self[of "ln x"] by simp
 
 corollary ln_diff_le: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> ln x - ln y \<le> (x - y) / y"
   for x :: real
 by (metis diff_divide_distrib divide_pos_pos divide_self ln_divide_pos ln_le_minus_one order_less_irrefl)
+
+lemma ln_add1_ge:
+  fixes t::real
+  shows "t\<ge>0 \<Longrightarrow> ln (t+1) \<ge> t / (1+t)"
+using ln_diff_le [of 1 "t+1"] by (simp add: add.commute)
 
 lemma ln_eq_minus_one:
   fixes x :: real
@@ -2182,6 +2187,15 @@ proof -
     then show ?thesis by simp
   qed
 qed
+
+corollary ln_diff_less: "0 < x \<Longrightarrow> 0 < y \<Longrightarrow> x \<noteq> y \<Longrightarrow> ln x - ln y < (x - y) / y" for x :: real
+using ln_eq_minus_one[of "x/y"] ln_diff_le[of x y]
+by (fastforce simp: diff_divide_distrib ln_divide_pos)
+
+lemma ln_add1_gt:
+  fixes t::real
+  shows "t>0 \<Longrightarrow> ln (t+1) > t / (1+t)"
+using ln_diff_less [of 1 "t+1"] ln_one by(simp add: diff_divide_distrib add.commute)
 
 lemma ln_add_one_self_less_self:
   fixes x :: real
