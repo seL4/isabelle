@@ -433,6 +433,11 @@ fun delrule ctxt warn th cs =
     val CS {decls, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair} = cs;
     val (old_decls, decls') = Bires.remove_decls th decls;
+    val _ =
+      if Bires.has_decls decls (Tactic.make_elim th) then
+        warn_thm ctxt
+          (fn () => "Not deleting elim format --- need to to declare proper dest rule\n") th
+      else ();
   in
     if null old_decls then
       (if warn then warn_thm ctxt (fn () => "Undeclared classical rule\n") th else (); cs)
