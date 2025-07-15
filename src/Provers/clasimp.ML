@@ -27,7 +27,7 @@ sig
   val slow_simp_tac: Proof.context -> int -> tactic
   val best_simp_tac: Proof.context -> int -> tactic
   val iff_add: attribute
-  val iff_add': attribute
+  val iff_add_pure: attribute
   val iff_del: attribute
   val iff_modifiers: Method.modifier parser list
   val clasimp_modifiers: Method.modifier parser list
@@ -102,7 +102,7 @@ val iff_add =
     Thm.attribute_declaration (iff_decl safe_atts unsafe_atts) th #>
     Thm.attribute_declaration Simplifier.simp_add th);
 
-val iff_add' = iff_decl pure_atts pure_atts;
+val iff_add_pure = iff_decl pure_atts pure_atts;
 
 val iff_del =
   Thm.declaration_attribute (fn th =>
@@ -188,7 +188,7 @@ val _ =
     (Attrib.setup \<^binding>\<open>iff\<close>
       (Scan.lift
         (Args.del >> K iff_del ||
-          Scan.option Args.add -- Args.query >> K iff_add' ||
+          Scan.option Args.add -- Args.query >> K iff_add_pure ||
           Scan.option Args.add >> K iff_add))
       "declaration of Simplifier / Classical rules");
 
@@ -199,7 +199,7 @@ val iffN = "iff";
 
 val iff_modifiers =
  [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add' \<^here>),
+  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add_pure \<^here>),
   Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
 
 val clasimp_modifiers =
