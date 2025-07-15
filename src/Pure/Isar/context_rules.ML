@@ -68,7 +68,8 @@ fun make_rules decls netpairs wrappers =
 fun add_rule kind opt_weight th (rules as Rules {decls, netpairs, wrappers}) =
   let
     val th' = Thm.trim_context th;
-    val decl' = init_decl kind opt_weight th';
+    val th'' = if Bires.kind_make_elim kind then Thm.trim_context (Tactic.make_elim th) else th';
+    val decl' = init_decl kind opt_weight th'';
   in
     (case Bires.extend_decls (th', decl') decls of
       (NONE, _) => rules
@@ -77,7 +78,7 @@ fun add_rule kind opt_weight th (rules as Rules {decls, netpairs, wrappers}) =
         in make_rules decls' netpairs' wrappers end)
   end;
 
-fun del_rule0 th (rules as Rules {decls, netpairs, wrappers}) =
+fun del_rule th (rules as Rules {decls, netpairs, wrappers}) =
   (case Bires.remove_decls th decls of
     ([], _) => rules
   | (old_decls, decls') =>
@@ -86,9 +87,6 @@ fun del_rule0 th (rules as Rules {decls, netpairs, wrappers}) =
           fold (fn decl as {kind, ...} => Bires.kind_map kind (remove_decl decl))
             old_decls netpairs;
       in make_rules decls' netpairs' wrappers end);
-
-fun del_rule th =
-  fold del_rule0 (th :: the_list (try Tactic.make_elim th));
 
 structure Data = Generic_Data
 (
@@ -173,21 +171,20 @@ val wrap = gen_wrap #2;
 
 (* add and del rules *)
 
-
 val rule_del = Thm.declaration_attribute (Data.map o del_rule);
 
-fun rule_add k view opt_w =
-  Thm.declaration_attribute (fn th => Data.map (add_rule k opt_w (view th) o del_rule th));
+fun rule_add k opt_w =
+  Thm.declaration_attribute (fn th => Data.map (add_rule k opt_w th o del_rule th));
 
-val intro_bang  = rule_add Bires.intro_bang_kind I;
-val elim_bang   = rule_add Bires.elim_bang_kind I;
-val dest_bang   = rule_add Bires.elim_bang_kind Tactic.make_elim;
-val intro       = rule_add Bires.intro_kind I;
-val elim        = rule_add Bires.elim_kind I;
-val dest        = rule_add Bires.elim_kind Tactic.make_elim;
-val intro_query = rule_add Bires.intro_query_kind I;
-val elim_query  = rule_add Bires.elim_query_kind I;
-val dest_query  = rule_add Bires.elim_query_kind Tactic.make_elim;
+val intro_bang  = rule_add Bires.intro_bang_kind;
+val elim_bang   = rule_add Bires.elim_bang_kind;
+val dest_bang   = rule_add Bires.dest_bang_kind;
+val intro       = rule_add Bires.intro_kind;
+val elim        = rule_add Bires.elim_kind;
+val dest        = rule_add Bires.dest_kind;
+val intro_query = rule_add Bires.intro_query_kind;
+val elim_query  = rule_add Bires.elim_query_kind;
+val dest_query  = rule_add Bires.dest_query_kind;
 
 val _ = Theory.setup
   (snd o Global_Theory.add_thms [((Binding.empty, Drule.equal_intr_rule), [intro_query NONE])]);

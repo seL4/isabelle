@@ -23,15 +23,19 @@ sig
   eqtype kind
   val intro_bang_kind: kind
   val elim_bang_kind: kind
+  val dest_bang_kind: kind
   val intro_kind: kind
   val elim_kind: kind
+  val dest_kind: kind
   val intro_query_kind: kind
   val elim_query_kind: kind
+  val dest_query_kind: kind
   val kind_safe: kind -> bool
   val kind_unsafe: kind -> bool
   val kind_extra: kind -> bool
   val kind_index: kind -> int
-  val kind_elim: kind -> bool
+  val kind_is_elim: kind -> bool
+  val kind_make_elim: kind -> bool
   val kind_name: kind -> string
   val kind_domain: kind list
   val kind_values: 'a -> 'a list
@@ -106,33 +110,48 @@ fun weight_tag weight : tag = {weight = weight, index = 0};
 fun next_tag next ({weight, ...}: tag) = {weight = weight, index = next};
 
 
-(* kind: intro! / elim! / intro / elim / intro? / elim? *)
+(* kind: intro/elim/dest *)
 
-datatype kind = Kind of int * bool;
+datatype kind = Kind of {index: int, is_elim: bool, make_elim: bool};
 
-val intro_bang_kind = Kind (0, false);
-val elim_bang_kind = Kind (0, true);
-val intro_kind = Kind (1, false);
-val elim_kind = Kind (1, true);
-val intro_query_kind = Kind (2, false);
-val elim_query_kind = Kind (2, true);
+fun make_intro_kind i = Kind {index = i, is_elim = false, make_elim = false};
+fun make_elim_kind i = Kind {index = i, is_elim = true, make_elim = false};
+fun make_dest_kind i = Kind {index = i, is_elim = true, make_elim = true};
+
+val intro_bang_kind = make_intro_kind 0;
+val elim_bang_kind = make_elim_kind 0;
+val dest_bang_kind = make_dest_kind 0;
+
+val intro_kind = make_intro_kind 1;
+val elim_kind = make_elim_kind 1;
+val dest_kind = make_dest_kind 1;
+
+val intro_query_kind = make_intro_kind 2;
+val elim_query_kind = make_elim_kind 2;
+val dest_query_kind = make_dest_kind 2;
 
 val kind_infos =
  [(intro_bang_kind, ("safe introduction", "(intro!)")),
   (elim_bang_kind, ("safe elimination", "(elim!)")),
+  (dest_bang_kind, ("safe destruction", "(dest!)")),
   (intro_kind, ("unsafe introduction", "(intro)")),
   (elim_kind, ("unsafe elimination", "(elim)")),
+  (dest_kind, ("unsafe destruction", "(dest)")),
   (intro_query_kind, ("extra introduction", "(intro?)")),
-  (elim_query_kind, ("extra elimination", "(elim?)"))];
+  (elim_query_kind, ("extra elimination", "(elim?)")),
+  (dest_query_kind, ("extra destruction", "(dest?)"))];
 
-fun kind_safe (Kind (i, _)) = i = 0;
-fun kind_unsafe (Kind (i, _)) = i = 1;
-fun kind_extra (Kind (i, _)) = i = 2;
-fun kind_index (Kind (i, _)) = i;
-fun kind_elim (Kind (_, b)) = b;
+fun kind_safe (Kind {index, ...}) = index = 0;
+fun kind_unsafe (Kind {index, ...}) = index = 1;
+fun kind_extra (Kind {index, ...}) = index = 2;
+fun kind_index (Kind {index, ...}) = index;
+fun kind_is_elim (Kind {is_elim, ...}) = is_elim;
+fun kind_make_elim (Kind {make_elim, ...}) = make_elim;
 
-fun kind_name kind =
-  if kind_elim kind then "elimination rule" else "introduction rule";
+fun kind_name (Kind {is_elim, make_elim, ...}) =
+  if is_elim andalso make_elim then "destruction rule"
+  else if is_elim then "elimination rule"
+  else "introduction rule";
 
 val kind_domain = map #1 kind_infos;
 
@@ -140,7 +159,7 @@ fun kind_values x =
   replicate (length (distinct (op =) (map kind_index kind_domain))) x;
 
 fun kind_map kind f = nth_map (kind_index kind) f;
-fun kind_rule kind thm : rule = (kind_elim kind, thm);
+fun kind_rule kind thm : rule = (kind_is_elim kind, thm);
 
 val the_kind_info = the o AList.lookup (op =) kind_infos;
 
