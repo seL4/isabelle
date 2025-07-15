@@ -68,7 +68,7 @@ fun make_rules decls netpairs wrappers =
 fun add_rule kind opt_weight th (rules as Rules {decls, netpairs, wrappers}) =
   let
     val th' = Thm.trim_context th;
-    val th'' = if Bires.kind_make_elim kind then Thm.trim_context (Tactic.make_elim th) else th';
+    val th'' = Thm.trim_context (Bires.kind_make_elim kind th);
     val decl' = init_decl kind opt_weight th'';
   in
     (case Bires.extend_decls (th', decl') decls of

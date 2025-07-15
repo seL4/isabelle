@@ -353,7 +353,7 @@ fun ext_info ctxt kind th =
   else if kind = Bires.elim_bang_kind orelse kind = Bires.dest_bang_kind then
     let
       val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
-      val elim = if Bires.kind_make_elim kind then Tactic.make_elim th else th;
+      val elim = Bires.kind_make_elim kind th;
     in make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt elim))) elim end
   else if kind = Bires.intro_kind then
     let
@@ -363,7 +363,7 @@ fun ext_info ctxt kind th =
   else if kind = Bires.elim_kind orelse kind = Bires.dest_kind then
     let
       val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
-      val elim = if Bires.kind_make_elim kind then Tactic.make_elim th else th;
+      val elim = Bires.kind_make_elim kind th;
       val th' = classical_rule ctxt (flat_rule ctxt elim);
       val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th;
     in make_info (no_swapped_rl th') (no_swapped_rl dup_th') elim end

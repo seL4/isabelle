@@ -35,7 +35,7 @@ sig
   val kind_extra: kind -> bool
   val kind_index: kind -> int
   val kind_is_elim: kind -> bool
-  val kind_make_elim: kind -> bool
+  val kind_make_elim: kind -> thm -> thm
   val kind_name: kind -> string
   val kind_domain: kind list
   val kind_values: 'a -> 'a list
@@ -146,7 +146,7 @@ fun kind_unsafe (Kind {index, ...}) = index = 1;
 fun kind_extra (Kind {index, ...}) = index = 2;
 fun kind_index (Kind {index, ...}) = index;
 fun kind_is_elim (Kind {is_elim, ...}) = is_elim;
-fun kind_make_elim (Kind {make_elim, ...}) = make_elim;
+fun kind_make_elim (Kind {make_elim, ...}) = make_elim ? Tactic.make_elim;
 
 fun kind_name (Kind {is_elim, make_elim, ...}) =
   if is_elim andalso make_elim then "destruction rule"
