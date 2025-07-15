@@ -71,13 +71,18 @@ val pure_atts =
   elim = Context_Rules.elim_query NONE,
   dest = Context_Rules.dest_query NONE};
 
+val del_atts =
+ {intro = Classical.rule_del,
+  elim = Classical.rule_del,
+  dest = Classical.rule_del};
+
 (*Takes (possibly conditional) theorems of the form A<->B to
         the Safe Intr     rule B==>A and
         the Safe Destruct rule A==>B.
   Also ~A goes to the Safe Elim rule A ==> ?R
   Failing other cases, A is added as a Safe Intr rule*)
 
-fun add_iff safe unsafe =
+fun iff_decl safe unsafe =
   Thm.declaration_attribute (fn th => fn context =>
     let
       val n = Thm.nprems_of th;
@@ -90,28 +95,18 @@ fun add_iff safe unsafe =
         handle THM _ => [(intro, th)];
     in fold (uncurry Thm.attribute_declaration) decls context end);
 
-fun del_iff del = Thm.declaration_attribute (fn th => fn context =>
-  let
-    val zero_rotate = zero_var_indexes o rotate_prems (Thm.nprems_of th);
-    val rls =
-      [zero_rotate (th RS Data.iffD2), zero_rotate (th RS Data.iffD1)]
-        handle THM _ => [zero_rotate (th RS Data.notE)]
-        handle THM _ => [th];
-  in fold (Thm.attribute_declaration del) rls context end);
-
 in
 
 val iff_add =
   Thm.declaration_attribute (fn th =>
-    Thm.attribute_declaration (add_iff safe_atts unsafe_atts) th
-    #> Thm.attribute_declaration Simplifier.simp_add th);
+    Thm.attribute_declaration (iff_decl safe_atts unsafe_atts) th #>
+    Thm.attribute_declaration Simplifier.simp_add th);
 
-val iff_add' = add_iff pure_atts pure_atts;
+val iff_add' = iff_decl pure_atts pure_atts;
 
 val iff_del =
   Thm.declaration_attribute (fn th =>
-    Thm.attribute_declaration (del_iff Classical.rule_del) th #>
-    Thm.attribute_declaration (del_iff Context_Rules.rule_del) th #>
+    Thm.attribute_declaration (iff_decl del_atts del_atts) th #>
     Thm.attribute_declaration Simplifier.simp_del th);
 
 end;
