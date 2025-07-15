@@ -285,10 +285,10 @@ fun delete_plain_rule ({tag = {index, ...}, info = {plain = th, ...}, ...}: decl
 
 (* erros and warnings *)
 
-fun err_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
+fun err_thm ctxt msg th = error (msg () ^ "\n" ^ Thm.string_of_thm ctxt th);
 
 fun err_thm_illformed ctxt kind th =
-  err_thm ctxt ("Ill-formed " ^ Bires.kind_name kind) th;
+  err_thm ctxt (fn () => "Ill-formed " ^ Bires.kind_name kind) th;
 
 fun init_decl kind opt_weight info : decl =
   let val weight = the_default (Bires.kind_index kind) opt_weight
@@ -299,11 +299,11 @@ fun is_declared decls th kind =
 
 fun warn_thm ctxt msg th =
   if Context_Position.is_really_visible ctxt
-  then warning (msg () ^ Thm.string_of_thm ctxt th) else ();
+  then warning (msg () ^ "\n" ^ Thm.string_of_thm ctxt th) else ();
 
 fun warn_kind ctxt decls prefix th kind =
   is_declared decls th kind andalso
-    (warn_thm ctxt (fn () => prefix ^ Bires.kind_description kind ^ "\n") th; true);
+    (warn_thm ctxt (fn () => prefix ^ Bires.kind_description kind) th; true);
 
 fun warn_other_kinds ctxt decls th =
   let val warn = warn_kind ctxt decls "Rule already declared as " th in
@@ -436,11 +436,11 @@ fun delrule ctxt warn th cs =
     val _ =
       if Bires.has_decls decls (Tactic.make_elim th) then
         warn_thm ctxt
-          (fn () => "Not deleting elim format --- need to to declare proper dest rule\n") th
+          (fn () => "Not deleting elim format --- need to to declare proper dest rule") th
       else ();
   in
     if null old_decls then
-      (if warn then warn_thm ctxt (fn () => "Undeclared classical rule\n") th else (); cs)
+      (if warn then warn_thm ctxt (fn () => "Undeclared classical rule") th else (); cs)
     else
       let
         fun del which ({tag = {index, ...}, info, ...}: decl) = delete_rl index (which info);
