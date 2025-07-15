@@ -294,26 +294,24 @@ fun init_decl kind opt_weight info : decl =
   let val weight = the_default (Bires.kind_index kind) opt_weight
   in {kind = kind, tag = Bires.weight_tag weight, info = info} end;
 
-fun is_declared decls th kind =
-  exists (fn {kind = kind', ...} => kind = kind') (Bires.get_decls decls th);
-
 fun warn_thm ctxt msg th =
   if Context_Position.is_really_visible ctxt
   then warning (msg () ^ "\n" ^ Thm.string_of_thm ctxt th) else ();
 
-fun warn_kind ctxt decls prefix th kind =
-  is_declared decls th kind andalso
-    (warn_thm ctxt (fn () => prefix ^ Bires.kind_description kind) th; true);
+fun warn_kind ctxt prefix th kind =
+  if Context_Position.is_really_visible ctxt then
+    warn_thm ctxt (fn () => prefix ^ " " ^ Bires.kind_description kind) th
+  else ();
 
 fun warn_other_kinds ctxt decls th =
-  let val warn = warn_kind ctxt decls "Rule already declared as " th in
-    warn Bires.intro_bang_kind orelse
-    warn Bires.elim_bang_kind orelse
-    warn Bires.dest_bang_kind orelse
-    warn Bires.intro_kind orelse
-    warn Bires.elim_kind orelse
-    warn Bires.dest_kind
-  end;
+  if Context_Position.is_really_visible ctxt then
+    (case Bires.get_decls decls th of
+      [] => ()
+    | ds =>
+        Bires.kind_domain
+        |> filter (member (op =) (map #kind ds))
+        |> List.app (warn_kind ctxt "Rule already declared as" th))
+  else ();
 
 
 (* extend and merge rules *)
@@ -379,7 +377,7 @@ fun extend_rules ctxt kind opt_weight th cs =
       unsafe_netpair, dup_netpair, extra_netpair} = cs;
   in
     (case Bires.extend_decls (th', decl') decls of
-      (NONE, _) => (warn_kind ctxt decls "Ignoring duplicate " th kind; cs)
+      (NONE, _) => (warn_kind ctxt "Ignoring duplicate" th kind; cs)
     | (SOME new_decl, decls') =>
         let
           val _ = warn_other_kinds ctxt decls th;
