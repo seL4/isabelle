@@ -27,7 +27,7 @@ sig
   val slow_simp_tac: Proof.context -> int -> tactic
   val best_simp_tac: Proof.context -> int -> tactic
   val iff_add: attribute
-  val iff_add': attribute
+  val iff_add_pure: attribute
   val iff_del: attribute
   val iff_modifiers: Method.modifier parser list
   val clasimp_modifiers: Method.modifier parser list
@@ -43,18 +43,40 @@ structure Blast = Data.Blast;
 
 (* simp as classical wrapper *)
 
-(* FIXME !? *)
-fun clasimp f name tac ctxt = f (ctxt, (name, fn _ => CHANGED o tac ctxt));
-
-(*Add a simpset to the claset!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-val addSss = clasimp Classical.addSafter "safe_asm_full_simp_tac" Simplifier.safe_asm_full_simp_tac;
-val addss = clasimp Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
+local
+  fun add_wrapper f name tac ctxt = f (ctxt, (name, fn _ => CHANGED o tac ctxt));
+in
+  val addSss =
+    add_wrapper Classical.addSafter "safe_asm_full_simp_tac" Simplifier.safe_asm_full_simp_tac;
+  val addss =
+    add_wrapper Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
+end;
 
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
 
 local
+
+val safe_atts =
+ {intro = Classical.safe_intro NONE,
+  elim = Classical.safe_elim NONE,
+  dest = Classical.safe_dest NONE};
+
+val unsafe_atts =
+ {intro = Classical.unsafe_intro NONE,
+  elim = Classical.unsafe_elim NONE,
+  dest = Classical.unsafe_dest NONE};
+
+val pure_atts =
+ {intro = Context_Rules.intro_query NONE,
+  elim = Context_Rules.elim_query NONE,
+  dest = Context_Rules.dest_query NONE};
+
+val del_atts =
+ {intro = Classical.rule_del,
+  elim = Classical.rule_del,
+  dest = Classical.rule_del};
 
 (*Takes (possibly conditional) theorems of the form A<->B to
         the Safe Intr     rule B==>A and
@@ -62,46 +84,31 @@ local
   Also ~A goes to the Safe Elim rule A ==> ?R
   Failing other cases, A is added as a Safe Intr rule*)
 
-fun add_iff safe unsafe =
+fun iff_decl safe unsafe =
   Thm.declaration_attribute (fn th => fn context =>
     let
       val n = Thm.nprems_of th;
-      val (elim, intro) = if n = 0 then safe else unsafe;
+      val {intro, elim, dest} = if n = 0 then safe else unsafe;
       val zero_rotate = zero_var_indexes o rotate_prems n;
       val decls =
         [(intro, zero_rotate (th RS Data.iffD2)),
-         (elim, Tactic.make_elim (zero_rotate (th RS Data.iffD1)))]
+         (dest, zero_rotate (th RS Data.iffD1))]
         handle THM _ => [(elim, zero_rotate (th RS Data.notE))]
         handle THM _ => [(intro, th)];
     in fold (uncurry Thm.attribute_declaration) decls context end);
-
-fun del_iff del = Thm.declaration_attribute (fn th => fn context =>
-  let
-    val zero_rotate = zero_var_indexes o rotate_prems (Thm.nprems_of th);
-    val rls =
-      [zero_rotate (th RS Data.iffD2), Tactic.make_elim (zero_rotate (th RS Data.iffD1))]
-        handle THM _ => [zero_rotate (th RS Data.notE)]
-        handle THM _ => [th];
-  in fold (Thm.attribute_declaration del) rls context end);
 
 in
 
 val iff_add =
   Thm.declaration_attribute (fn th =>
-    Thm.attribute_declaration (add_iff
-      (Classical.safe_elim NONE, Classical.safe_intro NONE)
-      (Classical.unsafe_elim NONE, Classical.unsafe_intro NONE)) th
-    #> Thm.attribute_declaration Simplifier.simp_add th);
+    Thm.attribute_declaration (iff_decl safe_atts unsafe_atts) th #>
+    Thm.attribute_declaration Simplifier.simp_add th);
 
-val iff_add' =
-  add_iff
-    (Context_Rules.elim_query NONE, Context_Rules.intro_query NONE)
-    (Context_Rules.elim_query NONE, Context_Rules.intro_query NONE);
+val iff_add_pure = iff_decl pure_atts pure_atts;
 
 val iff_del =
   Thm.declaration_attribute (fn th =>
-    Thm.attribute_declaration (del_iff Classical.rule_del) th #>
-    Thm.attribute_declaration (del_iff Context_Rules.rule_del) th #>
+    Thm.attribute_declaration (iff_decl del_atts del_atts) th #>
     Thm.attribute_declaration Simplifier.simp_del th);
 
 end;
@@ -183,19 +190,19 @@ val _ =
     (Attrib.setup \<^binding>\<open>iff\<close>
       (Scan.lift
         (Args.del >> K iff_del ||
-          Scan.option Args.add -- Args.query >> K iff_add' ||
+          Scan.option Args.add -- Args.query >> K iff_add_pure ||
           Scan.option Args.add >> K iff_add))
       "declaration of Simplifier / Classical rules");
 
 
 (* method modifiers *)
 
-val iffN = "iff";
+val iff_token = Args.$$$ "iff";
 
 val iff_modifiers =
- [Args.$$$ iffN -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
-  Args.$$$ iffN -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add' \<^here>),
-  Args.$$$ iffN -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
+ [iff_token -- Scan.option Args.add -- Args.colon >> K (Method.modifier iff_add \<^here>),
+  iff_token -- Scan.option Args.add -- Args.query_colon >> K (Method.modifier iff_add_pure \<^here>),
+  iff_token -- Args.del -- Args.colon >> K (Method.modifier iff_del \<^here>)];
 
 val clasimp_modifiers =
   Simplifier.simp_modifiers @ Splitter.split_modifiers @

@@ -285,34 +285,33 @@ fun delete_plain_rule ({tag = {index, ...}, info = {plain = th, ...}, ...}: decl
 
 (* erros and warnings *)
 
-fun err_thm ctxt msg th = error (msg ^ "\n" ^ Thm.string_of_thm ctxt th);
+fun err_thm ctxt msg th = error (msg () ^ "\n" ^ Thm.string_of_thm ctxt th);
 
-fun make_elim ctxt th =
-  if Thm.no_prems th then err_thm ctxt "Ill-formed destruction rule" th
-  else Tactic.make_elim th;
+fun err_thm_illformed ctxt kind th =
+  err_thm ctxt (fn () => "Ill-formed " ^ Bires.kind_name kind) th;
 
 fun init_decl kind opt_weight info : decl =
   let val weight = the_default (Bires.kind_index kind) opt_weight
   in {kind = kind, tag = Bires.weight_tag weight, info = info} end;
 
-fun is_declared decls th kind =
-  exists (fn {kind = kind', ...} => kind = kind') (Bires.get_decls decls th);
-
 fun warn_thm ctxt msg th =
   if Context_Position.is_really_visible ctxt
-  then warning (msg () ^ Thm.string_of_thm ctxt th) else ();
+  then warning (msg () ^ "\n" ^ Thm.string_of_thm ctxt th) else ();
 
-fun warn_kind ctxt decls prefix th kind =
-  is_declared decls th kind andalso
-    (warn_thm ctxt (fn () => prefix ^ Bires.kind_description kind ^ "\n") th; true);
+fun warn_kind ctxt prefix th kind =
+  if Context_Position.is_really_visible ctxt then
+    warn_thm ctxt (fn () => prefix ^ " " ^ Bires.kind_description kind) th
+  else ();
 
 fun warn_other_kinds ctxt decls th =
-  let val warn = warn_kind ctxt decls "Rule already declared as " th in
-    warn Bires.intro_bang_kind orelse
-    warn Bires.elim_bang_kind orelse
-    warn Bires.intro_kind orelse
-    warn Bires.elim_kind
-  end;
+  if Context_Position.is_really_visible ctxt then
+    (case Bires.get_decls decls th of
+      [] => ()
+    | ds =>
+        Bires.kind_domain
+        |> filter (member (op =) (map #kind ds))
+        |> List.app (warn_kind ctxt "Rule already declared as" th))
+  else ();
 
 
 (* extend and merge rules *)
@@ -346,15 +345,39 @@ fun trim_context_rl (th1, opt_th2) =
 fun trim_context_info {rl, dup_rl, plain} : info =
   {rl = trim_context_rl rl, dup_rl = trim_context_rl dup_rl, plain = Thm.trim_context plain};
 
-fun extend_rules ctxt kind opt_weight (th, info) cs =
+fun ext_info ctxt kind th =
+  if kind = Bires.intro_bang_kind then
+    make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th
+  else if kind = Bires.elim_bang_kind orelse kind = Bires.dest_bang_kind then
+    let
+      val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
+      val elim = Bires.kind_make_elim kind th;
+    in make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt elim))) elim end
+  else if kind = Bires.intro_kind then
+    let
+      val th' = flat_rule ctxt th;
+      val dup_th' = dup_intr th' handle THM _ => err_thm_illformed ctxt kind th;
+    in make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th end
+  else if kind = Bires.elim_kind orelse kind = Bires.dest_kind then
+    let
+      val _ = Thm.no_prems th andalso err_thm_illformed ctxt kind th;
+      val elim = Bires.kind_make_elim kind th;
+      val th' = classical_rule ctxt (flat_rule ctxt elim);
+      val dup_th' = dup_elim ctxt th' handle THM _ => err_thm_illformed ctxt kind th;
+    in make_info (no_swapped_rl th') (no_swapped_rl dup_th') elim end
+  else raise Fail "Bad rule kind";
+
+in
+
+fun extend_rules ctxt kind opt_weight th cs =
   let
     val th' = Thm.trim_context th;
-    val decl' = init_decl kind opt_weight (trim_context_info info);
+    val decl' = init_decl kind opt_weight (trim_context_info (ext_info ctxt kind th));
     val CS {decls, swrappers, uwrappers, safe0_netpair, safep_netpair,
       unsafe_netpair, dup_netpair, extra_netpair} = cs;
   in
     (case Bires.extend_decls (th', decl') decls of
-      (NONE, _) => (warn_kind ctxt decls "Ignoring duplicate " th kind; cs)
+      (NONE, _) => (warn_kind ctxt "Ignoring duplicate" th kind; cs)
     | (SOME new_decl, decls') =>
         let
           val _ = warn_other_kinds ctxt decls th;
@@ -373,8 +396,6 @@ fun extend_rules ctxt kind opt_weight (th, info) cs =
             extra_netpair = extra_netpair'}
         end)
   end;
-
-in
 
 fun merge_cs (cs, cs2) =
   if pointer_eq (cs, cs2) then cs
@@ -400,48 +421,24 @@ fun merge_cs (cs, cs2) =
         extra_netpair = extra_netpair'}
     end;
 
-fun addSI w ctxt th cs =
-  extend_rules ctxt Bires.intro_bang_kind w
-    (th, make_info1 (maybe_swapped_rl (flat_rule ctxt th)) th) cs;
-
-fun addSE w ctxt th cs =
-  if Thm.no_prems th then err_thm ctxt "Ill-formed elimination rule" th
-  else
-    let val info = make_info1 (no_swapped_rl (classical_rule ctxt (flat_rule ctxt th))) th
-    in extend_rules ctxt Bires.elim_bang_kind w (th, info) cs end;
-
-fun addSD w ctxt th = addSE w ctxt (make_elim ctxt th);
-
-fun addI w ctxt th cs =
-  let
-    val th' = flat_rule ctxt th;
-    val dup_th' = dup_intr th' handle THM _ => err_thm ctxt "Ill-formed introduction rule" th;
-    val info = make_info (maybe_swapped_rl th') (maybe_swapped_rl dup_th') th;
-  in extend_rules ctxt Bires.intro_kind w (th, info) cs end;
-
-fun addE w ctxt th cs =
-  let
-    val _ = Thm.no_prems th andalso err_thm ctxt "Ill-formed elimination rule" th;
-    val th' = classical_rule ctxt (flat_rule ctxt th);
-    val dup_th' = dup_elim ctxt th' handle THM _ => err_thm ctxt "Ill-formed elimination rule" th;
-    val info = make_info (no_swapped_rl th') (no_swapped_rl dup_th') th;
-  in extend_rules ctxt Bires.elim_kind w (th, info) cs end;
-
-fun addD w ctxt th = addE w ctxt (make_elim ctxt th);
-
 end;
 
 
 (* delete rules *)
 
-fun delrule ctxt th cs =
+fun delrule ctxt warn th cs =
   let
-    val ths = th :: the_list (try Tactic.make_elim th);
     val CS {decls, swrappers, uwrappers,
       safe0_netpair, safep_netpair, unsafe_netpair, dup_netpair, extra_netpair} = cs;
-    val (old_decls, decls') = fold_map Bires.remove_decls ths decls |>> flat;
+    val (old_decls, decls') = Bires.remove_decls th decls;
+    val _ =
+      if Bires.has_decls decls (Tactic.make_elim th) then
+        warn_thm ctxt
+          (fn () => "Not deleting elim format --- need to to declare proper dest rule") th
+      else ();
   in
-    if null old_decls then (warn_thm ctxt (fn () => "Undeclared classical rule\n") th; cs)
+    if null old_decls then
+      (if warn then warn_thm ctxt (fn () => "Undeclared classical rule") th else (); cs)
     else
       let
         fun del which ({tag = {index, ...}, info, ...}: decl) = delete_rl index (which info);
@@ -497,17 +494,19 @@ fun map_claset f = Context.proof_map (map_cs f);
 fun put_claset cs = map_claset (K cs);
 
 
-(* old-style declarations *)
+(* old-style ML declarations *)
 
-fun decl f (ctxt, ths) = map_claset (fold_rev (f ctxt) ths) ctxt;
+fun ml_decl kind (ctxt, ths) =
+  map_claset (fold_rev (extend_rules ctxt kind NONE) ths) ctxt;
 
-val op addSIs = decl (addSI NONE);
-val op addSEs = decl (addSE NONE);
-val op addSDs = decl (addSD NONE);
-val op addIs = decl (addI NONE);
-val op addEs = decl (addE NONE);
-val op addDs = decl (addD NONE);
-val op delrules = decl delrule;
+val op addSIs = ml_decl Bires.intro_bang_kind;
+val op addSEs = ml_decl Bires.elim_bang_kind;
+val op addSDs = ml_decl Bires.dest_bang_kind;
+val op addIs = ml_decl Bires.intro_kind;
+val op addEs = ml_decl Bires.elim_kind;
+val op addDs = ml_decl Bires.dest_kind;
+
+fun ctxt delrules ths = map_claset (fold_rev (delrule ctxt true) ths) ctxt;
 
 
 
@@ -738,21 +737,21 @@ fun deepen_tac ctxt = DEEPEN (2, 10) (safe_depth_tac ctxt);
 
 (* declarations *)
 
-fun attrib f =
+fun attrib kind w =
   Thm.declaration_attribute (fn th => fn context =>
-    map_cs (f (Context.proof_of context) th) context);
+    map_cs (extend_rules (Context.proof_of context) kind w th) context);
 
-val safe_elim = attrib o addSE;
-val safe_intro = attrib o addSI;
-val safe_dest = attrib o addSD;
-val unsafe_elim = attrib o addE;
-val unsafe_intro = attrib o addI;
-val unsafe_dest = attrib o addD;
+val safe_intro = attrib Bires.intro_bang_kind;
+val safe_elim = attrib Bires.elim_bang_kind;
+val safe_dest = attrib Bires.dest_bang_kind;
+val unsafe_intro = attrib Bires.intro_kind;
+val unsafe_elim = attrib Bires.elim_kind;
+val unsafe_dest = attrib Bires.dest_kind;
 
 val rule_del =
   Thm.declaration_attribute (fn th => fn context =>
     context
-    |> map_cs (delrule (Context.proof_of context) th)
+    |> map_cs (delrule (Context.proof_of context) (not (Context_Rules.declared_rule context th)) th)
     |> Thm.attribute_declaration Context_Rules.rule_del th);
 
 
@@ -861,13 +860,10 @@ val _ =
 fun print_claset ctxt =
   let
     val {decls, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val prt_rules =
-      Bires.pretty_decls ctxt
-        [Bires.intro_bang_kind, Bires.intro_kind, Bires.elim_bang_kind, Bires.elim_kind] decls;
     val prt_wrappers =
      [Pretty.strs ("safe wrappers:" :: map #1 swrappers),
       Pretty.strs ("unsafe wrappers:" :: map #1 uwrappers)];
-  in Pretty.writeln (Pretty.chunks (prt_rules @ prt_wrappers)) end;
+  in Pretty.writeln (Pretty.chunks (Bires.pretty_decls ctxt decls @ prt_wrappers)) end;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_claset\<close> "print context of Classical Reasoner"
