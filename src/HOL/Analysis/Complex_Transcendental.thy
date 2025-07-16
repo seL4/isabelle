@@ -2033,6 +2033,9 @@ corollary\<^marker>\<open>tag unimportant\<close> Arg_ne_0: assumes "z \<notin> 
 lemma Arg_eq_pi_iff: "Arg z = pi \<longleftrightarrow> z \<in> \<real> \<and> Re z < 0"
   using Arg_eq_pi complex_is_Real_iff by blast
 
+lemma Arg_eq_0_iff: "Arg z = 0 \<longleftrightarrow> z \<in> \<real> \<and> Re z \<ge> 0"
+  using Arg_eq_0 complex_is_Real_iff by blast
+
 lemma Arg_eq_0_pi: "Arg z = 0 \<or> Arg z = pi \<longleftrightarrow> z \<in> \<real>"
   using Arg_eq_pi_iff Arg_eq_0 by force
 
@@ -2399,9 +2402,16 @@ lemma powr_nat:
 
 lemma powr_nat': "(z :: complex) \<noteq> 0 \<or> n \<noteq> 0 \<Longrightarrow> z powr of_nat n = z ^ n"
   by (cases "z = 0") (auto simp: powr_nat)
-    
+
+lemma norm_powr_complex: "norm (x powr y) = norm x powr Re y * exp (-Im y * Arg x)"
+  by (simp add: powr_def Arg_eq_Im_Ln norm_divide exp_diff exp_minus field_simps)
+
 lemma norm_powr_real: "w \<in> \<real> \<Longrightarrow> 0 < Re w \<Longrightarrow> norm(w powr z) = exp(Re z * ln(Re w))"
   using Ln_Reals_eq norm_exp_eq_Re by (auto simp: Im_Ln_eq_0 powr_def norm_complex_def)
+
+lemma norm_powr_real_powr:
+  "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
+  by (metis dual_order.order_iff_strict norm_powr_real norm_zero of_real_0 of_real_Re powr_def)
 
 lemma norm_powr_real_powr': "w \<in> \<real> \<Longrightarrow> norm (z powr w) = norm z powr Re w"
   by (auto simp: powr_def Reals_def)
@@ -2603,10 +2613,6 @@ lemma holomorphic_on_divide_gen [holomorphic_intros]:
   assumes "f holomorphic_on S" "g holomorphic_on S" and "\<And>z z'. \<lbrakk>z \<in> S; z' \<in> S\<rbrakk> \<Longrightarrow> g z = 0 \<longleftrightarrow> g z' = 0"
   shows "(\<lambda>z. f z / g z) holomorphic_on S"
   by (metis (no_types, lifting) assms division_ring_divide_zero holomorphic_on_divide holomorphic_transform)
-
-lemma norm_powr_real_powr:
-  "w \<in> \<real> \<Longrightarrow> 0 \<le> Re w \<Longrightarrow> cmod (w powr z) = Re w powr Re z"
-  by (metis dual_order.order_iff_strict norm_powr_real norm_zero of_real_0 of_real_Re powr_def)
 
 lemma tendsto_powr_complex:
   fixes f g :: "_ \<Rightarrow> complex"
