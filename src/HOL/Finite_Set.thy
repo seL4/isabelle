@@ -2239,6 +2239,11 @@ next
   then show "\<exists>B. finite B \<and> card B = Suc n \<and> B \<subseteq> A" ..
 qed
 
+corollary finite_arbitrarily_large_disj:
+  "\<lbrakk> \<not> finite(UNIV::'a set); finite (A::'a set) \<rbrakk> \<Longrightarrow> \<exists>B. finite B \<and> card B = n \<and> A \<inter> B = {}"
+using infinite_arbitrarily_large[of "UNIV - A"]
+by fastforce
+
 text \<open>Sometimes, to prove that a set is finite, it is convenient to work with finite subsets
 and to show that their cardinalities are uniformly bounded. This possibility is formalized in
 the next criterion.\<close>
@@ -2968,11 +2973,6 @@ proof
   with \<open>S \<subseteq> T\<close> have "finite S" by (simp add: finite_subset)
   with \<open>infinite S\<close> show False by simp
 qed
-
-corollary finite_arbitrarily_large_disj:
-  "\<lbrakk> infinite(UNIV::'a set); finite (A::'a set) \<rbrakk> \<Longrightarrow> \<exists>B. finite B \<and> card B = n \<and> A \<inter> B = {}"
-using infinite_arbitrarily_large[of "UNIV - A"]
-by fastforce
 
 proposition infinite_coinduct [consumes 1, case_names infinite]:
   assumes "X A"
