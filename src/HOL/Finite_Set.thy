@@ -2969,6 +2969,11 @@ proof
   with \<open>infinite S\<close> show False by simp
 qed
 
+corollary finite_arbitrarily_large_disj:
+  "\<lbrakk> infinite(UNIV::'a set); finite (A::'a set) \<rbrakk> \<Longrightarrow> \<exists>B. finite B \<and> card B = n \<and> A \<inter> B = {}"
+using infinite_arbitrarily_large[of "UNIV - A"]
+by fastforce
+
 proposition infinite_coinduct [consumes 1, case_names infinite]:
   assumes "X A"
     and step: "\<And>A. X A \<Longrightarrow> \<exists>x\<in>A. X (A - {x}) \<or> infinite (A - {x})"
