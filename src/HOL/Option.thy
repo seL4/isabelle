@@ -277,6 +277,14 @@ begin
 qualified definition these :: "'a option set \<Rightarrow> 'a set"
   where "these A = the ` {x \<in> A. x \<noteq> None}"
 
+qualified lemma these_eq [code]:
+  \<open>these A = the ` (Set.filter (Not \<circ> Option.is_none) A)\<close>
+  by (simp add: these_def Option.is_none_def)
+
+qualified lemma these_unfold:
+  \<open>these A = {x. \<exists>y \<in> A. y = Some x}\<close>
+  by (auto simp add: these_def set_eq_iff image_iff)
+
 lemma these_empty [simp]: "these {} = {}"
   by (simp add: these_def)
 
@@ -311,6 +319,9 @@ lemma these_empty_eq: "these B = {} \<longleftrightarrow> B = {} \<or> B = {None
 
 lemma these_not_empty_eq: "these B \<noteq> {} \<longleftrightarrow> B \<noteq> {} \<and> B \<noteq> {None}"
   by (auto simp add: these_empty_eq)
+
+qualified definition image_filter :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set"
+  where image_filter_eq: "image_filter f A = these (f ` A)"
 
 end
 

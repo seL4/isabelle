@@ -788,7 +788,15 @@ lemma Greatest_code [code]:
     apply auto
   done
 
-declare [[code drop: Set.can_select List.map_project Wellfounded.acc pred_of_set
+lemma [code]:
+  \<open>Option.these A = the ` Set.filter (Not \<circ> Option.is_none) A\<close>
+  by (fact Option.these_eq)
+
+lemma [code]:
+  \<open>Option.image_filter f A = Option.these (image f A)\<close>
+  by (fact Option.image_filter_eq)
+
+declare [[code drop: Set.can_select Wellfounded.acc pred_of_set
   \<open>Inf :: _ \<Rightarrow> 'a Predicate.pred\<close> \<open>Sup :: _ \<Rightarrow> 'a Predicate.pred\<close>]]
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset

@@ -8461,14 +8461,15 @@ lemma Pow_set [code]:
   "Pow (set (x # xs)) = (let A = Pow (set xs) in A \<union> insert x ` A)"
   by (simp_all add: Pow_insert Let_def)
 
-definition map_project :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a set \<Rightarrow> 'b set" where
-  "map_project f A = {b. \<exists> a \<in> A. f a = Some b}"
+lemma these_set_code [code]:
+  \<open>Option.these (set xs) = set (List.map_filter (\<lambda>x. x) xs)\<close>
+  by (simp add: Option.these_eq Option.is_none_def set_eq_iff map_filter_def)
 
-lemma [code]:
-  "map_project f (set xs) = set (List.map_filter f xs)"
-  by (auto simp add: map_project_def map_filter_def image_def)
-
-hide_const (open) map_project
+lemma image_filter_set_eq [code]:
+  \<open>Option.image_filter f (set xs) = set (List.map_filter f xs)\<close>
+  apply (simp add: Option.image_filter_eq these_set_code set_eq_iff flip: set_map)
+  apply (auto simp add: map_filter_def image_iff)
+  done
 
 lemma can_select_set_list_ex1 [code]:
   "Set.can_select P (set A) = list_ex1 P A"
@@ -8482,9 +8483,11 @@ lemma Id_on_set [code]:
   "Id_on (set xs) = set [(x, x). x \<leftarrow> xs]"
   by (auto simp add: Id_on_def)
 
-lemma [code]:
-  "R `` S = List.map_project (\<lambda>(x, y). if x \<in> S then Some y else None) R"
-  by (auto simp add: map_project_def split: prod.split if_split_asm)
+lemma Image_code [code]:
+  "R `` S = Option.image_filter (\<lambda>(x, y). if x \<in> S then Some y else None) R"
+  apply (simp add: Option.image_filter_eq case_prod_unfold Option.these_eq)
+  apply force
+  done
 
 lemma trancl_set_ntrancl [code]:
   "trancl (set xs) = ntrancl (card (set xs) - 1) (set xs)"

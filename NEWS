@@ -136,6 +136,9 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     const [List.]maps → List.maps
     thm maps_def → List.maps_eq [simp]
 
+    const [List.]map_project → Option.image_filter
+    thm map_project_def → Option.image_filter_eq
+
 The _def suffix for characteristic theorems is avoided to emphasize that these
 auxiliary operations are candidates for unfolding since they are variants
 of existing logical concepts. The [simp] declarations try to move the attention
