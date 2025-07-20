@@ -59,6 +59,7 @@ sig
 
   type netpair = (tag * rule) Net.net * (tag * rule) Net.net
   val empty_netpair: netpair
+  val pretty_netpair: Proof.context -> string -> netpair -> Pretty.T list
   val insert_tagged_rule: tag * rule -> netpair -> netpair
   val delete_tagged_rule: int * thm -> netpair -> netpair
 
@@ -240,6 +241,17 @@ end;
 type netpair = (tag * rule) Net.net * (tag * rule) Net.net;
 
 val empty_netpair: netpair = (Net.empty, Net.empty);
+
+fun pretty_netpair ctxt title (inet, enet) =
+  let
+    fun pretty_entry ({weight, ...}: tag, (_, thm): rule) =
+      Pretty.item [Pretty.str (string_of_int weight), Pretty.brk 1, Thm.pretty_thm ctxt thm];
+
+    fun pretty_net elim net =
+      (case Net.content net |> sort_distinct (tag_ord o apply2 #1) |> map pretty_entry of
+        [] => NONE
+      | prts => SOME (Pretty.big_list (title ^ " " ^ (if elim then "elim" else "intro")) prts));
+  in map_filter I [pretty_net false inet, pretty_net true enet] end;
 
 
 (** Natural Deduction using (bires_flg, rule) pairs **)
