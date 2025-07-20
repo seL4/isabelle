@@ -307,10 +307,10 @@ fun clasimpset_rule_table_of ctxt =
       let
         fun add stature th = Termtab.update (normalize_vars (Thm.prop_of th), stature)
 
-        fun claset_rules kind =
-          map #1 (Classical.dest_decls ctxt (fn (_, {kind = kind', ...}) => kind = kind'));
-
-        val intros = claset_rules Bires.intro_bang_kind @ claset_rules Bires.intro_kind;
+        val intros =
+          Classical.dest_decls ctxt (fn (_, {kind, ...}) =>
+            kind = Bires.intro_bang_kind orelse kind = Bires.intro_kind)
+          |> map #1
 (* Add once it is used:
         val elims =
           (claset_rules Bires.elim_bang_kind @ claset_rules Bires.elim_kind)

@@ -149,6 +149,8 @@ fun kind_index (Kind {index, ...}) = index;
 fun kind_is_elim (Kind {is_elim, ...}) = is_elim;
 fun kind_make_elim (Kind {make_elim, ...}) = make_elim ? Tactic.make_elim;
 
+val kind_ord = int_ord o apply2 kind_index ||| bool_ord o apply2 kind_is_elim;
+
 fun kind_name (Kind {is_elim, make_elim, ...}) =
   if is_elim andalso make_elim then "destruction rule"
   else if is_elim then "elimination rule"
@@ -177,7 +179,10 @@ fun kind_title kind =
 
 type 'a decl = {kind: kind, tag: tag, info: 'a};
 
-fun decl_ord (args: 'a decl * 'a decl) = tag_index_ord (apply2 #tag args);
+fun decl_ord (args: 'a decl * 'a decl) =
+  (case kind_ord (apply2 #kind args) of
+    EQUAL => tag_index_ord (apply2 #tag args)
+  | ord => ord);
 
 fun decl_eq_kind ({kind, ...}: 'a decl, {kind = kind', ...}: 'a decl) = kind = kind';
 
