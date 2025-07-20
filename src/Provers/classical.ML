@@ -336,7 +336,7 @@ fun add_unsafe_rule (decl: decl) ((safe_netpairs, (unsafe_netpair, dup_netpair))
 fun add_rule (decl as {kind, ...}: decl) =
   if Bires.kind_safe kind then add_safe_rule decl
   else if Bires.kind_unsafe kind then add_unsafe_rule decl
-  else I;
+  else raise Fail "Bad rule kind";
 
 
 fun trim_context_rl (th1, opt_th2) =
