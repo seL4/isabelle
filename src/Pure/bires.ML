@@ -45,7 +45,7 @@ sig
   val kind_title: kind -> string
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
-  val decl_ord: {reverse_index: bool} -> 'a decl ord
+  val decl_ord: 'a decl ord
   val decl_eq_kind: 'a decl * 'a decl -> bool
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
@@ -149,7 +149,8 @@ fun kind_index (Kind {index, ...}) = index;
 fun kind_is_elim (Kind {is_elim, ...}) = is_elim;
 fun kind_make_elim (Kind {make_elim, ...}) = make_elim ? Tactic.make_elim;
 
-val kind_ord = int_ord o apply2 kind_index ||| bool_ord o apply2 kind_is_elim;
+val kind_index_ord = int_ord o apply2 kind_index;
+val kind_elim_ord = bool_ord o apply2 kind_is_elim;
 
 fun kind_name (Kind {is_elim, make_elim, ...}) =
   if is_elim andalso make_elim then "destruction rule"
@@ -179,9 +180,14 @@ fun kind_title kind =
 
 type 'a decl = {kind: kind, tag: tag, info: 'a};
 
-fun decl_ord {reverse_index} (args: 'a decl * 'a decl) =
-  (case kind_ord (apply2 #kind args) of
-    EQUAL => (reverse_index ? rev_order) (tag_index_ord (apply2 #tag args))
+fun decl_ord (args: 'a decl * 'a decl) =
+  (case kind_index_ord (apply2 #kind args) of
+    EQUAL => tag_index_ord (apply2 #tag args)
+  | ord => ord);
+
+fun decl_merge_ord (args: 'a decl * 'a decl) =
+  (case kind_elim_ord (apply2 #kind args) of
+    EQUAL => rev_order (tag_index_ord (apply2 #tag args))
   | ord => ord);
 
 fun decl_eq_kind ({kind, ...}: 'a decl, {kind = kind', ...}: 'a decl) = kind = kind';
@@ -214,8 +220,7 @@ fun dest_decls_ord ord (Decls {rules, ...}) pred =
   build (rules |> Proptab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
   |> sort (ord o apply2 #2);
 
-fun dest_decls decls = dest_decls_ord (decl_ord {reverse_index = false}) decls;
-fun dest_decls' decls = dest_decls_ord (decl_ord {reverse_index = true}) decls;
+fun dest_decls decls = dest_decls_ord decl_ord decls;
 
 fun pretty_decls ctxt decls =
   kind_domain |> map_filter (fn kind =>
@@ -226,7 +231,7 @@ fun pretty_decls ctxt decls =
           (map (Thm.pretty_thm_item ctxt o #1) ds))));
 
 fun merge_decls (decls1, decls2) =
-  decls1 |> fold_map add_decls (dest_decls' decls2 (not o dup_decls decls1));
+  decls1 |> fold_map add_decls (dest_decls_ord decl_merge_ord decls2 (not o dup_decls decls1));
 
 fun extend_decls (thm, decl) decls =
   if dup_decls decls (thm, decl) then (NONE, decls)
