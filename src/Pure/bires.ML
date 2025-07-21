@@ -45,7 +45,7 @@ sig
   val kind_title: kind -> string
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
-  val decl_ord: 'a decl ord
+  val decl_ord: {reverse_index: bool} -> 'a decl ord
   val decl_eq_kind: 'a decl * 'a decl -> bool
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
@@ -179,9 +179,9 @@ fun kind_title kind =
 
 type 'a decl = {kind: kind, tag: tag, info: 'a};
 
-fun decl_ord (args: 'a decl * 'a decl) =
+fun decl_ord {reverse_index} (args: 'a decl * 'a decl) =
   (case kind_ord (apply2 #kind args) of
-    EQUAL => tag_index_ord (apply2 #tag args)
+    EQUAL => (reverse_index ? rev_order) (tag_index_ord (apply2 #tag args))
   | ord => ord);
 
 fun decl_eq_kind ({kind, ...}: 'a decl, {kind = kind', ...}: 'a decl) = kind = kind';
@@ -210,9 +210,12 @@ fun has_decls (Decls {rules, ...}) = Proptab.defined rules;
 
 fun get_decls (Decls {rules, ...}) = Proptab.lookup_list rules;
 
-fun dest_decls (Decls {rules, ...}) pred =
+fun dest_decls_ord ord (Decls {rules, ...}) pred =
   build (rules |> Proptab.fold (fn (th, ds) => ds |> fold (fn d => pred (th, d) ? cons (th, d))))
-  |> sort (decl_ord o apply2 #2);
+  |> sort (ord o apply2 #2);
+
+fun dest_decls decls = dest_decls_ord (decl_ord {reverse_index = false}) decls;
+fun dest_decls' decls = dest_decls_ord (decl_ord {reverse_index = true}) decls;
 
 fun pretty_decls ctxt decls =
   kind_domain |> map_filter (fn kind =>
@@ -223,7 +226,7 @@ fun pretty_decls ctxt decls =
           (map (Thm.pretty_thm_item ctxt o #1) ds))));
 
 fun merge_decls (decls1, decls2) =
-  decls1 |> fold_map add_decls (rev (dest_decls decls2 (not o dup_decls decls1)));
+  decls1 |> fold_map add_decls (dest_decls' decls2 (not o dup_decls decls1));
 
 fun extend_decls (thm, decl) decls =
   if dup_decls decls (thm, decl) then (NONE, decls)

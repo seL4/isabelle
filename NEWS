@@ -22,7 +22,7 @@ order of rule declarations is maintained accurately, regardless of
 intermediate [rule del] declarations. Furthermore, [dest] is now a
 proper declaration on its own account, instead of the former expansion
 [elim_format, elim]. Consequently, [rule del] no longer deletes the
-[elim_format] of the given rule, only the original rule. Rare
+[elim_format] of the given rule, only the original rule. Very rare
 INCOMPATIBILITY: tools like "blast" and "auto" may fail in unusual
 situations.
 
