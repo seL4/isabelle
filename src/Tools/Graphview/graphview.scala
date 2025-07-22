@@ -90,12 +90,12 @@ abstract class Graphview(full_graph: Graph_Display.Graph) {
 
   /* main colors */
 
-  def foreground_color: Color = GUI.default_foreground_color()
-  def background_color: Color = GUI.default_background_color()
+  def foreground_color: Color = Color.BLACK
+  def background_color: Color = Color.WHITE
   def selection_color: Color = new Color(204, 204, 255)
   def highlight_color: Color = new Color(255, 255, 224)
   def error_color: Color = Color.RED
-  def dummy_color: Color = GUI.default_intermediate_color()
+  def dummy_color: Color = Color.GRAY
 
 
   /* font rendering information */
