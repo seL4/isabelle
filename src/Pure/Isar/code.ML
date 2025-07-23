@@ -66,6 +66,7 @@ sig
   (*transitional*)
   val only_single_equation: bool Config.T
   val prepend_allowed: bool Config.T
+  val strict_drop: bool Config.T
 end;
 
 signature CODE_DATA_ARGS =
@@ -113,6 +114,7 @@ fun string_of_const thy c =
 
 val only_single_equation = Attrib.setup_config_bool \<^binding>\<open>code_only_single_equation\<close> (K false);
 val prepend_allowed = Attrib.setup_config_bool \<^binding>\<open>code_prepend_allowed\<close> (K false);
+val strict_drop = Attrib.setup_config_bool \<^binding>\<open>code_strict_drop\<close> (K false);
 
 val _ = Theory.setup (Theory.at_end ((fn thy => if Config.get_global thy prepend_allowed
   then thy |> Config.put_global prepend_allowed false |> SOME
@@ -1529,8 +1531,11 @@ val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare
 fun declare_aborting_global c =
   modify_specs (register_fun_spec c aborting);
 
-fun declare_unimplemented_global c =
-  modify_specs (register_fun_spec c unimplemented);
+fun declare_unimplemented_global c thy =
+  if Config.get_global thy strict_drop
+    andalso is_unimplemented (lookup_fun_spec (specs_of thy) c)
+  then error "No implementation to drop"
+  else modify_specs (register_fun_spec c unimplemented) thy;
 
 
 (* cases *)
