@@ -17,10 +17,6 @@ text \<open>
 \<close>
 
 declare [[code drop:
-  "Inf :: _ Predicate.pred set \<Rightarrow> _"
-  "Sup :: _ Predicate.pred set \<Rightarrow> _"
-  pred_of_set
-  Wellfounded.acc
   Code_Cardinality.card'
   Code_Cardinality.finite'
   Code_Cardinality.subset'

@@ -108,15 +108,17 @@ instance ..
 
 end
 
-declare [[code drop: rec_term case_term
-  "term_of :: typerep \<Rightarrow> _" "term_of :: term \<Rightarrow> _" "term_of :: String.literal \<Rightarrow> _"
-  "term_of :: _ Predicate.pred \<Rightarrow> term" "term_of :: _ Predicate.seq \<Rightarrow> term"]]
+declare [[code drop:
+  "term_of :: typerep \<Rightarrow> _"
+  "term_of :: term \<Rightarrow> _"
+  "term_of :: integer \<Rightarrow> _"
+  "term_of :: String.literal \<Rightarrow> _"
+  "term_of :: _ Predicate.pred \<Rightarrow> _"
+  "term_of :: _ Predicate.seq \<Rightarrow> _"]]
 
 code_printing
   constant "term_of :: integer \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_number/ HOLogic.code'_integerT"
 | constant "term_of :: String.literal \<Rightarrow> term" \<rightharpoonup> (Eval) "HOLogic.mk'_literal"
-
-declare [[code drop: "term_of :: integer \<Rightarrow> _"]]
 
 lemma term_of_integer [unfolded typerep_fun_def typerep_num_def typerep_integer_def, code]:
   "term_of (i :: integer) =

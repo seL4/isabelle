@@ -2088,8 +2088,6 @@ code_datatype principal abstract_filter
 
 hide_const (open) abstract_filter
 
-declare [[code drop: Abs_filter]]
-
 declare filterlim_principal [code]
 declare principal_prod_principal [code]
 declare filtermap_principal [code]
