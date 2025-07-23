@@ -36,13 +36,13 @@ sig
   val kind_index: kind -> int
   val kind_is_elim: kind -> bool
   val kind_make_elim: kind -> thm -> thm
-  val kind_name: kind -> string
   val kind_domain: kind list
   val kind_values: 'a -> 'a list
   val kind_map: kind -> ('a -> 'a) -> 'a list -> 'a list
   val kind_rule: kind -> thm -> rule
   val kind_description: kind -> string
   val kind_title: kind -> string
+  val kind_name: kind -> string
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
   val decl_ord: 'a decl ord
@@ -151,11 +151,6 @@ fun kind_make_elim (Kind {make_elim, ...}) = make_elim ? Tactic.make_elim;
 val kind_index_ord = int_ord o apply2 kind_index;
 val kind_elim_ord = bool_ord o apply2 kind_is_elim;
 
-fun kind_name (Kind {is_elim, make_elim, ...}) =
-  if is_elim andalso make_elim then "destruction rule"
-  else if is_elim then "elimination rule"
-  else "introduction rule";
-
 val kind_domain = map #1 kind_infos;
 
 fun kind_values x =
@@ -173,6 +168,11 @@ fun kind_description kind =
 fun kind_title kind =
   let val (a, b) = the_kind_info kind
   in a ^ " rules " ^ b end;
+
+fun kind_name (Kind {is_elim, make_elim, ...}) =
+  if is_elim andalso make_elim then "destruction rule"
+  else if is_elim then "elimination rule"
+  else "introduction rule";
 
 
 (* rule declarations in canonical order *)
