@@ -46,7 +46,6 @@ sig
 
   type 'a decl = {kind: kind, tag: tag, info: 'a}
   val decl_ord: 'a decl ord
-  val decl_eq_kind: 'a decl * 'a decl -> bool
   type 'a decls
   val has_decls: 'a decls -> thm -> bool
   val get_decls: 'a decls -> thm -> 'a decl list
@@ -190,8 +189,6 @@ fun decl_merge_ord (args: 'a decl * 'a decl) =
     EQUAL => rev_order (tag_index_ord (apply2 #tag args))
   | ord => ord);
 
-fun decl_eq_kind ({kind, ...}: 'a decl, {kind = kind', ...}: 'a decl) = kind = kind';
-
 fun next_decl next ({kind, tag, info}: 'a decl) : 'a decl =
   {kind = kind, tag = next_tag next tag, info = info};
 
@@ -201,8 +198,8 @@ with
 
 local
 
-fun dup_decls (Decls {rules, ...}) (thm, decl) =
-  member decl_eq_kind (Proptab.lookup_list rules thm) decl;
+fun dup_decls (Decls {rules, ...}) (thm, {kind, ...}: 'a decl) =
+  exists (fn {kind = kind', ...} => kind = kind') (Proptab.lookup_list rules thm);
 
 fun add_decls (thm, decl) (Decls {next, rules}) =
   let
