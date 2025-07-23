@@ -4,6 +4,7 @@
 Scalable collections of term items:
   - table: e.g. for instantiation
   - set with order of addition, e.g. occurrences within term
+    (assuming that there were no remove operations)
 *)
 
 signature TERM_ITEMS =
