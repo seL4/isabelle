@@ -664,8 +664,6 @@ lemma Inf_fin_set_fold [code]:
   "Inf_fin (Set t) = Min (Set t)"
 by (simp add: inf_min Inf_fin_def Min_def)
 
-declare [[code drop: "Inf :: _ \<Rightarrow> 'a set"]]
-
 lemma Inf_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
   shows "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
@@ -694,8 +692,6 @@ qed
 lemma Sup_fin_set_fold [code]:
   "Sup_fin (Set t) = Max (Set t)"
 by (simp add: sup_max Sup_fin_def Max_def)
-
-declare [[code drop: "Sup :: _ \<Rightarrow> 'a set"]]
 
 lemma Sup_Set_fold:
   fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
@@ -796,8 +792,18 @@ lemma [code]:
   \<open>Option.image_filter f A = Option.these (image f A)\<close>
   by (fact Option.image_filter_eq)
 
-declare [[code drop: Set.can_select Wellfounded.acc pred_of_set
-  \<open>Inf :: _ \<Rightarrow> 'a Predicate.pred\<close> \<open>Sup :: _ \<Rightarrow> 'a Predicate.pred\<close>]]
+lemma [code]:
+  \<open>Set.can_select P A = is_singleton (Set.filter P A)\<close>
+  by (fact Set.can_select_iff_is_singleton)
+
+declare [[code drop:
+  \<open>Inf :: _ \<Rightarrow> 'a set\<close>
+  \<open>Sup :: _ \<Rightarrow> 'a set\<close>
+  \<open>Inf :: _ \<Rightarrow> 'a Predicate.pred\<close>
+  \<open>Sup :: _ \<Rightarrow> 'a Predicate.pred\<close>
+  pred_of_set
+  Wellfounded.acc
+]]
 
 hide_const (open) RBT_Set.Set RBT_Set.Coset
 
