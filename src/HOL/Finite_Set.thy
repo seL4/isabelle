@@ -2173,12 +2173,21 @@ lemma card_1_singletonE:
   obtains x where "A = {x}"
   using assms by (auto simp: card_Suc_eq)
 
-lemma is_singleton_altdef: "is_singleton A \<longleftrightarrow> card A = 1"
-  unfolding is_singleton_def
-  by (auto elim!: card_1_singletonE is_singletonE simp del: One_nat_def)
+lemma is_singleton_iff_card_eq_Suc_0 [code]:
+  \<open>is_singleton A \<longleftrightarrow> card A = Suc 0\<close>
+  by (simp add: is_singleton_def card_Suc_eq)
 
-lemma card_1_singleton_iff: "card A = Suc 0 \<longleftrightarrow> (\<exists>x. A = {x})"
-  by (simp add: card_Suc_eq)
+lemma is_singleton_altdef:
+  \<open>is_singleton A \<longleftrightarrow> card A = 1\<close>
+  by (simp add: is_singleton_iff_card_eq_Suc_0)
+
+lemma card_eq_Suc_0_iff_is_singleton:
+  \<open>card A = Suc 0 \<longleftrightarrow> is_singleton A\<close>
+  by (simp add: is_singleton_altdef)
+
+lemma card_1_singleton_iff:
+  \<open>card A = Suc 0 \<longleftrightarrow> (\<exists>x. A = {x})\<close>
+  by (simp add: card_eq_Suc_0_iff_is_singleton is_singleton_def)
 
 lemma card_le_Suc0_iff_eq:
   assumes "finite A"

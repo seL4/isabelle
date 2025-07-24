@@ -1825,6 +1825,10 @@ lemma is_singletonI': "A \<noteq> {} \<Longrightarrow> (\<And>x y. x \<in> A \<L
 lemma is_singletonE: "is_singleton A \<Longrightarrow> (\<And>x. A = {x} \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding is_singleton_def by blast
 
+lemma is_singleton_iff_ex1:
+  \<open>is_singleton A \<longleftrightarrow> (\<exists>!x. x \<in> A)\<close>
+  by (auto simp add: is_singleton_def)
+
 
 subsubsection \<open>Getting the contents of a singleton set\<close>
 
@@ -1895,6 +1899,10 @@ qualified definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<R
 
 qualified definition can_select :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" \<comment> \<open>only for code generation\<close>
   where can_select_iff [code_abbrev, simp]: "can_select P A = (\<exists>!x\<in>A. P x)"
+
+qualified lemma can_select_iff_is_singleton:
+  \<open>Set.can_select P A \<longleftrightarrow> is_singleton (Set.filter P A)\<close>
+  by (simp add: is_singleton_iff_ex1)
 
 end
 
