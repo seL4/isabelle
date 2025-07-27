@@ -570,7 +570,7 @@ class Rendering(
     } yield Text.Info(r, color)
   }
 
-  def text_messages(range: Text.Range): List[Text.Info[XML.Elem]] = {
+  def text_messages(range: Text.Range = Text.Range.full): List[Text.Info[XML.Elem]] = {
     val results =
       snapshot.cumulate[Vector[Command.Results.Entry]](
         range, Vector.empty, Rendering.message_elements, command_states =>

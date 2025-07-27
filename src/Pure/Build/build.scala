@@ -820,7 +820,7 @@ Usage: isabelle build_worker [OPTIONS]
                 case Some(snapshot) =>
                   val rendering = new Rendering(snapshot, options, session)
                   val messages =
-                    rendering.text_messages(Text.Range.full)
+                    rendering.text_messages()
                       .filter(message => progress.verbose || Protocol.is_exported(message.info))
                   if (messages.nonEmpty) {
                     val line_document = Line.Document(snapshot.node.source)
