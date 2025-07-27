@@ -445,21 +445,21 @@ object Markup {
   object Command_Span {
     val Is_Begin = new Properties.Boolean("is_begin")
 
-    sealed case class Arg(name: String, kind: String, is_begin: Boolean) {
+    sealed case class Args(name: String, kind: String, is_begin: Boolean) {
       def properties: Properties.T =
         (if (name.isEmpty) Nil else Name(name)) :::
         (if (kind.isEmpty) Nil else Kind(kind)) :::
         (if (!is_begin) Nil else Is_Begin(is_begin))
     }
 
-    def apply(arg: Arg): Markup = Markup(COMMAND_SPAN, arg.properties)
+    def apply(args: Args): Markup = Markup(COMMAND_SPAN, args.properties)
     def apply(name: String, kind: String, is_begin: Boolean): Markup =
-      apply(Arg(name, kind, is_begin))
+      apply(Args(name, kind, is_begin))
 
-    def unapply(markup: Markup): Option[Arg] =
+    def unapply(markup: Markup): Option[Args] =
       if (markup.name == COMMAND_SPAN) {
         val props = markup.properties
-        Some(Arg(Name.get(props), Kind.get(props), Is_Begin.get(props)))
+        Some(Args(Name.get(props), Kind.get(props), Is_Begin.get(props)))
       }
       else None
   }

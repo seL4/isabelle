@@ -816,11 +816,11 @@ object Document {
 
     /* command spans --- according to PIDE markup */
 
-    def command_spans(range: Text.Range): List[Text.Info[Markup.Command_Span.Arg]] =
+    def command_spans(range: Text.Range): List[Text.Info[Markup.Command_Span.Args]] =
       select(range, Markup.Elements(Markup.COMMAND_SPAN), _ =>
         {
-          case Text.Info(range, XML.Elem(Markup.Command_Span(arg), _)) =>
-            Some(Text.Info(range, arg))
+          case Text.Info(range, XML.Elem(Markup.Command_Span(args), _)) =>
+            Some(Text.Info(range, args))
           case _ => None
         }).map(_.info)
   }
