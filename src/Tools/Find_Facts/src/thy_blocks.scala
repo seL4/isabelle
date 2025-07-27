@@ -112,7 +112,7 @@ object Thy_Blocks {
 
   def read_blocks(snapshot: Document.Snapshot): List[Block] = {
     val spans =
-      for (Text.Info(range, arg) <- snapshot.command_spans(Text.Range.full))
+      for (Text.Info(range, arg) <- snapshot.command_spans())
         yield Span(range, arg.name, arg.kind, arg.is_begin)
     Parser.parse(spans)
   }
