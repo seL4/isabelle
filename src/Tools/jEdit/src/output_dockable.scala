@@ -28,14 +28,17 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   val output: Output_Area =
     new Output_Area(view) {
-      override def handle_update(): Unit = dockable.handle_update(true)
+      override def handle_update(): Unit = dockable.handle_update()
       override def handle_shown(): Unit = split_pane_layout()
     }
 
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
 
-  private def handle_update(follow: Boolean, restriction: Option[Set[Command]] = None): Unit = {
+  private def handle_update(
+    follow: Boolean = true,
+    restriction: Option[Set[Command]] = None
+  ): Unit = {
     GUI_Thread.require {}
 
     for {
@@ -67,13 +70,13 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     tooltip = "Indicate automatic update following cursor movement"
     override def clicked(state: Boolean): Unit = {
       do_update = state
-      handle_update(do_update)
+      handle_update(follow = do_update)
     }
   }
 
   private val update_button = new GUI.Button("Update") {
     tooltip = "Update display according to the command at cursor position"
-    override def clicked(): Unit = handle_update(true)
+    override def clicked(): Unit = handle_update()
   }
 
   private val controls =
@@ -98,10 +101,10 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
       case changed: Session.Commands_Changed =>
         val restriction = if (changed.assignment) None else Some(changed.commands)
-        GUI_Thread.later { handle_update(do_update, restriction = restriction) }
+        GUI_Thread.later { handle_update(follow = do_update, restriction = restriction) }
 
       case Session.Caret_Focus =>
-        GUI_Thread.later { handle_update(do_update) }
+        GUI_Thread.later { handle_update(follow = do_update) }
     }
 
   override def init(): Unit = {
