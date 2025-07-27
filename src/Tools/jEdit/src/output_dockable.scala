@@ -41,18 +41,11 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     for {
       snapshot <- PIDE.editor.current_node_snapshot(view)
       if follow && !snapshot.is_outdated
+      command <- PIDE.editor.current_command(view, snapshot)
+      if restriction.isEmpty || restriction.get.contains(command)
     } {
-      val (command, results) =
-        PIDE.editor.current_command(view, snapshot) match {
-          case Some(command) => (command, snapshot.command_results(command))
-          case None => (Command.empty, Command.Results.empty)
-        }
-
-      val new_output =
-        if (restriction.isEmpty || restriction.get.contains(command))
-          Rendering.output_messages(results, JEdit_Options.output_state())
-        else current_output
-
+      val results = snapshot.command_results(command)
+      val new_output = Rendering.output_messages(results, JEdit_Options.output_state())
       if (current_output != new_output) {
         output.pretty_text_area.update(snapshot, results, new_output)
         current_output = new_output
