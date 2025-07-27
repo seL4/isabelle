@@ -13,36 +13,11 @@ import isabelle._
 object Thy_Blocks {
   /** spans **/
 
-  val keyword_elements =
-    Markup.Elements(Markup.KEYWORD, Markup.KEYWORD1, Markup.KEYWORD2, Markup.KEYWORD3)
-
-  object Span {
-    def read_build(snapshot: Document.Snapshot): List[Span] = {
-      def is_begin(markup: Text.Markup): Boolean = markup.info match {
-        case XML.Elem(Markup(_, Markup.Kind(Markup.KEYWORD)), Nil) =>
-          XML.content(snapshot.xml_markup(markup.range)) == "begin"
-        case _ => false
-      }
-
-      def has_begin(range: Text.Range): Boolean =
-        snapshot
-          .select(range, keyword_elements, _ => markup => Some(is_begin(markup)))
-          .exists(_.info)
-
-      snapshot.select(Text.Range.full, Markup.Elements(Markup.COMMAND_SPAN), _ =>
-        {
-          case Text.Info(range, XML.Elem(Markup.Command_Span(arg), _)) =>
-            Some(Span(range, arg.name, arg.kind, has_begin(range)))
-          case _ => None
-        }).map(_.info)
-    }
-  }
-
   case class Span(
     override val range: Text.Range,
     override val command: String,
     kind: String,
-    has_begin: Boolean
+    is_begin: Boolean
   ) extends Block {
     def spans: List[Span] = List(this)
 
@@ -114,7 +89,7 @@ object Thy_Blocks {
           case Some(_) if span.is_of_kind(Keyword.diag) => blocks.add(span)
           case Some(Thy(_)) if span.is_of_kind(Keyword.theory_goal) => blocks.push(Prf(List(span)))
           case Some(Thy(_)) if span.is_of_kind(Keyword.theory_block) =>
-            (if (span.has_begin) blocks.push else blocks.add)(Decl(List(span)))
+            (if (span.is_begin) blocks.push else blocks.add)(Decl(List(span)))
           case Some(Thy(_)) if span.is_of_kind(Keyword.theory_end) => blocks.add(span).pop
           case Some(Thy(_)) if span.is_of_kind(Keyword.theory_body) => blocks.add(span)
           case Some(Prf(_)) if span.is_of_kind(Keyword.proof_open) => blocks.push(Prf(List(span)))
@@ -125,7 +100,7 @@ object Thy_Blocks {
           case Some(Decl(_)) if span.is_of_kind(Keyword.proof_body) => blocks.add(span)
           case Some(Decl(_)) if span.is_of_kind(Keyword.theory_goal) => blocks.push(Prf(List(span)))
           case Some(Decl(_)) if span.is_of_kind(Keyword.theory_block) =>
-            (if (span.has_begin) blocks.push else blocks.add)(Decl(List(span)))
+            (if (span.is_begin) blocks.push else blocks.add)(Decl(List(span)))
           case Some(Decl(_)) if span.is_of_kind(Keyword.theory_end) => blocks.add(span).pop
           case Some(Decl(_)) if span.is_of_kind(Keyword.theory_body) => blocks.add(span)
           case e => error("Unexpected span " + span + " at " + e)
@@ -135,6 +110,10 @@ object Thy_Blocks {
     }
   }
 
-  def read_blocks(snapshot: Document.Snapshot): List[Block] =
-    Parser.parse(Span.read_build(snapshot))
+  def read_blocks(snapshot: Document.Snapshot): List[Block] = {
+    val spans =
+      for (Text.Info(range, arg) <- snapshot.command_spans(Text.Range.full))
+        yield Span(range, arg.name, arg.kind, arg.is_begin)
+    Parser.parse(spans)
+  }
 }

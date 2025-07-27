@@ -127,7 +127,8 @@ fun read keywords thy master_dir init blobs_info span =
         let
           val name = Toplevel.name_of tr;
           val kind = the_default "" (Keyword.command_kind (Thy_Header.get_keywords thy) name);
-          val markup = Markup.command_span {name = name, kind = kind};
+          val is_begin = exists Token.is_begin span;
+          val markup = Markup.command_span {name = name, kind = kind, is_begin = is_begin};
         in Position.report (#1 core_range) markup end;
   in tr end;
 

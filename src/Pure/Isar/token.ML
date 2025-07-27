@@ -54,6 +54,7 @@ sig
   val is_formal_comment: T -> bool
   val is_document_marker: T -> bool
   val is_ignored: T -> bool
+  val is_begin: T -> bool
   val is_begin_ignore: T -> bool
   val is_end_ignore: T -> bool
   val is_error: T -> bool
@@ -275,6 +276,9 @@ fun is_formal_comment (Token (_, (Comment (SOME _), _), _)) = true
 
 fun is_document_marker (Token (_, (Comment (SOME Comment.Marker), _), _)) = true
   | is_document_marker _ = false;
+
+fun is_begin (Token (_, (Keyword, "begin"), _)) = true
+  | is_begin _ = false;
 
 fun is_begin_ignore (Token (_, (Comment NONE, "<"), _)) = true
   | is_begin_ignore _ = false;

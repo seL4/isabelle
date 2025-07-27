@@ -812,6 +812,17 @@ object Document {
       for (case Text.Info(r, Some(x)) <- cumulate(range, None, elements, result1, status))
         yield Text.Info(r, x)
     }
+
+
+    /* command spans --- according to PIDE markup */
+
+    def command_spans(range: Text.Range): List[Text.Info[Markup.Command_Span.Arg]] =
+      select(range, Markup.Elements(Markup.COMMAND_SPAN), _ =>
+        {
+          case Text.Info(range, XML.Elem(Markup.Command_Span(arg), _)) =>
+            Some(Text.Info(range, arg))
+          case _ => None
+        }).map(_.info)
   }
 
 
