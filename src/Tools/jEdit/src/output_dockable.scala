@@ -35,23 +35,22 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
 
-  private def handle_update(restriction: Option[Set[Command]] = None): Unit = {
-    GUI_Thread.require {}
-
-    for {
-      snapshot <- PIDE.editor.current_node_snapshot(view)
-      if !snapshot.is_outdated
-      command <- PIDE.editor.current_command(view, snapshot)
-      if restriction.isEmpty || restriction.get.contains(command)
-    } {
-      val results = snapshot.command_results(command)
-      val new_output = Rendering.output_messages(results, JEdit_Options.output_state())
-      if (current_output != new_output) {
-        output.pretty_text_area.update(snapshot, results, new_output)
-        current_output = new_output
+  private def handle_update(restriction: Option[Set[Command]] = None): Unit =
+    GUI_Thread.require {
+      for {
+        snapshot <- PIDE.editor.current_node_snapshot(view)
+        if !snapshot.is_outdated
+        command <- PIDE.editor.current_command(view, snapshot)
+        if restriction.isEmpty || restriction.get.contains(command)
+      } {
+        val results = snapshot.command_results(command)
+        val new_output = Rendering.output_messages(results, JEdit_Options.output_state())
+        if (current_output != new_output) {
+          output.pretty_text_area.update(snapshot, results, new_output)
+          current_output = new_output
+        }
       }
     }
-  }
 
   output.setup(dockable)
   dockable.set_content(output.split_pane)
