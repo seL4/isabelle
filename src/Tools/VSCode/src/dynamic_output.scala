@@ -29,7 +29,7 @@ class Dynamic_Output private(server: Language_Server) {
             case None => Some(Nil)
             case Some(command) =>
               if (restriction.isEmpty || restriction.get.contains(command)) {
-                val output_state = server.resources.options.bool("editor_output_state")
+                val output_state = server.editor.output_state()
                 Some(Rendering.output_messages(snapshot.command_results(command), output_state))
               } else None
           }

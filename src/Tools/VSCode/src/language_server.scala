@@ -587,6 +587,11 @@ class Language_Server(
       current_command(snapshot)
 
 
+    /* output messages */
+
+    override def output_state(): Boolean = resources.options.bool("editor_output_state")
+
+
     /* overlays */
 
     override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =

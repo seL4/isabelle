@@ -89,6 +89,11 @@ abstract class Editor[Context] {
   def current_command(context: Context, snapshot: Document.Snapshot): Option[Command]
 
 
+  /* output messages */
+
+  def output_state(): Boolean
+
+
   /* overlays */
 
   def node_overlays(name: Document.Node.Name): Document.Node.Overlays

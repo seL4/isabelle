@@ -89,6 +89,11 @@ class JEdit_Editor extends Editor[View] {
     }
 
 
+  /* output messages */
+
+  override def output_state(): Boolean = JEdit_Options.output_state()
+
+
   /* overlays */
 
   override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
