@@ -20,22 +20,14 @@ class Dynamic_Output private(server: Language_Server) {
     pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
 
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
-    val maybe_output =
+    val output =
       server.resources.get_caret() match {
-        case None => Some(Nil)
+        case None => Editor.Output.init
         case Some(caret) =>
           val snapshot = server.resources.snapshot(caret.model)
-          snapshot.current_command(caret.node_name, caret.offset) match {
-            case None => Some(Nil)
-            case Some(command) =>
-              if (restriction.isEmpty || restriction.get.contains(command)) {
-                Some(server.editor.output_messages(snapshot.command_results(command)))
-              }
-              else None
-          }
+          server.editor.output(snapshot, caret.offset)
       }
-      
-    maybe_output.foreach(pretty_panel.refresh)
+    if (output.defined) pretty_panel.refresh(output.messages)
   }
 
 

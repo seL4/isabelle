@@ -7,6 +7,21 @@ General editor operations.
 package isabelle
 
 
+object Editor {
+  /* output messages */
+
+  object Output {
+    val none: Output = Output(defined = false)
+    val init: Output = Output()
+  }
+
+  sealed case class Output(
+    results: Command.Results = Command.Results.empty,
+    messages: List[XML.Elem] = Nil,
+    defined: Boolean = true
+  )
+}
+
 abstract class Editor[Context] {
   /* PIDE session and document model */
 
@@ -93,13 +108,30 @@ abstract class Editor[Context] {
 
   def output_state(): Boolean
 
-  def output_messages(results: Command.Results): List[XML.Elem] = {
-    val (states, other) =
-      results.iterator.map(_._2).filterNot(Protocol.is_result).toList
-        .partition(Protocol.is_state)
-    val (urgent, regular) = other.partition(Protocol.is_urgent)
+  def output(
+    snapshot: Document.Snapshot,
+    offset: Text.Offset,
+    restriction: Option[Set[Command]] = None
+  ): Editor.Output = {
+    if (snapshot.is_outdated) Editor.Output.none
+    else {
+      snapshot.current_command(snapshot.node_name, offset) match {
+        case None => Editor.Output.init
+        case Some(command) =>
+          if (restriction.isEmpty || restriction.get.contains(command)) {
+            val results = snapshot.command_results(command)
 
-    urgent ::: (if (output_state()) states else Nil) ::: regular
+            val (states, other) =
+              results.iterator.map(_._2).filterNot(Protocol.is_result).toList
+                .partition(Protocol.is_state)
+            val (urgent, regular) = other.partition(Protocol.is_urgent)
+            val messages = urgent ::: (if (output_state()) states else Nil) ::: regular
+
+            Editor.Output(results = results, messages = messages)
+          }
+          else Editor.Output.none
+      }
+    }
   }
 
 
