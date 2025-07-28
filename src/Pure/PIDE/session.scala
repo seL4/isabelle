@@ -672,7 +672,7 @@ abstract class Session extends Document.Session {
                 case Some(version) =>
                   val consolidate =
                     version.nodes.descendants(consolidation.flush().toList).filter { name =>
-                      !resources.session_base.loaded_theory(name) &&
+                      !resources.loaded_theory(name) &&
                       !state.node_consolidated(version, name) &&
                       state.node_maybe_consolidated(version, name)
                     }
