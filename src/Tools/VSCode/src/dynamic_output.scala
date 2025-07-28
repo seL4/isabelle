@@ -19,7 +19,7 @@ class Dynamic_Output private(server: Language_Server) {
   def pretty_panel: Pretty_Text_Panel =
     pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
 
-  private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
+  private def handle_update(restriction: Option[Set[Command]] = None): Unit = {
     val output =
       server.resources.get_caret() match {
         case None => Editor.Output.init
@@ -36,10 +36,10 @@ class Dynamic_Output private(server: Language_Server) {
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case changed: Session.Commands_Changed =>
-        handle_update(if (changed.assignment) None else Some(changed.commands))
+        handle_update(restriction = if (changed.assignment) None else Some(changed.commands))
 
       case Session.Caret_Focus =>
-        handle_update(None)
+        handle_update()
     }
 
   def init(): Unit = {
@@ -50,7 +50,7 @@ class Dynamic_Output private(server: Language_Server) {
         server.session,
         server.channel,
         LSP.Dynamic_Output.apply)))
-    handle_update(None)
+    handle_update()
   }
 
   def exit(): Unit = {
