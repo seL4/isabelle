@@ -95,15 +95,6 @@ object Rendering {
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
 
-  def output_messages(results: Command.Results, output_state: Boolean): List[XML.Elem] = {
-    val (states, other) =
-      results.iterator.map(_._2).filterNot(Protocol.is_result).toList
-        .partition(Protocol.is_state)
-    val (urgent, regular) = other.partition(Protocol.is_urgent)
-
-    urgent ::: (if (output_state) states else Nil) ::: regular
-  }
-
 
   /* text color */
 

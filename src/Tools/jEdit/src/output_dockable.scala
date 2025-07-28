@@ -44,7 +44,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         if restriction.isEmpty || restriction.get.contains(command)
       } {
         val results = snapshot.command_results(command)
-        val new_output = Rendering.output_messages(results, PIDE.editor.output_state())
+        val new_output = PIDE.editor.output_messages(results)
         if (current_output != new_output) {
           output.pretty_text_area.update(snapshot, results, new_output)
           current_output = new_output

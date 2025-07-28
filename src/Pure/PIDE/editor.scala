@@ -93,6 +93,15 @@ abstract class Editor[Context] {
 
   def output_state(): Boolean
 
+  def output_messages(results: Command.Results): List[XML.Elem] = {
+    val (states, other) =
+      results.iterator.map(_._2).filterNot(Protocol.is_result).toList
+        .partition(Protocol.is_state)
+    val (urgent, regular) = other.partition(Protocol.is_urgent)
+
+    urgent ::: (if (output_state()) states else Nil) ::: regular
+  }
+
 
   /* overlays */
 
