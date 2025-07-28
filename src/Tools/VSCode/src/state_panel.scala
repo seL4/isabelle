@@ -80,7 +80,7 @@ class State_Panel private(val server: Language_Server) {
   def update(): Unit = {
     server.editor.current_node_snapshot(()) match {
       case Some(snapshot) =>
-        (server.editor.current_command((), snapshot), print_state.get_location) match {
+        (server.editor.current_command(snapshot), print_state.get_location) match {
           case (Some(command1), Some(command2)) if command1.id == command2.id =>
           case _ => print_state.apply_query(Nil)
         }
