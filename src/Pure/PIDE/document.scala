@@ -862,7 +862,7 @@ object Document {
           case None =>
             List(
               Node.Deps(
-                if (session.resources.session_base.loaded_theory(node_name)) {
+                if (session.resources.loaded_theory(node_name)) {
                   node_header.append_errors(
                     List("Cannot update finished theory " + quote(node_name.theory)))
                 }

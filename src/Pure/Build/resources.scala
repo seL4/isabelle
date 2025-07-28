@@ -32,6 +32,9 @@ class Resources(
   def sessions_structure: Sessions.Structure = session_background.sessions_structure
   def session_base: Sessions.Base = session_background.base
 
+  def loaded_theory(name: String): Boolean = session_base.loaded_theory(name)
+  def loaded_theory(name: Document.Node.Name): Boolean = session_base.loaded_theory(name)
+
   override def toString: String = "Resources(" + session_base.print_body + ")"
 
 
@@ -144,7 +147,7 @@ class Resources(
     if (literal_import && !Url.is_base_name(s)) {
       error("Bad import of theory from other session via file-path: " + quote(s))
     }
-    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+    if (loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
@@ -236,7 +239,7 @@ class Resources(
   def undefined_blobs(version: Document.Version): List[Document.Node.Name] =
     (for {
       (node_name, node) <- version.nodes.iterator
-      if !session_base.loaded_theory(node_name)
+      if !loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList
@@ -295,7 +298,7 @@ class Resources(
       if (seen.isDefinedAt(name)) this
       else {
         val dependencies1 = new Dependencies[A](rev_entries, seen + (name -> adjunct))
-        if (session_base.loaded_theory(name)) dependencies1
+        if (loaded_theory(name)) dependencies1
         else {
           try {
             if (initiators.contains(name)) error(Dependencies.cycle_msg(initiators))

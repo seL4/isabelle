@@ -97,7 +97,7 @@ extends Resources(session_background, log = log) {
     find_theory(file) getOrElse {
       val node = file.getPath
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
-      if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+      if (loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
       else Document.Node.Name(node, theory = theory)
     }
 
