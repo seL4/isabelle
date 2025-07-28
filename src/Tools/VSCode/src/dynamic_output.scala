@@ -20,7 +20,7 @@ class Dynamic_Output private(server: Language_Server) {
     pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
 
   private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
-    val output =
+    val maybe_output =
       server.resources.get_caret() match {
         case None => Some(Nil)
         case Some(caret) =>
@@ -35,10 +35,7 @@ class Dynamic_Output private(server: Language_Server) {
           }
       }
       
-    output match {
-      case None =>
-      case Some(output) => pretty_panel.refresh(output)
-    }
+    maybe_output.foreach(pretty_panel.refresh)
   }
 
 
