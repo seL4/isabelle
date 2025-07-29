@@ -96,6 +96,34 @@ object Rendering {
     error_pri -> Color.error_message)
 
 
+  /* text messages */
+
+  def text_messages(
+    snapshot: Document.Snapshot,
+    range: Text.Range = Text.Range.full
+  ): List[Text.Info[XML.Elem]] = {
+    val results =
+      snapshot.cumulate[Vector[Command.Results.Entry]](
+        range, Vector.empty, message_elements, command_states =>
+          {
+            case (res, Text.Info(_, elem)) =>
+              Command.State.get_result_proper(command_states, elem.markup.properties)
+                .map(res :+ _)
+          })
+
+    var seen_serials = Set.empty[Long]
+    def seen(i: Long): Boolean = {
+      val b = seen_serials(i)
+      seen_serials += i
+      b
+    }
+    for {
+      Text.Info(range, entries) <- results
+      (i, elem) <- entries if !seen(i)
+    } yield Text.Info(range, elem)
+  }
+
+
   /* text color */
 
   def get_text_color(markup: Markup): Option[Color.Value] =
@@ -559,28 +587,6 @@ class Rendering(
       Text.Info(r, pri) <- results
       color <- Rendering.message_underline_color.get(pri)
     } yield Text.Info(r, color)
-  }
-
-  def text_messages(range: Text.Range = Text.Range.full): List[Text.Info[XML.Elem]] = {
-    val results =
-      snapshot.cumulate[Vector[Command.Results.Entry]](
-        range, Vector.empty, Rendering.message_elements, command_states =>
-          {
-            case (res, Text.Info(_, elem)) =>
-              Command.State.get_result_proper(command_states, elem.markup.properties)
-                .map(res :+ _)
-          })
-
-    var seen_serials = Set.empty[Long]
-    def seen(i: Long): Boolean = {
-      val b = seen_serials(i)
-      seen_serials += i
-      b
-    }
-    for {
-      Text.Info(range, entries) <- results
-      (i, elem) <- entries if !seen(i)
-    } yield Text.Info(range, elem)
   }
 
 

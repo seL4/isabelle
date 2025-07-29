@@ -818,9 +818,8 @@ Usage: isabelle build_worker [OPTIONS]
               Build.read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
                 case None => progress.echo(thy_heading + " MISSING")
                 case Some(snapshot) =>
-                  val rendering = new Rendering(snapshot, options, session)
                   val messages =
-                    rendering.text_messages()
+                    Rendering.text_messages(snapshot)
                       .filter(message => progress.verbose || Protocol.is_exported(message.info))
                   if (messages.nonEmpty) {
                     val line_document = Line.Document(snapshot.node.source)
