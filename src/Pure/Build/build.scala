@@ -819,8 +819,8 @@ Usage: isabelle build_worker [OPTIONS]
                 case None => progress.echo(thy_heading + " MISSING")
                 case Some(snapshot) =>
                   val messages =
-                    Rendering.text_messages(snapshot)
-                      .filter(message => progress.verbose || Protocol.is_exported(message.info))
+                    Rendering.text_messages(snapshot,
+                      filter = msg => progress.verbose || Protocol.is_exported(msg))
                   if (messages.nonEmpty) {
                     val line_document = Line.Document(snapshot.node.source)
                     val buffer = new mutable.ListBuffer[String]

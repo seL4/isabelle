@@ -100,15 +100,19 @@ object Rendering {
 
   def text_messages(
     snapshot: Document.Snapshot,
-    range: Text.Range = Text.Range.full
+    range: Text.Range = Text.Range.full,
+    filter: XML.Elem => Boolean = _ => true
   ): List[Text.Info[XML.Elem]] = {
     val results =
       snapshot.cumulate[Vector[Command.Results.Entry]](
         range, Vector.empty, message_elements, command_states =>
           {
             case (res, Text.Info(_, elem)) =>
-              Command.State.get_result_proper(command_states, elem.markup.properties)
-                .map(res :+ _)
+              if (filter(elem)) {
+                Command.State.get_result_proper(command_states, elem.markup.properties)
+                  .map(res :+ _)
+              }
+              else None
           })
 
     var seen_serials = Set.empty[Long]
