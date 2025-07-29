@@ -816,6 +816,7 @@ object Document {
 
     /* command spans --- according to PIDE markup */
 
+    // Text.Info: core range
     def command_spans(range: Text.Range = Text.Range.full): List[Text.Info[Markup.Command_Span.Args]] =
       select(range, Markup.Elements(Markup.COMMAND_SPAN), _ =>
         {
@@ -823,6 +824,13 @@ object Document {
             Some(Text.Info(range, args))
           case _ => None
         }).map(_.info)
+
+    // Text.Range: full source with trailing whitespace etc.
+    def command_range(caret_range: Text.Range): Option[Text.Range] =
+      select(caret_range, Markup.Elements(Markup.COMMAND_RANGE), _ =>
+        {
+          case Text.Info(range, _) => Some(range)
+        }).headOption.map(_.info)
   }
 
 

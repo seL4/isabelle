@@ -183,6 +183,7 @@ sig
   val inputN: string val input: bool -> Properties.T -> T
   val command_keywordN: string val command_keyword: T
   val command_spanN: string val command_span: {name: string, kind: string, is_begin: bool} -> T
+  val command_rangeN: string val command_range: T
   val commandN: string val command_properties: T -> T
   val keywordN: string val keyword_properties: T -> T
   val stringN: string val string: T
@@ -663,6 +664,8 @@ val is_beginN = "is_begin";
 val command_spanN = "command_span";
 fun command_span {name, kind, is_begin} : T =
   (command_spanN, name_proper name @ kind_proper kind @ Properties.make_bool is_beginN is_begin);
+
+val (command_rangeN, command_range) = markup_elem "command_range";
 
 val commandN = "command"; val command_properties = properties [(kindN, commandN)];
 val keywordN = "keyword"; val keyword_properties = properties [(kindN, keywordN)];
