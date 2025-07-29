@@ -121,10 +121,11 @@ object Rendering {
       seen_serials += i
       b
     }
-    for {
-      Text.Info(range, entries) <- results
-      (i, elem) <- entries if !seen(i)
-    } yield Text.Info(range, elem)
+    List.from(
+      for {
+        Text.Info(range, entries) <- results.iterator
+        (i, elem) <- entries.iterator if !seen(i)
+      } yield Text.Info(range, elem))
   }
 
 
