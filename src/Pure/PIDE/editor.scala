@@ -120,13 +120,13 @@ abstract class Editor[Context] {
         case Some(command) =>
           if (restriction.isEmpty || restriction.get.contains(command)) {
             val results = snapshot.command_results(command)
-
-            val (states, other) =
-              results.iterator.map(_._2).filterNot(Protocol.is_result).toList
-                .partition(Protocol.is_state)
-            val (urgent, regular) = other.partition(Protocol.is_urgent)
-            val messages = urgent ::: (if (output_state()) states else Nil) ::: regular
-
+            val messages = {
+              val (states, other) =
+                results.iterator.map(_._2).filterNot(Protocol.is_result).toList
+                  .partition(Protocol.is_state)
+              val (urgent, regular) = other.partition(Protocol.is_urgent)
+              urgent ::: (if (output_state()) states else Nil) ::: regular
+            }
             Editor.Output(results = results, messages = messages)
           }
           else Editor.Output.none
