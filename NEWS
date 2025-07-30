@@ -93,11 +93,8 @@ not available as SVG.
 
 *** Pure ***
 
-* Command 'thy_deps' expects optional theory arguments as long theory names,
-the same way as the 'imports' clause. Minor INCOMPATIBILITY.
-
-* ML function 'Raw_Simplifier.rewrite' renamed to 'Raw_Simplifier.rewrite_wrt',
-to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
+* Command 'thy_deps' expects optional theory arguments as long theory
+names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 
 *** HOL ***
@@ -140,22 +137,25 @@ to avoid clash with existing 'Simplifier.rewrite'. INCOMPATIBILITY.
     const [List.]map_project ~> Option.image_filter
     thm map_project_def ~> Option.image_filter_eq
 
-The _def suffix for characteristic theorems is avoided to emphasize that these
-auxiliary operations are candidates for unfolding since they are variants
-of existing logical concepts. The [simp] declarations try to move the attention
-of the casual user away from these auxiliary operations; if they expose problems
-in existing applications, they can be removed using [simp del] – the regular
-theory merge will make sure that this deviant setup will not persist in bigger
-developments. INCOMPATIBILITY.
+The _def suffix for characteristic theorems is avoided to emphasize that
+these auxiliary operations are candidates for unfolding since they are
+variants of existing logical concepts. The [simp] declarations try to
+move the attention of the casual user away from these auxiliary
+operations; if they expose problems in existing applications, they can
+be removed using [simp del] – the regular theory merge will make sure
+that this deviant setup will not persist in bigger developments.
+INCOMPATIBILITY.
 
-* ML bindings for theorems Ball_def, Bex_def, CollectD, CollectE, CollectI,
-Collect_conj_eq, Collect_mem_eq, IntD1, IntD2, IntE, IntI, Int_Collect, UNIV_I,
-UNIV_witness, UnE, UnI1, UnI2, ballE, ballI, bexCI, bexE, bexI, bex_triv, bspec,
-contra_subsetD, equalityCE, equalityD1, equalityD2, equalityE, equalityI,
-imageE, imageI, image_Un, image_insert, insert_commute, insert_iff,
-mem_Collect_eq, rangeE, rangeI, range_eqI, subsetCE, subsetD, subsetI,
-subset_refl, subset_trans, vimageD, vimageE, vimageI, vimageI2, vimage_Collect,
-vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation instead.
+* ML bindings for theorems Ball_def, Bex_def, CollectD, CollectE,
+CollectI, Collect_conj_eq, Collect_mem_eq, IntD1, IntD2, IntE, IntI,
+Int_Collect, UNIV_I, UNIV_witness, UnE, UnI1, UnI2, ballE, ballI, bexCI,
+bexE, bexI, bex_triv, bspec, contra_subsetD, equalityCE, equalityD1,
+equalityD2, equalityE, equalityI, imageE, imageI, image_Un,
+image_insert, insert_commute, insert_iff, mem_Collect_eq, rangeE,
+rangeI, range_eqI, subsetCE, subsetD, subsetI, subset_refl,
+subset_trans, vimageD, vimageE, vimageI, vimageI2, vimage_Collect,
+vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation
+instead.
 
 * Clarified semantics for adding code equations:
   * Code equations from preceding theories are superseded.
@@ -163,18 +163,18 @@ vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation instead.
     prepended.
 INCOMPATIBILITY.
 
-* Normalization by evaluation (method "normalization", command value) could
-yield false positives due to incomplete handling of polymorphism in certain
-situations; this is now corrected.
+* Normalization by evaluation (method "normalization", command value)
+could yield false positives due to incomplete handling of polymorphism
+in certain situations; this is now corrected.
 
 * Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
 
-* Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into HOL-Main.
-Minor INCOMPATIBILITY.
+* Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into
+HOL-Main. Minor INCOMPATIBILITY.
 
-* If "HOL-Library.Code_Target_Nat" is imported, bit operations on nat are
-implemented by bit operations on target-language integers.
-Minor INCOMPATIBILITY.
+* If theory "HOL-Library.Code_Target_Nat" is imported, bit operations on
+nat are implemented by bit operations on target-language integers. Minor
+INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
   - Added lemmas.
@@ -314,6 +314,10 @@ etc.
 
 
 *** ML ***
+
+* ML function "Raw_Simplifier.rewrite" has been renamed to
+"Raw_Simplifier.rewrite_wrt", to avoid clash with existing
+'Simplifier.rewrite'. INCOMPATIBILITY.
 
 * Some old infix operations have been removed. INCOMPATIBILITY. The
 subsequent replacements have slightly different syntactic precedence and
