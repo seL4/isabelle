@@ -125,8 +125,8 @@ abstract class Editor[Context] {
       def filter(msg: XML.Elem): Boolean =
         (for {
           command_range <- thy_command_range
-          range <- Position.Range.unapply(msg.markup.properties)
-        } yield command_range.contains(range)) getOrElse true
+          msg_offset <- Position.Offset.unapply(msg.markup.properties)
+        } yield command_range.contains(msg_offset)) getOrElse true
 
       thy_command orElse snapshot.current_command(snapshot.node_name, offset) match {
         case None => Editor.Output.init
