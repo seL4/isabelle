@@ -115,15 +115,30 @@ abstract class Editor[Context] {
   ): Editor.Output = {
     if (snapshot.is_outdated) Editor.Output.none
     else {
-      snapshot.current_command(snapshot.node_name, offset) match {
+      val thy_command = snapshot.loaded_theory_command
+      val thy_command_range: Option[Text.Range] =
+        if (thy_command.isDefined) {
+          snapshot.command_range(Text.Range(offset)) orElse Some(Text.Range.offside)
+        }
+        else None
+
+      def filter(msg: XML.Elem): Boolean =
+        (for {
+          command_range <- thy_command_range
+          range <- Position.Range.unapply(msg.markup.properties)
+        } yield command_range.contains(range)) getOrElse true
+
+      thy_command orElse snapshot.current_command(snapshot.node_name, offset) match {
         case None => Editor.Output.init
         case Some(command) =>
-          if (restriction.isEmpty || restriction.get.contains(command)) {
+          if (thy_command.isDefined || restriction.isEmpty || restriction.get.contains(command)) {
             val results = snapshot.command_results(command)
             val messages = {
-              val (states, other) =
-                results.iterator.map(_._2).filterNot(Protocol.is_result).toList
-                  .partition(Protocol.is_state)
+              val (states, other) = {
+                List.from(
+                  for ((_, msg) <- results.iterator if !Protocol.is_result(msg) && filter(msg))
+                    yield msg).partition(Protocol.is_state)
+              }
               val (urgent, regular) = other.partition(Protocol.is_urgent)
               urgent ::: (if (output_state()) states else Nil) ::: regular
             }

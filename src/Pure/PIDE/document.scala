@@ -597,6 +597,15 @@ object Document {
         case None => false
       }
 
+    def loaded_theory_command: Option[Command] =
+      if (node.commands.size == 1) {
+        node.commands.get_after(None) match {
+          case some@Some(command) if command.span.is_theory => some
+          case _ => None
+        }
+      }
+      else None
+
 
     /* pending edits */
 
