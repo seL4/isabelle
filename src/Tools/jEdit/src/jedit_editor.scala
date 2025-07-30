@@ -82,9 +82,9 @@ class JEdit_Editor extends Editor[View] {
     GUI_Thread.require {
       val text_area = view.getTextArea
       Document_View.get(text_area) match {
-        case Some(doc_view) =>
+        case Some(doc_view) if snapshot.loaded_theory_command.isEmpty =>
           snapshot.current_command(doc_view.model.node_name, text_area.getCaretPosition)
-        case None => None
+        case _ => None
       }
     }
 
