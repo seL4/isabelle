@@ -162,32 +162,36 @@ object Thy_Syntax {
 
     Exn.capture(session.read_theory(theory)) match {
       case Exn.Res(command) =>
-        val thy_changed =
-          if (node.source.isEmpty || node.source == command.source) Nil
-          else List(node_name.node)
-        val blobs_changed =
-          for {
-            case Exn.Res(blob) <- command.blobs
-            (digest, _) <- blob.content
-            doc_blob <- doc_blobs.get(blob.name)
-            if digest != doc_blob.bytes.sha1_digest
-          } yield blob.name.node
-
-        val changed = thy_changed ::: blobs_changed
-        val command1 =
-          if (changed.isEmpty) command
+        val node_commands =
+          if (node.is_empty) Linear_Set.empty
           else {
-            val node_range = Text.Range(0, Symbol.length(node.source))
-            val msg =
-              XML.Elem(Markup.Bad(Document_ID.make()),
-                XML.string("Changed sources for loaded theory " + quote(theory) +
-                  ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
-            Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
-              blobs_info = command.blobs_info,
-              markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
+            val thy_changed = if (node.source == command.source) Nil else List(node_name.node)
+            val blobs_changed =
+              for {
+                case Exn.Res(blob) <- command.blobs
+                (digest, _) <- blob.content
+                doc_blob <- doc_blobs.get(blob.name)
+                if digest != doc_blob.bytes.sha1_digest
+              } yield blob.name.node
+
+            val changed = thy_changed ::: blobs_changed
+            val command1 =
+              if (changed.isEmpty) command
+              else {
+                val node_range = Text.Range(0, Symbol.length(node.source))
+                val msg =
+                  XML.Elem(Markup.Bad(Document_ID.make()),
+                    XML.string("Changed sources for loaded theory " + quote(theory) +
+                      ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
+                Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
+                  blobs_info = command.blobs_info,
+                  markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
+              }
+
+            Linear_Set(command1)
           }
 
-        node.update_commands(Linear_Set(command1))
+        node.update_commands(node_commands)
 
       case Exn.Exn(exn) =>
         session.system_output(Output.error_message_text(Exn.print(exn)))
