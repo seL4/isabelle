@@ -408,7 +408,7 @@ case class File_Model(
   last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
-  override def toString: String = "file " + quote(super.toString)
+  override def toString: String = "file " + quote(node_name.node)
 
 
   /* content */
@@ -493,7 +493,7 @@ class Buffer_Model private(
   val node_name: Document.Node.Name,
   val buffer: Buffer
 ) extends Document_Model {
-  override def toString: String = "buffer " + quote(super.toString)
+  override def toString: String = "buffer " + quote(node_name.node)
 
 
   /* text */
