@@ -567,12 +567,12 @@ declare divmod_algorithm_code [where ?'a = integer,
   code]
 
 lemma divmod_abs_code [code]:
-  "divmod_abs (Pos k) (Pos l) = divmod k l"
-  "divmod_abs (Neg k) (Neg l) = divmod k l"
-  "divmod_abs (Neg k) (Pos l) = divmod k l"
-  "divmod_abs (Pos k) (Neg l) = divmod k l"
-  "divmod_abs j 0 = (0, \<bar>j\<bar>)"
   "divmod_abs 0 j = (0, 0)"
+  "divmod_abs j 0 = (0, \<bar>j\<bar>)"
+  "divmod_abs (Pos k) (Pos l) = divmod k l"
+  "divmod_abs (Pos k) (Neg l) = divmod k l"
+  "divmod_abs (Neg k) (Pos l) = divmod k l"
+  "divmod_abs (Neg k) (Neg l) = divmod k l"
   by (simp_all add: prod_eq_iff)
 
 lemma divmod_integer_eq_cases:
@@ -620,6 +620,10 @@ context
 begin
 
 lemma and_integer_code [code]:
+  \<open>0 AND k = 0\<close>
+  \<open>k AND 0 = 0\<close>
+  \<open>Neg Num.One AND k = k\<close>
+  \<open>k AND Neg Num.One = k\<close>
   \<open>Pos Num.One AND Pos Num.One = Pos Num.One\<close>
   \<open>Pos Num.One AND Pos (Num.Bit0 n) = 0\<close>
   \<open>Pos (Num.Bit0 m) AND Pos Num.One = 0\<close>
@@ -634,14 +638,14 @@ lemma and_integer_code [code]:
   \<open>Pos m AND Neg (num.Bit1 n) = (case and_not_num m (Num.Bit0 n) of None \<Rightarrow> 0 | Some n' \<Rightarrow> Pos n')\<close>
   \<open>Neg (num.Bit1 m) AND Pos n = (case and_not_num n (Num.Bit0 m) of None \<Rightarrow> 0 | Some n' \<Rightarrow> Pos n')\<close>
   \<open>Neg m AND Neg n = NOT (sub m Num.One OR sub n Num.One)\<close>
-  \<open>Neg Num.One AND k = k\<close>
-  \<open>k AND Neg Num.One = k\<close>
-  \<open>0 AND k = 0\<close>
-  \<open>k AND 0 = 0\<close>
     for k :: integer
   by (transfer; simp)+
 
 lemma or_integer_code [code]:
+  \<open>0 OR k = k\<close>
+  \<open>k OR 0 = k\<close>
+  \<open>Neg Num.One OR k = Neg Num.One\<close>
+  \<open>k OR Neg Num.One = Neg Num.One\<close>
   \<open>Pos Num.One OR Pos Num.One = Pos Num.One\<close>
   \<open>Pos Num.One OR Pos (Num.Bit0 n) = Pos (Num.Bit1 n)\<close>
   \<open>Pos (Num.Bit0 m) OR Pos Num.One = Pos (Num.Bit1 m)\<close>
@@ -656,29 +660,25 @@ lemma or_integer_code [code]:
   \<open>Pos m OR Neg (num.Bit1 n) = Neg (or_not_num_neg m (Num.Bit0 n))\<close>
   \<open>Neg (num.Bit1 m) OR Pos n = Neg (or_not_num_neg n (Num.Bit0 m))\<close>
   \<open>Neg m OR Neg n = NOT (sub m Num.One AND sub n Num.One)\<close>
-  \<open>Neg Num.One OR k = Neg Num.One\<close>
-  \<open>k OR Neg Num.One = Neg Num.One\<close>
-  \<open>0 OR k = k\<close>
-  \<open>k OR 0 = k\<close>
     for k :: integer
   by (transfer; simp)+
 
 lemma xor_integer_code [code]:
+  \<open>0 XOR k = k\<close>
+  \<open>k XOR 0 = k\<close>
+  \<open>Neg Num.One XOR k = NOT k\<close>
+  \<open>k XOR Neg Num.One = NOT k\<close>
+  \<open>Neg m XOR k = NOT (sub m num.One XOR k)\<close>
+  \<open>k XOR Neg n = NOT (k XOR (sub n num.One))\<close>
   \<open>Pos Num.One XOR Pos Num.One = 0\<close>
-  \<open>Pos Num.One XOR numeral (Num.Bit0 n) = Pos (Num.Bit1 n)\<close>
+  \<open>Pos Num.One XOR Pos (Num.Bit0 n) = Pos (Num.Bit1 n)\<close>
   \<open>Pos (Num.Bit0 m) XOR Pos Num.One = Pos (Num.Bit1 m)\<close>
-  \<open>Pos Num.One XOR numeral (Num.Bit1 n) = Pos (Num.Bit0 n)\<close>
+  \<open>Pos Num.One XOR Pos (Num.Bit1 n) = Pos (Num.Bit0 n)\<close>
   \<open>Pos (Num.Bit1 m) XOR Pos Num.One = Pos (Num.Bit0 m)\<close>
   \<open>Pos (Num.Bit0 m) XOR Pos (Num.Bit0 n) = dup (Pos m XOR Pos n)\<close>
   \<open>Pos (Num.Bit0 m) XOR Pos (Num.Bit1 n) = Pos Num.One + dup (Pos m XOR Pos n)\<close>
   \<open>Pos (Num.Bit1 m) XOR Pos (Num.Bit0 n) = Pos Num.One + dup (Pos m XOR Pos n)\<close>
   \<open>Pos (Num.Bit1 m) XOR Pos (Num.Bit1 n) = dup (Pos m XOR Pos n)\<close>
-  \<open>Neg Num.One XOR k = NOT k\<close>
-  \<open>k XOR Neg Num.One = NOT k\<close>
-  \<open>Neg m XOR k = NOT (sub m num.One XOR k)\<close>
-  \<open>k XOR Neg n = NOT (k XOR (sub n num.One))\<close>
-  \<open>0 XOR k = k\<close>
-  \<open>k XOR 0 = k\<close>
     for k :: integer
   by (transfer; simp)+
 
