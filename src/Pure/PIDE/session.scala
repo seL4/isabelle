@@ -136,6 +136,8 @@ object Session {
 abstract class Session extends Document.Session {
   session =>
 
+  override def toString: String = resources.session_base.session_name
+
   def session_options: Options
   def resources: Resources
 

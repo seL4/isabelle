@@ -408,6 +408,9 @@ case class File_Model(
   last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
+  override def toString: String = "file " + quote(super.toString)
+
+
   /* content */
 
   def node_name: Document.Node.Name = content.node_name
@@ -490,6 +493,9 @@ class Buffer_Model private(
   val node_name: Document.Node.Name,
   val buffer: Buffer
 ) extends Document_Model {
+  override def toString: String = "buffer " + quote(super.toString)
+
+
   /* text */
 
   def get_text(range: Text.Range): Option[String] =
