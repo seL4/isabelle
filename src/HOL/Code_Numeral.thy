@@ -827,13 +827,15 @@ lemma int_of_integer_code_nbe [code nbe]:
   by simp_all
 
 lemma int_of_integer_code [code]:
-  "int_of_integer k = (if k < 0 then - (int_of_integer (- k))
-     else if k = 0 then 0
-     else let
-       (l, j) = divmod_integer k 2;
-       l' = 2 * int_of_integer l
-     in if j = 0 then l' else l' + 1)"
-  by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
+  \<open>int_of_integer k = (
+    if k = 0 then 0
+    else if k = - 1 then - 1
+    else
+      let
+        (l, j) = divmod_integer k 2;
+        l' = 2 * int_of_integer l
+      in if j = 0 then l' else l' + 1)\<close>
+  by (auto simp add: case_prod_unfold Let_def integer_eq_iff simp flip: minus_mod_eq_mult_div)
 
 lemma integer_of_int_code_nbe [code nbe]:
   "integer_of_int 0 = 0"
@@ -842,13 +844,15 @@ lemma integer_of_int_code_nbe [code nbe]:
   by simp_all
 
 lemma integer_of_int_code [code]:
-  "integer_of_int k = (if k < 0 then - (integer_of_int (- k))
-     else if k = 0 then 0
-     else let
-       l = 2 * integer_of_int (k div 2);
-       j = k mod 2
-     in if j = 0 then l else l + 1)"
-  by (auto simp add: split_def Let_def integer_eq_iff minus_mod_eq_mult_div [symmetric])
+  \<open>integer_of_int k = (
+    if k = 0 then 0
+    else if k = - 1 then - 1
+    else
+      let
+        l = 2 * integer_of_int (k div 2);
+        j = k mod 2
+      in if j = 0 then l else l + 1)\<close>
+  by (simp add: integer_eq_iff Let_def flip: minus_mod_eq_mult_div)
 
 hide_const (open) Pos Neg sub dup divmod_abs
 
