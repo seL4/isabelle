@@ -862,14 +862,11 @@ fun clausify_formula pos (phi as AAtom _) = [phi |> not pos ? mk_anot]
   | clausify_formula _ _ = raise CLAUSIFY ()
 
 fun clausify_formula_line (Formula ((ident, alt), kind, phi, source, info)) =
-    let
-      val (n, phis) = phi |> try (clausify_formula true) |> these |> `length
-    in
-      map2 (fn phi => fn j =>
-               Formula ((ident ^ replicate_string (j - 1) "x", alt), kind, phi,
-                        source, info))
-           phis (1 upto n)
-    end
+    phi
+    |> try (clausify_formula true)
+    |> these
+    |> map_index (fn (j, phi) =>
+      Formula ((ident ^ replicate_string j "x", alt), kind, phi, source, info))
   | clausify_formula_line _ = []
 
 fun ensure_cnf_line line =
