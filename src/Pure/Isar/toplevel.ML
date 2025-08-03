@@ -81,7 +81,6 @@ sig
   val skip_proof_close: transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
-  val transition: bool -> transition -> state -> state * (exn * string) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
   val reset_theory: state -> state option
@@ -612,7 +611,7 @@ fun setmp_thread_position (Transition {pos, name, ...}) f x =
   Position.setmp_thread_data (Position.label (Long_Name.qualify Markup.commandN name) pos) f x;
 
 
-(* apply transitions *)
+(* command transitions *)
 
 local
 
@@ -633,9 +632,7 @@ fun app int (tr as Transition {name, markers, trans, ...}) =
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state);
 
-in
-
-fun transition int tr st =
+fun command_transition int tr st =
   let
     val (st', opt_err) =
       Context.setmp_generic_context (try (Context.Proof o presentation_context0) st)
@@ -645,24 +642,23 @@ fun transition int tr st =
         | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
   in (st', opt_err') end;
 
-end;
-
-
-(* managed commands *)
+in
 
 fun command_errors int tr st =
-  (case transition int tr st of
+  (case command_transition int tr st of
     (st', NONE) => ([], SOME st')
   | (_, SOME (exn, _)) => (Runtime.exn_messages exn, NONE));
 
 fun command_exception int tr st =
-  (case transition int tr st of
+  (case command_transition int tr st of
     (st', NONE) => st'
   | (_, SOME (exn, info)) =>
       if Exn.is_interrupt_proper exn then Exn.reraise exn
       else raise Runtime.EXCURSION_FAIL (exn, info));
 
 val command = command_exception false;
+
+end;
 
 
 (* reset state *)
