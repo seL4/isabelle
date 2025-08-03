@@ -615,9 +615,12 @@ fun setmp_thread_position (Transition {pos, name, ...}) f x =
 
 local
 
-fun show_state (st', opt_err) =
+fun show_state tr (st', opt_err) =
   let
-    val enabled = is_none opt_err andalso Options.default_bool \<^system_option>\<open>show_states\<close>;
+    val enabled =
+      not (is_ignored tr) andalso
+      is_none opt_err andalso
+      Options.default_bool \<^system_option>\<open>show_states\<close>;
     val opt_err' =
       if enabled then
         (case Exn.capture (Output.state o Pretty.strings_of o Pretty.chunks o pretty_state) st' of
@@ -630,7 +633,7 @@ fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
     (Timing.protocol (name_of tr) (pos_of tr) (apply_capture int name markers trans)
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
-      #> show_state);
+      #> show_state tr);
 
 fun command_transition int tr st =
   let
