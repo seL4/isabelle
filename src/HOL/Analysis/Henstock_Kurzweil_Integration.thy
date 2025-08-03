@@ -7,7 +7,8 @@ section \<open>Henstock-Kurzweil Gauge Integration in Many Dimensions\<close>
 
 theory Henstock_Kurzweil_Integration
 imports
-  Lebesgue_Measure Tagged_Division
+  Lebesgue_Measure Tagged_Division "HOL-Real_Asymp.Real_Asymp"
+
 begin
 
 lemma norm_diff2: "\<lbrakk>y = y1 + y2; x = x1 + x2; e = e1 + e2; norm(y1 - x1) \<le> e1; norm(y2 - x2) \<le> e2\<rbrakk>
@@ -3573,6 +3574,51 @@ next
   show ?lhs by simp
 qed
 
+lemma integrable_on_shift_cbox: 
+  "(f \<circ> ((+) c)) integrable_on cbox a b \<longleftrightarrow> f integrable_on (cbox (a + c) (b + c))"
+proof
+  assume *: "(f \<circ> ((+) c)) integrable_on cbox a b"
+  show "f integrable_on (cbox (a+c) (b+c))"
+    using integrable_on_affinity[OF _ *, of 1 "-c"] cbox_translation[of c a b]
+    by (simp add: add_ac)
+next
+  assume *: "f integrable_on (cbox (a+c) (b+c))"
+  show "(f \<circ> ((+) c)) integrable_on cbox a b"
+    using integrable_on_affinity[OF _ *, of 1 "c"] cbox_translation[of "-c" "a+c" "b+c"]
+    by (simp add: o_def add_ac)
+qed
+
+lemma integrable_on_shift_Icc_real: 
+  "(f \<circ> ((+) c)) integrable_on {a..b::real} \<longleftrightarrow> f integrable_on {a+c..b+c}"
+  using integrable_on_shift_cbox[of f c a b] by simp
+
+lemma has_integral_shift_cbox: 
+  "((f \<circ> ((+) c)) has_integral I) (cbox a b) \<longleftrightarrow>
+   (f has_integral I) (cbox (a + c) (b + c))"
+proof
+  assume *: "((f \<circ> ((+) c)) has_integral I) (cbox a b)"
+  show "(f has_integral I) (cbox (a + c) (b + c))"
+    using has_integral_affinity[OF *, of 1 "-c"]  cbox_translation[of c a b]
+    by (simp add: add_ac)
+next
+  assume *: "(f has_integral I) (cbox (a + c) (b + c))"
+  show "((f \<circ> ((+) c)) has_integral I) (cbox a b)"
+    using has_integral_affinity[OF *, of 1 "c"] cbox_translation[of "-c" "a+c" "b+c"]
+    by (simp add: o_def add_ac)
+qed
+
+lemma has_integral_shift_Icc_real:
+  "((f \<circ> ((+) c)) has_integral I) {a..b::real} \<longleftrightarrow> (f has_integral I) {a+c..b+c}"
+  using has_integral_shift_cbox[of f c I a b] by simp
+
+lemma integral_shift_cbox:
+  "integral (cbox a b) (f \<circ> ((+) c)) = integral (cbox (a+c) (b+c)) f"
+  using has_integral_shift_cbox[of f c _ a b] integrable_on_shift_cbox[of f c a b]
+  by (metis integrable_integral integral_unique not_integrable_integral)
+
+lemma integral_shift_Icc_real:
+  "integral {a..b::real} (f \<circ> ((+) c)) = integral {a+c..b+c} f"
+  using integral_shift_cbox[of a b f c] by simp
 
 subsection \<open>Special case of stretching coordinate axes separately\<close>
 
@@ -7253,80 +7299,82 @@ qed
 
 subsection \<open>Definite integrals for exponential and power function\<close>
 
-lemma has_integral_exp_minus_to_infinity:
-  assumes a: "a > 0"
-  shows   "((\<lambda>x::real. exp (-a*x)) has_integral exp (-a*c)/a) {c..}"
+text \<open>This lemma packages up a reference to @{thm[source]monotone_convergence_increasing}}\<close>
+lemma has_integral_to_inf:
+  fixes h ::"real \<Rightarrow> real"
+  assumes int: "\<And>y::real. h integrable_on {a..y}"
+    and lim: "((\<lambda>y. integral {a..y} h) \<longlongrightarrow> l) at_top"
+    and nonneg: "\<And>y. y \<ge> a \<Longrightarrow> h y \<ge> 0"
+  shows "(h has_integral l) {a..}"
 proof -
-  define f where "f = (\<lambda>k x. if x \<in> {c..real k} then exp (-a*x) else 0)"
-  {
-    fix k :: nat assume k: "of_nat k \<ge> c"
-    from k a
-      have "((\<lambda>x. exp (-a*x)) has_integral (-exp (-a*real k)/a - (-exp (-a*c)/a))) {c..real k}"
+  have ge: "integral {a..y} h \<ge> 0" for y
+    by (meson Henstock_Kurzweil_Integration.integral_nonneg atLeastAtMost_iff int nonneg)
+  then have "l \<ge> 0"
+    using tendsto_lowerbound [OF lim] by simp 
+  have "mono (\<lambda>y. integral {a..y} h)"
+    by (simp add: int integral_subset_le monoI nonneg)
+  then have int_le_l: "integral {a..y} h \<le> l" for y
+    using order_tendstoD [OF lim, of "integral {a..y} h"]
+    by (smt (verit) eventually_at_top_linorder monotoneD nle_le)
+  define f where "f \<equiv> \<lambda>n x. if x \<in> {a..of_nat n} then h x else 0"
+  have has_integral_f: "\<And>n. (f n has_integral (integral {a..of_nat n} h)) {a..}"
+    unfolding f_def
+    by (metis (no_types, lifting) ext Icc_subset_Ici_iff order.refl
+        has_integral_restrict int integrable_integral)
+
+  have integral_f: "integral {a..} (f n) = (if n \<ge> a then integral {a..of_nat n} h else 0)" for n
+    by (meson atLeastAtMost_iff f_def has_integral_f has_integral_iff has_integral_is_0 order_trans)
+  have *: "h integrable_on {a..} \<and> (\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> integral {a..} h"
+  proof (intro monotone_convergence_increasing allI ballI)
+    fix n
+    show "f n integrable_on {a..}"
+      using has_integral_f by blast
+  next
+    fix n x
+    show "f n x \<le> f (Suc n) x" using nonneg by (auto simp: f_def)
+  next
+    fix x :: real assume x: "x \<in> {a..}"
+    have "eventually (\<lambda>n. real n \<ge> x) at_top"
+      by (meson eventually_sequentiallyI nat_ceiling_le_eq)
+    with x have "eventually (\<lambda>n. f n x = h x) at_top"
+      by (simp add: eventually_mono f_def)
+    thus "(\<lambda>n. f n x) \<longlonglongrightarrow> h x" by (simp add: tendsto_eventually)
+  next
+    have "norm (integral {a..} (f n)) \<le> l" for n
+      by (simp add: \<open>0 \<le> l\<close> ge int_le_l integral_f)
+    thus "bounded (range(\<lambda>k. integral {a..} (f k)))"
+      by (metis (no_types, lifting) boundedI rangeE)
+  qed
+  have "eventually (\<lambda>n. integral {a..n} h = integral {a..} (f n)) at_top"
+    by (metis (mono_tags, lifting) eventuallyI has_integral_f integral_unique)
+  moreover have "((\<lambda>y. integral {a..y} h) \<circ> real) \<longlonglongrightarrow> l"
+    unfolding tendsto_compose_filtermap
+    using filterlim_def filterlim_real_sequentially lim tendsto_mono by blast
+  ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> l"
+    by (force intro: Lim_transform_eventually)
+  then show ?thesis
+    using "*" LIMSEQ_unique by blast
+qed
+
+lemma has_integral_exp_minus_to_infinity:
+  assumes "a > 0"
+  shows   "((\<lambda>x::real. exp (-a*x)) has_integral exp (-a*c)/a) {c..}"
+proof (intro has_integral_to_inf integrable_continuous_interval continuous_intros)
+  have "((\<lambda>x. exp (-a*x)) has_integral (-exp (-a*y)/a - (-exp (-a*c)/a))) {c..y}"
+    if "y \<ge> c" for y
+    using that \<open>a > 0\<close>
       by (intro fundamental_theorem_of_calculus)
          (auto intro!: derivative_eq_intros
-               simp: has_real_derivative_iff_has_vector_derivative [symmetric])
-    hence "(f k has_integral (exp (-a*c)/a - exp (-a*real k)/a)) {c..}" unfolding f_def
-      by (subst has_integral_restrict) simp_all
-  } note has_integral_f = this
-
-  have [simp]: "f k = (\<lambda>_. 0)" if "of_nat k < c" for k using that by (auto simp: fun_eq_iff f_def)
-  have integral_f: "integral {c..} (f k) =
-                      (if real k \<ge> c then exp (-a*c)/a - exp (-a*real k)/a else 0)"
-    for k using integral_unique[OF has_integral_f[of k]] by simp
-
-  have A: "(\<lambda>x. exp (-a*x)) integrable_on {c..} \<and>
-             (\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> integral {c..} (\<lambda>x. exp (-a*x))"
-  proof (intro monotone_convergence_increasing allI ballI)
-    fix k ::nat
-    have "(\<lambda>x. exp (-a*x)) integrable_on {c..of_real k}" 
-      unfolding f_def by (auto intro!: continuous_intros integrable_continuous_real)
-    hence  "(f k) integrable_on {c..of_real k}"
-      by (rule integrable_eq) (simp add: f_def)
-    then show "f k integrable_on {c..}"
-      by (rule integrable_on_superset) (auto simp: f_def)
-  next
-    fix x assume x: "x \<in> {c..}"
-    have "sequentially \<le> principal {nat \<lceil>x\<rceil>..}" unfolding at_top_def by (simp add: Inf_lower)
-    also have "{nat \<lceil>x\<rceil>..} \<subseteq> {k. x \<le> real k}" by auto
-    also have "inf (principal \<dots>) (principal {k. \<not>x \<le> real k}) =
-                 principal ({k. x \<le> real k} \<inter> {k. \<not>x \<le> real k})" 
-      by simp
-    also have "{k. x \<le> real k} \<inter> {k. \<not>x \<le> real k} = {}" by blast
-    finally have "inf sequentially (principal {k. \<not>x \<le> real k}) = bot"
-      by (simp add: inf.coboundedI1 bot_unique)
-    with x show "(\<lambda>k. f k x) \<longlonglongrightarrow> exp (-a*x)" unfolding f_def
-      by (intro filterlim_If) auto
-  next
-    have "\<bar>integral {c..} (f k)\<bar> \<le> exp (-a*c)/a" for k
-    proof (cases "c > of_nat k")
-      case False
-      hence "abs (integral {c..} (f k)) = abs (exp (- (a * c)) / a - exp (- (a * real k)) / a)"
-        by (simp add: integral_f)
-      also have "abs (exp (- (a * c)) / a - exp (- (a * real k)) / a) =
-                   exp (- (a * c)) / a - exp (- (a * real k)) / a"
-        using False a by (intro abs_of_nonneg) (simp_all add: field_simps)
-      also have "\<dots> \<le> exp (- a * c) / a" using a by simp
-      finally show ?thesis .
-    qed (insert a, simp_all add: integral_f)
-    thus "bounded (range(\<lambda>k. integral {c..} (f k)))"
-      by (intro boundedI[of _ "exp (-a*c)/a"]) auto
-  qed (auto simp: f_def)
-  have "(\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
-    by (intro tendsto_intros filterlim_compose[OF exp_at_bot]
-        filterlim_tendsto_neg_mult_at_bot[OF tendsto_const] filterlim_real_sequentially)+
-      (use a in simp_all)
-  moreover
-  from eventually_gt_at_top[of "nat \<lceil>c\<rceil>"] have "eventually (\<lambda>k. of_nat k > c) sequentially"
-    by eventually_elim linarith
-  hence "eventually (\<lambda>k. exp (-a*c)/a - exp (-a * of_nat k)/a = integral {c..} (f k)) sequentially"
-    by eventually_elim (simp add: integral_f) 
-  ultimately have "(\<lambda>k. integral {c..} (f k)) \<longlonglongrightarrow> exp (-a*c)/a - 0/a"
-    by (rule Lim_transform_eventually)
-  from LIMSEQ_unique[OF conjunct2[OF A] this]
-  have "integral {c..} (\<lambda>x. exp (-a*x)) = exp (-a*c)/a" by simp
-  with conjunct1[OF A] show ?thesis
-    by (simp add: has_integral_integral)
-qed
+               simp flip: has_real_derivative_iff_has_vector_derivative)    
+  then have "\<forall>\<^sub>F y in at_top. integral {c..y} (\<lambda>x. exp (-a*x)) = -exp (-a*y)/a + exp (-a*c)/a"
+    using eventually_at_top_linorder[of
+        "\<lambda>y. integral {c..y} (\<lambda>x. exp (-a*x)) = -exp (-a*y)/a + exp (-a*c)/a"]
+    by auto
+  moreover have "((\<lambda>y::real. -exp (-a*y)/a + exp (-a*c)/a) \<longlongrightarrow> exp (-a*c)/a) at_top"
+    using \<open>a > 0\<close> by real_asymp
+  ultimately show "((\<lambda>y. integral {c..y} (\<lambda>x. exp (-a*x))) \<longlongrightarrow> exp (-a*c)/a) at_top"
+    by (simp add: filterlim_cong)
+qed auto
 
 lemma integrable_on_exp_minus_to_infinity: "a > 0 \<Longrightarrow> (\<lambda>x. exp (-a*x) :: real) integrable_on {c..}"
   using has_integral_exp_minus_to_infinity[of a c] unfolding integrable_on_def by blast
@@ -7418,86 +7466,25 @@ lemma integrable_on_powr_from_0:
   assumes a: "a > (-1::real)" and c: "c \<ge> 0"
   shows   "(\<lambda>x. x powr a) integrable_on {0..c}"
   using has_integral_powr_from_0[OF assms] unfolding integrable_on_def by blast
-
 lemma has_integral_powr_to_inf:
   fixes a e :: real
   assumes "e < -1" "a > 0"
-  shows   "((\<lambda>x. x powr e) has_integral -(a powr (e + 1)) / (e + 1)) {a..}"
-proof -
-  define f :: "nat \<Rightarrow> real \<Rightarrow> real" where "f = (\<lambda>n x. if x \<in> {a..n} then x powr e else 0)"
-  define F where "F = (\<lambda>x. x powr (e + 1) / (e + 1))"
-
-  have has_integral_f: "(f n has_integral (F n - F a)) {a..}"
-    if n: "n \<ge> a" for n :: nat
-  proof -
-    from n assms have "((\<lambda>x. x powr e) has_integral (F n - F a)) {a..n}"
-      by (intro fundamental_theorem_of_calculus) (auto intro!: derivative_eq_intros
-            simp: has_real_derivative_iff_has_vector_derivative [symmetric] F_def)
-    hence "(f n has_integral (F n - F a)) {a..n}"
-      by (rule has_integral_eq [rotated]) (simp add: f_def)
-    thus "(f n has_integral (F n - F a)) {a..}"
-      by (rule has_integral_on_superset) (auto simp: f_def)
-  qed
-  have integral_f: "integral {a..} (f n) = (if n \<ge> a then F n - F a else 0)" for n :: nat
-  proof (cases "n \<ge> a")
-    case True
-    with has_integral_f[OF this] show ?thesis by (simp add: integral_unique)
-  next
-    case False
-    have "(f n has_integral 0) {a}" by (rule has_integral_refl)
-    hence "(f n has_integral 0) {a..}"
-      using False f_def by force
-    with False show ?thesis by (simp add: integral_unique)
-  qed
-
-  have *: "(\<lambda>x. x powr e) integrable_on {a..} \<and>
-           (\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> integral {a..} (\<lambda>x. x powr e)"
-  proof (intro monotone_convergence_increasing allI ballI)
-    fix n :: nat
-    from assms have "(\<lambda>x. x powr e) integrable_on {a..n}"
-      by (auto intro!: integrable_continuous_real continuous_intros)
-    hence "f n integrable_on {a..n}"
-      by (rule integrable_eq) (auto simp: f_def)
-    thus "f n integrable_on {a..}"
-      by (rule integrable_on_superset) (auto simp: f_def)
-  next
-    fix n :: nat and x :: real
-    show "f n x \<le> f (Suc n) x" by (auto simp: f_def)
-  next
-    fix x :: real assume x: "x \<in> {a..}"
-    from filterlim_real_sequentially
-      have "eventually (\<lambda>n. real n \<ge> x) at_top"
-      by (simp add: filterlim_at_top)
-    with x have "eventually (\<lambda>n. f n x = x powr e) at_top"
-      by (auto elim!: eventually_mono simp: f_def)
-    thus "(\<lambda>n. f n x) \<longlonglongrightarrow> x powr e" by (simp add: tendsto_eventually)
-  next
-    have "norm (integral {a..} (f n)) \<le> -F a" for n :: nat
-    proof (cases "n \<ge> a")
-      case True
-      with assms have "a powr (e + 1) \<ge> n powr (e + 1)"
-        by (intro powr_mono2') simp_all
-      with assms show ?thesis by (auto simp: divide_simps F_def integral_f)
-    qed (use assms in \<open>simp add: integral_f F_def field_split_simps\<close>)
-    thus "bounded (range(\<lambda>k. integral {a..} (f k)))"
-      unfolding bounded_iff by (intro exI[of _ "-F a"]) auto
-  qed
-
-  from filterlim_real_sequentially
-    have "eventually (\<lambda>n. real n \<ge> a) at_top"
-    by (simp add: filterlim_at_top)
-  hence "eventually (\<lambda>n. F n - F a = integral {a..} (f n)) at_top"
-    by eventually_elim (simp add: integral_f)
-  moreover have "(\<lambda>n. F n - F a) \<longlonglongrightarrow> 0 / (e + 1) - F a" unfolding F_def
-    by (insert assms, (rule tendsto_intros filterlim_compose[OF tendsto_neg_powr]
-          filterlim_ident filterlim_real_sequentially | simp)+)
-  hence "(\<lambda>n. F n - F a) \<longlonglongrightarrow> -F a" by simp
-  ultimately have "(\<lambda>n. integral {a..} (f n)) \<longlonglongrightarrow> -F a" by (blast intro: Lim_transform_eventually)
-  then have "integral {a..} (\<lambda>x. x powr e) = -F a"
-    using "*" LIMSEQ_unique by blast
-  with * show ?thesis
-    by (simp add: has_integral_integral F_def)
-qed
+  shows   "((\<lambda>x. x powr e) has_integral -(a powr (e+1)) / (e+1)) {a..}"
+proof (intro has_integral_to_inf integrable_continuous_interval continuous_intros)
+  define F where "F \<equiv> \<lambda>x. x powr (e+1) / (e+1)"
+  have "((\<lambda>x. x powr e) has_integral (F y - F a)) {a..y}" if "y \<ge> a" for y
+    unfolding F_def using assms
+    by (intro fundamental_theorem_of_calculus that)
+       (auto intro!: derivative_eq_intros
+               simp flip: has_real_derivative_iff_has_vector_derivative)
+  then have "\<forall>\<^sub>F y in at_top. integral {a..y} (\<lambda>x. x powr e) = F y - F a"
+    by (meson eventually_at_top_linorderI integral_unique)
+  moreover have "((\<lambda>y::real. F y - F a) \<longlongrightarrow> - F a) at_top"
+    using assms unfolding F_def by real_asymp
+  ultimately show "((\<lambda>y. integral {a..y} (\<lambda>x. x powr e)) 
+              \<longlongrightarrow> - (a powr (e+1)) / (e+1)) at_top"
+    by (simp add: F_def filterlim_cong)
+qed (use assms in auto)
 
 lemma has_integral_inverse_power_to_inf:
   fixes a :: real and n :: nat
@@ -7516,7 +7503,7 @@ proof -
        (insert assms, simp_all add: powr_minus powr_realpow field_split_simps)
 qed
 
-subsubsection \<open>Adaption to ordered Euclidean spaces and the Cartesian Euclidean space\<close>
+subsection \<open>Adaption to ordered Euclidean spaces and the Cartesian Euclidean space\<close>
 
 lemma integral_component_eq_cart[simp]:
   fixes f :: "'n::euclidean_space \<Rightarrow> real^'m"

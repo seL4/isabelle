@@ -33,6 +33,18 @@ lemma open_einterval[simp]: "open (einterval a b)"
 lemma borel_einterval[measurable]: "einterval a b \<in> sets borel"
   unfolding einterval_def by measurable
 
+lemma einterval_1l_eq_Icc [simp]: "einterval 1 (numeral a) = {1 <..< numeral a :: real}"
+  by (simp add: one_ereal_def)
+
+lemma einterval_1r_eq_Icc [simp]: "einterval (numeral a) 1 = {numeral a <..< 1 :: real}"
+  by (simp add: one_ereal_def)
+
+lemma einterval_m1l_eq_Icc [simp]: "einterval (-1) (numeral a) = {-1 <..< numeral a :: real}"
+  by (simp add: one_ereal_def)
+
+lemma einterval_m1r_eq_Icc [simp]: "einterval (numeral a) (-1) = {numeral a <..< (-1) :: real}"
+  by (simp add: one_ereal_def)
+
 subsection \<open>Approximating a (possibly infinite) interval\<close>
 
 lemma filterlim_sup1: "(LIM x F. f x :> G1) \<Longrightarrow> (LIM x F. f x :> (sup G1 G2))"

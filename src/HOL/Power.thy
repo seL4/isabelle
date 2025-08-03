@@ -884,6 +884,12 @@ end
 lemma power2_ge_1_iff: "x ^ 2 \<ge> 1 \<longleftrightarrow> x \<ge> 1 \<or> x \<le> (-1 :: 'a :: linordered_idom)"
   using abs_le_square_iff[of 1 x] by (auto simp: abs_if split: if_splits)
 
+lemma power2_less_1_iff: "x\<^sup>2 < 1 \<longleftrightarrow> (-1 :: 'a :: linordered_idom) < x \<and> x < 1"
+  using power2_ge_1_iff [of x] by (auto simp: less_le_not_le)
+
+lemma power2_gt_1_iff: "x\<^sup>2 > 1 \<longleftrightarrow> x < (-1 :: 'a :: linordered_idom) \<or> x > 1"
+  using power2_ge_1_iff [of x] power2_eq_1_iff [of x] by auto
+
 lemma (in power) power_eq_if: "p ^ m = (if m=0 then 1 else p * (p ^ (m - 1)))"
   unfolding One_nat_def by (cases m) simp_all
 
