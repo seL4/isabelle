@@ -597,10 +597,11 @@ object Document {
         case None => false
       }
 
-    def loaded_theory_command: Option[Command] =
-      if (node.commands.size == 1) {
+    def loaded_theory_command(caret_offset: Text.Offset): Option[(Command, Text.Range)] =
+      if (node_name.is_theory) {
         node.commands.get_after(None) match {
-          case some@Some(command) if command.span.is_theory => some
+          case Some(command) if command.span.is_theory =>
+            Some(command -> command_range(Text.Range(caret_offset)).getOrElse(Text.Range.offside))
           case _ => None
         }
       }

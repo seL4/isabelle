@@ -579,7 +579,7 @@ class Language_Server(
 
     def current_command(snapshot: Document.Snapshot): Option[Command] = {
       resources.get_caret() match {
-        case Some(caret) if snapshot.loaded_theory_command.isEmpty =>
+        case Some(caret) if snapshot.loaded_theory_command(caret.offset).isEmpty =>
           snapshot.current_command(caret.node_name, caret.offset)
         case _ => None
       }

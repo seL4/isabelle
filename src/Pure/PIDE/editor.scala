@@ -110,26 +110,22 @@ abstract class Editor[Context] {
 
   def output(
     snapshot: Document.Snapshot,
-    offset: Text.Offset,
+    caret_offset: Text.Offset,
     restriction: Option[Set[Command]] = None
   ): Editor.Output = {
     if (snapshot.is_outdated) Editor.Output.none
     else {
-      val thy_command = snapshot.loaded_theory_command
-      val thy_command_range: Option[Text.Range] =
-        if (thy_command.isDefined) {
-          snapshot.command_range(Text.Range(offset)) orElse Some(Text.Range.offside)
-        }
-        else None
+      val thy_command_range = snapshot.loaded_theory_command(caret_offset)
+      val thy_command = thy_command_range.map(_._1)
 
       def filter(msg: XML.Elem): Boolean =
         (for {
-          command_range <- thy_command_range
+          (command, command_range) <- thy_command_range
           msg_range <- Position.Range.unapply(msg.markup.properties)
-          chunk_range <- thy_command.get.chunk.incorporate(msg_range)
+          chunk_range <- command.chunk.incorporate(msg_range)
         } yield command_range.contains(chunk_range)) getOrElse true
 
-      thy_command orElse snapshot.current_command(snapshot.node_name, offset) match {
+      thy_command orElse snapshot.current_command(snapshot.node_name, caret_offset) match {
         case None => Editor.Output.init
         case Some(command) =>
           if (thy_command.isDefined || restriction.isEmpty || restriction.get.contains(command)) {

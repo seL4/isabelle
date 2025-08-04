@@ -81,9 +81,10 @@ class JEdit_Editor extends Editor[View] {
   override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
     GUI_Thread.require {
       val text_area = view.getTextArea
+      val caret_offset = text_area.getCaretPosition
       Document_View.get(text_area) match {
-        case Some(doc_view) if snapshot.loaded_theory_command.isEmpty =>
-          snapshot.current_command(doc_view.model.node_name, text_area.getCaretPosition)
+        case Some(doc_view) if snapshot.loaded_theory_command(caret_offset).isEmpty =>
+          snapshot.current_command(doc_view.model.node_name, caret_offset)
         case _ => None
       }
     }
