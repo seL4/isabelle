@@ -102,6 +102,7 @@ object Command_Span {
     def content_reader: CharSequenceReader = Scan.char_reader(Token.implode(content))
 
     def length: Int = content.foldLeft(0)(_ + _.source.length)
+    def symbol_length: Symbol.Offset = content.foldLeft(0)(_ + _.symbol_length)
 
     def compact_source: (String, Span) = {
       val source = Token.implode(content)

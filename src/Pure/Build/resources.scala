@@ -100,7 +100,7 @@ class Resources(
           var offset = 1
           for (span <- spans) {
             if (span.is_load_command(syntax)) { result += (span -> offset) }
-            offset += span.length
+            offset += span.symbol_length
           }
           result.toList
         }
