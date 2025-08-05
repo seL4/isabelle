@@ -729,7 +729,8 @@ Usage: isabelle build_worker [OPTIONS]
 
       val blobs =
         blobs_files0.map { case (command_offset, name0) =>
-          val name = migrate_file(name0)
+          val node_name = Document.Node.Name(migrate_file(name0))
+          val src_path = Path.explode(name0)
 
           val file = read_source_file(name0)
           val bytes = file.bytes
@@ -737,7 +738,7 @@ Usage: isabelle build_worker [OPTIONS]
           val chunk = Symbol.Text_Chunk(text)
           val content = Some((file.digest, chunk))
 
-          Command.Blob(command_offset, Document.Node.Name(name), Path.explode(name0), content) ->
+          Command.Blob(command_offset, node_name, src_path, content) ->
             Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
         }
 
