@@ -737,7 +737,7 @@ Usage: isabelle build_worker [OPTIONS]
           val chunk = Symbol.Text_Chunk(text)
           val content = Some((file.digest, chunk))
 
-          Command.Blob(command_offset, Document.Node.Name(name), Path.explode(name), content) ->
+          Command.Blob(command_offset, Document.Node.Name(name), Path.explode(name0), content) ->
             Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
         }
 
