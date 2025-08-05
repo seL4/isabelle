@@ -502,7 +502,7 @@ object Export {
       def db_source: Option[String] = {
         val theory_context = session_context.theory(theory)
         for {
-          name <- theory_context.files0(permissive = true).headOption
+          (_, name) <- theory_context.files0(permissive = true).headOption
           file <- get_source_file(name)
         } yield Symbol.output(unicode_symbols, file.bytes.text)
       }
@@ -549,13 +549,15 @@ object Export {
         case _ => None
       }
 
-    def files0(permissive: Boolean = false): List[String] =
-      split_lines(apply(FILES, permissive = permissive).text)
+    def files0(permissive: Boolean = false): List[(Int, String)] = {
+      import XML.Decode._
+      list(pair(int, string))(apply(FILES, permissive = permissive).yxml())
+    }
 
-    def files(permissive: Boolean = false): Option[(String, List[String])] =
+    def files(permissive: Boolean = false): Option[(String, List[(Int, String)])] =
       files0(permissive = permissive) match {
         case Nil => None
-        case a :: bs => Some((a, bs))
+        case (_, a) :: bs => Some((a, bs))
       }
 
     override def toString: String = "Export.Theory_Context(" + quote(theory) + ")"

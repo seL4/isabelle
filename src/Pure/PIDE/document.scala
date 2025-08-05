@@ -46,7 +46,8 @@ object Document {
       bytes: Bytes,
       source: String,
       chunk: Symbol.Text_Chunk,
-      changed: Boolean
+      command_offset: Symbol.Offset = 0,
+      changed: Boolean = false
     ) {
       def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = if (changed) copy(changed = false) else this
@@ -588,6 +589,10 @@ object Document {
     def node_files: List[Node.Name] =
       node_name :: node.load_commands.flatMap(_.blobs_names)
 
+    def node_export_files: List[(Symbol.Offset, String)] =
+      for ((i, name) <- (0, node_name) :: node.load_commands.flatMap(_.blobs_files))
+        yield (i, File.symbolic_path(name.path))
+
     def node_consolidated(name: Node.Name): Boolean =
       state.node_consolidated(version, name)
 
@@ -605,7 +610,16 @@ object Document {
           case _ => None
         }
       }
-      else None
+      else {
+        for {
+          command <- version.nodes.commands_loading(node_name).find(_.span.is_theory)
+          (symbol_offset, _) <- command.blobs_files.find({ case (_, name) => node_name == name })
+        } yield {
+          val chunk_offset = command.chunk.decode(symbol_offset)
+          val command_range = switch(command.node_name).command_range(Text.Range(chunk_offset))
+          command -> command_range.getOrElse(Text.Range.offside)
+        }
+      }
 
 
     /* pending edits */

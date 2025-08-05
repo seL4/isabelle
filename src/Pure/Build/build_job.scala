@@ -150,20 +150,23 @@ object Build_Job {
           def session_blobs(node_name: Document.Node.Name): List[(Command.Blob, Document.Blobs.Item)] =
             session_background.base.theory_load_commands.get(node_name.theory) match {
               case None => Nil
-              case Some(spans) =>
+              case Some(load_commands) =>
                 val syntax = session_background.base.theory_syntax(node_name)
                 val master_dir = Path.explode(node_name.master_dir)
-                for (span <- spans; file <- span.loaded_files(syntax).files)
-                  yield {
+                for {
+                  (command_span, command_offset) <- load_commands
+                  file <- command_span.loaded_files(syntax).files
+                } yield {
                     val src_path = Path.explode(file)
                     val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
 
                     val bytes = session_sources(blob_name.node).bytes
                     val text = bytes.text
                     val chunk = Symbol.Text_Chunk(text)
+                    val content = Some((SHA1.digest(bytes), chunk))
 
-                    Command.Blob(blob_name, src_path, Some((SHA1.digest(bytes), chunk))) ->
-                      Document.Blobs.Item(bytes, text, chunk, changed = false)
+                    Command.Blob(command_offset, blob_name, src_path, content) ->
+                      Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
                   }
             }
 
@@ -307,9 +310,11 @@ object Build_Job {
                   export_text(Export.DOCUMENT_ID, command.id.toString, compress = false)
                 }
 
-                export_text(Export.FILES,
-                  cat_lines(snapshot.node_files.map(name => File.symbolic_path(name.path))),
-                  compress = false)
+                export_(Export.FILES,
+                  {
+                    import XML.Encode._
+                    list(pair(int, string))(snapshot.node_export_files)
+                  })
 
                 for ((blob_name, i) <- snapshot.node_files.tail.zipWithIndex) {
                   val xml = snapshot.switch(blob_name).xml_markup()
