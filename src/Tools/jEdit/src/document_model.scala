@@ -439,7 +439,10 @@ case class File_Model(
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
+    else {
+      val changed = pending_edits.nonEmpty
+      Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, changed = changed))
+    }
 
   def untyped_data: AnyRef = content.data
 
@@ -596,8 +599,7 @@ class Buffer_Model private(
             blob = Some(x)
             x
           }
-        val changed = !is_stable
-        Some(Document.Blobs.Item(bytes, text, chunk, changed))
+        Some(Document.Blobs.Item(bytes, text, chunk, changed = !is_stable))
       }
     }
 
