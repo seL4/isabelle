@@ -63,20 +63,13 @@ class Pretty_Text_Panel private(
         channel.write(message)
       }
       else {
-        def convert_symbols(body: XML.Body): XML.Body =
-          body.map {
-            case XML.Elem(markup, body) => XML.Elem(markup, convert_symbols(body))
-            case XML.Text(content) => XML.Text(resources.output_text(content))
-          }
+        val converted = resources.output_text_xml(formatted)
+        val converted_tree = Markup_Tree.from_XML(converted)
+        val converted_text = XML.content(converted)
 
-        val converted = convert_symbols(formatted)
-
-        val tree = Markup_Tree.from_XML(converted)
-        val text = XML.content(converted)
-
-        val document = Line.Document(text)
+        val document = Line.Document(converted_text)
         val decorations =
-          tree.cumulate[Option[Markup]](Text.Range.full, None, Rendering.text_color_elements,
+          converted_tree.cumulate[Option[Markup]](Text.Range.full, None, Rendering.text_color_elements,
             { case (_, m) => Some(Some(m.info.markup)) }
           ).flatMap(info =>
               info.info match {
@@ -87,7 +80,7 @@ class Pretty_Text_Panel private(
               }
           ).groupMap(_._2)(e => LSP.Decoration_Options(e._1, Nil)).toList
 
-        channel.write(output_json(text, Some(LSP.Decoration(decorations))))
+        channel.write(output_json(converted_text, Some(LSP.Decoration(decorations))))
       }
     }
   }

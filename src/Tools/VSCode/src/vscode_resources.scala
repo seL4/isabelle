@@ -336,6 +336,12 @@ extends Resources(session_background, log = log) {
 
   def output_xml_text(body: XML.Tree): String = output_text(XML.content(body))
 
+  def output_text_xml(body: XML.Body): XML.Body =
+    body.map {
+      case XML.Elem(markup, body) => XML.Elem(markup, output_text_xml(body))
+      case XML.Text(content) => XML.Text(output_text(content))
+    }
+
   def output_pretty(body: XML.Body, margin: Double): String =
     output_text(Pretty.string_of(body, margin = margin, metric = Symbol.Metric))
   def output_pretty_tooltip(body: XML.Body): String = output_pretty(body, tooltip_margin)
