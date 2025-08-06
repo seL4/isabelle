@@ -161,18 +161,20 @@ object Thy_Syntax {
     val theory = node_name.theory
 
     Exn.capture(session.read_theory(theory)) match {
-      case Exn.Res(command) =>
+      case Exn.Res(snapshot) =>
+        val command = snapshot.snippet_commands.head
         val node_commands =
           if (node.is_empty) Linear_Set.empty
           else {
             val thy_changed = if (node.source == command.source) Nil else List(node_name.node)
             val blobs_changed =
-              for {
-                case Exn.Res(blob) <- command.blobs
-                (digest, _) <- blob.content
-                doc_blob <- doc_blobs.get(blob.name)
-                if digest != doc_blob.bytes.sha1_digest
-              } yield blob.name.node
+              List.from(
+                for {
+                  blob_name <- command.blobs_names.iterator
+                  blob_node = snapshot.version.nodes(blob_name)
+                  doc_blob <- doc_blobs.get(blob_name)
+                  if blob_node.source != doc_blob.source
+                } yield blob_name.node)
 
             val changed = thy_changed ::: blobs_changed
             val command1 =

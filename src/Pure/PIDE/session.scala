@@ -157,23 +157,23 @@ abstract class Session extends Document.Session {
       store, resources.session_background, document_snapshot = document_snapshot)
   }
 
-  private val read_theory_cache = new WeakHashMap[String, WeakReference[Command]]
+  private val read_theory_cache = new WeakHashMap[String, WeakReference[Document.Snapshot]]
 
-  def read_theory(name: String): Command =
+  def read_theory(name: String): Document.Snapshot =
     read_theory_cache.synchronized {
       Option(read_theory_cache.get(name)).map(_.get) match {
-        case Some(command: Command) => command
+        case Some(snapshot: Document.Snapshot) => snapshot
         case _ =>
-          val snapshot =
+          val maybe_snapshot =
             using(open_session_context()) { session_context =>
               Build.read_theory(session_context.theory(name),
                 unicode_symbols = true,
                 migrate_file = (a: String) => session.resources.append_path("", Path.explode(a)))
             }
-          snapshot.map(_.snippet_commands) match {
-            case Some(List(command)) =>
-              read_theory_cache.put(name, new WeakReference(command))
-              command
+          maybe_snapshot.map(_.snippet_commands) match {
+            case Some(List(_)) =>
+              read_theory_cache.put(name, new WeakReference(maybe_snapshot.get))
+              maybe_snapshot.get
             case _ => error("Failed to load theory " + quote(name) + " from session database")
           }
       }
