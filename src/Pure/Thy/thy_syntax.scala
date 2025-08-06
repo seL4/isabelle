@@ -160,13 +160,16 @@ object Thy_Syntax {
     require(node_name.is_theory)
     val theory = node_name.theory
 
-    Exn.capture(session.read_theory(theory)) match {
+    val node_source = node.source
+    val unicode_symbols = Symbol.decode(node_source) == node_source
+
+    Exn.capture(session.read_theory(theory, unicode_symbols = unicode_symbols)) match {
       case Exn.Res(snapshot) =>
         val command = snapshot.snippet_commands.head
         val node_commands =
           if (node.is_empty) Linear_Set.empty
           else {
-            val thy_changed = if (node.source == command.source) Nil else List(node_name.node)
+            val thy_changed = if (node_source == command.source) Nil else List(node_name.node)
             val blobs_changed =
               List.from(
                 for {

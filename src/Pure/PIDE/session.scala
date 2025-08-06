@@ -130,6 +130,11 @@ object Session {
       override def session_options: Options = options
       override def resources: Resources = Resources.bootstrap
     }
+
+
+  /* read_theory cache */
+
+  sealed case class Read_Theory_Key(name: String, unicode_symbols: Boolean)
 }
 
 
@@ -157,22 +162,24 @@ abstract class Session extends Document.Session {
       store, resources.session_background, document_snapshot = document_snapshot)
   }
 
-  private val read_theory_cache = new WeakHashMap[String, WeakReference[Document.Snapshot]]
+  private val read_theory_cache =
+    new WeakHashMap[Session.Read_Theory_Key, WeakReference[Document.Snapshot]]
 
-  def read_theory(name: String): Document.Snapshot =
+  def read_theory(name: String, unicode_symbols: Boolean = false): Document.Snapshot =
     read_theory_cache.synchronized {
-      Option(read_theory_cache.get(name)).map(_.get) match {
+      val key = Session.Read_Theory_Key(name, unicode_symbols)
+      Option(read_theory_cache.get(key)).map(_.get) match {
         case Some(snapshot: Document.Snapshot) => snapshot
         case _ =>
           val maybe_snapshot =
             using(open_session_context()) { session_context =>
               Build.read_theory(session_context.theory(name),
-                unicode_symbols = true,
+                unicode_symbols = unicode_symbols,
                 migrate_file = (a: String) => session.resources.append_path("", Path.explode(a)))
             }
           maybe_snapshot.map(_.snippet_commands) match {
             case Some(List(_)) =>
-              read_theory_cache.put(name, new WeakReference(maybe_snapshot.get))
+              read_theory_cache.put(key, new WeakReference(maybe_snapshot.get))
               maybe_snapshot.get
             case _ => error("Failed to load theory " + quote(name) + " from session database")
           }
