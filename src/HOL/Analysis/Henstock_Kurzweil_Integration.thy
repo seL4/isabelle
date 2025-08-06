@@ -7299,7 +7299,7 @@ qed
 
 subsection \<open>Definite integrals for exponential and power function\<close>
 
-text \<open>This lemma packages up a reference to @{thm[source]monotone_convergence_increasing}}\<close>
+text \<open>This lemma packages up a reference to @{thm[source]monotone_convergence_increasing}\<close>
 lemma has_integral_to_inf:
   fixes h ::"real \<Rightarrow> real"
   assumes int: "\<And>y::real. h integrable_on {a..y}"
