@@ -579,12 +579,18 @@ class Language_Server(
 
     def current_command(snapshot: Document.Snapshot): Option[Command] = {
       resources.get_caret() match {
-        case Some(caret) => snapshot.current_command(caret.node_name, caret.offset)
-        case None => None
+        case Some(caret) if snapshot.loaded_theory_command(caret.offset).isEmpty =>
+          snapshot.current_command(caret.node_name, caret.offset)
+        case _ => None
       }
     }
     override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
       current_command(snapshot)
+
+
+    /* output messages */
+
+    override def output_state(): Boolean = resources.options.bool("editor_output_state")
 
 
     /* overlays */

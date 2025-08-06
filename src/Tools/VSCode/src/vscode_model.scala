@@ -144,7 +144,10 @@ sealed case class VSCode_Model(
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
+    else {
+      val changed = pending_edits.nonEmpty
+      Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, changed = changed))
+    }
 
 
   /* data */

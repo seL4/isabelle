@@ -19,26 +19,15 @@ class Dynamic_Output private(server: Language_Server) {
   def pretty_panel: Pretty_Text_Panel =
     pretty_panel_.value.getOrElse(error("No Pretty Panel for Dynamic Output"))
 
-  private def handle_update(restriction: Option[Set[Command]], force: Boolean = false): Unit = {
+  private def handle_update(restriction: Option[Set[Command]] = None): Unit = {
     val output =
       server.resources.get_caret() match {
-        case None => Some(Nil)
+        case None => Editor.Output.init
         case Some(caret) =>
           val snapshot = server.resources.snapshot(caret.model)
-          snapshot.current_command(caret.node_name, caret.offset) match {
-            case None => Some(Nil)
-            case Some(command) =>
-              if (restriction.isEmpty || restriction.get.contains(command)) {
-                val output_state = server.resources.options.bool("editor_output_state")
-                Some(Rendering.output_messages(snapshot.command_results(command), output_state))
-              } else None
-          }
+          server.editor.output(snapshot, caret.offset)
       }
-      
-    output match {
-      case None =>
-      case Some(output) => pretty_panel.refresh(output)
-    }
+    if (output.defined) pretty_panel.refresh(output.messages)
   }
 
 
@@ -47,10 +36,10 @@ class Dynamic_Output private(server: Language_Server) {
   private val main =
     Session.Consumer[Any](getClass.getName) {
       case changed: Session.Commands_Changed =>
-        handle_update(if (changed.assignment) None else Some(changed.commands))
+        handle_update(restriction = if (changed.assignment) None else Some(changed.commands))
 
       case Session.Caret_Focus =>
-        handle_update(None)
+        handle_update()
     }
 
   def init(): Unit = {
@@ -61,7 +50,7 @@ class Dynamic_Output private(server: Language_Server) {
         server.session,
         server.channel,
         LSP.Dynamic_Output.apply)))
-    handle_update(None)
+    handle_update()
   }
 
   def exit(): Unit = {

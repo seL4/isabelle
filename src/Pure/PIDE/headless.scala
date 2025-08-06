@@ -54,9 +54,6 @@ object Headless {
 
     override def resources: Headless.Resources = _resources
 
-    private def loaded_theory(name: Document.Node.Name): Boolean =
-      resources.session_base.loaded_theory(name.theory)
-
 
     /* options */
 
@@ -94,7 +91,7 @@ object Headless {
       def finished: Load_State = Load_State(Nil, Nil, Space.zero)
 
       def count_file(name: Document.Node.Name): Long =
-        if (loaded_theory(name)) 0 else File.size(name.path)
+        if (resources.loaded_theory(name)) 0 else File.size(name.path)
     }
 
     private case class Load_State(
@@ -209,7 +206,7 @@ object Headless {
         version: Document.Version,
         name: Document.Node.Name
       ): Boolean = {
-        loaded_theory(name) ||
+        resources.loaded_theory(name) ||
         nodes_status.quasi_consolidated(name) ||
         (if (commit.isDefined) already_committed.isDefinedAt(name)
          else state.node_consolidated(version, name))
@@ -229,7 +226,7 @@ object Headless {
                   case (committed, name) =>
                     def parents_committed: Boolean =
                       version.nodes(name).header.imports.forall(parent =>
-                        loaded_theory(parent) || committed.isDefinedAt(parent))
+                        resources.loaded_theory(parent) || committed.isDefinedAt(parent))
                     if (!committed.isDefinedAt(name) && parents_committed &&
                         state.node_consolidated(version, name)) {
                       val snapshot = stable_snapshot(state, version, name)
@@ -242,7 +239,7 @@ object Headless {
           }
 
         def committed(name: Document.Node.Name): Boolean =
-          loaded_theory(name) || st1.already_committed.isDefinedAt(name)
+          resources.loaded_theory(name) || st1.already_committed.isDefinedAt(name)
 
         val (load_theories0, load_state1) =
           load_state.next(dep_graph, consolidated(state, version, _))
@@ -260,7 +257,7 @@ object Headless {
             ): Option[List[(Document.Node.Name, Document_Status.Node_Status)]] = {
               input match {
                 case name :: rest =>
-                  if (loaded_theory(name)) make_nodes(rest, output)
+                  if (resources.loaded_theory(name)) make_nodes(rest, output)
                   else {
                     val status = Document_Status.Node_Status.make(state, version, name)
                     val ok = if (commit.isDefined) committed(name) else status.consolidated

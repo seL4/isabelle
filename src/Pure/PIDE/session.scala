@@ -130,11 +130,18 @@ object Session {
       override def session_options: Options = options
       override def resources: Resources = Resources.bootstrap
     }
+
+
+  /* read_theory cache */
+
+  sealed case class Read_Theory_Key(name: String, unicode_symbols: Boolean)
 }
 
 
 abstract class Session extends Document.Session {
   session =>
+
+  override def toString: String = resources.session_base.session_name
 
   def session_options: Options
   def resources: Resources
@@ -155,23 +162,25 @@ abstract class Session extends Document.Session {
       store, resources.session_background, document_snapshot = document_snapshot)
   }
 
-  private val read_theory_cache = new WeakHashMap[String, WeakReference[Command]]
+  private val read_theory_cache =
+    new WeakHashMap[Session.Read_Theory_Key, WeakReference[Document.Snapshot]]
 
-  def read_theory(name: String): Command =
+  def read_theory(name: String, unicode_symbols: Boolean = false): Document.Snapshot =
     read_theory_cache.synchronized {
-      Option(read_theory_cache.get(name)).map(_.get) match {
-        case Some(command: Command) => command
+      val key = Session.Read_Theory_Key(name, unicode_symbols)
+      Option(read_theory_cache.get(key)).map(_.get) match {
+        case Some(snapshot: Document.Snapshot) => snapshot
         case _ =>
-          val snapshot =
+          val maybe_snapshot =
             using(open_session_context()) { session_context =>
               Build.read_theory(session_context.theory(name),
-                unicode_symbols = true,
+                unicode_symbols = unicode_symbols,
                 migrate_file = (a: String) => session.resources.append_path("", Path.explode(a)))
             }
-          snapshot.map(_.snippet_commands) match {
-            case Some(List(command)) =>
-              read_theory_cache.put(name, new WeakReference(command))
-              command
+          maybe_snapshot.map(_.snippet_commands) match {
+            case Some(List(_)) =>
+              read_theory_cache.put(key, new WeakReference(maybe_snapshot.get))
+              maybe_snapshot.get
             case _ => error("Failed to load theory " + quote(name) + " from session database")
           }
       }
@@ -672,7 +681,7 @@ abstract class Session extends Document.Session {
                 case Some(version) =>
                   val consolidate =
                     version.nodes.descendants(consolidation.flush().toList).filter { name =>
-                      !resources.session_base.loaded_theory(name) &&
+                      !resources.loaded_theory(name) &&
                       !state.node_consolidated(version, name) &&
                       state.node_maybe_consolidated(version, name)
                     }

@@ -408,6 +408,9 @@ case class File_Model(
   last_perspective: Document.Node.Perspective_Text.T,
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
+  override def toString: String = "file " + quote(node_name.node)
+
+
   /* content */
 
   def node_name: Document.Node.Name = content.node_name
@@ -436,7 +439,10 @@ case class File_Model(
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, pending_edits.nonEmpty))
+    else {
+      val changed = pending_edits.nonEmpty
+      Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, changed = changed))
+    }
 
   def untyped_data: AnyRef = content.data
 
@@ -490,6 +496,9 @@ class Buffer_Model private(
   val node_name: Document.Node.Name,
   val buffer: Buffer
 ) extends Document_Model {
+  override def toString: String = "buffer " + quote(node_name.node)
+
+
   /* text */
 
   def get_text(range: Text.Range): Option[String] =
@@ -590,8 +599,7 @@ class Buffer_Model private(
             blob = Some(x)
             x
           }
-        val changed = !is_stable
-        Some(Document.Blobs.Item(bytes, text, chunk, changed))
+        Some(Document.Blobs.Item(bytes, text, chunk, changed = !is_stable))
       }
     }
 

@@ -15,6 +15,7 @@ object Command {
   /* blobs */
 
   sealed case class Blob(
+    command_offset: Symbol.Offset,
     name: Document.Node.Name,
     src_path: Path,
     content: Option[(SHA1.Digest, Symbol.Text_Chunk)]
@@ -454,7 +455,7 @@ object Command {
               val src_path = Path.explode(file)
               val name = Document.Node.Name(resources.append_path(node_name.master_dir, src_path))
               val content = get_blob(name).map(blob => (blob.bytes.sha1_digest, blob.chunk))
-              Blob(name, src_path, content)
+              Blob(0, name, src_path, content)
             }).user_error)
         Blobs_Info(blobs, index = loaded_files.index)
     }
@@ -495,6 +496,9 @@ final class Command private(
 
   def blobs_names: List[Document.Node.Name] =
     for (case Exn.Res(blob) <- blobs) yield blob.name
+
+  def blobs_files: List[(Symbol.Offset, Document.Node.Name)] =
+    for (case Exn.Res(blob) <- blobs) yield (blob.command_offset, blob.name)
 
   def blobs_undefined: List[Document.Node.Name] =
     for (case Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name

@@ -67,7 +67,7 @@ object Thy_Syntax {
   /** header edits: graph structure and outer syntax **/
 
   private def header_edits(
-    session_base: Sessions.Base,
+    resources: Resources,
     previous: Document.Version,
     edits: List[Document.Edit_Text]
   ): (List[Document.Node.Name], Document.Nodes, List[Document.Edit_Command]) = {
@@ -76,7 +76,7 @@ object Thy_Syntax {
     val doc_edits = new mutable.ListBuffer[Document.Edit_Command]
 
     edits foreach {
-      case (name, Document.Node.Deps(header)) if !session_base.loaded_theory(name) =>
+      case (name, Document.Node.Deps(header)) if !resources.loaded_theory(name) =>
         val node = nodes(name)
         val update_header =
           node.header.errors.nonEmpty || header.errors.nonEmpty || node.header != header
@@ -102,9 +102,9 @@ object Thy_Syntax {
           val header = node.header
           val imports_syntax =
             if (header.imports.nonEmpty) {
-              Outer_Syntax.merge(header.imports.map(session_base.node_syntax(nodes, _)))
+              Outer_Syntax.merge(header.imports.map(resources.session_base.node_syntax(nodes, _)))
             }
-            else session_base.overall_syntax
+            else resources.session_base.overall_syntax
           Some(imports_syntax + header)
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -160,34 +160,43 @@ object Thy_Syntax {
     require(node_name.is_theory)
     val theory = node_name.theory
 
-    Exn.capture(session.read_theory(theory)) match {
-      case Exn.Res(command) =>
-        val thy_changed =
-          if (node.source.isEmpty || node.source == command.source) Nil
-          else List(node_name.node)
-        val blobs_changed =
-          for {
-            case Exn.Res(blob) <- command.blobs
-            (digest, _) <- blob.content
-            doc_blob <- doc_blobs.get(blob.name)
-            if digest != doc_blob.bytes.sha1_digest
-          } yield blob.name.node
+    val node_source = node.source
+    val unicode_symbols = Symbol.decode(node_source) == node_source
 
-        val changed = thy_changed ::: blobs_changed
-        val command1 =
-          if (changed.isEmpty) command
+    Exn.capture(session.read_theory(theory, unicode_symbols = unicode_symbols)) match {
+      case Exn.Res(snapshot) =>
+        val command = snapshot.snippet_commands.head
+        val node_commands =
+          if (node.is_empty) Linear_Set.empty
           else {
-            val node_range = Text.Range(0, Symbol.length(node.source))
-            val msg =
-              XML.Elem(Markup.Bad(Document_ID.make()),
-                XML.string("Changed sources for loaded theory " + quote(theory) +
-                  ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
-            Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
-              blobs_info = command.blobs_info,
-              markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
+            val thy_changed = if (node_source == command.source) Nil else List(node_name.node)
+            val blobs_changed =
+              List.from(
+                for {
+                  blob_name <- command.blobs_names.iterator
+                  blob_node = snapshot.version.nodes(blob_name)
+                  doc_blob <- doc_blobs.get(blob_name)
+                  if blob_node.source != doc_blob.source
+                } yield blob_name.node)
+
+            val changed = thy_changed ::: blobs_changed
+            val command1 =
+              if (changed.isEmpty) command
+              else {
+                val node_range = Text.Range(0, Symbol.length(node.source))
+                val msg =
+                  XML.Elem(Markup.Bad(Document_ID.make()),
+                    XML.string("Changed sources for loaded theory " + quote(theory) +
+                      ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
+                Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
+                  blobs_info = command.blobs_info,
+                  markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
+              }
+
+            Linear_Set(command1)
           }
 
-        node.update_commands(Linear_Set(command1))
+        node.update_commands(node_commands)
 
       case Exn.Exn(exn) =>
         session.system_output(Output.error_message_text(Exn.print(exn)))
@@ -219,7 +228,7 @@ object Thy_Syntax {
     first: Command,
     last: Command
   ): Linear_Set[Command] = {
-    require(!resources.session_base.loaded_theory(node_name))
+    require(!resources.loaded_theory(node_name))
 
     val cmds0 = commands.iterator(first, last).toList
     val blobs_spans0 =
@@ -268,8 +277,6 @@ object Thy_Syntax {
     node: Document.Node,
     edit: Document.Edit_Text
   ): Document.Node = {
-    val session_base = resources.session_base
-
     /* recover command spans after edits */
     // FIXME somewhat slow
     def recover_spans(
@@ -302,7 +309,7 @@ object Thy_Syntax {
         if (name.is_theory) {
           val commands1 = edit_text(text_edits, node.commands)
           val commands2 =
-            if (session_base.loaded_theory(name)) commands1
+            if (resources.loaded_theory(name)) commands1
             else recover_spans(name, node.perspective.visible, commands1)
           node.update_commands(commands2)
         }
@@ -310,7 +317,7 @@ object Thy_Syntax {
 
       case (_, Document.Node.Deps(_)) => node
 
-      case (name, Document.Node.Perspective(_, _, _)) if session_base.loaded_theory(name) => node
+      case (name, Document.Node.Perspective(_, _, _)) if resources.loaded_theory(name) => node
 
       case (name, Document.Node.Perspective(required, text_perspective, overlays)) =>
         val (visible, visible_overlay) = command_perspective(node, text_perspective, overlays)
@@ -355,16 +362,15 @@ object Thy_Syntax {
     consolidate: List[Document.Node.Name]
   ): Session.Change = {
     val resources = session.resources
-    val session_base = resources.session_base
     val reparse_limit = session.reparse_limit
 
-    val (syntax_changed, nodes0, doc_edits0) = header_edits(session_base, previous, edits)
+    val (syntax_changed, nodes0, doc_edits0) = header_edits(resources, previous, edits)
 
     def get_blob(name: Document.Node.Name): Option[Document.Blobs.Item] =
       doc_blobs.get(name) orElse previous.nodes(name).get_blob
 
     def can_import(name: Document.Node.Name): Boolean =
-      session_base.loaded_theory(name) || nodes0(name).has_header
+      resources.loaded_theory(name) || nodes0(name).has_header
 
     val (doc_edits, version) =
       if (edits.isEmpty) (Nil, Document.Version.make(previous.nodes))
@@ -387,11 +393,11 @@ object Thy_Syntax {
         node_edits foreach {
           case (name, edits) =>
             val node = nodes(name)
-            val syntax = session_base.node_syntax(nodes, name)
+            val syntax = resources.session_base.node_syntax(nodes, name)
             val commands = node.commands
 
             val node1 =
-              if (!session_base.loaded_theory(name) && reparse_set(name) && commands.nonEmpty) {
+              if (!resources.loaded_theory(name) && reparse_set(name) && commands.nonEmpty) {
                 node.update_commands(
                   reparse_spans(resources, syntax, get_blob, can_import, name,
                   commands, commands.head, commands.last))
@@ -401,7 +407,7 @@ object Thy_Syntax {
               edits.foldLeft(node1)(
                 text_edit(resources, syntax, get_blob, can_import, reparse_limit, _, _))
             val node3 =
-              if (session_base.loaded_theory(name)) {
+              if (resources.loaded_theory(name)) {
                 reload_theory(session, doc_blobs, name, node2)
               }
               else if (reparse_set(name)) {
@@ -414,7 +420,7 @@ object Thy_Syntax {
               doc_edits += (name -> node3.perspective)
             }
 
-            if (!session_base.loaded_theory(name)) {
+            if (!resources.loaded_theory(name)) {
               doc_edits += (name -> Document.Node.Edits(diff_commands(commands, node3.commands)))
             }
 

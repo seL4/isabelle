@@ -103,7 +103,7 @@ object Document_Info {
             Theory(theory_name,
               static_session = sessions_structure.theory_qualifier(theory_name),
               dynamic_session = session_name,
-              files = files,
+              files = files.map(_._2),
               entities = theory_export.entity_iterator.toList,
               others = theory_export.others.keySet.toList)
           Some(theory)

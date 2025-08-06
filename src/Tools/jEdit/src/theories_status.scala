@@ -26,7 +26,7 @@ class Theories_Status(view: View, document: Boolean = false) {
   private var document_required = Set.empty[Document.Node.Name]
 
   private def is_loaded_theory(name: Document.Node.Name): Boolean =
-    PIDE.resources.session_base.loaded_theory(name)
+    PIDE.resources.loaded_theory(name)
 
   private def overall_node_status(name: Document.Node.Name): Document_Status.Overall_Node_Status = {
     if (is_loaded_theory(name)) Document_Status.Overall_Node_Status.ok
