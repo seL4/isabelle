@@ -494,9 +494,11 @@ option build_log_verbose : bool = false for build_sync
 section "Build Manager SSH"
 
 option build_manager_ssh_host : string = "build.proof.cit.tum.de" for connection
+  -- "SSH host name for build manager"
 option build_manager_ssh_port : int = 0 for connection
+  -- "explicit SSH port"
 option build_manager_ssh_user : string = "" for connection
-  -- "ssh user to access build manager system"
+  -- "explicit SSH user"
 
 option build_manager_cluster_ssh_host : string = "localhost" for connection
 option build_manager_cluster_ssh_user : string = "" for connection

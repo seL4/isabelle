@@ -1942,6 +1942,9 @@ Usage: isabelle build_manager_database [OPTIONS]
 
   /* Isabelle tool wrapper */
 
+  private val build_manager_ssh_options =
+    List("build_manager_ssh_user", "build_manager_ssh_host", "build_manager_ssh_port")
+
   val isabelle_tool2 = Isabelle_Tool("build_task", "submit build task for build manager",
     Scala_Project.here,
     { args =>
@@ -1962,6 +1965,9 @@ Usage: isabelle build_manager_database [OPTIONS]
       var rev = ""
       val exclude_sessions = new mutable.ListBuffer[String]
 
+      def show_options: String =
+        cat_lines(build_manager_ssh_options.flatMap(options.get).map(_.print))
+
       val getopts = Getopts("""
 Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
 
@@ -1978,14 +1984,16 @@ Usage: isabelle build_task [OPTIONS] [SESSIONS ...]
     -f           fresh build
     -g NAME      select session group NAME
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p OPTION    override Isabelle system OPTION for build process (via NAME=VAL or NAME)
+    -p OPTION    override Isabelle system OPTION for build process
+                 (via NAME=VAL or NAME)
     -r REV       explicit revision (default: state of working directory)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
 
-  Submit build task on SSH server. Notable system options:
+  Submit build task on managed server.
 
-""" + Library.indent_lines(2, options.get("build_manager_ssh_user").get.print) + "\n",
+  Requires SSH access to known host according to system options:
+""" + Library.indent_lines(4, show_options) + "\n",
         "A:" -> (arg => afp_root = Some(if (arg == ":") AFP.BASE else Path.explode(arg))),
         "B:" -> (arg => base_sessions += arg),
         "P" -> (_ => presentation = true),
