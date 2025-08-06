@@ -141,7 +141,7 @@ object Document_Editor {
         else {
           val snapshot = pide_session.snapshot()
           def document_ready(theory: String): Boolean =
-            pide_session.resources.session_base.loaded_theory(theory) ||
+            pide_session.resources.loaded_theory(theory) ||
             snapshot.theory_consolidated(theory)
           if (snapshot.is_outdated || !selection.forall(document_ready)) None
           else Some(snapshot)

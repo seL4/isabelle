@@ -97,7 +97,7 @@ extends Resources(session_background, log = log) {
     find_theory(file) getOrElse {
       val node = file.getPath
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
-      if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+      if (loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
       else Document.Node.Name(node, theory = theory)
     }
 
@@ -335,6 +335,12 @@ extends Resources(session_background, log = log) {
   def output_edit(content: String): String = Symbol.output(unicode_symbols_edits, content)
 
   def output_xml_text(body: XML.Tree): String = output_text(XML.content(body))
+
+  def output_text_xml(body: XML.Body): XML.Body =
+    body.map {
+      case XML.Elem(markup, body) => XML.Elem(markup, output_text_xml(body))
+      case XML.Text(content) => XML.Text(output_text(content))
+    }
 
   def output_pretty(body: XML.Body, margin: Double): String =
     output_text(Pretty.string_of(body, margin = margin, metric = Symbol.Metric))

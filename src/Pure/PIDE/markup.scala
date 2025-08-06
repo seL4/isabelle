@@ -464,6 +464,8 @@ object Markup {
       else None
   }
 
+  val COMMAND_RANGE = "command_range"
+
   val COMMAND = "command"
   val KEYWORD = "keyword"
   val KEYWORD1 = "keyword1"

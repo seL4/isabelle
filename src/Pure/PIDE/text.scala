@@ -152,7 +152,7 @@ object Text {
 
   final class Edit private(val is_insert: Boolean, val start: Offset, val text: String) {
     override def toString: String =
-      (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
+      (if (is_insert) "Insert(" else "Remove(") + (start, text.length).toString + ")"
 
 
     /* transform offsets */

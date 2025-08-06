@@ -728,16 +728,18 @@ Usage: isabelle build_worker [OPTIONS]
       val thy_file = migrate_file(thy_file0)
 
       val blobs =
-        blobs_files0.map { name0 =>
-          val name = migrate_file(name0)
+        blobs_files0.map { case (command_offset, name0) =>
+          val node_name = Document.Node.Name(migrate_file(name0))
+          val src_path = Path.explode(name0)
 
           val file = read_source_file(name0)
           val bytes = file.bytes
           val text = decode(bytes.text)
           val chunk = Symbol.Text_Chunk(text)
+          val content = Some((file.digest, chunk))
 
-          Command.Blob(Document.Node.Name(name), Path.explode(name), Some((file.digest, chunk))) ->
-            Document.Blobs.Item(bytes, text, chunk, changed = false)
+          Command.Blob(command_offset, node_name, src_path, content) ->
+            Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
         }
 
       val thy_source = decode(read_source_file(thy_file0).bytes.text)
@@ -818,10 +820,9 @@ Usage: isabelle build_worker [OPTIONS]
               Build.read_theory(session_context.theory(thy), unicode_symbols = unicode_symbols) match {
                 case None => progress.echo(thy_heading + " MISSING")
                 case Some(snapshot) =>
-                  val rendering = new Rendering(snapshot, options, session)
                   val messages =
-                    rendering.text_messages()
-                      .filter(message => progress.verbose || Protocol.is_exported(message.info))
+                    Rendering.text_messages(snapshot,
+                      filter = msg => progress.verbose || Protocol.is_exported(msg))
                   if (messages.nonEmpty) {
                     val line_document = Line.Document(snapshot.node.source)
                     val buffer = new mutable.ListBuffer[String]

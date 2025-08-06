@@ -346,7 +346,7 @@ trait Protocol {
     val blobs_xml: XML.Body = {
       val encode_blob: T[Exn.Result[Command.Blob]] =
         variant(List(
-          { case Exn.Res(Command.Blob(a, b, c)) =>
+          { case Exn.Res(Command.Blob(_, a, b, c)) =>
               (Nil, triple(string, string, option(string))(
                 (a.node, b.implode, c.map(p => p._1.toString)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))

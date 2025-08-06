@@ -169,7 +169,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         case None => snapshot.version.nodes.iterator
       }).foldLeft(nodes_timing) {
           case (timing1, (name, node)) =>
-            if (PIDE.resources.session_base.loaded_theory(name)) timing1
+            if (PIDE.resources.loaded_theory(name)) timing1
             else {
               val node_timing =
                 Document_Status.Overall_Timing.make(

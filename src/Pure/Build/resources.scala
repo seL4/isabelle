@@ -7,6 +7,7 @@ Resources for theories and auxiliary files.
 package isabelle
 
 
+import scala.collection.mutable
 import scala.util.parsing.input.Reader
 
 import java.io.{File => JFile}
@@ -31,6 +32,9 @@ class Resources(
 
   def sessions_structure: Sessions.Structure = session_background.sessions_structure
   def session_base: Sessions.Base = session_background.base
+
+  def loaded_theory(name: String): Boolean = session_base.loaded_theory(name)
+  def loaded_theory(name: Document.Node.Name): Boolean = session_base.loaded_theory(name)
 
   override def toString: String = "Resources(" + session_base.print_body + ")"
 
@@ -85,14 +89,20 @@ class Resources(
   def load_commands(
     syntax: Outer_Syntax,
     name: Document.Node.Name
-  ) : () => List[Command_Span.Span] = {
+  ) : () => List[(Command_Span.Span, Symbol.Offset)] = {
     val (is_utf8, raw_text) =
       with_thy_reader(name, reader => (Scan.reader_is_utf8(reader), reader.source.toString))
     () =>
       {
         if (syntax.has_load_commands(raw_text)) {
-          val text = Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text))
-          syntax.parse_spans(text).filter(_.is_load_command(syntax))
+          val spans = syntax.parse_spans(Symbol.decode(Scan.reader_decode_utf8(is_utf8, raw_text)))
+          val result = new mutable.ListBuffer[(Command_Span.Span, Symbol.Offset)]
+          var offset = 1
+          for (span <- spans) {
+            if (span.is_load_command(syntax)) { result += (span -> offset) }
+            offset += span.symbol_length
+          }
+          result.toList
         }
         else Nil
       }
@@ -112,7 +122,7 @@ class Resources(
       (file, theory) <- Thy_Header.ml_roots.iterator
       node = append_path("~~/src/Pure", Path.explode(file))
       node_name = Document.Node.Name(node, theory = theory)
-      name <- loaded_files(syntax, node_name, load_commands(syntax, node_name)()).iterator
+      name <- loaded_files(syntax, node_name, load_commands(syntax, node_name)().map(_._1)).iterator
     } yield name).toList
 
   def global_theory(theory: String): Boolean =
@@ -144,7 +154,7 @@ class Resources(
     if (literal_import && !Url.is_base_name(s)) {
       error("Bad import of theory from other session via file-path: " + quote(s))
     }
-    if (session_base.loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
+    if (loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
     else {
       find_theory_node(theory) match {
         case Some(node_name) => node_name
@@ -236,7 +246,7 @@ class Resources(
   def undefined_blobs(version: Document.Version): List[Document.Node.Name] =
     (for {
       (node_name, node) <- version.nodes.iterator
-      if !session_base.loaded_theory(node_name)
+      if !loaded_theory(node_name)
       cmd <- node.load_commands.iterator
       name <- cmd.blobs_undefined.iterator
     } yield name).toList
@@ -295,7 +305,7 @@ class Resources(
       if (seen.isDefinedAt(name)) this
       else {
         val dependencies1 = new Dependencies[A](rev_entries, seen + (name -> adjunct))
-        if (session_base.loaded_theory(name)) dependencies1
+        if (loaded_theory(name)) dependencies1
         else {
           try {
             if (initiators.contains(name)) error(Dependencies.cycle_msg(initiators))
@@ -372,9 +382,9 @@ class Resources(
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
       loaded_theories.get_node(name.theory)
 
-    lazy val load_commands: List[(Document.Node.Name, List[Command_Span.Span])] =
+    lazy val load_commands: List[(Document.Node.Name, List[(Command_Span.Span, Symbol.Offset)])] =
       theories.zip(
-        Par_List.map((e: () => List[Command_Span.Span]) => e(),
+        Par_List.map((e: () => List[(Command_Span.Span, Symbol.Offset)]) => e(),
           theories.map(name => resources.load_commands(get_syntax(name), name))))
       .filter(p => p._2.nonEmpty)
 
@@ -391,8 +401,8 @@ class Resources(
 
     def loaded_files: List[Document.Node.Name] =
       for {
-        (name, spans) <- load_commands
-        file <- loaded_files(name, spans)._2
+        (name, cmds) <- load_commands
+        file <- loaded_files(name, cmds.map(_._1))._2
       } yield file
 
     def imported_files: List[Path] = {

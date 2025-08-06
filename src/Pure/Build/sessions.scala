@@ -102,7 +102,7 @@ object Sessions {
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
     used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
-    theory_load_commands: Map[String, List[Command_Span.Span]] = Map.empty,
+    theory_load_commands: Map[String, List[(Command_Span.Span, Symbol.Offset)]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
@@ -301,11 +301,11 @@ object Sessions {
                 catch { case ERROR(msg) => (Nil, List(msg)) }
 
               val theory_load_commands =
-                (for ((name, span) <- load_commands.iterator) yield name.theory -> span).toMap
+                (for ((name, cmd) <- load_commands.iterator) yield name.theory -> cmd).toMap
 
               val loaded_files: List[(String, List[Path])] =
-                for ((name, spans) <- load_commands) yield {
-                  val (theory, files) = dependencies.loaded_files(name, spans)
+                for ((name, cmds) <- load_commands) yield {
+                  val (theory, files) = dependencies.loaded_files(name, cmds.map(_._1))
                   theory -> files.map(file => Path.explode(file.node))
                 }
 

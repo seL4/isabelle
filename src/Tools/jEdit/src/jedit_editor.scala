@@ -78,23 +78,21 @@ class JEdit_Editor extends Editor[View] {
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
     GUI_Thread.require { Document_Model.get_snapshot(name) getOrElse session.snapshot(name) }
 
-  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] = {
-    GUI_Thread.require {}
-
-    val text_area = view.getTextArea
-    val buffer = view.getBuffer
-
-    Document_View.get(text_area) match {
-      case Some(doc_view) if doc_view.model.is_theory =>
-        snapshot.current_command(doc_view.model.node_name, text_area.getCaretPosition)
-      case _ =>
-        Document_Model.get_model(buffer) match {
-          case Some(model) if !model.is_theory =>
-            snapshot.version.nodes.commands_loading(model.node_name).headOption
-          case _ => None
-        }
+  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
+    GUI_Thread.require {
+      val text_area = view.getTextArea
+      val caret_offset = text_area.getCaretPosition
+      Document_View.get(text_area) match {
+        case Some(doc_view) if snapshot.loaded_theory_command(caret_offset).isEmpty =>
+          snapshot.current_command(doc_view.model.node_name, caret_offset)
+        case _ => None
+      }
     }
-  }
+
+
+  /* output messages */
+
+  override def output_state(): Boolean = JEdit_Options.output_state()
 
 
   /* overlays */

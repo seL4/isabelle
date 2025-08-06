@@ -95,13 +95,37 @@ object Rendering {
     legacy_pri -> Color.legacy_message,
     error_pri -> Color.error_message)
 
-  def output_messages(results: Command.Results, output_state: Boolean): List[XML.Elem] = {
-    val (states, other) =
-      results.iterator.map(_._2).filterNot(Protocol.is_result).toList
-        .partition(Protocol.is_state)
-    val (urgent, regular) = other.partition(Protocol.is_urgent)
 
-    urgent ::: (if (output_state) states else Nil) ::: regular
+  /* text messages */
+
+  def text_messages(
+    snapshot: Document.Snapshot,
+    range: Text.Range = Text.Range.full,
+    filter: XML.Elem => Boolean = _ => true
+  ): List[Text.Info[XML.Elem]] = {
+    val results =
+      snapshot.cumulate[Vector[Command.Results.Entry]](
+        range, Vector.empty, message_elements, command_states =>
+          {
+            case (res, Text.Info(_, elem)) =>
+              if (filter(elem)) {
+                Command.State.get_result_proper(command_states, elem.markup.properties)
+                  .map(res :+ _)
+              }
+              else None
+          })
+
+    var seen_serials = Set.empty[Long]
+    def seen(i: Long): Boolean = {
+      val b = seen_serials(i)
+      seen_serials += i
+      b
+    }
+    List.from(
+      for {
+        Text.Info(range, entries) <- results.iterator
+        (i, elem) <- entries.iterator if !seen(i)
+      } yield Text.Info(range, elem))
   }
 
 
@@ -568,28 +592,6 @@ class Rendering(
       Text.Info(r, pri) <- results
       color <- Rendering.message_underline_color.get(pri)
     } yield Text.Info(r, color)
-  }
-
-  def text_messages(range: Text.Range = Text.Range.full): List[Text.Info[XML.Elem]] = {
-    val results =
-      snapshot.cumulate[Vector[Command.Results.Entry]](
-        range, Vector.empty, Rendering.message_elements, command_states =>
-          {
-            case (res, Text.Info(_, elem)) =>
-              Command.State.get_result_proper(command_states, elem.markup.properties)
-                .map(res :+ _)
-          })
-
-    var seen_serials = Set.empty[Long]
-    def seen(i: Long): Boolean = {
-      val b = seen_serials(i)
-      seen_serials += i
-      b
-    }
-    for {
-      Text.Info(range, entries) <- results
-      (i, elem) <- entries if !seen(i)
-    } yield Text.Info(range, elem)
   }
 
 

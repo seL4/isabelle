@@ -300,6 +300,8 @@ fun eval_thy options master_dir header text_pos text parents =
 
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
     val elements = Thy_Element.parse_elements keywords spans;
+    val command_ranges =
+      Command_Span.command_ranges spans |> map (fn (pos, _) => (pos, Markup.command_range));
 
     val text_id = Position.copy_id text_pos Position.none;
 
@@ -307,6 +309,8 @@ fun eval_thy options master_dir header text_pos text parents =
 
     fun excursion () =
       let
+        val _ = Position.setmp_thread_data text_id (fn () => Position.reports command_ranges) ();
+
         fun element_result span_elem (st, _) =
           let
             fun prepare span =
