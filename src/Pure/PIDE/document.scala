@@ -49,6 +49,8 @@ object Document {
       command_offset: Symbol.Offset = 0,
       changed: Boolean = false
     ) {
+      override def toString: String = "Blobs.Item(" + bytes.size + ")"
+
       def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = if (changed) copy(changed = false) else this
     }
