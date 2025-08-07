@@ -106,7 +106,7 @@ session "HOL-Analysis" (main timing) in Analysis = HOL +
     "HOL-Combinatorics"
     "HOL-Computational_Algebra"
     "HOL-Real_Asymp"
-theories
+  theories
     Analysis
     Finite_Function_Topology (* not part of main file because it imports problematic Sum_any notation *)
   document_files
