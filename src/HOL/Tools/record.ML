@@ -1029,8 +1029,11 @@ fun prove_unfold_defs thy upd_funs ex_simps ex_simprs prop =
   in
     Goal.prove ctxt [] [] prop'
       (fn {context = ctxt', ...} =>
-        simp_tac (put_simpset HOL_basic_ss ctxt' addsimps (simps @ @{thms K_record_comp})) 1 THEN
-        TRY (simp_tac (put_simpset HOL_basic_ss ctxt' addsimps ex_simps addsimprocs ex_simprs) 1))
+        let val ctxt0 = put_simpset HOL_basic_ss ctxt' in
+          simp_tac (ctxt0 |> Simplifier.add_simps (simps @ @{thms K_record_comp})) 1 THEN
+          TRY (simp_tac
+            (ctxt0 |> Simplifier.add_simps ex_simps |> fold Simplifier.add_proc ex_simprs) 1)
+        end)
   end;
 
 

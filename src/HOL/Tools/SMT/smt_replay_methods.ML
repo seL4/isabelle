@@ -399,12 +399,13 @@ fun arith_th_lemma_tac_with_wo ctxt prems =
   Method.insert_tac ctxt prems
   THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def int_distrib})
   THEN' Simplifier.asm_full_simp_tac
-     (empty_simpset ctxt addsimprocs [(*@{simproc linordered_ring_strict_eq_cancel_factor_poly},
-      @{simproc linordered_ring_strict_le_cancel_factor_poly},
-      @{simproc linordered_ring_strict_less_cancel_factor_poly},
-      @{simproc nat_eq_cancel_factor_poly},
-      @{simproc nat_le_cancel_factor_poly},
-      @{simproc nat_less_cancel_factor_poly}*)])
+     (empty_simpset ctxt |> fold Simplifier.add_proc
+       [(*@{simproc linordered_ring_strict_eq_cancel_factor_poly},
+          @{simproc linordered_ring_strict_le_cancel_factor_poly},
+          @{simproc linordered_ring_strict_less_cancel_factor_poly},
+          @{simproc nat_eq_cancel_factor_poly},
+          @{simproc nat_le_cancel_factor_poly},
+          @{simproc nat_less_cancel_factor_poly}*)])
   THEN' (fn i => TRY (Arith_Data.arith_tac ctxt i))
 
 fun arith_th_lemma_wo ctxt thms t =

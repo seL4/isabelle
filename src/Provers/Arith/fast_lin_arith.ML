@@ -166,8 +166,8 @@ fun map_simpset f context =
 
 fun add_inj_thms thms = map_data (map_inj_thms (append (map Thm.trim_context thms)));
 fun add_lessD thm = map_data (map_lessD (fn thms => thms @ [Thm.trim_context thm]));
-fun add_simps thms = map_simpset (fn ctxt => ctxt addsimps thms);
-fun add_simprocs procs = map_simpset (fn ctxt => ctxt addsimprocs procs);
+val add_simps = map_simpset o Simplifier.add_simps;
+val add_simprocs = map_simpset o fold Simplifier.add_proc;
 
 fun set_number_of f =
   map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, ...} =>

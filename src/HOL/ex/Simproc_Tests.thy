@@ -17,8 +17,8 @@ text \<open>
 subsection \<open>ML bindings\<close>
 
 ML \<open>
-  fun test ctxt ps =
-    CHANGED (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimprocs ps) 1)
+  fun test ctxt procs =
+    CHANGED (asm_simp_tac (put_simpset HOL_basic_ss ctxt |> fold Simplifier.add_proc procs) 1)
 \<close>
 
 subsection \<open>Cancellation simprocs from \<open>Nat.thy\<close>\<close>
@@ -398,8 +398,8 @@ notepad begin
     assume z_pos: "0 < z"
     assume "x < y" have "z*x < z*y"
       by (tactic \<open>CHANGED (asm_simp_tac (put_simpset HOL_basic_ss \<^context>
-        addsimprocs [\<^simproc>\<open>linordered_ring_less_cancel_factor\<close>]
-        addsimps [@{thm z_pos}]) 1)\<close>) fact
+        |> Simplifier.add_proc \<^simproc>\<open>linordered_ring_less_cancel_factor\<close>
+        |> Simplifier.add_simp @{thm z_pos}) 1)\<close>) fact
   }
 end
 
