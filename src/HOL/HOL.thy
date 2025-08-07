@@ -1733,10 +1733,10 @@ lemma ex1_eq [iff]: "\<exists>!x. x = t" "\<exists>!x. t = x"
 lemma choice_eq: "(\<forall>x. \<exists>!y. P x y) = (\<exists>!f. \<forall>x. P x (f x))" (is "?lhs = ?rhs")
 proof (intro iffI allI)
   assume L: ?lhs
-  then have \<section>: "\<forall>x. P x (THE y. P x y)"
+  then have *: "\<forall>x. P x (THE y. P x y)"
     by (best intro: theI')
   show ?rhs
-    by (rule ex1I) (use L \<section> in \<open>fast+\<close>)
+    by (rule ex1I) (use L * in \<open>fast+\<close>)
 next
   fix x
   assume R: ?rhs
