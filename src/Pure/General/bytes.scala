@@ -117,7 +117,7 @@ object Bytes {
   /* write */
 
   def write(file: JFile, bytes: Bytes): Unit =
-    using(new FileOutputStream(file))(bytes.write_stream(_))
+    using(new FileOutputStream(file))(bytes.write_stream)
 
   def write(path: Path, bytes: Bytes): Unit = write(path.file, bytes)
 
@@ -125,7 +125,7 @@ object Bytes {
   /* append */
 
   def append(file: JFile, bytes: Bytes): Unit =
-    using(new FileOutputStream(file, true))(bytes.write_stream(_))
+    using(new FileOutputStream(file, true))(bytes.write_stream)
 
   def append(path: Path, bytes: Bytes): Unit = append(path.file, bytes)
 
@@ -506,7 +506,7 @@ final class Bytes private(
 
   def encode_base64: Bytes =
     Bytes.Builder.use_stream(hint = (size * 1.5).round) { out =>
-      using(Base64.encode_stream(out))(write_stream(_))
+      using(Base64.encode_stream(out))(write_stream)
     }
 
   def decode_base64: Bytes =
