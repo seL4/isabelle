@@ -543,7 +543,7 @@ fun nnf_extra_simps ({if_simps, ...} : simp_options) =
   "Let_def [abs_def]". *)
 fun nnf_ss simp_options =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps (nnf_extra_simps simp_options)
+    |> Simplifier.add_simps (nnf_extra_simps simp_options)
     |> fold Simplifier.add_proc
       [\<^simproc>\<open>defined_All\<close>, \<^simproc>\<open>defined_Ex\<close>, \<^simproc>\<open>neq\<close>, \<^simproc>\<open>let_simp\<close>])
 

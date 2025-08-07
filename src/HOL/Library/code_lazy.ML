@@ -350,7 +350,7 @@ fun code_lazy_type eager_type_string thy =
       let
         val binding = Binding.name name
         fun tac {context, ...} = Simplifier.simp_tac
-          (put_simpset HOL_basic_ss context addsimps thms)
+          (put_simpset HOL_basic_ss context |> Simplifier.add_simps thms)
           1
         val thm = Goal.prove lthy [] [] term tac
         val (_, lthy1) = lthy
@@ -500,14 +500,10 @@ fun code_lazy_type eager_type_string thy =
     val ctr_post = delay_dummy_thm :: map (fn thm => thm RS @{thm sym}) ctrs_lazy_thms
     val ctr_thms_abs = map (fn thm => Drule.abs_def (thm RS @{thm eq_reflection})) ctrs_lazy_thms
     val case_thm_abs = Drule.abs_def (case_lazy_thm RS @{thm eq_reflection})
-    val add_simps = Code_Preproc.map_pre
-      (fn ctxt => ctxt addsimps (case_thm_abs :: ctr_thms_abs))
-    val del_simps = Code_Preproc.map_pre
-      (fn ctxt => ctxt delsimps (case_thm_abs :: ctr_thms_abs))
-    val add_post = Code_Preproc.map_post
-      (fn ctxt => ctxt addsimps ctr_post)
-    val del_post = Code_Preproc.map_post
-      (fn ctxt => ctxt delsimps ctr_post)
+    val add_simps = Code_Preproc.map_pre (Simplifier.add_simps (case_thm_abs :: ctr_thms_abs))
+    val del_simps = Code_Preproc.map_pre (Simplifier.del_simps (case_thm_abs :: ctr_thms_abs))
+    val add_post = Code_Preproc.map_post (Simplifier.add_simps ctr_post)
+    val del_post = Code_Preproc.map_post (Simplifier.del_simps ctr_post)
   in
     Local_Theory.exit_global lthy10
     |> Laziness_Data.map (Symtab.update (type_name,

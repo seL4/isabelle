@@ -2185,7 +2185,8 @@ ML \<open>
 
   local
     val nnf_ss =
-      simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms simp_thms nnf_simps});
+      simpset_of (put_simpset HOL_basic_ss \<^context>
+        |> Simplifier.add_simps @{thms simp_thms nnf_simps});
   in
     fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
   end

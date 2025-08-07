@@ -429,7 +429,8 @@ local
   fun is_strange_number ctxt t = is_irregular_number t andalso SMT_Builtin.is_builtin_num ctxt t
 
   val proper_num_ss =
-    simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms Num.numeral_One minus_zero})
+    simpset_of (put_simpset HOL_ss \<^context>
+      |> Simplifier.add_simps @{thms Num.numeral_One minus_zero})
 
   fun norm_num_conv ctxt =
     SMT_Util.if_conv (is_strange_number ctxt) (Simplifier.rewrite (put_simpset proper_num_ss ctxt))

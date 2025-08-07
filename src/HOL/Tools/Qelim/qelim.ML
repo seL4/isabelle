@@ -58,7 +58,7 @@ local
 val ss =
   simpset_of
    (put_simpset HOL_basic_ss \<^context>
-    addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
+    |> Simplifier.add_simps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
 
 fun pcv ctxt = Simplifier.rewrite (put_simpset ss ctxt)
 

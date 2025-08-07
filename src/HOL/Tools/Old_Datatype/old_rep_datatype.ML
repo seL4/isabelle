@@ -167,8 +167,8 @@ fun prove_primrec_thms (config : Old_Datatype_Aux.config) new_type_names descr
       let
         val distinct_tac =
           if i < length newTs then
-            full_simp_tac (put_simpset HOL_ss ctxt addsimps (nth dist_rewrites i)) 1
-          else full_simp_tac (put_simpset HOL_ss ctxt addsimps (flat other_dist_rewrites)) 1;
+            full_simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps (nth dist_rewrites i)) 1
+          else full_simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps (flat other_dist_rewrites)) 1;
 
         val inject =
           map (fn r => r RS iffD1)
@@ -392,7 +392,7 @@ fun prove_split_thms (config : Old_Datatype_Aux.config)
         val tac =
           EVERY [resolve_tac ctxt [exhaustion'] 1,
             ALLGOALS (asm_simp_tac
-              (put_simpset HOL_ss ctxt addsimps (dist_rewrites' @ inject @ case_thms')))];
+              (put_simpset HOL_ss ctxt |> Simplifier.add_simps (dist_rewrites' @ inject @ case_thms')))];
       in
         (Goal.prove_sorry_global thy [] [] t1 (K tac),
          Goal.prove_sorry_global thy [] [] t2 (K tac))
@@ -465,10 +465,11 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
             let
               val nchotomy'' =
                 infer_instantiate ctxt [(v, Thm.cterm_of ctxt Ma)] nchotomy';
-              val simplify = asm_simp_tac (put_simpset HOL_ss ctxt addsimps (prems @ case_rewrites))
+              val simplify =
+                asm_simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps (prems @ case_rewrites))
             in
               EVERY [
-                simp_tac (put_simpset HOL_ss ctxt addsimps [hd prems]) 1,
+                simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simp (hd prems)) 1,
                 cut_tac nchotomy'' 1,
                 REPEAT (eresolve_tac ctxt [disjE] 1 THEN
                   REPEAT (eresolve_tac ctxt [exE] 1) THEN simplify 1),

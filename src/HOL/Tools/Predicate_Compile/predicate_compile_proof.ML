@@ -35,7 +35,7 @@ fun assert_tac ctxt pos pred =
 
 val HOL_basic_ss' =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps @{thms simp_thms prod.inject}
+    |> Simplifier.add_simps @{thms simp_thms prod.inject}
     |> Simplifier.set_unsafe_solver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
     |> Simplifier.set_unsafe_solver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI})))
 
@@ -60,7 +60,7 @@ fun prove_param options ctxt nargs t deriv =
     val ho_args = ho_args_of mode args
     val f_tac =
       (case f of
-        Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt addsimps
+        Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps
            [@{thm pred.sel}, Core_Data.predfun_definition_of ctxt name mode,
            @{thm case_prod_eta}, @{thm case_prod_beta}, @{thm fst_conv},
            @{thm snd_conv}, @{thm prod.collapse}, @{thm Product_Type.split_conv}]) 1
@@ -140,7 +140,7 @@ fun prove_match options ctxt nargs out_ts =
   (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
   in
     (* make this simpset better! *)
-    asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps simprules) 1
+    asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt |> Simplifier.add_simps simprules) 1
     THEN trace_tac ctxt options "after prove_match:"
     THEN (DETERM (TRY
            (resolve_tac ctxt [eval_if_P] 1
@@ -180,7 +180,7 @@ fun prove_sidecond ctxt t =
         preds
   in
     simp_tac (put_simpset HOL_basic_ss ctxt
-      addsimps (@{thms HOL.simp_thms pred.sel} @ defs)) 1
+      |> Simplifier.add_simps (@{thms HOL.simp_thms pred.sel} @ defs)) 1
     (* need better control here! *)
   end
 
@@ -233,7 +233,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                 val params = ho_args_of mode args
               in
                 trace_tac ctxt options "before prove_neg_expr:"
-                THEN full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
+                THEN full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps
                   [@{thm case_prod_eta}, @{thm case_prod_beta}, @{thm fst_conv},
                    @{thm snd_conv}, @{thm prod.collapse}, @{thm Product_Type.split_conv}]) 1
                 THEN (if (is_some name) then
@@ -249,9 +249,9 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                     (* test: *)
                     THEN dresolve_tac ctxt @{thms sym} 1
                     THEN asm_full_simp_tac
-                      (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1)
+                      (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm not_False_eq_True}) 1)
                     THEN simp_tac
-                      (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1
+                      (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm not_False_eq_True}) 1
                 THEN rec_tac
               end
             | Sidecond t =>
@@ -338,7 +338,7 @@ fun prove_param2 options ctxt t deriv =
     val ho_args = ho_args_of mode args
     val f_tac =
       (case f of
-        Const (name, _) => full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
+        Const (name, _) => full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps
            [@{thm pred.sel}, Core_Data.predfun_definition_of ctxt name mode,
             @{thm Product_Type.split_conv}]) 1
       | Free _ => all_tac
@@ -383,7 +383,8 @@ fun prove_sidecond2 options ctxt t =
         preds
   in
     (* only simplify the one assumption *)
-    full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps @{thm pred.sel} :: defs) 1
+    full_simp_tac (put_simpset HOL_basic_ss' ctxt
+      |> Simplifier.add_simps (@{thm pred.sel} :: defs)) 1
     (* need better control here! *)
     THEN trace_tac ctxt options "after sidecond2 simplification"
   end
@@ -394,7 +395,7 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
     val (in_ts, _) = split_mode mode ts;
     val split_simpset =
       put_simpset HOL_basic_ss' ctxt
-      addsimps [@{thm case_prod_eta}, @{thm case_prod_beta},
+      |> Simplifier.add_simps [@{thm case_prod_eta}, @{thm case_prod_beta},
         @{thm fst_conv}, @{thm snd_conv}, @{thm prod.collapse}]
     fun prove_prems2 out_ts [] =
       trace_tac ctxt options "before prove_match2 - last call:"
@@ -441,10 +442,11 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
                 trace_tac ctxt options "before neg prem 2"
                 THEN eresolve_tac ctxt @{thms bindE} 1
                 THEN (if is_some name then
-                    full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-                      [Core_Data.predfun_definition_of ctxt (the name) mode]) 1
+                    full_simp_tac (put_simpset HOL_basic_ss ctxt
+                      |> Simplifier.add_simps [Core_Data.predfun_definition_of ctxt (the name) mode]) 1
                     THEN eresolve_tac ctxt @{thms not_predE} 1
-                    THEN simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms not_False_eq_True}) 1
+                    THEN simp_tac (put_simpset HOL_basic_ss ctxt
+                      |> Simplifier.add_simps @{thms not_False_eq_True}) 1
                     THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
                   else
                     eresolve_tac ctxt @{thms not_predE'} 1)

@@ -386,7 +386,7 @@ end;
 
   fun init_conv ctxt =
    Simplifier.rewrite (put_simpset HOL_basic_ss ctxt
-    addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm right_minus},
+    |> Simplifier.add_simps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm right_minus},
       @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths}))
    then_conv Numeral_Simprocs.field_comp_conv ctxt
    then_conv nnf_conv ctxt

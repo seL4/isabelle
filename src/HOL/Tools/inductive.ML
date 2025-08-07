@@ -993,7 +993,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
            fold_rev lambda params (fp_const $ fp_fun)))
       ||> Proof_Context.restore_naming lthy;
     val fp_def' =
-      Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
+      Simplifier.rewrite (put_simpset HOL_basic_ss lthy' |> Simplifier.add_simp fp_def)
         (Thm.cterm_of lthy' (list_comb (rec_const, params)));
     val specs =
       if is_auxiliary then

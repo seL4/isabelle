@@ -266,7 +266,8 @@ fun rewrite_by_tree ctxt h ih x tr =
                 |> map (fn u_eq => (u_eq RS sym) RS eq_reflection)
                 |> filter_out Thm.is_reflexive
 
-              val assumes' = map (simplify (put_simpset HOL_basic_ss ctxt addsimps used)) assumes
+              val assumes' =
+                map (simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps used)) assumes
 
               val (subeq, x') =
                 rewrite_help (fix @ fixes) (h_as @ assumes') x st

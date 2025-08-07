@@ -2219,7 +2219,7 @@ fun corecursive_cmd int opts (raw_fixes, raw_eq) lthy =
       let
         val remove_domain_condition =
           full_simplify (put_simpset HOL_basic_ss lthy'
-            addsimps (@{thm True_implies_equals} :: termin_thms));
+            |> Simplifier.add_simps (@{thm True_implies_equals} :: termin_thms));
       in
         def_fun (@{apply 3} (map remove_domain_condition) inner_fp_triple)
           (const_transfers @ const_transfers')

@@ -68,7 +68,7 @@ lemma all_simps:
 lemmas mini_simps = demorgans nnf_simps ex_simps all_simps
 
 ML \<open>
-val mini_ss = simpset_of (\<^context> addsimps @{thms mini_simps});
+val mini_ss = simpset_of (\<^context> |> Simplifier.add_simps @{thms mini_simps});
 fun mini_tac ctxt =
   resolve_tac ctxt @{thms ccontr} THEN' asm_full_simp_tac (put_simpset mini_ss ctxt);
 \<close>

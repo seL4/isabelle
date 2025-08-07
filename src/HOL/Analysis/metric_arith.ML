@@ -44,7 +44,7 @@ fun mk_ct_set ctxt ty =
 fun prenex_tac ctxt =
   let
     val prenex_simps = Proof_Context.get_thms ctxt @{named_theorems metric_prenex}
-    val prenex_ctxt = put_simpset HOL_basic_ss ctxt addsimps prenex_simps
+    val prenex_ctxt = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps prenex_simps
   in
     simp_tac prenex_ctxt THEN'
     K (trace_tac ctxt "Prenex form")
@@ -53,25 +53,25 @@ fun prenex_tac ctxt =
 fun nnf_tac ctxt =
   let
     val nnf_simps = Proof_Context.get_thms ctxt @{named_theorems metric_nnf}
-    val nnf_ctxt = put_simpset HOL_basic_ss ctxt addsimps nnf_simps
+    val nnf_ctxt = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps nnf_simps
   in
     simp_tac nnf_ctxt THEN'
     K (trace_tac ctxt "NNF form")
   end
 
 fun unfold_tac ctxt =
-  asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps (
-    Proof_Context.get_thms ctxt @{named_theorems metric_unfold}))
+  asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
+    |> Simplifier.add_simps (Proof_Context.get_thms ctxt @{named_theorems metric_unfold}))
 
 fun pre_arith_tac ctxt =
-  simp_tac (put_simpset HOL_basic_ss ctxt addsimps (
-    Proof_Context.get_thms ctxt @{named_theorems metric_pre_arith})) THEN'
+  simp_tac (put_simpset HOL_basic_ss ctxt
+    |> Simplifier.add_simps (Proof_Context.get_thms ctxt @{named_theorems metric_pre_arith})) THEN'
     K (trace_tac ctxt "Prepared for decision procedure")
 
 fun dist_refl_sym_tac ctxt =
   let
     val refl_sym_simps = @{thms dist_self dist_commute add_0_right add_0_left simp_thms}
-    val refl_sym_ctxt = put_simpset HOL_basic_ss ctxt addsimps refl_sym_simps
+    val refl_sym_ctxt = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps refl_sym_simps
   in
     simp_tac refl_sym_ctxt THEN'
     K (trace_tac ctxt ("Simplified using " ^ @{make_string} refl_sym_simps))
@@ -143,20 +143,25 @@ fun maxdist_conv ctxt fset_ct ct =
     val (x, y) = Thm.dest_binop ct
     val solve_prems =
       rule_by_tactic ctxt (ALLGOALS (simp_tac (put_simpset HOL_ss ctxt
-        addsimps @{thms finite.emptyI finite_insert empty_iff insert_iff})))
+        |> Simplifier.add_simps @{thms finite.emptyI finite_insert empty_iff insert_iff})))
     val image_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms image_empty image_insert})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms image_empty image_insert})
     val dist_refl_sym_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms dist_commute dist_self})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms dist_commute dist_self})
     val algebra_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps
+      Simplifier.rewrite (put_simpset HOL_ss ctxt |> Simplifier.add_simps
         @{thms diff_self diff_0_right diff_0 abs_zero abs_minus_cancel abs_minus_commute})
     val insert_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms insert_absorb2 insert_commute})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms insert_absorb2 insert_commute})
     val sup_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms cSup_singleton Sup_insert_insert})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms cSup_singleton Sup_insert_insert})
     val real_abs_dist_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms real_abs_dist})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms real_abs_dist})
     val maxdist_thm =
       \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y and s = fset_ct in
         lemma \<open>finite s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> dist x y \<equiv> SUP a\<in>s. \<bar>dist x a - dist a y\<bar>\<close>
@@ -182,12 +187,13 @@ fun metric_eq_conv ctxt fset_ct ct =
     val (x, y) = Thm.dest_binop ct
     val solve_prems =
       rule_by_tactic ctxt (ALLGOALS (simp_tac (put_simpset HOL_ss ctxt
-        addsimps @{thms empty_iff insert_iff})))
+        |> Simplifier.add_simps @{thms empty_iff insert_iff})))
     val ball_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps
-        @{thms Set.ball_empty ball_insert})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms Set.ball_empty ball_insert})
     val dist_refl_sym_simp =
-      Simplifier.rewrite (put_simpset HOL_ss ctxt addsimps @{thms dist_commute dist_self})
+      Simplifier.rewrite (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps @{thms dist_commute dist_self})
     val metric_eq_thm =
       \<^instantiate>\<open>'a = \<open>Thm.ctyp_of_cterm x\<close> and x and y and s = fset_ct in
         lemma \<open>x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x = y \<equiv> \<forall>a\<in>s. dist x a = dist y a\<close>

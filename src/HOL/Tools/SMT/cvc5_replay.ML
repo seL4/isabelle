@@ -69,7 +69,7 @@ fun replay_thm method_for rewrite_rules ll_defs ctxt assumed unchanged_prems pre
         (Symtab.map (K rewrite) insts)
         decls
         (concl, ctxt)
-      |> Simplifier.simplify (empty_simpset ctxt addsimps rewrite_rules)
+      |> Simplifier.simplify (empty_simpset ctxt |> Simplifier.add_simps rewrite_rules)
   end
 
 fun add_used_asserts_in_step (Lethe_Proof.Lethe_Replay_Node {prems,
@@ -300,7 +300,7 @@ fun replay outer_ctxt
               proof_ctxt = [],
               concl = Thm.prop_of th'
                 |> Simplifier.rewrite_term (Proof_Context.theory_of
-                     (empty_simpset ctxt addsimps rewrite_rules)) rewrite_rules [],
+                     (empty_simpset ctxt |> Simplifier.add_simps rewrite_rules)) rewrite_rules [],
               bounds = [],
               insts = Symtab.empty,
               declarations = [],

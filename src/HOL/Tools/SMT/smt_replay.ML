@@ -152,7 +152,7 @@ local
 
   val basic_simpset =
     simpset_of (put_simpset HOL_ss \<^context>
-      addsimps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
+      |> Simplifier.add_simps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
         arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
       |> fold Simplifier.add_proc [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
         antisym_le_simproc, antisym_less_simproc])
@@ -169,7 +169,7 @@ fun add_simproc simproc context =
   Simpset.map (simpset_map (Context.proof_of context) (Simplifier.add_proc simproc)) context
 
 fun make_simpset ctxt rules =
-  simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt addsimps rules)
+  simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt |> Simplifier.add_simps rules)
 
 end
 
@@ -178,7 +178,8 @@ local
   val remove_fun_app = mk_meta_eq @{thm fun_app_def}
 
   fun rewrite_conv _ [] = Conv.all_conv
-    | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
+    | rewrite_conv ctxt eqs =
+        Simplifier.full_rewrite (empty_simpset ctxt |> Simplifier.add_simps eqs)
 
   val rewrite_true_rule = @{lemma "True \<equiv> \<not> False" by simp}
   val prep_rules = [@{thm Let_def}, remove_trigger, remove_fun_app, rewrite_true_rule]

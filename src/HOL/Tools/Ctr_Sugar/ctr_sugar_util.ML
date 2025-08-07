@@ -242,7 +242,7 @@ val standard_binding = \<^binding>\<open>_\<close>;
 val parse_binding_colon = Parse.binding --| \<^keyword>\<open>:\<close>;
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
-fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps thms;
+fun ss_only thms ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) |> Simplifier.add_simps thms;
 
 val eqTrueI = @{thm iffD2[OF eq_True]};
 val eqFalseI =  @{thm iffD2[OF eq_False]};

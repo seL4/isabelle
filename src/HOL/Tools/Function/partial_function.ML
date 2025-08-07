@@ -151,15 +151,15 @@ fun uncurry_n arity = funpow (arity - 1) HOLogic.mk_case_prod;
 
 val curry_uncurry_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps [@{thm Product_Type.curry_case_prod}, @{thm Product_Type.case_prod_curry}])
+    |> Simplifier.add_simps [@{thm Product_Type.curry_case_prod}, @{thm Product_Type.case_prod_curry}])
 
 val split_conv_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps [@{thm Product_Type.split_conv}]);
+    |> Simplifier.add_simps [@{thm Product_Type.split_conv}]);
 
 val curry_K_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps [@{thm Product_Type.curry_K}]);
+    |> Simplifier.add_simps [@{thm Product_Type.curry_K}]);
 
 (* instantiate generic fixpoint induction and eliminate the canonical assumptions;
   curry induction predicate *)

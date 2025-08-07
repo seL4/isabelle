@@ -472,7 +472,7 @@ lemma arctan_double': "\<bar>a::real\<bar> < 1 \<Longrightarrow> MACHIN_TAG 2 (a
 ML \<open>
   fun machin_term_conv ctxt ct =
     let
-      val ctxt' = ctxt addsimps @{thms arctan_double' arctan_add_small}
+      val ctxt' = ctxt |> Simplifier.add_simps @{thms arctan_double' arctan_add_small}
     in
       case Thm.term_of ct of
         Const (\<^const_name>\<open>MACHIN_TAG\<close>, _) $ _ $
@@ -494,7 +494,7 @@ ML \<open>
         Local_Defs.unfold_tac ctxt
           @{thms tag_machin[THEN eq_reflection] numeral_horner_MACHIN_TAG[THEN eq_reflection]}
         THEN REPEAT (CHANGED (HEADGOAL (CONVERSION conv))))
-      THEN' Simplifier.simp_tac (ctxt addsimps @{thms arctan_add_small arctan_diff_small})
+      THEN' Simplifier.simp_tac (ctxt |> Simplifier.add_simps @{thms arctan_add_small arctan_diff_small})
     end
 \<close>
 

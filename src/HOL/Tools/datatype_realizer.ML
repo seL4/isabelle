@@ -195,7 +195,7 @@ fun make_casedists ({index, descr, case_name, case_rewrites, exhaust, ...} : Old
            EVERY [
             resolve_tac ctxt [infer_instantiate ctxt [(#1 (dest_Var y), Thm.cterm_of ctxt y')] exhaust] 1,
             ALLGOALS (EVERY'
-              [asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps case_rewrites),
+              [asm_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps case_rewrites),
                resolve_tac ctxt prems, asm_simp_tac (put_simpset HOL_basic_ss ctxt)])])
       |> Drule.export_without_context;
 

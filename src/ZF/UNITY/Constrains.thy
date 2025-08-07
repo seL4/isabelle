@@ -480,7 +480,7 @@ fun constrains_tac ctxt =
               (* Three subgoals *)
               rewrite_goal_tac ctxt [@{thm st_set_def}] 3,
               REPEAT (force_tac ctxt 2),
-              full_simp_tac (ctxt addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 1,
+              full_simp_tac (ctxt |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 1,
               ALLGOALS (clarify_tac ctxt),
               REPEAT (FIRSTGOAL (eresolve_tac ctxt @{thms disjE})),
               ALLGOALS (clarify_tac ctxt),

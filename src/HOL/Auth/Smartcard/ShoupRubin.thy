@@ -820,7 +820,7 @@ method_setup sc_analz_freshK = \<open>
        (resolve_tac ctxt @{thms allI ballI impI}),
         REPEAT_FIRST (resolve_tac ctxt @{thms analz_image_freshK_lemma}),
         ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt
-          addsimps [@{thm knows_Spy_Inputs_secureM_sr_Spy},
+          |> Simplifier.add_simps [@{thm knows_Spy_Inputs_secureM_sr_Spy},
                     @{thm knows_Spy_Outpts_secureM_sr_Spy},
                     @{thm shouprubin_assumes_securemeans}, 
                     @{thm analz_image_Key_Un_Nonce}]))])))\<close>

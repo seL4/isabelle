@@ -186,7 +186,7 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       Method.insert_tac ctxt local_facts THEN'
       (case meth of
         Meson_Method => Meson_Tactic.meson_general_tac ctxt global_facts
-      | Simp_Method => Simplifier.asm_full_simp_tac (ctxt addsimps global_facts)
+      | Simp_Method => Simplifier.asm_full_simp_tac (ctxt |> Simplifier.add_simps global_facts)
       | _ =>
         Method.insert_tac ctxt global_facts THEN'
         (case meth of

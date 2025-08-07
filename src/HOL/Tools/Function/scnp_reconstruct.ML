@@ -322,7 +322,7 @@ fun sizechange_tac ctxt autom_tac =
 fun decomp_scnp_tac orders ctxt =
   let
     val extra_simps = Named_Theorems.get ctxt \<^named_theorems>\<open>termination_simp\<close>
-    val autom_tac = auto_tac (ctxt addsimps extra_simps)
+    val autom_tac = auto_tac (ctxt |> Simplifier.add_simps extra_simps)
   in
      gen_sizechange_tac orders autom_tac ctxt
   end

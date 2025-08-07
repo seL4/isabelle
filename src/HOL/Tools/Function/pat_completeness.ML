@@ -59,7 +59,8 @@ fun transform_pat _ _ _ ([] , _) = raise Match
         val (_, subps) = strip_comb pat
         val eqs = map (Thm.cterm_of ctxt o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
         val c_eq_pat =
-          simplify (put_simpset HOL_basic_ss ctxt addsimps (map Thm.assume eqs)) c_assum
+          simplify (put_simpset HOL_basic_ss ctxt
+            |> Simplifier.add_simps (map Thm.assume eqs)) c_assum
       in
         (subps @ pats,
          fold_rev Thm.implies_intr eqs (Thm.implies_elim thm c_eq_pat))

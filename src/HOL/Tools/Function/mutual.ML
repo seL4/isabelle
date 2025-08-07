@@ -227,7 +227,7 @@ fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
     val induct_inst =
       Thm.forall_elim (Thm.cterm_of ctxt case_exp) induct
       |> full_simplify (put_simpset Sum_Tree.sumcase_split_ss ctxt)
-      |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps all_f_defs)
+      |> full_simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps all_f_defs)
 
     fun project rule (MutualPart {cargTs, i, ...}) k =
       let
@@ -285,7 +285,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, n, ST, 
     fun mk_mpsimp fqgar sum_psimp =
       in_context lthy fqgar (recover_mutual_psimp all_orig_fdefs parts) sum_psimp
 
-    val rew_simpset = put_simpset HOL_basic_ss lthy addsimps all_f_defs
+    val rew_simpset = put_simpset HOL_basic_ss lthy |> Simplifier.add_simps all_f_defs
     val mpsimps = map2 mk_mpsimp fqgars psimps
     val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
     val mcases = map (mutual_cases_rule lthy cases_rule n ST) parts

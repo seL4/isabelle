@@ -354,11 +354,11 @@ fun ensures_tac ctxt sact =
                 REPEAT (ares_tac ctxt [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
                                   @{thm EnsuresI}, @{thm ensuresI}] 1),
             (*now there are two subgoals: co \<and> transient*)
-            simp_tac (ctxt addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 2,
+            simp_tac (ctxt |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>program\<close>)) 2,
             Rule_Insts.res_inst_tac ctxt
               [((("act", 0), Position.none), sact)] [] @{thm transientI} 2,
                (*simplify the command's domain*)
-            simp_tac (ctxt addsimps [@{thm domain_def}]) 3,
+            simp_tac (ctxt |> Simplifier.add_simp @{thm domain_def}) 3,
             (* proving the domain part *)
            clarify_tac ctxt 3,
            dresolve_tac ctxt @{thms swap} 3, force_tac ctxt 4,
@@ -367,7 +367,7 @@ fun ensures_tac ctxt sact =
            REPEAT (resolve_tac ctxt @{thms state_update_type} 3),
            constrains_tac ctxt 1,
            ALLGOALS (clarify_tac ctxt),
-           ALLGOALS (asm_full_simp_tac (ctxt addsimps [@{thm st_set_def}])),
+           ALLGOALS (asm_full_simp_tac (ctxt |> Simplifier.add_simp @{thm st_set_def})),
                       ALLGOALS (clarify_tac ctxt),
           ALLGOALS (asm_lr_simp_tac ctxt)]);
 \<close>

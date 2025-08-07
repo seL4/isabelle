@@ -81,7 +81,7 @@ val a_v =
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},
   @{thm Suc_natural_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
 val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
-val rew_ss = simpset_of (put_simpset HOL_ss \<^context> addsimps rew_thms);
+val rew_ss = simpset_of (put_simpset HOL_ss \<^context> |> Simplifier.add_simps rew_thms);
 
 in
 
@@ -146,9 +146,9 @@ fun random_aux_primrec_multi auxname [eq] lthy =
           let
             val proj_simps = map (snd o snd) proj_defs;
             fun tac { context = ctxt, prems = _ } =
-              ALLGOALS (simp_tac (put_simpset HOL_ss ctxt addsimps proj_simps))
+              ALLGOALS (simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
-              THEN ALLGOALS (simp_tac (put_simpset HOL_ss ctxt addsimps @{thms fst_conv snd_conv}));
+              THEN ALLGOALS (simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps @{thms fst_conv snd_conv}));
           in (map (fn prop => Goal.prove_sorry lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy

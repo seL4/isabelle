@@ -334,8 +334,8 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
             (*Proves a single recursor equation.*)
             (fn {context = ctxt, ...} => EVERY
               [resolve_tac ctxt [recursor_trans] 1,
-               simp_tac (put_simpset rank_ss ctxt addsimps case_eqns) 1,
-               IF_UNSOLVED (simp_tac (put_simpset rank_ss ctxt addsimps tl con_defs) 1)]);
+               simp_tac (put_simpset rank_ss ctxt |> Simplifier.add_simps case_eqns) 1,
+               IF_UNSOLVED (simp_tac (put_simpset rank_ss ctxt |> Simplifier.add_simps (tl con_defs)) 1)]);
       in
         thy2
         |> Sign.add_path big_rec_base_name

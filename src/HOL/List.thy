@@ -1063,7 +1063,7 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
 
     val rearr_ss =
       simpset_of (put_simpset HOL_basic_ss \<^context>
-        addsimps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}]);
+        |> Simplifier.add_simps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}]);
 
     fun list_eq ctxt (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let

@@ -195,10 +195,11 @@ val HOL_basic_ss =
   |> simpset_of;
 
 fun hol_simplify ctxt rews =
-  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps rews);
+  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps rews);
 
 fun unfold_tac ctxt ths =
-  ALLGOALS (full_simp_tac (clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths));
+  ALLGOALS (full_simp_tac
+    (clear_simpset (put_simpset HOL_basic_ss ctxt) |> Simplifier.add_simps ths));
 
 end;
 

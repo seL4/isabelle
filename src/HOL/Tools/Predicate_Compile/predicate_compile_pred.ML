@@ -162,7 +162,8 @@ fun introrulify ctxt ths =
             Logic.dest_implies o Thm.prop_of) @{thm exI}
         fun prove_introrule (index, (ps, introrule)) =
           let
-            val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
+            val tac =
+              Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simp th) 1
               THEN Inductive.select_disj_tac ctxt' (length disjuncts) (index + 1) 1
               THEN (EVERY (map (fn y =>
                 resolve_tac ctxt'
@@ -178,16 +179,17 @@ fun introrulify ctxt ths =
   in maps introrulify' ths' |> Variable.export ctxt' ctxt end
 
 fun rewrite ctxt =
-  Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm Ball_def}, @{thm Bex_def}])
-  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm all_not_ex}])
+  Simplifier.simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps [@{thm Ball_def}, @{thm Bex_def}])
+  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm all_not_ex})
   #> Conv.fconv_rule (nnf_conv ctxt)
-  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm ex_disj_distrib}])
+  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm ex_disj_distrib})
 
 fun rewrite_intros ctxt =
-  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm all_not_ex}])
+  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm all_not_ex})
   #> Simplifier.full_simplify
     (put_simpset HOL_basic_ss ctxt
-      addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
+      |> Simplifier.add_simps (tl @{thms bool_simps})
+      |> Simplifier.add_simps @{thms nnf_simps})
   #> split_conjuncts_in_assms ctxt
 
 fun print_specs options thy msg ths =

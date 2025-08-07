@@ -352,15 +352,16 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) =
   let
-    val pre_ss = put_simpset HOL_basic_ss ctxt addsimps
-      @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib
-          all_conj_distrib if_bool_eq_disj}
-    val prenex_ss = put_simpset HOL_basic_ss ctxt addsimps prenex_simps
-    val skolemize_ss = put_simpset HOL_basic_ss ctxt addsimps [choice_iff]
+    val pre_ss = put_simpset HOL_basic_ss ctxt
+      |> Simplifier.add_simps
+          @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib
+              all_conj_distrib if_bool_eq_disj}
+    val prenex_ss = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps prenex_simps
+    val skolemize_ss = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp choice_iff
     val presimp_conv = Simplifier.rewrite pre_ss
     val prenex_conv = Simplifier.rewrite prenex_ss
     val skolemize_conv = Simplifier.rewrite skolemize_ss
-    val weak_dnf_ss = put_simpset HOL_basic_ss ctxt addsimps weak_dnf_simps
+    val weak_dnf_ss = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps weak_dnf_simps
     val weak_dnf_conv = Simplifier.rewrite weak_dnf_ss
     fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
     fun oprconv cv ct =
@@ -716,7 +717,7 @@ end;
 
 local
   val absmaxmin_elim_ss1 =
-    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps real_abs_thms1)
+    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps real_abs_thms1)
   fun absmaxmin_elim_conv1 ctxt =
     Simplifier.rewrite (put_simpset absmaxmin_elim_ss1 ctxt)
 

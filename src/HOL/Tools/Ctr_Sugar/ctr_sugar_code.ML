@@ -71,7 +71,8 @@ fun mk_free_ctr_equations fcT ctrs inject_thms distinct_thms thy =
         HEADGOAL Goal.conjunction_tac THEN
         ALLGOALS (simp_tac
           (put_simpset HOL_basic_ss ctxt
-            addsimps (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)))));
+            |> Simplifier.add_simps
+                (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)))));
 
     fun proves goals = goals
       |> Logic.mk_conjunction_balanced

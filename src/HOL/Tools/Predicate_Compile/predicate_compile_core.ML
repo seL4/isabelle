@@ -1088,7 +1088,7 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
       [defthm, @{thm pred.sel},
         @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm prod.collapse}]
     val unfolddef_tac =
-      Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simprules) 1
+      Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps simprules) 1
     val introthm = Goal.prove ctxt
       (argnames @ hoarg_names' @ ["y"]) [] introtrm (fn _ => unfolddef_tac)
     val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT));
@@ -1104,8 +1104,8 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
               (Predicate_Comp_Funs.mk_not (list_comb (funtrm, inargs)), HOLogic.unit))
           val neg_introtrm = Logic.list_implies (neg_predpropI :: param_eqs, neg_funpropI)
           val tac =
-            Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
-              (@{thm if_False} :: @{thm Predicate.not_pred_eq} :: simprules)) 1
+            Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
+              |> Simplifier.add_simps (@{thm if_False} :: @{thm Predicate.not_pred_eq} :: simprules)) 1
             THEN resolve_tac ctxt @{thms Predicate.singleI} 1
         in SOME (Goal.prove ctxt (argnames @ hoarg_names') []
             neg_introtrm (fn _ => tac))
@@ -1346,8 +1346,10 @@ fun add_code_equations ctxt preds result_thmss =
             val eq_term = HOLogic.mk_Trueprop
               (HOLogic.mk_eq (list_comb (Const (predname, T), args), rhs))
             val def = Core_Data.predfun_definition_of ctxt predname full_mode
-            val tac = fn _ => Simplifier.simp_tac
-              (put_simpset HOL_basic_ss ctxt addsimps [def, @{thm holds_eq}, @{thm pred.sel}]) 1
+            val tac = fn _ =>
+              Simplifier.simp_tac
+                (put_simpset HOL_basic_ss ctxt
+                  |> Simplifier.add_simps [def, @{thm holds_eq}, @{thm pred.sel}]) 1
             val eq = Goal.prove ctxt arg_names [] eq_term tac
           in
             (pred, result_thms @ [eq])

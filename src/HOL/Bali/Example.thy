@@ -1192,7 +1192,8 @@ declare BaseCl_def [simp] ExtCl_def [simp] Ext_foo_def [simp]
         Base_foo_defs  [simp]
 
 ML \<open>ML_Thms.bind_thms ("eval_intros", map 
-        (simplify (\<^context> delsimps @{thms Skip_eq} addsimps @{thms lvar_def}) o 
+        (simplify (\<^context> |> Simplifier.del_simps @{thms Skip_eq}
+          |> Simplifier.add_simps @{thms lvar_def}) o 
          rewrite_rule \<^context> [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros})\<close>
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros
 

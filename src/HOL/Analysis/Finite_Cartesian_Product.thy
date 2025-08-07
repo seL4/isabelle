@@ -765,22 +765,23 @@ method_setup vector = \<open>
 let
   val ss1 =
     simpset_of (put_simpset HOL_basic_ss \<^context>
-      addsimps [@{thm sum.distrib} RS sym,
-      @{thm sum_subtractf} RS sym, @{thm sum_distrib_left},
-      @{thm sum_distrib_right}, @{thm sum_negf} RS sym])
+      |> Simplifier.add_simps [@{thm sum.distrib} RS sym,
+          @{thm sum_subtractf} RS sym, @{thm sum_distrib_left},
+          @{thm sum_distrib_right}, @{thm sum_negf} RS sym])
   val ss2 =
-    simpset_of (\<^context> addsimps
-             [@{thm plus_vec_def}, @{thm times_vec_def},
-              @{thm minus_vec_def}, @{thm uminus_vec_def},
-              @{thm one_vec_def}, @{thm zero_vec_def}, @{thm vec_def},
-              @{thm scaleR_vec_def}, @{thm vector_scalar_mult_def}])
+    simpset_of (\<^context>
+      |> Simplifier.add_simps
+         [@{thm plus_vec_def}, @{thm times_vec_def},
+          @{thm minus_vec_def}, @{thm uminus_vec_def},
+          @{thm one_vec_def}, @{thm zero_vec_def}, @{thm vec_def},
+          @{thm scaleR_vec_def}, @{thm vector_scalar_mult_def}])
   fun vector_arith_tac ctxt ths =
     simp_tac (put_simpset ss1 ctxt)
     THEN' (fn i => resolve_tac ctxt @{thms Finite_Cartesian_Product.sum_cong_aux} i
          ORELSE resolve_tac ctxt @{thms sum.neutral} i
-         ORELSE simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm vec_eq_iff}]) i)
+         ORELSE simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm vec_eq_iff}) i)
     (* THEN' TRY o clarify_tac HOL_cs  THEN' (TRY o rtac @{thm iffI}) *)
-    THEN' asm_full_simp_tac (put_simpset ss2 ctxt addsimps ths)
+    THEN' asm_full_simp_tac (put_simpset ss2 ctxt |> Simplifier.add_simps ths)
 in
   Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (vector_arith_tac ctxt ths))
 end

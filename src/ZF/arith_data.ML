@@ -114,8 +114,8 @@ val natifys = [@{thm natify_0}, @{thm natify_ident}, @{thm add_natify1}, @{thm a
 fun simplify_meta_eq rules ctxt =
   let val ctxt' =
     put_simpset FOL_ss ctxt
-      delsimps @{thms iff_simps} (*these could erase the whole rule!*)
-      addsimps rules
+      |> Simplifier.del_simps @{thms iff_simps} (*these could erase the whole rule!*)
+      |> Simplifier.add_simps rules
       |> fold Simplifier.add_eqcong [@{thm eq_cong2}, @{thm iff_cong2}]
   in mk_meta_eq o simplify ctxt' end;
 
@@ -130,15 +130,15 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac})
+    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ add_succs @ mult_1s @ @{thms add_ac}))
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ mult_1s @ @{thms add_ac} @
-      @{thms mult_ac} @ tc_rules @ natifys)
+    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ mult_1s @ @{thms add_ac} @
+      @{thms mult_ac} @ tc_rules @ natifys))
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss \<^context> addsimps add_0s @ tc_rules @ natifys)
+    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ tc_rules @ natifys))
   fun numeral_simp_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = simplify_meta_eq final_rules

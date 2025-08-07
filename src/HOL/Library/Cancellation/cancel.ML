@@ -50,7 +50,7 @@ fun proc ctxt ct =
     val (t', ctxt') = yield_singleton (Variable.import_terms true) t ctxt
     val pre_simplified_ct =
       Simplifier.full_rewrite (clear_simpset ctxt
-        addsimps Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_pre\<close>
+        |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_pre\<close>)
         |> Simplifier.add_proc \<^simproc>\<open>NO_MATCH\<close>) (Thm.cterm_of ctxt t');
     val t' = Thm.term_of (Thm.rhs_of pre_simplified_ct)
     val export = singleton (Variable.export ctxt' ctxt)
@@ -69,7 +69,7 @@ fun proc ctxt ct =
     fun add_post_simplification thm =
       let val post_simplified_ct =
         Simplifier.full_rewrite (clear_simpset ctxt
-          addsimps Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_post\<close>
+          |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>cancelation_simproc_post\<close>)
           |> Simplifier.add_proc \<^simproc>\<open>NO_MATCH\<close>) (Thm.rhs_of thm)
       in @{thm Pure.transitive} OF [thm, post_simplified_ct] end
   in

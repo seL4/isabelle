@@ -253,7 +253,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
             val ags = map (Thm.assume o Thm.cterm_of ctxt) gs
 
             val replace_x_simpset =
-              put_simpset HOL_basic_ss ctxt addsimps (branch_hyp :: case_hyps)
+              put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps (branch_hyp :: case_hyps)
             val sih = full_simplify replace_x_simpset aihyp
 
             fun mk_Prec (idx, Gvs, Gas, rcargs) (ineq, pres) =

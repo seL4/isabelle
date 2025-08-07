@@ -207,7 +207,7 @@ ML \<open>
       CHANGED (REPEAT (assume_tac ctxt i ORELSE
         resolve_tac ctxt @{thms iffI allI conjI} i ORELSE
         eresolve_tac ctxt inj_lemmas i ORELSE
-        asm_simp_tac (ctxt addsimps rews) i))
+        asm_simp_tac (ctxt |> Simplifier.add_simps rews) i))
     end;
 \<close>
 
@@ -279,7 +279,7 @@ fun mk_dstnct_thms ctxt defs inj_rls xs =
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn _ =>
           rewrite_goals_tac ctxt defs THEN
-          simp_tac (ctxt addsimps (rls @ inj_rls)) 1)
+          simp_tac (ctxt |> Simplifier.add_simps (rls @ inj_rls)) 1)
   in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
 
 fun mkall_dstnct_thms ctxt defs i_rls xss = maps (mk_dstnct_thms ctxt defs i_rls) xss

@@ -876,7 +876,7 @@ fun expand_tuples thy intro =
     val intro'''' =
       Simplifier.full_simplify
         (put_simpset HOL_basic_ss ctxt
-          addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm prod.inject}])
+          |> Simplifier.add_simps [@{thm fst_conv}, @{thm snd_conv}, @{thm prod.inject}])
       intro'''
     (* splitting conjunctions introduced by prod.inject*)
     val intro''''' = split_conjuncts_in_assms ctxt intro''''

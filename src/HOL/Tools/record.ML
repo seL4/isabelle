@@ -477,8 +477,8 @@ fun put_sel_upd names more depth simps defs thy =
       make_data records
         {selectors = fold Symtab.update_new sels selectors,
           updates = fold Symtab.update_new upds updates,
-          simpset = simpset_map ctxt0 (fn ctxt => ctxt addsimps simps) simpset,
-          defset = simpset_map ctxt0 (fn ctxt => ctxt addsimps defs) defset}
+          simpset = simpset_map ctxt0 (Simplifier.add_simps simps) simpset,
+          defset = simpset_map ctxt0 (Simplifier.add_simps defs) defset}
          equalities extinjects extsplit splits extfields fieldext;
   in Data.put data thy end;
 
@@ -963,7 +963,8 @@ fun get_accupd_simps ctxt term defset =
             (fn {context = ctxt', ...} =>
               simp_tac (put_simpset defset ctxt') 1 THEN
               REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1) THEN
-              TRY (simp_tac (put_simpset HOL_ss ctxt' addsimps @{thms id_apply id_o o_id}) 1));
+              TRY (simp_tac (put_simpset HOL_ss ctxt'
+                |> Simplifier.add_simps @{thms id_apply id_o o_id}) 1));
         val dest =
           if is_sel_upd_pair thy acc upd
           then @{thm o_eq_dest}
@@ -987,7 +988,7 @@ fun get_updupd_simp ctxt defset u u' comp =
         (fn {context = ctxt', ...} =>
           simp_tac (put_simpset defset ctxt') 1 THEN
           REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1) THEN
-          TRY (simp_tac (put_simpset HOL_ss ctxt' addsimps @{thms id_apply}) 1));
+          TRY (simp_tac (put_simpset HOL_ss ctxt' |> Simplifier.add_simps @{thms id_apply}) 1));
     val dest = if comp then @{thm o_eq_dest_lhs} else @{thm o_eq_dest};
   in Drule.export_without_context (othm RS dest) end;
 
@@ -1386,7 +1387,7 @@ fun ex_sel_eq_proc ctxt ct =
           SOME (Goal.prove_sorry_global thy [] [] prop
             (fn {context = ctxt', ...} =>
               simp_tac (put_simpset (get_simpset thy) ctxt'
-                addsimps @{thms simp_thms}
+                |> Simplifier.add_simps @{thms simp_thms}
                 |> Simplifier.add_proc (split_simproc (K ~1))) 1))
         end handle TERM _ => NONE)
     | _ => NONE)
@@ -1423,9 +1424,9 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
         val _ $ (_ $ Var (r, _)) = Thm.concl_of induct_thm;
         val thm = infer_instantiate ctxt [(r, Thm.cterm_of ctxt free)] induct_thm;
       in
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_atomize}) i THEN
+        simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms induct_atomize}) i THEN
         resolve_tac ctxt [thm] i THEN
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms induct_rulify}) i
+        simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms induct_rulify}) i
       end;
 
     val split_frees_tacs =
@@ -1448,7 +1449,7 @@ fun split_simp_tac ctxt thms P = CSUBGOAL (fn (cgoal, i) =>
     val thms' = @{thms o_apply K_record_comp} @ thms;
   in
     EVERY split_frees_tacs THEN
-    full_simp_tac (put_simpset (get_simpset thy) ctxt addsimps thms' |> add_simproc) i
+    full_simp_tac (put_simpset (get_simpset thy) ctxt |> Simplifier.add_simps thms' |> add_simproc) i
   end);
 
 
@@ -1632,7 +1633,7 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
       simplify (put_simpset HOL_ss defs_ctxt)
         (Goal.prove_sorry_global defs_thy [] [] inject_prop
           (fn {context = ctxt', ...} =>
-            simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [ext_def]) 1 THEN
+            simp_tac (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simp ext_def) 1 THEN
             REPEAT_DETERM
               (resolve_tac ctxt' @{thms refl_conj_eq} 1 ORELSE
                 Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1 ORELSE
@@ -1651,7 +1652,7 @@ fun extension_definition overloaded name fields alphas zeta moreT more vars thy 
         val start =
           infer_instantiate defs_ctxt [(("y", 0), Thm.cterm_of defs_ctxt ext)] surject_assist_idE;
         val tactic1 =
-          simp_tac (put_simpset HOL_basic_ss defs_ctxt addsimps [ext_def]) 1 THEN
+          simp_tac (put_simpset HOL_basic_ss defs_ctxt |> Simplifier.add_simp ext_def) 1 THEN
           REPEAT_ALL_NEW (Iso_Tuple_Support.iso_tuple_intros_tac defs_ctxt) 1;
         val tactic2 =
           REPEAT (resolve_tac defs_ctxt [surject_assistI] 1 THEN resolve_tac defs_ctxt [refl] 1);
@@ -1996,7 +1997,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
           val terminal =
             resolve_tac ext_ctxt [updacc_eq_idI] 1 THEN resolve_tac ext_ctxt [refl] 1;
           val tactic =
-            simp_tac (put_simpset HOL_basic_ss ext_ctxt addsimps ext_defs) 1 THEN
+            simp_tac (put_simpset HOL_basic_ss ext_ctxt |> Simplifier.add_simps ext_defs) 1 THEN
             REPEAT (Iso_Tuple_Support.iso_tuple_intros_tac ext_ctxt 1 ORELSE terminal);
           val updaccs = Seq.list_of (tactic init_thm);
         in
@@ -2138,7 +2139,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     val sel_upd_ss =
       simpset_of
         (put_simpset record_ss defs_ctxt
-          addsimps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
+          |> Simplifier.add_simps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
 
     val (sel_convs, upd_convs) =
       timeit_msg defs_ctxt "record sel_convs/upd_convs proof:" (fn () =>
@@ -2152,7 +2153,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     val (fold_congs, unfold_congs) = timeit_msg defs_ctxt "record upd fold/unfold congs:" (fn () =>
       let
         val symdefs = map Thm.symmetric (sel_defs @ upd_defs);
-        val fold_ctxt = put_simpset HOL_basic_ss defs_ctxt addsimps symdefs;
+        val fold_ctxt = put_simpset HOL_basic_ss defs_ctxt |> Simplifier.add_simps symdefs;
         val ua_congs = map (Drule.export_without_context o simplify fold_ctxt) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end);
 
@@ -2178,12 +2179,12 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
         (fn {context = ctxt', ...} =>
           EVERY
            [resolve_tac ctxt' [surject_assist_idE] 1,
-            simp_tac (put_simpset HOL_basic_ss ctxt' addsimps ext_defs) 1,
+            simp_tac (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simps ext_defs) 1,
             REPEAT
               (Iso_Tuple_Support.iso_tuple_intros_tac ctxt' 1 ORELSE
                 (resolve_tac ctxt' [surject_assistI] 1 THEN
                   simp_tac (put_simpset (get_sel_upd_defs defs_thy) ctxt'
-                    addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));
+                    |> Simplifier.add_simps (sel_defs @ @{thms o_assoc id_apply id_o o_id})) 1))]));
 
     val cases_scheme = timeit_msg defs_ctxt "record cases_scheme proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
@@ -2196,7 +2197,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
         (fn {context = ctxt', ...} =>
           try_param_tac ctxt' rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac
-            (put_simpset HOL_basic_ss ctxt' addsimps @{thms unit_all_eq1}))));
+            (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simps @{thms unit_all_eq1}))));
 
     val split_meta = timeit_msg defs_ctxt "record split_meta proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] split_meta_prop
@@ -2218,7 +2219,7 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
       Goal.prove_sorry_global defs_thy [] [] split_ex_prop
         (fn {context = ctxt', ...} =>
           simp_tac
-            (put_simpset HOL_basic_ss ctxt' addsimps
+            (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simps
               (@{lemma "\<exists>x. P x \<equiv> \<not> (\<forall>x. \<not> P x)" by simp} ::
                 @{thms not_not Not_eq_iff})) 1 THEN
           resolve_tac ctxt' [split_object] 1));
@@ -2226,7 +2227,8 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
     val equality = timeit_msg defs_ctxt "record equality proof:" (fn () =>
       Goal.prove_sorry_global defs_thy [] [] equality_prop
         (fn {context = ctxt', ...} =>
-          asm_full_simp_tac (put_simpset record_ss ctxt' addsimps (split_meta :: sel_convs)) 1));
+          asm_full_simp_tac (put_simpset record_ss ctxt'
+            |> Simplifier.add_simps (split_meta :: sel_convs)) 1));
 
     val ([(_, sel_convs'), (_, upd_convs'), (_, sel_defs'), (_, upd_defs'),
           (_, fold_congs'), (_, unfold_congs'),

@@ -105,10 +105,10 @@ val neq_limit = Attrib.setup_config_int \<^binding>\<open>linarith_neq_limit\<cl
 val trace = Attrib.setup_config_bool \<^binding>\<open>linarith_trace\<close> (K false);
 
 fun nnf_simpset ctxt =
-  (empty_simpset ctxt
-    |> Simplifier.set_mkeqTrue mk_eq_True
-    |> Simplifier.set_mksimps (mksimps mksimps_pairs))
-  addsimps @{thms imp_conv_disj iff_conv_conj_imp de_Morgan_disj
+  empty_simpset ctxt
+  |> Simplifier.set_mkeqTrue mk_eq_True
+  |> Simplifier.set_mksimps (mksimps mksimps_pairs)
+  |> Simplifier.add_simps @{thms imp_conv_disj iff_conv_conj_imp de_Morgan_disj
     de_Morgan_conj not_all not_ex not_not}
 
 fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt)

@@ -157,7 +157,9 @@ fun inline_equations thy th =
   let
     val ctxt = Proof_Context.init_global thy
     val inline_defs = Named_Theorems.get ctxt \<^named_theorems>\<open>code_pred_inline\<close>
-    val th' = Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps inline_defs) th
+    val th' =
+      Simplifier.full_simplify
+        (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps inline_defs) th
     (*val _ = print_step options
       ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
        ^ "with " ^ (commas (map ((Syntax.string_of_term_global thy) o prop_of) inline_defs))

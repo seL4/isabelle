@@ -528,7 +528,7 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
     simpset_of (put_simpset HOL_basic_ss \<^context>
-      addsimps @{thms ac_simps add_0_left add_0_right})
+      |> Simplifier.add_simps @{thms ac_simps add_0_left add_0_right})
   fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   fun simplify_meta_eq ctxt cancel_th th =
     Arith_Data.simplify_meta_eq [] ctxt

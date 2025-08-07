@@ -356,7 +356,7 @@ let
             resolve_tac ctxt [@{thm impI} RS @{thm allI}] 1,
             DETERM (eresolve_tac ctxt [raw_induct] 1),
             (*Push Part inside Collect*)
-            full_simp_tac (min_ss addsimps [@{thm Part_Collect}]) 1,
+            full_simp_tac (min_ss |> Simplifier.add_simp @{thm Part_Collect}) 1,
             (*This CollectE and disjE separates out the introduction rules*)
             REPEAT (FIRSTGOAL (eresolve_tac ctxt [@{thm CollectE}, @{thm disjE}])),
             (*Now break down the individual cases.  No disjE here in case
@@ -450,7 +450,7 @@ let
      (*Simplification largely reduces the mutual induction rule to the
        standard rule*)
      val mut_ss =
-         min_ss addsimps [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
+         min_ss |> Simplifier.add_simps [Su.distinct, Su.distinct', Su.inl_iff, Su.inr_iff];
 
      val all_defs = con_defs @ part_rec_defs;
 
@@ -473,13 +473,13 @@ let
                   using freeness of the Sum constructors; proves all but one
                   conjunct by contradiction*)
                 rewrite_goals_tac ctxt all_defs  THEN
-                simp_tac (mut_ss addsimps [@{thm Part_iff}]) 1  THEN
+                simp_tac (mut_ss |> Simplifier.add_simp @{thm Part_iff}) 1  THEN
                 IF_UNSOLVED (*simp_tac may have finished it off!*)
                   ((*simplify assumptions*)
                    (*some risk of excessive simplification here -- might have
                      to identify the bare minimum set of rewrites*)
                    full_simp_tac
-                      (mut_ss addsimps @{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps}) 1
+                      (mut_ss |> Simplifier.add_simps (@{thms conj_simps} @ @{thms imp_simps} @ @{thms quant_simps})) 1
                    THEN
                    (*unpackage and use "prem" in the corresponding place*)
                    REPEAT (resolve_tac ctxt @{thms impI} 1)  THEN

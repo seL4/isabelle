@@ -19,7 +19,8 @@ fun dest_listT (Type (\<^type_name>\<open>list\<close>, [T])) = T;
 
 val FWD = curry (op OF);
 
-fun rewrite_with ctxt eqs = Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps eqs);
+fun rewrite_with ctxt eqs =
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps eqs);
 
 val pure_subst = @{lemma "x == y ==> PROP P y ==> PROP P x" by simp}
 

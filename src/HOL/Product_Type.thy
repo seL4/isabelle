@@ -500,7 +500,7 @@ ML \<open>
     val ss =
       simpset_of
        (put_simpset HOL_basic_ss \<^context>
-        addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
+        |> Simplifier.add_simps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
         |> Simplifier.add_proc \<^simproc>\<open>unit_eq\<close>);
   in
     fun split_all_tac ctxt = SUBGOAL (fn (t, i) =>
@@ -538,7 +538,7 @@ text \<open>
 ML \<open>
 local
   val cond_case_prod_eta_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms cond_case_prod_eta});
+    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps @{thms cond_case_prod_eta});
   fun Pair_pat k 0 (Bound m) = (m = k)
     | Pair_pat k i (Const (\<^const_name>\<open>Pair\<close>,  _) $ Bound m $ t) =
         i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t
@@ -647,7 +647,9 @@ local (* filtering with exists_p_split is an essential optimization *)
 in
   fun split_conv_tac ctxt = SUBGOAL (fn (t, i) =>
     if exists_p_split t
-    then safe_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms case_prod_conv}) i
+    then
+      safe_full_simp_tac
+        (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms case_prod_conv}) i
     else no_tac);
 end;
 \<close>
@@ -1367,7 +1369,7 @@ simproc_setup Collect_mem ("Collect t") = \<open>
                     let
                       val simp =
                         full_simp_tac (put_simpset HOL_basic_ss ctxt
-                          addsimps [@{thm split_paired_all}, @{thm case_prod_conv}]) 1
+                          |> Simplifier.add_simps [@{thm split_paired_all}, @{thm case_prod_conv}]) 1
                     in
                       SOME (Goal.prove ctxt [] [] \<^Const>\<open>Pure.eq \<^Type>\<open>set A\<close> for S S'\<close>
                         (K (EVERY

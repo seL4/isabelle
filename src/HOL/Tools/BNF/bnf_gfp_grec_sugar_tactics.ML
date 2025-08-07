@@ -130,19 +130,19 @@ fun mk_eq_algrho_tac ctxt fpsig_nesting_maps abs rep ctor ssig_map eval pre_map_
     val if_distribs = @{thm if_distrib_fun} :: map (mk_if_distrib_of ctxt) distrib_consts;
     val case_sum_distribs = map (mk_case_sum_distrib_of ctxt) distrib_consts;
 
-    val simp_ctxt = (ctxt
-        |> Context_Position.set_visible false
-        |> put_simpset (simpset_of (Proof_Context.init_global \<^theory>\<open>Main\<close>))
-        |> Simplifier.add_cong @{thm if_cong})
-      addsimps pre_map_def :: abs_inverse :: fp_map_ident :: dtor_ctor :: rho_def ::
+    val simp_ctxt = ctxt
+      |> Context_Position.set_visible false
+      |> put_simpset (simpset_of (Proof_Context.init_global \<^theory>\<open>Main\<close>))
+      |> Simplifier.add_cong @{thm if_cong}
+      |> Simplifier.add_simps (pre_map_def :: abs_inverse :: fp_map_ident :: dtor_ctor :: rho_def ::
         @{thm convol_def} :: fpsig_nesting_map_ident0s @ fpsig_nesting_map_comps @
         fpsig_nesting_map_thms @ live_nesting_map_ident0s @ ctr_defs @ disc_sel_eq_cases' @
         fp_nesting_k_map_disc_sels' @ case_eq_ifs' @ all_sig_maps @ ssig_map_thms @
         all_algLam_alg_pointfuls @ all_algrho_eqs @ eval_simps @ if_distribs @ case_sum_distribs @
-        shared_simps;
+        shared_simps);
 
     fun mk_main_simp const_pointful_naturals_maybe_sym' =
-      simp_tac (simp_ctxt addsimps const_pointful_naturals_maybe_sym');
+      simp_tac (simp_ctxt |> Simplifier.add_simps const_pointful_naturals_maybe_sym');
   in
     unfold_thms_tac ctxt [eq_corecUU] THEN
     HEADGOAL (REPEAT_DETERM o rtac ctxt ext THEN'

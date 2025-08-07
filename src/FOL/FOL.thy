@@ -345,7 +345,7 @@ ML \<open>
 (*intuitionistic simprules only*)
 val IFOL_ss =
   put_simpset FOL_basic_ss \<^context>
-  addsimps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps subst_all}
+  |> Simplifier.add_simps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps subst_all}
   |> Simplifier.add_proc \<^simproc>\<open>defined_All\<close>
   |> Simplifier.add_proc \<^simproc>\<open>defined_Ex\<close>
   |> Simplifier.add_cong @{thm imp_cong}
@@ -354,7 +354,7 @@ val IFOL_ss =
 (*classical simprules too*)
 val FOL_ss =
   put_simpset IFOL_ss \<^context>
-  addsimps @{thms cla_simps cla_ex_simps cla_all_simps}
+  |> Simplifier.add_simps @{thms cla_simps cla_ex_simps cla_all_simps}
   |> simpset_of;
 \<close>
 

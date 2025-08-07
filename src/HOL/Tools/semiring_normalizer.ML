@@ -107,7 +107,7 @@ fun match ctxt tm =
 (* extra-logical functions *)
 
 val semiring_norm_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps @{thms semiring_norm});
+  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps @{thms semiring_norm});
 
 val semiring_funs =
    {is_const = can HOLogic.dest_number o Thm.term_of,
@@ -119,7 +119,8 @@ val semiring_funs =
       (case Rat.dest x of (i, 1) => i | _ => error "int_of_rat: bad int")),
     conv = (fn ctxt =>
       Simplifier.rewrite (put_simpset semiring_norm_ss ctxt)
-      then_conv Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms numeral_One}))};
+      then_conv Simplifier.rewrite
+        (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms numeral_One}))};
 
 val divide_const = Thm.cterm_of \<^context> (Logic.varify_global \<^term>\<open>(/)\<close>);
 val [divide_tvar] = Term.add_tvars (Thm.term_of divide_const) [];
@@ -256,19 +257,19 @@ val dest_number = Thm.term_of #> HOLogic.dest_number #> snd;
 val is_number = can dest_number;
 
 fun numeral01_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One}]);
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm numeral_One});
 
 fun zero1_numeral_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [@{thm numeral_One} RS sym]);
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp (@{thm numeral_One} RS sym));
 
 fun zerone_conv ctxt cv =
   zero1_numeral_conv ctxt then_conv cv then_conv numeral01_conv ctxt;
 
 val nat_add_ss = simpset_of
   (put_simpset HOL_basic_ss \<^context>
-     addsimps @{thms arith_simps} @ @{thms diff_nat_numeral} @ @{thms rel_simps}
+     |> Simplifier.add_simps (@{thms arith_simps} @ @{thms diff_nat_numeral} @ @{thms rel_simps}
        @ @{thms if_False if_True Nat.add_0 add_Suc add_numeral_left Suc_eq_plus1}
-       @ map (fn th => th RS sym) @{thms numerals});
+       @ map (fn th => th RS sym) @{thms numerals}));
 
 fun nat_add_conv ctxt =
   zerone_conv ctxt (Simplifier.rewrite (put_simpset nat_add_ss ctxt));
@@ -849,8 +850,8 @@ end;
 val nat_exp_ss =
   simpset_of
    (put_simpset HOL_basic_ss \<^context>
-    addsimps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
-    addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
+    |> Simplifier.add_simps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
+    |> Simplifier.add_simps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
 
 
 (* various normalizing conversions *)
@@ -861,7 +862,8 @@ fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, i
     val pow_conv =
       Conv.arg_conv (Simplifier.rewrite (put_simpset nat_exp_ss ctxt))
       then_conv Simplifier.rewrite
-        (put_simpset HOL_basic_ss ctxt addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
+        (put_simpset HOL_basic_ss ctxt
+          |> Simplifier.add_simps [nth (snd semiring) 31, nth (snd semiring) 34])
       then_conv conv ctxt
     val dat = (is_const, conv ctxt, conv ctxt, pow_conv)
   in semiring_normalizers_conv vars semiring ring field dat term_ord end;

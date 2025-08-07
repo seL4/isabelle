@@ -475,7 +475,7 @@ fun cong_unfolding_first ctxt thms t =
         ctxt
         |> empty_simpset
         |> put_simpset HOL_basic_ss
-        |> (fn ctxt => ctxt addsimps @{thms not_not eq_commute})
+        |> Simplifier.add_simps @{thms not_not eq_commute}
   in
     prove ctxt t (fn _ =>
       EVERY' (map (fn thm => K (unfold_tac ctxt [thm])) ((map_filter reorder_for_simp thms)))

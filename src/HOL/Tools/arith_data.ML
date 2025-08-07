@@ -89,10 +89,11 @@ fun prove_conv2 expand_tac norm_tac ctxt tu = (* FIXME avoid Drule.export_withou
     (K (EVERY [expand_tac, norm_tac ctxt]))));
 
 fun simp_all_tac rules ctxt =
-  ALLGOALS (safe_simp_tac (put_simpset HOL_ss ctxt addsimps rules));
+  ALLGOALS (safe_simp_tac (put_simpset HOL_ss ctxt |> Simplifier.add_simps rules));
 
 fun simplify_meta_eq rules ctxt =
-  simplify (put_simpset HOL_basic_ss ctxt addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2})
-    o mk_meta_eq;
+  simplify (put_simpset HOL_basic_ss ctxt
+    |> Simplifier.add_simps rules
+    |> Simplifier.add_eqcong @{thm eq_cong2}) o mk_meta_eq;
 
 end;

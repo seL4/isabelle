@@ -149,9 +149,9 @@ val regularize_simproc =
 fun regularize_tac ctxt =
   let
     val simpset =
-      (mk_minimal_simpset ctxt
-        addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
-        |> Simplifier.add_proc regularize_simproc)
+      mk_minimal_simpset ctxt
+      |> Simplifier.add_simps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
+      |> Simplifier.add_proc regularize_simproc
       |> Simplifier.add_unsafe_solver equiv_solver
       |> Simplifier.add_unsafe_solver quotient_solver
     val eq_eqvs = eq_imp_rel_get ctxt
@@ -511,7 +511,8 @@ fun clean_tac ctxt =
       @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
     val simpset =
-      (mk_minimal_simpset ctxt) addsimps thms
+      mk_minimal_simpset ctxt
+      |> Simplifier.add_simps thms
       |> Simplifier.add_unsafe_solver quotient_solver
   in
     EVERY' [
@@ -607,7 +608,7 @@ val default_unfolds = @{thms Ball_def Bex_def}
 
 fun descend_procedure_tac ctxt simps =
   let
-    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
+    val simpset = mk_minimal_simpset ctxt |> Simplifier.add_simps (simps @ default_unfolds)
   in
     full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac ctxt
@@ -658,7 +659,7 @@ fun partiality_procedure_inst ctxt rtrm qtrm =
 
 fun partiality_descend_procedure_tac ctxt simps =
   let
-    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
+    val simpset = mk_minimal_simpset ctxt |> Simplifier.add_simps (simps @ default_unfolds)
   in
     full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac ctxt
@@ -693,7 +694,7 @@ fun partiality_descend_tac ctxt simps =
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt simps rthm =
   let
-    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
+    val simpset = mk_minimal_simpset ctxt |> Simplifier.add_simps (simps @ default_unfolds)
   in
     full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac ctxt

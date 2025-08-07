@@ -178,7 +178,7 @@ abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
 ML \<open>
 fun sum3_instantiate ctxt thm =
   map (fn s =>
-    simplify (ctxt delsimps @{thms not_None_eq})
+    simplify (ctxt |> Simplifier.del_simps @{thms not_None_eq})
       (Rule_Insts.read_instantiate ctxt [((("t", 0), Position.none), "In" ^ s ^ " x")] ["x"] thm))
     ["1l","2","3","1r"]
 \<close>

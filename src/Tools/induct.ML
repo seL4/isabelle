@@ -230,7 +230,7 @@ structure Data = Generic_Data
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)),
      simpset_of ((empty_simpset \<^context>
-      |> Simplifier.add_proc rearrange_eqs_simproc) addsimps [Drule.norm_hhf_eq]));
+      |> Simplifier.add_proc rearrange_eqs_simproc) |> Simplifier.add_simp Drule.norm_hhf_eq));
   fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1), simpset1),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2), simpset2)) =
     ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),
@@ -345,10 +345,10 @@ fun map_simpset f context =
   context |> (Data.map o @{apply 4(4)} o Simplifier.simpset_map (Context.proof_of context)) f;
 
 fun induct_simp f =
-  Thm.declaration_attribute (fn thm => map_simpset (fn ctxt => f (ctxt, [thm])));
+  Thm.declaration_attribute (fn thm => map_simpset (f thm));
 
-val induct_simp_add = induct_simp (op addsimps);
-val induct_simp_del = induct_simp (op delsimps);
+val induct_simp_add = induct_simp Simplifier.add_simp;
+val induct_simp_del = induct_simp Simplifier.del_simp;
 
 end;
 

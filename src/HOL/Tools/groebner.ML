@@ -397,13 +397,13 @@ fun is_forall t =
 val nnf_simps = @{thms nnf_simps};
 
 fun weak_dnf_conv ctxt =
-  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms weak_dnf_simps});
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms weak_dnf_simps});
 
 val initial_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps nnf_simps
-    addsimps [not_all, not_ex]
-    addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
+    |> Simplifier.add_simps nnf_simps
+    |> Simplifier.add_simps [not_all, not_ex]
+    |> Simplifier.add_simps (map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps})));
 fun initial_conv ctxt =
   Simplifier.rewrite (put_simpset initial_ss ctxt);
 
@@ -520,7 +520,8 @@ fun simple_choose ctxt v th =
  fun mk_exists ctxt v th = Drule.arg_cong_rule (ext ctxt (Thm.typ_of_cterm v))
    (Thm.abstract_rule (getname v) v th)
  fun simp_ex_conv ctxt =
-   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
+   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt
+     |> Simplifier.add_simps @{thms simp_thms(39)})
 
 fun free_in v t = Cterms.defined (Cterms.build (Drule.add_frees_cterm t)) v;
 
@@ -655,7 +656,7 @@ val holify_polynomial =
  in holify_polynomial
  end ;
 
-fun idom_rule ctxt = simplify (put_simpset HOL_basic_ss ctxt addsimps [idom_thm]);
+fun idom_rule ctxt = simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp idom_thm);
 fun prove_nz n = eqF_elim (ring_eq_conv (Thm.mk_binop eq_tm (mk_const n) (mk_const @0)));
 val neq_01 = prove_nz @1;
 fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
@@ -745,7 +746,7 @@ fun ring ctxt tm =
     val th2 = fold (fn v => fn th => (Thm.forall_intr v th) COMP allI) evs (th2b RS PFalse)
     val th3 =
       Thm.equal_elim
-        (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [not_ex RS sym])
+        (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp (not_ex RS sym))
           (th2 |> Thm.cprop_of)) th2
     in specl (Cterms.list_set_rev avs)
              ([[[HOLogic.mk_obj_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS @{thm notnotD})
@@ -784,7 +785,7 @@ val poly_eq_simproc =
 
 val poly_eq_ss =
   simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps @{thms simp_thms}
+    |> Simplifier.add_simps @{thms simp_thms}
     |> Simplifier.add_proc poly_eq_simproc)
 
  local
@@ -920,8 +921,9 @@ fun get_ring_ideal_convs ctxt form =
 
 fun presimplify ctxt add_thms del_thms =
   asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
-    addsimps (Named_Theorems.get ctxt \<^named_theorems>\<open>algebra\<close>)
-    delsimps del_thms addsimps add_thms);
+    |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>algebra\<close>)
+    |> Simplifier.del_simps del_thms
+    |> Simplifier.add_simps add_thms);
 
 fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac ctxt

@@ -1234,7 +1234,7 @@ fun rew_conv ctxt ctm =
     (Variable.declare_term (Thm.term_of ctm) ctxt) ctm;
 
 fun simpl_conv ctxt thl ctm =
-  HOLogic.mk_obj_eq (rew_conv (ctxt addsimps thl) ctm);
+  HOLogic.mk_obj_eq (rew_conv (ctxt |> Simplifier.add_simps thl) ctm);
 
 
 fun RIGHT_ASSOC ctxt = rewrite_rule ctxt @{thms tfl_disj_assoc};
@@ -1582,7 +1582,7 @@ fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
     val names = Misc_Legacy.add_term_names (Thm.term_of ctm, [])
     val th1 =
       Simplifier.rewrite_cterm (false, true, false)
-        (prover names) (ctxt0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm
+        (prover names) (ctxt0 |> Simplifier.add_simp cut_lemma' |> fold Simplifier.add_eqcong congs) ctm
     val th2 = Thm.equal_elim th1 th
  in
  (th2, filter_out restricted (!tc_list))
@@ -2061,7 +2061,7 @@ fun post_definition ctxt meta_tflCongs (def, pats) =
        slow.*)
      val case_simpset =
        put_simpset HOL_basic_ss ctxt
-          addsimps case_rewrites
+          |> Simplifier.add_simps case_rewrites
           |> fold (Simplifier.add_cong o #case_cong_weak o snd)
               (Symtab.dest (BNF_LFP_Compat.get_all thy [BNF_LFP_Compat.Keep_Nesting]))
      val corollaries' = map (Simplifier.simplify case_simpset) corollaries
@@ -2572,7 +2572,7 @@ fun proof_stage ctxt strict wfs {f, R, rules, full_pats_TCs, TCs} =
               val dummy = (Prim.trace_thms ctxt "solved =" solved;
                            Prim.trace_thms ctxt "simplified' =" simplified')
               fun rewr th =
-                full_simplify (Variable.declare_thm th ctxt addsimps (solved @ simplified')) th;
+                full_simplify (Variable.declare_thm th ctxt |> Simplifier.add_simps (solved @ simplified')) th;
               val dummy = Prim.trace_thms ctxt "Simplifying the induction rule..." [induction]
               val induction' = rewr induction
               val dummy = Prim.trace_thms ctxt "Simplifying the recursion rules..." [rules]
@@ -2794,13 +2794,13 @@ fun prepare_hints opt_src ctxt =
         NONE => ctxt
       | SOME src => #2 (Token.syntax (Method.sections recdef_modifiers) src ctxt));
     val {simps, congs, wfs} = get_hints ctxt';
-    val ctxt'' = ctxt' addsimps simps |> Simplifier.del_cong @{thm imp_cong};
+    val ctxt'' = ctxt' |> Simplifier.add_simps simps |> Simplifier.del_cong @{thm imp_cong};
   in ((rev (map snd congs), wfs), ctxt'') end;
 
 fun prepare_hints_i () ctxt =
   let
     val {simps, congs, wfs} = get_hints ctxt;
-    val ctxt' = ctxt addsimps simps |> Simplifier.del_cong @{thm imp_cong};
+    val ctxt' = ctxt |> Simplifier.add_simps simps |> Simplifier.del_cong @{thm imp_cong};
   in ((rev (map snd congs), wfs), ctxt') end;
 
 

@@ -70,7 +70,7 @@ fun mk_update_defs typ_name lthy =
 
     fun simp_only_tac ctxt =
       REPEAT_ALL_NEW (resolve_tac ctxt @{thms impI allI}) THEN'
-        asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp_thms)
+        asm_full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps simp_thms)
 
     fun prove ctxt defs ts n =
       let

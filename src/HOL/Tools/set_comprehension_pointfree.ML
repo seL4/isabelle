@@ -302,7 +302,8 @@ fun intro_image_tac ctxt =
 fun elim_image_tac ctxt =
   eresolve_tac ctxt @{thms imageE}
   THEN' REPEAT_DETERM o CHANGED o
-    (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
+    (TRY o full_simp_tac
+      (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms split_paired_all prod.case})
     THEN' REPEAT_DETERM o eresolve_tac ctxt @{thms Pair_inject}
     THEN' TRY o hyp_subst_tac ctxt)
 
@@ -320,9 +321,9 @@ fun tac1_of_formula ctxt (Int (fm1, fm2)) =
     REPEAT_DETERM1 o (assume_tac ctxt
       ORELSE' resolve_tac ctxt @{thms SigmaI}
       ORELSE' ((resolve_tac ctxt @{thms CollectI} ORELSE' resolve_tac ctxt [collectI']) THEN'
-        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm prod.case}))
       ORELSE' ((resolve_tac ctxt @{thms vimageI2} ORELSE' resolve_tac ctxt [vimageI2']) THEN'
-        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]))
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm prod.case}))
       ORELSE' (resolve_tac ctxt @{thms image_eqI} THEN'
     (REPEAT_DETERM o
       (resolve_tac ctxt @{thms refl}
@@ -347,17 +348,18 @@ fun tac2_of_formula ctxt (Int (fm1, fm2)) =
        ORELSE' dresolve_tac ctxt @{thms iffD1[OF mem_Sigma_iff]}
        ORELSE' eresolve_tac ctxt @{thms conjE}
        ORELSE' ((eresolve_tac ctxt @{thms CollectE} ORELSE' eresolve_tac ctxt [collectE']) THEN'
-         TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}]) THEN'
+         TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm prod.case}) THEN'
          REPEAT_DETERM o eresolve_tac ctxt @{thms Pair_inject} THEN' TRY o hyp_subst_tac ctxt THEN'
          TRY o resolve_tac ctxt @{thms refl})
        ORELSE' (eresolve_tac ctxt @{thms imageE}
          THEN' (REPEAT_DETERM o CHANGED o
-         (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.case})
+         (TRY o full_simp_tac
+           (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms split_paired_all prod.case})
          THEN' REPEAT_DETERM o eresolve_tac ctxt @{thms Pair_inject}
          THEN' TRY o hyp_subst_tac ctxt THEN' TRY o resolve_tac ctxt @{thms refl})))
        ORELSE' eresolve_tac ctxt @{thms ComplE}
        ORELSE' ((eresolve_tac ctxt @{thms vimageE} ORELSE' eresolve_tac ctxt [vimageE'])
-        THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.case}])
+        THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simp @{thm prod.case})
         THEN' TRY o hyp_subst_tac ctxt THEN' TRY o resolve_tac ctxt @{thms refl}))
 
 fun tac ctxt fm =
@@ -403,7 +405,7 @@ fun comprehension_conv ctxt ct =
     val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.case}
     fun tac ctxt =
       resolve_tac ctxt @{thms set_eqI}
-      THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)
+      THEN' simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps unfold_thms)
       THEN' resolve_tac ctxt @{thms iffI}
       THEN' REPEAT_DETERM o resolve_tac ctxt @{thms exI}
       THEN' resolve_tac ctxt @{thms conjI} THEN' resolve_tac ctxt @{thms refl} THEN' assume_tac ctxt
@@ -411,7 +413,7 @@ fun comprehension_conv ctxt ct =
       THEN' eresolve_tac ctxt @{thms conjE}
       THEN' REPEAT_DETERM o eresolve_tac ctxt @{thms Pair_inject}
       THEN' Subgoal.FOCUS (fn {prems, context = ctxt', ...} =>
-        simp_tac (put_simpset HOL_basic_ss ctxt' addsimps (filter is_eq prems)) 1) ctxt
+        simp_tac (put_simpset HOL_basic_ss ctxt' |> Simplifier.add_simps (filter is_eq prems)) 1) ctxt
       THEN' TRY o assume_tac ctxt
   in
     case try mk_term (Thm.term_of ct) of
@@ -439,7 +441,7 @@ fun conv ctxt t =
     val ct = Thm.cterm_of ctxt' t'
     fun unfold_conv thms =
       Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
-        (empty_simpset ctxt' addsimps thms)
+        (empty_simpset ctxt' |> Simplifier.add_simps thms)
     val prep_eq = (comprehension_conv ctxt' then_conv unfold_conv prep_thms) ct
     val t'' = Thm.term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
@@ -477,7 +479,7 @@ fun code_proc ctxt redex =
   let
     fun unfold_conv thms =
       Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
-        (empty_simpset ctxt addsimps thms)
+        (empty_simpset ctxt |> Simplifier.add_simps thms)
     val prep_thm = unfold_conv @{thms eq_equal[symmetric]} redex
   in
     case base_proc ctxt (Thm.rhs_of prep_thm) of

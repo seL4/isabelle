@@ -191,7 +191,7 @@ fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
         val totality = Thm.close_derivation \<^here> raw_totality
         val remove_domain_condition =
           full_simplify (put_simpset HOL_basic_ss lthy1
-            addsimps [totality, @{thm True_implies_equals}])
+            |> Simplifier.add_simps [totality, @{thm True_implies_equals}])
         val tsimps = map remove_domain_condition psimps
         val tinduct = map remove_domain_condition pinducts
         val telims = map (map remove_domain_condition) pelims

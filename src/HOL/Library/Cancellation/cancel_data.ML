@@ -42,7 +42,7 @@ val numeral_syms =
   map (fn th => th RS sym) @{thms numeral_One numeral_2_eq_2 numeral_1_eq_Suc_0};
 
 val numeral_sym_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps numeral_syms);
+  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps numeral_syms);
 
 fun mk_number 1 = HOLogic.numeral_const HOLogic.natT $ HOLogic.one_const
   | mk_number n = HOLogic.mk_number HOLogic.natT n;
@@ -145,20 +145,19 @@ val find_first_coeff = find_first_coeff [];
 val trans_tac = Numeral_Simprocs.trans_tac;
 
 val norm_ss1 =
-  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context> addsimps
-    numeral_syms @ add_0s @ mult_1s @ @{thms ac_simps iterate_add_simps});
+  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
+    |> Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ @{thms ac_simps iterate_add_simps}));
 
 val norm_ss2 =
-  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context> addsimps
-    bin_simps @
-    @{thms ac_simps});
+  simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
+    |> Simplifier.add_simps (bin_simps @ @{thms ac_simps}));
 
 fun norm_tac ctxt =
   ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
   THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt));
 
 val mset_simps_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps bin_simps);
+  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps bin_simps);
 
 fun numeral_simp_tac ctxt = ALLGOALS (simp_tac (put_simpset mset_simps_ss ctxt));
 

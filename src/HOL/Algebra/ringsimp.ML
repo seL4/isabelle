@@ -48,7 +48,9 @@ fun struct_tac ctxt ((s, ts), simps) =
       | ord (Free (a, _)) = find_index (fn (Free (b, _)) => a=b | _ => false) ops;
   in
     asm_full_simp_tac
-      (put_simpset HOL_ss ctxt addsimps simps |> Simplifier.set_term_ord (Term_Ord.term_lpo ord))
+      (put_simpset HOL_ss ctxt
+        |> Simplifier.add_simps simps
+        |> Simplifier.set_term_ord (Term_Ord.term_lpo ord))
   end;
 
 fun algebra_tac ctxt =
