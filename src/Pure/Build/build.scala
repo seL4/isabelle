@@ -299,17 +299,27 @@ object Build {
     dirs: List[Path] = Nil,
     fresh: Boolean = false,
     strict: Boolean = false
-  ): Int = {
+  ): Results = {
     val selection = Sessions.Selection.session(logic)
-    val rc =
-      if (!fresh && build(options, selection = selection,
-            build_heap = build_heap, no_build = true, dirs = dirs).ok) Process_Result.RC.ok
+
+    def test_build(): Results =
+      build(options, selection = selection,
+        build_heap = build_heap, no_build = true, dirs = dirs)
+
+    def full_build(): Results = {
+      progress.echo("Build started for Isabelle/" + logic + " ...")
+      build(options, selection = selection, progress = progress,
+        build_heap = build_heap, fresh_build = fresh, dirs = dirs)
+    }
+
+    val results =
+      if (fresh) full_build()
       else {
-        progress.echo("Build started for Isabelle/" + logic + " ...")
-        build(options, selection = selection, progress = progress,
-          build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
+        val results0 = test_build()
+        if (results0.ok) results0 else full_build()
       }
-    if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
+
+    if (strict && !results.ok) error("Failed to build Isabelle/" + logic) else results
   }
 
 
