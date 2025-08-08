@@ -187,31 +187,23 @@ object Sessions {
             val other_name = info.name + "_requirements(" + ancestor.get + ")"
             Isabelle_System.isabelle_tmp_prefix()
 
-            (other_name,
-              List(
-                Info.make(
-                  Chapter_Defs.empty,
-                  Options.init0(),
-                  info.options,
-                  augment_options = _ => Nil,
-                  dir_selected = false,
-                  dir = Path.explode("$ISABELLE_TMP_PREFIX"),
-                  chapter = info.chapter,
-                  Session_Entry(
-                    pos = info.pos,
-                    name = other_name,
-                    groups = info.groups,
-                    path = ".",
-                    parent = ancestor,
-                    description = "Required theory imports from other sessions",
-                    options = Nil,
-                    imports = info.deps,
-                    directories = Nil,
-                    theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))),
-                    document_theories = Nil,
-                    document_files = Nil,
-                    export_files = Nil,
-                    export_classpath = Nil))))
+            val session_entry =
+              Session_Entry(
+                pos = info.pos,
+                name = other_name,
+                groups = info.groups,
+                parent = ancestor,
+                description = "Required theory imports from other sessions",
+                imports = info.deps,
+                theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))))
+
+            val session_info =
+              Info.make(session_entry,
+                dir = Path.explode("$ISABELLE_TMP_PREFIX"),
+                options = info.options,
+                chapter = info.chapter)
+
+            (other_name, List(session_info))
           }
         }
         else (session, Nil)
@@ -619,14 +611,14 @@ object Sessions {
 
   object Info {
     def make(
-      chapter_defs: Chapter_Defs,
-      options0: Options,
-      options: Options,
-      augment_options: String => List[Options.Spec],
-      dir_selected: Boolean,
+      entry: Session_Entry,
       dir: Path,
-      chapter: String,
-      entry: Session_Entry
+      options: Options,
+      options0: Options = Options.init0(),
+      augment_options: String => List[Options.Spec] = _ => Nil,
+      chapter_defs: Chapter_Defs = Chapter_Defs.empty,
+      chapter: String = UNSORTED,
+      dir_selected: Boolean = false,
     ): Info = {
       try {
         val name = entry.name
@@ -854,8 +846,14 @@ object Sessions {
             case entry: Chapter_Entry => chapter = entry.name
             case entry: Session_Entry =>
               root_infos +=
-                Info.make(chapter_defs, options0, options, augment_options,
-                  root.select, root.dir, chapter, entry)
+                Info.make(entry,
+                  dir = root.dir,
+                  options = options,
+                  options0 = options0,
+                  augment_options = augment_options,
+                  chapter_defs = chapter_defs,
+                  chapter = chapter,
+                  dir_selected = root.select)
             case _ =>
           }
           chapter = UNSORTED
@@ -1124,20 +1122,20 @@ object Sessions {
   ) extends Entry
   sealed case class Chapter_Entry(name: String) extends Entry
   sealed case class Session_Entry(
-    pos: Position.T,
-    name: String,
-    groups: List[String],
-    path: String,
-    parent: Option[String],
-    description: String,
-    options: List[Options.Spec],
-    imports: List[String],
-    directories: List[String],
-    theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])],
-    document_theories: List[(String, Position.T)],
-    document_files: List[(String, String)],
-    export_files: List[(String, Int, List[String])],
-    export_classpath: List[String]
+    pos: Position.T = Position.none,
+    name: String = "",
+    groups: List[String] = Nil,
+    path: String = ".",
+    parent: Option[String] = None,
+    description: String = "",
+    options: List[Options.Spec] = Nil,
+    imports: List[String] = Nil,
+    directories: List[String] = Nil,
+    theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])] = Nil,
+    document_theories: List[(String, Position.T)] = Nil,
+    document_files: List[(String, String)] = Nil,
+    export_files: List[(String, Int, List[String])] = Nil,
+    export_classpath: List[String] = Nil
   ) extends Entry {
     def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
@@ -1225,7 +1223,9 @@ object Sessions {
               rep(export_files) ~
               opt(export_classpath)))) ^^
         { case _ ~ ((a, pos) ~ b ~ c ~ (_ ~ (d ~ e ~ f ~ g ~ h ~ i ~ j ~ k ~ l ~ m))) =>
-            Session_Entry(pos, a, b, c, d, e, f, g, h, i, j, k, l, m.getOrElse(Nil)) }
+            Session_Entry(pos = pos, name = a, groups = b, path = c, parent = d, description = e,
+              options = f, imports = g, directories = h, theories = i, document_theories = j,
+              document_files = k, export_files = l, export_classpath = m.getOrElse(Nil)) }
     }
 
     def parse_root(path: Path): List[Entry] = {
