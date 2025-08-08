@@ -13,9 +13,10 @@ import java.sql.SQLException
 object Store {
   def apply(
     options: Options,
+    private_dir: Option[Path] = None,
     build_cluster: Boolean = false,
     cache: Rich_Text.Cache = Rich_Text.Cache.make()
-  ): Store = new Store(options, build_cluster, cache)
+  ): Store = new Store(options, private_dir, build_cluster, cache)
 
 
   /* file names */
@@ -276,6 +277,7 @@ object Store {
 
 class Store private(
     val options: Options,
+    private_dir: Option[Path],
     val build_cluster: Boolean,
     val cache: Rich_Text.Cache
   ) {
@@ -287,6 +289,9 @@ class Store private(
   /* ML system settings */
 
   val ml_settings: ML_Settings = ML_Settings(options)
+
+  val private_output_dir: Option[Path] =
+    private_dir.map(dir => dir + Path.basic("heaps") + Path.basic(ml_settings.ml_identifier))
 
   val system_output_dir: Path =
     Path.variable("ISABELLE_HEAPS_SYSTEM") + Path.basic(ml_settings.ml_identifier)
@@ -324,18 +329,19 @@ class Store private(
   def system_heaps: Boolean = options.bool("system_heaps")
 
   val output_dir: Path =
-    if (system_heaps) system_output_dir else user_output_dir
+    private_output_dir.getOrElse(if (system_heaps) system_output_dir else user_output_dir)
 
   val input_dirs: List[Path] =
-    if (system_heaps) List(system_output_dir)
-    else List(user_output_dir, system_output_dir)
+    private_output_dir.toList :::
+      (if (system_heaps) List(system_output_dir) else List(user_output_dir, system_output_dir))
 
   val clean_dirs: List[Path] =
-    if (system_heaps) List(user_output_dir, system_output_dir)
-    else List(user_output_dir)
+    private_output_dir.toList :::
+      (if (system_heaps) List(user_output_dir, system_output_dir) else List(user_output_dir))
 
   def presentation_dir: Path =
-    if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
+    if (private_dir.isDefined) private_dir.get + Path.basic("browser_info")
+    else if (system_heaps) Path.explode("$ISABELLE_BROWSER_INFO_SYSTEM")
     else Path.explode("$ISABELLE_BROWSER_INFO")
 
 
