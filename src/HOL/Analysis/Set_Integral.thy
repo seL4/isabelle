@@ -608,11 +608,11 @@ syntax_consts
 translations
   "CLINT x:A|M. f" == "CONST complex_set_lebesgue_integral M A (\<lambda>x. f)"
 
-lemma set_measurable_continuous_on_ivl:
-  assumes "continuous_on {a..b} (f :: real \<Rightarrow> real)"
-  shows "set_borel_measurable borel {a..b} f"
-  unfolding set_borel_measurable_def
-  by (rule borel_measurable_continuous_on_indicator[OF _ assms]) simp
+lemma set_measurable_continuous_on:
+  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  shows "A \<in> sets borel \<Longrightarrow> continuous_on A f \<Longrightarrow> set_borel_measurable borel A f"
+  by (meson borel_measurable_continuous_on_indicator
+      set_borel_measurable_def)
 
 section \<open>NN Set Integrals\<close>
 

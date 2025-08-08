@@ -28,7 +28,7 @@ proof-
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
   from this and contg' have Mg: "set_borel_measurable borel {a..b} g" and
                              Mg': "set_borel_measurable borel {a..b} g'"
-      by (simp_all only: set_measurable_continuous_on_ivl)
+    using atLeastAtMost_borel set_measurable_continuous_on by blast+
   from derivg have derivg': "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
     by (simp only: has_real_derivative_iff_has_vector_derivative)
 
@@ -329,7 +329,7 @@ proof-
   from derivg have contg: "continuous_on {a..b} g" by (rule has_real_derivative_imp_continuous_on)
   with contg' have Mg: "set_borel_measurable borel {a..b} g"
     and Mg': "set_borel_measurable borel {a..b} g'"
-    by (simp_all only: set_measurable_continuous_on_ivl)
+    using atLeastAtMost_borel set_measurable_continuous_on by blast+
   from derivg derivg_nonneg have monog: "\<And>x y. a \<le> x \<Longrightarrow> x \<le> y \<Longrightarrow> y \<le> b \<Longrightarrow> g x \<le> g y"
     by (rule deriv_nonneg_imp_mono) simp_all
 
