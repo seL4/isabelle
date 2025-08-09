@@ -69,6 +69,8 @@ option show_main_goal : bool = false for content
 option goals_limit : int = 10 for content
   -- "maximum number of subgoals to be printed"
 
+option show_results : bool = true for content
+  -- "show toplevel results even if outside of interactive mode"
 option show_states : bool = false for content
   -- "show toplevel states even if outside of interactive mode"
 

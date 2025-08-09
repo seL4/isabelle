@@ -31,9 +31,9 @@ now able to load markup and messages from the underlying session
 database. Example: "isabelle jedit -l HOL src/HOL/Nat.thy" for theory
 "HOL.Nat" in session "HOL". This information is read-only: editing
 theory sources in the editor will invalidate formal markup, and replace
-it by an error message. Output messages exclude proof states and final
-results, unless the underlying session database has been built with
-option "show_states".
+it by an error message. Output messages depend on system options
+"show_results" (default true) and "show_states" (default false),
+provided at build-time for the underlying session database.
 
 
 *** Isabelle/jEdit Prover IDE ***
@@ -334,6 +334,17 @@ may require change of parentheses:
 
 
 *** System ***
+
+* System option "show_results" (default true) controls output of
+toplevel command results (definitions, theorems) in batch-builds. In
+interactive mode this is always enabled; in batch-builds it can be
+disable like this:
+
+    isabelle build -o show_results=false FOL
+
+Option "show_results" is also the default for the configuration option
+"show_results" within the formal context --- instead of "show_states"
+that was used for this purpose before.
 
 * The traditional ML system settings have been reconsidered, and mostly
 replaced by ML_Settings in Isabelle/Scala (e.g. via
