@@ -98,6 +98,11 @@ object Build {
 
     lazy val unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
 
+    def check: Results =
+      if (ok) this
+      else if (unfinished.isEmpty) error("Build failed")
+      else error("Build failed with unfinished session(s): " + commas(unfinished))
+
     override def toString: String = rc.toString
   }
 
