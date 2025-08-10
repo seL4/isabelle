@@ -195,7 +195,7 @@ object Build {
       val full_sessions =
         Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs,
           select_dirs = select_dirs, infos = infos, augment_options = augment_options)
-      val full_sessions_selection = full_sessions.imports_selection(selection)
+      val selected_sessions = full_sessions.imports_selection(selection)
 
       val build_deps = {
         val deps0 =
@@ -247,7 +247,7 @@ object Build {
       /* build process and results */
 
       val clean_sessions =
-        if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
+        if (clean_build) full_sessions.imports_descendants(selected_sessions) else Nil
 
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       val build_context =
@@ -261,7 +261,7 @@ object Build {
       val results = engine.run_build_process(build_context, progress, server)
 
       if (export_files) {
-        for (name <- full_sessions_selection.iterator if results(name).ok) {
+        for (name <- selected_sessions.iterator if results(name).ok) {
           val info = results.info(name)
           if (info.export_files.nonEmpty) {
             progress.echo("Exporting " + info.name + " ...")
