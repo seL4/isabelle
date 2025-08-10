@@ -82,11 +82,10 @@ object Profiling {
         val eval_args =
           List("--eval", "use_thy " + ML_Syntax.print_string_bytes("~~/src/Tools/Profiling"))
         Isabelle_System.with_tmp_dir("profiling") { dir =>
-          val putenv = List("ISABELLE_PROFILING" -> dir.implode)
           File.write(dir + Path.explode("args.yxml"), YXML.string_of_body(encode_args(args)))
+          val ml_options = store.options + Options.Spec("profiling_dir", Some(dir.implode))
           val session_heaps = store.session_heaps(session_background, logic = session_name)
-          ML_Process(store.options, session_background, session_heaps, args = eval_args,
-            env = Isabelle_System.Settings.env(putenv)).result().check
+          ML_Process(ml_options, session_background, session_heaps, args = eval_args).result().check
           decode_result(YXML.parse_body(Bytes.read(dir + Path.explode("result.yxml"))))
         }
       }

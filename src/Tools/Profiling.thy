@@ -183,7 +183,7 @@ val encode_result : session_statistics XML.Encode.T =
 in
 
 fun main () =
-  (case getenv "ISABELLE_PROFILING" of
+  (case Options.default_string \<^system_option>\<open>profiling_dir\<close> of
     "" => ()
   | dir_name =>
       let
