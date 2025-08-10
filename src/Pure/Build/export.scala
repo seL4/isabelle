@@ -296,7 +296,7 @@ object Export {
     def shutdown(close: Boolean = false): List[String] = {
       consumer.shutdown()
       if (close) db.close()
-      errors.value.reverse ::: (if (progress.stopped) List("Export stopped") else Nil)
+      errors.value.reverse ::: (if (progress.stopped) List("Session export stopped") else Nil)
     }
   }
 
