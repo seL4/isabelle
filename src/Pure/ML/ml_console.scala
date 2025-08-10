@@ -53,11 +53,11 @@ Usage: isabelle console [OPTIONS]
       // build logic
       if (!no_build && !raw_ml_system) {
         val progress = new Console_Progress()
-        val rc =
+        val results =
           progress.interrupt_handler {
             Build.build_logic(options, logic, build_heap = true, progress = progress, dirs = dirs)
           }
-        if (rc != Process_Result.RC.ok) sys.exit(rc)
+        if (!results.ok) sys.exit(results.rc)
       }
 
       val session_background =

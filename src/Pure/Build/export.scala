@@ -296,7 +296,7 @@ object Export {
     def shutdown(close: Boolean = false): List[String] = {
       consumer.shutdown()
       if (close) db.close()
-      errors.value.reverse ::: (if (progress.stopped) List("Export stopped") else Nil)
+      errors.value.reverse ::: (if (progress.stopped) List("Session export stopped") else Nil)
     }
   }
 
@@ -659,11 +659,11 @@ Usage: isabelle export [OPTIONS] SESSION
         /* build */
 
         if (!no_build) {
-          val rc =
+          val results =
             progress.interrupt_handler {
               Build.build_logic(options, session_name, progress = progress, dirs = dirs)
             }
-          if (rc != Process_Result.RC.ok) sys.exit(rc)
+          if (!results.ok) sys.exit(results.rc)
         }
 
 

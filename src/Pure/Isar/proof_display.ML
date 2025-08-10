@@ -301,7 +301,7 @@ val show_results =
   Attrib.setup_config_bool \<^binding>\<open>show_results\<close>
     (fn context =>
       Config.get_generic context interactive orelse
-      Options.default_bool \<^system_option>\<open>show_states\<close>);
+      Options.default_bool \<^system_option>\<open>show_results\<close>);
 
 fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_results);
 

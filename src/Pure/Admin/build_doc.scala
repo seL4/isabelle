@@ -39,8 +39,7 @@ object Build_Doc {
 
     progress.echo("Build started for sessions " + commas_quote(selection.sessions))
     val build_results =
-      Build.build(options, selection = selection, progress = progress, max_jobs = max_jobs)
-    if (!build_results.ok) error("Build failed")
+      Build.build(options, selection = selection, progress = progress, max_jobs = max_jobs).check
 
     progress.echo("Build started for documentation " + commas_quote(documents))
     val deps = Sessions.load_structure(options + "document").selection_deps(selection)

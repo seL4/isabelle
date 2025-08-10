@@ -71,25 +71,21 @@ object Profiling {
 
     def make(
       store: Store,
-      session_background: Sessions.Background,
+      session_base: Sessions.Base,
+      dirs: List[Path] = Nil,
       parent: Option[Statistics] = None
     ): Statistics = {
-      val session_base = session_background.base
       val session_name = session_base.session_name
 
-      val session = {
-        val args = session_base.used_theories.map(p => p._1.theory)
-        val eval_args =
-          List("--eval", "use_thy " + ML_Syntax.print_string_bytes("~~/src/Tools/Profiling"))
+      val session =
         Isabelle_System.with_tmp_dir("profiling") { dir =>
-          val putenv = List("ISABELLE_PROFILING" -> dir.implode)
-          File.write(dir + Path.explode("args.yxml"), YXML.string_of_body(encode_args(args)))
-          val session_heaps = store.session_heaps(session_background, logic = session_name)
-          ML_Process(store.options, session_background, session_heaps, args = eval_args,
-            env = Isabelle_System.Settings.env(putenv)).result().check
+          File.write(dir + Path.explode("args.yxml"),
+            YXML.string_of_body(encode_args(session_base.used_theories.map(p => p._1.theory))))
+          val ml_options = store.options + Options.Spec("profiling_dir", Some(dir.implode))
+          Process_Theories.process_theories(ml_options, session_name,
+            dirs = dirs, files = List(Path.explode("~~/src/Tools/Profiling.thy"))).check
           decode_result(YXML.parse_body(Bytes.read(dir + Path.explode("result.yxml"))))
         }
-      }
 
       new Statistics(parent = parent, session = session_name,
         theories = session.theories,
@@ -248,12 +244,9 @@ object Profiling {
       build_heap: Boolean = false,
       clean_build: Boolean = false
     ): Build.Results = {
-      val results =
-        Build.build(build_options, progress = progress,
-          selection = selection, build_heap = build_heap, clean_build = clean_build,
-          dirs = sessions_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs)
-
-      if (results.ok) results else error("Build failed")
+      Build.build(build_options, progress = progress,
+        selection = selection, build_heap = build_heap, clean_build = clean_build,
+        dirs = sessions_dirs, numa_shuffling = numa_shuffling, max_jobs = max_jobs).check
     }
 
 
@@ -283,8 +276,8 @@ object Profiling {
             parent_stats <- seen.get(parent_name)
           } yield parent_stats
         val stats =
-          Statistics.make(store,
-            build_results.deps.background(session_name),
+          Statistics.make(store, build_results.deps(session_name),
+            dirs = sessions_dirs,
             parent = parent)
         seen += (session_name -> stats)
         stats

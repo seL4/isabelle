@@ -98,6 +98,11 @@ object Build {
 
     lazy val unfinished: List[String] = sessions.iterator.filterNot(apply(_).ok).toList.sorted
 
+    def check: Results =
+      if (ok) this
+      else if (unfinished.isEmpty) error("Build failed")
+      else error("Build failed with unfinished session(s): " + commas(unfinished))
+
     override def toString: String = rc.toString
   }
 
@@ -126,11 +131,16 @@ object Build {
     }
 
     final def build_store(options: Options,
+      private_dir: Option[Path] = None,
       build_cluster: Boolean = false,
       cache: Rich_Text.Cache = Rich_Text.Cache.make()
     ): Store = {
       val build_options = engine.build_options(options, build_cluster = build_cluster)
-      val store = Store(build_options, build_cluster = build_cluster, cache = cache)
+      val store =
+        Store(build_options,
+          private_dir = private_dir,
+          build_cluster = build_cluster,
+          cache = cache)
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
       Isabelle_Fonts.init()
       store
@@ -162,6 +172,7 @@ object Build {
 
   def build(
     options: Options,
+    private_dir: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty,
     browser_info: Browser_Info.Config = Browser_Info.Config.none,
@@ -185,7 +196,11 @@ object Build {
     cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Results = {
     val engine = Engine(engine_name(options))
-    val store = engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
+    val store =
+      engine.build_store(options,
+        private_dir = private_dir,
+        build_cluster = build_hosts.nonEmpty,
+        cache = cache)
     val build_options = store.options
 
     using(store.open_server()) { server =>
@@ -195,7 +210,7 @@ object Build {
       val full_sessions =
         Sessions.load_structure(build_options, dirs = AFP.main_dirs(afp_root) ::: dirs,
           select_dirs = select_dirs, infos = infos, augment_options = augment_options)
-      val full_sessions_selection = full_sessions.imports_selection(selection)
+      val selected_sessions = full_sessions.imports_selection(selection)
 
       val build_deps = {
         val deps0 =
@@ -247,7 +262,7 @@ object Build {
       /* build process and results */
 
       val clean_sessions =
-        if (clean_build) full_sessions.imports_descendants(full_sessions_selection) else Nil
+        if (clean_build) full_sessions.imports_descendants(selected_sessions) else Nil
 
       val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
       val build_context =
@@ -261,7 +276,7 @@ object Build {
       val results = engine.run_build_process(build_context, progress, server)
 
       if (export_files) {
-        for (name <- full_sessions_selection.iterator if results(name).ok) {
+        for (name <- selected_sessions.iterator if results(name).ok) {
           val info = results.info(name)
           if (info.export_files.nonEmpty) {
             progress.echo("Exporting " + info.name + " ...")
@@ -294,22 +309,33 @@ object Build {
   /* build logic image */
 
   def build_logic(options: Options, logic: String,
+    private_dir: Option[Path] = None,
     progress: Progress = new Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,
     fresh: Boolean = false,
     strict: Boolean = false
-  ): Int = {
+  ): Results = {
     val selection = Sessions.Selection.session(logic)
-    val rc =
-      if (!fresh && build(options, selection = selection,
-            build_heap = build_heap, no_build = true, dirs = dirs).ok) Process_Result.RC.ok
+
+    def test_build(): Results =
+      build(options, selection = selection,
+        build_heap = build_heap, no_build = true, dirs = dirs)
+
+    def full_build(): Results = {
+      progress.echo("Build started for Isabelle/" + logic + " ...")
+      build(options, selection = selection, progress = progress,
+        build_heap = build_heap, fresh_build = fresh, dirs = dirs)
+    }
+
+    val results =
+      if (fresh) full_build()
       else {
-        progress.echo("Build started for Isabelle/" + logic + " ...")
-        build(options, selection = selection, progress = progress,
-          build_heap = build_heap, fresh_build = fresh, dirs = dirs).rc
+        val results0 = test_build()
+        if (results0.ok) results0 else full_build()
       }
-    if (strict && rc != Process_Result.RC.ok) error("Failed to build Isabelle/" + logic) else rc
+
+    if (strict && !results.ok) error("Failed to build Isabelle/" + logic) else results
   }
 
 
@@ -774,6 +800,22 @@ Usage: isabelle build_worker [OPTIONS]
 
   /* print messages */
 
+  def print_log_check(
+    pos: Position.T,
+    elem: XML.Elem,
+    message_head: List[Regex],
+    message_body: List[Regex]
+  ): Boolean = {
+    def check(filter: List[Regex], make_string: => String): Boolean =
+      filter.isEmpty || {
+        val s = Protocol_Message.clean_output(make_string)
+        filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
+      }
+
+    check(message_head, Protocol.message_heading(elem, pos)) &&
+    check(message_body, Pretty.unformatted_string_of(List(elem)))
+  }
+
   def print_log(
     options: Options,
     sessions: List[String],
@@ -788,12 +830,6 @@ Usage: isabelle build_worker [OPTIONS]
   ): Unit = {
     val session = Session.bootstrap(options)
     val store = session.store
-
-    def check(filter: List[Regex], make_string: => String): Boolean =
-      filter.isEmpty || {
-        val s = Protocol_Message.clean_output(make_string)
-        filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
-      }
 
     def print(session_name: String): Unit = {
       using(Export.open_session_context0(store, session_name)) { session_context =>
@@ -829,13 +865,11 @@ Usage: isabelle build_worker [OPTIONS]
                     for (Text.Info(range, elem) <- messages) {
                       val line = line_document.position(range.start).line1
                       val pos = Position.Line_File(line, snapshot.node_name.node)
-                      def message_text: String =
-                        Protocol.message_text(elem, heading = true, pos = pos,
-                          margin = margin, breakgain = breakgain, metric = metric)
-                      val ok =
-                        check(message_head, Protocol.message_heading(elem, pos)) &&
-                        check(message_body, Pretty.unformatted_string_of(List(elem)))
-                      if (ok) buffer += message_text
+                      if (print_log_check(pos, elem, message_head, message_body)) {
+                        buffer +=
+                          Protocol.message_text(elem, heading = true, pos = pos,
+                            margin = margin, breakgain = breakgain, metric = metric)
+                      }
                     }
                     if (buffer.nonEmpty) {
                       progress.echo(thy_heading)

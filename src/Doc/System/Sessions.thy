@@ -1196,4 +1196,81 @@ Build all sessions in the AFP excluding the \<^verbatim>\<open>very_slow\<close>
   @{verbatim [display] \<open>  isabelle build_task -A: -X slow -g AFP\<close>}
 \<close>
 
+
+section \<open>Process theories within a session context \label{sec:tool-process-theories}\<close>
+
+text \<open>
+  The @{tool_def process_theories} tool takes source files and theories from
+  existing sessions to compose an adhoc session (in a temporary directory)
+  that is then processed via regular @{tool build}. It is also possible to
+  output prover messages roughly like @{tool build_log}, while the theories
+  are being processed.
+
+  @{verbatim [display]
+\<open>Usage: isabelle process_theories [OPTIONS] [THEORIES...]
+
+  Options are:
+    -F FILE      include addition session files, listed in FILE
+    -H REGEX     filter messages by matching against head
+    -M REGEX     filter messages by matching against body
+    -O           output messages
+    -d DIR       include session directory
+    -f FILE      include addition session files
+    -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
+    -m MARGIN    margin for pretty printing (default: 76.0)
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose
+
+  Process theories within an adhoc session context.
+\<close>}
+
+  Explicit \<^emph>\<open>theories\<close> given as command-line arguments, not options, refer to
+  qualified theory names from existing sessions, e.g. \<^verbatim>\<open>HOL-Library.Multiset\<close>
+  or \<^verbatim>\<open>HOL-Examples.Seq\<close>. The session qualifiers are used to augment the adhoc
+  session specification by suitable entries for \isakeyword{sessions}
+  (\secref{sec:session-root}).
+
+  \<^medskip>
+  Options \<^verbatim>\<open>-f\<close> and \<^verbatim>\<open>-F\<close> specify source files for the adhoc session directory
+  (multiple occurrences are possible): \<^verbatim>\<open>-f\<close> is for literal file names, and
+  \<^verbatim>\<open>-F\<close> is for files that contain a list of further files (one per line).
+
+  All source files are copied to the private (temporary) session directory,
+  without any subdirectory structure. Files with extension \<^verbatim>\<open>.thy\<close> are treated
+  as theory files: their base names are appended to the overall list of
+  \<^emph>\<open>theories\<close>, and thus loaded into the adhoc session, too.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-l\<close> specifies the parent logic session, which is produced on the
+  spot using @{tool build}. Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> work as in @{tool
+  build}.
+
+  Option \<^verbatim>\<open>-O\<close> enables output of prover messages. Options \<^verbatim>\<open>-H\<close>, \<^verbatim>\<open>-M\<close>, \<^verbatim>\<open>-m\<close>
+  work as in @{tool build_log}.
+\<close>
+
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  Process a theory from a different session in the context of the default
+  logic (\<^verbatim>\<open>HOL\<close>):
+
+  @{verbatim [display] \<open>  isabelle process_theories HOL-Library.Multiset\<close>}
+
+  \<^smallskip>
+  Process a theory with prover output enabled:
+  @{verbatim [display] \<open>  isabelle process_theories -O HOL-Library.Multiset\<close>}
+
+  \<^smallskip>
+  Process a theory with prover output enabled, including proof states:
+  @{verbatim [display] \<open>  isabelle process_theories -O -o show_states HOL-Library.Multiset\<close>}
+
+  \<^smallskip>
+  Process a self-contained theory file from the Isabelle distribution, outside
+  of its original session context:
+  @{verbatim [display] \<open>  isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'\<close>}
+
+\<close>
+
 end
