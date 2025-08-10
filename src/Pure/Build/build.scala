@@ -795,6 +795,22 @@ Usage: isabelle build_worker [OPTIONS]
 
   /* print messages */
 
+  def print_log_check(
+    pos: Position.T,
+    elem: XML.Elem,
+    message_head: List[Regex],
+    message_body: List[Regex]
+  ): Boolean = {
+    def check(filter: List[Regex], make_string: => String): Boolean =
+      filter.isEmpty || {
+        val s = Protocol_Message.clean_output(make_string)
+        filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
+      }
+
+    check(message_head, Protocol.message_heading(elem, pos)) &&
+    check(message_body, Pretty.unformatted_string_of(List(elem)))
+  }
+
   def print_log(
     options: Options,
     sessions: List[String],
@@ -809,12 +825,6 @@ Usage: isabelle build_worker [OPTIONS]
   ): Unit = {
     val session = Session.bootstrap(options)
     val store = session.store
-
-    def check(filter: List[Regex], make_string: => String): Boolean =
-      filter.isEmpty || {
-        val s = Protocol_Message.clean_output(make_string)
-        filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
-      }
 
     def print(session_name: String): Unit = {
       using(Export.open_session_context0(store, session_name)) { session_context =>
@@ -850,13 +860,11 @@ Usage: isabelle build_worker [OPTIONS]
                     for (Text.Info(range, elem) <- messages) {
                       val line = line_document.position(range.start).line1
                       val pos = Position.Line_File(line, snapshot.node_name.node)
-                      def message_text: String =
-                        Protocol.message_text(elem, heading = true, pos = pos,
-                          margin = margin, breakgain = breakgain, metric = metric)
-                      val ok =
-                        check(message_head, Protocol.message_heading(elem, pos)) &&
-                        check(message_body, Pretty.unformatted_string_of(List(elem)))
-                      if (ok) buffer += message_text
+                      if (print_log_check(pos, elem, message_head, message_body)) {
+                        buffer +=
+                          Protocol.message_text(elem, heading = true, pos = pos,
+                            margin = margin, breakgain = breakgain, metric = metric)
+                      }
                     }
                     if (buffer.nonEmpty) {
                       progress.echo(thy_heading)
