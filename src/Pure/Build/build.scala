@@ -126,11 +126,16 @@ object Build {
     }
 
     final def build_store(options: Options,
+      private_dir: Option[Path] = None,
       build_cluster: Boolean = false,
       cache: Rich_Text.Cache = Rich_Text.Cache.make()
     ): Store = {
       val build_options = engine.build_options(options, build_cluster = build_cluster)
-      val store = Store(build_options, build_cluster = build_cluster, cache = cache)
+      val store =
+        Store(build_options,
+          private_dir = private_dir,
+          build_cluster = build_cluster,
+          cache = cache)
       Isabelle_System.make_directory(store.output_dir + Path.basic("log"))
       Isabelle_Fonts.init()
       store
@@ -162,6 +167,7 @@ object Build {
 
   def build(
     options: Options,
+    private_dir: Option[Path] = None,
     build_hosts: List[Build_Cluster.Host] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty,
     browser_info: Browser_Info.Config = Browser_Info.Config.none,
@@ -185,7 +191,11 @@ object Build {
     cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Results = {
     val engine = Engine(engine_name(options))
-    val store = engine.build_store(options, build_cluster = build_hosts.nonEmpty, cache = cache)
+    val store =
+      engine.build_store(options,
+        private_dir = private_dir,
+        build_cluster = build_hosts.nonEmpty,
+        cache = cache)
     val build_options = store.options
 
     using(store.open_server()) { server =>
@@ -294,6 +304,7 @@ object Build {
   /* build logic image */
 
   def build_logic(options: Options, logic: String,
+    private_dir: Option[Path] = None,
     progress: Progress = new Progress,
     build_heap: Boolean = false,
     dirs: List[Path] = Nil,

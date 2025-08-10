@@ -619,11 +619,14 @@ object Sessions {
       chapter_defs: Chapter_Defs = Chapter_Defs.empty,
       chapter: String = UNSORTED,
       dir_selected: Boolean = false,
+      draft_session: Boolean = false
     ): Info = {
       try {
-        val name = entry.name
+        val name =
+          if (draft_session) DRAFT
+          else if (illegal_session(entry.name)) error("Illegal session name " + quote(entry.name))
+          else entry.name
 
-        if (illegal_session(name)) error("Illegal session name " + quote(name))
         if (is_pure(name) && entry.parent.isDefined) error("Illegal parent session")
         if (!is_pure(name) && !entry.parent.isDefined) error("Missing parent session")
 

@@ -150,6 +150,7 @@ class Tools extends Isabelle_Scala_Tools(
   Phabricator.isabelle_tool2,
   Phabricator.isabelle_tool3,
   Phabricator.isabelle_tool4,
+  Process_Theories.isabelle_tool,
   Profiling.isabelle_tool,
   Profiling_Report.isabelle_tool,
   Scala_Project.isabelle_tool,
