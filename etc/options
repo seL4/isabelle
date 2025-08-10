@@ -162,7 +162,7 @@ option profiling : string = "" (standard "time") for build
   -- "ML profiling (possible values: time, time_thread, allocations)"
 
 option profiling_dir : string = "" for content
-  -- "output directory for \"isabelle profiling\" tool"
+  -- "auxiliary directory for \"isabelle profiling\" tool"
 
 option system_log : string = "" (standard "-") for build
   -- "output for system messages (log file or \"-\" for console progress)"
