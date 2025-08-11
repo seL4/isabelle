@@ -155,13 +155,13 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
   Options are:
     -D DIR       explicit session directory (default: private)
-    -F FILE      include addition session files, listed in FILE
+    -F FILE      include additional session files, listed in FILE
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
     -O           output messages
     -U           output Unicode symbols
     -d DIR       include session directory
-    -f FILE      include addition session files
+    -f FILE      include additional session file
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MARGIN    margin for pretty printing (default: """ + margin + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
