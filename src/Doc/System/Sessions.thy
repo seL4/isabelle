@@ -1259,12 +1259,12 @@ text \<open>
   @{verbatim [display] \<open>  isabelle process_theories HOL-Library.Multiset\<close>}
 
   \<^smallskip>
-  Process a theory with prover output enabled:
-  @{verbatim [display] \<open>  isabelle process_theories -O HOL-Library.Multiset\<close>}
+  Process a theory with prover output enabled (using Unicode symbols):
+  @{verbatim [display] \<open>  isabelle process_theories -U -O HOL-Library.Multiset\<close>}
 
   \<^smallskip>
   Process a theory with prover output enabled, including proof states:
-  @{verbatim [display] \<open>  isabelle process_theories -O -o show_states HOL-Library.Multiset\<close>}
+  @{verbatim [display] \<open>  isabelle process_theories -U -O -o show_states HOL-Library.Multiset\<close>}
 
   \<^smallskip>
   Process a self-contained theory file from the Isabelle distribution, outside

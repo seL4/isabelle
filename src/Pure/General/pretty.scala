@@ -218,6 +218,7 @@ object Pretty {
   val default_breakgain: Double = default_margin / 20
 
   def formatted(input: XML.Body,
+    recode: String => String = identity,
     margin: Double = default_margin,
     breakgain: Double = default_breakgain,
     metric: Metric = Codepoint.Metric
@@ -240,7 +241,8 @@ object Pretty {
               List(make_block(make_tree(body), markup = (markup, None), open_block = true))
           }
         case XML.Text(text) =>
-          Library.separate(FBreak, split_lines(text).map(s => Str(s, metric(s))))
+          Library.separate(FBreak,
+            split_lines(text).map { s0 => val s = recode(s0); Str(s, metric(s)) })
       }
 
     def format(trees: List[Tree], before: Double, after: Double, text: Text): Text =
@@ -277,11 +279,14 @@ object Pretty {
   }
 
   def string_of(input: XML.Body,
+    recode: String => String = identity,
     margin: Double = default_margin,
     breakgain: Double = default_breakgain,
     metric: Metric = Codepoint.Metric,
     pure: Boolean = false
   ): String = {
-    output_content(pure, formatted(input, margin = margin, breakgain = breakgain, metric = metric))
+    val out =
+      formatted(input, recode = recode, margin = margin, breakgain = breakgain, metric = metric)
+    output_content(pure, out)
   }
 }

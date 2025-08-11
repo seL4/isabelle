@@ -31,6 +31,7 @@ object Process_Theories {
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Symbol.Metric,
+    unicode_symbols: Boolean = false,
     progress: Progress = new Progress
   ): Build.Results = {
     Isabelle_System.with_tmp_dir("private") { private_dir =>
@@ -99,6 +100,7 @@ object Process_Theories {
 
       def session_setup(setup_session_name: String, session: Session): Unit = {
         if (output_messages && setup_session_name == session_name) {
+          def recode(s: String): String = Symbol.output(unicode_symbols, s)
           session.all_messages += Session.Consumer[Prover.Message]("process_theories") {
             case output: Prover.Output
               if Protocol.is_exported(output.message) || Protocol.is_state(output.message) =>
@@ -108,7 +110,7 @@ object Process_Theories {
                   val pos = Position.Line_File(line, file)
                   if (Build.print_log_check(pos, output.message, message_head, message_body)) {
                     progress.echo(Protocol.message_text(output.message, heading = true, pos = pos,
-                      margin = margin, breakgain = breakgain, metric = metric))
+                      recode = recode, margin = margin, breakgain = breakgain, metric = metric))
                   }
                 case _ =>
               }
@@ -134,6 +136,7 @@ object Process_Theories {
       val message_head = new mutable.ListBuffer[Regex]
       val message_body = new mutable.ListBuffer[Regex]
       var output_messages = false
+      var unicode_symbols = false
       val dirs = new mutable.ListBuffer[Path]
       val files = new mutable.ListBuffer[Path]
       var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
@@ -150,6 +153,7 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
     -O           output messages
+    -U           output Unicode symbols
     -d DIR       include session directory
     -f FILE      include addition session files
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
@@ -163,6 +167,7 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
         "H:" -> (arg => message_head += arg.r),
         "M:" -> (arg => message_body += arg.r),
         "O" -> (_ => output_messages = true),
+        "U" -> (_ => unicode_symbols = true),
         "d:" -> (arg => dirs += Path.explode(arg)),
         "f:" -> (arg => files += Path.explode(arg)),
         "l:" -> (arg => logic = arg),
@@ -178,7 +183,8 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
         progress.interrupt_handler {
           process_theories(options, logic, theories, files = files.toList, dirs = dirs.toList,
             output_messages = output_messages, message_head = message_head.toList,
-            message_body = message_body.toList, margin = margin, progress = progress)
+            message_body = message_body.toList, margin = margin, unicode_symbols = unicode_symbols,
+            progress = progress)
         }
 
       sys.exit(results.rc)

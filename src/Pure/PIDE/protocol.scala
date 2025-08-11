@@ -188,14 +188,15 @@ object Protocol {
   def message_text(elem: XML.Elem,
     heading: Boolean = false,
     pos: Position.T = Position.none,
+    recode: String => String = identity,
     margin: Double = Pretty.default_margin,
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Codepoint.Metric
   ): String = {
-    val text1 = if (heading) "\n" + message_heading(elem, pos) + ":\n" else ""
+    val text1 = if (heading) "\n" + recode(message_heading(elem, pos)) + ":\n" else ""
 
     val body =
-      Pretty.string_of(List(elem), margin = margin, breakgain = breakgain,
+      Pretty.string_of(List(elem), recode = recode, margin = margin, breakgain = breakgain,
         metric = metric, pure = true)
 
     val text2 =

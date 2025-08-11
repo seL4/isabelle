@@ -342,9 +342,9 @@ files and theories within a proper session context (like regular
 
 Examples:
 
-  isabelle process_theories -O HOL-Library.Multiset
+  isabelle process_theories -U -O HOL-Library.Multiset
 
-  isabelle process_theories -O -o show_states HOL-Library.Multiset
+  isabelle process_theories -U -O -o show_states HOL-Library.Multiset
 
   isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'
 
