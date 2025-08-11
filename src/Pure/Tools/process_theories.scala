@@ -22,6 +22,7 @@ object Process_Theories {
   def process_theories(
     options: Options,
     logic: String,
+    directory: Option[Path] = None,
     theories: List[String] = Nil,
     files: List[Path] = Nil,
     dirs: List[Path] = Nil,
@@ -46,23 +47,26 @@ object Process_Theories {
       val private_prefix = private_dir.implode + "/"
 
       val session_name = Sessions.DRAFT
-      val session_dir = Isabelle_System.make_directory(private_dir + Path.basic(session_name))
-
-      {
-        var seen = Set.empty[JFile]
-        for (path0 <- files) {
-          val path = path0.canonical
-          val file = path.file
-          if (!seen(file)) {
-            seen += file
-            val target = session_dir + path.base
-            if (target.is_file) {
-              error("Duplicate session source file " + path.base + " --- from " + path)
+      val session_dir =
+        directory match {
+          case Some(dir) => dir.absolute
+          case None =>
+            val dir = Isabelle_System.make_directory(private_dir + Path.basic(session_name))
+            var seen = Set.empty[JFile]
+            for (path0 <- files) {
+              val path = path0.canonical
+              val file = path.file
+              if (!seen(file)) {
+                seen += file
+                val target = dir + path.base
+                if (target.is_file) {
+                  error("Duplicate session source file " + path.base + " --- from " + path)
+                }
+                Isabelle_System.copy_file(path, target)
+              }
             }
-            Isabelle_System.copy_file(path, target)
-          }
+            dir
         }
-      }
 
       /* session theories */
 
@@ -133,6 +137,7 @@ object Process_Theories {
     "process theories within an adhoc session context",
     Scala_Project.here,
     { args =>
+      var directory: Option[Path] = None
       val message_head = new mutable.ListBuffer[Regex]
       val message_body = new mutable.ListBuffer[Regex]
       var output_messages = false
@@ -149,6 +154,7 @@ object Process_Theories {
 Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
   Options are:
+    -D DIR       explicit session directory (default: private)
     -F FILE      include addition session files, listed in FILE
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
@@ -163,6 +169,7 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
   Process theories within an adhoc session context.
 """,
+        "D:" -> (arg => directory = Some(Path.explode(arg))),
         "F:" -> (arg => files ++= read_files(Path.explode(arg))),
         "H:" -> (arg => message_head += arg.r),
         "M:" -> (arg => message_body += arg.r),
@@ -181,9 +188,10 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
       val results =
         progress.interrupt_handler {
-          process_theories(options, logic, theories, files = files.toList, dirs = dirs.toList,
-            output_messages = output_messages, message_head = message_head.toList,
-            message_body = message_body.toList, margin = margin, unicode_symbols = unicode_symbols,
+          process_theories(options, logic, directory = directory, theories = theories,
+            files = files.toList, dirs = dirs.toList, output_messages = output_messages,
+            message_head = message_head.toList, message_body = message_body.toList,
+            margin = margin, unicode_symbols = unicode_symbols,
             progress = progress)
         }
 

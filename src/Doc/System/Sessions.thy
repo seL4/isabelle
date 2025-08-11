@@ -1210,6 +1210,7 @@ text \<open>
 \<open>Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
   Options are:
+    -D DIR       explicit session directory (default: private)
     -F FILE      include addition session files, listed in FILE
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
@@ -1222,8 +1223,7 @@ text \<open>
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 
-  Process theories within an adhoc session context.
-\<close>}
+  Process theories within an adhoc session context.\<close>}
 
   Explicit \<^emph>\<open>theories\<close> given as command-line arguments, not options, refer to
   qualified theory names from existing sessions, e.g. \<^verbatim>\<open>HOL-Library.Multiset\<close>
@@ -1236,10 +1236,14 @@ text \<open>
   (multiple occurrences are possible): \<^verbatim>\<open>-f\<close> is for literal file names, and
   \<^verbatim>\<open>-F\<close> is for files that contain a list of further files (one per line).
 
-  All source files are copied to the private (temporary) session directory,
-  without any subdirectory structure. Files with extension \<^verbatim>\<open>.thy\<close> are treated
-  as theory files: their base names are appended to the overall list of
-  \<^emph>\<open>theories\<close>, and thus loaded into the adhoc session, too.
+  Option \<^verbatim>\<open>-D\<close> indicates an explicit session directory, instead of a private
+  temporary one. This directory must not be used by another session already.
+
+  If option \<^verbatim>\<open>-D\<close> is \<^emph>\<open>not\<close> given, then all source files are copied to the
+  adhoc session directory, without any subdirectory structure. Files with
+  extension \<^verbatim>\<open>.thy\<close> are treated as theory files: their base names are appended
+  to the overall list of \<^emph>\<open>theories\<close>, and thus loaded into the adhoc session,
+  too.
 
   \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the parent logic session, which is produced on the
