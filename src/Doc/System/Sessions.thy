@@ -1214,6 +1214,7 @@ text \<open>
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
     -O           output messages
+    -U           output Unicode symbols
     -d DIR       include session directory
     -f FILE      include addition session files
     -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
@@ -1245,8 +1246,8 @@ text \<open>
   spot using @{tool build}. Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> work as in @{tool
   build}.
 
-  Option \<^verbatim>\<open>-O\<close> enables output of prover messages. Options \<^verbatim>\<open>-H\<close>, \<^verbatim>\<open>-M\<close>, \<^verbatim>\<open>-m\<close>
-  work as in @{tool build_log}.
+  Option \<^verbatim>\<open>-O\<close> enables output of prover messages. Options \<^verbatim>\<open>-H\<close>, \<^verbatim>\<open>-M\<close>, \<^verbatim>\<open>-U\<close>,
+  \<^verbatim>\<open>-m\<close> work as in @{tool build_log}.
 \<close>
 
 
