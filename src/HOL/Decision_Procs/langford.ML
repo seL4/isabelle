@@ -30,7 +30,8 @@ fun prove_finite cT u =
 fun simp_rule ctxt =
   Conv.fconv_rule
     (Conv.arg_conv
-      (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms ball_simps simp_thms})));
+      (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt
+        |> Simplifier.add_simps @{thms ball_simps simp_thms})));
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
   (case Thm.term_of ep of
@@ -38,7 +39,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
       let
         val p = Thm.dest_arg ep
         val ths =
-          simplify (put_simpset HOL_basic_ss ctxt addsimps gather)
+          simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps gather)
             (Thm.instantiate' [] [SOME p] stupid)
         val (L, U) =
           let val (_, q) = Thm.dest_abs_global (Thm.dest_arg (Thm.rhs_of ths))
@@ -151,7 +152,7 @@ fun reduce_ex_proc ctxt ct =
                 |> Conv.fconv_rule
                   (Conv.arg_conv
                     (Simplifier.rewrite
-                      (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms ex_simps})))
+                      (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms simp_thms ex_simps})))
                 |> SOME
             end
         | _ =>
@@ -161,7 +162,7 @@ fun reduce_ex_proc ctxt ct =
             |> Conv.fconv_rule
                 (Conv.arg_conv
                   (Simplifier.rewrite
-                    (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms ex_simps})))
+                    (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps @{thms simp_thms ex_simps})))
             |> SOME)
       end
   | _ => NONE);
@@ -176,12 +177,13 @@ fun raw_dlo_conv ctxt dlo_ss ({qe_bnds, qe_nolb, qe_noub, gst, gs, ...}: Langfor
   let
     val ctxt' =
       Context_Position.set_visible false (put_simpset dlo_ss ctxt)
-        addsimps @{thms dnf_simps} |> Simplifier.add_proc reduce_ex_simproc
+        |> Simplifier.add_simps @{thms dnf_simps}
+        |> Simplifier.add_proc reduce_ex_simproc
     val dnfex_conv = Simplifier.rewrite ctxt'
     val pcv =
       Simplifier.rewrite
         (put_simpset dlo_ss ctxt
-          addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
+          |> Simplifier.add_simps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
     val mk_env = Cterms.list_set_rev o Cterms.build o Drule.add_frees_cterm
   in
     fn p =>

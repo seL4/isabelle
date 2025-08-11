@@ -534,7 +534,7 @@ let
        | _ => Ferrante_Rackoff_Data.Nox
   in h end
   fun ss phi ctxt =
-    simpset_of (put_simpset HOL_ss ctxt addsimps (simps phi))
+    simpset_of (put_simpset HOL_ss ctxt |> Simplifier.add_simps (simps phi))
 in
   Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
     {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
@@ -869,7 +869,7 @@ fun classfield_whatis phi =
  in h end;
 fun class_field_ss phi ctxt =
   simpset_of (put_simpset HOL_basic_ss ctxt
-    addsimps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
+    |> Simplifier.add_simps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
     |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}])
 
 in

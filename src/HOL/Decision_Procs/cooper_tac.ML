@@ -45,31 +45,31 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac ctxt THEN' SUBGOAL (fn (g, 
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset =
       put_simpset HOL_basic_ss ctxt
-      addsimps @{thms refl mod_add_eq mod_add_left_eq
+      |> Simplifier.add_simps @{thms refl mod_add_eq mod_add_left_eq
           mod_add_right_eq
           div_add1_eq [symmetric] div_add1_eq [symmetric]
           mod_self
           div_by_0 mod_by_0 div_0 mod_0
           div_by_1 mod_by_1 div_by_Suc_0 mod_by_Suc_0
           Suc_eq_plus1}
-      addsimps @{thms ac_simps}
+      |> Simplifier.add_simps @{thms ac_simps}
       |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_nat\<close>
       |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_int\<close>
     val simpset0 =
       put_simpset HOL_basic_ss ctxt
-      addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1 simp_thms}
+      |> Simplifier.add_simps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1 simp_thms}
       |> fold Splitter.add_split @{thms split_zdiv split_zmod split_div' split_min split_max}
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 =
       put_simpset HOL_basic_ss ctxt
-      addsimps @{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @
-        map (fn r => r RS sym) @{thms of_nat_numeral [where ?'a = int] int_int_eq zle_int of_nat_less_iff [where ?'a = int]}
+      |> Simplifier.add_simps (@{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @
+        map (fn r => r RS sym) @{thms of_nat_numeral [where ?'a = int] int_int_eq zle_int of_nat_less_iff [where ?'a = int]})
       |> Splitter.add_split @{thm zdiff_int_split}
     (*simp rules for elimination of int n*)
 
     val simpset2 =
       put_simpset HOL_basic_ss ctxt
-      addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *),
+      |> Simplifier.add_simps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *),
         @{thm of_nat_0 [where ?'a = int]}, @{thm of_nat_1  [where ?'a = int]}]
       |> fold Simplifier.add_cong @{thms conj_le_cong imp_le_cong}
     (* simp rules for elimination of abs *)

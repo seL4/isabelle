@@ -10,10 +10,10 @@ end
 structure Ferrack_Tac: FERRACK_TAC =
 struct
 
-val ferrack_ss = let val ths = [@{thm of_int_eq_iff}, @{thm of_int_less_iff}, 
-                                @{thm of_int_le_iff}]
-             in \<^context> delsimps ths addsimps (map (fn th => th RS sym) ths)
-             end |> simpset_of;
+val ferrack_ss =
+  let val ths = [@{thm of_int_eq_iff}, @{thm of_int_less_iff}, @{thm of_int_le_iff}]
+  in \<^context> |> Simplifier.del_simps ths |> Simplifier.add_simps (map (fn th => th RS sym) ths)
+  end |> simpset_of;
 
 val binarith = @{thms arith_simps}
 val comp_arith = binarith @ @{thms simp_thms}
@@ -53,7 +53,7 @@ fun linr_tac ctxt q =
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val simpset0 = put_simpset HOL_basic_ss ctxt addsimps comp_arith
+    val simpset0 = put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps comp_arith
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY

@@ -11,8 +11,9 @@ structure Mir_Tac: MIR_TAC =
 struct
 
 val mir_ss = 
-  simpset_of (\<^context> delsimps [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}] 
-               addsimps @{thms "iff_real_of_int"});
+  simpset_of (\<^context>
+    |> Simplifier.del_simps [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}]
+    |> Simplifier.add_simps @{thms "iff_real_of_int"});
 
 val nT = HOLogic.natT;
   val nat_arith = [@{thm diff_nat_numeral}];
@@ -61,7 +62,8 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 fun mir_tac ctxt q = 
     Object_Logic.atomize_prems_tac ctxt
         THEN' simp_tac (put_simpset HOL_basic_ss ctxt
-          addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
+          |> Simplifier.add_simps [@{thm "abs_ge_zero"}]
+          |> Simplifier.add_simps @{thms simp_thms})
         THEN' (REPEAT_DETERM o split_tac ctxt [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
         THEN' SUBGOAL (fn (g, i) =>
   let
@@ -70,30 +72,31 @@ fun mir_tac ctxt q =
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset =
       put_simpset HOL_basic_ss ctxt
-      addsimps [refl, @{thm mod_add_eq}, 
+      |> Simplifier.add_simps [refl, @{thm mod_add_eq}, 
                 @{thm mod_self},
                 @{thm div_0}, @{thm mod_0},
                 @{thm div_by_1}, @{thm mod_by_1}, @{thm div_by_Suc_0}, @{thm mod_by_Suc_0},
                 @{thm "Suc_eq_plus1"}]
-      addsimps @{thms add.assoc add.commute add.left_commute}
+      |> Simplifier.add_simps @{thms add.assoc add.commute add.left_commute}
       |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_nat\<close>
       |> Simplifier.add_proc \<^simproc>\<open>cancel_div_mod_int\<close>
     val simpset0 = put_simpset HOL_basic_ss ctxt
-      addsimps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1}
-      addsimps comp_ths
+      |> Simplifier.add_simps @{thms minus_div_mult_eq_mod [symmetric] Suc_eq_plus1}
+      |> Simplifier.add_simps comp_ths
       |> fold Splitter.add_split
           [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"},
             @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = put_simpset HOL_basic_ss ctxt
-      addsimps @{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @ 
-          map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff"}, @{thm nat_numeral}]
+      |> Simplifier.add_simps (@{thms int_dvd_int_iff [symmetric] of_nat_add of_nat_mult} @ 
+          map (fn r => r RS sym) [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "of_nat_less_iff"}, @{thm nat_numeral}])
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 
     val simpset2 = put_simpset HOL_basic_ss ctxt
-      addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm zero_le_numeral}, 
-                @{thm "of_nat_0"}, @{thm "of_nat_1"}]
+      |> Simplifier.add_simps
+          [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm zero_le_numeral}, 
+           @{thm "of_nat_0"}, @{thm "of_nat_1"}]
       |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
     (* simp rules for elimination of abs *)
     val ct = Thm.cterm_of ctxt (HOLogic.mk_Trueprop t)

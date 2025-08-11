@@ -187,8 +187,8 @@ fun apply_tactic ctxt term tactic =
 
 fun preproc_form_conv ctxt =
   Simplifier.rewrite
-   (put_simpset HOL_basic_ss ctxt addsimps
-     (Named_Theorems.get ctxt \<^named_theorems>\<open>approximation_preproc\<close>))
+   (put_simpset HOL_basic_ss ctxt
+     |> Simplifier.add_simps (Named_Theorems.get ctxt \<^named_theorems>\<open>approximation_preproc\<close>))
 
 fun reify_form_conv ctxt ct =
   let
