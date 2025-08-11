@@ -123,7 +123,7 @@ object Process_Theories {
         }
       }
 
-      Build.build(options, private_dir = Some(private_dir), progress = progress,
+      Build.build(options, private_dir = Some(private_dir), dirs = dirs, progress = progress,
         infos = List(session_info), selection = Sessions.Selection.session(session_name),
         session_setup = session_setup)
     }
