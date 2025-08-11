@@ -90,7 +90,10 @@ object Process_Theories {
           } yield session).toList
 
 
-      /* build adhoc session */
+      /* build session */
+
+      Build.build_logic(options, logic, dirs = dirs, progress = progress,
+        build_heap = true, strict = true)
 
       val session_entry =
         Sessions.Session_Entry(
