@@ -11,7 +11,7 @@ object Component_JSVG {
   /* build jsvg */
 
   val default_download_url =
-    "https://repo1.maven.org/maven2/com/github/weisj/jsvg/1.7.1/jsvg-1.7.1.jar"
+    "https://repo1.maven.org/maven2/com/github/weisj/jsvg/2.0.0/jsvg-2.0.0.jar"
 
   def build_jsvg(
     download_url: String = default_download_url,

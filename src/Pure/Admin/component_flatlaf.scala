@@ -32,7 +32,7 @@ object Component_FlatLaf {
   /* build flatlaf */
 
   val default_download_url = "https://repo1.maven.org/maven2/com/formdev"
-  val default_version = "3.6"
+  val default_version = "3.6.1"
 
   def build_flatlaf(
     target_dir: Path = Path.current,
