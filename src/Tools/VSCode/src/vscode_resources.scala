@@ -334,8 +334,6 @@ extends Resources(session_background, log = log) {
   def output_text(content: String): String = Symbol.output(unicode_symbols_output, content)
   def output_edit(content: String): String = Symbol.output(unicode_symbols_edits, content)
 
-  def output_xml_text(body: XML.Tree): String = output_text(XML.content(body))
-
   def output_text_xml(body: XML.Body): XML.Body =
     body.map {
       case XML.Elem(markup, body) => XML.Elem(markup, output_text_xml(body))

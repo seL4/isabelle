@@ -227,7 +227,7 @@ class Language_Server(
 
   private val syslog_messages =
     Session.Consumer[Prover.Output](getClass.getName) {
-      case output => channel.log_writeln(resources.output_xml_text(output.message))
+      case output => channel.log_writeln(resources.output_text(XML.content(output.message)))
     }
 
 
