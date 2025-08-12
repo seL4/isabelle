@@ -362,12 +362,12 @@ fun guess_morphism_identity (b, rhs) phi1 phi2 =
     val rhs2 = Morphism.term phi2 rhs;
   in n1 = n2 andalso Term.aconv_untyped (rhs1, rhs2) end;
 
-fun target_const class phi0 prmode (b, rhs) lthy =
+fun target_const class phi prmode (b, rhs) lthy =
   let
     val export =
       Morphism.set_context' lthy (Variable.export_morphism lthy (Local_Theory.target_of lthy));
     val guess_identity = guess_morphism_identity (b, rhs) export;
-    val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi0);
+    val guess_canonical = guess_morphism_identity (b, rhs) (export $> phi);
   in
     lthy
     |> Generic_Target.locale_target_const class
