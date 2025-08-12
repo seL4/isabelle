@@ -390,7 +390,6 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs
                  (default: 1 for local build, 0 for build cluster)
-    -k KEYWORD   check theory sources for conflicts with proposed keywords
     -l           list session source files
     -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
