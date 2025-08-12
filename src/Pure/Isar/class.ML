@@ -412,12 +412,13 @@ in
 fun const class ((b, mx), lhs) params lthy =
   let
     val phi = morphism lthy class;
+    val b_canonical = b |> Name_Space.transform_binding (Proof_Context.naming_of lthy);
     val dangling_params = map (Morphism.term phi) (uncurry append (dangling_params_for lthy class params));
   in
     lthy
     |> target_const class phi Syntax.mode_default (b, lhs)
     |> Local_Theory.raw_theory (canonical_const class phi dangling_params
-         ((Morphism.binding phi b, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
+         ((Morphism.binding phi b_canonical, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
     |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
          Syntax.mode_default ((b, if null dangling_params then NoSyn else mx), lhs)
     |> synchronize_class_syntax_target class

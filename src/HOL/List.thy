@@ -8249,8 +8249,6 @@ end
 
 end
 
-hide_const (open) range \<comment> \<open>TODO: should not be necessary\<close>
-
 instance nat :: discrete_linordered_semidom_with_range
   by standard auto
 
