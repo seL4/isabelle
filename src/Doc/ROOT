@@ -388,8 +388,6 @@ session Tutorial (doc) in "Tutorial" = HOL +
     "Inductive" "Misc" "Protocol" "Rules" "Sets" "ToyList" "Trie" "Types"
   theories [document = false]
     Base
-  theories [threads = 1]
-    "ToyList/ToyList_Test"
   theories [thy_output_indent = 5]
     "ToyList/ToyList"
     "Ifexpr/Ifexpr"

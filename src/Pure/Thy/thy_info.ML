@@ -25,7 +25,6 @@ sig
   val use_theories: Options.T -> string -> (string * Position.T) list ->
     (theory * Document_Output.segment list) list
   val use_thy: string -> unit
-  val script_thy: Position.T -> string -> theory -> theory
   val finish: unit -> unit
 end;
 
@@ -461,16 +460,6 @@ fun use_theories options qualifier imports =
 
 fun use_thy name =
   ignore (use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)]);
-
-
-(* toplevel scripting -- without maintaining database *)
-
-fun script_thy pos txt thy =
-  let
-    val trs = Outer_Syntax.parse_text thy (K thy) pos txt;
-    val end_pos = if null trs then pos else Toplevel.pos_of (List.last trs);
-    val end_state = fold (Toplevel.command_exception true) trs (Toplevel.make_state NONE);
-  in Toplevel.end_theory end_pos end_state end;
 
 
 (* finish all theories *)
