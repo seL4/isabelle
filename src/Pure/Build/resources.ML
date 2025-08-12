@@ -378,11 +378,11 @@ fun parse_files make_paths =
 val parse_file = parse_files single >> (fn f => f #> the_single);
 
 
-fun provide (src_path, id) =
+fun provide (src_path, digest) =
   map_files (fn (master_dir, imports, provided) =>
     if AList.defined (op =) provided src_path then
       error ("Duplicate use of source file: " ^ Path.print src_path)
-    else (master_dir, imports, (src_path, id) :: provided));
+    else (master_dir, imports, (src_path, digest) :: provided));
 
 fun provide_file (file: Token.file) = provide (#src_path file, #digest file);
 fun provide_file' file thy = (file, provide_file file thy);
@@ -397,15 +397,15 @@ fun load_file thy src_path =
   let
     val full_path = check_file (master_directory thy) src_path;
     val text = File.read full_path;
-    val id = SHA1.digest text;
-  in ((full_path, id), text) end;
+    val digest = SHA1.digest text;
+  in ((full_path, digest), text) end;
 
 fun loaded_files_current thy =
   #provided (Files.get thy) |>
-    forall (fn (src_path, id) =>
+    forall (fn (src_path, digest) =>
       (case try (load_file thy) src_path of
         NONE => false
-      | SOME ((_, id'), _) => id = id'));
+      | SOME ((_, digest'), _) => digest = digest'));
 
 
 (* formal check *)
