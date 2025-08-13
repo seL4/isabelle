@@ -3266,6 +3266,11 @@ next
                      "\<not> disjnt V {x. x \<in> topspace X \<and> f x = b}" 
      for a b U V
     proof -
+      have closedin_topspace: "closedin X {x \<in> topspace X. f x \<in> {y..z}}" for y z
+        using closed_real_atLeastAtMost[unfolded closed_closedin]
+          \<open>continuous_map X euclideanreal f\<close>[unfolded continuous_map_closedin]
+        by blast
+
       have "\<forall>y. connectedin X {x. x \<in> topspace X \<and> f x = y}"
         using R monotone_map by fastforce
       then have **: False if "p \<in> U \<and> q \<in> V \<and> f p = f q \<and> f q \<in> K" for p q
@@ -3280,7 +3285,7 @@ next
         define W where "W \<equiv> {x \<in> topspace X. f x \<in> {a..b}}"
         have "closedin X W"
           unfolding W_def
-          by (metis (no_types) assms closed_real_atLeastAtMost closed_closedin continuous_map_closedin)
+          using closedin_topspace .
         show ?thesis
         proof (rule * [OF 1 , of "U \<inter> W" "V \<inter> W"])
           show "closedin X (U \<inter> W)" "closedin X (V \<inter> W)"
@@ -3307,7 +3312,7 @@ next
         define W where "W \<equiv> {x \<in> topspace X. f x \<in> {b..a}}"
         have "closedin X W"
           unfolding W_def
-          by (metis (no_types) assms closed_real_atLeastAtMost closed_closedin continuous_map_closedin)
+          using closedin_topspace .
         show ?thesis
         proof (rule * [OF 3, of "V \<inter> W" "U \<inter> W"])
           show "closedin X (U \<inter> W)" "closedin X (V \<inter> W)"
