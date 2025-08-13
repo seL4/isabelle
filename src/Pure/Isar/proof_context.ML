@@ -734,7 +734,7 @@ fun contract_abbrevs ctxt tm =
     if abbrev orelse not (Config.get ctxt show_abbrevs) orelse not (can Term.type_of tm) then tm
     else
       let
-        val inst = #1 (Variable.import_inst true [tm] ctxt);
+        val inst = #1 (Variable.import_inst true [tm] (Variable.declare_names tm ctxt));
         val nets = Consts.revert_abbrevs consts (print_mode_value () @ [""]);
         val rew = Option.map #1 oo Pattern.match_rew thy;
         fun match_abbrev t = get_first (fn net => get_first (rew t) (Item_Net.retrieve net t)) nets;
