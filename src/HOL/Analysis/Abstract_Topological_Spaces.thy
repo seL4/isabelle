@@ -3279,8 +3279,8 @@ next
         case 1
         define W where "W \<equiv> {x \<in> topspace X. f x \<in> {a..b}}"
         have "closedin X W"
-          unfolding W_def
-          by (metis (no_types) assms closed_real_atLeastAtMost closed_closedin continuous_map_closedin)
+           using closed_real_atLeastAtMost assms
+           unfolding W_def closed_closedin continuous_map_closedin by blast 
         show ?thesis
         proof (rule * [OF 1 , of "U \<inter> W" "V \<inter> W"])
           show "closedin X (U \<inter> W)" "closedin X (V \<inter> W)"
@@ -3306,8 +3306,8 @@ next
         case 3
         define W where "W \<equiv> {x \<in> topspace X. f x \<in> {b..a}}"
         have "closedin X W"
-          unfolding W_def
-          by (metis (no_types) assms closed_real_atLeastAtMost closed_closedin continuous_map_closedin)
+           using closed_real_atLeastAtMost assms
+           unfolding W_def closed_closedin continuous_map_closedin by blast 
         show ?thesis
         proof (rule * [OF 3, of "V \<inter> W" "U \<inter> W"])
           show "closedin X (U \<inter> W)" "closedin X (V \<inter> W)"
