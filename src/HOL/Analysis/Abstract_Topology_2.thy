@@ -954,8 +954,8 @@ proof -
   show ?thesis
   proof
     assume ?lhs
-    with r show ?rhs
-      by (metis Pi_I' imageI invertible_fixpoint_property[of T i S r])
+    with r Pi_I' imageI invertible_fixpoint_property[of T i S r] show ?rhs
+      by metis
   next
     assume ?rhs
     with r show ?lhs
