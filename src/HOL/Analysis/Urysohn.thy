@@ -361,8 +361,8 @@ proof -
       using that
       by (simp add: contf good_def continuous_map_diff continuous_map_from_subtopology)
     then have "closedin (subtopology X S) SA"
-      unfolding SA_def
-      by (smt (verit, del_insts) closed_closedin continuous_map_closedin Collect_cong S_eq closed_real_atMost)
+      unfolding SA_def continuous_map_closedin
+      by (metis (full_types) S_eq closed_atMost closed_closedin)
     then have "closedin X SA"
       using \<open>closedin X S\<close> closedin_trans_full by blast
     moreover have  "closedin (subtopology X S) SB"      
