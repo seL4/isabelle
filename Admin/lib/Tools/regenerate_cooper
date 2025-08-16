@@ -2,11 +2,8 @@
 #
 # Author: Florian Haftmann, TU Muenchen
 #
-# DESCRIPTION: regenerate ~~/src/HOL/Tools/Qelim/cooper_procedure.ML from ~~/src/HOL/Decision_Proc/Cooper.thy
+# DESCRIPTION: regenerate ~~/src/HOL/Tools/Qelim/cooper_procedure.ML from theory HOL-Decision_Procs.Cooper
 
-session=HOL-Decision_Procs
-src='HOL-Decision_Procs.Cooper:code/cooper_procedure.ML'
-dst='~~/src/HOL/Tools/Qelim/'
-
-"${ISABELLE_TOOL}" build "${session}"
-"${ISABELLE_TOOL}" export -x "${src}" -p 2 -O "${dst}" "${session}"
+isabelle process_theories \
+  -E '(in "~~/src/HOL/Tools/Qelim") [2] "HOL-Decision_Procs.Cooper:code/cooper_procedure.ML"' \
+  HOL-Decision_Procs.Cooper
