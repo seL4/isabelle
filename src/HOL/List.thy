@@ -798,11 +798,9 @@ fun proc ctxt redex =
                 val lhs = Thm.term_of redex
                 val rhs = HOLogic.mk_Collect ("x", rT, inner_t)
                 val rewrite_rule_t = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
-              in
-                SOME
-                  ((Goal.prove ctxt [] [] rewrite_rule_t
-                    (fn {context = ctxt', ...} => tac ctxt' (rev Tis))) RS @{thm eq_reflection})
-              end))
+                val eq_thm = Goal.norm_result ctxt (Goal.prove_internal ctxt []
+                  (Thm.cterm_of ctxt rewrite_rule_t) (fn _ => tac ctxt (rev Tis)))
+              in SOME (eq_thm RS @{thm eq_reflection}) end))
   in
     make_inner_eqs [] [] [] (dest_set (Thm.term_of redex))
   end
