@@ -1211,6 +1211,7 @@ text \<open>
 
   Options are:
     -D DIR       explicit session directory (default: private)
+    -E EXPORTS   write session export artifacts to file-system
     -F FILE      include additional session files, listed in FILE
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
@@ -1246,6 +1247,14 @@ text \<open>
   too.
 
   \<^medskip>
+  Option \<^verbatim>\<open>-E\<close> writes session export artifacts to the local file-system: it is
+  a combination of option \<^verbatim>\<open>-e\<close> from @{tool build}, together
+  \isakeyword{export_files} from session ROOT declarations
+  (\secref{sec:session-root}). The declaration syntax allows to specify an
+  explicit export directory, which is here understood as relative to the
+  current working directory. The default directory is ``\<^verbatim>\<open>export\<close>''.
+
+  \<^medskip>
   Option \<^verbatim>\<open>-l\<close> specifies the parent logic session, which is produced on the
   spot using @{tool build}. Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-o\<close>, \<^verbatim>\<open>-v\<close> work as in @{tool
   build}.
@@ -1276,6 +1285,11 @@ text \<open>
   of its original session context:
   @{verbatim [display] \<open>  isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'\<close>}
 
+  \<^medskip>
+  Process a theory with session export artifacts, stemming from the
+  Isabelle/HOL code generator (result directory ``\<^verbatim>\<open>code\<close>''):
+
+  @{verbatim [display] \<open>  isabelle process_theories -E '[1] "*:code/**"' HOL-Decision_Procs.Cooper\<close>}
 \<close>
 
 end

@@ -1185,6 +1185,12 @@ object Sessions {
     private val chapter_entry: Parser[Chapter_Entry] =
       command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter_Entry(a) }
 
+    private val prune: Parser[Int] =
+      $$$("[") ~! (nat ~ $$$("]")) ^^ { case _ ~ (x ~ _) => x } | success(0)
+
+    private val export_files_args: Parser[(String, Int, List[String])] =
+      in_path_parens("export") ~ prune ~ rep1(embedded) ^^ { case x ~ y ~ z => (x, y, z) }
+
     private val session_entry: Parser[Session_Entry] = {
       val options = $$$("[") ~> rep1sep(option_spec, $$$(",")) <~ $$$("]")
 
@@ -1203,11 +1209,8 @@ object Sessions {
         $$$(DOCUMENT_FILES) ~! (in_path_parens("document") ~ rep1(path)) ^^
           { case _ ~ (x ~ y) => y.map((x, _)) }
 
-      val prune = $$$("[") ~! (nat ~ $$$("]")) ^^ { case _ ~ (x ~ _) => x } | success(0)
-
       val export_files =
-        $$$(EXPORT_FILES) ~! (in_path_parens("export") ~ prune ~ rep1(embedded)) ^^
-          { case _ ~ (x ~ y ~ z) => (x, y, z) }
+        $$$(EXPORT_FILES) ~! export_files_args ^^ { case _ ~ x => x }
 
       val export_classpath =
         $$$(EXPORT_CLASSPATH) ~! (rep1(embedded) | success(List("*:classpath/*.jar"))) ^^
@@ -1240,6 +1243,14 @@ object Sessions {
         case bad => error(bad.toString)
       }
     }
+
+    def parse_exports(str: String, start: Token.Pos): (String, Int, List[String]) = {
+      val toks = Token.explode(root_syntax.keywords, str)
+      parse_all(export_files_args, Token.reader(toks, start)) match {
+        case Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
   }
 
   def parse_root(path: Path): List[Entry] = Parsers.parse_root(path)
@@ -1253,6 +1264,9 @@ object Sessions {
       if !(line == "" || line.startsWith("#"))
     } yield line
   }
+
+  def parse_exports(str: String, start: Token.Pos = Token.Pos.none): (String, Int, List[String]) =
+    Parsers.parse_exports(str, start)
 
 
   /* load sessions from certain directories */

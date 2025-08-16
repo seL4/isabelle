@@ -305,10 +305,11 @@ section \<open>The raw Isabelle ML process\<close>
 
 text \<open>
   The raw Isabelle ML process has limited use in actual applications: it lacks
-  the full session context that is required for Isabelle/ML/Scala integration
-  and Prover IDE messages or markup. It is better to use @{tool build}
-  (\secref{sec:tool-build}) for regular sessions, or its front-end @{tool
-  process_theories} (\secref{sec:tool-process-theories}) for adhoc sessions.
+  the full session context that is required for export artifacts,
+  Isabelle/ML/Scala integration and Prover IDE messages or markup. It is
+  better to use @{tool build} (\secref{sec:tool-build}) for regular sessions,
+  or its front-end @{tool process_theories}
+  (\secref{sec:tool-process-theories}) for adhoc sessions.
 \<close>
 
 

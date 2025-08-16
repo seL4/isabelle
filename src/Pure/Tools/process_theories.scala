@@ -33,6 +33,7 @@ object Process_Theories {
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Symbol.Metric,
     unicode_symbols: Boolean = false,
+    export_files: List[(String, Int, List[String])] = Nil,
     progress: Progress = new Progress
   ): Build.Results = {
     Isabelle_System.with_tmp_dir("private") { private_dir =>
@@ -99,7 +100,9 @@ object Process_Theories {
         Sessions.Session_Entry(
           parent = Some(logic),
           theories = session_theories.map(a => (Nil, List(((a, Position.none), false)))),
-          imports = session_imports)
+          imports = session_imports,
+          export_files = export_files
+            .map({ case (a, b, c) => (Path.explode(a).absolute.implode, b, c) }))
 
       val session_info =
         Sessions.Info.make(session_entry, draft_session = true,
@@ -128,7 +131,8 @@ object Process_Theories {
 
       Build.build(options, private_dir = Some(private_dir), dirs = dirs, progress = progress,
         infos = List(session_info), selection = Sessions.Selection.session(session_name),
-        session_setup = session_setup)
+        session_setup = session_setup,
+        export_files = export_files.nonEmpty)
     }
   }
 
@@ -141,6 +145,7 @@ object Process_Theories {
     Scala_Project.here,
     { args =>
       var directory: Option[Path] = None
+      val export_files = new mutable.ListBuffer[(String, Int, List[String])]
       val message_head = new mutable.ListBuffer[Regex]
       val message_body = new mutable.ListBuffer[Regex]
       var output_messages = false
@@ -152,12 +157,12 @@ object Process_Theories {
       var options = Options.init()
       var verbose = false
 
-
       val getopts = Getopts("""
 Usage: isabelle process_theories [OPTIONS] [THEORIES...]
 
   Options are:
     -D DIR       explicit session directory (default: private)
+    -E EXPORTS   write session export artifacts to file-system
     -F FILE      include additional session files, listed in FILE
     -H REGEX     filter messages by matching against head
     -M REGEX     filter messages by matching against body
@@ -173,6 +178,7 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
   Process theories within an adhoc session context.
 """,
         "D:" -> (arg => directory = Some(Path.explode(arg))),
+        "E:" -> (arg => export_files += Sessions.parse_exports(arg)),
         "F:" -> (arg => files ++= read_files(Path.explode(arg))),
         "H:" -> (arg => message_head += arg.r),
         "M:" -> (arg => message_body += arg.r),
@@ -194,7 +200,7 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
           process_theories(options, logic, directory = directory, theories = theories,
             files = files.toList, dirs = dirs.toList, output_messages = output_messages,
             message_head = message_head.toList, message_body = message_body.toList,
-            margin = margin, unicode_symbols = unicode_symbols,
+            margin = margin, unicode_symbols = unicode_symbols, export_files = export_files.toList,
             progress = progress)
         }
 
