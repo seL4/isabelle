@@ -131,7 +131,7 @@ fun add_ctr_code raw_ctrs case_thms thy =
     if can (Code.constrset_of_consts thy) unover_ctrs then
       thy
       |> Code.declare_datatype_global ctrs
-      |> fold_rev (Code.add_eqn_global o rpair true) case_thms
+      |> Code.declare_eqns_global (map (rpair true) case_thms)
       |> Code.declare_case_global (mk_case_certificate (Proof_Context.init_global thy) case_thms)
     else
       thy
@@ -226,23 +226,30 @@ fun code_lazy_type eager_type_string thy =
         (new_ctr_type, lthy')
       end
 
-    val (short_lazy_type_name, lthy1) = generate_typedef_name short_type_name lthy
+    val (short_lazy_type_name, lthy1) =
+      lthy
+      |> generate_typedef_name short_type_name
 
     fun mk_lazy_typedef (name, eager_type) lthy =
       let
         val binding = Binding.name name
-        val (result, lthy1) = (Typedef.add_typedef
+      in
+        lthy
+        |> Local_Theory.begin_nested
+        |> snd
+        |> Typedef.add_typedef
             { overloaded=false }
             (binding, rev (Term.add_tfreesT eager_type []), Mixfix.NoSyn)
             (Const (\<^const_name>\<open>top\<close>, Type (\<^type_name>\<open>set\<close>, [eager_type])))
             NONE
             (fn ctxt => resolve_tac ctxt [@{thm UNIV_witness}] 1)
-          o (snd o Local_Theory.begin_nested)) lthy
-      in
-         (binding, result, Local_Theory.end_nested lthy1)
+        ||> Local_Theory.end_nested
+        |-> (fn (_, info) => pair (binding, info))
       end;
 
-    val (typedef_binding, (_, info), lthy2) = mk_lazy_typedef (short_lazy_type_name, eagerT) lthy1
+    val ((typedef_binding, info), lthy2) =
+      lthy1
+      |> mk_lazy_typedef (short_lazy_type_name, eagerT)
 
     val lazy_type = Type (Local_Theory.full_name lthy2 typedef_binding, type_args)
     val (Abs_lazy, Rep_lazy) =
@@ -258,15 +265,14 @@ fun code_lazy_type eager_type_string thy =
     val Abs_inverse = #Abs_inverse (snd info)
     val Rep_inverse = #Rep_inverse (snd info)
 
-    val (ctrs', lthy3) = List.foldr
-      (fn (Const (s, T), (ctrs, lthy)) => let
-            val (T', lthy') = substitute_ctr (body_type T, eagerT) T lthy
-          in
-            ((Const (s, T')) :: ctrs, lthy')
-          end
-      )
+    val (ctrs', lthy3) =
       ([], lthy2)
-      ctrs
+      |> fold_rev
+          (fn Const (s, T) => fn (ctrs, lthy) =>
+             lthy
+             |> substitute_ctr (body_type T, eagerT) T 
+             |>> (fn T' => Const (s, T') :: ctrs)
+          ) ctrs
 
     fun to_destr_eagerT typ = case typ of
           Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>fun\<close>, Ts)]) => 
@@ -276,11 +282,15 @@ fun code_lazy_type eager_type_string thy =
     val (case', lthy4) = 
       let
         val (eager_case, caseT) = dest_Const casex
-        val (caseT', lthy') = substitute_ctr (to_destr_eagerT caseT, eagerT) caseT lthy3
-      in (Const (eager_case, caseT'), lthy') end
+      in
+        lthy3
+        |> substitute_ctr (to_destr_eagerT caseT, eagerT) caseT
+        |>> (fn caseT' => Const (eager_case, caseT'))
+      end
 
     val ctr_names = map (Long_Name.base_name o dest_Const_name) ctrs
-    val ((((lazy_ctr_name, lazy_sel_name), lazy_ctrs_name), lazy_case_name), ctxt) = lthy4
+    val ((((lazy_ctr_name, lazy_sel_name), lazy_ctrs_name), lazy_case_name), _) =
+      lthy4
       |> mk_name "Lazy_" "" short_type_name
       ||>> mk_name "unlazy_" "" short_type_name
       ||>> fold_map (mk_name "" "_Lazy") ctr_names
@@ -290,10 +300,14 @@ fun code_lazy_type eager_type_string thy =
       let
         val binding = Binding.name name
         val ((_, (_, thm)), lthy1) = 
-          (snd o Local_Theory.begin_nested) lthy
+          lthy
+          |> Local_Theory.begin_nested
+          |> snd 
           |> Specification.definition NONE [] [] ((Thm.def_binding binding, []), rhs)
-        val lthy2 = Local_Theory.end_nested lthy1
-        val def_thm = hd (Proof_Context.export lthy1 lthy2 [thm])
+        val lthy2 =
+          lthy1
+          |> Local_Theory.end_nested
+        val def_thm = singleton (Proof_Context.export lthy1 lthy2) thm
       in
         ({binding = binding, const = Const (Local_Theory.full_name lthy2 binding, T), thm = def_thm}, lthy2)
       end;
@@ -311,12 +325,16 @@ fun code_lazy_type eager_type_string thy =
 
     val lazy_ctr = all_abs [lazy_datatype]
       (Logic.mk_equals (Free (lazy_ctr_name, Lazy_type) $ Bound 0, Rep_lazy $ mk_force (Bound 0)))
-    val (lazy_ctr_def, lthy5) = mk_def (lazy_ctr_name, Lazy_type, lazy_ctr) lthy4
+    val (lazy_ctr_def, lthy5) =
+      lthy4
+      |> mk_def (lazy_ctr_name, Lazy_type, lazy_ctr)
 
     val lazy_sel = all_abs [eagerT]
       (Logic.mk_equals (Free (lazy_sel_name, unstr_type) $ Bound 0, 
         mk_delay (Abs (Name.uu, \<^typ>\<open>unit\<close>, Abs_lazy $ Bound 1))))
-    val (lazy_sel_def, lthy6) = mk_def (lazy_sel_name, unstr_type, lazy_sel) lthy5
+    val (lazy_sel_def, lthy6) =
+      lthy5
+      |> mk_def (lazy_sel_name, unstr_type, lazy_sel)
 
     fun mk_lazy_ctr (name, eager_ctr) =
       let
@@ -330,7 +348,9 @@ fun code_lazy_type eager_type_string thy =
       in
         mk_def (name, lazy_ctrT, all_abs argsT (Logic.mk_equals (lhs, rhs)))
       end
-    val (lazy_ctrs_def, lthy7) = fold_map mk_lazy_ctr (lazy_ctrs_name ~~ ctrs') lthy6
+    val (lazy_ctrs_def, lthy7) =
+      lthy6
+      |> fold_map mk_lazy_ctr (lazy_ctrs_name ~~ ctrs')
 
     val (lazy_case_def, lthy8) =
       let
@@ -343,7 +363,8 @@ fun code_lazy_type eager_type_string thy =
         val lhs = apply_bounds 0 n (Free (lazy_case_name, lazy_caseT)) 
         val rhs = apply_bounds 1 n case' $ (Rep_lazy $ Bound 0)
       in
-        mk_def (lazy_case_name, lazy_caseT, all_abs argsT (Logic.mk_equals (lhs, rhs))) lthy7
+        lthy7
+        |> mk_def (lazy_case_name, lazy_caseT, all_abs argsT (Logic.mk_equals (lhs, rhs)))
       end
 
     fun mk_thm ((name, term), thms) lthy =
@@ -353,13 +374,16 @@ fun code_lazy_type eager_type_string thy =
           (put_simpset HOL_basic_ss context |> Simplifier.add_simps thms)
           1
         val thm = Goal.prove lthy [] [] term tac
-        val (_, lthy1) = lthy
-          |> (snd o Local_Theory.begin_nested)
-          |> Local_Theory.note ((binding, []), [thm])
-      in
-        (thm, Local_Theory.end_nested lthy1)
+      in 
+        lthy
+        |> Local_Theory.begin_nested
+        |> snd
+        |> Local_Theory.note ((binding, []), [thm])
+        |> snd
+        |> Local_Theory.end_nested
+        |> pair thm
       end
-    fun mk_thms exec_list lthy = fold_map mk_thm exec_list lthy
+    val mk_thms = fold_map mk_thm
 
     val mk_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq
 
@@ -379,9 +403,10 @@ fun code_lazy_type eager_type_string thy =
     val mk_Lazy_delay_eq =
       (#const lazy_ctr_def $ mk_delay (Bound 0), Rep_lazy $ (Bound 0 $ \<^Const>\<open>Unity\<close>))
       |> mk_eq |> all_abs [\<^Type>\<open>unit\<close> --> lazy_type]
-    val (Lazy_delay_thm, lthy8a) = mk_thm 
-      ((Lazy_delay_eq_name, mk_Lazy_delay_eq), [#thm lazy_ctr_def, @{thm force_delay}])
+    val (Lazy_delay_thm, lthy8a) =
       lthy8
+      |> mk_thm 
+          ((Lazy_delay_eq_name, mk_Lazy_delay_eq), [#thm lazy_ctr_def, @{thm force_delay}])
 
     fun mk_lazy_ctr_eq (eager_ctr, lazy_ctr) =
       let
@@ -393,11 +418,12 @@ fun code_lazy_type eager_type_string thy =
         |> mk_eq |> all_abs argsT
       end
     val Rep_ctr_eqs = map mk_lazy_ctr_eq eager_lazy_ctrs
-    val (Rep_ctr_thms, lthy8b) = mk_thms
-        ((Rep_ctr_names ~~ Rep_ctr_eqs) ~~
-          (map (fn def => [#thm def, Abs_inverse, @{thm UNIV_I}]) lazy_ctrs_def)
-        )
+    val (Rep_ctr_thms, lthy8b) =
         lthy8a
+        |> mk_thms
+          ((Rep_ctr_names ~~ Rep_ctr_eqs) ~~
+            (map (fn def => [#thm def, Abs_inverse, @{thm UNIV_I}]) lazy_ctrs_def)
+          )
 
     fun mk_ctrs_lazy_eq (eager_ctr, lazy_ctr) =
       let
@@ -410,16 +436,17 @@ fun code_lazy_type eager_type_string thy =
         (lhs, rhs) |> mk_eq |> all_abs argsT
       end
     val ctrs_lazy_eq = map mk_ctrs_lazy_eq eager_lazy_ctrs 
-    val (ctrs_lazy_thms, lthy8c) = mk_thms
-      ((ctrs_lazy_names ~~ ctrs_lazy_eq) ~~ map (fn thm => [Lazy_delay_thm, thm]) Rep_ctr_thms)
+    val (ctrs_lazy_thms, lthy8c) =
       lthy8b
+      |> mk_thms
+          ((ctrs_lazy_names ~~ ctrs_lazy_eq) ~~ map (fn thm => [Lazy_delay_thm, thm]) Rep_ctr_thms)
 
     val force_sel_eq = 
       (mk_force (#const lazy_sel_def $ Bound 0), Abs_lazy $ Bound 0)
       |> mk_eq |> all_abs [eagerT]
-    val (force_sel_thm, lthy8d) = mk_thm
-        ((force_sel_name, force_sel_eq), [#thm lazy_sel_def, @{thm force_delay}])
-        lthy8c
+    val (force_sel_thm, lthy8d) =
+      lthy8c
+      |> mk_thm ((force_sel_name, force_sel_eq), [#thm lazy_sel_def, @{thm force_delay}])
 
     val case_lazy_eq = 
       let
@@ -431,18 +458,18 @@ fun code_lazy_type eager_type_string thy =
       in
         (lhs, rhs) |> mk_eq |> all_abs argsT
       end
-    val (case_lazy_thm, lthy8e) = mk_thm
-        ((case_lazy_name, case_lazy_eq), 
-        [#thm lazy_case_def, force_sel_thm, Abs_inverse, @{thm UNIV_I}])
-        lthy8d
+    val (case_lazy_thm, lthy8e) =
+      lthy8d
+      |> mk_thm
+          ((case_lazy_name, case_lazy_eq), [#thm lazy_case_def, force_sel_thm, Abs_inverse, @{thm UNIV_I}])
 
     val sel_lazy_eq =
       (#const lazy_sel_def $ (#const lazy_ctr_def $ Bound 0), Bound 0)
       |> mk_eq |> all_abs [lazy_datatype]
-    val (sel_lazy_thm, lthy8f) = mk_thm
-      ((sel_lazy_name, sel_lazy_eq),
-      [#thm lazy_sel_def, #thm lazy_ctr_def, Rep_inverse, @{thm delay_force}])
+    val (sel_lazy_thm, lthy8f) =
       lthy8e
+      |> mk_thm
+          ((sel_lazy_name, sel_lazy_eq), [#thm lazy_sel_def, #thm lazy_ctr_def, Rep_inverse, @{thm delay_force}])
 
     fun mk_case_ctrs_eq (i, lazy_ctr) =
       let
@@ -466,29 +493,24 @@ fun code_lazy_type eager_type_string thy =
         (lhs, rhs) |> mk_eq |> all_abs Ts
       end
     val case_ctrs_eq = map_index mk_case_ctrs_eq lazy_ctrs
-    val (case_ctrs_thms, lthy9) = mk_thms
-        ((case_ctrs_name ~~ case_ctrs_eq) ~~
-         map2 (fn thm1 => fn thm2 => [#thm lazy_case_def, thm1, thm2]) Rep_ctr_thms case_thms
-        )
-        lthy8f
+    val (case_ctrs_thms, lthy9) =
+      lthy8f
+      |> mk_thms
+          ((case_ctrs_name ~~ case_ctrs_eq) ~~
+           map2 (fn thm1 => fn thm2 => [#thm lazy_case_def, thm1, thm2]) Rep_ctr_thms case_thms
+          )
 
     val (pat_def_thm, lthy10) = 
-      add_syntax_definition short_type_name eagerT lazy_type (#const lazy_ctr_def) lthy9
+      lthy9
+      |> add_syntax_definition short_type_name eagerT lazy_type (#const lazy_ctr_def)
 
-    val add_lazy_ctrs =
-      Code.declare_datatype_global [dest_Const (#const lazy_ctr_def)]
+    val add_lazy_ctrs = Code.declare_datatype_global [dest_Const (#const lazy_ctr_def)]
+    val add_lazy_ctr_thms = Code.declare_eqns_global (map (rpair true) ctrs_lazy_thms)
+    val add_lazy_case_thms = Code.declare_eqns_global [(case_lazy_thm, true)]
     val eager_ctrs = map (apsnd (perhaps (try Logic.unvarifyT_global)) o dest_Const) ctrs
-    val add_eager_ctrs =
-      fold Code.del_eqn_global ctrs_lazy_thms
-      #> Code.declare_datatype_global eager_ctrs
-    val add_code_eqs = fold (Code.add_eqn_global o rpair true) 
-      ([case_lazy_thm, sel_lazy_thm])
-    val add_lazy_ctr_thms = fold (Code.add_eqn_global o rpair true) ctrs_lazy_thms
-    val add_lazy_case_thms =
-      fold Code.del_eqn_global case_thms
-      #> Code.add_eqn_global (case_lazy_thm, true)
-    val add_eager_case_thms = Code.del_eqn_global case_lazy_thm
-      #> fold (Code.add_eqn_global o rpair true) case_thms
+    val add_eager_ctrs = Code.declare_datatype_global eager_ctrs
+    val add_eager_case_thms = Code.declare_eqns_global (map (rpair true) case_thms)
+    val add_code_eqs = Code.declare_eqns_global ([(case_lazy_thm, true), (sel_lazy_thm, true)])
 
     val delay_dummy_thm = (pat_def_thm RS @{thm symmetric})
       |> Drule.infer_instantiate' lthy10
@@ -505,7 +527,8 @@ fun code_lazy_type eager_type_string thy =
     val add_post = Code_Preproc.map_post (Simplifier.add_simps ctr_post)
     val del_post = Code_Preproc.map_post (Simplifier.del_simps ctr_post)
   in
-    Local_Theory.exit_global lthy10
+    lthy10
+    |> Local_Theory.exit_global 
     |> Laziness_Data.map (Symtab.update (type_name,
       {eagerT = eagerT, 
        lazyT = lazy_type,
@@ -566,12 +589,12 @@ val deactivate_lazy_type = set_active_lazy_type false;
 val activate_lazy_types = set_active_lazy_types true;
 val deactivate_lazy_types = set_active_lazy_types false;
 
-fun get_lazy_types thy = Symtab.dest (Laziness_Data.get thy) 
+fun get_lazy_types thy = Symtab.dest (Laziness_Data.get thy)
 
-fun print_lazy_type thy (name, info : lazy_info) = 
+fun print_lazy_type thy (name, info : lazy_info) =
   let
     val ctxt = Proof_Context.init_global thy
-    fun pretty_ctr ctr = 
+    fun pretty_ctr ctr =
       let
         val argsT = binder_types (dest_Const_type ctr)
       in
@@ -612,7 +635,7 @@ fun print_lazy_type thy (name, info : lazy_info) =
         Pretty.separate " |" (map pretty_ctr (#lazy_ctrs info)) @ [
         Pretty.fbrk,
         Pretty.keyword2 "for",
-        Pretty.brk 1, 
+        Pretty.brk 1,
         Pretty.str "case:",
         Pretty.brk 1,
         Syntax.pretty_term ctxt (#case_lazy info)
@@ -620,7 +643,7 @@ fun print_lazy_type thy (name, info : lazy_info) =
     ]
   end;
 
-fun print_lazy_types thy = 
+fun print_lazy_types thy =
   let
     fun cmp ((name1, _), (name2, _)) = string_ord (name1, name2)
     val infos = Laziness_Data.get thy |> Symtab.dest |> map (apfst Long_Name.base_name) |> sort cmp
