@@ -402,6 +402,14 @@ lemma interval_integral_Ioo:
   "a \<le> b \<Longrightarrow> \<bar>a\<bar> < \<infinity> ==> \<bar>b\<bar> < \<infinity> \<Longrightarrow> (LBINT x=a..b. f x) = (LBINT x : {real_of_ereal a <..< real_of_ereal b}. f x)"
   by (auto simp: interval_lebesgue_integral_def einterval_iff)
 
+lemma has_bochner_interval_integral_iff:
+  assumes "a\<le>b"
+  shows "has_bochner_integral (restrict_space lborel {a..b}) f x 
+      \<longleftrightarrow> set_integrable lborel {a..b} f \<and> (LBINT u=a..b. f u) = x"
+  using assms
+  by (simp add: has_bochner_integral_iff integral_restrict_space interval_integral_Icc
+      set_integrable_eq set_lebesgue_integral_def)
+
 lemma interval_integral_discrete_difference:
   fixes f :: "real \<Rightarrow> 'b::{banach, second_countable_topology}" and a b :: ereal
   assumes "countable X"

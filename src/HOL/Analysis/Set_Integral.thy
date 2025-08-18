@@ -33,10 +33,11 @@ translations
 
 section \<open>Basic properties\<close>
 
-(*
-lemma indicator_abs_eq: "\<And>A x. \<bar>indicator A x\<bar> = ((indicator A x) :: real)"
-  by (auto simp add: indicator_def)
-*)
+lemma set_integrable_eq:
+  fixes f :: "'a \<Rightarrow> 'b::{banach, second_countable_topology}"
+  assumes "\<Omega> \<inter> space M \<in> sets M"
+  shows "set_integrable M \<Omega> f = integrable (restrict_space M \<Omega>) f"
+  by (meson assms integrable_restrict_space set_integrable_def)
 
 lemma set_integrable_cong:
   assumes "M = M'" "A = A'" "\<And>x. x \<in> A \<Longrightarrow> f x = f' x"
