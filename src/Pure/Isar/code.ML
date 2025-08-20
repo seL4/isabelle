@@ -43,8 +43,6 @@ sig
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_eqns_global: (thm * bool) list -> theory -> theory
-  val add_eqn_global: thm * bool -> theory -> theory
-  val del_eqn_global: thm -> theory -> theory
   val declare_abstract_eqn: thm -> local_theory -> local_theory
   val declare_abstract_eqn_global: thm -> theory -> theory
   val declare_aborting_global: string -> theory -> theory
@@ -1494,8 +1492,8 @@ in
 fun generic_declare_eqns { default } strictness raw_eqns thy =
   fold (add_eqns_for { default = default }) (prep_eqns strictness thy raw_eqns) thy;
 
-fun generic_add_eqn { strictness, prepend } raw_eqn thy =
-  fold (add_eqn_for { check_singleton = false, prepend = prepend }) (the_list (prep_eqn strictness thy raw_eqn)) thy;
+fun generic_add_eqn { prepend } raw_eqn thy =
+  fold (add_eqn_for { check_singleton = false, prepend = prepend }) (the_list (prep_eqn Liberal thy raw_eqn)) thy;
 
 fun generic_declare_abstract_eqn strictness raw_abs_eqn thy =
   fold add_abstract_for (the_list (prep_abs_eqn strictness thy raw_abs_eqn)) thy;
@@ -1515,8 +1513,6 @@ val declare_default_eqns = code_declaration Silent (map o apfst o Morphism.thm)
 val declare_eqns_global = generic_declare_eqns { default = false } Strict;
 val declare_eqns = code_declaration Liberal (map o apfst o Morphism.thm)
   (generic_declare_eqns  { default = false });
-
-val add_eqn_global = generic_add_eqn { strictness = Strict, prepend = false };
 
 fun del_eqn_global thm thy =
   case prep_eqn Liberal thy (thm, false) of
@@ -1600,11 +1596,11 @@ val _ = Theory.setup
   (let
     val code_attribute_parser =
       code_thm_attribute (Args.$$$ "equation")
-        (fn thm => generic_add_eqn { strictness = Liberal, prepend = false } (thm, true))
+        (fn thm => generic_add_eqn { prepend = false } (thm, true))
       || code_thm_attribute (Args.$$$ "prepend")
-          (fn thm => generic_add_eqn { strictness = Liberal, prepend = true } (thm, true))
+          (fn thm => generic_add_eqn { prepend = true } (thm, true))
       || code_thm_attribute (Args.$$$ "nbe")
-          (fn thm => generic_add_eqn { strictness = Liberal, prepend = false } (thm, false))
+          (fn thm => generic_add_eqn { prepend = false } (thm, false))
       || code_thm_attribute (Args.$$$ "abstract")
           (generic_declare_abstract_eqn Liberal)
       || code_thm_attribute (Args.$$$ "abstype")
