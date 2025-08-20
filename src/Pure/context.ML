@@ -1,14 +1,19 @@
 (*  Title:      Pure/context.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Generic theory contexts with unique identity, arbitrarily typed data,
-monotonic development graph and history support.  Generic proof
-contexts with arbitrarily typed data.
+Generic theory contexts with unique identity, arbitrarily typed data, and
+monotonic updates.
 
-Firm naming conventions:
+Generic proof contexts with arbitrarily typed data.
+
+Good names:
    thy, thy', thy1, thy2: theory
    ctxt, ctxt', ctxt1, ctxt2: Proof.context
    context: Context.generic
+
+Bad names:
+  ctx: Proof.context
+  context: Proof.context
 *)
 
 signature BASIC_CONTEXT =

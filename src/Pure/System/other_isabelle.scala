@@ -90,42 +90,8 @@ final class Other_Isabelle private(
   def etc_settings: Path = etc + Path.explode("settings")
   def etc_preferences: Path = etc + Path.explode("preferences")
 
-
-  /* ML system settings */
-
-  val ml_settings: ML_Settings =
-    new ML_Settings {
-      override def polyml_home: Path =
-        getenv("POLYML_HOME") match {
-          case "" =>
-            try { expand_path(Path.variable("ML_HOME")).dir }
-            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg + error_context) }
-          case s => Path.explode(s)
-        }
-
-      override def ml_system: String = getenv_strict("ML_SYSTEM")
-
-      override def ml_platform: String =
-        if (ssh.is_file(isabelle_home + Path.explode("lib/Tools/console"))) {
-          val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
-          val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
-          val result = bash("bin/isabelle console -r", input = input)
-          result.out match {
-            case Pattern(a) if result.ok && a.nonEmpty => a
-            case _ =>
-              error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
-                if_proper(result.err, "\n" + result.err) + error_context)
-          }
-        }
-        else getenv_strict("ML_PLATFORM")
-
-      override def ml_options: String =
-        proper_string(getenv("ML_OPTIONS")) getOrElse
-          getenv(if (ml_platform_is_64_32) "ML_OPTIONS32" else "ML_OPTIONS64")
-    }
-
-  def user_output_dir: Path =
-    isabelle_home_user + Path.basic("heaps") + Path.basic(ml_settings.ml_identifier)
+  def cleanup(): Unit =
+    ssh.delete(host_db, etc_settings, etc_preferences, etc, isabelle_home_user)
 
 
   /* components */
@@ -234,8 +200,39 @@ final class Other_Isabelle private(
   }
 
 
-  /* cleanup */
+  /* ML system settings */
 
-  def cleanup(): Unit =
-    ssh.delete(host_db, etc_settings, etc_preferences, etc, isabelle_home_user)
+  val ml_settings: ML_Settings =
+    new ML_Settings {
+      override def polyml_home: Path =
+        getenv("POLYML_HOME") match {
+          case "" =>
+            try { expand_path(Path.variable("ML_HOME")).dir }
+            catch { case ERROR(msg) => error("Bad ML_HOME: " + msg + error_context) }
+          case s => Path.explode(s)
+        }
+
+      override def ml_system: String = getenv_strict("ML_SYSTEM")
+
+      override def ml_platform: String =
+        if (ssh.is_file(isabelle_home + Path.explode("lib/Tools/console"))) {
+          val Pattern = """.*val ML_PLATFORM = "(.*)".*""".r
+          val input = """val ML_PLATFORM = Option.getOpt (OS.Process.getEnv "ML_PLATFORM", "")"""
+          val result = bash("bin/isabelle console -r", input = input)
+          result.out match {
+            case Pattern(a) if result.ok && a.nonEmpty => a
+            case _ =>
+              error("Cannot get ML_PLATFORM from other Isabelle: " + isabelle_home +
+                if_proper(result.err, "\n" + result.err) + error_context)
+          }
+        }
+        else getenv_strict("ML_PLATFORM")
+
+      override def ml_options: String =
+        proper_string(getenv("ML_OPTIONS")) getOrElse
+          getenv(if (ml_platform_is_64_32) "ML_OPTIONS32" else "ML_OPTIONS64")
+    }
+
+  def user_output_dir: Path =
+    isabelle_home_user + Path.basic("heaps") + Path.basic(ml_settings.ml_identifier)
 }
