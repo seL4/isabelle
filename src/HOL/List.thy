@@ -8037,6 +8037,10 @@ qualified lemma member_code [code, no_atp]:
   \<open>member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y\<close>
   by auto
 
+qualified lemma Collect_member [code_unfold, no_atp]: \<comment> \<open>make preprocessor setup confluent\<close>
+  \<open>{x. List.member xs x \<and> P x} = Set.filter P (set xs)\<close>
+  by simp
+
 end
 
 lemma list_all_iff [code_abbrev]:
