@@ -15,7 +15,7 @@ import javax.swing.JMenuItem
 import javax.swing.event.TreeSelectionEvent
 
 import scala.collection.immutable.SortedMap
-import scala.swing.{Label, Component}
+import scala.swing.Component
 
 import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.menu.EnhancedMenuItem
@@ -182,9 +182,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     override def clicked(): Unit = thread_selection().foreach(debugger.step_out)
   }
 
-  private val context_label = new Label("Context:") {
-    tooltip = "Isabelle/ML context: type theory, Proof.context, Context.generic"
-  }
+  private val context_tooltip = "Isabelle/ML context: type theory, Proof.context, Context.generic"
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
@@ -194,13 +192,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
         super.processKeyEvent(evt)
       }
       setColumns(20)
-      setToolTipText(context_label.tooltip)
+      setToolTipText(context_tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
-
-  private val expression_label = new Label("ML:") {
-    tooltip = "Isabelle/ML or Standard ML expression"
+  private val context_label = new GUI.Label("Context:", context_field) {
+    tooltip = context_tooltip
   }
+
+  private val expression_tooltip = "Isabelle/ML or Standard ML expression"
   private val expression_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-expression") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
@@ -211,9 +210,12 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       }
       { val max = getPreferredSize; max.width = Int.MaxValue; setMaximumSize(max) }
       setColumns(40)
-      setToolTipText(expression_label.tooltip)
+      setToolTipText(expression_tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     }
+  private val expression_label = new GUI.Label("ML:", expression_field) {
+    tooltip = expression_tooltip
+  }
 
   private val eval_button =
     new GUI.Button(GUI.Style_HTML.enclose_bold("Eval")) {

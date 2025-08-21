@@ -16,7 +16,7 @@ import java.awt.im.InputMethodRequests
 import javax.swing.JTextField
 import javax.swing.event.{DocumentListener, DocumentEvent}
 
-import scala.swing.{Label, Component}
+import scala.swing.Component
 import scala.util.matching.Regex
 
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
@@ -266,9 +266,7 @@ class Pretty_Text_Area(
 
   /* search */
 
-  private val search_label: Component = new Label(jEdit.getProperty("view.search.find")) {
-    tooltip = "Search and highlight output via regular expression"
-  }
+  private val search_tooltip = "Search and highlight output via regular expression"
 
   private val search_field: Component =
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search") {
@@ -280,11 +278,16 @@ class Pretty_Text_Area(
         def removeUpdate(e: DocumentEvent): Unit = input_delay.invoke()
       })
       setColumns(20)
-      setToolTipText(search_label.tooltip)
+      setToolTipText(search_tooltip)
       setFont(GUI.imitate_font(getFont, scale = 1.2))
     })
 
   private val search_field_foreground = search_field.foreground
+
+  private val search_label: Component =
+    new GUI.Label(jEdit.getProperty("view.search.find"), label_for = search_field) {
+      tooltip = search_tooltip
+    }
 
   private def search_action(text_field: JTextField): Unit = {
     val (pattern, ok) =

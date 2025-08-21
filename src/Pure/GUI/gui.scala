@@ -12,10 +12,11 @@ import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocus
 import java.awt.event.{KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
+import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
   RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities}
 
-import scala.swing.{CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
+import scala.swing.{Alignment, CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
+import scala.swing.Swing.EmptyIcon
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
 import com.formdev.flatlaf
@@ -225,6 +226,33 @@ object GUI {
 
     selected = init
     reactions += { case ButtonClicked(_) => clicked(selected); clicked() }
+  }
+
+
+  /* label for other component */
+
+  class Label(
+    label_text: String,
+    label_icon: Icon,
+    label_align: Alignment.Value,
+    label_for: java.awt.Component
+  ) extends scala.swing.Label(label_text, label_icon, label_align) {
+
+    override lazy val peer: JLabel =
+      new JLabel(label_text, if (label_icon == EmptyIcon) null else label_icon, label_align.id)
+        with SuperMixin { labelFor = label_for }
+
+    override def this(label_text: String, label_icon: Icon, label_align: Alignment.Value) =
+      this(label_text, label_icon, label_align, null)
+
+    def this(label_text: String, label_for: java.awt.Component) =
+      this(label_text, EmptyIcon, Alignment.Center, label_for)
+
+    def this(label_text: String, label_for: scala.swing.Component) =
+      this(label_text, EmptyIcon, Alignment.Center, label_for.peer)
+
+    def this(label_text: String) =
+      this(label_text, EmptyIcon, Alignment.Center)
   }
 
 
