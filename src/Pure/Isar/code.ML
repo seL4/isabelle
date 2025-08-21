@@ -41,6 +41,7 @@ sig
   val declare_abstype_global: thm -> theory -> theory
   val declare_default_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_default_eqns_global: (thm * bool) list -> theory -> theory
+  val singleton_default_equation_attrib: Token.src
   val declare_eqns: (thm * bool) list -> local_theory -> local_theory
   val declare_eqns_global: (thm * bool) list -> theory -> theory
   val declare_abstract_eqn: thm -> local_theory -> local_theory
@@ -1615,8 +1616,11 @@ val _ = Theory.setup
           add_maybe_abs_eqn_liberal);
   in
     Attrib.setup \<^binding>\<open>code\<close> code_attribute_parser
-        "declare theorems for code generation"
+      "declare theorems for code generation"
   end);
+
+val singleton_default_equation_attrib = Attrib.internal \<^here>
+  (K (code_attribute (fn thm => declare_default_eqns_global [(thm, true)])));
 
 end; (*struct*)
 
