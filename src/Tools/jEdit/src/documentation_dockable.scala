@@ -20,6 +20,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   private val doc_contents = Doc.contents(PIDE.ml_settings)
 
   private val tree = new Tree_View(single_selection_mode = true)
+  tree.getAccessibleContext.setAccessibleName("Documentation")
 
   for (section <- doc_contents.sections) {
     tree.root.add(Tree_View.Node(section.title))

@@ -38,7 +38,7 @@ object Session_Build {
     text.editable = false
     text.columns = 60
     text.rows = 24
-    text.font = GUI.copy_font((new Label).font)
+    text.font = GUI.copy_font(GUI.label_font())
     text.caret.color = text.background
 
     private val scroll_text = new ScrollPane(text)

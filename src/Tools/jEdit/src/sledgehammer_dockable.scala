@@ -63,21 +63,20 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
       List(provers.getText, isar_proofs.selected.toString, try0.selected.toString))
   }
 
-  private val provers_label = new Label("Provers:") {
-    tooltip =
-      GUI.tooltip_lines(
-        "Automatic provers as space-separated list, e.g.\n" +
-          PIDE.options.value.check_name("sledgehammer_provers").default_value)
-  }
-
+  private val provers_tooltip =
+    GUI.tooltip_lines(
+      "Automatic provers as space-separated list, e.g.\n" +
+        PIDE.options.value.check_name("sledgehammer_provers").default_value)
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
     override def processKeyEvent(evt: KeyEvent): Unit = {
       if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) hammer()
       super.processKeyEvent(evt)
     }
-    setToolTipText(provers_label.tooltip)
+    setToolTipText(provers_tooltip)
     setColumns(30)
   }
+  private val provers_label =
+    new GUI.Label("Provers:", provers) { tooltip = provers_tooltip }
 
   private def update_provers(): Unit = {
     val new_provers = PIDE.options.string("sledgehammer_provers")

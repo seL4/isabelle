@@ -84,14 +84,15 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
       query_operation.apply_query(List(limit.text, allow_dups.selected.toString, query.getText))
     }
 
-    private val query_label = new Label("Find:") {
-      tooltip =
-        GUI.tooltip_lines(
-          "Search criteria for find operation, e.g.\n\"_ = _\" \"(+)\" name: Group -name: monoid")
-    }
+    private val query_tooltip =
+      GUI.tooltip_lines(
+        "Search criteria for find operation, e.g.\n\"_ = _\" \"(+)\" name: Group -name: monoid")
 
     val query: Completion_Popup.History_Text_Field =
-      make_query("isabelle-find-theorems", query_label.tooltip, apply_query _)
+      make_query("isabelle-find-theorems", query_tooltip, apply_query _)
+
+    private val query_label =
+      new GUI.Label("Find:", query) { tooltip = query_tooltip }
 
 
     /* GUI page */

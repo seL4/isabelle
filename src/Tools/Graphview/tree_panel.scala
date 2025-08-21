@@ -91,14 +91,11 @@ extends BorderPanel {
       case Some(re) => re.findFirstIn(node.toString).isDefined
     }
 
-  private val selection_label = new Label("Selection:") {
-    tooltip = "Selection of nodes via regular expression"
-  }
-
-  private val selection_field = new TextField(10) {
-    tooltip = selection_label.tooltip
-  }
+  private val selection_tooltip = "Selection of nodes via regular expression"
+  private val selection_field = new TextField(10) { tooltip = selection_tooltip }
   private val selection_field_foreground = selection_field.foreground
+  private val selection_label =
+    new GUI.Label("Selection:", selection_field) { tooltip = selection_tooltip }
 
   private val selection_delay =
     Delay.last(graphview.options.seconds("editor_input_delay"), gui = true) {

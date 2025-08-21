@@ -25,7 +25,7 @@ object Status_Widget {
   abstract class GUI(view: View) extends JComponent {
     /* init */
 
-    setFont(new JLabel().getFont)
+    setFont(GUI.copy_font(GUI.label_font()))
 
     private val font_render_context = new FontRenderContext(null, true, false)
     private val line_metrics = getFont.getLineMetrics(template, font_render_context)
