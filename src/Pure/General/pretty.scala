@@ -225,7 +225,7 @@ object Pretty {
   ): XML.Body = {
     val margin_defined = margin > 0
     val margin1 = if (margin_defined) margin else default_margin
-    val emergencypos = (margin1 / 2).round.toInt
+    val emergencypos = ((margin1 / 2) max 1).round.toInt
 
     def make_tree(inp: XML.Body): List[Tree] =
       inp flatMap {

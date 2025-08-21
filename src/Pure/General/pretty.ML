@@ -419,8 +419,8 @@ fun format_tree (ops: output_ops) input =
     val margin_defined = margin > 0;
     val margin1 = if margin_defined then margin else ML_Pretty.default_margin;
 
-    val breakgain = margin1 div 20;     (*minimum added space required of a break*)
-    val emergencypos = margin1 div 2;   (*position too far to right*)
+    val breakgain = margin1 div 20;  (*minimum added space required of a break*)
+    val emergencypos = Int.max (margin1 div 2, 1);  (*position too far to right*)
 
     fun blanks_state n state = add_state (#1 (output_spaces ops n)) state;
     val blanks = string o output_spaces ops;
