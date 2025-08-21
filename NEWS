@@ -35,6 +35,9 @@ it by an error message. Output messages depend on system options
 "show_results" (default true) and "show_states" (default false),
 provided at build-time for the underlying session database.
 
+* For pretty-printed output a margin <= 0 means there is no margin to be
+observed: only forced breaks are taken.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

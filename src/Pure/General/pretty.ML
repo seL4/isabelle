@@ -416,8 +416,11 @@ in
 fun format_tree (ops: output_ops) input =
   let
     val margin = #margin ops;
-    val breakgain = margin div 20;     (*minimum added space required of a break*)
-    val emergencypos = margin div 2;   (*position too far to right*)
+    val margin_defined = margin > 0;
+    val margin1 = if margin_defined then margin else ML_Pretty.default_margin;
+
+    val breakgain = margin1 div 20;     (*minimum added space required of a break*)
+    val emergencypos = margin1 div 2;   (*position too far to right*)
 
     fun blanks_state n state = add_state (#1 (output_spaces ops n)) state;
     val blanks = string o output_spaces ops;
@@ -457,12 +460,13 @@ fun format_tree (ops: output_ops) input =
             val pos' = pos + indent;
             val pos'' = pos' mod emergencypos;
             val before' =
-              if pos' < emergencypos
+              if not margin_defined orelse pos' < emergencypos
               then (Option.map (close_state o blanks_state indent) (#line text), pos')
               else (Option.map (fn _ => blanks_state pos'' init_state) (#line text), pos'');
             val after' = break_dist (ts, after)
             val body' = body
-              |> (consistent andalso pos + blen > margin - after') ? map force_break;
+              |> (margin_defined andalso consistent andalso pos + blen > margin - after') ?
+                  map force_break;
             val btext: text =
               text |> push markup |> format (body' @ [End], before', after');
             (*if this block was broken then force the next break*)
@@ -473,7 +477,8 @@ fun format_tree (ops: output_ops) input =
             or if breaking would add only breakgain to space*)
           format (ts, before, after)
             (if not force andalso
-                pos + wd <= Int.max (margin - break_dist (ts, after), #2 before + breakgain)
+                (not margin_defined orelse
+                  pos + wd <= Int.max (margin - break_dist (ts, after), #2 before + breakgain))
              then text |> blanks wd  (*just insert wd blanks*)
              else text |> break before |> blanks ind)
       | Str str :: ts => format (ts, before, after) (string str text));
