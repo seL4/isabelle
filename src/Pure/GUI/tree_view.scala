@@ -48,6 +48,7 @@ class Tree_View(
   val root: Tree_View.Node = Tree_View.Node(),
   single_selection_mode: Boolean = false
 ) extends JTree(root) {
+  getAccessibleContext.setAccessibleName(root.toString)
   def get_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     getLastSelectedPathComponent match {
       case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
