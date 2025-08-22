@@ -346,7 +346,7 @@ proof -
       and notind: "(\<forall>i\<in>Basis. i \<notin> d \<longrightarrow> ?x \<bullet> i = 0)"
       using substdbasis_expansion_unique[OF assms] by blast+
     then have **: "sum u ?D = sum ((\<bullet>) ?x) ?D"
-      using assms by (auto intro!: sum.cong)
+      using assms by (meson subset_iff sum.cong)
     show "0 \<le> ?x \<bullet> i" if "i \<in> Basis" for i
       using as(1) ind notind that by fastforce
     show "sum ((\<bullet>) ?x) ?D \<le> 1"
@@ -376,24 +376,24 @@ proof (intro allI iffI CollectI; clarify)
   fix e
   assume "e > 0" and as: "ball x e \<subseteq> {x. (\<forall>i\<in>Basis. 0 \<le> x \<bullet> i) \<and> sum ((\<bullet>) x) Basis \<le> 1}"
   show "(\<forall>i\<in>Basis. 0 < x \<bullet> i) \<and> sum ((\<bullet>) x) Basis < 1"
-  proof safe
+  proof (intro strip conjI)
     fix i :: 'a
     assume i: "i \<in> Basis"
     then show "0 < x \<bullet> i"
       using as[THEN subsetD[where c="x - (e/2) *\<^sub>R i"]] and \<open>e > 0\<close> 
       by (force simp add: inner_simps)
   next
-    have **: "dist x (x + (e/2) *\<^sub>R (SOME i. i\<in>Basis)) < e" using \<open>e > 0\<close>
+    obtain i::'a where i: "i \<in> Basis"
+      using nonempty_Basis by blast
+    have **: "dist x (x + (e/2) *\<^sub>R i) < e" using \<open>e > 0\<close>
       unfolding dist_norm
-      by (auto intro!: mult_strict_left_mono simp: SOME_Basis)
-    have "\<And>i. i \<in> Basis \<Longrightarrow> (x + (e/2) *\<^sub>R (SOME i. i\<in>Basis)) \<bullet> i =
-      x\<bullet>i + (if i = (SOME i. i\<in>Basis) then e/2 else 0)"
-      by (auto simp: SOME_Basis inner_Basis inner_simps)
-    then have *: "sum ((\<bullet>) (x + (e/2) *\<^sub>R (SOME i. i\<in>Basis))) Basis =
-      sum (\<lambda>i. x\<bullet>i + (if (SOME i. i\<in>Basis) = i then e/2 else 0)) Basis"
-      by (auto simp: intro!: sum.cong)
-    have "sum ((\<bullet>) x) Basis < sum ((\<bullet>) (x + (e/2) *\<^sub>R (SOME i. i\<in>Basis))) Basis"
-      using \<open>e > 0\<close> DIM_positive by (auto simp: SOME_Basis sum.distrib *)
+      by (auto intro!: mult_strict_left_mono simp: i)
+    have "\<And>i. i \<in> Basis \<Longrightarrow> (x + (e/2) *\<^sub>R i) \<bullet> i = x\<bullet>i + (if i = i then e/2 else 0)"
+      by (auto simp: inner_simps)
+    then have *: "sum ((\<bullet>) (x + (e/2) *\<^sub>R i)) Basis = sum (\<lambda>j. x\<bullet>j + (if j = i then e/2 else 0)) Basis"
+      using i by (auto simp: inner_Basis inner_left_distrib intro!: sum.cong)
+    have "sum ((\<bullet>) x) Basis < sum ((\<bullet>) (x + (e/2) *\<^sub>R i)) Basis"
+      using \<open>e > 0\<close> DIM_positive by (auto simp: i sum.distrib *)
     also have "\<dots> \<le> 1"
       using ** as by force
     finally show "sum ((\<bullet>) x) Basis < 1" by auto
@@ -404,7 +404,7 @@ next
   obtain a :: 'b where "a \<in> UNIV" using UNIV_witness ..
   let ?d = "(1 - sum ((\<bullet>) x) Basis) / real (DIM('a))"
   show "\<exists>e>0. ball x e \<subseteq> {x. (\<forall>i\<in>Basis. 0 \<le> x \<bullet> i) \<and> sum ((\<bullet>) x) Basis \<le> 1}"
-  proof (rule_tac x="min (Min (((\<bullet>) x) ` Basis)) D" for D in exI, intro conjI subsetI CollectI)
+  proof (intro exI conjI subsetI CollectI)
     fix y
     assume y: "y \<in> ball x (min (Min ((\<bullet>) x ` Basis)) ?d)"
     have "sum ((\<bullet>) y) Basis \<le> sum (\<lambda>i. x\<bullet>i + ?d) Basis"
@@ -423,7 +423,7 @@ next
       by (auto simp add: Suc_le_eq)
     finally show "sum ((\<bullet>) y) Basis \<le> 1" .
     show "(\<forall>i\<in>Basis. 0 \<le> y \<bullet> i)"
-    proof safe
+    proof (intro strip)
       fix i :: 'a
       assume i: "i \<in> Basis"
       have "norm (x - y) < Min (((\<bullet>) x) ` Basis)"
@@ -469,7 +469,7 @@ proof -
         unfolding **[OF i] by (auto simp add: Suc_le_eq)
     next
       have "sum ((\<bullet>) ?a) ?D = sum (\<lambda>i. inverse (2 * real DIM('a))) ?D"
-        by (auto intro: sum.cong)
+        by simp
       also have "\<dots> < 1"
         unfolding sum_constant divide_inverse[symmetric]
         by (auto simp add: field_simps)
@@ -619,7 +619,7 @@ lemma rel_interior_substd_simplex_nonempty:
   obtains a :: "'a::euclidean_space"
     where "a \<in> rel_interior (convex hull (insert 0 D))"
 proof -
-  let ?a = "sum (\<lambda>b::'a::euclidean_space. inverse (2 * real (card D)) *\<^sub>R b) D"
+  let ?a = "(\<Sum>b\<in>D. b /\<^sub>R (2 * real (card D)))"
   have "finite D"
     using assms finite_Basis infinite_super by blast
   then have d1: "0 < real (card D)"
@@ -627,7 +627,7 @@ proof -
   {
     fix i
     assume "i \<in> D"
-    have "?a \<bullet> i = sum (\<lambda>j. if i = j then inverse (2 * real (card D)) else 0) D"
+    have "?a \<bullet> i = (\<Sum>j\<in>D. if i = j then inverse (2 * real (card D)) else 0)"
       unfolding inner_sum_left
       using \<open>i \<in> D\<close> by (auto simp: inner_Basis subsetD[OF assms(2)] intro: sum.cong)
     also have "... = inverse (2 * real (card D))"
@@ -649,7 +649,7 @@ proof -
       finally show "0 < ?a \<bullet> i" by auto
     next
       have "sum ((\<bullet>) ?a) D = sum (\<lambda>i. inverse (2 * real (card D))) D"
-        by (rule sum.cong) (rule refl, rule **)
+        by (rule sum.cong [OF refl **]) 
       also have "\<dots> < 1"
         unfolding sum_constant divide_real_def[symmetric]
         by (auto simp add: field_simps)
@@ -5104,7 +5104,7 @@ proof -
       then have "sum u (S \<inter> T) = 1"
         using that by linarith
       moreover have "(\<Sum>v\<in>S \<inter> T. u v *\<^sub>R v) = (\<Sum>v\<in>S. u v *\<^sub>R v)"
-      by (auto simp: if_smult sum.inter_restrict intro: sum.cong)
+      by (auto simp: sum.inter_restrict intro: sum.cong)
     ultimately show ?thesis
       by force
     qed
@@ -6362,8 +6362,8 @@ next
     show "\<And>n. ?C n \<subseteq> S"
       by auto
     show "?C n \<subseteq> interior (?C (Suc n))" for n
-    proof (simp add: interior_diff, rule Diff_mono)
-      show "cball a (real n) \<subseteq> ball a (1 + real n)"
+    proof -
+      have \<section>: "cball a (real n) \<subseteq> ball a (1 + real n)"
         by (simp add: cball_subset_ball_iff)
       have cl: "closed (\<Union>x\<in>- S. \<Union>e\<in>cball 0 (1 / (2 + real n)). {x + e})"
         using assms by (auto intro: closed_compact_sums)
@@ -6372,8 +6372,10 @@ next
         by (intro closure_minimal UN_mono ball_subset_cball order_refl cl)
       also have "... \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})"
         by (simp add: cball_subset_ball_iff field_split_simps UN_mono)
-      finally show "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
+      finally have "closure (\<Union>x\<in>- S. \<Union>y\<in>ball 0 (1 / (2 + real n)). {x + y})
                     \<subseteq> (\<Union>x \<in> -S. \<Union>y\<in>ball 0 (1 / (1 + real n)). {x + y})" .
+      with \<section> show ?thesis
+        by (auto simp: interior_diff)
     qed
     have "S \<subseteq> \<Union> (range ?C)"
     proof
@@ -6382,8 +6384,7 @@ next
       then obtain e where "e > 0" and e: "ball x e \<subseteq> S"
         using assms open_contains_ball by blast
       then obtain N1 where "N1 > 0" and N1: "real N1 > 1/e"
-        using reals_Archimedean2
-        by (metis divide_less_0_iff less_eq_real_def neq0_conv not_le of_nat_0 of_nat_1 of_nat_less_0_iff)
+        by (metis divide_less_0_1_iff gr0I of_nat_0 order_less_imp_triv reals_Archimedean2)
       obtain N2 where N2: "norm(x - a) \<le> real N2"
         by (meson real_arch_simple)
       have N12: "inverse((N1 + N2) + 1) \<le> inverse(N1)"
@@ -6424,11 +6425,7 @@ proposition subspace_orthogonal_comp: "subspace (W\<^sup>\<bottom>)"
 lemma orthogonal_comp_anti_mono:
   assumes "A \<subseteq> B"
   shows "B\<^sup>\<bottom> \<subseteq> A\<^sup>\<bottom>"
-proof
-  fix x assume x: "x \<in> B\<^sup>\<bottom>"
-  show "x \<in> orthogonal_comp A" using x unfolding orthogonal_comp_def
-    by (simp add: orthogonal_def, metis assms in_mono)
-qed
+  using assms by (force simp add: orthogonal_comp_def orthogonal_def)
 
 lemma orthogonal_comp_null [simp]: "{0}\<^sup>\<bottom> = UNIV"
   by (auto simp: orthogonal_comp_def orthogonal_def)
@@ -6472,7 +6469,8 @@ proof -
     moreover have "?u \<in> U"
       by (metis (no_types, lifting) \<open>span B = U\<close> assms subspace_sum span_base span_mul)
     moreover have "(v - ?u) \<in> U\<^sup>\<bottom>"
-    proof (clarsimp simp: orthogonal_comp_def orthogonal_def)
+      unfolding orthogonal_comp_def orthogonal_def mem_Collect_eq
+    proof 
       fix y
       assume "y \<in> U"
       with \<open>span B = U\<close> span_finite [OF \<open>finite B\<close>]
@@ -6567,8 +6565,7 @@ next
     by (metis orthogonal_comp_null)
   then show "surj (adjoint f)"
     using adjoint_linear \<open>linear f\<close>
-    by (subst (asm) orthogonal_comp_self)
-      (simp add: adjoint_linear linear_subspace_image)
+    by (metis linear_subspace_image orthogonal_comp_self subspace_UNIV)
 qed
 
 lemma inj_adjoint_iff_surj [simp]:
