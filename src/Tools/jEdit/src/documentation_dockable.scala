@@ -19,8 +19,7 @@ import org.gjt.sp.jedit.View
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position) {
   private val doc_contents = Doc.contents(PIDE.ml_settings)
 
-  private val tree = new Tree_View(single_selection_mode = true)
-  tree.getAccessibleContext.setAccessibleName("Documentation")
+  private val tree = new Tree_View(single_selection_mode = true, accessible_name = "Documentation")
 
   for (section <- doc_contents.sections) {
     tree.root.add(Tree_View.Node(section.title))
