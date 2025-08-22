@@ -1096,6 +1096,30 @@ next
     by (simp add: inc numeral_inc)
 qed
 
+lemma m1_ereal_less_iff [simp]:
+  "((-1::ereal) < numeral a) \<longleftrightarrow> ((-1::real) < numeral a)"
+  by (simp add: one_ereal_def)
+
+lemma m1_ereal_le_iff [simp]:
+  "((-1::ereal) \<le> numeral a) \<longleftrightarrow> ((-1::real) \<le> numeral a)"
+  by (simp add: one_ereal_def)
+
+lemma m1_ereal_eq_iff [simp]:
+  "((-1::ereal) = numeral a) \<longleftrightarrow> ((-1::real) = numeral a)"
+  by (simp add: one_ereal_def)
+
+lemma ereal_less_m1_iff [simp]:
+  "(numeral a < (-1::ereal)) \<longleftrightarrow> (numeral a < (-1::real))"
+  by (simp add: one_ereal_def)
+
+lemma ereal_le_m1_iff [simp]:
+  "(numeral a \<le> (-1::ereal)) \<longleftrightarrow> (numeral a \<le> (-1::real))"
+  by (simp add: one_ereal_def)
+
+lemma ereal_eq_m1_iff [simp]:
+  "(numeral a = (-1::ereal)) \<longleftrightarrow> (numeral a = (-1::real))"
+  by (simp add: one_ereal_def)
+
 lemma distrib_left_ereal_nn:
   "c \<ge> 0 \<Longrightarrow> (x + y) * ereal c = x * ereal c + y * ereal c"
   by(cases x y rule: ereal2_cases)(simp_all add: ring_distribs)
