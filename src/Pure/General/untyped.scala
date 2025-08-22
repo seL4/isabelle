@@ -17,7 +17,7 @@ object Untyped {
     con
   }
 
-  def the_constructor[C](c:  Class[C]): Constructor[C] = {
+  def the_constructor[C](c: Class[C]): Constructor[C] = {
     c.getDeclaredConstructors().toList match {
       case List(con) =>
         con.setAccessible(true)
