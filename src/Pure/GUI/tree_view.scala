@@ -6,6 +6,8 @@ Tree view with sensible defaults.
 
 package isabelle
 
+import javax.accessibility.AccessibleContext
+
 import javax.swing.JTree
 import javax.swing.tree.{MutableTreeNode, DefaultMutableTreeNode, DefaultTreeModel,
   TreeSelectionModel, DefaultTreeCellRenderer}
@@ -46,9 +48,19 @@ object Tree_View {
 
 class Tree_View(
   val root: Tree_View.Node = Tree_View.Node(),
-  single_selection_mode: Boolean = false
+  single_selection_mode: Boolean = false,
+  accessible_name: String = ""
 ) extends JTree(root) {
-  getAccessibleContext.setAccessibleName(root.toString)
+
+  override def getAccessibleContext: AccessibleContext = {
+    if (accessibleContext == null) { accessibleContext = new Accessible_Context }
+    accessibleContext
+  }
+  class Accessible_Context extends AccessibleJTree {
+    override def getAccessibleName: String =
+      proper_string(accessible_name).getOrElse(proper_string(root.toString).orNull)
+  }
+
   def get_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
     getLastSelectedPathComponent match {
       case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))

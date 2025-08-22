@@ -969,9 +969,9 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.7.0-patche
 +
  	private SyntaxUtilities(){}
  }
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-05-14 15:46:36.934878462 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-08-22 13:25:05.602419198 +0200
 @@ -43,6 +43,7 @@
  import org.gjt.sp.jedit.msg.BufferChanging;
  import org.gjt.sp.jedit.msg.BufferUpdate;
@@ -980,7 +980,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdi
  import org.gjt.sp.jedit.msg.PropertiesChanged;
  import org.gjt.sp.jedit.options.GeneralOptionPane;
  import org.gjt.sp.jedit.options.GutterOptionPane;
-@@ -380,9 +381,11 @@
+@@ -50,6 +51,7 @@
+ import org.gjt.sp.jedit.textarea.AntiAlias;
+ import org.gjt.sp.jedit.textarea.Gutter;
+ import org.gjt.sp.jedit.textarea.JEditTextArea;
++import org.gjt.sp.jedit.textarea.JEditTextAreaFactory;
+ import org.gjt.sp.jedit.textarea.MouseHandler;
+ import org.gjt.sp.jedit.textarea.Selection;
+ import org.gjt.sp.jedit.textarea.StatusListener;
+@@ -380,9 +382,11 @@
  		buffer.unsetProperty(Buffer.CARET_POSITIONED);
  
  
@@ -993,7 +1001,28 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdi
  
  		// set any selections
  		Selection[] selection = caretInfo.selection;
-@@ -1029,7 +1032,7 @@
+@@ -756,7 +760,7 @@
+ 	//{{{ Package-private members
+ 
+ 	//{{{ EditPane constructor
+-	EditPane(@Nonnull View view, @Nullable BufferSet bufferSetSource, @Nonnull Buffer buffer)
++	public EditPane(@Nonnull View view, @Nullable BufferSet bufferSetSource, @Nonnull Buffer buffer)
+ 	{
+ 		super(new BorderLayout());
+ 		BufferSet.Scope scope = jEdit.getBufferSetManager().getScope();
+@@ -795,7 +799,10 @@
+ 		this.view = view;
+ 
+ 
+-		textArea = new JEditTextArea(view);
++		JEditTextAreaFactory textAreaFactory =
++			ServiceManager.getService(JEditTextAreaFactory.class, "textarea-factory");
++		textArea =
++			textAreaFactory == null ? new JEditTextArea(view) : textAreaFactory.create(view);
+ 		bufferSet.addBufferSetListener(this);
+ 		textArea.getPainter().setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")));
+ 		textArea.setMouseHandler(new MouseHandler(textArea));
+@@ -1029,7 +1036,7 @@
  		for(int i = 0; i <= 3; i++)
  		{
  			foldLineStyle[i] = SyntaxUtilities.parseStyle(
@@ -1326,3 +1355,69 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jed
  
  		// This is handled a little differently from other jEdit settings
  		// as this flag needs to be known very early in the
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java	2025-08-22 13:22:50.795334674 +0200
+@@ -1264,15 +1264,10 @@
+ 
+ 		StringBuilder title = new StringBuilder();
+ 
+-		/* On Mac OS X, apps are not supposed to show their name in the
+-		title bar. */
+-		if(!OperatingSystem.isMacOS())
+-		{
+-			if (userTitle != null)
+-				title.append(userTitle);
+-			else
+-				title.append(jEdit.getProperty("view.title"));
+-		}
++		if (userTitle != null)
++			title.append(userTitle);
++		else
++			title.append(jEdit.getProperty("view.title"));
+ 
+ 		for(int i = 0; i < buffers.size(); i++)
+ 		{
+@@ -2070,7 +2065,11 @@
+ 
+ 	private EditPane createEditPane(@Nullable BufferSet bufferSetSource, @Nonnull Buffer buffer)
+ 	{
+-		EditPane editPane = new EditPane(this, bufferSetSource, buffer);
++		EditPaneFactory editPaneFactory =
++			ServiceManager.getService(EditPaneFactory.class, "editpane-factory");
++		EditPane editPane =
++			editPaneFactory == null ? new EditPane(this, bufferSetSource, buffer) :
++			editPaneFactory.create(this, bufferSetSource, buffer);
+ 		JEditTextArea textArea = editPane.getTextArea();
+ 		textArea.addFocusListener(new FocusHandler());
+ 		textArea.addCaretListener(new CaretHandler());
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPaneFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPaneFactory.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPaneFactory.java	1970-01-01 01:00:00.000000000 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPaneFactory.java	2025-08-22 13:21:29.596599634 +0200
+@@ -0,0 +1,11 @@
++package org.gjt.sp.jedit;
++
++import org.gjt.sp.jedit.bufferset.BufferSet;
++
++public class EditPaneFactory
++{
++    public EditPane create(View view, BufferSet bufferSetSource, Buffer buffer)
++    {
++        return new EditPane(view, bufferSetSource, buffer);
++    }
++}
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/JEditTextAreaFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/JEditTextAreaFactory.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/JEditTextAreaFactory.java	1970-01-01 01:00:00.000000000 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/JEditTextAreaFactory.java	2025-08-22 13:21:51.268384088 +0200
+@@ -0,0 +1,11 @@
++package org.gjt.sp.jedit.textarea;
++
++import org.gjt.sp.jedit.View;
++
++public class JEditTextAreaFactory
++{
++    public JEditTextArea create(View view)
++    {
++        return new JEditTextArea(view);
++    }
++}

@@ -311,6 +311,7 @@ sources = \
   src/Tools/jEdit/src/isabelle_navigator.scala \
   src/Tools/jEdit/src/isabelle_session.scala \
   src/Tools/jEdit/src/isabelle_vfs.scala \
+  src/Tools/jEdit/src/jedit_accessible.scala \
   src/Tools/jEdit/src/jedit_bibtex.scala \
   src/Tools/jEdit/src/jedit_editor.scala \
   src/Tools/jEdit/src/jedit_jar.scala \
