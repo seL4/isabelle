@@ -5,6 +5,12 @@
   <SERVICE NAME="UTF-8-Isabelle" CLASS="org.gjt.sp.jedit.io.Encoding">
     new isabelle.jedit.Isabelle_Encoding();
   </SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.EditPaneFactory" NAME="editpane-factory">
+    new isabelle.jedit.JEdit_Accessible$EditPane_Factory();
+  </SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.textarea.JEditTextAreaFactory" NAME="textarea-factory">
+    new isabelle.jedit.JEdit_Accessible$TextArea_Factory();
+  </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.gui.DockingFrameworkProvider" NAME="PIDE">
     new isabelle.jedit.PIDE_Docking_Framework();
   </SERVICE>
