@@ -1326,3 +1326,25 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jed
  
  		// This is handled a little differently from other jEdit settings
  		// as this flag needs to be known very early in the
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java	2024-10-29 11:50:54.066016546 +0100
+@@ -1264,15 +1264,10 @@
+ 
+ 		StringBuilder title = new StringBuilder();
+ 
+-		/* On Mac OS X, apps are not supposed to show their name in the
+-		title bar. */
+-		if(!OperatingSystem.isMacOS())
+-		{
+-			if (userTitle != null)
+-				title.append(userTitle);
+-			else
+-				title.append(jEdit.getProperty("view.title"));
+-		}
++		if (userTitle != null)
++			title.append(userTitle);
++		else
++			title.append(jEdit.getProperty("view.title"));
+ 
+ 		for(int i = 0; i < buffers.size(); i++)
+ 		{
