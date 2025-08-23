@@ -45,9 +45,10 @@ object PIDE {
 
   @volatile var _plugin: Main_Plugin = null
 
+  def get_plugin: Option[Main_Plugin] = Option(_plugin)
+
   def plugin: Main_Plugin =
-    if (_plugin == null) error("Uninitialized Isabelle/jEdit plugin")
-    else _plugin
+    get_plugin.getOrElse(error("Uninitialized Isabelle/jEdit plugin"))
 
   def options: JEdit_Options = plugin.options
   def session: JEdit_Session = plugin.session
@@ -482,5 +483,7 @@ class Main_Plugin extends EBPlugin {
     PIDE.editor.shutdown()
 
     Document_Model.reset()
+
+    PIDE._plugin = null
   }
 }
