@@ -12,9 +12,10 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit
-import org.gjt.sp.jedit.{Buffer, View}
+import org.gjt.sp.jedit.{Buffer, ViewFactory}
 import org.gjt.sp.jedit.bufferset.BufferSet
-import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea => TextArea_JEdit,
+  TextAreaPainter, TextAreaPainterFactory}
 
 import java.awt.{Point, Rectangle}
 import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText}
@@ -23,15 +24,33 @@ import javax.swing.text.{AttributeSet, SimpleAttributeSet}
 
 
 object JEdit_Accessible {
+  /* view */
+
+  class View_Factory extends ViewFactory {
+    override def create(buffer: Buffer, config: jedit.View.ViewConfig): jedit.View =
+      new View(buffer, config)
+  }
+
+  class View(buffer: Buffer, config: jedit.View.ViewConfig) extends jedit.View(buffer, config) {
+    override def getAccessibleContext: AccessibleContext = {
+      if (accessibleContext == null) { accessibleContext = new Accessible_Context }
+      accessibleContext
+    }
+
+    class Accessible_Context extends AccessibleJFrame {
+    }
+  }
+
+
   /* editpane */
 
   class EditPane_Factory extends jedit.EditPaneFactory {
-    override def create(view: View, bufferSetSource: BufferSet, buffer: Buffer): jedit.EditPane =
+    override def create(view: jedit.View, bufferSetSource: BufferSet, buffer: Buffer): jedit.EditPane =
       new EditPane(view, bufferSetSource, buffer)
   }
 
-  class EditPane(view: View, bufferSetSource: BufferSet, buffer: Buffer)
-      extends jedit.EditPane(view: View, bufferSetSource: BufferSet, buffer: Buffer) {
+  class EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer: Buffer)
+      extends jedit.EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer: Buffer) {
     override def getAccessibleContext: AccessibleContext = {
       if (accessibleContext == null) { accessibleContext = new Accessible_Context }
       accessibleContext
@@ -46,10 +65,10 @@ object JEdit_Accessible {
   /* textarea */
 
   class TextArea_Factory extends JEditTextAreaFactory {
-    override def create(view: View): JEditTextArea = new TextArea(view)
+    override def create(view: jedit.View): JEditTextArea = new TextArea(view)
   }
 
-  class TextArea(view: View) extends JEditTextArea(view: View) {
+  class TextArea(view: jedit.View) extends JEditTextArea(view: jedit.View) {
     text_area =>
 
     override def getAccessibleContext: AccessibleContext = {
@@ -135,6 +154,25 @@ object JEdit_Accessible {
           buffer.getText(start, stop - start)
         }
         else ""
+    }
+  }
+
+
+  /* text area painter */
+
+  class Painter_Factory extends TextAreaPainterFactory {
+    override def create(text_area: TextArea_JEdit): TextAreaPainter = new Painter(text_area)
+  }
+
+  class Painter(text_area: TextArea_JEdit) extends TextAreaPainter(text_area) {
+    override def getAccessibleContext: AccessibleContext = {
+      if (accessibleContext == null) {
+        accessibleContext = new Accessible_Context
+      }
+      accessibleContext
+    }
+
+    class Accessible_Context extends AccessibleJComponent {
     }
   }
 }
