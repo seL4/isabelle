@@ -118,9 +118,9 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.7.0-patched
  		default:  return '\0';
  		}
  	} //}}}
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-05-20 15:40:14.181962645 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/GUIUtilities.java	2025-08-23 15:00:39.272121361 +0200
 @@ -42,6 +42,8 @@
  import java.net.URL;
  import java.util.*;
@@ -270,6 +270,15 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/GUIUtilities.java jedit5.7.0-patched/
  			if (child instanceof JTextPane)
  				((JTextPane)child).setUI(new javax.swing.plaf.basic.BasicEditorPaneUI());
  			if (child instanceof Container)
+@@ -1471,7 +1530,7 @@
+ 					comp = real;
+ 			}
+ 
+-			if(comp.getClass().equals(clazz))
++			if(clazz.isInstance(comp))
+ 				return comp;
+ 			else if(comp instanceof JPopupMenu)
+ 				comp = ((JPopupMenu)comp).getInvoker();
 @@ -1596,7 +1655,7 @@
  		deprecatedIcons.put("NextFile.png",    "22x22/go-last.png");
  		deprecatedIcons.put("PreviousFile.png","22x22/go-first.png");
