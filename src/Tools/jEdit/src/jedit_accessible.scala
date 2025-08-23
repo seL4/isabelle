@@ -12,8 +12,9 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit
-import org.gjt.sp.jedit.{Buffer, ViewFactory}
+import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory}
 import org.gjt.sp.jedit.bufferset.BufferSet
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea => TextArea_JEdit,
   TextAreaPainter, TextAreaPainterFactory}
 
@@ -24,6 +25,20 @@ import javax.swing.text.{AttributeSet, SimpleAttributeSet}
 
 
 object JEdit_Accessible {
+  def make_title(prefix: String, jbuffer: JEditBuffer): String = {
+    val suffix =
+      jbuffer match {
+        case buffer: Buffer =>
+          if (jEdit.getBooleanProperty("view.showFullPath") && !buffer.isNewFile) {
+            buffer.getPath(true)
+          }
+          else buffer.getName
+        case _ => ""
+      }
+    prefix + if_proper(prefix.nonEmpty && suffix.nonEmpty, " - ") + suffix
+  }
+
+
   /* view */
 
   class View_Factory extends ViewFactory {
@@ -31,13 +46,14 @@ object JEdit_Accessible {
       new View(buffer, config)
   }
 
-  class View(buffer: Buffer, config: jedit.View.ViewConfig) extends jedit.View(buffer, config) {
+  class View(buffer0: Buffer, config: jedit.View.ViewConfig) extends jedit.View(buffer0, config) {
     override def getAccessibleContext: AccessibleContext = {
       if (accessibleContext == null) { accessibleContext = new Accessible_Context }
       accessibleContext
     }
 
     class Accessible_Context extends AccessibleJFrame {
+      override def getAccessibleName: String = make_title(PIDE.title, getBuffer)
     }
   }
 
@@ -49,15 +65,15 @@ object JEdit_Accessible {
       new EditPane(view, bufferSetSource, buffer)
   }
 
-  class EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer: Buffer)
-      extends jedit.EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer: Buffer) {
+  class EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer0: Buffer)
+      extends jedit.EditPane(view: jedit.View, bufferSetSource: BufferSet, buffer0: Buffer) {
     override def getAccessibleContext: AccessibleContext = {
       if (accessibleContext == null) { accessibleContext = new Accessible_Context }
       accessibleContext
     }
 
     class Accessible_Context extends AccessibleJPanel {
-      override def getAccessibleName: String = "editor panel"
+      override def getAccessibleName: String = make_title("editor panel", getBuffer)
     }
   }
 
@@ -77,7 +93,7 @@ object JEdit_Accessible {
     }
 
     protected class Accessible_Context extends AccessibleJPanel {
-      override def getAccessibleName: String = "editor text"
+      override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleText: AccessibleText = accessible_text
       override def getAccessibleChildrenCount: Int = 0
