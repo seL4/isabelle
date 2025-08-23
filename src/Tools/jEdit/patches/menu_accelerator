@@ -24,10 +24,34 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedCheckBoxMenuItem.java je
  			FontMetrics fm = g.getFontMetrics();
  			Insets insets = getInsets();
  			g.drawString(shortcut,getWidth() - (fm.stringWidth(
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java	2024-08-03 19:53:18.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java	2025-04-23 14:26:16.757848751 +0200
-@@ -94,7 +94,7 @@
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java	2025-08-23 17:10:11.503674580 +0200
+@@ -30,6 +30,7 @@
+ import org.gjt.sp.jedit.gui.KeyEventTranslator;
+ import org.gjt.sp.jedit.gui.statusbar.HoverSetStatusMouseHandler;
+ import org.jedit.keymap.Keymap;
++import javax.accessibility.AccessibleContext;
+ //}}}
+ 
+ /**
+@@ -54,11 +55,14 @@
+ 			setToolTipText(toolTip);
+ 		}
+ 
++		if (shortcut != null)
++			putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, label + " (" + shortcut + ")");
++
+ 		if (OperatingSystem.hasScreenMenuBar() && shortcut != null)
+ 		{
+ 			if (jEdit.getBooleanProperty("menu.multiShortcut", false))
+ 			{
+-				setText(label + " ( " + shortcut + " )");
++				setText(label + " (" + shortcut + ")");
+ 			}
+ 			else
+ 			{
+@@ -94,7 +98,7 @@
  
  		if(shortcut != null)
  		{
@@ -36,7 +60,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0
  			d.width += (fm.stringWidth(shortcut) + fm.stringWidth("AAAA"));
  		}
  		return d;
-@@ -109,11 +109,9 @@
+@@ -109,11 +113,9 @@
  		if(shortcut != null)
  		{
  			Graphics2D g2 = (Graphics2D)g;
@@ -50,7 +74,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0
  			FontMetrics fm = g.getFontMetrics();
  			Insets insets = getInsets();
  			g.drawString(shortcut,getWidth() - (fm.stringWidth(
-@@ -122,12 +120,6 @@
+@@ -122,12 +124,6 @@
  		}
  	} //}}}
  
@@ -63,7 +87,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/EnhancedMenuItem.java jedit5.7.0
  	//{{{ Private members
  
  	//{{{ Instance variables
-@@ -135,25 +127,5 @@
+@@ -135,25 +131,5 @@
  	private String shortcut;
  	//}}}
  
