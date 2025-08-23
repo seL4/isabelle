@@ -1571,3 +1571,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/JEditTextAreaFactory.java j
 +        return new JEditTextArea(view);
 +    }
 +}
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java	2025-08-23 18:40:22.465744832 +0200
+@@ -86,7 +86,7 @@
+ 		final JTextField text = new JTextField();
+ 		text.setToolTipText(jEdit.getProperty("recent-files.textfield.tooltip") +
+ 			": " + jEdit.getProperty("glob.tooltip"));
+-		menu.add(text);
++		// menu.add(text);
+ 		text.addKeyListener(new KeyAdapter()
+ 		{
+ 			@Override
