@@ -36,10 +36,21 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.7.0-patched/
  		protected boolean removeEldestEntry(Map.Entry<GlyphKey, GlyphData> eldest)
  		{
  			return size() > capacity;
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-08-03 19:53:18.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-10-29 11:50:54.066016546 +0100
-@@ -919,6 +919,11 @@
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2025-08-23 12:24:45.607251675 +0200
+@@ -87,7 +87,9 @@
+ 		//{{{ Initialize some misc. stuff
+ 		selectionManager = new SelectionManager(this);
+ 		chunkCache = new ChunkCache(this);
+-		painter = new TextAreaPainter(this);
++		TextAreaPainterFactory painterFactory =
++			ServiceManager.getService(TextAreaPainterFactory.class, "painter-factory");
++		painter = painterFactory == null ? new TextAreaPainter(this) : painterFactory.create(this);
+ 		elasticTabstopsExpander = new ElasticTabstopsTabExpander(this);
+ 		gutter = new Gutter(this);
+ 		gutter.setMouseActionsProvider(new MouseActions(propertyManager, "gutter"));
+@@ -919,6 +921,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
  
@@ -51,7 +62,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pat
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-@@ -1627,8 +1632,8 @@
+@@ -1627,8 +1634,8 @@
  		}
  
  		// Scan backwards, trying to find a bracket
@@ -62,7 +73,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pat
  		int count = 1;
  		char openBracket = '\0';
  		char closeBracket = '\0';
-@@ -4983,6 +4988,7 @@
+@@ -4983,6 +4990,7 @@
  	final Point offsetXY;
  
  	boolean lastLinePartial;
@@ -70,6 +81,31 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pat
  
  	boolean blink;
  	//}}}
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java	1970-01-01 01:00:00.000000000 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java	2025-08-23 12:23:21.088223187 +0200
+@@ -0,0 +1,9 @@
++package org.gjt.sp.jedit.textarea;
++
++public class TextAreaPainterFactory
++{
++    public TextAreaPainter create(TextArea textArea)
++    {
++        return new TextAreaPainter(textArea);
++    }
++}
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainter.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainter.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainter.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainter.java	2025-08-23 12:44:12.625895785 +0200
+@@ -994,7 +994,7 @@
+ 	 * Creates a new painter. Do not create instances of this class
+ 	 * directly.
+ 	 */
+-	TextAreaPainter(TextArea textArea)
++	public TextAreaPainter(TextArea textArea)
+ 	{
+ 		enableEvents(AWTEvent.FOCUS_EVENT_MASK
+ 			| AWTEvent.KEY_EVENT_MASK
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-08-03 19:53:20.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/TextUtilities.java	2024-10-29 11:50:54.066016546 +0100
@@ -857,9 +893,9 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/RegisterViewer.java jedit5.7.0-pa
  		clearRegister.setToolTipText(GenericGUIUtilities.prettifyMenuLabel(
  			jEdit.getProperty("clear-string-register.label")));
  		clearRegister.addActionListener(e -> clearSelectedIndex());
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java	2024-08-03 19:53:14.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2025-05-15 21:20:18.075698848 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jEdit.java	2025-08-23 12:21:08.098088170 +0200
 @@ -674,6 +674,12 @@
  			return value;
  	} //}}}
@@ -912,7 +948,18 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/o
  	} //}}}
  
  	//{{{ setTemporaryProperty() method
-@@ -4233,7 +4244,7 @@
+@@ -2615,7 +2626,9 @@
+ 				view.getEditPane().saveCaretInfo();
+ 			}
+ 
+-			View newView = new View(buffer,config);
++			ViewFactory viewFactory = ServiceManager.getService(ViewFactory.class, "view-factory");
++			View newView =
++				viewFactory == null ? new View(buffer,config) : viewFactory.create(buffer,config);
+ 			viewManager.addViewToList(newView);
+ 
+ 			EditBus.send(new ViewUpdate(newView,ViewUpdate.CREATED));
+@@ -4233,7 +4246,7 @@
  	} //}}}
  
  	//{{{ gotoMarker() method
@@ -921,18 +968,6 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/jEdit.java jedit5.7.0-patched/jEdit/o
  		final String marker)
  	{
  		AwtRunnableQueue.INSTANCE.runAfterIoTasks(new Runnable()
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java
---- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java	2024-08-03 19:53:16.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/BufferSwitcher.java	2025-05-13 16:29:14.196283445 +0200
-@@ -58,7 +58,7 @@
- 	public static final DataFlavor BufferDataFlavor = new DataFlavor(BufferTransferableData.class, DataFlavor.javaJVMLocalObjectMimeType);
- 
- 	// actual colors will be set in constructor, here are just fallback values
--	static Color defaultColor   = Color.BLACK;
-+	static Color defaultColor   = GUIUtilities.defaultFgColor();
- 	static Color defaultBGColor = Color.LIGHT_GRAY;
- 
- 	public BufferSwitcher(final EditPane editPane)
 diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/LogViewer.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/LogViewer.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/LogViewer.java	2024-08-03 19:53:16.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/LogViewer.java	2025-05-14 11:05:39.544481221 +0200
@@ -1439,9 +1474,22 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/options/AppearanceOptionPane.java jed
  
  		// This is handled a little differently from other jEdit settings
  		// as this flag needs to be known very early in the
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/ViewFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/ViewFactory.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/ViewFactory.java	1970-01-01 01:00:00.000000000 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/ViewFactory.java	2025-08-23 12:25:51.494671519 +0200
+@@ -0,0 +1,9 @@
++package org.gjt.sp.jedit;
++
++public class ViewFactory
++{
++    public View create(Buffer buffer, View.ViewConfig config)
++    {
++        return new View(buffer, config);
++    }
++}
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java	2025-08-22 13:22:50.795334674 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/View.java	2025-08-23 13:08:26.323848617 +0200
 @@ -1264,15 +1264,10 @@
  
  		StringBuilder title = new StringBuilder();
@@ -1462,6 +1510,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/View.java jedit5.7.0-patched/jEdit/o
  
  		for(int i = 0; i < buffers.size(); i++)
  		{
+@@ -1355,7 +1350,7 @@
+ 	View next;
+ 
+ 	//{{{ View constructor
+-	View(Buffer buffer, ViewConfig config)
++	public View(Buffer buffer, ViewConfig config)
+ 	{
+ 		fullScreenMode = false;
+ 		menuBar = null;
 @@ -2070,7 +2065,11 @@
  
  	private EditPane createEditPane(@Nullable BufferSet bufferSetSource, @Nonnull Buffer buffer)
