@@ -50,6 +50,13 @@ object PIDE {
   def plugin: Main_Plugin =
     get_plugin.getOrElse(error("Uninitialized Isabelle/jEdit plugin"))
 
+  def title: String =
+    proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
+      (get_plugin match {
+        case Some(main) => "/" + main.session.resources.session_base.session_name
+        case None => ""
+      })
+
   def options: JEdit_Options = plugin.options
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
@@ -268,14 +275,10 @@ class Main_Plugin extends EBPlugin {
   }
 
   private def init_title(view: View): Unit = {
-    val title =
-      proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
-        "/" + PIDE.resources.session_base.session_name
     val marker = "\u200B"
-
     val old_title = view.getViewConfig.title
     if (old_title == null || old_title.startsWith(marker)) {
-      view.setUserTitle(marker + title)
+      view.setUserTitle(marker + PIDE.title)
     }
   }
 
