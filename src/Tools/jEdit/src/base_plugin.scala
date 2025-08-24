@@ -9,12 +9,16 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.util.Locale
+
 import org.gjt.sp.jedit.{EBMessage, Debug, EBPlugin}
 import org.gjt.sp.util.SyntaxUtilities
 
 
 class Base_Plugin extends EBPlugin {
   override def start(): Unit = {
+    Locale.setDefault(Locale.ENGLISH)
+
     Isabelle_System.init()
 
     GUI.use_isabelle_fonts()
