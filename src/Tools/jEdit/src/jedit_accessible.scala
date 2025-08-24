@@ -12,7 +12,7 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit
-import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory}
+import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory, TextUtilities}
 import org.gjt.sp.jedit.bufferset.BufferSet
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea => TextArea_JEdit,
@@ -103,6 +103,9 @@ object JEdit_Accessible {
     protected val accessible_text: AccessibleText = new Accessible_Text
 
     protected class Accessible_Text extends AccessibleText {
+      private def get_text(range: Text.Range): Option[Text.Info[String]] =
+        JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
+
       private def get_character(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
           val breaker = new TextArea_JEdit.LineCharacterBreaker(text_area, offset)
@@ -114,7 +117,43 @@ object JEdit_Accessible {
               val j = breaker.nextOf(i)
               Text.Range(j, breaker.nextOf(j))
             }
-          JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
+          get_text(range)
+        }
+
+      private def get_word(offset: Text.Offset, inc: Int = 0): Option[String] =
+        JEdit_Lib.buffer_lock(buffer) {
+          if (offset < 0 || offset >= buffer.getLength) None
+          else {
+            val line = text_area.getLineOfOffset(offset)
+            val line1 = if (line > 0) line - 1 else line
+            val line2 = if (line < text_area.getLineCount - 1) line + 1 else line
+
+            val text_start = text_area.getLineStartOffset(line1)
+            val text_stop = text_area.getLineEndOffset(line2)
+            val text = text_area.getText(text_start, text_stop - text_start)
+
+            def word_range(pos: Int): Text.Range = {
+              val a = buffer.getStringProperty("noWordSep")
+              val b = text_area.getJoinNonWordChars
+              val start = TextUtilities.findWordStart(text, pos - text_start, a, b, false, false)
+              val stop = TextUtilities.findWordEnd(text, pos - text_start + 1, a, b, false, false)
+              Text.Range(start + text_start, stop + text_start)
+            }
+
+            val range = word_range(offset)
+            val result =
+              if (inc == 0) get_text(range)
+              else if (inc < 0 && range.start > 0) get_text(word_range(range.start - 1))
+              else if (inc > 0 && range.stop > 0 && range.stop < buffer.getLength - 1) {
+                get_text(word_range(range.stop))
+              }
+              else None
+            result.map(info =>
+              cat_lines(
+                split_lines(info.info)
+                  .reverse.dropWhile(_.isEmpty)
+                  .reverse.dropWhile(_.isEmpty)))
+          }
         }
 
       override def getIndexAtPoint(p: Point): Int = {
@@ -138,22 +177,22 @@ object JEdit_Accessible {
 
       override def getAtIndex(part: Int, index: Int): String =
         part match {
-          case AccessibleText.CHARACTER =>
-            get_character(index).map(_.info).orNull
+          case AccessibleText.CHARACTER => get_character(index).map(_.info).orNull
+          case AccessibleText.WORD => get_word(index).orNull
           case _ => null
         }
 
       override def getAfterIndex(part: Int, index: Int): String =
         part match {
-          case AccessibleText.CHARACTER =>
-            get_character(index, inc = 1).map(_.info).orNull
+          case AccessibleText.CHARACTER => get_character(index, inc = 1).map(_.info).orNull
+          case AccessibleText.WORD => get_word(index, inc = 1).orNull
           case _ => null
         }
 
       override def getBeforeIndex(part: Int, index: Int): String =
         part match {
-          case AccessibleText.CHARACTER =>
-            get_character(index, inc = -1).map(_.info).orNull
+          case AccessibleText.CHARACTER => get_character(index, inc = -1).map(_.info).orNull
+          case AccessibleText.WORD => get_word(index, inc = -1).orNull
           case _ => null
         }
 
