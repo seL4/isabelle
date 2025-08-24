@@ -103,12 +103,17 @@ object JEdit_Accessible {
     protected val accessible_text: AccessibleText = new Accessible_Text
 
     protected class Accessible_Text extends AccessibleText {
-      private def get_character(i: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
+      private def get_character(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          val range0 = JEdit_Lib.point_range(buffer, i)
+          val breaker = new TextArea_JEdit.LineCharacterBreaker(text_area, offset)
+          val i = if (breaker.offsetIsBoundary(offset)) offset else breaker.previousOf(offset)
           val range =
-            if (inc == 0) range0
-            else JEdit_Lib.point_range(buffer, if (inc > 0) range0.stop else range0.start - 1)
+            if (inc == 0) Text.Range(i, breaker.nextOf(i))
+            else if (inc < 0) Text.Range(breaker.previousOf(i), i)
+            else {
+              val j = breaker.nextOf(i)
+              Text.Range(j, breaker.nextOf(j))
+            }
           JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
         }
 
