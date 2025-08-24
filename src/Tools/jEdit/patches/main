@@ -38,7 +38,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.7.0-patched/
  			return size() > capacity;
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-08-03 19:53:18.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2025-08-23 12:24:45.607251675 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2025-08-24 16:31:35.254675884 +0200
 @@ -87,7 +87,9 @@
  		//{{{ Initialize some misc. stuff
  		selectionManager = new SelectionManager(this);
@@ -81,6 +81,51 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  
  	boolean blink;
  	//}}}
+@@ -6297,7 +6305,7 @@
+ 		private final BreakIterator charBreaker;
+ 		private final int index0Offset;
+ 
+-		LineCharacterBreaker(TextArea textArea, int offset)
++		public LineCharacterBreaker(TextArea textArea, int offset)
+ 		{
+ 			final int line = textArea.getLineOfOffset(offset);
+ 			charBreaker = BreakIterator.getCharacterInstance();
+@@ -6348,12 +6356,12 @@
+ 		// This class adapt CharSequence, which is used to avoid
+ 		// text copy, to CharacterIterator, which is used to pass
+ 		// a text to BreakIterator.
+-		private static class CharIterator implements CharacterIterator
++		public static class CharIterator implements CharacterIterator
+ 		{
+ 			private final CharSequence sequence;
+ 			private int index;
+ 
+-			CharIterator(CharSequence sequence)
++			public CharIterator(CharSequence sequence)
+ 			{
+ 				this.sequence = sequence;
+ 				index = 0;
+@@ -6455,17 +6463,17 @@
+ 		} //}}}
+ 	} //}}}
+ 
+-	private int getPrevCharacterOffset(int offset)
++	public int getPrevCharacterOffset(int offset)
+ 	{
+ 		return new LineCharacterBreaker(this, offset).previousOf(offset);
+ 	}
+ 
+-	private int getNextCharacterOffset(int offset)
++	public int getNextCharacterOffset(int offset)
+ 	{
+ 		return new LineCharacterBreaker(this, offset).nextOf(offset);
+ 	}
+ 
+-	private int getCharacterBoundaryAt(int offset)
++	public int getCharacterBoundaryAt(int offset)
+ 	{
+ 		final LineCharacterBreaker charBreaker =
+ 			new LineCharacterBreaker(this, offset);
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java	1970-01-01 01:00:00.000000000 +0100
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaPainterFactory.java	2025-08-23 12:23:21.088223187 +0200
