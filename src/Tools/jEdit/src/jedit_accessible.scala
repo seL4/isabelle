@@ -108,16 +108,19 @@ object JEdit_Accessible {
 
       private def get_character(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          val breaker = new TextArea_JEdit.LineCharacterBreaker(text_area, offset)
-          val i = if (breaker.offsetIsBoundary(offset)) offset else breaker.previousOf(offset)
-          val range =
-            if (inc == 0) Text.Range(i, breaker.nextOf(i))
-            else if (inc < 0) Text.Range(breaker.previousOf(i), i)
-            else {
-              val j = breaker.nextOf(i)
-              Text.Range(j, breaker.nextOf(j))
-            }
-          get_text(range)
+          if (offset < 0 || offset >= buffer.getLength) None
+          else {
+            val breaker = new TextArea_JEdit.LineCharacterBreaker(text_area, offset)
+            val i = if (breaker.offsetIsBoundary(offset)) offset else breaker.previousOf(offset)
+            val range =
+              if (inc == 0) Text.Range(i, breaker.nextOf(i))
+              else if (inc < 0) Text.Range(breaker.previousOf(i), i)
+              else {
+                val j = breaker.nextOf(i)
+                Text.Range(j, breaker.nextOf(j))
+              }
+            get_text(range)
+          }
         }
 
       private def get_word(offset: Text.Offset, inc: Int = 0): Option[String] =
