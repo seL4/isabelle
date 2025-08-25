@@ -12,14 +12,15 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit
-import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory, TextUtilities}
+import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory, TextUtilities, Registers}
 import org.gjt.sp.jedit.bufferset.BufferSet
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea => TextArea_JEdit,
-  TextAreaPainter, TextAreaPainterFactory}
+  TextAreaPainter, TextAreaPainterFactory, Selection}
 
 import java.awt.{Point, Rectangle}
-import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText}
+import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText,
+  AccessibleEditableText}
 import javax.swing.{JPanel, SwingUtilities}
 import javax.swing.text.{AttributeSet, SimpleAttributeSet}
 
@@ -96,13 +97,14 @@ object JEdit_Accessible {
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleText: AccessibleText = accessible_text
+      override def getAccessibleEditableText: AccessibleEditableText = accessible_text
       override def getAccessibleChildrenCount: Int = 0
       override def getAccessibleChild(i: Int): Accessible = null
     }
 
-    protected val accessible_text: AccessibleText = new Accessible_Text
+    protected val accessible_text: AccessibleEditableText = new Accessible_Text
 
-    protected class Accessible_Text extends AccessibleText {
+    protected class Accessible_Text extends AccessibleEditableText {
       private def get_text(range: Text.Range): Option[Text.Info[String]] =
         JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
 
@@ -199,8 +201,8 @@ object JEdit_Accessible {
           case _ => null
         }
 
-      override def getCharacterAttribute(i: Int): AttributeSet =
-        SimpleAttributeSet.EMPTY
+      override def getCharacterAttribute(i: Int): AttributeSet = SimpleAttributeSet.EMPTY
+      override def setAttributes(start: Int, stop: Int, att: AttributeSet): Unit = {}
 
       override def getSelectionStart: Int =
         if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
@@ -217,6 +219,51 @@ object JEdit_Accessible {
           buffer.getText(start, stop - start)
         }
         else ""
+
+      override def selectText(start: Int, stop: Int): Unit = {
+        text_area.selectNone()
+        text_area.addToSelection(new Selection.Range(start min stop, start max stop))
+      }
+
+      override def cut(start: Int, stop: Int): Unit = {
+        selectText(start, stop)
+        Registers.cut(text_area, '$')
+      }
+
+      override def paste(start: Int): Unit = {
+        selectText(start, start)
+        Registers.paste(text_area, '$')
+      }
+
+      override def delete(start: Int, stop: Int): Unit = {
+        selectText(start, stop)
+        buffer.remove(start min stop, (stop - start).abs)
+      }
+
+      override def getTextRange(start: Int, stop: Int): String =
+        JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
+
+      override def setTextContents(s: String): Unit =
+        JEdit_Lib.buffer_edit(buffer) {
+          text_area.selectNone()
+          buffer.remove(0, buffer.getLength)
+          buffer.insert(0, s)
+        }
+
+      override def insertTextAtIndex(start: Int, s: String): Unit =
+        JEdit_Lib.buffer_edit(buffer) {
+          selectText(start, start)
+          buffer.insert(start, s)
+        }
+
+      override def replaceText(start: Int, stop: Int, s: String): Unit =
+        JEdit_Lib.buffer_edit(buffer) {
+          selectText(start, stop)
+          val a = start min stop
+          val b = start max stop
+          buffer.remove(a, b - a)
+          buffer.insert(a, s)
+        }
     }
   }
 
