@@ -202,7 +202,9 @@ object JEdit_Accessible {
         }
 
       override def getCharacterAttribute(i: Int): AttributeSet = SimpleAttributeSet.EMPTY
-      override def setAttributes(start: Int, stop: Int, att: AttributeSet): Unit = {}
+
+      override def setAttributes(start: Int, stop: Int, att: AttributeSet): Unit =
+        if (!buffer.isReadOnly) {}
 
       override def getSelectionStart: Int =
         if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
@@ -220,49 +222,59 @@ object JEdit_Accessible {
         }
         else ""
 
-      override def selectText(start: Int, stop: Int): Unit = {
-        text_area.selectNone()
-        text_area.addToSelection(new Selection.Range(start min stop, start max stop))
-      }
+      override def selectText(start: Int, stop: Int): Unit =
+        if (!buffer.isReadOnly) {
+          text_area.selectNone()
+          text_area.addToSelection(new Selection.Range(start min stop, start max stop))
+        }
 
-      override def cut(start: Int, stop: Int): Unit = {
-        selectText(start, stop)
-        Registers.cut(text_area, '$')
-      }
+      override def cut(start: Int, stop: Int): Unit =
+        if (!buffer.isReadOnly) {
+          selectText(start, stop)
+          Registers.cut(text_area, '$')
+        }
 
-      override def paste(start: Int): Unit = {
-        selectText(start, start)
-        Registers.paste(text_area, '$')
-      }
+      override def paste(start: Int): Unit =
+        if (!buffer.isReadOnly) {
+          selectText(start, start)
+          Registers.paste(text_area, '$')
+        }
 
-      override def delete(start: Int, stop: Int): Unit = {
-        selectText(start, stop)
-        buffer.remove(start min stop, (stop - start).abs)
-      }
+      override def delete(start: Int, stop: Int): Unit =
+        if (!buffer.isReadOnly) {
+          selectText(start, stop)
+          buffer.remove(start min stop, (stop - start).abs)
+        }
 
       override def getTextRange(start: Int, stop: Int): String =
         JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
 
       override def setTextContents(s: String): Unit =
-        JEdit_Lib.buffer_edit(buffer) {
-          text_area.selectNone()
-          buffer.remove(0, buffer.getLength)
-          buffer.insert(0, s)
+        if (!buffer.isReadOnly) {
+          JEdit_Lib.buffer_edit(buffer) {
+            text_area.selectNone()
+            buffer.remove(0, buffer.getLength)
+            buffer.insert(0, s)
+          }
         }
 
       override def insertTextAtIndex(start: Int, s: String): Unit =
-        JEdit_Lib.buffer_edit(buffer) {
-          selectText(start, start)
-          buffer.insert(start, s)
+        if (!buffer.isReadOnly) {
+          JEdit_Lib.buffer_edit(buffer) {
+            selectText(start, start)
+            buffer.insert(start, s)
+          }
         }
 
       override def replaceText(start: Int, stop: Int, s: String): Unit =
-        JEdit_Lib.buffer_edit(buffer) {
-          selectText(start, stop)
-          val a = start min stop
-          val b = start max stop
-          buffer.remove(a, b - a)
-          buffer.insert(a, s)
+        if (!buffer.isReadOnly) {
+          JEdit_Lib.buffer_edit(buffer) {
+            selectText(start, stop)
+            val a = start min stop
+            val b = start max stop
+            buffer.remove(a, b - a)
+            buffer.insert(a, s)
+          }
         }
     }
   }
