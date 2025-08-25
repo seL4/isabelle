@@ -1911,7 +1911,8 @@ by(simp add: bi_unique_alt_def left_unique_rel_filter right_unique_rel_filter)
 
 lemma eventually_parametric [transfer_rule]:
   "((A ===> (=)) ===> rel_filter A ===> (=)) eventually eventually"
-by(auto 4 4 intro!: rel_funI elim!: rel_filter.cases simp add: eventually_map_filter_on dest: rel_funD intro: always_eventually elim!: eventually_rev_mp)
+  unfolding rel_fun_def
+  by(force elim!: rel_filter.cases eventually_rev_mp simp add: eventually_map_filter_on intro: always_eventually)
 
 lemma frequently_parametric [transfer_rule]: "((A ===> (=)) ===> rel_filter A ===> (=)) frequently frequently"
   unfolding frequently_def[abs_def] by transfer_prover

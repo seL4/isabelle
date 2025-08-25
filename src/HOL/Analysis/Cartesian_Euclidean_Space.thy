@@ -512,7 +512,7 @@ proposition differential_zero_maxmin_cart:
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
 
 lemma vec_cbox_1_eq [simp]:
-  shows "vec ` cbox u v = cbox (vec u) (vec v ::real^1)"
+  shows "vec ` {u..v} = cbox (vec u) (vec v ::real^1)"
   by (force simp: Basis_vec_def cart_eq_inner_axis [symmetric] mem_box)
 
 lemma vec_nth_cbox_1_eq [simp]:

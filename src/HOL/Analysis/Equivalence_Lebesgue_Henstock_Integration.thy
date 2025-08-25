@@ -2487,7 +2487,7 @@ proof -
           also have "\<dots> = (\<Sum>(i,l) \<in> d \<times> snd ` p. norm (integral (i\<inter>l) f))"
             by (simp add: sum.cartesian_product)
           also have "\<dots> = (\<Sum>x \<in> d \<times> snd ` p. norm (integral (case_prod (\<inter>) x) f))"
-            by (force simp: split_def intro!: sum.cong)
+            by (simp add: split_def)
           also have "\<dots> = (\<Sum>k\<in>{i \<inter> l |i l. i \<in> d \<and> l \<in> snd ` p}. norm (integral k f))"
           proof -
             have eq0: " (integral (l1 \<inter> k1) f) = 0"
@@ -2606,7 +2606,7 @@ proof -
                 unfolding sum_distrib_right[symmetric] using uv by auto
             qed
             show ?thesis
-              by (subst sum_Sigma_product[symmetric]) (auto intro!: sumeq sum.cong p' d')
+              by (auto simp add: sumeq p' d' simp flip: sum_Sigma_product intro!: sum.cong)
           qed
           finally show ?thesis .
         qed
@@ -2714,10 +2714,9 @@ proof (rule absolutely_integrable_onI, fact)
           show "\<bar>(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) - integral (cbox a b) (\<lambda>x. norm(f x))\<bar> < e/2"
             using d1[OF p(1,2)] by (simp only: real_norm_def)
           show "(\<Sum>(x,k) \<in> p. content k *\<^sub>R norm (f x)) = (\<Sum>(x,k) \<in> p. norm (content k *\<^sub>R f x))"
-            by (auto simp: split_paired_all sum.cong [OF refl])
+            by simp
           have "(\<Sum>(x,k) \<in> p. norm (integral k f)) = (\<Sum>k\<in>snd ` p. norm (integral k f))"
-            apply (rule sum.over_tagged_division_lemma[OF p(1)])
-            by (metis Henstock_Kurzweil_Integration.integral_empty integral_open_interval norm_zero)
+            by (simp add: sum_content.box_empty_imp sum.over_tagged_division_lemma[OF p(1)])
           also have "... \<le> SDF"
             using partial_division_of_tagged_division[of p "cbox a b"] p(1)
             by (auto simp: SDF_def tagged_partial_division_of_def intro!: cSUP_upper2 D_1 D_2)
@@ -2850,8 +2849,11 @@ next
           using t by auto
         finally have eq1: "?\<mu> (\<Union>\<F>) = (\<Sum>x\<in>\<F>. content x * indicator S (t x))" .
         have eq2: "(\<Sum>K\<in>\<F>. ?\<mu> (K \<inter> S)) = (\<Sum>K\<in>\<F>. integral K (indicator S))"
-          apply (rule sum.cong [OF refl])
-          by (metis integral_indicator \<F>div \<open>S \<in> lmeasurable\<close> division_ofD(4) fmeasurable.Int inf.commute lmeasurable_cbox)
+        proof (rule sum.cong [OF refl])
+          show "\<And>x. x \<in> \<F> \<Longrightarrow> measure lebesgue (x \<inter> S) = integral x (indicat_real S)"
+            by (metis integral_indicator \<F>div \<open>S \<in> lmeasurable\<close> division_ofD(4) fmeasurable.Int 
+                inf.commute lmeasurable_cbox)
+        qed
         have "\<bar>\<Sum>(x,K)\<in>(\<lambda>K. (t K, K)) ` \<F>. content K * indicator S x - integral K (indicator S)\<bar> \<le> e"
           using Henstock_lemma_part1 [of "indicator S::'a\<Rightarrow>real", OF _ \<open>e > 0\<close> \<open>gauge \<gamma>\<close> _ tagged fine]
             indS_int norme by auto
@@ -3482,15 +3484,15 @@ proof -
     fix x
     have "(\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. ((f x \<bullet> i + g x \<bullet> i + \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) / 2) *\<^sub>R i)"
       by (force intro: sum.cong)
-    also have "... = (1 / 2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i + \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
+    also have "... = (1/2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i + \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
       by (simp add: scaleR_right.sum)
-    also have "... = (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
+    also have "... = (1/2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
       by (simp add: sum.distrib algebra_simps euclidean_representation)
     finally
     show "(\<Sum>i\<in>Basis. max (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
-         (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
+          (1/2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
   qed
-  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
+  moreover have "(\<lambda>x. (1/2) *\<^sub>R (f x + g x + (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
     using absolutely_integrable_abs [OF set_integral_diff(1) [OF assms]]
     by (intro set_integral_add absolutely_integrable_scaleR_left assms) (simp add: algebra_simps)
@@ -3506,8 +3508,7 @@ corollary absolutely_integrable_max_1:
 lemma absolutely_integrable_min:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "f absolutely_integrable_on S" "g absolutely_integrable_on S"
-   shows "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i)
-            absolutely_integrable_on S"
+   shows "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) absolutely_integrable_on S"
 proof -
   have "(\<lambda>x. \<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
         (\<lambda>x. (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))"
@@ -3515,15 +3516,15 @@ proof -
     fix x
     have "(\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) = (\<Sum>i\<in>Basis. ((f x \<bullet> i + g x \<bullet> i - \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) / 2) *\<^sub>R i)"
       by (force intro: sum.cong)
-    also have "... = (1 / 2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i - \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
+    also have "... = (1/2) *\<^sub>R (\<Sum>i\<in>Basis. (f x \<bullet> i + g x \<bullet> i - \<bar>f x \<bullet> i - g x \<bullet> i\<bar>) *\<^sub>R i)"
       by (simp add: scaleR_right.sum)
-    also have "... = (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
+    also have "... = (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))"
       by (simp add: sum.distrib sum_subtractf algebra_simps euclidean_representation)
     finally
     show "(\<Sum>i\<in>Basis. min (f x \<bullet> i) (g x \<bullet> i) *\<^sub>R i) =
-         (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
+         (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i))" .
   qed
-  moreover have "(\<lambda>x. (1 / 2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
+  moreover have "(\<lambda>x. (1/2) *\<^sub>R (f x + g x - (\<Sum>i\<in>Basis. \<bar>f x \<bullet> i - g x \<bullet> i\<bar> *\<^sub>R i)))
                  absolutely_integrable_on S"
     using absolutely_integrable_abs [OF set_integral_diff(1) [OF assms]]
     by (intro set_integral_add set_integral_diff absolutely_integrable_scaleR_left assms)
@@ -3626,7 +3627,6 @@ proof -
   proof (rule has_integral_twiddle)
     show "\<exists>w z::real^1. vec ` cbox u v = cbox w z"
          "content (vec ` cbox u v :: (real^1) set) = 1 * content (cbox u v)" for u v
-      unfolding vec_cbox_1_eq
       by (auto simp: content_cbox_if_cart interval_eq_empty_cart)
     show "\<exists>w z. (\<lambda>x. x $ 1) ` cbox u v = cbox w z" for u v :: "real^1"
       using vec_nth_cbox_1_eq by blast
@@ -3673,12 +3673,10 @@ proof -
   proof (rule has_integral_twiddle)
     show "\<exists>w z::real. (\<lambda>x. x $ 1) ` cbox u v = cbox w z"
          "content ((\<lambda>x. x $ 1) ` cbox u v) = 1 * content (cbox u v)" for u v::"real^1"
-      unfolding vec_cbox_1_eq by (auto simp: content_cbox_if_cart interval_eq_empty_cart)
-    show "\<exists>w z::real^1. vec ` cbox u v = cbox w z" for u v :: "real"
-      using vec_cbox_1_eq by auto
+      by (auto simp: content_cbox_if_cart interval_eq_empty_cart)
   qed (auto simp: continuous_vec assms)
   then show ?thesis
-    using vec_cbox_1_eq by auto
+    by auto
 qed
 
 lemma has_integral_vec1_D_cbox:
