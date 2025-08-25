@@ -201,10 +201,14 @@ object JEdit_Accessible {
           case _ => null
         }
 
-      override def getCharacterAttribute(i: Int): AttributeSet = SimpleAttributeSet.EMPTY
+      override def getTextRange(start: Int, stop: Int): String =
+        JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
+
+      override def getCharacterAttribute(i: Int): AttributeSet =
+        SimpleAttributeSet.EMPTY  // FIXME
 
       override def setAttributes(start: Int, stop: Int, att: AttributeSet): Unit =
-        if (!buffer.isReadOnly) {}
+        if (!buffer.isReadOnly) {}  // FIXME
 
       override def getSelectionStart: Int =
         if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
@@ -246,9 +250,6 @@ object JEdit_Accessible {
           buffer.remove(start min stop, (stop - start).abs)
         }
 
-      override def getTextRange(start: Int, stop: Int): String =
-        JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
-
       override def setTextContents(s: String): Unit =
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
@@ -270,10 +271,8 @@ object JEdit_Accessible {
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
             selectText(start, stop)
-            val a = start min stop
-            val b = start max stop
-            buffer.remove(a, b - a)
-            buffer.insert(a, s)
+            buffer.remove(start min stop, (start - stop).abs)
+            buffer.insert(start min stop, s)
           }
         }
     }
