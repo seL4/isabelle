@@ -140,7 +140,8 @@ proof -
     using ab by (intro emeasure_mono) auto
   then show ?thesis
     using \<open>content (box a b) > 0\<close>
-    by (smt (verit, best) Sigma_Algebra.measure_def emeasure_lborel_ball_finite enn2real_mono infinity_ennreal_def)
+    by (metis Sigma_Algebra.measure_def emeasure_lborel_ball_finite enn2real_positive_iff
+        infinity_ennreal_def le_zero_eq not_gr_zero)
 qed
 
 lemma content_cball_pos:
@@ -286,7 +287,7 @@ lemma has_integral:
   "(f has_integral y) (cbox a b) \<longleftrightarrow>
     (\<forall>e>0. \<exists>\<gamma>. gauge \<gamma> \<and>
       (\<forall>\<D>. \<D> tagged_division_of (cbox a b) \<and> \<gamma> fine \<D> \<longrightarrow>
-        norm (sum (\<lambda>(x,k). content(k) *\<^sub>R f x) \<D> - y) < e))"
+        norm ((\<Sum>(x, k)\<in>\<D>. content k *\<^sub>R f x) - y) < e))"
   by (auto simp: dist_norm eventually_division_filter has_integral_def tendsto_iff)
 
 lemma has_integral_real:
@@ -1369,11 +1370,12 @@ proof -
           using mem_interior by metis
         have x: "x\<bullet>k = c"
           using x interior_subset by fastforce
-        have *: "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (\<epsilon>/2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then \<epsilon>/2 else 0)"
-          using \<open>0 < \<epsilon>\<close> k by (auto simp: inner_simps inner_not_same_Basis)
         have "(\<Sum>i\<in>Basis. \<bar>(x - (x + (\<epsilon>/2 ) *\<^sub>R k)) \<bullet> i\<bar>) =
               (\<Sum>i\<in>Basis. (if i = k then \<epsilon>/2 else 0))"
-          using "*" by (blast intro: sum.cong)
+        proof (rule sum.cong [OF refl])
+          show "\<And>i. i \<in> Basis \<Longrightarrow> \<bar>(x - (x + (\<epsilon>/2) *\<^sub>R k)) \<bullet> i\<bar> = (if i = k then \<epsilon>/2 else 0)"
+            using \<open>0 < \<epsilon>\<close> k by (auto simp: inner_not_same_Basis)
+        qed
         also have "\<dots> < \<epsilon>"
           by (subst sum.delta) (use \<open>0 < \<epsilon>\<close> in auto)
         finally have "x + (\<epsilon>/2) *\<^sub>R k \<in> ball x \<epsilon>"
@@ -1957,9 +1959,8 @@ proof cases
   have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> (\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j)) (at_right 0)"
     by (auto simp: b'_def a'_def intro!: tendsto_min tendsto_max tendsto_eq_intros)
   also have "(\<Prod>j\<in>Basis. (b' 0 - a' 0) \<bullet> j) = 0"
-    using k *
-    by (intro prod_zero bexI[OF _ k])
-       (auto simp: b'_def a'_def inner_diff inner_sum_left inner_not_same_Basis intro!: sum.cong)
+    using k * unfolding b'_def a'_def
+    by (auto simp: inner_diff intro!: prod_zero sum.cong)
   also have "((\<lambda>d. \<Prod>j\<in>Basis. (b' d - a' d) \<bullet> j) \<longlongrightarrow> 0) (at_right 0) =
     ((\<lambda>d. content (cbox a b \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d})) \<longlongrightarrow> 0) (at_right 0)"
   proof (intro tendsto_cong eventually_at_rightI)
@@ -2055,7 +2056,7 @@ proof clarsimp
         by (metis inf.orderE)
     qed
     then have *: "(\<Sum>(x,K)\<in>\<D>. content K * ?i x) = (\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x\<bullet>k - c\<bar> \<le> d}) *\<^sub>R ?i x)"
-      by (force simp add: split_paired_all intro!: sum.cong [OF refl])
+      by (force simp: split_paired_all intro!: sum.cong [OF refl])
     note p'= tagged_division_ofD[OF p(1)] and p''=division_of_tagged_division[OF p(1)]
     have "(\<Sum>(x,K)\<in>\<D>. content (K \<inter> {x. \<bar>x \<bullet> k - c\<bar> \<le> d}) * indicator {x. x \<bullet> k = c} x) < e"
     proof -
