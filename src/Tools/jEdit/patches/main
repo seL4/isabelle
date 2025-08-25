@@ -1455,10 +1455,76 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jedit5
  			renderHints.put(RenderingHints.KEY_RENDERING,
  				RenderingHints.VALUE_RENDER_QUALITY);
  		} //}}}
-diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/BrowserView.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/BrowserView.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/BrowserView.java	2024-08-03 19:53:15.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/BrowserView.java	2025-08-25 21:14:57.442610750 +0200
+@@ -26,6 +26,7 @@
+ import javax.swing.border.EmptyBorder;
+ import javax.swing.event.*;
+ import javax.swing.*;
++import javax.accessibility.AccessibleContext;
+ 
+ import static java.awt.event.InputEvent.*;
+ import java.awt.event.*;
+@@ -61,6 +62,7 @@
+ 		parentDirectories = new ParentDirectoryList();
+ 		parentDirectories.addKeyListener(keyListener);
+ 		parentDirectories.setName("parent");
++		parentDirectories.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, "Directory hierarchy");
+ 
+ 		parentDirectories.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+ 		parentDirectories.setCellRenderer(new ParentDirectoryRenderer());
+@@ -74,6 +76,8 @@
+ 		table.addMouseListener(new TableMouseHandler());
+ 		table.addKeyListener(new TableKeyListener());
+ 		table.setName("file");
++		table.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, "Directory entries");
++
+ 		JScrollPane tableScroller = new JScrollPane(table);
+ 		tableScroller.setMinimumSize(new Dimension(0,0));
+ 		tableScroller.getViewport().setBackground(table.getBackground());
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2025-05-20 15:21:39.685949775 +0200
-@@ -1195,6 +1195,7 @@
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2025-08-25 21:24:39.620005049 +0200
+@@ -30,6 +30,7 @@
+ import javax.swing.border.EmptyBorder;
+ import javax.swing.event.*;
+ import javax.swing.*;
++import javax.accessibility.AccessibleContext;
+ import java.awt.datatransfer.DataFlavor;
+ import java.awt.datatransfer.Transferable;
+ import java.awt.datatransfer.UnsupportedFlavorException;
+@@ -222,7 +223,7 @@
+ 		pathField.setInstantPopups(true);
+ 		pathField.setEnterAddsToHistory(false);
+ 		pathField.setSelectAllOnFocus(true);
+-
++		label.setLabelFor(pathField);
+ 
+ 		// because its preferred size can be quite wide, we
+ 		// don't want it to make the browser way too big,
+@@ -239,6 +240,7 @@
+ 		pathAndFilterPanel.add(pathField);
+ 
+ 		filterCheckbox = new JCheckBox(jEdit.getProperty("vfs.browser.filter"));
++		filterCheckbox.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, "Filter enabled");
+ 		filterCheckbox.setMargin(new Insets(0,0,0,0));
+ //		filterCheckbox.setRequestFocusEnabled(false);
+ 		filterCheckbox.setBorder(new EmptyBorder(0,0,0,12));
+@@ -257,9 +259,11 @@
+ 			pathAndFilterPanel.add(filterCheckbox);
+ 		}
+ 
++		String filterTooltip = jEdit.getProperty("vfs.browser.filter") + " " + jEdit.getProperty("glob.tooltip");
+ 		filterField = new JComboBox<>();
+ 		filterEditor = new HistoryComboBoxEditor("vfs.browser.filter");
+-		filterEditor.setToolTipText(jEdit.getProperty("glob.tooltip"));
++		filterEditor.putClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY, filterTooltip);
++		filterEditor.setToolTipText(filterTooltip);
+ 		filterEditor.setInstantPopups(true);
+ 		filterEditor.setSelectAllOnFocus(true);
+ 		filterEditor.addActionListener(actionHandler);
+@@ -1195,6 +1199,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
  		Buffer buffer = null;
@@ -1466,7 +1532,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-pa
  
  check_selected:
  		for (VFSFile file : selectedFiles)
-@@ -1244,7 +1245,10 @@
+@@ -1244,7 +1249,10 @@
  				}
  
  				if (_buffer != null)
@@ -1477,7 +1543,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-pa
  			}
  			// otherwise if a file is selected in OPEN_DIALOG or
  			// SAVE_DIALOG mode, just let the listener(s)
-@@ -1253,21 +1257,30 @@
+@@ -1253,21 +1261,30 @@
  
  		if(buffer != null)
  		{
@@ -1510,7 +1576,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-pa
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-@@ -1751,7 +1764,7 @@
+@@ -1751,7 +1768,7 @@
  		//{{{ MenuButton constructor
  		MenuButton()
  		{
