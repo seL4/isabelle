@@ -1328,6 +1328,23 @@ lemma bij_betw_map_prod:
   using assms unfolding bij_betw_def inj_on_def by auto
 
 
+subsection \<open>Code generator setup for paired and tripled bounded set comprehension\<close>
+
+context
+begin
+
+qualified lemma paired_bounded_Collect_eq_filter [code_unfold, no_atp]:
+  \<open>{(x, y). (x, y) \<in> A \<and> P x y} = Set.filter (\<lambda>(x, y). P x y) A\<close>
+  by auto
+
+
+qualified lemma tripled_bounded_Collect_eq_filter [code_unfold, no_atp]:
+  \<open>{(x, y, z). (x, y, z) \<in> A \<and> P x y z} = Set.filter (\<lambda>(x, y, z). P x y z) A\<close>
+  by auto
+
+end
+
+
 subsection \<open>Simproc for rewriting a set comprehension into a pointfree expression\<close>
 
 ML_file \<open>Tools/set_comprehension_pointfree.ML\<close>

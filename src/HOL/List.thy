@@ -8041,6 +8041,14 @@ qualified lemma Collect_member [code_unfold, no_atp]: \<comment> \<open>make pre
   \<open>{x. List.member xs x \<and> P x} = Set.filter P (set xs)\<close>
   by simp
 
+qualified lemma Collect_pair_member [code_unfold, no_atp]: \<comment> \<open>make preprocessor setup confluent\<close>
+  \<open>{(x, y). List.member xs (x, y) \<and> P x y} = Set.filter (\<lambda>(x, y). P x y) (set xs)\<close>
+  by auto
+
+qualified lemma Collect_triple_member [code_unfold, no_atp]: \<comment> \<open>make preprocessor setup confluent\<close>
+  \<open>{(x, y, z). List.member xs (x, y, z) \<and> P x y z} = Set.filter (\<lambda>(x, y, z). P x y z) (set xs)\<close>
+  by auto 
+
 end
 
 lemma list_all_iff [code_abbrev]:
