@@ -308,7 +308,7 @@ and add_lift_def_code_dt config var qty rhs rsp_thm par_thms lthy =
               |> Thm.close_derivation \<^here>
               |> singleton (Variable.export transfer_ctxt lthy4)
             val lthy5 = lthy4
-              |> Local_Theory.note ((Binding.empty, @{attributes [code equation]}), [f_alt_def])
+              |> Local_Theory.note ((Binding.empty, [Code.singleton_default_equation_attrib]), [f_alt_def])
               |> snd
               (* if processing a mutual datatype (there is a cycle!) the corresponding quotient 
                  will be needed later and will be forgotten later *)
@@ -538,7 +538,7 @@ and mk_rep_isom qty_isom_bundle (rty, qty, qty_isom) lthy0 =
       |> singleton(Variable.export x_ctxt lthy6)
   in
     lthy6
-    |> snd o Local_Theory.note ((Binding.empty, @{attributes [code equation]}), [rep_isom_code])
+    |> snd o Local_Theory.note ((Binding.empty, [Code.singleton_default_equation_attrib]), [rep_isom_code])
     |> Lifting_Setup.lifting_forget pointer
     |> pair (selss, diss, rep_isom_code)
   end
