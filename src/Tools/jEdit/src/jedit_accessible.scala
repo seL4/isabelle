@@ -2,8 +2,9 @@
     Author:     Makarius
 
 Support for accessible jEdit components, notably used with screenreaders:
-  - Windows: NVDA (see https://www.nvaccess.org)
-  - macOS: VoiceOver (builtin Command-F5)
+  - NVDA (Windows), see https://www.nvaccess.org
+  - JAWS (Windows), see https://support.freedomscientific.com/Downloads/JAWS
+  - VoiceOver (macOS), builtin Command-F5
 */
 
 package isabelle.jedit
