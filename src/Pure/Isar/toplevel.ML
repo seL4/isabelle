@@ -659,8 +659,6 @@ fun command_exception int tr st =
       if Exn.is_interrupt_proper exn then Exn.reraise exn
       else raise Runtime.EXCURSION_FAIL (exn, info));
 
-val command = command_exception false;
-
 end;
 
 
@@ -738,6 +736,9 @@ fun future_proofs_enabled estimate st =
 
 val empty_markers = markers [];
 val empty_trans = reset_trans #> keep (K ());
+
+fun command tr st =
+  command_exception (Options.default_bool \<^system_option>\<open>show_results\<close>) tr st;
 
 in
 
