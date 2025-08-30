@@ -509,6 +509,9 @@ object Isabelle_System {
     Library.terminate_lines(lines)
   }
 
+  def apply_patch(base_dir: Path, patch: String, strip: Int = 1): Process_Result =
+    Isabelle_System.bash("patch -p" + strip, cwd = base_dir, input = patch).check
+
   def git_clone(url: String, target: Path,
     checkout: String = "HEAD",
     ssh: SSH.System = SSH.Local,
