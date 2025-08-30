@@ -509,8 +509,20 @@ object Isabelle_System {
     Library.terminate_lines(lines)
   }
 
-  def apply_patch(base_dir: Path, patch: String, strip: Int = 1): Process_Result =
-    Isabelle_System.bash("patch -p" + strip, cwd = base_dir, input = patch).check
+  def apply_patch(base_dir: Path, patch: String,
+    strip: Int = 1,
+    progress: Progress = new Progress
+  ): Unit = {
+    with_tmp_file("patch", ext = "rej") { rej =>
+      val result =
+        Isabelle_System.bash("patch -f -p" + strip + " -r " + File.bash_path(rej),
+          cwd = base_dir, input = patch, progress_stdout = progress.echo_if(progress.verbose, _))
+      if (!result.ok) {
+        val lines = if (rej.is_file) Library.trim_split_lines(File.read(rej)) else Nil
+        error("Failed to apply patch" + if_proper(lines, ":\n") + cat_lines(lines))
+      }
+    }
+  }
 
   def git_clone(url: String, target: Path,
     checkout: String = "HEAD",
