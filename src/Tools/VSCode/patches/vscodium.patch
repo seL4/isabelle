@@ -1,0 +1,21 @@
+diff --git a/prepare_vscode.sh b/prepare_vscode.sh
+index 1182d2e..da44137 100755
+--- a/prepare_vscode.sh
++++ b/prepare_vscode.sh
+@@ -57,7 +57,6 @@ done
+ 
+ set -x
+ 
+-export ELECTRON_SKIP_BINARY_DOWNLOAD=1
+ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ 
+ if [[ "${OS_NAME}" == "linux" ]]; then
+@@ -206,7 +205,7 @@ cat product.json
+ # package.json
+ cp package.json{,.bak}
+ 
+-setpath "package" "version" "${RELEASE_VERSION%-insider}"
++setpath "package" "version" "$MS_TAG"
+ 
+ replace 's|Microsoft Corporation|VSCodium|' package.json
+ 

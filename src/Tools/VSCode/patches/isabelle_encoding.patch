@@ -1,15 +1,16 @@
 diff --git a/src/vs/workbench/services/textfile/common/encoding.ts b/src/vs/workbench/services/textfile/common/encoding.ts
+index 4fee9c5..97cbff7 100644
 --- a/src/vs/workbench/services/textfile/common/encoding.ts
 +++ b/src/vs/workbench/services/textfile/common/encoding.ts
-@@ -6,6 +6,7 @@
- import { Readable, ReadableStream, newWriteableStream, listenStream } from 'vs/base/common/stream';
- import { VSBuffer, VSBufferReadable, VSBufferReadableStream } from 'vs/base/common/buffer';
- import { IDisposable } from 'vs/base/common/lifecycle';
-+import * as isabelle_encoding from './isabelle_encoding';
+@@ -8,6 +8,7 @@ import { VSBuffer, VSBufferReadable, VSBufferReadableStream } from '../../../../
+ import { importAMDNodeModule } from '../../../../amdX.js';
+ import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
+ import { coalesce } from '../../../../base/common/arrays.js';
++import * as isabelle_encoding from './isabelle_encoding.js';
  
  export const UTF8 = 'utf8';
  export const UTF8_with_bom = 'utf8bom';
-@@ -78,7 +79,9 @@ class DecoderStream implements IDecoderStream {
+@@ -81,7 +82,9 @@ class DecoderStream implements IDecoderStream {
  	 */
  	static async create(encoding: string): Promise<DecoderStream> {
  		let decoder: IDecoderStream | undefined = undefined;
@@ -17,13 +18,13 @@ diff --git a/src/vs/workbench/services/textfile/common/encoding.ts b/src/vs/work
 +		if (encoding === isabelle_encoding.ENCODING) {
 +			decoder = isabelle_encoding.getDecoder();
 +		} else if (encoding !== UTF8) {
- 			const iconv = await import('@vscode/iconv-lite-umd');
+ 			const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
  			decoder = iconv.getDecoder(toNodeEncoding(encoding));
  		} else {
-@@ -212,7 +215,9 @@ export function toDecodeStream(source: VSBufferReadableStream, options: IDecodeS
+@@ -216,7 +219,9 @@ export function toDecodeStream(source: VSBufferReadableStream, options: IDecodeS
  
  export async function toEncodeReadable(readable: Readable<string>, encoding: string, options?: { addBOM?: boolean }): Promise<VSBufferReadable> {
- 	const iconv = await import('@vscode/iconv-lite-umd');
+ 	const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
 -	const encoder = iconv.getEncoder(toNodeEncoding(encoding), options);
 +	const encoder =
 +		encoding === isabelle_encoding.ENCODING ?
@@ -31,19 +32,19 @@ diff --git a/src/vs/workbench/services/textfile/common/encoding.ts b/src/vs/work
  
  	let bytesWritten = false;
  	let done = false;
-@@ -262,7 +267,7 @@ export async function toEncodeReadable(readable: Readable<string>, encoding: str
+@@ -266,7 +271,7 @@ export async function toEncodeReadable(readable: Readable<string>, encoding: str
  export async function encodingExists(encoding: string): Promise<boolean> {
- 	const iconv = await import('@vscode/iconv-lite-umd');
+ 	const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
  
 -	return iconv.encodingExists(toNodeEncoding(encoding));
 +	return encoding === isabelle_encoding.ENCODING || iconv.encodingExists(toNodeEncoding(encoding));
  }
  
  export function toNodeEncoding(enc: string | null): string {
-@@ -479,6 +484,11 @@ export function detectEncodingFromBuffer({ buffer, bytesRead }: IReadResult, aut
- }
+@@ -510,6 +515,11 @@ export function detectEncodingFromBuffer({ buffer, bytesRead }: IReadResult, aut
+ type EncodingsMap = { [encoding: string]: { labelLong: string; labelShort: string; order: number; encodeOnly?: boolean; alias?: string; guessableName?: string } };
  
- export const SUPPORTED_ENCODINGS: { [encoding: string]: { labelLong: string; labelShort: string; order: number; encodeOnly?: boolean; alias?: string } } = {
+ export const SUPPORTED_ENCODINGS: EncodingsMap = {
 +	utf8isabelle: {
 +		labelLong: isabelle_encoding.LABEL,
 +		labelShort: isabelle_encoding.LABEL,

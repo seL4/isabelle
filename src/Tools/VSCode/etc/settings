@@ -1,5 +1,4 @@
 # -*- shell-script -*- :mode=shellscript:
 
-ISABELLE_VSCODE_VERSION="1.70.1"
 ISABELLE_VSCODE_HOME="$ISABELLE_HOME/src/Tools/VSCode"
 ISABELLE_VSCODE_SETTINGS="$ISABELLE_HOME_USER/vscode"

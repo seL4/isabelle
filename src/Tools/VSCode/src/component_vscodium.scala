@@ -17,11 +17,37 @@ import java.util.Base64
 object Component_VSCodium {
   /* global parameters */
 
-  lazy val version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
+  val vscodium_version: String = "1.103.25610"
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
   private val resources = Path.explode("resources")
+
+  private def read_patch(name: String): String =
+    File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + Path.basic(name).patch)
+
+
+  /* build environment */
+
+  val build_env: List[String] =
+    List(
+      "VSCODE_QUALITY=stable",
+      "VSCODE_LATEST=no",
+      "CI_BUILD=no",
+      "SKIP_ASSETS=yes",
+      "SHOULD_BUILD=yes",
+      "SHOULD_BUILD_REH=no",
+      "SHOULD_BUILD_REH_WEB=no")
+
+  def build_upstream_env(dir: Path): List[String] = {
+    val str = File.read(dir + Path.explode("upstream/stable.json"))
+    val json = JSON.parse(str)
+    (for {
+      tag <- JSON.string(json, "tag")
+      commit <- JSON.string(json, "commit")
+    } yield List("MS_TAG=" + tag, "MS_COMMIT=" + commit))
+      .getOrElse(error("Malformed upstream information:\n" + str))
+  }
 
 
   /* Isabelle symbols (static subset only) */
@@ -66,12 +92,12 @@ object Component_VSCodium {
   ) {
     def primary: Boolean = platform == Platform.Family.linux
 
-    def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
+    def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", vscodium_version)
     def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
-        Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
+        Isabelle_System.download_file(vscodium_download + "/" + vscodium_version + "/" + download_name,
           download_file, progress = progress)
 
         progress.echo("Extract ...")
@@ -81,10 +107,10 @@ object Component_VSCodium {
 
     def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
       progress.echo("Getting VSCodium repository ...")
-      Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = version)
+      Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = vscodium_version)
 
       progress.echo("Getting VSCode repository ...")
-      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir).check
+      Isabelle_System.bash(environment(build_dir) + "\n" + "./get_repo.sh", cwd = build_dir).check
     }
 
     def platform_dir(dir: Path): Path = {
@@ -96,8 +122,8 @@ object Component_VSCodium {
 
     def build_dir(dir: Path): Path = dir + Path.explode(build_name)
 
-    def environment: String =
-      (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
+    def environment(dir: Path): String =
+      (build_env ::: build_upstream_env(dir) ::: env)
         .map(s => "export " + s + "\n").mkString
 
     def patch_sources(base_dir: Path, progress: Progress = new Progress): String = {
@@ -121,12 +147,8 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        {
-          val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
-          for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
-            val patch = File.read(patches_dir + Path.explode(name).patch)
-            Isabelle_System.apply_patch(dir, patch, progress = progress)
-          }
+        for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
+          Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
         Isabelle_System.make_patch(base_dir, dir.base.orig, dir.base)
@@ -182,7 +204,7 @@ object Component_VSCodium {
         download(download_dir, progress = progress)
         val dir1 = init_resources(download_dir)
         val dir2 = init_resources(target_dir)
-        for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
+        for (name <- Seq("app/node_modules", "app/node_modules.asar")) {
           val path = Path.explode(name)
           Isabelle_System.rm_tree(dir2 + path)
           Isabelle_System.copy_dir(dir1 + path, dir2 + path)
@@ -223,7 +245,7 @@ object Component_VSCodium {
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)
   private def file_checksum(path: Path): String = {
-    val digest = MessageDigest.getInstance("MD5")
+    val digest = MessageDigest.getInstance("SHA-256")
     digest.update(Bytes.read(path).make_array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
       .text.replaceAll("=", "")
@@ -232,18 +254,19 @@ object Component_VSCodium {
   private val platform_infos: Map[Platform.Family, Platform_Info] =
     Iterator(
       Platform_Info(Platform.Family.linux, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True")),
+        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=x64")),
       Platform_Info(Platform.Family.linux_arm, "linux-arm64-{VERSION}.tar.gz", "VSCode-linux-arm64",
         List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=arm64")),
       Platform_Info(Platform.Family.macos, "darwin-x64-{VERSION}.zip", "VSCode-darwin-x64",
-        List("OS_NAME=osx")),
+        List("OS_NAME=osx", "VSCODE_ARCH=x64")),
       Platform_Info(Platform.Family.windows, "win32-x64-{VERSION}.zip", "VSCode-win32-x64",
         List("OS_NAME=windows",
           "SHOULD_BUILD_ZIP=no",
           "SHOULD_BUILD_EXE_SYS=no",
           "SHOULD_BUILD_EXE_USR=no",
           "SHOULD_BUILD_MSI=no",
-          "SHOULD_BUILD_MSI_NOUP=no")))
+          "SHOULD_BUILD_MSI_NOUP=no",
+          "VSCODE_ARCH=x64")))
       .map(info => info.platform -> info).toMap
 
   def the_platform_info(platform: Platform.Family): Platform_Info =
@@ -262,6 +285,7 @@ object Component_VSCodium {
     Isabelle_System.require_command("node")
     Isabelle_System.require_command("yarn")
     Isabelle_System.require_command("jq")
+    Isabelle_System.require_command("rustup")
 
     if (platforms.contains(Platform.Family.windows)) {
       Isabelle_System.require_command("wine")
@@ -283,7 +307,7 @@ object Component_VSCodium {
         progress.bash(
           Library.make_lines(
             "set -e",
-            platform_info.environment,
+            platform_info.environment(build_dir),
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
@@ -309,7 +333,7 @@ object Component_VSCodium {
 
     /* component */
 
-    val component_name = "vscodium-" + version
+    val component_name = "vscodium-" + vscodium_version
     val component_dir =
       Components.Directory(target_dir + Path.explode(component_name)).create(progress = progress)
 
@@ -335,12 +359,15 @@ object Component_VSCodium {
         progress.echo("\n* Building " + platform + ":")
 
         platform_info.get_vscodium_repository(build_dir, progress = progress)
+        Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
 
         val sources_patch = platform_info.patch_sources(build_dir, progress = progress)
         if (platform_info.primary) write_patch("02-isabelle_sources", sources_patch)
 
         progress.echo("Build ...")
-        progress.bash(platform_info.environment + "\n" + "./build.sh",
+        val environment = platform_info.environment(build_dir)
+        progress.echo(environment, verbose = true)
+        progress.bash(environment + "\n" + "./build.sh",
           cwd = build_dir, echo = progress.verbose).check
 
         if (platform_info.primary) {
@@ -387,7 +414,7 @@ esac
     /* README */
 
     File.write(component_dir.README,
-      "This is VSCodium " + version + " from " + vscodium_repository +
+      "This is VSCodium " + vscodium_version + " from " + vscodium_repository +
 """
 
 It has been built from sources using "isabelle component_vscodium". This applies

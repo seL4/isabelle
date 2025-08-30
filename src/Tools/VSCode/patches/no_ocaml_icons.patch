@@ -1,4 +1,5 @@
 diff --git a/extensions/theme-seti/build/update-icon-theme.js b/extensions/theme-seti/build/update-icon-theme.js
+index 366e7f3..0305e0f 100644
 --- a/extensions/theme-seti/build/update-icon-theme.js
 +++ b/extensions/theme-seti/build/update-icon-theme.js
 @@ -29,7 +29,6 @@ const nonBuiltInLanguages = { // { fileNames, extensions  }
@@ -9,60 +10,3 @@ diff --git a/extensions/theme-seti/build/update-icon-theme.js b/extensions/theme
  	"puppet": { extensions: ['puppet'] },
  	"r": { extensions: ['r', 'rhistory', 'rprofile', 'rt'] },
  	"rescript": { extensions: ['res', 'resi'] },
-diff --git a/extensions/theme-seti/icons/vs-seti-icon-theme.json b/extensions/theme-seti/icons/vs-seti-icon-theme.json
-index 72f3c989c2a..0f6a7dbf879 100644
---- a/extensions/theme-seti/icons/vs-seti-icon-theme.json
-+++ b/extensions/theme-seti/icons/vs-seti-icon-theme.json
-@@ -1006,14 +1006,6 @@
- 			"fontCharacter": "\\E069",
- 			"fontColor": "#8dc149"
- 		},
--		"_ocaml_light": {
--			"fontCharacter": "\\E06A",
--			"fontColor": "#cc6d2e"
--		},
--		"_ocaml": {
--			"fontCharacter": "\\E06A",
--			"fontColor": "#e37933"
--		},
- 		"_odata_light": {
- 			"fontCharacter": "\\E06B",
- 			"fontColor": "#cc6d2e"
-@@ -1645,10 +1637,6 @@
- 		"npm-debug.log": "_npm",
- 		"npmignore": "_npm_1",
- 		"npmrc": "_npm_1",
--		"ml": "_ocaml",
--		"mli": "_ocaml",
--		"cmx": "_ocaml",
--		"cmxa": "_ocaml",
- 		"odata": "_odata",
- 		"php.inc": "_php",
- 		"pipeline": "_pipeline",
-@@ -1908,7 +1896,6 @@
- 		"kotlin": "_kotlin",
- 		"mustache": "_mustache",
- 		"nunjucks": "_nunjucks",
--		"ocaml": "_ocaml",
- 		"rescript": "_rescript",
- 		"sass": "_sass",
- 		"stylus": "_stylus",
-@@ -2027,10 +2014,6 @@
- 			"npm-debug.log": "_npm_light",
- 			"npmignore": "_npm_1_light",
- 			"npmrc": "_npm_1_light",
--			"ml": "_ocaml_light",
--			"mli": "_ocaml_light",
--			"cmx": "_ocaml_light",
--			"cmxa": "_ocaml_light",
- 			"odata": "_odata_light",
- 			"php.inc": "_php_light",
- 			"pipeline": "_pipeline_light",
-@@ -2224,7 +2207,6 @@
- 			"kotlin": "_kotlin_light",
- 			"mustache": "_mustache_light",
- 			"nunjucks": "_nunjucks_light",
--			"ocaml": "_ocaml_light",
- 			"rescript": "_rescript_light",
- 			"sass": "_sass_light",
- 			"stylus": "_stylus_light",
