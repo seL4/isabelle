@@ -100,7 +100,7 @@ object Component_VSCodium {
       (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
         .map(s => "export " + s + "\n").mkString
 
-    def patch_sources(base_dir: Path): String = {
+    def patch_sources(base_dir: Path, progress: Progress = new Progress): String = {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
         // macos icns
@@ -124,7 +124,8 @@ object Component_VSCodium {
         {
           val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
           for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
-            Isabelle_System.apply_patch(dir, File.read(patches_dir + Path.explode(name).patch))
+            val patch = File.read(patches_dir + Path.explode(name).patch)
+            Isabelle_System.apply_patch(dir, patch, progress = progress)
           }
         }
 
@@ -335,7 +336,7 @@ object Component_VSCodium {
 
         platform_info.get_vscodium_repository(build_dir, progress = progress)
 
-        val sources_patch = platform_info.patch_sources(build_dir)
+        val sources_patch = platform_info.patch_sources(build_dir, progress = progress)
         if (platform_info.primary) write_patch("02-isabelle_sources", sources_patch)
 
         progress.echo("Build ...")
@@ -439,21 +440,26 @@ Usage: component_vscodium [OPTIONS]
       Scala_Project.here,
       { args =>
         var base_dir = Path.current
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: vscode_patch [OPTIONS]
 
   Options are:
     -D DIR       base directory (default ".")
+    -v           verbose
 
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
-          "D:" -> (arg => base_dir = Path.explode(arg)))
+          "D:" -> (arg => base_dir = Path.explode(arg)),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
+        val progress = new Console_Progress(verbose = verbose)
+
         val platform_info = the_platform_info(Platform.family)
-        platform_info.patch_sources(base_dir)
+        platform_info.patch_sources(base_dir, progress = progress)
       })
 }
