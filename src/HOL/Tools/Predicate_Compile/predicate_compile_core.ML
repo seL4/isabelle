@@ -1429,7 +1429,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
         |> fold_map (fn (name, result_thms) => (Global_Theory.add_thmss
             [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms), [])]))
             result_thms'
-        |-> (fn notes => Code.declare_default_eqns_global (map (rpair true) (flat (flat (notes))))))
+        |-> (fn notes => Code.declare_default_eqns_global (map (rpair true) ((flat o flat) notes))))
   in
     thy'''
   end
