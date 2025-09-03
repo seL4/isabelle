@@ -368,7 +368,7 @@ qed
 subsection \<open>Generalized binomial coefficients\<close>
 
 definition gbinomial :: "'a::{semidom_divide,semiring_char_0} \<Rightarrow> nat \<Rightarrow> 'a"  (infix \<open>gchoose\<close> 64)
-  where gbinomial_prod_rev: "a gchoose k = prod (\<lambda>i. a - of_nat i) {0..<k} div fact k"
+  where gbinomial_prod_rev: "a gchoose k = (\<Prod>i=0..<k. a - of_nat i) div fact k"
 
 lemma gbinomial_0 [simp]:
   "a gchoose 0 = 1"
@@ -464,7 +464,7 @@ next
 qed
 
 lemma binomial_gbinomial: "of_nat (n choose k) = (of_nat n gchoose k :: 'a::field_char_0)"
-  by (simp add: gbinomial_binomial [symmetric] of_nat_gbinomial)
+  using gbinomial_binomial of_nat_gbinomial by auto
 
 setup
   \<open>Sign.add_const_constraint (\<^const_name>\<open>gbinomial\<close>, SOME \<^typ>\<open>'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a\<close>)\<close>
