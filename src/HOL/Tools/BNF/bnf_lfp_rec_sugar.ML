@@ -656,10 +656,9 @@ fun gen_primrec old_primrec prep_spec int opts raw_fixes raw_specs lthy =
     |> primrec_simple0 int plugins nonexhaustive transfer fixes (map snd specs)
     |-> (fn {prefix = (names, qualifys), types, result = (ts, defs, (jss, simpss))} =>
       Spec_Rules.add spec_name (Spec_Rules.equational_primrec types) ts (flat simpss)
+      #> plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (flat simpss))
       #> Local_Theory.notes (mk_notes jss names qualifys simpss)
-      #-> (fn notes =>
-        plugins code_plugin ? Code.declare_default_eqns (map (rpair true) (maps snd notes))
-        #> pair (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
+      #>> (fn notes => (ts, defs, map_filter (fn ("", _) => NONE | (_, thms) => SOME thms) notes)))
   end
   handle OLD_PRIMREC () =>
     old_primrec int raw_fixes raw_specs lthy

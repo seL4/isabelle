@@ -287,11 +287,10 @@ fun gen_primrec prep_spec int raw_fixes raw_spec lthy =
     |> primrec_simple int fixes (map snd spec)
     |-> (fn {prefix, types, result = (ts, simps)} =>
       Spec_Rules.add spec_name (Spec_Rules.equational_primrec types) ts simps
+      #> Code.declare_default_eqns (map (rpair true) simps)
       #> fold_map Local_Theory.note (attr_bindings prefix ~~ map single simps)
       #-> (fn simps' => Local_Theory.note (simp_attr_binding prefix, maps snd simps')
-        #-> (fn (_, simps'') => 
-          Code.declare_default_eqns (map (rpair true) simps'')
-          #> pair {types = types, result = (ts, simps'')})))
+        #>> (fn (_, simps'') => {types = types, result = (ts, simps'')})))
   end;
 
 in
