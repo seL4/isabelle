@@ -19,9 +19,29 @@ import java.util.Base64
 object Component_VSCodium {
   /* global parameters */
 
-  val vscodium_version: String = "1.103.25610"
+  val vscodium_version = "1.103.25610"
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
+
+  def vscode_arch(platform: Platform.Family): String =
+    if (platform == Platform.Family.linux_arm) "arm64" else "x64"
+
+  def vscode_os_name(platform: Platform.Family): String =
+    platform match {
+      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
+      case Platform.Family.macos => "osx"
+      case Platform.Family.windows => "windows"
+    }
+
+  def vscode_platform_name(platform: Platform.Family): String =
+    platform match {
+      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
+      case Platform.Family.macos => "darwin"
+      case Platform.Family.windows => "win32"
+    }
+
+  def vscode_platform(platform: Platform.Family): String =
+    vscode_platform_name(platform) + "-" + vscode_arch(platform)
 
   private val resources = Path.explode("resources")
 
@@ -86,38 +106,35 @@ object Component_VSCodium {
 
   /* platform-specific build context */
 
-  def platform_build_context(platform: Platform.Family): Build_Context =
-    platform match {
-      case Platform.Family.linux =>
-        Build_Context(platform, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
-          List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=x64"))
-      case Platform.Family.linux_arm =>
-        Build_Context(platform, "linux-arm64-{VERSION}.tar.gz", "VSCode-linux-arm64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=arm64"))
-      case Platform.Family.macos =>
-        Build_Context(platform, "darwin-x64-{VERSION}.zip", "VSCode-darwin-x64",
-          List("OS_NAME=osx", "VSCODE_ARCH=x64"))
-      case Platform.Family.windows =>
-        Build_Context(platform, "win32-x64-{VERSION}.zip", "VSCode-win32-x64",
-          List("OS_NAME=windows",
+  def platform_build_context(platform: Platform.Family): Build_Context = {
+    val env1 =
+      List(
+        "OS_NAME=" + vscode_os_name(platform),
+        "VSCODE_ARCH=" + vscode_arch(platform))
+    val env2 =
+      platform match {
+        case Platform.Family.linux | Platform.Family.linux_arm =>
+          List("SKIP_LINUX_PACKAGES=True")
+        case Platform.Family.macos => Nil
+        case Platform.Family.windows =>
+          List(
             "SHOULD_BUILD_ZIP=no",
             "SHOULD_BUILD_EXE_SYS=no",
             "SHOULD_BUILD_EXE_USR=no",
             "SHOULD_BUILD_MSI=no",
-            "SHOULD_BUILD_MSI_NOUP=no",
-            "VSCODE_ARCH=x64"))
-    }
+            "SHOULD_BUILD_MSI_NOUP=no")
+      }
+    Build_Context(platform, env1 ::: env2)
+  }
 
-  sealed case class Build_Context(
-    platform: Platform.Family,
-    download_template: String,
-    build_name: String,
-    env: List[String]
-  ) {
+sealed case class Build_Context(platform: Platform.Family, env: List[String]) {
     def primary_platform: Boolean = platform == Platform.Family.linux
 
-    def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", vscodium_version)
-    def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
+    def download_ext: String =
+      if (platform == Platform.Family.windows) ".zip" else ".tar.gz"
+
+    def download_name: String =
+      "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + download_ext
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
@@ -144,7 +161,7 @@ object Component_VSCodium {
       dir + Path.explode(platform_name)
     }
 
-    def build_dir(dir: Path): Path = dir + Path.explode(build_name)
+    def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
 
     def environment(dir: Path): String =
       (build_env ::: build_upstream_env(dir) ::: env)
