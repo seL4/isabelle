@@ -153,7 +153,7 @@ object Component_VSCodium {
 
   /* platform-specific build context */
 
-  def platform_build_context(platform: Platform.Family): Build_Context = {
+  def platform_build_context(platform: Platform.Family = Platform.family): Build_Context = {
     val env1 =
       List(
         "OS_NAME=" + vscode_os_name(platform),
@@ -343,7 +343,7 @@ object Component_VSCodium {
   /* original repository clones and patches */
 
   def vscodium_patch(progress: Progress = new Progress): String = {
-    val build_context = platform_build_context(Platform.Family.linux)
+    val build_context = platform_build_context()
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       build_context.get_vscodium_repository(build_dir, progress = progress)
@@ -369,13 +369,13 @@ object Component_VSCodium {
 
   /* build vscodium */
 
-  def default_platforms: List[Platform.Family] = Platform.Family.list
-
   def component_vscodium(
     target_dir: Path = Path.current,
-    platforms: List[Platform.Family] = default_platforms,
+    platform: Platform.Family = Platform.family,
     progress: Progress = new Progress
   ): Unit = {
+    val build_context = platform_build_context(platform = platform)
+
     Isabelle_System.require_command("git")
     Isabelle_System.require_command("jq")
     Isabelle_System.require_command("rustup")
@@ -390,55 +390,55 @@ object Component_VSCodium {
 
     /* patches */
 
-    progress.echo("\n* Building patches:")
-
-    val patches_dir = Isabelle_System.new_directory(component_dir.path + Path.explode("patches"))
+    val patches_dir = component_dir.path + Path.explode("patches")
 
     def write_patch(name: String, patch: String): Unit =
-      File.write(patches_dir + Path.explode(name).patch, patch)
+      if (build_context.primary_platform) {
+        File.write(patches_dir + Path.explode(name).patch, patch)
+      }
 
-    write_patch("01-vscodium", vscodium_patch(progress = progress))
+    if (build_context.primary_platform) {
+      progress.echo("\n* Building patches:")
+      Isabelle_System.new_directory(component_dir.path + Path.explode("patches"))
+      write_patch("01-vscodium", vscodium_patch(progress = progress))
+    }
 
 
     /* build */
 
-    for (platform <- platforms) yield {
-      val build_context = platform_build_context(platform)
+    Isabelle_System.with_tmp_dir("build") { build_dir =>
+      progress.echo("\n* Building " + platform + ":")
 
-      Isabelle_System.with_tmp_dir("build") { build_dir =>
-        progress.echo("\n* Building " + platform + ":")
+      build_context.get_vscodium_repository(build_dir, progress = progress)
+      Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
 
-        build_context.get_vscodium_repository(build_dir, progress = progress)
-        Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
+      val sources_patch = build_context.patch_sources(build_dir, progress = progress)
+      write_patch("02-isabelle_sources", sources_patch)
 
-        val sources_patch = build_context.patch_sources(build_dir, progress = progress)
-        if (build_context.primary_platform) write_patch("02-isabelle_sources", sources_patch)
+      progress.echo("Build ...")
+      val environment = build_context.environment(build_dir)
+      progress.echo(environment, verbose = true)
+      val node_dir = node_setup(build_dir, platform, progress = progress)
+      progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
+        cwd = build_dir, echo = progress.verbose).check
 
-        progress.echo("Build ...")
-        val environment = build_context.environment(build_dir)
-        progress.echo(environment, verbose = true)
-        val node_dir = node_setup(build_dir, build_context.platform, progress = progress)
-        progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
-          cwd = build_dir, echo = progress.verbose).check
-
-        if (build_context.primary_platform) {
-          Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
-        }
-
-        val platform_dir = build_context.platform_dir(component_dir.path)
-        Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
-        build_context.setup_node(platform_dir, progress)
-        build_context.setup_electron(platform_dir)
-
-        val resources_patch = build_context.patch_resources(platform_dir)
-        if (build_context.primary_platform) write_patch("03-isabelle_resources", resources_patch)
-
-        Isabelle_System.copy_file(
-          build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
-          platform_dir + resources)
-
-        build_context.setup_executables(platform_dir)
+      if (build_context.primary_platform) {
+        Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
       }
+
+      val platform_dir = build_context.platform_dir(component_dir.path)
+      Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
+      build_context.setup_node(platform_dir, progress)
+      build_context.setup_electron(platform_dir)
+
+      val resources_patch = build_context.patch_resources(platform_dir)
+      write_patch("03-isabelle_resources", resources_patch)
+
+      Isabelle_System.copy_file(
+        build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
+        platform_dir + resources)
+
+      build_context.setup_executables(platform_dir)
     }
 
     Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
@@ -485,7 +485,6 @@ formal record.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var platforms = default_platforms
         var verbose = false
 
         val getopts = Getopts("""
@@ -493,16 +492,11 @@ Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -p NAMES     platform families (default: """ + quote(platforms.mkString(",")) + """)
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
-
-  The build platform needs to be Linux with nodejs/yarn, jq, and wine
-  for targeting Windows.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "p:" -> (arg => platforms = space_explode(',', arg).map(Platform.Family.parse)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -510,7 +504,7 @@ Usage: component_vscodium [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        component_vscodium(target_dir = target_dir, platforms = platforms, progress = progress)
+        component_vscodium(target_dir = target_dir, progress = progress)
       })
 
   val isabelle_tool2 =
@@ -537,7 +531,6 @@ Usage: vscode_patch [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        val build_context = platform_build_context(Platform.family)
-        build_context.patch_sources(base_dir, progress = progress)
+        platform_build_context().patch_sources(base_dir, progress = progress)
       })
 }
