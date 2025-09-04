@@ -19,7 +19,7 @@ import java.util.Base64
 object Component_VSCodium {
   /* nodejs parameters */
 
-  val node_version = "20.19.5"
+  val node_version = "22.17.0"
 
   def node_arch(platform: Platform.Family): String =
     if (platform == Platform.Family.linux_arm) "arm64" else "x64"
