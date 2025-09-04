@@ -17,7 +17,54 @@ import java.util.Base64
 
 
 object Component_VSCodium {
-  /* global parameters */
+  /* nodejs parameters */
+
+  val node_version = "20.19.5"
+
+  def node_arch(platform: Platform.Family): String =
+    if (platform == Platform.Family.linux_arm) "arm64" else "x64"
+
+  def node_ext(platform: Platform.Family): String =
+    if (platform == Platform.Family.windows) "zip" else "tar.gz"
+
+  def node_platform_name(platform: Platform.Family): String =
+    platform match {
+      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
+      case Platform.Family.macos => "darwin"
+      case Platform.Family.windows => "win"
+    }
+
+  def node_name(platform: Platform.Family): String =
+    "node-v" + node_version + "-" + node_platform_name(platform) + "-" + node_arch(platform)
+
+  def node_download(platform: Platform.Family): String =
+    "https://nodejs.org/dist/v" + node_version + "/" +
+      node_name(platform) + "." + node_ext(platform)
+
+  def node_path_setup(node_dir: Path): String =
+    "export PATH=" + File.bash_path(node_dir + Path.basic("bin")) + """:"$PATH""""
+
+  def node_setup(
+    base_dir: Path,
+    platform: Platform.Family,
+    progress: Progress = new Progress
+  ): Path = {
+    Isabelle_System.with_tmp_file("node", ext = node_ext(platform)) { node_archive =>
+      Isabelle_System.download_file(node_download(platform), node_archive, progress = progress)
+
+      progress.echo("Installing node ...")
+      Isabelle_System.extract(node_archive, base_dir)
+      val node_dir = base_dir + Path.basic(node_name(platform))
+
+      progress.echo("Installing yarn ...")
+      Isabelle_System.bash(node_path_setup(node_dir) + "\nnpm install -g yarn", cwd = node_dir).check
+
+      node_dir
+    }
+  }
+
+
+  /* vscode parameters */
 
   val vscodium_version = "1.103.25610"
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
@@ -299,8 +346,6 @@ object Component_VSCodium {
     if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
 
     Isabelle_System.require_command("git")
-    Isabelle_System.require_command("node")
-    Isabelle_System.require_command("yarn")
     Isabelle_System.require_command("jq")
     Isabelle_System.require_command("rustup")
 
@@ -319,12 +364,14 @@ object Component_VSCodium {
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       build_context.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
+      val node_dir = node_setup(build_dir, build_context.platform, progress = progress)
       progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           Library.make_lines(
             "set -e",
             build_context.environment(build_dir),
+            node_path_setup(node_dir),
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
@@ -384,7 +431,8 @@ object Component_VSCodium {
         progress.echo("Build ...")
         val environment = build_context.environment(build_dir)
         progress.echo(environment, verbose = true)
-        progress.bash(environment + "\n" + "./build.sh",
+        val node_dir = node_setup(build_dir, build_context.platform, progress = progress)
+        progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
           cwd = build_dir, echo = progress.verbose).check
 
         if (build_context.primary_platform) {
