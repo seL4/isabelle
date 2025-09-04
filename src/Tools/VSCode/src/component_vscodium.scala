@@ -340,26 +340,10 @@ object Component_VSCodium {
   }
 
 
-  /* check system */
-
-  def check_system(platforms: List[Platform.Family]): Unit = {
-    if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
-
-    Isabelle_System.require_command("git")
-    Isabelle_System.require_command("jq")
-    Isabelle_System.require_command("rustup")
-
-    if (platforms.contains(Platform.Family.windows)) {
-      Isabelle_System.require_command("wine")
-    }
-  }
-
-
   /* original repository clones and patches */
 
   def vscodium_patch(progress: Progress = new Progress): String = {
     val build_context = platform_build_context(Platform.Family.linux)
-    check_system(List(build_context.platform))
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       build_context.get_vscodium_repository(build_dir, progress = progress)
@@ -392,7 +376,9 @@ object Component_VSCodium {
     platforms: List[Platform.Family] = default_platforms,
     progress: Progress = new Progress
   ): Unit = {
-    check_system(platforms)
+    Isabelle_System.require_command("git")
+    Isabelle_System.require_command("jq")
+    Isabelle_System.require_command("rustup")
 
 
     /* component */
