@@ -84,15 +84,37 @@ object Component_VSCodium {
   }
 
 
-  /* platform info */
+  /* platform-specific build context */
 
-  sealed case class Platform_Info(
+  def platform_build_context(platform: Platform.Family): Build_Context =
+    platform match {
+      case Platform.Family.linux =>
+        Build_Context(platform, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
+          List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=x64"))
+      case Platform.Family.linux_arm =>
+        Build_Context(platform, "linux-arm64-{VERSION}.tar.gz", "VSCode-linux-arm64",
+        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=arm64"))
+      case Platform.Family.macos =>
+        Build_Context(platform, "darwin-x64-{VERSION}.zip", "VSCode-darwin-x64",
+          List("OS_NAME=osx", "VSCODE_ARCH=x64"))
+      case Platform.Family.windows =>
+        Build_Context(platform, "win32-x64-{VERSION}.zip", "VSCode-win32-x64",
+          List("OS_NAME=windows",
+            "SHOULD_BUILD_ZIP=no",
+            "SHOULD_BUILD_EXE_SYS=no",
+            "SHOULD_BUILD_EXE_USR=no",
+            "SHOULD_BUILD_MSI=no",
+            "SHOULD_BUILD_MSI_NOUP=no",
+            "VSCODE_ARCH=x64"))
+    }
+
+  sealed case class Build_Context(
     platform: Platform.Family,
     download_template: String,
     build_name: String,
     env: List[String]
   ) {
-    def primary: Boolean = platform == Platform.Family.linux
+    def primary_platform: Boolean = platform == Platform.Family.linux
 
     def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", vscodium_version)
     def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
@@ -253,30 +275,6 @@ object Component_VSCodium {
       .text.replaceAll("=", "")
   }
 
-  private val platform_infos: Map[Platform.Family, Platform_Info] =
-    Iterator(
-      Platform_Info(Platform.Family.linux, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=x64")),
-      Platform_Info(Platform.Family.linux_arm, "linux-arm64-{VERSION}.tar.gz", "VSCode-linux-arm64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=arm64")),
-      Platform_Info(Platform.Family.macos, "darwin-x64-{VERSION}.zip", "VSCode-darwin-x64",
-        List("OS_NAME=osx", "VSCODE_ARCH=x64")),
-      Platform_Info(Platform.Family.windows, "win32-x64-{VERSION}.zip", "VSCode-win32-x64",
-        List("OS_NAME=windows",
-          "SHOULD_BUILD_ZIP=no",
-          "SHOULD_BUILD_EXE_SYS=no",
-          "SHOULD_BUILD_EXE_USR=no",
-          "SHOULD_BUILD_MSI=no",
-          "SHOULD_BUILD_MSI_NOUP=no",
-          "VSCODE_ARCH=x64")))
-      .map(info => info.platform -> info).toMap
-
-  def the_platform_info(platform: Platform.Family): Platform_Info =
-    platform_infos.getOrElse(platform, error("No platform info for " + quote(platform.toString)))
-
-  def linux_platform_info: Platform_Info =
-    the_platform_info(Platform.Family.linux)
-
 
   /* check system */
 
@@ -298,18 +296,18 @@ object Component_VSCodium {
   /* original repository clones and patches */
 
   def vscodium_patch(progress: Progress = new Progress): String = {
-    val platform_info = linux_platform_info
-    check_system(List(platform_info.platform))
+    val build_context = platform_build_context(Platform.Family.linux)
+    check_system(List(build_context.platform))
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
-      platform_info.get_vscodium_repository(build_dir, progress = progress)
+      build_context.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
       progress.echo("Prepare ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           Library.make_lines(
             "set -e",
-            platform_info.environment(build_dir),
+            build_context.environment(build_dir),
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
@@ -355,40 +353,40 @@ object Component_VSCodium {
     /* build */
 
     for (platform <- platforms) yield {
-      val platform_info = the_platform_info(platform)
+      val build_context = platform_build_context(platform)
 
       Isabelle_System.with_tmp_dir("build") { build_dir =>
         progress.echo("\n* Building " + platform + ":")
 
-        platform_info.get_vscodium_repository(build_dir, progress = progress)
+        build_context.get_vscodium_repository(build_dir, progress = progress)
         Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
 
-        val sources_patch = platform_info.patch_sources(build_dir, progress = progress)
-        if (platform_info.primary) write_patch("02-isabelle_sources", sources_patch)
+        val sources_patch = build_context.patch_sources(build_dir, progress = progress)
+        if (build_context.primary_platform) write_patch("02-isabelle_sources", sources_patch)
 
         progress.echo("Build ...")
-        val environment = platform_info.environment(build_dir)
+        val environment = build_context.environment(build_dir)
         progress.echo(environment, verbose = true)
         progress.bash(environment + "\n" + "./build.sh",
           cwd = build_dir, echo = progress.verbose).check
 
-        if (platform_info.primary) {
+        if (build_context.primary_platform) {
           Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
         }
 
-        val platform_dir = platform_info.platform_dir(component_dir.path)
-        Isabelle_System.copy_dir(platform_info.build_dir(build_dir), platform_dir)
-        platform_info.setup_node(platform_dir, progress)
-        platform_info.setup_electron(platform_dir)
+        val platform_dir = build_context.platform_dir(component_dir.path)
+        Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
+        build_context.setup_node(platform_dir, progress)
+        build_context.setup_electron(platform_dir)
 
-        val resources_patch = platform_info.patch_resources(platform_dir)
-        if (platform_info.primary) write_patch("03-isabelle_resources", resources_patch)
+        val resources_patch = build_context.patch_resources(platform_dir)
+        if (build_context.primary_platform) write_patch("03-isabelle_resources", resources_patch)
 
         Isabelle_System.copy_file(
           build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
           platform_dir + resources)
 
-        platform_info.setup_executables(platform_dir)
+        build_context.setup_executables(platform_dir)
       }
     }
 
@@ -488,7 +486,7 @@ Usage: vscode_patch [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        val platform_info = the_platform_info(Platform.family)
-        platform_info.patch_sources(base_dir, progress = progress)
+        val build_context = platform_build_context(Platform.family)
+        build_context.patch_sources(base_dir, progress = progress)
       })
 }
