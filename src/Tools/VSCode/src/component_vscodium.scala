@@ -444,7 +444,9 @@ object Component_VSCodium {
       build_context.setup_executables(platform_dir)
     }
 
-    Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
+    if (build_context.primary_platform) {
+      Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
+    }
 
 
     /* settings */
