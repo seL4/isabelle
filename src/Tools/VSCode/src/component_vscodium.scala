@@ -3,6 +3,8 @@
 
 Build the Isabelle system component for VSCodium: cross-compilation for all
 platforms.
+
+See also https://github.com/VSCodium/vscodium/blob/master/docs/howto-build.md
 */
 
 package isabelle.vscode
