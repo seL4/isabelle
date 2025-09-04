@@ -178,10 +178,13 @@ object Component_VSCodium {
     def primary_platform: Boolean = platform == Platform.Family.linux
 
     def download_ext: String =
-      if (platform == Platform.Family.windows) ".zip" else ".tar.gz"
+      platform match {
+        case Platform.Family.linux | Platform.Family.linux_arm => "tar.gz"
+        case _ => "zip"
+      }
 
     def download_name: String =
-      "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + download_ext
+      "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + "." + download_ext
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
