@@ -127,7 +127,7 @@ object Component_VSCodium {
     Build_Context(platform, env1 ::: env2)
   }
 
-sealed case class Build_Context(platform: Platform.Family, env: List[String]) {
+  sealed case class Build_Context(platform: Platform.Family, env: List[String]) {
     def primary_platform: Boolean = platform == Platform.Family.linux
 
     def download_ext: String =
