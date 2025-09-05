@@ -48,7 +48,8 @@ object Component_VSCodium {
     progress: Progress = new Progress
   ): Path = {
     Isabelle_System.with_tmp_file("node", ext = node_ext(platform)) { node_archive =>
-      Isabelle_System.download_file(node_download(platform), node_archive, progress = progress)
+      progress.echo("Getting Node.js ...")
+      Isabelle_System.download_file(node_download(platform), node_archive)
 
       progress.echo("Installing node ...")
       Isabelle_System.extract(node_archive, base_dir)
@@ -174,10 +175,9 @@ object Component_VSCodium {
 
     def download(dir: Path, progress: Progress = new Progress): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
+        progress.echo("Getting VSCodium release ...")
         Isabelle_System.download_file(vscodium_download + "/" + vscodium_version + "/" + download_name,
-          download_file, progress = progress)
-
-        progress.echo("Extract ...")
+          download_file)
         Isabelle_System.extract(download_file, dir)
       }
     }
@@ -333,7 +333,7 @@ object Component_VSCodium {
       build_context.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
       val node_dir = node_setup(build_dir, build_context.platform, progress = progress)
-      progress.echo("Prepare ...")
+      progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           Library.make_lines(
@@ -387,7 +387,7 @@ object Component_VSCodium {
     /* build */
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
-      progress.echo("\n* Building " + platform + ":")
+      progress.echo("\n* Building VSCodium for " + platform + ":")
 
       build_context.get_vscodium_repository(build_dir, progress = progress)
       Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
@@ -395,10 +395,11 @@ object Component_VSCodium {
       val sources_patch = build_context.patch_sources(build_dir, progress = progress)
       write_patch("02-isabelle_sources", sources_patch)
 
-      progress.echo("Build ...")
+      val node_dir = node_setup(build_dir, platform, progress = progress)
+
+      progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
-      val node_dir = node_setup(build_dir, platform, progress = progress)
       progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
         cwd = build_dir, echo = progress.verbose).check
 
