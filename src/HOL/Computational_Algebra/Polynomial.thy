@@ -706,6 +706,10 @@ lemma last_coeffs_eq_coeff_degree:
   "last (coeffs p) = lead_coeff p" if "p \<noteq> 0"
   using that by (simp add: coeffs_def)
 
+lemma lead_coeff_list_def:
+  "lead_coeff p = (if coeffs p=[] then 0 else last (coeffs p))"
+  by (simp add: last_coeffs_eq_coeff_degree)
+
 
 subsection \<open>Addition and subtraction\<close>
 
@@ -1333,6 +1337,11 @@ lemma coeff_map_poly:
   by (auto simp: assms map_poly_def nth_default_def coeffs_def not_less Suc_le_eq coeff_eq_0
       simp del: upt_Suc)
 
+lemma lead_coeff_map_poly_nz:
+  assumes "f (lead_coeff p) \<noteq> 0" "f 0 = 0"
+  shows "lead_coeff (map_poly f p) = f (lead_coeff p)"
+  by (metis (no_types, lifting) antisym assms coeff_0 coeff_map_poly le_degree leading_coeff_0_iff)
+        
 lemma coeffs_map_poly [code abstract]:
   "coeffs (map_poly f p) = strip_while ((=) 0) (map f (coeffs p))"
   by (simp add: map_poly_def)
@@ -1460,8 +1469,43 @@ lemma prod_to_poly: "(\<Prod>x\<in>A. [:f x:]) = [:\<Prod>x\<in>A. f x:]"
   by (induction A rule: infinite_finite_induct) (auto simp: mult_to_poly mult_ac)
 
 lemma poly_map_poly_cnj [simp]: "poly (map_poly cnj p) x = cnj (poly p (cnj x))"
-  by (induction p) (auto simp: map_poly_pCons)
+  using complex_cnj_cnj poly_cnj by force
 
+lemma map_poly_degree_eq:
+  assumes "f (lead_coeff p) \<noteq> 0"
+  shows "degree (map_poly f p) = degree p"  
+  using assms
+  unfolding map_poly_def degree_eq_length_coeffs coeffs_Poly lead_coeff_list_def
+  by (metis (full_types) last_conv_nth_default length_map no_trailing_unfold nth_default_coeffs_eq 
+      nth_default_map_eq strip_while_idem)
+  
+lemma map_poly_degree_less:
+  assumes "f (lead_coeff p) =0" "degree p\<noteq>0"
+  shows "degree (map_poly f p) < degree p" 
+proof -
+  have "length (coeffs p) >1" 
+    using \<open>degree p\<noteq>0\<close> by (simp add: degree_eq_length_coeffs)  
+  then obtain xs x where xs_def:"coeffs p=xs@[x]" "length xs>0"
+    by (metis One_nat_def add_0 append_Nil length_greater_0_conv list.size(4) nat_neq_iff not_less_zero rev_exhaust)
+  have "f x=0" using assms(1) by (simp add: lead_coeff_list_def xs_def(1))
+  have "degree (map_poly f p) = length (strip_while ((=) 0) (map f (xs@[x]))) - 1" 
+    unfolding map_poly_def degree_eq_length_coeffs coeffs_Poly
+    by (subst xs_def,auto)
+  also have "\<dots> = length (strip_while ((=) 0) (map f xs)) - 1"   
+    using \<open>f x=0\<close> by simp
+  also have "\<dots> \<le> length xs -1"
+    using length_strip_while_le by (metis diff_le_mono length_map)
+  also have "\<dots> < length (xs@[x]) - 1"
+    using xs_def(2) by auto
+  also have "\<dots> = degree p"
+    unfolding degree_eq_length_coeffs xs_def by simp
+  finally show ?thesis .
+qed
+  
+lemma map_poly_degree_leq[simp]:
+  shows "degree (map_poly f p) \<le> degree p"
+  unfolding map_poly_def degree_eq_length_coeffs
+  by (metis coeffs_Poly diff_le_mono length_map length_strip_while_le)  
 
 subsection \<open>Conversions\<close>
 
@@ -2567,6 +2611,13 @@ lemma pcompose_const [simp]: "pcompose [:a:] q = [:a:]"
 lemma pcompose_0': "pcompose p 0 = [:coeff p 0:]"
   by (induct p) (auto simp add: pcompose_pCons)
 
+lemma pcompose_coeff_0:
+  "coeff (pcompose p q) 0 = poly p (coeff q 0)"
+  by (metis poly_0_coeff_0 poly_pcompose)
+    
+lemma pcompose_pCons_0: "pcompose p [:a:] = [:poly p a:]"
+  by (metis (no_types, lifting) coeff_pCons_0 pcompose_0' pcompose_assoc poly_0_coeff_0 poly_pcompose)
+   
 lemma degree_pcompose: "degree (pcompose p q) = degree p * degree q"
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
 proof (induct p)
@@ -6384,6 +6435,140 @@ proof -
   qed (use \<open>n > 0\<close> in \<open>simp_all add: p_eq degree_power_eq\<close>)
 qed
 
+subsection \<open>Polynomials and limits\<close>
+
+lemma filterlim_poly_at_infinity:
+  fixes p::"'a::real_normed_field poly"
+  assumes "degree p>0"
+  shows "filterlim (poly p) at_infinity at_infinity"
+using assms
+proof (induct p)
+  case 0
+  then show ?case by auto
+next
+  case (pCons a p)
+  have ?case when "degree p=0"
+  proof -
+    obtain c where c_def:"p=[:c:]" using \<open>degree p = 0\<close> degree_eq_zeroE by blast
+    then have "c\<noteq>0" using \<open>0 < degree (pCons a p)\<close> by auto
+    then show ?thesis unfolding c_def 
+      apply (auto intro!:tendsto_add_filterlim_at_infinity)
+      apply (subst mult.commute)
+      by (auto intro!:tendsto_mult_filterlim_at_infinity filterlim_ident)
+  qed
+  moreover have ?case when "degree p\<noteq>0"
+  proof -
+    have "filterlim (poly p) at_infinity at_infinity"
+      using that by (auto intro:pCons)
+    then show ?thesis 
+      by (auto intro!:tendsto_add_filterlim_at_infinity filterlim_at_infinity_times filterlim_ident)
+  qed
+  ultimately show ?case by auto
+qed  
+       
+lemma poly_divide_tendsto_aux:
+  fixes p::"'a::real_normed_field poly"
+  shows "((\<lambda>x. poly p x/x^(degree p)) \<longlongrightarrow> lead_coeff p) at_infinity"  
+proof (induct p)
+  case 0
+  then show ?case by (auto intro:tendsto_eq_intros)
+next
+  case (pCons a p)
+  have ?case when "p=0"
+    using that by auto
+  moreover have ?case when "p\<noteq>0"
+  proof -
+    define g where "g=(\<lambda>x. a/(x*x^degree p))"
+    define f where "f=(\<lambda>x. poly p x/x^degree p)"
+    have "\<forall>\<^sub>Fx in at_infinity. poly (pCons a p) x / x ^ degree (pCons a p) = g x + f x"
+    proof (rule eventually_at_infinityI[of 1])
+      fix x::'a assume "norm x\<ge>1"
+      then have "x\<noteq>0" by auto
+      then show "poly (pCons a p) x / x ^ degree (pCons a p) = g x + f x"
+        using that unfolding g_def f_def by (auto simp add:field_simps)
+    qed
+    moreover have "((\<lambda>x. g x+f x) \<longlongrightarrow>  lead_coeff (pCons a p)) at_infinity"
+    proof -
+      have "(g \<longlongrightarrow>  0) at_infinity"
+        unfolding g_def using filterlim_poly_at_infinity[of "monom 1 (Suc (degree p))"]
+        apply (auto intro!:tendsto_intros tendsto_divide_0 simp add: degree_monom_eq)
+        apply (subst filterlim_cong[where g="poly (monom 1 (Suc (degree p)))"])
+        by (auto simp add:poly_monom)
+      moreover have "(f \<longlongrightarrow>  lead_coeff (pCons a p)) at_infinity"
+        using pCons \<open>p\<noteq>0\<close> unfolding f_def by auto
+      ultimately show ?thesis by (auto intro:tendsto_eq_intros)
+    qed
+    ultimately show ?thesis by (auto dest:tendsto_cong)  
+  qed
+  ultimately show ?case by auto  
+qed
+
+
+lemma filterlim_power_at_infinity:
+  assumes "n\<noteq>0"
+  shows "filterlim (\<lambda>x::'a::real_normed_field. x^n) at_infinity at_infinity" 
+  using filterlim_poly_at_infinity[of "monom 1 n"] assms
+  by (simp add: filterlim_ident filterlim_power_at_infinity)
+   
+lemma poly_divide_tendsto_0_at_infinity: 
+  fixes p::"'a::real_normed_field poly"
+  assumes "degree p > degree q" 
+  shows "((\<lambda>x. poly q x / poly p x) \<longlongrightarrow> 0 ) at_infinity" 
+proof -
+  define pp where "pp \<equiv> (\<lambda>x. x^(degree p) / poly p x)"    
+  define qq where "qq \<equiv> (\<lambda>x. poly q x/x^(degree q))"
+  define dd where "dd \<equiv> (\<lambda>x::'a. 1/x^(degree p - degree q))"
+  have "\<forall>\<^sub>Fx in at_infinity.  poly q x / poly p x = qq x * pp x * dd x"
+  proof (rule eventually_at_infinityI[of 1])
+    fix x::'a assume "norm x\<ge>1"
+    then have "x\<noteq>0" by auto
+    then show "poly q x / poly p x = qq x * pp x * dd x"
+      unfolding qq_def pp_def dd_def using assms 
+      by (auto simp add:field_simps divide_simps power_diff) 
+  qed
+  moreover have "((\<lambda>x. qq x * pp x * dd x) \<longlongrightarrow> 0) at_infinity"
+  proof -
+    have "(qq \<longlongrightarrow> lead_coeff q) at_infinity" 
+      unfolding qq_def using poly_divide_tendsto_aux[of q] .
+    moreover have "(pp \<longlongrightarrow> 1/lead_coeff p) at_infinity"
+    proof -
+      have "p\<noteq>0" using assms by auto
+      then show ?thesis
+        unfolding pp_def using poly_divide_tendsto_aux[of p] 
+        apply (drule_tac tendsto_inverse)
+        by (auto simp add:inverse_eq_divide)
+    qed  
+    moreover have "(dd \<longlongrightarrow> 0) at_infinity" 
+      unfolding dd_def
+      apply (rule tendsto_divide_0)
+      by (auto intro!: filterlim_power_at_infinity simp add:assms)
+    ultimately show ?thesis by (auto intro:tendsto_eq_intros)
+  qed
+  ultimately show ?thesis by (auto dest:tendsto_cong)
+qed
+
+lemma poly_eventually_not_zero:
+  fixes p::"real poly"
+  assumes "p\<noteq>0"
+  shows "eventually (\<lambda>x. poly p x \<noteq> 0) at_infinity"
+proof (rule eventually_at_infinityI[of "Max (norm ` {x. poly p x = 0}) + 1"])
+  fix x::real assume \<section>: "Max (norm ` {x. poly p x = 0}) + 1 \<le> norm x"
+  have False when "poly p x = 0"
+  proof - 
+    define S where "S=norm `{x. poly p x = 0}"
+    have "norm x\<in>S"
+      using that unfolding S_def by auto
+    moreover have "finite S" 
+      using \<open>p\<noteq>0\<close> poly_roots_finite unfolding S_def by blast
+    ultimately have "norm x\<le>Max S" 
+      by simp
+    moreover have "Max S + 1 \<le> norm x" 
+      using \<section> unfolding S_def by simp
+    ultimately show False by argo
+  qed
+  then show "poly p x \<noteq> 0" by auto
+qed
+    
 no_notation cCons (infixr \<open>##\<close> 65)
 
 end
