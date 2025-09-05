@@ -425,8 +425,11 @@ object Component_VSCodium {
       val resources_patch = build_context.patch_resources(platform_dir)
       write_patch("03-isabelle_resources", resources_patch)
 
+      val electron_resources =
+        Path.explode("vscode/node_modules/electron/dist") +
+          (if (platform.is_macos) Path.explode("Electron.app/Contents/Resources") else resources)
       Isabelle_System.copy_file(
-        build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
+        build_dir + electron_resources + Path.explode("default_app.asar"),
         platform_dir + resources)
 
       build_context.setup_executables(platform_dir)
