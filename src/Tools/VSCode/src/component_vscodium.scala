@@ -23,7 +23,8 @@ object Component_VSCodium {
     platform: Isabelle_Platform = Isabelle_Platform.local,
     version: String = "22.17.0"
   ) {
-    override def toString: String = "node-" + version
+    override def toString: String =
+      "node-" + version + "-" + platform.ISABELLE_PLATFORM(windows = true)
 
     def arch: String =
       if (platform.is_linux && platform.is_arm) "arm64" else "x64"
