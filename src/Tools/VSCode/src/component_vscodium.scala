@@ -24,10 +24,9 @@ object Component_VSCodium {
     version: String = "22.17.0"
   ) {
     override def toString: String =
-      "node-" + version + "-" + platform.ISABELLE_PLATFORM(windows = true)
+      "node-" + version + "-" + platform.ISABELLE_PLATFORM(windows = true, apple = true)
 
-    def arch: String =
-      if (platform.is_linux && platform.is_arm) "arm64" else "x64"
+    def arch: String = if (platform.is_arm) "arm64" else "x64"
 
     def platform_name: String =
       if (platform.is_windows) "win" else if (platform.is_macos) "darwin" else "linux"
@@ -76,7 +75,7 @@ object Component_VSCodium {
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
   def vscode_arch(platform: Isabelle_Platform): String =
-    if (platform.is_linux && platform.is_arm) "arm64" else "x64"
+    if (platform.is_arm) "arm64" else "x64"
 
   def vscode_os_name(platform: Isabelle_Platform): String =
     if (platform.is_windows) "windows"
@@ -201,7 +200,7 @@ object Component_VSCodium {
     }
 
     def platform_dir(dir: Path): Path =
-      dir + Path.explode(platform.ISABELLE_PLATFORM(windows = true))
+      dir + Path.explode(platform.ISABELLE_PLATFORM(windows = true, apple = true))
 
     def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
 
@@ -433,7 +432,7 @@ object Component_VSCodium {
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   "macos"*)
