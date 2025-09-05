@@ -21,23 +21,21 @@ object Component_VSCodium {
 
   val node_version = "22.17.0"
 
-  def node_arch(platform: Platform.Family): String =
-    if (platform == Platform.Family.linux_arm) "arm64" else "x64"
+  def node_arch(platform: Isabelle_Platform): String =
+    if (platform.is_linux && platform.is_arm) "arm64" else "x64"
 
-  def node_ext(platform: Platform.Family): String =
-    if (platform == Platform.Family.windows) "zip" else "tar.gz"
+  def node_ext(platform: Isabelle_Platform): String =
+    if (platform.is_windows) "zip" else "tar.gz"
 
-  def node_platform_name(platform: Platform.Family): String =
-    platform match {
-      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
-      case Platform.Family.macos => "darwin"
-      case Platform.Family.windows => "win"
-    }
+  def node_platform_name(platform: Isabelle_Platform): String =
+    if (platform.is_windows) "win"
+    else if (platform.is_macos) "darwin"
+    else "linux"
 
-  def node_name(platform: Platform.Family): String =
+  def node_name(platform: Isabelle_Platform): String =
     "node-v" + node_version + "-" + node_platform_name(platform) + "-" + node_arch(platform)
 
-  def node_download(platform: Platform.Family): String =
+  def node_download(platform: Isabelle_Platform): String =
     "https://nodejs.org/dist/v" + node_version + "/" +
       node_name(platform) + "." + node_ext(platform)
 
@@ -46,7 +44,7 @@ object Component_VSCodium {
 
   def node_setup(
     base_dir: Path,
-    platform: Platform.Family,
+    platform: Isabelle_Platform,
     progress: Progress = new Progress
   ): Path = {
     Isabelle_System.with_tmp_file("node", ext = node_ext(platform)) { node_archive =>
@@ -70,24 +68,20 @@ object Component_VSCodium {
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
-  def vscode_arch(platform: Platform.Family): String =
-    if (platform == Platform.Family.linux_arm) "arm64" else "x64"
+  def vscode_arch(platform: Isabelle_Platform): String =
+    if (platform.is_linux && platform.is_arm) "arm64" else "x64"
 
-  def vscode_os_name(platform: Platform.Family): String =
-    platform match {
-      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
-      case Platform.Family.macos => "osx"
-      case Platform.Family.windows => "windows"
-    }
+  def vscode_os_name(platform: Isabelle_Platform): String =
+    if (platform.is_windows) "windows"
+    else if (platform.is_macos) "osx"
+    else "linux"
 
-  def vscode_platform_name(platform: Platform.Family): String =
-    platform match {
-      case Platform.Family.linux | Platform.Family.linux_arm => "linux"
-      case Platform.Family.macos => "darwin"
-      case Platform.Family.windows => "win32"
-    }
+  def vscode_platform_name(platform: Isabelle_Platform): String =
+    if (platform.is_windows) "win32"
+    else if (platform.is_macos) "darwin"
+    else "linux"
 
-  def vscode_platform(platform: Platform.Family): String =
+  def vscode_platform(platform: Isabelle_Platform): String =
     vscode_platform_name(platform) + "-" + vscode_arch(platform)
 
   private val resources = Path.explode("resources")
@@ -153,35 +147,29 @@ object Component_VSCodium {
 
   /* platform-specific build context */
 
-  def platform_build_context(platform: Platform.Family = Platform.family): Build_Context = {
+  def platform_build_context(platform: Isabelle_Platform = Isabelle_Platform.local): Build_Context = {
     val env1 =
       List(
         "OS_NAME=" + vscode_os_name(platform),
         "VSCODE_ARCH=" + vscode_arch(platform))
     val env2 =
-      platform match {
-        case Platform.Family.linux | Platform.Family.linux_arm =>
-          List("SKIP_LINUX_PACKAGES=True")
-        case Platform.Family.macos => Nil
-        case Platform.Family.windows =>
-          List(
-            "SHOULD_BUILD_ZIP=no",
-            "SHOULD_BUILD_EXE_SYS=no",
-            "SHOULD_BUILD_EXE_USR=no",
-            "SHOULD_BUILD_MSI=no",
-            "SHOULD_BUILD_MSI_NOUP=no")
+      if (platform.is_windows) {
+        List(
+          "SHOULD_BUILD_ZIP=no",
+          "SHOULD_BUILD_EXE_SYS=no",
+          "SHOULD_BUILD_EXE_USR=no",
+          "SHOULD_BUILD_MSI=no",
+          "SHOULD_BUILD_MSI_NOUP=no")
       }
+      else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
+      else Nil
     Build_Context(platform, env1 ::: env2)
   }
 
-  sealed case class Build_Context(platform: Platform.Family, env: List[String]) {
-    def primary_platform: Boolean = platform == Platform.Family.linux
+  sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
+    def primary_platform: Boolean = platform.is_linux && !platform.is_arm
 
-    def download_ext: String =
-      platform match {
-        case Platform.Family.linux | Platform.Family.linux_arm => "tar.gz"
-        case _ => "zip"
-      }
+    def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
     def download_name: String =
       "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + "." + download_ext
@@ -204,12 +192,8 @@ object Component_VSCodium {
       Isabelle_System.bash(environment(build_dir) + "\n" + "./get_repo.sh", cwd = build_dir).check
     }
 
-    def platform_dir(dir: Path): Path = {
-      val platform_name =
-        if (platform == Platform.Family.windows) Platform.Family.native(platform)
-        else Platform.Family.standard(platform)
-      dir + Path.explode(platform_name)
-    }
+    def platform_dir(dir: Path): Path =
+      dir + Path.explode(platform.ISABELLE_PLATFORM(windows = true))
 
     def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
 
@@ -284,7 +268,7 @@ object Component_VSCodium {
 
     def init_resources(base_dir: Path): Path = {
       val dir = base_dir + resources
-      if (platform == Platform.Family.macos) {
+      if (platform.is_macos) {
         Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), dir)
       }
       dir
@@ -305,22 +289,21 @@ object Component_VSCodium {
 
     def setup_electron(dir: Path): Unit = {
       val electron = Path.explode("electron")
-      platform match {
-        case Platform.Family.linux | Platform.Family.linux_arm =>
-          Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
-        case Platform.Family.windows =>
-          Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
-          Isabelle_System.move_file(
-            dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
-            dir + Path.explode("electron.VisualElementsManifest.xml"))
-        case Platform.Family.macos =>
+      if (platform.is_linux) {
+        Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
+      }
+      else if (platform.is_windows) {
+        Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
+        Isabelle_System.move_file(
+          dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
+          dir + Path.explode("electron.VisualElementsManifest.xml"))
       }
     }
 
     def setup_executables(dir: Path): Unit = {
       Isabelle_System.rm_tree(dir + Path.explode("bin"))
 
-      if (platform == Platform.Family.windows) {
+      if (platform.is_windows) {
         val files =
           File.find_files(dir.file, pred = { file =>
             val name = file.getName
@@ -374,7 +357,7 @@ object Component_VSCodium {
 
   def component_vscodium(
     target_dir: Path = Path.current,
-    platform: Platform.Family = Platform.family,
+    platform: Isabelle_Platform = Isabelle_Platform.local,
     progress: Progress = new Progress
   ): Unit = {
     val build_context = platform_build_context(platform = platform)
