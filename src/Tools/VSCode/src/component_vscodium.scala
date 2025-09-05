@@ -212,14 +212,6 @@ object Component_VSCodium {
     def patch_sources(base_dir: Path, progress: Progress = new Progress): String = {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
-        // macos icns
-        for (name <- Seq("build/lib/electron.js", "build/lib/electron.ts")) {
-          File.change(dir + Path.explode(name), strict = true) {
-            _.replace("""'resources/darwin/' + icon + '.icns'""",
-              """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
-          }
-        }
-
         // isabelle_encoding.ts
         {
           val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
