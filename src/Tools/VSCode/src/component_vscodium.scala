@@ -199,8 +199,8 @@ object Component_VSCodium {
       Isabelle_System.bash(environment(build_dir) + "\n" + "./get_repo.sh", cwd = build_dir).check
     }
 
-    def platform_dir(dir: Path): Path =
-      dir + Path.explode(platform.ISABELLE_PLATFORM(windows = true, apple = true))
+    def platform_name: String = platform.ISABELLE_PLATFORM(windows = true, apple = true)
+    def platform_dir(dir: Path): Path = dir + Path.explode(platform_name)
 
     def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
 
@@ -390,7 +390,7 @@ object Component_VSCodium {
     /* build */
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
-      progress.echo("\n* Building VSCodium for " + platform + ":")
+      progress.echo("\n* Building VSCodium for " + build_context.platform_name + ":")
 
       build_context.get_vscodium_repository(build_dir, progress = progress)
       Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
