@@ -148,23 +148,25 @@ object Component_VSCodium {
 
   /* platform-specific build context */
 
-  def platform_build_context(platform: Isabelle_Platform = Isabelle_Platform.local): Build_Context = {
-    val env1 =
-      List(
-        "OS_NAME=" + vscode_os_name(platform),
-        "VSCODE_ARCH=" + vscode_arch(platform))
-    val env2 =
-      if (platform.is_windows) {
+  object Build_Context {
+    def make(platform: Isabelle_Platform = Isabelle_Platform.local): Build_Context = {
+      val env1 =
         List(
-          "SHOULD_BUILD_ZIP=no",
-          "SHOULD_BUILD_EXE_SYS=no",
-          "SHOULD_BUILD_EXE_USR=no",
-          "SHOULD_BUILD_MSI=no",
-          "SHOULD_BUILD_MSI_NOUP=no")
-      }
-      else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
-      else Nil
-    Build_Context(platform, env1 ::: env2)
+          "OS_NAME=" + vscode_os_name(platform),
+          "VSCODE_ARCH=" + vscode_arch(platform))
+      val env2 =
+        if (platform.is_windows) {
+          List(
+            "SHOULD_BUILD_ZIP=no",
+            "SHOULD_BUILD_EXE_SYS=no",
+            "SHOULD_BUILD_EXE_USR=no",
+            "SHOULD_BUILD_MSI=no",
+            "SHOULD_BUILD_MSI_NOUP=no")
+        }
+        else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
+        else Nil
+      Build_Context(platform, env1 ::: env2)
+    }
   }
 
   sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
@@ -327,7 +329,7 @@ object Component_VSCodium {
   /* original repository clones and patches */
 
   def vscodium_patch(progress: Progress = new Progress): String = {
-    val build_context = platform_build_context()
+    val build_context = Build_Context.make()
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       build_context.get_vscodium_repository(build_dir, progress = progress)
@@ -358,7 +360,7 @@ object Component_VSCodium {
     platform: Isabelle_Platform = Isabelle_Platform.local,
     progress: Progress = new Progress
   ): Unit = {
-    val build_context = platform_build_context(platform = platform)
+    val build_context = Build_Context.make(platform = platform)
 
     Isabelle_System.require_command("git")
     Isabelle_System.require_command("jq")
@@ -510,6 +512,6 @@ Usage: vscode_patch [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        platform_build_context().patch_sources(base_dir, progress = progress)
+        Build_Context.make().patch_sources(base_dir, progress = progress)
       })
 }
