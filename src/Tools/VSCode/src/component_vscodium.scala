@@ -167,8 +167,6 @@ object Component_VSCodium {
   }
 
   sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
-    def primary_platform: Boolean = platform.is_linux && !platform.is_arm
-
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
     def download_name: String =
@@ -376,18 +374,14 @@ object Component_VSCodium {
 
     /* patches */
 
-    val patches_dir = component_dir.path + Path.explode("patches")
+    progress.echo("\n* Building patches:")
+
+    val patches_dir = Isabelle_System.new_directory(component_dir.path + Path.explode("patches"))
 
     def write_patch(name: String, patch: String): Unit =
-      if (build_context.primary_platform) {
-        File.write(patches_dir + Path.explode(name).patch, patch)
-      }
+      File.write(patches_dir + Path.explode(name).patch, patch)
 
-    if (build_context.primary_platform) {
-      progress.echo("\n* Building patches:")
-      Isabelle_System.new_directory(component_dir.path + Path.explode("patches"))
-      write_patch("01-vscodium", vscodium_patch(progress = progress))
-    }
+    write_patch("01-vscodium", vscodium_patch(progress = progress))
 
 
     /* build */
@@ -408,9 +402,7 @@ object Component_VSCodium {
       progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
         cwd = build_dir, echo = progress.verbose).check
 
-      if (build_context.primary_platform) {
-        Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
-      }
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
 
       val platform_dir = build_context.platform_dir(component_dir.path)
       Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
@@ -427,9 +419,7 @@ object Component_VSCodium {
       build_context.setup_executables(platform_dir)
     }
 
-    if (build_context.primary_platform) {
-      Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
-    }
+    Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
 
 
     /* settings */
