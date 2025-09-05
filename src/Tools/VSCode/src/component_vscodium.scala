@@ -17,49 +17,45 @@ import java.util.Base64
 
 
 object Component_VSCodium {
-  /* nodejs parameters */
+  /* Node.js: private installation */
 
-  val node_version = "22.17.0"
+  sealed case class Node_Context(
+    platform: Isabelle_Platform = Isabelle_Platform.local,
+    version: String = "22.17.0"
+  ) {
+    override def toString: String = "node-" + version
 
-  def node_arch(platform: Isabelle_Platform): String =
-    if (platform.is_linux && platform.is_arm) "arm64" else "x64"
+    def arch: String =
+      if (platform.is_linux && platform.is_arm) "arm64" else "x64"
 
-  def node_ext(platform: Isabelle_Platform): String =
-    if (platform.is_windows) "zip" else "tar.gz"
+    def platform_name: String =
+      if (platform.is_windows) "win" else if (platform.is_macos) "darwin" else "linux"
 
-  def node_platform_name(platform: Isabelle_Platform): String =
-    if (platform.is_windows) "win"
-    else if (platform.is_macos) "darwin"
-    else "linux"
+    def full_name: String = "node-v" + version + "-" + platform_name + "-" + arch
 
-  def node_name(platform: Isabelle_Platform): String =
-    "node-v" + node_version + "-" + node_platform_name(platform) + "-" + node_arch(platform)
+    def download_ext: String = if (platform.is_windows) "zip" else "tar.gz"
 
-  def node_download(platform: Isabelle_Platform): String =
-    "https://nodejs.org/dist/v" + node_version + "/" +
-      node_name(platform) + "." + node_ext(platform)
+    def download_url: String =
+      "https://nodejs.org/dist/v" + version + "/" + full_name + "." + download_ext
 
-  def node_path_setup(node_dir: Path): String =
-    "export PATH=" + File.bash_path(node_dir + Path.basic("bin")) + """:"$PATH""""
+    def setup(base_dir: Path, progress: Progress = new Progress): Path = {
+      Isabelle_System.with_tmp_file("node", ext = download_ext) { archive =>
+        progress.echo("Getting Node.js ...")
+        Isabelle_System.download_file(download_url, archive)
 
-  def node_setup(
-    base_dir: Path,
-    platform: Isabelle_Platform,
-    progress: Progress = new Progress
-  ): Path = {
-    Isabelle_System.with_tmp_file("node", ext = node_ext(platform)) { node_archive =>
-      progress.echo("Getting Node.js ...")
-      Isabelle_System.download_file(node_download(platform), node_archive)
+        progress.echo("Installing node ...")
+        Isabelle_System.extract(archive, base_dir)
+        val node_dir = base_dir + Path.basic(full_name)
 
-      progress.echo("Installing node ...")
-      Isabelle_System.extract(node_archive, base_dir)
-      val node_dir = base_dir + Path.basic(node_name(platform))
+        progress.echo("Installing yarn ...")
+        Isabelle_System.bash(path_setup(node_dir) + "\nnpm install -g yarn", cwd = node_dir).check
 
-      progress.echo("Installing yarn ...")
-      Isabelle_System.bash(node_path_setup(node_dir) + "\nnpm install -g yarn", cwd = node_dir).check
-
-      node_dir
+        node_dir
+      }
     }
+
+    def path_setup(node_dir: Path): String =
+      "export PATH=" + File.bash_path(node_dir + Path.basic("bin")) + """:"$PATH""""
   }
 
 
@@ -170,6 +166,8 @@ object Component_VSCodium {
   }
 
   sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
+    def node_context: Node_Context = Node_Context(platform = platform)
+
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
     def download_name: String =
@@ -328,20 +326,21 @@ object Component_VSCodium {
 
   /* original repository clones and patches */
 
-  def vscodium_patch(progress: Progress = new Progress): String = {
-    val build_context = Build_Context.make()
-
+  def vscodium_patch(build_context: Build_Context, progress: Progress = new Progress): String = {
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       build_context.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
-      val node_dir = node_setup(build_dir, build_context.platform, progress = progress)
+
+      val node_context = build_context.node_context
+      val node_dir = node_context.setup(build_dir, progress = progress)
+
       progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
         progress.bash(
           Library.make_lines(
             "set -e",
             build_context.environment(build_dir),
-            node_path_setup(node_dir),
+            node_context.path_setup(node_dir),
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
@@ -361,6 +360,7 @@ object Component_VSCodium {
     progress: Progress = new Progress
   ): Unit = {
     val build_context = Build_Context.make(platform = platform)
+    val node_context = build_context.node_context
 
     Isabelle_System.require_command("git")
     Isabelle_System.require_command("jq")
@@ -383,7 +383,7 @@ object Component_VSCodium {
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
 
-    write_patch("01-vscodium", vscodium_patch(progress = progress))
+    write_patch("01-vscodium", vscodium_patch(build_context, progress = progress))
 
 
     /* build */
@@ -397,12 +397,12 @@ object Component_VSCodium {
       val sources_patch = build_context.patch_sources(build_dir, progress = progress)
       write_patch("02-isabelle_sources", sources_patch)
 
-      val node_dir = node_setup(build_dir, platform, progress = progress)
+      val node_dir = node_context.setup(build_dir, progress = progress)
 
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
-      progress.bash(node_path_setup(node_dir) + "\n" + environment + "./build.sh",
+      progress.bash(node_context.path_setup(node_dir) + "\n" + environment + "./build.sh",
         cwd = build_dir, echo = progress.verbose).check
 
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
