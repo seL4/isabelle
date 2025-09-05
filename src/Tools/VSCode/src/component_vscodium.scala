@@ -38,7 +38,11 @@ object Component_VSCodium {
     def download_url: String =
       "https://nodejs.org/dist/v" + version + "/" + full_name + "." + download_ext
 
-    def setup(base_dir: Path, progress: Progress = new Progress): Path = {
+    def setup(
+      base_dir: Path,
+      progress: Progress = new Progress,
+      packages: List[String] = Nil
+    ): Path = {
       Isabelle_System.with_tmp_file("node", ext = download_ext) { archive =>
         progress.echo("Getting Node.js ...")
         Isabelle_System.download_file(download_url, archive)
@@ -47,8 +51,13 @@ object Component_VSCodium {
         Isabelle_System.extract(archive, base_dir)
         val node_dir = base_dir + Path.basic(full_name)
 
-        progress.echo("Installing yarn ...")
-        Isabelle_System.bash(path_setup(node_dir) + "\nnpm install -g yarn", cwd = node_dir).check
+        for (name <- "yarn" :: packages) {
+          progress.echo("Installing " + name + " ...")
+          Isabelle_System.bash(
+            path_setup(node_dir) + "\nnpm install -g " + Bash.string(name),
+            cwd = node_dir
+          ).check
+        }
 
         node_dir
       }
