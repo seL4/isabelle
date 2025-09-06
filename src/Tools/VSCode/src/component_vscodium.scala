@@ -265,27 +265,6 @@ object Component_VSCodium {
       patch
     }
 
-    def init_resources(base_dir: Path): Path = {
-      val dir = base_dir + resources
-      if (platform.is_macos) {
-        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), dir)
-      }
-      dir
-    }
-
-    def setup_node(target_dir: Path, progress: Progress): Unit = {
-      Isabelle_System.with_tmp_dir("download") { download_dir =>
-        download(download_dir, progress = progress)
-        val dir1 = init_resources(download_dir)
-        val dir2 = init_resources(target_dir)
-        for (name <- Seq("app/node_modules", "app/node_modules.asar")) {
-          val path = Path.explode(name)
-          Isabelle_System.rm_tree(dir2 + path)
-          Isabelle_System.copy_dir(dir1 + path, dir2 + path)
-        }
-      }
-    }
-
     def setup_electron(dir: Path): Unit = {
       val electron = Path.explode("electron")
       if (platform.is_linux) {
@@ -410,7 +389,10 @@ object Component_VSCodium {
 
       val platform_dir = build_context.platform_dir(component_dir.path)
       Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
-      build_context.setup_node(platform_dir, progress)
+      if (platform.is_macos) {
+        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"),
+          platform_dir + resources)
+      }
       build_context.setup_electron(platform_dir)
 
       val resources_patch = build_context.patch_resources(platform_dir)
