@@ -1502,43 +1502,35 @@ proof -
   finally show ?thesis .
 qed
   
-lemma map_poly_degree_leq[simp]:
+lemma map_poly_degree_leq:
   shows "degree (map_poly f p) \<le> degree p"
   unfolding map_poly_def degree_eq_length_coeffs
   by (metis coeffs_Poly diff_le_mono length_map length_strip_while_le)  
 
 subsection \<open>Conversions\<close>
 
-lemma of_nat_poly:
-  "of_nat n = [:of_nat n:]"
+lemma of_nat_poly: "of_nat n = [:of_nat n:]"
   by (induct n) (simp_all add: one_pCons)
 
-lemma of_nat_monom:
-  "of_nat n = monom (of_nat n) 0"
+lemma of_nat_monom: "of_nat n = monom (of_nat n) 0"
   by (simp add: of_nat_poly monom_0)
 
-lemma degree_of_nat [simp]:
-  "degree (of_nat n) = 0"
+lemma degree_of_nat [simp]: "degree (of_nat n) = 0"
   by (simp add: of_nat_poly)
 
-lemma lead_coeff_of_nat [simp]:
-  "lead_coeff (of_nat n) = of_nat n"
+lemma lead_coeff_of_nat [simp]: "lead_coeff (of_nat n) = of_nat n"
   by (simp add: of_nat_poly)
 
-lemma of_int_poly:
-  "of_int k = [:of_int k:]"
+lemma of_int_poly: "of_int k = [:of_int k:]"
   by (simp only: of_int_of_nat of_nat_poly) simp
 
-lemma of_int_monom:
-  "of_int k = monom (of_int k) 0"
+lemma of_int_monom: "of_int k = monom (of_int k) 0"
   by (simp add: of_int_poly monom_0)
 
-lemma degree_of_int [simp]:
-  "degree (of_int k) = 0"
+lemma degree_of_int [simp]: "degree (of_int k) = 0"
   by (simp add: of_int_poly)
 
-lemma lead_coeff_of_int [simp]:
-  "lead_coeff (of_int k) = of_int k"
+lemma lead_coeff_of_int [simp]: "lead_coeff (of_int k) = of_int k"
   by (simp add: of_int_poly)
 
 lemma poly_of_nat [simp]: "poly (of_nat n) x = of_nat n"
