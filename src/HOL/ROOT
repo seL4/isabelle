@@ -145,7 +145,9 @@ session "HOL-Combinatorics" (main timing) in "Combinatorics" = "HOL" +
   document_files
     "root.tex"
 
-session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "HOL-Library" +
+session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "HOL" +
+  sessions
+    "HOL-Library"
   theories
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
@@ -235,8 +237,10 @@ session "HOL-Induct" in Induct = HOL +
     "root.bib"
     "root.tex"
 
-session "HOL-IMP" (timing) in IMP = "HOL-Library" +
+session "HOL-IMP" (timing) in IMP = "HOL" +
   options [document_variants = document]
+  sessions
+    "HOL-Library"
   theories
     BExp
     ASM
@@ -363,8 +367,9 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   theories Hoare_Parallel
   document_files "root.bib" "root.tex"
 
-session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
+session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL" +
   sessions
+    "HOL-Library"
     "HOL-Number_Theory"
     "HOL-Data_Structures"
     "HOL-Examples"
@@ -396,7 +401,7 @@ session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   theories [condition = ISABELLE_GHC]
     Code_Test_GHC
 
-session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
+session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL" +
   description "
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -404,6 +409,7 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL-Library" +
     Testing Metis and Sledgehammer.
   "
   sessions
+    "HOL-Library"
     "HOL-Decision_Procs"
   theories
     Abstraction
