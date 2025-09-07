@@ -254,19 +254,10 @@ fun join_same_types ((vs, spec1), (_, spec2)) = (vs, join_same_types' (spec1, sp
 (* functions *)
 
 datatype fun_spec =
-    Eqns of bool * (thm * bool) list
+    Eqns of (thm * bool) list
+  | Unimplemented
   | Proj of term * (string * string)
   | Abstr of thm * (string * string);
-
-val unimplemented = Eqns (true, []);
-
-fun is_unimplemented (Eqns (true, [])) = true
-  | is_unimplemented _ = false;
-
-fun is_default (Eqns (true, _)) = true
-  | is_default _ = false;
-
-val aborting = Eqns (false, []);
 
 fun associated_abstype (Proj (_, tyco_abs)) = SOME tyco_abs
   | associated_abstype (Abstr (_, tyco_abs)) = SOME tyco_abs
@@ -513,20 +504,14 @@ fun register_fun_spec c spec =
 
 fun lookup_fun_spec specs c =
   case Symtab.lookup (pending_eqns_of specs) c of
-    SOME eqns => Eqns (false, eqns)
+    SOME eqns => SOME (Eqns eqns)
   | NONE => (case History.lookup (functions_of specs) c of
-      SOME spec => spec
-    | NONE => unimplemented);
-
-fun lookup_proper_fun_spec specs c =
-  let
-    val spec = lookup_fun_spec specs c
-  in
-    if is_unimplemented spec then NONE else SOME spec
-  end;
+      NONE => NONE
+    | SOME Unimplemented => NONE
+    | SOME spec => SOME spec);
 
 fun all_fun_specs specs =
-  map_filter (fn c => Option.map (pair c) (lookup_proper_fun_spec specs c))
+  map_filter (fn c => Option.map (pair c) (lookup_fun_spec specs c))
     (union (op =)
       ((Symtab.keys o pending_eqns_of) specs)
       ((Symtab.keys o functions_of) specs));
@@ -540,7 +525,7 @@ fun historize_pending_fun_specs thy =
     else
       thy
       |> modify_specs (map_functions
-          (Symtab.fold (fn (c, eqs) => History.register c (Eqns (false, eqs))) pending_eqns)
+          (Symtab.fold (fn (c, eqs) => History.register c (Eqns eqs)) pending_eqns)
           #> map_pending_eqns (K Symtab.empty))
       |> SOME
   end;
@@ -1167,9 +1152,9 @@ fun preprocess conv ctxt =
   #> Axclass.unoverload ctxt;
 
 fun get_cert ctxt functrans c =
-  case lookup_proper_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
+  case lookup_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
     NONE => nothing_cert ctxt c
-  | SOME (Eqns (_, eqns)) => eqns
+  | SOME (Eqns eqns) => eqns
       |> (map o apfst) (Thm.transfer' ctxt)
       |> apply_functrans ctxt functrans
       |> (map o apfst) (preprocess eqn_conv ctxt)
@@ -1253,7 +1238,7 @@ fun print_codesetup thy =
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks)
         (Pretty.str (string_of_const thy const) :: map (Thm.pretty_thm_item ctxt) thms);
-    fun pretty_function (const, Eqns (_, eqns)) =
+    fun pretty_function (const, Eqns eqns) =
           pretty_equations const (map fst eqns)
       | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
@@ -1359,10 +1344,10 @@ fun code_declaration (strictness: strictness) transform f x =
 (* types *)
 
 fun invalidate_constructors_of (_, type_spec) =
-  fold (fn (c, _) => History.register c unimplemented) (fst (constructors_of type_spec));
+  fold (fn (c, _) => History.register c Unimplemented) (fst (constructors_of type_spec));
 
 fun invalidate_abstract_functions_of (_, type_spec) =
-  fold (fn c => History.register c unimplemented) (abstract_functions_of type_spec);
+  fold (fn c => History.register c Unimplemented) (abstract_functions_of type_spec);
 
 fun invalidate_case_combinators_of (_, type_spec) =
   fold (fn c => History.register c No_Case) (case_combinators_of type_spec);
@@ -1475,14 +1460,13 @@ fun add_eqn_for { check_singleton, prepend } (c, eqn) thy =
     (subsumptive_add thy { verbose = true, prepend = prepend } eqn);
 
 fun add_eqns_for { default } (c, proto_eqns) thy =
-  thy |> modify_specs (fn specs =>
-    if is_default (lookup_fun_spec specs c) orelse not default
-    then
-      let
-        val eqns = []
-          |> fold (subsumptive_append thy { verbose = not default }) proto_eqns;
-      in specs |> register_fun_spec c (Eqns (default, eqns)) end
-    else specs);
+  let
+    val eqns = []
+      |> fold (subsumptive_append thy { verbose = not default }) proto_eqns;
+  in
+    thy
+    |> modify_specs (register_fun_spec c (Eqns eqns))
+  end;
 
 fun add_abstract_for (c, (thm, tyco_abs as (tyco, _))) =
   modify_specs (register_fun_spec c (Abstr (Thm.close_derivation \<^here> thm |> Thm.trim_context, tyco_abs))
@@ -1526,13 +1510,13 @@ val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare_abstract_eqn;
 
 fun declare_aborting_global c =
-  modify_specs (register_fun_spec c aborting);
+  modify_specs (register_fun_spec c (Eqns []));
 
 fun declare_unimplemented_global c thy =
   if Config.get_global thy strict_drop
-    andalso is_unimplemented (lookup_fun_spec (specs_of thy) c)
+    andalso is_none (lookup_fun_spec (specs_of thy) c)
   then error "No implementation to drop"
-  else modify_specs (register_fun_spec c unimplemented) thy;
+  else modify_specs (register_fun_spec c Unimplemented) thy;
 
 
 (* cases *)
