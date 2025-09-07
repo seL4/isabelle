@@ -19,7 +19,9 @@ import java.util.Base64
 object Component_VSCodium {
   /* vscode parameters */
 
-  val vscodium_version = "1.103.25610"
+  val default_node_version = Nodejs.default_version
+  val default_vscodium_version = "1.103.25610"
+
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
@@ -103,7 +105,11 @@ object Component_VSCodium {
   /* platform-specific build context */
 
   object Build_Context {
-    def make(platform: Isabelle_Platform = Isabelle_Platform.local): Build_Context = {
+    def make(
+      platform: Isabelle_Platform = Isabelle_Platform.local,
+      node_version: String = default_node_version,
+      vscodium_version: String = default_vscodium_version
+    ): Build_Context = {
       val env1 =
         List(
           "OS_NAME=" + vscode_os_name(platform),
@@ -119,13 +125,19 @@ object Component_VSCodium {
         }
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil
-      Build_Context(platform, env1 ::: env2)
+      Build_Context(platform, node_version, vscodium_version, env1 ::: env2)
     }
   }
 
-  sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
+  sealed case class Build_Context(
+    platform: Isabelle_Platform,
+    node_version: String,
+    vscodium_version: String,
+    env: List[String]
+  ) {
     def node_setup(base_dir: Path, progress: Progress = new Progress): Nodejs.Directory =
-      Nodejs.setup(base_dir, packages = List("yarn"), platform = platform, progress = progress)
+      Nodejs.setup(base_dir, platform = platform, version = node_version,
+        packages = List("yarn"), progress = progress)
 
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
@@ -285,10 +297,15 @@ object Component_VSCodium {
 
   def component_vscodium(
     target_dir: Path = Path.current,
+    node_version: String = default_node_version,
+    vscodium_version: String = default_vscodium_version,
     platform: Isabelle_Platform = Isabelle_Platform.local,
     progress: Progress = new Progress
   ): Unit = {
-    val build_context = Build_Context.make(platform = platform)
+    val build_context =
+      Build_Context.make(platform = platform,
+        node_version = node_version,
+        vscodium_version = vscodium_version)
 
     Isabelle_System.require_command("git")
     Isabelle_System.require_command("jq")
@@ -400,6 +417,8 @@ formal record.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var node_version = default_node_version
+        var vscodium_version = default_vscodium_version
         var verbose = false
 
         val getopts = Getopts("""
@@ -407,11 +426,15 @@ Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -N VERSION   Node.js version (default: """" + default_node_version + """")
+    -V VERSION   VSCodium version (default: """" + default_vscodium_version + """")
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
+          "N:" -> (arg => node_version = arg),
+          "V:" -> (arg => vscodium_version = arg),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -419,7 +442,8 @@ Usage: component_vscodium [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        component_vscodium(target_dir = target_dir, progress = progress)
+        component_vscodium(target_dir = target_dir, node_version = node_version,
+          vscodium_version = vscodium_version, progress = progress)
       })
 
   val isabelle_tool2 =
