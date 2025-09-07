@@ -1052,6 +1052,15 @@ next
   with assms show ?lhs by auto
 qed
 
+lemma smult_cancel:
+  fixes p::"'a::idom poly"
+  assumes "c\<noteq>0" and smult: "smult c p = smult c q" 
+  shows "p=q" 
+proof -
+  have "smult c (p-q) = 0" using smult by (metis diff_self smult_diff_right)
+  thus ?thesis using \<open>c\<noteq>0\<close> by auto
+qed
+  
 instantiation poly :: (comm_semiring_0) comm_semiring_0
 begin
 
@@ -3395,10 +3404,144 @@ next
   qed
 qed
 
+lemma dvd_monic:
+  fixes p q:: "'a :: idom poly" 
+  assumes monic:"lead_coeff p=1" and "p dvd (smult c q)" and "c\<noteq>0"
+  shows "p dvd q" using assms
+proof (cases "q=0 \<or> degree p=0")
+  case True
+  thus ?thesis using assms
+    by (auto elim!: degree_eq_zeroE simp add: const_poly_dvd_iff)
+next
+  case False
+  hence "q\<noteq>0" and "degree p\<noteq>0" by auto
+  obtain k where k:"smult c q = p*k" using assms dvd_def by metis
+  hence "k\<noteq>0" by (metis False assms(3) mult_zero_right smult_eq_0_iff)
+  hence deg_eq:"degree q=degree p + degree k"
+    by (metis False assms(3) degree_0 degree_mult_eq degree_smult_eq k)
+  have c_dvd:"\<forall>n\<le>degree k. c dvd coeff k (degree k - n)" 
+  proof (rule,rule)
+    fix n assume "n \<le> degree k "
+    thus "c dvd coeff k (degree k - n)"
+    proof (induct n rule:nat_less_induct) 
+      case (1 n) 
+      define T where "T\<equiv>(\<lambda>i. coeff p i * coeff k (degree p+degree k - n - i))"
+      have "c * coeff q (degree q - n) = (\<Sum>i\<le>degree q - n. coeff p i * coeff k (degree q - n - i))"
+        using coeff_mult[of p k "degree q - n"] k coeff_smult[of c q "degree q -n"] by auto
+      also have "...=(\<Sum>i\<le>degree p+degree k - n. T i)"
+        using deg_eq unfolding T_def by auto 
+      also have "...=(\<Sum>i\<in>{0..<degree p}. T i) + sum T {(degree p)}+ 
+                  sum T {degree p + 1..degree p + degree k - n}" 
+      proof -
+        define C where "C\<equiv>{{0..<degree p}, {degree p},{degree p+1..degree p+degree k-n}}"
+        have "\<forall>A\<in>C. finite A" unfolding C_def by auto
+        moreover have "\<forall>A\<in>C. \<forall>B\<in>C. A \<noteq> B \<longrightarrow> A \<inter> B = {}"
+          unfolding C_def by auto
+        ultimately have "sum T (\<Union>C) = sum (sum T) C" 
+          using sum.Union_disjoint by auto
+        moreover have "\<Union>C={..degree p + degree k - n}" 
+          using \<open>n \<le> degree k\<close> unfolding C_def by auto
+        moreover have  "sum (sum T) C= sum T {0..<degree p} + sum T {(degree p)} + 
+                  sum T {degree p + 1..degree p + degree k - n}"
+        proof -
+          have "{0..<degree p}\<noteq>{degree p}" 
+            by (metis atLeast0LessThan insertI1 lessThan_iff less_imp_not_eq)  
+          moreover have "{degree p}\<noteq>{degree p + 1..degree p + degree k - n}" 
+            by (metis add.commute add_diff_cancel_right' atLeastAtMost_singleton_iff 
+                  diff_self_eq_0 eq_imp_le not_one_le_zero)
+          moreover have "{0..<degree p}\<noteq>{degree p + 1..degree p + degree k - n}" 
+            using \<open>degree k\<ge>n\<close> \<open>degree p\<noteq>0\<close> by fastforce
+          ultimately show ?thesis unfolding C_def by auto
+        qed
+        ultimately show ?thesis by auto
+      qed
+      also have "...=(\<Sum>i\<in>{0..<degree p}. T i) +  coeff k (degree k - n)"
+      proof -
+        have "\<forall>x\<in>{degree p + 1..degree p + degree k - n}. T x=0" 
+          using coeff_eq_0[of p] unfolding T_def by simp
+        hence "sum T {degree p + 1..degree p + degree k - n}=0" by auto
+        moreover have "T (degree p)=coeff k (degree k - n)"
+          using monic by (simp add: T_def)
+        ultimately show ?thesis by auto
+      qed
+      finally have c_coeff: "c * coeff q (degree q - n) = sum T {0..<degree p} 
+              + coeff k (degree k - n)" .
+      moreover have "n\<noteq>0\<Longrightarrow>c dvd sum T {0..<degree p}" 
+      proof (rule dvd_sum)
+        fix i assume i:"i \<in> {0..<degree p}" and "n\<noteq>0"
+        hence "(n+i-degree p)\<le>degree k" using \<open>n \<le> degree k\<close> by auto
+        moreover have "n + i - degree p <n" using i \<open>n\<noteq>0\<close> by auto 
+        ultimately have "c dvd coeff k (degree k - (n+i-degree p))"
+          using 1(1) by auto
+        hence "c dvd coeff k (degree p + degree k - n - i)"
+          by (metis add_diff_cancel_left' deg_eq diff_diff_left dvd_0_right le_degree 
+                  le_diff_conv add.commute ordered_cancel_comm_monoid_diff_class.diff_diff_right)
+        thus "c dvd T i" unfolding T_def by auto
+      qed
+      moreover have "n=0 \<Longrightarrow>?case"
+      proof -
+        assume "n=0"
+        hence "\<forall>i\<in>{0..<degree p}. coeff k (degree p + degree k - n - i) =0" 
+          using coeff_eq_0[of k] by simp
+        hence "c * coeff q (degree q - n) = coeff k (degree k - n)"
+          using c_coeff unfolding T_def by auto
+        thus ?thesis by (metis dvdI)
+      qed
+      ultimately show ?case by (metis dvd_add_right_iff dvd_triv_left)
+    qed
+  qed
+  hence "\<forall>n. c dvd coeff k n"
+    by (metis diff_diff_cancel dvd_0_right le_add2 le_add_diff_inverse le_degree)
+  then obtain f where f:"\<forall>n. c * f n=coeff k n" unfolding dvd_def by metis
+  have " \<forall>\<^sub>\<infinity> n. f n = 0 "  
+    by (metis (mono_tags, lifting) MOST_coeff_eq_0 MOST_mono assms(3) f mult_eq_0_iff)
+  hence "smult c (Abs_poly f)=k" 
+    using f smult.abs_eq[of c "Abs_poly f"] Abs_poly_inverse[of f] coeff_inverse[of k]
+    by simp
+  hence "q=p* Abs_poly f" using k \<open>c\<noteq>0\<close> smult_cancel by auto
+  thus ?thesis unfolding dvd_def by auto
+qed
+
 lemma lemma_order_pderiv1:
-  "pderiv ([:- a, 1:] ^ Suc n * q) = [:- a, 1:] ^ Suc n * pderiv q +
-    smult (of_nat (Suc n)) (q * [:- a, 1:] ^ n)"
-  by (simp only: pderiv_mult pderiv_power_Suc) (simp del: power_Suc of_nat_Suc add: pderiv_pCons)
+  "pderiv ([:- a, 1:] ^ Suc n * q) 
+  = [:- a, 1:] ^ Suc n * pderiv q + smult (of_nat (Suc n)) (q * [:- a, 1:] ^ n)"
+  unfolding pderiv_mult pderiv_power_Suc
+  by (simp del: power_Suc of_nat_Suc add: pderiv_pCons)
+
+lemma order_pderiv:
+  fixes p::"'a::{idom,semiring_char_0} poly"
+  assumes "p\<noteq>0" "poly p x = 0"
+  shows "order x p = Suc (order x (pderiv p))" using assms
+proof -
+  define xx op where "xx=[:- x, 1:]" and "op = order x p"
+  have "op \<noteq> 0" unfolding op_def using assms order_root by blast
+  obtain pp where pp:"p = xx ^ op * pp" "\<not> xx dvd pp"
+    using order_decomp[OF \<open>p\<noteq>0\<close>,of x,folded xx_def op_def] by auto
+  have p_der:"pderiv p = smult (of_nat op) (xx^(op -1)) * pp + xx^op*pderiv pp"
+    unfolding pp(1) by (auto simp:pderiv_mult pderiv_power xx_def algebra_simps pderiv_pCons)
+  have "xx^(op -1) dvd (pderiv p)"
+    unfolding p_der
+    by (metis \<open>op \<noteq> 0\<close> dvd_add_left_iff dvd_mult2 dvd_refl dvd_smult dvd_triv_right
+        power_eq_if) 
+  moreover have "\<not> xx^op dvd (pderiv p)"
+  proof 
+    assume "xx ^ op dvd pderiv p"
+    then have "xx ^ op dvd smult (of_nat op) (xx^(op -1) * pp)"
+      unfolding p_der by (simp add: dvd_add_left_iff)
+    then have "xx ^ op dvd (xx^(op -1)) * pp"
+      apply (elim dvd_monic[rotated])
+      using \<open>op\<noteq>0\<close> by (auto simp:lead_coeff_power xx_def)
+    then have "xx ^ (op-1) * xx dvd (xx^(op -1))"
+      using \<open>\<not> xx dvd pp\<close> by (simp add: \<open>op \<noteq> 0\<close> mult.commute power_eq_if)
+    then have "xx dvd 1" 
+      using assms(1) pp(1) by auto
+    then show False unfolding xx_def by (meson assms(1) dvd_trans one_dvd order_decomp)
+  qed
+  ultimately have "op - 1 = order x (pderiv p)"
+    using order_unique_lemma[of x "op-1" "pderiv p",folded xx_def] \<open>op\<noteq>0\<close> 
+    by auto
+  then show ?thesis using \<open>op\<noteq>0\<close> unfolding op_def by auto
+qed
 
 lemma lemma_order_pderiv:
   fixes p :: "'a :: field_char_0 poly"
@@ -3407,41 +3550,8 @@ lemma lemma_order_pderiv:
     and pe: "p = [:- a, 1:] ^ n * q"
     and nd: "\<not> [:- a, 1:] dvd q"
   shows "n = Suc (order a (pderiv p))"
-proof -
-  from assms have "pderiv ([:- a, 1:] ^ n * q) \<noteq> 0"
-    by auto
-  from assms obtain n' where "n = Suc n'" "0 < Suc n'" "pderiv ([:- a, 1:] ^ Suc n' * q) \<noteq> 0"
-    by (cases n) auto
-  have "order a (pderiv ([:- a, 1:] ^ Suc n' * q)) = n'"
-  proof (rule order_unique_lemma)
-    show "[:- a, 1:] ^ n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
-      unfolding lemma_order_pderiv1
-    proof (rule dvd_add)
-      show "[:- a, 1:] ^ n' dvd [:- a, 1:] ^ Suc n' * pderiv q"
-        by (metis dvdI dvd_mult2 power_Suc2)
-      show "[:- a, 1:] ^ n' dvd smult (of_nat (Suc n')) (q * [:- a, 1:] ^ n')"
-        by (metis dvd_smult dvd_triv_right)
-    qed
-    have "k dvd k * pderiv q + smult (of_nat (Suc n')) l \<Longrightarrow> k dvd l" for k l
-      by (auto simp del: of_nat_Suc simp: dvd_add_right_iff dvd_smult_iff)
-    then show "\<not> [:- a, 1:] ^ Suc n' dvd pderiv ([:- a, 1:] ^ Suc n' * q)"
-      unfolding lemma_order_pderiv1
-      by (metis nd dvd_mult_cancel_right power_not_zero pCons_eq_0_iff power_Suc zero_neq_one)
-  qed
-  then show ?thesis
-    by (metis \<open>n = Suc n'\<close> pe)
-qed
-
-lemma order_pderiv: "order a p = Suc (order a (pderiv p))"
-  if "pderiv p \<noteq> 0" "order a p \<noteq> 0"
-  for p :: "'a::field_char_0 poly"
-proof (cases "p = 0")
-  case False
-  obtain q where "p = [:- a, 1:] ^ order a p * q \<and> \<not> [:- a, 1:] dvd q"
-    using False order_decomp by blast
-  then show ?thesis
-    using lemma_order_pderiv that by blast
-qed (use that in auto)
+  by (metis add.right_neutral gr0_conv_Suc n nat.case nd order_mult order_pderiv
+      order_power_n_n order_root pd pderiv_0 pe poly_eq_0_iff_dvd)
 
 lemma poly_squarefree_decomp_order:
   fixes p :: "'a::field_char_0 poly"
@@ -3460,7 +3570,7 @@ proof (rule classical)
   from \<open>pderiv p \<noteq> 0\<close> \<open>pderiv p = e * d\<close> have oapp: "order a (pderiv p) = order a e + order a d"
     by (simp add: order_mult)
   from \<open>pderiv p \<noteq> 0\<close> \<open>order a p \<noteq> 0\<close> have oap: "order a p = Suc (order a (pderiv p))"
-    by (rule order_pderiv)
+    using \<open>p \<noteq> 0\<close> order_pderiv order_root by blast
   from \<open>p \<noteq> 0\<close> \<open>p = q * d\<close> have "d \<noteq> 0"
     by simp
   have "[:- a, 1:] ^ order a (pderiv p) dvd r * p"
@@ -3485,7 +3595,7 @@ lemma poly_squarefree_decomp_order2:
 lemma order_pderiv2:
   "pderiv p \<noteq> 0 \<Longrightarrow> order a p \<noteq> 0 \<Longrightarrow> order a (pderiv p) = n \<longleftrightarrow> order a p = Suc n"
   for p :: "'a::field_char_0 poly"
-  by (auto dest: order_pderiv)
+  by (metis nat.inject order_pderiv order_root pderiv_0)
 
 definition rsquarefree :: "'a::idom poly \<Rightarrow> bool"
   where "rsquarefree p \<longleftrightarrow> p \<noteq> 0 \<and> (\<forall>a. order a p = 0 \<or> order a p = 1)"
@@ -4386,6 +4496,19 @@ lemma is_unit_poly_iff: "p dvd 1 \<longleftrightarrow> (\<exists>c. p = [:c:] \<
   for p :: "'a::{comm_semiring_1,semiring_no_zero_divisors} poly"
   by (auto elim: is_unit_polyE simp add: is_unit_const_poly_iff)
 
+lemma coprime_poly_0:
+  "poly p x \<noteq> 0 \<or> poly q x \<noteq> 0" if "coprime p q"
+  for x :: "'a :: field"
+proof (rule ccontr)
+  assume " \<not> (poly p x \<noteq> 0 \<or> poly q x \<noteq> 0)"
+  then have "[:-x, 1:] dvd p" "[:-x, 1:] dvd q"
+    by (simp_all add: poly_eq_0_iff_dvd)
+  with that have "is_unit [:-x, 1:]"
+    by (rule coprime_common_divisor)
+  then show False
+    by (auto simp add: is_unit_pCons_iff)
+qed
+      
 lemma root_imp_reducible_poly:
   fixes x :: "'a :: field"
   assumes "poly p x = 0" and "degree p > 1"
@@ -5682,6 +5805,15 @@ proof -
   qed
 qed
 
+lemma poly_mod:
+  "poly (p mod q) x = poly p x" if "poly q x = 0"
+proof -
+  from that have "poly (p mod q) x = poly (p div q * q) x + poly (p mod q) x"
+    by simp
+  also have "\<dots> = poly p x"
+    by (simp only: poly_add [symmetric]) simp
+  finally show ?thesis .
+qed
 
 subsection \<open>Primality and irreducibility in polynomial rings\<close>
 
@@ -6494,7 +6626,6 @@ next
   qed
   ultimately show ?case by auto  
 qed
-
 
 lemma filterlim_power_at_infinity:
   assumes "n\<noteq>0"
