@@ -17,53 +17,6 @@ import java.util.Base64
 
 
 object Component_VSCodium {
-  /* Node.js: private installation */
-
-  sealed case class Node_Context(
-    platform: Isabelle_Platform = Isabelle_Platform.local,
-    version: String = "22.17.0"
-  ) {
-    override def toString: String =
-      "node-" + version + "-" + platform.ISABELLE_PLATFORM(windows = true, apple = true)
-
-    def arch: String = if (platform.is_arm) "arm64" else "x64"
-
-    def platform_name: String =
-      if (platform.is_windows) "win" else if (platform.is_macos) "darwin" else "linux"
-
-    def full_name: String = "node-v" + version + "-" + platform_name + "-" + arch
-
-    def download_ext: String = if (platform.is_windows) "zip" else "tar.gz"
-
-    def download_url: String =
-      "https://nodejs.org/dist/v" + version + "/" + full_name + "." + download_ext
-
-    def setup(base_dir: Path, packages: List[String], progress: Progress = new Progress): Path = {
-      Isabelle_System.with_tmp_file("node", ext = download_ext) { archive =>
-        progress.echo("Getting Node.js ...")
-        Isabelle_System.download_file(download_url, archive)
-
-        progress.echo("Installing node ...")
-        Isabelle_System.extract(archive, base_dir)
-        val node_dir = base_dir + Path.basic(full_name)
-
-        for (name <- packages) {
-          progress.echo("Installing " + name + " ...")
-          Isabelle_System.bash(
-            path_setup(node_dir) + "\nnpm install -g " + Bash.string(name),
-            cwd = node_dir
-          ).check
-        }
-
-        node_dir
-      }
-    }
-
-    def path_setup(node_dir: Path): String =
-      "export PATH=" + File.bash_path(node_dir + Path.basic("bin")) + """:"$PATH""""
-  }
-
-
   /* vscode parameters */
 
   val vscodium_version = "1.103.25610"
@@ -171,7 +124,8 @@ object Component_VSCodium {
   }
 
   sealed case class Build_Context(platform: Isabelle_Platform, env: List[String]) {
-    def node_context: Node_Context = Node_Context(platform = platform)
+    def node_setup(base_dir: Path, progress: Progress = new Progress): Nodejs.Directory =
+      Nodejs.setup(base_dir, packages = List("yarn"), platform = platform, progress = progress)
 
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
@@ -307,8 +261,7 @@ object Component_VSCodium {
       build_context.get_vscodium_repository(build_dir, progress = progress)
       val vscode_dir = build_dir + Path.explode("vscode")
 
-      val node_context = build_context.node_context
-      val node_dir = node_context.setup(build_dir, List("yarn"), progress = progress)
+      val node_dir = build_context.node_setup(build_dir, progress = progress)
 
       progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
@@ -316,7 +269,7 @@ object Component_VSCodium {
           Library.make_lines(
             "set -e",
             build_context.environment(build_dir),
-            node_context.path_setup(node_dir),
+            node_dir.path_setup,
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
@@ -336,7 +289,6 @@ object Component_VSCodium {
     progress: Progress = new Progress
   ): Unit = {
     val build_context = Build_Context.make(platform = platform)
-    val node_context = build_context.node_context
 
     Isabelle_System.require_command("git")
     Isabelle_System.require_command("jq")
@@ -373,12 +325,12 @@ object Component_VSCodium {
       val sources_patch = build_context.patch_sources(build_dir, progress = progress)
       write_patch("02-isabelle_sources", sources_patch)
 
-      val node_dir = node_context.setup(build_dir, List("yarn"), progress = progress)
+      val node_dir = build_context.node_setup(build_dir, progress = progress)
 
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
-      progress.bash(node_context.path_setup(node_dir) + "\n" + environment + "./build.sh",
+      progress.bash(node_dir.path_setup + "\n" + environment + "./build.sh",
         cwd = build_dir, echo = progress.verbose).check
 
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)

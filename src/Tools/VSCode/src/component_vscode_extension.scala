@@ -198,8 +198,7 @@ object Component_VSCode {
 
     val vsix_name =
       Isabelle_System.with_tmp_dir("build") { build_dir =>
-        val node_context = Component_VSCodium.Node_Context()
-        val node_dir = node_context.setup(build_dir, List("yarn", "vsce"), progress = progress)
+        val node_dir = Nodejs.setup(build_dir, packages = List("yarn", "vsce"), progress = progress)
 
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
@@ -239,7 +238,7 @@ object Component_VSCode {
           progress.bash(
             Library.make_lines(
               "set -e",
-              node_context.path_setup(node_dir),
+              node_dir.path_setup,
               "yarn",
               "vsce package"),
             cwd = build_dir, echo = true).check
