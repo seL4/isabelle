@@ -198,7 +198,10 @@ object Component_VSCode {
 
     val vsix_name =
       Isabelle_System.with_tmp_dir("build") { build_dir =>
-        val node_dir = Nodejs.setup(build_dir, packages = List("yarn", "vsce"), progress = progress)
+        val node_dir =
+          Nodejs.setup(build_dir,
+            platform_context = Isabelle_Platform.Context(progress = progress),
+            packages = List("yarn", "vsce"))
 
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)

@@ -140,8 +140,10 @@ object Component_VSCodium {
     def progress: Progress = platform_context.progress
 
     def node_setup(base_dir: Path): Nodejs.Directory =
-      Nodejs.setup(base_dir, platform = platform, version = node_version,
-        packages = List("yarn"), progress = progress)
+      Nodejs.setup(base_dir,
+        platform_context = platform_context,
+        version = node_version,
+        packages = List("yarn"))
 
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
@@ -313,9 +315,13 @@ object Component_VSCodium {
         node_version = node_version,
         vscodium_version = vscodium_version)
 
-    Isabelle_System.require_command("git")
-    Isabelle_System.require_command("jq")
-    Isabelle_System.require_command("rustup")
+    platform_context.mingw.check()
+
+    if (!platform.is_windows) {
+      Isabelle_System.require_command("git")
+      Isabelle_System.require_command("jq")
+      Isabelle_System.require_command("rustup")
+    }
 
 
     /* component */

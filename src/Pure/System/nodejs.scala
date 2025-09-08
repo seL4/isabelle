@@ -15,22 +15,24 @@ object Nodejs {
   val default_version = "22.17.0"
 
   def context(
-    platform: Isabelle_Platform = Isabelle_Platform.local,
+    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
     version: String = default_version
-  ): Context = new Context(platform, version)
+  ): Context = new Context(platform_context, version)
 
   def setup(
     base_dir: Path,
-    platform: Isabelle_Platform = Isabelle_Platform.local,
+    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
     version: String = default_version,
-    packages: List[String] = Nil,
-    progress: Progress = new Progress
+    packages: List[String] = Nil
   ): Directory = {
-    context(platform = platform, version = version)
-      .setup(base_dir, packages = packages, progress = progress)
+    context(platform_context = platform_context, version = version)
+      .setup(base_dir, packages = packages)
   }
 
-  class Context private[Nodejs](val platform: Isabelle_Platform, version: String) {
+  class Context private[Nodejs](val platform_context: Isabelle_Platform.Context, version: String) {
+    def platform: Isabelle_Platform = platform_context.isabelle_platform
+    def progress: Progress = platform_context.progress
+
     override def toString: String =
       "node-" + version + "-" + platform.ISABELLE_PLATFORM(windows = true, apple = true)
 
@@ -46,11 +48,7 @@ object Nodejs {
     def download_url: String =
       "https://nodejs.org/dist/v" + version + "/" + full_name + "." + download_ext
 
-    def setup(
-      base_dir: Path,
-      packages: List[String] = Nil,
-      progress: Progress = new Progress
-    ): Directory = {
+    def setup(base_dir: Path, packages: List[String] = Nil): Directory = {
       Isabelle_System.with_tmp_file("node", ext = download_ext) { archive =>
         progress.echo("Getting Node.js ...")
         Isabelle_System.download_file(download_url, archive)
@@ -59,7 +57,7 @@ object Nodejs {
         Isabelle_System.extract(archive, base_dir)
         val node_dir = new Directory(this, base_dir + Path.basic(full_name))
 
-        for (name <- packages) node_dir.install(name, progress = progress)
+        for (name <- packages) node_dir.install(name)
 
         node_dir
       }
@@ -69,10 +67,17 @@ object Nodejs {
   class Directory private[Nodejs](val context: Context, val path: Path) {
     override def toString: String = path.toString
 
-    def bin: Path = path + Path.basic("bin")
-    def path_setup: String = "export PATH=" + File.bash_path(bin) + """:"$PATH""""
+    def platform_context: Isabelle_Platform.Context = context.platform_context
+    def progress: Progress = context.progress
 
-    def install(name: String, progress: Progress = new Progress): Unit = {
+    def bin_dir: Path =
+      if (platform_context.isabelle_platform.is_windows) path
+      else path + Path.basic("bin")
+
+    def path_setup: String =
+      "export PATH=" + Bash.string(platform_context.standard_path(bin_dir)) + """:"$PATH""""
+
+    def install(name: String): Unit = {
       progress.echo("Installing " + name + " ...")
       Isabelle_System.bash(path_setup + "\nnpm install -g " + Bash.string(name), cwd = path).check
     }
