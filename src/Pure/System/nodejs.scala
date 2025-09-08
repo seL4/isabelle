@@ -79,11 +79,11 @@ object Nodejs {
 
     def install(name: String, production: Boolean = false): Unit = {
       progress.echo("Installing " + name + " ...")
-      Isabelle_System.bash(
+      platform_context.execute(path,
         Library.make_lines(
           path_setup,
-          "npm install --global " + if_proper(production, "--production ") + Bash.string(name)),
-        cwd = path).check
+          "npm install --global " + if_proper(production, "--production ") + Bash.string(name)
+        )).check
     }
   }
 
