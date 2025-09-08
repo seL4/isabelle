@@ -77,9 +77,13 @@ object Nodejs {
     def path_setup: String =
       "export PATH=" + Bash.string(platform_context.standard_path(bin_dir)) + """:"$PATH""""
 
-    def install(name: String): Unit = {
+    def install(name: String, production: Boolean = false): Unit = {
       progress.echo("Installing " + name + " ...")
-      Isabelle_System.bash(path_setup + "\nnpm install -g " + Bash.string(name), cwd = path).check
+      Isabelle_System.bash(
+        Library.make_lines(
+          path_setup,
+          "npm install --global " + if_proper(production, "--production ") + Bash.string(name)),
+        cwd = path).check
     }
   }
 
