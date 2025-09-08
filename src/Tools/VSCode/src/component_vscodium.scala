@@ -167,8 +167,7 @@ object Component_VSCodium {
     def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
 
     def environment(dir: Path): String =
-      (build_env ::: build_upstream_env(dir) ::: env)
-        .map(s => "export " + s + "\n").mkString
+      Bash.exports((build_env ::: build_upstream_env(dir) ::: env):_*)
 
     def patch_sources(base_dir: Path, progress: Progress = new Progress): String = {
       val dir = base_dir + Path.explode("vscode")
