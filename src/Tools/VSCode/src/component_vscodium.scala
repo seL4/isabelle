@@ -162,7 +162,7 @@ object Component_VSCodium {
       Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = vscodium_version)
 
       progress.echo("Getting VSCode repository ...")
-      Isabelle_System.bash(environment(build_dir) + "\n" + "./get_repo.sh", cwd = build_dir).check
+      platform_context.execute(build_dir, environment(build_dir) + "\n" + "./get_repo.sh").check
     }
 
     def platform_name: String = platform.ISABELLE_PLATFORM(windows = true, apple = true)
@@ -272,6 +272,7 @@ object Component_VSCodium {
   /* original repository clones and patches */
 
   def vscodium_patch(build_context: Build_Context): String = {
+    val platform_context = build_context.platform_context
     val progress = build_context.progress
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
@@ -282,15 +283,13 @@ object Component_VSCodium {
 
       progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
-        progress.bash(
-          Library.make_lines(
-            "set -e",
-            build_context.environment(build_dir),
-            node_dir.path_setup,
-            "./prepare_vscode.sh",
-            // enforce binary diff of code.xpm
-            "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ), cwd = build_dir, echo = progress.verbose).check
+        platform_context.execute(build_dir,
+          "set -e",
+          build_context.environment(build_dir),
+          node_dir.path_setup,
+          "./prepare_vscode.sh",
+          // enforce binary diff of code.xpm
+          "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm").check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -354,8 +353,8 @@ object Component_VSCodium {
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
-      progress.bash(node_dir.path_setup + "\n" + environment + "./build.sh",
-        cwd = build_dir, echo = progress.verbose).check
+      platform_context.execute(
+        build_dir, node_dir.path_setup + "\n" + environment + "./build.sh").check
 
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
 
