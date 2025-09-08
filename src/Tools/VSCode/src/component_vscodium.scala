@@ -106,10 +106,11 @@ object Component_VSCodium {
 
   object Build_Context {
     def make(
-      platform: Isabelle_Platform = Isabelle_Platform.local,
+      platform_context: Isabelle_Platform.Context,
       node_version: String = default_node_version,
       vscodium_version: String = default_vscodium_version
     ): Build_Context = {
+      val platform = platform_context.isabelle_platform
       val env1 =
         List(
           "OS_NAME=" + vscode_os_name(platform),
@@ -125,17 +126,20 @@ object Component_VSCodium {
         }
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil
-      Build_Context(platform, node_version, vscodium_version, env1 ::: env2)
+      Build_Context(platform_context, node_version, vscodium_version, env1 ::: env2)
     }
   }
 
   sealed case class Build_Context(
-    platform: Isabelle_Platform,
+    platform_context: Isabelle_Platform.Context,
     node_version: String,
     vscodium_version: String,
     env: List[String]
   ) {
-    def node_setup(base_dir: Path, progress: Progress = new Progress): Nodejs.Directory =
+    def platform: Isabelle_Platform = platform_context.isabelle_platform
+    def progress: Progress = platform_context.progress
+
+    def node_setup(base_dir: Path): Nodejs.Directory =
       Nodejs.setup(base_dir, platform = platform, version = node_version,
         packages = List("yarn"), progress = progress)
 
@@ -144,7 +148,7 @@ object Component_VSCodium {
     def download_name: String =
       "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + "." + download_ext
 
-    def download(dir: Path, progress: Progress = new Progress): Unit = {
+    def download(dir: Path): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
         progress.echo("Getting VSCodium release ...")
         Isabelle_System.download_file(vscodium_download + "/" + vscodium_version + "/" + download_name,
@@ -153,7 +157,7 @@ object Component_VSCodium {
       }
     }
 
-    def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
+    def get_vscodium_repository(build_dir: Path): Unit = {
       progress.echo("Getting VSCodium repository ...")
       Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = vscodium_version)
 
@@ -169,7 +173,7 @@ object Component_VSCodium {
     def environment(dir: Path): String =
       Bash.exports((build_env ::: build_upstream_env(dir) ::: env):_*)
 
-    def patch_sources(base_dir: Path, progress: Progress = new Progress): String = {
+    def patch_sources(base_dir: Path): String = {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
         // isabelle_encoding.ts
@@ -267,12 +271,14 @@ object Component_VSCodium {
 
   /* original repository clones and patches */
 
-  def vscodium_patch(build_context: Build_Context, progress: Progress = new Progress): String = {
+  def vscodium_patch(build_context: Build_Context): String = {
+    val progress = build_context.progress
+
     Isabelle_System.with_tmp_dir("build") { build_dir =>
-      build_context.get_vscodium_repository(build_dir, progress = progress)
+      build_context.get_vscodium_repository(build_dir)
       val vscode_dir = build_dir + Path.explode("vscode")
 
-      val node_dir = build_context.node_setup(build_dir, progress = progress)
+      val node_dir = build_context.node_setup(build_dir)
 
       progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
@@ -298,11 +304,13 @@ object Component_VSCodium {
     target_dir: Path = Path.current,
     node_version: String = default_node_version,
     vscodium_version: String = default_vscodium_version,
-    platform: Isabelle_Platform = Isabelle_Platform.local,
-    progress: Progress = new Progress
+    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
   ): Unit = {
+    val platform = platform_context.isabelle_platform
+    val progress = platform_context.progress
+
     val build_context =
-      Build_Context.make(platform = platform,
+      Build_Context.make(platform_context,
         node_version = node_version,
         vscodium_version = vscodium_version)
 
@@ -327,7 +335,7 @@ object Component_VSCodium {
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
 
-    write_patch("01-vscodium", vscodium_patch(build_context, progress = progress))
+    write_patch("01-vscodium", vscodium_patch(build_context))
 
 
     /* build */
@@ -335,13 +343,13 @@ object Component_VSCodium {
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       progress.echo("\n* Building VSCodium for " + build_context.platform_name + ":")
 
-      build_context.get_vscodium_repository(build_dir, progress = progress)
+      build_context.get_vscodium_repository(build_dir)
       Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
 
-      val sources_patch = build_context.patch_sources(build_dir, progress = progress)
+      val sources_patch = build_context.patch_sources(build_dir)
       write_patch("02-isabelle_sources", sources_patch)
 
-      val node_dir = build_context.node_setup(build_dir, progress = progress)
+      val node_dir = build_context.node_setup(build_dir)
 
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
@@ -416,6 +424,7 @@ formal record.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var mingw = MinGW.none
         var node_version = default_node_version
         var vscodium_version = default_vscodium_version
         var verbose = false
@@ -425,6 +434,7 @@ Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -M DIR       msys/mingw root specification for Windows
     -N VERSION   Node.js version (default: """" + default_node_version + """")
     -V VERSION   VSCodium version (default: """" + default_vscodium_version + """")
     -v           verbose
@@ -432,6 +442,7 @@ Usage: component_vscodium [OPTIONS]
   Build VSCodium from sources and turn it into an Isabelle component.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "N:" -> (arg => node_version = arg),
           "V:" -> (arg => vscodium_version = arg),
           "v" -> (_ => verbose = true))
@@ -440,9 +451,10 @@ Usage: component_vscodium [OPTIONS]
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
+        val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_version = node_version,
-          vscodium_version = vscodium_version, progress = progress)
+          vscodium_version = vscodium_version, platform_context = platform_context)
       })
 
   val isabelle_tool2 =
@@ -450,6 +462,7 @@ Usage: component_vscodium [OPTIONS]
       Scala_Project.here,
       { args =>
         var base_dir = Path.current
+        var mingw = MinGW.none
         var verbose = false
 
         val getopts = Getopts("""
@@ -457,18 +470,21 @@ Usage: vscode_patch [OPTIONS]
 
   Options are:
     -D DIR       base directory (default ".")
+    -M DIR       msys/mingw root specification for Windows
     -v           verbose
 
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
           "D:" -> (arg => base_dir = Path.explode(arg)),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
+        val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
 
-        Build_Context.make().patch_sources(base_dir, progress = progress)
+        Build_Context.make(platform_context).patch_sources(base_dir)
       })
 }
