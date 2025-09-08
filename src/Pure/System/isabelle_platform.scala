@@ -57,7 +57,7 @@ object Isabelle_Platform {
     def progress: Progress
 
     def standard_path(path: Path): String =
-      mingw.standard_path(File.standard_path(path))
+      mingw.standard_path(File.platform_path(path))
 
     def execute(cwd: Path, script_lines: String*): Process_Result = {
       val script = cat_lines("set -e" :: script_lines.toList)
