@@ -42,21 +42,21 @@ object Component_VSCodium {
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
-  def vscode_arch(platform: Isabelle_Platform): String =
-    if (platform.is_arm) "arm64" else "x64"
+  def vscode_arch(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.is_arm) "arm64" else "x64"
 
-  def vscode_os_name(platform: Isabelle_Platform): String =
-    if (platform.is_windows) "windows"
-    else if (platform.is_macos) "osx"
+  def vscode_os_name(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.isabelle_platform.is_windows) "windows"
+    else if (platform_context.isabelle_platform.is_macos) "osx"
     else "linux"
 
-  def vscode_platform_name(platform: Isabelle_Platform): String =
-    if (platform.is_windows) "win32"
-    else if (platform.is_macos) "darwin"
+  def vscode_platform_name(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.isabelle_platform.is_windows) "win32"
+    else if (platform_context.isabelle_platform.is_macos) "darwin"
     else "linux"
 
-  def vscode_platform(platform: Isabelle_Platform): String =
-    vscode_platform_name(platform) + "-" + vscode_arch(platform)
+  def vscode_platform(platform_context: Isabelle_Platform.Context): String =
+    vscode_platform_name(platform_context) + "-" + vscode_arch(platform_context)
 
   private val resources = Path.explode("resources")
 
@@ -131,8 +131,8 @@ object Component_VSCodium {
       val platform = platform_context.isabelle_platform
       val env1 =
         List(
-          "OS_NAME=" + vscode_os_name(platform),
-          "VSCODE_ARCH=" + vscode_arch(platform))
+          "OS_NAME=" + vscode_os_name(platform_context),
+          "VSCODE_ARCH=" + vscode_arch(platform_context))
       val env2 =
         if (platform.is_windows) {
           List(
@@ -172,7 +172,7 @@ object Component_VSCodium {
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
     def download_name: String =
-      "VSCodium-" + vscode_platform(platform) + "-" + vscodium_version + "." + download_ext
+      "VSCodium-" + vscode_platform(platform_context) + "-" + vscodium_version + "." + download_ext
 
     def download(dir: Path): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
@@ -191,10 +191,10 @@ object Component_VSCodium {
       platform_context.execute(build_dir, environment(build_dir) + "\n" + "./get_repo.sh").check
     }
 
-    def platform_name: String = platform.ISABELLE_PLATFORM(windows = true, apple = true)
+    def platform_name: String = platform_context.ISABELLE_PLATFORM
     def platform_dir(dir: Path): Path = dir + Path.explode(platform_name)
 
-    def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform))
+    def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform_context))
 
     def environment(dir: Path): String =
       Bash.exports((build_env ::: build_upstream_env(dir) ::: env):_*)
@@ -455,6 +455,7 @@ formal record.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
+        var intel = false
         var mingw = MinGW.none
         var node_version = default_node_version
         var vscodium_version = default_vscodium_version
@@ -466,6 +467,7 @@ Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
+    -I           force Intel platform on Apple Silicon
     -M DIR       msys/mingw root specification for Windows
     -N VERSION   download Node.js version (overrides option -n)
                  (default: """" + default_node_version + """")
@@ -497,6 +499,7 @@ Usage: component_vscodium [OPTIONS]
       brew install """ + macos_packages.mkString(" ") + """
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
+          "I" -> (arg => intel = true),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "N:" -> { arg => node_version = arg; node_root = None },
           "V:" -> (arg => vscodium_version = arg),
@@ -507,7 +510,7 @@ Usage: component_vscodium [OPTIONS]
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
-        val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
+        val platform_context = Isabelle_Platform.Context(mingw = mingw, apple = !intel, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_root = node_root,
           node_version = node_version, vscodium_version = vscodium_version,

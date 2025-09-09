@@ -38,14 +38,17 @@ object Isabelle_Platform {
     def apply(
       isabelle_platform: Isabelle_Platform = local,
       mingw: MinGW = MinGW.none,
+      apple: Boolean = true,
       progress: Progress = new Progress
     ): Context = {
       val context_platform = isabelle_platform
       val context_mingw = mingw
+      val context_apple = apple
       val context_progress = progress
       new Context {
         override def isabelle_platform: Isabelle_Platform = context_platform
         override def mingw: MinGW = context_mingw
+        override def apple: Boolean = context_apple
         override def progress: Progress = context_progress
       }
     }
@@ -54,7 +57,13 @@ object Isabelle_Platform {
   trait Context {
     def isabelle_platform: Isabelle_Platform
     def mingw: MinGW
+    def apple: Boolean
     def progress: Progress
+
+    def ISABELLE_PLATFORM: String = isabelle_platform.ISABELLE_PLATFORM(windows = true, apple = apple)
+    def is_linux_arm: Boolean = isabelle_platform.is_linux && isabelle_platform.is_arm
+    def is_macos_arm: Boolean = isabelle_platform.is_macos && isabelle_platform.is_arm && apple
+    def is_arm: Boolean = is_linux_arm || is_macos_arm
 
     def standard_path(path: Path): String =
       mingw.standard_path(File.platform_path(path))
@@ -62,9 +71,7 @@ object Isabelle_Platform {
     def execute(cwd: Path, script_lines: String*): Process_Result = {
       val script = cat_lines("set -e" :: script_lines.toList)
       val script1 =
-        if (isabelle_platform.is_arm && isabelle_platform.is_macos) {
-          "arch -arch arm64 bash -c " + Bash.string(script)
-        }
+        if (is_macos_arm) "arch -arch arm64 bash -c " + Bash.string(script)
         else mingw.bash_script(script)
       progress.bash(script1, cwd = cwd, echo = progress.verbose).check
     }

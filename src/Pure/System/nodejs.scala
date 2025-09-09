@@ -26,7 +26,7 @@ object Nodejs {
     val platform_name =
       if (platform.is_windows) "win" else if (platform.is_macos) "darwin" else "linux"
 
-    val arch = if (platform.is_arm) "arm64" else "x64"
+    val arch = if (platform_context.is_arm) "arm64" else "x64"
     val full_name = "node-v" + version + "-" + platform_name + "-" + arch
 
     val download_ext = if (platform.is_windows) "zip" else "tar.gz"
