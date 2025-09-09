@@ -480,7 +480,8 @@ Usage: component_vscodium [OPTIONS]
 
   macOS prerequisites:
     - Homebrew package manager: see https://brew.sh
-    - brew packages: """ + macos_packages.mkString(" ") + """
+    - Homebrew packages:
+      brew install """ + macos_packages.mkString(" ") + """
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
