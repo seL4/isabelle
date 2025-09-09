@@ -31,7 +31,7 @@ object Component_VSCodium {
     List("python", "visualstudio2022-workload-vctools")
 
   val macos_packages: List[String] =
-    List("jq", "rustup")
+    List("jq")
 
 
   /* vscode parameters */
@@ -479,6 +479,7 @@ Usage: component_vscodium [OPTIONS]
       pacman -S --needed --noconfirm """ + windows_packages_msys2.mkString(" ") + """
 
   macOS prerequisites:
+    - rustup: see https://www.rust-lang.org/tools/install
     - Homebrew package manager: see https://brew.sh
     - Homebrew packages:
       brew install """ + macos_packages.mkString(" ") + """
