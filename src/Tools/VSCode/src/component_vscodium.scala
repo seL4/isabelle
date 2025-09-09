@@ -145,17 +145,19 @@ object Component_VSCodium {
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil
       val node_version1 = proper_string(node_version).getOrElse(default_node_version)
-      Build_Context(platform_context, node_root, node_version1, vscodium_version, env1 ::: env2)
+      new Build_Context(platform_context, node_root, node_version1, vscodium_version, env1 ::: env2)
     }
   }
 
-  sealed case class Build_Context(
-    platform_context: Isabelle_Platform.Context,
+  class Build_Context private(
+    val platform_context: Isabelle_Platform.Context,
     node_root: Option[Path],
     node_version: String,
     vscodium_version: String,
     env: List[String]
   ) {
+    override def toString: String = platform_name
+
     def platform: Isabelle_Platform = platform_context.isabelle_platform
     def progress: Progress = platform_context.progress
 
