@@ -17,6 +17,23 @@ import java.util.Base64
 
 
 object Component_VSCodium {
+  /* platform prerequisites */
+
+  val linux_packages: List[String] =
+    List(
+      "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot",
+      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev")
+
+  val windows_packages_msys2: List[String] =
+    List("p7zip", "git", "jq", "mingw-w64-ucrt-x86_64-rustup")
+
+  val windows_packages_choco: List[String] =
+    List("python", "visualstudio2022-workload-vctools")
+
+  val macos_packages: List[String] =
+    List("jq", "rustup")
+
+
   /* vscode parameters */
 
   val default_node_version = Nodejs.default_version
@@ -445,6 +462,25 @@ Usage: component_vscodium [OPTIONS]
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
+
+  Linux prerequisites:
+    - Ubuntu 20.04 LTS
+    - rustup: see https://www.rust-lang.org/tools/install
+    - apt packages:
+      sudo apt install -y """ + linux_packages.mkString(" ") + """
+
+  Windows prerequisites:
+    - chocolatey package manager: see https://chocolatey.org/install
+    - chocolatey packages:
+      choco install """ + windows_packages_choco.mkString(" ") + """ -y
+    - MSYS2/UCRT64: see https://www.msys2.org
+    - MSYS2 packages:
+      pacman -Su
+      pacman -S --needed --noconfirm """ + windows_packages_msys2.mkString(" ") + """
+
+  macOS prerequisites:
+    - Homebrew package manager: see https://brew.sh
+    - brew packages: """ + macos_packages.mkString(" ") + """
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
