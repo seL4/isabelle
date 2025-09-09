@@ -46,6 +46,12 @@ object Nodejs {
     }
   }
 
+  def directory(platform_context: Isabelle_Platform.Context, path: Path): Directory = {
+    val node_dir = new Directory(platform_context, path)
+    val node_exe = node_dir.bin_dir + Path.basic("node").exe_if(node_dir.platform.is_windows)
+    if (node_exe.is_file) node_dir else error("Bad Node.js directory " + path)
+  }
+
   class Directory private[Nodejs](
     val platform_context: Isabelle_Platform.Context,
     val path: Path

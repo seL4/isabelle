@@ -124,7 +124,8 @@ object Component_VSCodium {
   object Build_Context {
     def make(
       platform_context: Isabelle_Platform.Context,
-      node_version: String = default_node_version,
+      node_root: Option[Path] = None,
+      node_version: String = "",
       vscodium_version: String = default_vscodium_version
     ): Build_Context = {
       val platform = platform_context.isabelle_platform
@@ -143,12 +144,14 @@ object Component_VSCodium {
         }
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil
-      Build_Context(platform_context, node_version, vscodium_version, env1 ::: env2)
+      val node_version1 = proper_string(node_version).getOrElse(default_node_version)
+      Build_Context(platform_context, node_root, node_version1, vscodium_version, env1 ::: env2)
     }
   }
 
   sealed case class Build_Context(
     platform_context: Isabelle_Platform.Context,
+    node_root: Option[Path],
     node_version: String,
     vscodium_version: String,
     env: List[String]
@@ -157,10 +160,14 @@ object Component_VSCodium {
     def progress: Progress = platform_context.progress
 
     def node_setup(base_dir: Path): Nodejs.Directory =
-      Nodejs.setup(base_dir,
-        platform_context = platform_context,
-        version = node_version,
-        packages = List("yarn"))
+      node_root match {
+        case Some(path) => Nodejs.directory(platform_context, path)
+        case None =>
+          Nodejs.setup(base_dir,
+            platform_context = platform_context,
+            version = node_version,
+            packages = List("yarn"))
+      }
 
     def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
 
@@ -320,6 +327,7 @@ object Component_VSCodium {
 
   def component_vscodium(
     target_dir: Path = Path.current,
+    node_root: Option[Path] = None,
     node_version: String = default_node_version,
     vscodium_version: String = default_vscodium_version,
     platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
@@ -329,6 +337,7 @@ object Component_VSCodium {
 
     val build_context =
       Build_Context.make(platform_context,
+        node_root = node_root,
         node_version = node_version,
         vscodium_version = vscodium_version)
 
@@ -449,6 +458,7 @@ formal record.
         var mingw = MinGW.none
         var node_version = default_node_version
         var vscodium_version = default_vscodium_version
+        var node_root: Option[Path] = None
         var verbose = false
 
         val getopts = Getopts("""
@@ -457,8 +467,10 @@ Usage: component_vscodium [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -M DIR       msys/mingw root specification for Windows
-    -N VERSION   Node.js version (default: """" + default_node_version + """")
+    -N VERSION   download Node.js version (overrides option -n)
+                 (default: """" + default_node_version + """")
     -V VERSION   VSCodium version (default: """" + default_vscodium_version + """")
+    -n DIR       use existing Node.js directory (overrides option -N)
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
@@ -486,8 +498,9 @@ Usage: component_vscodium [OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
-          "N:" -> (arg => node_version = arg),
+          "N:" -> { arg => node_version = arg; node_root = None },
           "V:" -> (arg => vscodium_version = arg),
+          "n:" -> { arg => node_root = Some(Path.explode(arg)); node_version = "" },
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -496,8 +509,9 @@ Usage: component_vscodium [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
         val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
 
-        component_vscodium(target_dir = target_dir, node_version = node_version,
-          vscodium_version = vscodium_version, platform_context = platform_context)
+        component_vscodium(target_dir = target_dir, node_root = node_root,
+          node_version = node_version, vscodium_version = vscodium_version,
+          platform_context = platform_context)
       })
 
   val isabelle_tool2 =
