@@ -38,7 +38,7 @@ object Nodejs {
 
       progress.echo("Installing node ...")
       Isabelle_System.extract(archive, base_dir)
-      val node_dir = new Directory(platform_context, base_dir + Path.basic(full_name))
+      val node_dir = directory(platform_context, base_dir + Path.basic(full_name))
 
       for (name <- packages) node_dir.install(name)
 
