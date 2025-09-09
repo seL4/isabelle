@@ -60,7 +60,8 @@ object VSCode_Main {
       error("""Undefined $ISABELLE_VSCODIUM_ELECTRON: missing "vscodium" component""")
     }
     val args0 =
-      List(platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium/out/cli.js"), "--locale", "en-US",
+      List(platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium/out/cli.js"),
+        "--ms-enable-electron-run-as-node", "--locale", "en-US",
         "--user-data-dir", platform_path("$ISABELLE_VSCODE_SETTINGS/user-data"),
         "--extensions-dir", platform_path("$ISABELLE_VSCODE_SETTINGS/extensions"))
     val script =
