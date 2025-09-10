@@ -21,8 +21,8 @@ object Component_VSCodium {
 
   val linux_packages: List[String] =
     List(
-      "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot",
-      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev")
+      "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot", "curl",
+      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev", "libfontconfig1")
 
   val windows_packages_msys2: List[String] =
     List("p7zip", "git", "jq", "mingw-w64-ucrt-x86_64-rustup")
