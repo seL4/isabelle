@@ -27,9 +27,6 @@ object Component_VSCodium {
   val windows_packages_msys2: List[String] =
     List("p7zip", "git", "jq", "mingw-w64-ucrt-x86_64-rustup")
 
-  val windows_packages_choco: List[String] =
-    List("python", "visualstudio2022-workload-vctools")
-
   val macos_packages: List[String] =
     List("jq")
 
@@ -450,7 +447,16 @@ esac
 
 It has been built from sources using "isabelle component_vscodium". This applies
 a few changes required for Isabelle/VSCode, see "patches" directory for a
-formal record.
+formal record. Typical build commands for special platforms are as follows.
+
+* x86_64-darwin on Apple Silicon hardware:
+
+    isabelle component_vscodium -I
+
+* x86_64-windows with Cygwin-Terminal, using prerequisites in typical locations:
+
+    export NODE_GYP_FORCE_PYTHON='C:\Python313\python.exe'
+    isabelle component_vscodium -M "/cygdrive/c/msys64" -n "/cygdrive/c/Program Files/nodejs"
 
 
         Makarius
@@ -494,9 +500,15 @@ Usage: component_vscodium [OPTIONS]
       sudo apt install -y """ + linux_packages.mkString(" ") + """
 
   Windows prerequisites:
-    - chocolatey package manager: see https://chocolatey.org/install
-    - chocolatey packages:
-      choco install """ + windows_packages_choco.mkString(" ") + """ -y
+    - install Visual Studio 2022 with C++ development and C++ library with
+      Spectre mitigation: see https://visualstudio.microsoft.com/downloads
+    - install Nodejs """ + default_node_version + """ including Windows build tools:
+      see https://nodejs.org/dist/v""" + default_node_version +
+        "/node-v" + default_node_version + """-x64.msi
+    - rebuild native node-pty, using "cmd" as Administrator:
+        npm install --global node-gyp node-pty@1.1.0-beta33
+        cd "C:\Program Files\nodejs\node_modules\node-pty"
+        npx node-gyp rebuild node-pty
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su
