@@ -522,6 +522,7 @@ Usage: component_vscodium [OPTIONS]
       pacman -S --needed --noconfirm """ + windows_packages_msys2.mkString(" ") + """
 
   macOS prerequisites:
+    - macOS 13 Ventura
     - rustup: see https://www.rust-lang.org/tools/install
     - Homebrew package manager: see https://brew.sh
     - Homebrew packages:
