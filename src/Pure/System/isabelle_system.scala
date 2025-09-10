@@ -523,6 +523,7 @@ object Isabelle_System {
     strip: Int = 1,
     progress: Progress = new Progress
   ): Unit = {
+    Isabelle_System.require_command("patch")
     with_tmp_file("patch", ext = "rej") { rej =>
       val result =
         Isabelle_System.bash("patch -f -p" + strip + " -r " + File.bash_path(rej),

@@ -350,6 +350,7 @@ object Component_VSCodium {
 
     platform_context.mingw.check()
 
+    Isabelle_System.require_command("patch")
     if (!platform.is_windows) {
       Isabelle_System.require_command("git")
       Isabelle_System.require_command("jq")
