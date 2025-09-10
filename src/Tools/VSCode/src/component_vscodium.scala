@@ -148,9 +148,7 @@ object Component_VSCodium {
             "-JEDIT_JARS",
             "-JORTHO_DICTIONARIES",
             "-KODKODI_CLASSPATH",
-            "-SOLR_JARS",
-            "-init_component",
-            "-init_components")
+            "-SOLR_JARS") ::: Isabelle_System.no_bash_functions
         }
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil

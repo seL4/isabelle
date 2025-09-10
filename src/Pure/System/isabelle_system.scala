@@ -431,6 +431,8 @@ object Isabelle_System {
   lazy val bash_functions: List[String] =
     bash("declare -Fx").check.out_lines.flatMap(s => Word.explode(s).lastOption)
 
+  def no_bash_functions: List[String] = bash_functions.map("-" + _)
+
   object Bash_Functions extends Scala.Fun_Strings("bash_functions") {
     val here = Scala_Project.here
     def apply(args: List[String]): List[String] = bash_functions
