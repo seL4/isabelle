@@ -390,6 +390,12 @@ object Component_VSCodium {
 
       val node_dir = build_context.node_setup(build_dir)
 
+      progress.echo("Installing rust ...")
+      platform_context.execute(build_dir, "rustup toolchain install stable").check
+      if (platform.is_macos && !platform_context.apple) {
+        platform_context.execute(build_dir, "rustup target add x86_64-apple-darwin").check
+      }
+
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
