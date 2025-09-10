@@ -140,7 +140,17 @@ object Component_VSCodium {
             "SHOULD_BUILD_EXE_SYS=no",
             "SHOULD_BUILD_EXE_USR=no",
             "SHOULD_BUILD_MSI=no",
-            "SHOULD_BUILD_MSI_NOUP=no")
+            "SHOULD_BUILD_MSI_NOUP=no",
+            "-ISABELLE_CLASSPATH",
+            "-ISABELLE_COMPONENTS",
+            "-ISABELLE_FONTS",
+            "-ISABELLE_SETUP_CLASSPATH",
+            "-JEDIT_JARS",
+            "-JORTHO_DICTIONARIES",
+            "-KODKODI_CLASSPATH",
+            "-SOLR_JARS",
+            "-init_component",
+            "-init_components")
         }
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil

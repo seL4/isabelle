@@ -43,7 +43,11 @@ object Bash {
     ss.iterator.map(Bash.string).mkString(" ")
 
   def exports(environment: String*): String =
-    environment.iterator.map(a => "export " + string(a)).mkString("", "\n", "\n")
+    environment.iterator.map(a =>
+      Library.try_unprefix("-", a) match {
+        case None => "export " + string(a)
+        case Some(b) => "unset " + string(b)
+      }).mkString("", "\n", "\n")
 
 
   /* process and result */
