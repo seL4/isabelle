@@ -110,11 +110,7 @@ fun bash_output s =
 
 (* bash functions *)
 
-fun bash_functions () =
-  bash_process (Bash.script "declare -Fx")
-  |> Process_Result.check
-  |> Process_Result.out_lines
-  |> map_filter (space_explode " " #> try List.last);
+fun bash_functions () = Scala.function "bash_functions" [];
 
 fun check_bash_function ctxt arg =
   Completion.check_entity Markup.bash_functionN

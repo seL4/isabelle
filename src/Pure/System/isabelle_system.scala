@@ -428,6 +428,16 @@ object Isabelle_System {
         watchdog = watchdog, strict = strict)
   }
 
+  lazy val bash_functions: List[String] =
+    bash("declare -Fx").check.out_lines.flatMap(s => Word.explode(s).lastOption)
+
+  def no_bash_functions: List[String] = bash_functions.map("-" + _)
+
+  object Bash_Functions extends Scala.Fun_Strings("bash_functions") {
+    val here = Scala_Project.here
+    def apply(args: List[String]): List[String] = bash_functions
+  }
+
 
   /* command-line tools */
 
@@ -507,6 +517,22 @@ object Isabelle_System {
           File.bash_path(src) + " " + File.bash_path(dst),
         cwd = base_dir).check_rc(Process_Result.RC.regular).out_lines
     Library.terminate_lines(lines)
+  }
+
+  def apply_patch(base_dir: Path, patch: String,
+    strip: Int = 1,
+    progress: Progress = new Progress
+  ): Unit = {
+    Isabelle_System.require_command("patch")
+    with_tmp_file("patch", ext = "rej") { rej =>
+      val result =
+        Isabelle_System.bash("patch -f -p" + strip + " -r " + File.bash_path(rej),
+          cwd = base_dir, input = patch, progress_stdout = progress.echo_if(progress.verbose, _))
+      if (!result.ok) {
+        val lines = if (rej.is_file) Library.trim_split_lines(File.read(rej)) else Nil
+        error("Failed to apply patch" + if_proper(lines, ":\n") + cat_lines(lines))
+      }
+    }
   }
 
   def git_clone(url: String, target: Path,

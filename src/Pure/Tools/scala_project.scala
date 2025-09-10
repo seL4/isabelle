@@ -242,7 +242,7 @@ dependencies {
       val dir = build_tool.package_dir(source)
       val target_dir = project_dir + dir
       if (!target_dir.is_dir) {
-        progress.echo("  Creating package directory: " + dir)
+        progress.echo("  Creating package directory: " + dir, verbose = true)
         Isabelle_System.make_directory(target_dir)
       }
       if (symlinks) Isabelle_System.symlink(source.absolute, target_dir, native = true)
@@ -261,6 +261,7 @@ dependencies {
         var project_dir = default_project_dir
         var symlinks = false
         var force = false
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
@@ -271,6 +272,7 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
     -L           make symlinks to original source files
     -M           use Maven as build tool
     -f           force update of existing directory
+    -v           verbose
 
   Setup project for Isabelle/Scala/jEdit --- to support common IDEs such
   as IntelliJ IDEA. Either option -G or -M is mandatory to specify the
@@ -280,12 +282,13 @@ Usage: isabelle scala_project [OPTIONS] [MORE_SOURCES ...]
           "G" -> (_ => build_tool = Some(Gradle)),
           "L" -> (_ => symlinks = true),
           "M" -> (_ => build_tool = Some(Maven)),
-          "f" -> (_ => force = true))
+          "f" -> (_ => force = true),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
 
         val more_sources = more_args.map(Path.explode)
-        val progress = new Console_Progress
+        val progress = new Console_Progress(verbose = verbose)
 
         if (build_tool.isEmpty) {
           error("Unspecified build tool: need to provide option -G or -M")

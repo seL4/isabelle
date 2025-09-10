@@ -175,8 +175,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         name = file.getName
         if !File.is_backup(name)
       } {
-        progress.bash("patch -p2 < " + File.bash_path(File.path(file)),
-          cwd = source_dir, echo = progress.verbose).check
+        val patch = File.read(File.path(file))
+        Isabelle_System.apply_patch(source_dir, patch, strip = 2, progress = progress)
       }
 
       progress.echo("Augmenting icons ...")

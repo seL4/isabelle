@@ -3,6 +3,8 @@
 
 Build the Isabelle system component for VSCodium: cross-compilation for all
 platforms.
+
+See also https://github.com/VSCodium/vscodium/blob/master/docs/howto-build.md
 */
 
 package isabelle.vscode
@@ -15,13 +17,71 @@ import java.util.Base64
 
 
 object Component_VSCodium {
-  /* global parameters */
+  /* platform prerequisites */
 
-  lazy val version: String = Isabelle_System.getenv_strict("ISABELLE_VSCODE_VERSION")
+  val linux_packages: List[String] =
+    List(
+      "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot",
+      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev")
+
+  val windows_packages_msys2: List[String] =
+    List("p7zip", "git", "jq", "mingw-w64-ucrt-x86_64-rustup")
+
+  val macos_packages: List[String] =
+    List("jq")
+
+
+  /* vscode parameters */
+
+  val default_node_version = Nodejs.default_version
+  val default_vscodium_version = "1.103.25610"
+
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
+  def vscode_arch(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.is_arm) "arm64" else "x64"
+
+  def vscode_os_name(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.isabelle_platform.is_windows) "windows"
+    else if (platform_context.isabelle_platform.is_macos) "osx"
+    else "linux"
+
+  def vscode_platform_name(platform_context: Isabelle_Platform.Context): String =
+    if (platform_context.isabelle_platform.is_windows) "win32"
+    else if (platform_context.isabelle_platform.is_macos) "darwin"
+    else "linux"
+
+  def vscode_platform(platform_context: Isabelle_Platform.Context): String =
+    vscode_platform_name(platform_context) + "-" + vscode_arch(platform_context)
+
   private val resources = Path.explode("resources")
+
+  private def read_patch(name: String): String =
+    File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + Path.basic(name).patch)
+
+
+  /* build environment */
+
+  val build_env: List[String] =
+    List(
+      "VSCODE_QUALITY=stable",
+      "VSCODE_LATEST=no",
+      "CI_BUILD=no",
+      "SKIP_ASSETS=yes",
+      "SHOULD_BUILD=yes",
+      "SHOULD_BUILD_REH=no",
+      "SHOULD_BUILD_REH_WEB=no")
+
+  def build_upstream_env(dir: Path): List[String] = {
+    val str = File.read(dir + Path.explode("upstream/stable.json"))
+    val json = JSON.parse(str)
+    (for {
+      tag <- JSON.string(json, "tag")
+      commit <- JSON.string(json, "commit")
+    } yield List("MS_TAG=" + tag, "MS_COMMIT=" + commit))
+      .getOrElse(error("Malformed upstream information:\n" + str))
+  }
 
 
   /* Isabelle symbols (static subset only) */
@@ -56,61 +116,99 @@ object Component_VSCodium {
   }
 
 
-  /* platform info */
+  /* platform-specific build context */
 
-  sealed case class Platform_Info(
-    platform: Platform.Family,
-    download_template: String,
-    build_name: String,
+  object Build_Context {
+    def make(
+      platform_context: Isabelle_Platform.Context,
+      node_root: Option[Path] = None,
+      node_version: String = "",
+      vscodium_version: String = default_vscodium_version
+    ): Build_Context = {
+      val platform = platform_context.isabelle_platform
+      val env1 =
+        List(
+          "OS_NAME=" + vscode_os_name(platform_context),
+          "VSCODE_ARCH=" + vscode_arch(platform_context))
+      val env2 =
+        if (platform.is_windows) {
+          List(
+            "SHOULD_BUILD_ZIP=no",
+            "SHOULD_BUILD_EXE_SYS=no",
+            "SHOULD_BUILD_EXE_USR=no",
+            "SHOULD_BUILD_MSI=no",
+            "SHOULD_BUILD_MSI_NOUP=no",
+            "-ISABELLE_CLASSPATH",
+            "-ISABELLE_COMPONENTS",
+            "-ISABELLE_FONTS",
+            "-ISABELLE_SETUP_CLASSPATH",
+            "-JEDIT_JARS",
+            "-JORTHO_DICTIONARIES",
+            "-KODKODI_CLASSPATH",
+            "-SOLR_JARS") ::: Isabelle_System.no_bash_functions
+        }
+        else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
+        else Nil
+      val node_version1 = proper_string(node_version).getOrElse(default_node_version)
+      new Build_Context(platform_context, node_root, node_version1, vscodium_version, env1 ::: env2)
+    }
+  }
+
+  class Build_Context private(
+    val platform_context: Isabelle_Platform.Context,
+    node_root: Option[Path],
+    node_version: String,
+    vscodium_version: String,
     env: List[String]
   ) {
-    def primary: Boolean = platform == Platform.Family.linux
+    override def toString: String = platform_name
 
-    def download_name: String = "VSCodium-" + download_template.replace("{VERSION}", version)
-    def download_ext: String = if (download_template.endsWith(".zip")) "zip" else "tar.gz"
+    def platform: Isabelle_Platform = platform_context.isabelle_platform
+    def progress: Progress = platform_context.progress
 
-    def download(dir: Path, progress: Progress = new Progress): Unit = {
+    def node_setup(base_dir: Path): Nodejs.Directory =
+      node_root match {
+        case Some(path) => Nodejs.directory(platform_context, path)
+        case None =>
+          Nodejs.setup(base_dir,
+            platform_context = platform_context,
+            version = node_version,
+            packages = List("yarn"))
+      }
+
+    def download_ext: String = if (platform.is_linux) "tar.gz" else "zip"
+
+    def download_name: String =
+      "VSCodium-" + vscode_platform(platform_context) + "-" + vscodium_version + "." + download_ext
+
+    def download(dir: Path): Unit = {
       Isabelle_System.with_tmp_file("download", ext = download_ext) { download_file =>
-        Isabelle_System.download_file(vscodium_download + "/" + version + "/" + download_name,
-          download_file, progress = progress)
-
-        progress.echo("Extract ...")
+        progress.echo("Getting VSCodium release ...")
+        Isabelle_System.download_file(vscodium_download + "/" + vscodium_version + "/" + download_name,
+          download_file)
         Isabelle_System.extract(download_file, dir)
       }
     }
 
-    def get_vscodium_repository(build_dir: Path, progress: Progress = new Progress): Unit = {
+    def get_vscodium_repository(build_dir: Path): Unit = {
       progress.echo("Getting VSCodium repository ...")
-      Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = version)
+      Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = vscodium_version)
 
       progress.echo("Getting VSCode repository ...")
-      Isabelle_System.bash(environment + "\n" + "./get_repo.sh", cwd = build_dir).check
+      platform_context.execute(build_dir, environment(build_dir) + "\n" + "./get_repo.sh").check
     }
 
-    def platform_dir(dir: Path): Path = {
-      val platform_name =
-        if (platform == Platform.Family.windows) Platform.Family.native(platform)
-        else Platform.Family.standard(platform)
-      dir + Path.explode(platform_name)
-    }
+    def platform_name: String = platform_context.ISABELLE_PLATFORM
+    def platform_dir(dir: Path): Path = dir + Path.explode(platform_name)
 
-    def build_dir(dir: Path): Path = dir + Path.explode(build_name)
+    def build_dir(dir: Path): Path = dir + Path.basic("VSCode-" + vscode_platform(platform_context))
 
-    def environment: String =
-      (("MS_TAG=" + Bash.string(version)) :: "SHOULD_BUILD=yes" :: "VSCODE_ARCH=x64" :: env)
-        .map(s => "export " + s + "\n").mkString
+    def environment(dir: Path): String =
+      Bash.exports((build_env ::: build_upstream_env(dir) ::: env):_*)
 
     def patch_sources(base_dir: Path): String = {
       val dir = base_dir + Path.explode("vscode")
       Isabelle_System.with_copy_dir(dir, dir.orig) {
-        // macos icns
-        for (name <- Seq("build/lib/electron.js", "build/lib/electron.ts")) {
-          File.change(dir + Path.explode(name), strict = true) {
-            _.replace("""'resources/darwin/' + icon + '.icns'""",
-              """'resources/darwin/' + icon.toLowerCase() + '.icns'""")
-          }
-        }
-
         // isabelle_encoding.ts
         {
           val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
@@ -121,12 +219,8 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        {
-          val patches_dir = Path.explode("$ISABELLE_VSCODE_HOME/patches")
-          for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
-            val path = patches_dir + Path.explode(name).patch
-            Isabelle_System.bash("patch -p1 < " + File.bash_path(path), cwd = dir).check
-          }
+        for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
+          Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
         Isabelle_System.make_patch(base_dir, dir.base.orig, dir.base)
@@ -169,45 +263,23 @@ object Component_VSCodium {
       patch
     }
 
-    def init_resources(base_dir: Path): Path = {
-      val dir = base_dir + resources
-      if (platform == Platform.Family.macos) {
-        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"), dir)
-      }
-      dir
-    }
-
-    def setup_node(target_dir: Path, progress: Progress): Unit = {
-      Isabelle_System.with_tmp_dir("download") { download_dir =>
-        download(download_dir, progress = progress)
-        val dir1 = init_resources(download_dir)
-        val dir2 = init_resources(target_dir)
-        for (name <- Seq("app/node_modules.asar", "app/node_modules.asar.unpacked")) {
-          val path = Path.explode(name)
-          Isabelle_System.rm_tree(dir2 + path)
-          Isabelle_System.copy_dir(dir1 + path, dir2 + path)
-        }
-      }
-    }
-
     def setup_electron(dir: Path): Unit = {
       val electron = Path.explode("electron")
-      platform match {
-        case Platform.Family.linux | Platform.Family.linux_arm =>
-          Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
-        case Platform.Family.windows =>
-          Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
-          Isabelle_System.move_file(
-            dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
-            dir + Path.explode("electron.VisualElementsManifest.xml"))
-        case Platform.Family.macos =>
+      if (platform.is_linux) {
+        Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
+      }
+      else if (platform.is_windows) {
+        Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
+        Isabelle_System.move_file(
+          dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
+          dir + Path.explode("electron.VisualElementsManifest.xml"))
       }
     }
 
     def setup_executables(dir: Path): Unit = {
       Isabelle_System.rm_tree(dir + Path.explode("bin"))
 
-      if (platform == Platform.Family.windows) {
+      if (platform.is_windows) {
         val files =
           File.find_files(dir.file, pred = { file =>
             val name = file.getName
@@ -223,71 +295,34 @@ object Component_VSCodium {
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)
   private def file_checksum(path: Path): String = {
-    val digest = MessageDigest.getInstance("MD5")
+    val digest = MessageDigest.getInstance("SHA-256")
     digest.update(Bytes.read(path).make_array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
       .text.replaceAll("=", "")
   }
 
-  private val platform_infos: Map[Platform.Family, Platform_Info] =
-    Iterator(
-      Platform_Info(Platform.Family.linux, "linux-x64-{VERSION}.tar.gz", "VSCode-linux-x64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True")),
-      Platform_Info(Platform.Family.linux_arm, "linux-arm64-{VERSION}.tar.gz", "VSCode-linux-arm64",
-        List("OS_NAME=linux", "SKIP_LINUX_PACKAGES=True", "VSCODE_ARCH=arm64")),
-      Platform_Info(Platform.Family.macos, "darwin-x64-{VERSION}.zip", "VSCode-darwin-x64",
-        List("OS_NAME=osx")),
-      Platform_Info(Platform.Family.windows, "win32-x64-{VERSION}.zip", "VSCode-win32-x64",
-        List("OS_NAME=windows",
-          "SHOULD_BUILD_ZIP=no",
-          "SHOULD_BUILD_EXE_SYS=no",
-          "SHOULD_BUILD_EXE_USR=no",
-          "SHOULD_BUILD_MSI=no",
-          "SHOULD_BUILD_MSI_NOUP=no")))
-      .map(info => info.platform -> info).toMap
-
-  def the_platform_info(platform: Platform.Family): Platform_Info =
-    platform_infos.getOrElse(platform, error("No platform info for " + quote(platform.toString)))
-
-  def linux_platform_info: Platform_Info =
-    the_platform_info(Platform.Family.linux)
-
-
-  /* check system */
-
-  def check_system(platforms: List[Platform.Family]): Unit = {
-    if (Platform.family != Platform.Family.linux) error("Not a Linux/x86_64 system")
-
-    Isabelle_System.require_command("git")
-    Isabelle_System.require_command("node")
-    Isabelle_System.require_command("yarn")
-    Isabelle_System.require_command("jq")
-
-    if (platforms.contains(Platform.Family.windows)) {
-      Isabelle_System.require_command("wine")
-    }
-  }
-
 
   /* original repository clones and patches */
 
-  def vscodium_patch(progress: Progress = new Progress): String = {
-    val platform_info = linux_platform_info
-    check_system(List(platform_info.platform))
+  def vscodium_patch(build_context: Build_Context): String = {
+    val platform_context = build_context.platform_context
+    val progress = build_context.progress
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
-      platform_info.get_vscodium_repository(build_dir, progress = progress)
+      build_context.get_vscodium_repository(build_dir)
       val vscode_dir = build_dir + Path.explode("vscode")
-      progress.echo("Prepare ...")
+
+      val node_dir = build_context.node_setup(build_dir)
+
+      progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
-        progress.bash(
-          Library.make_lines(
-            "set -e",
-            platform_info.environment,
-            "./prepare_vscode.sh",
-            // enforce binary diff of code.xpm
-            "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"
-          ), cwd = build_dir, echo = progress.verbose).check
+        platform_context.execute(build_dir,
+          "set -e",
+          build_context.environment(build_dir),
+          node_dir.path_setup,
+          "./prepare_vscode.sh",
+          // enforce binary diff of code.xpm
+          "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm").check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -297,19 +332,35 @@ object Component_VSCodium {
 
   /* build vscodium */
 
-  def default_platforms: List[Platform.Family] = Platform.Family.list
-
   def component_vscodium(
     target_dir: Path = Path.current,
-    platforms: List[Platform.Family] = default_platforms,
-    progress: Progress = new Progress
+    node_root: Option[Path] = None,
+    node_version: String = default_node_version,
+    vscodium_version: String = default_vscodium_version,
+    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
   ): Unit = {
-    check_system(platforms)
+    val platform = platform_context.isabelle_platform
+    val progress = platform_context.progress
+
+    val build_context =
+      Build_Context.make(platform_context,
+        node_root = node_root,
+        node_version = node_version,
+        vscodium_version = vscodium_version)
+
+    platform_context.mingw.check()
+
+    Isabelle_System.require_command("patch")
+    if (!platform.is_windows) {
+      Isabelle_System.require_command("git")
+      Isabelle_System.require_command("jq")
+      Isabelle_System.require_command("rustup")
+    }
 
 
     /* component */
 
-    val component_name = "vscodium-" + version
+    val component_name = "vscodium-" + vscodium_version
     val component_dir =
       Components.Directory(target_dir + Path.explode(component_name)).create(progress = progress)
 
@@ -323,44 +374,55 @@ object Component_VSCodium {
     def write_patch(name: String, patch: String): Unit =
       File.write(patches_dir + Path.explode(name).patch, patch)
 
-    write_patch("01-vscodium", vscodium_patch(progress = progress))
+    write_patch("01-vscodium", vscodium_patch(build_context))
 
 
     /* build */
 
-    for (platform <- platforms) yield {
-      val platform_info = the_platform_info(platform)
+    Isabelle_System.with_tmp_dir("build") { build_dir =>
+      progress.echo("\n* Building VSCodium for " + build_context.platform_name + ":")
 
-      Isabelle_System.with_tmp_dir("build") { build_dir =>
-        progress.echo("\n* Building " + platform + ":")
+      build_context.get_vscodium_repository(build_dir)
+      Isabelle_System.apply_patch(build_dir, read_patch("vscodium"), progress = progress)
 
-        platform_info.get_vscodium_repository(build_dir, progress = progress)
+      val sources_patch = build_context.patch_sources(build_dir)
+      write_patch("02-isabelle_sources", sources_patch)
 
-        val sources_patch = platform_info.patch_sources(build_dir)
-        if (platform_info.primary) write_patch("02-isabelle_sources", sources_patch)
+      val node_dir = build_context.node_setup(build_dir)
 
-        progress.echo("Build ...")
-        progress.bash(platform_info.environment + "\n" + "./build.sh",
-          cwd = build_dir, echo = progress.verbose).check
-
-        if (platform_info.primary) {
-          Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
-        }
-
-        val platform_dir = platform_info.platform_dir(component_dir.path)
-        Isabelle_System.copy_dir(platform_info.build_dir(build_dir), platform_dir)
-        platform_info.setup_node(platform_dir, progress)
-        platform_info.setup_electron(platform_dir)
-
-        val resources_patch = platform_info.patch_resources(platform_dir)
-        if (platform_info.primary) write_patch("03-isabelle_resources", resources_patch)
-
-        Isabelle_System.copy_file(
-          build_dir + Path.explode("vscode/node_modules/electron/dist/resources/default_app.asar"),
-          platform_dir + resources)
-
-        platform_info.setup_executables(platform_dir)
+      progress.echo("Installing rust ...")
+      platform_context.execute(build_dir, "rustup toolchain install stable").check
+      if (platform.is_macos && !platform_context.apple) {
+        platform_context.execute(build_dir, "rustup target add x86_64-apple-darwin").check
       }
+
+      progress.echo("Building VSCodium ...")
+      val environment = build_context.environment(build_dir)
+      progress.echo(environment, verbose = true)
+      platform_context.execute(
+        build_dir, node_dir.path_setup + "\n" + environment + "./build.sh").check
+
+      Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
+
+      val platform_dir = build_context.platform_dir(component_dir.path)
+      Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
+      if (platform.is_macos) {
+        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"),
+          platform_dir + resources)
+      }
+      build_context.setup_electron(platform_dir)
+
+      val resources_patch = build_context.patch_resources(platform_dir)
+      write_patch("03-isabelle_resources", resources_patch)
+
+      val electron_resources =
+        Path.explode("vscode/node_modules/electron/dist") +
+          (if (platform.is_macos) Path.explode("Electron.app/Contents/Resources") else resources)
+      Isabelle_System.copy_file(
+        build_dir + electron_resources + Path.explode("default_app.asar"),
+        platform_dir + resources)
+
+      build_context.setup_executables(platform_dir)
     }
 
     Isabelle_System.bash("gzip *.patch", cwd = patches_dir).check
@@ -369,7 +431,7 @@ object Component_VSCodium {
     /* settings */
 
     component_dir.write_settings("""
-ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}"
+ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   "macos"*)
@@ -387,12 +449,21 @@ esac
     /* README */
 
     File.write(component_dir.README,
-      "This is VSCodium " + version + " from " + vscodium_repository +
+      "This is VSCodium " + vscodium_version + " from " + vscodium_repository +
 """
 
 It has been built from sources using "isabelle component_vscodium". This applies
 a few changes required for Isabelle/VSCode, see "patches" directory for a
-formal record.
+formal record. Typical build commands for special platforms are as follows.
+
+* x86_64-darwin on Apple Silicon hardware:
+
+    isabelle component_vscodium -I
+
+* x86_64-windows with Cygwin-Terminal, using prerequisites in typical locations:
+
+    export NODE_GYP_FORCE_PYTHON='C:\Python313\python.exe'
+    isabelle component_vscodium -M "/cygdrive/c/msys64" -n "/cygdrive/c/Program Files/nodejs"
 
 
         Makarius
@@ -407,7 +478,11 @@ formal record.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var platforms = default_platforms
+        var intel = false
+        var mingw = MinGW.none
+        var node_version = default_node_version
+        var vscodium_version = default_vscodium_version
+        var node_root: Option[Path] = None
         var verbose = false
 
         val getopts = Getopts("""
@@ -415,24 +490,60 @@ Usage: component_vscodium [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -p NAMES     platform families (default: """ + quote(platforms.mkString(",")) + """)
+    -I           force Intel platform on Apple Silicon
+    -M DIR       msys/mingw root specification for Windows
+    -N VERSION   download Node.js version (overrides option -n)
+                 (default: """" + default_node_version + """")
+    -V VERSION   VSCodium version (default: """" + default_vscodium_version + """")
+    -n DIR       use existing Node.js directory (overrides option -N)
     -v           verbose
 
   Build VSCodium from sources and turn it into an Isabelle component.
 
-  The build platform needs to be Linux with nodejs/yarn, jq, and wine
-  for targeting Windows.
+  Linux prerequisites:
+    - Ubuntu 20.04 LTS
+    - rustup: see https://www.rust-lang.org/tools/install
+    - apt packages:
+      sudo apt install -y """ + linux_packages.mkString(" ") + """
+
+  Windows prerequisites:
+    - install Visual Studio 2022 with C++ development and C++ library with
+      Spectre mitigation: see https://visualstudio.microsoft.com/downloads
+    - install Nodejs """ + default_node_version + """ including Windows build tools:
+      see https://nodejs.org/dist/v""" + default_node_version +
+        "/node-v" + default_node_version + """-x64.msi
+    - rebuild native node-pty, using "cmd" as Administrator:
+        npm install --global node-gyp node-pty@1.1.0-beta33
+        cd "C:\Program Files\nodejs\node_modules\node-pty"
+        npx node-gyp rebuild node-pty
+    - MSYS2/UCRT64: see https://www.msys2.org
+    - MSYS2 packages:
+      pacman -Su
+      pacman -S --needed --noconfirm """ + windows_packages_msys2.mkString(" ") + """
+
+  macOS prerequisites:
+    - rustup: see https://www.rust-lang.org/tools/install
+    - Homebrew package manager: see https://brew.sh
+    - Homebrew packages:
+      brew install """ + macos_packages.mkString(" ") + """
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "p:" -> (arg => platforms = space_explode(',', arg).map(Platform.Family.parse)),
+          "I" -> (arg => intel = true),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "N:" -> { arg => node_version = arg; node_root = None },
+          "V:" -> (arg => vscodium_version = arg),
+          "n:" -> { arg => node_root = Some(Path.explode(arg)); node_version = "" },
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
+        val platform_context = Isabelle_Platform.Context(mingw = mingw, apple = !intel, progress = progress)
 
-        component_vscodium(target_dir = target_dir, platforms = platforms, progress = progress)
+        component_vscodium(target_dir = target_dir, node_root = node_root,
+          node_version = node_version, vscodium_version = vscodium_version,
+          platform_context = platform_context)
       })
 
   val isabelle_tool2 =
@@ -440,21 +551,29 @@ Usage: component_vscodium [OPTIONS]
       Scala_Project.here,
       { args =>
         var base_dir = Path.current
+        var mingw = MinGW.none
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: vscode_patch [OPTIONS]
 
   Options are:
     -D DIR       base directory (default ".")
+    -M DIR       msys/mingw root specification for Windows
+    -v           verbose
 
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
-          "D:" -> (arg => base_dir = Path.explode(arg)))
+          "D:" -> (arg => base_dir = Path.explode(arg)),
+          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val platform_info = the_platform_info(Platform.family)
-        platform_info.patch_sources(base_dir)
+        val progress = new Console_Progress(verbose = verbose)
+        val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
+
+        Build_Context.make(platform_context).patch_sources(base_dir)
       })
 }

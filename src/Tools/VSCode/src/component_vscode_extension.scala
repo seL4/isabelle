@@ -187,11 +187,6 @@ object Component_VSCode {
     dirs: List[Path] = Nil,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.require_command("node")
-    Isabelle_System.require_command("yarn")
-    Isabelle_System.require_command("vsce")
-
-
     /* component */
 
     val component_name = "vscode_extension-" + Date.Format.alt_date(Date.now())
@@ -203,6 +198,11 @@ object Component_VSCode {
 
     val vsix_name =
       Isabelle_System.with_tmp_dir("build") { build_dir =>
+        val node_dir =
+          Nodejs.setup(build_dir,
+            platform_context = Isabelle_Platform.Context(progress = progress),
+            packages = List("yarn", "vsce"))
+
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
         for (name <- manifest_entries) {
@@ -238,7 +238,13 @@ object Component_VSCode {
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
         val result =
-          progress.bash("yarn && vsce package", cwd = build_dir, echo = true).check
+          progress.bash(
+            Library.make_lines(
+              "set -e",
+              node_dir.path_setup,
+              "yarn",
+              "vsce package"),
+            cwd = build_dir, echo = true).check
         val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
         val vsix_name =
           result.out_lines.collectFirst({ case Pattern(name) => name })
