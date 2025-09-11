@@ -103,6 +103,10 @@ names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* New code declaration attributes 'code abort' and 'code drop' correspond
+to 'code abort: c' and 'code drop: c' respectively but derive the affected
+constant from the corresponding theorem.
+
 * Consolidated auxiliary operations intended for code generation:
 
     const Set.is_empty

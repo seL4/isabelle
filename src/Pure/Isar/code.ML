@@ -1509,14 +1509,25 @@ fun del_eqn_global thm thy =
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare_abstract_eqn;
 
+fun declare_from_thm decl thm thy =
+  case prep_eqn Liberal thy (thm, false) of
+    SOME (c, _) => decl c thy
+  | NONE => thy;
+
 fun declare_aborting_global c =
   modify_specs (register_fun_spec c (Eqns []));
+
+val declare_aborting_global' =
+  declare_from_thm declare_aborting_global;
 
 fun declare_unimplemented_global c thy =
   if Config.get_global thy strict_drop
     andalso is_unimplemented (the_fun_spec (specs_of thy) c)
   then error "No implementation to drop"
   else modify_specs (register_fun_spec c Unimplemented) thy;
+
+val declare_unimplemented_global' =
+  declare_from_thm declare_unimplemented_global;
 
 
 (* cases *)
@@ -1591,11 +1602,15 @@ val _ = Theory.setup
       || code_thm_attribute (Args.$$$ "abstype")
           (generic_declare_abstype Liberal)
       || code_thm_attribute Args.del
-          del_eqn_global
+          (fn thm => tap (fn _ => Output.legacy_feature "code del attribute") (del_eqn_global thm))
       || code_const_attribute (Args.$$$ "abort")
           declare_aborting_global
+      || code_thm_attribute (Args.$$$ "abort")
+          declare_aborting_global'
       || code_const_attribute (Args.$$$ "drop")
           declare_unimplemented_global
+      || code_thm_attribute (Args.$$$ "drop")
+          declare_unimplemented_global'
       || Scan.succeed (code_attribute
           add_maybe_abs_eqn_liberal);
   in

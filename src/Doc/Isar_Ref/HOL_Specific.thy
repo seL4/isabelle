@@ -2263,7 +2263,7 @@ text \<open>
     path: @{syntax embedded}
     ;
     @@{attribute (HOL) code} ('equation' | 'nbe' | 'abstype' | 'abstract'
-      | 'del' | 'drop:' (const+) | 'abort:' (const+))?
+      | 'drop:' (const+) | 'drop' | 'abort:' (const+) | 'abort')?
     ;
     @@{command (HOL) code_datatype} (const+)
     ;
@@ -2386,8 +2386,6 @@ text \<open>
   Variant \<open>code nbe\<close> accepts also non-left-linear equations for
   \<^emph>\<open>normalization by evaluation\<close> only.
 
-  Variant \<open>code del\<close> deselects a code equation for code generation.
-
   Multiple \<open>code equation\<close> / \<open>code nbe\<close> declarations referring to the same
   constant within the same theory are handled as \<^emph>\<open>one\<close> function declaration
   for that particular constant: the first code declaration within a theory
@@ -2411,7 +2409,8 @@ text \<open>
   Variants \<open>code drop:\<close> and \<open>code abort:\<close> take a list of constants as arguments
   and drop all code equations declared for them. In the case of \<open>abort\<close>,
   these constants if needed are implemented by program abort
-  (exception).
+  (exception). Variants \<open>code drop\<close> and \<open>code abort\<close> derive the affected
+  constants from the underlying theorems interpreted as code equations.
 
   \<^descr> @{command (HOL) "code_datatype"} specifies a constructor set for a logical
   type.
