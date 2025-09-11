@@ -254,10 +254,13 @@ fun join_same_types ((vs, spec1), (_, spec2)) = (vs, join_same_types' (spec1, sp
 (* functions *)
 
 datatype fun_spec =
-    Eqns of (thm * bool) list
-  | Unimplemented
+    Unimplemented
+  | Eqns of (thm * bool) list
   | Proj of term * (string * string)
   | Abstr of thm * (string * string);
+
+fun is_unimplemented Unimplemented = true
+  | is_unimplemented _ = false;
 
 fun associated_abstype (Proj (_, tyco_abs)) = SOME tyco_abs
   | associated_abstype (Abstr (_, tyco_abs)) = SOME tyco_abs
@@ -502,19 +505,16 @@ fun register_fun_spec c spec =
   map_pending_eqns (Symtab.delete_safe c)
   #> map_functions (History.register c spec);
 
-fun lookup_fun_spec specs c =
+fun the_fun_spec specs c =
   case Symtab.lookup (pending_eqns_of specs) c of
-    SOME eqns => SOME (Eqns eqns)
-  | NONE => (case History.lookup (functions_of specs) c of
-      NONE => NONE
-    | SOME Unimplemented => NONE
-    | SOME spec => SOME spec);
+    SOME eqns => Eqns eqns
+  | NONE => History.lookup (functions_of specs) c |> the_default Unimplemented;
 
 fun all_fun_specs specs =
-  map_filter (fn c => Option.map (pair c) (lookup_fun_spec specs c))
-    (union (op =)
-      ((Symtab.keys o pending_eqns_of) specs)
-      ((Symtab.keys o functions_of) specs));
+  (Symtab.keys o functions_of) specs
+  |> union (op =) ((Symtab.keys o pending_eqns_of) specs)
+  |> map (fn c => (c, the_fun_spec specs c))
+  |> filter_out (is_unimplemented o snd);
 
 fun historize_pending_fun_specs thy =
   let
@@ -1152,15 +1152,15 @@ fun preprocess conv ctxt =
   #> Axclass.unoverload ctxt;
 
 fun get_cert ctxt functrans c =
-  case lookup_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
-    NONE => nothing_cert ctxt c
-  | SOME (Eqns eqns) => eqns
+  case the_fun_spec (specs_of (Proof_Context.theory_of ctxt)) c of
+    Unimplemented => nothing_cert ctxt c
+  | Eqns eqns => eqns
       |> (map o apfst) (Thm.transfer' ctxt)
       |> apply_functrans ctxt functrans
       |> (map o apfst) (preprocess eqn_conv ctxt)
       |> cert_of_eqns ctxt c
-  | SOME (Proj (_, (tyco, _))) => cert_of_proj ctxt c tyco
-  | SOME (Abstr (abs_thm, (tyco, _))) => abs_thm
+  | Proj (_, (tyco, _)) => cert_of_proj ctxt c tyco
+  | Abstr (abs_thm, (tyco, _)) => abs_thm
       |> Thm.transfer' ctxt
       |> preprocess Conv.arg_conv ctxt
       |> cert_of_abs ctxt tyco c;
@@ -1514,7 +1514,7 @@ fun declare_aborting_global c =
 
 fun declare_unimplemented_global c thy =
   if Config.get_global thy strict_drop
-    andalso is_none (lookup_fun_spec (specs_of thy) c)
+    andalso is_unimplemented (the_fun_spec (specs_of thy) c)
   then error "No implementation to drop"
   else modify_specs (register_fun_spec c Unimplemented) thy;
 
