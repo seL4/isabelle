@@ -32,7 +32,7 @@ object Component_VSCodium {
   /* vscode parameters */
 
   val default_node_version = Nodejs.default_version
-  val default_vscodium_version = "1.103.25610"
+  val default_vscodium_version = "1.104.06131"
 
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
