@@ -69,9 +69,7 @@ object Component_VSCodium {
       "VSCODE_LATEST=no",
       "CI_BUILD=no",
       "SKIP_ASSETS=yes",
-      "SHOULD_BUILD=yes",
-      "SHOULD_BUILD_REH=no",
-      "SHOULD_BUILD_REH_WEB=no")
+      "SHOULD_BUILD=yes")
 
   def build_upstream_env(dir: Path): List[String] = {
     val str = File.read(dir + Path.explode("upstream/stable.json"))
@@ -480,7 +478,7 @@ formal record. Typical build commands for special platforms are as follows.
 
 * x86_64-windows with Cygwin-Terminal, using prerequisites in typical locations:
 
-    isabelle component_vscodium -M "/cygdrive/c/msys64" -n "/cygdrive/c/Program Files/nodejs" -P /cygdrive/c/Python313/python.exe
+    isabelle component_vscodium -M "/cygdrive/c/msys64" -P /cygdrive/c/Python313/python.exe
 
 
         Makarius
@@ -528,13 +526,6 @@ Usage: component_vscodium [OPTIONS]
   Windows prerequisites:
     - install Visual Studio 2022 with C++ development and C++ library with
       Spectre mitigation: see https://visualstudio.microsoft.com/downloads
-    - install Nodejs """ + default_node_version + """ including Windows build tools:
-      see https://nodejs.org/dist/v""" + default_node_version +
-        "/node-v" + default_node_version + """-x64.msi
-    - rebuild native node-pty, using "cmd" as Administrator:
-        npm install --global node-gyp node-pty@1.1.0-beta33
-        cd "C:\Program Files\nodejs\node_modules\node-pty"
-        npx node-gyp rebuild node-pty
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su
