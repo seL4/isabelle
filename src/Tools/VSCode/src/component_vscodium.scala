@@ -24,11 +24,9 @@ object Component_VSCodium {
       "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot", "curl",
       "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev", "libfontconfig1")
 
-  val windows_packages_msys2: List[String] =
-    List("p7zip", "git", "jq", "mingw-w64-ucrt-x86_64-rustup")
+  val windows_packages: List[String] = List("jq", "git", "p7zip", "mingw-w64-ucrt-x86_64-rustup")
 
-  val macos_packages: List[String] =
-    List("jq")
+  val macos_packages: List[String] = List("jq")
 
 
   /* vscode parameters */
@@ -529,7 +527,7 @@ Usage: component_vscodium [OPTIONS]
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su
-      pacman -S --needed --noconfirm """ + windows_packages_msys2.mkString(" ") + """
+      pacman -S --needed --noconfirm """ + windows_packages.mkString(" ") + """
 
   macOS prerequisites:
     - macOS 13 Ventura
