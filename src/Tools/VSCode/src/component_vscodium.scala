@@ -13,7 +13,7 @@ package isabelle.vscode
 import isabelle._
 
 import java.security.MessageDigest
-import java.util.Base64
+import java.util.{Map => JMap, Base64}
 
 
 object Component_VSCodium {
@@ -123,7 +123,8 @@ object Component_VSCodium {
       platform_context: Isabelle_Platform.Context,
       node_root: Option[Path] = None,
       node_version: String = "",
-      vscodium_version: String = default_vscodium_version
+      vscodium_version: String = default_vscodium_version,
+      python_exe: Option[Path] = None
     ): Build_Context = {
       val platform = platform_context.isabelle_platform
       val env1 =
@@ -150,7 +151,8 @@ object Component_VSCodium {
         else if (platform.is_linux) List("SKIP_LINUX_PACKAGES=True")
         else Nil
       val node_version1 = proper_string(node_version).getOrElse(default_node_version)
-      new Build_Context(platform_context, node_root, node_version1, vscodium_version, env1 ::: env2)
+      new Build_Context(
+        platform_context, node_root, node_version1, vscodium_version, python_exe, env1 ::: env2)
     }
   }
 
@@ -159,6 +161,7 @@ object Component_VSCodium {
     node_root: Option[Path],
     node_version: String,
     vscodium_version: String,
+    python_exe: Option[Path],
     env: List[String]
   ) {
     override def toString: String = platform_name
@@ -206,6 +209,13 @@ object Component_VSCodium {
 
     def environment(dir: Path): String =
       Bash.exports((build_env ::: build_upstream_env(dir) ::: env):_*)
+
+    def settings: JMap[String, String] =
+      python_exe match {
+        case None => Isabelle_System.Settings.env()
+        case Some(exe) =>
+          Isabelle_System.Settings.env(List("NODE_GYP_FORCE_PYTHON" -> File.platform_path(exe)))
+      }
 
     def patch_sources(base_dir: Path): String = {
       val dir = base_dir + Path.explode("vscode")
@@ -325,7 +335,8 @@ object Component_VSCodium {
             "./prepare_vscode.sh",
             // enforce binary diff of code.xpm
             "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"),
-          cwd = build_dir).check
+          cwd = build_dir,
+          env = build_context.settings).check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -340,6 +351,7 @@ object Component_VSCodium {
     node_root: Option[Path] = None,
     node_version: String = default_node_version,
     vscodium_version: String = default_vscodium_version,
+    python_exe: Option[Path] = None,
     platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
   ): Unit = {
     val platform = platform_context.isabelle_platform
@@ -349,7 +361,8 @@ object Component_VSCodium {
       Build_Context.make(platform_context,
         node_root = node_root,
         node_version = node_version,
-        vscodium_version = vscodium_version)
+        vscodium_version = vscodium_version,
+        python_exe = python_exe)
 
     platform_context.mingw.check()
 
@@ -403,7 +416,9 @@ object Component_VSCodium {
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
       platform_context.bash(
-        node_dir.path_setup + "\n" + environment + "./build.sh", cwd = build_dir).check
+        node_dir.path_setup + "\n" + environment + "./build.sh",
+        cwd = build_dir,
+        env = build_context.settings).check
 
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
 
@@ -465,8 +480,7 @@ formal record. Typical build commands for special platforms are as follows.
 
 * x86_64-windows with Cygwin-Terminal, using prerequisites in typical locations:
 
-    export NODE_GYP_FORCE_PYTHON='C:\Python313\python.exe'
-    isabelle component_vscodium -M "/cygdrive/c/msys64" -n "/cygdrive/c/Program Files/nodejs"
+    isabelle component_vscodium -M "/cygdrive/c/msys64" -n "/cygdrive/c/Program Files/nodejs" -P /cygdrive/c/Python313/python.exe
 
 
         Makarius
@@ -486,6 +500,7 @@ formal record. Typical build commands for special platforms are as follows.
         var node_version = default_node_version
         var vscodium_version = default_vscodium_version
         var node_root: Option[Path] = None
+        var python_exe: Option[Path] = None
         var verbose = false
 
         val getopts = Getopts("""
@@ -497,6 +512,7 @@ Usage: component_vscodium [OPTIONS]
     -M DIR       msys/mingw root specification for Windows
     -N VERSION   download Node.js version (overrides option -n)
                  (default: """" + default_node_version + """")
+    -P FILE      Python executable (default: educated guess by node-gyp)
     -V VERSION   VSCodium version (default: """" + default_vscodium_version + """")
     -n DIR       use existing Node.js directory (overrides option -N)
     -v           verbose
@@ -535,6 +551,7 @@ Usage: component_vscodium [OPTIONS]
           "I" -> (arg => intel = true),
           "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
           "N:" -> { arg => node_version = arg; node_root = None },
+          "P:" -> (arg => python_exe = Some(Path.explode(arg))),
           "V:" -> (arg => vscodium_version = arg),
           "n:" -> { arg => node_root = Some(Path.explode(arg)); node_version = "" },
           "v" -> (_ => verbose = true))
@@ -546,7 +563,7 @@ Usage: component_vscodium [OPTIONS]
         val platform_context = Isabelle_Platform.Context(mingw = mingw, apple = !intel, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_root = node_root,
-          node_version = node_version, vscodium_version = vscodium_version,
+          node_version = node_version, python_exe = python_exe, vscodium_version = vscodium_version,
           platform_context = platform_context)
       })
 
