@@ -522,8 +522,9 @@ Usage: component_vscodium [OPTIONS]
       sudo apt install -y """ + linux_packages.mkString(" ") + """
 
   Windows prerequisites:
-    - install Visual Studio 2022 with C++ development and C++ library with
-      Spectre mitigation: see https://visualstudio.microsoft.com/downloads
+    - install Visual Studio 2022: see https://visualstudio.microsoft.com/downloads
+        + Desktop development with C++
+        + x64/x86 C++ spectre mitigated libs
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su
