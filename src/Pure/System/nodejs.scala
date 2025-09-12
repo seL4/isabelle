@@ -12,7 +12,7 @@ package isabelle
 object Nodejs {
   /** independent installation **/
 
-  val default_version = "22.17.0"
+  val default_version = "22.18.0"
 
   def setup(
     base_dir: Path,
@@ -68,11 +68,12 @@ object Nodejs {
 
     def install(name: String, production: Boolean = false): Unit = {
       progress.echo("Installing " + name + " ...")
-      platform_context.execute(path,
+      platform_context.bash(
         Library.make_lines(
+          "set -e",
           path_setup,
           "npm install --global " + if_proper(production, "--production ") + Bash.string(name)
-        )).check
+        ), cwd = path).check
     }
   }
 

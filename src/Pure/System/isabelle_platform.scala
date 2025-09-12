@@ -7,6 +7,9 @@ Isabelle/Scala platform information, based on settings environment.
 package isabelle
 
 
+import java.util.{Map => JMap}
+
+
 object Isabelle_Platform {
   val settings: List[String] =
     List(
@@ -68,12 +71,14 @@ object Isabelle_Platform {
     def standard_path(path: Path): String =
       mingw.standard_path(File.platform_path(path))
 
-    def execute(cwd: Path, script_lines: String*): Process_Result = {
-      val script = cat_lines("set -e" :: script_lines.toList)
-      val script1 =
+    def bash(script: String,
+      cwd: Path = Path.current,
+      env: JMap[String, String] = Isabelle_System.Settings.env(),
+    ): Process_Result = {
+      progress.bash(
         if (is_macos_arm) "arch -arch arm64 bash -c " + Bash.string(script)
-        else mingw.bash_script(script)
-      progress.bash(script1, cwd = cwd, echo = progress.verbose).check
+        else mingw.bash_script(script),
+        cwd = cwd, env = env, echo = progress.verbose)
     }
   }
 }
