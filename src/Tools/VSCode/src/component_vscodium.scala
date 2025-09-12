@@ -195,7 +195,8 @@ object Component_VSCodium {
       Isabelle_System.git_clone(vscodium_repository, build_dir, checkout = vscodium_version)
 
       progress.echo("Getting VSCode repository ...")
-      platform_context.execute(build_dir, environment(build_dir) + "\n" + "./get_repo.sh").check
+      platform_context.bash(
+        environment(build_dir) + "\n" + "./get_repo.sh", cwd = build_dir).check
     }
 
     def platform_name: String = platform_context.ISABELLE_PLATFORM
@@ -316,13 +317,15 @@ object Component_VSCodium {
 
       progress.echo("Preparing VSCode ...")
       Isabelle_System.with_copy_dir(vscode_dir, vscode_dir.orig) {
-        platform_context.execute(build_dir,
-          "set -e",
-          build_context.environment(build_dir),
-          node_dir.path_setup,
-          "./prepare_vscode.sh",
-          // enforce binary diff of code.xpm
-          "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm").check
+        platform_context.bash(
+          Library.make_lines(
+            "set -e",
+            build_context.environment(build_dir),
+            node_dir.path_setup,
+            "./prepare_vscode.sh",
+            // enforce binary diff of code.xpm
+            "cp vscode/resources/linux/code.png vscode/resources/linux/rpm/code.xpm"),
+          cwd = build_dir).check
         Isabelle_System.make_patch(build_dir, vscode_dir.orig.base, vscode_dir.base,
           diff_options = "--exclude=.git --exclude=node_modules")
       }
@@ -391,16 +394,16 @@ object Component_VSCodium {
       val node_dir = build_context.node_setup(build_dir)
 
       progress.echo("Installing rust ...")
-      platform_context.execute(build_dir, "rustup toolchain install stable").check
+      platform_context.bash("rustup toolchain install stable", cwd = build_dir).check
       if (platform.is_macos && !platform_context.apple) {
-        platform_context.execute(build_dir, "rustup target add x86_64-apple-darwin").check
+        platform_context.bash("rustup target add x86_64-apple-darwin", cwd = build_dir).check
       }
 
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
       progress.echo(environment, verbose = true)
-      platform_context.execute(
-        build_dir, node_dir.path_setup + "\n" + environment + "./build.sh").check
+      platform_context.bash(
+        node_dir.path_setup + "\n" + environment + "./build.sh", cwd = build_dir).check
 
       Isabelle_System.copy_file(build_dir + Path.explode("LICENSE"), component_dir.path)
 

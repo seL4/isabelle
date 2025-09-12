@@ -70,15 +70,17 @@ object Component_PolyML {
     val target_dir = root + Path.explode("target")
 
     progress.echo("Building GMP library ...")
-    platform_context.execute(root,
-      "[ -f Makefile ] && make distclean",
-      "./configure --disable-static --enable-shared --enable-cxx" +
-        " --build=" + platform_arch + "-" + platform_os +
-        """ --prefix="$PWD/target" """ + Bash.strings(options),
-      "rm -rf target",
-      "make",
-      "make check",
-      "make install")
+    platform_context.bash(
+      Library.make_lines(
+        "set -e",
+        "[ -f Makefile ] && make distclean",
+        "./configure --disable-static --enable-shared --enable-cxx" +
+          " --build=" + platform_arch + "-" + platform_os +
+          """ --prefix="$PWD/target" """ + Bash.strings(options),
+        "rm -rf target",
+        "make",
+        "make check",
+        "make install"), cwd = root).check
 
     if (platform.is_windows) {
       val bin_dir = target_dir + Path.explode("bin")
@@ -143,14 +145,16 @@ object Component_PolyML {
         case None => ""
       }
 
-    platform_context.execute(root,
-      platform_info.setup,
-      gmp_setup,
-      "[ -f Makefile ] && make distclean",
-      """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
-      "rm -rf target",
-      "make",
-      "make install")
+    platform_context.bash(
+      Library.make_lines(
+        "set -e",
+        platform_info.setup,
+        gmp_setup,
+        "[ -f Makefile ] && make distclean",
+        """./configure --prefix="$PWD/target" """ + Bash.strings(configure_options),
+        "rm -rf target",
+        "make",
+        "make install"), cwd = root).check
 
 
     /* sha1 library */
@@ -160,7 +164,7 @@ object Component_PolyML {
         case Some(dir) =>
           val platform_path = Path.explode(platform.ISABELLE_PLATFORM(windows = true, apple = true))
           val platform_dir = dir + platform_path
-          platform_context.execute(dir, "./build " + File.bash_path(platform_path))
+          platform_context.bash("./build " + File.bash_path(platform_path), cwd = dir).check
           File.read_dir(platform_dir).map(entry => platform_dir + Path.basic(entry))
         case None => Nil
       }

@@ -68,11 +68,12 @@ object Nodejs {
 
     def install(name: String, production: Boolean = false): Unit = {
       progress.echo("Installing " + name + " ...")
-      platform_context.execute(path,
+      platform_context.bash(
         Library.make_lines(
+          "set -e",
           path_setup,
           "npm install --global " + if_proper(production, "--production ") + Bash.string(name)
-        )).check
+        ), cwd = path).check
     }
   }
 
