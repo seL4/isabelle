@@ -367,9 +367,8 @@ session "HOL-Hoare_Parallel" (timing) in Hoare_Parallel = HOL +
   theories Hoare_Parallel
   document_files "root.bib" "root.tex"
 
-session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL" +
+session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   sessions
-    "HOL-Library"
     "HOL-Number_Theory"
     "HOL-Data_Structures"
     "HOL-Examples"
@@ -694,11 +693,13 @@ session "HOL-Lattice" in Lattice = HOL +
     "root.bib"
     "root.tex"
 
-session "HOL-ex" (timing) in ex = "HOL-Number_Theory" +
+session "HOL-ex" (timing) in ex = "HOL-Library" +
   description "
     Miscellaneous examples and experiments for Isabelle/HOL.
   "
   options [document = false]
+  sessions
+    "HOL-Number_Theory"
   theories
     Antiquote
     Argo_Examples
