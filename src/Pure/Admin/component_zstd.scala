@@ -32,7 +32,7 @@ object Component_Zstd {
 
   val license_url = "https://raw.githubusercontent.com/luben/zstd-jni/master/LICENSE"
   val default_download_url = "https://repo1.maven.org/maven2/com/github/luben/zstd-jni"
-  val default_version = "1.5.6-8"
+  val default_version = "1.5.7-4"
 
   def build_zstd(
     target_dir: Path = Path.current,
@@ -55,8 +55,10 @@ object Component_Zstd {
 
     /* jar */
 
+    Isabelle_System.make_directory(component_dir.lib)
+
     val jar_name = component_name + ".jar"
-    val jar = component_dir.path + Path.basic(jar_name)
+    val jar = component_dir.lib + Path.basic(jar_name)
     Isabelle_System.download_file(
       download_url + "/" + version + "/" + jar_name, jar, progress = progress)
 
@@ -71,7 +73,7 @@ object Component_Zstd {
     component_dir.write_settings("""
 ISABELLE_ZSTD_HOME="$COMPONENT"
 
-classpath "$ISABELLE_ZSTD_HOME/""" + jar_name + """"
+classpath "$ISABELLE_ZSTD_HOME/lib/""" + jar_name + """"
 """)
   }
 
