@@ -39,6 +39,9 @@ object Component_CSDP {
       Flags("x86_64-linux",
         CFLAGS = "-O3 -ansi -Wall -DNOSHORTS -DBIT64 -DUSESIGTERM -DUSEGETTIME -I../include",
         LIBS = "-static -L../lib -lsdp -llapack -lblas -lgfortran -lquadmath -lm"),
+      Flags("arm64-darwin",
+        CFLAGS = "-O3 -Wall -DNOSHORTS -DBIT64 -DUSESIGTERM -DUSEGETTIME -I../include",
+        LIBS = "-L../lib -lsdp -llapack -lblas -lm"),
       Flags("x86_64-darwin",
         CFLAGS = "-O3 -Wall -DNOSHORTS -DBIT64 -DUSESIGTERM -DUSEGETTIME -I../include",
         LIBS = "-L../lib -lsdp -llapack -lblas -lm"),
@@ -80,7 +83,7 @@ object Component_CSDP {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true)
+      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true, apple = true)
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
@@ -128,7 +131,7 @@ object Component_CSDP {
       /* settings */
 
       component_dir.write_settings("""
-ISABELLE_CSDP="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/csdp"
+ISABELLE_CSDP="$COMPONENT/"${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}"/csdp"
 """)
 
 
