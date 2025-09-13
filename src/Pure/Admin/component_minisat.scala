@@ -46,7 +46,7 @@ object Component_Minisat {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM()
+      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(apple = true)
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
@@ -86,7 +86,7 @@ object Component_Minisat {
       /* settings */
 
       component_dir.write_settings("""
-MINISAT_HOME="$COMPONENT/$ISABELLE_PLATFORM64"
+MINISAT_HOME="$COMPONENT/${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}"
 
 ISABELLE_MINISAT="$MINISAT_HOME/minisat"
 """)
