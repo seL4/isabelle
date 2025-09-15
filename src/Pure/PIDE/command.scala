@@ -239,7 +239,7 @@ object Command {
         if (results.iterator.exists(p => Protocol.is_error(p._2)))
           List(Markup(Markup.ERROR, Nil))
         else Nil
-      Document_Status.Command_Status.make((warnings ::: errors ::: status).iterator)
+      Document_Status.Command_Status.make(warnings ::: errors ::: status)
     }
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)

@@ -18,7 +18,7 @@ object Document_Status {
     val liberal_elements: Markup.Elements =
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
-    def make(markup_iterator: Iterator[Markup]): Command_Status = {
+    def make(markups: Iterable[Markup]): Command_Status = {
       var touched = false
       var accepted = false
       var warned = false
@@ -27,7 +27,7 @@ object Document_Status {
       var finalized = false
       var forks = 0
       var runs = 0
-      for (markup <- markup_iterator) {
+      for (markup <- markups) {
         markup.name match {
           case Markup.ACCEPTED => accepted = true
           case Markup.FORKED => touched = true; forks += 1
@@ -41,7 +41,7 @@ object Document_Status {
           case _ =>
         }
       }
-      Command_Status(
+      new Command_Status(
         touched = touched,
         accepted = accepted,
         warned = warned,
@@ -52,7 +52,7 @@ object Document_Status {
         runs = runs)
     }
 
-    val empty: Command_Status = make(Iterator.empty)
+    val empty: Command_Status = make(Nil)
 
     def merge(status_iterator: Iterator[Command_Status]): Command_Status =
       if (status_iterator.hasNext) {
@@ -62,18 +62,23 @@ object Document_Status {
       else empty
   }
 
-  sealed case class Command_Status(
+  final class Command_Status private(
     private val touched: Boolean,
     private val accepted: Boolean,
     private val warned: Boolean,
     private val failed: Boolean,
     private val canceled: Boolean,
     private val finalized: Boolean,
-    forks: Int,
-    runs: Int
+    val forks: Int,
+    val runs: Int
   ) {
+    override def toString: String =
+      if (failed) "Command_Status(failed)"
+      else if (warned) "Command_Status(warned)"
+      else "Command_Status()"
+
     def + (that: Command_Status): Command_Status =
-      Command_Status(
+      new Command_Status(
         touched = touched || that.touched,
         accepted = accepted || that.accepted,
         warned = warned || that.warned,

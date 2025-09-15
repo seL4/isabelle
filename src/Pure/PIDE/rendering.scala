@@ -510,7 +510,7 @@ class Rendering(
       color <-
         result match {
           case (markups, opt_color) if markups.nonEmpty =>
-            val status = Document_Status.Command_Status.make(markups.iterator)
+            val status = Document_Status.Command_Status.make(markups)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
             else if (status.is_running) Some(Rendering.Color.running1)
             else if (status.is_canceled) Some(Rendering.Color.canceled)
@@ -778,7 +778,7 @@ class Rendering(
             }, status = true)
       if (results.isEmpty) None
       else {
-        val status = Document_Status.Command_Status.make(results.iterator.flatMap(_.info))
+        val status = Document_Status.Command_Status.make(results.flatMap(_.info))
 
         if (status.is_running) Some(Rendering.Color.running)
         else if (status.is_failed) Some(Rendering.Color.error)
