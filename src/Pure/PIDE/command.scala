@@ -213,29 +213,14 @@ object Command {
     exports: Exports = Exports.empty,
     markups: Markups = Markups.empty
   ) {
-    lazy val initialized: Boolean = status.exists(markup => markup.name == Markup.INITIALIZED)
-    lazy val consolidating: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATING)
-    lazy val consolidated: Boolean = status.exists(markup => markup.name == Markup.CONSOLIDATED)
-
-    lazy val maybe_consolidated: Boolean = {
-      var touched = false
-      var forks = 0
-      var runs = 0
-      for (markup <- status) {
-        markup.name match {
-          case Markup.FORKED => touched = true; forks += 1
-          case Markup.JOINED => forks -= 1
-          case Markup.RUNNING => touched = true; runs += 1
-          case Markup.FINISHED => runs -= 1
-          case _ =>
-        }
-      }
-      touched && forks == 0 && runs == 0
-    }
-
     lazy val document_status: Document_Status.Command_Status =
       Document_Status.Command_Status.make(
         status, warned = results.warned, failed = results.failed)
+
+    def initialized: Boolean = document_status.initialized
+    def consolidating: Boolean = document_status.consolidating
+    def consolidated: Boolean = document_status.consolidated
+    def maybe_consolidated: Boolean = document_status.maybe_consolidated
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
