@@ -54,12 +54,8 @@ object Document_Status {
 
     val empty: Command_Status = make(Nil)
 
-    def merge(status_iterator: Iterator[Command_Status]): Command_Status =
-      if (status_iterator.hasNext) {
-        val status0 = status_iterator.next()
-        status_iterator.foldLeft(status0)(_ + _)
-      }
-      else empty
+    def merge(args: IterableOnce[Command_Status]): Command_Status =
+      args.iterator.foldLeft(empty)(_ + _)
   }
 
   final class Command_Status private(
@@ -73,20 +69,29 @@ object Document_Status {
     val runs: Int
   ) {
     override def toString: String =
-      if (failed) "Command_Status(failed)"
+      if (is_empty) "Command_Status.empty"
+      else if (failed) "Command_Status(failed)"
       else if (warned) "Command_Status(warned)"
-      else "Command_Status()"
+      else "Command_Status(...)"
+
+    def is_empty: Boolean =
+      !touched && !accepted && !warned && !failed && !canceled && !finalized &&
+      forks == 0 && runs == 0
 
     def + (that: Command_Status): Command_Status =
-      new Command_Status(
-        touched = touched || that.touched,
-        accepted = accepted || that.accepted,
-        warned = warned || that.warned,
-        failed = failed || that.failed,
-        canceled = canceled || that.canceled,
-        finalized = finalized || that.finalized,
-        forks = forks + that.forks,
-        runs = runs + that.runs)
+      if (is_empty) that
+      else if (that.is_empty) this
+      else {
+        new Command_Status(
+          touched = touched || that.touched,
+          accepted = accepted || that.accepted,
+          warned = warned || that.warned,
+          failed = failed || that.failed,
+          canceled = canceled || that.canceled,
+          finalized = finalized || that.finalized,
+          forks = forks + that.forks,
+          runs = runs + that.runs)
+      }
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
     def is_running: Boolean = runs != 0
