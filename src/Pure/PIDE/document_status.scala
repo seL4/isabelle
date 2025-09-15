@@ -8,20 +8,23 @@ package isabelle
 
 
 object Document_Status {
+  /* theory status: via 'theory' or 'end' commands */
+
+  object Theory_Status extends Enumeration {
+    val NONE, INITIALIZED, FINALIZED, CONSOLIDATING, CONSOLIDATED = Value
+
+    def initialized(t: Value): Boolean = t >= INITIALIZED
+    def finalized(t: Value): Boolean = t >= FINALIZED
+    def consolidating(t: Value): Boolean = t >= CONSOLIDATING
+    def consolidated(t: Value): Boolean = t >= CONSOLIDATED
+
+    def merge(t1: Value, t2: Value): Value = if (t1 >= t2) t1 else t2
+  }
+
+
   /* command status */
 
   object Command_Status {
-    object Theory_Status extends Enumeration {
-      val NONE, INITIALIZED, FINALIZED, CONSOLIDATING, CONSOLIDATED = Value
-
-      def initialized(t: Value): Boolean = t >= INITIALIZED
-      def finalized(t: Value): Boolean = t >= FINALIZED
-      def consolidating(t: Value): Boolean = t >= CONSOLIDATING
-      def consolidated(t: Value): Boolean = t >= CONSOLIDATED
-
-      def merge(t1: Value, t2: Value): Value = if (t1 >= t2) t1 else t2
-    }
-
     val proper_elements: Markup.Elements =
       Markup.Elements(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
         Markup.FINISHED, Markup.FAILED, Markup.CANCELED)
@@ -81,7 +84,7 @@ object Document_Status {
   }
 
   final class Command_Status private(
-    private val theory_status: Command_Status.Theory_Status.Value,
+    private val theory_status: Theory_Status.Value,
     private val touched: Boolean,
     private val accepted: Boolean,
     private val warned: Boolean,
@@ -97,7 +100,7 @@ object Document_Status {
       else "Command_Status(...)"
 
     def is_empty: Boolean =
-      !Command_Status.Theory_Status.initialized(theory_status) &&
+      !Theory_Status.initialized(theory_status) &&
       !touched && !accepted && !warned && !failed && !canceled &&
       forks == 0 && runs == 0
 
@@ -106,7 +109,7 @@ object Document_Status {
       else if (that.is_empty) this
       else {
         new Command_Status(
-          theory_status = Command_Status.Theory_Status.merge(theory_status, that.theory_status),
+          theory_status = Theory_Status.merge(theory_status, that.theory_status),
           touched = touched || that.touched,
           accepted = accepted || that.accepted,
           warned = warned || that.warned,
@@ -116,10 +119,10 @@ object Document_Status {
           runs = runs + that.runs)
       }
 
-    def initialized: Boolean = Command_Status.Theory_Status.initialized(theory_status)
-    def finalized: Boolean = Command_Status.Theory_Status.finalized(theory_status)
-    def consolidating: Boolean = Command_Status.Theory_Status.consolidating(theory_status)
-    def consolidated: Boolean = Command_Status.Theory_Status.consolidated(theory_status)
+    def initialized: Boolean = Theory_Status.initialized(theory_status)
+    def finalized: Boolean = Theory_Status.finalized(theory_status)
+    def consolidating: Boolean = Theory_Status.consolidating(theory_status)
+    def consolidated: Boolean = Theory_Status.consolidated(theory_status)
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
