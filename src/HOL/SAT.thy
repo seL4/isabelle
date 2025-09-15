@@ -2,7 +2,7 @@
     Author:     Alwen Tiu, Tjark Weber
     Copyright   2005
 
-Basic setup for the 'sat' and 'satx' tactics.
+Basic setup for the proof methods "sat" and "satx".
 *)
 
 section \<open>Reconstructing external resolution proofs for propositional logic\<close>
