@@ -194,7 +194,7 @@ object Document_Status {
   /* overall timing */
 
   object Overall_Timing {
-    val empty: Overall_Timing = Overall_Timing(0.0, Map.empty)
+    val empty: Overall_Timing = Overall_Timing()
 
     def make(
       state: Document.State,
@@ -218,11 +218,14 @@ object Document_Status {
           command_timings += (command -> command_timing)
         }
       }
-      Overall_Timing(total, command_timings)
+      Overall_Timing(total = total, command_timings = command_timings)
     }
   }
 
-  sealed case class Overall_Timing(total: Double, command_timings: Map[Command, Double]) {
+  sealed case class Overall_Timing(
+    total: Double = 0.0,
+    command_timings: Map[Command, Double] = Map.empty
+  ) {
     def command_timing(command: Command): Double =
       command_timings.getOrElse(command, 0.0)
   }
