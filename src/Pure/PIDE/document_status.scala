@@ -18,11 +18,15 @@ object Document_Status {
     val liberal_elements: Markup.Elements =
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
-    def make(markups: Iterable[Markup]): Command_Status = {
+    def make(
+      markups: Iterable[Markup],
+      warned: Boolean = false,
+      failed: Boolean = false
+    ): Command_Status = {
       var touched = false
       var accepted = false
-      var warned = false
-      var failed = false
+      var warned1 = warned
+      var failed1 = failed
       var canceled = false
       var finalized = false
       var forks = 0
@@ -34,8 +38,8 @@ object Document_Status {
           case Markup.JOINED => forks -= 1
           case Markup.RUNNING => touched = true; runs += 1
           case Markup.FINISHED => runs -= 1
-          case Markup.WARNING | Markup.LEGACY => warned = true
-          case Markup.FAILED | Markup.ERROR => failed = true
+          case Markup.WARNING | Markup.LEGACY => warned1 = true
+          case Markup.FAILED | Markup.ERROR => failed1 = true
           case Markup.CANCELED => canceled = true
           case Markup.FINALIZED => finalized = true
           case _ =>
@@ -44,8 +48,8 @@ object Document_Status {
       new Command_Status(
         touched = touched,
         accepted = accepted,
-        warned = warned,
-        failed = failed,
+        warned = warned1,
+        failed = failed1,
         canceled = canceled,
         finalized = finalized,
         forks = forks,

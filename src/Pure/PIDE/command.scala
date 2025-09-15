@@ -57,6 +57,9 @@ object Command {
     def get(serial: Long): Option[XML.Elem] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator
 
+    lazy val warned: Boolean = rep.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2))
+    lazy val failed: Boolean = rep.exists(p => Protocol.is_error(p._2))
+
     def + (entry: Results.Entry): Results =
       if (defined(entry._1)) this
       else new Results(rep + entry)
@@ -230,17 +233,9 @@ object Command {
       touched && forks == 0 && runs == 0
     }
 
-    lazy val document_status: Document_Status.Command_Status = {
-      val warnings =
-        if (results.iterator.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2)))
-          List(Markup(Markup.WARNING, Nil))
-        else Nil
-      val errors =
-        if (results.iterator.exists(p => Protocol.is_error(p._2)))
-          List(Markup(Markup.ERROR, Nil))
-        else Nil
-      Document_Status.Command_Status.make(warnings ::: errors ::: status)
-    }
+    lazy val document_status: Document_Status.Command_Status =
+      Document_Status.Command_Status.make(
+        status, warned = results.warned, failed = results.failed)
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
