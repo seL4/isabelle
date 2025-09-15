@@ -12,9 +12,10 @@ object Document_Status {
 
   object Command_Status {
     object Theory_Status extends Enumeration {
-      val NONE, INITIALIZED, CONSOLIDATING, CONSOLIDATED = Value
+      val NONE, INITIALIZED, FINALIZED, CONSOLIDATING, CONSOLIDATED = Value
 
       def initialized(t: Value): Boolean = t >= INITIALIZED
+      def finalized(t: Value): Boolean = t >= FINALIZED
       def consolidating(t: Value): Boolean = t >= CONSOLIDATING
       def consolidated(t: Value): Boolean = t >= CONSOLIDATED
 
@@ -39,13 +40,14 @@ object Document_Status {
       var warned1 = warned
       var failed1 = failed
       var canceled = false
-      var finalized = false
       var forks = 0
       var runs = 0
       for (markup <- markups) {
         markup.name match {
           case Markup.INITIALIZED =>
             theory_status = Theory_Status.merge(theory_status, Theory_Status.INITIALIZED)
+          case Markup.FINALIZED =>
+            theory_status = Theory_Status.merge(theory_status, Theory_Status.FINALIZED)
           case Markup.CONSOLIDATING =>
             theory_status = Theory_Status.merge(theory_status, Theory_Status.CONSOLIDATING)
           case Markup.CONSOLIDATED =>
@@ -58,7 +60,6 @@ object Document_Status {
           case Markup.WARNING | Markup.LEGACY => warned1 = true
           case Markup.FAILED | Markup.ERROR => failed1 = true
           case Markup.CANCELED => canceled = true
-          case Markup.FINALIZED => finalized = true
           case _ =>
         }
       }
@@ -69,7 +70,6 @@ object Document_Status {
         warned = warned1,
         failed = failed1,
         canceled = canceled,
-        finalized = finalized,
         forks = forks,
         runs = runs)
     }
@@ -87,7 +87,6 @@ object Document_Status {
     private val warned: Boolean,
     private val failed: Boolean,
     private val canceled: Boolean,
-    private val finalized: Boolean,
     val forks: Int,
     val runs: Int
   ) {
@@ -99,7 +98,7 @@ object Document_Status {
 
     def is_empty: Boolean =
       !Command_Status.Theory_Status.initialized(theory_status) &&
-      !touched && !accepted && !warned && !failed && !canceled && !finalized &&
+      !touched && !accepted && !warned && !failed && !canceled &&
       forks == 0 && runs == 0
 
     def + (that: Command_Status): Command_Status =
@@ -113,12 +112,12 @@ object Document_Status {
           warned = warned || that.warned,
           failed = failed || that.failed,
           canceled = canceled || that.canceled,
-          finalized = finalized || that.finalized,
           forks = forks + that.forks,
           runs = runs + that.runs)
       }
 
     def initialized: Boolean = Command_Status.Theory_Status.initialized(theory_status)
+    def finalized: Boolean = Command_Status.Theory_Status.finalized(theory_status)
     def consolidating: Boolean = Command_Status.Theory_Status.consolidating(theory_status)
     def consolidated: Boolean = Command_Status.Theory_Status.consolidated(theory_status)
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
@@ -129,7 +128,6 @@ object Document_Status {
     def is_failed: Boolean = failed
     def is_finished: Boolean = !failed && touched && forks == 0 && runs == 0
     def is_canceled: Boolean = canceled
-    def is_finalized: Boolean = finalized
     def is_terminated: Boolean = canceled || touched && forks == 0 && runs == 0
   }
 
@@ -178,7 +176,7 @@ object Document_Status {
 
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
-        if (status.is_finalized) finalized = true
+        if (status.finalized) finalized = true
       }
       val initialized = state.node_initialized(version, name)
       val consolidated = state.node_consolidated(version, name)
