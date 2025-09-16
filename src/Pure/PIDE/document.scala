@@ -391,7 +391,7 @@ object Document {
     }
 
     def purge_suppressed: Option[Nodes] =
-      graph.keys_iterator.filter(suppressed).toList match {
+      names_iterator.filter(suppressed).toList match {
         case Nil => None
         case del => Some(new Nodes(del.foldLeft(graph)(_.del_node(_))))
       }
@@ -411,8 +411,10 @@ object Document {
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
+    def names_iterator: Iterator[Node.Name] = graph.keys_iterator
+
     def theory_name(theory: String): Option[Node.Name] =
-      graph.keys_iterator.find(name => name.theory == theory)
+      names_iterator.find(name => name.theory == theory)
 
     def commands_loading(file_name: Node.Name): List[Command] =
       (for {
