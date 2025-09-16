@@ -57,7 +57,7 @@ object Command {
     def get(serial: Long): Option[XML.Elem] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator
 
-    lazy val warned: Boolean = rep.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2))
+    lazy val warned: Boolean = rep.exists(p => Protocol.is_warning_or_legacy(p._2))
     lazy val failed: Boolean = rep.exists(p => Protocol.is_error(p._2))
 
     def + (entry: Results.Entry): Results =

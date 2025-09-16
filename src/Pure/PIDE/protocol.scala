@@ -168,6 +168,9 @@ object Protocol {
       case _ => false
     }
 
+  def is_warning_or_legacy(msg: XML.Tree): Boolean =
+    is_warning(msg) || is_legacy(msg)
+
   def is_inlined(msg: XML.Tree): Boolean =
     !(is_result(msg) || is_tracing(msg))
 
@@ -176,7 +179,7 @@ object Protocol {
 
   def message_heading(elem: XML.Elem, pos: Position.T): String = {
     val h =
-      if (is_warning(elem) || is_legacy(elem)) "Warning"
+      if (is_warning_or_legacy(elem)) "Warning"
       else if (is_error(elem)) "Error"
       else if (is_information(elem)) "Information"
       else if (is_tracing(elem)) "Tracing"
@@ -200,7 +203,7 @@ object Protocol {
         metric = metric, pure = true)
 
     val text2 =
-      if (is_warning(elem) || is_legacy(elem)) Output.warning_prefix(body)
+      if (is_warning_or_legacy(elem)) Output.warning_prefix(body)
       else if (is_error(elem)) Output.error_message_prefix(body)
       else body
 
