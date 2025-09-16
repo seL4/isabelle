@@ -271,6 +271,7 @@ object Document_Status {
     nodes: Document.Nodes
   ) {
     def is_empty: Boolean = rep.isEmpty
+    def defined(name: Document.Node.Name): Boolean = rep.isDefinedAt(name)
     def apply(name: Document.Node.Name): Node_Status = rep(name)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
@@ -282,13 +283,13 @@ object Document_Status {
     }
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
-      rep.get(name) match {
+      get(name) match {
         case Some(st) => st.quasi_consolidated
         case None => false
       }
 
     def overall_status(name: Document.Node.Name): Overall_Status =
-      rep.get(name) match {
+      get(name) match {
         case Some(st) if st.consolidated =>
           if (st.ok) Overall_Status.ok else Overall_Status.failed
         case _ => Overall_Status.pending
@@ -307,7 +308,7 @@ object Document_Status {
           name <- domain.getOrElse(nodes1.domain).iterator
           if !Resources.hidden_node(name) && !resources.loaded_theory(name)
           st = Document_Status.Node_Status.make(state, version, name)
-          if !rep.isDefinedAt(name) || rep(name) != st
+          if !defined(name) || apply(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
       val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
