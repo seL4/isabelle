@@ -142,17 +142,7 @@ object Document_Status {
   /* node status */
 
   object Node_Status {
-    val empty: Node_Status =
-      Node_Status(
-        suppressed = false,
-        unprocessed = 0,
-        running = 0,
-        warned = 0,
-        failed = 0,
-        finished = 0,
-        canceled = false,
-        terminated = false,
-        theory_status = Document_Status.Theory_Status.NONE)
+    val empty: Node_Status = Node_Status()
 
     def make(
       state: Document.State,
@@ -198,15 +188,15 @@ object Document_Status {
   }
 
   sealed case class Node_Status(
-    suppressed: Boolean,
-    unprocessed: Int,
-    running: Int,
-    warned: Int,
-    failed: Int,
-    finished: Int,
-    canceled: Boolean,
-    terminated: Boolean,
-    theory_status: Theory_Status.Value
+    suppressed: Boolean = false,
+    unprocessed: Int = 0,
+    running: Int = 0,
+    warned: Int = 0,
+    failed: Int = 0,
+    finished: Int = 0,
+    canceled: Boolean = false,
+    terminated: Boolean = false,
+    theory_status: Theory_Status.Value = Theory_Status.NONE
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
