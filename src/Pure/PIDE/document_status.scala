@@ -149,8 +149,6 @@ object Document_Status {
       version: Document.Version,
       name: Document.Node.Name
     ): Node_Status = {
-      val node = version.nodes(name)
-
       var unprocessed = 0
       var running = 0
       var warned = 0
@@ -159,7 +157,7 @@ object Document_Status {
       var canceled = false
       var terminated = true
       var theory_status = Document_Status.Theory_Status.NONE
-      for (command <- node.commands.iterator) {
+      for (command <- version.nodes(name).commands.iterator) {
         val status = state.command_status(version, command)
 
         if (status.is_running) running += 1
@@ -226,12 +224,12 @@ object Document_Status {
     def make(
       state: Document.State,
       version: Document.Version,
-      commands: Iterable[Command],
+      name: Document.Node.Name,
       threshold: Time = Time.zero
     ): Overall_Timing = {
       var total = 0.0
       var command_timings = Map.empty[Command, Double]
-      for (command <- commands.iterator) {
+      for (command <- version.nodes(name).commands.iterator) {
         val timing = state.command_timing(version, command)
         val elapsed = timing.elapsed.seconds
         total += elapsed

@@ -162,15 +162,15 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val nodes_timing1 =
       (restriction match {
-        case Some(names) => names.iterator.map(name => (name, snapshot.get_node(name)))
-        case None => snapshot.version.nodes.iterator
+        case Some(names) => names.iterator
+        case None => snapshot.version.nodes.names_iterator
       }).foldLeft(nodes_timing) {
-          case (timing1, (name, node)) =>
+          case (timing1, name) =>
             if (PIDE.resources.loaded_theory(name)) timing1
             else {
               val node_timing =
                 Document_Status.Overall_Timing.make(
-                  snapshot.state, snapshot.version, node.commands,
+                  snapshot.state, snapshot.version, name,
                   threshold = Time.seconds(timing_threshold))
               timing1 + (name -> node_timing)
             }
