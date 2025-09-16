@@ -235,12 +235,13 @@ object Document_Status {
         total += elapsed
         if (timing.is_notable(threshold)) command_timings += (command -> elapsed)
       }
-      Overall_Timing(total = total, command_timings = command_timings)
+      Overall_Timing(total = total, threshold = threshold, command_timings = command_timings)
     }
   }
 
   sealed case class Overall_Timing(
     total: Double = 0.0,
+    threshold: Time = Time.zero,
     command_timings: Map[Command, Double] = Map.empty
   ) {
     def command_timing(command: Command): Double =
