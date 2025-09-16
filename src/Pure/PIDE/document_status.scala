@@ -241,11 +241,7 @@ object Document_Status {
   sealed case class Overall_Timing(
     total: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Time] = Map.empty
-  ) {
-    def command_timing(command: Command): Time =
-      command_timings.getOrElse(command, Time.zero)
-  }
+    command_timings: Map[Command, Time] = Map.empty)
 
 
   /* nodes status */
