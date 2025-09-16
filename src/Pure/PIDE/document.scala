@@ -1312,13 +1312,6 @@ object Document {
       else Nil
     }
 
-    def node_initialized(version: Version, name: Node.Name): Boolean =
-      name.is_theory &&
-      (version.nodes(name).commands.iterator.find(_.potentially_initialized) match {
-        case None => false
-        case Some(command) => command_states(version, command).headOption.exists(_.initialized)
-      })
-
     def node_maybe_consolidated(version: Version, name: Node.Name): Boolean =
       name.is_theory &&
       version.nodes(name).commands.reverse.iterator.forall(command_maybe_consolidated(version, _))

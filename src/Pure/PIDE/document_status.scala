@@ -21,6 +21,14 @@ object Document_Status {
     def merge(t1: Value, t2: Value): Value = if (t1 >= t2) t1 else t2
   }
 
+  trait Theory_Status {
+    def theory_status: Theory_Status.Value
+    def initialized: Boolean = Theory_Status.initialized(theory_status)
+    def finalized: Boolean = Theory_Status.finalized(theory_status)
+    def consolidating: Boolean = Theory_Status.consolidating(theory_status)
+    def consolidated: Boolean = Theory_Status.consolidated(theory_status)
+  }
+
 
   /* command status */
 
@@ -84,7 +92,7 @@ object Document_Status {
   }
 
   final class Command_Status private(
-    private val theory_status: Theory_Status.Value,
+    val theory_status: Theory_Status.Value,
     private val touched: Boolean,
     private val accepted: Boolean,
     private val warned: Boolean,
@@ -92,7 +100,7 @@ object Document_Status {
     private val canceled: Boolean,
     val forks: Int,
     val runs: Int
-  ) {
+  ) extends Theory_Status {
     override def toString: String =
       if (is_empty) "Command_Status.empty"
       else if (failed) "Command_Status(failed)"
@@ -119,10 +127,6 @@ object Document_Status {
           runs = runs + that.runs)
       }
 
-    def initialized: Boolean = Theory_Status.initialized(theory_status)
-    def finalized: Boolean = Theory_Status.finalized(theory_status)
-    def consolidating: Boolean = Theory_Status.consolidating(theory_status)
-    def consolidated: Boolean = Theory_Status.consolidated(theory_status)
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
@@ -148,9 +152,7 @@ object Document_Status {
         finished = 0,
         canceled = false,
         terminated = false,
-        initialized = false,
-        finalized = false,
-        consolidated = false)
+        theory_status = Document_Status.Theory_Status.NONE)
 
     def make(
       state: Document.State,
@@ -166,7 +168,7 @@ object Document_Status {
       var finished = 0
       var canceled = false
       var terminated = true
-      var finalized = false
+      var theory_status = Document_Status.Theory_Status.NONE
       for (command <- node.commands.iterator) {
         val status = state.command_status(version, command)
 
@@ -178,10 +180,9 @@ object Document_Status {
 
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
-        if (status.finalized) finalized = true
+
+        theory_status = Theory_Status.merge(theory_status, status.theory_status)
       }
-      val initialized = state.node_initialized(version, name)
-      val consolidated = state.node_consolidated(version, name)
 
       Node_Status(
         suppressed = version.nodes.suppressed(name),
@@ -192,9 +193,7 @@ object Document_Status {
         finished = finished,
         canceled = canceled,
         terminated = terminated,
-        initialized = initialized,
-        finalized = finalized,
-        consolidated = consolidated)
+        theory_status = theory_status)
     }
   }
 
@@ -207,10 +206,8 @@ object Document_Status {
     finished: Int,
     canceled: Boolean,
     terminated: Boolean,
-    initialized: Boolean,
-    finalized: Boolean,
-    consolidated: Boolean
-  ) {
+    theory_status: Theory_Status.Value
+  ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
     def ok: Boolean = failed == 0

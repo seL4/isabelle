@@ -464,8 +464,6 @@ final class Command private(
   lazy val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
   lazy val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
 
-  def potentially_initialized: Boolean = span.name == Thy_Header.THEORY
-
 
   /* blobs */
 
