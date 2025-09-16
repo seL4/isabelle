@@ -235,11 +235,7 @@ object Document_Status {
         command <- commands.iterator
         st <- state.command_states(version, command)
       } {
-        val command_timing =
-          st.status.foldLeft(0.0) {
-            case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
-            case (timing, _) => timing
-          }
+        val command_timing = st.timing.elapsed.seconds
         total += command_timing
         if (command_timing > 0.0 && command_timing >= threshold) {
           command_timings += (command -> command_timing)

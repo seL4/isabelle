@@ -213,6 +213,12 @@ object Command {
     exports: Exports = Exports.empty,
     markups: Markups = Markups.empty
   ) {
+    lazy val timing: Timing =
+      status.foldLeft(Timing.zero) {
+        case (t0, Markup.Timing(t)) => t0 + t
+        case (t0, _) => t0
+      }
+
     lazy val document_status: Document_Status.Command_Status =
       Document_Status.Command_Status.make(
         status, warned = results.warned, failed = results.failed)
