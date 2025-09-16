@@ -251,11 +251,6 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
   }
 
 
-  /* tooltips */
-
-  override def timing_threshold: Double = options.real("vscode_timing_threshold")
-
-
   /* hyperlinks */
 
   def hyperlink_source_file(

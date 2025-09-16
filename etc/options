@@ -107,8 +107,8 @@ public option parallel_proofs : int = 1 for build
 option parallel_subproofs_threshold : real = 0.01 for build
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
 
-option command_timing_threshold : real = 0.1 for build
-  -- "default threshold for persistent command timing (seconds)"
+option build_timing_threshold : real = 0.1 for build
+  -- "threshold for persistent storage of command timings (seconds)"
 
 public option timeout_scale : real = 1.0 for build
   -- "scale factor for timeout in Isabelle/ML and session build"
@@ -343,6 +343,9 @@ option editor_execution_delay : real = 0.02
 
 option editor_syslog_limit : int = 100
   -- "maximum amount of buffered syslog messages"
+
+public option editor_timing_threshold : real = 0.1
+  -- "threshold for interactive display of command timings (seconds)"
 
 
 section "Headless Session"

@@ -15,9 +15,6 @@ option vscode_tooltip_margin : int = 60 for vscode
 option vscode_message_margin : int = 80 for vscode
   -- "margin for pretty-printing of diagnostic messages"
 
-option vscode_timing_threshold : real = 0.1 for vscode
-  -- "default threshold for timing display (seconds)"
-
 option vscode_pide_extensions : bool = false for vscode
   -- "use PIDE extensions for Language Server Protocol"
 

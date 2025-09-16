@@ -106,7 +106,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* timing threshold */
 
-  private var timing_threshold = PIDE.options.real("jedit_timing_threshold")
+  private var timing_threshold = PIDE.options.real("editor_timing_threshold")
 
   private val threshold_tooltip = "Threshold for timing display (seconds)"
   private val threshold_value = new TextField(Time.print_seconds(timing_threshold)) {

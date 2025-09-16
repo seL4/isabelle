@@ -617,7 +617,7 @@ class Rendering(
 
   /* tooltips */
 
-  def timing_threshold: Double = 0.0
+  def timing_threshold: Double = options.real("editor_timing_threshold")
 
   private sealed case class Tooltip_Info(
     range: Text.Range,
@@ -645,7 +645,7 @@ class Rendering(
 
     def timing_info(elem: XML.Elem): Option[XML.Elem] =
       if (elem.markup.name == Markup.TIMING) {
-        if (timing.elapsed.seconds >= timing_threshold) {
+        if (timing.is_relevant && timing.elapsed.seconds >= timing_threshold) {
           Some(Pretty.string(timing.message))
         }
         else None
