@@ -202,17 +202,32 @@ object Command {
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
 
     def merge(command: Command, states: List[State]): State =
-      State(command, states.flatMap(_.status), merge_results(states),
-        merge_exports(states), merge_markups(states))
+      State(command,
+        status = states.flatMap(_.status),
+        results = merge_results(states),
+        exports = merge_exports(states),
+        markups = merge_markups(states))
+
+    def apply(
+      command: Command,
+      status: List[Markup] = Nil,
+      results: Results = Results.empty,
+      exports: Exports = Exports.empty,
+      markups: Markups = Markups.empty
+    ): State = new State(command, status, results, exports, markups)
   }
 
-  sealed case class State(
-    command: Command,
-    status: List[Markup] = Nil,
-    results: Results = Results.empty,
-    exports: Exports = Exports.empty,
-    markups: Markups = Markups.empty
+  final class State private(
+    val command: Command,
+    val status: List[Markup],
+    val results: Results,
+    val exports: Exports,
+    val markups: Markups
   ) {
+    override def toString: String = "Command.State(" + command + ")"
+    override def hashCode(): Int = ???
+    override def equals(obj: Any): Boolean = ???
+
     lazy val timing: Timing =
       status.foldLeft(Timing.zero) {
         case (t0, Markup.Timing(t)) => t0 + t
@@ -233,17 +248,19 @@ object Command {
     def redirect(other_command: Command): Option[State] = {
       val markups1 = markups.redirect(other_command.id)
       if (markups1.is_empty) None
-      else Some(new State(other_command, markups = markups1))
+      else Some(State(other_command, markups = markups1))
     }
 
     private def add_status(st: Markup): State =
-      copy(status = st :: status)
+      new State(command, st :: status, results, exports, markups)
 
     private def add_result(entry: Results.Entry): State =
-      copy(results = results + entry)
+      new State(command, status, results + entry, exports, markups)
 
     def add_export(entry: Exports.Entry): Option[State] =
-      if (command.node_name.theory == entry._2.theory_name) Some(copy(exports = exports + entry))
+      if (command.node_name.theory == entry._2.theory_name) {
+        Some(new State(command, status, results, exports + entry, markups))
+      }
       else None
 
     private def add_markup(
@@ -255,7 +272,8 @@ object Command {
         if (status || Document_Status.Command_Status.liberal_elements(m.info.name))
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
-      copy(markups = markups1.add(Markup_Index(false, chunk_name), m))
+      val markups2 = markups1.add(Markup_Index(false, chunk_name), m)
+      new State(command, this.status, results, exports, markups2)
     }
 
     def accumulate(
