@@ -28,10 +28,9 @@ class Theories_Status(view: View, document: Boolean = false) {
   private def is_loaded_theory(name: Document.Node.Name): Boolean =
     PIDE.resources.loaded_theory(name)
 
-  private def overall_node_status(name: Document.Node.Name): Document_Status.Overall_Node_Status = {
-    if (is_loaded_theory(name)) Document_Status.Overall_Node_Status.ok
-    else nodes_status.overall_node_status(name)
-  }
+  private def overall_status(name: Document.Node.Name): Document_Status.Overall_Status =
+    if (is_loaded_theory(name)) Document_Status.Overall_Status.ok
+    else nodes_status.overall_status(name)
 
   private def init_state(): Unit = GUI_Thread.require {
     if (document) {
@@ -128,16 +127,16 @@ class Theories_Status(view: View, document: Boolean = false) {
       }
 
       def label_border(name: Document.Node.Name): Unit = {
-        val st = overall_node_status(name)
+        val st = overall_status(name)
         val color =
           st match {
-            case Document_Status.Overall_Node_Status.ok =>
+            case Document_Status.Overall_Status.ok =>
               PIDE.options.color_value("ok_color")
-            case Document_Status.Overall_Node_Status.failed =>
+            case Document_Status.Overall_Status.failed =>
               PIDE.options.color_value("failed_color")
             case _ => label.foreground
           }
-        val thickness1 = if (st == Document_Status.Overall_Node_Status.pending) 1 else 3
+        val thickness1 = if (st == Document_Status.Overall_Status.pending) 1 else 3
         val thickness2 = 4 - thickness1
 
         label.border =
@@ -211,10 +210,10 @@ class Theories_Status(view: View, document: Boolean = false) {
         }
         else if (index >= 0 && node_renderer.in_label(index_location, point)) {
           val name = listData(index)
-          val st = overall_node_status(name)
+          val st = overall_status(name)
           tooltip =
             "theory " + quote(name.theory) +
-              (if (st == Document_Status.Overall_Node_Status.ok) "" else " (" + st + ")")
+              (if (st == Document_Status.Overall_Status.ok) "" else " (" + st + ")")
         }
         else tooltip = null
     }

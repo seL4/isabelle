@@ -260,7 +260,7 @@ object Document_Status {
 
   /* nodes status */
 
-  enum Overall_Node_Status { case ok, failed, pending }
+  enum Overall_Status { case ok, failed, pending }
 
   object Nodes_Status {
     val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
@@ -287,11 +287,11 @@ object Document_Status {
         case None => false
       }
 
-    def overall_node_status(name: Document.Node.Name): Overall_Node_Status =
+    def overall_status(name: Document.Node.Name): Overall_Status =
       rep.get(name) match {
         case Some(st) if st.consolidated =>
-          if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
-        case _ => Overall_Node_Status.pending
+          if (st.ok) Overall_Status.ok else Overall_Status.failed
+        case _ => Overall_Status.pending
       }
 
     def update(
@@ -328,10 +328,10 @@ object Document_Status {
       var pending = 0
       var canceled = 0
       for (name <- rep.keysIterator) {
-        overall_node_status(name) match {
-          case Overall_Node_Status.ok => ok += 1
-          case Overall_Node_Status.failed => failed += 1
-          case Overall_Node_Status.pending => pending += 1
+        overall_status(name) match {
+          case Overall_Status.ok => ok += 1
+          case Overall_Status.failed => failed += 1
+          case Overall_Status.pending => pending += 1
         }
         if (apply(name).canceled) canceled += 1
       }
