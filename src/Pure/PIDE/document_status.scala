@@ -227,7 +227,7 @@ object Document_Status {
       state: Document.State,
       version: Document.Version,
       commands: Iterable[Command],
-      threshold: Double = 0.0
+      threshold: Time = Time.zero
     ): Overall_Timing = {
       var total = 0.0
       var command_timings = Map.empty[Command, Double]
@@ -235,7 +235,7 @@ object Document_Status {
         val timing = state.command_timing(version, command)
         val elapsed = timing.elapsed.seconds
         total += elapsed
-        if (timing.is_relevant && elapsed >= threshold) command_timings += (command -> elapsed)
+        if (timing.is_notable(threshold)) command_timings += (command -> elapsed)
       }
       Overall_Timing(total = total, command_timings = command_timings)
     }

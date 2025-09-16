@@ -280,8 +280,7 @@ object Build_Job {
               for {
                 elapsed <- Markup.Elapsed.unapply(props)
                 elapsed_time = Time.seconds(elapsed)
-                if elapsed_time.is_relevant &&
-                   elapsed_time >= options.seconds("build_timing_threshold")
+                if elapsed_time.is_notable(options.seconds("build_timing_threshold"))
               } command_timings += props.filter(Markup.command_timing_property)
           }
 

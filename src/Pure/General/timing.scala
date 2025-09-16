@@ -44,6 +44,7 @@ object Timing {
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time) {
   def is_zero: Boolean = elapsed.is_zero && cpu.is_zero && gc.is_zero
   def is_relevant: Boolean = elapsed.is_relevant || cpu.is_relevant || gc.is_relevant
+  def is_notable(threshold: Time): Boolean = is_relevant && elapsed.is_notable(threshold)
 
   def resources: Time = cpu + gc
 

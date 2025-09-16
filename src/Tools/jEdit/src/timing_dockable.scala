@@ -170,7 +170,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
             else {
               val node_timing =
                 Document_Status.Overall_Timing.make(
-                  snapshot.state, snapshot.version, node.commands, threshold = timing_threshold)
+                  snapshot.state, snapshot.version, node.commands,
+                  threshold = Time.seconds(timing_threshold))
               timing1 + (name -> node_timing)
             }
         }

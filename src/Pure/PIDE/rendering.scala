@@ -617,7 +617,7 @@ class Rendering(
 
   /* tooltips */
 
-  def timing_threshold: Double = options.real("editor_timing_threshold")
+  def timing_threshold: Time = options.seconds("editor_timing_threshold")
 
   private sealed case class Tooltip_Info(
     range: Text.Range,
@@ -668,7 +668,7 @@ class Rendering(
             val info2 =
               if (kind == Markup.COMMAND) {
                 val timing = Timing.merge(command_states.iterator.map(_.timing))
-                if (timing.is_relevant && timing.elapsed.seconds >= timing_threshold) {
+                if (timing.is_notable(timing_threshold)) {
                   info1.add_info(r0, Pretty.string(timing.message))
                 }
                 else info1
