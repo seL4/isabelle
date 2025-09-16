@@ -140,7 +140,7 @@ object Document_Status {
   object Node_Status {
     val empty: Node_Status =
       Node_Status(
-        is_suppressed = false,
+        suppressed = false,
         unprocessed = 0,
         running = 0,
         warned = 0,
@@ -185,7 +185,7 @@ object Document_Status {
       val consolidated = state.node_consolidated(version, name)
 
       Node_Status(
-        is_suppressed = version.nodes.is_suppressed(name),
+        suppressed = version.nodes.suppressed(name),
         unprocessed = unprocessed,
         running = running,
         warned = warned,
@@ -200,7 +200,7 @@ object Document_Status {
   }
 
   sealed case class Node_Status(
-    is_suppressed: Boolean,
+    suppressed: Boolean,
     unprocessed: Int,
     running: Int,
     warned: Int,
@@ -217,7 +217,7 @@ object Document_Status {
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
-    def quasi_consolidated: Boolean = !is_suppressed && !finalized && terminated
+    def quasi_consolidated: Boolean = !suppressed && !finalized && terminated
 
     def percentage: Int =
       if (consolidated) 100

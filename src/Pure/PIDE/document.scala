@@ -385,13 +385,13 @@ object Document {
   final class Nodes private(graph: Graph[Node.Name, Node]) {
     def apply(name: Node.Name): Node = Nodes.init(graph, name).get_node(name)
 
-    def is_suppressed(name: Node.Name): Boolean = {
+    def suppressed(name: Node.Name): Boolean = {
       val graph1 = Nodes.init(graph, name)
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
     def purge_suppressed: Option[Nodes] =
-      graph.keys_iterator.filter(is_suppressed).toList match {
+      graph.keys_iterator.filter(suppressed).toList match {
         case Nil => None
         case del => Some(new Nodes(del.foldLeft(graph)(_.del_node(_))))
       }

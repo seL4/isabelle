@@ -249,7 +249,7 @@ class Theories_Status(view: View, document: Boolean = false) {
         else {
           (for {
             (name, node_status) <- nodes_status1.present().iterator
-            if !node_status.is_empty && !node_status.is_suppressed && node_status.total > 0
+            if !node_status.is_empty && !node_status.suppressed && node_status.total > 0
           } yield name).toList
         }
     }
