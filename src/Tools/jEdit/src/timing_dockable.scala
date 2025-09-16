@@ -145,10 +145,10 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val theories =
       (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.command_timings.nonEmpty)
-        yield Theory_Entry(node_name, node_timing.total)).sorted(Entry.Ordering)
+        yield Theory_Entry(node_name, node_timing.total.seconds)).sorted(Entry.Ordering)
     val commands =
       (for ((command, command_timing) <- timing.command_timings.toList)
-        yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
+        yield Command_Entry(command, command_timing.seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
       if (entry.name == name) entry.make_current :: commands

@@ -227,25 +227,24 @@ object Document_Status {
       name: Document.Node.Name,
       threshold: Time = Time.zero
     ): Overall_Timing = {
-      var total = 0.0
-      var command_timings = Map.empty[Command, Double]
+      var total = Time.zero
+      var command_timings = Map.empty[Command, Time]
       for (command <- version.nodes(name).commands.iterator) {
         val timing = state.command_timing(version, command)
-        val elapsed = timing.elapsed.seconds
-        total += elapsed
-        if (timing.is_notable(threshold)) command_timings += (command -> elapsed)
+        total += timing.elapsed
+        if (timing.is_notable(threshold)) command_timings += (command -> timing.elapsed)
       }
       Overall_Timing(total = total, threshold = threshold, command_timings = command_timings)
     }
   }
 
   sealed case class Overall_Timing(
-    total: Double = 0.0,
+    total: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Double] = Map.empty
+    command_timings: Map[Command, Time] = Map.empty
   ) {
-    def command_timing(command: Command): Double =
-      command_timings.getOrElse(command, 0.0)
+    def command_timing(command: Command): Time =
+      command_timings.getOrElse(command, Time.zero)
   }
 
 
