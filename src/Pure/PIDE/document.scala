@@ -598,12 +598,9 @@ object Document {
       for ((i, name) <- (0, node_name) :: node.load_commands.flatMap(_.blobs_files))
         yield (i, File.symbolic_path(name.path))
 
-    def node_consolidated(name: Node.Name): Boolean =
-      state.node_consolidated(version, name)
-
     def theory_consolidated(theory: String): Boolean =
       version.nodes.theory_name(theory) match {
-        case Some(name) => node_consolidated(name)
+        case Some(name) => state.node_consolidated(version, name)
         case None => false
       }
 
