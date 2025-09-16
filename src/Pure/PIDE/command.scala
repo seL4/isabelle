@@ -49,6 +49,9 @@ object Command {
       args.iterator.foldLeft(empty)(_ + _)
     def merge(args: IterableOnce[Results]): Results =
       args.iterator.foldLeft(empty)(_ ++ _)
+
+    def warned(entry: Entry): Boolean = Protocol.is_warning_or_legacy(entry._2)
+    def failed(entry: Entry): Boolean = Protocol.is_error(entry._2)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Elem]) {
@@ -57,8 +60,8 @@ object Command {
     def get(serial: Long): Option[XML.Elem] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator
 
-    lazy val warned: Boolean = rep.exists(p => Protocol.is_warning_or_legacy(p._2))
-    lazy val failed: Boolean = rep.exists(p => Protocol.is_error(p._2))
+    def warned: Boolean = rep.exists(Results.warned)
+    def failed: Boolean = rep.exists(Results.failed)
 
     def + (entry: Results.Entry): Results =
       if (defined(entry._1)) this
@@ -214,7 +217,14 @@ object Command {
       results: Results = Results.empty,
       exports: Exports = Exports.empty,
       markups: Markups = Markups.empty
-    ): State = new State(command, status, results, exports, markups)
+    ): State = {
+      val document_status =
+        Document_Status.Command_Status.make(
+          markups = status,
+          warned = results.warned,
+          failed = results.failed)
+      new State(command, status, results, exports, markups, document_status)
+    }
   }
 
   final class State private(
@@ -222,7 +232,8 @@ object Command {
     val status: List[Markup],
     val results: Results,
     val exports: Exports,
-    val markups: Markups
+    val markups: Markups,
+    val document_status: Document_Status.Command_Status
   ) {
     override def toString: String = "Command.State(" + command + ")"
     override def hashCode(): Int = ???
@@ -233,10 +244,6 @@ object Command {
         case (t0, Markup.Timing(t)) => t0 + t
         case (t0, _) => t0
       }
-
-    lazy val document_status: Document_Status.Command_Status =
-      Document_Status.Command_Status.make(
-        status, warned = results.warned, failed = results.failed)
 
     def initialized: Boolean = document_status.initialized
     def consolidating: Boolean = document_status.consolidating
@@ -251,15 +258,28 @@ object Command {
       else Some(State(other_command, markups = markups1))
     }
 
-    private def add_status(st: Markup): State =
-      new State(command, st :: status, results, exports, markups)
+    private def add_status(st: Markup): State = {
+      val document_status1 =
+        document_status + Document_Status.Command_Status.make(markups = List(st))
+      new State(command, st :: status, results, exports, markups, document_status1)
+    }
 
-    private def add_result(entry: Results.Entry): State =
-      new State(command, status, results + entry, exports, markups)
+    private def add_result(entry: Results.Entry): State = {
+      val warned = document_status.is_warned || Results.warned(entry)
+      val failed = document_status.is_failed || Results.failed(entry)
+      val document_status1 =
+        if (warned == document_status.is_warned && failed == document_status.is_failed) {
+          document_status
+        }
+        else {
+          document_status + Document_Status.Command_Status.make(warned = warned, failed = failed)
+        }
+      new State(command, status, results + entry, exports, markups, document_status1)
+    }
 
     def add_export(entry: Exports.Entry): Option[State] =
       if (command.node_name.theory == entry._2.theory_name) {
-        Some(new State(command, status, results, exports + entry, markups))
+        Some(new State(command, status, results, exports + entry, markups, document_status))
       }
       else None
 
@@ -273,7 +293,7 @@ object Command {
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
       val markups2 = markups1.add(Markup_Index(false, chunk_name), m)
-      new State(command, this.status, results, exports, markups2)
+      new State(command, this.status, results, exports, markups2, document_status)
     }
 
     def accumulate(

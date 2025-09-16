@@ -41,7 +41,7 @@ object Document_Status {
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
     def make(
-      markups: Iterable[Markup],
+      markups: Iterable[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
     ): Command_Status = {
@@ -85,7 +85,7 @@ object Document_Status {
         runs = runs)
     }
 
-    val empty: Command_Status = make(Nil)
+    val empty: Command_Status = make()
 
     def merge(args: IterableOnce[Command_Status]): Command_Status =
       args.iterator.foldLeft(empty)(_ + _)
