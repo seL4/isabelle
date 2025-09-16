@@ -231,11 +231,8 @@ object Document_Status {
     ): Overall_Timing = {
       var total = 0.0
       var command_timings = Map.empty[Command, Double]
-      for {
-        command <- commands.iterator
-        st <- state.command_states(version, command)
-      } {
-        val command_timing = st.timing.elapsed.seconds
+      for (command <- commands.iterator) {
+        val command_timing = state.command_timing(version, command).elapsed.seconds
         total += command_timing
         if (command_timing > 0.0 && command_timing >= threshold) {
           command_timings += (command -> command_timing)

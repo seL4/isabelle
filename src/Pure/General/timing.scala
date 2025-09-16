@@ -36,6 +36,9 @@ object Timing {
 
   def factor_format(f: Double): String =
     String.format(Locale.ROOT, ", factor %.2f", java.lang.Double.valueOf(f))
+
+  def merge(args: IterableOnce[Timing]): Timing =
+    args.iterator.foldLeft(zero)(_ + _)
 }
 
 sealed case class Timing(elapsed: Time, cpu: Time, gc: Time) {
