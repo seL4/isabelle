@@ -1267,6 +1267,10 @@ object Document {
       self.map(_._2) ::: others.flatMap(_.redirect(command))
     }
 
+    def command_status(version: Version, command: Command): Document_Status.Command_Status =
+      Document_Status.Command_Status.merge(
+        command_states(version, command).iterator.map(_.document_status))
+
     def command_results(version: Version, command: Command): Command.Results =
       Command.State.merge_results(command_states(version, command))
 

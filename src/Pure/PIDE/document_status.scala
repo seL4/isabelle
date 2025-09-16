@@ -168,8 +168,7 @@ object Document_Status {
       var terminated = true
       var finalized = false
       for (command <- node.commands.iterator) {
-        val states = state.command_states(version, command)
-        val status = Command_Status.merge(states.iterator.map(_.document_status))
+        val status = state.command_status(version, command)
 
         if (status.is_running) running += 1
         else if (status.is_failed) failed += 1
