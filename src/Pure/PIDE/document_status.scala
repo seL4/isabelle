@@ -180,7 +180,8 @@ object Document_Status {
     def make(
       state: Document.State,
       version: Document.Version,
-      name: Document.Node.Name
+      name: Document.Node.Name,
+      threshold: Time = Time.max
     ): Node_Status = {
       var unprocessed = 0
       var running = 0
@@ -189,7 +190,10 @@ object Document_Status {
       var finished = 0
       var canceled = false
       var terminated = true
+      var total_time = Time.zero
+      var command_timings = Map.empty[Command, Time]
       var theory_status = Document_Status.Theory_Status.NONE
+
       for (command <- version.nodes(name).commands.iterator) {
         val status = state.command_status(version, command)
 
@@ -201,6 +205,10 @@ object Document_Status {
 
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
+
+        val t = state.command_timing(version, command).elapsed
+        total_time += t
+        if (t.is_notable(threshold)) command_timings += (command -> t)
 
         theory_status = Theory_Status.merge(theory_status, status.theory_status)
       }
@@ -214,6 +222,9 @@ object Document_Status {
         finished = finished,
         canceled = canceled,
         terminated = terminated,
+        total_time = total_time,
+        threshold = threshold,
+        command_timings = command_timings,
         theory_status = theory_status)
     }
   }
@@ -227,7 +238,10 @@ object Document_Status {
     finished: Int = 0,
     canceled: Boolean = false,
     terminated: Boolean = false,
-    theory_status: Theory_Status.Value = Theory_Status.NONE
+    total_time: Time = Time.zero,
+    threshold: Time = Time.zero,
+    command_timings: Map[Command, Time] = Map.empty,
+    theory_status: Theory_Status.Value = Theory_Status.NONE,
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
@@ -249,34 +263,6 @@ object Document_Status {
   }
 
 
-  /* overall timing */
-
-  object Overall_Timing {
-    val empty: Overall_Timing = Overall_Timing()
-
-    def make(
-      state: Document.State,
-      version: Document.Version,
-      name: Document.Node.Name,
-      threshold: Time = Time.zero
-    ): Overall_Timing = {
-      var total = Time.zero
-      var command_timings = Map.empty[Command, Time]
-      for (command <- version.nodes(name).commands.iterator) {
-        val timing = state.command_timing(version, command)
-        total += timing.elapsed
-        if (timing.is_notable(threshold)) command_timings += (command -> timing.elapsed)
-      }
-      Overall_Timing(total = total, threshold = threshold, command_timings = command_timings)
-    }
-  }
-
-  sealed case class Overall_Timing(
-    total: Time = Time.zero,
-    threshold: Time = Time.zero,
-    command_timings: Map[Command, Time] = Map.empty)
-
-
   /* nodes status */
 
   enum Overall_Status { case ok, failed, pending }
@@ -292,6 +278,8 @@ object Document_Status {
     def is_empty: Boolean = rep.isEmpty
     def apply(name: Document.Node.Name): Node_Status = rep.getOrElse(name, Node_Status.empty)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
+
+    def iterator: Iterator[(Document.Node.Name, Node_Status)] = rep.iterator
 
     def present(
       domain: Option[List[Document.Node.Name]] = None
@@ -317,6 +305,7 @@ object Document_Status {
       resources: Resources,
       state: Document.State,
       version: Document.Version,
+      threshold: Time = Time.max,
       domain: Option[Set[Document.Node.Name]] = None,
       trim: Boolean = false
     ): (Boolean, Nodes_Status) = {
@@ -325,7 +314,7 @@ object Document_Status {
         for {
           name <- domain.getOrElse(nodes1.domain).iterator
           if !Resources.hidden_node(name) && !resources.loaded_theory(name)
-          st = Document_Status.Node_Status.make(state, version, name)
+          st = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
           if apply(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
