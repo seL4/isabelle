@@ -265,15 +265,10 @@ object Command {
     }
 
     private def add_result(entry: Results.Entry): State = {
-      val warned = document_status.is_warned || Results.warned(entry)
-      val failed = document_status.is_failed || Results.failed(entry)
       val document_status1 =
-        if (warned == document_status.is_warned && failed == document_status.is_failed) {
-          document_status
-        }
-        else {
-          document_status + Document_Status.Command_Status.make(warned = warned, failed = failed)
-        }
+        document_status.update(
+          warned = Results.warned(entry),
+          failed = Results.failed(entry))
       new State(command, status, results + entry, exports, markups, document_status1)
     }
 

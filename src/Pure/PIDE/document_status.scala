@@ -127,6 +127,24 @@ object Document_Status {
           runs = runs + that.runs)
       }
 
+    def update(warned: Boolean = false, failed: Boolean = false): Command_Status = {
+      val warned1 = this.warned || warned
+      val failed1 = this.failed || failed
+      if (this.warned == warned1 && this.failed == failed1) this
+      else {
+        new Command_Status(
+          theory_status = theory_status,
+          touched = touched,
+          accepted = accepted,
+          warned = warned1,
+          failed = failed1,
+          canceled = canceled,
+          forks = forks,
+          runs = runs
+        )
+      }
+    }
+
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
