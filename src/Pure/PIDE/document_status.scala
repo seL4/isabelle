@@ -53,6 +53,7 @@ object Document_Status {
       var canceled = false
       var forks = 0
       var runs = 0
+      var timing = Timing.zero
       for (markup <- markups) {
         markup.name match {
           case Markup.INITIALIZED =>
@@ -73,6 +74,10 @@ object Document_Status {
           case Markup.CANCELED => canceled = true
           case _ =>
         }
+        markup match {
+          case Markup.Timing(t) => timing += t
+          case _ =>
+        }
       }
       new Command_Status(
         theory_status = theory_status,
@@ -82,7 +87,8 @@ object Document_Status {
         failed = failed1,
         canceled = canceled,
         forks = forks,
-        runs = runs)
+        runs = runs,
+        timing = timing)
     }
 
     val empty: Command_Status = make()
@@ -99,7 +105,8 @@ object Document_Status {
     private val failed: Boolean,
     private val canceled: Boolean,
     val forks: Int,
-    val runs: Int
+    val runs: Int,
+    val timing: Timing
   ) extends Theory_Status {
     override def toString: String =
       if (is_empty) "Command_Status.empty"
@@ -110,7 +117,7 @@ object Document_Status {
     def is_empty: Boolean =
       !Theory_Status.initialized(theory_status) &&
       !touched && !accepted && !warned && !failed && !canceled &&
-      forks == 0 && runs == 0
+      forks == 0 && runs == 0 && timing.is_zero
 
     def + (that: Command_Status): Command_Status =
       if (is_empty) that
@@ -124,7 +131,8 @@ object Document_Status {
           failed = failed || that.failed,
           canceled = canceled || that.canceled,
           forks = forks + that.forks,
-          runs = runs + that.runs)
+          runs = runs + that.runs,
+          timing = timing + that.timing)
       }
 
     def update(
@@ -145,7 +153,8 @@ object Document_Status {
             failed = failed1,
             canceled = canceled,
             forks = forks,
-            runs = runs)
+            runs = runs,
+            timing = timing)
         }
       }
       else this + Command_Status.make(markups = markups, warned = warned, failed = failed)

@@ -239,16 +239,11 @@ object Command {
     override def hashCode(): Int = ???
     override def equals(obj: Any): Boolean = ???
 
-    lazy val timing: Timing =
-      status.foldLeft(Timing.zero) {
-        case (t0, Markup.Timing(t)) => t0 + t
-        case (t0, _) => t0
-      }
-
     def initialized: Boolean = document_status.initialized
     def consolidating: Boolean = document_status.consolidating
     def consolidated: Boolean = document_status.consolidated
     def maybe_consolidated: Boolean = document_status.maybe_consolidated
+    def timing: Timing = document_status.timing
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
