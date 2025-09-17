@@ -290,15 +290,14 @@ object Document_Status {
     nodes: Document.Nodes
   ) {
     def is_empty: Boolean = rep.isEmpty
-    def defined(name: Document.Node.Name): Boolean = rep.isDefinedAt(name)
-    def apply(name: Document.Node.Name): Node_Status = rep(name)
+    def apply(name: Document.Node.Name): Node_Status = rep.getOrElse(name, Node_Status.empty)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
 
     def present(
       domain: Option[List[Document.Node.Name]] = None
     ): List[(Document.Node.Name, Node_Status)] = {
       for (name <- domain.getOrElse(nodes.topological_order))
-        yield name -> get(name).getOrElse(Node_Status.empty)
+        yield name -> apply(name)
     }
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
@@ -327,7 +326,7 @@ object Document_Status {
           name <- domain.getOrElse(nodes1.domain).iterator
           if !Resources.hidden_node(name) && !resources.loaded_theory(name)
           st = Document_Status.Node_Status.make(state, version, name)
-          if !defined(name) || apply(name) != st
+          if apply(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
       val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
