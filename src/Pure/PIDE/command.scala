@@ -259,8 +259,7 @@ object Command {
     }
 
     private def add_status(st: Markup): State = {
-      val document_status1 =
-        document_status + Document_Status.Command_Status.make(markups = List(st))
+      val document_status1 = document_status.update(markups = List(st))
       new State(command, st :: status, results, exports, markups, document_status1)
     }
 

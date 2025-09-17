@@ -41,7 +41,7 @@ object Document_Status {
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
     def make(
-      markups: Iterable[Markup] = Nil,
+      markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
     ): Command_Status = {
@@ -127,22 +127,28 @@ object Document_Status {
           runs = runs + that.runs)
       }
 
-    def update(warned: Boolean = false, failed: Boolean = false): Command_Status = {
-      val warned1 = this.warned || warned
-      val failed1 = this.failed || failed
-      if (this.warned == warned1 && this.failed == failed1) this
-      else {
-        new Command_Status(
-          theory_status = theory_status,
-          touched = touched,
-          accepted = accepted,
-          warned = warned1,
-          failed = failed1,
-          canceled = canceled,
-          forks = forks,
-          runs = runs
-        )
+    def update(
+      markups: List[Markup] = Nil,
+      warned: Boolean = false,
+      failed: Boolean = false
+    ): Command_Status = {
+      if (markups.isEmpty) {
+        val warned1 = this.warned || warned
+        val failed1 = this.failed || failed
+        if (this.warned == warned1 && this.failed == failed1) this
+        else {
+          new Command_Status(
+            theory_status = theory_status,
+            touched = touched,
+            accepted = accepted,
+            warned = warned1,
+            failed = failed1,
+            canceled = canceled,
+            forks = forks,
+            runs = runs)
+        }
       }
+      else this + Command_Status.make(markups = markups, warned = warned, failed = failed)
     }
 
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
