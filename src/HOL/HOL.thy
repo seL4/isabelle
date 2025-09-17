@@ -311,6 +311,12 @@ lemma arg_cong: "x = y \<Longrightarrow> f x = f y"
 lemma arg_cong2: "\<lbrakk>a = b; c = d\<rbrakk> \<Longrightarrow> f a c = f b d"
   by (iprover intro: refl elim: subst)
 
+lemma arg_cong3: "\<lbrakk>x = x'; y = y'; z = z'\<rbrakk> \<Longrightarrow> f x y z = f x' y' z'"
+  by (iprover intro: refl elim: subst)
+
+lemma arg_cong4: "\<lbrakk>w = w'; x = x'; y = y'; z = z'\<rbrakk> \<Longrightarrow> f w x y z = f w' x' y' z'"
+  by (iprover intro: refl elim: subst)
+
 lemma cong: "\<lbrakk>f = g; (x::'a) = y\<rbrakk> \<Longrightarrow> f x = g y"
   by (iprover intro: refl elim: subst)
 
