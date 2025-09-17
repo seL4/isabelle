@@ -408,6 +408,11 @@ larger ML heap images. This allows to retrieve fine-grained semantic
 information later on, using Thy_Info.get_theory_segments or
 Thy_Info.get_theory_elements in Isabelle/ML.
 
+* System option "command_timing_threshold" has been renamed to
+"build_timing_threshold": it refers to batch-builds. Likewise,
+"jedit_timing_threshold" and "vscode_timing_threshold" have been unified
+as "editor_timing_threshold": it refers to PIDE editor interaction.
+
 * The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
 also https://wiki.openjdk.org/display/zgc). This should work uniformly
 on all platforms, but requires a reasonably new version of Windows

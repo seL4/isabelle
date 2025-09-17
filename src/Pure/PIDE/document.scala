@@ -385,13 +385,13 @@ object Document {
   final class Nodes private(graph: Graph[Node.Name, Node]) {
     def apply(name: Node.Name): Node = Nodes.init(graph, name).get_node(name)
 
-    def is_suppressed(name: Node.Name): Boolean = {
+    def suppressed(name: Node.Name): Boolean = {
       val graph1 = Nodes.init(graph, name)
       graph1.is_maximal(name) && graph1.get_node(name).is_empty
     }
 
     def purge_suppressed: Option[Nodes] =
-      graph.keys_iterator.filter(is_suppressed).toList match {
+      names_iterator.filter(suppressed).toList match {
         case Nil => None
         case del => Some(new Nodes(del.foldLeft(graph)(_.del_node(_))))
       }
@@ -411,8 +411,10 @@ object Document {
     def iterator: Iterator[(Node.Name, Node)] =
       graph.iterator.map({ case (name, (node, _)) => (name, node) })
 
+    def names_iterator: Iterator[Node.Name] = graph.keys_iterator
+
     def theory_name(theory: String): Option[Node.Name] =
-      graph.keys_iterator.find(name => name.theory == theory)
+      names_iterator.find(name => name.theory == theory)
 
     def commands_loading(file_name: Node.Name): List[Command] =
       (for {
@@ -598,12 +600,9 @@ object Document {
       for ((i, name) <- (0, node_name) :: node.load_commands.flatMap(_.blobs_files))
         yield (i, File.symbolic_path(name.path))
 
-    def node_consolidated(name: Node.Name): Boolean =
-      state.node_consolidated(version, name)
-
     def theory_consolidated(theory: String): Boolean =
       version.nodes.theory_name(theory) match {
-        case Some(name) => node_consolidated(name)
+        case Some(name) => state.node_consolidated(version, name)
         case None => false
       }
 
@@ -1267,6 +1266,13 @@ object Document {
       self.map(_._2) ::: others.flatMap(_.redirect(command))
     }
 
+    def command_status(version: Version, command: Command): Document_Status.Command_Status =
+      Document_Status.Command_Status.merge(
+        command_states(version, command).iterator.map(_.document_status))
+
+    def command_timing(version: Version, command: Command): Timing =
+      Timing.merge(command_states(version, command).iterator.map(_.timing))
+
     def command_results(version: Version, command: Command): Command.Results =
       Command.State.merge_results(command_states(version, command))
 
@@ -1307,13 +1313,6 @@ object Document {
       }
       else Nil
     }
-
-    def node_initialized(version: Version, name: Node.Name): Boolean =
-      name.is_theory &&
-      (version.nodes(name).commands.iterator.find(_.potentially_initialized) match {
-        case None => false
-        case Some(command) => command_states(version, command).headOption.exists(_.initialized)
-      })
 
     def node_maybe_consolidated(version: Version, name: Node.Name): Boolean =
       name.is_theory &&

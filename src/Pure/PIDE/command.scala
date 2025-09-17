@@ -49,6 +49,9 @@ object Command {
       args.iterator.foldLeft(empty)(_ + _)
     def merge(args: IterableOnce[Results]): Results =
       args.iterator.foldLeft(empty)(_ ++ _)
+
+    def warned(entry: Entry): Boolean = Protocol.is_warning_or_legacy(entry._2)
+    def failed(entry: Entry): Boolean = Protocol.is_error(entry._2)
   }
 
   final class Results private(private val rep: SortedMap[Long, XML.Elem]) {
@@ -57,8 +60,8 @@ object Command {
     def get(serial: Long): Option[XML.Elem] = rep.get(serial)
     def iterator: Iterator[Results.Entry] = rep.iterator
 
-    lazy val warned: Boolean = rep.exists(p => Protocol.is_warning(p._2) || Protocol.is_legacy(p._2))
-    lazy val failed: Boolean = rep.exists(p => Protocol.is_error(p._2))
+    def warned: Boolean = rep.exists(Results.warned)
+    def failed: Boolean = rep.exists(Results.failed)
 
     def + (entry: Results.Entry): Results =
       if (defined(entry._1)) this
@@ -202,42 +205,71 @@ object Command {
       Markup_Tree.merge(states.map(_.markup(index)), range, elements)
 
     def merge(command: Command, states: List[State]): State =
-      State(command, states.flatMap(_.status), merge_results(states),
-        merge_exports(states), merge_markups(states))
+      State(command,
+        status = states.flatMap(_.status),
+        results = merge_results(states),
+        exports = merge_exports(states),
+        markups = merge_markups(states))
+
+    def apply(
+      command: Command,
+      status: List[Markup] = Nil,
+      results: Results = Results.empty,
+      exports: Exports = Exports.empty,
+      markups: Markups = Markups.empty
+    ): State = {
+      val document_status =
+        Document_Status.Command_Status.make(
+          markups = status,
+          warned = results.warned,
+          failed = results.failed)
+      new State(command, status, results, exports, markups, document_status)
+    }
   }
 
-  sealed case class State(
-    command: Command,
-    status: List[Markup] = Nil,
-    results: Results = Results.empty,
-    exports: Exports = Exports.empty,
-    markups: Markups = Markups.empty
+  final class State private(
+    val command: Command,
+    val status: List[Markup],
+    val results: Results,
+    val exports: Exports,
+    val markups: Markups,
+    val document_status: Document_Status.Command_Status
   ) {
-    lazy val document_status: Document_Status.Command_Status =
-      Document_Status.Command_Status.make(
-        status, warned = results.warned, failed = results.failed)
+    override def toString: String = "Command.State(" + command + ")"
+    override def hashCode(): Int = ???
+    override def equals(obj: Any): Boolean = ???
 
     def initialized: Boolean = document_status.initialized
     def consolidating: Boolean = document_status.consolidating
     def consolidated: Boolean = document_status.consolidated
     def maybe_consolidated: Boolean = document_status.maybe_consolidated
+    def timing: Timing = document_status.timing
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
     def redirect(other_command: Command): Option[State] = {
       val markups1 = markups.redirect(other_command.id)
       if (markups1.is_empty) None
-      else Some(new State(other_command, markups = markups1))
+      else Some(State(other_command, markups = markups1))
     }
 
-    private def add_status(st: Markup): State =
-      copy(status = st :: status)
+    private def add_status(st: Markup): State = {
+      val document_status1 = document_status.update(markups = List(st))
+      new State(command, st :: status, results, exports, markups, document_status1)
+    }
 
-    private def add_result(entry: Results.Entry): State =
-      copy(results = results + entry)
+    private def add_result(entry: Results.Entry): State = {
+      val document_status1 =
+        document_status.update(
+          warned = Results.warned(entry),
+          failed = Results.failed(entry))
+      new State(command, status, results + entry, exports, markups, document_status1)
+    }
 
     def add_export(entry: Exports.Entry): Option[State] =
-      if (command.node_name.theory == entry._2.theory_name) Some(copy(exports = exports + entry))
+      if (command.node_name.theory == entry._2.theory_name) {
+        Some(new State(command, status, results, exports + entry, markups, document_status))
+      }
       else None
 
     private def add_markup(
@@ -249,7 +281,8 @@ object Command {
         if (status || Document_Status.Command_Status.liberal_elements(m.info.name))
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
-      copy(markups = markups1.add(Markup_Index(false, chunk_name), m))
+      val markups2 = markups1.add(Markup_Index(false, chunk_name), m)
+      new State(command, this.status, results, exports, markups2, document_status)
     }
 
     def accumulate(
@@ -463,8 +496,6 @@ final class Command private(
   def is_undefined: Boolean = id == Document_ID.none
   lazy val is_unparsed: Boolean = span.content.exists(_.is_unparsed)
   lazy val is_unfinished: Boolean = span.content.exists(_.is_unfinished)
-
-  def potentially_initialized: Boolean = span.name == Thy_Header.THEORY
 
 
   /* blobs */

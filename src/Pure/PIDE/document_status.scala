@@ -21,6 +21,14 @@ object Document_Status {
     def merge(t1: Value, t2: Value): Value = if (t1 >= t2) t1 else t2
   }
 
+  trait Theory_Status {
+    def theory_status: Theory_Status.Value
+    def initialized: Boolean = Theory_Status.initialized(theory_status)
+    def finalized: Boolean = Theory_Status.finalized(theory_status)
+    def consolidating: Boolean = Theory_Status.consolidating(theory_status)
+    def consolidated: Boolean = Theory_Status.consolidated(theory_status)
+  }
+
 
   /* command status */
 
@@ -33,7 +41,7 @@ object Document_Status {
       proper_elements + Markup.WARNING + Markup.LEGACY + Markup.ERROR
 
     def make(
-      markups: Iterable[Markup],
+      markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
     ): Command_Status = {
@@ -45,6 +53,7 @@ object Document_Status {
       var canceled = false
       var forks = 0
       var runs = 0
+      var timing = Timing.zero
       for (markup <- markups) {
         markup.name match {
           case Markup.INITIALIZED =>
@@ -65,6 +74,10 @@ object Document_Status {
           case Markup.CANCELED => canceled = true
           case _ =>
         }
+        markup match {
+          case Markup.Timing(t) => timing += t
+          case _ =>
+        }
       }
       new Command_Status(
         theory_status = theory_status,
@@ -74,25 +87,27 @@ object Document_Status {
         failed = failed1,
         canceled = canceled,
         forks = forks,
-        runs = runs)
+        runs = runs,
+        timing = timing)
     }
 
-    val empty: Command_Status = make(Nil)
+    val empty: Command_Status = make()
 
     def merge(args: IterableOnce[Command_Status]): Command_Status =
       args.iterator.foldLeft(empty)(_ + _)
   }
 
   final class Command_Status private(
-    private val theory_status: Theory_Status.Value,
+    val theory_status: Theory_Status.Value,
     private val touched: Boolean,
     private val accepted: Boolean,
     private val warned: Boolean,
     private val failed: Boolean,
     private val canceled: Boolean,
     val forks: Int,
-    val runs: Int
-  ) {
+    val runs: Int,
+    val timing: Timing
+  ) extends Theory_Status {
     override def toString: String =
       if (is_empty) "Command_Status.empty"
       else if (failed) "Command_Status(failed)"
@@ -102,7 +117,7 @@ object Document_Status {
     def is_empty: Boolean =
       !Theory_Status.initialized(theory_status) &&
       !touched && !accepted && !warned && !failed && !canceled &&
-      forks == 0 && runs == 0
+      forks == 0 && runs == 0 && timing.is_zero
 
     def + (that: Command_Status): Command_Status =
       if (is_empty) that
@@ -116,13 +131,35 @@ object Document_Status {
           failed = failed || that.failed,
           canceled = canceled || that.canceled,
           forks = forks + that.forks,
-          runs = runs + that.runs)
+          runs = runs + that.runs,
+          timing = timing + that.timing)
       }
 
-    def initialized: Boolean = Theory_Status.initialized(theory_status)
-    def finalized: Boolean = Theory_Status.finalized(theory_status)
-    def consolidating: Boolean = Theory_Status.consolidating(theory_status)
-    def consolidated: Boolean = Theory_Status.consolidated(theory_status)
+    def update(
+      markups: List[Markup] = Nil,
+      warned: Boolean = false,
+      failed: Boolean = false
+    ): Command_Status = {
+      if (markups.isEmpty) {
+        val warned1 = this.warned || warned
+        val failed1 = this.failed || failed
+        if (this.warned == warned1 && this.failed == failed1) this
+        else {
+          new Command_Status(
+            theory_status = theory_status,
+            touched = touched,
+            accepted = accepted,
+            warned = warned1,
+            failed = failed1,
+            canceled = canceled,
+            forks = forks,
+            runs = runs,
+            timing = timing)
+        }
+      }
+      else this + Command_Status.make(markups = markups, warned = warned, failed = failed)
+    }
+
     def maybe_consolidated: Boolean = touched && forks == 0 && runs == 0
 
     def is_unprocessed: Boolean = accepted && !failed && (!touched || (forks != 0 && runs == 0))
@@ -138,27 +175,14 @@ object Document_Status {
   /* node status */
 
   object Node_Status {
-    val empty: Node_Status =
-      Node_Status(
-        is_suppressed = false,
-        unprocessed = 0,
-        running = 0,
-        warned = 0,
-        failed = 0,
-        finished = 0,
-        canceled = false,
-        terminated = false,
-        initialized = false,
-        finalized = false,
-        consolidated = false)
+    val empty: Node_Status = Node_Status()
 
     def make(
       state: Document.State,
       version: Document.Version,
-      name: Document.Node.Name
+      name: Document.Node.Name,
+      threshold: Time = Time.max
     ): Node_Status = {
-      val node = version.nodes(name)
-
       var unprocessed = 0
       var running = 0
       var warned = 0
@@ -166,10 +190,13 @@ object Document_Status {
       var finished = 0
       var canceled = false
       var terminated = true
-      var finalized = false
-      for (command <- node.commands.iterator) {
-        val states = state.command_states(version, command)
-        val status = Command_Status.merge(states.iterator.map(_.document_status))
+      var total_time = Time.zero
+      var max_time = Time.zero
+      var command_timings = Map.empty[Command, Time]
+      var theory_status = Document_Status.Theory_Status.NONE
+
+      for (command <- version.nodes(name).commands.iterator) {
+        val status = state.command_status(version, command)
 
         if (status.is_running) running += 1
         else if (status.is_failed) failed += 1
@@ -179,13 +206,17 @@ object Document_Status {
 
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
-        if (status.finalized) finalized = true
+
+        val t = state.command_timing(version, command).elapsed
+        total_time += t
+        if (t > max_time) max_time = t
+        if (t.is_notable(threshold)) command_timings += (command -> t)
+
+        theory_status = Theory_Status.merge(theory_status, status.theory_status)
       }
-      val initialized = state.node_initialized(version, name)
-      val consolidated = state.node_consolidated(version, name)
 
       Node_Status(
-        is_suppressed = version.nodes.is_suppressed(name),
+        suppressed = version.nodes.suppressed(name),
         unprocessed = unprocessed,
         running = running,
         warned = warned,
@@ -193,31 +224,35 @@ object Document_Status {
         finished = finished,
         canceled = canceled,
         terminated = terminated,
-        initialized = initialized,
-        finalized = finalized,
-        consolidated = consolidated)
+        total_time = total_time,
+        max_time = max_time,
+        threshold = threshold,
+        command_timings = command_timings,
+        theory_status = theory_status)
     }
   }
 
   sealed case class Node_Status(
-    is_suppressed: Boolean,
-    unprocessed: Int,
-    running: Int,
-    warned: Int,
-    failed: Int,
-    finished: Int,
-    canceled: Boolean,
-    terminated: Boolean,
-    initialized: Boolean,
-    finalized: Boolean,
-    consolidated: Boolean
-  ) {
+    suppressed: Boolean = false,
+    unprocessed: Int = 0,
+    running: Int = 0,
+    warned: Int = 0,
+    failed: Int = 0,
+    finished: Int = 0,
+    canceled: Boolean = false,
+    terminated: Boolean = false,
+    total_time: Time = Time.zero,
+    max_time: Time = Time.zero,
+    threshold: Time = Time.zero,
+    command_timings: Map[Command, Time] = Map.empty,
+    theory_status: Theory_Status.Value = Theory_Status.NONE,
+  ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
     def ok: Boolean = failed == 0
     def total: Int = unprocessed + running + warned + failed + finished
 
-    def quasi_consolidated: Boolean = !is_suppressed && !finalized && terminated
+    def quasi_consolidated: Boolean = !suppressed && !finalized && terminated
 
     def percentage: Int =
       if (consolidated) 100
@@ -232,49 +267,9 @@ object Document_Status {
   }
 
 
-  /* overall timing */
-
-  object Overall_Timing {
-    val empty: Overall_Timing = Overall_Timing()
-
-    def make(
-      state: Document.State,
-      version: Document.Version,
-      commands: Iterable[Command],
-      threshold: Double = 0.0
-    ): Overall_Timing = {
-      var total = 0.0
-      var command_timings = Map.empty[Command, Double]
-      for {
-        command <- commands.iterator
-        st <- state.command_states(version, command)
-      } {
-        val command_timing =
-          st.status.foldLeft(0.0) {
-            case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
-            case (timing, _) => timing
-          }
-        total += command_timing
-        if (command_timing > 0.0 && command_timing >= threshold) {
-          command_timings += (command -> command_timing)
-        }
-      }
-      Overall_Timing(total = total, command_timings = command_timings)
-    }
-  }
-
-  sealed case class Overall_Timing(
-    total: Double = 0.0,
-    command_timings: Map[Command, Double] = Map.empty
-  ) {
-    def command_timing(command: Command): Double =
-      command_timings.getOrElse(command, 0.0)
-  }
-
-
   /* nodes status */
 
-  enum Overall_Node_Status { case ok, failed, pending }
+  enum Overall_Status { case ok, failed, pending }
 
   object Nodes_Status {
     val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
@@ -285,33 +280,36 @@ object Document_Status {
     nodes: Document.Nodes
   ) {
     def is_empty: Boolean = rep.isEmpty
-    def apply(name: Document.Node.Name): Node_Status = rep(name)
+    def apply(name: Document.Node.Name): Node_Status = rep.getOrElse(name, Node_Status.empty)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
+
+    def iterator: Iterator[(Document.Node.Name, Node_Status)] = rep.iterator
 
     def present(
       domain: Option[List[Document.Node.Name]] = None
     ): List[(Document.Node.Name, Node_Status)] = {
       for (name <- domain.getOrElse(nodes.topological_order))
-        yield name -> get(name).getOrElse(Node_Status.empty)
+        yield name -> apply(name)
     }
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
-      rep.get(name) match {
+      get(name) match {
         case Some(st) => st.quasi_consolidated
         case None => false
       }
 
-    def overall_node_status(name: Document.Node.Name): Overall_Node_Status =
-      rep.get(name) match {
+    def overall_status(name: Document.Node.Name): Overall_Status =
+      get(name) match {
         case Some(st) if st.consolidated =>
-          if (st.ok) Overall_Node_Status.ok else Overall_Node_Status.failed
-        case _ => Overall_Node_Status.pending
+          if (st.ok) Overall_Status.ok else Overall_Status.failed
+        case _ => Overall_Status.pending
       }
 
     def update(
       resources: Resources,
       state: Document.State,
       version: Document.Version,
+      threshold: Time = Time.max,
       domain: Option[Set[Document.Node.Name]] = None,
       trim: Boolean = false
     ): (Boolean, Nodes_Status) = {
@@ -320,8 +318,8 @@ object Document_Status {
         for {
           name <- domain.getOrElse(nodes1.domain).iterator
           if !Resources.hidden_node(name) && !resources.loaded_theory(name)
-          st = Document_Status.Node_Status.make(state, version, name)
-          if !rep.isDefinedAt(name) || rep(name) != st
+          st = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
+          if apply(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
       val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
@@ -342,10 +340,10 @@ object Document_Status {
       var pending = 0
       var canceled = 0
       for (name <- rep.keysIterator) {
-        overall_node_status(name) match {
-          case Overall_Node_Status.ok => ok += 1
-          case Overall_Node_Status.failed => failed += 1
-          case Overall_Node_Status.pending => pending += 1
+        overall_status(name) match {
+          case Overall_Status.ok => ok += 1
+          case Overall_Status.failed => failed += 1
+          case Overall_Status.pending => pending += 1
         }
         if (apply(name).canceled) canceled += 1
       }

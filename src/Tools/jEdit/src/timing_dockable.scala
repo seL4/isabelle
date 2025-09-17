@@ -106,7 +106,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* timing threshold */
 
-  private var timing_threshold = PIDE.options.real("jedit_timing_threshold")
+  private var timing_threshold = PIDE.options.real("editor_timing_threshold")
 
   private val threshold_tooltip = "Threshold for timing display (seconds)"
   private val threshold_value = new TextField(Time.print_seconds(timing_threshold)) {
@@ -131,7 +131,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* component state -- owned by GUI thread */
 
-  private var nodes_timing = Map.empty[Document.Node.Name, Document_Status.Overall_Timing]
+  private var nodes_status = Document_Status.Nodes_Status.empty
 
   private def make_entries(): List[Entry] = {
     GUI_Thread.require {}
@@ -141,14 +141,14 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         case None => Document.Node.Name.empty
         case Some(doc_view) => doc_view.model.node_name
       }
-    val timing = nodes_timing.getOrElse(name, Document_Status.Overall_Timing.empty)
 
     val theories =
-      (for ((node_name, node_timing) <- nodes_timing.toList if node_timing.command_timings.nonEmpty)
-        yield Theory_Entry(node_name, node_timing.total)).sorted(Entry.Ordering)
+      List.from(
+        for ((a, st) <- nodes_status.iterator if st.command_timings.nonEmpty)
+          yield Theory_Entry(a, st.total_time.seconds)).sorted(Entry.Ordering)
     val commands =
-      (for ((command, command_timing) <- timing.command_timings.toList)
-        yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
+      (for ((command, command_timing) <- nodes_status(name).command_timings.toList)
+        yield Command_Entry(command, command_timing.seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
       if (entry.name == name) entry.make_current :: commands
@@ -160,21 +160,15 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val snapshot = PIDE.session.snapshot()
 
-    val nodes_timing1 =
-      (restriction match {
-        case Some(names) => names.iterator.map(name => (name, snapshot.get_node(name)))
-        case None => snapshot.version.nodes.iterator
-      }).foldLeft(nodes_timing) {
-          case (timing1, (name, node)) =>
-            if (PIDE.resources.loaded_theory(name)) timing1
-            else {
-              val node_timing =
-                Document_Status.Overall_Timing.make(
-                  snapshot.state, snapshot.version, node.commands, threshold = timing_threshold)
-              timing1 + (name -> node_timing)
-            }
-        }
-    nodes_timing = nodes_timing1
+    val domain =
+      restriction.getOrElse(
+        snapshot.version.nodes.names_iterator
+          .filterNot(PIDE.resources.loaded_theory).toSet)
+
+    nodes_status =
+      nodes_status.update(PIDE.resources, snapshot.state, snapshot.version,
+        threshold = Time.seconds(timing_threshold),
+        domain = Some(domain))._2
 
     val entries = make_entries()
     if (timing_view.listData.toList != entries) timing_view.listData = entries

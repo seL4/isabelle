@@ -61,6 +61,7 @@ final class Time private(val ms: Long) extends AnyVal {
 
   def is_zero: Boolean = ms == 0
   def is_relevant: Boolean = ms >= 1
+  def is_notable(threshold: Time): Boolean = is_relevant && this >= threshold
 
   override def toString: String = Time.print_seconds(seconds)
 

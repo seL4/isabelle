@@ -268,7 +268,7 @@ object Rendering {
       Markup.COMMAND_SPAN)
 
   val tooltip_elements: Markup.Elements =
-    Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION, Markup.TIMING,
+    Markup.Elements(Markup.LANGUAGE, Markup.NOTATION, Markup.EXPRESSION,
       Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.CLASS_PARAMETER, Markup.ML_TYPING,
       Markup.ML_BREAKPOINT, Markup.PATH, Markup.DOC, Markup.URL, Markup.COMMAND_SPAN,
       Markup.MARKDOWN_PARAGRAPH, Markup.MARKDOWN_ITEM, Markup.Markdown_List.name) ++
@@ -510,7 +510,7 @@ class Rendering(
       color <-
         result match {
           case (markups, opt_color) if markups.nonEmpty =>
-            val status = Document_Status.Command_Status.make(markups)
+            val status = Document_Status.Command_Status.make(markups = markups)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
             else if (status.is_running) Some(Rendering.Color.running1)
             else if (status.is_canceled) Some(Rendering.Color.canceled)
@@ -617,15 +617,13 @@ class Rendering(
 
   /* tooltips */
 
-  def timing_threshold: Double = 0.0
+  def timing_threshold: Time = options.seconds("editor_timing_threshold")
 
   private sealed case class Tooltip_Info(
     range: Text.Range,
-    timing: Timing = Timing.zero,
     messages: List[(Long, XML.Elem)] = Nil,
     rev_infos: List[(Boolean, Int, XML.Elem)] = Nil
   ) {
-    def add_timing(t: Timing): Tooltip_Info = copy(timing = timing + t)
     def add_message(r0: Text.Range, serial: Long, msg: XML.Elem): Tooltip_Info = {
       val r = snapshot.convert(r0)
       if (range == r) copy(messages = (serial -> msg) :: messages)
@@ -643,19 +641,8 @@ class Rendering(
     def add_info_text(r0: Text.Range, text: String, ord: Int = 0): Tooltip_Info =
       add_info(r0, Pretty.string(text), ord = ord)
 
-    def timing_info(elem: XML.Elem): Option[XML.Elem] =
-      if (elem.markup.name == Markup.TIMING) {
-        if (timing.elapsed.seconds >= timing_threshold) {
-          Some(Pretty.string(timing.message))
-        }
-        else None
-      }
-      else Some(elem)
     def infos(important: Boolean = true): List[XML.Elem] =
-      for {
-        (is_important, _, elem) <- rev_infos.reverse.sortBy(_._2) if is_important == important
-        elem1 <- timing_info(elem)
-      } yield elem1
+      for ((imp, _, elem) <- rev_infos.reverse.sortBy(_._2) if imp == important) yield elem
   }
 
   def perhaps_append_file(node_name: Document.Node.Name, name: String): String =
@@ -666,8 +653,6 @@ class Rendering(
     val results =
       snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, command_states =>
         {
-          case (info, Text.Info(_, XML.Elem(Markup.Timing(t), _))) => Some(info.add_timing(t))
-
           case (info, Text.Info(r0, msg @ XML.Elem(Markup.Bad(i), body)))
           if body.nonEmpty => Some(info.add_message(r0, i, msg))
 
@@ -680,7 +665,16 @@ class Rendering(
           if kind != "" && kind != Markup.ML_DEF =>
             val txt = Rendering.gui_name(name, kind = kind)
             val info1 = info.add_info_text(r0, txt, ord = 2)
-            Some(if (kind == Markup.COMMAND) info1.add_info(r0, XML.elem(Markup.TIMING)) else info1)
+            val info2 =
+              if (kind == Markup.COMMAND) {
+                val timing = Timing.merge(command_states.iterator.map(_.timing))
+                if (timing.is_notable(timing_threshold)) {
+                  info1.add_info(r0, Pretty.string(timing.message))
+                }
+                else info1
+              }
+              else info1
+            Some(info2)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
@@ -778,7 +772,7 @@ class Rendering(
             }, status = true)
       if (results.isEmpty) None
       else {
-        val status = Document_Status.Command_Status.make(results.flatMap(_.info))
+        val status = Document_Status.Command_Status.make(markups = results.flatMap(_.info))
 
         if (status.is_running) Some(Rendering.Color.running)
         else if (status.is_failed) Some(Rendering.Color.error)

@@ -310,7 +310,6 @@ extends Rendering(snapshot, options, PIDE.session) {
   /* tooltips */
 
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
-  override def timing_threshold: Double = options.real("jedit_timing_threshold")
 
   def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[List[XML.Elem]]] =
     tooltips(if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements,
