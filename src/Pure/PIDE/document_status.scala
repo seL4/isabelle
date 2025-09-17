@@ -191,6 +191,7 @@ object Document_Status {
       var canceled = false
       var terminated = true
       var total_time = Time.zero
+      var max_time = Time.zero
       var command_timings = Map.empty[Command, Time]
       var theory_status = Document_Status.Theory_Status.NONE
 
@@ -208,6 +209,7 @@ object Document_Status {
 
         val t = state.command_timing(version, command).elapsed
         total_time += t
+        if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> t)
 
         theory_status = Theory_Status.merge(theory_status, status.theory_status)
@@ -223,6 +225,7 @@ object Document_Status {
         canceled = canceled,
         terminated = terminated,
         total_time = total_time,
+        max_time = max_time,
         threshold = threshold,
         command_timings = command_timings,
         theory_status = theory_status)
@@ -239,6 +242,7 @@ object Document_Status {
     canceled: Boolean = false,
     terminated: Boolean = false,
     total_time: Time = Time.zero,
+    max_time: Time = Time.zero,
     threshold: Time = Time.zero,
     command_timings: Map[Command, Time] = Map.empty,
     theory_status: Theory_Status.Value = Theory_Status.NONE,
