@@ -197,7 +197,8 @@ nat are implemented by bit operations on target-language integers. Minor
 INCOMPATIBILITY.
 
 * SMT:
-  - Added Vampire as an SMT solver (experimental).
+  - Added Vampire as an experimental SMT solver (vampire_smt_dt has native
+    support for datatypes and vampire_smt_nodt does not).
 
 * Theory "HOL.Fun":
   - Added lemmas.
