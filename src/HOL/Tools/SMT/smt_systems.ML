@@ -162,6 +162,42 @@ val cvc5_proof: SMT_Solver.solver_config = {
 end
 
 
+(* Vampire *)
+
+local
+  fun vampire_smt_options ctxt =
+   ["--input_syntax", "smtlib2"] @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["--time_limit", string_of_int (Time.toSeconds t) ^ "s"])
+
+  (* fun vampire_smt_outcome *)
+  fun on_vampire_relevant_line test_outcome solver_name lines =
+    on_first_line test_outcome solver_name (filter (String.isPrefix "% SZS status") lines)
+
+in
+
+val vampire_smt: SMT_Solver.solver_config = {
+  name = "vampire_smt",
+  class = K Vampire_Interface.smtlib_vampireC,
+  avail = is_some o check_tool "ISABELLE_VAMPIRE",
+  command = the o check_tool "ISABELLE_VAMPIRE",
+  options = vampire_smt_options,
+  smt_options = [],
+  good_slices =
+    (* FUDGE *)
+    [((2, false, false, 1024, meshN), []),
+     ((2, false, false, 512, mashN), []),
+     ((2, false, true, 128, meshN), []),
+     ((2, false, false, 64, meshN), []),
+     ((2, false, false, 256, mepoN), []),
+     ((2, false, false, 32, meshN), [])],
+  outcome =  on_vampire_relevant_line (outcome_of "% SZS status Unsatisfiable" "% SZS status Satisfiable" "TODO: unknown" "TODO: Time limit exceeded"),
+  parse_proof = NONE,
+  replay = NONE }
+
+end
+
 (* veriT *)
 
 local
@@ -286,6 +322,7 @@ val _ = Theory.setup (
   SMT_Solver.add_solver cvc4 #>
   SMT_Solver.add_solver cvc5 #>
   SMT_Solver.add_solver cvc5_proof #>
+  SMT_Solver.add_solver vampire_smt #>
   SMT_Solver.add_solver veriT #>
   SMT_Solver.add_solver z3)
 

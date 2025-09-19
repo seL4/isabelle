@@ -627,6 +627,7 @@ ML_file \<open>Tools/SMT/z3_proof.ML\<close>
 ML_file \<open>Tools/SMT/z3_isar.ML\<close>
 ML_file \<open>Tools/SMT/smt_solver.ML\<close>
 ML_file \<open>Tools/SMT/cvc_interface.ML\<close>
+ML_file \<open>Tools/SMT/vampire_interface.ML\<close>
 ML_file \<open>Tools/SMT/lethe_proof.ML\<close>
 ML_file \<open>Tools/SMT/lethe_isar.ML\<close>
 ML_file \<open>Tools/SMT/lethe_proof_parse.ML\<close>

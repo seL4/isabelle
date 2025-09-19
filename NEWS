@@ -196,6 +196,9 @@ HOL-Main. Minor INCOMPATIBILITY.
 nat are implemented by bit operations on target-language integers. Minor
 INCOMPATIBILITY.
 
+* SMT:
+  - Added Vampire as an SMT solver (experimental).
+
 * Theory "HOL.Fun":
   - Added lemmas.
       antimonotone_on_inf_fun
