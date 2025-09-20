@@ -279,8 +279,7 @@ object Build_Job {
             case Session.Command_Timing(props) =>
               for {
                 elapsed <- Markup.Elapsed.unapply(props)
-                elapsed_time = Time.seconds(elapsed)
-                if elapsed_time.is_notable(options.seconds("build_timing_threshold"))
+                if Time.seconds(elapsed).is_notable(options.seconds("build_timing_threshold"))
               } command_timings += props.filter(Markup.command_timing_property)
           }
 
