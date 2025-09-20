@@ -208,7 +208,6 @@ sig
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
-  val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
   val command_indentN: string val command_indent: int -> T
   val goalN: string val goal: T
   val subgoalN: string val subgoal: string -> T
@@ -713,9 +712,6 @@ fun timing_properties {elapsed, cpu, gc} =
  [(elapsedN, Time.print elapsed),
   (cpuN, Time.print cpu),
   (gcN, Time.print gc)];
-
-val timingN = "timing";
-fun timing t = (timingN, timing_properties t);
 
 
 (* command timing *)
