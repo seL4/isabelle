@@ -519,10 +519,6 @@ object Markup {
 
   val TIMING = "timing"
 
-  object Timing {
-    def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
-  }
-
 
   /* process result */
 

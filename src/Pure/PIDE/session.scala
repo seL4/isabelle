@@ -535,9 +535,10 @@ abstract class Session extends Document.Session {
           val handled = protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
+              case Protocol.Command_Timing(state_id, props) if prover.defined =>
                 command_timings.post(Session.Command_Timing(props))
-                val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
+                val markup = Markup(Markup.TIMING, props)
+                val message = XML.elem(Markup.STATUS, List(XML.Elem(markup, Nil)))
                 change_command(_.accumulate(state_id, cache.elem(message), cache))
 
               case Markup.Theory_Timing(props) =>
