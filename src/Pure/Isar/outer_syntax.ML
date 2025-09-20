@@ -229,9 +229,7 @@ fun parse_command thy markers =
     let
       val keywords = Thy_Header.get_keywords thy;
       val tr0 =
-        Toplevel.empty
-        |> Toplevel.name name
-        |> Toplevel.position pos
+        Toplevel.make name pos
         |> Keyword.is_proof_open keywords name ? Toplevel.skip_proof_open
         |> Keyword.is_proof_close keywords name ? Toplevel.skip_proof_close;
       val command_markers =

@@ -30,12 +30,12 @@ sig
   val pretty_abstract: state -> Pretty.T
   type presentation = state -> Latex.text
   type transition
+  val make: string -> Position.T -> transition
   val empty: transition
   val name_of: transition -> string
   val pos_of: transition -> Position.T
   val timing_of: transition -> Time.time
   val type_error: transition -> string
-  val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val markers: Input.source list -> transition -> transition
   val timing: Time.time -> transition -> transition
@@ -349,7 +349,8 @@ fun make_transition (name, pos, markers, timing, trans) =
 fun map_transition f (Transition {name, pos, markers, timing, trans}) =
   make_transition (f (name, pos, markers, timing, trans));
 
-val empty = make_transition ("", Position.none, [], Time.zeroTime, []);
+fun make name pos = make_transition (name, pos, [], Time.zeroTime, []);
+val empty = make "" Position.none;
 
 
 (* diagnostics *)
@@ -367,9 +368,6 @@ fun type_error tr = command_msg "Bad context for " tr;
 
 
 (* modify transitions *)
-
-fun name name = map_transition (fn (_, pos, markers, timing, trans) =>
-  (name, pos, markers, timing, trans));
 
 fun position pos = map_transition (fn (name, _, markers, timing, trans) =>
   (name, pos, markers, timing, trans));
@@ -418,11 +416,8 @@ val malformedN = "<malformed>";
 fun is_ignored tr = name_of tr = ignoredN;
 fun is_malformed tr = name_of tr = malformedN;
 
-fun ignored pos =
-  empty |> name ignoredN |> position pos |> keep (fn _ => ());
-
-fun malformed pos msg =
-  empty |> name malformedN |> position pos |> keep (fn _ => error msg);
+fun ignored pos = make ignoredN pos |> keep (fn _ => ());
+fun malformed pos msg = make malformedN pos |> keep (fn _ => error msg);
 
 
 (* theory transitions *)
