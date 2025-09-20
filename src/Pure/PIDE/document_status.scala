@@ -72,10 +72,7 @@ object Document_Status {
           case Markup.WARNING | Markup.LEGACY => warned1 = true
           case Markup.FAILED | Markup.ERROR => failed1 = true
           case Markup.CANCELED => canceled = true
-          case _ =>
-        }
-        markup match {
-          case Markup.Timing(t) => timing += t
+          case Markup.TIMING => timing += Markup.Timing_Properties.get(markup.properties)
           case _ =>
         }
       }

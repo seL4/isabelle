@@ -521,12 +521,6 @@ object Markup {
 
   object Timing {
     def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
-
-    def unapply(markup: Markup): Option[isabelle.Timing] =
-      markup match {
-        case Markup(TIMING, Timing_Properties(timing)) => Some(timing)
-        case _ => None
-      }
   }
 
 
