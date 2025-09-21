@@ -206,6 +206,7 @@ object Build_Job {
             Export.consumer(store.open_database(session_name, output = true, server = server),
               store.cache, progress = progress)
 
+          // mutable state: session.synchronized
           val stdout = new StringBuilder(1000)
           val stderr = new StringBuilder(1000)
           val command_timings = new mutable.ListBuffer[Properties.T]
@@ -221,7 +222,7 @@ object Build_Job {
           ): (String, Session.Protocol_Function) = {
             name -> ((msg: Prover.Protocol_Output) =>
               unapply(msg.properties) match {
-                case Some(props) => acc += props; true
+                case Some(props) => session.synchronized { acc += props }; true
                 case _ => false
               })
           }
@@ -280,7 +281,11 @@ object Build_Job {
               for {
                 elapsed <- Markup.Elapsed.unapply(props)
                 if Time.seconds(elapsed).is_notable(options.seconds("build_timing_threshold"))
-              } command_timings += props.filter(Markup.command_timing_property)
+              } {
+                session.synchronized {
+                  command_timings += props.filter(Markup.command_timing_property)
+                }
+              }
           }
 
           session.runtime_statistics += Session.Consumer("ML_statistics") {
@@ -329,10 +334,10 @@ object Build_Job {
               if (msg.is_system) session.resources.log(Protocol.message_text(message))
 
               if (msg.is_stdout) {
-                stdout ++= Symbol.encode(XML.content(message))
+                session.synchronized { stdout ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_stderr) {
-                stderr ++= Symbol.encode(XML.content(message))
+                session.synchronized { stderr ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_exit) {
                 val err =
@@ -434,13 +439,15 @@ object Build_Job {
                 yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
 
             val more_output =
-              Library.trim_line(stdout.toString) ::
-                command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
-                used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
-                session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
-                runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
-                task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
-                document_output
+              session.synchronized {
+                Library.trim_line(stdout.toString) ::
+                  command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+                  used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
+                  session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
+                  runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+                  task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
+                  document_output
+              }
 
             result0.output(more_output)
               .error(Library.trim_line(stderr.toString))
