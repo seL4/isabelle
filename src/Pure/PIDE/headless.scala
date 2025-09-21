@@ -140,10 +140,10 @@ object Headless {
         domain: Option[Set[Document.Node.Name]] = None,
         trim: Boolean = false
       ): (Boolean, Use_Theories_State) = {
-        val (nodes_status_changed, nodes_status1) =
+        val nodes_status1 =
           nodes_status.update(resources, state, version, domain = domain, trim = trim)
         val st1 = copy(last_update = Time.now(), nodes_status = nodes_status1)
-        (nodes_status_changed, st1)
+        (nodes_status1 != nodes_status, st1)
       }
 
       def changed(

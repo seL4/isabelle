@@ -168,7 +168,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     nodes_status =
       nodes_status.update(PIDE.resources, snapshot.state, snapshot.version,
         threshold = Time.seconds(timing_threshold),
-        domain = Some(domain))._2
+        domain = Some(domain))
 
     val entries = make_entries()
     if (timing_view.listData.toList != entries) timing_view.listData = entries

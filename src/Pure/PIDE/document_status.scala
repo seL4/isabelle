@@ -298,7 +298,7 @@ object Document_Status {
       threshold: Time = Time.max,
       domain: Option[Set[Document.Node.Name]] = None,
       trim: Boolean = false
-    ): (Boolean, Nodes_Status) = {
+    ): Nodes_Status = {
       val nodes1 = version.nodes
       val update_iterator =
         for {
@@ -308,9 +308,7 @@ object Document_Status {
           if apply(name) != st
         } yield (name -> st)
       val rep1 = rep ++ update_iterator
-      val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
-
-      (rep != rep2, new Nodes_Status(rep2))
+      new Nodes_Status(if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1)
     }
 
     override def hashCode: Int = rep.hashCode

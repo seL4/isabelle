@@ -235,12 +235,11 @@ class Theories_Status(view: View, document: Boolean = false) {
 
     val snapshot = PIDE.session.snapshot()
 
-    val (nodes_status_changed, nodes_status1) =
+    val nodes_status1 =
       nodes_status.update(
         PIDE.resources, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
-    nodes_status = nodes_status1
-    if (nodes_status_changed || force) {
+    if (force || nodes_status1 != nodes_status) {
       gui.listData =
         if (document) PIDE.editor.document_theories()
         else {
@@ -251,6 +250,8 @@ class Theories_Status(view: View, document: Boolean = false) {
           } yield name).toList
         }
     }
+
+    nodes_status = nodes_status1
   }
 
 
