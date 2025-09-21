@@ -1106,6 +1106,9 @@ object Document {
           (state1.snippet(List(command1), doc_blobs), state1)
       }
 
+    def theory_snapshot(id: Document_ID.Exec, document_blobs: Node.Name => Blobs): Option[Snapshot] =
+      if (theories.isDefinedAt(id)) Some(end_theory(id, document_blobs)._1) else None
+
     def assign(
       id: Document_ID.Version,
       edited: List[String],

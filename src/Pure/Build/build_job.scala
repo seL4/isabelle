@@ -121,7 +121,9 @@ object Build_Job {
         val options = Host.node_options(info.options, node_info)
         val store = build_context.store
 
+        val build_progress_delay: Time = options.seconds("build_progress_delay")
         val build_timing_threshold: Time = options.seconds("build_timing_threshold")
+        val editor_timing_threshold: Time = options.seconds("editor_timing_threshold")
 
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
           store.clean_output(database_server, session_name, session_init = true)
@@ -216,6 +218,34 @@ object Build_Job {
           val session_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
+          var nodes_changed = Set.empty[Document_ID.Generic]
+          var nodes_status = Document_Status.Nodes_Status.empty
+
+          val nodes_domain = build_context.deps(session_name).used_theories.map(_._1)
+
+          def nodes_status_progress(): Unit = {
+            val state = session.get_state()
+            val result =
+              session.synchronized {
+                val nodes_status1 =
+                  nodes_changed.foldLeft(nodes_status)( { case (status, state_id) =>
+                    state.theory_snapshot(state_id, session.build_blobs) match {
+                      case None => status
+                      case Some(snapshot) =>
+                        status.update_node(snapshot.state, snapshot.version, snapshot.node_name,
+                          threshold = editor_timing_threshold)
+                    }
+                  }
+                )
+                val updated = nodes_status1 != nodes_status
+                nodes_changed = Set.empty
+                nodes_status = nodes_status1
+                if (updated) Some (nodes_status1) else None
+              }
+            result.foreach(progress.nodes_status(nodes_domain, _))
+          }
+
+          val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }
 
           def fun(
             name: String,
@@ -279,14 +309,15 @@ object Build_Job {
             })
 
           session.command_timings += Session.Consumer("command_timings") {
-            case Session.Command_Timing(props) =>
-              for {
-                elapsed <- Markup.Elapsed.unapply(props)
-                if Time.seconds(elapsed).is_notable(build_timing_threshold)
-              } {
-                session.synchronized {
-                  command_timings += props.filter(Markup.command_timing_property)
-                }
+            case Session.Command_Timing(state_id, props) =>
+              session.synchronized {
+                for {
+                  elapsed <- Markup.Elapsed.unapply(props)
+                  if Time.seconds(elapsed).is_notable(build_timing_threshold)
+                } command_timings += props.filter(Markup.command_timing_property)
+
+                nodes_changed += state_id
+                nodes_delay.invoke()
               }
           }
 
@@ -397,6 +428,9 @@ object Build_Job {
             }
 
           session.stop()
+
+          nodes_delay.revoke()
+          nodes_status_progress()
 
           val export_errors =
             export_consumer.shutdown(close = true).map(Output.error_message_text)

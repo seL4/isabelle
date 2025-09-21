@@ -63,7 +63,7 @@ object Session {
   /* events */
 
   //{{{
-  case class Command_Timing(props: Properties.T)
+  case class Command_Timing(state_id: Document_ID.Generic, props: Properties.T)
   case class Theory_Timing(props: Properties.T)
   case class Runtime_Statistics(props: Properties.T)
   case class Task_Statistics(props: Properties.T)
@@ -538,7 +538,7 @@ abstract class Session extends Document.Session {
               case Protocol.Command_Timing(state_id, props) if prover.defined =>
                 val message = XML.elem(Markup.STATUS, List(XML.elem(Markup(Markup.TIMING, props))))
                 change_command(_.accumulate(state_id, cache.elem(message), cache))
-                command_timings.post(Session.Command_Timing(props))
+                command_timings.post(Session.Command_Timing(state_id, props))
 
               case Markup.Theory_Timing(props) =>
                 theory_timings.post(Session.Theory_Timing(props))
