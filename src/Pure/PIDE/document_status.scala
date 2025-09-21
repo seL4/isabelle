@@ -291,7 +291,18 @@ object Document_Status {
         case _ => Overall_Status.pending
       }
 
-    def update(
+    def update_node(
+      state: Document.State,
+      version: Document.Version,
+      name: Document.Node.Name,
+      threshold: Time = Time.max
+    ): Nodes_Status = {
+      val st = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
+      if (apply(name) == st) this
+      else new Nodes_Status(rep + (name -> st))
+    }
+
+    def update_nodes(
       resources: Resources,
       state: Document.State,
       version: Document.Version,
@@ -299,16 +310,14 @@ object Document_Status {
       domain: Option[Set[Document.Node.Name]] = None,
       trim: Boolean = false
     ): Nodes_Status = {
-      val nodes1 = version.nodes
-      val update_iterator =
-        for {
-          name <- domain.getOrElse(nodes1.domain).iterator
-          if !Resources.hidden_node(name) && !resources.loaded_theory(name)
-          st = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
-          if apply(name) != st
-        } yield (name -> st)
-      val rep1 = rep ++ update_iterator
-      new Nodes_Status(if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1)
+      val domain1 = version.nodes.domain
+      val that =
+        domain.getOrElse(domain1).iterator.foldLeft(this)(
+          { case (a, name) =>
+              if (Resources.hidden_node(name) || resources.loaded_theory(name)) a
+              else a.update_node(state, version, name, threshold = threshold) })
+      if (trim) new Nodes_Status(that.rep -- that.rep.keysIterator.filterNot(domain1))
+      else that
     }
 
     override def hashCode: Int = rep.hashCode

@@ -236,7 +236,7 @@ class Theories_Status(view: View, document: Boolean = false) {
     val snapshot = PIDE.session.snapshot()
 
     val nodes_status1 =
-      nodes_status.update(
+      nodes_status.update_nodes(
         PIDE.resources, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
     if (force || nodes_status1 != nodes_status) {

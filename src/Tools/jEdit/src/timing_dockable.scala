@@ -166,7 +166,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
           .filterNot(PIDE.resources.loaded_theory).toSet)
 
     nodes_status =
-      nodes_status.update(PIDE.resources, snapshot.state, snapshot.version,
+      nodes_status.update_nodes(PIDE.resources, snapshot.state, snapshot.version,
         threshold = Time.seconds(timing_threshold),
         domain = Some(domain))
 
