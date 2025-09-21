@@ -35,9 +35,9 @@ object Web_App {
     val td = new Operator("td")
 
     def icon(href: String): XML.Elem =
-      XML.Elem(Markup("link", List("rel" -> "icon", "type" -> "image/x-icon", "href" -> href)), Nil)
+      XML.elem(Markup("link", List("rel" -> "icon", "type" -> "image/x-icon", "href" -> href)))
 
-    def legend(txt: String): XML.Elem = XML.Elem(Markup("legend", Nil), text(txt))
+    def legend(txt: String): XML.Elem = XML.elem("legend", text(txt))
     def input(typ: String): XML.Elem = XML.Elem(Markup("input", List("type" -> typ)), Nil)
     def hidden(k: Params.Key, v: String): XML.Elem =
       id(k.print)(name(k.print)(value(v)(input("hidden"))))

@@ -63,7 +63,7 @@ object Prover {
     Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text))))
 
   class Protocol_Output(props: Properties.T, val chunks: List[Bytes])
-  extends Output(XML.Elem(Markup(Markup.PROTOCOL, props), Nil)) {
+  extends Output(XML.elem(Markup(Markup.PROTOCOL, props))) {
     def chunk: Bytes = the_chunk(chunks, toString)
     lazy val text: String = chunk.text
   }

@@ -536,8 +536,7 @@ abstract class Session extends Document.Session {
           if (!handled) {
             msg.properties match {
               case Protocol.Command_Timing(state_id, props) if prover.defined =>
-                val markup = Markup(Markup.TIMING, props)
-                val message = XML.elem(Markup.STATUS, List(XML.Elem(markup, Nil)))
+                val message = XML.elem(Markup.STATUS, List(XML.elem(Markup(Markup.TIMING, props))))
                 change_command(_.accumulate(state_id, cache.elem(message), cache))
                 command_timings.post(Session.Command_Timing(props))
 

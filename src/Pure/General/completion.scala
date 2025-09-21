@@ -150,7 +150,7 @@ object Completion {
       def apply(pos: Position.T, semantic: Semantic): XML.Elem = {
         val elem =
           semantic match {
-            case No_Completion => XML.Elem(Markup(Markup.NO_COMPLETION, pos), Nil)
+            case No_Completion => XML.elem(Markup(Markup.NO_COMPLETION, pos))
             case Names(total, names) =>
               XML.Elem(Markup(Markup.COMPLETION, pos),
                 {
