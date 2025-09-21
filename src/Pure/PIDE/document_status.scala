@@ -269,25 +269,14 @@ object Document_Status {
   enum Overall_Status { case ok, failed, pending }
 
   object Nodes_Status {
-    val empty: Nodes_Status = new Nodes_Status(Map.empty, Document.Nodes.empty)
+    val empty: Nodes_Status = new Nodes_Status(Map.empty)
   }
 
-  final class Nodes_Status private(
-    private val rep: Map[Document.Node.Name, Node_Status],
-    nodes: Document.Nodes
-  ) {
+  final class Nodes_Status private(private val rep: Map[Document.Node.Name, Node_Status]) {
     def is_empty: Boolean = rep.isEmpty
     def apply(name: Document.Node.Name): Node_Status = rep.getOrElse(name, Node_Status.empty)
     def get(name: Document.Node.Name): Option[Node_Status] = rep.get(name)
-
     def iterator: Iterator[(Document.Node.Name, Node_Status)] = rep.iterator
-
-    def present(
-      domain: Option[List[Document.Node.Name]] = None
-    ): List[(Document.Node.Name, Node_Status)] = {
-      for (name <- domain.getOrElse(nodes.topological_order))
-        yield name -> apply(name)
-    }
 
     def quasi_consolidated(name: Document.Node.Name): Boolean =
       get(name) match {
@@ -321,7 +310,7 @@ object Document_Status {
       val rep1 = rep ++ update_iterator
       val rep2 = if (trim) rep1 -- rep1.keysIterator.filterNot(nodes1.domain) else rep1
 
-      (rep != rep2, new Nodes_Status(rep2, nodes1))
+      (rep != rep2, new Nodes_Status(rep2))
     }
 
     override def hashCode: Int = rep.hashCode

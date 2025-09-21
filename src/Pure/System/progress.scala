@@ -67,7 +67,9 @@ class Progress {
   final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
   def theory(theory: Progress.Theory): Unit = output(theory.message)
-  def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {}
+  def nodes_status(
+    domain: List[Document.Node.Name],
+    nodes_status: Document_Status.Nodes_Status): Unit = {}
 
   final def capture[A](e: => A, msg: String, err: Throwable => String): Exn.Result[A] = {
     echo(msg)

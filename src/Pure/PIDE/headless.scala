@@ -351,7 +351,8 @@ object Headless {
       val consumer = {
         val delay_nodes_status =
           Delay.first(nodes_status_delay max Time.zero) {
-            progress.nodes_status(use_theories_state.value.nodes_status)
+            val st = use_theories_state.value
+            progress.nodes_status(st.dep_graph.topological_order, st.nodes_status)
           }
 
         val delay_commit_clean =
@@ -390,7 +391,8 @@ object Headless {
 
                   val theory_progress =
                     (for {
-                      (name, node_status) <- st1.nodes_status.present().iterator
+                      name <- st1.dep_graph.topological_order.iterator
+                      node_status = st1.nodes_status(name)
                       if !node_status.is_empty && changed_st.changed_nodes(name) &&
                         !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage

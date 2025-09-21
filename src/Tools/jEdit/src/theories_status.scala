@@ -242,12 +242,11 @@ class Theories_Status(view: View, document: Boolean = false) {
     nodes_status = nodes_status1
     if (nodes_status_changed || force) {
       gui.listData =
-        if (document) {
-          nodes_status1.present(domain = Some(PIDE.editor.document_theories())).map(_._1)
-        }
+        if (document) PIDE.editor.document_theories()
         else {
           (for {
-            (name, node_status) <- nodes_status1.present().iterator
+            name <- snapshot.version.nodes.topological_order.iterator
+            node_status = nodes_status1(name)
             if !node_status.is_empty && !node_status.suppressed && node_status.total > 0
           } yield name).toList
         }
