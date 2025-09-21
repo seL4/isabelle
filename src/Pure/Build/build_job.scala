@@ -121,6 +121,8 @@ object Build_Job {
         val options = Host.node_options(info.options, node_info)
         val store = build_context.store
 
+        val build_timing_threshold: Time = options.seconds("build_timing_threshold")
+
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
           store.clean_output(database_server, session_name, session_init = true)
 
@@ -280,7 +282,7 @@ object Build_Job {
             case Session.Command_Timing(props) =>
               for {
                 elapsed <- Markup.Elapsed.unapply(props)
-                if Time.seconds(elapsed).is_notable(options.seconds("build_timing_threshold"))
+                if Time.seconds(elapsed).is_notable(build_timing_threshold)
               } {
                 session.synchronized {
                   command_timings += props.filter(Markup.command_timing_property)
