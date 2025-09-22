@@ -1273,9 +1273,6 @@ object Document {
       Document_Status.Command_Status.merge(
         command_states(version, command).iterator.map(_.document_status))
 
-    def command_timing(version: Version, command: Command): Timing =
-      Timing.merge(command_states(version, command).iterator.map(_.timing))
-
     def command_results(version: Version, command: Command): Command.Results =
       Command.State.merge_results(command_states(version, command))
 

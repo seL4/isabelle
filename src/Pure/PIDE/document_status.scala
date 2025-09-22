@@ -7,6 +7,9 @@ Document status based on markup information.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Document_Status {
   /* theory status: via 'theory' or 'end' commands */
 
@@ -27,6 +30,48 @@ object Document_Status {
     def finalized: Boolean = Theory_Status.finalized(theory_status)
     def consolidating: Boolean = Theory_Status.consolidating(theory_status)
     def consolidated: Boolean = Theory_Status.consolidated(theory_status)
+  }
+
+
+  /* command timings: for pro-forma command with actual commands at offset */
+
+  object Command_Timings {
+    type Entry = (Symbol.Offset, Timing)
+    val empty: Command_Timings =
+      new Command_Timings(SortedMap.empty, Timing.zero)
+    def make(args: IterableOnce[Entry]): Command_Timings =
+      args.iterator.foldLeft(empty)(_ + _)
+    def merge(args: IterableOnce[Command_Timings]): Command_Timings =
+      args.iterator.foldLeft(empty)(_ ++ _)
+  }
+
+  final class Command_Timings private(
+    private val rep: SortedMap[Symbol.Offset, Timing],
+    val sum: Timing
+  ) {
+    def is_empty: Boolean = rep.isEmpty
+    def count: Int = rep.size
+    def apply(offset: Symbol.Offset): Timing = rep.getOrElse(offset, Timing.zero)
+    def iterator: Iterator[(Symbol.Offset, Timing)] = rep.iterator
+
+    def + (entry: Command_Timings.Entry): Command_Timings = {
+      val (offset, timing) = entry
+      val rep1 = rep + (offset -> (apply(offset) + timing))
+      val sum1 = sum + timing
+      new Command_Timings(rep1, sum1)
+    }
+
+    def ++ (other: Command_Timings): Command_Timings =
+      if (rep.isEmpty) other
+      else other.rep.foldLeft(this)(_ + _)
+
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Command_Timings => rep == other.rep
+        case _ => false
+      }
+    override def toString: String = rep.mkString("Command_Timings(", ", ", ")")
   }
 
 
@@ -53,7 +98,7 @@ object Document_Status {
       var canceled = false
       var forks = 0
       var runs = 0
-      var timing = Timing.zero
+      var timings = Command_Timings.empty
       for (markup <- markups) {
         markup.name match {
           case Markup.INITIALIZED =>
@@ -72,7 +117,11 @@ object Document_Status {
           case Markup.WARNING | Markup.LEGACY => warned1 = true
           case Markup.FAILED | Markup.ERROR => failed1 = true
           case Markup.CANCELED => canceled = true
-          case Markup.TIMING => timing += Markup.Timing_Properties.get(markup.properties)
+          case Markup.TIMING =>
+            val props = markup.properties
+            val offset = Position.Offset.get(props)
+            val timing = Markup.Timing_Properties.get(props)
+            timings += (offset -> timing)
           case _ =>
         }
       }
@@ -85,7 +134,7 @@ object Document_Status {
         canceled = canceled,
         forks = forks,
         runs = runs,
-        timing = timing)
+        timings = timings)
     }
 
     val empty: Command_Status = make()
@@ -103,7 +152,7 @@ object Document_Status {
     private val canceled: Boolean,
     val forks: Int,
     val runs: Int,
-    val timing: Timing
+    val timings: Command_Timings
   ) extends Theory_Status {
     override def toString: String =
       if (is_empty) "Command_Status.empty"
@@ -114,7 +163,7 @@ object Document_Status {
     def is_empty: Boolean =
       !Theory_Status.initialized(theory_status) &&
       !touched && !accepted && !warned && !failed && !canceled &&
-      forks == 0 && runs == 0 && timing.is_zero
+      forks == 0 && runs == 0 && timings.is_empty
 
     def + (that: Command_Status): Command_Status =
       if (is_empty) that
@@ -129,7 +178,7 @@ object Document_Status {
           canceled = canceled || that.canceled,
           forks = forks + that.forks,
           runs = runs + that.runs,
-          timing = timing + that.timing)
+          timings = timings ++ that.timings)
       }
 
     def update(
@@ -151,7 +200,7 @@ object Document_Status {
             canceled = canceled,
             forks = forks,
             runs = runs,
-            timing = timing)
+            timings = timings)
         }
       }
       else this + Command_Status.make(markups = markups, warned = warned, failed = failed)
@@ -204,7 +253,7 @@ object Document_Status {
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
 
-        val t = state.command_timing(version, command).elapsed
+        val t = status.timings.sum.elapsed
         total_time += t
         if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> t)

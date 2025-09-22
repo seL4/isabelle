@@ -243,7 +243,7 @@ object Command {
     def consolidating: Boolean = document_status.consolidating
     def consolidated: Boolean = document_status.consolidated
     def maybe_consolidated: Boolean = document_status.maybe_consolidated
-    def timing: Timing = document_status.timing
+    def timings: Document_Status.Command_Timings = document_status.timings
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 

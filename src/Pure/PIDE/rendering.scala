@@ -667,9 +667,9 @@ class Rendering(
             val info1 = info.add_info_text(r0, txt, ord = 2)
             val info2 =
               if (kind == Markup.COMMAND) {
-                val timing = Timing.merge(command_states.iterator.map(_.timing))
-                if (timing.is_notable(timing_threshold)) {
-                  info1.add_info(r0, Pretty.string(timing.message))
+                val t = Document_Status.Command_Timings.merge(command_states.map(_.timings)).sum
+                if (t.is_notable(timing_threshold)) {
+                  info1.add_info(r0, Pretty.string(t.message))
                 }
                 else info1
               }
