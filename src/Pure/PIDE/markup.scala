@@ -513,8 +513,12 @@ object Markup {
         case _ => None
       }
 
-    def get(props: Properties.T): isabelle.Timing =
-      unapply(props).getOrElse(isabelle.Timing.zero)
+    def get(props: Properties.T): isabelle.Timing = {
+      val elapsed = Time.seconds(Elapsed.get(props))
+      val cpu = Time.seconds(CPU.get(props))
+      val gc = Time.seconds(GC.get(props))
+      isabelle.Timing(elapsed, cpu, gc)
+    }
   }
 
   val TIMING = "timing"
@@ -532,8 +536,7 @@ object Markup {
     def unapply(props: Properties.T): Option[Process_Result] =
       props match {
         case Return_Code(rc) =>
-          val timing = Timing_Properties.unapply(props).getOrElse(isabelle.Timing.zero)
-          Some(isabelle.Process_Result(rc, timing = timing))
+          Some(isabelle.Process_Result(rc, timing = Timing_Properties.get(props)))
         case _ => None
       }
   }
