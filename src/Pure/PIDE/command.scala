@@ -206,30 +206,23 @@ object Command {
 
     def merge(command: Command, states: List[State]): State =
       State(command,
-        status = states.flatMap(_.status),
         results = merge_results(states),
         exports = merge_exports(states),
         markups = merge_markups(states))
 
     def apply(
       command: Command,
-      status: List[Markup] = Nil,
       results: Results = Results.empty,
       exports: Exports = Exports.empty,
       markups: Markups = Markups.empty
     ): State = {
-      val document_status =
-        Document_Status.Command_Status.make(
-          markups = status,
-          warned = results.warned,
-          failed = results.failed)
-      new State(command, status, results, exports, markups, document_status)
+      new State(command, results, exports, markups,
+        Document_Status.Command_Status.make(warned = results.warned, failed = results.failed))
     }
   }
 
   final class State private(
     val command: Command,
-    val status: List[Markup],
     val results: Results,
     val exports: Exports,
     val markups: Markups,
@@ -255,7 +248,7 @@ object Command {
 
     private def add_status(st: Markup): State = {
       val document_status1 = document_status.update(markups = List(st))
-      new State(command, st :: status, results, exports, markups, document_status1)
+      new State(command, results, exports, markups, document_status1)
     }
 
     private def add_result(entry: Results.Entry): State = {
@@ -263,12 +256,12 @@ object Command {
         document_status.update(
           warned = Results.warned(entry),
           failed = Results.failed(entry))
-      new State(command, status, results + entry, exports, markups, document_status1)
+      new State(command, results + entry, exports, markups, document_status1)
     }
 
     def add_export(entry: Exports.Entry): Option[State] =
       if (command.node_name.theory == entry._2.theory_name) {
-        Some(new State(command, status, results, exports + entry, markups, document_status))
+        Some(new State(command, results, exports + entry, markups, document_status))
       }
       else None
 
@@ -282,7 +275,7 @@ object Command {
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
       val markups2 = markups1.add(Markup_Index(false, chunk_name), m)
-      new State(command, this.status, results, exports, markups2, document_status)
+      new State(command, results, exports, markups2, document_status)
     }
 
     def accumulate(
