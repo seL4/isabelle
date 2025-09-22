@@ -86,21 +86,6 @@ object Protocol {
   }
 
 
-  /* theory timing */
-
-  object Theory_Timing {
-    def unapply(props: Properties.T): Option[(String, isabelle.Timing)] =
-      props match {
-        case Markup.Theory_Timing(args) =>
-          (args, args) match {
-            case (Markup.Name(name), Markup.Timing_Properties(timing)) => Some((name, timing))
-            case _ => None
-          }
-        case _ => None
-      }
-  }
-
-
   /* result messages */
 
   def is_urgent(msg: XML.Tree): Boolean =
