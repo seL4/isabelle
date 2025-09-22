@@ -240,9 +240,9 @@ object Build_Job {
                 val updated = nodes_status1 != nodes_status
                 nodes_changed = Set.empty
                 nodes_status = nodes_status1
-                if (updated) Some (nodes_status1) else None
+                if (updated) Some(Progress.Nodes_Status(nodes_domain, nodes_status1)) else None
               }
-            result.foreach(progress.nodes_status(nodes_domain, _))
+            result.foreach(progress.nodes_status)
           }
 
           val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }

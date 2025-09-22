@@ -46,6 +46,13 @@ object Progress {
     def print_percentage: String =
       percentage match { case None => "" case Some(p) => " " + p + "%" }
   }
+
+  sealed case class Nodes_Status(
+    domain: List[Document.Node.Name],
+    document_status: Document_Status.Nodes_Status
+  ) {
+    def apply(name: Document.Node.Name): Document_Status.Node_Status = document_status(name)
+  }
 }
 
 class Progress {
@@ -67,9 +74,7 @@ class Progress {
   final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
   def theory(theory: Progress.Theory): Unit = output(theory.message)
-  def nodes_status(
-    domain: List[Document.Node.Name],
-    nodes_status: Document_Status.Nodes_Status): Unit = {}
+  def nodes_status(nodes_status: Progress.Nodes_Status): Unit = {}
 
   final def capture[A](e: => A, msg: String, err: Throwable => String): Exn.Result[A] = {
     echo(msg)
