@@ -289,7 +289,13 @@ fun command_reports thy tok =
     let val name = Token.content_of tok in
       (case lookup_commands thy name of
         NONE => []
-      | SOME cmd => [((Token.pos_of tok, command_markup {def = false} (name, cmd)), "")])
+      | SOME cmd =>
+          let
+            val pos = Token.pos_of tok;
+            val markup =
+              command_markup {def = false} (name, cmd)
+              |> Markup.command_offset (Position.offset_of pos);
+          in [((pos, markup), "")] end)
     end
   else [];
 

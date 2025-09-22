@@ -708,6 +708,7 @@ object Markup {
       }
   }
 
+  val Command_Offset = new Properties.Int("command_offset")
   val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
   def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
 

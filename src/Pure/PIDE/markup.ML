@@ -206,6 +206,7 @@ sig
   val cpuN: string
   val gcN: string
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
+  val command_offsetN: string val command_offset: int option -> T -> T
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val command_indentN: string val command_indent: int -> T
@@ -715,6 +716,11 @@ fun timing_properties {elapsed, cpu, gc} =
 
 
 (* command timing *)
+
+val command_offsetN = "command_offset";
+fun command_offset offset =
+  let val i = the_default 0 offset
+  in if i = 0 then I else properties [(command_offsetN, Value.print_int i)] end;
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
