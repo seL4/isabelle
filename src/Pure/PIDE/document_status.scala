@@ -346,9 +346,8 @@ object Document_Status {
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Nodes_Status = {
-      val st = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
-      if (apply(name) == st) this
-      else new Nodes_Status(rep + (name -> st))
+      val node_status = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
+      new Nodes_Status(rep + (name -> node_status))
     }
 
     def update_nodes(

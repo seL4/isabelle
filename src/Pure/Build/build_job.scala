@@ -237,10 +237,10 @@ object Build_Job {
                     }
                   }
                 )
-                val updated = nodes_status1 != nodes_status
+                val changed = nodes_changed.nonEmpty
                 nodes_changed = Set.empty
                 nodes_status = nodes_status1
-                if (updated) Some(Progress.Nodes_Status(nodes_domain, nodes_status1)) else None
+                if (changed) Some(Progress.Nodes_Status(nodes_domain, nodes_status1)) else None
               }
             result.foreach(progress.nodes_status)
           }
