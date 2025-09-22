@@ -1096,12 +1096,8 @@ object Document {
       theories.get(id) match {
         case None => fail
         case Some(st) =>
-          val command = st.command
-          val node_name = command.node_name
-          val doc_blobs = document_blobs(node_name)
-          val command1 =
-            Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
-              blobs_info = command.blobs_info, results = st.results, markups = st.markups)
+          val command1 = st.exit(id)
+          val doc_blobs = document_blobs(command1.node_name)
           val state1 = copy(theories = theories - id)
           (state1.snippet(List(command1), doc_blobs), state1)
       }
