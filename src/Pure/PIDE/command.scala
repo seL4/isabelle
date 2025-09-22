@@ -285,6 +285,8 @@ object Command {
         message: XML.Elem,
         cache: XML.Cache): State =
       message match {
+        case XML.Elem(markup @ Markup(Markup.TIMING, _), _) => add_status(markup)
+
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
           else {
