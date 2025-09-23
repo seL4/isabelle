@@ -36,22 +36,37 @@ object Progress {
   sealed case class Theory(
     theory: String,
     session: String = "",
-    percentage: Option[Int] = None
+    percentage: Option[Int] = None,
+    total_time: Time = Time.zero
   ) extends Output {
     def message: Message =
-      Message(Kind.writeln, print_session + print_theory + print_percentage, verbose = true)
+      Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
+        verbose = true)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
     def print_percentage: String =
       percentage match { case None => "" case Some(p) => " " + p + "%" }
+    def print_total_time: String =
+      if (total_time.is_relevant) " (" + total_time.message + " elapsed time)" else ""
   }
 
   sealed case class Nodes_Status(
     domain: List[Document.Node.Name],
-    document_status: Document_Status.Nodes_Status
+    document_status: Document_Status.Nodes_Status,
+    session: String = ""
   ) {
-    def apply(name: Document.Node.Name): Document_Status.Node_Status = document_status(name)
+    def message: Message =
+      Message(Kind.writeln, cat_lines(domain.map(name => theory(name).message.text)),
+        verbose = true)
+
+    def apply(name: Document.Node.Name): Document_Status.Node_Status =
+      document_status(name)
+
+    def theory(name: Document.Node.Name): Theory = {
+      val node_status = apply(name)
+      Theory(theory = name.theory, session = session, total_time = node_status.total_time)
+    }
   }
 }
 

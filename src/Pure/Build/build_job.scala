@@ -239,7 +239,9 @@ object Build_Job {
                   })
                 val result =
                   if (nodes_changed.isEmpty) None
-                  else Some(Progress.Nodes_Status(nodes_domain, nodes_status1))
+                  else {
+                    Some(Progress.Nodes_Status(nodes_domain, nodes_status1, session = session_name))
+                  }
 
                 nodes_changed = Set.empty
                 nodes_status = nodes_status1
