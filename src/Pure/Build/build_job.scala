@@ -228,19 +228,22 @@ object Build_Job {
             val result =
               session.synchronized {
                 val nodes_status1 =
-                  nodes_changed.foldLeft(nodes_status)( { case (status, state_id) =>
+                  nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
                     state.theory_snapshot(state_id, session.build_blobs) match {
                       case None => status
                       case Some(snapshot) =>
                         status.update_node(snapshot.state, snapshot.version, snapshot.node_name,
                           threshold = editor_timing_threshold)
                     }
-                  }
-                )
-                val changed = nodes_changed.nonEmpty
+                  })
+                val result =
+                  if (nodes_changed.isEmpty) None
+                  else Some(Progress.Nodes_Status(nodes_domain, nodes_status1))
+
                 nodes_changed = Set.empty
                 nodes_status = nodes_status1
-                if (changed) Some(Progress.Nodes_Status(nodes_domain, nodes_status1)) else None
+
+                result
               }
             result.foreach(progress.nodes_status)
           }
