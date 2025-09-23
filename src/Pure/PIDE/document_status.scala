@@ -238,7 +238,7 @@ object Document_Status {
       var terminated = true
       var total_time = Time.zero
       var max_time = Time.zero
-      var command_timings = Map.empty[Command, Time]
+      var command_timings = Map.empty[Command, Command_Timings]
       var theory_status = Document_Status.Theory_Status.NONE
 
       for (command <- version.nodes(name).commands.iterator) {
@@ -256,7 +256,7 @@ object Document_Status {
         val t = status.timings.sum.elapsed
         total_time += t
         if (t > max_time) max_time = t
-        if (t.is_notable(threshold)) command_timings += (command -> t)
+        if (t.is_notable(threshold)) command_timings += (command -> status.timings)
 
         theory_status = Theory_Status.merge(theory_status, status.theory_status)
       }
@@ -290,7 +290,7 @@ object Document_Status {
     total_time: Time = Time.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Time] = Map.empty,
+    command_timings: Map[Command, Command_Timings] = Map.empty,
     theory_status: Theory_Status.Value = Theory_Status.NONE,
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
