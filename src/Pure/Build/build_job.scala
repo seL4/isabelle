@@ -221,7 +221,8 @@ object Build_Job {
           var nodes_changed = Set.empty[Document_ID.Generic]
           var nodes_status = Document_Status.Nodes_Status.empty
 
-          val nodes_domain = build_context.deps(session_name).used_theories.map(_._1)
+          val nodes_domain =
+            build_context.deps(session_name).used_theories.map(_._1.symbolic_path)
 
           def nodes_status_progress(): Unit = {
             val state = session.get_state()

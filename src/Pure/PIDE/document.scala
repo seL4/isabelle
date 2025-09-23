@@ -135,6 +135,8 @@ object Document {
 
       def path: Path = Path.explode(File.standard_path(node))
 
+      def symbolic_path: Name = Name(File.symbolic_path(path), theory)
+
       def master_dir: String = Url.strip_base_name(node).getOrElse("")
 
       def is_theory: Boolean = theory.nonEmpty
