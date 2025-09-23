@@ -229,6 +229,7 @@ object Document_Status {
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Node_Status = {
+      var theory_status = Document_Status.Theory_Status.NONE
       var unprocessed = 0
       var running = 0
       var warned = 0
@@ -239,10 +240,11 @@ object Document_Status {
       var total_time = Time.zero
       var max_time = Time.zero
       var command_timings = Map.empty[Command, Command_Timings]
-      var theory_status = Document_Status.Theory_Status.NONE
 
       for (command <- version.nodes(name).commands.iterator) {
         val status = state.command_status(version, command)
+
+        theory_status = Theory_Status.merge(theory_status, status.theory_status)
 
         if (status.is_running) running += 1
         else if (status.is_failed) failed += 1
@@ -257,11 +259,10 @@ object Document_Status {
         total_time += t
         if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
-
-        theory_status = Theory_Status.merge(theory_status, status.theory_status)
       }
 
       Node_Status(
+        theory_status = theory_status,
         suppressed = version.nodes.suppressed(name),
         unprocessed = unprocessed,
         running = running,
@@ -273,12 +274,12 @@ object Document_Status {
         total_time = total_time,
         max_time = max_time,
         threshold = threshold,
-        command_timings = command_timings,
-        theory_status = theory_status)
+        command_timings = command_timings)
     }
   }
 
   sealed case class Node_Status(
+    theory_status: Theory_Status.Value = Theory_Status.NONE,
     suppressed: Boolean = false,
     unprocessed: Int = 0,
     running: Int = 0,
@@ -290,8 +291,7 @@ object Document_Status {
     total_time: Time = Time.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Command_Timings] = Map.empty,
-    theory_status: Theory_Status.Value = Theory_Status.NONE,
+    command_timings: Map[Command, Command_Timings] = Map.empty
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
