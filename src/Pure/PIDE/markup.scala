@@ -716,7 +716,6 @@ object Markup {
   def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
-  object Theory_Timing extends Properties_Function("theory_timing")
   object Session_Timing extends Properties_Function("session_timing") {
     val Threads = new Properties.Int("threads")
   }

@@ -264,7 +264,6 @@ sig
   val cancel_scala: string -> Properties.T
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
-  val theory_timing: Properties.entry
   val session_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val build_session_finished: Properties.T
@@ -832,8 +831,6 @@ fun cancel_scala id = [function "cancel_scala", (idN, id)];
 val task_statistics = function "task_statistics";
 
 val command_timing = function "command_timing";
-
-val theory_timing = function "theory_timing";
 
 val session_timing = function "session_timing";
 

@@ -237,7 +237,7 @@ object Document_Status {
       var finished = 0
       var canceled = false
       var terminated = true
-      var total_time = Time.zero
+      var total_timing = Timing.zero
       var max_time = Time.zero
       var command_timings = Map.empty[Command, Command_Timings]
 
@@ -256,7 +256,7 @@ object Document_Status {
         if (!status.is_terminated) terminated = false
 
         val t = status.timings.sum.elapsed
-        total_time += t
+        total_timing += status.timings.sum
         if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
       }
@@ -271,7 +271,7 @@ object Document_Status {
         finished = finished,
         canceled = canceled,
         terminated = terminated,
-        total_time = total_time,
+        total_timing = total_timing,
         max_time = max_time,
         threshold = threshold,
         command_timings = command_timings)
@@ -288,7 +288,7 @@ object Document_Status {
     finished: Int = 0,
     canceled: Boolean = false,
     terminated: Boolean = false,
-    total_time: Time = Time.zero,
+    total_timing: Timing = Timing.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
     command_timings: Map[Command, Command_Timings] = Map.empty

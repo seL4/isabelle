@@ -372,16 +372,10 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
         (parents, map #2 imports) |> ListPair.app (fn (thy, pos) =>
           Context_Position.reports_global thy [(put_id pos, Theory.get_markup thy)])) ();
 
-    val timing_start = Timing.start ();
-
     val header = Thy_Header.make (name, put_id header_pos) imports keywords;
     val (theory, present) =
       eval_thy options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
-
-    val timing_result = Timing.result timing_start;
-    val timing_props = [Markup.theory_timing, (Markup.nameN, name)];
-    val _ = Output.try_protocol_message (timing_props @ Markup.timing_properties timing_result) []
 
     fun commit segments =
       update_thy deps (theory,

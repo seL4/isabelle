@@ -214,7 +214,6 @@ object Build_Job {
           val stdout = new StringBuilder(1000)
           val stderr = new StringBuilder(1000)
           val command_timings = new mutable.ListBuffer[Properties.T]
-          val theory_timings = new mutable.ListBuffer[Properties.T]
           val session_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
@@ -222,7 +221,7 @@ object Build_Job {
           var nodes_status = Document_Status.Nodes_Status.empty
 
           val nodes_domain =
-            build_context.deps(session_name).used_theories.map(_._1.symbolic_path)
+            session_background.base.used_theories.map(_._1.symbolic_path)
 
           def nodes_status_progress(): Unit = {
             val state = session.get_state()
@@ -309,7 +308,6 @@ object Build_Job {
                   Markup.Build_Session_Finished.name -> build_session_finished,
                   Markup.Loading_Theory.name -> loading_theory,
                   Markup.EXPORT -> export_,
-                  fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
                   fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
                   fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
             })
@@ -470,18 +468,13 @@ object Build_Job {
           /* process result */
 
           val result1 = {
-            val theory_timing =
-              theory_timings.iterator.flatMap(
-                {
-                  case props @ Markup.Name(name) => Some(name -> props)
-                  case _ => None
-                }).toMap
-            val used_theory_timings =
-              for { (name, _) <- session_background.base.used_theories }
-                yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
-
             val more_output =
               session.synchronized {
+                val used_theory_timings =
+                  nodes_domain.map(name =>
+                    Markup.Name(name.theory) :::
+                    Markup.Timing_Properties(nodes_status(name).total_timing))
+
                 Library.trim_line(stdout.toString) ::
                   command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
                   used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
