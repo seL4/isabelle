@@ -24,11 +24,11 @@ object Protocol {
 
   object Loading_Theory {
     def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
-      (props, props, props) match {
-        case (Markup.Name(theory), Position.File(file), Position.Id(id))
-        if Path.is_wellformed(file) => Some((Document.Node.Name(file, theory = theory), id))
-        case _ => None
-      }
+      for {
+        theory <- Markup.Name.unapply(props)
+        file <- Position.File.unapply(props) if Path.is_wellformed(file)
+        id <- Position.Id.unapply(props)
+      } yield (Document.Node.Name(file, theory = theory), id)
   }
 
 
