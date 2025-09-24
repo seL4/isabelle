@@ -54,7 +54,8 @@ object Progress {
   sealed case class Nodes_Status(
     domain: List[Document.Node.Name],
     document_status: Document_Status.Nodes_Status,
-    session: String = ""
+    session: String = "",
+    old: Option[Document_Status.Nodes_Status] = None
   ) {
     def message: Message =
       Message(Kind.writeln, cat_lines(domain.map(name => theory(name).message.text)),
