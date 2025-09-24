@@ -229,6 +229,8 @@ object Document_Status {
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Node_Status = {
+      val node = version.nodes(name)
+
       var theory_status = Document_Status.Theory_Status.NONE
       var unprocessed = 0
       var running = 0
@@ -241,7 +243,7 @@ object Document_Status {
       var max_time = Time.zero
       var command_timings = Map.empty[Command, Command_Timings]
 
-      for (command <- version.nodes(name).commands.iterator) {
+      for (command <- node.commands.iterator) {
         val status = state.command_status(version, command)
 
         theory_status = Theory_Status.merge(theory_status, status.theory_status)
@@ -261,12 +263,23 @@ object Document_Status {
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
       }
 
-      val total = unprocessed + running + warned + failed + finished
+      def percent(a: Int, b: Int): Int =
+        if (b == 0) 0 else ((a.toDouble / b) * 100).toInt
 
-      val percentage: Int =
-        if (Theory_Status.consolidated(theory_status)) 100
-        else if (total == 0) 0
-        else (((total - unprocessed).toDouble / total) * 100).toInt min 99
+      val percentage: Int = {
+        node.get_theory match {
+          case None =>
+            if (Theory_Status.consolidated(theory_status)) 100
+            else {
+              val total = unprocessed + running + warned + failed + finished
+              percent(total - unprocessed, total).min(99)
+            }
+          case Some(command) =>
+            val total = command.span.theory_commands
+            val processed = state.command_status(version, command).timings.count
+            percent(processed, total)
+        }
+      }
 
       Node_Status(
         theory_status = theory_status,

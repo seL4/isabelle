@@ -66,7 +66,9 @@ object Progress {
 
     def theory(name: Document.Node.Name): Theory = {
       val node_status = apply(name)
-      Theory(theory = name.theory, session = session, total_time = node_status.total_timing.elapsed)
+      Theory(theory = name.theory, session = session,
+        percentage = Some(node_status.percentage),
+        total_time = node_status.total_timing.elapsed)
     }
   }
 }

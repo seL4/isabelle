@@ -323,6 +323,10 @@ object Document {
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
 
+    def get_theory: Option[Command] =
+      if (commands.size == 1 && commands.last.span.is_theory) Some(commands.last)
+      else None
+
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
 
