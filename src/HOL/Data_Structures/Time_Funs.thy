@@ -9,6 +9,9 @@ theory Time_Funs
   imports Define_Time_Function
 begin
 
+time_fun fst
+time_fun snd
+
 time_fun "(@)"
 
 lemma T_append: "T_append xs ys = length xs + 1"
