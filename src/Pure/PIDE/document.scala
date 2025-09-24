@@ -1082,14 +1082,15 @@ object Document {
     def begin_theory(
       node_name: Node.Name,
       id: Document_ID.Exec,
+      commands: Int,
       source: String,
       blobs_info: Command.Blobs_Info
     ): State = {
       if (theories.isDefinedAt(id)) fail
       else {
         val command =
-          Command.unparsed(source, theory = true, id = id, node_name = node_name,
-            blobs_info = blobs_info)
+          Command.unparsed(source, theory_commands = Some(commands), id = id,
+            node_name = node_name, blobs_info = blobs_info)
         copy(theories = theories + (id -> command.empty_state))
       }
     }

@@ -23,12 +23,13 @@ object Protocol {
   /* batch build */
 
   object Loading_Theory {
-    def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
+    def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec, Int)] =
       for {
         theory <- Markup.Name.unapply(props)
+        commands <- Markup.Commands.unapply(props)
         file <- Position.File.unapply(props) if Path.is_wellformed(file)
         id <- Position.Id.unapply(props)
-      } yield (Document.Node.Name(file, theory = theory), id)
+      } yield (Document.Node.Name(file, theory = theory), id, commands)
   }
 
 

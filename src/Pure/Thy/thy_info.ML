@@ -290,7 +290,7 @@ end;
 
 (* eval theory *)
 
-fun eval_thy options master_dir header text_pos text parents =
+fun eval_thy loading_theory options master_dir header text_pos text parents =
   let
     val (name, _) = #name header;
     val keywords =
@@ -298,6 +298,8 @@ fun eval_thy options master_dir header text_pos text parents =
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
+    val () = loading_theory (length spans);
+
     val elements = Thy_Element.parse_elements keywords spans;
     val command_ranges =
       Command_Span.command_ranges spans |> map (fn (pos, _) => (pos, Markup.command_range));
@@ -365,7 +367,9 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
 
     val _ = remove_thy name;
     val _ = writeln ("Loading theory " ^ quote name ^ required_by " " initiators);
-    val _ = Output.try_protocol_message (Markup.loading_theory name @ text_props) [XML.blob [text]];
+    fun loading_theory commands =
+      Output.try_protocol_message
+        (Markup.loading_theory {name = name, commands = commands} @ text_props) [XML.blob [text]];
 
     val _ =
       Position.setmp_thread_data (Position.id_only id) (fn () =>
@@ -374,7 +378,7 @@ fun load_thy options initiators deps text (name, header_pos) keywords parents =
 
     val header = Thy_Header.make (name, put_id header_pos) imports keywords;
     val (theory, present) =
-      eval_thy options dir header text_pos text
+      eval_thy loading_theory options dir header text_pos text
         (if name = Context.PureN then [Context.the_global_context ()] else parents);
 
     fun commit segments =

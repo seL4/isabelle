@@ -265,7 +265,7 @@ sig
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
   val session_timing: Properties.entry
-  val loading_theory: string -> Properties.T
+  val loading_theory: {name: string, commands: int} -> Properties.T
   val build_session_finished: Properties.T
   val print_operations: Properties.T
   val exportN: string
@@ -834,7 +834,8 @@ val command_timing = function "command_timing";
 
 val session_timing = function "session_timing";
 
-fun loading_theory name = [function "loading_theory", (nameN, name)];
+fun loading_theory {name, commands} =
+  [function "loading_theory", (nameN, name), ("commands", Value.print_int commands)];
 
 val build_session_finished = [function "build_session_finished"];
 

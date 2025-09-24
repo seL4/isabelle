@@ -721,6 +721,7 @@ object Markup {
   }
   object Task_Statistics extends Properties_Function("task_statistics")
 
+  val Commands = new Properties.Int("commands")
   object Loading_Theory extends Properties_Function("loading_theory")
   object Build_Session_Finished extends Function("build_session_finished")
 

@@ -188,8 +188,8 @@ object Thy_Syntax {
                   XML.Elem(Markup.Bad(Document_ID.make()),
                     XML.string("Changed sources for loaded theory " + quote(theory) +
                       ":\n" + cat_lines(changed.map(a => "  " + quote(a)))))
-                Command.unparsed(node.source, theory = true, id = command.id, node_name = node_name,
-                  blobs_info = command.blobs_info,
+                Command.unparsed(node.source, theory_commands = Some(0), id = command.id,
+                  node_name = node_name, blobs_info = command.blobs_info,
                   markups = Command.Markups.empty.add(Text.Info(node_range, msg)))
               }
 

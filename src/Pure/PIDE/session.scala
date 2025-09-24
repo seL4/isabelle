@@ -547,9 +547,11 @@ abstract class Session extends Document.Session {
                 val entry = Export.Entry.make(Sessions.DRAFT, args, msg.chunk, cache)
                 change_command(_.add_export(id, (args.serial, entry)))
 
-              case Protocol.Loading_Theory(node_name, id) =>
+              case Protocol.Loading_Theory(node_name, id, commands) =>
                 val blobs_info = build_blobs_info(node_name)
-                try { global_state.change(_.begin_theory(node_name, id, msg.text, blobs_info)) }
+                try {
+                  global_state.change(_.begin_theory(node_name, id, commands, msg.text, blobs_info))
+                }
                 catch { case _: Document.State.Fail => bad_output() }
 
               case List(Markup.Commands_Accepted.THIS) =>

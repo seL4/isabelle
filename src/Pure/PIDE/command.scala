@@ -389,14 +389,14 @@ object Command {
 
   def unparsed(
     source: String,
-    theory: Boolean = false,
+    theory_commands: Option[Int] = None,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
     blobs_info: Blobs_Info = Blobs_Info.empty,
     results: Results = Results.empty,
     markups: Markups = Markups.empty
   ): Command = {
-    val span = Command_Span.unparsed(source, theory = theory)
+    val span = Command_Span.unparsed(source, theory_commands = theory_commands)
     new Command(id, node_name, blobs_info, span, source, results,
       Exports.empty, markups, Document_Status.Command_Status.empty)
   }

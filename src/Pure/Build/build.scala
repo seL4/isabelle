@@ -795,7 +795,7 @@ Usage: isabelle build_worker [OPTIONS]
             yield i -> elem)
 
       val command =
-        Command.unparsed(thy_source, theory = true, id = id,
+        Command.unparsed(thy_source, theory_commands = Some(0), id = id,
           node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
           blobs_info = Command.Blobs_Info.make(blobs),
           markups = markups, results = results)
