@@ -261,6 +261,13 @@ object Document_Status {
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
       }
 
+      val total = unprocessed + running + warned + failed + finished
+
+      val percentage: Int =
+        if (Theory_Status.consolidated(theory_status)) 100
+        else if (total == 0) 0
+        else (((total - unprocessed).toDouble / total) * 100).toInt min 99
+
       Node_Status(
         theory_status = theory_status,
         suppressed = version.nodes.suppressed(name),
@@ -274,7 +281,8 @@ object Document_Status {
         total_timing = total_timing,
         max_time = max_time,
         threshold = threshold,
-        command_timings = command_timings)
+        command_timings = command_timings,
+        percentage)
     }
   }
 
@@ -291,7 +299,8 @@ object Document_Status {
     total_timing: Timing = Timing.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Command_Timings] = Map.empty
+    command_timings: Map[Command, Command_Timings] = Map.empty,
+    percentage: Int = 0
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty
 
@@ -299,11 +308,6 @@ object Document_Status {
     def total: Int = unprocessed + running + warned + failed + finished
 
     def quasi_consolidated: Boolean = !suppressed && !finalized && terminated
-
-    def percentage: Int =
-      if (consolidated) 100
-      else if (total == 0) 0
-      else (((total - unprocessed).toDouble / total) * 100).toInt min 99
 
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
