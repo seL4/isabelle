@@ -206,9 +206,9 @@ sig
   val cpuN: string
   val gcN: string
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
+  val command_offsetN: string val command_offset: int option -> T -> T
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
-  val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
   val command_indentN: string val command_indent: int -> T
   val goalN: string val goal: T
   val subgoalN: string val subgoal: string -> T
@@ -264,9 +264,8 @@ sig
   val cancel_scala: string -> Properties.T
   val task_statistics: Properties.entry
   val command_timing: Properties.entry
-  val theory_timing: Properties.entry
   val session_timing: Properties.entry
-  val loading_theory: string -> Properties.T
+  val loading_theory: {name: string, commands: int} -> Properties.T
   val build_session_finished: Properties.T
   val print_operations: Properties.T
   val exportN: string
@@ -714,11 +713,13 @@ fun timing_properties {elapsed, cpu, gc} =
   (cpuN, Time.print cpu),
   (gcN, Time.print gc)];
 
-val timingN = "timing";
-fun timing t = (timingN, timing_properties t);
-
 
 (* command timing *)
+
+val command_offsetN = "command_offset";
+fun command_offset offset =
+  let val i = the_default 0 offset
+  in if i = 0 then I else properties [(command_offsetN, Value.print_int i)] end;
 
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
@@ -831,11 +832,10 @@ val task_statistics = function "task_statistics";
 
 val command_timing = function "command_timing";
 
-val theory_timing = function "theory_timing";
-
 val session_timing = function "session_timing";
 
-fun loading_theory name = [function "loading_theory", (nameN, name)];
+fun loading_theory {name, commands} =
+  [function "loading_theory", (nameN, name), ("commands", Value.print_int commands)];
 
 val build_session_finished = [function "build_session_finished"];
 

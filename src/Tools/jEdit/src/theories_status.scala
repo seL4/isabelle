@@ -235,23 +235,23 @@ class Theories_Status(view: View, document: Boolean = false) {
 
     val snapshot = PIDE.session.snapshot()
 
-    val (nodes_status_changed, nodes_status1) =
-      nodes_status.update(
+    val nodes_status1 =
+      nodes_status.update_nodes(
         PIDE.resources, snapshot.state, snapshot.version, domain = domain, trim = trim)
 
-    nodes_status = nodes_status1
-    if (nodes_status_changed || force) {
+    if (force || nodes_status1 != nodes_status) {
       gui.listData =
-        if (document) {
-          nodes_status1.present(domain = Some(PIDE.editor.document_theories())).map(_._1)
-        }
+        if (document) PIDE.editor.document_theories()
         else {
           (for {
-            (name, node_status) <- nodes_status1.present().iterator
+            name <- snapshot.version.nodes.topological_order.iterator
+            node_status = nodes_status1(name)
             if !node_status.is_empty && !node_status.suppressed && node_status.total > 0
           } yield name).toList
         }
     }
+
+    nodes_status = nodes_status1
   }
 
 

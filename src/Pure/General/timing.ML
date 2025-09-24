@@ -24,7 +24,6 @@ sig
   val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
-  val protocol_message: string -> Position.T -> timing -> unit
   val protocol: string -> Position.T -> ('a -> 'b) -> 'a -> 'b
 end
 
@@ -106,16 +105,11 @@ fun timeit e = cond_timeit true "" e;
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
-fun protocol_message name pos t =
-  if is_relevant t then
-    let val props = Markup.command_timing :: (Markup.nameN, name) :: Position.properties_of pos
-    in Output.try_protocol_message (props @ Markup.timing_properties t) [] end
-  else ();
-
 fun protocol name pos f x =
   let
     val (t, result) = timing (Exn.result f) x;
-    val _ = protocol_message name pos t;
+    val props = Markup.command_timing :: (Markup.nameN, name) :: Position.properties_of pos;
+    val _ = Output.try_protocol_message (props @ Markup.timing_properties t) [];
   in Exn.release result end;
 
 end;

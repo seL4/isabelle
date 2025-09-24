@@ -61,12 +61,10 @@ private object Simplifier_Trace_Window {
         children.values.toList.collect {
           case Left(data) => Some(format_hint(data))
           case Right(tree) if tree.interesting => tree.format
-        }.flatten.map(item =>
-          XML.Elem(Markup(Markup.ITEM, Nil), List(item))
-        )
+        }.flatten.map(item => XML.elem(Markup.ITEM, List(item)))
 
       val all = XML.Text(data.text) :: data.content ::: bodies
-      val res = XML.Elem(Markup(Markup.TEXT_FOLD, Nil), List(Pretty.block(Pretty.separate(all))))
+      val res = XML.elem(Markup.TEXT_FOLD, List(Pretty.block(Pretty.separate(all))))
 
       if (bodies != Nil)
         Some(res)

@@ -100,14 +100,14 @@ object HTML {
   def link(path: Path, body: XML.Body): XML.Elem = link(path.implode, body)
 
   def image(src: String, alt: String = ""): XML.Elem =
-    XML.Elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList), Nil)
+    XML.elem(Markup("img", List("src" -> src) ::: proper_string(alt).map("alt" -> _).toList))
 
   def source(body: XML.Body): XML.Elem = pre("source", body)
   def source(src: String): XML.Elem = source(text(src))
 
   def style(s: String): XML.Elem = XML.elem("style", text(s))
   def style_file(href: String): XML.Elem =
-    XML.Elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)), Nil)
+    XML.elem(Markup("link", List("rel" -> "stylesheet", "type" -> "text/css", "href" -> href)))
   def style_file(path: Path): XML.Elem = style_file(Url.print_file(path.file))
 
   def script(s: String): XML.Elem = XML.elem("script", List(raw(text(s))))

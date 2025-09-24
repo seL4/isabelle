@@ -206,30 +206,23 @@ object Command {
 
     def merge(command: Command, states: List[State]): State =
       State(command,
-        status = states.flatMap(_.status),
         results = merge_results(states),
         exports = merge_exports(states),
         markups = merge_markups(states))
 
     def apply(
       command: Command,
-      status: List[Markup] = Nil,
       results: Results = Results.empty,
       exports: Exports = Exports.empty,
-      markups: Markups = Markups.empty
+      markups: Markups = Markups.empty,
     ): State = {
-      val document_status =
-        Document_Status.Command_Status.make(
-          markups = status,
-          warned = results.warned,
-          failed = results.failed)
-      new State(command, status, results, exports, markups, document_status)
+      new State(command, results, exports, markups,
+        Document_Status.Command_Status.make(warned = results.warned, failed = results.failed))
     }
   }
 
-  final class State private(
+  final class State private[Command](
     val command: Command,
-    val status: List[Markup],
     val results: Results,
     val exports: Exports,
     val markups: Markups,
@@ -243,7 +236,7 @@ object Command {
     def consolidating: Boolean = document_status.consolidating
     def consolidated: Boolean = document_status.consolidated
     def maybe_consolidated: Boolean = document_status.maybe_consolidated
-    def timing: Timing = document_status.timing
+    def timings: Document_Status.Command_Timings = document_status.timings
 
     def markup(index: Markup_Index): Markup_Tree = markups(index)
 
@@ -253,9 +246,13 @@ object Command {
       else Some(State(other_command, markups = markups1))
     }
 
+    def exit(id: Document_ID.Generic): Command =
+      new Command(id, command.node_name, command.blobs_info, command.span, command.source,
+        results, exports, markups, document_status)
+
     private def add_status(st: Markup): State = {
       val document_status1 = document_status.update(markups = List(st))
-      new State(command, st :: status, results, exports, markups, document_status1)
+      new State(command, results, exports, markups, document_status1)
     }
 
     private def add_result(entry: Results.Entry): State = {
@@ -263,12 +260,12 @@ object Command {
         document_status.update(
           warned = Results.warned(entry),
           failed = Results.failed(entry))
-      new State(command, status, results + entry, exports, markups, document_status1)
+      new State(command, results + entry, exports, markups, document_status1)
     }
 
     def add_export(entry: Exports.Entry): Option[State] =
       if (command.node_name.theory == entry._2.theory_name) {
-        Some(new State(command, status, results, exports + entry, markups, document_status))
+        Some(new State(command, results, exports + entry, markups, document_status))
       }
       else None
 
@@ -282,7 +279,7 @@ object Command {
           markups.add(Markup_Index(true, chunk_name), m)
         else markups
       val markups2 = markups1.add(Markup_Index(false, chunk_name), m)
-      new State(command, this.status, results, exports, markups2, document_status)
+      new State(command, results, exports, markups2, document_status)
     }
 
     def accumulate(
@@ -292,6 +289,8 @@ object Command {
         message: XML.Elem,
         cache: XML.Cache): State =
       message match {
+        case XML.Elem(markup @ Markup(Markup.TIMING, _), _) => add_status(markup)
+
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
           else {
@@ -381,7 +380,8 @@ object Command {
     span: Command_Span.Span
   ): Command = {
     val (source, span1) = span.compact_source
-    new Command(id, node_name, blobs_info, span1, source, Results.empty, Markups.empty)
+    new Command(id, node_name, blobs_info, span1, source,
+      Results.empty, Exports.empty, Markups.empty, Document_Status.Command_Status.empty)
   }
 
   val empty: Command =
@@ -389,15 +389,16 @@ object Command {
 
   def unparsed(
     source: String,
-    theory: Boolean = false,
+    theory_commands: Option[Int] = None,
     id: Document_ID.Command = Document_ID.none,
     node_name: Document.Node.Name = Document.Node.Name.empty,
     blobs_info: Blobs_Info = Blobs_Info.empty,
     results: Results = Results.empty,
     markups: Markups = Markups.empty
   ): Command = {
-    val span = Command_Span.unparsed(source, theory = theory)
-    new Command(id, node_name, blobs_info, span, source, results, markups)
+    val span = Command_Span.unparsed(source, theory_commands = theory_commands)
+    new Command(id, node_name, blobs_info, span, source, results,
+      Exports.empty, markups, Document_Status.Command_Status.empty)
   }
 
 
@@ -483,7 +484,9 @@ final class Command private(
   val span: Command_Span.Span,
   val source: String,
   val init_results: Command.Results,
-  val init_markups: Command.Markups
+  val init_exports: Command.Exports,
+  val init_markups: Command.Markups,
+  val init_document_status: Document_Status.Command_Status
 ) {
   override def toString: String = id.toString + "/" + span.kind.toString
 
@@ -618,7 +621,8 @@ final class Command private(
   /* accumulated results */
 
   lazy val init_state: Command.State =
-    Command.State(this, results = init_results, markups = init_markups)
+    new Command.State(this, init_results, init_exports, init_markups,
+      init_document_status.update(warned = init_results.warned, failed = init_results.failed))
 
   lazy val empty_state: Command.State = Command.State(this)
 }

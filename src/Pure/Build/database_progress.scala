@@ -311,7 +311,7 @@ extends Progress {
   override def output(message: Progress.Message): Unit = sync_context { _consumer.send(message) }
   override def theory(theory: Progress.Theory): Unit = sync_context { _consumer.send(theory) }
 
-  override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit =
+  override def nodes_status(nodes_status: Progress.Nodes_Status): Unit =
     base_progress.nodes_status(nodes_status)
 
   override def verbose: Boolean = base_progress.verbose

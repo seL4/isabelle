@@ -274,10 +274,12 @@ object Server {
       context.writeln(theory.message.text, entries ::: more.toList:_*)
     }
 
-    override def nodes_status(nodes_status: Document_Status.Nodes_Status): Unit = {
+    override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = {
       val json =
-        for ((name, node_status) <- nodes_status.present() if !node_status.is_empty)
-          yield name.json + ("status" -> node_status.json)
+        List.from(for {
+          name <- nodes_status.domain.iterator
+          node_status = nodes_status(name) if !node_status.is_empty
+        } yield name.json + ("status" -> node_status.json))
       context.notify(JSON.Object(Markup.KIND -> Markup.NODES_STATUS, Markup.NODES_STATUS -> json))
     }
 

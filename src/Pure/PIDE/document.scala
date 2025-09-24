@@ -135,6 +135,8 @@ object Document {
 
       def path: Path = Path.explode(File.standard_path(node))
 
+      def symbolic_path: Name = Name(File.symbolic_path(path), theory)
+
       def master_dir: String = Url.strip_base_name(node).getOrElse("")
 
       def is_theory: Boolean = theory.nonEmpty
@@ -320,6 +322,10 @@ object Document {
     def load_commands: List[Command] = _commands.load_commands
     def load_commands_changed(doc_blobs: Blobs): Boolean =
       load_commands.exists(_.blobs_changed(doc_blobs))
+
+    def get_theory: Option[Command] =
+      if (commands.size == 1 && commands.last.span.is_theory) Some(commands.last)
+      else None
 
     def update_header(new_header: Node.Header): Node =
       new Node(get_blob, new_header, syntax, text_perspective, perspective, _commands)
@@ -1080,14 +1086,15 @@ object Document {
     def begin_theory(
       node_name: Node.Name,
       id: Document_ID.Exec,
+      commands: Int,
       source: String,
       blobs_info: Command.Blobs_Info
     ): State = {
       if (theories.isDefinedAt(id)) fail
       else {
         val command =
-          Command.unparsed(source, theory = true, id = id, node_name = node_name,
-            blobs_info = blobs_info)
+          Command.unparsed(source, theory_commands = Some(commands), id = id,
+            node_name = node_name, blobs_info = blobs_info)
         copy(theories = theories + (id -> command.empty_state))
       }
     }
@@ -1096,15 +1103,14 @@ object Document {
       theories.get(id) match {
         case None => fail
         case Some(st) =>
-          val command = st.command
-          val node_name = command.node_name
-          val doc_blobs = document_blobs(node_name)
-          val command1 =
-            Command.unparsed(command.source, theory = true, id = id, node_name = node_name,
-              blobs_info = command.blobs_info, results = st.results, markups = st.markups)
+          val command1 = st.exit(id)
+          val doc_blobs = document_blobs(command1.node_name)
           val state1 = copy(theories = theories - id)
           (state1.snippet(List(command1), doc_blobs), state1)
       }
+
+    def theory_snapshot(id: Document_ID.Exec, document_blobs: Node.Name => Blobs): Option[Snapshot] =
+      if (theories.isDefinedAt(id)) Some(end_theory(id, document_blobs)._1) else None
 
     def assign(
       id: Document_ID.Version,
@@ -1269,9 +1275,6 @@ object Document {
     def command_status(version: Version, command: Command): Document_Status.Command_Status =
       Document_Status.Command_Status.merge(
         command_states(version, command).iterator.map(_.document_status))
-
-    def command_timing(version: Version, command: Command): Timing =
-      Timing.merge(command_states(version, command).iterator.map(_.timing))
 
     def command_results(version: Version, command: Command): Command.Results =
       Command.State.merge_results(command_states(version, command))

@@ -121,6 +121,10 @@ object Build_Job {
         val options = Host.node_options(info.options, node_info)
         val store = build_context.store
 
+        val build_progress_delay: Time = options.seconds("build_progress_delay")
+        val build_timing_threshold: Time = options.seconds("build_timing_threshold")
+        val editor_timing_threshold: Time = options.seconds("editor_timing_threshold")
+
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
           store.clean_output(database_server, session_name, session_init = true)
 
@@ -206,13 +210,48 @@ object Build_Job {
             Export.consumer(store.open_database(session_name, output = true, server = server),
               store.cache, progress = progress)
 
+          // mutable state: session.synchronized
           val stdout = new StringBuilder(1000)
           val stderr = new StringBuilder(1000)
           val command_timings = new mutable.ListBuffer[Properties.T]
-          val theory_timings = new mutable.ListBuffer[Properties.T]
           val session_timings = new mutable.ListBuffer[Properties.T]
           val runtime_statistics = new mutable.ListBuffer[Properties.T]
           val task_statistics = new mutable.ListBuffer[Properties.T]
+          var nodes_changed = Set.empty[Document_ID.Generic]
+          var nodes_status = Document_Status.Nodes_Status.empty
+
+          val nodes_domain =
+            session_background.base.used_theories.map(_._1.symbolic_path)
+
+          def nodes_status_progress(): Unit = {
+            val state = session.get_state()
+            val result =
+              session.synchronized {
+                val nodes_status1 =
+                  nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
+                    state.theory_snapshot(state_id, session.build_blobs) match {
+                      case None => status
+                      case Some(snapshot) =>
+                        status.update_node(snapshot.state, snapshot.version, snapshot.node_name,
+                          threshold = editor_timing_threshold)
+                    }
+                  })
+                val result =
+                  if (nodes_changed.isEmpty) None
+                  else {
+                    Some(Progress.Nodes_Status(
+                      nodes_domain, nodes_status1, session = session_name, old = Some(nodes_status)))
+                  }
+
+                nodes_changed = Set.empty
+                nodes_status = nodes_status1
+
+                result
+              }
+            result.foreach(progress.nodes_status)
+          }
+
+          val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }
 
           def fun(
             name: String,
@@ -221,7 +260,7 @@ object Build_Job {
           ): (String, Session.Protocol_Function) = {
             name -> ((msg: Prover.Protocol_Output) =>
               unapply(msg.properties) match {
-                case Some(props) => acc += props; true
+                case Some(props) => session.synchronized { acc += props }; true
                 case _ => false
               })
           }
@@ -270,18 +309,21 @@ object Build_Job {
                   Markup.Build_Session_Finished.name -> build_session_finished,
                   Markup.Loading_Theory.name -> loading_theory,
                   Markup.EXPORT -> export_,
-                  fun(Markup.Theory_Timing.name, theory_timings, Markup.Theory_Timing.unapply),
                   fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
                   fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
             })
 
           session.command_timings += Session.Consumer("command_timings") {
-            case Session.Command_Timing(props) =>
-              for {
-                elapsed <- Markup.Elapsed.unapply(props)
-                elapsed_time = Time.seconds(elapsed)
-                if elapsed_time.is_notable(options.seconds("build_timing_threshold"))
-              } command_timings += props.filter(Markup.command_timing_property)
+            case Session.Command_Timing(state_id, props) =>
+              session.synchronized {
+                for {
+                  elapsed <- Markup.Elapsed.unapply(props)
+                  if Time.seconds(elapsed).is_notable(build_timing_threshold)
+                } command_timings += props.filter(Markup.command_timing_property)
+
+                nodes_changed += state_id
+                nodes_delay.invoke()
+              }
           }
 
           session.runtime_statistics += Session.Consumer("ML_statistics") {
@@ -330,10 +372,10 @@ object Build_Job {
               if (msg.is_system) session.resources.log(Protocol.message_text(message))
 
               if (msg.is_stdout) {
-                stdout ++= Symbol.encode(XML.content(message))
+                session.synchronized { stdout ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_stderr) {
-                stderr ++= Symbol.encode(XML.content(message))
+                session.synchronized { stderr ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_exit) {
                 val err =
@@ -392,6 +434,9 @@ object Build_Job {
 
           session.stop()
 
+          nodes_delay.revoke()
+          nodes_status_progress()
+
           val export_errors =
             export_consumer.shutdown(close = true).map(Output.error_message_text)
 
@@ -424,24 +469,21 @@ object Build_Job {
           /* process result */
 
           val result1 = {
-            val theory_timing =
-              theory_timings.iterator.flatMap(
-                {
-                  case props @ Markup.Name(name) => Some(name -> props)
-                  case _ => None
-                }).toMap
-            val used_theory_timings =
-              for { (name, _) <- session_background.base.used_theories }
-                yield theory_timing.getOrElse(name.theory, Markup.Name(name.theory))
-
             val more_output =
-              Library.trim_line(stdout.toString) ::
-                command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
-                used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
-                session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
-                runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
-                task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
-                document_output
+              session.synchronized {
+                val used_theory_timings =
+                  nodes_domain.map(name =>
+                    Markup.Name(name.theory) :::
+                    Markup.Timing_Properties(nodes_status(name).total_timing))
+
+                Library.trim_line(stdout.toString) ::
+                  command_timings.toList.map(Protocol.Command_Timing_Marker.apply) :::
+                  used_theory_timings.map(Protocol.Theory_Timing_Marker.apply) :::
+                  session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
+                  runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
+                  task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
+                  document_output
+              }
 
             result0.output(more_output)
               .error(Library.trim_line(stderr.toString))

@@ -212,14 +212,20 @@ option build_database : bool = false for build_sync
 option build_database_slice : real = 300 for build_sync
   -- "slice size in MiB for ML heap stored within database"
 
+option build_progress : bool = false
+  -- "enabled detailed build progress"
+
+option build_progress_delay : real = 2
+  -- "delay for detailed build progress"
+
 option build_delay : real = 0.2
-  -- "delay build process main loop (local)"
+  -- "delay for build process main loop (local)"
 
 option build_delay_master : real = 1.0
-  -- "delay build process main loop (cluster master)"
+  -- "delay for build process main loop (cluster master)"
 
 option build_delay_worker : real = 0.5
-  -- "delay build process main loop (cluster worker)"
+  -- "delay for build process main loop (cluster worker)"
 
 option build_cluster_expire : int = 50
   -- "enforce database synchronization after given number of delay loops"

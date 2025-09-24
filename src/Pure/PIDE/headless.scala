@@ -140,10 +140,10 @@ object Headless {
         domain: Option[Set[Document.Node.Name]] = None,
         trim: Boolean = false
       ): (Boolean, Use_Theories_State) = {
-        val (nodes_status_changed, nodes_status1) =
-          nodes_status.update(resources, state, version, domain = domain, trim = trim)
+        val nodes_status1 =
+          nodes_status.update_nodes(resources, state, version, domain = domain, trim = trim)
         val st1 = copy(last_update = Time.now(), nodes_status = nodes_status1)
-        (nodes_status_changed, st1)
+        (nodes_status1 != nodes_status, st1)
       }
 
       def changed(
@@ -351,7 +351,9 @@ object Headless {
       val consumer = {
         val delay_nodes_status =
           Delay.first(nodes_status_delay max Time.zero) {
-            progress.nodes_status(use_theories_state.value.nodes_status)
+            val st = use_theories_state.value
+            progress.nodes_status(
+              Progress.Nodes_Status(st.dep_graph.topological_order, st.nodes_status))
           }
 
         val delay_commit_clean =
@@ -390,7 +392,8 @@ object Headless {
 
                   val theory_progress =
                     (for {
-                      (name, node_status) <- st1.nodes_status.present().iterator
+                      name <- st1.dep_graph.topological_order.iterator
+                      node_status = st1.nodes_status(name)
                       if !node_status.is_empty && changed_st.changed_nodes(name) &&
                         !st.already_committed.isDefinedAt(name)
                       p1 = node_status.percentage

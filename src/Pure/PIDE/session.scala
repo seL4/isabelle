@@ -63,8 +63,7 @@ object Session {
   /* events */
 
   //{{{
-  case class Command_Timing(props: Properties.T)
-  case class Theory_Timing(props: Properties.T)
+  case class Command_Timing(state_id: Document_ID.Generic, props: Properties.T)
   case class Runtime_Statistics(props: Properties.T)
   case class Task_Statistics(props: Properties.T)
   case class Global_Options(options: Options)
@@ -239,7 +238,6 @@ abstract class Session extends Document.Session {
 
   val finished_theories = new Session.Outlet[Document.Snapshot](dispatcher)
   val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
-  val theory_timings = new Session.Outlet[Session.Theory_Timing](dispatcher)
   val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
   val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher)
   val global_options = new Session.Outlet[Session.Global_Options](dispatcher)
@@ -535,13 +533,10 @@ abstract class Session extends Document.Session {
           val handled = protocol_handlers.invoke(msg)
           if (!handled) {
             msg.properties match {
-              case Protocol.Command_Timing(props, state_id, timing) if prover.defined =>
-                command_timings.post(Session.Command_Timing(props))
-                val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
+              case Protocol.Command_Timing(state_id, props) if prover.defined =>
+                val message = XML.elem(Markup(Markup.TIMING, props))
                 change_command(_.accumulate(state_id, cache.elem(message), cache))
-
-              case Markup.Theory_Timing(props) =>
-                theory_timings.post(Session.Theory_Timing(props))
+                command_timings.post(Session.Command_Timing(state_id, props))
 
               case Markup.Task_Statistics(props) =>
                 task_statistics.post(Session.Task_Statistics(props))
@@ -552,9 +547,11 @@ abstract class Session extends Document.Session {
                 val entry = Export.Entry.make(Sessions.DRAFT, args, msg.chunk, cache)
                 change_command(_.add_export(id, (args.serial, entry)))
 
-              case Protocol.Loading_Theory(node_name, id) =>
+              case Protocol.Loading_Theory(node_name, id, commands) =>
                 val blobs_info = build_blobs_info(node_name)
-                try { global_state.change(_.begin_theory(node_name, id, msg.text, blobs_info)) }
+                try {
+                  global_state.change(_.begin_theory(node_name, id, commands, msg.text, blobs_info))
+                }
                 catch { case _: Document.State.Fail => bad_output() }
 
               case List(Markup.Commands_Accepted.THIS) =>

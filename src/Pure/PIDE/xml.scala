@@ -71,7 +71,7 @@ object XML {
 
   def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
   def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
-  def elem(name: String): XML.Elem = XML.Elem(Markup(name, Nil), Nil)
+  def elem(name: String): XML.Elem = XML.elem(name, Nil)
 
   val no_text: Text = Text("")
   val newline: Text = Text("\n")
@@ -356,8 +356,7 @@ object XML {
 
     val tree: T[XML.Tree] = (t => List(t))
 
-    val properties: T[Properties.T] =
-      (props => List(XML.Elem(Markup(":", props), Nil)))
+    val properties: T[Properties.T] = (props => List(XML.elem(Markup(":", props))))
 
     val string: T[String] = XML.string
 

@@ -513,21 +513,15 @@ object Markup {
         case _ => None
       }
 
-    def get(props: Properties.T): isabelle.Timing =
-      unapply(props).getOrElse(isabelle.Timing.zero)
+    def get(props: Properties.T): isabelle.Timing = {
+      val elapsed = Time.seconds(Elapsed.get(props))
+      val cpu = Time.seconds(CPU.get(props))
+      val gc = Time.seconds(GC.get(props))
+      isabelle.Timing(elapsed, cpu, gc)
+    }
   }
 
   val TIMING = "timing"
-
-  object Timing {
-    def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
-
-    def unapply(markup: Markup): Option[isabelle.Timing] =
-      markup match {
-        case Markup(TIMING, Timing_Properties(timing)) => Some(timing)
-        case _ => None
-      }
-  }
 
 
   /* process result */
@@ -542,8 +536,7 @@ object Markup {
     def unapply(props: Properties.T): Option[Process_Result] =
       props match {
         case Return_Code(rc) =>
-          val timing = Timing_Properties.unapply(props).getOrElse(isabelle.Timing.zero)
-          Some(isabelle.Process_Result(rc, timing = timing))
+          Some(isabelle.Process_Result(rc, timing = Timing_Properties.get(props)))
         case _ => None
       }
   }
@@ -718,16 +711,17 @@ object Markup {
       }
   }
 
+  val Command_Offset = new Properties.Int("command_offset")
   val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
   def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
-  object Theory_Timing extends Properties_Function("theory_timing")
   object Session_Timing extends Properties_Function("session_timing") {
     val Threads = new Properties.Int("threads")
   }
   object Task_Statistics extends Properties_Function("task_statistics")
 
+  val Commands = new Properties.Int("commands")
   object Loading_Theory extends Properties_Function("loading_theory")
   object Build_Session_Finished extends Function("build_session_finished")
 

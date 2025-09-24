@@ -145,10 +145,10 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val theories =
       List.from(
         for ((a, st) <- nodes_status.iterator if st.command_timings.nonEmpty)
-          yield Theory_Entry(a, st.total_time.seconds)).sorted(Entry.Ordering)
+          yield Theory_Entry(a, st.total_timing.elapsed.seconds)).sorted(Entry.Ordering)
     val commands =
-      (for ((command, command_timing) <- nodes_status(name).command_timings.toList)
-        yield Command_Entry(command, command_timing.seconds)).sorted(Entry.Ordering)
+      (for ((command, timings) <- nodes_status(name).command_timings.toList)
+        yield Command_Entry(command, timings.sum.elapsed.seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
       if (entry.name == name) entry.make_current :: commands
@@ -166,9 +166,9 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
           .filterNot(PIDE.resources.loaded_theory).toSet)
 
     nodes_status =
-      nodes_status.update(PIDE.resources, snapshot.state, snapshot.version,
+      nodes_status.update_nodes(PIDE.resources, snapshot.state, snapshot.version,
         threshold = Time.seconds(timing_threshold),
-        domain = Some(domain))._2
+        domain = Some(domain))
 
     val entries = make_entries()
     if (timing_view.listData.toList != entries) timing_view.listData = entries

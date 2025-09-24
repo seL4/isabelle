@@ -23,12 +23,13 @@ object Protocol {
   /* batch build */
 
   object Loading_Theory {
-    def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec)] =
-      (props, props, props) match {
-        case (Markup.Name(theory), Position.File(file), Position.Id(id))
-        if Path.is_wellformed(file) => Some((Document.Node.Name(file, theory = theory), id))
-        case _ => None
-      }
+    def unapply(props: Properties.T): Option[(Document.Node.Name, Document_ID.Exec, Int)] =
+      for {
+        theory <- Markup.Name.unapply(props)
+        commands <- Markup.Commands.unapply(props)
+        file <- Position.File.unapply(props) if Path.is_wellformed(file)
+        id <- Position.Id.unapply(props)
+      } yield (Document.Node.Name(file, theory = theory), id, commands)
   }
 
 
@@ -78,28 +79,9 @@ object Protocol {
   /* command timing */
 
   object Command_Timing {
-    def unapply(props: Properties.T): Option[(Properties.T, Document_ID.Generic, isabelle.Timing)] =
+    def unapply(props: Properties.T): Option[(Document_ID.Generic, Properties.T)] =
       props match {
-        case Markup.Command_Timing(args) =>
-          (args, args) match {
-            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((args, id, timing))
-            case _ => None
-          }
-        case _ => None
-      }
-  }
-
-
-  /* theory timing */
-
-  object Theory_Timing {
-    def unapply(props: Properties.T): Option[(String, isabelle.Timing)] =
-      props match {
-        case Markup.Theory_Timing(args) =>
-          (args, args) match {
-            case (Markup.Name(name), Markup.Timing_Properties(timing)) => Some((name, timing))
-            case _ => None
-          }
+        case Markup.Command_Timing(args@Position.Id(id)) => Some((id, args))
         case _ => None
       }
   }

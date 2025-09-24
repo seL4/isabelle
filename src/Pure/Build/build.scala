@@ -22,6 +22,16 @@ object Build {
   def engine_name(options: Options): String = options.string("build_engine")
 
 
+  /* detailed build progress */
+
+  class Build_Progress(options: Options, verbose: Boolean = false)
+  extends Console_Progress(verbose = verbose) {
+    override def nodes_status(nodes_status: Progress.Nodes_Status): Unit =
+      if (options.bool("build_progress")) {
+        output(nodes_status.message.copy(verbose = false))
+      }
+  }
+
 
   /* context */
 
@@ -431,7 +441,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
 
       val sessions = getopts(args)
 
-      val progress = new Console_Progress(verbose = verbose)
+      val progress = new Build_Progress(options, verbose = verbose)
 
       val ml_settings = ML_Settings(options)
 
@@ -785,7 +795,7 @@ Usage: isabelle build_worker [OPTIONS]
             yield i -> elem)
 
       val command =
-        Command.unparsed(thy_source, theory = true, id = id,
+        Command.unparsed(thy_source, theory_commands = Some(0), id = id,
           node_name = Document.Node.Name(thy_file, theory = theory_context.theory),
           blobs_info = Command.Blobs_Info.make(blobs),
           markups = markups, results = results)
