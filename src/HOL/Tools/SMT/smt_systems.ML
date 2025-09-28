@@ -287,6 +287,22 @@ val z3: SMT_Solver.solver_config = {
 
 end
 
+
+(* Dummy SMT solvers *)
+
+val dummy_smtlib: SMT_Solver.solver_config =
+  {
+    name = "dummy_smtlib",
+    class = K SMTLIB_Interface.smtlibC,
+    avail = make_avail "DUMMY_SMTLIB",
+    command = make_command "DUMMY_SMTLIB",
+    options = K [],
+    smt_options = [],
+    good_slices = [((2, false, false, 1024, meshN), [])],
+    outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
+    parse_proof = NONE,
+    replay = NONE }
+
 (* smt tactic *)
 val parse_smt_options =
   Scan.optional
@@ -330,6 +346,7 @@ val _ = Theory.setup (
   SMT_Solver.add_solver vampire_smt_dt #>
   SMT_Solver.add_solver vampire_smt_nodt #>
   SMT_Solver.add_solver veriT #>
-  SMT_Solver.add_solver z3)
+  SMT_Solver.add_solver z3 #>
+  SMT_Solver.add_solver dummy_smtlib)
 
 end;

@@ -1,3 +1,4 @@
 # -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_ATP="$COMPONENT/ATP"
+DUMMY_SMTLIB_SOLVER="$COMPONENT/SMT/scripts/dummy_smtlib_solver"
