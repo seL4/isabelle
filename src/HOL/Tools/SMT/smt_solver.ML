@@ -319,6 +319,8 @@ local
     handle
       SMT_Failure.SMT (fail as SMT_Failure.Counterexample _) =>
         (SMT_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
+    | SMT_Failure.SMT (fail as SMT_Failure.Other_Failure _) =>
+        (SMT_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
     | SMT_Failure.SMT (fail as SMT_Failure.Time_Out) =>
         error ("SMT: Solver " ^ quote (SMT_Config.solver_of ctxt) ^ ": " ^
           SMT_Failure.string_of_failure fail ^ " (setting the " ^
