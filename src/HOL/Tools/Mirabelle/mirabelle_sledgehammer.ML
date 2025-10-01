@@ -135,15 +135,13 @@ fun run_sh params keep pos state =
             val filename = "prob_" ^
               StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
               StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
+            fun mk_smt_file () = dir ^ "/" ^ filename ^ "__" ^ serial_string ()
           in
             Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (filename ^ "__")
             #> (keep_probs ? Config.put Sledgehammer_Prover_ATP.atp_problem_dest_dir dir)
             #> (keep_proofs ? Config.put Sledgehammer_Prover_ATP.atp_proof_dest_dir dir)
-            #> (keep_probs ? Config.put SMT_Config.problem_dest_file
-                  (dir ^ "/" ^ filename ^ "__" ^ serial_string ()))
-            #> (keep_proofs ? Config.put Sledgehammer_Prover_ATP.atp_proof_dest_dir dir)
-            #> Config.put SMT_Config.proof_dest_file
-                  (dir ^ "/" ^ filename ^ "__" ^ serial_string ())
+            #> (keep_probs ? Config.put SMT_Config.problem_dest_file (mk_smt_file ()))
+            #> (keep_proofs ? Config.put SMT_Config.proof_dest_file (mk_smt_file ()))
           end
         | set_file_name NONE = I
       val state' = state
