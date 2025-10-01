@@ -199,6 +199,8 @@ INCOMPATIBILITY.
 * SMT:
   - Added Vampire as an experimental SMT solver (vampire_smt_dt has native
     support for datatypes and vampire_smt_nodt does not).
+  - Added SMT solver "dummy_smtlib" which immediately fails; this is useful
+    when generating SMT-LIB files with Mirabelle.
 
 * Theory "HOL.Fun":
   - Added lemmas.
