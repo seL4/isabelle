@@ -86,8 +86,13 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
            SOME nat_as_int => Config.put SMT_Config.nat_as_int nat_as_int
          | NONE => I)
       |> (if overlord then
-            Config.put SMT_Config.debug_files
-              (overlord_file_location_of_prover name |> (fn (path, name) => path ^ "/" ^ name))
+            let
+              val (path, name) = overlord_file_location_of_prover name
+              val file_base = path ^ "/" ^ name
+            in
+              Config.put SMT_Config.problem_dest_file file_base #>
+              Config.put SMT_Config.proof_dest_file file_base
+            end
           else
             I)
        |> Config.put SMT_Config.infer_triggers (Config.get ctxt smt_triggers)

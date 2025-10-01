@@ -38,7 +38,8 @@ sig
   val native_bv: bool Config.T
   val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
-  val debug_files: string Config.T
+  val problem_dest_file : string Config.T
+  val proof_dest_file : string Config.T
   val sat_solver: string Config.T
   val compress_verit_proofs: Proof.context -> bool
 
@@ -191,7 +192,8 @@ val higher_order = Attrib.setup_config_bool \<^binding>\<open>smt_higher_order\<
 val native_bv = Attrib.setup_config_bool \<^binding>\<open>native_bv\<close> (K true);
 val nat_as_int = Attrib.setup_config_bool \<^binding>\<open>smt_nat_as_int\<close> (K false);
 val infer_triggers = Attrib.setup_config_bool \<^binding>\<open>smt_infer_triggers\<close> (K false);
-val debug_files = Attrib.setup_config_string \<^binding>\<open>smt_debug_files\<close> (K "");
+val problem_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_problem_dest_dir\<close> (K "");
+val proof_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_proof_dest_dir\<close> (K "");
 val sat_solver = Attrib.setup_config_string \<^binding>\<open>smt_sat_solver\<close> (K "cdclite");
 val cvc_experimental_lethe = Attrib.setup_config_bool \<^binding>\<open>smt_cvc_lethe\<close> (K false);
 

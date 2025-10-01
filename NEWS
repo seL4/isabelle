@@ -201,6 +201,8 @@ INCOMPATIBILITY.
     support for datatypes and vampire_smt_nodt does not).
   - Added SMT solver "dummy_smtlib" which immediately fails; this is useful
     when generating SMT-LIB files with Mirabelle.
+  - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
+    "smt_proof_dest_dir". Minor INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
   - Added lemmas.

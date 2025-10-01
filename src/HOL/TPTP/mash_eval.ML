@@ -108,7 +108,8 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name file_names report_
               in
                 Config.put atp_problem_dest_dir dir
                 #> Config.put atp_problem_prefix (prob_prefix ^ "__")
-                #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
+                #> Config.put SMT_Config.problem_dest_file (dir ^ "/" ^ prob_prefix)
+                #> Config.put SMT_Config.proof_dest_file (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
 
