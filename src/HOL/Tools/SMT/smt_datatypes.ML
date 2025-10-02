@@ -109,7 +109,7 @@ fun get_decls fps T n Ts ctxt =
       else
         ([], ctxt)
     | NONE =>
-      if String.isSuffix extN n then
+      if String.isSuffix extN n orelse n = \<^type_name>\<open>nat\<close> then
         (* for records (FIXME: hack) *)
         (case Ctr_Sugar.ctr_sugar_of ctxt n of
           SOME ctr_sugar =>
