@@ -287,49 +287,82 @@ fun associated_datatypes (Case {tycos, schema = (_, (_, raw_cos)), ...}) = (tyco
 structure History =
 struct
 
+datatype state =
+    Fresh       (*entry is active and unhistorized*)
+  | Historized  (*entry is active and historized*)
+  | Suppressed  (*incompatible entries are merely suppressed after theory merge but sustain*)
+
+fun is_unhistorized Fresh = true
+  | is_unhistorized _ = false;
+
 type 'a T = {
   entry: 'a,
-  suppressed: bool,     (*incompatible entries are merely suppressed after theory merge but sustain*)
-  history: serial list  (*explicit trace of declaration history supports non-monotonic declarations*)
+  state: state,
+  history: Context.id list  (*explicit trace of declaration history supports non-monotonic declarations*)
 } Symtab.table;
 
-fun some_entry (SOME {suppressed = false, entry, ...}) = SOME entry
+fun some_entry (SOME {state = Suppressed, ...}) = NONE
+  | some_entry (SOME {entry, ...}) = SOME entry
   | some_entry _ = NONE;
+
+fun the_history (SOME {history = history, ...}) = history
+  | the_history _ = [];
 
 fun lookup table =
   Symtab.lookup table #> some_entry;
 
+fun history_of table =
+  Symtab.lookup table #> the_history;
+
 fun register key entry table =
-  if is_some (Symtab.lookup table key)
-  then Symtab.map_entry key
-    (fn {history, ...} => {entry = entry, suppressed = false, history = serial () :: history}) table
-  else Symtab.update (key, {entry = entry, suppressed = false, history = [serial ()]}) table;
+  table
+  |> Symtab.update
+    (key, {entry = entry, state = Fresh, history = history_of table key});
 
-fun modify_entry key f = Symtab.map_entry key
-  (fn {entry, suppressed, history} => {entry = f entry, suppressed = suppressed, history = history});
+fun modify_entry key f =
+  Symtab.map_entry key (fn {entry, state, history} =>
+    {entry = f entry, state = state, history = history});
 
-fun all table = Symtab.dest table
-  |> map_filter (fn (key, {entry, suppressed = false, ...}) => SOME (key, entry) | _ => NONE);
+fun all table =
+  Symtab.dest table
+  |> map_filter (fn (key, record) => case some_entry (SOME record) of SOME entry => SOME (key, entry) | _ => NONE);
+
+fun has_unhistorized table =
+  Symtab.exists (fn (_, {state, ...}) => is_unhistorized state) table;
+
+fun historize_record thy (record as {entry, state, history}) =
+  if is_unhistorized state
+  then {entry = entry, state = Historized, history = Context.theory_identifier thy :: history}
+  else record;
+
+fun historize thy table =
+  Symtab.map (K (historize_record thy)) table;
 
 local
 
-fun merge_history join_same
-    ({entry = entry1, history = history1, ...}, {entry = entry2, history = history2, ...}) =
-  let
-    val history = merge (op =) (history1, history2);
-    val entry = if hd history1 = hd history2 then join_same (entry1, entry2)
-      else if hd history = hd history1 then entry1 else entry2;
-  in {entry = entry, suppressed = false, history = history} end;
+fun merge_history _ ({history = [], ...}, record) = record (*degenerate case: unfinished theory*)
+  | merge_history _ (record, {history = [], ...}) = record (*degenerate case: unfinished theory*)
+  | merge_history join_same
+      ({entry = entry1, history = history1, ...}, {entry = entry2, history = history2, ...}) =
+      let
+        val history = merge (op =) (history1, history2);
+        val entry = if hd history1 = hd history2 then join_same (entry1, entry2)
+          else if hd history = hd history1 then entry1 else entry2;
+      in {entry = entry, state = Historized, history = history} end;
+
+fun suppressed_if _ Suppressed = Suppressed
+  | suppressed_if true _ = Suppressed
+  | suppressed_if _ state = state;
 
 in
 
 fun join join_same tables = Symtab.join (K (merge_history join_same)) tables;
 
 fun suppress key = Symtab.map_entry key
-  (fn {entry, history, ...} => {entry = entry, suppressed = true, history = history});
+  (fn {entry, history, ...} => {entry = entry, state = Suppressed, history = history});
 
-fun suppress_except f = Symtab.map (fn key => fn {entry, suppressed, history} =>
-  {entry = entry, suppressed = suppressed orelse (not o f) (key, entry), history = history});
+fun suppress_except f = Symtab.map (fn key => fn {entry, state, history} =>
+  {entry = entry, state = suppressed_if ((not o f) (key, entry)) state, history = history});
 
 end;
 
@@ -393,6 +426,16 @@ val map_types = map_specs o apfst;
 val map_pending_eqns = map_specs o apsnd o apfst o apfst;
 val map_functions = map_specs o apsnd o apfst o apsnd;
 val map_cases = map_specs o apsnd o apsnd;
+
+fun has_unhistorized specs =
+  History.has_unhistorized (types_of specs)
+  orelse History.has_unhistorized (functions_of specs)
+  orelse History.has_unhistorized (cases_of specs);
+
+fun historize thy =
+  map_types (History.historize thy)
+  #> map_functions (History.historize thy)
+  #> map_cases (History.historize thy);
 
 
 (* data slots dependent on executable code *)
@@ -516,6 +559,9 @@ fun all_fun_specs specs =
   |> map (fn c => (c, the_fun_spec specs c))
   |> filter_out (is_unimplemented o snd);
 
+
+(* historization *)
+
 fun historize_pending_fun_specs thy =
   let
     val pending_eqns = (pending_eqns_of o specs_of) thy;
@@ -530,7 +576,12 @@ fun historize_pending_fun_specs thy =
       |> SOME
   end;
 
-val _ = Theory.setup (Theory.at_end (historize_pending_fun_specs));
+fun historize_specs thy =
+  if (has_unhistorized o specs_of) thy
+  then thy |> modify_specs (historize thy) |> SOME
+  else NONE;
+
+val _ = Theory.setup (Theory.at_end (perhaps_apply [historize_pending_fun_specs, historize_specs]));
 
 
 (** foundation **)
