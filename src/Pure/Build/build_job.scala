@@ -228,6 +228,7 @@ object Build_Job {
                     state.theory_snapshot(state_id, session.build_blobs) match {
                       case None => status
                       case Some(snapshot) =>
+                        Exn.Interrupt.expose()
                         status.update_node(snapshot.state, snapshot.version, snapshot.node_name,
                           threshold = editor_timing_threshold)
                     }
