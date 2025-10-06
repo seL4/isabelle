@@ -506,13 +506,6 @@ object Markup {
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
 
-    def unapply(props: Properties.T): Option[isabelle.Timing] =
-      (props, props, props) match {
-        case (Elapsed(elapsed), CPU(cpu), GC(gc)) =>
-          Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
-        case _ => None
-      }
-
     def get(props: Properties.T): isabelle.Timing = {
       val elapsed = Time.seconds(Elapsed.get(props))
       val cpu = Time.seconds(CPU.get(props))
