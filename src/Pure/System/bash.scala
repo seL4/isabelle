@@ -235,7 +235,7 @@ object Bash {
           val t =
             Word.explode(timing_text) match {
               case List(Value.Long(elapsed), Value.Long(cpu)) =>
-                Timing(Time.ms(elapsed), Time.ms(cpu), Time.zero)
+                Timing.make(Time.ms(elapsed), Time.ms(cpu), Time.zero)
               case _ => Timing.zero
             }
           Some(t)

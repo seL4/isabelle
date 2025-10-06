@@ -510,7 +510,7 @@ object Markup {
       val elapsed = Time.seconds(Elapsed.get(props))
       val cpu = Time.seconds(CPU.get(props))
       val gc = Time.seconds(GC.get(props))
-      isabelle.Timing(elapsed, cpu, gc)
+      isabelle.Timing.make(elapsed, cpu, gc)
     }
   }
 

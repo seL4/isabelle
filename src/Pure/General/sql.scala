@@ -388,7 +388,7 @@ object SQL {
     def date(column: Column): Date = stmt.db.date(res, column)
 
     def timing(c1: Column, c2: Column, c3: Column): Timing =
-      Timing(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
+      Timing.make(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
 
     def get[A](column: Column, f: Column => A): Option[A] = {
       val x = f(column)
