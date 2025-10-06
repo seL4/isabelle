@@ -380,6 +380,7 @@ object Build_Job {
                 session.synchronized { stderr ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_exit) {
+                nodes_status_end()
                 val err =
                   "Prover terminated" +
                     (msg.properties match {
