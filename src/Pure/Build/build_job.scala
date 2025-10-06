@@ -66,11 +66,7 @@ object Build_Job {
         }
         try {
           val command_timings = store.read_command_timings(db, name)
-          val elapsed =
-            store.read_session_timing(db, name) match {
-              case Markup.Elapsed(s) => Time.seconds(s)
-              case _ => Time.zero
-            }
+          val elapsed = Time.seconds(Markup.Elapsed.get(store.read_session_timing(db, name)))
           new Session_Context(
             name, deps, ancestors, session_prefs, sources_shasum, timeout,
             elapsed, command_timings, build_uuid)
@@ -316,10 +312,10 @@ object Build_Job {
           session.command_timings += Session.Consumer("command_timings") {
             case Session.Command_Timing(state_id, props) =>
               session.synchronized {
-                for {
-                  elapsed <- Markup.Elapsed.unapply(props)
-                  if Time.seconds(elapsed).is_notable(build_timing_threshold)
-                } command_timings += props.filter(Markup.command_timing_property)
+                val elapsed = Time.seconds(Markup.Elapsed.get(props))
+                if (elapsed.is_notable(build_timing_threshold)) {
+                  command_timings += props.filter(Markup.command_timing_property)
+                }
 
                 nodes_changed += state_id
                 nodes_delay.invoke()
