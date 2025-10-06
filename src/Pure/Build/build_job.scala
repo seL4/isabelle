@@ -250,6 +250,11 @@ object Build_Job {
 
           val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }
 
+          def nodes_status_end(): Unit = {
+            nodes_delay.revoke()
+            nodes_status_progress()
+          }
+
           def fun(
             name: String,
             acc: mutable.ListBuffer[Properties.T],
@@ -430,9 +435,7 @@ object Build_Job {
             }
 
           session.stop()
-
-          nodes_delay.revoke()
-          nodes_status_progress()
+          nodes_status_end()
 
           val export_errors =
             export_consumer.shutdown(close = true).map(Output.error_message_text)
