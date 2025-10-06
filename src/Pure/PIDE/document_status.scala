@@ -90,51 +90,51 @@ object Document_Status {
       warned: Boolean = false,
       failed: Boolean = false
     ): Command_Status = {
-      var theory_status = Theory_Status.NONE
-      var touched = false
-      var accepted = false
+      var theory_status1 = Theory_Status.NONE
+      var touched1 = false
+      var accepted1 = false
       var warned1 = warned
       var failed1 = failed
-      var canceled = false
-      var forks = 0
-      var runs = 0
-      var timings = Command_Timings.empty
+      var canceled1 = false
+      var forks1 = 0
+      var runs1 = 0
+      var timings1 = Command_Timings.empty
       for (markup <- markups) {
         markup.name match {
           case Markup.INITIALIZED =>
-            theory_status = Theory_Status.merge(theory_status, Theory_Status.INITIALIZED)
+            theory_status1 = Theory_Status.merge(theory_status1, Theory_Status.INITIALIZED)
           case Markup.FINALIZED =>
-            theory_status = Theory_Status.merge(theory_status, Theory_Status.FINALIZED)
+            theory_status1 = Theory_Status.merge(theory_status1, Theory_Status.FINALIZED)
           case Markup.CONSOLIDATING =>
-            theory_status = Theory_Status.merge(theory_status, Theory_Status.CONSOLIDATING)
+            theory_status1 = Theory_Status.merge(theory_status1, Theory_Status.CONSOLIDATING)
           case Markup.CONSOLIDATED =>
-            theory_status = Theory_Status.merge(theory_status, Theory_Status.CONSOLIDATED)
-          case Markup.ACCEPTED => accepted = true
-          case Markup.FORKED => touched = true; forks += 1
-          case Markup.JOINED => forks -= 1
-          case Markup.RUNNING => touched = true; runs += 1
-          case Markup.FINISHED => runs -= 1
+            theory_status1 = Theory_Status.merge(theory_status1, Theory_Status.CONSOLIDATED)
+          case Markup.ACCEPTED => accepted1 = true
+          case Markup.FORKED => touched1 = true; forks1 += 1
+          case Markup.JOINED => forks1 -= 1
+          case Markup.RUNNING => touched1 = true; runs1 += 1
+          case Markup.FINISHED => runs1 -= 1
           case Markup.WARNING | Markup.LEGACY => warned1 = true
           case Markup.FAILED | Markup.ERROR => failed1 = true
-          case Markup.CANCELED => canceled = true
+          case Markup.CANCELED => canceled1 = true
           case Markup.TIMING =>
             val props = markup.properties
             val offset = Position.Offset.get(props)
             val timing = Markup.Timing_Properties.get(props)
-            timings += (offset -> timing)
+            timings1 += (offset -> timing)
           case _ =>
         }
       }
       new Command_Status(
-        theory_status = theory_status,
-        touched = touched,
-        accepted = accepted,
+        theory_status = theory_status1,
+        touched = touched1,
+        accepted = accepted1,
         warned = warned1,
         failed = failed1,
-        canceled = canceled,
-        forks = forks,
-        runs = runs,
-        timings = timings)
+        canceled = canceled1,
+        forks = forks1,
+        runs = runs1,
+        timings = timings1)
     }
 
     val empty: Command_Status = make()
