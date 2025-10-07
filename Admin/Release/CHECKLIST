@@ -80,7 +80,7 @@ Packaging
 - regular packaging:
 
   #on fast Linux machine, with access to build_host for each platform
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025-1 -j2 -l -F -L
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025-1 -l -F -L
 
 - Docker image:
 
