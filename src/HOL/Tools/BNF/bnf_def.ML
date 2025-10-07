@@ -80,6 +80,7 @@ sig
   val map_ident0_of_bnf: bnf -> thm
   val map_ident_of_bnf: bnf -> thm
   val map_transfer_of_bnf: bnf -> thm
+  val set_finite_of_bnf: bnf -> thm list option
   val pred_cong0_of_bnf: bnf -> thm
   val pred_cong_of_bnf: bnf -> thm
   val pred_cong_simp_of_bnf: bnf -> thm
@@ -193,6 +194,7 @@ open BNF_Def_Tactics
 
 val fundefcong_attrs = @{attributes [fundef_cong]};
 val mono_attrs = @{attributes [mono]};
+val simp_attrs = @{attributes [simp]};
 
 type axioms = {
   map_id0: thm,
@@ -287,6 +289,7 @@ type facts = {
   rel_eq: thm lazy,
   rel_flip: thm lazy,
   set_map: thm lazy list,
+  set_finite: thm list lazy option,
   rel_cong0: thm lazy,
   rel_cong: thm lazy,
   rel_cong_simp: thm lazy,
@@ -319,7 +322,7 @@ type facts = {
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong in_mono in_rel
     inj_map inj_map_strong map_comp map_cong map_cong_simp map_cong_pred map_id map_ident0 map_ident
-    map_ident_strong map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong rel_cong_simp rel_map
+    map_ident_strong map_transfer rel_eq rel_flip set_map set_finite rel_cong0 rel_cong rel_cong_simp rel_map
     rel_mono rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep rel_OO rel_refl
     rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp pred_transfer pred_True
     pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_mono pred_cong0 pred_cong
@@ -346,6 +349,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_con
   rel_eq = rel_eq,
   rel_flip = rel_flip,
   set_map = set_map,
+  set_finite = set_finite,
   rel_cong0 = rel_cong0,
   rel_cong = rel_cong,
   rel_cong_simp = rel_cong_simp,
@@ -398,6 +402,7 @@ fun map_facts f {
   rel_eq,
   rel_flip,
   set_map,
+  set_finite,
   rel_cong0,
   rel_cong,
   rel_cong_simp,
@@ -448,6 +453,7 @@ fun map_facts f {
     rel_eq = Lazy.map f rel_eq,
     rel_flip = Lazy.map f rel_flip,
     set_map = map (Lazy.map f) set_map,
+    set_finite = Option.map (Lazy.map (map f)) set_finite,
     rel_cong0 = Lazy.map f rel_cong0,
     rel_cong = Lazy.map f rel_cong,
     rel_cong_simp = Lazy.map f rel_cong_simp,
@@ -606,6 +612,7 @@ val map_ident0_of_bnf = Lazy.force o #map_ident0 o #facts o rep_bnf;
 val map_ident_of_bnf = Lazy.force o #map_ident o #facts o rep_bnf;
 val map_ident_strong_of_bnf = Lazy.force o #map_ident_strong o #facts o rep_bnf;
 val map_transfer_of_bnf = Lazy.force o #map_transfer o #facts o rep_bnf;
+val set_finite_of_bnf = Option.map Lazy.force o #set_finite o #facts o rep_bnf;
 val rel_eq_onp_of_bnf = Lazy.force o #rel_eq_onp o #facts o rep_bnf;
 val pred_def_of_bnf = #pred_def o #defs o rep_bnf;
 val pred_map_of_bnf = Lazy.force o #pred_map o #facts o rep_bnf;
@@ -895,6 +902,7 @@ val set_bdN = "set_bd";
 val set_map0N = "set_map0";
 val set_mapN = "set_map";
 val set_transferN = "set_transfer";
+val set_finiteN = "set_finite";
 
 datatype inline_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
@@ -984,6 +992,7 @@ fun note_bnf_thms fact_policy qualify0 bnf_b bnf lthy =
            (set_mapN, map Lazy.force (#set_map facts), []),
            (set_transferN, Lazy.force (#set_transfer facts), []),
            (set_bdN, #set_bd axioms, []),
+           (set_finiteN, the_default [] (Option.map Lazy.force (#set_finite facts)), simp_attrs),
            (bd_card_orderN, [#bd_card_order axioms], []),
            (bd_cinfiniteN, [#bd_cinfinite axioms], []),
            (bd_regularCardN, [#bd_regularCard axioms], [])]
@@ -2023,6 +2032,12 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val set_transfer = Lazy.lazy mk_set_transfer;
 
+        val mk_set_finite = if bnf_bd_As = @{term natLeq} then SOME (fn () => map (fn thm =>
+          iffD2 OF [@{thm finite_iff_ordLess_natLeq}, thm]
+        ) (#set_bd axioms)) else NONE;
+
+        val set_finite = Option.map Lazy.lazy mk_set_finite;
+
         fun mk_inj_map_strong () =
           let
             val assms = @{map 5} (fn setA => fn z => fn f => fn z' => fn f' =>
@@ -2051,7 +2066,7 @@ fun prepare_def const_policy mk_fact_policy internal qualify prep_typ prep_term 
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_map in_bd in_cong
           in_mono in_rel inj_map inj_map_strong map_comp map_cong map_cong_simp map_cong_pred map_id
-          map_ident0 map_ident map_ident_strong map_transfer rel_eq rel_flip set_map rel_cong0 rel_cong
+          map_ident0 map_ident map_ident_strong map_transfer rel_eq rel_flip set_map set_finite rel_cong0 rel_cong
           rel_cong_simp rel_map rel_mono rel_mono_strong0 rel_mono_strong set_transfer rel_Grp rel_conversep
           rel_OO rel_refl rel_refl_strong rel_reflp rel_symp rel_transp rel_transfer rel_eq_onp
           pred_transfer pred_True pred_map pred_rel pred_mono_strong0 pred_mono_strong pred_mono

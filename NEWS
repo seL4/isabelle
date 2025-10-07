@@ -196,6 +196,9 @@ HOL-Main. Minor INCOMPATIBILITY.
 nat are implemented by bit operations on target-language integers. Minor
 INCOMPATIBILITY.
 
+* Finite datatypes and BNFs (e.g. list) now generate the theorem set_finite
+which is added as a simp rule.
+
 * SMT:
   - Added Vampire as an experimental SMT solver (vampire_smt_dt has native
     support for datatypes and vampire_smt_nodt does not).
