@@ -97,6 +97,19 @@ object Build_Job {
     build_uuid: String
   ) extends Name.T
 
+  abstract class Build_Session extends Session {
+    /* errors */
+
+    private val build_errors: Promise[List[String]] = Future.promise
+
+    def errors_result(): Exn.Result[List[String]] = build_errors.join_result
+    def errors_cancel(): Unit = build_errors.cancel()
+    def errors(errs: List[String]): Unit = {
+      try { build_errors.fulfill(errs) }
+      catch { case _: IllegalStateException => }
+    }
+  }
+
   class Session_Job private[Build_Job](
     build_context: Build.Context,
     session_context: Session_Context,
@@ -174,7 +187,7 @@ object Build_Job {
           /* session */
 
           val session =
-            new Session {
+            new Build_Session {
               override def session_options: Options = options
 
               override val store: Store = build_context.store
@@ -190,17 +203,6 @@ object Build_Job {
               override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
                 Document.Blobs.make(session_blobs(node_name))
             }
-
-          object Build_Session_Errors {
-            private val promise: Promise[List[String]] = Future.promise
-
-            def result: Exn.Result[List[String]] = promise.join_result
-            def cancel(): Unit = promise.cancel()
-            def apply(errs: List[String]): Unit = {
-              try { promise.fulfill(errs) }
-              catch { case _: IllegalStateException => }
-            }
-          }
 
           val export_consumer =
             Export.consumer(store.open_database(session_name, output = true, server = server),
@@ -268,7 +270,7 @@ object Build_Job {
           }
 
           session.init_protocol_handler(new Session.Protocol_Handler {
-              override def exit(): Unit = Build_Session_Errors.cancel()
+              override def exit(): Unit = session.errors_cancel()
 
               private def build_session_finished(msg: Prover.Protocol_Output): Boolean = {
                 val (rc, errors) =
@@ -286,7 +288,7 @@ object Build_Job {
                   catch { case ERROR(err) => (Process_Result.RC.failure, List(err)) }
 
                 session.protocol_command("Prover.stop", XML.Encode.int(rc))
-                Build_Session_Errors(errors)
+                session.errors(errors)
                 true
               }
 
@@ -387,7 +389,7 @@ object Build_Job {
                       case Markup.Process_Result(result) => ": " + result.print_rc
                       case _ => ""
                     })
-                Build_Session_Errors(List(err))
+                session.errors(List(err))
               }
             case _ =>
           }
@@ -421,7 +423,7 @@ object Build_Job {
                         (session_name, info.theories))
                     }
                   session.protocol_command("build_session", resources_xml, args_xml)
-                  Build_Session_Errors.result
+                  session.errors_result()
                 case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
               }
             }
