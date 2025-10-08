@@ -172,7 +172,7 @@ object Build_Job {
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
       val elapsed = Time.seconds(Markup.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
-        nodes_command_timing += props.filter(Markup.command_timing_property)
+        nodes_command_timing += cache.props(props.filter(Markup.command_timing_property))
       }
 
       nodes_changed += state_id
@@ -299,7 +299,7 @@ object Build_Job {
           ): (String, Session.Protocol_Function) = {
             name -> ((msg: Prover.Protocol_Output) =>
               unapply(msg.properties) match {
-                case Some(props) => session.synchronized { acc += props }; true
+                case Some(props) => session.synchronized { acc += session.cache.props(props) }; true
                 case _ => false
               })
           }
@@ -358,7 +358,7 @@ object Build_Job {
 
           session.runtime_statistics += Session.Consumer("ML_statistics") {
             case Session.Runtime_Statistics(props) =>
-              session.synchronized { runtime_statistics += props }
+              session.synchronized { runtime_statistics += session.cache.props(props) }
           }
 
           session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
