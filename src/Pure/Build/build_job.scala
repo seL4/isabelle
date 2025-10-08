@@ -357,7 +357,8 @@ object Build_Job {
           }
 
           session.runtime_statistics += Session.Consumer("ML_statistics") {
-            case Session.Runtime_Statistics(props) => runtime_statistics += props
+            case Session.Runtime_Statistics(props) =>
+              session.synchronized { runtime_statistics += props }
           }
 
           session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
