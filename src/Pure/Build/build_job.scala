@@ -7,7 +7,8 @@ Build job running prover process, with rudimentary PIDE session.
 package isabelle
 
 
-import scala.collection.mutable
+import java.io.BufferedWriter
+import java.nio.file.Files
 
 
 trait Build_Job {
@@ -98,6 +99,41 @@ object Build_Job {
   ) extends Name.T
 
   abstract class Build_Session(progress: Progress) extends Session {
+    /* additional process output */
+
+    private val process_output_file = Isabelle_System.tmp_file("process_output")
+    private var process_output_writer: Option[BufferedWriter] = None
+
+    def read_process_output(): List[String] = synchronized {
+      require(process_output_writer.isEmpty, "read_process_output")
+      using(Files.newBufferedReader(process_output_file.toPath))(File.read_lines(_, _ => ()))
+    }
+
+    def write_process_output(str: String): Unit = synchronized {
+      require(process_output_writer.isDefined, "write_process_output")
+      process_output_writer.get.write(str)
+      process_output_writer.get.write("\n")
+    }
+
+    def start_process_output(): Unit = synchronized {
+      require(process_output_writer.isEmpty, "start_process_output")
+      process_output_file.delete
+      process_output_writer = Some(File.writer(process_output_file))
+    }
+
+    def stop_process_output(): Unit = synchronized {
+      if (process_output_writer.isDefined) {
+        process_output_writer.get.close()
+        process_output_writer = None
+      }
+    }
+
+    def clean_process_output(): Unit = synchronized {
+      process_output_writer.foreach(_.close())
+      process_output_file.delete
+    }
+
+
     /* options */
 
     val build_progress_delay: Time = session_options.seconds("build_progress_delay")
@@ -123,7 +159,6 @@ object Build_Job {
 
     private var nodes_changed = Set.empty[Document_ID.Generic]
     private var nodes_status = Document_Status.Nodes_Status.empty
-    private val nodes_command_timing = new mutable.ListBuffer[Properties.T]
 
     private def nodes_status_progress(): Unit = {
       val state = get_state()
@@ -163,23 +198,27 @@ object Build_Job {
       nodes_status_progress()
     }
 
+    override def start(start_prover: Prover.Receiver => Prover): Unit = {
+      start_process_output()
+      super.start(start_prover)
+    }
+
     override def stop(): Process_Result = {
       val result = super.stop()
       nodes_status_sync()
+      stop_process_output()
       result
     }
 
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
       val elapsed = Time.seconds(Markup.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
-        nodes_command_timing += cache.props(props.filter(Markup.command_timing_property))
+        write_process_output(Protocol.Command_Timing_Marker(props))
       }
 
       nodes_changed += state_id
       nodes_delay.invoke()
     }
-
-    def get_command_timings(): List[Properties.T] = synchronized { nodes_command_timing.toList }
 
     def get_theory_timings(): List[Properties.T] = synchronized {
       nodes_domain.map(name =>
@@ -288,18 +327,15 @@ object Build_Job {
           // mutable state: session.synchronized
           val stdout = new StringBuilder(1000)
           val stderr = new StringBuilder(1000)
-          val session_timings = new mutable.ListBuffer[Properties.T]
-          val runtime_statistics = new mutable.ListBuffer[Properties.T]
-          val task_statistics = new mutable.ListBuffer[Properties.T]
 
           def fun(
             name: String,
-            acc: mutable.ListBuffer[Properties.T],
+            marker: Protocol_Message.Marker,
             unapply: Properties.T => Option[Properties.T]
           ): (String, Session.Protocol_Function) = {
             name -> ((msg: Prover.Protocol_Output) =>
               unapply(msg.properties) match {
-                case Some(props) => session.synchronized { acc += session.cache.props(props) }; true
+                case Some(props) => session.write_process_output(marker(props)); true
                 case _ => false
               })
           }
@@ -348,8 +384,10 @@ object Build_Job {
                   Markup.Build_Session_Finished.name -> build_session_finished,
                   Markup.Loading_Theory.name -> loading_theory,
                   Markup.EXPORT -> export_,
-                  fun(Markup.Session_Timing.name, session_timings, Markup.Session_Timing.unapply),
-                  fun(Markup.Task_Statistics.name, task_statistics, Markup.Task_Statistics.unapply))
+                  fun(Markup.Session_Timing.name,
+                    Protocol.Session_Timing_Marker, Markup.Session_Timing.unapply),
+                  fun(Markup.Task_Statistics.name,
+                    Protocol.Task_Statistics_Marker, Markup.Task_Statistics.unapply))
             })
 
           session.command_timings += Session.Consumer("command_timings") {
@@ -358,7 +396,7 @@ object Build_Job {
 
           session.runtime_statistics += Session.Consumer("ML_statistics") {
             case Session.Runtime_Statistics(props) =>
-              session.synchronized { runtime_statistics += session.cache.props(props) }
+              session.write_process_output(Protocol.ML_Statistics_Marker(props))
           }
 
           session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
@@ -501,11 +539,7 @@ object Build_Job {
             val more_output =
               session.synchronized {
                 Library.trim_line(stdout.toString) ::
-                  session.get_command_timings().map(Protocol.Command_Timing_Marker.apply) :::
-                  session.get_theory_timings().map(Protocol.Theory_Timing_Marker.apply) :::
-                  session_timings.toList.map(Protocol.Session_Timing_Marker.apply) :::
-                  runtime_statistics.toList.map(Protocol.ML_Statistics_Marker.apply) :::
-                  task_statistics.toList.map(Protocol.Task_Statistics_Marker.apply) :::
+                  session.read_process_output() :::
                   document_output
               }
 
@@ -541,6 +575,8 @@ object Build_Job {
 
           val store_session =
             store.output_session(session_name, store_heap = process_result.ok && store_heap)
+
+          session.clean_process_output()
 
 
           /* output heap */
