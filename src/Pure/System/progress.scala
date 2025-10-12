@@ -8,6 +8,7 @@ package isabelle
 
 
 import java.util.{Map => JMap}
+import scala.collection.mutable
 
 
 object Progress {
@@ -57,10 +58,6 @@ object Progress {
     session: String = "",
     old: Option[Document_Status.Nodes_Status] = None
   ) {
-    def message: Message =
-      Message(Kind.writeln, cat_lines(domain.map(name => theory(name).message.text)),
-        verbose = true)
-
     def apply(name: Document.Node.Name): Document_Status.Node_Status =
       document_status(name)
 
@@ -69,6 +66,61 @@ object Progress {
       Theory(theory = name.theory, session = session,
         percentage = Some(node_status.percentage),
         total_time = node_status.total_timing.elapsed)
+    }
+
+    def theory_progress(name: Document.Node.Name, check: (Int, Int) => Boolean): Option[Theory] = {
+      val old_percentage = if (old.isEmpty) 0 else old.get(name).percentage
+      val thy = theory(name)
+      if (check(old_percentage, thy.percentage.getOrElse(0))) Some(thy) else None
+    }
+
+    def completed_theories: List[Theory] =
+      domain.flatMap(theory_progress(_, (p0, p) => p0 != p && p == 100))
+
+    def status_theories: List[Theory] = {
+      val res = new mutable.ListBuffer[Theory]
+      // pending theories
+      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 == p && p > 0)) res += thy
+      // running theories
+      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 != p && p < 100)) res += thy
+      res.toList
+    }
+  }
+
+
+  /* status lines (e.g. at bottom of output) */
+
+  trait Status extends Progress {
+    def status_enabled: Boolean = false
+    def status_hide(theories: List[Theory]): Unit = ()
+
+    protected var status_theories: List[Theory] = Nil
+
+    def status_clear(): List[Theory] = synchronized {
+      val theories = status_theories
+      status_theories = Nil
+      status_hide(theories)
+      theories
+    }
+
+    def status_output(theories: List[Theory]): Unit = synchronized {
+      status_theories = Nil
+      theories.foreach(theory)
+      status_theories = theories
+    }
+
+    override def output(message: Progress.Message): Unit = synchronized {
+      if (do_output(message)) {
+        val theories = status_clear()
+        super.output(message)
+        status_output(theories)
+      }
+    }
+
+    override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
+      status_clear()
+      nodes_status.completed_theories.foreach(theory)
+      status_output(if (status_enabled) nodes_status.status_theories else Nil)
     }
   }
 }
@@ -136,8 +188,16 @@ class Progress {
   }
 }
 
-class Console_Progress(override val verbose: Boolean = false, stderr: Boolean = false)
-extends Progress {
+class Console_Progress(
+  override val verbose: Boolean = false,
+  detailed: Boolean = false,
+  stderr: Boolean = false)
+extends Progress with Progress.Status {
+  override def status_enabled: Boolean = detailed
+  override def status_hide(theories: List[Progress.Theory]): Unit = synchronized {
+    Output.delete_lines(theories.length, stdout = !stderr)
+  }
+
   override def output(message: Progress.Message): Unit = synchronized {
     if (do_output(message)) {
       Output.output(message.output_text, stdout = !stderr, include_empty = true)

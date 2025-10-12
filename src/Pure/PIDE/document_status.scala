@@ -326,6 +326,9 @@ object Document_Status {
 
     def quasi_consolidated: Boolean = !suppressed && !finalized && terminated
 
+    def started: Boolean = percentage == 0
+    def completed: Boolean = percentage == 100
+
     def json: JSON.Object.T =
       JSON.Object("ok" -> ok, "total" -> total, "unprocessed" -> unprocessed,
         "running" -> running, "warned" -> warned, "failed" -> failed, "finished" -> finished,

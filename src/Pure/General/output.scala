@@ -33,4 +33,12 @@ object Output {
 
   def error_message(msg: String, stdout: Boolean = false, include_empty: Boolean = false): Unit =
     output(error_message_text(msg), stdout = stdout, include_empty = include_empty)
+
+  def delete_lines(lines: Int, stdout: Boolean = false): Unit = {
+    if (lines > 0) {
+      val out = stream(stdout = stdout)
+      out.print("\u001b[" + lines + "F\u001b[J")
+      out.flush()
+    }
+  }
 }
