@@ -101,34 +101,34 @@ object Progress {
 
   trait Status extends Progress {
     def status_enabled: Boolean = false
-    def status_hide(theories: List[Theory]): Unit = ()
+    def status_hide(status: Progress.Output): Unit = ()
 
-    protected var status_theories: List[Theory] = Nil
+    protected var _status: Progress.Output = Nil
 
-    def status_clear(): List[Theory] = synchronized {
-      val theories = status_theories
-      status_theories = Nil
-      status_hide(theories)
-      theories
+    def status_clear(): Progress.Output = synchronized {
+      val status = _status
+      _status = Nil
+      status_hide(status)
+      status
     }
 
-    def status_output(theories: List[Theory]): Unit = synchronized {
-      status_theories = Nil
-      theories.foreach(theory)
-      status_theories = theories
+    def status_output(status: Progress.Output): Unit = synchronized {
+      _status = Nil
+      output(status)
+      _status = status
     }
 
     override def output(msgs: Progress.Output): Unit = synchronized {
       if (msgs.exists(do_output)) {
-        val theories = status_clear()
+        val status = status_clear()
         super.output(msgs)
-        status_output(theories)
+        status_output(status)
       }
     }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
       status_clear()
-      nodes_status.completed_theories.foreach(theory)
+      output(nodes_status.completed_theories)
       status_output(if (status_enabled) nodes_status.status_theories else Nil)
     }
   }
@@ -209,8 +209,9 @@ class Console_Progress(
   stderr: Boolean = false)
 extends Progress with Progress.Status {
   override def status_enabled: Boolean = detailed
-  override def status_hide(theories: List[Progress.Theory]): Unit = synchronized {
-    Output.delete_lines(theories.length, stdout = !stderr)
+  override def status_hide(status: Progress.Output): Unit = synchronized {
+    val txt = output_text(status, terminate = true)
+    Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)
   }
 
   override def output(msgs: Progress.Output): Unit = synchronized {
