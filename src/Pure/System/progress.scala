@@ -31,7 +31,7 @@ object Progress {
     override def show_theory: Msg = this
     override def message: Message = this
 
-    def output_text: String =
+    lazy val output_text: String =
       kind match {
         case Kind.writeln => Output.writeln_text(text)
         case Kind.warning => Output.warning_text(text)
