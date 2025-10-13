@@ -47,17 +47,16 @@ object Session_Build {
     /* progress */
 
     private val progress = new Progress {
-      override def output(message: Progress.Message): Unit =
-        if (do_output(message)) {
+      override def output(msgs: Progress.Output): Unit = {
+        val txt = output_text(msgs.map(_.show_theory), terminate = true)
+        if (txt.nonEmpty) {
           GUI_Thread.later {
-            text.append(message.output_text + "\n")
+            text.append(txt)
             val vertical = scroll_text.peer.getVerticalScrollBar
             vertical.setValue(vertical.getMaximum)
           }
         }
-
-      override def theory(theory: Progress.Theory): Unit =
-        output(theory.message.copy(verbose = false))
+      }
     }
 
 

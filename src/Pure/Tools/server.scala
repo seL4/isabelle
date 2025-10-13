@@ -258,21 +258,23 @@ object Server {
   extends Progress {
     override def verbose: Boolean = true
 
-    override def output(message: Progress.Message): Unit = {
-      val more1 = ("verbose" -> message.verbose.toString) :: more.toList
-      message.kind match {
-        case Progress.Kind.writeln => context.writeln(message.text, more1:_*)
-        case Progress.Kind.warning => context.warning(message.text, more1:_*)
-        case Progress.Kind.error_message => context.error_message(message.text, more1:_*)
+    override def output(msgs: Progress.Output): Unit =
+      for (msg <- msgs) {
+        msg match {
+          case message: Progress.Message =>
+            val more1 = ("verbose" -> message.verbose.toString) :: more.toList
+            message.kind match {
+              case Progress.Kind.writeln => context.writeln(message.text, more1: _*)
+              case Progress.Kind.warning => context.warning(message.text, more1: _*)
+              case Progress.Kind.error_message => context.error_message(message.text, more1: _*)
+            }
+          case theory: Progress.Theory =>
+            val entries: List[JSON.Object.Entry] =
+              List("theory" -> theory.theory, "session" -> theory.session) :::
+                (theory.percentage match { case None => Nil case Some(p) => List("percentage" -> p) })
+            context.writeln(theory.message.text, entries ::: more.toList:_*)
+        }
       }
-    }
-
-    override def theory(theory: Progress.Theory): Unit = {
-      val entries: List[JSON.Object.Entry] =
-        List("theory" -> theory.theory, "session" -> theory.session) :::
-          (theory.percentage match { case None => Nil case Some(p) => List("percentage" -> p) })
-      context.writeln(theory.message.text, entries ::: more.toList:_*)
-    }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = {
       val json =

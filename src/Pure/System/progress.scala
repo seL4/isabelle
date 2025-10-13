@@ -14,14 +14,21 @@ import scala.collection.mutable
 object Progress {
   /* output */
 
-  sealed abstract class Output { def message: Message }
+  sealed abstract class Msg {
+    def verbose: Boolean
+    def show_theory: Msg
+    def message: Message
+  }
+
+  type Output = List[Msg]
 
   enum Kind { case writeln, warning, error_message }
   sealed case class Message(
     kind: Kind,
     text: String,
-    verbose: Boolean = false
-  ) extends Output {
+    override val verbose: Boolean = false
+  ) extends Msg {
+    override def show_theory: Msg = this
     override def message: Message = this
 
     def output_text: String =
@@ -38,11 +45,13 @@ object Progress {
     theory: String,
     session: String = "",
     percentage: Option[Int] = None,
-    total_time: Time = Time.zero
-  ) extends Output {
-    def message: Message =
+    total_time: Time = Time.zero,
+    override val verbose: Boolean = true
+  ) extends Msg {
+    override def show_theory: Msg = copy(verbose = false)
+    override def message: Message =
       Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
-        verbose = true)
+        verbose = verbose)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
@@ -109,10 +118,10 @@ object Progress {
       status_theories = theories
     }
 
-    override def output(message: Progress.Message): Unit = synchronized {
-      if (do_output(message)) {
+    override def output(msgs: Progress.Output): Unit = synchronized {
+      if (msgs.exists(do_output)) {
         val theories = status_clear()
-        super.output(message)
+        super.output(msgs)
         status_output(theories)
       }
     }
@@ -130,20 +139,26 @@ class Progress {
   val start: Date = now()
 
   def verbose: Boolean = false
-  final def do_output(message: Progress.Message): Boolean = !message.verbose || verbose
+  final def do_output(msg: Progress.Msg): Boolean = !msg.verbose || verbose
 
-  def output(message: Progress.Message): Unit = {}
+  def output(msgs: Progress.Output): Unit = {}
+
+  final def output_text(msgs: Progress.Output, terminate: Boolean = false): String = {
+    val lines = msgs.flatMap(msg => if (do_output(msg)) Some(msg.message.output_text) else None)
+    if (terminate) Library.terminate_lines(lines) else cat_lines(lines)
+  }
 
   final def echo(msg: String, verbose: Boolean = false): Unit =
-    output(Progress.Message(Progress.Kind.writeln, msg, verbose = verbose))
+    output(List(Progress.Message(Progress.Kind.writeln, msg, verbose = verbose)))
   final def echo_warning(msg: String, verbose: Boolean = false): Unit =
-    output(Progress.Message(Progress.Kind.warning, msg, verbose = verbose))
+    output(List(Progress.Message(Progress.Kind.warning, msg, verbose = verbose)))
   final def echo_error_message(msg: String, verbose: Boolean = false): Unit =
-    output(Progress.Message(Progress.Kind.error_message, msg, verbose = verbose))
+    output(List(Progress.Message(Progress.Kind.error_message, msg, verbose = verbose)))
 
   final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 
-  def theory(theory: Progress.Theory): Unit = output(theory.message)
+  final def theory(theory: Progress.Theory): Unit = output(List(theory))
+
   def nodes_status(nodes_status: Progress.Nodes_Status): Unit = {}
 
   final def capture[A](e: => A, msg: String, err: Throwable => String): Exn.Result[A] = {
@@ -198,9 +213,9 @@ extends Progress with Progress.Status {
     Output.delete_lines(theories.length, stdout = !stderr)
   }
 
-  override def output(message: Progress.Message): Unit = synchronized {
-    if (do_output(message)) {
-      Output.output(message.output_text, stdout = !stderr, include_empty = true)
+  override def output(msgs: Progress.Output): Unit = synchronized {
+    for (msg <- msgs if do_output(msg)) {
+      Output.output(msg.message.output_text, stdout = !stderr, include_empty = true)
     }
   }
 
@@ -209,8 +224,9 @@ extends Progress with Progress.Status {
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
 extends Progress {
-  override def output(message: Progress.Message): Unit = synchronized {
-    if (do_output(message)) File.append(path, message.output_text + "\n")
+  override def output(msgs: Progress.Output): Unit = synchronized {
+    val txt = output_text(msgs, terminate = true)
+    if (txt.nonEmpty) File.append(path, txt)
   }
 
   override def toString: String = super.toString + ": " + path.toString

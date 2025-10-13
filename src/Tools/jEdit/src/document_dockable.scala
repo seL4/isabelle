@@ -102,7 +102,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         }
       }
 
-    override def output(message: Progress.Message): Unit = { super.output(message); delay.invoke() }
+    override def output(msgs: Progress.Output): Unit = { super.output(msgs); delay.invoke() }
     override def stop_program(): Unit = { super.stop_program(); delay.invoke() }
   }
 

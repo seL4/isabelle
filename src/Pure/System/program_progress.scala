@@ -81,15 +81,18 @@ abstract class Program_Progress(
 
   def detect_program(s: String): Option[String]
 
-  override def output(message: Progress.Message): Unit = synchronized {
-    val writeln_msg = if (message.kind == Progress.Kind.writeln) message.text else ""
-    detect_program(writeln_msg).map(Word.explode) match {
-      case Some(a :: bs) =>
-        stop_program()
-        start_program(a, Word.implode(bs))
-      case _ =>
-        if (_running_program.isEmpty) start_program(default_heading, default_title)
-        if (do_output(message)) _running_program.get.output(message)
+  override def output(msgs: Progress.Output): Unit = synchronized {
+    for (msg <- msgs) {
+      val message = msg.message
+      val writeln_msg = if (message.kind == Progress.Kind.writeln) message.text else ""
+      detect_program(writeln_msg).map(Word.explode) match {
+        case Some(a :: bs) =>
+          stop_program()
+          start_program(a, Word.implode(bs))
+        case _ =>
+          if (_running_program.isEmpty) start_program(default_heading, default_title)
+          if (do_output(message)) _running_program.get.output(message)
+      }
     }
   }
 }
