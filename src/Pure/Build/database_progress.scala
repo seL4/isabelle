@@ -156,7 +156,7 @@ class Database_Progress(
   context_uuid: String = UUID.random_string(),
   timeout: Option[Time] = None,
   tick_expire: Int = 50)
-extends Progress {
+extends Progress with Progress.Status {
   database_progress =>
 
   override def now(): Date = db.now()
@@ -310,9 +310,6 @@ extends Progress {
 
   override def output(message: Progress.Message): Unit = sync_context { _consumer.send(message) }
   override def theory(theory: Progress.Theory): Unit = sync_context { _consumer.send(theory) }
-
-  override def nodes_status(nodes_status: Progress.Nodes_Status): Unit =
-    base_progress.nodes_status(nodes_status)
 
   override def verbose: Boolean = base_progress.verbose
 
