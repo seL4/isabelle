@@ -46,7 +46,7 @@ object Session_Build {
 
     /* progress */
 
-    private val progress = new Progress {
+    private val progress = new Progress with Progress.Status {
       override def output(msgs: Progress.Output): Unit = {
         val txt = output_text(msgs.map(_.show_theory), terminate = true)
         if (txt.nonEmpty) {
