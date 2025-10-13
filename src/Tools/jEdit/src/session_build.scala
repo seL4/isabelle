@@ -43,6 +43,11 @@ object Session_Build {
 
     private val scroll_text = new ScrollPane(text)
 
+    private def scroll_end(): Unit = {
+      val vertical = scroll_text.peer.getVerticalScrollBar
+      vertical.setValue(vertical.getMaximum)
+    }
+
 
     /* progress */
 
@@ -52,8 +57,7 @@ object Session_Build {
         if (txt.nonEmpty) {
           GUI_Thread.later {
             text.append(txt)
-            val vertical = scroll_text.peer.getVerticalScrollBar
-            vertical.setValue(vertical.getMaximum)
+            scroll_end()
           }
         }
       }
