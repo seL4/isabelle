@@ -224,7 +224,7 @@ extends Progress with Progress.Status {
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
-extends Progress {
+extends Progress with Progress.Status {
   override def output(msgs: Progress.Output): Unit = synchronized {
     val txt = output_text(msgs, terminate = true)
     if (txt.nonEmpty) File.append(path, txt)
