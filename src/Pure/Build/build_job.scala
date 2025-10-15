@@ -219,12 +219,6 @@ object Build_Job {
       nodes_changed += state_id
       nodes_delay.invoke()
     }
-
-    def get_theory_timings(): List[Properties.T] = synchronized {
-      nodes_domain.map(name =>
-        Markup.Name(name.theory) :::
-        Markup.Timing_Properties(nodes_status(name).total_timing))
-    }
   }
 
   class Session_Job private[Build_Job](
