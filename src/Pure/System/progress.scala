@@ -78,21 +78,22 @@ object Progress {
     }
 
     def theory_progress(name: Document.Node.Name, check: (Int, Int) => Boolean): Option[Theory] = {
-      val old_percentage = if (old.isEmpty) 0 else old.get(name).percentage
       val thy = theory(name)
-      if (check(old_percentage, thy.percentage.getOrElse(0))) Some(thy) else None
+      val thy_percentage = thy.percentage.getOrElse(0)
+      val old_percentage = if (old.isEmpty) 0 else old.get(name).percentage
+      if (check(thy_percentage, old_percentage)) Some(thy) else None
     }
 
     def completed_theories: List[Theory] =
-      domain.flatMap(theory_progress(_, (p0, p) => p0 != p && p == 100))
+      domain.flatMap(theory_progress(_, (p, q) => p != q && p == 100))
 
     def status_theories: List[Theory] = {
-      val res = new mutable.ListBuffer[Theory]
+      val result = new mutable.ListBuffer[Theory]
       // pending theories
-      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 == p && p > 0)) res += thy
+      for (name <- domain; thy <- theory_progress(name, (p, q) => p == q && p > 0)) result += thy
       // running theories
-      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 != p && p < 100)) res += thy
-      res.toList
+      for (name <- domain; thy <- theory_progress(name, (p, q) => p != q && p < 100)) result += thy
+      result.toList
     }
   }
 
