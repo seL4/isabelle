@@ -53,7 +53,7 @@ object Session_Build {
 
     private val progress = new Progress with Progress.Status {
       override def output(msgs: Progress.Output): Unit = {
-        val txt = output_text(msgs.map(_.show_theory), terminate = true)
+        val txt = output_text(msgs.map(Progress.output_theory), terminate = true)
         if (txt.nonEmpty) {
           GUI_Thread.later {
             text.append(txt)

@@ -16,11 +16,16 @@ object Progress {
 
   sealed abstract class Msg {
     def verbose: Boolean
-    def show_theory: Msg
     def message: Message
   }
 
   type Output = List[Msg]
+
+  def output_theory(msg: Msg): Msg =
+    msg match {
+      case thy: Theory if thy.verbose => thy.copy(verbose = false)
+      case _ => msg
+    }
 
   enum Kind { case writeln, warning, error_message }
   sealed case class Message(
@@ -28,7 +33,6 @@ object Progress {
     text: String,
     override val verbose: Boolean = false
   ) extends Msg {
-    override def show_theory: Msg = this
     override def message: Message = this
 
     lazy val output_text: String =
@@ -48,7 +52,6 @@ object Progress {
     total_time: Time = Time.zero,
     override val verbose: Boolean = true
   ) extends Msg {
-    override def show_theory: Msg = copy(verbose = false)
     override def message: Message =
       Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
         verbose = verbose)
