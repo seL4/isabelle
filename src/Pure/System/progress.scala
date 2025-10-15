@@ -51,20 +51,20 @@ object Progress {
     theory: String,
     session: String = "",
     percentage: Option[Int] = None,
-    total_time: Time = Time.zero,
+    cumulated_time: Time = Time.zero,
     override val verbose: Boolean = true,
     override val status: Boolean = false
   ) extends Msg {
     override def message: Message =
-      Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
+      Message(Kind.writeln, print_session + print_theory + print_percentage + print_cumulated_time,
         verbose = verbose, status = status)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
     def print_percentage: String =
       percentage match { case None => "" case Some(p) => " " + p + "%" }
-    def print_total_time: String =
-      if (total_time.is_relevant) " (" + total_time.message + " elapsed time)" else ""
+    def print_cumulated_time: String =
+      if (cumulated_time.is_relevant) " (" + cumulated_time.message + " cumulated time)" else ""
   }
 
   sealed case class Nodes_Status(
@@ -80,7 +80,7 @@ object Progress {
       val node_status = apply(name)
       Theory(theory = name.theory, session = session,
         percentage = Some(node_status.percentage),
-        total_time = node_status.total_timing.elapsed)
+        cumulated_time = node_status.cumulated_time)
     }
 
     def theory_progress(name: Document.Node.Name, check: (Int, Int) => Boolean): Option[Theory] = {

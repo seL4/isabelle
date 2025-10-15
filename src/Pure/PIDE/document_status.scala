@@ -36,9 +36,9 @@ object Document_Status {
   /* command timings: for pro-forma command with actual commands at offset */
 
   object Command_Timings {
-    type Entry = (Symbol.Offset, Timing)
+    type Entry = (Symbol.Offset, Time)
     val empty: Command_Timings =
-      new Command_Timings(SortedMap.empty, Timing.zero)
+      new Command_Timings(SortedMap.empty, Time.zero)
     def make(args: IterableOnce[Entry]): Command_Timings =
       args.iterator.foldLeft(empty)(_ + _)
     def merge(args: IterableOnce[Command_Timings]): Command_Timings =
@@ -46,18 +46,18 @@ object Document_Status {
   }
 
   final class Command_Timings private(
-    private val rep: SortedMap[Symbol.Offset, Timing],
-    val sum: Timing
+    private val rep: SortedMap[Symbol.Offset, Time],
+    val sum: Time
   ) {
     def is_empty: Boolean = rep.isEmpty
     def count: Int = rep.size
-    def apply(offset: Symbol.Offset): Timing = rep.getOrElse(offset, Timing.zero)
-    def iterator: Iterator[(Symbol.Offset, Timing)] = rep.iterator
+    def apply(offset: Symbol.Offset): Time = rep.getOrElse(offset, Time.zero)
+    def iterator: Iterator[(Symbol.Offset, Time)] = rep.iterator
 
     def + (entry: Command_Timings.Entry): Command_Timings = {
-      val (offset, timing) = entry
-      val rep1 = rep + (offset -> (apply(offset) + timing))
-      val sum1 = sum + timing
+      val (offset, t) = entry
+      val rep1 = rep + (offset -> (apply(offset) + t))
+      val sum1 = sum + t
       new Command_Timings(rep1, sum1)
     }
 
@@ -182,8 +182,8 @@ object Document_Status {
           case Markup.TIMING =>
             val props = markup.properties
             val offset = Position.Offset.get(props)
-            val timing = Markup.Timing_Properties.get(props)
-            timings1 += (offset -> timing)
+            val t = Time.seconds(Markup.Elapsed.get(props))
+            timings1 += (offset -> t)
           case _ =>
         }
       }
@@ -243,7 +243,7 @@ object Document_Status {
       var finished = 0
       var canceled = false
       var terminated = true
-      var total_timing = Timing.zero
+      var cumulated_time = Time.zero
       var max_time = Time.zero
       var command_timings = Map.empty[Command, Command_Timings]
 
@@ -261,8 +261,8 @@ object Document_Status {
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
 
-        val t = status.timings.sum.elapsed
-        total_timing += status.timings.sum
+        val t = status.timings.sum
+        cumulated_time += t
         if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
       }
@@ -295,7 +295,7 @@ object Document_Status {
         finished = finished,
         canceled = canceled,
         terminated = terminated,
-        total_timing = total_timing,
+        cumulated_time = cumulated_time,
         max_time = max_time,
         threshold = threshold,
         command_timings = command_timings,
@@ -313,7 +313,7 @@ object Document_Status {
     finished: Int = 0,
     canceled: Boolean = false,
     terminated: Boolean = false,
-    total_timing: Timing = Timing.zero,
+    cumulated_time: Time = Time.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
     command_timings: Map[Command, Command_Timings] = Map.empty,

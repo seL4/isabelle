@@ -107,9 +107,10 @@ fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
 fun protocol name pos f x =
   let
-    val (t, result) = timing (Exn.result f) x;
-    val props = Markup.command_timing :: (Markup.nameN, name) :: Position.properties_of pos;
-    val _ = Output.try_protocol_message (props @ Markup.timing_properties t) [];
+    val ({elapsed, ...}, result) = timing (Exn.result f) x;
+    val props =
+       (Markup.nameN, name) :: (Markup.elapsedN, Time.print elapsed) :: Position.properties_of pos;
+    val _ = Output.try_protocol_message (Markup.command_timing :: props) [];
   in Exn.release result end;
 
 end;
