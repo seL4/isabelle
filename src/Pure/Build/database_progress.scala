@@ -303,7 +303,7 @@ extends Progress with Progress.Status {
 
   private def sync(): Unit = sync_database {}
 
-  override def output(msgs: Progress.Output): Unit = sync_context { _consumer.send(msgs) }
+  override def status_output(msgs: Progress.Output): Unit = sync_context { _consumer.send(msgs) }
 
   override def verbose: Boolean = base_progress.verbose
 

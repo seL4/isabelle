@@ -101,7 +101,7 @@ class Channel(
     val progress_verbose = verbose
     new Progress with Progress.Status {
       override val verbose: Boolean = progress_verbose
-      override def output(msgs: Progress.Output): Unit =
+      override def status_output(msgs: Progress.Output): Unit =
         for (msg <- msgs if do_output(msg)) {
           val message = msg.message
           message.kind match {

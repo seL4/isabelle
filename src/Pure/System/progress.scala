@@ -107,6 +107,8 @@ object Progress {
   /* status lines (e.g. at bottom of output) */
 
   trait Status extends Progress {
+    def status_output(msgs: Progress.Output): Unit
+
     def status_detailed: Boolean = false
     def status_hide(status: Progress.Output): Unit = ()
 
@@ -119,24 +121,24 @@ object Progress {
       status
     }
 
-    def status_output(status: Progress.Output): Unit = synchronized {
+    private def output_status(status: Progress.Output): Unit = synchronized {
       _status = Nil
-      output(status)
+      status_output(status)
       _status = status
     }
 
     override def output(msgs: Progress.Output): Unit = synchronized {
       if (msgs.exists(do_output)) {
         val status = status_clear()
-        super.output(msgs)
-        status_output(status)
+        status_output(msgs)
+        output_status(status)
       }
     }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
       status_clear()
       output(nodes_status.completed_theories)
-      status_output(if (status_detailed) nodes_status.status_theories else Nil)
+      output_status(if (status_detailed) nodes_status.status_theories else Nil)
     }
   }
 }
@@ -221,7 +223,7 @@ extends Progress with Progress.Status {
     Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)
   }
 
-  override def output(msgs: Progress.Output): Unit = synchronized {
+  override def status_output(msgs: Progress.Output): Unit = synchronized {
     for (msg <- msgs if do_output(msg)) {
       Output.output(msg.message.output_text, stdout = !stderr, include_empty = true)
     }
@@ -232,7 +234,7 @@ extends Progress with Progress.Status {
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
 extends Progress with Progress.Status {
-  override def output(msgs: Progress.Output): Unit = synchronized {
+  override def status_output(msgs: Progress.Output): Unit = synchronized {
     val txt = output_text(msgs, terminate = true)
     if (txt.nonEmpty) File.append(path, txt)
   }
