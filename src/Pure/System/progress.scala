@@ -16,6 +16,7 @@ object Progress {
 
   sealed abstract class Msg {
     def verbose: Boolean
+    def status: Boolean
     def message: Message
   }
 
@@ -31,7 +32,8 @@ object Progress {
   sealed case class Message(
     kind: Kind,
     text: String,
-    override val verbose: Boolean = false
+    override val verbose: Boolean = false,
+    override val status: Boolean = false
   ) extends Msg {
     override def message: Message = this
 
@@ -50,11 +52,12 @@ object Progress {
     session: String = "",
     percentage: Option[Int] = None,
     total_time: Time = Time.zero,
-    override val verbose: Boolean = true
+    override val verbose: Boolean = true,
+    override val status: Boolean = false
   ) extends Msg {
     override def message: Message =
       Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
-        verbose = verbose)
+        verbose = verbose, status = status)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
@@ -96,7 +99,7 @@ object Progress {
       for (name <- domain; thy <- theory_progress(name, (p, q) => p == q && p > 0)) result += thy
       // running theories
       for (name <- domain; thy <- theory_progress(name, (p, q) => p != q && p < 100)) result += thy
-      result.toList
+      result.toList.map(thy => thy.copy(status = true))
     }
   }
 
