@@ -100,7 +100,7 @@ object Progress {
   /* status lines (e.g. at bottom of output) */
 
   trait Status extends Progress {
-    def status_enabled: Boolean = false
+    def status_detailed: Boolean = false
     def status_hide(status: Progress.Output): Unit = ()
 
     protected var _status: Progress.Output = Nil
@@ -129,7 +129,7 @@ object Progress {
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
       status_clear()
       output(nodes_status.completed_theories)
-      status_output(if (status_enabled) nodes_status.status_theories else Nil)
+      status_output(if (status_detailed) nodes_status.status_theories else Nil)
     }
   }
 }
@@ -208,7 +208,7 @@ class Console_Progress(
   detailed: Boolean = false,
   stderr: Boolean = false)
 extends Progress with Progress.Status {
-  override def status_enabled: Boolean = detailed
+  override def status_detailed: Boolean = detailed
   override def status_hide(status: Progress.Output): Unit = synchronized {
     val txt = output_text(status, terminate = true)
     Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)
