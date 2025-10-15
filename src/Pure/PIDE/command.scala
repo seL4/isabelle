@@ -250,18 +250,15 @@ object Command {
       new Command(id, command.node_name, command.blobs_info, command.span, command.source,
         results, exports, markups, document_status)
 
-    private def add_status(st: Markup): State = {
-      val document_status1 = document_status.update(markups = List(st))
-      new State(command, results, exports, markups, document_status1)
-    }
+    private def add_status(st: Markup): State =
+      new State(command, results, exports, markups,
+        document_status.update(markups = List(st)))
 
-    private def add_result(entry: Results.Entry): State = {
-      val document_status1 =
+    private def add_result(entry: Results.Entry): State =
+      new State(command, results + entry, exports, markups,
         document_status.update(
           warned = Results.warned(entry),
-          failed = Results.failed(entry))
-      new State(command, results + entry, exports, markups, document_status1)
-    }
+          failed = Results.failed(entry)))
 
     def add_export(entry: Exports.Entry): Option[State] =
       if (command.node_name.theory == entry._2.theory_name) {
@@ -289,7 +286,7 @@ object Command {
         message: XML.Elem,
         cache: XML.Cache): State =
       message match {
-        case XML.Elem(markup @ Markup(Markup.TIMING, _), _) => add_status(markup)
+        case XML.Elem(markup@Markup(Markup.TIMING, _), _) => add_status(markup)
 
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
