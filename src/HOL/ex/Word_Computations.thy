@@ -73,4 +73,19 @@ definition results_bit where
 lemma \<open>computations_bit = results_bit\<close>
   by (simp add: eval)
 
+definition computations_ranges where
+  \<open>computations_ranges = [
+    \<forall>w :: word16 \<in> {0..31}. (w AND 63) = (w AND 31),
+    \<forall>w :: word32 \<in> {0..31}. (w AND 63) = (w AND 31)
+  ]\<close>
+
+definition results_ranges where
+  \<open>results_ranges = [
+    True,
+    True
+  ]\<close>
+
+lemma \<open>computations_ranges = results_ranges\<close>
+  by eval
+
 end
