@@ -213,7 +213,8 @@ object Build_Job {
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
       val elapsed = Time.seconds(Markup.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
-        write_process_output(Protocol.Command_Timing_Marker(props))
+        write_process_output(
+          Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_property)))
       }
 
       nodes_changed += state_id
