@@ -179,7 +179,7 @@ object Document_Status {
           case Markup.WARNING | Markup.LEGACY => warned1 = true
           case Markup.FAILED | Markup.ERROR => failed1 = true
           case Markup.CANCELED => canceled1 = true
-          case Markup.TIMING =>
+          case Markup.Command_Timing.name =>
             val props = markup.properties
             val offset = Position.Offset.get(props)
             val t = Time.seconds(Markup.Elapsed.get(props))

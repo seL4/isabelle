@@ -514,8 +514,6 @@ object Markup {
     }
   }
 
-  val TIMING = "timing"
-
 
   /* process result */
 
