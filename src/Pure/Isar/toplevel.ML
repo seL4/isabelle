@@ -731,14 +731,13 @@ fun future_proofs_enabled estimate st =
         else Future.proofs_enabled 2 orelse Future.proofs_enabled_timing estimate));
 
 val empty_markers = markers [];
-val empty_trans = reset_trans #> keep (K ());
 
 fun command tr st =
   command_exception (Options.default_bool \<^system_option>\<open>show_results\<close>) tr st;
 
 in
 
-fun fork_presentation tr = (tr |> empty_markers, tr |> empty_trans);
+fun fork_presentation tr = (tr |> empty_markers, ignored (pos_of tr));
 
 fun atom_result keywords tr st =
   let
