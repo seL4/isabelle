@@ -225,7 +225,9 @@ extends Progress with Progress.Status {
 
   override def status_output(msgs: Progress.Output): Unit = synchronized {
     for (msg <- msgs if do_output(msg)) {
-      Output.output(msg.message.output_text, stdout = !stderr, include_empty = true)
+      val txt0 = msg.message.output_text
+      val txt1 = if (msg.status) "\u001b[7m" + txt0 + "\u001b[27m" else txt0
+      Output.output(txt1, stdout = !stderr, include_empty = true)
     }
   }
 
