@@ -169,7 +169,7 @@ object Build {
 
   /* build */
 
-  def progress_detailed(options: Options): Boolean = options.bool("build_progress")
+  def progress_detailed(options: Options): Boolean = options.bool("build_progress_detailed")
 
   def build(
     options: Options,
