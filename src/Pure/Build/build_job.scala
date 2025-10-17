@@ -214,7 +214,7 @@ object Build_Job {
       val elapsed = Time.seconds(Markup.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
         write_process_output(
-          Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_property)))
+          Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_export)))
       }
 
       nodes_changed += state_id
