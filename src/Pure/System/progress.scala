@@ -21,6 +21,7 @@ object Progress {
   }
 
   type Output = List[Msg]
+  type Session_Output = List[(String, Msg)]
 
   def output_theory(msg: Msg): Msg =
     msg match {
@@ -115,18 +116,18 @@ object Progress {
     def status_detailed: Boolean = false
     def status_hide(status: Progress.Output): Unit = ()
 
-    protected var _status: Progress.Output = Nil
+    protected var _status: Progress.Session_Output = Nil
 
-    def status_clear(): Progress.Output = synchronized {
+    def status_clear(): Progress.Session_Output = synchronized {
       val status = _status
       _status = Nil
-      status_hide(status)
+      status_hide(status.map(_._2))
       status
     }
 
-    private def output_status(status: Progress.Output): Unit = synchronized {
+    private def output_status(status: Progress.Session_Output): Unit = synchronized {
       _status = Nil
-      status_output(status)
+      status_output(status.map(_._2))
       _status = status
     }
 
@@ -139,9 +140,16 @@ object Progress {
     }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
-      status_clear()
+      val old_status = status_clear()
+
+      val session = nodes_status.session
+      val new_status =
+        (old_status.filterNot(p => p._1 == session) :::
+          (if (status_detailed) nodes_status.status_theories.map((session, _)) else Nil))
+        .sortBy(_._1)
+
       output(nodes_status.completed_theories)
-      output_status(if (status_detailed) nodes_status.status_theories else Nil)
+      output_status(new_status)
     }
   }
 }
