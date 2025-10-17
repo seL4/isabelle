@@ -164,6 +164,7 @@ object Build_Job {
       val state = get_state()
       val result =
         synchronized {
+          for (id <- state.progress_theories) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
               state.theory_snapshot(state_id, build_blobs) match {
@@ -191,7 +192,8 @@ object Build_Job {
       result.foreach(progress.nodes_status)
     }
 
-    private val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }
+    private lazy val nodes_delay: Delay =
+      Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
 
     def nodes_status_sync(): Unit = {
       nodes_delay.revoke()
