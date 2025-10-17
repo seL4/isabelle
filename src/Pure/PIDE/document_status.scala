@@ -39,8 +39,6 @@ object Document_Status {
     type Entry = (Symbol.Offset, Time)
     val empty: Command_Timings =
       new Command_Timings(SortedMap.empty, Time.zero)
-    def make(args: IterableOnce[Entry]): Command_Timings =
-      args.iterator.foldLeft(empty)(_ + _)
     def merge(args: IterableOnce[Command_Timings]): Command_Timings =
       args.iterator.foldLeft(empty)(_ ++ _)
   }
