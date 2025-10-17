@@ -560,6 +560,8 @@ object Markup {
   val CONSOLIDATING = "consolidating"
   val CONSOLIDATED = "consolidated"
 
+  val command_running: Properties.Entry = (COMMAND, RUNNING)
+
 
   /* interactive documents */
 

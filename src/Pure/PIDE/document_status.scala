@@ -38,38 +38,49 @@ object Document_Status {
   object Command_Timings {
     type Entry = (Symbol.Offset, Time)
     val empty: Command_Timings =
-      new Command_Timings(SortedMap.empty, Time.zero)
+      new Command_Timings(SortedMap.empty, SortedMap.empty, Time.zero)
     def merge(args: IterableOnce[Command_Timings]): Command_Timings =
       args.iterator.foldLeft(empty)(_ ++ _)
   }
 
   final class Command_Timings private(
-    private val rep: SortedMap[Symbol.Offset, Time],
-    val sum: Time
+    private val running: SortedMap[Symbol.Offset, Time],  // start time (in Scala)
+    private val finished: SortedMap[Symbol.Offset, Time],  // elapsed time (in ML)
+    private val sum_finished: Time
   ) {
-    def is_empty: Boolean = rep.isEmpty
-    def count: Int = rep.size
-    def apply(offset: Symbol.Offset): Time = rep.getOrElse(offset, Time.zero)
-    def iterator: Iterator[(Symbol.Offset, Time)] = rep.iterator
+    def is_empty: Boolean = running.isEmpty && finished.isEmpty
 
-    def + (entry: Command_Timings.Entry): Command_Timings = {
+    def has_running: Boolean = running.nonEmpty
+    def add_running(entry: Command_Timings.Entry): Command_Timings =
+      new Command_Timings(running + entry, finished, sum_finished)
+
+    def count_finished: Int = finished.size
+    def get_finished(offset: Symbol.Offset): Time = finished.getOrElse(offset, Time.zero)
+    def add_finished(entry: Command_Timings.Entry): Command_Timings = {
       val (offset, t) = entry
-      val rep1 = rep + (offset -> (apply(offset) + t))
-      val sum1 = sum + t
-      new Command_Timings(rep1, sum1)
+      val running1 = running - offset
+      val finished1 = finished + (offset -> (get_finished(offset) + t))
+      val sum_finished1 = sum_finished + t
+      new Command_Timings(running1, finished1, sum_finished1)
     }
 
-    def ++ (other: Command_Timings): Command_Timings =
-      if (rep.isEmpty) other
-      else other.rep.foldLeft(this)(_ + _)
+    def sum(now: Time): Time =
+      running.valuesIterator.foldLeft(sum_finished)({ case (t, t0) => t + (now - t0) })
 
-    override def hashCode: Int = rep.hashCode
+    def ++ (other: Command_Timings): Command_Timings =
+      if (is_empty) other
+      else other.running.foldLeft(other.finished.foldLeft(this)(_ add_finished _))(_ add_running _)
+
+
+    override def hashCode: Int = (running, finished).hashCode
     override def equals(that: Any): Boolean =
       that match {
-        case other: Command_Timings => rep == other.rep
+        case other: Command_Timings => running == other.running && finished == other.finished
         case _ => false
       }
-    override def toString: String = rep.mkString("Command_Timings(", ", ", ")")
+    override def toString: String =
+      running.mkString("Command_Timings(running = (", ", ", "), ") +
+      finished.mkString("finished = (", ", ", "))")
   }
 
 
@@ -96,11 +107,12 @@ object Document_Status {
         timings = Command_Timings.empty)
 
     def make(
+      now: Time,
       markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
     ): Command_Status = {
-      empty.update(markups = markups, warned = warned, failed = failed)
+      empty.update(now, markups = markups, warned = warned, failed = failed)
     }
 
     def merge(args: IterableOnce[Command_Status]): Command_Status =
@@ -146,6 +158,7 @@ object Document_Status {
       }
 
     def update(
+      now: Time,
       markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
@@ -180,8 +193,10 @@ object Document_Status {
           case Markup.Command_Timing.name =>
             val props = markup.properties
             val offset = Position.Offset.get(props)
-            val t = Time.seconds(Markup.Elapsed.get(props))
-            timings1 += (offset -> t)
+            val running = props.contains(Markup.command_running)
+            timings1 =
+              if (running) timings1.add_running(offset -> now)
+              else timings1.add_finished(offset -> Time.seconds(Markup.Elapsed.get(props)))
           case _ =>
         }
       }
@@ -231,6 +246,8 @@ object Document_Status {
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Node_Status = {
+      val now = Time.now()
+
       val node = version.nodes(name)
 
       var theory_status = Document_Status.Theory_Status.NONE
@@ -259,7 +276,7 @@ object Document_Status {
         if (status.is_canceled) canceled = true
         if (!status.is_terminated) terminated = false
 
-        val t = status.timings.sum
+        val t = status.timings.sum(now)
         cumulated_time += t
         if (t > max_time) max_time = t
         if (t.is_notable(threshold)) command_timings += (command -> status.timings)
@@ -278,7 +295,7 @@ object Document_Status {
             }
           case Some(command) =>
             val total = command.span.theory_commands
-            val processed = state.command_status(version, command).timings.count
+            val processed = state.command_status(version, command).timings.count_finished
             percent(processed, total)
         }
       }

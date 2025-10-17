@@ -223,6 +223,7 @@ sig
   val finalizedN: string val finalized: T
   val consolidatingN: string val consolidating: T
   val consolidatedN: string val consolidated: T
+  val command_running: Properties.entry
   val exec_idN: string
   val urgent_properties: Properties.T
   val initN: string
@@ -754,6 +755,8 @@ val (initializedN, initialized) = markup_elem "initialized";
 val (finalizedN, finalized) = markup_elem "finalized";
 val (consolidatingN, consolidating) = markup_elem "consolidating";
 val (consolidatedN, consolidated) = markup_elem "consolidated";
+
+val command_running = (commandN, runningN);
 
 
 (* messages *)
