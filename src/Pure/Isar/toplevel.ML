@@ -627,7 +627,7 @@ fun show_state tr (st', opt_err) =
 fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
     ((apply_capture int name markers trans
-        |> not (is_ignored tr) ? Timing.protocol (name_of tr) (pos_of tr))
+        |> not (is_ignored tr) ? Timing.command_timing (name_of tr) (pos_of tr))
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state tr);
 

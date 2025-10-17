@@ -24,7 +24,7 @@ sig
   val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
-  val protocol: string -> Position.T -> ('a -> 'b) -> 'a -> 'b
+  val command_timing: string -> Position.T -> ('a -> 'b) -> 'a -> 'b
 end
 
 structure Timing: TIMING =
@@ -105,7 +105,7 @@ fun timeit e = cond_timeit true "" e;
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
-fun protocol name pos f x =
+fun command_timing name pos f x =
   let
     val bs = (Markup.nameN, name) :: Position.properties_of pos;
     fun message timing =
