@@ -76,31 +76,34 @@ object Progress {
     def apply(name: Document.Node.Name): Document_Status.Node_Status =
       document_status(name)
 
-    def theory(name: Document.Node.Name): Theory = {
-      val node_status = apply(name)
+    def theory(
+      name: Document.Node.Name,
+      node_status: Document_Status.Node_Status,
+      status: Boolean = false): Theory =
       Theory(theory = name.theory, session = session,
         percentage = Some(node_status.percentage),
-        cumulated_time = node_status.cumulated_time)
-    }
+        cumulated_time = node_status.cumulated_time,
+        status = status)
 
-    def theory_progress(name: Document.Node.Name, check: (Int, Int) => Boolean): Option[Theory] = {
-      val thy = theory(name)
-      val thy_percentage = thy.percentage.getOrElse(0)
-      val old_percentage = if (old.isEmpty) 0 else old.get(name).percentage
-      if (check(thy_percentage, old_percentage)) Some(thy) else None
-    }
+    def old_percentage(name: Document.Node.Name): Int =
+      if (old.isEmpty) 0 else old.get(name).percentage
 
     def completed_theories: List[Theory] =
-      domain.flatMap(theory_progress(_, (p, q) => p != q && p == 100))
+      domain.flatMap({ name =>
+        val st = apply(name)
+        val p = st.percentage
+        if (p == 100 && p != old_percentage(name)) Some(theory(name, st)) else None
+      })
 
-    def status_theories: List[Theory] = {
-      val result = new mutable.ListBuffer[Theory]
-      // pending theories
-      for (name <- domain; thy <- theory_progress(name, (p, q) => p == q && p > 0)) result += thy
-      // running theories
-      for (name <- domain; thy <- theory_progress(name, (p, q) => p != q && p < 100)) result += thy
-      result.toList.map(thy => thy.copy(status = true))
-    }
+    def status_theories: List[Theory] =
+      domain.flatMap({ name =>
+        val st = apply(name)
+        val p = st.percentage
+        if (st.progress || (p < 100 && p != old_percentage(name))) {
+          Some(theory(name, st, status = true))
+        }
+        else None
+      })
   }
 
 

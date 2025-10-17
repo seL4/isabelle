@@ -341,6 +341,8 @@ object Document_Status {
 
     def quasi_consolidated: Boolean = !suppressed && !finalized && terminated
 
+    def progress: Boolean = running > 0 || command_timings.valuesIterator.exists(_.has_running)
+
     def started: Boolean = percentage == 0
     def completed: Boolean = percentage == 100
 
