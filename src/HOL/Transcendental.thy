@@ -2399,6 +2399,9 @@ lemma powr_one_eq_one [simp]: "1 powr a = 1"
 lemma powr_zero_eq_one [simp]: "x powr 0 = (if x = 0 then 0 else 1)"
   by (simp add: powr_def)
 
+lemma powr_eq_one_iff_gen[simp]: "a powr x = 1 \<longleftrightarrow> x = 0" if "a > 0" "a \<noteq> 1" for a x :: real
+  using that by (simp add: powr_def)
+
 lemma powr_one_gt_zero_iff [simp]: "x powr 1 = x \<longleftrightarrow> 0 \<le> x"
   for x :: real
   by (auto simp: powr_def)
@@ -2940,6 +2943,10 @@ lemma powr_less_mono2_neg: "a < 0 \<Longrightarrow> 0 < x \<Longrightarrow> x < 
 lemma powr_mono2: "x powr a \<le> y powr a" if "0 \<le> a" "0 \<le> x" "x \<le> y"
   for x :: real
   using less_eq_real_def powr_less_mono2 that by auto
+
+lemma powr_less_cancel2: "0 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < y \<Longrightarrow> x powr a < y powr a \<Longrightarrow> x < y"
+  for a x y ::real
+  by (metis less_le not_less_iff_gr_or_eq powr_less_mono2)
 
 lemma powr01_less_one: 
   fixes x::real 

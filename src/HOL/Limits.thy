@@ -1249,6 +1249,34 @@ lemma continuous_on_divide[continuous_intros]:
   shows "continuous_on s (\<lambda>x. (f x) / (g x))"
   using assms unfolding continuous_on_def by (blast intro: tendsto_divide)
 
+lemma continuous_cmult_left_iff:
+  fixes c::"'a::real_normed_field"
+  assumes "c \<noteq> 0"
+  shows "continuous F (\<lambda>x. c * f x) \<longleftrightarrow> continuous F f"
+  by (simp add: assms continuous_def)
+
+lemma continuous_cmult_right_iff:
+  fixes c::"'a::real_normed_field"
+  assumes "c \<noteq> 0"
+  shows "continuous F (\<lambda>x. f x * c) \<longleftrightarrow> continuous F f"
+  by (simp add: assms continuous_def)
+
+lemma continuous_cdivide_iff:
+  fixes c::"'a::real_normed_field"
+  assumes "c \<noteq> 0"
+  shows "continuous F (\<lambda>x. f x / c) \<longleftrightarrow> continuous F f"
+  using assms by (auto simp: continuous_def divide_inverse)
+
+lemma continuous_cong:
+  assumes "eventually (\<lambda>x. f x = g x) F" "f (Lim F (\<lambda>x. x)) = g (Lim F (\<lambda>x. x))"
+  shows "continuous F f \<longleftrightarrow> continuous F g"
+  unfolding continuous_def using assms filterlim_cong by force
+
+lemma continuous_at_within_cong:
+  assumes "f x = g x" "eventually (\<lambda>x. f x = g x) (at x within S)"
+  shows "continuous (at x within S) f \<longleftrightarrow> continuous (at x within S) g"
+  using assms by (simp add: continuous_within filterlim_cong)
+
 lemma tendsto_power_int [tendsto_intros]:
   fixes a :: "'a::real_normed_div_algebra"
   assumes f: "(f \<longlongrightarrow> a) F"

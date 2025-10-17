@@ -29,36 +29,36 @@ context ord
 begin
 
 definition
-  lessThan    :: "'a => 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{..<_})\<close>) where
+  lessThan    :: "'a \<Rightarrow> 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{..<_})\<close>) where
   "{..<u} == {x. x < u}"
 
 definition
-  atMost      :: "'a => 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{.._})\<close>) where
+  atMost      :: "'a \<Rightarrow> 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{.._})\<close>) where
   "{..u} == {x. x \<le> u}"
 
 definition
-  greaterThan :: "'a => 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_<..})\<close>) where
+  greaterThan :: "'a \<Rightarrow> 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_<..})\<close>) where
   "{l<..} == {x. l<x}"
 
 definition
-  atLeast     :: "'a => 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_..})\<close>) where
+  atLeast     :: "'a \<Rightarrow> 'a set" (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_..})\<close>) where
   "{l..} == {x. l\<le>x}"
 
 definition
-  greaterThanLessThan :: "'a => 'a => 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<..<_})\<close>) where
-  "{l<..<u} == {l<..} Int {..<u}"
+  greaterThanLessThan :: "'a \<Rightarrow> 'a \<Rightarrow> 'a set"  (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<..<_})\<close>) where
+  "{l<..<u} == {l<..} \<inter> {..<u}"
 
 definition
-  atLeastLessThan :: "'a => 'a => 'a set"      (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/..<_})\<close>) where
-  "{l..<u} == {l..} Int {..<u}"
+  atLeastLessThan :: "'a \<Rightarrow> 'a \<Rightarrow> 'a set"      (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/..<_})\<close>) where
+  "{l..<u} == {l..} \<inter> {..<u}"
 
 definition
-  greaterThanAtMost :: "'a => 'a => 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<.._})\<close>) where
-  "{l<..u} == {l<..} Int {..u}"
+  greaterThanAtMost :: "'a \<Rightarrow> 'a \<Rightarrow> 'a set"    (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/<.._})\<close>) where
+  "{l<..u} == {l<..} \<inter> {..u}"
 
 definition
-  atLeastAtMost :: "'a => 'a => 'a set"        (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/.._})\<close>) where
-  "{l..u} == {l..} Int {..u}"
+  atLeastAtMost :: "'a \<Rightarrow> 'a \<Rightarrow> 'a set"        (\<open>(\<open>indent=1 notation=\<open>mixfix set interval\<close>\<close>{_/.._})\<close>) where
+  "{l..u} == {l..} \<inter> {..u}"
 
 end
 
@@ -67,22 +67,22 @@ text\<open>A note of warning when using \<^term>\<open>{..<n}\<close> on type \<
 \<^term>\<open>{m..<n}\<close> may not exist in \<^term>\<open>{..<n}\<close>-form as well.\<close>
 
 syntax (ASCII)
-  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder UN\<close>\<close>UN _<=_./ _)\<close> [0, 0, 10] 10)
-  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder UN\<close>\<close>UN _<_./ _)\<close> [0, 0, 10] 10)
-  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder INT\<close>\<close>INT _<=_./ _)\<close> [0, 0, 10] 10)
-  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder INT\<close>\<close>INT _<_./ _)\<close> [0, 0, 10] 10)
+  "_UNION_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder UN\<close>\<close>UN _<=_./ _)\<close> [0, 0, 10] 10)
+  "_UNION_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder UN\<close>\<close>UN _<_./ _)\<close> [0, 0, 10] 10)
+  "_INTER_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder INT\<close>\<close>INT _<=_./ _)\<close> [0, 0, 10] 10)
+  "_INTER_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder INT\<close>\<close>INT _<_./ _)\<close> [0, 0, 10] 10)
 
 syntax (latex output)
-  "_UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       (\<open>(3\<Union>(\<open>unbreakable\<close>_ \<le> _)/ _)\<close> [0, 0, 10] 10)
-  "_UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       (\<open>(3\<Union>(\<open>unbreakable\<close>_ < _)/ _)\<close> [0, 0, 10] 10)
-  "_INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       (\<open>(3\<Inter>(\<open>unbreakable\<close>_ \<le> _)/ _)\<close> [0, 0, 10] 10)
-  "_INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       (\<open>(3\<Inter>(\<open>unbreakable\<close>_ < _)/ _)\<close> [0, 0, 10] 10)
+  "_UNION_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(3\<Union>(\<open>unbreakable\<close>_ \<le> _)/ _)\<close> [0, 0, 10] 10)
+  "_UNION_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(3\<Union>(\<open>unbreakable\<close>_ < _)/ _)\<close> [0, 0, 10] 10)
+  "_INTER_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(3\<Inter>(\<open>unbreakable\<close>_ \<le> _)/ _)\<close> [0, 0, 10] 10)
+  "_INTER_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(3\<Inter>(\<open>unbreakable\<close>_ < _)/ _)\<close> [0, 0, 10] 10)
 
 syntax
-  "_UNION_le"   :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Union>\<close>\<close>\<Union>_\<le>_./ _)\<close> [0, 0, 10] 10)
-  "_UNION_less" :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Union>\<close>\<close>\<Union>_<_./ _)\<close> [0, 0, 10] 10)
-  "_INTER_le"   :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Inter>\<close>\<close>\<Inter>_\<le>_./ _)\<close> [0, 0, 10] 10)
-  "_INTER_less" :: "'a => 'a => 'b set => 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Inter>\<close>\<close>\<Inter>_<_./ _)\<close> [0, 0, 10] 10)
+  "_UNION_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Union>\<close>\<close>\<Union>_\<le>_./ _)\<close> [0, 0, 10] 10)
+  "_UNION_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Union>\<close>\<close>\<Union>_<_./ _)\<close> [0, 0, 10] 10)
+  "_INTER_le"   :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Inter>\<close>\<close>\<Inter>_\<le>_./ _)\<close> [0, 0, 10] 10)
+  "_INTER_less" :: "'a \<Rightarrow> 'a \<Rightarrow> 'b set \<Rightarrow> 'b set"       (\<open>(\<open>indent=3 notation=\<open>binder \<Inter>\<close>\<close>\<Inter>_<_./ _)\<close> [0, 0, 10] 10)
 
 syntax_consts
   "_UNION_le" "_UNION_less" \<rightleftharpoons> Union and
@@ -126,7 +126,7 @@ lemma Compl_atLeast [simp]: "!!k:: 'a::linorder. -atLeast k = lessThan k"
 lemma (in ord) atMost_iff [iff]: "(i \<in> atMost k) = (i<=k)"
 by (simp add: atMost_def)
 
-lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
+lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n \<inter> atLeast n = {n}"
 by (blast intro: order_antisym)
 
 lemma (in linorder) lessThan_Int_lessThan: "{ a <..} \<inter> { b <..} = { max a b <..}"
@@ -292,10 +292,10 @@ lemma atLeastLessThan_empty[simp]:
   "b \<le> a \<Longrightarrow> {a..<b} = {}"
   by(auto simp: atLeastLessThan_def)
 
-lemma greaterThanAtMost_empty[simp]: "l \<le> k ==> {k<..l} = {}"
+lemma greaterThanAtMost_empty[simp]: "l \<le> k \<Longrightarrow> {k<..l} = {}"
   by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
-lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
+lemma greaterThanLessThan_empty[simp]:"l \<le> k \<Longrightarrow> {k<..<l} = {}"
   by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
@@ -729,28 +729,43 @@ subsubsection \<open>Intersection\<close>
 context linorder
 begin
 
-lemma Int_atLeastAtMost[simp]: "{a..b} Int {c..d} = {max a c .. min b d}"
+lemma Icc_minus_Ico [simp]:
+  assumes "a \<le> b"
+  shows  "{a..b'} - {a..<b} = {b..b'}"
+  using assms by auto
+
+lemma Icc_minus_Ioc [simp]:
+  assumes "a \<le> b"
+  shows "{a'..b} - {a<..b} = {a'..a}"
+  using assms by auto
+
+lemma Icc_minus_Ioo [simp]:
+  assumes "a \<le> b"
+  shows  "{a..b} - {a<..<b} = {a,b}"
+  using assms by auto
+
+lemma Int_atLeastAtMost[simp]: "{a..b} \<inter> {c..d} = {max a c .. min b d}"
 by auto
 
-lemma Int_atLeastAtMostR1[simp]: "{..b} Int {c..d} = {c .. min b d}"
+lemma Int_atLeastAtMostR1[simp]: "{..b} \<inter> {c..d} = {c .. min b d}"
 by auto
 
-lemma Int_atLeastAtMostR2[simp]: "{a..} Int {c..d} = {max a c .. d}"
+lemma Int_atLeastAtMostR2[simp]: "{a..} \<inter> {c..d} = {max a c .. d}"
 by auto
 
-lemma Int_atLeastAtMostL1[simp]: "{a..b} Int {..d} = {a .. min b d}"
+lemma Int_atLeastAtMostL1[simp]: "{a..b} \<inter> {..d} = {a .. min b d}"
 by auto
 
-lemma Int_atLeastAtMostL2[simp]: "{a..b} Int {c..} = {max a c .. b}"
+lemma Int_atLeastAtMostL2[simp]: "{a..b} \<inter> {c..} = {max a c .. b}"
 by auto
 
-lemma Int_atLeastLessThan[simp]: "{a..<b} Int {c..<d} = {max a c ..< min b d}"
+lemma Int_atLeastLessThan[simp]: "{a..<b} \<inter> {c..<d} = {max a c ..< min b d}"
 by auto
 
-lemma Int_greaterThanAtMost[simp]: "{a<..b} Int {c<..d} = {max a c <.. min b d}"
+lemma Int_greaterThanAtMost[simp]: "{a<..b} \<inter> {c<..d} = {max a c <.. min b d}"
 by auto
 
-lemma Int_greaterThanLessThan[simp]: "{a<..<b} Int {c<..<d} = {max a c <..< min b d}"
+lemma Int_greaterThanLessThan[simp]: "{a<..<b} \<inter> {c<..<d} = {max a c <..< min b d}"
 by auto
 
 lemma Int_atMost[simp]: "{..a} \<inter> {..b} = {.. min a b}"
@@ -1762,45 +1777,45 @@ subsubsection \<open>Disjoint Unions\<close>
 text \<open>Singletons and open intervals\<close>
 
 lemma ivl_disj_un_singleton:
-  "{l::'a::linorder} Un {l<..} = {l..}"
-  "{..<u} Un {u::'a::linorder} = {..u}"
-  "(l::'a::linorder) < u ==> {l} Un {l<..<u} = {l..<u}"
-  "(l::'a::linorder) < u ==> {l<..<u} Un {u} = {l<..u}"
-  "(l::'a::linorder) \<le> u ==> {l} Un {l<..u} = {l..u}"
-  "(l::'a::linorder) \<le> u ==> {l..<u} Un {u} = {l..u}"
+  "{l::'a::linorder} \<union> {l<..} = {l..}"
+  "{..<u} \<union> {u::'a::linorder} = {..u}"
+  "(l::'a::linorder) < u \<Longrightarrow> {l} \<union> {l<..<u} = {l..<u}"
+  "(l::'a::linorder) < u \<Longrightarrow> {l<..<u} \<union> {u} = {l<..u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {l} \<union> {l<..u} = {l..u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {l..<u} \<union> {u} = {l..u}"
 by auto
 
 text \<open>One- and two-sided intervals\<close>
 
 lemma ivl_disj_un_one:
-  "(l::'a::linorder) < u ==> {..l} Un {l<..<u} = {..<u}"
-  "(l::'a::linorder) \<le> u ==> {..<l} Un {l..<u} = {..<u}"
-  "(l::'a::linorder) \<le> u ==> {..l} Un {l<..u} = {..u}"
-  "(l::'a::linorder) \<le> u ==> {..<l} Un {l..u} = {..u}"
-  "(l::'a::linorder) \<le> u ==> {l<..u} Un {u<..} = {l<..}"
-  "(l::'a::linorder) < u ==> {l<..<u} Un {u..} = {l<..}"
-  "(l::'a::linorder) \<le> u ==> {l..u} Un {u<..} = {l..}"
-  "(l::'a::linorder) \<le> u ==> {l..<u} Un {u..} = {l..}"
+  "(l::'a::linorder) < u \<Longrightarrow> {..l} \<union> {l<..<u} = {..<u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {..<l} \<union> {l..<u} = {..<u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {..l} \<union> {l<..u} = {..u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {..<l} \<union> {l..u} = {..u}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {l<..u} \<union> {u<..} = {l<..}"
+  "(l::'a::linorder) < u \<Longrightarrow> {l<..<u} \<union> {u..} = {l<..}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {l..u} \<union> {u<..} = {l..}"
+  "(l::'a::linorder) \<le> u \<Longrightarrow> {l..<u} \<union> {u..} = {l..}"
 by auto
 
 text \<open>Two- and two-sided intervals\<close>
 
 lemma ivl_disj_un_two:
-  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..<m} Un {m..<u} = {l<..<u}"
-  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l<..m} Un {m<..<u} = {l<..<u}"
-  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..<m} Un {m..<u} = {l..<u}"
-  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l..m} Un {m<..<u} = {l..<u}"
-  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..<m} Un {m..u} = {l<..u}"
-  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l<..m} Un {m<..u} = {l<..u}"
-  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..<m} Un {m..u} = {l..u}"
-  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..m} Un {m<..u} = {l..u}"
+  "\<lbrakk>(l::'a::linorder) < m; m \<le> u\<rbrakk> \<Longrightarrow> {l<..<m} \<union> {m..<u} = {l<..<u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m < u\<rbrakk> \<Longrightarrow> {l<..m} \<union> {m<..<u} = {l<..<u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m \<le> u\<rbrakk> \<Longrightarrow> {l..<m} \<union> {m..<u} = {l..<u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m < u\<rbrakk> \<Longrightarrow> {l..m} \<union> {m<..<u} = {l..<u}"
+  "\<lbrakk>(l::'a::linorder) < m; m \<le> u\<rbrakk> \<Longrightarrow> {l<..<m} \<union> {m..u} = {l<..u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m \<le> u\<rbrakk> \<Longrightarrow> {l<..m} \<union> {m<..u} = {l<..u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m \<le> u\<rbrakk> \<Longrightarrow> {l..<m} \<union> {m..u} = {l..u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m \<le> u\<rbrakk> \<Longrightarrow> {l..m} \<union> {m<..u} = {l..u}"
 by auto
 
 lemma ivl_disj_un_two_touch:
-  "[| (l::'a::linorder) < m; m < u |] ==> {l<..m} Un {m..<u} = {l<..<u}"
-  "[| (l::'a::linorder) \<le> m; m < u |] ==> {l..m} Un {m..<u} = {l..<u}"
-  "[| (l::'a::linorder) < m; m \<le> u |] ==> {l<..m} Un {m..u} = {l<..u}"
-  "[| (l::'a::linorder) \<le> m; m \<le> u |] ==> {l..m} Un {m..u} = {l..u}"
+  "\<lbrakk>(l::'a::linorder) < m; m < u\<rbrakk> \<Longrightarrow> {l<..m} \<union> {m..<u} = {l<..<u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m < u\<rbrakk> \<Longrightarrow> {l..m} \<union> {m..<u} = {l..<u}"
+  "\<lbrakk>(l::'a::linorder) < m; m \<le> u\<rbrakk> \<Longrightarrow> {l<..m} \<union> {m..u} = {l<..u}"
+  "\<lbrakk>(l::'a::linorder) \<le> m; m \<le> u\<rbrakk> \<Longrightarrow> {l..m} \<union> {m..u} = {l..u}"
 by auto
 
 lemmas ivl_disj_un = ivl_disj_un_singleton ivl_disj_un_one ivl_disj_un_two ivl_disj_un_two_touch
@@ -1810,27 +1825,27 @@ subsubsection \<open>Disjoint Intersections\<close>
 text \<open>One- and two-sided intervals\<close>
 
 lemma ivl_disj_int_one:
-  "{..l::'a::order} Int {l<..<u} = {}"
-  "{..<l} Int {l..<u} = {}"
-  "{..l} Int {l<..u} = {}"
-  "{..<l} Int {l..u} = {}"
-  "{l<..u} Int {u<..} = {}"
-  "{l<..<u} Int {u..} = {}"
-  "{l..u} Int {u<..} = {}"
-  "{l..<u} Int {u..} = {}"
+  "{..l::'a::order} \<inter> {l<..<u} = {}"
+  "{..<l} \<inter> {l..<u} = {}"
+  "{..l} \<inter> {l<..u} = {}"
+  "{..<l} \<inter> {l..u} = {}"
+  "{l<..u} \<inter> {u<..} = {}"
+  "{l<..<u} \<inter> {u..} = {}"
+  "{l..u} \<inter> {u<..} = {}"
+  "{l..<u} \<inter> {u..} = {}"
   by auto
 
 text \<open>Two- and two-sided intervals\<close>
 
 lemma ivl_disj_int_two:
-  "{l::'a::order<..<m} Int {m..<u} = {}"
-  "{l<..m} Int {m<..<u} = {}"
-  "{l..<m} Int {m..<u} = {}"
-  "{l..m} Int {m<..<u} = {}"
-  "{l<..<m} Int {m..u} = {}"
-  "{l<..m} Int {m<..u} = {}"
-  "{l..<m} Int {m..u} = {}"
-  "{l..m} Int {m<..u} = {}"
+  "{l::'a::order<..<m} \<inter> {m..<u} = {}"
+  "{l<..m} \<inter> {m<..<u} = {}"
+  "{l..<m} \<inter> {m..<u} = {}"
+  "{l..m} \<inter> {m<..<u} = {}"
+  "{l<..<m} \<inter> {m..u} = {}"
+  "{l<..m} \<inter> {m<..u} = {}"
+  "{l..<m} \<inter> {m..u} = {}"
+  "{l..m} \<inter> {m<..u} = {}"
   by auto
 
 lemmas ivl_disj_int = ivl_disj_int_one ivl_disj_int_two

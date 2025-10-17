@@ -1182,7 +1182,7 @@ lemma subset_empty [simp]: "A \<subseteq> {} \<longleftrightarrow> A = {}"
   by (fact bot_unique)
 
 lemma not_psubset_empty [iff]: "\<not> (A < {})"
-  by (fact not_less_bot) (* FIXME: already simp *)
+  by (fact not_less_bot) (*already simp *)
 
 lemma Collect_subset [simp]: "{x\<in>A. P x} \<subseteq> A" by auto
 
@@ -1202,6 +1202,9 @@ lemma Collect_imp_eq: "{x. P x \<longrightarrow> Q x} = - {x. P x} \<union> {x. 
   by blast
 
 lemma Collect_conj_eq: "{x. P x \<and> Q x} = {x. P x} \<inter> {x. Q x}"
+  by blast
+
+lemma Collect_conj_eq2: "{x \<in> A. P x \<and> Q x} = {x \<in> A. P x} \<inter> {x \<in> A. Q x}"
   by blast
 
 lemma Collect_mono_iff: "Collect P \<subseteq> Collect Q \<longleftrightarrow> (\<forall>x. P x \<longrightarrow> Q x)"
