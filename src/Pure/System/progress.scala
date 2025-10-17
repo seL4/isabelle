@@ -131,7 +131,7 @@ object Progress {
     }
 
     override def output(msgs: Progress.Output): Unit = synchronized {
-      if (msgs.exists(do_output)) {
+      if (msgs.nonEmpty) {
         val status = status_clear()
         status_output(msgs)
         output_status(status)
