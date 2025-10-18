@@ -293,7 +293,7 @@ object Simplifier_Trace {
       the_session = session
     }
 
-    override def exit(): Unit = {
+    override def exit(exit_state: Document.State): Unit = {
       val session = the_session
       if (session != null) {
         val manager = the_manager(session)

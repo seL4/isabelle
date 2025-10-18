@@ -296,7 +296,7 @@ object Scala {
     override def init(session: Session): Unit =
       synchronized { this.session = session }
 
-    override def exit(): Unit = synchronized {
+    override def exit(exit_state: Document.State): Unit = synchronized {
       for ((id, future) <- futures) cancel(id, future)
       futures = Map.empty
     }

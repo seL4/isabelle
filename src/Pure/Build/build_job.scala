@@ -338,7 +338,7 @@ object Build_Job {
           }
 
           session.init_protocol_handler(new Session.Protocol_Handler {
-              override def exit(): Unit = session.errors_cancel()
+              override def exit(exit_state: Document.State): Unit = session.errors_cancel()
 
               private def build_session_finished(msg: Prover.Protocol_Output): Boolean = {
                 val (rc, errors) =

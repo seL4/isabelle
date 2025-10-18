@@ -428,12 +428,13 @@ object Bash {
       server = Server.start(debugging = session.session_options.bool("bash_process_debugging"))
     }
 
-    override def exit(): Unit = {
+    def exit(): Unit =
       if (server != null) {
         server.stop()
         server = null
       }
-    }
+
+    override def exit(exit_state: Document.State): Unit = exit()
 
     override def prover_options(options: Options): Options = {
       val address = if (server == null) "" else server.address

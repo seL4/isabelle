@@ -116,7 +116,7 @@ object Session {
 
   abstract class Protocol_Handler extends Isabelle_System.Service {
     def init(session: Session): Unit = {}
-    def exit(): Unit = {}
+    def exit(state: Document.State): Unit = {}
     def functions: Protocol_Functions = Nil
     def prover_options(options: Options): Options = options
   }
@@ -618,8 +618,9 @@ abstract class Session extends Document.Session {
               }
 
             case Markup.Process_Result(result) if output.is_exit =>
-              if (prover.defined) protocol_handlers.exit()
-              for (id <- global_state.value.theories.keys) {
+              val exit_state = global_state.value
+              if (prover.defined) protocol_handlers.exit(exit_state)
+              for (id <- exit_state.theories.keys) {
                 val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
                 finished_theories.post(snapshot)
               }
