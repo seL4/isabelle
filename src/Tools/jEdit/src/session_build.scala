@@ -40,10 +40,10 @@ object Session_Build {
     text.editable = false
     text.font = GUI.copy_font(GUI.label_font())
     text.caret.color = text.background
-
-    private val font_metric = new Font_Metric(text.font)
-    text.peer.setPreferredSize(
-      new Dimension((font_metric.average_width * 80).toInt, (font_metric.height * 25).toInt))
+    text.preferredSize = {
+      val metric = new Font_Metric(text.font)
+      new Dimension((metric.average_width * 80).toInt, (metric.height * 25).toInt)
+    }
 
     lazy val inverse: AttributeSet = {
       val style = text.styledDocument.addStyle("inverse", null)
@@ -55,8 +55,8 @@ object Session_Build {
     private val scroll_text = new ScrollPane(text)
 
     private def scroll_end(): Unit = {
-      val vertical = scroll_text.peer.getVerticalScrollBar
-      vertical.setValue(vertical.getMaximum)
+      val vertical = scroll_text.verticalScrollBar
+      vertical.value = vertical.maximum
     }
 
 
@@ -70,7 +70,7 @@ object Session_Build {
         val m = txt.length
         if (m > 0) {
           GUI_Thread.later {
-            val doc = text.peer.getDocument
+            val doc = text.styledDocument
             doc.remove(doc.getLength - m, m)
           }
         }
@@ -82,7 +82,7 @@ object Session_Build {
             for (msg <- msgs) {
               val txt = output_text(List(Progress.output_theory(msg)), terminate = true)
               if (txt.nonEmpty) {
-                val doc = text.peer.getDocument
+                val doc = text.styledDocument
                 doc.insertString(doc.getLength, txt, if (msg.status) inverse else null)
               }
             }
