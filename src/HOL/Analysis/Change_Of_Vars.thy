@@ -3324,6 +3324,28 @@ proof -
     by (simp add: absolutely_integrable_on_1_iff integral_on_1_eq)
 qed
 
+lemma has_absolute_integral_change_of_variables_real:
+  fixes f :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative h x) (at x within S)"
+  assumes "inj_on g S"
+  shows   "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<and> integral S (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) = b
+          \<longleftrightarrow> f absolutely_integrable_on g ` S \<and> integral (g ` S) f = b"
+proof -
+  have "f absolutely_integrable_on g ` S"
+    if "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
+    using that has_absolute_integral_change_of_variables_1' assms by fastforce
+  moreover have "integral (g ` S) f = integral S (\<lambda>x. \<bar>h x\<bar> * f (g x))"
+    if "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
+    using that
+    by (metis (lifting) ext has_absolute_integral_change_of_variables_1' assms real_scaleR_def) 
+  moreover have "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
+    if "f absolutely_integrable_on g ` S"
+    by (metis (no_types, lifting) ext has_absolute_integral_change_of_variables_1' assms real_scaleR_def
+        that)
+  ultimately show ?thesis
+    by auto
+qed
 
 subsection\<open>Change of variables for integrals: special case of linear function\<close>
 

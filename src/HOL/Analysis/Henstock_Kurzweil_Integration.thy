@@ -580,6 +580,14 @@ lemma integrable_on_mult_right:
   shows   "(\<lambda>x. c * f x) integrable_on A"
   using assms has_integral_mult_right by blast
 
+lemma has_integral_mult_right_iff:
+  fixes c :: "'a :: real_normed_field"
+  assumes "c \<noteq> 0"
+  shows "((\<lambda>x. c * f x) has_integral y) A \<longleftrightarrow> (f has_integral (y / c)) A"
+  using has_integral_mult_right[of f "y / c" A c] 
+        has_integral_mult_right[of "\<lambda>x. c * f x" y A "1/c"] assms
+  by auto
+
 lemma integrable_on_mult_right_iff [simp]:
   fixes c :: "'a :: real_normed_field"
   assumes "c \<noteq> 0"
@@ -3541,7 +3549,7 @@ lemma integrable_on_shift_Icc_real:
   "(f \<circ> ((+) c)) integrable_on {a..b::real} \<longleftrightarrow> f integrable_on {a+c..b+c}"
   using integrable_on_shift_cbox[of f c a b] by simp
 
-lemma has_integral_shift_cbox: 
+lemma has_integral_shift_cbox_iff: 
   "((f \<circ> ((+) c)) has_integral I) (cbox a b) \<longleftrightarrow>
    (f has_integral I) (cbox (a + c) (b + c))"
 proof
@@ -3558,16 +3566,16 @@ qed
 
 lemma has_integral_shift_Icc_real:
   "((f \<circ> ((+) c)) has_integral I) {a..b::real} \<longleftrightarrow> (f has_integral I) {a+c..b+c}"
-  using has_integral_shift_cbox[of f c I a b] by simp
+  using has_integral_shift_cbox_iff[of f c I a b] by simp
 
-lemma integral_shift_cbox:
+lemma integral_shift_cbox_plus:
   "integral (cbox a b) (f \<circ> ((+) c)) = integral (cbox (a+c) (b+c)) f"
-  using has_integral_shift_cbox[of f c _ a b] integrable_on_shift_cbox[of f c a b]
+  using has_integral_shift_cbox_iff[of f c _ a b] integrable_on_shift_cbox[of f c a b]
   by (metis integrable_integral integral_unique not_integrable_integral)
 
 lemma integral_shift_Icc_real:
   "integral {a..b::real} (f \<circ> ((+) c)) = integral {a+c..b+c} f"
-  using integral_shift_cbox[of a b f c] by simp
+  using integral_shift_cbox_plus[of a b f c] by simp
 
 subsection \<open>Special case of stretching coordinate axes separately\<close>
 
@@ -3582,12 +3590,6 @@ lemma has_integral_stretch:
   using assms
   by auto
 
-lemma has_integral_stretch_real:
-  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
-  assumes "(f has_integral i) {a..b}" and "m \<noteq> 0"
-  shows "((\<lambda>x. f (m * x)) has_integral (1 / \<bar>m\<bar>) *\<^sub>R i) ((\<lambda>x. x / m) ` {a..b})"
-  using has_integral_stretch [of f i a b "\<lambda>b. m"] assms by simp
-
 lemma integrable_stretch:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "f integrable_on cbox a b" and "\<forall>k\<in>Basis. m k \<noteq> 0"
@@ -3595,6 +3597,138 @@ lemma integrable_stretch:
     ((\<lambda>x. \<Sum>k\<in>Basis. (1 / m k * (x\<bullet>k))*\<^sub>R k) ` cbox a b)"
   using assms unfolding integrable_on_def
   by (force dest: has_integral_stretch)
+
+lemma has_integral_stretch_real:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "(f has_integral i) {a..b}" and "m \<noteq> 0"
+  shows "((\<lambda>x. f (m * x)) has_integral (1 / \<bar>m\<bar>) *\<^sub>R i) ((\<lambda>x. x / m) ` {a..b})"
+  using has_integral_stretch [of f i a b "\<lambda>b. m"] assms by simp
+
+lemma integrable_stretch_real:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "f integrable_on {a..b}" and "m \<noteq> 0"
+  shows   "(\<lambda>x. f (m * x)) integrable_on ((\<lambda>x. x / m) ` {a..b})"
+proof -
+  from assms obtain I where "(f has_integral I) {a..b}"
+    by (auto simp: integrable_on_def)
+  from has_integral_stretch_real[OF this assms(2)] show ?thesis
+    by (auto simp: integrable_on_def)
+qed
+
+lemma integrable_stretch_real_iff:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "m \<noteq> 0"
+  shows   "(\<lambda>x. f (m * x)) integrable_on ((\<lambda>x. x / m) ` {a..b}) \<longleftrightarrow> f integrable_on {a..b}"
+proof
+  assume "f integrable_on {a..b}"
+  thus "(\<lambda>x. f (m * x)) integrable_on ((\<lambda>x. x / m) ` {a..b})"
+    using assms by (intro integrable_stretch_real) auto
+next
+  assume *: "(\<lambda>x. f (m * x)) integrable_on ((\<lambda>x. x / m) ` {a..b})"
+  define a' where "a' = (if m > 0 then a / m else b / m)"
+  define b' where "b' = (if m > 0 then b / m else a / m)"
+  have "bij_betw (\<lambda>x. x / m) {a..b} {a'..b'}"
+    by (rule bij_betwI[of _ _ _ "\<lambda>x. x * m"]) (use assms in \<open>auto simp: field_simps a'_def b'_def\<close>)
+  hence eq: "(\<lambda>x. x / m) ` {a..b} = {a'..b'}"
+    by (simp add: bij_betw_def)
+  from * have "(\<lambda>x. f (m * x)) integrable_on {a'..b'}"
+    unfolding eq .
+  hence "(\<lambda>x. f (m * (1 / m * x))) integrable_on (\<lambda>x. x / (1 / m)) ` {a'..b'}"
+    using assms by (intro integrable_stretch_real) auto
+  also have "(\<lambda>x. f (m * (1 / m * x))) = f"
+    using assms by simp
+  also have "bij_betw (\<lambda>x. x / (1 / m)) {a'..b'} {a..b}"
+    by (rule bij_betwI[of _ _ _ "\<lambda>x. x / m"]) (use assms in \<open>auto simp: field_simps a'_def b'_def\<close>)
+  hence "(\<lambda>x. x / (1 / m)) ` {a'..b'} = {a..b}"
+    by (simp add: bij_betw_def)
+  finally show "f integrable_on {a..b}" .
+qed
+
+lemma integral_stretch_real:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "m \<noteq> 0"
+  shows   "integral ((\<lambda>x. x / m) ` {a..b}) (\<lambda>x. f (m * x)) = (1 / \<bar>m\<bar>) *\<^sub>R integral {a..b} f"
+proof (cases "f integrable_on {a..b}")
+  case True
+  hence "(f has_integral integral {a..b} f) {a..b}"
+    by blast
+  from has_integral_stretch_real[OF this assms] show ?thesis
+    by (simp add: has_integral_iff)
+next
+  case False
+  hence "\<not>(\<lambda>x. f (m * x)) integrable_on ((\<lambda>x. x / m) ` {a..b})"
+    using assms by (subst integrable_stretch_real_iff)
+  with False show ?thesis
+    by (simp add: not_integrable_integral)
+qed
+
+lemma has_integral_stretch_real_iff:
+  fixes f :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes "m \<noteq> 0"
+  shows   "((\<lambda>x. f (m * x)) has_integral I) ((\<lambda>x. x / m) ` {a..b}) \<longleftrightarrow> 
+             (f has_integral (\<bar>m\<bar> *\<^sub>R I)) {a..b}"
+  using integral_stretch_real[of m a b f] integrable_stretch_real_iff[of m f a b] assms
+  by (auto simp: has_integral_iff)
+
+lemma has_integral_shift_cbox:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: real_normed_vector"
+  assumes "(f has_integral I) (cbox a b)"
+  shows   "((\<lambda>x. f (x + c)) has_integral I) (cbox (a - c) (b - c))"
+proof -
+  have "((\<lambda>x. f (x + c)) has_integral (1 / 1) *\<^sub>R I) ((\<lambda>x. x - c) ` cbox a b)"
+    by (rule has_integral_twiddle)
+       (use assms in \<open>auto simp: cbox_shift'' cbox_shift' content_cbox_if
+                                 algebra_simps box_eq_empty\<close>)
+  thus ?thesis
+    by (simp add: cbox_shift'')
+qed
+
+lemma integrable_shift_cbox:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: real_normed_vector"
+  assumes "f integrable_on cbox a b"
+  shows   "(\<lambda>x. f (x + c)) integrable_on (cbox (a - c) (b - c))"
+  using has_integral_shift_cbox[of f _ a b c] assms
+  by (auto simp: integrable_on_def)
+
+lemma integrable_shift_cbox_iff:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: real_normed_vector"
+  shows   "(\<lambda>x. f (x + c)) integrable_on (cbox (a - c) (b - c)) \<longleftrightarrow> f integrable_on cbox a b"
+  using integrable_shift_cbox[of f a b c]
+        integrable_shift_cbox[of "\<lambda>x. f (x + c)" "a - c" "b - c" "-c"] by auto
+
+lemma integral_shift_cbox:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: real_normed_vector"
+  shows   "integral (cbox (a - c) (b - c)) (\<lambda>x. f (x + c)) = integral (cbox a b) f"
+  by (metis eq_integralD has_integral_integral has_integral_shift_cbox
+      integrable_shift_cbox_iff integral_unique)
+
+lemma has_integral_shift_real_ivl:
+  fixes f :: "real \<Rightarrow> 'b :: real_normed_vector"
+  assumes "(f has_integral I) {a..b}"
+  shows   "((\<lambda>x. f (x + c)) has_integral I) {a-c..b-c}"
+  using has_integral_shift_cbox[of f I a b c] assms by simp
+
+lemma has_integral_shift_real_ivl_iff:
+  fixes f :: "real \<Rightarrow> 'b :: real_normed_vector"
+  shows "(f has_integral I) {a..b} \<longleftrightarrow> ((\<lambda>x. f (x + c)) has_integral I) {a-c..b-c}"
+  using has_integral_shift_real_ivl[of f I a b c] 
+        has_integral_shift_real_ivl[of "\<lambda>x. f (x + c)" I "a-c" "b-c" "-c"] by auto
+
+lemma integrable_shift_real_ivl:
+  fixes f :: "real \<Rightarrow> 'b :: real_normed_vector"
+  assumes "f integrable_on {a..b}"
+  shows   "(\<lambda>x. f (x + c)) integrable_on {a-c..b-c}"
+  using integrable_shift_cbox[of f a b c] assms by simp
+
+lemma integrable_shift_real_ivl_iff:
+  fixes f :: "real \<Rightarrow> 'b :: real_normed_vector"
+  shows   "(\<lambda>x. f (x + c)) integrable_on {a-c..b-c} \<longleftrightarrow> f integrable_on {a..b}"
+  using integrable_shift_cbox_iff[of f c a b] by simp
+
+lemma integral_shift_real_ivl:
+  fixes f :: "real \<Rightarrow> 'b :: real_normed_vector"
+  shows   "integral {a-c..b-c} (\<lambda>x. f (x + c)) = integral {a..b} f"
+  using integral_shift_cbox[of a c b f] by simp
 
 lemma vec_lambda_eq_sum:
      "(\<chi> k. f k (x $ k)) = (\<Sum>k\<in>Basis. (f (axis_index k) (x \<bullet> k)) *\<^sub>R k)" (is "?lhs = ?rhs")

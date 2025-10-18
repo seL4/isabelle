@@ -780,6 +780,20 @@ proof -
     by (auto simp: box_def inner_sum_left inner_Basis sum.If_cases)
 qed
 
+lemma cbox_shift: "(+) c ` cbox a b = cbox (a + c) (b + c)"
+proof -
+  have "bij_betw ((+) c) (cbox a b) (cbox (a + c) (b + c))"
+    by (rule bij_betwI[of _ _ _ "\<lambda>x. x - c"]) (auto simp: cbox_def algebra_simps)
+  thus ?thesis
+    by (simp add: bij_betw_def)
+qed
+
+lemma cbox_shift': "(\<lambda>x. x + c) ` cbox a b = cbox (a + c) (b + c)"
+  using cbox_shift[of c a b] by (simp add: add.commute)
+
+lemma cbox_shift'': "(\<lambda>x. x - c) ` cbox a b = cbox (a - c) (b - c)"
+  using cbox_shift[of "-c" a b] by simp
+
 lemma image_affinity_cbox: fixes m::real
   fixes a b c :: "'a::euclidean_space"
   shows "(\<lambda>x. m *\<^sub>R x + c) ` cbox a b =
