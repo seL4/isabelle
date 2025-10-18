@@ -45,7 +45,7 @@ object Session_Build {
       new Dimension((metric.average_width * 80).toInt, (metric.height * 25).toInt)
     }
 
-    lazy val inverse: AttributeSet = {
+    private val inverse: AttributeSet = {
       val style = text.styledDocument.addStyle("inverse", null)
       StyleConstants.setBackground(style, text.foreground)
       StyleConstants.setForeground(style, text.background)
