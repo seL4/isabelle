@@ -141,12 +141,14 @@ object Progress {
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
       val old_status = status_clear()
-
-      val session = nodes_status.session
-      val new_status =
-        (old_status.filterNot(p => p._1 == session) :::
-          (if (status_detailed) nodes_status.status_theories.map((session, _)) else Nil))
-        .sortBy(_._1)
+      val new_status = {
+        val buf = new mutable.ListBuffer[(String, Progress.Msg)]
+        val session = nodes_status.session
+        for (old <- old_status if old._1 < session) buf += old
+        if (status_detailed) { for (thy <- nodes_status.status_theories) buf += (session -> thy) }
+        for (old <- old_status if old._1 > session) buf += old
+        buf.toList
+      }
 
       output(nodes_status.completed_theories)
       output_status(new_status)
