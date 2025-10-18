@@ -600,6 +600,35 @@ lemma of_int_word_less_iff:
   \<open>of_int k < (of_int l :: 'a::len word) \<longleftrightarrow> take_bit LENGTH('a) k < take_bit LENGTH('a) l\<close>
   by transfer rule
 
+instantiation word :: (len) order_bot
+begin
+
+lift_definition bot_word :: \<open>'a word\<close>
+  is 0 .
+
+instance
+  by (standard; transfer) simp
+
+end
+
+lemma bot_word_eq:
+  \<open>bot = (0 :: 'a::len word)\<close>
+  by transfer rule
+
+instantiation word :: (len) order_top
+begin
+
+lift_definition top_word :: \<open>'a word\<close>
+  is \<open>- 1\<close> .
+
+instance
+  by (standard; transfer) (simp add: take_bit_int_less_eq_mask)
+
+end
+
+lemma top_word_eq:
+  \<open>top = (- 1 :: 'a::len word)\<close>
+  by transfer rule
 
 
 subsection \<open>Enumeration\<close>
@@ -3217,6 +3246,22 @@ lemma less_eq_dec_iff:
 lemma inc_i: "1 \<le> i \<Longrightarrow> i < m \<Longrightarrow> 1 \<le> i + 1 \<and> i + 1 \<le> m"
   for i m :: "'a::len word"
   by uint_arith
+
+lemma dec_less_imp_less_eq:
+  \<open>v \<le> w\<close> if \<open>v - 1 < w\<close> for v w :: \<open>'a::len word\<close>
+  using that inc_le [of \<open>v - 1\<close> w] by simp
+
+lemma less_inc_imp_less_eq:
+  \<open>v \<le> w\<close> if \<open>v < w + 1\<close> for v w :: \<open>'a::len word\<close>
+  using that less_imp_less_eq_dec [of v \<open>w + 1\<close>] by simp
+
+lemma less_eq_dec_self_iff_eq:
+  \<open>w \<le> w - 1 \<longleftrightarrow> w = 0\<close> for w :: \<open>'a::len word\<close>
+  using less_eq_dec_iff [of w w] by simp
+
+lemma inc_less_eq_self_iff_eq:
+  \<open>w + 1 \<le> w \<longleftrightarrow> w = - 1\<close> for w :: \<open>'a::len word\<close>
+  using inc_less_eq_triv_imp [of w] by auto
 
 lemma udvd_incr_lem:
   "\<lbrakk>up < uq; up = ua + n * uint K; uq = ua + n' * uint K\<rbrakk>

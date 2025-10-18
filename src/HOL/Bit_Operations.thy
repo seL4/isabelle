@@ -2405,6 +2405,10 @@ lemma take_bit_int_less_self_iff:
   by (auto simp: less_le take_bit_int_less_eq_self_iff take_bit_int_eq_self_iff
     intro: order_trans [of 0 \<open>2 ^ n\<close> k])
 
+lemma take_bit_int_less_eq_mask:
+  \<open>take_bit n k \<le> mask n\<close> for k :: int
+  using take_bit_int_less_exp [of n k] by (simp add: mask_eq_exp_minus_1)
+
 lemma take_bit_int_greater_self_iff:
   \<open>k < take_bit n k \<longleftrightarrow> k < 0\<close> for k :: int
   using take_bit_int_less_eq_self_iff [of n k] by auto
@@ -2747,6 +2751,11 @@ next
   with \<open>0 < n\<close> show ?thesis
     by simp
 qed
+
+lemma take_bit_nat_less_eq_mask:
+  \<open>take_bit n m \<le> mask n\<close> for m :: nat
+  using take_bit_nat_less_exp [of n m]
+  by (simp flip: Suc_mask_eq_exp)
 
 lemma take_bit_tightened_less_eq_nat:
   \<open>take_bit m q \<le> take_bit n q\<close> if \<open>m \<le> n\<close> for q :: nat
