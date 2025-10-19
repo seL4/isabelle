@@ -52,6 +52,10 @@ take precedence. Example:
 This runs Isabelle/jEdit with sequential evaluation in ML, without
 affecting stored preferences of option "threads".
 
+* Session build progress is now more detailed: percentage and cumulated
+timing of running theories is continuously updated, while the finished
+state (100%) remains.
+
 * Isabelle/jEdit provides builtin navigation support, with actions
 navigate-backwards (AS-LEFT) and navigate-forwards (AS-RIGHT). These
 actions are available via arrow icons in the Search Bar, which is now
@@ -412,6 +416,14 @@ Examples:
 * System option "ML_platform" specifies the underlying Poly/ML platform
 identifier explicitly: it takes precedence over all other options and
 settings to determine the ML_PLATFORM (see above).
+
+* System option "build_progress_detailed" tells "isabelle build" to
+output detailed information while processing theories, notably the
+percentage and cumulated timing. This requires an output channel
+(terminal) that supports ANSI control sequences, notably for cursor
+movement and deletion of previous output. The default is to output only
+the finished state (100%) with its timing information, without using any
+ANSI control sequences.
 
 * System option "record_theories" tells "isabelle build" to record
 intermediate theory commands and results, at the cost of approx. 5 times
