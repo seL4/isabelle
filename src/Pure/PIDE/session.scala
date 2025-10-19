@@ -780,9 +780,6 @@ abstract class Session extends Document.Session {
       infos = resources.session_background.infos)
   }
 
-  def build_ok(dirs: List[Path] = Nil): Boolean =
-    build(dirs = dirs, no_build = true).ok
-
   def start(start_prover: Prover.Receiver => Prover): Unit = {
     file_formats
     _phase.change(
