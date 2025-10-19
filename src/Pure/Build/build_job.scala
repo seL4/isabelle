@@ -122,14 +122,11 @@ object Build_Job {
     }
 
     def stop_process_output(): Unit = synchronized {
-      if (process_output_writer.isDefined) {
-        process_output_writer.get.close()
-        process_output_writer = None
-      }
+      process_output_writer.foreach(_.close())
+      process_output_writer = None
     }
 
     def clean_process_output(): Unit = synchronized {
-      process_output_writer.foreach(_.close())
       process_output_file.delete
     }
 
