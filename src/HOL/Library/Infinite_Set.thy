@@ -91,6 +91,29 @@ proposition finite_int_iff_bounded_le: "finite S \<longleftrightarrow> (\<exists
   for S :: "int set"
   using infinite_int_iff_unbounded[of S] by (simp add: subset_eq) (metis not_le)
 
+lemma infinite_split: \<comment> \<open>courtesy of Michael Schmidt\<close>
+  fixes S :: "'a set"
+  assumes "infinite S"
+  obtains A B
+    where "A \<subseteq> S" "B \<subseteq> S" "infinite A" "infinite B" "A \<inter> B = {}"
+proof-
+  obtain f :: "nat \<Rightarrow> 'a"
+    where f_inj: "inj f" and f_img: "range f \<subseteq> S"
+    using assms infinite_countable_subset by blast
+  let ?A = "range (\<lambda>n. f (2*n))"
+  let ?B = "range (\<lambda>n. f (2*n+1))"
+  have a_inf: "infinite ?A"
+    using finite_imageD[of "\<lambda>n. f (2*n)" UNIV] f_inj infinite_UNIV_nat unfolding inj_def
+    by fastforce
+  have b_inf: "infinite ?B"
+    using finite_imageD[of "\<lambda>n. f (2*n+1)" UNIV] f_inj infinite_UNIV_nat unfolding inj_def
+    by fastforce
+  from f_inj have "?A \<inter> ?B = {}" unfolding inj_def disjoint_iff using double_not_eq_Suc_double
+    by auto
+  from that[OF _ _ a_inf b_inf this] f_img show ?thesis
+    by blast
+qed
+
 
 subsection \<open>Infinitely Many and Almost All\<close>
 
