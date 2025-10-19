@@ -191,9 +191,10 @@ object Build_Job {
     private lazy val nodes_delay: Delay =
       Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
 
-    def nodes_status_sync(state: Document.State): Unit = {
+    def nodes_status_exit(state: Document.State): Unit = synchronized {
       nodes_delay.revoke()
       nodes_status_progress(state = state)
+      progress.nodes_status(Progress.Nodes_Status.empty(resources.session_background.session_name))
     }
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
@@ -328,7 +329,7 @@ object Build_Job {
 
           session.init_protocol_handler(new Session.Protocol_Handler {
               override def exit(exit_state: Document.State): Unit = {
-                session.nodes_status_sync(exit_state)
+                session.nodes_status_exit(exit_state)
                 session.errors_cancel()
               }
 

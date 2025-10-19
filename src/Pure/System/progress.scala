@@ -68,6 +68,11 @@ object Progress {
       if (cumulated_time.is_relevant) " (" + cumulated_time.message + " cumulated time)" else ""
   }
 
+  object Nodes_Status {
+    def empty(session: String): Nodes_Status =
+      Nodes_Status(Nil, Document_Status.Nodes_Status.empty, session = session)
+  }
+
   sealed case class Nodes_Status(
     domain: List[Document.Node.Name],
     document_status: Document_Status.Nodes_Status,
