@@ -122,14 +122,11 @@ object Build_Job {
     }
 
     def stop_process_output(): Unit = synchronized {
-      if (process_output_writer.isDefined) {
-        process_output_writer.get.close()
-        process_output_writer = None
-      }
+      process_output_writer.foreach(_.close())
+      process_output_writer = None
     }
 
     def clean_process_output(): Unit = synchronized {
-      process_output_writer.foreach(_.close())
       process_output_file.delete
     }
 
@@ -160,10 +157,10 @@ object Build_Job {
     private var nodes_changed = Set.empty[Document_ID.Generic]
     private var nodes_status = Document_Status.Nodes_Status.empty
 
-    private def nodes_status_progress(): Unit = {
-      val state = get_state()
+    private def nodes_status_progress(state: Document.State = get_state()): Unit = {
       val result =
         synchronized {
+          for (id <- state.progress_theories if !nodes_changed(id)) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
               state.theory_snapshot(state_id, build_blobs) match {
@@ -191,11 +188,13 @@ object Build_Job {
       result.foreach(progress.nodes_status)
     }
 
-    private val nodes_delay = Delay.first(build_progress_delay) { nodes_status_progress() }
+    private lazy val nodes_delay: Delay =
+      Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
 
-    def nodes_status_sync(): Unit = {
+    def nodes_status_exit(state: Document.State): Unit = synchronized {
       nodes_delay.revoke()
-      nodes_status_progress()
+      nodes_status_progress(state = state)
+      progress.nodes_status(Progress.Nodes_Status.empty(resources.session_background.session_name))
     }
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
@@ -203,27 +202,15 @@ object Build_Job {
       super.start(start_prover)
     }
 
-    override def stop(): Process_Result = {
-      val result = super.stop()
-      nodes_status_sync()
-      stop_process_output()
-      result
-    }
-
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
       val elapsed = Time.seconds(Markup.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
-        write_process_output(Protocol.Command_Timing_Marker(props))
+        write_process_output(
+          Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_export)))
       }
 
       nodes_changed += state_id
       nodes_delay.invoke()
-    }
-
-    def get_theory_timings(): List[Properties.T] = synchronized {
-      nodes_domain.map(name =>
-        Markup.Name(name.theory) :::
-        Markup.Timing_Properties(nodes_status(name).total_timing))
     }
   }
 
@@ -341,7 +328,10 @@ object Build_Job {
           }
 
           session.init_protocol_handler(new Session.Protocol_Handler {
-              override def exit(): Unit = session.errors_cancel()
+              override def exit(exit_state: Document.State): Unit = {
+                session.nodes_status_exit(exit_state)
+                session.errors_cancel()
+              }
 
               private def build_session_finished(msg: Prover.Protocol_Output): Boolean = {
                 val (rc, errors) =
@@ -447,7 +437,6 @@ object Build_Job {
                 session.synchronized { stderr ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_exit) {
-                session.nodes_status_sync()
                 val err =
                   "Prover terminated" +
                     (msg.properties match {
@@ -503,6 +492,7 @@ object Build_Job {
             }
 
           session.stop()
+          session.stop_process_output()
 
           val export_errors =
             export_consumer.shutdown(close = true).map(Output.error_message_text)

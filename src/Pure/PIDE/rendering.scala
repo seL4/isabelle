@@ -469,6 +469,7 @@ class Rendering(
     range: Text.Range,
     focus: Rendering.Focus
   ) : List[Text.Info[Rendering.Color.Value]] = {
+    val now = Time.now()
     for {
       Text.Info(r, result) <-
         snapshot.cumulate[(List[Markup], Option[Rendering.Color.Value])](
@@ -510,7 +511,7 @@ class Rendering(
       color <-
         result match {
           case (markups, opt_color) if markups.nonEmpty =>
-            val status = Document_Status.Command_Status.make(markups = markups)
+            val status = Document_Status.Command_Status.make(now, markups = markups)
             if (status.is_unprocessed) Some(Rendering.Color.unprocessed1)
             else if (status.is_running) Some(Rendering.Color.running1)
             else if (status.is_canceled) Some(Rendering.Color.canceled)
@@ -668,7 +669,7 @@ class Rendering(
             val info2 =
               if (kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))
-                val t = timings(Markup.Command_Offset.get(markup.properties))
+                val t = timings.get_finished(Markup.Command_Offset.get(markup.properties))
                 if (t.is_notable(timing_threshold)) {
                   info1.add_info(r0, Pretty.string(t.message))
                 }
@@ -763,6 +764,7 @@ class Rendering(
   /* command status overview */
 
   def overview_color(range: Text.Range): Option[Rendering.Color.Value] = {
+    val now = Time.now()
     if (snapshot.is_outdated) None
     else {
       val results =
@@ -773,7 +775,7 @@ class Rendering(
             }, status = true)
       if (results.isEmpty) None
       else {
-        val status = Document_Status.Command_Status.make(markups = results.flatMap(_.info))
+        val status = Document_Status.Command_Status.make(now, markups = results.flatMap(_.info))
 
         if (status.is_running) Some(Rendering.Color.running)
         else if (status.is_failed) Some(Rendering.Color.error)

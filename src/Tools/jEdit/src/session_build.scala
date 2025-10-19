@@ -9,10 +9,12 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.awt.Dimension
 import java.awt.event.{WindowEvent, WindowAdapter}
 import javax.swing.{WindowConstants, JDialog}
+import javax.swing.text.{AttributeSet, StyleConstants}
 
-import scala.swing.{ScrollPane, FlowPanel, BorderPanel, TextArea, Component, Label}
+import scala.swing.{ScrollPane, FlowPanel, BorderPanel, TextPane, Component, Label}
 
 import org.gjt.sp.jedit.View
 
@@ -34,29 +36,56 @@ object Session_Build {
   private class Dialog(view: View) extends JDialog(view) {
     /* text */
 
-    private val text = new TextArea
+    private val text = new TextPane
     text.editable = false
-    text.columns = 60
-    text.rows = 24
     text.font = GUI.copy_font(GUI.label_font())
     text.caret.color = text.background
+    text.preferredSize = {
+      val metric = new Font_Metric(text.font)
+      new Dimension((metric.average_width * 80).toInt, (metric.height * 25).toInt)
+    }
+
+    private val inverse: AttributeSet = {
+      val style = text.styledDocument.addStyle("inverse", null)
+      StyleConstants.setBackground(style, text.foreground)
+      StyleConstants.setForeground(style, text.background)
+      style
+    }
 
     private val scroll_text = new ScrollPane(text)
 
     private def scroll_end(): Unit = {
-      val vertical = scroll_text.peer.getVerticalScrollBar
-      vertical.setValue(vertical.getMaximum)
+      val vertical = scroll_text.verticalScrollBar
+      vertical.value = vertical.maximum
     }
 
 
     /* progress */
 
     private val progress = new Progress with Progress.Status {
-      override def output(msgs: Progress.Output): Unit = {
-        val txt = output_text(msgs.map(_.show_theory), terminate = true)
-        if (txt.nonEmpty) {
+      override def status_detailed: Boolean = true
+
+      override def status_hide(msgs: Progress.Output): Unit = {
+        val txt = output_text(msgs.map(Progress.output_theory), terminate = true)
+        val m = txt.length
+        if (m > 0) {
           GUI_Thread.later {
-            text.append(txt)
+            val doc = text.styledDocument
+            doc.remove(doc.getLength - m, m)
+          }
+        }
+      }
+
+      override def status_output(msgs: Progress.Output): Unit = {
+        if (msgs.nonEmpty) {
+          GUI_Thread.later {
+            for (msg <- msgs) {
+              val txt = output_text(List(Progress.output_theory(msg)), terminate = true)
+              if (txt.nonEmpty) {
+                val doc = text.styledDocument
+                doc.insertString(doc.getLength, txt, if (msg.status) inverse else null)
+              }
+            }
             scroll_end()
           }
         }

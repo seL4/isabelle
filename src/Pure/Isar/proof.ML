@@ -1346,7 +1346,7 @@ fun future_terminal_proof proof1 proof2 done state =
     state |> future_proof (fn state' =>
       let val pos = Position.thread_data () in
         Execution.fork {name = "Proof.future_terminal_proof", pos = pos, pri = ~1}
-          (fn () => ((), Timing.protocol "by" pos proof2 state'))
+          (fn () => ((), Timing.command_timing "by" pos proof2 state'))
       end) |> snd |> done
   else proof1 state;
 

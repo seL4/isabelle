@@ -298,7 +298,9 @@ fun eval_thy loading_theory options master_dir header text_pos text parents =
         (Keyword.add_keywords (#keywords header) Keyword.empty_keywords);
 
     val spans = Outer_Syntax.parse_spans (Token.explode keywords text_pos text);
-    val () = loading_theory (length spans);
+    val commands =
+      fold (fn span => fn i => if Command_Span.is_ignored span then i else i + 1) spans 0;
+    val () = loading_theory commands;
 
     val elements = Thy_Element.parse_elements keywords spans;
     val command_ranges =

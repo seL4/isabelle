@@ -626,7 +626,8 @@ fun show_state tr (st', opt_err) =
 
 fun app int (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
-    (Timing.protocol (name_of tr) (pos_of tr) (apply_capture int name markers trans)
+    ((apply_capture int name markers trans
+        |> not (is_ignored tr) ? Timing.command_timing (name_of tr) (pos_of tr))
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state tr);
 
@@ -729,15 +730,12 @@ fun future_proofs_enabled estimate st =
         then Future.proofs_enabled 1
         else Future.proofs_enabled 2 orelse Future.proofs_enabled_timing estimate));
 
-val empty_markers = markers [];
-val empty_trans = reset_trans #> keep (K ());
-
 fun command tr st =
   command_exception (Options.default_bool \<^system_option>\<open>show_results\<close>) tr st;
 
 in
 
-fun fork_presentation tr = (tr |> empty_markers, tr |> empty_trans);
+fun fork_presentation tr = (markers [] tr, ignored (pos_of tr));
 
 fun atom_result keywords tr st =
   let

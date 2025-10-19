@@ -1036,8 +1036,9 @@ object Document {
       message: XML.Elem,
       cache: XML.Cache
     ) : (Command.State, State) = {
+      val now = Time.now()
       def update(st: Command.State): (Command.State, State) = {
-        val st1 = st.accumulate(self_id(st), other_id, message, cache)
+        val st1 = st.accumulate(now, self_id(st), other_id, message, cache)
         (st1, copy(commands_redirection = redirection(st1)))
       }
       execs.get(id).map(update) match {
@@ -1108,6 +1109,11 @@ object Document {
           val state1 = copy(theories = theories - id)
           (state1.snippet(List(command1), doc_blobs), state1)
       }
+
+    def progress_theories: List[Document_ID.Exec] =
+      List.from(
+        for ((id, st) <- theories.iterator if st.document_status.timings.has_running)
+          yield id)
 
     def theory_snapshot(id: Document_ID.Exec, document_blobs: Node.Name => Blobs): Option[Snapshot] =
       if (theories.isDefinedAt(id)) Some(end_theory(id, document_blobs)._1) else None

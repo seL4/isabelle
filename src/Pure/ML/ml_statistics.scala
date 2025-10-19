@@ -78,7 +78,7 @@ object ML_Statistics {
       this.session = session
     }
 
-    override def exit(): Unit = synchronized {
+    override def exit(exit_state: Document.State): Unit = synchronized {
       session = null
       monitoring.cancel()
     }

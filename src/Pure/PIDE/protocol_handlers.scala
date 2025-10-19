@@ -55,8 +55,8 @@ object Protocol_Handlers {
         case _ => false
       }
 
-    def exit(): State = {
-      for ((_, handler) <- handlers) handler.exit()
+    def exit(exit_state: Document.State): State = {
+      for ((_, handler) <- handlers) handler.exit(exit_state)
       copy(handlers = Map.empty, functions = Map.empty)
     }
   }
@@ -77,5 +77,5 @@ class Protocol_Handlers private(session: Session) {
   def init(handler: Session.Protocol_Handler): Unit = state.change(_.init(handler))
   def init(name: String): Unit = state.change(_.init(name))
   def invoke(msg: Prover.Protocol_Output): Boolean = state.value.invoke(msg)
-  def exit(): Unit = state.change(_.exit())
+  def exit(exit_state: Document.State): Unit = state.change(_.exit(exit_state))
 }

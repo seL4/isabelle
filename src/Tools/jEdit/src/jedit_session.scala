@@ -139,7 +139,7 @@ object JEdit_Session {
     PIDE.session.build(progress = progress, dirs = session_dirs).rc
 
   def session_build_ok(): Boolean =
-    session_no_build || PIDE.session.build_ok(dirs = session_dirs)
+    session_no_build || PIDE.session.build(dirs = session_dirs, no_build = true).ok
 
 
   /* start session */

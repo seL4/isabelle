@@ -212,10 +212,10 @@ option build_database : bool = false for build_sync
 option build_database_slice : real = 300 for build_sync
   -- "slice size in MiB for ML heap stored within database"
 
-option build_progress : bool = false
+option build_progress_detailed : bool = false for build
   -- "enabled detailed build progress"
 
-option build_progress_delay : real = 2
+option build_progress_delay : real = 2 for build
   -- "delay for detailed build progress"
 
 option build_delay : real = 0.2

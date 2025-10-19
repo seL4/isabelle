@@ -116,7 +116,7 @@ object Session {
 
   abstract class Protocol_Handler extends Isabelle_System.Service {
     def init(session: Session): Unit = {}
-    def exit(): Unit = {}
+    def exit(state: Document.State): Unit = {}
     def functions: Protocol_Functions = Nil
     def prover_options(options: Options): Options = options
   }
@@ -534,7 +534,7 @@ abstract class Session extends Document.Session {
           if (!handled) {
             msg.properties match {
               case Protocol.Command_Timing(state_id, props) if prover.defined =>
-                val message = XML.elem(Markup(Markup.TIMING, props))
+                val message = XML.elem(Markup(Markup.Command_Timing.name, props))
                 change_command(_.accumulate(state_id, cache.elem(message), cache))
                 command_timings.post(Session.Command_Timing(state_id, props))
 
@@ -618,8 +618,9 @@ abstract class Session extends Document.Session {
               }
 
             case Markup.Process_Result(result) if output.is_exit =>
-              if (prover.defined) protocol_handlers.exit()
-              for (id <- global_state.value.theories.keys) {
+              val exit_state = global_state.value
+              if (prover.defined) protocol_handlers.exit(exit_state)
+              for (id <- exit_state.theories.keys) {
                 val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
                 finished_theories.post(snapshot)
               }
@@ -778,9 +779,6 @@ abstract class Session extends Document.Session {
       progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
       infos = resources.session_background.infos)
   }
-
-  def build_ok(dirs: List[Path] = Nil): Boolean =
-    build(dirs = dirs, no_build = true).ok
 
   def start(start_prover: Prover.Receiver => Prover): Unit = {
     file_formats

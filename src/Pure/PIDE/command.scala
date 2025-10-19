@@ -217,7 +217,9 @@ object Command {
       markups: Markups = Markups.empty,
     ): State = {
       new State(command, results, exports, markups,
-        Document_Status.Command_Status.make(warned = results.warned, failed = results.failed))
+        Document_Status.Command_Status.make(Time.now(),
+          warned = results.warned,
+          failed = results.failed))
     }
   }
 
@@ -250,18 +252,15 @@ object Command {
       new Command(id, command.node_name, command.blobs_info, command.span, command.source,
         results, exports, markups, document_status)
 
-    private def add_status(st: Markup): State = {
-      val document_status1 = document_status.update(markups = List(st))
-      new State(command, results, exports, markups, document_status1)
-    }
+    private def add_status(now: Time, st: Markup): State =
+      new State(command, results, exports, markups,
+        document_status.update(now, markups = List(st)))
 
-    private def add_result(entry: Results.Entry): State = {
-      val document_status1 =
-        document_status.update(
+    private def add_result(now: Time, entry: Results.Entry): State =
+      new State(command, results + entry, exports, markups,
+        document_status.update(now,
           warned = Results.warned(entry),
-          failed = Results.failed(entry))
-      new State(command, results + entry, exports, markups, document_status1)
-    }
+          failed = Results.failed(entry)))
 
     def add_export(entry: Exports.Entry): Option[State] =
       if (command.node_name.theory == entry._2.theory_name) {
@@ -283,13 +282,15 @@ object Command {
     }
 
     def accumulate(
+        now: Time,
         self_id: Document_ID.Generic => Boolean,
         other_id: (Document.Node.Name, Document_ID.Generic) =>
           Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
         message: XML.Elem,
         cache: XML.Cache): State =
       message match {
-        case XML.Elem(markup @ Markup(Markup.TIMING, _), _) => add_status(markup)
+        case XML.Elem(markup@Markup(Markup.Command_Timing.name, _), _) =>
+          add_status(now, markup)
 
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           if (command.span.is_theory) this
@@ -299,7 +300,7 @@ object Command {
                 msg match {
                   case elem @ XML.Elem(markup, Nil) =>
                     state.
-                      add_status(markup).
+                      add_status(now, markup).
                       add_markup(Text.Info(command.core_range, elem), status = true)
                   case _ =>
                     Output.warning("Ignored status message: " + msg)
@@ -351,7 +352,7 @@ object Command {
               val markup_message = cache.elem(Protocol.make_message(body, name, props = props))
               val message_markup = cache.elem(XML.elem(Markup(name, Markup.Serial(i))))
 
-              var st = add_result(i -> markup_message)
+              var st = add_result(now, i -> markup_message)
               if (Protocol.is_inlined(message)) {
                 for {
                   (chunk_name, chunk) <- command.chunks.iterator
@@ -622,7 +623,9 @@ final class Command private(
 
   lazy val init_state: Command.State =
     new Command.State(this, init_results, init_exports, init_markups,
-      init_document_status.update(warned = init_results.warned, failed = init_results.failed))
+      init_document_status.update(Time.now(),
+        warned = init_results.warned,
+        failed = init_results.failed))
 
   lazy val empty_state: Command.State = Command.State(this)
 }

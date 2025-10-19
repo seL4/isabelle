@@ -16,19 +16,26 @@ object Progress {
 
   sealed abstract class Msg {
     def verbose: Boolean
-    def show_theory: Msg
+    def status: Boolean
     def message: Message
   }
 
   type Output = List[Msg]
+  type Session_Output = List[(String, Msg)]
+
+  def output_theory(msg: Msg): Msg =
+    msg match {
+      case thy: Theory if thy.verbose => thy.copy(verbose = false)
+      case _ => msg
+    }
 
   enum Kind { case writeln, warning, error_message }
   sealed case class Message(
     kind: Kind,
     text: String,
-    override val verbose: Boolean = false
+    override val verbose: Boolean = false,
+    override val status: Boolean = false
   ) extends Msg {
-    override def show_theory: Msg = this
     override def message: Message = this
 
     lazy val output_text: String =
@@ -45,20 +52,25 @@ object Progress {
     theory: String,
     session: String = "",
     percentage: Option[Int] = None,
-    total_time: Time = Time.zero,
-    override val verbose: Boolean = true
+    cumulated_time: Time = Time.zero,
+    override val verbose: Boolean = true,
+    override val status: Boolean = false
   ) extends Msg {
-    override def show_theory: Msg = copy(verbose = false)
     override def message: Message =
-      Message(Kind.writeln, print_session + print_theory + print_percentage + print_total_time,
-        verbose = verbose)
+      Message(Kind.writeln, print_session + print_theory + print_percentage + print_cumulated_time,
+        verbose = verbose, status = status)
 
     def print_session: String = if_proper(session, session + ": ")
     def print_theory: String = "theory " + theory
     def print_percentage: String =
       percentage match { case None => "" case Some(p) => " " + p + "%" }
-    def print_total_time: String =
-      if (total_time.is_relevant) " (" + total_time.message + " elapsed time)" else ""
+    def print_cumulated_time: String =
+      if (cumulated_time.is_relevant) " (" + cumulated_time.message + " cumulated time)" else ""
+  }
+
+  object Nodes_Status {
+    def empty(session: String): Nodes_Status =
+      Nodes_Status(Nil, Document_Status.Nodes_Status.empty, session = session)
   }
 
   sealed case class Nodes_Status(
@@ -70,66 +82,81 @@ object Progress {
     def apply(name: Document.Node.Name): Document_Status.Node_Status =
       document_status(name)
 
-    def theory(name: Document.Node.Name): Theory = {
-      val node_status = apply(name)
+    def theory(
+      name: Document.Node.Name,
+      node_status: Document_Status.Node_Status,
+      status: Boolean = false): Theory =
       Theory(theory = name.theory, session = session,
         percentage = Some(node_status.percentage),
-        total_time = node_status.total_timing.elapsed)
-    }
+        cumulated_time = node_status.cumulated_time,
+        status = status)
 
-    def theory_progress(name: Document.Node.Name, check: (Int, Int) => Boolean): Option[Theory] = {
-      val old_percentage = if (old.isEmpty) 0 else old.get(name).percentage
-      val thy = theory(name)
-      if (check(old_percentage, thy.percentage.getOrElse(0))) Some(thy) else None
-    }
+    def old_percentage(name: Document.Node.Name): Int =
+      if (old.isEmpty) 0 else old.get(name).percentage
 
     def completed_theories: List[Theory] =
-      domain.flatMap(theory_progress(_, (p0, p) => p0 != p && p == 100))
+      domain.flatMap({ name =>
+        val st = apply(name)
+        val p = st.percentage
+        if (p == 100 && p != old_percentage(name)) Some(theory(name, st)) else None
+      })
 
-    def status_theories: List[Theory] = {
-      val res = new mutable.ListBuffer[Theory]
-      // pending theories
-      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 == p && p > 0)) res += thy
-      // running theories
-      for (name <- domain; thy <- theory_progress(name, (p0, p) => p0 != p && p < 100)) res += thy
-      res.toList
-    }
+    def status_theories: List[Theory] =
+      domain.flatMap({ name =>
+        val st = apply(name)
+        val p = st.percentage
+        if (st.progress || (p < 100 && p != old_percentage(name))) {
+          Some(theory(name, st, status = true))
+        }
+        else None
+      })
   }
 
 
   /* status lines (e.g. at bottom of output) */
 
   trait Status extends Progress {
-    def status_enabled: Boolean = false
+    def status_output(msgs: Progress.Output): Unit
+
+    def status_detailed: Boolean = false
     def status_hide(status: Progress.Output): Unit = ()
 
-    protected var _status: Progress.Output = Nil
+    protected var _status: Progress.Session_Output = Nil
 
-    def status_clear(): Progress.Output = synchronized {
+    def status_clear(): Progress.Session_Output = synchronized {
       val status = _status
       _status = Nil
-      status_hide(status)
+      status_hide(status.map(_._2))
       status
     }
 
-    def status_output(status: Progress.Output): Unit = synchronized {
+    private def output_status(status: Progress.Session_Output): Unit = synchronized {
       _status = Nil
-      output(status)
+      status_output(status.map(_._2))
       _status = status
     }
 
     override def output(msgs: Progress.Output): Unit = synchronized {
-      if (msgs.exists(do_output)) {
+      if (msgs.nonEmpty) {
         val status = status_clear()
-        super.output(msgs)
-        status_output(status)
+        status_output(msgs)
+        output_status(status)
       }
     }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
-      status_clear()
+      val old_status = status_clear()
+      val new_status = {
+        val buf = new mutable.ListBuffer[(String, Progress.Msg)]
+        val session = nodes_status.session
+        for (old <- old_status if old._1 < session) buf += old
+        if (status_detailed) { for (thy <- nodes_status.status_theories) buf += (session -> thy) }
+        for (old <- old_status if old._1 > session) buf += old
+        buf.toList
+      }
+
       output(nodes_status.completed_theories)
-      status_output(if (status_enabled) nodes_status.status_theories else Nil)
+      output_status(new_status)
     }
   }
 }
@@ -208,15 +235,17 @@ class Console_Progress(
   detailed: Boolean = false,
   stderr: Boolean = false)
 extends Progress with Progress.Status {
-  override def status_enabled: Boolean = detailed
+  override def status_detailed: Boolean = detailed
   override def status_hide(status: Progress.Output): Unit = synchronized {
     val txt = output_text(status, terminate = true)
     Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)
   }
 
-  override def output(msgs: Progress.Output): Unit = synchronized {
+  override def status_output(msgs: Progress.Output): Unit = synchronized {
     for (msg <- msgs if do_output(msg)) {
-      Output.output(msg.message.output_text, stdout = !stderr, include_empty = true)
+      val txt0 = msg.message.output_text
+      val txt1 = if (msg.status) "\u001b[7m" + txt0 + "\u001b[0m" else txt0
+      Output.output(txt1, stdout = !stderr, include_empty = true)
     }
   }
 
@@ -224,8 +253,8 @@ extends Progress with Progress.Status {
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
-extends Progress {
-  override def output(msgs: Progress.Output): Unit = synchronized {
+extends Progress with Progress.Status {
+  override def status_output(msgs: Progress.Output): Unit = synchronized {
     val txt = output_text(msgs, terminate = true)
     if (txt.nonEmpty) File.append(path, txt)
   }

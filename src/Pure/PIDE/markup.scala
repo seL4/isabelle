@@ -514,8 +514,6 @@ object Markup {
     }
   }
 
-  val TIMING = "timing"
-
 
   /* process result */
 
@@ -561,6 +559,8 @@ object Markup {
   val FINALIZED = "finalized"
   val CONSOLIDATING = "consolidating"
   val CONSOLIDATED = "consolidated"
+
+  val command_running: Properties.Entry = (COMMAND, RUNNING)
 
 
   /* interactive documents */
@@ -705,8 +705,8 @@ object Markup {
   }
 
   val Command_Offset = new Properties.Int("command_offset")
-  val command_timing_properties: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
-  def command_timing_property(entry: Properties.Entry): Boolean = command_timing_properties(entry._1)
+  private val command_timing_exports: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
+  def command_timing_export(entry: Properties.Entry): Boolean = command_timing_exports(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
   object Session_Timing extends Properties_Function("session_timing") {

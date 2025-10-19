@@ -10,6 +10,7 @@ sig
   datatype kind = Command_Span of string * Position.T | Ignored_Span | Malformed_Span
   datatype span = Span of kind * Token.T list
   val kind: span -> kind
+  val is_ignored: span -> bool
   val content: span -> Token.T list
   val range: span -> Position.range
   val symbol_length: span -> int option
@@ -35,6 +36,7 @@ datatype kind = Command_Span of string * Position.T | Ignored_Span | Malformed_S
 datatype span = Span of kind * Token.T list;
 
 fun kind (Span (k, _)) = k;
+fun is_ignored span = kind span = Ignored_Span;
 fun content (Span (_, toks)) = toks;
 val range = Token.range_of o content;
 val symbol_length = Position.distance_of o range;
