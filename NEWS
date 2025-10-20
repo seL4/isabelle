@@ -455,6 +455,9 @@ particularly important for macOS, where zsh is the default user shell.
 (com.github.weisj.jsvg.SVGDocument), as well as the "flatlaf-extras"
 library (com.formdev.flatlaf.extras.FlatSVGIcon).
 
+* Update to official Poly/ML 5.9.2, with minor changes to word and
+floating-point arithmetic.
+
 
 
 New in Isabelle2025 (March 2025)
