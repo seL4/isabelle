@@ -215,8 +215,8 @@ object Component_PolyML {
   val default_gmp_url = "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
 
   val default_polyml_url = "https://github.com/polyml/polyml/archive"
-  val default_polyml_version = "90c0dbb2514e"
-  val default_polyml_name = "polyml-5.9.1"
+  val default_polyml_version = "455755407707"
+  val default_polyml_name = "polyml-5.9.2"
 
   val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
   val default_sha1_version = "0ce12663fe76"
@@ -343,8 +343,8 @@ This compilation of Poly/ML (https://www.polyml.org) is based on the
 source distribution from
 https://github.com/polyml/polyml/commit/""" + polyml_version + """
 
-This coincides with the official release of Poly/ML 5.9.1, see also
-https://github.com/polyml/polyml/releases/tag/v5.9.1
+This coincides with the official release of Poly/ML 5.9.2, see also
+https://github.com/polyml/polyml/releases/tag/v5.9.2
 
 The Isabelle repository provides an administrative tool "isabelle
 component_polyml", which can be used in the polyml component directory as
