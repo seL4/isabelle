@@ -421,8 +421,8 @@ text \<open>
 
   The user is connected to the raw ML toplevel loop: this is neither
   Isabelle/Isar nor Isabelle/ML within the usual formal context. The most
-  relevant ML commands at this stage are \<^ML>\<open>use\<close> (for ML files) and
-  \<^ML>\<open>use_thy\<close> (for theory files).
+  relevant ML commands at this stage are ``\<^ML>\<open>use "ROOT0.ML"\<close>'' and
+  ``\<^ML>\<open>use "ROOT.ML"\<close>'' to load the ML sources of Isabelle/Pure interactively.
 \<close>
 
 
