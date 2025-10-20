@@ -8,8 +8,10 @@ chapter \<open>The Isabelle system environment\<close>
 
 text \<open>
   This manual describes Isabelle together with related tools as seen from a
-  system oriented view. See also the \<^emph>\<open>Isabelle/Isar Reference Manual\<close> \<^cite>\<open>"isabelle-isar-ref"\<close> for the actual Isabelle input language and related
-  concepts, and \<^emph>\<open>The Isabelle/Isar Implementation Manual\<close> \<^cite>\<open>"isabelle-implementation"\<close> for the main concepts of the underlying
+  system oriented view. See also the \<^emph>\<open>Isabelle/Isar Reference Manual\<close>
+  \<^cite>\<open>"isabelle-isar-ref"\<close> for the actual Isabelle input language and
+  related concepts, and \<^emph>\<open>The Isabelle/Isar Implementation Manual\<close>
+  \<^cite>\<open>"isabelle-implementation"\<close> for the main concepts of the underlying
   implementation in Isabelle/ML.
 \<close>
 
@@ -101,10 +103,12 @@ text \<open>
   ISABELLE_HOME} yourself from the shell!
 
   \<^descr>[@{setting_def ISABELLE_HOME_USER}] is the user-specific counterpart of
-  @{setting ISABELLE_HOME}. The default value is relative to \<^path>\<open>$USER_HOME/.isabelle\<close>, under rare circumstances this may be changed in the
-  global setting file. Typically, the @{setting ISABELLE_HOME_USER} directory
-  mimics @{setting ISABELLE_HOME} to some extend. In particular, site-wide
-  defaults may be overridden by a private \<^verbatim>\<open>$ISABELLE_HOME_USER/etc/settings\<close>.
+  @{setting ISABELLE_HOME}. The default value is relative to
+  \<^path>\<open>$USER_HOME/.isabelle\<close>, under rare circumstances this may be changed
+  in the global setting file. Typically, the @{setting ISABELLE_HOME_USER}
+  directory mimics @{setting ISABELLE_HOME} to some extend. In particular,
+  site-wide defaults may be overridden by a private
+  \<^verbatim>\<open>$ISABELLE_HOME_USER/etc/settings\<close>.
 
   \<^descr>[@{setting_def ISABELLE_PLATFORM_FAMILY}\<open>\<^sup>*\<close>] is automatically set to the
   general platform family (\<^verbatim>\<open>linux\<close>, \<^verbatim>\<open>macos\<close>, \<^verbatim>\<open>windows\<close>). Note that
