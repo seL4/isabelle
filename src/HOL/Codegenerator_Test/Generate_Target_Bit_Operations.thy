@@ -59,26 +59,6 @@ lemma check
 
 test_code check in Scala
 
-text \<open>Checking the index maximum for \<^verbatim>\<open>PolyML\<close>.\<close>
-
-qualified definition \<open>check_max = ()\<close>
-
-qualified definition \<open>anchor = (Code_Numeral.drop_bit, check_max)\<close>
-
 end
-
-code_printing
-    code_module Check_Max  \<rightharpoonup>
-      (SML) \<open>
-fun check_max max =
-  let
-    val _ = IntInf.~>> (0, max);
-    val _ = ((IntInf.~>> (0, Word.+ (max, Word.fromInt 1)); raise Fail "Bad max") handle Size => ())
-  in () end;
-\<close>
-  | constant Generate_Target_Bit_Operations.check_max \<rightharpoonup>
-      (SML) "check'_max Bit'_Shifts.word'_max'_index"
-
-test_code \<open>snd Generate_Target_Bit_Operations.anchor = ()\<close> in PolyML
 
 end

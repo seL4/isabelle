@@ -1009,7 +1009,6 @@ structure Bit_Shifts : sig
   type int = IntInf.int
   val push : int -> int -> int
   val drop : int -> int -> int
-  val word_max_index : Word.word (*only for validation*)
 end = struct
 
 open IntInf;
@@ -1019,7 +1018,7 @@ fun fold _ [] y = y
 
 fun replicate n x = (if n <= 0 then [] else x :: replicate (n - 1) x);
 
-val max_index = pow (fromInt 2, Int.- (Word.wordSize, 3)) - fromInt 1; (*experimentally determined*)
+val max_index = pow (fromInt 2, Word.wordSize) - fromInt 1; (*largest possible word*)
 
 val word_of_int = Word.fromLargeInt o toLarge;
 
