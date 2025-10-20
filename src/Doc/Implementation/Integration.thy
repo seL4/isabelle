@@ -150,13 +150,9 @@ text \<open>
 
 text %mlref \<open>
   \begin{mldecls}
-  @{define_ML use_thy: "string -> unit"} \\
   @{define_ML Thy_Info.get_theory: "string -> theory"} \\
   @{define_ML Thy_Info.remove_thy: "string -> unit"} \\
   \end{mldecls}
-
-  \<^descr> \<^ML>\<open>use_thy\<close>~\<open>A\<close> ensures that theory \<open>A\<close> is fully up-to-date wrt.\ the
-  external file store; outdated ancestors are reloaded on demand.
 
   \<^descr> \<^ML>\<open>Thy_Info.get_theory\<close>~\<open>A\<close> retrieves the theory value presently
   associated with name \<open>A\<close>. Note that the result might be outdated wrt.\ the

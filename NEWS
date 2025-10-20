@@ -382,6 +382,13 @@ Examples:
 
   isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'
 
+* The command-line tool "isabelle process" no longer supports option -T
+to load individual theories via the "use_thy" function in Isabelle/ML.
+The latter is still available as "Thy_Info.use_thy_legacy", notably for
+"isabelle process -e ...", but it will be removed eventually. The proper
+way to process individual theories under program control is via
+"isabelle process_theories". INCOMPATIBILITY.
+
 * System option "show_results" (default true) controls output of
 toplevel command results (definitions, theorems) in batch-builds. In
 interactive mode this is always enabled; in batch-builds it can be

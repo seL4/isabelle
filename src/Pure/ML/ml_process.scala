@@ -143,7 +143,6 @@ object ML_Process {
 Usage: isabelle process [OPTIONS]
 
   Options are:
-    -T THEORY    load theory
     -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
@@ -153,8 +152,6 @@ Usage: isabelle process [OPTIONS]
 
   Run the raw Isabelle ML process in batch mode.
 """,
-        "T:" -> (arg =>
-          eval_args = eval_args ::: List("--eval", "use_thy " + ML_Syntax.print_string_bytes(arg))),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
         "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
