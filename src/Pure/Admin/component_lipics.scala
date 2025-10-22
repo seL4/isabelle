@@ -23,7 +23,7 @@ object Component_LIPIcs {
 
   /* build lipics component */
 
-  val default_url = "https://github.com/dagstuhl-publishing/styles/archive/refs/tags/v2021.1.3.tar.gz"
+  val default_url = "https://github.com/dagstuhl-publishing/styles/archive/refs/tags/v2021.2.3.tar.gz"
 
   def build_lipics(
     download_url: String = default_url,
