@@ -204,37 +204,43 @@ object Find_Facts {
 
     object Fields {
       val id = Solr.Field("id", Solr.Type.string).make_unique_key
-      val version = Solr.Field("version", Solr.Type.long, Solr.Column_Wise(true))
-      val chapter = Solr.Field("chapter", Solr.Type.string, Solr.Column_Wise(true))
+      val version = Solr.Field("version", Solr.Type.long)
+      val chapter = Solr.Field("chapter", Solr.Type.string)
       val session = Solr.Field("session", Types.name)
       val session_facet = Solr.Field("session_facet", Solr.Type.string, Solr.Stored(false))
       val theory = Solr.Field("theory", Types.name)
       val theory_facet = Solr.Field("theory_facet", Solr.Type.string, Solr.Stored(false))
       val file = Solr.Field("file", Solr.Type.string, Solr.Indexed(false))
-      val file_type =
-        Solr.Field("file_type", Solr.Type.string, Solr.Column_Wise(true) ::: Solr.Stored(false))
-      val url_path = Solr.Field("url_path", Solr.Type.string, Solr.Indexed(false))
-      val command = Solr.Field("command", Solr.Type.string, Solr.Column_Wise(true))
-      val start_line = Solr.Field("start_line", Solr.Type.int, Solr.Column_Wise(true))
-      val src_before = Solr.Field("src_before", Solr.Type.string, Solr.Indexed(false))
-      val src_after = Solr.Field("src_after", Solr.Type.string, Solr.Indexed(false))
+      val file_type = Solr.Field("file_type", Solr.Type.string, Solr.Stored(false))
+      val url_path =
+        Solr.Field("url_path", Solr.Type.string, Solr.Column_Wise(false) ::: Solr.Indexed(false))
+      val command = Solr.Field("command", Solr.Type.string)
+      val start_line = Solr.Field("start_line", Solr.Type.int)
+      val src_before =
+        Solr.Field("src_before", Solr.Type.string, Solr.Column_Wise(false) ::: Solr.Indexed(false))
+      val src_after =
+        Solr.Field("src_after", Solr.Type.string, Solr.Column_Wise(false) ::: Solr.Indexed(false))
       val src = Solr.Field("src", Types.source)
       val xml = Solr.Field("xml", Solr.Type.bytes, Solr.Indexed(false))
       val html = Solr.Field("html", Solr.Type.bytes, Solr.Indexed(false))
-      val entity_kname = Solr.Field("entity_kname", Solr.Type.string, Solr.Indexed(false))
+      val entity_kname =
+        Solr.Field("entity_kname", Solr.Type.string,
+          Solr.Column_Wise(false) ::: Solr.Indexed(false))
       val consts = Solr.Field("consts", Types.name, Solr.Multi_Valued(true))
       val consts_facet =
-        Solr.Field("consts_facet", Solr.Type.string, Solr.Multi_Valued(true) ::: Solr.Stored(false))
+        Solr.Field("consts_facet", Solr.Type.string,
+          Solr.Column_Wise(false) ::: Solr.Multi_Valued(true) ::: Solr.Stored(false))
       val typs = Solr.Field("typs", Types.name, Solr.Multi_Valued(true))
       val typs_facet =
-        Solr.Field("typs_facet", Solr.Type.string, Solr.Multi_Valued(true) ::: Solr.Stored(false))
+        Solr.Field("typs_facet", Solr.Type.string,
+          Solr.Column_Wise(false) ::: Solr.Multi_Valued(true) ::: Solr.Stored(false))
       val thms = Solr.Field("thms", Types.name, Solr.Multi_Valued(true))
       val thms_facet =
-        Solr.Field("thms_facet", Solr.Type.string, Solr.Multi_Valued(true) ::: Solr.Stored(false))
+        Solr.Field("thms_facet", Solr.Type.string,
+          Solr.Column_Wise(false) ::: Solr.Multi_Valued(true) ::: Solr.Stored(false))
       val names = Solr.Field("names", Types.name, Solr.Multi_Valued(true) ::: Solr.Stored(false))
       val kinds =
-        Solr.Field("kinds", Solr.Type.string,
-          Solr.Multi_Valued(true) ::: Solr.Column_Wise(true) ::: Solr.Stored(false))
+        Solr.Field("kinds", Solr.Type.string, Solr.Multi_Valued(true) ::: Solr.Stored(false))
     }
 
     lazy val fields: Solr.Fields = Solr.Fields(

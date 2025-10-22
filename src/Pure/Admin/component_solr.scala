@@ -8,7 +8,7 @@ package isabelle
 
 
 object Component_Solr {
-  val default_download_url = "https://dlcdn.apache.org/solr/solr/9.7.0/solr-9.7.0.tgz"
+  val default_download_url = "https://dlcdn.apache.org/solr/solr/9.9.0/solr-9.9.0.tgz"
 
 
   /* build solr */
@@ -84,7 +84,7 @@ SOLR_JARS=""" + quote_jars(solr_jars) + """
 classpath """ + quote_jars(classpath) + """
 
 SOLR_LUCENE_VERSION="9.10"
-SOLR_SCHEMA_VERSION="1.6"
+SOLR_SCHEMA_VERSION="1.7"
 """)
 
 
