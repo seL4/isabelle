@@ -1,6 +1,6 @@
 /*  Title:      Pure/ROOT.scala
     Author:     Makarius
-    UUID:       0b801365-9dc6-460b-b12b-fd4c28e63cf1
+    UUID:       0e3ceb40-61a8-4f78-a6c7-ae4892dd80b3
 
 Root of isabelle package.
 */

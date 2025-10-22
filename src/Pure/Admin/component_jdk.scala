@@ -33,8 +33,8 @@ object Component_JDK {
   /* build jdk */
 
   val default_base_url = "https://cdn.azul.com/zulu/bin"
-  val default_jdk_version = "21.0.8"
-  val default_zulu_version = "21.44.17-ca"
+  val default_jdk_version = "21.0.9"
+  val default_zulu_version = "21.46.19-ca"
 
   def build_jdk(
     target_dir: Path = Path.current,
