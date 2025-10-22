@@ -14,7 +14,7 @@ object Component_Find_Facts_Web {
   /* roboto font */
 
   val default_roboto_url = "https://r2.fontsource.org/fonts/roboto"
-  val default_roboto_version = "5.1.1"
+  val default_roboto_version = "5.2.8"
 
 
   /* material components web elm */
