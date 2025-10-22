@@ -424,6 +424,10 @@ Examples:
 identifier explicitly: it takes precedence over all other options and
 settings to determine the ML_PLATFORM (see above).
 
+* Build cluster options support "settings" for specific host settings,
+e.g. for Java heap size. See also $ISABELLE_HOME_USER/etc/registry.toml
+or "isabelle build -H".
+
 * System option "build_progress_detailed" tells "isabelle build" to
 output detailed information while processing theories, notably the
 percentage and cumulated timing. This requires an output channel

@@ -26,6 +26,7 @@ object Build_Cluster {
     private val DIRS = "dirs"
     private val HOME = "home"
     private val SHARED = "shared"
+    private val SETTINGS = "settings"
 
     val parameters: Options =
       Options.inline("""
@@ -37,6 +38,7 @@ object Build_Cluster {
         option dirs : string = ""     -- "additional session directories (separated by colon)"
         option home : string = ""     -- "alternative user home (via $USER_HOME)"
         option shared : bool = false  -- "shared home directory: omit sync + init"
+        option settings : string = "" -- "specific host settings"
       """)
 
     def is_parameter(spec: Options.Spec): Boolean = parameters.defined(spec.name)
@@ -53,9 +55,10 @@ object Build_Cluster {
       dirs: String = parameters.string(DIRS),
       home: String = parameters.string(HOME),
       shared: Boolean = parameters.bool(SHARED),
+      settings: List[String] = split_lines(parameters.string(SETTINGS)),
       options: List[Options.Spec] = Nil
     ): Host = {
-      new Host(name, hostname, user, port, jobs, numa, dirs, home, shared, options)
+      new Host(name, hostname, user, port, jobs, numa, dirs, home, shared, settings, options)
     }
 
     def parse(registry: Registry, str: String): List[Host] = {
@@ -99,6 +102,7 @@ object Build_Cluster {
           dirs = params.string(DIRS),
           home = params.string(HOME),
           shared = params.bool(SHARED),
+          settings = split_lines(params.string(SETTINGS)),
           options = options)
       }
     }
@@ -117,6 +121,7 @@ object Build_Cluster {
     val dirs: String,
     val home: String,
     val shared: Boolean,
+    val settings: List[String],
     val options: List[Options.Spec]
   ) {
     host =>
@@ -139,7 +144,8 @@ object Build_Cluster {
           if_proper(host.numa, Host.NUMA),
           if_proper(host.dirs, Options.Spec.print(Host.DIRS, host.dirs)),
           if_proper(host.home, Options.Spec.print(Host.HOME, host.home)),
-          if_proper(host.shared, Host.SHARED)
+          if_proper(host.shared, Host.SHARED),
+          if_proper(host.settings, Options.Spec.print(Host.SETTINGS, cat_lines(host.settings)))
         ).filter(_.nonEmpty)
       val rest = (params ::: host.options.map(_.print)).mkString(",")
 
@@ -198,7 +204,8 @@ object Build_Cluster {
 
     def init(): Unit =
       build_cluster_isabelle.init(other_settings =
-        build_cluster_isabelle.init_components() ::: build_cluster_isabelle.debug_settings())
+        build_cluster_isabelle.init_components() ::: build_cluster_isabelle.debug_settings() :::
+          host.settings)
 
     def benchmark(): Unit = {
       val script =
