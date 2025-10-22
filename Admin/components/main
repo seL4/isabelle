@@ -9,7 +9,7 @@ elm-0.19.1
 easychair-3.5
 eptcs-1.7.0
 find_facts_web-20251022
-flatlaf-3.6.1
+flatlaf-3.6.2
 foiltex-2.1.4b
 isabelle_fonts-20241227
 isabelle_setup-20250613
@@ -18,10 +18,10 @@ jdk-21.0.8
 jedit-20250825
 jfreechart-1.5.3
 jortho-1.0-2
-jsoup-1.18.3
+jsoup-1.21.2
 jsvg-2.0.0
 kodkodi-1.5.7
-lipics-3.1.3
+lipics-3.1.3-1
 llncs-2.25
 minisat-2.2.1-2
 mlton-20241230-1
@@ -29,7 +29,7 @@ nunchaku-0.5
 opam-2.0.7
 pdfjs-5.4.149
 polyml-5.9.2-1
-postgresql-42.7.7
+postgresql-42.7.8
 prismjs-1.29.0
 rsync-3.2.7-1
 scala-3.3.4
@@ -45,4 +45,4 @@ vscodium-1.104.06131
 xz-java-1.10
 z3-4.4.0pre-4
 zipperposition-2.1-1
-zstd-jni-1.5.7-4
+zstd-jni-1.5.7-6

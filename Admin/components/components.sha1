@@ -134,6 +134,7 @@ a93a98c80536a6984db118e129b1b3a778c700ce flatlaf-3.5.4.tar.gz
 7de5b13afd4d9ac09e4d591b63c1979b9276e4f6 flatlaf-3.6-1.tar.gz
 372ac19c1783af818591c379e1646a3fc1fbbfc2 flatlaf-3.6-2.tar.gz
 4fb3a47f1f4de350bbe330a9c9d185fbde3f3d87 flatlaf-3.6.1.tar.gz
+564f917b46e89ab7f7c37123ef527ad323bed89a flatlaf-3.6.2.tar.gz
 1363421c87dd24bbff318e37c4788ba0339db7ad flatlaf-3.6.tar.gz
 b1c40ce6c087da7e70e221ddd3fcadfa569acb2f foiltex-2.1.4b.tar.gz
 f339234ec18369679be0095264e0c0af7762f351 gnu-utils-20210414.tar.gz
@@ -346,6 +347,7 @@ ffe179867cf5ffaabbb6bb096db9bdc0d7110065 jortho-1.0.tar.gz
 df8bb213d39a7eecae97e6af3b11752d6c704c90 jsoup-1.15.4.tar.gz
 b1c8e2a289e40cbc139a3c371348cef3b537b1c7 jsoup-1.17.2.tar.gz
 342f12a07889ec173b13df9327db684b45118252 jsoup-1.18.3.tar.gz
+4bd40bf5be0865cf10cd51b22ce6f92f0ac97992 jsoup-1.21.2.tar.gz
 a7419f9dab68e50d05533980b6729d1dd7aafb3b jsvg-1.7.1.tar.gz
 1fa4ecbd91f286728caa6540c1d5477ccdf8b1ed jsvg-2.0.0.tar.gz
 6c737137cc597fc920943783382e928ea79e3feb kodkodi-1.2.16.tar.gz
@@ -362,6 +364,7 @@ c8b2e632f3ab959a4e037833a45e6360c8b72a99 kodkodi-1.5.7.tar.gz
 759848095e2ad506083d92b5646947e3c32f27a0 linux_app-20191223.tar.gz
 1a449ce69ac874e21804595d16aaaf5a0d0d0c10 linux_app-20200110.tar.gz
 5557b396f5a9aa22388d3e2171f9bc58e4bd6cd7 lipics-3.1.2.tar.gz
+433372c6427a4323d9c7c26fbeb59f3568021b5f lipics-3.1.3-1.tar.gz
 881741f6e7192fd03835b542b1db820daf0ae79c lipics-3.1.3.tar.gz
 71b6a272d10c53bb54cba23102e15334ec39bfce llncs-2.22.tar.gz
 29aa7179fbd02c528ac61df6e2e8512175093e35 llncs-2.23.tar.gz
@@ -511,6 +514,7 @@ f84c7ecafb07a0d763f1d70edc54f7c43c2e8c63 postgresql-42.4.0.tar.gz
 6393156f24d911c8f9f242612aec2563514ceb59 postgresql-42.7.4.tar.gz
 ac7b66661335d97bf714a1721febacc11396b837 postgresql-42.7.5.tar.gz
 f876d35cf3d41430fb92c8074a0de94b2d57f27c postgresql-42.7.7.tar.gz
+dc2ea06a01d4bec50fb378840dba64b0c33c3bb9 postgresql-42.7.8.tar.gz
 f132329ca1045858ef456cc08b197c9eeea6881b postgresql-9.4.1212.tar.gz
 3fc5e7f759e7220b9e3fc5bac296e312e34a60ad prismjs-1.29.0.tar.gz
 f042bba5fb82c7eb8aee99f92eb6ec38c8a067f7 python-3.10.4.tar.gz
@@ -678,3 +682,4 @@ c101182780aeafbc2e0ea7e8b10b91c6f7483af2 zstd-jni-1.5.2-5.tar.gz
 d787fd0d0ee1827b6fc4d6288363f922770490e0 zstd-jni-1.5.5-4.tar.gz
 43c9fc08e3de346292d591df8098d99a56dba1a3 zstd-jni-1.5.6-8.tar.gz
 a9d309500ff9600e8c3110f7e7edc47691de7877 zstd-jni-1.5.7-4.tar.gz
+ec381c91541be4f1c9440c115363fd657b474df3 zstd-jni-1.5.7-6.tar.gz
