@@ -514,9 +514,8 @@ lemma bounded_by_update_var:
     and bnd: "x \<in>\<^sub>r ivl"
   shows "bounded_by (xs[i := x]) vs"
   using assms
-  using nth_list_update
   by (cases "i < length xs")
-    (force simp: bounded_by_def  split: option.splits)+
+    (force simp: bounded_by_def nth_list_update list_update_beyond split: option.splits)+
 
 lemma isDERIV_approx':
   assumes "bounded_by xs vs"

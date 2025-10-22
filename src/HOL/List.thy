@@ -1972,7 +1972,7 @@ lemma nth_list_update_neq [simp]: "i \<noteq> j \<Longrightarrow> xs[i:=x]!j = x
 lemma list_update_id[simp]: "xs[i := xs!i] = xs"
   by (induct xs arbitrary: i) (simp_all split:nat.splits)
 
-lemma list_update_beyond[simp]: "length xs \<le> i \<Longrightarrow> xs[i:=x] = xs"
+lemma list_update_beyond: "length xs \<le> i \<Longrightarrow> xs[i:=x] = xs"
 proof (induct xs arbitrary: i)
   case (Cons x xs i)
   then show ?case
@@ -1980,11 +1980,11 @@ proof (induct xs arbitrary: i)
 qed simp
 
 lemma list_update_nonempty[simp]: "xs[k:=x] = [] \<longleftrightarrow> xs=[]"
-  by (simp only: length_0_conv[symmetric] length_list_update)
+  by (metis length_greater_0_conv length_list_update)
 
 lemma list_update_same_conv:
   "i < length xs \<Longrightarrow> (xs[i := x] = xs) = (xs!i = x)"
-  by (induct xs arbitrary: i) (auto split: nat.split)
+  by (metis list_update_id nth_list_update_eq)
 
 lemma list_update_append1:
   "i < size xs \<Longrightarrow> (xs @ ys)[i:=x] = xs[i:=x] @ ys"
@@ -2118,7 +2118,7 @@ lemma last_list_update:
 lemma butlast_list_update:
   "butlast(xs[k:=x]) =
   (if k = size xs - 1 then butlast xs else (butlast xs)[k:=x])"
-  by(cases xs rule:rev_cases)(auto simp: list_update_append split: nat.splits)
+  by(cases xs rule:rev_cases)(auto simp: list_update_beyond list_update_append split: nat.splits)
 
 lemma last_map: "xs \<noteq> [] \<Longrightarrow> last (map f xs) = f (last xs)"
   by (cases xs rule: rev_cases) simp_all
@@ -2461,8 +2461,8 @@ lemma take_update_swap: "take m (xs[n := x]) = (take m xs)[n := x]"
 proof (cases "n \<ge> length xs")
   case False
   then show ?thesis
-    by (simp add: upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc split: nat.split)
-qed auto
+    by (simp add: list_update_beyond upd_conv_take_nth_drop take_Cons drop_take min_def diff_Suc split: nat.split)
+qed (auto simp: list_update_beyond)
 
 lemma drop_update_swap:
   assumes "m \<le> n" shows "drop m (xs[n := x]) = (drop m xs)[n-m := x]"
@@ -2470,7 +2470,7 @@ proof (cases "n \<ge> length xs")
   case False
   with assms show ?thesis
     by (simp add: upd_conv_take_nth_drop drop_take)
-qed auto
+qed (auto simp: list_update_beyond)
 
 lemma nth_image: "l \<le> size xs \<Longrightarrow> nth xs ` {0..<l} = set(take l xs)"
   by (simp add: set_conv_nth) force
@@ -3829,7 +3829,7 @@ proof (cases "i < length xs")
       using d False anot \<open>i < length xs\<close> by (simp add: upd_conv_take_nth_drop)
   qed
 next
-  case False with d show ?thesis by auto
+  case False with d show ?thesis by (auto simp: list_update_beyond)
 qed
 
 lemma distinct_concat_rev[simp]: "distinct (concat (rev xs)) = distinct (concat xs)"
