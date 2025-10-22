@@ -32,7 +32,7 @@ object Component_Hugo {
   /* build hugo */
 
   val default_url = "https://github.com/gohugoio/hugo/releases/download"
-  val default_version = "0.142.0"
+  val default_version = "0.152.0"
 
   def build_hugo(
     base_url: String = default_url,
