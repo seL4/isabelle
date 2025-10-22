@@ -661,7 +661,7 @@ object Find_Facts {
                   else Sessions.background0(session_name)
                 using(database_context.open_session(background)) { session_context =>
                   val info = sessions_structure(session_name)
-                  progress.echo("Session " + info.chapter + "/" + session_name + " ...")
+                  progress.echo("Indexing session " + info.chapter + "/" + session_name + " ...")
 
                   if (browser_info) Browser_Info.build_session(context1, session_context)
 
@@ -693,7 +693,7 @@ object Find_Facts {
 
         val timing = Date.now() - start_date
         progress.echo("Indexed " + stats.results + " blocks with " + stats.consts + " consts, " +
-          stats.typs + " typs, " + stats.thms + " thms in " + timing.message)
+          stats.typs + " typs, " + stats.thms + " thms in " + timing.message_hms)
       }
     }
   }
