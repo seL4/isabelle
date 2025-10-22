@@ -878,7 +878,8 @@ val _ = Theory.setup
       check = {env_var = "",
         make_destination = fn p => p + Path.explode "ROOT.ML",
         make_command = fn _ =>
-          "isabelle process -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure"},
+          "isabelle process -o ML_platform=" ^ Bash.string (ML_System.platform) ^
+          " -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure"},
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
