@@ -172,7 +172,7 @@ fun decode body =
 
 val global_default = Synchronized.var "Options.default" (NONE: T option);
 
-fun err_no_default () = error "Missing default for system options within Isabelle process";
+fun err_no_default () = error "Missing default for system options within Isabelle/ML process";
 
 fun change_default f x y =
   Synchronized.change global_default

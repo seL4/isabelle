@@ -1140,7 +1140,7 @@ text \<open>
   \<^medskip>
   To gracefully stop the build manager, it should be sent an interrupt signal
   (\<^verbatim>\<open>kill -INT\<close>). This will stop all threads gracefully: Any running build is
-  allowed to complete before the Isabelle process terminates.
+  allowed to complete before the Isabelle/Scala process terminates.
 
   \<^medskip>
   The build manager stores its persistent data (including user-submitted tasks
