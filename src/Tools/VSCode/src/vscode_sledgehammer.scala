@@ -9,18 +9,19 @@ import isabelle._
 
 import java.io.{PrintStream, PrintWriter, FileWriter, OutputStream, File => JFile}
 
-object Sledgehammer_Panel {
-  def apply(server: Language_Server): Sledgehammer_Panel =
-    new Sledgehammer_Panel(server)
+
+object VSCode_Sledgehammer {
+  def apply(server: Language_Server): VSCode_Sledgehammer =
+    new VSCode_Sledgehammer(server)
 }
 
-class Sledgehammer_Panel private(server: Language_Server) {
+class VSCode_Sledgehammer private(server: Language_Server) {
   private val query_operation =
     new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_result)
   var current_purpose: Int = 1
   private var last_sendback_id: Option[Int] = None
 
-  private val provers_history_option: String = "sledgehammer_provers_history"
+  private val provers_history_option: String = "vscode_sledgehammer_history"
   private val provers_history_delim: Char = '|'
 
   private var persistent_options: Options = Options.init()

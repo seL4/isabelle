@@ -283,7 +283,6 @@ sources = \
   src/Tools/VSCode/src/language_server.scala \
   src/Tools/VSCode/src/lsp.scala \
   src/Tools/VSCode/src/pretty_text_panel.scala \
-  src/Tools/VSCode/src/sledgehammer_panel.scala \
   src/Tools/VSCode/src/preview_panel.scala \
   src/Tools/VSCode/src/state_panel.scala \
   src/Tools/VSCode/src/vscode_main.scala \
@@ -291,6 +290,7 @@ sources = \
   src/Tools/VSCode/src/vscode_rendering.scala \
   src/Tools/VSCode/src/vscode_resources.scala \
   src/Tools/VSCode/src/vscode_session.scala \
+  src/Tools/VSCode/src/vscode_sledgehammer.scala \
   src/Tools/VSCode/src/vscode_spell_checker.scala \
   src/Tools/jEdit/src/active.scala \
   src/Tools/jEdit/src/base_plugin.scala \
