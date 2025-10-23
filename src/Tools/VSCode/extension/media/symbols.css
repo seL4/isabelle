@@ -1,0 +1,229 @@
+:root {
+  --container-paddding: 20px;
+  --input-padding-vertical: 6px;
+  --input-padding-horizontal: 4px;
+  --input-margin-vertical: 4px;
+  --input-margin-horizontal: 0;
+  --input-border-color: var(--vscode-input-border, var(--vscode-panel-border));
+}
+
+--font-size-base: var(--vscode-editor-font-size);
+--font-family-base: var(--vscode-editor-font-family);
+--font-weight-base: var(--vscode-editor-font-weight);
+--font-size-small: calc(var(--font-size-base) * 0.85);
+--font-size-tiny:  calc(var(--font-size-base) * 0.75);
+
+
+body {
+  padding: 0 var(--container-paddding);
+  color: var(--vscode-foreground);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-base);
+  font-family: var(--font-family-base);
+  background-color: var(--vscode-sideBar-background);
+}
+
+pre, code {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+}
+
+a {
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+}
+
+a:hover, a:active {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+ol, ul {
+  padding-left: var(--container-paddding);
+}
+
+body > *, form > * {
+  margin-block-start: var(--input-margin-vertical);
+  margin-block-end: var(--input-margin-vertical);
+}
+
+
+.arrow-button, .abbrevs-button, .symbol-button, .reset-button, .control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 2px;
+  text-align: center;
+  outline: 1px solid transparent;
+  outline-offset: 2px !important;
+  font-size: var(--font-size-small);
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-button-secondaryForeground);
+  background: var(--vscode-button-secondaryBackground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: auto;
+  height: auto;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+.arrow-button:hover,
+.abbrevs-button:hover,
+.symbol-button:hover,
+.reset-button:hover,
+.control-button:hover {
+  border: 1px solid var(--vscode-focusBorder);
+  background: var(--vscode-button-hoverBackground);
+}
+
+.arrow-button:active, .abbrevs-button:active, .symbol-button:active, .reset-button:active, .control-button:active {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 9999;
+  background-color: var(--vscode-editorHoverWidget-background);
+  color: var(--vscode-editorHoverWidget-foreground);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: var(--font-size-small);
+  font-family: var(--font-family-base);
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  max-width: 250px;
+  box-shadow: 0 2px 4px var(--vscode-widget-shadow);
+}
+.tooltip.visible { opacity: 1; }
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--vscode-editor-background);
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.tab {
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  border: none;
+  font-size: var(--font-size-small);
+  font-family: var(--font-family-base);
+}
+.tab.active {
+  border-bottom: 1.5px solid var(--vscode-focusBorder);
+}
+.tab:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.content { padding: 5px; }
+
+.tab-content.hidden { display: none; }
+
+
+.tab-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  row-gap: 8px;
+}
+
+.tab-content .symbol-button { margin: 0; }
+
+.tab-content .arrow-button,
+.tab-content .abbrevs-button,
+.tab-content .reset-button,
+.tab-content .control-button { margin: 0; }
+
+input:not([type='checkbox']), textarea {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--input-border-color);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+#controls > * {
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.search-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-input {
+  width: 100%;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+  border: 1px solid var(--input-border-colorr);
+  padding: 4px 6px;
+  box-sizing: border-box;
+}
+
+.search-input:hover {
+  border-color: var(--input-border-color);
+}
+
+.search-input::placeholder {
+  animation: blink 1s steps(2, start) infinite;
+}
+
+.search-input:focus {
+  border-color: var(--vscode-focusBorder);
+  outline: none;
+}
+
+.search-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.search-results .symbol-button {
+  width: auto;
+  height: auto;
+  min-width: 14px;
+  min-height: 14px;
+  padding: 2px 6px;
+  box-sizing: border-box;
+}
+
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

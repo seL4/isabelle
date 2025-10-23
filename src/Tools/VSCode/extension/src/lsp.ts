@@ -129,6 +129,136 @@ export interface Preview_Response
   content: string
 }
 
+export interface Symbol_Entry {
+  name: string;
+  abbrevs: string[];
+  groups: string[];
+  code?: number; 
+  font?: string; 
+  symbol: string;
+  argument: string;
+  decoded: string;
+}
+
+export interface Symbols_Response {
+  symbols: Symbol_Entry [];
+  abbrevs_from_Thy: [string, string][];
+}
+
+export const symbols_response_type =
+    new NotificationType<Symbols_Response>('PIDE/symbols_response');
+
+export interface InitRequest {
+  init: boolean;
+}
+
+export const symbols_request_type =
+    new NotificationType<InitRequest>("PIDE/symbols_panel_request")
+
+
+export const documentation_request_type =
+  new NotificationType<InitRequest>("PIDE/documentation_request")
+
+export interface Documentation_Response {
+  sections: Array<{
+    title: string;
+    important: boolean;
+    entries: Array<{ title: string; path: string }>;
+  }>;
+}
+
+export const documentation_response_type =
+  new NotificationType<Documentation_Response>("PIDE/documentation_response");
+
+export interface SledgehammerApplyRequest {
+  provers: string;
+  isar: boolean;
+  try0: boolean;
+  purpose: number;
+}
+
+export interface SledgehammerStatus {
+  message: string;
+}
+
+export interface SledgehammerApplyResult {
+  content: string;
+  position: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+  sendbackId: number;
+  state_location: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+}
+
+export interface SledgehammerLocate {
+  position: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+}
+
+export interface SledgehammerInsertPosition {
+  position: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+}
+
+export interface Sledgehammer_Provers {
+  provers: string;
+  history: string[];
+}
+
+export interface Sledgehammer_Provers_Delete {
+  entry: string;
+}
+
+export interface SledgehammerNoSuchProver {
+  provers: string[];
+}
+
+export const sledgehammer_request_type =
+  new NotificationType<SledgehammerApplyRequest>('PIDE/sledgehammer_request');
+
+export const sledgehammer_provers_delete =
+  new NotificationType<Sledgehammer_Provers_Delete>('PIDE/sledgehammer_deleteProvers_request');
+
+export const sledgehammer_cancel_type =
+  new NotificationType<void>('PIDE/sledgehammer_cancel_request');
+
+export const sledgehammer_provers =
+  new NotificationType<InitRequest>('PIDE/sledgehammer_provers_request');
+ 
+export const sledgehammer_provers_response =
+  new NotificationType<Sledgehammer_Provers>('PIDE/sledgehammer_provers_response');
+
+export const sledgehammer_no_such_prover_type =
+  new NotificationType<SledgehammerNoSuchProver>('PIDE/sledgehammer_noProver_response');
+
+export const sledgehammer_status_type =
+  new NotificationType<SledgehammerStatus>('PIDE/sledgehammer_status_response');
+
+export const sledgehammer_apply_response_type =
+  new NotificationType<SledgehammerApplyResult>('PIDE/sledgehammer_apply_response');
+
+export const sledgehammer_locate_response_type =
+  new NotificationType<SledgehammerLocate>('PIDE/sledgehammer_locate_response');
+
+export const sledgehammer_insert_position_response_type =
+  new NotificationType<SledgehammerInsertPosition>('PIDE/sledgehammer_insert_position_response');
+
+export const sledgehammer_no_proof_context_type =
+  new NotificationType<void>('PIDE/sledgehammer_no_proof_context');
+
+
 export const preview_request_type =
   new NotificationType<Preview_Request>("PIDE/preview_request")
 

@@ -737,4 +737,152 @@ object LSP {
           "label" -> label,
           "content" -> content))
   }
+
+  object Symbols_Panel_Request {
+    def unapply(json: JSON.T): Option[(Boolean)] =
+      json match {
+        case Notification("PIDE/symbols_panel_request", Some(params)) =>
+          for {
+            init <- JSON.bool(params, "init")
+          } yield (init)
+        case _ => None
+      }
+  }
+
+  object Documentation_Request {
+    def unapply(json: JSON.T): Option[(Boolean)] =
+      json match {
+        case Notification("PIDE/documentation_request", Some(params)) =>
+          for {
+            init <- JSON.bool(params, "init")
+          } yield (init)
+        case _ => None
+      }
+  }
+
+
+  object Sledgehammer_Provers {
+    def unapply(json: JSON.T): Option[(Boolean)] =
+      json match {
+        case Notification("PIDE/documentation_request", Some(params)) =>
+          for {
+            init <- JSON.bool(params, "init")
+          } yield (init)
+        case _ => None
+      }
+  }
+
+
+  object Symbols_Response {
+    def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {
+      def json(symbol: Symbol.Entry): JSON.T = {
+        val decoded = Symbol.decode(symbol.symbol)
+
+        JSON.Object(
+          "symbol" -> symbol.symbol,
+          "name" -> symbol.name,
+          "argument" -> symbol.argument.toString,
+          "decoded" -> decoded
+        ) ++
+          JSON.optional("code", symbol.code) ++
+          JSON.optional("font", symbol.font) ++
+          JSON.Object(
+            "groups" -> symbol.groups,
+            "abbrevs" -> symbol.abbrevs
+          )
+      }
+
+
+      Notification("PIDE/symbols_response", JSON.Object("symbols" -> symbols.entries.map(json), "abbrevs_from_Thy" -> abbrevs.map { case (a, b) => List(a, b) }
+      ))
+    }
+  }
+
+
+  object Documentation_Response {
+    def apply(): JSON.T = {
+      val ml_settings = ML_Settings.init()
+      val doc_contents = Doc.contents(ml_settings)
+      val json_sections = doc_contents.sections.map { section =>
+        JSON.Object(
+          "title" -> section.title,
+          "important" -> section.important,
+          "entries" -> section.entries.map { entry =>
+            JSON.Object("title" -> entry.title, "path" -> entry.path.toString)
+          }
+        )
+      }
+
+      Notification("PIDE/documentation_response", JSON.Object("sections" -> json_sections))
+    }
+  }
+
+  object Sledgehammer_Request {
+    def unapply(json: JSON.T): Option[(String, Boolean, Boolean, Int)] =
+      json match {
+        case Notification("PIDE/sledgehammer_request", Some(params)) =>
+          for {
+            provers <- JSON.string(params, "provers")
+            isar <- JSON.bool(params, "isar")
+            try0 <- JSON.bool(params, "try0")
+            purpose <- JSON.int(params, "purpose") orElse Some(1)  // fallback default
+          } yield (provers, isar, try0, purpose)
+        case _ => None
+      }
+  }
+
+  object Sledgehammer_Delete_Prover {
+    def unapply(json: JSON.T): Option[String] =
+      json match {
+        case Notification("PIDE/sledgehammer_deleteProvers_request", Some(params)) =>
+          JSON.string(params, "entry")
+        case _ => None
+      }
+  }
+
+  object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel_request")
+
+  object Sledgehammer_Provers_Response {
+    def apply(provers: String, history: List[String]): JSON.T = {
+      Notification(
+        "PIDE/sledgehammer_provers_response",
+        JSON.Object("provers" -> provers, "history" -> history)
+      )
+    }
+  }
+
+  object Sledgehammer_NoProver_Response {
+    def apply(provers: List[String]): JSON.T =
+      Notification("PIDE/sledgehammer_noProver_response", JSON.Object("provers" -> provers))
+  }
+
+  object Sledgehammer_Status_Response {
+    def apply(message: String): JSON.T =
+      Notification("PIDE/sledgehammer_status_response", JSON.Object("message" -> message))
+  }
+
+  object Sledgehammer_Apply_Response {
+    def apply(resultJson: JSON.Object.T): JSON.T = {
+      Notification("PIDE/sledgehammer_apply_response", resultJson)
+    }
+  }
+
+  object Sledgehammer_Locate_Response {
+    def apply(resultJson: JSON.Object.T): JSON.T = {
+      Notification("PIDE/sledgehammer_locate_response", resultJson)
+    }
+  }
+
+  object Sledgehammer_InsertPosition_Response {
+    def apply(resultJson: JSON.Object.T): JSON.T = {
+      Notification("PIDE/sledgehammer_insert_position_response", resultJson)
+    }
+  }
+
+  object Sledgehammer_NoProof_Response{
+    def apply(): JSON.T =
+      Notification("PIDE/sledgehammer_no_proof_context", None)
+  }
+
 }
+

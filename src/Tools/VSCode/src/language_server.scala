@@ -14,7 +14,7 @@ package isabelle.vscode
 import isabelle._
 
 import java.io.{PrintStream, OutputStream, File => JFile}
-
+import isabelle.vscode.Sledgehammer_Panel
 import scala.annotation.tailrec
 
 
@@ -117,6 +117,7 @@ class Language_Server(
   private val session_ = Synchronized(None: Option[VSCode_Session])
   def session: VSCode_Session = session_.value getOrElse error("Server inactive")
   def resources: VSCode_Resources = session.resources
+  private val sledgehammer_panel = Sledgehammer_Panel(this)
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
@@ -296,6 +297,7 @@ class Language_Server(
       session.syslog_messages += syslog_messages
 
       dynamic_output.init()
+      sledgehammer_panel.init()
 
       try {
         Isabelle_Process.start(
@@ -324,6 +326,7 @@ class Language_Server(
         delay_output.revoke()
         delay_caret_update.revoke()
         delay_preview.revoke()
+        sledgehammer_panel.exit()
 
         val result = session.stop()
         if (result.ok) reply("")
@@ -487,6 +490,20 @@ class Language_Server(
     channel.write(LSP.Symbols_Convert_Request.reply(id, converted))
   }
 
+  def symbols_panel_request(init: Boolean): Unit = {
+    val abbrevs =
+      resources.get_caret().flatMap { caret =>
+        resources.get_model(caret.file).map(_.syntax().abbrevs)
+      }.getOrElse(session.resources.session_base.overall_syntax.abbrevs)
+
+    channel.write(LSP.Symbols_Response(Symbol.symbols, abbrevs))
+  }
+
+
+  def documentation_request(init: Boolean): Unit = {
+    channel.write(LSP.Documentation_Response())
+  }
+
 
   /* main loop */
 
@@ -530,6 +547,12 @@ class Language_Server(
           case LSP.Symbols_Convert_Request(id, text, boolean) =>
             symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
+          case LSP.Symbols_Panel_Request(init) => symbols_panel_request(init)
+          case LSP.Documentation_Request(init) => documentation_request(init)
+          case LSP.Sledgehammer_Request(provers, isar, try0, purpose) => sledgehammer_panel.handle_request(provers, isar, try0, purpose)
+          case LSP.Sledgehammer_Cancel => sledgehammer_panel.cancel_query()
+          case LSP.Sledgehammer_Provers(init) => sledgehammer_panel.send_provers_and_history(init)
+          case LSP.Sledgehammer_Delete_Prover(entry) => sledgehammer_panel.handle_sledgehammer_delete(entry)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
