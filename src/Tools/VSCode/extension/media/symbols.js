@@ -109,10 +109,10 @@
     let i = 0;
     while (i < symbol.length) {
       const char = symbol[i];
-      if (char === "⇧") {
+      if (char === "\u21e7") {
         i++;
         if (i < symbol.length) result += "<sup>" + symbol[i] + "</sup>";
-      } else if (char === "⇩") { 
+      } else if (char === "\u21e9") { 
         i++;
         if (i < symbol.length) result += "<sub>" + symbol[i] + "</sub>";
       } else {
@@ -128,13 +128,13 @@
   let i = 0;
   while (i < symbol.length) {
     const char = symbol[i];
-    if (char === "⇧") {
+    if (char === "\u21e7") {
       i++;
       if (i < symbol.length) {
         if (controlSup) result += controlSup + symbol[i];
         else result += symbol[i];
       }
-    } else if (char === "⇩") {
+    } else if (char === "\u21e9") {
       i++;
       if (i < symbol.length) {
         if (controlSub) result += controlSub + symbol[i];

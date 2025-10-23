@@ -9,12 +9,12 @@ import { DecorationRangeBehavior, ExtensionContext, Range,
   TextDocument, TextEditor, window, workspace } from 'vscode'
 
 const arrows = {
-  sub: '⇩',
-  sup: '⇧',
-  sub_begin: '⇘',
-  sub_end: '⇙',
-  sup_begin: '⇗',
-  sup_end: '⇖'
+  sub: '\u21e9',
+  sup: '\u21e7',
+  sub_begin: '\u21d8',
+  sub_end: '\u21d9',
+  sup_begin: '\u21d7',
+  sup_end: '\u21d6'
 }
 const no_hide_list = [' ', '\n', '\r', ...Object.values(arrows)]
 

@@ -31,7 +31,7 @@
   chevronBtn.className = 'provers-dropdown-toggle';
   chevronBtn.setAttribute('aria-label', 'Show provers history');
   chevronBtn.tabIndex = -1;
-  chevronBtn.innerHTML = '▼';
+  chevronBtn.innerHTML = '\u25bc';
   proversInputWrapper.appendChild(chevronBtn);
 
   proversLabel.appendChild(proversInputWrapper);
@@ -63,7 +63,7 @@
         row.textContent = item;
 
         const delBtn = document.createElement('span');
-        delBtn.textContent = '✖';
+        delBtn.textContent = '\u2716';
         delBtn.className = 'delete-btn';
         delBtn.title = 'Delete entry';
         delBtn.addEventListener('mousedown', function (ev) {
