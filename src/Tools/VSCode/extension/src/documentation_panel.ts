@@ -31,7 +31,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
   request(language_client: LanguageClient) {
     if (language_client) {
       this._language_client.sendNotification(lsp.documentation_request_type, { init: true });
-      
+
     }
   }
 
@@ -47,7 +47,11 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
     });
   }
 
-  public resolveWebviewView(view: WebviewView, context: WebviewViewResolveContext, _token: CancellationToken): void {
+  public resolveWebviewView(
+    view: WebviewView,
+    context: WebviewViewResolveContext,
+    _token: CancellationToken
+  ): void {
     this._view = view;
     this._view.webview.options = {
       enableScripts: true,
@@ -117,8 +121,10 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 }
 
 function get_webview_html(webview: Webview | undefined, extension_path: string): string {
-  const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'documentation.js')))
-  const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'documentation.css')))
+  const script_uri =
+    webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'documentation.js')))
+  const css_uri =
+    webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'documentation.css')))
   const font_uri =
     webview.asWebviewUri(Uri.file(path.join(extension_path, 'fonts', 'IsabelleDejaVuSansMono.ttf')))
 
@@ -135,7 +141,7 @@ function get_webview_html(webview: Webview | undefined, extension_path: string):
                 src: url(${font_uri});
             }
             ${_get_decorations()}
-        </style>        
+        </style>
         <title>Documentation Panel</title>
       </head>
       <body>
@@ -155,4 +161,3 @@ function _get_decorations(): string {
 }
 
 export { Documentation_Panel_Provider, get_webview_html };
-

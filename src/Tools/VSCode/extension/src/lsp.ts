@@ -133,8 +133,8 @@ export interface Symbol_Entry {
   name: string;
   abbrevs: string[];
   groups: string[];
-  code?: number; 
-  font?: string; 
+  code?: number;
+  font?: string;
   symbol: string;
   argument: string;
   decoded: string;
@@ -236,7 +236,7 @@ export const sledgehammer_cancel_type =
 
 export const sledgehammer_provers =
   new NotificationType<InitRequest>('PIDE/sledgehammer_provers_request');
- 
+
 export const sledgehammer_provers_response =
   new NotificationType<Sledgehammer_Provers>('PIDE/sledgehammer_provers_response');
 
