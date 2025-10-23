@@ -238,7 +238,7 @@
 
         const button = document.createElement('div');
         if (group === "arrow") {
-          button.classList.add('arrow-button'); // Spezielle Klasse für Pfeile
+          button.classList.add('arrow-button'); // special class for arrows
         } else {
           button.classList.add('symbol-button');
         }
