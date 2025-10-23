@@ -48,8 +48,8 @@ class VSCode_Sledgehammer private(server: Language_Server) {
   }
 
   def handle_request(provers: String, isar: Boolean, try0: Boolean, purpose: Int): Unit = {
-    val available_provers = persistent_options.string("sledgehammer_provers").split("\\s+").toSet
-    val user_provers = provers.trim.split("\\s+").toSet
+    val available_provers = Word.explode(persistent_options.string("sledgehammer_provers")).toSet
+    val user_provers = Word.explode(provers).toSet
     val invalid = user_provers.diff(available_provers)
     if (invalid.nonEmpty) {
       server.channel.write(LSP.Sledgehammer_NoProver_Response.apply(invalid.toList))

@@ -225,7 +225,7 @@ object Components {
             for (case (a, b) <- File.read_props(props_path).asScala.toList)
               yield {
                 if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
-                val ps = List.from(b.split("\\s+").iterator.filter(_.nonEmpty)).map(Path.explode)
+                val ps = Word.explode(b).map(Path.explode)
                 for (p <- ps if !p.all_basic) error("Bad path outside component " + p)
                 a -> ps
               }
