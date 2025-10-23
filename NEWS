@@ -211,6 +211,9 @@ which is added as a simp rule.
   - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
     "smt_proof_dest_dir". Minor INCOMPATIBILITY.
 
+* Sledgehammer:
+  - Don't suggest proofs by `smt (z3)` anymore.
+
 * Theory "HOL.Fun":
   - Added lemmas.
       antimonotone_on_inf_fun
