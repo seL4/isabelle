@@ -105,7 +105,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     snapshot.node.commands.find(_.id == sendbackId).flatMap { command =>
       snapshot.node.command_iterator().find(_._1 == command).map {
         case (_, start_offset) =>
-          val end_offset = start_offset + command.length // Hier nehmen wir das Ende des Command!
+          val end_offset = start_offset + command.length
           val text = snapshot.node.source
           val line = count_lines(text, end_offset)
           val column = count_column(text, end_offset)
