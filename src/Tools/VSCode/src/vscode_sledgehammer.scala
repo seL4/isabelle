@@ -22,7 +22,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
   private var last_sendback_id: Option[Int] = None
 
   private val provers_history_option: String = "vscode_sledgehammer_history"
-  private val provers_history_delim: Char = '|'
+  private val provers_history_delim: Char = ','
 
   private var persistent_options: Options = Options.init()
 
