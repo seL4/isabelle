@@ -166,13 +166,13 @@ class Query_Operation[Editor_Context](
     editor.require_dispatcher { editor.session.cancel_exec(current_state.value.exec_id) }
 
   def apply_query(query: List[String]): Unit = {
-    editor.send_dispatcher {
+    editor.require_dispatcher {}
 
-      editor.current_node_snapshot(editor_context) match {
-        case Some(snapshot) =>
-          remove_overlay()
-          current_state.change(_ => Query_Operation.State.empty)
-          consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+    editor.current_node_snapshot(editor_context) match {
+      case Some(snapshot) =>
+        remove_overlay()
+        current_state.change(_ => Query_Operation.State.empty)
+        consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
 
         editor.current_command(editor_context, snapshot) match {
           case Some(command) =>
@@ -182,10 +182,9 @@ class Query_Operation[Editor_Context](
           case None =>
         }
 
-          consume_status(current_state.value.status)
-          editor.flush()
-        case None =>
-      }
+        consume_status(current_state.value.status)
+        editor.flush()
+      case None =>
     }
   }
 

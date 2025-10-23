@@ -172,7 +172,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
           case Some(caret) =>
             val snapshot = server.resources.snapshot(caret.model)
             val uri = Url.print_file(caret.file)
-            query_operation.apply_query(args)
+            server.editor.send_dispatcher { query_operation.apply_query(args) }
           case None =>
             server.channel.write(LSP.Sledgehammer_NoProof_Response())
         }
