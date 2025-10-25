@@ -31,12 +31,12 @@
             "panel": [
                 {
                     "id": "isabelle",
-                    "title": "Isabelle",
+                    "title": "Isabelle Output",
                     "icon": "isabelle.png"
                 },
                 {
                     "id": "isabelle-symbols",
-                    "title": "Symbols",
+                    "title": "Isabelle Symbols",
                     "icon": "./media/symbol-panel.svg"
                 },
                 {
