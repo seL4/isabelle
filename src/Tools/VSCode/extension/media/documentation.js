@@ -75,7 +75,7 @@
             } else {
               selectedEntry = entryItem;
               entryItem.classList.add("selected");
-              openFile(entry.path);
+              open_document(entry.path);
             }
           });
   
@@ -91,8 +91,8 @@
       container.appendChild(list);
     }
   
-    function openFile(filePath) {
-      vscode.postMessage({ command: "openFile", path: filePath });
+    function open_document(path) {
+      vscode.postMessage({ command: "open_document", path: path });
     }
   
     window.onload = function () {

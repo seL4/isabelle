@@ -67,7 +67,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
     }
 
     this._view.webview.onDidReceiveMessage(async message => {
-      if (message.command === 'openFile') {
+      if (message.command === 'open_document') {
         this._open_document(message.path);
       }
     });
