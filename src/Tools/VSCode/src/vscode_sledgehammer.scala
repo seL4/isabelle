@@ -78,7 +78,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     if (msg.nonEmpty) server.channel.write(LSP.Sledgehammer_Status_Response(msg))
   }
 
-  private def extractSendbackId(body: List[XML.Elem]): Option[Int] = {
+  private def extract_sendback_id(body: List[XML.Elem]): Option[Int] = {
     def traverse(tree: XML.Tree): Option[Int] = tree match {
       case XML.Elem(markup, body) if markup.name == "sendback" =>
         markup.properties.find(_._1 == "id").flatMap {
@@ -101,8 +101,8 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     if (lastNewline >= 0) offset - lastNewline - 1 else offset
   }
 
-  private def resolvePosition(snapshot: Document.Snapshot, sendbackId: Int): Option[(String, Int, Int)] = {
-    snapshot.node.commands.find(_.id == sendbackId).flatMap { command =>
+  private def resolvePosition(snapshot: Document.Snapshot, sendback_id: Int): Option[(String, Int, Int)] = {
+    snapshot.node.commands.find(_.id == sendback_id).flatMap { command =>
       snapshot.node.command_iterator().find(_._1 == command).map {
         case (_, start_offset) =>
           val end_offset = start_offset + command.length
@@ -115,11 +115,11 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  private def query_position_from_sendback(snapshot: Document.Snapshot, sendbackId: Int): Option[(String, Int, Int)] = {
+  private def query_position_from_sendback(snapshot: Document.Snapshot, sendback_id: Int): Option[(String, Int, Int)] = {
     val node = snapshot.node
     val iterator = node.command_iterator().toList
 
-    iterator.find(_._1.id == sendbackId).map { case (command, start_offset) =>
+    iterator.find(_._1.id == sendback_id).map { case (command, start_offset) =>
       val text = node.source
       val line = count_lines(text, start_offset)
       val column = count_column(text, start_offset)
@@ -135,13 +135,13 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     val xmlString = body.map(XML.string_of_tree).mkString
 
     if (xmlString.contains("Done")) {
-      val sendbackIdOpt = extractSendbackId(body)
-      last_sendback_id = sendbackIdOpt
+      val sendback_id_opt = extract_sendback_id(body)
+      last_sendback_id = sendback_id_opt
 
-      val position = sendbackIdOpt.flatMap(id => resolvePosition(snapshot, id))
+      val position = sendback_id_opt.flatMap(id => resolvePosition(snapshot, id))
         .getOrElse(("unknown", 0, 0))
 
-      val query_position = sendbackIdOpt.flatMap(id => query_position_from_sendback(snapshot, id))
+      val query_position = sendback_id_opt.flatMap(id => query_position_from_sendback(snapshot, id))
         .getOrElse(("unknown", 0, 0))
 
       val text = snapshot.node.source
@@ -153,7 +153,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
           "line" -> position._2,
           "character" -> position._3
         ),
-        "sendback_id" -> sendbackIdOpt.getOrElse(-1),
+        "sendback_id" -> sendback_id_opt.getOrElse(-1),
         "state_location" -> JSON.Object(
           "uri" -> query_position._1,
           "line" -> query_position._2,
@@ -189,10 +189,10 @@ class VSCode_Sledgehammer private(server: Language_Server) {
 
   def locate(): Unit = {
     for {
-      sendbackId <- last_sendback_id
+      sendback_id <- last_sendback_id
       caret <- server.resources.get_caret()
       snapshot = server.resources.snapshot(caret.model)
-      query_position <- query_position_from_sendback(snapshot, sendbackId)
+      query_position <- query_position_from_sendback(snapshot, sendback_id)
     } {
       val json = JSON.Object(
         "position" -> JSON.Object(
@@ -207,18 +207,18 @@ class VSCode_Sledgehammer private(server: Language_Server) {
 
   def insert_query(): Unit = {
     last_sendback_id match {
-      case Some(sendbackId) =>
+      case Some(sendback_id) =>
         val models = server.resources.get_models()
         val modelOpt = models.find { model =>
           val snapshot = server.resources.snapshot(model)
-          val contains = snapshot.node.commands.exists(_.id == sendbackId)
+          val contains = snapshot.node.commands.exists(_.id == sendback_id)
           contains
         }
 
         modelOpt match {
           case Some(model) =>
             val snapshot = server.resources.snapshot(model)
-            resolvePosition(snapshot, sendbackId) match {
+            resolvePosition(snapshot, sendback_id) match {
               case Some((uri, line, col)) =>
                 val json = JSON.Object(
                   "position" -> JSON.Object(
