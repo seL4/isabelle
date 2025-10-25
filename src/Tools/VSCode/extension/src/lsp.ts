@@ -157,7 +157,7 @@ export interface Symbols_Response {
 }
 
 export const symbols_response_type =
-  new NotificationType<Symbols_Response>('PIDE/symbols_response');
+  new NotificationType<Symbols_Response>("PIDE/symbols_response");
 
 export interface InitRequest {
   init: boolean;
@@ -242,37 +242,37 @@ export interface SledgehammerNoSuchProver {
 }
 
 export const sledgehammer_request_type =
-  new NotificationType<SledgehammerApplyRequest>('PIDE/sledgehammer_request');
+  new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
 
 export const sledgehammer_provers_delete =
-  new NotificationType<Sledgehammer_Provers_Delete>('PIDE/sledgehammer_deleteProvers_request');
+  new NotificationType<Sledgehammer_Provers_Delete>("PIDE/sledgehammer_deleteProvers_request");
 
 export const sledgehammer_cancel_type =
-  new NotificationType<void>('PIDE/sledgehammer_cancel_request');
+  new NotificationType<void>("PIDE/sledgehammer_cancel_request");
 
 export const sledgehammer_provers =
-  new NotificationType<InitRequest>('PIDE/sledgehammer_provers_request');
+  new NotificationType<InitRequest>("PIDE/sledgehammer_provers_request");
 
 export const sledgehammer_provers_response =
-  new NotificationType<Sledgehammer_Provers>('PIDE/sledgehammer_provers_response');
+  new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
 
 export const sledgehammer_no_such_prover_type =
-  new NotificationType<SledgehammerNoSuchProver>('PIDE/sledgehammer_noProver_response');
+  new NotificationType<SledgehammerNoSuchProver>("PIDE/sledgehammer_noProver_response");
 
 export const sledgehammer_status_type =
-  new NotificationType<SledgehammerStatus>('PIDE/sledgehammer_status_response');
+  new NotificationType<SledgehammerStatus>("PIDE/sledgehammer_status_response");
 
 export const sledgehammer_apply_response_type =
-  new NotificationType<SledgehammerApplyResult>('PIDE/sledgehammer_apply_response');
+  new NotificationType<SledgehammerApplyResult>("PIDE/sledgehammer_apply_response");
 
 export const sledgehammer_locate_response_type =
-  new NotificationType<SledgehammerLocate>('PIDE/sledgehammer_locate_response');
+  new NotificationType<SledgehammerLocate>("PIDE/sledgehammer_locate_response");
 
 export const sledgehammer_insert_position_response_type =
-  new NotificationType<SledgehammerInsertPosition>('PIDE/sledgehammer_insert_position_response');
+  new NotificationType<SledgehammerInsertPosition>("PIDE/sledgehammer_insert_position_response");
 
 export const sledgehammer_no_proof_context_type =
-  new NotificationType<void>('PIDE/sledgehammer_no_proof_context');
+  new NotificationType<void>("PIDE/sledgehammer_no_proof_context");
 
 
 /* spell checker */
