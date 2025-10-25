@@ -6987,6 +6987,63 @@ primrec listset :: "'a set list \<Rightarrow> 'a list set" where
 "listset (A # As) = set_Cons A (listset As)"
 
 
+subsubsection \<open>Transitive Closure on Lists\<close>
+
+text \<open>Use \<open>\<^sup>+\<close> on binary relations if possible.
+Transitive closure on lists is useful for executable definitions on the list level.
+Is not efficient, naive closure computation.\<close>
+
+definition "trans_list_step ps = [(a,c). (a,b) \<leftarrow> ps, (b',c) \<leftarrow> ps, b=b']"
+
+lemma set_trans_list_step_subset_trancl: "set (trans_list_step ps) \<subseteq> (set ps)^+"
+unfolding trans_list_step_def by auto
+
+function trancl_list :: "('a * 'a) list \<Rightarrow> ('a * 'a) list" where 
+"trancl_list ps =
+  (let ps' = trans_list_step ps
+   in if set ps' \<subseteq>  set ps then ps else trancl_list (List.union ps' ps))"
+by pat_completeness auto
+
+termination
+proof
+  let ?r = "\<lambda>ps::('a * 'a) list. card ((set ps)^+ - set(ps))"
+
+  show "wf (measure ?r)" by blast
+
+  fix ps ps' :: "('a * 'a) list"
+  assume asms: "ps' = trans_list_step ps" "\<not> set ps' \<subseteq> set ps"
+  let ?P = "set ps" let ?P' = "set(trans_list_step ps)"
+  have "(?P' \<union> ?P)\<^sup>+ - (?P' \<union> ?P) = ?P\<^sup>+ - (?P' \<union> ?P)"
+    using trancl_absorb_subset_trancl[OF set_trans_list_step_subset_trancl] by (metis Un_commute)
+  also have "?P\<^sup>+ - (?P' \<union> ?P) < ?P\<^sup>+ - ?P"
+    using asms(1,2) set_trans_list_step_subset_trancl by fastforce
+  finally have "card((?P' \<union> ?P)\<^sup>+ - (?P' \<union> ?P)) < card (?P\<^sup>+ - ?P)"
+    by (meson List.finite_set finite_Diff finite_trancl psubset_card_mono)
+  with asms show "(List.union ps' ps, ps) \<in> measure ?r" by(simp)
+qed
+
+declare trancl_list.simps[code, simp del]
+
+lemma set_trancl_list: "set(trancl_list ps) = (set ps)^+"
+proof (induction ps rule: trancl_list.induct)
+  case (1 ps)
+  let ?P = "set ps" let ?P' = "set(trans_list_step ps)"
+  show ?case
+  proof (cases "?P' \<subseteq> ?P")
+    case True
+    then have "(a,b) \<in> set ps \<Longrightarrow> (b,c) \<in> set ps \<Longrightarrow> (a,c) \<in> set ps" for a b c
+      unfolding trans_list_step_def by fastforce
+    then show ?thesis using True trancl_id[OF transI, of ?P]
+      using [[simp_depth_limit=3]] by(simp add: Let_def trancl_list.simps[of ps])
+  next
+    case False
+    from 1[OF refl False] False
+     show ?thesis using trancl_absorb_subset_trancl[OF set_trans_list_step_subset_trancl]
+       by(auto simp add: Un_commute Let_def trancl_list.simps[of ps])
+  qed
+qed
+
+
 subsection \<open>Relations on Lists\<close>
 
 subsubsection \<open>Length Lexicographic Ordering\<close>

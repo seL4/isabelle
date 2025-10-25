@@ -50,6 +50,9 @@ declare
 
 end
 
+lemma trancl_incr: "r \<subseteq> r\<^sup>+"
+by auto
+
 abbreviation reflcl :: "('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"  (\<open>(\<open>notation=\<open>postfix =\<close>\<close>_\<^sup>=)\<close> [1000] 999)
   where "r\<^sup>= \<equiv> r \<union> Id"
 
@@ -435,6 +438,9 @@ proof -
     by (cases p) force
 qed
 
+lemma trancl_mono_subset: "A \<subseteq> B \<Longrightarrow> A^+ \<subseteq> B^+"
+by (blast intro: trancl_mono)
+
 lemma r_into_trancl': "\<And>p. p \<in> r \<Longrightarrow> p \<in> r\<^sup>+"
   by (simp only: split_tupled_all) (erule r_into_trancl)
 
@@ -546,6 +552,19 @@ lemma tranclp_into_tranclp2: "r a b \<Longrightarrow> r\<^sup>+\<^sup>+ b c \<Lo
   by (erule tranclp_trans [OF tranclp.r_into_trancl])
 
 lemmas trancl_into_trancl2 = tranclp_into_tranclp2 [to_set]
+
+lemma trancl_trancl_Un: "(A^+ \<union> B)^+ = (A \<union> B)^+"
+proof
+  show "(A\<^sup>+ \<union> B)\<^sup>+ \<subseteq> (A \<union> B)\<^sup>+"
+    using trancl_id[OF trans_trancl] trancl_incr[of "A \<union> B"]
+      trancl_mono_subset[of A "(A \<union> B)\<^sup>+"] trancl_mono_subset[of "A\<^sup>+ \<union> B" "(A \<union> B)\<^sup>+"]
+    by blast
+  show "(A \<union> B)\<^sup>+ \<subseteq> (A\<^sup>+ \<union> B)\<^sup>+"
+    using trancl_incr[of A] trancl_mono_subset[OF sup_mono] by blast
+qed
+
+lemma trancl_absorb_subset_trancl: "B \<subseteq> A^+ \<Longrightarrow> (A \<union> B)^+ = A^+"
+using trancl_trancl_Un[of A B] sup.order_iff[of B "A\<^sup>+"] by auto
 
 lemma tranclp_converseI:
   assumes "(r\<^sup>+\<^sup>+)\<inverse>\<inverse> x y" shows "(r\<inverse>\<inverse>)\<^sup>+\<^sup>+ x y"
