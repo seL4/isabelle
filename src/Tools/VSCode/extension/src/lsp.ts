@@ -172,12 +172,19 @@ export const symbols_request_type =
 export const documentation_request_type =
   new NotificationType<InitRequest>("PIDE/documentation_request")
 
+export interface Doc_Entry {
+  title: string;
+  path: string;
+}
+
+export interface Doc_Section {
+  title: string;
+  important: boolean;
+  entries: Array<Doc_Entry>;
+}
+
 export interface Documentation_Response {
-  sections: Array<{
-    title: string;
-    important: boolean;
-    entries: Array<{ title: string; path: string }>;
-  }>;
+  sections: Array<Doc_Section>;
 }
 
 export const documentation_response_type =

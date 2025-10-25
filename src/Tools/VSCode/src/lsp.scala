@@ -792,21 +792,25 @@ object LSP {
       }
   }
 
+  object Doc_Entry {
+    def apply(entry: Doc.Entry): JSON.T =
+      JSON.Object("title" -> entry.title, "path" -> entry.path.toString)
+  }
+
+  object Doc_Section {
+    def apply(section: Doc.Section): JSON.T =
+      JSON.Object(
+        "title" -> section.title,
+        "important" -> section.important,
+        "entries" -> section.entries.map(Doc_Entry.apply))
+  }
+
   object Documentation_Response {
     def apply(): JSON.T = {
       val ml_settings = ML_Settings.init()
       val doc_contents = Doc.contents(ml_settings)
-      val json_sections = doc_contents.sections.map { section =>
-        JSON.Object(
-          "title" -> section.title,
-          "important" -> section.important,
-          "entries" -> section.entries.map { entry =>
-            JSON.Object("title" -> entry.title, "path" -> entry.path.toString)
-          }
-        )
-      }
-
-      Notification("PIDE/documentation_response", JSON.Object("sections" -> json_sections))
+      Notification("PIDE/documentation_response",
+        JSON.Object("sections" -> doc_contents.sections.map(Doc_Section.apply)))
     }
   }
 
