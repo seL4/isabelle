@@ -20,7 +20,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = 'isabelle-documentation';
 
   private _view?: WebviewView;
-  private _documentationSections: any[] = [];
+  private _documentation_sections: any[] = [];
   private _initialized = false;
 
   constructor(
@@ -40,7 +40,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
       if (!params || !params.sections || !Array.isArray(params.sections)) {
         return;
       }
-      this._documentationSections = params.sections;
+      this._documentation_sections = params.sections;
       if (this._view) {
         this._update_webview();
       }
@@ -62,7 +62,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 
     this._view.webview.html = this._get_html();
 
-    if (Object.keys(this._documentationSections).length > 0) {
+    if (Object.keys(this._documentation_sections).length > 0) {
       this._update_webview();
     }
 
@@ -82,7 +82,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 
     this._view.webview.postMessage({
       command: 'update',
-      sections: this._documentationSections,
+      sections: this._documentation_sections,
     });
   }
 
