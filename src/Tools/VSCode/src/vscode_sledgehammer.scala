@@ -153,7 +153,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
           "line" -> position._2,
           "character" -> position._3
         ),
-        "sendbackId" -> sendbackIdOpt.getOrElse(-1),
+        "sendback_id" -> sendbackIdOpt.getOrElse(-1),
         "state_location" -> JSON.Object(
           "uri" -> query_position._1,
           "line" -> query_position._2,

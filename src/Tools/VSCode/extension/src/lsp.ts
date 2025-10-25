@@ -188,7 +188,7 @@ export interface SledgehammerApplyResult {
     line: number;
     character: number;
   };
-  sendbackId: number;
+  sendback_id: number;
   state_location: {
     uri: string;
     line: number;

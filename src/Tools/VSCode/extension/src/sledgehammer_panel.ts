@@ -147,7 +147,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
           command: 'result',
           content: result.content,
           position: result.position,
-          sendbackId: result.sendbackId
+          sendback_id: result.sendback_id
         });
       
     }
