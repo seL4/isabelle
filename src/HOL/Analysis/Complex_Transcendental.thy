@@ -1113,7 +1113,6 @@ proof (rule exp_complex_eqI)
     using assms mpi_less_Im_Ln  [of "exp z"] Im_Ln_le_pi [of "exp z"] by auto
 qed auto
 
-
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Relation to Real Logarithm\<close>
 
 lemma Ln_of_real:
@@ -1667,6 +1666,22 @@ qed auto
 
 lemma norm_Ln_exp_le: "norm (Ln (exp z)) \<le> norm z"
   by (smt (verit) Im_Ln_le_pi Ln_exp Re_Ln cmod_Im_le_iff exp_not_eq_zero ln_exp mpi_less_Im_Ln norm_exp_eq_Re)
+
+lemma Ln_cis: "x \<in> {-pi<..pi} \<Longrightarrow> Ln (cis x) = x * \<i>"
+  unfolding cis_conv_exp by (subst Ln_exp) auto
+
+lemma Ln_rcis:
+  assumes "r > 0" "x \<in> {-pi<..pi}"
+  shows   "Ln (rcis r x) = Complex (ln r) x"
+proof -
+  have "Ln (rcis r x) = Ln (of_real r * cis x)"
+    by (simp add: rcis_def)
+  also have "\<dots> = of_real (ln r) + x * \<i>"
+    by (subst Ln_times_of_real) (use assms in \<open>auto simp: Ln_of_real Ln_cis\<close>)
+  also have "\<dots> = Complex (ln r) x"
+    by (simp add: complex_eq_iff)
+  finally show ?thesis .
+qed
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Uniform convergence and products\<close>
 

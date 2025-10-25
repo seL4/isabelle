@@ -1989,6 +1989,18 @@ lemma Beta_altdef: "Beta a b = Gamma a * Gamma b * rGamma (a + b)"
 lemma Beta_commute: "Beta a b = Beta b a"
   unfolding Beta_def by (simp add: ac_simps)
 
+lemma holomorphic_Beta [holomorphic_intros]:
+  assumes "f holomorphic_on A" "g holomorphic_on A"
+  assumes "\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0" "\<And>z. z \<in> A \<Longrightarrow> g z \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "(\<lambda>z. Beta (f z) (g z)) holomorphic_on A"
+  unfolding Beta_altdef by (intro holomorphic_intros assms)
+
+lemma analytic_Beta [analytic_intros]:
+  assumes "f analytic_on A" "g analytic_on A"
+  assumes "\<And>z. z \<in> A \<Longrightarrow> f z \<notin> \<int>\<^sub>\<le>\<^sub>0" "\<And>z. z \<in> A \<Longrightarrow> g z \<notin> \<int>\<^sub>\<le>\<^sub>0"
+  shows   "(\<lambda>z. Beta (f z) (g z)) analytic_on A"
+  unfolding Beta_altdef by (intro analytic_intros assms) (use assms in auto)
+
 lemma has_field_derivative_Beta1 [derivative_intros]:
   assumes "x \<notin> \<int>\<^sub>\<le>\<^sub>0" "x + y \<notin> \<int>\<^sub>\<le>\<^sub>0"
   shows   "((\<lambda>x. Beta x y) has_field_derivative (Beta x y * (Digamma x - Digamma (x + y))))
@@ -3391,6 +3403,22 @@ proof -
   ultimately show ?thesis by (simp add: has_integral_iff B_def)
 qed
 
+lemma Beta_real_mono:
+  fixes a b c d :: real
+  assumes "0 < c" "c \<le> a" "0 < d" "d \<le> b"
+  shows "Beta a b \<le> Beta c d"
+proof (rule has_integral_le)
+  show "((\<lambda>x. x powr (a - 1) * (1 - x) powr (b - 1)) has_integral Beta a b) {0<..<1}"
+    using has_integral_Beta_real[of a b] assms by (simp add: has_integral_Icc_iff_Ioo)
+  show "((\<lambda>x. x powr (c - 1) * (1 - x) powr (d - 1)) has_integral Beta c d) {0<..<1}"
+    using has_integral_Beta_real[of c d] assms by (simp add: has_integral_Icc_iff_Ioo)
+  show "x powr (a - 1) * (1 - x) powr (b - 1) \<le> x powr (c - 1) * (1 - x) powr (d - 1)" 
+    if "x \<in> {0<..<1}" for x :: real
+    by (intro mult_mono powr_mono') (use assms that in auto)
+qed
+
+lemma Beta_complex_of_real: "Beta (of_real a) (of_real b) = complex_of_real (Beta a b)"
+  unfolding Beta_def by (simp flip: Gamma_complex_of_real)
 
 subsection \<open>The Weierstra{\ss} product formula for the sine\<close>
 

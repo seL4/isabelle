@@ -512,6 +512,13 @@ next
   qed
 qed
 
+lemma has_integral_of_real:
+  "(f has_integral I) A \<Longrightarrow>
+     ((\<lambda>x::'a::euclidean_space. of_real (f x) :: 'b :: {real_normed_vector,real_normed_algebra_1}) 
+        has_integral of_real I) A"
+  using has_integral_linear[of f I A "of_real :: _ \<Rightarrow> 'b"]
+  by (simp add: o_def bounded_linear_of_real)
+
 lemma has_integral_scaleR_left:
   "(f has_integral y) S \<Longrightarrow> ((\<lambda>x. f x *\<^sub>R c) has_integral (y *\<^sub>R c)) S"
   using has_integral_linear[OF _ bounded_linear_scaleR_left] by (simp add: comp_def)
@@ -781,6 +788,18 @@ lemma integral_component_eq[simp]:
   shows "integral S (\<lambda>x. f x \<bullet> k) = integral S f \<bullet> k"
   unfolding integral_linear[OF assms(1) bounded_linear_inner_left,unfolded o_def] ..
 
+lemma integral_eq_iff_componentwise:
+  fixes f :: "'a :: euclidean_space \<Rightarrow> 'b :: euclidean_space"
+  assumes "f integrable_on A"
+  shows "integral A f = I \<longleftrightarrow> (\<forall>b\<in>Basis. integral A (\<lambda>x. f x \<bullet> b) = I \<bullet> b)"
+proof -
+  have "integral A f = I \<longleftrightarrow> (\<forall>b\<in>Basis. integral A f \<bullet> b = I \<bullet> b)"
+    by (metis euclidean_eqI)
+  also have "\<dots> \<longleftrightarrow> (\<forall>b\<in>Basis. integral A (\<lambda>x. f x \<bullet> b) = I \<bullet> b)"
+    using assms by force
+  finally show ?thesis .
+qed
+
 lemma has_integral_sum:
   assumes "finite T"
     and "\<And>a. a \<in> T \<Longrightarrow> ((f a) has_integral (i a)) S"
@@ -983,6 +1002,17 @@ qed
 lemma integrable_component:
   "f integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (y :: 'b :: euclidean_space)) integrable_on A"
   by (drule integrable_linear[OF _ bounded_linear_inner_left[of y]]) (simp add: o_def)
+
+lemma
+  assumes "(f has_integral I) A "
+  shows has_integral_Re: "((\<lambda>x. Re (f x)) has_integral (Re I)) A"
+  and   has_integral_Im: "((\<lambda>x. Im (f x)) has_integral (Im I)) A"
+proof -
+  have "((\<lambda>x. Re (f x)) has_integral (Re I)) A \<and> ((\<lambda>x. Im (f x)) has_integral (Im I)) A"
+    using assms by (subst (asm) has_integral_componentwise_iff) (auto simp: Basis_complex_def)
+  thus "((\<lambda>x. Re (f x)) has_integral (Re I)) A" "((\<lambda>x. Im (f x)) has_integral (Im I)) A"
+    by blast+
+qed
 
 
 subsection \<open>Cauchy-type criterion for integrability\<close>

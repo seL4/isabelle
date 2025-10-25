@@ -3294,7 +3294,6 @@ proof -
     using absolutely_integrable_on_def by blast
 qed
 
-
 corollary absolutely_integrable_change_of_variables_1:
   fixes f :: "real \<Rightarrow> real^'n::{finite,wellorder}" and g :: "real \<Rightarrow> real"
   assumes S: "S \<in> sets lebesgue"
@@ -3310,8 +3309,8 @@ lemma has_absolute_integral_change_of_variables_1':
   assumes S: "S \<in> sets lebesgue"
     and der_g: "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative g' x) (at x within S)"
     and inj: "inj_on g S"
-  shows "(\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) absolutely_integrable_on S \<and>
-           integral S (\<lambda>x. \<bar>g' x\<bar> *\<^sub>R f(g x)) = b
+  shows "(\<lambda>x. \<bar>g' x\<bar> * f(g x)) absolutely_integrable_on S \<and>
+           integral S (\<lambda>x. \<bar>g' x\<bar> * f (g x)) = b
      \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
 proof -
   have "(\<lambda>x. \<bar>g' x\<bar> *\<^sub>R vec (f(g x)) :: real ^ 1) absolutely_integrable_on S \<and>
@@ -3322,29 +3321,6 @@ proof -
     by (intro has_absolute_integral_change_of_variables_1 assms) auto
   thus ?thesis
     by (simp add: absolutely_integrable_on_1_iff integral_on_1_eq)
-qed
-
-lemma has_absolute_integral_change_of_variables_real:
-  fixes f :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real"
-  assumes "S \<in> sets lebesgue"
-  assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative h x) (at x within S)"
-  assumes "inj_on g S"
-  shows   "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<and> integral S (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) = b
-          \<longleftrightarrow> f absolutely_integrable_on g ` S \<and> integral (g ` S) f = b"
-proof -
-  have "f absolutely_integrable_on g ` S"
-    if "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
-    using that has_absolute_integral_change_of_variables_1' assms by fastforce
-  moreover have "integral (g ` S) f = integral S (\<lambda>x. \<bar>h x\<bar> * f (g x))"
-    if "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
-    using that
-    by (metis (lifting) ext has_absolute_integral_change_of_variables_1' assms real_scaleR_def) 
-  moreover have "(\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
-    if "f absolutely_integrable_on g ` S"
-    by (metis (no_types, lifting) ext has_absolute_integral_change_of_variables_1' assms real_scaleR_def
-        that)
-  ultimately show ?thesis
-    by auto
 qed
 
 subsection\<open>Change of variables for integrals: special case of linear function\<close>
@@ -3406,6 +3382,66 @@ proof -
     by blast
 qed
 
+lemma absolutely_integrable_change_of_variables_1':
+  fixes f :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative h x) (at x within S)"
+  assumes "inj_on g S"
+  shows   "f absolutely_integrable_on g ` S \<longleftrightarrow> (\<lambda>x. \<bar>h x\<bar> * f (g x)) absolutely_integrable_on S"
+  using has_absolute_integral_change_of_variables_1'[of S g h f] assms by auto
+
+lemma absolutely_integrable_change_of_variables_real:
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative h x) (at x within S)"
+  assumes "inj_on g S"
+  shows   "f absolutely_integrable_on g ` S \<longleftrightarrow> (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S"
+proof -
+  have "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<longleftrightarrow>
+          (\<forall>a\<in>Basis. (\<lambda>x. \<bar>h x\<bar> * (f (g x) \<bullet> a)) absolutely_integrable_on S)"
+    by (subst absolutely_integrable_componentwise_iff) simp_all
+  also have "\<dots> = (\<forall>a\<in>Basis. (\<lambda>x. f x \<bullet> a) absolutely_integrable_on g ` S)"
+    by (intro ball_cong absolutely_integrable_change_of_variables_1' [symmetric] assms refl)
+  also have "\<dots> \<longleftrightarrow> f absolutely_integrable_on g ` S"
+    by (subst absolutely_integrable_componentwise_iff) (simp_all add: Basis_complex_def)
+  finally show ?thesis ..
+qed
+
+lemma has_absolute_integral_change_of_variables_real:
+  fixes f :: "real \<Rightarrow> 'a :: euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes "S \<in> sets lebesgue"
+  assumes "\<And>x. x \<in> S \<Longrightarrow> (g has_field_derivative h x) (at x within S)"
+  assumes "inj_on g S"
+  shows   "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<and> integral S (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) = b
+          \<longleftrightarrow> f absolutely_integrable_on g ` S \<and> integral (g ` S) f = b"
+proof (intro conj_cong)
+  show iff: "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<longleftrightarrow> 
+               f absolutely_integrable_on g ` S"
+    by (rule sym, rule absolutely_integrable_change_of_variables_real) fact+
+
+  assume "f absolutely_integrable_on g ` S"
+  hence integrable: "f integrable_on g ` S" "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) integrable_on S"
+    using set_lebesgue_integral_eq_integral(1) iff by metis+
+
+  have "(\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) absolutely_integrable_on S \<and> 
+        (integral S (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) = b) \<longleftrightarrow>
+        (\<forall>a\<in>Basis. (\<lambda>x. (\<bar>h x\<bar> *\<^sub>R f (g x)) \<bullet> a) absolutely_integrable_on S \<and> 
+                   (integral S (\<lambda>x. (\<bar>h x\<bar> *\<^sub>R f (g x)) \<bullet> a) = b \<bullet> a))"    
+    by (subst absolutely_integrable_componentwise_iff, subst integral_eq_iff_componentwise)
+       (use integrable in auto)
+  also have "\<dots> \<longleftrightarrow> (\<forall>a\<in>Basis. (\<lambda>x. \<bar>h x\<bar> * (f (g x) \<bullet> a)) absolutely_integrable_on S \<and> 
+                       (integral S (\<lambda>x. \<bar>h x\<bar> * (f (g x) \<bullet> a)) = b \<bullet> a))"   
+    by simp
+  also have "\<dots> \<longleftrightarrow> (\<forall>a\<in>Basis. (\<lambda>x. f x \<bullet> a) absolutely_integrable_on g ` S \<and> 
+                       (integral (g ` S) (\<lambda>x. f x \<bullet> a) = b \<bullet> a))"
+    by (intro ball_cong has_absolute_integral_change_of_variables_1' assms refl)
+  also have "\<dots> \<longleftrightarrow> f absolutely_integrable_on g ` S \<and>  integral (g ` S) f = b"
+    by (subst (2) absolutely_integrable_componentwise_iff, subst (2) integral_eq_iff_componentwise)
+       (use integrable in auto)
+  finally show "(integral S (\<lambda>x. \<bar>h x\<bar> *\<^sub>R f (g x)) = b) = (integral (g ` S) f = b)"
+    using \<open>f absolutely_integrable_on g ` S\<close> iff by blast
+qed
+
 subsection\<open>Change of variable for measure\<close>
 
 lemma has_measure_differentiable_image:
@@ -3454,9 +3490,9 @@ lemma has_absolute_integral_reflect_real:
          f absolutely_integrable_on B \<and> integral B f = b"
 proof -
   have bij: "bij_betw uminus A B"
-    by (rule bij_betwI[of _ _ _ uminus]) (use assms(1,2) in auto)
-  have "((\<lambda>x. \<bar>-1\<bar> *\<^sub>R f (-x)) absolutely_integrable_on A \<and>
-          integral A (\<lambda>x. \<bar>-1\<bar> *\<^sub>R f (-x)) = b) \<longleftrightarrow>
+    by (rule bij_betwI[of _ _ _ uminus]) (use assms in auto)
+  have "((\<lambda>x. \<bar>-1\<bar> * f (-x)) absolutely_integrable_on A \<and>
+          integral A (\<lambda>x. \<bar>-1\<bar> * f (-x)) = b) \<longleftrightarrow>
         (f absolutely_integrable_on uminus ` A \<and>
           integral (uminus ` A) f = b)" using assms
     by (intro has_absolute_integral_change_of_variables_1') (auto intro!: derivative_eq_intros)
