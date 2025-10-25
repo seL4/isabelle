@@ -68,7 +68,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 
     this._view.webview.onDidReceiveMessage(async message => {
       if (message.command === 'open_document') {
-        this._open_document(message.path);
+        this._open_document(message.platform_path);
       }
     });
 
@@ -86,28 +86,13 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
     });
   }
 
-  private _open_document(filePath: string): void {
-    let cleanPath = filePath.replace(/^"+|"+$/g, '').trim();
+  private _open_document(platform_path: string): void {
+    const uri = Uri.file(platform_path);
 
-    const isabelleHome = process.env.ISABELLE_HOME;
-    if (isabelleHome && cleanPath.includes("$ISABELLE_HOME")) {
-      cleanPath = cleanPath.replace("$ISABELLE_HOME", isabelleHome);
-    }
-
-    if (cleanPath.startsWith("/cygdrive/")) {
-      const match = cleanPath.match(/^\/cygdrive\/([a-zA-Z])\/(.*)/);
-      if (match) {
-        const driveLetter = match[1].toUpperCase();
-        const rest = match[2].replace(/\//g, '\\');
-        cleanPath = `${driveLetter}:\\${rest}`;
-      }
-    }
-
-    const uri = Uri.file(cleanPath);
-
-    if (cleanPath.toLowerCase().endsWith(".pdf")) {
+    if (platform_path.endsWith(".pdf")) {
       commands.executeCommand("vscode.open", uri)
-    } else {
+    }
+    else {
       workspace.openTextDocument(uri).then(document => {
         window.showTextDocument(document);
       });

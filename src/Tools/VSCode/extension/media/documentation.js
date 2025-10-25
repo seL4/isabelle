@@ -41,24 +41,8 @@
           const entryItem = document.createElement("li");
           entryItem.classList.add("doc-entry");
 
-          let cleanedPath = entry.path.replace(/["]/g, "");
-          if (section.title.includes("Examples")) {
-            cleanedPath = cleanedPath.replace(/^.*?src\//, "src/");
-          }
-          if (section.title.includes("Release Notes")) {
-            cleanedPath = cleanedPath.replace(/^\$ISABELLE_HOME\//, "");
-          }
-
-          let displayText = cleanedPath;
-          const match = cleanedPath.match(/([^\/]+?)(?:\.pdf)?$/);
-          if (match) {
-            const filename = match[1];
-            const cleanTitle = entry.title.replace(/["']/g, "").trim();
-            displayText = `<b>${filename}</b>${cleanTitle ? ': ' + cleanTitle : ''}`;
-          }
-
           const entryLink = document.createElement("a");
-          entryLink.innerHTML = displayText;
+          entryLink.innerHTML = entry.print_html;
           entryLink.href = "#";
           entryLink.classList.add("doc-link");
 
@@ -75,7 +59,7 @@
             } else {
               selectedEntry = entryItem;
               entryItem.classList.add("selected");
-              open_document(entry.path);
+              open_document(entry.platform_path);
             }
           });
 
@@ -91,8 +75,8 @@
       container.appendChild(list);
     }
 
-    function open_document(path) {
-      vscode.postMessage({ command: "open_document", path: path });
+    function open_document(platform_path) {
+      vscode.postMessage({ command: "open_document", platform_path: platform_path });
     }
 
     window.onload = function () {

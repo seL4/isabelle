@@ -787,7 +787,9 @@ object LSP {
 
   object Doc_Entry {
     def apply(entry: Doc.Entry): JSON.T =
-      JSON.Object("title" -> entry.title, "path" -> entry.path.toString)
+      JSON.Object(
+        "print_html" -> entry.print_html,
+        "platform_path" -> File.platform_path(entry.path))
   }
 
   object Doc_Section {
