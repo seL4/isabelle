@@ -80,9 +80,9 @@
     }
 
     window.onload = function () {
-        const state = vscode.getState();
-        if (state && state.sections) {
-          update(state.sections);
-        }
-      };
+      const state = vscode.getState();
+      if (state && state.sections) {
+        update(state.sections);
+      }
+    };
   })();
