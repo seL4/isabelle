@@ -118,7 +118,7 @@ class Language_Server(
   def resources: VSCode_Resources = session.resources
   def ml_settings: ML_Settings = session.store.ml_settings
 
-  private val sledgehammer_panel = VSCode_Sledgehammer(this)
+  private val sledgehammer_panel = VSCode_Sledgehammer(server)
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
