@@ -18,12 +18,15 @@ object Doc {
   }
   case class Entry(name: String, path: Path, title: String = "") {
     def view(): Unit = Doc.view(path)
-    override def toString: String =  // GUI label
-      if (title.nonEmpty) {
-        val style = GUI.Style_HTML
-        style.enclose(style.make_bold(name) + style.make_text(": " + title))
-      }
-      else name
+
+    def print_html: String = {
+      val style = GUI.Style_HTML
+      if (title.nonEmpty) style.make_bold(name) + style.make_text(": " + title)
+      else style.make_text(name)
+    }
+
+    override def toString: String =  // Swing GUI label
+      if (title.nonEmpty) GUI.Style_HTML.enclose(print_html) else name
   }
 
   def plain_file(path0: Path,
