@@ -1,4 +1,6 @@
 /*  Author:     Makarius
+    Author:     Thomas Lindae, TU Muenchen
+    Author:     Diana Korchmar, LMU Muenchen
 
 Message formats for Language Server Protocol, with adhoc PIDE extensions
 (see Tools/VSCode/src/lsp.scala).
@@ -73,6 +75,7 @@ export interface Output_Set_Margin
 export const output_set_margin_type =
   new NotificationType<Output_Set_Margin>("PIDE/output_set_margin")
 
+
 /* state */
 
 export interface State_Output
@@ -109,8 +112,7 @@ export const state_init_type = new RequestType0("PIDE/state_init")
 export const state_exit_type = new NotificationType<State_Id>("PIDE/state_exit")
 export const state_locate_type = new NotificationType<State_Id>("PIDE/state_locate")
 export const state_update_type = new NotificationType<State_Id>("PIDE/state_update")
-export const state_auto_update_type =
-  new NotificationType<Auto_Update>("PIDE/state_auto_update")
+export const state_auto_update_type = new NotificationType<Auto_Update>("PIDE/state_auto_update")
 
 
 /* preview */
@@ -129,6 +131,15 @@ export interface Preview_Response
   content: string
 }
 
+export const preview_request_type =
+  new NotificationType<Preview_Request>("PIDE/preview_request")
+
+export const preview_response_type =
+  new NotificationType<Preview_Response>("PIDE/preview_response")
+
+
+/* symbols */
+
 export interface Symbol_Entry {
   name: string;
   abbrevs: string[];
@@ -146,15 +157,17 @@ export interface Symbols_Response {
 }
 
 export const symbols_response_type =
-    new NotificationType<Symbols_Response>('PIDE/symbols_response');
+  new NotificationType<Symbols_Response>('PIDE/symbols_response');
 
 export interface InitRequest {
   init: boolean;
 }
 
 export const symbols_request_type =
-    new NotificationType<InitRequest>("PIDE/symbols_panel_request")
+  new NotificationType<InitRequest>("PIDE/symbols_panel_request")
 
+
+/* documentation */
 
 export const documentation_request_type =
   new NotificationType<InitRequest>("PIDE/documentation_request")
@@ -169,6 +182,9 @@ export interface Documentation_Response {
 
 export const documentation_response_type =
   new NotificationType<Documentation_Response>("PIDE/documentation_response");
+
+
+/* Sledgehammer */
 
 export interface SledgehammerApplyRequest {
   provers: string;
@@ -257,13 +273,6 @@ export const sledgehammer_insert_position_response_type =
 
 export const sledgehammer_no_proof_context_type =
   new NotificationType<void>('PIDE/sledgehammer_no_proof_context');
-
-
-export const preview_request_type =
-  new NotificationType<Preview_Request>("PIDE/preview_request")
-
-export const preview_response_type =
-  new NotificationType<Preview_Response>("PIDE/preview_response")
 
 
 /* spell checker */
