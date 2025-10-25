@@ -118,7 +118,7 @@ class Language_Server(
   def resources: VSCode_Resources = session.resources
   def ml_settings: ML_Settings = session.store.ml_settings
 
-  private val sledgehammer_panel = VSCode_Sledgehammer(server)
+  private val sledgehammer = VSCode_Sledgehammer(server)
 
   def rendering_offset(node_pos: Line.Node_Position): Option[(VSCode_Rendering, Text.Offset)] =
     for {
@@ -298,7 +298,7 @@ class Language_Server(
       session.syslog_messages += syslog_messages
 
       dynamic_output.init()
-      sledgehammer_panel.init()
+      sledgehammer.init()
 
       try {
         Isabelle_Process.start(
@@ -327,7 +327,7 @@ class Language_Server(
         delay_output.revoke()
         delay_caret_update.revoke()
         delay_preview.revoke()
-        sledgehammer_panel.exit()
+        sledgehammer.exit()
 
         val result = session.stop()
         if (result.ok) reply("")
@@ -549,10 +549,12 @@ class Language_Server(
           case LSP.Preview_Request(file, column) => preview_request(file, column)
           case LSP.Symbols_Panel_Request(init) => symbols_panel_request(init)
           case LSP.Documentation_Request(init) => documentation_request(init)
-          case LSP.Sledgehammer_Request(provers, isar, try0, purpose) => sledgehammer_panel.handle_request(provers, isar, try0, purpose)
-          case LSP.Sledgehammer_Cancel => sledgehammer_panel.cancel_query()
-          case LSP.Sledgehammer_Provers(init) => sledgehammer_panel.send_provers_and_history(init)
-          case LSP.Sledgehammer_Delete_Prover(entry) => sledgehammer_panel.handle_sledgehammer_delete(entry)
+          case LSP.Sledgehammer_Request(provers, isar, try0, purpose) =>
+            sledgehammer.handle_request(provers, isar, try0, purpose)
+          case LSP.Sledgehammer_Cancel => sledgehammer.cancel_query()
+          case LSP.Sledgehammer_Provers(init) => sledgehammer.send_provers_and_history(init)
+          case LSP.Sledgehammer_Delete_Prover(entry) =>
+            sledgehammer.handle_sledgehammer_delete(entry)
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
