@@ -1,5 +1,7 @@
 /*  Title:      Tools/VSCode/src/lsp.scala
     Author:     Makarius
+    Author:     Thomas Lindae, TU Muenchen
+    Author:     Diana Korchmar, LMU Muenchen
 
 Message formats for Language Server Protocol, with adhoc PIDE extensions.
 See https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md
@@ -142,7 +144,7 @@ object LSP {
     val RequestCancelled = -32800
     val lspReservedErrorRangeEnd = -32800
   }
-  
+
 
   /* init and exit */
 
@@ -358,7 +360,7 @@ object LSP {
 
 
   /* completion */
-  
+
   object CompletionItemKind {
     val Text = 1;
     val Method = 2;
@@ -553,9 +555,10 @@ object LSP {
 
   sealed case class Decoration(decorations: Decoration_List) {
     def json_entries: JSON.T =
-      decorations.map(decoration => JSON.Object(
-        "type" -> decoration._1,
-        "content" -> decoration._2.map(_.json)))
+      decorations.map(decoration =>
+        JSON.Object(
+          "type" -> decoration._1,
+          "content" -> decoration._2.map(_.json)))
 
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
@@ -563,7 +566,7 @@ object LSP {
           "uri" -> Url.print_file(file),
           "entries" -> json_entries))
   }
-  
+
   object Decoration_Request {
     def unapply(json: JSON.T): Option[JFile] =
       json match {
@@ -678,41 +681,6 @@ object LSP {
   }
 
 
-  /* symbols */
-
-  object Symbols_Request extends Request0("PIDE/symbols_request") {
-    def reply(id: Id, symbols: Symbol.Symbols): JSON.T = {
-      def json(symbol: Symbol.Entry): JSON.T =
-        JSON.Object(
-          "symbol" -> symbol.symbol,
-          "name" -> symbol.name,
-          "argument" -> symbol.argument.toString) ++ 
-        JSON.optional("code", symbol.code) ++
-        JSON.optional("font", symbol.font) ++
-        JSON.Object(
-          "groups" -> symbol.groups,
-          "abbrevs" -> symbol.abbrevs)
-
-      ResponseMessage(id, Some(symbols.entries.map(s => json(s))))
-    }
-  }
-  
-  object Symbols_Convert_Request {
-    def unapply(json: JSON.T): Option[(Id, String, Boolean)] =
-      json match {
-        case RequestMessage(id, "PIDE/symbols_convert_request", Some(params)) =>
-          for {
-            s <- JSON.string(params, "text")
-            unicode <- JSON.bool(params, "unicode")
-          } yield (id, s, unicode)
-        case _ => None
-      }
-
-    def reply(id: Id, new_string: String): JSON.T =
-      ResponseMessage(id, Some(JSON.Object("text" -> new_string)))
-  }
-
-
   /* preview */
 
   object Preview_Request {
@@ -738,6 +706,41 @@ object LSP {
           "content" -> content))
   }
 
+
+  /* symbols */
+
+  object Symbols_Request extends Request0("PIDE/symbols_request") {
+    def reply(id: Id, symbols: Symbol.Symbols): JSON.T = {
+      def json(symbol: Symbol.Entry): JSON.T =
+        JSON.Object(
+          "symbol" -> symbol.symbol,
+          "name" -> symbol.name,
+          "argument" -> symbol.argument.toString) ++
+        JSON.optional("code", symbol.code) ++
+        JSON.optional("font", symbol.font) ++
+        JSON.Object(
+          "groups" -> symbol.groups,
+          "abbrevs" -> symbol.abbrevs)
+
+      ResponseMessage(id, Some(symbols.entries.map(s => json(s))))
+    }
+  }
+
+  object Symbols_Convert_Request {
+    def unapply(json: JSON.T): Option[(Id, String, Boolean)] =
+      json match {
+        case RequestMessage(id, "PIDE/symbols_convert_request", Some(params)) =>
+          for {
+            s <- JSON.string(params, "text")
+            unicode <- JSON.bool(params, "unicode")
+          } yield (id, s, unicode)
+        case _ => None
+      }
+
+    def reply(id: Id, new_string: String): JSON.T =
+      ResponseMessage(id, Some(JSON.Object("text" -> new_string)))
+  }
+
   object Symbols_Panel_Request {
     def unapply(json: JSON.T): Option[(Boolean)] =
       json match {
@@ -748,30 +751,6 @@ object LSP {
         case _ => None
       }
   }
-
-  object Documentation_Request {
-    def unapply(json: JSON.T): Option[(Boolean)] =
-      json match {
-        case Notification("PIDE/documentation_request", Some(params)) =>
-          for {
-            init <- JSON.bool(params, "init")
-          } yield (init)
-        case _ => None
-      }
-  }
-
-
-  object Sledgehammer_Provers {
-    def unapply(json: JSON.T): Option[(Boolean)] =
-      json match {
-        case Notification("PIDE/documentation_request", Some(params)) =>
-          for {
-            init <- JSON.bool(params, "init")
-          } yield (init)
-        case _ => None
-      }
-  }
-
 
   object Symbols_Response {
     def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {
@@ -792,12 +771,26 @@ object LSP {
           )
       }
 
-
-      Notification("PIDE/symbols_response", JSON.Object("symbols" -> symbols.entries.map(json), "abbrevs_from_Thy" -> abbrevs.map { case (a, b) => List(a, b) }
-      ))
+      Notification("PIDE/symbols_response",
+        JSON.Object(
+          "symbols" -> symbols.entries.map(json),
+          "abbrevs_from_Thy" -> abbrevs.map { case (a, b) => List(a, b) }))
     }
   }
 
+
+  /* documentation */
+
+  object Documentation_Request {
+    def unapply(json: JSON.T): Option[(Boolean)] =
+      json match {
+        case Notification("PIDE/documentation_request", Some(params)) =>
+          for {
+            init <- JSON.bool(params, "init")
+          } yield (init)
+        case _ => None
+      }
+  }
 
   object Documentation_Response {
     def apply(): JSON.T = {
@@ -815,6 +808,20 @@ object LSP {
 
       Notification("PIDE/documentation_response", JSON.Object("sections" -> json_sections))
     }
+  }
+
+
+  /* sledgehammer */
+
+  object Sledgehammer_Provers {
+    def unapply(json: JSON.T): Option[(Boolean)] =
+      json match {
+        case Notification("PIDE/documentation_request", Some(params)) =>
+          for {
+            init <- JSON.bool(params, "init")
+          } yield (init)
+        case _ => None
+      }
   }
 
   object Sledgehammer_Request {
@@ -883,6 +890,4 @@ object LSP {
     def apply(): JSON.T =
       Notification("PIDE/sledgehammer_no_proof_context", None)
   }
-
 }
-
