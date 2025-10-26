@@ -48,12 +48,13 @@ class VSCode_Sledgehammer private(server: Language_Server) {
   }
 
   private def consume_status(status: Query_Operation.Status): Unit = {
-    val msg = status match {
-      case Query_Operation.Status.waiting => "Waiting for evaluation of context ..."
-      case Query_Operation.Status.running => "Sledgehammering ..."
-      case Query_Operation.Status.finished => "Finished"
-    }
-    if (msg.nonEmpty) server.channel.write(LSP.Sledgehammer_Status_Response(msg))
+    val msg =
+      status match {
+        case Query_Operation.Status.waiting => "Waiting for evaluation of context ..."
+        case Query_Operation.Status.running => "Sledgehammering ..."
+        case Query_Operation.Status.finished => "Finished"
+      }
+    server.channel.write(LSP.Sledgehammer_Status_Response(msg))
   }
 
   private def extract_sendback_id(body: List[XML.Elem]): Option[Int] = {

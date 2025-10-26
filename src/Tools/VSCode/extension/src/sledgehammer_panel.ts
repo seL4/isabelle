@@ -89,7 +89,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     });
   }
 
-  public updateStatus(message: string): void {
+  public update_status(message: string): void {
     if (this._view) {
       this._view.webview.postMessage({ command: "status", message });
     }

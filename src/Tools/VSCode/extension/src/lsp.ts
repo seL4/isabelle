@@ -196,7 +196,7 @@ export interface SledgehammerApplyRequest {
   purpose: number;
 }
 
-export interface SledgehammerStatus {
+export interface Sledgehammer_Status {
   message: string;
 }
 
@@ -251,8 +251,8 @@ export const sledgehammer_provers =
 export const sledgehammer_provers_response =
   new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
 
-export const sledgehammer_status_type =
-  new NotificationType<SledgehammerStatus>("PIDE/sledgehammer_status_response");
+export const sledgehammer_status_response_type =
+  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status_response");
 
 export const sledgehammer_apply_response_type =
   new NotificationType<SledgehammerApplyResult>("PIDE/sledgehammer_apply_response");
