@@ -230,12 +230,6 @@
       div.textContent = "Unknown proof context";
       result.appendChild(div);
     }
-    else if (message.command === "no_provers") {
-      const div = document.createElement("div");
-      div.classList.add("interrupt");
-      div.textContent = "No such provers";
-      result.appendChild(div);
-    }
     else if (message.command === "result") {
       if (was_cancelled) return;
       result.innerHTML = "";

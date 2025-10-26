@@ -830,11 +830,6 @@ object LSP {
       Notification("PIDE/sledgehammer_provers_response", JSON.Object("provers" -> provers))
   }
 
-  object Sledgehammer_NoProver_Response {
-    def apply(provers: List[String]): JSON.T =
-      Notification("PIDE/sledgehammer_noProver_response", JSON.Object("provers" -> provers))
-  }
-
   object Sledgehammer_Status_Response {
     def apply(message: String): JSON.T =
       Notification("PIDE/sledgehammer_status_response", JSON.Object("message" -> message))

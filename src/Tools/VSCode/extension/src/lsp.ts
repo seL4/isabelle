@@ -251,9 +251,6 @@ export const sledgehammer_provers =
 export const sledgehammer_provers_response =
   new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
 
-export const sledgehammer_no_such_prover_type =
-  new NotificationType<SledgehammerNoSuchProver>("PIDE/sledgehammer_noProver_response");
-
 export const sledgehammer_status_type =
   new NotificationType<SledgehammerStatus>("PIDE/sledgehammer_status_response");
 

@@ -149,13 +149,6 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     }
   }
 
-  public updateNoProver(provers: lsp.SledgehammerNoSuchProver): void {
-    if (this._view) {
-      this._view.webview.postMessage({ command: "no_provers" });
-    }
-  }
-
-
   public update_no_proof(): void {
     if (this._view) {
       this._view.webview.postMessage({ command: "no_proof" });
