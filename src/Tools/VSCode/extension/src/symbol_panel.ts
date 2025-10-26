@@ -73,9 +73,11 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     this._view.webview.onDidReceiveMessage(message => {
       if (message.command === 'insertSymbol') {
         this._insert_symbol(message.symbol);
-      } else if (message.command === 'resetControlSymbols') {
+      }
+      else if (message.command === 'resetControlSymbols') {
         this._reset_control_symbols();
-      } else if (message.command === 'applyControl') {
+      }
+      else if (message.command === 'applyControl') {
         this._apply_control_effect(message.action);
       }
     });
@@ -113,7 +115,8 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
       if (!selection.isEmpty) {
         if (action === "bold") {
           editor.setDecorations(this.boldDecoration, [{ range: selection }]);
-        } else {
+        }
+        else {
           let newText = selectedText
             .split("")
             .map((char, index, arr) => {
@@ -127,7 +130,8 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
           editBuilder.replace(selection, newText);
         }
-      } else {
+      }
+      else {
         editBuilder.insert(selection.active, controlSymbol);
       }
     }).then(success => {

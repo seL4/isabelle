@@ -76,7 +76,8 @@
     const searchLimit = 50;
     if (matchingSymbols.length === 0) {
       resultsContainer.innerHTML = "<p>No symbols found</p>";
-    } else {
+    }
+    else {
       matchingSymbols.slice(0, searchLimit).forEach(symbol => {
         const decodedSymbol = decodeHtmlEntity(symbol.code);
         if (!decodedSymbol) return;
@@ -112,10 +113,12 @@
       if (char === "\u21e7") {
         i++;
         if (i < symbol.length) result += "<sup>" + symbol[i] + "</sup>";
-      } else if (char === "\u21e9") { 
+      }
+      else if (char === "\u21e9") { 
         i++;
         if (i < symbol.length) result += "<sub>" + symbol[i] + "</sub>";
-      } else {
+      }
+      else {
         result += char;
       }
       i++;
@@ -134,13 +137,15 @@
         if (controlSup) result += controlSup + symbol[i];
         else result += symbol[i];
       }
-    } else if (char === "\u21e9") {
+    }
+    else if (char === "\u21e9") {
       i++;
       if (i < symbol.length) {
         if (controlSub) result += controlSub + symbol[i];
         else result += symbol[i];
       }
-    } else {
+    }
+    else {
       result += char;
     }
     i++;
@@ -239,7 +244,8 @@
         const button = document.createElement('div');
         if (group === "arrow") {
           button.classList.add('arrow-button'); // special class for arrows
-        } else {
+        }
+        else {
           button.classList.add('symbol-button');
         }
         button.textContent = decodedSymbol;

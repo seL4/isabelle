@@ -3,7 +3,7 @@
   let was_cancelled = false;
   let can_be_cancelled = false;
 
-  let history = []; 
+  let history = [];
 
   const container = document.createElement('div');
   container.id = 'sledgehammer-container';
@@ -171,7 +171,7 @@
     was_cancelled = false;
     can_be_cancelled = true;
     result.innerHTML = '';
-    add_to_history(provers_input.value); 
+    add_to_history(provers_input.value);
     hide_dropdown();
     vscode.postMessage({
       command: 'apply',
@@ -232,7 +232,8 @@
       set_history(message.history);
       if (message.provers) {
         provers_input.value = message.provers;
-      } else if (message.history && message.history.length > 0) {
+      }
+      else if (message.history && message.history.length > 0) {
         provers_input.value = message.history[0];
       }
     }
@@ -268,7 +269,8 @@
                 span.textContent = text;
                 div.appendChild(span);
               }
-            } else if (node.nodeName.toLowerCase() === 'sendback') {
+            }
+            else if (node.nodeName.toLowerCase() === 'sendback') {
               const button = document.createElement('button');
               button.textContent = node.textContent.trim();
               button.addEventListener('click', () => {
@@ -296,7 +298,8 @@
       }
       if (/Unknown proof context/i.test(message.content)) {
         result.classList.add('error');
-      } else {
+      }
+      else {
         result.classList.remove('error');
       }
       can_be_cancelled = false;
