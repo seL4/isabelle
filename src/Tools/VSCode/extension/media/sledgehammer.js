@@ -72,11 +72,7 @@
           history = history.filter(h => h !== item);
           renderDropdown(false);
           showDropdown();
-
-          vscode.postMessage({
-            command: 'delete_prover_history',
-            entry: item
-          });
+          vscode.postMessage({ command: 'delete_prover_history', entry: item });
         });
 
         row.appendChild(delBtn);

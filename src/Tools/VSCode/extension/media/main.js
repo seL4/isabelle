@@ -3,10 +3,7 @@
 
     for (const link of document.querySelectorAll('a[href^="file:"]')) {
         link.addEventListener('click', () => {
-            vscode.postMessage({
-                command: "open",
-                link: link.getAttribute('href'),
-            });
+            vscode.postMessage({ command: "open", link: link.getAttribute('href') });
         });
     }
 
