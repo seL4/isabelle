@@ -226,7 +226,7 @@
   window.addEventListener('message', event => {
     const message = event.data;
     if (message.command === 'status') {
-      spinner.classList.toggle('loading', message.message !== "Beendet");
+      spinner.classList.toggle('loading', message.message !== "Finished");
     }
     else if (message.command === 'provers') {
       set_history(message.history);
