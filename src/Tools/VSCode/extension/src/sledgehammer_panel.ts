@@ -4,7 +4,8 @@
 Control panel for Sledgehammer.
 */
 
-import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken, window, Webview, Selection, Range, TextDocument, TextDocumentContentChangeEvent } from "vscode";
+import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken,
+  window, Webview, Selection, Range, TextDocument, TextDocumentContentChangeEvent } from "vscode";
 import * as path from "path";
 import { text_colors } from "./decorations";
 import * as vscode_lib from "./vscode_lib"
@@ -108,7 +109,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
       const position = new Position(state_location.line, state_location.character);
       editor.selections = [new Selection(position, position)];
       editor.revealRange(new Range(position, position));
-    } 
+    }
   }
 
   public insert(position: { uri: string; line: number; character: number }): void {
@@ -120,7 +121,8 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
 
     const pos = new Position(position.line, position.character);
     const existingLineText = editor.document.lineAt(pos.line).text;
-    const textToInsert = existingLineText.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
+    const textToInsert =
+      existingLineText.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
 
     editor.edit(editBuilder => {
       editBuilder.insert(pos, textToInsert);
@@ -143,7 +145,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
           position: result.position,
           sendback_id: result.sendback_id
         });
-      
+
     }
   }
 
@@ -166,8 +168,10 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
 }
 
 function get_webview_html(webview: Webview | undefined, extension_path: string): string {
-  const script_uri = webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.js")));
-  const css_uri = webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")));
+  const script_uri =
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.js")));
+  const css_uri =
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")));
   const font_uri =
     webview.asWebviewUri(Uri.file(path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
 
@@ -185,7 +189,7 @@ function get_webview_html(webview: Webview | undefined, extension_path: string):
                 src: url(${font_uri});
             }
             ${_get_decorations()}
-        </style>        
+        </style>
         <title>Sledgehammer Panel</title>
       </head>
       <body>
