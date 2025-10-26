@@ -21,7 +21,7 @@ object VSCode_Sledgehammer {
 class VSCode_Sledgehammer private(server: Language_Server) {
   private val query_operation =
     new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_result)
-  var current_purpose: Int = 1
+
   private var last_sendback_id: Option[Int] = None
 
   def send_provers(): Unit = {
@@ -30,14 +30,21 @@ class VSCode_Sledgehammer private(server: Language_Server) {
   }
 
   def handle_request(provers: String, isar: Boolean, try0: Boolean, purpose: Int): Unit = {
-    val available_provers = Word.explode(server.options.string("sledgehammer_provers")).toSet
-    val user_provers = Word.explode(provers).toSet
-    val invalid = user_provers.diff(available_provers)
-    if (invalid.nonEmpty) {
-      server.channel.write(LSP.Sledgehammer_NoProver_Response.apply(invalid.toList))
-      return
+    purpose match {
+      case 1 =>
+        server.resources.get_caret() match {
+          case Some(caret) =>
+            val snapshot = server.resources.snapshot(caret.model)
+            val uri = Url.print_file(caret.file)
+            server.editor.send_dispatcher {
+              query_operation.apply_query(List(provers, isar.toString, try0.toString))
+            }
+          case None => server.channel.write(LSP.Sledgehammer_No_Proof_Response())
+        }
+      case 2 => locate()
+      case 3 => insert_query()
+      case _ =>
     }
-    choose_purpose(List(provers, isar.toString, try0.toString), purpose)
   }
 
   private def consume_status(status: Query_Operation.Status): Unit = {
@@ -142,29 +149,6 @@ class VSCode_Sledgehammer private(server: Language_Server) {
       )
 
       server.channel.write(LSP.Sledgehammer_Apply_Response(json))
-    }
-  }
-
-  def choose_purpose(args: List[String], purpose: Int): Unit = {
-    current_purpose = purpose
-    purpose match {
-      case 1 =>
-        server.resources.get_caret() match {
-          case Some(caret) =>
-            val snapshot = server.resources.snapshot(caret.model)
-            val uri = Url.print_file(caret.file)
-            server.editor.send_dispatcher { query_operation.apply_query(args) }
-          case None =>
-            server.channel.write(LSP.Sledgehammer_NoProof_Response())
-        }
-
-      case 2 =>
-        locate()
-
-      case 3 =>
-        insert_query()
-
-      case _ =>
     }
   }
 

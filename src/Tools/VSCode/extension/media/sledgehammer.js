@@ -224,7 +224,7 @@
     else if (message.command === "provers" && message.provers) {
       provers_input.value = message.provers;
     }
-    else if (message.command === "no_proof_context") {
+    else if (message.command === "no_proof") {
       const div = document.createElement("div");
       div.classList.add("interrupt");
       div.textContent = "Unknown proof context";
