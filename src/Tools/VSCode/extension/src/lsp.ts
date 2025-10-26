@@ -237,11 +237,6 @@ export interface SledgehammerInsertPosition {
 
 export interface Sledgehammer_Provers {
   provers: string;
-  history: string[];
-}
-
-export interface Sledgehammer_Provers_Delete {
-  entry: string;
 }
 
 export interface SledgehammerNoSuchProver {
@@ -251,14 +246,11 @@ export interface SledgehammerNoSuchProver {
 export const sledgehammer_request_type =
   new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
 
-export const sledgehammer_provers_delete =
-  new NotificationType<Sledgehammer_Provers_Delete>("PIDE/sledgehammer_deleteProvers_request");
-
 export const sledgehammer_cancel_type =
   new NotificationType<void>("PIDE/sledgehammer_cancel_request");
 
 export const sledgehammer_provers =
-  new NotificationType<InitRequest>("PIDE/sledgehammer_provers_request");
+  new NotificationType<void>("PIDE/sledgehammer_provers_request");
 
 export const sledgehammer_provers_response =
   new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");

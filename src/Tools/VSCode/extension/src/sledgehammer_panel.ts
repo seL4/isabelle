@@ -35,7 +35,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
 
   request_provers(language_client: LanguageClient) {
     if (language_client) {
-      this._language_client.sendNotification(lsp.sledgehammer_provers, { init: true });
+      this._language_client.sendNotification(lsp.sledgehammer_provers);
     }
   }
 
@@ -83,13 +83,6 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
           });
           this.text_to_insert = message.text;
           break;
-
-        case 'delete_prover_history':
-          this._language_client.sendNotification(lsp.sledgehammer_provers_delete, {
-            entry: message.entry
-          });
-          break;
-
       }
     });
   }
@@ -100,9 +93,9 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     }
   }
 
-  public update_provers(provers: string, history: string[]): void {
+  public update_provers(provers: string): void {
     if (this._view) {
-      this._view.webview.postMessage({ command: 'provers', provers, history });
+      this._view.webview.postMessage({ command: 'provers', provers });
     }
   }
 

@@ -98,7 +98,7 @@ Usage: isabelle vscode_server [OPTIONS]
 
 class Language_Server(
   val channel: Channel,
-  options: Options,
+  val options: Options,
   session_name: String = Language_Server.default_logic,
   include_sessions: List[String] = Nil,
   session_dirs: List[Path] = Nil,
@@ -552,9 +552,7 @@ class Language_Server(
           case LSP.Sledgehammer_Request(provers, isar, try0, purpose) =>
             sledgehammer.handle_request(provers, isar, try0, purpose)
           case LSP.Sledgehammer_Cancel => sledgehammer.cancel_query()
-          case LSP.Sledgehammer_Provers(init) => sledgehammer.send_provers_and_history(init)
-          case LSP.Sledgehammer_Delete_Prover(entry) =>
-            sledgehammer.handle_sledgehammer_delete(entry)
+          case LSP.Sledgehammer_Provers => sledgehammer.send_provers()
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }

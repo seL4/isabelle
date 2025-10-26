@@ -73,7 +73,6 @@
           history = history.filter(h => h !== item);
           render_dropdown(false);
           show_dropdown();
-          vscode.postMessage({ command: "delete_prover_history", entry: item });
         });
 
         row.appendChild(delete_button);
@@ -119,12 +118,6 @@
       dropdown.firstChild && dropdown.firstChild.focus && dropdown.firstChild.focus();
     }
   });
-
-  function set_history(new_history) {
-    history = Array.isArray(new_history) ? new_history : [];
-    save_state();
-    render_dropdown(false);
-  }
 
   function save_state() {
     vscode.setState({
@@ -228,14 +221,8 @@
     if (message.command === "status") {
       spinner.classList.toggle("loading", message.message !== "Finished");
     }
-    else if (message.command === "provers") {
-      set_history(message.history);
-      if (message.provers) {
-        provers_input.value = message.provers;
-      }
-      else if (message.history && message.history.length > 0) {
-        provers_input.value = message.history[0];
-      }
+    else if (message.command === "provers" && message.provers) {
+      provers_input.value = message.provers;
     }
     else if (message.command === "no_proof_context") {
       const div = document.createElement("div");

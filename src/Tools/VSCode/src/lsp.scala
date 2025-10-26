@@ -811,14 +811,8 @@ object LSP {
 
   /* sledgehammer */
 
-  object Sledgehammer_Provers {
-    def unapply(json: JSON.T): Option[Boolean] =
-      json match {
-        case Notification("PIDE/documentation_request", Some(params)) =>
-          JSON.bool(params, "init")
-        case _ => None
-      }
-  }
+  object Sledgehammer_Provers
+    extends Notification0("PIDE/sledgehammer_provers_request")
 
   object Sledgehammer_Request {
     def unapply(json: JSON.T): Option[(String, Boolean, Boolean, Int)] =
@@ -834,23 +828,12 @@ object LSP {
       }
   }
 
-  object Sledgehammer_Delete_Prover {
-    def unapply(json: JSON.T): Option[String] =
-      json match {
-        case Notification("PIDE/sledgehammer_deleteProvers_request", Some(params)) =>
-          JSON.string(params, "entry")
-        case _ => None
-      }
-  }
-
   object Sledgehammer_Cancel
     extends Notification0("PIDE/sledgehammer_cancel_request")
 
   object Sledgehammer_Provers_Response {
-    def apply(provers: String, history: List[String]): JSON.T =
-      Notification(
-        "PIDE/sledgehammer_provers_response",
-        JSON.Object("provers" -> provers, "history" -> history))
+    def apply(provers: String): JSON.T =
+      Notification("PIDE/sledgehammer_provers_response", JSON.Object("provers" -> provers))
   }
 
   object Sledgehammer_NoProver_Response {
