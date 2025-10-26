@@ -741,14 +741,8 @@ object LSP {
       ResponseMessage(id, Some(JSON.Object("text" -> new_string)))
   }
 
-  object Symbols_Panel_Request {
-    def unapply(json: JSON.T): Option[Boolean] =
-      json match {
-        case Notification("PIDE/symbols_panel_request", Some(params)) =>
-          JSON.bool(params, "init")
-        case _ => None
-      }
-  }
+  object Symbols_Panel_Request
+    extends Notification0("PIDE/symbols_panel_request")
 
   object Symbols_Response {
     def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {

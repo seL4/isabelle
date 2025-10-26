@@ -31,7 +31,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   request( language_client: LanguageClient) {
     if (language_client) {
-      this._language_client.sendNotification(lsp.symbols_request_type, { init: true });
+      this._language_client.sendNotification(lsp.symbols_request_type);
     }
   }
 

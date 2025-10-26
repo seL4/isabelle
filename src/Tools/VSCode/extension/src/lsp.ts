@@ -159,18 +159,14 @@ export interface Symbols_Response {
 export const symbols_response_type =
   new NotificationType<Symbols_Response>("PIDE/symbols_response");
 
-export interface InitRequest {
-  init: boolean;
-}
-
 export const symbols_request_type =
-  new NotificationType<InitRequest>("PIDE/symbols_panel_request")
+  new NotificationType<void>("PIDE/symbols_panel_request")
 
 
 /* documentation */
 
 export const documentation_request_type =
-  new NotificationType<InitRequest>("PIDE/documentation_request")
+  new NotificationType<void>("PIDE/documentation_request")
 
 export interface Doc_Entry {
   print_html: string;
