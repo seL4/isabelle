@@ -120,8 +120,8 @@
     }
   });
 
-  function set_history(newHistory) {
-    history = Array.isArray(newHistory) ? newHistory : [];
+  function set_history(new_history) {
+    history = Array.isArray(new_history) ? new_history : [];
     save_state();
     render_dropdown(false);
   }
