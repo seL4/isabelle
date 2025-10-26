@@ -805,8 +805,13 @@ object LSP {
 
   /* sledgehammer */
 
-  object Sledgehammer_Provers
+  object Sledgehammer_Provers_Request
     extends Notification0("PIDE/sledgehammer_provers_request")
+
+  object Sledgehammer_Provers_Response {
+    def apply(provers: String): JSON.T =
+      Notification("PIDE/sledgehammer_provers_response", JSON.Object("provers" -> provers))
+  }
 
   object Sledgehammer_Request {
     def unapply(json: JSON.T): Option[(String, Boolean, Boolean, Int)] =
@@ -822,13 +827,8 @@ object LSP {
       }
   }
 
-  object Sledgehammer_Cancel
+  object Sledgehammer_Cancel_Request
     extends Notification0("PIDE/sledgehammer_cancel_request")
-
-  object Sledgehammer_Provers_Response {
-    def apply(provers: String): JSON.T =
-      Notification("PIDE/sledgehammer_provers_response", JSON.Object("provers" -> provers))
-  }
 
   object Sledgehammer_Status_Response {
     def apply(message: String): JSON.T =
@@ -845,7 +845,7 @@ object LSP {
       Notification("PIDE/sledgehammer_locate_response", json)
   }
 
-  object Sledgehammer_InsertPosition_Response {
+  object Sledgehammer_Insert_Position_Response {
     def apply(json: JSON.Object.T): JSON.T =
       Notification("PIDE/sledgehammer_insert_position_response", json)
   }

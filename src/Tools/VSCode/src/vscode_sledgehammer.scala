@@ -193,7 +193,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
                     "character" -> col
                   )
                 )
-                server.channel.write(LSP.Sledgehammer_InsertPosition_Response(json))
+                server.channel.write(LSP.Sledgehammer_Insert_Position_Response(json))
               case None =>
             }
           case None =>

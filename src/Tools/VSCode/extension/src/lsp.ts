@@ -196,10 +196,6 @@ export interface SledgehammerApplyRequest {
   purpose: number;
 }
 
-export interface Sledgehammer_Status {
-  message: string;
-}
-
 export interface SledgehammerApplyResult {
   content: string;
   position: {
@@ -215,7 +211,7 @@ export interface SledgehammerApplyResult {
   };
 }
 
-export interface SledgehammerLocate {
+export interface Sledgehammer_Locate {
   position: {
     uri: string;
     line: number;
@@ -231,6 +227,10 @@ export interface SledgehammerInsertPosition {
   };
 }
 
+export interface Sledgehammer_Status {
+  message: string;
+}
+
 export interface Sledgehammer_Provers {
   provers: string;
 }
@@ -238,13 +238,13 @@ export interface Sledgehammer_Provers {
 export const sledgehammer_request_type =
   new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
 
-export const sledgehammer_cancel_type =
+export const sledgehammer_cancel_request_type =
   new NotificationType<void>("PIDE/sledgehammer_cancel_request");
 
-export const sledgehammer_provers =
+export const sledgehammer_provers_request_type =
   new NotificationType<void>("PIDE/sledgehammer_provers_request");
 
-export const sledgehammer_provers_response =
+export const sledgehammer_provers_response_type =
   new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
 
 export const sledgehammer_status_response_type =
@@ -254,7 +254,7 @@ export const sledgehammer_apply_response_type =
   new NotificationType<SledgehammerApplyResult>("PIDE/sledgehammer_apply_response");
 
 export const sledgehammer_locate_response_type =
-  new NotificationType<SledgehammerLocate>("PIDE/sledgehammer_locate_response");
+  new NotificationType<Sledgehammer_Locate>("PIDE/sledgehammer_locate_response");
 
 export const sledgehammer_insert_position_response_type =
   new NotificationType<SledgehammerInsertPosition>("PIDE/sledgehammer_insert_position_response");
