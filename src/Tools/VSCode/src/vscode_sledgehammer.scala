@@ -1,5 +1,8 @@
-/*  Title:      Tools/VSCode/src/sledgehammer_panel.scala
+/*  Title:      Tools/VSCode/src/vscode_sledgehammer.scala
     Author:     Diana Korchmar
+    Author:     Makarius
+
+Control panel for Sledgehammer.
 */
 
 package isabelle.vscode
