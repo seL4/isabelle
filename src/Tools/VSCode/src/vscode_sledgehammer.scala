@@ -1,5 +1,5 @@
 /*  Title:      Tools/VSCode/src/vscode_sledgehammer.scala
-    Author:     Diana Korchmar
+    Author:     Diana Korchmar, LMU Muenchen
     Author:     Makarius
 
 Control panel for Sledgehammer.

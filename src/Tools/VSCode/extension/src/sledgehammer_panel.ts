@@ -1,6 +1,7 @@
 /*  Author:     Diana Korchmar, LMU Muenchen
+    Author:     Makarius
 
-Isabelle sledgehammer panel as web view.
+Control panel for Sledgehammer.
 */
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken, window, Webview, Selection, Range, TextDocument, TextDocumentContentChangeEvent } from "vscode";
