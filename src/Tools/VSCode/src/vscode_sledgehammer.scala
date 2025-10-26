@@ -7,7 +7,7 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{PrintStream, PrintWriter, FileWriter, OutputStream, File => JFile}
+import java.io.{File => JFile}
 
 
 object VSCode_Sledgehammer {
@@ -155,8 +155,6 @@ class VSCode_Sledgehammer private(server: Language_Server) {
 
       val query_position = sendback_id_opt.flatMap(id => query_position_from_sendback(snapshot, id))
         .getOrElse(("unknown", 0, 0))
-
-      val text = snapshot.node.source
 
       val json = JSON.Object(
         "content" -> xml_string,
