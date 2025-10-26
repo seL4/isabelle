@@ -97,11 +97,14 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     text.substring(0, offset).count(_ == '\n')
 
   private def count_column(text: String, offset: Int): Int = {
-    val lastNewline = text.substring(0, offset).lastIndexOf('\n')
-    if (lastNewline >= 0) offset - lastNewline - 1 else offset
+    val last_newline = text.substring(0, offset).lastIndexOf('\n')
+    if (last_newline >= 0) offset - last_newline - 1 else offset
   }
 
-  private def resolvePosition(snapshot: Document.Snapshot, sendback_id: Int): Option[(String, Int, Int)] = {
+  private def resolve_position(
+    snapshot: Document.Snapshot,
+    sendback_id: Int
+  ): Option[(String, Int, Int)] = {
     snapshot.node.commands.find(_.id == sendback_id).flatMap { command =>
       snapshot.node.command_iterator().find(_._1 == command).map {
         case (_, start_offset) =>
@@ -115,7 +118,10 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  private def query_position_from_sendback(snapshot: Document.Snapshot, sendback_id: Int): Option[(String, Int, Int)] = {
+  private def query_position_from_sendback(
+    snapshot: Document.Snapshot,
+    sendback_id: Int
+  ): Option[(String, Int, Int)] = {
     val node = snapshot.node
     val iterator = node.command_iterator().toList
 
@@ -125,20 +131,26 @@ class VSCode_Sledgehammer private(server: Language_Server) {
       val column = count_column(text, start_offset)
       val uri = Url.print_file(new java.io.File(snapshot.node_name.node))
 
-      val snippet = text.substring(start_offset, (start_offset + command.length).min(text.length)).replace("\n", "\\n")
+      val snippet =
+        text.substring(start_offset, (start_offset + command.length).min(text.length))
+          .replace("\n", "\\n")
 
       (uri, line, column)
     }
   }
 
-  private def consume_result(snapshot: Document.Snapshot, results: Command.Results, body: List[XML.Elem]): Unit = {
-    val xmlString = body.map(XML.string_of_tree).mkString
+  private def consume_result(
+    snapshot: Document.Snapshot,
+    results: Command.Results,
+    body: List[XML.Elem]
+  ): Unit = {
+    val xml_string = body.map(XML.string_of_tree).mkString
 
-    if (xmlString.contains("Done")) {
+    if (xml_string.contains("Done")) {
       val sendback_id_opt = extract_sendback_id(body)
       last_sendback_id = sendback_id_opt
 
-      val position = sendback_id_opt.flatMap(id => resolvePosition(snapshot, id))
+      val position = sendback_id_opt.flatMap(id => resolve_position(snapshot, id))
         .getOrElse(("unknown", 0, 0))
 
       val query_position = sendback_id_opt.flatMap(id => query_position_from_sendback(snapshot, id))
@@ -146,8 +158,8 @@ class VSCode_Sledgehammer private(server: Language_Server) {
 
       val text = snapshot.node.source
 
-      val resultJson = JSON.Object(
-        "content" -> xmlString,
+      val json = JSON.Object(
+        "content" -> xml_string,
         "position" -> JSON.Object(
           "uri" -> position._1,
           "line" -> position._2,
@@ -160,7 +172,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
           "character" -> query_position._3)
       )
 
-      server.channel.write(LSP.Sledgehammer_Apply_Response(resultJson))
+      server.channel.write(LSP.Sledgehammer_Apply_Response(json))
     }
   }
 
@@ -209,16 +221,16 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     last_sendback_id match {
       case Some(sendback_id) =>
         val models = server.resources.get_models()
-        val modelOpt = models.find { model =>
+        val model_opt = models.find { model =>
           val snapshot = server.resources.snapshot(model)
           val contains = snapshot.node.commands.exists(_.id == sendback_id)
           contains
         }
 
-        modelOpt match {
+        model_opt match {
           case Some(model) =>
             val snapshot = server.resources.snapshot(model)
-            resolvePosition(snapshot, sendback_id) match {
+            resolve_position(snapshot, sendback_id) match {
               case Some((uri, line, col)) =>
                 val json = JSON.Object(
                   "position" -> JSON.Object(
