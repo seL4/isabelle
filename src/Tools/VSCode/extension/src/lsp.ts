@@ -235,10 +235,6 @@ export interface Sledgehammer_Provers {
   provers: string;
 }
 
-export interface SledgehammerNoSuchProver {
-  provers: string[];
-}
-
 export const sledgehammer_request_type =
   new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
 
