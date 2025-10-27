@@ -36,7 +36,7 @@ class Query_Operation[Editor_Context](
   editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status => Unit,
-  consume_output: (Document.Snapshot, Command.Results, List[XML.Elem]) => Unit
+  consume_output: Editor.Output => Unit
 ) {
   private val print_function = operation_name + "_query"
 
@@ -150,7 +150,8 @@ class Query_Operation[Editor_Context](
         current_state.change(_.copy(update_pending = false))
         if (state0.output != new_output && !removed) {
           current_state.change(_.copy(output = new_output))
-          consume_output(snapshot, command_results, new_output)
+          consume_output(
+            Editor.Output(snapshot = snapshot, results = command_results, messages = new_output))
         }
         if (state0.status != new_status) {
           current_state.change(_.copy(status = new_status))
@@ -175,7 +176,7 @@ class Query_Operation[Editor_Context](
       case Some(snapshot) =>
         remove_overlay()
         current_state.change(_ => Query_Operation.State.empty)
-        consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+        consume_output(Editor.Output.init)
 
         editor.current_command(editor_context, snapshot) match {
           case Some(command) =>
@@ -227,7 +228,7 @@ class Query_Operation[Editor_Context](
     editor.session.commands_changed -= main
     remove_overlay()
     current_state.change(_ => Query_Operation.State.empty)
-    consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+    consume_output(Editor.Output.init)
     consume_status(Query_Operation.Status.finished)
   }
 }

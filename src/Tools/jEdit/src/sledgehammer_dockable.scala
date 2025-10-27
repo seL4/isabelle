@@ -51,7 +51,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val sledgehammer =
     new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status,
-      output.pretty_text_area.update)
+      output.pretty_text_area.update_output)
 
 
   /* controls */

@@ -20,7 +20,7 @@ object VSCode_Sledgehammer {
 
 class VSCode_Sledgehammer private(server: Language_Server) {
   private val query_operation =
-    new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_result)
+    new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_output)
 
   private var last_sendback_id: Option[Int] = None
 
@@ -117,11 +117,10 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  private def consume_result(
-    snapshot: Document.Snapshot,
-    results: Command.Results,
-    body: List[XML.Elem]
-  ): Unit = {
+  private def consume_output(output: Editor.Output): Unit = {
+    val snapshot = output.snapshot
+    val body = output.messages
+
     val xml_string = body.map(XML.string_of_tree).mkString
 
     if (xml_string.contains("Done")) {

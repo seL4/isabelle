@@ -20,7 +20,9 @@ object Editor {
     results: Command.Results = Command.Results.empty,
     messages: List[XML.Elem] = Nil,
     defined: Boolean = true
-  )
+  ) {
+    def proper: Boolean = messages.nonEmpty && defined
+  }
 }
 
 abstract class Editor[Context] {

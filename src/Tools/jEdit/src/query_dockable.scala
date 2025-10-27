@@ -77,7 +77,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "find_theorems",
-        consume_status(process_indicator, _), pretty_text_area.update)
+        consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private def apply_query(): Unit = {
       query.addCurrentToHistory()
@@ -139,7 +139,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "find_consts",
-        consume_status(process_indicator, _), pretty_text_area.update)
+        consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private val query_label = new Label("Find:") {
       tooltip = GUI.tooltip_lines("Name / type patterns for constants")
@@ -214,7 +214,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
 
     val query_operation =
       new Query_Operation(PIDE.editor, view, "print_operation",
-        consume_status(process_indicator, _), pretty_text_area.update)
+        consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private def apply_query(): Unit =
       query_operation.apply_query(selected_items())
