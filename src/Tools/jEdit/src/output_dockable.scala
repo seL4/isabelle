@@ -41,7 +41,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       for (snapshot <- PIDE.editor.current_node_snapshot(view)) {
         val output = PIDE.editor.output(snapshot, caret_offset, restriction = restriction)
         if (output.defined && current_output != output.messages) {
-          dockable.output.pretty_text_area.update(snapshot, output.results, output.messages)
+          dockable.output.pretty_text_area.update_output(output)
           current_output = output.messages
         }
       }

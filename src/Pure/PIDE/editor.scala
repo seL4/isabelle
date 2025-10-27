@@ -16,6 +16,7 @@ object Editor {
   }
 
   sealed case class Output(
+    snapshot: Document.Snapshot = Document.Snapshot.init,
     results: Command.Results = Command.Results.empty,
     messages: List[XML.Elem] = Nil,
     defined: Boolean = true
@@ -138,7 +139,7 @@ abstract class Editor[Context] {
               val (urgent, regular) = other.partition(Protocol.is_urgent)
               urgent ::: (if (output_state()) states else Nil) ::: regular
             }
-            Editor.Output(results = results, messages = messages)
+            Editor.Output(snapshot = snapshot, results = results, messages = messages)
           }
           else Editor.Output.none
       }

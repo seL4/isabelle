@@ -241,6 +241,9 @@ class Pretty_Text_Area(
     refresh()
   }
 
+  def update_output(output: Editor.Output): Unit =
+    if (output.defined) update(output.snapshot, output.results, output.messages)
+
   def update(
     base_snapshot: Document.Snapshot,
     base_results: Command.Results,
