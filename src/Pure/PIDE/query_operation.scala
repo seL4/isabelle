@@ -71,10 +71,11 @@ class Query_Operation[Editor_Context](
           val snapshot = editor.node_snapshot(cmd.node_name)
           val command_results = snapshot.command_results(cmd)
           val results =
-            (for {
-              case (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
-              if props.contains((Markup.INSTANCE, state0.instance))
-            } yield elem).toList
+            List.from(
+              for {
+                case (_, elem@XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
+                if props.contains((Markup.INSTANCE, state0.instance))
+              } yield elem)
           val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
           (snapshot, command_results, results, removed)
         case None =>
@@ -141,8 +142,9 @@ class Query_Operation[Editor_Context](
       }).foreach(id => current_state.change(_.copy(exec_id = id)))
 
     if (state0.output != new_output || state0.status != new_status) {
-      if (snapshot.is_outdated)
+      if (snapshot.is_outdated) {
         current_state.change(_.copy(update_pending = true))
+      }
       else {
         current_state.change(_.copy(update_pending = false))
         if (state0.output != new_output && !removed) {
