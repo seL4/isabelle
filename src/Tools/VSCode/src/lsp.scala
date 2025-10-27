@@ -770,14 +770,8 @@ object LSP {
 
   /* documentation */
 
-  object Documentation_Request {
-    def unapply(json: JSON.T): Option[Boolean] =
-      json match {
-        case Notification("PIDE/documentation_request", Some(params)) =>
-          JSON.bool(params, "init")
-        case _ => None
-      }
-  }
+  object Documentation_Request
+    extends Notification0("PIDE/documentation_request")
 
   object Doc_Entry {
     def apply(entry: Doc.Entry): JSON.T =
