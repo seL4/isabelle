@@ -121,34 +121,29 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     val snapshot = output.snapshot
     val body = output.messages
 
-    val xml_string = body.map(XML.string_of_tree).mkString
+    val sendback_id_opt = extract_sendback_id(body)
+    last_sendback_id = sendback_id_opt
 
-    if (xml_string.contains("Done")) {
-      val sendback_id_opt = extract_sendback_id(body)
-      last_sendback_id = sendback_id_opt
+    val position = sendback_id_opt.flatMap(id => resolve_position(snapshot, id))
+      .getOrElse(("unknown", 0, 0))
 
-      val position = sendback_id_opt.flatMap(id => resolve_position(snapshot, id))
-        .getOrElse(("unknown", 0, 0))
+    val query_position = sendback_id_opt.flatMap(id => query_position_from_sendback(snapshot, id))
+      .getOrElse(("unknown", 0, 0))
 
-      val query_position = sendback_id_opt.flatMap(id => query_position_from_sendback(snapshot, id))
-        .getOrElse(("unknown", 0, 0))
-
-      val json = JSON.Object(
-        "content" -> xml_string,
-        "position" -> JSON.Object(
-          "uri" -> position._1,
-          "line" -> position._2,
-          "character" -> position._3
-        ),
-        "sendback_id" -> sendback_id_opt.getOrElse(-1),
-        "state_location" -> JSON.Object(
-          "uri" -> query_position._1,
-          "line" -> query_position._2,
-          "character" -> query_position._3)
-      )
-
-      server.channel.write(LSP.Sledgehammer_Apply_Response(json))
-    }
+    val json = JSON.Object(
+      "content" -> XML.string_of_body(body),
+      "position" -> JSON.Object(
+        "uri" -> position._1,
+        "line" -> position._2,
+        "character" -> position._3
+      ),
+      "sendback_id" -> sendback_id_opt.getOrElse(-1),
+      "state_location" -> JSON.Object(
+        "uri" -> query_position._1,
+        "line" -> query_position._2,
+        "character" -> query_position._3)
+    )
+    server.channel.write(LSP.Sledgehammer_Apply_Response(json))
   }
 
   def insert_query(): Unit = {
