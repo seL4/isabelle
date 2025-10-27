@@ -202,7 +202,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  def cancel_query(): Unit = query_operation.cancel_query()
+  def cancel(): Unit = query_operation.cancel_query()
   def locate_query(): Unit = query_operation.locate_query()
   def init(): Unit = query_operation.activate()
   def exit(): Unit = query_operation.deactivate()

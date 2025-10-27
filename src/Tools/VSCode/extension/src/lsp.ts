@@ -238,8 +238,8 @@ export interface Sledgehammer_Provers {
 export const sledgehammer_request_type =
   new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
 
-export const sledgehammer_cancel_request_type =
-  new NotificationType<void>("PIDE/sledgehammer_cancel_request");
+export const sledgehammer_cancel_type =
+  new NotificationType<void>("PIDE/sledgehammer_cancel");
 
 export const sledgehammer_provers_request_type =
   new NotificationType<void>("PIDE/sledgehammer_provers_request");

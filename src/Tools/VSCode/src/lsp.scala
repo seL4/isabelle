@@ -821,8 +821,7 @@ object LSP {
       }
   }
 
-  object Sledgehammer_Cancel_Request
-    extends Notification0("PIDE/sledgehammer_cancel_request")
+  object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")
 
   object Sledgehammer_Status_Response {
     def apply(message: String): JSON.T =
