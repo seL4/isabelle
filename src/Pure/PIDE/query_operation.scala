@@ -73,8 +73,9 @@ class Query_Operation[Editor_Context](
           val results =
             List.from(
               for {
-                case (_, elem@XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
-                if props.contains((Markup.INSTANCE, state0.instance))
+                case (_, elem@XML.Elem(Markup(Markup.RESULT, props@Markup.Instance(instance)), _))
+                  <- command_results.iterator
+                if instance == state0.instance
               } yield elem)
           val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
           (snapshot, command_results, results, removed)
