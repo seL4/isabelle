@@ -189,14 +189,17 @@ export const documentation_response_type =
 
 /* Sledgehammer */
 
-export interface SledgehammerApplyRequest {
+export interface Sledgehammer_Request {
   provers: string;
   isar: boolean;
   try0: boolean;
-  purpose: number;
 }
 
-export interface SledgehammerApplyResult {
+export interface Sledgehammer_Status {
+  message: string;
+}
+
+export interface Sledgehammer_Output {
   content: string;
   position: {
     uri: string;
@@ -219,16 +222,12 @@ export interface SledgehammerInsertPosition {
   };
 }
 
-export interface Sledgehammer_Status {
-  message: string;
-}
-
 export interface Sledgehammer_Provers {
   provers: string;
 }
 
 export const sledgehammer_request_type =
-  new NotificationType<SledgehammerApplyRequest>("PIDE/sledgehammer_request");
+  new NotificationType<Sledgehammer_Request>("PIDE/sledgehammer_request");
 
 export const sledgehammer_cancel_type =
   new NotificationType<void>("PIDE/sledgehammer_cancel");
@@ -236,17 +235,20 @@ export const sledgehammer_cancel_type =
 export const sledgehammer_locate_type =
   new NotificationType<void>("PIDE/sledgehammer_locate");
 
+export const sledgehammer_insert_type =
+  new NotificationType<void>("PIDE/sledgehammer_insert");
+
 export const sledgehammer_provers_request_type =
   new NotificationType<void>("PIDE/sledgehammer_provers_request");
 
 export const sledgehammer_provers_response_type =
   new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
 
-export const sledgehammer_status_response_type =
-  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status_response");
+export const sledgehammer_status_type =
+  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status");
 
-export const sledgehammer_apply_response_type =
-  new NotificationType<SledgehammerApplyResult>("PIDE/sledgehammer_apply_response");
+export const sledgehammer_output_type =
+  new NotificationType<Sledgehammer_Output>("PIDE/sledgehammer_output");
 
 export const sledgehammer_insert_position_response_type =
   new NotificationType<SledgehammerInsertPosition>("PIDE/sledgehammer_insert_position_response");

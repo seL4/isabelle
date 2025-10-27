@@ -59,8 +59,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
           this._language_client.sendNotification(lsp.sledgehammer_request_type, {
             provers: message.provers,
             isar: message.isar,
-            try0: message.try0,
-            purpose: 1
+            try0: message.try0
           });
           break;
         case "cancel":
@@ -69,13 +68,8 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
         case "locate":
           this._language_client.sendNotification(lsp.sledgehammer_locate_type);
           break;
-        case "insert_text":
-          this._language_client.sendNotification(lsp.sledgehammer_request_type, {
-            provers: message.provers,
-            isar: message.isar,
-            try0: message.try0,
-            purpose: 3
-          });
+        case "insert":
+          this._language_client.sendNotification(lsp.sledgehammer_insert_type);
           this.text_to_insert = message.text;
           break;
       }
@@ -123,7 +117,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   }
 
 
-  public updateResult(result: lsp.SledgehammerApplyResult): void {
+  public update_output(result: lsp.Sledgehammer_Output): void {
     const editor = window.activeTextEditor;
     const lineText = editor?.document.lineAt(result.position.line).text ?? "";
     this._lastResultPosition = {

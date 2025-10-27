@@ -29,22 +29,16 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     server.channel.write(LSP.Sledgehammer_Provers_Response.apply(provers))
   }
 
-  def handle_request(provers: String, isar: Boolean, try0: Boolean, purpose: Int): Unit = {
-    purpose match {
-      case 1 =>
-        server.resources.get_caret() match {
-          case Some(caret) =>
-            val snapshot = server.resources.snapshot(caret.model)
-            val uri = Url.print_file(caret.file)
-            server.editor.send_dispatcher {
-              query_operation.apply_query(List(provers, isar.toString, try0.toString))
-            }
-          case None => server.channel.write(LSP.Sledgehammer_No_Proof_Response())
+  def handle_request(provers: String, isar: Boolean, try0: Boolean): Unit =
+    server.resources.get_caret() match {
+      case Some(caret) =>
+        val snapshot = server.resources.snapshot(caret.model)
+        val uri = Url.print_file(caret.file)
+        server.editor.send_dispatcher {
+          query_operation.apply_query(List(provers, isar.toString, try0.toString))
         }
-      case 3 => insert_query()
-      case _ =>
+      case None => server.channel.write(LSP.Sledgehammer_No_Proof_Response())
     }
-  }
 
   private def consume_status(status: Query_Operation.Status): Unit = {
     val msg =
@@ -53,7 +47,7 @@ class VSCode_Sledgehammer private(server: Language_Server) {
         case Query_Operation.Status.running => "Sledgehammering ..."
         case Query_Operation.Status.finished => "Finished"
       }
-    server.channel.write(LSP.Sledgehammer_Status_Response(msg))
+    server.channel.write(LSP.Sledgehammer_Status(msg))
   }
 
   private def extract_sendback_id(body: List[XML.Elem]): Option[Int] = {
@@ -143,10 +137,10 @@ class VSCode_Sledgehammer private(server: Language_Server) {
         "line" -> query_position._2,
         "character" -> query_position._3)
     )
-    server.channel.write(LSP.Sledgehammer_Apply_Response(json))
+    server.channel.write(LSP.Sledgehammer_Output(json))
   }
 
-  def insert_query(): Unit = {
+  def insert(): Unit = {
     last_sendback_id match {
       case Some(sendback_id) =>
         val models = server.resources.get_models()

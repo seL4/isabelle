@@ -247,15 +247,8 @@
             else if (node.nodeName.toLowerCase() === "sendback") {
               const button = document.createElement("button");
               button.textContent = node.textContent.trim();
-              button.addEventListener("click", () => {
-                vscode.postMessage({
-                  command: "insert_text",
-                  provers: provers_input.value,
-                  isar: isar_checkbox.checked,
-                  try0: try0_checkbox.checked,
-                  text: node.textContent.trim()
-                });
-              });
+              button.addEventListener("click", () =>
+                vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
               div.appendChild(button);
             }
             else {

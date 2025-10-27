@@ -808,32 +808,33 @@ object LSP {
   }
 
   object Sledgehammer_Request {
-    def unapply(json: JSON.T): Option[(String, Boolean, Boolean, Int)] =
+    def unapply(json: JSON.T): Option[(String, Boolean, Boolean)] =
       json match {
         case Notification("PIDE/sledgehammer_request", Some(params)) =>
           for {
             provers <- JSON.string(params, "provers")
             isar <- JSON.bool(params, "isar")
             try0 <- JSON.bool(params, "try0")
-            purpose <- JSON.int_default(params, "purpose", 1)
-          } yield (provers, isar, try0, purpose)
+          } yield (provers, isar, try0)
         case _ => None
       }
+  }
+
+  object Sledgehammer_Status {
+    def apply(message: String): JSON.T =
+      Notification("PIDE/sledgehammer_status", JSON.Object("message" -> message))
+  }
+
+  object Sledgehammer_Output {
+    def apply(json: JSON.Object.T): JSON.T =
+      Notification("PIDE/sledgehammer_output", json)
   }
 
   object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")
 
   object Sledgehammer_Locate extends Notification0("PIDE/sledgehammer_locate")
 
-  object Sledgehammer_Status_Response {
-    def apply(message: String): JSON.T =
-      Notification("PIDE/sledgehammer_status_response", JSON.Object("message" -> message))
-  }
-
-  object Sledgehammer_Apply_Response {
-    def apply(json: JSON.Object.T): JSON.T =
-      Notification("PIDE/sledgehammer_apply_response", json)
-  }
+  object Sledgehammer_Insert extends Notification0("PIDE/sledgehammer_insert")
 
   object Sledgehammer_Insert_Position_Response {
     def apply(json: JSON.Object.T): JSON.T =
