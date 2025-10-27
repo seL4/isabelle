@@ -823,6 +823,8 @@ object LSP {
 
   object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")
 
+  object Sledgehammer_Locate extends Notification0("PIDE/sledgehammer_locate")
+
   object Sledgehammer_Status_Response {
     def apply(message: String): JSON.T =
       Notification("PIDE/sledgehammer_status_response", JSON.Object("message" -> message))
@@ -831,11 +833,6 @@ object LSP {
   object Sledgehammer_Apply_Response {
     def apply(json: JSON.Object.T): JSON.T =
       Notification("PIDE/sledgehammer_apply_response", json)
-  }
-
-  object Sledgehammer_Locate_Response {
-    def apply(json: JSON.Object.T): JSON.T =
-      Notification("PIDE/sledgehammer_locate_response", json)
   }
 
   object Sledgehammer_Insert_Position_Response {

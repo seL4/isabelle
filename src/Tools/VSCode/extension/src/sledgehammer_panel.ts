@@ -62,20 +62,13 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
             try0: message.try0,
             purpose: 1
           });
-
           break;
         case "cancel":
           this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
           break;
         case "locate":
-          this._language_client.sendNotification(lsp.sledgehammer_request_type, {
-            provers: message.provers,
-            isar: message.isar,
-            try0: message.try0,
-            purpose: 2
-          });
+          this._language_client.sendNotification(lsp.sledgehammer_locate_type);
           break;
-
         case "insert_text":
           this._language_client.sendNotification(lsp.sledgehammer_request_type, {
             provers: message.provers,

@@ -242,8 +242,6 @@ export async function activate(context: ExtensionContext)
         sledgehammer_provider.updateResult(msg))
       language_client.onNotification(lsp.sledgehammer_insert_position_response_type, msg =>
         sledgehammer_provider.insert(msg.position))
-      language_client.onNotification(lsp.sledgehammer_locate_response_type, msg =>
-        sledgehammer_provider.locate(msg.position))
       language_client.onNotification(lsp.sledgehammer_provers_response_type, msg =>
         sledgehammer_provider.update_provers(msg.provers))
       language_client.onNotification(lsp.sledgehammer_no_proof_response_type, () =>

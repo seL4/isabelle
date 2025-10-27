@@ -41,7 +41,6 @@ class VSCode_Sledgehammer private(server: Language_Server) {
             }
           case None => server.channel.write(LSP.Sledgehammer_No_Proof_Response())
         }
-      case 2 => locate()
       case 3 => insert_query()
       case _ =>
     }
@@ -153,24 +152,6 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  def locate(): Unit = {
-    for {
-      sendback_id <- last_sendback_id
-      caret <- server.resources.get_caret()
-      snapshot = server.resources.snapshot(caret.model)
-      query_position <- query_position_from_sendback(snapshot, sendback_id)
-    } {
-      val json = JSON.Object(
-        "position" -> JSON.Object(
-          "uri" -> query_position._1,
-          "line" -> query_position._2,
-          "character" -> query_position._3
-        )
-      )
-      server.channel.write(LSP.Sledgehammer_Locate_Response(json))
-    }
-  }
-
   def insert_query(): Unit = {
     last_sendback_id match {
       case Some(sendback_id) =>
@@ -202,8 +183,8 @@ class VSCode_Sledgehammer private(server: Language_Server) {
     }
   }
 
-  def cancel(): Unit = query_operation.cancel_query()
-  def locate_query(): Unit = query_operation.locate_query()
+  def cancel(): Unit = server.editor.send_dispatcher { query_operation.cancel_query() }
+  def locate(): Unit = server.editor.send_dispatcher { query_operation.locate_query() }
   def init(): Unit = query_operation.activate()
   def exit(): Unit = query_operation.deactivate()
 }

@@ -190,14 +190,7 @@
 
   const locate_button = document.createElement("button");
   locate_button.textContent = "Locate";
-  locate_button.addEventListener("click", () => {
-    vscode.postMessage({
-      command: "locate",
-      provers: provers_input.value,
-      isar: isar_checkbox.checked,
-      try0: try0_checkbox.checked
-    });
-  });
+  locate_button.addEventListener("click", () => vscode.postMessage({ command: "locate" }));
 
   top_row.appendChild(provers_label);
   top_row.appendChild(isar_label);

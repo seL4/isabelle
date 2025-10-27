@@ -552,6 +552,7 @@ class Language_Server(
           case LSP.Sledgehammer_Request(provers, isar, try0, purpose) =>
             sledgehammer.handle_request(provers, isar, try0, purpose)
           case LSP.Sledgehammer_Cancel(()) => sledgehammer.cancel()
+          case LSP.Sledgehammer_Locate(()) => sledgehammer.locate()
           case LSP.Sledgehammer_Provers_Request(()) => sledgehammer.send_provers()
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
