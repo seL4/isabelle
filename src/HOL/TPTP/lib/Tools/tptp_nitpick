@@ -37,7 +37,7 @@ ML \<open> ATP_Problem_Import.nitpick_tptp_file @{theory} (${TIMEOUT}) \"${FILE}
           -e '^[[:space:]]*$' \
           -e '^Output \(line [[:digit:]]+ of ".*"):$' \
           -e '^val it = \(\): unit$' \
-          -e '^Finished Draft \([0-9:]+ elapsed time, [0-9:]+ cpu time, factor [0-9.]+\)$' \
+          -e '^Finished Draft \([0-9:]+ elapsed time(, [0-9:]+ cpu time, factor [0-9.]+)?\)$' \
           -e '^PROOF FAILED for depth' \
           -e '^Failure node' \
           -e 'inferences so far.  Searching to depth' \
