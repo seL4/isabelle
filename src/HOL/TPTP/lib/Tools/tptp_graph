@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # Author: Nik Sultana, Cambridge University Computer Lab
+# Author: Martin Desharnais-Schäfer
 #
 # DESCRIPTION: TPTP visualisation utility
-
 
 PRG="$(basename "$0")"
 
@@ -114,11 +114,12 @@ mkdir -p $WORKDIR
 function generate_dot()
 {
   LOADER="tptp_graph_$RANDOM"
-  echo "theory $LOADER imports \"$TPTP_HOME/TPTP_Parser\" \
-begin ML_file \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\" \
-ML {* TPTP_To_Dot.write_proof_dot \"$1\" \"$2\" *} end" \
-        > $WORKDIR/$LOADER.thy
-  isabelle process -T "$WORKDIR/$LOADER" -l Pure
+
+  echo "theory ${LOADER} imports \"HOL-TPTP.TPTP_Parser\" begin \
+ML_file \"$TPTP_HOME/TPTP_Parser/tptp_to_dot.ML\" ML \<open> TPTP_To_Dot.write_proof_dot  \"$1\" \"$2\" \<close> end" \
+    > "$WORKDIR/$LOADER.thy"
+
+  isabelle process_theories -O -U -l HOL-TPTP -f "$WORKDIR/$LOADER.thy" "${LOADER}"
 }
 
 function cleanup_workdir()
