@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 # Author: Jasmin Blanchette
+# Author: Martin Desharnais-Schäfer
 #
 # DESCRIPTION: Refute for TPTP
-
 
 PRG="$(basename "$0")"
 
@@ -19,16 +19,29 @@ function usage() {
 [ "$#" -eq 0 -o "$1" = "-?" ] && usage
 
 SCRATCH="Scratch_${PRG}_$$_${RANDOM}"
+SCRATCH_FILE=/tmp/${SCRATCH}.thy
 
 TIMEOUT=$1
 shift
 
-isabelle build -b HOL-TPTP 2>&1 | grep --line-buffered -v "elapsed time$"
-
 for FILE in "$@"
 do
-  echo "theory $SCRATCH imports \"$TPTP_HOME/ATP_Problem_Import\" begin \
-ML {* ATP_Problem_Import.refute_tptp_file @{theory} ($TIMEOUT) \"$FILE\" *} end" \
-    > /tmp/$SCRATCH.thy
-  isabelle process -e "use_thy \"/tmp/$SCRATCH\"; exit 1;" -l HOL-TPTP | grep --line-buffered -v "^###\|^PROOF FAILED for depth\|^Failure node\|inferences so far.  Searching to depth\|^val \|^Loading theory\|^poly.*warning: The type of\|^   monotype.$"
+  echo "theory ${SCRATCH} imports \"HOL-TPTP.ATP_Problem_Import\" begin \
+ML \<open> ATP_Problem_Import.refute_tptp_file @{theory} (${TIMEOUT}) \"${FILE}\" \<close> end" \
+    > "${SCRATCH_FILE}"
+
+  isabelle process_theories -O -U -l HOL-TPTP -f "${SCRATCH_FILE}" "${SCRATCH}" \
+      | grep --line-buffered -vE \
+          -e '^Running Draft ...$' \
+          -e '^[[:space:]]*$' \
+          -e '^Output \(line [[:digit:]]+ of ".*"):$' \
+          -e '^val it = \(\): unit$' \
+          -e '^Finished Draft \([0-9:]+ elapsed time(, [0-9:]+ cpu time, factor [0-9.]+)?\)$' \
+          -e '^PROOF FAILED for depth' \
+          -e '^Failure node' \
+          -e 'inferences so far.  Searching to depth' \
+          -e '^val ' \
+          -e 'Loading theory' \
+          -e '^poly.*warning: The type of' \
+          -e '^   monotype.$'
 done
