@@ -254,7 +254,7 @@ object Protocol {
 
   /* sendback snippets */
 
-  def senback_snippets(xml: XML.Body): List[(String, Properties.T)] = {
+  def sendback_snippets(xml: XML.Body): List[(String, Properties.T)] = {
     var seen = Set.empty[(String, Properties.T)]
     val result = new mutable.ListBuffer[(String, Properties.T)]
 

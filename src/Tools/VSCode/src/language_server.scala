@@ -428,32 +428,30 @@ class Language_Server(
       text_range <- doc.text_range(range)
     } {
       val snapshot = resources.snapshot(model)
-      val actions = snapshot
-        .select(
-          Text.Range(text_range.start - 1, text_range.stop + 1),
-          Markup.Elements.full,
-          command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList)))
-        .flatMap(info => Protocol.senback_snippets(info.info).flatMap {
-          (snippet, props) =>
-            for {
-              id <- Position.Id.unapply(props)
-              (node, command) <- snapshot.find_command(id)
-              start <- node.command_start(command)
-              range = command.core_range + start
-              current_text <- model.get_text(range)
-            } yield {
-              val line_range = doc.range(range)
-              val edit_text =
-                if (props.contains(Markup.PADDING_COMMAND)) {
-                  val whole_line = doc.lines(line_range.start.line)
-                  val indent = whole_line.text.takeWhile(_.isWhitespace)
-                  current_text + "\n" + Library.prefix_lines(indent, snippet)
-                }
-                else current_text + snippet
-              val edit = LSP.TextEdit(line_range, resources.output_edit(edit_text))
-              LSP.CodeAction(snippet, List(LSP.TextDocumentEdit(file, Some(version), List(edit))))
-            }
-        })
+      val results =
+        snapshot.command_results(Text.Range(text_range.start - 1, text_range.stop + 1))
+          .iterator.map(_._2).toList
+      val actions =
+        List.from(
+          for {
+            (snippet, props) <- Protocol.sendback_snippets(results).iterator
+            id <- Position.Id.unapply(props)
+            (node, command) <- snapshot.find_command(id)
+            start <- node.command_start(command)
+            range = command.core_range + start
+            current_text <- model.get_text(range)
+          } yield {
+            val line_range = doc.range(range)
+            val edit_text =
+              if (props.contains(Markup.PADDING_COMMAND)) {
+                val whole_line = doc.lines(line_range.start.line)
+                val indent = whole_line.text.takeWhile(_.isWhitespace)
+                current_text + "\n" + Library.prefix_lines(indent, snippet)
+              }
+              else current_text + snippet
+            val edit = LSP.TextEdit(line_range, resources.output_edit(edit_text))
+            LSP.CodeAction(snippet, List(LSP.TextDocumentEdit(file, Some(version), List(edit))))
+          })
       channel.write(LSP.CodeActionRequest.reply(id, actions))
     }
   }
