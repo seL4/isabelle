@@ -423,10 +423,10 @@ class Language_Server(
   def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit = {
     def extract_sendbacks(body: XML.Body): List[(String, Properties.T)] = {
       body match {
-        case XML.Elem(Markup(Markup.SENDBACK, p), b) :: rest =>
-          (XML.content(b), p) :: extract_sendbacks(rest)
-        case XML.Elem(m, b) :: rest => extract_sendbacks(b ++ rest)
-        case e :: rest => extract_sendbacks(rest)
+        case XML.Elem(Markup(Markup.SENDBACK, props), b) :: rest =>
+          (XML.content(b), props) :: extract_sendbacks(rest)
+        case XML.Elem(_, b) :: rest => extract_sendbacks(b ::: rest)
+        case _ :: rest => extract_sendbacks(rest)
         case Nil => Nil
       }
     }
