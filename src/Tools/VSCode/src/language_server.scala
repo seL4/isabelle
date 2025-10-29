@@ -428,42 +428,33 @@ class Language_Server(
       text_range <- doc.text_range(range)
     } {
       val snapshot = resources.snapshot(model)
-      val edits = snapshot
+      val actions = snapshot
         .select(
           Text.Range(text_range.start - 1, text_range.stop + 1),
           Markup.Elements.full,
           command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList)))
         .flatMap(info => Protocol.senback_snippets(info.info).flatMap {
-          (s, p) =>
+          (snippet, props) =>
             for {
-              id <- Position.Id.unapply(p)
+              id <- Position.Id.unapply(props)
               (node, command) <- snapshot.find_command(id)
               start <- node.command_start(command)
               range = command.core_range + start
               current_text <- model.get_text(range)
             } yield {
               val line_range = doc.range(range)
-
-              val whole_line = doc.lines(line_range.start.line)
-              val indent = whole_line.text.takeWhile(_.isWhitespace)
-              val padding = p.contains(Markup.PADDING_COMMAND)
-
               val edit_text =
-                resources.output_edit(
-                  if (padding) current_text + "\n" + Library.prefix_lines(indent, s)
-                  else current_text + s)
-              (s, LSP.TextEdit(line_range, edit_text))
+                if (props.contains(Markup.PADDING_COMMAND)) {
+                  val whole_line = doc.lines(line_range.start.line)
+                  val indent = whole_line.text.takeWhile(_.isWhitespace)
+                  current_text + "\n" + Library.prefix_lines(indent, snippet)
+                }
+                else current_text + snippet
+              val edit = LSP.TextEdit(line_range, resources.output_edit(edit_text))
+              LSP.CodeAction(snippet, List(LSP.TextDocumentEdit(file, Some(version), List(edit))))
             }
         })
-
-      val actions = edits.map((name, edit) => {
-        val text_edits = List(LSP.TextDocumentEdit(file, Some(version), List(edit)))
-
-        LSP.CodeAction(name, text_edits)
-      })
-      val reply = LSP.CodeActionRequest.reply(id, actions)
-
-      channel.write(reply)
+      channel.write(LSP.CodeActionRequest.reply(id, actions))
     }
   }
 
