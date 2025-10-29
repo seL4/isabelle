@@ -201,10 +201,10 @@ object LSP {
       JSON.Object("start" -> Position(range.start), "end" -> Position(range.stop))
 
     def unapply(json: JSON.T): Option[Line.Range] =
-      (JSON.value(json, "start"), JSON.value(json, "end")) match {
-        case (Some(Position(start)), Some(Position(stop))) => Some(Line.Range(start, stop))
-        case _ => None
-      }
+      for {
+        case Position(start) <- JSON.value(json, "start")
+        case Position(stop) <- JSON.value(json, "end")
+      } yield Line.Range(start, stop)
   }
 
   object Location {
@@ -213,10 +213,8 @@ object LSP {
 
     def unapply(json: JSON.T): Option[Line.Node_Range] =
       for {
-        uri <- JSON.string(json, "uri")
-        if Url.is_wellformed_file(uri)
-        range_json <- JSON.value(json, "range")
-        range <- Range.unapply(range_json)
+        uri <- JSON.string(json, "uri") if Url.is_wellformed_file(uri)
+        case Range(range) <- JSON.value(json, "range")
       } yield Line.Node_Range(Url.absolute_file_name(uri), range)
   }
 
@@ -295,7 +293,7 @@ object LSP {
 
   object DidChangeTextDocument {
     def unapply_change(json: JSON.T): Option[TextDocumentChange] =
-      for { text <- JSON.string(json, "text") }
+      for (text <- JSON.string(json, "text"))
       yield TextDocumentChange(JSON.value(json, "range", Range.unapply), text)
 
     def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentChange])] =
@@ -532,8 +530,7 @@ object LSP {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri")
             if Url.is_wellformed_file(uri)
-            range_json <- JSON.value(params, "range")
-            range <- Range.unapply(range_json)
+            case Range(range) <- JSON.value(params, "range")
           } yield (id, Url.absolute_file(uri), range)
         case _ => None
       }
