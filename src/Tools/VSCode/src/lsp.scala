@@ -47,10 +47,10 @@ object LSP {
   }
 
   class Notification0(name: String) {
-    def unapply(json: JSON.T): Option[Unit] =
+    def unapply(json: JSON.T): Boolean =
       json match {
-        case Notification(method, _) if method == name => Some(())
-        case _ => None
+        case Notification(method, _) => method == name
+        case _ => false
       }
   }
 

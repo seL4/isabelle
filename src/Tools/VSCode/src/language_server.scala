@@ -514,9 +514,9 @@ class Language_Server(
       try {
         json match {
           case LSP.Initialize(id) => init(id)
-          case LSP.Initialized(()) =>
+          case LSP.Initialized() =>
           case LSP.Shutdown(id) => shutdown(id)
-          case LSP.Exit(()) => exit()
+          case LSP.Exit() => exit()
           case LSP.DidOpenTextDocument(file, _, version, text) =>
             change_document(file, version, List(LSP.TextDocumentChange(None, text)))
             delay_load.invoke()
@@ -524,11 +524,11 @@ class Language_Server(
             change_document(file, version, changes)
           case LSP.DidCloseTextDocument(file) => close_document(file)
           case LSP.Completion(id, node_pos) => completion(id, node_pos)
-          case LSP.Include_Word(()) => update_dictionary(true, false)
-          case LSP.Include_Word_Permanently(()) => update_dictionary(true, true)
-          case LSP.Exclude_Word(()) => update_dictionary(false, false)
-          case LSP.Exclude_Word_Permanently(()) => update_dictionary(false, true)
-          case LSP.Reset_Words(()) => reset_dictionary()
+          case LSP.Include_Word() => update_dictionary(true, false)
+          case LSP.Include_Word_Permanently() => update_dictionary(true, true)
+          case LSP.Exclude_Word() => update_dictionary(false, false)
+          case LSP.Exclude_Word_Permanently() => update_dictionary(false, true)
+          case LSP.Reset_Words() => reset_dictionary()
           case LSP.Hover(id, node_pos) => hover(id, node_pos)
           case LSP.GotoDefinition(id, node_pos) => goto_definition(id, node_pos)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
@@ -551,10 +551,10 @@ class Language_Server(
           case LSP.Documentation_Request => documentation_request()
           case LSP.Sledgehammer_Request(provers, isar, try0) =>
             sledgehammer.handle_request(provers, isar, try0)
-          case LSP.Sledgehammer_Cancel(()) => sledgehammer.cancel()
-          case LSP.Sledgehammer_Locate(()) => sledgehammer.locate()
-          case LSP.Sledgehammer_Insert(()) => sledgehammer.insert()
-          case LSP.Sledgehammer_Provers_Request(()) => sledgehammer.send_provers()
+          case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
+          case LSP.Sledgehammer_Locate() => sledgehammer.locate()
+          case LSP.Sledgehammer_Insert() => sledgehammer.insert()
+          case LSP.Sledgehammer_Provers_Request() => sledgehammer.send_provers()
           case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
         }
       }
