@@ -434,14 +434,13 @@ class Language_Server(
     for {
       model <- resources.get_model(file)
       version <- model.version
-      snapshot = resources.snapshot(model)
       doc = model.content.doc
       text_range <- doc.text_range(range)
-      text_range2 = Text.Range(text_range.start - 1, text_range.stop + 1)
     } {
+      val snapshot = resources.snapshot(model)
       val edits = snapshot
         .select(
-          text_range2,
+          Text.Range(text_range.start - 1, text_range.stop + 1),
           Markup.Elements.full,
           command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList)))
         .flatMap(info => extract_sendbacks(info.info).flatMap {
@@ -452,20 +451,20 @@ class Language_Server(
               start <- node.command_start(command)
               range = command.core_range + start
               current_text <- model.get_text(range)
-              line_range = doc.range(range)
+            } yield {
+              val line_range = doc.range(range)
 
-              whole_line = doc.lines(line_range.start.line)
-              indent = whole_line.text.takeWhile(_.isWhitespace)
-              padding = p.contains(Markup.PADDING_COMMAND)
+              val whole_line = doc.lines(line_range.start.line)
+              val indent = whole_line.text.takeWhile(_.isWhitespace)
+              val padding = p.contains(Markup.PADDING_COMMAND)
 
-              indented_text = Library.prefix_lines(indent, s)
-              edit_text =
+              val edit_text =
                 resources.output_edit(
-                  if (padding) current_text + "\n" + indented_text else current_text + s)
-              edit = LSP.TextEdit(line_range, edit_text)
-            } yield (s, edit) 
-        })
-        .distinct
+                  if (padding) current_text + "\n" + Library.prefix_lines(indent, s)
+                  else current_text + s)
+              (s, LSP.TextEdit(line_range, edit_text))
+            }
+        }).distinct
 
       val actions = edits.map((name, edit) => {
         val text_edits = List(LSP.TextDocumentEdit(file, Some(version), List(edit)))
