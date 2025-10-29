@@ -454,7 +454,7 @@ class Language_Server(
                   else current_text + s)
               (s, LSP.TextEdit(line_range, edit_text))
             }
-        }).distinct
+        })
 
       val actions = edits.map((name, edit) => {
         val text_edits = List(LSP.TextDocumentEdit(file, Some(version), List(edit)))
