@@ -65,22 +65,21 @@ class Query_Operation[Editor_Context](
 
     val state0 = current_state.value
 
-    val (snapshot, command_results, results, removed) =
+    val (output, removed) =
       state0.location match {
         case Some(cmd) =>
           val snapshot = editor.node_snapshot(cmd.node_name)
-          val command_results = snapshot.command_results(cmd)
-          val results =
+          val results = snapshot.command_results(cmd)
+          val messages =
             List.from(
               for {
-                case (_, elem@XML.Elem(Markup(Markup.RESULT, props@Markup.Instance(instance)), _))
-                  <- command_results.iterator
+                case (_, msg@XML.Elem(Markup(Markup.RESULT, props@Markup.Instance(instance)), _))
+                  <- results.iterator
                 if instance == state0.instance
-              } yield elem)
+              } yield msg)
           val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
-          (snapshot, command_results, results, removed)
-        case None =>
-          (Document.Snapshot.init, Command.Results.empty, Nil, true)
+          (Editor.Output(snapshot, results, messages), removed)
+        case None => (Editor.Output.init, true)
       }
 
 
@@ -114,7 +113,7 @@ class Query_Operation[Editor_Context](
 
     val new_output =
       for {
-        case XML.Elem(_, List(XML.Elem(markup, body))) <- results
+        case XML.Elem(_, List(XML.Elem(markup, body))) <- output.messages
         if Markup.messages.contains(markup.name)
         body1 = resolve_sendback(body)
       } yield Protocol.make_message(body1, markup.name, props = markup.properties)
@@ -123,7 +122,8 @@ class Query_Operation[Editor_Context](
     /* status */
 
     def get_status(name: String, status: Query_Operation.Status): Option[Query_Operation.Status] =
-      results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
+      output.messages.collectFirst(
+        { case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
       if (removed) Query_Operation.Status.finished
@@ -136,22 +136,21 @@ class Query_Operation[Editor_Context](
     /* state update */
 
     if (new_status == Query_Operation.Status.running)
-      results.collectFirst(
+      output.messages.collectFirst(
       {
         case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
         if elem.name == Markup.RUNNING => id
       }).foreach(id => current_state.change(_.copy(exec_id = id)))
 
     if (state0.output != new_output || state0.status != new_status) {
-      if (snapshot.is_outdated) {
+      if (output.snapshot.is_outdated) {
         current_state.change(_.copy(update_pending = true))
       }
       else {
         current_state.change(_.copy(update_pending = false))
         if (state0.output != new_output && !removed) {
           current_state.change(_.copy(output = new_output))
-          consume_output(
-            Editor.Output(snapshot = snapshot, results = command_results, messages = new_output))
+          consume_output(output.copy(messages = new_output))
         }
         if (state0.status != new_status) {
           current_state.change(_.copy(status = new_status))
