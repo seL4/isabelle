@@ -249,6 +249,19 @@ object Protocol {
   }
 
 
+  /* sendback snippets */
+
+  def senback_snippets(body: XML.Body): List[(String, Properties.T)] = {
+    body match {
+      case XML.Elem(Markup(Markup.SENDBACK, props), b) :: rest =>
+        (XML.content(b), props) :: senback_snippets(rest)
+      case XML.Elem(_, b) :: rest => senback_snippets(b ::: rest)
+      case _ :: rest => senback_snippets(rest)
+      case Nil => Nil
+    }
+  }
+
+
   /* breakpoints */
 
   object ML_Breakpoint {

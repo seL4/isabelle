@@ -421,16 +421,6 @@ class Language_Server(
   /* code actions */
 
   def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit = {
-    def extract_sendbacks(body: XML.Body): List[(String, Properties.T)] = {
-      body match {
-        case XML.Elem(Markup(Markup.SENDBACK, props), b) :: rest =>
-          (XML.content(b), props) :: extract_sendbacks(rest)
-        case XML.Elem(_, b) :: rest => extract_sendbacks(b ::: rest)
-        case _ :: rest => extract_sendbacks(rest)
-        case Nil => Nil
-      }
-    }
-
     for {
       model <- resources.get_model(file)
       version <- model.version
@@ -443,7 +433,7 @@ class Language_Server(
           Text.Range(text_range.start - 1, text_range.stop + 1),
           Markup.Elements.full,
           command_states => _ => Some(command_states.flatMap(_.results.iterator.map(_._2).toList)))
-        .flatMap(info => extract_sendbacks(info.info).flatMap {
+        .flatMap(info => Protocol.senback_snippets(info.info).flatMap {
           (s, p) =>
             for {
               id <- Position.Id.unapply(p)
