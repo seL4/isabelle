@@ -11,6 +11,8 @@ import isabelle._
 
 import java.util.zip.ZipFile
 
+import scala.collection.mutable
+
 
 object VSCode_Main {
   /* vscodium command-line interface */
@@ -179,15 +181,13 @@ object VSCode_Main {
         var logic_requirements = false
         var uninstall = false
         var vsix_path = default_vsix_path
-        var session_dirs = List.empty[Path]
-        var include_sessions = List.empty[String]
+        val session_dirs = new mutable.ListBuffer[Path]
+        val include_sessions = new mutable.ListBuffer[String]
         var logic = ""
-        var modes = List.empty[String]
+        val modes = new mutable.ListBuffer[String]
         var no_build = false
-        var options = List.empty[String]
+        val options = new mutable.ListBuffer[String]
         var verbose = false
-
-        def add_option(opt: String): Unit = options = options ::: List(opt)
 
         val getopts = Getopts("""
 Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
@@ -224,15 +224,15 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           "R:" -> (arg => { logic = arg; logic_requirements = true }),
           "U" -> (_ => uninstall = true),
           "V:" -> (arg => vsix_path = Path.explode(arg)),
-          "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
-          "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+          "d:" -> (arg => session_dirs += Path.explode(arg)),
+          "i:" -> (arg => include_sessions += arg),
           "l:" -> (arg => { logic = arg; logic_requirements = false }),
-          "m:" -> (arg => modes = modes ::: List(arg)),
+          "m:" -> (arg => modes += arg),
           "n" -> (_ => no_build = true),
-          "o:" -> add_option,
-          "p:" -> (arg => add_option("process_policy=" + arg)),
-          "s" -> (_ => add_option("system_heaps=true")),
-          "u" -> (_ => add_option("system_heaps=false")),
+          "o:" -> (arg => options += arg),
+          "p:" -> (arg => options += ("process_policy=" + arg)),
+          "s" -> (_ => options += "system_heaps=true"),
+          "u" -> (_ => options += "system_heaps=false"),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -249,9 +249,9 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
-          options = options, logic = logic, logic_ancestor = logic_ancestor,
-          logic_requirements = logic_requirements, session_dirs = session_dirs,
-          include_sessions = include_sessions, modes = modes, no_build = no_build,
+          options = options.toList, logic = logic, logic_ancestor = logic_ancestor,
+          logic_requirements = logic_requirements, session_dirs = session_dirs.toList,
+          include_sessions = include_sessions.toList, modes = modes.toList, no_build = no_build,
           server_log = server_log, verbose = verbose, background = background,
           progress = app_progress).check
       })

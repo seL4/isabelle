@@ -14,6 +14,8 @@ package isabelle.vscode
 import isabelle._
 
 import java.io.{PrintStream, OutputStream, File => JFile}
+
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -32,8 +34,8 @@ object Language_Server {
           var logic_ancestor: Option[String] = None
           var log_file: Option[Path] = None
           var logic_requirements = false
-          var dirs: List[Path] = Nil
-          var include_sessions: List[String] = Nil
+          val dirs = new mutable.ListBuffer[Path]
+          val include_sessions = new mutable.ListBuffer[String]
           var logic = default_logic
           var modes: List[String] = Nil
           var no_build = false
@@ -60,8 +62,8 @@ Usage: isabelle vscode_server [OPTIONS]
             "A:" -> (arg => logic_ancestor = Some(arg)),
             "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
             "R:" -> (arg => { logic = arg; logic_requirements = true }),
-            "d:" -> (arg => dirs = dirs ::: List(Path.explode(File.standard_path(arg)))),
-            "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+            "d:" -> (arg => dirs += Path.explode(File.standard_path(arg))),
+            "i:" -> (arg => include_sessions += arg),
             "l:" -> (arg => logic = arg),
             "m:" -> (arg => modes = arg :: modes),
             "n" -> (_ => no_build = true),
@@ -74,8 +76,8 @@ Usage: isabelle vscode_server [OPTIONS]
           val log = Logger.make_file(log_file)
           val channel = new Channel(System.in, System.out, log, verbose)
           val server =
-            new Language_Server(channel, options, session_name = logic, session_dirs = dirs,
-              include_sessions = include_sessions, session_ancestor = logic_ancestor,
+            new Language_Server(channel, options, session_name = logic, session_dirs = dirs.toList,
+              include_sessions = include_sessions.toList, session_ancestor = logic_ancestor,
               session_requirements = logic_requirements, session_no_build = no_build,
               modes = modes, log = log)
 
