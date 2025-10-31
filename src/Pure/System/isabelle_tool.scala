@@ -163,8 +163,8 @@ class Tools extends Isabelle_Scala_Tools(
   Update_Theorems.isabelle_tool,
   Update_Tool.isabelle_tool,
   isabelle.mirabelle.Mirabelle.isabelle_tool,
-  isabelle.vscode.Language_Server.isabelle_tool,
-  isabelle.vscode.VSCode_Main.isabelle_tool)
+  isabelle.vscode.VSCode_Main.isabelle_tool1,
+  isabelle.vscode.VSCode_Main.isabelle_tool2)
 
 class Admin_Tools extends Isabelle_Scala_Tools(
   Build_Doc.isabelle_tool,
