@@ -593,8 +593,7 @@ object LSP {
         case Notification("PIDE/caret_update", Some(params)) =>
           val caret =
             for {
-              uri <- JSON.string(params, "uri")
-              if Url.is_wellformed_file(uri)
+              uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
               pos <- Position.unapply(params)
             } yield (Url.absolute_file(uri), pos)
           Some(caret)
