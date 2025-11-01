@@ -804,14 +804,14 @@ object LSP {
   }
 
   object Sledgehammer_Request {
-    def unapply(json: JSON.T): Option[(String, Boolean, Boolean)] =
+    def unapply(json: JSON.T): Option[List[String]] =
       json match {
         case Notification("PIDE/sledgehammer_request", Some(params)) =>
           for {
             provers <- JSON.string(params, "provers")
             isar <- JSON.bool(params, "isar")
             try0 <- JSON.bool(params, "try0")
-          } yield (provers, isar, try0)
+          } yield List(provers, isar.toString, try0.toString)
         case _ => None
       }
   }

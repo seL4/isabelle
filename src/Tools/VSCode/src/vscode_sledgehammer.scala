@@ -22,11 +22,6 @@ class VSCode_Sledgehammer(server: Language_Server) {
     server.channel.write(LSP.Sledgehammer_Provers_Response.apply(provers))
   }
 
-  def handle_request(provers: String, isar: Boolean, try0: Boolean): Unit =
-    server.editor.send_dispatcher {
-      query_operation.apply_query(List(provers, isar.toString, try0.toString))
-    }
-
   private def consume_status(status: Query_Operation.Status): Unit = {
     val msg =
       status match {
@@ -157,6 +152,9 @@ class VSCode_Sledgehammer(server: Language_Server) {
       case None =>
     }
   }
+
+  def request(args: List[String]): Unit =
+    server.editor.send_dispatcher { query_operation.apply_query(args) }
 
   def cancel(): Unit = server.editor.send_dispatcher { query_operation.cancel_query() }
   def locate(): Unit = server.editor.send_dispatcher { query_operation.locate_query() }

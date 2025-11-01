@@ -539,8 +539,7 @@ class Language_Server(
           case LSP.Preview_Request(file, column) => preview_request(file, column)
           case LSP.Symbols_Panel_Request => symbols_panel_request()
           case LSP.Documentation_Request => documentation_request()
-          case LSP.Sledgehammer_Request(provers, isar, try0) =>
-            sledgehammer.handle_request(provers, isar, try0)
+          case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)
           case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
           case LSP.Sledgehammer_Locate() => sledgehammer.locate()
           case LSP.Sledgehammer_Insert() => sledgehammer.insert()
