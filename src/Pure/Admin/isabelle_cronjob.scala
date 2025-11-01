@@ -110,7 +110,7 @@ object Isabelle_Cronjob {
             val context = Build_Release.Release_Context(target_dir, progress = progress)
             Build_Release.build_release_archive(context, rev)
             Build_Release.build_release(logger.options, context, afp_rev = afp_rev,
-              build_sessions = List(Isabelle_System.getenv("ISABELLE_LOGIC")),
+              build_sessions = List(Isabelle_System.default_logic()),
               website = Some(website_dir))
           }
         )

@@ -269,7 +269,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           var logic_requirements = false
           val dirs = new mutable.ListBuffer[Path]
           val include_sessions = new mutable.ListBuffer[String]
-          var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+          var logic = Isabelle_System.default_logic()
           var modes: List[String] = Nil
           var no_build = false
           var options = Options.init()
@@ -285,7 +285,7 @@ Usage: isabelle vscode_server [OPTIONS]
     -d DIR       include session directory
     -i NAME      include session in name-space of theories
     -l NAME      logic session name (default ISABELLE_LOGIC=""" +
-            quote(Isabelle_System.getenv("ISABELLE_LOGIC")) + """)
+            quote(Isabelle_System.default_logic()) + """)
     -m MODE      add print mode for output
     -n           no build of session image on startup
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)

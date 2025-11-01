@@ -26,7 +26,7 @@ object Language_Server {
 class Language_Server(
   val channel: Channel,
   val options: Options,
-  session_name: String = Isabelle_System.getenv("ISABELLE_LOGIC"),
+  session_name: String = Isabelle_System.default_logic(),
   include_sessions: List[String] = Nil,
   session_dirs: List[Path] = Nil,
   session_ancestor: Option[String] = None,

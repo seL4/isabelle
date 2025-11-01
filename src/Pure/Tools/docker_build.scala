@@ -10,7 +10,6 @@ package isabelle
 object Docker_Build {
   private val default_base = "ubuntu:22.04"
   private val default_work_dir = Path.current
-  private lazy val default_logic = Isabelle_System.getenv("ISABELLE_LOGIC")
 
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux(?:_arm)?\.tar\.gz$""".r
 
@@ -34,7 +33,7 @@ object Docker_Build {
     app_archive: String,
     base: String = default_base,
     work_dir: Path = default_work_dir,
-    logic: String = default_logic,
+    logic: String = Isabelle_System.default_logic(),
     no_build: Boolean = false,
     entrypoint: Boolean = false,
     output: Option[Path] = None,
@@ -120,7 +119,7 @@ ENTRYPOINT ["Isabelle/bin/isabelle"]
         var base = default_base
         var entrypoint = false
         var work_dir = default_work_dir
-        var logic = default_logic
+        var logic = Isabelle_System.default_logic()
         var no_build = false
         var output: Option[Path] = None
         var more_packages: List[String] = Nil
@@ -137,7 +136,8 @@ Usage: isabelle docker_build [OPTIONS] APP_ARCHIVE
           package_collections.keySet.toList.sorted.map(quote(_)).mkString(", ") + """)
     -W DIR       working directory that is accessible to docker,
                  potentially via snap (default: """ + default_work_dir + """)
-    -l NAME      default logic (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
+    -l NAME      default logic (default ISABELLE_LOGIC=""" +
+          quote(Isabelle_System.default_logic()) + """)
     -n           no docker build
     -o FILE      output generated Dockerfile
     -p NAME      additional Ubuntu package

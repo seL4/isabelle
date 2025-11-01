@@ -135,7 +135,7 @@ object ML_Process {
     { args =>
       var dirs: List[Path] = Nil
       var eval_args: List[String] = Nil
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var logic = Isabelle_System.default_logic()
       var modes: List[String] = Nil
       var options = Options.init()
 
