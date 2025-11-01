@@ -1,7 +1,5 @@
 (function () {
   const vscode = acquireVsCodeApi();
-  let was_cancelled = false;
-  let can_be_cancelled = false;
 
   let history = [];
 
@@ -161,8 +159,6 @@
   apply_button.textContent = "Apply";
   apply_button.id = "apply-btn";
   apply_button.addEventListener("click", () => {
-    was_cancelled = false;
-    can_be_cancelled = true;
     result.innerHTML = "";
     add_to_history(provers_input.value);
     hide_dropdown();
@@ -176,17 +172,7 @@
 
   const cancel_button = document.createElement("button");
   cancel_button.textContent = "Cancel";
-  cancel_button.addEventListener("click", () => {
-    vscode.postMessage({ command: "cancel" });
-    if (was_cancelled) return;
-    if (!can_be_cancelled) return;
-    was_cancelled = true;
-    spinner.classList.remove("loading");
-    const div = document.createElement("div");
-    div.classList.add("interrupt");
-    div.textContent = "Interrupt";
-    result.appendChild(div);
-  });
+  cancel_button.addEventListener("click", () => vscode.postMessage({ command: "cancel" }));
 
   const locate_button = document.createElement("button");
   locate_button.textContent = "Locate";
@@ -218,7 +204,6 @@
       provers_input.value = message.provers;
     }
     else if (message.command === "result") {
-      if (was_cancelled) return;
       result.innerHTML = "";
       const parser = new DOMParser();
       const xml_doc = parser.parseFromString(`<root>${message.content}</root>`, "application/xml");
@@ -259,7 +244,6 @@
           result.appendChild(div);
         }
       }
-      can_be_cancelled = false;
     }
   });
 

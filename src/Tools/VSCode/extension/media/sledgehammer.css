@@ -152,16 +152,6 @@ body {
   border-radius: 2px;
 }
 
-#result .interrupt {
-  background-color: var(--vscode-editorError-background);
-  border-bottom: 1px solid #ffffff;
-  color: var(--vscode-editorError-foreground);
-  white-space: pre-wrap;
-  padding: 2px 6px;
-  margin-bottom: 1px;
-  border-radius: 2px;
-}
-
 #result .error {
   background-color: var(--vscode-editorError-background);
   color: var(--vscode-editorError-foreground);
