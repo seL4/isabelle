@@ -10,8 +10,6 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{File => JFile}
-
 
 class VSCode_Sledgehammer(server: Language_Server) {
   private val query_operation =
