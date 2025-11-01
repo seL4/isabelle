@@ -23,14 +23,8 @@ class VSCode_Sledgehammer(server: Language_Server) {
   }
 
   def handle_request(provers: String, isar: Boolean, try0: Boolean): Unit =
-    server.resources.get_caret() match {
-      case Some(caret) =>
-        val snapshot = server.resources.snapshot(caret.model)
-        val uri = Url.print_file(caret.file)
-        server.editor.send_dispatcher {
-          query_operation.apply_query(List(provers, isar.toString, try0.toString))
-        }
-      case None => server.channel.write(LSP.Sledgehammer_No_Proof_Response())
+    server.editor.send_dispatcher {
+      query_operation.apply_query(List(provers, isar.toString, try0.toString))
     }
 
   private def consume_status(status: Query_Operation.Status): Unit = {

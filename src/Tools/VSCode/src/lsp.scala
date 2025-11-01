@@ -836,9 +836,4 @@ object LSP {
     def apply(json: JSON.Object.T): JSON.T =
       Notification("PIDE/sledgehammer_insert_position_response", json)
   }
-
-  object Sledgehammer_No_Proof_Response {
-    def apply(): JSON.T =
-      Notification("PIDE/sledgehammer_no_proof_response", None)
-  }
 }

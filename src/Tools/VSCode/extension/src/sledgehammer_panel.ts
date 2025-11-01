@@ -130,12 +130,6 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     }
   }
 
-  public update_no_proof(): void {
-    if (this._view) {
-      this._view.webview.postMessage({ command: "no_proof" });
-    }
-  }
-
   private _get_html(): string {
     return get_webview_html(this._view?.webview, this._extension_uri.fsPath);
   }

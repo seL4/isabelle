@@ -253,9 +253,6 @@ export const sledgehammer_output_type =
 export const sledgehammer_insert_position_response_type =
   new NotificationType<SledgehammerInsertPosition>("PIDE/sledgehammer_insert_position_response");
 
-export const sledgehammer_no_proof_response_type =
-  new NotificationType<void>("PIDE/sledgehammer_no_proof_resonse");
-
 
 /* spell checker */
 
