@@ -210,10 +210,7 @@
       for (const msg of xml_doc.firstElementChild.children) {
         if (msg.nodeName === "writeln_message" || msg.nodeName === "error_message") {
           const div = document.createElement("div");
-          const inner = msg.innerHTML;
-          const temp_container = document.createElement("div");
-          temp_container.innerHTML = inner;
-          temp_container.childNodes.forEach(node => {
+          for (const node of msg.childNodes) {
             if (node.nodeType === Node.TEXT_NODE) {
               const text = node.textContent.trim();
               if (text) {
@@ -234,7 +231,7 @@
               span.textContent = node.textContent.trim();
               div.appendChild(span);
             }
-          });
+          }
           if (msg.nodeName === "error_message") { div.classList.add("error"); }
           result.appendChild(div);
         }
