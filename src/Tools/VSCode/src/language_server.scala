@@ -20,7 +20,95 @@ import scala.annotation.tailrec
 
 
 object Language_Server {
-  type Editor = isabelle.Editor[Unit]
+  /* abstract editor operations */
+
+  class Editor(server: Language_Server) extends isabelle.Editor[Unit] {
+    /* PIDE session and document model */
+
+    override def session: VSCode_Session = server.session
+    override def flush(): Unit = session.resources.flush_input(session, server.channel)
+
+    override def get_models(): Iterable[Document.Model] = session.resources.get_models()
+
+
+    /* input from client */
+
+    private val delay_input: Delay =
+      Delay.last(server.options.seconds("vscode_input_delay"), server.channel.Error_Logger) {
+        session.resources.flush_input(session, server.channel)
+      }
+
+    override def invoke(): Unit = delay_input.invoke()
+    override def revoke(): Unit = delay_input.revoke()
+
+
+    /* current situation */
+
+    override def current_node(context: Unit): Option[Document.Node.Name] =
+      session.resources.get_caret().map(_.model.node_name)
+    override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
+      session.resources.get_caret().map(caret => session.resources.snapshot(caret.model))
+
+    override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
+      session.resources.get_snapshot(name) match {
+        case Some(snapshot) => snapshot
+        case None => session.snapshot(name)
+      }
+    }
+
+    def current_command(snapshot: Document.Snapshot): Option[Command] = {
+      session.resources.get_caret() match {
+        case Some(caret) if snapshot.loaded_theory_command(caret.offset).isEmpty =>
+          snapshot.current_command(caret.node_name, caret.offset)
+        case _ => None
+      }
+    }
+    override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
+      current_command(snapshot)
+
+
+    /* output messages */
+
+    override def output_state(): Boolean =
+      session.resources.options.bool("editor_output_state")
+
+
+    /* overlays */
+
+    override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
+      session.resources.node_overlays(name)
+
+    override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
+      session.resources.insert_overlay(command, fn, args)
+
+    override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
+      session.resources.remove_overlay(command, fn, args)
+
+
+    /* hyperlinks */
+
+    override def hyperlink_command(
+      focus: Boolean,
+      snapshot: Document.Snapshot,
+      id: Document_ID.Generic,
+      offset: Symbol.Offset = 0
+    ): Option[Hyperlink] = {
+      if (snapshot.is_outdated) None
+      else
+        snapshot.find_command_position(id, offset).map(node_pos =>
+          new Hyperlink {
+            def follow(unit: Unit): Unit = server.channel.write(LSP.Caret_Update(node_pos, focus))
+          })
+    }
+
+
+    /* dispatcher thread */
+
+    override def assert_dispatcher[A](body: => A): A = session.assert_dispatcher(body)
+    override def require_dispatcher[A](body: => A): A = session.require_dispatcher(body)
+    override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
+    override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
+  }
 }
 
 class Language_Server(
@@ -36,6 +124,8 @@ class Language_Server(
   log: Logger = new Logger
 ) {
   server =>
+
+  val editor: Language_Server.Editor = new Language_Server.Editor(server)
 
 
   /* prover session */
@@ -61,16 +151,11 @@ class Language_Server(
   private val file_watcher: File_Watcher =
     File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
-  private val delay_input: Delay =
-    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger) {
-      resources.flush_input(session, channel)
-    }
-
   private val delay_load: Delay =
     Delay.last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
       val (invoke_input, invoke_load) =
         resources.resolve_dependencies(session, editor, file_watcher)
-      if (invoke_input) delay_input.invoke()
+      if (invoke_input) editor.invoke()
       if (invoke_load) delay_load.invoke()
     }
 
@@ -78,14 +163,14 @@ class Language_Server(
     if (resources.close_model(file)) {
       file_watcher.register_parent(file)
       sync_documents(Set(file))
-      delay_input.invoke()
+      editor.invoke()
       delay_output.invoke()
     }
   }
 
   private def sync_documents(changed: Set[JFile]): Unit = {
     resources.sync_models(changed)
-    delay_input.invoke()
+    editor.invoke()
     delay_output.invoke()
   }
 
@@ -97,7 +182,7 @@ class Language_Server(
     changes.foreach(change =>
       resources.change_model(session, editor, file, version, change.text, change.range))
 
-    delay_input.invoke()
+    editor.invoke()
     delay_output.invoke()
   }
 
@@ -112,7 +197,7 @@ class Language_Server(
   private def update_caret(caret: Option[(JFile, Line.Position)]): Unit = {
     resources.update_caret(caret)
     delay_caret_update.invoke()
-    delay_input.invoke()
+    editor.invoke()
   }
 
 
@@ -250,7 +335,7 @@ class Language_Server(
 
         delay_load.revoke()
         file_watcher.shutdown()
-        delay_input.revoke()
+        editor.revoke()
         delay_output.revoke()
         delay_caret_update.revoke()
         delay_preview.revoke()
@@ -478,85 +563,5 @@ class Language_Server(
       }
     }
     loop()
-  }
-
-
-  /* abstract editor operations */
-
-  object editor extends Language_Server.Editor {
-    /* PIDE session and document model */
-
-    override def session: VSCode_Session = server.session
-    override def flush(): Unit = resources.flush_input(session, channel)
-    override def invoke(): Unit = delay_input.invoke()
-
-    override def get_models(): Iterable[Document.Model] = resources.get_models()
-
-
-    /* current situation */
-
-    override def current_node(context: Unit): Option[Document.Node.Name] =
-      resources.get_caret().map(_.model.node_name)
-    override def current_node_snapshot(context: Unit): Option[Document.Snapshot] =
-      resources.get_caret().map(caret => resources.snapshot(caret.model))
-
-    override def node_snapshot(name: Document.Node.Name): Document.Snapshot = {
-      resources.get_snapshot(name) match {
-        case Some(snapshot) => snapshot
-        case None => session.snapshot(name)
-      }
-    }
-
-    def current_command(snapshot: Document.Snapshot): Option[Command] = {
-      resources.get_caret() match {
-        case Some(caret) if snapshot.loaded_theory_command(caret.offset).isEmpty =>
-          snapshot.current_command(caret.node_name, caret.offset)
-        case _ => None
-      }
-    }
-    override def current_command(context: Unit, snapshot: Document.Snapshot): Option[Command] =
-      current_command(snapshot)
-
-
-    /* output messages */
-
-    override def output_state(): Boolean = resources.options.bool("editor_output_state")
-
-
-    /* overlays */
-
-    override def node_overlays(name: Document.Node.Name): Document.Node.Overlays =
-      resources.node_overlays(name)
-
-    override def insert_overlay(command: Command, fn: String, args: List[String]): Unit =
-      resources.insert_overlay(command, fn, args)
-
-    override def remove_overlay(command: Command, fn: String, args: List[String]): Unit =
-      resources.remove_overlay(command, fn, args)
-
-
-    /* hyperlinks */
-
-    override def hyperlink_command(
-      focus: Boolean,
-      snapshot: Document.Snapshot,
-      id: Document_ID.Generic,
-      offset: Symbol.Offset = 0
-    ): Option[Hyperlink] = {
-      if (snapshot.is_outdated) None
-      else
-        snapshot.find_command_position(id, offset).map(node_pos =>
-          new Hyperlink {
-            def follow(unit: Unit): Unit = channel.write(LSP.Caret_Update(node_pos, focus))
-          })
-    }
-
-
-    /* dispatcher thread */
-
-    override def assert_dispatcher[A](body: => A): A = session.assert_dispatcher(body)
-    override def require_dispatcher[A](body: => A): A = session.require_dispatcher(body)
-    override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
-    override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
   }
 }

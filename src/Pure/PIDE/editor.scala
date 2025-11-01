@@ -31,6 +31,7 @@ abstract class Editor[Context] {
   def session: Session
   def flush(): Unit
   def invoke(): Unit
+  def revoke(): Unit
 
   def get_models(): Iterable[Document.Model]
 
