@@ -575,12 +575,8 @@ object Isabelle_System {
 
   /* default logic */
 
-  def default_logic(args: String*): String = {
-    args.find(_ != "") match {
-      case Some(logic) => logic
-      case None => getenv_strict("ISABELLE_LOGIC")
-    }
-  }
+  def default_logic(args: String*): String =
+    args.find(_.nonEmpty) getOrElse getenv_strict("ISABELLE_LOGIC")
 
 
   /* download file */
