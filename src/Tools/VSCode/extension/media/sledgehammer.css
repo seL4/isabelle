@@ -162,8 +162,8 @@ body {
   border-radius: 2px;
 }
 
-#result.error div {
-  background-color: #fdd;
+#result .error {
+  background-color: var(--vscode-editorError-background);
   color: var(--vscode-editorError-foreground);
 }
 

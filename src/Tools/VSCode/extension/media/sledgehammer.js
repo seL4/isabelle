@@ -228,46 +228,42 @@
       result.innerHTML = "";
       const parser = new DOMParser();
       const xml_doc = parser.parseFromString(`<root>${message.content}</root>`, "application/xml");
-      const messages = xml_doc.getElementsByTagName("writeln_message");
-      for (const msg of messages) {
-        const div = document.createElement("div");
-        const inner = msg.innerHTML;
-        if (inner.includes("<sendback")) {
-          const temp_container = document.createElement("div");
-          temp_container.innerHTML = inner;
-          temp_container.childNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) {
-              const text = node.textContent.trim();
-              if (text) {
+      for (const msg of xml_doc.firstElementChild.children) {
+        if (msg.nodeName === "writeln_message" || msg.nodeName === "error_message") {
+          const div = document.createElement("div");
+          const inner = msg.innerHTML;
+          if (inner.includes("<sendback")) {
+            const temp_container = document.createElement("div");
+            temp_container.innerHTML = inner;
+            temp_container.childNodes.forEach(node => {
+              if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.trim();
+                if (text) {
+                  const span = document.createElement("span");
+                  span.textContent = text;
+                  div.appendChild(span);
+                }
+              }
+              else if (node.nodeName.toLowerCase() === "sendback") {
+                const button = document.createElement("button");
+                button.textContent = node.textContent.trim();
+                button.addEventListener("click", () =>
+                  vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
+                div.appendChild(button);
+              }
+              else {
                 const span = document.createElement("span");
-                span.textContent = text;
+                span.textContent = node.textContent.trim();
                 div.appendChild(span);
               }
-            }
-            else if (node.nodeName.toLowerCase() === "sendback") {
-              const button = document.createElement("button");
-              button.textContent = node.textContent.trim();
-              button.addEventListener("click", () =>
-                vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
-              div.appendChild(button);
-            }
-            else {
-              const span = document.createElement("span");
-              span.textContent = node.textContent.trim();
-              div.appendChild(span);
-            }
-          });
+            });
+          }
+          else {
+            div.textContent = msg.textContent.trim();
+          }
+          if (msg.nodeName === "error_message") { div.classList.add("error"); }
+          result.appendChild(div);
         }
-        else {
-          div.textContent = msg.textContent.trim();
-        }
-        result.appendChild(div);
-      }
-      if (/Unknown proof context/i.test(message.content)) {
-        result.classList.add("error");
-      }
-      else {
-        result.classList.remove("error");
       }
       can_be_cancelled = false;
     }
