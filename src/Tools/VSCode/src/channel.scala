@@ -33,7 +33,7 @@ class Channel(
   private def read_header(): List[String] = {
     val header = new mutable.ListBuffer[String]
     var line = ""
-    while ({ line = read_line(); line != "" }) header += line
+    while ({ line = read_line(); line.nonEmpty }) header += line
     header.toList
   }
 
@@ -72,7 +72,7 @@ class Channel(
     out.synchronized {
       out.write(header)
       out.write(content)
-      out.flush
+      out.flush()
     }
   }
 
