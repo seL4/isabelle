@@ -1060,39 +1060,44 @@ lemma real_binomial_eq_mult_binomial_Suc:
 
 subsection \<open>The Archimedean Property of the Reals\<close>
 
-lemma real_arch_inverse: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
-  using reals_Archimedean[of e] less_trans[of 0 "1 / real n" e for n::nat]
+text \<open>Not actually the reals any more!\<close>
+lemma real_arch_inverse:
+  fixes e::"'a::archimedean_field"
+  shows "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (of_nat n) < e)"
+  using reals_Archimedean[of e] less_trans[of 0 "1 / of_nat n" e for n::nat]
   by (auto simp add: field_simps cong: conj_cong simp del: of_nat_Suc)
 
-lemma reals_Archimedean3: "0 < x \<Longrightarrow> \<forall>y. \<exists>n. y < real n * x"
+lemma reals_Archimedean3:
+  fixes x::"'a::archimedean_field"
+  shows "0 < x \<Longrightarrow> \<forall>y. \<exists>n. y < of_nat n * x"
   by (auto intro: ex_less_of_nat_mult)
 
 lemma real_archimedian_rdiv_eq_0:
-  assumes x0: "x \<ge> 0"
-    and c: "c \<ge> 0"
-    and xc: "\<And>m::nat. m > 0 \<Longrightarrow> real m * x \<le> c"
+  fixes x::"'a::archimedean_field"
+  assumes "x \<ge> 0" and "\<And>m::nat. m > 0 \<Longrightarrow> of_nat m * x \<le> c"
   shows "x = 0"
-  by (metis reals_Archimedean3 dual_order.order_iff_strict le0 le_less_trans not_le x0 xc)
+  by (metis (no_types, opaque_lifting) reals_Archimedean3 order.order_iff_strict le0 le_less_trans not_le assms)
 
-lemma inverse_Suc: "inverse (Suc n) > 0"
+lemma inverse_Suc: "inverse (of_nat (Suc n)) > (0::'a::archimedean_field)"
   using of_nat_0_less_iff positive_imp_inverse_positive zero_less_Suc by blast
 
 lemma Archimedean_eventually_inverse:
-  fixes \<epsilon>::real shows "(\<forall>\<^sub>F n in sequentially. inverse (real (Suc n)) < \<epsilon>) \<longleftrightarrow> 0 < \<epsilon>"
+  fixes \<epsilon>::"'a::archimedean_field" shows "(\<forall>\<^sub>F n in sequentially. inverse (of_nat (Suc n)) < \<epsilon>) \<longleftrightarrow> 0 < \<epsilon>"
   (is "?lhs=?rhs")
 proof
   assume ?lhs
   then show ?rhs
-    unfolding eventually_at_top_dense using inverse_Suc order_less_trans by blast
+    unfolding eventually_at_top_dense
+    by (metis (no_types, lifting) gt_ex inverse_Suc nat.distinct(1) real_arch_inverse)
 next
   assume ?rhs
-  then obtain N where "inverse (Suc N) < \<epsilon>"
+  then obtain N where "inverse (of_nat (Suc N)) < \<epsilon>"
     using reals_Archimedean by blast
-  moreover have "inverse (Suc n) \<le> inverse (Suc N)" if "n \<ge> N" for n
-    using inverse_Suc that by fastforce
-  ultimately show ?lhs
-    unfolding eventually_sequentially
-    using order_le_less_trans by blast
+  then have "inverse (of_nat (Suc n)) < \<epsilon>" if "n \<ge> N" for n
+    using that Suc_le_mono inverse_Suc inverse_less_imp_less
+    by (meson inverse_positive_iff_positive linorder_not_less of_nat_less_iff order_le_less_trans)
+  then show ?lhs
+    unfolding eventually_sequentially by blast
 qed
 
 (*HOL Light's FORALL_POS_MONO_1_EQ*)
@@ -1319,42 +1324,41 @@ subsection \<open>Archimedean properties and useful consequences\<close>
 
 text\<open>Bernoulli's inequality\<close>
 proposition Bernoulli_inequality:
-  fixes x :: real
+  fixes x :: "'a :: linordered_field"
   assumes "-1 \<le> x"
-    shows "1 + n * x \<le> (1 + x) ^ n"
+    shows "1 + of_nat n * x \<le> (1 + x) ^ n"
 proof (induct n)
   case 0
   then show ?case by simp
 next
   case (Suc n)
-  have "1 + Suc n * x \<le> 1 + (Suc n)*x + n * x^2"
-    by (simp add: algebra_simps)
-  also have "... = (1 + x) * (1 + n*x)"
+  have "1 + of_nat (Suc n) * x \<le> 1 + of_nat(Suc n) * x + of_nat n * x^2"
+    by simp
+  also have "... = (1 + x) * (1 + of_nat n * x)"
     by (auto simp: power2_eq_square algebra_simps)
-  also have "... \<le> (1 + x) ^ Suc n"
+  also have "\<dots> \<le> (1 + x) ^ Suc n"
     using Suc.hyps assms mult_left_mono by fastforce
   finally show ?case .
 qed
 
 corollary Bernoulli_inequality_even:
-  fixes x :: real
+  fixes x :: "'a :: linordered_field"
   assumes "even n"
-    shows "1 + n * x \<le> (1 + x) ^ n"
+    shows "1 + of_nat n * x \<le> (1 + x) ^ n"
 proof (cases "-1 \<le> x \<or> n=0")
   case True
   then show ?thesis
     by (auto simp: Bernoulli_inequality)
 next
   case False
-  then have "real n \<ge> 1"
+  then have "of_nat n \<ge> (1::'a)"
     by simp
-  with False have "n * x \<le> -1"
+  with False have "of_nat n * x \<le> -1"
     by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
-  then have "1 + n * x \<le> 0"
+  then have "1 + of_nat n * x \<le> 0"
     by auto
   also have "... \<le> (1 + x) ^ n"
-    using assms
-    using zero_le_even_power by blast
+    using assms zero_le_even_power by blast
   finally show ?thesis .
 qed
 

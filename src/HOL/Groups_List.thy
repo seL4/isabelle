@@ -688,4 +688,17 @@ lemma prod_list_zero_iff:
 lemma prod_list_nonneg: "(\<And> x. (x :: 'a :: ordered_semiring_1) \<in> set xs \<Longrightarrow> x \<ge> 0) \<Longrightarrow> prod_list xs \<ge> 0"
   by (induct xs) auto
 
+lemma prod_list_replicate[simp]: "prod_list (replicate n a) = a ^ n"
+  by (induct n) auto
+
+lemma prod_list_power: 
+  fixes xs :: "'a :: comm_monoid_mult list"
+  shows "prod_list xs ^ n = (\<Prod>x\<leftarrow>xs. x ^ n)"
+  by (induct xs, auto simp: power_mult_distrib)
+
+lemma prod_list_dvd: 
+  assumes "(x :: 'a :: comm_monoid_mult) \<in> set xs"
+  shows "x dvd prod_list xs"
+  by (metis assms dvd_mult dvd_triv_left in_set_conv_decomp prod_list.Cons prod_list.append)
+
 end
