@@ -211,35 +211,30 @@
         if (msg.nodeName === "writeln_message" || msg.nodeName === "error_message") {
           const div = document.createElement("div");
           const inner = msg.innerHTML;
-          if (inner.includes("<sendback")) {
-            const temp_container = document.createElement("div");
-            temp_container.innerHTML = inner;
-            temp_container.childNodes.forEach(node => {
-              if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent.trim();
-                if (text) {
-                  const span = document.createElement("span");
-                  span.textContent = text;
-                  div.appendChild(span);
-                }
-              }
-              else if (node.nodeName.toLowerCase() === "sendback") {
-                const button = document.createElement("button");
-                button.textContent = node.textContent.trim();
-                button.addEventListener("click", () =>
-                  vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
-                div.appendChild(button);
-              }
-              else {
+          const temp_container = document.createElement("div");
+          temp_container.innerHTML = inner;
+          temp_container.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const text = node.textContent.trim();
+              if (text) {
                 const span = document.createElement("span");
-                span.textContent = node.textContent.trim();
+                span.textContent = text;
                 div.appendChild(span);
               }
-            });
-          }
-          else {
-            div.textContent = msg.textContent.trim();
-          }
+            }
+            else if (node.nodeName.toLowerCase() === "sendback") {
+              const button = document.createElement("button");
+              button.textContent = node.textContent.trim();
+              button.addEventListener("click", () =>
+                vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
+              div.appendChild(button);
+            }
+            else {
+              const span = document.createElement("span");
+              span.textContent = node.textContent.trim();
+              div.appendChild(span);
+            }
+          });
           if (msg.nodeName === "error_message") { div.classList.add("error"); }
           result.appendChild(div);
         }
