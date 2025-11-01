@@ -17,7 +17,7 @@ import { Position } from "vscode";
 class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-sledgehammer";
   private _view?: WebviewView;
-  private _lastResultPosition?: { uri: string; line: number; character: number; lineText: string };
+  private _result_position?: { uri: string; line: number; character: number; line_text: string };
   private text_to_insert: string;
 
   constructor(
@@ -89,10 +89,10 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   }
 
   public locate(state_location: { uri: string; line: number; character: number }): void {
-    const docUri = Uri.parse(state_location.uri);
+    const doc_uri = Uri.parse(state_location.uri);
     const editor = window.activeTextEditor;
 
-    if (editor && editor.document.uri.toString() === docUri.toString()) {
+    if (editor && editor.document.uri.toString() === doc_uri.toString()) {
       const position = new Position(state_location.line, state_location.character);
       editor.selections = [new Selection(position, position)];
       editor.revealRange(new Range(position, position));
@@ -111,19 +111,14 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     const textToInsert =
       existingLineText.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
 
-    editor.edit(editBuilder => {
-      editBuilder.insert(pos, textToInsert);
-    });
+    editor.edit(edit_builder => edit_builder.insert(pos, textToInsert));
   }
 
 
   public update_output(result: lsp.Sledgehammer_Output): void {
     const editor = window.activeTextEditor;
-    const lineText = editor?.document.lineAt(result.position.line).text ?? "";
-    this._lastResultPosition = {
-      ...result.position,
-      lineText
-    };
+    const line_text = editor?.document.lineAt(result.position.line).text ?? "";
+    this._result_position = { ...result.position, line_text };
 
     if (this._view) {
         this._view.webview.postMessage({
