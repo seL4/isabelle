@@ -219,7 +219,7 @@
                 div.appendChild(span);
               }
             }
-            else if (node.nodeName.toLowerCase() === "sendback") {
+            else if (node.nodeName === "sendback") {
               const button = document.createElement("button");
               button.textContent = node.textContent.trim();
               button.addEventListener("click", () =>
