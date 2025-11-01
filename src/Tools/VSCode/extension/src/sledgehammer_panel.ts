@@ -25,7 +25,11 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     private readonly _language_client: LanguageClient
   ) { }
 
-  public resolveWebviewView(view: WebviewView, context: WebviewViewResolveContext, _token: CancellationToken): void {
+  public resolveWebviewView(
+    view: WebviewView,
+    context: WebviewViewResolveContext,
+    _token: CancellationToken
+  ): void {
     this._view = view;
     this._view.webview.options = {
       enableScripts: true,
@@ -42,38 +46,38 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   }
 
   private _setup_message_handler(): void {
-    if (!this._view) return;
-    this._view.webview.onDidReceiveMessage(async message => {
-      const editor = window.activeTextEditor;
-      const pos = editor?.selection.active;
-
-      if (editor && pos) {
-        this._language_client.sendNotification(lsp.caret_update_type, {
-          uri: editor.document.uri.toString(),
-          line: pos.line,
-          character: pos.character
-        });
-      }
-      switch (message.command) {
-        case "apply":
-          this._language_client.sendNotification(lsp.sledgehammer_request_type, {
-            provers: message.provers,
-            isar: message.isar,
-            try0: message.try0
+    if (this._view) {
+      this._view.webview.onDidReceiveMessage(async message => {
+        const editor = window.activeTextEditor;
+        const pos = editor?.selection.active;
+        if (editor && pos) {
+          this._language_client.sendNotification(lsp.caret_update_type, {
+            uri: editor.document.uri.toString(),
+            line: pos.line,
+            character: pos.character
           });
-          break;
-        case "cancel":
-          this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
-          break;
-        case "locate":
-          this._language_client.sendNotification(lsp.sledgehammer_locate_type);
-          break;
-        case "insert":
-          this._language_client.sendNotification(lsp.sledgehammer_insert_type);
-          this.text_to_insert = message.text;
-          break;
-      }
-    });
+        }
+        switch (message.command) {
+          case "apply":
+            this._language_client.sendNotification(lsp.sledgehammer_request_type, {
+              provers: message.provers,
+              isar: message.isar,
+              try0: message.try0
+            });
+            break;
+          case "cancel":
+            this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
+            break;
+          case "locate":
+            this._language_client.sendNotification(lsp.sledgehammer_locate_type);
+            break;
+          case "insert":
+            this._language_client.sendNotification(lsp.sledgehammer_insert_type);
+            this.text_to_insert = message.text;
+            break;
+        }
+      });
+    }
   }
 
   public update_status(message: string): void {
@@ -91,7 +95,6 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   public locate(state_location: { uri: string; line: number; character: number }): void {
     const doc_uri = Uri.parse(state_location.uri);
     const editor = window.activeTextEditor;
-
     if (editor && editor.document.uri.toString() === doc_uri.toString()) {
       const position = new Position(state_location.line, state_location.character);
       editor.selections = [new Selection(position, position)];
@@ -101,33 +104,29 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
 
   public insert(position: { uri: string; line: number; character: number }): void {
     const editor = window.activeTextEditor;
-    if (!editor) return;
-
-    const uri = Uri.parse(position.uri);
-    if (editor.document.uri.toString() !== uri.toString()) return;
-
-    const pos = new Position(position.line, position.character);
-    const existingLineText = editor.document.lineAt(pos.line).text;
-    const textToInsert =
-      existingLineText.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
-
-    editor.edit(edit_builder => edit_builder.insert(pos, textToInsert));
+    if (editor) {
+      const uri = Uri.parse(position.uri);
+      if (editor.document.uri.toString() === uri.toString()) {
+        const pos = new Position(position.line, position.character);
+        const line_text = editor.document.lineAt(pos.line).text;
+        const text_to_insert =
+          line_text.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
+        editor.edit(edit_builder => edit_builder.insert(pos, text_to_insert));
+      }
+    }
   }
-
 
   public update_output(result: lsp.Sledgehammer_Output): void {
     const editor = window.activeTextEditor;
     const line_text = editor?.document.lineAt(result.position.line).text ?? "";
     this._result_position = { ...result.position, line_text };
-
     if (this._view) {
-        this._view.webview.postMessage({
-          command: "result",
-          content: result.content,
-          position: result.position,
-          sendback_id: result.sendback_id
-        });
-
+      this._view.webview.postMessage({
+        command: "result",
+        content: result.content,
+        position: result.position,
+        sendback_id: result.sendback_id
+      });
     }
   }
 
@@ -149,7 +148,6 @@ function get_webview_html(webview: Webview | undefined, extension_path: string):
     webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")));
   const font_uri =
     webview.asWebviewUri(Uri.file(path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
-
 
   return `
     <!DOCTYPE html>
