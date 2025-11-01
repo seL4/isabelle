@@ -13,12 +13,7 @@ import isabelle._
 import java.io.{File => JFile}
 
 
-object VSCode_Sledgehammer {
-  def apply(server: Language_Server): VSCode_Sledgehammer =
-    new VSCode_Sledgehammer(server)
-}
-
-class VSCode_Sledgehammer private(server: Language_Server) {
+class VSCode_Sledgehammer(server: Language_Server) {
   private val query_operation =
     new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_output)
 
