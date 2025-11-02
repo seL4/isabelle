@@ -88,7 +88,7 @@
         button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
         button.addEventListener("click", () => {
-          vscode.postMessage({ command: "insertSymbol", symbol: decoded_symbol });
+          vscode.postMessage({ command: "insert_symbol", symbol: decoded_symbol });
         });
 
         results_container.appendChild(button);
@@ -213,7 +213,7 @@
         reset_button.textContent = "Reset";
 
         reset_button.addEventListener("click", () => {
-          vscode.postMessage({ command: "resetControlSymbols" });
+          vscode.postMessage({ command: "reset_control_symbols" });
         });
         group_content.appendChild(reset_button);
 
@@ -227,7 +227,7 @@
             button.textContent = decoded_symbol;
             button.title = action.charAt(0).toUpperCase() + action.slice(1);
             button.addEventListener("click", () => {
-              vscode.postMessage({ command: "applyControl", action: action });
+              vscode.postMessage({ command: "apply_control", action: action });
             });
             group_content.appendChild(button);
           }
@@ -251,7 +251,7 @@
         button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
         button.addEventListener("click", () => {
-          vscode.postMessage({ command: "insertSymbol", symbol: decoded_symbol });
+          vscode.postMessage({ command: "insert_symbol", symbol: decoded_symbol });
         });
 
         group_content.appendChild(button);
@@ -283,7 +283,7 @@
         btn.innerHTML = render_with_effects(symbol); 
         btn.title = abbr;
         btn.addEventListener("click", () => {
-          vscode.postMessage({ command: "insertSymbol", symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
+          vscode.postMessage({ command: "insert_symbol", symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
         });
 
         abbrevs_content.appendChild(btn);

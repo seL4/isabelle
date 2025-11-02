@@ -71,13 +71,13 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     }
 
     this._view.webview.onDidReceiveMessage(message => {
-      if (message.command === "insertSymbol") {
+      if (message.command === "insert_symbol") {
         this._insert_symbol(message.symbol);
       }
-      else if (message.command === "resetControlSymbols") {
+      else if (message.command === "reset_control_symbols") {
         this._reset_control_symbols();
       }
-      else if (message.command === "applyControl") {
+      else if (message.command === "apply_control") {
         this._apply_control_effect(message.action);
       }
     });
