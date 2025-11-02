@@ -57,22 +57,30 @@ proof -
   finally show ?thesis .
 qed
 
-lemma atLeastLessThan_conv_list [code_unfold]:
-  \<open>set.F g {a..<b} = list.F (map g (List.range a b))\<close>
-  using List.atLeastLessThan_eq_range
-  by (simp flip: List.set_range_eq add: distinct_set_conv_list)
-
 lemma atLeastAtMost_conv_list [code_unfold]:
-  \<open>set.F g {a..b} = list.F (map g (List.range a (b + 1)))\<close>
-  by (simp flip: List.set_range_eq add: List.atLeastAtMost_eq_range distinct_set_conv_list)
+  \<open>set.F g {a..b} = list.F (map g (List.interval a b))\<close>
+  by (simp flip: List.set_interval_eq add: distinct_set_conv_list)
 
-lemma greaterThanLessThan_conv_list [code_unfold]:
-  \<open>set.F g {a<..<b} = list.F (map g (List.range (a + 1) b))\<close>
-  by (simp flip: List.set_range_eq add: List.greaterThanLessThan_eq_range distinct_set_conv_list)
+lemma atLeastLessThan_conv_list [code_unfold]:
+  \<open>set.F g {a..<b} = (let d = b - 1 in if d < b
+    then list.F (map g (List.interval a d))
+    else \<^bold>1)\<close>
+  using List.atLeastLessThan_eq_interval [of a b]
+  by (simp flip: List.set_interval_eq add: distinct_set_conv_list Let_def)
 
 lemma greaterThanAtMost_conv_list [code_unfold]:
-  \<open>set.F g {a<..b} = list.F (map g (List.range (a + 1) (b + 1)))\<close>
-  by (simp flip: List.set_range_eq add: List.greaterThanAtMost_eq_range distinct_set_conv_list)
+  \<open>set.F g {a<..b} = (let c = a + 1 in if a < c
+    then list.F (map g (List.interval c b))
+    else \<^bold>1)\<close>
+  using List.greaterThanAtMost_eq_interval [of a b]
+  by (simp flip: List.set_interval_eq add: distinct_set_conv_list Let_def)
+
+lemma greaterThanLessThan_conv_list [code_unfold]:
+  \<open>set.F g {a<..<b} = (let c = a + 1; d = b - 1 in if a < c \<and> d < b
+    then list.F (map g (List.interval (a + 1) (b - 1)))
+    else \<^bold>1)\<close>
+  using List.greaterThanLessThan_eq_interval [of a b]
+  by (simp flip: List.set_interval_eq add: distinct_set_conv_list Let_def)
 
 end
 

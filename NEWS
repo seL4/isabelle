@@ -144,7 +144,7 @@ constant from the corresponding theorem.
     thm null_def ~> List.null_iff [simp]
 
     const List.all_interval_nat List.all_interval_int
-    discontinued in favour of a generic List.all_range
+    discontinued in favour of a generic List.all_interval
 
     const List.Bleast
     discontinued in favour of more concise Lattices_Big.Least

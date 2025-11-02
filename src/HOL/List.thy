@@ -8226,129 +8226,214 @@ lemma [code]:
   by (simp_all add: add: lexordp_def)
 
 
-text \<open>Executable ranges\<close>
+text \<open>Executable intervals\<close>
 
-class discrete_linordered_semidom_with_range = discrete_linordered_semidom +
-  assumes finite_atLeastLessThan: \<open>finite {a..<b}\<close>
+context preorder
+begin
+
+lemma forall_less_eq_iff [code_unfold]:
+  \<open>(\<forall>n\<le>b. P n) \<longleftrightarrow> (\<forall>n\<in>{..b}. P n)\<close>
+  by auto
+
+lemma exists_less_eq_iff [code_unfold]:
+  \<open>(\<exists>n\<le>b. P n) \<longleftrightarrow> (\<exists>n\<in>{..b}. P n)\<close>
+  by auto
+
+lemma forall_less_iff [code_unfold]:
+  \<open>(\<forall>n<b. P n) \<longleftrightarrow> (\<forall>n\<in>{..<b}. P n)\<close>
+  by auto
+
+lemma exists_less_iff [code_unfold]:
+  \<open>(\<exists>n<b. P n) \<longleftrightarrow> (\<exists>n\<in>{..<b}. P n)\<close>
+  by auto
+
+lemma forall_greater_eq_iff [code_unfold]:
+  \<open>(\<forall>n\<ge>a. P n) \<longleftrightarrow> (\<forall>n\<in>{a..}. P n)\<close>
+  by auto
+
+lemma exists_greater_eq_iff [code_unfold]:
+  \<open>(\<exists>n\<ge>a. P n) \<longleftrightarrow> (\<exists>n\<in>{a..}. P n)\<close>
+  by auto
+
+lemma forall_greater_iff [code_unfold]:
+  \<open>(\<forall>n>a. P n) \<longleftrightarrow> (\<forall>n\<in>{a<..}. P n)\<close>
+  by auto
+
+lemma exists_greater_iff [code_unfold]:
+  \<open>(\<exists>n>a. P n) \<longleftrightarrow> (\<exists>n\<in>{a<..}. P n)\<close>
+  by auto
+
+end
+
+class interval = linorder + comm_semiring_1_cancel +
+  assumes finite_atLeastAtMost: \<open>finite {a..b}\<close>
+  assumes dec_less_imp_less_eq: \<open>a - 1 < b \<Longrightarrow> a \<le> b\<close>
+  assumes less_inc_imp_less_eq: \<open>a < b + 1 \<Longrightarrow> a \<le> b\<close>
+  assumes dec_greater_eq_self_imp_bot:  \<open>a \<le> a - 1 \<Longrightarrow> a \<le> c\<close>
+  assumes inc_less_eq_self_imp_top: \<open>b + 1 \<le> b \<Longrightarrow> d \<le> b\<close>
 begin
 
 context
 begin
 
-qualified definition range :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a list\<close> \<comment> \<open>only for code generation\<close>
-  where range_eq: \<open>range a b = sorted_list_of_set {a..<b}\<close>
+qualified lemma less_imp_less_eq_dec:
+  \<open>c < b \<Longrightarrow> a < b \<Longrightarrow> a \<le> b - 1\<close>
+  using local.dec_less_imp_less_eq local.not_less by blast
 
-qualified lemma set_range_eq [simp]:
-  \<open>set (range a b) = {a..<b}\<close>
-  using finite_atLeastLessThan by (simp add: range_eq)
+qualified lemma less_imp_in_less_eq:
+  \<open>a < c \<Longrightarrow> a < b \<Longrightarrow> a + 1 \<le> b\<close>
+  using local.less_inc_imp_less_eq local.not_less by blast
 
-qualified lemma distinct_range [simp]:
-  \<open>distinct (range a b)\<close>
-  by (simp add: range_eq)
+qualified lemma less_eq_dec_imp_less:
+  \<open>c < b \<Longrightarrow> a \<le> b - 1 \<Longrightarrow> a < b\<close>
+  using local.dec_greater_eq_self_imp_bot local.dual_order.trans local.not_le by blast
 
-qualified lemma range_code [code]:
-  \<open>range a b = (if a < b then a # range (a + 1) b else [])\<close>
-proof (cases \<open>a < b\<close>)
-  case True
-  then have \<open>{a..<b} = insert a {a + 1..<b}\<close>
-    by (auto simp flip: less_iff_succ_less_eq less_eq_iff_succ_less)
-  then show ?thesis
-    by (auto simp add: range_eq finite_atLeastLessThan intro!: insort_is_Cons)
-next
-  case False
-  then show ?thesis
-    by (simp add: range_eq)
+qualified lemma inc_less_eq_imp_less:
+  \<open>a < c \<Longrightarrow> a + 1 \<le> b \<Longrightarrow> a < b\<close>
+  using local.inc_less_eq_self_imp_top local.not_le local.order.strict_trans2 by blast
+
+qualified definition interval :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a list\<close> \<comment> \<open>only for code generation\<close>
+  where interval_eq: \<open>interval a b = sorted_list_of_set {a..b}\<close>
+
+qualified lemma set_interval_eq [simp]:
+  \<open>set (interval a b) = {a..b}\<close>
+  using finite_atLeastAtMost [of a b] by (simp add: interval_eq)
+
+qualified lemma distinct_interval [simp]:
+  \<open>distinct (interval a b)\<close>
+  by (simp add: interval_eq)
+
+qualified lemma interval_code [code]:
+  \<open>interval a b = (if a < b then a # interval (a + 1) b else if a = b then [a] else [])\<close>
+proof -
+  consider (less) \<open>a < b\<close> | (eq) \<open>a = b\<close> | (greater) \<open>a > b\<close>
+    using less_linear by blast
+  then show ?thesis proof cases
+    case less
+    then have \<open>{a..b} = insert a {a + 1..b}\<close>
+      by (auto simp add: not_le dest: less_imp_le local.inc_less_eq_imp_less dest!: less_inc_imp_less_eq)
+    moreover have \<open>{a + 1..b} - {a} = {a + 1..b}\<close>
+      using less by (auto dest: local.inc_less_eq_imp_less)
+    moreover have \<open>insort a (sorted_list_of_set {a + 1..b}) = a # sorted_list_of_set {a + 1..b}\<close>
+      using finite_atLeastAtMost [of \<open>a + 1\<close> b] less
+      by (auto intro!: insort_is_Cons dest: local.inc_less_eq_imp_less less_imp_le)
+    ultimately show ?thesis
+      using less finite_atLeastAtMost [of \<open>a + 1\<close> b]
+      by (simp add: interval_eq)
+  next
+    case eq
+    then show ?thesis
+      by (simp add: interval_eq)
+  next
+    case greater
+    then show ?thesis
+      by (auto simp add: interval_eq)
+  qed
 qed
 
-qualified lemma atLeastLessThan_eq_range [code]:
-  \<open>{a..<b} = set (range a b)\<close>
+qualified lemma atLeastAtMost_eq_interval [code]:
+  \<open>{a..b} = set (interval a b)\<close>
   by simp
 
-qualified lemma atLeastAtMost_eq_range [code]:
-  \<open>{a..b} = set (range a (b + 1))\<close>
-  by (auto simp flip: less_eq_iff_succ_less)
+qualified lemma atLeastLessThan_eq_interval [code]:
+  \<open>{a..<b} = (let d = b - 1 in if d < b then set (interval a d) else {})\<close>
+  by (auto simp add: Let_def not_less local.less_imp_less_eq_dec intro: dec_greater_eq_self_imp_bot)
 
-qualified lemma greaterThanLessThan_eq_range [code]:
-  \<open>{a<..<b} = set (range (a + 1) b)\<close>
-  by (auto simp add: less_eq_iff_succ_less)
+qualified lemma greaterThanAtMost_eq_interval [code]:
+  \<open>{a<..b} = (let c = a + 1 in if a < c then set (interval c b) else {})\<close>
+  by (auto simp add: Let_def not_less dec_less_imp_less_eq intro: inc_less_eq_self_imp_top)
 
-qualified lemma greaterThanAtMost_eq_range [code]:
-  \<open>{a<..b} = set (range (a + 1) (b + 1))\<close>
-  by (auto simp add: less_eq_iff_succ_less)
+qualified lemma greaterThanLessThan_eq_interval [code]:
+  \<open>{a<..<b} = (let c = a + 1; d = b - 1 in if a < c \<and> d < b then set (interval c d) else {})\<close>
+  by (auto simp add: Let_def not_less dec_less_imp_less_eq
+    dest: local.less_imp_less_eq_dec local.inc_less_eq_imp_less local.less_eq_dec_imp_less)
 
-qualified definition all_range :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
-  where all_range_iff [code_abbrev, simp]: \<open>all_range P a b \<longleftrightarrow> (\<forall>n\<in>{a..<b}. P n)\<close>
+qualified definition all_interval :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool\<close> \<comment> \<open>only for code generation\<close>
+  where all_interval_iff [code_post, simp]: \<open>all_interval P a b \<longleftrightarrow> (\<forall>n\<in>{a..b}. P n)\<close>
 
-qualified lemma all_range_code [code]:
-  \<open>all_range P a b \<longleftrightarrow> (a < b \<longrightarrow> P a \<and> all_range P (a + 1) b)\<close>
-  by (auto simp add: Ball_def simp flip: less_iff_succ_less_eq)
-    (auto simp add: le_less)
+qualified lemma all_interval_code [code]:
+  \<open>all_interval P a b \<longleftrightarrow> ((a < b \<longrightarrow> P a \<and> all_interval P (a + 1) b) \<and> (a = b \<longrightarrow> P a))\<close>
+  by (simp only: all_interval_iff interval_code [of a b] flip: set_interval_eq) auto
 
-lemma forall_atLeastAtMost_iff [code_unfold]:
-  \<open>(\<forall>n\<in>{a..b}. P n) \<longleftrightarrow> all_range P a (b + 1)\<close>
-  by (simp add: atLeastAtMost_eq_range)
-
-lemma forall_greaterThanLessThan_iff [code_unfold]:
-  \<open>(\<forall>n\<in>{a<..<b}. P n) \<longleftrightarrow> all_range P (a + 1) b\<close>
-  by (simp add: greaterThanLessThan_eq_range)
-
-lemma forall_greaterThanAtMost_iff [code_unfold]:
-  \<open>(\<forall>n\<in>{a<..b}. P n) \<longleftrightarrow> all_range P (a + 1) (b + 1)\<close>
-  by (simp add: greaterThanAtMost_eq_range)
-
-lemma exists_atLeastLessThan [code_unfold]:
-  \<open>(\<exists>n\<in>{a..<b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) a b\<close>
+qualified lemma forall_atLeastAtMost_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a..b}. P n) \<longleftrightarrow> all_interval P a b\<close>
   by simp
 
-lemma exists_atLeastAtMost_iff [code_unfold]:
-  \<open>(\<exists>n\<in>{a..b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) a (b + 1)\<close>
-  by (simp add: atLeastAtMost_eq_range)
+qualified lemma exists_atLeastAtMost_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a..b}. P n) \<longleftrightarrow> \<not> all_interval (Not \<circ> P) a b\<close>
+  using forall_atLeastAtMost_iff [of a b \<open>Not \<circ> P\<close>] by simp
 
-lemma exists_greaterThanLessThan_iff [code_unfold]:
-  \<open>(\<exists>n\<in>{a<..<b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) (a + 1) b\<close>
-  by (simp add: greaterThanLessThan_eq_range)
+qualified lemma forall_atLeastLessThan_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a..<b}. P n) \<longleftrightarrow> (let d = b - 1 in d < b \<longrightarrow> all_interval P a d)\<close>
+  by (auto simp add: not_less Let_def intro: local.less_eq_dec_imp_less local.less_imp_less_eq_dec elim!: bspec)
 
-lemma exists_greaterThanAtMost_iff [code_unfold]:
-  \<open>(\<exists>n\<in>{a<..b}. P n) \<longleftrightarrow> \<not> all_range (Not \<circ> P) (a + 1) (b + 1)\<close>
-  by (simp add: greaterThanAtMost_eq_range)
+qualified lemma exists_atLeastLessThan_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a..<b}. P n) \<longleftrightarrow> (let d = b - 1 in d < b \<and> \<not> all_interval (Not \<circ> P) a d)\<close>
+  using forall_atLeastLessThan_iff [of a b \<open>Not \<circ> P\<close>] by (auto simp add: Let_def)
+
+qualified lemma forall_greaterThanAtMost_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a<..b}. P n) \<longleftrightarrow> (let c = a + 1 in a < c \<longrightarrow> all_interval P c b)\<close>
+  by (auto simp add: Let_def not_less intro: local.less_imp_in_less_eq local.inc_less_eq_imp_less elim!: bspec)
+
+qualified lemma exists_greaterThanAtMost_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a<..b}. P n) \<longleftrightarrow> (let c = a + 1 in a < c \<and> \<not> all_interval (Not \<circ> P) c b)\<close>
+  using forall_greaterThanAtMost_iff [of a b \<open>Not \<circ> P\<close>] by (auto simp add: Let_def)
+
+qualified lemma forall_greaterThanLessThan_iff [code_unfold]:
+  \<open>(\<forall>n\<in>{a<..<b}. P n) \<longleftrightarrow> (let c = a + 1; d = b - 1 in a < c \<longrightarrow> d < b \<longrightarrow> all_interval P c d)\<close>
+  by (auto simp add: Let_def not_less local.less_imp_in_less_eq local.less_imp_less_eq_dec
+    intro: local.inc_less_eq_imp_less local.less_eq_dec_imp_less elim!: bspec)
+
+qualified lemma exists_greaterThanLessThan_iff [code_unfold]:
+  \<open>(\<exists>n\<in>{a<..<b}. P n) \<longleftrightarrow> (let c = a + 1; d = b - 1 in a < c \<and> d < b \<and> \<not> all_interval (Not \<circ> P) c d)\<close>
+  using forall_greaterThanLessThan_iff [of a b \<open>Not \<circ> P\<close>] by (auto simp add: Let_def)
 
 end
 
 end
 
-instance nat :: discrete_linordered_semidom_with_range
-  by standard auto
+class interval_top = interval + order_top
+begin
 
-instance int :: discrete_linordered_semidom_with_range
-  by standard auto
-
-lemma all_nat_less_eq [code_unfold]:
-  "(\<forall>m<n. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)" for n :: nat
+lemma atLeast_eq_atLeastAtMost_top [code, code_unfold]:
+  \<open>{a..} = {a..top}\<close>
   by auto
 
-lemma all_nat_less [code_unfold]:
-  "(\<forall>m\<le>n. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)" for n :: nat
+lemma greaterThan_eq_greaterThanAtMost_top [code, code_unfold]:
+  \<open>{a<..} = {a<..top}\<close>
   by auto
 
-lemma ex_nat_less_eq [code_unfold]:
-  "(\<exists>m<n. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)" for n :: nat
+end
+
+class interval_bot = interval + order_bot
+begin
+
+lemma atMost_eq_atLeastAtMost_bot [code, code_unfold]:
+  \<open>{..b} = {bot..b}\<close>
   by auto
 
-lemma ex_nat_less [code_unfold]:
-  "(\<exists>m\<le>n. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)" for n :: nat
+lemma lessThan_eq_atLeastLessThan_bot [code, code_unfold]:
+  \<open>{..<b} = {bot..<b}\<close>
   by auto
+
+end
+
+instance nat :: interval_bot
+  by standard simp_all
+
+instance int :: interval
+  by standard simp_all
 
 context
 begin
 
-qualified lemma range_eq_upt [simp]:
-  \<open>List.range m n = [m..<n]\<close>
-  by (simp add: List.range_eq)
+qualified lemma interval_eq_upt [simp]:
+  \<open>List.interval m n = [m..<Suc n]\<close>
+  by (simp add: List.interval_eq flip: atLeastLessThanSuc_atLeastAtMost)
 
-qualified lemma range_eq_upto [simp]:
-  \<open>List.range i k = [i..k - 1]\<close>
-  using atLeastLessThanPlusOne_atLeastAtMost_int [of i \<open>k - 1\<close>]
-  by (simp add: List.range_eq)
+qualified lemma interval_eq_upto [simp]:
+  \<open>List.interval i k = [i..k]\<close>
+  by (simp add: List.interval_eq)
 
 end
 
