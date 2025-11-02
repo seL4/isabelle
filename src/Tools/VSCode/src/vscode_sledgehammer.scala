@@ -15,11 +15,6 @@ class VSCode_Sledgehammer(server: Language_Server) {
   private val query_operation =
     new Query_Operation(server.editor, (), "sledgehammer", consume_status, consume_output)
 
-  def send_provers(): Unit = {
-    val provers = server.options.string("sledgehammer_provers")
-    server.channel.write(LSP.Sledgehammer_Provers_Response.apply(provers))
-  }
-
   private def consume_status(status: Query_Operation.Status): Unit = {
     val message =
       status match {
@@ -34,6 +29,10 @@ class VSCode_Sledgehammer(server: Language_Server) {
     val content = XML.string_of_body(output.messages)
     server.channel.write(LSP.Sledgehammer_Output(content))
   }
+
+  def provers(): Unit =
+    server.channel.write(
+      LSP.Sledgehammer_Provers_Response(server.options.string("sledgehammer_provers")))
 
   def request(args: List[String]): Unit =
     server.editor.send_dispatcher { query_operation.apply_query(args) }
@@ -51,6 +50,7 @@ class VSCode_Sledgehammer(server: Language_Server) {
 
   def cancel(): Unit = server.editor.send_dispatcher { query_operation.cancel_query() }
   def locate(): Unit = server.editor.send_dispatcher { query_operation.locate_query() }
+
   def init(): Unit = query_operation.activate()
   def exit(): Unit = query_operation.deactivate()
 }
