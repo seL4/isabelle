@@ -191,16 +191,20 @@ class Query_Operation[Editor_Context](
     }
   }
 
-  def locate_query(): Unit = {
-    editor.require_dispatcher {}
+  def query_command(): Option[(Document.Snapshot, Command)] =
+    editor.require_dispatcher {
+      val state = current_state.value
+      for {
+        command <- state.location
+        snapshot = editor.node_snapshot(command.node_name) if !snapshot.is_outdated
+      } yield (snapshot, command)
+    }
 
-    val state = current_state.value
+  def locate_query(): Unit =
     for {
-      command <- state.location
-      snapshot = editor.node_snapshot(command.node_name)
+      (snapshot, command) <- query_command()
       link <- editor.hyperlink_command(true, snapshot, command.id)
     } link.follow(editor_context)
-  }
 
 
   /* main */
