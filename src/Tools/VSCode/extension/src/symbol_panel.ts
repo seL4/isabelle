@@ -3,21 +3,21 @@
 Isabelle symbols panel as web view.
 */
 
-'use strict';
+"use strict";
 
 import {
   WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
   CancellationToken, window, Position, Selection, Webview
-} from 'vscode'
-import { text_colors } from './decorations'
-import * as vscode_lib from './vscode_lib'
-import * as path from 'path'
-import * as lsp from './lsp'
-import { LanguageClient } from 'vscode-languageclient/node';
-import * as fs from 'fs';
+} from "vscode"
+import { text_colors } from "./decorations"
+import * as vscode_lib from "./vscode_lib"
+import * as path from "path"
+import * as lsp from "./lsp"
+import { LanguageClient } from "vscode-languageclient/node";
+import * as fs from "fs";
 
 class Symbols_Panel_Provider implements WebviewViewProvider {
-  public static readonly view_type = 'isabelle-symbols'
+  public static readonly view_type = "isabelle-symbols"
 
   private _view?: WebviewView
   private _groupedSymbols: { [key: string]: lsp.Symbol_Entry[] } = {}
@@ -71,13 +71,13 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     }
 
     this._view.webview.onDidReceiveMessage(message => {
-      if (message.command === 'insertSymbol') {
+      if (message.command === "insertSymbol") {
         this._insert_symbol(message.symbol);
       }
-      else if (message.command === 'resetControlSymbols') {
+      else if (message.command === "resetControlSymbols") {
         this._reset_control_symbols();
       }
-      else if (message.command === 'applyControl') {
+      else if (message.command === "applyControl") {
         this._apply_control_effect(message.action);
       }
     });
@@ -201,7 +201,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   private _update_webview(): void {
     this._view.webview.postMessage({
-      command: 'update',
+      command: "update",
       symbols: this._groupedSymbols,
       abbrevs_from_Thy: this._abbrevsFromThy,
     });
@@ -233,24 +233,24 @@ function open_webview_link(link: string) {
   const uri = Uri.parse(link)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
-  window.showTextDocument(uri.with({ fragment: '' }), {
+  window.showTextDocument(uri.with({ fragment: "" }), {
     preserveFocus: false,
     selection: new Selection(pos, pos)
   })
 }
 
 function get_webview_html(webview: Webview, extension_path: string): string {
-  const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'symbols.js')))
-  const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'symbols.css')))
+  const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, "media", "symbols.js")))
+  const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, "media", "symbols.css")))
   const font_uri =
-    webview.asWebviewUri(Uri.file(path.join(extension_path, 'fonts', 'IsabelleDejaVuSansMono.ttf')))
+    webview.asWebviewUri(Uri.file(path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
 
   return `<!DOCTYPE html>
-    <html lang='en'>
+    <html lang="en">
       <head>
-        <meta charset='UTF-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <link href='${css_uri}' rel='stylesheet' type='text/css'>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="${css_uri}" rel="stylesheet" type="text/css">
         <style>
             @font-face {
                 font-family: "Isabelle DejaVu Sans Mono";
@@ -262,7 +262,7 @@ function get_webview_html(webview: Webview, extension_path: string): string {
       </head>
       <body>
         <div id="symbols-container"></div>
-        <script src='${script_uri}'></script>
+        <script src="${script_uri}"></script>
       </body>
     </html>`
 }

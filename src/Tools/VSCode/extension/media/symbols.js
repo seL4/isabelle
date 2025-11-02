@@ -36,17 +36,17 @@
   }
 
   function create_search_field() {
-    const search_container = document.createElement('div');
-    search_container.classList.add('search-container');
+    const search_container = document.createElement("div");
+    search_container.classList.add("search-container");
 
-    const search_input = document.createElement('input');
+    const search_input = document.createElement("input");
     search_input.type = "text";
-    search_input.classList.add('search-input');
+    search_input.classList.add("search-input");
 
-    const search_results = document.createElement('div');
-    search_results.classList.add('search-results');
+    const search_results = document.createElement("div");
+    search_results.classList.add("search-results");
 
-    search_input.addEventListener('input', () => filterSymbols(search_input.value, search_results));
+    search_input.addEventListener("input", () => filterSymbols(search_input.value, search_results));
 
     search_container.appendChild(search_input);
     search_container.appendChild(search_results);
@@ -55,7 +55,7 @@
 
   function filterSymbols(query, results_container) {
     const normalized_query = query.toLowerCase().trim();
-    results_container.innerHTML = '';
+    results_container.innerHTML = "";
 
     if (normalized_query === "") return;
 
@@ -82,21 +82,21 @@
         const decoded_symbol = decode_html_entity(symbol.code);
         if (!decoded_symbol) return;
 
-        const button = document.createElement('div');
-        button.classList.add('symbol-button');
+        const button = document.createElement("div");
+        button.classList.add("symbol-button");
         button.textContent = decoded_symbol;
-        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(', ')}`);
+        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
-        button.addEventListener('click', () => {
-          vscode.postMessage({ command: 'insertSymbol', symbol: decoded_symbol });
+        button.addEventListener("click", () => {
+          vscode.postMessage({ command: "insertSymbol", symbol: decoded_symbol });
         });
 
         results_container.appendChild(button);
       });
 
       if (matching_symbols.length > search_limit) {
-        const more_results = document.createElement('div');
-        more_results.classList.add('more-results');
+        const more_results = document.createElement("div");
+        more_results.classList.add("more-results");
         more_results.textContent = `(${matching_symbols.length - search_limit} more...)`;
         results_container.appendChild(more_results);
       }
@@ -154,7 +154,7 @@
 }
 
   function sanitize_symbol_for_insert(symbol) {
-    return symbol.replace(/\u0007/g, '');
+    return symbol.replace(/\u0007/g, "");
   }
 
   function extract_control_symbols(symbol_groups) {
@@ -166,8 +166,8 @@
   }
 
   function render_symbols(grouped_symbols, abbrevs_from_thy) {
-    const container = document.getElementById('symbols-container');
-    container.innerHTML = '';
+    const container = document.getElementById("symbols-container");
+    container.innerHTML = "";
 
     all_symbols = grouped_symbols;
     all_abbrevs_from_thy = abbrevs_from_thy || [];
@@ -181,39 +181,39 @@
       return;
     }
 
-    const tabs = document.createElement('div');
-    tabs.classList.add('tabs');
+    const tabs = document.createElement("div");
+    tabs.classList.add("tabs");
 
-    const content = document.createElement('div');
-    content.classList.add('content');
+    const content = document.createElement("div");
+    content.classList.add("content");
 
     Object.keys(grouped_symbols).forEach((group, index) => {
-      const tab = document.createElement('button');
-      tab.classList.add('tab');
+      const tab = document.createElement("button");
+      tab.classList.add("tab");
       tab.textContent = format_group_name(group);
-      if (index === 0) tab.classList.add('active');
+      if (index === 0) tab.classList.add("active");
 
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        document.getElementById(`content-${group}`).classList.remove('hidden');
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+        document.getElementById(`content-${group}`).classList.remove("hidden");
       });
 
       tabs.appendChild(tab);
 
-      const group_content = document.createElement('div');
-      group_content.classList.add('tab-content');
+      const group_content = document.createElement("div");
+      group_content.classList.add("tab-content");
       group_content.id = `content-${group}`;
-      if (index !== 0) group_content.classList.add('hidden');
+      if (index !== 0) group_content.classList.add("hidden");
 
       if (group === "control") {
-        const reset_button = document.createElement('button');
-        reset_button.classList.add('reset-button');
+        const reset_button = document.createElement("button");
+        reset_button.classList.add("reset-button");
         reset_button.textContent = "Reset";
 
-        reset_button.addEventListener('click', () => {
-          vscode.postMessage({ command: 'resetControlSymbols' });
+        reset_button.addEventListener("click", () => {
+          vscode.postMessage({ command: "resetControlSymbols" });
         });
         group_content.appendChild(reset_button);
 
@@ -222,12 +222,12 @@
           const control_symbol = grouped_symbols[group].find(s => s.name === action);
           if (control_symbol) {
             const decoded_symbol = decode_html_entity(control_symbol.code);
-            const button = document.createElement('button');
-            button.classList.add('control-button');
+            const button = document.createElement("button");
+            button.classList.add("control-button");
             button.textContent = decoded_symbol;
             button.title = action.charAt(0).toUpperCase() + action.slice(1);
-            button.addEventListener('click', () => {
-              vscode.postMessage({ command: 'applyControl', action: action });
+            button.addEventListener("click", () => {
+              vscode.postMessage({ command: "applyControl", action: action });
             });
             group_content.appendChild(button);
           }
@@ -240,18 +240,18 @@
         const decoded_symbol = decode_html_entity(symbol.code);
         if (!decoded_symbol) return;
 
-        const button = document.createElement('div');
+        const button = document.createElement("div");
         if (group === "arrow") {
-          button.classList.add('arrow-button'); // special class for arrows
+          button.classList.add("arrow-button"); // special class for arrows
         }
         else {
-          button.classList.add('symbol-button');
+          button.classList.add("symbol-button");
         }
         button.textContent = decoded_symbol;
-        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(', ')}`);
+        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
-        button.addEventListener('click', () => {
-          vscode.postMessage({ command: 'insertSymbol', symbol: decoded_symbol });
+        button.addEventListener("click", () => {
+          vscode.postMessage({ command: "insertSymbol", symbol: decoded_symbol });
         });
 
         group_content.appendChild(button);
@@ -260,30 +260,30 @@
       content.appendChild(group_content);
     });
 
-    const abbrevs_tab = document.createElement('button');
-    abbrevs_tab.classList.add('tab');
+    const abbrevs_tab = document.createElement("button");
+    abbrevs_tab.classList.add("tab");
     abbrevs_tab.textContent = "Abbrevs";
-    abbrevs_tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      abbrevs_tab.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-      document.getElementById("abbrevs-tab-content").classList.remove('hidden');
+    abbrevs_tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      abbrevs_tab.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.getElementById("abbrevs-tab-content").classList.remove("hidden");
     });
     tabs.appendChild(abbrevs_tab);
 
-    const abbrevs_content = document.createElement('div');
-    abbrevs_content.classList.add('tab-content', 'hidden');
+    const abbrevs_content = document.createElement("div");
+    abbrevs_content.classList.add("tab-content", "hidden");
     abbrevs_content.id = "abbrevs-tab-content";
 
     all_abbrevs_from_thy
       .filter(([abbr, symbol]) => symbol && symbol.trim() !== "" && !/^[a-zA-Z0-9 _-]+$/.test(symbol)) 
       .forEach(([abbr, symbol]) => {
-        const btn = document.createElement('div');
-        btn.classList.add('abbrevs-button');
+        const btn = document.createElement("div");
+        btn.classList.add("abbrevs-button");
         btn.innerHTML = render_with_effects(symbol); 
         btn.title = abbr;
-        btn.addEventListener('click', () => {
-          vscode.postMessage({ command: 'insertSymbol', symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
+        btn.addEventListener("click", () => {
+          vscode.postMessage({ command: "insertSymbol", symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
         });
 
         abbrevs_content.appendChild(btn);
@@ -291,20 +291,20 @@
 
     content.appendChild(abbrevs_content);
 
-    const search_tab = document.createElement('button');
-    search_tab.classList.add('tab');
+    const search_tab = document.createElement("button");
+    search_tab.classList.add("tab");
     search_tab.textContent = "Search";
-    search_tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      search_tab.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-      document.getElementById("search-tab-content").classList.remove('hidden');
+    search_tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      search_tab.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.getElementById("search-tab-content").classList.remove("hidden");
     });
     tabs.appendChild(search_tab);
 
     const { search_container, search_results } = create_search_field();
-    const search_content = document.createElement('div');
-    search_content.classList.add('tab-content', 'hidden');
+    const search_content = document.createElement("div");
+    search_content.classList.add("tab-content", "hidden");
     search_content.id = "search-tab-content";
     search_content.appendChild(search_container);
 
@@ -337,8 +337,8 @@
 
   }
 
-  window.addEventListener('message', event => {
-    if (event.data.command === 'update' && event.data.symbols) {
+  window.addEventListener("message", event => {
+    if (event.data.command === "update" && event.data.symbols) {
       render_symbols(event.data.symbols, event.data.abbrevs_from_Thy);
     }
   });
