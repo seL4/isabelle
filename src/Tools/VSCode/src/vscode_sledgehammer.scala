@@ -26,7 +26,7 @@ class VSCode_Sledgehammer(server: Language_Server) {
   }
 
   private def consume_output(output: Editor.Output): Unit = {
-    val content = XML.string_of_body(output.messages)
+    val content = XML.string_of_body(Pretty.unbreakable(output.messages))
     server.channel.write(LSP.Sledgehammer_Output(content))
   }
 
