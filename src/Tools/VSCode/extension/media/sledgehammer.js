@@ -38,12 +38,8 @@
   dropdown.className = "provers-dropdown";
   provers_input_wrapper.appendChild(dropdown);
 
-  function show_dropdown() {
-    dropdown.classList.add("visible");
-  }
-  function hide_dropdown() {
-    dropdown.classList.remove("visible");
-  }
+  function show_dropdown() { dropdown.classList.add("visible"); }
+  function hide_dropdown() { dropdown.classList.remove("visible"); }
 
   function render_dropdown(open = false) {
     dropdown.innerHTML = "";
@@ -85,7 +81,6 @@
     }
     if (open) show_dropdown(); else hide_dropdown();
   }
-
 
   chevron_button.addEventListener("mousedown", function (e) {
     e.preventDefault();
@@ -147,7 +142,6 @@
   try0_checkbox.checked = true;
   try0_label.appendChild(try0_checkbox);
   try0_label.appendChild(document.createTextNode(" Try methods"));
-
 
   provers_input.addEventListener("input", save_state);
   isar_checkbox.addEventListener("change", save_state);
