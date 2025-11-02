@@ -13,11 +13,19 @@ text \<open>
 \<close>
 
 text \<open>
-  @{lemma \<open>prime (997 :: nat)\<close> by eval}
+  @{lemma \<open>prime (97 :: nat)\<close> by simp}
 \<close>
 
 text \<open>
-  @{lemma \<open>prime (997 :: int)\<close> by eval}
+  @{lemma \<open>prime (97 :: int)\<close> by simp}
+\<close>
+
+text \<open>
+  @{lemma \<open>prime (9973 :: nat)\<close> by eval}
+\<close>
+
+text \<open>
+  @{lemma \<open>prime (9973 :: int)\<close> by eval}
 \<close>
 
 text \<open>

@@ -226,6 +226,21 @@ next
     using prime_nat_naiveI [of n] by auto
 qed
 
+lemma prime_nat_iff':
+  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)"
+proof safe
+  assume "p > 1" and *: "\<forall>n\<in>{2..<p}. \<not>n dvd p"
+  show "prime p" unfolding prime_nat_iff
+  proof (intro conjI allI impI)
+    fix m assume "m dvd p"
+    with \<open>p > 1\<close> have "m \<noteq> 0" by (intro notI) auto
+    hence "m \<ge> 1" by simp
+    moreover from \<open>m dvd p\<close> and * have "m \<notin> {2..<p}" by blast
+    with \<open>m dvd p\<close> and \<open>p > 1\<close> have "m \<le> 1 \<or> m = p" by (auto dest: dvd_imp_le)
+    ultimately show "m = 1 \<or> m = p" by simp
+  qed fact+
+qed (auto simp: prime_nat_iff)
+
 lemma prime_int_iff:
   "prime (n::int) \<longleftrightarrow> (1 < n \<and> (\<forall>m. m \<ge> 0 \<and> m dvd n \<longrightarrow> m = 1 \<or> m = n))"
 proof (intro iffI conjI allI impI; (elim conjE)?)
@@ -254,6 +269,23 @@ next
   qed
   ultimately show "prime n" 
     unfolding prime_int_nat_transfer prime_nat_iff by auto
+qed
+
+lemma prime_int_iff':
+  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)" (is "?P \<longleftrightarrow> ?Q")
+proof (cases "p \<ge> 0")
+  case True
+  have "?P \<longleftrightarrow> prime (nat p)"
+    by simp
+  also have "\<dots> \<longleftrightarrow> p > 1 \<and> (\<forall>n\<in>{2..<nat p}. \<not> n dvd nat \<bar>p\<bar>)"
+    using True by (simp add: prime_nat_iff')
+  also have "{2..<nat p} = nat ` {2..<p}"
+    using True int_eq_iff by fastforce
+  finally show "?P \<longleftrightarrow> ?Q" by simp
+next
+  case False
+  then show ?thesis
+    by (auto simp add: prime_ge_0_int)
 qed
 
 lemma prime_nat_not_dvd:
@@ -293,8 +325,118 @@ lemma not_prime_eq_prod_nat:
   using assms irreducible_altdef[of m]
   by (auto simp: prime_elem_iff_irreducible irreducible_altdef)
 
-    
+
+subsection \<open>Make prime naively executable\<close>
+
+lemma prime_int_numeral_eq [simp]:
+  "prime (numeral m :: int) \<longleftrightarrow> prime (numeral m :: nat)"
+  by (simp add: prime_int_nat_transfer)
+
+class check_prime_by_range = normalization_semidom + discrete_linordered_semidom +
+  assumes prime_iff: \<open>prime a \<longleftrightarrow> 1 < a \<and> (\<forall>d\<in>{2..a div 2}. \<not> d dvd a)\<close>
+begin
+
+lemma two_is_prime [simp]:
+  \<open>prime 2\<close>
+  by (simp add: prime_iff)
+
+end
+
+lemma divisor_less_eq_half_nat:
+  \<open>m \<le> n div 2\<close> if \<open>m dvd n\<close> \<open>m < n\<close> for m n :: nat
+  using that by (auto simp add: less_eq_div_iff_mult_less_eq)
+
+instance nat :: check_prime_by_range
+  apply standard
+  apply (auto simp add: prime_nat_iff)
+  apply (rule ccontr)
+  apply (auto simp add: neq_iff)
+  apply (metis One_nat_def Suc_1 Suc_leI atLeastAtMost_iff divisor_less_eq_half_nat)
+  done
+
+lemma two_is_prime_nat [simp]:
+  \<open>prime (2::nat)\<close>
+  by (fact two_is_prime)
+
+lemma divisor_less_eq_half_int:
+  \<open>k \<le> l div 2\<close> if \<open>k dvd l\<close> \<open>k < l\<close> \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> for k l :: int
+proof -
+  define m n where \<open>m = nat \<bar>k\<bar>\<close> \<open>n = nat \<bar>l\<bar>\<close>
+  with \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> have \<open>k = int m\<close> \<open>l = int n\<close>
+    by simp_all
+  with that show ?thesis
+    using divisor_less_eq_half_nat [of m n] by simp
+qed
+
+instance int :: check_prime_by_range
+  apply standard
+  apply (auto simp add: prime_int_iff)
+  apply (smt (verit) int_div_less_self)
+  apply (rule ccontr)
+  apply (auto simp add: neq_iff zdvd_not_zless)
+  apply (metis div_by_0 dvd_div_eq_0_iff less_le_not_le one_dvd order_le_less
+      zdvd_not_zless)
+  apply (metis atLeastAtMost_iff divisor_less_eq_half_int dvd_div_eq_0_iff
+      int_one_le_iff_zero_less nle_le one_add_one pos_imp_zdiv_nonneg_iff zdiv_eq_0_iff
+      zless_imp_add1_zle)
+  done
+
+lemma prime_nat_numeral_eq [simp]: \<comment> \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
+  "prime (numeral m :: nat) \<longleftrightarrow>
+    (1::nat) < numeral m \<and>
+    (\<forall>n::nat \<in> set [2..<Suc (numeral m div 2)]. \<not> n dvd numeral m)"
+  using prime_iff [of \<open>numeral m :: nat\<close>]
+  by (simp only: set_upt atLeastLessThanSuc_atLeastAtMost)
+
+context check_prime_by_range
+begin
+
+definition check_divisors :: \<open>'a \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool\<close>
+  where \<open>check_divisors l u a \<longleftrightarrow> (\<forall>d\<in>{l..u}. \<not> d dvd a)\<close>
+
+lemma check_divisors_rec [code]:
+  \<open>check_divisors l u a \<longleftrightarrow> u < l \<or> (\<not> l dvd a \<and> check_divisors (l + 1) u a)\<close>
+  apply (auto simp add: check_divisors_def not_less)
+  apply (metis local.add_increasing2 local.atLeastAtMost_iff local.linear local.order_eq_iff
+      local.zero_le_one)
+  subgoal for d
+    apply (cases \<open>l + 1 \<le> d\<close>)
+     apply (auto simp add: not_le)
+    apply (metis local.dual_order.antisym local.less_eq_iff_succ_less)
+    done
+  done
+
+lemma prime_eq_check_divisors [code]:
+  \<open>prime a \<longleftrightarrow> a > 1 \<and> check_divisors 2 (a div 2) a\<close>
+  by (simp add: check_divisors_def prime_iff)
+
+end
+
+
 subsection \<open>Largest exponent of a prime factor\<close>
+
+lemma prime_factor_nat:
+  "n \<noteq> (1::nat) \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
+  using prime_divisor_exists[of n]
+  by (cases "n = 0") (auto intro: exI[of _ "2::nat"])
+
+lemma prime_factor_int:
+  fixes k :: int
+  assumes "\<bar>k\<bar> \<noteq> 1"
+  obtains p where "prime p" "p dvd k"
+proof (cases "k = 0")
+  case True
+  then have "prime (2::int)" and "2 dvd k"
+    by simp_all
+  with that show thesis
+    by blast
+next
+  case False
+  with assms prime_divisor_exists [of k] obtain p where "prime p" "p dvd k"
+    by auto
+  with that show thesis
+    by blast
+qed
 
 text\<open>Possibly duplicates other material, but avoid the complexities of multisets.\<close>
   
@@ -350,83 +492,6 @@ proof (induction m rule: less_induct)
     then show ?thesis
       by (metis mult.right_neutral power_0)
   qed
-qed
-
-
-subsubsection \<open>Make prime naively executable\<close>
-
-lemma prime_nat_iff':
-  "prime (p :: nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)"
-proof safe
-  assume "p > 1" and *: "\<forall>n\<in>{2..<p}. \<not>n dvd p"
-  show "prime p" unfolding prime_nat_iff
-  proof (intro conjI allI impI)
-    fix m assume "m dvd p"
-    with \<open>p > 1\<close> have "m \<noteq> 0" by (intro notI) auto
-    hence "m \<ge> 1" by simp
-    moreover from \<open>m dvd p\<close> and * have "m \<notin> {2..<p}" by blast
-    with \<open>m dvd p\<close> and \<open>p > 1\<close> have "m \<le> 1 \<or> m = p" by (auto dest: dvd_imp_le)
-    ultimately show "m = 1 \<or> m = p" by simp
-  qed fact+
-qed (auto simp: prime_nat_iff)
-
-lemma prime_int_iff':
-  "prime (p :: int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {2..<p}. \<not> n dvd p)" (is "?P \<longleftrightarrow> ?Q")
-proof (cases "p \<ge> 0")
-  case True
-  have "?P \<longleftrightarrow> prime (nat p)"
-    by simp
-  also have "\<dots> \<longleftrightarrow> p > 1 \<and> (\<forall>n\<in>{2..<nat p}. \<not> n dvd nat \<bar>p\<bar>)"
-    using True by (simp add: prime_nat_iff')
-  also have "{2..<nat p} = nat ` {2..<p}"
-    using True int_eq_iff by fastforce 
-  finally show "?P \<longleftrightarrow> ?Q" by simp
-next
-  case False
-  then show ?thesis
-    by (auto simp add: prime_ge_0_int) 
-qed
-
-lemma prime_int_numeral_eq [simp]:
-  "prime (numeral m :: int) \<longleftrightarrow> prime (numeral m :: nat)"
-  by (simp add: prime_int_nat_transfer)
-
-lemma two_is_prime_nat [simp]: "prime (2::nat)"
-  by (simp add: prime_nat_iff')
-
-lemma prime_nat_numeral_eq [simp]:
-  "prime (numeral m :: nat) \<longleftrightarrow>
-    (1::nat) < numeral m \<and>
-    (\<forall>n::nat \<in> set [2..<numeral m]. \<not> n dvd numeral m)"
-  by (simp only: prime_nat_iff' set_upt)  \<comment> \<open>TODO Sieve Of Erathosthenes might speed this up\<close>
-
-
-text\<open>A bit of regression testing:\<close>
-
-lemma "prime(97::nat)" by simp
-lemma "prime(97::int)" by simp
-
-lemma prime_factor_nat: 
-  "n \<noteq> (1::nat) \<Longrightarrow> \<exists>p. prime p \<and> p dvd n"
-  using prime_divisor_exists[of n]
-  by (cases "n = 0") (auto intro: exI[of _ "2::nat"])
-
-lemma prime_factor_int:
-  fixes k :: int
-  assumes "\<bar>k\<bar> \<noteq> 1"
-  obtains p where "prime p" "p dvd k"
-proof (cases "k = 0")
-  case True
-  then have "prime (2::int)" and "2 dvd k"
-    by simp_all
-  with that show thesis
-    by blast
-next
-  case False
-  with assms prime_divisor_exists [of k] obtain p where "prime p" "p dvd k"
-    by auto
-  with that show thesis
-    by blast
 qed
 
 
@@ -1059,45 +1124,5 @@ lemmas primes_coprime_nat = primes_coprime[where ?'a = nat]
 lemmas primes_coprime_int = primes_coprime[where ?'a = nat]
 lemmas prime_divprod_pow_nat = prime_elem_divprod_pow[where ?'a = nat]
 lemmas prime_exp = prime_elem_power_iff[where ?'a = nat]
-
-text \<open>Code generation\<close>
-
-lemma divisor_less_eq_half_nat:
-  \<open>m \<le> n div 2\<close> if \<open>m dvd n\<close> \<open>m < n\<close> for m n :: nat
-  using that by (auto simp add: less_eq_div_iff_mult_less_eq)
-
-lemma divisor_less_eq_half_int:
-  \<open>k \<le> l div 2\<close> if \<open>k dvd l\<close> \<open>k < l\<close> \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> for k l :: int
-proof -
-  define m n where \<open>m = nat \<bar>k\<bar>\<close> \<open>n = nat \<bar>l\<bar>\<close>
-  with \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> have \<open>k = int m\<close> \<open>l = int n\<close>
-    by simp_all
-  with that show ?thesis
-    using divisor_less_eq_half_nat [of m n] by simp
-qed
-
-lemma
-  \<open>prime n \<longleftrightarrow> 1 < n \<and> (\<forall>n\<in>{1<..n div 2}. \<not> n dvd p)\<close>
-
-thm prime_nat_iff prime_int_iff [no_vars]
-
-context
-begin
-
-qualified definition prime_nat :: "nat \<Rightarrow> bool"
-  where [simp, code_abbrev]: "prime_nat = prime"
-
-lemma prime_nat_naive [code]:
-  "prime_nat p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in>{1<..<p}. \<not> n dvd p)"
-  by (auto simp add: prime_nat_iff')
-
-qualified definition prime_int :: "int \<Rightarrow> bool"
-  where [simp, code_abbrev]: "prime_int = prime"
-
-lemma prime_int_naive [code]:
-  "prime_int p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in>{1<..<p}. \<not> n dvd p)"
-  by (auto simp add: prime_int_iff')
-
-end
 
 end
