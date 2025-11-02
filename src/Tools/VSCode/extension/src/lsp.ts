@@ -159,7 +159,7 @@ export interface Symbols_Response {
 export const symbols_response_type =
   new NotificationType<Symbols_Response>("PIDE/symbols_response");
 
-export const symbols_request_type =
+export const symbols_panel_request_type =
   new NotificationType<void>("PIDE/symbols_panel_request")
 
 
