@@ -705,23 +705,6 @@ object LSP {
 
   /* symbols */
 
-  object Symbols_Request extends Request0("PIDE/symbols_request") {
-    def reply(id: Id, symbols: Symbol.Symbols): JSON.T = {
-      def json(symbol: Symbol.Entry): JSON.T =
-        JSON.Object(
-          "symbol" -> symbol.symbol,
-          "name" -> symbol.name,
-          "argument" -> symbol.argument.toString) ++
-        JSON.optional("code", symbol.code) ++
-        JSON.optional("font", symbol.font) ++
-        JSON.Object(
-          "groups" -> symbol.groups,
-          "abbrevs" -> symbol.abbrevs)
-
-      ResponseMessage(id, Some(symbols.entries.map(s => json(s))))
-    }
-  }
-
   object Symbols_Convert_Request {
     def unapply(json: JSON.T): Option[(Id, String, Boolean)] =
       json match {

@@ -471,11 +471,6 @@ class Language_Server(
 
   /* symbols */
 
-  def symbols_request(id: LSP.Id): Unit = {
-    val symbols = Component_VSCodium.symbols
-    channel.write(LSP.Symbols_Request.reply(id, symbols))
-  }
-  
   def symbols_convert_request(id: LSP.Id, text: String, unicode: Boolean): Unit = {
     val converted = Symbol.output(unicode, text)
     channel.write(LSP.Symbols_Convert_Request.reply(id, converted))
@@ -533,7 +528,6 @@ class Language_Server(
           case LSP.State_Auto_Update(state_id, enabled) =>
             State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
-          case LSP.Symbols_Request(id) => symbols_request(id)
           case LSP.Symbols_Convert_Request(id, text, boolean) =>
             symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
