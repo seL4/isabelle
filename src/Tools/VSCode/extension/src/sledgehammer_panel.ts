@@ -90,16 +90,6 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     }
   }
 
-  public locate(state_location: { uri: string; line: number; character: number }): void {
-    const doc_uri = Uri.parse(state_location.uri);
-    const editor = window.activeTextEditor;
-    if (editor && editor.document.uri.toString() === doc_uri.toString()) {
-      const position = new Position(state_location.line, state_location.character);
-      editor.selections = [new Selection(position, position)];
-      editor.revealRange(new Range(position, position));
-    }
-  }
-
   public insert(arg: { uri: string; line: number; character: number; text: string }): void {
     const uri = Uri.parse(arg.uri);
     const editor = window.activeTextEditor;
