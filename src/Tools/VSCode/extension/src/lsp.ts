@@ -214,12 +214,15 @@ export interface Sledgehammer_Output {
   };
 }
 
-export interface SledgehammerInsertPosition {
-  position: {
-    uri: string;
-    line: number;
-    character: number;
-  };
+export interface Sledgehammer_Sendback {
+  text: string;
+}
+
+export interface Sledgehammer_Insert {
+  uri: string;
+  line: number;
+  character: number;
+  text: string;
 }
 
 export interface Sledgehammer_Provers {
@@ -235,8 +238,11 @@ export const sledgehammer_cancel_type =
 export const sledgehammer_locate_type =
   new NotificationType<void>("PIDE/sledgehammer_locate");
 
+export const sledgehammer_sendback_type =
+  new NotificationType<Sledgehammer_Sendback>("PIDE/sledgehammer_sendback");
+
 export const sledgehammer_insert_type =
-  new NotificationType<void>("PIDE/sledgehammer_insert");
+  new NotificationType<Sledgehammer_Insert>("PIDE/sledgehammer_insert");
 
 export const sledgehammer_provers_request_type =
   new NotificationType<void>("PIDE/sledgehammer_provers_request");
@@ -249,9 +255,6 @@ export const sledgehammer_status_type =
 
 export const sledgehammer_output_type =
   new NotificationType<Sledgehammer_Output>("PIDE/sledgehammer_output");
-
-export const sledgehammer_insert_position_response_type =
-  new NotificationType<SledgehammerInsertPosition>("PIDE/sledgehammer_insert_position_response");
 
 
 /* spell checker */

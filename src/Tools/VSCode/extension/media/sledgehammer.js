@@ -217,7 +217,7 @@
               const button = document.createElement("button");
               button.textContent = node.textContent.trim();
               button.addEventListener("click", () =>
-                vscode.postMessage({ command: "insert", text: node.textContent.trim() }));
+                vscode.postMessage({ command: "sendback", text: node.textContent.trim() }));
               div.appendChild(button);
             }
             else {

@@ -17,8 +17,6 @@ import { Position } from "vscode";
 class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-sledgehammer";
   private _view?: WebviewView;
-  private _result_position?: { uri: string; line: number; character: number; line_text: string };
-  private text_to_insert: string;
 
   constructor(
     private readonly _extension_uri: Uri,
@@ -71,9 +69,9 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
           case "locate":
             this._language_client.sendNotification(lsp.sledgehammer_locate_type);
             break;
-          case "insert":
-            this._language_client.sendNotification(lsp.sledgehammer_insert_type);
-            this.text_to_insert = message.text;
+          case "sendback":
+            this._language_client.sendNotification(lsp.sledgehammer_sendback_type,
+              { text: message.text });
             break;
         }
       });
@@ -102,31 +100,20 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     }
   }
 
-  public insert(position: { uri: string; line: number; character: number }): void {
+  public insert(arg: { uri: string; line: number; character: number; text: string }): void {
+    const uri = Uri.parse(arg.uri);
     const editor = window.activeTextEditor;
-    if (editor) {
-      const uri = Uri.parse(position.uri);
-      if (editor.document.uri.toString() === uri.toString()) {
-        const pos = new Position(position.line, position.character);
-        const line_text = editor.document.lineAt(pos.line).text;
-        const text_to_insert =
-          line_text.trim() === "" ? this.text_to_insert : "\n" + this.text_to_insert;
-        editor.edit(edit_builder => edit_builder.insert(pos, text_to_insert));
-      }
+    if (editor && editor.document.uri.toString() === uri.toString()) {
+      const pos = new Position(arg.line, arg.character);
+      const line_text = editor.document.lineAt(pos.line).text;
+      editor.edit(edit_builder =>
+        edit_builder.insert(pos, line_text.trim() === "" ? arg.text : "\n" + arg.text));
     }
   }
 
   public update_output(result: lsp.Sledgehammer_Output): void {
-    const editor = window.activeTextEditor;
-    const line_text = editor?.document.lineAt(result.position.line).text ?? "";
-    this._result_position = { ...result.position, line_text };
     if (this._view) {
-      this._view.webview.postMessage({
-        command: "result",
-        content: result.content,
-        position: result.position,
-        sendback_id: result.sendback_id
-      });
+      this._view.webview.postMessage({ command: "result", content: result.content });
     }
   }
 

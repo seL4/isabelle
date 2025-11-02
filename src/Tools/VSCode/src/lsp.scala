@@ -822,18 +822,30 @@ object LSP {
   }
 
   object Sledgehammer_Output {
-    def apply(json: JSON.Object.T): JSON.T =
-      Notification("PIDE/sledgehammer_output", json)
+    def apply(content: String): JSON.T =
+      Notification("PIDE/sledgehammer_output", JSON.Object("content" -> content))
   }
 
   object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")
 
   object Sledgehammer_Locate extends Notification0("PIDE/sledgehammer_locate")
 
-  object Sledgehammer_Insert extends Notification0("PIDE/sledgehammer_insert")
+  object Sledgehammer_Sendback {
+    def unapply(json: JSON.T): Option[String] =
+      json match {
+        case Notification("PIDE/sledgehammer_sendback", Some(params)) =>
+          JSON.string(params, "text")
+        case _ => None
+      }
+  }
 
-  object Sledgehammer_Insert_Position_Response {
-    def apply(json: JSON.Object.T): JSON.T =
-      Notification("PIDE/sledgehammer_insert_position_response", json)
+  object Sledgehammer_Insert {
+    def apply(node_pos: Line.Node_Position, text: String): JSON.T =
+      Notification("PIDE/sledgehammer_insert",
+        JSON.Object(
+          "uri" -> Url.print_file_name(node_pos.name),
+          "line" -> node_pos.pos.line,
+          "character" -> node_pos.pos.column,
+          "text" -> text))
   }
 }
