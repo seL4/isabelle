@@ -476,7 +476,7 @@ class Language_Server(
     channel.write(LSP.Symbols_Convert_Request.reply(id, converted))
   }
 
-  def symbols_panel_request(): Unit = {
+  def symbols_request(): Unit = {
     val abbrevs =
       resources.get_caret().flatMap { caret =>
         resources.get_model(caret.file).map(_.syntax().abbrevs)
@@ -531,7 +531,7 @@ class Language_Server(
           case LSP.Symbols_Convert_Request(id, text, boolean) =>
             symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
-          case LSP.Symbols_Panel_Request() => symbols_panel_request()
+          case LSP.Symbols_Request() => symbols_request()
           case LSP.Documentation_Request() => documentation_request()
           case LSP.Sledgehammer_Provers_Request() => sledgehammer.provers()
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)

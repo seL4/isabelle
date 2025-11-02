@@ -720,8 +720,8 @@ object LSP {
       ResponseMessage(id, Some(JSON.Object("text" -> new_string)))
   }
 
-  object Symbols_Panel_Request
-    extends Notification0("PIDE/symbols_panel_request")
+  object Symbols_Request
+    extends Notification0("PIDE/symbols_request")
 
   object Symbols_Response {
     def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {

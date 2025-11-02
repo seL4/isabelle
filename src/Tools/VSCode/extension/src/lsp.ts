@@ -156,11 +156,11 @@ export interface Symbols_Response {
   abbrevs_from_Thy: [string, string][];
 }
 
+export const symbols_request_type =
+  new NotificationType<void>("PIDE/symbols_request")
+
 export const symbols_response_type =
   new NotificationType<Symbols_Response>("PIDE/symbols_response");
-
-export const symbols_panel_request_type =
-  new NotificationType<void>("PIDE/symbols_panel_request")
 
 
 /* documentation */
