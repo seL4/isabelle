@@ -477,12 +477,10 @@ class Language_Server(
   }
 
   def symbols_request(): Unit = {
-    val abbrevs =
-      resources.get_caret().flatMap { caret =>
-        resources.get_model(caret.file).map(_.syntax().abbrevs)
-      }.getOrElse(session.resources.session_base.overall_syntax.abbrevs)
-
-    channel.write(LSP.Symbols_Response(Symbol.symbols, abbrevs))
+    val syntax =
+      resources.get_caret().map(_.model.syntax())
+        .getOrElse(session.resources.session_base.overall_syntax)
+    channel.write(LSP.Symbols_Response(Symbol.symbols, syntax.abbrevs))
   }
 
 
