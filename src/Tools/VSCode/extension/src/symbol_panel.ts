@@ -96,43 +96,43 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     if (!selectedText.trim() && !selection.isEmpty) return;
 
-    const controlGroup = this._groupedSymbols["control"];
-    if (!controlGroup) return;
+    const control_group = this._groupedSymbols["control"];
+    if (!control_group) return;
 
-    const controlSymbols: { [key: string]: string } = {};
-    controlGroup.forEach(symbol => {
+    const control_symbols: { [key: string]: string } = {};
+    control_group.forEach(symbol => {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        controlSymbols[symbol.name] = String.fromCodePoint(symbol.code);
+        control_symbols[symbol.name] = String.fromCodePoint(symbol.code);
       }
     });
 
-    if (!controlSymbols[action]) return;
-    const controlSymbol = controlSymbols[action];
-    const allControlSymbols = Object.values(controlSymbols);
+    if (!control_symbols[action]) return;
+    const control_symbol = control_symbols[action];
+    const all_control_symbols = Object.values(control_symbols);
 
 
-    editor.edit(editBuilder => {
+    editor.edit(edit_builder => {
       if (!selection.isEmpty) {
         if (action === "bold") {
           editor.setDecorations(this.boldDecoration, [{ range: selection }]);
         }
         else {
-          let newText = selectedText
+          let new_text = selectedText
             .split("")
             .map((char, index, arr) => {
               const prevChar = index > 0 ? arr[index - 1] : null;
               if (char.trim() === "") return char;
-              if (allControlSymbols.includes(char)) return "";
+              if (all_control_symbols.includes(char)) return "";
 
-              return `${controlSymbol}${char}`;
+              return `${control_symbol}${char}`;
             })
             .join("");
 
-          editBuilder.replace(selection, newText);
+          edit_builder.replace(selection, new_text);
         }
       }
       else {
-        editBuilder.insert(selection.active, controlSymbol);
+        edit_builder.insert(selection.active, control_symbol);
       }
     }).then(success => {
       if (!success) {
@@ -167,31 +167,31 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     if (!selectedText.trim() && !selection.isEmpty) return;
 
-    const controlGroup = this._groupedSymbols["control"];
-    if (!controlGroup) return;
+    const control_group = this._groupedSymbols["control"];
+    if (!control_group) return;
 
 
-    const controlSymbols: { [key: string]: string } = {};
-    controlGroup.forEach(symbol => {
+    const control_symbols: { [key: string]: string } = {};
+    control_group.forEach(symbol => {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        controlSymbols[String.fromCodePoint(symbol.code)] = symbol.name;
+        control_symbols[String.fromCodePoint(symbol.code)] = symbol.name;
       }
     });
 
-    const allControlSymbols = Object.keys(controlSymbols);
+    const all_control_symbols = Object.keys(control_symbols);
 
-    editor.edit(editBuilder => {
+    editor.edit(edit_builder => {
       if (!selection.isEmpty) {
         if (this.boldDecoration) {
           editor.setDecorations(this.boldDecoration, []);
         }
 
-        let newText = selectedText
+        let new_text = selectedText
           .split("")
-          .map(char => (allControlSymbols.includes(char) ? "" : char))
+          .map(char => (all_control_symbols.includes(char) ? "" : char))
           .join("");
 
-        editBuilder.replace(selection, newText);
+        edit_builder.replace(selection, new_text);
       }
     }).then(success => {
       if (!success) {
@@ -208,20 +208,20 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   }
 
   private _group_symbols(symbols: lsp.Symbol_Entry[]): { [key: string]: lsp.Symbol_Entry[] } {
-    const groupedSymbols: { [key: string]: lsp.Symbol_Entry[] } = {};
+    const grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {};
     symbols.forEach(symbol => {
       if (!symbol.groups || !Array.isArray(symbol.groups)) {
         return;
       }
 
       symbol.groups.forEach(group => {
-        if (!groupedSymbols[group]) {
-          groupedSymbols[group] = [];
+        if (!grouped_symbols[group]) {
+          grouped_symbols[group] = [];
         }
-        groupedSymbols[group].push(symbol);
+        grouped_symbols[group].push(symbol);
       });
     });
-    return groupedSymbols;
+    return grouped_symbols;
   }
 
   private _get_html(): string {
