@@ -197,15 +197,6 @@ proof -
     by (intro antisym Max.boundedI Max.coboundedI) simp_all
 qed
 
-
-lemma floor_sqrt_code[code]: "floor_sqrt n = Max (Set.filter (\<lambda>m. m\<^sup>2 \<le> n) {0..n})"
-proof -
-  from power2_nat_le_imp_le [of _ n]
-    have "{m. m \<le> n \<and> m\<^sup>2 \<le> n} = {m. m\<^sup>2 \<le> n}" by auto
-    then show ?thesis
-    by (simp add: floor_sqrt_def)
-qed
-
 lemma floor_sqrt_inverse_power2 [simp]: "floor_sqrt (n\<^sup>2) = n"
 proof -
   have "{m. m \<le> n} \<noteq> {}" by auto
@@ -218,6 +209,10 @@ lemma floor_sqrt_zero [simp]: "floor_sqrt 0 = 0"
   using floor_sqrt_inverse_power2 [of 0] by simp
 
 lemma floor_sqrt_one [simp]: "floor_sqrt 1 = 1"
+  using floor_sqrt_inverse_power2 [of 1] by simp
+
+lemma floor_sqrt_Suc_0 [simp]:
+  \<open>floor_sqrt (Suc 0) = 1\<close>
   using floor_sqrt_inverse_power2 [of 1] by simp
 
 lemma mono_floor_sqrt: "mono floor_sqrt"
@@ -311,12 +306,33 @@ qed
 lemma le_floor_sqrtI: "x^2 \<le> y \<Longrightarrow> x \<le> floor_sqrt y"
   by (simp add: le_floor_sqrt_iff)
 
-lemma floor_sqrt_le_iff: "floor_sqrt y \<le> x \<longleftrightarrow> (\<forall>z. z^2 \<le> y \<longrightarrow> z \<le> x)"
-  using Max.bounded_iff[OF floor_sqrt_aux] by (simp add: floor_sqrt_def)
+lemma floor_sqrt_le_iff:
+  \<open>floor_sqrt y \<le> x \<longleftrightarrow> (\<forall>z. z\<^sup>2 \<le> y \<longrightarrow> z \<le> x)\<close>
+  using Max.bounded_iff [OF floor_sqrt_aux]
+  by (simp add: floor_sqrt_def)
 
 lemma floor_sqrt_leI:
   "(\<And>z. z^2 \<le> y \<Longrightarrow> z \<le> x) \<Longrightarrow> floor_sqrt y \<le> x"
   by (simp add: floor_sqrt_le_iff)
+
+lemma floor_sqrt_less_eq_half:
+  \<open>floor_sqrt n \<le> Suc n div 2\<close>
+proof (rule floor_sqrt_leI)
+  fix m
+  assume \<open>m\<^sup>2 \<le> n\<close>
+  have \<open>m < Suc (Suc n div 2)\<close>
+  proof (rule ccontr, unfold not_less)
+    assume \<open>Suc (Suc n div 2) \<le> m\<close>
+    then have \<open>(Suc (Suc n div 2))\<^sup>2 \<le> m\<^sup>2\<close>
+      by simp
+    then have \<open>(Suc (Suc n div 2))\<^sup>2 \<le> n\<close>
+      using \<open>m\<^sup>2 \<le> n\<close> by (rule order_trans)
+    then show False
+      by (simp only: Suc_eq_plus1 power2_sum algebra_simps) auto
+  qed
+  then show \<open>m \<le> Suc n div 2\<close>
+    by simp
+qed
 
 lemma floor_sqrt_Suc:
   "floor_sqrt (Suc n) = (if \<exists>m. Suc n = m^2 then Suc (floor_sqrt n) else floor_sqrt n)"
@@ -342,5 +358,72 @@ next
     by (intro monoD[OF mono_floor_sqrt]) simp_all
   ultimately show ?thesis using asm by simp
 qed
+
+text \<open>Computation by divide and conquer\<close>
+
+definition floor_sqrt_between :: \<open>nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat\<close>
+  where floor_sqrt_between_eq:
+    \<open>floor_sqrt_between m q n =
+      (if floor_sqrt n \<in> {m..<m + q} then floor_sqrt n else 0)\<close>
+    \<comment>\<open>
+      The \<^term>\<open>0::nat\<close> is not for relevant regular computation
+      and can be chosen arbitrarily.
+    \<close>
+
+lemma floor_sqrt_between_out_of_bounds:
+  \<open>floor_sqrt_between m 0 n = 0\<close>
+  by (simp add: floor_sqrt_between_eq)
+
+lemma floor_sqrt_between_singleton:
+  \<open>floor_sqrt_between m (Suc 0) n =
+    (if m\<^sup>2 \<le> n \<and> n < (Suc m)\<^sup>2 then m else 0)\<close>
+  by (auto simp add: floor_sqrt_between_eq Suc_floor_sqrt_power2_gt floor_sqrt_unique)
+
+lemma floor_sqrt_between_rec:
+  \<open>floor_sqrt_between m q n = (
+    let
+      r = q div 2;
+      p = m + r;
+      s = p\<^sup>2
+    in
+      if s = n
+      then p
+      else if s < n
+        then floor_sqrt_between (m + r) (q - r) n
+        else floor_sqrt_between m r n
+  )\<close> if \<open>q > 0\<close>
+  using that le_floor_sqrt_iff [of \<open>m + q div 2\<close> n]
+  by (auto simp add: floor_sqrt_between_eq Let_def not_less)
+
+lemma floor_sqrt_between_code [code]:
+  \<open>floor_sqrt_between m q n = (
+    if q = 0 then 0
+    else if q = 1
+    then if m\<^sup>2 \<le> n \<and> n < (Suc m)\<^sup>2
+      then m
+      else 0
+    else
+      let
+        r = q div 2;
+        p = m + r;
+        s = p\<^sup>2
+      in
+        if s = n
+        then p
+        else if s < n
+          then floor_sqrt_between (m + r) (q - r) n
+          else floor_sqrt_between m r n
+  )\<close>
+proof -
+  consider \<open>q = 0\<close> | \<open>q = 1\<close> | \<open>q \<ge> 2\<close>
+    by (cases \<open>q \<ge> 2\<close>; cases q) simp_all
+  then show ?thesis
+    by cases
+      (simp_all add: floor_sqrt_between_out_of_bounds floor_sqrt_between_singleton floor_sqrt_between_rec)
+qed
+
+lemma [code]:
+  \<open>floor_sqrt n = floor_sqrt_between 0 (Suc (Suc n div 2)) n\<close>
+  using floor_sqrt_less_eq_half [of n] by (simp add: floor_sqrt_between_eq)
 
 end

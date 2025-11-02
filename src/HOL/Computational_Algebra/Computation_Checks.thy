@@ -5,15 +5,19 @@
 section \<open>Computation checks\<close>
 
 theory Computation_Checks
-imports Primes Polynomial_Factorial
+imports Primes Polynomial_Factorial "HOL-Library.Discrete_Functions" "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>
-  @{lemma \<open>prime (997::nat)\<close> by eval}
+  @{lemma \<open>floor_sqrt 16476148165462159 = 128359449\<close> by eval}
 \<close>
 
 text \<open>
-  @{lemma \<open>prime (997::int)\<close> by eval}
+  @{lemma \<open>prime (997 :: nat)\<close> by eval}
+\<close>
+
+text \<open>
+  @{lemma \<open>prime (997 :: int)\<close> by eval}
 \<close>
 
 text \<open>

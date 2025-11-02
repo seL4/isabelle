@@ -1061,7 +1061,26 @@ lemmas prime_divprod_pow_nat = prime_elem_divprod_pow[where ?'a = nat]
 lemmas prime_exp = prime_elem_power_iff[where ?'a = nat]
 
 text \<open>Code generation\<close>
-  
+
+lemma divisor_less_eq_half_nat:
+  \<open>m \<le> n div 2\<close> if \<open>m dvd n\<close> \<open>m < n\<close> for m n :: nat
+  using that by (auto simp add: less_eq_div_iff_mult_less_eq)
+
+lemma divisor_less_eq_half_int:
+  \<open>k \<le> l div 2\<close> if \<open>k dvd l\<close> \<open>k < l\<close> \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> for k l :: int
+proof -
+  define m n where \<open>m = nat \<bar>k\<bar>\<close> \<open>n = nat \<bar>l\<bar>\<close>
+  with \<open>l \<ge> 0\<close> \<open>k \<ge> 0\<close> have \<open>k = int m\<close> \<open>l = int n\<close>
+    by simp_all
+  with that show ?thesis
+    using divisor_less_eq_half_nat [of m n] by simp
+qed
+
+lemma
+  \<open>prime n \<longleftrightarrow> 1 < n \<and> (\<forall>n\<in>{1<..n div 2}. \<not> n dvd p)\<close>
+
+thm prime_nat_iff prime_int_iff [no_vars]
+
 context
 begin
 
