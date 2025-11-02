@@ -537,8 +537,8 @@ class Language_Server(
           case LSP.Symbols_Convert_Request(id, text, boolean) =>
             symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
-          case LSP.Symbols_Panel_Request => symbols_panel_request()
-          case LSP.Documentation_Request => documentation_request()
+          case LSP.Symbols_Panel_Request() => symbols_panel_request()
+          case LSP.Documentation_Request() => documentation_request()
           case LSP.Sledgehammer_Provers_Request() => sledgehammer.provers()
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)
           case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
