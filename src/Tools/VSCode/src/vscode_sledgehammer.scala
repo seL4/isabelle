@@ -21,13 +21,13 @@ class VSCode_Sledgehammer(server: Language_Server) {
   }
 
   private def consume_status(status: Query_Operation.Status): Unit = {
-    val msg =
+    val message =
       status match {
         case Query_Operation.Status.waiting => "Waiting for evaluation of context ..."
         case Query_Operation.Status.running => "Sledgehammering ..."
         case Query_Operation.Status.finished => "Finished"
       }
-    server.channel.write(LSP.Sledgehammer_Status(msg))
+    server.channel.write(LSP.Sledgehammer_Status(message))
   }
 
   private def consume_output(output: Editor.Output): Unit = {
