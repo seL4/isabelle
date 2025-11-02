@@ -1079,10 +1079,6 @@ lemma prime_int_naive [code]:
   "prime_int p \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in>{1<..<p}. \<not> n dvd p)"
   by (auto simp add: prime_int_iff')
 
-lemma "prime(997::nat)" by eval
-
-lemma "prime(997::int)" by eval
-  
 end
 
 end

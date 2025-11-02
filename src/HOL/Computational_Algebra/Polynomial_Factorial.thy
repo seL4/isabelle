@@ -750,8 +750,4 @@ lemmas Gcd_poly_set_eq_fold [code] =
 lemmas Lcm_poly_set_eq_fold [code] =
   Lcm_set_eq_fold [where ?'a = "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"]
 
-text \<open>Example:
-  @{lemma "Lcm {[:1, 2, 3:], [:2, 3, 4:]} = [:[:2:], [:7:], [:16:], [:17:], [:12 :: int:]:]" by eval}
-\<close>
-  
 end

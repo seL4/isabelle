@@ -152,6 +152,8 @@ session "HOL-Computational_Algebra" (main timing) in "Computational_Algebra" = "
     Computational_Algebra
     (*conflicting type class instantiations and dependent applications*)
     Field_as_Ring
+    (*checks that computation works*)
+    Computation_Checks
   document_files
     "root.tex"
     "root.bib"
