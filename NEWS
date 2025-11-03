@@ -197,6 +197,9 @@ HOL-Library.Discrete_Functions.floor_sqrt.
 * More efficient default implementation for "prime" predicate on types nat
 and int.
 
+* Code generation for set intervals based on a type class covering nat, int
+and word types. INCOMPATIBILITY.
+
 * Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
 
 * Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into
