@@ -20,7 +20,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-symbols"
 
   private _view?: WebviewView
-  private _groupedSymbols: { [key: string]: lsp.Symbol_Entry[] } = {}
+  private _grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {}
   private _initialized = false;
   private _abbrevs: [string, string][] = [];
 
@@ -42,7 +42,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
       }
 
-      this._groupedSymbols = this._group_symbols(params.symbols);
+      this._grouped_symbols = this._group_symbols(params.symbols);
       this._abbrevs = params.abbrevs ?? [];
       if (this._view) {
         this._update_webview();
@@ -66,7 +66,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     view.webview.html = this._get_html()
 
-    if (Object.keys(this._groupedSymbols).length > 0) {
+    if (Object.keys(this._grouped_symbols).length > 0) {
       this._update_webview();
     }
 
@@ -96,7 +96,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     if (!selectedText.trim() && !selection.isEmpty) return;
 
-    const control_group = this._groupedSymbols["control"];
+    const control_group = this._grouped_symbols["control"];
     if (!control_group) return;
 
     const control_symbols: { [key: string]: string } = {};
@@ -167,7 +167,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     if (!selectedText.trim() && !selection.isEmpty) return;
 
-    const control_group = this._groupedSymbols["control"];
+    const control_group = this._grouped_symbols["control"];
     if (!control_group) return;
 
 
@@ -202,7 +202,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   private _update_webview(): void {
     this._view.webview.postMessage({
       command: "update",
-      symbols: this._groupedSymbols,
+      symbols: this._grouped_symbols,
       abbrevs: this._abbrevs,
     });
   }
