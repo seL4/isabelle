@@ -385,7 +385,7 @@ object GUI {
 
   def tooltip_lines(text: String): String =
     if (text == null || text == "") null
-    else Style_HTML.enclose_text(text)
+    else Style_HTML.enclose(split_lines(text).map(Style_HTML.make_text).mkString("<br/>"))
 
 
   /* icon */
