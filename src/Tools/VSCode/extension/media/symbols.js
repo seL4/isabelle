@@ -5,14 +5,6 @@
   let control_sup = "";
   let control_sub = "";
 
-  function decode_html_entity(code) {
-    try {
-      return String.fromCodePoint(code);
-    } catch (error) {
-      return "?";
-    }
-  }
-
   function create_search_field() {
     const search_container = document.createElement("div");
     search_container.classList.add("search-container");
@@ -57,16 +49,13 @@
     }
     else {
       matching_symbols.slice(0, search_limit).forEach(symbol => {
-        const decoded_symbol = decode_html_entity(symbol.code);
-        if (!decoded_symbol) return;
-
         const button = document.createElement("div");
         button.classList.add("symbol-button");
-        button.textContent = decoded_symbol;
+        button.textContent = symbol.decoded;
         button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
         button.addEventListener("click", () => {
-          vscode.postMessage({ command: "insert_symbol", symbol: decoded_symbol });
+          vscode.postMessage({ command: "insert_symbol", symbol: symbol.decoded });
         });
 
         results_container.appendChild(button);
@@ -199,10 +188,9 @@
         control_buttons.forEach(action => {
           const control_symbol = grouped_symbols[group].find(s => s.name === action);
           if (control_symbol) {
-            const decoded_symbol = decode_html_entity(control_symbol.code);
             const button = document.createElement("button");
             button.classList.add("control-button");
-            button.textContent = decoded_symbol;
+            button.textContent = control_symbol.decoded;
             button.title = action.charAt(0).toUpperCase() + action.slice(1);
             button.addEventListener("click", () => {
               vscode.postMessage({ command: "apply_control", action: action });
@@ -215,8 +203,6 @@
       grouped_symbols[group].forEach(symbol => {
         if (!symbol.code) return;
         if (["sup", "sub", "bold"].includes(symbol.name)) return;
-        const decoded_symbol = decode_html_entity(symbol.code);
-        if (!decoded_symbol) return;
 
         const button = document.createElement("div");
         if (group === "arrow") {
@@ -225,11 +211,11 @@
         else {
           button.classList.add("symbol-button");
         }
-        button.textContent = decoded_symbol;
+        button.textContent = symbol.decoded;
         button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
 
         button.addEventListener("click", () => {
-          vscode.postMessage({ command: "insert_symbol", symbol: decoded_symbol });
+          vscode.postMessage({ command: "insert_symbol", symbol: symbol.decoded });
         });
 
         group_content.appendChild(button);
