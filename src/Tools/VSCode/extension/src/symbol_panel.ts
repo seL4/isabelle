@@ -22,7 +22,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   private _view?: WebviewView
   private _groupedSymbols: { [key: string]: lsp.Symbol_Entry[] } = {}
   private _initialized = false;
-  private _abbrevsFromThy: [string, string][] = [];
+  private _abbrevs: [string, string][] = [];
 
   constructor(
     private readonly _extension_uri: Uri,
@@ -43,7 +43,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
       }
 
       this._groupedSymbols = this._group_symbols(params.symbols);
-      this._abbrevsFromThy = params.abbrevs_from_Thy ?? [];
+      this._abbrevs = params.abbrevs ?? [];
       if (this._view) {
         this._update_webview();
       }
@@ -203,7 +203,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     this._view.webview.postMessage({
       command: "update",
       symbols: this._groupedSymbols,
-      abbrevs_from_Thy: this._abbrevsFromThy,
+      abbrevs: this._abbrevs,
     });
   }
 

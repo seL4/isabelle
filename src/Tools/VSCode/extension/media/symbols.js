@@ -1,7 +1,7 @@
 (function () {
   const vscode = acquireVsCodeApi();
   let all_symbols = {};
-  let all_abbrevs_from_thy = [];
+  let all_abbrevs = [];
   let control_sup = "";
   let control_sub = "";
 
@@ -165,16 +165,16 @@
     });
   }
 
-  function render_symbols(grouped_symbols, abbrevs_from_thy) {
+  function render_symbols(grouped_symbols, abbrevs) {
     const container = document.getElementById("symbols-container");
     container.innerHTML = "";
 
     all_symbols = grouped_symbols;
-    all_abbrevs_from_thy = abbrevs_from_thy || [];
+    all_abbrevs = abbrevs || [];
 
     extract_control_symbols(grouped_symbols);
 
-    vscode.setState({ symbols: grouped_symbols, abbrevs_from_Thy: all_abbrevs_from_thy });
+    vscode.setState({ symbols: grouped_symbols, all_abbrevs });
 
     if (!grouped_symbols || Object.keys(grouped_symbols).length === 0) {
       container.innerHTML = "<p>No symbols available.</p>";
@@ -275,7 +275,7 @@
     abbrevs_content.classList.add("tab-content", "hidden");
     abbrevs_content.id = "abbrevs-tab-content";
 
-    all_abbrevs_from_thy
+    all_abbrevs
       .filter(([abbr, symbol]) => symbol && symbol.trim() !== "" && !/^[a-zA-Z0-9 _-]+$/.test(symbol)) 
       .forEach(([abbr, symbol]) => {
         const btn = document.createElement("div");
@@ -339,14 +339,14 @@
 
   window.addEventListener("message", event => {
     if (event.data.command === "update" && event.data.symbols) {
-      render_symbols(event.data.symbols, event.data.abbrevs_from_Thy);
+      render_symbols(event.data.symbols, event.data.abbrevs);
     }
   });
 
   window.onload = function () {
     const state = vscode.getState();
     if (state && state.symbols) {
-      render_symbols(state.symbols, state.abbrevs_from_Thy);
+      render_symbols(state.symbols, state.abbrevs);
     }
   };
 

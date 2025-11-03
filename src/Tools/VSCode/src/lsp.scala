@@ -732,7 +732,7 @@ object LSP {
       Notification("PIDE/symbols_response",
         JSON.Object(
           "symbols" -> symbols.entries.map(symbol),
-          "abbrevs_from_Thy" -> (for ((a, b) <- abbrevs) yield List(a, b))))
+          "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
     }
   }
 

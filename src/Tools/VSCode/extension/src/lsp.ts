@@ -153,7 +153,7 @@ export interface Symbol_Entry {
 
 export interface Symbols_Response {
   symbols: Symbol_Entry [];
-  abbrevs_from_Thy: [string, string][];
+  abbrevs: [string, string][];
 }
 
 export const symbols_request_type =
