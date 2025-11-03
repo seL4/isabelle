@@ -717,23 +717,21 @@ object LSP {
 
   object Symbols_Response {
     def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {
-      def json(symbol: Symbol.Entry): JSON.T = {
-        val decoded = Symbol.decode(symbol.symbol)
+      def symbol(entry: Symbol.Entry): JSON.T = {
         JSON.Object(
-          "symbol" -> symbol.symbol,
-          "name" -> symbol.name,
-          "argument" -> symbol.argument.toString,
-          "decoded" -> decoded) ++
-        JSON.optional("code", symbol.code) ++
-        JSON.optional("font", symbol.font) ++
+          "symbol" -> entry.symbol,
+          "name" -> entry.name,
+          "argument" -> entry.argument.toString,
+          "decoded" -> Symbol.decode(entry.symbol)) ++
+        JSON.optional("code", entry.code) ++
+        JSON.optional("font", entry.font) ++
         JSON.Object(
-          "groups" -> symbol.groups,
-          "abbrevs" -> symbol.abbrevs)
+          "groups" -> entry.groups,
+          "abbrevs" -> entry.abbrevs)
       }
-
       Notification("PIDE/symbols_response",
         JSON.Object(
-          "symbols" -> symbols.entries.map(json),
+          "symbols" -> symbols.entries.map(symbol),
           "abbrevs_from_Thy" -> (for ((a, b) <- abbrevs) yield List(a, b))))
     }
   }
