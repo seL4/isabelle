@@ -150,6 +150,37 @@
     const content = document.createElement("div");
     content.classList.add("content");
 
+    const abbrevs_tab = document.createElement("button");
+    abbrevs_tab.classList.add("tab");
+    abbrevs_tab.textContent = "Abbrevs";
+    abbrevs_tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      abbrevs_tab.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
+      document.getElementById("abbrevs-tab-content").classList.remove("hidden");
+    });
+    tabs.appendChild(abbrevs_tab);
+
+    const abbrevs_content = document.createElement("div");
+    abbrevs_content.classList.add("tab-content", "hidden");
+    abbrevs_content.id = "abbrevs-tab-content";
+
+    all_abbrevs
+      .filter(([abbr, symbol]) => symbol && symbol.trim() !== "" && !/^[a-zA-Z0-9 _-]+$/.test(symbol)) 
+      .forEach(([abbr, symbol]) => {
+        const btn = document.createElement("div");
+        btn.classList.add("abbrevs-button");
+        btn.innerHTML = render_with_effects(symbol); 
+        btn.title = abbr;
+        btn.addEventListener("click", () => {
+          vscode.postMessage({ command: "insert_symbol", symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
+        });
+
+        abbrevs_content.appendChild(btn);
+      });
+
+    content.appendChild(abbrevs_content);
+
     Object.keys(grouped_symbols).forEach((group, index) => {
       const tab = document.createElement("button");
       tab.classList.add("tab");
@@ -216,37 +247,6 @@
 
       content.appendChild(group_content);
     });
-
-    const abbrevs_tab = document.createElement("button");
-    abbrevs_tab.classList.add("tab");
-    abbrevs_tab.textContent = "Abbrevs";
-    abbrevs_tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      abbrevs_tab.classList.add("active");
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
-      document.getElementById("abbrevs-tab-content").classList.remove("hidden");
-    });
-    tabs.appendChild(abbrevs_tab);
-
-    const abbrevs_content = document.createElement("div");
-    abbrevs_content.classList.add("tab-content", "hidden");
-    abbrevs_content.id = "abbrevs-tab-content";
-
-    all_abbrevs
-      .filter(([abbr, symbol]) => symbol && symbol.trim() !== "" && !/^[a-zA-Z0-9 _-]+$/.test(symbol)) 
-      .forEach(([abbr, symbol]) => {
-        const btn = document.createElement("div");
-        btn.classList.add("abbrevs-button");
-        btn.innerHTML = render_with_effects(symbol); 
-        btn.title = abbr;
-        btn.addEventListener("click", () => {
-          vscode.postMessage({ command: "insert_symbol", symbol: convert_symbol_with_effects(sanitize_symbol_for_insert(symbol)) });
-        });
-
-        abbrevs_content.appendChild(btn);
-      });
-
-    content.appendChild(abbrevs_content);
 
     const search_tab = document.createElement("button");
     search_tab.classList.add("tab");
