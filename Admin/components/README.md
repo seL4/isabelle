@@ -38,11 +38,13 @@ machines are as follows:
       - macOS 13 Ventura (`mini3` Mac14,12 -- MacMini M2 Pro, 6+4 cores)
       - macOS 14 Sonoma (`mini2` Macmini8,1, 6 cores)
       - macOS 15 Sequoia (`hattusa` Mac16,11 -- MacMini M4 Pro, 10+4 cores)
+      - macOS 26 Tahoe (`hattusa` Mac16,11 -- MacMini M4 Pro, 10+4 cores)
   * `arm64-darwin`
       - **macOS 12 Monterey** (`assur` Macmini9,1 -- MacMini M1, 4+4 cores)
       - macOS 13 Ventura (`mini3` Mac14,12 -- MacMini M2 Pro, 6+4 cores)
       - macOS 14 Sonoma (`studio1` Mac13,2 M1 Ultra, 16+4 cores)
       - macOS 15 Sequoia (`hattusa` Mac16,11 -- MacMini M4 Pro, 10+4 cores)
+      - macOS 26 Tahoe (`hattusa` Mac16,11 -- MacMini M4 Pro, 10+4 cores)
 
   * `x86_64-windows`
       - Windows Server 2019 (minimum for Java ZGC)
