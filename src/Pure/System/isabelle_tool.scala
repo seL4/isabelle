@@ -162,6 +162,7 @@ class Tools extends Isabelle_Scala_Tools(
   Update_Then.isabelle_tool,
   Update_Theorems.isabelle_tool,
   Update_Tool.isabelle_tool,
+  isabelle.find_facts.Find_Facts.isabelle_tool2,
   isabelle.mirabelle.Mirabelle.isabelle_tool,
   isabelle.vscode.VSCode_Main.isabelle_tool1,
   isabelle.vscode.VSCode_Main.isabelle_tool2)
@@ -215,7 +216,6 @@ class Admin_Tools extends Isabelle_Scala_Tools(
   Component_Zipperposition.isabelle_tool,
   Component_Zstd.isabelle_tool,
   Components.isabelle_tool,
-  isabelle.find_facts.Find_Facts.isabelle_tool2,
   isabelle.vscode.Component_VSCode.isabelle_tool,
   isabelle.vscode.Component_VSCodium.isabelle_tool1,
   isabelle.vscode.Component_VSCodium.isabelle_tool2)
