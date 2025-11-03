@@ -721,13 +721,12 @@ object LSP {
         JSON.Object(
           "symbol" -> entry.symbol,
           "name" -> entry.name,
+          "decoded" -> Symbol.decode(entry.symbol),
           "argument" -> entry.argument.toString,
-          "decoded" -> Symbol.decode(entry.symbol)) ++
-        JSON.optional("code", entry.code) ++
-        JSON.optional("font", entry.font) ++
-        JSON.Object(
           "groups" -> entry.groups,
-          "abbrevs" -> entry.abbrevs)
+          "abbrevs" -> entry.abbrevs) ++
+        JSON.optional("code", entry.code) ++
+        JSON.optional("font", entry.font)
       }
       Notification("PIDE/symbols_response",
         JSON.Object(

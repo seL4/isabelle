@@ -141,14 +141,14 @@ export const preview_response_type =
 /* symbols */
 
 export interface Symbol_Entry {
+  symbol: string;
   name: string;
+  decoded: string;
+  argument: string;
   abbrevs: string[];
   groups: string[];
   code?: number;
   font?: string;
-  symbol: string;
-  argument: string;
-  decoded: string;
 }
 
 export interface Symbols_Response {
