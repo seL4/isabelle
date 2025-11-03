@@ -86,9 +86,9 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     const document = editor.document;
     const selection = editor.selection;
-    let selectedText = document.getText(selection);
 
-    if (!selectedText.trim() && !selection.isEmpty) return;
+    let selected_text = document.getText(selection);
+    if (!selected_text.trim() && !selection.isEmpty) return;
 
     const control_group = this._grouped_symbols["control"];
     if (!control_group) return;
@@ -108,10 +108,10 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
         if (action === "bold") {
-          editor.setDecorations(this.boldDecoration, [{ range: selection }]);
+          editor.setDecorations(this.bold_decoration, [{ range: selection }]);
         }
         else {
-          let new_text = selectedText
+          let new_text = selected_text
             .split("")
             .map((char, index, arr) => {
               const prevChar = index > 0 ? arr[index - 1] : null;
@@ -138,13 +138,11 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   private _insert_symbol(symbol: string): void {
     const editor = window.activeTextEditor;
     if (editor) {
-      editor.edit(editBuilder => {
-        editBuilder.insert(editor.selection.active, symbol);
-      });
+      editor.edit(edit_builder => edit_builder.insert(editor.selection.active, symbol));
     }
   }
 
-  private boldDecoration = window.createTextEditorDecorationType({
+  private bold_decoration = window.createTextEditorDecorationType({
     fontWeight: "bold",
     textDecoration: "none"
   });
@@ -157,13 +155,12 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     const document = editor.document;
     const selection = editor.selection;
-    let selectedText = document.getText(selection);
 
-    if (!selectedText.trim() && !selection.isEmpty) return;
+    let selected_text = document.getText(selection);
+    if (!selected_text.trim() && !selection.isEmpty) return;
 
     const control_group = this._grouped_symbols["control"];
     if (!control_group) return;
-
 
     const control_symbols: { [key: string]: string } = {};
     for (const symbol of control_group) {
@@ -176,11 +173,11 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
-        if (this.boldDecoration) {
-          editor.setDecorations(this.boldDecoration, []);
+        if (this.bold_decoration) {
+          editor.setDecorations(this.bold_decoration, []);
         }
 
-        let new_text = selectedText
+        let new_text = selected_text
           .split("")
           .map(char => (all_control_symbols.includes(char) ? "" : char))
           .join("");
