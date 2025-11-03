@@ -6,7 +6,7 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2025-1
 -------------------------------
 
-* August 2025: Diana Korchmar and and Balazs Toth, LMU München
+* August 2025: Diana Korchmar and Balazs Toth, LMU München
   Initial design and implementation of various add-ons for Isabelle/VSCode:
   panels for Documentation, Isabelle Symbols, and Sledgehammer.
 
