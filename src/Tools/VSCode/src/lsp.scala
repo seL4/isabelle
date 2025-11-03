@@ -222,8 +222,7 @@ object LSP {
     def unapply(json: JSON.T): Option[Line.Node_Position] =
       for {
         doc <- JSON.value(json, "textDocument")
-        uri <- JSON.string(doc, "uri")
-        if Url.is_wellformed_file(uri)
+        uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
         pos_json <- JSON.value(json, "position")
         pos <- Position.unapply(pos_json)
       } yield Line.Node_Position(Url.absolute_file_name(uri), pos)
@@ -278,8 +277,7 @@ object LSP {
         case Notification("textDocument/didOpen", Some(params)) =>
           for {
             doc <- JSON.value(params, "textDocument")
-            uri <- JSON.string(doc, "uri")
-            if Url.is_wellformed_file(uri)
+            uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
             lang <- JSON.string(doc, "languageId")
             version <- JSON.long(doc, "version")
             text <- JSON.string(doc, "text")
@@ -301,8 +299,7 @@ object LSP {
         case Notification("textDocument/didChange", Some(params)) =>
           for {
             doc <- JSON.value(params, "textDocument")
-            uri <- JSON.string(doc, "uri")
-            if Url.is_wellformed_file(uri)
+            uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
             version <- JSON.long(doc, "version")
             changes <- JSON.list(params, "contentChanges", unapply_change)
           } yield (Url.absolute_file(uri), version, changes)
@@ -316,8 +313,7 @@ object LSP {
         case Notification(method, Some(params)) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
-            uri <- JSON.string(doc, "uri")
-            if Url.is_wellformed_file(uri)
+            uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
           } yield Url.absolute_file(uri)
         case _ => None
       }
@@ -528,8 +524,7 @@ object LSP {
         case RequestMessage(id, "textDocument/codeAction", Some(params)) =>
           for {
             doc <- JSON.value(params, "textDocument")
-            uri <- JSON.string(doc, "uri")
-            if Url.is_wellformed_file(uri)
+            uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
             case Range(range) <- JSON.value(params, "range")
           } yield (id, Url.absolute_file(uri), range)
         case _ => None
@@ -568,10 +563,8 @@ object LSP {
     def unapply(json: JSON.T): Option[JFile] =
       json match {
         case Notification("PIDE/decoration_request", Some(params)) =>
-          for {
-            uri <- JSON.string(params, "uri")
-            if Url.is_wellformed_file(uri)
-          } yield Url.absolute_file(uri)
+          for (uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri))
+            yield Url.absolute_file(uri)
         case _ => None
       }
   }
@@ -684,8 +677,7 @@ object LSP {
       json match {
         case Notification("PIDE/preview_request", Some(params)) =>
           for {
-            uri <- JSON.string(params, "uri")
-            if Url.is_wellformed_file(uri)
+            uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
             column <- JSON.int(params, "column")
           } yield (Url.absolute_file(uri), column)
         case _ => None
