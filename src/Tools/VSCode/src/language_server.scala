@@ -475,7 +475,7 @@ class Language_Server(
     val syntax =
       resources.get_caret().map(_.model.syntax())
         .getOrElse(session.resources.session_base.overall_syntax)
-    channel.write(LSP.Symbols_Response(Symbol.symbols, syntax.abbrevs))
+    channel.write(LSP.Symbols_Request.reply(Symbol.symbols, syntax.abbrevs))
   }
 
 

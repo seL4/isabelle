@@ -682,10 +682,8 @@ object LSP {
           } yield (Url.absolute_file(uri), column)
         case _ => None
       }
-  }
 
-  object Preview_Response {
-    def apply(file: JFile, column: Int, label: String, content: String): JSON.T =
+    def reply(file: JFile, column: Int, label: String, content: String): JSON.T =
       Notification("PIDE/preview_response",
         JSON.Object(
           "uri" -> Url.print_file(file),
@@ -697,27 +695,23 @@ object LSP {
 
   /* symbols */
 
-  object Symbols_Request
-    extends Notification0("PIDE/symbols_request")
+  object Symbols_Request extends Notification0("PIDE/symbols_request") {
+    def reply_symbol(entry: Symbol.Entry): JSON.T =
+      JSON.Object(
+        "symbol" -> entry.symbol,
+        "name" -> entry.name,
+        "decoded" -> Symbol.decode(entry.symbol),
+        "argument" -> entry.argument.toString,
+        "groups" -> entry.groups,
+        "abbrevs" -> entry.abbrevs) ++
+      JSON.optional("code", entry.code) ++
+      JSON.optional("font", entry.font)
 
-  object Symbols_Response {
-    def apply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T = {
-      def symbol(entry: Symbol.Entry): JSON.T = {
-        JSON.Object(
-          "symbol" -> entry.symbol,
-          "name" -> entry.name,
-          "decoded" -> Symbol.decode(entry.symbol),
-          "argument" -> entry.argument.toString,
-          "groups" -> entry.groups,
-          "abbrevs" -> entry.abbrevs) ++
-        JSON.optional("code", entry.code) ++
-        JSON.optional("font", entry.font)
-      }
+    def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
       Notification("PIDE/symbols_response",
         JSON.Object(
-          "symbols" -> symbols.entries.map(symbol),
+          "symbols" -> symbols.entries.map(reply_symbol),
           "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
-    }
   }
 
 
