@@ -13,28 +13,6 @@
     }
   }
 
-  function format_group_name(group) {
-    const group_name_map = {
-      "Z_Notation": "Z Notation",
-      "Control_Block": "Control Block",
-      "Arrow": "Arrow",
-      "Control": "Control",
-      "Digit": "Digit",
-      "Document": "Document",
-      "Greek": "Greek",
-      "Icon": "Icon",
-      "Letter": "Letter",
-      "Logic": "Logic",
-      "Operator": "Operator",
-      "Punctuation": "Punctuation",
-      "Relation": "Relation",
-      "Unsorted": "Unsorted",
-      "Search": "Search"
-    };
-
-    return group_name_map[group] || group.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  }
-
   function create_search_field() {
     const search_container = document.createElement("div");
     search_container.classList.add("search-container");
@@ -190,7 +168,7 @@
     Object.keys(grouped_symbols).forEach((group, index) => {
       const tab = document.createElement("button");
       tab.classList.add("tab");
-      tab.textContent = format_group_name(group);
+      tab.textContent = group.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
       if (index === 0) tab.classList.add("active");
 
       tab.addEventListener("click", () => {
