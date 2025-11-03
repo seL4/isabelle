@@ -1,4 +1,5 @@
 /*  Author:     Diana Korchmar, LMU Muenchen
+    Author:     Makarius
 
 Isabelle symbols panel as web view.
 */
@@ -36,15 +37,12 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   setup(language_client: LanguageClient) {
     language_client.onNotification(lsp.symbols_response_type, params => {
-      if (!params?.symbols || !Array.isArray(params.symbols)) {
-        return;
-
-      }
-
-      this._grouped_symbols = this._group_symbols(params.symbols);
-      this._abbrevs = params.abbrevs ?? [];
-      if (this._view) {
-        this._update_webview();
+      if (params?.symbols && Array.isArray(params.symbols)) {
+        this._grouped_symbols = this._group_symbols(params.symbols);
+        this._abbrevs = params.abbrevs ?? [];
+        if (this._view) {
+          this._update_webview();
+        }
       }
     });
   }
@@ -206,15 +204,13 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
   private _group_symbols(symbols: lsp.Symbol_Entry[]): { [key: string]: lsp.Symbol_Entry[] } {
     const grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {};
     for (const symbol of symbols) {
-      if (!symbol.groups || !Array.isArray(symbol.groups)) {
-        return;
-      }
-
-      for (const group of symbol.groups) {
-        if (!grouped_symbols[group]) {
-          grouped_symbols[group] = [];
+      if (symbol.groups && Array.isArray(symbol.groups)) {
+        for (const group of symbol.groups) {
+          if (!grouped_symbols[group]) {
+            grouped_symbols[group] = [];
+          }
+          grouped_symbols[group].push(symbol);
         }
-        grouped_symbols[group].push(symbol);
       }
     }
     return grouped_symbols;
