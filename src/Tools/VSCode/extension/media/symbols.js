@@ -5,6 +5,14 @@
   let control_sup = "";
   let control_sub = "";
 
+  function symbol_tooltip(symbol) {
+    const res = [symbol.symbol]
+    for (const a of symbol.abbrevs) {
+      res.push(`\nabbrev: ${a}`);
+    }
+    return res.join("")
+  }
+
   function create_search_field() {
     const search_container = document.createElement("div");
     search_container.classList.add("search-container");
@@ -50,7 +58,7 @@
         const button = document.createElement("div");
         button.classList.add("symbol-button");
         button.textContent = symbol.decoded;
-        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
+        button.setAttribute("data-tooltip", symbol_tooltip(symbol));
         button.addEventListener("click", () => {
           vscode.postMessage({ command: "insert_symbol", symbol: symbol.decoded });
         });
@@ -236,8 +244,7 @@
           button.classList.add("symbol-button");
         }
         button.textContent = symbol.decoded;
-        button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
-
+        button.setAttribute("data-tooltip", symbol_tooltip(symbol));
         button.addEventListener("click", () => {
           vscode.postMessage({ command: "insert_symbol", symbol: symbol.decoded });
         });
