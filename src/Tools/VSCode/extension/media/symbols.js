@@ -174,10 +174,7 @@
         const reset_button = document.createElement("button");
         reset_button.classList.add("reset-button");
         reset_button.textContent = "Reset";
-
-        reset_button.addEventListener("click", () => {
-          vscode.postMessage({ command: "reset_control_symbols" });
-        });
+        reset_button.addEventListener("click", () => vscode.postMessage({ command: "reset_control" }));
         group_content.appendChild(reset_button);
 
         const control_buttons = ["sup", "sub", "bold"];

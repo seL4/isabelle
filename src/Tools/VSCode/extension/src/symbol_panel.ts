@@ -73,16 +73,16 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
       if (message.command === "insert_symbol") {
         this._insert_symbol(message.symbol);
       }
-      else if (message.command === "reset_control_symbols") {
-        this._reset_control_symbols();
+      else if (message.command === "reset_control") {
+        this._reset_control();
       }
       else if (message.command === "apply_control") {
-        this._apply_control_effect(message.action);
+        this._apply_control(message.action);
       }
     });
   }
 
-  private _apply_control_effect(action: string): void {
+  private _apply_control(action: string): void {
     const editor = window.activeTextEditor;
     if (!editor) return;
 
@@ -151,7 +151,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     textDecoration: "none"
   });
 
-  private _reset_control_symbols(): void {
+  private _reset_control(): void {
     const editor = window.activeTextEditor;
     if (!editor) {
       return;
