@@ -152,7 +152,7 @@ export interface Symbol_Entry {
 }
 
 export interface Symbols_Response {
-  symbols: Symbol_Entry [];
+  symbols: Symbol_Entry[];
   abbrevs: [string, string][];
 }
 
