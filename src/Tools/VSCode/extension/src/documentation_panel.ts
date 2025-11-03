@@ -21,7 +21,6 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 
   private _view?: WebviewView;
   private _documentation_sections: any[] = [];
-  private _initialized = false;
 
   constructor(
     private readonly _extension_uri: Uri,
@@ -70,8 +69,6 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
         this._open_document(message.platform_path);
       }
     });
-
-    this._initialized = true;
   }
 
   private _update_webview(): void {

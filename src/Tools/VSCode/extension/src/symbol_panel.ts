@@ -21,7 +21,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   private _view?: WebviewView
   private _grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {}
-  private _initialized = false;
   private _abbrevs: [string, string][] = [];
 
   constructor(
@@ -81,9 +80,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
         this._apply_control_effect(message.action);
       }
     });
-
-
-    this._initialized = true;
   }
 
   private _apply_control_effect(action: string): void {
