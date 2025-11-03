@@ -50,8 +50,8 @@ machines are as follows:
       - **Windows 10**
       - Windows 11
   * `x86_64-cygwin`
-      - **Cygwin 3.5.x**
-        https://isabelle.sketis.net/cygwin_2025 (`x86_64/release`)
+      - **Cygwin 3.6.x**
+        https://isabelle.sketis.net/cygwin_2025-1 (`x86_64/release`)
 
 Multi-platform tools require thorough testing on all platforms: base-line and
 latest versions. It "works for me on my system" is not sufficient for the
