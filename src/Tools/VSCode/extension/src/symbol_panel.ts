@@ -100,11 +100,11 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     if (!control_group) return;
 
     const control_symbols: { [key: string]: string } = {};
-    control_group.forEach(symbol => {
+    for (const symbol of control_group) {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
         control_symbols[symbol.name] = String.fromCodePoint(symbol.code);
       }
-    });
+    }
 
     if (!control_symbols[action]) return;
     const control_symbol = control_symbols[action];
@@ -172,11 +172,11 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
 
     const control_symbols: { [key: string]: string } = {};
-    control_group.forEach(symbol => {
+    for (const symbol of control_group) {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
         control_symbols[String.fromCodePoint(symbol.code)] = symbol.name;
       }
-    });
+    }
 
     const all_control_symbols = Object.keys(control_symbols);
 
@@ -209,18 +209,18 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   private _group_symbols(symbols: lsp.Symbol_Entry[]): { [key: string]: lsp.Symbol_Entry[] } {
     const grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {};
-    symbols.forEach(symbol => {
+    for (const symbol of symbols) {
       if (!symbol.groups || !Array.isArray(symbol.groups)) {
         return;
       }
 
-      symbol.groups.forEach(group => {
+      for (const group of symbol.groups) {
         if (!grouped_symbols[group]) {
           grouped_symbols[group] = [];
         }
         grouped_symbols[group].push(symbol);
-      });
-    });
+      }
+    }
     return grouped_symbols;
   }
 
