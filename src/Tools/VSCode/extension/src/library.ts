@@ -28,11 +28,6 @@ export function reverse(s: string): string
   return s.split("").reverse().join("")
 }
 
-export function has_newline(text: string)
-{
-  return text.includes("\n") || text.includes("\r")
-}
-
 
 /* settings environment */
 
