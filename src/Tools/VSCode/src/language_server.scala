@@ -471,11 +471,6 @@ class Language_Server(
 
   /* symbols */
 
-  def symbols_convert_request(id: LSP.Id, text: String, unicode: Boolean): Unit = {
-    val converted = Symbol.output(unicode, text)
-    channel.write(LSP.Symbols_Convert_Request.reply(id, converted))
-  }
-
   def symbols_request(): Unit = {
     val syntax =
       resources.get_caret().map(_.model.syntax())
@@ -526,8 +521,6 @@ class Language_Server(
           case LSP.State_Auto_Update(state_id, enabled) =>
             State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
-          case LSP.Symbols_Convert_Request(id, text, boolean) =>
-            symbols_convert_request(id, text, boolean)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
           case LSP.Symbols_Request() => symbols_request()
           case LSP.Documentation_Request() => documentation_request()
