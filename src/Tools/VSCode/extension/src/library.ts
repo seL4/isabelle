@@ -48,8 +48,3 @@ export function getenv_strict(name: string): string
   if (s) return s
   else throw new Error("Undefined Isabelle environment variable: " + quote(name))
 }
-
-export function workspace_path(path: string): string
-{
-  return getenv_strict("ISABELLE_VSCODE_WORKSPACE") + "/" + path
-}
