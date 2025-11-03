@@ -181,7 +181,7 @@
 
     content.appendChild(abbrevs_content);
 
-    Object.keys(grouped_symbols).forEach((group, index) => {
+    Object.keys(grouped_symbols).sort().forEach((group, index) => {
       const tab = document.createElement("button");
       tab.classList.add("tab");
       tab.textContent = group.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
