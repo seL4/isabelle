@@ -16,28 +16,26 @@
     const search_results = document.createElement("div");
     search_results.classList.add("search-results");
 
-    search_input.addEventListener("input", () => filterSymbols(search_input.value, search_results));
+    search_input.addEventListener("input", () => filter_symbols(search_input.value, search_results));
 
     search_container.appendChild(search_input);
     search_container.appendChild(search_results);
     return { search_container, search_results };
   }
 
-  function filterSymbols(query, results_container) {
+  function filter_symbols(query, results_container) {
     const normalized_query = query.toLowerCase().trim();
     results_container.innerHTML = "";
 
     if (normalized_query === "") return;
 
     const matching_symbols = [];
-    Object.values(all_symbols).forEach(symbolList => {
-      symbolList.forEach(symbol => {
-        if (!symbol.code) return;
-
-        if (
-          symbol.symbol.toLowerCase().includes(normalized_query) ||
-          (symbol.abbrevs && symbol.abbrevs.some(abbr => abbr.toLowerCase().includes(normalized_query)))
-        ) {
+    Object.values(all_symbols).forEach(symbol_list => {
+      symbol_list.forEach(symbol => {
+        if (symbol.code &&
+          (symbol.symbol.toLowerCase().includes(normalized_query) ||
+            (symbol.abbrevs && symbol.abbrevs.some(abbr => abbr.toLowerCase().includes(normalized_query)))))
+        {
           matching_symbols.push(symbol);
         }
       });
@@ -53,11 +51,9 @@
         button.classList.add("symbol-button");
         button.textContent = symbol.decoded;
         button.setAttribute("data-tooltip", `${symbol.symbol}\nAbbreviations: ${symbol.abbrevs.join(", ")}`);
-
         button.addEventListener("click", () => {
           vscode.postMessage({ command: "insert_symbol", symbol: symbol.decoded });
         });
-
         results_container.appendChild(button);
       });
 
