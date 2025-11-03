@@ -41,6 +41,13 @@ observed: only forced breaks are taken.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Support for screen reader technology via Java Accessibility API
+(JAAPI), for blind or visually impaired users. Tested with:
+
+  - NVDA (Windows), see https://www.nvaccess.org
+  - JAWS (Windows), see https://support.freedomscientific.com/Downloads/JAWS
+  - VoiceOver (macOS), builtin Command-F5
+
 * The command-line tool "isabelle jedit" now supports option "-o" as in
 "isabelle build", but it takes persistent preferences into account. When
 options are loaded, command-line options take precedence. When options
