@@ -290,6 +290,7 @@ sources = \
   src/Tools/VSCode/src/vscode_rendering.scala \
   src/Tools/VSCode/src/vscode_resources.scala \
   src/Tools/VSCode/src/vscode_session.scala \
+  src/Tools/VSCode/src/vscode_sledgehammer.scala \
   src/Tools/VSCode/src/vscode_spell_checker.scala \
   src/Tools/jEdit/src/active.scala \
   src/Tools/jEdit/src/base_plugin.scala \

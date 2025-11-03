@@ -10,6 +10,9 @@ package isabelle.vscode
 import isabelle._
 
 import java.util.zip.ZipFile
+import java.io.{PrintStream, OutputStream}
+
+import scala.collection.mutable
 
 
 object VSCode_Main {
@@ -167,9 +170,9 @@ object VSCode_Main {
   }
 
 
-  /* Isabelle tool wrapper */
+  /* Isabelle tool wrappers */
 
-  val isabelle_tool =
+  val isabelle_tool1 =
     Isabelle_Tool("vscode", "Isabelle/VSCode interface wrapper", Scala_Project.here,
       { args =>
         var logic_ancestor = ""
@@ -179,15 +182,13 @@ object VSCode_Main {
         var logic_requirements = false
         var uninstall = false
         var vsix_path = default_vsix_path
-        var session_dirs = List.empty[Path]
-        var include_sessions = List.empty[String]
+        val session_dirs = new mutable.ListBuffer[Path]
+        val include_sessions = new mutable.ListBuffer[String]
         var logic = ""
-        var modes = List.empty[String]
+        val modes = new mutable.ListBuffer[String]
         var no_build = false
-        var options = List.empty[String]
+        val options = new mutable.ListBuffer[String]
         var verbose = false
-
-        def add_option(opt: String): Unit = options = options ::: List(opt)
 
         val getopts = Getopts("""
 Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
@@ -224,15 +225,15 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           "R:" -> (arg => { logic = arg; logic_requirements = true }),
           "U" -> (_ => uninstall = true),
           "V:" -> (arg => vsix_path = Path.explode(arg)),
-          "d:" -> (arg => session_dirs = session_dirs ::: List(Path.explode(arg))),
-          "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+          "d:" -> (arg => session_dirs += Path.explode(arg)),
+          "i:" -> (arg => include_sessions += arg),
           "l:" -> (arg => { logic = arg; logic_requirements = false }),
-          "m:" -> (arg => modes = modes ::: List(arg)),
+          "m:" -> (arg => modes += arg),
           "n" -> (_ => no_build = true),
-          "o:" -> add_option,
-          "p:" -> (arg => add_option("process_policy=" + arg)),
-          "s" -> (_ => add_option("system_heaps=true")),
-          "u" -> (_ => add_option("system_heaps=false")),
+          "o:" -> (arg => options += arg),
+          "p:" -> (arg => options += ("process_policy=" + arg)),
+          "s" -> (_ => options += "system_heaps=true"),
+          "u" -> (_ => options += "system_heaps=false"),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -249,10 +250,84 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
-          options = options, logic = logic, logic_ancestor = logic_ancestor,
-          logic_requirements = logic_requirements, session_dirs = session_dirs,
-          include_sessions = include_sessions, modes = modes, no_build = no_build,
+          options = options.toList, logic = logic, logic_ancestor = logic_ancestor,
+          logic_requirements = logic_requirements, session_dirs = session_dirs.toList,
+          include_sessions = include_sessions.toList, modes = modes.toList, no_build = no_build,
           server_log = server_log, verbose = verbose, background = background,
           progress = app_progress).check
+      })
+
+
+  /* Isabelle tool wrapper */
+
+  val isabelle_tool2 =
+    Isabelle_Tool("vscode_server", "VSCode Language Server for PIDE", Scala_Project.here,
+      { args =>
+        try {
+          var logic_ancestor: Option[String] = None
+          var log_file: Option[Path] = None
+          var logic_requirements = false
+          val dirs = new mutable.ListBuffer[Path]
+          val include_sessions = new mutable.ListBuffer[String]
+          var logic = Isabelle_System.default_logic()
+          var modes: List[String] = Nil
+          var no_build = false
+          var options = Options.init()
+          var verbose = false
+
+          val getopts = Getopts("""
+Usage: isabelle vscode_server [OPTIONS]
+
+  Options are:
+    -A NAME      ancestor session for option -R (default: parent)
+    -L FILE      logging on FILE
+    -R NAME      build image with requirements from other sessions
+    -d DIR       include session directory
+    -i NAME      include session in name-space of theories
+    -l NAME      logic session name (default ISABELLE_LOGIC=""" +
+            quote(Isabelle_System.default_logic()) + """)
+    -m MODE      add print mode for output
+    -n           no build of session image on startup
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose logging
+
+  Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
+""",
+            "A:" -> (arg => logic_ancestor = Some(arg)),
+            "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+            "R:" -> (arg => { logic = arg; logic_requirements = true }),
+            "d:" -> (arg => dirs += Path.explode(File.standard_path(arg))),
+            "i:" -> (arg => include_sessions += arg),
+            "l:" -> (arg => logic = arg),
+            "m:" -> (arg => modes = arg :: modes),
+            "n" -> (_ => no_build = true),
+            "o:" -> (arg => options = options + arg),
+            "v" -> (_ => verbose = true))
+
+          val more_args = getopts(args)
+          if (more_args.nonEmpty) getopts.usage()
+
+          val log = Logger.make_file(log_file)
+          val channel = new Channel(System.in, System.out, log, verbose)
+          val server =
+            new Language_Server(channel, options, session_name = logic, session_dirs = dirs.toList,
+              include_sessions = include_sessions.toList, session_ancestor = logic_ancestor,
+              session_requirements = logic_requirements, session_no_build = no_build,
+              modes = modes, log = log)
+
+          // prevent spurious garbage on the main protocol channel
+          val orig_out = System.out
+          try {
+            System.setOut(new PrintStream(OutputStream.nullOutputStream()))
+            server.start()
+          }
+          finally { System.setOut(orig_out) }
+        }
+        catch {
+          case exn: Throwable =>
+            val channel = new Channel(System.in, System.out, new Logger)
+            channel.error_message(Exn.message(exn))
+            throw(exn)
+        }
       })
 }

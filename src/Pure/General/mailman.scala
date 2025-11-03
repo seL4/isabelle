@@ -200,7 +200,7 @@ object Mailman {
       "wmansky:cs/princeton/edu" -> "William Mansky\nwmansky:cs/princeton/edu",
       "y/nemouchi:ensbiotech/edu/dz" -> "Yakoub Nemouchi\ny/nemouchi:ensbiotech/edu/dz",
       "ÐÑÐÐÐÑÐÐÐ ÐÐÐÐÐÐÐÑÐÐÐÑ ÐÐÐÑÐÐÐ" -> "",
-      "∀X/Xπ - Tutorials about Proofs" -> "Bruno Woltzenlogel Paleo",
+      "\u2200X/X\u03c0 - Tutorials about Proofs" -> "Bruno Woltzenlogel Paleo",
     )
 
   private def tune(s: String): String =

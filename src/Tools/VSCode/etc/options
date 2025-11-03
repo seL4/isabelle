@@ -3,6 +3,9 @@
 option vscode_input_delay : real = 0.1 for vscode
   -- "delay for client input (edits)"
 
+option vscode_sledgehammer_history : string = "" for vscode
+  -- "history of Sledgehammer provers used in Isabelle/VSCode"
+
 option vscode_output_delay : real = 0.5 for vscode
   -- "delay for client output (rendering)"
 

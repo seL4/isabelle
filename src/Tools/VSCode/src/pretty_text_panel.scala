@@ -23,6 +23,8 @@ class Pretty_Text_Panel private(
   channel: Channel,
   output_json: (String, Option[LSP.Decoration]) => JSON.T
 ) {
+  def resources: VSCode_Resources = session.resources
+
   private var current_output: List[XML.Elem] = Nil
   private var current_formatted: XML.Body = Nil
   private var margin: Double = resources.message_margin
@@ -30,8 +32,6 @@ class Pretty_Text_Panel private(
   private val delay_margin = Delay.last(resources.output_delay, channel.Error_Logger) {
     refresh(current_output)
   }
-
-  def resources: VSCode_Resources = session.resources
 
   def update_margin(new_margin: Double): Unit = {
     margin = new_margin
@@ -66,7 +66,8 @@ class Pretty_Text_Panel private(
 
           val document = Line.Document(converted_text)
           val decorations =
-            converted_tree.cumulate[Option[Markup]](Text.Range.full, None, Rendering.text_color_elements,
+            converted_tree.cumulate[Option[Markup]](
+              Text.Range.full, None, Rendering.text_color_elements,
               { case (_, m) => Some(Some(m.info.markup)) }
             ).flatMap(info =>
                 info.info match {

@@ -1,0 +1,160 @@
+/*  Author:     Diana Korchmar, LMU Muenchen
+    Author:     Makarius
+
+Control panel for Sledgehammer.
+*/
+
+import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken,
+  window, Webview, Selection, Range, TextDocument, TextDocumentContentChangeEvent } from "vscode";
+import * as path from "path";
+import { text_colors } from "./decorations";
+import * as vscode_lib from "./vscode_lib"
+import * as lsp from "./lsp";
+import { LanguageClient } from "vscode-languageclient/node";
+import { Position } from "vscode";
+
+
+class Sledgehammer_Panel_Provider implements WebviewViewProvider {
+  public static readonly view_type = "isabelle-sledgehammer";
+  private _view?: WebviewView;
+
+  constructor(
+    private readonly _extension_uri: Uri,
+    private readonly _language_client: LanguageClient
+  ) { }
+
+  public resolveWebviewView(
+    view: WebviewView,
+    context: WebviewViewResolveContext,
+    _token: CancellationToken
+  ): void {
+    this._view = view;
+    this._view.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [this._extension_uri]
+    };
+    this._view.webview.html = this._get_html();
+    this._setup_message_handler();
+  }
+
+  request_provers(language_client: LanguageClient) {
+    if (language_client) {
+      this._language_client.sendNotification(lsp.sledgehammer_provers_request_type);
+    }
+  }
+
+  private _setup_message_handler(): void {
+    if (this._view) {
+      this._view.webview.onDidReceiveMessage(async message => {
+        const editor = window.activeTextEditor;
+        const pos = editor?.selection.active;
+        if (editor && pos) {
+          this._language_client.sendNotification(lsp.caret_update_type, {
+            uri: editor.document.uri.toString(),
+            line: pos.line,
+            character: pos.character
+          });
+        }
+        switch (message.command) {
+          case "apply":
+            this._language_client.sendNotification(lsp.sledgehammer_request_type, {
+              provers: message.provers,
+              isar: message.isar,
+              try0: message.try0
+            });
+            break;
+          case "cancel":
+            this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
+            break;
+          case "locate":
+            this._language_client.sendNotification(lsp.sledgehammer_locate_type);
+            break;
+          case "sendback":
+            this._language_client.sendNotification(lsp.sledgehammer_sendback_type,
+              { text: message.text });
+            break;
+        }
+      });
+    }
+  }
+
+  public update_status(message: string): void {
+    if (this._view) {
+      this._view.webview.postMessage({ command: "status", message });
+    }
+  }
+
+  public update_provers(provers: string): void {
+    if (this._view) {
+      this._view.webview.postMessage({ command: "provers", provers });
+    }
+  }
+
+  public insert(arg: { uri: string; line: number; character: number; text: string }): void {
+    const uri = Uri.parse(arg.uri);
+    const editor = window.activeTextEditor;
+    if (editor && editor.document.uri.toString() === uri.toString()) {
+      const pos = new Position(arg.line, arg.character);
+      const line_text = editor.document.lineAt(pos.line).text;
+      editor.edit(edit_builder =>
+        edit_builder.insert(pos, line_text.trim() === "" ? arg.text : "\n" + arg.text));
+    }
+  }
+
+  public update_output(result: lsp.Sledgehammer_Output): void {
+    if (this._view) {
+      this._view.webview.postMessage({ command: "result", content: result.content });
+    }
+  }
+
+  private _get_html(): string {
+    return get_webview_html(this._view?.webview, this._extension_uri.fsPath);
+  }
+}
+
+function get_webview_html(webview: Webview | undefined, extension_path: string): string {
+  const script_uri =
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.js")));
+  const css_uri =
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")));
+  const font_uri =
+    webview.asWebviewUri(Uri.file(path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="${css_uri}" rel="stylesheet">
+        <style>
+            @font-face {
+                font-family: "Isabelle DejaVu Sans Mono";
+                src: url(${font_uri});
+            }
+            ${_get_decorations()}
+        </style>
+        <title>Sledgehammer Panel</title>
+      </head>
+      <body>
+        <script src="${script_uri}"></script>
+      </body>
+    </html>`;
+}
+
+function _get_decorations(): string {
+  let style: string[] = []
+  for (const key of text_colors) {
+    style.push(`body.vscode-light .${key} { color: ${vscode_lib.get_color(key, true)} }\n`)
+    style.push(`body.vscode-dark .${key} { color: ${vscode_lib.get_color(key, false)} }\n`)
+  }
+  return style.join("")
+}
+
+export { Sledgehammer_Panel_Provider, get_webview_html };
+
+export interface PositionInfo {
+  uri: string;
+  line: number;
+  character: number;
+}

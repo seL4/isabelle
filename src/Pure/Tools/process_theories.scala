@@ -152,7 +152,7 @@ object Process_Theories {
       var unicode_symbols = false
       val dirs = new mutable.ListBuffer[Path]
       val files = new mutable.ListBuffer[Path]
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var logic = Isabelle_System.default_logic()
       var margin = Pretty.default_margin
       var options = Options.init()
       var verbose = false

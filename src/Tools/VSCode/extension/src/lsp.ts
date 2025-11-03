@@ -1,4 +1,6 @@
 /*  Author:     Makarius
+    Author:     Thomas Lindae, TU Muenchen
+    Author:     Diana Korchmar, LMU Muenchen
 
 Message formats for Language Server Protocol, with adhoc PIDE extensions
 (see Tools/VSCode/src/lsp.scala).
@@ -73,6 +75,7 @@ export interface Output_Set_Margin
 export const output_set_margin_type =
   new NotificationType<Output_Set_Margin>("PIDE/output_set_margin")
 
+
 /* state */
 
 export interface State_Output
@@ -109,8 +112,7 @@ export const state_init_type = new RequestType0("PIDE/state_init")
 export const state_exit_type = new NotificationType<State_Id>("PIDE/state_exit")
 export const state_locate_type = new NotificationType<State_Id>("PIDE/state_locate")
 export const state_update_type = new NotificationType<State_Id>("PIDE/state_update")
-export const state_auto_update_type =
-  new NotificationType<Auto_Update>("PIDE/state_auto_update")
+export const state_auto_update_type = new NotificationType<Auto_Update>("PIDE/state_auto_update")
 
 
 /* preview */
@@ -134,6 +136,125 @@ export const preview_request_type =
 
 export const preview_response_type =
   new NotificationType<Preview_Response>("PIDE/preview_response")
+
+
+/* symbols */
+
+export interface Symbol_Entry {
+  symbol: string;
+  name: string;
+  decoded: string;
+  argument: string;
+  abbrevs: string[];
+  groups: string[];
+  code?: number;
+  font?: string;
+}
+
+export interface Symbols_Response {
+  symbols: Symbol_Entry[];
+  abbrevs: [string, string][];
+}
+
+export const symbols_request_type =
+  new NotificationType<void>("PIDE/symbols_request")
+
+export const symbols_response_type =
+  new NotificationType<Symbols_Response>("PIDE/symbols_response");
+
+
+/* documentation */
+
+export const documentation_request_type =
+  new NotificationType<void>("PIDE/documentation_request")
+
+export interface Doc_Entry {
+  print_html: string;
+  platform_path: string;
+}
+
+export interface Doc_Section {
+  title: string;
+  important: boolean;
+  entries: Array<Doc_Entry>;
+}
+
+export interface Documentation_Response {
+  sections: Array<Doc_Section>;
+}
+
+export const documentation_response_type =
+  new NotificationType<Documentation_Response>("PIDE/documentation_response");
+
+
+/* Sledgehammer */
+
+export interface Sledgehammer_Request {
+  provers: string;
+  isar: boolean;
+  try0: boolean;
+}
+
+export interface Sledgehammer_Status {
+  message: string;
+}
+
+export interface Sledgehammer_Output {
+  content: string;
+  position: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+  sendback_id: number;
+  state_location: {
+    uri: string;
+    line: number;
+    character: number;
+  };
+}
+
+export interface Sledgehammer_Sendback {
+  text: string;
+}
+
+export interface Sledgehammer_Insert {
+  uri: string;
+  line: number;
+  character: number;
+  text: string;
+}
+
+export interface Sledgehammer_Provers {
+  provers: string;
+}
+
+export const sledgehammer_request_type =
+  new NotificationType<Sledgehammer_Request>("PIDE/sledgehammer_request");
+
+export const sledgehammer_cancel_type =
+  new NotificationType<void>("PIDE/sledgehammer_cancel");
+
+export const sledgehammer_locate_type =
+  new NotificationType<void>("PIDE/sledgehammer_locate");
+
+export const sledgehammer_sendback_type =
+  new NotificationType<Sledgehammer_Sendback>("PIDE/sledgehammer_sendback");
+
+export const sledgehammer_insert_type =
+  new NotificationType<Sledgehammer_Insert>("PIDE/sledgehammer_insert");
+
+export const sledgehammer_provers_request_type =
+  new NotificationType<void>("PIDE/sledgehammer_provers_request");
+
+export const sledgehammer_provers_response_type =
+  new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
+
+export const sledgehammer_status_type =
+  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status");
+
+export const sledgehammer_output_type =
+  new NotificationType<Sledgehammer_Output>("PIDE/sledgehammer_output");
 
 
 /* spell checker */

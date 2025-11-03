@@ -31,12 +31,38 @@
             "panel": [
                 {
                     "id": "isabelle",
-                    "title": "Isabelle",
+                    "title": "Isabelle Output",
                     "icon": "isabelle.png"
+                },
+                {
+                    "id": "isabelle-symbols",
+                    "title": "Isabelle Symbols",
+                    "icon": "./media/symbol-panel.svg"
+                },
+                {
+                    "id": "isabelle-sledgehammer",
+                    "title": "Sledgehammer",
+                    "icon": "./media/sledgehammer-panel.svg"
+                }
+            ],
+            "activitybar": [
+                {
+                    "id": "isabelle-documentation",
+                    "title": "Documentation",
+                    "icon":"./media/documentation-panel.svg"
                 }
             ]
         },
         "views": {
+            "isabelle-symbols": [
+                { "id": "isabelle-symbols", "name": "Symbols", "type": "webview", "icon": "./media/symbol-panel.svg" }
+            ],
+            "isabelle-documentation": [
+                { "id": "isabelle-documentation", "name": "Documentation", "type": "webview", "icon": "./media/documentation-panel.svg" }
+            ],
+            "isabelle-sledgehammer": [
+                { "id": "isabelle-sledgehammer", "name": "Sledgehammer", "type": "webview" , "icon": "./media/sledgehammer-panel.svg" }
+            ],
             "isabelle": [
                 {
                     "type": "webview",
@@ -126,6 +152,37 @@
                     "when": "editorLangId == bibtex",
                     "command": "isabelle.preview-split",
                     "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle",
+                    "command": "isabelle.openSymbolsPanel",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.openSymbolsPanel",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle",
+                    "command": "isabelle.openDocumentationPanel",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.openDocumentationPanel",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle",
+                    "command": "isabelle.openSledgehammerPanel",
+                    "group": "navigation"
+                },
+                {
+                    "when": "editorLangId == isabelle-ml",
+                    "command": "isabelle.openSledgehammerPanel",
+                    "group": "navigation"
+
                 }
             ],
             "explorer/context": [
@@ -171,12 +228,12 @@
             }
         ],
         "configurationDefaults": {
-          "[isabelle]": {
-            "files.encoding": "utf8isabelle"
-          },
-          "[isabelle-ml]": {
-            "files.encoding": "utf8isabelle"
-          }
+            "[isabelle]": {
+                "files.encoding": "utf8isabelle"
+            },
+            "[isabelle-ml]": {
+                "files.encoding": "utf8isabelle"
+            }
         },
         "grammars": [
             {

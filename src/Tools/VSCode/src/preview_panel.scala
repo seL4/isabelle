@@ -32,7 +32,8 @@ class Preview_Panel(resources: VSCode_Resources) {
                     Browser_Info.context(resources.sessions_structure,
                       elements = Browser_Info.extra_elements)
                   val document = context.preview_document(snapshot)
-                  channel.write(LSP.Preview_Response(file, column, document.title, document.content))
+                  channel.write(
+                    LSP.Preview_Request.reply(file, column, document.title, document.content))
                   m - file
                 }
               case None => m - file

@@ -16,10 +16,13 @@ object Editor {
   }
 
   sealed case class Output(
+    snapshot: Document.Snapshot = Document.Snapshot.init,
     results: Command.Results = Command.Results.empty,
     messages: List[XML.Elem] = Nil,
     defined: Boolean = true
-  )
+  ) {
+    def proper: Boolean = messages.nonEmpty && defined
+  }
 }
 
 abstract class Editor[Context] {
@@ -28,6 +31,7 @@ abstract class Editor[Context] {
   def session: Session
   def flush(): Unit
   def invoke(): Unit
+  def revoke(): Unit
 
   def get_models(): Iterable[Document.Model]
 
@@ -138,7 +142,7 @@ abstract class Editor[Context] {
               val (urgent, regular) = other.partition(Protocol.is_urgent)
               urgent ::: (if (output_state()) states else Nil) ::: regular
             }
-            Editor.Output(results = results, messages = messages)
+            Editor.Output(snapshot = snapshot, results = results, messages = messages)
           }
           else Editor.Output.none
       }

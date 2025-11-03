@@ -101,6 +101,14 @@ not available as SVG.
 
 *** Isabelle/VSCode Prover IDE ***
 
+* The main toolbar provides access to Isabelle examples and
+documentation. Plain text files are opened in the editor, but PDFs
+require a suitable VSCode extension (e.g. "vscode-pdf" from the
+marketplace).
+
+* Output panels for Isabelle Symbols and Sledgehammer, which imitate
+Isabelle/jEdit dockables to some extent.
+
 * Update to recent VSCode 1.104 / VSCodium 1.104.06131, Electron 37.3.1,
 Chromium 138.0.7204.235, and Node.js 22.18.0. Note that some Linux
 systems (e.g. Ubuntu 24.04) require special file permissions to run

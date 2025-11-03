@@ -58,7 +58,7 @@ object VSCode_Rendering {
   private val dotted_elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING)
 
-  val tooltip_elements =
+  val tooltip_elements: Markup.Elements =
     Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.BAD) ++
     Rendering.tooltip_elements
 

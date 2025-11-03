@@ -36,7 +36,7 @@ class Query_Operation[Editor_Context](
   editor_context: Editor_Context,
   operation_name: String,
   consume_status: Query_Operation.Status => Unit,
-  consume_output: (Document.Snapshot, Command.Results, List[XML.Elem]) => Unit
+  consume_output: Editor.Output => Unit
 ) {
   private val print_function = operation_name + "_query"
 
@@ -65,20 +65,21 @@ class Query_Operation[Editor_Context](
 
     val state0 = current_state.value
 
-    val (snapshot, command_results, results, removed) =
+    val (output, removed) =
       state0.location match {
         case Some(cmd) =>
           val snapshot = editor.node_snapshot(cmd.node_name)
-          val command_results = snapshot.command_results(cmd)
-          val results =
-            (for {
-              case (_, elem @ XML.Elem(Markup(Markup.RESULT, props), _)) <- command_results.iterator
-              if props.contains((Markup.INSTANCE, state0.instance))
-            } yield elem).toList
+          val results = snapshot.command_results(cmd)
+          val messages =
+            List.from(
+              for {
+                case (_, msg@XML.Elem(Markup(Markup.RESULT, props@Markup.Instance(instance)), _))
+                  <- results.iterator
+                if instance == state0.instance
+              } yield msg)
           val removed = !snapshot.get_node(cmd.node_name).commands.contains(cmd)
-          (snapshot, command_results, results, removed)
-        case None =>
-          (Document.Snapshot.init, Command.Results.empty, Nil, true)
+          (Editor.Output(snapshot, results, messages), removed)
+        case None => (Editor.Output.init, true)
       }
 
 
@@ -112,7 +113,7 @@ class Query_Operation[Editor_Context](
 
     val new_output =
       for {
-        case XML.Elem(_, List(XML.Elem(markup, body))) <- results
+        case XML.Elem(_, List(XML.Elem(markup, body))) <- output.messages
         if Markup.messages.contains(markup.name)
         body1 = resolve_sendback(body)
       } yield Protocol.make_message(body1, markup.name, props = markup.properties)
@@ -121,7 +122,8 @@ class Query_Operation[Editor_Context](
     /* status */
 
     def get_status(name: String, status: Query_Operation.Status): Option[Query_Operation.Status] =
-      results.collectFirst({ case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
+      output.messages.collectFirst(
+        { case XML.Elem(_, List(elem: XML.Elem)) if elem.name == name => status })
 
     val new_status =
       if (removed) Query_Operation.Status.finished
@@ -134,20 +136,21 @@ class Query_Operation[Editor_Context](
     /* state update */
 
     if (new_status == Query_Operation.Status.running)
-      results.collectFirst(
+      output.messages.collectFirst(
       {
         case XML.Elem(Markup(_, Position.Id(id)), List(elem: XML.Elem))
         if elem.name == Markup.RUNNING => id
       }).foreach(id => current_state.change(_.copy(exec_id = id)))
 
     if (state0.output != new_output || state0.status != new_status) {
-      if (snapshot.is_outdated)
+      if (output.snapshot.is_outdated) {
         current_state.change(_.copy(update_pending = true))
+      }
       else {
         current_state.change(_.copy(update_pending = false))
         if (state0.output != new_output && !removed) {
           current_state.change(_.copy(output = new_output))
-          consume_output(snapshot, command_results, new_output)
+          consume_output(output.copy(messages = new_output))
         }
         if (state0.status != new_status) {
           current_state.change(_.copy(status = new_status))
@@ -172,7 +175,7 @@ class Query_Operation[Editor_Context](
       case Some(snapshot) =>
         remove_overlay()
         current_state.change(_ => Query_Operation.State.empty)
-        consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+        consume_output(Editor.Output.init)
 
         editor.current_command(editor_context, snapshot) match {
           case Some(command) =>
@@ -188,16 +191,20 @@ class Query_Operation[Editor_Context](
     }
   }
 
-  def locate_query(): Unit = {
-    editor.require_dispatcher {}
+  def query_command(): Option[(Document.Snapshot, Command)] =
+    editor.require_dispatcher {
+      val state = current_state.value
+      for {
+        command <- state.location
+        snapshot = editor.node_snapshot(command.node_name) if !snapshot.is_outdated
+      } yield (snapshot, command)
+    }
 
-    val state = current_state.value
+  def locate_query(): Unit =
     for {
-      command <- state.location
-      snapshot = editor.node_snapshot(command.node_name)
+      (snapshot, command) <- query_command()
       link <- editor.hyperlink_command(true, snapshot, command.id)
     } link.follow(editor_context)
-  }
 
 
   /* main */
@@ -224,7 +231,7 @@ class Query_Operation[Editor_Context](
     editor.session.commands_changed -= main
     remove_overlay()
     current_state.change(_ => Query_Operation.State.empty)
-    consume_output(Document.Snapshot.init, Command.Results.empty, Nil)
+    consume_output(Editor.Output.init)
     consume_status(Query_Operation.Status.finished)
   }
 }

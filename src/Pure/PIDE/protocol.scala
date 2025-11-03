@@ -6,6 +6,9 @@ Protocol message formats for interactive proof documents.
 
 package isabelle
 
+import scala.collection.mutable
+import scala.annotation.tailrec
+
 
 object Protocol {
   /* markers for inlined messages */
@@ -246,6 +249,32 @@ object Protocol {
           Some(Args(proper_string(id), serial, theory_name, name, executable, compress, strict))
         case _ => None
       }
+  }
+
+
+  /* sendback snippets */
+
+  def sendback_snippets(xml: XML.Body): List[(String, Properties.T)] = {
+    var seen = Set.empty[(String, Properties.T)]
+    val result = new mutable.ListBuffer[(String, Properties.T)]
+
+    @tailrec def traverse(body: XML.Body): Unit =
+      body match {
+        case XML.Elem(Markup(Markup.SENDBACK, props), body1) :: body2 =>
+          val entry = (XML.content(body1), props)
+          if (!seen(entry)) {
+            seen += entry
+            result += entry
+          }
+          traverse(body2)
+        case XML.Wrapped_Elem(_, _, body1) :: body2 => traverse(body1 ::: body2)
+        case XML.Elem(_, body1) :: body2 => traverse(body1 ::: body2)
+        case XML.Text(_) :: body2 => traverse(body2)
+        case Nil =>
+      }
+
+    traverse(xml)
+    result.toList
   }
 
 

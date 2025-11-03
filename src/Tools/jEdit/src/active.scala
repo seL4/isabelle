@@ -87,8 +87,9 @@ object Active {
                 Isabelle.edit_command(snapshot, text_area,
                   props.contains(Markup.PADDING_COMMAND), id, text)
               case _ =>
-                if (props.contains(Markup.PADDING_LINE))
+                if (props.contains(Markup.PADDING_LINE)) {
                   Isabelle.insert_line_padding(text_area, text)
+                }
                 else text_area.setSelectedText(text)
             }
             text_area.requestFocus()

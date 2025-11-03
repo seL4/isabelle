@@ -30,7 +30,7 @@ object Mkroot {
     Isabelle_System.make_directory(session_dir)
 
     val name = proper_string(session_name) getOrElse session_dir.absolute_file.getName
-    val parent = proper_string(session_parent) getOrElse Isabelle_System.getenv("ISABELLE_LOGIC")
+    val parent = proper_string(session_parent) getOrElse Isabelle_System.default_logic()
 
     val root_path = session_dir + Sessions.ROOT
     if (root_path.file.exists) error("Cannot overwrite existing " + root_path)

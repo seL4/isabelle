@@ -16,9 +16,12 @@ import * as preview_panel from './preview_panel'
 import * as lsp from './lsp'
 import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
-  commands, ProgressLocation } from 'vscode'
+  commands, ProgressLocation, Range } from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { Output_View_Provider } from './output_view'
+import { Symbols_Panel_Provider } from './symbol_panel'
+import { Documentation_Panel_Provider } from './documentation_panel'
+import { Sledgehammer_Panel_Provider } from './sledgehammer_panel'
 import { register_script_decorations } from './script_decorations'
 
 
@@ -204,6 +207,43 @@ export async function activate(context: ExtensionContext)
     {
       language_client.onNotification(lsp.dynamic_output_type,
         params => provider.update_content(params.content))
+    })
+
+    const documentation_provider =
+      new Documentation_Panel_Provider(context.extensionUri, language_client);
+    context.subscriptions.push(
+      window.registerWebviewViewProvider(
+        Documentation_Panel_Provider.view_type, documentation_provider));
+
+    language_client.onReady().then(() => {
+      documentation_provider.request(language_client);
+      documentation_provider.setupDocumentation(language_client);
+    });
+
+    const symbols_provider = new Symbols_Panel_Provider(context.extensionUri, language_client);
+    context.subscriptions.push(
+      window.registerWebviewViewProvider(Symbols_Panel_Provider.view_type, symbols_provider)
+    );
+    language_client.onReady().then(() => symbols_provider.request(language_client));
+    language_client.onReady().then(() => symbols_provider.setup(language_client));
+
+
+    const sledgehammer_provider =
+      new Sledgehammer_Panel_Provider(context.extensionUri, language_client);
+    context.subscriptions.push(
+      window.registerWebviewViewProvider(Sledgehammer_Panel_Provider.view_type, sledgehammer_provider)
+    );
+    language_client.onReady().then(() => sledgehammer_provider.request_provers(language_client))
+
+    language_client.onReady().then(() => {
+      language_client.onNotification(lsp.sledgehammer_status_type, msg =>
+        sledgehammer_provider.update_status(msg.message))
+      language_client.onNotification(lsp.sledgehammer_output_type, msg =>
+        sledgehammer_provider.update_output(msg))
+      language_client.onNotification(lsp.sledgehammer_insert_type, msg =>
+        sledgehammer_provider.insert(msg))
+      language_client.onNotification(lsp.sledgehammer_provers_response_type, msg =>
+        sledgehammer_provider.update_provers(msg.provers))
     })
 
 

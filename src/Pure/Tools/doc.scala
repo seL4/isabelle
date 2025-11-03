@@ -13,15 +13,20 @@ import scala.collection.mutable
 object Doc {
   /* entries */
 
-  case class Section(title: String, important: Boolean, entries: List[Entry])
+  case class Section(title: String, important: Boolean, entries: List[Entry]) {
+    def print_title: String = title + if_proper(important, "!")
+  }
   case class Entry(name: String, path: Path, title: String = "") {
     def view(): Unit = Doc.view(path)
-    override def toString: String =  // GUI label
-      if (title.nonEmpty) {
-        val style = GUI.Style_HTML
-        style.enclose(style.make_bold(name) + style.make_text(": " + title))
-      }
-      else name
+
+    def print_html: String = {
+      val style = GUI.Style_HTML
+      if (title.nonEmpty) style.make_bold(name) + style.make_text(": " + title)
+      else style.make_text(name)
+    }
+
+    override def toString: String =  // Swing GUI label
+      if (title.nonEmpty) GUI.Style_HTML.enclose(print_html) else name
   }
 
   def plain_file(path0: Path,
@@ -57,6 +62,9 @@ object Doc {
       apply(List(Section(title, important, entries)))
   }
   class Contents private(val sections: List[Section]) {
+    override def toString: String =
+      sections.map(_.print_title).mkString("Doc.Contents(", ", ", ")")
+
     def ++ (other: Contents): Contents = new Contents(sections ::: other.sections)
     def entries(name: String => Boolean = _ => true, pdf: Boolean = false): List[Entry] =
       sections.flatMap(s => s.entries.filter(e => name(e.name) && (!pdf || e.path.is_pdf)))

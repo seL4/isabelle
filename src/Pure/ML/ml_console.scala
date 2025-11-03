@@ -14,7 +14,7 @@ object ML_Console {
     Command_Line.tool {
       var dirs: List[Path] = Nil
       var include_sessions: List[String] = Nil
-      var logic = Isabelle_System.getenv("ISABELLE_LOGIC")
+      var logic = Isabelle_System.default_logic()
       var modes: List[String] = Nil
       var no_build = false
       var options = Options.init()

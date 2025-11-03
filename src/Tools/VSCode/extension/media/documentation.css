@@ -1,0 +1,66 @@
+:root {
+  --container-paddding: 20px;
+  --input-padding-vertical: 6px;
+  --input-padding-horizontal: 4px;
+  --input-margin-vertical: 4px;
+  --input-margin-horizontal: 0;
+}
+
+--font-size-base: var(--vscode-editor-font-size);
+--font-size-small: calc(var(--font-size-base) * 0.85);
+
+body {
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--font-size-base);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-sideBar-background);
+  padding: var(--container-paddding);
+  margin: 0;
+}
+
+.doc-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.doc-section {
+  font-weight: normal;
+}
+.section-title {
+  font-weight: normal;
+  color: var(--vscode-foreground);
+}
+
+.doc-sublist {
+  list-style-type: none;
+  padding-left: 10px;
+}
+
+.doc-link {
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+  outline: none;
+}
+
+.doc-link:focus {
+  outline: none; 
+}
+
+.doc-entry {
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+.doc-entry.selected {
+  background-color: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.doc-entry.selected .doc-link {
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.doc-entry:not(.selected) .doc-link:hover {
+  background-color: var(--vscode-list-hoverBackground);
+  color: var(--vscode-list-hoverForeground);
+}

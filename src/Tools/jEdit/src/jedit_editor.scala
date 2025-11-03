@@ -37,6 +37,7 @@ class JEdit_Editor extends Editor[View] {
     Delay.first(PIDE.session.generated_input_delay, gui = true) { flush() }
 
   def invoke(): Unit = delay_input.invoke()
+  def revoke(): Unit = delay_input.revoke()
   def invoke_generated(): Unit = { delay_input.invoke(); delay_generated_input.invoke() }
 
   def shutdown(): Unit =

@@ -393,7 +393,7 @@ object Symbol {
             case _ => err()
           }
         }
-        decl.split("\\s+").toList match {
+        Word.explode(decl) match {
           case sym :: props if sym.length > 1 && !is_malformed(sym) =>
             (sym, read_props(props))
           case _ => err()

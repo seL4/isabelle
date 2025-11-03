@@ -84,6 +84,10 @@ object Line {
     def line1: Int = pos.line1
     def column: Int = pos.column
     def column1: Int = pos.column1
+
+    def advance(text: String): Node_Position =
+      if (text.isEmpty) this
+      else copy(pos = pos.advance(text))
   }
 
   sealed case class Node_Range(name: String, range: Range = Range.zero) {

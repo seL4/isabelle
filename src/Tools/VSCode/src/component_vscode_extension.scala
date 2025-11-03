@@ -13,10 +13,8 @@ import isabelle._
 object Component_VSCode {
   /* build grammar */
 
-  def default_logic: String = Isabelle_System.getenv("ISABELLE_LOGIC")
-
   def build_grammar(options: Options, build_dir: Path,
-    logic: String = default_logic,
+    logic: String = Isabelle_System.default_logic(),
     dirs: List[Path] = Nil,
     progress: Progress = new Progress
   ): Unit = {
@@ -183,7 +181,7 @@ object Component_VSCode {
 
   def build_extension(options: Options,
     target_dir: Path = Path.current,
-    logic: String = default_logic,
+    logic: String = Isabelle_System.default_logic(),
     dirs: List[Path] = Nil,
     progress: Progress = new Progress
   ): Unit = {
@@ -282,7 +280,7 @@ It has been produced from the sources in $ISABELLE_HOME/src/Tools/extension/.
       { args =>
         var target_dir = Path.current
         var dirs: List[Path] = Nil
-        var logic = default_logic
+        var logic = Isabelle_System.default_logic()
 
         val getopts = Getopts("""
 Usage: isabelle component_vscode_extension
@@ -290,7 +288,8 @@ Usage: isabelle component_vscode_extension
   Options are:
     -D DIR       target directory (default ".")
     -d DIR       include session directory
-    -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(default_logic) + """)
+    -l NAME      logic session name (default ISABELLE_LOGIC=""" +
+          quote(Isabelle_System.default_logic()) + """)
 
 Build the Isabelle/VSCode extension as component, for inclusion into the
 local VSCodium configuration.

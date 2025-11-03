@@ -40,8 +40,6 @@ object Update_Tool {
     upd(Markup.Language.outer, xml)
   }
 
-  def default_base_logic: String = Isabelle_System.getenv("ISABELLE_LOGIC")
-
   def update(options: Options,
     update_options: List[Options.Spec],
     selection: Sessions.Selection = Sessions.Selection.empty,
@@ -150,7 +148,7 @@ object Update_Tool {
         var fresh_build = false
         var session_groups: List[String] = Nil
         var max_jobs: Option[Int] = None
-        var base_logics: List[String] = List(default_base_logic)
+        var base_logics: List[String] = List(Isabelle_System.default_logic())
         var no_build = false
         var options = Options.init()
         var update_options: List[Options.Spec] = Nil
@@ -173,7 +171,7 @@ Usage: isabelle update [OPTIONS] [SESSIONS ...]
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -l NAMES     comma-separated list of base logics, to remain unchanged
-                 (default: """ + quote(default_base_logic) + """)
+                 (default: """ + quote(Isabelle_System.default_logic()) + """)
     -n           no build -- take existing session build databases
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -u OPT       override "update" option for selected sessions
