@@ -25,7 +25,7 @@ sig
   val writelns: string list -> unit
   val writelns_urgent: string list -> unit
   val writeln_urgent: string -> unit
-  val state: string list-> unit
+  val state: string list -> unit
   val information: string -> unit
   val error_message': serial * string -> unit
   val error_message: string -> unit
