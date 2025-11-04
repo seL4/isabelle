@@ -35,8 +35,12 @@ object Document_Status {
 
   /* command timings: for pro-forma command with actual commands at offset */
 
+  sealed case class Command_Running(name: String, line: Int, start: Date) {
+    def time(now: Date): Time = now - start
+  }
+
   object Command_Timings {
-    type Entry0 = (Symbol.Offset, Date)
+    type Entry_Running = (Symbol.Offset, Command_Running)
     type Entry = (Symbol.Offset, Time)
     val empty: Command_Timings =
       new Command_Timings(SortedMap.empty, SortedMap.empty, Time.zero)
@@ -45,14 +49,14 @@ object Document_Status {
   }
 
   final class Command_Timings private(
-    private val running: SortedMap[Symbol.Offset, Date],  // start time (in Scala)
+    private val running: SortedMap[Symbol.Offset, Command_Running],  // start time (in Scala)
     private val finished: SortedMap[Symbol.Offset, Time],  // elapsed time (in ML)
     private val sum_finished: Time
   ) {
     def is_empty: Boolean = running.isEmpty && finished.isEmpty
 
     def has_running: Boolean = running.nonEmpty
-    def add_running(entry: Command_Timings.Entry0): Command_Timings =
+    def add_running(entry: Command_Timings.Entry_Running): Command_Timings =
       new Command_Timings(running + entry, finished, sum_finished)
 
     def count_finished: Int = finished.size
@@ -66,7 +70,7 @@ object Document_Status {
     }
 
     def sum(now: Date): Time =
-      running.valuesIterator.foldLeft(sum_finished)({ case (t, t0) => t + (now - t0) })
+      running.valuesIterator.foldLeft(sum_finished)({ case (t, run) => t + run.time(now) })
 
     def ++ (other: Command_Timings): Command_Timings =
       if (is_empty) other
@@ -194,9 +198,13 @@ object Document_Status {
           case Markup.Command_Timing.name =>
             val props = markup.properties
             val offset = Position.Offset.get(props)
-            val running = props.contains(Markup.command_running)
+            val is_running = props.contains(Markup.command_running)
             timings1 =
-              if (running) timings1.add_running(offset -> now)
+              if (is_running) {
+                val name = Markup.Name.get(props)
+                val line = Position.Line.get(props)
+                timings1.add_running(offset -> Command_Running(name, line, now))
+              }
               else timings1.add_finished(offset -> Time.seconds(Markup.Elapsed.get(props)))
           case _ =>
         }
