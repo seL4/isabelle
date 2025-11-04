@@ -354,8 +354,9 @@ object Headless {
         val delay_nodes_status =
           Delay.first(nodes_status_delay max Time.zero) {
             val st = use_theories_state.value
+            val now = progress.now()
             progress.nodes_status(
-              Progress.Nodes_Status(st.dep_graph.topological_order, st.nodes_status))
+              Progress.Nodes_Status(now, st.dep_graph.topological_order, st.nodes_status))
           }
 
         val delay_commit_clean =

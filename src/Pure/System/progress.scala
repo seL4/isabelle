@@ -70,10 +70,11 @@ object Progress {
 
   object Nodes_Status {
     def empty(session: String): Nodes_Status =
-      Nodes_Status(Nil, Document_Status.Nodes_Status.empty, session = session)
+      Nodes_Status(Date.now(), Nil, Document_Status.Nodes_Status.empty, session = session)
   }
 
   sealed case class Nodes_Status(
+    now: Date,
     domain: List[Document.Node.Name],
     document_status: Document_Status.Nodes_Status,
     session: String = "",
@@ -110,15 +111,33 @@ object Progress {
         }
         else None
       })
+
+    def status_commands(threshold: Time): List[Progress.Message] =
+      List.from(
+        for {
+          name <- domain.iterator
+          st = apply(name)
+          command_timings <- st.command_timings.valuesIterator
+          run <- command_timings.long_running(now, threshold).iterator
+        } yield {
+          val text =
+            if_proper(session, session + ": ") +
+              "long-running command " + quote(run.name) +
+              " (" + run.time(now).message + " at line " + run.line +
+              " of theory " + quote(name.theory) + ")"
+          Progress.Message(Progress.Kind.writeln, text, verbose = true, status = true)
+        })
   }
 
 
   /* status lines (e.g. at bottom of output) */
 
   trait Status extends Progress {
+    def status_threshold: Time = Time.zero
+    def status_detailed: Boolean = false
+
     def status_output(msgs: Progress.Output): Unit
 
-    def status_detailed: Boolean = false
     def status_hide(status: Progress.Output): Unit = ()
 
     protected var _status: Progress.Session_Output = Nil
@@ -150,7 +169,12 @@ object Progress {
         val buf = new mutable.ListBuffer[(String, Progress.Msg)]
         val session = nodes_status.session
         for (old <- old_status if old._1 < session) buf += old
-        if (status_detailed) { for (thy <- nodes_status.status_theories) buf += (session -> thy) }
+        if (status_detailed) {
+          for (thy <- nodes_status.status_theories) buf += (session -> thy)
+          for (msg <- nodes_status.status_commands(status_threshold)) {
+            buf += (session -> msg)
+          }
+        }
         for (old <- old_status if old._1 > session) buf += old
         buf.toList
       }
@@ -232,10 +256,13 @@ class Progress {
 
 class Console_Progress(
   override val verbose: Boolean = false,
+  threshold: Time = Time.zero,
   detailed: Boolean = false,
   stderr: Boolean = false)
 extends Progress with Progress.Status {
+  override def status_threshold: Time = threshold
   override def status_detailed: Boolean = detailed
+
   override def status_hide(status: Progress.Output): Unit = synchronized {
     val txt = output_text(status, terminate = true)
     Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)

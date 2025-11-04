@@ -169,6 +169,7 @@ object Build {
 
   /* build */
 
+  def progress_threshold(options: Options): Time = options.seconds("build_progress_threshold")
   def progress_detailed(options: Options): Boolean = options.bool("build_progress_detailed")
 
   def build(
@@ -433,7 +434,9 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       val sessions = getopts(args)
 
       val progress =
-        new Console_Progress(verbose = verbose, detailed = progress_detailed(options))
+        new Console_Progress(verbose = verbose,
+          threshold = progress_threshold(options),
+          detailed = progress_detailed(options))
 
       val ml_settings = ML_Settings(options)
 

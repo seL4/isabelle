@@ -212,6 +212,9 @@ option build_database : bool = false for build_sync
 option build_database_slice : real = 300 for build_sync
   -- "slice size in MiB for ML heap stored within database"
 
+option build_progress_threshold : real = 20 for build
+  -- "threshold for long-running commands (seconds)"
+
 option build_progress_detailed : bool = false for build
   -- "detailed status for ongoing build progress"
 

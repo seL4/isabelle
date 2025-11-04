@@ -56,6 +56,8 @@ object Document_Status {
     def is_empty: Boolean = running.isEmpty && finished.isEmpty
 
     def has_running: Boolean = running.nonEmpty
+    def long_running(now: Date, threshold: Time): List[Command_Running] =
+      List.from(for (run <- running.valuesIterator if run.time(now) >= threshold) yield run)
     def add_running(entry: Command_Timings.Entry_Running): Command_Timings =
       new Command_Timings(running + entry, finished, sum_finished)
 

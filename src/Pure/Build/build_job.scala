@@ -160,6 +160,7 @@ object Build_Job {
     private def nodes_status_progress(state: Document.State = get_state()): Unit = {
       val result =
         synchronized {
+          lazy val now = progress.now()
           for (id <- state.progress_theories if !nodes_changed(id)) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
@@ -167,7 +168,7 @@ object Build_Job {
                 case None => status
                 case Some(snapshot) =>
                   Exn.Interrupt.expose()
-                  status.update_node(progress.now(),
+                  status.update_node(now,
                     snapshot.state, snapshot.version, snapshot.node_name,
                     threshold = editor_timing_threshold)
               }
@@ -175,7 +176,7 @@ object Build_Job {
           val result =
             if (nodes_changed.isEmpty) None
             else {
-              Some(Progress.Nodes_Status(
+              Some(Progress.Nodes_Status(now,
                 nodes_domain, nodes_status1,
                 session = resources.session_background.session_name,
                 old = Some(nodes_status)))
