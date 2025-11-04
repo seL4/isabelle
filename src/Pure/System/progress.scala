@@ -124,7 +124,7 @@ object Progress {
             if_proper(session, session + ": ") +
               "command " + quote(run.name) + " running for " + run.time(now).message +
               " (line " + run.line + " of theory " + quote(name.theory) + ")"
-          Progress.Message(Progress.Kind.writeln, text, verbose = true, status = true)
+          Progress.Message(Progress.Kind.writeln, text, verbose = true)
         })
   }
 
@@ -170,15 +170,12 @@ object Progress {
         for (old <- old_status if old._1 < session) buf += old
         if (status_detailed) {
           for (thy <- nodes_status.status_theories) buf += (session -> thy)
-          for (msg <- nodes_status.status_commands(status_threshold)) {
-            buf += (session -> msg)
-          }
         }
         for (old <- old_status if old._1 > session) buf += old
         buf.toList
       }
 
-      output(nodes_status.completed_theories)
+      output(nodes_status.completed_theories ::: nodes_status.status_commands(status_threshold))
       output_status(new_status)
     }
   }
