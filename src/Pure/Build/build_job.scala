@@ -167,7 +167,7 @@ object Build_Job {
                 case None => status
                 case Some(snapshot) =>
                   Exn.Interrupt.expose()
-                  status.update_node(Date.now(),
+                  status.update_node(progress.now(),
                     snapshot.state, snapshot.version, snapshot.node_name,
                     threshold = editor_timing_threshold)
               }
