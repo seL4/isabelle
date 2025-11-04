@@ -177,7 +177,7 @@ object Shapes {
           val (dx, dy) = (fx - tx, fy - ty)
           if ((dx * dx + dy * dy) < 1.0) {
             val at = AffineTransform.getTranslateInstance(fx, fy)
-            at.rotate(- (math.atan2(dx, dy) + math.Pi / 2))
+            at.rotate(- (scala.math.atan2(dx, dy) + scala.math.Pi / 2))
             Some(at)
           }
           else {
