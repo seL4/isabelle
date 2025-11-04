@@ -142,7 +142,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         case Some(doc_view) => doc_view.model.node_name
       }
 
-    val now = Time.now()
+    val now = Date.now()
 
     val theories =
       List.from(
@@ -168,7 +168,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
           .filterNot(PIDE.resources.loaded_theory).toSet)
 
     nodes_status =
-      nodes_status.update_nodes(PIDE.resources, snapshot.state, snapshot.version,
+      nodes_status.update_nodes(Date.now(), PIDE.resources, snapshot.state, snapshot.version,
         threshold = Time.seconds(timing_threshold),
         domain = Some(domain))
 

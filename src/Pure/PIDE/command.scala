@@ -217,7 +217,7 @@ object Command {
       markups: Markups = Markups.empty,
     ): State = {
       new State(command, results, exports, markups,
-        Document_Status.Command_Status.make(Time.now(),
+        Document_Status.Command_Status.make(Date.now(),
           warned = results.warned,
           failed = results.failed))
     }
@@ -252,11 +252,11 @@ object Command {
       new Command(id, command.node_name, command.blobs_info, command.span, command.source,
         results, exports, markups, document_status)
 
-    private def add_status(now: Time, st: Markup): State =
+    private def add_status(now: Date, st: Markup): State =
       new State(command, results, exports, markups,
         document_status.update(now, markups = List(st)))
 
-    private def add_result(now: Time, entry: Results.Entry): State =
+    private def add_result(now: Date, entry: Results.Entry): State =
       new State(command, results + entry, exports, markups,
         document_status.update(now,
           warned = Results.warned(entry),
@@ -282,7 +282,7 @@ object Command {
     }
 
     def accumulate(
-        now: Time,
+        now: Date,
         self_id: Document_ID.Generic => Boolean,
         other_id: (Document.Node.Name, Document_ID.Generic) =>
           Option[(Symbol.Text_Chunk.Id, Symbol.Text_Chunk)],
@@ -623,7 +623,7 @@ final class Command private(
 
   lazy val init_state: Command.State =
     new Command.State(this, init_results, init_exports, init_markups,
-      init_document_status.update(Time.now(),
+      init_document_status.update(Date.now(),
         warned = init_results.warned,
         failed = init_results.failed))
 

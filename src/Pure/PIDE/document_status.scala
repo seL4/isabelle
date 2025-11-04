@@ -36,6 +36,7 @@ object Document_Status {
   /* command timings: for pro-forma command with actual commands at offset */
 
   object Command_Timings {
+    type Entry0 = (Symbol.Offset, Date)
     type Entry = (Symbol.Offset, Time)
     val empty: Command_Timings =
       new Command_Timings(SortedMap.empty, SortedMap.empty, Time.zero)
@@ -44,14 +45,14 @@ object Document_Status {
   }
 
   final class Command_Timings private(
-    private val running: SortedMap[Symbol.Offset, Time],  // start time (in Scala)
+    private val running: SortedMap[Symbol.Offset, Date],  // start time (in Scala)
     private val finished: SortedMap[Symbol.Offset, Time],  // elapsed time (in ML)
     private val sum_finished: Time
   ) {
     def is_empty: Boolean = running.isEmpty && finished.isEmpty
 
     def has_running: Boolean = running.nonEmpty
-    def add_running(entry: Command_Timings.Entry): Command_Timings =
+    def add_running(entry: Command_Timings.Entry0): Command_Timings =
       new Command_Timings(running + entry, finished, sum_finished)
 
     def count_finished: Int = finished.size
@@ -64,7 +65,7 @@ object Document_Status {
       new Command_Timings(running1, finished1, sum_finished1)
     }
 
-    def sum(now: Time): Time =
+    def sum(now: Date): Time =
       running.valuesIterator.foldLeft(sum_finished)({ case (t, t0) => t + (now - t0) })
 
     def ++ (other: Command_Timings): Command_Timings =
@@ -107,7 +108,7 @@ object Document_Status {
         timings = Command_Timings.empty)
 
     def make(
-      now: Time,
+      now: Date,
       markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
@@ -158,7 +159,7 @@ object Document_Status {
       }
 
     def update(
-      now: Time,
+      now: Date,
       markups: List[Markup] = Nil,
       warned: Boolean = false,
       failed: Boolean = false
@@ -241,13 +242,12 @@ object Document_Status {
     val empty: Node_Status = Node_Status()
 
     def make(
+      now: Date,
       state: Document.State,
       version: Document.Version,
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Node_Status = {
-      val now = Time.now()
-
       val node = version.nodes(name)
 
       var theory_status = Document_Status.Theory_Status.NONE
@@ -382,16 +382,19 @@ object Document_Status {
       }
 
     def update_node(
+      now: Date,
       state: Document.State,
       version: Document.Version,
       name: Document.Node.Name,
       threshold: Time = Time.max
     ): Nodes_Status = {
-      val node_status = Document_Status.Node_Status.make(state, version, name, threshold = threshold)
+      val node_status =
+        Document_Status.Node_Status.make(now, state, version, name, threshold = threshold)
       new Nodes_Status(rep + (name -> node_status))
     }
 
     def update_nodes(
+      now: Date,
       resources: Resources,
       state: Document.State,
       version: Document.Version,
@@ -404,7 +407,7 @@ object Document_Status {
         domain.getOrElse(domain1).iterator.foldLeft(this)(
           { case (a, name) =>
               if (Resources.hidden_node(name) || resources.loaded_theory(name)) a
-              else a.update_node(state, version, name, threshold = threshold) })
+              else a.update_node(now, state, version, name, threshold = threshold) })
       if (trim) new Nodes_Status(that.rep -- that.rep.keysIterator.filterNot(domain1))
       else that
     }

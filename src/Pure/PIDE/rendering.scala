@@ -469,7 +469,7 @@ class Rendering(
     range: Text.Range,
     focus: Rendering.Focus
   ) : List[Text.Info[Rendering.Color.Value]] = {
-    val now = Time.now()
+    val now = Date.now()
     for {
       Text.Info(r, result) <-
         snapshot.cumulate[(List[Markup], Option[Rendering.Color.Value])](
@@ -764,7 +764,7 @@ class Rendering(
   /* command status overview */
 
   def overview_color(range: Text.Range): Option[Rendering.Color.Value] = {
-    val now = Time.now()
+    val now = Date.now()
     if (snapshot.is_outdated) None
     else {
       val results =

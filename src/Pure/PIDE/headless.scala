@@ -129,7 +129,7 @@ object Headless {
       load_state: Load_State,
       watchdog_timeout: Time,
       commit: Option[(Document.Snapshot, Document_Status.Node_Status) => Unit],
-      last_update: Time = Time.now(),
+      last_update: Date = Date.now(),
       nodes_status: Document_Status.Nodes_Status = Document_Status.Nodes_Status.empty,
       already_committed: Map[Document.Node.Name, Document_Status.Node_Status] = Map.empty,
       changed_nodes: Set[Document.Node.Name] = Set.empty,
@@ -140,9 +140,10 @@ object Headless {
         domain: Option[Set[Document.Node.Name]] = None,
         trim: Boolean = false
       ): (Boolean, Use_Theories_State) = {
+        val now = Date.now()
         val nodes_status1 =
-          nodes_status.update_nodes(resources, state, version, domain = domain, trim = trim)
-        val st1 = copy(last_update = Time.now(), nodes_status = nodes_status1)
+          nodes_status.update_nodes(now, resources, state, version, domain = domain, trim = trim)
+        val st1 = copy(last_update = now, nodes_status = nodes_status1)
         (nodes_status1 != nodes_status, st1)
       }
 
@@ -160,7 +161,7 @@ object Headless {
         else copy(changed_nodes = Set.empty, changed_assignment = false)
 
       def watchdog: Boolean =
-        watchdog_timeout > Time.zero && Time.now() - last_update > watchdog_timeout
+        watchdog_timeout > Time.zero && Date.now() - last_update > watchdog_timeout
 
       def finished_result: Boolean = result.isDefined
 
@@ -230,7 +231,7 @@ object Headless {
                     if (!committed.isDefinedAt(name) && parents_committed &&
                         state.node_consolidated(version, name)) {
                       val snapshot = stable_snapshot(state, version, name)
-                      val status = Document_Status.Node_Status.make(state, version, name)
+                      val status = Document_Status.Node_Status.make(Date.now(), state, version, name)
                       commit_fn(snapshot, status)
                       committed + (name -> status)
                     }
@@ -251,6 +252,7 @@ object Headless {
           if (!finished_result && load_theories.isEmpty &&
               (stopped || dep_graph.keys_iterator.forall(consolidated(state, version, _)))
           ) {
+            val now = Date.now()
             @tailrec def make_nodes(
               input: List[Document.Node.Name],
               output: List[(Document.Node.Name, Document_Status.Node_Status)]
@@ -259,7 +261,7 @@ object Headless {
                 case name :: rest =>
                   if (resources.loaded_theory(name)) make_nodes(rest, output)
                   else {
-                    val status = Document_Status.Node_Status.make(state, version, name)
+                    val status = Document_Status.Node_Status.make(now, state, version, name)
                     val ok = if (commit.isDefined) committed(name) else status.consolidated
                     if (stopped || ok) make_nodes(rest, (name -> status) :: output) else None
                   }

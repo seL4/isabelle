@@ -1036,7 +1036,7 @@ object Document {
       message: XML.Elem,
       cache: XML.Cache
     ) : (Command.State, State) = {
-      val now = Time.now()
+      val now = Date.now()
       def update(st: Command.State): (Command.State, State) = {
         val st1 = st.accumulate(now, self_id(st), other_id, message, cache)
         (st1, copy(commands_redirection = redirection(st1)))
