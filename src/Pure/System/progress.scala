@@ -122,9 +122,8 @@ object Progress {
         } yield {
           val text =
             if_proper(session, session + ": ") +
-              "long-running command " + quote(run.name) +
-              " (" + run.time(now).message + " at line " + run.line +
-              " of theory " + quote(name.theory) + ")"
+              "command " + quote(run.name) + " running for " + run.time(now).message +
+              " (line " + run.line + " of theory " + quote(name.theory) + ")"
           Progress.Message(Progress.Kind.writeln, text, verbose = true, status = true)
         })
   }
