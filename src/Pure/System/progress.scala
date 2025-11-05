@@ -112,7 +112,7 @@ object Progress {
         else None
       })
 
-    def status_commands(threshold: Time): List[Progress.Message] =
+    def long_running_commands(threshold: Time, status: Boolean = false): List[Progress.Message] =
       List.from(
         for {
           name <- domain.iterator
@@ -124,7 +124,7 @@ object Progress {
             if_proper(session, session + ": ") +
               "command " + quote(run.name) + " running for " + run.time(now).message +
               " (line " + run.line + " of theory " + quote(name.theory) + ")"
-          Progress.Message(Progress.Kind.writeln, text, verbose = true)
+          Progress.Message(Progress.Kind.writeln, text, verbose = true, status = status)
         })
   }
 
@@ -163,6 +163,10 @@ object Progress {
     }
 
     override def nodes_status(nodes_status: Progress.Nodes_Status): Unit = synchronized {
+      val long_running_commands =
+        nodes_status.long_running_commands(status_threshold, status = status_detailed)
+      val output_commands = if (status_detailed) Nil else long_running_commands
+
       val old_status = status_clear()
       val new_status = {
         val buf = new mutable.ListBuffer[(String, Progress.Msg)]
@@ -170,12 +174,13 @@ object Progress {
         for (old <- old_status if old._1 < session) buf += old
         if (status_detailed) {
           for (thy <- nodes_status.status_theories) buf += (session -> thy)
+          for (msg <- long_running_commands) buf += (session -> msg)
         }
         for (old <- old_status if old._1 > session) buf += old
         buf.toList
       }
 
-      output(nodes_status.completed_theories ::: nodes_status.status_commands(status_threshold))
+      output(nodes_status.completed_theories ::: output_commands)
       output_status(new_status)
     }
   }
