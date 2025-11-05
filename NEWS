@@ -9,12 +9,14 @@ New in Isabelle2025-1 (December 2025)
 
 *** General ***
 
-* Isar proof results --- notably from finished 'have' or 'show' --- are
-printed as regular "writeln" message instead of "state": this follows
-toplevel results from Isabelle2023. The order of output messages has
-been fine-tuned accordingly, to show results as "urgent" message before
-state output (if enabled). This affects Isabelle/jEdit panels for Output
-vs. State in particular.
+* A Prover IDE session, e.g. in Isabelle/jEdit or Isabelle/VSCode, is
+now able to load markup and messages from the underlying session
+database. Example: "isabelle jedit -l HOL src/HOL/Nat.thy" for theory
+"HOL.Nat" in session "HOL". This information is read-only: editing
+theory sources in the editor will invalidate formal markup, and replace
+it by an error message. Output messages depend on system options
+"show_results" (default true) and "show_states" (default false),
+provided at build-time for the underlying session database.
 
 * Declarations of intro/elim/dest rules for Pure and the Classical
 Reasoner (e.g. HOL) are handled more uniformly and efficiently: the
@@ -26,14 +28,12 @@ proper declaration on its own account, instead of the former expansion
 INCOMPATIBILITY: tools like "blast" and "auto" may fail in unusual
 situations.
 
-* A Prover IDE session, e.g. in Isabelle/jEdit or Isabelle/VSCode, is
-now able to load markup and messages from the underlying session
-database. Example: "isabelle jedit -l HOL src/HOL/Nat.thy" for theory
-"HOL.Nat" in session "HOL". This information is read-only: editing
-theory sources in the editor will invalidate formal markup, and replace
-it by an error message. Output messages depend on system options
-"show_results" (default true) and "show_states" (default false),
-provided at build-time for the underlying session database.
+* Isar proof results --- notably from finished 'have' or 'show' --- are
+printed as regular "writeln" message instead of "state": this follows
+toplevel results from Isabelle2023. The order of output messages has
+been fine-tuned accordingly, to show results as "urgent" message before
+state output (if enabled). This affects Isabelle/jEdit panels for Output
+vs. State in particular.
 
 * For pretty-printed output a margin <= 0 means there is no margin to be
 observed: only forced breaks are taken.
@@ -41,27 +41,20 @@ observed: only forced breaks are taken.
 
 *** Isabelle/jEdit Prover IDE ***
 
-* Support for screen reader technology via Java Accessibility API
-(JAAPI), for blind or visually impaired users. Tested with:
+* Explicit support for screen reader technology via Java Accessibility
+API (JAAPI), for blind or visually impaired users. Tested with:
 
   - NVDA (Windows), see https://www.nvaccess.org
   - JAWS (Windows), see https://support.freedomscientific.com/Downloads/JAWS
   - VoiceOver (macOS), builtin Command-F5
 
-* The command-line tool "isabelle jedit" now supports option "-o" as in
-"isabelle build", but it takes persistent preferences into account. When
-options are loaded, command-line options take precedence. When options
-are saved, command-line options are ignored, but original preferences
-take precedence. Example:
-
-  isabelle jedit -o threads=1
-
-This runs Isabelle/jEdit with sequential evaluation in ML, without
-affecting stored preferences of option "threads".
-
-* Session build progress is now more detailed: percentage and cumulated
-timing of running theories is continuously updated, while the finished
-state (100%) remains.
+* Explicit support for dark GUI themes: FlatLaf tells wether a Swing
+look & feel is dark or non-dark (default); jEdit options with suffix
+".dark" and Isabelle options with suffix "_dark" determine GUI rendering
+in dark mode. The panels for "Global Options" and "Plugin Options /
+Isabelle / Rendering" operate on options according to the current Swing
+look & feel, e.g. on "view.fgColor.dark" in dark mode vs. "view.fgColor"
+in non-dark mode.
 
 * Isabelle/jEdit provides builtin navigation support, with actions
 navigate-backwards (AS-LEFT) and navigate-forwards (AS-RIGHT). These
@@ -70,8 +63,26 @@ enabled by default. The old plugins Navigator and Code2HTML are now
 longer included. The old-fashioned toolbar, with its old Navigator
 icons, is now disabled by default.
 
+* Scalable icons for old-fashioned "tango" (from early Gnome or KDE),
+and "idea-icons" from current IntelliJ IDEA community edition. All icons
+are available for jEdit and Isabelle/jEdit add-ons. The special notation
+"myicon.svg?scale=0.5" allows to resize icons as specified in jEdit
+properties. The default properties of Isabelle/jEdit usually prefer
+scalable icons over fixed old bitmaps, but some notable icons are not
+available as SVG.
+
+* Session build progress is now more detailed: percentage and cumulated
+timing of running theories is continuously updated, while the finished
+state (100%) remains. Long-running commands are displayed as well.
+
 * Update GUI look-and-feel to current FlatLaf 3.6, with native library
 support on all Isabelle platforms (now including arm64-linux).
+
+* GUI rendering of the gutter is now more accurate, using scaled icons
+to fit precisely into the available space.
+
+* GUI rendering for dark look-and-feels has been slightly improved:
+colors and icons, notably the menu accelerator font/color.
 
 * Additional look-and-feels "FlatLaf macOS Light" and "FlatLaf macOS
 Dark" imitate original macOS more closely. This is the default for the
@@ -83,27 +94,16 @@ to all displays. In contrast, Windows and macOS work with accurate GUI
 scaling for each individual display, based on operating system settings
 and FlatLaf defaults.
 
-* GUI rendering of the gutter is now more accurate, using scaled icons
-to fit precisely into the available space.
+* The command-line tool "isabelle jedit" now supports option "-o" as in
+"isabelle build", but it takes persistent preferences into account. When
+options are loaded, command-line options take precedence. When options
+are saved, command-line options are ignored, but original preferences
+take precedence. Example:
 
-* GUI rendering for dark look-and-feels has been slightly improved:
-colors and icons, notably the menu accelerator font/color.
+  isabelle jedit -o threads=1
 
-* Explicit support for dark GUI themes: FlatLaf tells wether a Swing
-look & feel is dark or non-dark (default); jEdit options with suffix
-".dark" and Isabelle options with suffix "_dark" determine GUI rendering
-in dark mode. The panels for "Global Options" and "Plugin Options /
-Isabelle / Rendering" operate on options according to the current Swing
-look & feel, e.g. on "view.fgColor.dark" in dark mode vs. "view.fgColor"
-in non-dark mode.
-
-* Provide scalable icons for old-fashioned "tango" (from early Gnome or
-KDE), and "idea-icons" from current IntelliJ IDEA community edition. All
-icons are available for jEdit and Isabelle/jEdit add-ons. The special
-notation "myicon.svg?scale=0.5" allows to resize icons as specified in
-jEdit properties. The default properties of Isabelle/jEdit usually
-prefer scalable icons over fixed old bitmaps, but some notable icons are
-not available as SVG.
+This runs Isabelle/jEdit with sequential evaluation in ML, without
+affecting stored preferences of option "threads".
 
 
 *** Isabelle/VSCode Prover IDE ***
@@ -134,9 +134,9 @@ names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
-* New code declaration attributes 'code abort' and 'code drop' correspond
-to 'code abort: c' and 'code drop: c' respectively but derive the affected
-constant from the corresponding theorem.
+* New code declaration attributes 'code abort' and 'code drop'
+correspond to 'code abort: c' and 'code drop: c' respectively but derive
+the affected constant from the corresponding theorem.
 
 * Consolidated auxiliary operations intended for code generation:
 
@@ -197,8 +197,8 @@ vimage_Int, vimage_Un. INCOMPATIBILITY, use thm(s) antiquotation
 instead.
 
 * Clarified semantics for adding code equations:
-  * Code equations from preceding theories are superseded.
-  * Code equations declared in the course of a theory are appended, not
+  - Code equations from preceding theories are superseded.
+  - Code equations declared in the course of a theory are appended, not
     prepended.
 INCOMPATIBILITY.
 
@@ -206,14 +206,11 @@ INCOMPATIBILITY.
 could yield false positives due to incomplete handling of polymorphism
 in certain situations; this is now corrected.
 
-* More efficient default implementation for
-HOL-Library.Discrete_Functions.floor_sqrt.
+* More efficient default implementation for "prime" predicate on types
+nat and int.
 
-* More efficient default implementation for "prime" predicate on types nat
-and int.
-
-* Code generation for set intervals based on a type class covering nat, int
-and word types. INCOMPATIBILITY.
+* Code generation for set intervals based on a type class covering nat,
+int and word types. INCOMPATIBILITY.
 
 * Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
 
@@ -224,14 +221,14 @@ HOL-Main. Minor INCOMPATIBILITY.
 nat are implemented by bit operations on target-language integers. Minor
 INCOMPATIBILITY.
 
-* Finite datatypes and BNFs (e.g. list) now generate the theorem set_finite
-which is added as a simp rule.
+* Finite datatypes and BNFs (e.g. list) now generate the theorem
+set_finite which is added as a simp rule.
 
 * SMT:
-  - Added Vampire as an experimental SMT solver (vampire_smt_dt has native
-    support for datatypes and vampire_smt_nodt does not).
-  - Added SMT solver "dummy_smtlib" which immediately fails; this is useful
-    when generating SMT-LIB files with Mirabelle.
+  - Added Vampire as an experimental SMT solver (vampire_smt_dt has
+    native support for datatypes and vampire_smt_nodt does not).
+  - Added SMT solver "dummy_smtlib" which immediately fails; this is
+    useful when generating SMT-LIB files with Mirabelle.
   - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
     "smt_proof_dest_dir". Minor INCOMPATIBILITY.
 
@@ -257,8 +254,8 @@ which is added as a simp rule.
   - Changed definition of predicate refl_on to not constrain the domain
     and range of the relation. To get the old semantics, explicitely use
     the formula "r \<subset> A \<times> A \<and> refl_on A r". INCOMPATIBILITY.
-  - Removed predicate single_valuedp. Use predicate right_unique instead.
-    INCOMPATIBILITY.
+  - Removed predicate single_valuedp. Use predicate right_unique
+    instead. INCOMPATIBILITY.
   - Removed lemmas. Minor INCOMPATIBILITY.
       antisym_bot[simp] (use antisymp_on_bot instead)
       antisym_empty[simp] (use antisym_on_bot instead)
@@ -366,6 +363,9 @@ which is added as a simp rule.
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
 
+* More efficient default implementation for
+HOL-Library.Discrete_Functions.floor_sqrt.
+
 * Removed theory "HOL-Library.Divides" (finally).
 
 
@@ -395,6 +395,30 @@ may require change of parentheses:
 
 
 *** System ***
+
+* The traditional ML system settings have been reconsidered, and mostly
+replaced by ML_Settings in Isabelle/Scala (e.g. via
+ML_Settings.system(Options.init())). Potential INCOMPATIBILITY for old
+shell scripts, which should be replaced by proper Isabelle/Scala tools
+anyway. The following environment variables still have a purpose:
+
+  - ML_SYSTEM, ML_PLATFORM, ML_HOME as provided to Isabelle/ML (see also
+    structure ML_System).
+
+  - Optional ML_PLATFORM or ML_OPTIONS as input in user settings, which
+    take precedence if assigned to a proper value. Otherwise,
+    ML_PLATFORM is derived from system options ML_system_64 and
+    ML_system_apple, and ML_OPTIONS is taken from ML_OPTIONS32 or
+    ML_OPTIONS64 (depending on the effective ML_PLATFORM).
+
+Examples:
+
+    isabelle build -o ML_system_64 -b HOL
+    isabelle jedit -o ML_system_64
+
+* System option "ML_platform" specifies the underlying Poly/ML platform
+identifier explicitly: it takes precedence over all other options and
+settings to determine the ML_PLATFORM (see above).
 
 * The command-line tool "isabelle process_theories" tool takes source
 files and theories within a proper session context (like regular
@@ -427,33 +451,12 @@ Option "show_results" is also the default for the configuration option
 "show_results" within the formal context --- instead of "show_states"
 that was used for this purpose before.
 
-* The traditional ML system settings have been reconsidered, and mostly
-replaced by ML_Settings in Isabelle/Scala (e.g. via
-ML_Settings.system(Options.init())). Potential INCOMPATIBILITY for old
-shell scripts, which should be replaced by proper Isabelle/Scala tools
-anyway. The following environment variables still have a purpose:
-
-  - ML_SYSTEM, ML_PLATFORM, ML_HOME as provided to Isabelle/ML (see also
-    structure ML_System).
-
-  - Optional ML_PLATFORM or ML_OPTIONS as input in user settings, which
-    take precedence if assigned to a proper value. Otherwise,
-    ML_PLATFORM is derived from system options ML_system_64 and
-    ML_system_apple, and ML_OPTIONS is taken from ML_OPTIONS32 or
-    ML_OPTIONS64 (depending on the effective ML_PLATFORM).
-
-Examples:
-
-    isabelle build -o ML_system_64 -b HOL
-    isabelle jedit -o ML_system_64
-
-* System option "ML_platform" specifies the underlying Poly/ML platform
-identifier explicitly: it takes precedence over all other options and
-settings to determine the ML_PLATFORM (see above).
-
 * Build cluster options support "settings" for specific host settings,
 e.g. for Java heap size. See also $ISABELLE_HOME_USER/etc/registry.toml
 or "isabelle build -H".
+
+* SSH connections allow both bash and zsh as remote shell. This is
+particularly important for macOS, where zsh is the default user shell.
 
 * System option "build_progress_detailed" tells "isabelle build -v" to
 output detailed information while processing theories, notably the
@@ -464,24 +467,16 @@ movement and deletion of previous output. The default is to output only
 the finished state (100%) with its timing information, and long-running
 commands, without using any ANSI control sequences.
 
-* System option "record_theories" tells "isabelle build" to record
-intermediate theory commands and results, at the cost of approx. 5 times
-larger ML heap images. This allows to retrieve fine-grained semantic
-information later on, using Thy_Info.get_theory_segments or
-Thy_Info.get_theory_elements in Isabelle/ML.
-
 * System option "command_timing_threshold" has been renamed to
 "build_timing_threshold": it refers to batch-builds. Likewise,
 "jedit_timing_threshold" and "vscode_timing_threshold" have been unified
 as "editor_timing_threshold": it refers to PIDE editor interaction.
 
-* The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
-also https://wiki.openjdk.org/display/zgc). This should work uniformly
-on all platforms, but requires a reasonably new version of Windows
-(Windows 10 or Windows Server 2019).
-
-* SSH connections allow both bash and zsh as remote shell. This is
-particularly important for macOS, where zsh is the default user shell.
+* System option "record_theories" tells "isabelle build" to record
+intermediate theory commands and results, at the cost of approx. 5 times
+larger ML heap images. This allows to retrieve fine-grained semantic
+information later on, using Thy_Info.get_theory_segments or
+Thy_Info.get_theory_elements in Isabelle/ML.
 
 * Isabelle/Scala supports SVG via the "jsvg" library
 (com.github.weisj.jsvg.SVGDocument), as well as the "flatlaf-extras"
@@ -489,6 +484,11 @@ library (com.formdev.flatlaf.extras.FlatSVGIcon).
 
 * Update to official Poly/ML 5.9.2, with minor changes to word and
 floating-point arithmetic.
+
+* The Z Garbage Collector (ZGC) of Java 21 is now used by default (see
+also https://wiki.openjdk.org/display/zgc). This should work uniformly
+on all platforms, but requires a reasonably new version of Windows
+(Windows 10 or Windows Server 2019).
 
 
 
