@@ -366,8 +366,8 @@ set_finite which is added as a simp rule.
 * More efficient default implementation for
 HOL-Library.Discrete_Functions.floor_sqrt.
 
-* Session "HOL-Analysis": much new material including the "slotted complex plane" 
-and change-of-variables theorems
+* Session "HOL-Analysis": much new material including the "slotted
+complex plane" and change-of-variables theorems.
 
 * Removed theory "HOL-Library.Divides" (finally).
 
