@@ -455,13 +455,14 @@ settings to determine the ML_PLATFORM (see above).
 e.g. for Java heap size. See also $ISABELLE_HOME_USER/etc/registry.toml
 or "isabelle build -H".
 
-* System option "build_progress_detailed" tells "isabelle build" to
+* System option "build_progress_detailed" tells "isabelle build -v" to
 output detailed information while processing theories, notably the
-percentage and cumulated timing. This requires an output channel
+percentage and cumulated timing and long-running commands (see also
+option "build_progress_threshold"). This requires an output channel
 (terminal) that supports ANSI control sequences, notably for cursor
 movement and deletion of previous output. The default is to output only
-the finished state (100%) with its timing information, without using any
-ANSI control sequences.
+the finished state (100%) with its timing information, and long-running
+commands, without using any ANSI control sequences.
 
 * System option "record_theories" tells "isabelle build" to record
 intermediate theory commands and results, at the cost of approx. 5 times
