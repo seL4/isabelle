@@ -363,6 +363,9 @@ set_finite which is added as a simp rule.
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
 
+* Theory "HOL-List": theorem list_update_beyond is no longer a simprule by default.
+INCOMPATIBILITY.
+
 * More efficient default implementation for
 HOL-Library.Discrete_Functions.floor_sqrt.
 
