@@ -325,12 +325,14 @@ text \<open>
 \<open>Usage: isabelle process [OPTIONS]
 
   Options are:
+    -C DIR       change working directory
     -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -l NAME      logic session name (default ISABELLE_LOGIC="HOL")
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r           redirect stderr to stdout
 
   Run the raw Isabelle ML process in batch mode.\<close>}
 
@@ -352,6 +354,10 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-o\<close> allows to override Isabelle system options for this process,
   see also \secref{sec:system-options}.
+
+  \<^medskip>
+  Option \<^verbatim>\<open>-C\<close> specifies an explicit working directory. Option \<^verbatim>\<open>-r\<close> redirects
+  \<^verbatim>\<open>stderr\<close> to \<^verbatim>\<open>stdout\<close>.
 \<close>
 
 

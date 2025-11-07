@@ -131,31 +131,37 @@ object ML_Process {
   /* Isabelle tool wrapper */
 
   def tool_body(args: List[String], internal: Boolean = false): Process_Result = {
+    var cwd = Path.current
     var dirs: List[Path] = Nil
     var eval_args: List[String] = Nil
     var logic = Isabelle_System.default_logic()
     var modes: List[String] = Nil
     var options = Options.init()
+    var redirect = false
 
     val getopts = Getopts("""
 Usage: isabelle process [OPTIONS]
 
   Options are:
+    -C DIR       change working directory
     -d DIR       include session directory
     -e ML_EXPR   evaluate ML expression on startup
     -f ML_FILE   evaluate ML file on startup
     -l NAME      logic session name (default ISABELLE_LOGIC=""" + quote(logic) + """)
     -m MODE      add print mode for output
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r           redirect stderr to stdout
 
   Run the raw Isabelle ML process in batch mode.
 """,
+      "C:" -> (arg => cwd = Path.explode(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
       "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
       "l:" -> (arg => logic = arg),
       "m:" -> (arg => modes = arg :: modes),
-      "o:" -> (arg => options = options + arg))
+      "o:" -> (arg => options = options + arg),
+      "r" -> (_ => redirect = true))
 
     val more_args = getopts(args, internal = internal)
     if (more_args.nonEmpty) getopts.usage(internal = internal)
@@ -163,7 +169,8 @@ Usage: isabelle process [OPTIONS]
     val store = Store(options)
     val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
     val session_heaps = store.session_heaps(session_background, logic = logic)
-    ML_Process(options, session_background, session_heaps, args = eval_args, modes = modes)
+    ML_Process(options, session_background, session_heaps,
+      args = eval_args, modes = modes, cwd = cwd, redirect = redirect)
       .result(
         progress_stdout = Output.writeln(_, stdout = true),
         progress_stderr = Output.writeln(_))
