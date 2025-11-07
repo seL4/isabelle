@@ -440,9 +440,9 @@ Examples:
   isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'
 
 * The command-line tool "isabelle process" supports new options -C DIR
-and -r (redirect). It is now possible to invoke it directly from
-Isabelle/ML via Isabelle/Scala, using Isabelle_System.ML_process: this
-avoids another bulky Java process.
+and -r (redirect). Using Isabelle_System.ML_process and ML_Process.args
+in Isabelle/ML, it is now possible to invoke an external ML process
+directly via Isabelle/Scala, without another bulky Java process.
 
 * The command-line tool "isabelle process" no longer supports option -T
 to load individual theories via the "use_thy" function in Isabelle/ML.

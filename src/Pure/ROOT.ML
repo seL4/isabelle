@@ -98,6 +98,7 @@ ML_file "General/seq.ML";
 ML_file "General/timing.ML";
 ML_file "General/sha1.ML";
 
+ML_file "ML/ml_process.ML";
 ML_file "ML/ml_profiling.ML";
 ML_file "PIDE/byte_message.ML";
 ML_file "PIDE/protocol_message.ML";

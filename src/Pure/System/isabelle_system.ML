@@ -6,7 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
-  val ML_process: string list -> Process_Result.T
+  val ML_process: ML_Process.args -> Process_Result.T
   val bash_process: Bash.params -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
@@ -60,8 +60,7 @@ fun bash_process_result args =
 in
 
 fun ML_process args =
-  Scala.function "ML_process" ("-o" :: ("ML_platform=" ^ ML_System.platform) :: args)
-  |> bash_process_result;
+  bash_process_result (Scala.function "ML_process" (ML_Process.command_line args));
 
 fun bash_process params =
   let
