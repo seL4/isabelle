@@ -158,7 +158,7 @@ Usage: isabelle process [OPTIONS]
       "o:" -> (arg => options = options + arg))
 
     val more_args = getopts(args, internal = internal)
-    if (args.isEmpty || more_args.nonEmpty) getopts.usage(internal = internal)
+    if (more_args.nonEmpty) getopts.usage(internal = internal)
 
     val store = Store(options)
     val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
