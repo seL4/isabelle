@@ -321,6 +321,14 @@ object Bash {
       server.start()
       server
     }
+
+    def result(result: Process_Result): List[String] =
+      result.rc.toString ::
+      result.timing.elapsed.ms.toString ::
+      result.timing.cpu.ms.toString ::
+      result.out_lines.length.toString ::
+      result.out_lines :::
+      result.err_lines
   }
 
   class Server private(port: Int, debugging: => Boolean)
@@ -345,14 +353,7 @@ object Bash {
           else List(Server.FAILURE, Exn.message(exn)))
 
       def reply_result(result: Process_Result): Unit =
-        reply(
-          Server.RESULT ::
-          result.rc.toString ::
-          result.timing.elapsed.ms.toString ::
-          result.timing.cpu.ms.toString ::
-          result.out_lines.length.toString ::
-          result.out_lines :::
-          result.err_lines)
+        reply(Server.RESULT :: Server.result(result))
 
       connection.read_byte_message().map(_.map(_.text)) match {
         case None =>

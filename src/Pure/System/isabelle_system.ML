@@ -6,6 +6,7 @@ Isabelle system support.
 
 signature ISABELLE_SYSTEM =
 sig
+  val ML_process: string list -> Process_Result.T
   val bash_process: Bash.params -> Process_Result.T
   val bash_output: string -> string * int
   val bash: string -> int
@@ -35,6 +36,32 @@ struct
 (* bash *)
 
 val absolute_path = Path.implode o File.absolute_path;
+
+local
+
+fun bash_process_result args =
+  (case args of
+    a :: b :: c :: d :: lines =>
+      let
+        val rc = Value.parse_int a;
+        val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
+        val (out_lines, err_lines) = chop (Value.parse_int d) lines;
+      in
+        if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed
+        else
+          Process_Result.make
+           {rc = rc,
+            out_lines = out_lines,
+            err_lines = err_lines,
+            timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
+       end
+  | _ => raise Fail ("Bad number of process results " ^ string_of_int (length args)));
+
+in
+
+fun ML_process args =
+  Scala.function "ML_process" ("-o" :: ("ML_platform=" ^ ML_System.platform) :: args)
+  |> bash_process_result;
 
 fun bash_process params =
   let
@@ -74,21 +101,8 @@ fun bash_process params =
               else if head = Bash.server_failure andalso length args = 1 then
                 raise Fail (hd args)
               else if head = Bash.server_result andalso length args >= 4 then
-                let
-                  val a :: b :: c :: d :: lines = args;
-                  val rc = Value.parse_int a;
-                  val (elapsed, cpu) = apply2 (Time.fromMilliseconds o Value.parse_int) (b, c);
-                  val (out_lines, err_lines) = chop (Value.parse_int d) lines;
-                in
-                  if rc = Process_Result.timeout_rc then raise Timeout.TIMEOUT elapsed
-                  else
-                    Process_Result.make
-                     {rc = rc,
-                      out_lines = out_lines,
-                      err_lines = err_lines,
-                      timing = {elapsed = elapsed, cpu = cpu, gc = Time.zeroTime}}
-                 end
-               else err ()
+                bash_process_result args
+              else err ()
           | _ => err ())
         and loop maybe_uuid s =
           (case Exn.capture_body (fn () => loop_body s) of
@@ -98,6 +112,8 @@ fun bash_process params =
         with_streams (fn s => (Byte_Message.write_message (#2 s) server_run; loop NONE s))
       end)
   end;
+
+end;
 
 val bash = Bash.script #> bash_process #> Process_Result.print #> Process_Result.rc;
 

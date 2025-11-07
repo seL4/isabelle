@@ -130,16 +130,14 @@ object ML_Process {
 
   /* Isabelle tool wrapper */
 
-  val isabelle_tool = Isabelle_Tool("process", "raw ML process (batch mode)",
-    Scala_Project.here,
-    { args =>
-      var dirs: List[Path] = Nil
-      var eval_args: List[String] = Nil
-      var logic = Isabelle_System.default_logic()
-      var modes: List[String] = Nil
-      var options = Options.init()
+  def tool_body(args: List[String], internal: Boolean = false): Process_Result = {
+    var dirs: List[Path] = Nil
+    var eval_args: List[String] = Nil
+    var logic = Isabelle_System.default_logic()
+    var modes: List[String] = Nil
+    var options = Options.init()
 
-      val getopts = Getopts("""
+    val getopts = Getopts("""
 Usage: isabelle process [OPTIONS]
 
   Options are:
@@ -152,25 +150,32 @@ Usage: isabelle process [OPTIONS]
 
   Run the raw Isabelle ML process in batch mode.
 """,
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
-        "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
-        "l:" -> (arg => logic = arg),
-        "m:" -> (arg => modes = arg :: modes),
-        "o:" -> (arg => options = options + arg))
+      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+      "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
+      "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+      "l:" -> (arg => logic = arg),
+      "m:" -> (arg => modes = arg :: modes),
+      "o:" -> (arg => options = options + arg))
 
-      val more_args = getopts(args)
-      if (args.isEmpty || more_args.nonEmpty) getopts.usage()
+    val more_args = getopts(args, internal = internal)
+    if (args.isEmpty || more_args.nonEmpty) getopts.usage(internal = internal)
 
-      val store = Store(options)
-      val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
-      val session_heaps = store.session_heaps(session_background, logic = logic)
-      val result =
-        ML_Process(options, session_background, session_heaps, args = eval_args, modes = modes)
-          .result(
-            progress_stdout = Output.writeln(_, stdout = true),
-            progress_stderr = Output.writeln(_))
+    val store = Store(options)
+    val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
+    val session_heaps = store.session_heaps(session_background, logic = logic)
+    ML_Process(options, session_background, session_heaps, args = eval_args, modes = modes)
+      .result(
+        progress_stdout = Output.writeln(_, stdout = true),
+        progress_stderr = Output.writeln(_))
+  }
 
-      sys.exit(result.rc)
-    })
+  val isabelle_tool =
+    Isabelle_Tool("process", "raw ML process (batch mode)", Scala_Project.here,
+      args => sys.exit(tool_body(args).rc))
+
+  object Scala_Fun extends Scala.Fun_Strings("ML_process", thread = true) {
+    val here = Scala_Project.here
+    def apply(args: List[String]): List[String] =
+      Bash.Server.result(tool_body(args, internal = true))
+  }
 }
