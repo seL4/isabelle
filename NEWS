@@ -351,6 +351,9 @@ set_finite which is added as a simp rule.
   - Added lemmas.
       single_valuedp_eq_right_unique
 
+* Theory "HOL.List": theorem list_update_beyond is no longer a [simp]
+rule by default. INCOMPATIBILITY.
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
@@ -362,9 +365,6 @@ set_finite which is added as a simp rule.
       filter_mset_sum_list
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
-
-* Theory "HOL-List": theorem list_update_beyond is no longer a simprule by default.
-INCOMPATIBILITY.
 
 * More efficient default implementation for
 HOL-Library.Discrete_Functions.floor_sqrt.
