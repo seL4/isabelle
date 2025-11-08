@@ -169,11 +169,16 @@ Usage: isabelle process [OPTIONS]
     val store = Store(options)
     val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
     val session_heaps = store.session_heaps(session_background, logic = logic)
-    ML_Process(options, session_background, session_heaps,
-      args = eval_args, modes = modes, cwd = cwd, redirect = redirect)
-      .result(
+
+    val process =
+      ML_Process(options, session_background, session_heaps,
+        args = eval_args, modes = modes, cwd = cwd, redirect = redirect)
+    if (internal) process.result()
+    else {
+      process.result(
         progress_stdout = Output.writeln(_, stdout = true),
         progress_stderr = Output.writeln(_))
+    }
   }
 
   val isabelle_tool =
