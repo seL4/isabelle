@@ -157,7 +157,7 @@ Usage: isabelle ML_process [OPTIONS]
       "C:" -> (arg => cwd = Path.explode(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
       "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
-      "f:" -> (arg => eval_args = eval_args ::: List("--use", arg)),
+      "f:" -> (arg => eval_args = eval_args ::: List("--use", File.platform_path(arg))),
       "l:" -> (arg => logic = arg),
       "m:" -> (arg => modes = arg :: modes),
       "o:" -> (arg => options = options + arg),
