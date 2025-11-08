@@ -492,8 +492,8 @@ val _ = Theory.setup
     (target, {serializer = serializer, literals = literals,
       check = { env_var = "ISABELLE_GHC", make_destination = I,
         run_command = Code_Target.run_command_bash (fn module_name =>
-          "\"$ISABELLE_GHC\" " ^ language_params  ^ " -odir build -hidir build -stubdir build -e \"\" " ^
-            module_name ^ ".hs")},
+          \<^verbatim>\<open>"$ISABELLE_GHC" \<close> ^ language_params  ^ \<^verbatim>\<open> -odir build -hidir build -stubdir build -e "" \<close> ^
+            Bash.string module_name ^ ".hs")},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
