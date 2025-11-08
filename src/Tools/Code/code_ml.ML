@@ -877,9 +877,15 @@ val _ = Theory.setup
     (target_SML, {serializer = serializer_sml, literals = literals_sml,
       check = {env_var = "",
         make_destination = fn p => p + Path.explode "ROOT.ML",
-        run_command = Code_Target.run_command_bash (fn _ =>
-          "isabelle process -o ML_platform=" ^ Bash.string (ML_System.platform) ^
-          " -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure")},
+        run_command = fn {cwd, ...} =>
+          let
+            val args =
+              ML_Process.args |> ML_Process.cwd cwd |> ML_Process.redirect
+              |> ML_Process.eval_expr \<^verbatim>\<open>datatype ref = datatype Unsynchronized.ref\<close>
+              |> ML_Process.eval_file (cwd + Path.explode "ROOT.ML")
+              |> ML_Process.logic "Pure";
+            val cmd_line = "isabelle" :: "process" :: ML_Process.command_line args;
+          in (Bash.strings cmd_line, Isabelle_System.ML_process args) end},
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
