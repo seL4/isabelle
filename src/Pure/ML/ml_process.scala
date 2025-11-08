@@ -140,7 +140,7 @@ object ML_Process {
     var redirect = false
 
     val getopts = Getopts("""
-Usage: isabelle process [OPTIONS]
+Usage: isabelle ML_process [OPTIONS]
 
   Options are:
     -C DIR       change working directory
@@ -152,7 +152,7 @@ Usage: isabelle process [OPTIONS]
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           redirect stderr to stdout
 
-  Run the raw Isabelle ML process in batch mode.
+  Run the raw ML process without Isabelle/Scala context.
 """,
       "C:" -> (arg => cwd = Path.explode(arg)),
       "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
@@ -182,8 +182,8 @@ Usage: isabelle process [OPTIONS]
   }
 
   val isabelle_tool =
-    Isabelle_Tool("process", "raw ML process (batch mode)", Scala_Project.here,
-      args => sys.exit(tool_body(args).rc))
+    Isabelle_Tool("ML_process", "low-level ML process without Isabelle/Scala context",
+      Scala_Project.here, args => sys.exit(tool_body(args).rc))
 
   object Scala_Fun extends Scala.Fun_Strings("ML_process", thread = true) {
     val here = Scala_Project.here

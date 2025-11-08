@@ -1195,7 +1195,7 @@ text \<open>
   exported to the global bootstrap environment of the ML process --- it has
   a lasting effect that cannot be retracted. This allows ML evaluation
   without a formal theory context, e.g. for command-line tools via @{tool
-  process} \<^cite>\<open>"isabelle-system"\<close>.
+  ML_process} \<^cite>\<open>"isabelle-system"\<close>.
 
   \<^descr> \<^theory_text>\<open>ML_prf\<close> is analogous to \<^theory_text>\<open>ML\<close> but works within a proof context.
   Top-level ML bindings are stored within the proof context in a purely

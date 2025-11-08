@@ -383,6 +383,11 @@ etc.
 
 *** ML ***
 
+* Isabelle_System.ML_process and ML_Process.args allow to run an
+external ML process directly via the current Isabelle/Scala context,
+without running another bulky Java process of "isabelle ML_process" on
+the command-line.
+
 * ML function "Raw_Simplifier.rewrite" has been renamed to
 "Raw_Simplifier.rewrite_wrt", to avoid clash with existing
 'Simplifier.rewrite'. INCOMPATIBILITY.
@@ -439,17 +444,14 @@ Examples:
 
   isabelle process_theories -f '~~/src/HOL/Examples/Seq.thy'
 
-* The command-line tool "isabelle process" supports new options -C DIR
-and -r (redirect). Using Isabelle_System.ML_process and ML_Process.args
-in Isabelle/ML, it is now possible to invoke an external ML process
-directly via Isabelle/Scala, without another bulky Java process.
-
-* The command-line tool "isabelle process" no longer supports option -T
-to load individual theories via the "use_thy" function in Isabelle/ML.
-The latter is still available as "Thy_Info.use_thy_legacy", notably for
-"isabelle process -e ...", but it will be removed eventually. The proper
-way to process individual theories under program control is via
-"isabelle process_theories". INCOMPATIBILITY.
+* The former command-line tool "isabelle process" has been renamed to
+"isabelle ML_process", with new options -C DIR and -r (redirect). The
+old option option -T to load individual theories via the Isabelle/ML
+"use_thy" function has been removed. It is still possible to use
+"Thy_Info.use_thy_legacy" together with "isabelle ML_process -e ...",
+but that low-level entry to the theory loader will be removed at a later
+stage. The proper way to process individual theories under program
+control is via "isabelle process_theories". INCOMPATIBILITY.
 
 * System option "show_results" (default true) controls output of
 toplevel command results (definitions, theorems) in batch-builds. In

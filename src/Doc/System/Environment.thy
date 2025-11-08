@@ -305,10 +305,10 @@ text \<open>
 \<close>
 
 
-section \<open>The raw Isabelle ML process\<close>
+section \<open>The raw ML process \label{sec:tool-ml-process}\<close>
 
 text \<open>
-  The raw Isabelle ML process has limited use in actual applications: it lacks
+  The raw ML process has limited use in actual applications: it lacks
   the full session context that is required for export artifacts,
   Isabelle/ML/Scala integration and Prover IDE messages or markup. It is
   better to use @{tool build} (\secref{sec:tool-build}) for regular sessions,
@@ -317,12 +317,14 @@ text \<open>
 \<close>
 
 
-subsection \<open>Batch mode \label{sec:tool-process}\<close>
+subsection \<open>The raw ML process as command-line tool\<close>
 
 text \<open>
-  The @{tool_def process} tool runs the raw ML process in batch mode:
+  The @{tool_def ML_process} tool runs the raw ML process from the
+  command-line:
+
   @{verbatim [display]
-\<open>Usage: isabelle process [OPTIONS]
+\<open>Usage: isabelle ML_process [OPTIONS]
 
   Options are:
     -C DIR       change working directory
@@ -334,7 +336,12 @@ text \<open>
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -r           redirect stderr to stdout
 
-  Run the raw Isabelle ML process in batch mode.\<close>}
+  Run the raw ML process without Isabelle/Scala context.\<close>}
+
+  Note that is often better to run the raw ML process directly from
+  Isabelle/ML (via \<^ML>\<open>Isabelle_System.ML_process\<close>) or Isabelle/Scala (via
+  \<^scala_object>\<open>isabelle.ML_Process\<close>): both avoid another bulky Java
+  process.
 
   \<^medskip>
   Options \<^verbatim>\<open>-e\<close> and \<^verbatim>\<open>-f\<close> allow to evaluate ML code, before the ML process is
@@ -366,7 +373,7 @@ subsubsection \<open>Examples\<close>
 text \<open>
   The subsequent example retrieves the \<^verbatim>\<open>Main\<close> theory value from the theory
   loader within ML:
-  @{verbatim [display] \<open>isabelle process -e 'Thy_Info.get_theory "Main"'\<close>}
+  @{verbatim [display] \<open>isabelle ML_process -e 'Thy_Info.get_theory "Main"'\<close>}
 
   Observe the delicate quoting rules for the GNU bash shell vs.\ ML. The
   Isabelle/ML and Scala libraries provide functions for that, but here we need
@@ -375,8 +382,8 @@ text \<open>
   \<^medskip>
   This is how to invoke a function body with proper return code and printing
   of errors, and without printing of a redundant \<^verbatim>\<open>val it = (): unit\<close> result:
-  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool (fn () => writeln "OK")'\<close>}
-  @{verbatim [display] \<open>isabelle process -e 'Command_Line.tool (fn () => error "Bad")'\<close>}
+  @{verbatim [display] \<open>isabelle ML_process -e 'Command_Line.tool (fn () => writeln "OK")'\<close>}
+  @{verbatim [display] \<open>isabelle ML_process -e 'Command_Line.tool (fn () => error "Bad")'\<close>}
 \<close>
 
 
@@ -411,8 +418,8 @@ text \<open>
   relevant for Isabelle/Pure development.
 
   \<^medskip>
-  Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool process}
-  (\secref{sec:tool-process}).
+  Options \<^verbatim>\<open>-d\<close>, \<^verbatim>\<open>-m\<close>, \<^verbatim>\<open>-o\<close> have the same meaning as for @{tool ML_process}
+  (\secref{sec:tool-ml-process}).
 
   \<^medskip>
   The Isabelle/ML process is run through the line editor that is specified via

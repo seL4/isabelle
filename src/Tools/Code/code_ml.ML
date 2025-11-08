@@ -884,7 +884,7 @@ val _ = Theory.setup
               |> ML_Process.eval_expr \<^verbatim>\<open>datatype ref = datatype Unsynchronized.ref\<close>
               |> ML_Process.eval_file (cwd + Path.explode "ROOT.ML")
               |> ML_Process.logic "Pure";
-            val cmd_line = "isabelle" :: "process" :: ML_Process.command_line args;
+            val cmd_line = "isabelle" :: "ML_process" :: ML_Process.command_line args;
           in (Bash.strings cmd_line, Isabelle_System.ML_process args) end},
       evaluation_args = []})
   #> Code_Target.add_language
