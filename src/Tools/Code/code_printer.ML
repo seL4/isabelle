@@ -116,7 +116,6 @@ infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
 val concat = Pretty.block o Pretty.breaks;
-val commas = Pretty.commas;
 val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun enum_default default sep l r [] = Pretty.str default
   | enum_default default sep l r xs = Pretty.enum sep l r xs;
