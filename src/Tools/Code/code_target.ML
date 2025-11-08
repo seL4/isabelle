@@ -46,6 +46,8 @@ sig
 
   datatype pretty_modules = Singleton of string * Pretty.T | Hierarchy of (string list * Pretty.T) list;
   type serializer
+  type run_command = {module_name: string, cwd: Path.T} -> string * Process_Result.T
+  val run_command_bash: (string -> string) -> run_command
   type language
   type ancestry
   val assert_target: theory -> string -> string
@@ -168,8 +170,10 @@ type serializer = Token.T list
   -> Code_Symbol.T list
   -> pretty_modules * (Code_Symbol.T -> string option);
 
+type run_command = {module_name: string, cwd: Path.T} -> string * Process_Result.T;
+
 type language = {serializer: serializer, literals: Code_Printer.literals,
-  check: {env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string},
+  check: {env_var: string, make_destination: Path.T -> Path.T, run_command: run_command},
   evaluation_args: Token.T list};
 
 type ancestry = (string * (Code_Thingol.program -> Code_Thingol.program)) list;
@@ -470,23 +474,26 @@ fun present_code_for ctxt target_name module_name some_width args =
     present_result selects (the_width ctxt some_width) (serializer program false syms)
   end;
 
+fun run_command_bash script : run_command = fn {module_name, cwd} =>
+  let val cmd = script module_name
+  in (cmd, Isabelle_System.bash_process (Bash.script cmd |> Bash.cwd cwd |> Bash.redirect)) end;
+
 fun check_code_for target_name strict args program all_public syms lthy =
   let
-    val { env_var, make_destination, make_command } = #check (the_language lthy target_name);
+    val { env_var, make_destination, run_command } = #check (the_language lthy target_name);
     val format = Code_Printer.format [] 80;
-    fun ext_check p =
+    fun ext_check tmp_dir =
       let
-        val destination = make_destination p;
+        val destination = make_destination tmp_dir;
         val lthy' = lthy
           |> Local_Theory.background_theory
             (export_result (SOME ({physical = true}, (destination, Position.none))) format
               (invoke_serializer lthy target_name generatedN args program all_public syms));
-        val cmd = make_command generatedN;
-        val context_cmd = "cd " ^ File.bash_path p ^ " && " ^ cmd ^ " 2>&1";
+        val (cmd, result) = run_command {module_name = generatedN, cwd = tmp_dir};
+        val _ = Process_Result.print result;
       in
-        if Isabelle_System.bash context_cmd <> 0
-        then error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
-        else lthy'
+        if Process_Result.ok result then lthy'
+        else error ("Code check failed for " ^ target_name ^ ": " ^ cmd)
       end;
   in
     if not (env_var = "") andalso getenv env_var = "" then

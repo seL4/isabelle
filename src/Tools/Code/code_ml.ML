@@ -877,17 +877,17 @@ val _ = Theory.setup
     (target_SML, {serializer = serializer_sml, literals = literals_sml,
       check = {env_var = "",
         make_destination = fn p => p + Path.explode "ROOT.ML",
-        make_command = fn _ =>
+        run_command = Code_Target.run_command_bash (fn _ =>
           "isabelle process -o ML_platform=" ^ Bash.string (ML_System.platform) ^
-          " -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure"},
+          " -e 'datatype ref = datatype Unsynchronized.ref' -f 'ROOT.ML' -l Pure")},
       evaluation_args = []})
   #> Code_Target.add_language
     (target_OCaml, {serializer = serializer_ocaml, literals = literals_ocaml,
       check = {env_var = "ISABELLE_OCAMLFIND",
         make_destination = fn p => p + Path.explode "ROOT.ml"
           (*extension demanded by OCaml compiler*),
-        make_command = fn _ =>
-          "\"$ISABELLE_OCAMLFIND\" ocamlopt -w -p-u -package zarith -linkpkg ROOT.ml </dev/null"},
+        run_command = Code_Target.run_command_bash (fn _ =>
+          "\"$ISABELLE_OCAMLFIND\" ocamlopt -w -p-u -package zarith -linkpkg ROOT.ml </dev/null")},
       evaluation_args = []})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target_SML, SOME (2, fun_syntax)), (target_OCaml, SOME (2, fun_syntax))]))

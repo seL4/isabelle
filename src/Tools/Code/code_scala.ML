@@ -468,8 +468,8 @@ val _ = Theory.setup
     (target, { serializer = serializer, literals = literals,
       check = { env_var = "SCALA_HOME",
         make_destination = fn p => p + Path.explode "ROOT.scala",
-        make_command = fn _ =>
-          "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS ROOT.scala"},
+        run_command = Code_Target.run_command_bash (fn _ =>
+          "isabelle_scala scalac $ISABELLE_SCALAC_OPTIONS ROOT.scala")},
       evaluation_args = Token.explode0 Keyword.empty_keywords "case_insensitive"})
   #> Code_Target.set_printings (Type_Constructor ("fun",
     [(target, SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
