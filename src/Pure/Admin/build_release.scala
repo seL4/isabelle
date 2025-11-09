@@ -428,6 +428,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
   def build_release_archive(
     context: Release_Context,
     version: String,
+    more_settings: List[String] = Nil,
     parallel_jobs: Int = 1,
     build_library: Boolean = false,
     include_library: Boolean = false,
@@ -475,7 +476,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       def other_isabelle_purge(name: String): Unit =
         Isabelle_System.rm_tree(other_isabelle.isabelle_home + Path.basic(name))
 
-      other_isabelle.init(echo = true)
+      other_isabelle.init(
+        other_settings = other_isabelle.init_components() ::: more_settings,
+        echo = true)
 
       progress.echo("Building documentation ...")
       try {
@@ -559,6 +562,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
     afp_rev: String = "",
     platform_families: List[Platform.Family] = default_platform_families,
     more_components: List[Path] = Nil,
+    more_settings: List[String] = Nil,
     website: Option[Path] = None,
     build_sessions: List[String] = Nil,
     parallel_jobs: Int = 1
@@ -896,6 +900,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var website: Option[Path] = None
       var build_sessions: List[String] = Nil
       val more_components = new mutable.ListBuffer[Path]
+      val more_settings = new mutable.ListBuffer[String]
       var parallel_jobs = 1
       var build_library = false
       var options = Options.init()
@@ -915,6 +920,7 @@ Usage: Admin/build_release [OPTIONS]
     -W WEBSITE   produce minimal website in given directory
     -b SESSIONS  build platform-specific session images (separated by commas)
     -c ARCHIVE   clean bundling with additional component .tar.gz archive
+    -e TEXT      additional text for generated etc/settings
     -j INT       maximum number of parallel jobs (default 1)
     -l           build library archive
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
@@ -937,6 +943,7 @@ Usage: Admin/build_release [OPTIONS]
             Components.Archive.get_name(path.file_name)
             more_components += path
           }),
+        "e:" -> (arg => more_settings += arg),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library = true),
         "o:" -> (arg => options = options + arg),
@@ -954,9 +961,9 @@ Usage: Admin/build_release [OPTIONS]
         if (source_archive.isEmpty) {
           val context = make_context(release_name)
           val version = proper_string(rev) orElse proper_string(release_name) getOrElse "tip"
-          build_release_archive(context, version, parallel_jobs = parallel_jobs,
-            build_library = build_library, include_library = include_library,
-            include_find_facts = include_find_facts)
+          build_release_archive(context, version, more_settings = more_settings.toList,
+            parallel_jobs = parallel_jobs, build_library = build_library,
+            include_library = include_library, include_find_facts = include_find_facts)
           context
         }
         else {
