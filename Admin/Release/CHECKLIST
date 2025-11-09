@@ -80,7 +80,9 @@ Packaging
 - regular packaging:
 
   #on fast Linux machine, with access to build_host for each platform
-  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025-1 -l -F -L
+  Admin/build_release -D ~/tmp/isadist -b HOL -R Isabelle2025-1 -l -F -L \
+    -e ISABELLE_SWIPL=/usr/bin/swipl -e ISABELLE_SMLNJ=/usr/bin/sml \
+    -e 'ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx6g -Xss16m"'
 
 - Docker image:
 
