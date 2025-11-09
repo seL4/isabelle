@@ -8,6 +8,8 @@ package isabelle
 
 import isabelle.find_facts.Find_Facts
 
+import scala.collection.mutable
+
 
 object Build_Release {
   /** release context **/
@@ -893,7 +895,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
       var source_archive = ""
       var website: Option[Path] = None
       var build_sessions: List[String] = Nil
-      var more_components: List[Path] = Nil
+      val more_components = new mutable.ListBuffer[Path]
       var parallel_jobs = 1
       var build_library = false
       var options = Options.init()
@@ -933,7 +935,7 @@ Usage: Admin/build_release [OPTIONS]
           {
             val path = Path.explode(arg)
             Components.Archive.get_name(path.file_name)
-            more_components = more_components ::: List(path)
+            more_components += path
           }),
         "j:" -> (arg => parallel_jobs = Value.Int.parse(arg)),
         "l" -> (_ => build_library = true),
@@ -967,7 +969,7 @@ Usage: Admin/build_release [OPTIONS]
         }
 
       build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
-        more_components = more_components, build_sessions = build_sessions,
+        more_components = more_components.toList, build_sessions = build_sessions,
         parallel_jobs = parallel_jobs, website = website)
     }
   }

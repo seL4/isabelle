@@ -6,6 +6,8 @@ Build other history versions.
 
 package isabelle
 
+import scala.collection.mutable
+
 
 object Build_History {
   /* log files */
@@ -404,14 +406,14 @@ object Build_History {
       var component_repository = Components.static_component_repository
       var components_base = Components.dynamic_components_base
       var arch_apple = false
-      var more_settings: List[String] = Nil
-      var more_preferences: List[String] = Nil
+      val more_settings = new mutable.ListBuffer[String]
+      val more_preferences = new mutable.ListBuffer[String]
       var fresh = false
       var hostname = ""
       var arch_64 = false
       var output_file = ""
       var ml_statistics_step = 1
-      var build_tags = List.empty[String]
+      val build_tags = new mutable.ListBuffer[String]
       var verbose = false
       var exit_code = false
 
@@ -464,7 +466,7 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
         "S:" -> (arg => components_base = arg),
         "U:" -> (arg => max_heap = Some(Value.Int.parse(arg))),
         "a" -> (_ => arch_apple = true),
-        "e:" -> (arg => more_settings = more_settings ::: List(arg)),
+        "e:" -> (arg => more_settings += arg),
         "f" -> (_ => fresh = true),
         "h:" -> (arg => hostname = arg),
         "m:" ->
@@ -474,9 +476,9 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
             case bad => error("Bad processor architecture: " + quote(bad))
           },
         "o:" -> (arg => output_file = arg),
-        "p:" -> (arg => more_preferences = more_preferences ::: List(arg)),
+        "p:" -> (arg => more_preferences += arg),
         "s:" -> (arg => ml_statistics_step = Value.Int.parse(arg)),
-        "t:" -> (arg => build_tags = build_tags ::: List(arg)),
+        "t:" -> (arg => build_tags += arg),
         "v" -> (_ => verbose = true),
         "x" -> (_ => exit_code = true))
 
@@ -497,9 +499,9 @@ Usage: Admin/build_other [OPTIONS] ISABELLE_HOME [ARGS ...]
           fresh = fresh, hostname = hostname, multicore_base = multicore_base,
           multicore_list = multicore_list, arch_64 = arch_64, arch_apple = arch_apple,
           heap = heap.getOrElse(if (arch_64) default_heap * 2 else default_heap),
-          max_heap = max_heap, more_settings = more_settings,
-          more_preferences = more_preferences, verbose = verbose, build_tags = build_tags,
-          build_args = build_args)
+          max_heap = max_heap, more_settings = more_settings.toList,
+          more_preferences = more_preferences.toList, verbose = verbose,
+          build_tags = build_tags.toList, build_args = build_args)
 
       if (output_file.isEmpty) {
         for ((_, log_path) <- results) Output.writeln(log_path.implode, stdout = true)
