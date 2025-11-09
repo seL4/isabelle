@@ -175,6 +175,7 @@ Usage: isabelle ML_process [OPTIONS]
     val process =
       ML_Process(options, session_background, session_heaps,
         args = eval_args.toList, modes = modes, cwd = cwd, redirect = redirect)
+
     if (internal) process.result()
     else {
       process.result(
