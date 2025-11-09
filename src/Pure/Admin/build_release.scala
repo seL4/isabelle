@@ -961,9 +961,12 @@ Usage: Admin/build_release [OPTIONS]
         if (source_archive.isEmpty) {
           val context = make_context(release_name)
           val version = proper_string(rev) orElse proper_string(release_name) getOrElse "tip"
-          build_release_archive(context, version, more_settings = more_settings.toList,
-            parallel_jobs = parallel_jobs, build_library = build_library,
-            include_library = include_library, include_find_facts = include_find_facts)
+          build_release_archive(context, version,
+            more_settings = more_settings.toList,
+            parallel_jobs = parallel_jobs,
+            build_library = build_library,
+            include_library = include_library,
+            include_find_facts = include_find_facts)
           context
         }
         else {
@@ -975,9 +978,13 @@ Usage: Admin/build_release [OPTIONS]
           context
         }
 
-      build_release(options, context, afp_rev = afp_rev, platform_families = platform_families,
-        more_components = more_components.toList, build_sessions = build_sessions,
-        parallel_jobs = parallel_jobs, website = website)
+      build_release(options, context,
+        afp_rev = afp_rev,
+        platform_families = platform_families,
+        more_components = more_components.toList,
+        build_sessions = build_sessions,
+        parallel_jobs = parallel_jobs,
+        website = website)
     }
   }
 }
