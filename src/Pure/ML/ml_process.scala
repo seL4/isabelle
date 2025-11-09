@@ -9,6 +9,8 @@ package isabelle
 
 import java.util.{Map => JMap, HashMap}
 
+import scala.collection.mutable
+
 
 object ML_Process {
   /* process */
@@ -132,8 +134,8 @@ object ML_Process {
 
   def tool_body(args: List[String], internal: Boolean = false): Process_Result = {
     var cwd = Path.current
-    var dirs: List[Path] = Nil
-    var eval_args: List[String] = Nil
+    val dirs = new mutable.ListBuffer[Path]
+    val eval_args = new mutable.ListBuffer[String]
     var logic = Isabelle_System.default_logic()
     var modes: List[String] = Nil
     var options = Options.init()
@@ -155,9 +157,9 @@ Usage: isabelle ML_process [OPTIONS]
   Run the raw ML process without Isabelle/Scala context.
 """,
       "C:" -> (arg => cwd = Path.explode(arg)),
-      "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-      "e:" -> (arg => eval_args = eval_args ::: List("--eval", arg)),
-      "f:" -> (arg => eval_args = eval_args ::: List("--use", File.platform_path(arg))),
+      "d:" -> (arg => dirs += Path.explode(arg)),
+      "e:" -> (arg => eval_args ++= List("--eval", arg)),
+      "f:" -> (arg => eval_args ++= List("--use", File.platform_path(arg))),
       "l:" -> (arg => logic = arg),
       "m:" -> (arg => modes = arg :: modes),
       "o:" -> (arg => options = options + arg),
@@ -167,12 +169,12 @@ Usage: isabelle ML_process [OPTIONS]
     if (more_args.nonEmpty) getopts.usage(internal = internal)
 
     val store = Store(options)
-    val session_background = Sessions.background(options, logic, dirs = dirs).check_errors
+    val session_background = Sessions.background(options, logic, dirs = dirs.toList).check_errors
     val session_heaps = store.session_heaps(session_background, logic = logic)
 
     val process =
       ML_Process(options, session_background, session_heaps,
-        args = eval_args, modes = modes, cwd = cwd, redirect = redirect)
+        args = eval_args.toList, modes = modes, cwd = cwd, redirect = redirect)
     if (internal) process.result()
     else {
       process.result(

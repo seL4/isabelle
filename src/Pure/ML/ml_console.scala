@@ -7,13 +7,16 @@ The raw ML process in interactive mode.
 package isabelle
 
 
+import scala.collection.mutable
+
+
 object ML_Console {
   /* command line entry point */
 
   def main(args: Array[String]): Unit = {
     Command_Line.tool {
-      var dirs: List[Path] = Nil
-      var include_sessions: List[String] = Nil
+      val dir_args = new mutable.ListBuffer[Path]
+      val include_sessions = new mutable.ListBuffer[String]
       var logic = Isabelle_System.default_logic()
       var modes: List[String] = Nil
       var no_build = false
@@ -36,8 +39,8 @@ Usage: isabelle console [OPTIONS]
   in interactive mode, with line editor ISABELLE_LINE_EDITOR=""" +
   quote(Isabelle_System.getenv("ISABELLE_LINE_EDITOR")) + """.
 """,
-        "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
-        "i:" -> (arg => include_sessions = include_sessions ::: List(arg)),
+        "d:" -> (arg => dir_args += Path.explode(arg)),
+        "i:" -> (arg => include_sessions += arg),
         "l:" -> (arg => logic = arg),
         "m:" -> (arg => modes = arg :: modes),
         "n" -> (_ => no_build = true),
@@ -47,6 +50,7 @@ Usage: isabelle console [OPTIONS]
       val more_args = getopts(args)
       if (more_args.nonEmpty) getopts.usage()
 
+      val dirs = dir_args.toList
 
       val store = Store(options)
 
@@ -68,7 +72,7 @@ Usage: isabelle console [OPTIONS]
         }
         else {
           Sessions.background(
-            options, logic, dirs = dirs, include_sessions = include_sessions).check_errors
+            options, logic, dirs = dirs, include_sessions = include_sessions.toList).check_errors
         }
 
       val session_heaps =
