@@ -46,7 +46,7 @@ object Component_VeriT {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true)
+      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true, apple = true)
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
@@ -85,7 +85,7 @@ object Component_VeriT {
       /* settings */
 
       component_dir.write_settings("""
-ISABELLE_VERIT="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-$ISABELLE_PLATFORM64}/veriT"
+ISABELLE_VERIT="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APPLE_PLATFORM64:-$ISABELLE_PLATFORM64}}/veriT"
 """)
 
 
