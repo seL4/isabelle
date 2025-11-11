@@ -1,8 +1,7 @@
-diff --git a/src/vs/workbench/services/textfile/common/encoding.ts b/src/vs/workbench/services/textfile/common/encoding.ts
-index 4fee9c5..97cbff7 100644
---- a/src/vs/workbench/services/textfile/common/encoding.ts
-+++ b/src/vs/workbench/services/textfile/common/encoding.ts
-@@ -8,6 +8,7 @@ import { VSBuffer, VSBufferReadable, VSBufferReadableStream } from '../../../../
+diff -Nru -- vscode.orig/src/vs/workbench/services/textfile/common/encoding.ts vscode/src/vs/workbench/services/textfile/common/encoding.ts
+--- vscode.orig/src/vs/workbench/services/textfile/common/encoding.ts	2025-11-11 15:34:41.793864439 +0100
++++ vscode/src/vs/workbench/services/textfile/common/encoding.ts	2025-11-11 15:34:42.211349064 +0100
+@@ -8,6 +8,7 @@
  import { importAMDNodeModule } from '../../../../amdX.js';
  import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
  import { coalesce } from '../../../../base/common/arrays.js';
@@ -10,7 +9,7 @@ index 4fee9c5..97cbff7 100644
  
  export const UTF8 = 'utf8';
  export const UTF8_with_bom = 'utf8bom';
-@@ -81,7 +82,9 @@ class DecoderStream implements IDecoderStream {
+@@ -81,7 +82,9 @@
  	 */
  	static async create(encoding: string): Promise<DecoderStream> {
  		let decoder: IDecoderStream | undefined = undefined;
@@ -21,7 +20,7 @@ index 4fee9c5..97cbff7 100644
  			const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
  			decoder = iconv.getDecoder(toNodeEncoding(encoding));
  		} else {
-@@ -216,7 +219,9 @@ export function toDecodeStream(source: VSBufferReadableStream, options: IDecodeS
+@@ -216,7 +219,9 @@
  
  export async function toEncodeReadable(readable: Readable<string>, encoding: string, options?: { addBOM?: boolean }): Promise<VSBufferReadable> {
  	const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
@@ -32,7 +31,7 @@ index 4fee9c5..97cbff7 100644
  
  	let bytesWritten = false;
  	let done = false;
-@@ -266,7 +271,7 @@ export async function toEncodeReadable(readable: Readable<string>, encoding: str
+@@ -266,7 +271,7 @@
  export async function encodingExists(encoding: string): Promise<boolean> {
  	const iconv = await importAMDNodeModule<typeof import('@vscode/iconv-lite-umd')>('@vscode/iconv-lite-umd', 'lib/iconv-lite-umd.js');
  
@@ -41,7 +40,7 @@ index 4fee9c5..97cbff7 100644
  }
  
  export function toNodeEncoding(enc: string | null): string {
-@@ -510,6 +515,11 @@ export function detectEncodingFromBuffer({ buffer, bytesRead }: IReadResult, aut
+@@ -510,6 +515,11 @@
  type EncodingsMap = { [encoding: string]: { labelLong: string; labelShort: string; order: number; encodeOnly?: boolean; alias?: string; guessableName?: string } };
  
  export const SUPPORTED_ENCODINGS: EncodingsMap = {

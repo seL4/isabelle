@@ -1,8 +1,7 @@
-diff --git a/extensions/theme-seti/build/update-icon-theme.js b/extensions/theme-seti/build/update-icon-theme.js
-index 366e7f3..0305e0f 100644
---- a/extensions/theme-seti/build/update-icon-theme.js
-+++ b/extensions/theme-seti/build/update-icon-theme.js
-@@ -29,7 +29,6 @@ const nonBuiltInLanguages = { // { fileNames, extensions  }
+diff -Nru -- vscode.orig/extensions/theme-seti/build/update-icon-theme.js vscode/extensions/theme-seti/build/update-icon-theme.js
+--- vscode.orig/extensions/theme-seti/build/update-icon-theme.js	2025-11-11 15:34:41.468787385 +0100
++++ vscode/extensions/theme-seti/build/update-icon-theme.js	2025-11-11 15:34:42.220516055 +0100
+@@ -29,7 +29,6 @@
  	"kotlin": { extensions: ['kt'] },
  	"mustache": { extensions: ['mustache', 'mst', 'mu', 'stache'] },
  	"nunjucks": { extensions: ['nunjucks', 'nunjs', 'nunj', 'nj', 'njk', 'tmpl', 'tpl'] },
