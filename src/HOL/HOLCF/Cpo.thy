@@ -1108,9 +1108,10 @@ simproc_setup apply_cont (\<open>cont (\<lambda>f. E f)\<close>) = \<open>
   fn _ => fn ctxt => fn lhs =>
     (case Thm.term_of lhs of
       \<^Const_>\<open>cont _ _ for \<open>Abs (_, _, expr)\<close>\<close> =>
-        if Term.head_of expr = Bound 0
-        (* since \<open>\<lambda>f. E f\<close> is too permissive, we ensure that the term is of the
-           form \<open>\<lambda>f. f ...\<close> (for example \<open>\<lambda>f. f x\<close>, or \<open>\<lambda>f. f x y\<close>, etc.) *)
+        if case strip_comb expr of (f, args) =>
+              f = Bound 0 andalso not (exists (fn t => loose_bvar1 (t,0)) args)
+        (* since \<open>\<lambda>f. E f\<close> is too permissive, we ensure here that the term
+           is of the form \<open>\<lambda>f. f \<dots>\<close>, with \<open>f\<close> no longer appearing in \<open>\<dots>\<close> *)
         then
           let
             val tac = Metis_Tactic.metis_tac ["no_types"] "combs" ctxt @{thms cont2cont_fun cont_id}
