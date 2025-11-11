@@ -1109,7 +1109,7 @@ simproc_setup apply_cont (\<open>cont (\<lambda>f. E f)\<close>) = \<open>
     (case Thm.term_of lhs of
       \<^Const_>\<open>cont _ _ for \<open>Abs (_, _, expr)\<close>\<close> =>
         if case strip_comb expr of (f, args) =>
-              f = Bound 0 andalso not (exists (fn t => loose_bvar1 (t,0)) args)
+              f = Bound 0 andalso not (exists Term.is_dependent args)
         (* since \<open>\<lambda>f. E f\<close> is too permissive, we ensure here that the term
            is of the form \<open>\<lambda>f. f \<dots>\<close>, with \<open>f\<close> no longer appearing in \<open>\<dots>\<close> *)
         then
