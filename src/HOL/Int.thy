@@ -301,6 +301,9 @@ lemma of_int_0_eq_iff [simp]: "0 = of_int z \<longleftrightarrow> z = 0"
 lemma of_int_eq_1_iff [iff]: "of_int z = 1 \<longleftrightarrow> z = 1"
   using of_int_eq_iff [of z 1] by simp
 
+lemma of_nat_of_int_iff: "of_int i = of_nat n \<longleftrightarrow> i = of_nat n" "of_nat n = of_int i \<longleftrightarrow> i = of_nat n"
+  by (metis of_int_eq_iff of_int_of_nat_eq)+
+
 lemma numeral_power_eq_of_int_cancel_iff [simp]:
   "numeral x ^ n = of_int y \<longleftrightarrow> numeral x ^ n = y"
   using of_int_eq_iff[of "numeral x ^ n" y, unfolded of_int_numeral of_int_power] .

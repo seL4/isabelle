@@ -4293,15 +4293,14 @@ qed auto
 
 lemma cos_zero_iff_int: "cos x = 0 \<longleftrightarrow> (\<exists>i. odd i \<and> x = of_int i * (pi/2))"
 proof -
-  have 1: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> real n = real_of_int i"
-    by (metis even_of_nat_iff of_int_of_nat_eq)
+  have 1: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> int n = i"
+    by (metis even_of_nat_iff)
   have 2: "\<And>n. odd n \<Longrightarrow> \<exists>i. odd i \<and> - (real n * pi) = real_of_int i * pi"
     by (metis even_minus even_of_nat_iff mult.commute mult_minus_right of_int_minus of_int_of_nat_eq)
-  have 3: "\<lbrakk>odd i;  \<forall>n. even n \<or> real_of_int i \<noteq> - (real n)\<rbrakk>
-         \<Longrightarrow> \<exists>n. odd n \<and> real_of_int i = real n" for i
+  have 3: "\<lbrakk>odd i;  \<forall>n. even n \<or> i \<noteq> - (int n)\<rbrakk> \<Longrightarrow> \<exists>n. odd n \<and> i = int n" for i
     by (cases i rule: int_cases2) auto
   show ?thesis
-    by (force simp: cos_zero_iff intro!: 1 2 3)
+    by (force simp: of_nat_of_int_iff cos_zero_iff intro!: 1 2 3)
 qed
 
 lemma sin_zero_iff_int: "sin x = 0 \<longleftrightarrow> (\<exists>i. even i \<and> x = of_int i * (pi/2))" (is "?lhs = ?rhs")
@@ -4547,8 +4546,11 @@ proof
     by (metis cos_one_2pi mult.commute mult_minus_right of_int_minus of_int_of_nat_eq)
 next
   assume ?rhs
+  then obtain i where "x = real_of_int i * 2 * pi"
+    by blast
   then show "cos x = 1"
-    by (clarsimp simp add: cos_one_2pi) (metis mult_minus_right of_int_of_nat)
+    using int_cases2 [of i]
+    unfolding cos_one_2pi by fastforce
 qed
 
 lemma cos_npi_int [simp]:

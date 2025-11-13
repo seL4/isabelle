@@ -420,7 +420,6 @@ qed
 lemma quotient_of_inject_eq: "quotient_of a = quotient_of b \<longleftrightarrow> a = b"
   by (auto simp add: quotient_of_inject)
 
-
 subsubsection \<open>Various\<close>
 
 lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
@@ -438,6 +437,9 @@ proof -
   then show ?thesis using Fract_of_int_quotient
     by simp
 qed
+
+lemma Fract_quotient_of [simp]: "Fract (fst (quotient_of r)) (snd (quotient_of r)) = r"
+  using Fract_of_int_quotient quotient_of_div by auto 
 
 
 subsubsection \<open>The ordered field of rational numbers\<close>
