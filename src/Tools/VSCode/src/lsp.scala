@@ -704,8 +704,7 @@ object LSP {
         "argument" -> entry.argument.toString,
         "groups" -> entry.groups,
         "abbrevs" -> entry.abbrevs) ++
-      JSON.optional("code", entry.code) ++
-      JSON.optional("font", entry.font)
+      JSON.optional("code", entry.code)
 
     def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
       Notification("PIDE/symbols_response",
