@@ -85,18 +85,19 @@ object Component_VSCodium {
   lazy val symbols: Symbol.Symbols =
     Symbol.Symbols.make(File.read(Path.explode("~~/etc/symbols")))
 
-  def make_symbols(): File.Content = {
-    val symbols_js =
-      JSON.Format.pretty_print(
-        for (entry <- symbols.entries) yield
-          JSON.Object(
-            "symbol" -> entry.symbol,
-            "name" -> entry.name,
-            "abbrevs" -> entry.abbrevs) ++
-          JSON.optional("code", entry.code))
+  def symbol_entry(entry: Symbol.Entry): JSON.T =
+    JSON.Object(
+      "symbol" -> entry.symbol,
+      "name" -> entry.name,
+      "decoded" -> Symbol.decode(entry.symbol),
+      "argument" -> entry.argument.toString,
+      "groups" -> entry.groups,
+      "abbrevs" -> entry.abbrevs) ++
+    JSON.optional("code", entry.code)
 
-    File.content(Path.explode("symbols.json"), symbols_js)
-  }
+  def make_symbols(): File.Content =
+    File.content(Path.explode("symbols.json"),
+      JSON.Format.pretty_print(symbols.entries.map(symbol_entry)))
 
   def make_isabelle_encoding(header: String): File.Content = {
     val symbols_js =

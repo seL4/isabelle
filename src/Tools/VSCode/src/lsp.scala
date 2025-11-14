@@ -696,20 +696,10 @@ object LSP {
   /* symbols */
 
   object Symbols_Request extends Notification0("PIDE/symbols_request") {
-    def symbol_entry(entry: Symbol.Entry): JSON.T =
-      JSON.Object(
-        "symbol" -> entry.symbol,
-        "name" -> entry.name,
-        "decoded" -> Symbol.decode(entry.symbol),
-        "argument" -> entry.argument.toString,
-        "groups" -> entry.groups,
-        "abbrevs" -> entry.abbrevs) ++
-      JSON.optional("code", entry.code)
-
     def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
       Notification("PIDE/symbols_response",
         JSON.Object(
-          "symbols" -> symbols.entries.map(symbol_entry),
+          "symbols" -> symbols.entries.map(Component_VSCodium.symbol_entry),
           "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
   }
 
