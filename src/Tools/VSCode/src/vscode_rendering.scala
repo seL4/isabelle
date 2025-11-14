@@ -214,24 +214,17 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
   /* decorations */
 
   def decorations: List[VSCode_Model.Decoration] = // list of canonical length and order
-    Par_List.map((f: () => List[VSCode_Model.Decoration]) => f(),
-      List(
-        () =>
-          VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
-            background(VSCode_Rendering.background_elements, model.content.text_range,
-              Rendering.Focus.empty)),
-        () =>
-          VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
-            foreground(model.content.text_range)),
-        () =>
-          VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
-            text_color(model.content.text_range)),
-        () =>
-          VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
-            text_overview_color),
-        () =>
-          VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
-            dotted(model.content.text_range)))).flatten :::
+    VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
+      background(VSCode_Rendering.background_elements, model.content.text_range,
+        Rendering.Focus.empty)) :::
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
+      foreground(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
+      text_color(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
+      text_overview_color) :::
+    VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
+      dotted(model.content.text_range)) :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
   def decoration_output(decos: List[VSCode_Model.Decoration]): LSP.Decoration =
