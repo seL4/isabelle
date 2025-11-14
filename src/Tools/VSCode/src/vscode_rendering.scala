@@ -234,21 +234,16 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
             dotted(model.content.text_range)))).flatten :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decoration: List[VSCode_Model.Decoration]): LSP.Decoration = {
-    val entries =
-      for (deco <- decoration)
-      yield {
-        val decopts = for(Text.Info(text_range, msgs) <- deco.content)
+  def decoration_output(decos: List[VSCode_Model.Decoration]): LSP.Decoration =
+    LSP.Decoration(decos.map(deco =>
+      LSP.Decoration_Entry(deco.typ,
+        for (Text.Info(text_range, msgs) <- deco.content)
           yield {
             val range = model.content.doc.range(text_range)
-            LSP.Decoration_Options(range,
-              msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
-          }
-        (deco.typ, decopts)
-      }
-
-    LSP.Decoration(entries)
-  }
+            val hover_message =
+              msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg)))
+            LSP.Decoration_Range(range, hover_message = hover_message)
+          })))
 
 
   /* hyperlinks */
