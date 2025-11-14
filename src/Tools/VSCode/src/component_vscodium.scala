@@ -226,7 +226,7 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
+        for (name <- Seq("cli", "isabelle_encoding")) {
           Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
@@ -238,6 +238,13 @@ object Component_VSCodium {
       val dir = base_dir + resources
       val patch =
         Isabelle_System.with_copy_dir(dir, dir.orig) {
+          File.change(
+            dir + Path.explode("app/extensions/theme-seti/icons/vs-seti-icon-theme.json"),
+            strict = true) { s =>
+              s.replace(""""ml":"_ocaml","mli":"_ocaml",""", "")
+               .replace(""""ml":"_ocaml_light","mli":"_ocaml_light",""", "")
+          }
+
           val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
           HTML.init_fonts(fonts_dir.dir)
           make_symbols().write(fonts_dir)
