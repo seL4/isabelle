@@ -696,7 +696,7 @@ object LSP {
   /* symbols */
 
   object Symbols_Request extends Notification0("PIDE/symbols_request") {
-    def reply_symbol(entry: Symbol.Entry): JSON.T =
+    def symbol_entry(entry: Symbol.Entry): JSON.T =
       JSON.Object(
         "symbol" -> entry.symbol,
         "name" -> entry.name,
@@ -710,7 +710,7 @@ object LSP {
     def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
       Notification("PIDE/symbols_response",
         JSON.Object(
-          "symbols" -> symbols.entries.map(reply_symbol),
+          "symbols" -> symbols.entries.map(symbol_entry),
           "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
   }
 
