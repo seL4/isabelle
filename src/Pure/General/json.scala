@@ -166,9 +166,11 @@ object JSON {
       try { Some(parse(s, strict = false)) }
       catch { case ERROR(_) => None }
 
-    private def output_string(s: String, result: StringBuilder): Unit = {
-      result += '"'
-      result ++=
+    def apply(json: T): S = bytes(json).text
+
+    private def bytes_string(s: String, builder: Bytes.Builder): Unit = {
+      builder += "\""
+      builder +=
         s.iterator.map {
           case '"' => "\\\""
           case '\\' => "\\\\"
@@ -181,43 +183,43 @@ object JSON {
             if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
             else c
         }.mkString
-      result += '"'
+      builder += "\""
     }
 
-    private def output_atom(x: T, result: StringBuilder): Boolean =
+    private def bytes_atom(x: T, builder: Bytes.Builder): Boolean =
       x match {
-        case null => result ++= "null"; true
-        case _: Int | _ : Long | _: Boolean => result ++= x.toString; true
+        case null => builder += "null"; true
+        case _: Int | _ : Long | _: Boolean => builder += x.toString; true
         case n: Double =>
           val i = n.toLong
-          result ++= (if (i.toDouble == n) i.toString else n.toString)
+          builder += (if (i.toDouble == n) i.toString else n.toString)
           true
-        case s: String => output_string(s, result); true
+        case s: String => bytes_string(s, builder); true
         case _ => false
       }
 
-    def apply(json: T): S =
-      Library.string_builder() { result =>
+    def bytes(json: T, hint: Long = 0L): Bytes =
+      Bytes.Builder.use(hint = hint) { builder =>
         def output(x: T): Unit = {
-          if (!output_atom(x, result)) {
+          if (!bytes_atom(x, builder)) {
             x match {
               case Object(obj) =>
-                result += '{'
+                builder += "{"
                 Library.separate(None, obj.toList.map(Some(_))).foreach({
-                  case None => result += ','
+                  case None => builder += ","
                   case Some((x, y)) =>
-                    output_string(x, result)
-                    result += ':'
+                    bytes_string(x, builder)
+                    builder += ":"
                     output(y)
                 })
-                result += '}'
+                builder += "}"
               case list: List[T] =>
-                result += '['
+                builder += "["
                 Library.separate(None, list.map(Some(_))).foreach({
-                  case None => result += ','
+                  case None => builder += ","
                   case Some(x) => output(x)
                 })
-                result += ']'
+                builder += "]"
               case _ => error("Bad JSON value: " + x.toString)
             }
           }
@@ -227,13 +229,13 @@ object JSON {
       }
 
     private def pretty_atom(x: T): Option[XML.Tree] = {
-      val result = new StringBuilder
-      val ok = output_atom(x, result)
-      if (ok) Some(XML.Text(result.toString)) else None
+      val builder = new Bytes.Builder()
+      val ok = bytes_atom(x, builder)
+      if (ok) Some(XML.Text(builder.done().text)) else None
     }
 
     private def pretty_string(s: String): XML.Tree =
-      XML.Text(Library.string_builder()(output_string(s, _)))
+      XML.Text(Bytes.Builder.use()(bytes_string(s, _)).text)
 
     private def pretty_tree(x: T): XML.Tree =
       x match {

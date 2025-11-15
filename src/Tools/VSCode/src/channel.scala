@@ -63,15 +63,14 @@ class Channel(
   /* write message */
 
   def write(json: JSON.T): Unit = {
-    val msg = JSON.Format(json)
-    val content = UTF8.bytes(msg)
-    val n = content.length
+    val content = JSON.Format.bytes(json)
+    val n = content.size
     val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
 
     LSP.Message.log("OUT: " + n, json, log, verbose)
     out.synchronized {
       out.write(header)
-      out.write(content)
+      content.write_stream(out)
       out.flush()
     }
   }
