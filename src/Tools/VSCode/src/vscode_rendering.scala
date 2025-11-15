@@ -171,6 +171,9 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       })
   }
 
+  def text_color_full_range(model: VSCode_Model): List[Text.Info[Rendering.Color.Value]] =
+    snapshot.command_ranges(model.content.text_range).flatMap(text_color)
+
 
   /* text overview color */
 
@@ -220,7 +223,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
-      text_color(model.content.text_range)) :::
+      text_color_full_range(model)) :::
     VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
       text_overview_color) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
