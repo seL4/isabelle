@@ -108,6 +108,13 @@ affecting stored preferences of option "threads".
 
 *** Isabelle/VSCode Prover IDE ***
 
+The command-line tool "isabelle vscode" supports new options -D and -J
+to configure the underlying Java process of "isabelle vscode_server",
+using the settings variable "VSCODE_JAVA_OPTIONS" as initial value to be
+augmented. This is analogous to "JEDIT_JAVA_OPTIONS", but without
+"JEDIT_JAVA_SYSTEM_OPTIONS"; regular "ISABELLE_JAVA_SYSTEM_OPTIONS" will
+be used instead of "VSCODE_JAVA_SYSTEM_OPTIONS".
+
 * The main toolbar provides access to Isabelle examples and
 documentation. Plain text files are opened in the editor, but PDFs
 require a suitable VSCode extension (e.g. "vscode-pdf" from the

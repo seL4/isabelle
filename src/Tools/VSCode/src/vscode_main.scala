@@ -21,9 +21,13 @@ object VSCode_Main {
   def server_log_path: Path =
     Path.explode("$ISABELLE_VSCODE_SETTINGS/server.log").expand
 
+  def default_java_options: String =
+    Isabelle_System.getenv("VSCODE_JAVA_OPTIONS")
+
   def run_vscodium(args: List[String],
     environment: List[(String, String)] = Nil,
     options: List[String] = Nil,
+    java_options: String = default_java_options,
     logic: String = "",
     logic_ancestor: String = "",
     logic_requirements: Boolean = false,
@@ -54,6 +58,7 @@ object VSCode_Main {
 
     val env =
       Isabelle_System.Settings.env(environment ::: List(
+        "ISABELLE_TOOL_JAVA_OPTIONS" -> java_options,
         "ISABELLE_VSCODIUM_ARGS" -> JSON.Format(args_json),
         "ISABELLE_VSCODIUM_APP" -> platform_path("$ISABELLE_VSCODIUM_RESOURCES/vscodium"),
         "ELECTRON_RUN_AS_NODE" -> "1"))
@@ -177,6 +182,7 @@ object VSCode_Main {
       { args =>
         var logic_ancestor = ""
         var console = false
+        val java_options = new StringBuilder(default_java_options)
         var edit_extension = false
         var server_log = false
         var logic_requirements = false
@@ -195,6 +201,9 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
     -A NAME      ancestor session for option -R (default: parent)
     -C           run as foreground process, with console output
+    -D NAME=X    set JVM system property for "isabelle vscode_server"
+    -J OPTION    add JVM runtime option for "isabelle vscode_server"
+                 (default: $VSCODE_JAVA_OPTIONS=""" + quote(default_java_options) + """)
     -E           edit Isabelle/VSCode extension project sources
     -L           enable language server log to file:
                  """ + server_log_path.implode + """
@@ -220,7 +229,9 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 """ + default_settings,
           "A:" -> (arg => logic_ancestor = arg),
           "C" -> (_ => console = true),
+          "D:" -> { arg => java_options ++= " -D"; java_options ++= arg },
           "E" -> (_ => edit_extension = true),
+          "J:" -> { arg => java_options += ' '; java_options ++= arg },
           "L" -> (_ => server_log = true),
           "R:" -> (arg => { logic = arg; logic_requirements = true }),
           "U" -> (_ => uninstall = true),
@@ -250,11 +261,11 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
-          options = options.toList, logic = logic, logic_ancestor = logic_ancestor,
-          logic_requirements = logic_requirements, session_dirs = session_dirs.toList,
-          include_sessions = include_sessions.toList, modes = modes.toList, no_build = no_build,
-          server_log = server_log, verbose = verbose, background = background,
-          progress = app_progress).check
+          options = options.toList, java_options = java_options.toString, logic = logic,
+          logic_ancestor = logic_ancestor, logic_requirements = logic_requirements,
+          session_dirs = session_dirs.toList, include_sessions = include_sessions.toList,
+          modes = modes.toList, no_build = no_build, server_log = server_log, verbose = verbose,
+          background = background, progress = app_progress).check
       })
 
 
