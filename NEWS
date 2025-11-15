@@ -128,10 +128,10 @@ marketplace).
 * Output panels for Isabelle Symbols and Sledgehammer, which imitate
 Isabelle/jEdit dockables to some extent.
 
-* Update to recent VSCode 1.104 / VSCodium 1.104.06131, Electron 37.3.1,
-Chromium 138.0.7204.235, and Node.js 22.18.0. Note that some Linux
-systems (e.g. Ubuntu 24.04) require special file permissions to run
-"isabelle vscode" or "isabelle electron" like this:
+* Update to recent VSCode 1.105 / VSCodium 1.105.17075 (September 2025),
+Electron 37.6.0, Chromium 138.0.7204.251, and Node.js 22.19.0. Note that
+some Linux systems (e.g. Ubuntu 24.04) require special file permissions
+to run "isabelle vscode" or "isabelle electron" like this:
 
     cd .../vscodium-1.104.06131/x86_64-linux
     sudo chown root:root chrome-sandbox
