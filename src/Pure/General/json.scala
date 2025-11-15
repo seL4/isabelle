@@ -169,7 +169,7 @@ object JSON {
     def apply(json: T): S = bytes(json).text
 
     private def bytes_string(s: String, builder: Bytes.Builder): Unit = {
-      builder += "\""
+      builder += ('"': Byte)
       builder +=
         s.iterator.map {
           case '"' => "\\\""
@@ -183,7 +183,7 @@ object JSON {
             if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
             else c
         }.mkString
-      builder += "\""
+      builder += ('"': Byte)
     }
 
     private def bytes_atom(x: T, builder: Bytes.Builder): Boolean =
@@ -204,22 +204,22 @@ object JSON {
           if (!bytes_atom(x, builder)) {
             x match {
               case Object(obj) =>
-                builder += "{"
+                builder += ('{': Byte)
                 Library.separate(None, obj.toList.map(Some(_))).foreach({
-                  case None => builder += ","
+                  case None => builder += (',': Byte)
                   case Some((x, y)) =>
                     bytes_string(x, builder)
-                    builder += ":"
+                    builder += (':': Byte)
                     output(y)
                 })
-                builder += "}"
+                builder += ('}': Byte)
               case list: List[T] =>
-                builder += "["
+                builder += ('[': Byte)
                 Library.separate(None, list.map(Some(_))).foreach({
-                  case None => builder += ","
+                  case None => builder += (',': Byte)
                   case Some(x) => output(x)
                 })
-                builder += "]"
+                builder += (']': Byte)
               case _ => error("Bad JSON value: " + x.toString)
             }
           }
