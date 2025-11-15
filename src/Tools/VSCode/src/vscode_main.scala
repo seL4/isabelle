@@ -28,7 +28,7 @@ object VSCode_Main {
     environment: List[(String, String)] = Nil,
     options: List[String] = Nil,
     java_options: String = default_java_options,
-    logic: String = "",
+    logic: String = Isabelle_System.default_logic(),
     logic_ancestor: String = "",
     logic_requirements: Boolean = false,
     session_dirs: List[Path] = Nil,
@@ -190,7 +190,7 @@ object VSCode_Main {
         var vsix_path = default_vsix_path
         val session_dirs = new mutable.ListBuffer[Path]
         val include_sessions = new mutable.ListBuffer[String]
-        var logic = ""
+        var logic = Isabelle_System.default_logic()
         val modes = new mutable.ListBuffer[String]
         var no_build = false
         val options = new mutable.ListBuffer[String]
@@ -251,7 +251,18 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         init_settings()
 
-        val console_progress = new Console_Progress
+        val console_progress = new Console_Progress(verbose = true)
+
+        console_progress.interrupt_handler {
+          Language_Server.build_session(options.foldLeft(Options.init())(_ + _), logic,
+            build_progress = console_progress,
+            session_dirs = session_dirs.toList,
+            include_sessions = include_sessions.toList,
+            session_ancestor = proper_string(logic_ancestor),
+            session_requirements = logic_requirements,
+            session_no_build = no_build,
+            start_message = console_progress.echo(_))
+        }
 
         if (uninstall) uninstall_extension(progress = console_progress)
         else install_extension(vsix_path = vsix_path, progress = console_progress)

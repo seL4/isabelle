@@ -20,6 +20,42 @@ import scala.annotation.tailrec
 
 
 object Language_Server {
+  /* build session */
+
+  def build_session(options: Options, session_name: String,
+    build_progress: Progress = new Progress,
+    session_dirs: List[Path] = Nil,
+    include_sessions: List[String] = Nil,
+    session_ancestor: Option[String] = None,
+    session_requirements: Boolean = false,
+    session_no_build: Boolean = false,
+    start_message: String => Unit = _ => (),
+    failure_message: String => Unit = _ => ()
+  ): Sessions.Background = {
+    val session_background =
+      Sessions.background(
+        options, session_name, dirs = session_dirs,
+        include_sessions = include_sessions, session_ancestor = session_ancestor,
+        session_requirements = session_requirements).check_errors
+
+    def build(no_build: Boolean = false, progress: Progress = new Progress): Build.Results =
+      Build.build(options,
+        selection = Sessions.Selection.session(session_background.session_name),
+        build_heap = true, no_build = no_build, dirs = session_dirs,
+        infos = session_background.infos,
+        progress = progress)
+
+    if (!session_no_build && !build(no_build = true).ok) {
+      val start_msg = "Build started for Isabelle/" + session_background.session_name + " ..."
+      val fail_msg = "Session build failed!"
+      start_message(start_msg)
+      if (!build(progress = build_progress).ok) { failure_message(fail_msg); error(fail_msg) }
+    }
+
+    session_background
+  }
+
+
   /* abstract editor operations */
 
   class Editor(server: Language_Server) extends isabelle.Editor[Unit] {
@@ -266,27 +302,16 @@ class Language_Server(
 
     val try_session =
       try {
+        val progress = channel.progress(verbose = true)
         val session_background =
-          Sessions.background(
-            options, session_name, dirs = session_dirs,
-            include_sessions = include_sessions, session_ancestor = session_ancestor,
-            session_requirements = session_requirements).check_errors
-
-        def build(no_build: Boolean = false): Build.Results =
-          Build.build(options,
-            selection = Sessions.Selection.session(session_background.session_name),
-            build_heap = true, no_build = no_build, dirs = session_dirs,
-            infos = session_background.infos)
-
-        if (!session_no_build && !build(no_build = true).ok) {
-          val start_msg = "Build started for Isabelle/" + session_background.session_name + " ..."
-          val fail_msg = "Session build failed -- prover process remains inactive!"
-
-          val progress = channel.progress(verbose = true)
-          progress.echo(start_msg); channel.writeln(start_msg)
-
-          if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
-        }
+          Language_Server.build_session(options, session_name,
+            session_dirs = session_dirs,
+            include_sessions = include_sessions,
+            session_ancestor = session_ancestor,
+            session_requirements = session_requirements,
+            session_no_build = session_no_build,
+            start_message = { msg => progress.echo(msg); channel.writeln(msg) },
+            failure_message = progress.echo(_))
 
         val session_resources = new VSCode_Resources(options, session_background, log)
         val session_options = options.bool.update("editor_output_state", true)
