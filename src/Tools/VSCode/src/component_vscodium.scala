@@ -530,9 +530,15 @@ Usage: component_vscodium [OPTIONS]
       sudo apt install -y """ + linux_packages.mkString(" ") + """
 
   Windows prerequisites:
-    - install Visual Studio 2022: see https://visualstudio.microsoft.com/downloads
+    - install Visual Studio 2022
+        + see https://visualstudio.microsoft.com/downloads
         + Desktop development with C++
         + x64/x86 C++ spectre mitigated libs
+    - install Python 3.x
+        + see https://www.python.org/downloads/windows
+        + Download Windows installer (64-bit)
+        + Customize installation: [X] for all users
+        + [X] Install Python for all users
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su
