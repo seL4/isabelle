@@ -273,7 +273,8 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
             session_ancestor = proper_string(logic_ancestor),
             session_requirements = logic_requirements,
             session_no_build = no_build,
-            start_message = console_progress.echo(_))
+            build_started = (logic => console_progress.echo(Build.build_logic_started(logic))),
+            build_failed = (logic => error(Build.build_logic_failed(logic))))
         }
 
         if (uninstall) uninstall_extension(progress = console_progress)

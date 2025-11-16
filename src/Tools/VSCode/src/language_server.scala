@@ -29,8 +29,8 @@ object Language_Server {
     session_ancestor: Option[String] = None,
     session_requirements: Boolean = false,
     session_no_build: Boolean = false,
-    start_message: String => Unit = _ => (),
-    failure_message: String => Unit = _ => ()
+    build_started: String => Unit = _ => (),
+    build_failed: String => Unit = _ => ()
   ): Sessions.Background = {
     val session_background =
       Sessions.background(
@@ -46,12 +46,8 @@ object Language_Server {
         progress = progress)
 
     if (!session_no_build && !build(no_build = true).ok) {
-      start_message(Build.build_logic_started(logic))
-      if (!build(progress = build_progress).ok) {
-        val fail_msg = "Session build failed!"
-        failure_message(fail_msg)
-        error(fail_msg)
-      }
+      build_started(logic)
+      if (!build(progress = build_progress).ok) build_failed(logic)
     }
 
     session_background
@@ -312,8 +308,14 @@ class Language_Server(
             session_ancestor = session_ancestor,
             session_requirements = session_requirements,
             session_no_build = session_no_build,
-            start_message = { msg => progress.echo(msg); channel.writeln(msg) },
-            failure_message = progress.echo(_))
+            build_started = { logic =>
+              val msg = Build.build_logic_started(logic)
+              progress.echo(msg)
+              channel.writeln(msg) },
+            build_failed = { logic =>
+              val msg = Build.build_logic_failed(logic, editor = true)
+              progress.echo(msg)
+              error(msg) })
 
         val session_resources = new VSCode_Resources(options, session_background, log)
         val session_options = options.bool.update("editor_output_state", true)

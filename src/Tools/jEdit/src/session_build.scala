@@ -193,7 +193,10 @@ object Session_Build {
       progress.echo(out + (if (ok) "OK" else Process_Result.RC.print_long(rc)) + "\n")
 
       if (ok) JEdit_Session.session_start()
-      else progress.echo("Session build failed -- prover process remains inactive!")
+      else {
+        progress.echo(
+          Build.build_logic_failed(PIDE.resources.session_base.session_name, editor = true))
+      }
 
       return_code(rc)
     }

@@ -310,8 +310,11 @@ object Build {
 
   /* build logic image */
 
-  def build_logic_started(logic: String): String = "Build started for Isabelle/" + logic + " ..."
-  def build_logic_failed(logic: String): String = "Failed to build Isabelle/" + logic
+  def build_logic_started(logic: String): String =
+    "Build started for Isabelle/" + logic + " ..."
+
+  def build_logic_failed(logic: String, editor: Boolean = false): String =
+    "Failed to build Isabelle/" + logic + if_proper(editor, " -- prover process remains inactive!")
 
   def build_logic(options: Options, logic: String,
     private_dir: Option[Path] = None,
