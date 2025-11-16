@@ -1,8 +1,7 @@
-diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
-index b31099e..fe27645 100644
---- a/src/vs/code/node/cli.ts
-+++ b/src/vs/code/node/cli.ts
-@@ -482,13 +482,15 @@ export async function main(argv: string[]): Promise<any> {
+diff -Nru -- vscode.orig/src/vs/code/node/cli.ts vscode/src/vs/code/node/cli.ts
+--- vscode.orig/src/vs/code/node/cli.ts	2025-11-11 15:34:41.567132460 +0100
++++ vscode/src/vs/code/node/cli.ts	2025-11-11 15:34:42.202463807 +0100
+@@ -482,13 +482,15 @@
  		}
  
  		let child: ChildProcess;
@@ -19,7 +18,7 @@ index b31099e..fe27645 100644
  		} else {
  			// On Big Sur, we spawn using the open command to obtain behavior
  			// similar to if the app was launched from the dock
-@@ -548,7 +550,7 @@ export async function main(argv: string[]): Promise<any> {
+@@ -548,7 +550,7 @@
  				}
  			}
  

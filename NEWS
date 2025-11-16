@@ -108,6 +108,18 @@ affecting stored preferences of option "threads".
 
 *** Isabelle/VSCode Prover IDE ***
 
+* The command-line tool "isabelle vscode" builds its underlying logic
+session before starting the VSCodium editor and its Isabelle language
+server. Thus build progress, errors, and interrupts work more robustly
+via the regular console.
+
+* The command-line tool "isabelle vscode" supports new options -D and -J
+to configure the underlying Java process of "isabelle vscode_server",
+using the settings variable "VSCODE_JAVA_OPTIONS" as initial value to be
+augmented. This is analogous to "JEDIT_JAVA_OPTIONS", but without
+"JEDIT_JAVA_SYSTEM_OPTIONS"; regular "ISABELLE_JAVA_SYSTEM_OPTIONS" will
+be used instead of "VSCODE_JAVA_SYSTEM_OPTIONS".
+
 * The main toolbar provides access to Isabelle examples and
 documentation. Plain text files are opened in the editor, but PDFs
 require a suitable VSCode extension (e.g. "vscode-pdf" from the
@@ -116,10 +128,10 @@ marketplace).
 * Output panels for Isabelle Symbols and Sledgehammer, which imitate
 Isabelle/jEdit dockables to some extent.
 
-* Update to recent VSCode 1.104 / VSCodium 1.104.06131, Electron 37.3.1,
-Chromium 138.0.7204.235, and Node.js 22.18.0. Note that some Linux
-systems (e.g. Ubuntu 24.04) require special file permissions to run
-"isabelle vscode" or "isabelle electron" like this:
+* Update to recent VSCode 1.105 / VSCodium 1.105.17075 (September 2025),
+Electron 37.6.0, Chromium 138.0.7204.251, and Node.js 22.19.0. Note that
+some Linux systems (e.g. Ubuntu 24.04) require special file permissions
+to run "isabelle vscode" or "isabelle electron" like this:
 
     cd .../vscodium-1.104.06131/x86_64-linux
     sudo chown root:root chrome-sandbox

@@ -90,6 +90,8 @@ class Main_Plugin extends EBPlugin {
     _session =
       new JEdit_Session(options.value) {
         override def deps_changed(): Unit = delay_load.invoke()
+        override def syntax_changed(names: List[Document.Node.Name]): Unit =
+          GUI_Thread.later { Document_Model.syntax_changed(names) }
       }
   }
   def session: JEdit_Session = _session

@@ -310,6 +310,7 @@ abstract class Session extends Document.Session {
   }
 
   def auto_resolve: Boolean = true
+  def syntax_changed(names: List[Document.Node.Name]): Unit = {}
   def deps_changed(): Unit = {}
 
 
@@ -501,6 +502,8 @@ abstract class Session extends Document.Session {
       global_state.change(_.define_version(change.version, assignment))
 
       prover.get.update(change.previous.id, change.version.id, change.doc_edits, change.consolidate)
+
+      if (change.syntax_changed.nonEmpty) syntax_changed(change.syntax_changed)
 
       if (change.deps_changed || auto_resolve && resources.undefined_blobs(change.version).nonEmpty) {
         deps_changed()

@@ -16,12 +16,14 @@ import * as path from "path"
 import * as lsp from "./lsp"
 import { LanguageClient } from "vscode-languageclient/node";
 import * as fs from "fs";
+import * as symbol from './symbol'
+
 
 class Symbols_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-symbols"
 
   private _view?: WebviewView
-  private _grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {}
+  private _grouped_symbols: { [key: string]: symbol.Entry[] } = {}
   private _abbrevs: [string, string][] = [];
 
   constructor(
@@ -31,18 +33,16 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   request( language_client: LanguageClient) {
     if (language_client) {
-      this._language_client.sendNotification(lsp.symbols_request_type);
+      this._language_client.sendNotification(lsp.abbrevs_request_type);
     }
   }
 
   setup(language_client: LanguageClient) {
-    language_client.onNotification(lsp.symbols_response_type, params => {
-      if (params?.symbols && Array.isArray(params.symbols)) {
-        this._grouped_symbols = this._group_symbols(params.symbols);
-        this._abbrevs = params.abbrevs ?? [];
-        if (this._view) {
-          this._update_webview();
-        }
+    language_client.onNotification(lsp.abbrevs_response_type, params => {
+      this._grouped_symbols = this._group_symbols(symbol.symbols.entries);
+      this._abbrevs = params.abbrevs ?? [];
+      if (this._view) {
+        this._update_webview();
       }
     });
   }
@@ -198,8 +198,8 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     });
   }
 
-  private _group_symbols(symbols: lsp.Symbol_Entry[]): { [key: string]: lsp.Symbol_Entry[] } {
-    const grouped_symbols: { [key: string]: lsp.Symbol_Entry[] } = {};
+  private _group_symbols(symbols: symbol.Entry[]): { [key: string]: symbol.Entry[] } {
+    const grouped_symbols: { [key: string]: symbol.Entry[] } = {};
     for (const symbol of symbols) {
       if (symbol.groups && Array.isArray(symbol.groups)) {
         for (const group of symbol.groups) {

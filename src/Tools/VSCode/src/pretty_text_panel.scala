@@ -65,20 +65,20 @@ class Pretty_Text_Panel private(
           val converted_text = XML.content(converted)
 
           val document = Line.Document(converted_text)
-          val decorations =
+          val markups =
             converted_tree.cumulate[Option[Markup]](
               Text.Range.full, None, Rendering.text_color_elements,
-              { case (_, m) => Some(Some(m.info.markup)) }
-            ).flatMap(info =>
-                info.info match {
-                  case Some(markup) =>
-                    val range = document.range(info.range)
-                    Some((range, "text_" + Rendering.get_text_color(markup).get.toString))
-                  case None => None
-                }
-            ).groupMap(_._2)(e => LSP.Decoration_Options(e._1, Nil)).toList
+              { case (_, m) => Some(Some(m.info.markup)) })
+          val entries =
+            (for {
+              case Text.Info(range, Some(markup)) <- markups
+              color <- Rendering.get_text_color(markup)
+            } yield color -> document.range(range))
+              .groupMap(_._1)(p => LSP.Decoration_Range(p._2))
+              .iterator.map({ case (c, rs) => LSP.Decoration_Entry.text_color(c, rs) })
+              .toList
 
-          output_json(converted_text, Some(LSP.Decoration(decorations)))
+          output_json(converted_text, Some(LSP.Decoration(entries)))
         }
       }
       channel.write(message)
