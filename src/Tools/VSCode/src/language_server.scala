@@ -46,10 +46,12 @@ object Language_Server {
         progress = progress)
 
     if (!session_no_build && !build(no_build = true).ok) {
-      val start_msg = "Build started for Isabelle/" + session_background.session_name + " ..."
-      val fail_msg = "Session build failed!"
-      start_message(start_msg)
-      if (!build(progress = build_progress).ok) { failure_message(fail_msg); error(fail_msg) }
+      start_message(Build.build_logic_started(session_background.session_name))
+      if (!build(progress = build_progress).ok) {
+        val fail_msg = "Session build failed!"
+        failure_message(fail_msg)
+        error(fail_msg)
+      }
     }
 
     session_background
