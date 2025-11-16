@@ -494,13 +494,13 @@ class Language_Server(
   }
 
 
-  /* symbols */
+  /* abbrevs */
 
-  def symbols_request(): Unit = {
+  def abbrevs_request(): Unit = {
     val syntax =
       resources.get_caret().map(_.model.syntax())
         .getOrElse(session.resources.session_base.overall_syntax)
-    channel.write(LSP.Symbols_Request.reply(Symbol.symbols, syntax.abbrevs))
+    channel.write(LSP.Abbrevs_Request.reply(syntax.abbrevs))
   }
 
 
@@ -547,7 +547,7 @@ class Language_Server(
             State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
-          case LSP.Symbols_Request() => symbols_request()
+          case LSP.Abbrevs_Request() => abbrevs_request()
           case LSP.Documentation_Request() => documentation_request()
           case LSP.Sledgehammer_Provers_Request() => sledgehammer.provers()
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)

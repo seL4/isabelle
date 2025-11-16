@@ -138,29 +138,17 @@ export const preview_response_type =
   new NotificationType<Preview_Response>("PIDE/preview_response")
 
 
-/* symbols */
+/* abbrevs */
 
-export interface Symbol_Entry {
-  symbol: string;
-  name: string;
-  decoded: string;
-  argument: string;
-  abbrevs: string[];
-  groups: string[];
-  code?: number;
-  font?: string;
-}
-
-export interface Symbols_Response {
-  symbols: Symbol_Entry[];
+export interface Abbrevs_Response {
   abbrevs: [string, string][];
 }
 
-export const symbols_request_type =
-  new NotificationType<void>("PIDE/symbols_request")
+export const abbrevs_request_type =
+  new NotificationType<void>("PIDE/abbrevs_request")
 
-export const symbols_response_type =
-  new NotificationType<Symbols_Response>("PIDE/symbols_response");
+export const abbrevs_response_type =
+  new NotificationType<Abbrevs_Response>("PIDE/abbrevs_response");
 
 
 /* documentation */

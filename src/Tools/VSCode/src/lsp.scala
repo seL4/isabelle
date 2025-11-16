@@ -691,14 +691,12 @@ object LSP {
   }
 
 
-  /* symbols */
+  /* abbrevs */
 
-  object Symbols_Request extends Notification0("PIDE/symbols_request") {
-    def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
-      Notification("PIDE/symbols_response",
-        JSON.Object(
-          "symbols" -> symbols.entries.map(Component_VSCodium.symbol_entry),
-          "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
+  object Abbrevs_Request extends Notification0("PIDE/abbrevs_request") {
+    def reply(abbrevs: List[(String, String)]): JSON.T =
+      Notification("PIDE/abbrevs_response",
+        JSON.Object("abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
   }
 
 
