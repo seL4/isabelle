@@ -29,6 +29,7 @@ sig
   val get_proof_method_or_noop : string -> proof_method
   val get_all_proof_method_names : unit -> string list
 
+  val default_timeout : int Config.T
   val schedule : string Config.T
   val get_schedule : Proof.context -> string list list
 
@@ -50,8 +51,6 @@ fun serial_commas _ [] = ["??"]
 val noneN = "none"
 
 datatype mode = Auto_Try | Try | Normal
-
-val default_timeout = seconds 5.0
 
 datatype modifier = Use | Simp | Intro | Elim | Dest
 type xref = Facts.ref * Token.src list
@@ -117,6 +116,7 @@ fun maybe_apply_proof_method name mode : proof_method =
   else
     noop_proof_method
 
+val default_timeout = Attrib.setup_config_int \<^binding>\<open>try0_default_timeout\<close> (K 5)
 val schedule = Attrib.setup_config_string \<^binding>\<open>try0_schedule\<close> (K "")
 
 fun get_schedule (ctxt : Proof.context) : string list list =
@@ -138,10 +138,10 @@ local
 fun time_string time = string_of_int (Time.toMilliseconds time) ^ " ms"
 fun tool_time_string (s, time) = s ^ ": " ^ time_string time
 
-fun generic_try0_step mode (timeout_opt : Time.time option) (facts : facts) (st : Proof.state)
+fun generic_try0_step mode (timeout : Time.time) (facts : facts) (st : Proof.state)
   (proof_methods : string list) =
   let
-    fun try_method (method : mode -> proof_method) = method mode timeout_opt facts st
+    fun try_method (method : mode -> proof_method) = method mode (SOME timeout) facts st
     fun get_message {command, time, ...} = "Found proof: " ^ Active.sendback_markup_command
       command ^ " (" ^ time_string time ^ ")"
     val print_step = Option.map (tap (writeln o get_message))
@@ -190,10 +190,17 @@ in
 
 fun generic_try0 mode (timeout_opt : Time.time option) (facts : facts) (st : Proof.state) =
   let
-    val schedule = get_schedule (Proof.context_of st)
+    val ctxt = Proof.context_of st
+    val schedule = get_schedule ctxt
+
+    val timeout =
+      (case timeout_opt of
+        NONE => seconds (Real.fromInt (Config.get ctxt default_timeout))
+      | SOME t => t)
+
     fun iterate [] = ((false, (noneN, [])), [])
       | iterate (proof_methods :: proof_methodss) =
-        (case generic_try0_step mode timeout_opt facts st proof_methods of
+        (case generic_try0_step mode timeout facts st proof_methods of
           (_, []) => iterate proof_methodss
         | result as (_, _ :: _) => result)
   in
@@ -205,7 +212,7 @@ end
 fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 
 fun try0_trans (facts : facts) =
-  Toplevel.keep_proof (ignore o try0 (SOME default_timeout) facts o Toplevel.proof_of)
+  Toplevel.keep_proof (ignore o try0 NONE facts o Toplevel.proof_of)
 
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 
