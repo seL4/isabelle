@@ -251,10 +251,15 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         init_settings()
 
-        val console_progress = new Console_Progress(verbose = true)
+        val build_options = options.foldLeft(Options.init())(_ + _)
+
+        val console_progress =
+          new Console_Progress(verbose = true,
+            threshold = Build.progress_threshold(build_options),
+            detailed = Build.progress_detailed(build_options))
 
         console_progress.interrupt_handler {
-          Language_Server.build_session(options.foldLeft(Options.init())(_ + _), logic,
+          Language_Server.build_session(build_options, logic,
             build_progress = console_progress,
             session_dirs = session_dirs.toList,
             include_sessions = include_sessions.toList,
