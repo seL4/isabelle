@@ -35,6 +35,7 @@ src/preview_panel.ts
 src/script_decorations.ts
 src/sledgehammer_panel.ts
 src/state_panel.ts
+src/symbol.ts
 src/symbol_panel.ts
 src/vscode_lib.ts
 test/extension.test.ts
