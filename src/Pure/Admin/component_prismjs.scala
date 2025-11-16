@@ -14,7 +14,7 @@ package isabelle
 object Component_Prismjs {
   /* build prismjs component */
 
-  val default_version = "1.29.0"
+  val default_version = "1.30.0"
 
   def build_prismjs(
     version: String = default_version,
