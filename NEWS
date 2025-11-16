@@ -243,6 +243,7 @@ set_finite which is added as a simp rule.
     parallel execution. INCOMPATIBILITY.
   - Added the option `try0_default_timeout` to control the default timeout
     (in seconds).
+  - Changed the default timeout from 5 to 2 seconds. Minor INCOMPATIBILITY.
 
 * Sledgehammer:
   - Don't suggest proofs by `smt (z3)` anymore.

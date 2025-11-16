@@ -116,7 +116,7 @@ fun maybe_apply_proof_method name mode : proof_method =
   else
     noop_proof_method
 
-val default_timeout = Attrib.setup_config_int \<^binding>\<open>try0_default_timeout\<close> (K 5)
+val default_timeout = Attrib.setup_config_int \<^binding>\<open>try0_default_timeout\<close> (K 2)
 val schedule = Attrib.setup_config_string \<^binding>\<open>try0_schedule\<close> (K "")
 
 fun get_schedule (ctxt : Proof.context) : string list list =
