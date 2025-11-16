@@ -21,9 +21,6 @@ object Component_Prismjs {
     target_dir: Path = Path.current,
     progress: Progress = new Progress
   ): Unit = {
-    Isabelle_System.require_command("npm", test = "help")
-
-
     /* component name */
 
     val component = "prismjs-" + version
@@ -34,7 +31,14 @@ object Component_Prismjs {
     /* download */
 
     Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
-      Isabelle_System.bash("npm init -y && npm install prismjs@" + Bash.string(version),
+      val node_dir =
+        Nodejs.setup(tmp_dir, platform_context = Isabelle_Platform.Context(progress = progress))
+      Isabelle_System.bash(
+        Library.make_lines(
+          "set -e",
+          node_dir.path_setup,
+          "npm init -y",
+          "npm install prismjs@" + Bash.string(version)),
         cwd = tmp_dir).check
       Isabelle_System.copy_dir(tmp_dir + Path.explode("node_modules/prismjs"),
         component_dir.path, direct = true)
