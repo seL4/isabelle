@@ -237,10 +237,10 @@ set_finite which is added as a simp rule.
     Try0.register_proof_method and retrieved (e.g., to call them from
     Isabelle/ML) with the function Try0.get_proof_method.
   - Added the option `try0_schedule` to control which proof methods get
-    tried in which order. It accepts a list of proof method names separated
-    by either a space, meaning parallel evaluation, or vertical lines,
-    meaning sequential evaluation; parallel execution binds stronger than
-    parallel execution. INCOMPATIBILITY.
+    tried in which order. It accepts a list of proof method names separated by
+    either a space, meaning parallel evaluation, or vertical lines, meaning
+    sequential evaluation; sequential execution binds stronger than parallel
+    execution. INCOMPATIBILITY.
   - Added the option `try0_default_timeout` to control the default timeout
     (in seconds).
   - Changed the default timeout from 5 to 2 seconds. Minor INCOMPATIBILITY.
