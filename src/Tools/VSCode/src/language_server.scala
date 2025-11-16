@@ -497,9 +497,7 @@ class Language_Server(
   /* abbrevs */
 
   def abbrevs_request(): Unit = {
-    val syntax =
-      resources.get_caret().map(_.model.syntax())
-        .getOrElse(session.resources.session_base.overall_syntax)
+    val syntax = session.resources.session_base.overall_syntax
     channel.write(LSP.Abbrevs_Request.reply(syntax.abbrevs))
   }
 
