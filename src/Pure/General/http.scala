@@ -418,6 +418,13 @@ object HTTP {
       } yield Response.read(path)
   }
 
+  def pdfjs_demo(server_url: String): Process_Result = {
+    val url = server_url + "/docs/web/viewer.html?file=system.pdf"
+    val env = Isabelle_System.Settings.env(List("URL" -> url))
+    val script = """isabelle electron "$ISABELLE_HOME/src/Tools/Electron/test""""
+    Isabelle_System.bash(script, env = env)
+  }
+
 
   /* docs */
 

@@ -8,6 +8,10 @@ See also:
   - https://github.com/mozilla/pdf.js
   - https://github.com/mozilla/pdf.js/releases
   - https://github.com/mozilla/pdf.js/wiki/Setup-PDF.js-in-a-website
+
+Example for Isabelle/jEdit with Console/Scala:
+
+  isabelle.HTTP.pdfjs_demo(PIDE.plugin.http_server.url)
 */
 
 package isabelle
