@@ -22,7 +22,7 @@ import scala.annotation.tailrec
 object Language_Server {
   /* build session */
 
-  def build_session(options: Options, session_name: String,
+  def build_session(options: Options, logic: String,
     build_progress: Progress = new Progress,
     session_dirs: List[Path] = Nil,
     include_sessions: List[String] = Nil,
@@ -34,19 +34,19 @@ object Language_Server {
   ): Sessions.Background = {
     val session_background =
       Sessions.background(
-        options, session_name, dirs = session_dirs,
+        options, logic, dirs = session_dirs,
         include_sessions = include_sessions, session_ancestor = session_ancestor,
         session_requirements = session_requirements).check_errors
 
     def build(no_build: Boolean = false, progress: Progress = new Progress): Build.Results =
       Build.build(options,
-        selection = Sessions.Selection.session(session_background.session_name),
+        selection = Sessions.Selection.session(logic),
         build_heap = true, no_build = no_build, dirs = session_dirs,
         infos = session_background.infos,
         progress = progress)
 
     if (!session_no_build && !build(no_build = true).ok) {
-      start_message(Build.build_logic_started(session_background.session_name))
+      start_message(Build.build_logic_started(logic))
       if (!build(progress = build_progress).ok) {
         val fail_msg = "Session build failed!"
         failure_message(fail_msg)
