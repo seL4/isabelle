@@ -254,9 +254,16 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
         val build_options = options.foldLeft(Options.init())(_ + _)
 
         val console_progress =
-          new Console_Progress(verbose = true,
+          new Console_Progress(
             threshold = Build.progress_threshold(build_options),
-            detailed = Build.progress_detailed(build_options))
+            detailed = Build.progress_detailed(build_options)
+          ) {
+            override def status_hide(msgs: Progress.Output): Unit =
+              super.status_hide(msgs.map(Progress.output_theory))
+
+            override def status_output(msgs: Progress.Output): Unit =
+              super.status_output(msgs.map(Progress.output_theory))
+          }
 
         console_progress.interrupt_handler {
           Language_Server.build_session(build_options, logic,
