@@ -232,6 +232,16 @@ set_finite which is added as a simp rule.
   - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
     "smt_proof_dest_dir". Minor INCOMPATIBILITY.
 
+* try0:
+  - Proof methods can now be dynamically added with the function
+    Try0.register_proof_method and retrived (e.g., to call them from
+    Isabelle/ML) with the function Try0.get_proof_method.
+  - The option `try0_schedule` now controls which proof methods get tried in
+    which order. It accepts a list of proof method names separated by either a
+    space, meaning parallel evaluation, or vertical lines, meaning sequential
+    evaluation; parallel execution binds stronger than parallel execution.
+    INCOMPATIBILITY.
+
 * Sledgehammer:
   - Don't suggest proofs by `smt (z3)` anymore.
 
