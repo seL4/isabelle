@@ -616,7 +616,7 @@ object Document {
       if (node_name.is_theory) {
         node.commands.get_after(None) match {
           case Some(command) if command.span.is_theory =>
-            Some(command -> command_range(Text.Range(caret_offset)).getOrElse(Text.Range.offside))
+            Some(command -> command_range(Text.Range(caret_offset)))
           case _ => None
         }
       }
@@ -627,7 +627,7 @@ object Document {
         } yield {
           val chunk_offset = command.chunk.decode(symbol_offset)
           val command_range = switch(command.node_name).command_range(Text.Range(chunk_offset))
-          command -> command_range.getOrElse(Text.Range.offside)
+          command -> command_range
         }
       }
 
@@ -860,11 +860,16 @@ object Document {
         }).map(_.info)
 
     // Text.Range: full source with trailing whitespace etc.
-    def command_range(caret_range: Text.Range): Option[Text.Range] =
-      select(caret_range, Markup.Elements(Markup.COMMAND_RANGE), _ =>
+    def command_ranges(range: Text.Range): List[Text.Range] =
+      select(range, Markup.Elements(Markup.COMMAND_RANGE), _ =>
         {
           case Text.Info(range, _) => Some(range)
-        }).headOption.map(_.info)
+        }).map(_.info)
+    def command_range(range: Text.Range): Text.Range =
+      command_ranges(range) match {
+        case head :: _ => head
+        case Nil => Text.Range.offside
+      }
   }
 
 

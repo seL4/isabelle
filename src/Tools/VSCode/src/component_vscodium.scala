@@ -32,7 +32,7 @@ object Component_VSCodium {
   /* vscode parameters */
 
   val default_node_version = Nodejs.default_version
-  val default_vscodium_version = "1.104.06131"
+  val default_vscodium_version = "1.105.17075"
 
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
@@ -85,18 +85,19 @@ object Component_VSCodium {
   lazy val symbols: Symbol.Symbols =
     Symbol.Symbols.make(File.read(Path.explode("~~/etc/symbols")))
 
-  def make_symbols(): File.Content = {
-    val symbols_js =
-      JSON.Format.pretty_print(
-        for (entry <- symbols.entries) yield
-          JSON.Object(
-            "symbol" -> entry.symbol,
-            "name" -> entry.name,
-            "abbrevs" -> entry.abbrevs) ++
-          JSON.optional("code", entry.code))
+  def symbol_entry(entry: Symbol.Entry): JSON.T =
+    JSON.Object(
+      "symbol" -> entry.symbol,
+      "name" -> entry.name,
+      "decoded" -> Symbol.decode(entry.symbol),
+      "argument" -> entry.argument.toString,
+      "groups" -> entry.groups,
+      "abbrevs" -> entry.abbrevs) ++
+    JSON.optional("code", entry.code)
 
-    File.content(Path.explode("symbols.json"), symbols_js)
-  }
+  def make_symbols(): File.Content =
+    File.content(Path.explode("symbols.json"),
+      JSON.Format.pretty_print(symbols.entries.map(symbol_entry)))
 
   def make_isabelle_encoding(header: String): File.Content = {
     val symbols_js =
@@ -226,7 +227,7 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        for (name <- Seq("cli", "isabelle_encoding", "no_ocaml_icons")) {
+        for (name <- Seq("cli", "isabelle_encoding")) {
           Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
@@ -238,6 +239,13 @@ object Component_VSCodium {
       val dir = base_dir + resources
       val patch =
         Isabelle_System.with_copy_dir(dir, dir.orig) {
+          File.change(
+            dir + Path.explode("app/extensions/theme-seti/icons/vs-seti-icon-theme.json"),
+            strict = true) { s =>
+              s.replace(""""ml":"_ocaml","mli":"_ocaml",""", "")
+               .replace(""""ml":"_ocaml_light","mli":"_ocaml_light",""", "")
+          }
+
           val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
           HTML.init_fonts(fonts_dir.dir)
           make_symbols().write(fonts_dir)
@@ -522,9 +530,15 @@ Usage: component_vscodium [OPTIONS]
       sudo apt install -y """ + linux_packages.mkString(" ") + """
 
   Windows prerequisites:
-    - install Visual Studio 2022: see https://visualstudio.microsoft.com/downloads
+    - install Visual Studio 2022
+        + see https://visualstudio.microsoft.com/downloads
         + Desktop development with C++
         + x64/x86 C++ spectre mitigated libs
+    - install Python 3.x
+        + see https://www.python.org/downloads/windows
+        + Download Windows installer (64-bit)
+        + Customize installation: [X] for all users
+        + [X] Install Python for all users
     - MSYS2/UCRT64: see https://www.msys2.org
     - MSYS2 packages:
       pacman -Su

@@ -310,6 +310,12 @@ object Build {
 
   /* build logic image */
 
+  def build_logic_started(logic: String): String =
+    "Build started for Isabelle/" + logic + " ..."
+
+  def build_logic_failed(logic: String, editor: Boolean = false): String =
+    "Failed to build Isabelle/" + logic + if_proper(editor, " -- prover process remains inactive!")
+
   def build_logic(options: Options, logic: String,
     private_dir: Option[Path] = None,
     progress: Progress = new Progress,
@@ -325,7 +331,7 @@ object Build {
         build_heap = build_heap, no_build = true, dirs = dirs)
 
     def full_build(): Results = {
-      progress.echo("Build started for Isabelle/" + logic + " ...")
+      progress.echo(build_logic_started(logic))
       build(options, selection = selection, progress = progress,
         build_heap = build_heap, fresh_build = fresh, dirs = dirs)
     }
@@ -337,7 +343,7 @@ object Build {
         if (results0.ok) results0 else full_build()
       }
 
-    if (strict && !results.ok) error("Failed to build Isabelle/" + logic) else results
+    if (strict && !results.ok) error(build_logic_failed(logic)) else results
   }
 
 

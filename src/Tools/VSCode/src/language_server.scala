@@ -20,6 +20,40 @@ import scala.annotation.tailrec
 
 
 object Language_Server {
+  /* build session */
+
+  def build_session(options: Options, logic: String,
+    build_progress: Progress = new Progress,
+    session_dirs: List[Path] = Nil,
+    include_sessions: List[String] = Nil,
+    session_ancestor: Option[String] = None,
+    session_requirements: Boolean = false,
+    session_no_build: Boolean = false,
+    build_started: String => Unit = _ => (),
+    build_failed: String => Unit = _ => ()
+  ): Sessions.Background = {
+    val session_background =
+      Sessions.background(
+        options, logic, dirs = session_dirs,
+        include_sessions = include_sessions, session_ancestor = session_ancestor,
+        session_requirements = session_requirements).check_errors
+
+    def build(no_build: Boolean = false, progress: Progress = new Progress): Build.Results =
+      Build.build(options,
+        selection = Sessions.Selection.session(logic),
+        build_heap = true, no_build = no_build, dirs = session_dirs,
+        infos = session_background.infos,
+        progress = progress)
+
+    if (!session_no_build && !build(no_build = true).ok) {
+      build_started(logic)
+      if (!build(progress = build_progress).ok) build_failed(logic)
+    }
+
+    session_background
+  }
+
+
   /* abstract editor operations */
 
   class Editor(server: Language_Server) extends isabelle.Editor[Unit] {
@@ -266,27 +300,22 @@ class Language_Server(
 
     val try_session =
       try {
+        val progress = channel.progress(verbose = true)
         val session_background =
-          Sessions.background(
-            options, session_name, dirs = session_dirs,
-            include_sessions = include_sessions, session_ancestor = session_ancestor,
-            session_requirements = session_requirements).check_errors
-
-        def build(no_build: Boolean = false): Build.Results =
-          Build.build(options,
-            selection = Sessions.Selection.session(session_background.session_name),
-            build_heap = true, no_build = no_build, dirs = session_dirs,
-            infos = session_background.infos)
-
-        if (!session_no_build && !build(no_build = true).ok) {
-          val start_msg = "Build started for Isabelle/" + session_background.session_name + " ..."
-          val fail_msg = "Session build failed -- prover process remains inactive!"
-
-          val progress = channel.progress(verbose = true)
-          progress.echo(start_msg); channel.writeln(start_msg)
-
-          if (!build().ok) { progress.echo(fail_msg); error(fail_msg) }
-        }
+          Language_Server.build_session(options, session_name,
+            session_dirs = session_dirs,
+            include_sessions = include_sessions,
+            session_ancestor = session_ancestor,
+            session_requirements = session_requirements,
+            session_no_build = session_no_build,
+            build_started = { logic =>
+              val msg = Build.build_logic_started(logic)
+              progress.echo(msg)
+              channel.writeln(msg) },
+            build_failed = { logic =>
+              val msg = Build.build_logic_failed(logic, editor = true)
+              progress.echo(msg)
+              error(msg) })
 
         val session_resources = new VSCode_Resources(options, session_background, log)
         val session_options = options.bool.update("editor_output_state", true)
@@ -469,13 +498,11 @@ class Language_Server(
   }
 
 
-  /* symbols */
+  /* abbrevs */
 
-  def symbols_request(): Unit = {
-    val syntax =
-      resources.get_caret().map(_.model.syntax())
-        .getOrElse(session.resources.session_base.overall_syntax)
-    channel.write(LSP.Symbols_Request.reply(Symbol.symbols, syntax.abbrevs))
+  def abbrevs_request(): Unit = {
+    val syntax = session.resources.session_base.overall_syntax
+    channel.write(LSP.Abbrevs_Request.reply(syntax.abbrevs))
   }
 
 
@@ -522,7 +549,7 @@ class Language_Server(
             State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
           case LSP.Preview_Request(file, column) => preview_request(file, column)
-          case LSP.Symbols_Request() => symbols_request()
+          case LSP.Abbrevs_Request() => abbrevs_request()
           case LSP.Documentation_Request() => documentation_request()
           case LSP.Sledgehammer_Provers_Request() => sledgehammer.provers()
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)

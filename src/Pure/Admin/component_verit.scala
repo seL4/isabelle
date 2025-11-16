@@ -8,7 +8,8 @@ package isabelle
 
 
 object Component_VeriT {
-  val default_download_url = "https://www.verit-solver.org/download/2021.06.2/verit-2021.06.2-rmx.tar.gz"
+  val default_download_url =
+    "https://www.verit-solver.org/download/2021.06.2/verit-2021.06.2-rmx.tar.gz"
 
 
   /* build veriT */

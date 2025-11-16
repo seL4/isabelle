@@ -10,11 +10,11 @@ package isabelle
 object Delay {
   // delayed event after first invocation
   def first(delay: => Time, log: Logger = new Logger, gui: Boolean = false)(event: => Unit): Delay =
-    new Delay(true, delay, log, if (gui) GUI_Thread.later { event } else event )
+    new Delay(true, delay, log, if (gui) GUI_Thread.later { event } else event)
 
   // delayed event after last invocation
   def last(delay: => Time, log: Logger = new Logger, gui: Boolean = false)(event: => Unit): Delay =
-    new Delay(false, delay, log, if (gui) GUI_Thread.later { event } else event )
+    new Delay(false, delay, log, if (gui) GUI_Thread.later { event } else event)
 }
 
 final class Delay private(first: Boolean, delay: => Time, log: Logger, event: => Unit) {

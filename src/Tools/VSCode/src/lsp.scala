@@ -537,26 +537,24 @@ object LSP {
 
   /* decorations */
 
-  sealed case class Decoration_Options(range: Line.Range, hover_message: List[MarkedString]) {
+  sealed case class Decoration_Range(range: Line.Range, hover_message: List[MarkedString] = Nil) {
     def json: JSON.T =
       JSON.Object("range" -> Range.compact(range)) ++
       JSON.optional("hover_message" -> MarkedStrings.json(hover_message))
   }
 
-  type Decoration_List = List[(String, List[Decoration_Options])]
+  object Decoration_Entry {
+    def text_color(color: Rendering.Color.Value, content: List[Decoration_Range]): Decoration_Entry =
+      Decoration_Entry("text_" + color.toString, content)
+  }
+  sealed case class Decoration_Entry(typ: String, content: List[Decoration_Range]) {
+    def json: JSON.T = JSON.Object("type" -> typ, "content" -> content.map(_.json))
+  }
 
-  sealed case class Decoration(decorations: Decoration_List) {
-    def json_entries: JSON.T =
-      decorations.map(decoration =>
-        JSON.Object(
-          "type" -> decoration._1,
-          "content" -> decoration._2.map(_.json)))
-
+  sealed case class Decoration(entries: List[Decoration_Entry]) {
     def json(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        JSON.Object(
-          "uri" -> Url.print_file(file),
-          "entries" -> json_entries))
+        JSON.Object("uri" -> Url.print_file(file), "entries" -> entries.map(_.json)))
   }
 
   object Decoration_Request {
@@ -598,10 +596,10 @@ object LSP {
   /* dynamic output */
 
   object Dynamic_Output {
-    def apply(content: String, decoration: Option[Decoration] = None): JSON.T =
+    def apply(content: String, decorations: Option[Decoration] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
-        JSON.optional("decorations" -> decoration.map(_.json_entries)))
+        JSON.optional("decorations" -> decorations.map(_.json)))
   }
 
   object Output_Set_Margin {
@@ -625,7 +623,7 @@ object LSP {
     ): JSON.T =
       Notification("PIDE/state_output",
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
-        JSON.optional("decorations" -> decorations.map(_.json_entries)))
+        JSON.optional("decorations" -> decorations.map(_.json)))
   }
 
   class State_Id_Notification(name: String) {
@@ -693,25 +691,12 @@ object LSP {
   }
 
 
-  /* symbols */
+  /* abbrevs */
 
-  object Symbols_Request extends Notification0("PIDE/symbols_request") {
-    def reply_symbol(entry: Symbol.Entry): JSON.T =
-      JSON.Object(
-        "symbol" -> entry.symbol,
-        "name" -> entry.name,
-        "decoded" -> Symbol.decode(entry.symbol),
-        "argument" -> entry.argument.toString,
-        "groups" -> entry.groups,
-        "abbrevs" -> entry.abbrevs) ++
-      JSON.optional("code", entry.code) ++
-      JSON.optional("font", entry.font)
-
-    def reply(symbols: Symbol.Symbols, abbrevs: List[(String, String)]): JSON.T =
-      Notification("PIDE/symbols_response",
-        JSON.Object(
-          "symbols" -> symbols.entries.map(reply_symbol),
-          "abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
+  object Abbrevs_Request extends Notification0("PIDE/abbrevs_request") {
+    def reply(abbrevs: List[(String, String)]): JSON.T =
+      Notification("PIDE/abbrevs_response",
+        JSON.Object("abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
   }
 
 

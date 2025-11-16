@@ -149,7 +149,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
               Command.State.get_result_proper(command_states, msg.markup.properties).map(res + _)
           }).filterNot(info => info.info.is_empty)
 
-  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] = {
+  def diagnostics_output(results: List[Text.Info[Command.Results]]): List[LSP.Diagnostic] =
     (for {
       Text.Info(text_range, res) <- results.iterator
       range = model.content.doc.range(text_range)
@@ -159,17 +159,18 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       val severity = VSCode_Rendering.message_severity.get(name)
       LSP.Diagnostic(range, message, severity = severity)
     }).toList
-  }
 
 
   /* text color */
 
-  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] = {
+  def text_color(range: Text.Range): List[Text.Info[Rendering.Color.Value]] =
     snapshot.select(range, Rendering.text_color_elements, _ =>
       {
         case Text.Info(_, elem) => Rendering.get_text_color(elem.markup)
       })
-  }
+
+  def text_color_full_range(model: VSCode_Model): List[Text.Info[Rendering.Color.Value]] =
+    snapshot.command_ranges(model.content.text_range).flatMap(text_color)
 
 
   /* text overview color */
@@ -214,41 +215,29 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
   /* decorations */
 
   def decorations: List[VSCode_Model.Decoration] = // list of canonical length and order
-    Par_List.map((f: () => List[VSCode_Model.Decoration]) => f(),
-      List(
-        () =>
-          VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
-            background(VSCode_Rendering.background_elements, model.content.text_range,
-              Rendering.Focus.empty)),
-        () =>
-          VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
-            foreground(model.content.text_range)),
-        () =>
-          VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
-            text_color(model.content.text_range)),
-        () =>
-          VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
-            text_overview_color),
-        () =>
-          VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
-            dotted(model.content.text_range)))).flatten :::
+    VSCode_Rendering.color_decorations("background_", VSCode_Rendering.background_colors,
+      background(VSCode_Rendering.background_elements, model.content.text_range,
+        Rendering.Focus.empty)) :::
+    VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
+      foreground(model.content.text_range)) :::
+    VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
+      text_color_full_range(model)) :::
+    VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
+      text_overview_color) :::
+    VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
+      dotted(model.content.text_range)) :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decoration: List[VSCode_Model.Decoration]): LSP.Decoration = {
-    val entries =
-      for (deco <- decoration)
-      yield {
-        val decopts = for(Text.Info(text_range, msgs) <- deco.content)
+  def decoration_output(decos: List[VSCode_Model.Decoration]): LSP.Decoration =
+    LSP.Decoration(decos.map(deco =>
+      LSP.Decoration_Entry(deco.typ,
+        for (Text.Info(text_range, msgs) <- deco.content)
           yield {
             val range = model.content.doc.range(text_range)
-            LSP.Decoration_Options(range,
-              msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg))))
-          }
-        (deco.typ, decopts)
-      }
-
-    LSP.Decoration(entries)
-  }
+            val hover_message =
+              msgs.map(msg => LSP.MarkedString(resources.output_pretty_tooltip(msg)))
+            LSP.Decoration_Range(range, hover_message = hover_message)
+          })))
 
 
   /* hyperlinks */
@@ -280,14 +269,13 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
     }
   }
 
-  def hyperlink_command(id: Document_ID.Generic, range: Symbol.Range): Option[Line.Node_Range] = {
+  def hyperlink_command(id: Document_ID.Generic, range: Symbol.Range): Option[Line.Node_Range] =
     if (snapshot.is_outdated) None
     else
       for {
         start <- snapshot.find_command_position(id, range.start)
         stop <- snapshot.find_command_position(id, range.stop)
       } yield Line.Node_Range(start.name, Line.Range(start.pos, stop.pos))
-  }
 
   def hyperlink_position(pos: Position.T): Option[Line.Node_Range] =
     pos match {
@@ -303,7 +291,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case _ => None
     }
 
-  def hyperlinks(range: Text.Range): List[Line.Node_Range] = {
+  def hyperlinks(range: Text.Range): List[Line.Node_Range] =
     snapshot.cumulate[List[Line.Node_Range]](
       range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
         {
@@ -319,5 +307,4 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
 
           case _ => None
         }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }
-  }
 }

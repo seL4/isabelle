@@ -146,7 +146,7 @@ object Bytes {
     }
 
     private class Stream(hint: Long = 0L) extends OutputStream {
-      val builder = new Builder(hint)
+      val builder = new Builder(hint = hint)
 
       override def write(b: Int): Unit =
         { builder += b.toByte }
@@ -156,7 +156,7 @@ object Bytes {
     }
   }
 
-  final class Builder private[Bytes](hint: Long) {
+  final class Builder(hint: Long = 0L) {
     builder =>
 
     private var chunks =
@@ -233,7 +233,7 @@ object Bytes {
 
     def += (a: Subarray): Unit = { builder += (a.array, a.offset, a.length) }
 
-    private def done(): Bytes = {
+    def done(): Bytes = {
       val cs = chunks.toArray
       val b = buffer_content()
       val size = cs.foldLeft(b.length.toLong)({ case (n, a) => n + a.length })

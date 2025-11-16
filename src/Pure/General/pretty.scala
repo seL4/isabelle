@@ -291,8 +291,11 @@ object Pretty {
     metric: Metric = Codepoint.Metric,
     pure: Boolean = false
   ): String = {
-    val out =
-      formatted(input, recode = recode, margin = margin, breakgain = breakgain, metric = metric)
-    output_content(pure, out)
+    if (input.isEmpty) ""
+    else {
+      val out =
+        formatted(input, recode = recode, margin = margin, breakgain = breakgain, metric = metric)
+      output_content(pure, out)
+    }
   }
 }
