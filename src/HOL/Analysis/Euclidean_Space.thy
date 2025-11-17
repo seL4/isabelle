@@ -391,6 +391,8 @@ interpretation eucl?: finite_dimensional_vector_space "scaleR :: real => 'a => '
       intro!: finite_dimensional_vector_space.dimension_def
       finite_dimensional_vector_space_euclidean)
 
+declare card_set [code] \<comment>\<open>Restore code equation after global interpretation\<close>
+
 interpretation eucl?: finite_dimensional_vector_space_pair_1
   "scaleR::real\<Rightarrow>'a::euclidean_space\<Rightarrow>'a" Basis
   "scaleR::real\<Rightarrow>'b::real_vector \<Rightarrow> 'b"
