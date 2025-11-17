@@ -122,10 +122,10 @@ object Language_Server {
     /* hyperlinks */
 
     override def hyperlink_command(
-      focus: Boolean,
       snapshot: Document.Snapshot,
       id: Document_ID.Generic,
-      offset: Symbol.Offset = 0
+      offset: Symbol.Offset = 0,
+      focus: Boolean = false,
     ): Option[Hyperlink] = {
       if (snapshot.is_outdated) None
       else

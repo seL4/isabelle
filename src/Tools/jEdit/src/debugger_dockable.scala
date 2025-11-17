@@ -257,7 +257,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       debugger.set_focus(c)
       for {
         pos <- c.debug_position
-        link <- PIDE.editor.hyperlink_position(false, current_snapshot, pos)
+        link <- PIDE.editor.hyperlink_position(current_snapshot, pos)
       } link.follow(view)
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())

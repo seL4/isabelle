@@ -33,7 +33,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     obj match {
       case Tree_View.Node(entry: Doc.Entry) =>
         if (entry.path.is_pdf) PIDE.editor.goto_doc(view, entry.path)
-        else PIDE.editor.goto_file(true, view, File.platform_path(entry.path))
+        else PIDE.editor.goto_file(view, File.platform_path(entry.path), focus = true)
       case _ =>
     }
   }

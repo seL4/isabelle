@@ -198,7 +198,7 @@ class Theories_Status(view: View, document: Boolean = false) {
               else Document_Model.node_required(name, toggle = true)
             }
           }
-          else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
+          else if (clicks == 2) PIDE.editor.goto_file(view, listData(index).node, focus = true)
         }
       case MouseMoved(_, point, _) =>
         val index = peer.locationToIndex(point)

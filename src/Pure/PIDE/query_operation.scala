@@ -203,7 +203,7 @@ class Query_Operation[Editor_Context](
   def locate_query(): Unit =
     for {
       (snapshot, command) <- query_command()
-      link <- editor.hyperlink_command(true, snapshot, command.id)
+      link <- editor.hyperlink_command(snapshot, command.id, focus = true)
     } link.follow(editor_context)
 
 

@@ -173,7 +173,7 @@ class Isabelle_Navigator {
       val b = _bypass
       try {
         _bypass = true
-        PIDE.editor.goto_file(true, view, current.name, offset = current.offset)
+        PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true)
       }
       finally { _bypass = b }
     }

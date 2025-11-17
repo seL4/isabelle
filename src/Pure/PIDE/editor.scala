@@ -165,8 +165,10 @@ abstract class Editor[Context] {
   }
 
   def hyperlink_command(
-    focus: Boolean, snapshot: Document.Snapshot, id: Document_ID.Generic, offset: Symbol.Offset = 0)
-      : Option[Hyperlink]
+    snapshot: Document.Snapshot,
+    id: Document_ID.Generic,
+    offset: Symbol.Offset = 0,
+    focus: Boolean = false): Option[Hyperlink]
 
 
   /* dispatcher thread */
