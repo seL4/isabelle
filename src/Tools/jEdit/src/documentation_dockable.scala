@@ -48,9 +48,9 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   })
   tree.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit = {
-      if (!e.isConsumed()) {
+      if (!e.isConsumed() && e.getClickCount == 1) {
         val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null && e.getClickCount == 1) {
+        if (click != null) {
           val click_node = click.getLastPathComponent
           val path_node = tree.getLastSelectedPathComponent
           if (click_node == path_node) {
