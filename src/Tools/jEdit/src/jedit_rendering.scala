@@ -250,11 +250,11 @@ extends Rendering(snapshot, options, PIDE.session) {
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
             val file = perhaps_append_file(snapshot.node_name, name)
-            val link = PIDE.editor.hyperlink_file(true, file)
+            val link = PIDE.editor.hyperlink_file(file, focus = true)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Export_Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(true, Isabelle_Export.vfs_prefix + name)
+            val link = PIDE.editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true)
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
@@ -266,11 +266,11 @@ extends Rendering(snapshot, options, PIDE.session) {
             Some(links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_position(true, snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_position(snapshot, props, focus = true)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None
@@ -282,7 +282,7 @@ extends Rendering(snapshot, options, PIDE.session) {
       range, Vector.empty, Rendering.entity_elements, _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(true, snapshot, props)
+            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
           case _ => None
         }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }

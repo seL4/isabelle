@@ -111,11 +111,11 @@ class JEdit_Editor extends Editor[View] {
   /* navigation */
 
   def goto_file(
-    focus: Boolean,
     view: View,
     name: String,
     line: Int = -1,
     offset: Text.Offset = -1,
+    focus: Boolean = false,
     at_target: (Buffer, Text.Offset) => Unit = (_, _) => ()
   ): Unit = {
     GUI_Thread.require {}
@@ -165,9 +165,9 @@ class JEdit_Editor extends Editor[View] {
     }
   }
 
-  def goto_doc(view: View, path: Path): Unit = {
+  def goto_doc(view: View, path: Path, focus: Boolean = false): Unit = {
     if (path.is_pdf) Doc.view(path)
-    else goto_file(true, view, File.platform_path(path))
+    else goto_file(view, File.platform_path(path), focus = focus)
   }
 
 
@@ -177,7 +177,7 @@ class JEdit_Editor extends Editor[View] {
     Doc.contents(PIDE.ml_settings).entries(name = _ == name).headOption.map(entry =>
       new Hyperlink {
         override val external: Boolean = !entry.path.is_file
-        def follow(view: View): Unit = goto_doc(view, entry.path)
+        def follow(view: View): Unit = goto_doc(view, entry.path, focus = true)
         override def toString: String = "doc " + quote(name)
       })
 
@@ -198,30 +198,30 @@ class JEdit_Editor extends Editor[View] {
     }
 
   def hyperlink_file(
-    focus: Boolean,
     name: String,
     line: Int = -1,
-    offset: Text.Offset = -1
+    offset: Text.Offset = -1,
+    focus: Boolean = false
   ): Hyperlink =
     new Hyperlink {
       def follow(view: View): Unit = {
         import Isabelle_Navigator.Pos
         PIDE.plugin.navigator.record(Pos(view))
-        goto_file(focus, view, name, line = line, offset = offset,
+        goto_file(view, name, line = line, offset = offset, focus = focus,
           at_target = (buffer, target) => Pos.make(JEdit_Lib.buffer_name(buffer), target))
       }
       override def toString: String = "file " + quote(name)
     }
 
   def hyperlink_source_file(
-    focus: Boolean,
     source_name: String,
     line1: Int,
-    offset: Symbol.Offset
+    offset: Symbol.Offset,
+    focus: Boolean = false,
   ) : Option[Hyperlink] = {
     for (platform_path <- PIDE.session.store.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(focus, platform_path, line = pos.line, offset = pos.column)
+        hyperlink_file(platform_path, line = pos.line, offset = pos.column, focus = focus)
 
       if (offset > 0) {
         PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
@@ -238,15 +238,15 @@ class JEdit_Editor extends Editor[View] {
   }
 
   override def hyperlink_command(
-    focus: Boolean,
     snapshot: Document.Snapshot,
     id: Document_ID.Generic,
-    offset: Symbol.Offset = 0
+    offset: Symbol.Offset = 0,
+    focus: Boolean = false
   ) : Option[Hyperlink] = {
     if (snapshot.is_outdated) None
     else {
       snapshot.find_command_position(id, offset)
-        .map(pos => hyperlink_file(focus, pos.name, line = pos.line, offset = pos.column))
+        .map(pos => hyperlink_file(pos.name, line = pos.line, offset = pos.column, focus = focus))
     }
   }
 
@@ -269,23 +269,23 @@ class JEdit_Editor extends Editor[View] {
     }
   }
 
-  def hyperlink_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
+  def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)
       : Option[Hyperlink] =
     pos match {
       case Position.Item_File(name, line, range) =>
-        hyperlink_source_file(focus, name, line, range.start)
+        hyperlink_source_file(name, line, range.start, focus = focus)
       case Position.Item_Id(id, range) =>
-        hyperlink_command(focus, snapshot, id, range.start)
+        hyperlink_command(snapshot, id, range.start, focus = focus)
       case _ => None
     }
 
-  def hyperlink_def_position(focus: Boolean, snapshot: Document.Snapshot, pos: Position.T)
+  def hyperlink_def_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)
       : Option[Hyperlink] =
     pos match {
       case Position.Item_Def_File(name, line, range) =>
-        hyperlink_source_file(focus, name, line, range.start)
+        hyperlink_source_file(name, line, range.start, focus = focus)
       case Position.Item_Def_Id(id, range) =>
-        hyperlink_command(focus, snapshot, id, range.start)
+        hyperlink_command(snapshot, id, range.start, focus = focus)
       case _ => None
     }
 

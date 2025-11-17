@@ -32,8 +32,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   private def action(obj: AnyRef): Unit = {
     obj match {
       case Tree_View.Node(entry: Doc.Entry) =>
-        if (entry.path.is_pdf) PIDE.editor.goto_doc(view, entry.path)
-        else PIDE.editor.goto_file(true, view, File.platform_path(entry.path))
+        PIDE.editor.goto_doc(view, entry.path, focus = true)
       case _ =>
     }
   }
@@ -48,10 +47,10 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     }
   })
   tree.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent): Unit = {
-      if (!e.isConsumed()) {
+    override def mousePressed(e: MouseEvent): Unit = {
+      if (!e.isConsumed() && e.getClickCount == 1) {
         val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null && e.getClickCount == 1) {
+        if (click != null) {
           val click_node = click.getLastPathComponent
           val path_node = tree.getLastSelectedPathComponent
           if (click_node == path_node) {

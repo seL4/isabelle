@@ -15,7 +15,7 @@ import javax.swing.{JPanel, JComponent, SwingUtilities, JLayeredPane}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
-import scala.swing.event.MouseClicked
+import scala.swing.event.MousePressed
 
 import org.gjt.sp.jedit.View
 
@@ -179,7 +179,8 @@ class Pretty_Tooltip private(
     icon = rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
-    reactions += { case _: MouseClicked => Pretty_Tooltip.dismiss(pretty_tooltip) }
+    reactions += { case _: MousePressed => Pretty_Tooltip.dismiss(pretty_tooltip) }
+    reactions += { case _: MousePressed => Pretty_Tooltip.dismiss(pretty_tooltip) }
   }
 
   private val detach = new Label {
@@ -187,7 +188,7 @@ class Pretty_Tooltip private(
     tooltip = "Detach tooltip window"
     listenTo(mouse.clicks)
     reactions += {
-      case _: MouseClicked =>
+      case _: MousePressed =>
         Info_Dockable(view, rendering.snapshot, results, output)
         Pretty_Tooltip.dismiss(pretty_tooltip)
     }

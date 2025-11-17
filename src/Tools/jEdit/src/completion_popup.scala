@@ -627,8 +627,8 @@ class Completion_Popup private(
   list_view.peer.addKeyListener(inner_key_listener)
 
   list_view.peer.addMouseListener(new MouseAdapter {
-    override def mouseClicked(e: MouseEvent): Unit = {
-      if (!e.isConsumed()) {
+    override def mousePressed(e: MouseEvent): Unit = {
+      if (!e.isConsumed() && e.getClickCount == 1) {
         if (complete_selected()) e.consume()
         hide_popup()
       }

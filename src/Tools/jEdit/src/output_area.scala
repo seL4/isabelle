@@ -104,10 +104,10 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
 
   private lazy val mouse_listener =
     new MouseAdapter {
-      override def mouseClicked(e: MouseEvent): Unit = {
-        if (!e.isConsumed()) {
+      override def mousePressed(e: MouseEvent): Unit = {
+        if (!e.isConsumed() && e.getClickCount == 1) {
           val click = tree.getPathForLocation(e.getX, e.getY)
-          if (click != null && e.getClickCount == 1) {
+          if (click != null) {
             e.consume()
             handle_focus()
           }

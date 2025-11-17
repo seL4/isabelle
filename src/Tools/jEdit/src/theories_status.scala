@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{ListView, Alignment, Label, CheckBox, BorderPanel, Component}
-import scala.swing.event.{MouseClicked, MouseMoved}
+import scala.swing.event.{MousePressed, MouseMoved}
 
 import java.awt.{Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory, UIManager}
@@ -187,28 +187,28 @@ class Theories_Status(view: View, document: Boolean = false) {
     listenTo(mouse.clicks)
     listenTo(mouse.moves)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) =>
-        val index = peer.locationToIndex(point)
+      case mouse: MousePressed =>
+        val index = peer.locationToIndex(mouse.point)
         if (index >= 0) {
           val index_location = peer.indexToLocation(index)
-          if (node_renderer.in_required(index_location, point)) {
-            if (clicks == 1) {
+          if (node_renderer.in_required(index_location, mouse.point)) {
+            if (mouse.clicks == 1) {
               val name = listData(index)
               if (document) PIDE.editor.document_select(Set(name.theory), toggle = true)
               else Document_Model.node_required(name, toggle = true)
             }
           }
-          else if (clicks == 2) PIDE.editor.goto_file(true, view, listData(index).node)
+          else if (mouse.clicks == 2) PIDE.editor.goto_file(view, listData(index).node, focus = true)
         }
-      case MouseMoved(_, point, _) =>
-        val index = peer.locationToIndex(point)
+      case mouse: MouseMoved =>
+        val index = peer.locationToIndex(mouse.point)
         val index_location = peer.indexToLocation(index)
-        if (index >= 0 && node_renderer.in_required(index_location, point)) {
+        if (index >= 0 && node_renderer.in_required(index_location, mouse.point)) {
           tooltip =
             if (document) "Mark for inclusion in document"
             else "Mark as required for continuous checking"
         }
-        else if (index >= 0 && node_renderer.in_label(index_location, point)) {
+        else if (index >= 0 && node_renderer.in_label(index_location, mouse.point)) {
           val name = listData(index)
           val st = overall_status(name)
           tooltip =

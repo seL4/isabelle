@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
-import scala.swing.event.{MouseClicked, ValueChanged}
+import scala.swing.event.{MousePressed, ValueChanged}
 
 import java.awt.BorderLayout
 import javax.swing.{JList, BorderFactory}
@@ -74,7 +74,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       new Theory_Entry(name, timing) { override val gui_style: String = Entry.make_gui_style() }
     def gui_name: GUI.Name = GUI.Name(name.theory, kind = "theory")
     def follow(snapshot: Document.Snapshot): Unit =
-      PIDE.editor.goto_file(true, view, name.node)
+      PIDE.editor.goto_file(view, name.node, focus = true)
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry {
@@ -82,7 +82,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     override val gui_style: String = Entry.make_gui_style(command = true)
     def gui_name: GUI.Name = GUI.Name(command.span.name, kind = "command")
     def follow(snapshot: Document.Snapshot): Unit =
-      PIDE.editor.hyperlink_command(true, snapshot, command.id).foreach(_.follow(view))
+      PIDE.editor.hyperlink_command(snapshot, command.id, focus = true).foreach(_.follow(view))
   }
 
 
@@ -91,8 +91,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private val timing_view = new ListView(List.empty[Entry]) {
     listenTo(mouse.clicks)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
-        val index = peer.locationToIndex(point)
+      case mouse: MousePressed if mouse.clicks == 2 =>
+        val index = peer.locationToIndex(mouse.point)
         if (index >= 0) listData(index).follow(PIDE.session.snapshot())
     }
   }
