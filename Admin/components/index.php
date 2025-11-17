@@ -14,7 +14,7 @@
    if (preg_match($component_pattern, $file)
        && is_file($file)
        && is_readable($file)) {
-     print "<tr><td><a href=\"$file\"><code>$file</code></a></td><td></td><td>".filesize($file)."</td></tr>\n";
+     print "<tr><td><code>$file</code></td><td></td><td>".filesize($file)."</td></tr>\n";
   }
  }
 ?>
