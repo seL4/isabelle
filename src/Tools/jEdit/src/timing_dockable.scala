@@ -91,8 +91,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private val timing_view = new ListView(List.empty[Entry]) {
     listenTo(mouse.clicks)
     reactions += {
-      case MousePressed(_, point, _, clicks, _) if clicks == 2 =>
-        val index = peer.locationToIndex(point)
+      case mouse: MousePressed if mouse.clicks == 2 =>
+        val index = peer.locationToIndex(mouse.point)
         if (index >= 0) listData(index).follow(PIDE.session.snapshot())
     }
   }
