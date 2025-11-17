@@ -20,6 +20,8 @@ NEWS file for further details. Here are notable details:
 
 * Isabelle/jEdit: improved appearance on Linux (GUI scaling) and macOS (L&F).
 
+* Isabelle/VSCode: more robust session build process on console.
+
 * Isabelle/VSCode: GUI panels for Documentation, Symbols, Sledgehammer.
 
 * Isabelle/VSCode: update of underlying VSCodium distribution.
