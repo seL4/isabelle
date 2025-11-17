@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{Label, ListView, Alignment, ScrollPane, Component, TextField}
-import scala.swing.event.{MouseClicked, ValueChanged}
+import scala.swing.event.{MousePressed, ValueChanged}
 
 import java.awt.BorderLayout
 import javax.swing.{JList, BorderFactory}
@@ -91,7 +91,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   private val timing_view = new ListView(List.empty[Entry]) {
     listenTo(mouse.clicks)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
+      case MousePressed(_, point, _, clicks, _) if clicks == 2 =>
         val index = peer.locationToIndex(point)
         if (index >= 0) listData(index).follow(PIDE.session.snapshot())
     }

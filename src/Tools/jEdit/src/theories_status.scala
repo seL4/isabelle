@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import scala.swing.{ListView, Alignment, Label, CheckBox, BorderPanel, Component}
-import scala.swing.event.{MouseClicked, MouseMoved}
+import scala.swing.event.{MousePressed, MouseMoved}
 
 import java.awt.{Graphics2D, Color, Point, Dimension}
 import javax.swing.{JList, BorderFactory, UIManager}
@@ -187,7 +187,7 @@ class Theories_Status(view: View, document: Boolean = false) {
     listenTo(mouse.clicks)
     listenTo(mouse.moves)
     reactions += {
-      case MouseClicked(_, point, _, clicks, _) =>
+      case MousePressed(_, point, _, clicks, _) =>
         val index = peer.locationToIndex(point)
         if (index >= 0) {
           val index_location = peer.indexToLocation(index)
