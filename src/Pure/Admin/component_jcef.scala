@@ -41,7 +41,7 @@ object Component_JCEF {
   /* build JCEF */
 
   val default_url = "https://github.com/jcefmaven/jcefbuild/releases/download"
-  val default_version = "1.0.61"
+  val default_version = "1.0.68"
 
   def build_jcef(
     base_url: String = default_url,
