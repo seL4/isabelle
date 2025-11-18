@@ -54,7 +54,7 @@ object Session_Build {
 
     private val scroll_text = new ScrollPane(text)
 
-    private def scroll_end(): Unit = {
+    private def scroll_to_bottom(): Unit = {
       val vertical = scroll_text.verticalScrollBar
       vertical.value = vertical.maximum
     }
@@ -86,7 +86,7 @@ object Session_Build {
                 doc.insertString(doc.getLength, txt, if (msg.status) inverse else null)
               }
             }
-            scroll_end()
+            scroll_to_bottom()
           }
         }
       }
