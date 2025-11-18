@@ -1,0 +1,87 @@
+diff -Nru -- jedit5.7.0/jEdit/keymaps/Alan_keys.props jedit5.7.0-patched/jEdit/keymaps/Alan_keys.props
+--- jedit5.7.0/jEdit/keymaps/Alan_keys.props	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/keymaps/Alan_keys.props	2025-11-18 21:48:00.869513320 +0100
+@@ -263,14 +263,14 @@
+ vfs.browser.home.shortcut=~
+ vfs.browser.new-directory.shortcut=INSERT
+ vfs.browser.new-file.shortcut=C+n
+-vfs.browser.next.shortcut=A+Right
+-vfs.browser.previous.shortcut=A+Left
++vfs.browser.next.shortcut=A+RIGHT
++vfs.browser.previous.shortcut=A+LEFT
+ vfs.browser.reload.shortcut=F5
+ vfs.browser.rename.shortcut=F2
+ vfs.browser.roots.shortcut=/
+ vfs.browser.shortcut=CA+f
+ vfs.browser.synchronize.shortcut=-
+-vfs.browser.up.shortcut=A+Up
++vfs.browser.up.shortcut=A+UP
+ white-space.toggle-remove-trailing-white-space.shortcut=C+w C+r
+ xfind-prev.shortcut=C+q p
+ xfind-replace-dialog.shortcut=C+r C+f
+diff -Nru -- jedit5.7.0/jEdit/keymaps/Emacs_keys.props jedit5.7.0-patched/jEdit/keymaps/Emacs_keys.props
+--- jedit5.7.0/jEdit/keymaps/Emacs_keys.props	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/keymaps/Emacs_keys.props	2025-11-18 21:48:00.869621521 +0100
+@@ -230,14 +230,14 @@
+ vfs.browser.home.shortcut=~
+ vfs.browser.new-directory.shortcut=INSERT
+ vfs.browser.new-file.shortcut=C+n
+-vfs.browser.next.shortcut=A+Right
+-vfs.browser.previous.shortcut=A+Left
++vfs.browser.next.shortcut=A+RIGHT
++vfs.browser.previous.shortcut=A+LEFT
+ vfs.browser.reload.shortcut=F5
+ vfs.browser.rename.shortcut=F2
+ vfs.browser.roots.shortcut=/
+ vfs.browser.shortcut=CA+f
+ vfs.browser.synchronize.shortcut=-
+-vfs.browser.up.shortcut=A+Up
++vfs.browser.up.shortcut=A+UP
+ xfind-prev.shortcut=C+q p
+ xfind-replace-dialog.shortcut=C+r C+f
+ xml-chars-to-entities.shortcut=C+x C+e
+diff -Nru -- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props jedit5.7.0-patched/jEdit/keymaps/German_Keyboard_keys.props
+--- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/keymaps/German_Keyboard_keys.props	2025-11-18 21:48:00.869707942 +0100
+@@ -265,7 +265,7 @@
+ vfs.browser.rename.shortcut=F2
+ vfs.browser.roots.shortcut=/
+ vfs.browser.synchronize.shortcut=-
+-vfs.browser.up.shortcut=A+Up
+-vfs.browser.previous.shortcut=A+Left
+-vfs.browser.next.shortcut=A+Right
++vfs.browser.up.shortcut=A+UP
++vfs.browser.previous.shortcut=A+LEFT
++vfs.browser.next.shortcut=A+RIGHT
+ #}}}
+diff -Nru -- jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
+--- jedit5.7.0/jEdit/keymaps/jEdit_keys.props	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2025-11-18 21:48:00.869789314 +0100
+@@ -225,7 +225,7 @@
+ vfs.browser.rename.shortcut=F2
+ vfs.browser.roots.shortcut=/
+ vfs.browser.synchronize.shortcut=-
+-vfs.browser.up.shortcut=A+Up
+-vfs.browser.previous.shortcut=A+Left
+-vfs.browser.next.shortcut=A+Right
++vfs.browser.up.shortcut=A+UP
++vfs.browser.previous.shortcut=A+LEFT
++vfs.browser.next.shortcut=A+RIGHT
+ #}}}
+diff -Nru -- jedit5.7.0/jEdit/keymaps/Mac_OS_X_keys.props jedit5.7.0-patched/jEdit/keymaps/Mac_OS_X_keys.props
+--- jedit5.7.0/jEdit/keymaps/Mac_OS_X_keys.props	2024-08-03 19:53:29.000000000 +0200
++++ jedit5.7.0-patched/jEdit/keymaps/Mac_OS_X_keys.props	2025-11-18 21:48:00.869868131 +0100
+@@ -185,10 +185,10 @@
+ vfs.browser.home.shortcut=~
+ vfs.browser.new-directory.shortcut=INSERT
+ vfs.browser.new-file.shortcut=C+n
+-vfs.browser.next.shortcut=A+Right
+-vfs.browser.previous.shortcut=A+Left
++vfs.browser.next.shortcut=A+RIGHT
++vfs.browser.previous.shortcut=A+LEFT
+ vfs.browser.reload.shortcut=F5
+ vfs.browser.rename.shortcut=F2
+ vfs.browser.roots.shortcut=/
+ vfs.browser.synchronize.shortcut=-
+-vfs.browser.up.shortcut=A+Up
++vfs.browser.up.shortcut=A+UP
