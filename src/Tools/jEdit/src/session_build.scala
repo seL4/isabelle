@@ -54,7 +54,7 @@ object Session_Build {
 
     private val scroll_text = new ScrollPane(text)
 
-    private def scroll_to_bottom(): Unit = {
+    private def scroll_to_bottom(): Unit = GUI_Thread.later {
       val vertical = scroll_text.verticalScrollBar
       vertical.value = vertical.maximum
     }
