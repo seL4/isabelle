@@ -9,12 +9,14 @@ sig
   (*solver*)
   type solver_info = {
     name: string,
+    dummy: bool,
     class: Proof.context -> SMT_Util.class,
     avail: unit -> bool,
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
   val set_solver_options: string * string -> Context.generic -> Context.generic
   val all_solvers_of: Proof.context -> string list
+  val all_nondummy_solvers_of: Proof.context -> string list
   val is_available: Proof.context -> string -> bool
   val available_solvers_of: Proof.context -> string list
   val select_solver: string -> Context.generic -> Context.generic
@@ -73,6 +75,7 @@ struct
 
 type solver_info = {
   name: string,
+  dummy: bool,
   class: Proof.context -> SMT_Util.class,
   avail: unit -> bool,
   options: Proof.context -> string list};
@@ -116,6 +119,14 @@ fun add_solver (info as {name, ...} : solver_info) context =
 
 val all_solvers_of' = Symtab.keys o get_solvers';
 val all_solvers_of = all_solvers_of' o Context.Proof;
+fun all_nondummy_solvers_of (ctxt : Proof.context) : string list =
+  let
+    val solvers = get_solvers' (Context.Proof ctxt)
+    fun cons_nondummy (name, ({dummy = false, ...}, _)) names = name :: names
+      | cons_nondummy _ names = names
+  in
+    Library.build (Symtab.fold_rev cons_nondummy solvers)
+  end
 
 fun is_available' context name =
   (case Symtab.lookup (get_solvers' context) name of
