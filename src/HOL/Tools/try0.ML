@@ -129,7 +129,7 @@ fun get_schedule (ctxt : Proof.context) : string list list =
   in
     Config.get ctxt schedule
     |> Substring.full
-    |> Substring.tokens (fn c => c = #"|")
+    |> Substring.tokens (fn c => c = #";")
     |> map (map_filter some_nonempty_string o Substring.tokens Char.isSpace)
   end
 
