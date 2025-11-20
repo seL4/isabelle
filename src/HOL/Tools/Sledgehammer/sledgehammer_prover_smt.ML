@@ -20,7 +20,7 @@ sig
   val run_smt_solver : mode -> string -> prover
 
   val smt_solvers : Proof.context -> string list
-  val nondummy_smt_solvers : Proof.context -> string list
+  val default_smt_solvers : Proof.context -> string list
 end;
 
 structure Sledgehammer_Prover_SMT : SLEDGEHAMMER_PROVER_SMT =
@@ -40,7 +40,7 @@ val smt_builtins = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_b
 val smt_triggers = Attrib.setup_config_bool \<^binding>\<open>sledgehammer_smt_triggers\<close> (K true)
 
 val smt_solvers = sort_strings o SMT_Config.all_solvers_of
-val nondummy_smt_solvers = sort_strings o SMT_Config.all_nondummy_solvers_of
+val default_smt_solvers = sort_strings o SMT_Config.all_nondummy_sledgehammer_solvers_of
 
 val is_smt_solver = member (op =) o smt_solvers
 val is_smt_solver_installed = member (op =) o SMT_Config.available_solvers_of

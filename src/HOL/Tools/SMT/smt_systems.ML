@@ -340,13 +340,13 @@ val _ =
 (* overall setup *)
 
 val _ = Theory.setup (
-  SMT_Solver.add_solver false cvc4 #>
-  SMT_Solver.add_solver false cvc5 #>
-  SMT_Solver.add_solver false cvc5_proof #>
-  SMT_Solver.add_solver false vampire_smt_dt #>
-  SMT_Solver.add_solver false vampire_smt_nodt #>
-  SMT_Solver.add_solver false veriT #>
-  SMT_Solver.add_solver false z3 #>
-  SMT_Solver.add_solver true dummy_smtlib)
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc4 #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} cvc5 #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc5_proof #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_dt #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_nodt #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} veriT #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} z3 #>
+  SMT_Solver.add_solver {dummy = true, sledgehammer_default = false} dummy_smtlib)
 
 end;

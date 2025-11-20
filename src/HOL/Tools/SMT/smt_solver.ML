@@ -29,7 +29,7 @@ sig
      replay: (Proof.context -> SMT_Translate.replay_data -> string list -> thm) option}
 
   (*registry*)
-  val add_solver: bool -> solver_config -> theory -> theory
+  val add_solver: {dummy: bool, sledgehammer_default: bool} -> solver_config -> theory -> theory
   val good_slices: Proof.context -> string ->
     ((int * bool * bool * int * string) * string list) list
 
@@ -254,8 +254,8 @@ local
   val cfalse = Thm.cterm_of \<^context> \<^prop>\<open>False\<close>
 in
 
-fun add_solver dummy ({name, class, avail, command, options, smt_options, good_slices, outcome,
-    parse_proof = parse_proof0, replay = replay0} : solver_config) =
+fun add_solver {dummy, sledgehammer_default} ({name, class, avail, command, options, smt_options,
+    good_slices, outcome, parse_proof = parse_proof0, replay = replay0} : solver_config) =
   let
     fun solver oracle = {
       command = command,
@@ -264,7 +264,8 @@ fun add_solver dummy ({name, class, avail, command, options, smt_options, good_s
       parse_proof = parse_proof (outcome name) parse_proof0,
       replay = replay (outcome name) replay0 oracle}
 
-    val info = {name = name, dummy = dummy, class = class, avail = avail, options = options}
+    val info = {name = name, dummy = dummy, sledgehammer_default = sledgehammer_default,
+      class = class, avail = avail, options = options}
   in
     Thm.add_oracle (Binding.name name, K cfalse) #-> (fn (_, oracle) =>
     Context.theory_map (Solvers.map (Symtab.update_new (name, solver oracle)))) #>

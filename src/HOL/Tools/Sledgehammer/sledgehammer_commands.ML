@@ -174,7 +174,7 @@ fun default_provers_param_value ctxt =
     val try0_provers = Try0.get_all_proof_method_names ()
     \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
     and installed_provers =
-      filter (is_prover_installed ctxt) (nondummy_smt_solvers ctxt @ local_atps)
+      filter (is_prover_installed ctxt) (default_smt_solvers ctxt @ local_atps)
   in
     implode_param (installed_provers @ try0_provers)
   end

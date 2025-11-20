@@ -244,8 +244,9 @@ set_finite which is added as a simp rule.
     native support for datatypes and vampire_smt_nodt does not).
   - Added SMT solver "dummy_smtlib" which immediately fails; this is
     useful when generating SMT-LIB files with Mirabelle.
-  - Added a boolean parameter to function SMT_Solver.add_solver that
-    indicates whether the solver is a dummy or not.
+  - Added a record parameter to function SMT_Solver.add_solver that
+    indicates whether the solver is a dummy or not, and whether it
+    should be used by default in Sledgehammer or not.
     Minor INCOMPATIBILITY.
   - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
     "smt_proof_dest_dir". Minor INCOMPATIBILITY.
