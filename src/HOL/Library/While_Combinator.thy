@@ -9,7 +9,19 @@ theory While_Combinator
 imports Main
 begin
 
-subsection \<open>Partial version\<close>
+text \<open>Defining partial functions in HOL is tricky.
+This theory provides a while-combinator that facilitates the definition of
+(potentially) partial tail-recursive functions.
+
+The theory provides the function \<open>while_option b f s\<close>
+that iterates \<open>f\<close> on \<open>s\<close> while \<open>b\<close> is true. If iteration terminates with \<open>t\<close>,
+\<open>Some t\<close> is returned, \<open>None\<close> otherwise. Thus termination can be shown
+by proving that \<open>Some\<close> is always returned (for some subset of inputs).
+
+Convenient variations include \<open>while_Some\<close> (for more efficient code)
+and \<open>while_saturate\<close> (for saturating a set).\<close>
+
+subsection \<open>\<open>while_option\<close>\<close>
 
 definition while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
 "while_option b c s = (if (\<exists>k. \<not> b ((c ^^ k) s))
@@ -195,7 +207,7 @@ lemma while_option_commute:
 by(rule while_option_commute_invariant[where P = "\<lambda>_. True"])
   (auto simp add: assms)
 
-subsection \<open>Total version\<close>
+subsection \<open>\<open>while\<close>\<close>
 
 definition while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 where "while b c s = the (while_option b c s)"
@@ -250,7 +262,8 @@ theorem while_rule2:
    Q (while b c s)"
 using while_rule[of P] by metis
 
-text\<open>Proving termination:\<close>
+
+subsection \<open>Termination, \<open>lfp\<close> and \<open>gfp\<close>\<close>
 
 theorem wf_while_option_Some:
   assumes "wf {(t, s). (P s \<and> b s) \<and> t = c s}"
@@ -295,6 +308,7 @@ proof(rule measure_while_option_Some[where
     show ?R by (metis A assms(2,3) card_seteq diff_less_mono2 equalityI linorder_le_less_linear rev_finite_subset)
   qed
 qed simp
+
 
 lemma lfp_the_while_option:
   assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
@@ -370,6 +384,83 @@ lemma gfp_while_lattice:
   assumes "mono f" and "finite (UNIV :: 'a set)"
   shows "gfp f = while (\<lambda>A. f A \<noteq> A) f top"
 unfolding while_def using assms by (rule gfp_the_while_option_lattice)
+
+
+subsection \<open>\<open>while_Some\<close> and \<open>while_saturate\<close>\<close>
+
+text \<open>A variation intended for efficient code.
+The problem with \<open>while_option b c\<close>:
+  the computations of \<open>b\<close> and \<open>c\<close> may share subcomputations but they need to be performed twice.\<close>
+
+definition while_Some :: "('s \<Rightarrow> 's option) \<Rightarrow> 's \<Rightarrow> 's option" where
+"while_Some f = while_option (\<lambda>s. f s \<noteq> None) (the o f)"
+
+lemma while_Some_rec[code]:
+"while_Some f x = (case f x of None \<Rightarrow> Some x | Some y \<Rightarrow> while_Some f y)"
+unfolding while_Some_def while_option_unfold[of _ _ x] by auto
+
+text \<open>A frequent special case: saturation of a set.\<close>
+
+definition while_saturate :: "('a set \<Rightarrow> 'a set) \<Rightarrow> 'a set \<Rightarrow> 'a set option" where
+"while_saturate f = while_option (\<lambda>M. \<not> f M \<subseteq> M) (\<lambda>M. M \<union> f M)"
+
+lemma while_option_cong: "(\<And>s. b s \<Longrightarrow> c s = c' s) \<Longrightarrow> while_option b c s = while_option b c' s"
+using while_option_commute[of b b id c c']
+by (simp add: option.map_id)
+
+lemma while_saturate_code[code]: "while_saturate f M =
+  while_Some (\<lambda>M. let M' = f M in if M' \<subseteq> M then None else Some (M \<union> M')) M"
+unfolding while_saturate_def Let_def while_Some_def
+by (auto intro!: while_option_cong split: if_splits)
+
+text \<open>Termination:\<close>
+
+lemma while_option_sat_finite_subset_Some: fixes C :: "'a set"
+  assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C" and "M \<subseteq> C"
+  shows "\<exists>S. while_option (\<lambda>M. \<not> f M \<subseteq> M) (\<lambda>M. M \<union> f M) M = Some S"
+proof(rule measure_while_option_Some[where
+    f= "%A::'a set. card C - card A" and P= "%A. M \<subseteq> A \<and> A \<subseteq> C" and s= M])
+  fix A assume A: "M \<subseteq> A \<and> A \<subseteq> C" "\<not> f A \<subseteq> A"
+  show "(M \<subseteq> A \<union> f A \<and> A \<union> f A \<subseteq> C) \<and> card C - card (A \<union> f A) < card C - card A"
+    (is "?L \<and> ?R")
+  proof
+    show ?L by (metis assms(2) A(1) sup.coboundedI1 le_sup_iff)
+    show ?R using A assms(2,3) card_seteq finite_subset
+      by (metis diff_less_mono2 finite_Un linorder_not_le sup_ge1 sup_ge2)
+  qed
+next
+  show "M \<subseteq> M \<and> M \<subseteq> C" using \<open>M \<subseteq> C\<close> by blast
+qed
+
+corollary while_saturate_finite_subset_Some:
+  assumes "mono f" and "\<And>X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C" and "M \<subseteq> C"
+  shows "\<exists>S. while_saturate f M = Some S"
+unfolding while_saturate_def
+using while_option_sat_finite_subset_Some assms by blast 
+
+text \<open>Correctness: finds the least saturated/closed set above \<open>M\<close>\<close>
+
+lemma while_option_sat_prefix: assumes "mono f"
+and "while_option (\<lambda>M. \<not> f M \<subseteq> M) (\<lambda>M. M \<union> f M) M = Some S"
+and "M \<subseteq> P" and "f P \<subseteq> P"
+shows "S \<subseteq> P"
+proof -
+  have "((\<lambda>M. M \<union> f M) ^^ k) M \<subseteq> P" for k
+  proof (induction k)
+    case 0 thus ?case using \<open>M \<subseteq> P\<close> by simp
+  next
+    case (Suc k) thus ?case
+      by simp (meson  \<open>f P \<subseteq> P\<close> monoD[OF \<open>mono f\<close>] order.trans)
+  qed
+  thus ?thesis by (metis assms(2) while_option_stop2)
+qed
+
+corollary while_saturate_prefix:
+  "\<lbrakk> mono f; while_saturate f M = Some S; M \<subseteq> P; f P \<subseteq> P \<rbrakk> \<Longrightarrow> S \<subseteq> P"
+using while_option_sat_prefix unfolding while_saturate_def by blast
+
+
+subsection \<open>Reflexive, transitive closure\<close>
 
 text\<open>Computing the reflexive, transitive closure by iterating a successor
 function. Stops when an element is found that dos not satisfy the test.
