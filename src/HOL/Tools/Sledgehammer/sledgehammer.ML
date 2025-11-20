@@ -409,10 +409,22 @@ in
 fun schedule_of_provers (ctxt : Proof.context) (provers : string list) num_slices =
   let
     val default_schedule = default_slice_schedule ctxt
-    val (known_provers, unknown_provers) =
-      List.partition (member (op =) default_schedule) provers
+    val (tactics, known_provers, unknown_provers) =
+      let
+        fun partition_into name (tactics, known_provers, unknown_provers) =
+          if Option.isSome (Try0.get_proof_method name) then
+            (name :: tactics, known_provers, unknown_provers)
+          else if member (op =) default_schedule name then
+            (tactics, name :: known_provers, unknown_provers)
+          else
+            (tactics, known_provers, name :: unknown_provers)
+      in
+        fold partition_into provers ([], [], [])
+      end
 
-    val default_schedule = filter (member (op =) known_provers) default_schedule
+    val default_schedule =
+      filter (fn name => member (op =) tactics name orelse member (op =) known_provers name)
+        default_schedule
     val num_default_slices = length default_schedule
 
     fun round_robin _ [] = []
