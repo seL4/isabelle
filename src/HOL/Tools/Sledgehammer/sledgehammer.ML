@@ -396,7 +396,7 @@ fun default_slice_schedule (ctxt : Proof.context) : string list =
   (* We want to subsume try0. *)
   flat (Try0.get_schedule ctxt) @
   (* FUDGE (loosely inspired by "Hammering without ATPs" evaluation) *)
-  ["metis", "fastforce", "metis", "simp", "auto"] @
+  ["metis", "fastforce", "metis", "simp", "auto", "fastforce", "metis", "simp"] @
   (* FUDGE (loosely inspired by Seventeen evaluation) *)
   [cvc5N, zipperpositionN, vampireN, veritN, spassN, zipperpositionN, eN, cvc5N, zipperpositionN,
    cvc5N, eN, zipperpositionN, vampireN, cvc5N, cvc5N, vampireN, cvc5N, iproverN, zipperpositionN,
