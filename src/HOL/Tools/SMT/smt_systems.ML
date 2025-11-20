@@ -124,13 +124,13 @@ val cvc5: SMT_Solver.solver_config = {
   smt_options = [(":produce-unsat-cores", "true")],
   good_slices =
     (* FUDGE *)
-    [((2, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((2, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((2, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((2, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((2, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((2, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((2, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+    [((4, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
+     ((4, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
+     ((4, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
+     ((4, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
+     ((4, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
+     ((4, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
+     ((4, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
   parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
   replay = NONE }
