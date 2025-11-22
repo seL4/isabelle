@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.View
 object Query_Dockable {
   private abstract class Operation(view: View) {
     val pretty_text_area = new Pretty_Text_Area(view)
-    def query_operation: Query_Operation[View]
+    def query_operation: Query_Operation
     def query: JComponent
     def select(): Unit
     def page: TabbedPane.Page

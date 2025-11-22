@@ -31,9 +31,9 @@ object Query_Operation {
     exec_id: Document_ID.Exec = Document_ID.none)
 }
 
-class Query_Operation[Editor_Context](
-  editor: Editor[Editor_Context],
-  editor_context: Editor_Context,
+class Query_Operation(
+  editor: Editor,
+  editor_context: editor.Context,
   operation_name: String,
   consume_status: Query_Operation.Status => Unit,
   consume_output: Editor.Output => Unit

@@ -25,7 +25,10 @@ object Editor {
   }
 }
 
-abstract class Editor[Context] {
+abstract class Editor {
+  type Context
+
+
   /* PIDE session and document model */
 
   def session: Session

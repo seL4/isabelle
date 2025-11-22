@@ -17,7 +17,10 @@ import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 import org.gjt.sp.util.AwtRunnableQueue
 
 
-class JEdit_Editor extends Editor[View] {
+class JEdit_Editor extends Editor {
+  type Context = View
+
+
   /* PIDE session and document model */
 
   override def session: Session = PIDE.session

@@ -56,7 +56,10 @@ object Language_Server {
 
   /* abstract editor operations */
 
-  class Editor(server: Language_Server) extends isabelle.Editor[Unit] {
+  class Editor(server: Language_Server) extends isabelle.Editor {
+    type Context = Unit
+
+
     /* PIDE session and document model */
 
     override def session: VSCode_Session = server.session
