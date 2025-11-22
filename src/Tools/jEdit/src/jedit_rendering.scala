@@ -20,9 +20,6 @@ import org.gjt.sp.jedit.jEdit
 object JEdit_Rendering {
   /* make rendering */
 
-  def apply(snapshot: Document.Snapshot, model: Document_Model, options: Options): JEdit_Rendering =
-    new JEdit_Rendering(snapshot, model, options)
-
   def make(
     snapshot: Document.Snapshot,
     rich_texts: List[Rich_Text.Formatted] = Nil,
@@ -32,7 +29,7 @@ object JEdit_Rendering {
       if (rich_texts.isEmpty) snapshot
       else snapshot.snippet(rich_texts.map(_.command(results)), Document.Blobs.empty)
     val model = File_Model.init(PIDE.session)
-    apply(snapshot1, model, PIDE.options.value)
+    new JEdit_Rendering(snapshot1, model, PIDE.options.value)
   }
 
 

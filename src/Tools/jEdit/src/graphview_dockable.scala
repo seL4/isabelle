@@ -88,7 +88,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
             Pretty_Tooltip.invoke(() =>
               {
                 val model = File_Model.init(PIDE.session)
-                val rendering = JEdit_Rendering(snapshot, model, options)
+                val rendering = new JEdit_Rendering(snapshot, model, options)
                 val loc = new Point(x, y)
                 Pretty_Tooltip(view, parent, loc, rendering, Command.Results.empty, List(tip))
               })

@@ -56,7 +56,7 @@ object Document_View {
     val model = doc_view.model
     val snapshot = Document_Model.snapshot(model)
     val options = PIDE.options.value
-    JEdit_Rendering(snapshot, model, options)
+    new JEdit_Rendering(snapshot, model, options)
   }
 
   def get_rendering(text_area: TextArea): Option[JEdit_Rendering] = get(text_area).map(rendering)
