@@ -380,7 +380,6 @@ navigate-backwards.shortcut=AS+LEFT
 navigate-forwards.label=Navigate forwards
 navigate-forwards.shortcut=AS+RIGHT
 navigate-toolbar=navigate-backwards navigate-forwards
-navigator.showOnToolbar=true
 new-file-in-mode.shortcut=
 next-bracket.shortcut2=C+e C+9
 options.shortcuts.deletekeymap.label=Delete
