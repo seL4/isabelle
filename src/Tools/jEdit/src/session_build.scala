@@ -42,7 +42,7 @@ object Session_Build {
     text.caret.color = text.background
     text.preferredSize = {
       val metric = new Font_Metric(text.font)
-      new Dimension((metric.average_width * 80).toInt, (metric.height * 25).toInt)
+      new Dimension((metric.average_width * 100).toInt, (metric.height * 30).toInt)
     }
 
     private val inverse: AttributeSet = {
