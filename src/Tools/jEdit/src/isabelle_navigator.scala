@@ -17,9 +17,6 @@ object Isabelle_Navigator {
     val none: Pos = new Pos(Document_ID.none, "", 0)
     def make(name: String, offset: Int): Pos = new Pos(Document_ID.make(), name, offset)
 
-    def apply(buffer: Buffer): Pos =
-      if (buffer == null) Pos.none else make(JEdit_Lib.buffer_name(buffer), 0)
-
     def apply(edit_pane: EditPane): Pos =
       if (edit_pane == null) none
       else {
@@ -164,7 +161,6 @@ class Isabelle_Navigator {
     }
   }
 
-  def record(buffer: Buffer): Unit = record(Pos(buffer))
   def record(edit_pane: EditPane): Unit = record(Pos(edit_pane))
   def record(view: View): Unit = record(Pos(view))
 
