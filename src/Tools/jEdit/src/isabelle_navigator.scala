@@ -125,7 +125,7 @@ class Isabelle_Navigator {
 
   override def toString: String = {
     val size = _backward.size + _forward.size
-    "Isabelle_Navigator(" + (if (size == 0) "" else size.toString) + ")"
+    "Isabelle_Navigator(" + if_proper(size > 0, size.toString) + ")"
   }
 
   private def convert(name: String, edit: Text.Edit): Unit = GUI_Thread.require {
