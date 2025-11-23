@@ -116,14 +116,12 @@ object Isabelle_Navigator {
 }
 
 class Isabelle_Navigator {
-  import Isabelle_Navigator.{Pos, History}
-
   // owned by GUI thread
-  private var _backward = History.empty
-  private var _forward = History.empty
+  private var _backward = Isabelle_Navigator.History.empty
+  private var _forward = Isabelle_Navigator.History.empty
 
-  def current: Pos = _backward.top
-  def recurrent: Pos = _forward.top
+  def current: Isabelle_Navigator.Pos = _backward.top
+  def recurrent: Isabelle_Navigator.Pos = _forward.top
 
   override def toString: String = {
     val size = _backward.size + _forward.size
@@ -153,10 +151,10 @@ class Isabelle_Navigator {
     buffers.iterator.foreach(_.addBufferListener(buffer_listener))
   }
 
-  def record(pos: Pos): Unit = GUI_Thread.require {
+  def record(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
     if (pos.defined && !pos.equiv(current)) {
       _backward = _backward.push(pos)
-      _forward = History.empty
+      _forward = Isabelle_Navigator.History.empty
     }
   }
 
@@ -169,7 +167,7 @@ class Isabelle_Navigator {
 
   def backward(view: View): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
-      _forward = _forward.push(current).push(Pos(view))
+      _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view))
       _backward = _backward.pop
       goto_current(view)
     }
