@@ -212,11 +212,8 @@ class JEdit_Editor extends Editor {
     focus: Boolean = false
   ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit = {
-        import Isabelle_Navigator.Pos
-        PIDE.plugin.navigator.record(Pos(view))
+      def follow(view: View): Unit =
         goto_file(view, name, line = line, offset = offset, focus = focus)
-      }
       override def toString: String = "file " + quote(name)
     }
 
