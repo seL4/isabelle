@@ -125,9 +125,14 @@ class JEdit_Editor extends Editor {
 
     PIDE.plugin.navigator.record(view)
 
-    def buffer_offset(buffer: Buffer): Text.Offset =
-      ((if (line < 0) 0 else buffer.getLineStartOffset(line min buffer.getLineCount)) +
-        (if (offset < 0) 0 else offset)) min buffer.getLength
+    def buffer_offset(buffer: Buffer): Text.Offset = {
+      val n = buffer.getLength
+      val line_offset =
+        if (line < 0) 0
+        else if (line >= buffer.getLineCount) n
+        else buffer.getLineStartOffset(line)
+      (line_offset + offset.max(0)) min n
+    }
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
