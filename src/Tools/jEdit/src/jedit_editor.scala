@@ -118,12 +118,11 @@ class JEdit_Editor extends Editor {
     name: String,
     line: Int = -1,
     offset: Text.Offset = -1,
-    focus: Boolean = false,
-    bypass_navigator: Boolean = false
+    focus: Boolean = false
   ): Unit = {
     GUI_Thread.require {}
 
-    if (!bypass_navigator) PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
+    PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
 
     def buffer_target(buffer: Buffer): Option[Text.Offset] =
       if (buffer != null && (line >= 0 || offset >= 0)) {
