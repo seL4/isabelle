@@ -240,8 +240,8 @@ INCOMPATIBILITY.
 set_finite which is added as a simp rule.
 
 * SMT:
-  - Added Vampire as an experimental SMT solver (vampire_smt_dt has
-    native support for datatypes and vampire_smt_nodt does not).
+  - Added Vampire as an experimental SMT solver ("vampire_smt_dt" has
+    native support for datatypes and "vampire_smt_nodt" does not).
   - Added SMT solver "dummy_smtlib" which immediately fails; this is
     useful when generating SMT-LIB files with Mirabelle.
   - Added a record parameter to function SMT_Solver.add_solver that
@@ -268,6 +268,9 @@ set_finite which is added as a simp rule.
 
 * Sledgehammer:
   - Don't suggest proofs by "smt (z3)" anymore.
+  - Added proof methods to default schedule; it now subsumes the "try0"
+    command. Minor INCOMPATIBILITY.
+  - Tuned the default schedule. Minor INCOMPATIBILITY.
 
 * Theory "HOL.Fun":
   - Added lemmas.
