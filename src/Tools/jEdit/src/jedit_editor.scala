@@ -137,9 +137,11 @@ class JEdit_Editor extends Editor {
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        val target = buffer_offset(buffer)
-        view.getTextArea.setCaretPosition(target)
-        at_target(buffer, target)
+        if (line >= 0 || offset >= 0) {
+          val target = buffer_offset(buffer)
+          view.getTextArea.setCaretPosition(target)
+          at_target(buffer, target)
+        }
 
       case None =>
         val is_dir =
