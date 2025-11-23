@@ -123,6 +123,8 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
+    if (!bypass_navigator) PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
+
     def buffer_target(buffer: Buffer): Option[Text.Offset] =
       if (buffer != null && (line >= 0 || offset >= 0)) {
         val n = buffer.getLength
@@ -134,21 +136,10 @@ class JEdit_Editor extends Editor {
       }
       else None
 
-    def record(pos: Isabelle_Navigator.Pos): Unit =
-      if (!bypass_navigator) PIDE.plugin.navigator.record(pos)
-
-    def record_buffer(buffer: Buffer, target: Text.Offset): Unit =
-      record(Isabelle_Navigator.Pos.make(JEdit_Lib.buffer_name(buffer), target))
-
-    record(Isabelle_Navigator.Pos(view))
-
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        for (target <- buffer_target(buffer)) {
-          view.getTextArea.setCaretPosition(target)
-          record_buffer(buffer, target)
-        }
+        for (target <- buffer_target(buffer)) view.getTextArea.setCaretPosition(target)
 
       case None =>
         val is_dir =
@@ -175,7 +166,6 @@ class JEdit_Editor extends Editor {
                   buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
                   buffer.unsetProperty(Buffer.SCROLL_VERT)
                 }
-                record_buffer(buffer, target)
               }
             })
           }
