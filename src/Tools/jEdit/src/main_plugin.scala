@@ -373,7 +373,9 @@ class Main_Plugin extends EBPlugin {
             if (what == EditPaneUpdate.DESTROYED) Completion_Popup.Text_Area.exit(text_area)
           }
 
-          if (msg.isInstanceOf[PositionChanging]) navigator.record(edit_pane)
+          if (msg.isInstanceOf[PositionChanging]) {
+            navigator.record(Isabelle_Navigator.Pos(edit_pane))
+          }
 
         case _: PropertiesChanged =>
           for {

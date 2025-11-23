@@ -160,9 +160,6 @@ class Isabelle_Navigator {
     }
   }
 
-  def record(edit_pane: EditPane): Unit = record(Pos(edit_pane))
-  def record(view: View): Unit = record(Pos(view))
-
   def goto_current(view: View): Unit = GUI_Thread.require {
     if (current.defined) {
       PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true,
