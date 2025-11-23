@@ -125,20 +125,21 @@ class JEdit_Editor extends Editor {
 
     PIDE.plugin.navigator.record(view)
 
-    def buffer_offset(buffer: Buffer): Text.Offset = {
-      val n = buffer.getLength
-      val line_offset =
-        if (line < 0) 0
-        else if (line >= buffer.getLineCount) n
-        else buffer.getLineStartOffset(line)
-      (line_offset + offset.max(0)) min n
-    }
+    def buffer_target(buffer: Buffer): Option[Text.Offset] =
+      if (buffer != null && (line >= 0 || offset >= 0)) {
+        val n = buffer.getLength
+        val line_offset =
+          if (line < 0) 0
+          else if (line >= buffer.getLineCount) n
+          else buffer.getLineStartOffset(line)
+        Some((line_offset + offset.max(0)) min n)
+      }
+      else None
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        if (line >= 0 || offset >= 0) {
-          val target = buffer_offset(buffer)
+        for (target <- buffer_target(buffer)) {
           view.getTextArea.setCaretPosition(target)
           at_target(buffer, target)
         }
@@ -155,19 +156,20 @@ class JEdit_Editor extends Editor {
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
           val buffer = jEdit.openFile(view, name)
-          if (buffer != null && (line >= 0 || offset >= 0)) {
+          if (buffer_target(buffer).isDefined) {
             AwtRunnableQueue.INSTANCE.runAfterIoTasks({ () =>
-              val target = buffer_offset(buffer)
-              if (view.getBuffer == buffer) {
-                view.getTextArea.setCaretPosition(target)
-                buffer.setIntegerProperty(Buffer.CARET, target)
-                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                at_target(buffer, target)
-              }
-              else {
-                buffer.setIntegerProperty(Buffer.CARET, target)
-                buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                buffer.unsetProperty(Buffer.SCROLL_VERT)
+              for (target <- buffer_target(buffer)) {
+                if (view.getBuffer == buffer) {
+                  view.getTextArea.setCaretPosition(target)
+                  buffer.setIntegerProperty(Buffer.CARET, target)
+                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                  at_target(buffer, target)
+                }
+                else {
+                  buffer.setIntegerProperty(Buffer.CARET, target)
+                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+                  buffer.unsetProperty(Buffer.SCROLL_VERT)
+                }
               }
             })
           }
