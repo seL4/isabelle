@@ -119,7 +119,6 @@ class Isabelle_Navigator {
   import Isabelle_Navigator.{Pos, History}
 
   // owned by GUI thread
-  private var _bypass = false
   private var _backward = History.empty
   private var _forward = History.empty
 
@@ -155,7 +154,7 @@ class Isabelle_Navigator {
   }
 
   def record(pos: Pos): Unit = GUI_Thread.require {
-    if (!_bypass && pos.defined && !pos.equiv(current)) {
+    if (pos.defined && !pos.equiv(current)) {
       _backward = _backward.push(pos)
       _forward = History.empty
     }
@@ -166,12 +165,8 @@ class Isabelle_Navigator {
 
   def goto_current(view: View): Unit = GUI_Thread.require {
     if (current.defined) {
-      val b = _bypass
-      try {
-        _bypass = true
-        PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true)
-      }
-      finally { _bypass = b }
+      PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true,
+        bypass_navigator = true)
     }
   }
 
