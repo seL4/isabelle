@@ -118,7 +118,7 @@ let
 in
   (begin :: lines @ proof)
   |> String.concat
-  (* |> Active.sendback_markup_properties [Markup.padding_fun] *)
+  |> Active.sendback_markup_properties [Markup.padding_command]
   |> Pretty.str
   |> Pretty.writeln
 end
