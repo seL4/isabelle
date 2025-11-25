@@ -5,7 +5,7 @@ section \<open>2-3 Tree from List\<close>
 theory Tree23_of_List
 imports
   Tree23
-  Define_Time_Function
+  "HOL-Library.Time_Commands"
 begin
 
 text \<open>Linear-time bottom up conversion of a list of items into a complete 2-3 tree

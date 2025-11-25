@@ -5,7 +5,7 @@ section \<open>Queue Implementation via 2 Lists\<close>
 theory Queue_2Lists
 imports
   Queue_Spec
-  Time_Funs
+  "HOL-Library.Time_Functions"
 begin
 
 text \<open>Definitions:\<close>

@@ -6,7 +6,7 @@ theory Sorting
   imports
     Complex_Main
     "HOL-Library.Multiset"
-    Define_Time_Function
+    "HOL-Library.Time_Commands"
 begin
 
 hide_const List.insort

@@ -4,7 +4,7 @@
 *)
 section \<open>The Median-of-Medians Selection Algorithm\<close>
 theory Selection
-  imports Complex_Main Time_Funs Sorting
+  imports Complex_Main "HOL-Library.Time_Functions" Sorting
 begin
 
 text \<open>

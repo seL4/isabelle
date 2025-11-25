@@ -89,6 +89,7 @@ imports
   Sorting_Algorithms
   Sublist
   Sum_of_Squares
+  Time_Functions
   Transitive_Closure_Table
   Tree_Multiset
   Tree_Real

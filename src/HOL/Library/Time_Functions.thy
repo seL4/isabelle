@@ -5,8 +5,8 @@
 
 section \<open>Time functions for various standard library operations. Also defines \<open>itrev\<close>.\<close>
 
-theory Time_Funs
-  imports Define_Time_Function
+theory Time_Functions
+  imports Time_Commands
 begin
 
 time_fun fst

@@ -9,7 +9,7 @@ imports
   "HOL-Library.Pattern_Aliases"
   Complex_Main
   Priority_Queue_Specs
-  Time_Funs
+  "HOL-Library.Time_Functions"
 begin
 
 text \<open>

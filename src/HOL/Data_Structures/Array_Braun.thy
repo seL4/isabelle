@@ -4,7 +4,7 @@ section "Arrays via Braun Trees"
 
 theory Array_Braun
 imports
-  Time_Funs
+  "HOL-Library.Time_Functions"
   Array_Specs
   Braun_Tree
 begin

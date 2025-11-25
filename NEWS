@@ -149,6 +149,10 @@ names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* New infrastructure for generating running time functions
+for HOL functions in HOL-Library.
+Accompanying manual in theory HOL-Library.Time_Manual
+
 * New code declaration attributes 'code abort' and 'code drop'
 correspond to 'code abort: c' and 'code drop: c' respectively but derive
 the affected constant from the corresponding theorem.

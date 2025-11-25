@@ -8,7 +8,7 @@ imports
   Tree2
   Priority_Queue_Specs
   Complex_Main
-  Define_Time_Function
+  "HOL-Library.Time_Commands"
 begin
 
 fun mset_tree :: "('a*'b) tree \<Rightarrow> 'a multiset" where
