@@ -86,6 +86,8 @@ session "HOL-Library" (main timing) in Library = HOL +
     DAList_Multiset
     RBT_Mapping
     RBT_Set
+    (* manual *)
+    Time_Manual
     (*printing modifications*)
     OptionalSugar
     Suc_Notation
@@ -324,6 +326,7 @@ session "HOL-Data_Structures" (timing) in Data_Structures = HOL +
     Leftist_Heap_List
     Binomial_Heap
     Selection
+    Time_Locale_Example
   document_files "root.tex" "root.bib"
 
 session "HOL-Import" in Import = HOL +
