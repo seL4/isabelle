@@ -1,0 +1,16 @@
+diff -ru mercurial-6.1.4/mercurial/hgweb/hgweb_mod.py mercurial-6.1.4-patched/mercurial/hgweb/hgweb_mod.py
+--- mercurial-6.1.4/mercurial/hgweb/hgweb_mod.py	2022-06-16 15:09:43.000000000 +0200
++++ mercurial-6.1.4-patched/mercurial/hgweb/hgweb_mod.py	2025-11-26 19:40:54.320858407 +0100
+@@ -371,6 +371,12 @@
+         )
+         if handled:
+             return res.sendresponse()
++        else:
++            rctx.tmpl = rctx.templater(req)
++            res.status = b'500 Internal Server Error'
++            res.headers[b'Content-Type'] = rctx.tmpl.render(b'mimetype', {b'encoding': encoding.encoding})
++            return rctx.sendtemplate(b'error', error=b'Usage: hg clone URL DIR')
++
+ 
+         # Old implementations of hgweb supported dispatching the request via
+         # the initial query string parameter instead of using PATH_INFO.
