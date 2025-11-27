@@ -21,6 +21,8 @@ sig
      funcs: func_decl list, logic: string, sorts: string list} ->
     (SMT_Util.role * SMT_Translate.sterm) list -> string
 
+  val serialize_datatypes: BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T
+
   val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
   val assert_name_of_role_and_index: SMT_Util.role -> int -> string
   val role_and_index_of_assert_name: string -> SMT_Util.role * int
@@ -193,6 +195,22 @@ fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) s
     |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else "(get-proof)\n")
     |> Buffer.content
   end
+
+local
+
+fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
+fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
+fun sdatatype (_, ctrs) = enclose "(" ")" (implode_space (map sctr ctrs))
+fun sarity (name, _) = enclose "(" ")" (name ^ " 0")
+
+in
+
+fun serialize_datatypes ((fp, dtyps : dtype_decls)) =
+  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes (" ^
+    implode_space (map sarity dtyps) ^ ") (") "))\n"
+  (space_implode"\n  " (map sdatatype dtyps)))
+
+end
 
 (* interface *)
 
