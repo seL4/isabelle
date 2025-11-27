@@ -218,7 +218,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
     VSCode_Rendering.color_decorations("foreground_", Rendering.Color.foreground_colors,
       foreground(model.content.text_range)) :::
     VSCode_Rendering.color_decorations("text_", Rendering.Color.text_colors,
-      snapshot.command_ranges(Text.Range.full).flatMap(text_color)) :::
+      snapshot.command_spans().flatMap(info => text_color(info.range))) :::
     VSCode_Rendering.color_decorations("text_overview_", Rendering.Color.text_overview_colors,
       text_overview_color) :::
     VSCode_Rendering.color_decorations("dotted_", VSCode_Rendering.dotted_colors,
