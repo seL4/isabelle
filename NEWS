@@ -254,6 +254,8 @@ set_finite which is added as a simp rule.
     Minor INCOMPATIBILITY.
   - Splitted option "smt_debug_files" into "smt_problem_dest_dir" and
     "smt_proof_dest_dir". Minor INCOMPATIBILITY.
+  - Added option "cvc5_integer_induction" and
+    "cvc5_structural_induction".
 
 * try0:
   - Proof methods can now be dynamically added with the function
