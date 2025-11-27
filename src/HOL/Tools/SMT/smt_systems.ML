@@ -84,7 +84,8 @@ local
       NONE => []
     | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)]) @
     (if Config.get ctxt cvc5_integer_induction then ["--int-wf-ind"] else []) @
-    (if Config.get ctxt cvc5_structural_induction then ["--dt-stc-ind"] else [])
+    (if Config.get ctxt cvc5_structural_induction then ["--dt-stc-ind"] else []) @
+    (if Config.get ctxt cvc_extensions then ["--force-logic=ALL"] else [])
 
   fun select_class ctxt =
     if Config.get ctxt cvc_extensions then
