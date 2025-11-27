@@ -277,11 +277,11 @@ class Main_Plugin extends EBPlugin {
   }
 
   private def init_title(view: View): Unit = {
-    val marker = "\u200B"
-    val old_title = view.getViewConfig.title
-    if (old_title == null || old_title.startsWith(marker)) {
-      view.setUserTitle(marker + PIDE.title)
-    }
+    val l4v_arch = proper_string(Isabelle_System.getenv("L4V_ARCH")).getOrElse("")
+    val title =
+      (if (!l4v_arch.isEmpty) { l4v_arch + " - " } else "") +
+      PIDE.title
+    view.setUserTitle(title)
   }
 
   override def handleMessage(message: EBMessage): Unit = {
