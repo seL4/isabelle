@@ -266,7 +266,9 @@ class Main_Plugin extends EBPlugin {
   }
 
   private def init_title(view: View): Unit = {
+    val l4v_arch = proper_string(Isabelle_System.getenv("L4V_ARCH")).getOrElse("")
     val title =
+      (if (!l4v_arch.isEmpty) { l4v_arch + " - " } else "") +
       proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
         "/" + PIDE.resources.session_base.session_name
     val marker = "\u200B"
