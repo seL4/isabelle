@@ -1160,7 +1160,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/util/SyntaxUtilities.java jedit5.7.0-patche
  }
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-08-22 13:25:05.602419198 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPane.java	2025-11-28 19:22:09.823220894 +0100
 @@ -43,6 +43,7 @@
  import org.gjt.sp.jedit.msg.BufferChanging;
  import org.gjt.sp.jedit.msg.BufferUpdate;
@@ -1169,7 +1169,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
  import org.gjt.sp.jedit.msg.PropertiesChanged;
  import org.gjt.sp.jedit.options.GeneralOptionPane;
  import org.gjt.sp.jedit.options.GutterOptionPane;
-@@ -50,6 +51,7 @@
+@@ -50,11 +51,13 @@
  import org.gjt.sp.jedit.textarea.AntiAlias;
  import org.gjt.sp.jedit.textarea.Gutter;
  import org.gjt.sp.jedit.textarea.JEditTextArea;
@@ -1177,7 +1177,13 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
  import org.gjt.sp.jedit.textarea.MouseHandler;
  import org.gjt.sp.jedit.textarea.Selection;
  import org.gjt.sp.jedit.textarea.StatusListener;
-@@ -380,9 +382,11 @@
+ import org.gjt.sp.jedit.textarea.TextArea;
+ import org.gjt.sp.jedit.textarea.TextAreaExtension;
++import org.gjt.sp.jedit.textarea.TextAreaMouseHandler;
+ import org.gjt.sp.jedit.textarea.TextAreaPainter;
+ import org.gjt.sp.jedit.textarea.TextAreaTransferHandler;
+ import org.gjt.sp.util.SyntaxUtilities;
+@@ -380,9 +383,11 @@
  		buffer.unsetProperty(Buffer.CARET_POSITIONED);
  
  
@@ -1190,7 +1196,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
  
  		// set any selections
  		Selection[] selection = caretInfo.selection;
-@@ -756,7 +760,7 @@
+@@ -756,7 +761,7 @@
  	//{{{ Package-private members
  
  	//{{{ EditPane constructor
@@ -1199,7 +1205,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
  	{
  		super(new BorderLayout());
  		BufferSet.Scope scope = jEdit.getBufferSetManager().getScope();
-@@ -795,7 +799,10 @@
+@@ -795,10 +800,17 @@
  		this.view = view;
  
  
@@ -1210,8 +1216,16 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
 +			textAreaFactory == null ? new JEditTextArea(view) : textAreaFactory.create(view);
  		bufferSet.addBufferSetListener(this);
  		textArea.getPainter().setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")));
- 		textArea.setMouseHandler(new MouseHandler(textArea));
-@@ -1029,7 +1036,7 @@
+-		textArea.setMouseHandler(new MouseHandler(textArea));
++		EditPaneMouseHandlerFactory mouseHandlerFactory =
++			ServiceManager.getService(EditPaneMouseHandlerFactory.class, "mouse-handler-factory");
++        TextAreaMouseHandler mouseHandler =
++        	mouseHandlerFactory == null ? new MouseHandler(textArea) : mouseHandlerFactory.create(this);
++		textArea.setMouseHandler(mouseHandler);
+ 		textArea.setTransferHandler(new TextAreaTransferHandler());
+ 		markerHighlight = new MarkerHighlight();
+ 		Gutter gutter = textArea.getGutter();
+@@ -1029,7 +1041,7 @@
  		for(int i = 0; i <= 3; i++)
  		{
  			foldLineStyle[i] = SyntaxUtilities.parseStyle(
@@ -1220,6 +1234,81 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPane.java jedit5.7.0-patched/jEd
  				defaultFont,defaultFontSize, true);
  		}
  		painter.setFoldLineStyle(foldLineStyle);
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPaneMouseHandlerFactory.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPaneMouseHandlerFactory.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/EditPaneMouseHandlerFactory.java	1970-01-01 01:00:00.000000000 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/EditPaneMouseHandlerFactory.java	2025-11-28 19:16:11.269418129 +0100
+@@ -0,0 +1,14 @@
++package org.gjt.sp.jedit;
++
++import org.gjt.sp.jedit.textarea.JEditTextArea;
++import org.gjt.sp.jedit.textarea.TextAreaMouseHandler;
++import org.gjt.sp.jedit.textarea.MouseHandler;
++
++
++public class EditPaneMouseHandlerFactory
++{
++    public TextAreaMouseHandler create(EditPane editPane)
++    {
++        return new MouseHandler(editPane.getTextArea());
++    }
++}
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaMouseHandler.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaMouseHandler.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextAreaMouseHandler.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextAreaMouseHandler.java	2025-11-28 19:37:46.852139435 +0100
+@@ -45,7 +45,7 @@
+ public class TextAreaMouseHandler extends MouseInputAdapter
+ {
+ 	//{{{ MouseHandler constructor
+-	TextAreaMouseHandler(TextArea textArea)
++	protected TextAreaMouseHandler(TextArea textArea)
+ 	{
+ 		this.textArea = textArea;
+ 	} //}}}
+@@ -341,7 +341,7 @@
+ 	} //}}}
+ 
+ 	//{{{ doSingleDrag() method
+-	private void doSingleDrag(MouseEvent evt)
++	protected void doSingleDrag(MouseEvent evt)
+ 	{
+ 		dragged = true;
+ 
+@@ -413,7 +413,7 @@
+ 	} //}}}
+ 
+ 	//{{{ doDoubleDrag() method
+-	private void doDoubleDrag(MouseEvent evt)
++	protected void doDoubleDrag(MouseEvent evt)
+ 	{
+ 		int markLineStart = textArea.getLineStartOffset(dragStartLine);
+ 		int markLineLength = textArea.getLineLength(dragStartLine);
+@@ -480,7 +480,7 @@
+ 	} //}}}
+ 
+ 	//{{{ doTripleDrag() method
+-	private void doTripleDrag(MouseEvent evt)
++	protected void doTripleDrag(MouseEvent evt)
+ 	{
+ 		TextAreaPainter painter = textArea.getPainter();
+ 
+@@ -683,7 +683,7 @@
+ 	 * Dynamically get the "pivot" point associated with a current
+ 	 * selection.  See inline comments for details.
+ 	 */
+-	private int getSelectionPivotCaret()
++	protected int getSelectionPivotCaret()
+ 	{
+ 		int caret = textArea.caret;
+ 
+@@ -713,7 +713,7 @@
+ 	/*
+ 	 * See getSelectionPivotCaret for an explanation of this function
+ 	 */
+-	private int getSelectionPivotLine()
++	protected int getSelectionPivotLine()
+ 	{
+ 		int c  = textArea.caret;
+ 		int cl = textArea.caretLine;
 diff -ru /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java
 --- /home/makarius/.isabelle/contrib/jedit-20250424/jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java	2024-08-03 19:53:18.000000000 +0200
 +++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/NumericTextField.java	2025-05-14 15:46:44.805742407 +0200
