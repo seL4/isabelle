@@ -23,7 +23,7 @@ sig
   val metis_method : (string list option * string option) * thm list -> Proof.context -> thm list ->
     tactic
   val metis_infer_thm_insts : (string list option * string option) * thm list -> Proof.context ->
-    thm list -> int -> thm -> (thm * inst) list option
+    thm list -> int -> thm -> ((thm * inst) list * (thm * inst) list) option
   val metis_lam_transs : string list
   val parse_metis_options : (string list option * string option) parser
 end
@@ -139,13 +139,14 @@ fun kbo_advisory_simp_ordering ord_info =
 exception METIS_UNPROVABLE of unit
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 ths0 =
+fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 using_th_cls_pairs
+    schem_usings arg_thms =
   let
     val thy = Proof_Context.theory_of ctxt
 
     val new_skolem = Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
     val do_lams = lam_trans = liftingN ? introduce_lam_wrappers ctxt
-    val th_cls_pairs =
+    val arg_th_cls_pairs =
       map_index (fn (j, th) =>
         (th,
           th
@@ -153,9 +154,9 @@ fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 t
           |> Meson_Clausify.cnf_axiom Meson.simp_options_all_true ctxt
                {new_skolem = new_skolem, combs = (lam_trans = combsN), refl = clausify_refl} j
           ||> map do_lams))
-        ths0
-    val ths = maps (snd o snd) th_cls_pairs
-    val dischargers = map (fst o snd) th_cls_pairs
+        (schem_usings @ arg_thms)
+    val ths = maps (snd o snd) arg_th_cls_pairs
+    val dischargers = map (fst o snd) arg_th_cls_pairs
     val cls = cls0 |> map (Drule.eta_contraction_rule #> do_lams)
     val _ = trace_msg ctxt (K "FOL_SOLVE: CONJECTURE CLAUSES")
     val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) cls
@@ -187,7 +188,8 @@ fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 t
     fun fall_back () =
       (verbose_warning ctxt
         ("Falling back on " ^ quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
-       FOL_SOLVE infer_params th_name fallback_type_encs lam_trans clausify_refl ctxt cls0 ths0)
+       FOL_SOLVE infer_params th_name fallback_type_encs lam_trans clausify_refl ctxt cls0
+         using_th_cls_pairs schem_usings arg_thms)
   in
     (case filter (fn t => Thm.prop_of t aconv \<^prop>\<open>False\<close>) cls of
       false_th :: _ => [false_th RS @{thm FalseE}]
@@ -205,24 +207,23 @@ fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 t
             val _ = trace_msg ctxt (K "METIS COMPLETED; clauses actually used:")
             val _ = List.app (fn th => trace_msg ctxt (fn () => Thm.string_of_thm ctxt th)) used
 
-            val (used_ths, unused_ths) =
-              List.partition (have_common_thm ctxt used o #2 o #2) th_cls_pairs
-              |> apply2 (map #1)
+            val unused_ths = arg_th_cls_pairs
+              |> filter_out (have_common_thm ctxt used o #2 o #2)
+              |> map #1
             val _ =
-              if exists is_some (map th_name used_ths) then
-                infer_params := SOME ({
-                  infer_ctxt = ctxt',
-                  type_enc = type_enc_str,
-                  lam_trans = lam_trans,
-                  th_name = th_name,
-                  new_skolem = new_skolem,
-                  th_cls_pairs = map (apsnd snd) th_cls_pairs,
-                  lifted = fst concealed,
-                  sym_tab = sym_tab,
-                  axioms = axioms,
-                  mth = mth
-                })
-              else ();
+              infer_params := SOME {
+                infer_ctxt = ctxt',
+                type_enc = type_enc_str,
+                lam_trans = lam_trans,
+                th_name = th_name,
+                new_skolem = new_skolem,
+                using_th_cls_pairs = using_th_cls_pairs, 
+                arg_th_cls_pairs = map (apsnd snd) arg_th_cls_pairs,
+                lifted = fst concealed,
+                sym_tab = sym_tab,
+                axioms = axioms,
+                mth = mth
+              }
             val _ =
               if not (null unused_ths) then
                 verbose_warning ctxt ("Unused theorems: " ^
@@ -230,11 +231,11 @@ fun FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt cls0 t
                     th_name th
                     |> the_default (Proof_Context.print_thm_name ctxt
                       (Thm.get_name_hint th)))))
-              else ();
+              else ()
             val _ =
               if not (null cls) andalso not (have_common_thm ctxt used cls) then
                 verbose_warning ctxt "The assumptions are inconsistent"
-              else ();
+              else ()
           in
             (case result of
               (_, ith) :: _ =>
@@ -266,18 +267,43 @@ fun preskolem_tac ctxt st0 =
    else
      all_tac) st0
 
-fun metis_tac_infer_params th_name type_encs0 lam_trans clausify_refl ctxt ths i =
+fun metis_tac_infer_params th_name type_encs0 lam_trans clausify_refl ctxt nonschem_usings
+    schem_usings arg_thms i =
   let
     val infer_params = Unsynchronized.ref NONE
     val type_encs = if null type_encs0 then partial_type_encs else type_encs0
     val _ = trace_msg ctxt (fn () =>
-      "Metis called with theorems\n" ^ cat_lines (map (Thm.string_of_thm ctxt) ths))
+      "Metis called with theorems\n" ^ cat_lines (map (Thm.string_of_thm ctxt) arg_thms))
     val type_encs = type_encs |> maps unalias_type_enc
     val combs = (lam_trans = combsN)
-    fun tac clause = resolve_tac ctxt
-      (FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt clause ths) 1
+
+    (* This reference stores the theorem-clause pairs for the "using" premises (but not the negated
+       conjecture). The preskolemized clauses are generated by "Meson.MESON" and then passed back to
+       us for clausification, where we store them in the reference. The reference is then used by
+       "tac", which invokes Metis. *)
+    val using_th_cls_pairs = Unsynchronized.ref []
+
+    fun tac clauses =
+      resolve_tac ctxt
+        (FOL_SOLVE infer_params th_name type_encs lam_trans clausify_refl ctxt clauses
+           (!using_th_cls_pairs) schem_usings arg_thms) 1
   in
-    Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt combs)) tac ctxt i
+    Meson.MESON (preskolem_tac ctxt)
+      (fn [] => []
+        | prems_and_neg_conj =>
+          let
+            val (prems, neg_conj) = split_last prems_and_neg_conj
+            val (actual_prems, using_prems) = chop (length prems - length nonschem_usings) prems
+          in
+            maps (neg_clausify ctxt combs) actual_prems @
+            List.concat (map2 (fn orig_th => fn prem =>
+              let val clss = neg_clausify ctxt combs prem in
+                using_th_cls_pairs := (orig_th, clss) :: !using_th_cls_pairs;
+                clss
+              end) nonschem_usings using_prems) @
+            neg_clausify ctxt combs neg_conj
+          end)
+      tac ctxt i
     #> Seq.map (fn st => (!infer_params, st))
   end
 
@@ -289,7 +315,7 @@ fun th_name_hint ths =
   Option.filter (member Thm.eq_thm ths)
   #> Option.map (Thm_Name.print o Thm.get_name_hint)
 (* Use multi_thm with input string to get theorem name (only if part of multi_ths) *)
-fun th_name_multi_thm multi_ths th =
+fun th_name_multi_thm ctxt multi_ths th =
   let
     fun index_of_th ths = find_index (curry Thm.eq_thm th) ths + 1
     fun make_name ([_], name) = name
@@ -297,18 +323,19 @@ fun th_name_multi_thm multi_ths th =
        * but provides much more information than "??.unknown" name hint *)
       | make_name (ths, name) = name ^ "(" ^ string_of_int (index_of_th ths) ^ ")"
   in
-    List.find (fn (ths, _) => member Thm.eq_thm ths th) multi_ths
-    |> Option.map make_name
+    (case List.find (fn (ths, _) => member Thm.eq_thm ths th) multi_ths of
+      SOME ths_name => SOME (make_name ths_name)
+    | NONE => SOME (Global_Theory.print_thm_name ctxt (Thm.get_name_hint th)))
   end
 
-(* Metis tactic to prove a subgoal and optionally suggest of-instantiations *)
-fun metis_tac' th_name type_encs lam_trans ctxt ths i =
+(* Metis tactic to prove a subgoal and optionally instantiations *)
+fun metis_tac' th_name type_encs lam_trans ctxt nonschem_usings schem_usings arg_thms i =
   let
     val instantiate = Config.get ctxt instantiate
     val instantiate_tac =
       if instantiate then
         (fn (NONE, st) => st
-          | (SOME infer_params, st) => tap (instantiate_call ctxt infer_params) st)
+          | (SOME infer_params, st) => tap (instantiate_call ctxt infer_params schem_usings) st)
       else
         snd
   in
@@ -316,12 +343,14 @@ fun metis_tac' th_name type_encs lam_trans ctxt ths i =
      * which is bad for inferring variable instantiations.  Metis doesn't need
      * it, so we set it to "false" when we want to infer variable instantiations.
      * We don't do it always because we don't want to break existing proofs. *)
-    metis_tac_infer_params th_name type_encs lam_trans (not instantiate) ctxt ths i
+    metis_tac_infer_params th_name type_encs lam_trans (not instantiate) ctxt nonschem_usings
+      schem_usings arg_thms i
     #> Seq.map instantiate_tac
   end
 
-(* Metis tactic without theorem name, therefore won't suggest of-instantiations *)
-val metis_tac = metis_tac' no_th_name
+(* Metis tactic without theorem name, therefore won't suggest instantiations *)
+fun metis_tac type_encs lam_trans ctxt arg_thms =
+  metis_tac' no_th_name type_encs lam_trans ctxt [] [] arg_thms
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as "by (metis X)" to
    prevent "Subgoal.FOCUS" from freezing the type variables. We don't do it for nonschematic facts
@@ -329,22 +358,20 @@ val metis_tac = metis_tac' no_th_name
    extensionality not being applied) and brings few benefits. *)
 val has_tvar = exists_type (exists_subtype (fn TVar _ => true | _ => false)) o Thm.prop_of
 
-(* Metis method to prove the goal and optionally suggest of-instantiations *)
+(* Metis method to prove the goal and optionally instantiations *)
 fun metis_method' th_name ((override_type_encs, lam_trans), ths) ctxt facts =
-  let
-    val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-  in
+  let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in
     HEADGOAL (Method.insert_tac ctxt nonschem_facts THEN'
       CHANGED_PROP o metis_tac' th_name (these override_type_encs)
-        (the_default default_metis_lam_trans lam_trans) ctxt (schem_facts @ ths))
+        (the_default default_metis_lam_trans lam_trans) ctxt nonschem_facts schem_facts ths)
   end
 
-(* Metis method without theorem name, therefore won't suggest of-instantiations *)
+(* Metis method without theorem name, therefore won't suggest instantiations *)
 val metis_method = metis_method' no_th_name
 
 (* Metis method with input strings for better theorem names in of-instantiations *)
-fun metis_method_multi_thms (opts, multi_ths) =
-  metis_method' (th_name_multi_thm multi_ths) (opts, maps fst multi_ths)
+fun metis_method_multi_thms (opts, multi_ths) ctxt =
+  metis_method' (th_name_multi_thm ctxt multi_ths) (opts, maps fst multi_ths) ctxt
 
 (* Use Metis to infer variable instantiations of theorems *)
 fun metis_infer_thm_insts ((override_type_encs, lam_trans), ths) ctxt facts i =
@@ -353,7 +380,7 @@ fun metis_infer_thm_insts ((override_type_encs, lam_trans), ths) ctxt facts i =
     val insert_tac = Method.insert_tac ctxt nonschem_facts i
     val metis_tac =
       metis_tac_infer_params (th_name_hint ths) (these override_type_encs)
-        (the_default default_metis_lam_trans lam_trans) false ctxt (schem_facts @ ths) i
+        (the_default default_metis_lam_trans lam_trans) false ctxt nonschem_facts schem_facts ths i
   in
     Seq.THEN (insert_tac, metis_tac)
     #> Seq.map (Option.mapPartial (infer_thm_insts ctxt) o fst)
