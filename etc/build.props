@@ -318,6 +318,7 @@ sources = \
   src/Tools/jEdit/src/jedit_jar.scala \
   src/Tools/jEdit/src/jedit_lib.scala \
   src/Tools/jEdit/src/jedit_main.scala \
+  src/Tools/jEdit/src/jedit_mouse_handler.scala \
   src/Tools/jEdit/src/jedit_options.scala \
   src/Tools/jEdit/src/jedit_plugins.scala \
   src/Tools/jEdit/src/jedit_rendering.scala \

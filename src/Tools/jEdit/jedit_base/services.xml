@@ -11,6 +11,9 @@
   <SERVICE CLASS="org.gjt.sp.jedit.EditPaneFactory" NAME="editpane-factory">
     new isabelle.jedit.JEdit_Accessible$EditPane_Factory();
   </SERVICE>
+  <SERVICE CLASS="org.gjt.sp.jedit.EditPaneMouseHandlerFactory" NAME="mouse-handler-factory">
+    new isabelle.jedit.JEdit_Mouse_Handler$Factory();
+  </SERVICE>
   <SERVICE CLASS="org.gjt.sp.jedit.textarea.JEditTextAreaFactory" NAME="textarea-factory">
     new isabelle.jedit.JEdit_Accessible$TextArea_Factory();
   </SERVICE>
