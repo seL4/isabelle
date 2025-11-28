@@ -347,6 +347,7 @@ object Isabelle_Cronjob {
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(
         Remote_Build("macOS 12 Monterey (Intel)", "mini1-monterey",
+          java_heap = "8g",
           options = "-m32 -B -M1x2,2,4 -p pide_session=false" +
             " -e ISABELLE_OCAML=ocaml -e ISABELLE_OCAMLC=ocamlc -e ISABELLE_OCAML_SETUP=true" +
             " -e ISABELLE_GHC_SETUP=true" +
@@ -368,16 +369,19 @@ object Isabelle_Cronjob {
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"))),
       List(
         Remote_Build("macOS 14 Sonoma, quick_and_dirty", "mini2-sonoma",
+          java_heap = "8g",
           options = "-m32 -M4 -t quick_and_dirty -p pide_session=false",
           args = "-a -o quick_and_dirty",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("quick_and_dirty"),
           count = () => 1),
         Remote_Build("macOS 14 Sonoma, skip_proofs", "mini2-sonoma",
+          java_heap = "8g",
           options = "-m32 -M4 -t skip_proofs -p pide_session=false", args = "-a -o skip_proofs",
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("skip_proofs"),
           count = () => 1)),
       List(
         Remote_Build("macOS 13 Ventura (ARM)", "mini3",
+          java_heap = "8g",
           history_base = "build_history_base_arm",
           options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
