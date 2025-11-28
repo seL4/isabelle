@@ -1724,3 +1724,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/menu/RecentFilesProvider.java jedit5
  		text.addKeyListener(new KeyAdapter()
  		{
  			@Override
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/InputMethodSupport.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/InputMethodSupport.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/InputMethodSupport.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/InputMethodSupport.java	2025-11-27 22:40:40.136594077 +0100
+@@ -141,6 +141,8 @@
+ 				if (selectionStartLine == caretLine)
+ 				{
+ 					Point selection_start = owner.offsetToXY(selection_on_caret.getStart());
++					if (selection_start == null)
++						return getCaretRectangle(0, 0);
+ 					return getCaretRectangle(selection_start.x, selection_start.y);
+ 				}
+ 				else
