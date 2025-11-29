@@ -71,7 +71,7 @@ text \<open>
   \<^medskip>
   Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
   Isabelle installation: it needs to be a suitable version of Ubuntu Linux,
-  see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2025
+  see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2025-1
   is \<^verbatim>\<open>ubuntu:22.04\<close>, but \<^verbatim>\<open>ubuntu:20.04\<close> and \<^verbatim>\<open>ubuntu:24.04\<close> should work as
   well. Other versions might require experimentation with the package
   selection.
@@ -107,22 +107,22 @@ text \<open>
   Produce a Dockerfile (without image) from a remote Isabelle distribution:
   @{verbatim [display]
 \<open>  isabelle docker_build -E -n -o Dockerfile
-    https://isabelle.in.tum.de/website-Isabelle2025/dist/Isabelle2025_linux.tar.gz\<close>}
+    https://isabelle.in.tum.de/website-Isabelle2025-1/dist/Isabelle2025-1_linux.tar.gz\<close>}
 
   Build a standard Isabelle Docker image from a local Isabelle distribution,
   with \<^verbatim>\<open>bin/isabelle\<close> as executable entry point:
 
   @{verbatim [display]
-\<open>  isabelle docker_build -E -t test/isabelle:Isabelle2025 Isabelle2025_linux.tar.gz\<close>}
+\<open>  isabelle docker_build -E -t test/isabelle:Isabelle2025-1 Isabelle2025-1_linux.tar.gz\<close>}
 
   Invoke the raw Isabelle/ML process within that image:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2025 process -e "Session.welcome ()"\<close>}
+\<open>  docker run test/isabelle:Isabelle2025-1 process -e "Session.welcome ()"\<close>}
 
   Invoke a Linux command-line tool within the contained Isabelle system
   environment:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2025 env uname -a\<close>}
+\<open>  docker run test/isabelle:Isabelle2025-1 env uname -a\<close>}
   The latter should always report a Linux operating system, even when running
   on Windows or macOS.
 \<close>
@@ -455,7 +455,7 @@ text \<open>
 
   \<^medskip>
   The default is to output the Isabelle distribution name, e.g.\
-  ``\<^verbatim>\<open>Isabelle2025\<close>''.
+  ``\<^verbatim>\<open>Isabelle2025-1\<close>''.
 
   \<^medskip>
   Option \<^verbatim>\<open>-i\<close> produces a short identification derived from the Mercurial id
