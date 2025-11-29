@@ -44,12 +44,29 @@ object JEdit_Mouse_Handler {
 }
 
 class JEdit_Mouse_Handler(edit_pane: EditPane) extends JEditMouseHandler(edit_pane.getTextArea) {
+  private var active_buffer: Buffer = null
   private var after_jump = false
+
   private val delay_jump =
     Delay.last(JEdit_Mouse_Handler.jump_delay(), gui = true) { after_jump = false }
 
   def jump(): Unit = { after_jump = true; delay_jump.invoke() }
 
-  override def mouseDragged(evt: MouseEvent): Unit =
-    if (!after_jump) super.mouseDragged(evt)
+  override def mousePressed(evt: MouseEvent): Unit = {
+    active_buffer = edit_pane.getBuffer
+    super.mousePressed(evt)
+  }
+
+  override def mouseDragged(evt: MouseEvent): Unit = {
+    if (active_buffer == edit_pane.getBuffer && !after_jump) super.mouseDragged(evt)
+  }
+
+  override def mouseReleased(evt: MouseEvent): Unit = {
+    if (active_buffer == edit_pane.getBuffer) super.mouseReleased(evt)
+    else {
+      dragged = false
+      maybeDragAndDrop = false
+    }
+    active_buffer = null
+  }
 }
