@@ -62,11 +62,14 @@ class JEdit_Mouse_Handler(edit_pane: EditPane) extends JEditMouseHandler(edit_pa
   }
 
   override def mouseReleased(evt: MouseEvent): Unit = {
-    if (active_buffer == edit_pane.getBuffer) super.mouseReleased(evt)
-    else {
-      dragged = false
-      maybeDragAndDrop = false
+    val btn = evt.getButton
+    if (btn == MouseEvent.BUTTON1 || btn == MouseEvent.BUTTON2 || btn == MouseEvent.BUTTON3) {
+      if (active_buffer == edit_pane.getBuffer) super.mouseReleased(evt)
+      else {
+        dragged = false
+        maybeDragAndDrop = false
+      }
+      active_buffer = null
     }
-    active_buffer = null
   }
 }
