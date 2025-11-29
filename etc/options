@@ -302,6 +302,9 @@ public option editor_load_delay : real = 0.5
 public option editor_input_delay : real = 0.2
   -- "delay for user input (text edits, cursor movement etc.)"
 
+public option editor_jump_delay : real = 0.3
+  -- "delay for mouse selection events after jumping around in the editor"
+
 public option editor_generated_input_delay : real = 1.0
   -- "delay for machine-generated input that may outperform user edits"
 

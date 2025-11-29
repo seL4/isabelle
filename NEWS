@@ -78,8 +78,13 @@ state (100%) remains. Long-running commands are displayed as well.
 * Update GUI look-and-feel to current FlatLaf 3.6, with native library
 support on all Isabelle platforms (now including arm64-linux).
 
-* Mouse event handling is now more reactive: this is especially relevant
-for macOS with Magic Mouse.
+* Mouse event handling is now more robust and more reactive: this is
+especially relevant for macOS with Magic Mouse. The mouse reacts on
+pressing the button, and does not wait for its release. After jumping
+around in the editor, e.g. when following hyperlinks, mouse drag events
+are ignored (according to system option "editor_jump_delay", with
+default 0.3 seconds): this avoids spurious text selection after editor
+navigation.
 
 * GUI rendering of the gutter is now more accurate, using scaled icons
 to fit precisely into the available space.
