@@ -154,10 +154,6 @@ names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
-* New infrastructure for generating running time functions
-for HOL functions in HOL-Library.
-Accompanying manual in theory HOL-Library.Time_Manual
-
 * New code declaration attributes 'code abort' and 'code drop'
 correspond to 'code abort: c' and 'code drop: c' respectively but derive
 the affected constant from the corresponding theorem.
@@ -412,13 +408,17 @@ rule by default. INCOMPATIBILITY.
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
 
-* More efficient default implementation for
-HOL-Library.Discrete_Functions.floor_sqrt.
+* Theory "HOL-Library.Time_Functions" provides infrastructure for
+generating running time functions for HOL functions. The accompanying
+manual is in theory "HOL-Library.Time_Manual".
+
+* Theory "HOL-Library.Discrete_Functions" provides more efficient
+default implementation for "floor_sqrt".
+
+* Theory "HOL-Library.Divides" has been removed (finally).
 
 * Session "HOL-Analysis": much new material including the "slotted
 complex plane" and change-of-variables theorems.
-
-* Removed theory "HOL-Library.Divides" (finally).
 
 
 *** HOLCF ***
