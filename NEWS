@@ -434,6 +434,16 @@ external ML process directly via the current Isabelle/Scala context,
 without running another bulky Java process of "isabelle ML_process" on
 the command-line.
 
+* Somewhat pointless and inefficient shortcuts Pretty.writeln_chunks /
+Pretty.writeln_chunks2 have been discontinued. INCOMPATIBILITY, use
+Pretty.writeln directly with Pretty.chunks / Pretty.chunks2.
+
+* ML structure "Bires" supports biresolution and resolution using nets
+uniformly, for Pure rules or Classical rules in HOL/FOL/ZF. Former
+operations from structure Tactic (which used to be pervasive) have been
+moved here: biresolve_from_nets_tac ~> Bires.biresolve_from_nets_tac
+etc. INCOMPATIBILITY.
+
 * ML function "Raw_Simplifier.rewrite" has been renamed to
 "Raw_Simplifier.rewrite_wrt", to avoid clash with existing
 'Simplifier.rewrite'. INCOMPATIBILITY.
