@@ -541,6 +541,9 @@ Thy_Info.get_theory_elements in Isabelle/ML.
 (com.github.weisj.jsvg.SVGDocument), as well as the "flatlaf-extras"
 library (com.formdev.flatlaf.extras.FlatSVGIcon).
 
+* The default Docker image is now based on ubuntu:24.04, instead of
+ubuntu:22.04.
+
 * Update to official Poly/ML 5.9.2, with minor changes to word and
 floating-point arithmetic.
 

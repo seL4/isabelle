@@ -8,7 +8,7 @@ package isabelle
 
 
 object Docker_Build {
-  private val default_base = "ubuntu:22.04"
+  private val default_base = "ubuntu:24.04"
   private val default_work_dir = Path.current
 
   private val Isabelle_Name = """^.*?(Isabelle[^/\\:]+)_linux(?:_arm)?\.tar\.gz$""".r
