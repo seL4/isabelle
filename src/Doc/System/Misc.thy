@@ -116,7 +116,7 @@ text \<open>
 
   Invoke the raw Isabelle/ML process within that image:
   @{verbatim [display]
-\<open>  docker run test/isabelle:Isabelle2025-1 process -e "Session.welcome ()"\<close>}
+\<open>  docker run test/isabelle:Isabelle2025-1 ML_process -e "Session.welcome ()"\<close>}
 
   Invoke a Linux command-line tool within the contained Isabelle system
   environment:
