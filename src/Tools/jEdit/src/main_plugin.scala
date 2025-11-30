@@ -491,7 +491,5 @@ class Main_Plugin extends EBPlugin {
     PIDE.editor.shutdown()
 
     Document_Model.reset()
-
-    PIDE._plugin = null
   }
 }
