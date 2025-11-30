@@ -75,9 +75,6 @@ available as SVG.
 timing of running theories is continuously updated, while the finished
 state (100%) remains. Long-running commands are displayed as well.
 
-* Update GUI look-and-feel to current FlatLaf 3.6, with native library
-support on all Isabelle platforms (now including arm64-linux).
-
 * Mouse event handling is now more robust and more reactive: this is
 especially relevant for macOS with Magic Mouse. The mouse reacts on
 pressing the button, and does not wait for its release. After jumping
@@ -112,6 +109,9 @@ take precedence. Example:
 
 This runs Isabelle/jEdit with sequential evaluation in ML, without
 affecting stored preferences of option "threads".
+
+* Update GUI look-and-feel to current FlatLaf 3.6, with native library
+support on all Isabelle platforms (now including arm64-linux).
 
 
 *** Isabelle/VSCode Prover IDE ***
