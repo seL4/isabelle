@@ -289,7 +289,7 @@ set_finite which is added as a simp rule.
       strict_mono_on_less
       strict_mono_on_less_eq
   - Removed lemmas. Minor INCOMPATIBILITY.
-      mono_on_greaterD (use mono_invE instead)
+      mono_on_greaterD (use mono_on_invE instead)
       subset_inj_on (use inj_on_subset)
 
 * Theory "HOL.Relation":
