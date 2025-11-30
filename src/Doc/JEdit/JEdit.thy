@@ -2323,6 +2323,14 @@ text \<open>
   \<^bold>\<open>Workaround:\<close> Rebind key via \<^emph>\<open>Global Options~/ Shortcuts\<close> according to the
   national keyboard layout, e.g.\ \<^verbatim>\<open>COMMAND+SLASH\<close> on English ones.
 
+  \<^item> \<^bold>\<open>Problem:\<close> On macOS, text input boxes may get into a bad state, where all
+  text is selected, but further editing only replaces that by the next input
+  character. This often happens, after selecting all text with the mouse from
+  the \<^emph>\<open>right\<close>.
+
+  \<^bold>\<open>Workaround:\<close> Select text with the mouse from the \<^emph>\<open>left\<close>, or use regular
+  keyboard shortcuts like \<^verbatim>\<open>C+a\<close> or \<^verbatim>\<open>S+HOME\<close>.
+
   \<^item> \<^bold>\<open>Problem:\<close> On macOS with native Apple look-and-feel, some exotic
   national keyboards may cause a conflict of menu accelerator keys with
   regular jEdit key bindings. This leads to duplicate execution of the
