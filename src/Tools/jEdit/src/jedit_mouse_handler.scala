@@ -27,7 +27,7 @@ object JEdit_Mouse_Handler {
 
   def jump_delay(): Time =
     PIDE.get_plugin match {
-      case Some(plugin) => jump_delay(PIDE.plugin.options.value)
+      case Some(plugin) => jump_delay(plugin.options.value)
       case None => jump_delay0
     }
 
