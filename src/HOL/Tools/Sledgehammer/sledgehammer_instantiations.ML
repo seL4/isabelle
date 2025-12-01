@@ -87,7 +87,7 @@ fun instantiate_facts state verbose timeout goal subgoal facts =
       | infer_thm_insts (metis_method :: metis_methods) =
         (case timed_infer_thm_insts metis_method of
           NONE => infer_thm_insts metis_methods
-        | thm_insts => thm_insts)
+        | SOME (_ (* using_thm_insts *), arg_thm_insts) => SOME arg_thm_insts)
     fun instantiate_fact ((name, stature), ths) thm_insts =
       List.partition (member Thm.eq_thm ths o fst) thm_insts
       |>> map (fn (_, inst) => (Metis_Tactic.pretty_name_inst ctxt (name, inst), stature))

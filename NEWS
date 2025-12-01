@@ -4,6 +4,17 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* SMT:
+  - Added option "cvc5_integer_induction" and
+    "cvc5_structural_induction".
+
+
+
 New in Isabelle2025-1 (December 2025)
 -------------------------------------
 
