@@ -66,7 +66,7 @@ defined in theory \<open>HOL-Library.Time_Functions\<close> and basic upper boun
 section \<open>Termination\<close>
 
 text \<open>If the definition of a recursive function requires a manual termination proof,
-use \<open>time_function\<close> accompanied by a \<open>termination\<close> command.\<close>
+and you have performed that proof,\<close>
 
 function sum_to :: "int \<Rightarrow> int \<Rightarrow> int" where
   "sum_to i j = (if j \<le> i then 0 else i + sum_to (i+1) j)"
@@ -74,26 +74,14 @@ by pat_completeness auto
 termination
   by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
 
-time_function sum_to
-termination
-  by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
+text \<open>then you can use \<open>time_fun\<close>:\<close>
+
+time_fun sum_to
 
 
 section \<open>Partial Functions\<close>
 
 text \<open>Partial functions can also be `timed'.\<close>
-
-(* Partial functions defined with \<open>function\<close> can currently not be timed:
-function pos1 :: "int \<Rightarrow> bool" where
-"pos1 i = (if i = 1 then True else pos1 (i-1))"
-by auto
-
-time_function pos1
-
-function T_pos1 :: "int \<Rightarrow> nat" where
-"T_pos1 i = (if i = 1 then 1 else T_pos1 (i-1) + 1)"
-by auto
-*)
 
 partial_function (tailrec) positive :: "int \<Rightarrow> bool" where
 "positive i = (if i = 1 then True else positive (i-1))"

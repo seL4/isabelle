@@ -246,6 +246,7 @@ let
       |> map #rules
       |> map (map Thm.prop_of)
    handle Empty => error "Function or terms of function not found"
+  val _ = if equations = [] then error "No terms found" else ()
 in
   equations
     |> map (map fix_definition)
@@ -710,7 +711,8 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       val l_typs = l_typs' 0 types
       val lhs =
         List.foldl (fn ((v,T),t) => t $ Free (v,T)) (Free (red_name,l_typs ---> HOLogic.natT)) (ListPair.zip (vars,l_typs))
-      fun fixType (TFree _) = HOLogic.natT
+      fun fixType (TFree _) = HOLogic.unitT
+        | fixType (Type (n,ts)) = Type (n, map fixType ts)
         | fixType T = T
       fun fixUnspecified T = T |> strip_type ||> fixType |> (op --->)
       fun r_terms' i (v::vars) ((T as (Type ("fun",_)))::types) =
@@ -751,7 +753,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       (* Show where a simplification can take place *)
         fun reportReductions (t,(i::is)) =
         (Pretty.writeln (Pretty.str
-          ((Term.term_name t |> fun_name_to_time ctxt true)
+          ((Term.term_name t |> fun_name_to_time' ctxt false true)
             ^ " can be simplified because only the time-function component of parameter "
             ^ (Int.toString (i + 1)) ^ " is used. "));
             reportReductions (t,is))
