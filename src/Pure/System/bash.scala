@@ -305,17 +305,17 @@ object Bash {
 
   /* server */
 
+  // input messages
+  private val server_run = "run"
+  private val server_kill = "kill"
+
+  // output messages
+  private val server_uuid = "uuid"
+  private val server_interrupt = "interrupt"
+  private val server_failure = "failure"
+  private val server_result = "result"
+
   object Server {
-    // input messages
-    private val RUN = "run"
-    private val KILL = "kill"
-
-    // output messages
-    private val UUID = "uuid"
-    private val INTERRUPT = "interrupt"
-    private val FAILURE = "failure"
-    private val RESULT = "result"
-
     def start(port: Int = 0, debugging: => Boolean = false): Server = {
       val server = new Server(port, debugging)
       server.start()
@@ -349,20 +349,20 @@ object Bash {
 
       def reply_failure(exn: Throwable): Unit =
         reply(
-          if (Exn.is_interrupt(exn)) List(Server.INTERRUPT)
-          else List(Server.FAILURE, Exn.message(exn)))
+          if (Exn.is_interrupt(exn)) List(Bash.server_interrupt)
+          else List(Bash.server_failure, Exn.message(exn)))
 
       def reply_result(result: Process_Result): Unit =
-        reply(Server.RESULT :: Server.result(result))
+        reply(Bash.server_result :: Server.result(result))
 
       connection.read_byte_message().map(_.map(_.text)) match {
         case None =>
 
-        case Some(List(Server.KILL, UUID(uuid))) =>
+        case Some(List(Bash.server_kill, UUID(uuid))) =>
           if (debugging) Output.writeln("kill " + uuid)
           _processes.value.get(uuid).foreach(_.terminate())
 
-        case Some(List(Server.RUN, script, input, cwd, putenv,
+        case Some(List(Bash.server_run, script, input, cwd, putenv,
             Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
           val uuid = UUID.random()
 
@@ -390,7 +390,7 @@ object Bash {
             case Exn.Exn(exn) => reply_failure(exn)
             case Exn.Res(process) =>
               _processes.change(processes => processes + (uuid -> process))
-              reply(List(Server.UUID, uuid.toString))
+              reply(List(Bash.server_uuid, uuid.toString))
 
               Isabelle_Thread.fork(name = "bash_process") {
                 @volatile var is_timeout = false
