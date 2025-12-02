@@ -242,11 +242,12 @@ fun check_definition [t] = [t]
   | check_definition _ = error "Only a single definition is allowed"
 fun get_terms theory (term: term) =
 let
-  val equations = Spec_Rules.retrieve theory term
-      |> map #rules
-      |> map (map Thm.prop_of)
-   handle Empty => error "Function or terms of function not found"
-  val _ = if equations = [] then error "No terms found" else ()
+  val equations = [#input_eqns (Function.get_info theory term)]
+    handle Empty =>
+      Spec_Rules.retrieve theory term
+        |> map #rules
+        |> map (map Thm.prop_of)
+    handle Empty => error "Function or terms of function not found"
 in
   equations
     |> map (map fix_definition)
@@ -937,9 +938,11 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
 
     val (info,ctxt) = 
       register false
-        handle (ERROR _) =>
+        handle ERROR _ =>
           register true
              | Match =>
+          register true
+             | THM _ =>
           register true
 
     val ctxt = if simpable then calculateSimplifications ctxt T_terms term simpables else ctxt
