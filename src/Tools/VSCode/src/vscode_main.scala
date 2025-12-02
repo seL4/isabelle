@@ -362,7 +362,7 @@ Usage: isabelle vscode_server [OPTIONS]
           case exn: Throwable =>
             val channel = new Channel(System.in, System.out)
             channel.error_message(Exn.message(exn))
-            throw(exn)
+            throw exn
         }
       })
 }
