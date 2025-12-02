@@ -316,8 +316,12 @@ object Bash {
   private val server_result = "result"
 
   object Server {
-    def start(port: Int = 0, debugging: => Boolean = false): Server = {
-      val server = new Server(port, debugging)
+    def start(
+      port: Int = 0,
+      log: Logger = new System_Logger(),
+      debugging: => Boolean = false
+    ): Server = {
+      val server = new Server(port, log, debugging)
       server.start()
       server
     }
@@ -331,7 +335,7 @@ object Bash {
       result.err_lines
   }
 
-  class Server private(port: Int, debugging: => Boolean)
+  class Server private(port: Int, log: Logger, debugging: => Boolean)
   extends isabelle.Server.Handler(port) {
     server =>
 
@@ -341,7 +345,7 @@ object Bash {
       if (debugging) {
         val descr = make_description(description)
         val msg = message
-        Output.writeln(name + " " + quote(descr) + if_proper(msg, " " + msg))
+        log(name + " " + quote(descr) + if_proper(msg, " " + msg))
       }
 
     override def stop(): Unit = {
