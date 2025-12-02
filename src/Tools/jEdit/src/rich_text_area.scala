@@ -228,7 +228,10 @@ class Rich_Text_Area(
           hyperlink_area.info match {
             case Some(Text.Info(range, link)) =>
               if (!link.external) {
-                try { text_area.moveCaretPosition(range.start) }
+                try {
+                  text_area.moveCaretPosition(range.start)
+                  PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(buffer, range.start))
+                }
                 catch {
                   case _: ArrayIndexOutOfBoundsException =>
                   case _: IllegalArgumentException =>
