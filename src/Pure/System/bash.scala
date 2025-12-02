@@ -366,10 +366,9 @@ object Bash {
             List(Bash.server_interrupt)
           }
           else {
-            val msg = Exn.message(exn)
             debug("failure", description = description,
-              message = if_proper(uuid.isDefined, uuid.get.toString + "\n") + msg)
-            List(Bash.server_failure, msg)
+              message = if_proper(uuid.isDefined, uuid.get.toString + "\n") + Exn.print(exn))
+            List(Bash.server_failure, Exn.message(exn))
           })
 
       def reply_result(result: Process_Result, uuid: UUID.T, description: String = ""): Unit = {
