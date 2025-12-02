@@ -292,7 +292,7 @@ object Bash {
 
       watchdog_thread.foreach(_.cancel())
 
-      in.join
+      in.join_result  // ignore broken pipe
       out_lines.join
       err_lines.join
 
