@@ -78,6 +78,21 @@ text \<open>then you can use \<open>time_fun\<close>:\<close>
 
 time_fun sum_to
 
+text \<open>In case \<open>time_fun\<close> takes forever or fails (this can happen with large definitions)
+simply use \<open>time_function\<close> instead, followed by an explicit termination proof:\<close>
+
+function sum_to2 :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "sum_to2 i j = (if j \<le> i then 0 else i + sum_to2 (i+1) j)"
+by pat_completeness auto
+termination
+  by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
+
+time_function sum_to2
+termination
+  by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
+
+text \<open>The termination proof should be the same as for the original function.\<close>
+
 
 section \<open>Partial Functions\<close>
 
