@@ -337,6 +337,13 @@ object Bash {
 
     private val _processes = Synchronized(Map.empty[UUID.T, Bash.Process])
 
+    private def debug(name: String, description: String = "", message: => String = ""): Unit =
+      if (debugging) {
+        val descr = make_description(description)
+        val msg = message
+        Output.writeln(name + " " + quote(descr) + if_proper(msg, " " + msg))
+      }
+
     override def stop(): Unit = {
       for ((_, process) <- _processes.value) process.terminate()
       super.stop()
@@ -347,13 +354,25 @@ object Bash {
         try { connection.write_byte_message(chunks.map(Bytes.apply)) }
         catch { case _: IOException => }
 
-      def reply_failure(exn: Throwable): Unit =
+      def reply_failure(exn: Throwable, uuid: Option[UUID.T] = None, description: String = ""): Unit =
         reply(
-          if (Exn.is_interrupt(exn)) List(Bash.server_interrupt)
-          else List(Bash.server_failure, Exn.message(exn)))
+          if (Exn.is_interrupt(exn)) {
+            debug("interrupt", description = description,
+              message = if_proper(uuid.isDefined, uuid.get.toString))
+            List(Bash.server_interrupt)
+          }
+          else {
+            val msg = Exn.message(exn)
+            debug("failure", description = description,
+              message = if_proper(uuid.isDefined, uuid.get.toString + "\n") + msg)
+            List(Bash.server_failure, msg)
+          })
 
-      def reply_result(result: Process_Result): Unit =
+      def reply_result(result: Process_Result, uuid: UUID.T, description: String = ""): Unit = {
+        debug("stop", description = description,
+          message = "(uuid=" + uuid + ", return_code=" + result.rc + ")")
         reply(Bash.server_result :: Server.result(result))
+      }
 
       connection.read_byte_message().map(_.map(_.text)) match {
         case None =>
@@ -366,11 +385,8 @@ object Bash {
             Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
           val uuid = UUID.random()
 
-          val descr = make_description(description)
-          if (debugging) {
-            Output.writeln(
-              "start " + quote(descr) + " (uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
-          }
+          debug("start", description = description,
+            message = "(uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
 
           Exn.capture {
             Bash.process(script,
@@ -387,7 +403,7 @@ object Bash {
               redirect = redirect)
           }
           match {
-            case Exn.Exn(exn) => reply_failure(exn)
+            case Exn.Exn(exn) => reply_failure(exn, uuid = Some(uuid), description = description)
             case Exn.Res(process) =>
               _processes.change(processes => processes + (uuid -> process))
               reply(List(Bash.server_uuid, uuid.toString))
@@ -400,14 +416,11 @@ object Bash {
 
                 Exn.capture { process.result(input = input, watchdog = watchdog, strict = false) }
                 match {
-                  case Exn.Exn(exn) => reply_failure(exn)
-                  case Exn.Res(res0) =>
-                    val res = if (!res0.ok && is_timeout) res0.timeout_rc else res0
-                    if (debugging) {
-                      Output.writeln(
-                        "stop " + quote(descr) + " (uuid=" + uuid + ", return_code=" + res.rc + ")")
-                    }
-                    reply_result(res)
+                  case Exn.Exn(exn) =>
+                    reply_failure(exn, uuid = Some(uuid), description = description)
+                  case Exn.Res(res) =>
+                    val result = if (!res.ok && is_timeout) res.timeout_rc else res
+                    reply_result(result, uuid, description = description)
                 }
 
                 _processes.change(provers => provers - uuid)
