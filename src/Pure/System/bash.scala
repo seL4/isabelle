@@ -102,7 +102,7 @@ object Bash {
 
   class Process private[Bash](
     script: String,
-    description: String,
+    val description: String,
     ssh: SSH.System,
     cwd: Path,
     env: JMap[String, String],
@@ -378,8 +378,10 @@ object Bash {
         case None =>
 
         case Some(List(Bash.server_kill, UUID(uuid))) =>
-          if (debugging) Output.writeln("kill " + uuid)
-          _processes.value.get(uuid).foreach(_.terminate())
+          for (process <- _processes.value.get(uuid)) {
+            debug("kill", description = process.description, message = "(uuid=" + uuid + ")")
+            process.terminate()
+          }
 
         case Some(List(Bash.server_run, script, input, cwd, putenv,
             Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
@@ -429,7 +431,7 @@ object Bash {
               connection.await_close()
           }
 
-        case Some(_) => reply_failure(ERROR("Bad protocol message"))
+        case Some(_) => reply_failure(ERROR("Bash server: bad protocol message"))
       }
     }
   }
