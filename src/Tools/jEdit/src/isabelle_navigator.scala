@@ -8,24 +8,26 @@ package isabelle.jedit
 
 
 import org.gjt.sp.jedit.{View, Buffer, EditPane}
-
+import org.gjt.sp.jedit.buffer.JEditBuffer
 
 import isabelle._
+
 
 object Isabelle_Navigator {
   object Pos {
     val none: Pos = new Pos(Document_ID.none, "", 0)
     def make(name: String, offset: Int): Pos = new Pos(Document_ID.make(), name, offset)
 
+    def apply(jedit_buffer: JEditBuffer, offset: Int): Pos =
+      jedit_buffer match {
+        case buffer: Buffer if buffer.isLoaded && !buffer.isUntitled =>
+          make(JEdit_Lib.buffer_name(buffer), offset)
+        case _ => none
+      }
+
     def apply(edit_pane: EditPane): Pos =
       if (edit_pane == null) none
-      else {
-        val buffer = edit_pane.getBuffer
-        if (buffer != null && buffer.isLoaded && !buffer.isUntitled) {
-          make(JEdit_Lib.buffer_name(buffer), edit_pane.getTextArea.getCaretPosition)
-        }
-        else none
-      }
+      else apply(edit_pane.getBuffer, edit_pane.getTextArea.getCaretPosition)
 
     def apply(view: View): Pos =
       if (view == null) none else apply(view.getEditPane)
