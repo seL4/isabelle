@@ -154,6 +154,10 @@ names, the same way as the 'imports' clause. Minor INCOMPATIBILITY.
 
 *** HOL ***
 
+* Normalization by evaluation (method "normalization", command 'value')
+could yield false positives due to incomplete handling of polymorphism
+in certain situations.  This has been corrected.
+
 * New code declaration attributes 'code abort' and 'code drop'
 correspond to 'code abort: c' and 'code drop: c' respectively but derive
 the affected constant from the corresponding theorem.
@@ -222,24 +226,11 @@ instead.
     prepended.
 INCOMPATIBILITY.
 
-* Normalization by evaluation (method "normalization", command value)
-could yield false positives due to incomplete handling of polymorphism
-in certain situations; this is now corrected.
-
 * More efficient default implementation for "prime" predicate on types
 nat and int.
 
 * Code generation for set intervals based on a type class covering nat,
 int and word types. INCOMPATIBILITY.
-
-* Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
-
-* Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into
-HOL-Main. Minor INCOMPATIBILITY.
-
-* If theory "HOL-Library.Code_Target_Nat" is imported, bit operations on
-nat are implemented by bit operations on target-language integers. Minor
-INCOMPATIBILITY.
 
 * Finite datatypes and BNFs (e.g. list) now generate the theorem
 set_finite which is added as a simp rule.
@@ -276,6 +267,8 @@ set_finite which is added as a simp rule.
   - Added proof methods to default schedule; it now subsumes the "try0"
     command. Minor INCOMPATIBILITY.
   - Tuned the default schedule. Minor INCOMPATIBILITY.
+
+* Theory "HOL.Nat": Added Kleene's Fixed Point Theorem for lfp.
 
 * Theory "HOL.Fun":
   - Added lemmas.
@@ -396,6 +389,13 @@ set_finite which is added as a simp rule.
 * Theory "HOL.List": theorem list_update_beyond is no longer a [simp]
 rule by default. INCOMPATIBILITY.
 
+* Theory "HOL-Library.Code_Target_Bit_Shifts" incorporated into
+HOL-Main. Minor INCOMPATIBILITY.
+
+* If theory "HOL-Library.Code_Target_Nat" is imported, bit operations on
+nat are implemented by bit operations on target-language integers. Minor
+INCOMPATIBILITY.
+
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
@@ -408,14 +408,14 @@ rule by default. INCOMPATIBILITY.
       set_mset_sum_list[simp]
       size_mset_sum_mset_conv[simp]
 
-* Theory "HOL-Library.Time_Functions" provides infrastructure for
-generating running time functions for HOL functions. The accompanying
-manual is in theory "HOL-Library.Time_Manual".
-
 * Theory "HOL-Library.Discrete_Functions" provides more efficient
 default implementation for "floor_sqrt".
 
 * Theory "HOL-Library.Divides" has been removed (finally).
+
+* Theory "HOL-Library.Time_Functions" provides infrastructure for
+generating running time functions for HOL functions. The accompanying
+manual is in theory "HOL-Library.Time_Manual".
 
 * Session "HOL-Analysis": much new material including the "slotted
 complex plane" and change-of-variables theorems.
