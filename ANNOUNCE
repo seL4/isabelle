@@ -32,6 +32,8 @@ NEWS file for further details. Here are notable details:
 
 * HOL: updates and improvements of Sledgehammer and external provers.
 
+* HOL: generation of running time functions for HOL functions.
+
 * System: ML settings may depend on command-line system options ("-o").
 
 * System: command-line tool to process theories within adhoc session.
