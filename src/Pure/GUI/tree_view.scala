@@ -6,11 +6,11 @@ Tree view with sensible defaults.
 
 package isabelle
 
-import javax.accessibility.AccessibleContext
+import isabelle.graphview.Tree_Panel
 
+import javax.accessibility.AccessibleContext
 import javax.swing.JTree
-import javax.swing.tree.{MutableTreeNode, DefaultMutableTreeNode, DefaultTreeModel,
-  TreeSelectionModel, DefaultTreeCellRenderer}
+import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeCellRenderer, DefaultTreeModel, MutableTreeNode, TreePath, TreeSelectionModel}
 
 
 object Tree_View {
@@ -61,11 +61,14 @@ class Tree_View(
       proper_string(accessible_name).getOrElse(proper_string(root.toString).orNull)
   }
 
-  def get_selection[A](which: PartialFunction[AnyRef, A]): Option[A] =
-    getLastSelectedPathComponent match {
-      case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
-      case _ => None
+  def get_selection[A](path: TreePath, which: PartialFunction[AnyRef, A]): Option[A] =
+    if (path != null) {
+      path.getLastPathComponent match {
+        case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
+        case _ => None
+      }
     }
+    else None
 
   def init_model(body: => Unit): Unit = {
     clearSelection()

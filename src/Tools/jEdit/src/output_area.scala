@@ -14,6 +14,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEven
   HierarchyListener, HierarchyEvent, KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JButton}
 import javax.swing.plaf.basic.BasicSplitPaneUI
+import javax.swing.tree.TreePath
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
 
@@ -47,8 +48,8 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     tree.revalidate()
   }
 
-  def handle_tree_selection(): Unit =
-    for (result <- tree.get_selection({ case x: Pretty_Text_Area.Search_Result => x })) {
+  def handle_tree_selection(path: TreePath = tree.getSelectionPath): Unit =
+    for (result <- tree.get_selection(path, { case x: Pretty_Text_Area.Search_Result => x })) {
       pretty_text_area.setCaretPosition(result.line_range.start)
       JEdit_Lib.scroll_to_caret(pretty_text_area)
     }

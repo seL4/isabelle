@@ -12,6 +12,7 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import javax.swing.JMenuItem
+import javax.swing.tree.TreePath
 
 import scala.collection.immutable.SortedMap
 import scala.swing.Component
@@ -69,7 +70,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new Output_Area(view, root_name = "Threads") {
       override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
 
-      override def handle_tree_selection(): Unit = {
+      override def handle_tree_selection(path: TreePath): Unit = {
         update_focus()
         update_vals()
       }
@@ -101,8 +102,8 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* tree view */
 
-  private def tree_selection(): Option[Debugger.Context] =
-    output.tree.get_selection({ case c: Debugger.Context => c })
+  private def tree_selection(path: TreePath = output.tree.getSelectionPath): Option[Debugger.Context] =
+    output.tree.get_selection(path, { case c: Debugger.Context => c })
 
   private def thread_selection(): Option[String] = tree_selection().map(_.thread_name)
 
