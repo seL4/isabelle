@@ -116,14 +116,10 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     new MouseAdapter {
       override def mousePressed(e: MouseEvent): Unit = {
         if (!e.isConsumed() && e.getClickCount == 1) {
-          val click = tree.getPathForLocation(e.getX, e.getY)
-          if (click != null) {
-            val click_node = click.getLastPathComponent
-            val path_node = tree.getLastSelectedPathComponent
-            if (click_node == path_node) {
-              e.consume()
-              handle_tree_selection()
-            }
+          val path = tree.getPathForLocation(e.getX, e.getY)
+          if (path != null) {
+            e.consume()
+            handle_tree_selection(path = path)
           }
         }
       }
