@@ -1,5 +1,5 @@
 (*
-  File:    Data_Structures/Time_Functions.thy
+  File:    Library/Time_Functions.thy
   Author:  Manuel Eberl, TU München
 *)
 
