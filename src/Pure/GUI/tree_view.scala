@@ -101,15 +101,8 @@ class Tree_View(
   })
 
   addMouseListener(new MouseAdapter {
-    override def mousePressed(e: MouseEvent): Unit = {
-      if (!e.isConsumed() && e.getClickCount == 1) {
-        val path = getPathForLocation(e.getX, e.getY)
-        if (path != null) {
-          e.consume()
-          handle_selection(path)
-        }
-      }
-    }
+    override def mousePressed(e: MouseEvent): Unit =
+      if (e.getClickCount == 1) handle_selection(getPathForLocation(e.getX, e.getY))
   })
 
 
