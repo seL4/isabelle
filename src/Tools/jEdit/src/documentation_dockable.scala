@@ -12,6 +12,7 @@ import isabelle._
 import java.awt.Dimension
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JScrollPane
+import javax.swing.tree.TreePath
 
 import org.gjt.sp.jedit.View
 
@@ -29,34 +30,26 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
 
-  private def action(obj: AnyRef): Unit = {
-    obj match {
-      case Tree_View.Node(entry: Doc.Entry) =>
-        PIDE.editor.goto_doc(view, entry.path, focus = true)
-      case _ =>
+  def handle_tree_selection(path: TreePath = tree.getSelectionPath): Unit =
+    for (entry <- tree.get_selection(path, { case x: Doc.Entry => x })) {
+      PIDE.editor.goto_doc(view, entry.path, focus = true)
     }
-  }
 
   tree.addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
       if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
         e.consume()
-        val path = tree.getSelectionPath
-        if (path != null) action(path.getLastPathComponent)
+        handle_tree_selection()
       }
     }
   })
   tree.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit = {
       if (!e.isConsumed() && e.getClickCount == 1) {
-        val click = tree.getPathForLocation(e.getX, e.getY)
-        if (click != null) {
-          val click_node = click.getLastPathComponent
-          val path_node = tree.getLastSelectedPathComponent
-          if (click_node == path_node) {
-            e.consume()
-            action(path_node)
-          }
+        val path = tree.getPathForLocation(e.getX, e.getY)
+        if (path != null) {
+          e.consume()
+          handle_tree_selection(path = path)
         }
       }
     }
