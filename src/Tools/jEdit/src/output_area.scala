@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
-  HierarchyListener, HierarchyEvent, MouseEvent, MouseAdapter}
+  HierarchyListener, HierarchyEvent, KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JButton}
 import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 import javax.swing.plaf.basic.BasicSplitPaneUI
@@ -102,22 +102,31 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
       override def focusGained(e: FocusEvent): Unit = handle_focus()
     }
 
+  private lazy val key_listener =
+    new KeyAdapter {
+      override def keyPressed(e: KeyEvent): Unit = {
+        if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
+          e.consume()
+          handle_tree_selection()
+        }
+      }
+    }
+
   private lazy val mouse_listener =
     new MouseAdapter {
       override def mousePressed(e: MouseEvent): Unit = {
         if (!e.isConsumed() && e.getClickCount == 1) {
           val click = tree.getPathForLocation(e.getX, e.getY)
           if (click != null) {
-            e.consume()
-            handle_focus()
+            val click_node = click.getLastPathComponent
+            val path_node = tree.getLastSelectedPathComponent
+            if (click_node == path_node) {
+              e.consume()
+              handle_tree_selection()
+            }
           }
         }
       }
-    }
-
-  private lazy val tree_selection_listener =
-    new TreeSelectionListener {
-      def valueChanged(e: TreeSelectionEvent): Unit = handle_tree_selection()
     }
 
 
@@ -184,8 +193,8 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     parent.addHierarchyListener(hierarchy_listener)
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
+    tree.addKeyListener(key_listener)
     tree.addMouseListener(mouse_listener)
-    tree.addTreeSelectionListener(tree_selection_listener)
     tree.setCellRenderer(tree_cell_renderer)
   }
 
