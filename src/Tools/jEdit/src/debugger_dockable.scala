@@ -70,7 +70,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new Output_Area(view, root_name = "Threads") {
       override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
 
-      override def handle_tree_selection(e: TreeSelectionEvent): Unit = {
+      override def handle_tree_selection(): Unit = {
         update_focus()
         update_vals()
       }

@@ -48,7 +48,7 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     tree.revalidate()
   }
 
-  def handle_tree_selection(e: TreeSelectionEvent): Unit =
+  def handle_tree_selection(): Unit =
     for (result <- tree.get_selection({ case x: Pretty_Text_Area.Search_Result => x })) {
       pretty_text_area.setCaretPosition(result.line_range.start)
       JEdit_Lib.scroll_to_caret(pretty_text_area)
@@ -117,7 +117,7 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
 
   private lazy val tree_selection_listener =
     new TreeSelectionListener {
-      def valueChanged(e: TreeSelectionEvent): Unit = handle_tree_selection(e)
+      def valueChanged(e: TreeSelectionEvent): Unit = handle_tree_selection()
     }
 
 
