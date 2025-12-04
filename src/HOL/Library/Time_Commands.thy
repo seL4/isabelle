@@ -17,7 +17,7 @@ theory Time_Commands
     and    "time_fun_0" :: thy_decl
 begin
 
-ML_file Time_Commands.ML
+ML_file time_commands.ML
 
 declare [[time_prefix = "T_"]]
 
