@@ -8,6 +8,7 @@ package isabelle
 
 import isabelle.graphview.Tree_Panel
 
+import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.accessibility.AccessibleContext
 import javax.swing.JTree
 import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeCellRenderer, DefaultTreeModel, MutableTreeNode, TreePath, TreeSelectionModel}
@@ -83,6 +84,32 @@ class Tree_View(
       case model: DefaultTreeModel => model.reload(root)
       case _ =>
     }
+
+
+  /* selection events */
+
+  def handle_selection(path: TreePath): Unit = ()
+
+  addKeyListener(new KeyAdapter {
+    override def keyPressed(e: KeyEvent): Unit = {
+      if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
+        e.consume()
+        handle_selection(getSelectionPath)
+      }
+    }
+  })
+
+  addMouseListener(new MouseAdapter {
+    override def mousePressed(e: MouseEvent): Unit = {
+      if (!e.isConsumed() && e.getClickCount == 1) {
+        val path = getPathForLocation(e.getX, e.getY)
+        if (path != null) {
+          e.consume()
+          handle_selection(path)
+        }
+      }
+    }
+  })
 
 
   /* init */

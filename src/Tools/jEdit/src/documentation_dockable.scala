@@ -10,7 +10,6 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.Dimension
-import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.JScrollPane
 import javax.swing.tree.TreePath
 
@@ -20,7 +19,13 @@ import org.gjt.sp.jedit.View
 class Documentation_Dockable(view: View, position: String) extends Dockable(view, position) {
   private val doc_contents = Doc.contents(PIDE.ml_settings)
 
-  private val tree = new Tree_View(single_selection_mode = true, accessible_name = "Documentation")
+  private val tree =
+    new Tree_View(single_selection_mode = true, accessible_name = "Documentation") {
+      override def handle_selection(path: TreePath): Unit =
+        for (entry <- get_selection(path, { case x: Doc.Entry => x })) {
+          PIDE.editor.goto_doc(view, entry.path, focus = true)
+        }
+    }
 
   for (section <- doc_contents.sections) {
     tree.root.add(Tree_View.Node(section.title))
@@ -29,31 +34,6 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
   }
 
   override def focusOnDefaultComponent(): Unit = tree.requestFocusInWindow
-
-  def handle_tree_selection(path: TreePath = tree.getSelectionPath): Unit =
-    for (entry <- tree.get_selection(path, { case x: Doc.Entry => x })) {
-      PIDE.editor.goto_doc(view, entry.path, focus = true)
-    }
-
-  tree.addKeyListener(new KeyAdapter {
-    override def keyPressed(e: KeyEvent): Unit = {
-      if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
-        e.consume()
-        handle_tree_selection()
-      }
-    }
-  })
-  tree.addMouseListener(new MouseAdapter {
-    override def mousePressed(e: MouseEvent): Unit = {
-      if (!e.isConsumed() && e.getClickCount == 1) {
-        val path = tree.getPathForLocation(e.getX, e.getY)
-        if (path != null) {
-          e.consume()
-          handle_tree_selection(path = path)
-        }
-      }
-    }
-  })
 
   {
     var expand = true

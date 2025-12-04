@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
-  HierarchyListener, HierarchyEvent, KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
+  HierarchyListener, HierarchyEvent}
 import javax.swing.{JComponent, JButton}
 import javax.swing.plaf.basic.BasicSplitPaneUI
 import javax.swing.tree.TreePath
@@ -32,7 +32,9 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
   val tree_cell_renderer: Tree_View.Cell_Renderer = new Tree_View.Cell_Renderer
 
   val tree: Tree_View =
-    new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true)
+    new Tree_View(root = Tree_View.Node(root_name), single_selection_mode = true) {
+      override def handle_selection(path: TreePath): Unit = handle_tree_selection(path)
+    }
 
   private var search_activated = false
 
@@ -48,7 +50,7 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     tree.revalidate()
   }
 
-  def handle_tree_selection(path: TreePath = tree.getSelectionPath): Unit =
+  def handle_tree_selection(path: TreePath): Unit =
     for (result <- tree.get_selection(path, { case x: Pretty_Text_Area.Search_Result => x })) {
       pretty_text_area.setCaretPosition(result.line_range.start)
       JEdit_Lib.scroll_to_caret(pretty_text_area)
@@ -100,29 +102,6 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
   private lazy val focus_listener =
     new FocusAdapter {
       override def focusGained(e: FocusEvent): Unit = handle_focus()
-    }
-
-  private lazy val key_listener =
-    new KeyAdapter {
-      override def keyPressed(e: KeyEvent): Unit = {
-        if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
-          e.consume()
-          handle_tree_selection()
-        }
-      }
-    }
-
-  private lazy val mouse_listener =
-    new MouseAdapter {
-      override def mousePressed(e: MouseEvent): Unit = {
-        if (!e.isConsumed() && e.getClickCount == 1) {
-          val path = tree.getPathForLocation(e.getX, e.getY)
-          if (path != null) {
-            e.consume()
-            handle_tree_selection(path = path)
-          }
-        }
-      }
     }
 
 
@@ -189,8 +168,6 @@ class Output_Area(view: View, root_name: String = Pretty_Text_Area.search_title(
     parent.addHierarchyListener(hierarchy_listener)
     parent.addComponentListener(component_listener)
     parent.addFocusListener(focus_listener)
-    tree.addKeyListener(key_listener)
-    tree.addMouseListener(mouse_listener)
     tree.setCellRenderer(tree_cell_renderer)
   }
 
