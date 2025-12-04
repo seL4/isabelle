@@ -11,7 +11,8 @@ import isabelle.graphview.Tree_Panel
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.accessibility.AccessibleContext
 import javax.swing.JTree
-import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeCellRenderer, DefaultTreeModel, MutableTreeNode, TreePath, TreeSelectionModel}
+import javax.swing.tree.{DefaultMutableTreeNode, DefaultTreeCellRenderer, DefaultTreeModel,
+  MutableTreeNode, TreePath, TreeSelectionModel}
 
 
 object Tree_View {
@@ -62,15 +63,6 @@ class Tree_View(
       proper_string(accessible_name).getOrElse(proper_string(root.toString).orNull)
   }
 
-  def get_selection[A](path: TreePath, which: PartialFunction[AnyRef, A]): Option[A] =
-    if (path != null) {
-      path.getLastPathComponent match {
-        case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
-        case _ => None
-      }
-    }
-    else None
-
   def init_model(body: => Unit): Unit = {
     clearSelection()
     root.removeAllChildren()
@@ -89,6 +81,15 @@ class Tree_View(
   /* selection events */
 
   def handle_selection(path: TreePath): Unit = ()
+
+  def get_selection[A](path: TreePath, which: PartialFunction[AnyRef, A]): Option[A] =
+    if (path != null) {
+      path.getLastPathComponent match {
+        case Tree_View.Node(obj) if obj != null && which.isDefinedAt(obj) => Some(which(obj))
+        case _ => None
+      }
+    }
+    else None
 
   addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
