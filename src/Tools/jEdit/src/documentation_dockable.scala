@@ -55,7 +55,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
           val path_node = tree.getLastSelectedPathComponent
           if (click_node == path_node) {
             e.consume()
-            action(click_node)
+            action(path_node)
           }
         }
       }
