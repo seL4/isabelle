@@ -12,6 +12,7 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import javax.swing.JMenuItem
+import javax.swing.event.TreeSelectionEvent
 import javax.swing.tree.TreePath
 
 import scala.collection.immutable.SortedMap
@@ -70,10 +71,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
     new Output_Area(view, root_name = "Threads") {
       override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
 
-      override def handle_tree_selection(path: TreePath): Unit = {
-        update_focus()
-        update_vals()
-      }
+      override def handle_tree_selection(path: TreePath): Unit = ()
 
       override def handle_update(): Unit = {
         val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
@@ -92,6 +90,11 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
       override def handle_focus(): Unit = update_focus()
     }
+
+  output.tree.addTreeSelectionListener({ (e: TreeSelectionEvent) =>
+    update_focus()
+    update_vals()
+  })
 
   override def detach_operation: Option[() => Unit] =
     output.pretty_text_area.detach_operation
