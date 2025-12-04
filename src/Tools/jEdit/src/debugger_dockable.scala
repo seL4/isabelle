@@ -12,7 +12,6 @@ import isabelle._
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import javax.swing.JMenuItem
-import javax.swing.event.TreeSelectionEvent
 
 import scala.collection.immutable.SortedMap
 import scala.swing.Component

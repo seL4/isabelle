@@ -13,7 +13,6 @@ import java.awt.Dimension
 import java.awt.event.{ComponentEvent, ComponentAdapter, FocusAdapter, FocusEvent,
   HierarchyListener, HierarchyEvent, KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}
 import javax.swing.{JComponent, JButton}
-import javax.swing.event.{TreeSelectionListener, TreeSelectionEvent}
 import javax.swing.plaf.basic.BasicSplitPaneUI
 
 import scala.swing.{Component, ScrollPane, SplitPane, Orientation}
