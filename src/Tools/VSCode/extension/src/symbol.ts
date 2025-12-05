@@ -91,3 +91,28 @@ function load_symbols(): Entry[]
 }
 
 export const symbols: Symbols = new Symbols(load_symbols())
+
+
+/* control symbols */
+
+export interface Control {
+  sub: Entry,
+  sup: Entry,
+  bold: Entry,
+  emph: Entry,
+  bsub: Entry,
+  esub: Entry,
+  bsup: Entry,
+  esup: Entry
+}
+
+export const control: Control = {
+  sub: symbols.get("\\<^sub>"),
+  sup: symbols.get("\\<^sup>"),
+  bold: symbols.get("\\<^bold>"),
+  emph: symbols.get("\\<^emph>"),
+  bsub: symbols.get("\\<^bsub>"),
+  esub: symbols.get("\\<^esub>"),
+  bsup: symbols.get("\\<^bsup>"),
+  esup: symbols.get("\\<^esup>")
+}

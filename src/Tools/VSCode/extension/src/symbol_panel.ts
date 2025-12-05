@@ -18,6 +18,8 @@ import { LanguageClient } from "vscode-languageclient/node";
 import * as fs from "fs";
 import * as symbol from './symbol'
 
+const controls: symbol.Entry[] =
+  [symbol.control.sub, symbol.control.sup, symbol.control.bold]
 
 class Symbols_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-symbols"
@@ -90,14 +92,9 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     let selected_text = document.getText(selection);
     if (!selected_text.trim() && !selection.isEmpty) return;
 
-    const control_group = this._grouped_symbols["control"];
-    if (!control_group) return;
-
     const control_symbols: { [key: string]: string } = {};
-    for (const symbol of control_group) {
-      if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        control_symbols[symbol.name] = symbol.decoded;
-      }
+    for (const symbol of controls) {
+      control_symbols[symbol.name] = symbol.decoded;
     }
 
     if (!control_symbols[action]) return;
@@ -159,14 +156,9 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     let selected_text = document.getText(selection);
     if (!selected_text.trim() && !selection.isEmpty) return;
 
-    const control_group = this._grouped_symbols["control"];
-    if (!control_group) return;
-
     const control_symbols: { [key: string]: string } = {};
-    for (const symbol of control_group) {
-      if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        control_symbols[symbol.decoded] = symbol.name;
-      }
+    for (const symbol of controls) {
+      control_symbols[symbol.decoded] = symbol.name;
     }
 
     const all_control_symbols = Object.keys(control_symbols);
