@@ -104,23 +104,18 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
-        if (action === "bold") {
-          editor.setDecorations(this.bold_decoration, [{ range: selection }]);
-        }
-        else {
-          let new_text = selected_text
-            .split("")
-            .map((char, index, arr) => {
-              const prevChar = index > 0 ? arr[index - 1] : null;
-              if (char.trim() === "") return char;
-              if (all_control_symbols.includes(char)) return "";
+        let new_text = selected_text
+          .split("")
+          .map((char, index, arr) => {
+            const prevChar = index > 0 ? arr[index - 1] : null;
+            if (char.trim() === "") return char;
+            if (all_control_symbols.includes(char)) return "";
 
-              return `${control_symbol}${char}`;
-            })
-            .join("");
+            return `${control_symbol}${char}`;
+          })
+          .join("");
 
-          edit_builder.replace(selection, new_text);
-        }
+        edit_builder.replace(selection, new_text);
       }
       else {
         edit_builder.insert(selection.active, control_symbol);
@@ -138,11 +133,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
       editor.edit(edit_builder => edit_builder.insert(editor.selection.active, symbol));
     }
   }
-
-  private bold_decoration = window.createTextEditorDecorationType({
-    fontWeight: "bold",
-    textDecoration: "none"
-  });
 
   private _reset_control(): void {
     const editor = window.activeTextEditor;
@@ -165,10 +155,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
-        if (this.bold_decoration) {
-          editor.setDecorations(this.bold_decoration, []);
-        }
-
         let new_text = selected_text
           .split("")
           .map(char => (all_control_symbols.includes(char) ? "" : char))
