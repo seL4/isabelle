@@ -218,7 +218,7 @@ object Component_PolyML {
   val default_polyml_version = "455755407707"
   val default_polyml_name = "polyml-5.9.2"
 
-  val default_sha1_url = "https://isabelle.sketis.net/repos/sha1/archive"
+  val default_sha1_url = "https://files.sketis.net/sha1/archive"
   val default_sha1_version = "0ce12663fe76"
 
   private def init_src_root(src_dir: Path, input: String, output: String): Unit = {
