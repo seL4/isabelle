@@ -229,8 +229,7 @@
         reset_button.addEventListener("click", () => vscode.postMessage({ command: "reset_control" }));
         group_content.appendChild(reset_button);
 
-        const control_buttons = ["sup", "sub", "bold"];
-        control_buttons.forEach(action => {
+        for (const action of ["sup", "sub", "bold"]) {
           const control_symbol = grouped_symbols[group].find(s => s.name === action);
           if (control_symbol) {
             const button = document.createElement("button");
@@ -242,7 +241,7 @@
             });
             group_content.appendChild(button);
           }
-        });
+        };
       }
 
       grouped_symbols[group].forEach(symbol => {
