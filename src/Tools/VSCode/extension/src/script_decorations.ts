@@ -11,10 +11,10 @@ import { DecorationRangeBehavior, ExtensionContext, Range,
 const arrows = {
   sub: '\u21e9',
   sup: '\u21e7',
-  sub_begin: '\u21d8',
-  sub_end: '\u21d9',
-  sup_begin: '\u21d7',
-  sup_end: '\u21d6',
+  bsub: '\u21d8',
+  esub: '\u21d9',
+  bsup: '\u21d7',
+  esup: '\u21d6',
   bold: '\u2759'
 }
 const no_hide_list = [' ', '\n', '\r', ...Object.values(arrows)]
@@ -67,10 +67,10 @@ function extract_ranges(doc: TextDocument)
           i++
         }
         break
-      case arrows.sup_begin:
-      case arrows.sub_begin:
-        const close = text[i] === arrows.sub_begin ? arrows.sub_end : arrows.sup_end
-        const script_ranges = text[i] === arrows.sub_begin ? sub_ranges : sup_ranges
+      case arrows.bsup:
+      case arrows.bsub:
+        const close = text[i] === arrows.bsub ? arrows.esub : arrows.bsup
+        const script_ranges = text[i] === arrows.bsub ? sub_ranges : sup_ranges
         const close_index = find_closing(close, text, i)
 
         if (close_index && close_index - i > 1) {
