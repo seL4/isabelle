@@ -98,30 +98,30 @@
   }
 
   function convert_symbol_with_effects(symbol) {
-  let result = "";
-  let i = 0;
-  while (i < symbol.length) {
-    const char = symbol[i];
-    if (char === "\u21e7") {
-      i++;
-      if (i < symbol.length) {
-        if (control_sup) result += control_sup + symbol[i];
-        else result += symbol[i];
+    let result = "";
+    let i = 0;
+    while (i < symbol.length) {
+      const char = symbol[i];
+      if (char === "\u21e7") {
+        i++;
+        if (i < symbol.length) {
+          if (control_sup) result += control_sup + symbol[i];
+          else result += symbol[i];
+        }
       }
-    }
-    else if (char === "\u21e9") {
-      i++;
-      if (i < symbol.length) {
-        if (control_sub) result += control_sub + symbol[i];
-        else result += symbol[i];
+      else if (char === "\u21e9") {
+        i++;
+        if (i < symbol.length) {
+          if (control_sub) result += control_sub + symbol[i];
+          else result += symbol[i];
+        }
       }
+      else {
+        result += char;
+      }
+      i++;
     }
-    else {
-      result += char;
-    }
-    i++;
-  }
-  return result;
+    return result;
 }
 
   function sanitize_symbol_for_insert(symbol) {
