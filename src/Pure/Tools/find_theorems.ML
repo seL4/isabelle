@@ -8,7 +8,8 @@ Retrieve theorems from proof context.
 signature FIND_THEOREMS =
 sig
   datatype 'term criterion =
-    Name of string | Intro | Elim | Dest | Solves | Simp of 'term | Pattern of 'term
+    Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+    Pattern of 'term | Inside of (string * thm list)
   type 'term query = {
     goal: thm option,
     limit: int option,
@@ -34,7 +35,8 @@ struct
 (** search criteria **)
 
 datatype 'term criterion =
-  Name of string | Intro | Elim | Dest | Solves | Simp of 'term | Pattern of 'term;
+  Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+  Pattern of 'term | Inside of (string * thm list);
 
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
@@ -42,6 +44,12 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (Proof_Context.read_term_pattern ctxt str)
+  | read_criterion ctxt (Inside (name, _)) =
+      Inside (name,
+              if name = "simp"
+              (* this is not fast, but we can't access the simpset net directly *)
+              then simpset_of ctxt |> Simplifier.dest_simps |> map #2
+              else Proof_Context.get_thms ctxt name)
   | read_criterion ctxt (Pattern str) = Pattern (Proof_Context.read_term_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
@@ -57,7 +65,8 @@ fun pretty_criterion ctxt (b, c) =
     | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
         Pretty.quote (Syntax.pretty_term ctxt (Term.show_dummy_patterns pat))]
     | Pattern pat => Pretty.enclose (prfx "\"") "\""
-        [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
+        [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)]
+    | Inside (name, _) => Pretty.str (prfx "inside: " ^ quote name))
   end;
 
 
@@ -220,6 +229,25 @@ fun filter_simp ctxt t (_, thm) =
   end;
 
 
+(* filter inside lists of theorems (or simpset) *)
+
+fun in_thms thm thms = exists (fn t => Thm.thm_ord (thm, t) |> is_equal) thms;
+
+fun filter_inside ctxt source thms (_, thm) =
+  let
+    (* simplifier does not store theorems verbatim, they are stored preprocessed
+       and potentially split *)
+    val match =
+      if source = "simp"
+      then List.all (fn t => in_thms t thms) (Simplifier.mksimps ctxt thm)
+      else in_thms thm thms
+  in
+      if match
+      then SOME (0, 0, 0)
+      else NONE
+  end;
+
+
 (* filter_pattern *)
 
 fun expand_abs t =
@@ -281,6 +309,7 @@ fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (Thm.prop_of goal))
   | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
+  | filter_crit ctxt _ (Inside (src, thms)) = apfst (filter_inside ctxt src thms)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
 fun opt_not x = if is_some x then NONE else SOME (0, 0, 0);
@@ -498,6 +527,9 @@ val criterion =
   Parse.reserved "dest" >> K Dest ||
   Parse.reserved "solves" >> K Solves ||
   Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Simp ||
+  Parse.reserved "inside"
+    (* initialisation of theorem list occurs in read_criterion *)
+    |-- Parse.!!! (Parse.$$$ ":" |-- (Parse.name >> (fn n => (n, [])))) >> Inside ||
   Parse.term >> Pattern;
 
 val query_keywords = Keyword.add_minor_keywords [":"] Keyword.empty_keywords;
