@@ -6,6 +6,11 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to Isabelle2025-1
 -------------------------------
 
+* October/November 2025: Jonas Stahl and Tobias Nipkow, TU München
+  Improved generation of step-counting time functions from HOL functions (now
+  in "HOL-Library.Time_Functions"): support for higher-order functions,
+  localized, added manual.
+
 * August 2025: Diana Korchmar and Balazs Toth, LMU München
   Initial design and implementation of various add-ons for Isabelle/VSCode:
   panels for Documentation, Isabelle Symbols, and Sledgehammer.
