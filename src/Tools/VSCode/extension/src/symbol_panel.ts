@@ -96,7 +96,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     const control_symbols: { [key: string]: string } = {};
     for (const symbol of control_group) {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        control_symbols[symbol.name] = String.fromCodePoint(symbol.code);
+        control_symbols[symbol.name] = symbol.decoded;
       }
     }
 
@@ -165,7 +165,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     const control_symbols: { [key: string]: string } = {};
     for (const symbol of control_group) {
       if (symbol.name === "sup" || symbol.name === "sub" || symbol.name === "bold") {
-        control_symbols[String.fromCodePoint(symbol.code)] = symbol.name;
+        control_symbols[symbol.decoded] = symbol.name;
       }
     }
 

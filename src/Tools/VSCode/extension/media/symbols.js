@@ -131,8 +131,8 @@
   function extract_control_symbols(symbol_groups) {
     if (!symbol_groups || !symbol_groups["control"]) return;
     symbol_groups["control"].forEach(symbol => {
-      if (symbol.name === "sup") control_sup = String.fromCodePoint(symbol.code);
-      if (symbol.name === "sub") control_sub = String.fromCodePoint(symbol.code);
+      if (symbol.name === "sup") control_sup = symbol.decoded;
+      if (symbol.name === "sub") control_sub = symbol.decoded;
     });
   }
 
