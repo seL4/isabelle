@@ -223,13 +223,7 @@
       if (index !== 0) group_content.classList.add("hidden");
 
       if (group === "control") {
-        const reset_button = document.createElement("button");
-        reset_button.classList.add("reset-button");
-        reset_button.textContent = "Reset";
-        reset_button.addEventListener("click", () => vscode.postMessage({ command: "reset_control" }));
-        group_content.appendChild(reset_button);
-
-        for (const action of ["sup", "sub", "bold"]) {
+        for (const action of ["bold", "sub", "sup"]) {
           const control_symbol = grouped_symbols[group].find(s => s.name === action);
           if (control_symbol) {
             const button = document.createElement("button");
@@ -242,6 +236,12 @@
             group_content.appendChild(button);
           }
         };
+
+        const reset_button = document.createElement("button");
+        reset_button.classList.add("reset-button");
+        reset_button.textContent = "Reset";
+        reset_button.addEventListener("click", () => vscode.postMessage({ command: "reset_control" }));
+        group_content.appendChild(reset_button);
       }
 
       grouped_symbols[group].forEach(symbol => {
