@@ -413,7 +413,7 @@ default implementation for "floor_sqrt".
 
 * Theory "HOL-Library.Divides" has been removed (finally).
 
-* Theory "HOL-Library.Time_Functions" provides infrastructure for
+* Theory "HOL-Library.Time_Commands" provides infrastructure for
 generating running time functions for HOL functions. The accompanying
 manual is in theory "HOL-Library.Time_Manual".
 
