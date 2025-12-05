@@ -116,3 +116,6 @@ export const control: Control = {
   bsup: symbols.get("\\<^bsup>"),
   esup: symbols.get("\\<^esup>")
 }
+
+export const control_render: Entry[] =
+  [control.sub, control.sup, control.bold]

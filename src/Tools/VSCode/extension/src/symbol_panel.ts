@@ -18,9 +18,6 @@ import { LanguageClient } from "vscode-languageclient/node";
 import * as fs from "fs";
 import * as symbol from './symbol'
 
-const controls: symbol.Entry[] =
-  [symbol.control.sub, symbol.control.sup, symbol.control.bold]
-
 class Symbols_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-symbols"
 
@@ -93,9 +90,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     if (!selected_text.trim() && !selection.isEmpty) return;
 
     const control_symbols: { [key: string]: string } = {};
-    for (const symbol of controls) {
-      control_symbols[symbol.name] = symbol.decoded;
-    }
+    symbol.control_render.forEach(symbol => control_symbols[symbol.name] = symbol.decoded);
 
     if (!control_symbols[action]) return;
     const control_symbol = control_symbols[action];
@@ -147,9 +142,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     if (!selected_text.trim() && !selection.isEmpty) return;
 
     const control_symbols: { [key: string]: string } = {};
-    for (const symbol of controls) {
-      control_symbols[symbol.decoded] = symbol.name;
-    }
+    symbol.control_render.forEach(symbol => control_symbols[symbol.decoded] = symbol.name);
 
     const all_control_symbols = Object.keys(control_symbols);
 
