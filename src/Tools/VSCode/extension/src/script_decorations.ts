@@ -14,7 +14,8 @@ const arrows = {
   sub_begin: '\u21d8',
   sub_end: '\u21d9',
   sup_begin: '\u21d7',
-  sup_end: '\u21d6'
+  sup_end: '\u21d6',
+  bold: '\u2759'
 }
 const no_hide_list = [' ', '\n', '\r', ...Object.values(arrows)]
 
@@ -51,15 +52,17 @@ function extract_ranges(doc: TextDocument)
   const hide_ranges: Range[] = []
   const sup_ranges: Range[] = []
   const sub_ranges: Range[] = []
+  const bold_ranges: Range[] = []
 
   for (let i = 0; i < text.length - 1; i++) {
     switch (text[i]) {
       case arrows.sup:
       case arrows.sub:
+      case arrows.bold:
         if (should_hide(text[i + 1])) {
           const pos_mid = doc.positionAt(i + 1)
           hide_ranges.push(new Range(doc.positionAt(i), pos_mid));
-          (text[i] === arrows.sub ? sub_ranges : sup_ranges)
+          (text[i] === arrows.sub ? sub_ranges : (text[i] === arrows.sup ? sup_ranges : bold_ranges))
             .push(new Range(pos_mid, doc.positionAt(i + 2)))
           i++
         }
@@ -86,7 +89,7 @@ function extract_ranges(doc: TextDocument)
     }
   }
 
-  return { hide_ranges: hide_ranges, superscript_ranges: sup_ranges, subscript_ranges: sub_ranges }
+  return { hide_ranges: hide_ranges, superscript_ranges: sup_ranges, subscript_ranges: sub_ranges, bold_ranges: bold_ranges }
 }
 
 export function register_script_decorations(context: ExtensionContext)
@@ -104,17 +107,22 @@ export function register_script_decorations(context: ExtensionContext)
     textDecoration: 'none; position: relative; bottom: -0.5em; font-size: 80%'
   })
 
+  const bold = window.createTextEditorDecorationType({
+    textDecoration: 'none; font-weight: bold'
+  })
+
   const set_editor_decorations = (editor: TextEditor, doc: TextDocument) =>
     {
-      const { hide_ranges: hideRanges, superscript_ranges: superscriptRanges, subscript_ranges: subscriptRanges } = extract_ranges(doc)
+      const { hide_ranges: hideRanges, superscript_ranges: superscriptRanges, subscript_ranges: subscriptRanges, bold_ranges: boldRanges } = extract_ranges(doc)
 
       editor.setDecorations(hide, hideRanges)
       editor.setDecorations(superscript, superscriptRanges)
       editor.setDecorations(subscript, subscriptRanges)
+      editor.setDecorations(bold, boldRanges)
     }
 
   context.subscriptions.push(
-    hide, superscript, subscript,
+    hide, superscript, subscript, bold,
 
     window.onDidChangeActiveTextEditor(editor =>
       {

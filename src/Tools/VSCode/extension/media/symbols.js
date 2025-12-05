@@ -4,6 +4,7 @@
   let all_abbrevs = [];
   let control_sup = "";
   let control_sub = "";
+  let control_bold = "";
 
   function symbol_tooltip(symbol) {
     const res = [symbol.symbol]
@@ -89,6 +90,10 @@
         i++;
         if (i < symbol.length) result += "<sub>" + symbol[i] + "</sub>";
       }
+      else if (char === "\u2759") {
+        i++;
+        if (i < symbol.length) result += "<b>" + symbol[i] + "</b>";
+      }
       else {
         result += char;
       }
@@ -116,6 +121,13 @@
           else result += symbol[i];
         }
       }
+      else if (char === "\u2759") {
+        i++;
+        if (i < symbol.length) {
+          if (control_bold) result += control_bold + symbol[i];
+          else result += symbol[i];
+        }
+      }
       else {
         result += char;
       }
@@ -133,6 +145,7 @@
     symbol_groups["control"].forEach(symbol => {
       if (symbol.name === "sup") control_sup = symbol.decoded;
       if (symbol.name === "sub") control_sub = symbol.decoded;
+      if (symbol.name === "bold") control_bold = symbol.decoded;
     });
   }
 
