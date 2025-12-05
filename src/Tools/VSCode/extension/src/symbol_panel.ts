@@ -15,7 +15,6 @@ import * as vscode_lib from "./vscode_lib"
 import * as path from "path"
 import * as lsp from "./lsp"
 import { LanguageClient } from "vscode-languageclient/node";
-import * as fs from "fs";
 import * as symbol from './symbol'
 
 class Symbols_Panel_Provider implements WebviewViewProvider {
@@ -102,7 +101,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
         let new_text = selected_text
           .split("")
           .map((char, index, arr) => {
-            const prevChar = index > 0 ? arr[index - 1] : null;
             if (char.trim() === "") return char;
             if (all_control_symbols.includes(char)) return "";
 
