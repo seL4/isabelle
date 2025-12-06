@@ -343,8 +343,8 @@ This compilation of Poly/ML (https://www.polyml.org) is based on the
 source distribution from
 https://github.com/polyml/polyml/commit/""" + polyml_version + """
 
-This coincides with the official release of Poly/ML 5.9.2, see also
-https://github.com/polyml/polyml/releases/tag/v5.9.2
+This is the official release of Poly/ML 5.9.2 with some later changes,
+see also https://github.com/polyml/polyml/commits/fixes-5.9.2
 
 The Isabelle repository provides an administrative tool "isabelle
 component_polyml", which can be used in the polyml component directory as
