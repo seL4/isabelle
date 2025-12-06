@@ -46,3 +46,28 @@ in
 end;
 
 end;
+
+structure IntInf =
+struct
+  open IntInf;
+
+  (*workaround for https://github.com/polyml/polyml/issues/243*)
+  (*see also https://github.com/polyml/polyml/commit/ed1ff06d7b53*)
+  local
+    val max_shift = Word.fromInt Word.wordSize;
+    val full_shift = pow (2, Word.wordSize);
+
+    fun shift_left (i: int, j: Word.word) =
+      if Word.< (j, max_shift)
+      then i * Word.toLargeInt (Word.<< (0w1, j))
+      else shift_left (i * full_shift, Word.- (j, max_shift));
+
+    fun shift_right (i: int, j: Word.word) =
+      if RunCall.isShort i
+      then Word.toLargeIntX (Word.~>> (Word.fromLargeInt i, j))
+      else LargeInt.div (i, pow (2, Word.toInt j));
+  in
+    val op << = shift_left;
+    val op ~>> = shift_right;
+  end
+end;
