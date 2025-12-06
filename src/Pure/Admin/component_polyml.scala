@@ -215,7 +215,7 @@ object Component_PolyML {
   val default_gmp_url = "https://gmplib.org/download/gmp/gmp-6.3.0.tar.bz2"
 
   val default_polyml_url = "https://github.com/polyml/polyml/archive"
-  val default_polyml_version = "455755407707"
+  val default_polyml_version = "ccd3e3717f72"
   val default_polyml_name = "polyml-5.9.2"
 
   val default_sha1_url = "https://files.sketis.net/sha1/archive"
