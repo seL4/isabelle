@@ -17,12 +17,14 @@ object Component_PolyML {
       if (platform.is_linux) {
         Platform_Info(
           platform = platform,
+          gmp_options = List("CFLAGS=-std=gnu11"),
           options = List("LDFLAGS=-Wl,-rpath,_DUMMY_"),
           libs = Set("libgmp"))
       }
       else if (platform.is_macos) {
         Platform_Info(
           platform = platform,
+          gmp_options = List("CFLAGS=-std=gnu17"),
           options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
           setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
           libs = Set("libpolyml", "libgmp"))
@@ -30,6 +32,7 @@ object Component_PolyML {
       else if (platform.is_windows) {
         Platform_Info(
           platform = platform,
+          gmp_options = List("CFLAGS=-std=gnu17"),
           options =
             List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
           setup = MinGW.env_prefix,
@@ -40,6 +43,7 @@ object Component_PolyML {
 
   sealed case class Platform_Info(
     platform: Isabelle_Platform = Isabelle_Platform.local,
+    gmp_options: List[String] = Nil,
     options: List[String] = Nil,
     setup: String = "",
     libs: Set[String] = Set.empty
@@ -58,6 +62,7 @@ object Component_PolyML {
   ): Path = {
     val progress = platform_context.progress
     val platform = platform_context.isabelle_platform
+    val platform_info = Platform_Info(platform)
 
     val platform_arch = if (platform.is_arm) "aarch64" else "x86_64"
     val platform_os =
@@ -76,8 +81,8 @@ object Component_PolyML {
         "[ -f Makefile ] && make distclean",
         "./configure --disable-static --enable-shared --enable-cxx" +
           " --build=" + platform_arch + "-" + platform_os +
-          """ --prefix="$PWD/target" """ + Bash.strings(options) +
-          """CFLAGS="-std=gnu11" """,
+          """ --prefix="$PWD/target" """ +
+          Bash.strings(platform_info.gmp_options ::: options),
         "rm -rf target",
         "make",
         "make check",
