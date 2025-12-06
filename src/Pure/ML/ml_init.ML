@@ -66,8 +66,21 @@ struct
       if RunCall.isShort i
       then Word.toLargeIntX (Word.~>> (Word.fromLargeInt i, j))
       else LargeInt.div (i, pow (2, Word.toInt j));
+
+    type args = {x: int, y: Word.word, z: int, z': int};
   in
-    val op << = shift_left;
-    val op ~>> = shift_right;
-  end
+    exception Shift_Left of args;
+    fun op << (x, y) =
+      let
+        val z = shift_left (x, y);
+        val z' = IntInf.<< (x, y);
+      in if z = z' then z else raise Shift_Left {x = x, y = y, z = z, z' = z'} end;
+
+    exception Shift_Right of args;
+    fun op ~>> (x, y) =
+      let
+        val z = shift_right (x, y);
+        val z' = IntInf.~>> (x, y);
+      in if z = z' then z else raise Shift_Right {x = x, y = y, z = z, z' = z'} end;
+  end;
 end;
