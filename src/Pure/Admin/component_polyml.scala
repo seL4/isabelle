@@ -139,9 +139,9 @@ object Component_PolyML {
     val gmp_setup =
       gmp_root match {
         case Some(dir) =>
-          val v = Executable.library_path_variable(platform)
-          val s = platform_context.standard_path(dir.absolute) + "/lib"
-          "export " + v + "=" + quote(s + ":" + "$" + v)
+          val (x, y) = Executable.library_path(platform)
+          val z = platform_context.standard_path(dir.absolute) + "/" + y
+          "export " + x + "=" + quote(z + ":" + "$" + x)
         case None => ""
       }
 
@@ -356,7 +356,7 @@ follows:
 
 * Windows (Cygwin shell)
 
-  $ isabelle component_polyml -M /cygdrive/c/msys64
+  $ isabelle component_polyml -M /cygdrive/c/msys64 -g /cygdrive/c/msys64/ucrt64
 
 
         Makarius

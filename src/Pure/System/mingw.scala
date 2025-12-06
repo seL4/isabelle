@@ -9,7 +9,13 @@ package isabelle
 
 object MinGW {
   def env_prefix: String =
-    Bash.exports("PATH=/usr/bin:/ucrt64/bin", "CONFIG_SITE=/ucrt64/etc/config.site")
+    Bash.exports(
+      "PATH=/ucrt64/bin:/usr/local/bin:/usr/bin:/bin",
+      "PKG_CONFIG_PATH=/ucrt64/lib/pkgconfig:/ucrt64/share/pkgconfig",
+      "PKG_CONFIG_SYSTEM_INCLUDE_PATH=/ucrt64/include",
+      "PKG_CONFIG_SYSTEM_LIBRARY_PATH=/ucrt64/lib",
+      "CONFIG_SITE=/etc/config.site",
+      "MSYSTEM=UCRT64") + "source /etc/msystem\n"
 
   val none: MinGW = new MinGW(None)
   def apply(path: Path) = new MinGW(Some(path))

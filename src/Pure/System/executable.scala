@@ -8,11 +8,18 @@ package isabelle
 
 
 object Executable {
-  def library_path_variable(platform: Isabelle_Platform): String =
-    if (platform.is_linux) "LD_LIBRARY_PATH"
-    else if (platform.is_macos) "DYLD_LIBRARY_PATH"
-    else if (platform.is_windows) "PATH"
-    else error("Bad platform " + platform)
+  def library_path(platform: Isabelle_Platform): (String, String) = {
+    val x =
+      if (platform.is_linux) "LD_LIBRARY_PATH"
+      else if (platform.is_macos) "DYLD_LIBRARY_PATH"
+      else if (platform.is_windows) "PATH"
+      else error("Bad platform " + platform)
+    val y =
+      if (platform.is_linux || platform.is_macos) "lib"
+      else if (platform.is_windows) "bin"
+      else error("Bad platform " + platform)
+    (x, y)
+  }
 
   def library_closure(path: Path,
     env_prefix: String = "",
