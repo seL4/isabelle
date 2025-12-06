@@ -77,7 +77,7 @@ object Component_PolyML {
         "./configure --disable-static --enable-shared --enable-cxx" +
           " --build=" + platform_arch + "-" + platform_os +
           """ --prefix="$PWD/target" """ + Bash.strings(options) +
-          """CFLAGS="-std=gnu17" """,
+          """CFLAGS="-std=gnu11" """,
         "rm -rf target",
         "make",
         "make check",
