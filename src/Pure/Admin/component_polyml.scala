@@ -362,7 +362,7 @@ follows:
 
 * Windows (Cygwin shell)
 
-  $ isabelle component_polyml -M /cygdrive/c/msys64 -g /cygdrive/c/msys64/ucrt64
+  $ isabelle component_polyml -M /cygdrive/c/msys64
 
 
         Makarius
