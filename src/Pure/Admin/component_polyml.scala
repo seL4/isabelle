@@ -76,7 +76,8 @@ object Component_PolyML {
         "[ -f Makefile ] && make distclean",
         "./configure --disable-static --enable-shared --enable-cxx" +
           " --build=" + platform_arch + "-" + platform_os +
-          """ --prefix="$PWD/target" """ + Bash.strings(options),
+          """ --prefix="$PWD/target" """ + Bash.strings(options) +
+          """CFLAGS="-std=gnu17" """,
         "rm -rf target",
         "make",
         "make check",
