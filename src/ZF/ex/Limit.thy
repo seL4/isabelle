@@ -487,11 +487,9 @@ lemma matrix_chainI:
       and cpoD:  "cpo(D)"
   shows "matrix(D,M)"
 proof -
-  {
-    fix n m assume "n \<in> nat" "m \<in> nat"
-    with chain_rel [OF yprem]
-    have "rel(D, M ` n ` m, M ` succ(n) ` m)" by simp
-  } note rel_succ = this
+  have rel_succ: "rel(D, M ` n ` m, M ` succ(n) ` m)"
+    if "n \<in> nat" "m \<in> nat" for n m
+    using chain_rel [OF yprem] and that by simp
   show "matrix(D,M)"
   proof (simp add: matrix_def Mfun rel_succ, intro conjI ballI)
     fix n m assume n: "n \<in> nat" and m: "m \<in> nat"
