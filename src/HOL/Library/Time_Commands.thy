@@ -4,6 +4,7 @@ Author: Jonas Stahl
 Automatic definition of step-counting running-time functions from HOL functions
 following the translation described in Section 1.5, Running Time, of the book
 Functional Data Structures and Algorithms. A Proof Assistant Approach. https://fdsa-book.net
+Published by ACM Books.
 *)
 
 theory Time_Commands
@@ -16,8 +17,7 @@ theory Time_Commands
     and    "time_fun_0" :: thy_decl
 begin
 
-ML_file Time_Commands_0.ML
-ML_file Time_Commands.ML
+ML_file time_commands.ML
 
 declare [[time_prefix = "T_"]]
 

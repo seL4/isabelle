@@ -8,7 +8,7 @@ section \<open>Introduction\<close>
 
 text \<open>This manual describes the framework for the automatic definition of step-counting
 `running-time' functions from HOL functions. The principles of the translation are described
-in Section 1.5, Running Time, of the book
+in Section 1.5, Running Time, of the ACM book
   Functional Data Structures and Algorithms. A Proof Assistant Approach.
   \<^url>\<open>https://fdsa-book.net\<close>
 To load the framework import \<^theory>\<open>HOL-Library.Time_Commands\<close>
@@ -66,7 +66,7 @@ defined in theory \<open>HOL-Library.Time_Functions\<close> and basic upper boun
 section \<open>Termination\<close>
 
 text \<open>If the definition of a recursive function requires a manual termination proof,
-use \<open>time_function\<close> accompanied by a \<open>termination\<close> command.\<close>
+and you have performed that proof,\<close>
 
 function sum_to :: "int \<Rightarrow> int \<Rightarrow> int" where
   "sum_to i j = (if j \<le> i then 0 else i + sum_to (i+1) j)"
@@ -74,26 +74,29 @@ by pat_completeness auto
 termination
   by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
 
-time_function sum_to
+text \<open>then you can use \<open>time_fun\<close>:\<close>
+
+time_fun sum_to
+
+text \<open>In case \<open>time_fun\<close> takes forever or fails (this can happen with large definitions)
+simply use \<open>time_function\<close> instead, followed by an explicit termination proof:\<close>
+
+function sum_to2 :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "sum_to2 i j = (if j \<le> i then 0 else i + sum_to2 (i+1) j)"
+by pat_completeness auto
 termination
   by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
+
+time_function sum_to2
+termination
+  by (relation "measure (\<lambda>(i,j). nat(j - i))") auto
+
+text \<open>The termination proof should be the same as for the original function.\<close>
 
 
 section \<open>Partial Functions\<close>
 
 text \<open>Partial functions can also be `timed'.\<close>
-
-(* Partial functions defined with \<open>function\<close> can currently not be timed:
-function pos1 :: "int \<Rightarrow> bool" where
-"pos1 i = (if i = 1 then True else pos1 (i-1))"
-by auto
-
-time_function pos1
-
-function T_pos1 :: "int \<Rightarrow> nat" where
-"T_pos1 i = (if i = 1 then 1 else T_pos1 (i-1) + 1)"
-by auto
-*)
 
 partial_function (tailrec) positive :: "int \<Rightarrow> bool" where
 "positive i = (if i = 1 then True else positive (i-1))"
@@ -155,32 +158,24 @@ In case you wonder how it is ensured that \<open>T_foldl\<close> is always passe
 of a function and its timing function: this is the responsibility of the time framework
 when translating functions that use \<open>foldl\<close>. Example:\<close>
 
-definition inc :: "int \<Rightarrow> 'a \<Rightarrow> int" where "inc i x = i+1"
-definition "len2 xs = foldl inc 0 xs"
-time_definition inc
+definition len2 :: "'a list \<Rightarrow> int" where "len2 xs = foldl (\<lambda>i x. i+1) 0 xs"
 time_definition len2
 
-text \<open>In the defining equation \<open>T_len2 xs = T_foldl (inc, T_inc) 0 xs\<close>
-we find the correct pair \<open>(inc, T_inc)\<close>.\<close>
+text \<open>In the defining equation \<open>T_len2 xs = T_foldl (\<lambda>i x. i + 1, \<lambda>i x. 0) 0 xs\<close>
+we find that \<open>T_foldl\<close> is passed a pair \<open>(T_f, f)\<close>.\<close>
 
 
 subsection \<open>Limitations\<close>
 
-text\<open>Partial application and lambda-abstraction are currently not supported.
-They need to be replaced by additional function definitions, if possible. For example,\<close>
+text\<open>Partial application is not supported. If possible, supply additional arguments. For example,\<close>
 
-definition fHO :: "bool list \<Rightarrow> bool list" where \<open>fHO = map (\<lambda>x. x \<and> x)\<close>
+definition fHO :: "int list \<Rightarrow> int list" where \<open>fHO = map (\<lambda>i. 2*i)\<close>
 
 text \<open>is not acceptable (i.e. \<open>time_definition fHO\<close> fails), but can be replaced with\<close>
 
-definition double :: "int \<Rightarrow> int" where \<open>double i = 2 * i\<close>
-definition fHO' :: "int list \<Rightarrow> int list" where \<open>fHO' xs = map double xs\<close>
+definition fHO' :: "int list \<Rightarrow> int list" where \<open>fHO' xs = map (\<lambda>i. 2*i) xs\<close>
 
-time_definition double
 time_definition fHO'
-
-text \<open>That is why in the definition of \<open>len2\<close> above we could not just write
-\<open>foldl (\<lambda>i x. i+1) 0 xs\<close>.\<close>
 
 
 section \<open>Predefined Functions\<close>

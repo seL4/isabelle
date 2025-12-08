@@ -1,3 +1,48 @@
+(* Author: Jonas Stahl *)
+
+signature ZERO_FUNCS =
+sig
+
+val is_zero : theory -> string * typ -> bool
+
+end
+
+structure Zero_Funcs : ZERO_FUNCS =
+struct
+
+fun get_constrs thy (Type (n, _)) = these (Ctr_Sugar.ctr_sugar_of_global thy n |> Option.map #ctrs)
+  | get_constrs _ _ = []
+(* returns if something is a constructor (found in smt_normalize.ML) *)
+fun is_constr thy (n, T) =
+    let fun match (Const (m, U)) = m = n andalso Sign.typ_instance thy (T, U)
+          | match _ = error "Internal error: unknown constructor"
+    in can (the o find_first match o get_constrs thy o Term.body_type) T end
+
+
+structure ZeroFuns = Theory_Data(
+  type T = Symtab.set
+  val empty = Symtab.empty
+  val merge = Symtab.merge (K true));
+
+fun add_zero f = ZeroFuns.map (Symtab.insert_set f);
+fun is_zero_decl lthy f = Option.isSome ((Symtab.lookup o ZeroFuns.get) lthy f);
+(* Zero should be everything which is a constructor or something like a constant or variable *)
+fun is_zero ctxt (n, (T as Type (Tn,_))) = (Tn <> "fun" orelse is_constr ctxt (n, T) orelse is_zero_decl ctxt n)
+  | is_zero _ _  = false
+
+fun save func thy =
+let
+val fterm = Syntax.read_term (Proof_Context.init_global thy) func;
+val name = (case fterm of Const (n,_) => n | _ => raise Fail "Invalid function")
+val _ = writeln ("Adding \"" ^ name ^ "\" to 0 functions")
+in add_zero name thy
+end
+
+val _ =
+  Outer_Syntax.command \<^command_keyword>\<open>time_fun_0\<close> "ML setup for global theory"
+    (Parse.prop >> (Toplevel.theory o save));
+
+end
 
 signature TIMING_FUNCTIONS =
 sig
@@ -242,10 +287,12 @@ fun check_definition [t] = [t]
   | check_definition _ = error "Only a single definition is allowed"
 fun get_terms theory (term: term) =
 let
-  val equations = Spec_Rules.retrieve theory term
-      |> map #rules
-      |> map (map Thm.prop_of)
-   handle Empty => error "Function or terms of function not found"
+  val equations = [#input_eqns (Function.get_info theory term)]
+    handle Empty =>
+      Spec_Rules.retrieve theory term
+        |> map #rules
+        |> map (map Thm.prop_of)
+    handle Empty => error "Function or terms of function not found"
 in
   equations
     |> map (map fix_definition)
@@ -710,7 +757,8 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       val l_typs = l_typs' 0 types
       val lhs =
         List.foldl (fn ((v,T),t) => t $ Free (v,T)) (Free (red_name,l_typs ---> HOLogic.natT)) (ListPair.zip (vars,l_typs))
-      fun fixType (TFree _) = HOLogic.natT
+      fun fixType (TFree _) = HOLogic.unitT
+        | fixType (Type (n,ts)) = Type (n, map fixType ts)
         | fixType T = T
       fun fixUnspecified T = T |> strip_type ||> fixType |> (op --->)
       fun r_terms' i (v::vars) ((T as (Type ("fun",_)))::types) =
@@ -751,7 +799,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       (* Show where a simplification can take place *)
         fun reportReductions (t,(i::is)) =
         (Pretty.writeln (Pretty.str
-          ((Term.term_name t |> fun_name_to_time ctxt true)
+          ((Term.term_name t |> fun_name_to_time' ctxt false true)
             ^ " can be simplified because only the time-function component of parameter "
             ^ (Int.toString (i + 1)) ^ " is used. "));
             reportReductions (t,is))
@@ -935,9 +983,11 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
 
     val (info,ctxt) = 
       register false
-        handle (ERROR _) =>
+        handle ERROR _ =>
           register true
              | Match =>
+          register true
+             | THM _ =>
           register true
 
     val ctxt = if simpable then calculateSimplifications ctxt T_terms term simpables else ctxt
