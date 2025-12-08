@@ -29,13 +29,14 @@ proof
   finally show "{x\<in>space M. P x} \<in> sets M" .
 next
   assume P: "{x\<in>space M. P x} \<in> sets M"
-  moreover
-  { fix X
+  moreover have "P -` X \<inter> space M \<in> sets M" for X
+  proof -
     have "X \<in> Pow (UNIV :: bool set)" by simp
     then have "P -` X \<inter> space M = {x\<in>space M. ((X = {True} \<longrightarrow> P x) \<and> (X = {False} \<longrightarrow> \<not> P x) \<and> X \<noteq> {})}"
       unfolding UNIV_bool Pow_insert Pow_empty by auto
-    then have "P -` X \<inter> space M \<in> sets M"
-      by (auto intro!: sets.sets_Collect_neg sets.sets_Collect_imp sets.sets_Collect_conj sets.sets_Collect_const P) }
+    then show ?thesis
+      by (auto intro!: sets.sets_Collect_neg sets.sets_Collect_imp sets.sets_Collect_conj sets.sets_Collect_const P)
+  qed
   then show "pred M P"
     by (auto simp: measurable_def)
 qed

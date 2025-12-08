@@ -650,20 +650,23 @@ lemma finite_range_constant_imp_connected:
               \<lbrakk>continuous_on S f; finite(f ` S)\<rbrakk> \<Longrightarrow> f constant_on S"
   shows "connected S"
 proof -
-  { fix T U
-    assume clt: "closedin (top_of_set S) T"
-       and clu: "closedin (top_of_set S) U"
-       and tue: "T \<inter> U = {}" and tus: "T \<union> U = S"
+  have "T = {} \<or> U = {}"
+    if clt: "closedin (top_of_set S) T"
+    and clu: "closedin (top_of_set S) U"
+    and tue: "T \<inter> U = {}"
+    and tus: "T \<union> U = S"
+    for T U
+  proof -
     have "continuous_on (T \<union> U) (\<lambda>x. if x \<in> T then 0 else 1)"
       using clt clu tue by (intro continuous_on_cases_local) (auto simp: tus)
     then have conif: "continuous_on S (\<lambda>x. if x \<in> T then 0 else 1)"
       using tus by blast
     have fi: "finite ((\<lambda>x. if x \<in> T then 0 else 1) ` S)"
       by (rule finite_subset [of _ "{0,1}"]) auto
-    have "T = {} \<or> U = {}"
+    show ?thesis
       using assms [OF conif fi] tus [symmetric]
       by (auto simp: Ball_def constant_on_def) (metis IntI empty_iff one_neq_zero tue)
-  }
+  qed
   then show ?thesis
     by (simp add: connected_closedin_eq)
 qed
