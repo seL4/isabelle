@@ -854,7 +854,9 @@ proposition indicator_measurable_on:
   assumes "S \<in> sets lebesgue"
   shows "indicat_real S measurable_on UNIV"
 proof -
-  { fix n::nat
+  have "\<exists>g E. continuous_on UNIV g \<and> (\<forall>x \<in> -E. g x = indicat_real S x) \<and>
+          (\<forall>x. norm(g x) \<le> 1) \<and> E \<in> sets lebesgue \<and> emeasure lebesgue E < ennreal (1 / 2^n)" for n
+  proof -
     let ?\<epsilon> = "(1::real) / (2 * 2^n)"
     have \<epsilon>: "?\<epsilon> > 0"
       by auto
@@ -884,12 +886,11 @@ proof -
       using \<open>closed T\<close> \<open>open U\<close> by auto
     obtain g where "continuous_on UNIV g" "\<And>x. x \<in> T \<union> -U \<Longrightarrow> g x = indicat_real S x" "\<And>x. norm(g x) \<le> 1"
       by (rule Tietze [OF 1 2, of 1]) auto
-    with le have "\<exists>g E. continuous_on UNIV g \<and> (\<forall>x \<in> -E. g x = indicat_real S x) \<and>
-                        (\<forall>x. norm(g x) \<le> 1) \<and> E \<in> sets lebesgue \<and> emeasure lebesgue E < ennreal (1 / 2^n)"
+    with le show ?thesis
       apply (rule_tac x=g in exI)
       apply (rule_tac x="-T \<inter> U" in exI)
       using \<open>S - T \<in> lmeasurable\<close> \<open>U - S \<in> lmeasurable\<close> eq by auto
-  }
+  qed
   then obtain g E where cont: "\<And>n. continuous_on UNIV (g n)"
     and geq: "\<And>n x. x \<in> - E n \<Longrightarrow> g n x = indicat_real S x"
     and ng1: "\<And>n x. norm(g n x) \<le> 1"
@@ -1205,15 +1206,17 @@ proof -
   proof (intro monoI le_funI)
     fix m n :: nat and x assume "m \<le> n"
     moreover
-    { fix d :: nat
+    have "f m x \<le> f(m + d) x" for d :: nat
+    proof -
       have "\<lfloor>2^d::real\<rfloor> * \<lfloor>2^m * (min (of_nat m) (u x))\<rfloor> \<le> \<lfloor>2^d * (2^m * (min (of_nat m) (u x)))\<rfloor>"
         by (rule le_mult_floor) (auto simp: nn)
       also have "\<dots> \<le> \<lfloor>2^d * (2^m *  (min (of_nat d + of_nat m) (u x)))\<rfloor>"
         by (intro floor_mono mult_mono min.mono)
            (auto simp: nn min_less_iff_disj of_nat_less_top)
-      finally have "f m x \<le> f(m + d) x"
+      finally show ?thesis
         unfolding f_def
-        by (auto simp: field_simps power_add * simp del: of_int_mult) }
+        by (auto simp: field_simps power_add * simp del: of_int_mult)
+    qed
     ultimately show "f m x \<le> f n x"
       by (auto simp: le_iff_add)
   qed
@@ -1232,30 +1235,29 @@ proof -
       unfolding f_def enn2real_def by measurable
   qed
   moreover
-  { fix x
-    have "(SUP i. (f i x)) = u x"
-    proof -
-      obtain n where "u x \<le> of_nat n" using real_arch_simple by auto
-      then have min_eq_r: "\<forall>\<^sub>F i in sequentially. min (real i) (u x) = u x"
-        by (auto simp: eventually_sequentially intro!: exI[of _ n] split: split_min)
-      have "(\<lambda>i. real_of_int \<lfloor>min (real i) (u x) * 2^i\<rfloor> / 2^i) \<longlonglongrightarrow> u x"
-      proof (rule tendsto_sandwich)
-        show "(\<lambda>n. u x - (1/2)^n) \<longlonglongrightarrow> u x"
-          by (auto intro!: tendsto_eq_intros LIMSEQ_power_zero)
-        show "\<forall>\<^sub>F n in sequentially. real_of_int \<lfloor>min (real n) (u x) * 2 ^ n\<rfloor> / 2 ^ n \<le> u x"
-          using min_eq_r by eventually_elim (auto simp: field_simps)
-        have *: "u x * (2 ^ n * 2 ^ n) \<le> 2^n + 2^n * real_of_int \<lfloor>u x * 2 ^ n\<rfloor>" for n
-          using real_of_int_floor_ge_diff_one[of "u x * 2^n", THEN mult_left_mono, of "2^n"]
-          by (auto simp: field_simps)
-        show "\<forall>\<^sub>F n in sequentially. u x - (1/2)^n \<le> real_of_int \<lfloor>min (real n) (u x) * 2 ^ n\<rfloor> / 2 ^ n"
-          using min_eq_r by eventually_elim (insert *, auto simp: field_simps)
-      qed auto
-      then have "(\<lambda>i. (f i x)) \<longlonglongrightarrow> u x"
-        by (simp add: f_def)
-      from LIMSEQ_unique LIMSEQ_incseq_SUP [OF bdd inc_f] this
-      show ?thesis
-        by blast
-    qed }
+  have "(SUP i. (f i x)) = u x" for x
+  proof -
+    obtain n where "u x \<le> of_nat n" using real_arch_simple by auto
+    then have min_eq_r: "\<forall>\<^sub>F i in sequentially. min (real i) (u x) = u x"
+      by (auto simp: eventually_sequentially intro!: exI[of _ n] split: split_min)
+    have "(\<lambda>i. real_of_int \<lfloor>min (real i) (u x) * 2^i\<rfloor> / 2^i) \<longlonglongrightarrow> u x"
+    proof (rule tendsto_sandwich)
+      show "(\<lambda>n. u x - (1/2)^n) \<longlonglongrightarrow> u x"
+        by (auto intro!: tendsto_eq_intros LIMSEQ_power_zero)
+      show "\<forall>\<^sub>F n in sequentially. real_of_int \<lfloor>min (real n) (u x) * 2 ^ n\<rfloor> / 2 ^ n \<le> u x"
+        using min_eq_r by eventually_elim (auto simp: field_simps)
+      have *: "u x * (2 ^ n * 2 ^ n) \<le> 2^n + 2^n * real_of_int \<lfloor>u x * 2 ^ n\<rfloor>" for n
+        using real_of_int_floor_ge_diff_one[of "u x * 2^n", THEN mult_left_mono, of "2^n"]
+        by (auto simp: field_simps)
+      show "\<forall>\<^sub>F n in sequentially. u x - (1/2)^n \<le> real_of_int \<lfloor>min (real n) (u x) * 2 ^ n\<rfloor> / 2 ^ n"
+        using min_eq_r by eventually_elim (insert *, auto simp: field_simps)
+    qed auto
+    then have "(\<lambda>i. (f i x)) \<longlonglongrightarrow> u x"
+      by (simp add: f_def)
+    from LIMSEQ_unique LIMSEQ_incseq_SUP [OF bdd inc_f] this
+    show ?thesis
+      by blast
+  qed
   ultimately show ?thesis
     by (intro exI [of _ "\<lambda>i x. f i x"]) (auto simp: \<open>incseq f\<close> bdd image_comp)
 qed

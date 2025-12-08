@@ -71,15 +71,16 @@ proof -
       proof -
         obtain ny where ny: "g y = h y + 2* of_int ny*pi"
           using \<open>y \<in> S \<inter> T\<close> diffpi by blast
-        { assume "nx \<noteq> ny"
-          then have "1 \<le> \<bar>real_of_int ny - real_of_int nx\<bar>"
+        have "2*pi \<le> \<bar>2*real_of_int ny*pi - 2*real_of_int nx*pi\<bar>" if "nx \<noteq> ny"
+        proof - 
+          from that have "1 \<le> \<bar>real_of_int ny - real_of_int nx\<bar>"
             by linarith
           then have "(2*pi)*1 \<le> (2*pi)*\<bar>real_of_int ny - real_of_int nx\<bar>"
             by simp
           also have "... = \<bar>2*real_of_int ny*pi - 2*real_of_int nx*pi\<bar>"
             by (simp add: algebra_simps abs_if)
-          finally have "2*pi \<le> \<bar>2*real_of_int ny*pi - 2*real_of_int nx*pi\<bar>" by simp
-        }
+          finally show ?thesis by simp
+        qed
         with neq show ?thesis
           by (simp add: nx ny)
       qed

@@ -1450,15 +1450,15 @@ lemma Re_Ln_pos_le:
   assumes "z \<noteq> 0"
   shows "\<bar>Im(Ln z)\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(z)"
 proof -
-  { fix w
-    assume "w = Ln z"
-    then have w: "Im w \<le> pi" "- pi < Im w"
+  have "\<bar>Im w\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)" if "w = Ln z" for w
+  proof -
+    from that have w: "Im w \<le> pi" "- pi < Im w"
       using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
       by auto
-    then have "\<bar>Im w\<bar> \<le> pi/2 \<longleftrightarrow> 0 \<le> Re(exp w)"
+    then show ?thesis
       using cos_lt_zero_pi [of "- (Im w)"] cos_lt_zero_pi [of "(Im w)"] not_le
       by (auto simp: Re_exp zero_le_mult_iff abs_if intro: cos_ge_zero)
-  }
+  qed
   then show ?thesis using assms
     by auto
 qed
@@ -1471,16 +1471,17 @@ lemma Re_Ln_pos_lt:
 
 lemma Im_Ln_pos_le:
   assumes "z \<noteq> 0"
-    shows "0 \<le> Im(Ln z) \<and> Im(Ln z) \<le> pi \<longleftrightarrow> 0 \<le> Im(z)"
+  shows "0 \<le> Im(Ln z) \<and> Im(Ln z) \<le> pi \<longleftrightarrow> 0 \<le> Im(z)"
 proof -
-  { fix w
-    assume "w = Ln z"
-    then have w: "Im w \<le> pi" "- pi < Im w"
+  have "0 \<le> Im w \<and> Im w \<le> pi \<longleftrightarrow> 0 \<le> Im(exp w)" if "w = Ln z" for w
+  proof -
+    from that have w: "Im w \<le> pi" "- pi < Im w"
       using Im_Ln_le_pi [of z]  mpi_less_Im_Ln [of z]  assms
       by auto
-    then have "0 \<le> Im w \<and> Im w \<le> pi \<longleftrightarrow> 0 \<le> Im(exp w)"
+    then show ?thesis
       using sin_ge_zero [of "- (Im w)"] sin_ge_zero [of "abs(Im w)"] sin_zero_pi_iff [of "Im w"]
-      by (force simp: Im_exp zero_le_mult_iff sin_ge_zero) }
+      by (force simp: Im_exp zero_le_mult_iff sin_ge_zero)
+  qed
   then show ?thesis using assms
     by auto
 qed
@@ -2355,13 +2356,13 @@ next
     ultimately
     obtain d where d: "d>0" "\<And>x. x \<noteq> z \<Longrightarrow> cmod (x - z) < d \<Longrightarrow> \<bar>Im (Ln x)\<bar> < e"
       by (auto simp: continuous_within Lim_within dist_norm)
-    { fix x
-      assume "cmod (x - z) < Re z / 2"
-      then have "\<bar>Re x - Re z\<bar> < Re z / 2"
+    have "0 < Re x" if "cmod (x - z) < Re z / 2" for x
+    proof -
+      from that have "\<bar>Re x - Re z\<bar> < Re z / 2"
         by (metis le_less_trans abs_Re_le_cmod minus_complex.simps(1))
-      then have "0 < Re x"
+      then show ?thesis
         using z by linarith
-    }
+    qed
     then show "\<exists>d>0. \<forall>x. 0 \<le> Im x \<longrightarrow> x \<noteq> z \<and> cmod (x - z) < d \<longrightarrow> \<bar>Arg2pi x\<bar> < e"
       apply (rule_tac x="min d (Re z / 2)" in exI)
       using z d by (auto simp: Arg2pi_eq_Im_Ln)
