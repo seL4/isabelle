@@ -498,9 +498,9 @@ text \<open>
     @{command_def "moreover"} & : & \<open>proof(state) \<rightarrow> proof(state)\<close> \\
     @{command_def "ultimately"} & : & \<open>proof(state) \<rightarrow> proof(chain)\<close> \\
     @{command_def "print_trans_rules"}\<open>\<^sup>*\<close> & : & \<open>context \<rightarrow>\<close> \\
-    @{attribute trans} & : & \<open>attribute\<close> \\
-    @{attribute sym} & : & \<open>attribute\<close> \\
-    @{attribute symmetric} & : & \<open>attribute\<close> \\
+    @{attribute_def trans} & : & \<open>attribute\<close> \\
+    @{attribute_def sym} & : & \<open>attribute\<close> \\
+    @{attribute_def symmetric} & : & \<open>attribute\<close> \\
   \end{matharray}
 
   Calculational proof is forward reasoning with implicit application of
