@@ -23,7 +23,7 @@ qualified definition computations where
     [unset_bit 13 473514, unset_bit 12 (- 805167) :: integer],
     [flip_bit 15 473514, flip_bit 12 (- 805167) :: integer],
     [push_bit 12 473514, push_bit 12 (- 805167) :: integer],
-    [drop_bit 12 473514, drop_bit 12 (- 805167) :: integer],
+    [drop_bit 12 473514, drop_bit 12 (- 805167) :: integer, drop_bit 5 (- 0x7ffffff0 :: integer)],
     [take_bit 12 473514, take_bit 12 (- 805167) :: integer],
     [signed_take_bit 12 473514, signed_take_bit 12 (- 805167) :: integer]
   )\<close>
@@ -40,7 +40,7 @@ qualified definition results where
     [465322, - 809263 :: integer],
     [506282, - 809263 :: integer],
     [1939513344, - 3297964032 :: integer],
-    [115, - 197 :: integer],
+    [115, - 197, - 0x4000000 :: integer],
     [2474, 1745 :: integer],
     [- 1622, - 2351 :: integer]
   )\<close>
