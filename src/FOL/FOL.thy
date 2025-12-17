@@ -151,13 +151,11 @@ proof (rule ex1E)
   assume \<open>P(x)\<close>
   then show \<open>R\<close>
   proof (rule r)
-    {
-      fix y y'
-      assume \<open>P(y)\<close> and \<open>P(y')\<close>
-      with * have \<open>x = y\<close> and \<open>x = y'\<close>
-        by - (tactic "IntPr.fast_tac \<^context> 1")+
-      then have \<open>y = y'\<close> by (rule subst)
-    } note r' = this
+    have r': \<open>y = y'\<close> if \<open>P(y)\<close> and \<open>P(y')\<close> for y y'
+    proof -
+      from that and * have \<open>x = y\<close> and \<open>x = y'\<close> by iprover+
+      then show ?thesis by (rule subst)
+    qed
     show \<open>\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'\<close>
       by (intro strip, elim conjE) (rule r')
   qed

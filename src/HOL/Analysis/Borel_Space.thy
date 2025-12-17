@@ -725,8 +725,8 @@ lemma borel_measurable_lfp[consumes 1, case_names continuity step]:
   assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
   shows "lfp F \<in> borel_measurable M"
 proof -
-  { fix i have "((F ^^ i) bot) \<in> borel_measurable M"
-      by (induct i) (auto intro!: *) }
+  have "((F ^^ i) bot) \<in> borel_measurable M" for i
+    by (induct i) (auto intro!: *)
   then have "(\<lambda>x. SUP i. (F ^^ i) bot x) \<in> borel_measurable M"
     by measurable
   also have "(\<lambda>x. SUP i. (F ^^ i) bot x) = (SUP i. (F ^^ i) bot)"
@@ -742,8 +742,8 @@ lemma borel_measurable_gfp[consumes 1, case_names continuity step]:
   assumes *: "\<And>f. f \<in> borel_measurable M \<Longrightarrow> F f \<in> borel_measurable M"
   shows "gfp F \<in> borel_measurable M"
 proof -
-  { fix i have "((F ^^ i) top) \<in> borel_measurable M"
-      by (induct i) (auto intro!: * simp: bot_fun_def) }
+  have "((F ^^ i) top) \<in> borel_measurable M" for i
+    by (induct i) (auto intro!: * simp: bot_fun_def)
   then have "(\<lambda>x. INF i. (F ^^ i) top x) \<in> borel_measurable M"
     by measurable
   also have "(\<lambda>x. INF i. (F ^^ i) top x) = (INF i. (F ^^ i) top)"
@@ -1012,10 +1012,12 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
   proof -
     obtain k where k: "Max ((\<bullet>) (- x) ` Basis) < real k"
       using reals_Archimedean2 by blast
-    { fix i :: 'a assume "i \<in> Basis"
-      then have "-x\<bullet>i < real k"
+    have "- real k < x\<bullet>i" if "i \<in> Basis" for i :: 'a
+    proof -
+      from that have "-x\<bullet>i < real k"
         using k by (subst (asm) Max_less_iff) auto
-      then have "- real k < x\<bullet>i" by simp }
+      then show ?thesis by simp
+    qed
     then show ?thesis
       by (auto intro!: exI[of _ k])
   qed
@@ -1037,10 +1039,12 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
   proof -
     obtain k where k: "Max ((\<bullet>) x ` Basis) < real k"
       using reals_Archimedean2 by blast
-    { fix i :: 'a assume "i \<in> Basis"
-      then have "x\<bullet>i < real k"
+    have "x\<bullet>i < real k" if "i \<in> Basis" for i :: 'a
+    proof -
+      from that have "x\<bullet>i < real k"
         using k by (subst (asm) Max_less_iff) auto
-      then have "x\<bullet>i < real k" by simp }
+      then show ?thesis by simp
+    qed
     then show ?thesis
       by (auto intro!: exI[of _ k])
   qed
@@ -1065,10 +1069,12 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_atMost])
     fix x :: 'a
     obtain k where k: "Max ((\<bullet>) (- x) ` Basis) \<le> real k"
       using real_arch_simple by blast
-    { fix i :: 'a assume "i \<in> Basis"
-      with k have "- x\<bullet>i \<le> real k"
+    have "- real k \<le> x\<bullet>i" if "i \<in> Basis" for i :: 'a
+    proof -
+      from k and that have "- x\<bullet>i \<le> real k"
         by (subst (asm) Max_le_iff) (auto simp: field_simps)
-      then have "- real k \<le> x\<bullet>i" by simp }
+      then show ?thesis by simp
+    qed
     then show "\<exists>n::nat. \<forall>i\<in>Basis. - real n \<le> x \<bullet> i"
       by (auto intro!: exI[of _ k])
   qed
@@ -1404,7 +1410,7 @@ lemma borel_measurable_ereal_cases:
   shows "(\<lambda>x. H (f x)) \<in> borel_measurable M"
 proof -
   let ?F = "\<lambda>x. if f x = \<infinity> then H \<infinity> else if f x = - \<infinity> then H (-\<infinity>) else H (ereal (real_of_ereal (f x)))"
-  { fix x have "H (f x) = ?F x" by (cases "f x") auto }
+  have "H (f x) = ?F x" for x by (cases "f x") auto
   with f H show ?thesis by simp
 qed
 
@@ -1432,8 +1438,8 @@ lemma set_Collect_ereal2:
 proof -
   let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = -\<infinity> then H y (-\<infinity>) else H y (ereal (real_of_ereal (g x)))"
   let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = -\<infinity> then ?G (-\<infinity>) x else ?G (ereal (real_of_ereal (f x))) x"
-  { fix x have "H (f x) (g x) = ?F x" by (cases "f x" "g x" rule: ereal2_cases) auto }
-  note * = this
+  have *: "H (f x) (g x) = ?F x" for x
+    by (cases "f x" "g x" rule: ereal2_cases) auto
   from assms show ?thesis
     by (subst *) (simp del: space_borel split del: if_split)
 qed
@@ -1497,8 +1503,8 @@ lemma borel_measurable_ereal2:
 proof -
   let ?G = "\<lambda>y x. if g x = \<infinity> then H y \<infinity> else if g x = - \<infinity> then H y (-\<infinity>) else H y (ereal (real_of_ereal (g x)))"
   let ?F = "\<lambda>x. if f x = \<infinity> then ?G \<infinity> x else if f x = - \<infinity> then ?G (-\<infinity>) x else ?G (ereal (real_of_ereal (f x))) x"
-  { fix x have "H (f x) (g x) = ?F x" by (cases "f x" "g x" rule: ereal2_cases) auto }
-  note * = this
+  have *: "H (f x) (g x) = ?F x" for x
+    by (cases "f x" "g x" rule: ereal2_cases) auto
   from assms show ?thesis unfolding * by simp
 qed
 
@@ -2008,16 +2014,15 @@ lemma measurable_piecewise_restrict2:
   shows "f \<in> measurable M N"
 proof (rule measurableI)
   fix B assume [measurable]: "B \<in> sets N"
-  {
-    fix n::nat
+  have "f-`B \<inter> A n \<in> sets M" for n :: nat
+  proof -
     obtain h where [measurable]: "h \<in> measurable M N" and "\<forall>x \<in> A n. f x = h x" 
       using assms(3) by blast
     then have *: "f-`B \<inter> A n = h-`B \<inter> A n" by auto
     have "h-`B \<inter> A n = h-`B \<inter> space M \<inter> A n" 
       using assms(2) sets.sets_into_space by auto
-    then have "f-`B \<inter> A n \<in> sets M"
-      by (simp add: "*")
-  }
+    then show ?thesis by (simp add: "*")
+  qed
   then have "(\<Union>n. f-`B \<inter> A n) \<in> sets M" 
     by measurable
   moreover have "f-`B \<inter> space M = (\<Union>n. f-`B \<inter> A n)" 

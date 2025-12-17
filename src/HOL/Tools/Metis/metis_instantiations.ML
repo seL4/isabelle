@@ -14,7 +14,8 @@ sig
     lam_trans : string,
     th_name : thm -> string option,
     new_skolem : bool,
-    th_cls_pairs : (thm * thm list) list,
+    using_th_cls_pairs : (thm * thm list) list,
+    arg_th_cls_pairs : (thm * thm list) list,
     lifted : (string * term) list,
     sym_tab : int Symtab.table,
     axioms : (Metis_Thm.thm * thm) list,
@@ -27,8 +28,9 @@ sig
   val table_of_thm_inst : thm * inst -> cterm Vars.table
   val pretty_name_inst : Proof.context -> string * inst -> Pretty.T
   val string_of_name_inst : Proof.context -> string * inst -> string
-  val infer_thm_insts : Proof.context -> infer_params -> (thm * inst) list option
-  val instantiate_call : Proof.context -> infer_params -> thm -> unit
+  val infer_thm_insts : Proof.context -> infer_params ->
+    ((thm * inst) list * (thm * inst) list) option
+  val instantiate_call : Proof.context -> infer_params -> thm list -> thm -> unit
 end;
 
 structure Metis_Instantiations : METIS_INSTANTIATIONS =
@@ -50,7 +52,8 @@ type infer_params = {
   lam_trans : string,
   th_name : thm -> string option,
   new_skolem : bool,
-  th_cls_pairs : (thm * thm list) list,
+  using_th_cls_pairs : (thm * thm list) list,
+  arg_th_cls_pairs : (thm * thm list) list,
   lifted : (string * term) list,
   sym_tab : int Symtab.table,
   axioms : (Metis_Thm.thm * thm) list,
@@ -149,7 +152,7 @@ fun import_export_thm ctxt th =
 (* Find the theorem corresponding to a Metis axiom if it has a name.
  * "Theorems" are Isabelle theorems given to the metis tactic.
  * "Axioms" are clauses given to the Metis prover. *)
-fun metis_axiom_to_thm ctxt {th_name, th_cls_pairs, axioms, ...} (msubst, maxiom) =
+fun metis_axiom_to_thm ctxt {th_name, axioms, ...} th_cls_pairs (msubst, maxiom) =
   let
     val axiom = lookth axioms maxiom
   in
@@ -357,38 +360,66 @@ fun table_to_thm_insts ctxt th_of_vars th_substs_table =
     Thmtab.fold_rev (fn (th, substs) => fold (add_subst th) substs) th_substs_table []
   end
 
-fun really_infer_thm_insts ctxt (infer_params as {th_name, th_cls_pairs, mth, ...}) =
+fun really_infer_thm_insts ctxt
+    (infer_params as {th_name, using_th_cls_pairs, arg_th_cls_pairs, mth, ...}) =
   let
     (* Compute the theorem variables ordered as in of-instantiations.
      * import_export_thm is used to get the same variables as in axioms. *)
-    val th_of_vars =
-      Thmtab.build (th_cls_pairs |> fold (fn (th, _) => Thmtab.default
+    val using_th_of_vars =
+      Thmtab.build (using_th_cls_pairs |> fold (fn (th, _) => Thmtab.default
         (th, of_vars_of_thm (import_export_thm ctxt th))))
 
-    val th_insts =
+    val using_th_insts =
       infer_metis_axiom_substs mth
-      |> map_filter (metis_axiom_to_thm ctxt infer_params)
-      |> metis_substs_to_table ctxt infer_params th_of_vars
-      |> table_to_thm_insts ctxt th_of_vars
+      |> map_filter (metis_axiom_to_thm ctxt infer_params using_th_cls_pairs)
+      |> metis_substs_to_table ctxt infer_params using_th_of_vars
+      |> table_to_thm_insts ctxt using_th_of_vars
 
-    val _ = trace_msg ctxt (fn () => cat_lines ("THEOREM INSTANTIATIONS" ::
-     (if thm_insts_trivial th_insts then
-        ["No instantiation available"]
-      else
-        th_insts |> maps (fn th_inst as (th, _) =>
-          let
-            val table = table_of_thm_inst th_inst
-          in
-            if Vars.is_empty table then
-              []
-            else
-              "Theorem " ^ Thm.string_of_thm ctxt th ^ " (" ^ the (th_name th) ^ "):" ::
-              (Vars.dest table |> map (fn (var, ct) =>
-                Syntax.string_of_term ctxt (Var var) ^ " |-> " ^
-                Syntax.string_of_term ctxt (Thm.term_of ct)))
-          end))))
+    val _ = trace_msg ctxt (fn () => cat_lines ("using THEOREM INSTANTIATIONS" ::
+      (if thm_insts_trivial using_th_insts then
+         ["No instantiation available"]
+       else
+         using_th_insts |> maps (fn th_inst as (th, _) =>
+           let
+             val table = table_of_thm_inst th_inst
+           in
+             if Vars.is_empty table then
+               []
+             else
+               "Theorem " ^ Thm.string_of_thm ctxt th ^ " (" ^ the (th_name th) ^ "):" ::
+               (Vars.dest table |> map (fn (var, ct) =>
+                 Syntax.string_of_term ctxt (Var var) ^ " |-> " ^
+                 Syntax.string_of_term ctxt (Thm.term_of ct)))
+           end))))
+
+    val arg_th_of_vars =
+      Thmtab.build (arg_th_cls_pairs |> fold (fn (th, _) => Thmtab.default
+        (th, of_vars_of_thm (import_export_thm ctxt th))))
+
+    val arg_th_insts =
+      infer_metis_axiom_substs mth
+      |> map_filter (metis_axiom_to_thm ctxt infer_params arg_th_cls_pairs)
+      |> metis_substs_to_table ctxt infer_params arg_th_of_vars
+      |> table_to_thm_insts ctxt arg_th_of_vars
+
+    val _ = trace_msg ctxt (fn () => cat_lines ("ARGUMENT THEOREM INSTANTIATIONS" ::
+      (if thm_insts_trivial arg_th_insts then
+         ["No instantiation available"]
+       else
+         arg_th_insts |> maps (fn th_inst as (th, _) =>
+           let
+             val table = table_of_thm_inst th_inst
+           in
+             if Vars.is_empty table then
+               []
+             else
+               "Theorem " ^ Thm.string_of_thm ctxt th ^ " (" ^ the (th_name th) ^ "):" ::
+               (Vars.dest table |> map (fn (var, ct) =>
+                 Syntax.string_of_term ctxt (Var var) ^ " |-> " ^
+                 Syntax.string_of_term ctxt (Thm.term_of ct)))
+           end))))
   in
-    th_insts
+    (using_th_insts, arg_th_insts)
   end
 
 (* Infer variable instantiations *)
@@ -396,27 +427,55 @@ fun infer_thm_insts ctxt infer_params =
   \<^try>\<open>SOME (really_infer_thm_insts ctxt infer_params)
     catch exn => (trace_msg ctxt (fn () => Runtime.exn_message exn); NONE)\<close>
 
-(* Write suggested command with of-instantiations *)
-fun write_command ctxt {type_enc, lam_trans, th_name, ...} st th_insts =
-  let
-    val _ = trace_msg ctxt (K "SUGGEST OF-INSTANTIATIONS")
-    val apply_str = if Thm.nprems_of st = 0 then "by" else "apply"
-    val command_str = th_insts
-      |> map (pretty_name_inst ctxt o apfst (the o th_name))
-      |> cons (Pretty.str (metis_call type_enc lam_trans))
-      |> Pretty.enclose (apply_str ^ " (") ")" o Pretty.breaks
-      |> Pretty.symbolic_string_of (* markup string *)
-  in
-    writeln ("Found variable instantiations, try this:" ^
-      (* Add optional markup break (command may need multiple lines) *)
-      Markup.markup (Markup.break {width = 1, indent = 2}) " " ^
-      Active.sendback_markup_command command_str)
-  end
+(* Write suggested command with instantiations *)
+fun write_command ctxt {type_enc, lam_trans, th_name, ...} schem_usings st
+    (using_th_insts, arg_th_insts) =
+  if null using_th_insts andalso null arg_th_insts then
+    ()
+  else
+    let
+      val _ = trace_msg ctxt (K "INSTANTIATIONS")
+      val apply_str = if Thm.nprems_of st = 0 then "by" else "apply"
 
-(* Infer variable instantiations and suggest of-instantiations *)
-fun instantiate_call ctxt infer_params st =
-  infer_thm_insts ctxt infer_params
-  |> Option.mapPartial (Option.filter (not o thm_insts_trivial))
-  |> Option.app (write_command ctxt infer_params st)
+      val (using_schem_insts, arg_insts) =
+        List.partition (fn (th, _) => member Thm.eq_thm schem_usings th) arg_th_insts
+        |>> append using_th_insts
+
+      val using_prs =
+        if null using_schem_insts then
+          [Pretty.str ""]
+        else
+          Pretty.breaks (Pretty.str "using" ::
+            map (pretty_name_inst ctxt o apfst (the o th_name)) using_schem_insts
+            @ [Pretty.brk 0])
+      val metis_pr = Pretty.str (metis_call type_enc lam_trans)
+      val tactic_pr =
+        if null arg_insts then
+          [metis_pr]
+          |> Pretty.enclose (apply_str ^ " ") ""
+        else
+          arg_insts
+          |> map (pretty_name_inst ctxt o apfst (the o th_name))
+          |> cons metis_pr
+          |> Pretty.breaks
+          |> Pretty.enclose (apply_str ^ " (") ")"
+
+      val command_str =
+        Pretty.symbolic_string_of (Pretty.paragraph (using_prs @ [tactic_pr]))
+    in
+      writeln ("Found variable instantiations, try this:" ^
+        (* Add optional markup break (command may need multiple lines) *)
+        Markup.markup (Markup.break {width = 1, indent = 2}) " " ^
+        Active.sendback_markup_command command_str)
+    end
+
+(* Infer variable instantiations and instantiations *)
+fun instantiate_call ctxt infer_params schem_usings st =
+  (case infer_thm_insts ctxt infer_params of
+    NONE => ()
+  | SOME (using_th_insts, arg_th_insts) =>
+    (if thm_insts_trivial using_th_insts then [] else using_th_insts,
+     if thm_insts_trivial arg_th_insts then [] else arg_th_insts)
+    |> write_command ctxt infer_params schem_usings st)
 
 end;

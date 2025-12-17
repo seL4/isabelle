@@ -561,18 +561,19 @@ proof -
   have False if "i \<in> Basis" and "b\<bullet>i \<le> a\<bullet>i" and "x \<in> box a b" for i x
     by (smt (verit, ccfv_SIG) mem_box(1) that)
   moreover
-  { assume as: "\<forall>i\<in>Basis. \<not> (b\<bullet>i \<le> a\<bullet>i)"
+  have "box a b \<noteq> {}" if as: "\<forall>i\<in>Basis. \<not> (b\<bullet>i \<le> a\<bullet>i)"
+  proof -
     let ?x = "(1/2) *\<^sub>R (a + b)"
-    { fix i :: 'a
-      assume i: "i \<in> Basis"
-      have "a\<bullet>i < b\<bullet>i"
-        using as i by fastforce
-      then have "a\<bullet>i < ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i < b\<bullet>i"
+    have "a\<bullet>i < ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i < b\<bullet>i"
+      if i: "i \<in> Basis" for i :: 'a
+    proof -
+      have "a\<bullet>i < b\<bullet>i" using as i by fastforce
+      then show "a\<bullet>i < ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i < b\<bullet>i"
         by (auto simp: inner_add_left)
-    }
-    then have "box a b \<noteq> {}"
+    qed
+    then show ?thesis
       by (metis (no_types, opaque_lifting) emptyE mem_box(1))
-  }
+  qed
   ultimately show ?th1 by blast
 
   have False if "i\<in>Basis" and "b\<bullet>i < a\<bullet>i" and "x \<in> cbox a b" for i x
@@ -1600,25 +1601,25 @@ proof
   then obtain l::'a and r where r: "strict_mono r"
     and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
     using compact_lemma [OF f] by blast
-  {
-    fix e::real
-    assume "e > 0"
-    hence "e / real_of_nat DIM('a) > 0" by (simp)
+  have "\<forall>\<^sub>F n in sequentially. dist (f (r n)) l < e" if "e > 0" for e::real
+  proof -
+    from that have "e / real_of_nat DIM('a) > 0" by (simp)
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
       by simp
     moreover
-    { fix n
-      assume n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))"
+    have "dist (f (r n)) l < e"
+      if n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))" for n
+    proof -
       have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
         using L2_set_le_sum [OF zero_le_dist] by (subst euclidean_dist_l2)
       also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
         by (meson eucl.finite_Basis n nonempty_Basis sum_strict_mono)
-      finally have "dist (f (r n)) l < e"
+      finally show ?thesis
         by auto
-    }
-    ultimately have "\<forall>\<^sub>F n in sequentially. dist (f (r n)) l < e"
+    qed
+    ultimately show ?thesis
       by (rule eventually_mono)
-  }
+  qed
   then have *: "(f \<circ> r) \<longlonglongrightarrow> l"
     unfolding o_def tendsto_iff by simp
   with r show "\<exists>l r. strict_mono r \<and> (f \<circ> r) \<longlonglongrightarrow> l"

@@ -320,7 +320,7 @@ class Language_Server(
               progress.echo(msg)
               error(msg) })
 
-        val session_resources = new VSCode_Resources(options, session_background, log)
+        val session_resources = new VSCode_Resources(options, session_background, log = log)
         val session_options = options.bool.update("editor_output_state", true)
         val session =
           new VSCode_Session(session_options, session_resources) {

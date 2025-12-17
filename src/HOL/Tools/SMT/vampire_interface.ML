@@ -19,16 +19,6 @@ val vampire_nodtC = ["vampire_nodt"]
 val smtlib_vampire_dtC = SMTLIB_Interface.smtlibC @ vampire_dtC
 val smtlib_vampire_nodtC = SMTLIB_Interface.smtlibC @ vampire_nodtC
 
-fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
-fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
-fun sdatatype (_, ctrs) = enclose "(" ")" (implode_space (map sctr ctrs))
-fun sarity (name, _) = enclose "(" ")" (name ^ " 0")
-
-fun sdtyp ((fp, dtyps : SMTLIB_Interface.dtype_decls)) =
-  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes (" ^
-    implode_space (map sarity dtyps) ^ ") (") "))\n"
-  (space_implode"\n  " (map sdatatype dtyps)))
-
 (* interface *)
 
 local
@@ -36,7 +26,7 @@ local
     {order = SMT_Util.First_Order,
      logic = K (K ""),
      fp_kinds = fp_kinds,
-     serialize = SMTLIB_Interface.serialize sdtyp}
+     serialize = SMTLIB_Interface.serialize SMTLIB_Interface.serialize_datatypes}
 in
 
 val _ = Theory.setup (Context.theory_map

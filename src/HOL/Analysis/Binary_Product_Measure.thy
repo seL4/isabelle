@@ -126,21 +126,23 @@ lemma  sets_pair_eq_sets_fst_snd:
   "sets (A \<Otimes>\<^sub>M B) = sets (Sup {vimage_algebra (space A \<times> space B) fst A, vimage_algebra (space A \<times> space B) snd B})"
     (is "?P = sets (Sup {?fst, ?snd})")
 proof -
-  { fix a b assume ab: "a \<in> sets A" "b \<in> sets B"
-    then have "a \<times> b = (fst -` a \<inter> (space A \<times> space B)) \<inter> (snd -` b \<inter> (space A \<times> space B))"
+  have "a \<times> b \<in> sets (Sup {?fst, ?snd})" if "a \<in> sets A" "b \<in> sets B" for a b
+  proof -
+    from that have "a \<times> b = (fst -` a \<inter> (space A \<times> space B)) \<inter> (snd -` b \<inter> (space A \<times> space B))"
       by (auto dest: sets.sets_into_space)
     also have "\<dots> \<in> sets (Sup {?fst, ?snd})"
       apply (rule sets.Int)
       apply (rule in_sets_Sup)
       apply auto []
       apply (rule insertI1)
-      apply (auto intro: ab in_vimage_algebra) []
+      apply (auto intro: that in_vimage_algebra) []
       apply (rule in_sets_Sup)
       apply auto []
       apply (rule insertI2)
-      apply (auto intro: ab in_vimage_algebra)
+      apply (auto intro: that in_vimage_algebra)
       done
-    finally have "a \<times> b \<in> sets (Sup {?fst, ?snd})" . }
+    finally show ?thesis .
+  qed
   moreover have "sets ?fst \<subseteq> sets (A \<Otimes>\<^sub>M B)"
     by (rule sets_image_in_sets) (auto simp: space_pair_measure[symmetric])
   moreover have "sets ?snd \<subseteq> sets (A \<Otimes>\<^sub>M B)"
@@ -249,7 +251,8 @@ proof -
     "disjoint_family F" by (blast intro: sigma_finite_disjoint)
   then have F_sets: "\<And>i. F i \<in> sets M" by auto
   let ?C = "\<lambda>x i. F i \<inter> Pair x -` Q"
-  { fix i
+  have "(\<lambda>x. emeasure M (?C x i)) \<in> borel_measurable N" for i
+  proof -
     have [simp]: "space N \<times> F i \<inter> space N \<times> space M = space N \<times> F i"
       using F sets.sets_into_space by auto
     let ?R = "density M (indicator (F i))"
@@ -262,10 +265,12 @@ proof -
       using Q F_sets by (intro emeasure_restricted) (auto intro: sets_Pair1)
     moreover have "\<And>x. F i \<inter> Pair x -` (space N \<times> space ?R \<inter> Q) = ?C x i"
       using sets.sets_into_space[OF Q] by (auto simp: space_pair_measure)
-    ultimately have "(\<lambda>x. emeasure M (?C x i)) \<in> borel_measurable N"
-      by simp }
+    ultimately show ?thesis
+      by simp
+  qed
   moreover
-  { fix x
+  have "emeasure M (Pair x -` Q) = (\<Sum>i. emeasure M (?C x i))" for x
+  proof -
     have "(\<Sum>i. emeasure M (?C x i)) = emeasure M (\<Union>i. ?C x i)"
     proof (intro suminf_emeasure)
       show "range (?C x) \<subseteq> sets M"
@@ -277,8 +282,9 @@ proof -
     also have "(\<Union>i. ?C x i) = Pair x -` Q"
       using F sets.sets_into_space[OF \<open>Q \<in> sets (N \<Otimes>\<^sub>M M)\<close>]
       by (auto simp: space_pair_measure)
-    finally have "emeasure M (Pair x -` Q) = (\<Sum>i. emeasure M (?C x i))"
-      by simp }
+    finally show ?thesis
+      by simp
+  qed
   ultimately show ?thesis using \<open>Q \<in> sets (N \<Otimes>\<^sub>M M)\<close> F_sets
     by auto
 qed
@@ -497,14 +503,13 @@ proof -
       by (auto simp: M2.emeasure_pair_measure_alt nn_integral_0_iff)
     show "{x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0} \<in> sets M1"
       by (intro borel_measurable_eq measurable_emeasure_Pair1 N sets.sets_Collect_neg N) simp
-    { fix x assume "x \<in> space M1" "emeasure M2 (Pair x -` N) = 0"
-      have "AE y in M2. Q (x, y)"
-      proof (rule AE_I)
-        show "emeasure M2 (Pair x -` N) = 0" by fact
-        show "Pair x -` N \<in> sets M2" using N(1) by (rule sets_Pair1)
-        show "{y \<in> space M2. \<not> Q (x, y)} \<subseteq> Pair x -` N"
-          using N \<open>x \<in> space M1\<close> unfolding space_pair_measure by auto
-      qed }
+    have "AE y in M2. Q (x, y)" if "x \<in> space M1" "emeasure M2 (Pair x -` N) = 0" for x
+    proof (rule AE_I)
+      show "emeasure M2 (Pair x -` N) = 0" by fact
+      show "Pair x -` N \<in> sets M2" using N(1) by (rule sets_Pair1)
+      show "{y \<in> space M2. \<not> Q (x, y)} \<subseteq> Pair x -` N"
+        using N \<open>x \<in> space M1\<close> unfolding space_pair_measure by auto
+    qed
     then show "{x \<in> space M1. \<not> (AE y in M2. Q (x, y))} \<subseteq> {x \<in> space M1. emeasure M2 (Pair x -` N) \<noteq> 0}"
       by auto
   qed
@@ -821,15 +826,15 @@ lemma emeasure_count_space_prod_eq:
   assumes A: "A \<in> sets (count_space UNIV \<Otimes>\<^sub>M count_space UNIV)" (is "A \<in> sets (?A \<Otimes>\<^sub>M ?B)")
   shows "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
 proof -
-  { fix A :: "('a \<times> 'b) set" assume "countable A"
-    then have "emeasure (?A \<Otimes>\<^sub>M ?B) (\<Union>a\<in>A. {a}) = (\<integral>\<^sup>+a. emeasure (?A \<Otimes>\<^sub>M ?B) {a} \<partial>count_space A)"
+  have *: "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
+    if "countable A" for A :: "('a \<times> 'b) set"
+  proof -
+    from that have "emeasure (?A \<Otimes>\<^sub>M ?B) (\<Union>a\<in>A. {a}) = (\<integral>\<^sup>+a. emeasure (?A \<Otimes>\<^sub>M ?B) {a} \<partial>count_space A)"
       by (intro emeasure_UN_countable) (auto simp: sets_Pair disjoint_family_on_def)
     also have "\<dots> = (\<integral>\<^sup>+a. indicator A a \<partial>count_space UNIV)"
       by (subst nn_integral_count_space_indicator) auto
-    finally have "emeasure (?A \<Otimes>\<^sub>M ?B) A = emeasure (count_space UNIV) A"
-      by simp }
-  note * = this
-
+    finally show ?thesis by simp
+  qed
   show ?thesis
   proof cases
     assume "finite A" then show ?thesis
@@ -850,8 +855,9 @@ qed
 lemma nn_integral_count_space_prod_eq:
   "nn_integral (count_space UNIV \<Otimes>\<^sub>M count_space UNIV) f = nn_integral (count_space UNIV) f"
     (is "nn_integral ?P f = _")
-proof cases
-  assume cntbl: "countable {x. f x \<noteq> 0}"
+proof (cases "countable {x. f x \<noteq> 0}")
+  case cntbl: True
+
   have [simp]: "\<And>x. card ({x} \<inter> {x. f x \<noteq> 0}) = (indicator {x. f x \<noteq> 0} x::ennreal)"
     by (auto split: split_indicator)
   have [measurable]: "\<And>y. (\<lambda>x. indicator {y} x) \<in> borel_measurable ?P"
@@ -869,14 +875,16 @@ proof cases
   finally show ?thesis
     by (auto simp add: nn_integral_count_space_indicator intro!: nn_integral_cong split: split_indicator)
 next
-  { fix x assume "f x \<noteq> 0"
-    then have "(\<exists>r\<ge>0. 0 < r \<and> f x = ennreal r) \<or> f x = \<infinity>"
+  case cntbl: False
+  have *: "\<exists>n. ennreal (1 / real (Suc n)) \<le> f x" if "f x \<noteq> 0" for x
+  proof -
+    from that have "(\<exists>r\<ge>0. 0 < r \<and> f x = ennreal r) \<or> f x = \<infinity>"
       by (cases "f x" rule: ennreal_cases) (auto simp: less_le)
-    then have "\<exists>n. ennreal (1 / real (Suc n)) \<le> f x"
-      by (auto elim!: nat_approx_posE intro!: less_imp_le) }
-  note * = this
+    then show ?thesis
+      by (auto elim!: nat_approx_posE intro!: less_imp_le)
+  qed
 
-  assume cntbl: "uncountable {x. f x \<noteq> 0}"
+  note cntbl
   also have "{x. f x \<noteq> 0} = (\<Union>n. {x. 1/Suc n \<le> f x})"
     using * by auto
   finally obtain n where "infinite {x. 1/Suc n \<le> f x}"
@@ -1028,11 +1036,11 @@ qed
 proposition nn_integral_fst_count_space:
   "(\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space UNIV) = integral\<^sup>N (count_space UNIV) f"
   (is "?lhs = ?rhs")
-proof(cases)
-  assume *: "countable {xy. f xy \<noteq> 0}"
+proof (cases "countable {xy. f xy \<noteq> 0}")
+  case cntbl: True 
   let ?A = "fst ` {xy. f xy \<noteq> 0}"
   let ?B = "snd ` {xy. f xy \<noteq> 0}"
-  from * have [simp]: "countable ?A" "countable ?B" by(rule countable_image)+
+  from cntbl have [simp]: "countable ?A" "countable ?B" by(rule countable_image)+
   have "?lhs = (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f (x, y) \<partial>count_space UNIV \<partial>count_space ?A)"
     by(rule nn_integral_count_space_eq)
       (auto simp add: nn_integral_0_iff_AE AE_count_space not_le intro: rev_image_eqI)
@@ -1045,14 +1053,17 @@ proof(cases)
     by(rule nn_integral_count_space_eq)(auto intro: rev_image_eqI)
   finally show ?thesis .
 next
-  { fix xy assume "f xy \<noteq> 0"
-    then have "(\<exists>r\<ge>0. 0 < r \<and> f xy = ennreal r) \<or> f xy = \<infinity>"
-      by (cases "f xy" rule: ennreal_cases) (auto simp: less_le)
-    then have "\<exists>n. ennreal (1 / real (Suc n)) \<le> f xy"
-      by (auto elim!: nat_approx_posE intro!: less_imp_le) }
-  note * = this
+  case cntbl: False
 
-  assume cntbl: "uncountable {xy. f xy \<noteq> 0}"
+  have *: "\<exists>n. ennreal (1 / real (Suc n)) \<le> f xy" if "f xy \<noteq> 0" for xy
+  proof -
+    from that have "(\<exists>r\<ge>0. 0 < r \<and> f xy = ennreal r) \<or> f xy = \<infinity>"
+      by (cases "f xy" rule: ennreal_cases) (auto simp: less_le)
+    then show ?thesis 
+      by (auto elim!: nat_approx_posE intro!: less_imp_le)
+  qed
+
+  note cntbl
   also have "{xy. f xy \<noteq> 0} = (\<Union>n. {xy. 1/Suc n \<le> f xy})"
     using * by auto
   finally obtain n where "infinite {xy. 1/Suc n \<le> f xy}"

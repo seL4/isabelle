@@ -898,16 +898,12 @@ lemma infnorm_mul: "infnorm (a *\<^sub>R x) = \<bar>a\<bar> * infnorm x"
   unfolding infnorm_Max
 proof (safe intro!: Max_eqI)
   let ?B = "(\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
-  { fix b :: 'a
-    assume "b \<in> Basis"
-    then show "\<bar>a *\<^sub>R x \<bullet> b\<bar> \<le> \<bar>a\<bar> * Max ?B"
-      by (simp add: abs_mult mult_left_mono)
-  next
-    from Max_in[of ?B] obtain b where "b \<in> Basis" "Max ?B = \<bar>x \<bullet> b\<bar>"
-      by (auto simp del: Max_in)
-    then show "\<bar>a\<bar> * Max ((\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis) \<in> (\<lambda>i. \<bar>a *\<^sub>R x \<bullet> i\<bar>) ` Basis"
-      by (intro image_eqI[where x=b]) (auto simp: abs_mult)
-  }
+  show "\<bar>a *\<^sub>R x \<bullet> b\<bar> \<le> \<bar>a\<bar> * Max ?B" if "b \<in> Basis" for b :: 'a
+    using that by (simp add: abs_mult mult_left_mono)
+  from Max_in[of ?B] obtain b where "b \<in> Basis" "Max ?B = \<bar>x \<bullet> b\<bar>"
+    by (auto simp del: Max_in)
+  then show "\<bar>a\<bar> * Max ((\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis) \<in> (\<lambda>i. \<bar>a *\<^sub>R x \<bullet> i\<bar>) ` Basis"
+    by (intro image_eqI[where x=b]) (auto simp: abs_mult)
 qed simp
 
 lemma infnorm_mul_lemma: "infnorm (a *\<^sub>R x) \<le> \<bar>a\<bar> * infnorm x"

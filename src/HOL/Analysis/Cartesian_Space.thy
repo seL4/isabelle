@@ -246,21 +246,25 @@ proof -
     unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
     by (simp add: eq_commute)
   have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> vec.span (columns A))" by blast
-  { assume h: ?lhs
-    { fix x:: "'a ^'n"
+  have ?rhs if h: ?lhs
+  proof -
+    have "x \<in> vec.span (columns A)" for x:: "'a ^'n"
+    proof -
       obtain y :: "'a ^'m" where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x"
         using h lhseq by blast
-      then have "x \<in> vec.span (columns A)"
+      then show ?thesis
         by (metis (mono_tags, lifting) columns_def mem_Collect_eq vec.span_base vec.span_scale vec.span_sum)
-    }
-    then have ?rhs unfolding rhseq by blast }
+    qed
+    then show ?thesis unfolding rhseq by blast
+  qed
   moreover
-  { assume h:?rhs
-    let ?P = "\<lambda>(y::'a ^'n). \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
-    { fix y
+  have ?lhs if h:?rhs
+  proof -
+    have "\<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y" (is "?P y") for y::"'a ^'n"
+    proof -
       have "y \<in> vec.span (columns A)"
         unfolding h by blast
-      then have "?P y"
+      then show ?thesis
       proof (induction rule: vec.span_induct_alt)
         case base
         then show ?case
@@ -290,9 +294,9 @@ proof -
                       = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
         qed
       qed
-    }
-    then have ?lhs unfolding lhseq ..
-  }
+    qed
+    then show ?thesis unfolding lhseq ..
+  qed
   ultimately show ?thesis by blast
 qed
 

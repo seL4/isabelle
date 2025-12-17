@@ -1805,8 +1805,9 @@ proof (cases "S \<subseteq> M")
   case True
   show ?thesis
   proof -
-    { fix \<sigma> :: "nat \<Rightarrow> 'a"                                                            
-      assume L: "mtotally_bounded S" and \<sigma>: "range \<sigma> \<subseteq> S"
+    have "\<exists>r. strict_mono r \<and> MCauchy (\<sigma> \<circ> r)"
+      if L: "mtotally_bounded S" and \<sigma>: "range \<sigma> \<subseteq> S" for \<sigma> :: "nat \<Rightarrow> 'a"
+    proof -
       have "\<exists>j > i. d (\<sigma> i) (\<sigma> j) < 3*\<epsilon>/2 \<and> infinite (\<sigma> -` mball (\<sigma> j) (\<epsilon>/2))"
         if inf: "infinite (\<sigma> -` mball (\<sigma> i) \<epsilon>)" and "\<epsilon> > 0" for i \<epsilon>
       proof -
@@ -1919,45 +1920,41 @@ proof (cases "S \<subseteq> M")
       qed
       then have "MCauchy (\<sigma> \<circ> r)"
         unfolding MCauchy_def using True \<sigma> by auto
-      then have "\<exists>r. strict_mono r \<and> MCauchy (\<sigma> \<circ> r)"
-        using \<open>strict_mono r\<close> by blast      
-    }
-    moreover
-    { assume R: ?rhs
-      have "mtotally_bounded S"
-        unfolding mtotally_bounded_def
-      proof (intro strip)
-        fix \<epsilon> :: real
-        assume "\<epsilon> > 0"
-        have False if \<section>: "\<And>K. \<lbrakk>finite K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>s\<in>S. s \<notin> (\<Union>x\<in>K. mball x \<epsilon>)"
-        proof -
-          obtain f where f: "\<And>K. \<lbrakk>finite K; K \<subseteq> S\<rbrakk> \<Longrightarrow> f K \<in> S \<and> f K \<notin> (\<Union>x\<in>K. mball x \<epsilon>)"
-            using \<section> by metis
-          define \<sigma> where "\<sigma> \<equiv> wfrec less_than (\<lambda>seq n. f (seq ` {..<n}))"
-          have \<sigma>_eq: "\<sigma> n = f (\<sigma> ` {..<n})" for n
-            by (simp add: cut_apply def_wfrec [OF \<sigma>_def])
-          have [simp]: "\<sigma> n \<in> S" for n
-            using wf_less_than
-          proof (induction n rule: wf_induct_rule)
-            case (less n) with f show ?case
-              by (auto simp: \<sigma>_eq [of n])
-          qed
-          then have "range \<sigma> \<subseteq> S" by blast
-          have \<sigma>: "p < n \<Longrightarrow> \<epsilon> \<le> d (\<sigma> p) (\<sigma> n)" for n p
-            using f[of "\<sigma> ` {..<n}"] True by (fastforce simp: \<sigma>_eq [of n] Ball_def)
-          then obtain r where "strict_mono r" "MCauchy (\<sigma> \<circ> r)"
-            by (meson R \<open>range \<sigma> \<subseteq> S\<close>)
-          with \<open>0 < \<epsilon>\<close> obtain N 
-            where N: "\<And>n n'. \<lbrakk>n\<ge>N; n'\<ge>N\<rbrakk> \<Longrightarrow> d (\<sigma> (r n)) (\<sigma> (r n')) < \<epsilon>"
-            by (force simp: MCauchy_def)
-          show ?thesis
-            using N [of N "Suc (r N)"] \<open>strict_mono r\<close>
-            by (smt (verit) Suc_le_eq \<sigma> le_SucI order_refl strict_mono_imp_increasing)
+      then show ?thesis using \<open>strict_mono r\<close> by blast      
+    qed
+    moreover have "mtotally_bounded S" if R: ?rhs
+      unfolding mtotally_bounded_def
+    proof (intro strip)
+      fix \<epsilon> :: real
+      assume "\<epsilon> > 0"
+      have False if \<section>: "\<And>K. \<lbrakk>finite K; K \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>s\<in>S. s \<notin> (\<Union>x\<in>K. mball x \<epsilon>)"
+      proof -
+        obtain f where f: "\<And>K. \<lbrakk>finite K; K \<subseteq> S\<rbrakk> \<Longrightarrow> f K \<in> S \<and> f K \<notin> (\<Union>x\<in>K. mball x \<epsilon>)"
+          using \<section> by metis
+        define \<sigma> where "\<sigma> \<equiv> wfrec less_than (\<lambda>seq n. f (seq ` {..<n}))"
+        have \<sigma>_eq: "\<sigma> n = f (\<sigma> ` {..<n})" for n
+          by (simp add: cut_apply def_wfrec [OF \<sigma>_def])
+        have [simp]: "\<sigma> n \<in> S" for n
+          using wf_less_than
+        proof (induction n rule: wf_induct_rule)
+          case (less n) with f show ?case
+            by (auto simp: \<sigma>_eq [of n])
         qed
-        then show "\<exists>K. finite K \<and> K \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>K. mball x \<epsilon>)"
-          by blast
+        then have "range \<sigma> \<subseteq> S" by blast
+        have \<sigma>: "p < n \<Longrightarrow> \<epsilon> \<le> d (\<sigma> p) (\<sigma> n)" for n p
+          using f[of "\<sigma> ` {..<n}"] True by (fastforce simp: \<sigma>_eq [of n] Ball_def)
+        then obtain r where "strict_mono r" "MCauchy (\<sigma> \<circ> r)"
+          by (meson R \<open>range \<sigma> \<subseteq> S\<close>)
+        with \<open>0 < \<epsilon>\<close> obtain N 
+          where N: "\<And>n n'. \<lbrakk>n\<ge>N; n'\<ge>N\<rbrakk> \<Longrightarrow> d (\<sigma> (r n)) (\<sigma> (r n')) < \<epsilon>"
+          by (force simp: MCauchy_def)
+        show ?thesis
+          using N [of N "Suc (r N)"] \<open>strict_mono r\<close>
+          by (smt (verit) Suc_le_eq \<sigma> le_SucI order_refl strict_mono_imp_increasing)
       qed
-    }
+      then show "\<exists>K. finite K \<and> K \<subseteq> S \<and> S \<subseteq> (\<Union>x\<in>K. mball x \<epsilon>)"
+        by blast
+    qed
     ultimately show ?thesis 
       using True by blast
   qed
@@ -3120,37 +3117,33 @@ proof (cases "M1 = {} \<or> M2 = {}")
     by (simp add: Prod_metric.mcomplete_def M1.mcomplete_def M2.mcomplete_def 
         mtopology_prod_metric MCauchy_prod_metric limitin_pairwise)
   moreover
-  { assume L: "Prod_metric.mcomplete"
-    have "M1.mcomplete"
-      unfolding M1.mcomplete_def
-    proof (intro strip)
-      fix \<sigma>
-      assume "M1.MCauchy \<sigma>"
-      then have "Prod_metric.MCauchy (\<lambda>n. (\<sigma> n, y))"
-        using \<open>y \<in> M2\<close> by (simp add: M1.MCauchy_def M2.MCauchy_def MCauchy_prod_metric)
-      then obtain z where "limitin Prod_metric.mtopology (\<lambda>n. (\<sigma> n, y)) z sequentially"
-        using L Prod_metric.mcomplete_def by blast
-      then show "\<exists>x. limitin M1.mtopology \<sigma> x sequentially"
-        by (auto simp: Prod_metric.mcomplete_def M1.mcomplete_def 
-             mtopology_prod_metric limitin_pairwise o_def)
-    qed
-  }
+  have "M1.mcomplete" if L: "Prod_metric.mcomplete"
+    unfolding M1.mcomplete_def
+  proof (intro strip)
+    fix \<sigma>
+    assume "M1.MCauchy \<sigma>"
+    then have "Prod_metric.MCauchy (\<lambda>n. (\<sigma> n, y))"
+      using \<open>y \<in> M2\<close> by (simp add: M1.MCauchy_def M2.MCauchy_def MCauchy_prod_metric)
+    then obtain z where "limitin Prod_metric.mtopology (\<lambda>n. (\<sigma> n, y)) z sequentially"
+      using L Prod_metric.mcomplete_def by blast
+    then show "\<exists>x. limitin M1.mtopology \<sigma> x sequentially"
+      by (auto simp: Prod_metric.mcomplete_def M1.mcomplete_def 
+          mtopology_prod_metric limitin_pairwise o_def)
+  qed
   moreover
-  { assume L: "Prod_metric.mcomplete"
-    have "M2.mcomplete"
-      unfolding M2.mcomplete_def
-    proof (intro strip)
-      fix \<sigma>
-      assume "M2.MCauchy \<sigma>"
-      then have "Prod_metric.MCauchy (\<lambda>n. (x, \<sigma> n))"
-        using \<open>x \<in> M1\<close> by (simp add: M2.MCauchy_def M1.MCauchy_def MCauchy_prod_metric)
-      then obtain z where "limitin Prod_metric.mtopology (\<lambda>n. (x, \<sigma> n)) z sequentially"
-        using L Prod_metric.mcomplete_def by blast
-      then show "\<exists>x. limitin M2.mtopology \<sigma> x sequentially"
-        by (auto simp: Prod_metric.mcomplete_def M2.mcomplete_def 
-             mtopology_prod_metric limitin_pairwise o_def)
-    qed
-  }
+  have "M2.mcomplete" if L: "Prod_metric.mcomplete"
+    unfolding M2.mcomplete_def
+  proof (intro strip)
+    fix \<sigma>
+    assume "M2.MCauchy \<sigma>"
+    then have "Prod_metric.MCauchy (\<lambda>n. (x, \<sigma> n))"
+      using \<open>x \<in> M1\<close> by (simp add: M2.MCauchy_def M1.MCauchy_def MCauchy_prod_metric)
+    then obtain z where "limitin Prod_metric.mtopology (\<lambda>n. (x, \<sigma> n)) z sequentially"
+      using L Prod_metric.mcomplete_def by blast
+    then show "\<exists>x. limitin M2.mtopology \<sigma> x sequentially"
+      by (auto simp: Prod_metric.mcomplete_def M2.mcomplete_def 
+          mtopology_prod_metric limitin_pairwise o_def)
+  qed
   ultimately show ?thesis
     using False by blast 
 qed auto
@@ -3835,17 +3828,19 @@ lemma ucmap_C:
     and fim: "f \<in> mspace m1 \<rightarrow> mspace m2"
   shows "uniformly_continuous_map m1 m2 f"
 proof -
-  {assume "\<not> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m1 y x < \<delta> \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>)" 
-    then obtain \<epsilon> where "\<epsilon> > 0" 
+  have False
+    if "\<not> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x\<in>mspace m1. \<forall>y\<in>mspace m1. mdist m1 y x < \<delta> \<longrightarrow> mdist m2 (f y) (f x) < \<epsilon>)"
+  proof -
+    from that obtain \<epsilon> where "\<epsilon> > 0" 
       and "\<And>n. \<exists>x\<in>mspace m1. \<exists>y\<in>mspace m1. mdist m1 y x < inverse(Suc n) \<and> mdist m2 (f y) (f x) \<ge> \<epsilon>"
       by (meson inverse_Suc linorder_not_le)
     then obtain \<rho> \<sigma> where space: "range \<rho> \<subseteq> mspace m1" "range \<sigma> \<subseteq> mspace m1"
          and dist: "\<And>n. mdist m1 (\<sigma> n) (\<rho> n) < inverse(Suc n) \<and> mdist m2 (f(\<sigma> n)) (f(\<rho> n)) \<ge> \<epsilon>"
       by (metis image_subset_iff)
-    have False 
+    show ?thesis
       using \<section> [OF \<open>\<epsilon> > 0\<close> space] dist Lim_null_comparison
       by (smt (verit) LIMSEQ_norm_0 inverse_eq_divide mdist_commute mdist_nonneg real_norm_def)
-  }
+  qed
   moreover
   have "t \<in> mspace m2" if "t \<in> f ` mspace m1" for t
     using fim that by blast
@@ -4908,18 +4903,18 @@ next
       and U: "\<And>i. i\<in>I \<Longrightarrow> openin (X i) (U i)" 
       and "x \<in> S" for U S x
   proof -
-    { fix i
-      assume "i \<in> J U"
-      then have "i \<in> I"
+    have "\<exists>r>0. mball_of (cm i) (x i) r \<subseteq> U i" if "i \<in> J U" for i
+    proof-
+      from that have "i \<in> I"
         by (auto simp: J_def)
       then have "openin (mtopology_of (m i)) (U i)"
         using U m by force
       then have "openin (mtopology_of (cm i)) (U i)"
         by (simp add: Abstract_Metric_Spaces.mtopology_capped_metric cm_def)
-      then have "\<exists>r>0. mball_of (cm i) (x i) r \<subseteq> U i"
+      then show ?thesis
         using x
         by (simp add: Metric_space.openin_mtopology PiE_mem \<open>i \<in> I\<close> mball_of_def mtopology_of_def) 
-    }
+    qed
     then obtain rf where rf: "\<And>j. j \<in> J U \<Longrightarrow> rf j >0 \<and> mball_of (cm j) (x j) (rf j) \<subseteq> U j"
       by metis
     define r where "r \<equiv> Min (insert 1 (rf ` J U))"

@@ -32,10 +32,9 @@ lemma sub_polyfun_alt:
   shows   "(\<Sum>i\<le>n. a i * x^i) - (\<Sum>i\<le>n. a i * y^i) =
            (x - y) * (\<Sum>j<n. \<Sum>k<n-j. a (j+k+1) * y^k * x^j)"
 proof -
-  { fix j
-    have "(\<Sum>k = Suc j..n. a k * y^(k - Suc j) * x^j) =
-          (\<Sum>k <n - j. a (Suc (j + k)) * y^k * x^j)"
-      by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + Suc j" and j="\<lambda>i. i - Suc j"]) auto }
+  have "(\<Sum>k = Suc j..n. a k * y^(k - Suc j) * x^j) =
+          (\<Sum>k <n - j. a (Suc (j + k)) * y^k * x^j)" for j
+    by (rule sum.reindex_bij_witness[where i="\<lambda>i. i + Suc j" and j="\<lambda>i. i - Suc j"]) auto
   then show ?thesis
     by (simp add: sub_polyfun)
 qed
@@ -45,14 +44,15 @@ lemma polyfun_linear_factor:
   shows  "\<exists>b. \<forall>z. (\<Sum>i\<le>n. c i * z^i) =
                   (z-a) * (\<Sum>i<n. b i * z^i) + (\<Sum>i\<le>n. c i * a^i)"
 proof -
-  { fix z
+  have "(\<Sum>i\<le>n. c i * z^i) =
+          (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)
+          + (\<Sum>i\<le>n. c i * a^i)" for z
+  proof -
     have "(\<Sum>i\<le>n. c i * z^i) - (\<Sum>i\<le>n. c i * a^i) =
           (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)"
       by (simp add: sub_polyfun sum_distrib_right)
-    then have "(\<Sum>i\<le>n. c i * z^i) =
-          (z - a) * (\<Sum>j<n. (\<Sum>k = Suc j..n. c k * a^(k - Suc j)) * z^j)
-          + (\<Sum>i\<le>n. c i * a^i)"
-      by (simp add: algebra_simps) }
+    then show ?thesis by (simp add: algebra_simps)
+  qed
   then show ?thesis
     by (intro exI allI)
 qed
