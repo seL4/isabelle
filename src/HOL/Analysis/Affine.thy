@@ -62,7 +62,7 @@ definition\<^marker>\<open>tag important\<close> affine :: "'a::real_vector set 
   where "affine S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u v. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> S)"
 
 lemma affine_alt: "affine S \<longleftrightarrow> (\<forall>x\<in>S. \<forall>y\<in>S. \<forall>u::real. (1 - u) *\<^sub>R x + u *\<^sub>R y \<in> S)"
-  unfolding affine_def by (metis eq_diff_eq')
+  unfolding affine_def by (metis eq_diff_eq)
 
 lemma affine_empty [iff]: "affine {}"
   unfolding affine_def by auto
