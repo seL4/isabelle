@@ -114,7 +114,7 @@ object Isabelle_Thread {
   def uninterruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.uninterruptible)(body)
 
-  def try_uninterruptible[A](body: => A): A =
+  def perhaps_uninterruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.uninterruptible, permissive = true)(body)
 }
 

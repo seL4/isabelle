@@ -205,13 +205,13 @@ object Bash {
       }
     }
 
-    def terminate(): Unit = Isabelle_Thread.try_uninterruptible {
+    def terminate(): Unit = Isabelle_Thread.perhaps_uninterruptible {
       signal("INT", count = 7) && signal("TERM", count = 3) && signal("KILL")
       proc.destroy()
       do_cleanup()
     }
 
-    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible {
+    def interrupt(): Unit = Isabelle_Thread.perhaps_uninterruptible {
       ssh.kill_process(group_pid, "INT")
     }
 
