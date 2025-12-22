@@ -1062,7 +1062,7 @@ object Find_Facts {
         loop()
       }
 
-      Isabelle_Thread.interrupt_handler(_ => server.stop()) { loop() }
+      Isabelle_Thread.interrupt_handle(server.stop()) { loop() }
     }
   }
 

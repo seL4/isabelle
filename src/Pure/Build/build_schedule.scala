@@ -986,7 +986,7 @@ object Build_Schedule {
     private var _build_tick: Long = 0L
 
     protected override def build_action(): Boolean =
-      Isabelle_Thread.interrupt_handler(_ => progress.stop()) {
+      Isabelle_Thread.interrupt_handle(progress.stop()) {
         val received = build_receive(n => n.channel == Build_Process.private_data.channel)
         val ready = received.contains(Build_Schedule.private_data.channel_ready(hostname))
 

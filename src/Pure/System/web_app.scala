@@ -540,7 +540,7 @@ window.addEventListener("resize", (event) => { post_height() })
         loop()
       }
 
-      Isabelle_Thread.interrupt_handler(_ => server.stop()) { loop() }
+      Isabelle_Thread.interrupt_handle(server.stop()) { loop() }
     }
 
     def start(): Unit = {

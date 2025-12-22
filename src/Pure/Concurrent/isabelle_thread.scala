@@ -105,8 +105,8 @@ object Isabelle_Thread {
     if (handler == null) body
     else self.interrupt_handler(handler)(body)
 
-  def interrupt_handler[A](handle: Isabelle_Thread => Unit)(body: => A): A =
-    self.interrupt_handler(Interrupt_Handler(handle))(body)
+  def interrupt_handle[A](handle: => Unit)(body: => A): A =
+    self.interrupt_handler(Interrupt_Handler(_ => handle))(body)
 
   def interruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.interruptible)(body)
