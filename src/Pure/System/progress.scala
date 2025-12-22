@@ -227,10 +227,7 @@ class Progress {
 
   @volatile private var is_stopped = false
   def stop(): Unit = { is_stopped = true }
-  def stopped: Boolean = {
-    if (Thread.interrupted()) is_stopped = true
-    is_stopped
-  }
+  def stopped: Boolean = is_stopped
 
   final def interrupt_handler[A](e: => A): A = Exn.Interrupt.signal_handler { stop() } { e }
   final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
