@@ -17,10 +17,5 @@ object POSIX_Interrupt {
     val old_handler = Signal.handle(SIGINT, new_handler)
     try { e } finally { Signal.handle(SIGINT, old_handler) }
   }
-
-  def exception[A](e: => A): A = {
-    val thread = Thread.currentThread
-    handler { thread.interrupt() } { e }
-  }
 }
 
