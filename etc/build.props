@@ -205,7 +205,6 @@ sources = \
   src/Pure/System/options.scala \
   src/Pure/System/other_isabelle.scala \
   src/Pure/System/platform.scala \
-  src/Pure/System/posix_interrupt.scala \
   src/Pure/System/process_result.scala \
   src/Pure/System/program_progress.scala \
   src/Pure/System/progress.scala \

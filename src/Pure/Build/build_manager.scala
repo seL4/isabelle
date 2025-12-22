@@ -1712,7 +1712,7 @@ html { background-color: white; }"""))
       new Web_Server(port, store, build_hosts, progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
-    POSIX_Interrupt.handler {
+    Exn.Interrupt.signal_handler {
       progress.stop()
       processes.foreach(_.interrupt())
     } {
