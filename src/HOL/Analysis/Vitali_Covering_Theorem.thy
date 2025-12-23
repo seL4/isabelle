@@ -597,38 +597,37 @@ next
       proof (intro exI conjI)
         show "S \<inter> ball z 1 \<subseteq> ?T"
           using U by fastforce
-        { have Um: "U i \<in> lmeasurable" if "i \<in> C" for i
-            using that U by blast
-          have lee: "?\<mu> (\<Union>i\<in>I. U i) \<le> e" if "I \<subseteq> C" "finite I" for I
-          proof -
-            have "?\<mu> (\<Union>(x,d)\<in>I. ball x d) \<le> ?\<mu> (ball z 1)"
-              apply (rule measure_mono_fmeasurable)
-              using \<open>I \<subseteq> C\<close> \<open>finite I\<close> Csub by (force simp: prod.case_eq_if sets.finite_UN)+
-            then have le1: "(?\<mu> (\<Union>(x,d)\<in>I. ball x d) / ?\<mu> (ball z 1)) \<le> 1"
-              by (simp add: content_ball_pos)
-            have "?\<mu> (\<Union>i\<in>I. U i) \<le> (\<Sum>i\<in>I. ?\<mu> (U i))"
-              using that U by (blast intro: measure_UNION_le)
-            also have "\<dots> \<le> (\<Sum>(x,r)\<in>I. e / ?\<mu> (ball z 1) * ?\<mu> (ball x r))"
-              by (rule sum_mono) (use \<open>I \<subseteq> C\<close> U in force)
-            also have "\<dots> = (e / ?\<mu> (ball z 1)) * (\<Sum>(x,r)\<in>I. ?\<mu> (ball x r))"
-              by (simp add: case_prod_app prod.case_distrib sum_distrib_left)
-            also have "\<dots> = e * (?\<mu> (\<Union>(x,r)\<in>I. ball x r) / ?\<mu> (ball z 1))"
-              apply (subst measure_UNION')
-              using that pwC by (auto simp: case_prod_unfold elim: pairwise_mono)
-            also have "\<dots> \<le> e"
-              by (metis mult.commute mult.left_neutral mult_le_cancel_right_pos \<open>e > 0\<close> le1)
-            finally show ?thesis .
-          qed
-          have "\<Union>(U ` C) \<in> lmeasurable" "?\<mu> (\<Union>(U ` C)) \<le> e"
-            using \<open>e > 0\<close> Um lee
-            by(auto intro!: fmeasurable_UN_bound [OF \<open>countable C\<close>] measure_UN_bound [OF \<open>countable C\<close>])
-        }
-        moreover have "?\<mu> ?T = ?\<mu> (\<Union>(U ` C))"
+        have Um: "U i \<in> lmeasurable" if "i \<in> C" for i
+          using that U by blast
+        have lee: "?\<mu> (\<Union>i\<in>I. U i) \<le> e" if "I \<subseteq> C" "finite I" for I
+        proof -
+          have "?\<mu> (\<Union>(x,d)\<in>I. ball x d) \<le> ?\<mu> (ball z 1)"
+            by (rule measure_mono_fmeasurable)
+              (use \<open>I \<subseteq> C\<close> \<open>finite I\<close> Csub in \<open>force simp: prod.case_eq_if sets.finite_UN\<close>)+
+          then have le1: "(?\<mu> (\<Union>(x,d)\<in>I. ball x d) / ?\<mu> (ball z 1)) \<le> 1"
+            by (simp add: content_ball_pos)
+          have "?\<mu> (\<Union>i\<in>I. U i) \<le> (\<Sum>i\<in>I. ?\<mu> (U i))"
+            using that U by (blast intro: measure_UNION_le)
+          also have "\<dots> \<le> (\<Sum>(x,r)\<in>I. e / ?\<mu> (ball z 1) * ?\<mu> (ball x r))"
+            by (rule sum_mono) (use \<open>I \<subseteq> C\<close> U in force)
+          also have "\<dots> = (e / ?\<mu> (ball z 1)) * (\<Sum>(x,r)\<in>I. ?\<mu> (ball x r))"
+            by (simp add: case_prod_app prod.case_distrib sum_distrib_left)
+          also have "\<dots> = e * (?\<mu> (\<Union>(x,r)\<in>I. ball x r) / ?\<mu> (ball z 1))"
+            apply (subst measure_UNION')
+            using that pwC by (auto simp: case_prod_unfold elim: pairwise_mono)
+          also have "\<dots> \<le> e"
+            by (metis mult.commute mult.left_neutral mult_le_cancel_right_pos \<open>e > 0\<close> le1)
+          finally show ?thesis .
+        qed
+        have *: "\<Union>(U ` C) \<in> lmeasurable" "?\<mu> (\<Union>(U ` C)) \<le> e"
+          using \<open>e > 0\<close> Um lee
+          by(auto intro!: fmeasurable_UN_bound [OF \<open>countable C\<close>] measure_UN_bound [OF \<open>countable C\<close>])
+        have "?\<mu> ?T = ?\<mu> (\<Union>(U ` C))"
         proof (rule measure_negligible_symdiff [OF \<open>\<Union>(U ` C) \<in> lmeasurable\<close>])
           show "negligible((\<Union>(U ` C) - ?T) \<union> (?T - \<Union>(U ` C)))"
             by (force intro!: negligible_subset [OF negC])
         qed
-        ultimately show "?T \<in> lmeasurable"  "?\<mu> ?T \<le> e"
+        with * show "?T \<in> lmeasurable"  "?\<mu> ?T \<le> e"
           by (simp_all add: fmeasurable.Un negC negligible_imp_measurable split_def)
       qed
     qed
@@ -649,8 +648,8 @@ proof -
     fix r :: "real" and e :: "real"
     assume L [rule_format]: "\<forall>e>0. \<exists>d>0. d \<le> e \<and> ?Q x d e" and "r > 0" "e > 0"
     show "\<exists>d>0. d \<le> r \<and> ?Q x d e"
-      using L [of "min r e"] apply (rule ex_forward)
-      using \<open>r > 0\<close> \<open>e > 0\<close>  by (auto intro: less_le_trans elim!: ex_forward simp: content_ball_pos)
+      by (use L [of "min r e"] in \<open>rule ex_forward\<close>)
+        (use \<open>r > 0\<close> \<open>e > 0\<close> in \<open>auto intro: less_le_trans elim!: ex_forward simp: content_ball_pos\<close>)
   qed auto
   then show ?thesis
     by (force simp: negligible_eq_zero_density_alt)
