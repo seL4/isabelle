@@ -12,8 +12,10 @@ import isabelle.jedit._
 
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader
+
 import java.io.OutputStream
 import java.util.Objects
+import javax.swing.text.{SimpleAttributeSet, StyleConstants}
 
 
 object Scala_Console {
@@ -31,9 +33,39 @@ object Scala_Console {
 
   def running_console(): Console = running_interpreter().console
 
+  class Progress(
+    val console: Console = running_console(),
+    verbose: Boolean = false,
+    threshold: Time = Build.progress_threshold(Options.init0()),
+    detailed: Boolean = false,
+    stderr: Boolean = false
+  ) extends Console_Progress(
+    verbose = verbose,
+    threshold = threshold,
+    detailed = detailed,
+    stderr = stderr
+  ) {
+    override def status_hide(status: isabelle.Progress.Output): Unit = ()
+
+    override def status_output(msgs: isabelle.Progress.Output): Unit = synchronized {
+      for (msg <- msgs if do_output(msg)) {
+        val attrs =
+          if (msg.status) {
+            val attrs = new SimpleAttributeSet
+            StyleConstants.setBackground(attrs, console.getPlainColor)
+            StyleConstants.setForeground(attrs, console.getBackground)
+            attrs
+          }
+          else ConsolePane.colorAttributes(console.getPlainColor)
+        console.getOutput().writeAttrs(attrs, msg.message.output_text + "\n")
+      }
+    }
+  }
+
   val init = """
 import isabelle._
 import isabelle.jedit._
+import isabelle.jedit_main.Scala_Console
 val console = isabelle.jedit_main.Scala_Console.running_console()
 val view = console.getView()
 """
@@ -115,7 +147,7 @@ class Scala_Console extends Shell("Scala") {
      "The contents of package isabelle and isabelle.jedit are imported.\n" +
      "The following special toplevel bindings are provided:\n" +
      "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
-     "  console -- jEdit Console plugin\n" +
+     "  console -- jEdit Console plugin (e.g. new Scala_Console.Progress())\n" +
      "  PIDE    -- Isabelle/PIDE plugin (e.g. PIDE.session, PIDE.snapshot, PIDE.rendering)\n")
   }
 
