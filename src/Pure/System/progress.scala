@@ -137,7 +137,7 @@ object Progress {
 
     def status_output(msgs: Progress.Output): Unit
 
-    def status_hide(status: Progress.Output): Unit = ()
+    def status_hide(msgs: Progress.Output): Unit = ()
 
     protected var _status: Progress.Session_Output = Nil
 
@@ -265,8 +265,8 @@ extends Progress with Progress.Status {
   override def status_threshold: Time = threshold
   override def status_detailed: Boolean = detailed
 
-  override def status_hide(status: Progress.Output): Unit = synchronized {
-    val txt = output_text(status, terminate = true)
+  override def status_hide(msgs: Progress.Output): Unit = synchronized {
+    val txt = output_text(msgs, terminate = true)
     Output.delete_lines(Library.count_newlines(txt), stdout = !stderr)
   }
 
