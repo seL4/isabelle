@@ -76,7 +76,6 @@ class Scala_Console extends Shell("Scala") {
 
   @volatile private var global_console: Console = null
   @volatile private var global_out: Output = null
-  @volatile private var global_err: Output = null
 
   private val console_stream = new OutputStream {
     private def buffer_init(): Bytes.Builder.Stream = new Bytes.Builder.Stream(hint = 100)
@@ -107,10 +106,9 @@ class Scala_Console extends Shell("Scala") {
     }
   }
 
-  private def with_console[A](console: Console, out: Output, err: Output)(e: => A): A = {
+  private def with_console[A](console: Console, out: Output)(e: => A): A = {
     global_console = console
     global_out = out
-    global_err = if (err == null) out else err
     try {
       scala.Console.withErr(console_stream) {
         scala.Console.withOut(console_stream) { e }
@@ -120,7 +118,6 @@ class Scala_Console extends Shell("Scala") {
       console_stream.flush()
       global_console = null
       global_out = null
-      global_err = null
     }
   }
 
@@ -165,7 +162,7 @@ class Scala_Console extends Shell("Scala") {
   ): Unit = {
     Scala_Console.console_interpreter(console).foreach(interpreter =>
       interpreter.execute { (context, state) =>
-        val result = with_console(console, out, err) { context.compile(command, state) }
+        val result = with_console(console, out) { context.compile(command, state) }
         GUI_Thread.later {
           val diag = if (err == null) out else err
           for (message <- result.messages) {
