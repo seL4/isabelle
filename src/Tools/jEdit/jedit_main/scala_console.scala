@@ -45,7 +45,16 @@ object Scala_Console {
     detailed = detailed,
     stderr = stderr
   ) {
-    override def status_hide(status: isabelle.Progress.Output): Unit = ()
+    override def status_hide(msgs: isabelle.Progress.Output): Unit = synchronized {
+      val txt = output_text(msgs.map(isabelle.Progress.output_theory), terminate = true)
+      val m = txt.length
+      if (m > 0) {
+        GUI_Thread.later {
+          val doc = console.getConsolePane.getStyledDocument
+          doc.remove(doc.getLength - m, m)
+        }
+      }
+    }
 
     override def status_output(msgs: isabelle.Progress.Output): Unit = synchronized {
       for (msg <- msgs if do_output(msg)) {
