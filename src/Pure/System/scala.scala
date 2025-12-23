@@ -217,7 +217,7 @@ object Scala {
       known.value.collectFirst(which)
   }
 
-  class Interpreter(context: Compiler.Context, out: OutputStream = Console.out) {
+  class Interpreter(context: Compiler.Context) {
     interpreter =>
 
     private val running = Synchronized[Option[Thread]](None)

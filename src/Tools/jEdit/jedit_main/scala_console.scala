@@ -12,7 +12,10 @@ import isabelle.jedit._
 
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader
+
 import java.io.OutputStream
+import java.util.Objects
+import javax.swing.text.{SimpleAttributeSet, StyleConstants}
 
 
 object Scala_Console {
@@ -30,47 +33,95 @@ object Scala_Console {
 
   def running_console(): Console = running_interpreter().console
 
+  class Progress(
+    val console: Console = running_console(),
+    verbose: Boolean = false,
+    threshold: Time = Build.progress_threshold(Options.init0()),
+    detailed: Boolean = false,
+    stderr: Boolean = false
+  ) extends Console_Progress(
+    verbose = verbose,
+    threshold = threshold,
+    detailed = detailed,
+    stderr = stderr
+  ) {
+    override def status_hide(msgs: isabelle.Progress.Output): Unit = {
+      val txt = output_text(msgs.map(isabelle.Progress.output_theory), terminate = true)
+      val m = txt.length
+      if (m > 0) {
+        GUI_Thread.later {
+          val doc = console.getConsolePane.getStyledDocument
+          doc.remove(doc.getLength - m, m)
+        }
+      }
+    }
+
+    override def status_output(msgs: isabelle.Progress.Output): Unit = {
+      if (msgs.nonEmpty) {
+        GUI_Thread.later {
+          for (msg <- msgs if do_output(msg)) {
+            val attrs =
+              if (msg.status) {
+                val attrs = new SimpleAttributeSet
+                StyleConstants.setBackground(attrs, console.getPlainColor)
+                StyleConstants.setForeground(attrs, console.getBackground)
+                attrs
+              }
+              else ConsolePane.colorAttributes(console.getPlainColor)
+            console.getOutput().writeAttrs(attrs, msg.message.output_text + "\n")
+          }
+        }
+      }
+    }
+  }
+
   val init = """
 import isabelle._
 import isabelle.jedit._
+import isabelle.jedit_main.Scala_Console
 val console = isabelle.jedit_main.Scala_Console.running_console()
 val view = console.getView()
 """
 }
 
 class Scala_Console extends Shell("Scala") {
-  /* global state -- owned by GUI thread */
+  /* global state -- owned interpreter thread */
 
   @volatile private var global_console: Console = null
   @volatile private var global_out: Output = null
-  @volatile private var global_err: Output = null
 
   private val console_stream = new OutputStream {
-    val buf = new StringBuilder(100)
+    private def buffer_init(): Bytes.Builder.Stream = new Bytes.Builder.Stream(hint = 100)
+    private var buffer = buffer_init()
 
-    override def flush(): Unit = {
-      val s = buf.synchronized { val s = buf.toString; buf.clear(); s }
-      val str = Bytes.raw(s).text
-      GUI_Thread.later {
-        if (global_out == null) java.lang.System.out.print(str)
-        else global_out.writeAttrs(null, str)
+    override def flush(): Unit = synchronized {
+      val str = buffer.builder.done().text
+      buffer = buffer_init()
+      global_out match {
+        case null =>
+          java.lang.System.out.print(str)
+          java.lang.System.out.flush()
+        case out =>
+          if (str.nonEmpty) { GUI_Thread.later { out.writeAttrs(null, str) } }
       }
-      Time.seconds(0.01).sleep()  // FIXME adhoc delay to avoid loosing output
     }
 
     override def close(): Unit = flush()
 
-    def write(byte: Int): Unit = {
-      val c = byte.toChar
-      buf.synchronized { buf.append(c) }
-      if (c == '\n') flush()
+    override def write(b: Int): Unit = synchronized {
+      buffer.write(b)
+      if (b.toChar == '\n') flush()
+    }
+
+    override def write(array: Array[Byte], offset: Int, length: Int): Unit = synchronized {
+      Objects.checkFromIndexSize(offset, length, array.length)
+      for (i <- 0 until length) write(array(offset + i))
     }
   }
 
-  private def with_console[A](console: Console, out: Output, err: Output)(e: => A): A = {
+  private def with_console[A](console: Console, out: Output)(e: => A): A = {
     global_console = console
     global_out = out
-    global_err = if (err == null) out else err
     try {
       scala.Console.withErr(console_stream) {
         scala.Console.withOut(console_stream) { e }
@@ -80,7 +131,6 @@ class Scala_Console extends Shell("Scala") {
       console_stream.flush()
       global_console = null
       global_out = null
-      global_err = null
     }
   }
 
@@ -107,7 +157,7 @@ class Scala_Console extends Shell("Scala") {
      "The contents of package isabelle and isabelle.jedit are imported.\n" +
      "The following special toplevel bindings are provided:\n" +
      "  view    -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
-     "  console -- jEdit Console plugin\n" +
+     "  console -- jEdit Console plugin (e.g. new Scala_Console.Progress())\n" +
      "  PIDE    -- Isabelle/PIDE plugin (e.g. PIDE.session, PIDE.snapshot, PIDE.rendering)\n")
   }
 
@@ -125,12 +175,12 @@ class Scala_Console extends Shell("Scala") {
   ): Unit = {
     Scala_Console.console_interpreter(console).foreach(interpreter =>
       interpreter.execute { (context, state) =>
-        val result = with_console(console, out, err) { context.compile(command, state) }
+        val result = with_console(console, out) { context.compile(command, state) }
         GUI_Thread.later {
           val diag = if (err == null) out else err
           for (message <- result.messages) {
             val color = if (message.is_error) console.getErrorColor else null
-            diag.print(color, message.text + "\n")
+            diag.print(color, message.text)
           }
           Option(err).foreach(_.commandDone())
           out.commandDone()

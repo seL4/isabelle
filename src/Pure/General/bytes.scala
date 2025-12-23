@@ -145,8 +145,8 @@ object Bytes {
       stream.builder.done()
     }
 
-    private class Stream(hint: Long = 0L) extends OutputStream {
-      val builder = new Builder(hint = hint)
+    class Stream(hint: Long = 0L) extends OutputStream {
+      val builder: Builder = new Builder(hint = hint)
 
       override def write(b: Int): Unit =
         { builder += b.toByte }
