@@ -113,22 +113,17 @@ instance
 proof
   fix x z :: "'a fset"
   fix X :: "'a fset set"
-  {
-    assume "x \<in> X" "bdd_below X"
-    then show "Inf X |\<subseteq>| x" by transfer auto
-  next
-    assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> z |\<subseteq>| x)"
-    then show "z |\<subseteq>| Inf X" by transfer (clarsimp, blast)
-  next
-    assume "x \<in> X" "bdd_above X"
-    then obtain z where "x \<in> X" "(\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z)"
+  show "x \<in> X \<Longrightarrow> bdd_below X \<Longrightarrow> Inf X |\<subseteq>| x" by transfer auto
+  show "X \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> z |\<subseteq>| x) \<Longrightarrow> z |\<subseteq>| Inf X" by transfer (clarsimp, blast)
+  show "x |\<subseteq>| Sup X" if "x \<in> X" "bdd_above X"
+  proof -
+    from that obtain z where "x \<in> X" "(\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z)"
       by (auto simp: bdd_above_def)
-    then show "x |\<subseteq>| Sup X"
+    then show ?thesis
       by transfer (auto intro!: finite_Sup)
-  next
-    assume "X \<noteq> {}" "(\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z)"
-    then show "Sup X |\<subseteq>| z" by transfer (clarsimp, blast)
-  }
+  qed
+  show "X \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> x |\<subseteq>| z) \<Longrightarrow> Sup X |\<subseteq>| z"
+    by transfer (clarsimp, blast)
 qed
 end
 
