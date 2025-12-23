@@ -45,7 +45,7 @@ object Scala_Console {
     detailed = detailed,
     stderr = stderr
   ) {
-    override def status_hide(msgs: isabelle.Progress.Output): Unit = synchronized {
+    override def status_hide(msgs: isabelle.Progress.Output): Unit = {
       val txt = output_text(msgs.map(isabelle.Progress.output_theory), terminate = true)
       val m = txt.length
       if (m > 0) {
@@ -56,17 +56,21 @@ object Scala_Console {
       }
     }
 
-    override def status_output(msgs: isabelle.Progress.Output): Unit = synchronized {
-      for (msg <- msgs if do_output(msg)) {
-        val attrs =
-          if (msg.status) {
-            val attrs = new SimpleAttributeSet
-            StyleConstants.setBackground(attrs, console.getPlainColor)
-            StyleConstants.setForeground(attrs, console.getBackground)
-            attrs
+    override def status_output(msgs: isabelle.Progress.Output): Unit = {
+      if (msgs.nonEmpty) {
+        GUI_Thread.later {
+          for (msg <- msgs if do_output(msg)) {
+            val attrs =
+              if (msg.status) {
+                val attrs = new SimpleAttributeSet
+                StyleConstants.setBackground(attrs, console.getPlainColor)
+                StyleConstants.setForeground(attrs, console.getBackground)
+                attrs
+              }
+              else ConsolePane.colorAttributes(console.getPlainColor)
+            console.getOutput().writeAttrs(attrs, msg.message.output_text + "\n")
           }
-          else ConsolePane.colorAttributes(console.getPlainColor)
-        console.getOutput().writeAttrs(attrs, msg.message.output_text + "\n")
+        }
       }
     }
   }
