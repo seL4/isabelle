@@ -321,14 +321,14 @@ qed
 
 lemma affine_hull_3:
   fixes a b c :: "'a::real_vector"
-  shows "affine hull {a,b,c} = { u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c| u v w. u + v + w = 1}"
+  shows "affine hull {a,b,c} = {u *\<^sub>R a + v *\<^sub>R b + w *\<^sub>R c| u v w. u + v + w = 1}"
 proof -
   have *:
     "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::real)"
     "\<And>x y z. z = x - y \<longleftrightarrow> y + z = (x::'a)" by auto
   show ?thesis
     apply (simp add: affine_hull_finite affine_hull_finite_step)
-    unfolding *
+    apply (simp only: *)
     apply safe
      apply (metis add.assoc)
     apply (rule_tac x=u in exI, force)
@@ -464,10 +464,9 @@ lemma affine_translation_aux:
   assumes "affine ((\<lambda>x. a + x) ` S)"
   shows "affine S"
 proof -
-  {
-    fix x y u v
-    assume xy: "x \<in> S" "y \<in> S" "(u :: real) + v = 1"
-    then have "(a + x) \<in> ((\<lambda>x. a + x) ` S)" "(a + y) \<in> ((\<lambda>x. a + x) ` S)"
+  have "u *\<^sub>R x + v *\<^sub>R y \<in> S" if xy: "x \<in> S" "y \<in> S" "(u :: real) + v = 1" for x y u v
+  proof -
+    from that have "(a + x) \<in> ((\<lambda>x. a + x) ` S)" "(a + y) \<in> ((\<lambda>x. a + x) ` S)"
       by auto
     then have h1: "u *\<^sub>R  (a + x) + v *\<^sub>R (a + y) \<in> (\<lambda>x. a + x) ` S"
       using xy assms unfolding affine_def by auto
@@ -477,8 +476,8 @@ proof -
       using \<open>u + v = 1\<close> by auto
     ultimately have "a + (u *\<^sub>R x + v *\<^sub>R y) \<in> (\<lambda>x. a + x) ` S"
       using h1 by auto
-    then have "u *\<^sub>R x + v *\<^sub>R y \<in> S" by auto
-  }
+    then show ?thesis by auto
+  qed
   then show ?thesis unfolding affine_def by auto
 qed
 
@@ -805,30 +804,23 @@ lemma affine_dependent_iff_dependent2:
 
 lemma affine_hull_insert_span_gen:
   "affine hull (insert a S) = (\<lambda>x. a + x) ` span ((\<lambda>x. - a + x) ` S)"
-proof -
-  have h1: "{x - a |x. x \<in> S} = ((\<lambda>x. -a+x) ` S)"
+proof (cases "a \<in> S")
+  case True
+  then have "insert 0 ((\<lambda>x. -a+x) ` (S - {a})) = (\<lambda>x. -a+x) ` S"
     by auto
-  {
-    assume "a \<notin> S"
-    then have ?thesis
-      using affine_hull_insert_span[of a S] h1 by auto
-  }
-  moreover
-  {
-    assume a1: "a \<in> S"
-    then have "insert 0 ((\<lambda>x. -a+x) ` (S - {a})) = (\<lambda>x. -a+x) ` S"
-      by auto
-    then have "span ((\<lambda>x. -a+x) ` (S - {a})) = span ((\<lambda>x. -a+x) ` S)"
-      using span_insert_0[of "(+) (- a) ` (S - {a})"]
-      by presburger
-    moreover have "{x - a |x. x \<in> (S - {a})} = ((\<lambda>x. -a+x) ` (S - {a}))"
-      by auto
-    moreover have "insert a (S - {a}) = insert a S"
-      by auto
-    ultimately have ?thesis
-      using affine_hull_insert_span[of "a" "S-{a}"] by auto
-  }
-  ultimately show ?thesis by auto
+  then have "span ((\<lambda>x. -a+x) ` (S - {a})) = span ((\<lambda>x. -a+x) ` S)"
+    using span_insert_0[of "(+) (- a) ` (S - {a})"]
+    by presburger
+  moreover have "{x - a |x. x \<in> (S - {a})} = ((\<lambda>x. -a+x) ` (S - {a}))"
+    by auto
+  moreover have "insert a (S - {a}) = insert a S"
+    by auto
+  ultimately show ?thesis
+    using affine_hull_insert_span[of "a" "S-{a}"] by auto
+next
+  case False
+  have "{x - a |x. x \<in> S} = ((\<lambda>x. -a+x) ` S)" by auto
+  with False show ?thesis using affine_hull_insert_span[of a S] by auto
 qed
 
 lemma affine_hull_span2:
