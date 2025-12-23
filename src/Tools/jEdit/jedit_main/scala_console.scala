@@ -13,6 +13,7 @@ import isabelle.jedit._
 import console.{Console, ConsolePane, Shell, Output}
 import org.gjt.sp.jedit.JARClassLoader
 import java.io.OutputStream
+import java.util.Objects
 
 
 object Scala_Console {
@@ -39,31 +40,38 @@ val view = console.getView()
 }
 
 class Scala_Console extends Shell("Scala") {
-  /* global state -- owned by GUI thread */
+  /* global state -- owned interpreter thread */
 
   @volatile private var global_console: Console = null
   @volatile private var global_out: Output = null
   @volatile private var global_err: Output = null
 
   private val console_stream = new OutputStream {
-    val buf = new StringBuilder(100)
+    private def buffer_init(): Bytes.Builder.Stream = new Bytes.Builder.Stream(hint = 100)
+    private var buffer = buffer_init()
 
-    override def flush(): Unit = {
-      val s = buf.synchronized { val s = buf.toString; buf.clear(); s }
-      val str = Bytes.raw(s).text
-      GUI_Thread.later {
-        if (global_out == null) java.lang.System.out.print(str)
-        else global_out.writeAttrs(null, str)
+    override def flush(): Unit = synchronized {
+      val str = buffer.builder.done().text
+      buffer = buffer_init()
+      global_out match {
+        case null =>
+          java.lang.System.out.print(str)
+          java.lang.System.out.flush()
+        case out =>
+          if (str.nonEmpty) { GUI_Thread.later { out.writeAttrs(null, str) } }
       }
-      Time.seconds(0.01).sleep()  // FIXME adhoc delay to avoid loosing output
     }
 
     override def close(): Unit = flush()
 
-    def write(byte: Int): Unit = {
-      val c = byte.toChar
-      buf.synchronized { buf.append(c) }
-      if (c == '\n') flush()
+    override def write(b: Int): Unit = synchronized {
+      buffer.write(b)
+      if (b.toChar == '\n') flush()
+    }
+
+    override def write(array: Array[Byte], offset: Int, length: Int): Unit = synchronized {
+      Objects.checkFromIndexSize(offset, length, array.length)
+      for (i <- 0 until length) write(array(offset + i))
     }
   }
 
