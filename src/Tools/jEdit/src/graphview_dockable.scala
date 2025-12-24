@@ -118,7 +118,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
             if (editor_style) view.getTextArea.getPainter.getLineHighlightColor
             else super.highlight_color
 
-          override def error_color = PIDE.plugin.options.color_value("error_color")
+          override def error_color = Color_Value.option(PIDE.options, "error_color")
 
           editor_style = true
         }

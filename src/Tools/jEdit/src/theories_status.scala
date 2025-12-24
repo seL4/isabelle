@@ -102,10 +102,10 @@ class Theories_Status(view: View, document: Boolean = false) {
             case Some(node_status) =>
               val segments =
                 List(
-                  (node_status.unprocessed, PIDE.plugin.options.color_value("unprocessed1_color")),
-                  (node_status.running, PIDE.plugin.options.color_value("running_color")),
-                  (node_status.warned, PIDE.plugin.options.color_value("warning_color")),
-                  (node_status.failed, PIDE.plugin.options.color_value("error_color"))
+                  (node_status.unprocessed, Color_Value.option(PIDE.options, "unprocessed1_color")),
+                  (node_status.running, Color_Value.option(PIDE.options, "running_color")),
+                  (node_status.warned, Color_Value.option(PIDE.options, "warning_color")),
+                  (node_status.failed, Color_Value.option(PIDE.options, "error_color"))
                 ).filter(_._1 > 0)
 
               segments.foldLeft(size.width - 2) {
@@ -117,7 +117,7 @@ class Theories_Status(view: View, document: Boolean = false) {
 
             case None =>
               if (!is_loaded_theory(node_name)) {
-                paint_segment(0, size.width, PIDE.plugin.options.color_value("unprocessed1_color"))
+                paint_segment(0, size.width, Color_Value.option(PIDE.options, "unprocessed1_color"))
               }
           }
           super.paintComponent(gfx)
@@ -131,9 +131,9 @@ class Theories_Status(view: View, document: Boolean = false) {
         val color =
           st match {
             case Document_Status.Overall_Status.ok =>
-              PIDE.plugin.options.color_value("ok_color")
+              Color_Value.option(PIDE.options, "ok_color")
             case Document_Status.Overall_Status.failed =>
-              PIDE.plugin.options.color_value("failed_color")
+              Color_Value.option(PIDE.options, "failed_color")
             case _ => label.foreground
           }
         val thickness1 = if (st == Document_Status.Overall_Status.pending) 1 else 3

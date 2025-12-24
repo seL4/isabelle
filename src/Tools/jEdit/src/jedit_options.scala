@@ -140,8 +140,6 @@ object JEdit_Options {
 }
 
 class JEdit_Options(init_options: Options) extends Options_Variable(init_options) {
-  def color_value(name: String): Color = Color_Value.option(value, name)
-
   def make_color_component(opt: Options.Entry): JEdit_Options.Entry = {
     GUI_Thread.require {}
 
