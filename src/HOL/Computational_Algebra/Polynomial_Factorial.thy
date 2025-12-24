@@ -608,16 +608,16 @@ instantiation poly :: ("{factorial_ring_gcd, semiring_gcd_mult_normalize}") fact
 begin
 
 definition gcd_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
-  [code del]: "gcd_poly = gcd_factorial"
+  "gcd_poly = gcd_factorial"
 
 definition lcm_poly :: "'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly" where
-  [code del]: "lcm_poly = lcm_factorial"
+  "lcm_poly = lcm_factorial"
   
 definition Gcd_poly :: "'a poly set \<Rightarrow> 'a poly" where
- [code del]: "Gcd_poly = Gcd_factorial"
+  "Gcd_poly = Gcd_factorial"
 
 definition Lcm_poly :: "'a poly set \<Rightarrow> 'a poly" where
- [code del]: "Lcm_poly = Lcm_factorial"
+  "Lcm_poly = Lcm_factorial"
  
 instance by standard (simp_all add: gcd_poly_def lcm_poly_def Gcd_poly_def Lcm_poly_def)
 

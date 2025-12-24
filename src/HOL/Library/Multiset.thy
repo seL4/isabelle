@@ -4447,7 +4447,8 @@ instantiation multiset :: (equal) equal
 begin
 
 definition
-  [code del]: "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
+  "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
+
 lemma [code]: "HOL.equal (mset xs) (mset ys) \<longleftrightarrow> subset_eq_mset_impl xs ys = Some False"
   unfolding equal_multiset_def
   using subset_eq_mset_impl[of xs ys] by (cases "subset_eq_mset_impl xs ys", auto)

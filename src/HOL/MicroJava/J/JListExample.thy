@@ -136,13 +136,11 @@ lemma equal_loc'_code [code]:
   by(simp add: equal_loc'_def nat_to_loc'_inject)
 
 definition undefined_cname :: cname 
-  where [code del]: "undefined_cname = undefined"
-declare undefined_cname_def[symmetric, code_unfold]
+  where [code_abbrev]: "undefined_cname = undefined"
 code_datatype Object Xcpt Cname undefined_cname
 
 definition undefined_val :: val
-  where [code del]: "undefined_val = undefined"
-declare undefined_val_def[symmetric, code_unfold]
+  where [code_abbrev]: "undefined_val = undefined"
 code_datatype Unit Null Bool Intg Addr undefined_val
 
 definition E where 
@@ -176,24 +174,29 @@ ML_val \<open>
   locs @{code l4_name};
 
   fun list_fields n = 
-    @{code snd} (@{code the} (heap (@{code Loc} (@{code "nat_to_loc'"} n))));
+    @{code snd} (@{code the} (heap (@{code Loc} (@{code nat_to_loc'} n))));
   fun val_field n =
-    list_fields n (@{code val_name}, @{code "list_name"});
+    list_fields n (@{code val_name}, @{code list_name});
   fun next_field n =
-    list_fields n (@{code next_name}, @{code "list_name"});
+    list_fields n (@{code next_name}, @{code list_name});
+
   val Suc = @{code Suc};
+  val zero = @{code "0 :: nat"};
+  val one = @{code "1 :: nat"};
+  val two = Suc (Suc zero);
+  val three = Suc (Suc (Suc zero));
 
-  val_field @{code "0 :: nat"};
-  next_field @{code "0 :: nat"};
+  val_field zero;
+  next_field zero;
 
-  val_field @{code "1 :: nat"};
-  next_field @{code "1 :: nat"};
+  val_field one;
+  next_field one;
 
-  val_field (Suc (Suc @{code "0 :: nat"}));
-  next_field (Suc (Suc @{code "0 :: nat"}));
+  val_field two;
+  next_field two;
 
-  val_field (Suc (Suc (Suc @{code "0 :: nat"})));
-  next_field (Suc (Suc (Suc @{code "0 :: nat"})));
+  val_field three;
+  next_field three;
 \<close>
 
 end

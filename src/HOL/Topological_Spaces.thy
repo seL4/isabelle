@@ -3644,7 +3644,7 @@ subsection \<open>Product is a topological space\<close>
 instantiation prod :: (topological_space, topological_space) topological_space
 begin
 
-definition open_prod_def[code del]:
+definition open_prod_def [code drop]:
   "open (S :: ('a \<times> 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S)"
 

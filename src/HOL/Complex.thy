@@ -324,10 +324,10 @@ definition complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
 
 definition dist_complex_def: "dist x y = cmod (x - y)"
 
-definition uniformity_complex_def [code del]:
+definition uniformity_complex_def:
   "(uniformity :: (complex \<times> complex) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
-definition open_complex_def [code del]:
+definition open_complex_def [code drop]:
   "open (U :: complex set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 instance
@@ -347,7 +347,7 @@ qed (rule complex_sgn_def dist_complex_def open_complex_def uniformity_complex_d
 
 end
 
-declare uniformity_Abort[where 'a = complex, code]
+declare uniformity_Abort [where 'a = complex, code]
 
 lemma Re_divide': "Re (x / y) = (Re x * Re y + Im x * Im y) / (norm y)\<^sup>2"
   by (simp add: Re_divide norm_complex_def)

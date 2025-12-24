@@ -1397,10 +1397,10 @@ end
 instantiation fps :: (group_add) metric_space
 begin
 
-definition uniformity_fps_def [code del]:
+definition uniformity_fps_def:
   "(uniformity :: ('a fps \<times> 'a fps) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
-definition open_fps_def' [code del]:
+definition open_fps_def' [code drop]:
   "open (U :: 'a fps set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 lemma dist_fps_sym: "dist (a :: 'a fps) b = dist b a"
@@ -1443,7 +1443,7 @@ qed (rule open_fps_def' uniformity_fps_def)+
 
 end
 
-declare uniformity_Abort[where 'a="'a :: group_add fps", code]
+declare uniformity_Abort [where 'a="'a :: group_add fps", code]
 
 lemma open_fps_def: "open (S :: 'a::group_add fps set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> {y. dist y a < r} \<subseteq> S)"
   unfolding open_dist subset_eq by simp

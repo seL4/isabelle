@@ -738,7 +738,7 @@ lemma split_intervalD: "split_interval X x = (A, B) \<Longrightarrow> set_of X \
 instantiation interval :: ("{topological_space, preorder}") topological_space
 begin
 
-definition open_interval_def[code del]: "open (X::'a interval set) =
+definition open_interval_def [code drop]: "open (X::'a interval set) =
   (\<forall>x\<in>X.
       \<exists>A B.
          open A \<and>

@@ -151,11 +151,11 @@ lift_definition minus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \
 definition dist_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> real"
   where "dist_blinfun a b = norm (a - b)"
 
-definition [code del]:
-  "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
+definition uniformity_blinfun :: "(('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter"
+  where "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_blinfun :: "('a \<Rightarrow>\<^sub>L 'b) set \<Rightarrow> bool"
-  where [code del]: "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
+  where [code drop]: "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
 
 lift_definition uminus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>f x. - f x"
   by (rule bounded_linear_minus)
@@ -181,7 +181,7 @@ instance
 
 end
 
-declare uniformity_Abort[where 'a="('a :: real_normed_vector) \<Rightarrow>\<^sub>L ('b :: real_normed_vector)", code]
+declare uniformity_Abort [where 'a="('a :: real_normed_vector) \<Rightarrow>\<^sub>L ('b :: real_normed_vector)", code]
 
 lemma norm_blinfun_eqI:
   assumes "n \<le> norm (blinfun_apply f x) / norm x"

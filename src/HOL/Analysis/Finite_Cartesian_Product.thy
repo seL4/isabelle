@@ -304,7 +304,7 @@ subsection \<open>Topological space\<close>
 instantiation\<^marker>\<open>tag unimportant\<close> vec :: (topological_space, finite) topological_space
 begin
 
-definition\<^marker>\<open>tag important\<close> [code del]:
+definition\<^marker>\<open>tag important\<close> [code drop]:
   "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
     (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
       (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
@@ -430,7 +430,7 @@ end
 instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) uniformity_dist
 begin
 
-definition\<^marker>\<open>tag important\<close> [code del]:
+definition\<^marker>\<open>tag important\<close>
   "(uniformity :: (('a^'b::_) \<times> ('a^'b::_)) filter) =
     (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
@@ -438,7 +438,7 @@ instance\<^marker>\<open>tag unimportant\<close>
   by standard (rule uniformity_vec_def)
 end
 
-declare uniformity_Abort[where 'a="'a :: metric_space ^ 'b :: finite", code]
+declare uniformity_Abort [where 'a="'a :: metric_space ^ 'b :: finite", code]
 
 instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) metric_space
 begin

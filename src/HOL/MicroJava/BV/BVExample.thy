@@ -432,8 +432,8 @@ proof -
   finally show ?thesis .
 qed
 
-definition some_elem :: "'a set \<Rightarrow> 'a" where [code del]:
-  "some_elem = (\<lambda>S. SOME x. x \<in> S)"
+definition some_elem :: "'a set \<Rightarrow> 'a"
+  where [code drop]: "some_elem = (\<lambda>S. SOME x. x \<in> S)"
 code_printing
   constant some_elem \<rightharpoonup> (SML) "(case/ _ of/ Set/ xs/ =>/ hd/ xs)"
 

@@ -21,7 +21,7 @@ datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 declare [[code drop: "Code_Evaluation.term_of :: 'a::typerep Heap \<Rightarrow> Code_Evaluation.term"]]
 
 primrec execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a \<times> heap) option" where
-  [code del]: "execute (Heap f) = f"
+  [code drop]: "execute (Heap f) = f"
 
 lemma Heap_cases [case_names succeed fail]:
   fixes f and h
@@ -47,21 +47,21 @@ lemma execute_Let [execute_simps]:
 subsubsection \<open>Specialised lifters\<close>
 
 definition tap :: "(heap \<Rightarrow> 'a) \<Rightarrow> 'a Heap" where
-  [code del]: "tap f = Heap (\<lambda>h. Some (f h, h))"
+  [code drop]: "tap f = Heap (\<lambda>h. Some (f h, h))"
 
 lemma execute_tap [execute_simps]:
   "execute (tap f) h = Some (f h, h)"
   by (simp add: tap_def)
 
 definition heap :: "(heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
-  [code del]: "heap f = Heap (Some \<circ> f)"
+  [code drop]: "heap f = Heap (Some \<circ> f)"
 
 lemma execute_heap [execute_simps]:
   "execute (heap f) = Some \<circ> f"
   by (simp add: heap_def)
 
 definition guard :: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
-  [code del]: "guard P f = Heap (\<lambda>h. if P h then Some (f h) else None)"
+  [code drop]: "guard P f = Heap (\<lambda>h. if P h then Some (f h) else None)"
 
 lemma execute_guard [execute_simps]:
   "\<not> P h \<Longrightarrow> execute (guard P f) h = None"
@@ -211,7 +211,7 @@ lemma effect_guardE [effect_elims]:
 subsubsection \<open>Monad combinators\<close>
 
 definition return :: "'a \<Rightarrow> 'a Heap" where
-  [code del]: "return x = heap (Pair x)"
+  [code drop]: "return x = heap (Pair x)"
 
 lemma execute_return [execute_simps]:
   "execute (return x) = Some \<circ> Pair x"
@@ -245,7 +245,7 @@ lemma effect_raiseE [effect_elims]:
   using assms by (rule effectE) (simp add: success_def execute_simps)
 
 definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" where
-  [code del]: "bind f g = Heap (\<lambda>h. case execute f h of
+  [code drop]: "bind f g = Heap (\<lambda>h. case execute f h of
                   Some (x, h') \<Rightarrow> execute (g x) h'
                 | None \<Rightarrow> None)"
 

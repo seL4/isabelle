@@ -114,7 +114,7 @@ subsection \<open>Product is a Metric Space\<close>
 instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) dist
 begin
 
-definition dist_prod_def[code del]:
+definition dist_prod_def:
   "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
 
 instance ..
@@ -122,7 +122,7 @@ end
 
 instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniformity, uniformity) uniformity begin
 
-definition [code del]: \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
+definition [code drop]: \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
         filtermap (\<lambda>((x1,x2),(y1,y2)). ((x1,y1),(x2,y2))) (uniformity \<times>\<^sub>F uniformity)\<close>
 
 instance..
@@ -585,7 +585,7 @@ subsection \<open>Product is a Normed Vector Space\<close>
 instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
-definition norm_prod_def[code del]:
+definition norm_prod_def:
   "norm x = sqrt ((norm (fst x))\<^sup>2 + (norm (snd x))\<^sup>2)"
 
 definition sgn_prod_def:

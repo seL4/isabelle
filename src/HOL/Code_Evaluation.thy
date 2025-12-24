@@ -47,7 +47,7 @@ lemma valapp_code [code, code_unfold]:
 subsubsection \<open>Syntax\<close>
 
 definition termify :: "'a \<Rightarrow> term" where
-  [code del]: "termify x = dummy_term"
+  [code drop]: "termify x = dummy_term"
 
 abbreviation valtermify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
   "valtermify x \<equiv> (x, \<lambda>u. termify x)"
@@ -143,7 +143,7 @@ ML_file \<open>~~/src/HOL/Tools/reification.ML\<close>
 subsection \<open>Diagnostic\<close>
 
 definition tracing :: "String.literal \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code del]: "tracing s x = x"
+  "tracing s x = x"
 
 code_printing
   constant "tracing :: String.literal => 'a => 'a" \<rightharpoonup> (Eval) "Code'_Evaluation.tracing"

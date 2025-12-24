@@ -93,13 +93,13 @@ subsection \<open>Numeral operations\<close>
 instantiation num :: \<open>{plus,times,linorder}\<close>
 begin
 
-definition [code del]: \<open>m + n = num_of_nat (nat_of_num m + nat_of_num n)\<close>
+definition \<open>m + n = num_of_nat (nat_of_num m + nat_of_num n)\<close>
 
-definition [code del]: \<open>m * n = num_of_nat (nat_of_num m * nat_of_num n)\<close>
+definition \<open>m * n = num_of_nat (nat_of_num m * nat_of_num n)\<close>
 
-definition [code del]: \<open>m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n\<close>
+definition \<open>m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n\<close>
 
-definition [code del]: \<open>m < n \<longleftrightarrow> nat_of_num m < nat_of_num n\<close>
+definition \<open>m < n \<longleftrightarrow> nat_of_num m < nat_of_num n\<close>
 
 instance
   by standard (auto simp add: less_num_def less_eq_num_def num_eq_iff)

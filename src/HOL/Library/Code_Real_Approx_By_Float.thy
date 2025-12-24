@@ -48,16 +48,16 @@ lemma [code]: "real_of_int = Code_Real_Approx_By_Float.real_of_integer \<circ> i
   by (simp add: fun_eq_iff Code_Real_Approx_By_Float.real_of_integer_def real_of_int_def)
 
 qualified definition exp_real :: \<open>real \<Rightarrow> real\<close>
-  where [code_abbrev, code del]: \<open>exp_real = exp\<close>
+  where [code_abbrev, code drop]: \<open>exp_real = exp\<close>
 
 qualified definition sin_real :: \<open>real \<Rightarrow> real\<close>
-  where [code_abbrev, code del]: \<open>sin_real = sin\<close>
+  where [code_abbrev, code drop]: \<open>sin_real = sin\<close>
 
 qualified definition cos_real :: \<open>real \<Rightarrow> real\<close>
-  where [code_abbrev, code del]: \<open>cos_real = cos\<close>
+  where [code_abbrev, code drop]: \<open>cos_real = cos\<close>
 
 qualified definition tan_real :: \<open>real \<Rightarrow> real\<close>
-  where [code_abbrev, code del]: \<open>tan_real = tan\<close>
+  where [code_abbrev, code drop]: \<open>tan_real = tan\<close>
 
 end
 

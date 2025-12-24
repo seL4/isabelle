@@ -18,13 +18,13 @@ datatype (plugins del: code size "quickcheck") yxml_of_term = YXML
 lemma yot_anything: "x = (y :: yxml_of_term)"
 by(cases x y rule: yxml_of_term.exhaust[case_product yxml_of_term.exhaust])(simp)
 
-definition yot_empty :: yxml_of_term where [code del]: "yot_empty = YXML"
+definition yot_empty :: yxml_of_term where [code drop]: "yot_empty = YXML"
 definition yot_literal :: "String.literal \<Rightarrow> yxml_of_term"
-  where [code del]: "yot_literal _ = YXML"
+  where [code drop]: "yot_literal _ = YXML"
 definition yot_append :: "yxml_of_term \<Rightarrow> yxml_of_term \<Rightarrow> yxml_of_term"
-  where [code del]: "yot_append _ _ = YXML"
+  where [code drop]: "yot_append _ _ = YXML"
 definition yot_concat :: "yxml_of_term list \<Rightarrow> yxml_of_term"
-  where [code del]: "yot_concat _ = YXML"
+  where [code drop]: "yot_concat _ = YXML"
 
 text \<open>Serialise \<^typ>\<open>yxml_of_term\<close> to native string of target language\<close>
 
@@ -73,10 +73,10 @@ type_synonym attributes = "(String.literal \<times> String.literal) list"
 type_synonym body = "xml_tree list"
 
 definition Elem :: "String.literal \<Rightarrow> attributes \<Rightarrow> xml_tree list \<Rightarrow> xml_tree"
-where [code del]: "Elem _ _ _ = XML_Tree"
+where [code drop]: "Elem _ _ _ = XML_Tree"
 
 definition Text :: "String.literal \<Rightarrow> xml_tree"
-where [code del]: "Text _ = XML_Tree"
+where [code drop]: "Text _ = XML_Tree"
 
 definition node :: "xml_tree list \<Rightarrow> xml_tree"
 where "node ts = Elem (STR '':'') [] ts"
@@ -96,7 +96,7 @@ end
 code_datatype xml.Elem xml.Text
 
 definition yxml_string_of_xml_tree :: "xml_tree \<Rightarrow> yxml_of_term \<Rightarrow> yxml_of_term"
-where [code del]: "yxml_string_of_xml_tree _ _ = YXML"
+where "yxml_string_of_xml_tree _ _ = YXML"
 
 lemma yxml_string_of_xml_tree_code [code]:
   "yxml_string_of_xml_tree (xml.Elem name atts ts) rest =
@@ -121,10 +121,10 @@ text \<open>
 \<close>
 
 definition xml_of_typ :: "Typerep.typerep \<Rightarrow> xml.body"
-where [code del]: "xml_of_typ _ = [XML_Tree]"
+where "xml_of_typ _ = [XML_Tree]"
 
 definition xml_of_term :: "Code_Evaluation.term \<Rightarrow> xml.body"
-where [code del]: "xml_of_term _ = [XML_Tree]"
+where "xml_of_term _ = [XML_Tree]"
 
 lemma xml_of_typ_code [code]:
   "xml_of_typ (typerep.Typerep t args) = [xml.tagged (STR ''0'') (Some t) (xml.list xml_of_typ args)]"

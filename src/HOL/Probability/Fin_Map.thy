@@ -142,7 +142,7 @@ instantiation fmap :: (type, topological_space) topological_space
 begin
 
 definition open_fmap :: "('a \<Rightarrow>\<^sub>F 'b) set \<Rightarrow> bool" where
-   [code del]: "open_fmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
+   [code drop]: "open_fmap = generate_topology {Pi' a b|a b. \<forall>i\<in>a. open (b i)}"
 
 lemma open_Pi'I: "(\<And>i. i \<in> I \<Longrightarrow> open (A i)) \<Longrightarrow> open (Pi' I A)"
   by (auto intro: generate_topology.Basis simp: open_fmap_def)
@@ -270,7 +270,7 @@ end
 instantiation fmap :: (type, metric_space) uniformity_dist
 begin
 
-definition [code del]:
+definition
   "(uniformity :: (('a, 'b) fmap \<times> ('a \<Rightarrow>\<^sub>F 'b)) filter) =
     (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
@@ -278,7 +278,7 @@ instance
   by standard (rule uniformity_fmap_def)
 end
 
-declare uniformity_Abort[where 'a="('a \<Rightarrow>\<^sub>F 'b::metric_space)", code]
+declare uniformity_Abort [where 'a="('a \<Rightarrow>\<^sub>F 'b::metric_space)", code]
 
 instantiation fmap :: (type, metric_space) metric_space
 begin
