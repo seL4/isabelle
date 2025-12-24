@@ -82,7 +82,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
     graph_result match {
       case Exn.Res(graph) =>
         val graphview = new isabelle.graphview.Graphview(graph) {
-          def options: Options = PIDE.options.value
+          def options: Options = PIDE.options
 
           override def make_tooltip(parent: JComponent, x: Int, y: Int, tip: XML.Elem): String = {
             Pretty_Tooltip.invoke(() =>
@@ -118,7 +118,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
             if (editor_style) view.getTextArea.getPainter.getLineHighlightColor
             else super.highlight_color
 
-          override def error_color = PIDE.options.color_value("error_color")
+          override def error_color = PIDE.plugin.options.color_value("error_color")
 
           editor_style = true
         }

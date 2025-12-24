@@ -38,7 +38,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val continuous_checking = new JEdit_Options.continuous_checking.GUI
   continuous_checking.focusable = false
 
-  private val logic = JEdit_Session.logic_selector(PIDE.options, standalone = true)
+  private val logic = JEdit_Session.logic_selector(PIDE.plugin.options, standalone = true)
 
   private val controls =
     Wrap_Panel(List(purge, continuous_checking, session_phase, logic))

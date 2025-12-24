@@ -99,7 +99,7 @@ object Keymap_Merge {
   /** table **/
 
   private def conflict_color: Color =
-    PIDE.options.color_value("error_color")
+    PIDE.plugin.options.color_value("error_color")
 
   private sealed case class Table_Entry(shortcut: Shortcut, head: Option[Int], tail: List[Int]) {
     override def toString: String = {

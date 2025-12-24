@@ -29,7 +29,7 @@ object JEdit_Rendering {
       if (rich_texts.isEmpty) snapshot
       else snapshot.snippet(rich_texts.map(_.command(results)), Document.Blobs.empty)
     val model = File_Model.init(PIDE.session)
-    new JEdit_Rendering(snapshot1, model, PIDE.options.value)
+    new JEdit_Rendering(snapshot1, model, PIDE.options)
   }
 
 

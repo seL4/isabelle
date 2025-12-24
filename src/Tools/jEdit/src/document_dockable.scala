@@ -165,7 +165,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def load_document(session: String): Boolean = {
-    val options = PIDE.options.value
+    val options = PIDE.options
     run_process() { _ =>
       try {
         val session_background =
@@ -241,7 +241,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   /* controls */
 
   private val document_session =
-    JEdit_Session.document_selector(PIDE.options, standalone = true)
+    JEdit_Session.document_selector(PIDE.plugin.options, standalone = true)
 
   private lazy val delay_load: Delay =
     Delay.last(PIDE.session.load_delay, gui = true) {

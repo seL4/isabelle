@@ -35,7 +35,7 @@ object JEdit_Options {
     def changed(): Unit = GUI_Thread.require { PIDE.session.update_options(access.options.value) }
   }
 
-  class Bool_Access(name: String) extends Access(PIDE.options.bool, name) {
+  class Bool_Access(name: String) extends Access(PIDE.plugin.options.bool, name) {
     def set(): Unit = update(true)
     def reset(): Unit = update(false)
     def toggle(): Unit = change(b => !b)
@@ -110,7 +110,7 @@ object JEdit_Options {
   }
 
   class Isabelle_General_Options extends Isabelle_Options("isabelle-general") {
-    val options: JEdit_Options = PIDE.options
+    val options: JEdit_Options = PIDE.plugin.options
 
     private val predefined =
       List(
@@ -128,14 +128,14 @@ object JEdit_Options {
 
     private val predefined =
       (for {
-        opt <- PIDE.options.value.iterator
+        opt <- PIDE.options.iterator
         if opt.for_color_dialog && opt.is_dark == is_dark
-      } yield PIDE.options.make_color_component(opt)).toList
+      } yield PIDE.plugin.options.make_color_component(opt)).toList
 
     assert(predefined.nonEmpty)
 
     protected val components: List[(String, List[Entry])] =
-      PIDE.options.make_components(predefined, _ => false)
+      PIDE.plugin.options.make_components(predefined, _ => false)
   }
 }
 

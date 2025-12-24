@@ -37,7 +37,7 @@ object JEdit_Session {
   }
 
   def sessions_structure(
-    options: Options = PIDE.options.value,
+    options: Options = PIDE.options,
     dirs: List[Path] = session_dirs
   ): Sessions.Structure = {
     Sessions.load_structure(session_options(options), dirs = dirs)
