@@ -78,7 +78,7 @@ object Scala_Console {
   val init = """
 import isabelle._
 import isabelle.jedit._
-import isabelle.jedit_main.Scala_Console
+import isabelle.jedit_main._
 val console = isabelle.jedit_main.Scala_Console.running_console()
 val view = console.getView()
 """
