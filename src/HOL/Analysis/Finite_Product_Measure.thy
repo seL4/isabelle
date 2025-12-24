@@ -469,20 +469,24 @@ next
     define A' where "A' n = n(i := A)" for n
     then have A'_i: "\<And>n. A' n i = A"
       by simp
-    { fix n assume "n \<in> Pi\<^sub>E (j - {i}) S"
-      then have "A' n \<in> Pi j E"
+    have A'_in_P: "{f \<in> Pi\<^sub>E I \<Omega>. \<forall>i\<in>j. f i \<in> A' n i} \<in> P"
+      if "n \<in> Pi\<^sub>E (j - {i}) S" for n
+    proof -
+      from that have "A' n \<in> Pi j E"
         unfolding PiE_def Pi_def using S(1) by (auto simp: A'_def \<open>A \<in> E i\<close> )
-      with \<open>j \<in> J\<close> have "{f \<in> Pi\<^sub>E I \<Omega>. \<forall>i\<in>j. f i \<in> A' n i} \<in> P"
-        by (auto simp: P_def) }
-    note A'_in_P = this
+      with \<open>j \<in> J\<close> show ?thesis by (auto simp: P_def)
+    qed
 
-    { fix x assume "x i \<in> A" "x \<in> Pi\<^sub>E I \<Omega>"
-      with S(3) \<open>j \<subseteq> I\<close> have "\<forall>i\<in>j. \<exists>s\<in>S i. x i \<in> s"
+    have "\<exists>n\<in>Pi\<^sub>E (j-{i}) S. \<forall>i\<in>j. x i \<in> A' n i"
+      if "x i \<in> A" "x \<in> Pi\<^sub>E I \<Omega>" for x
+    proof -
+      from S(3) \<open>j \<subseteq> I\<close> and that have "\<forall>i\<in>j. \<exists>s\<in>S i. x i \<in> s"
         by (auto simp: PiE_def Pi_def)
       then obtain s where s: "\<And>i. i \<in> j \<Longrightarrow> s i \<in> S i" "\<And>i. i \<in> j \<Longrightarrow> x i \<in> s i"
         by metis
-      with \<open>x i \<in> A\<close> have "\<exists>n\<in>Pi\<^sub>E (j-{i}) S. \<forall>i\<in>j. x i \<in> A' n i"
-        by (intro bexI[of _ "restrict (s(i := A)) (j-{i})"]) (auto simp: A'_def split: if_splits) }
+      with \<open>x i \<in> A\<close> show ?thesis
+        by (intro bexI[of _ "restrict (s(i := A)) (j-{i})"]) (auto simp: A'_def split: if_splits)
+    qed
     then have "Z = (\<Union>n\<in>Pi\<^sub>E (j-{i}) S. {f\<in>(\<Pi>\<^sub>E i\<in>I. \<Omega> i). \<forall>i\<in>j. f i \<in> A' n i})"
       unfolding Z_def
       by (auto simp add: set_eq_iff ball_conj_distrib \<open>i\<in>j\<close> A'_i dest: bspec[OF _ \<open>i\<in>j\<close>]
