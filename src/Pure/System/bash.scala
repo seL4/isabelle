@@ -76,7 +76,7 @@ object Bash {
   def remote_bash_process(ssh: SSH.Session): String = {
     val component = Components.provide(Component_Bash_Process.home, ssh = ssh)
     val exe = Component_Bash_Process.remote_program(component)
-    ssh.make_command(args_host = true, args = ssh.bash_path(exe))
+    ssh.command_line(args = ssh.bash_path(exe))
   }
 
   object Watchdog {
