@@ -36,7 +36,7 @@ object Scala_Console {
   class Progress(
     val console: Console = running_console(),
     verbose: Boolean = false,
-    threshold: Time = Build.progress_threshold(Options.init0()),
+    threshold: Time = Build.progress_threshold(Options.defaults),
     detailed: Boolean = false,
     stderr: Boolean = false
   ) extends Console_Progress(

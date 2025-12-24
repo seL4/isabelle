@@ -258,7 +258,7 @@ class Progress {
 
 class Console_Progress(
   override val verbose: Boolean = false,
-  threshold: Time = Build.progress_threshold(Options.init0()),
+  threshold: Time = Build.progress_threshold(Options.defaults),
   detailed: Boolean = false,
   stderr: Boolean = false)
 extends Progress with Progress.Status {

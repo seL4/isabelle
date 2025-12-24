@@ -614,7 +614,7 @@ object Sessions {
       entry: Session_Entry,
       dir: Path,
       options: Options,
-      options0: Options = Options.init0(),
+      options0: Options = Options.defaults,
       augment_options: String => List[Options.Spec] = _ => Nil,
       chapter_defs: Chapter_Defs = Chapter_Defs.empty,
       chapter: String = UNSORTED,
@@ -838,7 +838,7 @@ object Sessions {
             }
         }
 
-      val options0 = Options.init0()
+      val options0 = Options.defaults
       val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
 
       val root_infos = {
