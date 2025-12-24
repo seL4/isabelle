@@ -41,4 +41,7 @@ object Color_Value {
           c
       }
     }
+
+  def option(options: Options, name: String): Color =
+    apply(options.string(name + Options.theme_suffix()))
 }
