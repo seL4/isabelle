@@ -63,6 +63,7 @@ sig
   val print_codesetup: theory -> unit
 
   (*transitional*)
+  val code_del_allowed: bool Config.T
   val strict_drop: bool Config.T
 end;
 
@@ -109,7 +110,19 @@ fun string_of_const thy c =
 
 (* transitional *)
 
+val code_del_allowed_default = false;
+val code_del_allowed = Attrib.setup_config_bool \<^binding>\<open>code_del_allowed\<close> (K code_del_allowed_default);
 val strict_drop = Attrib.setup_config_bool \<^binding>\<open>code_strict_drop\<close> (K false);
+
+fun check_code_del thy =
+  if Config.get_global thy code_del_allowed
+  then Output.legacy_feature "code del attribute"
+  else error "legacy code del attribute not accepted";
+
+val _ = Theory.setup (Theory.at_end (fn thy =>
+  if Config.get_global thy code_del_allowed = code_del_allowed_default
+  then NONE
+  else thy |> Config.put_global code_del_allowed code_del_allowed_default |> SOME));
 
 
 (* constants *)
@@ -1613,7 +1626,7 @@ val _ = Theory.setup
       || code_thm_attribute (Args.$$$ "abstype")
           (generic_declare_abstype Liberal)
       || code_thm_attribute Args.del
-          (fn thm => tap (fn _ => Output.legacy_feature "code del attribute") (del_eqn_global thm))
+          (fn thm => tap check_code_del #> del_eqn_global thm)
       || code_const_attribute (Args.$$$ "abort")
           declare_aborting_global
       || code_thm_attribute (Args.$$$ "abort")
