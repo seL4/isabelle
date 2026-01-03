@@ -140,4 +140,6 @@ proof -
     by (clarsimp simp add: wf_def same_fst_def)
 qed
 
+hide_const (open) cut
+
 end

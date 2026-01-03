@@ -19,16 +19,16 @@ apply clarify
 apply (rule_tac r = R and P = P and a = x in wf_induct, assumption, blast)
 done
 
-lemma tfl_cut_def: "cut f r x \<equiv> (\<lambda>y. if (y,x) \<in> r then f y else undefined)"
+lemma tfl_cut_def: "Wfrec.cut f r x \<equiv> (\<lambda>y. if (y,x) \<in> r then f y else undefined)"
   unfolding cut_def .
 
-lemma tfl_cut_apply: "\<forall>f R. (x,a)\<in>R \<longrightarrow> (cut f R a)(x) = f(x)"
+lemma tfl_cut_apply: "\<forall>f R. (x,a)\<in>R \<longrightarrow> (Wfrec.cut f R a)(x) = f(x)"
 apply clarify
 apply (rule cut_apply, assumption)
 done
 
 lemma tfl_wfrec:
-     "\<forall>M R f. (f=wfrec R M) \<longrightarrow> wf R \<longrightarrow> (\<forall>x. f x = M (cut f R x) x)"
+     "\<forall>M R f. (f=wfrec R M) \<longrightarrow> wf R \<longrightarrow> (\<forall>x. f x = M (Wfrec.cut f R x) x)"
 apply clarify
 apply (erule wfrec)
 done

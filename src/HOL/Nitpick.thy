@@ -196,10 +196,10 @@ definition of_frac :: "'a \<Rightarrow> 'b::{inverse,ring_1}" where
 axiomatization wf_wfrec :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 
 definition wf_wfrec' :: "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-  [nitpick_simp]: "wf_wfrec' R F x = F (cut (wf_wfrec R F) R x) x"
+  [nitpick_simp]: "wf_wfrec' R F x = F (Wfrec.cut (wf_wfrec R F) R x) x"
 
 definition wfrec' ::  "('a \<times> 'a) set \<Rightarrow> (('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
-  "wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x else THE y. wfrec_rel R (\<lambda>f x. F (cut f R x) x) x y"
+  "wfrec' R F x \<equiv> if wf R then wf_wfrec' R F x else THE y. wfrec_rel R (\<lambda>f x. F (Wfrec.cut f R x) x) x y"
 
 ML_file \<open>Tools/Nitpick/kodkod.ML\<close>
 ML_file \<open>Tools/Nitpick/kodkod_sat.ML\<close>

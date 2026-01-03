@@ -2118,7 +2118,7 @@ next
       define E where  \<comment>\<open>a construction to ensure monotonicity\<close>
         "E \<equiv> \<lambda>rec n. insert (inverse (Suc n)) ((\<lambda>i. d l (\<sigma> i)) ` (\<Union>k<n. {0..rec k})) - {0}"
       define r where "r \<equiv> wfrec less_than (\<lambda>rec n. g (Min (E rec n)))"
-      have "(\<Union>k<n. {0..cut r less_than n k}) = (\<Union>k<n. {0..r k})" for n
+      have "(\<Union>k<n. {0..Wfrec.cut r less_than n k}) = (\<Union>k<n. {0..r k})" for n
         by (auto simp: cut_apply)
       then have r_eq: "r n = g (Min (E r n))" for n
         by (metis E_def def_wfrec [OF r_def] wf_less_than)
