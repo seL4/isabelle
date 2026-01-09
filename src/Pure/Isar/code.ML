@@ -54,6 +54,8 @@ sig
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
+  val class_params_of: theory -> string -> (string * typ) list
+  val class_of_param: theory -> string -> string option
   val get_cert: Proof.context -> ((thm * bool) list -> (thm * bool) list option) list
     -> string -> cert
   type case_schema
@@ -742,8 +744,6 @@ fun check_eqn thy {allow_nonlinear, allow_consts, allow_pats} thm (lhs, rhs) =
     val _ = map (check 0) args;
     val _ = if allow_nonlinear orelse is_linear thm then ()
       else raise BAD_THM "Duplicate variables on left hand side of equation";
-    val _ = if (is_none o Axclass.class_of_param thy) c then ()
-      else raise BAD_THM "Overloaded constant as head in equation";
     val _ = if not (is_constr thy c) then ()
       else raise BAD_THM "Constructor as head in equation";
     val _ = if not (is_abstr thy c) then ()
@@ -818,7 +818,6 @@ fun const_typ_eqn thy thm =
   let
     val (c, ty) = head_eqn thm;
     val c' = Axclass.unoverload_const thy (c, ty);
-      (*permissive wrt. to overloaded constants!*)
   in (c', ty) end;
 
 fun const_eqn thy = fst o const_typ_eqn thy;
@@ -923,8 +922,6 @@ fun raw_abstype_cert thy proto_thm =
     val ((abs, raw_ty), ((rep, rep_ty), param)) = (apsnd (apfst dest_Const o dest_comb)
         o apfst dest_Const o dest_comb) lhs
       handle TERM _ => raise BAD_THM "Not an abstype certificate";
-    val _ = apply2 (fn c => if (is_some o Axclass.class_of_param thy) c
-      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
     val _ = if length (binder_types raw_ty) = 1
@@ -1554,6 +1551,24 @@ fun declare_unimplemented_global c thy =
 
 val declare_unimplemented_global' =
   declare_from_thm declare_unimplemented_global;
+
+
+(* class parameters considering non-overloaded equations for class parameters *)
+
+local
+
+fun has_no_implementation thy = is_unimplemented o the_fun_spec (specs_of thy);
+
+in
+
+fun class_params_of thy class = #params (Axclass.get_info thy class)
+  |> filter (fn (c, _) => has_no_implementation thy c);
+
+fun class_of_param thy c = case Axclass.class_of_param thy c of
+    SOME class => if has_no_implementation thy c then SOME class else NONE
+  | NONE => NONE;
+
+end
 
 
 (* cases *)

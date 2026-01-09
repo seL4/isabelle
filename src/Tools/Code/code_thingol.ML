@@ -579,8 +579,6 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
 
 (* translation *)
 
-fun class_params_of thy = #params o Axclass.get_info thy;
-
 fun is_undefined_clause ctxt (_, IConst { sym = Constant c, ... }) =
       Code.is_undefined (Proof_Context.theory_of ctxt) c
   | is_undefined_clause ctxt _ =
@@ -624,7 +622,7 @@ and ensure_const ctxt algbr eqngr permissive c =
           end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
-      | NONE => (case Axclass.class_of_param thy c
+      | NONE => (case Code.class_of_param thy c
          of SOME class => stmt_classparam class
           | NONE => stmt_fun (Code_Preproc.cert eqngr c))
   in ensure_stmt Constant stmt_const c end
@@ -632,7 +630,7 @@ and ensure_class ctxt (algbr as (_, algebra)) eqngr permissive class =
   let
     val thy = Proof_Context.theory_of ctxt;
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val cs = class_params_of thy class;
+    val cs = Code.class_params_of thy class;
     val stmt_class =
       fold_map (fn super_class =>
         ensure_classrel ctxt algbr eqngr permissive (class, super_class)) super_classes
@@ -652,8 +650,8 @@ and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
     val thy = Proof_Context.theory_of ctxt;
     val super_sort = Sorts.super_classes algebra class;
     val super_classes = Sorts.minimize_sort algebra super_sort;
-    val class_params = class_params_of thy class;
-    val superclass_params = maps (class_params_of thy) (Sorts.complete_sort algebra super_sort);
+    val class_params = Code.class_params_of thy class;
+    val superclass_params = maps (Code.class_params_of thy) (Sorts.complete_sort algebra super_sort);
     val sorts = Sorts.mg_domain algebra tyco [class];
     val vs = Name.invent_types_global sorts;
     val arity_typ = Type (tyco, map TFree vs);

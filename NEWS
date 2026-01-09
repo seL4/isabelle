@@ -7,6 +7,16 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Pure ***
+
+* Non-overloaded function specifications for a class parameter are now permitted
+and effectively turn this class parameter into an ordinary function in generated
+code; this allows to dissociate a class parameter from its origin class in
+generated code.
+It is still possible to specify code equations for instances of that class
+parameter.
+
+
 *** HOL ***
 
 * SMT:

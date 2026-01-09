@@ -294,7 +294,7 @@ fun complete_proper_sort thy =
   Sign.complete_sort thy #> filter (is_proper_class thy);
 
 fun inst_params_of_sort thy tyco =
-  map (fn (c, _) => Axclass.param_of_inst thy (c, tyco)) o maps (#params o Axclass.get_info thy);
+  map (fn (c, _) => Axclass.param_of_inst thy (c, tyco)) o maps (Code.class_params_of thy);
 
 
 (** sort algebra and code equation graph types **)
