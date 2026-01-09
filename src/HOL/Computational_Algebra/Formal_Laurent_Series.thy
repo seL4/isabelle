@@ -4582,7 +4582,7 @@ lemma dist_fls_ge0: "dist (a :: 'a fls) b \<ge> 0"
 definition uniformity_fls_def:
   "(uniformity :: ('a fls \<times> 'a fls) filter) = (INF e \<in> {0 <..}. principal {(x, y). dist x y < e})"
 
-definition open_fls_def' [code drop]:
+definition open_fls_def':
   "open (U :: 'a fls set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 lemma dist_fls_sym: "dist (a :: 'a fls) b = dist b a"
@@ -4659,8 +4659,6 @@ qed (rule open_fls_def' uniformity_fls_def)+
 
 end
 end
-
-declare uniformity_Abort [where 'a="'a :: group_add fls", code]
 
 lemma open_fls_def:
   "open (S :: 'a::group_add fls set) = (\<forall>a \<in> S. \<exists>r. r >0 \<and> {y. dist y a < r} \<subseteq> S)"

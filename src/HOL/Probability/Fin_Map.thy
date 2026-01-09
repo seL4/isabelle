@@ -278,8 +278,6 @@ instance
   by standard (rule uniformity_fmap_def)
 end
 
-declare uniformity_Abort [where 'a="('a \<Rightarrow>\<^sub>F 'b::metric_space)", code]
-
 instantiation fmap :: (type, metric_space) metric_space
 begin
 

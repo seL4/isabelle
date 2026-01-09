@@ -1324,10 +1324,10 @@ begin
 
 definition dist_real_def: "dist x y = \<bar>x - y\<bar>"
 
-definition uniformity_real_def [code drop]:
+definition uniformity_real_def:
   "(uniformity :: (real \<times> real) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
-definition open_real_def [code drop]:
+definition open_real_def:
   "open (U :: real set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 definition real_norm_def [simp]: "norm r = \<bar>r\<bar>"
@@ -1336,10 +1336,6 @@ instance
   by intro_classes (auto simp: abs_mult open_real_def dist_real_def sgn_real_def uniformity_real_def)
 
 end
-
-declare uniformity_Abort [where 'a=real, code]
-
-declare [[code abort: "open :: real set \<Rightarrow> bool"]]
 
 lemma dist_of_real [simp]: "dist (of_real x :: 'a) (of_real y) = dist x y"
   for a :: "'a::real_normed_div_algebra"

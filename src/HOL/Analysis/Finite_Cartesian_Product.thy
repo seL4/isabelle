@@ -438,8 +438,6 @@ instance\<^marker>\<open>tag unimportant\<close>
   by standard (rule uniformity_vec_def)
 end
 
-declare uniformity_Abort [where 'a="'a :: metric_space ^ 'b :: finite", code]
-
 instantiation\<^marker>\<open>tag unimportant\<close> vec :: (metric_space, finite) metric_space
 begin
 

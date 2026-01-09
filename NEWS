@@ -23,6 +23,10 @@ parameter.
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
 
+* Constants "open" and "uniformity" are not handled as class parameters any
+longer in generated code: are hardly any instances with a reasonable
+implementation, but a lot of implementations would require these as (effectively
+unused) dictionary parameters. Minor INCOMPATIBILITY.
 
 
 New in Isabelle2025-1 (December 2025)

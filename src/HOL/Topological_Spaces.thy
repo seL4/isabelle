@@ -16,6 +16,18 @@ subsection \<open>Topological space\<close>
 class "open" =
   fixes "open" :: "'a set \<Rightarrow> bool"
 
+context \<comment>\<open>Suppress difficult-to-implement class parameter\<close>
+begin
+
+private definition unimplemented_open :: \<open>'a::open set \<Rightarrow> bool\<close>
+  where [code drop]: \<open>unimplemented_open = open\<close>
+
+lemma [code]:
+  \<open>open = unimplemented_open\<close>
+  by (simp add: unimplemented_open_def)
+
+end
+
 class topological_space = "open" +
   assumes open_UNIV [simp, intro]: "open UNIV"
   assumes open_Int [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
@@ -3432,10 +3444,17 @@ abbreviation uniformity_on :: "'a set \<Rightarrow> ('a \<times> 'a) filter"
 
 end
 
-lemma uniformity_Abort:
-  "uniformity =
-    Filter.abstract_filter (\<lambda>u. Code.abort (STR ''uniformity is not executable'') (\<lambda>u. uniformity))"
-  by simp
+context \<comment>\<open>Suppress difficult-to-implement class parameter\<close>
+begin
+
+private definition unimplemented_uniformity :: \<open>('a::uniformity \<times> 'a) filter\<close>
+  where [code drop]: \<open>unimplemented_uniformity = uniformity\<close>
+
+lemma [code]:
+  \<open>uniformity = unimplemented_uniformity\<close>
+  by (simp add: unimplemented_uniformity_def)
+
+end
 
 class open_uniformity = "open" + uniformity +
   assumes open_uniformity:
@@ -3689,8 +3708,6 @@ next
 qed
 
 end
-
-declare [[code abort: "open :: ('a::topological_space \<times> 'b::topological_space) set \<Rightarrow> bool"]]
 
 lemma open_Times: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<times> T)"
   unfolding open_prod_def by auto
