@@ -579,6 +579,8 @@ fun construct_dictionaries ctxt (proj_sort, algebra) permissive some_thm (ty, so
 
 (* translation *)
 
+fun class_params_of thy = #params o Axclass.get_info thy;
+
 fun is_undefined_clause ctxt (_, IConst { sym = Constant c, ... }) =
       Code.is_undefined (Proof_Context.theory_of ctxt) c
   | is_undefined_clause ctxt _ =
@@ -630,7 +632,7 @@ and ensure_class ctxt (algbr as (_, algebra)) eqngr permissive class =
   let
     val thy = Proof_Context.theory_of ctxt;
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val cs = #params (Axclass.get_info thy class);
+    val cs = class_params_of thy class;
     val stmt_class =
       fold_map (fn super_class =>
         ensure_classrel ctxt algbr eqngr permissive (class, super_class)) super_classes
@@ -648,24 +650,23 @@ and ensure_classrel ctxt algbr eqngr permissive (sub_class, super_class) =
 and ensure_inst ctxt (algbr as (_, algebra)) eqngr permissive (tyco, class) =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val these_class_params = these o try (#params o Axclass.get_info thy);
-    val class_params = these_class_params class;
-    val superclass_params = maps these_class_params
-      ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
-    val vs = Name.invent_types_global (Sorts.mg_domain algebra tyco [class]);
-    val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
-    val vs' = map2 (fn (v, sort1) => fn sort2 => (v,
-      Sorts.inter_sort (Sign.classes_of thy) (sort1, sort2))) vs sorts';
+    val super_sort = Sorts.super_classes algebra class;
+    val super_classes = Sorts.minimize_sort algebra super_sort;
+    val class_params = class_params_of thy class;
+    val superclass_params = maps (class_params_of thy) (Sorts.complete_sort algebra super_sort);
+    val sorts = Sorts.mg_domain algebra tyco [class];
+    val vs = Name.invent_types_global sorts;
     val arity_typ = Type (tyco, map TFree vs);
-    val arity_typ' = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) vs');
+    val inst_params_sorts = map2 (curry (Sorts.inter_sort (Sign.classes_of thy)))
+      sorts (Sorts.mg_domain (Sign.classes_of thy) tyco [class]);
+    val inst_params_arity_typ = Type (tyco, map2 (fn (v, _) => fn sort' => TVar ((v, 0), sort')) vs inst_params_sorts);
     fun translate_super_instance super_class =
       ensure_class ctxt algbr eqngr permissive super_class
       ##>> translate_dicts ctxt algbr eqngr permissive NONE (arity_typ, [super_class])
       #>> (fn (super_class, [Dict ([], Dict_Const (_, dictss))]) => (super_class, dictss));
     fun translate_classparam_instance (c, ty) =
       let
-        val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
+        val raw_const = Const (c, map_type_tfree (K inst_params_arity_typ) ty);
         val dom_length = length (binder_types ty);
         val thm = Axclass.unoverload_conv ctxt (Thm.cterm_of ctxt raw_const);
         val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
