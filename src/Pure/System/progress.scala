@@ -229,10 +229,8 @@ class Progress {
   def stop(): Unit = { is_stopped = true }
   def stopped: Boolean = is_stopped
 
-  final def interrupt_handler[A](e: => A): A =
-    Exn.Interrupt.signal_handler(stop()) {
-      Isabelle_Thread.interrupt_handle(stop(), permissive = true) { e }
-    }
+  def interrupt_handler[A](e: => A): A =
+    Isabelle_Thread.interrupt_handle(stop(), permissive = true) { e }
 
   final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
@@ -262,6 +260,9 @@ class Console_Progress(
   detailed: Boolean = false,
   stderr: Boolean = false)
 extends Progress with Progress.Status {
+  override def interrupt_handler[A](e: => A): A =
+    Exn.Interrupt.signal_handler(stop()) { super.interrupt_handler(e) }
+
   override def status_threshold: Time = threshold
   override def status_detailed: Boolean = detailed
 
