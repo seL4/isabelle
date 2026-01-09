@@ -84,11 +84,12 @@ Usage: isabelle console [OPTIONS]
         ML_Process(options, session_background, session_heaps, args = List("-i"), redirect = true,
           modes = if (raw_ml_system) Nil else modes ::: List("ASCII"))
 
-      Exn.Interrupt.signal_handler { process.interrupt() } {
-        new TTY_Loop(process.stdin, process.stdout).join()
-        val rc = process.join()
-        if (rc != Process_Result.RC.ok) sys.exit(rc)
-      }
+      val rc =
+        Exn.Interrupt.signal_handler { process.interrupt() } {
+          new TTY_Loop(process.stdin, process.stdout).join()
+          process.join()
+        }
+      if (rc != Process_Result.RC.ok) sys.exit(rc)
     }
   }
 }
