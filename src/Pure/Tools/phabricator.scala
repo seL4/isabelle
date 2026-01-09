@@ -291,7 +291,7 @@ Usage: isabelle phabricator [OPTIONS] COMMAND [ARGS...]
         val more_args = getopts(args)
         if (more_args.isEmpty && !list) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         if (list) {
           for (config <- read_config()) {
@@ -660,7 +660,7 @@ Usage: isabelle phabricator_setup [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         phabricator_setup(options, name = name, root = root, repo = repo, webserver = webserver,
           package_update = package_update, mercurial_source = mercurial_source, progress = progress)
@@ -753,7 +753,7 @@ Usage: isabelle phabricator_setup_mail [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         phabricator_setup_mail(name = name, config_file = config_file,
           test_user = test_user, progress = progress)
@@ -919,7 +919,7 @@ Usage: isabelle phabricator_setup_ssh [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         phabricator_setup_ssh(
           server_port = server_port, system_port = system_port, progress = progress)
