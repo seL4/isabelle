@@ -45,15 +45,15 @@ object Scala_Build {
       val java_classpath = new java.util.LinkedList[JPath]
       classpath.foreach(path => java_classpath.add(path.java_path))
 
-      val output0 = new ByteArrayOutputStream
-      val output = new PrintStream(output0)
+      val out_stream = new ByteArrayOutputStream(1024)
+      val out = new PrintStream(out_stream)
       def get_output(): String = {
-        output.flush()
-        Library.trim_line(output0.toString(UTF8.charset))
+        out.flush()
+        Library.trim_line(out_stream.toString(UTF8.charset))
       }
 
       try {
-        isabelle.setup.Build.build(java_classpath, output, java_context, fresh)
+        isabelle.setup.Build.build(java_classpath, out, java_context, fresh)
         get_output()
       }
       catch { case ERROR(msg) => cat_error(get_output(), msg) }
