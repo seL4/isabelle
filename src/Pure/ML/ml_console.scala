@@ -58,9 +58,7 @@ Usage: isabelle console [OPTIONS]
       if (!no_build && !raw_ml_system) {
         val progress = new Console_Progress()
         val results =
-          progress.interrupt_handler {
-            Build.build_logic(options, logic, build_heap = true, progress = progress, dirs = dirs)
-          }
+          Build.build_logic(options, logic, build_heap = true, progress = progress, dirs = dirs)
         if (!results.ok) sys.exit(results.rc)
       }
 

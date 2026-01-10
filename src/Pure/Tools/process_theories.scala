@@ -93,10 +93,8 @@ object Process_Theories {
 
       /* build session */
 
-      progress.interrupt_handler {
-        Build.build_logic(options, logic, dirs = dirs, progress = progress,
-          build_heap = true, strict = true)
-      }
+      Build.build_logic(options, logic, dirs = dirs, progress = progress,
+        build_heap = true, strict = true)
 
       val session_entry =
         Sessions.Session_Entry(

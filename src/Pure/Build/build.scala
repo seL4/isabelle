@@ -337,10 +337,12 @@ object Build {
     }
 
     val results =
-      if (fresh) full_build()
-      else {
-        val test_results = test_build()
-        if (test_results.ok) test_results else full_build()
+      progress.interrupt_handler {
+        if (fresh) full_build()
+        else {
+          val test_results = test_build()
+          if (test_results.ok) test_results else full_build()
+        }
       }
 
     if (strict && !results.ok) error(build_logic_failed(logic)) else results
