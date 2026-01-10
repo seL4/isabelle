@@ -346,7 +346,7 @@ object Web_App {
     paths: Paths,
     port: Int = 0,
     verbose: Boolean = false,
-    progress: Progress = new Progress(),
+    progress: Progress = new Progress,
   ) {
     def render(model: A): XML.Body
     val error_model: A
