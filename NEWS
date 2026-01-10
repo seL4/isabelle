@@ -9,11 +9,11 @@ New in this Isabelle version
 
 *** Pure ***
 
-* Code generation: non-overloaded function specifications for a class parameter
-are now permitted and effectively turn this class parameter into an ordinary
-function in generated code; this allows to dissociate a class parameter from its
-origin class in generated code.
-It is still possible to specify code equations for instances of that class
+* Code generation: non-overloaded function specifications for a class
+parameter are now permitted and effectively turn this class parameter
+into an ordinary function in generated code; this allows to dissociate a
+class parameter from its origin class in generated code. It is still
+possible to specify code equations for instances of that class
 parameter.
 
 
@@ -38,10 +38,10 @@ For example:
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
 
-* Constants "open" and "uniformity" are not handled as class parameters any
-longer in generated code: are hardly any instances with a reasonable
-implementation, but a lot of implementations would require these as (effectively
-unused) dictionary parameters. Minor INCOMPATIBILITY.
+* Constants "open" and "uniformity" are not handled as class parameters
+any longer in generated code: are hardly any instances with a reasonable
+implementation, but a lot of implementations would require these as
+(effectively unused) dictionary parameters. Minor INCOMPATIBILITY.
 
 
 New in Isabelle2025-1 (December 2025)
