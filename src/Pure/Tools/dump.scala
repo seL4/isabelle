@@ -357,23 +357,25 @@ object Dump {
     output_dir: Path = default_output_dir,
     selection: Sessions.Selection = Sessions.Selection.empty
   ): Unit = {
-    val context =
-      Context(options, aspects = aspects, progress = progress, dirs = dirs,
-        select_dirs = select_dirs, selection = selection)
+    progress.interrupt_handler {
+      val context =
+        Context(options, aspects = aspects, progress = progress, dirs = dirs,
+          select_dirs = select_dirs, selection = selection)
 
-    context.build_logic(logic)
+      context.build_logic(logic)
 
-    for (session <- context.sessions(logic = logic, log = log)) {
-      session.process({ (args: Args) =>
-        progress.echo("Processing theory " + args.print_node + " ...")
-        val aspect_args =
-          Aspect_Args(session.options, context.deps, progress, output_dir,
-            args.snapshot, args.status)
-        aspects.foreach(_.operation(aspect_args))
-      })
+      for (session <- context.sessions(logic = logic, log = log)) {
+        session.process({ (args: Args) =>
+          progress.echo("Processing theory " + args.print_node + " ...")
+          val aspect_args =
+            Aspect_Args(session.options, context.deps, progress, output_dir,
+              args.snapshot, args.status)
+          aspects.foreach(_.operation(aspect_args))
+        })
+      }
+
+      context.check_errors
     }
-
-    context.check_errors
   }
 
 
@@ -439,22 +441,20 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
         progress.echo("Started at " + Build_Log.print_date(start_date), verbose = true)
 
-        progress.interrupt_handler {
-          dump(options, logic,
-            aspects = aspects,
-            progress = progress,
-            dirs = dirs,
-            select_dirs = select_dirs,
-            output_dir = output_dir,
-            selection = Sessions.Selection(
-              requirements = requirements,
-              all_sessions = all_sessions,
-              base_sessions = base_sessions,
-              exclude_session_groups = exclude_session_groups,
-              exclude_sessions = exclude_sessions,
-              session_groups = session_groups,
-              sessions = sessions))
-        }
+        dump(options, logic,
+          aspects = aspects,
+          progress = progress,
+          dirs = dirs,
+          select_dirs = select_dirs,
+          output_dir = output_dir,
+          selection = Sessions.Selection(
+            requirements = requirements,
+            all_sessions = all_sessions,
+            base_sessions = base_sessions,
+            exclude_session_groups = exclude_session_groups,
+            exclude_sessions = exclude_sessions,
+            session_groups = session_groups,
+            sessions = sessions))
 
         val end_date = Date.now()
         val timing = end_date - start_date
