@@ -73,6 +73,8 @@ object Scala_Console {
         }
       }
     }
+
+    override def toString: String = super.toString + " plugin"
   }
 
   val init = """
