@@ -721,8 +721,8 @@ Usage: isabelle build_worker [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
       val progress =
-        if (quiet && verbose) new Progress { override def verbose: Boolean = true }
-        else if (quiet) new Progress
+        if (quiet && verbose) new Verbose_Progress with Progress.Global_Interrupts
+        else if (quiet) new Progress with Progress.Global_Interrupts
         else new Console_Progress(verbose = verbose)
 
       progress.interrupt_handler {

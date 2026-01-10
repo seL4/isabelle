@@ -129,6 +129,21 @@ object Progress {
   }
 
 
+  /* interrupts */
+
+  trait Local_Interrupts extends Progress {
+    override def interrupt_handler[A](e: => A): A =
+      Isabelle_Thread.interrupt_handle(stop(), permissive = true) { e }
+  }
+
+  trait Global_Interrupts extends Progress {
+    override def interrupt_handler[A](e: => A): A =
+      Exn.Interrupt.signal_handler(stop()) {
+        Isabelle_Thread.interrupt_handle(stop(), permissive = true) { e }
+      }
+  }
+
+
   /* status lines (e.g. at bottom of output) */
 
   trait Status extends Progress {
@@ -229,8 +244,7 @@ class Progress {
   def stop(): Unit = { is_stopped = true }
   def stopped: Boolean = is_stopped
 
-  def interrupt_handler[A](e: => A): A =
-    Isabelle_Thread.interrupt_handle(stop(), permissive = true) { e }
+  def interrupt_handler[A](e: => A): A = e
 
   final def expose_interrupt(): Unit = if (stopped) throw Exn.Interrupt()
   override def toString: String = if (stopped) "Progress(stopped)" else "Progress"
@@ -254,15 +268,14 @@ class Progress {
   }
 }
 
+class Verbose_Progress extends Progress { override def verbose: Boolean = true }
+
 class Console_Progress(
   override val verbose: Boolean = false,
   threshold: Time = Build.progress_threshold(Options.defaults),
   detailed: Boolean = false,
   stderr: Boolean = false)
-extends Progress with Progress.Status {
-  override def interrupt_handler[A](e: => A): A =
-    Exn.Interrupt.signal_handler(stop()) { super.interrupt_handler(e) }
-
+extends Progress with Progress.Global_Interrupts with Progress.Status {
   override def status_threshold: Time = threshold
   override def status_detailed: Boolean = detailed
 
@@ -283,7 +296,7 @@ extends Progress with Progress.Status {
 }
 
 class File_Progress(path: Path, override val verbose: Boolean = false)
-extends Progress with Progress.Status {
+extends Progress with Progress.Local_Interrupts with Progress.Status {
   override def status_output(msgs: Progress.Output): Unit = synchronized {
     val txt = output_text(msgs, terminate = true)
     if (txt.nonEmpty) File.append(path, txt)

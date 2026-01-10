@@ -44,7 +44,7 @@ object Scala_Console {
     threshold = threshold,
     detailed = detailed,
     stderr = stderr
-  ) {
+  ) with isabelle.Progress.Local_Interrupts {
     override def status_hide(msgs: isabelle.Progress.Output): Unit = {
       val txt = output_text(msgs.map(isabelle.Progress.output_theory), terminate = true)
       val m = txt.length
