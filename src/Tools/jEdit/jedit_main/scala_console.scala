@@ -44,7 +44,7 @@ object Scala_Console {
     threshold = threshold,
     detailed = detailed,
     stderr = stderr
-  ) {
+  ) with isabelle.Progress.Local_Interrupts {
     override def status_hide(msgs: isabelle.Progress.Output): Unit = {
       val txt = output_text(msgs.map(isabelle.Progress.output_theory), terminate = true)
       val m = txt.length
@@ -73,6 +73,8 @@ object Scala_Console {
         }
       }
     }
+
+    override def toString: String = super.toString + " plugin"
   }
 
   val init = """
@@ -190,5 +192,5 @@ class Scala_Console extends Shell("Scala") {
   }
 
   override def stop(console: Console): Unit =
-    Scala_Console.console_interpreter(console).foreach(_.shutdown())
+    Scala_Console.console_interpreter(console).foreach(_.interrupt_thread())
 }

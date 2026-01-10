@@ -156,7 +156,7 @@ class Database_Progress(
   context_uuid: String = UUID.random_string(),
   timeout: Option[Time] = None,
   tick_expire: Int = 50)
-extends Progress with Progress.Status {
+extends Progress with Progress.Local_Interrupts with Progress.Status {
   database_progress =>
 
   override def now(): Date = db.now()

@@ -743,15 +743,18 @@ object Find_Facts {
           Build.build(options, selection = Sessions.Selection(sessions = sessions), dirs = dirs,
             afp_root = afp_root, no_build = test, progress = if (test) new Progress else progress)
 
-        progress.interrupt_handler {
-          if (!build(test = true).ok) {
-            progress.echo("Build started ...")
-            val rc = build().rc
-            if (rc != Process_Result.RC.ok) {
-              Output.error_message("Build failed")
-              sys.exit(rc)
+        val results =
+          progress.interrupt_handler {
+            val test_results = build(test = true)
+            if (test_results.ok) test_results
+            else {
+              progress.echo("Build started ...")
+              build()
             }
           }
+        if (!results.ok) {
+          Output.error_message("Build failed")
+          sys.exit(results.rc)
         }
       }
 

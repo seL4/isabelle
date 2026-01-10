@@ -339,8 +339,8 @@ object Build {
     val results =
       if (fresh) full_build()
       else {
-        val results0 = test_build()
-        if (results0.ok) results0 else full_build()
+        val test_results = test_build()
+        if (test_results.ok) test_results else full_build()
       }
 
     if (strict && !results.ok) error(build_logic_failed(logic)) else results
@@ -721,8 +721,8 @@ Usage: isabelle build_worker [OPTIONS]
       if (more_args.nonEmpty) getopts.usage()
 
       val progress =
-        if (quiet && verbose) new Progress { override def verbose: Boolean = true }
-        else if (quiet) new Progress
+        if (quiet && verbose) new Verbose_Progress with Progress.Global_Interrupts
+        else if (quiet) new Progress with Progress.Global_Interrupts
         else new Console_Progress(verbose = verbose)
 
       progress.interrupt_handler {

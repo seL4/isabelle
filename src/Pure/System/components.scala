@@ -329,7 +329,7 @@ object Components {
           else if (arg.startsWith("-")) false
           else error("Bad argument: " + quote(arg))
         val path = Path.explode(arg.substring(1))
-        update_components(add, path, progress = new Console_Progress)
+        update_components(add, path, progress = new Console_Progress())
       }
     }
   }
@@ -489,7 +489,7 @@ Usage: isabelle components_build [OPTIONS] ARCHIVES... DIRS...
         val more_args = getopts(args)
         if (more_args.isEmpty && !update_components_sha1) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         components_build(options, more_args.map(Path.explode), progress = progress,
           publish = publish, force = force, update_components_sha1 = update_components_sha1)

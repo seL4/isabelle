@@ -17,6 +17,21 @@ It is still possible to specify code equations for instances of that class
 parameter.
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* Console/Scala: proper treatment of interrupts via "Stop" button. It
+was broken since Isabelle2022: Scala interpreter thread became
+inoperative afterwards.
+
+* Console/Scala: more robust Scala_Console.Progress with local output
+and interrupt handling (using thread interrupt, e.g. via "Stop" button).
+For example:
+
+  val progress = new Scala_Console.Progress(verbose = true)
+  progress.interrupt_handler {
+    Build.build_logic(PIDE.options, "FOL", progress = progress) }
+
+
 *** HOL ***
 
 * SMT:

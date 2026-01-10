@@ -54,7 +54,7 @@ abstract class Program_Progress(
   default_heading: String = "Running",
   default_title: String = "program",
   override val verbose: Boolean = false
-) extends Progress {
+) extends Progress with Progress.Local_Interrupts {
   private var _finished_programs: List[Program_Progress.Program] = Nil
   private var _running_program: Option[Program_Progress.Program] = None
 
