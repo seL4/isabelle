@@ -265,17 +265,15 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
               super.status_output(msgs.map(Progress.output_theory))
           }
 
-        console_progress.interrupt_handler {
-          Language_Server.build_session(build_options, logic,
-            build_progress = console_progress,
-            session_dirs = session_dirs.toList,
-            include_sessions = include_sessions.toList,
-            session_ancestor = proper_string(logic_ancestor),
-            session_requirements = logic_requirements,
-            session_no_build = no_build,
-            build_started = (logic => console_progress.echo(Build.build_logic_started(logic))),
-            build_failed = (logic => error(Build.build_logic_failed(logic))))
-        }
+        Language_Server.build_session(build_options, logic,
+          build_progress = console_progress,
+          session_dirs = session_dirs.toList,
+          include_sessions = include_sessions.toList,
+          session_ancestor = proper_string(logic_ancestor),
+          session_requirements = logic_requirements,
+          session_no_build = no_build,
+          build_started = (logic => console_progress.echo(Build.build_logic_started(logic))),
+          build_failed = (logic => error(Build.build_logic_failed(logic))))
 
         if (uninstall) uninstall_extension(progress = console_progress)
         else install_extension(vsix_path = vsix_path, progress = console_progress)

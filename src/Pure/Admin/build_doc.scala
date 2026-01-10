@@ -45,27 +45,29 @@ object Build_Doc {
     val deps = Sessions.load_structure(options + "document").selection_deps(selection)
 
     val errs =
-      Par_List.maps[(String, String), String](
-      {
-        case (doc, session) =>
-          try {
-            progress.expose_interrupt()
-            progress.echo("Documentation " + quote(doc) + " ...")
-
-            using(Export.open_session_context(build_results.store, deps.background(session))) {
-              session_context =>
-                Document_Build.build_documents(
-                  Document_Build.context(session_context),
-                  output_pdf = Some(Path.explode("~~/doc")))
+      progress.interrupt_handler {
+        Par_List.maps[(String, String), String](
+        {
+          case (doc, session) =>
+            try {
+              progress.expose_interrupt()
+              progress.echo("Documentation " + quote(doc) + " ...")
+  
+              using(Export.open_session_context(build_results.store, deps.background(session))) {
+                session_context =>
+                  Document_Build.build_documents(
+                    Document_Build.context(session_context),
+                    output_pdf = Some(Path.explode("~~/doc")))
+              }
+              None
             }
-            None
-          }
-          catch {
-            case Exn.Interrupt.ERROR(msg) =>
-              val sep = if (msg.contains('\n')) "\n" else " "
-              Some("Documentation " + quote(doc) + " failed:" + sep + msg)
-          }
-      }, selected, sequential = sequential)
+            catch {
+              case Exn.Interrupt.ERROR(msg) =>
+                val sep = if (msg.contains('\n')) "\n" else " "
+                Some("Documentation " + quote(doc) + " failed:" + sep + msg)
+            }
+        }, selected, sequential = sequential)
+      }
 
     if (errs.nonEmpty) error(cat_lines(errs))
 
@@ -114,9 +116,7 @@ Usage: isabelle build_doc [OPTIONS] [DOCS ...]
 
         val progress = new Console_Progress()
 
-        progress.interrupt_handler {
-          build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
-            sequential = sequential, docs = docs, view = view)
-        }
+        build_doc(options, progress = progress, all_docs = all_docs, max_jobs = max_jobs,
+          sequential = sequential, docs = docs, view = view)
       })
 }

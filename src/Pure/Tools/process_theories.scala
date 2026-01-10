@@ -196,13 +196,11 @@ Usage: isabelle process_theories [OPTIONS] [THEORIES...]
       val progress = new Console_Progress(verbose = verbose)
 
       val results =
-        progress.interrupt_handler {
-          process_theories(options, logic, directory = directory, theories = theories,
-            files = files.toList, dirs = dirs.toList, output_messages = output_messages,
-            message_head = message_head.toList, message_body = message_body.toList,
-            margin = margin, unicode_symbols = unicode_symbols, export_files = export_files.toList,
-            progress = progress)
-        }
+        process_theories(options, logic, directory = directory, theories = theories,
+          files = files.toList, dirs = dirs.toList, output_messages = output_messages,
+          message_head = message_head.toList, message_body = message_body.toList,
+          margin = margin, unicode_symbols = unicode_symbols, export_files = export_files.toList,
+          progress = progress)
 
       sys.exit(results.rc)
     })

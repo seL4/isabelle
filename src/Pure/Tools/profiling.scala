@@ -346,21 +346,19 @@ Usage: isabelle profiling [OPTIONS] [SESSIONS ...]
         val progress = new Console_Progress(verbose = verbose)
 
         val results =
-          progress.interrupt_handler {
-            profiling(options,
-              selection = Sessions.Selection(
-                all_sessions = all_sessions,
-                base_sessions = base_sessions,
-                exclude_session_groups = exclude_session_groups,
-                exclude_sessions = exclude_sessions,
-                session_groups = session_groups,
-                sessions = sessions),
-              progress = progress,
-              dirs = dirs,
-              select_dirs = select_dirs,
-              numa_shuffling = Host.numa_check(progress, numa_shuffling),
-              max_jobs = max_jobs)
-          }
+          profiling(options,
+            selection = Sessions.Selection(
+              all_sessions = all_sessions,
+              base_sessions = base_sessions,
+              exclude_session_groups = exclude_session_groups,
+              exclude_sessions = exclude_sessions,
+              session_groups = session_groups,
+              sessions = sessions),
+            progress = progress,
+            dirs = dirs,
+            select_dirs = select_dirs,
+            numa_shuffling = Host.numa_check(progress, numa_shuffling),
+            max_jobs = max_jobs)
 
         results.output(output_dir = output_dir.absolute, progress = progress)
       })

@@ -177,7 +177,7 @@ object Build_CI {
     val pre_result = return_code { job.hook.pre(options, progress) }
 
     progress.echo(section("BUILD"))
-    val results = progress.interrupt_handler {
+    val results =
       Build.build(
         options ++ job.prefs,
         build_hosts = build_hosts,
@@ -188,7 +188,6 @@ object Build_CI {
         select_dirs = job.select_dirs,
         numa_shuffling = job.hosts.numa_shuffling,
         max_jobs = job.hosts.max_jobs)
-    }
 
     val stop_date = progress.now()
     val elapsed_time = stop_date - progress.start

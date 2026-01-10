@@ -200,22 +200,20 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       progress.echo("Started at " + Build_Log.print_date(start_date), verbose = true)
 
       val results =
-        progress.interrupt_handler {
-          mirabelle(options, actions, output_dir.absolute,
-            theories = theories,
-            selection = Sessions.Selection(
-              all_sessions = all_sessions,
-              base_sessions = base_sessions,
-              exclude_session_groups = exclude_session_groups,
-              exclude_sessions = exclude_sessions,
-              session_groups = session_groups,
-              sessions = sessions),
-            progress = progress,
-            dirs = dirs,
-            select_dirs = select_dirs,
-            numa_shuffling = Host.numa_check(progress, numa_shuffling),
-            max_jobs = max_jobs)
-        }
+        mirabelle(options, actions, output_dir.absolute,
+          theories = theories,
+          selection = Sessions.Selection(
+            all_sessions = all_sessions,
+            base_sessions = base_sessions,
+            exclude_session_groups = exclude_session_groups,
+            exclude_sessions = exclude_sessions,
+            session_groups = session_groups,
+            sessions = sessions),
+          progress = progress,
+          dirs = dirs,
+          select_dirs = select_dirs,
+          numa_shuffling = Host.numa_check(progress, numa_shuffling),
+          max_jobs = max_jobs)
 
       val end_date = Date.now()
       val elapsed_time = end_date - start_date
