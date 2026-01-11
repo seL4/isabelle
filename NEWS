@@ -28,8 +28,7 @@ and interrupt handling (using thread interrupt, e.g. via "Stop" button).
 For example:
 
   val progress = new Scala_Console.Progress(verbose = true)
-  progress.interrupt_handler {
-    Build.build_logic(PIDE.options, "FOL", progress = progress) }
+  Build.build_logic(PIDE.options, "FOL", progress = progress)
 
 
 *** HOL ***
@@ -43,6 +42,24 @@ any longer in generated code: there are hardly any instances with a
 reasonable implementation, but a lot of implementations would require
 these as (effectively unused) dictionary parameters.
 Minor INCOMPATIBILITY.
+
+
+*** System ***
+
+* Isabelle/Scala operations Build.build(), Build.build_logic() etc.
+already include progress.interrupt_handler for the main loop. It is no
+longer required as a separate wrapper for command-line tools etc.
+
+* Isabelle/Scala operation Progress.interrupt_handler is now more
+specific for different instances of class Progress, with mixins
+Progress.Local_Interrupts (for thread interrupts) and
+Progress.Global_Interrupts (for thread interrupts and process signals).
+The latter is included in class Console_Progress, which is typically
+used for a single command-line tool that is directly connected to the
+system shell and its signals (e.g. CTRL-C). The default (new Progress)
+does not change interrupt handling at all. Subtle INCOMPATIBILITY in
+very rare situations.
+
 
 
 New in Isabelle2025-1 (December 2025)
