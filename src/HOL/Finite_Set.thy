@@ -2376,6 +2376,48 @@ using card_inj_on_le[of _ A B] card_le_inj[of A B] by blast
 lemma surj_card_le: "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> card B \<le> card A"
   by (blast intro: card_image_le card_mono le_trans)
 
+lemma card_le_card_if_mem_imp_ex_mem:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c"
+  assumes "finite \<X>" and "finite \<Y>" and
+    f_inj: "inj_on (\<lambda>(x, y). f x y) {(x, y)| x y. x \<in> \<X> \<and> f x y \<in> \<Y>}" and
+    ex_in_\<Y>: "\<And>x. x \<in> \<X> \<Longrightarrow> \<exists>y. f x y \<in> \<Y>"
+  shows "card \<X> \<le> card \<Y>"
+proof -
+  define XY where
+    "XY = {(x, y)| x y. x \<in> \<X> \<and> f x y \<in> \<Y>}"
+
+  have f_XY_subset: "(\<lambda>(x, y). f x y) ` XY \<subseteq> \<Y>"
+    using XY_def by auto
+
+  then have "finite ((\<lambda>(x, y). f x y) ` XY)"
+    using \<open>finite \<Y>\<close> by (rule finite_subset)
+
+  then have "finite XY"
+  proof (rule finite_image_iff[THEN iffD1, rotated])
+    show "inj_on (\<lambda>(x, y). f x y) XY"
+      unfolding XY_def using f_inj .
+  qed
+
+  moreover have "Domain XY = \<X>"
+    unfolding XY_def
+    using ex_in_\<Y>
+    by (simp add: equalityI subsetI)
+
+  ultimately have "card \<X> \<le> card XY"
+    using card_Domain_le by iprover
+
+  also have "\<dots> \<le> card \<Y>"
+  proof (intro inj_on_iff_card_le[THEN iffD1] \<open>finite XY\<close> \<open>finite \<Y>\<close> exI conjI)
+    show "inj_on (\<lambda>(x, y). f x y) XY"
+      unfolding XY_def using f_inj .
+  next
+    show "(\<lambda>(x, y). f x y) ` XY \<subseteq> \<Y>"
+      using f_XY_subset .
+  qed
+
+  finally show "card \<X> \<le> card \<Y>" .
+qed
+
 lemma card_bij_eq:
   "inj_on f A \<Longrightarrow> f ` A \<subseteq> B \<Longrightarrow> inj_on g B \<Longrightarrow> g ` B \<subseteq> A \<Longrightarrow> finite A \<Longrightarrow> finite B
     \<Longrightarrow> card A = card B"

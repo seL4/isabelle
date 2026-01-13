@@ -40,6 +40,7 @@ For example:
 * Theory "HOL.Finite_Set"
   - Added lemmas.
       card_Domain_le
+      card_le_card_if_mem_imp_ex_mem
 
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
