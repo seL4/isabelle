@@ -1728,6 +1728,9 @@ lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longright
 lemma card_insert_if: "finite A \<Longrightarrow> card (insert x A) = (if x \<in> A then card A else Suc (card A))"
   by auto (simp add: card.insert_remove card.remove)
 
+lemma card_Domain_le: "finite A \<Longrightarrow> card (Domain A) \<le> card A"
+  by (induction rule: finite_induct) (simp_all flip: fst_eq_Domain add: card_insert_if)
+
 lemma card_ge_0_finite: "card A > 0 \<Longrightarrow> finite A"
   by (rule ccontr) simp
 

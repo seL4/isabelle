@@ -37,6 +37,10 @@ For example:
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
 
+* Theory "HOL.Finite_Set"
+  - Added lemmas.
+      card_Domain_le
+
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
 reasonable implementation, but a lot of implementations would require
