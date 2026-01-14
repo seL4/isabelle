@@ -739,26 +739,30 @@ object Document {
       } yield entry.entry_name -> entry).toMap
 
 
-    /* find command */
+    /* commands */
 
-    def find_command(id: Document_ID.Generic): Option[(Node, Command)] =
+    def command_node(command: Command): Node = get_node(command.node_name)
+
+    def command_start(command: Command): Option[Text.Offset] =
+      command_node(command).command_start(command)
+
+    def get_command(id: Document_ID.Generic): Option[Command] =
       state.lookup_id(id) match {
         case None => None
         case Some(st) =>
           val command = st.command
-          val command_node = get_node(command.node_name)
-          if (command_node.commands.contains(command)) Some((command_node, command)) else None
+          if (command_node(command).commands.contains(command)) Some(command) else None
       }
 
     def find_command_position(
       id: Document_ID.Generic,
       offset: Symbol.Offset
     ): Option[Line.Node_Position] = {
-      for ((node, command) <- find_command(id))
+      for (command <- get_command(id))
       yield {
         val name = command.node_name.node
         val sources_iterator =
-          node.commands.iterator.takeWhile(_ != command).map(_.source) ++
+          command_node(command).commands.iterator.takeWhile(_ != command).map(_.source) ++
             (if (offset == 0) Iterator.empty
              else Iterator.single(command.source(Text.Range(0, command.chunk.decode(offset)))))
         val pos = sources_iterator.foldLeft(Line.Position.zero)(_.advance(_))
@@ -768,10 +772,10 @@ object Document {
 
     def find_command_line(id: Document_ID.Generic, offset: Symbol.Offset): Option[Int] =
       for {
-        (node, command) <- find_command(id)
+        command <- get_command(id)
         range = Text.Range(0, command.chunk.decode(offset))
         text <- range.try_substring(command.source)
-        line <- node.command_start_line(command)
+        line <- command_node(command).command_start_line(command)
       } yield line + Library.count_newlines(text)
 
     def current_command(other_node_name: Node.Name, offset: Text.Offset): Option[Command] =
