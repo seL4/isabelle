@@ -261,7 +261,7 @@ class JEdit_Editor extends Editor {
     pos match {
       case Position.Item_Id(id, range) if range.start > 0 =>
         snapshot.find_command(id) match {
-          case Some((node, command)) if snapshot.get_node(command.node_name) eq node =>
+          case Some((node, command)) =>
             node.command_start(command) match {
               case Some(start) => text_offset == start + command.chunk.decode(range.start)
               case None => false
