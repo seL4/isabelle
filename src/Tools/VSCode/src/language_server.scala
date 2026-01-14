@@ -480,8 +480,8 @@ class Language_Server(
           for {
             (snippet, props) <- Protocol.sendback_snippets(results).iterator
             id <- Position.Id.unapply(props)
-            (node, command) <- snapshot.find_command(id)
-            start <- node.command_start(command)
+            command <- snapshot.get_command(id)
+            start <- snapshot.command_start(command)
             range = command.core_range + start
             current_text <- model.get_text(range)
           } yield {

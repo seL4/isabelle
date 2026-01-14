@@ -151,7 +151,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val commands =
       (for {
         (command_id, timings) <- nodes_status(name).command_timings.toList
-        (_, command) <- snapshot.find_command(command_id)
+        command <- snapshot.get_command(command_id)
       } yield Command_Entry(command, timings.sum(now).seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
