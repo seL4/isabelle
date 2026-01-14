@@ -355,7 +355,7 @@ next
 qed
 
 lemma all_subset_image: "(\<forall>B. B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. B \<subseteq> A \<longrightarrow> P(f ` B))"
-  by (safe elim!: subset_imageE) (use image_mono in \<open>blast+\<close>) (* slow *)
+  by (auto simp: subset_image_iff dest: image_mono)
 
 lemma all_finite_subset_image:
   "(\<forall>B. finite B \<and> B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. finite B \<and> B \<subseteq> A \<longrightarrow> P (f ` B))"
