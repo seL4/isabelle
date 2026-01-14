@@ -24,7 +24,6 @@ sig
   val remove_thy: string -> unit
   val use_theories: Options.T -> string -> (string * Position.T) list ->
     (theory * Document_Output.segment list) list
-  val use_thy_legacy: string -> unit
   val finish: unit -> unit
 end;
 
@@ -461,11 +460,6 @@ end;
 
 fun use_theories options qualifier imports =
   schedule_theories (#2 (require_thys options [] qualifier Path.current imports String_Graph.empty));
-
-fun use_thy_legacy name =
-  Runtime.toplevel_program (fn () =>
-    ignore (use_theories (Options.default ()) Resources.default_qualifier [(name, Position.none)]));
-
 
 (* finish all theories *)
 

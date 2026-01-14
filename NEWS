@@ -49,6 +49,13 @@ these as (effectively unused) dictionary parameters.
 Minor INCOMPATIBILITY.
 
 
+*** ML ***
+
+* Obsolete Thy_Info.use_thy_legacy has been removed. Rare
+INCOMPATIBILITY: need to use formal PIDE session to load theories, e.g.
+via "isabelle build" or "isabelle process_theories".
+
+
 *** System ***
 
 * Isabelle/Scala operations Build.build(), Build.build_logic() etc.
