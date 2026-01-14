@@ -270,7 +270,7 @@ object Document_Status {
       var terminated = true
       var cumulated_time = Time.zero
       var max_time = Time.zero
-      var command_timings = Map.empty[Command, Command_Timings]
+      var command_timings = Map.empty[Document_ID.Command, Command_Timings]
 
       for (command <- node.commands.iterator) {
         val status = state.command_status(version, command)
@@ -289,7 +289,7 @@ object Document_Status {
         val t = status.timings.sum(now)
         cumulated_time += t
         if (t > max_time) max_time = t
-        if (t.is_notable(threshold)) command_timings += (command -> status.timings)
+        if (t.is_notable(threshold)) command_timings += (command.id -> status.timings)
       }
 
       def percent(a: Int, b: Int): Int =
@@ -341,7 +341,7 @@ object Document_Status {
     cumulated_time: Time = Time.zero,
     max_time: Time = Time.zero,
     threshold: Time = Time.zero,
-    command_timings: Map[Command, Command_Timings] = Map.empty,
+    command_timings: Map[Document_ID.Command, Command_Timings] = Map.empty,
     percentage: Int = 0
   ) extends Theory_Status {
     def is_empty: Boolean = this == Node_Status.empty

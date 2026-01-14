@@ -133,7 +133,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var nodes_status = Document_Status.Nodes_Status.empty
 
-  private def make_entries(): List[Entry] = {
+  private def make_entries(snapshot: Document.Snapshot): List[Entry] = {
     GUI_Thread.require {}
 
     val name =
@@ -149,8 +149,10 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         for ((a, st) <- nodes_status.iterator if st.command_timings.nonEmpty)
           yield Theory_Entry(a, st.cumulated_time.seconds)).sorted(Entry.Ordering)
     val commands =
-      (for ((command, timings) <- nodes_status(name).command_timings.toList)
-        yield Command_Entry(command, timings.sum(now).seconds)).sorted(Entry.Ordering)
+      (for {
+        (command_id, timings) <- nodes_status(name).command_timings.toList
+        (_, command) <- snapshot.find_command(command_id)
+      } yield Command_Entry(command, timings.sum(now).seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
       if (entry.name == name) entry.make_current :: commands
@@ -172,7 +174,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         threshold = Time.seconds(timing_threshold),
         domain = Some(domain))
 
-    val entries = make_entries()
+    val entries = make_entries(snapshot)
     if (timing_view.listData.toList != entries) timing_view.listData = entries
   }
 
