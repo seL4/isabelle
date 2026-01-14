@@ -2310,7 +2310,7 @@ next
   proof (cases "A = {}")
     case True
     from obtain_subset_with_card_n[OF Suc(3)]
-    obtain B where "B \<subseteq> C" "card B = Suc n" by blast
+    obtain B where "B \<subseteq> C" "card B = Suc n" .
     thus ?thesis unfolding True by blast
   next
     case False
