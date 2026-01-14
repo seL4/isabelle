@@ -258,18 +258,11 @@ class JEdit_Editor extends Editor {
     text_offset: Text.Offset,
     pos: Position.T
   ): Boolean = {
-    pos match {
-      case Position.Item_Id(id, range) if range.start > 0 =>
-        snapshot.get_command(id) match {
-          case Some(command) =>
-            snapshot.command_start(command) match {
-              case Some(start) => text_offset == start + command.chunk.decode(range.start)
-              case None => false
-            }
-          case _ => false
-        }
-      case _ => false
-    }
+    (for {
+      (id, range) <- Position.Item_Id.unapply(pos) if range.start > 0
+      command <- snapshot.get_command(id)
+      start <- snapshot.command_start(command)
+    } yield text_offset == start + command.chunk.decode(range.start)) getOrElse false
   }
 
   def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)
