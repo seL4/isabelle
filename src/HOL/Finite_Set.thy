@@ -1731,6 +1731,9 @@ lemma card_insert_if: "finite A \<Longrightarrow> card (insert x A) = (if x \<in
 lemma card_Domain_le: "finite A \<Longrightarrow> card (Domain A) \<le> card A"
   by (induction rule: finite_induct) (simp_all flip: fst_eq_Domain add: card_insert_if)
 
+lemma card_Range_le: "finite A \<Longrightarrow> card (Range A) \<le> card A"
+  by (induction rule: finite_induct) (simp_all flip: snd_eq_Range add: card_insert_if)
+
 lemma card_ge_0_finite: "card A > 0 \<Longrightarrow> finite A"
   by (rule ccontr) simp
 

@@ -41,6 +41,7 @@ For example:
   - Added lemmas.
       card_Domain_le
       card_le_card_if_mem_imp_ex_mem
+      card_Range_le
 
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
