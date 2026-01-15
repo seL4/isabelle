@@ -662,11 +662,11 @@ qed
 
 lemma Inf_fin_set_fold [code]:
   "Inf_fin (Set t) = Min (Set t)"
-by (simp add: inf_min Inf_fin_def Min_def)
+  by (simp add: inf_min Inf_fin_def Min_def)
 
-lemma Inf_Set_fold:
-  fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
-  shows "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
+lemma Inf_Set_fold [code]:
+  "Inf (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
+    for t :: "('a :: {linorder, complete_lattice}, unit) rbt"  
 proof -
   have "comp_fun_commute (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)"
     by standard (simp add: fun_eq_iff ac_simps)
@@ -691,11 +691,11 @@ qed
 
 lemma Sup_fin_set_fold [code]:
   "Sup_fin (Set t) = Max (Set t)"
-by (simp add: sup_max Sup_fin_def Max_def)
+  by (simp add: sup_max Sup_fin_def Max_def)
 
-lemma Sup_Set_fold:
-  fixes t :: "('a :: {linorder, complete_lattice}, unit) rbt"
-  shows "Sup (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
+lemma Sup_Set_fold [code]:
+  "Sup (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
+    for t :: "('a :: {linorder, complete_lattice}, unit) rbt"
 proof -
   have "comp_fun_commute (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)"
     by standard (simp add: fun_eq_iff ac_simps)
@@ -705,25 +705,6 @@ proof -
     by (auto simp add: Sup_fold_sup sup_max empty_Set[symmetric]
       r_max_eq_r_max_opt[symmetric] r_max_alt_def)
 qed
-
-context
-begin
-
-qualified definition Inf' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
-  where [code_abbrev]: "Inf' = Inf"
-
-lemma Inf'_Set_fold [code]:
-  "Inf' (Set t) = (if RBT.is_empty t then top else r_min_opt t)"
-  by (simp add: Inf'_def Inf_Set_fold)
-
-qualified definition Sup' :: "'a :: {linorder, complete_lattice} set \<Rightarrow> 'a"
-  where [code_abbrev]: "Sup' = Sup"
-
-lemma Sup'_Set_fold [code]:
-  "Sup' (Set t) = (if RBT.is_empty t then bot else r_max_opt t)"
-  by (simp add: Sup'_def Sup_Set_fold)
-
-end
 
 lemma [code]:
   "Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) = fold_keys gcd t (0::'a::{semiring_gcd, linorder})"
@@ -736,6 +717,10 @@ proof -
   then show ?thesis
     by (simp add: Gcd_fin.eq_fold)
 qed
+
+lemma [code]:
+  "Gcd (Set t) = Gcd\<^sub>f\<^sub>i\<^sub>n (Set t)" for t :: \<open>('a::{semiring_Gcd, linorder}, unit) RBT.rbt\<close>
+  by simp
 
 lemma [code]:
   "Gcd (Set t) = (Gcd\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
@@ -758,15 +743,16 @@ proof -
 qed
 
 lemma [code]:
+  "Lcm (Set t) = Lcm\<^sub>f\<^sub>i\<^sub>n (Set t)" for t :: \<open>('a::{semiring_Gcd, linorder}, unit) RBT.rbt\<close>
+  by simp
+
+lemma [code]:
   "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: nat)"
   by simp
 
 lemma [code]:
   "Lcm (Set t) = (Lcm\<^sub>f\<^sub>i\<^sub>n (Set t) :: int)"
   by simp
-
-lemma sorted_list_set [code]: "sorted_list_of_set (Set t) = RBT.keys t"
-  by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
 lemma Least_code [code]:
   \<open>Lattices_Big.Least (Set t) = (if RBT.is_empty t then Lattices_Big.Least_abort {} else Min (Set t))\<close>
@@ -783,6 +769,9 @@ lemma Greatest_code [code]:
   using is_empty_Set
     apply auto
   done
+
+lemma sorted_list_set [code]: "sorted_list_of_set (Set t) = RBT.keys t"
+  by (auto simp add: set_keys intro: sorted_distinct_set_unique) 
 
 lemma [code]:
   \<open>Option.these A = the ` Set.filter (Not \<circ> Option.is_none) A\<close>

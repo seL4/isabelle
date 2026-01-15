@@ -1187,17 +1187,25 @@ lemma Gcd_fin_eq_Gcd [simp]:
   "Gcd\<^sub>f\<^sub>i\<^sub>n A = Gcd A" if "finite A" for A :: "'a set"
   using that by induct simp_all
 
-lemma Gcd_set_eq_fold [code_unfold]:
+lemma Gcd_set_eq_fold:
   "Gcd (set xs) = fold gcd xs 0"
-  by (simp add: Gcd_fin.set_eq_fold [symmetric])
+  by (simp flip: Gcd_fin.set_eq_fold)
+
+lemma [code]:
+  "Gcd (set xs) = Gcd\<^sub>f\<^sub>i\<^sub>n (set xs)"
+  by simp
 
 lemma Lcm_fin_eq_Lcm [simp]:
   "Lcm\<^sub>f\<^sub>i\<^sub>n A = Lcm A" if "finite A" for A :: "'a set"
   using that by induct simp_all
 
-lemma Lcm_set_eq_fold [code_unfold]:
+lemma Lcm_set_eq_fold:
   "Lcm (set xs) = fold lcm xs 1"
-  by (simp add: Lcm_fin.set_eq_fold [symmetric])
+  by (simp flip: Lcm_fin.set_eq_fold)
+
+lemma [code]:
+  "Lcm (set xs) = Lcm\<^sub>f\<^sub>i\<^sub>n (set xs)"
+  by simp
 
 end
 
