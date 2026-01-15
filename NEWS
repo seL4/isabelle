@@ -49,6 +49,10 @@ reasonable implementation, but a lot of implementations would require
 these as (effectively unused) dictionary parameters.
 Minor INCOMPATIBILITY.
 
+* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class parameters
+any longer in generated code but implemented using their counterparts on finite
+sets. Minor INCOMPATIBILITY.
+
 
 *** ML ***
 

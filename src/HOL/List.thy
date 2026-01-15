@@ -3321,7 +3321,7 @@ proof -
   show ?thesis by (simp add: eq_fold fold_set_fold)
 qed
 
-lemma (in complete_lattice) Inf_set_fold:
+lemma (in complete_lattice) Inf_set_fold [code]:
   "Inf (set xs) = fold inf xs top"
 proof -
   interpret comp_fun_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -3329,9 +3329,9 @@ proof -
   show ?thesis by (simp add: Inf_fold_inf fold_set_fold inf_commute)
 qed
 
-declare Inf_set_fold [where 'a = "'a set", code]
+declare Inf_set_fold [where 'a = \<open>'a set\<close>, code]
 
-lemma (in complete_lattice) Sup_set_fold:
+lemma (in complete_lattice) Sup_set_fold [code]:
   "Sup (set xs) = fold sup xs bot"
 proof -
   interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -3339,7 +3339,7 @@ proof -
   show ?thesis by (simp add: Sup_fold_sup fold_set_fold sup_commute)
 qed
 
-declare Sup_set_fold [where 'a = "'a set", code]
+declare Sup_set_fold [where 'a = \<open>'a set\<close>, code]
 
 lemma (in complete_lattice) INF_set_fold:
   "\<Sqinter>(f ` set xs) = fold (inf \<circ> f) xs top"
