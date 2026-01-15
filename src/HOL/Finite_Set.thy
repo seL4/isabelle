@@ -345,13 +345,15 @@ lemma finite_subset_image:
   assumes "finite B"
   shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
   using assms
-proof induct
+proof (induct B rule: finite_induct)
   case empty
   then show ?case by simp
 next
-  case insert
+  case (insert b B)
+  then have "\<exists>C\<subseteq>A. finite C \<and> B = f ` C"
+    by auto
   then show ?case
-    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast
+    using insert.prems by auto
 qed
 
 lemma all_subset_image: "(\<forall>B. B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. B \<subseteq> A \<longrightarrow> P(f ` B))"
