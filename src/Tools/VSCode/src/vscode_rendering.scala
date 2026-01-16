@@ -288,20 +288,11 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case _ => None
     }
 
-  def hyperlinks(range: Text.Range): Vector[Line.Node_Range] =
-    snapshot.cumulate[Vector[Line.Node_Range]](
-      range, Vector.empty, VSCode_Rendering.hyperlink_elements, _ =>
-        {
-          case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            val file = perhaps_append_file(snapshot.node_name, name)
-            Some(links :+ Line.Node_Range(file))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            hyperlink_def_position(props).map(links :+ _)
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            hyperlink_position(props).map(links :+ _)
-
-          case _ => None
-        }) match { case info :: _ => info.info case _ => Vector.empty }
+  def hyperlinks(range: Text.Range): Vector[Text.Info[Line.Node_Range]] =
+    make_hyperlinks(range, elements = VSCode_Rendering.hyperlink_elements) {
+      case Markup(Markup.ENTITY, props) => hyperlink_def_position(props)
+      case Markup(Markup.POSITION, props) => hyperlink_position(props)
+      case Markup.Path(name) => Some(Line.Node_Range(perhaps_append_file(snapshot.node_name, name)))
+      case _ => None
+    }
 }

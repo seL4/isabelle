@@ -617,6 +617,21 @@ class Rendering(
   }
 
 
+  /* hyperlinks */
+
+  def make_hyperlinks[A](range: Text.Range, elements: Markup.Elements = Rendering.entity_elements)(
+    make_info: Markup => Option[A]
+  ): Vector[Text.Info[A]] = {
+    snapshot.cumulate[Vector[Text.Info[A]]](
+      range, Vector.empty, elements, _ =>
+        {
+          case (infos, Text.Info(info_range, XML.Elem(markup, _))) =>
+            for (info <- make_info(markup))
+              yield infos :+ Text.Info(snapshot.convert(info_range), info)
+        }) match { case Text.Info(_, infos) :: _ => infos case _ => Vector.empty }
+  }
+
+
   /* tooltips */
 
   def timing_threshold: Time = options.seconds("editor_timing_threshold")
