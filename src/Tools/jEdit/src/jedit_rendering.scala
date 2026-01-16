@@ -241,7 +241,10 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
+  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
+    hyperlinks(range).lastOption
+
+  def hyperlinks(range: Text.Range): Vector[Text.Info[PIDE.editor.Hyperlink]] = {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
         {
@@ -271,10 +274,10 @@ extends Rendering(snapshot, options, PIDE.session) {
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
 
           case _ => None
-        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
+        }) match { case info :: _ => info.info case _ => Vector.empty }
   }
 
-  def hyperlink_entity(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
+  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[PIDE.editor.Hyperlink]] = {
     snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
       range, Vector.empty, Rendering.entity_elements, _ =>
         {
@@ -282,7 +285,7 @@ extends Rendering(snapshot, options, PIDE.session) {
             val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
             opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
           case _ => None
-        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
+        }) match { case info :: _ => info.info case _ => Vector.empty }
   }
 
 

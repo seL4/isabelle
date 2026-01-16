@@ -372,7 +372,7 @@ object Isabelle {
     for {
       rendering <- Document_View.get_rendering(text_area)
       caret_range = JEdit_Lib.caret_range(text_area)
-      link <- rendering.hyperlink_entity(caret_range)
+      link <- rendering.hyperlinks_entity(caret_range).lastOption
     } link.info.follow(view)
   }
 
