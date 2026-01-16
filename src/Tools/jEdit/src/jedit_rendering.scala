@@ -259,7 +259,7 @@ extends Rendering(snapshot, options, PIDE.session) {
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
             PIDE.editor.hyperlink_doc(name).map(link =>
-              (links :+ Text.Info(snapshot.convert(info_range), link)))
+              links :+ Text.Info(snapshot.convert(info_range), link))
 
           case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
             val link = PIDE.editor.hyperlink_url(name)
