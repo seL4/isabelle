@@ -294,8 +294,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case Markup(Markup.POSITION, props) => hyperlink_position(props)
       case Markup.Path(name) => Some(Line.Node_Range(perhaps_append_file(snapshot.node_name, name)))
       case Markup.Doc(name) =>
-        model.session.doc_entry(name).headOption
-          .map(entry => Line.Node_Range(File.platform_path(entry.path)))
+        model.session.doc_entry(name).map(entry => Line.Node_Range(File.platform_path(entry.path)))
       case _ => None
     }
 }
