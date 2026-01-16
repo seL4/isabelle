@@ -443,7 +443,7 @@ class Language_Server(
   def goto_definition(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
-        yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
+        yield rendering.hyperlinks(Text.Range(offset, offset + 1)).toList) getOrElse Nil
     channel.write(LSP.GotoDefinition.reply(id, result))
   }
 
