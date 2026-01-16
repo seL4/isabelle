@@ -26,8 +26,6 @@ class JEdit_Editor extends Editor {
 
   override def session: Session = PIDE.session
 
-  def ml_settings: ML_Settings = session.store.ml_settings
-
   def flush_edits(hidden: Boolean = false, purge: Boolean = false): Unit =
     GUI_Thread.require {
       val (doc_blobs, edits) = Document_Model.flush_edits(hidden, purge)

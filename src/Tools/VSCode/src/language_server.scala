@@ -171,7 +171,6 @@ class Language_Server(
   private val session_ = Synchronized(None: Option[VSCode_Session])
   def session: VSCode_Session = session_.value getOrElse error("Server inactive")
   def resources: VSCode_Resources = session.resources
-  def ml_settings: ML_Settings = session.store.ml_settings
 
   private val sledgehammer = new VSCode_Sledgehammer(server)
 
@@ -511,7 +510,7 @@ class Language_Server(
 
 
   def documentation_request(): Unit =
-    channel.write(LSP.Documentation_Response(ml_settings))
+    channel.write(LSP.Documentation_Response(editor.ml_settings))
 
 
   /* main loop */
