@@ -65,7 +65,6 @@ object PIDE {
 
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
-  def ml_settings: ML_Settings = session.store.ml_settings
 
   object editor extends JEdit_Editor
 }

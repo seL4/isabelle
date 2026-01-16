@@ -58,6 +58,7 @@ object Language_Server {
 
   class Editor(server: Language_Server) extends isabelle.Editor {
     type Context = Unit
+    type Session = VSCode_Session
 
 
     /* PIDE session and document model */

@@ -19,11 +19,14 @@ import org.gjt.sp.util.AwtRunnableQueue
 
 class JEdit_Editor extends Editor {
   type Context = View
+  type Session = JEdit_Session
 
 
   /* PIDE session and document model */
 
   override def session: Session = PIDE.session
+
+  def ml_settings: ML_Settings = session.store.ml_settings
 
   def flush_edits(hidden: Boolean = false, purge: Boolean = false): Unit =
     GUI_Thread.require {
@@ -181,7 +184,7 @@ class JEdit_Editor extends Editor {
   /* hyperlinks */
 
   def hyperlink_doc(name: String): Option[Hyperlink] =
-    Doc.contents(PIDE.ml_settings).entries(name = _ == name).headOption.map(entry =>
+    Doc.contents(ml_settings).entries(name = _ == name).headOption.map(entry =>
       new Hyperlink {
         override val external: Boolean = !entry.path.is_file
         def follow(view: View): Unit = goto_doc(view, entry.path, focus = true)
