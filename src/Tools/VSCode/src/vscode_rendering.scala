@@ -63,7 +63,7 @@ object VSCode_Rendering {
     Rendering.tooltip_elements
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION)
 }
 
 class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
@@ -293,6 +293,9 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case Markup(Markup.ENTITY, props) => hyperlink_def_position(props)
       case Markup(Markup.POSITION, props) => hyperlink_position(props)
       case Markup.Path(name) => Some(Line.Node_Range(perhaps_append_file(snapshot.node_name, name)))
+      case Markup.Doc(name) =>
+        Doc.contents(model.session.store.ml_settings).entries(name = _ == name).headOption
+          .map(entry => Line.Node_Range(File.platform_path(entry.path)))
       case _ => None
     }
 }

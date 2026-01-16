@@ -31,6 +31,11 @@ For example:
   Build.build_logic(PIDE.options, "FOL", progress = progress)
 
 
+*** Isabelle/VSCode Prover IDE ***
+
+* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
+
+
 *** HOL ***
 
 * SMT:
