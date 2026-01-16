@@ -510,7 +510,7 @@ class Language_Server(
 
 
   def documentation_request(): Unit =
-    channel.write(LSP.Documentation_Response(editor.ml_settings))
+    channel.write(LSP.Documentation_Response(session.ml_settings))
 
 
   /* main loop */

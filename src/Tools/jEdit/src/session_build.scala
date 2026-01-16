@@ -172,7 +172,7 @@ object Session_Build {
 
     /* main */
 
-    setTitle("Isabelle build (" + PIDE.editor.ml_settings.ml_identifier + " / " +
+    setTitle("Isabelle build (" + PIDE.session.ml_settings.ml_identifier + " / " +
       "jdk-" + Platform.jvm_version + "_" + Platform.jvm_platform + ")")
 
     pack()

@@ -39,11 +39,6 @@ abstract class Editor {
 
   def get_models(): Iterable[Document.Model]
 
-  def ml_settings: ML_Settings = session.store.ml_settings
-
-  def doc_entry(name: String): Option[Doc.Entry] =
-    Doc.contents(ml_settings).entries(name = _ == name).headOption
-
 
   /* document editor */
 
