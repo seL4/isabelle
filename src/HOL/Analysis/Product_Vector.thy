@@ -115,7 +115,7 @@ instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, met
 begin
 
 definition dist_prod :: \<open>'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> real\<close>
-  where [code abort]: \<open>dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)\<close>
+  where \<open>dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)\<close>
 
 instance ..
 end
@@ -613,8 +613,6 @@ proof
 qed
 
 end
-
-declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"]]
 
 instance\<^marker>\<open>tag important\<close> prod :: (banach, banach) banach ..
 
