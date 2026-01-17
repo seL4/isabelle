@@ -140,5 +140,5 @@ class Scala_Console extends Shell("Scala") {
   }
 
   override def stop(console: Console): Unit =
-    Scala_Console.console_interpreter(console).foreach(_.shutdown())
+    Scala_Console.console_interpreter(console).foreach(_.interrupt_thread())
 }
