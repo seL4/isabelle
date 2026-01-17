@@ -730,8 +730,7 @@ fun future_proofs_enabled estimate st =
         then Future.proofs_enabled 1
         else Future.proofs_enabled 2 orelse Future.proofs_enabled_timing estimate));
 
-fun command tr st =
-  command_exception (Options.default_bool \<^system_option>\<open>show_results\<close>) tr st;
+val command = command_exception false;
 
 in
 
