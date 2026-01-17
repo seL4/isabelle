@@ -1,10 +1,11 @@
 Subject: Announcing Isabelle2025-1
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2025-1 is now available.
+Isabelle2025-2 is now available.
 
-This version introduces many changes over Isabelle2025: see the
-NEWS file for further details. Here are notable details:
+This version supersedes Isabelle2025-1, which in turn introduces many changes
+over Isabelle2025: see the NEWS file for further details. Here are notable
+details:
 
 * PIDE: load markup from background session image (e.g. theory "HOL.Nat").
 
@@ -43,7 +44,7 @@ NEWS file for further details. Here are notable details:
 * System: more robust build cluster management.
 
 
-You may get Isabelle2025-1 from the following mirror sites:
+You may get Isabelle2025-2 from the following mirror sites:
 
   Cambridge (UK)       https://www.cl.cam.ac.uk/research/hvg/Isabelle
   Munich (Germany)     https://isabelle.in.tum.de
