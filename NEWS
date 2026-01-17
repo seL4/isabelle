@@ -4,6 +4,28 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in Isabelle2025-2 (January 2026)
+------------------------------------
+
+*** General ***
+
+* Command 'sorry' is rejected by "isabelle build" as expected, with the
+default option "quick_and_dirty=false". This was broken in
+Isabelle2025-1: Isar commands were considered interactive due to the
+default option "show_results=true". Proper behaviour could be recovered
+in Isabelle2025-1 via "isabelle build -o show_results=false", but it is
+better to use Isabelle2025-2. Both approaches result in minor changes of
+result messages stored in session build databases.
+
+
+*** Isabelle/jEdit Prover IDE ***
+
+* Console/Scala: proper treatment of interrupts via "Stop" button. It
+was broken since Isabelle2022: Scala interpreter thread became
+inoperative afterwards.
+
+
+
 New in Isabelle2025-1 (December 2025)
 -------------------------------------
 
