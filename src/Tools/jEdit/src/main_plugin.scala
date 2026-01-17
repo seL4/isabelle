@@ -71,7 +71,7 @@ class Main_Plugin extends EBPlugin {
   private lazy val initial_options: Options = Options.init()
 
   private lazy val more_options: List[Options.Spec] =
-    Library.space_explode('\u000b', Isabelle_System.getenv("JEDIT_ISABELLE_OPTIONS"))
+    ("show_results=false" :: Library.space_explode('\u000b', Isabelle_System.getenv("JEDIT_ISABELLE_OPTIONS")))
       .map(Options.Spec.make)
 
   lazy val startup_options: Options = initial_options ++ more_options

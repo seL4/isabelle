@@ -285,8 +285,8 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
-          options = options.toList, java_options = java_options.toString, logic = logic,
-          logic_ancestor = logic_ancestor, logic_requirements = logic_requirements,
+          options = "show_results=false" :: options.toList, java_options = java_options.toString,
+          logic = logic, logic_ancestor = logic_ancestor, logic_requirements = logic_requirements,
           session_dirs = session_dirs.toList, include_sessions = include_sessions.toList,
           modes = modes.toList, no_build = no_build, server_log = server_log, verbose = verbose,
           background = background, progress = app_progress).check
