@@ -58,6 +58,7 @@ object Language_Server {
 
   class Editor(server: Language_Server) extends isabelle.Editor {
     type Context = Unit
+    type Session = VSCode_Session
 
 
     /* PIDE session and document model */
@@ -170,7 +171,6 @@ class Language_Server(
   private val session_ = Synchronized(None: Option[VSCode_Session])
   def session: VSCode_Session = session_.value getOrElse error("Server inactive")
   def resources: VSCode_Resources = session.resources
-  def ml_settings: ML_Settings = session.store.ml_settings
 
   private val sledgehammer = new VSCode_Sledgehammer(server)
 
@@ -443,7 +443,7 @@ class Language_Server(
   def goto_definition(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
       (for ((rendering, offset) <- rendering_offset(node_pos))
-        yield rendering.hyperlinks(Text.Range(offset, offset + 1))) getOrElse Nil
+        yield rendering.hyperlinks(Text.Range(offset, offset + 1)).toList.map(_.info)) getOrElse Nil
     channel.write(LSP.GotoDefinition.reply(id, result))
   }
 
@@ -510,7 +510,7 @@ class Language_Server(
 
 
   def documentation_request(): Unit =
-    channel.write(LSP.Documentation_Response(ml_settings))
+    channel.write(LSP.Documentation_Response(session.doc_contents))
 
 
   /* main loop */

@@ -148,6 +148,9 @@ abstract class Session extends Document.Session {
   val store: Store = Store(session_options)
   def cache: Rich_Text.Cache = store.cache
 
+  def doc_contents: Doc.Contents = Doc.contents(store.ml_settings)
+  def doc_entry(name: String): Option[Doc.Entry] = doc_contents.entries(name = _ == name).headOption
+
   def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
 

@@ -721,11 +721,9 @@ object LSP {
   }
 
   object Documentation_Response {
-    def apply(ml_settings: ML_Settings): JSON.T = {
-      val doc_contents = Doc.contents(ml_settings)
+    def apply(doc_contents: Doc.Contents): JSON.T =
       Notification("PIDE/documentation_response",
         JSON.Object("sections" -> doc_contents.sections.map(Doc_Section.apply)))
-    }
   }
 
 

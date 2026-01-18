@@ -369,11 +369,11 @@ object Isabelle {
 
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
-    for {
-      rendering <- Document_View.get_rendering(text_area)
-      caret_range = JEdit_Lib.caret_range(text_area)
-      link <- rendering.hyperlink_entity(caret_range)
-    } link.info.follow(view)
+    for (rendering <- Document_View.get_rendering(text_area)) {
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      val links = rendering.hyperlinks_entity(caret_range)
+      if (links.nonEmpty) links.last.info.follow(view)
+    }
   }
 
   def select_entity(text_area: JEditTextArea): Unit = {
