@@ -383,16 +383,27 @@ object Isabelle {
 
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
+    val painter = text_area.getPainter
+
     for (rendering <- Document_View.get_rendering(text_area)) {
       val snapshot = rendering.snapshot
       val caret_range = JEdit_Lib.caret_range(text_area)
+
       val entities =
         rendering.hyperlinks_entity(caret_range).iterator
           .filter(info => follow_entity(snapshot, view, info.info, test = true)).toList
       entities match {
         case Nil =>
         case List(info) => follow_entity(snapshot, view, info.info)
-        case infos => follow_entity(snapshot, view, infos.last.info)
+        case infos =>
+          for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
+            val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
+            val results = snapshot.command_results(caret_range)
+            val output =
+              for (case Text.Info(_, markup@Markup.Entity(kind, name)) <- infos if kind.nonEmpty)
+                yield XML.Elem(markup, XML.string(GUI.Name(name, kind = kind).toString))
+            Pretty_Tooltip(view, painter, loc, rendering, results, output)
+          }
       }
     }
   }
