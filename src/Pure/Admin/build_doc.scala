@@ -52,7 +52,7 @@ object Build_Doc {
             try {
               progress.expose_interrupt()
               progress.echo("Documentation " + quote(doc) + " ...")
-  
+
               using(Export.open_session_context(build_results.store, deps.background(session))) {
                 session_context =>
                   Document_Build.build_documents(
