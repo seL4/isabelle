@@ -367,12 +367,33 @@ object Isabelle {
 
   /* formal entities and structure */
 
+  def follow_entity(
+    snapshot: Document.Snapshot,
+    view: View,
+    markup: Markup,
+    test: Boolean = false
+  ): Boolean = {
+    markup.name == Markup.ENTITY && {
+      PIDE.editor.hyperlink_def_position(snapshot, markup.properties, focus = true) match {
+        case Some(link) => if (!test) link.follow(view); true
+        case None => false
+      }
+    }
+  }
+
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
     for (rendering <- Document_View.get_rendering(text_area)) {
+      val snapshot = rendering.snapshot
       val caret_range = JEdit_Lib.caret_range(text_area)
-      val links = rendering.hyperlinks_entity(caret_range)
-      if (links.nonEmpty) links.last.info.follow(view)
+      val entities =
+        rendering.hyperlinks_entity(caret_range).iterator
+          .filter(info => follow_entity(snapshot, view, info.info, test = true)).toList
+      entities match {
+        case Nil =>
+        case List(info) => follow_entity(snapshot, view, info.info)
+        case infos => follow_entity(snapshot, view, infos.last.info)
+      }
     }
   }
 

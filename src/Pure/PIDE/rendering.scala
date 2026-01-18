@@ -631,6 +631,9 @@ class Rendering(
         }) match { case Text.Info(_, infos) :: _ => infos case _ => Vector.empty }
   }
 
+  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[Markup]] =
+    make_hyperlinks(range)(Some(_))
+
 
   /* tooltips */
 

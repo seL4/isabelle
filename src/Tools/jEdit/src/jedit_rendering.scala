@@ -261,13 +261,6 @@ extends Rendering(snapshot, options, PIDE.session) {
       case _ => None
     }
 
-  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[PIDE.editor.Hyperlink]] =
-    make_hyperlinks(range) {
-      case Markup(Markup.ENTITY, props) =>
-        PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
-      case _ => None
-    }
-
 
   /* active elements */
 
