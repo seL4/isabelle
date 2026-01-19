@@ -389,8 +389,10 @@ object Isabelle {
 
       val entries =
         List.from(
-          rendering.hyperlinks_entity(caret_range).iterator.flatMap(info =>
-            if (follow_entity(snapshot, view, info.info, test = true)) Some(info.info) else None))
+          for {
+            Text.Info(_, entry) <- rendering.hyperlinks_entity(caret_range).iterator
+            if entry.kind.nonEmpty && follow_entity(snapshot, view, entry, test = true)
+          } yield entry)
       entries match {
         case Nil =>
         case List(entry) => follow_entity(snapshot, view, entry)
@@ -398,8 +400,7 @@ object Isabelle {
           for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
             val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
             val results = snapshot.command_results(caret_range)
-            val output = for (entry <- entries if entry.kind.nonEmpty) yield entry.print_xml
-            Pretty_Tooltip(view, painter, loc, rendering, results, output)
+            Pretty_Tooltip(view, painter, loc, rendering, results, entries.map(_.print_xml))
           }
       }
     }
