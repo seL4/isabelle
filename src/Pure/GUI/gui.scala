@@ -156,7 +156,7 @@ object GUI {
       val b = name.nonEmpty
       style.make_text(prefix) +
         if_proper(a || b,
-          if_proper(prefix, ": ") + if_proper(kind, style.make_text(kind)) +
+          if_proper(prefix, ": ") + if_proper(a, style.make_text(kind)) +
           if_proper(a && b, " ") + if_proper(b, style.make_text(quote(name))))
     }
   }
