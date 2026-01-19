@@ -186,9 +186,9 @@ object Rendering {
 
   /* tooltips */
 
+  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
   def gui_name(name: String, kind: String = "", prefix: String = ""): String =
-    GUI.Name(name, kind = Word.informal(kind), prefix = prefix,
-      style = GUI.Style_Symbol_Decoded).toString
+    GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
 
   def get_tooltip_description(name: String): Option[String] = tooltip_description.get(name)
 
@@ -683,7 +683,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(markup@Markup.Entity(entry), _)))
           if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
-            val info1 = info.add_info_text(r0, entry.print, ord = 2)
+            val info1 = info.add_info_text(r0, entry.print(style = Rendering.gui_style), ord = 2)
             val info2 =
               if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))

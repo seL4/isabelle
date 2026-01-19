@@ -400,7 +400,8 @@ object Isabelle {
           for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
             val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
             val results = snapshot.command_results(caret_range)
-            Pretty_Tooltip(view, painter, loc, rendering, results, entries.map(_.print_xml))
+            val output = entries.map(_.print_xml(style = Rendering.gui_style))
+            Pretty_Tooltip(view, painter, loc, rendering, results, output)
           }
       }
     }

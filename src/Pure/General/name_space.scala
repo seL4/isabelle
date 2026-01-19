@@ -11,8 +11,9 @@ object Name_Space {
     def name: String = Markup.Name.get(properties)
     def kind: String = Markup.Kind.get(properties)
 
-    def gui_name: GUI.Name = GUI.Name(name, kind = kind)
-    def print: String = gui_name.toString
-    def print_xml: XML.Elem = XML.Elem(Markup.Entity(this), XML.string(print))
+    def print(style: GUI.Style = GUI.Style_Plain): String =
+      GUI.Name(name, kind = Word.informal(kind), style = style).toString
+    def print_xml(style: GUI.Style = GUI.Style_Plain): XML.Elem =
+      XML.Elem(Markup.Entity(this), XML.string(print(style = style)))
   }
 }
