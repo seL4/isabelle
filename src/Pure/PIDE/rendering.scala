@@ -631,8 +631,8 @@ class Rendering(
         }) match { case Text.Info(_, infos) :: _ => infos case _ => Vector.empty }
   }
 
-  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[Markup]] =
-    make_hyperlinks(range)(Some(_))
+  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[Name_Space.Entry]] =
+    make_hyperlinks(range)(markup => Some(Name_Space.Entry(markup.properties)))
 
 
   /* tooltips */
@@ -683,7 +683,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(markup@Markup.Entity(entry), _)))
           if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
-            val info1 = info.add_info_text(r0, entry.toString, ord = 2)
+            val info1 = info.add_info_text(r0, entry.print, ord = 2)
             val info2 =
               if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))

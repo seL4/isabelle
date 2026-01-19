@@ -370,14 +370,12 @@ object Isabelle {
   def follow_entity(
     snapshot: Document.Snapshot,
     view: View,
-    markup: Markup,
+    entry: Name_Space.Entry,
     test: Boolean = false
   ): Boolean = {
-    markup.name == Markup.ENTITY && {
-      PIDE.editor.hyperlink_def_position(snapshot, markup.properties, focus = true) match {
-        case Some(link) => if (!test) link.follow(view); true
-        case None => false
-      }
+    PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true) match {
+      case Some(link) => if (!test) link.follow(view); true
+      case None => false
     }
   }
 
@@ -389,19 +387,18 @@ object Isabelle {
       val snapshot = rendering.snapshot
       val caret_range = JEdit_Lib.caret_range(text_area)
 
-      val entities =
-        rendering.hyperlinks_entity(caret_range).iterator
-          .filter(info => follow_entity(snapshot, view, info.info, test = true)).toList
-      entities match {
+      val entries =
+        List.from(
+          rendering.hyperlinks_entity(caret_range).iterator.flatMap(info =>
+            if (follow_entity(snapshot, view, info.info, test = true)) Some(info.info) else None))
+      entries match {
         case Nil =>
-        case List(info) => follow_entity(snapshot, view, info.info)
-        case infos =>
+        case List(entry) => follow_entity(snapshot, view, entry)
+        case _ =>
           for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
             val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
             val results = snapshot.command_results(caret_range)
-            val output =
-              for (case Text.Info(_, markup@Markup.Entity(entry)) <- infos if entry.kind.nonEmpty)
-                yield XML.Elem(markup, XML.string(entry.toString))
+            val output = for (entry <- entries if entry.kind.nonEmpty) yield entry.print_xml
             Pretty_Tooltip(view, painter, loc, rendering, results, output)
           }
       }
