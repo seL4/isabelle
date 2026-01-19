@@ -400,8 +400,8 @@ object Isabelle {
             val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
             val results = snapshot.command_results(caret_range)
             val output =
-              for (case Text.Info(_, markup@Markup.Entity(kind, name)) <- infos if kind.nonEmpty)
-                yield XML.Elem(markup, XML.string(GUI.Name(name, kind = kind).toString))
+              for (case Text.Info(_, markup@Markup.Entity(entry)) <- infos if entry.kind.nonEmpty)
+                yield XML.Elem(markup, XML.string(entry.toString))
             Pretty_Tooltip(view, painter, loc, rendering, results, output)
           }
       }

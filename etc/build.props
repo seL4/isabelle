@@ -124,6 +124,7 @@ sources = \
   src/Pure/General/mailman.scala \
   src/Pure/General/mercurial.scala \
   src/Pure/General/multi_map.scala \
+  src/Pure/General/name_space.scala \
   src/Pure/General/output.scala \
   src/Pure/General/path.scala \
   src/Pure/General/position.scala \

@@ -681,12 +681,11 @@ class Rendering(
             for ((i, msg) <- Command.State.get_result_proper(command_states, props))
             yield info.add_message(r0, i, msg)
 
-          case (info, Text.Info(r0, XML.Elem(markup@Markup.Entity(kind, name), _)))
-          if kind != "" && kind != Markup.ML_DEF =>
-            val txt = Rendering.gui_name(name, kind = kind)
-            val info1 = info.add_info_text(r0, txt, ord = 2)
+          case (info, Text.Info(r0, XML.Elem(markup@Markup.Entity(entry), _)))
+          if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
+            val info1 = info.add_info_text(r0, entry.toString, ord = 2)
             val info2 =
-              if (kind == Markup.COMMAND) {
+              if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))
                 val t = timings.get_finished(Markup.Command_Offset.get(markup.properties))
                 if (t.is_notable(timing_threshold)) {

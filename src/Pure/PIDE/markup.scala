@@ -115,9 +115,9 @@ object Markup {
         Def.unapply(markup) orElse Ref.unapply(markup)
     }
 
-    def unapply(markup: Markup): Option[(String, String)] =
+    def unapply(markup: Markup): Option[Name_Space.Entry] =
       markup match {
-        case Markup(ENTITY, props) => Some((Kind.get(props), Name.get(props)))
+        case Markup(ENTITY, props) => Some(Name_Space.Entry(props))
         case _ => None
       }
   }
