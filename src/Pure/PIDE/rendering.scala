@@ -683,7 +683,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(Markup.Entity(entry), _)))
           if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
-            val info1 = info.add_info_text(r0, entry.print(style = gui_style), ord = 2)
+            val info1 = info.add_info(r0, entry.print_xml(style = gui_style), ord = 2)
             val info2 =
               if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))
