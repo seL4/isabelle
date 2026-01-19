@@ -186,10 +186,6 @@ object Rendering {
 
   /* tooltips */
 
-  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
-  def gui_name(name: String, kind: String = "", prefix: String = ""): String =
-    GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
-
   def get_tooltip_description(name: String): Option[String] = tooltip_description.get(name)
 
   private val tooltip_description =
@@ -637,6 +633,10 @@ class Rendering(
 
   /* tooltips */
 
+  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
+  def gui_name(name: String, kind: String = "", prefix: String = ""): String =
+    GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
+
   def timing_threshold: Time = options.seconds("editor_timing_threshold")
 
   private sealed case class Tooltip_Info(
@@ -683,7 +683,7 @@ class Rendering(
 
           case (info, Text.Info(r0, XML.Elem(markup@Markup.Entity(entry), _)))
           if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
-            val info1 = info.add_info_text(r0, entry.print(style = Rendering.gui_style), ord = 2)
+            val info1 = info.add_info_text(r0, entry.print(style = gui_style), ord = 2)
             val info2 =
               if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))
@@ -700,17 +700,17 @@ class Rendering(
             val file = perhaps_append_file(snapshot.node_name, name)
             val info1 =
               if (name == file) info
-              else info.add_info_text(r0, Rendering.gui_name(name, kind = "path"))
-            Some(info1.add_info_text(r0, Rendering.gui_name(file, kind = "file")))
+              else info.add_info_text(r0, gui_name(name, kind = "path"))
+            Some(info1.add_info_text(r0, gui_name(file, kind = "file")))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Doc(name), _))) =>
-            Some(info.add_info_text(r0, Rendering.gui_name(name, kind = "doc")))
+            Some(info.add_info_text(r0, gui_name(name, kind = "doc")))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Url(name), _))) =>
-            Some(info.add_info_text(r0, Rendering.gui_name(name, kind = "URL")))
+            Some(info.add_info_text(r0, gui_name(name, kind = "URL")))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Command_Span(span), _))) =>
-            Some(info.add_info_text(r0, Rendering.gui_name(span.name, kind = Markup.COMMAND_SPAN)))
+            Some(info.add_info_text(r0, gui_name(span.name, kind = Markup.COMMAND_SPAN)))
 
           case (info, Text.Info(r0, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>
@@ -733,11 +733,11 @@ class Rendering(
             Some(info.add_info_text(r0, "language: " + lang.description))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Notation(kind, name), _))) =>
-            val description = Rendering.gui_name(name, kind = kind, prefix = Markup.NOTATION)
+            val description = gui_name(name, kind = kind, prefix = Markup.NOTATION)
             Some(info.add_info_text(r0, description, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup.Expression(kind, name), _))) =>
-            val description = Rendering.gui_name(name, kind = kind, prefix = Markup.EXPRESSION)
+            val description = gui_name(name, kind = kind, prefix = Markup.EXPRESSION)
             Some(info.add_info_text(r0, description, ord = 1))
 
           case (info, Text.Info(r0, XML.Elem(Markup(Markup.MARKDOWN_PARAGRAPH, _), _))) =>
