@@ -246,21 +246,25 @@ proof -
     unfolding matrix_right_invertible_surjective matrix_mult_sum surj_def
     by (simp add: eq_commute)
   have rhseq: "?rhs \<longleftrightarrow> (\<forall>x. x \<in> vec.span (columns A))" by blast
-  { assume h: ?lhs
-    { fix x:: "'a ^'n"
+  have ?rhs if h: ?lhs
+  proof -
+    have "x \<in> vec.span (columns A)" for x:: "'a ^'n"
+    proof -
       obtain y :: "'a ^'m" where y: "sum (\<lambda>i. (y$i) *s column i A) ?U = x"
         using h lhseq by blast
-      then have "x \<in> vec.span (columns A)"
+      then show ?thesis
         by (metis (mono_tags, lifting) columns_def mem_Collect_eq vec.span_base vec.span_scale vec.span_sum)
-    }
-    then have ?rhs unfolding rhseq by blast }
+    qed
+    then show ?thesis unfolding rhseq by blast
+  qed
   moreover
-  { assume h:?rhs
-    let ?P = "\<lambda>(y::'a ^'n). \<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y"
-    { fix y
+  have ?lhs if h:?rhs
+  proof -
+    have "\<exists>(x::'a^'m). sum (\<lambda>i. (x$i) *s column i A) ?U = y" (is "?P y") for y::"'a ^'n"
+    proof -
       have "y \<in> vec.span (columns A)"
         unfolding h by blast
-      then have "?P y"
+      then show ?thesis
       proof (induction rule: vec.span_induct_alt)
         case base
         then show ?case
@@ -290,9 +294,9 @@ proof -
                       = c * ((column i A)$j) + sum (\<lambda>xa. ((x$xa) * ((column xa A)$j))) ?U" .
         qed
       qed
-    }
-    then have ?lhs unfolding lhseq ..
-  }
+    qed
+    then show ?thesis unfolding lhseq ..
+  qed
   ultimately show ?thesis by blast
 qed
 
@@ -876,30 +880,32 @@ proof -
   let ?U = "UNIV :: 'n set"
   have fU: "finite ?U" by simp
   let ?m1 = "mat 1 :: real ^'n^'n"
-  {
-    assume ot: ?ot
+  have ?rhs if ot: ?ot
+  proof -
     from ot have lf: "Vector_Spaces.linear (*s) (*s) f" and fd: "\<And>v w. f v \<bullet> f w = v \<bullet> w"
       unfolding orthogonal_transformation_def orthogonal_matrix linear_def scalar_mult_eq_scaleR
       by blast+
-    {
-      fix i j
-      let ?A = "transpose ?mf ** ?mf"
-      have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
-        "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
+    let ?A = "transpose ?mf ** ?mf"
+    have "?A$i$j = ?m1 $ i $ j" for i j
+    proof -
+      have *:
+        "(if b then 1 else 0) * x = (if b then x else 0)"
+        "x * (if b then 1 else 0) = (if b then x else 0)"
+        for b and x::"'a::comm_ring_1"
         by simp_all
       from fd[of "axis i 1" "axis j 1",
         simplified matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
-      have "?A$i$j = ?m1 $ i $ j"
+      show ?thesis
         by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def
-            th0 sum.delta[OF fU] mat_def axis_def)
-    }
+            * sum.delta[OF fU] mat_def axis_def)
+    qed
     then have "orthogonal_matrix ?mf"
       unfolding orthogonal_matrix
       by vector
-    with lf have ?rhs
+    with lf show ?thesis
       unfolding linear_def scalar_mult_eq_scaleR
       by blast
-  }
+  qed
   moreover
   have ?lhs if "Vector_Spaces.linear (*s) (*s) f" and "orthogonal_matrix ?mf"
     using that unfolding orthogonal_matrix_def norm_eq orthogonal_transformation
@@ -1002,20 +1008,20 @@ proposition scaling_linear:
     and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
   shows "linear f"
 proof -
-  {
-    fix v w
+  have "f v \<bullet> f w = c\<^sup>2 * (v \<bullet> w)" for v w
+  proof -
     have "norm (f x) = c * norm x" for x
       by (metis dist_0_norm f0 fd)
-    then have "f v \<bullet> f w = c\<^sup>2 * (v \<bullet> w)"
+    then show ?thesis
       unfolding dot_norm_neg dist_norm[symmetric]
       by (simp add: fd power2_eq_square field_simps)
-  }
+  qed
   then show ?thesis
     unfolding linear_iff vector_eq[where 'a="'a"] scalar_mult_eq_scaleR
     by (simp add: inner_add field_simps)
 qed
 
-lemma  isometry_linear:
+lemma isometry_linear:
   "f (0::'a::real_inner) = (0::'a) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y \<Longrightarrow> linear f"
   by (rule scaling_linear[where c=1]) simp_all
 
@@ -1035,19 +1041,18 @@ lemma  isometry_sphere_extend:
     and fd1: "\<And>x y. \<lbrakk>norm x = 1; norm y = 1\<rbrakk> \<Longrightarrow> dist (f x) (f y) = dist x y"
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
 proof -
-  {
-    fix x y x' y' u v u' v' :: "'a"
-    assume H: "x = norm x *\<^sub>R u" "y = norm y *\<^sub>R v"
-              "x' = norm x *\<^sub>R u'" "y' = norm y *\<^sub>R v'"
-      and J: "norm u = 1" "norm u' = 1" "norm v = 1" "norm v' = 1" "norm(u' - v') = norm(u - v)"
-    then have *: "u \<bullet> v = u' \<bullet> v' + v' \<bullet> u' - v \<bullet> u "
+  have norm_eq: "norm(x' - y') = norm(x - y)"
+    if H: "x = norm x *\<^sub>R u" "y = norm y *\<^sub>R v" "x' = norm x *\<^sub>R u'" "y' = norm y *\<^sub>R v'"
+    and J: "norm u = 1" "norm u' = 1" "norm v = 1" "norm v' = 1" "norm(u' - v') = norm(u - v)"
+    for x y x' y' u v u' v' :: "'a"
+  proof -
+    from that have *: "u \<bullet> v = u' \<bullet> v' + v' \<bullet> u' - v \<bullet> u "
       by (simp add: norm_eq norm_eq_1 inner_add inner_diff)
     have "norm (norm x *\<^sub>R u' - norm y *\<^sub>R v') = norm (norm x *\<^sub>R u - norm y *\<^sub>R v)"
       using J by (simp add: norm_eq norm_eq_1 inner_diff * field_simps)
-    then have "norm(x' - y') = norm(x - y)"
+    then show ?thesis
       using H by metis
-  }
-  note norm_eq = this
+  qed
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (x /\<^sub>R norm x)"
   have thfg: "?g x = f x" if "norm x = 1" for x
     using that by auto

@@ -258,26 +258,28 @@ proof -
        else if f x = undefined then ?F (f x) \<union> ?N
        else ?F (f x) - ?N)"
       using N(2) sets.sets_into_space by (auto split: if_split_asm simp: null_sets_def)
-    moreover { fix y have "?F y \<union> ?N \<in> sets M"
-      proof cases
-        assume y: "y \<in> f`space M"
-        have "?F y \<union> ?N = (main_part M (?F y) \<union> null_part M (?F y)) \<union> ?N"
-          using main_part_null_part_Un[OF F] by auto
-        also have "\<dots> = main_part M (?F y) \<union> ?N"
-          using y N by auto
-        finally show ?thesis
-          using F sets by auto
-      next
-        assume "y \<notin> f`space M" then have "?F y = {}" by auto
-        then show ?thesis using sets by auto
-      qed }
-    moreover {
+    moreover have "?F y \<union> ?N \<in> sets M" for y
+    proof cases
+      assume y: "y \<in> f`space M"
+      have "?F y \<union> ?N = (main_part M (?F y) \<union> null_part M (?F y)) \<union> ?N"
+        using main_part_null_part_Un[OF F] by auto
+      also have "\<dots> = main_part M (?F y) \<union> ?N"
+        using y N by auto
+      finally show ?thesis
+        using F sets by auto
+    next
+      assume "y \<notin> f`space M" then have "?F y = {}" by auto
+      then show ?thesis using sets by auto
+    qed
+    moreover have "?F (f x) - ?N \<in> sets M"
+    proof -
       have "?F (f x) - ?N = main_part M (?F (f x)) \<union> null_part M (?F (f x)) - ?N"
         using main_part_null_part_Un[OF F] by auto
       also have "\<dots> = main_part M (?F (f x)) - ?N"
         using N \<open>x \<in> space M\<close> by auto
-      finally have "?F (f x) - ?N \<in> sets M"
-        using F sets by auto }
+      finally show ?thesis
+        using F sets by auto
+    qed
     ultimately show "?f' -` {?f' x} \<inter> space M \<in> sets M" by auto
   next
     show "AE x in M. f x = ?f' x"
@@ -685,13 +687,15 @@ proof -
   ultimately have eq: "outer_measure_of M (A \<inter> C n) = emeasure M (E n \<inter> C n)" for n
     using E C by (intro antisym) (auto simp: eq)
 
-  { fix n
+  have "emeasure M (E n \<inter> C n) < \<infinity>" for n
+  proof -
     have "outer_measure_of M (A \<inter> C n) \<le> outer_measure_of M (C n)"
       by (intro outer_measure_of_mono) simp
     also have "\<dots> < \<infinity>"
       using assms by auto
-    finally have "emeasure M (E n \<inter> C n) < \<infinity>"
-      using eq by simp }
+    finally show ?thesis
+      using eq by simp
+  qed
   then have "measurable_envelope M (\<Union>n. A \<inter> C n) (\<Union>n. E n \<inter> C n)"
     using E C by (intro measurable_envelopeI_countable measurable_envelope_eq2[THEN iffD2]) (auto simp: eq)
   with \<open>A \<subseteq> (\<Union>n. C n)\<close> show ?thesis

@@ -246,10 +246,12 @@ qed
 
 lemma iff_4k:
   assumes "r = real k" "odd k"
-    shows "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n') \<longleftrightarrow> m=m' \<and> n=n'"
+  shows "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n') \<longleftrightarrow> m=m' \<and> n=n'"
 proof -
-  { assume "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n')"
-    then have "real ((4 * m + k) * (2 * 2 ^ n')) = real ((4 * m' + k) * (2 * 2^n))"
+  have "m=m'" and "n=n'"
+    if "(4 * real m + r) / (2 * 2^n) = (4 * real m' + r) / (2 * 2 ^ n')"
+  proof -
+    from that have "real ((4 * m + k) * (2 * 2 ^ n')) = real ((4 * m' + k) * (2 * 2^n))"
       using assms by (auto simp: field_simps)
     then have "(4 * m + k) * (2 * 2 ^ n') = (4 * m' + k) * (2 * 2^n)"
       using of_nat_eq_iff by blast
@@ -258,9 +260,8 @@ proof -
     then obtain "4*m + k = 4*m' + k" "n=n'"
       using prime_power_cancel2 [OF two_is_prime_nat] assms
       by (metis even_mult_iff even_numeral odd_add)
-    then have "m=m'" "n=n'"
-      by auto
-  }
+    then show "m=m'" and "n=n'" by auto
+  qed
   then show ?thesis by blast
 qed
 

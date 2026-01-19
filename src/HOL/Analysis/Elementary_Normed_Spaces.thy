@@ -173,13 +173,13 @@ lemma islimpt_ball:
 proof
   show ?rhs if ?lhs
   proof
-    {
-      assume "e \<le> 0"
-      then have *: "ball x e = {}"
+    have False if "e \<le> 0"
+    proof -
+      from that have *: "ball x e = {}"
         using ball_eq_empty[of x e] by auto
-      have False using \<open>?lhs\<close>
+      show ?thesis using \<open>?lhs\<close>
         unfolding * using islimpt_EMPTY[of y] by auto
-    }
+    qed
     then show "e > 0" by (metis not_less)
     show "y \<in> cball x e"
       using closed_cball[of x e] islimpt_subset[of y "ball x e" "cball x e"]
@@ -189,64 +189,61 @@ proof
   show ?lhs if ?rhs
   proof -
     from that have "e > 0" by auto
-    {
-      fix d :: real
-      assume "d > 0"
-      have "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-      proof (cases "d \<le> dist x y")
+    have "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
+      if "d > 0" for d :: real
+    proof (cases "d \<le> dist x y")
+      case True
+      then show ?thesis
+      proof (cases "x = y")
         case True
+        then have False
+          using \<open>d \<le> dist x y\<close> \<open>d>0\<close> by auto
         then show ?thesis
-        proof (cases "x = y")
-          case True
-          then have False
-            using \<open>d \<le> dist x y\<close> \<open>d>0\<close> by auto
-          then show ?thesis
-            by auto
-        next
-          case False
-          have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
-            norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
-            unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
-            by auto
-          also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
-            using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
-            unfolding scaleR_minus_left scaleR_one
-            by (auto simp: norm_minus_commute)
-          also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
-            unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
-            unfolding distrib_right using \<open>x\<noteq>y\<close>  by auto
-          also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
-            by (auto simp: dist_norm)
-          finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
-            by auto
-          moreover
-          have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
-            using \<open>x\<noteq>y\<close>[unfolded dist_nz] \<open>d>0\<close> unfolding scaleR_eq_0_iff
-            by (auto simp: dist_commute)
-          moreover
-          have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d"
-            using \<open>0 < d\<close> by (fastforce simp: dist_norm)
-          ultimately show ?thesis
-            by (rule_tac x = "y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI) auto
-        qed
+          by auto
       next
         case False
-        then have "d > dist x y" by auto
-        show "\<exists>x' \<in> ball x e. x' \<noteq> y \<and> dist x' y < d"
-        proof (cases "x = y")
-          case True
-          obtain z where z: "z \<noteq> y" "dist z y < min e d"
-            using perfect_choose_dist[of "min e d" y]
-            using \<open>d > 0\<close> \<open>e>0\<close> by auto
-          show ?thesis
-            by (metis True z dist_commute mem_ball min_less_iff_conj)
-        next
-          case False
-          then show ?thesis
-            using \<open>d>0\<close> \<open>d > dist x y\<close> \<open>?rhs\<close> by force
-        qed
+        have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) =
+            norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
+          unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[symmetric]
+          by auto
+        also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
+          using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", symmetric, of "y - x"]
+          unfolding scaleR_minus_left scaleR_one
+          by (auto simp: norm_minus_commute)
+        also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
+          unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
+          unfolding distrib_right using \<open>x\<noteq>y\<close>  by auto
+        also have "\<dots> \<le> e - d/2" using \<open>d \<le> dist x y\<close> and \<open>d>0\<close> and \<open>?rhs\<close>
+          by (auto simp: dist_norm)
+        finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using \<open>d>0\<close>
+          by auto
+        moreover
+        have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
+          using \<open>x\<noteq>y\<close>[unfolded dist_nz] \<open>d>0\<close> unfolding scaleR_eq_0_iff
+          by (auto simp: dist_commute)
+        moreover
+        have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d"
+          using \<open>0 < d\<close> by (fastforce simp: dist_norm)
+        ultimately show ?thesis
+          by (rule_tac x = "y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI) auto
       qed
-    }
+    next
+      case False
+      then have "d > dist x y" by auto
+      show "\<exists>x' \<in> ball x e. x' \<noteq> y \<and> dist x' y < d"
+      proof (cases "x = y")
+        case True
+        obtain z where z: "z \<noteq> y" "dist z y < min e d"
+          using perfect_choose_dist[of "min e d" y]
+          using \<open>d > 0\<close> \<open>e>0\<close> by auto
+        show ?thesis
+          by (metis True z dist_commute mem_ball min_less_iff_conj)
+      next
+        case False
+        then show ?thesis
+          using \<open>d>0\<close> \<open>d > dist x y\<close> \<open>?rhs\<close> by force
+      qed
+    qed
     then show ?thesis
       unfolding mem_cball islimpt_approachable mem_ball by auto
   qed
@@ -335,11 +332,10 @@ next
   case True note cs = this
   have "ball x e \<subseteq> cball x e"
     using ball_subset_cball by auto
-  moreover
-  {
-    fix S y
-    assume as: "S \<subseteq> cball x e" "open S" "y\<in>S"
-    then obtain d where "d>0" and d: "\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S"
+  moreover have "y \<in> ball x e"
+    if as: "S \<subseteq> cball x e" "open S" "y\<in>S" for S y
+  proof -
+    from that obtain d where "d>0" and d: "\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S"
       unfolding open_dist by blast
     then obtain xa where xa_y: "xa \<noteq> y" and xa: "dist xa y < d"
       using perfect_choose_dist [of d] by auto
@@ -348,7 +344,7 @@ next
       using xa by (auto simp: dist_commute)
     then have xa_cball: "xa \<in> cball x e"
       using as(1) by auto
-    then have "y \<in> ball x e"
+    then show ?thesis
     proof (cases "x = y")
       case True
       then have "e > 0" using cs order.order_iff_strict xa_cball xa_y by fastforce
@@ -378,7 +374,7 @@ next
       then show "y \<in> ball x e"
         unfolding mem_ball using \<open>d>0\<close> by auto
     qed
-  }
+  qed
   then have "\<forall>S \<subseteq> cball x e. open S \<longrightarrow> S \<subseteq> ball x e"
     by auto
   ultimately show ?thesis
@@ -416,13 +412,12 @@ lemma image_add_ball [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "(+) b ` ball a r = ball (a+b) r"
 proof -
-  { fix x :: 'a
-    assume "dist (a + b) x < r"
-    moreover
-    have "b + (x - b) = x"
-      by simp
-    ultimately have "x \<in> (+) b ` ball a r"
-      by (metis add.commute dist_add_cancel image_eqI mem_ball) }
+  have "x \<in> (+) b ` ball a r" if "dist (a + b) x < r" for x :: 'a
+  proof -
+    have "b + (x - b) = x" by simp
+    with that show ?thesis
+      by (metis add.commute dist_add_cancel image_eqI mem_ball)
+  qed
   then show ?thesis
     by (auto simp: add.commute)
 qed
@@ -431,7 +426,8 @@ lemma image_add_cball [simp]:
   fixes a :: "'a::real_normed_vector"
   shows "(+) b ` cball a r = cball (a+b) r"
 proof -
-  have "\<And>x. dist (a + b) x \<le> r \<Longrightarrow> \<exists>y\<in>cball a r. x = b + y"
+  have "\<exists>y\<in>cball a r. x = b + y" if "dist (a + b) x \<le> r" for x
+    using that
     by (metis (no_types) add.commute diff_add_cancel dist_add_cancel2 mem_cball)
   then show ?thesis
     by (force simp: add.commute)
@@ -710,12 +706,8 @@ lemma bounded_translation:
 proof -
   from assms obtain b where b: "b > 0" "\<forall>x\<in>S. norm x \<le> b"
     unfolding bounded_pos by auto
-  {
-    fix x
-    assume "x \<in> S"
-    then have "norm (a + x) \<le> b + norm a"
-      using norm_triangle_ineq[of a x] b by auto
-  }
+  have "norm (a + x) \<le> b + norm a" if "x \<in> S" for x
+    using that and norm_triangle_ineq[of a x] b by auto
   then show ?thesis
     unfolding bounded_pos
     using norm_ge_zero[of a] b(1) and add_strict_increasing[of b 0 "norm a"]
@@ -744,12 +736,11 @@ lemma bounded_plus_comp:
   assumes "bounded (g ` S)"
   shows "bounded ((\<lambda>x. f x + g x) ` S)"
 proof -
-  {
-    fix B C
-    assume "\<And>x. x\<in>S \<Longrightarrow> norm (f x) \<le> B" "\<And>x. x\<in>S \<Longrightarrow> norm (g x) \<le> C"
-    then have "\<And>x. x \<in> S \<Longrightarrow> norm (f x + g x) \<le> B + C"
-      by (auto intro!: norm_triangle_le add_mono)
-  } then show ?thesis
+  have "\<And>x. x \<in> S \<Longrightarrow> norm (f x + g x) \<le> B + C"
+    if "\<And>x. x\<in>S \<Longrightarrow> norm (f x) \<le> B"
+    and "\<And>x. x\<in>S \<Longrightarrow> norm (g x) \<le> C" for B C
+    using that by (auto intro!: norm_triangle_le add_mono)
+  then show ?thesis
     using assms by (fastforce simp: bounded_iff)
 qed
 
@@ -1067,21 +1058,16 @@ lemma uniformly_continuous_on_dist[continuous_intros]:
     and "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. dist (f x) (g x))"
 proof -
-  {
-    fix a b c d :: 'b
-    have "\<bar>dist a b - dist c d\<bar> \<le> dist a c + dist b d"
-      using dist_triangle2 [of a b c] dist_triangle2 [of b c d]
-      using dist_triangle3 [of c d a] dist_triangle [of a d b]
-      by arith
-  } note le = this
-  {
-    fix x y
-    assume f: "(\<lambda>n. dist (f (x n)) (f (y n))) \<longlonglongrightarrow> 0"
-    assume g: "(\<lambda>n. dist (g (x n)) (g (y n))) \<longlonglongrightarrow> 0"
-    have "(\<lambda>n. \<bar>dist (f (x n)) (g (x n)) - dist (f (y n)) (g (y n))\<bar>) \<longlonglongrightarrow> 0"
-      by (rule Lim_transform_bound [OF _ tendsto_add_zero [OF f g]],
+  have le: "\<bar>dist a b - dist c d\<bar> \<le> dist a c + dist b d" for a b c d :: 'b
+    using dist_triangle2 [of a b c] dist_triangle2 [of b c d]
+    using dist_triangle3 [of c d a] dist_triangle [of a d b]
+    by arith
+  have "(\<lambda>n. \<bar>dist (f (x n)) (g (x n)) - dist (f (y n)) (g (y n))\<bar>) \<longlonglongrightarrow> 0"
+    if f: "(\<lambda>n. dist (f (x n)) (f (y n))) \<longlonglongrightarrow> 0"
+    and g: "(\<lambda>n. dist (g (x n)) (g (y n))) \<longlonglongrightarrow> 0"
+    for x y
+    by (rule Lim_transform_bound [OF _ tendsto_add_zero [OF f g]],
         simp add: le)
-  }
   then show ?thesis
     using assms unfolding uniformly_continuous_on_sequentially
     unfolding dist_real_def by simp
@@ -1155,29 +1141,28 @@ lemma open_scaling[intro]:
     and "open S"
   shows "open((\<lambda>x. c *\<^sub>R x) ` S)"
 proof -
-  {
-    fix x
-    assume "x \<in> S"
-    then obtain \<epsilon> where "\<epsilon>>0"
+  have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` S"
+    if "x \<in> S" for x
+  proof -
+    from that obtain \<epsilon> where "\<epsilon>>0"
       and \<epsilon>: "\<forall>x'. dist x' x < \<epsilon> \<longrightarrow> x' \<in> S" using assms(2)[unfolded open_dist, THEN bspec[where x=x]]
       by auto
     have "\<epsilon> * \<bar>c\<bar> > 0"
       using assms(1)[unfolded zero_less_abs_iff[symmetric]] \<open>\<epsilon>>0\<close> by auto
     moreover
-    {
-      fix y
-      assume "dist y (c *\<^sub>R x) < \<epsilon> * \<bar>c\<bar>"
-      then have "norm (c *\<^sub>R ((1 / c) *\<^sub>R y - x)) < \<epsilon> * norm c"
+    have "y \<in> (*\<^sub>R) c ` S" if "dist y (c *\<^sub>R x) < \<epsilon> * \<bar>c\<bar>" for y
+    proof -
+      from that have "norm (c *\<^sub>R ((1 / c) *\<^sub>R y - x)) < \<epsilon> * norm c"
         by (simp add: \<open>c \<noteq> 0\<close> dist_norm scale_right_diff_distrib)
       then have "norm ((1 / c) *\<^sub>R y - x) < \<epsilon>"
         by (simp add: \<open>c \<noteq> 0\<close>)
-      then have "y \<in> (*\<^sub>R) c ` S"
+      then show ?thesis
         using rev_image_eqI[of "(1 / c) *\<^sub>R y" S y "(*\<^sub>R) c"]
         by (simp add: \<open>c \<noteq> 0\<close> dist_norm \<epsilon>)
-    }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *\<^sub>R x) < e \<longrightarrow> x' \<in> (*\<^sub>R) c ` S"
+    qed
+    ultimately show ?thesis
       by (rule_tac x="\<epsilon> * \<bar>c\<bar>" in exI, auto)
-  }
+  qed
   then show ?thesis unfolding open_dist by auto
 qed
 
@@ -1209,11 +1194,8 @@ lemma open_translation:
   assumes "open S"
   shows "open((\<lambda>x. a + x) ` S)"
 proof -
-  {
-    fix x
-    have "continuous (at x) (\<lambda>x. x - a)"
-      by (intro continuous_diff continuous_ident continuous_const)
-  }
+  have "continuous (at x) (\<lambda>x. x - a)" for x
+    by (intro continuous_diff continuous_ident continuous_const)
   moreover have "{x. x - a \<in> S} = (+) a ` S"
     by force
   ultimately show ?thesis
@@ -1266,17 +1248,16 @@ next
   assume "x \<in> (+) a ` interior S"
   then obtain y e where "e > 0" and e: "ball y e \<subseteq> S" and y: "x = a + y"
     unfolding image_iff Bex_def mem_interior by auto
-  {
-    fix z
+  have "z \<in> (+) a ` S" if "z \<in> ball x e" for z
+  proof -
     have *: "a + y - z = y + a - z" by auto
-    assume "z \<in> ball x e"
-    then have "z - a \<in> S"
+    from that have "z - a \<in> S"
       using e[unfolded subset_eq, THEN bspec[where x="z - a"]]
       unfolding mem_ball dist_norm y group_add_class.diff_diff_eq2 *
       by auto
-    then have "z \<in> (+) a ` S"
+    then show ?thesis
       unfolding image_iff by (auto intro!: bexI[where x="z - a"])
-  }
+  qed
   then have "ball x e \<subseteq> (+) a ` S"
     unfolding subset_eq by auto
   then show "x \<in> interior ((+) a ` S)"
@@ -1407,9 +1388,8 @@ lemma compact_closed_sums:
   shows "closed (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
 proof -
   let ?S = "{x + y |x y. x \<in> S \<and> y \<in> T}"
-  {
-    fix x l
-    assume as: "\<forall>n. x n \<in> ?S"  "(x \<longlongrightarrow> l) sequentially"
+  have "l \<in> ?S" if as: "\<forall>n. x n \<in> ?S"  "(x \<longlongrightarrow> l) sequentially" for x l
+  proof -
     from as(1) obtain f where f: "\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> S"  "\<forall>n. snd (f n) \<in> T"
       using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> S \<and> snd y \<in> T"] by auto
     obtain l' r where "l'\<in>S" and r: "strict_mono r" and lr: "(((\<lambda>n. fst (f n)) \<circ> r) \<longlongrightarrow> l') sequentially"
@@ -1424,9 +1404,9 @@ proof -
         THEN spec[where x="l - l'"]]
       using f(3)
       by auto
-    then have "l \<in> ?S"
+    then show ?thesis
       using \<open>l' \<in> S\<close> by force
-  }
+  qed
   moreover have "?S = (\<Union>x\<in> S. \<Union>y \<in> T. {x + y})"
     by force
   ultimately show ?thesis
@@ -1722,8 +1702,10 @@ lemma discrete_subset_disconnected:
       and no: "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>y. y \<in> S \<and> f y \<noteq> f x \<longrightarrow> e \<le> norm (f y - f x)"
    shows "f ` S \<subseteq> {y. connected_component_set (f ` S) y = {y}}"
 proof -
-  { fix x assume x: "x \<in> S"
-    then obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> S; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
+  have "connected_component_set (f ` S) (f x) = {f x}"
+    if x: "x \<in> S" for x
+  proof -
+    from that obtain e where "e>0" and ele: "\<And>y. \<lbrakk>y \<in> S; f y \<noteq> f x\<rbrakk> \<Longrightarrow> e \<le> norm (f y - f x)"
       using conf no [OF x] by auto
     then have e2: "0 \<le> e/2"
       by simp
@@ -1760,9 +1742,9 @@ proof -
     qed
     moreover have "connected_component_set (f ` S) (f x) \<subseteq> f ` S"
       by (auto simp: connected_component_in)
-    ultimately have "connected_component_set (f ` S) (f x) = {f x}"
+    ultimately show ?thesis
       by (auto simp: x F_def)
-  }
+  qed
   with assms show ?thesis
     by blast
 qed

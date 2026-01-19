@@ -87,6 +87,29 @@ qed
 lemma wfrec_def_adm: "f \<equiv> wfrec R F \<Longrightarrow> wf R \<Longrightarrow> adm_wf R F \<Longrightarrow> f = F f"
   using wfrec_fixpoint by simp
 
+text \<open>For completeness: uniqueness of fixed points\<close>
+
+lemma fixp_same_if_wf_adm_wf:
+  assumes "wf R" "adm_wf R F" "f = F f" "g = F g"
+  shows "f = g"
+proof
+  fix x
+  show "f x = g x"
+  using \<open>wf R\<close> proof induction
+    case (less u)
+    with \<open>adm_wf R F\<close>
+    have "F f u = F g u"
+      by (simp add: adm_wf_def)
+    with \<open>f = F f\<close> \<open>g = F g\<close>
+    show "f u = g u"
+      by auto
+  qed
+qed
+
+corollary fixp_eq_wfrec_if_wf_adm_wf:
+ "\<lbrakk> wf R; adm_wf R F; f = F f \<rbrakk> \<Longrightarrow> f = wfrec R F"
+using wfrec_def_adm fixp_same_if_wf_adm_wf by blast
+
 
 subsection \<open>Wellfoundedness of \<open>same_fst\<close>\<close>
 
@@ -116,5 +139,7 @@ proof -
   then show ?thesis
     by (clarsimp simp add: wf_def same_fst_def)
 qed
+
+hide_const (open) cut
 
 end

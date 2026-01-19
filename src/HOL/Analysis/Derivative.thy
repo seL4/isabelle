@@ -669,47 +669,44 @@ proposition differentiable_bound_general:
     and bnd: "\<And>x. a < x \<Longrightarrow> x < b \<Longrightarrow> norm (f' x) \<le> \<phi>' x"
   shows "norm (f b - f a) \<le> \<phi> b - \<phi> a"
 proof -
-  {
-    fix x assume x: "a < x" "x < b"
+  have phi'_nonneg: "0 \<le> \<phi>' x" if x: "a < x" "x < b" for x
+  proof -
     have "0 \<le> norm (f' x)" by simp
     also have "\<dots> \<le> \<phi>' x" using x by (auto intro!: bnd)
-    finally have "0 \<le> \<phi>' x" .
-  } note phi'_nonneg = this
+    finally show ?thesis .
+  qed
   note f_tendsto = assms(2)[simplified continuous_on_def, rule_format]
   note phi_tendsto = assms(3)[simplified continuous_on_def, rule_format]
-  {
-    fix e::real assume "e > 0"
+  have *: "norm (f b - f a) \<le> \<phi> b - \<phi> a + e * (b - a + 1)" if "e > 0" for e::real
+  proof -
     define e2 where "e2 = e / 2"
     with \<open>e > 0\<close> have "e2 > 0" by simp
     let ?le = "\<lambda>x1. norm (f x1 - f a) \<le> \<phi> x1 - \<phi> a + e * (x1 - a) + e"
     define A where "A = {x2. a \<le> x2 \<and> x2 \<le> b \<and> (\<forall>x1\<in>{a ..< x2}. ?le x1)}"
     have A_subset: "A \<subseteq> {a..b}" by (auto simp: A_def)
-    {
-      fix x2
-      assume a: "a \<le> x2" "x2 \<le> b" and le: "\<forall>x1\<in>{a..<x2}. ?le x1"
-      have "?le x2" using \<open>e > 0\<close>
-      proof cases
-        assume "x2 \<noteq> a" with a have "a < x2" by simp
-        have "at x2 within {a <..<x2}\<noteq> bot"
-          using \<open>a < x2\<close>
-          by (auto simp: trivial_limit_within islimpt_in_closure)
-        moreover
-        have "((\<lambda>x1. (\<phi> x1 - \<phi> a) + e * (x1 - a) + e) \<longlongrightarrow> (\<phi> x2 - \<phi> a) + e * (x2 - a) + e) (at x2 within {a <..<x2})"
-          "((\<lambda>x1. norm (f x1 - f a)) \<longlongrightarrow> norm (f x2 - f a)) (at x2 within {a <..<x2})"
-          using a
-          by (auto intro!: tendsto_eq_intros f_tendsto phi_tendsto
+    have le_cont: "?le x2" if a: "a \<le> x2" "x2 \<le> b" and le: "\<forall>x1\<in>{a..<x2}. ?le x1" for x2
+      using \<open>e > 0\<close>
+    proof cases
+      assume "x2 \<noteq> a" with a have "a < x2" by simp
+      have "at x2 within {a <..<x2}\<noteq> bot"
+        using \<open>a < x2\<close>
+        by (auto simp: trivial_limit_within islimpt_in_closure)
+      moreover
+      have "((\<lambda>x1. (\<phi> x1 - \<phi> a) + e * (x1 - a) + e) \<longlongrightarrow> (\<phi> x2 - \<phi> a) + e * (x2 - a) + e) (at x2 within {a <..<x2})"
+        "((\<lambda>x1. norm (f x1 - f a)) \<longlongrightarrow> norm (f x2 - f a)) (at x2 within {a <..<x2})"
+        using a
+        by (auto intro!: tendsto_eq_intros f_tendsto phi_tendsto
             intro: tendsto_within_subset[where S="{a..b}"])
-        moreover
-        have "eventually (\<lambda>x. x > a) (at x2 within {a <..<x2})"
-          by (auto simp: eventually_at_filter)
-        hence "eventually ?le (at x2 within {a <..<x2})"
-          unfolding eventually_at_filter
-          by eventually_elim (insert le, auto)
-        ultimately
-        show ?thesis
-          by (rule tendsto_le)
-      qed simp
-    } note le_cont = this
+      moreover
+      have "eventually (\<lambda>x. x > a) (at x2 within {a <..<x2})"
+        by (auto simp: eventually_at_filter)
+      hence "eventually ?le (at x2 within {a <..<x2})"
+        unfolding eventually_at_filter
+        by eventually_elim (insert le, auto)
+      ultimately
+      show ?thesis
+        by (rule tendsto_le)
+    qed simp
     have "a \<in> A"
       using assms by (auto simp: A_def)
     hence [simp]: "A \<noteq> {}" by auto
@@ -859,9 +856,9 @@ proof -
           by (simp add: d'_def min_def split: if_split_asm)
       qed
     qed
-    with le_y have "norm (f b - f a) \<le> \<phi> b - \<phi> a + e * (b - a + 1)"
+    with le_y show ?thesis
       by (simp add: algebra_simps)
-  } note * = this
+  qed
   show ?thesis
   proof (rule field_le_epsilon)
     fix e::real assume "e > 0"
@@ -897,22 +894,23 @@ proof -
     by (meson has_derivative_continuous)
   with * have 1: "continuous_on {0 .. 1} (f \<circ> ?p)"
     by (intro continuous_intros)+
-  {
-    fix u::real assume u: "u \<in>{0 <..< 1}"
+  have 2: "((f \<circ> ?p) has_vector_derivative f' (?p u) (y - x)) (at u)"
+    if u: "u \<in>{0 <..< 1}" for u::real
+  proof -
     let ?u = "?p u"
     interpret linear "(f' ?u)"
       using u by (auto intro!: has_derivative_linear derf *)
     have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within box 0 1)"
       by (intro derivative_intros has_derivative_subset [OF derf]) (use u * in auto)
-    hence "((f \<circ> ?p) has_vector_derivative f' ?u (y - x)) (at u)"
+    thus ?thesis
       by (simp add: at_within_open[OF u open_greaterThanLessThan] scaleR has_vector_derivative_def o_def)
-  } note 2 = this
+  qed
   have 3: "continuous_on {0..1} ?\<phi>"
     by (rule continuous_intros)+
   have 4: "(?\<phi> has_vector_derivative B * norm (x - y)) (at u)" for u
     by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros)
-  {
-    fix u::real assume u: "u \<in>{0 <..< 1}"
+  have 5: "norm ((f' (?p u)) (y - x)) \<le> B * norm (x - y)" if u: "u \<in>{0 <..< 1}" for u::real
+  proof -
     let ?u = "?p u"
     interpret bounded_linear "(f' ?u)"
       using u by (auto intro!: has_derivative_bounded_linear derf *)
@@ -920,9 +918,9 @@ proof -
       by (rule onorm) (rule bounded_linear)
     also have "onorm (f' ?u) \<le> B"
       using u by (auto intro!: assms(3)[rule_format] *)
-    finally have "norm ((f' ?u) (y - x)) \<le> B * norm (x - y)"
+    finally show ?thesis
       by (simp add: mult_right_mono norm_minus_commute)
-  } note 5 = this
+  qed
   have "norm (f x - f y) = norm ((f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 1 - (f \<circ> (\<lambda>u. x + u *\<^sub>R (y - x))) 0)"
     by (auto simp add: norm_minus_commute)
   also
@@ -1008,13 +1006,13 @@ lemma has_derivative_zero_constant:
     and "\<And>x. x \<in> s \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within s)"
   shows "\<exists>c. \<forall>x\<in>s. f x = c"
 proof -
-  { fix x y assume "x \<in> s" "y \<in> s"
-    then have "norm (f x - f y) \<le> 0 * norm (x - y)"
+  have "f x = f y" if "x \<in> s" "y \<in> s" for x y
+  proof -
+    from that have "norm (f x - f y) \<le> 0 * norm (x - y)"
       using assms by (intro differentiable_bound[of s]) (auto simp: onorm_zero)
-    then have "f x = f y"
-      by simp }
-  then show ?thesis
-    by metis
+    then show ?thesis by simp
+  qed
+  then show ?thesis by metis
 qed
 
 lemma has_field_derivative_zero_constant:
@@ -1501,17 +1499,17 @@ proof -
         using derf \<open>x \<in> S\<close> by fast
       from bounded_linear.bounded [OF this]
       obtain K where K: "\<forall>h. norm (f' N x h) \<le> norm h * K" ..
-      {
-        fix h
+      have "norm (g' x h) \<le> norm h * (K + 1)" for h
+      proof -
         have "norm (g' x h) = norm (f' N x h - (f' N x h - g' x h))"
           by simp
         also have "\<dots> \<le> norm (f' N x h) + norm (f' N x h - g' x h)"
           by (rule norm_triangle_ineq4)
         also have "\<dots> \<le> norm h * K + 1 * norm h"
           using N K by (fast intro: add_mono)
-        finally have "norm (g' x h) \<le> norm h * (K + 1)"
+        finally show ?thesis
           by (simp add: ring_distribs)
-      }
+      qed
       then show "\<exists>K. \<forall>h. norm (g' x h) \<le> norm h * K" by fast
     qed
     show "eventually (\<lambda>y. norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)) (at x within S)"
@@ -1649,15 +1647,16 @@ proof (rule has_derivative_series)
   proof -
     from that assms(3) obtain N where N: "\<And>n x. n \<ge> N \<Longrightarrow> x \<in> S \<Longrightarrow> norm ((\<Sum>i<n. f' i x) - g' x) < e"
       unfolding uniform_limit_iff eventually_at_top_linorder dist_norm by blast
-    {
-      fix n :: nat and x h :: 'a assume nx: "n \<ge> N" "x \<in> S"
+    have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h"
+      if nx: "n \<ge> N" "x \<in> S" for n :: nat and x h :: 'a
+    proof -
       have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) = norm ((\<Sum>i<n. f' i x) - g' x) * norm h"
         by (simp add: norm_mult [symmetric] ring_distribs sum_distrib_right)
       also from N[OF nx] have "norm ((\<Sum>i<n. f' i x) - g' x) \<le> e" by simp
       hence "norm ((\<Sum>i<n. f' i x) - g' x) * norm h \<le> e * norm h"
         by (intro mult_right_mono) simp_all
-      finally have "norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" .
-    }
+      finally show ?thesis .
+    qed
     thus "\<exists>N. \<forall>n\<ge>N. \<forall>x\<in>S. \<forall>h. norm ((\<Sum>i<n. f' i x * h) - g' x * h) \<le> e * norm h" by blast
   qed
 qed (use assms in \<open>auto simp: has_field_derivative_def\<close>)
@@ -1850,13 +1849,15 @@ lemma islimpt_closure_open:
   shows "x islimpt t"
 proof cases
   assume "x \<in> s"
-  { fix T assume "x \<in> T" "open T"
-    then have "open (s \<inter> T)"
+  have "\<exists>y\<in>t. y \<in> T \<and> y \<noteq> x" if "x \<in> T" "open T" for T
+  proof -
+    from that have "open (s \<inter> T)"
       using \<open>open s\<close> by auto
     then have "s \<inter> T \<noteq> {x}"
       using not_open_singleton[of x] by auto
-    with \<open>x \<in> T\<close> \<open>x \<in> s\<close> have "\<exists>y\<in>t. y \<in> T \<and> y \<noteq> x"
-      using closure_subset[of s] by (auto simp: t) }
+    with \<open>x \<in> T\<close> \<open>x \<in> s\<close> show ?thesis
+      using closure_subset[of s] by (auto simp: t)
+  qed
   then show ?thesis
     by (auto intro!: islimptI)
 next
@@ -2595,10 +2596,10 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
   let ?S = "ball y d \<inter> Y"
   have "convex ?S"
     by (auto intro!: convex_Int \<open>convex Y\<close>)
-  {
-    fix x'::'a and y'::'b
-    assume x': "x' \<in> X" and y': "y' \<in> Y"
-    assume dx': "dist x' x < d" and dy': "dist y' y < d"
+  have onorm: "onorm (blinfun_apply (fy x' y') - blinfun_apply (fy x' y)) < e + e"
+    if x': "x' \<in> X" and y': "y' \<in> Y" and dx': "dist x' x < d" and dy': "dist y' y < d"
+    for x'::'a and y'::'b
+  proof -
     have "norm (fy x' y' - fy x' y) \<le> dist (fy x' y') (fy x y) + dist (fy x' y) (fy x y)"
       by norm
     also have "dist (fy x' y') (fy x y) < e"
@@ -2608,9 +2609,9 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
     finally
     have "norm (fy x' y' - fy x' y) < e + e"
       by arith
-    then have "onorm (blinfun_apply (fy x' y') - blinfun_apply (fy x' y)) < e + e"
+    then show ?thesis
       by (auto simp: norm_blinfun.rep_eq blinfun.diff_left[abs_def] fun_diff_def)
-  } note onorm = this
+  qed
 
   have ev_mem: "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. (x', y') \<in> X \<times> Y"
     using \<open>y \<in> Y\<close>
@@ -2630,18 +2631,17 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
     then have dx: "dist x' x < d" and dy: "dist y' y < d"
       unfolding dist_prod_def fst_conv snd_conv atomize_conj
       by (metis le_less_trans real_sqrt_sum_squares_ge1 real_sqrt_sum_squares_ge2)
-    {
-      fix t::real
-      assume "t \<in> {0 .. 1}"
-      then have "y + t *\<^sub>R (y' - y) \<in> closed_segment y y'"
+    have seg: "y + t *\<^sub>R (y' - y) \<in> ?S" if "t \<in> {0 .. 1}" for t::real
+    proof -
+      from that have "y + t *\<^sub>R (y' - y) \<in> closed_segment y y'"
         by (auto simp: closed_segment_def algebra_simps intro!: exI[where x=t])
       also
       have "\<dots> \<subseteq> ball y d \<inter> Y"
         using \<open>y \<in> Y\<close> \<open>0 < d\<close> dy y'
         by (intro \<open>convex ?S\<close>[unfolded convex_contains_segment, rule_format, of y y'])
           (auto simp: dist_commute)
-      finally have "y + t *\<^sub>R (y' - y) \<in> ?S" .
-    } note seg = this
+      finally show ?thesis .
+    qed
 
     have "\<And>x. x \<in> ball y d \<inter> Y \<Longrightarrow> onorm (blinfun_apply (fy x' x) - blinfun_apply (fy x' y)) \<le> e + e"
       by (safe intro!: onorm less_imp_le \<open>x' \<in> X\<close> dx) (auto simp: dist_commute \<open>0 < d\<close> \<open>y \<in> Y\<close>)
@@ -3215,27 +3215,27 @@ proof -
                                of f g "\<lambda>x. x\<le>c"]  assms
     by (force simp: ivl_disj_un_two_touch)
   moreover
-  { fix x
-    assume x: "x \<in> {a..b} - ({a,b,c} \<union> (S \<union> T))"
-    have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b}" (is "?diff_fg")
-    proof (cases x c rule: le_cases)
-      case le show ?diff_fg
-      proof (rule differentiable_transform_within [where d = "dist x c"])
-        have "f differentiable at x"
-          using x le fd [of x] at_within_interior [of x "{a..c}"] by simp
-        then show "f differentiable at x within {a..b}"
-          by (simp add: differentiable_at_withinI)
-      qed (use x le st dist_real_def in auto)
-    next
-      case ge show ?diff_fg
-      proof (rule differentiable_transform_within [where d = "dist x c"])
-        have "g differentiable at x"
-          using x ge gd [of x] at_within_interior [of x "{c..b}"] by simp
-        then show "g differentiable at x within {a..b}"
-          by (simp add: differentiable_at_withinI)
-      qed (use x ge st dist_real_def in auto)
-    qed
-  }
+  have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b}" (is "?diff_fg")
+    if x: "x \<in> {a..b} - ({a,b,c} \<union> (S \<union> T))" for x
+  proof (cases x c rule: le_cases)
+    case le
+    show ?diff_fg
+    proof (rule differentiable_transform_within [where d = "dist x c"])
+      have "f differentiable at x"
+        using x le fd [of x] at_within_interior [of x "{a..c}"] by simp
+      then show "f differentiable at x within {a..b}"
+        by (simp add: differentiable_at_withinI)
+    qed (use x le st dist_real_def in auto)
+  next
+    case ge
+    show ?diff_fg
+    proof (rule differentiable_transform_within [where d = "dist x c"])
+      have "g differentiable at x"
+        using x ge gd [of x] at_within_interior [of x "{c..b}"] by simp
+      then show "g differentiable at x within {a..b}"
+        by (simp add: differentiable_at_withinI)
+    qed (use x ge st dist_real_def in auto)
+  qed
   then have "\<exists>S. finite S \<and>
                  (\<forall>x\<in>{a..b} - S. (\<lambda>x. if x \<le> c then f x else g x) differentiable at x within {a..b})"
     by (meson finabc)
@@ -3484,24 +3484,27 @@ proof -
                                OF closed_real_atLeastAtMost [of c b],
                                of f g "\<lambda>x. x\<le>c"]  assms
     by (force simp: ivl_disj_un_two_touch)
-  { fix x
-    assume x: "x \<in> {a..b} - insert c (S \<union> T)"
-    have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x" (is "?diff_fg")
-    proof (cases x c rule: le_cases)
-      case le show ?diff_fg
-        apply (rule differentiable_transform_within [where f=f and d = "dist x c"])
-        using x dist_real_def le st by (auto simp: C1_differentiable_on_eq)
-    next
-      case ge show ?diff_fg
-        apply (rule differentiable_transform_within [where f=g and d = "dist x c"])
-        using dist_nz x dist_real_def ge st x by (auto simp: C1_differentiable_on_eq)
-    qed
-  }
+  have "(\<lambda>x. if x \<le> c then f x else g x) differentiable at x" (is "?diff_fg")
+    if x: "x \<in> {a..b} - insert c (S \<union> T)" for x
+  proof (cases x c rule: le_cases)
+    case le
+    show ?diff_fg
+      by (rule differentiable_transform_within [where f=f and d = "dist x c"])
+        (use x dist_real_def le st in \<open>auto simp: C1_differentiable_on_eq\<close>)
+  next
+    case ge
+    show ?diff_fg
+      by (rule differentiable_transform_within [where f=g and d = "dist x c"])
+        (use dist_nz x dist_real_def ge st x in \<open>auto simp: C1_differentiable_on_eq\<close>)
+  qed
   then have "(\<forall>x \<in> {a..b} - insert c (S \<union> T). (\<lambda>x. if x \<le> c then f x else g x) differentiable at x)"
     by auto
   moreover
-  { assume fcon: "continuous_on ({a<..<c} - S) (\<lambda>x. vector_derivative f (at x))"
-       and gcon: "continuous_on ({c<..<b} - T) (\<lambda>x. vector_derivative g (at x))"
+  have *: "continuous_on ({a<..<b} - insert c (S \<union> T))
+        (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
+    if fcon: "continuous_on ({a<..<c} - S) (\<lambda>x. vector_derivative f (at x))"
+    and gcon: "continuous_on ({c<..<b} - T) (\<lambda>x. vector_derivative g (at x))"
+  proof -
     have "open ({a<..<c} - S)"  "open ({c<..<b} - T)"
       using st by (simp_all add: open_Diff finite_imp_closed)
     moreover have "continuous_on ({a<..<c} - S) (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
@@ -3536,10 +3539,9 @@ proof -
       then show ?thesis
         by (metis (no_types, lifting) continuous_on_eq [OF gcon] DiffE greaterThanLessThan_iff vector_derivative_at)
     qed
-    ultimately have "continuous_on ({a<..<b} - insert c (S \<union> T))
-        (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
+    ultimately show ?thesis
       by (rule continuous_on_subset [OF continuous_on_open_Un], auto)
-  } note * = this
+  qed
   have "continuous_on ({a<..<b} - insert c (S \<union> T)) (\<lambda>x. vector_derivative (\<lambda>x. if x \<le> c then f x else g x) (at x))"
     using st
     by (auto simp: C1_differentiable_on_eq elim!: continuous_on_subset intro: *)

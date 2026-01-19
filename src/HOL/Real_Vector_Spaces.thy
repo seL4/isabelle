@@ -1324,10 +1324,10 @@ begin
 
 definition dist_real_def: "dist x y = \<bar>x - y\<bar>"
 
-definition uniformity_real_def [code del]:
+definition uniformity_real_def:
   "(uniformity :: (real \<times> real) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
-definition open_real_def [code del]:
+definition open_real_def:
   "open (U :: real set) \<longleftrightarrow> (\<forall>x\<in>U. eventually (\<lambda>(x', y). x' = x \<longrightarrow> y \<in> U) uniformity)"
 
 definition real_norm_def [simp]: "norm r = \<bar>r\<bar>"
@@ -1337,13 +1337,9 @@ instance
 
 end
 
-declare uniformity_Abort[where 'a=real, code]
-
 lemma dist_of_real [simp]: "dist (of_real x :: 'a) (of_real y) = dist x y"
   for a :: "'a::real_normed_div_algebra"
   by (metis dist_norm norm_of_real of_real_diff real_norm_def)
-
-declare [[code abort: "open :: real set \<Rightarrow> bool"]]
 
 instance real :: linorder_topology
 proof

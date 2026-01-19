@@ -406,14 +406,15 @@ proof -
   from A have "(\<lambda>i. f ((\<Union>i. A i) - A i)) \<longlonglongrightarrow> 0"
     by (intro cont[rule_format]) (auto simp: decseq_def incseq_def)
   moreover
-  { fix i
+  have "f ((\<Union>i. A i) - A i) = f (\<Union>i. A i) - f (A i)" for i
+  proof -
     have "f ((\<Union>i. A i) - A i \<union> A i) = f ((\<Union>i. A i) - A i) + f (A i)"
       using A by (intro f(2)[THEN additiveD]) auto
     also have "((\<Union>i. A i) - A i) \<union> A i = (\<Union>i. A i)"
       by auto
-    finally have "f ((\<Union>i. A i) - A i) = f (\<Union>i. A i) - f (A i)"
+    finally show ?thesis
       using assms f by fastforce
-  }
+  qed
   moreover have "\<forall>\<^sub>F i in sequentially. f (A i) \<le> f (\<Union>i. A i)"
     using increasingD[OF additive_increasing[OF f(1, 2)], of "A _" "\<Union>i. A i"] A
     by (auto intro!: always_eventually simp: subset_eq)
@@ -641,8 +642,8 @@ lemma emeasure_lfp'[consumes 1, case_names cont measurable]:
 proof -
   have "emeasure M {x\<in>space M. lfp F x} = emeasure M (\<Union>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
     using sup_continuous_lfp[OF cont] by (auto simp: bot_fun_def intro!: arg_cong2[where f=emeasure])
-  moreover { fix i from \<open>P M\<close> have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M"
-    by (induct i arbitrary: M) (auto simp: pred_def[symmetric] intro: *) }
+  moreover from \<open>P M\<close> have "{x\<in>space M. (F ^^ i) (\<lambda>x. False) x} \<in> sets M" for i
+    by (induct i arbitrary: M) (auto simp: pred_def[symmetric] intro: *)
   moreover have "incseq (\<lambda>i. {x\<in>space M. (F ^^ i) (\<lambda>x. False) x})"
   proof (rule incseq_SucI)
     fix i
@@ -3577,19 +3578,18 @@ lemma sets_vimage_Sup_eq:
   shows "sets (vimage_algebra X f (Sup M)) = sets (SUP m \<in> M. vimage_algebra X f m)"
   (is "?L = ?R")
 proof
-  { fix m
-    assume "m \<in> M"
-    then have "f \<in> vimage_algebra X f m \<rightarrow>\<^sub>M m"
+  have "f \<in> Sup (vimage_algebra X f ` M) \<rightarrow>\<^sub>M m" if "m \<in> M" for m
+  proof -
+    from that have "f \<in> vimage_algebra X f m \<rightarrow>\<^sub>M m"
       by (simp add: assms measurable_vimage_algebra1)
-    then have "f \<in> Sup (vimage_algebra X f ` M) \<rightarrow>\<^sub>M m"
+    then show ?thesis
       using \<open>m \<in> M\<close> by (force simp: intro: measurable_Sup1)
-  }
+  qed
   then show "?L \<subseteq> ?R"
     by (intro sets_image_in_sets measurable_Sup2) (simp_all add: space_Sup_eq_UN *)
   show "?R \<subseteq> ?L"
-    apply (intro sets_Sup_in_sets)
-    apply (force simp: * space_Sup_eq_UN sets_vimage_algebra2 intro: in_sets_Sup)+
-    done
+    by (intro sets_Sup_in_sets)
+      (force simp: * space_Sup_eq_UN sets_vimage_algebra2 intro: in_sets_Sup)+
 qed
 
 lemma restrict_space_eq_vimage_algebra':
@@ -3607,8 +3607,8 @@ proof
     by auto
 next
   assume *: "X \<in> sets N \<and> A \<subseteq> sets N"
-  { fix Y assume "Y \<in> sigma_sets X A" from this * have "Y \<in> sets N"
-      by induction auto }
+  have "Y \<in> sets N" if "Y \<in> sigma_sets X A" for Y
+    using that * by induction auto
   then show "sets (sigma X A) \<subseteq> sets N"
     by auto
 qed
@@ -3705,10 +3705,12 @@ next
       by (metis infinite_arbitrarily_large)
     then have *: "\<And>x. x \<in> X \<Longrightarrow> ?M / Suc n \<le> ?m x"
       by auto
-    { fix x assume "x \<in> X"
-      from \<open>?M \<noteq> 0\<close> *[OF this] have "?m x \<noteq> 0" by (auto simp: field_simps measure_le_0_iff)
-      then have "{x} \<in> sets M" by (auto dest: measure_notin_sets) }
-    note singleton_sets = this
+    have singleton_sets: "{x} \<in> sets M" if "x \<in> X" for x
+    proof -
+      from \<open>?M \<noteq> 0\<close> *[OF that] have "?m x \<noteq> 0"
+        by (auto simp: field_simps measure_le_0_iff)
+      then show ?thesis by (auto dest: measure_notin_sets)
+    qed
     have "?M < (\<Sum>x\<in>X. ?M / Suc n)"
       using \<open>?M \<noteq> 0\<close>
       by (simp add: \<open>card X = Suc (Suc n)\<close> field_simps less_le)

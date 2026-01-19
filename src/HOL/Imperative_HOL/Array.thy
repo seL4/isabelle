@@ -39,35 +39,35 @@ definition noteq :: "'a::heap array \<Rightarrow> 'b::heap array \<Rightarrow> b
 subsection \<open>Monad operations\<close>
 
 definition new :: "nat \<Rightarrow> 'a::heap \<Rightarrow> 'a array Heap" where
-  [code del]: "new n x = Heap_Monad.heap (alloc (replicate n x))"
+  "new n x = Heap_Monad.heap (alloc (replicate n x))"
 
 definition of_list :: "'a::heap list \<Rightarrow> 'a array Heap" where
-  [code del]: "of_list xs = Heap_Monad.heap (alloc xs)"
+  "of_list xs = Heap_Monad.heap (alloc xs)"
 
 definition make :: "nat \<Rightarrow> (nat \<Rightarrow> 'a::heap) \<Rightarrow> 'a array Heap" where
-  [code del]: "make n f = Heap_Monad.heap (alloc (map f [0 ..< n]))"
+  "make n f = Heap_Monad.heap (alloc (map f [0 ..< n]))"
 
 definition len :: "'a::heap array \<Rightarrow> nat Heap" where
-  [code del]: "len a = Heap_Monad.tap (\<lambda>h. length h a)"
+  "len a = Heap_Monad.tap (\<lambda>h. length h a)"
 
 definition nth :: "'a::heap array \<Rightarrow> nat \<Rightarrow> 'a Heap" where
-  [code del]: "nth a i = Heap_Monad.guard (\<lambda>h. i < length h a)
+  "nth a i = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (get h a ! i, h))"
 
 definition upd :: "nat \<Rightarrow> 'a \<Rightarrow> 'a::heap array \<Rightarrow> 'a::heap array Heap" where
-  [code del]: "upd i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
+  "upd i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (a, update a i x h))"
 
 definition map_entry :: "nat \<Rightarrow> ('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap" where
-  [code del]: "map_entry i f a = Heap_Monad.guard (\<lambda>h. i < length h a)
+  "map_entry i f a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (a, update a i (f (get h a ! i)) h))"
 
 definition swap :: "nat \<Rightarrow> 'a \<Rightarrow> 'a::heap array \<Rightarrow> 'a Heap" where
-  [code del]: "swap i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
+  "swap i x a = Heap_Monad.guard (\<lambda>h. i < length h a)
     (\<lambda>h. (get h a ! i, update a i x h))"
 
 definition freeze :: "'a::heap array \<Rightarrow> 'a list Heap" where
-  [code del]: "freeze a = Heap_Monad.tap (\<lambda>h. get h a)"
+  "freeze a = Heap_Monad.tap (\<lambda>h. get h a)"
 
 
 subsection \<open>Properties\<close>
@@ -357,35 +357,35 @@ subsection \<open>Code generator setup\<close>
 subsubsection \<open>Logical intermediate layer\<close>
 
 definition new' where
-  [code del]: "new' = Array.new o nat_of_integer"
+  "new' = Array.new o nat_of_integer"
 
 lemma [code]:
   "Array.new = new' o of_nat"
   by (simp add: new'_def o_def)
 
 definition make' where
-  [code del]: "make' i f = Array.make (nat_of_integer i) (f o of_nat)"
+  "make' i f = Array.make (nat_of_integer i) (f o of_nat)"
 
 lemma [code]:
   "Array.make n f = make' (of_nat n) (f o nat_of_integer)"
   by (simp add: make'_def o_def)
 
 definition len' where
-  [code del]: "len' a = Array.len a \<bind> (\<lambda>n. return (of_nat n))"
+  "len' a = Array.len a \<bind> (\<lambda>n. return (of_nat n))"
 
 lemma [code]:
   "Array.len a = len' a \<bind> (\<lambda>i. return (nat_of_integer i))"
   by (simp add: len'_def)
 
 definition nth' where
-  [code del]: "nth' a = Array.nth a o nat_of_integer"
+  "nth' a = Array.nth a o nat_of_integer"
 
 lemma [code]:
   "Array.nth a n = nth' a (of_nat n)"
   by (simp add: nth'_def)
 
 definition upd' where
-  [code del]: "upd' a i x = Array.upd (nat_of_integer i) x a \<then> return ()"
+  "upd' a i x = Array.upd (nat_of_integer i) x a \<then> return ()"
 
 lemma [code]:
   "Array.upd i x a = upd' a (of_nat i) x \<then> return a"

@@ -255,7 +255,7 @@ object Server {
   }
 
   class Connection_Progress private[Server](context: Context, more: JSON.Object.Entry*)
-  extends Progress {
+  extends Progress with Progress.Local_Interrupts {
     override def verbose: Boolean = true
 
     override def output(msgs: Progress.Output): Unit =

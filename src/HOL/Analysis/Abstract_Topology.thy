@@ -2954,23 +2954,20 @@ lemma homeomorphic_map_interior_of:
   assumes hom: "homeomorphic_map X Y f" and S: "S \<subseteq> topspace X"
   shows "Y interior_of (f ` S) = f ` (X interior_of S)"
 proof -
-  { fix y
-    assume "y \<in> topspace Y" and "y \<notin> Y closure_of (topspace Y - f ` S)"
-    then have "y \<in> f ` (topspace X - X closure_of (topspace X - S))"
-      using homeomorphic_eq_everything_map [THEN iffD1, OF hom] homeomorphic_map_closure_of [OF hom]
-      by (metis DiffI Diff_subset S closure_of_subset_topspace inj_on_image_set_diff) }
+  have "y \<in> f ` (topspace X - X closure_of (topspace X - S))"
+    if "y \<in> topspace Y" and "y \<notin> Y closure_of (topspace Y - f ` S)" for y
+    using that and homeomorphic_eq_everything_map [THEN iffD1, OF hom] homeomorphic_map_closure_of [OF hom]
+    by (metis DiffI Diff_subset S closure_of_subset_topspace inj_on_image_set_diff)
   moreover
   have "f x \<in> topspace Y" if "x \<in> topspace X" for x
     using that hom homeomorphic_imp_surjective_map by blast 
   moreover
-  { fix x
-    assume "x \<in> topspace X" and "f x \<in> Y closure_of (topspace Y - f ` S)"
-    then have "x \<in> X closure_of (topspace X - S)"
-      using homeomorphic_map_closure_of [OF hom] hom
-      unfolding homeomorphic_eq_everything_map
-      by (metis Diff_subset S closure_of_subset_topspace inj_on_image_mem_iff inj_on_image_set_diff)
-  }
-  ultimately  show ?thesis
+  have "x \<in> X closure_of (topspace X - S)"
+    if "x \<in> topspace X" and "f x \<in> Y closure_of (topspace Y - f ` S)" for x
+    using that and homeomorphic_map_closure_of [OF hom] hom
+    unfolding homeomorphic_eq_everything_map
+    by (metis Diff_subset S closure_of_subset_topspace inj_on_image_mem_iff inj_on_image_set_diff)
+  ultimately show ?thesis
     by (auto simp: interior_of_closure_of)
 qed
 
@@ -4285,11 +4282,12 @@ using openin_topology_generated_by_iff by auto
 lemma topology_generated_by_topspace [simp]:
   "topspace (topology_generated_by \<S>) = (\<Union>\<S>)"
 proof
-  {
-    fix S assume "openin (topology_generated_by \<S>) S"
-    then have "generate_topology_on \<S> S" by (rule openin_topology_generated_by)
-    then have "S \<subseteq> (\<Union>\<S>)" by (induct, auto)
-  }
+  have "S \<subseteq> (\<Union>\<S>)" if "openin (topology_generated_by \<S>) S" for S
+  proof -
+    from that have "generate_topology_on \<S> S"
+      by (rule openin_topology_generated_by)
+    then show ?thesis by induct auto
+  qed
   then show "topspace (topology_generated_by \<S>) \<subseteq> (\<Union>\<S>)"
     unfolding topspace_def by auto
 next

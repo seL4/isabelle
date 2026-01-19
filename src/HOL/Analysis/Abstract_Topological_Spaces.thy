@@ -1753,7 +1753,8 @@ lemma proper_map_prod:
     (prod_topology X Y) = trivial_topology \<or> proper_map X X' f \<and> proper_map Y Y' g"
    (is "?lhs \<longleftrightarrow> _ \<or> ?rhs")
 proof (cases "(prod_topology X Y) = trivial_topology")
-  case True then show ?thesis by auto
+  case True
+  then show ?thesis by auto
 next
   case False
   then have ne: "topspace X \<noteq> {}" "topspace Y \<noteq> {}"
@@ -1805,8 +1806,9 @@ next
     qed
   qed
   moreover
-  { assume R: ?rhs
-    then have fgim: "f \<in> topspace X \<rightarrow> topspace X'" "g \<in> topspace Y \<rightarrow> topspace Y'" 
+  have ?lhs if R: ?rhs
+  proof -
+    from that have fgim: "f \<in> topspace X \<rightarrow> topspace X'" "g \<in> topspace Y \<rightarrow> topspace Y'" 
           and cm: "closed_map X X' f" "closed_map Y Y' g"
       by (auto simp: proper_map_def closed_map_imp_subset_topspace)
     have "closed_map (prod_topology X Y) (prod_topology X' Y') h"
@@ -1855,9 +1857,9 @@ next
       show ?thesis
         using R that by (simp add: eq compactin_Times proper_map_def)
     qed
-    ultimately have ?lhs
-      by (auto simp: h_def proper_map_def) 
-  }
+    ultimately show ?thesis
+      by (auto simp: h_def proper_map_def)
+  qed
   ultimately show ?thesis using False by metis
 qed
 

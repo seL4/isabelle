@@ -517,12 +517,14 @@ object Document_Build {
       for (doc <- context.documents)
       yield {
         Isabelle_System.with_tmp_dir("document") { tmp_dir =>
+          progress.expose_interrupt()
           progress.echo("Preparing " + context.session + "/" + doc.name + " ...")
           val start = Time.now()
 
           output_sources.foreach(engine.prepare_directory(context, _, doc, false))
           val directory = engine.prepare_directory(context, tmp_dir, doc, verbose)
 
+          progress.expose_interrupt()
           val document =
             context.old_document(directory) getOrElse
               engine.build_document(context, directory, verbose)
@@ -530,6 +532,7 @@ object Document_Build {
           val stop = Time.now()
           val timing = stop - start
 
+          progress.expose_interrupt()
           progress.echo("Finished " + context.session + "/" + doc.name +
             " (" + timing.message_hms + " elapsed time)")
 

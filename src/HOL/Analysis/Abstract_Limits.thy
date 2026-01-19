@@ -304,15 +304,21 @@ lemma continuous_map_real_mult_left:
 lemma continuous_map_real_mult_left_eq:
    "continuous_map X euclideanreal (\<lambda>x. c * f x) \<longleftrightarrow> c = 0 \<or> continuous_map X euclideanreal f"
 proof (cases "c = 0")
+  case True
+  then show ?thesis by simp
+next
   case False
-  { assume "continuous_map X euclideanreal (\<lambda>x. c * f x)"
-    then have "continuous_map X euclideanreal (\<lambda>x. inverse c * (c * f x))"
+  have "continuous_map X euclideanreal f"
+    if "continuous_map X euclideanreal (\<lambda>x. c * f x)"
+  proof -
+    from that have "continuous_map X euclideanreal (\<lambda>x. inverse c * (c * f x))"
       by (simp add: continuous_map_real_mult)
-    then have "continuous_map X euclideanreal f"
-      by (simp add: field_simps False) }
+    then show ?thesis
+      by (simp add: field_simps False)
+  qed
   with False show ?thesis
     using continuous_map_real_mult_left by blast
-qed simp
+qed
 
 lemma continuous_map_real_mult_right:
    "continuous_map X euclideanreal f \<Longrightarrow> continuous_map X euclideanreal (\<lambda>x. f x * c)"

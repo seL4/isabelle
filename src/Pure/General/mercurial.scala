@@ -548,7 +548,7 @@ Usage: isabelle hg_setup [OPTIONS] REMOTE LOCAL_DIR
             case _ => getopts.usage()
           }
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         hg_setup(remote, local_path, remote_name = remote_name, path_name = path_name,
           remote_exists = remote_exists, progress = progress)

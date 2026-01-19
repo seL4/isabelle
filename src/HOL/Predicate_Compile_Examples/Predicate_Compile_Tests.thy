@@ -1233,7 +1233,8 @@ values 4 "{(xs::int list, ys). test_append xs ys [1, 2, 3, 4]}"
 text \<open>If appendP is not reverted back to a function, then mode i => i => o => bool
   fails after deleting the predicate equation.\<close>
 
-declare appendP.equation[code del]
+
+declare appendP.equation [code drop]
 
 values "{xs::int list. test_append [1,2] [3,4] xs}"
 values "{xs::int list. test_append (replicate 1000 1) (replicate 1000 2) xs}"
@@ -1241,7 +1242,7 @@ values "{xs::int list. test_append (replicate 2000 1) (replicate 2000 2) xs}"
 
 text \<open>Redeclaring append.equation as code equation\<close>
 
-declare appendP.equation[code]
+declare appendP.equation [code]
 
 subsection \<open>Function with tuples\<close>
 
@@ -1260,7 +1261,7 @@ thm test_append'.equation
 
 values "{(xs::int list, ys). test_append' xs ys [1, 2, 3, 4]}"
 
-declare append'P.equation[code del]
+declare append'P.equation [code drop]
 
 values "{zs :: int list. test_append' [1,2,3] [4,5] zs}"
 

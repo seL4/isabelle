@@ -17,17 +17,17 @@ lemma onorm_componentwise:
   assumes "bounded_linear f"
   shows "onorm f \<le> (\<Sum>i\<in>Basis. norm (f i))"
 proof -
-  {
-    fix i::'a
-    assume "i \<in> Basis"
-    hence "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> onorm (\<lambda>x. (x \<bullet> i)) * norm (f i)"
+  have "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> norm (f i)" if "i \<in> Basis" for i::'a
+  proof -
+    from that have "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> onorm (\<lambda>x. (x \<bullet> i)) * norm (f i)"
       by (auto intro!: onorm_scaleR_left_lemma bounded_linear_inner_left)
     also have "\<dots> \<le>  norm i * norm (f i)"
       by (rule mult_right_mono)
         (auto simp: ac_simps Cauchy_Schwarz_ineq2 intro!: onorm_le)
-    finally have "onorm (\<lambda>x. (x \<bullet> i) *\<^sub>R f i) \<le> norm (f i)" using \<open>i \<in> Basis\<close>
+    finally show ?thesis using \<open>i \<in> Basis\<close>
       by simp
-  } hence "onorm (\<lambda>x. \<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<le> (\<Sum>i\<in>Basis. norm (f i))"
+  qed
+  hence "onorm (\<lambda>x. \<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<le> (\<Sum>i\<in>Basis. norm (f i))"
     by (auto intro!: order_trans[OF onorm_sum_le] bounded_linear_scaleR_const
       sum_mono bounded_linear_inner_left)
   also have "(\<lambda>x. \<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) = (\<lambda>x. f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i))"
@@ -151,11 +151,11 @@ lift_definition minus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \
 definition dist_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> real"
   where "dist_blinfun a b = norm (a - b)"
 
-definition [code del]:
-  "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
+definition uniformity_blinfun :: "(('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter"
+  where "(uniformity :: (('a \<Rightarrow>\<^sub>L 'b) \<times> ('a \<Rightarrow>\<^sub>L 'b)) filter) = (INF e\<in>{0 <..}. principal {(x, y). dist x y < e})"
 
 definition open_blinfun :: "('a \<Rightarrow>\<^sub>L 'b) set \<Rightarrow> bool"
-  where [code del]: "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
+  where "open_blinfun S = (\<forall>x\<in>S. \<forall>\<^sub>F (x', y) in uniformity. x' = x \<longrightarrow> y \<in> S)"
 
 lift_definition uminus_blinfun :: "'a \<Rightarrow>\<^sub>L 'b \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b" is "\<lambda>f x. - f x"
   by (rule bounded_linear_minus)
@@ -180,8 +180,6 @@ instance
   done
 
 end
-
-declare uniformity_Abort[where 'a="('a :: real_normed_vector) \<Rightarrow>\<^sub>L ('b :: real_normed_vector)", code]
 
 lemma norm_blinfun_eqI:
   assumes "n \<le> norm (blinfun_apply f x) / norm x"
@@ -245,11 +243,10 @@ instance blinfun :: (real_normed_vector, banach) banach
 proof
   fix X::"nat \<Rightarrow> 'a \<Rightarrow>\<^sub>L 'b"
   assume "Cauchy X"
-  {
-    fix x::'a
-    {
-      fix x::'a
-      assume "norm x \<le> 1"
+  have "convergent (\<lambda>n. X n x)" for x::'a
+  proof -
+    have *: "convergent (\<lambda>n. X n x)" if "norm x \<le> 1" for x::'a
+    proof -
       have "Cauchy (\<lambda>n. X n x)"
       proof (rule CauchyI)
         fix e::real
@@ -272,19 +269,18 @@ proof
           finally show "norm (X m x - X n x) < e" .
         qed
       qed
-      hence "convergent (\<lambda>n. X n x)"
+      then show ?thesis
         by (metis Cauchy_convergent_iff)
-    } note convergent_norm1 = this
+    qed
     define y where "y = x /\<^sub>R norm x"
     have y: "norm y \<le> 1" and xy: "x = norm x *\<^sub>R y"
       by (simp_all add: y_def inverse_eq_divide)
     have "convergent (\<lambda>n. norm x *\<^sub>R X n y)"
-      by (intro bounded_bilinear.convergent[OF bounded_bilinear_scaleR] convergent_const
-        convergent_norm1 y)
+      by (intro bounded_bilinear.convergent[OF bounded_bilinear_scaleR] convergent_const * y)
     also have "(\<lambda>n. norm x *\<^sub>R X n y) = (\<lambda>n. X n x)"
       by (subst xy) (simp add: blinfun.bilinear_simps)
-    finally have "convergent (\<lambda>n. X n x)" .
-  }
+    finally show ?thesis .
+  qed
   then obtain v where v: "\<And>x. (\<lambda>n. X n x) \<longlonglongrightarrow> v x"
     unfolding convergent_def
     by metis
@@ -544,17 +540,15 @@ proof
   then obtain l::"'a \<Rightarrow>\<^sub>L 'b" and r where r: "strict_mono r"
     and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) i) (l i) < e) sequentially"
     using compact_blinfun_lemma [OF f] by blast
-  {
-    fix e::real
+  have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially" if e: "e > 0" for e::real
+  proof -
     let ?d = "real_of_nat DIM('a) * real_of_nat DIM('b)"
-    assume "e > 0"
-    hence "e / ?d > 0" by (simp)
+    from e have "e / ?d > 0" by simp
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) i) (l i) < e / ?d) sequentially"
       by simp
     moreover
-    {
-      fix n
-      assume n: "\<forall>i\<in>Basis. dist (f (r n) i) (l i) < e / ?d"
+    have "dist (f (r n)) l < e" if n: "\<forall>i\<in>Basis. dist (f (r n) i) (l i) < e / ?d" for n
+    proof -
       have "norm (f (r n) - l) = norm (blinfun_of_matrix (\<lambda>i j. (f (r n) - l) j \<bullet> i))"
         unfolding blinfun_of_matrix_works ..
       also note norm_blinfun_of_matrix
@@ -577,12 +571,10 @@ proof
           by simp
       qed simp_all
       also have "\<dots> \<le> e" by simp
-      finally have "dist (f (r n)) l < e"
-        by (auto simp: dist_norm)
-    }
-    ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
-      using eventually_elim2 by force
-  }
+      finally show ?thesis by (auto simp: dist_norm)
+    qed
+    ultimately show ?thesis using eventually_elim2 by force
+  qed
   then have *: "((f \<circ> r) \<longlongrightarrow> l) sequentially"
     unfolding o_def tendsto_iff by simp
   with r show "\<exists>l r. strict_mono r \<and> ((f \<circ> r) \<longlongrightarrow> l) sequentially"

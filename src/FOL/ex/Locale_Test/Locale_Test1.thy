@@ -285,14 +285,13 @@ lemma (in rgrp)
   shows \<open>y = z\<close> (is \<open>?t\<close>)
 proof -
   txt \<open>Weird proof involving patterns from context element and conclusion.\<close>
-  {
-    assume \<open>?a\<close>
-    then have \<open>y ** (x ** inv(x)) = z ** (x ** inv(x))\<close>
+  have *: \<open>?t\<close> if \<open>?a\<close>
+  proof -
+    from that have \<open>y ** (x ** inv(x)) = z ** (x ** inv(x))\<close>
       by (simp add: assoc [symmetric])
-    then have \<open>?t\<close> by (simp add: rone rinv)
-  }
-  note x = this
-  show \<open>?t\<close> by (rule x [OF \<open>?a\<close>])
+    then show ?thesis by (simp add: rone rinv)
+  qed
+  show \<open>?t\<close> by (rule * [OF \<open>?a\<close>])
 qed
 
 
@@ -301,18 +300,17 @@ section \<open>Interpretation between locales: sublocales\<close>
 sublocale lgrp < right?: rgrp
 print_facts
 proof unfold_locales
-  {
-    fix x
+  show rone: \<open>x ** one = x\<close> for x
+  proof -
     have \<open>inv(x) ** x ** one = inv(x) ** x\<close> by (simp add: linv lone)
-    then show \<open>x ** one = x\<close> by (simp add: assoc lcancel)
-  }
-  note rone = this
-  {
-    fix x
+    then show ?thesis by (simp add: assoc lcancel)
+  qed
+  show \<open>x ** inv(x) = one\<close> for x
+  proof -
     have \<open>inv(x) ** x ** inv(x) = inv(x) ** one\<close>
       by (simp add: linv lone rone)
-    then show \<open>x ** inv(x) = one\<close> by (simp add: assoc lcancel)
-  }
+    then show ?thesis by (simp add: assoc lcancel)
+  qed
 qed
 
 (* effect on printed locale *)
@@ -330,18 +328,17 @@ lemma (in lgrp)
 
 sublocale rgrp < left: lgrp
 proof unfold_locales
-  {
-    fix x
+  show lone: \<open>one ** x = x\<close> for x
+  proof -
     have \<open>one ** (x ** inv(x)) = x ** inv(x)\<close> by (simp add: rinv rone)
-    then show \<open>one ** x = x\<close> by (simp add: assoc [symmetric] rcancel)
-  }
-  note lone = this
-  {
-    fix x
+    then show ?thesis by (simp add: assoc [symmetric] rcancel)
+  qed
+  show \<open>inv(x) ** x = one\<close> for x
+  proof -
     have \<open>inv(x) ** (x ** inv(x)) = one ** inv(x)\<close>
       by (simp add: rinv lone rone)
     then show \<open>inv(x) ** x = one\<close> by (simp add: assoc [symmetric] rcancel)
-  }
+  qed
 qed
 
 (* effect on printed locale *)

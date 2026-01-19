@@ -137,7 +137,7 @@ proof -
     unfolding Int_def[symmetric] by (simp add: Int_absorb1 cong: conj_cong)
 qed
 
-lemma all_countings: "all_countings a b = (a + b) choose a"
+lemma all_countings [code]: "all_countings a b = (a + b) choose a"
   unfolding all_countings_set by (simp add: n_subsets)
 
 subsection \<open>Facts About \<^term>\<open>valid_countings\<close>\<close>
@@ -285,9 +285,6 @@ qed
 
 subsubsection \<open>Executable Definition\<close>
 
-declare all_countings_def [code del]
-declare all_countings[code]
-
 value "all_countings 1 0"
 value "all_countings 0 1"
 value "all_countings 1 1"
@@ -297,8 +294,6 @@ value "all_countings 2 4"
 value "all_countings 4 2"
 
 subsubsection \<open>Executable Definition\<close>
-
-declare valid_countings_def [code del]
 
 value "valid_countings 1 0"
 value "valid_countings 0 1"

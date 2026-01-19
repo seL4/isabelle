@@ -29,7 +29,7 @@ object JEdit_Rendering {
       if (rich_texts.isEmpty) snapshot
       else snapshot.snippet(rich_texts.map(_.command(results)), Document.Blobs.empty)
     val model = File_Model.init(PIDE.session)
-    new JEdit_Rendering(snapshot1, model, PIDE.options.value)
+    new JEdit_Rendering(snapshot1, model, PIDE.options)
   }
 
 
@@ -161,9 +161,9 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   /* colors */
 
-  def color(s: String): Color =
-    if (s == "main_color") main_color
-    else Color_Value(options.string(s + Options.theme_suffix()))
+  def color(name: String): Color =
+    if (name == "main_color") main_color
+    else Color_Value.option(options, name)
 
   def color(c: Rendering.Color.Value): Color = _rendering_colors(c)
 
@@ -241,49 +241,25 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
-    snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Vector.empty, JEdit_Rendering.hyperlink_elements, _ =>
-        {
-          case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _))) =>
-            val file = perhaps_append_file(snapshot.node_name, name)
-            val link = PIDE.editor.hyperlink_file(file, focus = true)
-            Some(links :+ Text.Info(snapshot.convert(info_range), link))
+  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
+    hyperlinks(range).lastOption
 
-          case (links, Text.Info(info_range, XML.Elem(Markup.Export_Path(name), _))) =>
-            val link = PIDE.editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true)
-            Some(links :+ Text.Info(snapshot.convert(info_range), link))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup.Doc(name), _))) =>
-            PIDE.editor.hyperlink_doc(name).map(link =>
-              (links :+ Text.Info(snapshot.convert(info_range), link)))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup.Url(name), _))) =>
-            val link = PIDE.editor.hyperlink_url(name)
-            Some(links :+ Text.Info(snapshot.convert(info_range), link))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
-            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_position(snapshot, props, focus = true)
-            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
-
-          case _ => None
-        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
-  }
-
-  def hyperlink_entity(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] = {
-    snapshot.cumulate[Vector[Text.Info[PIDE.editor.Hyperlink]]](
-      range, Vector.empty, Rendering.entity_elements, _ =>
-        {
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            val opt_link = PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
-            opt_link.map(link => links :+ Text.Info(snapshot.convert(info_range), link))
-          case _ => None
-        }) match { case Text.Info(_, _ :+ info) :: _ => Some(info) case _ => None }
-  }
+  def hyperlinks(range: Text.Range): Vector[Text.Info[PIDE.editor.Hyperlink]] =
+    make_hyperlinks(range, elements = JEdit_Rendering.hyperlink_elements) {
+      case Markup(Markup.ENTITY, props) =>
+        PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)
+      case Markup(Markup.POSITION, props) =>
+        PIDE.editor.hyperlink_position(snapshot, props, focus = true)
+      case Markup.Path(name) =>
+        val file = perhaps_append_file(snapshot.node_name, name)
+        Some(PIDE.editor.hyperlink_file(file, focus = true))
+      case Markup.Export_Path(name) =>
+        val file = Isabelle_Export.vfs_prefix + name
+        Some(PIDE.editor.hyperlink_file(file, focus = true))
+      case Markup.Doc(name) => PIDE.editor.hyperlink_doc(name)
+      case Markup.Url(name) => Some(PIDE.editor.hyperlink_url(name))
+      case _ => None
+    }
 
 
   /* active elements */

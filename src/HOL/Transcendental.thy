@@ -3547,8 +3547,9 @@ proof -
         using \<open>n \<le> p\<close> neq0_conv that(1) by blast
       then have \<section>: "(- 1::real) ^ (p div 2 - Suc 0) = - ((- 1) ^ (p div 2))"
         using \<open>even p\<close> by (auto simp add: dvd_def power_eq_if)
-      from \<open>n \<le> p\<close> np have *: "n - Suc 0 + (p - Suc n) = p - Suc (Suc 0)" "Suc (Suc 0) \<le> p"
-        by arith+
+      from \<open>n \<le> p\<close> np have *: "n - Suc 0 + (p - Suc n) = p - Suc (Suc 0)"
+        by (force simp: le_Suc_eq split: nat_diff_split)
+        (* by arith somehow takes forever when exporting proofs *)
       have "(p - Suc (Suc 0)) div 2 = p div 2 - Suc 0"
         by simp
       with \<open>n \<le> p\<close> np  \<section> * show ?thesis
@@ -4445,7 +4446,7 @@ lemma abs_sin_x_le_abs_x: "\<bar>sin x\<bar> \<le> \<bar>x\<bar>"
 
 subsection \<open>More Corollaries about Sine and Cosine\<close>
 
-lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi/2) = (-1) ^ n"
+lemma sin_cos_npi: "sin (real (Suc (2 * n)) * pi/2) = (-1) ^ n"
 proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
     by (auto simp: algebra_simps sin_add)
@@ -4479,8 +4480,8 @@ proof -
   finally show ?thesis .
 qed
 
-lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
-  by (simp only: cos_add sin_add of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
+lemma cos_pi_eq_zero: "cos (pi * real (Suc (2 * m)) / 2) = 0"
+  by (simp add: cos_add sin_add distrib_right distrib_left add_divide_distrib)
 
 lemma DERIV_cos_add [simp]: "DERIV (\<lambda>x. cos (x + k)) xa :> - sin (xa + k)"
   by (auto intro!: derivative_eq_intros)

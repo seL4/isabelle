@@ -109,16 +109,18 @@ lemma bij_betw_open_intervals:
   shows "\<exists>f. bij_betw f {a<..<b} {c<..<d}"
 proof -
   define f where "f a b c d x = (d - c)/(b - a) * (x - a) + c" for a b c d x :: real
-  {
-    fix a b c d x :: real
-    assume *: "a < b" "c < d" "a < x" "x < b"
+  have "f a b c d x < d" "c < f a b c d x"
+    if *: "a < b" "c < d" "a < x" "x < b"
+    for a b c d x :: real
+  proof -
+    note that
     moreover from * have "(d - c) * (x - a) < (d - c) * (b - a)"
       by (intro mult_strict_left_mono) simp_all
     moreover from * have "0 < (d - c) * (x - a) / (b - a)"
       by simp
-    ultimately have "f a b c d x < d" "c < f a b c d x"
+    ultimately show "f a b c d x < d" "c < f a b c d x"
       by (simp_all add: f_def field_simps)
-  }
+  qed
   with assms have "bij_betw (f a b c d) {a<..<b} {c<..<d}"
     by (intro bij_betw_byWitness[where f'="f c d a b"]) (auto simp: f_def)
   then show ?thesis by auto

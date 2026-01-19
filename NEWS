@@ -4,6 +4,82 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** Pure ***
+
+* Code generation: non-overloaded function specifications for a class
+parameter are now permitted and effectively turn this class parameter
+into an ordinary function in generated code; this allows to dissociate a
+class parameter from its origin class in generated code. It is still
+possible to specify code equations for instances of that class
+parameter.
+
+
+*** Isabelle/jEdit Prover IDE ***
+
+* Console/Scala: more robust Scala_Console.Progress with local output
+and interrupt handling (using thread interrupt, e.g. via "Stop" button).
+For example:
+
+  val progress = new Scala_Console.Progress(verbose = true)
+  Build.build_logic(PIDE.options, "FOL", progress = progress)
+
+
+*** Isabelle/VSCode Prover IDE ***
+
+* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
+
+
+*** HOL ***
+
+* SMT:
+  - Added option "cvc5_integer_induction" and
+    "cvc5_structural_induction".
+
+* Theory "HOL.Finite_Set"
+  - Added lemmas.
+      card_Domain_le
+      card_le_card_if_mem_imp_ex_mem
+      card_Range_le
+
+* Constants "open" and "uniformity" are not handled as class parameters
+any longer in generated code: there are hardly any instances with a
+reasonable implementation, but a lot of implementations would require
+these as (effectively unused) dictionary parameters.
+Minor INCOMPATIBILITY.
+
+* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class parameters
+any longer in generated code but implemented using their counterparts on finite
+sets. Minor INCOMPATIBILITY.
+
+
+*** ML ***
+
+* Obsolete Thy_Info.use_thy_legacy has been removed. Rare
+INCOMPATIBILITY: need to use formal PIDE session to load theories, e.g.
+via "isabelle build" or "isabelle process_theories".
+
+
+*** System ***
+
+* Isabelle/Scala operations Build.build(), Build.build_logic() etc.
+already include progress.interrupt_handler for the main loop. It is no
+longer required as a separate wrapper for command-line tools etc.
+
+* Isabelle/Scala operation Progress.interrupt_handler is now more
+specific for different instances of class Progress, with mixins
+Progress.Local_Interrupts (for thread interrupts) and
+Progress.Global_Interrupts (for thread interrupts and process signals).
+The latter is included in class Console_Progress, which is typically
+used for a single command-line tool that is directly connected to the
+system shell and its signals (e.g. CTRL-C). The default (new Progress)
+does not change interrupt handling at all. Subtle INCOMPATIBILITY in
+very rare situations.
+
+
+
 New in Isabelle2025-2 (January 2026)
 ------------------------------------
 

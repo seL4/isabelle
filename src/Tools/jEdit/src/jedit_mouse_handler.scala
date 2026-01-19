@@ -22,14 +22,8 @@ object JEdit_Mouse_Handler {
       new JEdit_Mouse_Handler(edit_pane)
   }
 
-  def jump_delay(options: Options): Time = options.seconds("editor_jump_delay")
-  lazy val jump_delay0: Time = jump_delay(Options.init0())
-
-  def jump_delay(): Time =
-    PIDE.get_plugin match {
-      case Some(plugin) => jump_delay(plugin.options.value)
-      case None => jump_delay0
-    }
+  def jump_delay(options: Options = PIDE.options): Time =
+    options.seconds("editor_jump_delay")
 
   def jump(edit_pane: EditPane): Unit =
     if (edit_pane != null) {

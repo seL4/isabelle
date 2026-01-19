@@ -217,7 +217,7 @@ Usage: isabelle mkroot [OPTIONS] [DIRECTORY]
           case _ => getopts.usage()
         }
 
-      val progress = new Console_Progress
+      val progress = new Console_Progress()
 
       mkroot(session_name = session_name, session_dir = session_dir, init_repos = init_repos,
         author = author, title = title, quiet = quiet, progress = progress)

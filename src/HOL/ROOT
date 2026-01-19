@@ -719,6 +719,7 @@ session "HOL-ex" (timing) in ex = "HOL-Library" +
     Case_Product
     Chinese
     Classical
+    Code_Assertion
     Code_Binary_Nat_examples
     Code_Lazy_Demo
     Code_Timing

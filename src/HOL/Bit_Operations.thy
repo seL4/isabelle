@@ -1777,13 +1777,13 @@ private termination proof (relation \<open>measure (\<lambda>(k, l). nat (\<bar>
       then have \<open>\<bar>k div 2\<bar> < \<bar>k\<bar>\<close>
         by (rule less)
       with less_eq [of l] show ?thesis
-        by auto
+        by linarith
     next
       assume \<open>l \<notin> {0, - 1}\<close>
       then have \<open>\<bar>l div 2\<bar> < \<bar>l\<bar>\<close>
         by (rule less)
       with less_eq [of k] show ?thesis
-        by auto
+        by linarith
     qed
     ultimately show ?thesis
       by (simp only: in_measure split_def fst_conv snd_conv nat_mono_iff)

@@ -19,6 +19,7 @@ import org.gjt.sp.util.AwtRunnableQueue
 
 class JEdit_Editor extends Editor {
   type Context = View
+  type Session = JEdit_Session
 
 
   /* PIDE session and document model */
@@ -65,7 +66,7 @@ class JEdit_Editor extends Editor {
   def state_changed(): Unit = {
     GUI_Thread.later { flush() }
     PIDE.session.deps_changed()
-    session.global_options.post(Session.Global_Options(PIDE.options.value))
+    session.global_options.post(Session.Global_Options(PIDE.options))
   }
 
   override def document_state_changed(): Unit = state_changed()
@@ -181,7 +182,7 @@ class JEdit_Editor extends Editor {
   /* hyperlinks */
 
   def hyperlink_doc(name: String): Option[Hyperlink] =
-    Doc.contents(PIDE.ml_settings).entries(name = _ == name).headOption.map(entry =>
+    session.doc_entry(name).map(entry =>
       new Hyperlink {
         override val external: Boolean = !entry.path.is_file
         def follow(view: View): Unit = goto_doc(view, entry.path, focus = true)
@@ -258,18 +259,11 @@ class JEdit_Editor extends Editor {
     text_offset: Text.Offset,
     pos: Position.T
   ): Boolean = {
-    pos match {
-      case Position.Item_Id(id, range) if range.start > 0 =>
-        snapshot.find_command(id) match {
-          case Some((node, command)) if snapshot.get_node(command.node_name) eq node =>
-            node.command_start(command) match {
-              case Some(start) => text_offset == start + command.chunk.decode(range.start)
-              case None => false
-            }
-          case _ => false
-        }
-      case _ => false
-    }
+    (for {
+      (id, range) <- Position.Item_Id.unapply(pos) if range.start > 0
+      command <- snapshot.get_command(id)
+      start <- snapshot.command_start(command)
+    } yield text_offset == start + command.chunk.decode(range.start)) getOrElse false
   }
 
   def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)

@@ -57,10 +57,14 @@ object PIDE {
         case None => ""
       })
 
-  def options: JEdit_Options = plugin.options
+  def options: Options =
+    get_plugin match {
+      case Some(pide) => pide.options.value
+      case None => Options.defaults
+    }
+
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
-  def ml_settings: ML_Settings = session.store.ml_settings
 
   object editor extends JEdit_Editor
 }

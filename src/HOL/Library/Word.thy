@@ -2967,15 +2967,16 @@ lemma unat_sub_if_size:
      then unat x - unat y
      else unat x + 2 ^ size x - unat y)"
 proof -
-  { assume xy: "\<not> uint y \<le> uint x"
+  have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)"
+  proof -
     have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x + 2 ^ LENGTH('a) - uint y)"
       by simp
     also have "\<dots> = nat (uint x + 2 ^ LENGTH('a)) - nat (uint y)"
       by (simp add: nat_diff_distrib')
     also have "\<dots> = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)"
       by (simp add: nat_add_distrib nat_power_eq)
-    finally have "nat (uint x - uint y + 2 ^ LENGTH('a)) = nat (uint x) + 2 ^ LENGTH('a) - nat (uint y)" .
-  }
+    finally show ?thesis .
+  qed
   then show ?thesis
     by (metis nat_diff_distrib' uint_range_size uint_sub_if' un_ui_le unat_eq_nat_uint
         word_size)

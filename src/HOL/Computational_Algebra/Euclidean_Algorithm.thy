@@ -72,14 +72,14 @@ qualified definition lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 qualified definition Lcm :: "'a set \<Rightarrow> 'a" \<comment> \<open>Somewhat complicated definition of Lcm that has the advantage of working
     for infinite sets as well\<close>
   where
-  [code del]: "Lcm A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then
+  [code drop]: "Lcm A = (if \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) then
      let l = SOME l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l =
        (LEAST n. \<exists>l. l \<noteq> 0 \<and> (\<forall>a\<in>A. a dvd l) \<and> euclidean_size l = n)
        in normalize l 
       else 0)"
 
 qualified definition Gcd :: "'a set \<Rightarrow> 'a"
-  where [code del]: "Gcd A = Lcm {d. \<forall>a\<in>A. d dvd a}"
+  where [code drop]: "Gcd A = Lcm {d. \<forall>a\<in>A. d dvd a}"
 
 lemma semiring_gcd:
   "class.semiring_gcd one zero times gcd lcm

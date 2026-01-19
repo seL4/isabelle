@@ -664,7 +664,7 @@ qed
 instantiation real :: floor_ceiling
 begin
 
-definition [code del]: "\<lfloor>x::real\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+definition [code drop]: "\<lfloor>x::real\<rfloor> = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
 
 instance
 proof

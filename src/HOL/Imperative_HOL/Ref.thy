@@ -39,13 +39,13 @@ definition noteq :: "'a::heap ref \<Rightarrow> 'b::heap ref \<Rightarrow> bool"
 subsection \<open>Monad operations\<close>
 
 definition ref :: "'a::heap \<Rightarrow> 'a ref Heap" where
-  [code del]: "ref v = Heap_Monad.heap (alloc v)"
+  [code drop]: "ref v = Heap_Monad.heap (alloc v)"
 
 definition lookup :: "'a::heap ref \<Rightarrow> 'a Heap" (\<open>!_\<close> 61) where
-  [code del]: "lookup r = Heap_Monad.tap (\<lambda>h. get h r)"
+  [code drop]: "lookup r = Heap_Monad.tap (\<lambda>h. get h r)"
 
 definition update :: "'a ref \<Rightarrow> 'a::heap \<Rightarrow> unit Heap" (\<open>_ := _\<close> 62) where
-  [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
+  [code drop]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
 
 definition change :: "('a::heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
   "change f r = do {
@@ -266,7 +266,7 @@ subsection \<open>Code generator setup\<close>
 text \<open>Intermediate operation avoids invariance problem in \<open>Scala\<close> (similar to value restriction)\<close>
 
 definition ref' where
-  [code del]: "ref' = ref"
+  "ref' = ref"
 
 lemma [code]:
   "ref x = ref' x"

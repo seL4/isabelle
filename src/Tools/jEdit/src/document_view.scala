@@ -55,7 +55,7 @@ object Document_View {
   def rendering(doc_view: Document_View): JEdit_Rendering = {
     val model = doc_view.model
     val snapshot = Document_Model.snapshot(model)
-    val options = PIDE.options.value
+    val options = PIDE.options
     new JEdit_Rendering(snapshot, model, options)
   }
 

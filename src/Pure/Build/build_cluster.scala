@@ -43,8 +43,6 @@ object Build_Cluster {
 
     def is_parameter(spec: Options.Spec): Boolean = parameters.defined(spec.name)
 
-    lazy val test_options: Options = Options.init0()
-
     def apply(
       name: String = "",
       hostname: String = parameters.string(HOSTNAME),
@@ -89,7 +87,7 @@ object Build_Cluster {
         val (params, options) =
           try {
             val (specs1, specs2) = (host_specs ::: more_specs).partition(is_parameter)
-            (parameters ++ specs1, { test_options ++ specs2; specs2 })
+            (parameters ++ specs1, { Options.defaults ++ specs2; specs2 })
           }
           catch { case ERROR(msg) => err(msg) }
 

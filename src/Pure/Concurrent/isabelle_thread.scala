@@ -101,12 +101,12 @@ object Isabelle_Thread {
     override def toString: String = name
   }
 
-  def interrupt_handler[A](handler: Interrupt_Handler)(body: => A): A =
-    if (handler == null) body
+  def interrupt_handler[A](handler: Interrupt_Handler, permissive: Boolean = false)(body: => A): A =
+    if (handler == null || permissive && !check_self) body
     else self.interrupt_handler(handler)(body)
 
-  def interrupt_handler[A](handle: Isabelle_Thread => Unit)(body: => A): A =
-    self.interrupt_handler(Interrupt_Handler(handle))(body)
+  def interrupt_handle[A](handle: => Unit, permissive: Boolean = false)(body: => A): A =
+    interrupt_handler(Interrupt_Handler(_ => handle), permissive = permissive)(body)
 
   def interruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.interruptible)(body)
@@ -114,9 +114,8 @@ object Isabelle_Thread {
   def uninterruptible[A](body: => A): A =
     interrupt_handler(Interrupt_Handler.uninterruptible)(body)
 
-  def try_uninterruptible[A](body: => A): A =
-    if (check_self) interrupt_handler(Interrupt_Handler.uninterruptible)(body)
-    else body
+  def perhaps_uninterruptible[A](body: => A): A =
+    interrupt_handler(Interrupt_Handler.uninterruptible, permissive = true)(body)
 }
 
 class Isabelle_Thread private(

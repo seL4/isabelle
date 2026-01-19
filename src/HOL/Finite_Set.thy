@@ -345,17 +345,19 @@ lemma finite_subset_image:
   assumes "finite B"
   shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
   using assms
-proof induct
+proof (induct B rule: finite_induct)
   case empty
   then show ?case by simp
 next
-  case insert
+  case (insert b B)
+  then have "\<exists>C\<subseteq>A. finite C \<and> B = f ` C"
+    by auto
   then show ?case
-    by (clarsimp simp del: image_insert simp add: image_insert [symmetric]) blast
+    using insert.prems by auto
 qed
 
 lemma all_subset_image: "(\<forall>B. B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. B \<subseteq> A \<longrightarrow> P(f ` B))"
-  by (safe elim!: subset_imageE) (use image_mono in \<open>blast+\<close>) (* slow *)
+  by (auto simp: subset_image_iff dest: image_mono)
 
 lemma all_finite_subset_image:
   "(\<forall>B. finite B \<and> B \<subseteq> f ` A \<longrightarrow> P B) \<longleftrightarrow> (\<forall>B. finite B \<and> B \<subseteq> A \<longrightarrow> P (f ` B))"
@@ -1728,6 +1730,12 @@ lemma card_insert_disjoint: "finite A \<Longrightarrow> x \<notin> A \<Longright
 lemma card_insert_if: "finite A \<Longrightarrow> card (insert x A) = (if x \<in> A then card A else Suc (card A))"
   by auto (simp add: card.insert_remove card.remove)
 
+lemma card_Domain_le: "finite A \<Longrightarrow> card (Domain A) \<le> card A"
+  by (induction rule: finite_induct) (simp_all flip: fst_eq_Domain add: card_insert_if)
+
+lemma card_Range_le: "finite A \<Longrightarrow> card (Range A) \<le> card A"
+  by (induction rule: finite_induct) (simp_all flip: snd_eq_Range add: card_insert_if)
+
 lemma card_ge_0_finite: "card A > 0 \<Longrightarrow> finite A"
   by (rule ccontr) simp
 
@@ -2304,7 +2312,7 @@ next
   proof (cases "A = {}")
     case True
     from obtain_subset_with_card_n[OF Suc(3)]
-    obtain B where "B \<subseteq> C" "card B = Suc n" by blast
+    obtain B where "B \<subseteq> C" "card B = Suc n" .
     thus ?thesis unfolding True by blast
   next
     case False
@@ -2372,6 +2380,38 @@ using card_inj_on_le[of _ A B] card_le_inj[of A B] by blast
 
 lemma surj_card_le: "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> card B \<le> card A"
   by (blast intro: card_image_le card_mono le_trans)
+
+lemma card_le_card_if_mem_imp_ex_mem:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" and \<X> :: "'a set" and \<Y> :: "'c set"
+  defines "XY \<equiv> {(x, y)| x y. x \<in> \<X> \<and> f x y \<in> \<Y>}"
+  assumes "finite \<X>" and "finite \<Y>" and
+    f_inj: "inj_on (\<lambda>(x, y). f x y) XY" and
+    ex_in_\<Y>: "\<And>x. x \<in> \<X> \<Longrightarrow> \<exists>y. f x y \<in> \<Y>"
+  shows "card \<X> \<le> card \<Y>"
+proof -
+  have f_XY_subset: "(\<lambda>(x, y). f x y) ` XY \<subseteq> \<Y>"
+    using XY_def by auto
+
+  then have "finite ((\<lambda>(x, y). f x y) ` XY)"
+    using \<open>finite \<Y>\<close> by (rule finite_subset)
+
+  then have "finite XY"
+    by (rule finite_image_iff[THEN iffD1, OF f_inj])
+
+  moreover have "Domain XY = \<X>"
+    unfolding XY_def
+    using ex_in_\<Y>
+    by (simp add: equalityI subsetI)
+
+  ultimately have "card \<X> \<le> card XY"
+    using card_Domain_le by blast
+
+  also have "\<dots> \<le> card \<Y>"
+    using inj_on_iff_card_le[OF \<open>finite XY\<close> \<open>finite \<Y>\<close>]
+    using f_XY_subset f_inj by blast
+
+  finally show "card \<X> \<le> card \<Y>" .
+qed
 
 lemma card_bij_eq:
   "inj_on f A \<Longrightarrow> f ` A \<subseteq> B \<Longrightarrow> inj_on g B \<Longrightarrow> g ` B \<subseteq> A \<Longrightarrow> finite A \<Longrightarrow> finite B

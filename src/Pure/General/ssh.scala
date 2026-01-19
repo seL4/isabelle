@@ -132,20 +132,19 @@ object SSH {
 
     /* local ssh commands */
 
-    def make_command(
-      command: String = "ssh",
+    def command_line(
+      command: String = "",
       master: Boolean = false,
       opts: String = "",
-      args_host: Boolean = false,
       args: String = ""
     ): String = {
-      val config =
+      val command_name = proper_string(command).getOrElse("ssh")
+      val command_config =
         Config.make(options, port = port, user = user,
           control_master = master, control_path = control_path)
-      val args1 = if_proper(args_host, Bash.string(host) + if_proper(args, " ")) + args
-      Config.command(command, config) +
-        if_proper(opts, " " + opts) +
-        if_proper(args1, " -- " + args1)
+      Config.command(command_name, command_config) +
+        if_proper(opts, " " + opts) + " -- " +
+        Bash.string(host) + if_proper(args, " ") + args
     }
 
     def run_sftp(
@@ -157,15 +156,14 @@ object SSH {
         init(dir)
         File.write(dir + Path.explode("script"), script)
         val result =
-          Isabelle_System.bash(
-            make_command("sftp", opts = "-b script", args_host = true), cwd = dir).check
+          Isabelle_System.bash(command_line(command = "sftp", opts = "-b script"), cwd = dir).check
         exit(dir)
         result
       }
     }
 
     def run_ssh(master: Boolean = false, opts: String = "", args: String = ""): Process_Result =
-      Isabelle_System.bash(make_command(master = master, opts = opts, args_host = true, args = args))
+      Isabelle_System.bash(command_line(master = master, opts = opts, args = args))
 
 
     /* init and exit */
@@ -206,10 +204,8 @@ object SSH {
     /* remote commands */
 
     override def kill_process(group_pid: String, signal: String): Boolean = {
-      val script =
-        make_command(args_host = true,
-          args = "kill -" + Bash.string(signal) + " -" + Bash.string(group_pid))
-      Isabelle_System.bash(script).ok
+      val cmd = command_line(args = "kill -" + Bash.string(signal) + " -" + Bash.string(group_pid))
+      Isabelle_System.bash(cmd).ok
     }
 
     override def bash_process(remote_script: String,
@@ -231,11 +227,8 @@ object SSH {
       settings: Boolean = true,  // ignored for remote ssh
       strict: Boolean = true
     ): Process_Result = {
-      val script =
-        make_command(
-          args_host = true,
-          args = Bash.string(Bash.context(remote_script, user_home = user_home)))
-      Isabelle_System.bash(script,
+      Isabelle_System.bash(
+        command_line(args = Bash.string(Bash.context(remote_script, user_home = user_home))),
         progress_stdout = progress_stdout,
         progress_stderr = progress_stderr,
         redirect = redirect,
@@ -402,7 +395,7 @@ object SSH {
                 " " + Config.option("PermitLocalCommand", true) +
                 " " + Config.option("LocalCommand", "pwd")
             try {
-              Isabelle_System.bash(make_command(opts = opts, args_host = true),
+              Isabelle_System.bash(command_line(opts = opts),
                 progress_stdout = _ => result.change(_ => Exn.Res(true))).check
             }
             catch { case exn: Throwable => result.change(_ => Exn.Exn(exn)) }

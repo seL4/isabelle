@@ -113,7 +113,7 @@ proof (induct zs rule: rev_induct)
 next
   case (snoc x xs)
   then show ?case
-    by (metis append.assoc prefix_snoc)
+    by (metis append.assoc[of ys xs "[x]"] prefix_snoc)
 qed
 
 lemma append_one_prefix:

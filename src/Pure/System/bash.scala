@@ -76,7 +76,7 @@ object Bash {
   def remote_bash_process(ssh: SSH.Session): String = {
     val component = Components.provide(Component_Bash_Process.home, ssh = ssh)
     val exe = Component_Bash_Process.remote_program(component)
-    ssh.make_command(args_host = true, args = ssh.bash_path(exe))
+    ssh.command_line(args = ssh.bash_path(exe))
   }
 
   object Watchdog {
@@ -102,7 +102,7 @@ object Bash {
 
   class Process private[Bash](
     script: String,
-    description: String,
+    val description: String,
     ssh: SSH.System,
     cwd: Path,
     env: JMap[String, String],
@@ -205,13 +205,13 @@ object Bash {
       }
     }
 
-    def terminate(): Unit = Isabelle_Thread.try_uninterruptible {
+    def terminate(): Unit = Isabelle_Thread.perhaps_uninterruptible {
       signal("INT", count = 7) && signal("TERM", count = 3) && signal("KILL")
       proc.destroy()
       do_cleanup()
     }
 
-    def interrupt(): Unit = Isabelle_Thread.try_uninterruptible {
+    def interrupt(): Unit = Isabelle_Thread.perhaps_uninterruptible {
       ssh.kill_process(group_pid, "INT")
     }
 
@@ -292,7 +292,7 @@ object Bash {
 
       watchdog_thread.foreach(_.cancel())
 
-      in.join
+      in.join_result  // ignore broken pipe
       out_lines.join
       err_lines.join
 
@@ -305,19 +305,23 @@ object Bash {
 
   /* server */
 
+  // input messages
+  private val server_run = "run"
+  private val server_kill = "kill"
+
+  // output messages
+  private val server_uuid = "uuid"
+  private val server_interrupt = "interrupt"
+  private val server_failure = "failure"
+  private val server_result = "result"
+
   object Server {
-    // input messages
-    private val RUN = "run"
-    private val KILL = "kill"
-
-    // output messages
-    private val UUID = "uuid"
-    private val INTERRUPT = "interrupt"
-    private val FAILURE = "failure"
-    private val RESULT = "result"
-
-    def start(port: Int = 0, debugging: => Boolean = false): Server = {
-      val server = new Server(port, debugging)
+    def start(
+      port: Int = 0,
+      log: Logger = new System_Logger(),
+      debugging: => Boolean = false
+    ): Server = {
+      val server = new Server(port, log, debugging)
       server.start()
       server
     }
@@ -331,11 +335,18 @@ object Bash {
       result.err_lines
   }
 
-  class Server private(port: Int, debugging: => Boolean)
+  class Server private(port: Int, log: Logger, debugging: => Boolean)
   extends isabelle.Server.Handler(port) {
     server =>
 
     private val _processes = Synchronized(Map.empty[UUID.T, Bash.Process])
+
+    private def debug(name: String, description: String = "", message: => String = ""): Unit =
+      if (debugging) {
+        val descr = make_description(description)
+        val msg = message
+        log(name + " " + quote(descr) + if_proper(msg, " " + msg))
+      }
 
     override def stop(): Unit = {
       for ((_, process) <- _processes.value) process.terminate()
@@ -347,30 +358,40 @@ object Bash {
         try { connection.write_byte_message(chunks.map(Bytes.apply)) }
         catch { case _: IOException => }
 
-      def reply_failure(exn: Throwable): Unit =
+      def reply_failure(exn: Throwable, uuid: Option[UUID.T] = None, description: String = ""): Unit =
         reply(
-          if (Exn.is_interrupt(exn)) List(Server.INTERRUPT)
-          else List(Server.FAILURE, Exn.message(exn)))
+          if (Exn.is_interrupt(exn)) {
+            debug("interrupt", description = description,
+              message = if_proper(uuid.isDefined, uuid.get.toString))
+            List(Bash.server_interrupt)
+          }
+          else {
+            debug("failure", description = description,
+              message = if_proper(uuid.isDefined, uuid.get.toString + "\n") + Exn.print(exn))
+            List(Bash.server_failure, Exn.message(exn))
+          })
 
-      def reply_result(result: Process_Result): Unit =
-        reply(Server.RESULT :: Server.result(result))
+      def reply_result(result: Process_Result, uuid: UUID.T, description: String = ""): Unit = {
+        debug("stop", description = description,
+          message = "(uuid=" + uuid + ", return_code=" + result.rc + ")")
+        reply(Bash.server_result :: Server.result(result))
+      }
 
       connection.read_byte_message().map(_.map(_.text)) match {
         case None =>
 
-        case Some(List(Server.KILL, UUID(uuid))) =>
-          if (debugging) Output.writeln("kill " + uuid)
-          _processes.value.get(uuid).foreach(_.terminate())
+        case Some(List(Bash.server_kill, UUID(uuid))) =>
+          for (process <- _processes.value.get(uuid)) {
+            debug("kill", description = process.description, message = "(uuid=" + uuid + ")")
+            process.terminate()
+          }
 
-        case Some(List(Server.RUN, script, input, cwd, putenv,
+        case Some(List(Bash.server_run, script, input, cwd, putenv,
             Value.Boolean(redirect), Value.Seconds(timeout), description)) =>
           val uuid = UUID.random()
 
-          val descr = make_description(description)
-          if (debugging) {
-            Output.writeln(
-              "start " + quote(descr) + " (uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
-          }
+          debug("start", description = description,
+            message = "(uuid=" + uuid + ", timeout=" + timeout.seconds + ")")
 
           Exn.capture {
             Bash.process(script,
@@ -387,10 +408,10 @@ object Bash {
               redirect = redirect)
           }
           match {
-            case Exn.Exn(exn) => reply_failure(exn)
+            case Exn.Exn(exn) => reply_failure(exn, uuid = Some(uuid), description = description)
             case Exn.Res(process) =>
               _processes.change(processes => processes + (uuid -> process))
-              reply(List(Server.UUID, uuid.toString))
+              reply(List(Bash.server_uuid, uuid.toString))
 
               Isabelle_Thread.fork(name = "bash_process") {
                 @volatile var is_timeout = false
@@ -400,14 +421,11 @@ object Bash {
 
                 Exn.capture { process.result(input = input, watchdog = watchdog, strict = false) }
                 match {
-                  case Exn.Exn(exn) => reply_failure(exn)
-                  case Exn.Res(res0) =>
-                    val res = if (!res0.ok && is_timeout) res0.timeout_rc else res0
-                    if (debugging) {
-                      Output.writeln(
-                        "stop " + quote(descr) + " (uuid=" + uuid + ", return_code=" + res.rc + ")")
-                    }
-                    reply_result(res)
+                  case Exn.Exn(exn) =>
+                    reply_failure(exn, uuid = Some(uuid), description = description)
+                  case Exn.Res(res) =>
+                    val result = if (!res.ok && is_timeout) res.timeout_rc else res
+                    reply_result(result, uuid, description = description)
                 }
 
                 _processes.change(provers => provers - uuid)
@@ -416,7 +434,7 @@ object Bash {
               connection.await_close()
           }
 
-        case Some(_) => reply_failure(ERROR("Bad protocol message"))
+        case Some(_) => reply_failure(ERROR("Bash server: bad protocol message"))
       }
     }
   }

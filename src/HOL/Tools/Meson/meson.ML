@@ -704,8 +704,8 @@ fun MESON preskolem_tac mkcl cltac ctxt i st =
     (EVERY [Object_Logic.atomize_prems_tac ctxt 1,
             resolve_tac ctxt @{thms ccontr} 1,
             preskolem_tac,
-            Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [skolemize_prems_tac simp_options_all_true ctxt' negs,
+            Subgoal.FOCUS (fn {context = ctxt', prems = usings_and_neg_conj, ...} =>
+                      EVERY1 [skolemize_prems_tac simp_options_all_true ctxt' usings_and_neg_conj,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
 

@@ -114,15 +114,16 @@ subsection \<open>Product is a Metric Space\<close>
 instantiation\<^marker>\<open>tag unimportant\<close> prod :: (metric_space, metric_space) dist
 begin
 
-definition dist_prod_def[code del]:
-  "dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)"
+definition dist_prod :: \<open>'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> real\<close>
+  where \<open>dist x y = sqrt ((dist (fst x) (fst y))\<^sup>2 + (dist (snd x) (snd y))\<^sup>2)\<close>
 
 instance ..
 end
 
 instantiation\<^marker>\<open>tag unimportant\<close> prod :: (uniformity, uniformity) uniformity begin
 
-definition [code del]: \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
+definition uniformity_prod :: \<open>(('a \<times> 'b) \<times> ('a \<times> 'b)) filter\<close>
+  where \<open>(uniformity :: (('a \<times> 'b) \<times> ('a \<times> 'b)) filter) = 
         filtermap (\<lambda>((x1,x2),(y1,y2)). ((x1,y1),(x2,y2))) (uniformity \<times>\<^sub>F uniformity)\<close>
 
 instance..
@@ -397,8 +398,6 @@ proof
 qed
 end
 
-declare uniformity_Abort[where 'a="'a :: metric_space \<times> 'b :: metric_space", code]
-
 instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
@@ -488,8 +487,6 @@ next
 qed
 
 end
-
-declare [[code abort: "dist::('a::metric_space*'b::metric_space)\<Rightarrow>('a*'b) \<Rightarrow> real"]]
 
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n :: 'a::metric_space \<times> 'b::metric_space))"
   unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
@@ -585,7 +582,7 @@ subsection \<open>Product is a Normed Vector Space\<close>
 instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
-definition norm_prod_def[code del]:
+definition norm_prod_def:
   "norm x = sqrt ((norm (fst x))\<^sup>2 + (norm (snd x))\<^sup>2)"
 
 definition sgn_prod_def:
@@ -616,8 +613,6 @@ proof
 qed
 
 end
-
-declare [[code abort: "norm::('a::real_normed_vector*'b::real_normed_vector) \<Rightarrow> real"]]
 
 instance\<^marker>\<open>tag important\<close> prod :: (banach, banach) banach ..
 

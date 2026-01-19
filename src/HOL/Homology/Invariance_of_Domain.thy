@@ -584,7 +584,7 @@ proof -
       define h where "h \<equiv> \<lambda>(z,x). ret ((1 - z) * t + z * x n) x"
       show "(\<lambda>x. h (u, x)) ` V \<subseteq> V" if "u \<in> {0..1}" for u
         using that unfolding h_def
-        by clarsimp (metis squashableD [OF \<open>squashable t V\<close>] convex_bound_le diff_ge_0_iff_ge eq_diff_eq' le_cases less_eq_real_def segment_bound_lemma)
+        by clarsimp (metis squashableD [OF \<open>squashable t V\<close>] convex_bound_le diff_ge_0_iff_ge eq_diff_eq le_cases less_eq_real_def segment_bound_lemma)
       have "\<And>x y i. \<lbrakk>\<forall>k\<ge>Suc n. y k = 0; Suc n \<le> i\<rbrakk> \<Longrightarrow> ret ((1 - x) * t + x * y n) y i = 0"
         by (simp add: ret_def)
       then have "h \<in> {0..1} \<times> ({x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U) \<rightarrow> {x. \<forall>i\<ge>Suc n. x i = 0} \<inter> U"

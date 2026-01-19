@@ -116,8 +116,6 @@ setup \<open>Sign.parent_path\<close>
 abbreviation rec_nat :: "'a \<Rightarrow> (nat \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
   where "rec_nat \<equiv> old.rec_nat"
 
-declare nat.sel[code del]
-
 hide_const (open) Nat.pred \<comment> \<open>hide everything related to the selector\<close>
 
 lemma nat_exhaust [case_names 0 Suc, cases type: nat]:

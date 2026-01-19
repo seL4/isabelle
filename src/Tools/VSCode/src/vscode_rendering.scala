@@ -63,7 +63,7 @@ object VSCode_Rendering {
     Rendering.tooltip_elements
 
   private val hyperlink_elements =
-    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.POSITION)
+    Markup.Elements(Markup.ENTITY, Markup.PATH, Markup.DOC, Markup.POSITION)
 }
 
 class VSCode_Rendering(snapshot: Document.Snapshot, val model: VSCode_Model)
@@ -288,20 +288,13 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case _ => None
     }
 
-  def hyperlinks(range: Text.Range): List[Line.Node_Range] =
-    snapshot.cumulate[List[Line.Node_Range]](
-      range, Nil, VSCode_Rendering.hyperlink_elements, _ =>
-        {
-          case (links, Text.Info(_, XML.Elem(Markup.Path(name), _))) =>
-            val file = perhaps_append_file(snapshot.node_name, name)
-            Some(Line.Node_Range(file) :: links)
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _))) =>
-            hyperlink_def_position(props).map(_ :: links)
-
-          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.POSITION, props), _))) =>
-            hyperlink_position(props).map(_ :: links)
-
-          case _ => None
-        }) match { case Text.Info(_, links) :: _ => links.reverse case _ => Nil }
+  def hyperlinks(range: Text.Range): Vector[Text.Info[Line.Node_Range]] =
+    make_hyperlinks(range, elements = VSCode_Rendering.hyperlink_elements) {
+      case Markup(Markup.ENTITY, props) => hyperlink_def_position(props)
+      case Markup(Markup.POSITION, props) => hyperlink_position(props)
+      case Markup.Path(name) => Some(Line.Node_Range(perhaps_append_file(snapshot.node_name, name)))
+      case Markup.Doc(name) =>
+        model.session.doc_entry(name).map(entry => Line.Node_Range(File.platform_path(entry.path)))
+      case _ => None
+    }
 }

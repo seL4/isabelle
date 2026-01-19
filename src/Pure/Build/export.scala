@@ -659,10 +659,7 @@ Usage: isabelle export [OPTIONS] SESSION
         /* build */
 
         if (!no_build) {
-          val results =
-            progress.interrupt_handler {
-              Build.build_logic(options, session_name, progress = progress, dirs = dirs)
-            }
+          val results = Build.build_logic(options, session_name, progress = progress, dirs = dirs)
           if (!results.ok) sys.exit(results.rc)
         }
 

@@ -27,6 +27,7 @@ object Editor {
 
 abstract class Editor {
   type Context
+  type Session <: isabelle.Session
 
 
   /* PIDE session and document model */

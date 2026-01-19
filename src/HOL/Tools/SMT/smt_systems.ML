@@ -7,6 +7,8 @@ Setup SMT solvers.
 signature SMT_SYSTEMS =
 sig
   val cvc_extensions: bool Config.T
+  val cvc5_integer_induction: bool Config.T
+  val cvc5_structural_induction: bool Config.T
   val z3_extensions: bool Config.T
 end;
 
@@ -62,6 +64,8 @@ fun on_first_non_unsupported_line test_outcome solver_name lines =
 (* CVC4 and cvc5 *)
 
 val cvc_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc_extensions\<close> (K false)
+val cvc5_integer_induction = Attrib.setup_config_bool \<^binding>\<open>cvc5_integer_induction\<close> (K false)
+val cvc5_structural_induction = Attrib.setup_config_bool \<^binding>\<open>cvc5_structural_induction\<close> (K false)
 
 local
   fun cvc4_options ctxt =
@@ -78,7 +82,10 @@ local
      "--lang=smt2"] @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
-    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)])
+    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)]) @
+    (if Config.get ctxt cvc5_integer_induction then ["--int-wf-ind"] else []) @
+    (if Config.get ctxt cvc5_structural_induction then ["--dt-stc-ind"] else []) @
+    (if Config.get ctxt cvc_extensions then ["--force-logic=ALL"] else [])
 
   fun select_class ctxt =
     if Config.get ctxt cvc_extensions then

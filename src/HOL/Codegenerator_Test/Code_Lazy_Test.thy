@@ -119,7 +119,7 @@ lemma f1_code1 [code]:
 value [code] "f1 True False False \<^bold>[\<^bold>]"
 deactivate_lazy_type llist
 value [code] "f1 True False False \<^bold>[\<^bold>]"
-declare f1_code1(4) [code del]
+declare [[code drop: f1]] f1_code1(1-3) [code]
 value [code] "f1 True False False \<^bold>[\<^bold>]"
 activate_lazy_type llist
 value [code] "f1 True False False \<^bold>[\<^bold>]"
@@ -133,7 +133,7 @@ lemma f1_code2 [code]:
   by (simp_all add: f1_def)
 
 value [code] "f1 True True True \<^bold>[0\<^bold>]"
-declare f1_code2(4)[code del]
+declare [[code drop: f1]] f1_code2(1-3) [code]
 value [code] "f1 True True True \<^bold>[0\<^bold>]"
 
 declare [[code drop: f1]]
@@ -145,7 +145,7 @@ lemma f1_code3 [code]:
   by (simp_all add: f1_def)
 
 value [code] "f1 True True True \<^bold>[0, 1\<^bold>]"
-declare f1_code3(4)[code del]
+declare [[code drop: f1]] f1_code3(1-3) [code]
 value [code] "f1 True True True \<^bold>[0, 1\<^bold>]"
 
 declare [[code drop: f1]]

@@ -346,7 +346,7 @@ object Web_App {
     paths: Paths,
     port: Int = 0,
     verbose: Boolean = false,
-    progress: Progress = new Progress(),
+    progress: Progress = new Progress,
   ) {
     def render(model: A): XML.Body
     val error_model: A
@@ -540,7 +540,7 @@ window.addEventListener("resize", (event) => { post_height() })
         loop()
       }
 
-      Isabelle_Thread.interrupt_handler(_ => server.stop()) { loop() }
+      Isabelle_Thread.interrupt_handle(server.stop()) { loop() }
     }
 
     def start(): Unit = {

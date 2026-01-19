@@ -201,7 +201,7 @@ proof
   qed
 qed
 
-declare rtranclp_rtrancl_eq [code del]
+declare rtranclp_eq_rtrancl_tab_nil [code]
 declare rtranclp_eq_rtrancl_tab_nil [THEN iffD2, code_pred_intro]
 
 code_pred rtranclp

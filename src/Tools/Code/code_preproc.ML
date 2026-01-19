@@ -286,6 +286,17 @@ fun simple_functrans f ctxt eqns = case f ctxt (map fst eqns)
   | NONE => NONE;
 
 
+(** auxiliary for type classes **)
+
+fun is_proper_class thy = can (Axclass.get_info thy);
+
+fun complete_proper_sort thy =
+  Sign.complete_sort thy #> filter (is_proper_class thy);
+
+fun inst_params_of_sort thy tyco =
+  map (fn (c, _) => Axclass.param_of_inst thy (c, tyco)) o maps (Code.class_params_of thy);
+
+
 (** sort algebra and code equation graph types **)
 
 type code_algebra = (sort -> sort) * Sorts.algebra;
@@ -348,18 +359,6 @@ fun switch_trace c ctxt =
 
 (** the Waisenhaus algorithm **)
 
-(* auxiliary *)
-
-fun is_proper_class thy = can (Axclass.get_info thy);
-
-fun complete_proper_sort thy =
-  Sign.complete_sort thy #> filter (is_proper_class thy);
-
-fun inst_params thy tyco =
-  map (fn (c, _) => Axclass.param_of_inst thy (c, tyco))
-    o maps (#params o Axclass.get_info thy);
-
-
 (* data structures *)
 
 datatype const = Fun of string | Inst of class * string;
@@ -414,7 +413,7 @@ fun obtain_instance ctxt arities (inst as (class, tyco)) =
         val classess =
           map (complete_proper_sort thy)
             (Proof_Context.arity_sorts ctxt tyco [class]);
-        val inst_params = inst_params thy tyco all_classes;
+        val inst_params = inst_params_of_sort thy tyco all_classes;
       in (classess, (super_classes, inst_params)) end;
 
 
@@ -511,12 +510,12 @@ and ensure_fun ctxt arities eqngr c (vardeps_data as (_, (eqntab, _))) =
 
 (* applying instantiations *)
 
-fun dictss_of ctxt (proj_sort, algebra) (T, sort) =
+fun dict_dependencies_for ctxt (proj_sort, algebra) (T, sort) =
   let
     val thy = Proof_Context.theory_of ctxt;
     fun class_relation _ (x, _) _ = x;
     fun type_constructor (tyco, _) xs class =
-      inst_params thy tyco (Sorts.complete_sort algebra [class])
+      inst_params_of_sort thy tyco (Sorts.complete_sort algebra [class])
         @ (maps o maps) fst xs;
     fun type_variable (TFree (_, sort)) = map (pair []) (proj_sort sort);
   in
@@ -525,6 +524,9 @@ fun dictss_of ctxt (proj_sort, algebra) (T, sort) =
         type_variable = type_variable } (T, proj_sort sort)
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
   end;
+
+fun dependencies_for ctxt algebra eqngr (c, rhs) =
+  c :: maps (dict_dependencies_for ctxt algebra) (rhs ~~ sortargs eqngr c);
 
 fun add_arity ctxt vardeps (class, tyco) =
   AList.default (op =) ((class, tyco),
@@ -558,10 +560,9 @@ fun extend_arities_eqngr raw_ctxt cs ts (arities, (eqngr : code_graph)) =
     val algebra = Sorts.subalgebra (Context.Theory thy) (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);
     val (rhss, eqngr') = Symtab.fold (add_cert ctxt vardeps) eqntab ([], eqngr);
-    fun deps_of (c, rhs) = c :: maps (dictss_of ctxt algebra)
-      (rhs ~~ sortargs eqngr' c);
-    val eqngr'' = fold (fn (c, rhs) => fold
-      (curry Graph.add_edge c) (deps_of rhs)) rhss eqngr';
+    val eqngr'' =
+      fold (fn (c, rhs) => fold (curry Graph.add_edge c)
+        (dependencies_for ctxt algebra eqngr' rhs)) rhss eqngr';
   in (algebra, (arities', eqngr'')) end;
 
 

@@ -743,15 +743,16 @@ object Find_Facts {
           Build.build(options, selection = Sessions.Selection(sessions = sessions), dirs = dirs,
             afp_root = afp_root, no_build = test, progress = if (test) new Progress else progress)
 
-        progress.interrupt_handler {
-          if (!build(test = true).ok) {
+        val test_results = build(test = true)
+        val results =
+          if (test_results.ok) test_results
+          else {
             progress.echo("Build started ...")
-            val rc = build().rc
-            if (rc != Process_Result.RC.ok) {
-              Output.error_message("Build failed")
-              sys.exit(rc)
-            }
+            build()
           }
+        if (!results.ok) {
+          Output.error_message("Build failed")
+          sys.exit(results.rc)
         }
       }
 
@@ -1062,7 +1063,7 @@ object Find_Facts {
         loop()
       }
 
-      Isabelle_Thread.interrupt_handler(_ => server.stop()) { loop() }
+      Isabelle_Thread.interrupt_handle(server.stop()) { loop() }
     }
   }
 

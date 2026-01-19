@@ -6,6 +6,8 @@ Support for exceptions (arbitrary throwables).
 
 package isabelle
 
+import sun.misc.{Signal, SignalHandler}
+
 
 object Exn {
   /* user errors */
@@ -109,6 +111,13 @@ object Exn {
     def dispose(): Unit = Thread.interrupted()
     def expose(): Unit = if (Thread.interrupted()) throw apply()
     def impose(): Unit = Thread.currentThread.interrupt()
+
+    def signal_handler[A](h: => Unit)(e: => A): A = {
+      val SIGINT = new Signal("INT")
+      val new_handler = new SignalHandler { def handle(s: Signal): Unit = h }
+      val old_handler = Signal.handle(SIGINT, new_handler)
+      try { e } finally { Signal.handle(SIGINT, old_handler) }
+    }
   }
 
 

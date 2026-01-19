@@ -377,7 +377,7 @@ Usage: isabelle component_fonts [OPTIONS]
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress
+        val progress = new Console_Progress()
 
         build_fonts(download_url = download_url, target_dir = target_dir, progress = progress)
       })

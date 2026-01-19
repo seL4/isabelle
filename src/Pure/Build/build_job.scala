@@ -466,7 +466,7 @@ object Build_Job {
             else Some(Event_Timer.request(Time.now() + info.timeout) { process.terminate() })
 
           val build_errors =
-            Isabelle_Thread.interrupt_handler(_ => process.terminate()) {
+            Isabelle_Thread.interrupt_handle(process.terminate()) {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
                   val resources_xml = session.resources.init_session_xml
@@ -485,7 +485,7 @@ object Build_Job {
             }
 
           val result0 =
-            Isabelle_Thread.interrupt_handler(_ => process.terminate()) { process.await_shutdown() }
+            Isabelle_Thread.interrupt_handle(process.terminate()) { process.await_shutdown() }
 
           val was_timeout =
             timeout_request match {

@@ -246,16 +246,16 @@ proof -
     using r jk
     unfolding column_def vec_eq_iff by (simp add: Transposition.transpose_def) 
   have sign_tjk: "sign ?t_jk = -1" using sign_swap_id[of j k] jk by auto
-  {fix x
-    assume x: "x\<in> ?S1"
+  have "sign (?t_jk \<circ> x) \<noteq> sign x" and "(?t_jk \<circ> x) \<in> ?S2" if x: "x\<in> ?S1" for x
+  proof -
     have "sign (?t_jk \<circ> x) = sign (?t_jk) * sign x"
       by (metis (lifting) finite_class.finite_UNIV mem_Collect_eq
           permutation_permutes permutation_swap_id sign_compose x)
     also have "\<dots> = - sign x" using sign_tjk by simp
     also have "\<dots> \<noteq> sign x" unfolding sign_def by simp
-    finally have "sign (?t_jk \<circ> x) \<noteq> sign x" and "(?t_jk \<circ> x) \<in> ?S2"
+    finally show "sign (?t_jk \<circ> x) \<noteq> sign x" and "(?t_jk \<circ> x) \<in> ?S2"
       using x by force+
-  }
+  qed
   hence disjoint: "?S1 \<inter> ?S2 = {}"
     by (force simp: sign_def)
   have PU_decomposition: "?PU = ?S1 \<union> ?S2"

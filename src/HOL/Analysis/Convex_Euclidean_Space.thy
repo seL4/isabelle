@@ -91,13 +91,14 @@ lemma rel_interior: "rel_interior S = {x \<in> S. \<exists>T. open T \<and> x \<
 proof
   show "?lhs \<subseteq> ?rhs"
     by (force simp add: rel_interior_def openin_open)
-  { fix x T
-    assume *: "x \<in> S" "open T" "x \<in> T" "T \<inter> affine hull S \<subseteq> S"
-    then have **: "x \<in> T \<inter> affine hull S"
+  have "\<exists>Tb. (\<exists>Ta. open Ta \<and> Tb = affine hull S \<inter> Ta) \<and> x \<in> Tb \<and> Tb \<subseteq> S"
+    if *: "x \<in> S" "open T" "x \<in> T" "T \<inter> affine hull S \<subseteq> S" for x T
+  proof -
+    from that have **: "x \<in> T \<inter> affine hull S"
       using hull_inc by auto
-    with * have "\<exists>Tb. (\<exists>Ta. open Ta \<and> Tb = affine hull S \<inter> Ta) \<and> x \<in> Tb \<and> Tb \<subseteq> S"
+    with * show ?thesis
       by (rule_tac x = "T \<inter> (affine hull S)" in exI) auto
-  }
+  qed
   then show "?rhs \<subseteq> ?lhs"
     by (force simp add: rel_interior_def openin_open)
 qed
@@ -777,17 +778,17 @@ proof (clarsimp simp: open_contains_cball convex_hull_explicit)
     assume "y \<in> cball ?a (Min i)"
     then have y: "norm (?a - y) \<le> Min i"
       unfolding dist_norm[symmetric] by auto
-    { fix x
-      assume "x \<in> T"
-      then have "Min i \<le> b x"
+    have "x + (y - ?a) \<in> S" if "x \<in> T" for x
+    proof -
+      from that have "Min i \<le> b x"
         by (simp add: i_def obt(1))
       then have "x + (y - ?a) \<in> cball x (b x)"
         using y unfolding mem_cball dist_norm by auto
       moreover have "x \<in> S"
         using \<open>x\<in>T\<close> \<open>T\<subseteq>S\<close> by auto
-      ultimately have "x + (y - ?a) \<in> S"
+      ultimately show ?thesis
         using y b by blast
-    }
+    qed
     moreover
     have *: "inj_on (\<lambda>v. v + (y - ?a)) T"
       unfolding inj_on_def by auto
@@ -1574,15 +1575,16 @@ lemma convex_halfspace_intersection:
   assumes "closed S" "convex S"
   shows "S = \<Inter>{h. S \<subseteq> h \<and> (\<exists>a b. h = {x. inner a x \<le> b})}"
 proof -
-  { fix z
-    assume "\<forall>T. S \<subseteq> T \<and> (\<exists>a b. T = {x. inner a x \<le> b}) \<longrightarrow> z \<in> T"  "z \<notin> S"
-    then have \<section>: "\<And>a b. S \<subseteq> {x. inner a x \<le> b} \<Longrightarrow> z \<in> {x. inner a x \<le> b}"
+  have False
+    if "\<forall>T. S \<subseteq> T \<and> (\<exists>a b. T = {x. inner a x \<le> b}) \<longrightarrow> z \<in> T"  "z \<notin> S" for z
+  proof -
+    from that have *: "\<And>a b. S \<subseteq> {x. inner a x \<le> b} \<Longrightarrow> z \<in> {x. inner a x \<le> b}"
       by blast
     obtain a b where "inner a z < b" "(\<forall>x\<in>S. inner a x > b)"
       using \<open>z \<notin> S\<close> assms separating_hyperplane_closed_point by blast
-    then have False
-      using \<section> [of "-a" "-b"] by fastforce
-  }
+    then show ?thesis
+      using * [of "-a" "-b"] by fastforce
+  qed
   then show ?thesis
     by force
 qed
@@ -1962,7 +1964,8 @@ lemma convex_on_bounded_continuous:
     and "\<forall>x\<in>S. \<bar>f x\<bar> \<le> b"
   shows "continuous_on S f"
 proof -
-  have "\<exists>d>0. \<forall>x'. norm (x' - x) < d \<longrightarrow> \<bar>f x' - f x\<bar> < e" if "x \<in> S" "e > 0" for x and e :: real
+  have "\<exists>d>0. \<forall>x'. norm (x' - x) < d \<longrightarrow> \<bar>f x' - f x\<bar> < e"
+    if "x \<in> S" "e > 0" for x and e :: real
   proof -
     define B where "B = \<bar>b\<bar> + 1"
     then have B:  "0 < B""\<And>x. x\<in>S \<Longrightarrow> \<bar>f x\<bar> \<le> B"
@@ -1985,8 +1988,10 @@ proof -
           unfolding mem_cball dist_norm
           apply (rule order_trans[of _ "2 * norm (x - y)"])
           using as
-          by (auto simp: field_simps norm_minus_commute)
-        {
+           apply (auto simp: field_simps norm_minus_commute)
+          done
+        have "f y - f x < e"
+        proof -
           define w where "w = x + t *\<^sub>R (y - x)"
           have "w \<in> S"
             using \<open>k>0\<close> by (auto simp: dist_norm t_def w_def k[THEN subsetD])
@@ -2005,10 +2010,10 @@ proof -
             by (simp add: w field_simps)
           also have "... < e"
             using B(2)[OF \<open>w\<in>S\<close>] and B(2)[OF \<open>x\<in>S\<close>] 2 \<open>t > 0\<close> by (auto simp: field_simps)
-          finally have th1: "f y - f x < e" .
-        }
-        moreover
-        {
+          finally show ?thesis .
+        qed
+        moreover have "f x - f y < e"
+        proof -
           define w where "w = x - t *\<^sub>R (y - x)"
           have "w \<in> S"
             using \<open>k > 0\<close> by (auto simp: dist_norm t_def w_def k[THEN subsetD])
@@ -2034,8 +2039,8 @@ proof -
             using \<open>t > 0\<close> by (simp add: add_divide_distrib) 
           also have "\<dots> < e + f y"
             using \<open>t > 0\<close> * \<open>e > 0\<close> by (auto simp: field_simps)
-          finally have "f x - f y < e" by auto
-        }
+          finally show ?thesis by auto
+        qed
         ultimately show ?thesis by auto
       qed (use \<open>0<e\<close> in auto)
     qed (use \<open>0<e\<close> \<open>0<k\<close> \<open>0<B\<close> in \<open>auto simp: field_simps\<close>)

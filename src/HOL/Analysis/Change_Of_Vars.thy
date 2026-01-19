@@ -3048,13 +3048,14 @@ proof -
         show "?nf k integrable_on UNIV" for k
           using fag
           unfolding integrable_restrict_UNIV absolutely_integrable_on_def by (simp add: image_UN)
-        { fix n
+        have "integral (g ` ?U n) (norm \<circ> f) = integral (?U n) (norm \<circ> ?D)" for n
+        proof -
           have "(norm \<circ> ?D) absolutely_integrable_on ?U n"
             by (intro absolutely_integrable_norm DU)
-          then have "integral (g ` ?U n) (norm \<circ> f) = integral (?U n) (norm \<circ> ?D)"
+          then show ?thesis
             using iff [of n "vec \<circ> norm \<circ> f" "integral (?U n) (\<lambda>x. \<bar>det (matrix (g' x))\<bar> *\<^sub>R (?lift \<circ> norm \<circ> f) (g x))"]
             unfolding absolutely_integrable_on_1_iff integral_on_1_eq by (auto simp: o_def)
-        }
+        qed
         moreover have "bounded (range (\<lambda>k. integral (?U k) (norm \<circ> ?D)))"
           unfolding bounded_iff
         proof (rule exI, clarify)
@@ -3125,13 +3126,14 @@ proof -
         show "?nD k integrable_on UNIV" for k
           using DUn
           unfolding integrable_restrict_UNIV absolutely_integrable_on_def by (simp add: image_UN)
-        { fix n::nat
+        have "integral (?U n) (norm \<circ> ?D) = integral (g ` ?U n) (norm \<circ> f)" for n::nat
+        proof -
           have "(norm \<circ> f) absolutely_integrable_on (\<Union>m\<le>n. g ` F m)"
             using absolutely_integrable_norm fgU by blast
-          then have "integral (?U n) (norm \<circ> ?D) = integral (g ` ?U n) (norm \<circ> f)"
+          then show ?thesis
             using iff [of n "?lift \<circ> norm \<circ> f" "integral (g ` ?U n) (?lift \<circ> norm \<circ> f)"]
             unfolding absolutely_integrable_on_1_iff integral_on_1_eq image_UN by (auto simp: o_def)
-        }
+        qed
         moreover have "bounded (range (\<lambda>k. integral (g ` ?U k) (norm \<circ> f)))"
           unfolding bounded_iff
         proof (rule exI, clarify)

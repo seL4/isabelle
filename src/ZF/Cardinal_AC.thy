@@ -147,16 +147,17 @@ proof (simp add: K InfCard_is_Card le_Card_iff)
   assume "\<And>i. i\<in>K \<Longrightarrow> X(i) \<lesssim> K"
   hence "\<And>i. i\<in>K \<Longrightarrow> \<exists>f. f \<in> inj(X(i), K)" by (simp add: lepoll_def) 
   with AC_Pi obtain f where f: "f \<in> (\<Prod>i\<in>K. inj(X(i), K))"
-    by force 
-  { fix z
-    assume z: "z \<in> (\<Union>i\<in>K. X(i))"
-    then obtain i where i: "i \<in> K" "Ord(i)" "z \<in> X(i)"
+    by force
+  have mems: "(\<mu> i. z \<in> X(i)) \<in> K" "z \<in> X(\<mu> i. z \<in> X(i))"
+    if "z \<in> (\<Union>i\<in>K. X(i))" for z
+  proof -
+    from that obtain i where i: "i \<in> K" "Ord(i)" "z \<in> X(i)"
       by (blast intro: Ord_in_Ord [of K]) 
     hence "(\<mu> i. z \<in> X(i)) \<le> i" by (fast intro: Least_le) 
     hence "(\<mu> i. z \<in> X(i)) < K" by (best intro: lt_trans1 ltI i) 
-    hence "(\<mu> i. z \<in> X(i)) \<in> K" and "z \<in> X(\<mu> i. z \<in> X(i))"  
+    thus "(\<mu> i. z \<in> X(i)) \<in> K" and "z \<in> X(\<mu> i. z \<in> X(i))"  
       by (auto intro: LeastI ltD i) 
-  } note mems = this
+  qed
   have "(\<Union>i\<in>K. X(i)) \<lesssim> K \<times> K" 
     proof (unfold lepoll_def)
       show "\<exists>f. f \<in> inj(\<Union>RepFun(K, X), K \<times> K)"

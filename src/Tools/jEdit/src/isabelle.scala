@@ -333,34 +333,33 @@ object Isabelle {
     text: String
   ): Unit = {
     val buffer = text_area.getBuffer
-    if (!snapshot.is_outdated && text != "") {
-      (snapshot.find_command(id), Document_Model.get_model(buffer)) match {
-        case (Some((node, command)), Some(model)) if command.node_name == model.node_name =>
-          node.command_start(command) match {
-            case Some(start) =>
-              JEdit_Lib.buffer_edit(buffer) {
-                val range = command.core_range + start
-                JEdit_Lib.buffer_edit(buffer) {
-                  if (padding) {
-                    text_area.moveCaretPosition(start + range.length)
-                    val start_line = text_area.getCaretLine + 1
-                    text_area.setSelectedText("\n" + text)
-                    val end_line = text_area.getCaretLine
-                    for (line <- start_line to end_line) {
-                      Token_Markup.Line_Context.refresh(buffer, line)
-                      buffer.indentLine(line, true)
-                    }
-                  }
-                  else {
-                    buffer.remove(start, range.length)
-                    text_area.moveCaretPosition(start)
-                    text_area.setSelectedText(text)
-                  }
-                }
+    if (!snapshot.is_outdated && text.nonEmpty) {
+      for {
+        command <- snapshot.get_command(id)
+        model <- Document_Model.get_model(buffer)
+        if command.node_name == model.node_name
+        start <- snapshot.command_start(command)
+      } {
+        JEdit_Lib.buffer_edit(buffer) {
+          val range = command.core_range + start
+          JEdit_Lib.buffer_edit(buffer) {
+            if (padding) {
+              text_area.moveCaretPosition(start + range.length)
+              val start_line = text_area.getCaretLine + 1
+              text_area.setSelectedText("\n" + text)
+              val end_line = text_area.getCaretLine
+              for (line <- start_line to end_line) {
+                Token_Markup.Line_Context.refresh(buffer, line)
+                buffer.indentLine(line, true)
               }
-            case None =>
+            }
+            else {
+              buffer.remove(start, range.length)
+              text_area.moveCaretPosition(start)
+              text_area.setSelectedText(text)
+            }
           }
-        case _ =>
+        }
       }
     }
   }
@@ -368,13 +367,45 @@ object Isabelle {
 
   /* formal entities and structure */
 
+  def follow_entity(
+    snapshot: Document.Snapshot,
+    view: View,
+    markup: Markup,
+    test: Boolean = false
+  ): Boolean = {
+    markup.name == Markup.ENTITY && {
+      PIDE.editor.hyperlink_def_position(snapshot, markup.properties, focus = true) match {
+        case Some(link) => if (!test) link.follow(view); true
+        case None => false
+      }
+    }
+  }
+
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
-    for {
-      rendering <- Document_View.get_rendering(text_area)
-      caret_range = JEdit_Lib.caret_range(text_area)
-      link <- rendering.hyperlink_entity(caret_range)
-    } link.info.follow(view)
+    val painter = text_area.getPainter
+
+    for (rendering <- Document_View.get_rendering(text_area)) {
+      val snapshot = rendering.snapshot
+      val caret_range = JEdit_Lib.caret_range(text_area)
+
+      val entities =
+        rendering.hyperlinks_entity(caret_range).iterator
+          .filter(info => follow_entity(snapshot, view, info.info, test = true)).toList
+      entities match {
+        case Nil =>
+        case List(info) => follow_entity(snapshot, view, info.info)
+        case infos =>
+          for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
+            val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
+            val results = snapshot.command_results(caret_range)
+            val output =
+              for (case Text.Info(_, markup@Markup.Entity(kind, name)) <- infos if kind.nonEmpty)
+                yield XML.Elem(markup, XML.string(GUI.Name(name, kind = kind).toString))
+            Pretty_Tooltip(view, painter, loc, rendering, results, output)
+          }
+      }
+    }
   }
 
   def select_entity(text_area: JEditTextArea): Unit = {

@@ -450,9 +450,10 @@ lemma union_is_single:
   "M + N = {#a#} \<longleftrightarrow> M = {#a#} \<and> N = {#} \<or> M = {#} \<and> N = {#a#}"
   (is "?lhs = ?rhs")
 proof
-  show ?lhs if ?rhs using that by auto
-  show ?rhs if ?lhs
-    by (metis Multiset.diff_cancel add.commute add_diff_cancel_left' diff_add_zero diff_single_trivial insert_DiffM that)
+  show "?rhs \<Longrightarrow> ?lhs" by auto
+  show "?lhs \<Longrightarrow> ?rhs"
+    by (metis Multiset.diff_cancel add.commute[of _ M] add_diff_cancel_left' diff_add_zero
+        diff_single_trivial[of a] insert_DiffM[of a])
 qed
 
 lemma single_is_union: "{#a#} = M + N \<longleftrightarrow> {#a#} = M \<and> N = {#} \<or> M = {#} \<and> {#a#} = N"
@@ -1934,14 +1935,14 @@ next
       by (metis add_mset_remove_trivial image_mset_add_mset mset_subset_eq_single
           subset_mset.add_diff_assoc2)
     thus ?thesis
-      using add.IH add.prems by force
+      using add.IH[of "B - {#f x#}" C] add.prems by force
   next
     case False
     with add.prems have "image_mset f A = B + (C - {#f x#})"
       by (metis diff_single_eq_union diff_union_single_conv image_mset_add_mset union_iff
           union_single_eq_member)
     then show ?thesis
-      using add.IH add.prems by force
+      using add.IH[of B "C - {#f x#}"] add.prems by force
   qed
 qed
 
@@ -1957,11 +1958,16 @@ next
   show ?case
   proof (cases "x \<in># B")
     case True
-    with add.prems have "image_mset f A = image_mset f (B - {#x#}) + C"
-      by (smt (verit) add_mset_add_mset_same_iff image_mset_add_mset insert_DiffM union_mset_add_mset_left)
-    with add.IH have "\<exists>M3'. A = B - {#x#} + M3' \<and> image_mset f M3' = C"
-      by (smt (verit, del_insts) True Un_insert_left Un_insert_right add.prems(2) inj_on_insert
-          insert_DiffM set_mset_add_mset_insert)
+    have "\<exists>M3'. A = B - {#x#} + M3' \<and> C = image_mset f M3'"
+    proof (rule add.IH)
+      show "image_mset f A = image_mset f (B - {#x#}) + C"
+        using True add.prems(1)
+        by (smt (verit) add_mset_add_mset_same_iff image_mset_add_mset insert_DiffM union_mset_add_mset_left)
+    next
+      show "inj_on f (set_mset A \<union> set_mset (B - {#x#}))"
+        using \<open>inj_on f (set_mset (add_mset x A) \<union> set_mset B)\<close>
+        by (rule inj_on_subset) (use in_diffD in fastforce)
+    qed
     with True show ?thesis
       by auto
   next
@@ -4447,7 +4453,8 @@ instantiation multiset :: (equal) equal
 begin
 
 definition
-  [code del]: "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
+  "HOL.equal A (B :: 'a multiset) \<longleftrightarrow> A = B"
+
 lemma [code]: "HOL.equal (mset xs) (mset ys) \<longleftrightarrow> subset_eq_mset_impl xs ys = Some False"
   unfolding equal_multiset_def
   using subset_eq_mset_impl[of xs ys] by (cases "subset_eq_mset_impl xs ys", auto)
@@ -4651,12 +4658,15 @@ proof -
       (auto simp: finite_iff_ordLess_natLeq[symmetric])
   show "rel_mset R OO rel_mset S \<le> rel_mset (R OO S)" for R S
     unfolding rel_mset_def[abs_def] OO_def
-    by (smt (verit, ccfv_SIG) list_all2_reorder_left_invariance list_all2_trans predicate2I)
+    by (rule predicate2I)
+      (smt (verit, ccfv_SIG) list_all2_reorder_left_invariance list_all2_trans)
   show "rel_mset R =
     (\<lambda>x y. \<exists>z. set_mset z \<subseteq> {(x, y). R x y} \<and>
     image_mset fst z = x \<and> image_mset snd z = y)" for R
     unfolding rel_mset_def[abs_def]
-    by (metis (no_types, lifting) ex_mset list.in_rel mem_Collect_eq mset_map set_mset_mset)
+    by (intro ext)
+      (metis (lifting) ex_mset list.in_rel[of R] mem_Collect_eq set_mset_mset
+        mset_map[of snd] mset_map[of fst])
   show "pred_mset P = (\<lambda>x. Ball (set_mset x) P)" for P
     by (simp add: fun_eq_iff pred_mset_iff)
 qed auto
