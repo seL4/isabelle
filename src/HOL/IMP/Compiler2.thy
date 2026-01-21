@@ -196,15 +196,12 @@ lemma acomp_succs [simp]:
 by (induct a arbitrary: n) auto
 
 lemma acomp_size:
-  "(1::int) \<le> size (acomp a)"
+  "1 \<le> size (acomp a)"
 by (induction a) auto
 
 lemma acomp_exits [simp]:
   "exits (acomp a) = {size (acomp a)}"
-proof -
-  show ?thesis
-    using acomp_size by (auto simp add: exits_def)
-qed
+using acomp_size by (auto simp add: exits_def)
 
 lemma bcomp_succs:
   "0 \<le> i \<Longrightarrow>
