@@ -286,8 +286,7 @@ fun add_static context {strict, index} (b, ths) (Facts {facts, props}) =
       if Binding.is_empty b then ("", facts)
       else Name_Space.define context strict (b, Static ths') facts;
     val props' =
-      if index then
-        props |> fold (add_prop (Binding.pos_of (Binding.default_pos b))) (Lazy.force ths')
+      if index then props |> fold (add_prop (Binding.default_pos_of b)) (Lazy.force ths')
       else props;
   in (name, make_facts facts' props') end;
 
