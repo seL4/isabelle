@@ -2514,13 +2514,16 @@ fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
 
 fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
 
+val mk_bound_names : int -> (string * string) list =
+  map_range (`I o make_bound_var o string_of_int o curry (op +) 1)
+
 fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
     (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
     val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
-    val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
+    val bound_names = mk_bound_names ary
     val bounds = map2 (fn name => fn T => IConst (name, T, [])) bound_names arg_Ts
     val bound_Ts =
       (case level_of_type_enc type_enc of
@@ -2556,7 +2559,7 @@ fun lines_of_tags_sym_decl ctxt generate_isabelle_info mono type_enc n s
       (if n > 1 then "_" ^ string_of_int j else "")
     val (role, maybe_negate) = honor_conj_sym_role in_conj
     val (arg_Ts, res_T) = chop_fun ary T
-    val bound_names = 1 upto ary |> map (`I o make_bound_var o string_of_int)
+    val bound_names = mk_bound_names ary
     val bounds = bound_names |> map (fn name => ATerm ((name, []), []))
     val cst = mk_aterm type_enc (s, s') T_args
     val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) [] pred_sym
@@ -2680,8 +2683,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_
           base_name |> ary - 1 > base_ary ? aliased_uncurried (ary - 1)
         val name2 as (s2, _) = base_name |> aliased_uncurried ary
         val (arg_Ts, _) = chop_fun ary T
-        val bound_names =
-          1 upto ary |> map (`I o make_bound_var o string_of_int)
+        val bound_names = mk_bound_names ary
         val bounds = bound_names ~~ arg_Ts
         val (first_bounds, last_bound) =
           bounds |> map (fn (name, T) => IConst (name, T, [])) |> split_last
