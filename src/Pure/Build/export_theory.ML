@@ -190,8 +190,8 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
     fun entity_markup space name =
       let
         val xname = Name_Space.extern_shortest thy_ctxt space name;
-        val {serial, pos, ...} = Name_Space.the_entry space name;
-      in make_entity_markup name xname pos serial end;
+        val entry as {serial, ...} = Name_Space.the_entry space name;
+      in make_entity_markup name xname (Name_Space.entry_pos entry) serial end;
 
     fun export_entities export_name get_space decls export =
       let
@@ -296,7 +296,7 @@ val _ = (Theory.setup o Thy_Info.add_presentation) (fn context => fn thy =>
       let
         val space = Global_Theory.fact_space thy;
         val xname = Name_Space.extern_shortest thy_ctxt space name;
-        val {pos, ...} = Name_Space.the_entry space name;
+        val pos = Name_Space.entry_pos (Name_Space.the_entry space name);
       in make_entity_markup (Thm_Name.print (name, i)) (Thm_Name.print (xname, i)) pos serial end;
 
     fun encode_thm thm_id raw_thm =

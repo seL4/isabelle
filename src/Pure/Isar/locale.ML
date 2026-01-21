@@ -616,7 +616,7 @@ fun amend_registration {mixin = NONE, ...} context = context
 fun add_registration {inst = (name, base_morph), mixin, export} context =
   let
     val thy = Context.theory_of context;
-    val pos_morph = Morphism.binding_morphism "position" (Binding.set_pos (Position.thread_data ()));
+    val pos_morph = Morphism.binding_morphism "position" (Binding.new_pos (Position.thread_data ()));
     val mix_morph = (case mixin of NONE => base_morph | SOME (mix, _) => base_morph $> mix);
     val inst = instance_of thy name mix_morph;
     val idents = Idents.get context;

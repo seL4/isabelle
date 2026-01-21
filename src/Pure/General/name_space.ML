@@ -14,13 +14,16 @@ sig
   val markup: T -> string -> Markup.T
   val markup_def: T -> string -> Markup.T
   val get_names: T -> string list
-  val the_entry: T -> string ->
+  type entry =
    {concealed: bool,
     suppress: bool list,
     group: serial,
     theory_long_name: string,
-    pos: Position.T,
+    pos_history: Position.T list,
     serial: serial}
+  val entry_pos: entry -> Position.T
+  val the_entry: T -> string -> entry
+  val the_entry_pos: T -> string -> Position.T
   val theory_name: {long: bool} -> T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
@@ -111,11 +114,14 @@ type entry =
   suppress: bool list,
   group: serial,
   theory_long_name: string,
-  pos: Position.T,
+  pos_history: Position.T list,
   serial: serial};
 
+fun entry_pos (entry: entry) =
+  (case #pos_history entry of [] => Position.none | pos :: _ => pos);
+
 fun markup_entry def kind (name, entry: entry) =
-  Position.make_entity_markup def (#serial entry) kind (name, #pos entry);
+  Position.make_entity_markup def (#serial entry) kind (name, entry_pos entry);
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (markup_entry {def = false} kind (name, entry)) name);
@@ -128,7 +134,7 @@ fun update_entry strict kind (name, entry: entry) entries =
   (if strict then Change_Table.update_new else Change_Table.update) (name, entry) entries
     handle Change_Table.DUP _ =>
       let val old_entry = the (Change_Table.lookup entries name)
-      in err_dup_entry kind (name, old_entry) (name, entry) (#pos entry) end;
+      in err_dup_entry kind (name, old_entry) (name, entry) (entry_pos entry) end;
 
 
 (* internal names *)
@@ -256,6 +262,8 @@ fun the_entry space name =
   (case lookup_entries space name of
     SOME entry => entry
   | _ => error (undefined_entry space name));
+
+val the_entry_pos = entry_pos oo the_entry;
 
 fun get_names (Name_Space {entries, ...}) =
   Change_Table.fold (cons o #1) entries [];
@@ -580,12 +588,13 @@ fun declare context strict binding space =
     val accesses = make_accesses {intern = true} restriction (suppress, name);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
+    val pos_history = binding |> not proper_pos ? Binding.new_pos pos |> Binding.pos_history_of;
     val entry: entry =
      {concealed = #concealed name_spec,
       suppress = suppress,
       group = group,
       theory_long_name = theory_long_name,
-      pos = pos,
+      pos_history = pos_history,
       serial = serial ()};
     val space' =
       space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
