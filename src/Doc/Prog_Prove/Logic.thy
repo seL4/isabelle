@@ -82,7 +82,7 @@ The ASCII representation of \<open>\<lbrakk>\<close> and \<open>\<rbrakk>\<close
 \section{Sets}
 \label{sec:Sets}
 
-Sets of elements of type \<^typ>\<open>'a\<close> have type \<^typ>\<open>'a set\<close>\index{set@\<open>set\<close>}.
+Sets of elements of type \<^typ>\<open>'a\<close> have type \<^typ>\<open>'a set\<close>\index{set@\<open>set\<close> (type)}.
 They can be finite or infinite. Sets come with the usual notation:
 \begin{itemize}
 \item \indexed{\<^term>\<open>{}\<close>}{$IMP042},\quad \<open>{e\<^sub>1,\<dots>,e\<^sub>n}\<close>
@@ -134,7 +134,7 @@ If \texttt{A} is \texttt{UNIV} you can write \ \texttt{UN x.~B} \ and \ \texttt{
 Some other frequently useful functions on sets are the following:
 \begin{center}
 \begin{tabular}{l@ {\quad}l}
-@{const_typ set}\index{set@\<^const>\<open>set\<close>} & converts a list to the set of its elements\\
+@{const_typ set}\index{set@\<^const>\<open>set\<close> (constant)} & converts a list to the set of its elements\\
 @{const_typ finite}\index{finite@\<^const>\<open>finite\<close>} & is true iff its argument is finite\\
 \noquotes{@{term[source] "card :: 'a set \<Rightarrow> nat"}}\index{card@\<^const>\<open>card\<close>} & is the cardinality of a finite set\\
  & and is \<open>0\<close> for all infinite sets\\
