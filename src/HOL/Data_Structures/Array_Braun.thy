@@ -677,11 +677,11 @@ corollary list_fast_correct:
 paragraph "Running Time Analysis"
 
 lemma sum_tree_list_children: "\<forall>t \<in> set ts. t \<noteq> Leaf \<Longrightarrow>
-  (\<Sum>t\<leftarrow>ts. k * size t) = (\<Sum>t \<leftarrow> map left ts @ map right ts. k * size t) + k * length ts"
+  (\<Sum>t\<leftarrow>ts. size t) = (\<Sum>t \<leftarrow> map left ts @ map right ts. size t) + length ts"
   by(induction ts)(auto simp add: neq_Leaf_iff algebra_simps)
 
 theorem T_list_fast_rec_ub:
-  "T_list_fast_rec ts \<le> sum_list (map (\<lambda>t. 14*size t + 1) ts) + 2"
+  "T_list_fast_rec ts \<le> 14 * sum_list (map size ts) + length ts + 2"
 proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
   case (less ts)
   let ?us = "filter (\<lambda>t. t \<noteq> Leaf) ts"
@@ -697,19 +697,15 @@ proof (induction ts rule: measure_induct_rule[where f="sum_list o map size"])
       using \<open>?us \<noteq> []\<close> linorder_not_less by auto
     have "T_list_fast_rec ts = T_list_fast_rec ?children + 5 * length ?us + length ts + 7"
       using \<open>?us \<noteq> []\<close> T_list_fast_rec.simps[of ts] by(simp add: defs T_append)
-    also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 14 * size t + 1) + 5 * length ?us + length ts + 9"
+    also have "\<dots> \<le> 14*(\<Sum>t\<leftarrow>?children. size t) + 7 * length ?us + length ts + 9"
       using less[of "?children"] list_fast_rec_term[of "?us"] \<open>?us \<noteq> []\<close>
       by (simp)
-    also have "\<dots> = (\<Sum>t\<leftarrow>?children. 14 * size t) + 7 * length ?us + length ts + 9"
-      by(simp add: sum_list_Suc o_def)
-    also have "\<dots> \<le> (\<Sum>t\<leftarrow>?children. 14 * size t) + 14 * length ?us + length ts + 2"
-      using 1 by(simp add: sum_list_Suc o_def)
-    also have "\<dots> = (\<Sum>t\<leftarrow>?us. 14 * size t) + length ts + 2"
+    also have "\<dots> \<le> 14 * (\<Sum>t\<leftarrow>?children. size t) + 14 * length ?us + length ts + 2"
+      using 1 by(simp)
+    also have "\<dots> = 14 * (\<Sum>t\<leftarrow>?us. size t) + length ts + 2"
       by(simp add: sum_tree_list_children)
-    also have "\<dots> \<le> (\<Sum>t\<leftarrow>ts. 14 * size t) + length ts + 2"
+    also have "\<dots> \<le> 14 * (\<Sum>t\<leftarrow>ts. size t) + length ts + 2"
       by(simp add: sum_list_filter_le_nat)
-    also have "\<dots> = (\<Sum>t\<leftarrow>ts. 14 * size t + 1) + 2"
-      by(simp add: sum_list_Suc)
     finally show ?case .
   qed
 qed
