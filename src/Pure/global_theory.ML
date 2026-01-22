@@ -198,7 +198,7 @@ fun get_thm_name thy ((name, i), pos) =
   let
     val facts = facts_of thy;
     fun print_name () =
-      Facts.markup_extern (Proof_Context.init_global thy) facts name |-> Markup.markup;
+      Facts.markups_extern (Proof_Context.init_global thy) facts name |-> Markup.markups;
   in
     (case (Facts.lookup (Context.Theory thy) facts name, i) of
       (NONE, _) => error ("Undefined fact " ^ quote (print_name ()) ^ Position.here pos)

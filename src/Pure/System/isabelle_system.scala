@@ -564,6 +564,16 @@ object Isabelle_System {
     external
   }
 
+  def macos_version(): Int =
+    if (Platform.is_macos) {
+      val Version = """^(\d+).*""".r
+      bash("sw_vers -productVersion").check.out match {
+        case Version(Value.Int(x)) => x
+        case s => error("Malformed macOS version: " + quote(s))
+      }
+    }
+    else 0
+
 
 
   /** Isabelle resources **/

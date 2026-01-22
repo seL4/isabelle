@@ -2,8 +2,6 @@
     Author:     Makarius
 
 Build Poly/ML from sources.
-
-Note: macOS 14 Sonoma requires "LDFLAGS=... -ld64".
 */
 
 package isabelle
@@ -11,6 +9,9 @@ package isabelle
 
 object Component_PolyML {
   /** platform information **/
+
+  def ld64_flags(): Option[String] =
+    if (Isabelle_System.macos_version() >= 14) Some("LDFLAGS=-ld64") else None
 
   object Platform_Info {
     def apply(platform: Isabelle_Platform): Platform_Info =
@@ -24,7 +25,7 @@ object Component_PolyML {
       else if (platform.is_macos) {
         Platform_Info(
           platform = platform,
-          gmp_options = List("CFLAGS=-std=gnu17"),
+          gmp_options = List("CFLAGS=-std=gnu17") ::: ld64_flags().toList,
           options = List("CFLAGS=-O3", "CXXFLAGS=-O3", "LDFLAGS=-segprot POLY rwx rwx"),
           setup = "PATH=/usr/bin:/bin:/usr/sbin:/sbin",
           libs = Set("libpolyml", "libgmp"))

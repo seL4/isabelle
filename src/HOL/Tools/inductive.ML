@@ -238,8 +238,8 @@ fun print_inductives verbose ctxt =
     [Pretty.block
       (Pretty.breaks
         (Pretty.str "(co)inductives:" ::
-          map (Pretty.mark_str o #1)
-            (Name_Space.markup_entries verbose ctxt space consts))),
+          map (Pretty.marks_str o #1)
+            (Name_Space.markups_entries verbose ctxt space consts))),
      Pretty.big_list "monotonicity rules:" (map (Thm.pretty_thm_item ctxt) monos)]
   end |> Pretty.chunks |> Pretty.writeln;
 

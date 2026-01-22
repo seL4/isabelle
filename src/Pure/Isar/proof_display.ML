@@ -44,7 +44,7 @@ fun pretty_theory verbose ctxt =
     val prt_typ_no_tvars = prt_typ o Logic.unvarifyT_global;
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify_global;
-    fun prt_const (c, ty) = [Pretty.mark_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+    fun prt_const (c, ty) = [Pretty.marks_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
@@ -88,10 +88,10 @@ fun pretty_theory verbose ctxt =
       Name_Space.extern_entries verbose ctxt type_space (Symtab.dest arities)
       |> map (apfst #1);
 
-    val cnsts = Name_Space.markup_entries verbose ctxt const_space constants;
+    val cnsts = Name_Space.markups_entries verbose ctxt const_space constants;
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = Name_Space.markup_entries verbose ctxt const_space constraints;
+    val cnstrs = Name_Space.markups_entries verbose ctxt const_space constraints;
   in
     Pretty.chunks
      [Pretty.big_list "classes:" (map pretty_classrel clsses),
@@ -104,7 +104,7 @@ fun pretty_theory verbose ctxt =
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.block
         (Pretty.breaks (Pretty.str "oracles:" ::
-          map Pretty.mark_str (Thm.extern_oracles verbose ctxt)))]
+          map Pretty.marks_str (Thm.extern_oracles verbose ctxt)))]
   end;
 
 

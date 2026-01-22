@@ -96,7 +96,7 @@ fun abs_def_rule eqns ctxt =
 fun note_eqns_register note add_registration
     deps eqnss witss def_eqns thms export export' ctxt =
   let
-    val factss = thms
+    val factss: Attrib.fact list list = thms
       |> unflat ((map o map) #1 eqnss)
       |> map2 (map2 (fn b => fn eq =>
           (b, [([Morphism.thm export (Thm.transfer' ctxt eq)], [])]))) ((map o map) #1 eqnss);

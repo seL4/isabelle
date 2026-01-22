@@ -105,12 +105,12 @@ fun pretty_bundle ctxt (markup_name, bundle) =
     fun prt_thms (ths, []) = map prt_thm ths
       | prt_thms (ths, atts) = map (prt_thm_attribs atts) ths;
   in
-    Pretty.block ([Pretty.keyword1 "bundle", Pretty.str " ", Pretty.mark_str markup_name] @
+    Pretty.block ([Pretty.keyword1 "bundle", Pretty.str " ", Pretty.marks_str markup_name] @
       (if null bundle then [] else Pretty.fbreaks (Pretty.str " =" :: maps prt_thms bundle)))
   end;
 
 fun print_bundles verbose ctxt =
-  Name_Space.markup_table verbose ctxt (get_all ctxt)
+  Name_Space.markups_table verbose ctxt (get_all ctxt)
   |> map (pretty_bundle ctxt)
   |> Pretty.chunks
   |> Pretty.writeln;
@@ -241,7 +241,7 @@ fun pretty binding lthy =
       |> conclude {open_bundle = false, invisible = true} binding;
     val thy_ctxt' = Proof_Context.init_global (Proof_Context.theory_of lthy');
     val markup_name =
-      Name_Space.markup_extern thy_ctxt' (Name_Space.space_of_table (get_all thy_ctxt')) name;
+      Name_Space.markups_extern thy_ctxt' (Name_Space.space_of_table (get_all thy_ctxt')) name;
   in [pretty_bundle lthy' (markup_name, bundle)] end;
 
 fun bundle_notes kind facts lthy =

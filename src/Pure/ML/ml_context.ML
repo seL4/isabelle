@@ -88,7 +88,7 @@ fun add_antiquotation_embedded name antiquotation =
 
 fun print_antiquotations verbose ctxt =
   Pretty.big_list "ML antiquotations:"
-    (map (Pretty.mark_str o #1) (Name_Space.markup_table verbose ctxt (get_antiquotations ctxt)))
+    (map (Pretty.marks_str o #1) (Name_Space.markups_table verbose ctxt (get_antiquotations ctxt)))
   |> Pretty.writeln;
 
 fun apply_antiquotation range src ctxt =

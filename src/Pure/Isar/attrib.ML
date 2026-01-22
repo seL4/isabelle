@@ -108,12 +108,12 @@ val get_attributes = Attributes.get o Context.Proof;
 fun print_attributes verbose ctxt =
   let
     val attribs = get_attributes ctxt;
-    fun prt_attr (name, (_, "")) = Pretty.mark_str name
+    fun prt_attr (name, (_, "")) = Pretty.marks_str name
       | prt_attr (name, (_, comment)) =
           Pretty.block
-            (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
+            (Pretty.marks_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markup_table verbose ctxt attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.markups_table verbose ctxt attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -415,12 +415,12 @@ fun print_options verbose ctxt =
   let
     fun prt (name, config) =
       let val value = Config.get ctxt config in
-        Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
+        Pretty.block [Pretty.marks_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
           Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
     val space = attribute_space (Context.Proof ctxt);
     val configs =
-      Name_Space.markup_entries verbose ctxt space
+      Name_Space.markups_entries verbose ctxt space
         (Symtab.dest (Configs.get (Proof_Context.theory_of ctxt)));
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 

@@ -11,16 +11,19 @@ sig
   type T
   val empty: string -> T
   val kind_of: T -> string
-  val markup: T -> string -> Markup.T
-  val markup_def: T -> string -> Markup.T
+  val markups: T -> string -> Markup.T list
+  val markups_def: T -> string -> Markup.T list
   val get_names: T -> string list
-  val the_entry: T -> string ->
+  type entry =
    {concealed: bool,
     suppress: bool list,
     group: serial,
     theory_long_name: string,
-    pos: Position.T,
+    pos_history: Position.T list,
     serial: serial}
+  val entry_pos: entry -> Position.T
+  val the_entry: T -> string -> entry
+  val the_entry_pos: T -> string -> Position.T
   val theory_name: {long: bool} -> T -> string -> string
   val entry_ord: T -> string ord
   val is_concealed: T -> string -> bool
@@ -32,7 +35,7 @@ sig
   val extern: Proof.context -> T -> string -> xstring
   val extern_ord: Proof.context -> T -> string ord
   val extern_shortest: Proof.context -> T -> string -> xstring
-  val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
+  val markups_extern: Proof.context -> T -> string -> Markup.T list * xstring
   val pretty: Proof.context -> T -> string -> Pretty.T
   val completion: Context.generic -> T -> (string -> bool) -> xstring * Position.T -> Completion.T
   val merge: T * T -> T
@@ -92,10 +95,10 @@ sig
     'a table * 'a table -> 'a table
   val extern_entries: bool -> Proof.context -> T -> (string * 'a) list ->
     ((string * xstring) * 'a) list
-  val markup_entries: bool -> Proof.context -> T -> (string * 'a) list ->
-    ((Markup.T * xstring) * 'a) list
+  val markups_entries: bool -> Proof.context -> T -> (string * 'a) list ->
+    ((Markup.T list * xstring) * 'a) list
   val extern_table: bool -> Proof.context -> 'a table -> ((string * xstring) * 'a) list
-  val markup_table: bool -> Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
+  val markups_table: bool -> Proof.context -> 'a table -> ((Markup.T list * xstring) * 'a) list
 end;
 
 structure Name_Space: NAME_SPACE =
@@ -111,14 +114,20 @@ type entry =
   suppress: bool list,
   group: serial,
   theory_long_name: string,
-  pos: Position.T,
+  pos_history: Position.T list,
   serial: serial};
 
-fun markup_entry def kind (name, entry: entry) =
-  Position.make_entity_markup def (#serial entry) kind (name, #pos entry);
+fun entry_pos (entry: entry) =
+  (case #pos_history entry of [] => Position.none | pos :: _ => pos);
+
+fun markup_entry_pos def kind (name, entry: entry) pos =
+  Position.make_entity_markup def (#serial entry) kind (name, pos);
+
+fun markups_entry def kind (name, entry: entry) =
+  map (markup_entry_pos def kind (name, entry)) (#pos_history entry);
 
 fun print_entry_ref kind (name, entry) =
-  quote (Markup.markup (markup_entry {def = false} kind (name, entry)) name);
+  quote (Markup.markup (markup_entry_pos {def = false} kind (name, entry) (entry_pos entry)) name);
 
 fun err_dup_entry kind entry1 entry2 pos =
   error ("Duplicate " ^ plain_words kind ^ " declaration " ^
@@ -128,7 +137,7 @@ fun update_entry strict kind (name, entry: entry) entries =
   (if strict then Change_Table.update_new else Change_Table.update) (name, entry) entries
     handle Change_Table.DUP _ =>
       let val old_entry = the (Change_Table.lookup entries name)
-      in err_dup_entry kind (name, old_entry) (name, entry) (#pos entry) end;
+      in err_dup_entry kind (name, old_entry) (name, entry) (entry_pos entry) end;
 
 
 (* internal names *)
@@ -233,13 +242,13 @@ fun is_alias space c a =
 fun get_aliases space name =
   lookup_aliases space name @ [suppress_entry space name];
 
-fun gen_markup def space name =
+fun gen_markups def space name =
   (case lookup_entries space name of
-    NONE => Markup.intensify
-  | SOME entry => markup_entry def (kind_of space) (name, entry));
+    NONE => [Markup.intensify]
+  | SOME entry => markups_entry def (kind_of space) (name, entry));
 
-val markup = gen_markup {def = false};
-val markup_def = gen_markup {def = true};
+val markups = gen_markups {def = false};
+val markups_def = gen_markups {def = true};
 
 fun undefined_entry (space as Name_Space {kind, entries, ...}) bad =
   let
@@ -247,7 +256,7 @@ fun undefined_entry (space as Name_Space {kind, entries, ...}) bad =
       (case Long_Name.dest_hidden bad of
         SOME name =>
           if Change_Table.defined entries name
-          then ("Inaccessible", Markup.markup (markup space name) (quote name))
+          then ("Inaccessible", Markup.markups (markups space name) (quote name))
           else ("Undefined", quote name)
       | NONE => ("Undefined", quote bad));
   in prfx ^ " " ^ plain_words kind ^ ": " ^ sfx end;
@@ -256,6 +265,8 @@ fun the_entry space name =
   (case lookup_entries space name of
     SOME entry => entry
   | _ => error (undefined_entry space name));
+
+val the_entry_pos = entry_pos oo the_entry;
 
 fun get_names (Name_Space {entries, ...}) =
   Change_Table.fold (cons o #1) entries [];
@@ -334,8 +345,8 @@ fun extern_shortest ctxt =
       |> Config.put names_short false
       |> Config.put names_unique false);
 
-fun markup_extern ctxt space name = (markup space name, extern ctxt space name);
-fun pretty ctxt space name = Pretty.mark_str (markup_extern ctxt space name);
+fun markups_extern ctxt space name = (markups space name, extern ctxt space name);
+fun pretty ctxt space name = Pretty.marks_str (markups_extern ctxt space name);
 
 
 (* completion *)
@@ -580,12 +591,13 @@ fun declare context strict binding space =
     val accesses = make_accesses {intern = true} restriction (suppress, name);
 
     val (proper_pos, pos) = Position.default (Binding.pos_of binding);
+    val pos_history = binding |> not proper_pos ? Binding.new_pos pos |> Binding.pos_history_of;
     val entry: entry =
      {concealed = #concealed name_spec,
       suppress = suppress,
       group = group,
       theory_long_name = theory_long_name,
-      pos = pos,
+      pos_history = pos_history,
       serial = serial ()};
     val space' =
       space |> map_name_space (fn (kind, internals, internals_hidden, entries, aliases) =>
@@ -595,7 +607,7 @@ fun declare context strict binding space =
         in (kind, internals', internals_hidden, entries', aliases) end);
     val _ =
       if proper_pos andalso Context_Position.is_reported_generic context pos then
-        Position.report pos (markup_entry {def = true} (kind_of space) (name, entry))
+        Position.reports (map (pair pos) (markups_entry {def = true} (kind_of space) (name, entry)))
       else ();
   in (name, space') end;
 
@@ -617,9 +629,10 @@ fun check_reports context (Table (space, tab)) (xname, ps) =
     (case Change_Table.lookup tab name of
       SOME x =>
         let
-          val reports =
-            filter (Context_Position.is_reported_generic context) ps
-            |> map (fn pos => (pos, markup space name));
+          val reports = ps |> maps (fn pos =>
+            if Context_Position.is_reported_generic context pos
+            then map (pair pos) (markups space name)
+            else []);
         in ((name, reports), x) end
     | NONE =>
         error (undefined_entry space name ^ Position.here_list ps ^
@@ -686,14 +699,14 @@ fun extern_entries verbose ctxt space entries =
       cons ((name, extern ctxt space name), x)) entries []
   |> sort_by (#2 o #1);
 
-fun markup_entries verbose ctxt space entries =
+fun markups_entries verbose ctxt space entries =
   extern_entries verbose ctxt space entries
-  |> map (fn ((name, xname), x) => ((markup space name, xname), x));
+  |> map (fn ((name, xname), x) => ((markups space name, xname), x));
 
 fun extern_table verbose ctxt (Table (space, tab)) =
   extern_entries verbose ctxt space (Change_Table.dest tab);
 
-fun markup_table verbose ctxt (Table (space, tab)) =
-  markup_entries verbose ctxt space (Change_Table.dest tab);
+fun markups_table verbose ctxt (Table (space, tab)) =
+  markups_entries verbose ctxt space (Change_Table.dest tab);
 
 end;

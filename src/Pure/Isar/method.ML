@@ -390,12 +390,12 @@ fun finish_text (NONE, immed) = Basic (finish immed)
 fun print_methods verbose ctxt =
   let
     val meths = get_methods (Context.Proof ctxt);
-    fun prt_meth (name, (_, "")) = Pretty.mark_str name
+    fun prt_meth (name, (_, "")) = Pretty.marks_str name
       | prt_meth (name, (_, comment)) =
           Pretty.block
-            (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
+            (Pretty.marks_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
-    [Pretty.big_list "methods:" (map prt_meth (Name_Space.markup_table verbose ctxt meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.markups_table verbose ctxt meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 

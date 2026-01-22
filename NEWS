@@ -7,6 +7,13 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Formal entities record more position information, from the history of
+locale interpretations etc. This results in multiple PIDE markup, which
+can be displayed to end-users as hyperlinks with multiple choices.
+
+
 *** Pure ***
 
 * Code generation: non-overloaded function specifications for a class
@@ -18,6 +25,9 @@ parameter.
 
 
 *** Isabelle/jEdit Prover IDE ***
+
+* Tooltip messages render formal entities with additional PIDE markup,
+to distinguish multiple def-positions due to locale interpretations etc.
 
 * Console/Scala: more robust Scala_Console.Progress with local output
 and interrupt handling (using thread interrupt, e.g. via "Stop" button).
