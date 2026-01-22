@@ -1865,6 +1865,11 @@ lemma card_Un_disjoint: "finite A \<Longrightarrow> finite B \<Longrightarrow> A
 lemma card_Un_disjnt: "\<lbrakk>finite A; finite B; disjnt A B\<rbrakk> \<Longrightarrow> card (A \<union> B) = card A + card B"
   by (simp add: card_Un_disjoint disjnt_def)
 
+lemma card_sym_diff_finite:
+  assumes "finite A" "finite B"
+  shows "card (sym_diff A B) = card (A-B) + card (B-A)"
+  by (simp add: assms card_Un_disjnt disjnt_Diff2)
+
 lemma card_Un_le: "card (A \<union> B) \<le> card A + card B"
 proof (cases "finite A \<and> finite B")
   case True
@@ -1965,6 +1970,23 @@ qed auto
 
 lemma card_psubset: "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> card A < card B \<Longrightarrow> A < B"
   by (erule psubsetI) blast
+
+lemma card_add_diff_finite:
+  assumes "finite A" "finite B"
+  shows "card A + card (B-A) = card B + card (A-B)"
+proof -
+  from assms have fi: "finite (A \<inter> B)"
+    by simp
+  have "card (B-A) = card B - card (A \<inter> B)"
+    using fi card_Diff_subset_Int[of B A]  by (simp add: Int_commute)
+  also have "card (A-B) = card A - card (A \<inter> B)"
+    using fi card_Diff_subset_Int by blast
+  moreover have "card A + (card B - card (A \<inter> B)) = card B + (card A - card (A \<inter> B))"
+    using assms card_mono [of concl: "A \<inter> B" B] card_mono [of concl: "A \<inter> B" A]
+    by (simp flip: Nat.diff_add_assoc)
+  ultimately show ?thesis 
+    by simp
+qed
 
 lemma card_le_inj:
   assumes fA: "finite A"
@@ -3087,22 +3109,22 @@ proposition finite_image_absD: "finite (abs ` S) \<Longrightarrow> finite S"
 subsection \<open>The finite powerset operator\<close>
 
 definition Fpow :: "'a set \<Rightarrow> 'a set set"
-where "Fpow A \<equiv> {X. X \<subseteq> A \<and> finite X}"
+  where "Fpow A \<equiv> {X. X \<subseteq> A \<and> finite X}"
 
 lemma Fpow_mono: "A \<subseteq> B \<Longrightarrow> Fpow A \<subseteq> Fpow B"
-unfolding Fpow_def by auto
+  unfolding Fpow_def by auto
 
 lemma empty_in_Fpow: "{} \<in> Fpow A"
-unfolding Fpow_def by auto
+  unfolding Fpow_def by auto
 
 lemma Fpow_not_empty: "Fpow A \<noteq> {}"
-using empty_in_Fpow by blast
+  using empty_in_Fpow by blast
 
 lemma Fpow_subset_Pow: "Fpow A \<subseteq> Pow A"
-unfolding Fpow_def by auto
+  unfolding Fpow_def by auto
 
 lemma Fpow_Pow_finite: "Fpow A = Pow A Int {A. finite A}"
-unfolding Fpow_def Pow_def by blast
+  unfolding Fpow_def Pow_def by blast
 
 lemma inj_on_image_Fpow:
   assumes "inj_on f A"
@@ -3113,6 +3135,6 @@ lemma inj_on_image_Fpow:
 lemma image_Fpow_mono:
   assumes "f ` A \<subseteq> B"
   shows "(image f) ` (Fpow A) \<subseteq> Fpow B"
-  using assms by(unfold Fpow_def, auto)
+  using assms by (auto simp: Fpow_def)
 
 end

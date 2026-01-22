@@ -2287,6 +2287,9 @@ next
     using Suc by auto
 qed
 
+lemma order_linear[simp]: "order x [:-y, 1:] = (if x=y then 1 else 0)"
+  by (auto simp add:order_power_n_n[where n=1,simplified] order_0I)
+
 lemma order_0_monom [simp]: "c \<noteq> 0 \<Longrightarrow> order 0 (monom c n) = n"
   using order_power_n_n[of 0 n] by (simp add: monom_altdef order_smult)
 
@@ -2446,6 +2449,19 @@ qed auto
 
 end
 
+lemma proots_empty: "proots p = {#} \<longleftrightarrow> p = 0 \<or> (\<forall>x. poly p x \<noteq> 0)"
+proof 
+  show "proots p = {#} \<Longrightarrow> p = 0 \<or> (\<forall>x. poly p x \<noteq> 0)"
+    using order_root count_empty count_proots by metis
+next
+  have "(\<forall>x. poly p x \<noteq> 0) \<Longrightarrow> proots p = {#}"
+    by (simp add: multiset_eqI order_root)
+  then show "p = 0 \<or> (\<forall>x. poly p x \<noteq> 0) \<Longrightarrow> proots p = {#}"
+    by auto
+qed
+
+lemma proots_element: "x \<in># proots p \<or> p = 0 \<longleftrightarrow> poly p x = 0"
+  by (cases "p = 0") auto
 
 subsection \<open>Additional induction rules on polynomials\<close>
 
@@ -3621,13 +3637,9 @@ proof (cases "p = 0")
 qed (simp add: rsquarefree_def)
 
 lemma rsquarefree_root_order:
-  assumes "rsquarefree p" "poly p z = 0" "p \<noteq> 0"
+  assumes "rsquarefree p" "poly p z = 0"
   shows   "order z p = 1"
-proof -
-  from assms have "order z p \<in> {0, 1}" by (auto simp: rsquarefree_def)
-  moreover from assms have "order z p > 0" by (auto simp: order_root)
-  ultimately show "order z p = 1" by auto
-qed
+  by (metis assms order_root rsquarefree_def)
 
 lemma poly_squarefree_decomp:
   fixes p :: "'a::field_char_0 poly"
@@ -3650,6 +3662,35 @@ lemma has_field_derivative_poly [derivative_intros]:
   shows   "((\<lambda>x. poly p (f x)) has_field_derivative
              (f' * poly (pderiv p) (f x))) (at x within A)"
   using DERIV_chain[OF poly_DERIV assms, of p] by (simp add: o_def mult_ac)
+
+lemma rsquarefree_single_root[simp]: "rsquarefree [:-x,1:]"
+proof -
+  have "[:-x,1:] \<noteq> 0"
+    by simp
+  then show ?thesis
+    unfolding rsquarefree_def by auto
+qed
+
+lemma rsquarefree_mul:
+  assumes "rsquarefree p" "rsquarefree q"
+    "\<forall> x. poly p x \<noteq> 0 \<or> poly q x \<noteq> 0"
+  shows "rsquarefree(p * q)"
+proof -
+  have 11: "p \<noteq> 0" "q \<noteq> 0"
+    using assms rsquarefree_def by auto
+  then have 1: "p * q \<noteq> 0"
+    by simp
+
+  have "(\<forall>x. order x p = 0 \<or> order x p = 1)"
+    "(\<forall>x. order x q = 0 \<or> order x q = 1)"
+    using assms rsquarefree_def by auto
+  then have 2: "(\<forall>x. order x (p * q) = 0 \<or> order x (p * q) = 1)"
+    using 11 1 order_mult assms(3)
+    by (metis comm_monoid_add_class.add_0 less_one order_gt_0_iff verit_sum_simplify)
+
+  show ?thesis unfolding rsquarefree_def
+    using 1 2  by auto
+qed
 
 
 subsection \<open>Algebraic numbers\<close>

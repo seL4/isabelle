@@ -736,6 +736,10 @@ lemma insert_def: "insert a B = {x. x = a} \<union> B"
 
 subsubsection \<open>Set difference\<close>
 
+text \<open>The minius-sign syntax continues to be accepted\<close>
+abbreviation set_difference :: "['a set, 'a set] \<Rightarrow> 'a set" 
+  (infixl "\<setminus>" 65) where "A \<setminus> B \<equiv> A-B"
+
 lemma Diff_iff [simp]: "c \<in> A - B \<longleftrightarrow> c \<in> A \<and> c \<notin> B"
   by (simp add: minus_set_def fun_diff_def)
 
