@@ -45,9 +45,9 @@ sig
   val intern_fixed: Proof.context -> string -> string
   val lookup_fixed: Proof.context -> string -> string option
   val revert_fixed: Proof.context -> string -> string
-  val markup_fixed: Proof.context -> string -> Markup.T
+  val markup_fixed: Proof.context -> string -> Markup.T list
   val markup: Proof.context -> string -> Markup.T
-  val markup_entity_def: Proof.context -> string -> Markup.T
+  val markups_entity_def: Proof.context -> string -> Markup.T list
   val dest_fixes: Proof.context -> (string * string) list
   val add_fixed_names: Proof.context -> term -> string list -> string list
   val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
@@ -375,15 +375,15 @@ fun revert_fixed ctxt x =
   | NONE => x);
 
 fun markup_fixed ctxt x =
-  Name_Space.markup (fixes_space ctxt) x
-  |> Markup.name (revert_fixed ctxt x);
+  Name_Space.markups (fixes_space ctxt) x
+  |> map (Markup.name (revert_fixed ctxt x));
 
 fun markup ctxt x =
   if is_improper ctxt x then Markup.improper
   else if Name.is_skolem x then Markup.skolem
   else Markup.free;
 
-val markup_entity_def = Name_Space.markup_def o fixes_space;
+val markups_entity_def = Name_Space.markups_def o fixes_space;
 
 fun dest_fixes ctxt =
   Name_Space.fold_table (fn (x, (y, _)) => cons (y, x)) (fixes_of ctxt) []

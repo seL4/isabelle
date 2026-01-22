@@ -43,18 +43,18 @@ struct
 (** markup logical entities **)
 
 fun markup_class ctxt c =
-  [Name_Space.markup (Type.class_space (Proof_Context.tsig_of ctxt)) c, Markup.tclass];
+  Name_Space.markups (Type.class_space (Proof_Context.tsig_of ctxt)) c @ [Markup.tclass];
 
 fun markup_type ctxt c =
-  [Name_Space.markup (Type.type_space (Proof_Context.tsig_of ctxt)) c, Markup.tconst];
+  Name_Space.markups (Type.type_space (Proof_Context.tsig_of ctxt)) c @ [Markup.tconst];
 
 fun markup_const ctxt c =
-  [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c, Markup.const];
+  Name_Space.markups (Consts.space_of (Proof_Context.consts_of ctxt)) c @ [Markup.const];
 
 fun markup_free ctxt x =
   let
     val strict = Variable.is_body ctxt andalso not (Syntax.is_pretty_global ctxt);
-    val m1 = if Variable.is_fixed ctxt x orelse strict then [Variable.markup_fixed ctxt x] else [];
+    val m1 = if Variable.is_fixed ctxt x orelse strict then Variable.markup_fixed ctxt x else [];
     val m2 = Variable.markup ctxt x;
   in m1 @ [m2] end;
 

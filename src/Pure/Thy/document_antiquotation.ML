@@ -111,11 +111,11 @@ val get_antiquotations = Data.get o Proof_Context.theory_of;
 fun print_antiquotations verbose ctxt =
   let
     val (commands, options) = get_antiquotations ctxt;
-    val command_names = map #1 (Name_Space.markup_table verbose ctxt commands);
-    val option_names = map #1 (Name_Space.markup_table verbose ctxt options);
+    val command_names = map #1 (Name_Space.markups_table verbose ctxt commands);
+    val option_names = map #1 (Name_Space.markups_table verbose ctxt options);
   in
-    [Pretty.big_list "document antiquotations:" (map Pretty.mark_str command_names),
-     Pretty.big_list "document antiquotation options:" (map Pretty.mark_str option_names)]
+    [Pretty.big_list "document antiquotations:" (map Pretty.marks_str command_names),
+     Pretty.big_list "document antiquotation options:" (map Pretty.marks_str option_names)]
   end |> Pretty.chunks |> Pretty.writeln;
 
 fun check ctxt = #1 o Name_Space.check (Context.Proof ctxt) (#1 (get_antiquotations ctxt));

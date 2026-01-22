@@ -194,7 +194,7 @@ fun file_type binding {ext, make_comment, make_string} thy =
         NONE => ()
       | SOME name' =>
           error ("Extension " ^ quote ext ^ " already registered for file type " ^
-            quote (Markup.markup (Name_Space.markup space name') name') ^ Position.here pos));
+            quote (Markup.markups (Name_Space.markups space name') name') ^ Position.here pos));
   in thy |> (Data.map o @{apply 3(2)}) (K data') end;
 
 

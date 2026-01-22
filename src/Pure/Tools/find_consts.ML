@@ -62,10 +62,10 @@ fun pretty_criterion (b, c) =
 fun pretty_const ctxt (c, ty) =
   let
     val ty' = Logic.unvarifyT_global ty;
-    val markup = Name_Space.markup (Proof_Context.const_space ctxt) c;
+    val markups = Name_Space.markups (Proof_Context.const_space ctxt) c;
   in
     Pretty.block
-     [Pretty.mark_str (markup, c), Pretty.str " ::", Pretty.brk 1,
+     [Pretty.marks_str (markups, c), Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Syntax.pretty_typ ctxt ty')]
   end;
 

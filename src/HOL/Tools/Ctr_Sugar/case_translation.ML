@@ -612,10 +612,10 @@ fun print_case_translations ctxt =
       let
         val name = Tname_of_data data;
         val xname = Name_Space.extern ctxt type_space name;
-        val markup = Name_Space.markup type_space name;
+        val markups = Name_Space.markups type_space name;
         val prt =
           (Pretty.block o Pretty.fbreaks)
-           [Pretty.block [Pretty.mark_str (markup, xname), Pretty.str ":"],
+           [Pretty.block [Pretty.marks_str (markups, xname), Pretty.str ":"],
             Pretty.block [Pretty.str "combinator:", Pretty.brk 1, pretty_term comb],
             Pretty.block (Pretty.str "constructors:" :: Pretty.brk 1 ::
               Pretty.commas (map pretty_term ctrs))];

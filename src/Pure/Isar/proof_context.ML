@@ -414,13 +414,13 @@ fun extern_entity ctxt =
     case_fixed = extern_fixed ctxt,
     case_default = I};
 
-fun markup_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |-> Markup.markup;
-fun markup_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |-> Markup.markup;
-fun markup_const ctxt c = Name_Space.markup_extern ctxt (const_space ctxt) c |-> Markup.markup;
+fun markup_class ctxt c = Name_Space.markups_extern ctxt (class_space ctxt) c |-> Markup.markups;
+fun markup_type ctxt c = Name_Space.markups_extern ctxt (type_space ctxt) c |-> Markup.markups;
+fun markup_const ctxt c = Name_Space.markups_extern ctxt (const_space ctxt) c |-> Markup.markups;
 
-fun pretty_class ctxt c = Name_Space.markup_extern ctxt (class_space ctxt) c |> Pretty.mark_str;
-fun pretty_type ctxt c = Name_Space.markup_extern ctxt (type_space ctxt) c |> Pretty.mark_str;
-fun pretty_const ctxt c = Name_Space.markup_extern ctxt (const_space ctxt) c |> Pretty.mark_str;
+fun pretty_class ctxt c = Name_Space.markups_extern ctxt (class_space ctxt) c |> Pretty.marks_str;
+fun pretty_type ctxt c = Name_Space.markups_extern ctxt (type_space ctxt) c |> Pretty.marks_str;
+fun pretty_const ctxt c = Name_Space.markups_extern ctxt (const_space ctxt) c |> Pretty.marks_str;
 
 
 (* theory transfer *)
@@ -474,11 +474,11 @@ fun markup_extern_fact _ "" = ([], "")
   | markup_extern_fact ctxt name =
       let
         val facts = facts_of_fact ctxt name;
-        val (markup, xname) = Facts.markup_extern ctxt facts name;
-        val markups =
-          if Facts.is_dynamic facts name then [markup, Markup.dynamic_fact name]
-          else [markup];
-      in (markups, xname) end;
+        val (markups, xname) = Facts.markups_extern ctxt facts name;
+        val markups' =
+          if Facts.is_dynamic facts name then markups @ [Markup.dynamic_fact name]
+          else markups;
+      in (markups', xname) end;
 
 fun pretty_thm_name ctxt (name, i) =
   Facts.pretty_thm_name ctxt (facts_of_fact ctxt name) (name, i);
@@ -532,7 +532,7 @@ fun check_class ctxt (xname, pos) =
             [Name_Space.completion (Context.Proof ctxt) class_space (K true) (xname, pos)]);
     val reports =
       if Context_Position.is_reported ctxt pos
-      then [(pos, Name_Space.markup class_space name), (pos, Markup.tclass)] else [];
+      then map (pair pos) (Name_Space.markups class_space name) @ [(pos, Markup.tclass)] else [];
   in (name, reports) end;
 
 fun read_class ctxt text =
@@ -643,7 +643,8 @@ fun check_const {proper, strict} ctxt (c, ps) =
           val reports =
             ps |> maps (fn pos =>
               if is_reported pos then
-                [(pos, Name_Space.markup (Consts.space_of consts) d), (pos, Markup.const)]
+                map (pair pos) (Name_Space.markups (Consts.space_of consts) d) @
+                  [(pos, Markup.const)]
               else []);
         in (Const (d, T), reports) end
       else
@@ -1331,7 +1332,7 @@ fun gen_fixes prep_var raw_vars ctxt =
     val _ =
       Context_Position.reports ctxt'
         (flat (map2 (fn x => fn pos =>
-          [(pos, Variable.markup ctxt' x), (pos, Variable.markup_entity_def ctxt' x)])
+          (pos, Variable.markup ctxt' x) :: map (pair pos) (Variable.markups_entity_def ctxt' x))
             xs (map (Binding.pos_of o #1) vars)));
     val vars' = map2 (fn x => fn (_, opt_T, mx) => (x, opt_T, mx)) xs vars;
     val (Ts, ctxt'') = fold_map declare_var vars' ctxt';
@@ -1557,7 +1558,7 @@ fun pretty_abbrevs verbose show_globals ctxt =
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = Name_Space.markup_entries verbose ctxt space (fold add_abbr constants []);
+    val abbrevs = Name_Space.markups_entries verbose ctxt space (fold add_abbr constants []);
   in
     if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]

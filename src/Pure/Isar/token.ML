@@ -21,7 +21,7 @@ sig
   type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
   type T
   type src = T list
-  type name_value = {name: string, kind: string, print: Proof.context -> Markup.T * xstring}
+  type name_value = {name: string, kind: string, print: Proof.context -> Markup.T list * xstring}
   datatype value =
     Source of src |
     Literal of bool * Markup.T |
@@ -186,7 +186,7 @@ val delimited_kind =
 
 type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
 
-type name_value = {name: string, kind: string, print: Proof.context -> Markup.T * xstring};
+type name_value = {name: string, kind: string, print: Proof.context -> Markup.T list * xstring};
 
 datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot
 
@@ -580,7 +580,7 @@ fun pretty_value ctxt tok =
     SOME (Literal markup) =>
       let val x = content_of tok
       in Pretty.mark_str (keyword_markup markup x, x) end
-  | SOME (Name ({print, ...}, _)) => Pretty.quote (Pretty.mark_str (print ctxt))
+  | SOME (Name ({print, ...}, _)) => Pretty.quote (Pretty.marks_str (print ctxt))
   | SOME (Typ T) => Syntax.pretty_typ ctxt T
   | SOME (Term t) => Syntax.pretty_term ctxt t
   | SOME (Fact (_, ths)) =>
@@ -611,7 +611,7 @@ fun pretty_src ctxt src =
     val (head, args) = dest_src src;
     val prt_name =
       (case get_name head of
-        SOME {print, ...} => Pretty.mark_str (print ctxt)
+        SOME {print, ...} => Pretty.marks_str (print ctxt)
       | NONE => Pretty.str (content_of head));
   in Pretty.block (Pretty.breaks (Pretty.quote prt_name :: map (pretty_value ctxt) args)) end;
 
@@ -632,7 +632,7 @@ fun check_src ctxt get_table src =
           val _ = Context_Position.report ctxt pos Markup.operator;
           val kind = Name_Space.kind_of (Name_Space.space_of_table table);
           fun print ctxt' =
-            Name_Space.markup_extern ctxt' (Name_Space.space_of_table (get_table ctxt')) name;
+            Name_Space.markups_extern ctxt' (Name_Space.space_of_table (get_table ctxt')) name;
           val value = name_value {name = name, kind = kind, print = print};
           val head' = closure (assign (SOME value) head);
         in (head' :: args, x) end)
@@ -834,8 +834,8 @@ fun syntax_generic scan src0 context =
             | SOME {kind, print, ...} =>
                 let
                   val ctxt' = Context.proof_of context';
-                  val (markup, xname) = print ctxt';
-                in plain_words kind ^ " " ^ quote (Markup.markup markup xname) end);
+                  val (markups, xname) = print ctxt';
+                in plain_words kind ^ " " ^ quote (Markup.markups markups xname) end);
           val print_args =
             if null args2 then "" else ":\n  " ^ implode_space (map print args2);
         in

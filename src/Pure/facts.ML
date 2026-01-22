@@ -29,7 +29,7 @@ sig
   val check: Context.generic -> T -> xstring * Position.T -> string
   val intern: T -> xstring -> string
   val extern: Proof.context -> T -> string -> xstring
-  val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
+  val markups_extern: Proof.context -> T -> string -> Markup.T list * xstring
   val pretty_thm_name: Proof.context -> T -> Thm_Name.T -> Pretty.T
   val defined: T -> string -> bool
   val is_dynamic: T -> string -> bool
@@ -172,13 +172,13 @@ fun check context facts (xname, pos) =
 
 val intern = Name_Space.intern o space_of;
 fun extern ctxt = Name_Space.extern ctxt o space_of;
-fun markup_extern ctxt = Name_Space.markup_extern ctxt o space_of;
+fun markups_extern ctxt = Name_Space.markups_extern ctxt o space_of;
 
 fun pretty_thm_name ctxt facts thm_name =
   let
     val prfx = Thm_Name.print_prefix ctxt (space_of facts) thm_name;
     val sffx = Thm_Name.print_suffix thm_name;
-  in Pretty.block [Pretty.mark_str prfx, Pretty.str sffx] end;
+  in Pretty.block [Pretty.marks_str prfx, Pretty.str sffx] end;
 
 
 (* retrieve *)

@@ -524,8 +524,8 @@ end;
 fun check_syntax_dep ctxt s =
   let
     val thy = Proof_Context.theory_of ctxt;
-    fun print_type c = uncurry Markup.markup (Name_Space.markup_extern ctxt (type_space thy) c);
-    fun print_const c = uncurry Markup.markup (Name_Space.markup_extern ctxt (const_space thy) c);
+    fun print_type c = uncurry Markup.markups (Name_Space.markups_extern ctxt (type_space thy) c);
+    fun print_const c = uncurry Markup.markups (Name_Space.markups_extern ctxt (const_space thy) c);
   in
     s |> Lexicon.unmark_entity
      {case_class = K (),

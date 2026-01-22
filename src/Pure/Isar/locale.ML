@@ -208,11 +208,11 @@ val _ = Theory.setup
 fun extern ctxt =
   Name_Space.extern ctxt (locale_space (Proof_Context.theory_of ctxt));
 
-fun markup_extern ctxt =
-  Name_Space.markup_extern ctxt (locale_space (Proof_Context.theory_of ctxt));
+fun markups_extern ctxt =
+  Name_Space.markups_extern ctxt (locale_space (Proof_Context.theory_of ctxt));
 
-fun markup_name ctxt name = markup_extern ctxt name |-> Markup.markup;
-fun pretty_name ctxt name = markup_extern ctxt name |> Pretty.mark_str;
+fun markup_name ctxt name = markups_extern ctxt name |-> Markup.markups;
+fun pretty_name ctxt name = markups_extern ctxt name |> Pretty.marks_str;
 
 val get_locale = Name_Space.lookup o Locales.get;
 val defined = is_some oo get_locale;
@@ -747,8 +747,8 @@ fun pretty_locales thy verbose =
   Pretty.block
     (Pretty.breaks
       (Pretty.str "locales:" ::
-        map (Pretty.mark_str o #1)
-          (Name_Space.markup_table verbose (Proof_Context.init_global thy) (Locales.get thy))));
+        map (Pretty.marks_str o #1)
+          (Name_Space.markups_table verbose (Proof_Context.init_global thy) (Locales.get thy))));
 
 fun pretty_locale thy show_facts name =
   let

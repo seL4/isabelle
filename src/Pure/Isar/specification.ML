@@ -112,9 +112,10 @@ fun prep_decls prep_var raw_vars ctxt =
       |> Proof_Context.add_fixes vars
       ||> Context_Position.restore_visible ctxt';
     val _ =
-      Context_Position.reports ctxt''
-        (map (Binding.pos_of o #1) vars ~~
-          map (Variable.markup_entity_def ctxt'' ##> Properties.remove Markup.kindN) xs);
+      (map (Binding.pos_of o #1) vars ~~
+        map (Variable.markups_entity_def ctxt'' #> map (apsnd (Properties.remove Markup.kindN))) xs)
+      |> maps (fn (p, ms) => map (pair p) ms)
+      |> Context_Position.reports ctxt''
   in ((vars, xs), ctxt'') end;
 
 fun close_form ctxt ys prems concl =

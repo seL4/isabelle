@@ -146,7 +146,7 @@ sig
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
   val oracle_space: theory -> Name_Space.T
   val pretty_oracle: Proof.context -> string -> Pretty.T
-  val extern_oracles: bool -> Proof.context -> (Markup.T * xstring) list
+  val extern_oracles: bool -> Proof.context -> (Markup.T list * xstring) list
   val check_oracle: Proof.context -> xstring * Position.T -> string
   (*inference rules*)
   val assume: cterm -> thm  (*exception THM*)
@@ -1244,7 +1244,7 @@ fun pretty_oracle ctxt =
   Name_Space.pretty ctxt (oracle_space (Proof_Context.theory_of ctxt));
 
 fun extern_oracles verbose ctxt =
-  map #1 (Name_Space.markup_table verbose ctxt (get_oracles (Proof_Context.theory_of ctxt)));
+  map #1 (Name_Space.markups_table verbose ctxt (get_oracles (Proof_Context.theory_of ctxt)));
 
 fun check_oracle ctxt =
   Name_Space.check (Context.Proof ctxt) (get_oracles (Proof_Context.theory_of ctxt)) #> #1;
