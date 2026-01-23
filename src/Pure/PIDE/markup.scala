@@ -109,6 +109,7 @@ object Markup {
   object Entity {
     val Def = new Markup_Long(ENTITY, "def")
     val Ref = new Markup_Long(ENTITY, "ref")
+    val No_Tooltip: Properties.Entry = ("tooltip", "false")
 
     object Occ {
       def unapply(markup: Markup): Option[Long] =

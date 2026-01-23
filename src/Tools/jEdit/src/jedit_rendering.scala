@@ -244,7 +244,7 @@ extends Rendering(snapshot, options, PIDE.session) {
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
     hyperlinks(range).lastOption
 
-  def hyperlinks(range: Text.Range): Vector[Text.Info[PIDE.editor.Hyperlink]] =
+  def hyperlinks(range: Text.Range): List[Text.Info[PIDE.editor.Hyperlink]] =
     make_hyperlinks(range, elements = JEdit_Rendering.hyperlink_elements) {
       case Markup(Markup.ENTITY, props) =>
         PIDE.editor.hyperlink_def_position(snapshot, props, focus = true)

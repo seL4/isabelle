@@ -288,7 +288,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       case _ => None
     }
 
-  def hyperlinks(range: Text.Range): Vector[Text.Info[Line.Node_Range]] =
+  def hyperlinks(range: Text.Range): List[Text.Info[Line.Node_Range]] =
     make_hyperlinks(range, elements = VSCode_Rendering.hyperlink_elements) {
       case Markup(Markup.ENTITY, props) => hyperlink_def_position(props)
       case Markup(Markup.POSITION, props) => hyperlink_position(props)

@@ -26,6 +26,11 @@ parameter.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* The jEdit action "goto-entity" has been superseded by "follow-link",
+while retaining the keyboard shortcut CS+d. The new action is more
+general: it uses the same notion of link as C-hover-click via mouse.
+Minor INCOMPATIBILITY.
+
 * Tooltip messages render formal entities with additional PIDE markup,
 to distinguish multiple def-positions due to locale interpretations etc.
 

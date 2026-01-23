@@ -617,18 +617,15 @@ class Rendering(
 
   def make_hyperlinks[A](range: Text.Range, elements: Markup.Elements = Rendering.entity_elements)(
     make_info: Markup => Option[A]
-  ): Vector[Text.Info[A]] = {
+  ): List[Text.Info[A]] = {
     snapshot.cumulate[Vector[Text.Info[A]]](
       range, Vector.empty, elements, _ =>
         {
           case (infos, Text.Info(info_range, XML.Elem(markup, _))) =>
             for (info <- make_info(markup))
               yield infos :+ Text.Info(snapshot.convert(info_range), info)
-        }) match { case Text.Info(_, infos) :: _ => infos case _ => Vector.empty }
+        }).flatMap(_.info)
   }
-
-  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[Name_Space.Entry]] =
-    make_hyperlinks(range)(markup => Some(Name_Space.Entry(markup.properties)))
 
 
   /* tooltips */
@@ -682,8 +679,10 @@ class Rendering(
             yield info.add_message(r0, i, msg)
 
           case (info, Text.Info(r0, XML.Elem(Markup.Entity(entry), _)))
-          if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF =>
-            val info1 = info.add_info(r0, entry.print_xml(style = gui_style), ord = 2)
+          if entry.kind.nonEmpty && entry.kind != Markup.ML_DEF &&
+            !entry.properties.contains(Markup.Entity.No_Tooltip) =>
+            val entry1 = entry + Markup.Entity.No_Tooltip
+            val info1 = info.add_info(r0, entry1.print_xml(style = gui_style), ord = 2)
             val info2 =
               if (entry.kind == Markup.COMMAND) {
                 val timings = Document_Status.Command_Timings.merge(command_states.map(_.timings))

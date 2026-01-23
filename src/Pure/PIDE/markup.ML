@@ -64,6 +64,7 @@ sig
   val labelN: string
   val fileN: string
   val idN: string
+  val interpretedN: string
   val positionN: string val position: T
   val position_properties: string list
   val position_property: Properties.entry -> bool
@@ -429,6 +430,8 @@ val end_offsetN = "end_offset";
 val labelN = "label";
 val fileN = "file";
 val idN = "id";
+
+val interpretedN = "interpreted";
 
 val (positionN, position) = markup_elem "position";
 
