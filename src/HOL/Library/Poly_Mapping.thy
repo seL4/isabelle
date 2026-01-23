@@ -1580,7 +1580,25 @@ lemma lookup_mapp:
 lemma keys_mapp_subset: "keys (mapp f p) \<subseteq> keys p"
   by (meson in_keys_iff mapp.rep_eq subsetI)
 
-subsection\<open>Free Abelian Groups Over a Type\<close>
+instantiation poly_mapping :: (type, "{zero, equal}") equal
+begin
+
+definition equal_poly_mapping :: \<open>('a \<Rightarrow>\<^sub>0 'b) \<Rightarrow> ('a \<Rightarrow>\<^sub>0 'b) \<Rightarrow> bool\<close>
+  where \<open>HOL.equal f g \<longleftrightarrow>
+    (let K = keys f in K = keys g \<and> (\<forall>k\<in>K. HOL.equal (lookup f k) (lookup g k)))\<close>
+  for f g :: \<open>'a \<Rightarrow>\<^sub>0 'b\<close>
+
+instance
+  apply standard
+  apply (auto simp add: equal_poly_mapping_def equal Let_def intro!: poly_mapping_eqI)
+  apply transfer
+  apply auto
+  done
+
+end
+
+
+subsection \<open>Free Abelian Groups Over a Type\<close>
 
 abbreviation frag_of :: "'a \<Rightarrow> 'a \<Rightarrow>\<^sub>0 int"
   where "frag_of c \<equiv> Poly_Mapping.single c (1::int)"
