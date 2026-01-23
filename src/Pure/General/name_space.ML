@@ -124,7 +124,7 @@ fun markup_entry_pos def kind (name, entry: entry) pos =
   Position.make_entity_markup def (#serial entry) kind (name, pos);
 
 fun markups_entry def kind (name, entry: entry) =
-  map (markup_entry_pos def kind (name, entry)) (#pos_history entry);
+  map (markup_entry_pos def kind (name, entry)) (rev (#pos_history entry));
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (markup_entry_pos {def = false} kind (name, entry) (entry_pos entry)) name);
