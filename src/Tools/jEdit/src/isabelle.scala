@@ -373,20 +373,12 @@ object Isabelle {
 
     for (rendering <- Document_View.get_rendering(text_area)) {
       val snapshot = rendering.snapshot
-
-      def follow(entry: Name_Space.Entry, test: Boolean = false): Boolean =
-        PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true) match {
-          case Some(link) => if (!test) link.follow(view); true
-          case None => false
-        }
-
-      val entries =
+      val links =
         for {
           Text.Info(_, entry) <- rendering.hyperlinks_entity(JEdit_Lib.caret_range(text_area))
-          if entry.kind.nonEmpty && follow(entry, test = true)
-        } yield entry
-
-      for (entry <- entries.lastOption) follow(entry)
+          link <- PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true)
+        } yield link
+      for (link <- links.lastOption) link.follow(view)
     }
   }
 
