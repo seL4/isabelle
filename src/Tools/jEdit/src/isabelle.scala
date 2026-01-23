@@ -370,15 +370,16 @@ object Isabelle {
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
     val painter = text_area.getPainter
-
     for (rendering <- Document_View.get_rendering(text_area)) {
       val snapshot = rendering.snapshot
+      val caret_range = JEdit_Lib.caret_range(text_area)
       val links =
-        for {
-          Text.Info(_, entry) <- rendering.hyperlinks_entity(JEdit_Lib.caret_range(text_area))
-          link <- PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true)
-        } yield link
-      for (link <- links.lastOption) link.follow(view)
+        List.from(
+          for {
+            Text.Info(_, entry) <- rendering.hyperlinks_entity(caret_range).iterator
+            link <- PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true)
+          } yield link)
+      if (links.nonEmpty) links.last.follow(view)
     }
   }
 
