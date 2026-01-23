@@ -365,23 +365,19 @@ object Isabelle {
   }
 
 
-  /* formal entities and structure */
+  /* follow link */
 
-  def goto_entity(view: View): Unit = {
+  def follow_link(view: View): Unit = {
     val text_area = view.getTextArea
     val painter = text_area.getPainter
     for (rendering <- Document_View.get_rendering(text_area)) {
-      val snapshot = rendering.snapshot
       val caret_range = JEdit_Lib.caret_range(text_area)
-      val links =
-        List.from(
-          for {
-            Text.Info(_, entry) <- rendering.hyperlinks_entity(caret_range).iterator
-            link <- PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true)
-          } yield link)
-      if (links.nonEmpty) links.last.follow(view)
+      for (Text.Info(_, link) <- rendering.hyperlink(caret_range)) link.follow(view)
     }
   }
+
+
+  /* select formal entity or structure */
 
   def select_entity(text_area: JEditTextArea): Unit = {
     for (rendering <- Document_View.get_rendering(text_area)) {

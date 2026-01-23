@@ -87,9 +87,9 @@
 	    isabelle.jedit.Isabelle.toggle_full_screen(view);
 	  </CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.goto-entity">
+	<ACTION NAME="isabelle.follow-link">
 	  <CODE>
-	    isabelle.jedit.Isabelle.goto_entity(view);
+	    isabelle.jedit.Isabelle.follow_link(view);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.select-entity">

@@ -627,9 +627,6 @@ class Rendering(
         }).flatMap(_.info)
   }
 
-  def hyperlinks_entity(range: Text.Range): List[Text.Info[Name_Space.Entry]] =
-    make_hyperlinks(range)(markup => Some(Name_Space.Entry(markup.properties)))
-
 
   /* tooltips */
 

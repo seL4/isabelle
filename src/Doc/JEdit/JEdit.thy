@@ -1333,7 +1333,7 @@ text \<open>
   highlighted in the text according to the cursor position, see also
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
-  modifier, or the action @{action_def "isabelle.goto-entity"} (shortcut
+  modifier, or the action @{action_def "isabelle.follow-link"} (shortcut
   \<^verbatim>\<open>CS+d\<close>) jumps to the original defining position.
 
   \begin{figure}[!htb]
