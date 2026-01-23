@@ -617,17 +617,17 @@ class Rendering(
 
   def make_hyperlinks[A](range: Text.Range, elements: Markup.Elements = Rendering.entity_elements)(
     make_info: Markup => Option[A]
-  ): Vector[Text.Info[A]] = {
+  ): List[Text.Info[A]] = {
     snapshot.cumulate[Vector[Text.Info[A]]](
       range, Vector.empty, elements, _ =>
         {
           case (infos, Text.Info(info_range, XML.Elem(markup, _))) =>
             for (info <- make_info(markup))
               yield infos :+ Text.Info(snapshot.convert(info_range), info)
-        }) match { case Text.Info(_, infos) :: _ => infos case _ => Vector.empty }
+        }).flatMap(_.info)
   }
 
-  def hyperlinks_entity(range: Text.Range): Vector[Text.Info[Name_Space.Entry]] =
+  def hyperlinks_entity(range: Text.Range): List[Text.Info[Name_Space.Entry]] =
     make_hyperlinks(range)(markup => Some(Name_Space.Entry(markup.properties)))
 
 

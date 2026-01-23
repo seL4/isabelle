@@ -442,9 +442,11 @@ class Language_Server(
 
   def goto_definition(id: LSP.Id, node_pos: Line.Node_Position): Unit = {
     val result =
-      (for ((rendering, offset) <- rendering_offset(node_pos))
-        yield rendering.hyperlinks(Text.Range(offset, offset + 1)).toList.map(_.info)) getOrElse Nil
-    channel.write(LSP.GotoDefinition.reply(id, result))
+      rendering_offset(node_pos) match {
+        case Some((rendering, offset)) => rendering.hyperlinks(Text.Range(offset, offset + 1))
+        case None => Nil
+      }
+    channel.write(LSP.GotoDefinition.reply(id, result.map(_.info)))
   }
 
 
