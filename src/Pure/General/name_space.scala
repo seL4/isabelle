@@ -12,6 +12,9 @@ object Name_Space {
     def kind: String = Markup.Kind.get(properties)
     def def_label: String = Position.Def_Label.get(properties)
 
+    def + (prop: Properties.Entry): Entry =
+      copy(Properties.put(properties, prop))
+
     def print(style: GUI.Style = GUI.Style_Plain): String =
       GUI.Name(name, kind = Word.informal(kind), prefix = def_label, style = style).toString
     def print_xml(style: GUI.Style = GUI.Style_Plain): XML.Elem =
