@@ -637,6 +637,21 @@ instance poly :: ("{field, normalization_euclidean_semiring, factorial_ring_gcd,
   
 subsection \<open>Polynomial GCD\<close>
 
+lemma gcd_degree_le_min:
+  assumes "p\<noteq>0" "q\<noteq>0"
+  shows "degree (gcd p q) \<le> min (degree p) (degree q)"
+  by (simp add: assms dvd_imp_degree_le)
+
+lemma lead_coeff_gcd_field:
+  fixes p q::"'a::field_gcd poly"
+  assumes "p\<noteq>0 \<or> q\<noteq>0"
+  shows "lead_coeff (gcd p q) = 1"
+  using assms by (metis gcd.normalize_idem gcd_eq_0_iff lead_coeff_normalize_field)
+
+lemma poly_gcd_0_iff:
+  "poly (gcd p q) x = 0 \<longleftrightarrow> poly p x = 0 \<and> poly q x = 0"
+  by (simp add:poly_eq_0_iff_dvd)
+
 lemma gcd_poly_decompose:
   fixes p q :: "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"
   shows "gcd p q = 

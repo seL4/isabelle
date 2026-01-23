@@ -405,11 +405,11 @@ lemma Poly_replicate_0 [simp]: "Poly (replicate n 0) = 0"
 lemma Poly_eq_0: "Poly as = 0 \<longleftrightarrow> (\<exists>n. as = replicate n 0)"
   by (induct as) (auto simp add: Cons_replicate_eq)
 
-lemma Poly_append_replicate_zero [simp]: "Poly (as @ replicate n 0) = Poly as"
+lemma Poly_append_replicate_0 [simp]: "Poly (as @ replicate n 0) = Poly as"
   by (induct as) simp_all
 
 lemma Poly_snoc_zero [simp]: "Poly (as @ [0]) = Poly as"
-  using Poly_append_replicate_zero [of as 1] by simp
+  using Poly_append_replicate_0 [of as 1] by simp
 
 lemma Poly_cCons_eq_pCons_Poly [simp]: "Poly (a ## p) = pCons a (Poly p)"
   by (simp add: cCons_def)
@@ -709,7 +709,6 @@ lemma last_coeffs_eq_coeff_degree:
 lemma lead_coeff_list_def:
   "lead_coeff p = (if coeffs p=[] then 0 else last (coeffs p))"
   by (simp add: last_coeffs_eq_coeff_degree)
-
 
 subsection \<open>Addition and subtraction\<close>
 
@@ -2505,12 +2504,46 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
   qed
 qed
 
+text \<open>Same proof as above. Could they be consolidated?\<close>
+lemma poly_root_induct_alt [case_names 0 no_proots root]:
+  fixes p :: "'a :: idom poly"
+  assumes "Q 0"
+  assumes "\<And>p. (\<And>a. P a \<Longrightarrow> poly p a \<noteq> 0) \<Longrightarrow> Q p"
+  assumes "\<And>a p. P a \<Longrightarrow> Q p \<Longrightarrow> Q ([:-a, 1:] * p)"
+  shows   "Q p"
+proof (induction "degree p" arbitrary: p rule: less_induct)
+  case (less p)
+  show ?case
+  proof (cases "p = 0")
+    case True
+    with assms(1) show ?thesis by simp
+  next
+    case False
+    show ?thesis
+    proof (cases "\<exists>a. P a \<and> poly p a = 0")
+      case False
+      then show ?thesis by (intro assms(2)) blast
+    next
+      case True
+      then obtain a where a: "P a" "poly p a = 0"
+        by blast
+      then have "-[:a, -1:] dvd p"
+        by (simp add: poly_eq_0_iff_dvd)
+      then obtain q where q: "p = [:-a, 1:] * q" by (elim dvdE) simp
+      with False have "q \<noteq> 0" by auto
+      have "degree p = Suc (degree q)"
+        by (subst q, subst degree_mult_eq) (simp_all add: \<open>q \<noteq> 0\<close>)
+      then have "Q q" by (intro less) simp
+      with a(1) have "Q ([:-a, 1:] * q)"
+        by (rule assms(3))
+      with q show ?thesis by simp
+    qed
+  qed
+qed
+
 lemma dropWhile_replicate_append:
   "dropWhile ((=) a) (replicate n a @ ys) = dropWhile ((=) a) ys"
   by (induct n) simp_all
-
-lemma Poly_append_replicate_0: "Poly (xs @ replicate n 0) = Poly xs"
-  by (subst coeffs_eq_iff) (simp_all add: strip_while_def dropWhile_replicate_append)
 
 text \<open>
   An induction rule for simultaneous induction over two polynomials,
@@ -3265,6 +3298,19 @@ proof (induct as rule: infinite_finite_induct)
     unfolding id pderiv_mult insert(3) sum_distrib_left
     by (auto simp add: ac_simps intro!: sum.cong)
 qed auto
+
+lemma lead_coeff_pderiv:
+  fixes p :: "'a::{comm_semiring_1,semiring_no_zero_divisors,semiring_char_0} poly"
+  shows "lead_coeff (pderiv p) = of_nat (degree p) * lead_coeff p"
+proof (cases "degree p")
+  case 0
+  then show ?thesis
+    by (simp add: pderiv_eq_0_iff)
+next
+  case (Suc nat)
+  then show ?thesis
+    by (simp add: coeff_pderiv degree_pderiv)
+qed
 
 lemma coeff_higher_pderiv:
   "coeff ((pderiv ^^ m) f) n = pochhammer (of_nat (Suc n)) m * coeff f (n + m)"
@@ -4880,6 +4926,24 @@ qed
 lemma coeff_normalize [simp]:
   "coeff (normalize p) n = coeff p n div unit_factor (lead_coeff p)"
   by (simp add: normalize_poly_eq_map_poly coeff_map_poly)
+
+lemma lead_coeff_normalize_field:
+  fixes p::"'a::{field,semidom_divide_unit_factor} poly"
+  assumes "p\<noteq>0"
+  shows "lead_coeff (normalize p) = 1"
+  by (metis (no_types, lifting) assms coeff_normalize divide_self_if dvd_field_iff 
+      is_unit_unit_factor leading_coeff_0_iff normalize_eq_0_iff normalize_idem)
+
+lemma smult_normalize_field_eq:
+  fixes p::"'a::{field,semidom_divide_unit_factor} poly"
+  shows "smult (lead_coeff p) (normalize p) = p"
+proof (rule poly_eqI)
+  fix n
+  have "unit_factor (lead_coeff p) = lead_coeff p"
+    by (metis dvd_field_iff is_unit_unit_factor unit_factor_0)
+  then show "coeff (smult (lead_coeff p) (normalize p)) n = coeff p n"
+    by simp
+qed
 
 class field_unit_factor = field + unit_factor +
   assumes unit_factor_field [simp]: "unit_factor = id"
