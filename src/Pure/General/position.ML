@@ -25,6 +25,7 @@ sig
   val none: T
   val start: T
   val label: string -> T -> T
+  val label_interpreted: T -> T
   val file_only: string -> T
   val file: string -> T
   val line_file_only: int -> string -> T
@@ -158,6 +159,8 @@ val start = Pos {line = 1, offset = 1, end_offset = 0, props = no_props};
 fun label label (Pos {line, offset, end_offset, props = {label = _, file, id}}) =
   Pos {line = line, offset = offset, end_offset = end_offset,
     props = {label = label, file = file, id = id}};
+
+val label_interpreted = label Markup.interpretedN;
 
 fun file_only name = Pos {line = 0, offset = 0, end_offset = 0, props = file_props name};
 fun file name = Pos {line = 1, offset = 1, end_offset = 0, props = file_props name};
