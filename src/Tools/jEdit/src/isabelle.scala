@@ -367,43 +367,26 @@ object Isabelle {
 
   /* formal entities and structure */
 
-  def follow_entity(
-    snapshot: Document.Snapshot,
-    view: View,
-    entry: Name_Space.Entry,
-    test: Boolean = false
-  ): Boolean = {
-    PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true) match {
-      case Some(link) => if (!test) link.follow(view); true
-      case None => false
-    }
-  }
-
   def goto_entity(view: View): Unit = {
     val text_area = view.getTextArea
     val painter = text_area.getPainter
 
     for (rendering <- Document_View.get_rendering(text_area)) {
       val snapshot = rendering.snapshot
-      val caret_range = JEdit_Lib.caret_range(text_area)
+
+      def follow(entry: Name_Space.Entry, test: Boolean = false): Boolean =
+        PIDE.editor.hyperlink_def_position(snapshot, entry.properties, focus = true) match {
+          case Some(link) => if (!test) link.follow(view); true
+          case None => false
+        }
 
       val entries =
-        List.from(
-          for {
-            Text.Info(_, entry) <- rendering.hyperlinks_entity(caret_range).iterator
-            if entry.kind.nonEmpty && follow_entity(snapshot, view, entry, test = true)
-          } yield entry)
-      entries match {
-        case Nil =>
-        case List(entry) => follow_entity(snapshot, view, entry)
-        case _ =>
-          for (loc0 <- Option(text_area.offsetToXY(caret_range.start))) {
-            val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
-            val results = snapshot.command_results(caret_range)
-            val output = entries.map(_.print_xml(style = rendering.gui_style))
-            Pretty_Tooltip(view, painter, loc, rendering, results, output)
-          }
-      }
+        for {
+          Text.Info(_, entry) <- rendering.hyperlinks_entity(JEdit_Lib.caret_range(text_area))
+          if entry.kind.nonEmpty && follow(entry, test = true)
+        } yield entry
+
+      for (entry <- entries.lastOption) follow(entry)
     }
   }
 
