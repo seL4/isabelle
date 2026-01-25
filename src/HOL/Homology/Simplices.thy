@@ -2579,7 +2579,7 @@ proof (cases "c = 0")
       qed
       let ?d = "\<lambda>m. (simplicial_subdivision p ^^ m) (frag_of (restrict id (standard_simplex p)))"
       obtain n where n: "(p / (Suc p)) ^ n < d"
-        using real_arch_pow_inv \<open>0 < d\<close> by fastforce
+        using arch_pow_inv \<open>0 < d\<close> by fastforce
       show ?thesis
       proof
         fix m h

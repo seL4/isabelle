@@ -4350,9 +4350,9 @@ proof
     fix e::real
     assume "e > 0"
     obtain N1 where N1: "\<bar>f x\<bar> < 2 ^ N1"
-      using real_arch_pow by fastforce
+      using arch_pow[of 2 "\<bar>f x\<bar>"] by fastforce
     obtain N2 where N2: "(1/2) ^ N2 < e"
-      using real_arch_pow_inv \<open>e > 0\<close> by force
+      using arch_pow_inv \<open>e > 0\<close> by force
     have "norm (?g n x - f x) < e" if n: "n \<ge> max N1 N2" for n
     proof -
       define m where "m \<equiv> floor(2^n * (f x))"
@@ -4513,7 +4513,7 @@ proof -
       fix e :: "real"
       assume "e > 0"
       then obtain n where n: "(1/2)^n < e"
-        using real_arch_pow_inv [of e "1/2"] by auto
+        using arch_pow_inv [of e "1/2"] by auto
       show "\<exists>T. S - (\<Union>n. C n) \<subseteq> T \<and> T \<in> lmeasurable \<and> measure lebesgue T \<le> e"
       proof (intro exI conjI)
         show "S - (\<Union>n. C n) \<subseteq> S - C n"

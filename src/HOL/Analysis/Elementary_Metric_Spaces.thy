@@ -1160,7 +1160,7 @@ proof -
     with c \<open>\<epsilon> > 0\<close> have "0 < \<epsilon> * (1 - c) / \<delta>"
       by simp
     with c obtain N where N: "c ^ N < \<epsilon> * (1 - c) / \<delta>"
-      using real_arch_pow_inv[of "\<epsilon> * (1 - c) / \<delta>" c] by auto
+      using arch_pow_inv[of "\<epsilon> * (1 - c) / \<delta>" c] by auto
     have *: "dist (z m) (z n) < \<epsilon>" if "m > n" and as: "m \<ge> N" "n \<ge> N" for m n :: nat
     proof -
       have *: "c ^ n \<le> c ^ N"

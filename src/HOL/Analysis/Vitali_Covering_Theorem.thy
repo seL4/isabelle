@@ -223,7 +223,7 @@ next
   next
     fix i assume "i \<in> K"
     then obtain n where "(1/2) ^ n < r i / B"
-      using  \<open>B > 0\<close> assms real_arch_pow_inv by fastforce
+      using  \<open>B > 0\<close> assms arch_pow_inv[of "r i / B"] by fastforce
     then have B2: "B/2 ^ n < r i"
       using \<open>B > 0\<close> by (simp add: field_split_simps)
     have "0 < r i" "r i \<le> B"

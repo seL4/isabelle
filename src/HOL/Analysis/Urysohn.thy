@@ -3499,7 +3499,7 @@ proof -
           with \<open>k < 1\<close> \<open>f a \<noteq> a\<close> \<open>a \<in> M\<close> fim have gt0: "((1 - k) * \<epsilon>) / d a (f a) > 0"
             by (fastforce simp: divide_simps Pi_iff)
           obtain N where "k^N < ((1-k) * \<epsilon>) / d a (f a)"
-            using real_arch_pow_inv [OF gt0 \<open>k < 1\<close>] by blast
+            using arch_pow_inv [OF gt0 \<open>k < 1\<close>] by blast
           then have N: "\<And>n. n \<ge> N \<Longrightarrow> k^n < ((1-k) * \<epsilon>) / d a (f a)"
             by (smt (verit) \<open>0 < k\<close> assms(4) power_decreasing)
           have "\<forall>n n'. n<n' \<longrightarrow> N \<le> n \<longrightarrow> N \<le> n' \<longrightarrow> d (\<sigma> n) (\<sigma> n') < \<epsilon>"
@@ -3695,7 +3695,7 @@ proof (cases "\<G>={}")
       fix \<epsilon> :: real
       assume "\<epsilon>>0"
       then obtain N where N: "inverse (2^N) < \<epsilon>"
-        using real_arch_pow_inv by (force simp flip: power_inverse)
+        using arch_pow_inv by (force simp flip: power_inverse)
       have "d (xf n) (xf n') < \<epsilon>" if "n \<le> n'" "N \<le> n" "N \<le> n'" for n n'
       proof -           
         have *: "rf n < inverse (2 ^ n)" for n
@@ -5643,7 +5643,7 @@ proof -
       have "\<exists>n a. sub.mcball (x B n) (\<gamma> B n) \<subseteq> sub.mcball a \<epsilon>" if "\<epsilon>>0" for \<epsilon>
       proof -
         obtain n where "(1/2)^n < \<epsilon>"
-          using \<open>0 < \<epsilon>\<close> real_arch_pow_inv by force
+          using \<open>0 < \<epsilon>\<close> arch_pow_inv by force
         with \<gamma>_le have \<epsilon>: "\<gamma> B n \<le> \<epsilon>"
           by (smt (verit))
         show ?thesis

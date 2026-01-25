@@ -959,7 +959,7 @@ proof -
     assume "0 < e"
     have rr: "0 \<le> (r-k) / r" "(r-k) / r < 1" using  k by auto
     obtain n where n: "((r-k) / r) ^ n < e / B * k"
-      using real_arch_pow_inv [of "e/B*k" "(r-k)/r"] \<open>0 < e\<close> \<open>0 < B\<close> k by force
+      using arch_pow_inv [of "e/B*k" "(r-k)/r"] \<open>0 < e\<close> \<open>0 < B\<close> k by force
     have "norm ((\<Sum>k<N. (w-z) ^ k * f u / (u-z) ^ Suc k) - f u / (u-w)) < e"
          if "n \<le> N" and r: "r = dist z u"  for N u
     proof -

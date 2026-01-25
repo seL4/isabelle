@@ -134,7 +134,7 @@ proof -
     fix e::real
     assume "e > 0"
     then obtain k where k: "(1/2)^k < e/DIM('a)"
-      by (meson DIM_positive divide_less_eq_1_pos of_nat_0_less_iff one_less_numeral_iff real_arch_pow_inv semiring_norm(76) zero_less_divide_iff zero_less_numeral)
+      by (meson DIM_positive divide_less_eq_1_pos of_nat_0_less_iff one_less_numeral_iff arch_pow_inv semiring_norm(76) zero_less_divide_iff zero_less_numeral)
     have "dist (\<Sum>i\<in>Basis. (real_of_int \<lfloor>2^k*(x \<bullet> i)\<rfloor> / 2^k) *\<^sub>R i) x =
           dist (\<Sum>i\<in>Basis. (real_of_int \<lfloor>2^k*(x \<bullet> i)\<rfloor> / 2^k) *\<^sub>R i) (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
       by (simp add: euclidean_representation)
@@ -540,7 +540,7 @@ lemma padic_rational_approximation_straddle:
     where "of_int q / p^n < x" "x < of_int r / p^n" "\<bar>q / p^n - r / p^n \<bar> < \<epsilon>"
 proof -
   obtain n where n: "2 / \<epsilon> < p ^ n"
-    using \<open>p>1\<close> real_arch_pow by blast
+    using \<open>p>1\<close> arch_pow by blast
   define q where "q \<equiv> \<lfloor>p ^ n * x\<rfloor> - 1"
   show thesis
     proof
@@ -1175,7 +1175,7 @@ proof -
       unfolding uniformly_continuous_on_def dist_norm
       by (metis \<open>0 < e\<close> less_divide_eq_numeral1(1) mult_zero_left)
     obtain n where n: "1/2^n < min d 1"
-      by (metis \<open>0 < d\<close> divide_less_eq_1 less_numeral_extra(1) min_def one_less_numeral_iff power_one_over real_arch_pow_inv semiring_norm(76) zero_less_numeral)
+      by (metis \<open>0 < d\<close> divide_less_eq_1 less_numeral_extra(1) min_def one_less_numeral_iff power_one_over arch_pow_inv semiring_norm(76) zero_less_numeral)
     with gr0I have "n > 0"
       by (force simp: field_split_simps)
     show "\<exists>d>0. \<forall>x\<in>D01. \<forall>x'\<in>D01. dist x' x < d \<longrightarrow> dist (f (c x')) (f (c x)) < e"
@@ -1446,7 +1446,7 @@ proof -
         qed
       qed
       obtain n where n: "1/2^n < min (\<delta> / 2) 1"
-        by (metis \<open>0 < \<delta>\<close> divide_less_eq_1 less_numeral_extra(1) min_less_iff_conj one_less_numeral_iff power_one_over real_arch_pow_inv semiring_norm(76) zero_less_divide_iff zero_less_numeral)
+        by (metis \<open>0 < \<delta>\<close> divide_less_eq_1 less_numeral_extra(1) min_less_iff_conj one_less_numeral_iff power_one_over arch_pow_inv semiring_norm(76) zero_less_divide_iff zero_less_numeral)
       with gr0I have "n \<noteq> 0"
         by fastforce
       with * obtain m::nat and y
@@ -1733,7 +1733,7 @@ proof -
           have "min 1 ((x2 - x1) / 128) > 0" "1/2 < (1::real)"
             using less by auto
           then obtain N where N: "1/2^N < min 1 ((x2 - x1) / 128)"
-            by (metis power_one_over real_arch_pow_inv)
+            by (metis power_one_over arch_pow_inv)
           then have "N > 0"
             using less_divide_eq_1 by force
           obtain p q where p: "p < 2 ^ q" "p \<noteq> 0" and yeq: "y = real p / 2 ^ q"

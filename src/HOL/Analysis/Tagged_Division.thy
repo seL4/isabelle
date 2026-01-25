@@ -1837,7 +1837,7 @@ proof -
     if e: "0 < e" for e
   proof -
     obtain n where n: "(\<Sum>i\<in>Basis. b \<bullet> i - a \<bullet> i) / e < 2 ^ n"
-      using real_arch_pow[of 2 "(sum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] by auto
+      using arch_pow[of 2 "(sum (\<lambda>i. b\<bullet>i - a\<bullet>i) Basis) / e"] by auto
     show ?thesis
     proof (rule exI [where x=n], clarify)
       fix x y
@@ -2124,7 +2124,7 @@ proof -
         have xab: "x \<in> cbox a b"
           using \<open>x \<in> S\<close> \<open>S \<subseteq> cbox a b\<close> by blast
         obtain n where n: "norm (b - a) / 2^n < e"
-          using real_arch_pow_inv [of "e / norm(b - a)" "1/2"] normab \<open>0 < e\<close>
+          using arch_pow_inv [of "e / norm(b - a)" "1/2"] normab \<open>0 < e\<close>
           by (auto simp: field_split_simps)
         then have "norm (b - a) < e * 2^n"
           by (auto simp: field_split_simps)

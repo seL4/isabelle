@@ -1362,30 +1362,29 @@ next
   finally show ?thesis .
 qed
 
-corollary real_arch_pow:
-  fixes x :: real
+corollary arch_pow:
+  fixes x :: "'a :: archimedean_field"
   assumes x: "1 < x"
   shows "\<exists>n. y < x^n"
 proof -
   from x have x0: "x - 1 > 0"
     by arith
   from reals_Archimedean3[OF x0, rule_format, of y]
-  obtain n :: nat where n: "y < real n * (x - 1)" by metis
+  obtain n :: nat where n: "y < of_nat n * (x - 1)" by metis
   from x0 have x00: "x- 1 \<ge> -1" by arith
   from Bernoulli_inequality[OF x00, of n] n
   have "y < x^n" by auto
   then show ?thesis by metis
 qed
 
-corollary real_arch_pow_inv:
-  fixes x y :: real
-  assumes y: "y > 0"
-    and x1: "x < 1"
+corollary arch_pow_inv:
+  fixes x y :: "'a :: archimedean_field"
+  assumes y: "y > 0" and x1: "x < 1"
   shows "\<exists>n. x^n < y"
 proof (cases "x > 0")
   case True
   with x1 have ix: "1 < 1/x" by (simp add: field_simps)
-  from real_arch_pow[OF ix, of "1/y"]
+  from arch_pow[OF ix, of "1/y"]
   obtain n where n: "1/y < (1/x)^n" by blast
   then show ?thesis using y \<open>x > 0\<close>
     by (auto simp add: field_simps)
@@ -1396,28 +1395,28 @@ next
 qed
 
 lemma forall_pos_mono:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (real n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
+  "(\<And>d e :: 'a :: archimedean_field. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n::nat. n \<noteq> 0 \<Longrightarrow> P (inverse (of_nat n))) \<Longrightarrow> (\<And>e. 0 < e \<Longrightarrow> P e)"
   by (metis real_arch_inverse)
 
 lemma forall_pos_mono_1:
-  "(\<And>d e::real. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
-    (\<And>n. P (inverse (real (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
+  "(\<And>d e :: 'a :: archimedean_field. d < e \<Longrightarrow> P d \<Longrightarrow> P e) \<Longrightarrow>
+    (\<And>n. P (inverse (of_nat (Suc n)))) \<Longrightarrow> 0 < e \<Longrightarrow> P e"
   using reals_Archimedean by blast
 
 lemma Archimedean_eventually_pow:
-  fixes x::real
+  fixes x :: "'a :: archimedean_field"
   assumes "1 < x"
   shows "\<forall>\<^sub>F n in sequentially. b < x ^ n"
 proof -
   obtain N where "\<And>n. n\<ge>N \<Longrightarrow> b < x ^ n"
-    by (metis assms le_less order_less_trans power_strict_increasing_iff real_arch_pow)
+    by (metis assms le_less order_less_trans power_strict_increasing_iff arch_pow)
   then show ?thesis
     using eventually_sequentially by blast
 qed
 
 lemma Archimedean_eventually_pow_inverse:
-  fixes x::real
+  fixes x :: "'a :: archimedean_field"
   assumes "\<bar>x\<bar> < 1" "\<epsilon> > 0"
   shows "\<forall>\<^sub>F n in sequentially. \<bar>x^n\<bar> < \<epsilon>"
 proof (cases "x = 0")
@@ -1432,6 +1431,17 @@ next
     by eventually_elim (metis \<open>\<epsilon> > 0\<close> inverse_less_imp_less power_abs power_inverse)
 qed
 
+lemma power_tends_to_zero_sequentially: 
+  fixes b :: "'a :: archimedean_field"
+  assumes "c > 0" "0 < b" "b < 1"
+  shows "\<forall>\<^sub>F n in sequentially. b ^ n < c"
+proof -
+  have "b ^ n < b ^ m" if "m < n" for m n
+    by (simp add: assms that)
+  then show ?thesis
+    using arch_pow_inv [of c b] assms
+    by (metis (no_types, lifting) order.strict_trans eventually_at_top_dense)
+qed
 
 subsection \<open>Floor and Ceiling Functions from the Reals to the Integers\<close>
 

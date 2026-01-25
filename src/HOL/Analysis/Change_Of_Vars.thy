@@ -1070,10 +1070,10 @@ proof
     proof (clarsimp simp add: lim_sequentially)
       fix e::real
       assume "e > 0"
-      obtain N1 where N1: "2 ^ N1 > abs(f x)"
-        using real_arch_pow by fastforce
+      obtain N1 where N1: "2 ^ N1 > \<bar>f x\<bar>"
+        using arch_pow[of 2 "\<bar>f x\<bar>"] by fastforce
       obtain N2 where N2: "(1/2) ^ N2 < e"
-        using real_arch_pow_inv \<open>e > 0\<close> by fastforce
+        using arch_pow_inv \<open>e > 0\<close> by fastforce
       have "dist (\<Sum>k | k \<in> \<int> \<and> \<bar>k\<bar> \<le> 2 ^ (2*n). k/2^n * ?\<Omega> n k x) (f x) < e" if "N1 + N2 \<le> n" for n
       proof -
         let ?m = "real_of_int \<lfloor>2^n * f x\<rfloor>"

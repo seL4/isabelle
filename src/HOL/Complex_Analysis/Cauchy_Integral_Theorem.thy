@@ -407,7 +407,7 @@ proof -
     have ?thesis
       using holomorphic_point_small_triangle [OF xin contf fx, of "e/10"] e
       apply clarsimp
-      apply (rule_tac y1="K/k" in exE [OF real_arch_pow[of 2]], force+)
+      apply (rule_tac y1="K/k" in exE [OF arch_pow[of 2]], force+)
       done
   }
   moreover have "f contour_integrable_on (linepath a b +++ linepath b c +++ linepath c a)"
