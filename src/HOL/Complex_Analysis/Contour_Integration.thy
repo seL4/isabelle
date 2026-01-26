@@ -1290,6 +1290,12 @@ subsection\<open>Partial circle path\<close>
 definition\<^marker>\<open>tag important\<close> part_circlepath :: "[complex, real, real, real, real] \<Rightarrow> complex"
   where "part_circlepath z r s t \<equiv> \<lambda>x. z + of_real r * exp (\<i> * of_real (linepath s t x))"
 
+lemma not_on_circlepathI:
+  assumes "cmod (z-z0) \<noteq> \<bar>r\<bar>"
+  shows "z \<notin> path_image (part_circlepath z0 r st tt)"
+  using assms
+  by (auto simp add: path_image_def image_def part_circlepath_def norm_mult)
+
 lemma pathstart_part_circlepath [simp]:
   "pathstart(part_circlepath z r s t) = z + r*exp(\<i> * s)"
   by (metis part_circlepath_def pathstart_def pathstart_linepath)
@@ -1835,6 +1841,23 @@ lemma simple_path_circlepath: "simple_path(circlepath z r) \<longleftrightarrow>
 
 lemma notin_path_image_circlepath [simp]: "cmod (w - z) < r \<Longrightarrow> w \<notin> path_image (circlepath z r)"
   by (simp add: sphere_def dist_norm norm_minus_commute)
+
+lemma circlepath_inj_on: 
+  assumes "r>0"
+  shows "inj_on (circlepath z r) {0..<1}"
+proof (rule inj_onI)
+  fix x y 
+  assume x: "x \<in> {0..<1}" and y: "y \<in> {0..<1}" and eq: "circlepath z r x = circlepath z r y"
+  define c where "c \<equiv> 2 * pi * \<i>"
+  have "c\<noteq>0" unfolding c_def by auto 
+  from eq have "exp (c * x) = exp (c * y)"
+    unfolding circlepath c_def using \<open>r>0\<close> by auto
+  then obtain n where "c * x = c * (y + of_int n)"
+    by (auto simp add: exp_eq c_def algebra_simps)
+  then have "x=y+n" using \<open>c\<noteq>0\<close>
+    by (meson mult_cancel_left of_real_eq_iff)
+  then show "x=y" using x y by auto
+qed
 
 lemma contour_integral_circlepath:
   assumes "r > 0"

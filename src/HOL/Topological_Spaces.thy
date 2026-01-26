@@ -2331,6 +2331,14 @@ lemma continuous_discrete [simp]:
   "continuous (at x within A) (f :: 'a :: discrete_topology \<Rightarrow> _)"
   by (auto simp: continuous_def at_discrete)
 
+lemma
+  fixes f::"'a::linorder_topology \<Rightarrow> 'b::topological_space"
+  assumes "continuous_on {a..b} f" "a<b"
+  shows continuous_on_at_left: "continuous (at_left b) f" 
+    and continuous_on_at_right: "continuous (at_right a) f"
+  using assms continuous_on_Icc_at_leftD continuous_on_Icc_at_rightD continuous_within 
+  by blast+
+
 text \<open>Continuity in terms of open preimages.\<close>
 
 lemma continuous_at_open:
@@ -3210,6 +3218,13 @@ proof
   then show "x \<in> A"
     using assms connected_contains_Ioo[of A a b] by auto
 qed
+
+lemma continuous_on_neq_split:
+  fixes f :: "'a::linear_continuum_topology \<Rightarrow> 'b::linorder_topology"
+  assumes "\<forall>x\<in>S. f x \<noteq> y" and f: "continuous_on S f" and S: "connected S"
+  shows "(\<forall>x\<in>S. f x > y) \<or> (\<forall>x\<in>S. f x < y)"
+  using connectedD_interval assms connected_continuous_image [OF f S]
+  using linorder_not_less by blast
 
 
 subsection \<open>Intermediate Value Theorem\<close>

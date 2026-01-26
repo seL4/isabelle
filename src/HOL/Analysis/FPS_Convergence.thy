@@ -21,6 +21,26 @@ text \<open>
   trivial results will only be proven there.
 \<close>
 
+lemma poly_holomorphic_on [holomorphic_intros]:
+  assumes [holomorphic_intros]: "f holomorphic_on A"
+  shows   "(\<lambda>z. poly p (f z)) holomorphic_on A"
+  unfolding poly_altdef by (intro holomorphic_intros)
+
+lemma poly_holomorphic_on_simple[simp]: "(poly p) holomorphic_on s"
+  by (meson field_differentiable_def has_field_derivative_at_within holomorphic_onI poly_DERIV)
+
+lemma poly_field_differentiable_at[simp]:
+  "poly p field_differentiable (at x within s)"
+  using field_differentiable_at_within field_differentiable_def poly_DERIV by blast
+  
+lemma deriv_pderiv: "deriv (poly p) = poly (pderiv p)"
+  by (meson ext DERIV_imp_deriv poly_DERIV)
+        
+lemma poly_linepath_comp: 
+  fixes a::"'a::{real_normed_vector,comm_semiring_0,real_algebra_1}"
+  shows "poly p o (linepath a b) = poly (p \<circ>\<^sub>p [:a, b-a:]) o of_real"
+  by (force simp add: poly_pcompose linepath_def scaleR_conv_of_real algebra_simps)
+      
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Balls with extended real radius\<close>
 
 (* TODO: This should probably go somewhere else *)
@@ -639,11 +659,6 @@ proof -
   ultimately show ?thesis
     using sums_unique2 by blast
 qed
-
-lemma poly_holomorphic_on [holomorphic_intros]:
-  assumes [holomorphic_intros]: "f holomorphic_on A"
-  shows   "(\<lambda>z. poly p (f z)) holomorphic_on A"
-  unfolding poly_altdef by (intro holomorphic_intros)
 
 subsection \<open>Power series expansions of analytic functions\<close>
 
