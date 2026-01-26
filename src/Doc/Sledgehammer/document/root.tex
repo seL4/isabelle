@@ -809,12 +809,11 @@ version of Zipperposition runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, \textit{provers} is set to a subset of CVC4, E, SPASS, Vampire,
-veriT, Z3, and Zipperposition, to be run in parallel, either locally or
-remotely---depending on the number of processor cores available and on which
-provers are actually installed. Proof methods are currently not included, due
-to their experimental status. (Proof methods can nevertheless appear in
-Isabelle proofs that reconstruct proofs originally found by ATPs or SMT
-solvers.)
+veriT, Z3, Zipperposition, and proof methods to be run in parallel, either
+locally or remotely---depending on the number of processor cores available and
+on which provers are actually installed. The subset includes all proof methods
+called by the \textbf{try0} command. (Proof methods can appear in Isabelle
+proofs that reconstruct proofs originally found by ATPs or SMT solvers.)
 
 The following proof methods are supported:\ \textbf{\textit{algebra}},
 \textbf{\textit{argo}}, \textbf{\textit{auto}}, \textbf{\textit{blast}},
