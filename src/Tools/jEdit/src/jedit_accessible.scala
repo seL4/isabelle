@@ -23,7 +23,7 @@ import java.awt.{Point, Rectangle}
 import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText,
   AccessibleEditableText}
 import javax.swing.{JPanel, SwingUtilities}
-import javax.swing.text.{AttributeSet, SimpleAttributeSet}
+import javax.swing.text.{AttributeSet, SimpleAttributeSet, StyleConstants}
 
 
 object JEdit_Accessible {
@@ -81,6 +81,21 @@ object JEdit_Accessible {
 
 
   /* textarea */
+
+  def attributes(
+    bold: Boolean = false,
+    italic: Boolean = false,
+    underline: Boolean = false
+  ): AttributeSet = {
+    if (bold || italic || underline) {
+      val atts = new SimpleAttributeSet
+      if (bold) StyleConstants.setBold(atts, true)
+      if (italic) StyleConstants.setItalic(atts, true)
+      if (underline) StyleConstants.setUnderline(atts, true)
+      atts
+    }
+    else SimpleAttributeSet.EMPTY
+  }
 
   class TextArea_Factory extends JEditTextAreaFactory {
     override def create(view: jedit.View): JEditTextArea = new TextArea(view)
@@ -206,10 +221,13 @@ object JEdit_Accessible {
         JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
 
       override def getCharacterAttribute(i: Int): AttributeSet =
-        SimpleAttributeSet.EMPTY  // FIXME
+        PIDE.maybe_rendering(view) match {
+          case Some(rendering) if !rendering.snapshot.is_outdated &&
+            rendering.hyperlink(Text.Range(i, i + 1)).isDefined => attributes(underline = true)
+          case _ => attributes()
+        }
 
-      override def setAttributes(start: Int, stop: Int, att: AttributeSet): Unit =
-        if (!buffer.isReadOnly) {}  // FIXME
+      override def setAttributes(start: Int, stop: Int, atts: AttributeSet): Unit = {}
 
       override def getSelectionStart: Int =
         if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
