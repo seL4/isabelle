@@ -478,7 +478,7 @@ proof -
   show "contour_integral (f \<circ> \<gamma>) g 
       = contour_integral \<gamma> (\<lambda>w. deriv f w * g (f w))"
     unfolding contour_integral_integral
-  proof (rule integral_spike[rule_format,OF negligible_finite[OF \<open>finite spikes\<close>]])
+  proof (rule integral_spike[OF negligible_finite[OF \<open>finite spikes\<close>]])
     fix t::real assume t:"t \<in> {0..1} - spikes"
     then have "\<gamma> differentiable at t" 
       using \<gamma>_diff unfolding C1_differentiable_on_eq by auto
@@ -1444,6 +1444,86 @@ proof -
     by (rule bchoice) (blast intro: y)
 qed
 
+subsection\<open>More on winding numbers\<close>
+
+lemma winding_number_comp:
+  assumes "open S" "f holomorphic_on S" "path_image \<gamma> \<subseteq> S"  
+          "valid_path \<gamma>" "z \<notin> path_image (f \<circ> \<gamma>)" 
+  shows "winding_number (f \<circ> \<gamma>) z = 1/(2*pi*\<i>) * contour_integral \<gamma> (\<lambda>w. deriv f w / (f w - z))"
+proof -
+  obtain spikes where "finite spikes" and \<gamma>_diff: "\<gamma> C1_differentiable_on {0..1} - spikes"
+    using \<open>valid_path \<gamma>\<close> unfolding valid_path_def piecewise_C1_differentiable_on_def by auto  
+  have "valid_path (f \<circ> \<gamma>)" 
+    using valid_path_compose_holomorphic assms by blast
+  moreover have "contour_integral (f \<circ> \<gamma>) (\<lambda>w. 1 / (w - z)) 
+      = contour_integral \<gamma> (\<lambda>w. deriv f w / (f w - z))"
+    unfolding contour_integral_integral
+  proof (rule integral_spike[OF negligible_finite[OF \<open>finite spikes\<close>]])
+    fix t::real assume t:"t \<in> {0..1} - spikes"
+    then have "\<gamma> differentiable at t" 
+      using \<gamma>_diff unfolding C1_differentiable_on_eq by auto
+    moreover have "f field_differentiable at (\<gamma> t)" 
+    proof -
+      have "\<gamma> t \<in> S" using \<open>path_image \<gamma> \<subseteq> S\<close> t unfolding path_image_def by auto 
+      thus ?thesis 
+        using \<open>open S\<close> \<open>f holomorphic_on S\<close>  holomorphic_on_imp_differentiable_at by blast
+    qed
+    ultimately show " deriv f (\<gamma> t) / (f (\<gamma> t) - z) * vector_derivative \<gamma> (at t) =
+         1 / ((f \<circ> \<gamma>) t - z) * vector_derivative (f \<circ> \<gamma>) (at t)"
+      by (simp add: vector_derivative_chain_at_general)
+  qed
+  moreover note \<open>z \<notin> path_image (f \<circ> \<gamma>)\<close> 
+  ultimately show ?thesis
+    using winding_number_valid_path by presburger
+qed  
+  
+lemma winding_number_uminus_comp:
+  assumes "valid_path \<gamma>" "- z \<notin> path_image \<gamma>" 
+  shows "winding_number (uminus \<circ> \<gamma>) z = winding_number \<gamma> (-z)"
+proof -
+  define c where "c= 2 * pi * \<i>"
+  have "winding_number (uminus \<circ> \<gamma>) z = 1/c * contour_integral \<gamma> (\<lambda>w. deriv uminus w / (-w-z)) "
+  proof (rule winding_number_comp[of UNIV, folded c_def])
+    show "open UNIV" "uminus holomorphic_on UNIV" "path_image \<gamma> \<subseteq> UNIV" "valid_path \<gamma>"
+      using \<open>valid_path \<gamma>\<close> by (auto intro:holomorphic_intros)
+    show "z \<notin> path_image (uminus \<circ> \<gamma>)" 
+      unfolding path_image_compose using \<open>- z \<notin> path_image \<gamma>\<close> by auto
+  qed
+  also have "\<dots> = 1/c * contour_integral \<gamma> (\<lambda>w. 1 / (w - (-z)))"
+    by (auto intro!:contour_integral_eq simp add:field_simps minus_divide_right)
+  also have "\<dots> = winding_number \<gamma> (-z)"
+    using winding_number_valid_path[OF \<open>valid_path \<gamma>\<close> \<open>- z \<notin> path_image \<gamma>\<close>,folded c_def]
+    by simp
+  finally show ?thesis by auto
+qed  
+  
+lemma winding_number_comp_linear:
+  assumes "c\<noteq>0" "valid_path \<gamma>" and not_image: "(z-b)/c \<notin> path_image \<gamma>"
+  shows "winding_number ((\<lambda>x. c*x+b) \<circ> \<gamma>) z = winding_number \<gamma> ((z-b)/c)" (is "?L = ?R")
+proof -
+  define cc where "cc=1 / (complex_of_real (2 * pi) * \<i>)"
+  define zz where "zz=(z-b)/c"
+  have "?L = cc * contour_integral \<gamma> (\<lambda>w. deriv (\<lambda>x. c * x + b) w / (c * w + b - z))"
+    apply (subst winding_number_comp[of UNIV,simplified])
+    subgoal by (auto intro:holomorphic_intros)
+    subgoal using \<open>valid_path \<gamma>\<close> .
+    subgoal using not_image \<open>c\<noteq>0\<close> unfolding path_image_compose by auto
+    subgoal unfolding cc_def by auto
+    done
+  also have "\<dots> = cc * contour_integral \<gamma> (\<lambda>w.1 / (w - zz))"
+  proof -
+    have "deriv (\<lambda>x. c * x + b) = (\<lambda>x. c)"
+      by (auto intro:derivative_intros) 
+    then show ?thesis
+      unfolding zz_def cc_def using \<open>c\<noteq>0\<close>
+      by (auto simp:field_simps)
+  qed
+  also have "\<dots> = winding_number \<gamma> zz"
+    using winding_number_valid_path[OF \<open>valid_path \<gamma>\<close> not_image,folded zz_def cc_def]
+    by simp
+  finally show "winding_number ((\<lambda>x. c * x + b) \<circ> \<gamma>) z = winding_number \<gamma> zz" .
+qed  
+ 
 subsection\<open>On analytic functions defined by a series\<close>
 
 lemma series_and_derivative_comparison:
