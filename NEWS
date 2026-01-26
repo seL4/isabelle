@@ -69,6 +69,13 @@ Minor INCOMPATIBILITY.
 any longer in generated code but implemented using their counterparts on finite
 sets. Minor INCOMPATIBILITY.
 
+* Set difference is now written using the symbol "\<setminus>" (which is not a
+  backlash), although the former symbol "-" still works. Minor INCOMPATIBILITY.
+
+* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv 
+  from type "real" to any archimedian fields, renaming them arch_pow_inv 
+  and arch_pow. Minor INCOMPATIBILITY.
+
 
 *** ML ***
 
