@@ -61,6 +61,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
   let
     val (basic_slice as (slice_size, _, _, _, _), No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss
+    val non_chained = filter_out is_fact_chained facts
     val ctxt = Proof.context_of state
 
     fun run_try0 () : Try0.result option =
@@ -77,7 +78,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             in
               (xref, [])
             end
-        val xrefs = map xref_of_fact facts
+        val xrefs = map xref_of_fact non_chained
         val facts : Try0.facts = {usings = xrefs, simps = [], intros = [], elims = [], dests = []}
       in
         Try0.get_proof_method_or_noop name (SOME run_timeout) facts state
@@ -95,7 +96,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
 
     val used_facts =
       (case outcome of
-        NONE => (found_something name; map fst facts)
+        NONE => (found_something name; map fst non_chained)
       | SOME _ => [])
 
     val message = fn preplay_outcome =>
