@@ -26,6 +26,9 @@ parameter.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Support for additional look-and-feels: "FlatLaf IntelliJ" and "FlatLaf
+Darcula".
+
 * The jEdit action "goto-entity" has been superseded by "follow-link",
 while retaining the keyboard shortcut CS+d. The new action is more
 general: it uses the same notion of link as C-hover-click via mouse.
