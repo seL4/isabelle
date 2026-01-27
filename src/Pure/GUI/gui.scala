@@ -581,3 +581,11 @@ class FlatLightLaf extends GUI.Look_And_Feel(new flatlaf.FlatLightLaf, new flatl
 class FlatDarkLaf extends GUI.Look_And_Feel(new flatlaf.FlatDarkLaf, new flatlaf.FlatDarculaLaf)
 class FlatMacLightLaf extends GUI.Look_And_Feel(new flatlaf.themes.FlatMacLightLaf)
 class FlatMacDarkLaf extends GUI.Look_And_Feel(new flatlaf.themes.FlatMacDarkLaf)
+
+class FlatLafs extends GUI.Look_And_Feel(
+  new flatlaf.FlatLightLaf,
+  new flatlaf.FlatIntelliJLaf,
+  new flatlaf.FlatDarkLaf,
+  new flatlaf.FlatDarculaLaf,
+  new flatlaf.themes.FlatMacLightLaf,
+  new flatlaf.themes.FlatMacDarkLaf)
