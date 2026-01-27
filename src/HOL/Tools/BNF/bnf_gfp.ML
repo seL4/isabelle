@@ -2338,10 +2338,10 @@ thm trans[OF x.dtor_unfold_unique x.dtor_unfold_unique[symmetric,
         val unitTs = replicate n HOLogic.unitT;
         val unit_funs = replicate n (Term.absdummy HOLogic.unitT HOLogic.unit);
         fun mk_map_args I =
-          map (fn i =>
+          map_range (fn i =>
             if member (op =) I i then Term.absdummy HOLogic.unitT (nth ys i)
             else mk_undefined (HOLogic.unitT --> nth passiveAs i))
-          (0 upto (m - 1));
+          m;
 
         fun mk_nat_wit Ds bnf (I, wit) () =
           let

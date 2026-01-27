@@ -2160,9 +2160,9 @@ fun bnf_cmd (raw_csts, raw_plugins) =
 
 fun print_bnfs ctxt =
   let
-    fun pretty_set sets i = Pretty.block
+    fun pretty_set (i, set) = Pretty.block
       [Pretty.str (mk_setN (i + 1) ^ ":"), Pretty.brk 1,
-        Pretty.quote (Syntax.pretty_term ctxt (nth sets i))];
+        Pretty.quote (Syntax.pretty_term ctxt set)];
 
     fun pretty_bnf (key, BNF {T, map, sets, bd, live, lives, dead, deads, ...}) =
       Pretty.big_list
@@ -2174,7 +2174,7 @@ fun print_bnfs ctxt =
             Pretty.brk 3, Pretty.list "[" "]" (List.map (Syntax.pretty_typ ctxt) deads)],
           Pretty.block [Pretty.str (mapN ^ ":"), Pretty.brk 1,
             Pretty.quote (Syntax.pretty_term ctxt map)]] @
-          List.map (pretty_set sets) (0 upto length sets - 1) @
+          map_index pretty_set sets @
           [Pretty.block [Pretty.str (bdN ^ ":"), Pretty.brk 1,
             Pretty.quote (Syntax.pretty_term ctxt bd)]]);
   in
