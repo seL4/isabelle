@@ -315,6 +315,10 @@ class Main_Plugin extends EBPlugin {
                 GUI.scrollable_text(msg))
           }
 
+          JEdit_Property.file_menu.load()
+            .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
+            .save()
+
           jEdit.propertiesChanged()
 
           if (view != null) {
@@ -495,5 +499,11 @@ class Main_Plugin extends EBPlugin {
     PIDE.editor.shutdown()
 
     Document_Model.reset()
+
+    JEdit_Property.file_menu.load()
+      .remove("isabelle.reload-plain", "isabelle.reload-symbols")
+      .save()
+
+    GUI_Thread.later { jEdit.propertiesChanged }
   }
 }

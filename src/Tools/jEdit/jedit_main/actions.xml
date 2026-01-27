@@ -247,4 +247,14 @@
 	    isabelle.jedit.Isabelle.java_monitor(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.reload-plain">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reload_plain(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.reload-symbols">
+	  <CODE>
+	    isabelle.jedit.Isabelle.reload_symbols(view);
+	  </CODE>
+	</ACTION>
 </ACTIONS>

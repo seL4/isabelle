@@ -597,6 +597,15 @@ object Isabelle {
   }
 
 
+  /* reload with encoding */
+
+  def reload_plain(view: View): Unit =
+    view.getBuffer.reloadWithEncoding(view, UTF8.charset.name)
+
+  def reload_symbols(view: View): Unit =
+    view.getBuffer.reloadWithEncoding(view, Isabelle_Encoding.NAME)
+
+
   /* java monitor */
 
   def java_monitor(view: View): Unit =

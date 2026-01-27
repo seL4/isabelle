@@ -53,6 +53,10 @@ plugin.isabelle.jedit_main.Plugin.menu= \
   isabelle-theories \
   isabelle-timing
 isabelle.browser-info.label=Browse HTML library
+isabelle.reload-plain.label=Reload Plain $Text
+isabelle.reload-plain.icon.small=16x16/actions/view-refresh.svg
+isabelle.reload-symbols.label=Reload Unicode S$ymbols
+isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg
 isabelle-debugger.label=Debugger panel
 isabelle-debugger.title=Debugger
 isabelle-document.label=Document panel
