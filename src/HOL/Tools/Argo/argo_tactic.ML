@@ -309,7 +309,7 @@ fun prove_taut ctxt ns t =
 
 fun with_frees ctxt n mk =
   let
-    val ns = map (fn i => "P" ^ string_of_int i) (0 upto (n - 1))
+    val ns = map_range (fn i => "P" ^ string_of_int i) n
     val ts = map (Free o rpair \<^Type>\<open>bool\<close>) ns
     val t = mk_nary HOLogic.mk_disj (mk ts)
   in prove_taut ctxt ns t end
@@ -410,7 +410,7 @@ fun iff_intro rule lf rf ct =
 fun with_conj f g ct = iff_intro iff_conj_thm (f o explode_conj) g ct
 fun with_ndis f g ct = iff_intro iff_ndis_thm (f o explode_ndis) g (Thm.apply \<^cterm>\<open>Not\<close> ct)
 
-fun swap_indices n iss = map (fn i => find_index (fn is => member (op =) is i) iss) (0 upto (n - 1))
+fun swap_indices n iss = map_range (fn i => find_index (fn is => member (op =) is i) iss) n
 fun sort_nary w f g (n, iss) = w (f (map hd iss)) (under_assumption (f (swap_indices n iss) o g))
 val sort_conj = sort_nary with_conj join_conj explode_conj
 val sort_ndis = sort_nary with_ndis join_ndis explode_ndis 
