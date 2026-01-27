@@ -37,9 +37,9 @@ object GUI {
   def default_background_color(): Color = if (is_dark_laf()) Color.BLACK else Color.WHITE
   def default_intermediate_color(): Color = if (is_dark_laf()) Color.LIGHT_GRAY else Color.GRAY
 
-  class Look_And_Feel(laf: LookAndFeel) extends Isabelle_System.Service {
-    def info: UIManager.LookAndFeelInfo =
-      new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName)
+  class Look_And_Feel(lafs: LookAndFeel*) extends Isabelle_System.Service {
+    def infos: List[UIManager.LookAndFeelInfo] =
+      lafs.toList.map(laf => new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName))
   }
 
   lazy val look_and_feels: List[Look_And_Feel] =
@@ -53,7 +53,7 @@ object GUI {
     val lafs =
       UIManager.getInstalledLookAndFeels().toList
         .filterNot(info => old_lafs(info.getClassName))
-    val more_lafs = look_and_feels.map(_.info)
+    val more_lafs = look_and_feels.flatMap(_.infos)
     UIManager.setInstalledLookAndFeels((more_lafs ::: lafs).toArray)
 
     // see https://www.formdev.com/flatlaf/customizing
