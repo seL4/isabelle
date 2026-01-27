@@ -276,7 +276,7 @@ fun mk_infos_of_mutually_recursive_new_datatypes prefs check_names fpT_names0 lt
     val ctr_Tsss = map (map (map (Old_Datatype_Aux.typ_of_dtyp descr) o snd) o #3 o snd) descr;
     val kkssss = map (map (map body_rec_indices o snd) o #3 o snd) descr;
 
-    val callers = map (fn kk => Var ((Name.uu, kk), \<^typ>\<open>unit => unit\<close>)) (0 upto nn - 1);
+    val callers = map_range (fn kk => Var ((Name.uu, kk), \<^typ>\<open>unit => unit\<close>)) nn;
 
     fun apply_comps n kk =
       mk_partial_compN n (replicate n HOLogic.unitT ---> HOLogic.unitT) (nth callers kk);

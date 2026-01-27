@@ -2369,7 +2369,7 @@ fun define_co_datatypes prepare_plugins prepare_constraint prepare_typ prepare_t
           fold (fn T => fold_index (fn (j, X) =>
             (i <> j andalso exists_subtype_in [X] T) ? insert (op =) (i, j)) Xs);
 
-        val add_missing_nodes = fold (AList.default (op =) o rpair []) (0 upto nn - 1);
+        val add_missing_nodes = fold_range (AList.default (op =) o rpair []) nn;
 
         val deps = fold_index (uncurry (fold o add_deps)) ctrXs_Tsss []
           |> AList.group (op =)
