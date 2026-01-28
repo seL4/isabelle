@@ -29,6 +29,12 @@ parameter.
 * The "Isabelle" menu now appears in the main menu bar, instead of
 "Plugins / Isabelle". Minor INCOMPATIBILITY.
 
+* The "Macros" menu has been moved into menu of "Utilities", as a
+submenu. Minor INCOMPATIBILITY.
+
+* Various menu shortcuts have been adjusted, to improved overall
+accessibility via keyboard actions. Minor INCOMPATIBILITY.
+
 * Support for additional look-and-feels: "FlatLaf IntelliJ" and "FlatLaf
 Darcula".
 
