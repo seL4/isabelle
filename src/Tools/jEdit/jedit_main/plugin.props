@@ -54,7 +54,7 @@ isabelle-menu= \
   isabelle-timing
 isabelle-debugger.label=Debu$gger panel
 isabelle-debugger.title=Debugger
-isabelle-document.label=Do$cument panel
+isabelle-document.label=$Document panel
 isabelle-document.title=Document
 isabelle-documentation.label=Isabelle $Documentation
 isabelle-documentation.title=Documentation
@@ -94,9 +94,9 @@ isabelle.browser-info.label=Browse HTML library
 isabelle.draft.label=Show draft in browser
 isabelle.options.label=Isabelle Options
 isabelle.reload-plain.icon.small=16x16/actions/view-refresh.svg
-isabelle.reload-plain.label=$Reload Plain Text
+isabelle.reload-plain.label=Reload Plain $Text
 isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg
-isabelle.reload-symbols.label=$Reload Unicode Symbols
+isabelle.reload-symbols.label=Reload Unicode S$ymbols
 
 #SideKick
 mode.isabelle-news.folding=sidekick
