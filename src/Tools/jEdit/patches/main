@@ -424,7 +424,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java jedit5.7.0-patc
  		clear.addActionListener(this);
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props	2024-08-03 19:53:20.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2025-08-23 18:50:05.907962159 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2026-01-28 20:33:28.296406894 +0100
 @@ -8,13 +8,15 @@
  ###
  
@@ -608,7 +608,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  	Blank24.gif
  #}}}
  
-@@ -144,6 +147,7 @@
+@@ -137,13 +140,14 @@
+ #}}}
+ 
+ #{{{ Menu bar
+-view.mbar=file edit search markers folds view utils macros plugins help-menu
++view.mbar=file edit search markers folds view utils plugins help-menu
+ 
+ #{{{ File menu
+ file=new-file \
  	 new-file-in-mode \
  	 open-file \
  	 %recent-files \
@@ -750,7 +758,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  
  #{{{ Scrolling menu
  scrolling=scroll-to-current-line \
-@@ -436,7 +445,6 @@
+@@ -436,13 +445,13 @@
  
  #{{{ Utilities menu
  utils=vfs.browser \
@@ -758,7 +766,14 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  	  - \
  	  %favorites \
  	  %current-directory \
-@@ -454,9 +462,9 @@
+ 	  %jedit-directory \
+ 	  %settings-directory \
+ 	  - \
++	  %macros \
+ 	  %beanshell \
+ 	  %troubleshooting \
+ 	  - \
+@@ -454,9 +463,9 @@
  	  - \
  	  %quick-options
  
@@ -771,7 +786,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  
  #{{{ Recent Directories menu
  recent-directories.code=new RecentDirectoriesProvider();
-@@ -518,9 +526,9 @@
+@@ -518,9 +527,9 @@
  	   rescan-macros \
  	   -
  macros.code=new MacrosProvider();
@@ -784,7 +799,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  #}}}
  
  #{{{ Plugins menu
-@@ -771,7 +779,7 @@
+@@ -771,7 +780,7 @@
  
  #{{{ HyperSearch results dialog
  hypersearch-results.clear.icon=22x22/actions/edit-clear.png
@@ -793,7 +808,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  hypersearch-results.multi.multiple.icon=22x22/actions/edit-find-multiple.png
  hypersearch-results.multi.single.icon=22x22/actions/edit-find-single.png
  hypersearch-results.match.highlight.icon=22x22/actions/edit-find-highlight-match.png
-@@ -784,8 +792,8 @@
+@@ -784,8 +793,8 @@
  #}}}
  
  #{{{ Help Viewer
@@ -804,7 +819,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  #}}}
  
  #}}}
-@@ -809,9 +817,9 @@
+@@ -809,9 +818,9 @@
  
  #{{{ Abbreviations pane
  options.abbrevs.code=new AbbrevsOptionPane();
@@ -817,7 +832,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  #}}}
  
  #{{{ Appearance pane
-@@ -840,11 +848,11 @@
+@@ -840,11 +849,11 @@
  
  #{{{ Context Menu pane
  options.context.code=new ContextOptionPane();
@@ -834,7 +849,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  options.context.includeOptionsLink=true
  #}}}
  
-@@ -906,12 +914,12 @@
+@@ -906,12 +915,12 @@
  
  #{{{ Tool Bar pane
  options.toolbar.code=new ToolBarOptionPane();
@@ -853,7 +868,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  #}}}
  
  #{{{ View pane
-@@ -949,7 +957,8 @@
+@@ -949,7 +958,8 @@
  vfs.browser.default-filter=*[^~#]
  vfs.browser.filter-enabled=true
  vfs.browser.file.icon=16x16/mimetypes/text-x-generic.png
@@ -863,7 +878,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  vfs.browser.open-file.icon=16x16/actions/edit-select-all.png
  vfs.browser.dir.icon=16x16/places/folder.png
  vfs.browser.open-dir.icon=16x16/status/folder-open.png
-@@ -1007,13 +1016,13 @@
+@@ -1007,13 +1017,13 @@
  plugin-manager.mirror-url=http://plugins.jedit.org/export/mirror_list.php
  
  #{{{ Plugin management
