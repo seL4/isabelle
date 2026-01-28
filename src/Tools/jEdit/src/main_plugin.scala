@@ -288,6 +288,23 @@ class Main_Plugin extends EBPlugin {
     }
   }
 
+  private def init_menus(): Unit =
+    if (jEdit.getActiveView != null) {
+      JEdit_Property.file_menu.load()
+        .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
+        .save()
+
+      GUI_Thread.later { jEdit.propertiesChanged }
+    }
+
+  private def exit_menus(): Unit = {
+    JEdit_Property.file_menu.load()
+      .remove("isabelle.reload-plain", "isabelle.reload-symbols")
+      .save()
+
+    GUI_Thread.later { jEdit.propertiesChanged }
+  }
+
   override def handleMessage(message: EBMessage): Unit = {
     GUI_Thread.assert {}
 
@@ -315,11 +332,7 @@ class Main_Plugin extends EBPlugin {
                 GUI.scrollable_text(msg))
           }
 
-          JEdit_Property.file_menu.load()
-            .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
-            .save()
-
-          jEdit.propertiesChanged()
+          init_menus()
 
           if (view != null) {
             init_editor(view)
@@ -450,6 +463,8 @@ class Main_Plugin extends EBPlugin {
       completion_history.load()
       spell_checker.update(options.value)
 
+      init_menus()
+
       JEdit_Lib.jedit_views().foreach(init_title)
       navigator.init(JEdit_Lib.jedit_buffers())
 
@@ -500,10 +515,6 @@ class Main_Plugin extends EBPlugin {
 
     Document_Model.reset()
 
-    JEdit_Property.file_menu.load()
-      .remove("isabelle.reload-plain", "isabelle.reload-symbols")
-      .save()
-
-    GUI_Thread.later { jEdit.propertiesChanged }
+    exit_menus()
   }
 }
