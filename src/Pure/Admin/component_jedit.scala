@@ -339,7 +339,6 @@ isabelle.newline.label=Newline with indentation of Isabelle keywords
 isabelle.newline.shortcut=ENTER
 isabelle.next-error.label=Go to next error
 isabelle.next-error.shortcut=CS+n
-isabelle.options.label=Isabelle options
 isabelle.prev-error.label=Go to previous error
 isabelle.prev-error.shortcut=CS+p
 isabelle.reset-continuous-checking.label=Reset continuous checking

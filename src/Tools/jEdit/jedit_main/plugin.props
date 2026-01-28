@@ -30,6 +30,7 @@ options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Render
 #menu actions and dockables
 isabelle-menu.label=$Isabelle
 isabelle-menu= \
+  isabelle.options \
   isabelle.browser-info \
   isabelle-export-browser \
   isabelle-session-browser \
@@ -39,7 +40,6 @@ isabelle-menu= \
   - \
   isabelle-debugger \
   isabelle-document \
-  isabelle-documentation \
   isabelle-monitor \
   isabelle-output \
   isabelle-protocol \
@@ -56,7 +56,7 @@ isabelle-debugger.label=Debu$gger panel
 isabelle-debugger.title=Debugger
 isabelle-document.label=Do$cument panel
 isabelle-document.title=Document
-isabelle-documentation.label=$Documentation panel
+isabelle-documentation.label=Isabelle $Documentation
 isabelle-documentation.title=Documentation
 isabelle-export-browser.label=Browse theory exports
 isabelle-graphview.label=$Graphview panel
@@ -92,6 +92,7 @@ isabelle-timing.label=Timing panel
 isabelle-timing.title=Timing
 isabelle.browser-info.label=Browse $HTML library
 isabelle.draft.label=Show d$raft in browser
+isabelle.options.label=Isabelle Options
 isabelle.reload-plain.icon.small=16x16/actions/view-refresh.svg
 isabelle.reload-plain.label=Reload Plain $Text
 isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg

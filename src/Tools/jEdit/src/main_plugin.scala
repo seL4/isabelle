@@ -291,13 +291,14 @@ class Main_Plugin extends EBPlugin {
   private def init_menus(): Unit =
     if (jEdit.getActiveView != null) {
       JEdit_Property.menu_bar.load()
-        .insert_after("macros", "isabelle-menu")
+        .insert_after("plugins", "isabelle-menu")
         .save()
       JEdit_Property.file_menu.load()
         .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
         .save()
       JEdit_Property.help_menu.load()
-        .insert_after("help", "isabelle-documentation")
+        .remove("tip-of-the-day")
+        .insert_after(JEdit_Property.END, "isabelle-documentation")
         .save()
 
       GUI_Thread.later { jEdit.propertiesChanged }
@@ -312,6 +313,7 @@ class Main_Plugin extends EBPlugin {
       .save()
     JEdit_Property.help_menu.load()
       .remove("isabelle-documentation")
+      .insert_after(JEdit_Property.END, "tip-of-the-day")
       .save()
 
     GUI_Thread.later { jEdit.propertiesChanged }
