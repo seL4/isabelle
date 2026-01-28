@@ -26,6 +26,9 @@ parameter.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* The "Isabelle" menu now appears in the main menu bar, instead of
+"Plugins / Isabelle". Minor INCOMPATIBILITY.
+
 * Support for additional look-and-feels: "FlatLaf IntelliJ" and "FlatLaf
 Darcula".
 

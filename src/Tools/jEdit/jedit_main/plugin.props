@@ -28,8 +28,8 @@ options.isabelle-rendering.label=Rendering
 options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Rendering_Options();
 
 #menu actions and dockables
-plugin.isabelle.jedit_main.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit_main.Plugin.menu= \
+isabelle-menu.label=$Isabelle
+isabelle-menu= \
   isabelle.browser-info \
   isabelle-export-browser \
   isabelle-session-browser \

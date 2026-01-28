@@ -290,6 +290,9 @@ class Main_Plugin extends EBPlugin {
 
   private def init_menus(): Unit =
     if (jEdit.getActiveView != null) {
+      JEdit_Property.menu_bar.load()
+        .insert_after("macros", "isabelle-menu")
+        .save()
       JEdit_Property.file_menu.load()
         .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
         .save()
@@ -298,6 +301,9 @@ class Main_Plugin extends EBPlugin {
     }
 
   private def exit_menus(): Unit = {
+    JEdit_Property.menu_bar.load()
+      .remove("isabelle-menu")
+      .save()
     JEdit_Property.file_menu.load()
       .remove("isabelle.reload-plain", "isabelle.reload-symbols")
       .save()

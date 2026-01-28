@@ -79,8 +79,8 @@ text \<open>
   The overall look-and-feel of jEdit is changed significantly, and the
   different name of Isabelle/jEdit is justified even from the surface.
 
-  The main plugin is called ``Isabelle'' and has its own menu \<^emph>\<open>Plugins~/
-  Isabelle\<close> with access to several actions and add-on panels (see also
+  The main plugin is called ``Isabelle'' and has its own entry in the toplevel
+  menu bar, with access to several actions and add-on panels (see also
   \secref{sec:dockables}), as well as \<^emph>\<open>Plugins~/ Plugin Options~/ Isabelle\<close>
   (see also \secref{sec:options}).
 
