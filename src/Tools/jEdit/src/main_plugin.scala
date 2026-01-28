@@ -296,6 +296,9 @@ class Main_Plugin extends EBPlugin {
       JEdit_Property.file_menu.load()
         .insert_after("reload-all", "isabelle.reload-plain", "isabelle.reload-symbols")
         .save()
+      JEdit_Property.help_menu.load()
+        .insert_after("help", "isabelle-documentation")
+        .save()
 
       GUI_Thread.later { jEdit.propertiesChanged }
     }
@@ -306,6 +309,9 @@ class Main_Plugin extends EBPlugin {
       .save()
     JEdit_Property.file_menu.load()
       .remove("isabelle.reload-plain", "isabelle.reload-symbols")
+      .save()
+    JEdit_Property.help_menu.load()
+      .remove("isabelle-documentation")
       .save()
 
     GUI_Thread.later { jEdit.propertiesChanged }

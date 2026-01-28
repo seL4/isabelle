@@ -22,6 +22,7 @@ object JEdit_Property {
 
   val menu_bar: JEdit_Property = init("view.mbar")
   val file_menu: JEdit_Property = init("file")
+  val help_menu: JEdit_Property = init("help-menu")
 }
 
 final class JEdit_Property private(val name: String, val value: String) {
