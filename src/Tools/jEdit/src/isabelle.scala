@@ -409,7 +409,7 @@ object Isabelle {
   /* completion */
 
   def complete(view: View, word_only: Boolean): Unit =
-    Completion_Popup.Text_Area.action(view.getTextArea, word_only)
+    Completion_Popup.Text_Area.action(view.getTextArea, word_only = word_only, focus = true)
 
 
   /* control styles */
