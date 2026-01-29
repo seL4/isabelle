@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea 
 
 import java.awt.{Point, Rectangle}
 import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText,
-  AccessibleEditableText}
+  AccessibleEditableText, AccessibleState, AccessibleStateSet}
 import javax.swing.{JPanel, SwingUtilities}
 import javax.swing.text.{AttributeSet, SimpleAttributeSet, StyleConstants}
 
@@ -112,6 +112,14 @@ object JEdit_Accessible {
     protected class Accessible_Context extends AccessibleJPanel {
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
+      override def getAccessibleStateSet: AccessibleStateSet = {
+        val states = super.getAccessibleStateSet
+        // see javax.swing.text.JTextComponent.AccessibleJTextComponent
+        states.add(AccessibleState.EDITABLE)
+        // see javax.swing.JEditorPane.AccessibleJEditorPane
+        states.add(AccessibleState.MULTI_LINE)
+        states
+      }
       override def getAccessibleText: AccessibleText = accessible_text
       override def getAccessibleEditableText: AccessibleEditableText = accessible_text
       override def getAccessibleChildrenCount: Int = 0
