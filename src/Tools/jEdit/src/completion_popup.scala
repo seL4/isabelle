@@ -57,7 +57,7 @@ object Completion_Popup {
         case None => None
       }
 
-    def action(text_area: TextArea, word_only: Boolean): Boolean =
+    def action(text_area: TextArea, word_only: Boolean = false): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined) {
