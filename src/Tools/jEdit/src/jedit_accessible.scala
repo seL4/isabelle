@@ -109,6 +109,13 @@ object JEdit_Accessible {
       accessibleContext
     }
 
+    def caret_update(caret: Int): Unit =
+      accessibleContext match {
+        case accessible_context: Accessible_Context =>
+          accessible_context.caret_update(caret)
+        case _ =>
+      }
+
     protected class Accessible_Context extends AccessibleJPanel {
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
@@ -124,6 +131,14 @@ object JEdit_Accessible {
       override def getAccessibleEditableText: AccessibleEditableText = accessible_text
       override def getAccessibleChildrenCount: Int = 0
       override def getAccessibleChild(i: Int): Accessible = null
+
+      private var old_caret = 0
+      def caret_update(caret: Int): Unit =
+        if (old_caret != caret) {
+          // see javax.swing.text.JTextComponent.AccessibleJTextComponent
+          firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, old_caret, caret)
+          old_caret = caret
+        }
     }
 
     protected val accessible_text: AccessibleEditableText = new Accessible_Text
