@@ -57,14 +57,15 @@ object Completion_Popup {
         case None => None
       }
 
-    def action(text_area: TextArea, word_only: Boolean = false): Boolean =
+    def action(text_area: TextArea, word_only: Boolean = false, focus: Boolean = false): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined) {
-            text_area_completion.action(word_only = word_only)
+            text_area_completion.action(word_only = word_only, focus = focus)
           }
           else {
-            text_area_completion.action(immediate = true, explicit = true, word_only = word_only)
+            text_area_completion.action(
+              immediate = true, explicit = true, word_only = word_only, focus = focus)
           }
           true
         case None => false
@@ -218,7 +219,8 @@ object Completion_Popup {
       immediate: Boolean = false,
       explicit: Boolean = false,
       delayed: Boolean = false,
-      word_only: Boolean = false
+      word_only: Boolean = false,
+      focus: Boolean = false
     ): Boolean = {
       val view = text_area.getView
       val layered = view.getLayeredPane
@@ -276,7 +278,7 @@ object Completion_Popup {
           view.setKeyEventInterceptor(completion.inner_key_listener)
           JEdit_Lib.invalidate_range(text_area, range)
           Pretty_Tooltip.dismissed_all()
-          completion.show_popup(false)
+          completion.show_popup(focus)
         }
       }
 
