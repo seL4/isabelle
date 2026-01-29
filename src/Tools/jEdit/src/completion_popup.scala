@@ -60,10 +60,12 @@ object Completion_Popup {
     def action(text_area: TextArea, word_only: Boolean): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
-          if (text_area_completion.active_range.isDefined)
+          if (text_area_completion.active_range.isDefined) {
             text_area_completion.action(word_only = word_only)
-          else
+          }
+          else {
             text_area_completion.action(immediate = true, explicit = true, word_only = word_only)
+          }
           true
         case None => false
       }
@@ -247,8 +249,9 @@ object Completion_Popup {
                 insert(item)
               }
               override def propagate(evt: KeyEvent): Unit = {
-                if (view.getKeyEventInterceptor == null)
+                if (view.getKeyEventInterceptor == null) {
                   JEdit_Lib.propagate_key(view, evt)
+                }
                 else if (view.getKeyEventInterceptor == inner_key_listener) {
                   try {
                     view.setKeyEventInterceptor(null)
@@ -261,8 +264,9 @@ object Completion_Popup {
                 if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
               override def shutdown(focus: Boolean): Unit = {
-                if (view.getKeyEventInterceptor == inner_key_listener)
+                if (view.getKeyEventInterceptor == inner_key_listener) {
                   view.setKeyEventInterceptor(null)
+                }
                 if (focus) text_area.requestFocus()
                 JEdit_Lib.invalidate_range(text_area, range)
               }
@@ -338,18 +342,15 @@ object Completion_Popup {
               input_delay.revoke()
               action(immediate = immediate)
             }
-            else {
-              if (!special && action(immediate = immediate, delayed = true))
-                input_delay.revoke()
-              else
-                input_delay.invoke()
-            }
+            else if (!special && action(immediate = immediate, delayed = true)) input_delay.revoke()
+            else input_delay.invoke()
           }
         }
 
         val selection = text_area.getSelection()
-        if (!special && (selection == null || selection.isEmpty))
+        if (!special && (selection == null || selection.isEmpty)) {
           Isabelle.indent_input(text_area)
+        }
       }
     }
 
