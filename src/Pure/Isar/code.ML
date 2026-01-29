@@ -65,7 +65,6 @@ sig
   val print_codesetup: theory -> unit
 
   (*transitional*)
-  val code_del_allowed: bool Config.T
   val strict_drop: bool Config.T
 end;
 
@@ -112,19 +111,7 @@ fun string_of_const thy c =
 
 (* transitional *)
 
-val code_del_allowed_default = false;
-val code_del_allowed = Attrib.setup_config_bool \<^binding>\<open>code_del_allowed\<close> (K code_del_allowed_default);
 val strict_drop = Attrib.setup_config_bool \<^binding>\<open>code_strict_drop\<close> (K false);
-
-fun check_code_del thy =
-  if Config.get_global thy code_del_allowed
-  then Output.legacy_feature "code del attribute"
-  else error "legacy code del attribute not accepted";
-
-val _ = Theory.setup (Theory.at_end (fn thy =>
-  if Config.get_global thy code_del_allowed = code_del_allowed_default
-  then NONE
-  else thy |> Config.put_global code_del_allowed code_del_allowed_default |> SOME));
 
 
 (* constants *)
@@ -1522,13 +1509,6 @@ val declare_eqns_global = generic_declare_eqns Strict;
 val declare_eqns =
   code_declaration Liberal (map o apfst o Morphism.thm) generic_declare_eqns;
 
-fun del_eqn_global thm thy =
-  case prep_eqn Liberal thy (thm, false) of
-    SOME (c, (thm, _)) =>
-      (modify_specs o modify_pending_eqns thy c)
-        (filter_out (fn (thm', _) => Thm.eq_thm_prop (thm, thm'))) thy
-  | NONE => thy;
-
 val declare_abstract_eqn_global = generic_declare_abstract_eqn Strict;
 val declare_abstract_eqn = code_declaration Liberal Morphism.thm generic_declare_abstract_eqn;
 
@@ -1640,8 +1620,6 @@ val _ = Theory.setup
           (generic_declare_abstract_eqn Liberal)
       || code_thm_attribute (Args.$$$ "abstype")
           (generic_declare_abstype Liberal)
-      || code_thm_attribute Args.del
-          (fn thm => tap check_code_del #> del_eqn_global thm)
       || code_const_attribute (Args.$$$ "abort")
           declare_aborting_global
       || code_thm_attribute (Args.$$$ "abort")

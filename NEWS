@@ -23,6 +23,9 @@ class parameter from its origin class in generated code. It is still
 possible to specify code equations for instances of that class
 parameter.
 
+* Code generation: transitional legacy attribute [code del] is discontinued.
+Minor INCOMPATIBILITY.
+
 
 *** Isabelle/jEdit Prover IDE ***
 
