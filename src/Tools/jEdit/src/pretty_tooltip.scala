@@ -238,34 +238,33 @@ class Pretty_Tooltip private(
 
   /* popup */
 
-  private val popup: Popup = {
-    val screen = GUI.screen_location(layered, location)
-    val size = {
-      val bounds = JEdit_Rendering.popup_bounds
+  private val popup: Popup =
+    new Popup(layered, pretty_tooltip, location) {
+      override val size: Dimension = {
+        val bounds = JEdit_Rendering.popup_bounds
 
-      val w_max = layered.getWidth min (screen.bounds.width * bounds).toInt
-      val h_max = layered.getHeight min (screen.bounds.height * bounds).toInt
+        val w_max = root.getWidth min (screen.bounds.width * bounds).toInt
+        val h_max = root.getHeight min (screen.bounds.height * bounds).toInt
 
-      val painter = pretty_text_area.getPainter
-      val geometry = JEdit_Lib.window_geometry(pretty_tooltip, painter)
-      val metric = JEdit_Lib.font_metric(painter)
-      val margin =
-        Rich_Text.make_margin(metric, rendering.tooltip_margin,
-          limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
+        val painter = pretty_text_area.getPainter
+        val geometry = JEdit_Lib.window_geometry(component, painter)
+        val metric = JEdit_Lib.font_metric(painter)
+        val margin =
+          Rich_Text.make_margin(metric, rendering.tooltip_margin,
+            limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
-      val formatted = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
-      val lines = Rich_Text.formatted_lines(formatted)
+        val formatted = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
+        val lines = Rich_Text.formatted_lines(formatted)
 
-      val h = painter.getLineHeight * lines + geometry.deco_height
-      val margin1 =
-        if (h <= h_max) Rich_Text.formatted_margin(metric, formatted)
-        else margin.toDouble
-      val w = (metric.unit * (margin1 + 1)).round.toInt + geometry.deco_width
+        val h = painter.getLineHeight * lines + geometry.deco_height
+        val margin1 =
+          if (h <= h_max) Rich_Text.formatted_margin(metric, formatted)
+          else margin.toDouble
+        val w = (metric.unit * (margin1 + 1)).round.toInt + geometry.deco_width
 
-      new Dimension(w min w_max, h min h_max)
+        new Dimension(w min w_max, h min h_max)
+      }
     }
-    new Popup(layered, pretty_tooltip, screen.relative(layered, size), size)
-  }
 
   private def show_popup(): Unit = {
     popup.show

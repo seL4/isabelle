@@ -143,17 +143,16 @@ class Selection_Popup[A](
   def active_range: Option[Text.Range] =
     if (isDisplayable) opt_range else None
 
-  private val popup = {
-    val screen = GUI.screen_location(layered, location)
-    val size = {
-      val geometry = JEdit_Lib.window_geometry(panel, panel)
-      val bounds = JEdit_Rendering.popup_bounds
-      val w = geometry.width min (screen.bounds.width * bounds).toInt min layered.getWidth
-      val h = geometry.height min (screen.bounds.height * bounds).toInt min layered.getHeight
-      new Dimension(w, h)
+  private val popup =
+    new Popup(layered, panel, location) {
+      override val size: Dimension = {
+        val geometry = JEdit_Lib.window_geometry(component, component)
+        val bounds = JEdit_Rendering.popup_bounds
+        val w = geometry.width min (screen.bounds.width * bounds).toInt min root.getWidth
+        val h = geometry.height min (screen.bounds.height * bounds).toInt min root.getHeight
+        new Dimension(w, h)
+      }
     }
-    new Popup(layered, panel, screen.relative(layered, size), size)
-  }
 
   def show_popup(focus: Boolean): Unit = {
     popup.show

@@ -11,26 +11,24 @@ import java.awt.{Point, Dimension}
 import javax.swing.{JLayeredPane, JComponent}
 
 
-class Popup(
-  layered: JLayeredPane,
-  component: JComponent,
-  location: Point,
-  size: Dimension
-) {
+abstract class Popup(val root: JLayeredPane, val component: JComponent, point: Point) {
+  val screen: GUI.Screen_Location = GUI.screen_location(root, point)
+
+  def size: Dimension
+
   def show: Unit = {
-    component.setLocation(location)
+    component.setLocation(screen.relative(root, size))
     component.setSize(size)
     component.setPreferredSize(size)
     component.setOpaque(true)
-    layered.add(component, JLayeredPane.POPUP_LAYER)
-    layered.moveToFront(component)
-    layered.repaint(component.getBounds())
+    root.add(component, JLayeredPane.POPUP_LAYER)
+    root.moveToFront(component)
+    root.repaint(component.getBounds())
   }
 
   def hide: Unit = {
     val bounds = component.getBounds()
-    layered.remove(component)
-    layered.repaint(bounds)
+    root.remove(component)
+    root.repaint(bounds)
   }
 }
-
