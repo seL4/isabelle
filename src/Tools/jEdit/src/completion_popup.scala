@@ -220,6 +220,33 @@ object Completion_Popup {
       }
     }
 
+    def open_popup(
+      range: Text.Range,
+      items: List[Selection_Popup.Item],
+      focus: Boolean = false
+    ): Unit = {
+      val view = text_area.getView
+      val painter = text_area.getPainter
+
+      val loc1 = text_area.offsetToXY(range.start)
+      if (loc1 != null) {
+        val loc2 =
+          SwingUtilities.convertPoint(painter,
+            loc1.x, loc1.y + painter.getLineHeight, view.getLayeredPane)
+        val panel =
+          new Selection_Popup.Text_Area(text_area, range, loc2, items,
+            select_enter = select_enter, select_tab = select_tab
+          ) { override def input(evt: KeyEvent): Unit = Text_Area.this.input(evt) }
+
+        dismissed()
+        selection_popup = Some(panel)
+        view.setKeyEventInterceptor(panel.inner_key_listener)
+        JEdit_Lib.invalidate_range(text_area, range)
+        Pretty_Tooltip.dismissed_all()
+        panel.show_popup(focus)
+      }
+    }
+
     def action(
       immediate: Boolean = false,
       explicit: Boolean = false,
@@ -227,32 +254,9 @@ object Completion_Popup {
       word_only: Boolean = false,
       focus: Boolean = false
     ): Boolean = {
-      val view = text_area.getView
-      val layered = view.getLayeredPane
-      val buffer = text_area.getBuffer
-      val painter = text_area.getPainter
-
       val history = PIDE.plugin.completion_history.value
+      val buffer = text_area.getBuffer
       val unicode = Isabelle_Encoding.is_active(buffer)
-
-      def open_popup(range: Text.Range, items: List[Selection_Popup.Item]): Unit = {
-        val loc1 = text_area.offsetToXY(range.start)
-        if (loc1 != null) {
-          val loc2 =
-            SwingUtilities.convertPoint(painter,
-              loc1.x, loc1.y + painter.getLineHeight, layered)
-          val completion =
-            new Selection_Popup.Text_Area(text_area, range, loc2, items,
-              select_enter = select_enter, select_tab = select_tab
-            ) { override def input(evt: KeyEvent): Unit = Text_Area.this.input(evt) }
-          dismissed()
-          selection_popup = Some(completion)
-          view.setKeyEventInterceptor(completion.inner_key_listener)
-          JEdit_Lib.invalidate_range(text_area, range)
-          Pretty_Tooltip.dismissed_all()
-          completion.show_popup(focus)
-        }
-      }
 
       if (buffer.isEditable) {
         val caret = text_area.getCaretPosition
@@ -288,7 +292,7 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result.range, result.items.map(new Item(_, insert)))
+                  open_popup(result.range, result.items.map(new Item(_, insert)), focus = focus)
                   false
                 case _ => false
               }
