@@ -365,33 +365,6 @@ object Isabelle {
   }
 
 
-  /* hyperlinks */
-
-  def show_links(view: View): Unit = {
-    val text_area = view.getTextArea
-    for {
-      rendering <- Document_View.get_rendering(text_area)
-      completion <- Completion_Popup.Text_Area(text_area)
-    } {
-      val caret_range = JEdit_Lib.caret_range(text_area)
-      val links = rendering.hyperlinks(caret_range)
-      if (links.nonEmpty) {
-        val items = links.map(info => new Selection_Popup.Hyperlink(view, info.info))
-        completion.open_popup(caret_range, items, focus = true)
-      }
-    }
-  }
-
-  def follow_link(view: View): Unit = {
-    val text_area = view.getTextArea
-    val painter = text_area.getPainter
-    for (rendering <- Document_View.get_rendering(text_area)) {
-      val caret_range = JEdit_Lib.caret_range(text_area)
-      for (Text.Info(_, link) <- rendering.hyperlink(caret_range)) link.follow(view)
-    }
-  }
-
-
   /* select formal entity or structure */
 
   def select_entity(text_area: JEditTextArea): Unit = {
@@ -529,24 +502,31 @@ object Isabelle {
   }
 
 
-  /* popups */
+  /* hyperlinks and popups */
 
-  def completion(text_area: JEditTextArea, word_only: Boolean): Unit =
-    Completion_Popup.Text_Area.action(text_area, word_only = word_only, focus = true)
-
-  def dismissed_popups(view: View): Boolean = {
-    var dismissed = false
-
-    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
-      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
-
-    if (Pretty_Tooltip.dismissed_all()) dismissed = true
-
-    dismissed
+  def follow_link(view: View): Unit = {
+    val text_area = view.getTextArea
+    val painter = text_area.getPainter
+    for (rendering <- Document_View.get_rendering(text_area)) {
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      for (Text.Info(_, link) <- rendering.hyperlink(caret_range)) link.follow(view)
+    }
   }
 
-
-  /* tooltips */
+  def show_links(view: View): Unit = {
+    val text_area = view.getTextArea
+    for {
+      rendering <- Document_View.get_rendering(text_area)
+      completion <- Completion_Popup.Text_Area(text_area)
+    } {
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      val links = rendering.hyperlinks(caret_range)
+      if (links.nonEmpty) {
+        val items = links.map(info => new Selection_Popup.Hyperlink(view, info.info))
+        completion.open_popup(caret_range, items, focus = true)
+      }
+    }
+  }
 
   def show_tooltip(view: View, control: Boolean): Unit = {
     GUI_Thread.require {}
@@ -563,6 +543,20 @@ object Isabelle {
       val results = rendering.snapshot.command_results(tip.range)
       Pretty_Tooltip(view, painter, loc, rendering, results, tip.info)
     }
+  }
+
+  def completion(text_area: JEditTextArea, word_only: Boolean): Unit =
+    Completion_Popup.Text_Area.action(text_area, word_only = word_only, focus = true)
+
+  def dismissed_popups(view: View): Boolean = {
+    var dismissed = false
+
+    JEdit_Lib.jedit_text_areas(view).foreach(text_area =>
+      if (Completion_Popup.Text_Area.dismissed(text_area)) dismissed = true)
+
+    if (Pretty_Tooltip.dismissed_all()) dismissed = true
+
+    dismissed
   }
 
 
