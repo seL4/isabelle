@@ -235,16 +235,12 @@ object Completion_Popup {
       val history = PIDE.plugin.completion_history.value
       val unicode = Isabelle_Encoding.is_active(buffer)
 
-      def open_popup(result: Completion.Result): Unit = {
-        val range = result.range
-
+      def open_popup(range: Text.Range, items: List[Selection_Popup.Item]): Unit = {
         val loc1 = text_area.offsetToXY(range.start)
         if (loc1 != null) {
           val loc2 =
             SwingUtilities.convertPoint(painter,
               loc1.x, loc1.y + painter.getLineHeight, layered)
-
-          val items = result.items.map(new Item(_, insert))
           val completion =
             new Selection_Popup.Text_Area(text_area, range, loc2, items,
               select_enter = select_enter, select_tab = select_tab
@@ -292,7 +288,7 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result)
+                  open_popup(result.range, result.items.map(new Item(_, insert)))
                   false
                 case _ => false
               }
