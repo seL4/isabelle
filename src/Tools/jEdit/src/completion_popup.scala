@@ -265,11 +265,11 @@ object Completion_Popup {
                 }
                 if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
               }
-              override def shutdown(focus: Boolean): Unit = {
+              override def shutdown(refocus: Boolean): Unit = {
                 if (view.getKeyEventInterceptor == inner_key_listener) {
                   view.setKeyEventInterceptor(null)
                 }
-                if (focus) text_area.requestFocus()
+                if (refocus) text_area.requestFocus()
                 JEdit_Lib.invalidate_range(text_area, range)
               }
             }
@@ -474,8 +474,8 @@ object Completion_Popup {
                   }
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
-                  override def shutdown(focus: Boolean): Unit =
-                    if (focus) text_field.requestFocus()
+                  override def shutdown(refocus: Boolean): Unit =
+                    if (refocus) text_field.requestFocus()
                 }
               dismissed()
               completion_popup = Some(completion)
@@ -550,7 +550,7 @@ class Completion_Popup private(
 
   def complete(item: Completion.Item): Unit = {}
   def propagate(evt: KeyEvent): Unit = {}
-  def shutdown(focus: Boolean): Unit = {}
+  def shutdown(refocus: Boolean): Unit = {}
 
 
   /* list view */
