@@ -98,6 +98,10 @@ isabelle.reload-plain.label=Reload Plain $Text
 isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg
 isabelle.reload-symbols.label=Reload Unicode S$ymbols
 
+#other actions
+isabelle.show-links.label=Show hyperlinks at caret
+isabelle.show-links.shortcut=CS+h
+
 #SideKick
 mode.isabelle-news.folding=sidekick
 mode.isabelle-news.sidekick.parser=isabelle-news

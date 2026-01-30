@@ -16,11 +16,20 @@ import javax.swing.border.LineBorder
 
 import scala.swing.{ListView, ScrollPane}
 
+import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object Selection_Popup {
+  /* items */
+
   trait Item { def select(): Unit }
+
+  class Hyperlink(view: View, link: PIDE.editor.Hyperlink)
+  extends Item {
+    override def select(): Unit = link.follow(view)
+    override def toString: String = link.toString
+  }
 
 
   /* specific popup */

@@ -87,6 +87,11 @@
 	    isabelle.jedit.Isabelle.toggle_full_screen(view);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.show-links">
+	  <CODE>
+	    isabelle.jedit.Isabelle.show_links(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.follow-link">
 	  <CODE>
 	    isabelle.jedit.Isabelle.follow_link(view);

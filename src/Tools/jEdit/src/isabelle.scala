@@ -365,7 +365,22 @@ object Isabelle {
   }
 
 
-  /* follow link */
+  /* hyperlinks */
+
+  def show_links(view: View): Unit = {
+    val text_area = view.getTextArea
+    for {
+      rendering <- Document_View.get_rendering(text_area)
+      completion <- Completion_Popup.Text_Area(text_area)
+    } {
+      val caret_range = JEdit_Lib.caret_range(text_area)
+      val links = rendering.hyperlinks(caret_range)
+      if (links.nonEmpty) {
+        val items = links.map(info => new Selection_Popup.Hyperlink(view, info.info))
+        completion.open_popup(caret_range, items, focus = true)
+      }
+    }
+  }
 
   def follow_link(view: View): Unit = {
     val text_area = view.getTextArea

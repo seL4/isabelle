@@ -61,6 +61,10 @@ while retaining the keyboard shortcut CS+d. The new action is more
 general: it uses the same notion of link as C-hover-click via mouse.
 Minor INCOMPATIBILITY.
 
+* The jEdit action "show-links" (keyboard shortcut CS+h) opens a popup
+with the list of currently active hyperlinks, e.g. for definitions of
+formal entities.
+
 * Tooltip messages render formal entities with additional PIDE markup,
 to distinguish multiple def-positions due to locale interpretations etc.
 
