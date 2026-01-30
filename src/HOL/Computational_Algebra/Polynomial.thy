@@ -2089,7 +2089,7 @@ lemma poly_all_0_iff_0: "(\<forall>x. poly p x = 0) \<longleftrightarrow> p = 0"
   for p :: "'a::{ring_char_0,comm_ring_1,ring_no_zero_divisors} poly"
   by (auto simp add: poly_eq_poly_eq_iff [symmetric])
 
-lemma card_poly_roots_bound:
+lemma poly_roots_degree:
   fixes p :: "'a::{comm_ring_1,ring_no_zero_divisors} poly"
   assumes "p \<noteq> 0"
   shows   "card {x. poly p x = 0} \<le> degree p"
@@ -2134,7 +2134,7 @@ proof (rule ccontr)
     using neq and assms by (intro card_mono poly_roots_finite) auto
   finally have "degree (p - q) < card {x. poly (p - q) x = 0}" .
   moreover have "degree (p - q) \<ge> card {x. poly (p - q) x = 0}"
-    using neq by (intro card_poly_roots_bound) auto
+    using neq by (intro poly_roots_degree) auto
   ultimately show False by linarith
 qed
 
@@ -2158,7 +2158,7 @@ proof (rule ccontr)
   also have "card A \<le> card {x. poly (p - q) x = 0}"
     by (intro card_mono poly_roots_finite) (use \<open>p \<noteq> q\<close> assms in auto)
   also have "card {x. poly (p - q) x = 0} \<le> degree (p - q)"
-    by (rule card_poly_roots_bound) (use \<open>p \<noteq> q\<close> in auto)
+    by (rule poly_roots_degree) (use \<open>p \<noteq> q\<close> in auto)
   also have "degree (p - q) < n"
   proof (intro degree_lessI allI impI)
     fix k assume "k \<ge> n"
