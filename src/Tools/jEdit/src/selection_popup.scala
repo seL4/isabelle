@@ -17,12 +17,16 @@ import javax.swing.border.LineBorder
 import scala.swing.{ListView, ScrollPane}
 
 
-class Selection_Popup[A](
+object Selection_Popup {
+  trait Item { def select(): Unit }
+}
+
+class Selection_Popup(
   opt_range: Option[Text.Range],
   layered: JLayeredPane,
   location: Point,
   font: Font,
-  items: List[A],
+  items: List[Selection_Popup.Item],
   select_enter: Boolean = false,
   select_tab: Boolean = false
 ) extends JPanel(new BorderLayout) {
@@ -36,7 +40,6 @@ class Selection_Popup[A](
 
   /* actions */
 
-  def select(item: A): Unit = {}
   def propagate(evt: KeyEvent): Unit = {}
   def shutdown(refocus: Boolean): Unit = {}
 
@@ -57,7 +60,7 @@ class Selection_Popup[A](
 
   private def select_current(): Boolean = {
     list_view.selection.items.toList match {
-      case item :: _ => select(item); true
+      case item :: _ => item.select(); true
       case _ => false
     }
   }

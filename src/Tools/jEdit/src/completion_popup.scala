@@ -21,7 +21,13 @@ import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 object Completion_Popup {
   /** items with HTML rendering **/
 
-  class Item(val item: Completion.Item) {
+  class Item(item: Completion.Item, insert: Completion.Item => Unit)
+  extends Selection_Popup.Item {
+    override def select(): Unit = {
+      PIDE.plugin.completion_history.update(item)
+      insert(item)
+    }
+
     private val html =
       item.description match {
         case a :: bs =>
@@ -241,13 +247,9 @@ object Completion_Popup {
             SwingUtilities.convertPoint(painter,
               loc1.x, loc1.y + painter.getLineHeight, layered)
 
-          val items = result.items.map(new Item(_))
+          val items = result.items.map(new Item(_, insert))
           val completion =
             new Completion_Popup(Some(range), layered, loc2, font, items) {
-              override def select(item: Item): Unit = {
-                PIDE.plugin.completion_history.update(item.item)
-                insert(item.item)
-              }
               override def propagate(evt: KeyEvent): Unit = {
                 if (view.getKeyEventInterceptor == null) {
                   JEdit_Lib.propagate_key(view, evt)
@@ -463,13 +465,9 @@ object Completion_Popup {
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val items = result.items.map(new Item(_))
+              val items = result.items.map(new Item(_, insert))
               val completion =
                 new Completion_Popup(None, layered, loc, text_field.getFont, items) {
-                  override def select(item: Item): Unit = {
-                    PIDE.plugin.completion_history.update(item.item)
-                    insert(item.item)
-                  }
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
                   override def shutdown(refocus: Boolean): Unit =
