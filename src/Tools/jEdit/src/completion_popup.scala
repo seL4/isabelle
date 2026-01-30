@@ -25,9 +25,8 @@ object Completion_Popup {
   def completion_context: Boolean = PIDE.options.bool("jedit_completion_context")
   def completion_immediate: Boolean = PIDE.options.bool("jedit_completion_immediate")
   def completion_delay: Time = PIDE.options.seconds("jedit_completion_delay")
-
-  def select_enter: Boolean = PIDE.options.bool("jedit_completion_select_enter")
-  def select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
+  def completion_select_enter: Boolean = PIDE.options.bool("jedit_completion_select_enter")
+  def completion_select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
 
 
   /** items with HTML rendering **/
@@ -71,15 +70,23 @@ object Completion_Popup {
         case None => None
       }
 
-    def action(text_area: TextArea, word_only: Boolean = false, focus: Boolean = false): Boolean =
+    def action(
+      text_area: TextArea,
+      word_only: Boolean = false,
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
+    ): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined) {
-            text_area_completion.action(word_only = word_only, focus = focus)
+            text_area_completion.action(word_only = word_only, focus = focus,
+              select_enter = select_enter, select_tab = select_tab)
           }
           else {
             text_area_completion.action(
-              immediate = true, explicit = true, word_only = word_only, focus = focus)
+              immediate = true, explicit = true, word_only = word_only, focus = focus,
+              select_enter = select_enter, select_tab = select_tab)
           }
           true
         case None => false
@@ -228,7 +235,9 @@ object Completion_Popup {
     def open_popup(
       range: Text.Range,
       items: List[Selection_Popup.Item],
-      focus: Boolean = false
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
     ): Unit = {
       val view = text_area.getView
       val painter = text_area.getPainter
@@ -257,7 +266,9 @@ object Completion_Popup {
       explicit: Boolean = false,
       delayed: Boolean = false,
       word_only: Boolean = false,
-      focus: Boolean = false
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
     ): Boolean = {
       val history = PIDE.plugin.completion_history.value
       val buffer = text_area.getBuffer
@@ -297,8 +308,11 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result.range, result.items.map(new Item(_, insert)), focus = focus)
-                  false
+                  open_popup(result.range, result.items.map(new Item(_, insert)),
+                    focus = focus,
+                    select_enter = completion_select_enter,
+                    select_tab = completion_select_tab)
+              false
                 case _ => false
               }
             case None => false
@@ -441,8 +455,8 @@ object Completion_Popup {
               val items = result.items.map(new Item(_, insert))
               val completion =
                 new Selection_Popup(None, layered, loc, text_field.getFont, items,
-                  select_enter = select_enter,
-                  select_tab = select_tab
+                  select_enter = completion_select_enter,
+                  select_tab = completion_select_tab
                 ) {
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
