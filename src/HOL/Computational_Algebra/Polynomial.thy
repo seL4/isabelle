@@ -627,6 +627,11 @@ next
   qed
 qed
 
+lemma poly_as_sum:
+  fixes p :: "'a::comm_semiring_1 poly"
+  shows "poly p x = (\<Sum>i\<le>degree p. x ^ i * coeff p i)"
+  unfolding poly_altdef by (simp add: ac_simps)
+
 lemma poly_0_coeff_0: "poly p 0 = coeff p 0"
   by (cases p) (auto simp: poly_altdef)
 
@@ -1445,6 +1450,22 @@ lemma smult_conv_map_poly: "smult c p = map_poly (\<lambda>x. c * x) p"
 lemma poly_cnj: "cnj (poly p z) = poly (map_poly cnj p) (cnj z)"
   by (simp add: poly_altdef degree_map_poly coeff_map_poly)
 
+lemma monom_pCons_0_monom:
+  "monom (pCons 0 (monom a n)) d = map_poly (pCons 0) (monom (monom a n) d)"
+  by (simp add: map_poly_monom)
+
+lemma pCons_0_add: "pCons 0 (p + q) = pCons 0 p + pCons 0 q" 
+  by auto
+
+lemma sum_pCons_0_commute:
+  "sum (\<lambda>i. pCons 0 (f i)) S = pCons 0 (sum f S)"
+  by(induct S rule: infinite_finite_induct; simp)
+
+lemma pCons_0_as_mult:
+  fixes p:: "'a :: comm_semiring_1 poly"
+  shows "pCons 0 p = [:0,1:] * p" 
+  by auto
+
 lemma poly_cnj_real:
   assumes "\<And>n. poly.coeff p n \<in> \<real>"
   shows   "cnj (poly p z) = poly p (cnj z)"
@@ -1674,6 +1695,37 @@ instance poly :: ("{comm_ring_prime_char,comm_semiring_1}") comm_ring_prime_char
   by standard
 instance poly :: ("{idom_prime_char,comm_semiring_1}") idom_prime_char
   by standard
+
+lemma linear_poly_root: 
+  "(a :: 'a :: comm_ring_1) \<in> set as \<Longrightarrow> poly (\<Prod> a \<leftarrow> as. [: - a, 1:]) a = 0"
+proof (induct as)
+  case (Cons b as)
+  show ?case
+  proof (cases "a = b")
+    case False
+    with Cons have "a \<in> set as" by auto
+    from Cons(1)[OF this] show ?thesis by simp
+  qed simp
+qed simp
+
+lemma poly_sum_list_eq: "poly (sum_list ps) x = sum_list (map (\<lambda> p. poly p x) ps)"
+  by (induct ps, auto)
+
+lemma poly_prod_list_eq: "poly (prod_list ps) x = prod_list (map (\<lambda> p. poly p x) ps)"
+  by (induct ps, auto)
+
+lemma sum_list_neutral: "(\<And> x. x \<in> set xs \<Longrightarrow> x = 0) \<Longrightarrow> sum_list xs = 0"
+  by (induct xs) auto
+
+lemma prod_list_neutral: "(\<And> x. x \<in> set xs \<Longrightarrow> x = 1) \<Longrightarrow> prod_list xs = 1"
+  by (induct xs) auto
+
+lemma (in comm_monoid_mult) prod_list_map_remove1:
+  "x \<in> set xs \<Longrightarrow> prod_list (map f xs) = f x * prod_list (map f (remove1 x xs))"
+  by (induct xs) (auto simp add: ac_simps)
+
+lemma poly_prod_0: "finite ps \<Longrightarrow> poly (prod f ps) x = (0 :: 'a :: field) \<longleftrightarrow> (\<exists> p \<in> ps. poly (f p) x = 0)"
+  by (induct ps rule: finite_induct, auto)
 
 lemma degree_mult_eq: "p \<noteq> 0 \<Longrightarrow> q \<noteq> 0 \<Longrightarrow> degree (p * q) = degree p + degree q"
   for p q :: "'a::{comm_semiring_0,semiring_no_zero_divisors} poly"
@@ -2846,8 +2898,91 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
   qed
 qed
 
-subsection \<open>Closure properties of coefficients\<close>
+subsection \<open>Divisibility\<close>
 
+context
+  assumes "SORT_CONSTRAINT('a :: idom)"
+begin
+lemma poly_linear_linear_factor: 
+  assumes dvd: "[:b,1:] dvd (\<Prod> (a :: 'a) \<leftarrow> as. [: a, 1:])"
+  shows "b \<in> set as"
+proof -
+  let ?p = "\<lambda> as. (\<Prod> a \<leftarrow> as. [: a, 1:])"
+  let ?b = "[:b,1:]"
+  from assms[unfolded dvd_def] obtain p where id: "?p as = ?b * p" ..
+  from arg_cong[OF id, of "\<lambda> p. poly p (-b)"]
+  have "poly (?p as) (-b) = 0" by simp
+  thus ?thesis
+  proof (induct as)
+    case (Cons a as)
+    have "?p (a # as) = [:a,1:] * ?p as" by simp
+    from Cons(2)[unfolded this] have "poly (?p as) (-b) = 0 \<or> (a - b) = 0" by simp
+    with Cons(1) show ?case by auto
+  qed simp
+qed
+
+lemma poly_linear_exp_linear_factors: 
+  assumes dvd: "([:b,1:])^n dvd (\<Prod> (a :: 'a) \<leftarrow> as. [: a, 1:])"
+  shows "length (filter ((=) b) as) \<ge> n"
+proof -
+  let ?p = "\<lambda> as. (\<Prod> a \<leftarrow> as. [: a, 1:])"
+  let ?b = "[:b,1:]"
+  from dvd show ?thesis
+  proof (induct n arbitrary: as)
+    case (Suc n as)
+    have bs: "?b ^ Suc n = ?b * ?b ^ n" by simp
+    from poly_linear_linear_factor[OF dvd_mult_left[OF Suc(2)[unfolded bs]], 
+      unfolded in_set_conv_decomp]
+    obtain as1 as2 where as: "as = as1 @ b # as2" by auto
+    have "?p as = [:b,1:] * ?p (as1 @ as2)" unfolding as
+    proof (induct as1)
+      case (Cons a as1)
+      have "?p (a # as1 @ b # as2) = [:a,1:] * ?p (as1 @ b # as2)" by simp
+      also have "?p (as1 @ b # as2) = [:b,1:] * ?p (as1 @ as2)" unfolding Cons by simp
+      also have "[:a,1:] * \<dots> = [:b,1:] * ([:a,1:] * ?p (as1 @ as2))" 
+        by (metis (no_types, lifting) mult.left_commute)
+      finally show ?case by simp
+    qed simp
+    from Suc(2)[unfolded bs this dvd_mult_cancel_left]
+    have "?b ^ n dvd ?p (as1 @ as2)" by simp
+    from Suc(1)[OF this] show ?case unfolding as by simp
+  qed simp    
+qed
+end
+
+lemma const_poly_dvd: "([:a:] dvd [:b:]) = (a dvd b)"
+proof
+  assume "a dvd b"
+  then obtain c where "b = a * c" unfolding dvd_def by auto
+  hence "[:b:] = [:a:] * [: c:]" by (auto simp: ac_simps)
+  thus "[:a:] dvd [:b:]" unfolding dvd_def by blast
+next
+  assume "[:a:] dvd [:b:]"
+  then obtain pc where "[:b:] =  [:a:] * pc" unfolding dvd_def by blast
+  from arg_cong[OF this, of "\<lambda> p. coeff p 0", unfolded coeff_mult]
+  have "b = a * coeff pc 0" by auto
+  thus "a dvd b" unfolding dvd_def by blast
+qed
+
+lemma const_poly_dvd_1 [simp]:
+  "[:a:] dvd 1 \<longleftrightarrow> a dvd 1"
+  by (metis const_poly_dvd one_poly_eq_simps(2))
+
+lemma poly_dvd_1:
+  fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
+  shows "p dvd 1 \<longleftrightarrow> degree p = 0 \<and> coeff p 0 dvd 1"
+proof (cases "degree p = 0")
+  case False
+  with divides_degree[of p 1] show ?thesis by auto
+next
+  case True
+  then obtain a where p: "p = [:a:]"
+    using degree_eq_zeroE by blast
+  show ?thesis unfolding p by auto
+qed
+
+
+subsection \<open>Closure properties of coefficients\<close>
 
 context
   fixes R :: "'a :: comm_semiring_1 set"
@@ -4519,25 +4654,11 @@ lemma is_unit_iff_degree:
   assumes "p \<noteq> 0"
   shows "is_unit p \<longleftrightarrow> degree p = 0"
     (is "?lhs \<longleftrightarrow> ?rhs")
-proof
-  assume ?rhs
-  then obtain a where "p = [:a:]"
-    by (rule degree_eq_zeroE)
-  with assms show ?lhs
-    by (simp add: is_unit_triv)
-next
-  assume ?lhs
-  then obtain q where "q \<noteq> 0" "p * q = 1" ..
-  then have "degree (p * q) = degree 1"
-    by simp
-  with \<open>p \<noteq> 0\<close> \<open>q \<noteq> 0\<close> have "degree p + degree q = 0"
-    by (simp add: degree_mult_eq)
-  then show ?rhs by simp
-qed
+  by (metis assms degree0_coeffs is_unit_triv pCons_0_0 poly_dvd_1)
 
 lemma is_unit_pCons_iff: "is_unit (pCons a p) \<longleftrightarrow> p = 0 \<and> a \<noteq> 0"
   for p :: "'a::field poly"
-  by (cases "p = 0") (auto simp: is_unit_triv is_unit_iff_degree)
+  by (metis degree_0_id is_unit_iff_degree is_unit_triv not_is_unit_0 pCons_eq_0_iff pCons_eq_iff)
 
 lemma is_unit_monom_trivial: "is_unit p \<Longrightarrow> monom (coeff p (degree p)) 0 = p"
   for p :: "'a::field poly"
@@ -4551,33 +4672,13 @@ lemma is_unit_polyE:
   fixes p :: "'a :: {comm_semiring_1,semiring_no_zero_divisors} poly"
   assumes "p dvd 1"
   obtains c where "p = [:c:]" "c dvd 1"
-proof -
-  from assms obtain q where "1 = p * q"
-    by (rule dvdE)
-  then have "p \<noteq> 0" and "q \<noteq> 0"
-    by auto
-  from \<open>1 = p * q\<close> have "degree 1 = degree (p * q)"
-    by simp
-  also from \<open>p \<noteq> 0\<close> and \<open>q \<noteq> 0\<close> have "\<dots> = degree p + degree q"
-    by (simp add: degree_mult_eq)
-  finally have "degree p = 0" by simp
-  with degree_eq_zeroE obtain c where c: "p = [:c:]" .
-  with \<open>p dvd 1\<close> have "c dvd 1"
-    by (simp add: is_unit_const_poly_iff)
-  with c show thesis ..
-qed
+  by (metis assms degree_0_id poly_dvd_1)
 
 lemma is_unit_polyE':
   fixes p :: "'a::field poly"
   assumes "is_unit p"
   obtains a where "p = monom a 0" and "a \<noteq> 0"
-proof -
-  obtain a q where "p = pCons a q"
-    by (cases p)
-  with assms have "p = [:a:]" and "a \<noteq> 0"
-    by (simp_all add: is_unit_pCons_iff)
-  with that show thesis by (simp add: monom_0)
-qed
+  by (metis assms degree_eq_zeroE monom_0 not_is_unit_0 pCons_0_0 poly_dvd_1)
 
 lemma is_unit_poly_iff: "p dvd 1 \<longleftrightarrow> (\<exists>c. p = [:c:] \<and> c dvd 1)"
   for p :: "'a::{comm_semiring_1,semiring_no_zero_divisors} poly"
