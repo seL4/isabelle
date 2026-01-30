@@ -313,10 +313,11 @@ object Completion_Popup {
 
     def input(evt: KeyEvent): Unit = GUI_Thread.require {
       if (!evt.isConsumed) {
+        dismissed()
+
         val special = JEdit_Lib.special_key(evt)
 
         if (completion_enabled) {
-          dismissed()
           if (evt.getKeyChar != '\b') {
             val immediate = completion_immediate
             if (completion_delay.is_zero && !special) {
@@ -463,8 +464,8 @@ object Completion_Popup {
     /* process key event */
 
     private def process(evt: KeyEvent): Unit = {
+      dismissed()
       if (completion_enabled) {
-        dismissed()
         if (evt.getKeyChar != '\b') {
           val special = JEdit_Lib.special_key(evt)
           if (completion_delay.is_zero && !special) {
