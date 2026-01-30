@@ -9,21 +9,35 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Color, Font, Point, BorderLayout, Dimension}
-import java.awt.event.{KeyEvent, KeyListener, MouseEvent, MouseAdapter, FocusAdapter, FocusEvent}
-import javax.swing.{JPanel, JComponent, JLayeredPane, SwingUtilities}
-import javax.swing.border.LineBorder
+import java.awt.{Color, Font, Point}
+import java.awt.event.KeyEvent
+import javax.swing.{JLayeredPane, SwingUtilities}
 import javax.swing.text.DefaultCaret
 
-import scala.swing.{ListView, ScrollPane}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, Selection}
 import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
 object Completion_Popup {
+  /** options **/
+
+  def completion_enabled: Boolean = PIDE.options.bool("jedit_completion")
+  def completion_context: Boolean = PIDE.options.bool("jedit_completion_context")
+  def completion_immediate: Boolean = PIDE.options.bool("jedit_completion_immediate")
+  def completion_delay: Time = PIDE.options.seconds("jedit_completion_delay")
+  def completion_select_enter: Boolean = PIDE.options.bool("jedit_completion_select_enter")
+  def completion_select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
+
+
   /** items with HTML rendering **/
 
-  private class Item(val item: Completion.Item) {
+  class Item(item: Completion.Item, insert: Completion.Item => Unit)
+  extends Selection_Popup.Item {
+    override def select(): Unit = {
+      PIDE.plugin.completion_history.update(item)
+      insert(item)
+    }
+
     private val html =
       item.description match {
         case a :: bs =>
@@ -43,8 +57,7 @@ object Completion_Popup {
   object Text_Area {
     private val key = new Object
 
-    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] = {
-      GUI_Thread.require {}
+    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] = GUI_Thread.require {
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
         case _ => None
@@ -57,22 +70,29 @@ object Completion_Popup {
         case None => None
       }
 
-    def action(text_area: TextArea, word_only: Boolean = false, focus: Boolean = false): Boolean =
+    def action(
+      text_area: TextArea,
+      word_only: Boolean = false,
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
+    ): Boolean =
       apply(text_area) match {
         case Some(text_area_completion) =>
           if (text_area_completion.active_range.isDefined) {
-            text_area_completion.action(word_only = word_only, focus = focus)
+            text_area_completion.action(word_only = word_only, focus = focus,
+              select_enter = select_enter, select_tab = select_tab)
           }
           else {
             text_area_completion.action(
-              immediate = true, explicit = true, word_only = word_only, focus = focus)
+              immediate = true, explicit = true, word_only = word_only, focus = focus,
+              select_enter = select_enter, select_tab = select_tab)
           }
           true
         case None => false
       }
 
-    def exit(text_area: JEditTextArea): Unit = {
-      GUI_Thread.require {}
+    def exit(text_area: JEditTextArea): Unit = GUI_Thread.require {
       apply(text_area) match {
         case None =>
         case Some(text_area_completion) =>
@@ -89,8 +109,7 @@ object Completion_Popup {
       text_area_completion
     }
 
-    def dismissed(text_area: TextArea): Boolean = {
-      GUI_Thread.require {}
+    def dismissed(text_area: TextArea): Boolean = GUI_Thread.require {
       apply(text_area) match {
         case Some(text_area_completion) => text_area_completion.dismissed()
         case None => false
@@ -100,11 +119,11 @@ object Completion_Popup {
 
   class Text_Area private(text_area: JEditTextArea) {
     // owned by GUI thread
-    private var completion_popup: Option[Completion_Popup] = None
+    private var selection_popup: Option[Selection_Popup.Text_Area] = None
 
     def active_range: Option[Text.Range] =
-      completion_popup match {
-        case Some(completion) => completion.active_range
+      selection_popup match {
+        case Some(panel) => panel.active_range
         case None => None
       }
 
@@ -152,7 +171,7 @@ object Completion_Popup {
           val context =
             (for {
               rendering <- opt_rendering
-              if PIDE.options.bool("jedit_completion_context")
+              if completion_context
               caret_range = rendering.before_caret_range(text_area.getCaretPosition)
               context <- rendering.language_context(caret_range)
             } yield context) getOrElse syntax.language_context
@@ -174,9 +193,7 @@ object Completion_Popup {
 
     /* completion action: text area */
 
-    private def insert(item: Completion.Item): Unit = {
-      GUI_Thread.require {}
-
+    private def insert(item: Completion.Item): Unit = GUI_Thread.require {
       val buffer = text_area.getBuffer
       val range = item.range
       if (buffer.isEditable) {
@@ -215,72 +232,47 @@ object Completion_Popup {
       }
     }
 
+    def open_popup(
+      range: Text.Range,
+      items: List[Selection_Popup.Item],
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
+    ): Unit = {
+      val view = text_area.getView
+      val painter = text_area.getPainter
+
+      val loc1 = text_area.offsetToXY(range.start)
+      if (loc1 != null) {
+        val loc2 =
+          SwingUtilities.convertPoint(painter,
+            loc1.x, loc1.y + painter.getLineHeight, view.getLayeredPane)
+        val panel =
+          new Selection_Popup.Text_Area(text_area, range, loc2, items,
+            select_enter = select_enter, select_tab = select_tab
+          ) { override def input(evt: KeyEvent): Unit = Text_Area.this.input(evt) }
+
+        dismissed()
+        selection_popup = Some(panel)
+        view.setKeyEventInterceptor(panel.inner_key_listener)
+        JEdit_Lib.invalidate_range(text_area, range)
+        Pretty_Tooltip.dismissed_all()
+        panel.show_popup(focus)
+      }
+    }
+
     def action(
       immediate: Boolean = false,
       explicit: Boolean = false,
       delayed: Boolean = false,
       word_only: Boolean = false,
-      focus: Boolean = false
+      focus: Boolean = false,
+      select_enter: Boolean = completion_select_enter,
+      select_tab: Boolean = completion_select_tab
     ): Boolean = {
-      val view = text_area.getView
-      val layered = view.getLayeredPane
-      val buffer = text_area.getBuffer
-      val painter = text_area.getPainter
-
       val history = PIDE.plugin.completion_history.value
+      val buffer = text_area.getBuffer
       val unicode = Isabelle_Encoding.is_active(buffer)
-
-      def open_popup(result: Completion.Result): Unit = {
-        val font =
-          painter.getFont.deriveFont(
-            Font_Info.main_size(scale = PIDE.options.real("jedit_popup_font_scale")))
-
-        val range = result.range
-
-        val loc1 = text_area.offsetToXY(range.start)
-        if (loc1 != null) {
-          val loc2 =
-            SwingUtilities.convertPoint(painter,
-              loc1.x, loc1.y + painter.getLineHeight, layered)
-
-          val items = result.items.map(new Item(_))
-          val completion =
-            new Completion_Popup(Some(range), layered, loc2, font, items) {
-              override def complete(item: Completion.Item): Unit = {
-                PIDE.plugin.completion_history.update(item)
-                insert(item)
-              }
-              override def propagate(evt: KeyEvent): Unit = {
-                if (view.getKeyEventInterceptor == null) {
-                  JEdit_Lib.propagate_key(view, evt)
-                }
-                else if (view.getKeyEventInterceptor == inner_key_listener) {
-                  try {
-                    view.setKeyEventInterceptor(null)
-                    JEdit_Lib.propagate_key(view, evt)
-                  }
-                  finally {
-                    if (isDisplayable) view.setKeyEventInterceptor(inner_key_listener)
-                  }
-                }
-                if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
-              }
-              override def shutdown(focus: Boolean): Unit = {
-                if (view.getKeyEventInterceptor == inner_key_listener) {
-                  view.setKeyEventInterceptor(null)
-                }
-                if (focus) text_area.requestFocus()
-                JEdit_Lib.invalidate_range(text_area, range)
-              }
-            }
-          dismissed()
-          completion_popup = Some(completion)
-          view.setKeyEventInterceptor(completion.inner_key_listener)
-          JEdit_Lib.invalidate_range(text_area, range)
-          Pretty_Tooltip.dismissed_all()
-          completion.show_popup(focus)
-        }
-      }
 
       if (buffer.isEditable) {
         val caret = text_area.getCaretPosition
@@ -316,8 +308,11 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result)
-                  false
+                  open_popup(result.range, result.items.map(new Item(_, insert)),
+                    focus = focus,
+                    select_enter = completion_select_enter,
+                    select_tab = completion_select_tab)
+              false
                 case _ => false
               }
             case None => false
@@ -330,17 +325,16 @@ object Completion_Popup {
 
     /* input key events */
 
-    def input(evt: KeyEvent): Unit = {
-      GUI_Thread.require {}
-
+    def input(evt: KeyEvent): Unit = GUI_Thread.require {
       if (!evt.isConsumed) {
+        dismissed()
+
         val special = JEdit_Lib.special_key(evt)
 
-        if (PIDE.options.bool("jedit_completion")) {
-          dismissed()
+        if (completion_enabled) {
           if (evt.getKeyChar != '\b') {
-            val immediate = PIDE.options.bool("jedit_completion_immediate")
-            if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+            val immediate = completion_immediate
+            if (completion_delay.is_zero && !special) {
               input_delay.revoke()
               action(immediate = immediate)
             }
@@ -356,21 +350,16 @@ object Completion_Popup {
       }
     }
 
-    private val input_delay =
-      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
-        action()
-      }
+    private val input_delay = Delay.last(completion_delay, gui = true) { action() }
 
 
     /* dismiss popup */
 
-    def dismissed(): Boolean = {
-      GUI_Thread.require {}
-
-      completion_popup match {
-        case Some(completion) =>
-          completion.hide_popup()
-          completion_popup = None
+    def dismissed(): Boolean = GUI_Thread.require {
+      selection_popup match {
+        case Some(panel) =>
+          panel.hide_popup()
+          selection_popup = None
           true
         case None =>
           false
@@ -409,7 +398,7 @@ object Completion_Popup {
     if (GUI.is_macos_laf()) text_field.setCaret(new DefaultCaret)
 
     // owned by GUI thread
-    private var completion_popup: Option[Completion_Popup] = None
+    private var completion_popup: Option[Selection_Popup] = None
 
 
     /* dismiss */
@@ -428,9 +417,7 @@ object Completion_Popup {
 
     /* insert */
 
-    private def insert(item: Completion.Item): Unit = {
-      GUI_Thread.require {}
-
+    private def insert(item: Completion.Item): Unit = GUI_Thread.require {
       val range = item.range
       if (text_field.isEditable) {
         val content = text_field.getText
@@ -465,17 +452,16 @@ object Completion_Popup {
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val items = result.items.map(new Item(_))
+              val items = result.items.map(new Item(_, insert))
               val completion =
-                new Completion_Popup(None, layered, loc, text_field.getFont, items) {
-                  override def complete(item: Completion.Item): Unit = {
-                    PIDE.plugin.completion_history.update(item)
-                    insert(item)
-                  }
+                new Selection_Popup(None, layered, loc, text_field.getFont, items,
+                  select_enter = completion_select_enter,
+                  select_tab = completion_select_tab
+                ) {
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
-                  override def shutdown(focus: Boolean): Unit =
-                    if (focus) text_field.requestFocus()
+                  override def shutdown(refocus: Boolean): Unit =
+                    if (refocus) text_field.requestFocus()
                 }
               dismissed()
               completion_popup = Some(completion)
@@ -491,11 +477,11 @@ object Completion_Popup {
     /* process key event */
 
     private def process(evt: KeyEvent): Unit = {
-      if (PIDE.options.bool("jedit_completion")) {
-        dismissed()
+      dismissed()
+      if (completion_enabled) {
         if (evt.getKeyChar != '\b') {
           val special = JEdit_Lib.special_key(evt)
-          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+          if (completion_delay.is_zero && !special) {
             process_delay.revoke()
             action()
           }
@@ -504,10 +490,7 @@ object Completion_Popup {
       }
     }
 
-    private val process_delay =
-      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
-        action()
-      }
+    private val process_delay = Delay.last(completion_delay, gui = true) { action() }
 
     override def processKeyEvent(evt0: KeyEvent): Unit = {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
@@ -527,153 +510,5 @@ object Completion_Popup {
         if (!evt.isConsumed) super.processKeyEvent(evt)
       }
     }
-  }
-}
-
-
-class Completion_Popup private(
-  opt_range: Option[Text.Range],
-  layered: JLayeredPane,
-  location: Point,
-  font: Font,
-  items: List[Completion_Popup.Item]
-) extends JPanel(new BorderLayout) {
-  completion =>
-
-  GUI_Thread.require {}
-
-  require(items.nonEmpty, "no completion items")
-  val multi: Boolean = items.length > 1
-
-
-  /* actions */
-
-  def complete(item: Completion.Item): Unit = {}
-  def propagate(evt: KeyEvent): Unit = {}
-  def shutdown(focus: Boolean): Unit = {}
-
-
-  /* list view */
-
-  private val list_view = new ListView(items)
-  list_view.font = font
-  list_view.selection.intervalMode = ListView.IntervalMode.Single
-  list_view.peer.setFocusTraversalKeysEnabled(false)
-  list_view.peer.setVisibleRowCount(items.length min 8)
-  list_view.peer.setSelectedIndex(0)
-
-  for (cond <-
-    List(JComponent.WHEN_FOCUSED,
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-      JComponent.WHEN_IN_FOCUSED_WINDOW)) list_view.peer.setInputMap(cond, null)
-
-  private def complete_selected(): Boolean = {
-    list_view.selection.items.toList match {
-      case item :: _ => complete(item.item); true
-      case _ => false
-    }
-  }
-
-  private def move_items(n: Int): Unit = {
-    val i = list_view.peer.getSelectedIndex
-    val j = ((i + n) min (items.length - 1)) max 0
-    if (i != j) {
-      list_view.peer.setSelectedIndex(j)
-      list_view.peer.ensureIndexIsVisible(j)
-    }
-  }
-
-  private def move_pages(n: Int): Unit = {
-    val page_size = list_view.peer.getVisibleRowCount - 1
-    move_items(page_size * n)
-  }
-
-
-  /* event handling */
-
-  val inner_key_listener: KeyListener =
-    JEdit_Lib.key_listener(
-      key_pressed = { (e: KeyEvent) =>
-        if (!e.isConsumed) {
-          e.getKeyCode match {
-            case KeyEvent.VK_ENTER if PIDE.options.bool("jedit_completion_select_enter") =>
-              if (complete_selected()) e.consume()
-              hide_popup()
-            case KeyEvent.VK_TAB if PIDE.options.bool("jedit_completion_select_tab") =>
-              if (complete_selected()) e.consume()
-              hide_popup()
-            case KeyEvent.VK_ESCAPE =>
-              hide_popup()
-              e.consume()
-            case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
-              move_items(-1)
-              e.consume()
-            case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
-              move_items(1)
-              e.consume()
-            case KeyEvent.VK_PAGE_UP if multi =>
-              move_pages(-1)
-              e.consume()
-            case KeyEvent.VK_PAGE_DOWN if multi =>
-              move_pages(1)
-              e.consume()
-            case _ =>
-              if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
-                hide_popup()
-          }
-        }
-        propagate(e)
-      },
-      key_typed = propagate
-    )
-
-  list_view.peer.addKeyListener(inner_key_listener)
-
-  list_view.peer.addMouseListener(new MouseAdapter {
-    override def mousePressed(e: MouseEvent): Unit = {
-      if (!e.isConsumed() && e.getClickCount == 1) {
-        if (complete_selected()) e.consume()
-        hide_popup()
-      }
-    }
-  })
-
-  list_view.peer.addFocusListener(new FocusAdapter {
-    override def focusLost(e: FocusEvent): Unit = hide_popup()
-  })
-
-
-  /* main content */
-
-  override def getFocusTraversalKeysEnabled = false
-  completion.setBorder(new LineBorder(GUI.default_foreground_color()))
-  completion.add((new ScrollPane(list_view)).peer.asInstanceOf[JComponent])
-
-
-  /* popup */
-
-  def active_range: Option[Text.Range] =
-    if (isDisplayable) opt_range else None
-
-  private val popup = {
-    val screen = GUI.screen_location(layered, location)
-    val size = {
-      val geometry = JEdit_Lib.window_geometry(completion, completion)
-      val bounds = JEdit_Rendering.popup_bounds
-      val w = geometry.width min (screen.bounds.width * bounds).toInt min layered.getWidth
-      val h = geometry.height min (screen.bounds.height * bounds).toInt min layered.getHeight
-      new Dimension(w, h)
-    }
-    new Popup(layered, completion, screen.relative(layered, size), size)
-  }
-
-  private def show_popup(focus: Boolean): Unit = {
-    popup.show
-    if (focus) list_view.requestFocus()
-  }
-
-  private def hide_popup(): Unit = {
-    shutdown(list_view.peer.isFocusOwner)
-    popup.hide
   }
 }

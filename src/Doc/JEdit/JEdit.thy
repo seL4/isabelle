@@ -1334,7 +1334,10 @@ text \<open>
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
   modifier, or the action @{action_def "isabelle.follow-link"} (shortcut
-  \<^verbatim>\<open>CS+d\<close>) jumps to the original defining position.
+  \<^verbatim>\<open>CS+d\<close>) jumps to the original defining position. Alternatively, the action
+  @{action_def "isabelle.show-links"} (shortcut \<^verbatim>\<open>CS+h\<close>) opens a popup with
+  the list of currently active hyperlinks, with the possibility to select one
+  via mouse or keyboard (see also \secref{sec:completion}).
 
   \begin{figure}[!htb]
   \begin{center}

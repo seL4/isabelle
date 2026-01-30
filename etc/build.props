@@ -339,6 +339,7 @@ sources = \
   src/Tools/jEdit/src/query_dockable.scala \
   src/Tools/jEdit/src/raw_output_dockable.scala \
   src/Tools/jEdit/src/rich_text_area.scala \
+  src/Tools/jEdit/src/selection_popup.scala \
   src/Tools/jEdit/src/session_build.scala \
   src/Tools/jEdit/src/simplifier_trace_dockable.scala \
   src/Tools/jEdit/src/simplifier_trace_window.scala \
